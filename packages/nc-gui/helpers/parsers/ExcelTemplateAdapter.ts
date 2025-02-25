@@ -1,4 +1,4 @@
-import { UITypes, getDateFormat, type ColumnType } from 'nocodb-sdk'
+import { type ColumnType, UITypes, getDateFormat } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import TemplateGenerator from './TemplateGenerator'
 import {
@@ -157,6 +157,13 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     const dateValue = dayjs(value, (existingColumn.meta as any)?.date_format)
                     return dateValue.isValid() ? dateValue.format('YYYY-MM-DD HH:mm:ss') : value
                   }
+                } else if (
+                  existingColumn &&
+                  [UITypes.Number, UITypes.Decimal, UITypes.Currency].includes(existingColumn.uidt as UITypes)
+                ) {
+                  colValueResolver[col] = (value: any) => {
+                    return Number(value)
+                  }
                 }
               }
             }
@@ -200,7 +207,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                       .map((r: any) => r[col])
                       .filter((v: any) => v !== null && v !== undefined && v.toString().trim() !== '')
 
-                    if (isCheckboxType(vals, col)) {
+                    if (isCheckboxType(vals)) {
                       column.uidt = UITypes.Checkbox
                     } else {
                       // Single Select / Multi Select
@@ -288,7 +295,6 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     const cellObj = ws[cellId]
                     rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]
                   } else {
-
                     if (table.columns[i].uidt === UITypes.Checkbox) {
                       rowData[table.columns[i].column_name] = getCheckboxValue(row[i])
                     } else if (table.columns[i].uidt === UITypes.Currency) {
@@ -303,7 +309,6 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     } else if (table.columns[i].uidt === UITypes.SingleSelect || table.columns[i].uidt === UITypes.MultiSelect) {
                       rowData[table.columns[i].column_name] = (row[i] || '').toString().trim() || null
                     } else if (table.columns[i].uidt === UITypes.Date) {
-                      console.log(table.columns[i])
                       const cellId = this.xlsx.utils.encode_cell({
                         c: range.s.c + i,
                         r: rowIndex + +this.config.firstRowAsHeaders,
@@ -311,14 +316,19 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                       const cellObj = ws[cellId]
                       rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]
                     } else if (table.columns[i].uidt === UITypes.SingleLineText || table.columns[i].uidt === UITypes.LongText) {
-                      rowData[table.columns[i].column_name] = row[i] === null || row[i] === undefined ? null : `${row[i]}`
+                      const rowValue = row[i]
+                      rowData[table.columns[i].column_name] =
+                        rowValue === null || rowValue === undefined
+                          ? null
+                          : typeof rowValue === 'number'
+                          ? rowValue
+                          : `${rowValue}`
                     } else {
                       // TODO: do parsing if necessary based on type
                       rowData[table.columns[i].column_name] = row[i]
                     }
                   }
                 }
-                console.log('rowData', rowData)
                 this.data[tn].push(rowData)
                 rowIndex++
               }

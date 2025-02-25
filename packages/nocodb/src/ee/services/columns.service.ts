@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { ColumnsService as ColumnsServiceCE } from 'src/services/columns.service';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
+import { FormulaColumnTypeChanger } from 'src/services/formula-column-type-changer.service';
 import type { NcApiVersion } from 'nocodb-sdk';
-import type { ReusableParams } from 'src/services/columns.service';
+import type { ReusableParams } from 'src/services/columns.service.type';
 import type { RelationTypes } from 'nocodb-sdk';
 import type {
   ColumnReqType,
@@ -32,8 +33,9 @@ export class ColumnsService extends ColumnsServiceCE {
   constructor(
     protected readonly metaService: MetaService,
     protected readonly appHooksService: AppHooksService,
+    protected readonly formulaColumnTypeChanger: FormulaColumnTypeChanger,
   ) {
-    super(metaService, appHooksService);
+    super(metaService, appHooksService, formulaColumnTypeChanger);
   }
 
   async columnAdd<T extends NcApiVersion = NcApiVersion | null | undefined>(
@@ -327,4 +329,4 @@ export class ColumnsService extends ColumnsServiceCE {
 }
 
 export { Altered } from 'src/services/columns.service';
-export { ReusableParams } from 'src/services/columns.service';
+export { ReusableParams } from 'src/services/columns.service.type';

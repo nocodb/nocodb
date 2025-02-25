@@ -39,7 +39,7 @@
     "watch:run:ee": "cross-env NODE_ENV=development NC_DISABLE_TELE=true EE=true rspack serve --config rspack.dev.ee.js --entry src/ee/run/docker",
     "watch:run:ee-on-prem": "cross-env NODE_ENV=development NC_DISABLE_TELE=true EE=true rspack serve --config rspack.dev.ee-on-prem.js --entry src/ee/run/docker",
     "watch:run:ee-cloud": "cross-env NODE_ENV=development NC_DISABLE_TELE=true EE=true rspack serve --config rspack.dev.ee-cloud.js --entry src/ee/run/docker",
-    "watch:run:mysql": "cross-env NODE_ENV=development NC_DISABLE_TELE=true EE=true rspack serve --config rspack.dev.ee.js --entry src/run/dockerRunMysql",
+    "watch:run:mysql": "cross-env NODE_ENV=development NC_DISABLE_TELE=true rspack serve --config rspack.dev.js --entry src/run/dockerRunMysql",
     "watch:run:mysql:ee": "cross-env NODE_ENV=development NC_DISABLE_TELE=true EE=true rspack serve --config rspack.dev.ee.js --entry src/ee/run/dockerRunMysql",
     "watch:run:pg": "cross-env NODE_ENV=development NC_DISABLE_TELE=true EE=true rspack serve --config rspack.dev.ee.js --entry src/run/dockerRunPG",
     "watch:run:pg:ee": "cross-env NODE_ENV=development NC_DISABLE_TELE=true EE=true rspack serve --config rspack.dev.ee.js --entry src/ee/run/dockerRunPG",

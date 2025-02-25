@@ -1,5 +1,5 @@
-import { ViewLockType, ViewTypes } from 'nocodb-sdk'
 import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
+import { ViewLockType, ViewTypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { SmartsheetStoreEvents } from '#imports'
 
@@ -102,6 +102,33 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       },
     )
 
+    const viewColumnsMap = reactive<Record<string, Record<string, any>[]>>({})
+    const pendingRequests = new Map()
+
+    const getViewColumns = async (viewId: string) => {
+      if (viewColumnsMap[viewId]) return viewColumnsMap[viewId]
+
+      if (pendingRequests.has(viewId)) {
+        return pendingRequests.get(viewId)
+      }
+
+      const promise = $api.dbViewColumn
+        .list(viewId)
+        .then((result) => {
+          viewColumnsMap[viewId] = result.list
+          pendingRequests.delete(viewId)
+          return result.list
+        })
+        .catch((error) => {
+          pendingRequests.delete(viewId)
+          throw error
+        })
+
+      pendingRequests.set(viewId, promise)
+
+      return promise
+    }
+
     return {
       view,
       meta,
@@ -125,6 +152,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       isDefaultView,
       actionPaneSize,
       isActionPaneActive,
+      viewColumnsMap,
+      getViewColumns,
     }
   },
   'smartsheet-store',

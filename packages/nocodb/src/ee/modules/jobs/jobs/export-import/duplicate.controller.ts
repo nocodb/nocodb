@@ -24,6 +24,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
+import { DuplicateService } from '~/modules/jobs/jobs/export-import/duplicate.service';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -33,8 +34,9 @@ export class DuplicateController extends DuplicateControllerCE {
     protected readonly basesService: BasesService,
     protected readonly appHooksService: AppHooksService,
     protected readonly remoteImportService: RemoteImportService,
+    protected readonly duplicateService: DuplicateService,
   ) {
-    super(jobsService, basesService, appHooksService);
+    super(jobsService, basesService, appHooksService, duplicateService);
   }
 
   @Post([

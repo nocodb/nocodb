@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
-import type { BaseType } from 'nocodb-sdk'
+import { type BaseType, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: boolean
@@ -21,6 +21,7 @@ const { loadProjects, createProject: _createProject } = basesStore
 const { bases } = storeToRefs(basesStore)
 
 const { navigateToProject } = useGlobal()
+const { workspacesList, activeWorkspace } = useWorkspace()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -28,6 +29,15 @@ const options = ref({
   includeData: true,
   includeViews: true,
   includeHooks: true,
+})
+const targetWorkspace = ref('')
+const workspaceOptions = computed(() => {
+  if (!isEeUI) return []
+  return workspacesList.filter(
+    (ws) =>
+      ws.id !== activeWorkspace?.id &&
+      [WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(ws.roles as WorkspaceUserRoles),
+  )
 })
 
 const optionsToExclude = computed(() => {
@@ -53,7 +63,7 @@ const _duplicate = async () => {
     const jobData = await api.base.duplicate(props.base.id as string, {
       options: optionsToExclude.value,
       base: {
-        fk_workspace_id: props.base.fk_workspace_id,
+        fk_workspace_id: targetWorkspace.value ?? props.base.fk_workspace_id,
         type: props.base.type,
         color,
         meta: JSON.stringify({
@@ -150,6 +160,16 @@ const isEaster = ref(false)
         <a-checkbox v-show="isEaster" v-model:checked="options.includeHooks" :disabled="isLoading">
           {{ $t('labels.includeWebhook') }}
         </a-checkbox>
+      </div>
+      <div v-if="isEeUI">
+        <label class="flex flex-col gap-2 mt-2">
+          <div>Copy to different workspace</div>
+          <NcSelect v-model:value="targetWorkspace" show-search allow-clear>
+            <a-select-option v-for="(ws, idx) of workspaceOptions" :key="ws.id" :value="ws.id">
+              {{ ws.title }}
+            </a-select-option>
+          </NcSelect>
+        </label>
       </div>
     </div>
     <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">

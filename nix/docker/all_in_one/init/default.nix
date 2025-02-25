@@ -31,9 +31,12 @@ writeShellApplication {
   ];
 
   text = ''
-    # setup /run
-    mkdir -m 0000 /run
-    mount -t tmpfs -o nodev,nosuid,mode=0755 none /run
+    # make sure /run is up
+    if [ ! -e /run ]; then
+      # shellcheck disable=SC2016
+      echo 'use $docker run with `--tmpfs /run:nodev,nosuid,exec,mode=0755` flag'
+      exit 1
+    fi
 
     # setup basedir
     mkdir -p ${base_dir}

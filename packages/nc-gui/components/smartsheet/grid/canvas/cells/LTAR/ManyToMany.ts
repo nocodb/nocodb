@@ -48,7 +48,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
     let currentX = initialX
     let currentY = y + (rowHeightInPx['1'] === height ? 0 : 2)
     let currentWidth = initialWidth
-    let returnData: CellRenderStore['ltar'] = []
+    const returnData: CellRenderStore['ltar'] = []
 
     const renderProps: CellRendererOptions = {
       ...props,

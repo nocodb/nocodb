@@ -3516,11 +3516,13 @@ export class ColumnsService {
           param.source.type === 'pg' ||
           (param.column as LinkToAnotherColumnReqType).virtual
         ) {
+          const indexName = generateFkName(parent, child);
           await this.createColumnIndex(context, {
             column: new Column({
               ...newColumn,
               fk_model_id: child.id,
             }),
+            indexName,
             source: param.source,
             sqlMgr,
           });
@@ -3617,11 +3619,13 @@ export class ColumnsService {
           param.source.type === 'pg' ||
           (param.column as LinkToAnotherColumnReqType).virtual
         ) {
+          const indexName = generateFkName(parent, child);
           await this.createColumnIndex(context, {
             column: new Column({
               ...newColumn,
               fk_model_id: child.id,
             }),
+            indexName,
             source: param.source,
             sqlMgr,
           });

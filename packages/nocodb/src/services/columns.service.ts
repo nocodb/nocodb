@@ -13,6 +13,7 @@ import {
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
   RelationTypes,
+  SqlUiFactory,
   substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
   UITypes,
@@ -460,6 +461,9 @@ export class ColumnsService {
       prompt_raw?: string;
       fk_integration_id?: string;
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
+
+    const sqlUi = SqlUiFactory.create(await source.getConnectionConfig());
+    sqlUi.adjustLengthAndScale(colBody);
 
     if (
       isMetaOnlyUpdateAllowed ||

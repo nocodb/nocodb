@@ -367,6 +367,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
               placeholder="Search records to link..."
               class="w-full nc-excluded-search min-h-4 !pl-0"
               size="small"
+              autocomplete="off"
               @focus="isSearchInputFocused = true"
               @blur="isSearchInputFocused = false"
               @change="onFilterChange"

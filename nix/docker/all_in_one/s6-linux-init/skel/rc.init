@@ -24,7 +24,7 @@ shift
 
 ### If your services are managed by s6-rc:
 ### (replace /run/service with your scandir)
-s6-rc-init /run/service
+s6-rc-init -c /etc/s6-rc/compiled /run/service
 
 
 ### 2. Starting the wanted set of services

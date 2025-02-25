@@ -42,7 +42,7 @@ writeShellApplication {
     cd -
 
     # setup envs
-    cp -r ${s6-services}/share/s6/services  /run/s6-service-temp
+    cp -r ${s6-services}/etc/s6-services  /run/s6-service-temp
     ${lib.getExe env-processor}
 
     # compile services

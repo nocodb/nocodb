@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { type ColumnType, type TableType, extractFilterFromXwhere } from 'nocodb-sdk'
+import type ColumnFilter from "./ColumnFilter.vue";
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -15,16 +16,18 @@ const route = router.currentRoute
 const meta = inject(MetaInj, ref())
 
 const aliasColObjMap = computed(() => {
-  const colObj = (meta.value as TableType)?.columns?.reduce((acc, col) => {
-    acc[col.title] = col
+  if (!meta?.value?.columns) return {}
+
+  const colObj = (meta.value as TableType)?.columns?.reduce<Record<string, ColumnType>>((acc, col: ColumnType) => {
+    acc[col.title!] = col
     return acc
-  }, {})
+  }, {} as Record<string, ColumnType>)
   return colObj
 })
 
 const filtersFromUrlParams = computed(() => {
-  if (route.value.query.where) {
-    return extractFilterFromXwhere(route.value.query.where, aliasColObjMap.value, false)
+  if (route.value.query?.where) {
+    return extractFilterFromXwhere(route.value.query.where as string, aliasColObjMap.value, false)
   }
 })
 

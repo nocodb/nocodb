@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { type TableType, charsetOptions } from 'nocodb-sdk'
+import { toRaw, unref } from '@vue/runtime-core'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
-import { toRaw, unref } from '@vue/runtime-core'
+import { type TableType, charsetOptions } from 'nocodb-sdk'
 // import worker script according to the doc of Vite
 import getCrossOriginWorkerURL from 'crossoriginworker'
-import type { ColumnType } from 'ant-design-vue/lib/table'
+import rfdc from 'rfdc'
 import importWorkerUrl from '~/workers/importWorker?worker&url'
 
 interface Props {
@@ -407,21 +407,7 @@ function extractImportWorkerPayload(value: UploadFile[] | ArrayBuffer | string) 
       ...toRaw(importState.parserConfig),
       importFromURL: importSource === ImportSource.URL,
     },
-    existingColumns: JSON.parse(
-      JSON.stringify(
-        unref(existingColumns).map(
-          (k) =>
-            ({
-              ...k,
-              // id: k.id,
-              // column_name: k.column_name,
-              // title: k.title,
-              // uidt: k.uidt,
-              // meta: k.meta,
-            } as ColumnType),
-        ),
-      ),
-    ),
+    existingColumns: rfdc()(unref(existingColumns)),
     value,
     importType,
     importSource,

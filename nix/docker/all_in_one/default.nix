@@ -14,6 +14,7 @@
   gnugrep,
   vim,
   minio,
+  glibc,
 }:
 let
   port = 80;
@@ -31,6 +32,7 @@ dockerTools.buildLayeredImage {
     postgresql
     execline.bin
     minio
+    glibc.getent
     coreutils
 
     util-linux

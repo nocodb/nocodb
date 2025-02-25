@@ -1,0 +1,22 @@
+#!/bin/execlineb -P
+
+# setup by ../../../env-processor
+envfile /run/nocodb.dynamic.env
+envfile /etc/s6-confs/nocodb.conf
+
+foreground { mkdir -p /var/lib/nocodb }
+foreground { chown -R nocodb:nocodb /var/lib/nocodb }
+foreground { chown nocodb:nocodb /tmp }
+
+# create database if not exists
+foreground {
+	if -n {
+		pipeline {
+			psql -U postgres -tAc SELECT\ 1\ FROM\ pg_database\ WHERE\ datname\ =\ \'nocodb\'
+		} grep -q 1
+	} psql -U postgres -tAc CREATE\ DATABASE\ \"nocodb\"
+}
+
+fdmove -c 2 1
+
+execline-cd  /var/lib/nocodb s6-setuidgid nocodb nocodb

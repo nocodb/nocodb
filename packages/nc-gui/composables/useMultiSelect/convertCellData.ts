@@ -44,7 +44,7 @@ export default function convertCellData(
           throw new SilentTypeConversionError()
         }
       }
-      return parsedNumber
+      return toSafeInteger(parsedNumber)
     }
     case UITypes.Currency:
     case UITypes.Percent:
@@ -344,6 +344,18 @@ export default function convertCellData(
       } catch (ex) {
         throw new SilentTypeConversionError()
       }
+    }
+    case UITypes.GeoData: {
+      const geoValue = value
+        .replace(',', ';')
+        .split(';')
+        .map((k) => k.trim())
+      if (geoValue.length === 2) {
+        if (!isNaN(Number(geoValue[0])) && !isNaN(Number(geoValue[1]))) {
+          return geoValue.map((k) => Number(k).toFixed(10).replace(/[0]+$/, '')).join(';')
+        }
+      }
+      throw new SilentTypeConversionError()
     }
     default:
       return value

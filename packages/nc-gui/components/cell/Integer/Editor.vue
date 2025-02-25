@@ -35,7 +35,8 @@ const vModel = computed({
     } else if (isForm.value && !isEditColumn.value) {
       _vModel.value = isNaN(Number(value)) ? value : Number(value)
     } else {
-      _vModel.value = value
+      const currentValue = +(value ?? 0)
+      _vModel.value = toSafeInteger(currentValue)
     }
   },
 })

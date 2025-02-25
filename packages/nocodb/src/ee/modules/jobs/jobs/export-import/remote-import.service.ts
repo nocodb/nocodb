@@ -233,7 +233,7 @@ export class RemoteImportService {
       NcError.badRequest(`No import listener found for ${secret}`);
     }
 
-    if (result?.status !== 'Listening') {
+    if (result?.status !== 'Listening' && result?.status !== 'Partial') {
       NcError.badRequest(`Already processed with status ${result.status}`);
     }
 
@@ -253,6 +253,7 @@ export class RemoteImportService {
     await this.jobsService.setJobResult(job.id, {
       secret: secretCheck,
       status: 'Processing',
+      timestamp: new Date().toISOString(),
     });
 
     const log = (message: string) => {
@@ -265,25 +266,26 @@ export class RemoteImportService {
 
     const workspaceId = job.fk_workspace_id;
 
-    const { workspaceMode: _, newBase, baseId } = result;
+    const { workspaceMode, newBase, baseId } = result;
 
-    const base = newBase
-      ? await this.basesService.baseCreate({
-          base: {
-            title: 'Imported Base',
-            type: 'database',
-            ...{ fk_workspace_id: workspaceId },
-          },
-          user: { id: req.user.id },
-          req: req,
-        })
-      : await Base.get(
-          {
-            workspace_id: workspaceId,
-            base_id: baseId,
-          },
-          baseId,
-        );
+    const base =
+      newBase || workspaceMode
+        ? await this.basesService.baseCreate({
+            base: {
+              title: 'Imported Base',
+              type: 'database',
+              ...{ fk_workspace_id: workspaceId },
+            },
+            user: { id: req.user.id },
+            req: req,
+          })
+        : await Base.get(
+            {
+              workspace_id: workspaceId,
+              base_id: baseId,
+            },
+            baseId,
+          );
 
     const source = (await base.getSources())[0];
 
@@ -306,8 +308,8 @@ export class RemoteImportService {
 
     const remoteImportHandler = new RemoteImportHandler(
       context,
+      this,
       this.importService,
-      this.importUsers,
       req.user,
       base,
       source,
@@ -351,12 +353,26 @@ export class RemoteImportService {
 
       log('Import completed');
 
-      await this.updateJob(job.id, {
-        secret: secretCheck,
-        status: 'Completed',
-      });
+      if (
+        !workspaceMode ||
+        !remoteImportHandler.workspaceProgress ||
+        remoteImportHandler.workspaceProgress.total ===
+          remoteImportHandler.workspaceProgress.current
+      ) {
+        await this.updateJob(job.id, {
+          secret: secretCheck,
+          status: 'Completed',
+        });
+      } else {
+        await this.jobsService.setJobResult(job.id, {
+          ...result,
+          secret: secretCheck,
+          status: 'Partial',
+          timestamp: new Date().toISOString(),
+        });
+      }
 
-      if (newBase) {
+      if (newBase || workspaceMode) {
         const updatePayload = extractProps(remoteImportHandler.baseProps, [
           'title',
           'meta',

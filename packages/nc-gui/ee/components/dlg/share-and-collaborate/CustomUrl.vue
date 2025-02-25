@@ -38,6 +38,8 @@ const emits = defineEmits(['updateCustomUrl'])
 
 const { id, backendUrl, searchQuery, tooltip } = toRefs(props)
 
+const isLocked = inject(IsLockedInj, ref(false))
+
 const { t } = useI18n()
 
 const { api } = useApi()
@@ -271,7 +273,7 @@ watch(
         v-e="['c:share:view:custom-url:toggle']"
         :checked="isOpenCustomUrl"
         :loading="isLoading.customUrl || isLoading.fetchCustomUrl"
-        :disabled="isLoading.fetchCustomUrl"
+        :disabled="isLocked || isLoading.fetchCustomUrl"
         class="share-custom-url-toggle !mt-0.25"
         data-testid="share-custom-url-toggle"
         size="small"
@@ -304,6 +306,7 @@ watch(
             data-testid="nc-modal-share-view__custom-url"
             :bordered="false"
             autocomplete="off"
+            :disabled="isLocked"
             @focus="isFocused = true"
             @blur="isFocused = false"
             @update:value="onChangeCustomUrl"

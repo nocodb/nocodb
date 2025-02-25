@@ -8,13 +8,32 @@
   rsync,
   makeWrapper,
   node-gyp,
+  coreutils,
+  nettools,
   vips,
+  version,
+
+  # macos
+  xcbuild,
+  cctools,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
+  inherit version;
+
   pname = "nocodb";
-  version = "0.260.2";
-  src = ../.;
+
+  src = lib.cleanSourceWith {
+    filter =
+      name: type:
+      lib.cleanSourceFilter name type
+      && !(builtins.elem (baseNameOf name) [
+        "nix"
+        "flake.nix"
+      ]);
+
+    src = ../.;
+  };
 
   buildPhase = ''
     export NODE_OPTIONS="--max_old_space_size=16384"
@@ -52,6 +71,14 @@ stdenv.mkDerivation (finalAttrs: {
 
     makeWrapper "${lib.getExe nodePackages.nodejs}" "$out/bin/${finalAttrs.pname}" \
       --set NODE_ENV production \
+      --set PATH ${
+        (lib.makeBinPath [
+          coreutils
+          nettools
+        ])
+        # TODO: for ioreg
+        + lib.optionalString stdenv.hostPlatform.isDarwin ":/usr/bin"
+      } \
       --add-flags "$out/share/nocodb/packages/nocodb/index.js"
   '';
 
@@ -68,11 +95,18 @@ stdenv.mkDerivation (finalAttrs: {
     ]))
   ];
 
-  buildInputs = [
-    nodePackages.nodejs
-    sqlite
-    vips
-  ];
+  buildInputs =
+    [
+      nodePackages.nodejs
+      sqlite
+      vips
+      coreutils # head
+      nettools # hostname
+    ]
+    ++ lib.optionals stdenv.hostPlatform.isDarwin [
+      xcbuild
+      cctools
+    ];
 
   pnpmDeps = pnpm.fetchDeps {
     inherit (finalAttrs) pname version src;
@@ -82,7 +116,7 @@ stdenv.mkDerivation (finalAttrs: {
   meta = {
     description = "Open Source Airtable Alternative";
     homepage = "https://nocodb.com/";
-    platforms = lib.platforms.linux;
+    platforms = lib.platforms.linux ++ lib.platforms.darwin;
     license = lib.licenses.agpl3Plus;
     mainProgram = finalAttrs.pname;
     maintainers = with lib.maintainers; [ sinanmohd ];

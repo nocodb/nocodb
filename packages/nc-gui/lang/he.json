@@ -9,9 +9,9 @@
     "project_name": "שם בסיס",
     "connect": "התחבר",
     "buttonActionTypes": {
-      "open_external_url": "פתח קישור חיצוני",
+      "open_external_url": "פתיחת קישור חיצוני",
       "delete_record": "מחיקת רשומה",
-      "update_record": "עדכן רשומה",
+      "update_record": "עדכון רשומה",
       "open_layout": "פתיחת פריסה"
     },
     "widgets": {
@@ -204,8 +204,8 @@
     "mandatory": "חובה",
     "loading": "בטעינה...",
     "title": "כותרת",
-    "upload": "העלה",
-    "download": "הורד",
+    "upload": "העלאה",
+    "download": "הורדה",
     "default": "ברירת מחדל",
     "base": "מקור",
     "datasource": "מקור מידע",
@@ -345,10 +345,10 @@
     "views": "צפיות",
     "sidebar": "סרגל צד",
     "viewType": {
-      "grid": "רֶשֶׁת",
+      "grid": "רשת",
       "gallery": "גלריה",
       "form": "טופס",
-      "kanban": "קאנב\"כ",
+      "kanban": "קנבן",
       "calendar": "לוח שנה",
       "map": "מפה"
     },
@@ -675,7 +675,8 @@
     "yourBaseRole": "תפקידך בבסיס זה",
     "lockedByUser": "נעול על ידי {user}",
     "thisPageDoesNotExist": "עמוד זה לא קיים",
-    "customUrl": "כתובת URL מותאמת אישית"
+    "customUrl": "כתובת URL מותאמת אישית",
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
   },
   "labels": {
     "latitude": "Latitude",
@@ -1192,7 +1193,7 @@
     "enabledPublicViewing": "אפשר צפייה ציבורית",
     "restrictAccessWithPassword": "הגבל גישה באמצעות סיסמה",
     "manageProjectAccess": "נהל גישה לבסיס",
-    "allowDownload": "אפשר הורדה",
+    "allowDownload": "איפשור הורדה",
     "surveyMode": "מצב סקר",
     "rtlOrientation": "כיוון טקסט מימין לשמאל",
     "useTheme": "השתמש בערכת נושא",
@@ -1292,9 +1293,9 @@
     "deleteSelectedRow": "מחק את השורות שנבחרו",
     "importExcel": "ייבא מ- Excel",
     "importCSV": "ייבא קובץ CSV",
-    "downloadCSV": "הורד כקובץ CSV",
+    "downloadCSV": "הורדה כקובץ CSV",
     "downloadExcel": "הורד כקובץ XLSX",
-    "uploadCSV": "העלה קובץ CSV",
+    "uploadCSV": "העלאה קובץ CSV",
     "uploadExcel": "Upload Excel",
     "upload": "Upload",
     "import": "ייבא",
@@ -1305,13 +1306,13 @@
     "changePwd": "שנה סיסמה",
     "createView": "צור תצוגה",
     "shareView": "שיתוף תצוגה",
-    "findRowByCodeScan": "מצא שורה על ידי סריקת קוד",
-    "fillByCodeScan": "מלא על ידי סריקת קוד",
+    "findRowByCodeScan": "מציאת שורה על ידי סריקה",
+    "fillByCodeScan": "ממולא באמצעות סריקה",
     "listSharedView": "רשימת תצוגות משותפות",
     "ListView": "תצוגת רשימה",
     "copyView": "העתק תצוגה",
     "renameView": "שנה שם תצוגה",
-    "uploadData": "העלה נתונים",
+    "uploadData": "העלאת נתונים",
     "deleteView": "מחק תצוגה",
     "createGrid": "צור תצוגת רשת",
     "createGallery": "צור תצוגת גלריה",
@@ -1372,14 +1373,14 @@
       "showJunctionTableNames": "הצג את שמות טבלאות החיבור"
     },
     "kanban": {
-      "collapseStack": "כווץ מחסנית",
+      "collapseStack": "כיווץ מחסנית",
       "collapseAll": "כווץ הכל",
       "expandAll": "הרחב הכל",
-      "renameStack": "שנה שם למחסנית",
-      "deleteStack": "מחק מחסנית",
-      "stackedBy": "מחוסנית על ידי",
+      "renameStack": "שינוי שם למחסנית",
+      "deleteStack": "מחיקת מחסנית",
+      "stackedBy": "מקובץ לפי",
       "chooseGroupingField": "בחר שדה לקיבוץ",
-      "addOrEditStack": "הוסף / ערוך מחסנית"
+      "addOrEditStack": "הוספת / עריכת מחסנית"
     },
     "map": {
       "googleMaps": "Google Maps",

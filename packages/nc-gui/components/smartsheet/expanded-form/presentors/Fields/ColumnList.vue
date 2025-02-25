@@ -69,7 +69,7 @@ const showCol = (col: ColumnType) => {
           'lg:max-w-[calc(100%_-_188px)]': !props.forceVerticalMode,
         }"
         placement="right"
-        :disabled="!isReadOnlyVirtualCell(col) || !shouldApplyDataCell(col)"
+        :disabled="!isReadOnlyVirtualCell(col) || !shouldApplyDataCell(col) || isLinksOrLTAR(col)"
       >
         <template #title>{{ $t('msg.info.fieldReadonly') }}</template>
         <SmartsheetDivDataCell
@@ -78,7 +78,7 @@ const showCol = (col: ColumnType) => {
           :class="{
             'w-full': props.forceVerticalMode,
             '!select-text nc-system-field bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer':
-              isReadOnlyVirtualCell(col) && shouldApplyDataCell(col),
+              isReadOnlyVirtualCell(col) && shouldApplyDataCell(col) && !isLinksOrLTAR(col),
             '!select-text nc-readonly-div-data-cell': readOnly,
           }"
         >
@@ -96,7 +96,11 @@ const showCol = (col: ColumnType) => {
             :active="true"
             :column="col"
             :edit-enabled="true"
-            :read-only="readOnly"
+            :read-only="
+              ncIsPlaywright()
+                ? readOnly
+                : readOnly || (isReadOnlyVirtualCell(col) && shouldApplyDataCell(col) && !isLinksOrLTAR(col))
+            "
             @update:model-value="changedColumns.add(col.title)"
           />
         </SmartsheetDivDataCell>
@@ -146,7 +150,14 @@ const showCol = (col: ColumnType) => {
   &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
     @apply !shadow-selected;
   }
-
+  :deep(.nc-qrcode-container) {
+    height: 100%;
+  }
+  :deep(.nc-multi-select) {
+    > div {
+      margin-top: 3px;
+    }
+  }
   &:has(.nc-virtual-cell-qrcode .nc-qrcode-container),
   &:has(.nc-virtual-cell-barcode .nc-barcode-container) {
     @apply !border-none px-0 !rounded-none;
@@ -162,7 +173,7 @@ const showCol = (col: ColumnType) => {
     }
     :deep(.nc-virtual-cell-qrcode) {
       img {
-        @apply !h-[84px] border-1 border-solid border-gray-200 rounded;
+        @apply !h-full border-1 border-solid border-gray-200 rounded;
       }
     }
     :deep(.nc-virtual-cell-barcode) {

@@ -6,6 +6,7 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import type { Base, Source, User } from '~/models';
 import { Model } from '~/models';
 import { findWithIdentifier } from '~/helpers/exportImportHelpers';
+import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
 
 interface MessagePayload {
   type: string;
@@ -29,23 +30,18 @@ export class RemoteImportHandler {
     title?: string;
     meta?: any;
   };
+  private _workspaceProgress: {
+    current: number;
+    total: number;
+  };
 
   private handlers: Map<string, (payload: MessagePayload) => void>;
   private logger = new Logger('RemoteImportHandler');
 
   constructor(
     private context: NcContext,
+    private remoteImportService: RemoteImportService,
     private importService: ImportService,
-    private importUsers: (
-      context: NcContext,
-      payload: {
-        users: {
-          email: string;
-          display_name?: string;
-        }[];
-        req: NcRequest;
-      },
-    ) => Promise<void>,
     private user: User,
     private base: Base,
     private source: Source,
@@ -59,6 +55,7 @@ export class RemoteImportHandler {
       ['base', this.handleBase.bind(this)],
       ['data', this.handleData.bind(this)],
       ['link', this.handleLink.bind(this)],
+      ['workspaceProgress', this.handleWorkspaceProgress.bind(this)],
     ]);
   }
 
@@ -80,6 +77,10 @@ export class RemoteImportHandler {
 
   public get baseProps() {
     return this._baseProps;
+  }
+
+  public get workspaceProgress() {
+    return this._workspaceProgress;
   }
 
   private handleQueueStart() {
@@ -127,7 +128,7 @@ export class RemoteImportHandler {
   private handleUsers(payload: MessagePayload) {
     this.log(`Importing users`);
 
-    const promise = this.importUsers(this.context, {
+    const promise = this.remoteImportService.importUsers(this.context, {
       users: payload.data,
       req: this.req,
     })
@@ -232,6 +233,10 @@ export class RemoteImportHandler {
 
       this.importPromises.push(p);
     });
+  }
+
+  private handleWorkspaceProgress(payload: MessagePayload) {
+    this._workspaceProgress = payload.data;
   }
 
   public handleMessage(payload: MessagePayload) {

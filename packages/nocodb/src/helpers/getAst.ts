@@ -42,7 +42,7 @@ const getAst = async (
       nested: { ...(query?.nested || {}) },
       fieldsSet: new Set(),
     },
-    getHiddenColumn = query?.['getHiddenColumn'],
+    getHiddenColumn = query?.['getHiddenColumn'] === 'true',
     throwErrorIfInvalidParams = false,
     extractOnlyRangeFields = false,
     apiVersion = NcApiVersion.V2,

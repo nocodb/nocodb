@@ -1,0 +1,7 @@
+#!/bin/execlineb -P
+
+fdmove -c 2 1
+
+# run on startup and everyday @ 11 AM
+foreground { /etc/s6-services/acme-srv/shell_up.sh }
+snooze -H11 /etc/s6-services/acme-srv/shell_up.sh

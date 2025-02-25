@@ -43,11 +43,9 @@ onMounted(() => {
   } else {
     document.title = 'NocoDB'
   }
-
-  if (typeof window !== 'undefined') {
-    window.isSharedView = true
-  }
 })
+
+addConfirmPageLeavingRedirectToWindow()
 </script>
 
 <script lang="ts">

@@ -406,7 +406,6 @@ function extractImportWorkerPayload(value: UploadFile[] | ArrayBuffer | string) 
     config: {
       ...toRaw(importState.parserConfig),
       importFromURL: importSource === ImportSource.URL,
-      matchColumnDateFormat: true,
     },
     existingColumns: JSON.parse(
       JSON.stringify(

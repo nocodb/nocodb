@@ -149,7 +149,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                 table.columns.push(column)
 
                 const existingColumn = this.existingColumnMap[column.title] ?? this.existingColumnMap[column.column_name]
-                if (existingColumn && (existingColumn.meta as any)?.date_format && this.config.matchColumnDateFormat) {
+                if (existingColumn && (existingColumn.meta as any)?.date_format) {
                   colValueResolver[col] = (value: any) => {
                     if (value instanceof Date) {
                       return value

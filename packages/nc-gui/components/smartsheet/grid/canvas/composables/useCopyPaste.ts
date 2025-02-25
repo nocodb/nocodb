@@ -163,7 +163,8 @@ export function useCopyPaste({
       isExpandedCellInputExist() ||
       isLinkDropdownExist() ||
       isViewSearchActive() ||
-      isSidebarNodeRenameActive()
+      isSidebarNodeRenameActive() ||
+      isActiveElementInsideExtension()
     ) {
       return
     }

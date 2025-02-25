@@ -44,8 +44,6 @@ const scalable = false
 const keepRatio = false
 const throttleScale = 0
 const snappable = true
-const snapGridWidth = 1
-const snapGridHeight = 1
 const isDisplayGridGuidelines = false
 const targetRef = ref<HTMLElement>()
 const moveableRef = ref<Moveable>()
@@ -96,6 +94,8 @@ const inlineValue = computed(() => {
 
 const isNumberedList = computed(() => widget.value.listType === LinkedFieldListType.Number)
 const isTable = computed(() => widget.value.displayAs === LinkedFieldDisplayAs.TABLE)
+const snapGridWidth = computed(() => (isTable.value ? 10 : 1))
+const snapGridHeight = computed(() => (isTable.value ? 10 : 1))
 const columns = computed(() => relatedTableMeta.value.columns ?? [])
 const columnsMapById = computed(() =>
   columns.value.reduce((map, col) => {
@@ -152,9 +152,8 @@ const tableRowHeight = computed(() => {
           justifyContent: widget.horizontalAlign,
           alignItems: widget.verticalAlign,
           textAlign: horizontalAlignTotextAlignMap[widget.horizontalAlign],
-          overflow: 'hidden',
         }"
-        :class="{ 'px-2 py-1': !isTable }"
+        :class="{ 'px-2 py-1 overflow-hidden': !isTable }"
       >
         <template v-if="row">
           <component

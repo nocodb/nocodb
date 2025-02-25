@@ -6,6 +6,7 @@ envfile /etc/s6-confs/nocodb.conf
 
 foreground { mkdir -p /var/lib/nocodb }
 foreground { chown -R nocodb:nocodb /var/lib/nocodb }
+foreground { chown nocodb:nocodb /tmp }
 
 # create database if not exists
 foreground {
@@ -18,4 +19,4 @@ foreground {
 
 fdmove -c 2 1
 
-exec s6-setuidgid nocodb nocodb
+execline-cd  /var/lib/nocodb s6-setuidgid nocodb nocodb

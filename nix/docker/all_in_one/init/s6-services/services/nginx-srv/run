@@ -13,4 +13,5 @@ foreground { sed s/__nocodb_domain__/${aio_ssl_domain}/g -i /run/nginx/dynamic.c
 
 fdmove -c 2 1
 
+s6-notifyoncheck
 nginx -c /run/nginx/dynamic.conf

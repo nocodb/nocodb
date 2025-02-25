@@ -13,7 +13,6 @@
   fakeroot,
   s6-linux-init,
   base_dir ? "/run/init",
-  kernal_env_store_dir ? "/run/kernelenvs"
 }:
 
 stdenv.mkDerivation {
@@ -36,7 +35,6 @@ stdenv.mkDerivation {
       -C -N -1 \
       -f ${./skel} \
       -c ${base_dir} \
-      -s ${kernal_env_store_dir} \
       compiled
 
     cd compiled

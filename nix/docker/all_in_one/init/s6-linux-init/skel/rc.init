@@ -37,7 +37,6 @@ s6-rc-init -c /run/s6-service-compiled /run/service
 
 # exec /run/s6-init/scripts/runlevel "$rl"
 # no runlevel because -of s6-linux-init -C flag
-s6-rc -v2 -up change postgresql
 exec s6-rc -v2 -u change nocodb
 
 ### If this script is run in a container, then 1. and 2. above do not

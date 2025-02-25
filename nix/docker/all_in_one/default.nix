@@ -13,6 +13,7 @@
   util-linux,
   gnugrep,
   vim,
+  minio,
 }:
 let
   port = 80;
@@ -29,11 +30,13 @@ dockerTools.buildLayeredImage {
     nocodb
     postgresql
     execline.bin
+    minio
     coreutils
+
     util-linux
+    gnugrep
 
     htop
-    gnugrep
     vim
 
     pgconf

@@ -210,10 +210,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const sanitizeRowData = async (row: Record<string, any> = {}) => {
       const sanitizedRow: Record<string, any> = {}
-      console.log(
-        row,
-        meta.value?.columns.map((col) => ({ title: col.title, column_name: col.column_name })),
-      )
 
       /**
        * Note: No need to send row data if `Limit record selection to filters` is not enabled
@@ -221,7 +217,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       if (!ncIsObject(row) || !parseProp(column.value?.meta).enableConditions) return {}
 
       for (const col of meta.value.columns) {
-        let value = row[col.title]
+        const value = row[col.title]
 
         if (ncIsUndefined(value) || ncIsNull(value)) continue
 
@@ -271,9 +267,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           let row
           // if shared form extract the current form state
           if (isForm.value) {
-            const { formState } = useSharedFormStoreOrThrow()
+            const { formState, additionalState } = useSharedFormStoreOrThrow()
 
-            row = await sanitizeRowData(formState?.value)
+            row = await sanitizeRowData({ ...(formState?.value || {}), ...(additionalState?.value || {}) })
           }
 
           childrenExcludedList.value = await $api.public.dataRelationList(
@@ -332,6 +328,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                 if (row.value.row[key] !== row.value.oldRow[key]) acc[key] = row.value.row[key]
                 return acc
               }, {})
+
+              changedRowData = await sanitizeRowData(changedRowData)
             }
           } catch {}
 

@@ -387,6 +387,8 @@ const pGoToPreviousRow = () => {
       :group="rootGroup"
       :load-groups="loadGroups"
       :load-group-data="loadGroupData"
+      :call-add-empty-row="pAddEmptyRow"
+      :expand-form="expandForm"
       :load-group-page="loadGroupPage"
       :group-wrapper-change-page="groupWrapperChangePage"
       :row-height="rowHeight"
@@ -395,7 +397,7 @@ const pGoToPreviousRow = () => {
       :redistribute-rows="redistributeRows"
       :view-width="viewWidth"
     />
-    <Suspense v-if="!isGroupBy">
+    <Suspense>
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"

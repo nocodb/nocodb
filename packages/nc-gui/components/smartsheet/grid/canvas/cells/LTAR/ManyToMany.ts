@@ -100,6 +100,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
         })
 
         if (
+          !readonly &&
           selected &&
           isBoxHovered(
             { x: currentX, y: currentY, width: point.x - currentX, height: point.y ? point.y - currentY : 24 },
@@ -136,6 +137,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
         })
 
         if (
+          !readonly &&
           selected &&
           isBoxHovered({ x: currentX, y: currentY, width: currentX + currentWidth, height: currentY + 24 }, mousePosition)
         ) {
@@ -204,7 +206,17 @@ export const ManyToManyCellRenderer: CellRenderer = {
       })
     }
   },
-  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable, cellRenderStore, selected, isPublic }) {
+  async handleClick({
+    row,
+    column,
+    getCellPosition,
+    mousePosition,
+    makeCellEditable,
+    cellRenderStore,
+    selected,
+    isPublic,
+    readonly,
+  }) {
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width } = getCellPosition(column, rowIndex)
     const buttonSize = 24
@@ -217,7 +229,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
       return true
     }
 
-    if (selected && ncIsArray(cellRenderStore?.ltar)) {
+    if (!readonly && selected && ncIsArray(cellRenderStore?.ltar)) {
       for (const cellItem of cellRenderStore.ltar) {
         if (
           ncIsObject(cellItem.value) &&

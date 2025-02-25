@@ -35,8 +35,9 @@ s6-rc-init -c /run/s6-service-compiled /run/service
 ### Numeric arguments from 1 to 5 on the kernel command line will
 ### override the default.
 
-exec /run/s6-init/scripts/runlevel "$rl"
-
+# exec /run/s6-init/scripts/runlevel "$rl"
+# no runlevel because -of s6-linux-init -C flag
+exec s6-rc -v2 -up change default
 
 ### If this script is run in a container, then 1. and 2. above do not
 ### apply and you should just call your CMD, if any, or let your

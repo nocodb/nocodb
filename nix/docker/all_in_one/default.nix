@@ -2,6 +2,9 @@
   lib,
   dockerTools,
   nocodb,
+  htop,
+  s6,
+  execline,
   coreutils,
   callPackage,
   s6-rc,
@@ -13,6 +16,7 @@ let
 
   init = callPackage ./init { };
   pgconf = callPackage ./pgconf.nix { };
+  s6-services-compiled = callPackage ./init/s6-services-compiled { };
 in
 dockerTools.buildLayeredImage {
   name = "nocodb_aio";
@@ -20,10 +24,16 @@ dockerTools.buildLayeredImage {
   contents = [
     dockerTools.binSh
     nocodb
+    execline.bin
     coreutils
     util-linux
 
+    htop
+
     pgconf
+    s6-services-compiled
+
+    s6
     s6-rc
     s6-linux-init
   ];

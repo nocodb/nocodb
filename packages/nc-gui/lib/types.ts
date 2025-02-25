@@ -426,6 +426,8 @@ interface CellRendererOptions {
 interface CellRenderStore {
   x?: number
   y?: number
+  width?: number
+  height?: number
   links?: { x: number; y: number; width: number; height: number; url: string }[]
   ratingChanged?: {
     value: number

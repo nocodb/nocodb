@@ -1,4 +1,4 @@
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
 import { isBoxHovered } from '../../utils/canvas'
 import { PlainCellRenderer } from '../Plain'
 import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
@@ -69,9 +69,28 @@ export const BelongsToCellRenderer: CellRenderer = {
         y: y + (rowHeightInPx['1'] === height ? 0 : 2),
       })
 
+      if (!returnData?.x || !returnData?.y) return
+
+      Object.assign(returnData, {
+        width: returnData.x - x + 4,
+        height: returnData.y - (y + (rowHeightInPx['1'] === height ? 0 : 2)),
+      })
+
       Object.assign(cellRenderStore, returnData)
 
-      if (!returnData?.x) return
+      if (
+        isBoxHovered(
+          {
+            x: x + 4,
+            y: y + (rowHeightInPx['1'] === height ? 0 : 2),
+            height: cellRenderStore.height!,
+            width: cellRenderStore.width!,
+          },
+          mousePosition,
+        )
+      ) {
+        setCursor('pointer')
+      }
 
       if (selected && !readonly) {
         spriteLoader.renderIcon(ctx, {
@@ -109,10 +128,42 @@ export const BelongsToCellRenderer: CellRenderer = {
 
     return returnData
   },
-  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable, cellRenderStore, selected }) {
+  async handleClick({ row, value, column, getCellPosition, mousePosition, makeCellEditable, cellRenderStore, selected }) {
     const rowIndex = row.rowMeta.rowIndex!
-    const { x, y, width } = getCellPosition(column, rowIndex)
+    const { x, y, width, height } = getCellPosition(column, rowIndex)
     const size = 14
+
+    if (
+      ncIsObject(value) &&
+      cellRenderStore?.height &&
+      cellRenderStore?.width &&
+      isBoxHovered(
+        {
+          x: x + 4,
+          y: y + (rowHeightInPx['1'] === height ? 0 : 2),
+          height: cellRenderStore.height,
+          width: cellRenderStore.width,
+        },
+        mousePosition,
+      )
+    ) {
+      const { open } = useExpandedFormDetached()
+
+      const rowId = extractPkFromRow(value, (column.relatedTableMeta?.columns || []) as ColumnType[])
+
+      if (rowId) {
+        open({
+          isOpen: true,
+          row: { row: value, rowMeta: {}, oldRow: { ...value } },
+          meta: column.relatedTableMeta || ({} as TableType),
+          rowId,
+          useMetaFields: true,
+          maintainDefaultViewOrder: true,
+          loadRow: true,
+        })
+      }
+    }
+
     if (isBoxHovered({ x: x + width - 26, y: y + 8, height: size, width: size }, mousePosition)) {
       makeCellEditable(rowIndex, column)
       return true

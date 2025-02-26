@@ -388,6 +388,7 @@ const copyCustomUrl = async (custUrl = '') => {
               class="share-password-toggle !mt-0.25"
               data-testid="share-password-toggle"
               size="small"
+              :disabled="isLocked"
               @click="togglePasswordProtected"
             />
           </div>
@@ -400,6 +401,7 @@ const copyCustomUrl = async (custUrl = '') => {
                 data-testid="nc-modal-share-view__password"
                 size="small"
                 type="password"
+                :readonly="isLocked"
               />
             </div>
           </Transition>
@@ -420,6 +422,7 @@ const copyCustomUrl = async (custUrl = '') => {
               class="public-password-toggle !mt-0.25"
               data-testid="share-download-toggle"
               size="small"
+              :disabled="isLocked"
             />
           </div>
         </div>
@@ -437,6 +440,7 @@ const copyCustomUrl = async (custUrl = '') => {
                 class="share-language-toggle !mt-0.25"
                 data-testid="share-language-toggle"
                 size="small"
+                :disabled="isLocked"
                 @click="toggleLanguageSet"
               />
             </div>
@@ -448,6 +452,7 @@ const copyCustomUrl = async (custUrl = '') => {
                   :options="languageOptions"
                   size="small"
                   class="w-full"
+                  :disabled="isLocked"
                 />
               </div>
             </Transition>

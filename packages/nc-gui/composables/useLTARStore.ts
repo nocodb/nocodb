@@ -37,6 +37,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const childrenExcludedList = ref<DataApiResponse | undefined>()
     const childrenList = ref<DataApiResponse | undefined>()
+    const targetViewColumns = ref<ColumnType[]>([])
+
+    const targetViewColumnsById = computed(() => {
+      return targetViewColumns.value.reduce((map, col) => {
+        map[col.fk_column_id!] = col
+        return map
+      }, {} as Record<string, ColumnType>)
+    })
 
     const childrenExcludedListPagination = reactive({
       page: 1,
@@ -80,6 +88,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { sharedView } = useSharedView()
 
+    const { getViewColumns } = useSmartsheetStoreOrThrow()
+
     const baseId = base.value?.id || (sharedView.value?.view as any)?.base_id
 
     // getters
@@ -98,6 +108,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const loadRelatedTableMeta = async () => {
       await getMeta(colOptions.value.fk_related_model_id as string)
+
+      if (isPublic.value) return
+
+      const viewId = colOptions.value.fk_target_view_id ?? relatedTableMeta.value.views?.[0]?.id ?? ''
+      if (!viewId) return
+      targetViewColumns.value = (await getViewColumns(viewId)) ?? []
     }
 
     const relatedTableDisplayValueProp = computed(() => {
@@ -158,6 +174,94 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return row.value.row[displayValueProp.value]
     })
 
+    /**
+     * Extract only primary key(pk) and primary value(pv) column data
+     */
+    const extractOnlyPrimaryValues = async (value: any, col: ColumnType) => {
+      const currColOptions = (col.colOptions || {}) as LinkToAnotherRecordType
+
+      await getMeta(currColOptions.fk_related_model_id as string)
+
+      const currColRelatedTableMeta = metas.value?.[currColOptions?.fk_related_model_id as string] as TableType
+
+      if (!currColRelatedTableMeta) return
+
+      const primaryCols = (currColRelatedTableMeta?.columns || []).filter((c) => c.pv || c.pk)
+
+      const extractValues = (value: any, primaryCols: ColumnType[]): any => {
+        if (ncIsArray(value)) {
+          return value.map((val) => extractValues(val, primaryCols)).filter(Boolean)
+        }
+
+        if (!ncIsObject(value)) return null
+
+        const extractedValues: Record<string, any> = {}
+
+        for (const c of primaryCols) {
+          const val = value[c.title]
+
+          if (ncIsUndefined(val) || ncIsNull(val)) continue
+
+          extractedValues[c.title] = val
+        }
+
+        return extractedValues
+      }
+
+      return extractValues(value, primaryCols)
+    }
+
+    /**
+     * Sanitization of row is requried because we will send this info in api query params
+     * And query param has limit to send data
+     * So it's better to send only requried row data which will be used for `Limit record selection to filters`
+     */
+    const sanitizeRowData = async (row: Record<string, any> = {}) => {
+      const sanitizedRow: Record<string, any> = {}
+
+      /**
+       * Note: No need to send row data if `Limit record selection to filters` is not enabled
+       */
+      if (!ncIsObject(row) || !parseProp(column.value?.meta).enableConditions) return {}
+
+      for (const col of meta.value.columns) {
+        const value = row[col.title]
+
+        if (ncIsUndefined(value) || ncIsNull(value)) continue
+
+        switch (col.uidt) {
+          case UITypes.Attachment: {
+            /**
+             * Attachment object is to big as this includes data base64/file object and for filter only required title.
+             * So extract only title
+             */
+            if (ncIsArray(value)) {
+              sanitizedRow[col.title] = value.map((item) => (item?.title ? { title: item?.title } : null)).filter(Boolean)
+            }
+            break
+          }
+          case UITypes.Links:
+          case UITypes.LinkToAnotherRecord: {
+            /**
+             * Links/LTAR object is also big as in new record it will include while linked record data(depends on how many columns related table has)
+             * So extract only primary column values (pk & pv)
+             */
+            const res = await extractOnlyPrimaryValues(value, col)
+            if (res) {
+              sanitizedRow[col.title] = res
+            }
+            break
+          }
+
+          default: {
+            sanitizedRow[col.title] = value
+          }
+        }
+      }
+
+      return sanitizedRow
+    }
+
     const loadChildrenExcludedList = async (activeState?: any, resetOffset = false) => {
       if (activeState) newRowState.state = activeState
       try {
@@ -178,8 +282,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           let row
           // if shared form extract the current form state
           if (isForm.value) {
-            const { formState } = useSharedFormStoreOrThrow()
-            row = formState?.value
+            const { formState, additionalState } = useSharedFormStoreOrThrow()
+
+            row = await sanitizeRowData({ ...(formState?.value || {}), ...(additionalState?.value || {}) })
           }
 
           childrenExcludedList.value = await $api.public.dataRelationList(
@@ -206,6 +311,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
           /** if new row load all records */
         } else if (isNewRow?.value) {
+          const linkRowData = await sanitizeRowData(row.value.row)
+
           childrenExcludedList.value = await $api.dbTableRow.list(
             NOCO,
             baseId,
@@ -220,7 +327,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
               // todo: include only required fields
               linkColumnId: column.value.fk_column_id || column.value.id,
-              linkRowData: JSON.stringify(row.value.row),
+              linkRowData: JSON.stringify(linkRowData),
             } as any,
           )
           const ids = new Set(childrenList.value?.list?.map((item) => item.Id) ?? [])
@@ -236,6 +343,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                 if (row.value.row[key] !== row.value.oldRow[key]) acc[key] = row.value.row[key]
                 return acc
               }, {})
+
+              changedRowData = await sanitizeRowData(changedRowData)
             }
           } catch {}
 
@@ -591,6 +700,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     return {
       relatedTableMeta,
       loadRelatedTableMeta,
+      targetViewColumns,
+      targetViewColumnsById,
       relatedTableDisplayValueProp,
       displayValueTypeAndFormatProp,
       childrenExcludedList,

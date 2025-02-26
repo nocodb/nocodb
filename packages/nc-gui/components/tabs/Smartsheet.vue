@@ -189,7 +189,17 @@ const contentMaxSize = computed(() => {
   }
 })
 
-const onResize = (sizes: { min: number; max: number; size: number }[]) => {
+const onResize = () => {
+  if (isPanelExpanded.value && !extensionPaneRef.value?.isReady) {
+    extensionPaneRef.value?.onReady()
+  }
+
+  if (isActionPaneActive.value && !actionPaneRef.value?.isReady) {
+    actionPaneRef.value?.onReady()
+  }
+}
+
+const onResized = (sizes: { min: number; max: number; size: number }[]) => {
   if (sizes.length === 2) {
     if (!sizes[1].size) return
     if (isPanelExpanded.value) extensionPanelSize.value = sizes[1].size
@@ -225,7 +235,8 @@ const onReady = () => {
           'nc-is-open-extensions': isPanelExpanded,
         }"
         @ready="() => onReady()"
-        @resized="onResize"
+        @resize="onResize"
+        @resized="onResized"
       >
         <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
           <LazySmartsheetToolbar v-if="!isForm" />

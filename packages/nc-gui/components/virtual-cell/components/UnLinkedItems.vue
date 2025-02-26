@@ -11,6 +11,8 @@ const vModel = useVModel(props, 'modelValue', emit)
 
 const { isMobileMode } = useGlobal()
 
+const { isUIAllowed } = useRoles()
+
 const injectedColumn = inject(ColumnInj)
 
 const { isSharedBase } = storeToRefs(useBase())
@@ -42,6 +44,8 @@ const {
   unlink,
   row,
   resetChildrenExcludedOffsetCount,
+  loadRelatedTableMeta,
+  targetViewColumnsById,
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
@@ -170,7 +174,11 @@ const fields = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? [])
     .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
     .sort((a, b) => {
-      return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+      if (isPublic.value) {
+        return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+      }
+
+      return (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
     })
     .slice(0, isMobileMode.value ? 1 : 3)
 })
@@ -303,7 +311,7 @@ watch(childrenExcludedListPagination, () => {
 
 onMounted(() => {
   window.addEventListener('keydown', linkedShortcuts)
-
+  loadRelatedTableMeta()
   setTimeout(() => {
     filterQueryRef.value?.focus()
   }, 100)
@@ -359,6 +367,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
               placeholder="Search records to link..."
               class="w-full nc-excluded-search min-h-4 !pl-0"
               size="small"
+              autocomplete="off"
               @focus="isSearchInputFocused = true"
               @blur="isSearchInputFocused = false"
               @change="onFilterChange"
@@ -442,7 +451,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
       <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between min-h-11">
         <div class="flex">
           <NcButton
-            v-if="!isPublic && !isDataReadOnly"
+            v-if="!isPublic && !isDataReadOnly && isUIAllowed('dataEdit')"
             v-e="['c:row-expand:open']"
             size="small"
             class="!hover:(bg-white text-brand-500) !h-7 !text-small"

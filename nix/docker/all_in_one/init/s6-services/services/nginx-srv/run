@@ -1,0 +1,17 @@
+#!/bin/execlineb -P
+
+# setup by ../../../env-processor
+envfile /run/acme.dynamic.env
+importas -uS aio_ssl_domain
+
+foreground { mkdir -p /tmp }
+foreground { mkdir -p /var/lib/nginx }
+foreground { mkdir -p /run/nginx }
+
+foreground { cp /etc/nginx.sed.conf /run/nginx/dynamic.conf }
+foreground { sed s/__nocodb_domain__/${aio_ssl_domain}/g -i /run/nginx/dynamic.conf }
+
+fdmove -c 2 1
+
+s6-notifyoncheck
+nginx -c /run/nginx/dynamic.conf

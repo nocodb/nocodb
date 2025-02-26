@@ -206,18 +206,26 @@ const editEnabled = ref(false)
 const isGridCellMouseDown = ref(false)
 
 // #Context Menu
+const contextMenuClosing = ref(false)
+const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
+
 const _contextMenu = ref(false)
+
 const contextMenu = computed({
   get: () => {
-    if (props.data?.some((r) => r.rowMeta.selected) && isDataReadOnly.value) return false
+    if (
+      (props.data?.some((r) => r.rowMeta.selected) && isDataReadOnly.value) ||
+      (contextMenuTarget.value === null && !props.data?.some((r) => r.rowMeta.selected) && !vSelectedAllRecords.value)
+    ) {
+      return false
+    }
+
     return _contextMenu.value
   },
   set: (val) => {
     _contextMenu.value = val
   },
 })
-const contextMenuClosing = ref(false)
-const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 
 const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) => {
   if (isSqlView.value) return

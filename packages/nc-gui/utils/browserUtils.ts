@@ -10,7 +10,13 @@ export const isExtensionPaneActive = () => document.querySelector('.nc-extension
 export const isGeneralOverlayActive = () => document.querySelector('.nc-general-overlay')
 export const isSelectActive = () => document.querySelector('.ant-select-dropdown')
 export const isViewSearchActive = () => document.querySelector('.nc-view-search-data') === document.activeElement
+export const isCreateViewActive = () => document.querySelector('.nc-view-create-modal')
+export const isActiveElementInsideExtension = () =>
+  ['.extension-modal', '.nc-extension-pane', '.nc-modal-extension-market', '.nc-modal-share-collaborate'].some((selector) =>
+    document.querySelector(selector)?.contains(document.activeElement),
+  )
 
+export const isSidebarNodeRenameActive = () => document.querySelector('input.animate-sidebar-node-input-padding')
 export function hasAncestorWithClass(element: HTMLElement, className: string): boolean {
   return !!element.closest(`.${className}`)
 }

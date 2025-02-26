@@ -128,6 +128,14 @@ provide(CanvasColumnInj, lastOpenColumnDropdownField)
 const selectCellHook = createEventHook()
 provide(CanvasSelectCellInj, selectCellHook)
 
+const activeCellElement = ref<HTMLElement>()
+
+const cellClickHook = createEventHook()
+
+provide(CellClickHookInj, cellClickHook)
+
+provide(CurrentCellInj, activeCellElement)
+
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
 const isExpandTableModalOpen = ref(false)
@@ -262,6 +270,17 @@ const {
   setCursor,
 })
 
+const activeCursor = ref<CursorType>('auto')
+
+function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) {
+  if (customCondition && !customCondition(activeCursor.value)) return
+
+  if (activeCursor.value !== cursor) {
+    activeCursor.value = cursor
+    if (canvasRef.value && canvasRef.value.style?.cursor !== cursor) canvasRef.value.style.cursor = cursor
+  }
+}
+
 // Computed
 const noPadding = computed(() => paddingLessUITypes.has(editEnabled.value?.column.uidt as UITypes))
 
@@ -330,7 +349,13 @@ const totalHeight = computed(() => {
 
 const isContextMenuOpen = computed({
   get: () => {
-    if ((selectedRows.value.length && isDataReadOnly.value) || isDropdownVisible.value) return false
+    if (
+      (selectedRows.value.length && isDataReadOnly.value) ||
+      isDropdownVisible.value ||
+      (contextMenuTarget.value === null && !selectedRows.value.length && !vSelectedAllRecords.value)
+    ) {
+      return false
+    }
     return _isContextMenuOpen.value
   },
   set: (val) => {
@@ -876,6 +901,10 @@ async function handleMouseUp(e: MouseEvent) {
           // On Double-click, should open the column edit dialog
           // kept under else to avoid opening the column edit dialog on doubleclicking the column menu icon
           else if (clickType === MouseClickType.DOUBLE_CLICK) {
+            // If active cursor is col-resize, we don't want an accidental double click to
+            // open the edit column modal as the intention is to resize the column
+            if (activeCursor.value === 'col-resize') return
+
             handleEditColumn(e, false, clickedColumn.columnObj)
             requestAnimationFrame(triggerRefreshCanvas)
             return
@@ -918,7 +947,11 @@ async function handleMouseUp(e: MouseEvent) {
 
   const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
 
-  if (rowIndex === totalRows.value && clickType === MouseClickType.SINGLE_CLICK) {
+  if (
+    rowIndex === totalRows.value &&
+    clickType === MouseClickType.SINGLE_CLICK &&
+    x < totalColumnsWidth.value - scrollLeft.value
+  ) {
     if (isAddingEmptyRowAllowed.value) {
       await addEmptyRow()
     }
@@ -1041,6 +1074,8 @@ const getHeaderTooltipRegions = (
     width: number
     type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron'
     text: string
+    height?: number
+    y?: number
     disableTooltip?: boolean
   }[] = []
   let xOffset = initialOffset + 1
@@ -1129,17 +1164,6 @@ const getHeaderTooltipRegions = (
   return regions
 }
 
-const activeCursor = ref<CursorType>('auto')
-
-function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) {
-  if (customCondition && !customCondition(activeCursor.value)) return
-
-  if (activeCursor.value !== cursor) {
-    activeCursor.value = cursor
-    if (canvasRef.value && canvasRef.value.style?.cursor !== cursor) canvasRef.value.style.cursor = cursor
-  }
-}
-
 const handleMouseMove = (e: MouseEvent) => {
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
@@ -1163,6 +1187,8 @@ const handleMouseMove = (e: MouseEvent) => {
       cursor = 'pointer'
     }
 
+    // We handle the tooltip & pointer related items for fixed columns first
+    // If the mouse is hovering over the fixed columns, we show the tooltip
     if (fixedCols.length) {
       const fixedRegions = getHeaderTooltipRegions(0, fixedCols.length, 0, 0)
       const activeFixedRegion = fixedRegions.find(
@@ -1181,12 +1207,15 @@ const handleMouseMove = (e: MouseEvent) => {
       }
     }
 
+    // Now we check if the mouse is over the x positions of the fixed columns
     const isMouseOverFixedRegions = fixedCols.some((col) => {
       const width = parseCellWidth(col.width)
       return mousePosition.x >= 0 && mousePosition.x <= width
     })
 
-    if (isMouseOverFixedRegions) {
+    // We do not want to process the tooltip & pointer for the non-fixed columns if the mouse is over the fixed columns
+    // If the mouse is not over the fixed columns, we show the tooltip for the non-fixed columns
+    if (!isMouseOverFixedRegions) {
       let initialOffset = 0
       for (let i = 0; i < colSlice.value.start; i++) {
         initialOffset += parseCellWidth(columns.value[i]!.width)
@@ -1241,7 +1270,11 @@ const handleMouseMove = (e: MouseEvent) => {
     const row = cachedRows.value.get(rowIndex)
     const { column } = findClickedColumn(mousePosition.x, scrollLeft.value)
     if (!row || !column) {
-      if (rowIndex === totalRows.value && isAddingEmptyRowAllowed.value) {
+      if (
+        rowIndex === totalRows.value &&
+        isAddingEmptyRowAllowed.value &&
+        mousePosition.x < totalColumnsWidth.value - scrollLeft.value
+      ) {
         setCursor('pointer')
       } else {
         setCursor('auto')
@@ -1720,7 +1753,6 @@ defineExpose({
         </Teleport>
         <NcDropdown
           v-model:visible="isContextMenuOpen"
-          :disabled="contextMenuTarget === null && !selectedRows.length && !vSelectedAllRecords"
           :trigger="['contextmenu']"
           overlay-class-name="nc-dropdown-grid-context-menu"
         >
@@ -1789,12 +1821,14 @@ defineExpose({
             :class="{ [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped }"
           >
             <div
+              ref="activeCellElement"
               class="relative top-[2.5px] left-[2.5px] w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-white"
               :class="{
                 'px-[0.550rem]': !noPadding && !editEnabled.fixed,
                 'px-[0.49rem]': editEnabled.fixed,
                 'top-[0.5px] left-[-1px]': isClamped,
               }"
+              @click="cellClickHook.trigger($event)"
             >
               <SmartsheetRow :row="editEnabled.row">
                 <template #default="{ state }">
@@ -2048,6 +2082,10 @@ defineExpose({
   :deep(.nc-virtual-cell-qrcode),
   :deep(.nc-virtual-cell-barcode) {
     @apply !h-full;
+  }
+
+  :deep(.nc-virtual-cell.nc-virtual-cell-linktoanotherrecord > div) {
+    @apply min-h-7;
   }
 
   .nc-cell,

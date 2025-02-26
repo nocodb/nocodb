@@ -80,8 +80,9 @@ export default class Model implements TableType {
     context: NcContext,
     ncMeta = Noco.ncMeta,
     defaultViewId = undefined,
+    updateColumns = true,
   ): Promise<Column[]> {
-    this.columns = await Column.list(
+    const columns = await Column.list(
       context,
       {
         fk_model_id: this.id,
@@ -89,6 +90,10 @@ export default class Model implements TableType {
       },
       ncMeta,
     );
+
+    if (!updateColumns) return columns;
+
+    this.columns = columns;
 
     this.columnsById = this.columns.reduce((agg, c) => {
       agg[c.id] = c;
@@ -101,13 +106,8 @@ export default class Model implements TableType {
   public async getColumnsHash(
     context: NcContext,
     ncMeta = Noco.ncMeta,
-    updateColumns = false,
   ): Promise<string> {
-    const columns = await this.getColumns(context, ncMeta);
-
-    if (updateColumns) {
-      this.columns = columns;
-    }
+    const columns = await this.getColumns(context, ncMeta, undefined, false);
 
     return (this.columnsHash = hash(columns));
   }

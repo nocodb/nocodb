@@ -25,6 +25,10 @@ const clientMousePosition = inject(ClientMousePositionInj)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
+const cellClickHook = inject(CellClickHookInj, null)
+
+const onDivDataCellEventHook = inject(OnDivDataCellEventHookInj, null)
+
 const { isUIAllowed } = useRoles()
 
 const listItemsDlg = ref(false)
@@ -37,6 +41,10 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, re
   useProvideLTARStore(column as Ref<Required<ColumnType>>, row, isNew, reloadRowTrigger.trigger)
 
 await loadRelatedTableMeta()
+
+const hasEditPermission = computed(() => {
+  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || isForm.value
+})
 
 const value = computed(() => {
   if (cellValue?.value) {
@@ -90,8 +98,19 @@ watch(value, (next) => {
   }
 })
 
+function onCellClick(e: Event) {
+  if (e.type !== 'click' || !hasEditPermission.value) return
+  if (isExpandedFormOpen.value || isForm.value || active.value) {
+    listItemsDlg.value = true
+  }
+}
+
 onMounted(() => {
-  if (isUnderLookup.value || !isCanvasInjected || isExpandedFormOpen.value || !clientMousePosition) return
+  onDivDataCellEventHook?.on(onCellClick)
+  cellClickHook?.on(onCellClick)
+
+  if (!hasEditPermission.value || !isCanvasInjected || isExpandedFormOpen.value || !clientMousePosition) return
+
   forcedNextTick(() => {
     if (getElementAtMouse('.unlink-icon', clientMousePosition)) {
       unlinkRef(value.value)
@@ -101,6 +120,11 @@ onMounted(() => {
       listItemsDlg.value = true
     }
   })
+})
+
+onUnmounted(() => {
+  onDivDataCellEventHook?.off(onCellClick)
+  cellClickHook?.off(onCellClick)
 })
 </script>
 
@@ -125,7 +149,7 @@ onMounted(() => {
         </div>
 
         <div
-          v-if="!readOnly && (isUIAllowed('dataEdit') || isForm) && !isUnderLookup"
+          v-if="hasEditPermission"
           class="flex-none flex group items-center min-w-4"
           tabindex="0"
           @keydown.enter.stop="listItemsDlg = true"

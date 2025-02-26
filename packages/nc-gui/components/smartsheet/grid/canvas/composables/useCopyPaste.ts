@@ -158,7 +158,16 @@ export function useCopyPaste({
     }
     if (!meta.value?.id) return
 
-    if (isDrawerOrModalExist() || isExpandedCellInputExist() || isLinkDropdownExist()) {
+    if (
+      isDrawerOrModalExist() ||
+      isExpandedCellInputExist() ||
+      isLinkDropdownExist() ||
+      isViewSearchActive() ||
+      isSidebarNodeRenameActive() ||
+      isActiveElementInsideExtension() ||
+      isCmdJActive() ||
+      cmdKActive()
+    ) {
       return
     }
     if (isNcDropdownOpen()) return
@@ -499,7 +508,7 @@ export function useCopyPaste({
                       await syncCellData?.(activeCell)
                     }
                   },
-                  args: [clone(activeCell), clone(columnObj), clone(rowObj), clone(pasteVal.value), result],
+                  args: [clone(activeCell.value), clone(columnObj), clone(rowObj), clone(pasteVal.value), result],
                 },
                 undo: {
                   fn: async (
@@ -539,7 +548,7 @@ export function useCopyPaste({
                       await syncCellData?.(activeCell)
                     }
                   },
-                  args: [clone(activeCell), clone(columnObj), clone(rowObj), clone(oldCellValue), result],
+                  args: [clone(activeCell.value), clone(columnObj), clone(rowObj), clone(oldCellValue), result],
                 },
                 scope: defineViewScope({ view: view?.value }),
               })

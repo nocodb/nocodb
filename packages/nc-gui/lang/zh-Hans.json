@@ -675,7 +675,8 @@
     "yourBaseRole": "您的项目角色",
     "lockedByUser": "被{user} 锁定",
     "thisPageDoesNotExist": "此页面不存在",
-    "customUrl": "自定义URL"
+    "customUrl": "自定义URL",
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}"
   },
   "labels": {
     "latitude": "Latitude",

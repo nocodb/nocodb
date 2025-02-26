@@ -615,7 +615,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     }
 
     async function updateCalendarMeta(updateObj: Partial<CalendarType>) {
-      if (!viewMeta?.value?.id || !isUIAllowed('dataEdit', { skipSourceCheck: true }) || isPublic.value) return
+      if (!viewMeta?.value?.id || !isUIAllowed('viewCreateOrEdit', { skipSourceCheck: true }) || isPublic.value) return
 
       const updateValue = {
         ...(typeof calendarMetaData.value.meta === 'string'

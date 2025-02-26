@@ -243,7 +243,13 @@ export class MetaDiffsService {
 
         const [oldCol] = oldMeta.columns.splice(oldColIdx, 1);
 
-        if (oldCol.dt !== column.dt) {
+        if (
+          oldCol.dt !== column.dt ||
+          // if mysql and data type is set or enum then compare dtxp as well
+          (['mysql', 'mysql2'].includes(source.type) &&
+            ['set', 'enum'].includes(column.dt) &&
+            column.dtxp !== oldCol.dtxp)
+        ) {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_TYPE_CHANGE,
             msg: `Column type changed(${column.cn})`,
@@ -571,7 +577,13 @@ export class MetaDiffsService {
 
         const [oldCol] = oldMeta.columns.splice(oldColIdx, 1);
 
-        if (oldCol.dt !== column.dt) {
+        if (
+          oldCol.dt !== column.dt ||
+          // if mysql and data type is set or enum then compare dtxp as well
+          (['mysql', 'mysql2'].includes(source.type) &&
+            ['set', 'enum'].includes(column.dt) &&
+            column.dtxp !== oldCol.dtxp)
+        ) {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_TYPE_CHANGE,
             msg: `Column type changed(${column.cn})`,

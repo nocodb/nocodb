@@ -25,6 +25,7 @@ import {
   RatingHelper,
   SingleLineTextHelper,
   UrlHelper,
+  UserHelper,
   YearHelper,
 } from './columns';
 import { SingleSelectHelper } from './columns/SingleSelect';
@@ -52,9 +53,13 @@ export class ColumnHelperClass {
     [UITypes.Date]: DateHelper,
     [UITypes.DateTime]: DateTimeHelper,
     [UITypes.CreatedTime]: CreatedTimeHelper,
-    [UITypes.LastModifiedBy]: LastModifiedTimeHelper,
+    [UITypes.LastModifiedTime]: LastModifiedTimeHelper,
     [UITypes.SingleSelect]: SingleSelectHelper,
     [UITypes.MultiSelect]: MultiSelectHelper,
+    [UITypes.User]: UserHelper,
+    [UITypes.CreatedBy]: UserHelper,
+    [UITypes.LastModifiedBy]: UserHelper,
+    
   };
 
   // Method to retrieve the specific column class and instantiate it

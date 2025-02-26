@@ -164,5 +164,8 @@ export function constructDateFormat(column: ColumnType) {
 }
 
 export function constructTimeFormat(column: ColumnType) {
-  return parseProp(column?.meta)?.time_format ?? timeFormats[0];
+  const columnMeta = parseProp(column?.meta);
+  return columnMeta?.is12hrFormat
+    ? 'hh:mm A'
+    : columnMeta.time_format ?? timeFormats[0];
 }

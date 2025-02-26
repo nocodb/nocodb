@@ -109,7 +109,7 @@ export default function convertCellData(
           attachments.push(attachment)
         }
 
-        // Todo: on paste file add it don't replace 
+        // Todo: on paste file add it don't replace
         if (oldAttachments.length && !attachments.length) {
           return undefined
         } else if (value && attachments.length) {

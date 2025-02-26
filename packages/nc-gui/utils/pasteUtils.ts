@@ -1,14 +1,4 @@
-import {
-  type AIRecordType,
-  ColumnHelper,
-  type ColumnType,
-  type LinkToAnotherRecordType,
-  type TableType,
-  UITypes,
-  type UserFieldRecordType,
-  isDateMonthFormat,
-} from 'nocodb-sdk'
-import dayjs from 'dayjs'
+import { ColumnHelper, type ColumnType, type TableType } from 'nocodb-sdk'
 
 export const valueToCopy = (
   rowObj: Row,
@@ -21,7 +11,7 @@ export const valueToCopy = (
   },
 ) => {
   const { isPg, isMysql, meta, metas } = cb
-  let textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
+  const textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
 
   return ColumnHelper.parseValue(textToCopy, {
     col: columnObj,

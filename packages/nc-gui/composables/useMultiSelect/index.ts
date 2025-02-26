@@ -88,7 +88,7 @@ export function useMultiSelect(
 
   const { copy } = useCopy()
 
-  const { getMeta } = useMetas()
+  const { getMeta, metas } = useMetas()
 
   const { appInfo } = useGlobal()
 
@@ -163,6 +163,8 @@ export function useMultiSelect(
       col: columnObj,
       isMysql,
       isPg,
+      meta: meta.value,
+      metas: metas.value,
     })
 
     if (columnObj.uidt === UITypes.Checkbox) {

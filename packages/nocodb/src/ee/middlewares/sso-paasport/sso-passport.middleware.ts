@@ -51,45 +51,40 @@ export class SSOPassportMiddleware implements NestMiddleware {
       `SSO Middleware triggered for clientId: ${req.params.clientId}`,
     );
 
-    try {
-      const client = await SSOClient.get(req.params.clientId);
-      req['ncOrgId'] = client.fk_org_id;
+    const client = await SSOClient.get(req.params.clientId);
+    req['ncOrgId'] = client.fk_org_id;
 
-      if (!client || !client.enabled || client.deleted) {
-        this.debugger.error(
-          `Client not found or disabled: ${req.params.clientId}`,
-        );
-        return res.status(400).json({ msg: `Client not found` });
-      }
-
-      if (!client.config) {
-        this.debugger.error(
-          `Client config not found for clientId: ${req.params.clientId}`,
-        );
-        return res.status(400).json({ msg: `Client config not found` });
-      }
-
-      let strategy;
-      switch (client.type) {
-        case 'oidc':
-          strategy = await this.getOIDCStrategy(client, req);
-          break;
-        case 'saml':
-          strategy = await this.getSAMLStrategy(client, req);
-          break;
-        case 'google':
-          strategy = await this.getGoogleStrategy(client, req);
-          break;
-        default:
-          this.debugger.error(`Unsupported client type: ${client.type}`);
-          return res.status(400).json({ msg: `Client not supported` });
-      }
-
-      passport.authenticate(strategy, { session: false })(req, res, next);
-    } catch (error) {
-      this.debugger.error(`Error in SSO Middleware: ${error.message}`, error);
-      return res.status(500).json({ msg: 'Internal Server Error' });
+    if (!client || !client.enabled || client.deleted) {
+      this.debugger.error(
+        `Client not found or disabled: ${req.params.clientId}`,
+      );
+      return res.status(400).json({ msg: `Client not found` });
     }
+
+    if (!client.config) {
+      this.debugger.error(
+        `Client config not found for clientId: ${req.params.clientId}`,
+      );
+      return res.status(400).json({ msg: `Client config not found` });
+    }
+
+    let strategy;
+    switch (client.type) {
+      case 'oidc':
+        strategy = await this.getOIDCStrategy(client, req);
+        break;
+      case 'saml':
+        strategy = await this.getSAMLStrategy(client, req);
+        break;
+      case 'google':
+        strategy = await this.getGoogleStrategy(client, req);
+        break;
+      default:
+        this.debugger.error(`Unsupported client type: ${client.type}`);
+        return res.status(400).json({ msg: `Client not supported` });
+    }
+
+    passport.authenticate(strategy, { session: false })(req, res, next);
   }
   // get saml strategy
   async getSAMLStrategy(client: SSOClient, req: Request) {
@@ -153,6 +148,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
             // or return error
           } else {
             const salt = await promisify(bcrypt.genSalt)(10);
+            this.debugger.info(`Adding new user for email: ${email}`);
             user = await this.usersService.registerNewUserIfAllowed({
               display_name: null,
               avatar: null,
@@ -268,11 +264,14 @@ export class SSOPassportMiddleware implements NestMiddleware {
             state[key] = meta[key];
           }
 
+          this.debugger.info(
+            `Storing state for authorization request: ${handle}`,
+          );
           NocoCache.set(`oidc:${handle}`, state)
             .then(() => callback(null, handle))
             .catch((err) => {
               this.debugger.error(
-                `Missing state for authorization request: ${err.message}`,
+                `Failed to store state for authorization request: ${handle}`,
               );
               return callback(err);
             });
@@ -296,6 +295,9 @@ export class SSOPassportMiddleware implements NestMiddleware {
               req.ncRedirectHost = state.host;
 
               await NocoCache.del(key);
+              this.debugger.info(
+                `State verified for authorization request: ${providedState}`,
+              );
               return callback(null, true, state);
             })
             .catch((err) => {
@@ -322,6 +324,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
 
         this.validateEmailDomain({ email, req, client })
           .then(() => {
+            this.debugger.info(`Email domain validated for email: ${email}`);
             // get user by email
             User.getByEmail(email)
               .then(async (user) => {
@@ -358,6 +361,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
                 } else {
                   // if user not found create new user
                   const salt = await promisify(bcrypt.genSalt)(10);
+                  this.debugger.info(`Adding new user for email: ${email}`);
                   await this.usersService
                     .registerNewUserIfAllowed({
                       email,
@@ -418,11 +422,10 @@ export class SSOPassportMiddleware implements NestMiddleware {
   }) {
     const orgId = client.fk_org_id;
     if (!orgId) {
-      this.debugger.info(
-        `No orgId found for client: ${client.id}. Skipping email domain validation`,
-      );
       return;
     }
+
+    this.debugger.info(`Validating email domain for email: ${email}`);
 
     const domain = email.split('@')[1];
 
@@ -512,6 +515,9 @@ export class SSOPassportMiddleware implements NestMiddleware {
             // or return error
           } else {
             const salt = await promisify(bcrypt.genSalt)(10);
+            this.debugger.info(
+              `Adding new user for email: ${profile.emails[0].value}`,
+            );
             const user = await this.usersService.registerNewUserIfAllowed({
               email_verification_token: null,
               avatar: profile.photos?.[0]?.value,
@@ -563,6 +569,10 @@ export class SSOPassportMiddleware implements NestMiddleware {
     user: Partial<User>;
   }) {
     if (!client.fk_org_id) return;
+
+    this.debugger.info(
+      `Adding user to org: ${client.fk_org_id}, user id: ${user.id}`,
+    );
 
     const orgUser = await OrgUser.get(client.fk_org_id, user.id);
     if (!orgUser) {

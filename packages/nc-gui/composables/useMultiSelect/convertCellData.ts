@@ -352,7 +352,7 @@ export default function convertCellData(
         .map((k) => k.trim())
       if (geoValue.length === 2) {
         if (!isNaN(Number(geoValue[0])) && !isNaN(Number(geoValue[1]))) {
-          return geoValue.map((k) => Number(k).toFixed(10).replace(/[0]+$/, '')).join(';')
+          return geoValue.map((k) => convertGeoNumberToString(Number(k))).join(';')
         }
       }
       throw new SilentTypeConversionError()

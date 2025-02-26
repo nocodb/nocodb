@@ -434,6 +434,7 @@ interface CellRenderStore {
     value: number
     hoverValue: number
   }
+  ltar?: { oldX?: number; oldY?: number; x?: number; y?: number; width?: number; height?: number; value?: any }[]
 }
 
 type CursorType = 'auto' | 'pointer' | 'col-resize' | 'crosshair'

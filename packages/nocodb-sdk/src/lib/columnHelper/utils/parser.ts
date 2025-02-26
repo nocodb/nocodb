@@ -2,7 +2,13 @@ import dayjs from 'dayjs';
 import { ColumnType } from '~/lib/Api';
 import { convertMS2Duration } from '~/lib/durationUtils';
 import { parseProp, roundUpToPrecision } from '~/lib/helperFunctions';
-import { ncIsBoolean, ncIsNaN, ncIsObject, ncIsString } from '~/lib/is';
+import {
+  ncIsArray,
+  ncIsBoolean,
+  ncIsNaN,
+  ncIsObject,
+  ncIsString,
+} from '~/lib/is';
 
 export const parseDefault = (value: any) => {
   try {
@@ -117,4 +123,17 @@ export const parseYearValue = (value: any) => {
   }
 
   return dayjs(value.toString(), 'YYYY').format('YYYY');
+};
+
+export const parseUserValue = (value: any) => {
+  let data = value;
+  try {
+    if (typeof value === 'string') {
+      data = JSON.parse(value);
+    }
+  } catch {}
+
+  return (ncIsArray(data) ? data : ncIsObject(data) ? [data] : [])
+    .map((user) => `${user.email}`)
+    .join(', ');
 };

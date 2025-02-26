@@ -79,6 +79,7 @@ export const BelongsToCellRenderer: CellRenderer = {
       Object.assign(cellRenderStore, returnData)
 
       if (
+        !readonly &&
         selected &&
         isBoxHovered(
           {
@@ -139,6 +140,7 @@ export const BelongsToCellRenderer: CellRenderer = {
     cellRenderStore,
     selected,
     isPublic,
+    readonly,
   }) {
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width, height } = getCellPosition(column, rowIndex)
@@ -150,6 +152,7 @@ export const BelongsToCellRenderer: CellRenderer = {
     }
 
     if (
+      !readonly &&
       selected &&
       ncIsObject(value) &&
       cellRenderStore?.height &&

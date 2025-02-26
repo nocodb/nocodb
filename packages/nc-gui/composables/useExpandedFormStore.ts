@@ -336,6 +336,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           meta.value.id as string,
           activeView.value?.id as string,
           encodeURIComponent(recordId),
+          {
+            query: {
+              getHiddenColumn: 'true',
+            },
+          },
         )
       } else {
         record = await $api.dbTableRow.read(

@@ -386,7 +386,7 @@ export function useCopyPaste({
               isMysql(meta.value?.source_id),
             )
 
-            if (pasteVal === undefined) return
+            if (pasteVal === undefined || !ncIsObject(pasteVal)) return
 
             const foreignKeyColumn = meta.value?.columns?.find(
               (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
@@ -423,7 +423,7 @@ export function useCopyPaste({
               isMysql(meta.value?.source_id),
             )
 
-            if (pasteVal === undefined) return
+            if (pasteVal === undefined || !ncIsObject(pasteVal)) return
 
             const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
             if (!pasteRowPk) return

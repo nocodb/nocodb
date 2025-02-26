@@ -1,16 +1,6 @@
 import type { MaybeRef } from '@vueuse/core'
-import dayjs from 'dayjs'
-import type {
-  AIRecordType,
-  AttachmentType,
-  ColumnType,
-  LinkToAnotherRecordType,
-  PaginatedType,
-  TableType,
-  UserFieldRecordType,
-  ViewType,
-} from 'nocodb-sdk'
-import { ColumnHelper, UITypes, isDateMonthFormat, isSystemColumn, isVirtualCol, populateUniqueFileName } from 'nocodb-sdk'
+import type { AttachmentType, ColumnType, LinkToAnotherRecordType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import { ColumnHelper, UITypes, isSystemColumn, isVirtualCol, populateUniqueFileName } from 'nocodb-sdk'
 import { parse } from 'papaparse'
 import type { Ref } from 'vue'
 import { computed } from 'vue'
@@ -157,7 +147,7 @@ export function useMultiSelect(
   }
 
   const valueToCopy = (rowObj: Row, columnObj: ColumnType) => {
-    let textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
+    const textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
 
     return ColumnHelper.parseValue(textToCopy, {
       col: columnObj,

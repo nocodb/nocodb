@@ -96,7 +96,7 @@ const isNumberedList = computed(() => widget.value.listType === LinkedFieldListT
 const isTable = computed(() => widget.value.displayAs === LinkedFieldDisplayAs.TABLE)
 const snapGridWidth = computed(() => (isTable.value ? 10 : 1))
 const snapGridHeight = computed(() => (isTable.value ? 10 : 1))
-const columns = computed(() => relatedTableMeta.value.columns ?? [])
+const columns = computed<ColumnType[]>(() => relatedTableMeta.value.columns ?? [])
 const columnsMapById = computed(() =>
   columns.value.reduce((map, col) => {
     map[col.id!] = col
@@ -139,7 +139,7 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
 </script>
 
 <template>
-  <div v-if="widget && !isRowEmpty(row!, widget.field) && row.row[column.title]" class="field-widget">
+  <div v-if="widget && !isRowEmpty(row!, widget.field) && column.title in row.row" class="field-widget">
     <div ref="targetRef" class="absolute" :style="widget.cssStyle">
       <div
         :style="{

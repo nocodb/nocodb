@@ -301,6 +301,7 @@ export const plainCellFields = new Set([
   UITypes.CreatedBy,
   UITypes.Collaborator,
   UITypes.LastModifiedBy,
+  UITypes.LongText,
 ])
 
 export const fontWeightToLabel: Record<string, string> = {

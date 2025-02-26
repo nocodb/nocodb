@@ -84,6 +84,7 @@ const container = useParentElement()
           :class="{ hidden: errored }"
           :style="{
             objectFit: widget.objectFit || 'fill',
+            borderRadius: `${widget.borderRadius || 0}px`,
           }"
           @error="errored = true"
           @load="errored = false"

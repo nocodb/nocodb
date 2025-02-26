@@ -96,7 +96,7 @@ export function useCopyPaste({
 }) {
   const { $api } = useNuxtApp()
   const { isDataReadOnly } = useRoles()
-  const { getMeta } = useMetas()
+  const { getMeta, metas } = useMetas()
   const { isMysql, isPg } = useBase()
   const { appInfo } = useGlobal()
   const { addUndo, clone, defineViewScope } = useUndoRedo()
@@ -386,7 +386,7 @@ export function useCopyPaste({
               isMysql(meta.value?.source_id),
             )
 
-            if (pasteVal === undefined) return
+            if (pasteVal === undefined || !ncIsObject(pasteVal)) return
 
             const foreignKeyColumn = meta.value?.columns?.find(
               (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
@@ -423,7 +423,7 @@ export function useCopyPaste({
               isMysql(meta.value?.source_id),
             )
 
-            if (pasteVal === undefined) return
+            if (pasteVal === undefined || !ncIsObject(pasteVal)) return
 
             const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
             if (!pasteRowPk) return
@@ -910,6 +910,7 @@ export function useCopyPaste({
 
           const textToCopy = valueToCopy(rowObj, columnObj, {
             meta: meta.value,
+            metas: metas.value,
             isPg,
             isMysql,
           })

@@ -3,6 +3,7 @@ import {
   UITypes,
   buildFilterTree,
   dateFormats,
+  getRenderAsTextFunForUiType,
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
@@ -643,22 +644,31 @@ export const getRollupValue = (modelValue: string | null | number, params: Parse
   const { col, meta, metas } = params
 
   const colOptions = col.colOptions as RollupType
+  const relationColumnOptions = colOptions.fk_relation_column_id
+    ? (meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions as LinkToAnotherRecordType)
+    : null
+  const relatedTableMeta =
+    relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
 
-  const fns = ['count', 'avg', 'sum', 'countDistinct', 'sumDistinct', 'avgDistinct']
-  if (fns.includes(colOptions.rollup_function!)) {
-    return modelValue as string
-  } else {
-    const relationColumnOptions = colOptions.fk_relation_column_id
-      ? meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
-      : null
-    const relatedTableMeta =
-      relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
+  const childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_rollup_column_id) as
+    | ColumnType
+    | undefined
 
-    const childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_rollup_column_id)
+  if (!childColumn) return modelValue?.toString() ?? ''
 
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    return parsePlainCellValue(modelValue, { ...params, col: childColumn }) as string
+  const renderAsTextFun = getRenderAsTextFunForUiType((childColumn.uidt ?? UITypes.SingleLineText) as UITypes)
+
+  childColumn.meta = {
+    ...parseProp(childColumn?.meta),
+    ...parseProp(col?.meta),
   }
+
+  if (renderAsTextFun.includes(colOptions.rollup_function ?? '')) {
+    childColumn.uidt = UITypes.Decimal
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  return parsePlainCellValue(modelValue, { ...params, col: childColumn }) as string
 }
 
 export const getLookupValue = (modelValue: string | null | number | Array<any>, params: ParsePlainCellValueProps['params']) => {
@@ -766,7 +776,7 @@ export const parsePlainCellValue = (
   if (isJSON(col)) {
     try {
       if (isUnderLookup) {
-        return typeof value === 'string' ? value : JSON.stringify(value)
+        return typeof value === 'string' ? JSON.stringify(JSON.parse(value)) : JSON.stringify(value)
       } else {
         return JSON.stringify(JSON.parse(value), null, 2)
       }
@@ -807,8 +817,4 @@ export const parsePlainCellValue = (
   }
 
   return value as unknown as string
-}
-
-export function toSafeInteger(value: number) {
-  return Math.max(Number.MIN_SAFE_INTEGER, Math.min(value, Number.MAX_SAFE_INTEGER))
 }

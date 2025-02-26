@@ -108,6 +108,7 @@ onMounted(() => {
   cellClickHook?.on(onCellClick)
 
   if (!hasEditPermission.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value) return
+
   forcedNextTick(() => {
     if (getElementAtMouse('.unlink-icon', clientMousePosition)) {
       unlinkRef(value.value)

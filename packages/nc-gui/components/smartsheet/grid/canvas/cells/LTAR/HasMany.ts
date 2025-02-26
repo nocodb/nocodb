@@ -222,7 +222,7 @@ export const HasManyCellRenderer: CellRenderer = {
     readonly,
   }) {
     const rowIndex = row.rowMeta.rowIndex!
-    const { x, y, width } = getCellPosition(column, rowIndex)
+    const { x, y, width, height } = getCellPosition(column, rowIndex)
     const buttonSize = 24
 
     if (
@@ -233,7 +233,7 @@ export const HasManyCellRenderer: CellRenderer = {
       return true
     }
 
-    if (!readonly && selected && ncIsArray(cellRenderStore?.ltar)) {
+    if (selected && ncIsArray(cellRenderStore?.ltar)) {
       for (const cellItem of cellRenderStore.ltar) {
         if (
           ncIsObject(cellItem.value) &&
@@ -249,6 +249,8 @@ export const HasManyCellRenderer: CellRenderer = {
             mousePosition,
           )
         ) {
+          if (readonly) return true
+
           const { open } = useExpandedFormDetached()
 
           const rowId = extractPkFromRow(cellItem.value, (column.relatedTableMeta?.columns || []) as ColumnType[])
@@ -264,8 +266,15 @@ export const HasManyCellRenderer: CellRenderer = {
               loadRow: !isPublic,
             })
           }
+
+          return true
         }
       }
+    }
+
+    if (selected && isBoxHovered({ x, y, width, height }, mousePosition)) {
+      makeCellEditable(rowIndex, column)
+      return true
     }
 
     return false

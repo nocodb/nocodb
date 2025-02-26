@@ -164,7 +164,6 @@ export const OneToOneCellRenderer: CellRenderer = {
     }
 
     if (
-      !readonly &&
       selected &&
       ncIsObject(value) &&
       cellRenderStore?.height &&
@@ -179,6 +178,8 @@ export const OneToOneCellRenderer: CellRenderer = {
         mousePosition,
       )
     ) {
+      if (readonly) return true
+
       const { open } = useExpandedFormDetached()
 
       const rowId = extractPkFromRow(value, (column.relatedTableMeta?.columns || []) as ColumnType[])
@@ -194,9 +195,20 @@ export const OneToOneCellRenderer: CellRenderer = {
           loadRow: !isPublic,
         })
       }
+
+      return true
     }
-    if (!cellRenderStore?.x || !selected) return false
-    if (isBoxHovered({ x: cellRenderStore.x + 2, y: y + 8, height: size, width: size }, mousePosition)) {
+
+    if (
+      cellRenderStore?.x &&
+      selected &&
+      isBoxHovered({ x: cellRenderStore.x + 2, y: y + 8, height: size, width: size }, mousePosition)
+    ) {
+      makeCellEditable(rowIndex, column)
+      return true
+    }
+
+    if (selected && !readonly && isBoxHovered({ x, y, width, height }, mousePosition)) {
       makeCellEditable(rowIndex, column)
       return true
     }

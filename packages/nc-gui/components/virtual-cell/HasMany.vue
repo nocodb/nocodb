@@ -151,14 +151,18 @@ function onCellClick(e: Event) {
 onMounted(() => {
   onDivDataCellEventHook?.on(onCellClick)
   cellClickHook?.on(onCellClick)
+
   if (isUnderLookup.value || !isCanvasInjected || isExpandedForm.value || !clientMousePosition) return
+
   forcedNextTick(() => {
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-has-many-plus-icon', clientMousePosition)) {
       openListDlg()
     } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-has-many-maximize-icon', clientMousePosition)) {
       openChildList()
-    } else {
+    } else if (hasEditPermission.value) {
       openListDlg()
+    } else {
+      openChildList()
     }
   })
 })

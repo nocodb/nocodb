@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import type { AttachmentType, ColumnType, LinkToAnotherRecordType, SelectOptionsType } from 'nocodb-sdk'
-import { UITypes, getDateFormat, getDateTimeFormat, populateUniqueFileName } from 'nocodb-sdk'
+import { ColumnHelper, UITypes, getDateFormat, getDateTimeFormat, populateUniqueFileName } from 'nocodb-sdk'
 import { SilentTypeConversionError } from '~/error/silent-type-conversion.error'
 import { SelectTypeConversionError } from '~/error/select-type-conversion.error'
 import { ComputedTypePasteError } from '~/error/computed-type-paste.error'
@@ -25,6 +25,11 @@ export default function convertCellData(
 
   // return null if value is empty
   if (value === '' && to !== UITypes.Attachment) return null
+
+  // Todo: remove after testing
+  const serializedValue = ColumnHelper.serializeValue(value, column)
+
+  console.log('serializedValue', serializedValue, value, column.uidt)
 
   switch (to) {
     case UITypes.SingleLineText:

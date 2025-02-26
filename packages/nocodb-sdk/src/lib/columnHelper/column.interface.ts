@@ -24,12 +24,12 @@ export interface SerializerOrParserFnProps {
     meta?: TableType;
     metas?: { [idOrTitle: string]: TableType | any };
     baseUsers?: Map<string, UserType[]>;
-    isMysql?: (sourceId?: string) => boolean;
-    isMssql?: (sourceId?: string) => boolean;
-    isXcdbBase?: (sourceId?: string) => boolean;
-    isPg?: (sourceId?: string) => boolean;
+    isMysql?: (sourceId: string) => boolean;
+    isMssql?: (sourceId: string) => boolean;
+    isXcdbBase?: (sourceId: string) => boolean;
+    isPg?: (sourceId: string) => boolean;
     isUnderLookup?: boolean;
     rowId?: string | null;
-    isMultipleCellPaste?: boolean
+    isMultipleCellPaste?: boolean;
   };
 }

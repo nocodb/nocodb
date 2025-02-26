@@ -174,6 +174,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return row.value.row[displayValueProp.value]
     })
 
+    /**
+     * Extract only primary key(pk) and primary value(pv) column data
+     */
     const extractOnlyPrimaryValues = async (value: any, col: ColumnType) => {
       const currColOptions = (col.colOptions || {}) as LinkToAnotherRecordType
 
@@ -208,6 +211,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return extractValues(value, primaryCols)
     }
 
+    /**
+     * Sanitization of row is requried because we will send this info in api query params
+     * And query param has limit to send data
+     * So it's better to send only requried row data which will be used for `Limit record selection to filters`
+     */
     const sanitizeRowData = async (row: Record<string, any> = {}) => {
       const sanitizedRow: Record<string, any> = {}
 
@@ -223,7 +231,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
         switch (col.uidt) {
           case UITypes.Attachment: {
-            // Extract only title
+            /**
+             * Attachment object is to big as this includes data base64/file object and for filter only required title.
+             * So extract only title
+             */
             if (ncIsArray(value)) {
               sanitizedRow[col.title] = value.map((item) => (item?.title ? { title: item?.title } : null)).filter(Boolean)
             }
@@ -231,6 +242,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           }
           case UITypes.Links:
           case UITypes.LinkToAnotherRecord: {
+            /**
+             * Links/LTAR object is also big as in new record it will include while linked record data(depends on how many columns related table has)
+             * So extract only primary column values (pk & pv)
+             */
             const res = await extractOnlyPrimaryValues(value, col)
             if (res) {
               sanitizedRow[col.title] = res

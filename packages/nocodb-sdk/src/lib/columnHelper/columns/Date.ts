@@ -1,5 +1,5 @@
 import { dateFormats } from '~/lib/dateTimeHelper';
-import { parseDateValue, serializeDateValue } from '..';
+import { parseDateValue, serializeDateOrDateTimeValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
@@ -13,7 +13,7 @@ export class DateHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string | null {
-    return serializeDateValue(value, params.col);
+    return serializeDateOrDateTimeValue(value, params.col);
   }
 
   parseValue(

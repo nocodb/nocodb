@@ -1,20 +1,22 @@
-import { parsePercentValue, serializePercentValue } from '..';
+import { ColumnType } from '~/lib/Api';
+import { parseCurrencyValue, serializeCurrencyValue } from '..';
 import AbstractColumnHelper from '../column.interface';
 
 export class CurrencyHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
-    is_progress: false,
+    currency_locale: 'en-US',
+    currency_code: 'USD',
   };
 
   serializeValue(value: any): number | null {
-    return serializePercentValue(value);
+    return serializeCurrencyValue(value);
   }
 
-  parseValue(value: any): string | number | null {
-    return parsePercentValue(value);
+  parseValue(value: any, col: ColumnType): string | number | null {
+    return parseCurrencyValue(value, col);
   }
 
-  parsePlainCellValue(value: any): string {
-    return `${parsePercentValue(value) ?? ''}`;
+  parsePlainCellValue(value: any, col: ColumnType): string {
+    return `${parseCurrencyValue(value, col) ?? ''}`;
   }
 }

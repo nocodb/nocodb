@@ -451,18 +451,20 @@ export class ColumnsService {
       param.column.uidt &&
       param.column.uidt !== column.uidt &&
       !(param.column as Column).dt &&
-      // if uidt is invalid, do not randomly use default dt
+      // if uidt is invalid, do not try to set default dt
       Object.values(UITypes).includes(param.column.uidt as UITypes)
     ) {
       (param.column as Column).dt = sqlUi.getDataTypeForUiType(
         { uidt: param.column.uidt as UITypes },
         column?.['meta']?.['ag'] ? 'AG' : 'AI',
       )?.dt;
-    } else if (
+    }
+    // for API call, if dt is supplied, try to check if it's valid, otherwise set default
+    else if (
       param.column.uidt &&
       param.column.uidt !== column.uidt &&
       (param.column as Column).dt &&
-      // if uidt is invalid, do not randomly use default dt
+      // if uidt is invalid, do not try to set default dt
       Object.values(UITypes).includes(param.column.uidt as UITypes)
     ) {
       const dtList = sqlUi.getDataTypeListForUiType(param.column as Column);

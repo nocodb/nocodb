@@ -128,6 +128,14 @@ provide(CanvasColumnInj, lastOpenColumnDropdownField)
 const selectCellHook = createEventHook()
 provide(CanvasSelectCellInj, selectCellHook)
 
+const activeCellElement = ref<HTMLElement>()
+
+const cellClickHook = createEventHook()
+
+provide(CellClickHookInj, cellClickHook)
+
+provide(CurrentCellInj, activeCellElement)
+
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
 const isExpandTableModalOpen = ref(false)
@@ -1813,12 +1821,14 @@ defineExpose({
             :class="{ [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped }"
           >
             <div
+              ref="activeCellElement"
               class="relative top-[2.5px] left-[2.5px] w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-white"
               :class="{
                 'px-[0.550rem]': !noPadding && !editEnabled.fixed,
                 'px-[0.49rem]': editEnabled.fixed,
                 'top-[0.5px] left-[-1px]': isClamped,
               }"
+              @click="cellClickHook.trigger($event)"
             >
               <SmartsheetRow :row="editEnabled.row">
                 <template #default="{ state }">
@@ -2072,6 +2082,10 @@ defineExpose({
   :deep(.nc-virtual-cell-qrcode),
   :deep(.nc-virtual-cell-barcode) {
     @apply !h-full;
+  }
+
+  :deep(.nc-virtual-cell.nc-virtual-cell-linktoanotherrecord > div) {
+    @apply min-h-7;
   }
 
   .nc-cell,

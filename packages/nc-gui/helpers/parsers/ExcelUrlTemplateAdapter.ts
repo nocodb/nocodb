@@ -12,7 +12,7 @@ export default class ExcelUrlTemplateAdapter extends ExcelTemplateAdapter {
     api: Api<any>,
     xlsx: any = null,
     progressCallback?: (msg: string) => void,
-    existingColumns?: ColumnType[]
+    existingColumns?: ColumnType[],
   ) {
     super({}, parserConfig, xlsx, progressCallback, existingColumns)
     this.url = url

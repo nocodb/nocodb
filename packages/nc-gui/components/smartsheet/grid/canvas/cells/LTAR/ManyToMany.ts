@@ -221,6 +221,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
     selected,
     isPublic,
     readonly,
+    isDoubleClick,
   }) {
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width, height } = getCellPosition(column, rowIndex)
@@ -242,7 +243,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
       return true
     }
 
-    if (selected && ncIsArray(cellRenderStore?.ltar)) {
+    if ((selected || isDoubleClick) && ncIsArray(cellRenderStore?.ltar)) {
       // Value is array of object so we have to iterate over it
       for (const cellItem of cellRenderStore.ltar) {
         /**
@@ -294,7 +295,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
     /**
      * This is same as `cellClickHook`, on click cell make cell editable
      */
-    if (selected && isBoxHovered({ x, y, width, height }, mousePosition)) {
+    if ((selected || isDoubleClick) && isBoxHovered({ x, y, width, height }, mousePosition)) {
       makeCellEditable(rowIndex, column)
       return true
     }

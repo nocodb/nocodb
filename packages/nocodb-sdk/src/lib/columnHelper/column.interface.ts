@@ -29,5 +29,6 @@ export interface SerializerOrParserFnProps {
     isXcdbBase?: (sourceId?: string) => boolean;
     isPg?: (sourceId?: string) => boolean;
     isUnderLookup?: boolean;
+    rowId?: string | null;
   };
 }

@@ -318,7 +318,7 @@ const { message: templatedMessage } = useTemplatedMessage(
 
 <style lang="scss" scoped>
 :deep(.nc-cell .nc-action-icon) {
-  @apply !text-white-500 !bg-white/50 !rounded-full !p-1 !text-xs !w-7 !h-7 !flex !items-center !justify-center !cursor-pointer !hover: !bg-white-600 !hover: !text-white-600 !transition;
+  @apply !text-white-500 !bg-white/50 !p-1 !text-xs !w-7 !h-7 !flex !items-center !justify-center !cursor-pointer !hover: !bg-white-600 !hover: !text-white-600 !transition;
 }
 .nc-btn-fill-form-column-by-scan {
   @apply h-auto;

@@ -422,16 +422,20 @@ interface CellRendererOptions {
   cellRenderStore: CellRenderStore
   baseUsers?: (Partial<UserType> | Partial<User>)[]
   formula?: boolean
+  isPublic?: boolean
 }
 
 interface CellRenderStore {
   x?: number
   y?: number
+  width?: number
+  height?: number
   links?: { x: number; y: number; width: number; height: number; url: string }[]
   ratingChanged?: {
     value: number
     hoverValue: number
   }
+  ltar?: { oldX?: number; oldY?: number; x?: number; y?: number; width?: number; height?: number; value?: any }[]
 }
 
 type CursorType = 'auto' | 'pointer' | 'col-resize' | 'crosshair'
@@ -462,6 +466,7 @@ interface CellRenderer {
     selected: boolean
     imageLoader: ImageWindowLoader
     cellRenderStore: CellRenderStore
+    isPublic?: boolean
   }) => Promise<boolean>
   handleKeyDown?: (options: {
     e: KeyboardEvent

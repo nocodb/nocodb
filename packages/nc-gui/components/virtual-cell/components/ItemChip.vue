@@ -32,7 +32,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { open } = useExpandedFormDetached()
 
-function _openExpandedForm() {
+function openExpandedForm() {
   if (!active.value && !isExpandedForm.value) return
 
   const rowId = extractPkFromRow(item, relatedTableMeta.value.columns as ColumnType[])
@@ -61,6 +61,7 @@ export default {
     v-e="['c:row-expand:open']"
     class="chip group mr-1 my-0.5 flex items-center rounded-[2px] flex-row"
     :class="{ active, 'border-1 py-1 px-2': isAttachment(column), truncate }"
+    @click.stop="openExpandedForm"
   >
     <div class="text-ellipsis overflow-hidden pointer-events-none">
       <span class="name">
@@ -163,7 +164,7 @@ export default {
     @apply !bg-nc-bg-brand !border-none px-2 py-[3px] rounded-lg;
     &,
     & * {
-      @apply !text-nc-content-brand;
+      @apply !text-nc-content-brand !bg-nc-bg-brand;
     }
     :deep(.clamped-text) {
       @apply !block text-ellipsis;

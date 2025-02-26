@@ -51,6 +51,8 @@ export function useGridCellHandler(params: {
   hasEditPermission: ComputedRef<boolean>
   setCursor: SetCursorType
 }) {
+  const isPublic = inject(IsPublicInj, ref(false))
+
   const { t } = useI18n()
   const { metas } = useMetas()
   const canvasCellEvents = reactive<ExtractInjectedReactive<typeof CanvasCellEventDataInj>>({})
@@ -210,6 +212,7 @@ export function useGridCellHandler(params: {
         cellRenderStore,
         baseUsers: baseUsers.value,
         isUnderLookup,
+        isPublic: isPublic.value,
       })
     } else {
       return renderSingleLineText(ctx, {
@@ -251,6 +254,7 @@ export function useGridCellHandler(params: {
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
         makeCellEditable,
+        isPublic: isPublic.value,
       })
     }
     return false

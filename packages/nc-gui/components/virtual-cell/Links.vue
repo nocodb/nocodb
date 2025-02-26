@@ -16,7 +16,7 @@ const row = inject(RowInj)!
 
 const reloadRowTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
-const isForm = inject(IsFormInj)
+const isForm = inject(IsFormInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -52,6 +52,10 @@ const relatedTableDisplayColumn = computed(
 )
 
 loadRelatedTableMeta()
+
+const hasEditPermission = computed(() => {
+  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || isForm.value
+})
 
 const textVal = computed(() => {
   if (isForm?.value || isNew.value) {
@@ -118,7 +122,7 @@ const localCellValue = computed<any[]>(() => {
 })
 
 const openListDlg = () => {
-  if (isUnderLookup.value) return
+  if (!hasEditPermission.value) return
 
   listItemsDlg.value = true
   childListDlg.value = false
@@ -148,8 +152,10 @@ onMounted(() => {
         openListDlg()
       } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-text', clientMousePosition)) {
         openChildList()
-      } else {
+      } else if (hasEditPermission.value) {
         openListDlg()
+      } else {
+        openChildList()
       }
     })
   }
@@ -177,14 +183,13 @@ onMounted(() => {
         <div class="flex-grow" />
 
         <div
-          v-if="!isUnderLookup"
+          v-if="hasEditPermission"
           :class="{ hidden: isUnderLookup }"
           :tabindex="readOnly ? -1 : 0"
           class="!xs:hidden flex group justify-end group-hover:flex items-center nc-canvas-links-icon-plus"
           @keydown.enter.stop="openListDlg"
         >
           <MdiPlus
-            v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
             class="select-none !text-md text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
             @click.stop="openListDlg"
           />

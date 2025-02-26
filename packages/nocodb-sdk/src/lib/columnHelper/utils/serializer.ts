@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { ColumnType } from '~/lib/Api';
 import { convertDurationToSeconds } from '~/lib/durationUtils';
 import { parseProp } from '~/lib/helperFunctions';
@@ -111,4 +112,12 @@ export const serializeCurrencyValue = (value: any) => {
   }
 
   return serializeDecimalValue(value);
+};
+
+export const serializeYearValue = (value: any) => {
+  if (!value) return null;
+
+  const parsedDate = dayjs(value?.toString());
+
+  return parsedDate.isValid() ? +parsedDate.format('YYYY') : null;
 };

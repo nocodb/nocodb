@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import { ColumnType } from '~/lib/Api';
+import { isDateMonthFormat } from '~/lib/dateTimeHelper';
 import { convertDurationToSeconds } from '~/lib/durationUtils';
 import { parseProp } from '~/lib/helperFunctions';
 import { ncIsBoolean, ncIsNaN, ncIsNumber, ncIsString } from '~/lib/is';
@@ -112,6 +113,23 @@ export const serializeCurrencyValue = (value: any) => {
   }
 
   return serializeDecimalValue(value);
+};
+
+export const serializeDateValue = (value: string | null, col: ColumnType) => {
+  const dateFormat = parseProp(col.meta)?.date_format;
+
+  if (dateFormat && isDateMonthFormat(dateFormat)) {
+    // any date month format (e.g. YYYY-MM) couldn't be stored in database
+    // with date type since it is not a valid date
+    // therefore, we reformat the value here to display with the formatted one
+    // e.g. 2023-06-03 -> 2023-06
+    value = dayjs(value, dateFormat).format(dateFormat);
+  } else {
+    // e.g. 2023-06-03 (in DB) -> 03/06/2023 (in UI)
+    value = dayjs(value, 'YYYY-MM-DD').format(dateFormat);
+  }
+
+  return value;
 };
 
 export const serializeYearValue = (value: any) => {

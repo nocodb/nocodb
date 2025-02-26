@@ -21,7 +21,10 @@ export class FormulaHelper extends AbstractColumnHelper {
       ...columnMeta.display_column_meta,
     };
 
-    return ColumnHelper.parseValue(value, childColumn);
+    return ColumnHelper.parseValue(value, {
+      ...params,
+      col: childColumn,
+    });
   }
 
   parsePlainCellValue(

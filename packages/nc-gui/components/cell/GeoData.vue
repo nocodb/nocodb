@@ -132,6 +132,9 @@ const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 const isGrid = inject(IsGridInj, ref(false))
+
+const isForm = inject(IsFormInj, ref(false))
+
 const handleBlur = (e: Event) => {
   const originalValue = (e.target as any).value as string
   const value = convertGeoNumberToString(Number(originalValue))
@@ -169,8 +172,14 @@ watch(
 <template>
   <div tabindex="0" @paste="handlePaste">
     <NcDropdown v-model:visible="isExpanded">
-      <div v-if="!isLocationSet" class="w-full flex justify-center max-w-64 mx-auto">
-        <NcButton v-if="activeCell" size="xsmall" type="secondary" data-testid="nc-geo-data-set-location-button">
+      <div
+        v-if="!isLocationSet"
+        :class="{
+          '!justify-start !ml-0': isForm,
+        }"
+        class="w-full flex justify-center max-w-64 mx-auto"
+      >
+        <NcButton v-if="activeCell || isForm" size="xsmall" type="secondary" data-testid="nc-geo-data-set-location-button">
           <div class="flex items-center px-2 gap-2">
             <GeneralIcon class="text-gray-500 h-3.5 w-3.5" icon="ncMapPin" />
             <span class="text-tiny">
@@ -184,7 +193,10 @@ watch(
         v-else
         data-testid="nc-geo-data-lat-long-set"
         tabindex="1"
-        class="nc-cell-field h-full w-full flex items-center py-1 focus-visible:!outline-none focus:!outline-none"
+        :class="{
+          '!py-1': !isForm,
+        }"
+        class="nc-cell-field h-full pt-0.5 w-full flex items-center focus-visible:!outline-none focus:!outline-none"
       >
         {{ latLongStr }}
       </div>

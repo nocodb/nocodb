@@ -49,6 +49,11 @@ export const ManyToManyCellRenderer: CellRenderer = {
     let currentX = initialX
     let currentY = y + (rowHeightInPx['1'] === height ? 0 : 2)
     let currentWidth = initialWidth
+
+    /**
+     * Chip info which is oldX, oldY, x, y, width, height, value is required when user click on chip item to expand record
+     * Value added in returnData because we don't want to calculate it again
+     */
     const returnData: CellRenderStore['ltar'] = []
 
     const renderProps: CellRendererOptions = {
@@ -89,6 +94,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
       })
 
       if (point?.x) {
+        // Add rendered chip info in return data
         returnData.push({
           oldX: currentX + 4,
           oldY: currentY + 4,
@@ -99,6 +105,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
           value: cell.item,
         })
 
+        // Show cursor pointe on hover over chip item
         if (
           !readonly &&
           selected &&
@@ -126,6 +133,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
           currentX = point?.x
         }
       } else {
+        // Add rendered chip info in return data
         returnData.push({
           oldX: currentX,
           oldY: currentY,
@@ -136,11 +144,8 @@ export const ManyToManyCellRenderer: CellRenderer = {
           value: cell.item,
         })
 
-        if (
-          !readonly &&
-          selected &&
-          isBoxHovered({ x: currentX, y: currentY, width: currentX + currentWidth, height: currentY + 24 }, mousePosition)
-        ) {
+        // Show cursor pointe on hover over chip item
+        if (!readonly && selected && isBoxHovered({ x: currentX, y: currentY, width: currentWidth, height: 24 }, mousePosition)) {
           setCursor('pointer')
         }
 
@@ -221,6 +226,14 @@ export const ManyToManyCellRenderer: CellRenderer = {
     const { x, y, width, height } = getCellPosition(column, rowIndex)
     const buttonSize = 24
 
+    /**
+     * Note: The order of click action trigger is matter here to mimic behaviour of editable cell
+     */
+
+    /**
+     * When user clicks on Maximize/Plus icon make cell editable
+     * Open linked/unlinked record dropdown will handled in editable cell component
+     */
     if (
       isBoxHovered({ x: x + width - 57, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition) ||
       isBoxHovered({ x: x + width - 30, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition)
@@ -230,7 +243,11 @@ export const ManyToManyCellRenderer: CellRenderer = {
     }
 
     if (selected && ncIsArray(cellRenderStore?.ltar)) {
+      // Value is array of object so we have to iterate over it
       for (const cellItem of cellRenderStore.ltar) {
+        /**
+         * Expand record on click chip item if cell is selected and user has permission to edit data (e.g, not readonly)
+         */
         if (
           ncIsObject(cellItem.value) &&
           cellItem.width &&
@@ -245,6 +262,10 @@ export const ManyToManyCellRenderer: CellRenderer = {
             mousePosition,
           )
         ) {
+          /**
+           * To mimic editable cell behaviour we added return statement here
+           * If cell is readonly (stop event propagation on click chip item) `@click.stop="openExpandedForm"`
+           */
           if (readonly) return true
 
           const { open } = useExpandedFormDetached()
@@ -262,11 +283,17 @@ export const ManyToManyCellRenderer: CellRenderer = {
             })
           }
 
+          /**
+           * It's imp to add return here on click chip item to stop event propagation as while cell click action is also present below
+           */
           return true
         }
       }
     }
 
+    /**
+     * This is same as `cellClickHook`, on click cell make cell editable
+     */
     if (selected && isBoxHovered({ x, y, width, height }, mousePosition)) {
       makeCellEditable(rowIndex, column)
       return true

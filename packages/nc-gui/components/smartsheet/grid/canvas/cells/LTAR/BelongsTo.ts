@@ -71,6 +71,9 @@ export const BelongsToCellRenderer: CellRenderer = {
 
       if (!returnData?.x || !returnData?.y) return
 
+      /**
+       * x, y, width, height is required when user click on chip item to expand record
+       */
       Object.assign(returnData, {
         width: returnData.x - x + 4,
         height: returnData.y - (y + (rowHeightInPx['1'] === height ? 0 : 2)),
@@ -78,6 +81,7 @@ export const BelongsToCellRenderer: CellRenderer = {
 
       Object.assign(cellRenderStore, returnData)
 
+      // Show cursor pointe on hover over chip item
       if (
         !readonly &&
         selected &&
@@ -146,11 +150,32 @@ export const BelongsToCellRenderer: CellRenderer = {
     const { x, y, width, height } = getCellPosition(column, rowIndex)
     const size = 14
 
-    if (isBoxHovered({ x: x + width - 26, y: y + 8, height: size, width: size }, mousePosition)) {
+    /**
+     * Note: The order of click action trigger is matter here to mimic behaviour of editable cell
+     */
+
+    /**
+     * 1. When user clicks on Maximize/Plus icon make cell editable
+     *    Open linked/unlinked record dropdown will handled in editable cell component
+     *
+     * 2. On click remove icon (cross) make cell editable
+     *    Remove item on click cross in handled in editable cell component
+     */
+    const isClickedOnPlusIcon = isBoxHovered({ x: x + width - 26, y: y + 8, height: size, width: size }, mousePosition)
+
+    const isClickedOnXCircleIcon =
+      cellRenderStore?.x &&
+      selected &&
+      isBoxHovered({ x: cellRenderStore.x + 2, y: y + 8, height: size, width: size }, mousePosition)
+
+    if (isClickedOnPlusIcon || isClickedOnXCircleIcon) {
       makeCellEditable(rowIndex, column)
       return true
     }
 
+    /**
+     * Expand record on click chip item if cell is selected and user has permission to edit data (e.g, not readonly)
+     */
     if (
       selected &&
       ncIsObject(value) &&
@@ -166,6 +191,10 @@ export const BelongsToCellRenderer: CellRenderer = {
         mousePosition,
       )
     ) {
+      /**
+       * To mimic editable cell behaviour we added return statement here
+       * If cell is readonly (stop event propagation on click chip item) `@click.stop="openExpandedForm"`
+       */
       if (readonly) return true
 
       const { open } = useExpandedFormDetached()
@@ -183,18 +212,16 @@ export const BelongsToCellRenderer: CellRenderer = {
           loadRow: !isPublic,
         })
       }
+
+      /**
+       * It's imp to add return here on click chip item to stop event propagation as while cell click action is also present below
+       */
       return true
     }
 
-    if (
-      cellRenderStore?.x &&
-      selected &&
-      isBoxHovered({ x: cellRenderStore.x + 2, y: y + 8, height: size, width: size }, mousePosition)
-    ) {
-      makeCellEditable(rowIndex, column)
-      return true
-    }
-
+    /**
+     * This is same as `cellClickHook`, on click cell make cell editable
+     */
     if (selected && !readonly && isBoxHovered({ x, y, width, height }, mousePosition)) {
       makeCellEditable(rowIndex, column)
       return true

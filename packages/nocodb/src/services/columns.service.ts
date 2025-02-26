@@ -459,11 +459,11 @@ export class ColumnsService {
         column?.['meta']?.['ag'] ? 'AG' : 'AI',
       )?.dt;
     } else if (
-      (param.column.uidt &&
-        param.column.uidt !== column.uidt &&
-        (param.column as Column).dt,
+      param.column.uidt &&
+      param.column.uidt !== column.uidt &&
+      (param.column as Column).dt &&
       // if uidt is invalid, do not randomly use default dt
-      Object.values(UITypes).includes(param.column.uidt as UITypes))
+      Object.values(UITypes).includes(param.column.uidt as UITypes)
     ) {
       const dtList = sqlUi.getDataTypeListForUiType(param.column as Column);
       if (!dtList.includes((param.column as Column).dt)) {

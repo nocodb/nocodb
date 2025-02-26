@@ -467,7 +467,10 @@ export class ColumnsService {
     ) {
       const dtList = sqlUi.getDataTypeListForUiType(param.column as Column);
       if (!dtList.includes((param.column as Column).dt)) {
-        throw NcError.badRequest('dt not supported for selected uidt');
+        (param.column as Column).dt = sqlUi.getDataTypeForUiType(
+          { uidt: param.column.uidt as UITypes },
+          column?.['meta']?.['ag'] ? 'AG' : 'AI',
+        )?.dt;
       }
     }
     // extract missing required props from column to avoid broken column

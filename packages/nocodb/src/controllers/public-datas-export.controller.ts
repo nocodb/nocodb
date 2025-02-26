@@ -74,12 +74,15 @@ export class PublicDatasExportController {
     );
 
     let fields = req.query.fields as string[];
-    if (!fields || fields.length === 0) {
-      fields = view.columns
-        .filter((c) => c.show)
-        .map((k) => modelColumnMap[k.fk_column_id])
-        .filter((column) => !isSystemColumn(column) || view.show_system_fields)
-        .map((k) => k.title);
+    const allowedColumns = view.columns
+      .filter((c) => c.show)
+      .map((k) => modelColumnMap[k.fk_column_id])
+      .filter((column) => !isSystemColumn(column) || view.show_system_fields)
+      .map((k) => k.title);
+    if (!fields || fields.length === 0 || !Array.isArray(fields)) {
+      fields = allowedColumns;
+    } else {
+      fields = fields.filter((field) => allowedColumns.includes(field));
     }
 
     const data = XLSX.utils.json_to_sheet(

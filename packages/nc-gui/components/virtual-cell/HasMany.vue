@@ -49,6 +49,10 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, un
 
 await loadRelatedTableMeta()
 
+const hasEditPermission = computed(() => {
+  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || isForm.value
+})
+
 const localCellValue = computed<any[]>(() => {
   if (cellValue?.value) {
     return cellValue?.value ?? []
@@ -103,7 +107,7 @@ const openChildList = () => {
 }
 
 const openListDlg = () => {
-  if (isUnderLookup.value) return
+  if (!hasEditPermission.value) return
 
   listItemsDlg.value = true
   childListDlg.value = false
@@ -196,7 +200,7 @@ onUnmounted(() => {
         @click.stop
       >
         <NcButton
-          v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
+          v-if="hasEditPermission"
           size="xsmall"
           type="secondary"
           class="nc-action-icon nc-has-many-plus-icon"

@@ -63,6 +63,20 @@ export class TablesService extends TableServiceCE {
           `Only ${tableLimitForWorkspace} tables are allowed, for more please upgrade your plan`,
         );
       }
+
+      const columnLimitForWorkspace = await getLimit(
+        PlanLimitTypes.COLUMN_LIMIT,
+        context.workspace_id,
+      );
+
+      if (
+        param.table?.columns?.length &&
+        param.table.columns.length >= columnLimitForWorkspace
+      ) {
+        NcError.badRequest(
+          `Maximum ${columnLimitForWorkspace} columns are allowed, for more please upgrade your plan`,
+        );
+      }
     }
 
     return super.tableCreate(context, {

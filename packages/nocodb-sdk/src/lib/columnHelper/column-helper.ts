@@ -1,6 +1,7 @@
-import { ColumnType } from '../Api';
 import UITypes from '../UITypes';
-import AbstractColumnHelper from './column.interface';
+import AbstractColumnHelper, {
+  SerializerOrParserFnProps,
+} from './column.interface';
 import {
   BarcodeHelper,
   CheckboxHelper,
@@ -45,13 +46,15 @@ export class ColumnHelperClass {
   };
 
   // Method to retrieve the specific column class and instantiate it
-  getColumn(column: ColumnType): AbstractColumnHelper | undefined {
+  getColumn(
+    params: SerializerOrParserFnProps['params']
+  ): AbstractColumnHelper | undefined {
     let ColumnClass: new () => AbstractColumnHelper;
 
-    if (!column || !this.registry[column.uidt]) {
+    if (!params.col || !this.registry[params.col.uidt]) {
       ColumnClass = this.registry[UITypes.SingleLineText];
     } else {
-      ColumnClass = this.registry[column.uidt];
+      ColumnClass = this.registry[params.col.uidt];
     }
 
     // Instantiate the class with the column data
@@ -59,19 +62,19 @@ export class ColumnHelperClass {
   }
 
   // Method to parse a value using the correct column
-  parseValue(value: unknown, column: ColumnType) {
-    const columnInstance = this.getColumn(column);
+  parseValue(value: any, params: SerializerOrParserFnProps['params']) {
+    const columnInstance = this.getColumn(params);
     if (columnInstance) {
-      return columnInstance.parseValue(value, column);
+      return columnInstance.parseValue(value, params);
     }
     return undefined;
   }
 
   // Method to serialize a value using the correct column
-  serializeValue(value: unknown, column: ColumnType) {
-    const columnInstance = this.getColumn(column);
+  serializeValue(value: any, params: SerializerOrParserFnProps['params']) {
+    const columnInstance = this.getColumn(params);
     if (columnInstance) {
-      return columnInstance.serializeValue(value, column);
+      return columnInstance.serializeValue(value, params);
     }
     return undefined;
   }

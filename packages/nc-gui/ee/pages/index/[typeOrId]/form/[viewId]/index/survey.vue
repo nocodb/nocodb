@@ -379,7 +379,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                     data-testid="nc-survey-form__fill-form-btn"
                     @click="onStart()"
                   >
-                    Fill Form
+                    {{ $t('labels.fillForm') }}
                   </NcButton>
                 </div>
               </div>
@@ -489,7 +489,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                         data-testid="nc-survey-form__btn-submit-confirm"
                         @click="showSubmitConfirmModal"
                       >
-                        {{ $t('general.submit') }} form
+                        {{ $t('general.submit') }} {{ $t('objects.viewType.form') }}
                       </NcButton>
                     </div>
 

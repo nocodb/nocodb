@@ -1,3 +1,4 @@
+export * from './DefaultColumnHelper';
 export * from './Checkbox';
 export * from './Currency';
 export * from './Duration';

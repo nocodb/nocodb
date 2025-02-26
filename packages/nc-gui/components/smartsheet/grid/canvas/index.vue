@@ -262,6 +262,17 @@ const {
   setCursor,
 })
 
+const activeCursor = ref<CursorType>('auto')
+
+function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) {
+  if (customCondition && !customCondition(activeCursor.value)) return
+
+  if (activeCursor.value !== cursor) {
+    activeCursor.value = cursor
+    if (canvasRef.value && canvasRef.value.style?.cursor !== cursor) canvasRef.value.style.cursor = cursor
+  }
+}
+
 // Computed
 const noPadding = computed(() => paddingLessUITypes.has(editEnabled.value?.column.uidt as UITypes))
 
@@ -882,6 +893,10 @@ async function handleMouseUp(e: MouseEvent) {
           // On Double-click, should open the column edit dialog
           // kept under else to avoid opening the column edit dialog on doubleclicking the column menu icon
           else if (clickType === MouseClickType.DOUBLE_CLICK) {
+            // If active cursor is col-resize, we don't want an accidental double click to
+            // open the edit column modal as the intention is to resize the column
+            if (activeCursor.value === 'col-resize') return
+
             handleEditColumn(e, false, clickedColumn.columnObj)
             requestAnimationFrame(triggerRefreshCanvas)
             return
@@ -1139,17 +1154,6 @@ const getHeaderTooltipRegions = (
   })
 
   return regions
-}
-
-const activeCursor = ref<CursorType>('auto')
-
-function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) {
-  if (customCondition && !customCondition(activeCursor.value)) return
-
-  if (activeCursor.value !== cursor) {
-    activeCursor.value = cursor
-    if (canvasRef.value && canvasRef.value.style?.cursor !== cursor) canvasRef.value.style.cursor = cursor
-  }
 }
 
 const handleMouseMove = (e: MouseEvent) => {

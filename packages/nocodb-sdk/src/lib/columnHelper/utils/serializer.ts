@@ -14,6 +14,21 @@ import UITypes from '~/lib/UITypes';
 import { SerializerOrParserFnProps } from '../column.interface';
 import { SelectTypeConversionError } from '~/lib/error';
 
+/**
+ * Remove outer quotes & unescape
+ */
+export const serializeStringValue = (value: any) => {
+  value = value?.toString() ?? null;
+
+  if (!value) return null;
+
+  if (value.match(/^"[\s\S]*"$/)) {
+    value = value.slice(1, -1).replace(/\\"/g, '"');
+  }
+
+  return value;
+};
+
 export const serializeIntValue = (value: string | null | number) => {
   if (ncIsNumber(value)) {
     return parseInt(value.toString(), 10);

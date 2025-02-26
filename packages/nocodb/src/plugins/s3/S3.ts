@@ -1,9 +1,9 @@
 import { S3 as S3Client } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
-import { PublicAttachmentScope } from 'nocodb-sdk';
 import type { S3ClientConfig } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2 } from '~/types/nc-plugin';
 import GenericS3 from '~/plugins/GenericS3/GenericS3';
+import { S3_PATCH_KEYS } from '~/constants';
 
 interface S3Input {
   bucket: string;
@@ -31,21 +31,13 @@ export default class S3 extends GenericS3 implements IStorageAdapterV2 {
     };
   }
 
-  private DEFAULT_KEYS = [
-    'uploads',
-    'thumbnails',
-    ...(Object.values(PublicAttachmentScope) as string[]),
-  ];
-
   protected patchKey(key: string): string {
     if (!this.input.force_path_style) {
       return key;
     }
 
     if (
-      this.DEFAULT_KEYS.some((k) =>
-        key.startsWith(`${this.input.bucket}/nc/${k}`),
-      )
+      S3_PATCH_KEYS.some((k) => key.startsWith(`${this.input.bucket}/nc/${k}`))
     ) {
       key = key.replace(`${this.input.bucket}/`, '');
     }

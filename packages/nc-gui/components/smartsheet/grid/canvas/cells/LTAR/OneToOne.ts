@@ -154,6 +154,7 @@ export const OneToOneCellRenderer: CellRenderer = {
     selected,
     isPublic,
     readonly,
+    isDoubleClick,
   }) {
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width, height } = getCellPosition(column, rowIndex)
@@ -191,7 +192,7 @@ export const OneToOneCellRenderer: CellRenderer = {
      * Expand record on click chip item if cell is selected and user has permission to edit data (e.g, not readonly)
      */
     if (
-      selected &&
+      (selected || isDoubleClick) &&
       ncIsObject(value) &&
       cellRenderStore?.height &&
       cellRenderStore?.width &&
@@ -236,7 +237,7 @@ export const OneToOneCellRenderer: CellRenderer = {
     /**
      * This is same as `cellClickHook`, on click cell make cell editable
      */
-    if (selected && !readonly && isBoxHovered({ x, y, width, height }, mousePosition)) {
+    if ((selected || isDoubleClick) && !readonly && isBoxHovered({ x, y, width, height }, mousePosition)) {
       makeCellEditable(rowIndex, column)
       return true
     }

@@ -184,5 +184,23 @@ const fieldTitle = computed(() => widget.value.field.title ?? '')
   :deep(.plain-cell) {
     font-family: inherit;
   }
+  :deep(.nc-lookup-cell),
+  :deep(.nc-virtual-cell) {
+    height: 100% !important;
+  }
+  :deep(.virtual-lookup-cells) {
+    width: 100%;
+    gap: 8px;
+    justify-content: space-between;
+    .barcode-wrapper,
+    .nc-qrcode-container,
+    .nc-virtual-cell {
+      width: auto;
+    }
+    .nc-qrcode-container img,
+    .nc-barcode-container svg {
+      height: 100% !important;
+    }
+  }
 }
 </style>

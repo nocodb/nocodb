@@ -314,6 +314,7 @@ export const plainCellFields = new Set([
   UITypes.Collaborator,
   UITypes.LastModifiedBy,
   UITypes.LongText,
+  UITypes.Rollup,
 ])
 
 export const fontWeightToLabel: Record<string, string> = {

@@ -603,6 +603,7 @@
     "teamAndSettings": "Zespół i ustawienia",
     "apiDocs": "Dokumentacja API",
     "importFromAirtable": "Import z Airtable",
+    "importFromNocoDB": "Import From NocoDB",
     "generateToken": "Generuj token",
     "APIsAndSupport": "API i wsparcie",
     "helpCenter": "Centrum pomocy",
@@ -611,6 +612,7 @@
     "quickImportFrom": "Szybki import z",
     "quickImport": "Szybki import",
     "quickImportAirtable": "Import z Airtable",
+    "quickImportNocoDB": "Import from NocoDB",
     "quickImportCSV": "Import CSV",
     "quickImportExcel": "Import Excel",
     "quickImportJSON": "Import Json",
@@ -673,9 +675,14 @@
     "yourBaseRole": "Twoja rola",
     "lockedByUser": "Zablokowane przez {user}",
     "thisPageDoesNotExist": "Ta strona nie istnieje",
-    "customUrl": "Niestandardowy URL"
+    "customUrl": "Niestandardowy URL",
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
   },
   "labels": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "failed": "Failed",
+    "succeeded": "Succeeded",
     "noImage": "Brak obrazu",
     "quickNavigation": "Szybka nawigacja",
     "recent": "Ostatnie",
@@ -975,7 +982,7 @@
     "barcodeFormat": "Format kodu kreskowego",
     "qrCodeValueTooLong": "Zbyt długa wartość kodu QR",
     "barcodeValueTooLong": "Zbyt długa wartość kodu kreskowego",
-    "currentLocation": "Aktualna lokalizacja",
+    "currentLocation": "Set to current location",
     "lng": "Długość geograficzna",
     "lat": "Szerokość geograficzna",
     "aggregateFunction": "Funkcja agregująca",
@@ -1034,7 +1041,9 @@
     "goToDashboard": "Przejdź do panelu",
     "importing": "Importowanie",
     "importingFromAirtable": "Importowanie z Airtable",
+    "importingFromNocoDB": "Importing from NocoDB",
     "airtableBaseImported": "Importowanie z Airtable zakończone",
+    "nocoDBBaseImported": "NocoDB Base Imported",
     "formatJson": "Format JSON",
     "autoSelectFieldTypes": "Automatyczny Wybór Typów Pól",
     "firstRowAsHeaders": "Use first record as header",
@@ -1116,7 +1125,8 @@
     "viewHide": "Widoczność widoku ",
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
-    "showJsonPayload": "Show JSON payload"
+    "showJsonPayload": "Show JSON payload",
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
   },
   "activity": {
     "clickToResolve": "Kliknij, aby rozwiązać",
@@ -1132,6 +1142,7 @@
     "deleteAllRecords": "Usuń wszystkie rekordy",
     "assignView": "Przypisz widok",
     "webhookDetails": "Szczegóły Webhooka",
+    "webhookLogs": "Webhook Logs",
     "showSaturdaysAndSundays": "Pokaż soboty i niedziele",
     "renameBase": "Zmień nazwę tabeli",
     "renameWorkspace": "Zmień nazwę przestrzeni roboczej",
@@ -1372,6 +1383,8 @@
       "addOrEditStack": "Dodaj / Edytuj stos"
     },
     "map": {
+      "googleMaps": "Google Maps",
+      "osm": "OSM",
       "mappedBy": "Mapowane przez",
       "chooseMappingField": "Wybierz pole mapowania",
       "openInGoogleMaps": "Otwórz w Google Maps",
@@ -1511,6 +1524,7 @@
   "msg": {
     "dropYourDocHere": "Upuść dokument tutaj",
     "airtableImportSuccess": "Pomyślnie zaimportowano z bazy Airtable.",
+    "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
     "deleteAccountPermanently": "Usuń swoje konto na stałe",
     "learnMore": "Dowiedz się więcej",
     "connectIntegrations": "Połącz integracje z NocoDB.",

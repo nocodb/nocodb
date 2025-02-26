@@ -62,6 +62,8 @@ const isFocusing = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
+const canvasSelectCell = inject(CanvasSelectCellInj)
+
 const searchVal = ref<string | null>()
 
 const { isUIAllowed } = useRoles()
@@ -138,13 +140,18 @@ watch(active, (n, _o) => {
 useSelectedCellKeydownListener(
   activeCell,
   (e) => {
-    console.log('use slected cell')
     switch (e.key) {
       case 'Escape':
+        if (canvasSelectCell) {
+          canvasSelectCell.trigger()
+          return
+        }
         isOpen.value = false
         break
       case 'Enter':
         if (editAllowed.value && active.value && !isOpen.value) {
+          e.stopPropagation()
+          toggleMenu()
           isOpen.value = true
         }
         break
@@ -181,7 +188,10 @@ useSelectedCellKeydownListener(
 useSelectedCellKeydownListener(
   isOpen,
   (e) => {
-    if (e.key === 'Escape') isOpen.value = false
+    if (e.key === 'Escape') {
+      isOpen.value = false
+      canvasSelectCell?.trigger()
+    }
   },
   {
     isGridCell: false,
@@ -204,7 +214,7 @@ const onTagClick = (e: Event, onClose: Function) => {
   }
 }
 
-const toggleMenu = () => {
+function toggleMenu() {
   if (isFocusing.value) return
 
   isOpen.value = editAllowed.value && !isOpen.value
@@ -264,6 +274,16 @@ const onFocus = () => {
 
   isOpen.value = true
 }
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const isGrid = inject(IsGridInj, ref(false))
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
+onMounted(() => {
+  if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
+    isOpen.value = true
+  }
+})
 </script>
 
 <template>

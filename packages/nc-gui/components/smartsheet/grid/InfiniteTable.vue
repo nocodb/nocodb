@@ -402,19 +402,23 @@ const _contextMenu = ref(false)
 
 const selectedRows = toRef(props, 'selectedRows')
 
+const contextMenuClosing = ref(false)
+
+const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
+
 const contextMenu = computed({
   get: () => {
-    if (selectedRows.value.length && isDataReadOnly.value) return false
+    if (
+      (selectedRows.value.length && isDataReadOnly.value) ||
+      (contextMenuTarget.value === null && !selectedRows.value.length && !vSelectedAllRecords.value)
+    )
+      return false
     return _contextMenu.value
   },
   set: (val) => {
     _contextMenu.value = val
   },
 })
-
-const contextMenuClosing = ref(false)
-
-const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 
 const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) => {
   if (isSqlView.value) return
@@ -1426,6 +1430,7 @@ const colSlice = ref({
 const lastScrollTop = ref()
 const lastScrollLeft = ref()
 const lastTotalRows = ref()
+const lastTotalFields = ref()
 
 // Store the previous results for binary search to avoid redundant calculations
 let prevScrollLeft = -1
@@ -1434,8 +1439,8 @@ let lastRenderStart = -1
 let lastRenderEnd = -1
 
 // Optimized binary search to determine the visible column range
-const binarySearchForStart = (scrollLeft) => {
-  if (prevScrollLeft === scrollLeft && prevScrollWidth === gridWrapper.value.clientWidth) {
+const binarySearchForStart = (scrollLeft: number, clientWidth: number) => {
+  if (prevScrollLeft === scrollLeft && prevScrollWidth === clientWidth) {
     // Return cached results if the scroll position and grid width haven't changed
     return { renderStart: lastRenderStart, renderEnd: lastRenderEnd }
   }
@@ -1459,12 +1464,12 @@ const binarySearchForStart = (scrollLeft) => {
   }
 
   // Find the ending column using a simple linear scan starting from renderStart
-  let renderEnd = colPositions.value.findIndex((pos) => pos > gridWrapper.value.clientWidth + scrollLeft)
+  let renderEnd = colPositions.value.findIndex((pos) => pos > clientWidth + scrollLeft)
   renderEnd = renderEnd === -1 ? colPositions.value.length : renderEnd
 
   // Cache the results
   prevScrollLeft = scrollLeft
-  prevScrollWidth = gridWrapper.value.clientWidth
+  prevScrollWidth = clientWidth
   lastRenderStart = renderStart
   lastRenderEnd = renderEnd
 
@@ -1503,7 +1508,8 @@ const calculateSlices = () => {
     lastScrollLeft.value &&
     lastScrollLeft.value === scrollLeft.value &&
     Math.abs(lastScrollTop.value - scrollTop.value) < 32 * (ROW_VIRTUAL_MARGIN - 2) &&
-    lastTotalRows.value === totalRows.value
+    lastTotalRows.value === totalRows.value &&
+    lastTotalFields.value === fields.value.length
   ) {
     return
   }
@@ -1511,9 +1517,10 @@ const calculateSlices = () => {
   // Cache the current scroll positions
   lastScrollLeft.value = scrollLeft.value
   lastScrollTop.value = scrollTop.value
+  lastTotalFields.value = fields.value.length
 
   // Determine visible column range using binary search
-  const { renderStart, renderEnd } = binarySearchForStart(scrollLeft.value)
+  const { renderStart, renderEnd } = binarySearchForStart(scrollLeft.value, gridWrapper.value.clientWidth)
 
   // Add virtual margins to the calculated ranges
   const colStart = Math.max(0, renderStart - COL_VIRTUAL_MARGIN)
@@ -2208,7 +2215,6 @@ const cellAlignClass = computed(() => {
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative !overflow-auto">
       <NcDropdown
         v-model:visible="contextMenu"
-        :disabled="contextMenuTarget === null && !selectedRows.length && !vSelectedAllRecords"
         :trigger="isSqlView ? [] : ['contextmenu']"
         overlay-class-name="nc-dropdown-grid-context-menu"
       >
@@ -2539,7 +2545,6 @@ const cellAlignClass = computed(() => {
                               <GeneralIcon class="text-nc-content-gray hover:text-nc-content-brand" icon="ncDrag" />
                             </NcButton>
                           </div>
-
                           <div
                             v-if="!readOnly"
                             :class="{
@@ -2550,7 +2555,7 @@ const cellAlignClass = computed(() => {
                           >
                             <NcCheckbox
                               :checked="row.rowMeta.selected || vSelectedAllRecords"
-                              :disabled="(!row.rowMeta.selected && selectedRows.length > 100) || vSelectedAllRecords"
+                              :disabled="(!row.rowMeta.selected && selectedRows.length >= 100) || vSelectedAllRecords"
                               class="!w-4 !h-4"
                               @change="toggleRowSelection(row.rowMeta.rowIndex)"
                             />
@@ -2900,7 +2905,7 @@ const cellAlignClass = computed(() => {
                   {{ $t('general.insertBelow') }}
                 </div>
               </NcMenuItem>
-              <NcDivider />
+              <NcDivider v-if="contextMenuTarget" />
             </template>
 
             <NcTooltip

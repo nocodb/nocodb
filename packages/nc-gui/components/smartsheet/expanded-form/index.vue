@@ -441,7 +441,10 @@ const addNewRow = () => {
 useActiveKeydownListener(
   isExpanded,
   async (e: KeyboardEvent) => {
-    if (!e.altKey) return
+    if (!e.altKey || isNew.value || !props.showNextPrevIcons || isActiveInputElementExist(e) || isNestedExpandedFormOpenExist()) {
+      return
+    }
+
     if (e.key === 'ArrowLeft') {
       e.stopPropagation()
       if (isFirstRow.value) return
@@ -731,7 +734,12 @@ export default {
             :tooltip="!isUIAllowed('viewCreateOrEdit') ? 'You do not have permission to change view mode.' : undefined"
             :items="[
               { icon: 'fields', value: 'field', tooltip: 'Fields' },
-              { icon: 'file', value: 'attachment', tooltip: 'File Preview', hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE) },
+              {
+                icon: 'file',
+                value: 'attachment',
+                tooltip: 'File Preview',
+                hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE),
+              },
               {
                 icon: 'ncMessageSquare',
                 value: 'discussion',

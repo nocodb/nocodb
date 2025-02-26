@@ -216,7 +216,7 @@ export class DataAliasController {
     @Param('viewName') viewName: string,
     @Param('rowId') rowId: string,
     @Query('opt') opt: string,
-    @Query('getHiddenColumn') getHiddenColumn: boolean,
+    @Query('getHiddenColumn') getHiddenColumn: string,
   ) {
     return await this.datasService.dataRead(context, {
       baseName: baseName,
@@ -225,7 +225,7 @@ export class DataAliasController {
       rowId: rowId,
       query: req.query,
       disableOptimization: opt === 'false',
-      getHiddenColumn: getHiddenColumn,
+      getHiddenColumn: getHiddenColumn === 'true',
     });
   }
 

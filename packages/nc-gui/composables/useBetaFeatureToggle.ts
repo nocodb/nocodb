@@ -9,6 +9,12 @@ const FEATURES = [
     enabled: true,
   },
   {
+    id: 'canvas_grid_view',
+    title: 'Improved Grid View',
+    description: 'High-performance grid view with enhanced scrolling and rendering capabilities.',
+    enabled: !ncIsPlaywright(),
+  },
+  {
     id: 'link_to_another_record',
     title: 'Link To Another Record',
     description: 'Show linked record display value in Link fields.',
@@ -25,7 +31,7 @@ const FEATURES = [
   {
     id: 'nocodb_scripts',
     title: 'NocoDB Scripts (Beta)',
-    description: 'Enable NocoDB Scripts to automate repetetive workflow',
+    description: 'Enable NocoDB Scripts to automate repetitive workflow',
     enabled: false,
     isEngineering: true,
     isEE: true,
@@ -41,6 +47,14 @@ const FEATURES = [
     id: 'data_reflection',
     title: 'Data reflection',
     description: 'Enable data reflection.',
+    enabled: false,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'import_from_nocodb',
+    title: 'Import from NocoDB',
+    description: 'Enable import from NocoDB.',
     enabled: false,
     isEngineering: true,
     isEE: true,
@@ -93,14 +107,6 @@ const FEATURES = [
     id: 'expanded_form_discussion_mode',
     title: 'Expanded form discussion mode',
     description: 'Discussion mode allows you to see the comments and records audits combined in one place',
-    enabled: false,
-    isEE: true,
-    isEngineering: true,
-  },
-  {
-    id: 'expanded_form_record_audits',
-    title: 'Expanded form record audits',
-    description: 'Record audits allow you to see each change on a record and who made it',
     enabled: false,
     isEE: true,
     isEngineering: true,
@@ -193,8 +199,6 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
   onUnmounted(() => {
     window.removeEventListener('storage', handleStorageEvent)
   })
-
-  onMounted(initializeFeatures)
 
   return {
     features,

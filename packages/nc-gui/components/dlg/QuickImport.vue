@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { type TableType, charsetOptions } from 'nocodb-sdk'
+import { toRaw, unref } from '@vue/runtime-core'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
-import { toRaw, unref } from '@vue/runtime-core'
+import { type TableType, charsetOptions } from 'nocodb-sdk'
 // import worker script according to the doc of Vite
+import getCrossOriginWorkerURL from 'crossoriginworker'
+import rfdc from 'rfdc'
 import importWorkerUrl from '~/workers/importWorker?worker&url'
 
 interface Props {
@@ -25,6 +27,10 @@ const { appInfo } = useGlobal()
 
 const config = useRuntimeConfig()
 
+const meta = inject(MetaInj, ref())
+
+const existingColumns = computed(() => meta.value?.columns?.filter((col) => !col.system) || [])
+
 const isWorkerSupport = typeof Worker !== 'undefined'
 
 let importWorker: Worker | null
@@ -38,8 +44,6 @@ const { tables } = storeToRefs(useBase())
 const tablesStore = useTablesStore()
 const { loadProjectTables } = tablesStore
 const { baseTables } = storeToRefs(tablesStore)
-
-const activeKey = ref('uploadTab')
 
 const templateEditorRef = ref()
 
@@ -62,8 +66,6 @@ const collapseKey = ref('')
 const temporaryJson = ref({})
 
 const jsonErrorText = ref('')
-
-const fileEncodingMap = ref<{ [key: string]: string }>({})
 
 const useForm = Form.useForm
 
@@ -135,12 +137,15 @@ watch(dialogShow, (newValue) => {
 })
 
 // watch dialogShow to init or terminate worker
-if (isWorkerSupport && process.env.NODE_ENV === 'production') {
+if (isWorkerSupport) {
   watch(
     dialogShow,
     async (val) => {
       if (val) {
-        importWorker = await initWorker(importWorkerUrl)
+        importWorker = new Worker(
+          await getCrossOriginWorkerURL(importWorkerUrl),
+          process.env.NODE_ENV === 'development' ? { type: 'module' } : undefined,
+        )
       } else {
         importWorker?.terminate()
       }
@@ -335,9 +340,9 @@ function getAdapter(val: any) {
     }
   } else if (IsImportTypeExcel.value) {
     if (isPreImportFileFilled.value) {
-      return new ExcelTemplateAdapter(val, importState.parserConfig)
+      return new ExcelTemplateAdapter(val, importState.parserConfig, undefined, undefined, unref(existingColumns))
     } else {
-      return new ExcelUrlTemplateAdapter(val, importState.parserConfig, $api)
+      return new ExcelUrlTemplateAdapter(val, importState.parserConfig, $api, undefined, undefined, unref(existingColumns))
     }
   } else if (isImportTypeJson.value) {
     if (isPreImportFileFilled.value) {
@@ -377,80 +382,36 @@ const beforeUpload = (file: UploadFile) => {
 // UploadFile[] for csv import (streaming)
 // ArrayBuffer for excel import
 function extractImportWorkerPayload(value: UploadFile[] | ArrayBuffer | string) {
-  let payload: ImportWorkerPayload
+  let importType: ImportType
   if (isImportTypeCsv.value) {
-    switch (activeKey.value) {
-      case 'uploadTab':
-        payload = {
-          config: {
-            ...importState.parserConfig,
-            importFromURL: false,
-          },
-          value,
-          importType: ImportType.CSV,
-          importSource: ImportSource.FILE,
-        }
-        break
-      case 'urlTab':
-        payload = {
-          config: {
-            ...importState.parserConfig,
-            importFromURL: true,
-          },
-          value,
-          importType: ImportType.CSV,
-          importSource: ImportSource.FILE,
-        }
-        break
-    }
+    importType = ImportType.CSV
   } else if (IsImportTypeExcel.value) {
-    switch (activeKey.value) {
-      case 'uploadTab':
-        payload = {
-          config: toRaw(importState.parserConfig),
-          value,
-          importType: ImportType.EXCEL,
-          importSource: ImportSource.FILE,
-        }
-        break
-      case 'urlTab':
-        payload = {
-          config: toRaw(importState.parserConfig),
-          value,
-          importType: ImportType.EXCEL,
-          importSource: ImportSource.URL,
-        }
-        break
-    }
+    importType = ImportType.EXCEL
   } else if (isImportTypeJson.value) {
-    switch (activeKey.value) {
-      case 'uploadTab':
-        payload = {
-          config: toRaw(importState.parserConfig),
-          value,
-          importType: ImportType.JSON,
-          importSource: ImportSource.FILE,
-        }
-        break
-      case 'urlTab':
-        payload = {
-          config: toRaw(importState.parserConfig),
-          value,
-          importType: ImportType.JSON,
-          importSource: ImportSource.URL,
-        }
-        break
-      case 'jsonEditorTab':
-        payload = {
-          config: toRaw(importState.parserConfig),
-          value,
-          importType: ImportType.JSON,
-          importSource: ImportSource.STRING,
-        }
-        break
-    }
+    importType = ImportType.JSON
   }
-  return payload
+  importType = importType! ?? ImportType.CSV
+
+  let importSource: ImportSource
+  if (isPreImportFileFilled.value) {
+    importSource = ImportSource.FILE
+  } else if (isPreImportUrlFilled.value && importType !== ImportType.JSON) {
+    importSource = ImportSource.URL
+  } else if (importType === ImportType.JSON) {
+    importSource = ImportSource.STRING
+  }
+  importSource = importSource! ?? ImportSource.FILE
+
+  return {
+    config: {
+      ...toRaw(importState.parserConfig),
+      importFromURL: importSource === ImportSource.URL,
+    },
+    existingColumns: rfdc()(unref(existingColumns)),
+    value,
+    importType,
+    importSource,
+  }
 }
 
 // string for json import

@@ -2,16 +2,7 @@
 import axios from 'axios'
 import { nextTick } from '@vue/runtime-core'
 import type { ButtonType, ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import {
-  UITypes,
-  ViewTypes,
-  isAIPromptCol,
-  isCreatedOrLastModifiedByCol,
-  isCreatedOrLastModifiedTimeCol,
-  isLinksOrLTAR,
-  isSystemColumn,
-  isVirtualCol,
-} from 'nocodb-sdk'
+import { UITypes, ViewTypes, isAIPromptCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { useColumnDrag } from './useColumnDrag'
 import { type CellRange, type Group, NavigateDir } from '#imports'
 
@@ -215,18 +206,26 @@ const editEnabled = ref(false)
 const isGridCellMouseDown = ref(false)
 
 // #Context Menu
+const contextMenuClosing = ref(false)
+const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
+
 const _contextMenu = ref(false)
+
 const contextMenu = computed({
   get: () => {
-    if (props.data?.some((r) => r.rowMeta.selected) && isDataReadOnly.value) return false
+    if (
+      (props.data?.some((r) => r.rowMeta.selected) && isDataReadOnly.value) ||
+      (contextMenuTarget.value === null && !props.data?.some((r) => r.rowMeta.selected) && !vSelectedAllRecords.value)
+    ) {
+      return false
+    }
+
     return _contextMenu.value
   },
   set: (val) => {
     _contextMenu.value = val
   },
 })
-const contextMenuClosing = ref(false)
-const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 
 const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) => {
   if (isSqlView.value) return
@@ -444,19 +443,6 @@ const cellMeta = computed(() => {
     })
   })
 })
-
-const isReadonly = (col: ColumnType) => {
-  return (
-    isSystemColumn(col) ||
-    isLookup(col) ||
-    isRollup(col) ||
-    isFormula(col) ||
-    isButton(col) ||
-    isVirtualCol(col) ||
-    isCreatedOrLastModifiedTimeCol(col) ||
-    isCreatedOrLastModifiedByCol(col)
-  )
-}
 
 const colMeta = computed(() => {
   return fields.value.map((col) => {

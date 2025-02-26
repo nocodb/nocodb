@@ -63,8 +63,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const { isUIAllowed } = useRoles()
 
-  const { isFeatureEnabled } = useBetaFeatureToggle()
-
   // getters
   const displayValue = computed(() => {
     if (row?.value?.row) {
@@ -108,12 +106,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const mightHaveMoreAudits = ref(false)
 
   const loadAudits = async (_rowId?: string, showLoading: boolean = true) => {
-    if (
-      !isUIAllowed('auditListRow') ||
-      (!row.value && !_rowId) ||
-      (isEeUI && !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_RECORD_AUDITS))
-    )
-      return
+    if (!isUIAllowed('auditListRow') || (!row.value && !_rowId)) return
 
     const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
@@ -332,18 +325,30 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     const recordId = rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
     if (!recordId) return
+
     let record: Record<string, any> = {}
     try {
-      record = await $api.dbTableRow.read(
-        NOCO,
-        // todo: base_id missing on view type
-        ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
-        meta.value.id as string,
-        encodeURIComponent(recordId),
-        {
-          getHiddenColumn: true,
-        },
-      )
+      if (activeView.value?.fk_model_id === meta.value.id) {
+        record = await $api.dbViewRow.read(
+          NOCO,
+          // todo: base_id missing on view type
+          ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
+          meta.value.id as string,
+          activeView.value?.id as string,
+          encodeURIComponent(recordId),
+        )
+      } else {
+        record = await $api.dbTableRow.read(
+          NOCO,
+          // todo: base_id missing on view type
+          ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
+          meta.value.id as string,
+          encodeURIComponent(recordId),
+          {
+            getHiddenColumn: true,
+          },
+        )
+      }
     } catch (err: any) {
       if (err.response?.status === 404) {
         const router = useRouter()

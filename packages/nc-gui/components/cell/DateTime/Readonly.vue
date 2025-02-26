@@ -12,6 +12,8 @@ const { modelValue, isUpdatedFromCopyNPaste } = defineProps<Props>()
 
 const column = inject(ColumnInj)!
 
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
 const { isXcdbBase } = useBase()
 
 const dateFormat = computed(() => parseProp(column?.value?.meta)?.date_format ?? dateFormats[0])
@@ -64,11 +66,17 @@ const timeCellMaxWidth = computed(() => {
     :title="localState?.format(dateTimeFormat)"
     class="nc-date-picker w-full flex nc-cell-field relative gap-2 nc-cell-picker-datetime tracking-tight"
   >
-    <div class="flex-none rounded-md box-border w-[60%] max-w-[110px] py-0.5 px-1 truncate">
+    <div
+      class="flex-none rounded-md box-border py-0.5 px-1 truncate"
+      :class="{
+        'w-[fit-content]': isUnderLookup,
+        'w-[60%] max-w-[110px]': !isUnderLookup,
+      }"
+    >
       {{ localState?.format(dateFormat) ?? '' }}
     </div>
 
-    <div :class="timeCellMaxWidth" class="flex-1 flex-none rounded-md box-border py-0.5 px-1 truncate">
+    <div :class="timeCellMaxWidth" class="flex-1 rounded-md box-border py-0.5 px-1 truncate">
       {{ cellValue }}
     </div>
   </div>

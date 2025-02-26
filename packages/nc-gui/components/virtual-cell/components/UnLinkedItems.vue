@@ -5,7 +5,7 @@ import InboxIcon from '~icons/nc-icons/inbox'
 
 const props = defineProps<{ modelValue: boolean; column: any; hideBackBtn?: boolean }>()
 
-const emit = defineEmits(['update:modelValue', 'addNewRecord', 'attachLinkedRecord'])
+const emit = defineEmits(['update:modelValue', 'addNewRecord', 'attachLinkedRecord', 'escape'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
@@ -42,6 +42,8 @@ const {
   unlink,
   row,
   resetChildrenExcludedOffsetCount,
+  loadRelatedTableMeta,
+  targetViewColumnsById,
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
@@ -170,7 +172,11 @@ const fields = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? [])
     .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
     .sort((a, b) => {
-      return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+      if (isPublic.value) {
+        return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+      }
+
+      return (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
     })
     .slice(0, isMobileMode.value ? 1 : 3)
 })
@@ -303,7 +309,7 @@ watch(childrenExcludedListPagination, () => {
 
 onMounted(() => {
   window.addEventListener('keydown', linkedShortcuts)
-
+  loadRelatedTableMeta()
   setTimeout(() => {
     filterQueryRef.value?.focus()
   }, 100)
@@ -324,6 +330,7 @@ const isSearchInputFocused = ref(false)
 
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
+    if (!childrenExcludedListPagination.query) emit('escape')
     filterQueryRef.value?.blur()
   } else if (e.key === 'Enter') {
     if (

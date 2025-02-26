@@ -603,6 +603,7 @@
     "teamAndSettings": "Komanda un iestatījumi",
     "apiDocs": "API dokumenti",
     "importFromAirtable": "Importēšana no Airtable",
+    "importFromNocoDB": "Import From NocoDB",
     "generateToken": "Ģenerēt žetonu",
     "APIsAndSupport": "API un atbalsts",
     "helpCenter": "Palīdzības centrs",
@@ -611,6 +612,7 @@
     "quickImportFrom": "Ātrā importēšana no",
     "quickImport": "Ātrā importēšana",
     "quickImportAirtable": "Import from Airtable",
+    "quickImportNocoDB": "Import from NocoDB",
     "quickImportCSV": "Import CSV",
     "quickImportExcel": "Import Excel",
     "quickImportJSON": "Import Json",
@@ -673,9 +675,14 @@
     "yourBaseRole": "Your base role",
     "lockedByUser": "Locked by {user}",
     "thisPageDoesNotExist": "This page doesn’t exist",
-    "customUrl": "Custom URL"
+    "customUrl": "Custom URL",
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
   },
   "labels": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "failed": "Failed",
+    "succeeded": "Succeeded",
     "noImage": "No Image",
     "quickNavigation": "Quick Navigation",
     "recent": "Recent",
@@ -975,7 +982,7 @@
     "barcodeFormat": "Svītrkoda formāts",
     "qrCodeValueTooLong": "Pārāk daudz rakstzīmju QR kodam",
     "barcodeValueTooLong": "Pārāk daudz zīmju svītrkodam",
-    "currentLocation": "Pašreizējā atrašanās vieta",
+    "currentLocation": "Set to current location",
     "lng": "Gar",
     "lat": "Plat",
     "aggregateFunction": "Agregācijas funkcija",
@@ -1034,7 +1041,9 @@
     "goToDashboard": "Dodieties uz paneli",
     "importing": "Importēšana",
     "importingFromAirtable": "Importing from Airtable",
+    "importingFromNocoDB": "Importing from NocoDB",
     "airtableBaseImported": "Airtable Base Imported",
+    "nocoDBBaseImported": "NocoDB Base Imported",
     "formatJson": "Formatēt JSON",
     "autoSelectFieldTypes": "Automātiski izvēlēties lauka tipus",
     "firstRowAsHeaders": "Use first record as header",
@@ -1116,7 +1125,8 @@
     "viewHide": "View visibility ",
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
-    "showJsonPayload": "Show JSON payload"
+    "showJsonPayload": "Show JSON payload",
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1132,6 +1142,7 @@
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Webhook detaļas",
+    "webhookLogs": "Webhook Logs",
     "showSaturdaysAndSundays": "Show Saturdays & Sundays",
     "renameBase": "Pārdēvēt bāzi",
     "renameWorkspace": "Pārdēvēt darbavirsmu",
@@ -1372,6 +1383,8 @@
       "addOrEditStack": "Pievienot / rediģēt kaudzi"
     },
     "map": {
+      "googleMaps": "Google Maps",
+      "osm": "OSM",
       "mappedBy": "Kartēts pēc",
       "chooseMappingField": "Izvēlieties kartēšanas lauku",
       "openInGoogleMaps": "Google Maps",
@@ -1511,6 +1524,7 @@
   "msg": {
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
+    "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
     "deleteAccountPermanently": "Delete your account permanently",
     "learnMore": "Learn more",
     "connectIntegrations": "Connect integrations with NocoDB.",

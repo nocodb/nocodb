@@ -1,5 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
+import { MigrateController } from 'src/modules/jobs/jobs/export-import/migrate.controller';
+import { MigrateService } from 'src/modules/jobs/jobs/export-import/migrate.service';
 import { NocoModule } from '~/modules/noco.module';
 import { getRedisURL, NC_REDIS_TYPE } from '~/helpers/redisHelpers';
 
@@ -74,6 +76,7 @@ export const JobsModuleMetadata = {
     ...(process.env.NC_WORKER_CONTAINER !== 'true'
       ? [
           DuplicateController,
+          MigrateController,
           AtImportController,
           MetaSyncController,
           SourceCreateController,
@@ -97,6 +100,7 @@ export const JobsModuleMetadata = {
     ExportService,
     ImportService,
     DuplicateProcessor,
+    MigrateService,
     AtImportProcessor,
     MetaSyncProcessor,
     SourceCreateProcessor,

@@ -603,6 +603,7 @@
     "teamAndSettings": "ടീമും ക്രമീകരണവും",
     "apiDocs": "API ഡോക്‌സ്",
     "importFromAirtable": "Airtable ൽ നിന്ന് ഇറക്കുമതി ചെയ്യുക",
+    "importFromNocoDB": "Import From NocoDB",
     "generateToken": "ടോകൺ ജനറേറ്റ് ചെയ്യുക",
     "APIsAndSupport": "APIs & പിന്തുണ",
     "helpCenter": "സഹായ കേന്ദ്രം",
@@ -611,6 +612,7 @@
     "quickImportFrom": "അതിവേഗം ഇറക്കുമതി ചെയ്യുക",
     "quickImport": "അതിവേഗം ഇറക്കുമതി",
     "quickImportAirtable": "Import from Airtable",
+    "quickImportNocoDB": "Import from NocoDB",
     "quickImportCSV": "Import CSV",
     "quickImportExcel": "Import Excel",
     "quickImportJSON": "Import Json",
@@ -673,9 +675,14 @@
     "yourBaseRole": "Your base role",
     "lockedByUser": "Locked by {user}",
     "thisPageDoesNotExist": "This page doesn’t exist",
-    "customUrl": "Custom URL"
+    "customUrl": "Custom URL",
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
   },
   "labels": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "failed": "Failed",
+    "succeeded": "Succeeded",
     "noImage": "No Image",
     "quickNavigation": "Quick Navigation",
     "recent": "Recent",
@@ -975,7 +982,7 @@
     "barcodeFormat": "ബാർകോഡ് ഫോർമാറ്റ്",
     "qrCodeValueTooLong": "QR കോഡിന് വളരെ അധികം പ്രതീകങ്ങളുണ്ട്",
     "barcodeValueTooLong": "ബാർകോഡിനായി വളരെ അധികം പ്രതീകങ്ങൾ",
-    "currentLocation": "നിലവിലുള്ള സ്ഥലം",
+    "currentLocation": "Set to current location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "കൂട്ടിചേർക്കൽ ഫംഗ്ഷൻ",
@@ -1034,7 +1041,9 @@
     "goToDashboard": "ഡാഷ്ബോർഡിലേക്ക് പോകുക",
     "importing": "ഇമ്പോർട്ട് ചെയ്യുന്നു",
     "importingFromAirtable": "Importing from Airtable",
+    "importingFromNocoDB": "Importing from NocoDB",
     "airtableBaseImported": "Airtable Base Imported",
+    "nocoDBBaseImported": "NocoDB Base Imported",
     "formatJson": "ജെയ്സൺ ഫോർമാറ്റ് ചെയ്യുക",
     "autoSelectFieldTypes": "ഫീൽഡ് ടൈപ്പുകൾ സ്വയമേവ തിരഞ്ഞെടുത്തുക",
     "firstRowAsHeaders": "Use first record as header",
@@ -1116,7 +1125,8 @@
     "viewHide": "View visibility ",
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
-    "showJsonPayload": "Show JSON payload"
+    "showJsonPayload": "Show JSON payload",
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1132,6 +1142,7 @@
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "വെബ്‌ഹുക്ക് വിശദാംശങ്ങൾ",
+    "webhookLogs": "Webhook Logs",
     "showSaturdaysAndSundays": "Show Saturdays & Sundays",
     "renameBase": "അടിത്തളത്തിന്റെ പേര് മാറ്റുക",
     "renameWorkspace": "വർക്ക്സ്പേസ്: കോപിവര്ത്തനവും",
@@ -1372,6 +1383,8 @@
       "addOrEditStack": "സ്റ്റാക്ക് ചേർക്കുക / തിരുത്തുക"
     },
     "map": {
+      "googleMaps": "Google Maps",
+      "osm": "OSM",
       "mappedBy": "ഭൂപടം നിർണ്ണയിച്ചത്",
       "chooseMappingField": "ഭൂപട ഫീൽഡ് തിരഞ്ഞെടുക്കുക",
       "openInGoogleMaps": "ഗൂഗിള്‍ മാപ്പ്",
@@ -1511,6 +1524,7 @@
   "msg": {
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
+    "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
     "deleteAccountPermanently": "Delete your account permanently",
     "learnMore": "Learn more",
     "connectIntegrations": "Connect integrations with NocoDB.",

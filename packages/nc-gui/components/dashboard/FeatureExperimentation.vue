@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { onKeyDown } from '@vueuse/core'
+
 interface Props {
   value?: boolean
 }
@@ -51,15 +53,27 @@ const handleClick = () => {
   }
 }
 
+onKeyDown('Alt', (e) => {
+  if (e.shiftKey) {
+    value.value = !value.value
+  }
+})
+
 onUnmounted(() => {
   if (clickTimer.value) clearTimeout(clickTimer.value)
 })
 </script>
 
 <template>
-  <a-drawer v-model:visible="value" class="nc-features-drawer" :mask-style="{ background: 'transparent' }" width="min(32vw, 458px)" :closable="false">
+  <a-drawer
+    v-model:visible="value"
+    class="nc-features-drawer"
+    :mask-style="{ background: 'transparent' }"
+    width="min(32vw, 458px)"
+    :closable="false"
+  >
     <div class="flex flex-col h-full">
-      <div class="flex items-center gap-3 px-2 !pl-4 border-b-1 !h-11 border-gray-200">
+      <div class="flex items-center gap-3 px-2 !pl-4 border-b-1 h-[var(--toolbar-height)] flex-none border-gray-200">
         <component :is="iconMap.bulb" class="text-gray-700 opacity-85 h-5 w-5" @click="handleClick" />
         <h1 class="text-base !text-gray-700 font-weight-700 p-0 m-0">
           {{ $t('general.featurePreview') }}
@@ -73,7 +87,7 @@ onUnmounted(() => {
         {{ $t('labels.toggleExperimentalFeature') }}
       </div>
 
-      <div class="overflow-y-auto nc-scrollbar-thin h-0 flex-grow m-4 !rounded-lg">
+      <div class="h-full overflow-y-auto nc-scrollbar-thin flex-grow m-4 !rounded-lg">
         <div ref="contentRef" class="border-1 !border-gray-200 !rounded-lg">
           <template v-for="feature in features" :key="feature.id">
             <div

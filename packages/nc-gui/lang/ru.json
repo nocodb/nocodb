@@ -603,6 +603,7 @@
     "teamAndSettings": "Команда и настройки",
     "apiDocs": "Документация API",
     "importFromAirtable": "Импортировать из Airtable",
+    "importFromNocoDB": "Import From NocoDB",
     "generateToken": "Создать Токен",
     "APIsAndSupport": "API и поддержка",
     "helpCenter": "Центр поддержки",
@@ -611,6 +612,7 @@
     "quickImportFrom": "Быстрый импорт из",
     "quickImport": "Быстрый импорт",
     "quickImportAirtable": "Import from Airtable",
+    "quickImportNocoDB": "Import from NocoDB",
     "quickImportCSV": "Import CSV",
     "quickImportExcel": "Import Excel",
     "quickImportJSON": "Import Json",
@@ -673,9 +675,14 @@
     "yourBaseRole": "Your base role",
     "lockedByUser": "Locked by {user}",
     "thisPageDoesNotExist": "This page doesn’t exist",
-    "customUrl": "Custom URL"
+    "customUrl": "Custom URL",
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
   },
   "labels": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "failed": "Failed",
+    "succeeded": "Succeeded",
     "noImage": "No Image",
     "quickNavigation": "Quick Navigation",
     "recent": "Recent",
@@ -975,7 +982,7 @@
     "barcodeFormat": "Формат штрих-кода",
     "qrCodeValueTooLong": "Слишком много символов для QR-кода",
     "barcodeValueTooLong": "Слишком много символов для штрихкода",
-    "currentLocation": "Текущее местоположение",
+    "currentLocation": "Set to current location",
     "lng": "Долг",
     "lat": "Шир",
     "aggregateFunction": "Агрегатная функция",
@@ -1034,7 +1041,9 @@
     "goToDashboard": "Перейти к Дашборду",
     "importing": "Импорт",
     "importingFromAirtable": "Importing from Airtable",
+    "importingFromNocoDB": "Importing from NocoDB",
     "airtableBaseImported": "Airtable Base Imported",
+    "nocoDBBaseImported": "NocoDB Base Imported",
     "formatJson": "Формат JSON",
     "autoSelectFieldTypes": "Автовыбор типов полей",
     "firstRowAsHeaders": "Use first record as header",
@@ -1116,7 +1125,8 @@
     "viewHide": "View visibility ",
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
-    "showJsonPayload": "Show JSON payload"
+    "showJsonPayload": "Show JSON payload",
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1132,6 +1142,7 @@
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Детали вебхука",
+    "webhookLogs": "Webhook Logs",
     "showSaturdaysAndSundays": "Show Saturdays & Sundays",
     "renameBase": "Переименовать базу",
     "renameWorkspace": "Переименовать рабочую область",
@@ -1372,6 +1383,8 @@
       "addOrEditStack": "Добавление / редактирование стека"
     },
     "map": {
+      "googleMaps": "Google Maps",
+      "osm": "OSM",
       "mappedBy": "Географическое положение привязки на карте",
       "chooseMappingField": "Выберите поле сопоставления",
       "openInGoogleMaps": "Google Карты",
@@ -1511,6 +1524,7 @@
   "msg": {
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
+    "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
     "deleteAccountPermanently": "Delete your account permanently",
     "learnMore": "Learn more",
     "connectIntegrations": "Connect integrations with NocoDB.",

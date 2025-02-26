@@ -5,31 +5,26 @@ interface Props {
   modelValue?: string | null
 }
 
-const { modelValue: value } = defineProps<Props>()
-
+const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
-
 const column = inject(ColumnInj)!
-
 const editEnabled = inject(EditModeInj, ref(false))
-
 const isEditColumn = inject(EditColumnInj, ref(false))
-
 const readOnly = inject(ReadonlyInj, ref(false))
-
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-
 const isForm = inject(IsFormInj)!
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
 const trim = (val: string) => val?.trim?.()
 
 // Used in the logic of when to display error since we are not storing the url if it's not valid
-const localState = ref(value)
+const localState = ref(props.modelValue)
+const inputRef = ref<HTMLInputElement>()
 
 const vModel = computed({
-  get: () => value,
+  get: () => props.modelValue,
   set: (val) => {
     localState.value = val
     if (!parseProp(column.value.meta)?.validate || (val && isValidURL(trim(val))) || !val || isForm.value) {
@@ -40,19 +35,16 @@ const vModel = computed({
 
 const focus: VNodeRef = (el) => {
   if (!isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
-    nextTick(() => {
-      ;(el as HTMLInputElement)?.focus()
-    })
+    inputRef.value = el as HTMLInputElement
+    inputRef.value?.focus()
   }
-
-  return el
 }
 
 onBeforeUnmount(() => {
   if (
     !isForm.value &&
     parseProp(column.value.meta)?.validate &&
-    !editEnabled.value &&
+    (!editEnabled.value || isCanvasInjected) &&
     localState.value &&
     !isValidURL(trim(localState.value))
   ) {
@@ -60,7 +52,13 @@ onBeforeUnmount(() => {
     localState.value = undefined
     return
   }
-  localState.value = value
+  localState.value = props.modelValue
+})
+
+onMounted(() => {
+  if (!isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+    inputRef.value?.focus()
+  }
 })
 </script>
 

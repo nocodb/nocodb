@@ -21,17 +21,28 @@ const {
 
 const dropZoneRef = ref<HTMLDivElement>()
 
+const canvasSelectCell = inject(CanvasSelectCellInj)
 const sortableRef = ref<HTMLDivElement>()
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, readOnly)
+const onDropAction = function (...args: any[]) {
+  const draggingBool = unref(dragging)
+  if (!draggingBool) {
+    onDrop.apply(this, args)
+  }
+}
 
-const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
+const { isOverDropZone } = useDropZone(dropZoneRef, onDropAction)
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()
 
 onKeyDown('Escape', () => {
   modalVisible.value = false
   isOverDropZone.value = false
+})
+
+watch(modalVisible, (newVal, oldVal) => {
+  if (oldVal && !newVal) canvasSelectCell?.trigger()
 })
 
 function onClick(item: Record<string, any>) {
@@ -112,7 +123,6 @@ const isNewAttachmentModalOpen = ref(false)
 
       <div
         ref="sortableRef"
-        :class="{ dragging }"
         class="grid max-h-140 overflow-auto nc-scrollbar-md md:grid-cols-3 xl:grid-cols-5 gap-y-8 gap-x-4 relative"
       >
         <CellAttachmentCard

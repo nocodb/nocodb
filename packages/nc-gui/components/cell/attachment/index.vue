@@ -34,6 +34,11 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const clientMousePosition = inject(ClientMousePositionInj)
+const canvasSelectCell = inject(CanvasSelectCellInj)
+
 const { isMobileMode } = useGlobal()
 
 const { getPossibleAttachmentSrc } = useAttachment()
@@ -70,7 +75,13 @@ if (!isPublic.value && !isForm.value && meta.value) {
   useProvideRowComments(meta, row)
 }
 
-const { isOverDropZone } = useDropZone(currentCellRef as any, onDrop)
+const onDropAction = function (...args: any[]) {
+  const draggingBool = unref(dragging)
+  if (!draggingBool) {
+    onDrop.apply(this, args)
+  }
+}
+const { isOverDropZone } = useDropZone(currentCellRef as any, onDropAction)
 
 /** on new value, reparse our stored attachments */
 watch(
@@ -127,12 +138,31 @@ watch(
 
 const isNewAttachmentModalOpen = ref(false)
 
+watch(isNewAttachmentModalOpen, (newVal, oldVal) => {
+  if (oldVal && !newVal) canvasSelectCell?.trigger()
+})
+
+watch(selectedFile, (newVal, oldVal) => {
+  if (oldVal && !newVal) canvasSelectCell?.trigger()
+})
+
 const openAttachmentModal = (e: Event) => {
   e?.stopPropagation()
   isNewAttachmentModalOpen.value = true
 }
 
+onKeyDown('Enter', () => {
+  if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value) {
+    if (attachments.value.length) {
+      modalRendered.value = true
+      modalVisible.value = true
+    } else if (isEditAllowed.value) {
+      isNewAttachmentModalOpen.value = true
+    }
+  }
+})
 useSelectedCellKeydownListener(inject(ActiveCellInj, ref(false)), (e) => {
+  if (isCanvasInjected) return
   if (modalVisible.value) return
   if (e.key === 'Enter' && !isReadonly.value && !selectedFile.value) {
     if (isNewAttachmentModalOpen.value) return
@@ -223,12 +253,33 @@ defineExpose({
   removeAttachment: onRemoveFileClick,
   updateAttachmentTitle,
 })
+
+onMounted(() => {
+  if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value) {
+    forcedNextTick(() => {
+      const clickableSelectors = ['.view-attachments', '.add-files', '.nc-attachment', '.empty-add-files']
+        .map((selector) => `.nc-canvas-table-editable-cell-wrapper ${selector}`)
+        .join(', ')
+      const clickable = getElementAtMouse<HTMLElement>(clickableSelectors, clientMousePosition)
+      if (clickable) {
+        clickable.click()
+      } else {
+        if (attachments.value.length) {
+          modalRendered.value = true
+          modalVisible.value = true
+        } else if (isEditAllowed.value) {
+          isNewAttachmentModalOpen.value = true
+        }
+      }
+    })
+  }
+})
 </script>
 
 <template>
   <div v-if="isExpandedForm || isForm" class="form-attachment-cell">
     <LazyCellAttachmentCarousel v-if="selectedFile" />
-    <div v-if="visibleItems.length > 0" class="flex flex-wrap items-stretch mb-2 gap-2">
+    <div v-if="visibleItems.length > 0" ref="sortableRef" class="flex flex-wrap items-stretch mb-2 gap-2">
       <CellAttachmentCard
         v-for="(item, i) in showAllAttachments ? visibleItems : visibleItems.slice(0, 3)"
         :key="`${item?.title}-${i}`"
@@ -289,7 +340,7 @@ defineExpose({
       </template>
     </LazyGeneralDeleteModal>
   </div>
-  <div v-else ref="attachmentCellRef" class="nc-attachment-cell relative group color-transition">
+  <div v-else ref="attachmentCellRef" class="nc-attachment-cell relative group color-transition" :data-row-height="rowHeight">
     <LazyCellAttachmentCarousel v-if="selectedFile" />
 
     <template v-if="!isReadonly && !dragging && !!currentCellRef">
@@ -308,7 +359,7 @@ defineExpose({
     <div
       v-if="!isReadonly && active && !visibleItems.length"
       :class="{ 'sm:(mx-auto px-4) xs:(w-full min-w-8)': !visibleItems.length }"
-      class="group cursor-pointer flex gap-1 items-center rounded border-none"
+      class="group cursor-pointer flex nc-upload-btn gap-1 items-center rounded border-none"
       tabindex="0"
       @keydown.enter="keydownEnter"
       @keydown.space="keydownSpace"
@@ -324,7 +375,7 @@ defineExpose({
           type="secondary"
           size="xs"
           data-testid="attachment-cell-file-picker-button"
-          class="!px-2 !h-6 !min-w-[fit-content]"
+          class="!px-2 !h-6 !min-w-[fit-content] empty-add-files"
           @click.stop="openAttachmentModal"
         >
           <div class="flex items-center gap-1 justify-center">
@@ -348,8 +399,8 @@ defineExpose({
           height: `max(${
             !rowHeight || rowHeight === 1 ? Number(rowHeightInPx['1']) - 1 : rowHeightInPx[`${rowHeight}`] - 17
           }px, ${isGrid ? 22 : 32}px)`,
-          paddingTop: !rowHeight || rowHeight === 1 ? '4px !important' : undefined,
-          paddingBottom: !rowHeight || rowHeight === 1 ? '4px !important' : undefined,
+          paddingTop: !rowHeight || rowHeight === 1 ? '4px' : undefined,
+          paddingBottom: !rowHeight || rowHeight === 1 ? '4px' : undefined,
         }"
       >
         <NcTooltip v-for="(item, i) of visibleItems" :key="item.url || item.title" placement="bottom" class="nc-attachment-item">
@@ -392,7 +443,7 @@ defineExpose({
           type="secondary"
           size="xsmall"
           data-testid="attachment-cell-file-picker-button"
-          class="!p-0 !w-5 !h-5 !min-w-[fit-content]"
+          class="!p-0 !w-5 !h-5 !min-w-[fit-content] view-attachments"
           @click.stop="onExpand"
         >
           <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
@@ -416,10 +467,10 @@ defineExpose({
           type="secondary"
           size="xsmall"
           data-testid="attachment-cell-file-picker-button"
-          class="!p-0 !w-5 !h-5 !min-w-[fit-content]"
+          class="!p-0 !w-5 !h-5 !min-w-[fit-content] add-files"
           @click.stop="openAttachmentModal"
         >
-          <MaterialSymbolsAttachFile class="text-gray-500 text-tiny group-hover:(!text-grey-800) text-gray-700" />
+          <GeneralIcon icon="ncPaperclip" class="w-3 group-hover:(!text-grey-800) text-nc-content-gray-subtle" />
         </NcButton>
       </NcTooltip>
     </template>

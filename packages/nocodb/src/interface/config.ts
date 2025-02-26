@@ -298,14 +298,17 @@ export interface AppConfig {
     data?: {
       ttl: number;
       max_apis: number;
+      block_duration: number;
     };
     meta?: {
       ttl: number;
       max_apis: number;
+      block_duration: number;
     };
     public?: {
       ttl: number;
       max_apis: number;
+      block_duration: number;
     };
     calc_execution_time: boolean;
   };

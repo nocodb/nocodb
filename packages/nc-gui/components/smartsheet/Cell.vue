@@ -15,7 +15,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editEnabled', 'update:cdf'])
+const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editEnabled', 'update:cdf', 'saveWithState'])
 
 const column = toRef(props, 'column')
 
@@ -51,7 +51,7 @@ const isEditColumnMenu = inject(EditColumnInj, ref(false))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
-const { currentRow } = useSmartsheetRowStoreOrThrow()
+const { currentRow, state } = useSmartsheetRowStoreOrThrow()
 
 const { sqlUis } = storeToRefs(useBase())
 
@@ -75,14 +75,27 @@ const sqlUi = ref(sourceId && sqlUis.value[sourceId] ? sqlUis.value[sourceId] : 
 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
+const emitSave = () => {
+  emit('save', [currentRow.value, column.value.title, state.value])
+}
+
 const syncValue = useDebounceFn(
   () => {
     currentRow.value.rowMeta.changed = false
-    emit('save')
+    emitSave()
   },
   500,
   { maxWait: 2000 },
 )
+
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
+onBeforeUnmount(() => {
+  if (!isCanvasInjected) return
+  if (currentRow.value.oldRow?.[column.value.title] === currentRow.value.row?.[column.value.title]) return
+  currentRow.value.rowMeta.changed = false
+  emitSave()
+})
 
 let saveTimer: number
 
@@ -91,7 +104,7 @@ const updateWhenEditCompleted = () => {
     if (saveTimer) clearTimeout(saveTimer)
     saveTimer = window.setTimeout(updateWhenEditCompleted, 500)
   } else {
-    emit('save')
+    emitSave()
   }
 }
 
@@ -110,7 +123,7 @@ const vModel = computed({
       } else if (isAutoSaved(column.value)) {
         syncValue()
       } else if (!isManualSaved(column.value)) {
-        emit('save')
+        emitSave()
       }
     }
   },
@@ -206,10 +219,6 @@ const showReadonlyField = computed(() => {
       return readOnly.value
     }
 
-    case 'geoData': {
-      return readOnly.value || !active.value
-    }
-
     case 'singleSelect':
     case 'multiSelect':
     case 'user': {
@@ -302,13 +311,10 @@ const cellClassName = computed(() => {
         </NcTooltip>
       </div>
       <LazyCellNull v-else-if="showNullComponent" />
-      <LazyCellAI v-else-if="cellType === 'ai'" v-model="vModel" @save="emit('save')" />
+      <LazyCellAI v-else-if="cellType === 'ai'" v-model="vModel" @save="emitSave" />
       <LazyCellTextArea v-else-if="cellType === 'textarea'" v-model="vModel" :virtual="props.virtual" />
 
-      <template v-else-if="cellType === 'geoData'">
-        <LazyCellGeoDataReadonly v-if="showReadonlyField" v-model:local-edit-enabled="localEditEnabled" :model-value="vModel" />
-        <LazyCellGeoDataEditor v-else v-model="vModel" v-model:local-edit-enabled="localEditEnabled" />
-      </template>
+      <CellGeoData v-else-if="cellType === 'geoData'" v-model="vModel" v-model:local-edit-enabled="localEditEnabled" />
 
       <template v-else-if="cellType === 'checkbox'">
         <LazyCellCheckboxReadonly v-if="showReadonlyField" :model-value="vModel" />
@@ -316,13 +322,13 @@ const cellClassName = computed(() => {
       </template>
 
       <template v-else-if="cellType === 'yearPicker'">
-        <LazyCellYearReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellYearEditor v-else v-model="vModel" :is-pk="isPrimaryKeyCol" />
+        <CellYearReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellYearEditor v-else v-model="vModel" :is-pk="isPrimaryKeyCol" />
       </template>
 
       <template v-else-if="cellType === 'datePicker'">
-        <LazyCellDateReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellDateEditor
+        <CellDateReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellDateEditor
           v-else
           v-model="vModel"
           :is-pk="isPrimaryKeyCol"
@@ -337,7 +343,7 @@ const cellClassName = computed(() => {
           :model-value="vModel"
           :is-updated-from-copy-n-paste="currentRow.rowMeta.isUpdatedFromCopyNPaste"
         />
-        <LazyCellDateTimeEditor
+        <CellDateTimeEditor
           v-else
           v-model="vModel"
           :is-pk="isPrimaryKeyCol"
@@ -372,7 +378,7 @@ const cellClassName = computed(() => {
 
       <template v-else-if="cellType === 'timePicker'">
         <LazyCellTimeReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellTimeEditor v-else v-model="vModel" :is-pk="isPrimaryKeyCol" />
+        <CellTimeEditor v-else v-model="vModel" :is-pk="isPrimaryKeyCol" />
       </template>
 
       <template v-else-if="cellType === 'rating'">
@@ -382,32 +388,32 @@ const cellClassName = computed(() => {
 
       <template v-else-if="cellType === 'duration'">
         <LazyCellDurationReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellDurationEditor v-else v-model="vModel" />
+        <CellDurationEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'email'">
         <LazyCellEmailReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellEmailEditor v-else v-model="vModel" />
+        <CellEmailEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'url'">
         <LazyCellUrlReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellUrlEditor v-else v-model="vModel" />
+        <CellUrlEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'phoneNumber'">
         <LazyCellPhoneNumberReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellPhoneNumberEditor v-else v-model="vModel" />
+        <CellPhoneNumberEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'percent'">
         <LazyCellPercentReadonly v-if="showReadonlyField" v-model:local-edit-enabled="localEditEnabled" :model-value="vModel" />
-        <LazyCellPercentEditor v-else v-model="vModel" v-model:local-edit-enabled="localEditEnabled" />
+        <CellPercentEditor v-else v-model="vModel" v-model:local-edit-enabled="localEditEnabled" />
       </template>
 
       <template v-else-if="cellType === 'currency'">
         <LazyCellCurrencyReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellCurrencyEditor v-else v-model="vModel" @save="emit('save')" />
+        <CellCurrencyEditor v-else v-model="vModel" @save="emitSave" />
       </template>
 
       <LazyCellUser
@@ -419,24 +425,24 @@ const cellClassName = computed(() => {
 
       <template v-else-if="cellType === 'decimal'">
         <LazyCellDecimalReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellDecimalEditor v-else v-model="vModel" />
+        <CellDecimalEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'float'">
         <LazyCellFloatReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellFloatEditor v-else v-model="vModel" />
+        <CellFloatEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'integer'">
         <LazyCellIntegerReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellIntegerEditor v-else v-model="vModel" />
+        <CellIntegerEditor v-else v-model="vModel" />
       </template>
 
       <LazyCellJson v-else-if="cellType === 'json'" v-model="vModel" />
 
       <template v-else>
         <LazyCellTextReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellTextEditor v-else v-model="vModel" />
+        <CellTextEditor v-else v-model="vModel" />
       </template>
 
       <div v-if="showLockedOverlay" class="nc-locked-overlay" />

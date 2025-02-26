@@ -331,7 +331,7 @@ const warningVisible = ref(false)
 
 const saveSubmitted = async () => {
   if (readOnly.value) return
-  let saved
+  let saved, savedColumn
   saving.value = true
   if (aiAutoSuggestMode.value) {
     saved = await saveFields(reloadMetaAndData)
@@ -340,7 +340,13 @@ const saveSubmitted = async () => {
       onSelectedTagClick()
     }
   } else {
-    saved = await addOrUpdate(reloadMetaAndData, props.columnPosition)
+    saved = await addOrUpdate(async (col?: ColumnType) => {
+      if (props.columnPosition) {
+        savedColumn = col
+      }
+
+      reloadMetaAndData()
+    }, props.columnPosition)
   }
   saving.value = false
 
@@ -350,7 +356,7 @@ const saveSubmitted = async () => {
   setTimeout(() => {
     advancedOptions.value = false
   }, 500)
-  emit('submit')
+  emit('submit', savedColumn)
 
   if (isForm.value) {
     $e('a:form-view:add-new-field')
@@ -466,7 +472,7 @@ onMounted(() => {
         antInput.value?.focus()
         antInput.value?.select()
       }, 100)
-    } else if (enableDescription.value) {
+    } else if (props.editDescription) {
       setTimeout(() => {
         descInputEl.value?.focus()
       }, 100)

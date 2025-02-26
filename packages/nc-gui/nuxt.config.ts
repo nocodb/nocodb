@@ -285,6 +285,9 @@ export default defineNuxtConfig({
         'vuedraggable',
         'xlsx',
         'youtube-vue3',
+        'lru-cache',
+        'qrcode',
+        '@floating-ui/vue',
       ],
       esbuildOptions: {
         define: {

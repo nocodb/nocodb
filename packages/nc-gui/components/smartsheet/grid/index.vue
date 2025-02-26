@@ -3,6 +3,7 @@ import type { ColumnType, GridType } from 'nocodb-sdk'
 import InfiniteTable from './InfiniteTable.vue'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
+import CanvasTable from './canvas/index.vue'
 
 const meta = inject(MetaInj, ref())
 
@@ -34,7 +35,7 @@ provide(ReloadVisibleDataHookInj, reloadVisibleDataHook)
 
 const tableRef = ref<typeof InfiniteTable>()
 
-useProvideViewAggregate(view, meta, xWhere)
+useProvideViewAggregate(view, meta, xWhere, reloadVisibleDataHook)
 
 const {
   loadData,
@@ -213,6 +214,8 @@ const baseColor = computed(() => {
 
 const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING))
 
+const isCanvasTableEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CANVAS_GRID_VIEW))
+
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
 onMounted(() => {
@@ -316,6 +319,38 @@ const pGoToPreviousRow = () => {
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateDlg = true"
     />
+
+    <CanvasTable
+      v-else-if="!isGroupBy && isInfiniteScrollingEnabled && isCanvasTableEnabled"
+      ref="tableRef"
+      v-model:selected-all-records="selectedAllRecords"
+      :load-data="loadData"
+      :call-add-empty-row="_addEmptyRow"
+      :delete-row="deleteRow"
+      :update-or-save-row="updateOrSaveRow"
+      :delete-selected-rows="deleteSelectedRows"
+      :delete-range-of-rows="deleteRangeOfRows"
+      :apply-sorting="applySorting"
+      :bulk-update-rows="bulkUpdateRows"
+      :bulk-upsert-rows="bulkUpsertRows"
+      :update-record-order="updateRecordOrder"
+      :bulk-delete-all="bulkDeleteAll"
+      :clear-cache="clearCache"
+      :clear-invalid-rows="clearInvalidRows"
+      :data="cachedRows"
+      :total-rows="totalRows"
+      :sync-count="syncCount"
+      :chunk-states="chunkStates"
+      :expand-form="expandForm"
+      :remove-row-if-new="removeRowIfNew"
+      :row-height-enum="rowHeight"
+      :selected-rows="selectedRows"
+      :row-sort-required-rows="isRowSortRequiredRows"
+      :is-bulk-operation-in-progress="isBulkOperationInProgress"
+      @toggle-optimised-query="toggleOptimisedQuery"
+      @bulk-update-dlg="bulkUpdateDlg = true"
+    />
+
     <InfiniteTable
       v-else-if="!isGroupBy"
       ref="tableRef"
@@ -352,6 +387,8 @@ const pGoToPreviousRow = () => {
       :group="rootGroup"
       :load-groups="loadGroups"
       :load-group-data="loadGroupData"
+      :call-add-empty-row="pAddEmptyRow"
+      :expand-form="expandForm"
       :load-group-page="loadGroupPage"
       :group-wrapper-change-page="groupWrapperChangePage"
       :row-height="rowHeight"
@@ -360,7 +397,7 @@ const pGoToPreviousRow = () => {
       :redistribute-rows="redistributeRows"
       :view-width="viewWidth"
     />
-    <Suspense v-if="!isGroupBy">
+    <Suspense>
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"

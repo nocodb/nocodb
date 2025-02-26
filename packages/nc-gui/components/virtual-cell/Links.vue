@@ -3,6 +3,10 @@ import { computed } from '@vue/reactivity'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { ref } from 'vue'
+import { forcedNextTick } from '../../utils/browserUtils'
+
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const clientMousePosition = inject(ClientMousePositionInj)
 
 const value = inject(CellValueInj, ref(0))
 
@@ -17,6 +21,8 @@ const isForm = inject(IsFormInj)
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const colTitle = computed(() => column.value?.title || '')
 
@@ -134,18 +140,32 @@ watch(
   },
   { flush: 'post' },
 )
+
+onMounted(() => {
+  if (!isUnderLookup.value && isCanvasInjected && !isExpandedFormOpen.value && clientMousePosition) {
+    forcedNextTick(() => {
+      if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-icon-plus', clientMousePosition)) {
+        openListDlg()
+      } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-text', clientMousePosition)) {
+        openChildList()
+      } else {
+        openListDlg()
+      }
+    })
+  }
+})
 </script>
 
 <template>
   <div class="nc-cell-field flex w-full group items-center nc-links-wrapper py-1" @dblclick.stop="openChildList">
-    <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
+    <VirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
       <div class="flex w-full group items-center min-h-4">
         <div class="block flex-shrink truncate">
           <component
             :is="isUnderLookup ? 'span' : 'a'"
             v-e="['c:cell:links:modal:open']"
             :title="textVal"
-            class="text-center nc-datatype-link underline-transparent"
+            class="text-center nc-datatype-link underline-transparent nc-canvas-links-text font-weight-500"
             :class="{ '!text-gray-300': !textVal }"
             :tabindex="readOnly ? -1 : 0"
             @click.stop.prevent="openChildList"
@@ -158,8 +178,9 @@ watch(
 
         <div
           v-if="!isUnderLookup"
+          :class="{ hidden: isUnderLookup }"
           :tabindex="readOnly ? -1 : 0"
-          class="!xs:hidden flex group justify-end group-hover:flex items-center"
+          class="!xs:hidden flex group justify-end group-hover:flex items-center nc-canvas-links-icon-plus"
           @keydown.enter.stop="openListDlg"
         >
           <MdiPlus
@@ -171,22 +192,24 @@ watch(
       </div>
 
       <template #overlay>
-        <LazyVirtualCellComponentsLinkedItems
+        <VirtualCellComponentsLinkedItems
           v-if="childListDlg"
           v-model="childListDlg"
           :items="toatlRecordsLinked"
           :column="relatedTableDisplayColumn"
           :cell-value="localCellValue"
           @attach-record="onAttachRecord"
+          @escape="isOpen = false"
         />
-        <LazyVirtualCellComponentsUnLinkedItems
+        <VirtualCellComponentsUnLinkedItems
           v-if="listItemsDlg"
           v-model="listItemsDlg"
           :column="relatedTableDisplayColumn"
           :hide-back-btn="hideBackBtn"
           @attach-linked-record="onAttachLinkedRecord"
+          @escape="isOpen = false"
         />
       </template>
-    </LazyVirtualCellComponentsLinkRecordDropdown>
+    </VirtualCellComponentsLinkRecordDropdown>
   </div>
 </template>

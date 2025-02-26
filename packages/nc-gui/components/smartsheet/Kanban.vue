@@ -454,6 +454,24 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
 
   isSavingStack.value = null
 }
+
+const draggableStackFilter = (event: Event) => {
+  return event.target?.closest('.not-draggable')
+  // || isTouchEvent(event) // allow drag and drop for touch devices for now
+}
+
+const draggableCardFilter = (event: Event, target: HTMLElement) => {
+  const eventTarget = event.target as HTMLElement | null
+  const closestNotDraggable = eventTarget?.closest('.not-draggable')
+
+  return !!(
+    eventTarget &&
+    target.contains(eventTarget) &&
+    closestNotDraggable &&
+    (target.contains(closestNotDraggable) || closestNotDraggable === target)
+  )
+  // || isTouchEvent(event) // allow drag and drop for touch devices for now
+}
 </script>
 
 <template>
@@ -490,7 +508,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
             group="kanban-stack"
             draggable=".nc-kanban-stack"
             handle=".nc-kanban-stack-drag-handler"
-            filter=".not-draggable"
+            :filter="draggableStackFilter"
             :move="onMoveCallback"
             @start="(e) => e.target.classList.add('grabbing')"
             @end="(e) => e.target.classList.remove('grabbing')"
@@ -618,7 +636,6 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                           </div>
                         </div>
                         <NcDropdown
-                          v-if="!isLocked"
                           placement="bottomRight"
                           overlay-class-name="nc-dropdown-kanban-stack-context-menu"
                           class="bg-white !rounded-lg"
@@ -636,7 +653,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                           <template #overlay>
                             <NcMenu variant="small">
                               <NcMenuItem
-                                v-if="hasEditPermission && !isPublic && !isLocked"
+                                v-if="hasEditPermission && !isPublic"
                                 v-e="['c:kanban:add-new-record']"
                                 data-testid="nc-kanban-context-menu-add-new-record"
                                 @click="
@@ -697,7 +714,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                   {{ $t('activity.kanban.expandAll') }}
                                 </div>
                               </NcMenuItem>
-                              <template v-if="stack.title !== null && !isPublic && hasEditPermission">
+                              <template v-if="stack.title !== null && !isPublic && hasEditPermission && !isLocked">
                                 <NcDivider />
                                 <NcMenuItem
                                   v-e="['c:kanban:delete-stack']"
@@ -745,7 +762,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                           draggable=".nc-kanban-item"
                           group="kanban-card"
                           class="flex flex-col h-full"
-                          filter=".not-draggable"
+                          :filter="draggableCardFilter"
                           @start="(e) => e.target.classList.add('grabbing')"
                           @end="(e) => e.target.classList.remove('grabbing')"
                           @change="onMove($event, stack.title)"
@@ -760,8 +777,8 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                   :data-stack="stack.title"
                                   :data-testid="`nc-gallery-card-${record.row.id}`"
                                   :class="{
-                                    'not-draggable': isLocked || !hasEditPermission || isPublic,
-                                    '!cursor-default': isLocked || !hasEditPermission || isPublic,
+                                    'not-draggable': !hasEditPermission || isPublic,
+                                    '!cursor-default': !hasEditPermission || isPublic,
                                   }"
                                   @click="expandFormClick($event, record)"
                                   @contextmenu="showContextMenu($event, record)"

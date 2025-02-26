@@ -20,6 +20,12 @@ const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.
 
 const vModel = useVModel(props, 'value', emit)
 
+// set default value
+vModel.value.meta = {
+  ...columnDefaultMeta[UITypes.Formula],
+  ...(vModel.value.meta || {}),
+}
+
 const { setAdditionalValidations, sqlUi, column, validateInfos } = useColumnCreateStoreOrThrow()
 
 const { t } = useI18n()

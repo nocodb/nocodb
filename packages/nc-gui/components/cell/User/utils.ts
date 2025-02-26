@@ -59,11 +59,26 @@ export const getOptions = (
   return collaborators
 }
 
+export interface SelectedUserType {
+  label: string
+  value: string
+  meta: any
+  display_name?: string
+  email: string
+  deleted?: boolean
+}
+
+/**
+ * Note: We are using this function in canvas table also, so be carefull while updating anything
+ * @param optionsMap
+ * @param modelValue
+ * @returns
+ */
 export const getSelectedUsers = (
   optionsMap: Record<string, UserFieldRecordType>,
   modelValue?: UserFieldRecordType[] | UserFieldRecordType | string | null,
 ) => {
-  let selected: { label: string; value: string; meta: any }[] = []
+  let selected: SelectedUserType[] = []
 
   let localModelValue = modelValue
 
@@ -85,23 +100,30 @@ export const getSelectedUsers = (
           label: user?.display_name || user?.email,
           value: user.id,
           meta: user.meta,
+          deleted: user?.deleted,
+          display_name: user?.display_name,
+          email: user?.email,
         })
       }
       return acc
-    }, [] as { label: string; value: string; meta: any }[])
+    }, [] as SelectedUserType[])
   } else {
     selected = localModelValue
       ? (Array.isArray(localModelValue) ? localModelValue : [localModelValue]).reduce((acc, item) => {
           const label = item?.display_name || item?.email
+          const user = optionsMap[item.id]
           if (label) {
             acc.push({
               label,
               value: item.id,
+              deleted: user?.deleted,
               meta: item?.meta,
+              display_name: item?.display_name,
+              email: item?.email,
             })
           }
           return acc
-        }, [] as { label: string; value: string; meta: any }[])
+        }, [] as SelectedUserType[])
       : []
   }
 

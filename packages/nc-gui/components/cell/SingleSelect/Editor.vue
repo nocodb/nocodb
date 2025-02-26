@@ -34,6 +34,7 @@ const active = computed(() => activeCell.value || isEditable.value || isForm.val
 const aselect = ref<typeof AntSelect>()
 
 const isOpen = ref(false)
+const canvasSelectCell = inject(CanvasSelectCellInj)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
@@ -108,6 +109,10 @@ useSelectedCellKeydownListener(
   (e) => {
     switch (e.key) {
       case 'Escape':
+        if (canvasSelectCell) {
+          canvasSelectCell.trigger()
+          return
+        }
         isOpen.value = false
         break
       case 'Enter':
@@ -268,6 +273,25 @@ watch(
     isOpen.value = false
   },
 )
+
+const canvasCellEventData = inject(CanvasCellEventDataInj)!
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+const isGrid = inject(IsGridInj, ref(false))
+onMounted(() => {
+  if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value) {
+    forcedNextTick(() => {
+      const key = canvasCellEventData.keyboardKey
+      if (key && isSinglePrintableKey(key)) {
+        onFocus()
+        searchVal.value = key
+      } else if (key === 'Enter') {
+        onFocus()
+      }
+    })
+  }
+})
 </script>
 
 <template>
@@ -341,6 +365,7 @@ watch(
       :show-arrow="hasEditRoles && !readOnly && active && (vModel === null || vModel === undefined) && !searchVal"
       :dropdown-class-name="`nc-dropdown-single-select-cell !min-w-156px ${isOpen && active ? 'active' : ''}`"
       :dropdown-match-select-width="true"
+      :search-value="searchVal ?? ''"
       @select="onSelect"
       @keydown="onKeydown($event)"
       @search="search"

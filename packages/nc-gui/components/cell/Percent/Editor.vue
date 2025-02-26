@@ -8,38 +8,31 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-
 const emits = defineEmits(['update:modelValue'])
 
 const editEnabled = inject(EditModeInj, ref(false))
-
 const isEditColumn = inject(EditColumnInj, ref(false))
-
 const readOnly = inject(ReadonlyInj, ref(false))
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+const isForm = inject(IsFormInj)!
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
 const _vModel = useVModel(props, 'modelValue', emits)
-
 const localEditEnabled = useVModel(props, 'localEditEnabled', emits, { defaultValue: false })
-
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-
-const isForm = inject(IsFormInj)!
+const cellFocused = ref(false)
+const inputRef = ref<HTMLInputElement>()
 
 const focus: VNodeRef = (el) => {
-  const element = el as HTMLInputElement
   if ((!isExpandedFormOpen.value || localEditEnabled.value) && !isEditColumn.value && !isForm.value) {
+    inputRef.value = el as HTMLInputElement
     if (isExpandedFormOpen.value) {
-      element?.focus()
-      element?.select()
+      inputRef.value?.focus()
+      inputRef.value?.select()
     } else {
-      element?.focus()
+      inputRef.value?.focus()
     }
   }
-
-  return element
 }
-
-const cellFocused = ref(false)
 
 const vModel = computed({
   get: () => {
@@ -62,7 +55,6 @@ const inputType = computed(() => (isForm.value && !isEditColumn.value ? 'text' :
 
 const onBlur = () => {
   editEnabled.value = false
-
   cellFocused.value = false
   localEditEnabled.value = false
 }
@@ -70,6 +62,15 @@ const onBlur = () => {
 const onFocus = () => {
   cellFocused.value = true
 }
+
+onMounted(() => {
+  if (isCanvasInjected && (!isExpandedFormOpen.value || localEditEnabled.value) && !isEditColumn.value && !isForm.value) {
+    inputRef.value?.focus()
+    if (isExpandedFormOpen.value) {
+      inputRef.value?.select()
+    }
+  }
+})
 </script>
 
 <template>

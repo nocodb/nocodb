@@ -577,6 +577,20 @@ export class RelationManager {
     } = this.relationContext;
     const { req } = params;
 
+    const webhookHandler = await RelationUpdateWebhookHandler.beginUpdate(
+      {
+        context: baseModel.context,
+        childBaseModel,
+        parentBaseModel,
+        user: req.user,
+        ignoreWebhook: req.query?.ignoreWebhook,
+      },
+      {
+        parent: parentId,
+        child: childId,
+      },
+    );
+
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
         {
@@ -717,6 +731,8 @@ export class RelationManager {
         direction: 'child_parent',
       });
     }
+
+    await webhookHandler.finishUpdate();
   }
 
   async handleOnlyUpdateAudit(params: {

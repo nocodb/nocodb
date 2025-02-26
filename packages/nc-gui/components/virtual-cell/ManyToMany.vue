@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
+import { type Ref, ref } from 'vue'
+import { forcedNextTick } from '../../utils/browserUtils'
 
 const column = inject(ColumnInj)!
 
@@ -31,6 +32,9 @@ const isOpen = ref(false)
 const hideBackBtn = ref(false)
 
 const rowHeight = inject(RowHeightInj, ref())
+
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const clientMousePosition = inject(ClientMousePositionInj)
 
 const { isUIAllowed } = useRoles()
 
@@ -142,6 +146,17 @@ function onCellClick(e: Event) {
 onMounted(() => {
   onDivDataCellEventHook?.on(onCellClick)
   cellClickHook?.on(onCellClick)
+
+  if (isUnderLookup.value || !isCanvasInjected || isExpandedForm.value || !clientMousePosition) return
+  forcedNextTick(() => {
+    if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-many-to-many-plus-icon', clientMousePosition)) {
+      openListDlg()
+    } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-many-to-many-maximize-icon', clientMousePosition)) {
+      openChildList()
+    } else {
+      openListDlg()
+    }
+  })
 })
 
 onUnmounted(() => {
@@ -184,12 +199,12 @@ onUnmounted(() => {
           v-if="!readOnly && isUIAllowed('dataEdit')"
           size="xsmall"
           type="secondary"
-          class="nc-action-icon"
+          class="nc-action-icon nc-many-to-many-plus-icon"
           @click.stop="openListDlg"
         >
           <GeneralIcon icon="plus" class="text-sm nc-plus" />
         </NcButton>
-        <NcButton size="xsmall" type="secondary" class="nc-action-icon" @click.stop="openChildList">
+        <NcButton size="xsmall" type="secondary" class="nc-action-icon nc-many-to-many-maximize-icon" @click.stop="openChildList">
           <GeneralIcon icon="maximize" />
         </NcButton>
       </div>
@@ -202,6 +217,7 @@ onUnmounted(() => {
         :cell-value="localCellValue"
         :column="m2mColumn"
         @attach-record="onAttachRecord"
+        @escape="isOpen = false"
       />
       <LazyVirtualCellComponentsUnLinkedItems
         v-if="listItemsDlg"
@@ -209,6 +225,7 @@ onUnmounted(() => {
         :column="m2mColumn"
         :hide-back-btn="hideBackBtn"
         @attach-linked-record="onAttachLinkedRecord"
+        @escape="isOpen = false"
       />
     </template>
   </LazyVirtualCellComponentsLinkRecordDropdown>

@@ -11,7 +11,7 @@ interface Prop {
 
 const props = defineProps<Prop>()
 
-const emit = defineEmits(['update:modelValue', 'attachRecord'])
+const emit = defineEmits(['update:modelValue', 'attachRecord', 'escape'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
@@ -54,7 +54,9 @@ const {
   link,
   meta,
   row,
+  loadRelatedTableMeta,
   resetChildrenListOffsetCount,
+  targetViewColumnsById,
 } = useLTARStoreOrThrow()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
@@ -98,7 +100,11 @@ const fields = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? [])
     .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
     .sort((a, b) => {
-      return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+      if (isPublic.value) {
+        return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+      }
+
+      return (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
     })
     .slice(0, isMobileMode.value ? 1 : 3)
 })
@@ -294,6 +300,7 @@ const linkedShortcuts = (e: KeyboardEvent) => {
 }
 
 onMounted(() => {
+  loadRelatedTableMeta()
   window.addEventListener('keydown', linkedShortcuts)
 
   setTimeout(() => {
@@ -323,6 +330,7 @@ const isSearchInputFocused = ref(false)
 
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
+    if (!childrenListPagination.query) emit('escape')
     filterQueryRef.value?.blur()
   } else if (e.key === 'Enter') {
     const list = childrenList.value?.list ?? state.value?.[colTitle.value]

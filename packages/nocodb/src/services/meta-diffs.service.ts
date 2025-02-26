@@ -138,7 +138,7 @@ export class MetaDiffsService {
     source: Source,
   ): Promise<Array<MetaDiff>> {
     // if meta base then return empty array
-    if (source.is_meta) {
+    if (source.isMeta()) {
       return [];
     }
 
@@ -243,7 +243,13 @@ export class MetaDiffsService {
 
         const [oldCol] = oldMeta.columns.splice(oldColIdx, 1);
 
-        if (oldCol.dt !== column.dt) {
+        if (
+          oldCol.dt !== column.dt ||
+          // if mysql and data type is set or enum then compare dtxp as well
+          (['mysql', 'mysql2'].includes(source.type) &&
+            ['set', 'enum'].includes(column.dt) &&
+            column.dtxp !== oldCol.dtxp)
+        ) {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_TYPE_CHANGE,
             msg: `Column type changed(${column.cn})`,
@@ -571,7 +577,13 @@ export class MetaDiffsService {
 
         const [oldCol] = oldMeta.columns.splice(oldColIdx, 1);
 
-        if (oldCol.dt !== column.dt) {
+        if (
+          oldCol.dt !== column.dt ||
+          // if mysql and data type is set or enum then compare dtxp as well
+          (['mysql', 'mysql2'].includes(source.type) &&
+            ['set', 'enum'].includes(column.dt) &&
+            column.dtxp !== oldCol.dtxp)
+        ) {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_TYPE_CHANGE,
             msg: `Column type changed(${column.cn})`,
@@ -634,7 +646,7 @@ export class MetaDiffsService {
     for (const source of base.sources) {
       try {
         // skip meta base
-        if (source.is_meta) continue;
+        if (source.isMeta()) continue;
 
         // @ts-ignore
         const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
@@ -670,20 +682,24 @@ export class MetaDiffsService {
       base,
       source,
       throwOnFail = false,
+      logger,
       user,
     }: {
       base: Base;
       source: Source;
       throwOnFail?: boolean;
+      logger?: (message: string) => void;
       user: UserType;
     },
   ) {
-    if (source.is_meta) {
+    if (source.isMeta()) {
       if (throwOnFail) NcError.badRequest('Cannot sync meta source');
       return;
     }
 
     const virtualColumnInsert: Array<() => Promise<void>> = [];
+
+    logger?.(`Getting meta diff for ${source.alias}`);
 
     // @ts-ignore
     const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
@@ -702,7 +718,15 @@ export class MetaDiffsService {
         );
       });
 
+      if (detectedChanges.length === 0) {
+        logger?.(`No changes detected for ${table_name}`);
+        continue;
+      }
+
+      logger?.(`Applying changes for ${table_name}`);
+
       for (const change of detectedChanges) {
+        logger?.(`Applying change: ${change.msg}`);
         switch (change.type) {
           case MetaDiffType.TABLE_NEW:
             {
@@ -909,21 +933,38 @@ export class MetaDiffsService {
             break;
         }
       }
+      logger?.(`Changes applied for ${table_name}`);
     }
 
+    logger?.(`Processing virtual column changes`);
+
     await NcHelp.executeOperations(virtualColumnInsert, source.type);
+
+    logger?.(`Virtual column changes applied`);
+
+    logger?.(`Processing many to many relation changes`);
 
     // populate m2m relations
     await this.extractAndGenerateManyToManyRelations(
       context,
       await source.getModels(context),
     );
+
+    logger?.(`Many to many relation changes applied`);
   }
 
-  async metaDiffSync(context: NcContext, param: { baseId: string; req: any }) {
+  async metaDiffSync(
+    context: NcContext,
+    param: { baseId: string; logger?: (message: string) => void; req: any },
+  ) {
     const base = await Base.getWithInfo(context, param.baseId);
     for (const source of base.sources) {
-      await this.syncBaseMeta(context, { base, source, user: param.req.user });
+      await this.syncBaseMeta(context, {
+        base,
+        source,
+        logger: param.logger,
+        user: param.req.user,
+      });
     }
 
     this.appHooksService.emit(AppEvents.META_DIFF_SYNC, {
@@ -940,6 +981,7 @@ export class MetaDiffsService {
     param: {
       baseId: string;
       sourceId: string;
+      logger?: (message: string) => void;
       req: any;
     },
   ) {
@@ -950,6 +992,7 @@ export class MetaDiffsService {
       base,
       source,
       throwOnFail: true,
+      logger: param.logger,
       user: param.req.user,
     });
 

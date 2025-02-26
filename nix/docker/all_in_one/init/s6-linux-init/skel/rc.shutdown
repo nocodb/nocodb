@@ -1,0 +1,30 @@
+#!/bin/sh -e
+
+### Things to do before hardware halt/reboot/poweroff.
+### Ideally, it should be a single call to the service manager,
+### telling it to bring all the services down.
+
+### If your s6-linux-init-maker invocation was made with the -1
+### option, messages from rc.shutdown will appear on /dev/console
+### as well as be logged by the catch-all logger.
+### If your s6-linux-init-maker invocation did NOT include the -1
+### option, messages from rc.shutdown will only be logged by the
+### catch-all logger and will NOT appear on /dev/console. In order
+### to print them to /dev/console instead, you may want to
+### uncomment the following line:
+# exec >/dev/console 2>&1
+
+### If your services are managed by sysv-rc:
+### also remove the K11reboot link from /etc/rc6.d to prevent
+### sysv-rc from rebooting prematurely - because sysvinit does
+### not properly separate state changes from system init/shutdown.
+# exec /etc/init.d/rc 6
+
+### If your services are managed by OpenRC:
+### also remove the "killprocs" and "mount-ro" symlinks from
+### /etc/runlevels/shutdown - because OpenRC does not properly
+### separate the service manager from the shutdown manager either.
+# exec /sbin/openrc shutdown
+
+### If your services are managed by s6-rc:
+exec s6-rc -v2 -bDa change

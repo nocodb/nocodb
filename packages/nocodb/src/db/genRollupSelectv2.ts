@@ -52,7 +52,6 @@ export default async function ({
       refTableAlias,
       rollupColumn.column_name,
     ]);
-
     if (rollupColumn.uidt === UITypes.Formula) {
       const formulOption = await rollupColumn.getColOptions<
         FormulaColumn | ButtonColumn
@@ -67,9 +66,45 @@ export default async function ({
           : childModel,
         rollupColumn,
         {},
-        undefined,
+        refTableAlias,
         false,
         formulOption.getParsedTree(),
+        undefined,
+      );
+
+      selectColumnName = knex.raw(formulaQb.builder).wrap('(', ')');
+    } else if (
+      [
+        UITypes.CreatedTime,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedTime,
+        UITypes.LastModifiedBy,
+      ].includes(rollupColumn.uidt)
+    ) {
+      // since all field are virtual field,
+      // we use formula to generate query that can represent the column
+      // to prevent duplicate logic
+      const formulaQb = await formulaQueryBuilderv2(
+        baseModelSqlv2,
+        '{{' + rollupColumn.id + '}}',
+        undefined,
+        RelationManager.isRelationReversed(relationColumn, relationColumnOption)
+          ? parentModel
+          : childModel,
+        rollupColumn,
+        {},
+        refTableAlias,
+        false,
+        {
+          type: 'Identifier',
+          name: rollupColumn.id,
+          raw: '{{' + rollupColumn.id + '}}',
+          dataType: [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
+            rollupColumn.uidt,
+          )
+            ? 'date'
+            : 'string',
+        },
         undefined,
       );
 

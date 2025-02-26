@@ -1,6 +1,18 @@
 import { ColumnType, FilterType } from '~/lib/Api';
-import { UITypes } from '~/lib/index';
 import { BadRequest, NcSDKError } from '~/lib/errorUtils';
+import {
+  COMPARISON_OPS,
+  COMPARISON_SUB_OPS,
+  GROUPBY_COMPARISON_OPS,
+  IS_WITHIN_COMPARISON_SUB_OPS,
+  UITypes,
+} from '~/lib/index';
+export {
+  COMPARISON_OPS,
+  COMPARISON_SUB_OPS,
+  GROUPBY_COMPARISON_OPS,
+  IS_WITHIN_COMPARISON_SUB_OPS,
+} from '~/lib/parser/queryFilter/query-filter-lexer';
 
 /**
  * Converts a flat array of filter objects into a nested tree structure
@@ -43,68 +55,6 @@ export function buildFilterTree(items: FilterType[]) {
 
   return rootItems;
 }
-
-export const GROUPBY_COMPARISON_OPS = <const>[
-  // these are used for groupby
-  'gb_eq',
-  'gb_null',
-];
-export const COMPARISON_OPS = <const>[
-  'eq',
-  'neq',
-  'not',
-  'like',
-  'nlike',
-  'empty',
-  'notempty',
-  'null',
-  'notnull',
-  'checked',
-  'notchecked',
-  'blank',
-  'notblank',
-  'allof',
-  'anyof',
-  'nallof',
-  'nanyof',
-  'gt',
-  'lt',
-  'gte',
-  'lte',
-  'ge',
-  'le',
-  'in',
-  'isnot',
-  'is',
-  'isWithin',
-  'btw',
-  'nbtw',
-];
-
-export const IS_WITHIN_COMPARISON_SUB_OPS = <const>[
-  'pastWeek',
-  'pastMonth',
-  'pastYear',
-  'nextWeek',
-  'nextMonth',
-  'nextYear',
-  'pastNumberOfDays',
-  'nextNumberOfDays',
-];
-
-export const COMPARISON_SUB_OPS = <const>[
-  'today',
-  'tomorrow',
-  'yesterday',
-  'oneWeekAgo',
-  'oneWeekFromNow',
-  'oneMonthAgo',
-  'oneMonthFromNow',
-  'daysAgo',
-  'daysFromNow',
-  'exactDate',
-  ...IS_WITHIN_COMPARISON_SUB_OPS,
-];
 
 export function extractFilterFromXwhere(
   str: string | string[],
@@ -309,10 +259,20 @@ export function extractCondition(
       throw new NcSDKError('INVALID_FILTER');
     }
 
+    let columnId = aliasColObjMap[alias]?.id;
+
+    // if not found then check if it's a valid column id
+    if (
+      !columnId &&
+      Object.values(aliasColObjMap).some((col: ColumnType) => col?.id === alias)
+    ) {
+      columnId = alias;
+    }
+
     return {
       comparison_op: op,
       ...(sub_op && { comparison_sub_op: sub_op }),
-      fk_column_id: aliasColObjMap[alias]?.id,
+      fk_column_id: columnId,
       logical_op: logicOp,
       value,
     };

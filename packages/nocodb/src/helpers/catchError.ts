@@ -320,7 +320,11 @@ export function extractDBError(error): {
           const detailMatch = error.detail
             ? error.detail.match(/Column (\w+)/)
             : null;
-          const columnName = detailMatch ? detailMatch[1] : 'unknown';
+
+          const columnName =
+            detailMatch?.[1] ??
+            error.message.match(/ set\s+"([^"]+)"/)?.[1] ??
+            'unknown';
           message = `Invalid data type or value for column '${columnName}'.`;
           _type = DBError.DATA_TYPE_MISMATCH;
           _extra = { column: columnName };
@@ -489,6 +493,32 @@ export class ExternalError extends NcBaseError {
 export class ExternalTimeout extends ExternalError {}
 
 export class UnprocessableEntity extends NcBaseError {}
+
+export class OptionsNotExistsError extends BadRequest {
+  constructor({
+    columnTitle,
+    options,
+    validOptions,
+  }: {
+    columnTitle: string;
+    options: string[];
+    validOptions: string[];
+  }) {
+    super(
+      `Invalid option(s) "${options.join(
+        ', ',
+      )}" provided for column "${columnTitle}". Valid options are "${validOptions.join(
+        ', ',
+      )}"`,
+    );
+    this.columnTitle = columnTitle;
+    this.options = options;
+    this.validOptions = validOptions;
+  }
+  columnTitle: string;
+  options: string[];
+  validOptions: string[];
+}
 
 export class TestConnectionError extends NcBaseError {
   public sql_code?: string;
@@ -1065,5 +1095,13 @@ export class NcError {
 
   static invalidAttachmentUploadScope(args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.INVALID_ATTACHMENT_UPLOAD_SCOPE, args);
+  }
+
+  static optionsNotExists(props: {
+    columnTitle: string;
+    options: string[];
+    validOptions: string[];
+  }) {
+    throw new OptionsNotExistsError(props);
   }
 }

@@ -30,6 +30,8 @@ const editable = inject(EditModeInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
+const canvasSelectCell = inject(CanvasSelectCellInj)
+
 const isForm = inject(IsFormInj, ref(false))
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
@@ -49,6 +51,8 @@ const isClearedInputMode = ref<boolean>(false)
 const open = ref<boolean>(false)
 
 const tempDate = ref<dayjs.Dayjs | undefined>()
+
+const canvasCellEventData = inject(CanvasCellEventDataInj)!
 
 const localState = computed({
   get() {
@@ -246,6 +250,10 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
       }
       return
     case 'Escape':
+      if (canvasSelectCell) {
+        canvasSelectCell.trigger()
+        return
+      }
       if (_open) {
         open.value = false
         editable.value = false
@@ -297,6 +305,11 @@ useSelectedCellKeydownListener(
       editable.value = true
       open.value = true
     }
+
+    if (!isOpen.value && e.key === 'Enter') {
+      editable.value = true
+      open.value = true
+    }
   },
   {
     immediate: true,
@@ -314,6 +327,21 @@ const currentDate = ($event) => {
   emit('currentDate', $event)
   open.value = false
 }
+
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+onMounted(() => {
+  if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
+    open.value = true
+    forcedNextTick(() => {
+      const key = canvasCellEventData.keyboardKey
+      if (key && isSinglePrintableKey(key) && datePickerRef.value) {
+        datePickerRef.value.value = key
+      }
+      open.value = true
+    })
+  }
+})
 </script>
 
 <template>

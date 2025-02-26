@@ -22,6 +22,10 @@ const cellClickHook = inject(CellClickHookInj, null)
 
 const onDivDataCellEventHook = inject(OnDivDataCellEventHookInj, null)
 
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const clientMousePosition = inject(ClientMousePositionInj)
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
 // Change the row height of the child cell under lookup
 // Other wise things like text will can take multi line tag
 const providedHeightRef = ref(1) as any
@@ -60,24 +64,51 @@ const lookupColumn = computed(
       | undefined,
 )
 
-watch([lookupColumn, rowHeight], () => {
-  if (lookupColumn.value && !isAttachment(lookupColumn.value)) {
-    providedHeightRef.value = 1
-  } else {
-    providedHeightRef.value = rowHeight.value
-  }
-})
+watch(
+  [lookupColumn, rowHeight],
+  () => {
+    if (lookupColumn.value && !isAttachment(lookupColumn.value)) {
+      providedHeightRef.value = 1
+    } else {
+      providedHeightRef.value = rowHeight.value
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 const arrValue = computed(() => {
   if (!cellValue.value) return []
 
   // if lookup column is Attachment and relation type is Belongs/OneToOne to wrap the value in an array
   // since the attachment component expects an array or JSON string array
-  if (
-    lookupColumn.value?.uidt === UITypes.Attachment &&
-    [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relationColumn.value?.colOptions?.type)
-  )
-    return [cellValue.value]
+  if (lookupColumn.value?.uidt === UITypes.Attachment) {
+    if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relationColumn.value?.colOptions?.type)) {
+      return ncIsArray(cellValue.value) ? cellValue.value : [cellValue.value]
+    }
+
+    if (
+      ncIsArray(cellValue.value) &&
+      cellValue.value.every((v) => {
+        if (ncIsNull(v)) return true
+
+        if (ncIsArray(v)) {
+          return !v.length || ncIsObject(v[0])
+        }
+
+        return false
+      })
+    ) {
+      return cellValue.value
+        .filter((v) => v !== null)
+        .reduce((acc, v) => {
+          acc.push(...v)
+
+          return acc
+        }, [])
+    }
+  }
 
   // TODO: We are filtering null as cell value can be null. Find the root cause and fix it
   if (Array.isArray(cellValue.value)) return cellValue.value.filter((v) => v !== null)
@@ -154,6 +185,9 @@ onMounted(() => {
   })
   onDivDataCellEventHook?.on(toggleDropdown)
   cellClickHook?.on(toggleDropdown)
+
+  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedForm.value || !isGrid.value) return
+  dropdownVisible.value = true
 })
 
 onUnmounted(() => {
@@ -201,6 +235,12 @@ const cellHeight = computed(() =>
     ? `${rowHeight.value === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight.value}`] - (isGrid.value ? 17 : 0)}px`
     : `2.85rem`,
 )
+
+const handleCloseDropdown = (e: MouseEvent) => {
+  if (e.target && e.target.closest('.nc-attachment-item')) {
+    dropdownVisible.value = false
+  }
+}
 </script>
 
 <template>
@@ -221,10 +261,12 @@ const cellHeight = computed(() =>
       @dblclick="activateShowEditNonEditableFieldWarning"
     >
       <div
-        class="h-full w-full flex gap-1"
+        class="h-full w-full"
         :class="{
           '!overflow-x-hidden nc-cell-lookup-scroll !overflow-y-hidden': rowHeight === 1,
+          'flex gap-1': !(lookupColumn && isAttachment(lookupColumn) && arrValue[0] && ncIsObject(arrValue[0])),
         }"
+        @click="handleCloseDropdown"
       >
         <template v-if="lookupColumn">
           <!-- Render virtual cell -->
@@ -258,9 +300,7 @@ const cellHeight = computed(() =>
 
           <!-- Render normal cell -->
           <template v-else>
-            <div
-              v-if="isAttachment(lookupColumn) && arrValue[0] && !Array.isArray(arrValue[0]) && typeof arrValue[0] === 'object'"
-            >
+            <div v-if="isAttachment(lookupColumn) && arrValue[0] && ncIsObject(arrValue[0])">
               <LazySmartsheetCell :model-value="arrValue" :column="lookupColumn" :edit-enabled="false" :read-only="true" />
             </div>
             <!-- For attachment cell avoid adding chip style -->
@@ -272,12 +312,13 @@ const cellHeight = computed(() =>
                 }"
               >
                 <div
-                  class="flex gap-1.5 w-full h-full py-[3px]"
+                  class="flex gap-1.5 w-full h-full"
                   :class="{
                     'flex-wrap': rowHeight !== 1 && !isAttachment(lookupColumn),
                     '!overflow-x-hidden nc-cell-lookup-scroll !overflow-y-hidden': rowHeight === 1 || isAttachment(lookupColumn),
                     'items-center': rowHeight === 1,
                     'items-start': rowHeight !== 1,
+                    'py-[3px]': !isAttachment(lookupColumn),
                   }"
                 >
                   <div
@@ -330,6 +371,7 @@ const cellHeight = computed(() =>
     </div>
     <template #overlay>
       <div
+        v-if="lookupColumn"
         ref="dropdownOverlayRef"
         class="w-[300px] max-h-[320px] flex flex-col rounded-sm lookup-dropdown outline-none"
         :class="[randomClass]"
@@ -375,40 +417,51 @@ const cellHeight = computed(() =>
           </template>
           <template v-else>
             <div
-              v-for="(v, i) of filteredArrValues"
-              :key="i"
-              class="flex-none"
-              :class="{
-                'bg-nc-bg-default rounded-full': !isAttachment(lookupColumn),
-                'border-gray-200 rounded border-1 max-w-full': ![
-                  UITypes.Attachment,
-                  UITypes.MultiSelect,
-                  UITypes.SingleSelect,
-                  UITypes.User,
-                  UITypes.CreatedBy,
-                  UITypes.LastModifiedBy,
-                ].includes(lookupColumn.uidt),
-                'min-h-0 min-w-0': isAttachment(lookupColumn),
-              }"
+              v-if="isAttachment(lookupColumn) && arrValue[0] && ncIsObject(arrValue[0])"
+              class="nc-lookup-attachment-wrapper"
+              @click="handleCloseDropdown"
             >
-              <LazySmartsheetVirtualCell
-                v-if="lookupColumn.uidt === UITypes.Rollup"
-                :edit-enabled="false"
-                :read-only="true"
-                :model-value="v"
-                :column="lookupColumn"
-                class="px-2"
-              />
-              <LazySmartsheetCell
-                v-else
-                :model-value="v"
-                :column="lookupColumn"
-                :edit-enabled="false"
-                :virtual="true"
-                :read-only="true"
-                :class="smartsheetCellClass"
-              />
+              <LazySmartsheetCell :model-value="arrValue" :column="lookupColumn" :edit-enabled="false" :read-only="true" />
             </div>
+            <!-- For attachment cell avoid adding chip style -->
+            <template v-else>
+              <div
+                v-for="(v, i) of filteredArrValues"
+                :key="i"
+                class="flex-none"
+                :class="{
+                  'bg-nc-bg-default rounded-full': !isAttachment(lookupColumn),
+                  'border-gray-200 rounded border-1 max-w-full': ![
+                    UITypes.Attachment,
+                    UITypes.MultiSelect,
+                    UITypes.SingleSelect,
+                    UITypes.User,
+                    UITypes.CreatedBy,
+                    UITypes.LastModifiedBy,
+                  ].includes(lookupColumn.uidt),
+                  'min-h-0 min-w-0': isAttachment(lookupColumn),
+                }"
+                @click="handleCloseDropdown"
+              >
+                <LazySmartsheetVirtualCell
+                  v-if="lookupColumn.uidt === UITypes.Rollup"
+                  :edit-enabled="false"
+                  :read-only="true"
+                  :model-value="v"
+                  :column="lookupColumn"
+                  class="px-2"
+                />
+                <LazySmartsheetCell
+                  v-else
+                  :model-value="v"
+                  :column="lookupColumn"
+                  :edit-enabled="false"
+                  :virtual="true"
+                  :read-only="true"
+                  :class="smartsheetCellClass"
+                />
+              </div>
+            </template>
           </template>
         </div>
       </div>
@@ -437,6 +490,10 @@ const cellHeight = computed(() =>
   &:has(.nc-cell-attachment) {
     height: auto !important;
   }
+
+  .nc-attachment-image {
+    @apply !hover:cursor-pointer;
+  }
 }
 .lookup-dropdown {
   .nc-cell-field > span {
@@ -452,6 +509,16 @@ const cellHeight = computed(() =>
     }
     .ant-input-prefix {
       @apply mr-2;
+    }
+  }
+
+  .nc-lookup-attachment-wrapper {
+    .nc-attachment-cell > div:first-of-type {
+      @apply !h-auto justify-start pr-6;
+
+      .nc-attachment-image {
+        @apply !hover:cursor-pointer;
+      }
     }
   }
 }

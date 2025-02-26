@@ -9,7 +9,8 @@ import type { Group } from '~/lib/types'
 
 const props = defineProps<{
   group: Group
-
+  callAddEmptyRow?: (addAfter?: number) => Row | undefined
+  expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, groupKey?: string) => void
   loadGroups: (
     params?: any,
     group?: Group,
@@ -37,7 +38,6 @@ const props = defineProps<{
   maxDepth?: number
 
   rowHeight?: number
-  expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
 }>()
 
 const emits = defineEmits(['update:paginationData'])
@@ -47,8 +47,6 @@ const vGroup = useVModel(props, 'group', emits)
 const meta = inject(MetaInj, ref())
 
 const fields = inject(FieldsInj, ref())
-
-const { gridViewPageSize } = useGlobal()
 
 const scrollLeft = toRef(props, 'scrollLeft')
 
@@ -147,7 +145,7 @@ const findAndLoadSubGroup = async (key: any) => {
       const grp = vGroup.value.children.find((g) => `${g.key}` === k)
       if (grp) {
         if (grp.nested) {
-          if (!grp.children[0].children?.length) {
+          if (!grp.children?.[0]?.children?.length) {
             props.loadGroups({}, grp, {
               triggerChildOnly: true,
             })
@@ -192,12 +190,7 @@ watch([() => vGroup.value.key], async (n, o) => {
 
 onMounted(async () => {
   if (vGroup.value.root === true && !vGroup.value?.children?.length) {
-    await props.loadGroups(
-      {
-        limit: gridViewPageSize.value,
-      },
-      vGroup.value,
-    )
+    await props.loadGroups({}, vGroup.value)
   }
 })
 
@@ -301,11 +294,11 @@ const collapseGroup = (key: string) => {
   }
 }
 
-const collapseAllGroup = () => {
+const _collapseAllGroup = () => {
   _activeGroupKeys.value = []
 }
 
-const expandAllGroup = async () => {
+const _expandAllGroup = async () => {
   _activeGroupKeys.value = vGroup.value.children?.map((g) => `group-panel-${g.key}`) ?? []
 
   if (vGroup.value.children) {
@@ -395,6 +388,13 @@ const bgColor = computed(() => {
 
   return '#F9F9FA'
 })
+async function openNewRecordHandler() {
+  if (_depth !== 0) return
+  // Add an empty row
+  const newRow = await props.callAddEmptyRow()
+  // Expand the form
+  if (newRow) props.expandForm?.(newRow, undefined, true)
+}
 </script>
 
 <template>
@@ -542,6 +542,7 @@ const bgColor = computed(() => {
                             <GeneralIcon icon="maximize" />
                             Expand group
                           </NcMenuItem>
+                          <!--
                           <NcMenuItem @click="expandAllGroup">
                             <GeneralIcon icon="maximizeAll" />
                             Expand all
@@ -550,6 +551,7 @@ const bgColor = computed(() => {
                             <GeneralIcon icon="minimizeAll" />
                             Collapse all
                           </NcMenuItem>
+                          -->
                         </NcMenu>
                       </template>
                     </NcDropdown>
@@ -605,7 +607,7 @@ const bgColor = computed(() => {
   <LazySmartsheetGridPaginationV2
     v-if="vGroup.root"
     v-model:pagination-data="vGroup.paginationData"
-    :show-size-changer="true"
+    :show-size-changer="false"
     :scroll-left="_scrollLeft"
     custom-label="groups"
     :depth="maxDepth"
@@ -628,6 +630,22 @@ const bgColor = computed(() => {
     }`"
     :fixed-size="undefined"
   ></LazySmartsheetPagination>
+
+  <div v-if="depth !== 0" class="absolute bottom-12 z-5 left-2" @click.stop>
+    <NcButton
+      v-e="['c:row:add:grid']"
+      class="nc-group-grid-add-new-row"
+      size="small"
+      type="secondary"
+      :shadow="false"
+      @click.stop="openNewRecordHandler"
+    >
+      <div class="flex items-center gap-2">
+        <GeneralIcon icon="plus" />
+        New Record
+      </div>
+    </NcButton>
+  </div>
 </template>
 
 <style scoped lang="scss">

@@ -603,6 +603,7 @@
     "teamAndSettings": "Joukkue & asetukset",
     "apiDocs": "API-dokumentit",
     "importFromAirtable": "Tuo Airtablesta",
+    "importFromNocoDB": "Import From NocoDB",
     "generateToken": "Luo tunniste",
     "APIsAndSupport": "API:t ja tuki",
     "helpCenter": "Ohjekeskus",
@@ -611,6 +612,7 @@
     "quickImportFrom": "Nopea tuonti",
     "quickImport": "Pikatuonti",
     "quickImportAirtable": "Import from Airtable",
+    "quickImportNocoDB": "Import from NocoDB",
     "quickImportCSV": "Import CSV",
     "quickImportExcel": "Import Excel",
     "quickImportJSON": "Import Json",
@@ -673,9 +675,14 @@
     "yourBaseRole": "Your base role",
     "lockedByUser": "Locked by {user}",
     "thisPageDoesNotExist": "This page doesn’t exist",
-    "customUrl": "Custom URL"
+    "customUrl": "Custom URL",
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
   },
   "labels": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "failed": "Failed",
+    "succeeded": "Succeeded",
     "noImage": "No Image",
     "quickNavigation": "Quick Navigation",
     "recent": "Recent",
@@ -975,7 +982,7 @@
     "barcodeFormat": "Viivakoodin muoto",
     "qrCodeValueTooLong": "Liian monta merkkiä QR-koodiin",
     "barcodeValueTooLong": "Liikaa merkkejä viivakoodiin",
-    "currentLocation": "Nykyinen sijainti",
+    "currentLocation": "Set to current location",
     "lng": "Pituus",
     "lat": "Leveys",
     "aggregateFunction": "Kokonaistoiminto",
@@ -1034,7 +1041,9 @@
     "goToDashboard": "Siirry kojelautaan",
     "importing": "Tuo",
     "importingFromAirtable": "Importing from Airtable",
+    "importingFromNocoDB": "Importing from NocoDB",
     "airtableBaseImported": "Airtable Base Imported",
+    "nocoDBBaseImported": "NocoDB Base Imported",
     "formatJson": "Muotoile JSON",
     "autoSelectFieldTypes": "Automaattivalitse kenttätyypit",
     "firstRowAsHeaders": "Use first record as header",
@@ -1116,7 +1125,8 @@
     "viewHide": "View visibility ",
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
-    "showJsonPayload": "Show JSON payload"
+    "showJsonPayload": "Show JSON payload",
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1132,6 +1142,7 @@
     "deleteAllRecords": "Delete all records",
     "assignView": "Assign view",
     "webhookDetails": "Webhotokin tiedot",
+    "webhookLogs": "Webhook Logs",
     "showSaturdaysAndSundays": "Show Saturdays & Sundays",
     "renameBase": "Nimeä Perusta Uudelleen",
     "renameWorkspace": "Nimeä Uudelleen Työtila",
@@ -1372,6 +1383,8 @@
       "addOrEditStack": "Lisää / Muokkaa pinoa"
     },
     "map": {
+      "googleMaps": "Google Maps",
+      "osm": "OSM",
       "mappedBy": "Kartoitettu",
       "chooseMappingField": "Valitse kartoituskenttä",
       "openInGoogleMaps": "Google Maps",
@@ -1511,6 +1524,7 @@
   "msg": {
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
+    "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
     "deleteAccountPermanently": "Delete your account permanently",
     "learnMore": "Learn more",
     "connectIntegrations": "Connect integrations with NocoDB.",

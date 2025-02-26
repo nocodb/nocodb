@@ -1,8 +1,10 @@
 import { ColumnType, NormalColumnRequestType } from '../Api';
 import UITypes from '../UITypes';
 import { IDType } from './index';
+import { SqlUi } from './SqlUI.types';
 
-export class OracleUi {
+export class OracleUi implements SqlUi {
+  //#region statics
   static getNewTableColumns(): any[] {
     return [
       {
@@ -995,6 +997,100 @@ export class OracleUi {
 
     return false;
   }
+  //#endregion statics
+
+  //#region methods
+  getNewTableColumns(): readonly any[] {
+    return OracleUi.getNewTableColumns();
+  }
+  getNewColumn(suffix: string): {
+    column_name: string;
+    dt: string;
+    dtx: string;
+    ct: string;
+    nrqd: boolean;
+    rqd: boolean;
+    ck: boolean;
+    pk: boolean;
+    un: boolean;
+    ai: boolean;
+    cdf: null;
+    clen: number;
+    np: number;
+    ns: number;
+    dtxp: string;
+    dtxs: string;
+    altered: number;
+    uidt: string;
+    uip: string;
+    uicn: string;
+  } {
+    return OracleUi.getNewColumn(suffix);
+  }
+  getDefaultLengthForDatatype(type: string): number | string {
+    return OracleUi.getDefaultLengthForDatatype(type);
+  }
+  getDefaultLengthIsDisabled(type: string) {
+    return OracleUi.getDefaultLengthIsDisabled(type);
+  }
+  getDefaultValueForDatatype(type: string) {
+    return OracleUi.getDefaultValueForDatatype(type);
+  }
+  getDefaultScaleForDatatype(type: any): string {
+    return OracleUi.getDefaultScaleForDatatype(type);
+  }
+  colPropAIDisabled(col: ColumnType, columns: ColumnType[]): boolean {
+    return OracleUi.colPropAIDisabled(col, columns);
+  }
+  colPropUNDisabled(col: ColumnType): boolean {
+    return OracleUi.colPropUNDisabled(col);
+  }
+  onCheckboxChangeAI(col: ColumnType): void {
+    return OracleUi.onCheckboxChangeAI(col);
+  }
+  showScale(columnObj: ColumnType): boolean {
+    return OracleUi.showScale(columnObj);
+  }
+  removeUnsigned(columns: ColumnType[]): void {
+    return OracleUi.removeUnsigned(columns);
+  }
+  columnEditable(colObj: ColumnType): boolean {
+    return OracleUi.columnEditable(colObj);
+  }
+  onCheckboxChangeAU(col: ColumnType): void {
+    return OracleUi.onCheckboxChangeAU(col);
+  }
+  colPropAuDisabled(col: ColumnType): boolean {
+    return OracleUi.colPropAuDisabled(col);
+  }
+  getAbstractType(col: ColumnType): string {
+    return OracleUi.getAbstractType(col);
+  }
+  getUIType(col: ColumnType): string {
+    return OracleUi.getUIType(col);
+  }
+  getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+    return OracleUi.getDataTypeForUiType(col, idType);
+  }
+
+  // eslint-disable-next-line prettier/prettier
+  getDataTypeListForUiType(_col: { uidt: UITypes }, _idType?: IDType): string[] {
+    throw new Error('Not implemented');
+  }
+  getUnsupportedFnList(): string[] {
+    return OracleUi.getUnsupportedFnList();
+  }
+  getCurrentDateDefault(_col: Partial<ColumnType>) {
+    return OracleUi.getCurrentDateDefault(_col);
+  }
+  isEqual(dataType1: string, dataType2: string): boolean {
+    return OracleUi.isEqual(dataType1, dataType2);
+  }
+  adjustLengthAndScale(
+    _newColumn: Partial<ColumnType>,
+    _oldColumn?: ColumnType
+  ) {}
+  //#endregion methods
 }
 
 // module.exports = PgUiHelp;

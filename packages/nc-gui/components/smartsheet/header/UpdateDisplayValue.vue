@@ -2,7 +2,6 @@
 import { type ColumnType, columnTypeName, isSupportedDisplayValueColumn, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 interface Props {
-  column: ColumnType
   value?: boolean
   useMetaFields?: boolean
 }
@@ -21,7 +20,24 @@ const meta = inject(MetaInj, ref())
 
 const value = useVModel(props, 'value')
 
-const { column, useMetaFields } = toRefs(props)
+// keep localstate for modal visibility
+// if parent component unmouts changing value will not update
+const localValue = ref(value.value)
+const isVisible = computed({
+  get: () => value.value,
+  set: (v) => {
+    value.value = v
+    localValue.value = v
+  },
+})
+
+const { useMetaFields } = toRefs(props)
+
+const menuColumn = inject(ColumnInj)
+
+const canvasColumn = inject(CanvasColumnInj)
+
+const column = computed(() => menuColumn?.value || canvasColumn?.value)
 
 const selectedFieldId = ref()
 
@@ -87,7 +103,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <NcModal v-model:visible="value" size="small">
+  <NcModal v-model:visible="isVisible" size="small">
     <div class="flex flex-col gap-3">
       <div>
         <h1 class="text-base text-gray-800 font-semibold">{{ $t('labels.searchDisplayValue') }}</h1>

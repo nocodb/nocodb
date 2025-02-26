@@ -603,6 +603,7 @@
     "teamAndSettings": "Équipe & paramètres",
     "apiDocs": "Docs API",
     "importFromAirtable": "Importer depuis Airtable",
+    "importFromNocoDB": "Importer depuis NocoDB",
     "generateToken": "Générer un jeton",
     "APIsAndSupport": "API & Assistance",
     "helpCenter": "Centre d'aide",
@@ -611,6 +612,7 @@
     "quickImportFrom": "Importation rapide de",
     "quickImport": "Importation rapide",
     "quickImportAirtable": "Importer depuis Airtable",
+    "quickImportNocoDB": "Importer depuis NocoDB",
     "quickImportCSV": "Import CSV",
     "quickImportExcel": "Import rapide - Excel",
     "quickImportJSON": "Import Json",
@@ -673,9 +675,14 @@
     "yourBaseRole": "Votre rôle de base",
     "lockedByUser": "Verrouillé par {user}",
     "thisPageDoesNotExist": "Cette page n'existe pas",
-    "customUrl": "URL personnalisée"
+    "customUrl": "URL personnalisée",
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
   },
   "labels": {
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "failed": "En erreur",
+    "succeeded": "Réussi",
     "noImage": "Pas d'image",
     "quickNavigation": "Navigation Rapide",
     "recent": "Récent",
@@ -702,7 +709,7 @@
     "newSnapshot": "Nouvel instantané",
     "searchASnapshot": "Rechercher un instantané",
     "continue": "Poursuivre",
-    "toggleExperimentalFeature": "Enable or disable experimental features to explore upcoming functionality.",
+    "toggleExperimentalFeature": "Activer ou désactiver les fonctionnalités expérimentales pour explorer la future fonctionnalité.",
     "modifiedOn": "Modifié le",
     "configuration": "Configuration",
     "setup": "Réglage",
@@ -975,7 +982,7 @@
     "barcodeFormat": "Format du code-barres",
     "qrCodeValueTooLong": "Trop de caractères pour un code QR",
     "barcodeValueTooLong": "Trop de caractères pour un code-barres",
-    "currentLocation": "Emplacement actuel",
+    "currentLocation": "Définir à l'emplacement actuel",
     "lng": "Long.",
     "lat": "Lat.",
     "aggregateFunction": "Fonction agrégée",
@@ -1034,7 +1041,9 @@
     "goToDashboard": "Accéder au tableau de bord",
     "importing": "Importation de",
     "importingFromAirtable": "Import depuis Airtable",
+    "importingFromNocoDB": "Import depuis NocoDB",
     "airtableBaseImported": "Base Airtable importée",
+    "nocoDBBaseImported": "Base NocoDB importée",
     "formatJson": "Formater le JSON",
     "autoSelectFieldTypes": "Sélection automatique des types de champs",
     "firstRowAsHeaders": "Use first record as header",
@@ -1116,7 +1125,8 @@
     "viewHide": "Afficher la visibilité ",
     "osBrowser": "OS, Navigateur",
     "rowId": "Id de ligne",
-    "showJsonPayload": "Afficher la payload du JSON"
+    "showJsonPayload": "Afficher la payload du JSON",
+    "autoCreateMissingSelectionOptions": "Créer automatiquement les options de champ de sélection manquantes"
   },
   "activity": {
     "clickToResolve": "Cliquer pour résoudre",
@@ -1132,6 +1142,7 @@
     "deleteAllRecords": "Supprimer toutes les entrées",
     "assignView": "Affecter la vue",
     "webhookDetails": "Détails du Webhook",
+    "webhookLogs": "Logs des webhooks",
     "showSaturdaysAndSundays": "Afficher les samedis et dimanches",
     "renameBase": "Renommer la Base",
     "renameWorkspace": "Renommer l'espace de travail",
@@ -1372,6 +1383,8 @@
       "addOrEditStack": "Ajouter / Modifier une pile"
     },
     "map": {
+      "googleMaps": "Google Maps",
+      "osm": "OSM",
       "mappedBy": "Position basée sur",
       "chooseMappingField": "Choisissez un champ de coordonnées géographiques",
       "openInGoogleMaps": "Google Maps",
@@ -1511,6 +1524,7 @@
   "msg": {
     "dropYourDocHere": "Déposer votre document ici",
     "airtableImportSuccess": "Base Airtable importée avec succès.",
+    "nocoDBImportSuccess": "Import réussi de la base NocoDB.",
     "deleteAccountPermanently": "Supprimer votre compte définitivement",
     "learnMore": "En savoir plus",
     "connectIntegrations": "Connectez les intégrations avec NocoDB.",

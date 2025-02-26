@@ -6,43 +6,65 @@ import dayjs from 'dayjs';
 import { MssqlUi, MysqlUi, PgUi, SnowflakeUi, SqlUiFactory } from './sqlUi';
 import { dateFormats } from './dateTimeHelper';
 
+export const StringOperators = ['||', '&'] as const;
 export const ArithmeticOperators = ['+', '-', '*', '/'] as const;
-export const ComparisonOperators = ['==', '<', '>', '<=', '>=', '!='] as const;
-type ArithmeticOperator = (typeof ArithmeticOperators)[number];
-type ComparisonOperator = (typeof ComparisonOperators)[number];
-type BaseFormulaNode = {
+export const ComparisonOperators = ['==', '=', '<', '>', '<=', '>=', '!='] as const;
+export type ArithmeticOperator = (typeof ArithmeticOperators)[number];
+export type ComparisonOperator = (typeof ComparisonOperators)[number];
+export type StringOperator = (typeof StringOperators)[number];
+export type BaseFormulaNode = {
   type: JSEPNode;
-  dataType: FormulaDataTypes;
+  dataType?: FormulaDataTypes;
+  cast?: FormulaDataTypes;
+  errors?: Set<string>;
 };
-interface BinaryExpressionNode extends BaseFormulaNode {
-  operator: ArithmeticOperator | ComparisonOperator;
+export interface BinaryExpressionNode extends BaseFormulaNode {
+  operator: ArithmeticOperator | ComparisonOperator | StringOperator;
   type: JSEPNode.BINARY_EXP;
   right: ParsedFormulaNode;
   left: ParsedFormulaNode;
 }
-interface CallExpressionNode extends BaseFormulaNode {
+export interface CallExpressionNode extends BaseFormulaNode {
   type: JSEPNode.CALL_EXP;
   arguments: ParsedFormulaNode[];
   callee: {
-    type: 'Identifier';
-    name: 'DATETIME_DIFF';
+    type?: string;
+    name: string;
   };
 }
-interface IdentifierNode extends BaseFormulaNode {
+export interface IdentifierNode extends BaseFormulaNode {
   type: JSEPNode.IDENTIFIER;
   name: string;
   raw: string;
 }
-interface LiteralNode extends BaseFormulaNode {
+export interface LiteralNode extends BaseFormulaNode {
   type: JSEPNode.LITERAL;
-  value: string;
+  value: string | number;
   raw: string;
 }
-type ParsedFormulaNode =
+export interface UnaryExpressionNode extends BaseFormulaNode {
+  type: JSEPNode.UNARY_EXP;
+  operator: string;
+  argument: ParsedFormulaNode;
+}
+export interface ArrayExpressionNode extends BaseFormulaNode {
+  type: JSEPNode.ARRAY_EXP;
+}
+export interface MemberExpressionNode extends BaseFormulaNode {
+  type: JSEPNode.MEMBER_EXP;
+}
+export interface CompoundNode extends BaseFormulaNode {
+  type: JSEPNode.COMPOUND;
+}
+export type ParsedFormulaNode =
   | BinaryExpressionNode
   | CallExpressionNode
   | IdentifierNode
-  | LiteralNode;
+  | LiteralNode
+  | MemberExpressionNode
+  | ArrayExpressionNode
+  | UnaryExpressionNode
+  | CompoundNode;
 
 // opening and closing string code
 const OCURLY_CODE = 123; // '{'
@@ -1712,7 +1734,7 @@ export async function validateFormulaAndExtractTreeWithType({
     | typeof PgUi;
   column?: ColumnType;
   getMeta: (tableId: string) => Promise<any>;
-}) {
+}): Promise<ParsedFormulaNode> {
   const sqlUI =
     typeof clientOrSqlUi === 'string'
       ? SqlUiFactory.create({ client: clientOrSqlUi })
@@ -1726,16 +1748,15 @@ export async function validateFormulaAndExtractTreeWithType({
     colIdToColMap[col.id] = col;
   }
 
-  const validateAndExtract = async (parsedTree: any) => {
-    const res: {
-      dataType?: FormulaDataTypes;
-      cast?: FormulaDataTypes;
-      errors?: Set<string>;
-      [key: string]: any;
-    } = { ...parsedTree };
+  const validateAndExtract = async (
+    parsedTree: ParsedFormulaNode
+  ): Promise<ParsedFormulaNode> => {
+    const res: ParsedFormulaNode = { ...parsedTree };
 
     if (parsedTree.type === JSEPNode.CALL_EXP) {
-      const calleeName = parsedTree.callee.name.toUpperCase();
+      const calleeName = (
+        parsedTree.callee as IdentifierNode
+      ).name.toUpperCase();
       // validate function name
       if (!formulas[calleeName]) {
         throw new FormulaError(
@@ -1797,11 +1818,12 @@ export async function validateFormulaAndExtractTreeWithType({
         }
       }
       // get args type and validate
-      const validateResult = (res.arguments = await Promise.all(
-        parsedTree.arguments.map((arg) => {
-          return validateAndExtract(arg);
-        })
-      ));
+      const validateResult = ((res as CallExpressionNode).arguments =
+        await Promise.all(
+          parsedTree.arguments.map((arg) => {
+            return validateAndExtract(arg);
+          })
+        ));
 
       const argTypes = validateResult.map((v: any) => v.dataType);
 
@@ -1906,7 +1928,7 @@ export async function validateFormulaAndExtractTreeWithType({
         );
       }
 
-      res.name = col.id;
+      (res as IdentifierNode).name = col.id;
 
       if (col?.uidt === UITypes.Formula) {
         if (column) {
@@ -1967,20 +1989,25 @@ export async function validateFormulaAndExtractTreeWithType({
         );
       }
     } else if (parsedTree.type === JSEPNode.BINARY_EXP) {
-      res.left = await validateAndExtract(parsedTree.left);
-      res.right = await validateAndExtract(parsedTree.right);
+      (res as BinaryExpressionNode).left = await validateAndExtract(
+        parsedTree.left
+      );
+      (res as BinaryExpressionNode).right = await validateAndExtract(
+        parsedTree.right
+      );
 
-      if (
-        handleBinaryExpressionForDateAndTime({ sourceBinaryNode: res as any })
-      ) {
+      const dateAndTimeParsedNode = handleBinaryExpressionForDateAndTime({
+        sourceBinaryNode: res as any,
+      });
+      if (dateAndTimeParsedNode) {
         Object.assign(
           res,
           handleBinaryExpressionForDateAndTime({ sourceBinaryNode: res as any })
         );
         if (res.type !== JSEPNode.BINARY_EXP) {
-          res.left = undefined;
-          res.right = undefined;
-          res.operator = undefined;
+          (res as any).left = undefined;
+          (res as any).right = undefined;
+          (res as any).operator = undefined;
         }
       } else if (
         ['==', '<', '>', '<=', '>=', '!='].includes(parsedTree.operator)
@@ -1991,7 +2018,10 @@ export async function validateFormulaAndExtractTreeWithType({
         // if any side is string/date/other type, then the result will be concatenated string
         // e.g. 1 + '2' = '12'
         if (
-          [res.left, res.right].some(
+          [
+            (res as BinaryExpressionNode).left,
+            (res as BinaryExpressionNode).right,
+          ].some(
             (r) =>
               ![
                 FormulaDataTypes.NUMERIC,
@@ -2003,6 +2033,8 @@ export async function validateFormulaAndExtractTreeWithType({
         ) {
           res.dataType = FormulaDataTypes.STRING;
         }
+      } else if(['&'].includes(parsedTree.operator)) {
+        res.dataType = FormulaDataTypes.STRING;
       } else {
         res.dataType = FormulaDataTypes.NUMERIC;
       }
@@ -2031,15 +2063,18 @@ export async function validateFormulaAndExtractTreeWithType({
   // register jsep curly hook
   jsep.plugins.register(jsepCurlyHook);
   const parsedFormula = jsep(formula);
-  const result = await validateAndExtract(parsedFormula);
+  // TODO: better jsep expression handling
+  const result = await validateAndExtract(
+    parsedFormula as unknown as ParsedFormulaNode
+  );
   return result;
 }
 
 function handleBinaryExpressionForDateAndTime(params: {
   sourceBinaryNode: BinaryExpressionNode;
-}): BaseFormulaNode | undefined {
+}): BinaryExpressionNode | CallExpressionNode | undefined {
   const { sourceBinaryNode } = params;
-  let res: BaseFormulaNode;
+  let res: BinaryExpressionNode | CallExpressionNode;
 
   if (
     [FormulaDataTypes.DATE, FormulaDataTypes.INTERVAL].includes(

@@ -142,6 +142,7 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
     loadCollaborators()
   }
 }
@@ -164,6 +165,11 @@ onMounted(async () => {
   } finally {
     isLoading.value = false
   }
+})
+
+watch(baseRoles, (br) => {
+  const currentRoleIndex = OrderedProjectRoles.findIndex((role) => br && Object.keys(br).includes(role))
+  accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex)
 })
 
 const selected = reactive<{

@@ -76,7 +76,11 @@ const columns = computed<ColumnType[]>(() => {
 
   return metas.value[selectedTable.value.id]?.columns.filter(
     (c: ColumnType) =>
-      (!isVirtualCol(c.uidt as UITypes) || [UITypes.Formula].includes(c.uidt as UITypes)) && (!isSystemColumn(c) || c.pk),
+      (!isVirtualCol(c.uidt as UITypes) ||
+        [UITypes.CreatedTime, UITypes.CreatedBy, UITypes.LastModifiedTime, UITypes.LastModifiedBy, UITypes.Formula].includes(
+          c.uidt as UITypes,
+        )) &&
+      (!isSystemColumn(c) || c.pk),
   )
 })
 
@@ -261,13 +265,15 @@ const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
           name="fk_rollup_column_id"
           placeholder="-select-"
           :disabled="!vModel.fk_relation_column_id"
+          show-search
+          :filter-option="antSelectFilterOption"
           dropdown-class-name="nc-dropdown-relation-column !rounded-xl"
           @change="onDataTypeChange"
         >
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-700" />
           </template>
-          <a-select-option v-for="(column, index) of filteredColumns" :key="index" :value="column.id">
+          <a-select-option v-for="column of filteredColumns" :key="column.title" :value="column.id">
             <div class="w-full flex gap-2 truncate items-center justify-between">
               <div class="flex items-center gap-2 flex-1 truncate">
                 <component :is="cellIcon(column)" :column-meta="column" class="!mx-0" />

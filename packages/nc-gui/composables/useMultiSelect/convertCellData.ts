@@ -1,11 +1,21 @@
 import dayjs from 'dayjs'
 import type { AttachmentType, ColumnType, LinkToAnotherRecordType, SelectOptionsType } from 'nocodb-sdk'
 import { UITypes, getDateFormat, getDateTimeFormat, populateUniqueFileName } from 'nocodb-sdk'
+import { SilentTypeConversionError } from '~/error/silent-type-conversion.error'
+import { SelectTypeConversionError } from '~/error/select-type-conversion.error'
+import { ComputedTypePasteError } from '~/error/computed-type-paste.error'
 import type { AppInfo } from '~/composables/useGlobal/types'
 import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
 export default function convertCellData(
-  args: { to: UITypes; value: string; column: ColumnType; appInfo: AppInfo; files?: FileList | File[]; oldValue?: unknown },
+  args: {
+    to: UITypes
+    value: string
+    column: ColumnType
+    appInfo: AppInfo
+    files?: FileList | File[]
+    oldValue?: unknown
+  },
   isMysql = false,
   isMultiple = false,
 ) {
@@ -31,10 +41,19 @@ export default function convertCellData(
         if (isMultiple) {
           return null
         } else {
-          throw new TypeError(`Cannot convert '${value}' to number`)
+          throw new SilentTypeConversionError()
         }
       }
-      return parsedNumber
+      return toSafeInteger(parsedNumber)
+    }
+    case UITypes.Currency:
+    case UITypes.Percent:
+    case UITypes.Decimal: {
+      const parsedNumber = Number(value)
+      if (isNaN(parsedNumber)) {
+        throw new SilentTypeConversionError()
+      }
+      return value
     }
     case UITypes.Rating: {
       const parsedNumber = Number(value ?? 0)
@@ -42,7 +61,7 @@ export default function convertCellData(
         if (isMultiple) {
           return null
         } else {
-          throw new TypeError(`Cannot convert '${value}' to rating`)
+          throw new SilentTypeConversionError()
         }
       }
       return parsedNumber
@@ -67,12 +86,20 @@ export default function convertCellData(
         if (isMultiple) {
           return null
         } else {
-          throw new Error(`Not a valid '${to}' value`)
+          throw new SilentTypeConversionError()
         }
       }
       return to === UITypes.Date
         ? parsedDateOrDateTime.format('YYYY-MM-DD')
         : parsedDateOrDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ')
+    }
+    case UITypes.Duration: {
+      const conversionResult = convertDurationToSeconds(value, (column.meta as any)?.duration ?? 0)
+      if (conversionResult._isValid) {
+        return value
+      } else {
+        throw new SilentTypeConversionError()
+      }
     }
     case UITypes.Time: {
       let parsedTime = dayjs(value)
@@ -87,7 +114,7 @@ export default function convertCellData(
         if (isMultiple) {
           return null
         } else {
-          throw new Error('Not a valid time value')
+          throw new SilentTypeConversionError()
         }
       }
       return parsedTime.format(dateFormat)
@@ -131,7 +158,7 @@ export default function convertCellData(
           if (isMultiple) {
             return null
           } else {
-            throw new Error('Invalid attachment data')
+            throw new SilentTypeConversionError()
           }
         }
 
@@ -217,13 +244,16 @@ export default function convertCellData(
       if (value === '') return null
 
       const availableOptions = ((column.colOptions as SelectOptionsType)?.options || []).map((o) => o.title)
+      const optionsSet = new Set(availableOptions)
       const vals = value.split(',')
-      const validVals = vals.filter((v) => availableOptions.includes(v))
+      const invalidVals = vals.filter((v) => !optionsSet.has(v))
 
       // return null if no valid values
-      if (validVals.length === 0) return null
+      if (invalidVals.length > 0) {
+        throw new SelectTypeConversionError(vals, invalidVals)
+      }
 
-      return validVals.join(',')
+      return vals.join(',')
     }
     case UITypes.User:
     case UITypes.CreatedBy:
@@ -239,7 +269,7 @@ export default function convertCellData(
         if (isMultiple) {
           return null
         } else {
-          throw new Error('Invalid user data')
+          throw new SilentTypeConversionError()
         }
       }
 
@@ -257,12 +287,12 @@ export default function convertCellData(
           !(parsedVal && typeof parsedVal === 'object' && !Array.isArray(parsedVal) && Object.keys(parsedVal)) ||
           parsedVal?.fk_related_model_id !== (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
         ) {
-          throw new Error(`Unsupported conversion for ${to}`)
+          throw new SilentTypeConversionError()
         }
 
         return parsedVal
       } else {
-        throw new Error(`Unsupported conversion for ${to}`)
+        throw new SilentTypeConversionError()
       }
     }
     case UITypes.Links: {
@@ -283,12 +313,12 @@ export default function convertCellData(
           ) ||
           parsedVal?.fk_related_model_id !== (column.colOptions as LinkToAnotherRecordType).fk_related_model_id
         ) {
-          throw new Error(`Unsupported conversion for ${to}`)
+          throw new SilentTypeConversionError()
         }
 
         return parsedVal
       } else {
-        throw new Error(`Unsupported conversion for ${to}`)
+        throw new SilentTypeConversionError()
       }
     }
     case UITypes.Email: {
@@ -304,8 +334,28 @@ export default function convertCellData(
       if (isMultiple) {
         return undefined
       } else {
-        throw new Error(`Unsupported conversion for ${to}`)
+        throw new ComputedTypePasteError()
       }
+    }
+    case UITypes.JSON: {
+      try {
+        JSON.parse(value)
+        return value
+      } catch (ex) {
+        throw new SilentTypeConversionError()
+      }
+    }
+    case UITypes.GeoData: {
+      const geoValue = value
+        .replace(',', ';')
+        .split(';')
+        .map((k) => k.trim())
+      if (geoValue.length === 2) {
+        if (!isNaN(Number(geoValue[0])) && !isNaN(Number(geoValue[1]))) {
+          return geoValue.map((k) => convertGeoNumberToString(Number(k))).join(';')
+        }
+      }
+      throw new SilentTypeConversionError()
     }
     default:
       return value

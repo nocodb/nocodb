@@ -442,12 +442,10 @@ function baseModelSqlTests() {
       view,
       context: ctx,
     });
-    const insertedChildRow = await childBaseModel.readByPk(
-      childRow['Id'],
-      false,
-      {},
-      { getHiddenColumn: true },
-    );
+    const insertedChildRow = await childBaseModel.readByPk(childRow['Id'], {
+      getHiddenColumns: true,
+    });
+
     expect(insertedChildRow[childCol.column_name]).to.equal(childRow['Id']);
 
     /*    const rowInsertedAudit = (await Audit.baseAuditList(base.id, {}))
@@ -515,9 +513,6 @@ function baseModelSqlTests() {
     });
     const updatedChildRow = await childBaseModel.readByPk(
       insertedChildRow['Id'],
-      false,
-      {},
-      { getHiddenColumn: true },
     );
 
     expect(updatedChildRow[childCol.column_name]).to.equal(insertedRow['Id']);
@@ -595,9 +590,6 @@ function baseModelSqlTests() {
     });
     const updatedChildRow = await childBaseModel.readByPk(
       insertedChildRow['Id'],
-      false,
-      {},
-      { getHiddenColumn: true },
     );
 
     expect(updatedChildRow[childCol.column_name]).to.be.null;

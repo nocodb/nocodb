@@ -19,6 +19,10 @@ export class JobsService implements OnModuleInit {
     await this.add(JobTypes.InitMigrationJobs, {});
   }
 
+  get jobsQueue() {
+    return this.fallbackQueueService;
+  }
+
   async add(
     name: string,
     data: any,
@@ -85,12 +89,12 @@ export class JobsService implements OnModuleInit {
       data._jobVersion = JobVersions[name];
     }
 
-    this.fallbackQueueService.add(name, data, {
+    const job = this.fallbackQueueService.add(name, data, {
       jobId: jobData.id,
       ...options,
     });
 
-    return jobData;
+    return job;
   }
 
   async jobStatus(jobId: string) {
@@ -106,6 +110,39 @@ export class JobsService implements OnModuleInit {
       JobStatus.DELAYED,
       JobStatus.PAUSED,
     ]);
+  }
+
+  async setJobResult(jobId: string, result: any) {
+    const job = await Job.get(
+      {
+        workspace_id: RootScopes.ROOT,
+        base_id: RootScopes.ROOT,
+      },
+      jobId,
+    );
+
+    if (!job) {
+      return;
+    }
+
+    try {
+      if (typeof result === 'object') {
+        result = JSON.stringify(result);
+      }
+
+      await Job.update(
+        {
+          workspace_id: RootScopes.ROOT,
+          base_id: RootScopes.ROOT,
+        },
+        jobId,
+        {
+          result,
+        },
+      );
+    } catch (e) {
+      // ignore
+    }
   }
 
   async resumeQueue() {

@@ -56,7 +56,8 @@ function normalizeMeta(key: string) {
       'thumbs-up': 'thumb-up',
       'circle-filled': 'moon-full',
       'circle-check': 'check-circle-outline',
-    }[opts.icon as string] ?? (opts.icon || (mta.type === 'Rating' ? 'star' : 'check-circle'))
+    }[opts.icon as string] ??
+    (opts.icon || (mta.type === 'Rating' ? 'star' : 'check-circle'))
   return {
     ...opts,
     ...mta,
@@ -122,7 +123,11 @@ function isShowableValue(value: any) {
     <GeneralIcon
       icon="ncNode"
       class="w-[16px] h-[16px] text-gray-500 bg-white absolute left-0 transform -translate-x-1/2"
-      :class="[['JSON', 'Attachment', 'SingleLineText', 'LongText'].includes(meta[columnKey]?.type) ? 'top-1' : 'top-1/2 -translate-y-2/5']"
+      :class="[
+        ['JSON', 'Attachment', 'SingleLineText', 'LongText'].includes(meta[columnKey]?.type)
+          ? 'top-1'
+          : 'top-1/2 -translate-y-2/5',
+      ]"
     />
     <div class="ml-6.5">
       <div class="text-[13px] font-weight-500 inline-flex items-center flex-wrap">
@@ -436,10 +441,13 @@ function isShowableValue(value: any) {
   font-size: 13px !important;
   line-height: 16px !important;
 }
-.nc-expressive-mini-item-cell .nc-cell-field:not(.nc-single-select, .nc-multi-select), .nc-expressive-mini-item-cell .nc-cell:not(.nc-cell-singleselect, .nc-cell-multiselect) {
+.nc-expressive-mini-item-cell .nc-cell-field:not(.nc-single-select, .nc-multi-select),
+.nc-expressive-mini-item-cell .nc-cell:not(.nc-cell-singleselect, .nc-cell-multiselect) {
   @apply flex items-center h-[20px];
 }
-.nc-expressive-mini-item-cell .nc-cell :where(.nc-cell-field, input, textarea, .nc-cell-field-link):not(.ant-select-selection-search-input) {
+.nc-expressive-mini-item-cell
+  .nc-cell
+  :where(.nc-cell-field, input, textarea, .nc-cell-field-link):not(.ant-select-selection-search-input) {
   font-size: unset;
   line-height: unset;
 }

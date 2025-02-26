@@ -50,7 +50,7 @@
                 docker_aio = pkgs.callPackage ./nix/docker/all_in_one {
                   nocodb = self.packages.${system}.nocodb;
                 };
-                ami = pkgs.callPackage (import ./nix/ami inputs) {
+                images = pkgs.callPackage (import ./nix/images inputs) {
                   inherit system;
                   nixosGenerate = nixos-generators.nixosGenerate;
                 };

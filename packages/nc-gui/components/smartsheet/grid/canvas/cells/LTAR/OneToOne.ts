@@ -84,7 +84,7 @@ export const OneToOneCellRenderer: CellRenderer = {
 
       Object.assign(cellRenderStore, returnData)
 
-      // Show cursor pointe on hover over chip item
+      // Show cursor pointer on hover over chip item
       if (
         !readonly &&
         selected &&

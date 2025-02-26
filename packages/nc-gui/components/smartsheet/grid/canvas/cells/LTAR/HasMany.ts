@@ -105,7 +105,7 @@ export const HasManyCellRenderer: CellRenderer = {
           value: cell.item,
         })
 
-        // Show cursor pointe on hover over chip item
+        // Show cursor pointer on hover over chip item
         if (
           !readonly &&
           selected &&
@@ -144,7 +144,7 @@ export const HasManyCellRenderer: CellRenderer = {
           value: cell.item,
         })
 
-        // Show cursor pointe on hover over chip item
+        // Show cursor pointer on hover over chip item
         if (!readonly && selected && isBoxHovered({ x: currentX, y: currentY, width: currentWidth, height: 24 }, mousePosition)) {
           setCursor('pointer')
         }

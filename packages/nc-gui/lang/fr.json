@@ -1126,7 +1126,8 @@
     "osBrowser": "OS, Navigateur",
     "rowId": "Id de ligne",
     "showJsonPayload": "Afficher la payload du JSON",
-    "autoCreateMissingSelectionOptions": "Créer automatiquement les options de champ de sélection manquantes"
+    "autoCreateMissingSelectionOptions": "Créer automatiquement les options de champ de sélection manquantes",
+    "fillForm": "Fill Form"
   },
   "activity": {
     "clickToResolve": "Cliquer pour résoudre",

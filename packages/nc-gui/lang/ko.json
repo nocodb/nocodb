@@ -1126,7 +1126,8 @@
     "osBrowser": "OS, 브라우저",
     "rowId": "행 ID",
     "showJsonPayload": "JSON 페이로드 표시",
-    "autoCreateMissingSelectionOptions": "누락된 선택 필드 옵션 자동 생성"
+    "autoCreateMissingSelectionOptions": "누락된 선택 필드 옵션 자동 생성",
+    "fillForm": "Fill Form"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",

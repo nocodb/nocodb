@@ -1126,7 +1126,8 @@
     "osBrowser": "操作系统，浏览器",
     "rowId": "行 ID",
     "showJsonPayload": "显示JSON负载",
-    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options",
+    "fillForm": "Fill Form"
   },
   "activity": {
     "clickToResolve": "点击解决",

@@ -79,6 +79,7 @@ export const BelongsToCellRenderer: CellRenderer = {
       Object.assign(cellRenderStore, returnData)
 
       if (
+        selected &&
         isBoxHovered(
           {
             x: x + 4,
@@ -128,12 +129,28 @@ export const BelongsToCellRenderer: CellRenderer = {
 
     return returnData
   },
-  async handleClick({ row, value, column, getCellPosition, mousePosition, makeCellEditable, cellRenderStore, selected }) {
+  async handleClick({
+    row,
+    value,
+    column,
+    getCellPosition,
+    mousePosition,
+    makeCellEditable,
+    cellRenderStore,
+    selected,
+    isPublic,
+  }) {
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width, height } = getCellPosition(column, rowIndex)
     const size = 14
 
+    if (isBoxHovered({ x: x + width - 26, y: y + 8, height: size, width: size }, mousePosition)) {
+      makeCellEditable(rowIndex, column)
+      return true
+    }
+
     if (
+      selected &&
       ncIsObject(value) &&
       cellRenderStore?.height &&
       cellRenderStore?.width &&
@@ -159,14 +176,9 @@ export const BelongsToCellRenderer: CellRenderer = {
           rowId,
           useMetaFields: true,
           maintainDefaultViewOrder: true,
-          loadRow: true,
+          loadRow: !isPublic,
         })
       }
-    }
-
-    if (isBoxHovered({ x: x + width - 26, y: y + 8, height: size, width: size }, mousePosition)) {
-      makeCellEditable(rowIndex, column)
-      return true
     }
 
     if (!cellRenderStore?.x || !selected) return false
@@ -175,6 +187,7 @@ export const BelongsToCellRenderer: CellRenderer = {
       makeCellEditable(rowIndex, column)
       return true
     }
+
     return false
   },
 }

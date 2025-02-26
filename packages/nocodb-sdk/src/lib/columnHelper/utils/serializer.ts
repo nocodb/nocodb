@@ -5,6 +5,7 @@ import { convertDurationToSeconds } from '~/lib/durationUtils';
 import { parseProp } from '~/lib/helperFunctions';
 import { ncIsBoolean, ncIsNaN, ncIsNumber, ncIsString } from '~/lib/is';
 import UITypes from '~/lib/UITypes';
+import { SerializerOrParserFnProps } from '../column.interface';
 
 export const serializeIntValue = (value: string | null | number) => {
   if (ncIsNumber(value)) {
@@ -120,6 +121,8 @@ export const serializeDateOrDateTimeValue = (
   value: string | null,
   col: ColumnType
 ) => {
+  if (!value) return null;
+
   value = value?.toString().trim();
 
   let parsedDateOrDateTime = dayjs(value, getDateTimeFormat(value));
@@ -131,6 +134,35 @@ export const serializeDateOrDateTimeValue = (
   return col.uidt === UITypes.Date
     ? parsedDateOrDateTime.format('YYYY-MM-DD')
     : parsedDateOrDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ');
+};
+
+export const serializeTimeValue = (
+  value: any,
+  params: SerializerOrParserFnProps['params']
+) => {
+  value = value?.toString().trim();
+
+  if (!value) return null;
+
+  let parsedTime = dayjs(value);
+
+  if (!parsedTime.isValid()) {
+    parsedTime = dayjs(value, 'HH:mm:ss');
+  }
+
+  if (!parsedTime.isValid()) {
+    parsedTime = dayjs(`1999-01-01 ${value}`);
+  }
+
+  if (!parsedTime.isValid()) {
+    return null;
+  }
+
+  const dateFormat = params.isMysql?.(params.col.source_id)
+    ? 'YYYY-MM-DD HH:mm:ss'
+    : 'YYYY-MM-DD HH:mm:ssZ';
+
+  return parsedTime.format(dateFormat);
 };
 
 export const serializeYearValue = (value: any) => {

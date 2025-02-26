@@ -20,14 +20,14 @@ export class DateTimeHelper extends AbstractColumnHelper {
 
   parseValue(
     value: any,
-    params: SerializerOrParserFnProps['params'] & { isSystemCol?: boolean }
+    params: SerializerOrParserFnProps['params']
   ): string | null {
     return parseDateTimeValue(value, params);
   }
 
   parsePlainCellValue(
     value: any,
-    params: SerializerOrParserFnProps['params'] & { isSystemCol?: boolean }
+    params: SerializerOrParserFnProps['params']
   ): string | null {
     return parseDateTimeValue(value, params) ?? '';
   }

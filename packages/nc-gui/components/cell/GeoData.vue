@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { convertGeoNumberToString, latLongToJoinedString, TypeConversionError, type GeoLocationType } from 'nocodb-sdk'
+import { type GeoLocationType, TypeConversionError, convertGeoNumberToString, latLongToJoinedString } from 'nocodb-sdk'
 
 interface Props {
   modelValue?: string | null

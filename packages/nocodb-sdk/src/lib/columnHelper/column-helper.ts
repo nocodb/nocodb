@@ -93,7 +93,19 @@ export class ColumnHelperClass {
     return new ColumnClass();
   }
 
-  // Method to parse a value using the correct column
+  /**
+   * Parses a stored value back into its original form.
+   * Converts a database-stored value into a display-friendly format.
+   *
+   * @example
+   * // Example: Formatting percentage values
+   * dbValue = 59; // Stored in DB
+   * displayValue = "59%"; // Displayed to users
+   *
+   * @param value - The value to be parsed from storage format.
+   * @param params - Additional parameters related to column parsing.
+   * @returns The parsed value in a display-friendly format.
+   */
   parseValue(value: any, params: SerializerOrParserFnProps['params']) {
     const columnInstance = this.getColumn(params);
     if (columnInstance) {
@@ -102,7 +114,16 @@ export class ColumnHelperClass {
     return undefined;
   }
 
-  // Method to serialize a value using the correct column
+  /**
+   * Serializes the given value based on column parameters.
+   *
+   * **WARNING:** This method **can throw errors**. Use a `try-catch` block when calling it.
+   *
+   * @param value - The value to be serialized.
+   * @param params - Additional parameters related to column serialization.
+   * @returns The serialized value.
+   * @throws {Error} If serialization fails.
+   */
   serializeValue(value: any, params: SerializerOrParserFnProps['params']) {
     const columnInstance = this.getColumn(params);
     if (columnInstance) {

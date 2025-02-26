@@ -133,16 +133,14 @@ const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 const isGrid = inject(IsGridInj, ref(false))
 const handleBlur = (e: Event) => {
-  let value = (e.target as any).value as string
-  const numberBehindDecimal = value.match(/[\.]\d+$/)?.[0]
-  if (!numberBehindDecimal || numberBehindDecimal.length <= 10) {
-    return
-  }
-  value = convertGeoNumberToString(Number(value))
-  if ((e.target as any)!.id === identifier.value.latitude) {
-    formState.latitude = value
-  } else if ((e.target as any)!.id === identifier.value.longitude) {
-    formState.longitude = value
+  const originalValue = (e.target as any).value as string
+  const value = convertGeoNumberToString(Number(originalValue))
+  if (value !== originalValue) {
+    if ((e.target as any)!.id === identifier.value.latitude) {
+      formState.latitude = value
+    } else if ((e.target as any)!.id === identifier.value.longitude) {
+      formState.longitude = value
+    }
   }
 }
 

@@ -832,6 +832,7 @@ const currentColumnToEdit = ref('')
                     v-model:value="record.destCn"
                     class="w-full nc-upload-filter-field"
                     show-search
+                    allow-clear
                     :filter-option="filterOption"
                     dropdown-class-name="nc-dropdown-filter-field"
                   >

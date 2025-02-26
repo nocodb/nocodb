@@ -104,7 +104,7 @@ export const OneToOneCellRenderer: CellRenderer = {
       if (selected && !readonly) {
         spriteLoader.renderIcon(ctx, {
           x: returnData.x + 2,
-          y: y + (rowHeightInPx['1'] === height ? 8 : 2),
+          y: y + (rowHeightInPx['1'] === height ? 8 : 10),
           icon: 'ncXCircle',
           size: 14,
           color: '#AFB3C2',
@@ -112,7 +112,7 @@ export const OneToOneCellRenderer: CellRenderer = {
 
         if (
           isBoxHovered(
-            { x: returnData.x + 2, y: y + (rowHeightInPx['1'] === height ? 8 : 2), height: 14, width: 14 },
+            { x: returnData.x + 2, y: y + (rowHeightInPx['1'] === height ? 8 : 10), height: 14, width: 14 },
             mousePosition,
           )
         ) {

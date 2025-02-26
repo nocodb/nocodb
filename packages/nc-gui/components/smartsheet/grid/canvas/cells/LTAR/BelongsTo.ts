@@ -19,6 +19,7 @@ export const BelongsToCellRenderer: CellRenderer = {
       setCursor,
       selected,
       cellRenderStore,
+      padding,
     } = props
 
     const relatedTableDisplayValueProp =
@@ -101,7 +102,7 @@ export const BelongsToCellRenderer: CellRenderer = {
       if (selected && !readonly) {
         spriteLoader.renderIcon(ctx, {
           x: returnData.x + 2,
-          y: y + (rowHeightInPx['1'] === height ? 8 : 2),
+          y: y + (rowHeightInPx['1'] === height ? 8 : 10),
           icon: 'ncXCircle',
           size: 14,
           color: '#AFB3C2',
@@ -109,7 +110,7 @@ export const BelongsToCellRenderer: CellRenderer = {
 
         if (
           isBoxHovered(
-            { x: returnData.x + 2, y: y + (rowHeightInPx['1'] === height ? 8 : 2), height: 14, width: 14 },
+            { x: returnData.x + 2, y: y + (rowHeightInPx['1'] === height ? 8 : 10), height: 14, width: 14 },
             mousePosition,
           )
         ) {

@@ -3,6 +3,7 @@ import UITypes from '../UITypes';
 import AbstractColumnHelper from './column.interface';
 import {
   CheckboxHelper,
+  DecimalHelper,
   DurationHelper,
   NumberHelper,
   PercentHelper,
@@ -14,6 +15,7 @@ export class ColumnHelper {
   private registry: Record<string, new () => AbstractColumnHelper> = {
     [UITypes.SingleLineText]: SingleLineTextHelper,
     [UITypes.Number]: NumberHelper,
+    [UITypes.Decimal]: DecimalHelper,
     [UITypes.Duration]: DurationHelper,
     [UITypes.Percent]: PercentHelper,
     [UITypes.Checkbox]: CheckboxHelper,

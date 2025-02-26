@@ -61,6 +61,10 @@ export class PublicDatasExportController {
     const model = await view.getModelWithInfo(context);
 
     await view.getColumns(context);
+    const modelColumnMap = model.columns.reduce((mapObj, cur) => {
+      mapObj[cur.id] = cur;
+      return mapObj;
+    }, {});
 
     const { offset, dbRows, elapsed } = await this.getDbRows(
       context,
@@ -69,7 +73,14 @@ export class PublicDatasExportController {
       req,
     );
 
-    const fields = req.query.fields as string[];
+    let fields = req.query.fields as string[];
+    if (!fields || fields.length === 0) {
+      fields = view.columns
+        .filter((c) => c.show)
+        .map((k) => modelColumnMap[k.fk_column_id])
+        .filter((column) => !isSystemColumn(column) || view.show_system_fields)
+        .map((k) => k.title);
+    }
 
     const data = XLSX.utils.json_to_sheet(
       dbRows.map((o: Record<string, any>) =>
@@ -81,8 +92,10 @@ export class PublicDatasExportController {
     const wb = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(wb, data, view.title);
-
-    const buf = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+    const buf = XLSX.write(wb, {
+      type: req.query.encoding === 'base64' ? 'base64' : 'buffer',
+      bookType: 'xlsx',
+    });
 
     res.set({
       'Access-Control-Expose-Headers': 'nc-export-offset',

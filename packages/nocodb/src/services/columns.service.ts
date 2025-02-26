@@ -442,7 +442,39 @@ export class ColumnsService {
         `Duplicate column alias for table ${table.title} and column is ${param.column.title}. Please change the name of this column and retry.`,
       );
     }
+    const sqlUi = SqlUiFactory.create(await source.getConnectionConfig());
 
+    // for API call, if dt is not supplied
+    // but uidt is present
+    // and uidt is different, try to get dt from uidt
+    if (
+      param.column.uidt &&
+      param.column.uidt !== column.uidt &&
+      !(param.column as Column).dt &&
+      // if uidt is invalid, do not try to set default dt
+      Object.values(UITypes).includes(param.column.uidt as UITypes)
+    ) {
+      (param.column as Column).dt = sqlUi.getDataTypeForUiType(
+        { uidt: param.column.uidt as UITypes },
+        column?.['meta']?.['ag'] ? 'AG' : 'AI',
+      )?.dt;
+    }
+    // for API call, if dt is supplied, try to check if it's valid, otherwise set default
+    else if (
+      param.column.uidt &&
+      param.column.uidt !== column.uidt &&
+      (param.column as Column).dt &&
+      // if uidt is invalid, do not try to set default dt
+      Object.values(UITypes).includes(param.column.uidt as UITypes)
+    ) {
+      const dtList = sqlUi.getDataTypeListForUiType(param.column as Column);
+      if (!dtList.includes((param.column as Column).dt)) {
+        (param.column as Column).dt = sqlUi.getDataTypeForUiType(
+          { uidt: param.column.uidt as UITypes },
+          column?.['meta']?.['ag'] ? 'AG' : 'AI',
+        )?.dt;
+      }
+    }
     // extract missing required props from column to avoid broken column
     param.column = {
       ...extractProps(column, ['column_name', 'uidt', 'dt']),

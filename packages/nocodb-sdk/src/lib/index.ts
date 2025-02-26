@@ -53,3 +53,4 @@ export * from '~/lib/durationUtils';
 export * from '~/lib/sync';
 export * from '~/lib/columnHelper';
 export * from '~/lib/error';
+export * from '~/lib/geoDataUtils';

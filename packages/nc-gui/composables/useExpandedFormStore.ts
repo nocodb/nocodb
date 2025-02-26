@@ -339,7 +339,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           {
             query: {
               getHiddenColumn: true,
-              getSystemColumn: true,
             },
           },
         )
@@ -352,7 +351,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           encodeURIComponent(recordId),
           {
             getHiddenColumn: true,
-            getSystemColumn: true,
           },
         )
       }

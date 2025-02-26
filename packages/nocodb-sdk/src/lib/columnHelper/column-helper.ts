@@ -3,6 +3,7 @@ import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from './column.interface';
 import {
+  AttachmentHelper,
   BarcodeHelper,
   CheckboxHelper,
   CreatedTimeHelper,
@@ -67,6 +68,7 @@ export class ColumnHelperClass {
     [UITypes.SingleSelect]: SingleSelectHelper,
     [UITypes.MultiSelect]: MultiSelectHelper,
     [UITypes.User]: UserHelper,
+    [UITypes.Attachment]: AttachmentHelper,
     [UITypes.CreatedBy]: UserHelper,
     [UITypes.LastModifiedBy]: UserHelper,
     [UITypes.Lookup]: LookupHelper,

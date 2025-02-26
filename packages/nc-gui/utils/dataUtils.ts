@@ -654,7 +654,7 @@ export const getRollupValue = (modelValue: string | null | number, params: Parse
     | ColumnType
     | undefined
 
-  if (!childColumn) return modelValue ?? ''
+  if (!childColumn) return modelValue?.toString() ?? ''
 
   const renderAsTextFun = getRenderAsTextFunForUiType((childColumn.uidt ?? UITypes.SingleLineText) as UITypes)
 

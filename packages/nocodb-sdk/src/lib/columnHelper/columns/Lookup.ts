@@ -4,12 +4,20 @@ import AbstractColumnHelper, {
 } from '../column.interface';
 import { ncIsArray } from '~/lib/is';
 import { ColumnHelper } from '../column-helper';
+import { ComputedTypePasteError } from '~/lib/error';
 
 export class LookupHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 
-  serializeValue(_value?: any): null {
-    return null;
+  serializeValue(
+    _value: any,
+    params: SerializerOrParserFnProps['params']
+  ): null {
+    if (params.isMultipleCellPaste) {
+      return undefined;
+    } else {
+      throw new ComputedTypePasteError();
+    }
   }
 
   parseValue(

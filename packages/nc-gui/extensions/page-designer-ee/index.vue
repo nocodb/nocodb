@@ -15,6 +15,8 @@ const { extension, fullscreen, getTableMeta, activeTableId, activeViewId, getVie
 
 const eventHook = createEventHook<'previousRecord' | 'nextRecord'>()
 
+const { base } = storeToRefs(useBase())
+
 provide(PageDesignerEventHookInj, eventHook)
 
 const savedPayload = ref<PageDesignerPayload>({
@@ -33,7 +35,7 @@ const meta = ref<TableType>()
 const viewMeta = computed(() =>
   viewsByTable.value.get(savedPayload.value.selectedTableId ?? '')?.find((view) => view.id === savedPayload.value.selectedViewId),
 )
-
+const displayField = computed(() => meta.value?.columns?.find((c) => c?.pv) || meta.value?.columns?.[0] || null)
 const { cachedRows, loadData } = useInfiniteData({
   meta,
   viewMeta,
@@ -168,6 +170,19 @@ onMounted(async () => {
 
 onUnmounted(() => {
   eventHook.off(onEventHookTrigger)
+})
+
+// change the document title while printing and reset it after
+let previousTitle = document.title
+useEventListener('beforeprint', () => {
+  previousTitle = document.title
+  const baseName = base.value.title ?? ''
+  const prefix = savedPayload.value.pageName || `${baseName}/${meta.value?.title || ''}`
+  const recordDisplayName = row.value?.row[displayField.value?.title ?? ''] ?? ''
+  document.title = `${prefix}${recordDisplayName ? ` - ${recordDisplayName}` : ''}`
+})
+useEventListener('afterprint', () => {
+  document.title = previousTitle
 })
 </script>
 

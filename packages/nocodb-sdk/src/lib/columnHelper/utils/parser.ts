@@ -14,7 +14,7 @@ import { constructDateTimeFormat } from '~/lib/dateTimeHelper';
 
 export const parseDefault = (value: any) => {
   try {
-    if (ncIsObject(value)) {
+    if (typeof value === 'object') {
       return JSON.stringify(value);
     } else {
       return value?.toString() ?? null;

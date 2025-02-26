@@ -76,20 +76,6 @@ watch(
   { immediate: true, deep: true },
 )
 
-watch(
-  () => fieldWidget.value?.displayAs,
-  (val) => {
-    if (!fieldWidget.value) return
-    const { borderTop, borderBottom, borderLeft, borderRight } = fieldWidget.value
-    if (val === LinkedFieldDisplayAs.TABLE && [borderTop, borderBottom, borderLeft, borderRight].every((val) => val === '0')) {
-      fieldWidget.value.borderTop = '1'
-      fieldWidget.value.borderBottom = '1'
-      fieldWidget.value.borderLeft = '1'
-      fieldWidget.value.borderRight = '1'
-    }
-  },
-)
-
 const isTable = computed(() => fieldWidget.value?.displayAs === LinkedFieldDisplayAs.TABLE)
 </script>
 
@@ -147,7 +133,7 @@ const isTable = computed(() => fieldWidget.value?.displayAs === LinkedFieldDispl
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <label>Size</label>
           <NonNullableNumberInput
-            v-model="fieldWidget.tableFontSettings.row.fontSize"
+            v-model="fieldWidget.tableSettings.row.fontSize"
             :reset-to="12"
             :min="1"
             class="flex-1"
@@ -157,7 +143,7 @@ const isTable = computed(() => fieldWidget.value?.displayAs === LinkedFieldDispl
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <label>Line Height</label>
           <NonNullableNumberInput
-            v-model="fieldWidget.tableFontSettings.row.lineHeight"
+            v-model="fieldWidget.tableSettings.row.lineHeight"
             :reset-to="1.5"
             :min="1"
             class="flex-1"
@@ -168,11 +154,11 @@ const isTable = computed(() => fieldWidget.value?.displayAs === LinkedFieldDispl
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <label>Color</label>
-          <ColorPropertyPicker v-model="fieldWidget.tableFontSettings.row.textColor" />
+          <ColorPropertyPicker v-model="fieldWidget.tableSettings.row.textColor" />
         </div>
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <label>Weight</label>
-          <NcSelect v-model:value="fieldWidget.tableFontSettings.row.fontWeight">
+          <NcSelect v-model:value="fieldWidget.tableSettings.row.fontWeight">
             <a-select-option v-for="weight of fontWeights" :key="weight" :value="weight">
               <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }}</span>
             </a-select-option>
@@ -186,7 +172,7 @@ const isTable = computed(() => fieldWidget.value?.displayAs === LinkedFieldDispl
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <label>Size</label>
           <NonNullableNumberInput
-            v-model="fieldWidget.tableFontSettings.header.fontSize"
+            v-model="fieldWidget.tableSettings.header.fontSize"
             :reset-to="12"
             :min="1"
             class="flex-1"
@@ -196,7 +182,7 @@ const isTable = computed(() => fieldWidget.value?.displayAs === LinkedFieldDispl
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <label>Line Height</label>
           <NonNullableNumberInput
-            v-model="fieldWidget.tableFontSettings.header.lineHeight"
+            v-model="fieldWidget.tableSettings.header.lineHeight"
             :reset-to="1.5"
             :min="1"
             class="flex-1"
@@ -207,11 +193,11 @@ const isTable = computed(() => fieldWidget.value?.displayAs === LinkedFieldDispl
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <label>Color</label>
-          <ColorPropertyPicker v-model="fieldWidget.tableFontSettings.header.textColor" />
+          <ColorPropertyPicker v-model="fieldWidget.tableSettings.header.textColor" />
         </div>
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <label>Weight</label>
-          <NcSelect v-model:value="fieldWidget.tableFontSettings.header.fontWeight">
+          <NcSelect v-model:value="fieldWidget.tableSettings.header.fontWeight">
             <a-select-option v-for="weight of fontWeights" :key="weight" :value="weight">
               <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }}</span>
             </a-select-option>
@@ -258,6 +244,16 @@ const isTable = computed(() => fieldWidget.value?.displayAs === LinkedFieldDispl
     </GroupedSettings>
 
     <BorderSettings
+      v-if="isTable"
+      v-model:border-top="fieldWidget.tableSettings.borderTop"
+      v-model:border-bottom="fieldWidget.tableSettings.borderBottom"
+      v-model:border-left="fieldWidget.tableSettings.borderLeft"
+      v-model:border-right="fieldWidget.tableSettings.borderRight"
+      v-model:border-radius="fieldWidget.tableSettings.borderRadius"
+      v-model:border-color="fieldWidget.tableSettings.borderColor"
+    />
+    <BorderSettings
+      v-else
       v-model:border-top="fieldWidget.borderTop"
       v-model:border-bottom="fieldWidget.borderBottom"
       v-model:border-left="fieldWidget.borderLeft"

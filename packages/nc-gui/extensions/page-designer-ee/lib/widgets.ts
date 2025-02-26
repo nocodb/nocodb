@@ -107,7 +107,13 @@ export interface PageDesignerLinkedFieldWidget extends PageDesignerWidget {
   fontFamily: string
   textColor: string
   lineHeight: string
-  tableFontSettings: {
+  tableSettings: {
+    borderLeft: string
+    borderRight: string
+    borderTop: string
+    borderBottom: string
+    borderRadius: string
+    borderColor: string
     row: {
       fontSize: string
       fontWeight: string
@@ -250,7 +256,13 @@ export class PageDesignerWidgetFactory {
       objectFit: 'contain',
       listType: LinkedFieldListType.Bullet,
       type: PageDesignerWidgetType.LINKED_FIELD,
-      tableFontSettings: {
+      tableSettings: {
+        borderTop: '1',
+        borderRight: '1',
+        borderBottom: '1',
+        borderLeft: '1',
+        borderRadius: '0',
+        borderColor: BLACK,
         row: {
           fontSize: '12',
           fontWeight: '400',

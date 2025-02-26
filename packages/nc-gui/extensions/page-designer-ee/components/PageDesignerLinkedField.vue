@@ -75,6 +75,7 @@ const onRender = () => {
 const container = useParentElement()
 
 const fieldTitle = computed(() => widget.value.field.title ?? '')
+const theadRef = ref<HTMLElement>()
 
 const column = computed(() => widget.value!.field as Required<ColumnType>)
 
@@ -118,19 +119,13 @@ async function loadRelatedRows() {
 onMounted(loadRelatedRows)
 watch(row, loadRelatedRows)
 
-const borderProps = computed(() => {
-  return {
-    borderWidth: `${widget.value.borderTop || 0}px ${widget.value.borderRight || 0}px ${widget.value.borderBottom || 0}px ${
-      widget.value.borderLeft || 0
-    }px`,
-    borderColor: widget.value.borderColor,
-    borderRadius: `${widget.value.borderRadius || 0}px`,
-  }
-})
-
 const tableRowHeight = computed(() => {
   const height = +(widget.value.cssStyle.match(/height:\s*(\d+)px/)?.[1] ?? 0)
-  return (height - +widget.value.borderTop - +widget.value.borderBottom) / ((relatedRows.value ?? []).length + 1)
+  const headerHeight = theadRef?.value?.getBoundingClientRect().height ?? 0
+  return (
+    (height - headerHeight - +widget.value.tableSettings.borderTop - +widget.value.tableSettings.borderBottom) /
+    (relatedRows.value ?? []).length
+  )
 })
 
 const { getPossibleAttachmentSrc } = useAttachment()
@@ -146,7 +141,11 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
           display: 'flex',
           height: '100%',
           width: '100%',
-          ...(isTable ? {} : borderProps),
+          borderWidth: `${widget.borderTop || 0}px ${widget.borderRight || 0}px ${widget.borderBottom || 0}px ${
+            widget.borderLeft || 0
+          }px`,
+          borderColor: widget.borderColor,
+          borderRadius: `${widget.borderRadius || 0}px`,
           background: widget.backgroundColor,
           fontSize: `${widget.fontSize}px`,
           fontWeight: widget.fontWeight,
@@ -181,26 +180,29 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
             :class="[
               {
                 'default-text-color': widget.textColor === defaultBlackColor,
-                'default-border-color': widget.borderColor === defaultBlackColor,
+                'default-border-color': widget.tableSettings.borderColor === defaultBlackColor,
               },
             ]"
             :style="{
-              ...borderProps,
+              borderWidth: `${widget.tableSettings.borderTop || 0}px ${widget.tableSettings.borderRight || 0}px ${
+                widget.tableSettings.borderBottom || 0
+              }px ${widget.tableSettings.borderLeft || 0}px`,
+              borderColor: widget.tableSettings.borderColor,
+              borderRadius: `${widget.tableSettings.borderRadius || 0}px`,
             }"
           >
-            <thead>
+            <thead ref="theadRef">
               <tr>
                 <th
                   v-for="relatedColumn in tableColumns"
                   :key="relatedColumn.id"
                   :style="{
                     ...(widget.borderColor === defaultBlackColor ? {} : { borderColor: widget.borderColor }),
-                    color: widget.tableFontSettings.header.textColor,
-                    fontSize: `${widget.tableFontSettings.header.fontSize}px`,
-                    lineHeight: widget.tableFontSettings.header.lineHeight,
-                    fontWeight: widget.tableFontSettings.header.fontWeight,
+                    color: widget.tableSettings.header.textColor,
+                    fontSize: `${widget.tableSettings.header.fontSize}px`,
+                    lineHeight: widget.tableSettings.header.lineHeight,
+                    fontWeight: widget.tableSettings.header.fontWeight,
                     fontFamily: widget.fontFamily,
-                    height: `${tableRowHeight}px`,
                   }"
                 >
                   {{ relatedColumn.title }}
@@ -214,10 +216,10 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
                   :key="relatedColumn.id"
                   :style="{
                     ...(widget.borderColor === defaultBlackColor ? {} : { borderColor: widget.borderColor }),
-                    color: widget.tableFontSettings.row.textColor,
-                    fontSize: `${widget.tableFontSettings.row.fontSize}px`,
-                    lineHeight: widget.tableFontSettings.row.lineHeight,
-                    fontWeight: widget.tableFontSettings.row.fontWeight,
+                    color: widget.tableSettings.row.textColor,
+                    fontSize: `${widget.tableSettings.row.fontSize}px`,
+                    lineHeight: widget.tableSettings.row.lineHeight,
+                    fontWeight: widget.tableSettings.row.fontWeight,
                     fontFamily: widget.fontFamily,
                     height: `${tableRowHeight}px`,
                   }"

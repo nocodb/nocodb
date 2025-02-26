@@ -10,7 +10,7 @@ watch(isOpen, updateState)
 </script>
 
 <template>
-  <div class="grouped-settings flex flex-col">
+  <div class="grouped-settings flex flex-col" :class="{ isOpen }">
     <header class="flex justify-between items-center cursor-pointer" @click="isOpen = !isOpen">
       <span>{{ title }}</span>
       <NcButton size="xsmall" type="text" class="!w-7 !h-7" @click.stop="isOpen = !isOpen">

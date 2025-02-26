@@ -4,9 +4,9 @@ import { Logger } from '@nestjs/common';
 import type { ImportService } from '~/modules/jobs/jobs/export-import/import.service';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Base, Source, User } from '~/models';
+import type { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
 import { Model } from '~/models';
 import { findWithIdentifier } from '~/helpers/exportImportHelpers';
-import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
 
 interface MessagePayload {
   type: string;
@@ -128,10 +128,11 @@ export class RemoteImportHandler {
   private handleUsers(payload: MessagePayload) {
     this.log(`Importing users`);
 
-    const promise = this.remoteImportService.importUsers(this.context, {
-      users: payload.data,
-      req: this.req,
-    })
+    const promise = this.remoteImportService
+      .importUsers(this.context, {
+        users: payload.data,
+        req: this.req,
+      })
       .then(() => {
         this.usersImported = true;
         this.handleQueueStart();

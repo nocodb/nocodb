@@ -4,6 +4,10 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 import { User } from '~/models';
 import { MetaService } from '~/meta/meta.service';
+import Debug from '~/db/util/Debug';
+import { NcError } from '~/helpers/catchError';
+
+const debug = new Debug('nc:sso:short-lived-token-strategy');
 
 @Injectable()
 export class ShortLivedTokenStrategy extends PassportStrategy(
@@ -25,6 +29,11 @@ export class ShortLivedTokenStrategy extends PassportStrategy(
     }
 
     const user = await User.getByEmail(jwtPayload?.email);
+
+    if (!user) {
+      debug.error('User not found');
+      NcError.userNotFound(jwtPayload?.email);
+    }
 
     const result = {
       extra: {

@@ -139,8 +139,8 @@ watch(
     useStyleTag(
       `
       @page {
-        size: ${width}in ${height}in;
-        margin: 0;
+        size: ${width}in ${height}in !important;
+        margin: 0 !important;
       }`,
       { media: 'print', id: 'printStyle' },
     )

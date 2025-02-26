@@ -1,4 +1,4 @@
-import { AbstractColumnHelper } from '..';
+import AbstractColumnHelper from '../column.interface';
 
 export class SingleLineTextHelper extends AbstractColumnHelper {
   serializeValue(value: any): string | null {

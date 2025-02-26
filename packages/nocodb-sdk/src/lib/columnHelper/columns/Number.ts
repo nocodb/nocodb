@@ -1,5 +1,6 @@
 import { ColumnType } from '~/lib/Api';
-import { AbstractColumnHelper, parseIntValue, serializeIntValue } from '..';
+import { parseIntValue, serializeIntValue } from '..';
+import AbstractColumnHelper from '../column.interface';
 
 export class NumberHelper extends AbstractColumnHelper {
   columnDefaultMeta = {

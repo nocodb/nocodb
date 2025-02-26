@@ -5,19 +5,14 @@ import { ncIsObject } from '~/lib/is';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
+import { serializeStringValue } from '../utils';
 
 export class LongTextHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 
   public serializeValue(value: any) {
     // This is to remove the quotes added from LongText
-    // TODO (refactor): remove this when we have a better way to handle this
-    value = value?.toString() ?? null;
-    if (value && value.match(/^".*"$/)) {
-      value = value.slice(1, -1).replace(/\\"/g, '"');
-    }
-
-    return value ?? null;
+    return serializeStringValue(value);
   }
 
   parseValue(

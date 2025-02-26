@@ -1,6 +1,7 @@
 import { parseProp } from '~/lib/helperFunctions';
 import { SerializerOrParserFnProps } from '../column.interface';
 import { SingleLineTextHelper } from './SingleLineText';
+import { serializeStringValue } from '../utils';
 
 export const extractEmail = (v: string) => {
   const matches = v.match(
@@ -15,6 +16,8 @@ export class EmailHelper extends SingleLineTextHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string | null {
+    value = serializeStringValue(value);
+
     if (parseProp(params.col.meta).validate) {
       return extractEmail(value) || value;
     }

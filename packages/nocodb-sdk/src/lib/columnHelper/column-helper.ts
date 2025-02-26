@@ -8,6 +8,7 @@ import {
   DecimalHelper,
   DurationHelper,
   EmailHelper,
+  FormulaHelper,
   GeoDataHelper,
   JsonHelper,
   LongTextHelper,
@@ -40,6 +41,7 @@ export class ColumnHelperClass {
     [UITypes.Year]: YearHelper,
     [UITypes.Barcode]: BarcodeHelper,
     [UITypes.QrCode]: QrCodeHelper,
+    [UITypes.Formula]: FormulaHelper,
   };
 
   // Method to retrieve the specific column class and instantiate it

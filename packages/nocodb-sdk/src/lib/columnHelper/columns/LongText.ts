@@ -14,11 +14,7 @@ export class LongTextHelper extends AbstractColumnHelper {
     // TODO (refactor): remove this when we have a better way to handle this
     value = value?.toString() ?? null;
     if (value && value.match(/^".*"$/)) {
-      value = value.slice(1, -1);
-    }
-
-    if (value.match(/\\"/g)) {
-      value = value.replace(/\\"/g, '"');
+      value = value.slice(1, -1).replace(/\\"/g, '"');
     }
 
     return value ?? null;
@@ -30,15 +26,15 @@ export class LongTextHelper extends AbstractColumnHelper {
   ): string | null {
     const columnMeta = parseProp(params.col.meta);
 
-    if (columnMeta?.[LongTextAiMetaProp]) {
+    if (columnMeta[LongTextAiMetaProp]) {
       if (ncIsObject(value)) {
         return (value as AIRecordType)?.value ?? null;
       }
-    } else {
-      return `"${(value ?? '').replace(/"/g, '\\"')}"`;
     }
 
-    return null;
+    if (!value) return null;
+
+    return `"${value.replace(/"/g, '\\"')}"`;
   }
 
   parsePlainCellValue(value: any): string {

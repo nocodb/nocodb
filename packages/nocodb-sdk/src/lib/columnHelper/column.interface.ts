@@ -57,7 +57,7 @@ export interface SerializerOrParserFnProps {
     col: ColumnType;
     abstractType?: unknown;
     meta?: TableType;
-    metas?: { [idOrTitle: string]: TableType | any };
+    metas?: { [idOrTitle: string]: TableType };
     baseUsers?: Map<string, UserType[]>;
     isMysql?: (sourceId: string) => boolean;
     isMssql?: (sourceId: string) => boolean;

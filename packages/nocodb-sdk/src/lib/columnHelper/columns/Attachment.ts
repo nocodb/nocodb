@@ -27,12 +27,12 @@ export class AttachmentHelper extends AbstractColumnHelper {
     } catch {
       if (params.isMultipleCellPaste) {
         return null;
-      } else {
-        throw new SilentTypeConversionError();
       }
+
+      throw new SilentTypeConversionError();
     }
 
-    if (parsedVal.some((v: any) => !v || (v && !(v.url || v.data || v.path)))) {
+    if (parsedVal.some((v: any) => !(v?.url || v?.data || v?.path))) {
       return null;
     }
 

@@ -9,7 +9,7 @@ export class QrCodeHelper extends AbstractColumnHelper {
   serializeValue(
     _value: any,
     params: SerializerOrParserFnProps['params']
-  ): null {
+  ): undefined {
     if (params.isMultipleCellPaste) {
       return undefined;
     } else {

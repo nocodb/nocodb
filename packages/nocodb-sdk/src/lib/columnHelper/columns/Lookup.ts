@@ -46,7 +46,6 @@ export class LookupHelper extends AbstractColumnHelper {
     if (ncIsArray(value)) {
       return value
         .map((v) => {
-          // eslint-disable-next-line @typescript-eslint/no-use-before-define
           return ColumnHelper.parseValue(v, { ...params, col: childColumn! });
         })
         .join(', ');

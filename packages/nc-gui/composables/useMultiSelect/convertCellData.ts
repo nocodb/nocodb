@@ -109,6 +109,7 @@ export default function convertCellData(
           attachments.push(attachment)
         }
 
+        // Todo: on paste file add it don't replace 
         if (oldAttachments.length && !attachments.length) {
           return undefined
         } else if (value && attachments.length) {
@@ -119,12 +120,12 @@ export default function convertCellData(
               ...att,
               title: populateUniqueFileName(
                 att?.title,
-                [...oldAttachments, ...newAttachments].map((fn) => fn?.title || fn?.fileName),
+                oldAttachments.concat(newAttachments).map((fn) => fn?.title || fn?.fileName),
                 att?.mimetype,
               ),
             })
           }
-          return JSON.stringify([...oldAttachments, ...newAttachments])
+          return JSON.stringify(oldAttachments.concat(newAttachments))
         } else if (files.length && attachments.length) {
           return attachments
         } else {

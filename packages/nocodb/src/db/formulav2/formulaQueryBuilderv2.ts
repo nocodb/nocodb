@@ -961,9 +961,12 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                 type: JSEPNode.BINARY_EXP,
                 operator: '+',
                 left: {
-                  type: 'CallExpression',
+                  type: JSEPNode.CALL_EXP,
                   callee: { type: 'Identifier', name: 'COALESCE' },
-                  arguments: [ pt.arguments[0], { type: 'Literal', value: 0 } ],
+                  arguments: [
+                    pt.arguments[0],
+                    { type: JSEPNode.LITERAL, value: 0 } as ParsedFormulaNode,
+                  ],
                 },
                 right: { ...pt, arguments: pt.arguments.slice(1) },
               },
@@ -973,12 +976,15 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
           } else {
             return fn(
               {
-                type: 'CallExpression',
+                type: JSEPNode.CALL_EXP,
                 callee: { type: 'Identifier', name: 'COALESCE' },
-                arguments: [ pt.arguments[0], { type: 'Literal', value: 0 } ],
+                arguments: [
+                  pt.arguments[0],
+                  { type: JSEPNode.LITERAL, value: 0 } as ParsedFormulaNode,
+                ],
               },
               a,
-              prevBinaryOp
+              prevBinaryOp,
             );
           }
           break;

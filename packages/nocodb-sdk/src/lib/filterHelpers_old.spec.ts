@@ -60,6 +60,82 @@ export const testExtractFilterFromXwhere = (
         expect(result[0].comparison_op).toBe('in');
         expect(result[0].value).toEqual(['1', '2', '3', '4', '5']);
       });
+      it('will map "blank" operator', async () => {
+        const queryBlanks = [
+          '(Title,is,blank)',
+          '(Title,isblank)',
+          '(Title,blank)',
+        ];
+        const columnAlias: Record<string, ColumnType> = {
+          Title: {
+            id: 'field1',
+            column_name: 'col1',
+            title: 'Title',
+            uidt: UITypes.SingleLineText,
+          },
+        };
+
+        for (const blankQuery of queryBlanks) {
+          const result = extractFilterFromXwhere(blankQuery, columnAlias);
+          expect(result.length).toBe(1);
+          expect(result[0].comparison_op).toBe('blank');
+          expect(result[0].value).toBeUndefined();
+        }
+      });
+      it('will map "notblank" operator', async () => {
+        const queryBlanks = [
+          '(Title,is,notblank)',
+          '(Title,isnotblank)',
+          '(Title,notblank)',
+        ];
+        const columnAlias: Record<string, ColumnType> = {
+          Title: {
+            id: 'field1',
+            column_name: 'col1',
+            title: 'Title',
+            uidt: UITypes.SingleLineText,
+          },
+        };
+
+        for (const blankQuery of queryBlanks) {
+          const result = extractFilterFromXwhere(blankQuery, columnAlias);
+          expect(result.length).toBe(1);
+          expect(result[0].comparison_op).toBe('notblank');
+          expect(result[0].value).toBeUndefined();
+        }
+      });
+      it('will parse comma value', async () => {
+        const query = '(Title,eq,Istanbul, India)';
+        const columnAlias: Record<string, ColumnType> = {
+          Title: {
+            id: 'field1',
+            column_name: 'col1',
+            title: 'Title',
+            uidt: UITypes.SingleLineText,
+          },
+        };
+
+        const result = extractFilterFromXwhere(query, columnAlias);
+        expect(result.length).toBe(1);
+        expect(result[0].comparison_op).toBe('eq');
+        expect(result[0].value).toBe('Istanbul, India');
+      });
+      it('will parse value with sub operator', async () => {
+        const query = '(Title,eq,oneWeekAgo, India)';
+        const columnAlias: Record<string, ColumnType> = {
+          Title: {
+            id: 'field1',
+            column_name: 'col1',
+            title: 'Title',
+            uidt: UITypes.SingleLineText,
+          },
+        };
+
+        const result = extractFilterFromXwhere(query, columnAlias);
+        expect(result.length).toBe(1);
+        expect(result[0].comparison_op).toBe('eq');
+        expect(result[0].value).toBe('oneWeekAgo, India');
+      });
 
       describe('datetime', () => {
         it('will parse datetime exactDate', async () => {
@@ -115,6 +191,20 @@ export const testExtractFilterFromXwhere = (
           expect(result[0].comparison_op).toBe('isWithin');
           expect(result[0].comparison_sub_op).toBe('pastMonth');
           expect(result[0].value).toBeUndefined();
+        });
+        it('will throw error isWithin', async () => {
+          // isWithin need to have specific suboperator :|
+          const query = '(Date,isWithin,oneMonthAgo)';
+          const columnAlias: Record<string, ColumnType> = {
+            Date: {
+              id: 'field1',
+              column_name: 'col1',
+              title: 'Date',
+              uidt: UITypes.DateTime,
+            },
+          };
+
+          expect(() => extractFilterFromXwhere(query, columnAlias)).toThrow();
         });
       });
 

@@ -165,7 +165,7 @@ function mapFilterClauseSubType(
     is_group: false,
     logical_op: filter.logical_op as any,
     comparison_op: filter.comparison_op as any,
-    comparison_sub_op: filter.comparison_sub_op as any,
+    comparison_sub_op: undefined,
     value: filter.value,
   };
   return handleDataTypes(result, aliasCol);
@@ -183,6 +183,16 @@ function handleDataTypes(
       UITypes.LastModifiedTime,
     ].includes(column.uidt as UITypes)
   ) {
+    if (!filterType.value) {
+      throw new BadRequest(
+        `'' is not supported for '${filterType.comparison_op}'`
+      );
+    }
+    const [subOp, ...value] = (filterType.value as string)
+      .split(',')
+      .map((k) => k.trim());
+    filterType.comparison_sub_op = subOp as any;
+    filterType.value = value.join('');
     if (!COMPARISON_SUB_OPS.includes(filterType.comparison_sub_op)) {
       throw new BadRequest(
         `'${filterType.comparison_sub_op}' is not supported.`

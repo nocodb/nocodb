@@ -164,7 +164,7 @@ export default {
     @apply !bg-nc-bg-brand !border-none px-2 py-[3px] rounded-lg;
     &,
     & * {
-      @apply !text-nc-content-brand;
+      @apply !text-nc-content-brand !bg-nc-bg-brand;
     }
     :deep(.clamped-text) {
       @apply !block text-ellipsis;

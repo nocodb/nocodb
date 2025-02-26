@@ -47,7 +47,10 @@ const { getMeta } = useMetas()
 const meta = inject(MetaInj, ref())
 
 const columns = computed(
-  () => meta.value?.columns?.filter((col) => !isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)) || [],
+  () =>
+    meta.value?.columns?.filter(
+      (col) => [UITypes.ID].includes(col.uidt) || (!isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)),
+    ) || [],
 )
 
 const reloadHook = inject(ReloadViewDataHookInj, createEventHook())
@@ -464,19 +467,23 @@ async function importTemplate() {
                 }, {}),
               )
               const autoInsertOptionQuery = isEeUI && autoInsertOption.value ? '&typecast=true' : ''
-              const res = await $fetch.raw(
-                `/api/v1/db/data/bulk/noco/${baseId}/${tableId}?wrapped=true&headers[nc-import-type]=${quickImportType}${
-                  operationId ? `&operation_id=${operationId}` : ''
-                }${autoInsertOptionQuery}`,
+              const res = await $api.dbTableRow.bulkCreate(
+                'noco',
+                baseId,
+                tableId,
+                batchData,
                 {
-                  baseURL,
-                  method: 'POST',
+                  'wrapped': 'true',
+                  'headers[nc-import-type]': `${quickImportType}${
+                    operationId ? `&operation_id=${operationId}` : ''
+                  }${autoInsertOptionQuery}`,
+                },
+                {
                   headers: {
                     'xc-auth': $state.token.value as string,
                     'nc-operation-id': operationId,
                     'nc-import-type': quickImportType,
                   },
-                  body: batchData,
                 },
               )
 

@@ -1,9 +1,12 @@
 <script setup lang="ts">
-defineProps<{
+import { useGroupedSettingsState } from '../lib/use-grouped-settings-state'
+
+const props = defineProps<{
   title: string
 }>()
-
-const isOpen = ref(true)
+const { state, updateState } = useGroupedSettingsState(props.title)
+const isOpen = ref(state.value)
+watch(isOpen, updateState)
 </script>
 
 <template>

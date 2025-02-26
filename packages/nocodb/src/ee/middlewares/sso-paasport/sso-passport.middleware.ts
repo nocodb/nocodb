@@ -11,6 +11,7 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import passport from 'passport';
 import isEmail from 'validator/lib/isEmail';
 import { CloudOrgUserRoles } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type {
   GoogleClientConfigType,
   OpenIDClientConfigType,
@@ -27,12 +28,16 @@ import { CacheGetType } from '~/utils/globals';
 import { UsersService } from '~/services/users/users.service';
 import { MetaService } from '~/meta/meta.service';
 import { NcError } from '~/helpers/catchError';
+import Debug from '~/db/util/Debug';
 
 // this middleware is used to authenticate user using passport
 // in which we decide which strategy to use based on client type
 // it's all done dynamically based on client id(sso-client)
 @Injectable()
 export class SSOPassportMiddleware implements NestMiddleware {
+  protected debugger = new Debug('nc:sso:middleware');
+  protected logger = new Logger(SSOPassportMiddleware.name);
+
   constructor(
     private config: ConfigService<AppConfig>,
     private usersService: UsersService,
@@ -42,43 +47,56 @@ export class SSOPassportMiddleware implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
     if (!req.params.clientId) return next();
 
-    // get client by id
-    const client = await SSOClient.get(req.params.clientId);
+    this.debugger.info(
+      `SSO Middleware triggered for clientId: ${req.params.clientId}`,
+    );
 
-    req['ncOrgId'] = client.fk_org_id;
+    try {
+      const client = await SSOClient.get(req.params.clientId);
+      req['ncOrgId'] = client.fk_org_id;
 
-    if (!client || !client.enabled || client.deleted) {
-      return res.status(400).json({
-        msg: `Client not found`,
-      });
+      if (!client || !client.enabled || client.deleted) {
+        this.debugger.error(
+          `Client not found or disabled: ${req.params.clientId}`,
+        );
+        return res.status(400).json({ msg: `Client not found` });
+      }
+
+      if (!client.config) {
+        this.debugger.error(
+          `Client config not found for clientId: ${req.params.clientId}`,
+        );
+        return res.status(400).json({ msg: `Client config not found` });
+      }
+
+      let strategy;
+      switch (client.type) {
+        case 'oidc':
+          strategy = await this.getOIDCStrategy(client, req);
+          break;
+        case 'saml':
+          strategy = await this.getSAMLStrategy(client, req);
+          break;
+        case 'google':
+          strategy = await this.getGoogleStrategy(client, req);
+          break;
+        default:
+          this.debugger.error(`Unsupported client type: ${client.type}`);
+          return res.status(400).json({ msg: `Client not supported` });
+      }
+
+      passport.authenticate(strategy, { session: false })(req, res, next);
+    } catch (error) {
+      this.debugger.error(`Error in SSO Middleware: ${error.message}`, error);
+      return res.status(500).json({ msg: 'Internal Server Error' });
     }
-
-    if (!client.config) {
-      return res.status(400).json({
-        msg: `Client config not found`,
-      });
-    }
-
-    let strategy;
-    if (client.type === 'oidc') {
-      strategy = await this.getOIDCStrategy(client, req);
-    } else if (client.type === 'saml') {
-      strategy = await this.getSAMLStrategy(client, req);
-    } else if (client.type === 'google') {
-      strategy = await this.getGoogleStrategy(client, req);
-    } else {
-      return res.status(400).json({
-        msg: `Client not supported`,
-      });
-    }
-
-    passport.authenticate(strategy, { session: false })(req, res, next);
   }
-
   // get saml strategy
   async getSAMLStrategy(client: SSOClient, req: Request) {
     const config: any = client.config;
-
+    this.debugger.info(
+      `SSO Middleware triggered for clientId: ${req.params.clientId}`,
+    );
     // issuer and audience should be same and should be unique for each client
     // by default in all clients audience is same as entityId by default
     return new SAMLStrategy(
@@ -100,6 +118,9 @@ export class SSOPassportMiddleware implements NestMiddleware {
       },
       async (req, profile, callback) => {
         try {
+          this.debugger.info(
+            `Processing SAML authentication for email: ${profile.nameID}`,
+          );
           const email = profile.nameID;
 
           await this.validateEmailDomain({ email, req, client });
@@ -164,6 +185,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
 
           callback(null, { ...user, token });
         } catch (e) {
+          this.debugger.error(`Error in SAML authentication: ${e.message}`);
           callback(e);
         }
       },
@@ -184,6 +206,9 @@ export class SSOPassportMiddleware implements NestMiddleware {
     options: any;
     client: SSOClient;
   }) {
+    this.debugger.info(
+      `Generating short lived token for email: ${email} and client: ${client?.id}`,
+    );
     return jwt.sign(
       {
         id: user.id,
@@ -201,7 +226,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
 
   private async getOIDCStrategy(client: SSOClient, req: Request) {
     const config = client.config as OpenIDClientConfigType;
-
+    this.debugger.info(`Initializing OIDC strategy for client: ${client.id}`);
     // OpenID Connect
     const clientConfig = {
       issuer: (config as any).issuer,
@@ -245,13 +270,21 @@ export class SSOPassportMiddleware implements NestMiddleware {
 
           NocoCache.set(`oidc:${handle}`, state)
             .then(() => callback(null, handle))
-            .catch((err) => callback(err));
+            .catch((err) => {
+              this.debugger.error(
+                `Missing state for authorization request: ${err.message}`,
+              );
+              return callback(err);
+            });
         },
         verify: (req, providedState, callback) => {
           const key = `oidc:${providedState}`;
           NocoCache.get(key, CacheGetType.TYPE_OBJECT)
             .then(async (state) => {
               if (!state) {
+                this.debugger.error(
+                  `Unable to verify authorization request state: ${providedState}`,
+                );
                 return callback(null, false, {
                   message: 'Unable to verify authorization request state.',
                 });
@@ -265,7 +298,10 @@ export class SSOPassportMiddleware implements NestMiddleware {
               await NocoCache.del(key);
               return callback(null, true, state);
             })
-            .catch((err) => callback(err));
+            .catch((err) => {
+              this.debugger.error(`OIDC authentication error: ${err.message}`);
+              callback(err);
+            });
         },
       },
     };
@@ -277,8 +313,12 @@ export class SSOPassportMiddleware implements NestMiddleware {
         const email = profile.email || profile?._json?.email;
 
         if (!email) {
+          this.debugger.warn(`User account is missing email id`, profile);
           return done({ msg: `User account is missing email id` });
         }
+        this.debugger.info(
+          `Processing OIDC authentication for email: ${email}`,
+        );
 
         this.validateEmailDomain({ email, req, client })
           .then(() => {
@@ -299,13 +339,6 @@ export class SSOPassportMiddleware implements NestMiddleware {
                     options,
                     client,
                   });
-                // jwt.sign(
-                //   { id: user.id, email: email, saml: true, org_id: orgId },
-                //   options.secretOrKey,
-                //   {
-                //     expiresIn: '1m',
-                //   },
-                // );
                 if (user) {
                   return this.addUserToOrg({ user, client })
                     .then(() => {
@@ -316,7 +349,12 @@ export class SSOPassportMiddleware implements NestMiddleware {
                         token: getToken(user),
                       });
                     })
-                    .catch((e) => done(e));
+                    .catch((e) => {
+                      this.debugger.error(
+                        `Error in adding user to org: ${e.message}`,
+                      );
+                      return done(e);
+                    });
                 } else {
                   // if user not found create new user
                   const salt = await promisify(bcrypt.genSalt)(10);
@@ -340,16 +378,32 @@ export class SSOPassportMiddleware implements NestMiddleware {
                             token: getToken(user),
                           });
                         })
-                        .catch((e) => done(e));
+                        .catch((e) => {
+                          this.debugger.error(
+                            `Error in OIDC authentication: ${e.message}`,
+                          );
+                          return done(e);
+                        });
                     })
-                    .catch((e) => done(e));
+                    .catch((e) => {
+                      this.debugger.error(
+                        `Error in OIDC authentication: ${e.message}`,
+                      );
+                      return done(e);
+                    });
                 }
               })
               .catch((err) => {
+                this.debugger.error(
+                  `Error in OIDC authentication: ${err.message}`,
+                );
                 return done(err);
               });
           })
-          .catch((e) => done(e));
+          .catch((e) => {
+            this.debugger.error(`Email domain validation failed: ${e.message}`);
+            done(e);
+          });
       },
     );
   }
@@ -363,7 +417,12 @@ export class SSOPassportMiddleware implements NestMiddleware {
     client: SSOClient;
   }) {
     const orgId = client.fk_org_id;
-    if (!orgId) return;
+    if (!orgId) {
+      this.debugger.info(
+        `No orgId found for client: ${client.id}. Skipping email domain validation`,
+      );
+      return;
+    }
 
     const domain = email.split('@')[1];
 
@@ -407,12 +466,15 @@ export class SSOPassportMiddleware implements NestMiddleware {
     }
 
     if (!domainExists) {
+      this.debugger.error(`Email domain not allowed: ${domain}`);
       NcError.emailDomainNotAllowed(domain);
     }
   }
 
   private async getGoogleStrategy(client: SSOClient, req: Request) {
     const config = client.config as GoogleClientConfigType;
+
+    this.debugger.info(`Initializing Google strategy for client: ${client.id}`);
 
     return new GoogleStrategy(
       {
@@ -425,6 +487,9 @@ export class SSOPassportMiddleware implements NestMiddleware {
       (req, accessToken, refreshToken, profile, done) => {
         (async () => {
           const email = profile.emails[0].value;
+          this.debugger.info(
+            `Processing Google authentication for email: ${email}`,
+          );
 
           await this.validateEmailDomain({ email, req, client });
 
@@ -482,7 +547,10 @@ export class SSOPassportMiddleware implements NestMiddleware {
 
             done(null, { ...user, token });
           })
-          .catch((err) => done(err));
+          .catch((err) => {
+            this.debugger.error(`Error in adding user to org: ${err.message}`);
+            return done(err);
+          });
       },
     );
   }

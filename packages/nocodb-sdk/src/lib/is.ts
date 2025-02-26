@@ -11,7 +11,7 @@
  * ```
  */
 export function ncIsObject(value: any): value is object {
-  return value !== null && typeof value === 'object' && !ncIsArray(value)
+  return value !== null && typeof value === 'object' && !ncIsArray(value);
 }
 
 /**
@@ -27,7 +27,7 @@ export function ncIsObject(value: any): value is object {
  * ```
  */
 export function ncIsEmptyObject(value: any): boolean {
-  return ncIsObject(value) && Object.keys(value).length === 0
+  return ncIsObject(value) && Object.keys(value).length === 0;
 }
 
 /**
@@ -43,7 +43,7 @@ export function ncIsEmptyObject(value: any): boolean {
  * ```
  */
 export function ncIsArray(value: any): value is any[] {
-  return Array.isArray(value)
+  return Array.isArray(value);
 }
 
 /**
@@ -62,7 +62,7 @@ export function ncIsArray(value: any): value is any[] {
  * ```
  */
 export function ncIsEmptyArray(value: any): boolean {
-  return ncIsArray(value) && value.length === 0
+  return ncIsArray(value) && value.length === 0;
 }
 
 /**
@@ -78,7 +78,7 @@ export function ncIsEmptyArray(value: any): boolean {
  * ```
  */
 export function ncIsString(value: any): value is string {
-  return typeof value === 'string'
+  return typeof value === 'string';
 }
 
 /**
@@ -94,7 +94,29 @@ export function ncIsString(value: any): value is string {
  * ```
  */
 export function ncIsNumber(value: any): value is number {
-  return typeof value === 'number' && !Number.isNaN(value)
+  return typeof value === 'number' && !Number.isNaN(value);
+}
+
+/**
+ * Checks if a value is NaN (Not-a-Number).
+ *
+ * @param value - The value to check.
+ * @returns {boolean} - True if the value is NaN, false otherwise.
+ *
+ * @example
+ * ```typescript
+ * console.log(ncIsNaN(NaN)); // true
+ * console.log(ncIsNaN("abc")); // true
+ * console.log(ncIsNaN(42)); // false
+ * console.log(ncIsNaN("42")); // false
+ * ```
+ */
+export function ncIsNaN(value: any): boolean {
+  if (ncIsNumber(value)) return false;
+
+  if (!value || isNaN(Number(value))) return true;
+
+  return false;
 }
 
 /**
@@ -110,7 +132,7 @@ export function ncIsNumber(value: any): value is number {
  * ```
  */
 export function ncIsBoolean(value: any): value is boolean {
-  return typeof value === 'boolean'
+  return typeof value === 'boolean';
 }
 
 /**
@@ -126,7 +148,7 @@ export function ncIsBoolean(value: any): value is boolean {
  * ```
  */
 export function ncIsUndefined(value: any): value is undefined {
-  return typeof value === 'undefined'
+  return typeof value === 'undefined';
 }
 
 /**
@@ -142,7 +164,7 @@ export function ncIsUndefined(value: any): value is undefined {
  * ```
  */
 export function ncIsNull(value: any): value is null {
-  return value === null
+  return value === null;
 }
 
 /**
@@ -158,7 +180,7 @@ export function ncIsNull(value: any): value is null {
  * ```
  */
 export function ncIsFunction(value: any): value is Function {
-  return typeof value === 'function'
+  return typeof value === 'function';
 }
 
 /**
@@ -174,7 +196,7 @@ export function ncIsFunction(value: any): value is Function {
  * ```
  */
 export function ncIsPromise(value: any): boolean {
-  return value instanceof Promise
+  return value instanceof Promise;
 }
 
 /**
@@ -196,12 +218,16 @@ export function ncIsPromise(value: any): boolean {
  * // For arrays with objects
  * ncIsArrayIncludes([{ id: 1 }, { id: 2 }], 2, 'id') // true
  */
-export function ncIsArrayIncludes<T>(array: T[] = [], value: any, objectKey?: keyof T): boolean {
-  if (!ncIsArray(array) || !array.length) return false
+export function ncIsArrayIncludes<T>(
+  array: T[] = [],
+  value: any,
+  objectKey?: keyof T
+): boolean {
+  if (!ncIsArray(array) || !array.length) return false;
 
   if (objectKey && ncIsObject(array[0])) {
-    return array.some((item) => item[objectKey] === value)
+    return array.some((item) => item[objectKey] === value);
   }
 
-  return array.includes(value)
+  return array.includes(value);
 }

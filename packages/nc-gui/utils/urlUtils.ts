@@ -116,6 +116,7 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {
     link.href = url
     if (target) {
       link.target = target
+      link.rel = 'noopener noreferrer nofollow' // Prevents opener access & prefetching
     }
     link.style.display = 'none' // Hide the link
     document.body.appendChild(link)
@@ -135,10 +136,16 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {
   if (isSameOriginUrl(url) || !ncIsSharedViewOrBase()) {
     window.open(url, target, target === '_blank' ? 'noopener,noreferrer' : undefined)
   } else {
-    navigateTo({
-      path: '/leaving',
-      query: {
-        ncRedirectUrl: url,
+    const leavingUrl = new URL(window.location.origin + '/#/leaving')
+    leavingUrl.hash = `#/leaving?ncRedirectUrl=${encodeURIComponent(url)}&ncBackUrl=${encodeURIComponent(window.location.href)}`
+
+    navigateTo(leavingUrl.toString(), {
+      open: {
+        target: '_blank',
+        windowFeatures: {
+          noopener: true,
+          noreferrer: true,
+        },
       },
     })
   }

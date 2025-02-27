@@ -126,6 +126,7 @@
     "get-port": "5.1.1",
     "glob": "^10.4.5",
     "handlebars": "^4.7.8",
+    "handlebars-helpers": "^0.10.0",
     "html-to-json-parser": "^2.0.1",
     "iconv-lite": "^0.6.3",
     "import-fresh": "^3.3.1",

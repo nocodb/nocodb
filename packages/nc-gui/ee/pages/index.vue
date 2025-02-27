@@ -16,6 +16,8 @@ const workspaceStore = useWorkspace()
 const { populateWorkspace } = workspaceStore
 const { collaborators, lastPopulatedWorkspaceId, activeWorkspaceId } = storeToRefs(workspaceStore)
 
+const { isSharedBase, isSharedErd } = storeToRefs(useBase())
+
 const basesStore = useBases()
 
 const tableStore = useTablesStore()
@@ -103,6 +105,22 @@ const { deleteWorkspace: _deleteWorkspace, loadWorkspaces } = workspaceStore
 // create a new sidebar state
 const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
+const isSharedView = computed(() => {
+  const routeName = (route.value.name as string) || ''
+
+  // check route is not base page by route name
+  return (
+    !routeName.startsWith('index-typeOrId-baseId-') &&
+    !['index', 'index-typeOrId', 'index-typeOrId-feed', 'index-typeOrId-integrations'].includes(routeName)
+  )
+})
+
+const isSharedFormView = computed(() => {
+  const routeName = (route.value.name as string) || ''
+  // check route is shared form view route
+  return routeName.startsWith('index-typeOrId-form-viewId')
+})
+
 const { sharedBaseId } = useCopySharedBase()
 
 const isDuplicateDlgOpen = ref(false)
@@ -126,6 +144,16 @@ onMounted(async () => {
 
   if (sharedBaseId.value) isDuplicateDlgOpen.value = true
 })
+
+watch(
+  [() => isSharedFormView.value, () => isSharedView.value, () => isSharedBase.value, () => isSharedErd.value],
+  (arr) => {
+    addConfirmPageLeavingRedirectToWindow(!arr.some(Boolean))
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>

@@ -41,6 +41,7 @@ const { cellUrlOptions } = useCellUrlConfig(url)
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
       :tabindex="readOnly ? -1 : 0"
+      @click.prevent="confirmPageLeavingRedirect(url, cellUrlOptions?.behavior === 'replace' ? undefined : '_blank')"
     >
       <LazyCellClampedText :value="value" :lines="rowHeight" class="nc-cell-field" />
     </nuxt-link>
@@ -53,6 +54,7 @@ const { cellUrlOptions } = useCellUrlConfig(url)
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
       :tabindex="readOnly ? -1 : 0"
+      @click.prevent="confirmPageLeavingRedirect(url, cellUrlOptions?.behavior === 'replace' ? undefined : '_blank')"
     >
       <LazyCellClampedText :value="cellUrlOptions.overlay" :lines="rowHeight" class="nc-cell-field" />
     </nuxt-link>

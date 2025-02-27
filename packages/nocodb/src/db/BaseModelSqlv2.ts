@@ -10387,12 +10387,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   );
                 }
 
-                if (!/^https?:\/\//i.test(attachment.url)) {
-                  NcError.unprocessableEntity(
-                    `Attachment url '${attachment.url}' is not a valid url`,
-                  );
-                }
-
                 if (attachment.url.length > 8 * 1024) {
                   NcError.unprocessableEntity(
                     `Attachment url '${attachment.url}' is too long`,

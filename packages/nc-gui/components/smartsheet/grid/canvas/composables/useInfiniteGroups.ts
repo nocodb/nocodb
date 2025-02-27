@@ -1,4 +1,4 @@
-import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, type TableType, UITypes, type ViewType } from 'nocodb-sdk'
 import type { CanvasGroup } from '../../../../../lib/types'
 
 const GROUP_CHUNK_SIZE = 100
@@ -20,6 +20,7 @@ export const useInfiniteGroups = (
   const { gridViewCols } = useViewColumnsOrThrow()
   const { base } = storeToRefs(useBase())
   const { $api } = useNuxtApp()
+  const { getMeta } = useMetas()
 
   const isPublic = inject(IsPublicInj, ref(false))
 
@@ -47,6 +48,21 @@ export const useInfiniteGroups = (
 
   const getGroupChunkIndex = (offset: number) => Math.floor(offset / GROUP_CHUNK_SIZE)
 
+  const colors = ref(enumColor.light)
+
+  const nextGroupColor = ref(colors.value[0])
+
+  const getNextColor = () => {
+    const tempColor = nextGroupColor.value
+    const index = colors.value.indexOf(nextGroupColor.value)
+    if (index === colors.value.length - 1) {
+      nextGroupColor.value = colors.value[0]
+    } else {
+      nextGroupColor.value = colors.value[index + 1]
+    }
+    return tempColor
+  }
+
   const fetchGroupChunk = async (chunkId: number, parentGroup?: CanvasGroup) => {
     const targetChunkStates = parentGroup ? parentGroup.chunkStates : chunkStates.value
     if (targetChunkStates[chunkId] === 'loading' || targetChunkStates[chunkId] === 'loaded') return
@@ -71,15 +87,28 @@ export const useInfiniteGroups = (
         column_name: groupCol.column.title,
       })
 
-      response.list.forEach((item: Record<string, any>, index: number) => {
-        const value = item[groupCol.column.title!] ?? null
+      for (const item of response.list) {
+        const index: number = response.list.indexOf(item)
+        const value = valueToTitle(item[groupCol.column.title!], groupCol.column)
         const group: CanvasGroup = {
           column: groupCol.column,
           groups: new Map(),
           chunkStates: [],
           count: +item.count,
           isExpanded: false,
+          color: findKeyColor(value, groupCol.column, getNextColor),
           value,
+        }
+
+        if (group.column.uidt === UITypes.LinkToAnotherRecord) {
+          const relatedTableMeta = await getMeta(
+            (group.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
+          )
+          if (!relatedTableMeta) continue
+          group.relatedTableMeta = relatedTableMeta
+          const col = relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0]
+          group.relatedColumn = col
+          group.displayValueProp = col?.title
         }
 
         // Create useInfiniteData for leaf groups
@@ -99,7 +128,7 @@ export const useInfiniteGroups = (
         } else {
           cachedGroups.value.set(groupIndex, group)
         }
-      })
+      }
 
       if (!parentGroup) {
         totalGroups.value = response.pageInfo.totalRows || totalGroups.value

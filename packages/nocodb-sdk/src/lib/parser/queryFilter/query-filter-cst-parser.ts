@@ -1,7 +1,6 @@
 import { NcSDKError } from '~/lib/errorUtils';
 import {
-  getVariableRuleToken,
-  parseVariable,
+  parseVariableAsArray,
   parseVariableAsString,
   VariableRule,
 } from '../common-cst-parser';
@@ -78,35 +77,10 @@ export interface FilterGroupSubType {
 export type FilterSubtype = (FilterClauseSubType | FilterGroupSubType)[];
 
 export const parseExpressionArguments = (cst: CstExpressionArguments) => {
-  const tokens = (
-    [
-      ...(cst.children.COMMA ?? []),
-      ...(cst.children.VARIABLE ?? []).map((variable) =>
-        getVariableRuleToken(variable)
-      ),
-    ] as Token[]
-  ).sort((a, b) => a.startOffset - b.startOffset);
-
-  let tokenImage = '';
-  let lastEndOffset = 0;
-  for (const eachToken of tokens) {
-    let value;
-    if ((eachToken as any).name === 'VARIABLE') {
-      value = parseVariable(eachToken as unknown as VariableRule);
-    } else {
-      value = eachToken.image;
-    }
-    if (lastEndOffset > 0) {
-      const spaces = eachToken.startOffset - lastEndOffset - 1;
-      if (spaces > 0) {
-        tokenImage += ''.padEnd(spaces, ' ');
-      }
-    }
-    tokenImage += value;
-    lastEndOffset = eachToken.endOffset;
+  if (cst.children.VARIABLE) {
+    return parseVariableAsArray(cst.children.VARIABLE);
   }
-
-  return tokenImage;
+  return undefined;
 };
 
 export const parseMultiClause = (
@@ -173,9 +147,10 @@ export const parseCallExpression = (
     const variables = parseExpressionArguments(
       cst.children.expression_arguments[0]
     );
-    // keep variable as comma separated string if not in operator
-    result.value =
-      operator === 'in' ? variables.split(',').map((k) => k.trim()) : variables;
+    if (variables) {
+      // keep variable as comma separated string if not in operator
+      result.value = operator === 'in' ? variables : variables.join(',');
+    }
   }
   handleBlankOperator(result);
   handleInOperator(result);

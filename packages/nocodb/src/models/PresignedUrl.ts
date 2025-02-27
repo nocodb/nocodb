@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 import contentDisposition from 'content-disposition';
 import slash from 'slash';
 import { IconType, ncIsObject } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { MetaType } from 'nocodb-sdk';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
@@ -14,6 +15,7 @@ function roundExpiry(date) {
   const msInHour = 10 * 60 * 1000;
   return new Date(Math.ceil(date.getTime() / msInHour) * msInHour);
 }
+const logger = new Logger('Presigned URL');
 
 const DEFAULT_EXPIRE_SECONDS = isNaN(
   parseInt(process.env.NC_ATTACHMENT_EXPIRE_SECONDS),
@@ -317,6 +319,8 @@ export default class PresignedUrl {
       }
 
       await Promise.all(promises);
-    } catch {}
+    } catch (e) {
+      logger.error('Error signing meta icon image', e);
+    }
   }
 }

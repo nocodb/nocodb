@@ -1,3 +1,12 @@
+/* 
+  Usage:
+  Figma variables can be used as is like below:
+  
+  color: var(--nc-content-brand-default)
+  background: var(--nc-background-brand)
+  border: 1px solid var(--nc-border-brand)
+*/
+
 /* Refrence tokens - Light */
 :root {
   --color-base-black: #000000;

@@ -43,13 +43,30 @@ let
       systemctl restart ${config.virtualisation.oci-containers.backend}-nocodb_aio.service
     '';
   };
+
+  userName = "nocodb";
 in
 {
-  networking.firewall.allowedTCPPorts = [
-    80
-    443
-    9000
-  ];
+  system.stateVersion = "25.05";
+
+  security.sudo.enable = true;
+  users.users.${userName} = {
+    uid = 1000;
+    isNormalUser = true;
+    initialPassword = userName;
+    description = "NocoDB Maintenance User";
+    extraGroups = [ "wheel" ];
+  };
+
+  networking = {
+    hostName = "nocodb";
+
+    firewall.allowedTCPPorts = [
+      80
+      443
+      9000
+    ];
+  };
 
   systemd = {
     services = {

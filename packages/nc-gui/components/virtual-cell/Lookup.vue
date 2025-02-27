@@ -241,6 +241,8 @@ const handleCloseDropdown = (e: MouseEvent) => {
     dropdownVisible.value = false
   }
 }
+const badgedVirtualColumns = [UITypes.Rollup, UITypes.Formula]
+const isBadgedVirtualColumn = computed(() => badgedVirtualColumns.includes(lookupColumn.value?.uidt as UITypes))
 </script>
 
 <template>
@@ -270,7 +272,7 @@ const handleCloseDropdown = (e: MouseEvent) => {
       >
         <template v-if="lookupColumn">
           <!-- Render virtual cell -->
-          <div v-if="isVirtualCol(lookupColumn) && lookupColumn.uidt !== UITypes.Rollup" class="flex h-full">
+          <div v-if="isVirtualCol(lookupColumn) && !isBadgedVirtualColumn" class="flex h-full virtual-lookup-cells">
             <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
             <template
               v-if="
@@ -396,7 +398,7 @@ const handleCloseDropdown = (e: MouseEvent) => {
 
             {{ $t('title.noResultsMatchedYourSearch') }}
           </div>
-          <template v-else-if="isVirtualCol(lookupColumn) && lookupColumn.uidt !== UITypes.Rollup">
+          <template v-else-if="isVirtualCol(lookupColumn) && !isBadgedVirtualColumn">
             <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
             <template
               v-if="

@@ -101,7 +101,7 @@ export class ActionManager {
   }
 
   private handleUrl(colOptions: any, url: string) {
-    url = /^(https?|ftp|mailto|file):\/\//.test(url) ? url : url.trim() ? `https://${url}` : ''
+    url = addMissingUrlSchma(url)
 
     try {
       url = decodeURI(url) === url ? encodeURI(url) : url
@@ -110,7 +110,7 @@ export class ActionManager {
     }
 
     if (url) {
-      window.open(url, '_blank')
+      confirmPageLeavingRedirect(url, '_blank')
     }
   }
 

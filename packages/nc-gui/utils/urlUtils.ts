@@ -96,22 +96,40 @@ export const isSameOriginUrl = (url: string) => {
   return window.location.origin === urlObj.origin
 }
 
-const addMissingSchma = (url: string) => {
-  url = url?.trim?.()
+export const addMissingUrlSchma = (url: string) => {
+  url = url?.trim?.() ?? ''
 
-  if (/^https?:\/\//.test(url)) return url
+  if (!url) return ''
+
+  if (/^(https?|ftp|file):\/\/|^(mailto|tel):/i.test(url)) return url
 
   return `https://${url}`
 }
 
 export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {
+  url = addMissingUrlSchma(url)
+
+  if (!url) return
+
+  if (!url.startsWith('http')) {
+    const link = document.createElement('a')
+    link.href = url
+    if (target) {
+      link.target = target
+    }
+    link.style.display = 'none' // Hide the link
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    return
+  }
+
   // Don't do anything if url is not valid, just warn in console for debugging purpose
   if (!isValidURL(url)) {
     console.warn('Invalid URL:', url)
     return
   }
-
-  url = addMissingSchma(url)
 
   // No need to navigate to leaving page if it is same origin url
   if (isSameOriginUrl(url) || !ncIsSharedViewOrBase()) {

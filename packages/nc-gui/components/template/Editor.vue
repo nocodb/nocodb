@@ -2,7 +2,15 @@
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import type { ColumnType, OracleUi, TableType } from 'nocodb-sdk'
-import { SqlUiFactory, UITypes, getDateFormat, getDateTimeFormat, isSystemColumn, parseStringDate } from 'nocodb-sdk'
+import {
+  SqlUiFactory,
+  UITypes,
+  getDateFormat,
+  getDateTimeFormat,
+  isSystemColumn,
+  isVirtualCol,
+  parseStringDate,
+} from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import { NcCheckbox } from '#components'
@@ -38,7 +46,9 @@ const { getMeta } = useMetas()
 
 const meta = inject(MetaInj, ref())
 
-const columns = computed(() => meta.value?.columns?.filter((col) => !col.system) || [])
+const columns = computed(
+  () => meta.value?.columns?.filter((col) => !isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)) || [],
+)
 
 const reloadHook = inject(ReloadViewDataHookInj, createEventHook())
 
@@ -630,7 +640,7 @@ function mapDefaultColumns() {
     for (const col of importColumns[i]) {
       const o = { srcCn: col.column_name, srcTitle: col.title, destCn: '', enabled: true }
       if (columns.value) {
-        const tableColumn = columns.value.find((c) => c.title === col.column_name)
+        const tableColumn = columns.value.find((c) => c.title === col.column_name || c.column_name === col.column_name)
         if (tableColumn) {
           o.destCn = tableColumn.title as string
         } else {

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { type TableType, charsetOptions } from 'nocodb-sdk'
+import { toRaw, unref } from '@vue/runtime-core'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
-import { toRaw, unref } from '@vue/runtime-core'
+import { type TableType, charsetOptions } from 'nocodb-sdk'
 // import worker script according to the doc of Vite
 import getCrossOriginWorkerURL from 'crossoriginworker'
+import rfdc from 'rfdc'
 import importWorkerUrl from '~/workers/importWorker?worker&url'
 
 interface Props {
@@ -25,6 +26,10 @@ const { $api } = useNuxtApp()
 const { appInfo } = useGlobal()
 
 const config = useRuntimeConfig()
+
+const meta = inject(MetaInj, ref())
+
+const existingColumns = computed(() => meta.value?.columns?.filter((col) => !col.system) || [])
 
 const isWorkerSupport = typeof Worker !== 'undefined'
 
@@ -335,9 +340,9 @@ function getAdapter(val: any) {
     }
   } else if (IsImportTypeExcel.value) {
     if (isPreImportFileFilled.value) {
-      return new ExcelTemplateAdapter(val, importState.parserConfig)
+      return new ExcelTemplateAdapter(val, importState.parserConfig, undefined, undefined, unref(existingColumns))
     } else {
-      return new ExcelUrlTemplateAdapter(val, importState.parserConfig, $api)
+      return new ExcelUrlTemplateAdapter(val, importState.parserConfig, $api, undefined, undefined, unref(existingColumns))
     }
   } else if (isImportTypeJson.value) {
     if (isPreImportFileFilled.value) {
@@ -402,6 +407,7 @@ function extractImportWorkerPayload(value: UploadFile[] | ArrayBuffer | string) 
       ...toRaw(importState.parserConfig),
       importFromURL: importSource === ImportSource.URL,
     },
+    existingColumns: rfdc()(unref(existingColumns)),
     value,
     importType,
     importSource,

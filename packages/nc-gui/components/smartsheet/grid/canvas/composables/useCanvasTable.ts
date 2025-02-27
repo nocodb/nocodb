@@ -614,10 +614,12 @@ export function useCanvasTable({
       const rowObj = cachedRows.value.get(ctx.row)
       const columnObj = ctx.column !== undefined ? fields.value[ctx.column - 1] : null
       if (!rowObj || !columnObj) {
+        triggerRefreshCanvas()
         return
       }
 
       if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
+        triggerRefreshCanvas()
         return
       }
 
@@ -635,10 +637,12 @@ export function useCanvasTable({
           },
         }
         cachedRows.value.set(ctx.row, updatedRow)
+        triggerRefreshCanvas()
       }
 
       // update/save cell value
       await updateOrSaveRow?.(rowObj, ctx.updatedColumnTitle || columnObj.title)
+      triggerRefreshCanvas()
     },
     bulkUpdateRows,
     bulkUpsertRows,

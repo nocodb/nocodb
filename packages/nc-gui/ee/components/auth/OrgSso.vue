@@ -92,7 +92,6 @@ function resetError() {
         >
           <span class="flex items-center gap-2">
             <LogosGoogleGmail />
-
             {{ $t('labels.signInWithProvider', { provider: 'Google' }) }}
           </span>
         </a>
@@ -106,6 +105,15 @@ function resetError() {
           </button>
         </a>
       </div>
+
+      <Transition name="layout">
+        <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1 max-w-150 mt-5">
+          <div class="flex items-center gap-2 justify-center">
+            <MaterialSymbolsWarning />
+            <div class="break-words">{{ error }}</div>
+          </div>
+        </div>
+      </Transition>
     </template>
 
     <template v-else-if="clients && clients.length > 1">
@@ -135,6 +143,15 @@ function resetError() {
           </button>
         </a>
       </div>
+
+      <Transition name="layout">
+        <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1 max-w-150 mt-5">
+          <div class="flex items-center gap-2 justify-center">
+            <MaterialSymbolsWarning />
+            <div class="break-words">{{ error }}</div>
+          </div>
+        </div>
+      </Transition>
     </template>
 
     <div

@@ -960,14 +960,32 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               {
                 type: JSEPNode.BINARY_EXP,
                 operator: '+',
-                left: pt.arguments[0],
+                left: {
+                  type: JSEPNode.CALL_EXP,
+                  callee: { type: 'Identifier', name: 'COALESCE' },
+                  arguments: [
+                    pt.arguments[0],
+                    { type: JSEPNode.LITERAL, value: 0 } as ParsedFormulaNode,
+                  ],
+                },
                 right: { ...pt, arguments: pt.arguments.slice(1) },
               },
               a,
               prevBinaryOp,
             );
           } else {
-            return fn(pt.arguments[0], a, prevBinaryOp);
+            return fn(
+              {
+                type: JSEPNode.CALL_EXP,
+                callee: { type: 'Identifier', name: 'COALESCE' },
+                arguments: [
+                  pt.arguments[0],
+                  { type: JSEPNode.LITERAL, value: 0 } as ParsedFormulaNode,
+                ],
+              },
+              a,
+              prevBinaryOp,
+            );
           }
           break;
         case 'CONCAT':

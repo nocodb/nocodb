@@ -40,16 +40,83 @@ let
 
     text = ''
       podman pull ${image}
-      systemctl restart ${config.virtualisation.oci-containers.backend}-nocodb_aio.service
+      systemctl restart ${aioServiceName}
     '';
   };
 
+  nocodbSettings = pkgs.writeShellApplication {
+    name = "nocodb-settings";
+    runtimeInputs = with pkgs; [
+      nano
+      systemd
+    ];
+
+    text = ''
+      ''${EDITOR:-nano} ${envFile}
+      sudo systemctl restart ${aioServiceName}
+    '';
+  };
+
+  aioServiceName = "${config.virtualisation.oci-containers.backend}-nocodb_aio.service";
   userName = "nocodb";
 in
 {
   system.stateVersion = "25.05";
 
-  security.sudo.enable = true;
+  services.getty = {
+    greetingLine = ''
+      ███╗░░██╗░█████╗░░█████╗░░█████╗░██████╗░██████╗░  ██╗███╗░░░███╗░█████╗░░██████╗░███████╗
+      ████╗░██║██╔══██╗██╔══██╗██╔══██╗██╔══██╗██╔══██╗  ██║████╗░████║██╔══██╗██╔════╝░██╔════╝
+      ██╔██╗██║██║░░██║██║░░╚═╝██║░░██║██║░░██║██████╦╝  ██║██╔████╔██║███████║██║░░██╗░█████╗░░
+      ██║╚████║██║░░██║██║░░██╗██║░░██║██║░░██║██╔══██╗  ██║██║╚██╔╝██║██╔══██║██║░░╚██╗██╔══╝░░
+      ██║░╚███║╚█████╔╝╚█████╔╝╚█████╔╝██████╔╝██████╦╝  ██║██║░╚═╝░██║██║░░██║╚██████╔╝███████╗
+      ╚═╝░░╚══╝░╚════╝░░╚════╝░░╚════╝░╚═════╝░╚═════╝░  ╚═╝╚═╝░░░░░╚═╝╚═╝░░╚═╝░╚═════╝░╚══════╝
+    '';
+    helpLine = ''
+      Default Username: nocodb
+      Default Password: nocodb
+
+      Run `nocodb-settings` to modify nocodb configuration";
+      Run `passwd` to change the default password
+    '';
+  };
+
+  programs.nano.enable = true;
+  environment = {
+    binsh = lib.getExe pkgs.dash;
+
+    systemPackages = with pkgs; [
+      nocodbSettings
+      dash
+      neovim
+      curl
+      iproute2
+      iputils
+    ];
+
+    variables = {
+      EDITOR = "nano";
+      VISUAL = "nano";
+    };
+
+    shellAliases = {
+      grep = "grep --color=auto";
+      ls = "ls --color=auto --group-directories-first";
+    };
+  };
+
+  security.sudo = {
+    enable = true;
+
+    extraRules = [{
+      users = [ userName ];
+      commands = [{
+        command = "${pkgs.systemd}/bin/systemctl restart ${aioServiceName}";
+        options = [ "SETENV" "NOPASSWD" ];
+      }];
+    }];
+  };
+
   users.users.${userName} = {
     uid = 1000;
     isNormalUser = true;
@@ -73,7 +140,7 @@ in
       aio_setup = {
         enable = true;
         description = "NocoDB aio Setup";
-        wantedBy = [ "${config.virtualisation.oci-containers.backend}-nocodb_aio.service" ];
+        wantedBy = [ aioServiceName ];
 
         serviceConfig = {
           Type = "oneshot";

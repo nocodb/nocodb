@@ -147,10 +147,7 @@ export const parseCallExpression = (
     const variables = parseExpressionArguments(
       cst.children.expression_arguments[0]
     );
-    if (variables) {
-      // keep variable as comma separated string if not in operator
-      result.value = operator === 'in' ? variables : variables.join(',');
-    }
+    result.value = variables?.join(',');
   }
   handleBlankOperator(result);
   handleInOperator(result);

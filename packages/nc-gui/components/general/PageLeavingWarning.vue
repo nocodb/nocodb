@@ -4,7 +4,7 @@ const route = useRoute()
 const router = useRouter()
 
 const redirectUrl = computed(() => {
-  return (route.query.url as string) ?? ''
+  return (route.query.ncRedirectUrl as string) ?? ''
 })
 
 if (!redirectUrl.value) {

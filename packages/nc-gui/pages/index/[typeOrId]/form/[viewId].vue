@@ -46,7 +46,6 @@ watch(
 const focus: VNodeRef = (el: typeof InputPassword) => {
   return el && el?.focus?.()
 }
-addConfirmPageLeavingRedirectToWindow()
 </script>
 
 <template>

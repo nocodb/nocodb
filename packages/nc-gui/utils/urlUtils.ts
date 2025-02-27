@@ -114,22 +114,27 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {
   url = addMissingSchma(url)
 
   // No need to navigate to leaving page if it is same origin url
-  if (isSameOriginUrl(url) || !ncIsSharedView()) {
+  if (isSameOriginUrl(url) || !ncIsSharedViewOrBase()) {
     window.open(url, target, target === '_blank' ? 'noopener,noreferrer' : undefined)
   } else {
     navigateTo({
       path: '/leaving',
       query: {
-        url: url,
+        ncRedirectUrl: url,
       },
     })
   }
 }
 
-export const addConfirmPageLeavingRedirectToWindow = () => {
+export const addConfirmPageLeavingRedirectToWindow = (remove = false) => {
   if (typeof window === 'undefined') return
 
-  window.isSharedView = true
+  if (remove) {
+    localStorage.removeItem('ncIsSharedViewOrBase')
+    return
+  }
+
+  localStorage.setItem('ncIsSharedViewOrBase', 'true')
 
   window.tiptapLinkHandler = (event) => {
     event.preventDefault()

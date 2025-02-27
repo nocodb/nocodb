@@ -44,8 +44,6 @@ onMounted(() => {
     document.title = 'NocoDB'
   }
 })
-
-addConfirmPageLeavingRedirectToWindow()
 </script>
 
 <script lang="ts">

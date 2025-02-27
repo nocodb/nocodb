@@ -6,6 +6,7 @@ import AbstractColumnHelper, {
 import {
   AttachmentHelper,
   BarcodeHelper,
+  ButtonHelper,
   CheckboxHelper,
   CreatedTimeHelper,
   CurrencyHelper,
@@ -76,6 +77,7 @@ export class ColumnHelperClass {
     [UITypes.Rollup]: RollupHelper,
     [UITypes.Links]: LinksHelper,
     [UITypes.LinkToAnotherRecord]: LTARHelper,
+    [UITypes.Button]: ButtonHelper,
   };
 
   // Method to retrieve the specific column class and instantiate it

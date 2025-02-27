@@ -30,9 +30,10 @@ const fieldsToIgnore = new Set([
   UITypes.Barcode,
 ])
 const columns = computed(() =>
-  (meta?.value?.columns ?? []).filter(
-    (column) => !fieldsToIgnore.has(column.uidt as UITypes) && row.value && !isRowEmpty(row.value, column),
-  ),
+  (meta?.value?.columns ?? []).filter((column) => {
+    const isRichTextLongText = column.uidt === UITypes.LongText && parseProp(column.meta).richMode
+    return !isRichTextLongText && !fieldsToIgnore.has(column.uidt as UITypes) && row.value && !isRowEmpty(row.value, column)
+  }),
 )
 
 watch(

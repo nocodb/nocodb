@@ -191,7 +191,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
 
 <template>
   <div tabindex="0" class="focus-visible:outline-none" @paste="handlePaste" @keydown="handleKeyDown">
-    <NcDropdown v-model:visible="isExpanded" :disabled="readonly">
+    <NcDropdown v-model:visible="isExpanded" :disabled="readonly" overlay-class-name="!min-w-[27.25rem]">
       <div
         v-if="!isLocationSet"
         :class="{
@@ -229,7 +229,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         {{ latLongStr }}
       </div>
       <template #overlay>
-        <div class="flex w-[27.25rem] rounded-md nc-geodata-picker-overlay py-3" @click.stop @paste="handlePaste">
+        <div class="flex rounded-md nc-geodata-picker-overlay py-3" @click.stop @paste="handlePaste">
           <a-form layout="vertical" :model="formState" class="flex flex-col" @finish="handleFinish">
             <a-row class="flex gap-3 px-3">
               <a-form-item :label="$t('labels.latitude')">

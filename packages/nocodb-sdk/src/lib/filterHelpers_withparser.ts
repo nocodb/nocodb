@@ -146,9 +146,10 @@ function handleDataTypes(
         `'' is not supported for '${filterType.comparison_op}'`
       );
     }
-    const [subOp, ...value] = (filterType.value as string)
-      .split(',')
-      .map((k) => k.trim());
+    const [subOp, ...value] = Array.isArray(filterType.value)
+      ? filterType.value
+      : (filterType.value as string).split(',').map((k) => k.trim());
+
     filterType.comparison_sub_op = subOp as any;
     filterType.value = value.join('');
     if (!COMPARISON_SUB_OPS.includes(filterType.comparison_sub_op)) {

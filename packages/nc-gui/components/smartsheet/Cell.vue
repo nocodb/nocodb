@@ -314,7 +314,7 @@ const cellClassName = computed(() => {
       <LazyCellAI v-else-if="cellType === 'ai'" v-model="vModel" @save="emitSave" />
       <LazyCellTextArea v-else-if="cellType === 'textarea'" v-model="vModel" :virtual="props.virtual" />
 
-      <CellGeoData v-else-if="cellType === 'geoData'" v-model="vModel" v-model:local-edit-enabled="localEditEnabled" />
+      <CellGeoData v-else-if="cellType === 'geoData'" v-model="vModel" />
 
       <template v-else-if="cellType === 'checkbox'">
         <LazyCellCheckboxReadonly v-if="showReadonlyField" :model-value="vModel" />

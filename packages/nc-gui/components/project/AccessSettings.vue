@@ -168,9 +168,7 @@ onMounted(async () => {
 })
 
 watch(baseRoles, (br) => {
-  const currentRoleIndex = OrderedProjectRoles.findIndex(
-    (role) => br && Object.keys(br).includes(role),
-  )
+  const currentRoleIndex = OrderedProjectRoles.findIndex((role) => br && Object.keys(br).includes(role))
   accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex)
 })
 

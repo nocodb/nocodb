@@ -676,7 +676,7 @@
     "lockedByUser": "Geblokkeerd door {user}",
     "thisPageDoesNotExist": "This page doesn’t exist",
     "customUrl": "Custom URL",
-    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}"
   },
   "labels": {
     "latitude": "Latitude",
@@ -1126,7 +1126,8 @@
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
     "showJsonPayload": "Show JSON payload",
-    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options",
+    "fillForm": "Fill Form"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

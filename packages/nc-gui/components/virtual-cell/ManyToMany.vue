@@ -49,6 +49,10 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, un
 
 await loadRelatedTableMeta()
 
+const hasEditPermission = computed(() => {
+  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || isForm.value
+})
+
 const localCellValue = computed<any[]>(() => {
   if (cellValue?.value) {
     return cellValue?.value ?? []
@@ -98,7 +102,7 @@ const openChildList = () => {
 }
 
 const openListDlg = () => {
-  if (isUnderLookup.value) return
+  if (!hasEditPermission.value) return
 
   listItemsDlg.value = true
   childListDlg.value = false
@@ -148,13 +152,16 @@ onMounted(() => {
   cellClickHook?.on(onCellClick)
 
   if (isUnderLookup.value || !isCanvasInjected || isExpandedForm.value || !clientMousePosition) return
+
   forcedNextTick(() => {
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-many-to-many-plus-icon', clientMousePosition)) {
       openListDlg()
     } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-many-to-many-maximize-icon', clientMousePosition)) {
       openChildList()
-    } else {
+    } else if (hasEditPermission.value) {
       openListDlg()
+    } else {
+      openChildList()
     }
   })
 })
@@ -196,7 +203,7 @@ onUnmounted(() => {
         @click.stop
       >
         <NcButton
-          v-if="!readOnly && isUIAllowed('dataEdit')"
+          v-if="hasEditPermission"
           size="xsmall"
           type="secondary"
           class="nc-action-icon nc-many-to-many-plus-icon"

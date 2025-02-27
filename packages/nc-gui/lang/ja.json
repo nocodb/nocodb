@@ -676,7 +676,7 @@
     "lockedByUser": "{user} によってロックされています",
     "thisPageDoesNotExist": "このページは存在しません",
     "customUrl": "カスタムURL",
-    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}"
   },
   "labels": {
     "latitude": "Latitude",
@@ -1126,7 +1126,8 @@
     "osBrowser": "OS、ブラウザ",
     "rowId": "行ID",
     "showJsonPayload": "JSONペイロードを表示",
-    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options",
+    "fillForm": "Fill Form"
   },
   "activity": {
     "clickToResolve": "クリックして解決",

@@ -128,6 +128,14 @@ provide(CanvasColumnInj, lastOpenColumnDropdownField)
 const selectCellHook = createEventHook()
 provide(CanvasSelectCellInj, selectCellHook)
 
+const activeCellElement = ref<HTMLElement>()
+
+const cellClickHook = createEventHook()
+
+provide(CellClickHookInj, cellClickHook)
+
+provide(CurrentCellInj, activeCellElement)
+
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
 const isExpandTableModalOpen = ref(false)
@@ -261,6 +269,17 @@ const {
   addNewColumn: addEmptyColumn,
   setCursor,
 })
+
+const activeCursor = ref<CursorType>('auto')
+
+function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) {
+  if (customCondition && !customCondition(activeCursor.value)) return
+
+  if (activeCursor.value !== cursor) {
+    activeCursor.value = cursor
+    if (canvasRef.value && canvasRef.value.style?.cursor !== cursor) canvasRef.value.style.cursor = cursor
+  }
+}
 
 // Computed
 const noPadding = computed(() => paddingLessUITypes.has(editEnabled.value?.column.uidt as UITypes))
@@ -882,6 +901,10 @@ async function handleMouseUp(e: MouseEvent) {
           // On Double-click, should open the column edit dialog
           // kept under else to avoid opening the column edit dialog on doubleclicking the column menu icon
           else if (clickType === MouseClickType.DOUBLE_CLICK) {
+            // If active cursor is col-resize, we don't want an accidental double click to
+            // open the edit column modal as the intention is to resize the column
+            if (activeCursor.value === 'col-resize') return
+
             handleEditColumn(e, false, clickedColumn.columnObj)
             requestAnimationFrame(triggerRefreshCanvas)
             return
@@ -1139,17 +1162,6 @@ const getHeaderTooltipRegions = (
   })
 
   return regions
-}
-
-const activeCursor = ref<CursorType>('auto')
-
-function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) {
-  if (customCondition && !customCondition(activeCursor.value)) return
-
-  if (activeCursor.value !== cursor) {
-    activeCursor.value = cursor
-    if (canvasRef.value && canvasRef.value.style?.cursor !== cursor) canvasRef.value.style.cursor = cursor
-  }
 }
 
 const handleMouseMove = (e: MouseEvent) => {
@@ -1809,12 +1821,14 @@ defineExpose({
             :class="{ [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped }"
           >
             <div
+              ref="activeCellElement"
               class="relative top-[2.5px] left-[2.5px] w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-white"
               :class="{
                 'px-[0.550rem]': !noPadding && !editEnabled.fixed,
                 'px-[0.49rem]': editEnabled.fixed,
                 'top-[0.5px] left-[-1px]': isClamped,
               }"
+              @click="cellClickHook.trigger($event)"
             >
               <SmartsheetRow :row="editEnabled.row">
                 <template #default="{ state }">
@@ -2068,6 +2082,10 @@ defineExpose({
   :deep(.nc-virtual-cell-qrcode),
   :deep(.nc-virtual-cell-barcode) {
     @apply !h-full;
+  }
+
+  :deep(.nc-virtual-cell.nc-virtual-cell-linktoanotherrecord > div) {
+    @apply min-h-7;
   }
 
   .nc-cell,

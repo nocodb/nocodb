@@ -1,3 +1,5 @@
-const latLongToJoinedString = (lat: number, long: number) => `${lat.toFixed(7)};${long.toFixed(7)}`
+export const convertGeoNumberToString = (val: number) => {
+  return val.toFixed(10).replace(/\.0+$|(\.[^0]*)0+$/, '$1')
+}
 
-export { latLongToJoinedString }
+export const latLongToJoinedString = (lat: number, long: number) => [lat, long].map((k) => convertGeoNumberToString(k)).join(';')

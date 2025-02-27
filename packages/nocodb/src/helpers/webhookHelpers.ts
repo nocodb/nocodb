@@ -269,8 +269,8 @@ export async function validateCondition(
             ? [data[field].id]
             : [];
 
-          const filterValues = filter.value.split(',').map((v) => v.trim());
-
+          const filterValues =
+            filter.value?.split(',').map((v) => v.trim()) ?? [];
           switch (filter.comparison_op) {
             case 'anyof':
               res = userIds.some((id) => filterValues.includes(id));

@@ -49,6 +49,10 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, un
 
 await loadRelatedTableMeta()
 
+const hasEditPermission = computed(() => {
+  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || isForm.value
+})
+
 const localCellValue = computed<any[]>(() => {
   if (cellValue?.value) {
     return cellValue?.value ?? []
@@ -103,7 +107,7 @@ const openChildList = () => {
 }
 
 const openListDlg = () => {
-  if (isUnderLookup.value) return
+  if (!hasEditPermission.value) return
 
   listItemsDlg.value = true
   childListDlg.value = false
@@ -147,14 +151,18 @@ function onCellClick(e: Event) {
 onMounted(() => {
   onDivDataCellEventHook?.on(onCellClick)
   cellClickHook?.on(onCellClick)
+
   if (isUnderLookup.value || !isCanvasInjected || isExpandedForm.value || !clientMousePosition) return
+
   forcedNextTick(() => {
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-has-many-plus-icon', clientMousePosition)) {
       openListDlg()
     } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-has-many-maximize-icon', clientMousePosition)) {
       openChildList()
-    } else {
+    } else if (hasEditPermission.value) {
       openListDlg()
+    } else {
+      openChildList()
     }
   })
 })
@@ -196,7 +204,7 @@ onUnmounted(() => {
         @click.stop
       >
         <NcButton
-          v-if="(!readOnly && isUIAllowed('dataEdit')) || isForm"
+          v-if="hasEditPermission"
           size="xsmall"
           type="secondary"
           class="nc-action-icon nc-has-many-plus-icon"

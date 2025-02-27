@@ -1126,7 +1126,8 @@
     "osBrowser": "OS, 브라우저",
     "rowId": "행 ID",
     "showJsonPayload": "JSON 페이로드 표시",
-    "autoCreateMissingSelectionOptions": "누락된 선택 필드 옵션 자동 생성"
+    "autoCreateMissingSelectionOptions": "누락된 선택 필드 옵션 자동 생성",
+    "fillForm": "Fill Form"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",
@@ -1450,7 +1451,7 @@
     "clientCert": ".cert 파일을 선택하십시오",
     "clientCA": "CA 파일을 선택하십시오",
     "changeIconColour": "아이콘 색상 변경",
-    "preFillFormInfo": "Generate share form URL with pre-filled field data. To get a pre-filled link, make sure you’ve filled the necessary fields in the form view builder.",
+    "preFillFormInfo": "미리 채워진 링크를 가져오려면 양식 보기 빌더에서 필요한 필드를 입력했는지 확인하십시오.",
     "surveyFormInfo": "페이지당 하나의 필드가 있는 양식 모드",
     "useFieldEditMenuToConfigFieldType": "파일을 가져온 후 유형 변환을 위해 필드 편집 메뉴 사용",
     "roleInheritedFromWorkspace": "워크스페이스에서 상속된 역할",
@@ -1616,12 +1617,12 @@
       "tooltip_desc2": " 테이블의 여러 레코드와 연결될 수 있습니다 "
     },
     "bt": {
-      "title": "Belongs To 관계",
+      "title": "종속 관계",
       "tooltip_desc": "테이블의 단일 레코드 ",
       "tooltip_desc2": " 테이블의 여러 레코드와 연결될 수 있습니다 "
     },
     "oo": {
-      "title": "One To One 관계",
+      "title": "일대일 관계",
       "tooltip_desc": "테이블의 단일 레코드 ",
       "tooltip_desc2": " 테이블의 단일 레코드와 연결될 수 있습니다 "
     },

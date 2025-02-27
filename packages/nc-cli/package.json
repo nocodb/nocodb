@@ -73,7 +73,7 @@
     "colors": "1.4.0",
     "download": "^8.0.0",
     "download-git-repo": "^3.0.2",
-    "express": "^4.18.2",
+    "express": "^4.21.2",
     "fs-extra": "^9.0.1",
     "glob": "^7.1.6",
     "inquirer": "^7.3.3",

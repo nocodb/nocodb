@@ -1447,9 +1447,13 @@ export function useMultiSelect(
             } else throw ex
           }
           if (columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length && pasteValue?.length) {
-            const newAttachments = await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])
+            const newAttachments =
+              (await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
 
-            rowObj.row[columnObj.title!] = newAttachments ? JSON.stringify(newAttachments) : null
+            const oldAttachments = ncIsArray(rowObj.row[columnObj.title!]) ? rowObj.row[columnObj.title!] : []
+
+            rowObj.row[columnObj.title!] =
+              newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
           } else if (pasteValue !== undefined) {
             rowObj.row[columnObj.title!] = pasteValue
           }

@@ -20,6 +20,10 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const activeCell = inject(ActiveCellInj, ref(false))
 
+const isPublic = inject(IsPublicInj, ref(false))
+
+const readonly = inject(ReadonlyInj, ref(false))
+
 const isExpanded = ref(false)
 
 const isLoading = ref(false)
@@ -132,6 +136,9 @@ const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 const isGrid = inject(IsGridInj, ref(false))
+
+const isForm = inject(IsFormInj, ref(false))
+
 const handleBlur = (e: Event) => {
   const originalValue = (e.target as any).value as string
   const value = convertGeoNumberToString(Number(originalValue))
@@ -164,13 +171,42 @@ watch(
     }
   },
 )
+
+const handleKeyDown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && isExpanded.value) {
+    e.preventDefault()
+    e.stopImmediatePropagation()
+    isExpanded.value = false
+  }
+
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    if (readonly.value) {
+      return
+    }
+    isExpanded.value = !isExpanded.value
+  }
+}
 </script>
 
 <template>
-  <div tabindex="0" @paste="handlePaste">
-    <NcDropdown v-model:visible="isExpanded">
-      <div v-if="!isLocationSet" class="w-full flex justify-center max-w-64 mx-auto">
-        <NcButton v-if="activeCell" size="xsmall" type="secondary" data-testid="nc-geo-data-set-location-button">
+  <div tabindex="0" class="focus-visible:outline-none" @paste="handlePaste" @keydown="handleKeyDown">
+    <NcDropdown v-model:visible="isExpanded" :disabled="readonly" overlay-class-name="!min-w-[27.25rem]">
+      <div
+        v-if="!isLocationSet"
+        :class="{
+          '!justify-start !ml-0 ': isExpandedForm || isForm,
+          'mt-0.5': isForm && !isPublic,
+          '!-mt-0.25': isForm && isPublic,
+        }"
+        class="w-full flex justify-center max-w-64 mx-auto"
+      >
+        <NcButton
+          v-if="(activeCell && !readonly) || isForm"
+          size="xsmall"
+          type="secondary"
+          data-testid="nc-geo-data-set-location-button"
+        >
           <div class="flex items-center px-2 gap-2">
             <GeneralIcon class="text-gray-500 h-3.5 w-3.5" icon="ncMapPin" />
             <span class="text-tiny">
@@ -184,7 +220,11 @@ watch(
         v-else
         data-testid="nc-geo-data-lat-long-set"
         tabindex="1"
-        class="nc-cell-field h-full w-full flex items-center py-1 focus-visible:!outline-none focus:!outline-none"
+        :class="{
+          '!py-1': !isForm,
+          'pt-1': isForm && !isPublic,
+        }"
+        class="nc-cell-field h-full w-full flex items-center focus-visible:!outline-none focus:!outline-none"
       >
         {{ latLongStr }}
       </div>
@@ -201,6 +241,7 @@ watch(
                   step="0.0000000001"
                   class="nc-input-shadow !w-50"
                   :min="-90"
+                  :disabled="readonly"
                   required
                   :max="90"
                   @blur="handleBlur"
@@ -220,6 +261,7 @@ watch(
                   step="0.0000000001"
                   required
                   :min="-180"
+                  :disabled="readonly"
                   :max="180"
                   @blur="handleBlur"
                   @keydown.stop

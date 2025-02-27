@@ -16,14 +16,13 @@ if (!redirectUrl.value || !backUrl.value) {
 }
 
 const handleRedirect = (proceedToLink = false) => {
-  if (proceedToLink) {
-    window.location.href = redirectUrl.value
-    navigateTo(redirectUrl.value, {
-      external: true,
-      open: { windowFeatures: { noopener: true, noreferrer: true, noprefetch: true } },
-    })
+  const url = proceedToLink ? redirectUrl.value : backUrl.value
+
+  if (isSameOriginUrl(url, true)) {
+    window.history.pushState('object', document.title, url)
+    window.location.reload()
   } else {
-    navigateTo(backUrl.value)
+    window.location.href = url
   }
 }
 </script>

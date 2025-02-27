@@ -90,12 +90,6 @@ export const navigateToBlankTargetOpenOption = {
   },
 }
 
-export const isSameOriginUrl = (url: string) => {
-  const urlObj = new URL('/', url)
-
-  return window.location.origin === urlObj.origin
-}
-
 export const addMissingUrlSchma = (url: string) => {
   url = url?.trim?.() ?? ''
 
@@ -104,6 +98,18 @@ export const addMissingUrlSchma = (url: string) => {
   if (/^(https?|ftp|file):\/\/|^(mailto|tel):/i.test(url)) return url
 
   return `https://${url}`
+}
+
+export const isSameOriginUrl = (url: string, addMissingUrlSchema = false) => {
+  if (addMissingUrlSchema) {
+    url = addMissingUrlSchma(url)
+  }
+
+  try {
+    return new URL(url, window.location.origin).origin === window.location.origin
+  } catch {
+    return false // Invalid URL
+  }
 }
 
 export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {

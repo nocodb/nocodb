@@ -105,13 +105,13 @@ const addMissingSchma = (url: string) => {
 }
 
 export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {
-  url = addMissingSchma(url)
-
   // Don't do anything if url is not valid, just warn in console for debugging purpose
   if (!isValidURL(url)) {
     console.warn('Invalid URL:', url)
     return
   }
+
+  url = addMissingSchma(url)
 
   // No need to navigate to leaving page if it is same origin url
   if (isSameOriginUrl(url) || !ncIsSharedView()) {
@@ -123,6 +123,20 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {
         url: url,
       },
     })
+  }
+}
+
+export const addConfirmPageLeavingRedirectToWindow = () => {
+  if (typeof window === 'undefined') return
+
+  window.isSharedView = true
+
+  window.tiptapLinkHandler = (event) => {
+    event.preventDefault()
+
+    if (event?.target?.href) {
+      confirmPageLeavingRedirect(event?.target?.href, '_blank')
+    }
   }
 }
 

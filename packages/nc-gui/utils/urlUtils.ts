@@ -90,6 +90,42 @@ export const navigateToBlankTargetOpenOption = {
   },
 }
 
+export const isSameOriginUrl = (url: string) => {
+  const urlObj = new URL('/', url)
+
+  return window.location.origin === urlObj.origin
+}
+
+const addMissingSchma = (url: string) => {
+  url = url?.trim?.()
+
+  if (/^https?:\/\//.test(url)) return url
+
+  return `https://${url}`
+}
+
+export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {
+  url = addMissingSchma(url)
+
+  // Don't do anything if url is not valid, just warn in console for debugging purpose
+  if (!isValidURL(url)) {
+    console.warn('Invalid URL:', url)
+    return
+  }
+
+  // No need to navigate to leaving page if it is same origin url
+  if (isSameOriginUrl(url)) {
+    window.open(url, target, 'noopener,noreferrer')
+  } else {
+    navigateTo({
+      path: '/leaving',
+      query: {
+        url: url,
+      },
+    })
+  }
+}
+
 export const isLinkExpired = async (url: string) => {
   try {
     // test if the url is accessible or not

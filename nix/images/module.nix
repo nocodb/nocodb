@@ -49,11 +49,20 @@ let
     runtimeInputs = with pkgs; [
       nano
       systemd
+      coreutils
     ];
 
     text = ''
+      hash_old="$(sha256sum ${envFile})"
       ''${EDITOR:-nano} ${envFile}
-      sudo systemctl restart ${aioServiceName}
+      hash_new="$(sha256sum ${envFile})"
+
+      if [ "$hash_old" == "$hash_new"]; then
+        echo "No changes, exiting quietly"
+      else
+        echo "Applying Changes"
+        sudo systemctl restart ${aioServiceName}
+      fi
     '';
   };
 

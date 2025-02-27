@@ -114,8 +114,8 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {
   }
 
   // No need to navigate to leaving page if it is same origin url
-  if (isSameOriginUrl(url)) {
-    window.open(url, target, 'noopener,noreferrer')
+  if (isSameOriginUrl(url) || !ncIsSharedView()) {
+    window.open(url, target, target === '_blank' ? 'noopener,noreferrer' : undefined)
   } else {
     navigateTo({
       path: '/leaving',

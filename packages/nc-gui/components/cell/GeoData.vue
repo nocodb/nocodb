@@ -181,6 +181,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
 
   if (e.key === 'Enter') {
     e.preventDefault()
+    if (readonly.value) {
+      return
+    }
     isExpanded.value = !isExpanded.value
   }
 }
@@ -188,7 +191,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
 
 <template>
   <div tabindex="0" class="focus-visible:outline-none" @paste="handlePaste" @keydown="handleKeyDown">
-    <NcDropdown v-model:visible="isExpanded" class="w-[27.25rem]">
+    <NcDropdown v-model:visible="isExpanded" :disabled="readonly">
       <div
         v-if="!isLocationSet"
         :class="{
@@ -226,7 +229,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         {{ latLongStr }}
       </div>
       <template #overlay>
-        <div class="flex rounded-md nc-geodata-picker-overlay py-3" @click.stop @paste="handlePaste">
+        <div class="flex w-[27.25rem] rounded-md nc-geodata-picker-overlay py-3" @click.stop @paste="handlePaste">
           <a-form layout="vertical" :model="formState" class="flex flex-col" @finish="handleFinish">
             <a-row class="flex gap-3 px-3">
               <a-form-item :label="$t('labels.latitude')">

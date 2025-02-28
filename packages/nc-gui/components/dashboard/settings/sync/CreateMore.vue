@@ -26,7 +26,7 @@ const { $api, $poller } = useNuxtApp()
 
 const goToDashboard = ref(false)
 
-const creatingSync = ref<boolean>(false)
+const creatingSync = ref(false)
 
 const { formState, isLoading, validateInfos, submit } = useProvideFormBuilderHelper({
   formSchema: activeIntegrationItemForm,
@@ -86,10 +86,6 @@ const { formState, isLoading, validateInfos, submit } = useProvideFormBuilderHel
     }
   },
 })
-
-// const { t } = useI18n()
-
-// const { isUIAllowed } = useRoles()
 
 const selectedSyncType = computed(() => {
   return formState.value.sub_type

@@ -54,7 +54,7 @@ const openPopup = (url: string, name: string, state: string, width = 500, height
             reject(new Error('No code returned'))
           }
         }
-      } catch (err) {
+      } catch {
         // Cross-origin frame access error is expected, ignore it
       }
     }, 500)

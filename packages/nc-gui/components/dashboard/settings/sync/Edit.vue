@@ -65,11 +65,11 @@ const { formState, isLoading, validateInfos, clearValidate, submit, isChanged } 
   },
 })
 
-const updatingSync = ref<boolean>(false)
+const updatingSync = ref(false)
 
-const triggeredSync = ref<boolean>(false)
+const triggeredSync = ref(false)
 
-const completeSync = ref<boolean>(false)
+const completeSync = ref(false)
 
 const progressRef = ref()
 

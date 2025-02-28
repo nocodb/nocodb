@@ -67,7 +67,7 @@ const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string 
 
 const filteredIntegrations = computed(() =>
   (integrations.value || [])
-    .filter((i) => ![IntegrationsType.Sync].includes(i.type))
+    .filter((i) => IntegrationsType.Sync !== i.type)
     .sort((a, b) => {
       if (orderBy.value.title) {
         if (a.title && b.title) {
@@ -80,12 +80,8 @@ const filteredIntegrations = computed(() =>
       } else if (orderBy.value.created_at) {
         if (a?.created_at && b?.created_at) {
           return orderBy.value.created_at === 'asc'
-            ? dayjs(a.created_at).local().isBefore(dayjs(b.created_at).local())
-              ? -1
-              : 1
-            : dayjs(a.created_at).local().isAfter(dayjs(b.created_at).local())
-            ? -1
-            : 1
+            ? dayjs(a.created_at).local().diff(dayjs(b.created_at).local())
+            : dayjs(b.created_at).local().diff(dayjs(a.created_at).local())
         }
       } else if (orderBy.value.created_by) {
         if (

@@ -442,7 +442,8 @@ const isReadonly = (col: ColumnType) => {
     isButton(col) ||
     isVirtualCol(col) ||
     isCreatedOrLastModifiedTimeCol(col) ||
-    isCreatedOrLastModifiedByCol(col)
+    isCreatedOrLastModifiedByCol(col) ||
+    col.readonly
   )
 }
 
@@ -1305,8 +1306,6 @@ async function clearSelectedRangeOfCells() {
 
       // skip readonly columns
       if (isReadonly(col)) continue
-
-      if (col.readonly) continue
 
       row.row[col.title] = null
       props.push(col.title)

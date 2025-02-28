@@ -30,7 +30,7 @@ const goBack = ref(false)
 
 const progressRef = ref()
 
-const creatingSync = ref<boolean>(false)
+const creatingSync = ref(false)
 
 const { form, formState, isLoading, validateInfos, submit } = useProvideFormBuilderHelper({
   formSchema: activeIntegrationItemForm,
@@ -100,8 +100,6 @@ const { form, formState, isLoading, validateInfos, submit } = useProvideFormBuil
 })
 
 const { t } = useI18n()
-
-// const { isUIAllowed } = useRoles()
 
 const selectedSyncType = computed(() => {
   return formState.value.sub_type

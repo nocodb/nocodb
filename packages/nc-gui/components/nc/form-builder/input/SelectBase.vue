@@ -20,5 +20,3 @@ const baseOptions = computed(() => {
 <template>
   <NcSelect v-model:value="vModel" :options="baseOptions" />
 </template>
-
-<style></style>

@@ -7591,8 +7591,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (this.model.synced) {
       NcError.badRequest('Cannot delete from synced table');
     }
-
-    // await this.handleHooks('before.bulkDelete', null, data, req);
   }
 
   protected async handleHooks(hookName, prevData, newData, req): Promise<void> {

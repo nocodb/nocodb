@@ -580,6 +580,7 @@ import NcPuzzleOutline from '~icons/nc-icons/puzzle-outline'
 
 import NcInfoSolid from '~icons/nc-icons/info-solid'
 import NcPlaceholderIcon from '~icons/nc-icons/placeholder-icon'
+import NcImagePlaceholderIcon from '~icons/nc-icons/image-placeholder.svg'
 import NcSpanner from '~icons/nc-icons/spanner'
 import NcScript from '~icons/nc-icons/script'
 import NcAutoAwesome from '~icons/nc-icons/auto_awesome'
@@ -1451,7 +1452,7 @@ export const iconMap = {
   'ncChevronsUp': NcChevronsUpIcon,
   'ncUploadCloud': NcUploadCloudIcon,
   'ncYoutube': NcYoutubeIcon,
-  'ncUnlock': NcUnlockIcon,
+  'ncUnlock': h(NcUnlockIcon, { stroke: 'transparent' }),
   'ncCompass': NcCompassIcon,
   'ncPlusCircle': NcPlusCircleIcon,
   'ncCreditCard': NcCreditCardIcon,
@@ -1536,6 +1537,7 @@ export const iconMap = {
   'ncPuzzleOutline': NcPuzzleOutline,
   'ncInfoSolid': NcInfoSolid,
   'ncPlaceholderIcon': NcPlaceholderIcon,
+  'ncImagePlaceholderIcon': h(NcImagePlaceholderIcon, { stroke: 'transparent' }),
   'ncSpanner': NcSpanner,
   'ncScript': NcScript,
   'youtube': NcYoutube2Icon,
@@ -3776,7 +3778,7 @@ export const searchableMap = {
     keywords: ['video', 'social media', 'streaming', 'entertainment', 'online'],
   },
   ncUnlock: {
-    icon: NcUnlockIcon,
+    icon: h(NcUnlockIcon, { stroke: 'transparent' }),
     keywords: ['password', 'security', 'access', 'open', 'authorization'],
   },
   ncCompass: {

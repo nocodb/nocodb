@@ -15,7 +15,10 @@ const { extension, fullscreen, getTableMeta, activeTableId, activeViewId, getVie
 
 const eventHook = createEventHook<'previousRecord' | 'nextRecord'>()
 
+const { base } = storeToRefs(useBase())
+
 provide(PageDesignerEventHookInj, eventHook)
+provide(IsPageDesignerExtensionActiveInj, true)
 
 const savedPayload = ref<PageDesignerPayload>({
   widgets: {},
@@ -33,7 +36,7 @@ const meta = ref<TableType>()
 const viewMeta = computed(() =>
   viewsByTable.value.get(savedPayload.value.selectedTableId ?? '')?.find((view) => view.id === savedPayload.value.selectedViewId),
 )
-
+const displayField = computed(() => meta.value?.columns?.find((c) => c?.pv) || meta.value?.columns?.[0] || null)
 const { cachedRows, loadData } = useInfiniteData({
   meta,
   viewMeta,
@@ -137,8 +140,8 @@ watch(
     useStyleTag(
       `
       @page {
-        size: ${width}in ${height}in;
-        margin: 0;
+        size: ${width}in ${height}in !important;
+        margin: 0 !important;
       }`,
       { media: 'print', id: 'printStyle' },
     )
@@ -146,12 +149,13 @@ watch(
 )
 
 async function tryInitializeTableAndView() {
-  if (savedPayload.value.selectedTableId) return
-  savedPayload.value.selectedTableId = activeTableId.value ?? ''
-  savedPayload.value.selectedViewId = activeViewId.value ?? ''
-  if (savedPayload.value.selectedTableId && !savedPayload.value.selectedViewId) {
+  if (!savedPayload.value.selectedTableId) {
+    savedPayload.value.selectedTableId = activeTableId.value ?? ''
+  }
+
+  if (!savedPayload.value.selectedViewId) {
     const views = await getViewsForTable(savedPayload.value.selectedTableId)
-    savedPayload.value.selectedViewId = views.find((view) => view.is_default)?.id
+    savedPayload.value.selectedViewId = views.find((view) => view.is_default)?.id ?? activeViewId.value ?? ''
   }
 }
 
@@ -167,6 +171,19 @@ onMounted(async () => {
 
 onUnmounted(() => {
   eventHook.off(onEventHookTrigger)
+})
+
+// change the document title while printing and reset it after
+let previousTitle = document.title
+useEventListener('beforeprint', () => {
+  previousTitle = document.title
+  const baseName = base.value.title ?? ''
+  const prefix = savedPayload.value.pageName || `${baseName}/${meta.value?.title || ''}`
+  const recordDisplayName = row.value?.row[displayField.value?.title ?? ''] ?? ''
+  document.title = `${prefix}${recordDisplayName ? ` - ${recordDisplayName}` : ''}`
+})
+useEventListener('afterprint', () => {
+  document.title = previousTitle
 })
 </script>
 
@@ -205,6 +222,28 @@ onUnmounted(() => {
 
 <style lang="scss">
 .page-designer {
+  .ant-select-selector,
+  .ant-input,
+  .ant-input-affix-wrapper {
+    &:hover:not(:focus):not(:focus-within) {
+      @apply !bg-nc-bg-gray-extralight;
+    }
+  }
+  .ant-input-affix-wrapper:hover .ant-input {
+    @apply bg-nc-bg-gray-extralight;
+  }
+  .field-search {
+    &,
+    &:hover {
+      .ant-input-affix-wrapper,
+      .ant-input {
+        &,
+        &:hover {
+          @apply !bg-nc-bg-default;
+        }
+      }
+    }
+  }
   label {
     @apply font-500 text-nc-content-gray;
   }
@@ -212,7 +251,11 @@ onUnmounted(() => {
     & > .absolute {
       outline: 2px solid #ddd;
       transition: outline 200ms ease-in-out;
-      @apply rounded-[2px] cursor-pointer;
+      @apply rounded-[2px];
+      cursor: grab !important;
+      &:active {
+        cursor: grabbing !important;
+      }
     }
     &:hover {
       > .absolute {
@@ -281,6 +324,9 @@ onUnmounted(() => {
     > :last-child {
       @apply rounded-[0_8px_8px_0] !border-r-0;
     }
+    > :hover {
+      @apply !bg-nc-bg-gray-medium;
+    }
     .nc-icon {
       @apply -mt-[2px];
     }
@@ -321,7 +367,7 @@ onUnmounted(() => {
     .widget-header {
       @apply px-6 py-4 border-b border-solid border-nc-border-gray-medium;
       h1 {
-        @apply text-xl font-bold leading-8 tracking-[-0.4px];
+        @apply text-[18px] font-700 leading-8 tracking-[-0.4px];
       }
     }
   }

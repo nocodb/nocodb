@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { PageDesignerPayloadInj } from '../lib/context'
-import BorderImage from '../assets/border.svg'
 import type { PageDesignerImageWidget } from '../lib/widgets'
 import { objectFitLabels } from '../lib/widgets'
 import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import TabbedSelect from './TabbedSelect.vue'
-import NonNullableNumberInput from './NonNullableNumberInput.vue'
+import BorderSettings from './BorderSettings.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 
@@ -21,7 +20,7 @@ watch(
 </script>
 
 <template>
-  <div v-if="imageWidget" class="flex flex-col text-properties overflow-y-auto max-h-full pb-8">
+  <div v-if="imageWidget" class="flex flex-col properties overflow-y-auto max-h-full">
     <header class="widget-header">
       <h1 class="m-0">Image</h1>
     </header>
@@ -35,33 +34,16 @@ watch(
         </template>
       </TabbedSelect>
     </GroupedSettings>
-    <GroupedSettings title="Border">
-      <div class="flex gap-2 items-center">
-        <div class="flex flex-col gap-2 border-inputs justify-center items-center flex-1">
-          <div>
-            <NonNullableNumberInput v-model="imageWidget.borderTop" />
-          </div>
-          <div class="flex gap-2 items-center">
-            <NonNullableNumberInput v-model="imageWidget.borderLeft" />
-            <img :src="BorderImage" />
-            <NonNullableNumberInput v-model="imageWidget.borderRight" />
-          </div>
-          <div>
-            <NonNullableNumberInput v-model="imageWidget.borderBottom" />
-          </div>
-        </div>
-        <div class="flex-1 flex flex-col gap-2">
-          <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <label>Border Color</label>
-            <ColorPropertyPicker v-model="imageWidget.borderColor" />
-          </div>
-          <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <label>Border Radius</label>
-            <NonNullableNumberInput v-model="imageWidget.borderRadius" />
-          </div>
-        </div>
-      </div>
-    </GroupedSettings>
+
+    <BorderSettings
+      v-model:border-top="imageWidget.borderTop"
+      v-model:border-bottom="imageWidget.borderBottom"
+      v-model:border-left="imageWidget.borderLeft"
+      v-model:border-right="imageWidget.borderRight"
+      v-model:border-radius="imageWidget.borderRadius"
+      v-model:border-color="imageWidget.borderColor"
+    />
+
     <GroupedSettings title="Fill">
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">

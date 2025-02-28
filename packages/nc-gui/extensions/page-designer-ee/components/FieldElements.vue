@@ -1,25 +1,17 @@
 <script lang="ts" setup>
-import { type ColumnType, UITypes, isHiddenCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
+import { type ColumnType, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
+import { PageDesignerWidgetFactory } from '../lib/widgets'
 import FieldElement from './FieldElement.vue'
 
 const meta = inject(PageDesignerTableTypeInj)
 const row = inject(PageDesignerRowInj)!
-
-const { metaColumnById } = useViewColumnsOrThrow()
+const payload = inject(PageDesignerPayloadInj)!
 
 const showSystemFields = ref(false)
 const filterQuery = ref('')
 
-const fieldsToIgnore = new Set([
-  UITypes.LinkToAnotherRecord,
-  UITypes.Links,
-  UITypes.Button,
-  UITypes.GeoData,
-  UITypes.Geometry,
-  UITypes.Lookup,
-  UITypes.Rollup,
-])
+const fieldsToIgnore = new Set([UITypes.Button, UITypes.GeoData, UITypes.Geometry])
 const columns = computed(() =>
   (meta?.value?.columns ?? []).filter(
     (column) => !fieldsToIgnore.has(column.uidt as UITypes) && row.value && !isRowEmpty(row.value, column),
@@ -48,7 +40,7 @@ const fields = computed(() => {
           title: column.title,
           fk_column_id: column.id,
           ...currentColumnField,
-          system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
+          system: isSystemColumn(fieldById?.value?.[currentColumnField.fk_column_id!]),
           initialShow: true,
         }
       })
@@ -64,14 +56,14 @@ const filteredFieldList = computed(() => {
       }
 
       if (
-        metaColumnById?.value?.[field.fk_column_id!]?.pv &&
+        fieldById?.value?.[field.fk_column_id!]?.pv &&
         (!filterQuery.value || field.title.toLowerCase().includes(filterQuery.value.toLowerCase()))
       ) {
         return true
       }
 
       // hide system columns if not enabled
-      if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
+      if (!showSystemFields.value && isSystemColumn(fieldById?.value?.[field.fk_column_id!])) {
         return false
       }
 
@@ -88,11 +80,19 @@ const getIcon = (c: ColumnType) =>
   h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: c,
   })
+
+function onFieldClick(field: ColumnType) {
+  if (isLinksOrLTAR(field)) {
+    PageDesignerWidgetFactory.create(payload, PageDesignerWidgetFactory.createEmptyLinkedFieldWidget(field))
+    return
+  }
+  PageDesignerWidgetFactory.create(payload, PageDesignerWidgetFactory.createEmptyFieldWidget(field))
+}
 </script>
 
 <template>
   <div class="field-elements rounded-lg">
-    <div class="py-1">
+    <div class="py-1 field-search group">
       <a-input
         v-model:value="filterQuery"
         :placeholder="$t('placeholder.searchFields')"
@@ -121,7 +121,7 @@ const getIcon = (c: ColumnType) =>
         </div>
 
         <template v-for="field in filteredFieldList" :key="field.id">
-          <FieldElement :field="field" :icon="getIcon(metaColumnById[field.fk_column_id])" />
+          <FieldElement :field="field" :icon="getIcon(fieldById[field.id]!)" draggable="true" @click="onFieldClick(field)" />
         </template>
       </div>
     </div>
@@ -139,6 +139,9 @@ const getIcon = (c: ColumnType) =>
   }
   :deep(.nc-field-elements-search input) {
     @apply !rounded-none caret-nc-fill-primary;
+  }
+  :deep(.field-element.dragging) {
+    @apply w-[200px];
   }
 }
 </style>

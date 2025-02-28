@@ -4,13 +4,13 @@ interface Prop {
   error?: any
 }
 
-const { extensionId, error } = defineProps<Prop>()
+const props = defineProps<Prop>()
 
 const { extensionList, extensionsLoaded, availableExtensions } = useExtensions()
 
-const isLoadedExtension = ref<boolean>(true)
+const activeError = toRef(props, 'error')
 
-const activeError = ref(error)
+const isLoadedExtension = ref<boolean>(true)
 
 const extensionRef = ref<HTMLElement>()
 
@@ -19,7 +19,7 @@ const extensionModalRef = ref<HTMLElement>()
 const isMouseDown = ref(false)
 
 const extension = computed(() => {
-  const ext = extensionList.value.find((ext) => ext.id === extensionId)
+  const ext = extensionList.value.find((ext) => ext.id === props.extensionId)
   if (!ext) {
     throw new Error('Extension not found')
   }
@@ -78,11 +78,10 @@ onMounted(() => {
     })
     .catch((err) => {
       if (!extensionManifest.value) {
-        activeError.value = 'There was an error loading the extension'
-        return
+        throw new Error('There was an error loading the extension')
       }
-      activeError.value = err
       isLoadedExtension.value = false
+      throw new Error(err)
     })
 })
 

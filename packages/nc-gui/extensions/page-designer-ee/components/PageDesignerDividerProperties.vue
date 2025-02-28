@@ -26,7 +26,7 @@ watch(
 </script>
 
 <template>
-  <div v-if="dividerWidget" class="flex flex-col text-properties overflow-y-auto max-h-full pb-8">
+  <div v-if="dividerWidget" class="flex flex-col properties overflow-y-auto max-h-full">
     <header class="widget-header">
       <h1 class="m-0">Divider</h1>
     </header>

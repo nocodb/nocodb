@@ -54,6 +54,11 @@ ssl_install() {
 	kill -HUP "$nginx_pid"
 }
 
+if [ -f /var/lib/acme/"$aio_ssl_domain"/adhoc ]; then
+	echo "Certificate managed by user"
+	exit 0
+fi
+
 if [ ! -f certificates/"$aio_ssl_domain".crt ]; then
 	ssl_run
 else

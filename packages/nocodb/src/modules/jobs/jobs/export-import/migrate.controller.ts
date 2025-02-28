@@ -87,6 +87,7 @@ export class MigrateController {
     @Body()
     body: {
       migrationUrl: string;
+      baseIds?: string[];
     },
   ) {
     const url = new URL(body.migrationUrl);
@@ -100,7 +101,11 @@ export class MigrateController {
       throw new Error(`Invalid migration url`);
     }
 
-    const bases = await Base.list(context.workspace_id);
+    let bases = await Base.list(context.workspace_id);
+
+    if (body.baseIds) {
+      bases = bases.filter((b) => body.baseIds.includes(b.id));
+    }
 
     const workspaceProgress = {
       total: bases.length,

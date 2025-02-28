@@ -65,7 +65,6 @@ const { formState, isLoading, validateInfos, submit } = useProvideFormBuilderHel
           if (data.status !== 'close') {
             if (data.status === JobStatus.COMPLETED) {
               progressRef.value?.pushProgress('Done!', data.status)
-
               goToDashboard.value = true
             } else if (data.status === JobStatus.FAILED) {
               progressRef.value?.pushProgress(data.data?.error?.message ?? 'Sync failed', data.status)

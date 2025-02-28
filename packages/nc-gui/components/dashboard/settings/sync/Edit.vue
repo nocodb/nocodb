@@ -179,7 +179,7 @@ const initialize = async () => {
     fk_model_id: string
     sync_type: string
     sync_trigger: string
-    sync_status: string
+    sync_job_id: string
     synced_at: string
   }[]
 
@@ -236,7 +236,7 @@ const onTrigger = async () => {
       }) => {
         if (data.status !== 'close') {
           if (data.status === JobStatus.COMPLETED) {
-            progressRef.value?.pushProgress(data.data?.message, data.status)
+            progressRef.value?.pushProgress(data.data?.message ?? 'Done!', data.status)
             triggeredSync.value = false
             completeSync.value = true
           } else if (data.status === JobStatus.FAILED) {

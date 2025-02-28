@@ -13,7 +13,7 @@ const up = async (knex: Knex) => {
 
     table.string('sync_type');
     table.string('sync_trigger');
-    table.string('sync_status');
+    table.string('sync_job_id');
 
     table.datetime('synced_at');
 

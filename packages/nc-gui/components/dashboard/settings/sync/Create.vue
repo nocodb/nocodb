@@ -76,6 +76,14 @@ const { form, formState, isLoading, validateInfos, submit } = useProvideFormBuil
               goToDashboard.value = true
             } else if (data.status === JobStatus.FAILED) {
               progressRef.value?.pushProgress(data.data?.error?.message ?? 'Sync failed', data.status)
+
+              await loadTables()
+
+              const newTable = tables.value.find((el) => el.id === res.table?.id)
+              if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
+
+              refreshCommandPalette()
+
               goBack.value = true
             } else {
               progressRef.value?.pushProgress(data.data?.message ?? 'Syncing...', 'progress')
@@ -191,10 +199,6 @@ const refreshState = async (keepForm = false) => {
   goToDashboard.value = false
 }
 
-const onBack = () => {
-  refreshState(true)
-}
-
 function onDashboard() {
   refreshState()
   vOpen.value = false
@@ -283,7 +287,7 @@ const filterIntegration = (i: IntegrationItemType) => !!(i.sub_type !== SyncData
                 <NcButton class="mt-6 mb-8" size="medium" @click="onDashboard"> 🚀 Go To Dashboard 🚀</NcButton>
               </div>
               <div v-else-if="goBack" class="flex justify-center items-center">
-                <NcButton class="mt-6 mb-8" type="ghost" size="medium" @click="onBack">Go Back</NcButton>
+                <NcButton class="mt-6 mb-8" type="ghost" size="medium" @click="onDashboard">Go Dashboard</NcButton>
               </div>
             </template>
           </div>

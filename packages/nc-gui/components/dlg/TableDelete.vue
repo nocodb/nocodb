@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import { type LinkToAnotherRecordType, type TableType, isLinksOrLTAR } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -77,7 +77,6 @@ const onDelete = async () => {
     refreshCommandPalette()
     // Deleted table successfully
     $e('a:table:delete')
-
     if (oldActiveTableId === toBeDeletedTable.id) {
       const sourceTables = tables.value.filter((t) => t.source_id === toBeDeletedTable.source_id)
       // Navigate to base if no tables left or open first table
@@ -92,7 +91,10 @@ const onDelete = async () => {
         await openTable(sourceTables[0])
       }
     } else {
-      await getMeta(activeTable.value?.id as string, true)
+      const activeTableMeta = await getMeta(activeTable.value?.id as string, true)
+      if (activeTableMeta.columns?.find((c) => isLinksOrLTAR(c))) {
+        await getMeta(activeTable.value?.id as string, true)
+      }
     }
 
     const tableIndex = tables.value.findIndex((t) => t.id === toBeDeletedTable.id)

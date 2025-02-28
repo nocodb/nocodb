@@ -5,6 +5,6 @@ export enum SyncType {
 
 export enum SyncTrigger {
   Manual = 'manual',
-  Polling = 'polling',
+  Schedule = 'schedule',
   Webhook = 'webhook',
 }

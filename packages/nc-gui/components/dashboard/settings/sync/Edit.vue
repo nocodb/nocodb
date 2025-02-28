@@ -101,6 +101,10 @@ const changeActiveSync = async (id: string) => {
           label: 'Full',
           value: SyncType.Full,
         },
+        {
+          label: 'Incremental',
+          value: SyncType.Incremental,
+        },
       ],
       validators: [
         {
@@ -179,8 +183,11 @@ const initialize = async () => {
     fk_model_id: string
     sync_type: string
     sync_trigger: string
+    sync_trigger_cron?: string
+    sync_trigger_secret?: string
+    last_sync_at: string | null
+    next_sync_at: string | null
     sync_job_id: string
-    synced_at: string
   }[]
 
   if (syncs.length === 0) {

@@ -13,9 +13,12 @@ const up = async (knex: Knex) => {
 
     table.string('sync_type');
     table.string('sync_trigger');
+    table.string('sync_trigger_cron');
+    table.string('sync_trigger_secret');
     table.string('sync_job_id');
 
-    table.datetime('synced_at');
+    table.datetime('last_sync_at');
+    table.datetime('next_sync_at');
 
     table.timestamps(true, true);
 

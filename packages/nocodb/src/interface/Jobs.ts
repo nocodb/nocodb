@@ -3,6 +3,7 @@ import type {
   PublicAttachmentScope,
   SnapshotType,
   SupportedExportCharset,
+  SyncTrigger,
   UserType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -202,5 +203,6 @@ export interface RestoreSnapshotJobData extends JobData {
 
 export interface SyncDataSyncModuleJobData extends JobData {
   syncConfigId: string;
+  trigger: SyncTrigger;
   req: NcRequest;
 }

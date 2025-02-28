@@ -150,6 +150,10 @@ const changeIntegration = async () => {
           label: 'Full',
           value: SyncType.Full,
         },
+        {
+          label: 'Incremental',
+          value: SyncType.Incremental,
+        },
       ],
       validators: [
         {

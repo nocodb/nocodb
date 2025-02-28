@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { FormDefinition } from 'nocodb-sdk'
 import { IntegrationsType, SyncTrigger, SyncType } from 'nocodb-sdk'
-import { JobStatus, SmartsheetStoreEvents, iconMap } from '#imports'
+import { JobStatus } from '#imports'
 
 const props = defineProps<{ open: boolean; tableId: string; baseId: string; isModal?: boolean }>()
 const emit = defineEmits(['update:open'])
@@ -11,9 +11,9 @@ const { integrations, loadDynamicIntegrations, getIntegrationForm, loadIntegrati
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { baseTables } = storeToRefs(useTablesStore())
+const { t } = useI18n()
 
-const { eventBus } = useSmartsheetStoreOrThrow()
+const { baseTables } = storeToRefs(useTablesStore())
 
 const tables = computed(() => baseTables.value.get(props.baseId) ?? [])
 
@@ -37,13 +37,9 @@ const syncOptions = ref<
 
 const { $api, $poller } = useNuxtApp()
 
-const goToDashboard = ref(false)
-
-const goBack = ref(false)
-
 const createMoreModal = ref(false)
 
-const { form, formState, isLoading, validateInfos, clearValidate, submit } = useProvideFormBuilderHelper({
+const { formState, isLoading, validateInfos, clearValidate, submit, isChanged } = useProvideFormBuilderHelper({
   formSchema: activeIntegrationItemForm,
   onSubmit: async () => {
     isLoading.value = true
@@ -58,9 +54,9 @@ const { form, formState, isLoading, validateInfos, clearValidate, submit } = use
         { syncConfigId: activeSync.value!.id, ...formState.value },
       )
 
-      refreshCommandPalette()
+      await initialize()
 
-      goToDashboard.value = true
+      refreshCommandPalette()
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
@@ -69,11 +65,13 @@ const { form, formState, isLoading, validateInfos, clearValidate, submit } = use
   },
 })
 
-const { t } = useI18n()
-
 const updatingSync = ref<boolean>(false)
 
 const triggeredSync = ref<boolean>(false)
+
+const completeSync = ref<boolean>(false)
+
+const progressRef = ref()
 
 const selectedSyncType = computed(() => {
   return formState.value.sub_type
@@ -156,6 +154,7 @@ const changeActiveSync = async (id: string) => {
 
     nextTick(() => {
       clearValidate()
+      isChanged.value = false
     })
 
     isLoading.value = false
@@ -237,12 +236,15 @@ const onTrigger = async () => {
       }) => {
         if (data.status !== 'close') {
           if (data.status === JobStatus.COMPLETED) {
-            message.success('Sync completed successfully')
+            progressRef.value?.pushProgress(data.data?.message, data.status)
             triggeredSync.value = false
-            eventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+            completeSync.value = true
           } else if (data.status === JobStatus.FAILED) {
-            message.error(data.data?.error?.message ?? 'Sync failed')
+            progressRef.value.pushProgress(data.data?.error?.message ?? 'Sync failed', data.status)
             triggeredSync.value = false
+            completeSync.value = true
+          } else {
+            progressRef.value.pushProgress(data.data?.message, data.status)
           }
         }
       },
@@ -251,6 +253,40 @@ const onTrigger = async () => {
     message.error(await extractSdkResponseErrorMsgv2(e as any))
     triggeredSync.value = false
   }
+}
+
+const onDeleteSync = async () => {
+  if (!activeSync.value) return
+
+  Modal.confirm({
+    title: `Do you want to delete ${formState.value.title}?`,
+    content: 'This action cannot be undone!!!',
+    wrapClassName: 'nc-modal-delete',
+    okText: t('general.yes'),
+    okType: 'danger',
+    cancelText: t('general.no'),
+    width: 450,
+    async onOk() {
+      try {
+        await $api.internal.postOperation(
+          activeWorkspace.value!.id!,
+          props.baseId!,
+          {
+            operation: 'deleteSync',
+          },
+          {
+            syncConfigId: activeSync.value!.id,
+          },
+        )
+
+        message.success('Sync deleted successfully')
+
+        await initialize()
+      } catch (e) {
+        message.error(await extractSdkResponseErrorMsgv2(e as any))
+      }
+    },
+  })
 }
 
 // select and focus title field on load
@@ -297,7 +333,7 @@ const handleUpdateIntegrationOptionsExpansionPanel = (open: boolean) => {
           <NcButton
             size="small"
             type="primary"
-            :disabled="!selectedSyncType || isLoading || triggeredSync"
+            :disabled="!isChanged || !selectedSyncType || isLoading || triggeredSync"
             :loading="updatingSync"
             class="nc-extdb-btn-submit"
             @click="submit"
@@ -327,10 +363,16 @@ const handleUpdateIntegrationOptionsExpansionPanel = (open: boolean) => {
                       <a-form-item label="Integration" v-bind="validateInfos.type">
                         <div class="flex">
                           <NcSelect :value="formState?.config?.sync?.id" :options="syncOptions" @change="changeActiveSync" />
-                          <NcButton class="!px-4 mx-2" size="small" type="ghost" @click="createMoreModal = true">
+                          <NcButton class="!px-6 mx-2" size="small" type="ghost" @click="createMoreModal = true">
                             <div class="flex items-center gap-2">
                               <GeneralIcon icon="plus" class="!h-4 !w-4" />
                               <div>Add</div>
+                            </div>
+                          </NcButton>
+                          <NcButton class="!px-6 mx-2" size="small" type="danger" @click="onDeleteSync">
+                            <div class="flex items-center gap-2">
+                              <GeneralIcon icon="delete" class="!h-4 !w-4" />
+                              <div>Delete</div>
                             </div>
                           </NcButton>
                         </div>
@@ -343,6 +385,7 @@ const handleUpdateIntegrationOptionsExpansionPanel = (open: boolean) => {
             <div class="w-full flex flex-col mt-3">
               <div class="flex items-center gap-3">
                 <NcButton
+                  v-if="!triggeredSync && !completeSync"
                   size="small"
                   type="primary"
                   class="nc-extdb-btn-submit"
@@ -352,8 +395,23 @@ const handleUpdateIntegrationOptionsExpansionPanel = (open: boolean) => {
                 >
                   Trigger Sync
                 </NcButton>
+                <NcButton
+                  v-if="completeSync"
+                  size="small"
+                  type="primary"
+                  class="nc-extdb-btn-submit"
+                  @click="completeSync = false"
+                >
+                  Minimize
+                </NcButton>
               </div>
             </div>
+
+            <div class="flex">
+              <GeneralProgressPanel v-if="triggeredSync || completeSync" ref="progressRef" class="w-full h-[400px]" />
+            </div>
+              
+
             <a-collapse v-model:active-key="integrationOptionsExpansionPanel" ghost class="nc-source-advanced-options !mt-6">
               <template #expandIcon="{ isActive }">
                 <NcButton

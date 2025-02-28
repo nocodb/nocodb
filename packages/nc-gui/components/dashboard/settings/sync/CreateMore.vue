@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import type { Card as AntCard } from 'ant-design-vue'
 import type { FormDefinition, TableType } from 'nocodb-sdk'
 import { IntegrationsType, SyncTrigger, SyncType } from 'nocodb-sdk'
-import { JobStatus, iconMap } from '#imports'
+import { JobStatus } from '#imports'
 
 const props = defineProps<{ open: boolean; baseId: string; tableId: string; isModal?: boolean }>()
 const emit = defineEmits(['update:open', 'createSync'])
@@ -19,23 +18,24 @@ const table = computed(() => tables.value.find((t: TableType) => t.id === props.
 const workspaceStore = useWorkspace()
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
-const { refreshCommandPalette } = useCommandPalette()
-
 const activeIntegrationItemForm = ref<FormDefinition>()
 
-const { $api } = useNuxtApp()
+const progressRef = ref()
+
+const { $api, $poller } = useNuxtApp()
 
 const goToDashboard = ref(false)
 
-const goBack = ref(false)
+const creatingSync = ref<boolean>(false)
 
 const { formState, isLoading, validateInfos, submit } = useProvideFormBuilderHelper({
   formSchema: activeIntegrationItemForm,
   onSubmit: async () => {
     isLoading.value = true
+    creatingSync.value = true
 
     try {
-      await $api.internal.postOperation(
+      const res = await $api.internal.postOperation(
         activeWorkspace.value!.id!,
         props.baseId,
         {
@@ -47,13 +47,39 @@ const { formState, isLoading, validateInfos, submit } = useProvideFormBuilderHel
         },
       )
 
+      const jobData = res.job
+
+      $poller.subscribe(
+        { id: jobData.id },
+        async (data: {
+          id: string
+          status?: string
+          data?: {
+            error?: {
+              message: string
+            }
+            message?: string
+            result?: any
+          }
+        }) => {
+          if (data.status !== 'close') {
+            if (data.status === JobStatus.COMPLETED) {
+              progressRef.value?.pushProgress('Done!', data.status)
+
+              goToDashboard.value = true
+            } else if (data.status === JobStatus.FAILED) {
+              progressRef.value?.pushProgress(data.data?.error?.message ?? 'Sync failed', data.status)
+              goToDashboard.value = true
+            } else {
+              progressRef.value?.pushProgress(data.data?.message ?? 'Syncing...', 'progress')
+            }
+          }
+        },
+      )
+
       await loadIntegrations()
 
-      refreshCommandPalette()
-
       emit('createSync')
-
-      onDashboard()
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
@@ -66,137 +92,9 @@ const { formState, isLoading, validateInfos, submit } = useProvideFormBuilderHel
 
 // const { isUIAllowed } = useRoles()
 
-const step = ref(1)
-
-const progressQueue = ref<Record<string, any>[]>([])
-
-const progress = ref<Record<string, any>[]>([])
-
-const logRef = ref<typeof AntCard>()
-
-const creatingSync = ref<boolean>(false)
-
-const _pushProgress = async () => {
-  if (progressQueue.value.length) {
-    if (!creatingSync.value) {
-      progress.value.push(...progressQueue.value.splice(0, progressQueue.value.length))
-    } else {
-      progress.value.push(progressQueue.value.shift()!)
-    }
-  }
-
-  await nextTick(() => {
-    const container: HTMLDivElement = logRef.value?.$el?.firstElementChild
-    if (!container) return
-    container.scrollTop = container.scrollHeight
-  })
-}
-
-const pushProgress = async (message: string, status: JobStatus | 'progress') => {
-  progressQueue.value.push({ msg: message, status })
-
-  setTimeout(() => {
-    _pushProgress()
-  }, 100 * progressQueue.value.length)
-}
-
 const selectedSyncType = computed(() => {
   return formState.value.sub_type
 })
-
-/*
-const { $poller } = useNuxtApp()
-
-const createSource = async () => {
-  try {
-    await validate()
-  } catch (e) {
-    focusInvalidInput()
-    return
-  }
-
-  try {
-    if (!baseId.value) return
-
-    creatingSync.value = true
-
-    const connection = getConnectionConfig()
-
-    const config = { ...formState.value.dataSource, connection }
-
-    // if integration is selected and database/schema is empty, set it to `undefined` to use default from integration
-    if (selectedIntegration.value) {
-      if (config.connection?.database === '') {
-        config.connection.database = undefined
-      }
-      if (config.searchPath?.[0] === '') {
-        config.searchPath = undefined
-      }
-    }
-
-    step.value = 2
-
-    const jobData = await api.source.create(baseId.value, {
-      fk_integration_id: formState.value.fk_integration_id,
-      alias: formState.value.title,
-      type: formState.value.dataSource.client,
-      config,
-      inflection_column: formState.value.inflection.inflectionColumn,
-      inflection_table: formState.value.inflection.inflectionTable,
-      is_schema_readonly: formState.value.is_schema_readonly,
-      is_data_readonly: formState.value.is_data_readonly,
-      is_private: formState.value.is_private,
-    })
-
-    $poller.subscribe(
-      { id: jobData.id },
-      async (data: {
-        id: string
-        status?: string
-        data?: {
-          error?: {
-            message: string
-          }
-          message?: string
-          result?: any
-        }
-      }) => {
-        if (data.status !== 'close') {
-          if (data.status === JobStatus.COMPLETED) {
-            $e('a:base:create:extdb')
-
-            emit('sourceCreated')
-            if (data.data?.result.needUpgrade) {
-              activeWorkspace.value.status = WorkspaceStatus.CREATING
-              loadWorkspacesWithInterval()
-            } else {
-              if (baseId.value) {
-                await loadProject(baseId.value, true)
-                await loadProjectTables(baseId.value, true)
-              }
-              pushProgress('Done!', 'progress')
-              creatingSource.value = false
-              onDashboard()
-            }
-          } else if (data.status === JobStatus.FAILED) {
-            pushProgress('Failed to create source!', 'progress')
-            if (data.data?.error?.message) pushProgress(data.data?.error.message, data.status)
-            creatingSource.value = false
-            goBack.value = true
-          } else if (!data?.status && data.data?.message) {
-            pushProgress(data.data.message, 'progress')
-          }
-        }
-      },
-    )
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-    creatingSource.value = false
-  } finally {
-    refreshCommandPalette()
-  }
-}
-*/
 
 // select and focus title field on load
 onMounted(async () => {
@@ -270,12 +168,8 @@ const refreshState = async (keepForm = false) => {
       type: IntegrationsType.Sync,
     }
   }
-  goBack.value = false
   creatingSync.value = false
   goToDashboard.value = false
-  progressQueue.value = []
-  progress.value = []
-  step.value = 1
 }
 
 const onBack = () => {
@@ -314,11 +208,10 @@ const filterIntegration = (i: IntegrationItemType) => !!(i.sub_type !== SyncData
 
         <div class="flex items-center gap-3">
           <NcButton
-            v-if="step === 1"
+            v-if="!creatingSync"
             size="small"
             type="primary"
             :disabled="!selectedSyncType || isLoading"
-            :loading="creatingSync"
             class="nc-extdb-btn-submit"
             @click="submit"
           >
@@ -332,7 +225,7 @@ const filterIntegration = (i: IntegrationItemType) => !!(i.sub_type !== SyncData
       <div class="h-[calc(100%_-_58px)] flex">
         <div class="nc-add-source-left-panel nc-scrollbar-thin relative">
           <div class="create-source bg-white relative flex flex-col gap-2 w-full max-w-[768px]">
-            <template v-if="step === 1">
+            <template v-if="!creatingSync">
               <a-form name="external-base-create-form" layout="vertical" no-style class="flex flex-col gap-5.5">
                 <div class="nc-form-section">
                   <div class="nc-form-section-body">
@@ -365,44 +258,10 @@ const filterIntegration = (i: IntegrationItemType) => !!(i.sub_type !== SyncData
             <template v-else>
               <div class="mb-4 prose-xl font-bold">Creating sync</div>
 
-              <a-card
-                ref="logRef"
-                :body-style="{
-                  backgroundColor: '#000000',
-                  height: goToDashboard ? '200px' : '400px',
-                  overflow: 'auto',
-                  borderRadius: '8px',
-                }"
-              >
-                <div v-for="({ msg, status }, i) in progress" :key="i">
-                  <div v-if="status === JobStatus.FAILED" class="flex items-center">
-                    <component :is="iconMap.closeCircle" class="text-red-500" />
-
-                    <span class="text-red-500 ml-2">{{ msg }}</span>
-                  </div>
-
-                  <div v-else class="flex items-center">
-                    <MdiCurrencyUsd class="text-green-500" />
-
-                    <span class="text-green-500 ml-2">{{ msg }}</span>
-                  </div>
-                </div>
-
-                <div
-                  v-if="!goToDashboard && progress[progress.length - 1]?.status !== JobStatus.FAILED"
-                  class="flex items-center"
-                >
-                  <!--            Importing -->
-                  <component :is="iconMap.loading" class="text-green-500 animate-spin" />
-                  <span class="text-green-500 ml-2">Setting up...</span>
-                </div>
-              </a-card>
+              <GeneralProgressPanel ref="progressRef" class="w-full" />
 
               <div v-if="goToDashboard" class="flex justify-center items-center">
-                <NcButton class="mt-6 mb-8" size="medium" @click="onDashboard"> 🚀 Submit & Go to Dashboard 🚀</NcButton>
-              </div>
-              <div v-else-if="goBack" class="flex justify-center items-center">
-                <NcButton class="mt-6 mb-8" type="ghost" size="medium" @click="onBack">Go Back</NcButton>
+                <NcButton class="mt-6 mb-8" size="medium" @click="onDashboard"> Confirm </NcButton>
               </div>
             </template>
           </div>

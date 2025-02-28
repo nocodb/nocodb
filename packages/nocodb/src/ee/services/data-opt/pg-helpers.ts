@@ -25,9 +25,8 @@ import type {
   LookupColumn,
   QrCodeColumn,
   Source,
-  View,
 } from '~/models';
-import { Column, Filter, Model, Sort } from '~/models';
+import { Column, Filter, Model, Sort, View } from '~/models';
 import {
   _wherePk,
   extractSortsObject,
@@ -573,8 +572,10 @@ export async function extractColumn({
               // apply filters on nested query
               await conditionV2(baseModel, queryFilterObj, hmQb);
 
+              const view = await View.getDefaultView(context, childModel.id);
+              const childSorts = await view.getSorts(context);
               // apply sorts on nested query
-              if (sorts) await sortV2(baseModel, sorts, hmQb);
+              if (childSorts) await sortV2(childBaseModel, childSorts, hmQb);
 
               const hmAggQb = knex(hmQb.as(alias3));
               await extractColumns({

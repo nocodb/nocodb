@@ -235,7 +235,6 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: [
         '@ckpack/vue-color',
-        '@stripe/stripe-js',
         '@tiptap/core',
         '@tiptap/extension-code',
         '@tiptap/extension-code-block',
@@ -311,6 +310,7 @@ export default defineNuxtConfig({
         'lru-cache',
         'qrcode',
         '@floating-ui/vue',
+        'validator',
         '@stripe/stripe-js',
       ],
       esbuildOptions: {

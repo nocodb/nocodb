@@ -803,7 +803,7 @@ export class ColumnsService {
               .length > 0
           ) {
             return NcError.badRequest(
-              `The column '${column.column_name}' is being used in Kanban View. Please delete Kanban View first.`,
+              `The column '${column.column_name}' is being used in Kanban View.`,
             );
           }
         }

@@ -2096,8 +2096,8 @@ export default function (API_VERSION: 'v2' | 'v3') {
 
       try {
         // Prepare City table
-        columns[6].title = 'City';
-        columns[6].column_name = 'City';
+        columns[0].title = 'City';
+        columns[0].column_name = 'City';
         tblCity = await createTable(context, base, {
           title: 'City',
           table_name: 'City',
@@ -2115,8 +2115,8 @@ export default function (API_VERSION: 'v2' | 'v3') {
         insertedRecords = await listRow({ base, table: tblCity });
 
         // Prepare Country table
-        columns[6].title = 'Country';
-        columns[6].column_name = 'Country';
+        columns[0].title = 'Country';
+        columns[0].column_name = 'Country';
         tblCountry = await createTable(context, base, {
           title: 'Country',
           table_name: 'Country',
@@ -2131,8 +2131,8 @@ export default function (API_VERSION: 'v2' | 'v3') {
         });
 
         // Prepare Actor table
-        columns[6].title = 'Actor';
-        columns[6].column_name = 'Actor';
+        columns[0].title = 'Actor';
+        columns[0].column_name = 'Actor';
         tblActor = await createTable(context, base, {
           title: 'Actor',
           table_name: 'Actor',
@@ -2146,8 +2146,8 @@ export default function (API_VERSION: 'v2' | 'v3') {
         });
 
         // Prepare Movie table
-        columns[6].title = 'Film';
-        columns[6].column_name = 'Film';
+        columns[0].title = 'Film';
+        columns[0].column_name = 'Film';
         tblFilm = await createTable(context, base, {
           title: 'Film',
           table_name: 'Film',

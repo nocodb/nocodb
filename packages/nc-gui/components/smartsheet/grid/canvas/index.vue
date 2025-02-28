@@ -1443,7 +1443,6 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
 }
 
 function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnType) {
-  if (isLocked.value) return
   if (
     isUIAllowed('fieldEdit') &&
     !isMobileMode.value &&

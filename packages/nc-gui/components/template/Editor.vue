@@ -14,7 +14,6 @@ import {
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import { NcCheckbox } from '#components'
-import { isEeUI } from '~/utils/eeUtils'
 
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'

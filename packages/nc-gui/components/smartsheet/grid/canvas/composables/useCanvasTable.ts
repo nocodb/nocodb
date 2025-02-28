@@ -178,7 +178,9 @@ export function useCanvasTable({
     () => !selectedRows.value.length && isOrderColumnExists.value && !isRowReorderDisabled.value && !vSelectedAllRecords.value,
   )
 
-  const isAddingEmptyRowAllowed = computed(() => isDataEditAllowed.value && !isSqlView.value && !isPublicView.value)
+  const isAddingEmptyRowAllowed = computed(
+    () => isDataEditAllowed.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced,
+  )
 
   const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isFieldEditAllowed.value && !isSqlView.value)
 
@@ -856,6 +858,8 @@ export function useCanvasTable({
         // skip readonly columns
         if (isReadonly(colObj)) continue
 
+        if (colObj.readonly) continue
+
         row.row[colObj.title] = null
         props.push(colObj.title)
       }
@@ -974,6 +978,11 @@ export function useCanvasTable({
 
     if (column.pk && !row.rowMeta.new) {
       message.info(t('msg.info.editingPKnotSupported'))
+      return null
+    }
+
+    if (column.readonly) {
+      message.info(t('msg.info.fieldReadonly'))
       return null
     }
 

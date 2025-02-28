@@ -46,7 +46,7 @@ export const EmailCellRenderer: CellRenderer = {
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx
-    if (column.readonly) return
+    if (column.readonly || column.columnObj?.readonly) return
     const columnObj = column.columnObj
 
     if (e.key.length === 1 && columnObj.title) {

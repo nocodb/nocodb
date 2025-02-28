@@ -224,7 +224,7 @@ export const LookupCellRenderer: CellRenderer = {
       }
     }
 
-    if (isVirtualCol(lookupColumn) && lookupColumn.uidt !== UITypes.Rollup) {
+    if (isVirtualCol(lookupColumn) && ![UITypes.Rollup, UITypes.Formula].includes(lookupColumn.uidt)) {
       if (
         lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
         (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&

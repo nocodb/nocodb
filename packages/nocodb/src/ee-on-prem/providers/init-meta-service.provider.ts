@@ -1,5 +1,6 @@
 import { InitMetaServiceProvider as InitMetaServiceProviderCE } from 'src/providers/init-meta-service.provider';
 import { LicenseService } from '../services/license/license.service';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import type { FactoryProvider } from '@nestjs/common';
 import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import type { MetaService } from '~/meta/meta.service';
@@ -11,13 +12,14 @@ export const InitMetaServiceProvider: FactoryProvider = {
   ...InitMetaServiceProviderCE,
   useFactory: async (
     eventEmitter: IEventEmitter,
+    appHooksService: AppHooksService,
     licenseService: LicenseService,
   ) => {
     await licenseService.validateLicense();
     return (
       InitMetaServiceProviderCE as FactoryProvider<MetaService>
-    ).useFactory(eventEmitter);
+    ).useFactory(eventEmitter, appHooksService);
   },
 
-  inject: ['IEventEmitter', LicenseService],
+  inject: ['IEventEmitter', AppHooksService, LicenseService],
 };

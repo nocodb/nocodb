@@ -1415,7 +1415,12 @@ export async function singleQueryList(
           const startTime = process.hrtime();
           res = await baseModel.execAndParse(
             knex
-              .raw(cachedQuery, [+listArgs.limit, +listArgs.offset])
+              .raw(cachedQuery, [
+                +(!ctx.ignorePagination && ctx.limitOverride
+                  ? ctx.limitOverride
+                  : listArgs.limit),
+                +listArgs.offset,
+              ])
               .toQuery(),
             null,
             { skipDateConversion: true, apiVersion: ctx.apiVersion },
@@ -1584,20 +1589,17 @@ export async function singleQueryList(
     apiVersion: ctx.apiVersion,
   });
 
-  if (!ctx.ignorePagination) {
-    if (ctx.limitOverride) {
-      rootQb.limit(ctx.limitOverride);
-      rootQb.offset(+listArgs.offset);
-    } else if (skipCache) {
-      rootQb.limit(+listArgs.limit);
-      rootQb.offset(+listArgs.offset);
-    } else {
-      // provide some dummy non-zero value to limit and offset to populate bindings,
-      // if offset is 0 then it will ignore bindings
-      rootQb.limit(9999);
-      rootQb.offset(9999);
-    }
+  if (skipCache) {
+    rootQb.limit(+listArgs.limit);
+    rootQb.offset(+listArgs.offset);
+  } else {
+    // provide some dummy non-zero value to limit and offset to populate bindings,
+    // if offset is 0 then it will ignore bindings
+    // it'll be required and overriden later as number of binding is static
+    rootQb.limit(9999);
+    rootQb.offset(9999);
   }
+
   // apply the sort on final query to get the result in correct order
   if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
   if (orderColumn) {
@@ -1701,7 +1703,14 @@ export async function singleQueryList(
 
         // run the query with actual limit and offset
         res = await baseModel.execAndParse(
-          knex.raw(query, [+listArgs.limit, +listArgs.offset]).toQuery(),
+          knex
+            .raw(query, [
+              +(!ctx.ignorePagination && ctx.limitOverride
+                ? ctx.limitOverride
+                : listArgs.limit),
+              +listArgs.offset,
+            ])
+            .toQuery(),
           null,
           { skipDateConversion: true },
         );

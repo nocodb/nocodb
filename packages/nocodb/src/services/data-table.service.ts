@@ -25,6 +25,7 @@ export class DataTableService {
       viewId?: string;
       ignorePagination?: boolean;
       apiVersion?: NcApiVersion;
+      limitOverride?: number;
     },
   ) {
     const { modelId, viewId, baseId, ...rest } = param;

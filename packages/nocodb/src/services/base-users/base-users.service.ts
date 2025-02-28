@@ -121,13 +121,6 @@ export class BaseUsersService {
           user.id,
           ncMeta,
         );
-
-        const base = await Base.get(context, param.baseId, ncMeta);
-
-        if (!base) {
-          return NcError.baseNotFound(param.baseId);
-        }
-
         // if already exists and has a role then throw error
         if (baseUser?.is_mapped && baseUser?.roles) {
           NcError.badRequest(

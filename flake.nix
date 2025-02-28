@@ -24,7 +24,7 @@
           (forUnixSystems (
             { system, pkgs }:
             {
-              bumper = pkgs.callPackage ./nix/bumper { };
+              workflows = pkgs.callPackage ./nix/workflows { };
               nocodb = pkgs.callPackage ./nix/package.nix {
                 version = if self ? shortRev then self.shortRev else self.dirtyShortRev;
               };

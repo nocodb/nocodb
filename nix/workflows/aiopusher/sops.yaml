@@ -1,0 +1,32 @@
+app.docker.com:
+    username: ENC[AES256_GCM,data:GCKQjLO+QoOJ,iv:U/ZFwhxJlo5OX6Kxprp4EQ2HYRjHISsd4MH9nyz//pw=,tag:pMr7Q67fpsZFE02M+L4yZg==,type:str]
+    password: ENC[AES256_GCM,data:vPIk0ZWg3QGRJzS1sUt+1SDovv3pgc8ddPWuVoamm5ReR8W5,iv:Gd5AFYFNuWGPzSKHB25qiZjgj0Gh6JdRAurM6ssLzd4=,tag:Vt/mMl+TpnFJmHpSlB6sKg==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age1q5sfy74d53n6jxlgsc2zrsz4wcl9d830nxuagc3wfmdkrrp55ckq9ev6nv
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBId0JDK3ZNUGdQWkVRWldH
+            ejdlWlhEZlNaTkNQQWFkMi9pajRrUE50ajJ3CmJPMTFOYW1FZjViM2ZPQWFZeExh
+            bzh3dFdnMDBqM0ppS2p2TWJlRHlIWUkKLS0tIDlZUnU4Q2Y0RGRPRnhCREVMNkxU
+            S2NxRjFoak1hZEpPU2doNG1lU2pRVUEKRPxM6EM9z/r+j/VDqTJOxAE0aAN940xy
+            G5Aes87zQBa4Jd4v073Tg/EvaJcGT6wu4sDaldI4s/Q6NluJs+X5Pw==
+            -----END AGE ENCRYPTED FILE-----
+        - recipient: age15989j5lkkf2kn5wa2p6qc8wlxjjksc63k5ync8rz8t4e87394pzqm7h4rm
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBFMlBzUVhNK1JjWFptK2pX
+            L21pNUcrKzg4ZmtKZ2g2ZWR6Z01WaXJ3MWdZClp5K05NZFRNTVZXaFZMRFpoWFVv
+            Rnd6VlcrUDNPRi96bzRmRDd0RXVHTGMKLS0tIFdhT2hGQ1FXdzFlNFgydWVBN295
+            ck1ndlpYbnlzYkxpWVBNcDlPZWc0dFkKtxEBMRcXaLTNc4+Kuy+vbzQHIzcqX9HH
+            HEHmNXKSOLldlPvVx5p7cx/L5t1PPJo6QTEIm7KJx97pNpVC4aA1tw==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-02-28T11:19:49Z"
+    mac: ENC[AES256_GCM,data:lzY87hnOhO/MokyeoScy9gT9rdzMZffNOPkxE38hQxBdZ9H+jg+1MB7QL9h2014BViH7aVSwYjmTfHopoa798TdXhuYuf3v0sEekoBFMWEgyS3NSUW7tj4ho100Y5LUlW1LF0uI3bTaEVZRkZjYsShQer5xhh5Bc9mV6tuJW+X4=,iv:LMuSnBjOo81PUGJFwEa6zAoVjI7xz3gExs4MmhiDAy4=,tag:0wcy3NPlwvDPOZQ+59ZFjw==,type:str]
+    pgp: []
+    unencrypted_suffix: _unencrypted
+    version: 3.9.3

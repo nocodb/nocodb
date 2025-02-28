@@ -9,6 +9,7 @@ export class TableMetaLoader {
       force?: boolean,
       skipIfCacheMiss?: boolean,
       baseId?: string,
+      disableError?: boolean,
     ) => Promise<TableType | null>,
     private onSettled?: () => void,
   ) {}
@@ -18,7 +19,7 @@ export class TableMetaLoader {
 
     this.loadingCache.set(tableIdOrTitle, tableIdOrTitle)
     try {
-      await this.getMeta(tableIdOrTitle)
+      await this.getMeta(tableIdOrTitle, false, false, undefined, true)
       this.onSettled?.()
     } finally {
       this.loadingCache.delete(tableIdOrTitle)

@@ -31,6 +31,7 @@ export const useMetas = createSharedComposable(() => {
     force = false,
     skipIfCacheMiss = false,
     baseId?: string,
+    disableError = false,
   ): Promise<TableType | null> => {
     if (!tableIdOrTitle) return null
 
@@ -91,7 +92,9 @@ export const useMetas = createSharedComposable(() => {
 
       return model
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      if (!disableError) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
     } finally {
       delete loadingState.value[tableIdOrTitle]
     }

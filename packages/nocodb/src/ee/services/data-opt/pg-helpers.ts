@@ -1189,7 +1189,6 @@ export async function singleQueryRead(
   }
 
   const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
-
   const getAlias = getAliasGenerator();
 
   // load columns list
@@ -1346,8 +1345,14 @@ export async function singleQueryList(
   let dbQueryTime;
   let skipCache = shouldSkipCache(ctx);
 
+  const useLimitOverride =
+    !ctx.ignorePagination &&
+    ctx.limitOverride &&
+    ctx.limitOverride > 0 &&
+    ctx.limitOverride < 1000
+      ? ctx.limitOverride
+      : undefined;
   const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
-
   const getAlias = getAliasGenerator();
 
   // get knex connection
@@ -1416,9 +1421,7 @@ export async function singleQueryList(
           res = await baseModel.execAndParse(
             knex
               .raw(cachedQuery, [
-                +(!ctx.ignorePagination && ctx.limitOverride
-                  ? ctx.limitOverride
-                  : listArgs.limit),
+                +(useLimitOverride ?? listArgs.limit),
                 +listArgs.offset,
               ])
               .toQuery(),
@@ -1447,7 +1450,7 @@ export async function singleQueryList(
           count: countRes,
           limit: +listArgs.limit,
           offset: +listArgs.offset,
-          limitOverride: +ctx.limitOverride,
+          limitOverride: useLimitOverride,
         },
         {
           stats: {
@@ -1588,16 +1591,17 @@ export async function singleQueryList(
     alias: ROOT_ALIAS,
     apiVersion: ctx.apiVersion,
   });
-
-  if (skipCache) {
-    rootQb.limit(+listArgs.limit);
-    rootQb.offset(+listArgs.offset);
-  } else {
-    // provide some dummy non-zero value to limit and offset to populate bindings,
-    // if offset is 0 then it will ignore bindings
-    // it'll be required and overriden later as number of binding is static
-    rootQb.limit(9999);
-    rootQb.offset(9999);
+  if (!ctx.ignorePagination) {
+    if (skipCache) {
+      rootQb.limit(+listArgs.limit);
+      rootQb.offset(+listArgs.offset);
+    } else {
+      // provide some dummy non-zero value to limit and offset to populate bindings,
+      // if offset is 0 then it will ignore bindings
+      // it'll be required and overriden later as number of binding is static
+      rootQb.limit(9999);
+      rootQb.offset(9999);
+    }
   }
 
   // apply the sort on final query to get the result in correct order
@@ -1705,9 +1709,7 @@ export async function singleQueryList(
         res = await baseModel.execAndParse(
           knex
             .raw(query, [
-              +(!ctx.ignorePagination && ctx.limitOverride
-                ? ctx.limitOverride
-                : listArgs.limit),
+              +(useLimitOverride ?? listArgs.limit),
               +listArgs.offset,
             ])
             .toQuery(),
@@ -1726,7 +1728,7 @@ export async function singleQueryList(
       count,
       limit: +listArgs.limit,
       offset: +listArgs.offset,
-      limitOverride: +ctx.limitOverride,
+      limitOverride: +useLimitOverride,
     },
     {
       stats: {

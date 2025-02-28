@@ -5990,6 +5990,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           );
         }
 
+        if (!allowSystemColumn && col.readonly) {
+          NcError.badRequest(
+            `Column "${col.title}" is readonly column and cannot be updated`,
+          );
+        }
+
         if (
           col.system &&
           !allowSystemColumn &&
@@ -6792,6 +6798,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
+      await this.beforeBulkDelete(deleted, this.dbDriver, cookie);
+
       const execQueries: ((
         trx: Knex.Transaction,
         ids: any[],
@@ -7137,10 +7145,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   public async beforeInsert(data: any, _trx: any, req): Promise<void> {
+    if (this.model.synced) {
+      NcError.badRequest('Cannot insert into synced table');
+    }
+
     await this.handleHooks('before.insert', null, data, req);
   }
 
   public async beforeBulkInsert(data: any, _trx: any, req): Promise<void> {
+    if (this.model.synced) {
+      NcError.badRequest('Cannot insert into synced table');
+    }
+
     await this.handleHooks('before.bulkInsert', null, data, req);
   }
 
@@ -7564,7 +7580,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   public async beforeDelete(data: any, _trx: any, req): Promise<void> {
+    if (this.model.synced) {
+      NcError.badRequest('Cannot delete from synced table');
+    }
+
     await this.handleHooks('before.delete', null, data, req);
+  }
+
+  public async beforeBulkDelete(_data: any, _trx: any, _req): Promise<void> {
+    if (this.model.synced) {
+      NcError.badRequest('Cannot delete from synced table');
+    }
+
+    // await this.handleHooks('before.bulkDelete', null, data, req);
   }
 
   protected async handleHooks(hookName, prevData, newData, req): Promise<void> {
@@ -7647,6 +7675,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ) {
           NcError.badRequest(
             `Column "${column.title}" is system column and cannot be updated`,
+          );
+        }
+
+        if (!allowSystemColumn && column.readonly) {
+          NcError.badRequest(
+            `Column "${column.title}" is readonly column and cannot be updated`,
           );
         }
       }

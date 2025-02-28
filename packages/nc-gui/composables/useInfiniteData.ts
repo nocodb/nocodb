@@ -1178,11 +1178,23 @@ export function useInfiniteData(args: {
 
     row.rowMeta.changed = false
     let cachedRow
-    await until(() => {
-      cachedRow = cachedRows.value.get(row.rowMeta.rowIndex!)
-      if (!cachedRow) return true
-      return !cachedRow.rowMeta?.new || !cachedRow.rowMeta?.saving
-    }).toMatch((v) => v)
+
+    await new Promise((resolve) => {
+      const checkStatus = () => {
+        cachedRow = cachedRows.value.get(row.rowMeta.rowIndex!)
+        // Wait until either the row is not saving OR the row is not new
+        const isComplete = !cachedRow?.rowMeta?.saving || !cachedRow?.rowMeta?.new
+
+        if (isComplete) {
+          resolve(true)
+        } else {
+          setTimeout(checkStatus, 100)
+        }
+      }
+
+      // Start checking
+      checkStatus()
+    })
 
     let data
 

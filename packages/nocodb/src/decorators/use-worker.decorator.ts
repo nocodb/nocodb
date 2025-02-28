@@ -15,7 +15,7 @@ export function UseWorker(): MethodDecorator {
   return (target, key, descriptor: PropertyDescriptor) => {
     if (!PubSubRedis.available) return descriptor;
 
-    if (process.env.NC_WORKER_CONTAINER === 'true') return descriptor;
+    if (process.env.NC_WORKER_CONTAINER !== 'false') return descriptor;
 
     injectJobsService(target, 'jobsService');
 

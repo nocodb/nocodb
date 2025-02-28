@@ -14,6 +14,7 @@ import {
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import { NcCheckbox } from '#components'
+import { isEeUI } from '~/utils/eeUtils'
 
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
@@ -466,7 +467,6 @@ async function importTemplate() {
                   return res
                 }, {}),
               )
-              const autoInsertOptionQuery = isEeUI && autoInsertOption.value ? '&typecast=true' : ''
               const res = await $api.dbTableRow.bulkCreate(
                 'noco',
                 baseId,
@@ -474,9 +474,9 @@ async function importTemplate() {
                 batchData,
                 {
                   'wrapped': 'true',
-                  'headers[nc-import-type]': `${quickImportType}${
-                    operationId ? `&operation_id=${operationId}` : ''
-                  }${autoInsertOptionQuery}`,
+                  'headers[nc-import-type]': quickImportType,
+                  'operation_id': operationId,
+                  'typecast': isEeUI && autoInsertOption.value ? 'true' : undefined,
                 },
                 {
                   headers: {

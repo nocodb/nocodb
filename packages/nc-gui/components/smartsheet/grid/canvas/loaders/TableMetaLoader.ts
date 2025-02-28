@@ -19,7 +19,7 @@ export class TableMetaLoader {
 
     this.loadingCache.set(tableIdOrTitle, tableIdOrTitle)
     try {
-      await this.getMeta(tableIdOrTitle, false, false, undefined, true)
+      await this.getMeta(tableIdOrTitle, undefined, undefined, undefined, true)
       this.onSettled?.()
     } finally {
       this.loadingCache.delete(tableIdOrTitle)

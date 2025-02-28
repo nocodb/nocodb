@@ -795,6 +795,20 @@ export class ColumnsService {
         const driverType = dbDriver.clientType();
 
         if (
+          column.uidt === UITypes.SingleSelect &&
+          colBody.uidt !== UITypes.SingleSelect
+        ) {
+          if (
+            (await KanbanView.getViewsByGroupingColId(context, column.id))
+              .length > 0
+          ) {
+            return NcError.badRequest(
+              `The column '${column.column_name}' is being used in Kanban View. Please delete Kanban View first.`,
+            );
+          }
+        }
+
+        if (
           column.uidt === UITypes.MultiSelect &&
           colBody.uidt === UITypes.SingleSelect
         ) {

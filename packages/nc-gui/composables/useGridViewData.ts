@@ -332,7 +332,10 @@ export function useGridViewData(
           const row = cachedRows.value.get(rowIndex)
           if (row) {
             row.rowMeta.saving = false
-            row.row = newRow
+            row.row = {
+              ...row.row,
+              ...newRow,
+            }
             cachedRows.value.set(rowIndex, row)
           }
         }

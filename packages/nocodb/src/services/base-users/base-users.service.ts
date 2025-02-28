@@ -121,13 +121,6 @@ export class BaseUsersService {
           user.id,
           ncMeta,
         );
-
-        const base = await Base.get(context, param.baseId, ncMeta);
-
-        if (!base) {
-          return NcError.baseNotFound(param.baseId);
-        }
-
         // if already exists and has a role then throw error
         if (baseUser?.is_mapped && baseUser?.roles) {
           NcError.badRequest(
@@ -151,6 +144,17 @@ export class BaseUsersService {
               fk_user_id: user.id,
               roles: param.baseUser.roles || 'editor',
               invited_by: param.req?.user?.id,
+            },
+            ncMeta,
+          );
+
+          await this.sendInviteEmail(
+            {
+              email,
+              token: invite_token,
+              req: param.req,
+              baseName: base.title,
+              roles: param.baseUser.roles || 'editor',
             },
             ncMeta,
           );

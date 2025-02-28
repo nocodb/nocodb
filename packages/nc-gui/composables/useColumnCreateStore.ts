@@ -376,6 +376,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
               validateInfos.formula_raw!.help = []
             }
             validateInfos.formula_raw?.help.push(await extractSdkResponseErrorMsg(e))
+            message.error(await extractSdkResponseErrorMsg(e))
             return
           }
 

@@ -91,6 +91,8 @@ const onDelete = async () => {
       } else {
         await openTable(sourceTables[0])
       }
+    } else {
+      await getMeta(activeTable.value?.id as string, true)
     }
 
     const tableIndex = tables.value.findIndex((t) => t.id === toBeDeletedTable.id)

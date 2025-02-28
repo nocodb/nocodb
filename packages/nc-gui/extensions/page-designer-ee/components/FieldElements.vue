@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { type ColumnType, UITypes, isHiddenCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
-import { isLinkedField } from '../lib/utils'
 import { PageDesignerWidgetFactory } from '../lib/widgets'
 import FieldElement from './FieldElement.vue'
 
@@ -83,7 +82,7 @@ const getIcon = (c: ColumnType) =>
   })
 
 function onFieldClick(field: ColumnType) {
-  if (isLinkedField(field)) {
+  if (isLinksOrLTAR(field)) {
     PageDesignerWidgetFactory.create(payload, PageDesignerWidgetFactory.createEmptyLinkedFieldWidget(field))
     return
   }

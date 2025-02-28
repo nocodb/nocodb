@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { isLinksOrLTAR } from 'nocodb-sdk'
 import { PageDesignerPayloadInj } from '../lib/context'
 import { PageDesignerLayout } from '../lib/layout'
 import { type PageDesignerWidget, PageDesignerWidgetFactory, PageDesignerWidgetType } from '../lib/widgets'
-import { isLinkedField } from '../lib/utils'
 import PageDesignerText from './PageDesignerText.vue'
 import PageDesignerImage from './PageDesignerImage.vue'
 import PageDesignerDivider from './PageDesignerDivider.vue'
@@ -70,7 +70,7 @@ function onDropped(e: DragEvent) {
     if (!factory) return
     widget = factory(position)
   } else {
-    widget = isLinkedField(field)
+    widget = isLinksOrLTAR(field)
       ? PageDesignerWidgetFactory.createEmptyLinkedFieldWidget(field, position)
       : PageDesignerWidgetFactory.createEmptyFieldWidget(field, position)
   }

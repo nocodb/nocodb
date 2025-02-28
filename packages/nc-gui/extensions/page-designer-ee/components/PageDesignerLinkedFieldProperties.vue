@@ -73,7 +73,7 @@ watch(
     tableColumns = tableColumns.filter((col) => colIdSet.has(col.id))
     fieldWidget.value.tableColumns = tableColumns
   },
-  { immediate: true, deep: true },
+  { immediate: true },
 )
 
 const isTable = computed(() => fieldWidget.value?.displayAs === LinkedFieldDisplayAs.TABLE)

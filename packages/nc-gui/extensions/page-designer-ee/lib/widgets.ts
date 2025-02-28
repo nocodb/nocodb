@@ -1,6 +1,5 @@
-import { type ColumnType, UITypes } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { PageDesignerPayload } from './payload'
-import { isLinkedField } from './utils'
 
 export interface PageDesignerWidgetComponentProps {
   id: number | string
@@ -362,7 +361,7 @@ export function getInitialSizeHeightOfWidget(type: PageDesignerWidgetType, field
       width = 200
       height = 200
     }
-    if (isLinkedField(field)) {
+    if (isLinksOrLTAR(field)) {
       width = 300
       height = 200
     }

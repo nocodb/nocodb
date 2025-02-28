@@ -17,6 +17,7 @@ const props = withDefaults(
     suggestionIconClassName?: string
     placeholder?: string
     readOnly?: boolean
+    markdown?: boolean
   }>(),
   {
     options: () => [],
@@ -29,6 +30,7 @@ const props = withDefaults(
      */
     placeholder: 'Write your prompt here...',
     readOnly: false,
+    markdown: true,
   },
 )
 
@@ -47,6 +49,7 @@ const debouncedLoadMentionFieldTagTooltip = useDebounceFn(loadMentionFieldTagToo
 
 const editor = useEditor({
   content: vModel.value,
+  enableInputRules: props.markdown,
   extensions: [
     StarterKit.configure({
       heading: false,

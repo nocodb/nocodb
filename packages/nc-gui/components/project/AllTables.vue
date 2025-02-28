@@ -14,6 +14,8 @@ const { openedProject, isDataSourceLimitReached } = storeToRefs(useBases())
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const isNewBaseModalOpen = ref(false)
 
 const isNewSyncModalOpen = ref(false)
@@ -268,7 +270,7 @@ const sourceIdToIconMap = computed(() => {
         </div>
       </NcTooltip>
       <div
-        v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
+        v-if="isFeatureEnabled(FEATURE_FLAG.SYNC) && isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
         v-e="['c:table:create-sync']"
         role="button"
         class="nc-base-view-all-table-btn"

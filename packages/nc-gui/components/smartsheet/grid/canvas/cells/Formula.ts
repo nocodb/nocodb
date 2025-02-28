@@ -107,31 +107,32 @@ export const FormulaCellRenderer: CellRenderer = {
     const colMeta = parseProp(colObj.meta)
     const error = parseProp(colObj.colOptions)?.error ?? ''
 
-    const { x, y, width, height } = getCellPosition(props.column, props.row.rowMeta.rowIndex!)
+    const { x, y, width, height } = getCellPosition(column, props.row.rowMeta.rowIndex!)
     const baseStore = useBase()
     const { isPg } = baseStore
 
     if (colMeta?.display_type || !error) {
-      getDisplayValueCellRenderer(colObj)?.handleClick?.({
-        ...props,
-        column: {
-          ...column,
-          columnObj: {
-            ...colObj,
-            uidt: colMeta?.display_type,
-            ...colMeta.display_column_meta,
+      // Call the display type cell renderer's handleClick method if it exists
+      if (getDisplayValueCellRenderer(colObj)?.handleClick) {
+        return getDisplayValueCellRenderer(colObj).handleClick!({
+          ...props,
+          column: {
+            ...column,
+            columnObj: {
+              ...colObj,
+              uidt: colMeta?.display_type,
+              ...colMeta.display_column_meta,
+            },
           },
-        },
-      })
-
-      return true
+        })
+      }
     }
 
-    const result = isPg(props.column.columnObj.source_id) ? renderValue(handleTZ(props.value)) : renderValue(props.value)
+    const result = isPg(column.columnObj.source_id) ? renderValue(handleTZ(props.value)) : renderValue(props.value)
     const urls = replaceUrlsWithLink(result)
     const padding = 10
     const maxWidth = width - padding * 2
-    const pv = props.column.pv
+    const pv = column.pv
     const textColor = '#4a5268'
     if (typeof urls === 'string') {
       const texts = getFormulaTextSegments(urls)

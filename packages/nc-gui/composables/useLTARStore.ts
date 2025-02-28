@@ -411,7 +411,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       }
     }
 
-    const loadChildrenList = async (resetOffset: boolean = false, activeState: any = undefined) => {
+    const loadChildrenList = async (
+      resetOffset: boolean = false,
+      activeState: any = undefined,
+      limit: number | undefined = undefined,
+    ) => {
       if (activeState) newRowState.state = activeState
 
       try {
@@ -473,7 +477,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             colOptions.value.type as RelationTypes,
             column?.value?.id,
             {
-              limit: String(childrenListPagination.size),
+              limit: String(limit ?? childrenListPagination.size),
               offset: String(offset),
               where:
                 childrenListPagination.query && `(${relatedTableDisplayValueProp.value},like,${childrenListPagination.query})`,
@@ -493,6 +497,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       } finally {
         isChildrenLoading.value = false
       }
+      return childrenList.value
     }
 
     const deleteRelatedRow = async (row: Record<string, any>, onSuccess?: (row: Record<string, any>) => void) => {

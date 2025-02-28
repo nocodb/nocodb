@@ -123,6 +123,7 @@ export default defineNuxtConfig({
     public: {
       ncBackendUrl: '',
       env: 'production',
+      maxPageDesignerTableRows: 100,
     },
   },
 

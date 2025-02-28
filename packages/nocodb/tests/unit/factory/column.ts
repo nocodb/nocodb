@@ -1194,7 +1194,7 @@ const updateColumn = async (
     });
 
   const updatedColumn: Column = (await table.getColumns(ctx)).find(
-    (column) => column.id === column.id,
+    (col) => col.id === column.id,
   );
   return updatedColumn;
 };

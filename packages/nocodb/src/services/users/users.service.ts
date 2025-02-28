@@ -1,5 +1,5 @@
 import { promisify } from 'util';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents, OrgUserRoles, validatePassword } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import isEmail from 'validator/lib/isEmail';
@@ -32,6 +32,8 @@ import deepClone from '~/helpers/deepClone';
 
 @Injectable()
 export class UsersService {
+  logger = new Logger(UsersService.name);
+
   constructor(
     protected metaService: MetaService,
     protected appHooksService: AppHooksService,
@@ -547,7 +549,7 @@ export class UsersService {
         }),
       });
     } catch (e) {
-      console.log(
+      this.logger.warn(
         'Warning : `mailSend` failed, Please configure emailClient configuration.',
       );
     }

@@ -1452,7 +1452,7 @@ export const iconMap = {
   'ncChevronsUp': NcChevronsUpIcon,
   'ncUploadCloud': NcUploadCloudIcon,
   'ncYoutube': NcYoutubeIcon,
-  'ncUnlock': NcUnlockIcon,
+  'ncUnlock': h(NcUnlockIcon, { stroke: 'transparent' }),
   'ncCompass': NcCompassIcon,
   'ncPlusCircle': NcPlusCircleIcon,
   'ncCreditCard': NcCreditCardIcon,
@@ -3778,7 +3778,7 @@ export const searchableMap = {
     keywords: ['video', 'social media', 'streaming', 'entertainment', 'online'],
   },
   ncUnlock: {
-    icon: NcUnlockIcon,
+    icon: h(NcUnlockIcon, { stroke: 'transparent' }),
     keywords: ['password', 'security', 'access', 'open', 'authorization'],
   },
   ncCompass: {

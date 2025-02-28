@@ -1349,7 +1349,7 @@ export async function singleQueryList(
     !ctx.ignorePagination &&
     ctx.limitOverride &&
     ctx.limitOverride > 0 &&
-    ctx.limitOverride < 1000
+    ctx.limitOverride < 10000
       ? ctx.limitOverride
       : undefined;
   const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
@@ -1593,7 +1593,7 @@ export async function singleQueryList(
   });
   if (!ctx.ignorePagination) {
     if (skipCache) {
-      rootQb.limit(+listArgs.limit);
+      rootQb.limit(+(useLimitOverride ?? listArgs.limit));
       rootQb.offset(+listArgs.offset);
     } else {
       // provide some dummy non-zero value to limit and offset to populate bindings,

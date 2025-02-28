@@ -18,6 +18,7 @@ const eventHook = createEventHook<'previousRecord' | 'nextRecord'>()
 const { base } = storeToRefs(useBase())
 
 provide(PageDesignerEventHookInj, eventHook)
+provide(IsPageDesignerExtensionActiveInj, true)
 
 const savedPayload = ref<PageDesignerPayload>({
   widgets: {},

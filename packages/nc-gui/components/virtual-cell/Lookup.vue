@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { PageDesignerPayloadInj } from '../../extensions/page-designer-ee/lib/context'
 
 const { metas, getMeta } = useMetas()
 
@@ -245,7 +244,7 @@ const handleCloseDropdown = (e: MouseEvent) => {
 const badgedVirtualColumns = [UITypes.Rollup, UITypes.Formula]
 const isBadgedVirtualColumn = computed(() => badgedVirtualColumns.includes(lookupColumn.value?.uidt as UITypes))
 
-const isPageDesignerLookup = !!inject(PageDesignerPayloadInj)
+const isPageDesignerLookup = inject(IsPageDesignerExtensionActiveInj)
 const { getPossibleAttachmentSrc } = useAttachment()
 const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])?.[0] ?? '')
 </script>

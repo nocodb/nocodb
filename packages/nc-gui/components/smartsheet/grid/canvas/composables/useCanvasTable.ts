@@ -196,7 +196,6 @@ export function useCanvasTable({
 
   const columns = computed<CanvasGridColumn[]>(() => {
     const fetchMetaIdsLocal: string[] = []
-
     const cols = fields.value
       .map((f) => {
         if (!f.id) return false
@@ -1008,7 +1007,7 @@ export function useCanvasTable({
     async () => {
       if (!fetchMetaIds.value.length) return
 
-      await Promise.all(fetchMetaIds.value.map(async (id) => getMeta(id)))
+      await Promise.all(fetchMetaIds.value.map(async (id) => getMeta(id, false, false, undefined, true)))
       fetchMetaIds.value = []
       triggerRefreshCanvas()
     },

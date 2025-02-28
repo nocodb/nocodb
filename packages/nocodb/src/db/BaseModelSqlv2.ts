@@ -6332,12 +6332,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       raw = false,
       throwExceptionIfNotExist = false,
       isSingleRecordUpdation = false,
+      allowSystemColumn = false,
       apiVersion,
     }: {
       cookie?: any;
       raw?: boolean;
       throwExceptionIfNotExist?: boolean;
       isSingleRecordUpdation?: boolean;
+      allowSystemColumn?: boolean;
       apiVersion?: NcApiVersion;
     } = {},
   ) {
@@ -6348,7 +6350,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // validate update data
       if (!raw) {
         for (const d of datas) {
-          await this.validate(d, columns);
+          await this.validate(d, columns, { allowSystemColumn });
         }
       }
 
@@ -7615,8 +7617,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   async validate(
     data: Record<string, any>,
     columns?: Column[],
-    { typecast }: { typecast?: boolean } = {
+    {
+      typecast,
+      allowSystemColumn,
+    }: { typecast?: boolean; allowSystemColumn?: boolean } = {
       typecast: false,
+      allowSystemColumn: false,
     },
   ): Promise<boolean> {
     const cols = columns || (await this.model.getColumns(this.context));
@@ -7635,6 +7641,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
 
         if (
+          !allowSystemColumn &&
           column.system &&
           ![UITypes.ForeignKey, UITypes.Order].includes(column.uidt)
         ) {

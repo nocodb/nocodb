@@ -40,6 +40,7 @@ export enum JobTypes {
   CreateSnapshot = 'create-snapshot',
   RestoreSnapshot = 'restore-snapshot',
   ListenImport = 'listen-import',
+  SyncModuleSyncData = 'sync-module-sync-data',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -196,5 +197,10 @@ export interface RestoreSnapshotJobData extends JobData {
     base_id: string;
   };
   snapshot: SnapshotType;
+  req: NcRequest;
+}
+
+export interface SyncDataSyncModuleJobData extends JobData {
+  syncConfigId: string;
   req: NcRequest;
 }

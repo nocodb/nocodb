@@ -1,25 +1,25 @@
 <script lang="ts" setup>
 import type { Card as AntCard } from 'ant-design-vue'
-import type { FormDefinition } from 'nocodb-sdk'
+import type { FormDefinition, TableType } from 'nocodb-sdk'
 import { IntegrationsType, SyncTrigger, SyncType } from 'nocodb-sdk'
-import { JobStatus, generateUniqueTitle as generateTitle, iconMap } from '#imports'
+import { JobStatus, iconMap } from '#imports'
 
-const props = defineProps<{ open: boolean; isModal?: boolean }>()
-const emit = defineEmits(['update:open'])
+const props = defineProps<{ open: boolean; baseId: string; tableId: string; isModal?: boolean }>()
+const emit = defineEmits(['update:open', 'createSync'])
 const vOpen = useVModel(props, 'open', emit)
 
-const { loadDynamicIntegrations, getIntegrationForm } = useIntegrationStore()
+const { loadIntegrations, loadDynamicIntegrations, getIntegrationForm } = useIntegrationStore()
 
-const baseStore = useBase()
-const { loadTables } = baseStore
-const { base, tables } = storeToRefs(baseStore)
+const { baseTables } = storeToRefs(useTablesStore())
 
-const { addTab } = useTabs()
+const tables = computed(() => baseTables.value.get(props.baseId) ?? [])
+
+const table = computed(() => tables.value.find((t: TableType) => t.id === props.tableId))
+
+const workspaceStore = useWorkspace()
+const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const { refreshCommandPalette } = useCommandPalette()
-
-const _projectId = inject(ProjectIdInj, undefined)
-const baseId = computed(() => _projectId?.value ?? base.value?.id)
 
 const activeIntegrationItemForm = ref<FormDefinition>()
 
@@ -29,27 +29,29 @@ const goToDashboard = ref(false)
 
 const goBack = ref(false)
 
-const { form, formState, isLoading, validateInfos, submit } = useProvideFormBuilderHelper({
+const { formState, isLoading, validateInfos, submit } = useProvideFormBuilderHelper({
   formSchema: activeIntegrationItemForm,
   onSubmit: async () => {
     isLoading.value = true
 
     try {
-      const res = await $api.internal.postOperation(
-        base.value.fk_workspace_id!,
-        baseId.value!,
+      await $api.internal.postOperation(
+        activeWorkspace.value!.id!,
+        props.baseId,
         {
-          operation: 'createSyncTable',
+          operation: 'createSync',
         },
-        formState.value,
+        {
+          fk_model_id: props.tableId,
+          ...formState.value,
+        },
       )
 
-      await loadTables()
-
-      const newTable = tables.value.find((el) => el.id === res.table?.id)
-      if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
+      await loadIntegrations()
 
       refreshCommandPalette()
+
+      emit('createSync')
 
       onDashboard()
     } catch (e) {
@@ -60,7 +62,7 @@ const { form, formState, isLoading, validateInfos, submit } = useProvideFormBuil
   },
 })
 
-const { t } = useI18n()
+// const { t } = useI18n()
 
 // const { isUIAllowed } = useRoles()
 
@@ -101,10 +103,6 @@ const pushProgress = async (message: string, status: JobStatus | 'progress') => 
 const selectedSyncType = computed(() => {
   return formState.value.sub_type
 })
-
-const workspaceStore = useWorkspace()
-const { loadWorkspaces } = workspaceStore
-const { activeWorkspace } = storeToRefs(workspaceStore)
 
 /*
 const { $poller } = useNuxtApp()
@@ -200,27 +198,13 @@ const createSource = async () => {
 }
 */
 
-const generateUniqueTitle = () => {
-  return generateTitle(t('objects.table'), tables.value, 'title')
-}
-
 // select and focus title field on load
 onMounted(async () => {
   isLoading.value = true
 
   await loadDynamicIntegrations()
 
-  formState.value.table_name = generateUniqueTitle()
   formState.value.type = IntegrationsType.Sync
-
-  nextTick(() => {
-    // todo: replace setTimeout and follow better approach
-    setTimeout(() => {
-      const input = form.value?.$el?.querySelector('input[type=text]')
-      input?.setSelectionRange(0, formState.value.table_name.length)
-      input?.focus()
-    }, 500)
-  })
 
   isLoading.value = false
 })
@@ -283,7 +267,6 @@ const changeIntegration = async () => {
 const refreshState = async (keepForm = false) => {
   if (!keepForm) {
     formState.value = {
-      table_name: generateUniqueTitle(),
       type: IntegrationsType.Sync,
     }
   }
@@ -327,7 +310,7 @@ const filterIntegration = (i: IntegrationItemType) => !!(i.sub_type !== SyncData
         <div class="flex items-center">
           <GeneralIcon icon="sync" class="!text-green-700 !h-5 !w-5" />
         </div>
-        <div class="flex-1 text-base font-weight-700">Add Sync Table</div>
+        <div class="flex-1 text-base font-weight-700">Add Sync To Existing Table</div>
 
         <div class="flex items-center gap-3">
           <NcButton
@@ -339,7 +322,7 @@ const filterIntegration = (i: IntegrationItemType) => !!(i.sub_type !== SyncData
             class="nc-extdb-btn-submit"
             @click="submit"
           >
-            Create Sync Table
+            Create Sync
           </NcButton>
           <NcButton :disabled="creatingSync" size="small" type="text" @click="vOpen = false">
             <GeneralIcon icon="close" class="text-gray-600" />
@@ -355,8 +338,8 @@ const filterIntegration = (i: IntegrationItemType) => !!(i.sub_type !== SyncData
                   <div class="nc-form-section-body">
                     <a-row :gutter="24">
                       <a-col :span="12">
-                        <a-form-item label="Table Name" v-bind="validateInfos.table_name">
-                          <a-input v-model:value="formState.table_name" />
+                        <a-form-item label="Table Name">
+                          <a-input :value="table.title" disabled />
                         </a-form-item>
                       </a-col>
                     </a-row>
@@ -380,7 +363,7 @@ const filterIntegration = (i: IntegrationItemType) => !!(i.sub_type !== SyncData
               <WorkspaceIntegrationsEditOrAdd load-datasource-info :base-id="baseId" />
             </template>
             <template v-else>
-              <div class="mb-4 prose-xl font-bold">Creating table for syncing your source</div>
+              <div class="mb-4 prose-xl font-bold">Creating sync</div>
 
               <a-card
                 ref="logRef"

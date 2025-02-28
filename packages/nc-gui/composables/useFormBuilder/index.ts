@@ -181,6 +181,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       isLoading,
       isChanged,
       validateInfos,
+      clearValidate,
       validate,
       submit,
     }

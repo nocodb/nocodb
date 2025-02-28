@@ -113,6 +113,8 @@ export default class Column<T = any> implements ColumnType {
 
   public asId?: string;
 
+  public readonly?: boolean;
+
   constructor(data: Partial<(ColumnType & { asId?: string }) | Column>) {
     Object.assign(this, data);
   }
@@ -176,6 +178,7 @@ export default class Column<T = any> implements ColumnType {
       'meta',
       'virtual',
       'description',
+      'readonly',
     ]);
 
     if (!insertObj.column_name) {
@@ -1390,6 +1393,7 @@ export default class Column<T = any> implements ColumnType {
       'system',
       'validate',
       'meta',
+      'readonly',
     ]);
 
     if (column.validate) {
@@ -1778,6 +1782,7 @@ export default class Column<T = any> implements ColumnType {
         'source_id',
         'system',
         'meta',
+        'readonly',
       ]);
 
       if (column.meta && typeof column.meta === 'object') {

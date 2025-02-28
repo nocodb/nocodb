@@ -50,7 +50,7 @@ export const DecimalCellRenderer: CellRenderer = {
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx
-    if (column.readonly) return
+    if (column.readonly || column.columnObj?.readonly) return
     const columnObj = column.columnObj
     if (/^[0-9]$/.test(e.key) && columnObj.title) {
       row.row[columnObj.title] = ''

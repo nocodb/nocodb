@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { Card as AntCard } from 'ant-design-vue'
+import { JobStatus, iconMap } from '#imports'
 
 const progress = ref<Record<string, any>[]>([])
 

@@ -166,9 +166,9 @@ export function useKeyboardNavigation({
           e.preventDefault()
           const column = columns.value[activeCell.value.column]
           if (column?.columnObj?.uidt) {
-            if (!NO_EDITABLE_CELL.includes(column.columnObj.uidt)) {
-              selection.value.clear()
+            if (!NO_EDITABLE_CELL.includes(column.columnObj.uidt) && !column.columnObj.readonly) {
               makeCellEditable(activeCell.value.row, columns.value[activeCell.value.column]!)
+              selection.value.clear()
             }
           }
         } else {

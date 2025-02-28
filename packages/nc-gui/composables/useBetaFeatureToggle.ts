@@ -60,6 +60,14 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'sync',
+    title: 'Sync',
+    description: 'Enable sync feature.',
+    enabled: false,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
     id: 'geodata_column',
     title: 'Geodata column',
     description: 'Enable the geodata column.',

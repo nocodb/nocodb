@@ -91,6 +91,7 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.SNAPSHOT]: 'snap',
       [MetaTable.CUSTOM_URLS]: 'cu',
       [MetaTable.SCRIPTS]: 'scr',
+      [MetaTable.SYNC_CONFIGS]: 'sync',
     };
 
     const prefix = prefixMap[target] || 'nc';

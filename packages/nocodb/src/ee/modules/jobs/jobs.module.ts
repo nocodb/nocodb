@@ -11,6 +11,7 @@ import { HealthCheckProcessor } from '~/modules/jobs/jobs/health-check.processor
 import { SnapshotController } from '~/modules/jobs/jobs/snapshot/snapshot.controller';
 import { SnapshotProcessor } from '~/modules/jobs/jobs/snapshot/snapshot.processor';
 import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
+import { SyncModuleSyncDataProcessor } from '~/integrations/sync/module/services/sync.processor';
 
 @Module({
   ...JobsModuleMetadata,
@@ -28,6 +29,7 @@ import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-im
     CleanUpProcessor,
     SnapshotProcessor,
     RemoteImportService,
+    SyncModuleSyncDataProcessor,
   ],
   exports: [...JobsModuleMetadata.exports, RemoteImportService],
 })

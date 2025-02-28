@@ -213,10 +213,19 @@ export function useCanvasRender({
 
       let rightOffset = xOffset + width - rightPadding
 
-      if (isFieldEditAllowed.value) {
+      if (isFieldEditAllowed.value && !colObj?.readonly) {
         rightOffset -= 16
         spriteLoader.renderIcon(ctx, {
           icon: 'chevronDown',
+          size: 14,
+          color: '#6a7184',
+          x: rightOffset - scrollLeft.value,
+          y: 9,
+        })
+      } else if (meta.value.synced && colObj?.readonly) {
+        rightOffset -= 16
+        spriteLoader.renderIcon(ctx, {
+          icon: 'refresh',
           size: 14,
           color: '#6a7184',
           x: rightOffset - scrollLeft.value,
@@ -434,11 +443,20 @@ export function useCanvasRender({
 
         let rightOffset = xOffset + width - rightPadding
 
-        if (column.uidt && isFieldEditAllowed.value) {
+        if (column.uidt && isFieldEditAllowed.value && !colObj?.readonly) {
           // Chevron down
           rightOffset -= 16
           spriteLoader.renderIcon(ctx, {
             icon: 'chevronDown',
+            size: 14,
+            color: '#6a7184',
+            x: rightOffset,
+            y: 9,
+          })
+        } else if (meta.value.synced && colObj?.readonly) {
+          rightOffset -= 16
+          spriteLoader.renderIcon(ctx, {
+            icon: 'refresh',
             size: 14,
             color: '#6a7184',
             x: rightOffset,

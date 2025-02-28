@@ -32,7 +32,9 @@ const isGallery = inject(IsGalleryInj, ref(false))
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
-const readOnly = inject(ReadonlyInj, ref(false))
+const readOnlyInj = inject(ReadonlyInj, ref(false))
+
+const readOnly = computed(() => readOnlyInj.value || column.value.readonly)
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const clientMousePosition = inject(ClientMousePositionInj)

@@ -106,6 +106,7 @@ import { ExtensionsService } from '~/services/extensions.service';
 import { ExtensionsController } from '~/controllers/extensions.controller';
 import { JobsMetaService } from '~/services/jobs-meta.service';
 import { JobsMetaController } from '~/controllers/jobs-meta.controller';
+import { NocoJobsService } from '~/services/noco-jobs.service';
 
 /* Datas */
 import { DataTableController } from '~/controllers/data-table.controller';
@@ -293,6 +294,7 @@ export const nocoModuleMetadata = {
     SortsV3Service,
     ViewsV3Service,
     FiltersV3Service,
+    NocoJobsService,
 
     /* Datas */
     DataTableService,
@@ -337,6 +339,8 @@ export const nocoModuleMetadata = {
     MetaDiffsService,
     SourcesService,
     UtilsService,
+    IntegrationsService,
+    NocoJobsService,
 
     /* Datas */
     DatasService,

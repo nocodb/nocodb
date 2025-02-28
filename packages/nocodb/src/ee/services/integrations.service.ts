@@ -60,6 +60,8 @@ export class IntegrationsService extends IntegrationsServiceCE {
       },
     );
 
+    await integration.authenticateOAuth();
+
     // update the cache for the sources which are using this integration
     await this.updateIntegrationSourceConfig({ integration });
 
@@ -285,6 +287,8 @@ export class IntegrationsService extends IntegrationsServiceCE {
       workspaceId: workspace.id,
       created_by: param.req.user.id,
     });
+
+    await integration.authenticateOAuth();
 
     integration.config = undefined;
 

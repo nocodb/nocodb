@@ -201,6 +201,8 @@ const showNullComponent = computed(() => {
 })
 
 const showReadonlyField = computed(() => {
+  if (column.value.readonly) return true
+
   switch (cellType.value) {
     case 'currency': {
       return !((!readOnly.value && editEnabled.value) || (isForm && !isEditColumnMenu.value && editEnabled.value))

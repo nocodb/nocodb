@@ -3,6 +3,7 @@ import type {
   PublicAttachmentScope,
   SnapshotType,
   SupportedExportCharset,
+  SyncTrigger,
   UserType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -40,6 +41,7 @@ export enum JobTypes {
   CreateSnapshot = 'create-snapshot',
   RestoreSnapshot = 'restore-snapshot',
   ListenImport = 'listen-import',
+  SyncModuleSyncData = 'sync-module-sync-data',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -196,5 +198,11 @@ export interface RestoreSnapshotJobData extends JobData {
     base_id: string;
   };
   snapshot: SnapshotType;
+  req: NcRequest;
+}
+
+export interface SyncDataSyncModuleJobData extends JobData {
+  syncConfigId: string;
+  trigger: SyncTrigger;
   req: NcRequest;
 }

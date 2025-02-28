@@ -511,7 +511,7 @@ export function useMultiSelect(
     }
 
     // skip pasting virtual columns (including LTAR columns for now) and system columns
-    if (isVirtualCol(col) || isSystemColumn(col)) {
+    if (isVirtualCol(col) || isSystemColumn(col) || col?.readonly) {
       if (showInfo) {
         message.info(t('msg.info.pasteNotSupported'))
       }

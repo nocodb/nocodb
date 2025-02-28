@@ -444,7 +444,7 @@ export const ButtonCellRenderer: CellRenderer = {
   async handleKeyDown(ctx) {
     const { e, row, column, actionManager, pk } = ctx
     if (e.key === 'Enter') {
-      if (column.readonly) return false
+      if (column.readonly || column.columnObj?.readonly) return false
       await actionManager.executeButtonAction([pk], column, { row: [row] })
       return true
     }

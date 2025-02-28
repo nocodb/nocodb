@@ -1172,7 +1172,7 @@ const updateViewColumn = async (
 
   const updatedColumn: FormViewColumn | GridViewColumn | GalleryViewColumn = (
     await view.getColumns(ctx)
-  ).find((column) => column.id === column.id)!;
+  ).find((col) => col.id === column.id)!;
 
   return updatedColumn;
 };
@@ -1194,7 +1194,7 @@ const updateColumn = async (
     });
 
   const updatedColumn: Column = (await table.getColumns(ctx)).find(
-    (column) => column.id === column.id,
+    (col) => col.id === column.id,
   );
   return updatedColumn;
 };

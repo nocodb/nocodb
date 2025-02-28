@@ -17,6 +17,7 @@ import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.pr
 import { SnapshotProcessor } from '~/modules/jobs/jobs/snapshot/snapshot.processor';
 import { JobTypes } from '~/interface/Jobs';
 import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
+import { SyncModuleSyncDataProcessor } from '~/integrations/sync/module/services/sync.processor';
 
 @Injectable()
 export class JobsMap extends JobsMapCE {
@@ -38,6 +39,7 @@ export class JobsMap extends JobsMapCE {
     protected readonly cleanUpProcessor: CleanUpProcessor,
     protected readonly snapshotProcessor: SnapshotProcessor,
     protected readonly noOpJob: NoOpMigration,
+    protected readonly syncModuleSyncDataProcessor: SyncModuleSyncDataProcessor,
   ) {
     super(
       duplicateProcessor,
@@ -85,6 +87,9 @@ export class JobsMap extends JobsMapCE {
       },
       [JobTypes.ListenImport]: {
         this: this.noOpJob,
+      },
+      [JobTypes.SyncModuleSyncData]: {
+        this: this.syncModuleSyncDataProcessor,
       },
     };
   }

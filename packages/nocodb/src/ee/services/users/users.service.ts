@@ -349,7 +349,7 @@ export class UsersService extends UsersServiceCE {
         }),
       });
     } catch (e) {
-      console.log(
+      this.logger.warn(
         'Warning : `mailSend` failed, Please configure emailClient configuration.',
       );
     }

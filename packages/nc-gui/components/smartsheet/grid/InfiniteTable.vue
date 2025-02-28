@@ -442,7 +442,8 @@ const isReadonly = (col: ColumnType) => {
     isButton(col) ||
     isVirtualCol(col) ||
     isCreatedOrLastModifiedTimeCol(col) ||
-    isCreatedOrLastModifiedByCol(col)
+    isCreatedOrLastModifiedByCol(col) ||
+    col.readonly
   )
 }
 
@@ -464,7 +465,8 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
     isDataReadOnly.value ||
     !ctx ||
     !hasEditPermission.value ||
-    (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))
+    (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col])) ||
+    fields.value[ctx.col].readonly
   )
     return
 
@@ -577,7 +579,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 
 function makeEditable(row: Row, col: ColumnType) {
   // If the cell is readonly, return
-  if (!hasEditPermission.value || editEnabled.value || readOnly.value || isSystemColumn(col)) {
+  if (!hasEditPermission.value || editEnabled.value || readOnly.value || isSystemColumn(col) || col.readonly) {
     return
   }
 
@@ -606,7 +608,9 @@ function makeEditable(row: Row, col: ColumnType) {
   return (editEnabled.value = true)
 }
 
-const isAddingEmptyRowAllowed = computed(() => hasEditPermission.value && !isSqlView.value && !isPublicView.value)
+const isAddingEmptyRowAllowed = computed(
+  () => hasEditPermission.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced,
+)
 
 const visibleColLength = computed(() => fields.value?.length)
 

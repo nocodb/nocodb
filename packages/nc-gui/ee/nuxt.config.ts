@@ -297,6 +297,7 @@ export default defineNuxtConfig({
         'turndown',
         'unified',
         'v3-infinite-loading',
+        'validator',
         'validator/es/lib/isEmail',
         'validator/lib/isMobilePhone',
         'vue-advanced-cropper',

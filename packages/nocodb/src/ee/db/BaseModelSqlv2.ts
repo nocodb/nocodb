@@ -550,7 +550,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       });
       return Array.isArray(response) ? response[0] : response;
     } catch (e) {
-      console.log(e);
       await this.errorInsert(e, data, trx, cookie);
       throw e;
     }
@@ -691,7 +690,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
       return newData;
     } catch (e) {
-      console.log(e);
       await this.errorUpdate(e, data, trx, cookie);
       throw e;
     }
@@ -1061,6 +1059,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       );
     }
 
+    if (this.model.synced) {
+      NcError.badRequest('Cannot insert into synced table');
+    }
+
     await this.handleHooks('before.insert', null, data, req);
   }
 
@@ -1110,6 +1112,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       NcError.badRequest(
         `Only ${modelRowLimit} records are allowed in your table, for more please upgrade your plan`,
       );
+    }
+
+    if (this.model.synced) {
+      NcError.badRequest('Cannot insert into synced table');
     }
 
     await this.handleHooks('before.bulkInsert', null, data, req);
@@ -1521,7 +1527,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       return responses.pop()?.rowCount;
     } catch (e) {
-      console.log(e);
       await this.errorDelete(e, id, null, cookie);
       throw e;
     }
@@ -1602,6 +1607,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               ) {
                 NcError.badRequest(
                   `Column "${col.title}" is system column and cannot be updated`,
+                );
+              }
+
+              if (!allowSystemColumn && col.readonly) {
+                NcError.badRequest(
+                  `Column "${col.title}" is readonly column and cannot be updated`,
                 );
               }
 
@@ -2301,12 +2312,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       raw = false,
       throwExceptionIfNotExist = false,
       isSingleRecordUpdation = false,
+      allowSystemColumn = false,
       apiVersion,
     }: {
       cookie?: any;
       raw?: boolean;
       throwExceptionIfNotExist?: boolean;
       isSingleRecordUpdation?: boolean;
+      allowSystemColumn?: boolean;
       apiVersion?: NcApiVersion;
     } = {},
   ) {
@@ -2317,7 +2330,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // validate update data
       if (!raw) {
         for (const d of datas) {
-          await this.validate(d, columns);
+          await this.validate(d, columns, { allowSystemColumn });
         }
       }
 
@@ -2772,6 +2785,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
+      await this.beforeBulkDelete(deleted, this.dbDriver, cookie);
+
       const execQueries: ((
         trx: CustomKnex,
         ids: any[],
@@ -2877,7 +2892,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       return res;
     } catch (e) {
-      console.log(e);
       throw e;
     }
   }

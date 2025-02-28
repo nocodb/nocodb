@@ -25,3 +25,4 @@ export { default as Integration } from './Integration';
 export { default as CustomUrl } from './CustomUrl';
 export { default as Script } from './Script';
 export { default as DataReflection } from './DataReflection';
+export { default as SyncConfig } from './SyncConfig';

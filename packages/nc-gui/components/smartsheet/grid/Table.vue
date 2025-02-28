@@ -247,7 +247,8 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
     isDataReadOnly.value ||
     !ctx ||
     !hasEditPermission.value ||
-    (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))
+    (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col])) ||
+    fields.value[ctx.col].readonly
   )
     return
 
@@ -366,7 +367,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 }
 
 function makeEditable(row: Row, col: ColumnType) {
-  if (!hasEditPermission.value || editEnabled.value || isView || readOnly.value || isSystemColumn(col)) {
+  if (!hasEditPermission.value || editEnabled.value || isView || readOnly.value || isSystemColumn(col) || col.readonly) {
     return
   }
 
@@ -1018,6 +1019,8 @@ async function clearSelectedRangeOfCells() {
 
       // skip readonly columns
       if (isReadonly(col)) continue
+
+      if (col.readonly) continue
 
       row.row[col.title] = null
       props.push(col.title)

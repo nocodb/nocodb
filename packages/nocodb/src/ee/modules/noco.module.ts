@@ -11,6 +11,7 @@ import { InternalController } from '~/controllers/internal.controller';
 
 /* Integrations */
 import { NocoAiModule } from '~/integrations/ai/module/ai.module';
+import { NocoSyncModule } from '~/integrations/sync/module/sync.module';
 
 /* Metas */
 import { OrgWorkspacesService } from '~/services/org-workspaces.service';
@@ -65,7 +66,7 @@ import { ScriptsService } from '~/services/scripts.service';
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 export const nocoModuleEeMetadata = {
-  imports: [...nocoModuleMetadata.imports, NocoAiModule],
+  imports: [...nocoModuleMetadata.imports, NocoAiModule, NocoSyncModule],
   providers: [
     ...nocoModuleMetadata.providers,
 

@@ -9,6 +9,7 @@ import type {
   SourceType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type AuthIntegration from '~/integrations/auth/auth.interface';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -498,5 +499,34 @@ export default class Integration extends IntegrationCE {
     const sources = await qb;
 
     return (this.sources = sources.map((src) => new Source(src)));
+  }
+
+  async authenticateOAuth() {
+    if (this.type !== IntegrationsType.Auth) {
+      return;
+    }
+
+    const config = this.getConfig();
+
+    if (!config?.oauth) {
+      return;
+    }
+
+    const { oauth, ...rest } = config;
+
+    const wrapper = await this.getIntegrationWrapper<AuthIntegration>();
+
+    const exchangedConfig = await wrapper.exchangeToken(oauth);
+
+    await Integration.updateIntegration(
+      { workspace_id: this.fk_workspace_id },
+      this.id,
+      {
+        config: {
+          ...rest,
+          ...exchangedConfig,
+        },
+      },
+    );
   }
 }

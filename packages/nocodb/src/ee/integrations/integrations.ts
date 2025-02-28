@@ -7,6 +7,8 @@ import type { FormDefinition, IntegrationsType } from 'nocodb-sdk';
 import type IntegrationWrapper from '~/integrations/integration.wrapper';
 
 import AiCommonManifest from '~/integrations/ai/ai.manifest';
+import AuthCommonManifest from '~/integrations/auth/auth.manifest';
+import SyncCommonManifest from '~/integrations/sync/sync.manifest';
 
 import AiAmazonBedrockEntry from '~/integrations/ai/amazon-bedrock/entry';
 import AiAmazonBedrockForm from '~/integrations/ai/amazon-bedrock/form';
@@ -35,6 +37,15 @@ import AiOpenaiCompatibleManifest from '~/integrations/ai/openai-compatible/mani
 import AiOpenaiEntry from '~/integrations/ai/openai/entry';
 import AiOpenaiForm from '~/integrations/ai/openai/credentials.form';
 import AiOpenaiManifest from '~/integrations/ai/openai/manifest';
+import AuthGithubEntry from '~/integrations/auth/github/entry';
+import AuthGithubForm from '~/integrations/auth/github/form';
+import AuthGithubManifest from '~/integrations/auth/github/manifest';
+import AuthNocodbEntry from '~/integrations/auth/nocodb/entry';
+import AuthNocodbForm from '~/integrations/auth/nocodb/form';
+import AuthNocodbManifest from '~/integrations/auth/nocodb/manifest';
+import SyncGithubIssuesEntry from '~/integrations/sync/github-issues/entry';
+import SyncGithubIssuesForm from '~/integrations/sync/github-issues/form';
+import SyncGithubIssuesManifest from '~/integrations/sync/github-issues/manifest';
 
 export default [
   {
@@ -125,6 +136,36 @@ export default [
     meta: {
       ...AiCommonManifest,
       ...AiOpenaiManifest,
+    },
+  },
+  {
+    type: 'auth',
+    sub_type: 'github',
+    wrapper: AuthGithubEntry,
+    form: AuthGithubForm,
+    meta: {
+      ...AuthCommonManifest,
+      ...AuthGithubManifest,
+    },
+  },
+  {
+    type: 'auth',
+    sub_type: 'nocodb',
+    wrapper: AuthNocodbEntry,
+    form: AuthNocodbForm,
+    meta: {
+      ...AuthCommonManifest,
+      ...AuthNocodbManifest,
+    },
+  },
+  {
+    type: 'sync',
+    sub_type: 'github-issues',
+    wrapper: SyncGithubIssuesEntry,
+    form: SyncGithubIssuesForm,
+    meta: {
+      ...SyncCommonManifest,
+      ...SyncGithubIssuesManifest,
     },
   },
 ] as {

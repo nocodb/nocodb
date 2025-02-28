@@ -1,5 +1,5 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import type { FormDefinition, IntegrationType, PaginatedType } from 'nocodb-sdk'
+import type { FormDefinition, IntegrationCategoryType, IntegrationType, PaginatedType } from 'nocodb-sdk'
 import { ClientType, IntegrationsType, SyncDataType } from 'nocodb-sdk'
 import { getI18n } from '../../plugins/a.i18n'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
@@ -118,32 +118,20 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     },
   })
 
-  const loadIntegrations = async (
-    databaseOnly = false,
-    baseId: string | undefined = undefined,
-    page: number = integrationPaginationData.value.page!,
-    limit: number = integrationPaginationData.value.pageSize!,
-  ) => {
+  const loadIntegrations = async (type: IntegrationsType | null = null, baseId: string | undefined = undefined) => {
     try {
       if (!activeWorkspaceId.value) return
       isLoadingIntegrations.value = true
 
-      if (!databaseOnly && limit * (page - 1) > integrationPaginationData.value.totalRows!) {
-        integrationPaginationData.value.page = 1
-        page = 1
-      }
-
       const { list, pageInfo } = await api.integration.list(
         activeWorkspaceId.value,
-        databaseOnly
+        type
           ? {
-              type: IntegrationsType.Database,
-              includeDatabaseInfo: true,
+              type,
+              includeDatabaseInfo: type === IntegrationsType.Database,
               baseId,
             }
           : {
-              offset: limit * (page - 1),
-              limit,
               ...(searchQuery.value.trim() ? { query: searchQuery.value } : {}),
             },
       )
@@ -159,8 +147,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         source_count: basesList.value.length,
       })
 
-      if (!databaseOnly) {
-        integrationPaginationData.value.totalRows = (pageInfo.totalRows ?? 0) + 1
+      if (!type) {
+        integrationPaginationData.value.totalRows = list.filter((i) => ![IntegrationsType.Sync].includes(i.type)).length || 0
       }
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
@@ -172,20 +160,27 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     }
   }
 
+  const getIntegrationForm = async (type: IntegrationCategoryType | IntegrationsType, subType: string) => {
+    if (subType in integrationForms) {
+      return integrationForms[subType]
+    }
+
+    const integrationInfo = await $api.integrations.info(type, subType)
+
+    if (integrationInfo?.form) {
+      integrationForms[subType] = integrationInfo.form
+      return integrationInfo.form
+    }
+
+    return null
+  }
+
   const addIntegration = async (integration: IntegrationItemType) => {
     activeIntegration.value = integration.dynamic ? integration : getStaticInitializor(integration.sub_type)
     activeIntegrationItem.value = integration
 
-    if (integration.dynamic === true && !(integration.sub_type in integrationForms)) {
-      const integrationInfo = await $api.integrations.info(integration.type, integration.sub_type)
-
-      if (integrationInfo?.form) {
-        integrationForms[integration.sub_type] = integrationInfo.form
-
-        activeIntegrationItem.value.form = integrationInfo.form
-      }
-    } else if (integration.dynamic === true) {
-      activeIntegrationItem.value.form = integrationForms[integration.sub_type]
+    if (integration.dynamic === true) {
+      activeIntegrationItem.value.form = await getIntegrationForm(integration.type, integration.sub_type)
     }
 
     pageMode.value = IntegrationsPageMode.ADD
@@ -316,7 +311,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         }
       }
 
-      await loadIntegrations(loadDatasourceInfo, baseId)
+      await loadIntegrations(loadDatasourceInfo ? IntegrationsType.Database : null, baseId)
 
       if (mode === 'create') {
         eventBus.emit(IntegrationStoreEvents.INTEGRATION_ADD, response)
@@ -582,6 +577,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     integrationsIconMap,
     listIntegrationByType,
     loadDynamicIntegrations,
+    getIntegrationForm,
   }
 }, 'integrations-store')
 

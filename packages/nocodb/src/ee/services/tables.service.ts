@@ -31,6 +31,7 @@ export class TablesService extends TableServiceCE {
       table: TableReqType;
       user: User | UserType;
       req: NcRequest;
+      synced?: boolean;
       apiVersion?: NcApiVersion;
     },
   ) {

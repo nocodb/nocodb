@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { SourceType } from 'nocodb-sdk'
+import { IntegrationsType, type SourceType } from 'nocodb-sdk'
 import { Form, message } from 'ant-design-vue'
 import { diff } from 'deep-object-diff'
 import {
@@ -313,7 +313,7 @@ onMounted(async () => {
   isLoading.value = true
 
   if (!integrations.value.length) {
-    await loadIntegrations(true, base.value?.id)
+    await loadIntegrations(IntegrationsType.Database, base.value?.id)
   }
 
   if (base.value?.id) {

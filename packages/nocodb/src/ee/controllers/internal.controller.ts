@@ -12,6 +12,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { DataReflectionService } from '~/services/data-reflection.service';
 import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
+import { SyncModuleService } from '~/integrations/sync/module/services/sync.service';
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
@@ -24,6 +25,7 @@ export class InternalController {
     private readonly aclMiddleware: AclMiddleware,
     private readonly dataReflectionService: DataReflectionService,
     private readonly remoteImportService: RemoteImportService,
+    private readonly syncService: SyncModuleService,
   ) {}
 
   async checkAcl(operation: string, req, scope?: string) {
@@ -42,6 +44,8 @@ export class InternalController {
     getDataReflection: 'workspace',
     deleteDataReflection: 'workspace',
     listenRemoteImport: 'workspace',
+    createSyncTable: 'base',
+    triggerSync: 'base',
   };
 
   @Get(['/api/v2/internal/:workspaceId/:baseId'])
@@ -57,6 +61,12 @@ export class InternalController {
     switch (operation) {
       case 'getDataReflection':
         return await this.dataReflectionService.get(workspaceId);
+      case 'listSync':
+        return await this.syncService.listSync(
+          context,
+          req.query.fk_model_id,
+          req,
+        );
       default:
         return NcError.notFound('Operation');
     }
@@ -68,7 +78,7 @@ export class InternalController {
     @Param('workspaceId') workspaceId: string,
     @Param('baseId') baseId: string,
     @Query('operation') operation: string,
-    @Body() body: any,
+    @Body() payload: any,
     @Req() req: NcRequest,
   ) {
     await this.checkAcl(operation, req, this.operationScopes[operation]);
@@ -76,7 +86,6 @@ export class InternalController {
     switch (operation) {
       case 'createDataReflection':
         return await this.dataReflectionService.create(workspaceId);
-
       case 'deleteDataReflection':
         return await this.dataReflectionService.delete(workspaceId);
 
@@ -84,17 +93,40 @@ export class InternalController {
         return await this.remoteImportService.remoteImport(
           context,
           workspaceId,
-          body,
+          payload,
           req,
         );
 
       case 'abortRemoteImport':
         return await this.remoteImportService.abortRemoteImport(
           context,
-          body.secret,
+          payload.secret,
           req,
         );
 
+      case 'createSyncTable':
+        return await this.syncService.createSyncTable(context, payload, req);
+      case 'createSync':
+        return await this.syncService.createSync(context, payload, req);
+      case 'triggerSync':
+        return await this.syncService.triggerSync(
+          context,
+          payload.syncConfigId,
+          req,
+        );
+      case 'updateSync':
+        return await this.syncService.updateSync(
+          context,
+          payload.syncConfigId,
+          payload,
+          req,
+        );
+      case 'deleteSync':
+        return await this.syncService.deleteSync(
+          context,
+          payload.syncConfigId,
+          req,
+        );
       default:
         return NcError.notFound('Operation');
     }

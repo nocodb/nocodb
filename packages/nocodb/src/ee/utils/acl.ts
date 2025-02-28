@@ -252,6 +252,9 @@ const permissionScopes = {
     'editOrCreateScript',
     'listScripts',
     'baseSchema',
+
+    'createSyncTable',
+    'triggerSync',
   ],
 };
 
@@ -496,6 +499,9 @@ const rolePermissions:
       // Scripts
       listScripts: true,
       baseSchema: true,
+
+      // Sync
+      triggerSync: true,
     },
   },
   [ProjectRoles.CREATOR]: {

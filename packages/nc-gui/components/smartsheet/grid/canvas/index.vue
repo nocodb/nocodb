@@ -854,7 +854,7 @@ async function handleMouseUp(e: MouseEvent) {
 
       // If user is clicking on an existing column
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
-      const isFieldNotEditable = isLocked.value || !isUIAllowed('fieldEdit')
+      const isFieldNotEditable = isLocked.value || !isUIAllowed('fieldEdit') || clickedColumn.columnObj?.readonly
       if (clickedColumn) {
         if (clickType === MouseClickType.RIGHT_CLICK) {
           if (isFieldNotEditable) return
@@ -1121,13 +1121,21 @@ const getHeaderTooltipRegions = (
 
     let rightOffset = xOffset + width - rightPadding - (isFieldEditAllowed.value ? 16 : 0)
 
-    if (isFieldEditAllowed.value) {
+    if (isFieldEditAllowed.value && !column.columnObj?.readonly) {
       regions.push({
         x: rightOffset - scrollLeftValue,
         width: 14,
         type: 'columnChevron',
         disableTooltip: true,
         text: null,
+      })
+    } else if (meta.value.synced && column.columnObj?.readonly) {
+      regions.push({
+        x: rightOffset - scrollLeftValue,
+        width: 14,
+        type: 'synced',
+        disableTooltip: false,
+        text: 'This field is synced',
       })
     }
 
@@ -1439,7 +1447,8 @@ function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnT
   if (
     isUIAllowed('fieldEdit') &&
     !isMobileMode.value &&
-    (isDescription ? true : !isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.uidt))
+    (isDescription ? true : !isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.uidt)) &&
+    !column.readonly
   ) {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (isDescription) {

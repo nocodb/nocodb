@@ -333,6 +333,7 @@ export class MetaService {
       [MetaTable.COL_BUTTON]: 'btn',
       [MetaTable.SNAPSHOT]: 'snap',
       [MetaTable.SCRIPTS]: 'scr',
+      [MetaTable.SYNC_CONFIGS]: 'sync',
     };
 
     const prefix = prefixMap[target] || 'nc';

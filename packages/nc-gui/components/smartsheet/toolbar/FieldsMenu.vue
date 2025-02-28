@@ -475,7 +475,7 @@ const showAddLookupDropdown = (field: Field) => {
 }
 
 function conditionalToggleFieldVisibility(field: Field) {
-  if (showAddLookupDropdown(field)) {
+  if (showAddLookupDropdown(field) || isLocked.value) {
     return
   }
 

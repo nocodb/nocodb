@@ -20873,6 +20873,8 @@
         "enum": [
           "database",
           "ai",
+          "auth",
+          "sync",
           "communication",
           "spread-sheet",
           "project-management",

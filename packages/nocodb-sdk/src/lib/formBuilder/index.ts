@@ -4,6 +4,8 @@ export enum FormBuilderInputType {
   Switch = 'switch',
   Space = 'space',
   Password = 'password',
+  SelectIntegration = 'integration',
+  SelectBase = 'select-base',
 }
 
 export interface FormBuilderElement {
@@ -26,6 +28,11 @@ export interface FormBuilderElement {
   options?: { value: string; label: string }[]
   // select mode for the element (if applicable) - default is single
   selectMode?: 'single' | 'multiple' | 'multipleWithInput'
+  // integration type filter for integration element
+  integrationFilter?: {
+    type?: string
+    sub_type?: string
+  }
   // border for the element (if applicable) - default is false
   border?: boolean
   // show hint as tooltip for the element (if applicable) - default is false

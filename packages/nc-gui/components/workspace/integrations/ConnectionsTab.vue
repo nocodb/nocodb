@@ -12,6 +12,7 @@ const {
   integrationPaginationData,
   successConfirmModal,
   searchQuery,
+  loadDynamicIntegrations,
   loadIntegrations,
   deleteIntegration,
   editIntegration,
@@ -113,7 +114,7 @@ async function loadConnections(
       integrationPaginationData.value.page = 1
     }
 
-    await loadIntegrations(undefined, undefined, updateCurrentPage ? 1 : page, limit)
+    await loadIntegrations(null, undefined, updateCurrentPage ? 1 : page, limit)
   } catch {}
 }
 
@@ -243,6 +244,7 @@ useEventListener(tableWrapper, 'scroll', () => {
 })
 
 onMounted(async () => {
+  await loadDynamicIntegrations()
   if (!isEeUI) {
     await Promise.allSettled([!integrations.value.length && loadIntegrations(), loadOrgUsers()])
   } else if (!integrations.value.length) {

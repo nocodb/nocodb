@@ -479,6 +479,8 @@ export enum IntegrationCategoryType {
   TICKETING = 'ticketing',
   STORAGE = 'storage',
   OTHERS = 'others',
+  SYNC = 'sync',
+  AUTH = 'auth',
 }
 
 export enum ViewLockType {

@@ -3,7 +3,11 @@ import { diff } from 'deep-object-diff'
 import type { FormDefinition } from 'nocodb-sdk'
 
 const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
-  (props: { formSchema: FormDefinition; onSubmit?: () => Promise<any>; initialState?: Ref<Record<string, any>> }) => {
+  (props: {
+    formSchema: MaybeRef<FormDefinition | undefined>
+    onSubmit?: () => Promise<any>
+    initialState?: Ref<Record<string, any>>
+  }) => {
     const { formSchema, onSubmit, initialState = ref({}) } = props
 
     const useForm = Form.useForm
@@ -17,7 +21,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     const formElementsCategorized = computed(() => {
       const categorizedItems: Record<string, any> = {}
 
-      for (const item of formSchema || []) {
+      for (const item of unref(formSchema) || []) {
         item.category = item.category || FORM_BUILDER_NON_CATEGORIZED
 
         if (!categorizedItems[item.category]) {
@@ -49,7 +53,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     const defaultFormState = () => {
       const defaultState: Record<string, any> = {}
 
-      for (const field of formSchema || []) {
+      for (const field of unref(formSchema) || []) {
         if (!field.model) continue
 
         if (field.type === FormBuilderInputType.Switch) {
@@ -69,7 +73,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     const validators = computed(() => {
       const validatorsObject: Record<string, any> = {}
 
-      for (const field of formSchema || []) {
+      for (const field of unref(formSchema) || []) {
         if (!field.model) continue
 
         if (field.validators) {
@@ -91,7 +95,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       return validatorsObject
     })
 
-    const { validate, validateInfos } = useForm(formState, validators)
+    const { validate, clearValidate, validateInfos } = useForm(formState, validators)
 
     const submit = async () => {
       try {
@@ -150,21 +154,29 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       { deep: true },
     )
 
-    onMounted(async () => {
-      isLoading.value = true
+    watch(
+      () => unref(formSchema),
+      async () => {
+        isLoading.value = true
 
-      formState.value = {
-        ...defaultFormState(),
-        ...(initialState?.value ?? {}),
-      }
+        formState.value = {
+          ...formState.value,
+          ...defaultFormState(),
+          ...(initialState?.value ?? {}),
+        }
 
-      isLoading.value = false
-    })
+        nextTick(clearValidate)
+
+        isLoading.value = false
+      },
+      { immediate: true },
+    )
 
     return {
       form,
       formState,
       initialState,
+      formSchema,
       formElementsCategorized,
       isLoading,
       isChanged,

@@ -147,6 +147,17 @@ export class BaseUsersService {
             },
             ncMeta,
           );
+
+          await this.sendInviteEmail(
+            {
+              email,
+              token: invite_token,
+              req: param.req,
+              baseName: base.title,
+              roles: param.baseUser.roles || 'editor',
+            },
+            ncMeta,
+          );
         }
 
         this.appHooksService.emit(AppEvents.PROJECT_INVITE, {

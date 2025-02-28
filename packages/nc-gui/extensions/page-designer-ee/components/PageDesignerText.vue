@@ -101,10 +101,10 @@ function getTextualRepresentationForColumn(column: string, record: Record<string
   const colType = columnByTitle.value[column]
   if (!colType || !meta?.value) return raw
 
-  const sqlUi = ref(
-    colType?.source_id && sqlUis.value[colType?.source_id] ? sqlUis.value[colType?.source_id] : Object.values(sqlUis.value)[0],
-  )
-  const abstractType = colType && sqlUi.value.getAbstractType(colType)
+  const sqlUi =
+    colType?.source_id && sqlUis.value[colType?.source_id] ? sqlUis.value[colType?.source_id] : Object.values(sqlUis.value)[0]
+
+  const abstractType = colType && sqlUi.getAbstractType(colType)
 
   const colMeta = parseProp(colType.meta)
   const uidt = colType.uidt as UITypes
@@ -115,7 +115,7 @@ function getTextualRepresentationForColumn(column: string, record: Record<string
   const value = record[column]
   return parsePlainCellValue(value, {
     col: colType,
-    abstractType: abstractType.value,
+    abstractType,
     meta: meta.value,
     metas: metas.value,
     baseUsers: basesUser.value,

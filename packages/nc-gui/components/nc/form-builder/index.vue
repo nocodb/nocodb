@@ -2,15 +2,10 @@
 import { type FormBuilderElement, type IntegrationType } from 'nocodb-sdk'
 import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType, iconMap } from '#imports'
 
-const { form, formState, formSchema, formElementsCategorized, isLoading, validateInfos } = useFormBuilderHelperOrThrow()
+const { form, formState, formSchema, formElementsCategorized, isLoading, validateInfos, deepReference, checkCondition } =
+  useFormBuilderHelperOrThrow()
 
 const { loadIntegrations, integrations, eventBus, pageMode, IntegrationsPageMode } = useProvideIntegrationViewStore()
-
-const basesStore = useBases()
-
-const deepReference = (path: string): any => {
-  return path.split('.').reduce((acc, key) => acc[key], formState.value)
-}
 
 const setFormState = (path: string, value: any) => {
   // update nested prop in formState
@@ -65,13 +60,6 @@ const integrationOptions = computed(() => {
     }))
     return acc
   }, {} as Record<string, { label: string; value: string }[]>)
-})
-
-const baseOptions = computed(() => {
-  return basesStore.basesList.map((base) => ({
-    label: base.title,
-    value: base.id,
-  }))
 })
 
 const activeModel = ref<string | null>(null)
@@ -133,7 +121,7 @@ watch(
                   class="w-full"
                 ></div>
                 <a-form-item
-                  v-else
+                  v-else-if="checkCondition(field.condition)"
                   v-bind="validateInfos[field.model]"
                   class="nc-form-item"
                   :style="`width:${+field.width || 100}%`"
@@ -249,9 +237,16 @@ watch(
                     </NcSelect>
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.SelectBase">
-                    <NcSelect
+                    <NcFormBuilderInputSelectBase
                       :value="deepReference(field.model)"
-                      :options="baseOptions"
+                      @update:value="setFormState(field.model, $event)"
+                    />
+                  </template>
+                  <template v-else-if="field.type === FormBuilderInputType.OAuth">
+                    <NcFormBuilderInputOAuth
+                      :value="deepReference(field.model)"
+                      :element="field"
+                      :have-value="!!deepReference(field.model)"
                       @update:value="setFormState(field.model, $event)"
                     />
                   </template>

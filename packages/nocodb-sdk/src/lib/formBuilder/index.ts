@@ -6,6 +6,7 @@ export enum FormBuilderInputType {
   Password = 'password',
   SelectIntegration = 'integration',
   SelectBase = 'select-base',
+  OAuth = 'oauth',
 }
 
 export interface FormBuilderElement {
@@ -32,6 +33,28 @@ export interface FormBuilderElement {
   integrationFilter?: {
     type?: string
     sub_type?: string
+  }
+  // oauth meta
+  oauthMeta?: {
+    // oauth provider
+    provider: string
+    // oauth auth uri
+    authUri: string
+    // oauth redirect uri
+    redirectUri: string
+    // client id
+    clientId: string
+    // code key (code by default)
+    codeKey?: string
+    // oauth scopes
+    scopes?: string[]
+  }
+  // condition for the element to be visible
+  condition?: {
+    // model path to check for condition
+    model: string
+    // value to check for condition
+    value: string
   }
   // border for the element (if applicable) - default is false
   border?: boolean

@@ -111,6 +111,13 @@ const resolveInput = (row: Row) => {
   vModel.value = row
   isOpen.value = false
 }
+const filterQueryRef = ref<{ input: HTMLInputElement }>()
+whenever(isOpen, () => {
+  if (!isOpen.value) return
+  setTimeout(() => {
+    filterQueryRef.value?.input.focus()
+  }, 300)
+})
 </script>
 
 <template>
@@ -120,7 +127,7 @@ const resolveInput = (row: Row) => {
     :class="`.nc-${randomClass}`"
     :overlay-class-name="`nc-record-picker-dropdown !min-w-[540px] xs:(!min-w-[90vw]) ${isOpen ? 'active' : ''}`"
   >
-    <NcButton type="secondary" size="small" icon-position="right" full-width>
+    <NcButton type="secondary" size="small" icon-position="right" full-width :class="{ 'record-picker-active': isOpen }">
       <span class="truncate text-left">{{ props.label }}</span>
       <template #icon>
         <GeneralIcon :icon="isOpen ? 'arrowUp' : 'arrowDown'" />
@@ -196,5 +203,9 @@ const resolveInput = (row: Row) => {
       @apply text-gray-500;
     }
   }
+}
+.record-picker-active {
+  @apply !border-nc-fill-primary;
+  box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24) !important;
 }
 </style>

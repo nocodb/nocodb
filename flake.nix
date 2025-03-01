@@ -26,7 +26,13 @@
             {
               workflows = pkgs.callPackage ./nix/workflows { inherit self; };
               nocodb = pkgs.callPackage ./nix/package.nix {
-                version = if self ? shortRev then self.shortRev else self.dirtyShortRev;
+                version =
+                  if self ? shortRev then
+                    self.shortRev
+                  else if self ? dirtyShortRev then
+                    self.dirtyShortRev
+                  else
+                    "not-a-gitrepo";
               };
 
               pnpmDeps = self.packages.${system}.nocodb.pnpmDeps;

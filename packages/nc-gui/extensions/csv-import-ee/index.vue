@@ -867,9 +867,9 @@ onMounted(async () => {
       <template v-else-if="importPayload.step === 1">
         <div v-if="fullscreen" class="h-full relative">
           <div class="flex w-full h-full">
-            <div class="h-full w-[420px] flex flex-col gap-6 nc-scrollbar-thin pr-2.5 pl-4 py-4">
-              <div class="flex flex-col gap-3">
-                <div class="text-sm font-weight-700 text-nc-content-gray">Table name</div>
+            <div class="h-full w-[420px] flex flex-col nc-scrollbar-thin border-r border-nc-border-gray-medium">
+              <section>
+                <h1>Table</h1>
                 <a-form-item class="!my-0 w-full">
                   <NcSelect
                     v-model:value="importPayload.tableId"
@@ -903,10 +903,10 @@ onMounted(async () => {
                     </a-select-option>
                   </NcSelect>
                 </a-form-item>
-              </div>
+              </section>
 
-              <div v-if="importPayload.tableId" class="flex flex-col gap-3">
-                <div class="text-sm font-weight-700 text-nc-content-gray">Import Settings</div>
+              <section v-if="importPayload.tableId">
+                <h1>Settings</h1>
 
                 <div class="nc-import-upsert-type">
                   <a-radio-group v-model:value="importPayload.upsert" name="upsert" @change="updateHistory()">
@@ -1011,10 +1011,12 @@ onMounted(async () => {
                     {{ $t('labels.autoCreateMissingSelectionOptions') }}
                   </NcCheckbox>
                 </div>
-              </div>
+              </section>
             </div>
 
-            <div class="flex flex-col w-[calc(100%_-_420px)] gap-3 overflow-auto h-full pl-2.5 pr-4 py-4">
+            <div
+              class="flex flex-col w-[calc(100%_-_420px)] gap-3 overflow-auto h-full pl-2.5 pr-4 py-4 bg-nc-bg-gray-extralight"
+            >
               <div class="flex items-center justify-between gap-3">
                 <div class="text-sm font-weight-700 text-nc-content-gray">Select destination fields</div>
                 <div>
@@ -1028,6 +1030,7 @@ onMounted(async () => {
                 :columns="fieldMappingColumns"
                 :data="importPayload.importColumns"
                 class="flex-1"
+                :bordered="false"
                 header-row-height="40px"
                 row-height="48px"
               >
@@ -1251,6 +1254,29 @@ onMounted(async () => {
   .nc-csv-upload-wrapper {
     & > span {
       @apply flex-1;
+    }
+  }
+  section {
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-bottom: 1px solid var(--nc-border-grey-medium, #e7e7e9);
+    h1 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+  }
+  .nc-import-upsert-type .ant-radio-group {
+    gap: 0;
+    > :first-child {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    > :last-child {
+      border-top: 0;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
     }
   }
 }

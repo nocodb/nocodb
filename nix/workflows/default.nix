@@ -1,7 +1,9 @@
 {
   callPackage,
   lib,
+  self,
 }:
-lib.attrsets.mapAttrs (key: _: callPackage ./${key} { }) (
-  lib.attrsets.filterAttrs (key: _: key != "default.nix") (builtins.readDir ./.)
-)
+{
+  aiopusher = callPackage ./aiopusher { inherit self; };
+  bumper = callPackage ./bumper { };
+}

@@ -24,7 +24,7 @@
           (forUnixSystems (
             { system, pkgs }:
             {
-              workflows = pkgs.callPackage ./nix/workflows { };
+              workflows = pkgs.callPackage ./nix/workflows { inherit self; };
               nocodb = pkgs.callPackage ./nix/package.nix {
                 version = if self ? shortRev then self.shortRev else self.dirtyShortRev;
               };

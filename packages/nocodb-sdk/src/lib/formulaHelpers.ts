@@ -1,6 +1,13 @@
 import jsep from 'jsep';
 
-import { ColumnType, LinkToAnotherRecordType, RollupType } from './Api';
+import {
+  ColumnType,
+  FormulaType,
+  LinkToAnotherRecordType,
+  LookupType,
+  RollupType,
+  TableType,
+} from './Api';
 import UITypes from './UITypes';
 import dayjs from 'dayjs';
 import { MssqlUi, MysqlUi, PgUi, SnowflakeUi, SqlUiFactory } from './sqlUi';
@@ -8,7 +15,15 @@ import { dateFormats } from './dateTimeHelper';
 
 export const StringOperators = ['||', '&'] as const;
 export const ArithmeticOperators = ['+', '-', '*', '/'] as const;
-export const ComparisonOperators = ['==', '=', '<', '>', '<=', '>=', '!='] as const;
+export const ComparisonOperators = [
+  '==',
+  '=',
+  '<',
+  '>',
+  '<=',
+  '>=',
+  '!=',
+] as const;
 export type ArithmeticOperator = (typeof ArithmeticOperators)[number];
 export type ComparisonOperator = (typeof ComparisonOperators)[number];
 export type StringOperator = (typeof StringOperators)[number];
@@ -18,12 +33,14 @@ export type BaseFormulaNode = {
   cast?: FormulaDataTypes;
   errors?: Set<string>;
 };
+
 export interface BinaryExpressionNode extends BaseFormulaNode {
   operator: ArithmeticOperator | ComparisonOperator | StringOperator;
   type: JSEPNode.BINARY_EXP;
   right: ParsedFormulaNode;
   left: ParsedFormulaNode;
 }
+
 export interface CallExpressionNode extends BaseFormulaNode {
   type: JSEPNode.CALL_EXP;
   arguments: ParsedFormulaNode[];
@@ -32,30 +49,37 @@ export interface CallExpressionNode extends BaseFormulaNode {
     name: string;
   };
 }
+
 export interface IdentifierNode extends BaseFormulaNode {
   type: JSEPNode.IDENTIFIER;
   name: string;
   raw: string;
 }
+
 export interface LiteralNode extends BaseFormulaNode {
   type: JSEPNode.LITERAL;
   value: string | number;
   raw: string;
 }
+
 export interface UnaryExpressionNode extends BaseFormulaNode {
   type: JSEPNode.UNARY_EXP;
   operator: string;
   argument: ParsedFormulaNode;
 }
+
 export interface ArrayExpressionNode extends BaseFormulaNode {
   type: JSEPNode.ARRAY_EXP;
 }
+
 export interface MemberExpressionNode extends BaseFormulaNode {
   type: JSEPNode.MEMBER_EXP;
 }
+
 export interface CompoundNode extends BaseFormulaNode {
   type: JSEPNode.COMPOUND;
 }
+
 export type ParsedFormulaNode =
   | BinaryExpressionNode
   | CallExpressionNode
@@ -1550,20 +1574,7 @@ async function extractColumnIdentifierType({
   col: Record<string, any>;
   columns: ColumnType[];
   getMeta: (tableId: string) => Promise<any>;
-  clientOrSqlUi:
-    | 'mysql'
-    | 'pg'
-    | 'sqlite3'
-    | 'mssql'
-    | 'mysql2'
-    | 'oracledb'
-    | 'mariadb'
-    | 'sqlite'
-    | 'snowflake'
-    | typeof MysqlUi
-    | typeof MssqlUi
-    | typeof SnowflakeUi
-    | typeof PgUi;
+  clientOrSqlUi: any;
 }) {
   const res: {
     dataType?: FormulaDataTypes;
@@ -1735,6 +1746,7 @@ export async function validateFormulaAndExtractTreeWithType({
   column?: ColumnType;
   getMeta: (tableId: string) => Promise<any>;
 }): Promise<ParsedFormulaNode> {
+  let circulaRefValidated = false;
   const sqlUI =
     typeof clientOrSqlUi === 'string'
       ? SqlUiFactory.create({ client: clientOrSqlUi })
@@ -1914,29 +1926,41 @@ export async function validateFormulaAndExtractTreeWithType({
         res.dataType = formulas[calleeName].returnType as FormulaDataTypes;
       }
     } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
-      const col = (colIdToColMap[parsedTree.name] ||
-        colAliasToColMap[parsedTree.name]) as Record<string, any>;
+      const col = (colIdToColMap[(parsedTree as IdentifierNode).name] ||
+        colAliasToColMap[(parsedTree as IdentifierNode).name]) as Record<
+        string,
+        any
+      >;
 
       if (!col) {
         throw new FormulaError(
           FormulaErrorType.INVALID_COLUMN,
           {
             key: 'msg.formula.columnNotAvailable',
-            columnName: parsedTree.name,
+            columnName: (parsedTree as IdentifierNode).name,
           },
-          `Invalid column name/id ${JSON.stringify(parsedTree.name)} in formula`
+          `Invalid column name/id ${JSON.stringify(
+            (parsedTree as IdentifierNode).name
+          )} in formula`
         );
       }
 
       (res as IdentifierNode).name = col.id;
 
       if (col?.uidt === UITypes.Formula) {
-        if (column) {
+        if (column && !circulaRefValidated) {
           // check for circular reference when column is present(only available when calling root formula)
-          checkForCircularFormulaRef(column, parsedTree, columns);
+          await checkForCircularFormulaRef(
+            column,
+            parsedTree,
+            columns,
+            getMeta,
+            sqlUI
+          );
+          circulaRefValidated = true;
         }
         const formulaRes =
-          col.colOptions?.parsed_tree ||
+          (col.colOptions as FormulaType).parsed_tree ||
           (await validateFormulaAndExtractTreeWithType(
             // formula may include double curly brackets in previous version
             // convert to single curly bracket here for compatibility
@@ -1952,6 +1976,23 @@ export async function validateFormulaAndExtractTreeWithType({
 
         res.dataType = (formulaRes as any)?.dataType;
       } else {
+        if (
+          col?.uidt === UITypes.Lookup ||
+          col?.uidt === UITypes.LinkToAnotherRecord
+        ) {
+          // check for circular reference when column is present(only available when calling root formula)
+          if (column && !circulaRefValidated) {
+            await checkForCircularFormulaRef(
+              column,
+              parsedTree,
+              columns,
+              getMeta,
+              sqlUI
+            );
+            circulaRefValidated = true;
+          }
+        }
+
         // extract type and add to res
         Object.assign(
           res,
@@ -2033,7 +2074,7 @@ export async function validateFormulaAndExtractTreeWithType({
         ) {
           res.dataType = FormulaDataTypes.STRING;
         }
-      } else if(['&'].includes(parsedTree.operator)) {
+      } else if (['&'].includes(parsedTree.operator)) {
         res.dataType = FormulaDataTypes.STRING;
       } else {
         res.dataType = FormulaDataTypes.NUMERIC;
@@ -2245,16 +2286,32 @@ function handleBinaryExpressionForDateAndTime(params: {
   return res;
 }
 
-function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
-  // check circular reference
-  // e.g. formula1 -> formula2 -> formula1 should return circular reference error
+async function checkForCircularFormulaRef(
+  formulaCol: ColumnType,
+  parsedTree: ParsedFormulaNode,
+  columns: ColumnType[],
+  getMeta: (tableId: string) => Promise<TableType>,
+  sqlUI,
+  visited = new Set()
+) {
+  // Check if the current column has already been visited
+  if (visited.has(formulaCol.id)) {
+    throw new FormulaError(
+      FormulaErrorType.CIRCULAR_REFERENCE,
+      {
+        key: 'msg.formula.cantSaveCircularReference',
+      },
+      'Circular reference detected'
+    );
+  }
 
-  // get all formula columns excluding itself
+  // Mark the current column as visited
+  visited.add(formulaCol.id);
+
+  // Get all formula columns excluding itself
   const formulaPaths = columns
     .filter((c) => c.id !== formulaCol?.id && c.uidt === UITypes.Formula)
     .reduce((res: Record<string, any>[], c: Record<string, any>) => {
-      // in `formula`, get all the (unique) target neighbours
-      // i.e. all column id (e.g. cxxxxxxxxxxxxxx) with formula type
       const neighbours = [
         ...new Set(
           (c.colOptions.formula.match(/c_?\w{14,15}/g) || []).filter(
@@ -2267,15 +2324,16 @@ function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
         ),
       ];
       if (neighbours.length > 0) {
-        // e.g. formula column 1 -> [formula column 2, formula column3]
         res.push({ [c.id]: neighbours });
       }
       return res;
     }, []);
 
-  // include target formula column (i.e. the one to be saved if applicable)
+  // Include target formula column (i.e. the one to be saved if applicable)
   const targetFormulaCol = columns.find(
-    (c: ColumnType) => c.title === parsedTree.name && c.uidt === UITypes.Formula
+    (c: ColumnType) =>
+      c.title === (parsedTree as IdentifierNode).name &&
+      c.uidt === UITypes.Formula
   );
 
   if (targetFormulaCol && formulaCol?.id) {
@@ -2283,12 +2341,12 @@ function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
       [formulaCol?.id as string]: [targetFormulaCol.id],
     });
   }
+
   const vertices = formulaPaths.length;
   if (vertices > 0) {
-    // perform kahn's algo for cycle detection
+    // Perform Kahn's algorithm for cycle detection
     const adj = new Map();
     const inDegrees = new Map();
-    // init adjacency list & indegree
 
     for (const [_, v] of Object.entries(formulaPaths)) {
       const src = Object.keys(v)[0];
@@ -2299,38 +2357,30 @@ function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
         inDegrees.set(neighbour, (inDegrees.get(neighbour) || 0) + 1);
       }
     }
+
     const queue: string[] = [];
-    // put all vertices with in-degree = 0 (i.e. no incoming edges) to queue
     inDegrees.forEach((inDegree, col) => {
       if (inDegree === 0) {
-        // in-degree = 0 means we start traversing from this node
         queue.push(col);
       }
     });
-    // init count of visited vertices
-    let visited = 0;
-    // BFS
+
+    let visitedCount = 0;
     while (queue.length !== 0) {
-      // remove a vertex from the queue
       const src = queue.shift();
-      // if this node has neighbours, increase visited by 1
       const neighbours = adj.get(src) || new Set();
       if (neighbours.size > 0) {
-        visited += 1;
+        visitedCount += 1;
       }
-      // iterate each neighbouring nodes
       neighbours.forEach((neighbour: string) => {
-        // decrease in-degree of its neighbours by 1
         inDegrees.set(neighbour, inDegrees.get(neighbour) - 1);
-        // if in-degree becomes 0
         if (inDegrees.get(neighbour) === 0) {
-          // then put the neighboring node to the queue
           queue.push(neighbour);
         }
       });
     }
-    // vertices not same as visited = cycle found
-    if (vertices !== visited) {
+
+    if (vertices !== visitedCount) {
       throw new FormulaError(
         FormulaErrorType.CIRCULAR_REFERENCE,
         {
@@ -2340,4 +2390,77 @@ function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
       );
     }
   }
+
+  // Check for nested formulas in the current formula column
+  const checkNestedFormulas = async (
+    col: ColumnType,
+    tableColumns = columns
+  ) => {
+    if (col.uidt === UITypes.Formula) {
+      const nestedFormula =
+        (col.colOptions as FormulaType).parsed_tree ||
+        (await validateFormulaAndExtractTreeWithType(
+          // formula may include double curly brackets in previous version
+          // convert to single curly bracket here for compatibility
+          {
+            formula: (col.colOptions as FormulaType).formula
+              .replace(/\{\{/g, '{')
+              .replace(/\}\}/g, '}'),
+            columns,
+            clientOrSqlUi: sqlUI,
+            getMeta,
+          }
+        ));
+      if (nestedFormula) {
+        await checkForCircularFormulaRef(
+          col,
+          nestedFormula,
+          tableColumns,
+          getMeta,
+          sqlUI,
+          visited
+        );
+      }
+    } else if (col.uidt === UITypes.Lookup) {
+      // For Lookup, get the LinkToAnotherRecord column
+      const linkToAnotherRecordCol = tableColumns.find(
+        (c) => c.id === (col.colOptions as LookupType).fk_relation_column_id
+      );
+
+      if (linkToAnotherRecordCol) {
+        // Fetch the columns of the referenced table
+        const refTableMeta = await getMeta(
+          (linkToAnotherRecordCol!.colOptions as LinkToAnotherRecordType)!
+            .fk_related_model_id!
+        );
+        const refTableColumns = refTableMeta.columns;
+
+        const displayValuCol = refTableColumns.find((c) => c.pv);
+        if (displayValuCol)
+          // Check nested formulas with the display value column of the referenced table
+          await checkNestedFormulas(displayValuCol, refTableColumns);
+      }
+    } else if (col.uidt === UITypes.LinkToAnotherRecord) {
+      const relatedFormulaCol = tableColumns.find(
+        (c) =>
+          c.id ===
+          (col.colOptions as LinkToAnotherRecordType).fk_related_model_id
+      );
+
+      if (relatedFormulaCol) {
+        // Fetch the columns of the referenced table
+        const refTableMeta = await getMeta(
+          (relatedFormulaCol!.colOptions as LinkToAnotherRecordType)!
+            .fk_related_model_id
+        );
+        const refTableColumns = refTableMeta.columns;
+
+        // Check nested formulas with the columns of the referenced table
+        await checkNestedFormulas(relatedFormulaCol, refTableColumns);
+      }
+    }
+  };
+
+  // Start checking for nested formulas
+  await checkNestedFormulas(formulaCol);
 }

@@ -1,10 +1,12 @@
-import { FilterType } from '~/lib/Api';
+import { ColumnType, FilterType } from '~/lib/Api';
 export {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
   GROUPBY_COMPARISON_OPS,
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from '~/lib/parser/queryFilter/query-filter-lexer';
+import { extractFilterFromXwhere as parserExtract } from './filterHelpers_withparser';
+import { extractFilterFromXwhere as oldExtract } from './filterHelpers_old';
 
 /**
  * Converts a flat array of filter objects into a nested tree structure
@@ -48,4 +50,14 @@ export function buildFilterTree(items: FilterType[]) {
   return rootItems;
 }
 
-export { extractFilterFromXwhere } from './filterHelpers_withparser';
+export function extractFilterFromXwhere(
+  str: string | string[],
+  aliasColObjMap: { [columnAlias: string]: ColumnType },
+  throwErrorIfInvalid = false
+): FilterType[] {
+  if (typeof str === 'string' && str.startsWith('@2')) {
+    return parserExtract(str.substring(2), aliasColObjMap, throwErrorIfInvalid);
+  } else {
+    return oldExtract(str, aliasColObjMap, throwErrorIfInvalid);
+  }
+}

@@ -104,24 +104,8 @@ export const testExtractFilterFromXwhere = (
           expect(result[0].value).toBeUndefined();
         }
       });
-      it('will parse comma value', async () => {
-        const query = '(Title,eq,Istanbul, India)';
-        const columnAlias: Record<string, ColumnType> = {
-          Title: {
-            id: 'field1',
-            column_name: 'col1',
-            title: 'Title',
-            uidt: UITypes.SingleLineText,
-          },
-        };
-
-        const result = extractFilterFromXwhere(query, columnAlias);
-        expect(result.length).toBe(1);
-        expect(result[0].comparison_op).toBe('eq');
-        expect(result[0].value).toBe('Istanbul, India');
-      });
       it('will parse value with sub operator', async () => {
-        const query = '(Title,eq,oneWeekAgo, India)';
+        const query = '(Title,eq,oneWeekAgo India)';
         const columnAlias: Record<string, ColumnType> = {
           Title: {
             id: 'field1',
@@ -134,7 +118,7 @@ export const testExtractFilterFromXwhere = (
         const result = extractFilterFromXwhere(query, columnAlias);
         expect(result.length).toBe(1);
         expect(result[0].comparison_op).toBe('eq');
-        expect(result[0].value).toBe('oneWeekAgo, India');
+        expect(result[0].value).toBe('oneWeekAgo India');
       });
 
       describe('datetime', () => {
@@ -211,9 +195,77 @@ export const testExtractFilterFromXwhere = (
       describe('json', () => {
         // JSON cannot have filter atm
       });
-
-      describe('', () => {});
     });
   });
 };
 testExtractFilterFromXwhere('filterHelpers_old', extractFilterFromXwhere);
+
+describe('filterHelpers_old_specific', () => {
+  describe('extractFilterFromXwhere', () => {
+    it('will parse comma value', async () => {
+      const query = '(Title,eq,Istanbul, India)';
+      const columnAlias: Record<string, ColumnType> = {
+        Title: {
+          id: 'field1',
+          column_name: 'col1',
+          title: 'Title',
+          uidt: UITypes.SingleLineText,
+        },
+      };
+
+      const result = extractFilterFromXwhere(query, columnAlias);
+      expect(result.length).toBe(1);
+      expect(result[0].comparison_op).toBe('eq');
+      expect(result[0].value).toBe('Istanbul, India');
+    });
+    describe('logical', () => {
+      it('will parse basic logical query', () => {
+        // isWithin need to have specific suboperator :|
+        const query = '(Date,isWithin,pastMonth)~and(Name,like,Hello)';
+        const columnAlias: Record<string, ColumnType> = {
+          Date: {
+            id: 'field1',
+            column_name: 'col1',
+            title: 'Date',
+            uidt: UITypes.DateTime,
+          },
+          Name: {
+            id: 'field2',
+            column_name: 'col2',
+            title: 'Name',
+            uidt: UITypes.SingleLineText,
+          },
+        };
+
+        const result = extractFilterFromXwhere(query, columnAlias);
+        expect(result).toBeDefined();
+        expect(result.length).toBe(2);
+        expect(result[1].logical_op).toBe('and');
+      });
+      it('will parse nested logical query', () => {
+        // isWithin need to have specific suboperator :|
+        const query =
+          '(Date,isWithin,pastMonth)~or((Name,like,Hello)~and(Name,like,World))';
+        const columnAlias: Record<string, ColumnType> = {
+          Date: {
+            id: 'field1',
+            column_name: 'col1',
+            title: 'Date',
+            uidt: UITypes.DateTime,
+          },
+          Name: {
+            id: 'field2',
+            column_name: 'col2',
+            title: 'Name',
+            uidt: UITypes.SingleLineText,
+          },
+        };
+
+        const result = extractFilterFromXwhere(query, columnAlias);
+        expect(result).toBeDefined();
+        expect(result.length).toBe(2);
+        expect(result[1].logical_op).toBe('or');
+      });
+    });
+  });
+});

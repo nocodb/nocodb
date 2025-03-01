@@ -112,7 +112,7 @@
     "content-disposition": "^0.5.4",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "cron-schedule": "^3.0.6",
+    "cron-parser": "^5.0.4",
     "crypto-js": "^4.2.0",
     "dataloader": "^2.2.3",
     "dayjs": "^1.11.13",

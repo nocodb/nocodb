@@ -56,7 +56,7 @@ export function extractFilterFromXwhere(
   throwErrorIfInvalid = false
 ): FilterType[] {
   if (typeof str === 'string' && str.startsWith('@')) {
-    return parserExtract(str.substring(2), aliasColObjMap, throwErrorIfInvalid);
+    return parserExtract(str.substring(1), aliasColObjMap, throwErrorIfInvalid);
   } else {
     return oldExtract(str, aliasColObjMap, throwErrorIfInvalid);
   }

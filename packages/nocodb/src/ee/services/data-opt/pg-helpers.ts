@@ -307,7 +307,9 @@ export async function extractColumn({
                 : await View.getDefaultView(context, parentBaseModel.model.id);
               const relatedSorts = await view.getSorts(context);
               // apply sorts on nested query
-              if (relatedSorts)
+              if (sorts && sorts.length > 0) {
+                await sortV2(baseModel, sorts, mmQb, alias2);
+              } else if (relatedSorts && relatedSorts.length > 0)
                 await sortV2(parentBaseModel, relatedSorts, mmQb, alias2);
 
               const mmAggQb = knex(mmQb.as(alias5));
@@ -577,8 +579,12 @@ export async function extractColumn({
                 ? await View.get(context, relationColOpts.fk_target_view_id)
                 : await View.getDefaultView(context, childModel.id);
               const childSorts = await view.getSorts(context);
+
               // apply sorts on nested query
-              if (childSorts) await sortV2(childBaseModel, childSorts, hmQb);
+              if (sorts && sorts.length > 0) {
+                await sortV2(baseModel, sorts, hmQb, alias2);
+              } else if (childSorts && childSorts.length > 0)
+                await sortV2(childBaseModel, childSorts, hmQb);
 
               const hmAggQb = knex(hmQb.as(alias3));
               await extractColumns({

@@ -698,6 +698,7 @@ export class ColumnsService {
                 },
               });
             }
+            await View.clearSingleQueryCache(context, column.fk_model_id, null);
 
             // check alias value present in colBody
             if (
@@ -1780,7 +1781,6 @@ export class ColumnsService {
     if (param.apiVersion === NcApiVersion.V3) {
       return column;
     }
-
     return table;
   }
 

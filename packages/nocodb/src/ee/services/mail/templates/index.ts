@@ -1,5 +1,5 @@
 import Welcome from './Welcome';
-import Mention from './Mention';
-import MentionRow from './MentionRow';
+import MentionRow from './mention-row';
+import Mention from './mention-comment';
 
 export { Mention, Welcome, MentionRow };

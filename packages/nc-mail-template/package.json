@@ -1,0 +1,24 @@
+{
+  "name": "react-email-starter",
+  "version": "0.1.9",
+  "private": true,
+  "scripts": {
+    "build": "tsx ./index.ts",
+    "dev": "email dev",
+    "export": "email export",
+    "generate": "pnpm build && scripts/move_templates.sh"
+  },
+  "dependencies": {
+    "@react-email/components": "0.0.33",
+    "html-entities-decoder": "^1.0.5",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  },
+  "devDependencies": {
+    "@types/html-entities-decoder": "^1.0.2",
+    "@types/react": "19.0.1",
+    "@types/react-dom": "19.0.1",
+    "react-email": "3.0.7",
+    "tsx": "^4.10.4"
+  }
+}

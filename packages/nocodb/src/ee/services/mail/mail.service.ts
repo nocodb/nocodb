@@ -10,15 +10,11 @@ import type {
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { extractMentions } from '~/utils/richTextHelper';
-import { DatasService } from '~/services/datas.service';
-import { Base, BaseUser, Column, Workspace } from '~/models';
+import { Base, BaseUser, Workspace } from '~/models';
 
 @Injectable()
 export class MailService implements OnModuleInit, OnModuleDestroy {
-  constructor(
-    protected readonly appHooks: AppHooksService,
-    private readonly datasService: DatasService,
-  ) {}
+  constructor(protected readonly appHooks: AppHooksService) {}
 
   async getAdapter() {
     try {
@@ -73,22 +69,7 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
         const mentions = extractMentions(comment.comment);
 
         if (mentions && mentions.length) {
-          const row = await this.datasService.dataRead(req.context, {
-            rowId: rowId,
-            baseName: base.id,
-            tableName: table.id,
-            query: {},
-          });
-
-          const cols = await Column.list(req.context, {
-            fk_model_id: table.id,
-          });
-
           const ws = await Workspace.get(base.fk_workspace_id);
-
-          const pvc = cols.find((c) => c.pv);
-
-          const displayValue = row[pvc?.title ?? ''] ?? '';
 
           const baseUsers = await BaseUser.getUsersList(req.context, {
             base_id: base.id,
@@ -104,15 +85,17 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
               to: mentionedUser.email,
               subject: `New comment on ${table.title}`,
               html: ejs.render(Mention, {
-                name: user.display_name ?? user.email,
-                display_name: displayValue ?? '',
-                table: table.title,
-                base: base.title,
-                url: `${(req as any).ncSiteUrl}${(req as any).dashboardUrl}#/${
+                name:
+                  user.display_name ??
+                  user.email.split('@')[0]?.toLocaleUpperCase(),
+                email: user.email,
+                link: `${(req as any).ncSiteUrl}${(req as any).dashboardUrl}#/${
                   ws.id
                 }/${base.id}/${table.id}?rowId=${rowId}&commentId=${
                   comment.id
                 }`,
+                workspaceTitle: ws.title,
+                baseTitle: base.title,
               }),
             });
           }
@@ -132,22 +115,7 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
 
         const base = await Base.get(req.context, table.base_id);
 
-        const row = await this.datasService.dataRead(req.context, {
-          rowId: rowId,
-          baseName: base.id,
-          tableName: table.id,
-          query: {},
-        });
-
-        const cols = await Column.list(req.context, {
-          fk_model_id: table.id,
-        });
-
         const ws = await Workspace.get(base.fk_workspace_id);
-
-        const pvc = cols.find((c) => c.pv);
-
-        const displayValue = row[pvc?.title ?? ''] ?? '';
 
         const baseUsers = await BaseUser.getUsersList(req.context, {
           base_id: base.id,
@@ -163,11 +131,14 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
             to: mentionedUser.email,
             subject: `You have been mentioned on ${table.title}`,
             html: ejs.render(MentionRow, {
-              name: user.display_name ?? user.email,
-              display_name: displayValue ?? '',
-              table: table.title,
-              base: base.title,
-              url: `${(req as any).ncSiteUrl}${(req as any).dashboardUrl}#/${
+              name:
+                user.display_name ??
+                user.email.split('@')[0].toLocaleUpperCase(),
+              email: user.email,
+              tableTitle: table.title,
+              baseTitle: base.title,
+              workspaceTitle: ws.title,
+              link: `${(req as any).ncSiteUrl}${(req as any).dashboardUrl}#/${
                 ws.id
               }/${base.id}/${table.id}?rowId=${rowId}&columnId=${column.id}`,
             }),

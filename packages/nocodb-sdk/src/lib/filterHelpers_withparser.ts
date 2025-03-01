@@ -113,7 +113,7 @@ function innerExtractFilterFromXwhere(
     (parseResult.lexErrors.length > 0 || parseResult.parseErrors.length > 0) &&
     throwErrorIfInvalid
   ) {
-    throw parseResult.lexErrors[0] ?? parseResult.parseErrors[0];
+    throw new NcSDKError('INVALID_FILTER');
   }
   const filterSubType = parseResult.parsedCst;
   return [

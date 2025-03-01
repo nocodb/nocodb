@@ -1,4 +1,3 @@
-import { NcSDKError } from '~/lib/errorUtils';
 import {
   parseVariableAsArray,
   parseVariableAsString,
@@ -147,7 +146,7 @@ export const parseCallExpression = (
     const variables = parseExpressionArguments(
       cst.children.expression_arguments[0]
     );
-    result.value = variables?.join(',');
+    result.value = variables;
   }
   handleBlankOperator(result);
   handleInOperator(result);
@@ -158,10 +157,10 @@ export const parseCallExpression = (
 const handleBlankOperator = (filter: FilterClauseSubType) => {
   switch (filter.comparison_op) {
     case 'is':
-      if (filter.value === 'blank') {
+      if (filter.value?.[0] === 'blank') {
         filter.comparison_op = 'blank';
         filter.value = undefined;
-      } else if (filter.value === 'notblank') {
+      } else if (filter.value?.[0] === 'notblank') {
         filter.comparison_op = 'notblank';
         filter.value = undefined;
       }
@@ -213,15 +212,12 @@ const handleOperatorAndValue = (filter: FilterClauseSubType) => {
       'le',
       'isnot',
       'is',
+      'gb_eq',
     ].includes(filter.comparison_op)
   ) {
-    throw new NcSDKError('Value not valid for selected operator');
-  } else if (
-    Array.isArray(filter.value) &&
-    ['gb_eq'].includes(filter.comparison_op)
-  ) {
-    filter.value = filter.value.join(',');
-  } // for equality, replace with empty string if value is undefined
+    filter.value = filter.value.filter((k) => k).join(',');
+  }
+  // for equality, replace with empty string if value is undefined
   else if (
     filter.value === undefined &&
     ['eq', 'neq', 'gb_eq'].includes(filter.comparison_op)

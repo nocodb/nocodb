@@ -138,7 +138,7 @@ describe('query-filter-parser', () => {
           comparison_op: 'isWithin',
           logical_op: 'not',
           comparison_sub_op: undefined,
-          value: 'nextNumberOfDays,10',
+          value: ['nextNumberOfDays', '10'],
         },
         {
           is_group: true,

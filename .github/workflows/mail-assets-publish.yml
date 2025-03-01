@@ -14,3 +14,21 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Check for file changes
+        id: changed-files
+        run: |
+          echo "::set-output name=any_changed::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep "packages/nc-mail-template/emails/static/" | wc -l)"
+
+      - name: Sync files to S3
+        if: steps.changed-files.outputs.any_changed != '0'
+        run: |
+          aws s3 sync packages/nc-mail-template/emails/static/ s3://${{ secrets.S3_BUCKET_NAME }}/emails/v2/ --delete
+          echo "Successfully synced email template files to S3://${{ secrets.S3_BUCKET_NAME }}/emails/v2/"

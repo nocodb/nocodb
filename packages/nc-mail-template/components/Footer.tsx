@@ -14,7 +14,7 @@ export const Footer = () => {
           <Column>
             <Link href="https://github.com/nocodb" target="_blank">
               <Img alt="Github"
-                   src={`${baseUrl}/static/social/github.png`}
+                   src={`${baseUrl}/social/github.png`}
                    height={32}
                    width={32}
               />
@@ -24,7 +24,7 @@ export const Footer = () => {
             <Link href="https://twitter.com/nocodb" target="_blank">
 
               <Img alt="X"
-                   src={`${baseUrl}/static/social/x.png`}
+                   src={`${baseUrl}/social/x.png`}
                    height={32}
                    width={32} />
             </Link>
@@ -35,14 +35,14 @@ export const Footer = () => {
               <Img alt="Youtube"
                    height={32}
                    width={32}
-                   src={`${baseUrl}/static/social/youtube.png`}
+                   src={`${baseUrl}/social/youtube.png`}
               />
             </Link>
           </Column>
           <Column>
             <Link href="http://discord.nocodb.com/" target="_blank">
               <Img alt="Discord"
-                   src={`${baseUrl}/static/social/discord.png`}
+                   src={`${baseUrl}/social/discord.png`}
                    height={32}
                    width={32}
               />
@@ -52,7 +52,7 @@ export const Footer = () => {
           <Column>
             <Link href="https://www.linkedin.com/company/nocodb" target="_blank">
               <Img alt="Linkedin"
-                   src={`${baseUrl}/static/social/linkedin.png`}
+                   src={`${baseUrl}/social/linkedin.png`}
                    height={32}
                    width={32}
               />

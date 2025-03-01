@@ -1,15 +1,20 @@
 import { ColumnType, FilterType } from '~/lib/Api';
-import { NcSDKError } from '~/lib/errorUtils';
+import { BadRequest, NcSDKError } from '~/lib/errorUtils';
 import {
   FilterClauseSubType,
   FilterGroupSubType,
 } from '~/lib/parser/queryFilter/query-filter-cst-parser';
 import { QueryFilterParser } from '~/lib/parser/queryFilter/query-filter-parser';
+import UITypes from './UITypes';
+import {
+  COMPARISON_SUB_OPS,
+  IS_WITHIN_COMPARISON_SUB_OPS,
+} from './filterHelpers';
 export {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
   GROUPBY_COMPARISON_OPS,
-  IS_WITHIN_COMPARISON_SUB_OPS
+  IS_WITHIN_COMPARISON_SUB_OPS,
 } from '~/lib/parser/queryFilter/query-filter-lexer';
 
 /**
@@ -163,5 +168,44 @@ function mapFilterClauseSubType(
     comparison_sub_op: filter.comparison_sub_op as any,
     value: filter.value,
   };
-  return result;
+  return handleDataTypes(result, aliasCol);
+}
+
+function handleDataTypes(
+  filterType: FilterType,
+  column: ColumnType
+): FilterType {
+  if (
+    [
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+    ].includes(column.uidt as UITypes)
+  ) {
+    if (!COMPARISON_SUB_OPS.includes(filterType.comparison_sub_op)) {
+      throw new BadRequest(
+        `'${filterType.comparison_sub_op}' is not supported.`
+      );
+    }
+    if (
+      (filterType.comparison_op === 'isWithin' &&
+        !IS_WITHIN_COMPARISON_SUB_OPS.includes(
+          filterType.comparison_sub_op as any
+        )) ||
+      (filterType.comparison_op !== 'isWithin' &&
+        IS_WITHIN_COMPARISON_SUB_OPS.includes(
+          filterType.comparison_sub_op as any
+        ))
+    ) {
+      throw new BadRequest(
+        `'${filterType.comparison_sub_op}' is not supported for '${filterType.comparison_op}'`
+      );
+    }
+    if (filterType.value === '') {
+      filterType.value = undefined;
+    }
+  }
+
+  return filterType;
 }

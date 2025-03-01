@@ -140,7 +140,6 @@ export function extractFilterFromXwhere(
       ? str.substring(operandStartIndex + 1, openIndex)
       : '';
   const lhsOfNestedQuery = str.substring(0, openIndex);
-  console.log(operator)
   nestedArrayConditions.push(
     ...extractFilterFromXwhere(
       lhsOfNestedQuery,

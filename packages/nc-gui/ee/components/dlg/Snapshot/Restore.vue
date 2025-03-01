@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type WorkspaceType } from 'nocodb-sdk'
+import { type WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk'
 
 interface Props {
   modelValue: boolean
@@ -32,7 +32,6 @@ const restoreSnapshot = async (snapshot: SnapshotExtendedType, _workspace?: Work
   }
 }
 
-/*
 const selectedWorkspace = ref<WorkspaceType>()
 
 const workspaceStore = useWorkspace()
@@ -54,7 +53,7 @@ onMounted(() => {
 const selectWorkspace = (workspace: WorkspaceType) => {
   selectedWorkspace.value = workspace
   isDropdownActive.value = false
-} */
+}
 </script>
 
 <template>
@@ -83,10 +82,10 @@ const selectWorkspace = (workspace: WorkspaceType) => {
 
     <ul class="list-disc leading-5 text-nc-content-gray-subtle2 pl-4 !mb-5">
       <li>Restoring this snapshot will not affect the existing base.</li>
-      <li>On restore, a new base will be created in the same workspace.</li>
+      <li>On restore, a new base will be created in the selected workspace.</li>
     </ul>
 
-    <!--    <div class="flex flex-col mb-5 gap-1">
+    <div class="flex flex-col mb-5 gap-1">
       <NcDropdown v-model:visible="isDropdownActive">
         <div
           style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
@@ -143,7 +142,7 @@ const selectWorkspace = (workspace: WorkspaceType) => {
           </div>
         </template>
       </NcDropdown>
-    </div> -->
+    </div>
 
     <div class="flex items-center gap-2 justify-end">
       <NcButton :disabled="isRestoringSnapshot" type="secondary" size="small" @click="vModel = false">
@@ -156,7 +155,7 @@ const selectWorkspace = (workspace: WorkspaceType) => {
         data-testid="confirm-restore-snapshot-btn"
         size="small"
         :loading="isRestoringSnapshot"
-        @click="restoreSnapshot(snapshot)"
+        @click="restoreSnapshot(snapshot, selectedWorkspace)"
       >
         {{ isRestoringSnapshot ? 'Restoring Snapshot' : $t('labels.confirmRestore') }}
       </NcButton>

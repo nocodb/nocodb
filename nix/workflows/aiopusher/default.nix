@@ -23,7 +23,7 @@ writeShellApplication {
     }
 
     secret_get() {
-      sops decrypt --extract ["app.docker.com"]["$1"]  ./sops.yaml
+      sops decrypt --extract "[\"app.docker.com\"][\"$1\"]"  ${./sops.yaml}
     }
 
     image_push() {

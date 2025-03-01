@@ -4,9 +4,7 @@ on:
   workflow_dispatch:
   pull_request_target:
     branches:
-      - "develop"
-    paths:
-      - "pnpm-lock.yaml"
+      - "master"
 
 jobs:
   bumper:
@@ -20,4 +18,4 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - name: Run Bumper
-        run: nix run .#workflows.bumper
+        run: nix run .#workflows.aiopusher

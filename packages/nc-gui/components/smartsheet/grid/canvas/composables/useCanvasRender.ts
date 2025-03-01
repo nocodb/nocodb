@@ -1359,14 +1359,15 @@ export function useCanvasRender({
         ctx.fillText('Summary', rightEdge, textY)
 
         const textLen = ctx.measureText('Summary').width
-
-        spriteLoader.renderIcon(ctx, {
-          icon: 'chevronDown',
-          size: 14,
-          color: '#6a7184',
-          x: rightEdge - textLen - 18,
-          y: textY - 7,
-        })
+        if (!isLocked.value) {
+          spriteLoader.renderIcon(ctx, {
+            icon: 'chevronDown',
+            size: 14,
+            color: '#6a7184',
+            x: rightEdge - textLen - 18,
+            y: textY - 7,
+          })
+        }
         ctx.restore()
       }
 
@@ -1448,15 +1449,15 @@ export function useCanvasRender({
           const textLen = ctx.measureText('Summary').width
 
           availWidth -= textLen
-
-          spriteLoader.renderIcon(ctx, {
-            icon: 'chevronDown',
-            size: 14,
-            color: '#6a7184',
-            x: rightEdge - textLen - 18,
-            y: textY - 7,
-          })
-
+          if (!isLocked.value) {
+            spriteLoader.renderIcon(ctx, {
+              icon: 'chevronDown',
+              size: 14,
+              color: '#6a7184',
+              x: rightEdge - textLen - 18,
+              y: textY - 7,
+            })
+          }
           availWidth -= 18
           ctx.restore()
         }
@@ -1548,14 +1549,15 @@ export function useCanvasRender({
             ctx.fillText('Summary', rightEdge, textY)
 
             const textLen = ctx.measureText('Summary').width
-
-            spriteLoader.renderIcon(ctx, {
-              icon: 'chevronDown',
-              size: 14,
-              color: '#6a7184',
-              x: rightEdge - textLen - 18,
-              y: textY - 7,
-            })
+            if (!isLocked.value) {
+              spriteLoader.renderIcon(ctx, {
+                icon: 'chevronDown',
+                size: 14,
+                color: '#6a7184',
+                x: rightEdge - textLen - 18,
+                y: textY - 7,
+              })
+            }
             ctx.restore()
           }
 

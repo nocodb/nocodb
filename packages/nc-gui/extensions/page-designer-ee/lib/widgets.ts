@@ -1,4 +1,4 @@
-import { type ColumnType, UITypes } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { PageDesignerPayload } from './payload'
 
 export interface PageDesignerWidgetComponentProps {
@@ -10,6 +10,7 @@ export enum PageDesignerWidgetType {
   IMAGE,
   DIVIDER,
   FIELD,
+  LINKED_FIELD,
 }
 
 export interface PageDesignerWidget {
@@ -73,6 +74,60 @@ export interface PageDesignerFieldWidget extends PageDesignerWidget {
   fontFamily: string
   textColor: string
   lineHeight: string
+  objectFit: 'fill' | 'contain' | 'cover'
+  horizontalAlign: 'flex-start' | 'center' | 'flex-end'
+  verticalAlign: 'flex-start' | 'center' | 'flex-end'
+}
+
+export enum LinkedFieldDisplayAs {
+  LIST = 'List',
+  INLINE = 'Inline',
+  TABLE = 'Table',
+}
+
+export enum LinkedFieldListType {
+  Bullet = 'Bulleted',
+  Number = 'Numbered',
+}
+
+export interface PageDesignerLinkedFieldWidget extends PageDesignerWidget {
+  type: PageDesignerWidgetType.LINKED_FIELD
+  field: ColumnType
+  displayAs: LinkedFieldDisplayAs
+  borderLeft: string
+  borderRight: string
+  borderTop: string
+  borderBottom: string
+  borderRadius: string
+  borderColor: string
+  backgroundColor: string
+  fontSize: string
+  fontWeight: string
+  fontFamily: string
+  textColor: string
+  lineHeight: string
+  tableSettings: {
+    borderLeft: string
+    borderRight: string
+    borderTop: string
+    borderBottom: string
+    borderRadius: string
+    borderColor: string
+    row: {
+      fontSize: string
+      fontWeight: string
+      textColor: string
+      lineHeight: string
+    }
+    header: {
+      fontSize: string
+      fontWeight: string
+      textColor: string
+      lineHeight: string
+    }
+  }
+  listType: LinkedFieldListType
+  tableColumns: Array<{ id: string; selected: boolean }>
   objectFit: 'fill' | 'contain' | 'cover'
   horizontalAlign: 'flex-start' | 'center' | 'flex-end'
   verticalAlign: 'flex-start' | 'center' | 'flex-end'
@@ -174,6 +229,56 @@ export class PageDesignerWidgetFactory {
       cssStyle: `width: ${width}px; height: ${height}px; transform: translate(${newX}px, ${newY}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 20px;`,
     }
   }
+
+  static createEmptyLinkedFieldWidget(field: ColumnType, { x, y } = { x: 0, y: 0 }): PageDesignerLinkedFieldWidget {
+    const { width, height } = getInitialSizeHeightOfWidget(PageDesignerWidgetType.LINKED_FIELD, field)
+    const { x: newX, y: newY } = centerCursor({ x, y }, { width, height })
+    return {
+      id: 0,
+      field,
+      displayAs: LinkedFieldDisplayAs.LIST,
+      tableColumns: [],
+      borderTop: '0',
+      borderRight: '0',
+      borderBottom: '0',
+      borderLeft: '0',
+      borderRadius: '0',
+      borderColor: BLACK,
+      backgroundColor: WHITE,
+      textColor: BLACK,
+      fontFamily: 'Manrope',
+      fontSize: '16',
+      fontWeight: '400',
+      lineHeight: '1.4',
+      horizontalAlign: 'flex-start',
+      verticalAlign: 'flex-start',
+      objectFit: 'contain',
+      listType: LinkedFieldListType.Bullet,
+      type: PageDesignerWidgetType.LINKED_FIELD,
+      tableSettings: {
+        borderTop: '1',
+        borderRight: '1',
+        borderBottom: '1',
+        borderLeft: '1',
+        borderRadius: '0',
+        borderColor: BLACK,
+        row: {
+          fontSize: '12',
+          fontWeight: '400',
+          textColor: BLACK,
+          lineHeight: '1.5',
+        },
+        header: {
+          fontSize: '12',
+          fontWeight: '700',
+          textColor: BLACK,
+          lineHeight: '1.5',
+        },
+      },
+      zIndex: 0,
+      cssStyle: `width: ${width}px; height: ${height}px; transform: translate(${newX}px, ${newY}px); max-width: auto;max-height: auto;min-width: 30px;min-height: 20px;`,
+    }
+  }
 }
 
 export const plainCellFields = new Set([
@@ -207,6 +312,8 @@ export const plainCellFields = new Set([
   UITypes.CreatedBy,
   UITypes.Collaborator,
   UITypes.LastModifiedBy,
+  UITypes.LongText,
+  UITypes.Rollup,
 ])
 
 export const fontWeightToLabel: Record<string, string> = {
@@ -254,9 +361,13 @@ export function getInitialSizeHeightOfWidget(type: PageDesignerWidgetType, field
       width = 200
       height = 200
     }
+    if (isLinksOrLTAR(field)) {
+      width = 300
+      height = 200
+    }
   } else if (type === PageDesignerWidgetType.DIVIDER) {
     width = 500
-    height = 5
+    height = 2
   } else if (type === PageDesignerWidgetType.IMAGE) {
     width = 200
     height = 200

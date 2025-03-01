@@ -5,6 +5,7 @@ import { PageDesignerWidgetType } from '../lib/widgets'
 import PageDesignerTextProperties from './PageDesignerTextProperties.vue'
 import PageDesignerImageProperties from './PageDesignerImageProperties.vue'
 import PageDesignerFieldProperties from './PageDesignerFieldProperties.vue'
+import PageDesignerLinkedFieldProperties from './PageDesignerLinkedFieldProperties.vue'
 import PageDesignerDividerProperties from './PageDesignerDividerProperties.vue'
 import PageDesignerProperties from './PageDesignerProperties.vue'
 
@@ -19,6 +20,7 @@ const widgetTypeToPropertiesComponent: Record<PageDesignerWidgetType, Component>
   [PageDesignerWidgetType.IMAGE]: PageDesignerImageProperties,
   [PageDesignerWidgetType.DIVIDER]: PageDesignerDividerProperties,
   [PageDesignerWidgetType.FIELD]: PageDesignerFieldProperties,
+  [PageDesignerWidgetType.LINKED_FIELD]: PageDesignerLinkedFieldProperties,
 }
 
 const propertiesComponent = computed(() => {
@@ -35,5 +37,11 @@ const propertiesComponent = computed(() => {
 <style lang="scss" scoped>
 .properties-panel {
   @apply border-l-1 border-nc-border-gray-medium;
+  :deep(> .properties) {
+    .grouped-settings:last-child {
+      border-bottom: none;
+      padding-bottom: 80px;
+    }
+  }
 }
 </style>

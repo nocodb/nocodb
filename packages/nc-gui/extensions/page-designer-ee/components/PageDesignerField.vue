@@ -2,8 +2,7 @@
 import Moveable from 'vue3-moveable'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { ref } from 'vue'
-import type { UITypes } from 'nocodb-sdk'
-import { isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   type PageDesignerFieldWidget,
   type PageDesignerWidgetComponentProps,
@@ -77,6 +76,7 @@ const { getPossibleAttachmentSrc } = useAttachment()
 const attachmentUrl = computed(() => getPossibleAttachmentSrc((row.value?.row ?? {})[widget.value.field.title ?? '']?.[0])?.[0])
 
 const fieldTitle = computed(() => widget.value.field.title ?? '')
+const isLookupField = computed(() => widget.value.field.uidt === UITypes.Lookup)
 </script>
 
 <template>
@@ -103,7 +103,7 @@ const fieldTitle = computed(() => widget.value.field.title ?? '')
           textAlign: horizontalAlignTotextAlignMap[widget.horizontalAlign],
           overflow: 'hidden',
         }"
-        :class="{ 'px-2 py-1': !isAttachmentField }"
+        :class="{ 'px-2 py-1': !isAttachmentField && !isLookupField }"
       >
         <template v-if="row">
           <img
@@ -183,6 +183,27 @@ const fieldTitle = computed(() => widget.value.field.title ?? '')
 .field-widget {
   :deep(.plain-cell) {
     font-family: inherit;
+  }
+  :deep(.nc-lookup-cell),
+  :deep(.nc-virtual-cell) {
+    height: 100% !important;
+  }
+  :deep(.nc-lookup-cell) {
+    padding: 4px 8px;
+  }
+  :deep(.virtual-lookup-cells) {
+    width: 100%;
+    gap: 8px;
+    justify-content: space-between;
+    .barcode-wrapper,
+    .nc-qrcode-container,
+    .nc-virtual-cell {
+      width: auto;
+    }
+    .nc-qrcode-container img,
+    .nc-barcode-container svg {
+      height: 100% !important;
+    }
   }
 }
 </style>

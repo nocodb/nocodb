@@ -4,16 +4,34 @@ const { min = 0, resetTo } = defineProps<{
   resetTo?: number
   placeholder?: string
 }>()
-const vModel = defineModel<string | number>()
+const vModel = defineModel<string | number>({ required: true })
+
+const inputRef = ref<{ input: HTMLInputElement }>()
 
 function onBlur() {
-  if (vModel.value === '') vModel.value = resetTo ?? min
+  if (vModel.value === '') {
+    vModel.value = resetTo ?? min
+    return
+  }
+  if (+vModel.value < min) vModel.value = min
 }
-watch(vModel, (val) => {
-  if (val && +val < min) vModel.value = min
-})
+
+function selectText() {
+  if (!inputRef.value) return
+  const input = inputRef.value.input
+  if (!input) return
+  input.select()
+}
 </script>
 
 <template>
-  <a-input v-model:value="vModel" type="number" :min="min" :placeholder="placeholder ?? min" @blur="onBlur"></a-input>
+  <a-input
+    ref="inputRef"
+    v-model:value="vModel"
+    type="number"
+    :min="min"
+    :placeholder="placeholder ?? min"
+    @blur="onBlur"
+    @click="selectText"
+  ></a-input>
 </template>

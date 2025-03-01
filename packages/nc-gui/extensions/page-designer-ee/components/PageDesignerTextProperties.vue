@@ -2,12 +2,12 @@
 import { UITypes } from 'nocodb-sdk'
 import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
 import { type PageDesignerTextWidget, fontWeightToLabel, fontWeights, fonts } from '../lib/widgets'
-import BorderImage from '../assets/border.svg'
 import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import NonNullableNumberInput from './NonNullableNumberInput.vue'
+import BorderSettings from './BorderSettings.vue'
 
-defineEmits(['deleteCurrentWidget'])
+const emit = defineEmits(['deleteCurrentWidget'])
 
 const payload = inject(PageDesignerPayloadInj)!
 
@@ -28,12 +28,12 @@ const fieldsToIgnore = new Set([
   UITypes.JSON,
   UITypes.QrCode,
   UITypes.Barcode,
-  UITypes.CreatedBy,
 ])
 const columns = computed(() =>
-  (meta?.value?.columns ?? []).filter(
-    (column) => !fieldsToIgnore.has(column.uidt as UITypes) && row.value && !isRowEmpty(row.value, column),
-  ),
+  (meta?.value?.columns ?? []).filter((column) => {
+    const isRichTextLongText = column.uidt === UITypes.LongText && parseProp(column.meta).richMode
+    return !isRichTextLongText && !fieldsToIgnore.has(column.uidt as UITypes) && row.value && !isRowEmpty(row.value, column)
+  }),
 )
 
 watch(
@@ -43,12 +43,81 @@ watch(
   },
   { immediate: true },
 )
+
+const textPresets = {
+  h1: {
+    fontSize: '26',
+    lineHeight: '1.2',
+    fontWeight: '700',
+  },
+  h2: {
+    fontSize: '20',
+    lineHeight: '1.2',
+    fontWeight: '700',
+  },
+  h3: {
+    fontSize: '16',
+    lineHeight: '1.5',
+    fontWeight: '700',
+  },
+}
+
+function isTextPresetActive(heading: 'h1' | 'h2' | 'h3') {
+  if (!textWidget.value) return
+  return (
+    textWidget.value?.fontSize === textPresets[heading].fontSize &&
+    textWidget.value?.lineHeight === textPresets[heading].lineHeight &&
+    textWidget.value.fontWeight === textPresets[heading].fontWeight
+  )
+}
+
+function setTextPreset(heading: 'h1' | 'h2' | 'h3') {
+  if (!textWidget.value) return
+
+  textWidget.value.fontSize = textPresets[heading].fontSize
+  textWidget.value.lineHeight = textPresets[heading].lineHeight
+  textWidget.value.fontWeight = textPresets[heading].fontWeight
+}
+
+const textValue = computed(() => textWidget.value?.value ?? '')
+const previousTextValue = usePrevious(textValue)
+
+function onTextFieldDelete() {
+  const prevLen = previousTextValue.value?.length ?? 0
+  if (prevLen <= 2 && !textValue.value) emit('deleteCurrentWidget')
+}
 </script>
 
 <template>
-  <div v-if="textWidget" class="flex flex-col text-properties overflow-y-auto max-h-full pb-8">
-    <header class="widget-header">
+  <div v-if="textWidget" class="flex flex-col properties overflow-y-auto max-h-full">
+    <header class="widget-header flex items-center justify-between">
       <h1 class="m-0">Text</h1>
+      <div class="flex gap-3">
+        <NcButton
+          type="secondary"
+          size="small"
+          :class="{ 'text-preset-active': isTextPresetActive('h1') }"
+          @click="setTextPreset('h1')"
+        >
+          <GeneralIcon icon="ncHeading1" />
+        </NcButton>
+        <NcButton
+          type="secondary"
+          size="small"
+          :class="{ 'text-preset-active': isTextPresetActive('h2') }"
+          @click="setTextPreset('h2')"
+        >
+          <GeneralIcon icon="ncHeading2" />
+        </NcButton>
+        <NcButton
+          type="secondary"
+          size="small"
+          :class="{ 'text-preset-active': isTextPresetActive('h3') }"
+          @click="setTextPreset('h3')"
+        >
+          <GeneralIcon icon="ncHeading3" />
+        </NcButton>
+      </div>
     </header>
     <GroupedSettings title="Content">
       <AiPromptWithFields
@@ -57,7 +126,8 @@ watch(
         v-model="textWidget.value"
         :options="columns"
         placeholder="Lorem ipsum..."
-        @keydown.delete="!textWidget.value && $emit('deleteCurrentWidget')"
+        :markdown="false"
+        @keydown.delete="onTextFieldDelete"
       />
     </GroupedSettings>
     <GroupedSettings title="Alignment">
@@ -100,7 +170,7 @@ watch(
           <label>Weight</label>
           <NcSelect v-model:value="textWidget.fontWeight">
             <a-select-option v-for="weight of fontWeights" :key="weight" :value="weight">
-              <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }} - {{ weight }}</span>
+              <span :style="{ fontWeight: weight }"> {{ fontWeightToLabel[weight] }}</span>
             </a-select-option>
           </NcSelect>
         </div>
@@ -108,50 +178,36 @@ watch(
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <label>Size</label>
-          <NonNullableNumberInput v-model="textWidget.fontSize" :reset-to="16" :min="5" class="flex-1" placeholder="16" />
+          <NonNullableNumberInput v-model="textWidget.fontSize" :reset-to="16" :min="1" class="flex-1" placeholder="16" />
         </div>
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <label>Line Height</label>
           <NonNullableNumberInput v-model="textWidget.lineHeight" :reset-to="1.4" :min="1" class="flex-1" placeholder="1.4" />
         </div>
       </div>
-    </GroupedSettings>
-    <GroupedSettings title="Border">
-      <div class="flex gap-2 items-center">
-        <div class="flex flex-col gap-2 border-inputs justify-center items-center flex-1">
-          <div>
-            <NonNullableNumberInput v-model="textWidget.borderTop" />
-          </div>
-          <div class="flex gap-2 items-center">
-            <NonNullableNumberInput v-model="textWidget.borderLeft" />
-            <img :src="BorderImage" />
-            <NonNullableNumberInput v-model="textWidget.borderRight" />
-          </div>
-          <div>
-            <NonNullableNumberInput v-model="textWidget.borderBottom" />
-          </div>
+      <div class="flex gap-3">
+        <div class="flex flex-col gap-2 flex-1 min-w-0">
+          <label>Text Color</label>
+          <ColorPropertyPicker v-model="textWidget.textColor" />
         </div>
-        <div class="flex-1 flex flex-col gap-2">
-          <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <label>Border Color</label>
-            <ColorPropertyPicker v-model="textWidget.borderColor" />
-          </div>
-          <div class="flex flex-col gap-2 flex-1 min-w-0">
-            <label>Border Radius</label>
-            <NonNullableNumberInput v-model="textWidget.borderRadius" />
-          </div>
-        </div>
+        <div class="flex-1"></div>
       </div>
     </GroupedSettings>
+
+    <BorderSettings
+      v-model:border-top="textWidget.borderTop"
+      v-model:border-bottom="textWidget.borderBottom"
+      v-model:border-left="textWidget.borderLeft"
+      v-model:border-right="textWidget.borderRight"
+      v-model:border-radius="textWidget.borderRadius"
+      v-model:border-color="textWidget.borderColor"
+    />
+
     <GroupedSettings title="Fill">
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">
           <label>Background Color</label>
           <ColorPropertyPicker v-model="textWidget.backgroundColor" />
-        </div>
-        <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <label>Text Color</label>
-          <ColorPropertyPicker v-model="textWidget.textColor" />
         </div>
       </div>
     </GroupedSettings>
@@ -167,5 +223,9 @@ watch(
   :deep(.ProseMirror) {
     @apply !rounded-lg;
   }
+}
+.text-preset-active {
+  @apply !border-nc-fill-primary;
+  box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24) !important;
 }
 </style>

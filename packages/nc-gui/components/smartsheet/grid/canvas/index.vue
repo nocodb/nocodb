@@ -1999,6 +1999,9 @@ defineExpose({
 
     :deep(.nc-user-select) {
       margin-top: -2px;
+      .ant-select-selector {
+        @apply !h-7;
+      }
     }
 
     :deep(.nc-cell-datetime) {

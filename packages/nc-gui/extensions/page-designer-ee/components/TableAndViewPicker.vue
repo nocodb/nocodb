@@ -62,6 +62,7 @@ onMounted(async () => {
     savedPayloads.value.selectedTableId = ''
     savedPayloads.value.selectedViewId = ''
   }
+  reloadViews()
 })
 </script>
 

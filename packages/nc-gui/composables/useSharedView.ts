@@ -1,16 +1,17 @@
-import type {
-  CalendarType,
+import {
+  type CalendarType,
   ExportTypes,
-  FilterType,
-  KanbanType,
-  MapType,
-  PaginatedType,
-  RequestParams,
-  SortType,
-  TableType,
-  ViewType,
+  type FilterType,
+  type KanbanType,
+  type MapType,
+  type PaginatedType,
+  type RequestParams,
+  type SortType,
+  type TableType,
+  UITypes,
+  type ViewType,
+  ViewTypes,
 } from 'nocodb-sdk'
-import { UITypes, ViewTypes } from 'nocodb-sdk'
 import { setI18nLanguage } from '~/plugins/a.i18n'
 
 export function useSharedView() {
@@ -413,7 +414,10 @@ export function useSharedView() {
     offset: number,
     type: ExportTypes.EXCEL | ExportTypes.CSV,
     responseType: 'base64' | 'blob',
-    { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] } = { sortsArr: [], filtersArr: [] },
+    { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] } = {
+      sortsArr: [],
+      filtersArr: [],
+    },
   ) => {
     return await $api.public.csvExport(sharedView.value!.uuid!, type, {
       format: responseType,
@@ -422,6 +426,7 @@ export function useSharedView() {
         offset,
         filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
         sortArrJson: JSON.stringify(sortsArr ?? sorts.value),
+        encoding: type === ExportTypes.EXCEL ? 'base64' : undefined,
       },
       headers: {
         'xc-password': password.value,

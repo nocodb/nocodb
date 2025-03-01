@@ -2406,17 +2406,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         (c) => c.id === colId,
       );
 
-      const chilCol = await (
-        (await relColumn.getColOptions(
-          this.context,
-        )) as LinkToAnotherRecordColumn
-      ).getChildColumn(this.context);
+      const relationColOpts = (await relColumn.getColOptions(
+        this.context,
+      )) as LinkToAnotherRecordColumn;
+      const chilCol = await relationColOpts.getChildColumn(this.context);
       const childTable = await chilCol.getModel(this.context);
-      const parentCol = await (
-        (await relColumn.getColOptions(
-          this.context,
-        )) as LinkToAnotherRecordColumn
-      ).getParentColumn(this.context);
+      const parentCol = await relationColOpts.getParentColumn(this.context);
       const parentTable = await parentCol.getModel(this.context);
       const childModel = await Model.getBaseModelSQL(this.context, {
         model: childTable,
@@ -2433,8 +2428,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         extractPkAndPv: true,
         fieldsSet: args.fieldsSet,
       });
-      await this.applySortAndFilter({ table: childTable, where, qb, sort });
-
+      const view = relationColOpts.fk_target_view_id
+        ? await View.get(this.context, relationColOpts.fk_target_view_id)
+        : await View.getDefaultView(this.context, childModel.model.id);
+      await this.applySortAndFilter({
+        table: childTable,
+        where,
+        qb,
+        sort,
+        view,
+      });
       const childQb = this.dbDriver.queryBuilder().from(
         this.dbDriver
           .unionAll(
@@ -2571,6 +2574,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       onlySort: true,
     });
 
+    if (!sort || sort === '') {
+      const view = relColOptions.fk_target_view_id
+        ? await View.get(this.context, relColOptions.fk_target_view_id)
+        : await View.getDefaultView(this.context, childTable.id);
+      const childSorts = await view.getSorts(this.context);
+      await sortV2(childModel, childSorts, qb);
+    }
+
     // todo: sanitize
     if (!selectAllRecords) {
       // get one extra record to check if there are more records in case of v3 api and nested
@@ -2667,18 +2678,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const relColumn = (await this.model.getColumns(this.context)).find(
         (c) => c.id === colId,
       );
-
-      const chilCol = await (
-        (await relColumn.getColOptions(
-          this.context,
-        )) as LinkToAnotherRecordColumn
-      ).getChildColumn(this.context);
+      const relationColOpts = (await relColumn.getColOptions(
+        this.context,
+      )) as LinkToAnotherRecordColumn;
+      const chilCol = await relationColOpts.getChildColumn(this.context);
       const childTable = await chilCol.getModel(this.context);
-      const parentCol = await (
-        (await relColumn.getColOptions(
-          this.context,
-        )) as LinkToAnotherRecordColumn
-      ).getParentColumn(this.context);
+      const parentCol = await relationColOpts.getParentColumn(this.context);
       const parentTable = await parentCol.getModel(this.context);
       const childBaseModel = await Model.getBaseModelSQL(this.context, {
         model: childTable,
@@ -2863,11 +2868,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     await childModel.selectObject({ qb, fieldsSet: args.fieldsSet });
 
+    const view = relColOptions.fk_target_view_id
+      ? await View.get(this.context, relColOptions.fk_target_view_id)
+      : await View.getDefaultView(this.context, childTable.id);
     await this.applySortAndFilter({
       table: childTable,
       where,
       qb,
       sort,
+      view,
     });
 
     const finalQb = this.dbDriver.unionAll(
@@ -2888,11 +2897,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
         );
         query.offset(+rest?.offset || 0);
-
         return this.isSqlite ? this.dbDriver.select().from(query) : query;
       }),
       !this.isSqlite,
     );
+    console.log(finalQb.toQuery());
 
     const children = await this.execAndParse(
       finalQb,

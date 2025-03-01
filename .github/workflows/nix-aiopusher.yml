@@ -1,21 +1,18 @@
-name: "bumper"
+name: aiopusher
 
 on:
   workflow_dispatch:
-  pull_request_target:
+  push:
     branches:
-      - "master"
+      - master
 
 jobs:
-  bumper:
+  aiopusher:
     runs-on: nix
-
-    permissions:
-      contents: "write"
 
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
-      - name: Run Bumper
+      - name: Run AioPusher
         run: nix run .#workflows.aiopusher

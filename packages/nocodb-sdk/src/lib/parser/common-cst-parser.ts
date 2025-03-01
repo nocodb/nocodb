@@ -17,6 +17,31 @@ export type VariableRule = Rule<
   'VARIABLE'
 >;
 
+export type VariableRuleToken = VariableRule & {
+  startOffset: number;
+  endOffset: number;
+  startLine: number;
+  endLine: number;
+  startColumn: number;
+  endColumn: number;
+};
+
+export const getVariableRuleToken = (variable: VariableRule) => {
+  const childToken =
+    variable.children.SUP_SGL_QUOTE_IDENTIFIER?.[0] ??
+    variable.children.SUP_DBL_QUOTE_IDENTIFIER?.[0] ??
+    variable.children.IDENTIFIER?.[0];
+  return {
+    ...variable,
+    startOffset: childToken?.startOffset,
+    endOffset: childToken?.endOffset,
+    startLine: childToken?.startLine,
+    endLine: childToken?.endLine,
+    startColumn: childToken?.startColumn,
+    endColumn: childToken?.endColumn,
+  };
+};
+
 export const parseVariable = (
   variable: VariableRule | VariableRule[]
 ): string | string[] => {
@@ -88,6 +113,11 @@ export abstract class CommonCstParser extends CstParser {
           {
             ALT: () => {
               $.CONSUME(COMMON_TOKEN.SUP_DBL_QUOTE_IDENTIFIER);
+            },
+          },
+          {
+            ALT: () => {
+              $.CONSUME(COMMON_TOKEN.COMMA_SUPPORTED_IDENTIFIER);
             },
           },
           {

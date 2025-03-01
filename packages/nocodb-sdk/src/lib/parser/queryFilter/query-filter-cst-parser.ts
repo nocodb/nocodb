@@ -1,17 +1,17 @@
-import type { Rule, Token } from '../common-type';
+import { NcSDKError } from '~/lib/errorUtils';
 import {
-  parseVariableAsArray,
+  getVariableRuleToken,
+  parseVariable,
   parseVariableAsString,
   VariableRule,
 } from '../common-cst-parser';
-import { NcSDKError } from '~/lib/errorUtils';
-import { COMPARISON_SUB_OPS } from './query-filter-lexer';
+import type { Rule, Token } from '../common-type';
 
 export interface CstExpressionArguments
   extends Rule<
     {
       VARIABLE: VariableRule[];
-      SUBOPERATOR: Token[];
+      COMMA: Token[];
     },
     'expression_arguments'
   > {}
@@ -77,6 +77,38 @@ export interface FilterGroupSubType {
 
 export type FilterSubtype = (FilterClauseSubType | FilterGroupSubType)[];
 
+export const parseExpressionArguments = (cst: CstExpressionArguments) => {
+  const tokens = (
+    [
+      ...(cst.children.COMMA ?? []),
+      ...(cst.children.VARIABLE ?? []).map((variable) =>
+        getVariableRuleToken(variable)
+      ),
+    ] as Token[]
+  ).sort((a, b) => a.startOffset - b.startOffset);
+
+  let tokenImage = '';
+  let lastEndOffset = 0;
+  for (const eachToken of tokens) {
+    let value;
+    if ((eachToken as any).name === 'VARIABLE') {
+      value = parseVariable(eachToken as unknown as VariableRule);
+    } else {
+      value = eachToken.image;
+    }
+    if (lastEndOffset > 0) {
+      const spaces = eachToken.startOffset - lastEndOffset - 1;
+      if (spaces > 0) {
+        tokenImage += ''.padEnd(spaces, ' ');
+      }
+    }
+    tokenImage += value;
+    lastEndOffset = eachToken.endOffset;
+  }
+
+  return tokenImage;
+};
+
 export const parseMultiClause = (
   cst: CstMultiClause,
   opt?: { logicalOperator?: string }
@@ -136,20 +168,14 @@ export const parseCallExpression = (
   };
   if (
     cst.children.expression_arguments &&
-    cst.children.expression_arguments[0].children.VARIABLE
+    cst.children.expression_arguments[0]
   ) {
-    const variables = parseVariableAsArray(
-      cst.children.expression_arguments[0].children.VARIABLE
+    const variables = parseExpressionArguments(
+      cst.children.expression_arguments[0]
     );
-    result.comparison_sub_op = COMPARISON_SUB_OPS.includes(variables[0] as any)
-      ? variables[0]
-      : undefined;
-    // if identified as sub op, pop first variable
-    if (result.comparison_sub_op) {
-      variables.shift();
-    }
     // keep variable as comma separated string if not in operator
-    result.value = operator === 'in' ? variables : variables.join(',');
+    result.value =
+      operator === 'in' ? variables.split(',').map((k) => k.trim()) : variables;
   }
   handleBlankOperator(result);
   handleInOperator(result);

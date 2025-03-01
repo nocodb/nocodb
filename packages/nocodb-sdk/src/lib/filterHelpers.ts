@@ -55,7 +55,7 @@ export function extractFilterFromXwhere(
   aliasColObjMap: { [columnAlias: string]: ColumnType },
   throwErrorIfInvalid = false
 ): FilterType[] {
-  if (typeof str === 'string' && str.startsWith('@2')) {
+  if (typeof str === 'string' && str.startsWith('@')) {
     return parserExtract(str.substring(2), aliasColObjMap, throwErrorIfInvalid);
   } else {
     return oldExtract(str, aliasColObjMap, throwErrorIfInvalid);

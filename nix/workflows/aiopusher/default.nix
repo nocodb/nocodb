@@ -24,7 +24,7 @@ writeShellApplication {
     }
 
     secret_get() {
-      sops decrypt --extract "[\"app.docker.com\"][\"$1\"]"  ${./sops.yaml}
+      sops decrypt --extract "[\"app.docker.com\"][\"$1\"]"  ${./secrets.yaml}
     }
 
     image_push() {
@@ -33,7 +33,7 @@ writeShellApplication {
       package="packages.$1.docker_aio"
       note "updating $image:$2 with $package"
 
-      nix build "${self}#packages.x86_64-linux.docker_aio" -L
+      nix build "${self}#$package" -L
       tag="$(docker image load -i result | tail -n1 | cut -d: -f3)"
       id="$(docker image ls --format "{{.ID}}:{{.Tag}}" | grep "$tag" | cut -d: -f1)"
 

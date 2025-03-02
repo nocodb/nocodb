@@ -8,7 +8,7 @@ export const testExtractFilterFromXwhere = (
     str: string | string[],
     aliasColObjMap: { [columnAlias: string]: ColumnType },
     throwErrorIfInvalid?: boolean
-  ) => FilterType[]
+  ) => { filters?: FilterType[]; errors?: any }
 ) => {
   describe(title, () => {
     describe('extractFilterFromXwhere', () => {
@@ -24,9 +24,10 @@ export const testExtractFilterFromXwhere = (
         };
 
         const result = extractFilterFromXwhere(query, columnAlias);
-        expect(result.length).toBe(1);
-        expect(result[0].comparison_op).toBe('eq');
-        expect(result[0].value).toBe('Hello');
+        expect(result.filters).toBeDefined();
+        expect(result.filters.length).toBe(1);
+        expect(result.filters[0].comparison_op).toBe('eq');
+        expect(result.filters[0].value).toBe('Hello');
       });
       it('will parse null query', async () => {
         const query = '(Title,eq,)';
@@ -40,9 +41,10 @@ export const testExtractFilterFromXwhere = (
         };
 
         const result = extractFilterFromXwhere(query, columnAlias);
-        expect(result.length).toBe(1);
-        expect(result[0].comparison_op).toBe('eq');
-        expect(result[0].value).toBe('');
+        expect(result.filters).toBeDefined();
+        expect(result.filters.length).toBe(1);
+        expect(result.filters[0].comparison_op).toBe('eq');
+        expect(result.filters[0].value).toBe('');
       });
       it('will parse "in" operator', async () => {
         const query = '(Title,in,1,2,3,4,5)';
@@ -56,9 +58,10 @@ export const testExtractFilterFromXwhere = (
         };
 
         const result = extractFilterFromXwhere(query, columnAlias);
-        expect(result.length).toBe(1);
-        expect(result[0].comparison_op).toBe('in');
-        expect(result[0].value).toEqual(['1', '2', '3', '4', '5']);
+        expect(result.filters).toBeDefined();
+        expect(result.filters.length).toBe(1);
+        expect(result.filters[0].comparison_op).toBe('in');
+        expect(result.filters[0].value).toEqual(['1', '2', '3', '4', '5']);
       });
       it('will map "blank" operator', async () => {
         const queryBlanks = [
@@ -77,9 +80,10 @@ export const testExtractFilterFromXwhere = (
 
         for (const blankQuery of queryBlanks) {
           const result = extractFilterFromXwhere(blankQuery, columnAlias);
-          expect(result.length).toBe(1);
-          expect(result[0].comparison_op).toBe('blank');
-          expect(result[0].value).toBeUndefined();
+          expect(result.filters).toBeDefined();
+          expect(result.filters.length).toBe(1);
+          expect(result.filters[0].comparison_op).toBe('blank');
+          expect(result.filters[0].value).toBeUndefined();
         }
       });
       it('will map "notblank" operator', async () => {
@@ -99,9 +103,10 @@ export const testExtractFilterFromXwhere = (
 
         for (const blankQuery of queryBlanks) {
           const result = extractFilterFromXwhere(blankQuery, columnAlias);
-          expect(result.length).toBe(1);
-          expect(result[0].comparison_op).toBe('notblank');
-          expect(result[0].value).toBeUndefined();
+          expect(result.filters).toBeDefined();
+          expect(result.filters.length).toBe(1);
+          expect(result.filters[0].comparison_op).toBe('notblank');
+          expect(result.filters[0].value).toBeUndefined();
         }
       });
       it('will parse value with sub operator', async () => {
@@ -116,9 +121,10 @@ export const testExtractFilterFromXwhere = (
         };
 
         const result = extractFilterFromXwhere(query, columnAlias);
-        expect(result.length).toBe(1);
-        expect(result[0].comparison_op).toBe('eq');
-        expect(result[0].value).toBe('oneWeekAgo India');
+        expect(result.filters).toBeDefined();
+        expect(result.filters.length).toBe(1);
+        expect(result.filters[0].comparison_op).toBe('eq');
+        expect(result.filters[0].value).toBe('oneWeekAgo India');
       });
 
       describe('datetime', () => {
@@ -135,10 +141,11 @@ export const testExtractFilterFromXwhere = (
           };
 
           const result = extractFilterFromXwhere(query, columnAlias);
-          expect(result.length).toBe(1);
-          expect(result[0].comparison_op).toBe('lt');
-          expect(result[0].comparison_sub_op).toBe('exactDate');
-          expect(result[0].value).toBe('2025-01-01');
+          expect(result.filters).toBeDefined();
+          expect(result.filters.length).toBe(1);
+          expect(result.filters[0].comparison_op).toBe('lt');
+          expect(result.filters[0].comparison_sub_op).toBe('exactDate');
+          expect(result.filters[0].value).toBe('2025-01-01');
         });
         it('will parse datetime oneMonthAgo', async () => {
           // datetime need to have suboperator :|
@@ -153,10 +160,11 @@ export const testExtractFilterFromXwhere = (
           };
 
           const result = extractFilterFromXwhere(query, columnAlias);
-          expect(result.length).toBe(1);
-          expect(result[0].comparison_op).toBe('lt');
-          expect(result[0].comparison_sub_op).toBe('oneMonthAgo');
-          expect(result[0].value).toBeUndefined();
+          expect(result.filters).toBeDefined();
+          expect(result.filters.length).toBe(1);
+          expect(result.filters[0].comparison_op).toBe('lt');
+          expect(result.filters[0].comparison_sub_op).toBe('oneMonthAgo');
+          expect(result.filters[0].value).toBeUndefined();
         });
         it('will parse datetime isWithin', async () => {
           // isWithin need to have specific suboperator :|
@@ -171,10 +179,11 @@ export const testExtractFilterFromXwhere = (
           };
 
           const result = extractFilterFromXwhere(query, columnAlias);
-          expect(result.length).toBe(1);
-          expect(result[0].comparison_op).toBe('isWithin');
-          expect(result[0].comparison_sub_op).toBe('pastMonth');
-          expect(result[0].value).toBeUndefined();
+          expect(result.filters).toBeDefined();
+          expect(result.filters.length).toBe(1);
+          expect(result.filters[0].comparison_op).toBe('isWithin');
+          expect(result.filters[0].comparison_sub_op).toBe('pastMonth');
+          expect(result.filters[0].value).toBeUndefined();
         });
         it('will throw error isWithin', async () => {
           // isWithin need to have specific suboperator :|
@@ -214,9 +223,10 @@ describe('filterHelpers_old_specific', () => {
       };
 
       const result = extractFilterFromXwhere(query, columnAlias);
-      expect(result.length).toBe(1);
-      expect(result[0].comparison_op).toBe('eq');
-      expect(result[0].value).toBe('Istanbul, India');
+      expect(result.filters).toBeDefined();
+      expect(result.filters.length).toBe(1);
+      expect(result.filters[0].comparison_op).toBe('eq');
+      expect(result.filters[0].value).toBe('Istanbul, India');
     });
     describe('logical', () => {
       it('will parse basic logical query', () => {
@@ -239,7 +249,7 @@ describe('filterHelpers_old_specific', () => {
 
         const result = extractFilterFromXwhere(query, columnAlias);
         expect(result).toBeDefined();
-        expect(result.length).toBe(2);
+        expect(result.filters.length).toBe(2);
         expect(result[1].logical_op).toBe('and');
       });
       it('will parse nested logical query', () => {
@@ -263,7 +273,7 @@ describe('filterHelpers_old_specific', () => {
 
         const result = extractFilterFromXwhere(query, columnAlias);
         expect(result).toBeDefined();
-        expect(result.length).toBe(2);
+        expect(result.filters.length).toBe(2);
         expect(result[1].logical_op).toBe('or');
       });
     });

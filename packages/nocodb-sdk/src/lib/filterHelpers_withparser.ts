@@ -1,58 +1,21 @@
 import { ColumnType, FilterType } from '~/lib/Api';
-import { NcSDKError } from '~/lib/errorUtils';
+import { BadRequest, NcSDKError } from '~/lib/errorUtils';
 import {
   FilterClauseSubType,
   FilterGroupSubType,
 } from '~/lib/parser/queryFilter/query-filter-cst-parser';
 import { QueryFilterParser } from '~/lib/parser/queryFilter/query-filter-parser';
+import UITypes from './UITypes';
+import {
+  COMPARISON_SUB_OPS,
+  IS_WITHIN_COMPARISON_SUB_OPS,
+} from './filterHelpers';
 export {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
   GROUPBY_COMPARISON_OPS,
-  IS_WITHIN_COMPARISON_SUB_OPS
+  IS_WITHIN_COMPARISON_SUB_OPS,
 } from '~/lib/parser/queryFilter/query-filter-lexer';
-
-/**
- * Converts a flat array of filter objects into a nested tree structure
- * @param {FilterType[]} items - Array of filter objects
- * @returns {FilterType[]} - Nested tree structure
- */
-export function buildFilterTree(items: FilterType[]) {
-  const itemMap = new Map();
-  const rootItems: FilterType[] = [];
-
-  // Map items with IDs and handle items without IDs
-  items.forEach((item) => {
-    if (item.id) {
-      itemMap.set(item.id, { ...item, children: [] });
-    } else {
-      // Items without IDs go straight to root level
-      rootItems.push({ ...item, children: [] });
-    }
-  });
-
-  // Build parent-child relationships for items with IDs
-  items.forEach((item) => {
-    // Skip items without IDs as they're already in rootItems
-    if (!item.id) return;
-
-    const mappedItem = itemMap.get(item.id);
-
-    if (item.fk_parent_id === null) {
-      rootItems.push(mappedItem);
-    } else {
-      const parent = itemMap.get(item.fk_parent_id);
-      if (parent) {
-        parent.children.push(mappedItem);
-      } else {
-        // If parent is not found, treat as root item
-        rootItems.push(mappedItem);
-      }
-    }
-  });
-
-  return rootItems;
-}
 
 export function extractFilterFromXwhere(
   str: string | string[],
@@ -108,7 +71,7 @@ function innerExtractFilterFromXwhere(
     (parseResult.lexErrors.length > 0 || parseResult.parseErrors.length > 0) &&
     throwErrorIfInvalid
   ) {
-    throw parseResult.lexErrors[0] ?? parseResult.parseErrors[0];
+    throw new NcSDKError('INVALID_FILTER');
   }
   const filterSubType = parseResult.parsedCst;
   return [
@@ -160,8 +123,58 @@ function mapFilterClauseSubType(
     is_group: false,
     logical_op: filter.logical_op as any,
     comparison_op: filter.comparison_op as any,
-    comparison_sub_op: filter.comparison_sub_op as any,
+    comparison_sub_op: undefined,
     value: filter.value,
   };
-  return result;
+  return handleDataTypes(result, aliasCol);
+}
+
+function handleDataTypes(
+  filterType: FilterType,
+  column: ColumnType
+): FilterType {
+  if (
+    [
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+    ].includes(column.uidt as UITypes)
+  ) {
+    if (!filterType.value) {
+      throw new BadRequest(
+        `'' is not supported for '${filterType.comparison_op}'`
+      );
+    }
+    const [subOp, ...value] = Array.isArray(filterType.value)
+      ? filterType.value
+      : (filterType.value as string).split(',').map((k) => k.trim());
+
+    filterType.comparison_sub_op = subOp as any;
+    filterType.value = value.join('');
+    if (!COMPARISON_SUB_OPS.includes(filterType.comparison_sub_op)) {
+      throw new BadRequest(
+        `'${filterType.comparison_sub_op}' is not supported.`
+      );
+    }
+    if (
+      (filterType.comparison_op === 'isWithin' &&
+        !IS_WITHIN_COMPARISON_SUB_OPS.includes(
+          filterType.comparison_sub_op as any
+        )) ||
+      (filterType.comparison_op !== 'isWithin' &&
+        IS_WITHIN_COMPARISON_SUB_OPS.includes(
+          filterType.comparison_sub_op as any
+        ))
+    ) {
+      throw new BadRequest(
+        `'${filterType.comparison_sub_op}' is not supported for '${filterType.comparison_op}'`
+      );
+    }
+    if (filterType.value === '') {
+      filterType.value = undefined;
+    }
+  }
+
+  return filterType;
 }

@@ -308,7 +308,11 @@ export const nocoModuleMetadata = {
     PublicDatasExportService,
     DataV3Service,
 
-    FormulaColumnTypeChanger,
+    // use custom provider to avoid circular dependency
+    {
+      provide: 'FormulaColumnTypeChanger',
+      useClass: FormulaColumnTypeChanger,
+    },
   ],
   exports: [
     /* Generic */
@@ -350,8 +354,6 @@ export const nocoModuleMetadata = {
     BulkDataAliasService,
     DataTableService,
     DataV3Service,
-
-    FormulaColumnTypeChanger,
   ],
 };
 

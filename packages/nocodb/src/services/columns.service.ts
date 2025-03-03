@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import {
   AppEvents,
   ButtonActionsType,
@@ -21,7 +21,6 @@ import {
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import rfdc from 'rfdc';
-import { parseMetaProp } from 'src/utils/modelUtils';
 import { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnReqType,
@@ -38,7 +37,7 @@ import type {
   IColumnsService,
   ReusableParams,
 } from '~/services/columns.service.type';
-import { FormulaColumnTypeChanger } from '~/services/formula-column-type-changer.service';
+import { parseMetaProp } from '~/utils/modelUtils';
 import {
   BaseUser,
   CalendarRange,
@@ -185,7 +184,8 @@ export class ColumnsService implements IColumnsService {
   constructor(
     protected readonly metaService: MetaService,
     protected readonly appHooksService: AppHooksService,
-    protected readonly formulaColumnTypeChanger: FormulaColumnTypeChanger,
+    @Inject(forwardRef(() => 'FormulaColumnTypeChanger'))
+    protected readonly formulaColumnTypeChanger,
   ) {}
 
   async updateFormulas(
@@ -811,7 +811,7 @@ export class ColumnsService implements IColumnsService {
             (await KanbanView.getViewsByGroupingColId(context, column.id))
               .length > 0
           ) {
-            return NcError.badRequest(
+            NcError.badRequest(
               `The column '${column.column_name}' is being used in Kanban View.`,
             );
           }

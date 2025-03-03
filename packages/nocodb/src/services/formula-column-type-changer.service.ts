@@ -1,25 +1,30 @@
-import { Injectable, NotImplementedException } from '@nestjs/common';
-import { LazyModuleLoader } from '@nestjs/core';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotImplementedException,
+} from '@nestjs/common';
 import { NcApiVersion, type NcContext, type NcRequest } from 'nocodb-sdk';
 import type { ColumnReqType, UserType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { FormulaColumn } from '~/models';
-import type {
-  IColumnsService,
-  ReusableParams,
-} from '~/services/columns.service.type';
+import type { ReusableParams } from '~/services/columns.service.type';
 import type { FormulaDataMigrationDriver } from '~/services/formula-column-type-changer';
 import { Column } from '~/models';
 import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
 import { MysqlDataMigration } from '~/services/formula-column-type-changer/mysql-data-migration';
 import { PgDataMigration } from '~/services/formula-column-type-changer/pg-data-migration';
 import { SqliteDataMigration } from '~/services/formula-column-type-changer/sqlite-data-migration';
+import { ColumnsService } from '~/services/columns.service';
 
 export const DEFAULT_BATCH_LIMIT = 100000;
 
 @Injectable()
 export class FormulaColumnTypeChanger {
-  constructor(private readonly lazyModuleLoader: LazyModuleLoader) {
+  constructor(
+    @Inject(forwardRef(() => ColumnsService))
+    private readonly columnsService: ColumnsService,
+  ) {
     const pgDriver = new PgDataMigration();
     const mysqlDriver = new MysqlDataMigration();
     const sqliteDriver = new SqliteDataMigration();
@@ -35,20 +40,6 @@ export class FormulaColumnTypeChanger {
   dataMigrationDriver: {
     [key: string]: FormulaDataMigrationDriver;
   } = {};
-
-  private _columnService: IColumnsService;
-  get columnsService(): Promise<IColumnsService> {
-    if (!this._columnService) {
-      return (async () => {
-        const { NocoModule } = await import('~/modules/noco.module');
-        const { ColumnsService } = await import('~/services/columns.service');
-        const moduleRef = await this.lazyModuleLoader.load(() => NocoModule);
-        this._columnService = moduleRef.get(ColumnsService);
-        return this._columnService;
-      })();
-    }
-    return Promise.resolve(this._columnService);
-  }
 
   async startChangeFormulaColumnType(
     context: NcContext,
@@ -80,9 +71,7 @@ export class FormulaColumnTypeChanger {
 
     let newColumn: Column;
     try {
-      newColumn = await (
-        await this.columnsService
-      ).columnAdd(context, {
+      newColumn = await this.columnsService.columnAdd(context, {
         tableId: baseModel.model.id,
         column: params.newColumnRequest,
         req: params.req,
@@ -99,9 +88,7 @@ export class FormulaColumnTypeChanger {
           baseModel,
         });
       } catch (ex) {
-        await (
-          await this.columnsService
-        ).columnDelete(context, {
+        await this.columnsService.columnDelete(context, {
           columnId: newColumn.id,
           req: params.req,
           user: params.user,

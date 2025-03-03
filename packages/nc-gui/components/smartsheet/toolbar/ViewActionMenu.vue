@@ -70,8 +70,6 @@ const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<bo
 ) as Record<QuickImportDialogType, Ref<boolean>>
 
 const onImportClick = (dialog: any) => {
-  if (lockType.value === LockType.Locked) return
-
   emits('closeModal')
   dialog.value = true
 }

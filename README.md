@@ -53,26 +53,28 @@ NocoDB is the fastest and easiest way to build databases online.
 
 # Installation
 
-## Docker with SQLite
+## Docker
+- a single image that contains 
+  - 🇳  NocoDB,
+  - 🐘 PostgreSQL,
+  - ⚡ Valkey(Redis), 
+  - 🗄 Minio, 
+  - 🌐 nginx gateway.
+- 🔒 automatically sets up SSL and auto-renews! 
 
-```bash 
-docker run -d \
-  --name noco \
-  -v "$(pwd)"/nocodb:/usr/app/data/ \
-  -p 8080:8080 \
-  nocodb/nocodb:latest
-  ```
+> [!NOTE]
+> use the `nocodb/nocodb_aio:arm64_latest` tag for apple silicon macs
 
-## Docker with PG
-```bash
-docker run -d \
-  --name noco \
-  -v "$(pwd)"/nocodb:/usr/app/data/ \
-  -p 8080:8080 \
-  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
-  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-  nocodb/nocodb:latest
 ```
+docker run \
+	--tmpfs /run:nodev,nosuid,exec,mode=0755 \
+	-v "($pwd)"/aio:/var \
+	-p 9000:9000 \
+	-p 80:8080 \
+	-it nocodb/nocodb_aio:amd64_latest
+```
+
+> read more on our [wiki](/getting-started/self-hosted/installation/docker-aio)
 
 ## Nix
 
@@ -110,34 +112,18 @@ To use NocoDB as a NixOS module, a flake.nix would be as follows:
 }
 ```
 
-## Auto-upstall
-Auto-upstall is a single command that sets up NocoDB on a server for production usage.
-Behind the scenes it auto-generates docker-compose for you.
-
-```bash
-bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
-```
-
-Auto-upstall does the following: 🕊
-- 🐳 Automatically installs all pre-requisites like docker, docker-compose
-- 🚀 Automatically installs NocoDB with PostgreSQL, Redis, Minio, Traefik gateway using Docker Compose. 🐘 🗄️ 🌐
-- 🔄 Automatically upgrades NocoDB to the latest version when you run the command again.
-- 🔒 Automatically setups SSL and also renews it. Needs a domain or subdomain as input while installation.
-> install.nocodb.com/noco.sh script can be found [here in our github](https://raw.githubusercontent.com/nocodb/nocodb/develop/docker-compose/1_Auto_Upstall/noco.sh)
-
-
 ## Other Methods
 
 > Binaries are only for quick testing locally.
 
-| Install Method                | Command to install                                                                                                                                                                                                                                                                                                                                                         |
-|-------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 🍏 MacOS arm64 <br>(Binary)   | `curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                       |
-| 🍏 MacOS x64 <br>(Binary)     | `curl http://get.nocodb.com/macos-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                         |
-| 🐧 Linux arm64 <br>(Binary)   | `curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                       |
-| 🐧 Linux x64 <br>(Binary)     | `curl http://get.nocodb.com/linux-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                         |
-| 🪟 Windows arm64 <br>(Binary) | `iwr http://get.nocodb.com/win-arm64.exe -OutFile Noco-win-arm64.exe && .\Noco-win-arm64.exe`                                                                                                                                                                                                                                                                              |
-| 🪟 Windows x64 <br>(Binary)   | `iwr http://get.nocodb.com/win-x64.exe -OutFile Noco-win-x64.exe && .\Noco-win-x64.exe`                                                                                                                                                                                                                                                                                    |
+| Install Method                | Command to install                                                                            |
+|-------------------------------|-----------------------------------------------------------------------------------------------|
+| 🍏 MacOS arm64 <br>(Binary)   | `curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`          |
+| 🍏 MacOS x64 <br>(Binary)     | `curl http://get.nocodb.com/macos-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`            |
+| 🐧 Linux arm64 <br>(Binary)   | `curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`          |
+| 🐧 Linux x64 <br>(Binary)     | `curl http://get.nocodb.com/linux-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`            |
+| 🪟 Windows arm64 <br>(Binary) | `iwr http://get.nocodb.com/win-arm64.exe -OutFile Noco-win-arm64.exe && .\Noco-win-arm64.exe` |
+| 🪟 Windows x64 <br>(Binary)   | `iwr http://get.nocodb.com/win-x64.exe -OutFile Noco-win-x64.exe && .\Noco-win-x64.exe`       |
 
 
 > When running locally access nocodb by visiting: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)

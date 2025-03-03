@@ -98,6 +98,7 @@ export function useCanvasRender({
   const colResizeHoveredColIds = ref(new Set())
   const { tryShowTooltip } = useTooltipStore()
   const { isMobileMode } = useGlobal()
+  const isLocked = inject(IsLockedInj, ref(false))
 
   const drawShimmerEffect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, rowIdx: number) => {
     ctx.save()
@@ -260,7 +261,7 @@ export function useCanvasRender({
       const isNearEdge =
         mousePosition && Math.abs(xOffset - scrollLeft.value - mousePosition.x) <= resizeHandleWidth && mousePosition.y <= 32
 
-      if (isNearEdge) {
+      if (isNearEdge && !isLocked.value) {
         colResizeHoveredColIds.value.add(column.id)
         ctx.strokeStyle = '#9CDAFA'
         ctx.lineWidth = 2
@@ -503,7 +504,7 @@ export function useCanvasRender({
           ctx.stroke()
         }
 
-        if (isNearEdge && column.id !== 'row_number') {
+        if (isNearEdge && column.id !== 'row_number' && !isLocked.value) {
           colResizeHoveredColIds.value.add(column.id)
           ctx.strokeStyle = '#9CDAFA'
           ctx.lineWidth = 2

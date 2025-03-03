@@ -1345,13 +1345,6 @@ export async function singleQueryList(
   let dbQueryTime;
   let skipCache = shouldSkipCache(ctx);
 
-  const useLimitOverride =
-    !ctx.ignorePagination &&
-    ctx.limitOverride &&
-    ctx.limitOverride > 0 &&
-    ctx.limitOverride < 10000
-      ? ctx.limitOverride
-      : undefined;
   const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
   const getAlias = getAliasGenerator();
 
@@ -1420,10 +1413,7 @@ export async function singleQueryList(
           const startTime = process.hrtime();
           res = await baseModel.execAndParse(
             knex
-              .raw(cachedQuery, [
-                +(useLimitOverride ?? listArgs.limit),
-                +listArgs.offset,
-              ])
+              .raw(cachedQuery, [+listArgs.limit, +listArgs.offset])
               .toQuery(),
             null,
             { skipDateConversion: true, apiVersion: ctx.apiVersion },
@@ -1450,7 +1440,7 @@ export async function singleQueryList(
           count: countRes,
           limit: +listArgs.limit,
           offset: +listArgs.offset,
-          limitOverride: useLimitOverride,
+          limitOverride: +ctx.limitOverride,
         },
         {
           stats: {
@@ -1591,14 +1581,17 @@ export async function singleQueryList(
     alias: ROOT_ALIAS,
     apiVersion: ctx.apiVersion,
   });
+
   if (!ctx.ignorePagination) {
-    if (skipCache) {
-      rootQb.limit(+(useLimitOverride ?? listArgs.limit));
+    if (ctx.limitOverride) {
+      rootQb.limit(ctx.limitOverride);
+      rootQb.offset(+listArgs.offset);
+    } else if (skipCache) {
+      rootQb.limit(+listArgs.limit);
       rootQb.offset(+listArgs.offset);
     } else {
       // provide some dummy non-zero value to limit and offset to populate bindings,
       // if offset is 0 then it will ignore bindings
-      // it'll be required and overriden later as number of binding is static
       rootQb.limit(9999);
       rootQb.offset(9999);
     }
@@ -1707,12 +1700,7 @@ export async function singleQueryList(
 
         // run the query with actual limit and offset
         res = await baseModel.execAndParse(
-          knex
-            .raw(query, [
-              +(useLimitOverride ?? listArgs.limit),
-              +listArgs.offset,
-            ])
-            .toQuery(),
+          knex.raw(query, [+listArgs.limit, +listArgs.offset]).toQuery(),
           null,
           { skipDateConversion: true },
         );
@@ -1728,7 +1716,7 @@ export async function singleQueryList(
       count,
       limit: +listArgs.limit,
       offset: +listArgs.offset,
-      limitOverride: +useLimitOverride,
+      limitOverride: +ctx.limitOverride,
     },
     {
       stats: {

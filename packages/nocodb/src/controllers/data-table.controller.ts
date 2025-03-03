@@ -41,7 +41,6 @@ export class DataTableController {
       query: req.query,
       modelId: modelId,
       viewId: viewId,
-      limitOverride: req.query.limit,
     });
     const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);

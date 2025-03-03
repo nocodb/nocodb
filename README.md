@@ -54,13 +54,15 @@ NocoDB is the fastest and easiest way to build databases online.
 # Installation
 
 ## Docker
-- a single image that contains 
-  - 🇳  NocoDB,
-  - 🐘 PostgreSQL,
-  - ⚡ Valkey(Redis), 
-  - 🗄 Minio, 
-  - 🌐 nginx gateway.
-- 🔒 automatically sets up SSL and auto-renews! 
+
+A single image that contains 
+- 🇳  NocoDB,
+- 🐘 PostgreSQL,
+- ⚡ Valkey(Redis), 
+- 🗄 Minio, 
+- 🌐 nginx gateway.
+- 🔒 automated SSL certs and auto renew
+read more on our [wiki](/getting-started/self-hosted/installation/docker-aio)
 
 > [!NOTE]
 > use the `nocodb/nocodb_aio:arm64_latest` tag for apple silicon macs
@@ -74,12 +76,10 @@ docker run \
 	-it nocodb/nocodb_aio:amd64_latest
 ```
 
-> read more on our [wiki](/getting-started/self-hosted/installation/docker-aio)
-
 ## Nix
 
 ```
-nix run github:nocodb/nocodb
+nix run github:nocodb/nocodb/master
 ```
 
 ## NixOS
@@ -91,7 +91,7 @@ To use NocoDB as a NixOS module, a flake.nix would be as follows:
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nocodb.url = "github:nocodb/nocodb";
+    nocodb.url = "github:nocodb/nocodb/master";
   };
 
   outputs = inputs@{ nixpkgs, nocodb, ... }: {

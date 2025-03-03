@@ -55,8 +55,8 @@ export const BaseRoleUpdate = () => (
             <span className="font-bold text-gray-800">
               {' <%= baseTitle %>  '}
             </span>
-            has been updated to <span className="font-bold text-gray-800">{'<%= role %>'}</span>
-            by <span className="font-bold text-gray-800">{'<%= name %>'}</span> ( {'<%= email %>'})
+            has been updated to <span className="font-bold text-gray-800">{'<%= role %> '}</span>
+            by <span className="font-bold text-gray-800">{' <%= name %>'}</span> ( {'<%= email %>'})
           </Text>
           <Button className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10" href="<%= link %>">
             <Text className="!my-[8px]">

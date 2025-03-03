@@ -380,6 +380,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       data = await baseModel.readByPk(...rest);
     }
 
+    // load columns if not loaded already
+    await model.getCachedColumns(this.context);
+
     if (extractDisplayValueData) {
       return data ? data[model.displayValue.title] ?? null : '';
     }

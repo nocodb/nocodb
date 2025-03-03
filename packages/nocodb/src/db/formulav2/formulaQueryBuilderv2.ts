@@ -188,10 +188,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       case UITypes.Formula:
       case UITypes.Button:
         {
-
-
           aliasToColumn[col.id] = async () => {
-
             if (params.parentColumns.has(col.id)) {
               NcError.formulaError('Circular reference detected');
             }
@@ -580,8 +577,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                 break;
               case UITypes.Formula:
                 {
-
-
                   const formulaOption =
                     await lookupColumn.getColOptions<FormulaColumn>(context);
                   const lookupModel = await lookupColumn.getModel(context);
@@ -595,7 +590,10 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                     model: lookupModel,
                     aliasToColumn,
                     parsedTree: formulaOption.getParsedTree(),
-                    parentColumns: new Set([lookupColumn.id, ...params.parentColumns]),
+                    parentColumns: new Set([
+                      lookupColumn.id,
+                      ...params.parentColumns,
+                    ]),
                   });
                   if (isArray) {
                     const qb = selectQb;

@@ -1,4 +1,4 @@
-import Welcome from './Welcome';
+import Welcome from './welcome';
 import MentionRow from './mention-row';
 import Mention from './mention-comment';
 

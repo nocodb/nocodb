@@ -14,32 +14,38 @@ import ContentWrapper from '../components/ContentWrapper';
 
 // Corresponding ejs template
 interface Props {
-  workspaceTitle: string;
-  name: string;
   email: string;
   link: string;
 }
 
-export const WorkspaceInvite = () => (
+export const Welcome = () => (
   <Html>
     <RootWrapper>
       <Head />
-      <Preview>You have been invited</Preview>
+      <Preview>Welcome to NocoDB!</Preview>
       <Body className="bg-white">
         <ContentWrapper>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
-            You’ve been invited
+            Welcome to NocoDB!
           </Heading>
           <Section className="py-6 mx-auto font-bold text-center text-gray-900 text-base">
-            {'<%= workspaceTitle %>'}
+            {'<%= email %>'}
           </Section>
           <Text className="text-gray-600 text-center text-sm !mt-0">
-            <span className="font-bold text-gray-800">{'<%= name %>'}</span> ({'<%= email %>'}) has invited you to
-            join <span className="font-bold text-gray-800">{'<%= workspaceTitle %>'}</span>.  Click on ‘Accept invite’ to join.
+            We're thrilled to have you on board! 🚀 Turn your databases into powerful smart tables and manage your data the way you want — no code required.
+          </Text>
+          <Text className="text-gray-600 text-center text-sm !mt-0">
+            Get started by creating your first project or exploring templates to see what’s possible.
+          </Text>
+          <Text className="text-gray-600 text-center text-sm !mt-0">
+            Need help? Our docs and community are just a click away.
+          </Text>
+          <Text className="text-gray-600 text-center text-sm !mt-0">
+            Let’s build something amazing together! 💡
           </Text>
           <Button className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10" href="<%= link %>">
             <Text className="!my-[8px]">
-              Accept invite
+              Go to your Workspace
             </Text>
           </Button>
         </ContentWrapper>
@@ -48,4 +54,4 @@ export const WorkspaceInvite = () => (
     </RootWrapper>
   </Html>
 );
-export default WorkspaceInvite;
+export default Welcome;

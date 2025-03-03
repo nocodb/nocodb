@@ -30,10 +30,8 @@ export const BaseInvite = () => (
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             You’ve been invited to a Base
           </Heading>
-          <Section className="py-6 mx-auto">
-            <span className="font-bold text-center text-gray-900 text-base">
-              {'<%= baseTitle %>'}
-            </span>
+          <Section className="py-6 mx-auto font-bold mx-auto text-center text-gray-900 text-base">
+            {'<%= baseTitle %>'}
           </Section>
           <Text className="text-gray-600 text-center text-sm !mt-0">
             <span className="font-bold text-gray-800">{'<%= name %>'}</span> ( {'<%= email %>'}) has invited you to

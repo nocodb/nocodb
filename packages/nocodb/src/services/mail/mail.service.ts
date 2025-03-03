@@ -7,6 +7,8 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import {
   BaseInvite,
   BaseRoleUpdate,
+  OrganizationInvite,
+  OrganizationRoleUpdate,
   PasswordReset,
   VerifyEmail,
   Welcome,
@@ -170,6 +172,37 @@ export class MailService {
           subject: `Welcome to NocoDB!`,
           html: ejs.render(Welcome, {
             email: user.email,
+            link: this.buildUrl(req, {}),
+          }),
+        });
+        break;
+      }
+      case MailEvent.ORGANIZATION_INVITE: {
+        const { req, user, token } = payload;
+        await mailerAdapter.mailSend({
+          to: user.email,
+          subject: `You have been invited to join NocoDB`,
+          html: ejs.render(OrganizationInvite, {
+            name:
+              user.display_name ?? user.email.split('@')[0].toLocaleUpperCase(),
+            email: user.email,
+            link: this.buildUrl(req, {
+              token,
+            }),
+          }),
+        });
+        break;
+      }
+      case MailEvent.ORGANIZATION_ROLE_UPDATE: {
+        const { req, user, role } = payload;
+        await mailerAdapter.mailSend({
+          to: user.email,
+          subject: `Role updated in NocoDB`,
+          html: ejs.render(OrganizationRoleUpdate, {
+            name:
+              user.display_name ?? user.email.split('@')[0].toLocaleUpperCase(),
+            email: user.email,
+            role,
             link: this.buildUrl(req, {}),
           }),
         });

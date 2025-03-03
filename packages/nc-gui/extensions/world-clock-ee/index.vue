@@ -158,8 +158,8 @@ const displayClockInstances = computed(() => clockInstances.value.slice(0, 4))
             </div>
           </div>
         </div>
-        <div class="flex flex-col space-y-3 p-3 border-t">
-          <span class="font-bold">Settings</span>
+        <div class="flex flex-col gap-4 px-6 py-4 border-t">
+          <span class="font-700 text-nc-content-gray-subtle text-[16px]">Settings</span>
           <TabSwitch v-model="selectedClockMode" :options="clockModeOptions" />
           <div class="flex w-full space-x-2">
             <div
@@ -168,14 +168,14 @@ const displayClockInstances = computed(() => clockInstances.value.slice(0, 4))
               :class="`${selectedClockMode === 'Both' ? 'w-2/3' : 'w-full'}`"
               style="box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.08)"
             >
-              <span>Show numbers</span>
+              <span class="text-[14px] font-600">Show numbers</span>
               <NcSwitch v-model:checked="showNumbers" />
             </div>
             <TabSwitch
               v-if="['Both', 'Digital'].includes(selectedClockMode)"
               v-model="selectedHFormat"
               :options="hFormatOptions"
-              :class="`${selectedClockMode === 'Both' ? 'w-1/2' : 'w-full'}`"
+              :class="`${selectedClockMode === 'Both' ? '' : 'w-full'}`"
             />
           </div>
         </div>

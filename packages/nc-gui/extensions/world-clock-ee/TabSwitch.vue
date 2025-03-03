@@ -26,9 +26,9 @@ const selectedValue = useVModel(props, 'modelValue')
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .tab {
-  @apply flex flex-row items-center w-full justify-center px-2 py-1 rounded-md gap-x-2 text-gray-600 hover:text-black cursor-pointer transition-all duration-300 select-none;
+  @apply flex flex-row items-center w-full justify-center rounded-md gap-x-2 text-gray-600 hover:text-black cursor-pointer transition-all duration-300 select-none;
 }
 
 .tab-icon {
@@ -36,16 +36,20 @@ const selectedValue = useVModel(props, 'modelValue')
   @apply w-4;
 }
 .tab .tab-title {
-  @apply min-w-0;
+  @apply px-2 py-1 text-nc-content-gray-subtle2;
   word-break: keep-all;
   white-space: nowrap;
   display: inline;
   line-height: 0.95;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .active {
-  @apply bg-white text-brand-600 hover:text-brand-600;
-
+  @apply bg-white;
+  .tab-title {
+    @apply text-nc-content-gray-emphasis font-600;
+  }
   box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.06), 0 5px 3px -2px rgba(0, 0, 0, 0.02);
 }
 </style>

@@ -25,9 +25,8 @@ import type {
   LookupColumn,
   QrCodeColumn,
   Source,
-  View,
 } from '~/models';
-import { Column, Filter, Model, Sort } from '~/models';
+import { Column, Filter, Model, Sort, View } from '~/models';
 import {
   _wherePk,
   extractSortsObject,
@@ -236,24 +235,22 @@ export async function extractColumn({
               const alias4 = getAlias();
               const alias5 = getAlias();
 
-              const parentModel = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getRelatedTable(context);
-              const mmChildColumn = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getMMChildColumn(context);
-              const mmParentColumn = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getMMParentColumn(context);
-              const assocModel = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getMMModel(context);
-              const childColumn = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getChildColumn(context);
-              const parentColumn = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getParentColumn(context);
+              const relationColOpts =
+                column.colOptions as LinkToAnotherRecordColumn;
+              const parentModel = await relationColOpts.getRelatedTable(
+                context,
+              );
+              const mmChildColumn = await relationColOpts.getMMChildColumn(
+                context,
+              );
+              const mmParentColumn = await relationColOpts.getMMParentColumn(
+                context,
+              );
+              const assocModel = await relationColOpts.getMMModel(context);
+              const childColumn = await relationColOpts.getChildColumn(context);
+              const parentColumn = await relationColOpts.getParentColumn(
+                context,
+              );
 
               const assocBaseModel = await Model.getBaseModelSQL(context, {
                 id: assocModel.id,
@@ -305,8 +302,15 @@ export async function extractColumn({
               // apply filters on nested query
               await conditionV2(baseModel, queryFilterObj, mmQb, alias2);
 
+              const view = relationColOpts.fk_target_view_id
+                ? await View.get(context, relationColOpts.fk_target_view_id)
+                : await View.getDefaultView(context, parentBaseModel.model.id);
+              const relatedSorts = await view.getSorts(context);
               // apply sorts on nested query
-              if (sorts) await sortV2(baseModel, sorts, mmQb, alias2);
+              if (sorts && sorts.length > 0) {
+                await sortV2(baseModel, sorts, mmQb, alias2);
+              } else if (relatedSorts && relatedSorts.length > 0)
+                await sortV2(parentBaseModel, relatedSorts, mmQb, alias2);
 
               const mmAggQb = knex(mmQb.as(alias5));
               await extractColumns({
@@ -544,16 +548,14 @@ export async function extractColumn({
               const alias1 = getAlias();
               const alias2 = getAlias();
               const alias3 = getAlias();
+              const relationColOpts =
+                column.colOptions as LinkToAnotherRecordColumn;
 
-              const childModel = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getRelatedTable(context);
-              const childColumn = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getChildColumn(context);
-              const parentColumn = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getParentColumn(context);
+              const childModel = await relationColOpts.getRelatedTable(context);
+              const childColumn = await relationColOpts.getChildColumn(context);
+              const parentColumn = await relationColOpts.getParentColumn(
+                context,
+              );
 
               const childBaseModel = await Model.getBaseModelSQL(context, {
                 dbDriver: knex,
@@ -573,8 +575,16 @@ export async function extractColumn({
               // apply filters on nested query
               await conditionV2(baseModel, queryFilterObj, hmQb);
 
+              const view = relationColOpts.fk_target_view_id
+                ? await View.get(context, relationColOpts.fk_target_view_id)
+                : await View.getDefaultView(context, childModel.id);
+              const childSorts = await view.getSorts(context);
+
               // apply sorts on nested query
-              if (sorts) await sortV2(baseModel, sorts, hmQb);
+              if (sorts && sorts.length > 0) {
+                await sortV2(baseModel, sorts, hmQb, alias2);
+              } else if (childSorts && childSorts.length > 0)
+                await sortV2(childBaseModel, childSorts, hmQb);
 
               const hmAggQb = knex(hmQb.as(alias3));
               await extractColumns({

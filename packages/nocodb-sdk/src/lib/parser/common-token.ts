@@ -1,15 +1,11 @@
 import { createToken, Lexer } from 'chevrotain';
-import {
-  REGEXSTR_IDENTIFIER_SPECIAL_CHAR,
-  REGEXSTR_INTL_LETTER,
-  REGEXSTR_NUMERIC_ARABIC,
-  REGEXSTR_WHITESPACE,
-} from '../regex';
 const IDENTIFIER = createToken({
   name: 'IDENTIFIER',
-  pattern: new RegExp(
-    `[${REGEXSTR_INTL_LETTER}${REGEXSTR_NUMERIC_ARABIC}${REGEXSTR_IDENTIFIER_SPECIAL_CHAR}${REGEXSTR_WHITESPACE}]+`
-  ),
+  pattern: /[^()'",]+/,
+});
+const COMMA_SUPPORTED_IDENTIFIER = createToken({
+  name: 'COMMA_SUPPORTED_IDENTIFIER',
+  pattern: /[^()'"]+/,
 });
 export const COMMON_TOKEN = {
   PAREN_START: createToken({ name: 'PAREN_START', pattern: /\(/ }),
@@ -47,6 +43,7 @@ export const COMMON_TOKEN = {
   DBL_QUOTE: createToken({ name: 'DBL_QUOTE', pattern: /"/ }),
   SGL_QUOTE: createToken({ name: 'SGL_QUOTE', pattern: /'/ }),
   IDENTIFIER: IDENTIFIER,
+  COMMA_SUPPORTED_IDENTIFIER: COMMA_SUPPORTED_IDENTIFIER,
   SUP_SGL_QUOTE_IDENTIFIER: createToken({
     name: 'SUP_SGL_QUOTE_IDENTIFIER',
     pattern: /'((?:\\'|[^'])+)'/,

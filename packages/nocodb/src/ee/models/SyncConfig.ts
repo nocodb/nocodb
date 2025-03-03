@@ -1,5 +1,4 @@
-import { parseCronExpression } from 'cron-schedule';
-import dayjs from 'dayjs';
+import { CronExpressionParser } from 'cron-parser';
 import { type NcContext, SyncTrigger } from 'nocodb-sdk';
 import type { SyncType } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
@@ -185,11 +184,14 @@ export default class SyncConfig {
 
     if (syncConfig.sync_trigger === SyncTrigger.Schedule) {
       try {
-        const cron = parseCronExpression(syncConfig.sync_trigger_cron);
+        const cron = CronExpressionParser.parse(syncConfig.sync_trigger_cron, {
+          currentDate: from,
+          tz: 'UTC',
+        });
 
-        const nextSyncAt = dayjs(cron.getNextDate(from));
+        const nextSyncAt = cron.next().toISOString();
 
-        return nextSyncAt.utc().toISOString();
+        return nextSyncAt;
       } catch (e) {
         return null;
       }

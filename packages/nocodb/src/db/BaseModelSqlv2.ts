@@ -7195,7 +7195,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     ]);
 
     // disable external source audit in cloud
-    if (!(isEE && !isOnPrem && !(await this.getSource())?.isMeta())) {
+    if (await this.isDataAuditEnabled()) {
       await Audit.insert(
         await generateAuditV1Payload<DataInsertPayload>(
           AuditV1OperationTypes.DATA_INSERT,
@@ -7226,10 +7226,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     let parentAuditId;
 
     // disable external source audit in cloud
-    if (
-      !req.ncParentAuditId &&
-      !(isEE && !isOnPrem && !(await this.getSource())?.isMeta())
-    ) {
+    if (!req.ncParentAuditId && (await this.isDataAuditEnabled())) {
       parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
 
       await Audit.insert(
@@ -7252,7 +7249,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     // disable external source audit in cloud
-    if (!(isEE && !isOnPrem && !(await this.getSource())?.isMeta())) {
+    if (await this.isDataAuditEnabled()) {
       // data here is not mapped to column alias
       await Audit.insert(
         await Promise.all(
@@ -7301,7 +7298,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const id = this.extractPksValues(data);
 
     // disable external source audit in cloud
-    if (!(isEE && !isOnPrem && !(await this.getSource())?.isMeta())) {
+    if (await this.isDataAuditEnabled()) {
       await Audit.insert(
         await generateAuditV1Payload<DataDeletePayload>(
           AuditV1OperationTypes.DATA_DELETE,
@@ -7338,7 +7335,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
 
     // disable external source audit in cloud
-    if (!(isEE && !isOnPrem && !(await this.getSource())?.isMeta())) {
+    if (await this.isDataAuditEnabled()) {
       await Audit.insert(
         await generateAuditV1Payload<DataBulkDeletePayload>(
           AuditV1OperationTypes.DATA_BULK_DELETE,
@@ -7360,7 +7357,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const column_meta = extractColsMetaForAudit(this.model.columns);
 
     // disable external source audit in cloud
-    if (!(isEE && !isOnPrem && !(await this.getSource())?.isMeta())) {
+    if (await this.isDataAuditEnabled()) {
       await Audit.insert(
         await Promise.all(
           data?.map?.((d) =>
@@ -7406,7 +7403,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
 
       // disable external source audit in cloud
-      if (!(isEE && !isOnPrem && !(await this.getSource())?.isMeta())) {
+      if (await this.isDataAuditEnabled()) {
         await Audit.insert(
           await generateAuditV1Payload<DataBulkUpdatePayload>(
             AuditV1OperationTypes.DATA_BULK_UPDATE,
@@ -7536,7 +7533,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     // disable external source audit in cloud
-    if (!(isEE && !isOnPrem && !(await this.getSource())?.isMeta())) {
+    if (await this.isDataAuditEnabled()) {
       const formattedOldData = formatDataForAudit(oldData, this.model.columns);
       const formattedData = formatDataForAudit(data, this.model.columns);
 
@@ -7956,7 +7953,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     type: RelationTypes;
   }): Promise<void> {
     // disable external source audit in cloud
-    if (isEE && !isOnPrem && !(await this.getSource())?.isMeta()) {
+    if (!(await this.isDataAuditEnabled())) {
       return;
     }
 
@@ -8083,7 +8080,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     type: RelationTypes;
   }): Promise<void> {
     // disable external source audit in cloud
-    if (isEE && !isOnPrem && !(await this.getSource())?.isMeta()) {
+    if (!(await this.isDataAuditEnabled())) {
       return;
     }
     if (!refDisplayValue) {
@@ -10920,7 +10917,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     req: NcRequest;
   }) {
     // disable external source audit in cloud
-    if (isEE && !isOnPrem && !(await this.getSource())?.isMeta()) return;
+    if (!(await this.isDataAuditEnabled())) return;
 
     const auditUpdateObj = [];
     for (const rowId of rowIds) {
@@ -10957,6 +10954,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     req: NcRequest;
   }) {
     // placeholder
+  }
+
+  async isDataAuditEnabled() {
+    return (
+      process.env.NC_DISABLE_AUDIT !== 'true' &&
+      (process.env.NC_ENABLE_AUDIT === 'true' ||
+        process.env.NODE_ENV === 'test' ||
+        !(isEE && !isOnPrem && !(await this.getSource())?.isMeta()))
+    );
   }
 
   getViewId() {

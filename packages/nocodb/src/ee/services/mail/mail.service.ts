@@ -2,6 +2,7 @@ import * as ejs from 'ejs';
 import { Injectable } from '@nestjs/common';
 import { MailService as MailServiceCE } from 'src/services/mail/mail.service';
 import { MailEvent } from 'src/interface/Mail';
+import { RoleLabels } from 'nocodb-sdk';
 import {
   BaseRoleUpdate,
   Mention,
@@ -141,7 +142,7 @@ export class MailService extends MailServiceCE {
               workspaceId: workspace.id,
               baseId: base.id,
             }),
-            role,
+            role: RoleLabels[role],
           }),
         });
         break;
@@ -182,7 +183,7 @@ export class MailService extends MailServiceCE {
           subject: `Your role has been updated in ${workspace.title}`,
           html: ejs.render(WorkspaceRoleUpdate, {
             workspaceTitle: workspace.title,
-            role,
+            role: RoleLabels[role],
             name:
               invitee.display_name ??
               invitee.email.split('@')[0].toLocaleUpperCase(),

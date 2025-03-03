@@ -854,7 +854,7 @@ async function handleMouseUp(e: MouseEvent) {
 
       // If user is clicking on an existing column
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
-      const isFieldNotEditable = isLocked.value || !isUIAllowed('fieldEdit') || clickedColumn.columnObj?.readonly
+      const isFieldNotEditable = !isUIAllowed('fieldEdit') || clickedColumn.columnObj?.readonly
       if (clickedColumn) {
         if (clickType === MouseClickType.RIGHT_CLICK) {
           if (isFieldNotEditable) return

@@ -1025,8 +1025,6 @@ const showOrHideAllFields = (isAllFieldsVisible = false) => {
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
 
-  if (isLocked.value) return
-
   if (cmdOrCtrl && e.key.toLowerCase() === 's') {
     if (openedViewsTab.value !== 'field') return
     e.preventDefault()
@@ -1057,7 +1055,7 @@ onKeyDown('ArrowUp', () => {
 })
 
 onKeyDown('Delete', () => {
-  if (isLocked.value || activeField.value?.pv) return
+  if (activeField.value?.pv) return
 
   if (isActiveInputElementExist()) {
     return
@@ -1070,7 +1068,7 @@ onKeyDown('Delete', () => {
 })
 
 onKeyDown('Backspace', () => {
-  if (isLocked.value || activeField.value?.pv) return
+  if (activeField.value?.pv) return
 
   if (isActiveInputElementExist()) {
     return
@@ -1095,15 +1093,11 @@ onKeyDown('ArrowRight', () => {
 const keys = useMagicKeys()
 
 whenever(keys.meta_s, () => {
-  if (isLocked.value) return
-
   if (!meta.value?.id) return
   if (openedViewsTab.value === 'field') saveChanges()
 })
 
 whenever(keys.ctrl_s, () => {
-  if (isLocked.value) return
-
   if (!meta.value?.id) return
   if (openedViewsTab.value === 'field') saveChanges()
 })
@@ -1325,7 +1319,7 @@ const rightPanelWidth = computed(() => {
                 />
               </template>
             </a-input>
-            <NcDropdown :trigger="['hover']" placement="bottomRight">
+            <NcDropdown v-if="!isLocked" :trigger="['hover']" placement="bottomRight">
               <NcButton size="small" type="secondary" icon-only :shadow="false">
                 <template #icon>
                   <GeneralIcon icon="threeDotVertical" class="text-xs !text-current w-4 h-4" />
@@ -1347,14 +1341,14 @@ const rightPanelWidth = computed(() => {
           <div class="flex gap-2">
             <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
               <div class="nc-fields-add-new-field-btn-wrapper rounded-lg shadow-nc-sm">
-                <NcTooltip :disabled="isLocked">
+                <NcTooltip>
                   <template #title> {{ `${renderAltOrOptlKey()} + C` }} </template>
                   <NcButton
                     data-testid="nc-field-add-new"
                     type="secondary"
                     size="small"
                     class="nc-field-add-new !rounded-r-none !border-r-transparent"
-                    :disabled="loading || isLocked"
+                    :disabled="loading"
                     :shadow="false"
                     @click="addField()"
                   >
@@ -1413,14 +1407,14 @@ const rightPanelWidth = computed(() => {
             </template>
             <template v-else>
               <div class="nc-fields-add-new-field-btn-wrapper shadow-sm">
-                <NcTooltip :disabled="isLocked">
+                <NcTooltip>
                   <template #title> {{ `${renderAltOrOptlKey()} + C` }} </template>
                   <NcButton
                     data-testid="nc-field-add-new"
                     type="secondary"
                     size="small"
                     class="nc-field-add-new"
-                    :disabled="loading || isLocked"
+                    :disabled="loading"
                     :shadow="false"
                     @click="addField()"
                   >
@@ -1437,18 +1431,17 @@ const rightPanelWidth = computed(() => {
               type="secondary"
               size="small"
               :disabled="
-                (!loading &&
-                  ops.length < 1 &&
-                  moveOps.length < 1 &&
-                  visibilityOps.length < 1 &&
-                  showOrHideSystemFields === showSystemFields) ||
-                isLocked
+                !loading &&
+                ops.length < 1 &&
+                moveOps.length < 1 &&
+                visibilityOps.length < 1 &&
+                showOrHideSystemFields === showSystemFields
               "
               @click="clearChanges()"
             >
               {{ $t('general.reset') }}
             </NcButton>
-            <NcTooltip :disabled="isLocked">
+            <NcTooltip>
               <template #title> {{ `${renderCmdOrCtrlKey()} + S` }}</template>
 
               <NcButton
@@ -1457,13 +1450,13 @@ const rightPanelWidth = computed(() => {
                 size="small"
                 :loading="loading"
                 :disabled="
-                  (isColumnsValid
+                  isColumnsValid
                     ? !loading &&
                       showOrHideSystemFields === showSystemFields &&
                       ops.length < 1 &&
                       moveOps.length < 1 &&
                       visibilityOps.length < 1
-                    : true) || isLocked
+                    : true
                 "
                 @click="saveChanges()"
               >
@@ -1914,56 +1907,55 @@ const rightPanelWidth = computed(() => {
                                   })
                                 "
                               />
-                              <NcDivider v-if="!isLocked" />
                             </template>
 
-                            <template v-if="!isLocked">
-                              <NcMenuItem
-                                key="table-explorer-duplicate"
-                                data-testid="nc-field-item-action-duplicate"
-                                :disabled="isSystemColumn(field)"
-                                @click="duplicateField(field)"
-                              >
-                                <GeneralIcon icon="duplicate" />
-                                <span> {{ $t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }} </span>
-                              </NcMenuItem>
-                              <NcMenuItem
-                                v-if="!field.pv"
-                                key="table-explorer-insert-above"
-                                data-testid="nc-field-item-action-insert-above"
-                                @click="addField(field, true)"
-                              >
-                                <GeneralIcon icon="ncArrowUp" />
-                                <span>{{ $t('general.insertAbove') }}</span>
-                              </NcMenuItem>
-                              <NcMenuItem
-                                key="table-explorer-insert-below"
-                                data-testid="nc-field-item-action-insert-below"
-                                @click="addField(field)"
-                              >
-                                <GeneralIcon icon="ncArrowDown" />
-                                <span>{{ $t('general.insertBelow') }}</span>
-                              </NcMenuItem>
+                            <NcMenuItem
+                              key="table-explorer-duplicate"
+                              data-testid="nc-field-item-action-duplicate"
+                              :disabled="isSystemColumn(field)"
+                              @click="duplicateField(field)"
+                            >
+                              <GeneralIcon icon="duplicate" />
+                              <span> {{ $t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }} </span>
+                            </NcMenuItem>
+                            <NcMenuItem
+                              v-if="!field.pv"
+                              key="table-explorer-insert-above"
+                              :disabled="isLocked"
+                              data-testid="nc-field-item-action-insert-above"
+                              @click="addField(field, true)"
+                            >
+                              <GeneralIcon icon="ncArrowUp" />
+                              <span>{{ $t('general.insertAbove') }}</span>
+                            </NcMenuItem>
+                            <NcMenuItem
+                              key="table-explorer-insert-below"
+                              data-testid="nc-field-item-action-insert-below"
+                              :disabled="isLocked"
+                              @click="addField(field)"
+                            >
+                              <GeneralIcon icon="ncArrowDown" />
+                              <span>{{ $t('general.insertBelow') }}</span>
+                            </NcMenuItem>
 
-                              <NcDivider />
+                            <NcDivider />
 
-                              <NcMenuItem
-                                key="table-explorer-delete"
-                                data-testid="nc-field-item-action-delete"
-                                :disabled="isSystemColumn(field)"
-                                @click="onFieldDelete(field)"
+                            <NcMenuItem
+                              key="table-explorer-delete"
+                              data-testid="nc-field-item-action-delete"
+                              :disabled="isSystemColumn(field)"
+                              @click="onFieldDelete(field)"
+                            >
+                              <div
+                                class="text-red-500"
+                                :class="{
+                                  '!text-gray-400': isSystemColumn(field),
+                                }"
                               >
-                                <div
-                                  class="text-red-500"
-                                  :class="{
-                                    '!text-gray-400': isSystemColumn(field),
-                                  }"
-                                >
-                                  <GeneralIcon icon="delete" class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" />
-                                  {{ $t('general.delete') }} {{ $t('objects.field').toLowerCase() }}
-                                </div>
-                              </NcMenuItem>
-                            </template>
+                                <GeneralIcon icon="delete" class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" />
+                                {{ $t('general.delete') }} {{ $t('objects.field').toLowerCase() }}
+                              </div>
+                            </NcMenuItem>
                           </NcMenu>
                         </template>
                       </NcDropdown>
@@ -2122,7 +2114,6 @@ const rightPanelWidth = computed(() => {
                 :table-explorer-columns="fields"
                 :is-column-valid="isColumnValid"
                 embed-mode
-                :readonly="isLocked"
                 from-table-explorer
                 :disable-title-focus="!!activeField?.id || !!activeField?.title"
                 @update="onFieldUpdate"

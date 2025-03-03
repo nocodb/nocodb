@@ -1,62 +1,24 @@
-import { AppEvents } from 'nocodb-sdk';
 import * as ejs from 'ejs';
 import { Injectable } from '@nestjs/common';
+import { MailService as MailServiceCE } from 'src/services/mail/mail.service';
+import { MailEvent } from 'src/interface/Mail';
 import { Mention, MentionRow } from './templates';
-import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import type {
-  RowCommentEvent,
-  RowMentionEvent,
-} from '~/services/app-hooks/interfaces';
-import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import type { MailParams } from 'src/interface/Mail';
 import { extractMentions } from '~/utils/richTextHelper';
 import { Base, BaseUser, Workspace } from '~/models';
 
 @Injectable()
-export class MailService implements OnModuleInit, OnModuleDestroy {
-  constructor(protected readonly appHooks: AppHooksService) {}
-
-  async getAdapter() {
-    try {
-      return await NcPluginMgrv2.emailAdapter();
-    } catch (e) {
-      console.error('Plugin not configured / active');
-      return null;
-    }
-  }
-
-  onModuleDestroy() {
-    this.appHooks.removeAllListener(this.hookHandler);
-  }
-
-  onModuleInit() {
-    this.appHooks.on(AppEvents.COMMENT_CREATE, (data) =>
-      this.hookHandler({ event: AppEvents.COMMENT_CREATE, data }),
-    );
-    this.appHooks.on(AppEvents.COMMENT_UPDATE, (data) =>
-      this.hookHandler({ event: AppEvents.COMMENT_UPDATE, data }),
-    );
-
-    this.appHooks.on(AppEvents.ROW_USER_MENTION, (data) =>
-      this.hookHandler({ event: AppEvents.ROW_USER_MENTION, data }),
-    );
-  }
-
-  protected async hookHandler({
-    event,
-    data,
-  }: {
-    event: AppEvents;
-    data: any;
-  }) {
+export class MailService extends MailServiceCE {
+  async sendMail(params: MailParams) {
     const mailerAdapter = await this.getAdapter();
     if (!mailerAdapter) {
       console.error('Plugin not configured / active');
       return;
     }
-    switch (event) {
-      case AppEvents.COMMENT_CREATE:
-      case AppEvents.COMMENT_UPDATE: {
+
+    switch (params.mailEvent) {
+      case MailEvent.COMMENT_CREATE:
+      case MailEvent.COMMENT_UPDATE: {
         const {
           base,
           model: table,
@@ -64,12 +26,12 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
           comment,
           rowId,
           req,
-        } = data as RowCommentEvent;
+        } = params.payload;
 
         const mentions = extractMentions(comment.comment);
 
         if (mentions && mentions.length) {
-          const ws = await Workspace.get(base.fk_workspace_id);
+          const workspace = await Workspace.get(base.fk_workspace_id);
 
           const baseUsers = await BaseUser.getUsersList(req.context, {
             base_id: base.id,
@@ -89,12 +51,8 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
                   user.display_name ??
                   user.email.split('@')[0]?.toLocaleUpperCase(),
                 email: user.email,
-                link: `${(req as any).ncSiteUrl}${(req as any).dashboardUrl}#/${
-                  ws.id
-                }/${base.id}/${table.id}?rowId=${rowId}&commentId=${
-                  comment.id
-                }`,
-                workspaceTitle: ws.title,
+                link: `${req.ncSiteUrl}${req.dashboardUrl}#/${workspace.id}/${base.id}/${table.id}?rowId=${rowId}&commentId=${comment.id}`,
+                workspaceTitle: workspace.title,
                 baseTitle: base.title,
               }),
             });
@@ -102,8 +60,7 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
         }
         break;
       }
-
-      case AppEvents.ROW_USER_MENTION: {
+      case MailEvent.ROW_USER_MENTION: {
         const {
           model: table,
           rowId,
@@ -111,11 +68,11 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
           column,
           req,
           mentions,
-        } = data as RowMentionEvent;
+        } = params.payload;
 
         const base = await Base.get(req.context, table.base_id);
 
-        const ws = await Workspace.get(base.fk_workspace_id);
+        const workspace = await Workspace.get(base.fk_workspace_id);
 
         const baseUsers = await BaseUser.getUsersList(req.context, {
           base_id: base.id,
@@ -137,15 +94,16 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
               email: user.email,
               tableTitle: table.title,
               baseTitle: base.title,
-              workspaceTitle: ws.title,
-              link: `${(req as any).ncSiteUrl}${(req as any).dashboardUrl}#/${
-                ws.id
-              }/${base.id}/${table.id}?rowId=${rowId}&columnId=${column.id}`,
+              workspaceTitle: workspace.title,
+              link: `${req.ncSiteUrl}${req.dashboardUrl}#/${workspace.id}/${base.id}/${table.id}?rowId=${rowId}&columnId=${column.id}`,
             }),
           });
         }
         break;
       }
+      default:
+        await super.sendMail(params);
+        break;
     }
   }
 }

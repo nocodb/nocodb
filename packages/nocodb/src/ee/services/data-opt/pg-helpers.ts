@@ -1189,6 +1189,7 @@ export async function singleQueryRead(
   }
 
   const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
+
   const getAlias = getAliasGenerator();
 
   // load columns list
@@ -1346,7 +1347,9 @@ export async function singleQueryList(
   let skipCache = shouldSkipCache(ctx);
 
   const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
+
   const getAlias = getAliasGenerator();
+
   // get knex connection
   const knex = await NcConnectionMgrv2.get(ctx.source);
 

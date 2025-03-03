@@ -55,8 +55,6 @@ import {
   extractColsMetaForAudit,
   extractExcludedColumnNames,
   generateAuditV1Payload,
-  isEE,
-  isOnPrem,
   populateUpdatePayloadDiff,
   remapWithAlias,
 } from '~/utils';
@@ -3153,15 +3151,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     } catch (e) {
       throw e;
     }
-  }
-
-  async isDataAuditEnabled() {
-    return (
-      process.env.NC_DISABLE_AUDIT !== 'true' &&
-      (process.env.NC_ENABLE_AUDIT === 'true' ||
-        process.env.NODE_ENV === 'test' ||
-        !(isEE && !isOnPrem && !(await this.getSource())?.isMeta()))
-    );
   }
 
   public async afterUpdate(

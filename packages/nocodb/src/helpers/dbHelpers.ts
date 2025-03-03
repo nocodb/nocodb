@@ -7,6 +7,7 @@ import {
   Source,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { isEE, isOnPrem } from '~/ee/utils';
 
 export function _wherePk(
   primaryKeys: Column[],
@@ -138,4 +139,13 @@ export async function getBaseModelSqlFromModelId({
     dbDriver: await NcConnectionMgrv2.get(source),
     source,
   });
+}
+
+export function isDataAuditEnabled({ isMeta }: { isMeta: boolean }) {
+  return (
+    process.env.NC_DISABLE_AUDIT !== 'true' &&
+    (process.env.NC_ENABLE_AUDIT === 'true' ||
+      process.env.NODE_ENV === 'test' ||
+      !(isEE && !isOnPrem && !isMeta))
+  );
 }

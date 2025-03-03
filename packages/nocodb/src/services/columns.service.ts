@@ -80,6 +80,7 @@ import {
   convertValueToAIRecordType,
 } from '~/utils/dataConversion';
 import { extractProps } from '~/helpers/extractProps';
+import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-changer.types';
 
 export type { ReusableParams } from '~/services/columns.service.type';
 
@@ -185,7 +186,7 @@ export class ColumnsService implements IColumnsService {
     protected readonly metaService: MetaService,
     protected readonly appHooksService: AppHooksService,
     @Inject(forwardRef(() => 'FormulaColumnTypeChanger'))
-    protected readonly formulaColumnTypeChanger,
+    protected readonly formulaColumnTypeChanger: IFormulaColumnTypeChanger,
   ) {}
 
   async updateFormulas(

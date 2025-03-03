@@ -124,6 +124,9 @@ export class PgDataMigration implements FormulaDataMigrationDriver {
           .join(' and '),
       ),
     ]);
-    await qb;
+
+    await baseModelSqlV2.execAndParse(qb.toQuery(), null, {
+      raw: true,
+    });
   }
 }

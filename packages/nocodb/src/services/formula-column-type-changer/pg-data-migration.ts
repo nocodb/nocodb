@@ -128,5 +128,28 @@ export class PgDataMigration implements FormulaDataMigrationDriver {
     await baseModelSqlV2.execAndParse(qb.toQuery(), null, {
       raw: true,
     });
+    const updatedDataQb = idOffsetTable
+      .clone()
+      .clearSelect()
+      .select({
+        ...getPrimaryKeySelectColumns(idOffsetTableAlias),
+        [destinationColumn.column_name]: knex.raw(`??.??`, [
+          idOffsetTableAlias,
+          destinationColumn.column_name,
+        ]),
+      });
+    const updatedResult = await baseModelSqlV2.execAndParse(
+      updatedDataQb.toQuery(),
+      null,
+      { raw: true },
+    );
+    return updatedResult.map((k) => {
+      return {
+        primaryKeys: {}, // TODO: extract primary keys
+        data: {
+          ...k,
+        }
+      };
+    });
   }
 }

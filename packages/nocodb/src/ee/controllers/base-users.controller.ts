@@ -53,6 +53,8 @@ export class BaseUsersController extends BaseUsersControllerCE {
     if (user) {
       workspaceUser = await WorkspaceUser.get(req.ncWorkspaceId, user.id);
     }
+
+    let wsUserInvited = false;
     if (!workspaceUser) {
       await this.workspaceUsersService.invite({
         workspaceId: req.ncWorkspaceId,
@@ -65,12 +67,14 @@ export class BaseUsersController extends BaseUsersControllerCE {
           roles: WorkspaceUserRoles.NO_ACCESS,
         },
       });
+      wsUserInvited = true;
     }
 
     return await this.baseUsersService.userInvite(context, {
       baseId,
       baseUser: body,
       req,
+      workspaceInvited: wsUserInvited,
     });
   }
 }

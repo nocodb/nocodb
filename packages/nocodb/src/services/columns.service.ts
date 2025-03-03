@@ -32,9 +32,13 @@ import type {
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import type { Base, LinkToAnotherRecordColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
-import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type {
+  IColumnsService,
+  ReusableParams,
+} from '~/services/columns.service.type';
+import { FormulaColumnTypeChanger } from '~/services/formula-column-type-changer.service';
 import {
   BaseUser,
   CalendarRange,
@@ -78,6 +82,8 @@ import {
 } from '~/utils/dataConversion';
 import { extractProps } from '~/helpers/extractProps';
 
+export type { ReusableParams } from '~/services/columns.service.type';
+
 const deepClone = rfdc();
 
 // todo: move
@@ -85,16 +91,6 @@ export enum Altered {
   NEW_COLUMN = 1,
   DELETE_COLUMN = 4,
   UPDATE_COLUMN = 8,
-}
-
-export interface ReusableParams {
-  table?: Model;
-  source?: Source;
-  base?: Base;
-  dbDriver?: CustomKnex;
-  sqlClient?: SqlClient;
-  sqlMgr?: SqlMgrv2;
-  baseModel?: BaseModelSqlv2;
 }
 
 async function reuseOrSave(
@@ -185,10 +181,11 @@ async function getJunctionTableName(
 }
 
 @Injectable()
-export class ColumnsService {
+export class ColumnsService implements IColumnsService {
   constructor(
     protected readonly metaService: MetaService,
     protected readonly appHooksService: AppHooksService,
+    protected readonly formulaColumnTypeChanger: FormulaColumnTypeChanger,
   ) {}
 
   async updateFormulas(
@@ -297,7 +294,6 @@ export class ColumnsService {
     const { req } = param;
 
     const column = await Column.get(context, { colId: param.columnId });
-
     const oldColumn = deepClone(column);
 
     const table = await reuseOrSave('table', reuse, async () =>
@@ -746,6 +742,18 @@ export class ColumnsService {
         }
 
         await this.updateRollupOrLookup(context, colBody, column);
+      } else if ([UITypes.Formula].includes(column.uidt)) {
+        (param.column as any).id = undefined;
+        await this.formulaColumnTypeChanger.startChangeFormulaColumnType(
+          context,
+          {
+            req,
+            formulaColumn: column,
+            newColumnRequest: param.column,
+            user: param.user,
+            reuse: param.reuse,
+          },
+        );
       } else {
         NcError.notImplemented(`Updating ${column.uidt} => ${colBody.uidt}`);
       }

@@ -6,8 +6,10 @@ import { MailEvent } from '~/interface/Mail';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import {
   BaseInvite,
+  BaseRoleUpdate,
   PasswordReset,
   VerifyEmail,
+  Welcome,
 } from '~/services/mail/templates';
 import Noco from '~/Noco';
 import config from '~/app.config';
@@ -25,7 +27,7 @@ export class MailService {
 
   buildUrl(
     req: NcRequest,
-    params: {
+    params?: {
       token?: string;
       workspaceId?: string;
       baseId?: string;
@@ -111,6 +113,26 @@ export class MailService {
         });
         break;
       }
+      case MailEvent.BASE_ROLE_UPDATE: {
+        const { req, user, base, role } = payload;
+
+        await mailerAdapter.mailSend({
+          to: user.email,
+          subject: `Role updated in ${base.title}`,
+          html: ejs.render(BaseRoleUpdate, {
+            baseTitle: base.title,
+            name:
+              user.display_name ?? user.email.split('@')[0].toLocaleUpperCase(),
+            email: user.email,
+            role,
+            link: this.buildUrl(req, {
+              workspaceId: base.fk_workspace_id,
+              baseId: base.id,
+            }),
+          }),
+        });
+        break;
+      }
       case MailEvent.RESET_PASSWORD: {
         const { user, req } = payload;
 
@@ -140,6 +162,17 @@ export class MailService {
           }),
         });
         break;
+      }
+      case MailEvent.WELCOME: {
+        const { req, user } = payload;
+        await mailerAdapter.mailSend({
+          to: user.email,
+          subject: `Welcome to NocoDB!`,
+          html: ejs.render(Welcome, {
+            email: user.email,
+            link: this.buildUrl(req, {}),
+          }),
+        });
       }
     }
   }

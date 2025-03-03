@@ -1,0 +1,15 @@
+name: Upload Email Templates to S3
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'packages/nc-mail-template/emails/static/**'
+
+jobs:
+  upload-to-s3:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4

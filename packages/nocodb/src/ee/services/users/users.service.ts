@@ -150,6 +150,7 @@ export class UsersService extends UsersServiceCE {
       email_verification_token,
       meta,
       req,
+      invite_token,
       workspace_invite,
     }: {
       avatar;
@@ -161,6 +162,7 @@ export class UsersService extends UsersServiceCE {
       email_verification_token;
       meta?: MetaType;
       req: NcRequest;
+      invite_token?: string;
       workspace_invite?: boolean;
     },
     ncMeta = Noco.ncMeta,
@@ -200,6 +202,7 @@ export class UsersService extends UsersServiceCE {
         email_verification_token,
         roles,
         token_version,
+        invite_token,
         meta,
       },
       ncMeta,

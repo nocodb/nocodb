@@ -20,7 +20,7 @@ interface Props {
   link: string;
 }
 
-export const WorkspaceInvite = () => (
+export const WorkspaceInviteEe = () => (
   <Html>
     <RootWrapper>
       <Head />
@@ -48,4 +48,4 @@ export const WorkspaceInvite = () => (
     </RootWrapper>
   </Html>
 );
-export default WorkspaceInvite;
+export default WorkspaceInviteEe;

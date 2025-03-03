@@ -10,7 +10,6 @@ import {
   extractRolesObj,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
-import * as ejs from 'ejs';
 import { ConfigService } from '@nestjs/config';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
@@ -22,13 +21,12 @@ import { NcError } from '~/helpers/catchError';
 import { Base, BaseUser, PresignedUrl, User } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Workspace from '~/models/Workspace';
-import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { getWorkspaceSiteUrl, sanitiseEmailContent } from '~/utils';
-import { rolesLabel } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { UsersService } from '~/services/users/users.service';
+import { MailService } from '~/services/mail/mail.service';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
 import Noco from '~/Noco';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { MailEvent } from '~/interface/Mail';
 
 @Injectable()
 export class WorkspaceUsersService {
@@ -36,6 +34,7 @@ export class WorkspaceUsersService {
     private appHooksService: AppHooksService,
     private usersService: UsersService,
     private config: ConfigService<AppConfig>,
+    private mailService: MailService,
   ) {}
 
   async list(param: { workspaceId; includeDeleted?: boolean }) {
@@ -158,23 +157,19 @@ export class WorkspaceUsersService {
       ncMeta,
     );
 
-    this.sendRoleUpdateEmail(
-      {
-        workspace,
-        user,
-        roles: param.roles,
-        siteUrl: getWorkspaceSiteUrl({
-          siteUrl: param.siteUrl,
-          workspaceId: workspace.id,
-          mainSubDomain: this.config.get('mainSubDomain', {
-            infer: true,
-          }),
-        }),
-      },
-      ncMeta,
-    ).then(() => {
-      /* ignore */
-    });
+    this.mailService
+      .sendMail({
+        mailEvent: MailEvent.WORKSPACE_ROLE_UPDATE,
+        payload: {
+          workspace,
+          user,
+          req: param.req,
+          role: param.roles,
+        },
+      })
+      .then(() => {
+        /* ignore */
+      });
 
     await PresignedUrl.signMetaIconImage(workspaceUser);
 
@@ -379,6 +374,7 @@ export class WorkspaceUsersService {
     for (const email of emails) {
       // add user to base if user already exist
       let user = await User.getByEmail(email, ncMeta);
+      let isNewUser = false;
       if (!user) {
         const salt = await promisify(bcrypt.genSalt)(10);
         user = await this.usersService.registerNewUserIfAllowed(
@@ -390,11 +386,13 @@ export class WorkspaceUsersService {
             user_name: null,
             display_name: '',
             salt,
+            invite_token,
             req: param.req,
             workspace_invite: true,
           },
           ncMeta,
         );
+        isNewUser = true;
       }
 
       // check if this user has been added to this base
@@ -422,21 +420,16 @@ export class WorkspaceUsersService {
         ncMeta,
       );
       if (!param.skipEmailInvite) {
-        this.sendInviteEmail(
-          {
-            workspace,
-            user,
-            roles: roles || WorkspaceUserRoles.NO_ACCESS,
-            siteUrl: getWorkspaceSiteUrl({
-              siteUrl: param.siteUrl,
-              workspaceId: workspace.id,
-              mainSubDomain: this.config.get('mainSubDomain', {
-                infer: true,
-              }),
-            }),
-          },
-          ncMeta,
-        )
+        this.mailService
+          .sendMail({
+            mailEvent: MailEvent.WORKSPACE_INVITE,
+            payload: {
+              workspace,
+              user,
+              req: param.req,
+              token: isNewUser ? user.invite_token : null,
+            },
+          })
           .then(() => {
             /* ignore */
           })
@@ -498,116 +491,5 @@ export class WorkspaceUsersService {
         invite_token: null,
       },
     );
-  }
-
-  private async sendInviteEmail(
-    {
-      user,
-      workspace,
-      roles,
-      siteUrl,
-    }: {
-      workspace: Workspace;
-      roles: any;
-      user: any;
-      siteUrl: string;
-    },
-    ncMeta = Noco.ncMeta,
-  ) {
-    try {
-      const template = (await import('~/helpers/email-templates/invite'))
-        .default;
-      await NcPluginMgrv2.emailAdapter(undefined, ncMeta)
-        .then((adapter) => {
-          if (!adapter)
-            return Promise.reject(
-              'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
-            );
-          adapter
-            .mailSend({
-              to: user.email,
-              subject: "You've been invited to a Noco Cloud Workspace\n",
-              text: `Visit following link to access the workspace : ${siteUrl}${this.config.get(
-                'dashboardPath',
-                {
-                  infer: true,
-                },
-              )}#/${workspace.id}`,
-              html: ejs.render(template, {
-                workspaceLink:
-                  siteUrl +
-                  `${this.config.get('dashboardPath', {
-                    infer: true,
-                  })}#/${workspace.id}`,
-                workspaceName: sanitiseEmailContent(workspace.title),
-                roles: sanitiseEmailContent(rolesLabel[roles]),
-              }),
-            })
-            .catch((e) => {
-              console.error(e);
-            });
-        })
-        .catch((e) => {
-          console.error(e);
-        });
-    } catch (e) {
-      console.log(e);
-      return NcError.badRequest(
-        'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
-      );
-    }
-  }
-
-  private async sendRoleUpdateEmail(
-    {
-      user,
-      workspace,
-      roles,
-      siteUrl,
-    }: {
-      workspace: Workspace;
-      roles: any;
-      user: any;
-      siteUrl: string;
-    },
-    ncMeta = Noco.ncMeta,
-  ) {
-    try {
-      const template = (await import('~/helpers/email-templates/roleUpdate'))
-        .default;
-      await NcPluginMgrv2.emailAdapter(undefined, ncMeta)
-        .then((adapter) => {
-          if (!adapter)
-            return Promise.reject(
-              'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
-            );
-          adapter
-            .mailSend({
-              to: user.email,
-              subject: 'Your workspace role has been updated',
-              text: `Your role in workspace ${workspace.title} has been updated to ${rolesLabel[roles]}`,
-              html: ejs.render(template, {
-                workspaceLink:
-                  siteUrl +
-                  `${this.config.get('dashboardPath', {
-                    infer: true,
-                  })}#/${workspace.id}`,
-                workspaceName: sanitiseEmailContent(workspace.title),
-                roles: sanitiseEmailContent(rolesLabel[roles]),
-              }),
-            })
-            .catch((e) => {
-              console.error(e);
-            });
-        })
-        .catch((e) => {
-          console.error(e);
-        });
-    } catch (e) {
-      console.log(e);
-      return NcError.badRequest(
-        'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
-      );
-    }
   }
 }

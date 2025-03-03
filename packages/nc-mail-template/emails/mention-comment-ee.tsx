@@ -21,7 +21,7 @@ interface Props {
   baseTitle: string;
 }
 
-export const MentionComment = () => (
+export const MentionCommentEE = () => (
   <Html>
     <RootWrapper>
     <Head />
@@ -60,4 +60,4 @@ export const MentionComment = () => (
 
   </Html>
 );
-export default MentionComment;
+export default MentionCommentEE;

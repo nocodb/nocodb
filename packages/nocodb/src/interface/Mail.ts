@@ -3,9 +3,11 @@ import type {
   ColumnType,
   CommentType,
   NcRequest,
+  ProjectRoles,
   TableType,
   UserType,
   WorkspaceType,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 
 enum MailEvent {
@@ -41,14 +43,14 @@ interface BaseRoleUpdatePayload {
   base: BaseType;
   user: UserType;
   req: NcRequest;
-  role: string;
+  role: ProjectRoles;
 }
 
 interface BaseInvitePayload {
   base: BaseType;
   user: UserType;
   req: NcRequest;
-  role: string;
+  role: ProjectRoles;
   token?: string;
 }
 
@@ -63,7 +65,7 @@ interface WorkspaceRoleUpdatePayload {
   workspace: WorkspaceType;
   user: UserType;
   req: NcRequest;
-  role: string;
+  role: WorkspaceUserRoles;
 }
 
 interface WelcomePayload {}

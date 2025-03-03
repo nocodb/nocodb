@@ -3,61 +3,18 @@ import { Injectable } from '@nestjs/common';
 import { MailService as MailServiceCE } from 'src/services/mail/mail.service';
 import { MailEvent } from 'src/interface/Mail';
 import {
-  BaseInvite,
   BaseRoleUpdate,
   Mention,
   MentionRow,
   WorkspaceInvite,
   WorkspaceRoleUpdate,
 } from './templates';
-import type { NcRequest } from 'nocodb-sdk';
 import type { MailParams } from 'src/interface/Mail';
 import { extractMentions } from '~/utils/richTextHelper';
 import { Base, BaseUser, Workspace } from '~/models';
-import Noco from '~/Noco';
 
 @Injectable()
 export class MailService extends MailServiceCE {
-  buildUrl(
-    req: NcRequest,
-    params: {
-      token?: string;
-      workspaceId: string;
-      baseId?: string;
-      tableId?: string;
-      rowId?: string;
-      commentId?: string;
-      columnId?: string;
-    },
-  ) {
-    const dashboardPath = Noco.getConfig()?.dashboardPath;
-
-    if (params.token) {
-      return `${req.ncSiteUrl}${dashboardPath}#/signup/${params.token}`;
-    }
-
-    let url = `${req.ncSiteUrl}`;
-
-    url += req.dashboardUrl || dashboardPath;
-
-    url += `#/${params.workspaceId}`;
-
-    if (params.baseId) {
-      url += `/${params.baseId}`;
-    }
-
-    if (params.tableId) {
-      url += `/${params.tableId}`;
-      const queryParams = [];
-      if (params.rowId) queryParams.push(`rowId=${params.rowId}`);
-      if (params.commentId) queryParams.push(`commentId=${params.commentId}`);
-      if (params.columnId) queryParams.push(`columnId=${params.columnId}`);
-      if (queryParams.length > 0) url += `?${queryParams.join('&')}`;
-    }
-
-    return url;
-  }
-
   async sendMail(params: MailParams) {
     const mailerAdapter = await this.getAdapter();
     if (!mailerAdapter) {
@@ -160,31 +117,6 @@ export class MailService extends MailServiceCE {
             }),
           });
         }
-        break;
-      }
-      case MailEvent.BASE_INVITE: {
-        const {
-          payload: { base, user, req, token },
-        } = params;
-
-        const invitee = req.user;
-        const workspace = await Workspace.get(base.fk_workspace_id);
-        await mailerAdapter.mailSend({
-          to: user.email,
-          subject: `You have been invited to ${base.title}`,
-          html: ejs.render(BaseInvite, {
-            baseTitle: base.title,
-            name:
-              invitee.display_name ??
-              invitee.email.split('@')[0].toLocaleUpperCase(),
-            email: user.email,
-            link: this.buildUrl(req, {
-              workspaceId: workspace.id,
-              baseId: base.id,
-              token,
-            }),
-          }),
-        });
         break;
       }
       case MailEvent.BASE_ROLE_UPDATE: {

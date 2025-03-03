@@ -1921,7 +1921,6 @@ const rightPanelWidth = computed(() => {
                             <NcMenuItem
                               v-if="!field.pv"
                               key="table-explorer-insert-above"
-                              :disabled="isLocked"
                               data-testid="nc-field-item-action-insert-above"
                               @click="addField(field, true)"
                             >
@@ -1931,7 +1930,6 @@ const rightPanelWidth = computed(() => {
                             <NcMenuItem
                               key="table-explorer-insert-below"
                               data-testid="nc-field-item-action-insert-below"
-                              :disabled="isLocked"
                               @click="addField(field)"
                             >
                               <GeneralIcon icon="ncArrowDown" />

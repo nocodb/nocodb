@@ -1347,7 +1347,6 @@ export async function singleQueryList(
 
   const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
   const getAlias = getAliasGenerator();
-
   // get knex connection
   const knex = await NcConnectionMgrv2.get(ctx.source);
 
@@ -1596,7 +1595,6 @@ export async function singleQueryList(
       rootQb.offset(9999);
     }
   }
-
   // apply the sort on final query to get the result in correct order
   if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
   if (orderColumn) {

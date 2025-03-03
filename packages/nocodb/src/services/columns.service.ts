@@ -288,7 +288,7 @@ export class ColumnsService implements IColumnsService {
       reuse?: ReusableParams;
       apiVersion?: NcApiVersion;
     },
-  ) {
+  ): Promise<Model | Column<any>> {
     const reuse = param.reuse || {};
 
     const { req } = param;

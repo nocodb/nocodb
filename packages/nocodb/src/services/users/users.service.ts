@@ -556,6 +556,14 @@ export class UsersService {
       req: param.req,
     });
 
+    await this.mailService.sendMail({
+      mailEvent: MailEvent.WELCOME,
+      payload: {
+        user,
+        req: param.req,
+      },
+    });
+
     this.appHooksService.emit(AppEvents.WELCOME, {
       user,
       req: param.req,

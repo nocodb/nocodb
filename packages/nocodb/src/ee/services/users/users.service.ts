@@ -222,6 +222,14 @@ export class UsersService extends UsersServiceCE {
         user: user,
         req: req,
       });
+
+      await this.mailService.sendMail({
+        mailEvent: MailEvent.WELCOME,
+        payload: {
+          user,
+          req: req,
+        },
+      });
     }
 
     this.appHooksService.emit(AppEvents.WELCOME, {
@@ -310,6 +318,14 @@ export class UsersService extends UsersServiceCE {
         this.appHooksService.emit(AppEvents.USER_SIGNUP, {
           user: user,
           req: param.req,
+        });
+
+        await this.mailService.sendMail({
+          mailEvent: MailEvent.WELCOME,
+          payload: {
+            user,
+            req: param.req,
+          },
         });
 
         this.appHooksService.emit(AppEvents.WELCOME, {

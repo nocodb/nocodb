@@ -2,13 +2,62 @@ import * as ejs from 'ejs';
 import { Injectable } from '@nestjs/common';
 import { MailService as MailServiceCE } from 'src/services/mail/mail.service';
 import { MailEvent } from 'src/interface/Mail';
-import { Mention, MentionRow } from './templates';
+import {
+  BaseInvite,
+  BaseRoleUpdate,
+  Mention,
+  MentionRow,
+  WorkspaceInvite,
+  WorkspaceRoleUpdate,
+} from './templates';
+import type { NcRequest } from 'nocodb-sdk';
 import type { MailParams } from 'src/interface/Mail';
 import { extractMentions } from '~/utils/richTextHelper';
 import { Base, BaseUser, Workspace } from '~/models';
+import Noco from '~/Noco';
 
 @Injectable()
 export class MailService extends MailServiceCE {
+  buildUrl(
+    req: NcRequest,
+    params: {
+      token?: string;
+      workspaceId: string;
+      baseId?: string;
+      tableId?: string;
+      rowId?: string;
+      commentId?: string;
+      columnId?: string;
+    },
+  ) {
+    const dashboardPath = Noco.getConfig()?.dashboardPath;
+
+    if (params.token) {
+      return `${req.ncSiteUrl}${dashboardPath}#/signup/${params.token}`;
+    }
+
+    let url = `${req.ncSiteUrl}`;
+
+    url += req.dashboardUrl || dashboardPath;
+
+    url += `#/${params.workspaceId}`;
+
+    if (params.baseId) {
+      url += `/${params.baseId}`;
+    }
+
+    if (params.tableId) {
+      url += `/${params.tableId}`;
+      const queryParams = [];
+      if (params.rowId) queryParams.push(`rowId=${params.rowId}`);
+      if (params.commentId) queryParams.push(`commentId=${params.commentId}`);
+      if (params.columnId) queryParams.push(`columnId=${params.columnId}`);
+      if (queryParams.length > 0) url += `?${queryParams.join('&')}`;
+    }
+
+    return url;
+  }
+
   async sendMail(params: MailParams) {
     const mailerAdapter = await this.getAdapter();
     if (!mailerAdapter) {
@@ -51,7 +100,13 @@ export class MailService extends MailServiceCE {
                   user.display_name ??
                   user.email.split('@')[0]?.toLocaleUpperCase(),
                 email: user.email,
-                link: `${req.ncSiteUrl}${req.dashboardUrl}#/${workspace.id}/${base.id}/${table.id}?rowId=${rowId}&commentId=${comment.id}`,
+                link: this.buildUrl(req, {
+                  workspaceId: workspace.id,
+                  baseId: base.id,
+                  tableId: table.id,
+                  rowId,
+                  commentId: comment.id,
+                }),
                 workspaceTitle: workspace.title,
                 baseTitle: base.title,
               }),
@@ -95,12 +150,119 @@ export class MailService extends MailServiceCE {
               tableTitle: table.title,
               baseTitle: base.title,
               workspaceTitle: workspace.title,
-              link: `${req.ncSiteUrl}${req.dashboardUrl}#/${workspace.id}/${base.id}/${table.id}?rowId=${rowId}&columnId=${column.id}`,
+              link: this.buildUrl(req, {
+                workspaceId: workspace.id,
+                baseId: base.id,
+                tableId: table.id,
+                rowId,
+                columnId: column.id,
+              }),
             }),
           });
         }
         break;
       }
+      case MailEvent.BASE_INVITE: {
+        const {
+          payload: { base, user, req, token },
+        } = params;
+
+        const invitee = req.user;
+        const workspace = await Workspace.get(base.fk_workspace_id);
+        await mailerAdapter.mailSend({
+          to: user.email,
+          subject: `You have been invited to ${base.title}`,
+          html: ejs.render(BaseInvite, {
+            baseTitle: base.title,
+            name:
+              invitee.display_name ??
+              invitee.email.split('@')[0].toLocaleUpperCase(),
+            email: user.email,
+            link: this.buildUrl(req, {
+              workspaceId: workspace.id,
+              baseId: base.id,
+              token,
+            }),
+          }),
+        });
+        break;
+      }
+      case MailEvent.BASE_ROLE_UPDATE: {
+        const {
+          payload: { base, user, req, role },
+        } = params;
+
+        const invitee = req.user;
+        const workspace = await Workspace.get(base.fk_workspace_id);
+
+        await mailerAdapter.mailSend({
+          to: user.email,
+          subject: `Your role has been updated in ${base.title}`,
+          html: ejs.render(BaseRoleUpdate, {
+            baseTitle: base.title,
+            workspaceTitle: workspace.title,
+            name:
+              invitee.display_name ??
+              invitee.email.split('@')[0].toLocaleUpperCase(),
+            email: invitee.email,
+            link: this.buildUrl(req, {
+              workspaceId: workspace.id,
+              baseId: base.id,
+            }),
+            role,
+          }),
+        });
+        break;
+      }
+      case MailEvent.WORKSPACE_INVITE: {
+        const {
+          payload: { workspace, user, req, token },
+        } = params;
+
+        const invitee = req.user;
+
+        await mailerAdapter.mailSend({
+          to: user.email,
+          subject: `You have been invited to ${workspace.title}`,
+          html: ejs.render(WorkspaceInvite, {
+            workspaceTitle: workspace.title,
+            name:
+              invitee.display_name ??
+              invitee.email.split('@')[0].toLocaleUpperCase(),
+            email: invitee.email,
+            link: this.buildUrl(req, {
+              workspaceId: workspace.id,
+              token,
+            }),
+          }),
+        });
+        break;
+      }
+      case MailEvent.WORKSPACE_ROLE_UPDATE: {
+        const {
+          payload: { workspace, user, req, role },
+        } = params;
+
+        const invitee = req.user;
+
+        await mailerAdapter.mailSend({
+          to: user.email,
+          subject: `Your role has been updated in ${workspace.title}`,
+          html: ejs.render(WorkspaceRoleUpdate, {
+            workspaceTitle: workspace.title,
+            role,
+            name:
+              invitee.display_name ??
+              invitee.email.split('@')[0].toLocaleUpperCase(),
+            email: invitee.email,
+            link: this.buildUrl(req, {
+              workspaceId: workspace.id,
+            }),
+          }),
+        });
+        break;
+      }
+
       default:
         await super.sendMail(params);
         break;

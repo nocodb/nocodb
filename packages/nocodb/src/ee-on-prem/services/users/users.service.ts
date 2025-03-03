@@ -12,6 +12,7 @@ import { User } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { IntegrationsService } from '~/services/integrations.service';
 import Noco from '~/Noco';
+import { MailService } from '~/services/mail/mail.service';
 
 @Injectable()
 export class UsersService extends UsersServiceEE {
@@ -20,6 +21,7 @@ export class UsersService extends UsersServiceEE {
     protected appHooksService: AppHooksService,
     protected workspaceService: WorkspacesService,
     protected baseService: BasesService,
+    protected mailService: MailService,
     protected licenseService: LicenseService,
     protected integrationsService: IntegrationsService,
     protected configService: ConfigService<AppConfig>,
@@ -29,6 +31,7 @@ export class UsersService extends UsersServiceEE {
       appHooksService,
       workspaceService,
       baseService,
+      mailService,
       integrationsService,
       configService,
     );

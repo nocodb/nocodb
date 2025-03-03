@@ -3,7 +3,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents, OrgUserRoles, validatePassword } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import isEmail from 'validator/lib/isEmail';
-import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
 import type {
   MetaType,
@@ -24,12 +23,12 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { PresignedUrl, Store, User, UserRefreshToken } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { BasesService } from '~/services/bases.service';
 import { extractProps } from '~/helpers/extractProps';
 import deepClone from '~/helpers/deepClone';
-
+import { MailService } from '~/services/mail/mail.service';
+import { MailEvent } from '~/interface/Mail';
 @Injectable()
 export class UsersService {
   logger = new Logger(UsersService.name);
@@ -38,6 +37,7 @@ export class UsersService {
     protected metaService: MetaService,
     protected appHooksService: AppHooksService,
     protected basesService: BasesService,
+    protected mailService: MailService,
   ) {}
 
   // allow signup/signin only if email matches against pattern
@@ -270,26 +270,20 @@ export class UsersService {
 
     if (user) {
       const token = uuidv4();
-      await User.update(user.id, {
+      const updatedUser = await User.update(user.id, {
         email: user.email,
         reset_password_token: token,
         reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
         token_version: randomTokenString(),
       });
       try {
-        const template = (
-          await import('~/modules/auth/ui/emailTemplates/forgotPassword')
-        ).default;
-        await NcPluginMgrv2.emailAdapter().then((adapter) =>
-          adapter.mailSend({
-            to: user.email,
-            subject: 'Password Reset Link',
-            text: `Visit following link to update your password : ${param.siteUrl}/auth/password/reset/${token}.`,
-            html: ejs.render(template, {
-              resetLink: param.siteUrl + `/auth/password/reset/${token}`,
-            }),
-          }),
-        );
+        await this.mailService.sendMail({
+          mailEvent: MailEvent.RESET_PASSWORD,
+          payload: {
+            user: updatedUser,
+            req: param.req,
+          },
+        });
       } catch (e) {
         return NcError.badRequest(
           'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
@@ -535,18 +529,12 @@ export class UsersService {
     user = await User.getByEmail(email);
 
     try {
-      const template = (await import('~/modules/auth/ui/emailTemplates/verify'))
-        .default;
-      await (
-        await NcPluginMgrv2.emailAdapter()
-      ).mailSend({
-        to: email,
-        subject: 'Verify email',
-        html: ejs.render(template, {
-          verifyLink:
-            (param.req as any).ncSiteUrl +
-            `/email/validate/${user.email_verification_token}`,
-        }),
+      await this.mailService.sendMail({
+        mailEvent: MailEvent.VERIFY_EMAIL,
+        payload: {
+          user,
+          req: param.req,
+        },
       });
     } catch (e) {
       this.logger.warn(

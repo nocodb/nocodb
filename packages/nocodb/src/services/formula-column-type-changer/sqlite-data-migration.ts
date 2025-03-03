@@ -121,6 +121,8 @@ export class SqliteDataMigration implements FormulaDataMigrationDriver {
       knex.raw(formulaValueTable),
       knex.raw(idOffsetTable),
     ]);
-    await qb;
+    await baseModelSqlV2.execAndParse(qb.toQuery(), null, {
+      raw: true,
+    });
   }
 }

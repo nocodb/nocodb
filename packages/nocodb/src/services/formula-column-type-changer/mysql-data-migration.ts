@@ -124,6 +124,8 @@ export class MysqlDataMigration implements FormulaDataMigrationDriver {
       knex.raw(knex.ref(destinationColumn.column_name)),
       knex.raw(knex.ref(`${formulaValueTableAlias}.${formulaColumnAlias}`)),
     ]);
-    await qb;
+    await baseModelSqlV2.execAndParse(qb.toQuery(), null, {
+      raw: true,
+    });
   }
 }

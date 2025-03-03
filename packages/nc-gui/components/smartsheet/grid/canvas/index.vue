@@ -917,7 +917,7 @@ async function handleMouseUp(e: MouseEvent) {
   }
 
   // If the user is clicking on the Aggregation in bottom
-  if (y > height.value - 36) {
+  if (y > height.value - 36 && !isLocked.value) {
     // If the click is not normal single click, return
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
 

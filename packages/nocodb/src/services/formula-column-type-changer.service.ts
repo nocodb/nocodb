@@ -5,6 +5,7 @@ import {
   NotImplementedException,
 } from '@nestjs/common';
 import { NcApiVersion, type NcContext, type NcRequest } from 'nocodb-sdk';
+import type { IFormulaColumnTypeChanger } from './formula-column-type-changer.types';
 import type { ColumnReqType, UserType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { FormulaColumn } from '~/models';
@@ -20,7 +21,7 @@ import { ColumnsService } from '~/services/columns.service';
 export const DEFAULT_BATCH_LIMIT = 100000;
 
 @Injectable()
-export class FormulaColumnTypeChanger {
+export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
   constructor(
     @Inject(forwardRef(() => ColumnsService))
     private readonly columnsService: ColumnsService,

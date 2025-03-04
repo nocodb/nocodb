@@ -1068,7 +1068,6 @@ export const generateUpdateAuditV1Payload = async ({
     baseModelSqlV2.model.columns,
   );
   const formattedData = formatDataForAudit(data, baseModelSqlV2.model.columns);
-
   const updateDiff = populateUpdatePayloadDiff({
     keepUnderModified: true,
     prev: formattedOldData,

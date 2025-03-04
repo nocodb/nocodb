@@ -6,7 +6,12 @@ import {
 } from '@nestjs/common';
 import { NcApiVersion, type NcContext, type NcRequest } from 'nocodb-sdk';
 import { generateUpdateAuditV1Payload } from 'src/utils';
-import type { ColumnReqType, UserType } from 'nocodb-sdk';
+import type {
+  AuditV1,
+  ColumnReqType,
+  DataUpdatePayload,
+  UserType,
+} from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { FormulaColumn } from '~/models';
 import type { ReusableParams } from '~/services/columns.service.type';
@@ -88,6 +93,7 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
           formulaColumn: params.formulaColumn,
           destinationColumn: newColumn,
           baseModel,
+          req: params.req,
         });
       } catch (ex) {
         await this.columnsService.columnDelete(context, {
@@ -121,10 +127,12 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
       formulaColumn,
       destinationColumn,
       baseModel,
+      req,
     }: {
       formulaColumn: Column;
       destinationColumn: Column;
       baseModel?: BaseModelSqlv2;
+      req: NcRequest;
     },
   ) {
     baseModel =
@@ -147,6 +155,7 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
         formulaColumnOption,
         offset: i,
         limit: DEFAULT_BATCH_LIMIT,
+        req,
       });
     }
   }
@@ -158,11 +167,13 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
     destinationColumn,
     offset = 0,
     limit = DEFAULT_BATCH_LIMIT,
+    req,
   }: {
     baseModelSqlV2: BaseModelSqlv2;
     formulaColumn: Column<any>;
     destinationColumn: Column<any>;
     formulaColumnOption: FormulaColumn;
+    req: NcRequest;
     offset?: number;
     limit?: number;
   }) {
@@ -182,18 +193,23 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
       limit,
       offset,
     });
-
+    const auditPayloads: AuditV1<DataUpdatePayload>[] = [];
     for (const row of updatedRows) {
-      const auditPayload = await generateUpdateAuditV1Payload({
-        baseModelSqlV2,
-        rowId: row.primaryKeys,
-        data: row.row,
-        oldData: {
-          ...row.row,
-          [destinationColumn.column_name]: null,
-        },
-      });
-      await Audit.insert(auditPayload);
+      auditPayloads.push(
+        await generateUpdateAuditV1Payload({
+          baseModelSqlV2,
+          rowId: row.primaryKeys,
+          data: row.row,
+          oldData: {
+            ...row.row,
+            [destinationColumn.title]: null,
+          },
+          req,
+        }),
+      );
     }
+    await Promise.all(
+      auditPayloads.map((auditPayload) => Audit.insert(auditPayload)),
+    );
   }
 }

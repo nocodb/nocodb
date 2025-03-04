@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isVirtualCol, type ColumnType, type UITypes } from 'nocodb-sdk'
+import { type ColumnType, type UITypes, isVirtualCol } from 'nocodb-sdk'
 import { PageDesignerPayloadInj } from '../lib/context'
 import { type PageDesignerFieldWidget, fontWeightToLabel, fontWeights, fonts, plainCellFields } from '../lib/widgets'
 import { objectFitLabels } from '../lib/widgets'

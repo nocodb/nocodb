@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { Form, message } from 'ant-design-vue'
-import type { Card as AntCard } from 'ant-design-vue'
 import { type IntegrationType, IntegrationsType, WorkspaceStatus, validateAndExtractSSLProp } from 'nocodb-sdk'
 import NcModal from '~/components/nc/Modal.vue'
 

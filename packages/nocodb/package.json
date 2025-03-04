@@ -49,6 +49,8 @@
     "watch:run:playwright:pg:ee": "rm -f ./test_noco.db; cross-env NODE_ENV=test NC_DB=\"pg://localhost:5432?u=postgres&p=password&d=pw_ncdb_meta\" NC_DATA_DB=\"pg://localhost:5432?u=postgres&p=password&d=pw_ncdb_data\" PLAYWRIGHT_TEST=true NC_DISABLE_TELE=true EE=true ENTRYPOINT=src/ee/run/testDocker rspack --config rspack.dev.ee.js",
     "watch:run:playwright:quick": "rm -f ./test_noco.db; cp ../../tests/playwright/fixtures/noco_0_91_7.db ./test_noco.db; cross-env DATABASE_URL=sqlite:./test_noco.db NC_DISABLE_TELE=true NODE_ENV=test EE=true ENTRYPOINT=src/run/docker rspack --config rspack.dev.ee.js",
     "watch:run:playwright:pg:cyquick": "rm -f ./test_noco.db; cp ../../tests/playwright/fixtures/noco_0_91_7.db ./test_noco.db; cross-env NC_DISABLE_TELE=true NODE_ENV=test EE=true ENTRYPOINT=src/run/dockerRunPG_CyQuick.ts rspack --config rspack.dev.ee.js",
+    "mail": "email dev --dir src/services/mail/templates --port 8001",
+    "mail:ee": "email dev --dir src/ee/services/mail/templates --port 8002",
     "test": "jest --runInBand --forceExit",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",

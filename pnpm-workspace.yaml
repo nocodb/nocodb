@@ -6,6 +6,5 @@ packages:
   - 'packages/nc-knex-dialects/knex-databricks'
   - 'packages/nc-sql-executor'
   - 'tests/playwright'
-  - 'packages/nc-mail-template'
   - 'packages/nc-secret-mgr'
   - 'packages/nc-integration-scaffolder'

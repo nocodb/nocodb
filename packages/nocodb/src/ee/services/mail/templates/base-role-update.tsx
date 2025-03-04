@@ -55,7 +55,7 @@ export const BaseRoleUpdate = ({
           </Section>
           <Section className="pb-6 text-center">
             <Img
-              src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/<%= role %>.png`}
+              src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${role}.png`}
               alt={role}
               className="h-7 mx-auto"
             />
@@ -64,7 +64,7 @@ export const BaseRoleUpdate = ({
             Your access in
             <span className="font-bold text-gray-800"> {baseTitle} </span>
             has been updated to
-            <span className="font-bold text-gray-800"> {role} </span>
+            <span className="font-bold text-gray-800 capitalize"> {role} </span>
             by <span className="font-bold text-gray-800">{name}</span> ({email})
           </Text>
           <Button

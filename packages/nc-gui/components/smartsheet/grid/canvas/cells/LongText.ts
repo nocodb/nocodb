@@ -104,7 +104,7 @@ export const LongTextCellRenderer: CellRenderer = {
 
       for (const link of links) {
         if (isBoxHovered(link, mousePosition)) {
-          window.open(link.url, '_blank')
+          confirmPageLeavingRedirect(link.url, '_blank')
           return true
         }
       }

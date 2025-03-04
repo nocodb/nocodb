@@ -94,47 +94,9 @@ const isExecuting = computed(
     fieldIDRowMapping.value.get(`${pk.value}:${column.value.id}`) === 'running',
 )
 
-const triggerAction = async () => {
-  const colOptions = column.value.colOptions
-
-  if (colOptions.type === ButtonActionsType.Webhook) {
-    try {
-      isLoading.value = true
-
-      await $api.dbTableWebhook.trigger(cellValue.value?.fk_webhook_id, rowId!.value)
-    } catch (e) {
-      console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
-      isLoading.value = false
-    }
-  } else if (colOptions.type === ButtonActionsType.Ai) {
-    await generate()
-  } else if (colOptions.type === ButtonActionsType.Script) {
-    try {
-      isLoading.value = true
-
-      const script = await loadAutomation(colOptions.fk_script_id)
-
-      const id = await runScript(script, currentRow.value.row, {
-        pk: pk.value,
-        fieldId: column.value.id,
-      })
-
-      isExecutingId.value = id
-    } catch (e) {
-      console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
-      isLoading.value = false
-    }
-  }
-}
-
 const componentProps = computed(() => {
   if (column.value.colOptions.type === ButtonActionsType.Url) {
-    let url = `${cellValue.value?.url}`
-    url = /^(https?|ftp|mailto|file):\/\//.test(url) ? url : url.trim() ? `https://${url}` : ''
+    let url = addMissingUrlSchma(cellValue.value?.url)
 
     // if url params not encoded, encode them using encodeURI
     try {
@@ -175,6 +137,45 @@ const componentProps = computed(() => {
     }
   }
 })
+
+const triggerAction = async () => {
+  const colOptions = column.value.colOptions
+
+  if (colOptions.type === ButtonActionsType.Url) {
+    confirmPageLeavingRedirect(componentProps.value?.href, componentProps.value?.target)
+  } else if (colOptions.type === ButtonActionsType.Webhook) {
+    try {
+      isLoading.value = true
+
+      await $api.dbTableWebhook.trigger(cellValue.value?.fk_webhook_id, rowId!.value)
+    } catch (e) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isLoading.value = false
+    }
+  } else if (colOptions.type === ButtonActionsType.Ai) {
+    await generate()
+  } else if (colOptions.type === ButtonActionsType.Script) {
+    try {
+      isLoading.value = true
+
+      const script = await loadAutomation(colOptions.fk_script_id)
+
+      const id = await runScript(script, currentRow.value.row, {
+        pk: pk.value,
+        fieldId: column.value.id,
+      })
+
+      isExecutingId.value = id
+    } catch (e) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isLoading.value = false
+    }
+  }
+}
 </script>
 
 <template>
@@ -197,7 +198,7 @@ const componentProps = computed(() => {
           { '!w-6': !column.colOptions.label },
         ]"
         class="nc-cell-button nc-button-cell-link btn-cell-colors truncate flex items-center h-6"
-        @click="triggerAction"
+        @click.prevent="triggerAction"
       >
         <GeneralLoader
           v-if="

@@ -676,7 +676,9 @@
     "lockedByUser": "Locked by {user}",
     "thisPageDoesNotExist": "This page doesn’t exist",
     "customUrl": "Custom URL",
-    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}"
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
+    "youAreLeavingNocoDB": "You’re leaving NocoDB",
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
   },
   "labels": {
     "latitude": "Latitude",
@@ -1127,7 +1129,8 @@
     "rowId": "Row Id",
     "showJsonPayload": "Show json payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
-    "fillForm": "Fill Form"
+    "fillForm": "Fill Form",
+    "proceedToLink": "Proceed to link"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

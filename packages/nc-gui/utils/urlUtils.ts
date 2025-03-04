@@ -90,6 +90,92 @@ export const navigateToBlankTargetOpenOption = {
   },
 }
 
+export const addMissingUrlSchma = (url: string) => {
+  url = url?.trim?.() ?? ''
+
+  if (!url) return ''
+
+  if (/^(https?|ftp|file):\/\/|^(mailto|tel):/i.test(url)) return url
+
+  return `https://${url}`
+}
+
+export const isSameOriginUrl = (url: string, addMissingUrlSchema = false) => {
+  if (addMissingUrlSchema) {
+    url = addMissingUrlSchma(url)
+  }
+
+  try {
+    return new URL(url, window.location.origin).origin === window.location.origin
+  } catch {
+    return false // Invalid URL
+  }
+}
+
+export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {
+  url = addMissingUrlSchma(url)
+
+  if (!url) return
+
+  if (!url.startsWith('http')) {
+    const link = document.createElement('a')
+    link.href = url
+    if (target) {
+      link.target = target
+      link.rel = 'noopener noreferrer nofollow' // Prevents opener access & prefetching
+    }
+    link.style.display = 'none' // Hide the link
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    return
+  }
+
+  // Don't do anything if url is not valid, just warn in console for debugging purpose
+  if (!isValidURL(url)) {
+    console.warn('Invalid URL:', url)
+    return
+  }
+
+  // No need to navigate to leaving page if it is same origin url
+  if (isSameOriginUrl(url) || !ncIsSharedViewOrBase()) {
+    window.open(url, target, target === '_blank' ? 'noopener,noreferrer' : undefined)
+  } else {
+    const leavingUrl = new URL(window.location.origin + '/#/leaving')
+    leavingUrl.hash = `#/leaving?ncRedirectUrl=${encodeURIComponent(url)}&ncBackUrl=${encodeURIComponent(window.location.href)}`
+
+    navigateTo(leavingUrl.toString(), {
+      open: {
+        target: '_blank',
+        windowFeatures: {
+          noopener: true,
+          noreferrer: true,
+        },
+      },
+    })
+  }
+}
+
+export const addConfirmPageLeavingRedirectToWindow = (remove = false) => {
+  if (typeof window === 'undefined') return
+
+  if (remove) {
+    localStorage.removeItem('ncIsSharedViewOrBase')
+    return
+  }
+
+  localStorage.setItem('ncIsSharedViewOrBase', 'true')
+
+  window.tiptapLinkHandler = (event) => {
+    event.preventDefault()
+
+    if (event?.target?.href) {
+      confirmPageLeavingRedirect(event?.target?.href, '_blank')
+    }
+  }
+}
+
 export const isLinkExpired = async (url: string) => {
   try {
     // test if the url is accessible or not

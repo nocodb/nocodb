@@ -115,8 +115,6 @@ export class ImageWindowLoader {
 
   private async loadImage(url: string): Promise<HTMLImageElement | undefined> {
     const img = new Image()
-    img.crossOrigin = 'anonymous'
-
     this.pendingSprites++
 
     try {
@@ -137,9 +135,7 @@ export class ImageWindowLoader {
       return undefined
     } finally {
       this.pendingSprites--
-      if (this.pendingSprites === 0) {
-        this.onSettled?.()
-      }
+      this.onSettled?.()
     }
   }
 

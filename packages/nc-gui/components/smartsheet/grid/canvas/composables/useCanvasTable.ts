@@ -172,7 +172,7 @@ export function useCanvasTable({
 
   const isDataEditAllowed = computed(() => isUIAllowed('dataEdit'))
 
-  const isFieldEditAllowed = computed(() => !isLocked.value && isUIAllowed('fieldAdd'))
+  const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd'))
 
   const isRowDraggingEnabled = computed(
     () => !selectedRows.value.length && isOrderColumnExists.value && !isRowReorderDisabled.value && !vSelectedAllRecords.value,
@@ -182,7 +182,7 @@ export function useCanvasTable({
     () => isDataEditAllowed.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced,
   )
 
-  const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isFieldEditAllowed.value && !isSqlView.value)
+  const isAddingColumnAllowed = computed(() => !readOnly.value && isFieldEditAllowed.value && !isSqlView.value)
 
   const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
 

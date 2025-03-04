@@ -17,7 +17,10 @@ import type { FormulaColumn } from '~/models';
 import type { ReusableParams } from '~/services/columns.service.type';
 import type { FormulaDataMigrationDriver } from '~/services/formula-column-type-changer';
 import type { IFormulaColumnTypeChanger } from './formula-column-type-changer.types';
-import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
+import {
+  getBaseModelSqlFromModelId,
+  isDataAuditEnabled,
+} from '~/helpers/dbHelpers';
 import { Audit, Column } from '~/models';
 import { ColumnsService } from '~/services/columns.service';
 import { MysqlDataMigration } from '~/services/formula-column-type-changer/mysql-data-migration';
@@ -193,23 +196,29 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
       limit,
       offset,
     });
-    const auditPayloads: AuditV1<DataUpdatePayload>[] = [];
-    for (const row of updatedRows) {
-      auditPayloads.push(
-        await generateUpdateAuditV1Payload({
-          baseModelSqlV2,
-          rowId: row.primaryKeys,
-          data: row.row,
-          oldData: {
-            ...row.row,
-            [destinationColumn.title]: null,
-          },
-          req,
-        }),
+    if (
+      isDataAuditEnabled({
+        isMetaSource: !!(await baseModelSqlV2.getSource()).isMeta(),
+      })
+    ) {
+      const auditPayloads: AuditV1<DataUpdatePayload>[] = [];
+      for (const row of updatedRows) {
+        auditPayloads.push(
+          await generateUpdateAuditV1Payload({
+            baseModelSqlV2,
+            rowId: row.primaryKeys,
+            data: row.row,
+            oldData: {
+              ...row.row,
+              [destinationColumn.title]: null,
+            },
+            req,
+          }),
+        );
+      }
+      await Promise.all(
+        auditPayloads.map((auditPayload) => Audit.insert(auditPayload)),
       );
     }
-    await Promise.all(
-      auditPayloads.map((auditPayload) => Audit.insert(auditPayload)),
-    );
   }
 }

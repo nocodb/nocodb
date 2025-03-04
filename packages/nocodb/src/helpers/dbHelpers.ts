@@ -7,7 +7,7 @@ import {
   Source,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { isEE, isOnPrem } from '~/ee/utils';
+import { isEE, isOnPrem } from '~/utils';
 
 export function _wherePk(
   primaryKeys: Column[],

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { MailService as MailServiceCE } from 'src/services/mail/mail.service';
-import { MailEvent } from 'src/interface/Mail';
 import { RoleLabels } from 'nocodb-sdk';
-import type { MailParams } from 'src/interface/Mail';
+import type { MailParams } from '~/interface/Mail';
+import { MailEvent } from '~/interface/Mail';
 import { extractMentions } from '~/utils/richTextHelper';
 import { Base, BaseUser, Workspace } from '~/models';
 

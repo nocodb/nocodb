@@ -1,28 +1,27 @@
 import type {
   BaseType,
-  ColumnType,
   CommentType,
   NcRequest,
+  OrgUserRoles,
   ProjectRoles,
   TableType,
   UserType,
-  WorkspaceType,
-  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 
 enum MailEvent {
   COMMENT_CREATE = 'COMMENT_CREATE',
   COMMENT_UPDATE = 'COMMENT_UPDATE',
-  ROW_USER_MENTION = 'ROW_USER_MENTION',
   BASE_ROLE_UPDATE = 'BASE_ROLE_UPDATE',
   BASE_INVITE = 'BASE_INVITE',
-  WORKSPACE_INVITE = 'WORKSPACE_INVITE',
-  WORKSPACE_ROLE_UPDATE = 'WORKSPACE_ROLE_UPDATE',
   WELCOME = 'WELCOME',
+  FORM_SUBMISSION = 'FORM_SUBMISSION',
   RESET_PASSWORD = 'RESET_PASSWORD', //OSS
   VERIFY_EMAIL = 'VERIFY_EMAIL', // OSS
   ORGANIZATION_INVITE = 'ORGANIZATION_INVITE', // OSS
   ORGANIZATION_ROLE_UPDATE = 'ORGANIZATION_ROLE_UPDATE', // OSS
+  ROW_USER_MENTION = 'ROW_USER_MENTION',
+  WORKSPACE_INVITE = 'WORKSPACE_INVITE',
+  WORKSPACE_ROLE_UPDATE = 'WORKSPACE_ROLE_UPDATE',
 }
 
 interface CommentPayload {
@@ -32,15 +31,6 @@ interface CommentPayload {
   comment: CommentType;
   rowId: string;
   req: NcRequest;
-}
-
-interface RowMentionPayload {
-  model: TableType;
-  rowId: string;
-  user: UserType;
-  column: ColumnType;
-  req: NcRequest;
-  mentions: string[];
 }
 
 interface BaseRoleUpdatePayload {
@@ -56,20 +46,6 @@ interface BaseInvitePayload {
   req: NcRequest;
   role: ProjectRoles;
   token?: string;
-}
-
-interface WorkspaceInvitePayload {
-  workspace: WorkspaceType;
-  user: UserType;
-  req: NcRequest;
-  token?: string;
-}
-
-interface WorkspaceRoleUpdatePayload {
-  workspace: WorkspaceType;
-  user: UserType;
-  req: NcRequest;
-  role: WorkspaceUserRoles;
 }
 
 interface ResetPasswordPayload {
@@ -96,17 +72,15 @@ interface OrganizationInvitePayload {
 interface OrganizationRoleUpdatePayload {
   user: UserType;
   req: NcRequest;
-  role: WorkspaceUserRoles;
+  role: OrgUserRoles;
 }
+
+interface FormSubmissionPayload {}
 
 type MailParams =
   | {
       mailEvent: MailEvent.COMMENT_CREATE | MailEvent.COMMENT_UPDATE;
       payload: CommentPayload;
-    }
-  | {
-      mailEvent: MailEvent.ROW_USER_MENTION;
-      payload: RowMentionPayload;
     }
   | {
       mailEvent: MailEvent.BASE_ROLE_UPDATE;
@@ -115,14 +89,6 @@ type MailParams =
   | {
       mailEvent: MailEvent.BASE_INVITE;
       payload: BaseInvitePayload;
-    }
-  | {
-      mailEvent: MailEvent.WORKSPACE_INVITE;
-      payload: WorkspaceInvitePayload;
-    }
-  | {
-      mailEvent: MailEvent.WORKSPACE_ROLE_UPDATE;
-      payload: WorkspaceRoleUpdatePayload;
     }
   | {
       mailEvent: MailEvent.WELCOME;
@@ -143,6 +109,10 @@ type MailParams =
   | {
       mailEvent: MailEvent.ORGANIZATION_ROLE_UPDATE;
       payload: OrganizationRoleUpdatePayload;
+    }
+  | {
+      mailEvent: MailEvent.FORM_SUBMISSION;
+      payload: FormSubmissionPayload;
     };
 
-export { MailEvent, CommentPayload, RowMentionPayload, MailParams };
+export { MailEvent, MailParams, FormSubmissionPayload };

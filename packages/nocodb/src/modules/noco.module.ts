@@ -145,6 +145,7 @@ import { ViewsV3Controller } from '~/controllers/v3/views-v3.controller';
 import { ViewsV3Service } from '~/services/v3/views-v3.service';
 import { FiltersV3Controller } from '~/controllers/v3/filters-v3.controller';
 import { FiltersV3Service } from '~/services/v3/filters-v3.service';
+import { FormulaColumnTypeChanger } from '~/services/formula-column-type-changer.service';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -306,6 +307,12 @@ export const nocoModuleMetadata = {
     PublicDatasService,
     PublicDatasExportService,
     DataV3Service,
+
+    // use custom provider to avoid circular dependency
+    {
+      provide: 'FormulaColumnTypeChanger',
+      useClass: FormulaColumnTypeChanger,
+    },
   ],
   exports: [
     /* Generic */

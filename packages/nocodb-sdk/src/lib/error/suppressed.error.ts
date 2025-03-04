@@ -1,3 +1,3 @@
 export interface SuppressedError {
-  isErrorSuppressed: boolean
+  isErrorSuppressed: boolean;
 }

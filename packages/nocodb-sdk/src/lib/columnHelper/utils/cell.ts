@@ -106,60 +106,66 @@ export const isAI = (column: ColumnType) =>
   column.uidt === UITypes.LongText &&
   parseProp(column?.meta)?.[LongTextAiMetaProp] === true;
 
+export const isAutoSaved = (column: ColumnType) =>
+  [
+    UITypes.SingleLineText,
+    UITypes.LongText,
+    UITypes.PhoneNumber,
+    UITypes.Email,
+    UITypes.URL,
+    UITypes.Number,
+    UITypes.Decimal,
+    UITypes.Percent,
+    UITypes.Count,
+    UITypes.AutoNumber,
+    UITypes.SpecificDBType,
+    UITypes.Geometry,
+    UITypes.GeoData,
+    UITypes.Duration,
+  ].includes(column.uidt as UITypes);
 
-  export const isAutoSaved = (column: ColumnType) =>
-    [
-      UITypes.SingleLineText,
-      UITypes.LongText,
-      UITypes.PhoneNumber,
-      UITypes.Email,
-      UITypes.URL,
-      UITypes.Number,
-      UITypes.Decimal,
-      UITypes.Percent,
-      UITypes.Count,
-      UITypes.AutoNumber,
-      UITypes.SpecificDBType,
-      UITypes.Geometry,
-      UITypes.GeoData,
-      UITypes.Duration,
-    ].includes(column.uidt as UITypes)
-  
-  export const isManualSaved = (column: ColumnType) => [UITypes.Currency].includes(column.uidt as UITypes)
-  
-  export const isPrimary = (column: ColumnType) => !!column.pv
-  
-  export const isPrimaryKey = (column: ColumnType) => !!column.pk
-  
-  // used for LTAR and Formula
-  export const renderValue = (result?: any) => {
-    if (!result || typeof result !== 'string') {
-      return result
+export const isManualSaved = (column: ColumnType) =>
+  [UITypes.Currency].includes(column.uidt as UITypes);
+
+export const isPrimary = (column: ColumnType) => !!column.pv;
+
+export const isPrimaryKey = (column: ColumnType) => !!column.pk;
+
+// used for LTAR and Formula
+export const renderValue = (result?: any) => {
+  if (!result || typeof result !== 'string') {
+    return result;
+  }
+
+  // convert ISO string (e.g. in MSSQL) to YYYY-MM-DD hh:mm:ssZ
+  // e.g. 2023-05-18T05:30:00.000Z -> 2023-05-18 11:00:00+05:30
+  result = result.replace(
+    /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g,
+    (d: string) => {
+      return dayjs(d).isValid() ? dayjs(d).format('YYYY-MM-DD HH:mm:ssZ') : d;
     }
-  
-    // convert ISO string (e.g. in MSSQL) to YYYY-MM-DD hh:mm:ssZ
-    // e.g. 2023-05-18T05:30:00.000Z -> 2023-05-18 11:00:00+05:30
-    result = result.replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g, (d: string) => {
-      return dayjs(d).isValid() ? dayjs(d).format('YYYY-MM-DD HH:mm:ssZ') : d
-    })
-  
-    // convert all date time values to local time
-    // the datetime is either YYYY-MM-DD hh:mm:ss (xcdb)
-    // or YYYY-MM-DD hh:mm:ss+/-xx:yy (ext)
-    return result.replace(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?/g, (d: string) => {
+  );
+
+  // convert all date time values to local time
+  // the datetime is either YYYY-MM-DD hh:mm:ss (xcdb)
+  // or YYYY-MM-DD hh:mm:ss+/-xx:yy (ext)
+  return result.replace(
+    /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?/g,
+    (d: string) => {
       // TODO(timezone): retrieve the format from the corresponding column meta
       // assume HH:mm at this moment
-      return dayjs(d).isValid() ? dayjs(d).format('YYYY-MM-DD HH:mm') : d
-    })
-  }
-  
-  export const isNumericFieldType = (column: ColumnType, abstractType: any) => {
-    return (
-      isInt(column, abstractType) ||
-      isFloat(column, abstractType) ||
-      isDecimal(column) ||
-      isCurrency(column) ||
-      isPercent(column) ||
-      isDuration(column)
-    )
-  }
+      return dayjs(d).isValid() ? dayjs(d).format('YYYY-MM-DD HH:mm') : d;
+    }
+  );
+};
+
+export const isNumericFieldType = (column: ColumnType, abstractType: any) => {
+  return (
+    isInt(column, abstractType) ||
+    isFloat(column, abstractType) ||
+    isDecimal(column) ||
+    isCurrency(column) ||
+    isPercent(column) ||
+    isDuration(column)
+  );
+};

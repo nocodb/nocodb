@@ -17,11 +17,9 @@ export class AttachmentHelper extends AbstractColumnHelper {
     try {
       parsedVal = parseProp(value);
 
-      if (ncIsArray(parsedVal)) {
-        parsedVal = parsedVal;
-      } else if (ncIsObject(parsedVal) && !ncIsEmptyObject(parsedVal)) {
+      if (ncIsObject(parsedVal) && !ncIsEmptyObject(parsedVal)) {
         parsedVal = [parsedVal];
-      } else {
+      } else if (!ncIsArray(parsedVal)) {
         parsedVal = [];
       }
     } catch {

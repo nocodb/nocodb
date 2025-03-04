@@ -8,7 +8,15 @@ import { dateFormats } from './dateTimeHelper';
 
 export const StringOperators = ['||', '&'] as const;
 export const ArithmeticOperators = ['+', '-', '*', '/'] as const;
-export const ComparisonOperators = ['==', '=', '<', '>', '<=', '>=', '!='] as const;
+export const ComparisonOperators = [
+  '==',
+  '=',
+  '<',
+  '>',
+  '<=',
+  '>=',
+  '!=',
+] as const;
 export type ArithmeticOperator = (typeof ArithmeticOperators)[number];
 export type ComparisonOperator = (typeof ComparisonOperators)[number];
 export type StringOperator = (typeof StringOperators)[number];
@@ -2033,7 +2041,7 @@ export async function validateFormulaAndExtractTreeWithType({
         ) {
           res.dataType = FormulaDataTypes.STRING;
         }
-      } else if(['&'].includes(parsedTree.operator)) {
+      } else if (['&'].includes(parsedTree.operator)) {
         res.dataType = FormulaDataTypes.STRING;
       } else {
         res.dataType = FormulaDataTypes.NUMERIC;

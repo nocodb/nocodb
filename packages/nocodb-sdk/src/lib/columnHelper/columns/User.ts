@@ -19,9 +19,7 @@ export class UserHelper extends AbstractColumnHelper {
   ): string | null | NcRecord {
     try {
       value = typeof value === 'string' ? JSON.parse(value) : value;
-    } catch {
-      value = value;
-    }
+    } catch {}
 
     if (value === null) {
       if (params.isMultipleCellPaste) {

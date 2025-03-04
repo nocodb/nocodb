@@ -1,10 +1,12 @@
 import type {
   BaseType,
   CommentType,
+  FormType,
   NcRequest,
   OrgUserRoles,
   ProjectRoles,
   TableType,
+  UITypes,
   UserType,
 } from 'nocodb-sdk';
 
@@ -75,7 +77,17 @@ interface OrganizationRoleUpdatePayload {
   role: OrgUserRoles;
 }
 
-interface FormSubmissionPayload {}
+interface FormSubmissionPayload {
+  formView: FormType;
+  model: TableType;
+  emails: string[];
+  base: BaseType;
+  data: {
+    parsedValue?: any;
+    columnTitle: string;
+    uidt: UITypes | string;
+  }[];
+}
 
 type MailParams =
   | {

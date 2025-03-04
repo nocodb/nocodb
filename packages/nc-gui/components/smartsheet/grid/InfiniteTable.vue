@@ -2277,15 +2277,15 @@ const cellAlignClass = computed(() => {
                 <th
                   v-if="fields?.[0]?.id"
                   ref="primaryColHeader"
-                  v-bind="{
-                    ...(isPlaywright
+                  v-xc-ver-resize
+                  v-bind="
+                    isPlaywright
                       ? {
                           'data-col': fields[0].id,
                           'data-title': fields[0].title,
                         }
-                      : {}),
-                    ...(!isLocked ? { 'v-xc-ver-resize': true } : {}),
-                  }"
+                      : {}
+                  "
                   :style="{
                     'min-width': gridViewCols[fields[0].id]?.width || '180px',
                     'max-width': gridViewCols[fields[0].id]?.width || '180px',
@@ -2294,6 +2294,7 @@ const cellAlignClass = computed(() => {
                   class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
+                    'no-resize': isLocked,
                   }"
                   @xcstartresizing="onXcStartResizing(fields[0].id, $event)"
                   @xcresize="onresize(fields[0].id, $event)"
@@ -2327,15 +2328,15 @@ const cellAlignClass = computed(() => {
                 <th
                   v-for="{ field: col, index } in visibleFields"
                   :key="col.id"
-                  v-bind="{
-                    ...(isPlaywright
+                  v-xc-ver-resize
+                  v-bind="
+                    isPlaywright
                       ? {
                           'data-col': col.id,
                           'data-title': col.title,
                         }
-                      : {}),
-                    ...(!isLocked ? { 'v-xc-ver-resize': true } : {}),
-                  }"
+                      : {}
+                  "
                   :style="{
                     'min-width': gridViewCols[col.id]?.width || '180px',
                     'max-width': gridViewCols[col.id]?.width || '180px',
@@ -2344,6 +2345,7 @@ const cellAlignClass = computed(() => {
                   class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === col.id,
+                    'no-resize': isLocked,
                   }"
                   @xcstartresizing="onXcStartResizing(col.id, $event)"
                   @xcresize="onresize(col.id, $event)"
@@ -3439,7 +3441,7 @@ const cellAlignClass = computed(() => {
     }
   }
 
-  .nc-grid-skeleton-loader {
+  .nc-grid-skeleton-loader {v-xc-ver-resize
     thead th:nth-child(2) {
       @apply border-r-1 !border-r-gray-50;
     }
@@ -3450,12 +3452,18 @@ const cellAlignClass = computed(() => {
   }
 }
 
-:deep(.resizer:hover),
-:deep(.resizer:active),
-:deep(.resizer:focus) {
-  // todo: replace with primary color
-  @apply bg-blue-500/50;
-  cursor: col-resize;
+.nc-grid-column-header {
+  &.no-resize :deep(.resizer) {
+    @apply hidden;
+  }
+
+  :deep(.resizer:hover),
+  :deep(.resizer:active),
+  :deep(.resizer:focus) {
+    // todo: replace with primary color
+    @apply bg-blue-500/50;
+    cursor: col-resize;
+  }
 }
 
 .nc-grid-row {

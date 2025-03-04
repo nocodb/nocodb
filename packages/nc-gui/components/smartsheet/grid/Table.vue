@@ -1884,7 +1884,7 @@ onKeyStroke('ArrowDown', onDown)
                 </th>
                 <th
                   v-if="fields?.[0]?.id"
-                  v-bind="!isLocked ? { 'v-xc-ver-resize': true } : {}"
+                  v-xc-ver-resize
                   :data-col="fields[0].id"
                   :data-title="fields[0].title"
                   :style="{
@@ -1895,6 +1895,7 @@ onKeyStroke('ArrowDown', onDown)
                   class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
+                    'no-resize': isLocked,
                   }"
                   @xcstartresizing="onXcStartResizing(fields[0].id, $event)"
                   @xcresize="onresize(fields[0].id, $event)"
@@ -1929,7 +1930,7 @@ onKeyStroke('ArrowDown', onDown)
                 <th
                   v-for="{ field: col, index } in visibleFields"
                   :key="col.id"
-                  v-bind="!isLocked ? { 'v-xc-ver-resize': true } : {}"
+                  v-xc-ver-resize
                   :data-col="col.id"
                   :data-title="col.title"
                   :style="{
@@ -1940,6 +1941,7 @@ onKeyStroke('ArrowDown', onDown)
                   class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === col.id,
+                    'no-resize': isLocked,
                   }"
                   @xcstartresizing="onXcStartResizing(col.id, $event)"
                   @xcresize="onresize(col.id, $event)"
@@ -3057,12 +3059,18 @@ onKeyStroke('ArrowDown', onDown)
   }
 }
 
-:deep(.resizer:hover),
-:deep(.resizer:active),
-:deep(.resizer:focus) {
-  // todo: replace with primary color
-  @apply bg-blue-500/50;
-  cursor: col-resize;
+.nc-grid-column-header {
+  &.no-resize :deep(.resizer) {
+    @apply hidden;
+  }
+
+  :deep(.resizer:hover),
+  :deep(.resizer:active),
+  :deep(.resizer:focus) {
+    // todo: replace with primary color
+    @apply bg-blue-500/50;
+    cursor: col-resize;
+  }
 }
 
 .nc-grid-row {

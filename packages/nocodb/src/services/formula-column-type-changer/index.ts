@@ -10,5 +10,5 @@ export interface FormulaDataMigrationDriver {
     formulaColumnOption: FormulaColumn;
     offset?: number;
     limit?: number;
-  }): Promise<void>;
+  }): Promise<{ primaryKeys: any; row: Record<string, any> }[]>;
 }

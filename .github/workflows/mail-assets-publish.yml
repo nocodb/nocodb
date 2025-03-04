@@ -33,14 +33,14 @@ jobs:
       - name: Move files to S3 Path
         if: github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed != '0'
         run: |
-          mkdir -p packages/nc-mail-template/temp/emails/v2
-          mv packages/nc-mail-template/* packages/nc-mail-template/dist/emails/v2
+          mkdir -p packages/nc-mail-assets/temp/emails/v2
+          mv packages/nc-mail-assets/* packages/nc-mail-assets/temp/emails/v2
 
       - name: Deploy UI assets to CDN
         uses: pranavxc/s3-deploy@2cdf96df65b6c97ee09a5771958582b77f22b738
         if: github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed != '0'
         with:
-          folder: packages/nc-mail-template/dist/
+          folder: packages/nc-mail-assets/temp/
           bucket: ${{ secrets.CDN_BUCKET }}
           dist-id: ${{ secrets.CDN_DIST_ID }}
           invalidation: /emails/v2/*

@@ -223,7 +223,7 @@ export function useCanvasRender({
           x: rightOffset - scrollLeft.value,
           y: 9,
         })
-      } else if (meta.value.synced && colObj?.readonly) {
+      } else if (meta.value?.synced && colObj?.readonly) {
         rightOffset -= 16
         spriteLoader.renderIcon(ctx, {
           icon: 'refresh',
@@ -454,7 +454,7 @@ export function useCanvasRender({
             x: rightOffset,
             y: 9,
           })
-        } else if (meta.value.synced && colObj?.readonly) {
+        } else if (meta.value?.synced && colObj?.readonly) {
           rightOffset -= 16
           spriteLoader.renderIcon(ctx, {
             icon: 'refresh',

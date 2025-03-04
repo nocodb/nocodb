@@ -1,5 +1,11 @@
-import { RelationTypes } from 'nocodb-sdk';
-import type { Column, LinkToAnotherRecordColumn } from '~/models';
+import { type NcContext, RelationTypes } from 'nocodb-sdk';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import {
+  type Column,
+  type LinkToAnotherRecordColumn,
+  Model,
+  Source,
+} from '~/models';
 import { NcError } from '~/helpers/catchError';
 
 export function _wherePk(
@@ -116,4 +122,20 @@ export function getOppositeRelationType(
     return RelationTypes.HAS_MANY;
   }
   return type as RelationTypes;
+}
+
+export async function getBaseModelSqlFromModelId({
+  modelId,
+  context,
+}: {
+  context: NcContext;
+  modelId: string;
+}) {
+  const model = await Model.get(context, modelId);
+  const source = await Source.get(context, model.source_id);
+  return await Model.getBaseModelSQL(context, {
+    id: model.id,
+    dbDriver: await NcConnectionMgrv2.get(source),
+    source,
+  });
 }

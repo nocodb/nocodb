@@ -1,13 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ColumnsService as ColumnsServiceCE } from 'src/services/columns.service';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
-import type { NcApiVersion } from 'nocodb-sdk';
-import type { ReusableParams } from 'src/services/columns.service';
-import type { RelationTypes } from 'nocodb-sdk';
+import type { ReusableParams } from '~/services/columns.service.type';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
+  NcApiVersion,
+  RelationTypes,
   UserType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -32,8 +32,10 @@ export class ColumnsService extends ColumnsServiceCE {
   constructor(
     protected readonly metaService: MetaService,
     protected readonly appHooksService: AppHooksService,
+    @Inject(forwardRef(() => 'FormulaColumnTypeChanger'))
+    protected readonly formulaColumnTypeChanger,
   ) {
-    super(metaService, appHooksService);
+    super(metaService, appHooksService, formulaColumnTypeChanger);
   }
 
   async columnAdd<T extends NcApiVersion = NcApiVersion | null | undefined>(
@@ -327,4 +329,4 @@ export class ColumnsService extends ColumnsServiceCE {
 }
 
 export { Altered } from 'src/services/columns.service';
-export { ReusableParams } from 'src/services/columns.service';
+export { ReusableParams } from 'src/services/columns.service.type';

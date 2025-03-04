@@ -52,6 +52,15 @@ export interface IBaseModelSqlV2 {
 
   getViewId(): string;
 
+  getTnPath(
+    tb:
+      | {
+          table_name: string;
+        }
+      | string,
+    alias?: string,
+  ): string | Knex.Raw<any>;
+
   get dbDriver(): CustomKnex;
   get isSqlite(): boolean;
   get isMssql(): boolean;

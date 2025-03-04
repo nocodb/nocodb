@@ -2277,15 +2277,15 @@ const cellAlignClass = computed(() => {
                 <th
                   v-if="fields?.[0]?.id"
                   ref="primaryColHeader"
-                  v-xc-ver-resize
-                  v-bind="
-                    isPlaywright
+                  v-bind="{
+                    ...(isPlaywright
                       ? {
                           'data-col': fields[0].id,
                           'data-title': fields[0].title,
                         }
-                      : {}
-                  "
+                      : {}),
+                    ...(!isLocked ? { 'v-xc-ver-resize': true } : {}),
+                  }"
                   :style="{
                     'min-width': gridViewCols[fields[0].id]?.width || '180px',
                     'max-width': gridViewCols[fields[0].id]?.width || '180px',
@@ -2327,15 +2327,15 @@ const cellAlignClass = computed(() => {
                 <th
                   v-for="{ field: col, index } in visibleFields"
                   :key="col.id"
-                  v-bind="
-                    isPlaywright
+                  v-bind="{
+                    ...(isPlaywright
                       ? {
                           'data-col': col.id,
                           'data-title': col.title,
                         }
-                      : {}
-                  "
-                  v-xc-ver-resize
+                      : {}),
+                    ...(!isLocked ? { 'v-xc-ver-resize': true } : {}),
+                  }"
                   :style="{
                     'min-width': gridViewCols[col.id]?.width || '180px',
                     'max-width': gridViewCols[col.id]?.width || '180px',
@@ -2351,7 +2351,7 @@ const cellAlignClass = computed(() => {
                 >
                   <div
                     class="w-full h-full flex items-center text-gray-500 pl-2 pr-1"
-                    :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission ? 'false' : 'true'"
+                    :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission || isLocked ? 'false' : 'true'"
                     @dragstart.stop="onDragStart(col.id!, $event)"
                     @drag.stop="onDrag($event)"
                     @dragend.stop="onDragEnd($event)"

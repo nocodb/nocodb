@@ -1884,7 +1884,7 @@ onKeyStroke('ArrowDown', onDown)
                 </th>
                 <th
                   v-if="fields?.[0]?.id"
-                  v-xc-ver-resize
+                  v-bind="!isLocked ? { 'v-xc-ver-resize': true } : {}"
                   :data-col="fields[0].id"
                   :data-title="fields[0].title"
                   :style="{
@@ -1929,7 +1929,7 @@ onKeyStroke('ArrowDown', onDown)
                 <th
                   v-for="{ field: col, index } in visibleFields"
                   :key="col.id"
-                  v-xc-ver-resize
+                  v-bind="!isLocked ? { 'v-xc-ver-resize': true } : {}"
                   :data-col="col.id"
                   :data-title="col.title"
                   :style="{
@@ -1948,7 +1948,7 @@ onKeyStroke('ArrowDown', onDown)
                 >
                   <div
                     class="w-full h-full flex items-center text-gray-500 pl-2 pr-1"
-                    :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission ? 'false' : 'true'"
+                    :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission || isLocked ? 'false' : 'true'"
                     @dragstart.stop="onDragStart(col.id!, $event)"
                     @drag.stop="onDrag($event)"
                     @dragend.stop="onDragEnd($event)"

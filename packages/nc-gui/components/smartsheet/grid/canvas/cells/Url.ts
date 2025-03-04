@@ -71,7 +71,7 @@ export const UrlCellRenderer: CellRenderer = {
     const text = value?.toString().trim() ?? ''
 
     const isValid = text && isValidURL(text)
-    if (isValid) return
+    if (isValid || !text?.length) return
 
     const pv = column.pv
     const ctx = defaultOffscreen2DContext

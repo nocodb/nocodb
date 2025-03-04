@@ -49,7 +49,7 @@ const meta = inject(MetaInj, ref())
 const columns = computed(
   () =>
     meta.value?.columns?.filter(
-      (col) => [UITypes.ID].includes(col.uidt) || (!isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)),
+      (col) => [UITypes.ID].includes(col.uidt) || (!isSystemColumn(col) && !isVirtualCol(col)),
     ) || [],
 )
 

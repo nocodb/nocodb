@@ -1149,7 +1149,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               ...this.context,
               source_id: this.model.source_id,
               fk_model_id: this.model.id,
-              row_id: id,
+              row_id: this.extractPksValues(id, true),
             },
             details: {
               data: formatDataForAudit(filteredAuditData, this.model.columns),
@@ -1269,7 +1269,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               ...this.context,
               source_id: this.model.source_id,
               fk_model_id: this.model.id,
-              row_id: id,
+              row_id: this.extractPksValues(id, true),
             },
             req,
           },
@@ -2612,7 +2612,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             ...this.context,
             source_id: model.source_id,
             fk_model_id: model.id,
-            row_id: rowId as string,
+            row_id: this.extractPksValues(rowId, true) as string,
           },
           details: {
             table_title: model.title,
@@ -2692,7 +2692,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             ...this.context,
             source_id: model.source_id,
             fk_model_id: model.id,
-            row_id: rowId as string,
+            row_id: this.extractPksValues(rowId, true) as string,
           },
           details: {
             table_title: model.title,
@@ -3202,7 +3202,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 ...this.context,
                 source_id: this.model.source_id,
                 fk_model_id: this.model.id,
-                row_id: id,
+                row_id: this.extractPksValues(id, true),
               },
               details: {
                 old_data: updateDiff.previous_state,

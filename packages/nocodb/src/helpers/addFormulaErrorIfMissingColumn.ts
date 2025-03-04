@@ -28,8 +28,12 @@ export default function addFormulaErrorIfMissingColumn({
       fn(pt.right, virtualColumn);
     }
   };
-
-  fn(jsep(formula.formula), formula);
-
+  try {
+    fn(jsep(formula.formula), formula);
+  } catch (e) {
+    // handle any parsing error as well
+    formula.error = e.message;
+    modified = true;
+  }
   return modified;
 }

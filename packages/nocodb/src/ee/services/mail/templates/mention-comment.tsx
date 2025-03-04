@@ -1,28 +1,35 @@
 import {
   Body,
+  Button,
   Head,
   Heading,
   Html,
   Preview,
+  Section,
   Text,
-  Button, Section,
 } from '@react-email/components';
 import * as React from 'react';
-import RootWrapper from '../components/RootWrapper';
-import { Footer } from '../components/Footer';
-import ContentWrapper from '../components/ContentWrapper';
+import {
+  ContentWrapper,
+  Footer,
+  RootWrapper,
+} from '~/services/mail/templates/components';
 
-// Corresponding ejs template
-interface Props {
+interface MentionCommentTemplateProps {
   name: string;
   email: string;
-  tableTitle: string;
   link: string;
   workspaceTitle: string;
   baseTitle: string;
 }
 
-export const MentionRowEE = () => (
+export const MentionComment = ({
+  name,
+  email,
+  link,
+  baseTitle,
+  workspaceTitle,
+}: MentionCommentTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
@@ -34,23 +41,22 @@ export const MentionRowEE = () => (
           </Heading>
           <Section className="py-6 text-center">
             <span className="font-bold text-gray-900 text-base">
-              {'<%= workspaceTitle %>'}
+              {workspaceTitle}
             </span>
-            <span className="px-2 text-gray-700">
-              /
-            </span>
+            <span className="px-2 text-gray-700">/</span>
             <span className="font-bold text-gray-900 text-base">
-              {'<%= baseTitle %>'}
+              {baseTitle}
             </span>
           </Section>
           <Text className="text-gray-600 text-center text-sm !mt-0">
-            {'<%= name %>'} ({'<%= email %>'}) has mentioned you in a record in the <span className="font-semibold text-gray-800"> {'<%= tableTitle %>'}
-            </span> table.
+            {name} ({email}) has mentioned you in
+            <span className="font-semibold text-gray-800">{baseTitle}</span>
           </Text>
-          <Button className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10" href="<%= link %>">
-            <Text className="!my-[8px]">
-              View Record
-            </Text>
+          <Button
+            className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10"
+            href={link}
+          >
+            <Text className="!my-[8px]">View Comment</Text>
           </Button>
         </ContentWrapper>
         <Footer />
@@ -58,4 +64,13 @@ export const MentionRowEE = () => (
     </RootWrapper>
   </Html>
 );
-export default MentionRowEE;
+
+MentionComment.PreviewProps = {
+  name: 'John Doe',
+  email: 'john@nocodb.com',
+  link: 'https://nocodb.com',
+  workspaceTitle: 'Workspace Title',
+  baseTitle: 'Base Title',
+};
+
+export default MentionComment;

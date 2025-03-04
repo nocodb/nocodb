@@ -1,21 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import * as ejs from 'ejs';
 import { RoleLabels } from 'nocodb-sdk';
+import { render } from '@react-email/render';
 import type { NcRequest } from 'nocodb-sdk';
 import type { MailParams } from '~/interface/Mail';
+import type { ComponentProps } from 'react';
+import * as MailTemplates from '~/services/mail/templates';
 import { MailEvent } from '~/interface/Mail';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import {
-  BaseInvite,
-  BaseRoleUpdate,
-  OrganizationInvite,
-  OrganizationRoleUpdate,
-  PasswordReset,
-  VerifyEmail,
-  Welcome,
-} from '~/services/mail/templates';
 import Noco from '~/Noco';
 import config from '~/app.config';
+
+type TemplateComponent<K extends keyof typeof MailTemplates> =
+  (typeof MailTemplates)[K];
+type TemplateProps<K extends keyof typeof MailTemplates> = ComponentProps<
+  TemplateComponent<K>
+>;
 
 @Injectable()
 export class MailService {
@@ -26,6 +25,15 @@ export class MailService {
       console.error('Plugin not configured / active');
       return null;
     }
+  }
+
+  async renderMail<K extends keyof typeof MailTemplates>(
+    template: K,
+    props: TemplateProps<K>,
+  ) {
+    const Component = MailTemplates[template];
+    // TODO: Fix Type here
+    return await render(Component(props as TemplateProps<any>));
   }
 
   buildUrl(
@@ -101,7 +109,7 @@ export class MailService {
         await mailerAdapter.mailSend({
           to: user.email,
           subject: `You have been invited to ${base.title}`,
-          html: ejs.render(BaseInvite, {
+          html: await this.renderMail('BaseInvite', {
             baseTitle: base.title,
             name:
               invitee.display_name ??
@@ -122,7 +130,7 @@ export class MailService {
         await mailerAdapter.mailSend({
           to: user.email,
           subject: `Role updated in ${base.title}`,
-          html: ejs.render(BaseRoleUpdate, {
+          html: await this.renderMail('BaseRoleUpdate', {
             baseTitle: base.title,
             name:
               user.display_name ?? user.email.split('@')[0].toLocaleUpperCase(),
@@ -142,7 +150,7 @@ export class MailService {
         await mailerAdapter.mailSend({
           to: user.email,
           subject: `Reset your password`,
-          html: ejs.render(PasswordReset, {
+          html: await this.renderMail('PasswordReset', {
             email: user.email,
             link: this.buildUrl(req, {
               token: (user as any).reset_password_token,
@@ -157,7 +165,7 @@ export class MailService {
         await mailerAdapter.mailSend({
           to: user.email,
           subject: `Verify your email`,
-          html: ejs.render(VerifyEmail, {
+          html: await this.renderMail('VerifyEmail', {
             email: user.email,
             link: this.buildUrl(req, {
               verificationToken: (user as any).email_verification_token,
@@ -171,7 +179,7 @@ export class MailService {
         await mailerAdapter.mailSend({
           to: user.email,
           subject: `Welcome to NocoDB!`,
-          html: ejs.render(Welcome, {
+          html: await this.renderMail('Welcome', {
             email: user.email,
             link: this.buildUrl(req, {}),
           }),
@@ -183,7 +191,7 @@ export class MailService {
         await mailerAdapter.mailSend({
           to: user.email,
           subject: `You have been invited to join NocoDB`,
-          html: ejs.render(OrganizationInvite, {
+          html: await this.renderMail('OrganizationInvite', {
             name:
               user.display_name ?? user.email.split('@')[0].toLocaleUpperCase(),
             email: user.email,
@@ -199,7 +207,7 @@ export class MailService {
         await mailerAdapter.mailSend({
           to: user.email,
           subject: `Role updated in NocoDB`,
-          html: ejs.render(OrganizationRoleUpdate, {
+          html: await this.renderMail('OrganizationRoleUpdate', {
             name:
               user.display_name ?? user.email.split('@')[0].toLocaleUpperCase(),
             email: user.email,

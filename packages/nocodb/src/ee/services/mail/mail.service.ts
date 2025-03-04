@@ -1,15 +1,7 @@
-import * as ejs from 'ejs';
 import { Injectable } from '@nestjs/common';
 import { MailService as MailServiceCE } from 'src/services/mail/mail.service';
 import { MailEvent } from 'src/interface/Mail';
 import { RoleLabels } from 'nocodb-sdk';
-import {
-  BaseRoleUpdate,
-  Mention,
-  MentionRow,
-  WorkspaceInvite,
-  WorkspaceRoleUpdate,
-} from './templates';
 import type { MailParams } from 'src/interface/Mail';
 import { extractMentions } from '~/utils/richTextHelper';
 import { Base, BaseUser, Workspace } from '~/models';
@@ -53,7 +45,7 @@ export class MailService extends MailServiceCE {
             await mailerAdapter.mailSend({
               to: mentionedUser.email,
               subject: `New comment on ${table.title}`,
-              html: ejs.render(Mention, {
+              html: await this.renderMail('Mention', {
                 name:
                   user.display_name ??
                   user.email.split('@')[0]?.toLocaleUpperCase(),
@@ -100,7 +92,7 @@ export class MailService extends MailServiceCE {
           await mailerAdapter.mailSend({
             to: mentionedUser.email,
             subject: `You have been mentioned on ${table.title}`,
-            html: ejs.render(MentionRow, {
+            html: await this.renderMail('MentionRow', {
               name:
                 user.display_name ??
                 user.email.split('@')[0].toLocaleUpperCase(),
@@ -131,7 +123,7 @@ export class MailService extends MailServiceCE {
         await mailerAdapter.mailSend({
           to: user.email,
           subject: `Your role has been updated in ${base.title}`,
-          html: ejs.render(BaseRoleUpdate, {
+          html: await this.renderMail('BaseRoleUpdate', {
             baseTitle: base.title,
             workspaceTitle: workspace.title,
             name:
@@ -157,7 +149,7 @@ export class MailService extends MailServiceCE {
         await mailerAdapter.mailSend({
           to: user.email,
           subject: `You have been invited to ${workspace.title}`,
-          html: ejs.render(WorkspaceInvite, {
+          html: await this.renderMail('WorkspaceInvite', {
             workspaceTitle: workspace.title,
             name:
               invitee.display_name ??
@@ -181,7 +173,7 @@ export class MailService extends MailServiceCE {
         await mailerAdapter.mailSend({
           to: user.email,
           subject: `Your role has been updated in ${workspace.title}`,
-          html: ejs.render(WorkspaceRoleUpdate, {
+          html: await this.renderMail('WorkspaceRoleUpdate', {
             workspaceTitle: workspace.title,
             role: RoleLabels[role],
             name:

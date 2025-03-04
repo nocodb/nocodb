@@ -5,7 +5,7 @@ on:
     branches:
       - develop
     paths:
-      - 'packages/nc-mail-template/emails/static/**'
+      - 'packages/nc-mail-assets/**'
 
 jobs:
   upload-to-s3:
@@ -28,13 +28,13 @@ jobs:
         id: changed-files
         if: github.event_name == 'push'
         run: |
-          echo "any_changed=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep "packages/nc-mail-template/emails/static/" | wc -l)" >> $GITHUB_OUTPUT
+          echo "any_changed=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep "packages/nc-mail-assets/" | wc -l)" >> $GITHUB_OUTPUT
 
       - name: Move files to S3 Path
         if: github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed != '0'
         run: |
-          mkdir -p packages/nc-mail-template/dist/emails/v2
-          mv packages/nc-mail-template/emails/static/* packages/nc-mail-template/dist/emails/v2
+          mkdir -p packages/nc-mail-template/temp/emails/v2
+          mv packages/nc-mail-template/* packages/nc-mail-template/dist/emails/v2
 
       - name: Deploy UI assets to CDN
         uses: pranavxc/s3-deploy@2cdf96df65b6c97ee09a5771958582b77f22b738

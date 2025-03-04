@@ -1,24 +1,29 @@
 import {
   Body,
+  Button,
   Head,
   Heading,
   Html,
   Preview,
+  Section,
   Text,
-  Button, Section,
 } from '@react-email/components';
 import * as React from 'react';
-import RootWrapper from '../components/RootWrapper';
-import { Footer } from '../components/Footer';
-import ContentWrapper from '../components/ContentWrapper';
+import {
+  ContentWrapper,
+  Footer,
+  RootWrapper,
+} from '~/services/mail/templates/components';
 
-// Corresponding ejs template
-interface Props {
+interface VerifyYourEmailTemplateProps {
   email: string;
   link: string;
 }
 
-export const VerifyYourEmail = () => (
+export const VerifyYourEmail = ({
+  email,
+  link,
+}: VerifyYourEmailTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
@@ -29,15 +34,16 @@ export const VerifyYourEmail = () => (
             Verify your Email
           </Heading>
           <Section className="py-6 mx-auto font-bold text-center text-gray-900 text-base">
-            {'<%= email %>'}
+            {email}
           </Section>
           <Text className="text-gray-600 text-center text-sm !mt-0">
             Please verify your account to complete the sign-up process.
           </Text>
-          <Button className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10" href="<%= link %>">
-            <Text className="!my-[8px]">
-              Verify Email
-            </Text>
+          <Button
+            className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10"
+            href={link}
+          >
+            <Text className="!my-[8px]">Verify Email</Text>
           </Button>
         </ContentWrapper>
         <Footer />
@@ -45,4 +51,10 @@ export const VerifyYourEmail = () => (
     </RootWrapper>
   </Html>
 );
+
+VerifyYourEmail.PreviewProps = {
+  email: 'janedoe@gmail.com',
+  link: 'https://nocodb.com',
+};
+
 export default VerifyYourEmail;

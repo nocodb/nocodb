@@ -7,6 +7,7 @@ import {
   Source,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { isEE, isOnPrem } from '~/ee/utils';
 
 export function _wherePk(
   primaryKeys: Column[],
@@ -138,4 +139,22 @@ export async function getBaseModelSqlFromModelId({
     dbDriver: await NcConnectionMgrv2.get(source),
     source,
   });
+}
+
+// Audit logging is enabled by default unless explicitly disabled.
+// It remains enabled in the following cases:
+// 1. `NC_ENABLE_AUDIT` is set to 'true' (manual override).
+// 2. Running in a test environment (`NODE_ENV === 'test'`).
+// 3. Not an EE Cloud instance using an EE Cloud audit source (`isMeta`).
+export function isDataAuditEnabled({
+  isMetaSource,
+}: {
+  isMetaSource: boolean;
+}) {
+  return (
+    process.env.NC_DISABLE_AUDIT !== 'true' &&
+    (process.env.NC_ENABLE_AUDIT === 'true' ||
+      process.env.NODE_ENV === 'test' ||
+      !(isEE && !isOnPrem && isMetaSource)) // Disable only for EE Cloud using EE Cloud audit source
+  );
 }

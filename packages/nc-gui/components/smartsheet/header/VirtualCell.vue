@@ -156,7 +156,7 @@ watch(editColumnDropdown, (val) => {
 })
 
 const openHeaderMenu = (e?: MouseEvent, description = false) => {
-  if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
+  if ((isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
 
   if (
     !isForm.value &&
@@ -172,8 +172,6 @@ const openHeaderMenu = (e?: MouseEvent, description = false) => {
 }
 
 const openDropDown = (e: Event) => {
-  if (isLocked.value) return
-
   if (isForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
 
   e.preventDefault()

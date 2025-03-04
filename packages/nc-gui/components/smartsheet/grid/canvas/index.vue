@@ -854,7 +854,7 @@ async function handleMouseUp(e: MouseEvent) {
 
       // If user is clicking on an existing column
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
-      const isFieldNotEditable = isLocked.value || !isUIAllowed('fieldEdit') || clickedColumn.columnObj?.readonly
+      const isFieldNotEditable = !isUIAllowed('fieldEdit') || clickedColumn.columnObj?.readonly
       if (clickedColumn) {
         if (clickType === MouseClickType.RIGHT_CLICK) {
           if (isFieldNotEditable) return
@@ -917,7 +917,7 @@ async function handleMouseUp(e: MouseEvent) {
   }
 
   // If the user is clicking on the Aggregation in bottom
-  if (y > height.value - 36) {
+  if (y > height.value - 36 && !isLocked.value) {
     // If the click is not normal single click, return
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
 
@@ -1443,7 +1443,6 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
 }
 
 function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnType) {
-  if (isLocked.value) return
   if (
     isUIAllowed('fieldEdit') &&
     !isMobileMode.value &&

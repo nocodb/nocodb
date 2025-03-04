@@ -6,7 +6,13 @@ import { ColumnHelper } from '../column-helper';
 import { ComputedTypePasteError } from '~/lib/error';
 
 export class FormulaHelper extends AbstractColumnHelper {
-  columnDefaultMeta = {};
+  columnDefaultMeta = {
+    display_column_meta: {
+      meta: {},
+      custom: {},
+    },
+    display_type: null,
+  };
 
   serializeValue(
     _value: any,

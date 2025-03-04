@@ -3,6 +3,7 @@ import { diff } from 'deep-object-diff'
 import { message } from 'ant-design-vue'
 import {
   ButtonActionsType,
+  ColumnHelper,
   UITypes,
   isAIPromptCol,
   isLinksOrLTAR,
@@ -848,10 +849,11 @@ const isColumnsValid = computed(() => fields.value.every((f) => isColumnValid(f)
 
 const metaToLocal = () => {
   localMetaColumns.value = meta.value?.columns?.map((c: ColumnType) => {
-    if (c.uidt && c.uidt in columnDefaultMeta) {
+    const defaultColumnMeta = c.uidt ? ColumnHelper.getColumnDefaultMeta(c.uidt as UITypes) : {}
+    if (!ncIsEmptyObject(defaultColumnMeta)) {
       if (!c.meta) c.meta = {}
       c.meta = {
-        ...columnDefaultMeta[c.uidt as keyof typeof columnDefaultMeta],
+        ...defaultColumnMeta,
         ...((c.meta as object) || {}),
       }
     }
@@ -1193,9 +1195,7 @@ const onAiFieldAdd = (field: PredictedFieldType) => {
       column_name: field.title.toLowerCase().replace(/\\W/g, '_'),
       ...(field.formula ? { formula_raw: field.formula } : {}),
       ...(field.colOptions ? { colOptions: field.colOptions } : {}),
-      meta: {
-        ...(field.type in columnDefaultMeta ? columnDefaultMeta[field.type as keyof typeof columnDefaultMeta] : {}),
-      },
+      meta: ColumnHelper.getColumnDefaultMeta(field.type as UITypes),
       ...(fieldPredictionMode.value === 'button'
         ? {
             type: ButtonActionsType.Ai,

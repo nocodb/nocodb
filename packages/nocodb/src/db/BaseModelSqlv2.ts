@@ -10956,12 +10956,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async isDataAuditEnabled() {
-    return (
-      process.env.NC_DISABLE_AUDIT !== 'true' &&
-      (process.env.NC_ENABLE_AUDIT === 'true' ||
-        process.env.NODE_ENV === 'test' ||
-        !(isEE && !isOnPrem && !(await this.getSource())?.isMeta()))
-    );
+    return isDataAuditEnabledFn({
+      isMeta: (await this.getSource())?.isMeta(),
+    }) as boolean;
   }
 
   getViewId() {

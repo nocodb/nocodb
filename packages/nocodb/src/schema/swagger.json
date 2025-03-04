@@ -24786,6 +24786,18 @@
           },
           "virtual": {
             "$ref": "#/components/schemas/Bool"
+          },
+          "fk_related_base_id": {
+            "type": "string"
+          },
+          "fk_mm_base_id": {
+            "type": "string"
+          },
+          "fk_related_source_id": {
+            "type": "string"
+          },
+          "fk_mm_source_id": {
+            "type": "string"
           }
         },
         "title": "LinkToAnotherRecord Model",

@@ -23,6 +23,12 @@ export default class LinkToAnotherRecordColumn {
   fk_mm_parent_column_id?: string;
   fk_related_model_id?: string;
 
+  // following columns will be only used for cross base link and for normal link, these will be null
+  fk_related_base_id?: string;
+  fk_mm_base_id?: string;
+  fk_related_source_id?: string;
+  fk_mm_source_id?: string;
+
   fk_target_view_id?: string | null;
 
   dr?: string;
@@ -144,6 +150,10 @@ export default class LinkToAnotherRecordColumn {
       'fk_index_name',
       'fk_related_model_id',
       'virtual',
+      'fk_related_base_id',
+      'fk_mm_base_id',
+      'fk_related_source_id',
+      'fk_mm_source_id',
     ]);
 
     await ncMeta.metaInsert2(

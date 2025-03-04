@@ -87,7 +87,7 @@ export class ColumnHelperClass {
     let ColumnClass: new () => AbstractColumnHelper;
 
     if (ncIsString(params)) {
-      ColumnClass = this.registry[params] || this.getColumn[this.defautlHelper];
+      ColumnClass = this.registry[params] || this.registry[this.defautlHelper];
     } else {
       if (!params.col || !this.registry[params.col.uidt]) {
         ColumnClass = this.registry[this.defautlHelper];

@@ -7,22 +7,13 @@ export class GeoDataHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 
   serializeValue(value: any): string | null {
-    if (!ncIsString(value)) return null;
+    value = this.parseValue(value);
 
-    const geoValue = value
-      .replace(',', ';')
-      .split(';')
-      .map((k) => k.trim());
-
-    if (geoValue.length === 2) {
-      if (!ncIsNaN(geoValue[0]) && !ncIsNaN(geoValue[1])) {
-        return geoValue
-          .map((k) => convertGeoNumberToString(Number(k)))
-          .join(';');
-      }
+    if (value === null) {
+      throw new SilentTypeConversionError();
     }
 
-    return null;
+    return value;
   }
 
   parseValue(value: any): string | null {
@@ -41,7 +32,7 @@ export class GeoDataHelper extends AbstractColumnHelper {
       }
     }
 
-    throw new SilentTypeConversionError();
+    return null;
   }
 
   parsePlainCellValue(value: any): string {

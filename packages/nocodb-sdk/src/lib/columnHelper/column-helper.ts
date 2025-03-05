@@ -1,12 +1,13 @@
 import { ColumnType } from '../Api';
 import UITypes from '../UITypes';
-import { CheckboxHelper, DurationHelper, NumberHelper, PercentHelper, SingleLineTextHelper } from './columns';
-export abstract class AbstractColumnHelper {
-  static columnDefaultMeta?: Record<string, any> = {};
-  abstract serializeValue(value: unknown, column: ColumnType): any;
-  abstract parseValue(value: unknown, column: ColumnType): any;
-  abstract parsePlainCellValue(value: unknown, column: ColumnType): string;
-}
+import AbstractColumnHelper from './column.interface';
+import {
+  CheckboxHelper,
+  DurationHelper,
+  NumberHelper,
+  PercentHelper,
+  SingleLineTextHelper,
+} from './columns';
 
 export class ColumnHelper {
   private registry: Record<string, new () => AbstractColumnHelper> = {
@@ -42,7 +43,7 @@ export class ColumnHelper {
   serializeValue(value: unknown, column: ColumnType) {
     const columnInstance = this.getColumn(column);
     if (columnInstance) {
-      return columnInstance.serializeValue(column, value);
+      return columnInstance.serializeValue(value, column);
     }
     return undefined;
   }

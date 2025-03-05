@@ -4,6 +4,7 @@ import {
   ColumnType,
   FormulaType,
   LinkToAnotherRecordType,
+  LookupType,
   RollupType,
   TableType,
 } from './Api';
@@ -2337,15 +2338,21 @@ async function checkForCircularFormulaRef(
   }
 
   // Function to process lookup columns recursively
-  async function processLookupOrLTARColumn(lookupOrLTARCol) {
+  async function processLookupOrLTARColumn(
+    lookupOrLTARCol: ColumnType & {
+      colOptions?: LookupType | LinkToAnotherRecordType;
+    }
+  ) {
     const neighbours = [];
 
     let ltarColumn: ColumnType;
     let lookupFilterFn: (column: ColumnType) => boolean;
 
     if (lookupOrLTARCol.uidt === UITypes.Lookup) {
-      const relationColId = lookupOrLTARCol.colOptions.fk_relation_column_id;
-      const lookupColId = lookupOrLTARCol.colOptions.fk_lookup_column_id;
+      const relationColId = (lookupOrLTARCol.colOptions as LookupType)
+        .fk_relation_column_id;
+      const lookupColId = (lookupOrLTARCol.colOptions as LookupType)
+        .fk_lookup_column_id;
       ltarColumn = columns.find((c) => c.id === relationColId);
       lookupFilterFn = (column: ColumnType) => column.id === lookupColId;
     } else if (lookupOrLTARCol.uidt === UITypes.LinkToAnotherRecord) {

@@ -10,13 +10,10 @@ import {
 } from 'nocodb-sdk'
 import { getAvailableRollupForColumn, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
-import rfdc from 'rfdc'
-
 const props = defineProps<{
   value: any
 }>()
 const emit = defineEmits(['update:value'])
-const clone = rfdc()
 const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())

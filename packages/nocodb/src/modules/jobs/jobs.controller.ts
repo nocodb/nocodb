@@ -299,7 +299,7 @@ export class JobsController implements OnApplicationShutdown {
     }
   }
 
-  async onApplicationShutdown() {
+  onApplicationShutdown() {
     /*
      * Close all long polling connections
      */
@@ -307,7 +307,7 @@ export class JobsController implements OnApplicationShutdown {
       this.jobRooms[jobId].listeners.forEach((res) => {
         if (!res.headersSent) {
           res.send({
-            status: 'close',
+            status: 'refresh',
           });
         }
       });

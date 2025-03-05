@@ -129,7 +129,7 @@ export class NotificationsController implements OnApplicationShutdown {
     });
   }
 
-  async onApplicationShutdown() {
+  onApplicationShutdown() {
     /*
      * Close all long polling connections
      */

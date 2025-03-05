@@ -612,11 +612,7 @@ export class ExportService {
       ? model.columns
           .filter((c) => param._fieldIds?.includes(c.id))
           .map((c) => c.title)
-          .join(',')
-      : model.columns
-          .filter((c) => !isLinksOrLTAR(c))
-          .map((c) => c.title)
-          .join(',');
+      : model.columns.filter((c) => !isLinksOrLTAR(c)).map((c) => c.title);
 
     if (dataExportMode) {
       const viewCols = await view.getColumns(context);
@@ -624,8 +620,7 @@ export class ExportService {
       fields = viewCols
         .sort((a, b) => a.order - b.order)
         .filter((c) => c.show)
-        .map((vc) => model.columns.find((c) => c.id === vc.fk_column_id).title)
-        .join(',');
+        .map((vc) => model.columns.find((c) => c.id === vc.fk_column_id).title);
     }
 
     const mmColumns = param._fieldIds
@@ -843,7 +838,7 @@ export class ExportService {
     view: View,
     offset: number,
     limit: number,
-    fields: string,
+    fields: string[],
     header = false,
     delimiter = ',',
     dataExportMode = false,

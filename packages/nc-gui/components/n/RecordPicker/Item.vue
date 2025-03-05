@@ -72,7 +72,7 @@ useProvideSmartsheetRowStore(row)
                 <LazyCellAttachmentPreviewImage
                   v-if="isImage(attachmentObj.title, attachmentObj.mimetype ?? attachmentObj.type)"
                   :key="`carousel-${attachmentObj.title}-${index}`"
-                  class="!w-11 !h-11 !max-h-11 !max-w-11object-cover !rounded-l-xl"
+                  class="!w-11 !h-11 !max-h-11 !max-w-11 object-cover !rounded-l-xl"
                   :srcs="getPossibleAttachmentSrc(attachmentObj, 'tiny')"
                 />
               </template>

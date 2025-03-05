@@ -1,18 +1,23 @@
 import { ColumnType } from '~/lib/Api';
 import { convertMS2Duration } from '~/lib/durationUtils';
 import { parseProp } from '~/lib/helperFunctions';
-import { ncIsNumber } from '~/lib/is';
+import { ncIsNaN, ncIsNumber } from '~/lib/is';
 
-export const parseIntValue = (value: string | null | number) => {
-  if (ncIsNumber(value)) {
-    return value;
-  }
-
-  if (!value || isNaN(Number(value))) {
+export const parseIntValue = (
+  value: string | null | number,
+  col: ColumnType
+) => {
+  if (ncIsNaN(value)) {
     return null;
   }
 
-  return Number(value) as number;
+  const columnMeta = parseProp(col.meta);
+
+  if (columnMeta.isLocaleString) {
+    return Number(value).toLocaleString();
+  }
+
+  return Number(value);
 };
 
 export const parseDecimalValue = (

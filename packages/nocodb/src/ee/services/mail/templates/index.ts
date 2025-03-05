@@ -1,17 +1,10 @@
-import {
-  BaseInvite,
-  FormSubmission,
-  OrganizationInvite,
-  OrganizationRoleUpdate,
-  PasswordReset,
-  VerifyEmail,
-  Welcome,
-} from 'src/services/mail/templates';
-import MentionRow from './mention-row';
-import Mention from './mention-comment';
-import WorkspaceInvite from './workspace-invite';
-import WorkspaceRoleUpdate from './workspace-role-update';
-import BaseRoleUpdate from './base-role-update';
+import MentionRow from '~/services/mail/templates/mention-row';
+import Mention from '~/services/mail/templates/mention-comment';
+import WorkspaceInvite from '~/services/mail/templates/workspace-invite';
+import WorkspaceRoleUpdate from '~/services/mail/templates/workspace-role-update';
+import BaseRoleUpdate from '~/services/mail/templates/base-role-update';
+
+export * from 'src/services/mail/templates';
 
 export {
   Mention,
@@ -19,11 +12,4 @@ export {
   WorkspaceInvite,
   WorkspaceRoleUpdate,
   BaseRoleUpdate,
-  Welcome,
-  OrganizationInvite,
-  OrganizationRoleUpdate,
-  PasswordReset,
-  VerifyEmail,
-  FormSubmission,
-  BaseInvite,
 };

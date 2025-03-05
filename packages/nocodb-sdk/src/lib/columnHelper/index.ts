@@ -2,6 +2,7 @@ import { ColumnType } from '../Api';
 import UITypes from '../UITypes';
 import { DurationHelper } from './columns/Duration';
 import { NumberHelper } from './columns/Number';
+import { PercentHelper } from './columns/Percent';
 import { SingleLineTextHelper } from './columns/SingleLineText';
 
 export abstract class AbstractColumnHelper {
@@ -16,6 +17,7 @@ export class ColumnHelper {
     [UITypes.SingleLineText]: SingleLineTextHelper,
     [UITypes.Number]: NumberHelper,
     [UITypes.Duration]: DurationHelper,
+    [UITypes.Percent]: PercentHelper,
   };
 
   // Method to retrieve the specific column class and instantiate it

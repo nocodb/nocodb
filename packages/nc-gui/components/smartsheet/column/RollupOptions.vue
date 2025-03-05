@@ -213,17 +213,18 @@ const enableFormattingOptions = computed(() => {
 
   if (!relatedCol) return false
 
-  const clonedRelatedCol = clone(relatedCol)
+  let uidt = relatedCol.uidt
 
   if (relatedCol.uidt === UITypes.Formula) {
     const colMeta = parseProp(relatedCol.meta)
 
     if (colMeta?.display_type) {
-      clonedRelatedCol.uidt = colMeta?.display_type
+      uidt = colMeta?.display_type
     }
   }
+  const validFunctions = getRenderAsTextFunForUiType(uidt)
 
-  return isNumberFormattingAvailable(clonedRelatedCol?.uidt, vModel.value.rollup_function)
+  return validFunctions.includes(vModel.value.rollup_function)
 })
 </script>
 

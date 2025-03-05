@@ -381,27 +381,6 @@ const formViewHiddenColTypes = [
   AIButton,
 ]
 
-const isNumberFormattingAvailable = (type: UITypes, aggregationFunction: string) => {
-  const restrictedTypes = [
-    UITypes.Year,
-    UITypes.Time,
-    UITypes.Date,
-    UITypes.DateTime,
-    UITypes.CreatedTime,
-    UITypes.LastModifiedTime,
-    UITypes.Currency,
-    UITypes.Duration,
-  ]
-
-  // For restricted types, only allow formatting for 'count' and 'countDistinct'
-  if (restrictedTypes.includes(type)) {
-    return ['count', 'countDistinct'].includes(aggregationFunction)
-  }
-
-  // For all other types, always allow formatting
-  return true
-}
-
 export {
   uiTypes,
   isTypableInputColumn,
@@ -417,5 +396,4 @@ export {
   extractCheckboxIcon,
   extractRatingIcon,
   formViewHiddenColTypes,
-  isNumberFormattingAvailable,
 }

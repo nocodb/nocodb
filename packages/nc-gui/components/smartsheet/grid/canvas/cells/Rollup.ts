@@ -24,14 +24,40 @@ export const RollupCellRenderer: CellRenderer = {
 
     if (!childColumn) return
 
-    const renderAsTextFun = getRenderAsTextFunForUiType((childColumn?.uidt as UITypes) || UITypes.SingleLineText)
-    const renderProps: CellRendererOptions = {
-      ...props,
-      column: childColumn,
-      relatedColObj: undefined,
-      relatedTableMeta: undefined,
-      readonly: true,
+    let renderProps: CellRendererOptions | undefined
+
+    if (childColumn.uidt === UITypes.Formula) {
+      const colMeta = parseProp(childColumn.meta)
+
+      if (colMeta?.display_type) {
+        renderProps = {
+          ...props,
+          column: {
+            ...childColumn,
+            uidt: colMeta?.display_type,
+            ...colMeta.display_column_meta,
+            meta: {
+              ...parseProp(colMeta.display_column_meta),
+              ...parseProp(column?.meta),
+            },
+          },
+          readonly: true,
+          formula: true,
+        }
+      }
     }
+
+    if (!renderProps) {
+      renderProps = {
+        ...props,
+        column: childColumn,
+        relatedColObj: undefined,
+        relatedTableMeta: undefined,
+        readonly: true,
+      }
+    }
+
+    const renderAsTextFun = getRenderAsTextFunForUiType((renderProps.column?.uidt as UITypes) || UITypes.SingleLineText)
 
     if (colOptions?.rollup_function && renderAsTextFun.includes(colOptions?.rollup_function)) {
       // Render as decimal cell
@@ -41,6 +67,6 @@ export const RollupCellRenderer: CellRenderer = {
         ...parseProp(column?.meta),
       }
     }
-    renderCell(ctx, childColumn, renderProps)
+    renderCell(ctx, renderProps.column, renderProps)
   },
 }

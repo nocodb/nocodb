@@ -38,9 +38,11 @@ export class NotificationsController {
   private handleProcessShutdown(_signal: string) {
     for (const [_, res] of this.notificationsService.connections) {
       res.forEach((r) => {
-        r.send({
-          status: 'refresh',
-        });
+        if (!r.headersSent) {
+          r.send({
+            status: 'refresh',
+          });
+        }
       });
     }
   }

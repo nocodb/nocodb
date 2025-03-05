@@ -36,6 +36,7 @@ export default function convertCellData(
       }
       return value
     case UITypes.Number: {
+     
       const parsedNumber = Number(value)
       if (isNaN(parsedNumber)) {
         if (isMultiple) {

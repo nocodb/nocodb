@@ -25,6 +25,7 @@ export interface FormulaQueryBuilderBaseParams extends FormulaBaseParams {
   aliasToColumn?: Record<string, () => Promise<{ builder: any }>>;
   parsedTree?: ParsedFormulaNode;
   column?: Column;
+  parentColumns: Set<string>;
 }
 export type FnParsedTreeBase = {
   fnName?: string;

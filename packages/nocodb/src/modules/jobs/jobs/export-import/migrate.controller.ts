@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { MigrateService } from 'src/modules/jobs/jobs/export-import/migrate.service';
+import { OrgUserRoles } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
@@ -17,6 +18,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
+import NocoCache from '~/cache/NocoCache';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -70,5 +72,82 @@ export class MigrateController {
       instanceUrl: instanceUrl,
       req,
     });
+  }
+
+  @Post(['/api/v2/meta/migrate/:workspaceId/workspace'])
+  @HttpCode(200)
+  @Acl('migrateWorkspace', {
+    scope: 'org',
+    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
+    blockApiTokenAccess: true,
+  })
+  async migrateWorkspace(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Body()
+    body: {
+      migrationUrl: string;
+      baseIds?: string[];
+    },
+  ) {
+    const url = new URL(body.migrationUrl);
+
+    const instanceUrl = url.origin;
+
+    // secret query param
+    const secret = url.searchParams.get('secret');
+
+    if (!instanceUrl || !secret) {
+      throw new Error(`Invalid migration url`);
+    }
+
+    let bases = await Base.list(context.workspace_id);
+
+    if (body.baseIds) {
+      bases = bases.filter((b) => body.baseIds.includes(b.id));
+    }
+
+    const workspaceProgress = {
+      total: bases.length,
+      current: 0,
+    };
+
+    (async () => {
+      for (const base of bases) {
+        const source = (await base.getSources())[0];
+
+        if (!source) {
+          continue;
+        }
+
+        workspaceProgress.current++;
+
+        const baseContext = {
+          workspace_id: base.fk_workspace_id,
+          base_id: base.id,
+        };
+
+        console.log(`Migrating base ${base.title} (${base.id})`);
+
+        await this.migrateService.migrateBase({
+          context: baseContext,
+          base,
+          source,
+          secret: secret,
+          instanceUrl: instanceUrl,
+          req,
+          workspaceProgress,
+        });
+
+        await NocoCache.destroy();
+
+        console.log(`Migrated ${workspaceProgress.current} of ${bases.length}`);
+      }
+    })();
+
+    return {
+      message: 'Migration started',
+      total: bases.length,
+    };
   }
 }

@@ -1073,8 +1073,10 @@ export class OracleUi implements SqlUi {
     return OracleUi.getDataTypeForUiType(col, idType);
   }
 
-  // eslint-disable-next-line prettier/prettier
-  getDataTypeListForUiType(_col: { uidt: UITypes }, _idType?: IDType): string[] {
+  getDataTypeListForUiType(
+    _col: { uidt: UITypes },
+    _idType?: IDType
+  ): string[] {
     throw new Error('Not implemented');
   }
   getUnsupportedFnList(): string[] {

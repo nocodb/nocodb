@@ -94,7 +94,7 @@ export function ncIsString(value: any): value is string {
  * ```
  */
 export function ncIsNumber(value: any): value is number {
-  return typeof value === 'number' && !Number.isNaN(value);;
+  return typeof value === 'number' && !Number.isNaN(value);
 }
 
 /**

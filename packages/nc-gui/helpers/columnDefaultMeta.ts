@@ -1,4 +1,4 @@
-import { UITypes, dateFormats, timeFormats, precisionFormats, supportedBarcodeFormats } from 'nocodb-sdk'
+import { UITypes, dateFormats, precisionFormats, supportedBarcodeFormats, timeFormats } from 'nocodb-sdk'
 
 export { precisionFormats, supportedBarcodeFormats }
 

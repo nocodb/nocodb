@@ -118,29 +118,33 @@ export const parseCurrencyValue = (value: any, col: ColumnType) => {
 };
 
 export const parseDateValue = (
-  modelValue: string | null,
+  value: string | null,
   col: ColumnType,
   isSystemCol?: boolean
 ) => {
+  value = value?.toString().trim();
   const dateFormat = !isSystemCol
     ? parseProp(col.meta)?.date_format ?? 'YYYY-MM-DD'
     : 'YYYY-MM-DD HH:mm:ss';
 
-  if (!modelValue || !dayjs(modelValue).isValid()) {
+  if (!value || !dayjs(value).isValid()) {
     return null;
   } else {
-    return dayjs(
-      /^\d+$/.test(String(modelValue)) ? +modelValue : modelValue
-    ).format(dateFormat);
+    value = value?.toString().trim();
+    return dayjs(/^\d+$/.test(value) ? +value : value).format(dateFormat);
   }
 };
 
 export const parseYearValue = (value: any) => {
-  if (!value || !dayjs(value?.toString()).isValid()) {
+  value = value?.toString().trim();
+
+  if (!value || !dayjs(value).isValid()) {
     return null;
   }
 
-  return dayjs(value.toString(), 'YYYY').format('YYYY');
+  value = dayjs(value, 'YYYY').format('YYYY');
+
+  return value ? +value : value;
 };
 
 export const parseUserValue = (value: any) => {

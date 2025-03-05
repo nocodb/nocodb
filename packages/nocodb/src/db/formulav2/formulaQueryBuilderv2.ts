@@ -79,6 +79,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
   const getLinkedColumnDisplayValue = async (params: {
     model: Model;
     aliasToColumn?: Record<string, () => Promise<{ builder: any }>>;
+    parentColumns: Set<string>;
   }) => {
     const displayValueColumn = params.model?.displayValue;
     if (!displayValueColumn) {
@@ -103,6 +104,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         tableAlias,
         parsedTree: formulOption.getParsedTree(),
         baseUsers,
+        parentColumns: params.parentColumns,
       });
       return innerQb;
     }
@@ -188,6 +190,10 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       case UITypes.Button:
         {
           aliasToColumn[col.id] = async () => {
+            if (params.parentColumns.has(col.id)) {
+              NcError.formulaError('Circular reference detected');
+            }
+
             const formulOption = await col.getColOptions<
               FormulaColumn | ButtonColumn
             >(context);
@@ -200,6 +206,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               tableAlias,
               parsedTree: formulOption.getParsedTree(),
               baseUsers,
+              parentColumns: new Set([col.id, ...params.parentColumns]),
             });
             builder.sql = '(' + builder.sql + ')';
             return {
@@ -574,6 +581,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                   const formulaOption =
                     await lookupColumn.getColOptions<FormulaColumn>(context);
                   const lookupModel = await lookupColumn.getModel(context);
+                  if (params.parentColumns.has(lookupColumn.id)) {
+                    NcError.formulaError('Circular reference detected');
+                  }
                   const { builder } = await _formulaQueryBuilder({
                     baseModelSqlv2,
                     _tree: formulaOption.formula,
@@ -581,6 +591,10 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                     model: lookupModel,
                     aliasToColumn,
                     parsedTree: formulaOption.getParsedTree(),
+                    parentColumns: new Set([
+                      lookupColumn.id,
+                      ...params.parentColumns,
+                    ]),
                   });
                   if (isArray) {
                     const qb = selectQb;
@@ -674,6 +688,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             const linkedDisplayValue = await getLinkedColumnDisplayValue({
               model: parentModel,
               aliasToColumn: { ...aliasToColumn, [col.id]: null },
+              parentColumns: new Set(params.parentColumns),
             });
             selectQb = knex(baseModelSqlv2.getTnPath(parentModel.table_name))
               .select(
@@ -709,6 +724,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             const childDisplayValue = await getLinkedColumnDisplayValue({
               model: childModel,
               aliasToColumn: { ...aliasToColumn, [col.id]: null },
+              parentColumns: new Set(params.parentColumns),
             });
             selectQb = (fn) =>
               knex
@@ -1468,6 +1484,7 @@ export default async function formulaQueryBuilderv2(
           ?.getColOptions<FormulaColumn | ButtonColumn>(context)
           .then((formula) => formula?.getParsedTree())),
       baseUsers,
+      parentColumns: new Set(column?.id ? [column?.id] : []),
     });
 
     if (!validateFormula) return qb;

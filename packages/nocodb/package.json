@@ -84,6 +84,7 @@
     "clear": "^0.1.0",
     "clickhouse": "^2.6.0",
     "clickhouse-migrations": "^0.1.14",
+    "cloudflare": "^4.1.0",
     "colors": "^1.4.0",
     "compare-versions": "^6.1.1",
     "content-disposition": "^0.5.4",

@@ -13,3 +13,5 @@ export * from './Url';
 export * from './Json';
 export * from './GeoData';
 export * from './Year';
+export * from './Barcode';
+export * from './QrCode';

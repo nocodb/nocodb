@@ -165,14 +165,14 @@ export const serializeSelectValue = (value: any, col: ColumnType) => {
 
   const optionsSet = new Set(availableOptions);
 
-  value = value.split(',').reduce((acc, val) => {
-    if (optionsSet.has(val)) acc.push(val);
-    return acc;
-  }, [] as string[]);
+  const vals = value.split(',');
+  const invalidVals = vals.filter((v) => !optionsSet.has(v));
 
-  if (value.length > 0 && col.uidt === UITypes.SingleSelect) {
-    return value[0];
+  // return null if no valid values
+  if (invalidVals.length > 0) {
+    return null;
+    // throw new SelectTypeConversionError(vals, invalidVals);
   }
 
-  return value.join(',');
+  return vals.join(',');
 };

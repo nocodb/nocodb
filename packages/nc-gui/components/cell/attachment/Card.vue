@@ -106,8 +106,8 @@ const handleFileDeleteStart = () => {
       <LazyCellAttachmentPreviewImage
         v-if="isImage(attachment.title, attachment.mimetype)"
         :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
-        object-fit="cover"
-        class="!w-full object-cover !m-0 rounded-t-[5px] justify-center"
+        object-fit="contain"
+        class="!w-full !m-0 rounded-t-[5px] justify-center"
         :class="previewClassOverride ? `${previewClassOverride}` : ''"
       />
 

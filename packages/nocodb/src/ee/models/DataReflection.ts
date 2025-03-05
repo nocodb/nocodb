@@ -263,6 +263,8 @@ export default class DataReflection extends DataReflectionCE {
 
     server.listen(port, () => {
       logger.log(`Proxy server listening on port ${port}`);
+
+      server.unref();
     });
   }
 

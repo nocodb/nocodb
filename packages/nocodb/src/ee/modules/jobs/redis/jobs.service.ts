@@ -67,12 +67,12 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
             .catch((err) => {
               this.logger.error(err);
             });
-        }, 60 * 1000); // every minute
+        }, 60 * 1000).unref(); // every minute
 
         // fallback to shutdown after an hour
         setTimeout(() => {
           process.exit(0);
-        }, 1 * 60 * 60 * 1000);
+        }, 1 * 60 * 60 * 1000).unref();
 
         this.jobsQueue.whenCurrentJobsFinished().then(() => {
           process.exit(0);

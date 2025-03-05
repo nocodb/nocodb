@@ -1391,7 +1391,7 @@ export async function singleQueryList(
             if (resolved) return;
             resolved = true;
             resolve(null);
-          }, COUNT_QUERY_TIMEOUT);
+          }, COUNT_QUERY_TIMEOUT).unref();
 
           baseModel
             .execAndParse(knex.raw(cachedCountQuery).toQuery(), null, {
@@ -1648,7 +1648,7 @@ export async function singleQueryList(
           // ignore
           logger.error(e);
         });
-      }, COUNT_QUERY_TIMEOUT);
+      }, COUNT_QUERY_TIMEOUT).unref();
 
       baseModel
         .execAndParse(countQb.toQuery(), null, {

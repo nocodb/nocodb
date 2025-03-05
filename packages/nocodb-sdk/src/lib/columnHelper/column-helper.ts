@@ -111,7 +111,6 @@ export class ColumnHelperClass {
     if (columnInstance) {
       return columnInstance.parseValue(value, params);
     }
-    return undefined;
   }
 
   /**
@@ -129,7 +128,6 @@ export class ColumnHelperClass {
     if (columnInstance) {
       return columnInstance.serializeValue(value, params);
     }
-    return undefined;
   }
 }
 

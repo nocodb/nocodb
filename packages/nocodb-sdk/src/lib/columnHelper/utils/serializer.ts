@@ -237,3 +237,10 @@ export const serializeSelectValue = (value: any, col: ColumnType) => {
 
   return vals.join(',');
 };
+
+export const serializeEmail = (v: string) => {
+  const matches = v.match(
+    /(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})/i
+  );
+  return matches ? matches[0] : null;
+};

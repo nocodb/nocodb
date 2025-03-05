@@ -20,7 +20,7 @@ const emit = defineEmits(['update:modelValue', 'back'])
 
 const { $api, $importWorker } = useNuxtApp()
 
-const importWorker = await $importWorker?.get()
+let importWorker: Worker
 
 const { appInfo } = useGlobal()
 
@@ -127,11 +127,18 @@ const importMeta = computed(() => {
 
 const dialogShow = useVModel(rest, 'modelValue', emit)
 
-watch(dialogShow, (newValue) => {
-  if (newValue) {
-    Object.assign(importState, structuredClone(defaultImportState))
-  }
-})
+watch(
+  dialogShow,
+  async (newValue) => {
+    if (newValue) {
+      Object.assign(importState, structuredClone(defaultImportState))
+      if (isWorkerSupport) {
+        importWorker = await $importWorker?.get()
+      }
+    }
+  },
+  { immediate: true },
+)
 
 const filterOption = (input = '', params: { key: string }) => {
   return params.key?.toLowerCase().includes(input.toLowerCase())

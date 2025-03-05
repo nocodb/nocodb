@@ -1,12 +1,11 @@
-import { ColumnType, LinkToAnotherRecordType, RollupType } from '~/lib/Api';
+import { ColumnType, LinkToAnotherRecordType, LookupType } from '~/lib/Api';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
+import { ncIsArray } from '~/lib/is';
 import { ColumnHelper } from '../column-helper';
-import { getRenderAsTextFunForUiType, parseProp } from '~/lib/helperFunctions';
-import UITypes from '~/lib/UITypes';
 
-export class RollupHelper extends AbstractColumnHelper {
+export class LookupHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 
   serializeValue(_value?: any): null {
@@ -21,7 +20,7 @@ export class RollupHelper extends AbstractColumnHelper {
 
     const { col, meta, metas } = params;
 
-    const colOptions = col.colOptions as RollupType;
+    const colOptions = col.colOptions as LookupType;
     const relationColumnOptions = colOptions.fk_relation_column_id
       ? (meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)
           ?.colOptions as LinkToAnotherRecordType)
@@ -31,24 +30,18 @@ export class RollupHelper extends AbstractColumnHelper {
       metas?.[relationColumnOptions.fk_related_model_id as string];
 
     const childColumn = relatedTableMeta?.columns.find(
-      (c: ColumnType) => c.id === colOptions.fk_rollup_column_id
+      (c: ColumnType) => c.id === colOptions.fk_lookup_column_id
     ) as ColumnType | undefined;
-
-    console.log('child col', childColumn, meta, metas);
 
     if (!childColumn) return value;
 
-    const renderAsTextFun = getRenderAsTextFunForUiType(
-      (childColumn.uidt ?? UITypes.SingleLineText) as UITypes
-    );
-
-    childColumn.meta = {
-      ...parseProp(childColumn?.meta),
-      ...parseProp(col?.meta),
-    };
-
-    if (renderAsTextFun.includes(colOptions.rollup_function)) {
-      childColumn.uidt = UITypes.Decimal;
+    if (ncIsArray(value)) {
+      return value
+        .map((v) => {
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
+          return ColumnHelper.parseValue(v, { ...params, col: childColumn! });
+        })
+        .join(', ');
     }
 
     return ColumnHelper.parseValue(value, { ...params, col: childColumn! });

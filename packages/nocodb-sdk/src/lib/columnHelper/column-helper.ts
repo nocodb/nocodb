@@ -18,12 +18,14 @@ import {
   JsonHelper,
   LastModifiedTimeHelper,
   LongTextHelper,
+  LookupHelper,
   MultiSelectHelper,
   NumberHelper,
   PercentHelper,
   PhoneNumberHelper,
   QrCodeHelper,
   RatingHelper,
+  RollupHelper,
   SingleLineTextHelper,
   TimeHelper,
   UrlHelper,
@@ -65,6 +67,8 @@ export class ColumnHelperClass {
     [UITypes.User]: UserHelper,
     [UITypes.CreatedBy]: UserHelper,
     [UITypes.LastModifiedBy]: UserHelper,
+    [UITypes.Lookup]: LookupHelper,
+    [UITypes.Rollup]: RollupHelper,
   };
 
   // Method to retrieve the specific column class and instantiate it

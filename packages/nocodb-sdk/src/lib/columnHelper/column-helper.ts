@@ -16,6 +16,7 @@ import {
   JsonHelper,
   LastModifiedTimeHelper,
   LongTextHelper,
+  MultiSelectHelper,
   NumberHelper,
   PercentHelper,
   PhoneNumberHelper,
@@ -25,6 +26,7 @@ import {
   UrlHelper,
   YearHelper,
 } from './columns';
+import { SingleSelectHelper } from './columns/SingleSelect';
 
 export class ColumnHelperClass {
   private registry: Record<string, new () => AbstractColumnHelper> = {
@@ -49,6 +51,8 @@ export class ColumnHelperClass {
     [UITypes.Date]: DateHelper,
     [UITypes.CreatedTime]: CreatedTimeHelper,
     [UITypes.LastModifiedBy]: LastModifiedTimeHelper,
+    [UITypes.SingleSelect]: SingleSelectHelper,
+    [UITypes.MultiSelect]: MultiSelectHelper,
   };
 
   // Method to retrieve the specific column class and instantiate it

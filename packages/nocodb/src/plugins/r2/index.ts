@@ -9,8 +9,7 @@ const config: XcPluginConfig = {
   recoveryTitle: 'Cloudflare R2 Storage',
   version: '0.0.3',
   logo: 'plugins/r2.png',
-  description:
-    'Cloudflare R2 is an S3-compatible, zero egress-fee, globally distributed object storage.',
+  description: 'Cloudflare R2 is an S3-compatible, zero egress-fee, globally distributed object storage.',
   tags: 'Storage',
   inputs: {
     title: 'Configure Cloudflare R2 Storage',
@@ -43,6 +42,13 @@ const config: XcPluginConfig = {
         type: XcType.Password,
         required: true,
       },
+      {
+        key: 'custom_domain',
+        label: 'Custom Domain',
+        placeholder: 'e.g.: my.customdomain.com',
+        type: XcType.SingleLineText,
+        required: false,
+      },
     ],
     actions: [
       {
@@ -60,8 +66,7 @@ const config: XcPluginConfig = {
         type: XcType.Button,
       },
     ],
-    msgOnInstall:
-      'Successfully configured! Attachments will now be stored in Cloudflare R2 Storage.',
+    msgOnInstall: 'Successfully configured! Attachments will now be stored in Cloudflare R2 Storage.',
     msgOnUninstall: '',
   },
   category: 'Storage',

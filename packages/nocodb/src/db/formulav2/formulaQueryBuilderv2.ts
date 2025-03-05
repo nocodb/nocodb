@@ -39,6 +39,7 @@ import FormulaColumn from '~/models/FormulaColumn';
 import { BaseUser, ButtonColumn } from '~/models';
 import { getRefColumnIfAlias } from '~/helpers';
 import { ExternalTimeout, NcError } from '~/helpers/catchError';
+import { sanitize } from '~/helpers/sqlSanitize';
 
 const logger = new Logger('FormulaQueryBuilderv2');
 
@@ -1121,7 +1122,11 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         ),
       };
     } else if (pt.type === 'Literal') {
-      return { builder: knex.raw(`?${colAlias}`, [pt.value]) };
+      return {
+        builder: knex.raw(`?${colAlias}`, [
+          typeof pt.value === 'string' ? sanitize(pt.value) : pt.value,
+        ]),
+      };
     } else if (pt.type === 'Identifier') {
       const { builder } = (await aliasToColumn?.[pt.name]?.()) || {};
       if (typeof builder === 'function') {

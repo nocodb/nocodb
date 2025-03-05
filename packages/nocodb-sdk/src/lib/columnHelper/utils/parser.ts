@@ -6,6 +6,7 @@ import {
   ncIsArray,
   ncIsBoolean,
   ncIsNaN,
+  ncIsNumber,
   ncIsObject,
   ncIsString,
 } from '~/lib/is';
@@ -92,7 +93,12 @@ export const parseCheckboxValue = (
     if (strval === 'false' || strval === '0' || strval === '') return false;
   }
 
-  return !!value;
+  if (ncIsNumber(value)) {
+    if (value === 1) return true;
+    if (value === 0) return false;
+  }
+
+  return null;
 };
 
 export const parseJsonValue = (value) => {

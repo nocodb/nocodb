@@ -1,3 +1,4 @@
+import { ncIsArray } from '~/lib/is';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
@@ -14,6 +15,12 @@ export class SingleSelectHelper extends AbstractColumnHelper {
   }
 
   parseValue(value: any): string | null {
+    if (!value) return null;
+
+    if (ncIsArray(value) && value.length) {
+      return value[0]?.toString().trim();
+    }
+
     return value?.toString().trim() ?? null;
   }
 

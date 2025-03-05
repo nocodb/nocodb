@@ -3,6 +3,7 @@ import { parseIntValue, serializeIntValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
+import { toSafeInteger } from '~/lib/helperFunctions';
 
 export class NumberHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -21,7 +22,7 @@ export class NumberHelper extends AbstractColumnHelper {
       }
     }
 
-    return value;
+    return toSafeInteger(value);
   }
 
   parseValue(

@@ -23,6 +23,7 @@ export default class User extends UserCE implements UserType {
   bio?: string;
   location?: string;
   website?: string;
+  stripe_customer_id?: string;
 
   protected static castType(user: User): User {
     return user && new User(user);
@@ -48,6 +49,7 @@ export default class User extends UserCE implements UserType {
       'location',
       'website',
       'meta',
+      'stripe_customer_id',
     ]);
 
     if (insertObj.email) {
@@ -86,6 +88,7 @@ export default class User extends UserCE implements UserType {
       'location',
       'website',
       'meta',
+      'stripe_customer_id',
     ]);
 
     if (updateObj.user_name) {

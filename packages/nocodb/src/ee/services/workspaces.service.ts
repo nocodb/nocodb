@@ -15,7 +15,7 @@ import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import type { OnApplicationBootstrap } from '@nestjs/common';
 import type { BaseType, UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
-import { getLimit, getLimitsForPlan, PlanLimitTypes } from '~/plan-limits';
+import { getLimit, PlanLimitTypes } from '~/plan-limits';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import Workspace from '~/models/Workspace';
@@ -445,8 +445,6 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     if (!workspace) NcError.workspaceNotFound(param.workspaceId);
 
-    const limits = getLimitsForPlan(workspace.plan);
-
     const stats = await ModelStat.getWorkspaceSum(workspace.id);
 
     const workspaceRoles = await WorkspaceUser.get(workspace.id, param.user.id);
@@ -481,7 +479,6 @@ export class WorkspacesService implements OnApplicationBootstrap {
     return {
       ...workspace,
       roles: workspaceRoles?.roles,
-      limits,
       stats,
       integrations: integrations,
       data_reflection_enabled: !!dataReflection,

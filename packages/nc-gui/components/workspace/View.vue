@@ -133,6 +133,7 @@ onMounted(() => {
               {{ $t('labels.members') }}
             </div>
           </template>
+          <Payment />
           <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
       </template>

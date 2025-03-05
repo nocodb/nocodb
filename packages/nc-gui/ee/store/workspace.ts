@@ -15,6 +15,12 @@ interface NcWorkspace extends WorkspaceType {
   edit?: boolean
   temp_title?: string | null
   roles?: string
+  payment?: {
+    plan: {
+      title: string
+      meta: Record<PlanLimitTypes, number>
+    }
+  }
 }
 
 export const useWorkspace = defineStore('workspaceStore', () => {
@@ -337,7 +343,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     const wsState = workspaces.value.get(workspaceId)
 
-    if (force || !wsState || !(wsState as any)?.limits) {
+    if (force || !wsState || !(wsState as any)?.payment) {
       await loadWorkspace(workspaceId)
       await loadRoles()
     }
@@ -529,7 +535,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const workspaceRole = computed(() => activeWorkspace.value?.roles)
 
   const getPlanLimit = (limitType: PlanLimitTypes) => {
-    return activeWorkspace.value?.limits?.[limitType] ?? 0
+    return activeWorkspace.value?.payment?.plan?.meta?.[limitType] ?? 0
   }
 
   watch(activeWorkspaceId, async () => {

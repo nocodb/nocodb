@@ -348,28 +348,28 @@ export const OrderedProjectRoles = [
 
 export enum PlanLimitTypes {
   // PER USER
-  FREE_WORKSPACE_LIMIT = 'FREE_WORKSPACE_LIMIT',
+  FREE_WORKSPACE_LIMIT = 'limit_free_workspace',
 
   // PER WORKSPACE
-  WORKSPACE_USER_LIMIT = 'WORKSPACE_USER_LIMIT',
-  WORKSPACE_ROW_LIMIT = 'WORKSPACE_ROW_LIMIT',
-  BASE_LIMIT = 'BASE_LIMIT',
+  WORKSPACE_USER_LIMIT = 'limit_workspace_user',
+  WORKSPACE_ROW_LIMIT = 'limit_workspace_row',
+  BASE_LIMIT = 'limit_base',
 
   // PER BASE
-  SOURCE_LIMIT = 'SOURCE_LIMIT',
+  SOURCE_LIMIT = 'limit_source',
 
   // PER BASE
-  TABLE_LIMIT = 'TABLE_LIMIT',
+  TABLE_LIMIT = 'limit_table',
 
   // PER TABLE
-  COLUMN_LIMIT = 'COLUMN_LIMIT',
-  TABLE_ROW_LIMIT = 'TABLE_ROW_LIMIT',
-  WEBHOOK_LIMIT = 'WEBHOOK_LIMIT',
-  VIEW_LIMIT = 'VIEW_LIMIT',
+  COLUMN_LIMIT = 'limit_column',
+  TABLE_ROW_LIMIT = 'limit_table_row',
+  WEBHOOK_LIMIT = 'limit_webhook',
+  VIEW_LIMIT = 'limit_view',
 
   // PER VIEW
-  FILTER_LIMIT = 'FILTER_LIMIT',
-  SORT_LIMIT = 'SORT_LIMIT',
+  FILTER_LIMIT = 'limit_filter',
+  SORT_LIMIT = 'limit_sort',
 }
 
 export enum APIContext {

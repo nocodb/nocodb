@@ -74,9 +74,7 @@ async function getLimit(
     NcError.forbidden('You are not allowed to perform this action');
   }
 
-  const plan = workspace.plan;
-
-  return PlanLimits[plan][type] || Infinity;
+  return workspace?.payment?.plan?.meta?.[type] || Infinity;
 }
 
-export { PlanLimitTypes, getLimit, getLimitsForPlan };
+export { PlanLimitTypes, getLimit };

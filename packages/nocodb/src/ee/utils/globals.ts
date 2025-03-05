@@ -83,6 +83,8 @@ export enum MetaTable {
   CUSTOM_URLS = 'nc_custom_urls_v2',
   SCRIPTS = 'nc_scripts',
   SYNC_CONFIGS = 'nc_sync_configs',
+  PLANS = 'nc_plans',
+  SUBSCRIPTIONS = 'nc_subscriptions',
 }
 
 export const orderedMetaTables = [
@@ -217,6 +219,8 @@ export enum CacheScope {
   CUSTOM_URLS = 'customUrls',
   SCRIPTS = 'scripts',
   SYNC_CONFIGS = 'syncConfigs',
+  PLANS = 'plans',
+  SUBSCRIPTIONS = 'subscriptions',
 }
 
 export const RootScopeTables = {
@@ -232,6 +236,8 @@ export const RootScopeTables = {
     MetaTable.JOBS,
     MetaTable.FILE_REFERENCES,
     MetaTable.DATA_REFLECTION,
+    MetaTable.PLANS,
+    MetaTable.SUBSCRIPTIONS,
     // Temporarily added need to be discussed within team
     MetaTable.AUDIT,
     MetaTable.CUSTOM_URLS,

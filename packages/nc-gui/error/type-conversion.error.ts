@@ -1,5 +1,1 @@
-export class TypeConversionError extends TypeError {
-  constructor(message: string) {
-    super(message)
-  }
-}
+export { TypeConversionError } from 'nocodb-sdk'

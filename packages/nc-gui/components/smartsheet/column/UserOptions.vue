@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+import { ColumnHelper, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -24,7 +24,7 @@ setAdditionalValidations({
 
 // set default value
 vModel.value.meta = {
-  ...columnDefaultMeta[UITypes.User],
+  ...ColumnHelper.getColumnDefaultMeta(UITypes.User),
   ...(vModel.value.meta || {}),
 }
 

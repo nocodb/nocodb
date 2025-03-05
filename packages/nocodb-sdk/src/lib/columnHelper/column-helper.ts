@@ -5,21 +5,29 @@ import {
   CheckboxHelper,
   DecimalHelper,
   DurationHelper,
+  EmailHelper,
+  LongTextHelper,
   NumberHelper,
   PercentHelper,
+  PhoneNumberHelper,
   RatingHelper,
   SingleLineTextHelper,
+  UrlHelper,
 } from './columns';
 
 export class ColumnHelper {
   private registry: Record<string, new () => AbstractColumnHelper> = {
     [UITypes.SingleLineText]: SingleLineTextHelper,
+    [UITypes.LongText]: LongTextHelper,
     [UITypes.Number]: NumberHelper,
     [UITypes.Decimal]: DecimalHelper,
     [UITypes.Duration]: DurationHelper,
     [UITypes.Percent]: PercentHelper,
     [UITypes.Checkbox]: CheckboxHelper,
     [UITypes.Rating]: RatingHelper,
+    [UITypes.PhoneNumber]: PhoneNumberHelper,
+    [UITypes.Email]: EmailHelper,
+    [UITypes.URL]: UrlHelper,
   };
 
   // Method to retrieve the specific column class and instantiate it

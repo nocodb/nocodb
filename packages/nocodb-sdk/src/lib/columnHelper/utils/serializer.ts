@@ -121,3 +121,12 @@ export const serializeYearValue = (value: any) => {
 
   return parsedDate.isValid() ? +parsedDate.format('YYYY') : null;
 };
+
+export const serialiseUserValue = (_value: any) => {
+  // let data = value;
+  // try {
+  //   if (typeof value === 'string') {
+  //     data = JSON.parse(value);
+  //   }
+  // } catch {}
+};

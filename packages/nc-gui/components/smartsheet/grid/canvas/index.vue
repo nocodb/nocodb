@@ -1129,7 +1129,7 @@ const getHeaderTooltipRegions = (
         disableTooltip: true,
         text: null,
       })
-    } else if (meta.value.synced && column.columnObj?.readonly) {
+    } else if (meta.value?.synced && column.columnObj?.readonly) {
       regions.push({
         x: rightOffset - scrollLeftValue,
         width: 14,

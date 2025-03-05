@@ -10,12 +10,13 @@ import {
 } from 'nocodb-sdk'
 import { getAvailableRollupForColumn, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
+import rfdc from 'rfdc'
+
 const props = defineProps<{
   value: any
 }>()
-
 const emit = defineEmits(['update:value'])
-
+const clone = rfdc()
 const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
@@ -206,6 +207,24 @@ vModel.value.meta = {
 const { isMetaReadOnly } = useRoles()
 
 const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
+
+const enableFormattingOptions = computed(() => {
+  const relatedCol = filteredColumns.value?.find((col) => col.id === vModel.value.fk_rollup_column_id)
+
+  if (!relatedCol) return false
+
+  const clonedRelatedCol = clone(relatedCol)
+
+  if (relatedCol.uidt === UITypes.Formula) {
+    const colMeta = parseProp(relatedCol.meta)
+
+    if (colMeta?.display_type) {
+      clonedRelatedCol.uidt = colMeta?.display_type
+    }
+  }
+
+  return isNumberFormattingAvailable(clonedRelatedCol?.uidt, vModel.value.rollup_function)
+})
 </script>
 
 <template>
@@ -319,7 +338,7 @@ const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
         </a-select-option>
       </a-select>
     </a-form-item>
-    <a-form-item :label="$t('placeholder.precision')">
+    <a-form-item v-if="enableFormattingOptions" :label="$t('placeholder.precision')">
       <a-select
         v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
         v-model:value="vModel.meta.precision"
@@ -343,8 +362,7 @@ const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
         </a-select-option>
       </a-select>
     </a-form-item>
-
-    <a-form-item>
+    <a-form-item v-if="enableFormattingOptions">
       <div class="flex items-center gap-1">
         <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.isLocaleString">
           <div class="text-sm text-gray-800 select-none">{{ $t('labels.showThousandsSeparator') }}</div>

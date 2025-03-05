@@ -92,7 +92,7 @@ export const parseCheckboxValue = (
     if (strval === 'false' || strval === '0' || strval === '') return false;
   }
 
-  return null;
+  return !!value;
 };
 
 export const parseJsonValue = (value) => {

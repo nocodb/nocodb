@@ -4,9 +4,7 @@ import {
   ColumnType,
   FormulaType,
   LinkToAnotherRecordType,
-  LookupType,
   RollupType,
-  TableType,
 } from './Api';
 import UITypes from './UITypes';
 import dayjs from 'dayjs';
@@ -1746,7 +1744,6 @@ export async function validateFormulaAndExtractTreeWithType({
   column?: ColumnType;
   getMeta: (tableId: string) => Promise<any>;
 }): Promise<ParsedFormulaNode> {
-  let circulaRefValidated = false;
   const sqlUI =
     typeof clientOrSqlUi === 'string'
       ? SqlUiFactory.create({ client: clientOrSqlUi })
@@ -1948,7 +1945,7 @@ export async function validateFormulaAndExtractTreeWithType({
       (res as IdentifierNode).name = col.id;
 
       if (col?.uidt === UITypes.Formula) {
-        if (column && !circulaRefValidated) {
+        if (column) {
           // check for circular reference when column is present(only available when calling root formula)
           await checkForCircularFormulaRef(
             column,
@@ -1957,7 +1954,6 @@ export async function validateFormulaAndExtractTreeWithType({
             getMeta,
             sqlUI
           );
-          circulaRefValidated = true;
         }
         const formulaRes =
           (col.colOptions as FormulaType).parsed_tree ||
@@ -1981,7 +1977,7 @@ export async function validateFormulaAndExtractTreeWithType({
           col?.uidt === UITypes.LinkToAnotherRecord
         ) {
           // check for circular reference when column is present(only available when calling root formula)
-          if (column && !circulaRefValidated) {
+          if (column) {
             await checkForCircularFormulaRef(
               column,
               parsedTree,
@@ -1989,7 +1985,6 @@ export async function validateFormulaAndExtractTreeWithType({
               getMeta,
               sqlUI
             );
-            circulaRefValidated = true;
           }
         }
 
@@ -2285,55 +2280,111 @@ function handleBinaryExpressionForDateAndTime(params: {
   }
   return res;
 }
-
 async function checkForCircularFormulaRef(
-  formulaCol: ColumnType,
-  parsedTree: ParsedFormulaNode,
-  columns: ColumnType[],
-  getMeta: (tableId: string) => Promise<TableType>,
-  sqlUI,
-  visited = new Set()
+  formulaCol,
+  parsedTree,
+  columns,
+  getMeta,
+  _sqlUI
 ) {
-  // Check if the current column has already been visited
-  if (visited.has(formulaCol.id)) {
-    throw new FormulaError(
-      FormulaErrorType.CIRCULAR_REFERENCE,
-      {
-        key: 'msg.formula.cantSaveCircularReference',
-      },
-      'Circular reference detected'
-    );
-  }
-
-  // Mark the current column as visited
-  visited.add(formulaCol.id);
-
-  // Get all formula columns excluding itself
-  const formulaPaths = columns
-    .filter((c) => c.id !== formulaCol?.id && c.uidt === UITypes.Formula)
-    .reduce((res: Record<string, any>[], c: Record<string, any>) => {
+  // Extract formula references
+  const formulaPaths = await columns.reduce(async (promiseRes, c) => {
+    const res = await promiseRes;
+    if (c.id !== formulaCol.id && c.uidt === UITypes.Formula) {
       const neighbours = [
         ...new Set(
-          (c.colOptions.formula.match(/c_?\w{14,15}/g) || []).filter(
-            (colId: string) =>
-              columns.filter(
-                (col: ColumnType) =>
-                  col.id === colId && col.uidt === UITypes.Formula
-              ).length
+          (c.colOptions.formula.match(/c_?\w{14,15}/g) || []).filter((colId) =>
+            columns.some(
+              (col) => col.id === colId && col.uidt === UITypes.Formula
+            )
           )
         ),
       ];
-      if (neighbours.length > 0) {
-        res.push({ [c.id]: neighbours });
-      }
-      return res;
-    }, []);
+      if (neighbours.length) res.push({ [c.id]: neighbours });
+    } else if (
+      c.uidt === UITypes.Lookup ||
+      c.uidt === UITypes.LinkToAnotherRecord
+    ) {
+      const neighbours = await processLookupOrLTARColumn(c);
+      if (neighbours?.length) res.push({ [c.id]: neighbours });
+    }
+    return res;
+  }, Promise.resolve([]));
 
-  // Include target formula column (i.e. the one to be saved if applicable)
+  async function processLookupFormula(col: ColumnType, columns: ColumnType[]) {
+    const neighbours = [];
+
+    if (formulaCol.fk_model_id === col.fk_model_id) {
+      return [col.id];
+    }
+
+    // Extract columns used in the formula and check for cycles
+    const referencedColumns =
+      (col.colOptions as FormulaType).formula.match(/c_?\w{14,15}/g) || [];
+
+    for (const refColId of referencedColumns) {
+      const refCol = columns.find((c) => c.id === refColId);
+      if (refCol.uidt === UITypes.Formula) {
+        neighbours.push(...(await processLookupFormula(refCol, columns)));
+      } else if (
+        refCol.uidt === UITypes.Lookup ||
+        refCol.uidt === UITypes.LinkToAnotherRecord
+      ) {
+        neighbours.push(...(await processLookupOrLTARColumn(refCol)));
+      }
+    }
+    return neighbours;
+  }
+
+  // Function to process lookup columns recursively
+  async function processLookupOrLTARColumn(lookupOrLTARCol) {
+    const neighbours = [];
+
+    let ltarColumn: ColumnType;
+    let lookupFilterFn: (column: ColumnType) => boolean;
+
+    if (lookupOrLTARCol.uidt === UITypes.Lookup) {
+      const relationColId = lookupOrLTARCol.colOptions.fk_relation_column_id;
+      const lookupColId = lookupOrLTARCol.colOptions.fk_lookup_column_id;
+      ltarColumn = columns.find((c) => c.id === relationColId);
+      lookupFilterFn = (column: ColumnType) => column.id === lookupColId;
+    } else if (lookupOrLTARCol.uidt === UITypes.LinkToAnotherRecord) {
+      ltarColumn = lookupOrLTARCol;
+      lookupFilterFn = (column: ColumnType) => !!column.pv;
+    }
+
+    if (ltarColumn) {
+      const relatedTableMeta = await getMeta(
+        (ltarColumn.colOptions as LinkToAnotherRecordType).fk_related_model_id
+      );
+      const lookupTarget = relatedTableMeta.columns.find(lookupFilterFn);
+
+      if (lookupTarget) {
+        if (lookupTarget.uidt === UITypes.Formula) {
+          neighbours.push(
+            ...(await processLookupFormula(
+              lookupTarget,
+              relatedTableMeta.columns
+            ))
+          );
+        } else if (
+          lookupTarget.uidt === UITypes.Lookup ||
+          lookupTarget.uidt === UITypes.LinkToAnotherRecord
+        ) {
+          neighbours.push(...(await processLookupOrLTARColumn(lookupTarget)));
+        }
+      }
+    }
+    return [...new Set(neighbours)];
+  }
+
+  // include target formula column (i.e. the one to be saved if applicable)
   const targetFormulaCol = columns.find(
     (c: ColumnType) =>
-      c.title === (parsedTree as IdentifierNode).name &&
-      c.uidt === UITypes.Formula
+      c.title === parsedTree.name &&
+      [UITypes.Formula, UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(
+        c.uidt as UITypes
+      )
   );
 
   if (targetFormulaCol && formulaCol?.id) {
@@ -2341,12 +2392,12 @@ async function checkForCircularFormulaRef(
       [formulaCol?.id as string]: [targetFormulaCol.id],
     });
   }
-
   const vertices = formulaPaths.length;
   if (vertices > 0) {
-    // Perform Kahn's algorithm for cycle detection
+    // perform kahn's algo for cycle detection
     const adj = new Map();
     const inDegrees = new Map();
+    // init adjacency list & indegree
 
     for (const [_, v] of Object.entries(formulaPaths)) {
       const src = Object.keys(v)[0];
@@ -2357,30 +2408,38 @@ async function checkForCircularFormulaRef(
         inDegrees.set(neighbour, (inDegrees.get(neighbour) || 0) + 1);
       }
     }
-
     const queue: string[] = [];
+    // put all vertices with in-degree = 0 (i.e. no incoming edges) to queue
     inDegrees.forEach((inDegree, col) => {
       if (inDegree === 0) {
+        // in-degree = 0 means we start traversing from this node
         queue.push(col);
       }
     });
-
-    let visitedCount = 0;
+    // init count of visited vertices
+    let visited = 0;
+    // BFS
     while (queue.length !== 0) {
+      // remove a vertex from the queue
       const src = queue.shift();
+      // if this node has neighbours, increase visited by 1
       const neighbours = adj.get(src) || new Set();
       if (neighbours.size > 0) {
-        visitedCount += 1;
+        visited += 1;
       }
+      // iterate each neighbouring nodes
       neighbours.forEach((neighbour: string) => {
+        // decrease in-degree of its neighbours by 1
         inDegrees.set(neighbour, inDegrees.get(neighbour) - 1);
+        // if in-degree becomes 0
         if (inDegrees.get(neighbour) === 0) {
+          // then put the neighboring node to the queue
           queue.push(neighbour);
         }
       });
     }
-
-    if (vertices !== visitedCount) {
+    // vertices not same as visited = cycle found
+    if (vertices !== visited) {
       throw new FormulaError(
         FormulaErrorType.CIRCULAR_REFERENCE,
         {
@@ -2390,73 +2449,4 @@ async function checkForCircularFormulaRef(
       );
     }
   }
-
-  // Check for nested formulas in the current formula column
-  const checkNestedFormulas = async (
-    col: ColumnType,
-    tableColumns = columns
-  ) => {
-    if (col.uidt === UITypes.Formula) {
-      const nestedFormula =
-        (col.colOptions as FormulaType).parsed_tree ||
-        (await validateFormulaAndExtractTreeWithType(
-          // formula may include double curly brackets in previous version
-          // convert to single curly bracket here for compatibility
-          {
-            formula: (col.colOptions as FormulaType).formula
-              .replace(/\{\{/g, '{')
-              .replace(/\}\}/g, '}'),
-            columns,
-            clientOrSqlUi: sqlUI,
-            getMeta,
-          }
-        ));
-      if (nestedFormula) {
-        await checkForCircularFormulaRef(
-          col,
-          nestedFormula,
-          tableColumns,
-          getMeta,
-          sqlUI,
-          visited
-        );
-      }
-    } else if (
-      col.uidt === UITypes.Lookup ||
-      col.uidt === UITypes.LinkToAnotherRecord
-    ) {
-      let linkToAnotherRecordCol: ColumnType;
-      let lookupColumnId: string;
-      if (col.uidt === UITypes.Lookup) {
-        // For Lookup, get the LinkToAnotherRecord column
-        linkToAnotherRecordCol = tableColumns.find(
-          (c) => c.id === (col.colOptions as LookupType).fk_relation_column_id
-        );
-        lookupColumnId = (col.colOptions as LookupType).fk_lookup_column_id;
-      } else {
-        linkToAnotherRecordCol = col;
-      }
-
-      if (linkToAnotherRecordCol) {
-        // Fetch the columns of the referenced table
-        const refTableMeta = await getMeta(
-          (linkToAnotherRecordCol!.colOptions as LinkToAnotherRecordType)!
-            .fk_related_model_id!
-        );
-        const refTableColumns = refTableMeta.columns;
-
-        // if lookup column id is not provided(LTAR), extract the primary value column of the referenced table
-        const lookUpColumn = refTableColumns.find((c) =>
-          col.uidt === UITypes.Lookup ? c.id === lookupColumnId : c.pv
-        );
-
-        if (lookUpColumn)
-          // Check nested formulas with the display value column of the referenced table
-          await checkNestedFormulas(lookUpColumn, refTableColumns);
-      }
-    }
-  };
-
-  // Start checking for nested formulas
-  await checkNestedFormulas(formulaCol);
 }

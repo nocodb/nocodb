@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+import { ColumnHelper, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -15,7 +15,7 @@ const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
 
 // set default value
 vModel.value.meta = {
-  ...columnDefaultMeta[UITypes.Decimal],
+  ...ColumnHelper.getColumnDefaultMeta(UITypes.Decimal),
   ...(vModel.value.meta || {}),
 }
 

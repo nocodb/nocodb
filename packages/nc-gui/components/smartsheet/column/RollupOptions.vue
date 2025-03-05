@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import {
+  ColumnHelper,
   type ColumnType,
   type LinkToAnotherRecordType,
   RelationTypes,
@@ -197,7 +198,7 @@ const onPrecisionChange = (value: number) => {
 
 // set default value
 vModel.value.meta = {
-  ...columnDefaultMeta[UITypes.Rollup],
+  ...ColumnHelper.getColumnDefaultMeta(UITypes.Rollup),
   ...(vModel.value.meta || {}),
 }
 

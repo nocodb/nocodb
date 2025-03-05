@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+import { ColumnHelper, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -61,7 +61,7 @@ function filterOption(input: string, option: { value: string; key: string }) {
 
 // set default value
 vModel.value.meta = {
-  ...columnDefaultMeta[UITypes.Currency],
+  ...ColumnHelper.getColumnDefaultMeta(UITypes.Currency),
   ...(vModel.value.meta || {}),
 }
 

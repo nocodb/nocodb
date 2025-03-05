@@ -11,59 +11,59 @@ export enum FormBuilderInputType {
 
 export interface FormBuilderElement {
   // element type
-  type: FormBuilderInputType
+  type: FormBuilderInputType;
   // property path in the form JSON
-  model?: string
+  model?: string;
   // default value
-  defaultValue?: string
+  defaultValue?: string;
   // label for the element
-  label?: string
+  label?: string;
   // placeholder for the element (if applicable)
-  placeholder?: string
+  placeholder?: string;
   // percentage width of the element
-  width?: number
+  width?: number;
   // category of the element - same category elements are grouped together
-  category?: string
+  category?: string;
   // help text for the element
   // options for select element
-  options?: { value: string; label: string }[]
+  options?: { value: string; label: string }[];
   // select mode for the element (if applicable) - default is single
-  selectMode?: 'single' | 'multiple' | 'multipleWithInput'
+  selectMode?: 'single' | 'multiple' | 'multipleWithInput';
   // integration type filter for integration element
   integrationFilter?: {
-    type?: string
-    sub_type?: string
-  }
+    type?: string;
+    sub_type?: string;
+  };
   // oauth meta
   oauthMeta?: {
     // oauth provider
-    provider: string
+    provider: string;
     // oauth auth uri
-    authUri: string
+    authUri: string;
     // oauth redirect uri
-    redirectUri: string
+    redirectUri: string;
     // client id
-    clientId: string
+    clientId: string;
     // code key (code by default)
-    codeKey?: string
+    codeKey?: string;
     // oauth scopes
-    scopes?: string[]
-  }
+    scopes?: string[];
+  };
   // condition for the element to be visible
   condition?: {
     // model path to check for condition
-    model: string
+    model: string;
     // value to check for condition
-    value: string
-  }
+    value: string;
+  };
   // border for the element (if applicable) - default is false
-  border?: boolean
+  border?: boolean;
   // show hint as tooltip for the element (if applicable) - default is false
-  showHintAsTooltip?: boolean
+  showHintAsTooltip?: boolean;
   // validators for the element
-  validators?: { type: 'required'; message?: string; }[]
+  validators?: { type: 'required'; message?: string }[];
 }
 
-export type FormDefinition = FormBuilderElement[]
+export type FormDefinition = FormBuilderElement[];
 
-export const FORM_BUILDER_NON_CATEGORIZED = 'form-builder-non-categorized'
+export const FORM_BUILDER_NON_CATEGORIZED = 'form-builder-non-categorized';

@@ -1,5 +1,5 @@
 import { ColumnType } from '~/lib/Api';
-import { convertMS2Duration } from '~/lib/durationUtils';
+import { convertDurationToSeconds } from '~/lib/durationUtils';
 import { parseProp } from '~/lib/helperFunctions';
 import { ncIsBoolean, ncIsNaN, ncIsNumber, ncIsString } from '~/lib/is';
 
@@ -69,13 +69,16 @@ export const serializeDurationValue = (
   value: string | null,
   col: ColumnType
 ) => {
-  const columnMeta = parseProp(col.meta);
-
-  if (columnMeta.duration === undefined) {
-    return value;
+  // Check if the value is a pure number (interpreted as seconds)
+  if (!ncIsNaN(value)) {
+    return parseInt(value, 10); // Directly return seconds
   }
 
-  return convertMS2Duration(value, columnMeta.duration);
+  const columnMeta = parseProp(col.meta);
+
+  const res = convertDurationToSeconds(value, columnMeta.duration ?? 0);
+
+  return res._isValid ? res._sec : null;
 };
 
 export const serializeCheckboxValue = (

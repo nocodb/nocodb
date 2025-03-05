@@ -30,7 +30,7 @@ const sendEvt = () => {
     });
   } catch {}
 };
-setInterval(sendEvt, 8 * 60 * 60 * 1000);
+setInterval(sendEvt, 8 * 60 * 60 * 1000).unref();
 
 class Tele {
   static emitter;
@@ -304,7 +304,7 @@ if (process.env.NC_PUBLIC_URL) {
     })
       .then(() => {})
       .catch(() => {});
-  }, 2 * 60 * 60 * 1000);
+  }, 2 * 60 * 60 * 1000).unref();
 }
 
 if (process.env.NC_ONE_CLICK) {

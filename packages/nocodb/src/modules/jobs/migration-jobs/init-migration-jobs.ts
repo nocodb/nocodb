@@ -114,7 +114,7 @@ export class InitMigrationJobs {
       // stall check is updated every 5 mins
       setTimeout(() => {
         this.jobsService.add(JobTypes.InitMigrationJobs, {});
-      }, 10 * 60 * 1000);
+      }, 10 * 60 * 1000).unref();
       return;
     }
 

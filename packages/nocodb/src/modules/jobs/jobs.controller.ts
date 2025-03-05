@@ -118,13 +118,13 @@ export class JobsController implements OnApplicationShutdown {
                   // close the job after 1 second (to allow the update of messages)
                   setTimeout(() => {
                     this.closedJobs.push(jobId);
-                  }, 1000);
+                  }, 1000).unref();
                   // remove the job after polling interval * 2
                   setTimeout(() => {
                     this.closedJobs = this.closedJobs.filter(
                       (j) => j !== jobId,
                     );
-                  }, POLLING_INTERVAL * 2);
+                  }, POLLING_INTERVAL * 2).unref();
                 }
                 break;
             }
@@ -147,7 +147,7 @@ export class JobsController implements OnApplicationShutdown {
           status: 'refresh',
         });
       }
-    }, POLLING_INTERVAL);
+    }, POLLING_INTERVAL).unref();
   }
 
   @OnEvent(JobEvents.STATUS)
@@ -230,13 +230,13 @@ export class JobsController implements OnApplicationShutdown {
       this.closedJobs.push(jobId);
       setTimeout(() => {
         this.closedJobs = this.closedJobs.filter((j) => j !== jobId);
-      }, POLLING_INTERVAL * 2);
+      }, POLLING_INTERVAL * 2).unref();
 
       setTimeout(async () => {
         delete this.jobRooms[jobId];
         delete this.localJobs[jobId];
         await NocoCache.del(`${CacheScope.JOBS_POLLING}:${jobId}:messages`);
-      }, POLLING_INTERVAL * 2);
+      }, POLLING_INTERVAL * 2).unref();
     }
   }
 

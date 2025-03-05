@@ -72,7 +72,7 @@ export class NotificationsController implements OnApplicationShutdown {
           status: 'refresh',
         });
       }
-    }, POLL_INTERVAL);
+    }, POLL_INTERVAL).unref();
   }
 
   @Get('/api/v1/notifications')

@@ -219,9 +219,9 @@ const onClick = (e: Event) => {
       <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500 flex-none" />
     </NcTooltip>
 
-    <template v-if="!hideMenu || meta.synced">
+    <template v-if="!hideMenu || meta?.synced">
       <div v-if="!isExpandedForm" class="flex-1" />
-      <div v-if="!isExpandedForm && meta.synced && column.readonly">
+      <div v-if="!isExpandedForm && meta?.synced && column.readonly">
         <NcTooltip class="flex items-center" placement="bottom">
           <template #title> This field is synced </template>
           <GeneralIcon icon="sync" class="flex-none !w-4 !h-4 !text-gray-500" />

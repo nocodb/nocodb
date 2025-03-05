@@ -486,7 +486,7 @@ async function onRename() {
 
                     <component
                       :is="iconMap.sync"
-                      v-if="table.synced"
+                      v-if="table?.synced"
                       class="w-4 text-sm"
                       :class="isTableOpened ? '!text-brand-600/85' : '!text-gray-600/75'"
                     />
@@ -706,7 +706,7 @@ async function onRename() {
       :base-id="base.id"
     />
     <LazyDashboardSettingsSyncEdit
-      v-if="table.id && table.synced && base?.id && isSyncModalOpen"
+      v-if="table.id && table?.synced && base?.id && isSyncModalOpen"
       v-model:open="isSyncModalOpen"
       :table-id="table.id"
       :base-id="base.id"

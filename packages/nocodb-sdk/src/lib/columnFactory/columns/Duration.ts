@@ -1,9 +1,9 @@
 import { ColumnType } from '~/lib/Api';
-import { AbstractColumn } from '..';
+import { AbstractColumnHelper } from '..';
 import { parseDurationValue } from '../utils/parser';
 import { serializeDurationValue } from '../utils/serializer';
 
-export class DurationColumn extends AbstractColumn {
+export class DurationHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
     duration: 0,
   };

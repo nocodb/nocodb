@@ -1,6 +1,6 @@
-import { AbstractColumn } from '..';
+import { AbstractColumnHelper } from '..';
 
-export class SingleLineTextColumn extends AbstractColumn {
+export class SingleLineTextHelper extends AbstractColumnHelper {
   serializeValue(value: any): string | null {
     return value?.toString() ?? null;
   }

@@ -6,9 +6,13 @@ import { ColumnHelper } from '../column-helper';
 import { getRenderAsTextFunForUiType, parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
 import { ComputedTypePasteError } from '~/lib/error';
+import { precisionFormats } from '../utils';
 
 export class RollupHelper extends AbstractColumnHelper {
-  columnDefaultMeta = {};
+  columnDefaultMeta = {
+    precision: precisionFormats[0],
+    isLocaleString: false,
+  };
 
   serializeValue(
     _value: any,

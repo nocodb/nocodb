@@ -6,7 +6,9 @@ import AbstractColumnHelper, {
 import { toSafeInteger } from '~/lib/helperFunctions';
 
 export class NumberHelper extends AbstractColumnHelper {
-  columnDefaultMeta = {};
+  columnDefaultMeta = {
+    isLocaleString: false,
+  };
 
   serializeValue(
     value: any,

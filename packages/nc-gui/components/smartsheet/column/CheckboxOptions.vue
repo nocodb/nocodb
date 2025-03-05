@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+import { ColumnHelper, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -23,7 +23,7 @@ const isOpenColorPicker = ref(false)
 
 // set default value
 vModel.value.meta = {
-  ...columnDefaultMeta[UITypes.Checkbox],
+  ...ColumnHelper.getColumnDefaultMeta(UITypes.Checkbox),
   ...(vModel.value.meta || {}),
   icon: extractCheckboxIcon(vModel.value.meta || {}),
 }

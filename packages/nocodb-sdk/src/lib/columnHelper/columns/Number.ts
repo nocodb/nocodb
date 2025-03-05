@@ -1,6 +1,7 @@
-import { ColumnType } from '~/lib/Api';
 import { parseIntValue, serializeIntValue } from '..';
-import AbstractColumnHelper from '../column.interface';
+import AbstractColumnHelper, {
+  SerializerOrParserFnProps,
+} from '../column.interface';
 
 export class NumberHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -9,11 +10,17 @@ export class NumberHelper extends AbstractColumnHelper {
     return serializeIntValue(value);
   }
 
-  parseValue(value: any, col: ColumnType): string | number | null {
-    return parseIntValue(value, col);
+  parseValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): string | number | null {
+    return parseIntValue(value, params.col);
   }
 
-  parsePlainCellValue(value: any, col: ColumnType): string {
-    return `${parseIntValue(value, col) ?? ''}`;
+  parsePlainCellValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): string {
+    return `${parseIntValue(value, params.col) ?? ''}`;
   }
 }

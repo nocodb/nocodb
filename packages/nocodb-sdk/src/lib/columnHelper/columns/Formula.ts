@@ -1,5 +1,6 @@
-import { ColumnType } from '~/lib/Api';
-import AbstractColumnHelper from '../column.interface';
+import AbstractColumnHelper, {
+  SerializerOrParserFnProps,
+} from '../column.interface';
 import { parseProp } from '~/lib/helperFunctions';
 import { ColumnHelper } from '../column-helper';
 
@@ -10,8 +11,11 @@ export class FormulaHelper extends AbstractColumnHelper {
     return null;
   }
 
-  parseValue(value: any, col: ColumnType): string | null {
-    const columnMeta = parseProp(col?.meta);
+  parseValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): string | null {
+    const columnMeta = parseProp(params.col?.meta);
     const childColumn = {
       uidt: columnMeta.display_type,
       ...columnMeta.display_column_meta,
@@ -20,7 +24,10 @@ export class FormulaHelper extends AbstractColumnHelper {
     return ColumnHelper.parseValue(value, childColumn);
   }
 
-  parsePlainCellValue(value: any, col: ColumnType): string {
-    return this.parseValue(value, col) ?? '';
+  parsePlainCellValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): string {
+    return this.parseValue(value, params) ?? '';
   }
 }

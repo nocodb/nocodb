@@ -142,7 +142,7 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {
   if (isSameOriginUrl(url) || !ncIsSharedViewOrBase()) {
     window.open(url, target, target === '_blank' ? 'noopener,noreferrer' : undefined)
   } else {
-    const leavingUrl = new URL(window.location.origin + '/#/leaving')
+    const leavingUrl = new URL(`${window.location.origin}/#/leaving`)
     leavingUrl.hash = `#/leaving?ncRedirectUrl=${encodeURIComponent(url)}&ncBackUrl=${encodeURIComponent(window.location.href)}`
 
     navigateTo(leavingUrl.toString(), {

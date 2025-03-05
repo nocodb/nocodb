@@ -159,7 +159,6 @@ export function useCanvasTable({
 
   const isPublicView = inject(IsPublicInj, ref(false))
   const readOnly = inject(ReadonlyInj, ref(false))
-  const isLocked = inject(IsLockedInj, ref(false))
 
   const { loadAutomation } = automationStore
   const actionManager = new ActionManager($api, loadAutomation, generateRows, meta, cachedRows, triggerRefreshCanvas)

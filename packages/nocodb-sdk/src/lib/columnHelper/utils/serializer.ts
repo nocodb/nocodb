@@ -1,7 +1,7 @@
 import { ColumnType } from '~/lib/Api';
 import { convertMS2Duration } from '~/lib/durationUtils';
 import { parseProp } from '~/lib/helperFunctions';
-import { ncIsNaN, ncIsNumber, ncIsString } from '~/lib/is';
+import { ncIsBoolean, ncIsNaN, ncIsNumber, ncIsString } from '~/lib/is';
 
 export const serializeIntValue = (value: string | null | number) => {
   if (ncIsNumber(value)) {
@@ -68,4 +68,18 @@ export const serializeDurationValue = (
   }
 
   return convertMS2Duration(value, columnMeta.duration);
+};
+
+export const serializeCheckboxValue = (
+  value: boolean | string | number | '0' | '1'
+) => {
+  if (ncIsBoolean(value)) return value;
+
+  if (ncIsString(value)) {
+    const strval = value.trim().toLowerCase();
+    if (strval === 'true' || strval === '1') return true;
+    if (strval === 'false' || strval === '0' || strval === '') return false;
+  }
+
+  return null;
 };

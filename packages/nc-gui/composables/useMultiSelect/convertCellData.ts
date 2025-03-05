@@ -74,7 +74,7 @@ export default function convertCellData(
           ...parseProp(column?.meta),
         }
 
-        const attachments = []
+        const attachments: Record<string, any>[] = []
 
         for (const attachment of value ? parsedVal : files) {
           if (args.appInfo.ee) {
@@ -116,12 +116,14 @@ export default function convertCellData(
           const newAttachments: AttachmentType[] = []
 
           for (const att of attachments) {
+            if (!ncIsObject(att)) continue
+
             newAttachments.push({
               ...att,
               title: populateUniqueFileName(
-                att?.title,
+                att.title,
                 oldAttachments.concat(newAttachments).map((fn) => fn?.title || fn?.fileName),
-                att?.mimetype,
+                att.mimetype,
               ),
             })
           }

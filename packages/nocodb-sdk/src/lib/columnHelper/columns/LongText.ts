@@ -14,8 +14,13 @@ export class LongTextHelper extends AbstractColumnHelper {
     // TODO (refactor): remove this when we have a better way to handle this
     value = value?.toString() ?? null;
     if (value && value.match(/^".*"$/)) {
-      return value.slice(1, -1);
+      value = value.slice(1, -1);
     }
+
+    if (value.match(/\\"/g)) {
+      value = value.replace(/\\"/g, '"');
+    }
+
     return value ?? null;
   }
 

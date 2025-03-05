@@ -411,7 +411,8 @@
     "inserting": "Inserting",
     "permissions": "Permissions",
     "manageAllFields": "Manage all fields",
-    "automations": "Automations"
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "Script",
@@ -941,9 +942,9 @@
     "runWebHook": "Run Webhook",
     "onClick": "On click",
     "defaultView": "Default view",
-    "recordInsert": "Record Insert",
-    "recordUpdate": "Record Update",
-    "recordDelete": "Record Delete",
+    "recordInsert": "After Insert",
+    "recordUpdate": "After Update",
+    "recordDelete": "After Delete",
     "supportDocs": "Support Docs",
     "addedOn": "Added on",
     "changeDisplayValueField": "Change display value field",

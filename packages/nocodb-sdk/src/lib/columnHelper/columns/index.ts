@@ -25,6 +25,7 @@ export * from './LastModifiedTime';
 export * from './SingleLineText';
 export * from './MultiSelect';
 export * from './User';
+export * from './Attachment';
 export * from './Rollup';
 export * from './Lookup';
 export * from './Links';

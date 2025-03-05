@@ -1,3 +1,4 @@
+import { SilentTypeConversionError } from '~/lib/error';
 import { parseDecimalValue, precisionFormats, serializeDecimalValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
@@ -9,8 +10,21 @@ export class DecimalHelper extends AbstractColumnHelper {
     isLocaleString: false,
   };
 
-  serializeValue(value: any): number | null {
-    return serializeDecimalValue(value);
+  serializeValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): number | null {
+    value = serializeDecimalValue(value);
+
+    if (value === null) {
+      if (params.isMultipleCellPaste) {
+        return null;
+      } else {
+        throw new SilentTypeConversionError();
+      }
+    }
+
+    return value;
   }
 
   parseValue(

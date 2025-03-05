@@ -1,3 +1,4 @@
+import { SilentTypeConversionError } from '~/lib/error';
 import { parseCurrencyValue, serializeCurrencyValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
@@ -9,8 +10,21 @@ export class CurrencyHelper extends AbstractColumnHelper {
     currency_code: 'USD',
   };
 
-  serializeValue(value: any): number | null {
-    return serializeCurrencyValue(value);
+  serializeValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): number | null {
+    value = serializeCurrencyValue(value);
+
+    if (value === null) {
+      if (params.isMultipleCellPaste) {
+        return null;
+      } else {
+        throw new SilentTypeConversionError();
+      }
+    }
+
+    return value;
   }
 
   parseValue(

@@ -15,12 +15,13 @@ class R2Plugin extends XcStoragePlugin {
             token: process.env.CLOUDFLARE_API_TOKEN || config.CloudflareApiToken,
         });
     }
-    
+
     public getAdapter(): IStorageAdapterV2 {
         return R2Plugin.storageAdapter;
     }
 
     public async init(config: any): Promise<any> {
+        this.config = config;
         const { custom_domain, bucket } = config;
         R2Plugin.storageAdapter = new R2(config);
         await R2Plugin.storageAdapter.init();
@@ -30,18 +31,27 @@ class R2Plugin extends XcStoragePlugin {
     }
 
     private async setCustomDomain(bucketName: string, domainName: string) {
-        const accountId = process.env.CLOUDFLARE_ACCOUNT_ID || this.config?.accountId;
-        const zoneId = process.env.CLOUDFLARE_ZONE_ID || this.config?.zoneId;
+        if (!bucketName || !domainName) {
+            throw new Error("Bucket name and domain name are required.");
+        }
+        const accountId = process.env.CLOUDFLARE_ACCOUNT_ID || this.config.accountId;
+        const zoneId = process.env.CLOUDFLARE_ZONE_ID || this.config.zoneId;
         if (!accountId || !zoneId) {
             throw new Error("Cloudflare accountId or zoneId is missing.");
         }
-        const response = await this.cloudflare.r2.buckets.domains.custom.create({
-            bucketName,
-            domain: domainName,
-            enabled: true,
-            zoneId,
-        }, { accountId });
-        console.log("Custom domain set:", response.domain);
+        try {
+            const response = await this.cloudflare.r2.buckets.domains.custom.create({
+                bucketName,
+                domain: domainName,
+                enabled: true,
+                zoneId,
+            }, { accountId });
+            console.log(`Custom domain "${response.domain}" set for bucket "${bucketName}"`);
+            return response;
+        } catch (error) {
+            console.error(`Failed to set custom domain for bucket "${bucketName}":`, error);
+            throw error;
+        }
     }
 }
 

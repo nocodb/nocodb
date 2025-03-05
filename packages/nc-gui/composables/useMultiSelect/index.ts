@@ -405,181 +405,204 @@ export function useMultiSelect(
 
   const handleMouseUp = (_event: MouseEvent) => {
     if (isFillMode.value) {
-      const localAiMode = Boolean(aiMode.value)
+      try {
+        const localAiMode = Boolean(aiMode.value)
 
-      isFillMode.value = false
-      aiMode.value = false
+        isFillMode.value = false
+        aiMode.value = false
 
-      if (fillRange._start === null || fillRange._end === null) return
+        if (fillRange._start === null || fillRange._end === null) return
 
-      if (selectedRange._start !== null && selectedRange._end !== null) {
-        const tempActiveCell = { row: selectedRange._start.row, col: selectedRange._start.col }
+        if (selectedRange._start !== null && selectedRange._end !== null) {
+          const tempActiveCell = { row: selectedRange._start.row, col: selectedRange._start.col }
 
-        let cprows
+          let cprows
 
-        if (isArrayStructure) {
-          cprows = (unref(data) as Row[]).slice(selectedRange.start.row, selectedRange.end.row + 1)
-        } else {
-          cprows = Array.from(unref(data) as Map<number, Row>)
-            .filter(([index]) => index >= selectedRange.start.row && index <= selectedRange.end.row)
-            .map(([, row]) => row)
-        }
-
-        const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
-
-        const rawMatrix = serializeRange(cprows, cpcols).json
-
-        const fillDirection = fillRange._start.row <= fillRange._end.row ? 1 : -1
-
-        let fillIndex = fillDirection === 1 ? 0 : rawMatrix.length - 1
-
-        const rowsToPaste: Row[] = []
-        const rowsToFill: Row[] = []
-        const propsToPaste: string[] = []
-        const propsToFill: string[] = []
-
-        for (
-          let row = fillRange._start.row;
-          fillDirection === 1 ? row <= fillRange._end.row : row >= fillRange._end.row;
-          row += fillDirection
-        ) {
-          const rowObj = isArrayStructure ? (unref(data) as Row[])[row] : (unref(data) as Map<number, Row>).get(row)
-
-          if (!rowObj) {
-            continue
+          if (isArrayStructure) {
+            cprows = (unref(data) as Row[]).slice(selectedRange.start.row, selectedRange.end.row + 1)
+          } else {
+            cprows = Array.from(unref(data) as Map<number, Row>)
+              .filter(([index]) => index >= selectedRange.start.row && index <= selectedRange.end.row)
+              .map(([, row]) => row)
           }
 
-          let pasteIndex = 0
+          const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
 
-          if (!selectRangeMap.value[`${row}-${selectedRange.start.col}`]) {
-            rowsToPaste.push(rowObj)
-          }
+          const rawMatrix = serializeRange(cprows, cpcols).json
 
-          for (let col = fillRange.start.col; col <= fillRange.end.col; col++) {
-            const colObj = unref(fields)[col]
+          const fillDirection = fillRange._start.row <= fillRange._end.row ? 1 : -1
 
-            if (!isPasteable(rowObj, colObj)) {
-              pasteIndex++
+          let fillIndex = fillDirection === 1 ? 0 : rawMatrix.length - 1
+
+          const rowsToPaste: Row[] = []
+          const rowsToFill: Row[] = []
+          const propsToPaste: string[] = []
+          const propsToFill: string[] = []
+
+          for (
+            let row = fillRange._start.row;
+            fillDirection === 1 ? row <= fillRange._end.row : row >= fillRange._end.row;
+            row += fillDirection
+          ) {
+            const rowObj = isArrayStructure ? (unref(data) as Row[])[row] : (unref(data) as Map<number, Row>).get(row)
+
+            if (!rowObj) {
               continue
             }
 
-            // if the column is added only for the fill operation, don't paste the value
-            if (selectedRange._start && selectedRange._end && selectedRange._start.col <= col && col <= selectedRange._end.col) {
-              if (cpcols.findIndex((c) => c.id === colObj.id) === -1) {
-                if (!propsToFill.includes(colObj.title!)) propsToPaste.push(colObj.title!)
+            let pasteIndex = 0
+
+            if (!selectRangeMap.value[`${row}-${selectedRange.start.col}`]) {
+              rowsToPaste.push(rowObj)
+            }
+
+            for (let col = fillRange.start.col; col <= fillRange.end.col; col++) {
+              const colObj = unref(fields)[col]
+
+              if (!isPasteable(rowObj, colObj)) {
+                pasteIndex++
+                continue
               }
 
-              if (!propsToPaste.includes(colObj.title!) && !propsToFill.includes(colObj.title!)) propsToPaste.push(colObj.title!)
+              // if the column is added only for the fill operation, don't paste the value
+              if (
+                selectedRange._start &&
+                selectedRange._end &&
+                selectedRange._start.col <= col &&
+                col <= selectedRange._end.col
+              ) {
+                if (cpcols.findIndex((c) => c.id === colObj.id) === -1) {
+                  if (!propsToFill.includes(colObj.title!)) propsToPaste.push(colObj.title!)
+                }
 
-              const pasteValue = convertCellData(
-                {
-                  value: rawMatrix[fillIndex][pasteIndex],
-                  to: colObj.uidt as UITypes,
-                  column: colObj,
-                  appInfo: unref(appInfo),
-                },
-                isMysql(meta.value?.source_id),
-                true,
-              )
+                if (!propsToPaste.includes(colObj.title!) && !propsToFill.includes(colObj.title!))
+                  propsToPaste.push(colObj.title!)
 
-              if (pasteValue !== undefined) {
-                if (!localAiMode) rowObj.row[colObj.title!] = pasteValue
-              }
-            } else {
-              if (localAiMode) {
-                propsToFill.push(colObj.title!)
+                let pasteValue
 
-                // add rows to fill if they are not already in the list
-                if (
-                  !rowsToFill.find(
-                    (r) =>
-                      extractPkFromRow(r.row, meta.value?.columns as ColumnType[]) ===
-                      extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]),
+                try {
+                  pasteValue = convertCellData(
+                    {
+                      value: rawMatrix[fillIndex][pasteIndex],
+                      to: colObj.uidt as UITypes,
+                      column: colObj,
+                      appInfo: unref(appInfo),
+                    },
+                    isMysql(meta.value?.source_id),
+                    true,
                   )
-                ) {
-                  rowsToFill.push(rowObj)
+                } catch (ex) {
+                  if (ex instanceof ComputedTypePasteError) {
+                    throw ex
+                  }
+
+                  pasteValue = null
+                }
+
+                if (pasteValue !== undefined) {
+                  if (!localAiMode) rowObj.row[colObj.title!] = pasteValue
+                }
+              } else {
+                if (localAiMode) {
+                  propsToFill.push(colObj.title!)
+
+                  // add rows to fill if they are not already in the list
+                  if (
+                    !rowsToFill.find(
+                      (r) =>
+                        extractPkFromRow(r.row, meta.value?.columns as ColumnType[]) ===
+                        extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]),
+                    )
+                  ) {
+                    rowsToFill.push(rowObj)
+                  }
                 }
               }
+
+              pasteIndex++
             }
 
-            pasteIndex++
+            if (fillDirection === 1) {
+              fillIndex = fillIndex < rawMatrix.length - 1 ? fillIndex + 1 : 0
+            } else {
+              fillIndex = fillIndex >= 1 ? fillIndex - 1 : rawMatrix.length - 1
+            }
           }
 
-          if (fillDirection === 1) {
-            fillIndex = fillIndex < rawMatrix.length - 1 ? fillIndex + 1 : 0
-          } else {
-            fillIndex = fillIndex >= 1 ? fillIndex - 1 : rawMatrix.length - 1
-          }
-        }
+          if (localAiMode) {
+            const sampleRows = cprows.map((row) => {
+              const sampleRow: Record<string, any> = {
+                Id: extractPkFromRow(row.row, meta.value?.columns as ColumnType[]),
+              }
 
-        if (localAiMode) {
-          const sampleRows = cprows.map((row) => {
-            const sampleRow: Record<string, any> = {
-              Id: extractPkFromRow(row.row, meta.value?.columns as ColumnType[]),
-            }
+              for (const prop of propsToPaste) {
+                sampleRow[prop] = row.row[prop]
+              }
 
-            for (const prop of propsToPaste) {
-              sampleRow[prop] = row.row[prop]
-            }
+              for (const prop of propsToFill) {
+                sampleRow[prop] = 'FILL'
+              }
 
-            for (const prop of propsToFill) {
-              sampleRow[prop] = 'FILL'
-            }
-
-            return sampleRow
-          })
-
-          // string[] of Ids of rows to paste
-          const generateIds = rowsToPaste.map((row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]))
-
-          $api.ai
-            .dataFill(meta.value?.id, {
-              rows: sampleRows,
-              generateIds,
-              numRows: generateIds.length,
+              return sampleRow
             })
-            .then((r: Record<string, any>[]) => {
-              if (fillRange._start === null || fillRange._end === null) return
-              // update cells with the generated data
 
-              for (const row of rowsToPaste.concat(rowsToFill)) {
-                const generatedRow = r.find(
-                  (genRow) =>
-                    extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) ===
-                    extractPkFromRow(genRow, meta.value?.columns as ColumnType[]),
-                )
+            // string[] of Ids of rows to paste
+            const generateIds = rowsToPaste.map((row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]))
 
-                if (!generatedRow) {
-                  continue
-                }
-
-                for (const prop of propsToPaste.concat(propsToFill)) {
-                  row.row[prop] = generatedRow[prop]
-                }
-              }
-
-              bulkUpdateRows?.(rowsToPaste.concat(rowsToFill), propsToPaste.concat(propsToFill)).then(() => {
-                if (fillRange._start === null || fillRange._end === null) return
-                selectedRange.startRange(tempActiveCell)
-                selectedRange.endRange(fillRange._end)
-                makeActive(tempActiveCell.row, tempActiveCell.col)
-                fillRange.clear()
+            $api.ai
+              .dataFill(meta.value?.id, {
+                rows: sampleRows,
+                generateIds,
+                numRows: generateIds.length,
               })
-            })
-          return
-        }
+              .then((r: Record<string, any>[]) => {
+                if (fillRange._start === null || fillRange._end === null) return
+                // update cells with the generated data
 
-        bulkUpdateRows?.(rowsToPaste, propsToPaste).then(() => {
-          if (fillRange._start === null || fillRange._end === null) return
-          selectedRange.startRange(tempActiveCell)
-          selectedRange.endRange(fillRange._end)
-          makeActive(tempActiveCell.row, tempActiveCell.col)
+                for (const row of rowsToPaste.concat(rowsToFill)) {
+                  const generatedRow = r.find(
+                    (genRow) =>
+                      extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) ===
+                      extractPkFromRow(genRow, meta.value?.columns as ColumnType[]),
+                  )
+
+                  if (!generatedRow) {
+                    continue
+                  }
+
+                  for (const prop of propsToPaste.concat(propsToFill)) {
+                    row.row[prop] = generatedRow[prop]
+                  }
+                }
+
+                bulkUpdateRows?.(rowsToPaste.concat(rowsToFill), propsToPaste.concat(propsToFill)).then(() => {
+                  if (fillRange._start === null || fillRange._end === null) return
+                  selectedRange.startRange(tempActiveCell)
+                  selectedRange.endRange(fillRange._end)
+                  makeActive(tempActiveCell.row, tempActiveCell.col)
+                  fillRange.clear()
+                })
+              })
+            return
+          }
+
+          bulkUpdateRows?.(rowsToPaste, propsToPaste).then(() => {
+            if (fillRange._start === null || fillRange._end === null) return
+            selectedRange.startRange(tempActiveCell)
+            selectedRange.endRange(fillRange._end)
+            makeActive(tempActiveCell.row, tempActiveCell.col)
+            fillRange.clear()
+          })
+        } else {
           fillRange.clear()
-        })
-      } else {
-        fillRange.clear()
+        }
+        return
+      } catch (error) {
+        if (error instanceof TypeConversionError !== true || !(error as SuppressedError).isErrorSuppressed) {
+          console.error(error, (error as SuppressedError).isErrorSuppressed)
+          message.error(error?.message || 'Something went wrong')
+        }
       }
-      return
     }
 
     if (isMouseDown.value) {

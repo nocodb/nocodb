@@ -1,5 +1,4 @@
 import { S3 as S3Client } from '@aws-sdk/client-s3';
-
 import type { S3ClientConfigType } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2 } from '~/types/nc-plugin';
 import GenericS3 from '~/plugins/GenericS3/GenericS3';
@@ -10,6 +9,7 @@ interface R2ObjectStorageInput {
   access_secret: string;
   hostname: string;
   region: string;
+  custom_domain?: string;
 }
 
 export default class R2 extends GenericS3 implements IStorageAdapterV2 {

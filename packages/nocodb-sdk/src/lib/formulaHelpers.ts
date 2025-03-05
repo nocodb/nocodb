@@ -2421,11 +2421,21 @@ async function checkForCircularFormulaRef(
           visited
         );
       }
-    } else if (col.uidt === UITypes.Lookup) {
-      // For Lookup, get the LinkToAnotherRecord column
-      const linkToAnotherRecordCol = tableColumns.find(
-        (c) => c.id === (col.colOptions as LookupType).fk_relation_column_id
-      );
+    } else if (
+      col.uidt === UITypes.Lookup ||
+      col.uidt === UITypes.LinkToAnotherRecord
+    ) {
+      let linkToAnotherRecordCol: ColumnType;
+      let lookupColumnId: string;
+      if (col.uidt === UITypes.Lookup) {
+        // For Lookup, get the LinkToAnotherRecord column
+        linkToAnotherRecordCol = tableColumns.find(
+          (c) => c.id === (col.colOptions as LookupType).fk_relation_column_id
+        );
+        lookupColumnId = (col.colOptions as LookupType).fk_lookup_column_id;
+      } else {
+        linkToAnotherRecordCol = col;
+      }
 
       if (linkToAnotherRecordCol) {
         // Fetch the columns of the referenced table
@@ -2435,28 +2445,14 @@ async function checkForCircularFormulaRef(
         );
         const refTableColumns = refTableMeta.columns;
 
-        const displayValuCol = refTableColumns.find((c) => c.pv);
-        if (displayValuCol)
-          // Check nested formulas with the display value column of the referenced table
-          await checkNestedFormulas(displayValuCol, refTableColumns);
-      }
-    } else if (col.uidt === UITypes.LinkToAnotherRecord) {
-      const relatedFormulaCol = tableColumns.find(
-        (c) =>
-          c.id ===
-          (col.colOptions as LinkToAnotherRecordType).fk_related_model_id
-      );
-
-      if (relatedFormulaCol) {
-        // Fetch the columns of the referenced table
-        const refTableMeta = await getMeta(
-          (relatedFormulaCol!.colOptions as LinkToAnotherRecordType)!
-            .fk_related_model_id
+        // if lookup column id is not provided(LTAR), extract the primary value column of the referenced table
+        const lookUpColumn = refTableColumns.find((c) =>
+          col.uidt === UITypes.Lookup ? c.id === lookupColumnId : c.pv
         );
-        const refTableColumns = refTableMeta.columns;
 
-        // Check nested formulas with the columns of the referenced table
-        await checkNestedFormulas(relatedFormulaCol, refTableColumns);
+        if (lookUpColumn)
+          // Check nested formulas with the display value column of the referenced table
+          await checkNestedFormulas(lookUpColumn, refTableColumns);
       }
     }
   };

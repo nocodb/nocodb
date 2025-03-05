@@ -5,11 +5,25 @@ import {
   FormulaType,
   LinkToAnotherRecordType,
   RollupType,
+  TableType,
 } from './Api';
 import UITypes from './UITypes';
 import dayjs from 'dayjs';
-import { MssqlUi, MysqlUi, PgUi, SnowflakeUi, SqlUiFactory } from './sqlUi';
+import { SqlUiFactory } from './sqlUi';
 import { dateFormats } from './dateTimeHelper';
+
+type SqlUI = ReturnType<(typeof SqlUiFactory)['create']>;
+type ClientTypeOrSqlUI =
+  | 'mysql'
+  | 'pg'
+  | 'sqlite3'
+  | 'mssql'
+  | 'mysql2'
+  | 'oracledb'
+  | 'mariadb'
+  | 'sqlite'
+  | 'snowflake'
+  | SqlUI;
 
 export const StringOperators = ['||', '&'] as const;
 export const ArithmeticOperators = ['+', '-', '*', '/'] as const;
@@ -1572,7 +1586,7 @@ async function extractColumnIdentifierType({
   col: Record<string, any>;
   columns: ColumnType[];
   getMeta: (tableId: string) => Promise<any>;
-  clientOrSqlUi: any;
+  clientOrSqlUi: ClientTypeOrSqlUI;
 }) {
   const res: {
     dataType?: FormulaDataTypes;
@@ -1727,20 +1741,7 @@ export async function validateFormulaAndExtractTreeWithType({
 }: {
   formula: string;
   columns: ColumnType[];
-  clientOrSqlUi:
-    | 'mysql'
-    | 'pg'
-    | 'sqlite3'
-    | 'mssql'
-    | 'mysql2'
-    | 'oracledb'
-    | 'mariadb'
-    | 'sqlite'
-    | 'snowflake'
-    | typeof MysqlUi
-    | typeof MssqlUi
-    | typeof SnowflakeUi
-    | typeof PgUi;
+  clientOrSqlUi: ClientTypeOrSqlUI;
   column?: ColumnType;
   getMeta: (tableId: string) => Promise<any>;
 }): Promise<ParsedFormulaNode> {
@@ -1951,8 +1952,7 @@ export async function validateFormulaAndExtractTreeWithType({
             column,
             parsedTree,
             columns,
-            getMeta,
-            sqlUI
+            getMeta
           );
         }
         const formulaRes =
@@ -1970,7 +1970,7 @@ export async function validateFormulaAndExtractTreeWithType({
             }
           ));
 
-        res.dataType = (formulaRes as any)?.dataType;
+        res.dataType = (formulaRes as ParsedFormulaNode)?.dataType;
       } else {
         if (
           col?.uidt === UITypes.Lookup ||
@@ -1982,8 +1982,7 @@ export async function validateFormulaAndExtractTreeWithType({
               column,
               parsedTree,
               columns,
-              getMeta,
-              sqlUI
+              getMeta
             );
           }
         }
@@ -2281,11 +2280,10 @@ function handleBinaryExpressionForDateAndTime(params: {
   return res;
 }
 async function checkForCircularFormulaRef(
-  formulaCol,
-  parsedTree,
-  columns,
-  getMeta,
-  _sqlUI
+  formulaCol: ColumnType,
+  parsedTree: ParsedFormulaNode,
+  columns: ColumnType[],
+  getMeta: (tableId: string) => Promise<TableType & { columns: ColumnType[] }>
 ) {
   // Extract formula references
   const formulaPaths = await columns.reduce(async (promiseRes, c) => {
@@ -2293,7 +2291,9 @@ async function checkForCircularFormulaRef(
     if (c.id !== formulaCol.id && c.uidt === UITypes.Formula) {
       const neighbours = [
         ...new Set(
-          (c.colOptions.formula.match(/c_?\w{14,15}/g) || []).filter((colId) =>
+          (
+            (c.colOptions as FormulaType).formula.match(/c_?\w{14,15}/g) || []
+          ).filter((colId) =>
             columns.some(
               (col) => col.id === colId && col.uidt === UITypes.Formula
             )
@@ -2381,7 +2381,7 @@ async function checkForCircularFormulaRef(
   // include target formula column (i.e. the one to be saved if applicable)
   const targetFormulaCol = columns.find(
     (c: ColumnType) =>
-      c.title === parsedTree.name &&
+      c.title === (parsedTree as IdentifierNode).name &&
       [UITypes.Formula, UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(
         c.uidt as UITypes
       )

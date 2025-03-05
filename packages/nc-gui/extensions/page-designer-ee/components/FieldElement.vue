@@ -25,7 +25,7 @@ function onDragStart(e: DragEvent) {
     @dragstart="onDragStart"
   >
     <div class="flex flex-row items-center w-full truncate ml-1 py-[5px] pr-2">
-      <component v-if="displayDragHandle" :is="iconMap.drag" class="!h-3.75 text-gray-600 mr-1 cursor-move" />
+      <component :is="iconMap.drag" v-if="displayDragHandle" class="!h-3.75 text-gray-600 mr-1 cursor-move" />
       <component :is="icon" class="!text-gray-600 mr-2" />
 
       <NcTooltip class="pl-1 truncate" show-on-truncate-only>

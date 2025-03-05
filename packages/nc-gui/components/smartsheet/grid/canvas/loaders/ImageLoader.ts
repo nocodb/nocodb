@@ -156,6 +156,7 @@ export class ImageWindowLoader {
       borderColor?: string
       borderWidth?: number
     },
+    objectFit: 'contain' | 'cover' | 'fill' = 'cover',
   ): void {
     const { border = false, borderColor = '#e5e7eb', borderWidth = 1 } = borderOptions
 
@@ -185,16 +186,40 @@ export class ImageWindowLoader {
     )
     ctx.clip()
 
-    const scale = Math.max(
-      (width - (border ? borderWidth : 0)) / image.width,
-      (height - (border ? borderWidth : 0)) / image.height,
-    )
-    const scaledWidth = image.width * scale
-    const scaledHeight = image.height * scale
-    const offsetX = (width - (border ? borderWidth : 0) - scaledWidth) / 2
-    const offsetY = (height - (border ? borderWidth : 0) - scaledHeight) / 2
+    // Adjust width & height to account for the border
+    const availableWidth = width - (border ? borderWidth : 0)
+    const availableHeight = height - (border ? borderWidth : 0)
 
-    ctx.drawImage(image, x + offsetX, y + offsetY, scaledWidth, scaledHeight)
+    // Calculate scale and position based on objectFit
+    let scaleX = availableWidth / image.width
+    let scaleY = availableHeight / image.height
+    let scale: number
+    let offsetX = 0
+    let offsetY = 0
+
+    if (objectFit === 'contain') {
+      scale = Math.min(scaleX, scaleY) // Scale to fit inside the box
+      offsetX = (availableWidth - image.width * scale) / 2
+      offsetY = (availableHeight - image.height * scale) / 2
+    } else if (objectFit === 'cover') {
+      scale = Math.max(scaleX, scaleY) // Scale to cover the entire box
+      offsetX = (availableWidth - image.width * scale) / 2
+      offsetY = (availableHeight - image.height * scale) / 2
+    } else {
+      // 'fill' mode - stretch to fit exactly
+      scaleX = availableWidth / image.width
+      scaleY = availableHeight / image.height
+      scale = 1
+    }
+
+    // Draw the image with proper scaling & border consideration
+    ctx.drawImage(
+      image,
+      x + offsetX + (border ? borderWidth / 2 : 0),
+      y + offsetY + (border ? borderWidth / 2 : 0),
+      image.width * (objectFit === 'fill' ? scaleX : scale),
+      image.height * (objectFit === 'fill' ? scaleY : scale),
+    )
     ctx.restore()
   }
 

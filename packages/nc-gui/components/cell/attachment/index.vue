@@ -418,6 +418,7 @@ onMounted(() => {
             <LazyCellAttachmentPreviewImage
               v-if="isImage(item.title, item.mimetype ?? item.type)"
               :alt="item.title || `#${i}`"
+              object-fit="contain"
               class="nc-attachment rounded-lg w-full h-full object-cover overflow-hidden"
               :srcs="getPossibleAttachmentSrc(item, attachmentSize)"
               @click="() => onFileClick(item)"

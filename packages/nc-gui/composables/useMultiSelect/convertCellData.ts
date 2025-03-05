@@ -21,7 +21,12 @@ export default function convertCellData(
   if (value === '' && to !== UITypes.Attachment) return null
 
   let serializedValue = value
+
+  /* eslint-disable no-useless-catch */
   try {
+    /**
+     * This method can throw errors. so it's important to use a try-catch block when calling it.
+     */
     serializedValue = ColumnHelper.serializeValue(value, {
       col: column,
       isMysql: (_sourceId) => isMysql,
@@ -29,12 +34,10 @@ export default function convertCellData(
     })
 
     serializedValue = handlePostSerialize(serializedValue, value)
-
-    // Todo: Remove after testing
-    console.log('serializedValue', serializedValue, column.uidt)
   } catch (ex) {
     throw ex
   }
+  /* eslint-enable no-useless-catch */
 
   function handlePostSerialize(serializedValue: any, value: any) {
     switch (to) {

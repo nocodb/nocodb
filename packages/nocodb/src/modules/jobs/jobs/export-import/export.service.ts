@@ -771,8 +771,7 @@ export class ExportService {
 
         const mmFields = mmModel.columns
           .filter((c) => c.uidt === UITypes.ForeignKey)
-          .map((c) => c.title)
-          .join(',');
+          .map((c) => c.title);
 
         const mmFormatData = (data: any) => {
           data.map((d) => {
@@ -927,7 +926,7 @@ export class ExportService {
     view: View,
     offset: number,
     limit: number,
-    fields: string,
+    fields: string[],
     header = false,
   ): Promise<void> {
     return new Promise((resolve, reject) => {

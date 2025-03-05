@@ -67,30 +67,26 @@ export default class CalendarRange
     columnId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    return (
-      (
-        await ncMeta.metaList2(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.CALENDAR_VIEW_RANGE,
-          {
-            xcCondition: {
-              _or: [
-                {
-                  fk_from_column_id: {
-                    eq: columnId,
-                  },
-                },
-                {
-                  fk_to_column_id: {
-                    eq: columnId,
-                  },
-                },
-              ],
+    return await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.CALENDAR_VIEW_RANGE,
+      {
+        xcCondition: {
+          _or: [
+            {
+              fk_from_column_id: {
+                eq: columnId,
+              },
             },
-          },
-        )
-      ).length > 0
+            {
+              fk_to_column_id: {
+                eq: columnId,
+              },
+            },
+          ],
+        },
+      },
     );
   }
 }

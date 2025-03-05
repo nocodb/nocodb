@@ -5,13 +5,16 @@ import AbstractColumnHelper, {
 import {
   BarcodeHelper,
   CheckboxHelper,
+  CreatedTimeHelper,
   CurrencyHelper,
+  DateHelper,
   DecimalHelper,
   DurationHelper,
   EmailHelper,
   FormulaHelper,
   GeoDataHelper,
   JsonHelper,
+  LastModifiedTimeHelper,
   LongTextHelper,
   NumberHelper,
   PercentHelper,
@@ -43,6 +46,9 @@ export class ColumnHelperClass {
     [UITypes.Barcode]: BarcodeHelper,
     [UITypes.QrCode]: QrCodeHelper,
     [UITypes.Formula]: FormulaHelper,
+    [UITypes.Date]: DateHelper,
+    [UITypes.CreatedTime]: CreatedTimeHelper,
+    [UITypes.LastModifiedBy]: LastModifiedTimeHelper,
   };
 
   // Method to retrieve the specific column class and instantiate it

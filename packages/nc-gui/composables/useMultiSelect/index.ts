@@ -160,7 +160,9 @@ export function useMultiSelect(
     let textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
 
     // Todo: remove after testing
-    const parsedValue = ColumnHelper.parseValue(textToCopy, columnObj)
+    const parsedValue = ColumnHelper.parseValue(textToCopy, {
+      col: columnObj,
+    })
 
     console.log('parsedValue', parsedValue, textToCopy, columnObj.uidt)
 

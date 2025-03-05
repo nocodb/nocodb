@@ -117,6 +117,24 @@ export const parseCurrencyValue = (value: any, col: ColumnType) => {
   }
 };
 
+export const parseDateValue = (
+  modelValue: string | null,
+  col: ColumnType,
+  isSystemCol?: boolean
+) => {
+  const dateFormat = !isSystemCol
+    ? parseProp(col.meta)?.date_format ?? 'YYYY-MM-DD'
+    : 'YYYY-MM-DD HH:mm:ss';
+
+  if (!modelValue || !dayjs(modelValue).isValid()) {
+    return null;
+  } else {
+    return dayjs(
+      /^\d+$/.test(String(modelValue)) ? +modelValue : modelValue
+    ).format(dateFormat);
+  }
+};
+
 export const parseYearValue = (value: any) => {
   if (!value || !dayjs(value?.toString()).isValid()) {
     return null;

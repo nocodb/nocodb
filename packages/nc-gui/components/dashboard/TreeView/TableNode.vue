@@ -706,7 +706,7 @@ async function onRename() {
       :base-id="base.id"
     />
     <LazyDashboardSettingsSyncEdit
-      v-if="table.id && table?.synced && base?.id && isSyncModalOpen"
+      v-if="table && table.id && table.synced && base?.id && isSyncModalOpen"
       v-model:open="isSyncModalOpen"
       :table-id="table.id"
       :base-id="base.id"

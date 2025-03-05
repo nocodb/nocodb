@@ -1,3 +1,4 @@
+import { ncIsString } from '../is';
 import UITypes from '../UITypes';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
@@ -79,18 +80,31 @@ export class ColumnHelperClass {
 
   // Method to retrieve the specific column class and instantiate it
   getColumn(
-    params: SerializerOrParserFnProps['params']
+    params: SerializerOrParserFnProps['params'] | UITypes
   ): AbstractColumnHelper | undefined {
     let ColumnClass: new () => AbstractColumnHelper;
 
-    if (!params.col || !this.registry[params.col.uidt]) {
-      ColumnClass = this.registry[this.defautlHelper];
+    if (ncIsString(params)) {
+      ColumnClass = this.registry[params] || this.getColumn[this.defautlHelper];
     } else {
-      ColumnClass = this.registry[params.col.uidt];
+      if (!params.col || !this.registry[params.col.uidt]) {
+        ColumnClass = this.registry[this.defautlHelper];
+      } else {
+        ColumnClass = this.registry[params.col.uidt];
+      }
     }
 
     // Instantiate the class with the column data
     return new ColumnClass();
+  }
+
+  getColumnDefaultMeta(uidt: UITypes): Record<string, any> {
+    const columnInstance = this.getColumn(uidt);
+    if (columnInstance) {
+      return columnInstance.columnDefaultMeta || {};
+    }
+
+    return {};
   }
 
   /**

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type HookReqType, type HookTestReqType, type HookType, PlanLimitTypes } from 'nocodb-sdk'
+import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 
@@ -38,11 +38,7 @@ const meta = inject(MetaInj, ref())
 
 const { getMeta } = useMetas()
 
-const { appInfo } = useGlobal()
-
 const { activeTable } = toRefs(useTablesStore())
-
-const { updateStatLimit, showWebhookLogsFeatureAccessModal } = useEeConfig()
 
 const defaultHookName = t('labels.webhook')
 
@@ -50,39 +46,20 @@ const testSuccess = ref()
 
 const testConnectionError = ref('')
 
+const isV3ModalOpen = ref(false)
+
 const useForm = Form.useForm
 
-const eventTriggerOption = ref(0)
-const eventsEnum = computed(() => {
-  const result: { text: string; value: string } = []
-  for (const event of eventList.value) {
-    if (!result.some((k) => k.value === event.value[0])) {
-      result.push({
-        text: event.text[0],
-        value: event.value[0],
-      })
-    }
-  }
-  return result
-})
-
-let hookRef = reactive<
-  Omit<HookType, 'notification'> & {
-    notification: Record<string, any> & {
-      include_user: boolean
-    }
-    eventOperation?: string
-    condition: boolean
-  }
+const hookRef = reactive<
+  Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation?: string; condition: boolean }
 >({
   id: '',
   title: defaultHookName,
   event: undefined,
-  operation: [],
+  operation: undefined,
   eventOperation: undefined,
   notification: {
     type: 'URL',
-    include_user: false,
     payload: {
       method: 'POST',
       body: '{{ json event }}',
@@ -105,23 +82,7 @@ let hookRef = reactive<
   },
   condition: false,
   active: true,
-  version: 'v3',
-})
-
-const operationsEnum = computed(() => {
-  console.log('hookRef.event', hookRef.event)
-  if (!hookRef.event) {
-    return []
-  }
-  const result: { text: string; value: string } = eventList.value
-    .filter((event) => event.value[0] === hookRef.event)
-    .map((event) => {
-      return {
-        text: event.text[1],
-        value: event.value[1],
-      }
-    })
-  return result
+  version: 'v2',
 })
 
 const isBodyShown = ref(hookRef.version === 'v1' || isEeUI)
@@ -137,38 +98,10 @@ const teamsChannels = ref<Record<string, any>[]>([])
 const discordChannels = ref<Record<string, any>[]>([])
 
 const mattermostChannels = ref<Record<string, any>[]>([])
-const operationSelectRef = templateRef('operation-select-ref')
-const isOperationSelectOpen = ref<boolean>(false)
-const sendMeEverythingChecked = ref(false)
 
 const filterRef = ref()
 
 const titleDomRef = ref<HTMLInputElement | undefined>()
-
-const toggleOperation = (operation: string) => {
-  if (hookRef.operation?.includes(operation as any)) {
-    hookRef.operation!.splice(hookRef.operation!.indexOf(operation as any), 1)
-  } else {
-    hookRef.operation!.push(operation as any)
-  }
-}
-const toggleSendMeEverythingChecked = () => {
-  sendMeEverythingChecked.value = !sendMeEverythingChecked.value
-  if (sendMeEverythingChecked.value) {
-    hookRef.operation = operationsEnum.value.map((k) => k.value)
-  }
-  isOperationSelectOpen.value = false
-  operationSelectRef.value?.target?.blur()
-}
-
-const handleEventChange = (e) => {
-  sendMeEverythingChecked.value = false
-  hookRef.operation = []
-  hookRef.event = e
-  if (e !== 'after') {
-    hookRef.operation = ['trigger']
-  }
-}
 
 const formInput = ref({
   'Email': [
@@ -288,52 +221,14 @@ const methodList = [
   { title: 'PATCH' },
 ]
 
-const showCyclicCallsWarning = ref(false)
-
 const validators = computed(() => {
   return {
     'title': [fieldRequiredValidator()],
+    'eventOperation': [fieldRequiredValidator()],
     'notification.type': [fieldRequiredValidator()],
     ...(hookRef.notification.type === 'URL' && {
       'notification.payload.method': [fieldRequiredValidator()],
-      'notification.payload.path': [
-        fieldRequiredValidator(),
-        {
-          validator: (_: any, path: string) => {
-            return new Promise<void>((resolve, reject) => {
-              showCyclicCallsWarning.value = false
-              const siteUrl = appInfo.value?.ncSiteUrl
-
-              if (!path || !siteUrl) {
-                resolve()
-                return
-              }
-
-              let matched = false
-              try {
-                const webhookUrl = new URL(hookRef.value.notification.payload.path)
-                const siteUrlObj = new URL(siteUrl)
-
-                // Check if the hostname matches exactly
-                matched = webhookUrl.hostname === siteUrlObj.hostname
-              } catch (e) {
-                // If URL parsing fails, fall back to simple includes check
-                matched = path.includes(siteUrl)
-              }
-
-              if (matched) {
-                if (appInfo.value?.isCloud) {
-                  reject(new Error(t('msg.internalUrlsNotAllowed')))
-                } else {
-                  showCyclicCallsWarning.value = true
-                }
-              }
-
-              resolve()
-            })
-          },
-        },
-      ],
+      'notification.payload.path': [fieldRequiredValidator()],
     }),
     ...(hookRef.notification.type === 'Email' && {
       'notification.payload.to': [fieldRequiredValidator()],
@@ -350,13 +245,13 @@ const validators = computed(() => {
     }),
   }
 })
-const { validate, validateInfos } = useForm(hookRef, validators)
+const { validateInfos } = useForm(hookRef, validators)
 
 const getChannelsArray = (val: unknown) => {
   if (val) {
     if (Array.isArray(val)) {
       return val
-    } else if (typeof val === 'object' && Object.keys(val).length > 0) {
+    } else if (typeof val === 'object' && Object.keys(val)) {
       return [val]
     }
   }
@@ -399,25 +294,14 @@ function onNotificationTypeChange(reset = false) {
 }
 
 function setHook(newHook: HookType) {
-  const toAssign = {
-    ...newHook,
-    operation: typeof newHook.operation === 'string' ? [newHook.operation] : newHook.operation,
-    version: 'v3',
-  }
   const notification = newHook.notification as Record<string, any>
   Object.assign(hookRef, {
-    ...toAssign,
+    ...newHook,
     notification: {
       ...notification,
-      include_user: notification?.include_user ?? false,
       payload: notification.payload,
     },
   })
-  if (toAssign.operation && toAssign.operation.length === eventList.value.length) {
-    eventTriggerOption.value = 0
-  } else {
-    eventTriggerOption.value = 1
-  }
 }
 
 function onEventChange() {
@@ -426,7 +310,6 @@ function onEventChange() {
   Object.assign(hookRef, {
     ...hookRef,
     notification: {
-      ...hookRef.notification,
       type,
       payload,
     },
@@ -499,93 +382,9 @@ const isConditionSupport = computed(() => {
   return hookRef.eventOperation && !(hookRef.eventOperation.includes('bulk') || hookRef.eventOperation.includes('manual'))
 })
 
-async function saveHooks() {
-  loading.value = true
-  try {
-    await validate()
-    if (hookRef.operation?.length === 0 && eventTriggerOption.value === 1) {
-      throw new Error('At least one operation need to be selected')
-    }
-  } catch (_: any) {
-    message.error(t('msg.error.invalidForm'))
-
-    loading.value = false
-
-    return
-  }
-
-  let operations = [...(hookRef.operation ?? [])]
-  if (eventTriggerOption.value === 0) {
-    operations = eventList.value.map((k) => k.value[1])
-  }
-
-  try {
-    let res
-    if (hookRef.id) {
-      res = await api.dbTableWebhook.update(hookRef.id, {
-        ...hookRef,
-        operation: operations,
-        event: 'after',
-        notification: {
-          ...hookRef.notification,
-          payload: hookRef.notification.payload,
-        },
-      })
-    } else {
-      res = await api.dbTableWebhook.create(meta.value!.id!, {
-        ...hookRef,
-        operation: operations,
-        event: 'after',
-        notification: {
-          ...hookRef.notification,
-          payload: hookRef.notification.payload,
-        },
-      } as HookReqType)
-
-      hooks.value.push(res)
-      updateStatLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE, 1)
-    }
-
-    if (res && typeof res.notification === 'string') {
-      res.notification = JSON.parse(res.notification)
-    }
-
-    if (!hookRef.id && res) {
-      hookRef = { ...hookRef, ...res } as any
-    }
-
-    if (filterRef.value) {
-      await filterRef.value.applyChanges(hookRef.id, false, isConditionSupport.value)
-    }
-
-    // Webhook details updated successfully
-    hooks.value = hooks.value.map((h) => {
-      if (h.id === hookRef.id) {
-        return hookRef
-      }
-      return h
-    })
-
-    $e('a:webhook:add', {
-      operation: hookRef.operation,
-      condition: hookRef.condition,
-      notification: hookRef.notification.type,
-    })
-
-    emits('close', hookRef)
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    getMeta(activeTable.value.id, true)
-    loading.value = false
-  }
-}
-
 const closeModal = () => {
   emits('close', hookRef)
 }
-
-const isTestLoading = ref(false)
 
 const sampleData = ref()
 
@@ -602,26 +401,6 @@ const toggleSamplePayload = () => {
       containerElem.value.scrollTop = containerElem.value.scrollHeight
     }
   })
-}
-
-async function testWebhook() {
-  try {
-    testConnectionError.value = ''
-    testSuccess.value = false
-    isTestLoading.value = true
-    await $api.dbTableWebhook.test(
-      meta.value?.id as string,
-      {
-        hook: hookRef,
-        payload: sampleData.value,
-      } as HookTestReqType,
-    )
-    testSuccess.value = true
-  } catch (e: any) {
-    testConnectionError.value = await extractSdkResponseErrorMsg(e)
-  } finally {
-    isTestLoading.value = false
-  }
 }
 
 const supportedDocs = [
@@ -653,13 +432,8 @@ watch(
 async function loadSampleData() {
   sampleData.value = await $api.dbTableWebhook.samplePayloadGet(
     meta?.value?.id as string,
-    ((hookRef?.operation && hookRef?.operation[0]) as any) || 'insert',
+    hookRef?.operation || 'insert',
     hookRef.version!,
-    {
-      query: {
-        includeUser: (!!hookRef.notification?.include_user).toString(),
-      },
-    },
   )
 }
 
@@ -686,12 +460,6 @@ const getNotificationIconName = (type: string): keyof typeof iconMap => {
     case 'Whatsapp Twilio':
       return 'whatsapp'
   }
-}
-
-const handleChangeTab = (tab: HookTab) => {
-  if (tab === HookTab.Log && showWebhookLogsFeatureAccessModal()) return
-
-  activeTab.value = tab
 }
 
 onKeyDown('Escape', () => {
@@ -726,6 +494,12 @@ watch(
 onMounted(async () => {
   await loadPluginList()
 
+  if (hookRef.event && hookRef.operation) {
+    hookRef.eventOperation = `${hookRef.event} ${hookRef.operation}`
+  } else {
+    hookRef.eventOperation = eventList.value[0].value.join(' ')
+  }
+
   onNotificationTypeChange()
 
   until(() => titleDomRef.value as HTMLInputElement)
@@ -735,15 +509,16 @@ onMounted(async () => {
       titleDomRef.value?.select()
     })
 })
-
-const toggleIncludeUser = async () => {
-  hookRef.notification.include_user = !hookRef.notification.include_user
-  await loadSampleData()
-}
 </script>
 
 <template>
-  <NcModal v-model:visible="modalVisible" :show-separator="true" size="large" wrap-class-name="nc-modal-webhook-create-edit">
+  <NcModal
+    v-if="!isV3ModalOpen"
+    v-model:visible="modalVisible"
+    :show-separator="true"
+    size="large"
+    wrap-class-name="nc-modal-webhook-create-edit"
+  >
     <template #header>
       <div class="flex w-full items-center px-4 py-2 justify-between">
         <div class="flex items-center gap-3 flex-1">
@@ -765,7 +540,7 @@ const toggleIncludeUser = async () => {
             :class="{
               active: activeTab === HookTab.Configuration,
             }"
-            @click="handleChangeTab(HookTab.Configuration)"
+            @click="activeTab = HookTab.Configuration"
           >
             <div class="tab-title nc-tab">{{ $t('general.details') }}</div>
           </div>
@@ -775,37 +550,13 @@ const toggleIncludeUser = async () => {
             :class="{
               active: activeTab === HookTab.Log,
             }"
-            @click="handleChangeTab(HookTab.Log)"
+            @click="activeTab = HookTab.Log"
           >
             <div class="tab-title nc-tab">{{ $t('general.logs') }}</div>
           </div>
         </div>
 
         <div class="flex justify-end items-center gap-3 flex-1">
-          <template v-if="activeTab === HookTab.Configuration">
-            <NcTooltip :disabled="!testConnectionError">
-              <template #title>
-                {{ testConnectionError }}
-              </template>
-              <NcButton :loading="isTestLoading" type="secondary" size="small" icon-position="right" @click="testWebhook">
-                <template #icon>
-                  <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-green-700 w-4 h-4 flex-none" />
-                  <GeneralIcon
-                    v-else-if="testConnectionError"
-                    icon="alertTriangleSolid"
-                    class="!text-red-700 w-4 h-4 flex-none"
-                  />
-                </template>
-                <span>
-                  {{ testSuccess ? 'Test Successful' : $t('activity.testWebhook') }}
-                </span>
-              </NcButton>
-            </NcTooltip>
-
-            <NcButton :loading="loading" type="primary" size="small" data-testid="nc-save-webhook" @click.stop="saveHooks">
-              {{ hook ? $t('labels.multiField.saveChanges') : $t('activity.createWebhook') }}
-            </NcButton>
-          </template>
           <NcButton type="text" size="small" data-testid="nc-close-webhook-modal" @click.stop="closeModal">
             <GeneralIcon icon="close" />
           </NcButton>
@@ -835,84 +586,107 @@ const toggleIncludeUser = async () => {
             </div>
           </a-form-item>
 
+          <a-form-item>
+            <a-card>
+              <div class="flex flex-row">
+                <div class="px-4">
+                  <!-- TODO: better icon -->
+                  <GeneralIcon icon="ncAlertCircle" class="text-orange-500 mt-1 w-6 h-6 nc-pending" />
+                </div>
+                <div>
+                  <div class="font-bold">This webhook will be deprecated</div>
+                  <span>
+                    This version of webhooks will be discontinued soon. Upgrade to v3 to retain your webhook settings and avoid
+                    disruptions.
+                  </span>
+                </div>
+                <div>
+                  <a-button type="link" @click="isV3ModalOpen = true"><span class="font-bold">Upgrade to v3</span></a-button>
+                </div>
+              </div>
+            </a-card>
+          </a-form-item>
+
           <a-form class="flex flex-col gap-8" :model="hookRef" name="create-or-edit-webhook">
-            <div class="flex flex-col">
-              <a-typography-title :level="3">Trigger</a-typography-title>
-              <a-card>
-                <div class="w-full flex gap-3 px-3 my-2">
-                  <NcSelect v-model:value="hookRef.event" class="w-full" @change="handleEventChange">
-                    <a-select-option v-for="event of eventsEnum" :key="event.value"> {{ event.text }}</a-select-option>
-                  </NcSelect>
-                  <a-select
-                    ref="operation-select-ref"
-                    v-model:value="hookRef.operation"
-                    mode="multiple"
-                    class="w-full"
-                    :open="isOperationSelectOpen"
-                    @click="isOperationSelectOpen = true"
-                    @blur="isOperationSelectOpen = false"
-                  >
-                    <a-select-option v-for="operation of operationsEnum" :key="operation.value" :value="operation.value">
-                      {{ operation.text }}</a-select-option
-                    >
-
-                    <template #dropdownRender="{ menuNode: menu }">
-                      <NcButton
-                        v-if="hookRef.event === 'after'"
-                        type="link"
-                        class="w-full"
-                        @click="toggleSendMeEverythingChecked"
-                        @mousedown.prevent
-                      >
-                        <div class="w-full flex gap-2">
-                          <div class="flex-grow">Send me everything</div>
-                          <div class="flex flex-shrink max-w-[18px]">
-                            <a-checkbox v-model:checked="sendMeEverythingChecked" :disabled="true"></a-checkbox>
-                          </div>
-                        </div>
-                      </NcButton>
-                      <a-divider v-if="hookRef.event === 'after' && !sendMeEverythingChecked" style="margin: 4px 0" />
-                      <div v-if="!sendMeEverythingChecked || hookRef.event !== 'after'">
-                        <component :is="menu" />
-                      </div>
-                    </template>
-                  </a-select>
-                </div>
-              </a-card>
-              <a-card>
-                <div
-                  class="w-full cursor-pointer flex items-center px-3 my-2"
-                  @click.prevent="hookRef.condition = !hookRef.condition"
-                >
-                  <NcSwitch :checked="Boolean(hookRef.condition)" class="nc-check-box-hook-condition">
-                    <span class="!text-gray-700 font-semibold">
-                      {{ $t('general.trigger') }} {{ $t('activity.onCondition') }}
-                    </span>
-                  </NcSwitch>
-                </div>
-
-                <div class="px-3">
-                  <LazySmartsheetToolbarColumnFilter
-                    v-if="hookRef.condition"
-                    ref="filterRef"
-                    class="w-full"
-                    :auto-save="false"
-                    :show-loading="false"
-                    :hook-id="hookRef.id"
-                    :web-hook="true"
-                    action-btn-type="secondary"
-                    @update:filters-length="hookRef.condition = $event > 0"
-                  />
-                </div>
-              </a-card>
-            </div>
             <div class="flex flex-col gap-4">
+              <div class="flex w-full gap-3 custom-select">
+                <a-form-item class="w-1/3" v-bind="validateInfos.eventOperation">
+                  <a-select
+                    v-model:value="hookRef.eventOperation"
+                    size="medium"
+                    :disabled="true"
+                    :placeholder="$t('general.event')"
+                    class="nc-text-field-hook-event !h-9 capitalize"
+                    dropdown-class-name="nc-dropdown-webhook-event"
+                  >
+                    <template #suffixIcon>
+                      <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                    </template>
+                    <a-select-option
+                      v-for="(event, i) in eventList"
+                      :key="i"
+                      class="capitalize"
+                      :value="event.value.join(' ')"
+                      :disabled="hookRef.version === 'v1' && ['bulkInsert', 'bulkUpdate', 'bulkDelete'].includes(event.value[1])"
+                    >
+                      <div class="flex items-center w-full gap-2 justify-between">
+                        <NcTooltip class="truncate" show-on-truncate-only>
+                          <template #title>
+                            {{ event.text.join(' ') }}
+                          </template>
+                          {{ event.text.join(' ') }}
+                        </NcTooltip>
+                        <component
+                          :is="iconMap.check"
+                          v-if="hookRef.eventOperation === event.value.join(' ')"
+                          id="nc-selected-item-icon"
+                          class="text-primary w-4 h-4 flex-none"
+                        />
+                      </div>
+                    </a-select-option>
+                  </a-select>
+                </a-form-item>
+                <a-form-item class="w-2/3" v-bind="validateInfos['notification.type']">
+                  <a-select
+                    v-model:value="hookRef.notification.type"
+                    size="medium"
+                    :disabled="true"
+                    class="nc-select-hook-notification-type !h-9"
+                    :placeholder="$t('general.notification')"
+                    dropdown-class-name="nc-dropdown-webhook-notification"
+                    @change="onNotificationTypeChange(true)"
+                  >
+                    <template #suffixIcon>
+                      <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                    </template>
+                    <a-select-option
+                      v-for="(notificationOption, i) in notificationList"
+                      :key="i"
+                      :value="notificationOption.type"
+                    >
+                      <div class="flex items-center w-full gap-2">
+                        <GeneralIcon :icon="getNotificationIconName(notificationOption.type)" class="mr-2 stroke-transparent" />
+
+                        <div class="flex-1">{{ notificationOption.text }}</div>
+                        <component
+                          :is="iconMap.check"
+                          v-if="hookRef.notification.type === notificationOption.type"
+                          id="nc-selected-item-icon"
+                          class="text-primary w-4 h-4 flex-none"
+                        />
+                      </div>
+                    </a-select-option>
+                  </a-select>
+                </a-form-item>
+              </div>
+
               <div v-if="hookRef.notification.type === 'URL'" class="flex flex-col gap-8">
                 <div class="flex flex-col custom-select w-full gap-4">
                   <div class="flex w-full gap-3">
                     <a-form-item class="w-1/3">
                       <a-select
                         v-model:value="hookRef.notification.payload.method"
+                        :disabled="true"
                         size="medium"
                         class="nc-select-hook-url-method"
                         dropdown-class-name="nc-dropdown-hook-notification-url-method"
@@ -934,23 +708,20 @@ const toggleIncludeUser = async () => {
                         </a-select-option>
                       </a-select>
                     </a-form-item>
+
                     <a-form-item class="w-2/3" v-bind="validateInfos['notification.payload.path']">
-                      <div class="flex flex-col gap-2">
-                        <a-input
-                          v-model:value="hookRef.notification.payload.path"
-                          size="medium"
-                          placeholder="http://example.com"
-                          class="nc-text-field-hook-url-path nc-input-shadow h-9 !rounded-lg"
-                        />
-                        <div v-if="showCyclicCallsWarning" class="text-xs text-warning pl-2">
-                          {{ $t('msg.cyclicCallsWarning') }}
-                        </div>
-                      </div>
+                      <a-input
+                        v-model:value="hookRef.notification.payload.path"
+                        :disabled="true"
+                        size="medium"
+                        placeholder="http://example.com"
+                        class="nc-text-field-hook-url-path nc-input-shadow h-9 !rounded-lg"
+                      />
                     </a-form-item>
                   </div>
                 </div>
                 <div>
-                  <NcTabs v-model:active-key="urlTabKey">
+                  <NcTabs v-model:activeKey="urlTabKey">
                     <a-tab-pane key="params" :tab="$t('title.parameter')" force-render>
                       <LazyApiClientParams v-model="hookRef.notification.payload.parameters" />
                     </a-tab-pane>
@@ -1001,9 +772,6 @@ const toggleIncludeUser = async () => {
                             wrappingStrategy: 'advanced',
                             renderLineHighlight: 'none',
                             tabSize: 4,
-                            stickyScroll: {
-                              enabled: props.stickyScroll,
-                            },
                           }"
                         />
                       </div>
@@ -1057,20 +825,24 @@ const toggleIncludeUser = async () => {
               </div>
             </div>
 
-            <div v-if="isEeUI">
-              <div>
-                <div class="w-full cursor-pointer flex items-center" @click.prevent="toggleIncludeUser">
-                  <NcSwitch :checked="Boolean(hookRef.notification.include_user)" class="nc-check-box-include-user">
-                    <span class="!text-gray-700 font-semibold">{{ $t('labels.includeUser') }}</span>
-                  </NcSwitch>
-                  <NcTooltip>
-                    <template #title>
-                      {{ $t('tooltip.includeUserHint') }}
-                    </template>
-                    <GeneralIcon icon="info" class="text-gray-400 ml-1" />
-                  </NcTooltip>
-                </div>
+            <div v-if="isConditionSupport">
+              <div class="w-full cursor-pointer flex items-center" @click.prevent="hookRef.condition = !hookRef.condition">
+                <NcSwitch :checked="Boolean(hookRef.condition)" :disabled="true" class="nc-check-box-hook-condition">
+                  <span class="!text-gray-700 font-semibold"> {{ $t('general.trigger') }} {{ $t('activity.onCondition') }} </span>
+                </NcSwitch>
               </div>
+
+              <LazySmartsheetToolbarColumnFilter
+                v-if="hookRef.condition"
+                ref="filterRef"
+                class="w-full"
+                :auto-save="false"
+                :show-loading="false"
+                :hook-id="hookRef.id"
+                :web-hook="true"
+                action-btn-type="secondary"
+                @update:filters-length="hookRef.condition = $event > 0"
+              />
             </div>
 
             <a-form-item v-if="formInput[hookRef.notification.type] && hookRef.notification.payload">
@@ -1079,6 +851,7 @@ const toggleIncludeUser = async () => {
                   <a-form-item v-if="input.type === 'LongText'" v-bind="validateInfos[`notification.payload.${input.key}`]">
                     <a-textarea
                       v-model:value="hookRef.notification.payload[input.key]"
+                      :disabled="true"
                       class="!rounded-lg !min-h-[120px] nc-scrollbar-thin nc-input-shadow"
                       :placeholder="input.label"
                     />
@@ -1087,6 +860,7 @@ const toggleIncludeUser = async () => {
                   <a-form-item v-else v-bind="validateInfos[`notification.payload.${input.key}`]">
                     <a-input
                       v-model:value="hookRef.notification.payload[input.key]"
+                      :disabled="true"
                       class="!rounded-lg nc-input-shadow !h-9"
                       :placeholder="input.label"
                     />
@@ -1100,7 +874,6 @@ const toggleIncludeUser = async () => {
                 <NcButton type="text" class="mb-3" size="small" @click="toggleSamplePayload()">
                   <div class="flex items-center gap-3">
                     Sample Payload
-
                     <GeneralIcon
                       class="transition-transform"
                       :class="{
@@ -1114,7 +887,6 @@ const toggleIncludeUser = async () => {
               <div v-show="isVisible">
                 <LazyMonacoEditor
                   v-model="sampleData"
-                  read-only
                   :monaco-config="{
                     minimap: {
                       enabled: false,
@@ -1125,9 +897,10 @@ const toggleIncludeUser = async () => {
                     hideCursorInOverviewRuler: true,
                     lineDecorationsWidth: 12,
                     lineNumbersMinChars: 0,
+                    roundedSelection: false,
+                    selectOnLineNumbers: false,
                     scrollBeyondLastLine: false,
-                    renderLineHighlight: 'none',
-                    lineNumbers: 'off',
+                    contextmenu: false,
                     glyphMargin: false,
                     folding: false,
                     bracketPairColorization: { enabled: false },
@@ -1137,8 +910,8 @@ const toggleIncludeUser = async () => {
                       verticalScrollbarSize: 6,
                     },
                     wrappingStrategy: 'advanced',
+                    renderLineHighlight: 'none',
                     tabSize: 4,
-                    readOnly: true,
                   }"
                   :monaco-custom-theme="{
                     base: 'vs',
@@ -1190,6 +963,8 @@ const toggleIncludeUser = async () => {
       <WebhookCallLog :hook="hook" />
     </div>
   </NcModal>
+
+  <Webhook v-if="isV3ModalOpen" v-model:value="modalVisible" :hook="hook" :event-list="eventList" @close="closeModal()" />
 </template>
 
 <style lang="scss">

@@ -307,7 +307,7 @@ test.describe('Clipboard support', () => {
       { type: 'SingleLineText', value: 'SingleLineText' },
       { type: 'LongText', value: '"LongText"' },
       { type: 'SingleSelect', value: 'Option1' },
-      { type: 'MultiSelect', value: 'Option1,Option2' },
+      { type: 'MultiSelect', value: 'Option1, Option2' },
       { type: 'Number', value: '123' },
       { type: 'PhoneNumber', value: '987654321' },
       { type: 'Email', value: 'test@example.com' },

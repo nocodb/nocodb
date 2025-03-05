@@ -223,7 +223,7 @@ export const serializeSelectValue = (value: any, col: ColumnType) => {
 
   const optionsSet = new Set(availableOptions);
 
-  let vals = value.split(',');
+  let vals = value.split(',').map((val) => val.trim());
   const invalidVals = vals.filter((v) => !optionsSet.has(v));
 
   if (vals.length && col.uidt === UITypes.SingleSelect) {

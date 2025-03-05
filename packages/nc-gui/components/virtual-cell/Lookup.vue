@@ -244,7 +244,7 @@ const handleCloseDropdown = (e: MouseEvent) => {
 const badgedVirtualColumns = [UITypes.Rollup, UITypes.Formula]
 const isBadgedVirtualColumn = computed(() => badgedVirtualColumns.includes(lookupColumn.value?.uidt as UITypes))
 
-const isPageDesignerLookup = inject(IsPageDesignerExtensionActiveInj)
+const isPageDesignerLookup = inject(IsPageDesignerExtensionActiveInj, false)
 const { getPossibleAttachmentSrc } = useAttachment()
 const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])?.[0] ?? '')
 </script>

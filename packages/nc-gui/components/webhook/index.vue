@@ -52,8 +52,6 @@ const testConnectionError = ref('')
 
 const useForm = Form.useForm
 
-const eventTriggerOption = ref(0)
-
 const eventsLabelMap = computed(() => {
   const result: any = {}
   for (const event of eventList.value) {
@@ -518,7 +516,7 @@ async function saveHooks() {
   loading.value = true
   try {
     await validate()
-    if (hookRef.operation?.length === 0 && eventTriggerOption.value === 1) {
+    if (hookRef.operation?.length === 0 && sendMeEverythingChecked.value === false) {
       throw new Error('At least one operation need to be selected')
     }
   } catch (_: any) {
@@ -530,8 +528,8 @@ async function saveHooks() {
   }
 
   let operations = [...(hookRef.operation ?? [])]
-  if (eventTriggerOption.value === 0) {
-    operations = eventList.value.map((k) => k.value[1])
+  if (sendMeEverythingChecked.value === true) {
+    operations = eventList.value.filter((k) => k.value[0] === hookRef.event).map((k) => k.value[1])
   }
 
   try {
@@ -540,7 +538,6 @@ async function saveHooks() {
       res = await api.dbTableWebhook.update(hookRef.id, {
         ...hookRef,
         operation: operations,
-        event: 'after',
         notification: {
           ...hookRef.notification,
           payload: hookRef.notification.payload,
@@ -550,7 +547,6 @@ async function saveHooks() {
       res = await api.dbTableWebhook.create(meta.value!.id!, {
         ...hookRef,
         operation: operations,
-        event: 'after',
         notification: {
           ...hookRef.notification,
           payload: hookRef.notification.payload,

@@ -101,12 +101,20 @@ export const LookupCellRenderer: CellRenderer = {
 
     let lkRelatedTableMeta: TableType | undefined
 
-    // if lookup column is LTAR then extract the related table meta
-    if (
-      lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
-      (lookupColumn.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
-    ) {
-      lkRelatedTableMeta = metas?.[(lookupColumn.colOptions as LinkToAnotherRecordType)!.fk_related_model_id!]
+    // if lookup column is LTAR/Links then extract the related table meta
+    const lkRelatedModelId = (lookupColumn.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+
+    if (isLinksOrLTAR(lookupColumn) && lkRelatedModelId) {
+      lkRelatedTableMeta = metas?.[lkRelatedModelId]
+
+      // Load related table meta if not present
+      if (!lkRelatedTableMeta) {
+        if (tableMetaLoader.isLoading(lkRelatedModelId)) return
+
+        tableMetaLoader.getTableMeta(lkRelatedModelId)
+
+        return
+      }
     }
 
     const renderProps: CellRendererOptions = {
@@ -131,13 +139,7 @@ export const LookupCellRenderer: CellRenderer = {
     }
 
     const lookupRenderer = (options: CellRendererOptions) => {
-      return renderAsCellLookupOrLtarValue.includes(lookupColumn.uidt) ||
-        // if lookup pointing to hm/mm LTAR then use the renderCell
-        (isLinksOrLTAR(lookupColumn) &&
-          [RelationTypes.HAS_MANY, RelationTypes.MANY_TO_MANY].includes(
-            (lookupColumn.colOptions as LinkToAnotherRecordType)?.type,
-          )) ||
-        isRichText(lookupColumn)
+      return renderAsCellLookupOrLtarValue.includes(lookupColumn.uidt) || isRichText(lookupColumn)
         ? renderCell(ctx, lookupColumn, options)
         : PlainCellRenderer.render(ctx, options)
     }

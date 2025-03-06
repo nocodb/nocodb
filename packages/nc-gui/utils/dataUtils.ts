@@ -415,22 +415,22 @@ function safeToString(value) {
               break
             case 'allof':
               res = (filter.value?.split(',').map((item) => item.trim()) ?? []).every((item) =>
-                safeFieldValue.split(',').includes(item)
+                (safeFieldValue ? safeFieldValue.split(',') : []).includes(item)
               )
               break
             case 'anyof':
               res = (filter.value?.split(',').map((item) => item.trim()) ?? []).some((item) =>
-                safeFieldValue.split(',').includes(item)
+                (safeFieldValue ? safeFieldValue.split(',') : []).includes(item)
               )
               break
             case 'nallof':
               res = !(filter.value?.split(',').map((item) => item.trim()) ?? []).every((item) =>
-                safeFieldValue.split(',').includes(item)
+                (safeFieldValue ? safeFieldValue.split(',') : []).includes(item)
               )
               break
             case 'nanyof':
               res = !(filter.value?.split(',').map((item) => item.trim()) ?? []).some((item) =>
-                safeFieldValue.split(',').includes(item)
+                (safeFieldValue ? safeFieldValue.split(',') : []).includes(item)
               )
               break
             case 'lt':

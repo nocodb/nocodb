@@ -21,6 +21,31 @@ const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const inputRef = ref<HTMLInputElement>()
 const _vModel = useVModel(props, 'modelValue', emit)
 const lastSaved = ref()
+const cellFocused = ref(false)
+
+const inputType = computed(() => (!isForm.value && !cellFocused.value ? 'text' : 'number'))
+
+const currencyMeta = computed(() => {
+  return {
+    currency_locale: 'en-US',
+    currency_code: 'USD',
+    ...parseProp(column?.value?.meta),
+  }
+})
+
+const currency = computed(() => {
+  try {
+    if (_vModel.value === null || _vModel.value === undefined || isNaN(_vModel.value)) {
+      return _vModel.value
+    }
+    return new Intl.NumberFormat(currencyMeta.value.currency_locale || 'en-US', {
+      style: 'currency',
+      currency: currencyMeta.value.currency_code || 'USD',
+    }).format(_vModel.value)
+  } catch (e) {
+    return _vModel.value
+  }
+})
 
 const vModel = computed({
   get: () => _vModel.value,
@@ -33,18 +58,14 @@ const vModel = computed({
   },
 })
 
-const currencyMeta = computed(() => {
-  return {
-    currency_locale: 'en-US',
-    currency_code: 'USD',
-    ...parseProp(column?.value?.meta),
-  }
-})
-
 const focus: VNodeRef = (el) => {
   if (!isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
     inputRef.value = el as HTMLInputElement
     inputRef.value?.focus()
+  }
+
+  if (inputType.value == 'number' && !isForm.value) {
+    el?.focus()
   }
 }
 
@@ -54,12 +75,17 @@ const submitCurrency = () => {
     emit('save')
   }
   editEnabled.value = false
+  cellFocused.value = false
 }
 
 const onBlur = () => {
   // triggered by events like focus-out / pressing enter
   // for non-firefox browsers only
   submitCurrency()
+}
+
+const onFocus = () => {
+  cellFocused.value = true
 }
 
 const onKeydownEnter = () => {
@@ -90,6 +116,7 @@ onMounted(() => {
   </div>
   <!-- eslint-disable vue/use-v-on-exact -->
   <input
+    v-if="inputType === 'number'"
     :ref="focus"
     v-model="vModel"
     type="number"
@@ -99,6 +126,26 @@ onMounted(() => {
     :disabled="readOnly"
     @blur="onBlur"
     @keydown.enter="onKeydownEnter"
+    @keydown.down.stop
+    @keydown.left.stop
+    @keydown.right.stop
+    @keydown.up.stop
+    @keydown.delete.stop
+    @keydown.alt.stop
+    @selectstart.capture.stop
+    @mousedown.stop
+    @contextmenu.stop
+  />
+  <input
+    v-else
+    :ref="focus"
+    :value="currency"
+    type="text"
+    class="nc-cell-field h-full border-none rounded-md py-1 outline-none focus:outline-none focus:ring-0"
+    :class="isForm && !isEditColumn && !hidePrefix ? 'flex flex-1' : 'w-full'"
+    :placeholder="placeholder"
+    :disabled="readOnly"
+    @focus="onFocus"
     @keydown.down.stop
     @keydown.left.stop
     @keydown.right.stop

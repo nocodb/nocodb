@@ -162,6 +162,16 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
   return defaultData
 }
 
+// Helper function just for getting ID(s) from possible LTAR field
+function getFieldValue(value) {
+  if (Array.isArray(value)) {
+    // If it's an array of objects with IDs, map to just the IDs
+    return value.map(item => item.id || item).join(',');
+  }
+  // Otherwise return the value as is
+  return value;
+}
+
 export const isRowEmpty = (record: Pick<Row, 'row'>, col: ColumnType): boolean => {
   if (!record || !col || !col.title) return true
 
@@ -361,6 +371,7 @@ export function validateRowFilters(_filters: FilterType[], data: any, columns: C
               res = false // Unsupported operation for User fields
           }
         } else {
+          const dataFieldValue = getFieldValue(data[field]);
           switch (filter.comparison_op) {
             case 'eq':
               // eslint-disable-next-line eqeqeq
@@ -398,22 +409,22 @@ export function validateRowFilters(_filters: FilterType[], data: any, columns: C
               break
             case 'allof':
               res = (filter.value?.split(',').map((item) => item.trim()) ?? []).every((item) =>
-                (data[field]?.split(',') ?? []).includes(item),
+                (dataFieldValue?.split(',') ?? []).includes(item),
               )
               break
             case 'anyof':
               res = (filter.value?.split(',').map((item) => item.trim()) ?? []).some((item) =>
-                (data[field]?.split(',') ?? []).includes(item),
+                (dataFieldValue?.split(',') ?? []).includes(item),
               )
               break
             case 'nallof':
               res = !(filter.value?.split(',').map((item) => item.trim()) ?? []).every((item) =>
-                (data[field]?.split(',') ?? []).includes(item),
+                (dataFieldValue?.split(',') ?? []).includes(item),
               )
               break
             case 'nanyof':
               res = !(filter.value?.split(',').map((item) => item.trim()) ?? []).some((item) =>
-                (data[field]?.split(',') ?? []).includes(item),
+                (dataFieldValue?.split(',') ?? []).includes(item),
               )
               break
             case 'lt':

@@ -25,6 +25,9 @@ const inputRef = ref<HTMLInputElement>()
 const focus: VNodeRef = (el) => {
   if ((!isExpandedFormOpen.value || localEditEnabled.value) && !isEditColumn.value && !isForm.value) {
     inputRef.value = el as HTMLInputElement
+
+    if (cellFocused.value) return
+
     if (isExpandedFormOpen.value) {
       inputRef.value?.focus()
       inputRef.value?.select()

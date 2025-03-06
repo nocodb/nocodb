@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import { type TableType, type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 
 const { isMobileMode } = useGlobal()
 
@@ -24,6 +24,12 @@ const { refreshCommandPalette } = useCommandPalette()
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isOpen = ref<boolean>(false)
+
+const isSqlView = computed(() => (activeTable.value as TableType)?.type === 'view')
+
+watchEffect(() => {
+  console.log('isSqlView', isSqlView.value)
+})
 
 const activeSource = computed(() => {
   return base.value.sources?.find((s) => s.id === activeView.value?.source_id)
@@ -233,15 +239,18 @@ async function onOpenModal({
 
                 <NcTooltip
                   :title="$t('tooltip.sourceDataIsReadonly')"
-                  :disabled="!activeSource?.is_data_readonly"
+                  :disabled="!activeSource?.is_data_readonly && !isSqlView"
                   placement="right"
                 >
-                  <a-menu-item :disabled="!!activeSource?.is_data_readonly" @click="onOpenModal({ type: ViewTypes.FORM })">
+                  <a-menu-item
+                    :disabled="!!activeSource?.is_data_readonly || isSqlView"
+                    @click="onOpenModal({ type: ViewTypes.FORM })"
+                  >
                     <div
                       class="nc-viewlist-submenu-popup-item"
                       data-testid="topbar-view-create-form"
                       :class="{
-                        'opacity-50': !!activeSource?.is_data_readonly,
+                        'opacity-50': !!activeSource?.is_data_readonly || isSqlView,
                       }"
                     >
                       <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" />

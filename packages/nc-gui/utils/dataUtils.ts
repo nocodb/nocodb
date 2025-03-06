@@ -377,6 +377,7 @@ function safeToString(value) {
               res = false // Unsupported operation for User fields
           }
         } else {
+          const safeFieldValue = safeToString(data[field]);
           switch (filter.comparison_op) {
             case 'eq':
               // eslint-disable-next-line eqeqeq

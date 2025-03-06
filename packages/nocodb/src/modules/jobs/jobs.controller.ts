@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { customAlphabet } from 'nanoid';
+import type { OnModuleDestroy } from '@nestjs/common';
 import type { Response } from 'express';
 import { JobStatus } from '~/interface/Jobs';
 import { JobEvents } from '~/interface/Jobs';
@@ -26,18 +27,12 @@ const POLLING_INTERVAL = 30000;
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-export class JobsController {
+export class JobsController implements OnModuleDestroy {
   constructor(
     @Inject('JobsService') private readonly jobsService: IJobsService,
-  ) {
-    process.once('SIGTERM', this.handleProcessShutdown.bind(this));
-    process.once('SIGINT', this.handleProcessShutdown.bind(this));
-  }
+  ) {}
 
-  /**
-   * Custom shutdown handler to send refresh to all open connections
-   */
-  private handleProcessShutdown(_signal: string) {
+  onModuleDestroy() {
     Object.keys(this.jobRooms).forEach((jobId) => {
       const room = this.jobRooms[jobId];
       room.listeners.forEach((res: Response & { resId?: string }) => {

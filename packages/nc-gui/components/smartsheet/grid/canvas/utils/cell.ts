@@ -139,6 +139,8 @@ export const renderAsCellLookupOrLtarValue = [
   UITypes.QrCode,
   UITypes.Barcode,
   UITypes.Lookup,
+  UITypes.LinkToAnotherRecord,
+  UITypes.Links,
 ]
 
 export const MouseClickType = {

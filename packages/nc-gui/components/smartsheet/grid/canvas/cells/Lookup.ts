@@ -1,9 +1,10 @@
-import { type ColumnType, type LookupType, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import type { type ColumnType, LinkToAnotherRecordType, type LookupType, TableType } from 'nocodb-sdk'
 import { getSingleMultiselectColOptions, getUserColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
 import { renderSingleLineText } from '../utils/canvas'
 import { PlainCellRenderer } from './Plain'
 
-const renderOnly1Row = [UITypes.QrCode, UITypes.Barcode, UITypes.Attachment]
+const renderOnly1Row = [UITypes.QrCode, UITypes.Barcode, UITypes.Attachment, UITypes.LinkToAnotherRecord, UITypes.Links]
 
 const ellipsisWidth = 15
 
@@ -98,11 +99,29 @@ export const LookupCellRenderer: CellRenderer = {
     ctx.rect(_x, _y, _width - padding, height) // Define the clipping rectangle
     ctx.clip()
 
+    let lkRelatedTableMeta: TableType | undefined
+
+    // if lookup column is LTAR/Links then extract the related table meta
+    const lkRelatedModelId = (lookupColumn.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+
+    if (isLinksOrLTAR(lookupColumn) && lkRelatedModelId) {
+      lkRelatedTableMeta = metas?.[lkRelatedModelId]
+
+      // Load related table meta if not present
+      if (!lkRelatedTableMeta) {
+        if (tableMetaLoader.isLoading(lkRelatedModelId)) return
+
+        tableMetaLoader.getTableMeta(lkRelatedModelId)
+
+        return
+      }
+    }
+
     const renderProps: CellRendererOptions = {
       ...props,
       column: lookupColumn,
       relatedColObj: undefined,
-      relatedTableMeta: undefined,
+      relatedTableMeta: lkRelatedTableMeta,
       isUnderLookup: true,
       readonly: true,
       value: arrValue,

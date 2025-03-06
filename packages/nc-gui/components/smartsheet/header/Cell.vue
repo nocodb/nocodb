@@ -14,6 +14,8 @@ const props = defineProps<Props>()
 
 const { isMobileMode } = useGlobal()
 
+const { isSqlView } = useSmartsheetStoreOrThrow()
+
 const hideMenu = toRef(props, 'hideMenu')
 
 const isGrid = inject(IsGridInj, ref(false))
@@ -87,7 +89,9 @@ const isColumnEditAllowed = computed(() => {
 })
 
 const openHeaderMenu = (e?: MouseEvent, description = false) => {
-  if ((isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
+  if ((isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value || isSqlView.value) {
+    return
+  }
 
   if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value && (isColumnEditAllowed.value || description)) {
     if (description) {

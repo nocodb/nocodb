@@ -1474,7 +1474,8 @@ const showFillHandle = computed(
     !isViewDataLoading.value &&
     !isPaginationLoading.value &&
     dataRef.value.length &&
-    !selectedReadonly.value,
+    !selectedReadonly.value &&
+    !isSqlView.value,
 )
 
 watch(

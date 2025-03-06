@@ -351,7 +351,8 @@ export function useCanvasTable({
         activeCell.value.column !== null &&
         fields.value[activeCell.value.column - 1] &&
         totalRows.value &&
-        !isSelectionReadOnly.value
+        !isSelectionReadOnly.value &&
+        !isSqlView.value
       ),
   )
 

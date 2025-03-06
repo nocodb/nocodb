@@ -31,6 +31,8 @@ const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'creat
 
 const { activeView } = storeToRefs(useViewsStore())
 
+const { isSqlView } = useSmartsheetStoreOrThrow()
+
 const key = ref(0)
 
 const wrapper = ref()
@@ -750,7 +752,7 @@ export default {
           />
         </div>
         <div class="flex gap-2">
-          <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit')">
+          <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit') && !isSqlView">
             <template #title> {{ renderAltOrOptlKey() }} + S </template>
             <NcButton
               v-e="['c:row-expand:save']"
@@ -811,7 +813,7 @@ export default {
                     {{ $t('labels.copyRecordURL') }}
                   </div>
                 </NcMenuItem>
-                <NcMenuItem v-if="isUIAllowed('dataEdit')" @click="!isNew ? onDuplicateRow() : () => {}">
+                <NcMenuItem v-if="isUIAllowed('dataEdit') && !isSqlView" @click="!isNew ? onDuplicateRow() : () => {}">
                   <div v-e="['c:row-expand:duplicate']" class="flex gap-2 items-center" data-testid="nc-expanded-form-duplicate">
                     <component :is="iconMap.duplicate" class="cursor-pointer nc-duplicate-row" />
                     <span class="-ml-0.25">
@@ -819,9 +821,9 @@ export default {
                     </span>
                   </div>
                 </NcMenuItem>
-                <NcDivider v-if="isUIAllowed('dataEdit')" />
+                <NcDivider v-if="isUIAllowed('dataEdit') && !isSqlView" />
                 <NcMenuItem
-                  v-if="isUIAllowed('dataEdit')"
+                  v-if="isUIAllowed('dataEdit') && !isSqlView"
                   class="!text-red-500 !hover:bg-red-50"
                   @click="!isNew && onDeleteRowClick()"
                 >

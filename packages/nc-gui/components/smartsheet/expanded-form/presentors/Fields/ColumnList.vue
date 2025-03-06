@@ -9,11 +9,14 @@ const props = defineProps<{
 }>()
 
 const { changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
+
+const { isSqlView } = useSmartsheetStoreOrThrow()
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { isUIAllowed } = useRoles()
 
-const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
+const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || isSqlView.value)
 
 const shouldApplyDataCell = (column: ColumnType) =>
   !(isBarcode(column) || isQrCode(column) || isBoolean(column) || isRating(column))

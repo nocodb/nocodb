@@ -2017,6 +2017,11 @@ defineExpose({
     }
   }
 
+  :deep(.nc-virtual-cell-lookup:has(.nc-virtual-cell-linktoanotherrecord)),
+  :deep(.nc-virtual-cell-lookup:has(.nc-virtual-cell-links)) {
+    @apply !overflow-hidden;
+  }
+
   :deep(.nc-cell-longtext) {
     @apply !px-[2px];
     .nc-text-area-clamped-text {

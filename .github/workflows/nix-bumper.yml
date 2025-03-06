@@ -1,22 +1,23 @@
-name: "bumper"
+name: bumper
 
 on:
+  workflow_dispatch:
   pull_request_target:
     branches:
-      - "develop"
+      - develop
     paths:
-      - "pnpm-lock.yaml"
+      - pnpm-lock.yaml
 
 jobs:
   bumper:
     runs-on: nix
 
     permissions:
-      contents: "write"
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
       - name: Run Bumper
-        run: nix run .#bumper
+        run: nix run .#workflows.bumper

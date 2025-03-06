@@ -75,7 +75,7 @@ const baseDevConfig = {
     }),
     new RunScriptWebpackPlugin({
       name: 'main.js',
-      // set to false to use hmr
+      // set to false to enable hmr
       autoRestart: true,
     }),
     new rspack.HotModuleReplacementPlugin(),
@@ -112,7 +112,7 @@ const baseDevConfig = {
   watch: true,
   watchOptions: {
     ignored: /node_modules/,
-    poll: true,
+    poll: 100,
   },
 };
 

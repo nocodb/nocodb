@@ -719,24 +719,34 @@ const parseConditionV2 = async (
           case 'eq':
             if (column.uidt === UITypes.JSON) {
               if (val === '') {
-                // For JSON, "eq" with empty string matches '{}' or '[]'
+                // For JSON, "eq" with empty string matches '{}' or '[]' or null
                 if (knex.clientType() === 'pg') {
                   qb = qb.where((nestedQb) => {
                     nestedQb
                       .where(knex.raw("??::jsonb = '{}'::jsonb", [field]))
-                      .orWhere(knex.raw("??::jsonb = '[]'::jsonb", [field]));
+                      .orWhere(knex.raw("??::jsonb = '[]'::jsonb", [field]))
+                      .orWhereNull(field);
                   });
                 } else if (knex.clientType().startsWith('mysql')) {
                   qb = qb.where((nestedQb) => {
-                    nestedQb.where(field, '{}').orWhere(field, '[]');
+                    nestedQb
+                      .where(field, '{}')
+                      .orWhere(field, '[]')
+                      .orWhereNull(field);
                   });
                 } else if (knex.clientType() === 'sqlite3') {
                   qb = qb.where((nestedQb) => {
-                    nestedQb.where(field, '{}').orWhere(field, '[]');
+                    nestedQb
+                      .where(field, '{}')
+                      .orWhere(field, '[]')
+                      .orWhereNull(field);
                   });
                 } else {
                   qb = qb.where((nestedQb) => {
-                    nestedQb.where(field, '{}').orWhere(field, '[]');
+                    nestedQb
+                      .where(field, '{}')
+                      .orWhere(field, '[]')
+                      .orWhereNull(field);
                   });
                 }
               } else {

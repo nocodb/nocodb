@@ -1,4 +1,5 @@
-import { type ColumnType, type LookupType, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import type { type ColumnType, LinkToAnotherRecordType, type LookupType, TableType } from 'nocodb-sdk'
 import { getSingleMultiselectColOptions, getUserColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
 import { renderSingleLineText } from '../utils/canvas'
 import { PlainCellRenderer } from './Plain'
@@ -98,11 +99,21 @@ export const LookupCellRenderer: CellRenderer = {
     ctx.rect(_x, _y, _width - padding, height) // Define the clipping rectangle
     ctx.clip()
 
+    let lkRelatedTableMeta: TableType | undefined
+
+    // if lookup column is LTAR then extract the related table meta
+    if (
+      lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
+      (lookupColumn.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+    ) {
+      lkRelatedTableMeta = metas?.[(lookupColumn.colOptions as LinkToAnotherRecordType)!.fk_related_model_id!]
+    }
+
     const renderProps: CellRendererOptions = {
       ...props,
       column: lookupColumn,
       relatedColObj: undefined,
-      relatedTableMeta: undefined,
+      relatedTableMeta: lkRelatedTableMeta,
       isUnderLookup: true,
       readonly: true,
       value: arrValue,
@@ -120,7 +131,13 @@ export const LookupCellRenderer: CellRenderer = {
     }
 
     const lookupRenderer = (options: CellRendererOptions) => {
-      return renderAsCellLookupOrLtarValue.includes(lookupColumn.uidt) || isRichText(lookupColumn)
+      return renderAsCellLookupOrLtarValue.includes(lookupColumn.uidt) ||
+        // if lookup pointing to hm/mm LTAR then use the renderCell
+        (isLinksOrLTAR(lookupColumn) &&
+          [RelationTypes.HAS_MANY, RelationTypes.MANY_TO_MANY].includes(
+            (lookupColumn.colOptions as LinkToAnotherRecordType)?.type,
+          )) ||
+        isRichText(lookupColumn)
         ? renderCell(ctx, lookupColumn, options)
         : PlainCellRenderer.render(ctx, options)
     }

@@ -106,7 +106,7 @@ module.exports = {
       typescript: {
         configFile: resolve('./src/ee-on-prem/tsconfig.json'),
       },
-    })
+    }),
   ],
   target: 'node',
 };

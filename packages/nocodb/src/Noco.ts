@@ -23,6 +23,7 @@ import { DataReflection, Integration } from '~/models';
 import { getRedisURL } from '~/helpers/redisHelpers';
 
 dotenv.config();
+declare const module: any;
 
 export default class Noco {
   protected static _this: Noco;
@@ -99,8 +100,6 @@ export default class Noco {
     } catch {}
     return (this.ee = false);
   }
-
-  declare module: any;
 
   static async init(param: any, httpServer: http.Server, server: Express) {
     const nestApp = await NestFactory.create(AppModule, {

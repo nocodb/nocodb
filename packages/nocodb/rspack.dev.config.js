@@ -8,6 +8,9 @@ const baseDevConfig = {
   mode: 'development',
   target: 'node',
   devtool: 'inline-source-map',
+  entry: {
+    main: [process.env.ENTRYPOINT, 'webpack/hot/poll?100'],
+  },
   module: {
     rules: [
       {
@@ -72,7 +75,10 @@ const baseDevConfig = {
     }),
     new RunScriptWebpackPlugin({
       name: 'main.js',
+      // set to false to use hmr
+      autoRestart: true,
     }),
+    new rspack.HotModuleReplacementPlugin(),
     new rspack.CopyRspackPlugin({
       patterns: [{ from: 'src/public', to: 'public' }],
     }),
@@ -95,11 +101,15 @@ const baseDevConfig = {
     clean: true,
   },
   devServer: {
-    devMiddleware: {
-      writeToDisk: true,
-    },
-    port: 9001,
+    hot: true,
   },
+  cache: true,
+  experiments: {
+    cache: {
+      type: 'persistent',
+    },
+  },
+  watch: true,
   watchOptions: {
     ignored: /node_modules/,
     poll: true,

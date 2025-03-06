@@ -173,6 +173,22 @@ export function validateRowFilters(_filters: FilterType[], data: any, columns: C
     return true
   }
 
+function safeToString(value) {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  
+  // Handle arrays (especially arrays of objects with IDs)
+  if (Array.isArray(value)) {
+    return value.map(item => 
+      typeof item === 'object' && item !== null ? (item.id || '') : String(item || '')
+    ).join(',');
+  }
+  
+  // Handle regular values
+  return String(value || '');
+}
+
   const filters = buildFilterTree(_filters)
 
   let isValid = null
@@ -371,10 +387,10 @@ export function validateRowFilters(_filters: FilterType[], data: any, columns: C
               res = val != filter.value
               break
             case 'like':
-              res = data[field]?.toString?.()?.toLowerCase()?.indexOf(filter.value?.toLowerCase()) > -1
+              res = safeFieldValue.toLowerCase().indexOf(filter.value?.toLowerCase()) > -1
               break
             case 'nlike':
-              res = data[field]?.toString?.()?.toLowerCase()?.indexOf(filter.value?.toLowerCase()) === -1
+              res = safeFieldValue.toLowerCase().indexOf(filter.value?.toLowerCase()) === -1
               break
             case 'empty':
             case 'blank':
@@ -398,22 +414,22 @@ export function validateRowFilters(_filters: FilterType[], data: any, columns: C
               break
             case 'allof':
               res = (filter.value?.split(',').map((item) => item.trim()) ?? []).every((item) =>
-                (data[field]?.split(',') ?? []).includes(item),
+                safeFieldValue.split(',').includes(item)
               )
               break
             case 'anyof':
               res = (filter.value?.split(',').map((item) => item.trim()) ?? []).some((item) =>
-                (data[field]?.split(',') ?? []).includes(item),
+                safeFieldValue.split(',').includes(item)
               )
               break
             case 'nallof':
               res = !(filter.value?.split(',').map((item) => item.trim()) ?? []).every((item) =>
-                (data[field]?.split(',') ?? []).includes(item),
+                safeFieldValue.split(',').includes(item)
               )
               break
             case 'nanyof':
               res = !(filter.value?.split(',').map((item) => item.trim()) ?? []).some((item) =>
-                (data[field]?.split(',') ?? []).includes(item),
+                safeFieldValue.split(',').includes(item)
               )
               break
             case 'lt':

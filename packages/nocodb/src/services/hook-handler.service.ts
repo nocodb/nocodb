@@ -6,7 +6,7 @@ import type { ColumnType } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { transformDataForMailRendering } from '~/helpers/webhookHelpers';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
-import { Base, FormView, Hook, Model, View } from '~/models';
+import { Base, FormView, Hook, Model, Source, View } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MailService } from '~/services/mail/mail.service';
@@ -86,10 +86,20 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
               return c;
             });
 
-          const formatetdData = transformDataForMailRendering(
+          const source = await Source.get(context, model.source_id);
+
+          const models = await source.getModels(context);
+
+          const metas = models.reduce((o, m) => {
+            return Object.assign(o, { [m.id]: m });
+          }, {});
+
+          const formattedData = transformDataForMailRendering(
             newData,
-            formView,
             filteredColumns,
+            source,
+            model,
+            metas,
           );
 
           const base = await Base.get(context, model.base_id);
@@ -101,7 +111,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
               base,
               emails,
               model,
-              data: formatetdData,
+              data: formattedData,
             },
           });
         }

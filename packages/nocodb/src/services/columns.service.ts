@@ -1411,9 +1411,9 @@ export class ColumnsService implements IColumnsService {
           }
         }
 
-        // handle trim single select value
+        // handle trim value when converting it from SingleLineText cell to SingleSelect
         if (
-          column.uidt !== UITypes.SingleSelect &&
+          column.uidt === UITypes.SingleLineText &&
           colBody.uidt === UITypes.SingleSelect
         ) {
           if (driverType === 'mssql') {

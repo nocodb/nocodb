@@ -149,9 +149,6 @@ export default class Noco {
     await nestApp.init();
     NcDebug.log('Nest app initialized');
 
-    await nestApp.enableShutdownHooks();
-    NcDebug.log('Shutdown hooks enabled');
-
     const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
     server.use(express.static(path.join(__dirname, 'public')));
 

@@ -27,6 +27,9 @@ const toggleColumn = (col: ColumnType) => {
     props.onChange([col.id, ...props.selectedColumns])
   }
 }
+const removeColumnId = (colId: string) => {
+  props.onChange(props.selectedColumns.filter((k) => k !== colId))
+}
 onClickOutside(dropdownRef, (e) => {
   if (isDropdownOpen.value) {
     isDropdownOpen.value = false
@@ -40,7 +43,7 @@ watch(() => {
 </script>
 
 <template>
-  <div>
+  <div class="pb-3">
     <a-dropdown :visible="isDropdownOpen">
       <NcButton type="secondary" @click="isDropdownOpen = true"><GeneralIcon icon="plus"></GeneralIcon> Add</NcButton>
       <template #overlay>
@@ -69,5 +72,13 @@ watch(() => {
         </a-card>
       </template>
     </a-dropdown>
+    <div class="pt-1">
+      <a-tag v-for="colId of selectedColumns" :key="colId" :closable="true"  @close="removeColumnId(colId)">
+        <template v-for="col of [columnOptions.find((k) => k.id === colId)]" :key="col.id">
+          <component :is="renderIcon(col).icon" class="max-h-[16px]" />
+          {{ col.title }}
+        </template>
+      </a-tag>
+    </div>
   </div>
 </template>

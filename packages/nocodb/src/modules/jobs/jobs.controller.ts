@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { customAlphabet } from 'nanoid';
-import type { OnApplicationShutdown } from '@nestjs/common';
 import type { Response } from 'express';
 import { JobStatus } from '~/interface/Jobs';
 import { JobEvents } from '~/interface/Jobs';
@@ -27,10 +26,27 @@ const POLLING_INTERVAL = 30000;
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-export class JobsController implements OnApplicationShutdown {
+export class JobsController {
   constructor(
     @Inject('JobsService') private readonly jobsService: IJobsService,
-  ) {}
+  ) {
+    process.once('SIGTERM', this.handleProcessShutdown.bind(this));
+    process.once('SIGINT', this.handleProcessShutdown.bind(this));
+  }
+
+  /**
+   * Custom shutdown handler to send refresh to all open connections
+   */
+  private handleProcessShutdown(_signal: string) {
+    Object.keys(this.jobRooms).forEach((jobId) => {
+      const room = this.jobRooms[jobId];
+      room.listeners.forEach((res: Response & { resId?: string }) => {
+        if (!res.headersSent) {
+          res.send({ status: 'refresh' });
+        }
+      });
+    });
+  }
 
   private jobRooms = {};
   private localJobs = {};
@@ -295,21 +311,6 @@ export class JobsController implements OnApplicationShutdown {
       await JobsRedis.publish(jobId, {
         cmd: JobEvents.LOG,
         ...data,
-      });
-    }
-  }
-
-  onApplicationShutdown() {
-    /*
-     * Close all long polling connections
-     */
-    for (const jobId in this.jobRooms) {
-      this.jobRooms[jobId].listeners.forEach((res) => {
-        if (!res.headersSent) {
-          res.send({
-            status: 'refresh',
-          });
-        }
       });
     }
   }

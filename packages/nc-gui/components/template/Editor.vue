@@ -583,11 +583,6 @@ async function importTemplate() {
           tab.title = createdTable.title as string
           tab.baseId = base.value.id as string
         }
-
-        // set display value
-        if (createdTable?.columns?.[0]?.id) {
-          await $api.dbTableColumn.primaryColumnSet(createdTable.columns[0].id as string)
-        }
       }
 
       // bulk insert data

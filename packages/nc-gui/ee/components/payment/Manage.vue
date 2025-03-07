@@ -21,12 +21,14 @@ const onCancelSubscription = async () => {
 <template>
   <div v-if="activePlan && activeSubscription" class="m-6 rounded-lg nc-border-gray-medium p-4 shadow-default max-w-[300px]">
     <div class="text-lg">{{ activePlan.title }}</div>
-    <div class="flex items-center gap-1 my-4">
-      <div class="text-xl">$</div>
-      <div class="text-3xl font-bold">{{ getPlanPrice(activePlan, activePaymentMode) }}</div>
-      / seat / month
+    <div class="flex flex-col my-4 gap-2">
+      <div class="flex items-center gap-1">
+        <div class="text-xl">$</div>
+        <div class="text-3xl font-bold">{{ getPlanPrice(activePlan, activePaymentMode) }}</div>
+        / seat / month
+      </div>
+      <div class="w-full">{{ activeSubscription.seat_count }} active seats</div>
     </div>
-
     <NcButton type="ghost" size="small" class="w-full my-4" disabled>
       <div class="flex items-center justify-center gap-1">Current Plan</div>
     </NcButton>

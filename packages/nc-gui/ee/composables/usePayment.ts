@@ -21,7 +21,9 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const { $state, $api } = useNuxtApp()
 
-  const { activeWorkspaceId } = storeToRefs(useWorkspace())
+  const workspaceStore = useWorkspace()
+
+  const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
   const baseURL = $api.instance.defaults.baseURL
 
@@ -101,7 +103,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       headers: { 'xc-auth': $state.token.value as string },
     })
 
-    return true
+    await workspaceStore.loadWorkspace(activeWorkspaceId.value)
   }
 
   /* const updateSubscription = async () => {

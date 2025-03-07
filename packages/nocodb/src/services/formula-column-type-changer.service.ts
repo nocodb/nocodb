@@ -5,18 +5,19 @@ import {
   NotImplementedException,
 } from '@nestjs/common';
 import { NcApiVersion, type NcContext, type NcRequest } from 'nocodb-sdk';
-import type { IFormulaColumnTypeChanger } from './formula-column-type-changer.types';
+import { generateUpdateAuditV1Payload } from 'src/utils';
 import type { ColumnReqType, UserType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { FormulaColumn } from '~/models';
 import type { ReusableParams } from '~/services/columns.service.type';
 import type { FormulaDataMigrationDriver } from '~/services/formula-column-type-changer';
-import { Column } from '~/models';
+import type { IFormulaColumnTypeChanger } from './formula-column-type-changer.types';
 import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
+import { Audit, Column } from '~/models';
+import { ColumnsService } from '~/services/columns.service';
 import { MysqlDataMigration } from '~/services/formula-column-type-changer/mysql-data-migration';
 import { PgDataMigration } from '~/services/formula-column-type-changer/pg-data-migration';
 import { SqliteDataMigration } from '~/services/formula-column-type-changer/sqlite-data-migration';
-import { ColumnsService } from '~/services/columns.service';
 
 export const DEFAULT_BATCH_LIMIT = 100000;
 
@@ -173,7 +174,7 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
       );
     }
 
-    await dataMigrationDriver.migrate({
+    const updatedRows = await dataMigrationDriver.migrate({
       baseModelSqlV2,
       destinationColumn,
       formulaColumn,
@@ -181,5 +182,18 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
       limit,
       offset,
     });
+
+    for (const row of updatedRows) {
+      const auditPayload = await generateUpdateAuditV1Payload({
+        baseModelSqlV2,
+        rowId: row.primaryKeys,
+        data: row.row,
+        oldData: {
+          ...row.row,
+          [destinationColumn.column_name]: null,
+        },
+      });
+      await Audit.insert(auditPayload);
+    }
   }
 }

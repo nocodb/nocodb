@@ -3,10 +3,7 @@ import { toRaw, unref } from '@vue/runtime-core'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
 import { type TableType, charsetOptions } from 'nocodb-sdk'
-// import worker script according to the doc of Vite
-import getCrossOriginWorkerURL from 'crossoriginworker'
 import rfdc from 'rfdc'
-import importWorkerUrl from '~/workers/importWorker?worker&url'
 
 interface Props {
   modelValue: boolean
@@ -21,7 +18,9 @@ const { importType, importDataOnly = false, baseId, sourceId, transition, ...res
 
 const emit = defineEmits(['update:modelValue', 'back'])
 
-const { $api } = useNuxtApp()
+const { $api, $importWorker } = useNuxtApp()
+
+let importWorker: Worker
 
 const { appInfo } = useGlobal()
 
@@ -32,8 +31,6 @@ const meta = inject(MetaInj, ref())
 const existingColumns = computed(() => meta.value?.columns?.filter((col) => !col.system) || [])
 
 const isWorkerSupport = typeof Worker !== 'undefined'
-
-let importWorker: Worker | null
 
 const { t } = useI18n()
 
@@ -130,29 +127,18 @@ const importMeta = computed(() => {
 
 const dialogShow = useVModel(rest, 'modelValue', emit)
 
-watch(dialogShow, (newValue) => {
-  if (newValue) {
-    Object.assign(importState, structuredClone(defaultImportState))
-  }
-})
-
-// watch dialogShow to init or terminate worker
-if (isWorkerSupport) {
-  watch(
-    dialogShow,
-    async (val) => {
-      if (val) {
-        importWorker = new Worker(
-          await getCrossOriginWorkerURL(importWorkerUrl),
-          process.env.NODE_ENV === 'development' ? { type: 'module' } : undefined,
-        )
-      } else {
-        importWorker?.terminate()
+watch(
+  dialogShow,
+  async (newValue) => {
+    if (newValue) {
+      Object.assign(importState, structuredClone(defaultImportState))
+      if (isWorkerSupport) {
+        importWorker = await $importWorker?.get()
       }
-    },
-    { immediate: true },
-  )
-}
+    }
+  },
+  { immediate: true },
+)
 
 const filterOption = (input = '', params: { key: string }) => {
   return params.key?.toLowerCase().includes(input.toLowerCase())
@@ -528,6 +514,10 @@ const onChange = () => {
 onMounted(() => {
   importState.parserConfig.importDataOnly = importDataOnly
   importState.parserConfig.autoSelectFieldTypes = importDataOnly
+})
+
+onUnmounted(() => {
+  $importWorker.terminate()
 })
 
 function handleJsonChange(newValue: any) {

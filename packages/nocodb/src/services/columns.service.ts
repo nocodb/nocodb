@@ -37,6 +37,7 @@ import type {
   IColumnsService,
   ReusableParams,
 } from '~/services/columns.service.type';
+import { Filter } from '~/models';
 import { parseMetaProp } from '~/utils/modelUtils';
 import {
   BaseUser,
@@ -1139,8 +1140,13 @@ export class ColumnsService implements IColumnsService {
           }
         }
 
+        // interchange is used to to handle congflicts.
+        // Consider the scenario where options are A, B, C. If User wants to convert A-> B, B -> C, C -> A
+        // If we do this in one go, we will have a conflict A -> B, Now all A options are B along with the original B options
+        // So we will first convert A -> temp, B -> temp1, C -> temp2
+        // Then we will convert temp1 -> B, temp2 -> C and temp -> A
         const interchange = [];
-
+        const titleChanges = []; // Title change keeps direct map of old title to new title
         // Handle option update
         if (column.colOptions?.options) {
           const old_titles = column.colOptions.options.map((el) => el.title);
@@ -1161,12 +1167,20 @@ export class ColumnsService implements IColumnsService {
             const newOp = {
               ...colBody.colOptions.options.find((el) => option.id === el.id),
             };
+
+            titleChanges.push({
+              old_title: option.title,
+              new_title: newOp.title,
+            });
+
+            // Handle title conflicts by creating unique temporary titles
             if (old_titles.includes(newOp.title)) {
               const def_option = { ...newOp };
               let title_counter = 1;
               while (old_titles.includes(newOp.title)) {
                 newOp.title = `${def_option.title}_${title_counter++}`;
               }
+              // Store the temporary title mapping
               interchange.push({
                 def_option,
                 temp_title: newOp.title,
@@ -1300,6 +1314,7 @@ export class ColumnsService implements IColumnsService {
           }
         }
 
+        // Process temporary title interchanges (conflict resolution)
         for (const ch of interchange) {
           const newOp = ch.def_option;
           if (column.uidt === UITypes.SingleSelect) {
@@ -1387,6 +1402,26 @@ export class ColumnsService implements IColumnsService {
                 ],
               );
             }
+          }
+        }
+
+        // Update value in filters that reference this column
+        const filters = await Filter.getFiltersByColumn(column.id, context);
+
+        for (const filter of filters ?? []) {
+          let newValue = filter.value;
+          // Split filter values and update them based on title changes
+          const values = filter.value?.split(',');
+          const updatedValues = values.map((val) => {
+            const change = titleChanges.find((c) => c.old_title === val.trim());
+            return change ? change.new_title : val;
+          });
+          newValue = updatedValues.join(',');
+          // Update filter if value changed
+          if (newValue !== filter.value) {
+            await Filter.update(context, filter.id, {
+              value: newValue,
+            });
           }
         }
       }

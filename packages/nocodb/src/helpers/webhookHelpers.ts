@@ -928,9 +928,6 @@ export function transformDataForMailRendering(
     uidt: UITypes | string;
   }> = [];
 
-  // TODO: Update this once ColumnHelper is Merged
-  // FIXME DADDY: @DarkPhoenix2704
-
   columns.map((col) => {
     let serializedValue: string | undefined;
 

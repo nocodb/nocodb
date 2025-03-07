@@ -1,7 +1,7 @@
+import { getTimeZones } from '@vvo/tzdb'
 import dayjs from 'dayjs'
-import { constructDateFormat, constructDateTimeFormat, constructTimeFormat, dateFormats, timeFormats } from 'nocodb-sdk'
-
-export { constructDateFormat, constructDateTimeFormat, constructTimeFormat }
+import { dateFormats, timeFormats } from 'nocodb-sdk'
+export { constructDateFormat, constructDateTimeFormat, constructTimeFormat } from 'nocodb-sdk'
 
 export function parseStringDateTime(v: string, dateTimeFormat = `${dateFormats[0]} ${timeFormats[0]}`, toLocal = true) {
   const dayjsObj = toLocal ? dayjs(v).local() : dayjs(v)
@@ -56,4 +56,44 @@ export const timeAgo = (date: string) => {
 
 export const hookLogFormatter = (date: string) => {
   return date && dayjs(date).format('YYYY-MM-DD HH:mm:ss')
+}
+
+const timezones = getTimeZones({ includeUtc: true })
+export function getTimeZoneFromName(name: string) {
+  return timezones.find((k) => k.name === name)
+}
+
+export function withTimezone(timezone?: string) {
+  return {
+    dayjsTz(value?: string | number | null | dayjs.Dayjs, format?: string) {
+      if (!isEeUI) {
+        return dayjs(value, format)
+      }
+      if (typeof value === 'object') {
+        return value
+      }
+      if (timezone) {
+        if (!format) {
+          return dayjs.tz(value, timezone)
+        } else {
+          return dayjs.tz(value, format, timezone)
+        }
+      } else {
+        return dayjs(value, format)
+      }
+    },
+    timezonize(value?: dayjs.Dayjs) {
+      if (!value) {
+        return undefined
+      }
+      if (!isEeUI) {
+        return value.local()
+      }
+      if (timezone) {
+        return value.tz(timezone)
+      } else {
+        return value.local()
+      }
+    },
+  }
 }

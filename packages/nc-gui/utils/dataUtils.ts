@@ -516,18 +516,21 @@ export const getDateTimeValue = (modelValue: string | null, params: ParsePlainCe
   const dateFormat = parseProp(col?.meta)?.date_format ?? dateFormats[0]
   const timeFormat = parseProp(col?.meta)?.time_format ?? timeFormats[0]
   const dateTimeFormat = `${dateFormat} ${timeFormat}`
+  const timezone = isEeUI && (col?.meta as any)?.timezone ? getTimeZoneFromName((col?.meta as any)?.timezone) : undefined
+  const { timezonize } = withTimezone(timezone?.name)
+  const displayTimezone = timezone && (col?.meta as any)?.isDisplayTimezone ? ` (${timezone.abbreviation})` : ''
 
   const isXcDB = isXcdbBase(col.source_id)
 
   if (!isXcDB) {
-    return dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue).format(dateTimeFormat)
+    return timezonize(dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue))?.format(dateTimeFormat) + displayTimezone
   }
 
   if (isMssql(col.source_id)) {
     // e.g. 2023-04-29T11:41:53.000Z
-    return dayjs(modelValue, dateTimeFormat).format(dateTimeFormat)
+    return timezonize(dayjs(modelValue, dateTimeFormat))?.format(dateTimeFormat) + displayTimezone
   } else {
-    return dayjs(modelValue).utc().local().format(dateTimeFormat)
+    return timezonize(dayjs(modelValue))?.format(dateTimeFormat) + displayTimezone
   }
 }
 

@@ -53,7 +53,7 @@ export const FormulaCellRenderer: CellRenderer = {
         ...props,
         column: {
           ...column,
-          uidt: colMeta?.display_type,
+          uidt: colMeta.display_type,
           ...colMeta.display_column_meta,
         },
         readonly: true,

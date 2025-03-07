@@ -678,7 +678,8 @@
     "customUrl": "Custom URL",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
+    "selectTimezone": "Display timezone"
   },
   "labels": {
     "latitude": "Latitude",
@@ -1130,7 +1131,9 @@
     "showJsonPayload": "Show json payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
     "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "proceedToLink": "Proceed to link",
+    "displayTimezone": "Display time zone",
+    "useSameTimezoneForAllMembers": "Use same timezone for all members"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

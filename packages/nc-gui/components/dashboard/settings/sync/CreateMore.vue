@@ -171,10 +171,6 @@ const refreshState = async (keepForm = false) => {
   goToDashboard.value = false
 }
 
-const onBack = () => {
-  refreshState(true)
-}
-
 function onDashboard() {
   refreshState()
   vOpen.value = false

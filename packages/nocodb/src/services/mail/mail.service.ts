@@ -4,7 +4,11 @@ import type { MailParams } from '~/interface/Mail';
 import type { NcRequest } from 'nocodb-sdk';
 import { MailEvent } from '~/interface/Mail';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { BaseInvite } from '~/services/mail/templates';
+import {
+  BaseInvite,
+  PasswordReset,
+  VerifyEmail,
+} from '~/services/mail/templates';
 import Noco from '~/Noco';
 import config from '~/app.config';
 
@@ -29,6 +33,8 @@ export class MailService {
       rowId?: string;
       commentId?: string;
       columnId?: string;
+      resetPassword?: string;
+      verificationToken?: string;
     },
   ) {
     const dashboardPath = Noco.getConfig()?.dashboardPath;
@@ -45,6 +51,16 @@ export class MailService {
       url += `#/${params.workspaceId}`;
     } else {
       url += `#`;
+    }
+
+    if (params.resetPassword) {
+      url += `/auth/password/reset/${params.resetPassword}`;
+      return url;
+    }
+
+    if (params?.verificationToken) {
+      url += `/email/validate/${params.verificationToken}`;
+      return url;
     }
 
     if (params.baseId) {
@@ -70,11 +86,11 @@ export class MailService {
       return;
     }
 
-    switch (params.mailEvent) {
+    const { payload, mailEvent } = params;
+
+    switch (mailEvent) {
       case MailEvent.BASE_INVITE: {
-        const {
-          payload: { base, user, req, token },
-        } = params;
+        const { base, user, req, token } = payload;
 
         const invitee = req.user;
         await mailerAdapter.mailSend({
@@ -90,6 +106,36 @@ export class MailService {
               workspaceId: base.fk_workspace_id,
               baseId: base.id,
               token,
+            }),
+          }),
+        });
+        break;
+      }
+      case MailEvent.RESET_PASSWORD: {
+        const { user, req } = payload;
+
+        await mailerAdapter.mailSend({
+          to: user.email,
+          subject: `Reset your password`,
+          html: ejs.render(PasswordReset, {
+            email: user.email,
+            link: this.buildUrl(req, {
+              token: (user as any).reset_password_token,
+            }),
+          }),
+        });
+        break;
+      }
+
+      case MailEvent.VERIFY_EMAIL: {
+        const { user, req } = payload;
+        await mailerAdapter.mailSend({
+          to: user.email,
+          subject: `Verify your email`,
+          html: ejs.render(VerifyEmail, {
+            email: user.email,
+            link: this.buildUrl(req, {
+              verificationToken: (user as any).email_verification_token,
             }),
           }),
         });

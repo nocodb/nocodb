@@ -9,7 +9,10 @@ const baseDevConfig = {
   target: 'node',
   devtool: 'inline-source-map',
   entry: {
-    main: [process.env.ENTRYPOINT, 'webpack/hot/poll?100'],
+    // HMR is failing in most of the cases for now. So, we are disabling it.
+    // Uncomment the below line when enabling HMR
+    // main: [process.env.ENTRYPOINT, 'webpack/hot/poll?100'],
+    main: [process.env.ENTRYPOINT],
   },
   module: {
     rules: [
@@ -75,10 +78,11 @@ const baseDevConfig = {
     }),
     new RunScriptWebpackPlugin({
       name: 'main.js',
-      // set to false to enable hmr
+      // Set autorestart false when enabling HMR
       autoRestart: true,
     }),
-    new rspack.HotModuleReplacementPlugin(),
+    // Uncomment the below line when enabling HMR
+    // new rspack.HotModuleReplacementPlugin(),
     new rspack.CopyRspackPlugin({
       patterns: [{ from: 'src/public', to: 'public' }],
     }),
@@ -101,7 +105,8 @@ const baseDevConfig = {
     clean: true,
   },
   devServer: {
-    hot: true,
+    // Uncomment the below line when enabling HMR
+    //  hot: true,
   },
   cache: true,
   experiments: {

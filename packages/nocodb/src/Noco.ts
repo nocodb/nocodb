@@ -109,9 +109,9 @@ export default class Noco {
     NcDebug.log('Custom logger initialized');
     nestApp.flushLogs();
 
-    if ((module as any).hot) {
-      (module as any).hot.accept();
-      (module as any).hot.dispose(() => nestApp.close());
+    if ((module as any)?.hot) {
+      (module as any).hot?.accept?.();
+      (module as any).hot?.dispose?.(() => nestApp.close());
     }
 
     try {

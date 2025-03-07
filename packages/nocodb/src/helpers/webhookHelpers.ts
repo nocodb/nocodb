@@ -13,8 +13,15 @@ import NcPluginMgrv2 from './NcPluginMgrv2';
 import type { AxiosResponse } from 'axios';
 import type { HookType } from 'jsep';
 import type { HookLogType, TableType, UserType, ViewType } from 'nocodb-sdk';
-import { Column, FormView, FormViewColumn, Hook, Model, View } from '~/models';
 import type { NcContext } from '~/interface/config';
+import type {
+  Column,
+  FormView,
+  FormViewColumn,
+  Hook,
+  Model,
+  View,
+} from '~/models';
 import { Filter, HookLog, Source } from '~/models';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
@@ -908,45 +915,54 @@ export function _transformSubmittedFormDataForEmail(
   return transformedData;
 }
 
-
-export function transformDataForMailRendering(data: Record<string, any>, formView: FormView, columns: (Column & FormViewColumn)[]) {
+export function transformDataForMailRendering(
+  data: Record<string, any>,
+  formView: FormView,
+  columns: (Column & FormViewColumn)[],
+) {
   const transformedData: Array<{
-    parsedValue?: any
-    columnTitle: string
-    uidt: UITypes | string
-  }> = []
+    parsedValue?: any;
+    columnTitle: string;
+    uidt: UITypes | string;
+  }> = [];
 
   // TODO: Update this once ColumnHelper is Merged
   // FIXME DADDY: @DarkPhoenix2704
 
   columns.map((c) => {
-    let serializedValue =
-    if (col.uidt === 'Attachment') {
-      if (typeof data[col.title] === 'string') {
-        serializedValue = JSON.parse(data[col.title]);
+    let serializedValue: string | undefined;
+
+    try {
+      if (col.uidt === 'Attachment') {
+        let attachments = data[col.title] || [];
+        if (typeof data[col.title] === 'string') {
+          attachments = JSON.parse(data[col.title]);
+        }
+        serializedValue = Array.isArray(attachments)
+          ? attachments
+              .map((attachment) => attachment?.title || '')
+              .filter(Boolean)
+              .join('<br/>')
+          : '';
+      } else if (data[col.title] && typeof data[col.title] === 'object') {
+        serializedValue = JSON.stringify(data[col.title]);
+      } else {
+        serializedValue = data[col.title]?.toString() || '';
       }
-      serializedValue = (data[col.title] || [])
-        .map((attachment) => {
-          return attachment.title;
-        })
-        .join('<br/>');
-    } else if (
-      data[col.title] &&
-      typeof data[col.title] === 'object'
-    ) {
-      serializedValue = JSON.stringify(data[col.title]);
+    } catch (error) {
+      console.error(`Error processing column ${col.title}:`, error);
+      serializedValue = data[col.title]?.toString() || '';
     }
 
     transformedData.push({
       parsedValue: serializedValue,
       uidt: c.uidt,
-      columnTitle: c.title
-    })
-  })
+      columnTitle: c.title,
+    });
+  });
 
-  return transformedData
+  return transformedData;
 }
-
 
 function parseHrtimeToMilliSeconds(hrtime) {
   const milliseconds = (hrtime[0] + hrtime[1] / 1e6).toFixed(3);

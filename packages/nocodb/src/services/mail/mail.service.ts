@@ -40,7 +40,7 @@ export class MailService {
 
   buildUrl(
     req: NcRequest,
-    params?: {
+    params: {
       token?: string;
       workspaceId?: string;
       baseId?: string;
@@ -50,7 +50,7 @@ export class MailService {
       columnId?: string;
       resetPassword?: string;
       verificationToken?: string;
-    },
+    } = {},
   ) {
     const dashboardPath = Noco.getConfig()?.dashboardPath;
 
@@ -58,9 +58,19 @@ export class MailService {
       return `${req.ncSiteUrl}${dashboardPath}#/signup/${params.token}`;
     }
 
-    let url = `${req.ncSiteUrl}`;
+    let url = req.ncSiteUrl;
 
     url += req.dashboardUrl || dashboardPath;
+
+    if (params.resetPassword) {
+      url += `/auth/password/reset/${params.resetPassword}`;
+      return url;
+    }
+
+    if (params.verificationToken) {
+      url += `/email/validate/${params.verificationToken}`;
+      return url;
+    }
 
     if (params.workspaceId) {
       url += `#/${params.workspaceId}`;
@@ -68,27 +78,27 @@ export class MailService {
       url += `#`;
     }
 
-    if (params.resetPassword) {
-      url += `/auth/password/reset/${params.resetPassword}`;
-      return url;
-    }
-
-    if (params?.verificationToken) {
-      url += `/email/validate/${params.verificationToken}`;
-      return url;
-    }
-
     if (params.baseId) {
       url += `/${params.baseId}`;
-    }
 
-    if (params.tableId) {
-      url += `/${params.tableId}`;
-      const queryParams = [];
-      if (params.rowId) queryParams.push(`rowId=${params.rowId}`);
-      if (params.commentId) queryParams.push(`commentId=${params.commentId}`);
-      if (params.columnId) queryParams.push(`columnId=${params.columnId}`);
-      if (queryParams.length > 0) url += `?${queryParams.join('&')}`;
+      if (params.tableId) {
+        url += `/${params.tableId}`;
+
+        const searchParams = new URLSearchParams();
+
+        if (params.rowId) {
+          searchParams.set('rowId', params.rowId);
+        }
+        if (params.commentId) {
+          searchParams.set('commentId', params.commentId);
+        }
+        if (params.columnId) {
+          searchParams.set('columnId', params.columnId);
+        }
+        if (searchParams.toString()) {
+          url += `?${searchParams.toString()}`;
+        }
+      }
     }
 
     return url;

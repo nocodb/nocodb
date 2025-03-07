@@ -43,9 +43,9 @@ export const MentionComment = () => (
           </span>
         </Section>
         <Text className="text-gray-600 text-center text-sm !mt-0">
-          {'<%= name %>'} ( {'<%= email %>'}) has mentioned you in
+          {'<%= name %>'} ({'<%= email %>'}) has mentioned you in
           <span className="font-semibold text-gray-800">
-              {'<%= baseTitle %>'}
+              {' <%= baseTitle %>'}
           </span>
         </Text>
         <Button className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10" href="<%= link %>">

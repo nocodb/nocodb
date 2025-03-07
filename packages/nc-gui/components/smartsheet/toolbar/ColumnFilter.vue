@@ -92,7 +92,7 @@ const isLockedView = computed(() => isLocked.value && isViewFilter.value)
 
 const { $e } = useNuxtApp()
 
-const { nestedFilters, isForm } = useSmartsheetStoreOrThrow()
+const { nestedFilters, isForm, eventBus } = useSmartsheetStoreOrThrow()
 
 const currentFilters = modelValue.value || (!link.value && !webHook.value && nestedFilters.value) || []
 
@@ -555,6 +555,14 @@ const changeToDynamic = async (filter, i) => {
   filter.dynamic = isDynamicFilterAllowed(filter) && showFilterInput(filter)
   await saveOrUpdate(filter, i)
 }
+
+eventBus.on(async (event) => {
+  if (event === SmartsheetStoreEvents.FIELD_UPDATE) {
+    await loadFilters({
+      loadAllFilters: true,
+    })
+  }
+})
 </script>
 
 <template>

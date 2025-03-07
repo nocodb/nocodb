@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
 import { Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
-import { isDateMonthFormat, UITypes } from 'nocodb-sdk';
+import { ColumnHelper, isDateMonthFormat, UITypes } from 'nocodb-sdk';
 import isBetween from 'dayjs/plugin/isBetween';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
@@ -917,8 +917,10 @@ export function _transformSubmittedFormDataForEmail(
 
 export function transformDataForMailRendering(
   data: Record<string, any>,
-  formView: FormView,
   columns: (ColumnType & FormColumnType)[],
+  source: Source,
+  model: Model,
+  models: Record<string, TableType>,
 ) {
   const transformedData: Array<{
     parsedValue?: any;
@@ -933,21 +935,31 @@ export function transformDataForMailRendering(
     let serializedValue: string | undefined;
 
     try {
+      serializedValue = ColumnHelper.serializeValue([col.title], {
+        col,
+        isMssql: () => source.type === 'mssql',
+        isMysql: () => source.type.startsWith('mysql'),
+        isPg: () => source.type === 'pg',
+        isXcdbBase: () => !!source.isMeta(),
+        meta: model,
+        metas: models,
+      });
+
       if (col.uidt === 'Attachment') {
         let attachments = data[col.title] || [];
         if (typeof data[col.title] === 'string') {
-          attachments = JSON.parse(data[col.title]);
+          try {
+            attachments = JSON.parse(data[col.title]);
+          } catch (e) {
+            attachments = [];
+          }
         }
         serializedValue = Array.isArray(attachments)
           ? attachments
               .map((attachment) => attachment?.title || '')
               .filter(Boolean)
-              .join('<br/>')
+              .join(', ')
           : '';
-      } else if (data[col.title] && typeof data[col.title] === 'object') {
-        serializedValue = JSON.stringify(data[col.title]);
-      } else {
-        serializedValue = data[col.title]?.toString() || '';
       }
     } catch (error) {
       console.error(`Error processing column ${col.title}:`, error);

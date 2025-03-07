@@ -814,7 +814,7 @@ export async function invokeWebhook(
           ) {
             hookLog = {
               ...hook,
-              operation: hookName.split('.')?.[1] as any,
+              operation: hookName?.split('.')?.[1] as any,
               fk_hook_id: hook.id,
               type: notification.type,
               payload: JSON.stringify(notification?.payload),
@@ -851,7 +851,7 @@ export async function invokeWebhook(
     if (['ERROR', 'ALL'].includes(process.env.NC_AUTOMATION_LOG_LEVEL)) {
       hookLog = {
         ...hook,
-        operation: hookName.split('.')?.[1] as any,
+        operation: hookName?.split('.')?.[1] as any,
         type: notification.type,
         payload: JSON.stringify(
           reqPayload

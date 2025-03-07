@@ -28,12 +28,17 @@ import { MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { getProjectRolePower } from '~/utils/roleHelper';
 import { sanitiseEmailContent } from '~/utils';
+import { MailService } from '~/services/mail/mail.service';
+import { MailEvent } from '~/interface/Mail';
 
 @Injectable()
 export class BaseUsersService {
   private readonly logger = new Logger(BaseUsersService.name);
 
-  constructor(protected appHooksService: AppHooksService) {}
+  constructor(
+    protected appHooksService: AppHooksService,
+    protected readonly mailService: MailService,
+  ) {}
 
   async userList(
     context: NcContext,

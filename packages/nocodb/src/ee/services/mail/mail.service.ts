@@ -12,7 +12,7 @@ export class MailService extends MailServiceCE {
   async sendMail(params: MailParams) {
     const mailerAdapter = await this.getAdapter();
     if (!mailerAdapter) {
-      console.error('Plugin not configured / active');
+      this.logger.error('Plugin not configured / active');
       return;
     }
 
@@ -47,9 +47,10 @@ export class MailService extends MailServiceCE {
               to: mentionedUser.email,
               subject: `New comment on ${table.title}`,
               html: await this.renderMail('Mention', {
-                name:
-                  user.display_name ??
-                  user.email.split('@')[0]?.toLocaleUpperCase(),
+                name: extractDisplayNameFromEmail(
+                  user.email,
+                  user.display_name,
+                ),
                 email: user.email,
                 link: this.buildUrl(req, {
                   workspaceId: workspace.id,

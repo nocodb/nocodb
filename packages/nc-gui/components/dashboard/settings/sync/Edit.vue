@@ -165,7 +165,7 @@ const changeActiveSync = async (id: string) => {
   })
 }
 
-const initialize = async () => {
+async function initialize() {
   tableSyncs.value = []
   syncOptions.value = []
 

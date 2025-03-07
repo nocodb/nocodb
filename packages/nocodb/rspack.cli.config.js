@@ -1,4 +1,4 @@
-const { resolve,  } = require('path');
+const { resolve } = require('path');
 const { rspack } = require('@rspack/core');
 const nodeExternals = require('webpack-node-externals');
 

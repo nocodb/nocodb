@@ -1,12 +1,9 @@
 const { resolve, join } = require('path');
-const baseConfig = require('./rspack.dev.config');
 const { TsCheckerRspackPlugin } = require('ts-checker-rspack-plugin');
+const baseConfig = require('./rspack.dev.config');
 
 module.exports = {
   ...baseConfig,
-  entry: {
-    main: ['webpack/hot/poll?1000'],
-  },
   resolve: {
     ...baseConfig.resolve,
     tsConfig: {

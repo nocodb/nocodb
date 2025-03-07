@@ -1133,7 +1133,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       req,
     });
 
-    await this.handleHooks('before.insert', null, data, req);
+    await this.handleHooks('before.bulkInsert', null, data, req);
   }
 
   public async afterInsert({
@@ -1184,7 +1184,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
-    await this.handleHooks('after.insert', null, data, req);
+    await this.handleHooks('after.bulkInsert', null, data, req);
     if (await this.isDataAuditEnabled()) {
       let parentAuditId;
       if (!req.ncParentAuditId) {
@@ -3187,7 +3187,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     isBulkAllOperation = false,
   ): Promise<void> {
     if (!isBulkAllOperation) {
-      await this.handleHooks('after.update', prevData, newData, req);
+      await this.handleHooks('after.bulkUpdate', prevData, newData, req);
     }
 
     // disable external source audit in cloud

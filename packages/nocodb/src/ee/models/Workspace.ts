@@ -367,8 +367,19 @@ export default class Workspace implements WorkspaceType {
       RootScopes.WORKSPACE,
       MetaTable.WORKSPACE,
       {
-        condition: {
-          deleted: false,
+        xcCondition: {
+          _or: [
+            {
+              deleted: {
+                eq: false,
+              },
+            },
+            {
+              deleted: {
+                eq: null,
+              },
+            },
+          ],
         },
       },
     );
@@ -528,9 +539,28 @@ export default class Workspace implements WorkspaceType {
       RootScopes.WORKSPACE,
       MetaTable.WORKSPACE_USER,
       {
-        condition: {
-          fk_workspace_id: workspaceId,
-          deleted: false,
+        xcCondition: {
+          _and: [
+            {
+              fk_workspace_id: {
+                eq: workspaceId,
+              },
+            },
+            {
+              _or: [
+                {
+                  deleted: {
+                    eq: false,
+                  },
+                },
+                {
+                  deleted: {
+                    eq: null,
+                  },
+                },
+              ],
+            },
+          ],
         },
       },
     );

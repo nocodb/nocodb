@@ -12,6 +12,7 @@ import formSubmissionEmailTemplate from '~/utils/common/formSubmissionEmailTempl
 import { FormView, Hook, Model, View } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { MailService } from '~/services/mail/mail.service';
 
 export const HANDLE_WEBHOOK = '__nc_handleHooks';
 
@@ -23,6 +24,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
   constructor(
     @Inject('IEventEmitter') private readonly eventEmitter: IEventEmitter,
     @Inject('JobsService') private readonly jobsService: IJobsService,
+    private readonly mailService: MailService,
   ) {}
 
   public async handleHooks(

@@ -16,25 +16,27 @@ import { baseUrl } from '../utils/constant';
 
 // Corresponding ejs template
 interface Props {
-  baseTitle: string;
+  workspaceTitle: string;
   role: string;
   name: string;
   email: string;
   link: string;
 }
 
-export const BaseRoleUpdate = () => (
+export const WorkspaceRoleUpdateEe = () => (
   <Html>
     <RootWrapper>
       <Head />
-      <Preview>Your base role has been updated</Preview>
+      <Preview>Your workspace role has been updated</Preview>
       <Body className="bg-white">
         <ContentWrapper>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
-            Your base role has been updated
+            Your workspace role has been updated
           </Heading>
-          <Section className="py-6 text-center font-bold text-gray-900 text-base">
-            {'<%= baseTitle %>'}
+          <Section className="py-6 text-center">
+            <span className="font-bold text-gray-900 mx-auto text-base">
+              {'<%= workspaceTitle %>'}
+            </span>
           </Section>
           <Section className="pb-6 text-center">
             <Img
@@ -44,14 +46,14 @@ export const BaseRoleUpdate = () => (
           <Text className="text-gray-600 text-center text-sm !mt-0">
             Your access in
             <span className="font-bold text-gray-800">
-              {' <%= baseTitle %>  '}
+              {' <%= workspaceTitle %>  '}
             </span>
             has been updated to <span className="font-bold text-gray-800">{'<%= role %> '}</span>
-            by <span className="font-bold text-gray-800">{' <%= name %>'}</span> ( {'<%= email %>'})
+            by <span className="font-bold text-gray-800">{'<%= name %>'}</span> ({'<%= email %>'})
           </Text>
           <Button className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10" href="<%= link %>">
             <Text className="!my-[8px]">
-              Go to Base
+              Go to Workspace
             </Text>
           </Button>
         </ContentWrapper>
@@ -61,4 +63,4 @@ export const BaseRoleUpdate = () => (
 
   </Html>
 );
-export default BaseRoleUpdate;
+export default WorkspaceRoleUpdateEe;

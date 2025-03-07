@@ -238,6 +238,14 @@ export class PaymentService {
       throw new Error('Workspace not found');
     }
 
+    const workspaceSeatCount = await Workspace.getSeatCount(workspaceId);
+
+    if (workspaceSeatCount !== payload.seat) {
+      throw new Error(
+        'There was a mismatch in the seat count, please try again',
+      );
+    }
+
     const existingSubscription = await Subscription.getByWorkspace(workspaceId);
 
     if (!existingSubscription) {

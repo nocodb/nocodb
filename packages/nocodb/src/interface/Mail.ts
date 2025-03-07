@@ -19,6 +19,8 @@ enum MailEvent {
   WORKSPACE_INVITE = 'WORKSPACE_INVITE',
   WORKSPACE_ROLE_UPDATE = 'WORKSPACE_ROLE_UPDATE',
   WELCOME = 'WELCOME',
+  RESET_PASSWORD = 'RESET_PASSWORD',
+  VERIFY_EMAIL = 'VERIFY_EMAIL',
 }
 
 interface CommentPayload {
@@ -68,6 +70,16 @@ interface WorkspaceRoleUpdatePayload {
   role: WorkspaceUserRoles;
 }
 
+interface ResetPasswordPayload {
+  req: NcRequest;
+  user: UserType;
+}
+
+interface VerifyEmailPayload {
+  req: NcRequest;
+  user: UserType;
+}
+
 interface WelcomePayload {}
 
 type MailParams =
@@ -98,6 +110,14 @@ type MailParams =
   | {
       mailEvent: MailEvent.WELCOME;
       payload: WelcomePayload;
+    }
+  | {
+      mailEvent: MailEvent.RESET_PASSWORD;
+      payload: ResetPasswordPayload;
+    }
+  | {
+      mailEvent: MailEvent.VERIFY_EMAIL;
+      payload: VerifyEmailPayload;
     };
 
 export { MailEvent, CommentPayload, RowMentionPayload, MailParams };

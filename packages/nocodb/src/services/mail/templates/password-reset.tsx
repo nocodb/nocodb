@@ -1,24 +1,26 @@
 import {
   Body,
+  Button,
   Head,
   Heading,
   Html,
   Preview,
+  Section,
   Text,
-  Button, Section,
 } from '@react-email/components';
 import * as React from 'react';
-import RootWrapper from '../components/RootWrapper';
-import { Footer } from '../components/Footer';
-import ContentWrapper from '../components/ContentWrapper';
+import {
+  ContentWrapper,
+  Footer,
+  RootWrapper,
+} from '~/services/mail/templates/components';
 
-// Corresponding ejs template
-interface Props {
+interface PasswordResetTemplateProps {
   email: string;
   link: string;
 }
 
-export const PasswordReset = () => (
+export const PasswordReset = ({ email, link }: PasswordResetTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
@@ -29,15 +31,17 @@ export const PasswordReset = () => (
             Password reset requested
           </Heading>
           <Section className="py-6 mx-auto font-bold text-center text-gray-900 text-base">
-            {'<%= email %>'}
+            {email}
           </Section>
           <Text className="text-gray-600 text-center text-sm !mt-0">
-            You’ve requested for a password reset, click on the ‘Reset Password’ button to reset your password.
+            You’ve requested for a password reset, click on the ‘Reset Password’
+            button to reset your password.
           </Text>
-          <Button className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10" href="<%= link %>">
-            <Text className="!my-[8px]">
-              Reset Password
-            </Text>
+          <Button
+            className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10"
+            href={link}
+          >
+            <Text className="!my-[8px]">Reset Password</Text>
           </Button>
         </ContentWrapper>
         <Footer />
@@ -45,4 +49,10 @@ export const PasswordReset = () => (
     </RootWrapper>
   </Html>
 );
+
+PasswordReset.PreviewProps = {
+  email: 'janedoe@nocodb.com',
+  link: 'https://nocodb.com',
+};
+
 export default PasswordReset;

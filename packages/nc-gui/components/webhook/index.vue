@@ -2,7 +2,7 @@
 import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
-
+import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
@@ -47,6 +47,15 @@ const testSuccess = ref()
 const testConnectionError = ref('')
 
 const useForm = Form.useForm
+
+const triggerByFieldColumns = computed(() => {
+  if (!meta.value?.columns) {
+    return []
+  }
+  return meta.value.columns.filter((col) => {
+    return [UITypes.ID].includes(col.uidt) || isLinksOrLTAR(col) || (!isSystemColumn(col) && !isVirtualCol(col))
+  })
+})
 
 const eventsLabelMap = computed(() => {
   const result: any = {}
@@ -102,6 +111,8 @@ let hookRef = reactive<
     },
   },
   condition: false,
+  fieldTrigger: false,
+  fieldTriggerColumns: [],
   active: true,
   version: 'v3',
 })
@@ -134,7 +145,6 @@ const teamsChannels = ref<Record<string, any>[]>([])
 const discordChannels = ref<Record<string, any>[]>([])
 
 const mattermostChannels = ref<Record<string, any>[]>([])
-const isOperationSelectOpen = ref<boolean>(false)
 const sendMeEverythingChecked = ref(false)
 
 const filterRef = ref()
@@ -156,7 +166,6 @@ const toggleSendMeEverythingChecked = (evt) => {
     evt.stopPropagation()
     evt.preventDefault()
   }
-  isOperationSelectOpen.value = false
 }
 
 const handleEventChange = (e) => {
@@ -775,14 +784,7 @@ onMounted(async () => {
                     <a-select-option v-for="event of eventsEnum" :key="event.value"> {{ event.text }}</a-select-option>
                   </NcSelect>
 
-                  <a-dropdown
-                    class="w-full"
-                    :trigger="['click']"
-                    :open="isOperationSelectOpen"
-                    @click="isOperationSelectOpen = true"
-                    @focus="isOperationSelectOpen = true"
-                    @blur="isOperationSelectOpen = false"
-                  >
+                  <a-dropdown class="w-full" :trigger="['click']">
                     <a-input
                       :readonly="true"
                       :value="
@@ -799,7 +801,7 @@ onMounted(async () => {
                       <a-card>
                         <NcButton
                           v-if="hookRef.event === 'after'"
-                          type="link"
+                          type="text"
                           class="w-full"
                           style="box-shadow: none"
                           @click="toggleSendMeEverythingChecked"
@@ -808,7 +810,7 @@ onMounted(async () => {
                           <div class="w-full flex gap-2">
                             <div class="flex-grow">Send me everything</div>
                             <div class="flex flex-shrink max-w-[18px]">
-                              <a-checkbox v-model:checked="sendMeEverythingChecked" :disabled="true"></a-checkbox>
+                              <a-checkbox v-model:checked="sendMeEverythingChecked" :readonly="true"></a-checkbox>
                             </div>
                           </div>
                         </NcButton>
@@ -817,7 +819,7 @@ onMounted(async () => {
                           <NcButton
                             v-for="operation of operationsEnum"
                             :key="operation.value"
-                            type="link"
+                            type="text"
                             class="w-full"
                             style="box-shadow: none"
                             @click="
@@ -836,7 +838,7 @@ onMounted(async () => {
                                 {{ operation.text }}
                               </div>
                               <div class="flex flex-shrink max-w-[18px]">
-                                <a-checkbox :checked="hookRef.operation.includes(operation.value)" :disabled="true"></a-checkbox>
+                                <a-checkbox :checked="hookRef.operation.includes(operation.value)" :readonly="true"></a-checkbox>
                               </div>
                             </div>
                           </NcButton>
@@ -844,56 +846,38 @@ onMounted(async () => {
                       </a-card>
                     </template>
                   </a-dropdown>
-
-                  <!-- <a-select
-                    ref="operation-select-ref"
-                    v-model:value="hookRef.operation"
-                    mode="multiple"
-                    class="w-full"
-                    :open="isOperationSelectOpen"
-                    @click="isOperationSelectOpen = true"
-                    @focus="isOperationSelectOpen = true"
-                    @blur="isOperationSelectOpen = false"
-                  >
-                    <a-select-option v-for="operation of operationsEnum" :key="operation.value" :value="operation.value">
-                      {{ operation.text }}</a-select-option
-                    >
-
-                    <template #tagRender="{ label, value: val, onClose }">
-                      <a-tag v-if="hookRef.operation.some((el) => el.id === val)">{{ label }} {{ val }}</a-tag>
-                    </template>
-
-                    <template #dropdownRender="{ menuNode: menu }">
-                      <NcButton
-                        v-if="hookRef.event === 'after'"
-                        type="link"
-                        class="w-full"
-                        @click="toggleSendMeEverythingChecked"
-                        @mousedown.prevent
-                      >
-                        <div class="w-full flex gap-2">
-                          <div class="flex-grow">Send me everything</div>
-                          <div class="flex flex-shrink max-w-[18px]">
-                            <a-checkbox v-model:checked="sendMeEverythingChecked" :disabled="true"></a-checkbox>
-                          </div>
-                        </div>
-                      </NcButton>
-                      <a-divider v-if="hookRef.event === 'after' && !sendMeEverythingChecked" style="margin: 4px 0" />
-                      <div v-if="!sendMeEverythingChecked || hookRef.event !== 'after'">
-                        <component :is="menu" />
-                      </div>
-                    </template>
-                  </a-select> -->
                 </div>
               </a-card>
               <a-card>
+                <div
+                  class="w-full cursor-pointer flex items-center px-3 my-2"
+                  @click.prevent="hookRef.fieldTrigger = !hookRef.fieldTrigger"
+                >
+                  <NcSwitch :checked="Boolean(hookRef.fieldTrigger)" class="nc-check-box-hook-condition">
+                    <span class="!text-gray-700 font-semibold">
+                      {{ $t('general.trigger') }} {{ $t('activity.forUpdatesInSpecificFields').toLowerCase() }}
+                    </span>
+                  </NcSwitch>
+                </div>
+
+                <div v-if="hookRef.fieldTrigger" class="px-3">
+                  <WebhookTriggerByField
+                    :columns="triggerByFieldColumns"
+                    :selected-columns="hookRef.fieldTriggerColumns"
+                    @change="
+                      (columns) => {
+                        hookRef.fieldTriggerColumns = columns
+                      }
+                    "
+                  ></WebhookTriggerByField>
+                </div>
                 <div
                   class="w-full cursor-pointer flex items-center px-3 my-2"
                   @click.prevent="hookRef.condition = !hookRef.condition"
                 >
                   <NcSwitch :checked="Boolean(hookRef.condition)" class="nc-check-box-hook-condition">
                     <span class="!text-gray-700 font-semibold">
-                      {{ $t('general.trigger') }} {{ $t('activity.onCondition') }}
+                      {{ $t('general.trigger') }} {{ $t('activity.basedOnConditions').toLowerCase() }}
                     </span>
                   </NcSwitch>
                 </div>

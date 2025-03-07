@@ -6,6 +6,7 @@ import {
   type LinkToAnotherRecordType,
   type LookupType,
   type RollupType,
+  type TableType,
   isLinksOrLTAR,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
@@ -24,8 +25,6 @@ const { t } = useI18n()
 const column = toRef(props, 'column')
 
 const { base: activeBase, tables } = storeToRefs(useBase())
-
-const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const isExternalSource = computed(() =>
   activeBase.value?.sources?.some((s) => s.id === column.value?.source_id && !s.is_meta && !s.is_local),
@@ -56,6 +55,8 @@ const isForm = inject(IsFormInj, ref(false))
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isExpandedBulkUpdateForm = inject(IsExpandedBulkUpdateFormOpenInj, ref(false))
+
+const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
 
 const tableTile = computed(() => meta?.value?.title)
 

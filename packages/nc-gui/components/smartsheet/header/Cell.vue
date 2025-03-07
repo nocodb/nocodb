@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { type ColumnReqType, type ColumnType, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
-import { UITypes, UITypesName } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
+import { UITypes, UITypesName, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 
 interface Props {
   column: ColumnType
@@ -13,8 +13,6 @@ interface Props {
 const props = defineProps<Props>()
 
 const { isMobileMode } = useGlobal()
-
-const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const hideMenu = toRef(props, 'hideMenu')
 
@@ -43,6 +41,8 @@ provide(ColumnInj, column)
 const editColumnDropdown = ref(false)
 
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
+
+const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
 
 const columnTypeName = computed(() => {
   if (column.value.uidt === UITypes.LongText) {

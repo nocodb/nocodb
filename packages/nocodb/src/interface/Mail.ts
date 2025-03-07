@@ -80,7 +80,10 @@ interface VerifyEmailPayload {
   user: UserType;
 }
 
-interface WelcomePayload {}
+interface WelcomePayload {
+  req: NcRequest;
+  user: UserType;
+}
 
 type MailParams =
   | {

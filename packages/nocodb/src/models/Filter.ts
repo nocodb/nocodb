@@ -391,8 +391,8 @@ export default class Filter implements FilterType {
   }
 
   public static async getFiltersByColumn(
-    columnId: string,
     context: NcContext,
+    columnId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<Filter[]> {
     if (!columnId) return null;

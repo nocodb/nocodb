@@ -1140,12 +1140,18 @@ export class ColumnsService implements IColumnsService {
           }
         }
 
-        // interchange is used to to handle congflicts.
-        // Consider the scenario where options are A, B, C. If User wants to convert A-> B, B -> C, C -> A
-        // If we do this in one go, we will have a conflict A -> B, Now all A options are B along with the original B options
-        // So we will first convert A -> temp, B -> temp1, C -> temp2
-        // Then we will convert temp1 -> B, temp2 -> C and temp -> A
-        const interchange = [];
+        /*
+          Interchange is used to handle cyclic replacements without conflicts (e.g., A → B, B → C, C → A):
+          1. We replace conflicting new options with temporary unique titles (e.g., A → A_1, B → B_1, C → C_1)
+          2. We update the database with these temporary unique titles
+          3. Finally, we replace the temporary unique titles with the intended new option titles
+        */
+        const interchange: {
+          // Original new option
+          def_option: { title: string };
+          // Temporary unique title
+          temp_title: string;
+        }[] = [];
         const titleChanges = []; // Title change keeps direct map of old title to new title
         // Handle option update
         if (column.colOptions?.options) {
@@ -1406,7 +1412,7 @@ export class ColumnsService implements IColumnsService {
         }
 
         // Update value in filters that reference this column
-        const filters = await Filter.getFiltersByColumn(column.id, context);
+        const filters = await Filter.getFiltersByColumn(context, column.id);
 
         for (const filter of filters ?? []) {
           let newValue = filter.value;

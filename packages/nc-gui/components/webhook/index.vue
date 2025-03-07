@@ -689,6 +689,18 @@ async function loadSampleData() {
   )
 }
 
+const formattedSampleData = computed(() => {
+  // if non-URL based hook and version is v2, then return the newRowData as payload
+  // this is for backward compatibility
+  if (hookRef.notification.type !== 'URL' && ['v2'].includes(hookRef.version)) {
+    return {
+      event: sampleData.value?.data?.rows,
+    }
+  }
+
+  return sampleData.value
+})
+
 const getDefaultHookName = (hooks: HookType[]) => {
   return extractNextDefaultName([...hooks.map((el) => el?.title || '')], defaultHookName)
 }
@@ -1194,7 +1206,7 @@ const toggleIncludeUser = async () => {
               </div>
               <div v-show="isVisible">
                 <LazyMonacoEditor
-                  v-model="sampleData"
+                  v-model="formattedSampleData"
                   read-only
                   :monaco-config="{
                     minimap: {

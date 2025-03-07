@@ -37,7 +37,7 @@ export default class Hook implements HookType {
   fk_workspace_id?: string;
   base_id?: string;
   source_id?: string;
-  version?: 'v1' | 'v2';
+  version?: 'v1' | 'v2' | 'v3';
 
   constructor(hook: Partial<Hook | HookReqType>) {
     Object.assign(this, hook);

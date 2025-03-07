@@ -15386,7 +15386,8 @@
             "type": "string",
             "enum": [
               "v1",
-              "v2"
+              "v2",
+              "v3"
             ]
           },
           "name": "version",
@@ -23439,11 +23440,12 @@
             "x-stoplight": {
               "id": "socewqvadj91n"
             },
-            "example": "v2",
+            "example": "v3",
             "description": "Hook Version",
             "enum": [
               "v1",
-              "v2"
+              "v2",
+              "v3"
             ]
           }
         }

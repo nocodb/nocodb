@@ -2799,7 +2799,7 @@
             "application/json": {
               "schema": {
                 "allOf":[
-                  { 
+                  {
                     "$ref": "#/components/schemas/SharedBaseReq"
                   },
                   {
@@ -5319,7 +5319,7 @@
             "application/json": {
               "schema": {
                 "allOf":[
-                  { 
+                  {
                     "$ref": "#/components/schemas/SharedViewReq"
                   },
                   {
@@ -10410,7 +10410,8 @@
             "type": "string",
             "enum": [
               "v1",
-              "v2"
+              "v2",
+              "v3"
             ]
           },
           "name": "version",

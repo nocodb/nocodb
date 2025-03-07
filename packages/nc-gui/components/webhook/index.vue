@@ -80,7 +80,7 @@ let hookRef = reactive<
   },
   condition: false,
   active: true,
-  version: 'v2',
+  version: 'v3',
 })
 
 const isBodyShown = ref(hookRef.version === 'v1' || isEeUI)

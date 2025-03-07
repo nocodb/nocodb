@@ -403,6 +403,7 @@ function onActiveCellChanged() {
   if (rowSortRequiredRows.value.length) {
     applySorting?.(rowSortRequiredRows.value)
   }
+  calculateSlices()
   requestAnimationFrame(triggerRefreshCanvas)
 }
 
@@ -963,6 +964,7 @@ async function handleMouseUp(e: MouseEvent) {
   } else if (rowIndex > totalRows.value) {
     selection.value.clear()
     activeCell.value = { row: -1, column: -1 }
+    onActiveCellChanged()
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
@@ -1593,9 +1595,7 @@ watch(rowHeight, () => {
 
 // watch for column hide and re-render canvas
 watch(
-  () => {
-    return columns.value?.length
-  },
+  () => [columns.value?.length, totalRows.value],
   () => {
     nextTick(() => {
       calculateSlices()

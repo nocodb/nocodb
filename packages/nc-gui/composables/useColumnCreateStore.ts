@@ -46,7 +46,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const { activeView } = storeToRefs(viewsStore)
 
-    const { xWhere, view } = useSmartsheetStoreOrThrow()
+    const { xWhere, view, eventBus } = useSmartsheetStoreOrThrow()
 
     const { formattedData, loadData } = useViewData(meta, view, xWhere)
 
@@ -375,6 +375,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             if (oldCol && [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(oldCol.uidt)) {
               viewsStore.loadViews({ tableId: oldCol?.fk_model_id, ignoreLoading: true, force: true })
             }
+            eventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
           } catch (e: any) {
             if (!validateInfos.formula_raw) validateInfos.formula_raw = {}
             validateInfos.formula_raw!.validateStatus = 'error'

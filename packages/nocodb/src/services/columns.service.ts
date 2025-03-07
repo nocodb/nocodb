@@ -37,6 +37,7 @@ import type {
   IColumnsService,
   ReusableParams,
 } from '~/services/columns.service.type';
+import { Filter } from '~/models';
 import { parseMetaProp } from '~/utils/modelUtils';
 import {
   BaseUser,
@@ -1139,8 +1140,19 @@ export class ColumnsService implements IColumnsService {
           }
         }
 
-        const interchange = [];
-
+        /*
+          Interchange is used to handle cyclic replacements without conflicts (e.g., A → B, B → C, C → A):
+          1. We replace conflicting new options with temporary unique titles (e.g., A → A_1, B → B_1, C → C_1)
+          2. We update the database with these temporary unique titles
+          3. Finally, we replace the temporary unique titles with the intended new option titles
+        */
+        const interchange: {
+          // Original new option
+          def_option: { title: string };
+          // Temporary unique title
+          temp_title: string;
+        }[] = [];
+        const titleChanges = []; // Title change keeps direct map of old title to new title
         // Handle option update
         if (column.colOptions?.options) {
           const old_titles = column.colOptions.options.map((el) => el.title);
@@ -1161,12 +1173,20 @@ export class ColumnsService implements IColumnsService {
             const newOp = {
               ...colBody.colOptions.options.find((el) => option.id === el.id),
             };
+
+            titleChanges.push({
+              old_title: option.title,
+              new_title: newOp.title,
+            });
+
+            // Handle title conflicts by creating unique temporary titles
             if (old_titles.includes(newOp.title)) {
               const def_option = { ...newOp };
               let title_counter = 1;
               while (old_titles.includes(newOp.title)) {
                 newOp.title = `${def_option.title}_${title_counter++}`;
               }
+              // Store the temporary title mapping
               interchange.push({
                 def_option,
                 temp_title: newOp.title,
@@ -1300,6 +1320,7 @@ export class ColumnsService implements IColumnsService {
           }
         }
 
+        // Process temporary title interchanges (conflict resolution)
         for (const ch of interchange) {
           const newOp = ch.def_option;
           if (column.uidt === UITypes.SingleSelect) {
@@ -1387,6 +1408,26 @@ export class ColumnsService implements IColumnsService {
                 ],
               );
             }
+          }
+        }
+
+        // Update value in filters that reference this column
+        const filters = await Filter.getFiltersByColumn(context, column.id);
+
+        for (const filter of filters ?? []) {
+          let newValue = filter.value;
+          // Split filter values and update them based on title changes
+          const values = filter.value?.split(',');
+          const updatedValues = values.map((val) => {
+            const change = titleChanges.find((c) => c.old_title === val.trim());
+            return change ? change.new_title : val;
+          });
+          newValue = updatedValues.join(',');
+          // Update filter if value changed
+          if (newValue !== filter.value) {
+            await Filter.update(context, filter.id, {
+              value: newValue,
+            });
           }
         }
       }

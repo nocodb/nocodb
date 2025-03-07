@@ -371,7 +371,14 @@ const getHookTypeText = (hook: HookType) => {
         </GeneralDeleteModal>
 
         <Webhook
-          v-if="isWebhookModalOpen"
+          v-if="isWebhookModalOpen && selectedHook.version === 'v3'"
+          v-model:value="isWebhookModalOpen"
+          :hook="selectedHook"
+          :event-list="eventList"
+          @close="onModalClose"
+        />
+        <WebhookV2
+          v-if="isWebhookModalOpen && selectedHook.version !== 'v3'"
           v-model:value="isWebhookModalOpen"
           :hook="selectedHook"
           :event-list="eventList"

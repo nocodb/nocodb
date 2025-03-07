@@ -20,6 +20,7 @@ export { default as Domain } from './Domain';
 export { default as Org } from './Org';
 export { default as OrgUser } from './OrgUser';
 export { default as LinkToAnotherRecordColumn } from './LinkToAnotherRecordColumn';
+export { default as CalendarRange } from './CalendarRange';
 export { default as Audit } from './Audit';
 export { default as Integration } from './Integration';
 export { default as CustomUrl } from './CustomUrl';

@@ -351,6 +351,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       }
 
       let savedColumn: ColumnType | undefined
+      let oldCol: ColumnType | undefined
 
       try {
         formState.value.table_name = meta.value?.table_name
@@ -368,7 +369,12 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           const { filters: _, ...updateData } = formState.value
 
           try {
+            oldCol = column.value
             await $api.dbTableColumn.update(column.value?.id as string, updateData)
+
+            if (oldCol && [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(oldCol.uidt)) {
+              viewsStore.loadViews({ tableId: oldCol?.fk_model_id, ignoreLoading: true, force: true })
+            }
           } catch (e: any) {
             if (!validateInfos.formula_raw) validateInfos.formula_raw = {}
             validateInfos.formula_raw!.validateStatus = 'error'
@@ -434,7 +440,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
           // Column created
           // message.success(t('msg.success.columnCreated'))
-
           $e('a:column:add', { datatype: formState.value.uidt })
         }
         await onSuccess?.(savedColumn)

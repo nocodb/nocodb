@@ -404,7 +404,13 @@ export async function validateCondition(
   return isValid;
 }
 
-export function constructWebHookData(hook, model, view, prevData, newData) {
+export function constructWebHookData(
+  hook: Hook | HookType,
+  model: Model | TableType,
+  _view: View | ViewType,
+  prevData: Record<string, unknown>,
+  newData: Record<string, unknown>,
+) {
   if (['v2', 'v3'].includes(hook.version)) {
     // extend in the future - currently only support records
     const scope = 'records';
@@ -481,11 +487,6 @@ function populateAxiosReq({
     prevData,
     newData,
   );
-  // const reqPayload = axiosRequestMake(
-  //   _apiMeta,
-  //   user,
-  //   webhookData,
-  // );
 
   const apiMeta = { ..._apiMeta };
   // if it's a string try to parse and apply handlebar
@@ -626,6 +627,27 @@ function flattenFilter(
   return flattenedFilters;
 }
 
+function constructHookDataForNonURLHooks({
+  newData,
+  prevData,
+  view,
+  hook,
+  model,
+}: {
+  hook: Hook;
+  model: Model;
+  view: View;
+  newData: Record<string, unknown>;
+  prevData: Record<string, unknown>;
+}) {
+  // for old webhooks keep the old data syntax for backward compatibility
+  if (hook.version === 'v2' || hook.version === 'v1') {
+    return newData;
+  } else {
+    return constructWebHookData(hook, model, view, prevData, newData);
+  }
+}
+
 export async function invokeWebhook(
   context: NcContext,
   param: {
@@ -746,12 +768,13 @@ export async function invokeWebhook(
     switch (notification?.type) {
       case 'Email':
         {
-          const webhookData = {
-            // for backward compatibility keep the old data syntax, will be removed in future
-            ...newData,
-            // for new data syntax
-            ...constructWebHookData(hook, model, view, prevData, newData),
-          };
+          const webhookData = constructHookDataForNonURLHooks({
+            hook,
+            model,
+            view,
+            prevData,
+            newData,
+          });
 
           const parsedPayload = {
             to: parseBody(notification?.payload?.to, webhookData),
@@ -813,12 +836,13 @@ export async function invokeWebhook(
         break;
       default:
         {
-          const webhookData = {
-            // for backward compatibility keep the old data syntax, will be removed in future
-            ...newData,
-            // for new data syntax
-            ...constructWebHookData(hook, model, view, prevData, newData),
-          };
+          const webhookData = constructHookDataForNonURLHooks({
+            hook,
+            model,
+            view,
+            prevData,
+            newData,
+          });
 
           const res = await (
             await NcPluginMgrv2.webhookNotificationAdapters(notification.type)

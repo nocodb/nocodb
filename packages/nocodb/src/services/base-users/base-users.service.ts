@@ -141,6 +141,16 @@ export class BaseUsersService {
             param.baseUser.roles,
             ncMeta,
           );
+
+          await this.mailService.sendMail({
+            mailEvent: MailEvent.BASE_ROLE_UPDATE,
+            payload: {
+              req: param.req,
+              user: user,
+              base: base,
+              role: (param.baseUser.roles || 'editor') as ProjectRoles,
+            },
+          });
         } else {
           await BaseUser.insert(
             context,
@@ -153,16 +163,15 @@ export class BaseUsersService {
             ncMeta,
           );
 
-          await this.sendInviteEmail(
-            {
-              email,
-              token: invite_token,
+          await this.mailService.sendMail({
+            mailEvent: MailEvent.BASE_INVITE,
+            payload: {
               req: param.req,
-              baseName: base.title,
-              roles: param.baseUser.roles || 'editor',
+              user: user,
+              base: base,
+              role: (param.baseUser.roles || 'editor') as ProjectRoles,
             },
-            ncMeta,
-          );
+          });
         }
 
         this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
@@ -208,35 +217,33 @@ export class BaseUsersService {
             context,
           });
 
-          // in case of single user check for smtp failure
-          // and send back token if email not configured
           if (emails.length === 1) {
-            // variable to keep invite mail send status
-            const mailSendStatus = await this.sendInviteEmail(
-              {
-                email,
-                token: invite_token,
-                req: param.req,
-                baseName: base.title,
-                roles: param.baseUser.roles || 'editor',
-              },
-              ncMeta,
-            );
-
-            if (!mailSendStatus) {
+            try {
+              await this.mailService.sendMail({
+                mailEvent: MailEvent.BASE_INVITE,
+                payload: {
+                  req: param.req,
+                  user: user,
+                  base: base,
+                  role: (param.baseUser.roles || 'editor') as ProjectRoles,
+                  token: invite_token,
+                },
+              });
+            } catch (e) {
+              this.logger.error(e.message, e.stack);
               return { invite_token, email };
             }
           } else {
-            await this.sendInviteEmail(
-              {
-                email,
-                token: invite_token,
+            await this.mailService.sendMail({
+              mailEvent: MailEvent.BASE_INVITE,
+              payload: {
                 req: param.req,
-                baseName: base.title,
-                roles: param.baseUser.roles || 'editor',
+                user: user,
+                base: base,
+                token: invite_token,
+                role: (param.baseUser.roles || 'editor') as ProjectRoles,
               },
-              ncMeta,
-            );
+            });
           }
         } catch (e) {
           this.logger.error(e.message, e.stack);
@@ -496,12 +503,15 @@ export class BaseUsersService {
       );
     }
 
-    await this.sendInviteEmail({
-      email: user.email,
-      token: invite_token,
-      req: param.req,
-      baseName: base.title,
-      roles: baseUser?.roles || 'editor',
+    await this.mailService.sendMail({
+      mailEvent: MailEvent.BASE_INVITE,
+      payload: {
+        req: param.req,
+        user: user,
+        base: base,
+        role: (baseUser.roles || 'editor') as ProjectRoles,
+        token: invite_token,
+      },
     });
 
     this.appHooksService.emit(AppEvents.PROJECT_USER_RESEND_INVITE, {

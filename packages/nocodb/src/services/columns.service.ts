@@ -813,7 +813,7 @@ export class ColumnsService implements IColumnsService {
               .length > 0
           ) {
             NcError.badRequest(
-              `The column '${column.column_name}' is being used in Kanban View.`,
+              `The column '${column.title}' is being used in Kanban View.`,
             );
           }
         }
@@ -1671,7 +1671,7 @@ export class ColumnsService implements IColumnsService {
           0
       ) {
         NcError.badRequest(
-          `The column '${column.column_name}' is being used in Kanban View. Please update stack by field or delete Kanban View first.`,
+          `The column '${column.title}' is being used in Kanban View. Please update stack by field or delete Kanban View first.`,
         );
       }
 
@@ -1759,6 +1759,29 @@ export class ColumnsService implements IColumnsService {
           });
         },
       });
+    }
+
+    if (
+      [
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+      ].includes(column.uidt) &&
+      ![
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+      ].includes(colBody.uidt)
+    ) {
+      const calendarRanges = await CalendarRange.IsColumnBeingUsedAsRange(
+        context,
+        column.id,
+      );
+      for (const col of calendarRanges ?? []) {
+        await CalendarRange.delete(col.id, context);
+      }
     }
 
     if (
@@ -2687,14 +2710,16 @@ export class ColumnsService implements IColumnsService {
         if (!column.colOptions) await column.getColOptions(context, ncMeta);
         if (column.colOptions.parsed_tree?.dataType === FormulaDataTypes.DATE) {
           if (
-            await CalendarRange.IsColumnBeingUsedAsRange(
-              context,
-              column.id,
-              ncMeta,
-            )
+            (
+              await CalendarRange.IsColumnBeingUsedAsRange(
+                context,
+                column.id,
+                ncMeta,
+              )
+            )?.length
           ) {
             NcError.badRequest(
-              `The column '${column.column_name}' is being used in Calendar View. Please delete Calendar View first.`,
+              `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
             );
           }
         }
@@ -2703,21 +2728,20 @@ export class ColumnsService implements IColumnsService {
         break;
       // on deleting created/last modified columns, keep the column in table and delete the column from meta
       case UITypes.CreatedTime:
-      case UITypes.LastModifiedTime:
-        if (
-          [UITypes.DateTime, UITypes.Date].includes(column.uidt) &&
-          (await CalendarRange.IsColumnBeingUsedAsRange(
-            context,
-            column.id,
-            ncMeta,
-          ))
-        ) {
+      case UITypes.LastModifiedTime: {
+        const rangesList = await CalendarRange.IsColumnBeingUsedAsRange(
+          context,
+          column.id,
+          ncMeta,
+        );
+        if (rangesList?.length) {
           NcError.badRequest(
-            `The column '${column.column_name}' is being used in Calendar View. Please delete Calendar View first.`,
+            `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
           );
         }
         await Column.delete(context, param.columnId, ncMeta);
         break;
+      }
       case UITypes.CreatedBy:
       case UITypes.LastModifiedBy: {
         await Column.delete(context, param.columnId, ncMeta);
@@ -2971,23 +2995,21 @@ export class ColumnsService implements IColumnsService {
             .length > 0
         ) {
           NcError.badRequest(
-            `The column '${column.column_name}' is being used in Kanban View. Please delete Kanban View first.`,
+            `The column '${column.title}' is being used in Kanban View. Please update Kanban View first.`,
           );
         }
         /* falls through to default */
       }
       case UITypes.DateTime:
       case UITypes.Date: {
-        if (
-          [UITypes.DateTime, UITypes.Date].includes(column.uidt) &&
-          (await CalendarRange.IsColumnBeingUsedAsRange(
-            context,
-            column.id,
-            ncMeta,
-          ))
-        ) {
+        const listRanges = await CalendarRange.IsColumnBeingUsedAsRange(
+          context,
+          column.id,
+          ncMeta,
+        );
+        if (listRanges?.length) {
           NcError.badRequest(
-            `The column '${column.column_name}' is being used in Calendar View. Please delete Calendar View first.`,
+            `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
           );
         }
         /* falls through to default */

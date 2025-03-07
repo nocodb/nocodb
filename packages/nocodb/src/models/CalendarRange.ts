@@ -94,6 +94,39 @@ export default class CalendarRange implements CalendarRangeType {
       : null;
   }
 
+  public static async delete(
+    rangeId: string,
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const range = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.CALENDAR_VIEW_RANGE,
+      {
+        id: rangeId,
+      },
+    );
+
+    if (!range) return false;
+
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.CALENDAR_VIEW_RANGE,
+      rangeId,
+    );
+
+    await NocoCache.deepDel(
+      `${CacheScope.CALENDAR_VIEW_RANGE}:${range.fk_view_id}:list`,
+      CacheDelDirection.PARENT_TO_CHILD,
+    );
+
+    await NocoCache.del(`${CacheScope.CALENDAR_VIEW_RANGE}:${rangeId}`);
+
+    return true;
+  }
+
   public static async find(
     context: NcContext,
     fk_view_id: string,
@@ -116,25 +149,21 @@ export default class CalendarRange implements CalendarRangeType {
     columnId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    return (
-      (
-        await ncMeta.metaList2(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.CALENDAR_VIEW_RANGE,
-          {
-            xcCondition: {
-              _or: [
-                {
-                  fk_from_column_id: {
-                    eq: columnId,
-                  },
-                },
-              ],
+    return await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.CALENDAR_VIEW_RANGE,
+      {
+        xcCondition: {
+          _or: [
+            {
+              fk_from_column_id: {
+                eq: columnId,
+              },
             },
-          },
-        )
-      ).length > 0
+          ],
+        },
+      },
     );
   }
 }

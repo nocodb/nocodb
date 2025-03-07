@@ -8,7 +8,6 @@ import {
   ProjectRoles,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import * as ejs from 'ejs';
 import validator from 'validator';
 import type {
   ProjectUserReqType,
@@ -20,14 +19,12 @@ import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
-import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { Base, BaseUser, PresignedUrl, User } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { getProjectRolePower } from '~/utils/roleHelper';
-import { sanitiseEmailContent } from '~/utils';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 
@@ -523,68 +520,6 @@ export class BaseUsersService {
     });
 
     return true;
-  }
-
-  async sendInviteEmail(
-    {
-      email,
-      token,
-      req,
-      baseName,
-      roles,
-      useOrgTemplate,
-    }: {
-      email: string;
-      token: string;
-      req: NcRequest;
-      baseName?: string;
-      roles: string;
-      useOrgTemplate?: boolean;
-    },
-    ncMeta = Noco.ncMeta,
-  ): Promise<any> {
-    try {
-      let template: string;
-
-      // if useOrgTemplate is true then use org template
-      if (useOrgTemplate) {
-        template = (
-          await import('~/services/base-users/ui/emailTemplates/org-invite')
-        ).default;
-      } else {
-        template = (
-          await import('~/services/base-users/ui/emailTemplates/invite')
-        ).default;
-      }
-      const emailAdapter = await NcPluginMgrv2.emailAdapter(undefined, ncMeta);
-
-      if (emailAdapter) {
-        await emailAdapter.mailSend({
-          to: email,
-          subject: 'Verify email',
-          html: ejs.render(template, {
-            signupLink: `${req.ncSiteUrl}${
-              Noco.getConfig()?.dashboardPath
-            }#/signup/${token}`,
-            baseName: sanitiseEmailContent(baseName || req.body?.baseName),
-            roles: sanitiseEmailContent(
-              (roles || req.body?.roles || '')
-                .split(',')
-                .map((r) => r.replace(/^./, (m) => m.toUpperCase()))
-                .join(', '),
-            ),
-            adminEmail: req.user?.email,
-          }),
-        });
-        return true;
-      }
-    } catch (e) {
-      this.logger.warn(
-        'Warning : `mailSend` failed, Please re-configure emailClient configuration.',
-      );
-      this.logger.error(e.message, e.stack);
-      throw e;
-    }
   }
 
   async baseUserMetaUpdate(

@@ -5,14 +5,19 @@ import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
 import { Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
-import { isDateMonthFormat, UITypes } from 'nocodb-sdk';
+import { HookOperationCode, isDateMonthFormat, UITypes } from 'nocodb-sdk';
 import isBetween from 'dayjs/plugin/isBetween';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import NcPluginMgrv2 from './NcPluginMgrv2';
 import type { AxiosResponse } from 'axios';
-import type { HookType } from 'jsep';
-import type { HookLogType, TableType, UserType, ViewType } from 'nocodb-sdk';
+import type {
+  HookLogType,
+  HookType,
+  TableType,
+  UserType,
+  ViewType,
+} from 'nocodb-sdk';
 import type { Column, FormView, Hook, Model, View } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { Filter, HookLog, Source } from '~/models';
@@ -627,6 +632,7 @@ export async function invokeWebhook(
     hook: Hook;
     model: Model;
     view: View;
+    hookName: string;
     prevData;
     newData;
     user;
@@ -641,6 +647,7 @@ export async function invokeWebhook(
     view,
     prevData,
     user,
+    hookName,
     testFilters = null,
     throwErrorOnFailure = false,
     testHook = false,
@@ -744,6 +751,7 @@ export async function invokeWebhook(
           ) {
             hookLog = {
               ...hook,
+              operation: hookName.split('.')?.[1] as any,
               fk_hook_id: hook.id,
               type: notification.type,
               payload: JSON.stringify(parsedPayload),
@@ -776,6 +784,7 @@ export async function invokeWebhook(
           ) {
             hookLog = {
               ...hook,
+              operation: hookName.split('.')?.[1] as any,
               fk_hook_id: hook.id,
               type: notification.type,
               payload: JSON.stringify(requestPayload),
@@ -805,6 +814,7 @@ export async function invokeWebhook(
           ) {
             hookLog = {
               ...hook,
+              operation: hookName.split('.')?.[1] as any,
               fk_hook_id: hook.id,
               type: notification.type,
               payload: JSON.stringify(notification?.payload),
@@ -841,6 +851,7 @@ export async function invokeWebhook(
     if (['ERROR', 'ALL'].includes(process.env.NC_AUTOMATION_LOG_LEVEL)) {
       hookLog = {
         ...hook,
+        operation: hookName.split('.')?.[1] as any,
         type: notification.type,
         payload: JSON.stringify(
           reqPayload
@@ -911,4 +922,31 @@ export function _transformSubmittedFormDataForEmail(
 function parseHrtimeToMilliSeconds(hrtime) {
   const milliseconds = (hrtime[0] + hrtime[1] / 1e6).toFixed(3);
   return milliseconds;
+}
+
+export function operationArrToCode(value: HookType['operation']) {
+  let result = 0;
+  for (const operation of value) {
+    result += HookOperationCode[operation];
+  }
+  return result.toString();
+}
+export function operationCodeToArr(code: number | string) {
+  const numberCode = typeof code === 'number' ? code : Number(code);
+  const result: HookType['operation'] = [];
+  for (const operation of Object.keys(HookOperationCode)) {
+    const operationCode = HookOperationCode[operation];
+    if ((numberCode & operationCode) === operationCode) {
+      result.push(operation as any);
+    }
+  }
+  return result;
+}
+export function compareOperationCode(param: {
+  code: string | number;
+  operation: string;
+}) {
+  const numberCode =
+    typeof param.code === 'number' ? param.code : Number(param.code);
+  return (HookOperationCode[param.operation] & numberCode) === numberCode;
 }

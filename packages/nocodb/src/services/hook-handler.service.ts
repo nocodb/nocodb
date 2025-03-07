@@ -113,7 +113,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
     const hooks = await Hook.list(context, {
       fk_model_id: modelId,
       event: event as HookType['event'],
-      operation: operation as HookType['operation'],
+      operation: operation as HookType['operation'][0],
     });
     for (const hook of hooks) {
       if (hook.active) {
@@ -126,6 +126,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
             prevData,
             newData,
             user,
+            hookName,
           });
         } catch (e) {
           this.logger.error({

@@ -1,3 +1,8 @@
+import {
+  compareOperationCode,
+  operationArrToCode,
+  operationCodeToArr,
+} from 'src/helpers/webhookHelpers';
 import type { BoolType, HookReqType, HookType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
@@ -37,10 +42,15 @@ export default class Hook implements HookType {
   fk_workspace_id?: string;
   base_id?: string;
   source_id?: string;
-  version?: 'v1' | 'v2';
+  version?: 'v1' | 'v2' | 'v3';
 
-  constructor(hook: Partial<Hook | HookReqType>) {
+  constructor(
+    hook: Partial<Hook | HookReqType> & { version: string; operation: string },
+  ) {
     Object.assign(this, hook);
+    if (hook.version === 'v3') {
+      this.operation = operationCodeToArr(hook.operation);
+    }
   }
 
   public static async get(
@@ -79,7 +89,7 @@ export default class Hook implements HookType {
     param: {
       fk_model_id: string;
       event?: HookType['event'];
-      operation?: HookType['operation'];
+      operation?: HookType['operation'][0];
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -115,8 +125,14 @@ export default class Hook implements HookType {
       );
     }
     if (param.operation) {
-      hooks = hooks.filter(
-        (h) => h.operation?.toLowerCase() === param.operation?.toLowerCase(),
+      hooks = hooks.filter((h) =>
+        h.version === 'v3'
+          ? compareOperationCode({
+              code: h.operation,
+              operation: param.operation as unknown as string,
+            })
+          : h.operation?.toLowerCase() ===
+            (param.operation as unknown as string)?.toLowerCase(),
       );
     }
     return hooks?.map((h) => new Hook(h));
@@ -188,37 +204,45 @@ export default class Hook implements HookType {
     hook: Partial<Hook>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(hook, [
-      'title',
-      'description',
-      'env',
-      'type',
-      'event',
-      'operation',
-      'async',
-      'payload',
-      'url',
-      'headers',
-      'condition',
-      'notification',
-      'retries',
-      'retry_interval',
-      'timeout',
-      'active',
-      'version',
-    ]);
+    const updateObj: HookType & { operation?: HookType['operation'] | string } =
+      extractProps(hook, [
+        'title',
+        'description',
+        'env',
+        'type',
+        'event',
+        'operation',
+        'async',
+        'payload',
+        'url',
+        'headers',
+        'condition',
+        'notification',
+        'retries',
+        'retry_interval',
+        'timeout',
+        'active',
+        'version',
+      ]);
 
     if (
       updateObj.version &&
       updateObj.operation &&
       updateObj.version === 'v1' &&
-      ['bulkInsert', 'bulkUpdate', 'bulkDelete'].includes(updateObj.operation)
+      ['bulkInsert', 'bulkUpdate', 'bulkDelete'].includes(
+        updateObj.operation as any,
+      )
     ) {
       NcError.badRequest(`${updateObj.operation} not supported in v1 hook`);
     }
 
     if (updateObj.notification && typeof updateObj.notification === 'object') {
       updateObj.notification = JSON.stringify(updateObj.notification);
+    }
+    if (updateObj.version === 'v3') {
+      (updateObj as any).operation = operationArrToCode(
+        updateObj.operation as HookType['operation'],
+      );
     }
 
     // set meta

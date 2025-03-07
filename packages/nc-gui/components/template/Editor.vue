@@ -58,7 +58,6 @@ const reloadHook = inject(ReloadViewDataHookInj, createEventHook())
 const useForm = Form.useForm
 
 const { $api, $state } = useNuxtApp()
-const baseURL = $api.instance.defaults.baseURL
 
 const { addTab } = useTabs()
 

@@ -123,7 +123,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       if (!activeWorkspaceId.value) return
       isLoadingIntegrations.value = true
 
-      const { list, pageInfo } = await api.integration.list(
+      const { list } = await api.integration.list(
         activeWorkspaceId.value,
         type
           ? {

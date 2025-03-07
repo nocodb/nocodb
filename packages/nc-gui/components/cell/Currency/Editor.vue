@@ -64,7 +64,7 @@ const focus: VNodeRef = (el) => {
     inputRef.value?.focus()
   }
 
-  if (inputType.value == 'number' && !isForm.value) {
+  if (inputType.value === 'number' && !isForm.value) {
     el?.focus()
   }
 }

@@ -21,6 +21,10 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
+const isForm = inject(IsFormInj)!
+
 const _vModel = useVModel(props, 'modelValue', emit)
 
 const cellFocused = ref(false)
@@ -62,16 +66,12 @@ const currency = computed(() => {
   }
 })
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-
-const isForm = inject(IsFormInj)!
-
 const focus: VNodeRef = (el) => {
   if (!isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
     ;(el as HTMLInputElement)?.focus()
   }
 
-  if (inputType.value == 'number' && !isForm.value) {
+  if (inputType.value === 'number' && !isForm.value) {
     el?.focus()
   }
 }

@@ -212,6 +212,16 @@ const customRow = (hook: HookType) => {
 }
 
 const getHookTypeText = (hook: HookType) => {
+  if (hook.version === 'v3') {
+    const text = hook.event === 'after' ? `${t('general.after')} ` : ''
+    return (
+      text +
+      eventList.value
+        .filter((e) => e.value[0] === hook.event && hook.operation.includes(e.value[1]))
+        .map((event) => event.text[1])
+        .join(` ${t('general.or').toLowerCase()} `)
+    )
+  }
   return (
     eventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text?.join(' ') ||
     `Before ${hook.operation}`

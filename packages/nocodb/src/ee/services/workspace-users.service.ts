@@ -345,28 +345,30 @@ export class WorkspaceUsersService {
       NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '));
     }
 
-    const usersInWorkspace = await WorkspaceUser.count(
-      {
-        workspaceId,
-      },
-      ncMeta,
-    );
-
-    const userLimitForWorkspace = await getLimit(
-      PlanLimitTypes.WORKSPACE_USER_LIMIT,
-      workspaceId,
-      ncMeta,
-    );
-
-    // check if user limit is reached or going to be exceeded
-    if (
-      usersInWorkspace + emails.length > userLimitForWorkspace &&
-      // if invitePassive is true then don't check for user limit
-      !param.invitePassive
-    ) {
-      NcError.badRequest(
-        `Only ${userLimitForWorkspace} users are allowed, for more please upgrade your plan`,
+    if (workspace.payment.plan.free) {
+      const usersInWorkspace = await WorkspaceUser.count(
+        {
+          workspaceId,
+        },
+        ncMeta,
       );
+
+      const userLimitForWorkspace = await getLimit(
+        PlanLimitTypes.WORKSPACE_USER_LIMIT,
+        workspaceId,
+        ncMeta,
+      );
+
+      // check if user limit is reached or going to be exceeded
+      if (
+        usersInWorkspace + emails.length > userLimitForWorkspace &&
+        // if invitePassive is true then don't check for user limit
+        !param.invitePassive
+      ) {
+        NcError.badRequest(
+          `Only ${userLimitForWorkspace} users are allowed, for more please upgrade your plan`,
+        );
+      }
     }
 
     const invite_token = uuidv4();

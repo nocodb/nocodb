@@ -26,6 +26,7 @@ export const FreePlan = {
   title: 'Free',
   description: 'Free plan',
   meta: DefaultLimits,
+  free: true,
 } as const;
 
 export default class Plan {
@@ -55,6 +56,8 @@ export default class Plan {
     limit_filter?: number;
     limit_sort?: number;
   };
+
+  free?: boolean;
 
   // timestamps
   created_at: string;

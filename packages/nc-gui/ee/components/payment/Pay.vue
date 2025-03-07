@@ -1,16 +1,11 @@
 <script lang="ts" setup>
-const { stripe, createSubscription, selectedPlan, getPlanPrice, onPaymentModeChange, paymentMode, onSeatsChange, selectedSeats } =
+const { stripe, createSubscription, selectedPlan, getPlanPrice, onPaymentModeChange, paymentMode, workspaceSeatCount } =
   usePaymentStoreOrThrow()
 
 const { appInfo } = useGlobal()
 
-const seatOptions = Array.from({ length: 50 }, (_, i) => i + 1).map((i) => ({
-  label: `${i} ${i === 1 ? 'seat' : 'seats'}`,
-  value: `${i}`,
-}))
-
 const totalAmount = computed(() =>
-  selectedPlan.value ? getPlanPrice(selectedPlan.value, paymentMode.value) * selectedSeats.value * 100 : 0,
+  selectedPlan.value ? getPlanPrice(selectedPlan.value, paymentMode.value) * workspaceSeatCount.value * 100 : 0,
 )
 
 const localState = computed(() => ({
@@ -19,13 +14,6 @@ const localState = computed(() => ({
   currency: 'usd',
   automatic_payment_methods: { enabled: true },
 }))
-
-const selectedSeatsComputed = computed({
-  get: () => `${selectedSeats.value}`,
-  set: (value) => {
-    selectedSeats.value = +value
-  },
-})
 
 const isLoading = ref(false)
 
@@ -104,9 +92,6 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div class="flex items-center justify-center gap-2 nc-border-gray-medium my-4 rounded-lg w-full cursor-pointer">
-        <NcSelect v-model:value="selectedSeatsComputed" class="w-full" :options="seatOptions" @change="onSeatsChange" />
-      </div>
       <form id="payment-form">
         <div id="payment-element">
           <!-- Stripe.js injects the Payment Element -->
@@ -121,7 +106,7 @@ onMounted(() => {
         <div class="text-lg">{{ selectedPlan.title }}</div>
         <div class="flex gap-2">
           <div class="text-gray-500">${{ getPlanPrice(selectedPlan, paymentMode) }} / seat / month</div>
-          <div class="text-gray-500">x {{ selectedSeats }}</div>
+          <div class="text-gray-500">x {{ workspaceSeatCount }}</div>
         </div>
       </div>
       <div class="flex-1"></div>
@@ -129,9 +114,9 @@ onMounted(() => {
       <div class="flex items-center gap-2 justify-between px-6 pb-4">
         <div class="text-lg">Total</div>
         <div v-if="paymentMode === 'month'" class="text-gray-500">
-          ${{ getPlanPrice(selectedPlan, paymentMode) * selectedSeats }} / month
+          ${{ getPlanPrice(selectedPlan, paymentMode) * workspaceSeatCount }} / month
         </div>
-        <div v-else class="text-gray-500">${{ getPlanPrice(selectedPlan, paymentMode) * selectedSeats * 12 }} / year</div>
+        <div v-else class="text-gray-500">${{ getPlanPrice(selectedPlan, paymentMode) * workspaceSeatCount * 12 }} / year</div>
       </div>
       <div class="flex justify-center">
         <NcButton type="primary" class="w-full" :loading="isLoading" @click="submitPayment">

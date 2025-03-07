@@ -82,7 +82,17 @@ export class PaymentController {
 
   @UseGuards(GlobalGuard)
   @HttpCode(200)
-  @Post('/api/payment/create-subscription/:workspaceId')
+  @Get('/api/payment/:workspaceId/seat-count')
+  async seatCount(
+    @Param('workspaceId') workspaceId: string,
+    @Req() req: NcRequest,
+  ) {
+    return this.paymentService.getSeatCount(workspaceId, req);
+  }
+
+  @UseGuards(GlobalGuard)
+  @HttpCode(200)
+  @Post('/api/payment/:workspaceId/create-subscription')
   async createSubscription(
     @Param('workspaceId') workspaceId: string,
     @Body() payload: any,
@@ -93,7 +103,7 @@ export class PaymentController {
 
   @UseGuards(GlobalGuard)
   @HttpCode(200)
-  @Post('/api/payment/update-subscription/:workspaceId')
+  @Post('/api/payment/:workspaceId/update-subscription')
   async updateSubscription(
     @Param('workspaceId') workspaceId: string,
     @Body() payload: any,
@@ -104,7 +114,7 @@ export class PaymentController {
 
   @UseGuards(GlobalGuard)
   @HttpCode(200)
-  @Delete('/api/payment/cancel-subscription/:workspaceId')
+  @Delete('/api/payment/:workspaceId/cancel-subscription')
   async cancelSubscription(
     @Param('workspaceId') workspaceId: string,
     @Req() req: NcRequest,

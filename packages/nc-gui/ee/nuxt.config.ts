@@ -235,6 +235,7 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: [
         '@ckpack/vue-color',
+        '@stripe/stripe-js',
         '@tiptap/core',
         '@tiptap/extension-code',
         '@tiptap/extension-code-block',

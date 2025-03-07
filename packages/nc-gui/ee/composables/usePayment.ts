@@ -33,9 +33,21 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const selectedPlan = ref<PaymentPlan | null>(null)
 
-  const selectedSeats = ref<number>(1)
+  const workspaceSeatCount = ref<number>(1)
 
   const plansAvailable = ref<PaymentPlan[]>([])
+
+  const loadWorkspaceSeatCount = async () => {
+    const { count } = (await $fetch(`/api/payment/${activeWorkspaceId.value}/seat-count`, {
+      baseURL,
+      method: 'GET',
+      headers: { 'xc-auth': $state.token.value as string },
+    })) as {
+      count: number
+    }
+
+    workspaceSeatCount.value = count
+  }
 
   const loadPlans = async () => {
     const plans = await $fetch(`/api/public/payment/plan`, {
@@ -66,11 +78,11 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
     if (!price) throw new Error('No price found')
 
-    const res = (await $fetch(`/api/payment/create-subscription/${activeWorkspaceId.value}`, {
+    const res = (await $fetch(`/api/payment/${activeWorkspaceId.value}/create-subscription`, {
       baseURL,
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
-      body: { seat: selectedSeats.value, plan_id: selectedPlan.value.id, price_id: price.id },
+      body: { seat: workspaceSeatCount.value, plan_id: selectedPlan.value.id, price_id: price.id },
     })) as {
       type: 'setup' | 'payment'
       id: string
@@ -83,7 +95,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const cancelSubscription = async () => {
     if (!activeWorkspaceId.value) throw new Error('No active workspace')
 
-    await $fetch(`/api/payment/cancel-subscription/${activeWorkspaceId.value}`, {
+    await $fetch(`/api/payment/${activeWorkspaceId.value}/cancel-subscription`, {
       baseURL,
       method: 'DELETE',
       headers: { 'xc-auth': $state.token.value as string },
@@ -100,7 +112,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
     if (!price) throw new Error('No price found')
 
-    const res = (await $fetch(`/api/payment/update-subscription`, {
+    const res = (await $fetch(`/api/payment/:workspaceId/update-subscription`, {
       baseURL,
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
@@ -124,10 +136,6 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     paymentState.value = PaymentState.PAYMENT
   }
 
-  const onSeatsChange = (val: number) => {
-    selectedSeats.value = val > 0 ? val : 1
-  }
-
   const reset = () => {
     paymentState.value = PaymentState.SELECT_PLAN
     selectedPlan.value = null
@@ -138,18 +146,20 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     stripe.value = (await loadStripe(
       'pk_test_51QhRouHU2WPCjTxw3ranXD6shPR0VbOjLflMfidsanV0m9mM0vZKQfYk3PserPAbnZAIJJhv701DV8FrwP6zJhaf00KYKhz11c',
     ))!
+
+    await loadWorkspaceSeatCount()
   })
 
   return {
     stripe,
     plansAvailable,
     loadPlans,
+    loadWorkspaceSeatCount,
     getPlanPrice,
     onPaymentModeChange,
-    onSeatsChange,
     onSelectPlan,
     selectedPlan,
-    selectedSeats,
+    workspaceSeatCount,
     paymentMode,
     paymentState,
     subscriptionId,

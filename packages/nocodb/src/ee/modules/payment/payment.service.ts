@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import dayjs from 'dayjs';
 import type { NcRequest } from 'nocodb-sdk';
 import { Plan, Subscription, User, Workspace } from '~/models';
+import { NcError } from '~/helpers/catchError';
 
 const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder');
 
@@ -16,6 +17,18 @@ export class PaymentService {
     const plans = await Plan.list();
 
     return plans.filter((plan) => !active || plan.is_active === active);
+  }
+
+  async getSeatCount(workspaceId: string, _req: NcRequest) {
+    const workspace = await Workspace.get(workspaceId);
+
+    if (!workspace) {
+      throw new Error('Workspace not found');
+    }
+
+    return {
+      count: await Workspace.getSeatCount(workspaceId),
+    };
   }
 
   async submitPlan(payload: {
@@ -127,13 +140,21 @@ export class PaymentService {
     const workspace = await Workspace.get(workspaceId);
 
     if (!workspace) {
-      throw new Error('Workspace not found');
+      NcError.workspaceNotFound(workspaceId);
     }
 
     const existingSubscription = await Subscription.getByWorkspace(workspaceId);
 
     if (existingSubscription) {
       throw new Error('Subscription already exists for the workspace');
+    }
+
+    const workspaceSeatCount = await Workspace.getSeatCount(workspaceId);
+
+    if (workspaceSeatCount !== seat) {
+      throw new Error(
+        'There was a mismatch in the seat count, please try again',
+      );
     }
 
     if (!user.stripe_customer_id) {
@@ -302,8 +323,7 @@ export class PaymentService {
     return canceledSubscription.id;
   }
 
-  async handleWebhook(req: NcRequest) {
-    // Retrieve the event by verifying the signature using the raw body and secret.
+  async handleWebhook(req: NcRequest): Promise<void> {
     let event;
 
     try {
@@ -313,86 +333,115 @@ export class PaymentService {
         process.env.NC_STRIPE_WEBHOOK_SECRET,
       );
     } catch (err) {
+      this.logger.error(`⚠️  Webhook signature verification failed:`);
       this.logger.error(err);
-      this.logger.error(`⚠️  Webhook signature verification failed.`);
-      this.logger.error(
-        `⚠️  Check the env file and enter the correct webhook secret.`,
-      );
       return;
     }
-    // Extract the object from the event.
+
     const dataObject = event.data.object;
 
-    /*
-      subscription status: incomplete, incomplete_expired, trialing, active, past_due, canceled, unpaid, paused
-    */
-
-    switch (event.type) {
-      case 'customer.subscription.created':
-        {
-          const workspaceId = dataObject.metadata.fk_workspace_id;
-          const userId = dataObject.metadata.fk_user_id;
-
-          const workspace = await Workspace.get(workspaceId);
-          const user = await User.get(userId);
-
-          if (!workspace || !user) {
-            throw new Error('Workspace or user not found');
+    try {
+      switch (event.type) {
+        case 'customer.subscription.created': {
+          const metadata = dataObject.metadata;
+          if (
+            !metadata?.fk_workspace_id ||
+            !metadata?.fk_user_id ||
+            !metadata?.fk_plan_id
+          ) {
+            throw new Error('Missing metadata on subscription.created');
           }
 
-          const subscriptionPayload = {
-            fk_workspace_id: workspaceId,
-            fk_plan_id: dataObject.metadata.fk_plan_id,
-            fk_user_id: userId,
+          await Subscription.insert({
+            fk_workspace_id: metadata.fk_workspace_id,
+            fk_plan_id: metadata.fk_plan_id,
+            fk_user_id: metadata.fk_user_id,
             stripe_subscription_id: dataObject.id,
             stripe_customer_id: dataObject.customer,
             stripe_price_id: dataObject.items.data[0].price.id,
             seat_count: dataObject.items.data[0].quantity,
             status: dataObject.status,
-            start_at: dayjs(dataObject.start_date * 1000)
-              .utc()
-              .toISOString(),
-          };
+            start_at: dayjs.unix(dataObject.start_date).utc().toISOString(),
+          });
 
-          await Subscription.insert(subscriptionPayload);
+          this.logger.log(`Subscription created but plan not yet applied`);
+          break;
+        }
+
+        case 'invoice.paid': {
+          const subscriptionId = dataObject.subscription;
+          const subscription = await Subscription.getByStripeSubscriptionId(
+            subscriptionId,
+          );
+
+          if (!subscription) {
+            throw new Error(`Subscription ${subscriptionId} not found`);
+          }
+
+          const workspaceId = subscription.fk_workspace_id;
 
           await Workspace.refreshPlanAndSubscription(workspaceId);
-        }
-        break;
-      case 'customer.subscription.updated':
-      case 'customer.subscription.deleted':
-        {
-          const workspaceId = dataObject.metadata.fk_workspace_id;
-          const userId = dataObject.metadata.fk_user_id;
 
-          const workspace = await Workspace.get(workspaceId);
-          const user = await User.get(userId);
+          this.logger.log(
+            `Plan applied for workspace ${workspaceId} after successful payment`,
+          );
+          break;
+        }
+
+        case 'invoice.payment_failed': {
+          const subscriptionId = dataObject.subscription;
+          const subscription = await Subscription.getByStripeSubscriptionId(
+            subscriptionId,
+          );
+
+          if (!subscription) {
+            throw new Error(`Subscription ${subscriptionId} not found`);
+          }
+
+          const workspaceId = subscription.fk_workspace_id;
+
+          this.logger.log(
+            `Payment failed for workspace ${workspaceId}. No plan applied`,
+          );
+
+          // Optionally notify the user or flag the workspace for limited access
+          break;
+        }
+
+        case 'customer.subscription.updated':
+        case 'customer.subscription.deleted': {
           const subscription = await Subscription.getByStripeSubscriptionId(
             dataObject.id,
           );
 
-          if (!workspace || !user) {
-            throw new Error('Workspace or user not found');
+          if (!subscription) {
+            throw new Error(`Subscription ${dataObject.id} not found`);
           }
 
-          const subscriptionPayload = {
+          await Subscription.update(subscription.id, {
             stripe_subscription_id: dataObject.id,
             stripe_customer_id: dataObject.customer,
             stripe_price_id: dataObject.items.data[0].price.id,
             seat_count: dataObject.items.data[0].quantity,
             status: dataObject.status,
-            start_at: dayjs(dataObject.start_date * 1000)
-              .utc()
-              .toISOString(),
-          };
+            start_at: dayjs.unix(dataObject.start_date).utc().toISOString(),
+          });
 
-          await Subscription.update(subscription.id, subscriptionPayload);
-
+          const workspaceId = subscription.fk_workspace_id;
           await Workspace.refreshPlanAndSubscription(workspaceId);
+
+          this.logger.log(
+            `Subscription ${event.type} processed for workspace ${workspaceId}.`,
+          );
+          break;
         }
-        break;
-      default:
-      // Unexpected event type
+
+        default:
+          this.logger.warn(`Unhandled event type ${event.type}`);
+      }
+    } catch (err) {
+      this.logger.error(`Error handling webhook ${event.type}:`);
+      this.logger.error(err);
     }
   }
 }

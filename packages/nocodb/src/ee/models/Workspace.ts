@@ -1,5 +1,11 @@
 import { Logger } from '@nestjs/common';
-import type { WorkspacePlan, WorkspaceStatus, WorkspaceType } from 'nocodb-sdk';
+import {
+  ProjectRoles,
+  type WorkspacePlan,
+  type WorkspaceStatus,
+  type WorkspaceType,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
 import {
@@ -28,6 +34,15 @@ import {
 import { FreePlan } from '~/models/Plan';
 
 const logger = new Logger('Workspace');
+
+const NON_SEAT_ROLES = [
+  WorkspaceUserRoles.NO_ACCESS,
+  WorkspaceUserRoles.VIEWER,
+  WorkspaceUserRoles.COMMENTER,
+  ProjectRoles.NO_ACCESS,
+  ProjectRoles.VIEWER,
+  ProjectRoles.COMMENTER,
+];
 
 export default class Workspace implements WorkspaceType {
   id?: string;
@@ -505,5 +520,54 @@ export default class Workspace implements WorkspaceType {
     await NocoCache.update(`${CacheScope.WORKSPACE}:${workspaceId}`, {
       payment: await this.getActivePlanAndSubscription(workspaceId),
     });
+  }
+
+  public static async getSeatCount(workspaceId: string, ncMeta = Noco.ncMeta) {
+    const workspaceUsers = await ncMeta.metaList2(
+      workspaceId,
+      RootScopes.WORKSPACE,
+      MetaTable.WORKSPACE_USER,
+      {
+        condition: {
+          fk_workspace_id: workspaceId,
+          deleted: false,
+        },
+      },
+    );
+
+    const baseUsers = await ncMeta.metaList2(
+      workspaceId,
+      RootScopes.WORKSPACE,
+      MetaTable.PROJECT_USERS,
+      {
+        condition: {
+          fk_workspace_id: workspaceId,
+        },
+      },
+    );
+
+    /*
+      Count users based on their roles in either workspace or base
+      and exclude users with roles that do not consume a seat
+    */
+    const seatUsersMap = new Map<string, true>();
+
+    for (const user of workspaceUsers) {
+      const userId = user.fk_user_id;
+      const role = user.roles;
+      if (!seatUsersMap.has(userId) && !NON_SEAT_ROLES.includes(role)) {
+        seatUsersMap.set(userId, true);
+      }
+    }
+
+    for (const user of baseUsers) {
+      const userId = user.fk_user_id;
+      const role = user.roles;
+      if (!seatUsersMap.has(userId) && !NON_SEAT_ROLES.includes(role)) {
+        seatUsersMap.set(userId, true);
+      }
+    }
+
+    return seatUsersMap.size;
   }
 }

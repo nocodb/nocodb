@@ -130,6 +130,7 @@ export class MailService {
         await mailerAdapter.mailSend({
           to: user.email,
           subject: `Role updated in ${base.title}`,
+          // @ts-ignore
           html: await this.renderMail('BaseRoleUpdate', {
             baseTitle: base.title,
             name:

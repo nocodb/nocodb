@@ -5,6 +5,7 @@ import type { MailParams } from '~/interface/Mail';
 import { MailEvent } from '~/interface/Mail';
 import { extractMentions } from '~/utils/richTextHelper';
 import { Base, BaseUser, Workspace } from '~/models';
+import { extractDisplayNameFromEmail } from '~/utils';
 
 @Injectable()
 export class MailService extends MailServiceCE {
@@ -93,9 +94,7 @@ export class MailService extends MailServiceCE {
             to: mentionedUser.email,
             subject: `You have been mentioned on ${table.title}`,
             html: await this.renderMail('MentionRow', {
-              name:
-                user.display_name ??
-                user.email.split('@')[0].toLocaleUpperCase(),
+              name: extractDisplayNameFromEmail(user.email, user.display_name),
               email: user.email,
               tableTitle: table.title,
               baseTitle: base.title,
@@ -126,9 +125,10 @@ export class MailService extends MailServiceCE {
           html: await this.renderMail('BaseRoleUpdate', {
             baseTitle: base.title,
             workspaceTitle: workspace.title,
-            name:
-              invitee.display_name ??
-              invitee.email.split('@')[0].toLocaleUpperCase(),
+            name: extractDisplayNameFromEmail(
+              invitee.email,
+              invitee.display_name,
+            ),
             email: invitee.email,
             link: this.buildUrl(req, {
               workspaceId: workspace.id,
@@ -151,9 +151,10 @@ export class MailService extends MailServiceCE {
           subject: `You have been invited to ${workspace.title}`,
           html: await this.renderMail('WorkspaceInvite', {
             workspaceTitle: workspace.title,
-            name:
-              invitee.display_name ??
-              invitee.email.split('@')[0].toLocaleUpperCase(),
+            name: extractDisplayNameFromEmail(
+              invitee.email,
+              invitee.display_name,
+            ),
             email: invitee.email,
             link: this.buildUrl(req, {
               workspaceId: workspace.id,
@@ -176,9 +177,10 @@ export class MailService extends MailServiceCE {
           html: await this.renderMail('WorkspaceRoleUpdate', {
             workspaceTitle: workspace.title,
             role: RoleLabels[role],
-            name:
-              invitee.display_name ??
-              invitee.email.split('@')[0].toLocaleUpperCase(),
+            name: extractDisplayNameFromEmail(
+              invitee.email,
+              invitee.display_name,
+            ),
             email: invitee.email,
             link: this.buildUrl(req, {
               workspaceId: workspace.id,

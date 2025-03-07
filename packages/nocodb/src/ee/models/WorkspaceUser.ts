@@ -376,9 +376,32 @@ export default class WorkspaceUser {
         RootScopes.WORKSPACE,
         MetaTable.WORKSPACE_USER,
         {
-          condition: {
-            fk_workspace_id: workspaceId,
-            ...(!include_deleted ? { deleted: false } : {}),
+          xcCondition: {
+            _and: [
+              {
+                fk_workspace_id: {
+                  eq: workspaceId,
+                },
+              },
+              ...(include_deleted
+                ? []
+                : [
+                    {
+                      _or: [
+                        {
+                          deleted: {
+                            eq: false,
+                          },
+                        },
+                        {
+                          deleted: {
+                            eq: null,
+                          },
+                        },
+                      ],
+                    },
+                  ]),
+            ],
           },
           aggField: 'fk_user_id',
         },

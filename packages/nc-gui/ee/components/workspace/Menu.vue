@@ -7,6 +7,8 @@ const workspaceStore = useWorkspace()
 const { activeWorkspace, workspacesList, workspaceUserCount } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
+const { appInfo } = useGlobal()
+
 const { leftSidebarState, isLeftSidebarOpen, nonHiddenLeftSidebarWidth: leftSidebarWidth } = storeToRefs(useSidebarStore())
 const viewportWidth = ref(window.innerWidth)
 
@@ -156,13 +158,23 @@ const onWorkspaceCreateClick = () => {
                   </span>
                 </div>
                 <div class="flex flex-row items-center gap-x-2">
-                  <div class="nc-workspace-dropdown-active-workspace-info">Free Plan</div>
-                  <template v-if="workspaceUserCount !== undefined">
-                    <div class="nc-workspace-dropdown-active-workspace-info">-</div>
-                    <div class="nc-workspace-dropdown-active-workspace-info">
-                      {{ workspaceUserCount }}
-                      {{ workspaceUserCount > 1 ? $t('labels.members').toLowerCase() : $t('objects.member').toLowerCase() }}
-                    </div>
+                  <template v-if="appInfo.isOnPrem">
+                    <template v-if="workspaceUserCount !== undefined">
+                      <div class="nc-workspace-dropdown-active-workspace-info">
+                        {{ workspaceUserCount }}
+                        {{ workspaceUserCount > 1 ? $t('labels.members').toLowerCase() : $t('objects.member').toLowerCase() }}
+                      </div>
+                    </template>
+                  </template>
+                  <template v-else>
+                    <div class="nc-workspace-dropdown-active-workspace-info">Free Plan</div>
+                    <template v-if="workspaceUserCount !== undefined">
+                      <div class="nc-workspace-dropdown-active-workspace-info">-</div>
+                      <div class="nc-workspace-dropdown-active-workspace-info">
+                        {{ workspaceUserCount }}
+                        {{ workspaceUserCount > 1 ? $t('labels.members').toLowerCase() : $t('objects.member').toLowerCase() }}
+                      </div>
+                    </template>
                   </template>
                 </div>
               </div>

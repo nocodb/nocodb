@@ -216,6 +216,21 @@ export class MailService {
             link: this.buildUrl(req, {}),
           }),
         });
+        break;
+      }
+      case MailEvent.FORM_SUBMISSION: {
+        const { formView, data, model, emails, base } = payload
+
+        await mailerAdapter.mailSend({
+          to: emails.join(',')
+          subject: `NocoDB Forms: Someone has responsed to ${formView.title}`
+          html: await this.renderMail('FormSubmission', {
+            formTitle: formView.title,
+            tableTitle: model.title,
+            submissionData: data,
+            baseTitle: base.title,
+          })
+        })
       }
     }
   }

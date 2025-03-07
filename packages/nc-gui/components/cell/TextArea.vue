@@ -585,7 +585,7 @@ onMounted(() => {
             !isForm &&
             !isRichMode &&
             ((editEnabled && !isVisible) || isForm || (isUnderFormula && isVisible)),
-          'top-1': !(isGrid && !isExpandedFormOpen && !isForm),
+          'top-1': !(isGrid && !isExpandedFormOpen && !isForm) || isUnderFormula,
         }"
       >
         <NcTooltip

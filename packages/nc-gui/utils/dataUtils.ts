@@ -327,7 +327,7 @@ export function validateRowFilters(_filters: FilterType[], data: any, columns: C
             break
         }
 
-        if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(column.uidt!)) {
+        if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy, UITypes.Lookup].includes(column.uidt!)) {
           const userIds: string[] = Array.isArray(data[field])
             ? data[field].map((user) => user.id)
             : data[field]?.id

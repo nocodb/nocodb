@@ -10,7 +10,7 @@ import {
   populateSamplePayload,
   populateSamplePayloadV2,
 } from '~/helpers/populateSamplePayload';
-import { invokeWebhook, operationArrToCode } from '~/helpers/webhookHelpers';
+import { invokeWebhook } from '~/helpers/webhookHelpers';
 import { ButtonColumn, Hook, HookLog, Model } from '~/models';
 import { DatasService } from '~/services/datas.service';
 import { JobTypes } from '~/interface/Jobs';
@@ -246,6 +246,7 @@ export class HooksService {
         testFilters: (hook as any)?.filters,
         throwErrorOnFailure: true,
         testHook: true,
+        hookName: hook.event + '.' + hook.operation[0],
       });
     } catch (e) {
       throw e;
@@ -278,14 +279,14 @@ export class HooksService {
         context,
         model,
         false,
-        param.operation,
+        param.operation[0],
       );
     }
     return await populateSamplePayloadV2(
       context,
       model,
       false,
-      param.operation,
+      param.operation[0],
     );
   }
 

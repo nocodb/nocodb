@@ -45,10 +45,13 @@ export default class Hook implements HookType {
   version?: 'v1' | 'v2' | 'v3';
 
   constructor(
-    hook: Partial<Hook | HookReqType> & { version: string; operation: string },
+    hook: Partial<Hook | HookReqType> & {
+      version?: string;
+      operation?: string | string[];
+    },
   ) {
     Object.assign(this, hook);
-    if (hook.version === 'v3') {
+    if (hook.version === 'v3' && typeof hook.operation === 'string') {
       this.operation = operationCodeToArr(hook.operation);
     }
   }

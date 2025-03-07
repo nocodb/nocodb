@@ -547,7 +547,7 @@ watch(
 async function loadSampleData() {
   sampleData.value = await $api.dbTableWebhook.samplePayloadGet(
     meta?.value?.id as string,
-    hookRef?.operation || 'insert',
+    ((hookRef?.operation && hookRef?.operation[0]) as any) || 'insert',
     hookRef.version!,
   )
 }
@@ -876,7 +876,7 @@ onMounted(async () => {
               </div>
             </div>
 
-            <div v-if="isConditionSupport">
+            <div>
               <div class="w-full cursor-pointer flex items-center" @click.prevent="hookRef.condition = !hookRef.condition">
                 <NcSwitch :checked="Boolean(hookRef.condition)" class="nc-check-box-hook-condition">
                   <span class="!text-gray-700 font-semibold"> {{ $t('general.trigger') }} {{ $t('activity.onCondition') }} </span>

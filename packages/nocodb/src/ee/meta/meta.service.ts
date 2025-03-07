@@ -273,7 +273,6 @@ export class MetaService extends MetaServiceCE {
       commonProps.fk_workspace_id = workspace_id;
       commonProps.base_id = base_id;
     }
-    console.log('B')
 
     for (const d of Array.isArray(data) ? data : [data]) {
       const id =
@@ -285,7 +284,6 @@ export class MetaService extends MetaServiceCE {
       };
       insertObj.push(tempObj);
     }
-    console.log(target, insertObj)
     await this.knexConnection.batchInsert(target, insertObj);
 
     return insertObj;

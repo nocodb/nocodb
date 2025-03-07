@@ -347,7 +347,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               where:
                 childrenExcludedListPagination.query &&
                 `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
-              // fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
+              // ...(isForm.value ? { fields: requiredFieldsToLoad.value } : {}),
 
               // todo: include only required fields
               linkColumnId: column.value.fk_column_id || column.value.id,
@@ -454,6 +454,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         } else if (offset >= childrenListCount.value) {
           offset = 0
         }
+
+        console.log('load data', isNewRow?.value || !rowId.value)
 
         if (isNewRow?.value || !rowId.value) {
           const colTitle = column.value?.title || ''

@@ -26,6 +26,8 @@ provide(RowHeightInj, ref(1 as const))
 
 provide(IsUnderLookupInj, ref(true))
 
+provide(IsLinkRecordDropdownInj, ref(true))
+
 const isForm = inject(IsFormInj, ref(false))
 
 const row = useVModel(props, 'row')
@@ -118,7 +120,7 @@ const displayValue = computed(() => {
           </div>
 
           <div
-            v-if="fields.length > 0 && !isPublic && !isForm"
+            v-if="fields.length > 0 && (!isPublic || isForm)"
             class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 min-h-5"
           >
             <div v-for="field in fields" :key="field.id" class="sm:(w-1/3 max-w-1/3 overflow-hidden)">
@@ -139,13 +141,20 @@ const displayValue = computed(() => {
                     />
                   </template>
                   <div class="nc-link-record-cell flex w-full max-w-full">
-                    <LazySmartsheetVirtualCell v-if="isVirtualCol(field)" v-model="row[field.title]" :row="row" :column="field" />
+                    <LazySmartsheetVirtualCell
+                      v-if="isVirtualCol(field)"
+                      v-model="row[field.title]"
+                      :row="row"
+                      :column="field"
+                      class="!h-auto"
+                    />
                     <LazySmartsheetCell
                       v-else
                       v-model="row[field.title]"
                       :column="field"
                       :edit-enabled="false"
                       :read-only="true"
+                      class="!h-auto"
                     />
                   </div>
                 </NcTooltip>

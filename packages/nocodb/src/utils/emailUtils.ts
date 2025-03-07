@@ -13,3 +13,10 @@ export const sanitiseEmailContent = (content?: string) => {
     ?.replace(/[<>&;?#,'"$]+/g, encode)
     ?.replace(/\.|\/\/:/g, '<span>$&</span>');
 };
+
+export const extractDisplayNameFromEmail = (
+  email: string,
+  display_name?: string,
+) => {
+  return display_name ?? email.split('@')[0].toLocaleUpperCase();
+};

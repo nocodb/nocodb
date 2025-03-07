@@ -45,7 +45,7 @@ export const MentionRowEE = () => (
           </Section>
           <Text className="text-gray-600 text-center text-sm !mt-0">
             {'<%= name %>'} ({'<%= email %>'}) has mentioned you in a record in the <span className="font-semibold text-gray-800"> {'<%= tableTitle %>'}
-            </span>
+            </span> table.
           </Text>
           <Button className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10" href="<%= link %>">
             <Text className="!my-[8px]">

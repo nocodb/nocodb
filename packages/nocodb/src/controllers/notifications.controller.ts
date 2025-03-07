@@ -12,6 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
+import type { OnModuleDestroy } from '@nestjs/common';
 import type { Response } from 'express';
 import { NotificationsService } from '~/services/notifications/notifications.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -26,16 +27,10 @@ const POLL_INTERVAL = 30000;
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-export class NotificationsController {
-  constructor(private readonly notificationsService: NotificationsService) {
-    process.once('SIGTERM', this.handleProcessShutdown.bind(this));
-    process.once('SIGINT', this.handleProcessShutdown.bind(this));
-  }
+export class NotificationsController implements OnModuleDestroy {
+  constructor(private readonly notificationsService: NotificationsService) {}
 
-  /**
-   * Custom shutdown handler to send refresh to all open connections
-   */
-  private handleProcessShutdown(_signal: string) {
+  onModuleDestroy() {
     for (const [_, res] of this.notificationsService.connections) {
       res.forEach((r) => {
         if (!r.headersSent) {

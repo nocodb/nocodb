@@ -1,7 +1,9 @@
 <script lang="ts" setup>
-import { FormulaDataTypes, handleTZ } from 'nocodb-sdk'
+import { FormulaDataTypes, handleTZ, UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+
+provide(IsUnderFormulaInj, ref(true))
 
 // todo: column type doesn't have required property `error` - throws in typecheck
 const column = inject(ColumnInj) as Ref<ColumnType & { colOptions: { error: any } }>
@@ -22,21 +24,42 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
 
 const isNumber = computed(() => (column.value.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC)
 
+const isStringDataType = computed(() => {
+  if (isUnderLookup.value) return false
+
+  return (
+    !(column.value.colOptions as any)?.parsed_tree?.dataType ||
+    (column.value.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.STRING
+  )
+})
+
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
+
+const updatedColumn = computed(() => {
+  if (column.value.meta?.display_type) {
+    return {
+      ...column.value,
+      uidt: column.value.meta?.display_type,
+      ...column.value.meta?.display_column_meta,
+    }
+  } else if (isStringDataType.value) {
+    return {
+      ...column.value,
+      uidt: UITypes.LongText,
+    }
+  }
+})
 </script>
 
 <template>
   <LazySmartsheetFormulaWrapperCell
-    v-if="column.meta?.display_type"
+    v-if="column.meta?.display_type || isStringDataType"
     v-model="cellValue"
-    :column="{
-      uidt: column.meta?.display_type,
-      ...column.meta?.display_column_meta,
-    }"
+    :column="updatedColumn"
   />
 
   <div v-else class="w-full" :class="{ 'text-right': isNumber && isGrid && !isExpandedFormOpen }">

@@ -1,4 +1,4 @@
-import { type ColumnType, FormulaDataTypes, handleTZ } from 'nocodb-sdk'
+import { type ColumnType, FormulaDataTypes, handleTZ, UITypes } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, isBoxHovered, renderFormulaURL, renderSingleLineText } from '../utils/canvas'
 import { showFieldEditWarning } from '../utils/cell'
 import { CheckboxCellRenderer } from './Checkbox'
@@ -14,8 +14,9 @@ import { SingleLineTextCellRenderer } from './SingleLineText'
 import { TimeCellRenderer } from './Time'
 import { UrlCellRenderer } from './Url'
 import { FloatCellRenderer } from './Number'
+import { LongTextCellRenderer } from './LongText'
 
-function getDisplayValueCellRenderer(column: ColumnType) {
+function getDisplayValueCellRenderer(column: ColumnType, showAsLongText: boolean = false) {
   const colMeta = parseProp(column.meta)
   const modifiedColumn = {
     uidt: colMeta?.display_type,
@@ -32,12 +33,36 @@ function getDisplayValueCellRenderer(column: ColumnType) {
   else if (isEmail(modifiedColumn)) return EmailCellRenderer
   else if (isURL(modifiedColumn)) return UrlCellRenderer
   else if (isPhoneNumber(modifiedColumn)) return PhoneNumberCellRenderer
+  else if (showAsLongText) return LongTextCellRenderer
   else return SingleLineTextCellRenderer
+}
+
+function shouldShowAsLongText({ column, width, value }: { column: ColumnType; width: number; value: any }) {
+  defaultOffscreen2DContext.font = '500 13px Manrope'
+
+  return (
+    (!column.colOptions?.parsed_tree?.dataType || column.colOptions?.parsed_tree?.dataType === FormulaDataTypes.STRING) &&
+    width - 24 <= defaultOffscreen2DContext.measureText(value?.toString() ?? '').width
+  )
 }
 
 export const FormulaCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, x, y, padding, isPg, value, width, pv, height, textColor = '#4a5268', mousePosition, setCursor } = props
+    const {
+      column,
+      x,
+      y,
+      padding,
+      isPg,
+      value,
+      width,
+      pv,
+      height,
+      textColor = '#4a5268',
+      mousePosition,
+      setCursor,
+      isUnderLookup,
+    } = props
     const colMeta = parseProp(column.meta)
     if (parseProp(column.colOptions)?.error) {
       renderSingleLineText(ctx, {
@@ -48,12 +73,14 @@ export const FormulaCellRenderer: CellRenderer = {
       return
     }
 
-    if (colMeta?.display_type) {
-      getDisplayValueCellRenderer(column).render(ctx, {
+    const showAsLongText = !isUnderLookup && shouldShowAsLongText({ width, value, column })
+
+    if (colMeta?.display_type || showAsLongText) {
+      getDisplayValueCellRenderer(column, showAsLongText).render(ctx, {
         ...props,
         column: {
           ...column,
-          uidt: colMeta?.display_type,
+          uidt: colMeta?.display_type || UITypes.LongText,
           ...colMeta.display_column_meta,
         },
         readonly: true,
@@ -101,7 +128,7 @@ export const FormulaCellRenderer: CellRenderer = {
     }
   },
   handleClick: async (props) => {
-    const { column, getCellPosition } = props
+    const { column, getCellPosition, value } = props
 
     const colObj = column.columnObj
     const colMeta = parseProp(colObj.meta)
@@ -111,16 +138,19 @@ export const FormulaCellRenderer: CellRenderer = {
     const baseStore = useBase()
     const { isPg } = baseStore
 
-    if (colMeta?.display_type || !error) {
+    // isUnderLookup is not present in props and also from lookup cell we are not triggering click event so no need to check isUnderLookup
+    const showAsLongText = shouldShowAsLongText({ width, value, column: colObj })
+
+    if (colMeta?.display_type || !error || showAsLongText) {
       // Call the display type cell renderer's handleClick method if it exists
-      if (getDisplayValueCellRenderer(colObj)?.handleClick) {
-        return getDisplayValueCellRenderer(colObj).handleClick!({
+      if (getDisplayValueCellRenderer(colObj, showAsLongText)?.handleClick) {
+        return getDisplayValueCellRenderer(colObj, showAsLongText).handleClick!({
           ...props,
           column: {
             ...column,
             columnObj: {
               ...colObj,
-              uidt: colMeta?.display_type,
+              uidt: colMeta?.display_type || UITypes.LongText,
               ...colMeta.display_column_meta,
             },
           },
@@ -163,27 +193,47 @@ export const FormulaCellRenderer: CellRenderer = {
     return false
   },
   handleKeyDown: async (props) => {
+    const { column, value, makeCellEditable, row } = props
+
+    const colObj = column.columnObj
+    const colMeta = parseProp(colObj.meta)
+
     // Todo: show inline warning
     if (props.e.key === 'Enter') {
+      // isUnderLookup is not present in props and also from lookup cell we are not triggering click event so no need to check isUnderLookup
+      const showAsLongText = shouldShowAsLongText({ width: parseInt(column.width) || 200, value, column: colObj })
+
+      if (showAsLongText) {
+        makeCellEditable(row.rowMeta.rowIndex!, column)
+
+        return true
+      }
+
       showFieldEditWarning()
       return true
     }
   },
   async handleHover(props) {
-    const { mousePosition, getCellPosition, column, row } = props
+    const { mousePosition, getCellPosition, column, row, value } = props
     const colObj = column.columnObj
     const colMeta = parseProp(colObj.meta)
     const error = parseProp(colObj.colOptions)?.error ?? ''
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
-    if (colMeta?.display_type || !error) {
-      return getDisplayValueCellRenderer(colObj)?.handleHover?.({
+
+    const { width } = getCellPosition(column, props.row.rowMeta.rowIndex!)
+
+    // isUnderLookup is not present in props and also from lookup cell we are not triggering hover event so no need to check isUnderLookup
+    const showAsLongText = shouldShowAsLongText({ width, value, column: colObj })
+
+    if (colMeta?.display_type || !error || showAsLongText) {
+      return getDisplayValueCellRenderer(colObj, showAsLongText)?.handleHover?.({
         ...props,
         column: {
           ...column,
           columnObj: {
             ...colObj,
-            uidt: colMeta?.display_type,
+            uidt: colMeta?.display_type || UITypes.LongText,
             ...colMeta.display_column_meta,
           },
         },

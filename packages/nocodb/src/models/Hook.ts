@@ -248,6 +248,7 @@ export default class Hook implements HookType {
             fk_column_id: colId,
           };
         }),
+        true
       );
     }
 

@@ -1,21 +1,16 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
-import ejs from 'ejs';
 import type { NcContext } from '~/interface/config';
-import type { FormColumnType, HookType } from 'nocodb-sdk';
+import type { FormColumnType, FormType, HookType } from 'nocodb-sdk';
 import type { ColumnType } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import {
-  _transformSubmittedFormDataForEmail,
-  transformDataForMailRendering,
-} from '~/helpers/webhookHelpers';
+import { transformDataForMailRendering } from '~/helpers/webhookHelpers';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
-import formSubmissionEmailTemplate from '~/utils/common/formSubmissionEmailTemplate';
 import { Base, FormView, Hook, Model, View } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MailService } from '~/services/mail/mail.service';
+import { MailEvent } from '~/interface/Mail';
 
 export const HANDLE_WEBHOOK = '__nc_handleHooks';
 
@@ -32,7 +27,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
 
   public async handleHooks(
     context: NcContext,
-    { hookName, prevData, newData, user, viewId, modelId, tnPath },
+    { hookName, prevData, newData, user, viewId, modelId },
   ): Promise<void> {
     const view = await View.get(context, viewId);
     const model = await Model.get(context, modelId);
@@ -77,15 +72,13 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
             .filter(
               (f: ColumnType & FormColumnType) =>
                 f.show &&
-                ![
-                  UITypes.Rollup,
-                  UITypes.Lookup,
-                  UITypes.Formula,
-                  UITypes.QrCode,
-                  UITypes.Barcode,
-                  UITypes.SpecificDBType,
-                  UITypes.Button,
-                ].includes(f.uidt),
+                f.uidt !== UITypes.Rollup &&
+                f.uidt !== UITypes.Lookup &&
+                f.uidt !== UITypes.Formula &&
+                f.uidt !== UITypes.QrCode &&
+                f.uidt !== UITypes.Barcode &&
+                f.uidt !== UITypes.SpecificDBType &&
+                f.uidt !== UITypes.Button,
             )
             .sort((a: ColumnType, b: ColumnType) => a.order - b.order)
             .map((c: ColumnType & FormColumnType) => {
@@ -99,14 +92,14 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
             filteredColumns,
           );
 
-          const base = await Base.get(context, model.base_id)
+          const base = await Base.get(context, model.base_id);
 
           await this.mailService.sendMail({
             mailEvent: MailEvent.FORM_SUBMISSION,
             payload: {
-              formView,
+              formView: formView as FormType,
               base,
-              emails
+              emails,
               model,
               data: formatetdData,
             },

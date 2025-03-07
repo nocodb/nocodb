@@ -12,12 +12,18 @@ import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import NcPluginMgrv2 from './NcPluginMgrv2';
 import type { AxiosResponse } from 'axios';
 import type { HookType } from 'jsep';
-import type { HookLogType, TableType, UserType, ViewType } from 'nocodb-sdk';
+import type {
+  ColumnType,
+  FormColumnType,
+  HookLogType,
+  TableType,
+  UserType,
+  ViewType,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type {
   Column,
   FormView,
-  FormViewColumn,
   Hook,
   Model,
   View,
@@ -918,7 +924,7 @@ export function _transformSubmittedFormDataForEmail(
 export function transformDataForMailRendering(
   data: Record<string, any>,
   formView: FormView,
-  columns: (Column & FormViewColumn)[],
+  columns: (ColumnType & FormColumnType)[],
 ) {
   const transformedData: Array<{
     parsedValue?: any;
@@ -929,7 +935,7 @@ export function transformDataForMailRendering(
   // TODO: Update this once ColumnHelper is Merged
   // FIXME DADDY: @DarkPhoenix2704
 
-  columns.map((c) => {
+  columns.map((col) => {
     let serializedValue: string | undefined;
 
     try {
@@ -956,8 +962,8 @@ export function transformDataForMailRendering(
 
     transformedData.push({
       parsedValue: serializedValue,
-      uidt: c.uidt,
-      columnTitle: c.title,
+      uidt: col.uidt,
+      columnTitle: col.title,
     });
   });
 

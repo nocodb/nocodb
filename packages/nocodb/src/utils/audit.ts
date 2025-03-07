@@ -1089,7 +1089,9 @@ export const generateUpdateAuditV1Payload = async ({
         source_id: baseModelSqlV2.model.source_id,
         fk_model_id: baseModelSqlV2.model.id,
         row_id:
-          typeof rowId === 'string' ? (rowId as string) : JSON.stringify(rowId),
+          typeof rowId === 'string'
+            ? (rowId as string)
+            : baseModelSqlV2.extractPksValues(rowId),
       },
       details: {
         old_data: updateDiff.previous_state,

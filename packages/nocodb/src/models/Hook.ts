@@ -162,8 +162,8 @@ export default class Hook implements HookType {
       insertObj.source_id = model.source_id;
     }
 
-    // new hook will set as version 2
-    insertObj.version = 'v2';
+    // new hook will set as version 3
+    insertObj.version = 'v3';
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,

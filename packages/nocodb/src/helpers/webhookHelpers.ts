@@ -925,6 +925,7 @@ function parseHrtimeToMilliSeconds(hrtime) {
 }
 
 export function operationArrToCode(value: HookType['operation']) {
+  console.log('value', value)
   let result = 0;
   for (const operation of value) {
     result += HookOperationCode[operation];

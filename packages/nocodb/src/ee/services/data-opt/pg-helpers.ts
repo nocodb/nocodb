@@ -1053,7 +1053,7 @@ export async function extractColumn({
       ) {
         qb.select(
           knex.raw(
-            `??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC' as ??`,
+            `TO_CHAR((??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'), 'YYYY-MM-DD HH24:MI:SSTZH:TZM') as ??`,
             [rootAlias, sanitize(columnName), getAs(column)],
           ),
         );

@@ -760,6 +760,7 @@ export async function extractColumn({
           getAlias,
           column: lookupColumn,
           baseModel,
+          isLookup: true,
           // dependencyFields,
           ast,
           throwErrorIfInvalidParams,
@@ -971,12 +972,21 @@ export async function extractColumn({
         // the value 2023-01-01 10:00:00 (UTC) would display as 2023-01-01 18:00:00 (UTC+8)
         // our existing logic is based on UTC, during the query, we need to take the UTC value
         // hence, we use CONVERT_TZ to convert back to UTC value
-        qb.select(
-          knex.raw(`CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00') as ??`, [
-            `${sanitize(rootAlias)}.${columnName}`,
-            getAs(column),
-          ]),
-        );
+        if (isLookup) {
+          qb.select(
+            knex.raw(
+              `(SELECT CONCAT(DATE_FORMAT(CONVERT_TZ(??, @@session.time_zone, '+00:00'), '%Y-%m-%d %H:%i:%s'), '+00:00') LIMIT 1) as ??`,
+              [`${sanitize(rootAlias)}.${columnName}`, getAs(column)],
+            ),
+          );
+        } else {
+          qb.select(
+            knex.raw(`CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00') as ??`, [
+              `${sanitize(rootAlias)}.${columnName}`,
+              getAs(column),
+            ]),
+          );
+        }
       }
       break;
 

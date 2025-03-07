@@ -11,6 +11,7 @@ import type { UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
+import { MailService } from '~/services/mail/mail.service';
 import { NC_APP_SETTINGS } from '~/constants';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -20,12 +21,14 @@ import { BaseUser, PresignedUrl, Store, SyncSource, User } from '~/models';
 
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
+import { MailEvent } from '~/interface/Mail';
 
 @Injectable()
 export class OrgUsersService {
   constructor(
     protected readonly baseUsersService: BaseUsersService,
     protected readonly appHooksService: AppHooksService,
+    protected readonly mailService: MailService,
   ) {}
 
   async userList(param: {
@@ -164,23 +167,26 @@ export class OrgUsersService {
           // in case of single user check for smtp failure
           // and send back token if failed
           if (emails.length === 1) {
-            if (
-              !(await this.baseUsersService.sendInviteEmail({
-                email,
-                token: invite_token,
-                useOrgTemplate: true,
-                req: param.req,
-                roles: param.user.roles || OrgUserRoles.VIEWER,
-              }))
-            )
+            try {
+              await this.mailService.sendMail({
+                mailEvent: MailEvent.ORGANIZATION_INVITE,
+                payload: {
+                  user,
+                  req: param.req,
+                  token: invite_token,
+                },
+              });
+            } catch (e) {
               return { invite_token, email };
+            }
           } else {
-            await this.baseUsersService.sendInviteEmail({
-              email,
-              token: invite_token,
-              req: param.req,
-              useOrgTemplate: true,
-              roles: param.user.roles || OrgUserRoles.VIEWER,
+            await this.mailService.sendMail({
+              mailEvent: MailEvent.ORGANIZATION_INVITE,
+              payload: {
+                user,
+                req: param.req,
+                token: invite_token,
+              },
             });
           }
         } catch (e) {
@@ -240,12 +246,13 @@ export class OrgUsersService {
       );
     }
 
-    await this.baseUsersService.sendInviteEmail({
-      email: user.email,
-      token: invite_token,
-      req: param.req,
-      useOrgTemplate: true,
-      roles: user.roles,
+    await this.mailService.sendMail({
+      mailEvent: MailEvent.ORGANIZATION_INVITE,
+      payload: {
+        user,
+        req: param.req,
+        token: invite_token,
+      },
     });
 
     this.appHooksService.emit(AppEvents.ORG_USER_RESEND_INVITE, {

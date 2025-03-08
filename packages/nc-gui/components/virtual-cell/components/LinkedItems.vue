@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 
 interface Prop {
   modelValue?: boolean
@@ -58,7 +58,8 @@ const {
   row,
   loadRelatedTableMeta,
   resetChildrenListOffsetCount,
-  targetViewColumnsById,
+  attachmentCol,
+  fields,
 } = useLTARStoreOrThrow()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
@@ -93,23 +94,6 @@ const linkRow = async (row: Record<string, any>, id: number) => {
     await link(row, {}, false, id)
   }
 }
-
-const attachmentCol = computedInject(FieldsInj, (_fields) => {
-  return (relatedTableMeta.value.columns ?? []).filter((col) => isAttachment(col))[0]
-})
-
-const fields = computedInject(FieldsInj, (_fields) => {
-  return (relatedTableMeta.value.columns ?? [])
-    .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
-    .sort((a, b) => {
-      if (isPublic.value) {
-        return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-      }
-
-      return (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
-    })
-    .slice(0, isMobileMode.value ? 1 : 3)
-})
 
 const expandedFormDlg = ref(false)
 
@@ -448,7 +432,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
       <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between gap-3 min-h-11">
         <div class="flex items-center gap-2">
           <NcButton
-            v-if="!isPublic && !isDataReadOnly && isUIAllowed('dataEdit')"
+            v-if="!isPublic && !isDataReadOnly && isUIAllowed('dataEdit') && !isForm"
             v-e="['c:row-expand:open']"
             size="small"
             class="!hover:(bg-white text-brand-500) !h-7 !text-small"

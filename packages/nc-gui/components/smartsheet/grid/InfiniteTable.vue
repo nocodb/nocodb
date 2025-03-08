@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   type ButtonType,
+  type ColumnReqType,
   type ColumnType,
   type TableType,
   UITypes,
@@ -3441,7 +3442,7 @@ const cellAlignClass = computed(() => {
     }
   }
 
-  .nc-grid-skeleton-loader {v-xc-ver-resize
+  .nc-grid-skeleton-loader {
     thead th:nth-child(2) {
       @apply border-r-1 !border-r-gray-50;
     }

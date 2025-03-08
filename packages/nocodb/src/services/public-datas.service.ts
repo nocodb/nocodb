@@ -1,5 +1,5 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { UITypes, ViewTypes } from 'nocodb-sdk';
+import { ncIsArray, UITypes, ViewTypes } from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
@@ -536,6 +536,19 @@ export class PublicDatasService {
       model,
       extractOnlyPrimaries: true,
     });
+
+    if (view.type === ViewTypes.FORM && ncIsArray(param.query?.fields)) {
+      param.query.fields.forEach(
+        dependencyFields.fieldsSet.add,
+        dependencyFields.fieldsSet,
+      );
+
+      param.query.fields.forEach((f) => {
+        if (ast[f] === undefined) {
+          ast[f] = 1;
+        }
+      });
+    }
 
     let data = [];
 

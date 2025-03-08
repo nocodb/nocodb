@@ -23,6 +23,7 @@ import type {
   TableType,
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
+import { timeFormatsObj } from '../components/smartsheet/grid/canvas/utils/cell'
 import { isColumnRequiredAndNull } from './columnUtils'
 
 export const isValidValue = (val: unknown) => {
@@ -513,9 +514,12 @@ export const getDateTimeValue = (modelValue: string | null, params: ParsePlainCe
     return ''
   }
 
-  const dateFormat = parseProp(col?.meta)?.date_format ?? dateFormats[0]
-  const timeFormat = parseProp(col?.meta)?.time_format ?? timeFormats[0]
-  const dateTimeFormat = `${dateFormat} ${timeFormat}`
+  const columnMeta = parseProp(col.meta)
+
+  const dateFormat = columnMeta?.date_format ?? dateFormats[0]
+  const timeFormat = columnMeta?.time_format ?? timeFormats[0]
+  const is12hrFormat = columnMeta?.is12hrFormat
+  const dateTimeFormat = `${dateFormat} ${is12hrFormat ? timeFormatsObj[timeFormat] : timeFormat}`
 
   const isXcDB = isXcdbBase(col.source_id)
 

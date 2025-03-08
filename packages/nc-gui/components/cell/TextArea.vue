@@ -34,6 +34,8 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const readOnlyInj = inject(ReadonlyInj, ref(false))
 
+const isUnderFormula = inject(IsUnderFormulaInj, ref(false))
+
 const readOnly = computed(() => readOnlyInj.value || column.value.readonly)
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
@@ -445,7 +447,13 @@ onMounted(() => {
       </div>
       <!-- eslint-disable vue/use-v-on-exact -->
       <div
-        v-else-if="(editEnabled && !isVisible) || isForm"
+        v-else-if="
+          (editEnabled && !isVisible) ||
+          isForm ||
+          (isUnderFormula && isVisible) ||
+          (isCanvasInjected && isUnderFormula) ||
+          (isUnderFormula && isExpandedFormOpen && !isUnderLookup)
+        "
         class="h-full w-full"
         :class="{
           'my-1 bg-nc-bg-purple-light rounded-lg': props.isAi && isExpandedFormOpen && !readOnly,
@@ -457,12 +465,13 @@ onMounted(() => {
           :rows="isForm ? 5 : 4"
           class="h-full w-full !outline-none nc-scrollbar-thin"
           :class="{
-            'p-2': editEnabled,
+            'p-2': editEnabled || isUnderFormula,
             'py-1 h-full': isForm,
             'px-2': isExpandedFormOpen,
             'border-none': !(props.isAi && isExpandedFormOpen),
             'border-1 border-nc-border-gray-medium rounded-lg !focus:(shadow-selected border-primary ring-0) transition-shadow duration-300':
               props.isAi && isExpandedFormOpen,
+            'bg-transparent': isUnderFormula,
           }"
           :style="{
             minHeight: isForm ? '117px' : `${height}px`,
@@ -565,13 +574,18 @@ onMounted(() => {
       <span v-else>{{ vModel }}</span>
 
       <div
-        class="!absolute !hidden nc-text-area-expand-btn group-hover:block z-3 flex items-center gap-1"
+        class="!absolute !hidden nc-text-area-expand-btn group-hover:block z-3 items-center gap-1"
         :class="{
           'right-1': isForm,
           'right-0': !isForm,
           'top-0 right-0': isGrid && !isExpandedFormOpen && !isForm,
-          '!right-2 top-2': isGrid && !isExpandedFormOpen && !isForm && !isRichMode && ((editEnabled && !isVisible) || isForm),
-          'top-1': !(isGrid && !isExpandedFormOpen && !isForm),
+          '!right-2 top-2':
+            isGrid &&
+            !isExpandedFormOpen &&
+            !isForm &&
+            !isRichMode &&
+            ((editEnabled && !isVisible) || isForm || (isUnderFormula && isVisible)),
+          'top-1': !(isGrid && !isExpandedFormOpen && !isForm) || isUnderFormula,
         }"
       >
         <NcTooltip

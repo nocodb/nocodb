@@ -29,6 +29,10 @@ export default defineNuxtPlugin((nuxtApp) => {
 
       // bind event handlers
       function initDrag(e: MouseEvent) {
+        if (el.classList.contains('no-resize')) {
+          return
+        }
+
         document.body.style.cursor = 'col-resize'
         startX = e.clientX
         startWidth = parseInt(document.defaultView?.getComputedStyle(el)?.width || '0', 10)

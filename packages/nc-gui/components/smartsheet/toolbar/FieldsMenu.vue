@@ -52,7 +52,7 @@ const {
 
 const { eventBus, isDefaultView, isSqlView } = useSmartsheetStoreOrThrow()
 
-const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
+const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -466,12 +466,7 @@ function scrollToLatestField() {
 const showAddLookupDropdown = (field: Field) => {
   if (!field.fk_column_id) return false
 
-  return !!(
-    isAddingColumnAllowed.value &&
-    !isLocked.value &&
-    !isLocalMode.value &&
-    isLinksOrLTAR(meta.value?.columnsById?.[field.fk_column_id])
-  )
+  return !!(isAddingColumnAllowed.value && !isLocalMode.value && isLinksOrLTAR(meta.value?.columnsById?.[field.fk_column_id]))
 }
 
 function conditionalToggleFieldVisibility(field: Field) {
@@ -875,10 +870,9 @@ const onAddColumnDropdownVisibilityChange = () => {
             :trigger="['click']"
             overlay-class-name="nc-dropdown-add-column !bg-transparent !border-none !shadow-none"
             placement="right"
-            :disabled="isLocked"
             @visible-change="onAddColumnDropdownVisibilityChange"
           >
-            <NcButton :disabled="isLocked" class="nc-fields-add-new-field !font-semibold !px-2" size="small" type="text">
+            <NcButton class="nc-fields-add-new-field !font-semibold !px-2" size="small" type="text">
               <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1" />
               <span>{{ t('general.new') }} {{ t('objects.field') }}</span>
             </NcButton>

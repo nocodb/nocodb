@@ -46,12 +46,15 @@ const { getMeta } = useMetas()
 
 const meta = inject(MetaInj, ref())
 
-const columns = computed(
-  () =>
-    meta.value?.columns?.filter(
-      (col) => [UITypes.ID].includes(col.uidt) || (!isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)),
-    ) || [],
-)
+const filterForDestinationColumn = (col: ColumnType): boolean => {
+  if ([UITypes.ForeignKey, UITypes.ID].includes(col.uidt as UITypes)) {
+    return true
+  } else {
+    return !isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)
+  }
+}
+
+const columns = computed(() => meta.value?.columns?.filter((col) => filterForDestinationColumn(col)) || [])
 
 const reloadHook = inject(ReloadViewDataHookInj, createEventHook())
 

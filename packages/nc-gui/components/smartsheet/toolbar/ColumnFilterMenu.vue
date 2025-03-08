@@ -120,6 +120,11 @@ const combinedFilterLength = computed(() => {
           <span v-if="combinedFilterLength" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{
             combinedFilterLength
           }}</span>
+
+          <!--    show a warning icon with tooltip if query filter error is there -->
+          <template v-if="filtersFromUrlParams.errors?.length">
+            <GeneralIcon icon="ncAlertCircle" class="nc-error-icon w-3.5" />
+          </template>
         </div>
       </NcButton>
     </NcTooltip>
@@ -224,5 +229,9 @@ const combinedFilterLength = computed(() => {
     font-size: 16px;
     line-height: 24px;
   }
+}
+
+.nc-error-icon {
+  color: var(--nc-content-red-dark);
 }
 </style>

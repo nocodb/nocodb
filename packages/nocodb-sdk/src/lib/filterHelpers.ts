@@ -94,10 +94,14 @@ export function extractFilterFromXwhere(
       extractFilterFromXwhere(s, aliasColObjMap, throwErrorIfInvalid, errors)
     );
 
-    const filters = nestedFilters.flatMap((result) => result.filters || []);
-    const collectedErrors = nestedFilters.flatMap(
-      (result) => result.errors || []
-    );
+    const filters = nestedFilters.reduce((acc, { filters }) => {
+      if (!filters) return acc;
+      return [...acc, ...filters];
+    }, []);
+    const collectedErrors = nestedFilters.reduce((acc, { errors }) => {
+      if (!errors) return acc;
+      return [...acc, ...errors];
+    }, []);
 
     // If errors exist, return them
     if (collectedErrors.length > 0) {
@@ -374,7 +378,11 @@ export function extractCondition(
           throwErrorIfInvalid
         );
       } else {
-        const error = { message: alias ? `Column alias '${alias}' not found.` : 'Invalid filter format.' };
+        const error = {
+          message: alias
+            ? `Column alias '${alias}' not found.`
+            : 'Invalid filter format.',
+        };
         if (throwErrorIfInvalid) throw new NcSDKError(error.message);
         errors.push(error);
         return null;

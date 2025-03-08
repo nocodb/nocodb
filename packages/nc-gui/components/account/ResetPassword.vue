@@ -50,8 +50,8 @@ const passwordChange = async () => {
     await signOut({
       redirectToSignin: true,
     })
-  } catch (e: any) {
-    error.value = await extractSdkResponseErrorMsg(e)
+  } catch {
+    // ignore since error value is set by useApi and will be displayed in UI
   }
 }
 

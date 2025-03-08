@@ -412,8 +412,9 @@ const isColumnEditAllowed = computed(() => {
       !readonlyMetaAllowedTypes.includes(column.value?.uidt) &&
       !partialUpdateAllowedTypes.includes(column.value?.uidt)) ||
     isSqlView.value
-  )
+  ) {
     return false
+  }
 
   return true
 })
@@ -469,6 +470,7 @@ const onDeleteColumn = () => {
       v-if="isUIAllowed('fieldAlter')"
       message="Field properties cannot be edited."
       :enabled="!isColumnEditAllowed"
+      :is-sql-view="isSqlView"
     >
       <NcMenuItem
         :disabled="column?.pk || isSystemColumn(column) || !isColumnEditAllowed || linksAssociated?.length"
@@ -487,6 +489,7 @@ const onDeleteColumn = () => {
         v-if="!column?.pk"
         message="Field cannot be duplicated."
         :enabled="!isDuplicateAllowed && isMetaReadOnly"
+        :is-sql-view="isSqlView"
       >
         <NcMenuItem :disabled="!isDuplicateAllowed || isSqlView" @click="openDuplicateDlg">
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
@@ -674,6 +677,7 @@ const onDeleteColumn = () => {
       v-if="!column?.pv && isUIAllowed('fieldDelete')"
       message="Field cannot be deleted."
       :enabled="!isColumnUpdateAllowed"
+      :is-sql-view="isSqlView"
     >
       <NcMenuItem
         :disabled="!isDeleteAllowed || !isColumnUpdateAllowed || linksAssociated?.length"

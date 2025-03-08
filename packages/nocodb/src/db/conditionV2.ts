@@ -1326,12 +1326,10 @@ const parseConditionV2 = async (
                   .whereNull(field)
                   .orWhere(knex.raw("??::jsonb = '{}'::jsonb", [field]))
                   .orWhere(knex.raw("??::jsonb = '[]'::jsonb", [field]));
-              } else if (knex.clientType().startsWith('mysql')) {
-                qb = qb
-                  .whereNull(field)
-                  .orWhere(field, '{}')
-                  .orWhere(field, '[]');
-              } else if (knex.clientType() === 'sqlite3') {
+              } else if (
+                knex.clientType().startsWith('mysql') ||
+                knex.clientType() === 'sqlite3'
+              ) {
                 qb = qb
                   .whereNull(field)
                   .orWhere(field, '{}')

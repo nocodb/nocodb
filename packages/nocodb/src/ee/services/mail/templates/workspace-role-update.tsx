@@ -54,7 +54,7 @@ export const WorkspaceRoleUpdate = ({
               className="h-7 mx-auto"
             />
           </Section>
-          <Text className="text-gray-600 text-center text-sm !mt-0">
+          <Text className="text-gray-600 text-center text-sm !mt-0 !mb-6">
             Your access in
             <span className="font-bold text-gray-800"> {workspaceTitle} </span>
             has been updated to

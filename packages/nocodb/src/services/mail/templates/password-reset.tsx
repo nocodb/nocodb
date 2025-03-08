@@ -33,7 +33,7 @@ export const PasswordReset = ({ email, link }: PasswordResetTemplateProps) => (
           <Section className="py-6 mx-auto font-bold text-center text-gray-900 text-base">
             {email}
           </Section>
-          <Text className="text-gray-600 text-center text-sm !mt-0">
+          <Text className="text-gray-600 text-center text-sm !mt-0 !mb-6">
             You’ve requested for a password reset, click on the ‘Reset Password’
             button to reset your password.
           </Text>

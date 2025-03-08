@@ -45,7 +45,7 @@ export const Welcome = ({ email, link }: WelcomeTemplateProps) => (
           <Text className="text-gray-600 text-center text-sm !mt-0">
             Need help? Our docs and community are just a click away.
           </Text>
-          <Text className="text-gray-600 text-center text-sm !mt-0">
+          <Text className="text-gray-600 text-center text-sm !mt-0 !mb-6">
             Let’s build something amazing together! 💡
           </Text>
           <Button

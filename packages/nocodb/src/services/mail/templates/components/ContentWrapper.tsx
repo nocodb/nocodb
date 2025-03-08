@@ -1,4 +1,4 @@
-import { Container, Img, Section } from '@react-email/components';
+import { Container, Hr, Img, Section } from '@react-email/components';
 import * as React from 'react';
 import { NC_EMAIL_ASSETS_BASE_URL } from '~/constants';
 
@@ -10,7 +10,7 @@ export const ContentWrapper = ({
   disableContainerPadding?: boolean;
 }) => {
   return (
-    <Container className="px-3 my-16 max-w-[480px]">
+    <Container className="px-3 mt-16 !my-0 max-w-[480px]">
       <Section className="py-6 m-auto bg-gray-50 border border-gray-200 border-solid rounded-t-xl">
         <Img
           alt="NocoDB"
@@ -27,6 +27,8 @@ export const ContentWrapper = ({
       >
         {children}
       </Section>
+
+      <Hr className="!my-16" />
     </Container>
   );
 };

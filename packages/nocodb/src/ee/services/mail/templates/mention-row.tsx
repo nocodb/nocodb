@@ -50,7 +50,7 @@ export const MentionRow = ({
               {baseTitle}
             </span>
           </Section>
-          <Text className="text-gray-600 text-center text-sm !mt-0">
+          <Text className="text-gray-600 text-center !mb-6 text-sm !mt-0">
             {name} ({email}) has mentioned you in a record in the{' '}
             <span className="font-semibold text-gray-800">{tableTitle}</span>{' '}
             table.

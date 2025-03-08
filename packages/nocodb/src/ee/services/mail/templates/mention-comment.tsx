@@ -48,7 +48,7 @@ export const MentionComment = ({
               {baseTitle}
             </span>
           </Section>
-          <Text className="text-gray-600 text-center text-sm !mt-0">
+          <Text className="text-gray-600 text-center text-sm !mb-6 !mt-0">
             {name} ({email}) has mentioned you in
             <span className="font-semibold text-gray-800"> {baseTitle}</span>
           </Text>

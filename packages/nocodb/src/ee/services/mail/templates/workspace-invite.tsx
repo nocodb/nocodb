@@ -40,7 +40,7 @@ export const WorkspaceInvite = ({
           <Section className="py-6 mx-auto font-bold text-center text-gray-900 text-base">
             {workspaceTitle}
           </Section>
-          <Text className="text-gray-600 text-center text-sm !mt-0">
+          <Text className="text-gray-600 text-center text-sm !mt-0 !mb-6">
             <span className="font-bold text-gray-800">{name}</span> ({email})
             has invited you to join{' '}
             <span className="font-bold text-gray-800">{workspaceTitle}</span>.
@@ -50,7 +50,7 @@ export const WorkspaceInvite = ({
             className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10"
             href={link}
           >
-            <Text className="!my-[8px]">Accept invite</Text>
+            <Text className="!my-[8px]"> Accept invite</Text>
           </Button>
         </ContentWrapper>
         <Footer />

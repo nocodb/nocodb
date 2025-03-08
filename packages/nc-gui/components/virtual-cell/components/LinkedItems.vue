@@ -60,6 +60,7 @@ const {
   resetChildrenListOffsetCount,
   attachmentCol,
   fields,
+  refreshCurrentRow,
 } = useLTARStoreOrThrow()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
@@ -68,6 +69,7 @@ watch(
   [vModel, isForm],
   (nextVal) => {
     if ((nextVal[0] || nextVal[1]) && !isNew.value) {
+      refreshCurrentRow()
       loadChildrenList(true)
     }
 
@@ -288,7 +290,6 @@ const linkedShortcuts = (e: KeyboardEvent) => {
 onMounted(() => {
   loadRelatedTableMeta()
   window.addEventListener('keydown', linkedShortcuts)
-
   setTimeout(() => {
     filterQueryRef.value?.focus()
   }, 100)

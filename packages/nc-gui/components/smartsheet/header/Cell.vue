@@ -20,8 +20,6 @@ const isGrid = inject(IsGridInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
-const isLocked = inject(IsLockedInj, ref(false))
-
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))

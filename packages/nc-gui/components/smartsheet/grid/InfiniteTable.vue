@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   type ButtonType,
+  type ColumnReqType,
   type ColumnType,
   type TableType,
   UITypes,

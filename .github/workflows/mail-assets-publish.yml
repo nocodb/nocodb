@@ -24,21 +24,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Check for file changes
-        id: changed-files
-        if: github.event_name == 'push'
-        run: |
-          echo "any_changed=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep "packages/nc-mail-assets/" | wc -l)" >> $GITHUB_OUTPUT
-
       - name: Move files to S3 Path
-        if: github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed != '0'
         run: |
           mkdir -p packages/nc-mail-asset/emails/v2
           mv packages/nc-mail-assets/* packages/nc-mail-asset/emails/v2
 
       - name: Deploy UI assets to CDN
         uses: pranavxc/s3-deploy@2cdf96df65b6c97ee09a5771958582b77f22b738
-        if: github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed != '0'
         with:
           folder: packages/nc-mail-asset/
           bucket: ${{ secrets.CDN_BUCKET }}

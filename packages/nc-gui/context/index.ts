@@ -60,6 +60,7 @@ export const OnDivDataCellEventHookInj: InjectionKey<EventHook<Event> | undefine
 export const SaveRowInj: InjectionKey<(() => void) | undefined> = Symbol('save-row-injection')
 export const CurrentCellInj: InjectionKey<Ref<Element | undefined>> = Symbol('current-cell-injection')
 export const IsUnderLookupInj: InjectionKey<Ref<boolean>> = Symbol('is-under-lookup-injection')
+export const IsUnderFormulaInj: InjectionKey<Ref<boolean>> = Symbol('is-under-formula-injection')
 export const DocsLocalPageInj: InjectionKey<Ref<PageSidebarNode | undefined>> = Symbol('docs-local-page-injection')
 export const ProjectRoleInj: InjectionKey<Ref<string | string[]>> = Symbol('base-roles-injection')
 export const ProjectStarredModeInj: InjectionKey<Ref<boolean>> = Symbol('base-starred-injection')

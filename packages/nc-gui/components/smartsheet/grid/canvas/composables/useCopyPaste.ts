@@ -104,10 +104,13 @@ export function useCopyPaste({
   const { isUIAllowed } = useRoles()
   const { copy } = useCopy()
   const { cleaMMCell, clearLTARCell, addLTARRef, syncLTARRefs } = useSmartsheetLtarHelpersOrThrow()
+  const { isSqlView } = useSmartsheetStoreOrThrow()
 
   const { base } = storeToRefs(useBase())
   const fields = computed(() => (columns.value ?? []).map((c) => c.columnObj))
   const canPasteCell = computed(() => {
+    if (isSqlView.value) return false
+
     return (
       !editEnabled.value ||
       (editEnabled.value &&

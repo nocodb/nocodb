@@ -722,7 +722,7 @@
     "urlFormula": "Fórmula URL",
     "selectIcon": "ninguno",
     "selectAWebhook": "--seleccionar un webhook--",
-    "selectAScript": "-- select a script --",
+    "selectAScript": "",
     "openUrl": "Abrir URL",
     "runWebHook": "Ejecutar Webhook",
     "onClick": "Al hacer clic",

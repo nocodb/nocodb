@@ -279,7 +279,7 @@ onUnmounted(() => {
             </div>
 
             <div class="mt-2">
-              <a-checkbox v-model:checked="syncOptions.workspaceMode" disabled> Workspace Mode </a-checkbox>
+              <a-checkbox v-model:checked="syncOptions.workspaceMode"> Workspace Mode </a-checkbox>
             </div>
 
             <!--

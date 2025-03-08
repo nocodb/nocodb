@@ -46,7 +46,7 @@ export const OrganizationRoleUpdate = ({
               className="h-7 mx-auto"
             />
           </Section>
-          <Text className="text-gray-600 text-center text-sm !mt-0">
+          <Text className="text-gray-600 text-center text-sm !mt-0 !mb-6">
             Your access in NocoDB has been updated to
             <span className="font-bold text-gray-800 capitalize"> {role} </span>
             by <span className="font-bold text-gray-800">{name}</span> ({email})

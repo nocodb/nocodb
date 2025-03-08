@@ -40,7 +40,7 @@ export const BaseInvite = ({
           <Section className="py-6 mx-auto font-bold mx-auto text-center text-gray-900 text-base">
             {baseTitle}
           </Section>
-          <Text className="text-gray-600 text-center text-sm !mt-0">
+          <Text className="text-gray-600 text-center text-sm !mt-0 !mb-6">
             <span className="font-bold text-gray-800">{name}</span> ({email})
             has invited you to collaborate on{' '}
             <span className="font-bold text-gray-800">{baseTitle}</span>

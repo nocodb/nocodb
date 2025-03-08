@@ -34,7 +34,7 @@ export const OrganizationInvite = ({
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             You’ve been invited to NocoDB
           </Heading>
-          <Text className="text-gray-600 text-center text-sm">
+          <Text className="text-gray-600 text-center !my-6 text-sm">
             <span className="font-bold text-gray-800">{name}</span> ( {email})
             has invited you to collaborate on NocoDB.
           </Text>

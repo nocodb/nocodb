@@ -211,14 +211,19 @@ const parseConditionV2 = async (
       if (relationType === RelationTypes.HAS_MANY) {
         const childTableAlias = getAlias(aliasCount);
 
+        // Knex's TypeScript definitions do not correctly infer knex.raw() or knex.ref()
+        // as valid column references. This causes type errors when used in query builders
+        // like `whereIn()`, `where()`, and `select()`. Casting to `any` ensures proper
+        // SQL generation while avoiding TypeScript issues.
         const childColumnRef = knex.raw('??.??', [
           childTableAlias,
           childColumn.column_name,
-        ]);
+        ]) as any;
         const parentColumnRef = knex.raw('??.??', [
           alias || baseModelSqlv2.getTnPath(parentModel.table_name),
           parentColumn.column_name,
-        ]);
+        ]) as any;
+
         if (
           ['blank', 'notblank', 'checked', 'notchecked'].includes(
             filter.comparison_op,
@@ -261,21 +266,26 @@ const parseConditionV2 = async (
 
         return (qbP: Knex.QueryBuilder) => {
           if (filter.comparison_op in negatedMapping)
-            qbP.whereNotIn(parentColumnRef.toString(), selectQb);
-          else qbP.whereIn(parentColumnRef.toString(), selectQb);
+            qbP.whereNotIn(parentColumnRef, selectQb);
+          else qbP.whereIn(parentColumnRef, selectQb);
         };
       } else if (relationType === RelationTypes.BELONGS_TO) {
         const parentTableAlias = getAlias(aliasCount);
         const childTableAlias =
           alias || baseModelSqlv2.getTnPath(childModel.table_name);
+
+        // Knex's TypeScript definitions do not correctly infer knex.raw() or knex.ref()
+        // as valid column references. This causes type errors when used in query builders
+        // like `whereIn()`, `where()`, and `select()`. Casting to `any` ensures proper
+        // SQL generation while avoiding TypeScript issues.
         const parentColumnRef = knex.raw('??.??', [
           parentTableAlias,
           parentColumn.column_name,
-        ]);
+        ]) as any;
         const childColumnRef = knex.raw('??.??', [
           childTableAlias,
           childColumn.column_name,
-        ]);
+        ]) as any;
         if (
           ['blank', 'notblank', 'checked', 'notchecked'].includes(
             filter.comparison_op,
@@ -298,7 +308,7 @@ const parseConditionV2 = async (
             baseModelSqlv2.getTnPath(parentModel.table_name, parentTableAlias),
           )
             .count(parentColumnRef)
-            .where(parentColumnRef.toString(), childColumnRef);
+            .where(parentColumnRef, childColumnRef);
 
           return (qb) => {
             if (filter.comparison_op === 'blank') {
@@ -334,10 +344,10 @@ const parseConditionV2 = async (
           if (filter.comparison_op in negatedMapping) {
             qbP.where((qb) =>
               qb
-                .whereNotIn(childColumnRef.toString(), selectQb)
-                .orWhereNull(childColumnRef.toString()),
+                .whereNotIn(childColumnRef, selectQb)
+                .orWhereNull(childColumnRef),
             );
-          } else qbP.whereIn(childColumnRef.toString(), selectQb);
+          } else qbP.whereIn(childColumnRef, selectQb);
         };
       } else if (relationType === RelationTypes.MANY_TO_MANY) {
         const childTableAliasOrRef =
@@ -349,22 +359,26 @@ const parseConditionV2 = async (
         const mmParentColumn = await colOptions.getMMParentColumn(context);
         const mmChildColumn = await colOptions.getMMChildColumn(context);
 
+        // Knex's TypeScript definitions do not correctly infer knex.raw() or knex.ref()
+        // as valid column references. This causes type errors when used in query builders
+        // like `whereIn()`, `where()`, and `select()`. Casting to `any` ensures proper
+        // SQL generation while avoiding TypeScript issues.
         const childColumnRef = knex.raw('??.??', [
           childTableAliasOrRef,
           childColumn.column_name,
-        ]);
+        ]) as any;
         const parentColumnRef = knex.raw('??.??', [
           parentTableAlias,
           parentColumn.column_name,
-        ]);
+        ]) as any;
         const mmParentColumnRef = knex.raw('??.??', [
           mmTableAlias,
           mmParentColumn.column_name,
-        ]);
+        ]) as any;
         const mmChildColumnRef = knex.raw('??.??', [
           mmTableAlias,
           mmChildColumn.column_name,
-        ]);
+        ]) as any;
         if (
           ['blank', 'notblank', 'checked', 'notchecked'].includes(
             filter.comparison_op,
@@ -386,8 +400,8 @@ const parseConditionV2 = async (
           const selectMmCount = knex(
             baseModelSqlv2.getTnPath(mmModel.table_name, mmTableAlias),
           )
-            .count(mmChildColumnRef.toString())
-            .where(mmChildColumnRef.toString(), childColumnRef);
+            .count(mmChildColumnRef)
+            .where(mmChildColumnRef, childColumnRef);
 
           return (qb) => {
             if (filter.comparison_op === 'blank') {
@@ -404,8 +418,8 @@ const parseConditionV2 = async (
           .select(mmChildColumnRef)
           .join(
             baseModelSqlv2.getTnPath(parentModel.table_name, parentTableAlias),
-            mmParentColumnRef.toString(),
-            parentColumnRef.toString(),
+            mmParentColumnRef,
+            parentColumnRef,
           );
 
         (
@@ -430,10 +444,10 @@ const parseConditionV2 = async (
           if (filter.comparison_op in negatedMapping)
             qbP.where((qb) =>
               qb
-                .whereNotIn(childColumnRef.toString(), selectQb)
-                .orWhereNull(childColumnRef.toString()),
+                .whereNotIn(childColumnRef, selectQb)
+                .orWhereNull(childColumnRef),
             );
-          else qbP.whereIn(childColumnRef.toString(), selectQb);
+          else qbP.whereIn(childColumnRef, selectQb);
         };
       }
 

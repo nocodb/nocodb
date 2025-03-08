@@ -51,9 +51,6 @@ import { WorkspacesController } from '~/controllers/workspaces.controller';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { WorkspaceUsersController } from '~/controllers/workspace-users.controller';
 
-/* Mail Service */
-import { MailService } from '~/services/mail/mail.service';
-
 /* Snapshot */
 import { SnapshotController } from '~/controllers/snapshot.controller';
 import { SnapshotService } from '~/services/snapshot.service';
@@ -101,9 +98,6 @@ export const nocoModuleEeMetadata = {
     /* Workspaces */
     WorkspacesService,
     WorkspaceUsersService,
-
-    /* Mail Service */
-    MailService,
 
     /* Snapshot */
     SnapshotService,

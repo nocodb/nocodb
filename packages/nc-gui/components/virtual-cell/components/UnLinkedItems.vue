@@ -435,7 +435,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
       <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between min-h-11">
         <div class="flex">
           <NcButton
-            v-if="!isPublic && !isDataReadOnly && isUIAllowed('dataEdit')"
+            v-if="!isPublic && !isDataReadOnly && isUIAllowed('dataEdit') && !isForm"
             v-e="['c:row-expand:open']"
             size="small"
             class="!hover:(bg-white text-brand-500) !h-7 !text-small"

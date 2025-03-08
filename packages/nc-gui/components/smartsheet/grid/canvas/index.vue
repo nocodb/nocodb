@@ -118,7 +118,13 @@ const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 const isEditColumnDescription = ref(false)
 const mousePosition = reactive({ x: 0, y: 0 })
 const clientMousePosition = reactive({ clientX: 0, clientY: 0 })
-const paddingLessUITypes = new Set([UITypes.LongText, UITypes.DateTime, UITypes.SingleSelect, UITypes.MultiSelect])
+const paddingLessUITypes = new Set([
+  UITypes.LongText,
+  UITypes.DateTime,
+  UITypes.SingleSelect,
+  UITypes.MultiSelect,
+  UITypes.Formula,
+])
 const scroller = ref()
 provide(ClientMousePositionInj, clientMousePosition)
 // provide the column ref since at a time only one column can be active
@@ -319,7 +325,7 @@ const editEnabledCellPosition = computed(() => {
 const isClamped = computed(() => {
   if (!editEnabled.value || !containerRef.value) return false
 
-  if (editEnabled.value.column?.uidt === UITypes.LongText) {
+  if (editEnabled.value.column?.uidt === UITypes.LongText || editEnabled.value.column?.uidt === UITypes.Formula) {
     return true
   }
 
@@ -1714,6 +1720,7 @@ onKeyStroke('Escape', () => {
 
 const increaseMinHeightBy: Record<string, number> = {
   [UITypes.LongText]: 2,
+  [UITypes.Formula]: 2,
 }
 
 function updateValue(val: any) {

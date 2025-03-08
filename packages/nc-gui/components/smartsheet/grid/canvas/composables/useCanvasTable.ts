@@ -926,7 +926,7 @@ export function useCanvasTable({
       column,
       row,
       minHeight: rowHeight.value,
-      height: column.uidt === UITypes.LongText ? 'auto' : rowHeight.value + 2,
+      height: [UITypes.LongText, UITypes.Formula].includes(column.uidt) ? 'auto' : rowHeight.value + 2,
       width: parseCellWidth(clickedColumn.width) + 2,
       fixed: clickedColumn.fixed,
     }
@@ -951,6 +951,7 @@ export function useCanvasTable({
           UITypes.Barcode,
           UITypes.QrCode,
           UITypes.LinkToAnotherRecord,
+          UITypes.Formula,
         ].includes(column.uidt)
       ) {
         makeEditable(row, clickedColumn)

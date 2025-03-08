@@ -676,7 +676,9 @@
     "lockedByUser": "נעול על ידי {user}",
     "thisPageDoesNotExist": "עמוד זה לא קיים",
     "customUrl": "כתובת URL מותאמת אישית",
-    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}.",
+    "youAreLeavingNocoDB": "You’re leaving NocoDB",
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
   },
   "labels": {
     "latitude": "Latitude",
@@ -1127,7 +1129,8 @@
     "rowId": "Row Id",
     "showJsonPayload": "Show JSON payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
-    "fillForm": "Fill Form"
+    "fillForm": "Fill Form",
+    "proceedToLink": "Proceed to link"
   },
   "activity": {
     "clickToResolve": "לחץ כדי לפתור",

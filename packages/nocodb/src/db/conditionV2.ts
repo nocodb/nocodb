@@ -209,23 +209,31 @@ const parseConditionV2 = async (
       }
 
       if (relationType === RelationTypes.HAS_MANY) {
+        const childTableAlias = getAlias(aliasCount);
+
+        // Knex's TypeScript definitions do not correctly infer knex.raw() or knex.ref()
+        // as valid column references. This causes type errors when used in query builders
+        // like `whereIn()`, `where()`, and `select()`. Casting to `any` ensures proper
+        // SQL generation while avoiding TypeScript issues.
+        const childColumnRef = knex.raw('??.??', [
+          childTableAlias,
+          childColumn.column_name,
+        ]) as any;
+        const parentColumnRef = knex.raw('??.??', [
+          alias || baseModelSqlv2.getTnPath(parentModel.table_name),
+          parentColumn.column_name,
+        ]) as any;
+
         if (
           ['blank', 'notblank', 'checked', 'notchecked'].includes(
             filter.comparison_op,
           )
         ) {
-          const childTableAlias = getAlias(aliasCount);
-
           const selectHmCount = knex(
             baseModelSqlv2.getTnPath(childModel.table_name, childTableAlias),
           )
             .count(childColumn.column_name)
-            .whereRaw('??.?? = ??.??', [
-              childTableAlias,
-              childColumn.column_name,
-              alias || baseModelSqlv2.getTnPath(parentModel.table_name),
-              parentColumn.column_name,
-            ]);
+            .whereRaw('?? = ??', [childColumnRef, parentColumnRef]);
 
           return (qb) => {
             if (filter.comparison_op === 'blank') {
@@ -236,8 +244,8 @@ const parseConditionV2 = async (
           };
         }
         const selectQb = knex(
-          baseModelSqlv2.getTnPath(childModel.table_name),
-        ).select(childColumn.column_name);
+          baseModelSqlv2.getTnPath(childModel.table_name, childTableAlias),
+        ).select(childColumnRef);
         (
           await parseConditionV2(
             baseModelSqlv2,
@@ -250,7 +258,7 @@ const parseConditionV2 = async (
               fk_column_id: childModel?.displayValue?.id,
             }),
             aliasCount,
-            undefined,
+            childTableAlias,
             undefined,
             throwErrorIfInvalid,
           )
@@ -258,10 +266,26 @@ const parseConditionV2 = async (
 
         return (qbP: Knex.QueryBuilder) => {
           if (filter.comparison_op in negatedMapping)
-            qbP.whereNotIn(parentColumn.column_name, selectQb);
-          else qbP.whereIn(parentColumn.column_name, selectQb);
+            qbP.whereNotIn(parentColumnRef, selectQb);
+          else qbP.whereIn(parentColumnRef, selectQb);
         };
       } else if (relationType === RelationTypes.BELONGS_TO) {
+        const parentTableAlias = getAlias(aliasCount);
+        const childTableAlias =
+          alias || baseModelSqlv2.getTnPath(childModel.table_name);
+
+        // Knex's TypeScript definitions do not correctly infer knex.raw() or knex.ref()
+        // as valid column references. This causes type errors when used in query builders
+        // like `whereIn()`, `where()`, and `select()`. Casting to `any` ensures proper
+        // SQL generation while avoiding TypeScript issues.
+        const parentColumnRef = knex.raw('??.??', [
+          parentTableAlias,
+          parentColumn.column_name,
+        ]) as any;
+        const childColumnRef = knex.raw('??.??', [
+          childTableAlias,
+          childColumn.column_name,
+        ]) as any;
         if (
           ['blank', 'notblank', 'checked', 'notchecked'].includes(
             filter.comparison_op,
@@ -271,26 +295,20 @@ const parseConditionV2 = async (
           if (parentModel.id === childModel.id) {
             if (filter.comparison_op === 'blank') {
               return (qb) => {
-                qb.whereNull(childColumn.column_name);
+                qb.whereNull(childColumnRef);
               };
             } else {
               return (qb) => {
-                qb.whereNotNull(childColumn.column_name);
+                qb.whereNotNull(childColumnRef);
               };
             }
           }
 
           const selectBtCount = knex(
-            baseModelSqlv2.getTnPath(parentModel.table_name),
+            baseModelSqlv2.getTnPath(parentModel.table_name, parentTableAlias),
           )
-            .count(parentColumn.column_name)
-            .where(
-              parentColumn.column_name,
-              knex.raw('??.??', [
-                alias || baseModelSqlv2.getTnPath(childModel.table_name),
-                childColumn.column_name,
-              ]),
-            );
+            .count(parentColumnRef)
+            .where(parentColumnRef, childColumnRef);
 
           return (qb) => {
             if (filter.comparison_op === 'blank') {
@@ -302,7 +320,7 @@ const parseConditionV2 = async (
         }
 
         const selectQb = knex(
-          baseModelSqlv2.getTnPath(parentModel.table_name),
+          baseModelSqlv2.getTnPath(parentModel.table_name, parentTableAlias),
         ).select(parentColumn.column_name);
         (
           await parseConditionV2(
@@ -316,7 +334,7 @@ const parseConditionV2 = async (
               fk_column_id: parentModel?.displayValue?.id,
             }),
             aliasCount,
-            undefined,
+            parentTableAlias,
             undefined,
             throwErrorIfInvalid,
           )
@@ -326,16 +344,41 @@ const parseConditionV2 = async (
           if (filter.comparison_op in negatedMapping) {
             qbP.where((qb) =>
               qb
-                .whereNotIn(childColumn.column_name, selectQb)
-                .orWhereNull(childColumn.column_name),
+                .whereNotIn(childColumnRef, selectQb)
+                .orWhereNull(childColumnRef),
             );
-          } else qbP.whereIn(childColumn.column_name, selectQb);
+          } else qbP.whereIn(childColumnRef, selectQb);
         };
       } else if (relationType === RelationTypes.MANY_TO_MANY) {
+        const childTableAliasOrRef =
+          alias || baseModelSqlv2.getTnPath(childModel.table_name);
+        const parentTableAlias = getAlias(aliasCount);
+        const mmTableAlias = getAlias(aliasCount);
+
         const mmModel = await colOptions.getMMModel(context);
         const mmParentColumn = await colOptions.getMMParentColumn(context);
         const mmChildColumn = await colOptions.getMMChildColumn(context);
 
+        // Knex's TypeScript definitions do not correctly infer knex.raw() or knex.ref()
+        // as valid column references. This causes type errors when used in query builders
+        // like `whereIn()`, `where()`, and `select()`. Casting to `any` ensures proper
+        // SQL generation while avoiding TypeScript issues.
+        const childColumnRef = knex.raw('??.??', [
+          childTableAliasOrRef,
+          childColumn.column_name,
+        ]) as any;
+        const parentColumnRef = knex.raw('??.??', [
+          parentTableAlias,
+          parentColumn.column_name,
+        ]) as any;
+        const mmParentColumnRef = knex.raw('??.??', [
+          mmTableAlias,
+          mmParentColumn.column_name,
+        ]) as any;
+        const mmChildColumnRef = knex.raw('??.??', [
+          mmTableAlias,
+          mmChildColumn.column_name,
+        ]) as any;
         if (
           ['blank', 'notblank', 'checked', 'notchecked'].includes(
             filter.comparison_op,
@@ -345,26 +388,20 @@ const parseConditionV2 = async (
           if (mmModel.id === childModel.id) {
             if (filter.comparison_op === 'blank') {
               return (qb) => {
-                qb.whereNull(childColumn.column_name);
+                qb.whereNull(childColumnRef);
               };
             } else {
               return (qb) => {
-                qb.whereNotNull(childColumn.column_name);
+                qb.whereNotNull(childColumnRef);
               };
             }
           }
 
           const selectMmCount = knex(
-            baseModelSqlv2.getTnPath(mmModel.table_name),
+            baseModelSqlv2.getTnPath(mmModel.table_name, mmTableAlias),
           )
-            .count(mmChildColumn.column_name)
-            .where(
-              mmChildColumn.column_name,
-              knex.raw('??.??', [
-                alias || baseModelSqlv2.getTnPath(childModel.table_name),
-                childColumn.column_name,
-              ]),
-            );
+            .count(mmChildColumnRef)
+            .where(mmChildColumnRef, childColumnRef);
 
           return (qb) => {
             if (filter.comparison_op === 'blank') {
@@ -375,16 +412,14 @@ const parseConditionV2 = async (
           };
         }
 
-        const selectQb = knex(baseModelSqlv2.getTnPath(mmModel.table_name))
-          .select(mmChildColumn.column_name)
+        const selectQb = knex(
+          baseModelSqlv2.getTnPath(mmModel.table_name, mmTableAlias),
+        )
+          .select(mmChildColumnRef)
           .join(
-            baseModelSqlv2.getTnPath(parentModel.table_name),
-            `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
-              mmParentColumn.column_name
-            }`,
-            `${baseModelSqlv2.getTnPath(parentModel.table_name)}.${
-              parentColumn.column_name
-            }`,
+            baseModelSqlv2.getTnPath(parentModel.table_name, parentTableAlias),
+            mmParentColumnRef,
+            parentColumnRef,
           );
 
         (
@@ -399,7 +434,7 @@ const parseConditionV2 = async (
               fk_column_id: parentModel?.displayValue?.id,
             }),
             aliasCount,
-            undefined,
+            parentTableAlias,
             undefined,
             throwErrorIfInvalid,
           )
@@ -409,10 +444,10 @@ const parseConditionV2 = async (
           if (filter.comparison_op in negatedMapping)
             qbP.where((qb) =>
               qb
-                .whereNotIn(childColumn.column_name, selectQb)
-                .orWhereNull(childColumn.column_name),
+                .whereNotIn(childColumnRef, selectQb)
+                .orWhereNull(childColumnRef),
             );
-          else qbP.whereIn(childColumn.column_name, selectQb);
+          else qbP.whereIn(childColumnRef, selectQb);
         };
       }
 

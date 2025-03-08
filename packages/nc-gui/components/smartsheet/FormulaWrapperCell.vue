@@ -2,13 +2,14 @@
 import { defaultOffscreen2DContext } from './grid/canvas/utils/canvas'
 
 interface Props {
-  modelValue: any
   column?: any
 }
 
 const props = defineProps<Props>()
 
-const column = toRef(props, 'column')
+const { column } = toRefs(props)
+
+const cellValue = inject(CellValueInj)
 
 const isGrid = inject(IsGridInj, ref(false))
 
@@ -25,13 +26,14 @@ const isNumericField = computed(() => {
 })
 
 const showAsLongText = computed(() => {
-  if (!width.value || !props.modelValue || !isTextArea(column.value)) return false
+  if (!width.value || !isTextArea(column.value)) return false
 
   defaultOffscreen2DContext.font = '500 13px Manrope'
 
   return (
+    isTextArea(column.value) &&
     (currentCellRef.value?.getBoundingClientRect()?.width || width.value) - 24 <=
-    defaultOffscreen2DContext.measureText(props.modelValue ?? '').width
+      defaultOffscreen2DContext.measureText(cellValue.value ?? '').width
   )
 })
 
@@ -49,19 +51,19 @@ provide(ColumnInj, column)
       'nc-grid-numeric-cell-right': isGrid && isNumericField && !isExpandedFormOpen && !isRating(column),
     }"
   >
-    <LazyCellCheckbox v-if="isBoolean(column)" :model-value="modelValue" />
-    <LazyCellCurrency v-else-if="isCurrency(column)" :model-value="modelValue" />
-    <LazyCellDecimal v-else-if="isDecimal(column)" :model-value="modelValue" />
-    <LazyCellPercent v-else-if="isPercent(column)" :model-value="modelValue" />
-    <LazyCellRating v-else-if="isRating(column)" :model-value="modelValue" />
-    <LazyCellDateReadonly v-else-if="isDate(column, '')" :model-value="modelValue" />
-    <LazyCellDateTimeReadonly v-else-if="isDateTime(column, '')" :model-value="modelValue" />
-    <LazyCellTime v-else-if="isTime(column, '')" :model-value="modelValue" />
-    <LazyCellEmail v-else-if="isEmail(column)" :model-value="modelValue" />
-    <LazyCellUrl v-else-if="isURL(column)" :model-value="modelValue" />
-    <LazyCellPhoneNumber v-else-if="isPhoneNumber(column)" :model-value="modelValue" />
-    <LazyCellTextArea v-else-if="isTextArea(column) && showAsLongText" :model-value="modelValue" />
-    <LazyCellText v-else :model-value="modelValue" />
+    <LazyCellCheckbox v-if="isBoolean(column)" :model-value="cellValue" />
+    <LazyCellCurrency v-else-if="isCurrency(column)" :model-value="cellValue" />
+    <LazyCellDecimal v-else-if="isDecimal(column)" :model-value="cellValue" />
+    <LazyCellPercent v-else-if="isPercent(column)" :model-value="cellValue" />
+    <LazyCellRating v-else-if="isRating(column)" :model-value="cellValue" />
+    <LazyCellDateReadonly v-else-if="isDate(column, '')" :model-value="cellValue" />
+    <LazyCellDateTimeReadonly v-else-if="isDateTime(column, '')" :model-value="cellValue" />
+    <LazyCellTime v-else-if="isTime(column, '')" :model-value="cellValue" />
+    <LazyCellEmail v-else-if="isEmail(column)" :model-value="cellValue" />
+    <LazyCellUrl v-else-if="isURL(column)" :model-value="cellValue" />
+    <LazyCellPhoneNumber v-else-if="isPhoneNumber(column)" :model-value="cellValue" />
+    <LazyCellTextArea v-else-if="isTextArea(column) && showAsLongText" :model-value="cellValue" />
+    <LazyCellText v-else :model-value="cellValue" />
   </div>
 </template>
 

@@ -53,14 +53,14 @@ const updatedColumn = computed(() => {
     }
   }
 })
+
+const renderAsCell = computed(() => {
+  return !!(column.value.meta?.display_type || isStringDataType.value)
+})
 </script>
 
 <template>
-  <LazySmartsheetFormulaWrapperCell
-    v-if="column.meta?.display_type || isStringDataType"
-    v-model="cellValue"
-    :column="updatedColumn"
-  />
+  <LazySmartsheetFormulaWrapperCell v-if="renderAsCell" :column="updatedColumn" />
 
   <div v-else class="w-full" :class="{ 'text-right': isNumber && isGrid && !isExpandedFormOpen }">
     <a-tooltip v-if="column && column.colOptions && column.colOptions.error" placement="bottom" class="text-orange-700">

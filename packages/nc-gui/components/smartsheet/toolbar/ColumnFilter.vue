@@ -22,8 +22,8 @@ interface Props {
   visibilityError?: Record<string, string>
   disableAddNewFilter?: boolean
   isViewFilter?: boolean
-  readOnly ?: boolean
-  queryFilter ?: boolean
+  readOnly?: boolean
+  queryFilter?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -587,7 +587,7 @@ eventBus.on(async (event) => {
       <NcDropdown
         :trigger="['hover']"
         overlay-class-name="nc-dropdown-filter-group-sub-menu"
-        :disabled="disableAddNewFilter || isLockedView|| readOnly"
+        :disabled="disableAddNewFilter || isLockedView || readOnly"
       >
         <NcButton size="xs" type="text" :disabled="disableAddNewFilter || isLockedView || readOnly">
           <GeneralIcon icon="plus" class="cursor-pointer" />
@@ -642,7 +642,10 @@ eventBus.on(async (event) => {
       v-if="visibleFilters && visibleFilters.length"
       ref="wrapperDomRef"
       class="flex flex-col gap-y-1.5 nc-filter-grid min-w-full w-min"
-      :class="{ 'max-h-420px nc-scrollbar-thin nc-filter-top-wrapper pr-4 my-2 py-1': !nested && !queryFilter, '!pr-0': webHook && !nested }"
+      :class="{
+        'max-h-420px nc-scrollbar-thin nc-filter-top-wrapper pr-4 my-2 py-1': !nested && !queryFilter,
+        '!pr-0': webHook && !nested,
+      }"
       @click.stop
     >
       <template v-for="(filter, i) in filters" :key="i">
@@ -736,10 +739,13 @@ eventBus.on(async (event) => {
               :dropdown-match-select-width="false"
               class="h-full !max-w-18 !min-w-18 capitalize"
               hide-details
-              :disabled="filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) || isLockedView || readOnly"
+              :disabled="
+                filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) || isLockedView || readOnly
+              "
               dropdown-class-name="nc-dropdown-filter-logical-op"
               :class="{
-                'nc-disabled-logical-op': filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) || readOnly,
+                'nc-disabled-logical-op':
+                  filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) || readOnly,
               }"
               @change="onLogicalOpUpdate(filter, i)"
               @click.stop

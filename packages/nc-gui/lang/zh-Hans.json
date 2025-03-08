@@ -676,7 +676,9 @@
     "lockedByUser": "被{user} 锁定",
     "thisPageDoesNotExist": "此页面不存在",
     "customUrl": "自定义URL",
-    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}"
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
+    "youAreLeavingNocoDB": "You’re leaving NocoDB",
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
   },
   "labels": {
     "latitude": "Latitude",
@@ -1127,7 +1129,8 @@
     "rowId": "行 ID",
     "showJsonPayload": "显示JSON负载",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
-    "fillForm": "Fill Form"
+    "fillForm": "Fill Form",
+    "proceedToLink": "Proceed to link"
   },
   "activity": {
     "clickToResolve": "点击解决",

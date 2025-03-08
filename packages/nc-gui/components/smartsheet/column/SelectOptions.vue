@@ -85,10 +85,7 @@ const validators = {
                 if (vModel.value.uidt === UITypes.MultiSelect && opt.title.includes(',')) {
                   return reject(new Error(t('msg.selectOption.multiSelectCantHaveCommas')))
                 }
-                if (
-                  options.value.filter((el) => el.title?.trim() === opt.title?.trim() && (el as any).status !== 'remove').length >
-                  1
-                ) {
+                if (options.value.some((el) => el.title?.trim() === opt.title?.trim() && (el as any).status !== 'remove')) {
                   return reject(new Error(t('msg.selectOption.cantHaveDuplicates')))
                 }
               }

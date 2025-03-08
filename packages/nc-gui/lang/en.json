@@ -511,6 +511,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "urlFilters": "URL Filters",
     "creatingScript": "Creating Script",
     "searchWebhook": "Search webhook",
     "webcam": "Webcam",

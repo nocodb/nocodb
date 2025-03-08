@@ -31,8 +31,6 @@ const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'creat
 
 const { activeView } = storeToRefs(useViewsStore())
 
-const { isSqlView } = useSmartsheetStoreOrThrow()
-
 const key = ref(0)
 
 const wrapper = ref()
@@ -187,7 +185,7 @@ reloadViewDataTrigger.on(async () => {
 
 const duplicatingRowInProgress = ref(false)
 
-useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
+const { isSqlView } = useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
 
 useProvideSmartsheetLtarHelpers(meta)
 
@@ -746,7 +744,7 @@ export default {
                 icon: 'ncMessageSquare',
                 value: 'discussion',
                 tooltip: 'Discussion',
-                hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE),
+                hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE) || isSqlView,
               },
             ]"
           />

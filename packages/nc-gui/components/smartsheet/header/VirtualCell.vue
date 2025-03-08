@@ -39,8 +39,6 @@ const isDropDownOpen = ref(false)
 
 const enableDescription = ref(false)
 
-const isLocked = inject(IsLockedInj, ref(false))
-
 provide(ColumnInj, column)
 
 const { metas } = useMetas()

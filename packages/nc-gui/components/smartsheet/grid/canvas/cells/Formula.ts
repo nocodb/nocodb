@@ -1,4 +1,4 @@
-import { type ColumnType, FormulaDataTypes, handleTZ, UITypes } from 'nocodb-sdk'
+import { type ColumnType, FormulaDataTypes, UITypes, handleTZ } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, isBoxHovered, renderFormulaURL, renderSingleLineText } from '../utils/canvas'
 import { showFieldEditWarning } from '../utils/cell'
 import { CheckboxCellRenderer } from './Checkbox'
@@ -196,7 +196,6 @@ export const FormulaCellRenderer: CellRenderer = {
     const { column, value, makeCellEditable, row } = props
 
     const colObj = column.columnObj
-    const colMeta = parseProp(colObj.meta)
 
     // Todo: show inline warning
     if (props.e.key === 'Enter') {

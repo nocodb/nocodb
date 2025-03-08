@@ -118,3 +118,4 @@ export const CanvasCellEventDataInj: InjectionKey<
 export const CanvasSelectCellInj: InjectionKey<EventHook> = Symbol('canvas-select-cell-inj')
 
 export const IsPageDesignerExtensionActiveInj: InjectionKey<boolean> = Symbol('is-page-designer-extension-active')
+export const IsLinkRecordDropdownInj: InjectionKey<Ref<boolean>> = Symbol('is-link-record-dropdown-injection')

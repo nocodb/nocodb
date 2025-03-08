@@ -369,7 +369,7 @@ const updateVisibleRows = async (fromCalculateSlice = false) => {
 
 const { isUIAllowed, isDataReadOnly } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
-const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
+const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
 const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
   fields,
@@ -2295,6 +2295,7 @@ const cellAlignClass = computed(() => {
                   class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
+                    'no-resize': isLocked,
                   }"
                   @xcstartresizing="onXcStartResizing(fields[0].id, $event)"
                   @xcresize="onresize(fields[0].id, $event)"
@@ -2328,6 +2329,7 @@ const cellAlignClass = computed(() => {
                 <th
                   v-for="{ field: col, index } in visibleFields"
                   :key="col.id"
+                  v-xc-ver-resize
                   v-bind="
                     isPlaywright
                       ? {
@@ -2336,7 +2338,6 @@ const cellAlignClass = computed(() => {
                         }
                       : {}
                   "
-                  v-xc-ver-resize
                   :style="{
                     'min-width': gridViewCols[col.id]?.width || '180px',
                     'max-width': gridViewCols[col.id]?.width || '180px',
@@ -2345,6 +2346,7 @@ const cellAlignClass = computed(() => {
                   class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === col.id,
+                    'no-resize': isLocked,
                   }"
                   @xcstartresizing="onXcStartResizing(col.id, $event)"
                   @xcresize="onresize(col.id, $event)"
@@ -2352,7 +2354,7 @@ const cellAlignClass = computed(() => {
                 >
                   <div
                     class="w-full h-full flex items-center text-gray-500 pl-2 pr-1"
-                    :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission ? 'false' : 'true'"
+                    :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission || isLocked ? 'false' : 'true'"
                     @dragstart.stop="onDragStart(col.id!, $event)"
                     @drag.stop="onDrag($event)"
                     @dragend.stop="onDragEnd($event)"
@@ -3451,12 +3453,18 @@ const cellAlignClass = computed(() => {
   }
 }
 
-:deep(.resizer:hover),
-:deep(.resizer:active),
-:deep(.resizer:focus) {
-  // todo: replace with primary color
-  @apply bg-blue-500/50;
-  cursor: col-resize;
+.nc-grid-column-header {
+  &.no-resize :deep(.resizer) {
+    @apply hidden;
+  }
+
+  :deep(.resizer:hover),
+  :deep(.resizer:active),
+  :deep(.resizer:focus) {
+    // todo: replace with primary color
+    @apply bg-blue-500/50;
+    cursor: col-resize;
+  }
 }
 
 .nc-grid-row {

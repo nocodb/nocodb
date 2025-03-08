@@ -87,7 +87,7 @@ const isColumnEditAllowed = computed(() => {
 })
 
 const openHeaderMenu = (e?: MouseEvent, description = false) => {
-  if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
+  if ((isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
 
   if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value && (isColumnEditAllowed.value || description)) {
     if (description) {
@@ -98,8 +98,6 @@ const openHeaderMenu = (e?: MouseEvent, description = false) => {
 }
 
 const openDropDown = (e: Event) => {
-  if (isLocked.value) return
-
   if (isForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
 
   e.preventDefault()
@@ -117,7 +115,7 @@ const onVisibleChange = () => {
 }
 
 const onClick = (e: Event) => {
-  if (isMobileMode.value || !isUIAllowed('fieldEdit') || isLocked.value) return
+  if (isMobileMode.value || !isUIAllowed('fieldEdit')) return
 
   if (isDropDownOpen.value) {
     e.preventDefault()
@@ -203,7 +201,7 @@ const onClick = (e: Event) => {
       <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 
       <GeneralIcon
-        v-if="isExpandedForm && !isExpandedBulkUpdateForm && !isMobileMode && isUIAllowed('fieldEdit') && !isLocked"
+        v-if="isExpandedForm && !isExpandedBulkUpdateForm && !isMobileMode && isUIAllowed('fieldEdit')"
         icon="arrowDown"
         class="flex-none cursor-pointer ml-1 group-hover:visible w-4 h-4"
         :class="{

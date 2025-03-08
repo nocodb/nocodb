@@ -58,7 +58,8 @@ const {
   row,
   loadRelatedTableMeta,
   resetChildrenListOffsetCount,
-  targetViewColumnsById,
+  attachmentCol,
+  fields,
 } = useLTARStoreOrThrow()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
@@ -93,23 +94,6 @@ const linkRow = async (row: Record<string, any>, id: number) => {
     await link(row, {}, false, id)
   }
 }
-
-const attachmentCol = computedInject(FieldsInj, (_fields) => {
-  return (relatedTableMeta.value.columns ?? []).filter((col) => isAttachment(col))[0]
-})
-
-const fields = computedInject(FieldsInj, (_fields) => {
-  return (relatedTableMeta.value.columns ?? [])
-    .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
-    .sort((a, b) => {
-      if (isPublic.value) {
-        return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-      }
-
-      return (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
-    })
-    .slice(0, isMobileMode.value ? 1 : 3)
-})
 
 const expandedFormDlg = ref(false)
 

@@ -1,11 +1,5 @@
-import type {
-  type ColumnType,
-  type LinkToAnotherRecordType,
-  type PaginatedType,
-  type RequestParams,
-  type TableType,
-} from 'nocodb-sdk'
-import { RelationTypes, UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RequestParams, TableType } from 'nocodb-sdk'
+import { RelationTypes, UITypes, dateFormats, isLinksOrLTAR, isSystemColumn, parseStringDateTime, timeFormats } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 
 interface DataApiResponse {
@@ -27,6 +21,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const { base } = storeToRefs(useBase())
 
     const { $api, $e } = useNuxtApp()
+
+    const { isMobileMode } = useGlobal()
 
     const activeView = inject(ActiveViewInj, ref())
     const isForm = inject(IsFormInj, ref(false))
@@ -174,6 +170,34 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return row.value.row[displayValueProp.value]
     })
 
+    const attachmentCol = computedInject(FieldsInj, (_fields) => {
+      return (relatedTableMeta.value.columns ?? []).filter((col) => isAttachment(col))[0]
+    })
+
+    const fields = computedInject(FieldsInj, (_fields) => {
+      return (relatedTableMeta.value.columns ?? [])
+        .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
+        .sort((a, b) => {
+          if (isPublic.value) {
+            return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+          }
+
+          return (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
+        })
+        .slice(0, isMobileMode.value ? 1 : 3)
+    })
+
+    const requiredFieldsToLoad = computed(() => {
+      return Array.from(
+        new Set([
+          relatedTableDisplayValueProp.value,
+          ...relatedTablePrimaryKeyProps.value,
+          attachmentCol.value?.title,
+          ...(fields.value || [])?.map((f) => f.title as string),
+        ]),
+      )
+    })
+
     /**
      * Extract only primary key(pk) and primary value(pv) column data
      */
@@ -301,7 +325,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                 where:
                   childrenExcludedListPagination.query &&
                   `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
-                fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
+                fields: requiredFieldsToLoad.value,
 
                 // todo: include only required fields
                 rowData: JSON.stringify(row),
@@ -736,6 +760,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       relatedTableDisplayValuePropId,
       resetChildrenExcludedOffsetCount,
       resetChildrenListOffsetCount,
+      attachmentCol,
+      fields,
     }
   },
   'ltar-store',

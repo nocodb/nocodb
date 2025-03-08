@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import Noco from '~/Noco';
+import { handleUncaughtErrors } from '~/utils';
+handleUncaughtErrors(process);
 
 const server = express();
 server.enable('trust proxy');

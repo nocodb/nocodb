@@ -95,7 +95,7 @@ export const LongTextCellRenderer: CellRenderer = {
     }
   },
   handleClick: async (props) => {
-    const { column, getCellPosition, row, mousePosition, makeCellEditable, cellRenderStore } = props
+    const { column, getCellPosition, row, mousePosition, makeCellEditable, cellRenderStore, isDoubleClick } = props
 
     const isRichMode = column.columnObj?.meta?.richMode
 
@@ -113,11 +113,15 @@ export const LongTextCellRenderer: CellRenderer = {
     if (isAIPromptCol(column?.columnObj)) {
       return AILongTextCellRenderer.handleClick!(props)
     } else {
-      const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
+      const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
 
       if (isBoxHovered({ x: x + width - 28, y: y + 7, width: 18, height: 18 }, mousePosition)) {
         makeCellEditable(row.rowMeta.rowIndex!, column)
         return true
+      }
+
+      if (isDoubleClick && isBoxHovered({ x, y, width, height }, mousePosition)) {
+        makeCellEditable(row.rowMeta.rowIndex!, column)
       }
       return false
     }

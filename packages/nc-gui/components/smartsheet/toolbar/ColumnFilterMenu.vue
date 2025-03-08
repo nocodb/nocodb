@@ -210,8 +210,11 @@ const combinedFilterLength = computed(() => {
 
 <style lang="scss">
 .nc-query-filter.readonly .nc-cell-field,
-.nc-query-filter.readonly * {
-  @apply !text-gray-400;
+.nc-query-filter.readonly {
+  input,
+  .text-nc-content-gray-muted {
+    @apply !text-gray-400;
+  }
 }
 </style>
 

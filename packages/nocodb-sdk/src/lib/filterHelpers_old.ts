@@ -48,18 +48,18 @@ export function extractFilterFromXwhere(
 
     // If there's only one filter, return it directly
     if (filters.length === 1) {
-      return {filters};
+      return { filters };
     }
 
     // If there's only one filter, return it directly; otherwise, wrap in an AND group
     return {
       filters: [
-              {
-                is_group: true,
-                logical_op: 'and',
-                children: filters,
-              },
-            ],
+        {
+          is_group: true,
+          logical_op: 'and',
+          children: filters,
+        },
+      ],
     };
   }
   // Validate input type

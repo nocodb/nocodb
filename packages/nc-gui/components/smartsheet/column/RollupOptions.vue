@@ -8,6 +8,7 @@ import {
   type RollupType,
   type TableType,
   UITypes,
+  getRenderAsTextFunForUiType,
 } from 'nocodb-sdk'
 import { getAvailableRollupForColumn, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 

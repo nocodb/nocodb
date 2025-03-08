@@ -932,7 +932,7 @@ export function transformDataForMailRendering(
     let serializedValue: string | undefined;
 
     try {
-      serializedValue = ColumnHelper.serializeValue([col.title], {
+      serializedValue = ColumnHelper.serializeValue(data[col.title], {
         col,
         isMssql: () => source.type === 'mssql',
         isMysql: () => source.type.startsWith('mysql'),

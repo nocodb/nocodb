@@ -102,6 +102,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
             metas,
           );
 
+          formView.title = view.title;
           const base = await Base.get(context, model.base_id);
 
           await this.mailService.sendMail({

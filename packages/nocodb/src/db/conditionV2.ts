@@ -320,7 +320,7 @@ const parseConditionV2 = async (
         }
 
         const selectQb = knex(
-          baseModelSqlv2.getTnPath(parentModel.table_name),
+          baseModelSqlv2.getTnPath(parentModel.table_name, parentTableAlias),
         ).select(parentColumn.column_name);
         (
           await parseConditionV2(

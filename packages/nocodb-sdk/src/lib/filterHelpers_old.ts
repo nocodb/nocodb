@@ -3,6 +3,7 @@ import { BadRequest, NcSDKError } from '~/lib/errorUtils';
 import {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
+  FilterParseError,
   GROUPBY_COMPARISON_OPS,
   IS_WITHIN_COMPARISON_SUB_OPS,
   UITypes,
@@ -17,119 +18,186 @@ export {
 export function extractFilterFromXwhere(
   str: string | string[],
   aliasColObjMap: { [columnAlias: string]: ColumnType },
-  throwErrorIfInvalid = false
-): FilterType[] {
+  throwErrorIfInvalid = false,
+  errors: FilterParseError[] = []
+): { filters?: FilterType[]; errors?: FilterParseError[] } {
   if (!str) {
-    return [];
+    return { filters: [] };
   }
 
   // if array treat it as `and` group
   if (Array.isArray(str)) {
-    // calling recursively for nested query
-    const nestedFilters = [].concat(
-      ...str.map((s) =>
-        extractFilterFromXwhere(s, aliasColObjMap, throwErrorIfInvalid)
-      )
+    const nestedFilters = str.map((s) =>
+      extractFilterFromXwhere(s, aliasColObjMap, throwErrorIfInvalid, errors)
     );
 
-    // If there's only one filter, return it directly
-    if (nestedFilters.length === 1) {
-      return nestedFilters;
+    const filters = nestedFilters.reduce((acc, { filters }) => {
+      if (!filters) return acc;
+      return [...acc, ...filters];
+    }, []);
+
+    const collectedErrors = nestedFilters.reduce((acc, { errors }) => {
+      if (!errors) return acc;
+      return [...acc, ...errors];
+    }, []);
+
+    // If errors exist, return them
+    if (collectedErrors.length > 0) {
+      return { errors: collectedErrors };
     }
 
-    // Otherwise, wrap it in an AND group
-    return [
-      {
-        is_group: true,
-        logical_op: 'and',
-        children: nestedFilters,
-      },
-    ];
-  } else if (typeof str !== 'string' && throwErrorIfInvalid) {
-    throw new Error(
-      'Invalid filter format. Expected string or array of strings.'
-    );
-  }
+    // If there's only one filter, return it directly
+    if (filters.length === 1) {
+      return { filters };
+    }
 
-  let nestedArrayConditions = [];
+    // If there's only one filter, return it directly; otherwise, wrap in an AND group
+    return {
+      filters: [
+        {
+          is_group: true,
+          logical_op: 'and',
+          children: filters,
+        },
+      ],
+    };
+  }
+  // Validate input type
+  if (typeof str !== 'string') {
+    const error = {
+      message: 'Invalid filter format. Expected string or array of strings.',
+    };
+    if (throwErrorIfInvalid) throw new Error(error.message);
+    errors.push(error);
+    return { errors };
+  }
 
   let openIndex = str.indexOf('((');
-
   if (openIndex === -1) openIndex = str.indexOf('(~');
 
-  let nextOpenIndex = openIndex;
-
-  let closingIndex = str.indexOf('))');
-
-  // if it's a simple query simply return array of conditions
+  // If it's a simple query, extract conditions directly
   if (openIndex === -1) {
-    if (str && str != '~not')
-      nestedArrayConditions = str.split(
+    if (str !== '~not') {
+      const nestedArrayConditions = str.split(
         /(?=~(?:or(?:not)?|and(?:not)?|not)\()/
       );
-
-    return extractCondition(
-      nestedArrayConditions || [],
-      aliasColObjMap,
-      throwErrorIfInvalid
-    );
+      return extractCondition(
+        nestedArrayConditions,
+        aliasColObjMap,
+        throwErrorIfInvalid,
+        errors
+      );
+    }
+    return { filters: [] };
   }
 
-  // iterate until finding right closing
+  let closingIndex = str.indexOf('))');
+  let nextOpenIndex = openIndex;
+
+  // Iterate until the correct closing bracket is found
   while (
     (nextOpenIndex = str
       .substring(0, closingIndex)
-      .indexOf('((', nextOpenIndex + 1)) != -1
+      .indexOf('((', nextOpenIndex + 1)) !== -1
   ) {
     closingIndex = str.indexOf('))', closingIndex + 1);
   }
 
-  if (closingIndex === -1)
-    throw new Error(
-      `${str
+  // If no closing bracket is found, return an error
+  if (closingIndex === -1) {
+    const error = {
+      message: `${str
         .substring(0, openIndex + 1)
-        .slice(-10)} : Closing bracket not found`
-    );
+        .slice(-10)} : Closing bracket not found`,
+    };
+    if (throwErrorIfInvalid) throw new Error(error.message);
+    errors.push(error);
+    return { errors };
+  }
 
-  // getting operand starting index
+  // Extract operator and left-hand side of nested query
   const operandStartIndex = str.lastIndexOf('~', openIndex);
   const operator =
-    operandStartIndex != -1
+    operandStartIndex !== -1
       ? str.substring(operandStartIndex + 1, openIndex)
       : '';
   const lhsOfNestedQuery = str.substring(0, openIndex);
-  nestedArrayConditions.push(
-    ...extractFilterFromXwhere(
-      lhsOfNestedQuery,
-      aliasColObjMap,
-      throwErrorIfInvalid
-    ),
-    // calling recursively for nested query
-    {
-      is_group: true,
-      logical_op: operator,
-      children: extractFilterFromXwhere(
-        str.substring(openIndex + 1, closingIndex + 1),
-        aliasColObjMap
-      ),
-    },
-    // RHS of nested query(recursion)
-    ...extractFilterFromXwhere(
-      str.substring(closingIndex + 2),
-      aliasColObjMap,
-      throwErrorIfInvalid
-    )
+
+  // Recursively process left-hand side, nested query, and right-hand side
+  const lhsResult = extractFilterFromXwhere(
+    lhsOfNestedQuery,
+    aliasColObjMap,
+    throwErrorIfInvalid,
+    errors
   );
-  return nestedArrayConditions;
+  const nestedQueryResult = extractFilterFromXwhere(
+    str.substring(openIndex + 1, closingIndex + 1),
+    aliasColObjMap,
+    throwErrorIfInvalid,
+    errors
+  );
+  const rhsResult = extractFilterFromXwhere(
+    str.substring(closingIndex + 2),
+    aliasColObjMap,
+    throwErrorIfInvalid,
+    errors
+  );
+
+  // If any errors occurred during recursion, return them
+  if (lhsResult.errors || nestedQueryResult.errors || rhsResult.errors) {
+    return {
+      errors: [
+        ...(lhsResult.errors || []),
+        ...(nestedQueryResult.errors || []),
+        ...(rhsResult.errors || []),
+      ],
+    };
+  }
+
+  // Return the combined filters
+  return {
+    filters: [
+      ...(lhsResult.filters || []),
+      {
+        is_group: true,
+        logical_op: operator as FilterType['logical_op'],
+        children: nestedQueryResult.filters || [],
+      },
+      ...(rhsResult.filters || []),
+    ],
+  };
 }
 
-// mark `op` and `sub_op` any for being assignable to parameter of type
-export function validateFilterComparison(uidt: UITypes, op: any, sub_op?: any) {
+/**
+ * Validates a filter comparison operation and its sub-operation.
+ *
+ * @param {UITypes} uidt - The UI type to validate against.
+ * @param {any} op - The main comparison operator.
+ * @param {any} [sub_op] - The optional sub-operation.
+ * @param {FilterParseError[]} [errors=[]] - An optional array to collect errors.
+ * @returns {FilterParseError[]} - An array of validation errors, empty if no errors.
+ *
+ * This function checks if the given `op` is a valid comparison operator and, if a `sub_op` is provided,
+ * ensures it is compatible with the given `uidt`. If any validation fails, errors are added to the array
+ * and returned instead of throwing an exception.
+ */
+export function validateFilterComparison(
+  uidt: UITypes,
+  op: any,
+  sub_op?: any,
+  errors: FilterParseError[] = [],
+  validateFilterComparison = false
+): FilterParseError[] {
+  // Check if the main comparison operator is valid
   if (!COMPARISON_OPS.includes(op) && !GROUPBY_COMPARISON_OPS.includes(op)) {
-    throw new BadRequest(`${op} is not supported.`);
+    if (validateFilterComparison) {
+      throw new BadRequest(`${op} is not supported.`);
+    }
+    errors.push({ message: `${op} is not supported.` });
   }
 
   if (sub_op) {
+    // Ensure that sub-operators are only used with specific UI types
     if (
       ![
         UITypes.Date,
@@ -138,100 +206,152 @@ export function validateFilterComparison(uidt: UITypes, op: any, sub_op?: any) {
         UITypes.LastModifiedTime,
       ].includes(uidt)
     ) {
-      throw new BadRequest(
-        `'${sub_op}' is not supported for UI Type'${uidt}'.`
-      );
+      if (validateFilterComparison) {
+        throw new BadRequest(
+          `'${sub_op}' is not supported for UI Type'${uidt}'.`
+        );
+      }
+      errors.push({
+        message: `'${sub_op}' is not supported for UI Type '${uidt}'.`,
+      });
     }
+
+    // Validate if the sub-operator exists in the allowed set
     if (!COMPARISON_SUB_OPS.includes(sub_op)) {
-      throw new BadRequest(`'${sub_op}' is not supported.`);
+      if (validateFilterComparison) {
+        throw new BadRequest(`'${sub_op}' is not supported.`);
+      }
+      errors.push({ message: `'${sub_op}' is not supported.` });
     }
+
+    // Ensure `isWithin` has correct sub-operators, and other operators don't use `isWithin` sub-operators
     if (
       (op === 'isWithin' && !IS_WITHIN_COMPARISON_SUB_OPS.includes(sub_op)) ||
       (op !== 'isWithin' && IS_WITHIN_COMPARISON_SUB_OPS.includes(sub_op))
     ) {
-      throw new BadRequest(`'${sub_op}' is not supported for '${op}'`);
+      if (validateFilterComparison) {
+        throw new BadRequest(`'${sub_op}' is not supported for '${op}'`);
+      }
+      errors.push({ message: `'${sub_op}' is not supported for '${op}'.` });
     }
   }
+
+  // Return collected errors, if any
+  return errors.length > 0 ? errors : [];
 }
 
 export function extractCondition(
-  nestedArrayConditions,
-  aliasColObjMap,
-  throwErrorIfInvalid
-) {
-  return nestedArrayConditions?.map((str) => {
-    let [logicOp, alias, op, value] =
-      str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
+  nestedArrayConditions: string[],
+  aliasColObjMap: { [columnAlias: string]: ColumnType },
+  throwErrorIfInvalid: boolean,
+  errors: FilterParseError[]
+): { filters?: FilterType[]; errors?: FilterParseError[] } {
+  if (!nestedArrayConditions || nestedArrayConditions.length === 0) {
+    return { filters: [] };
+  }
 
-    if (!alias && !op && !value) {
-      // try match with blank filter format
+  const parsedFilters = nestedArrayConditions
+    .map<FilterType | null>((str) => {
+      let logicOp: string | FilterType['logical_op'];
+      let alias: string;
+      let op: string | FilterType['comparison_op'];
+      let value: string | string[];
+
       [logicOp, alias, op, value] =
-        str.match(/(?:~(and|or|not))?\((.*?),(\w+)\)/)?.slice(1) || [];
-    }
-    // handle isblank and isnotblank filter format
-    switch (op) {
-      case 'is':
-        if (value === 'blank') {
-          op = 'blank';
-          value = undefined;
-        } else if (value === 'notblank') {
-          op = 'notblank';
-          value = undefined;
-        }
-        break;
-      case 'isblank':
-      case 'is_blank':
-        op = 'blank';
-        break;
-      case 'isnotblank':
-      case 'is_not_blank':
-      case 'is_notblank':
-        op = 'notblank';
-        break;
-    }
+        str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
 
-    let sub_op = null;
-
-    if (aliasColObjMap[alias]) {
-      if (
-        [
-          UITypes.Date,
-          UITypes.DateTime,
-          UITypes.LastModifiedTime,
-          UITypes.CreatedTime,
-        ].includes(aliasColObjMap[alias].uidt)
-      ) {
-        value = value?.split(',');
-        // the first element would be sub_op
-        sub_op = value?.[0];
-        // remove the first element which is sub_op
-        value?.shift();
-        value = value?.[0];
-      } else if (op === 'in') {
-        value = value.split(',');
+      if (!alias && !op && !value) {
+        // Attempt to match blank filter format
+        [logicOp, alias, op, value] =
+          str.match(/(?:~(and|or|not))?\((.*?),(\w+)\)/)?.slice(1) || [];
       }
 
-      validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
-    } else if (throwErrorIfInvalid) {
-      throw new NcSDKError('INVALID_FILTER');
-    }
+      // Normalize filter operations
+      switch (op) {
+        case 'is':
+          if (value === 'blank') {
+            op = 'blank';
+            value = undefined;
+          } else if (value === 'notblank') {
+            op = 'notblank';
+            value = undefined;
+          }
+          break;
+        case 'isblank':
+        case 'is_blank':
+          op = 'blank';
+          break;
+        case 'isnotblank':
+        case 'is_not_blank':
+        case 'is_notblank':
+          op = 'notblank';
+          break;
+      }
 
-    let columnId = aliasColObjMap[alias]?.id;
+      let sub_op = null;
 
-    // if not found then check if it's a valid column id
-    if (
-      !columnId &&
-      Object.values(aliasColObjMap).some((col: ColumnType) => col?.id === alias)
-    ) {
-      columnId = alias;
-    }
+      if (aliasColObjMap[alias]) {
+        const columnType = aliasColObjMap[alias].uidt;
 
-    return {
-      comparison_op: op,
-      ...(sub_op && { comparison_sub_op: sub_op }),
-      fk_column_id: columnId,
-      logical_op: logicOp,
-      value,
-    };
-  });
+        // Handle date and datetime values
+        if (
+          [
+            UITypes.Date,
+            UITypes.DateTime,
+            UITypes.LastModifiedTime,
+            UITypes.CreatedTime,
+          ].includes(columnType as UITypes)
+        ) {
+          value = (value as string)?.split(',');
+          sub_op = (value as string[])?.shift();
+          value = (value as string[])?.[0];
+        } else if (op === 'in') {
+          value = (value as string).split(',');
+        }
+
+        validateFilterComparison(
+          columnType as UITypes,
+          op,
+          sub_op,
+          errors,
+          throwErrorIfInvalid
+        );
+      } else {
+        const error = {
+          message: alias
+            ? `Column alias '${alias}' not found.`
+            : 'Invalid filter format.',
+        };
+        if (throwErrorIfInvalid) throw new NcSDKError(error.message);
+        errors.push(error);
+        return null;
+      }
+
+      let columnId = aliasColObjMap[alias]?.id;
+
+      // If alias is not found, check if it matches a column ID directly
+      if (
+        !columnId &&
+        Object.values(aliasColObjMap).some((col) => col?.id === alias)
+      ) {
+        columnId = alias;
+      }
+
+      return {
+        comparison_op: op as FilterType['comparison_op'],
+        ...(sub_op && {
+          comparison_sub_op: sub_op as FilterType['comparison_sub_op'],
+        }),
+        fk_column_id: columnId,
+        logical_op: logicOp as FilterType['logical_op'],
+        value,
+      };
+    })
+    .filter(Boolean);
+
+  if (errors.length > 0) {
+    return { errors };
+  }
+
+  return { filters: parsedFilters };
 }

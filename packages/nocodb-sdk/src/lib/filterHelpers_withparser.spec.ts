@@ -31,7 +31,8 @@ describe('filterHelpers_withparser_specific', () => {
 
         const result = extractFilterFromXwhere(query, columnAlias);
         expect(result).toBeDefined();
-        expect(result.length).toBe(1);
+        expect(result.filters).toBeDefined();
+        expect(result.filters.length).toBe(1);
         expect(result[0].children?.[1].logical_op).toBe('and');
       });
       it('will parse nested logical query', () => {
@@ -55,8 +56,9 @@ describe('filterHelpers_withparser_specific', () => {
 
         const result = extractFilterFromXwhere(query, columnAlias);
         expect(result).toBeDefined();
-        expect(result.length).toBe(1);
-        expect(result[0].children?.[1].logical_op).toBe('or');
+        expect(result.filters).toBeDefined();
+        expect(result.filters.length).toBe(1);
+        expect(result.filters[0].children?.[1].logical_op).toBe('or');
       });
     });
   });

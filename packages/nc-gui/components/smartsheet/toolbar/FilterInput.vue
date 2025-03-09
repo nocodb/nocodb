@@ -246,4 +246,8 @@ const isSingleOrMultiSelect = computed(() => {
 :deep(.ant-picker) {
   @apply !py-0;
 }
+
+:deep(.nc-cell-field) {
+  @apply items-center;
+}
 </style>

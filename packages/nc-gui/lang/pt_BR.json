@@ -511,6 +511,7 @@
     "isNotNull": "não é nulo"
   },
   "title": {
+    "urlFilters": "URL Filters",
     "creatingScript": "Criando Script",
     "searchWebhook": "Pesquisar webhook",
     "webcam": "Webcam",
@@ -1526,6 +1527,7 @@
     "lockViewDescription": "Explique por que você está bloqueando esta visualização. Esta mensagem será mostrada quando alguém tentar desbloquear esta visualização (opcional)."
   },
   "msg": {
+    "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Solte seu documento aqui",
     "airtableImportSuccess": "Importado com sucesso da base do Airtable.",
     "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",

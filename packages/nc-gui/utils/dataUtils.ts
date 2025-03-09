@@ -338,6 +338,11 @@ export function validateRowFilters(_filters: FilterType[], data: any, columns: C
            typeof data[field] !== 'string' && 
            typeof data[field] === 'object')
         ) {
+          const userIds: string[] = Array.isArray(data[field])
+            ? data[field].map((user) => user.id)
+            : data[field]?.id
+            ? [data[field].id]
+            : []
 
           const filterValues = (filter.value?.split(',') || []).map((v) => v.trim())
 

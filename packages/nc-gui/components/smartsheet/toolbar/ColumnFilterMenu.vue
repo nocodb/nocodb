@@ -122,7 +122,7 @@ const combinedFilterLength = computed(() => {
           }}</span>
 
           <!--    show a warning icon with tooltip if query filter error is there -->
-          <template v-if="filtersFromUrlParams.errors?.length">
+          <template v-if="filtersFromUrlParams?.errors?.length">
             <GeneralIcon icon="ncAlertCircle" class="nc-error-icon w-3.5" />
           </template>
         </div>
@@ -164,7 +164,7 @@ const combinedFilterLength = computed(() => {
                     title="URL filters are applied from URL parameters and combine with view filters set via the toolbar."
                     placement="top"
                   >
-                    <GeneralIcon icon="ncInfo" class="nc-info-icon w-4 h-4" />
+                    <GeneralIcon icon="ncInfo" class="nc-info-icon !w-3.5 !h-3.5" />
                   </NcTooltip>
                 </div>
               </div>

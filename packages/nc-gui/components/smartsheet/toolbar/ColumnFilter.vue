@@ -643,7 +643,7 @@ eventBus.on(async (event) => {
       ref="wrapperDomRef"
       class="flex flex-col gap-y-1.5 nc-filter-grid min-w-full w-min"
       :class="{
-        'max-h-420px nc-scrollbar-thin nc-filter-top-wrapper pr-4 my-2 py-1': !nested && !queryFilter,
+        'max-h-420px nc-scrollbar-thin nc-filter-top-wrapper pr-4 mt-1 mb-2 py-1': !nested && !queryFilter,
         '!pr-0': webHook && !nested,
       }"
       @click.stop

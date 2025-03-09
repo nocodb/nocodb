@@ -146,32 +146,35 @@ const combinedFilterLength = computed(() => {
           <a-divider class="!my-1" />
           <div class="px-2 pb-2">
             <div
-              class="p-2 leading-5 font-semibold inline-flex gap-2 w-full items-center cursor-pointer"
+              class="leading-5 font-semibold inline-flex w-full items-center cursor-pointer px-2"
               :class="{ 'pb-0': !queryFilterOpen }"
               @click="queryFilterOpen = !queryFilterOpen"
             >
-              {{ $t('title.urlFilters') }}
-              <div
-                v-if="filtersFromUrlParams?.filters?.length"
-                class="bg-[#F0F3FF] px-1 rounded rounded-6px font-medium text-brand-500 h-5"
-              >
-                {{ filtersFromUrlParams.filters.length }}
-              </div>
-
-              <div>
-                <NcTooltip
-                  title="URL filters are applied from URL parameters and combine with view filters set via the toolbar."
-                  placement="top"
+              <div class="flex-grow gap-2 flex">
+                {{ $t('title.urlFilters') }}
+                <div
+                  v-if="filtersFromUrlParams?.filters?.length"
+                  class="bg-[#F0F3FF] px-1 rounded rounded-6px font-medium text-brand-500 h-5"
                 >
-                  <GeneralIcon icon="ncInfo" class="text-gray w-4 h-4" />
-                </NcTooltip>
+                  {{ filtersFromUrlParams.filters.length }}
+                </div>
+
+                <div>
+                  <NcTooltip
+                    title="URL filters are applied from URL parameters and combine with view filters set via the toolbar."
+                    placement="top"
+                  >
+                    <GeneralIcon icon="ncInfo" class="nc-info-icon w-4 h-4" />
+                  </NcTooltip>
+                </div>
               </div>
-              <div class="flex-grow" />
-              <GeneralIcon
-                icon="ncChevronDown"
-                class="transition-all cursor-pointer w-4 h-4"
-                :class="{ 'transform rotate-180': queryFilterOpen }"
-              />
+              <div class="p-2">
+                <GeneralIcon
+                  icon="ncChevronDown"
+                  class="nc-chevron-icon transition-all cursor-pointer w-4 h-4"
+                  :class="{ 'transform rotate-180': queryFilterOpen }"
+                />
+              </div>
             </div>
             <div
               class="overflow-hidden transition-all duration-300 mt-1"
@@ -191,7 +194,11 @@ const combinedFilterLength = computed(() => {
               >
               </SmartsheetToolbarColumnFilter>
 
-              <div v-else-if="filtersFromUrlParams?.errors?.length" class="nc-error-alert rounded p-4">
+              <div
+                v-else-if="filtersFromUrlParams?.errors?.length"
+                class="nc-error-alert rounded p-4 mx-2 mt-0 transition-margin duration-500 mt-1"
+                :class="{ 'mb-2': queryFilterOpen }"
+              >
                 <div class="flex gap-3">
                   <GeneralIcon icon="ncAlertCircleFilled" class="text-orange-500 w-5 h-5 mt-0.5" />
                   <div class="flex flex-col">
@@ -236,5 +243,13 @@ const combinedFilterLength = computed(() => {
 
 .nc-error-icon {
   color: var(--nc-content-red-dark);
+}
+
+.nc-info-icon {
+  color: var(--nc-content-grey-muted);
+}
+
+.nc-chevron-icon {
+  color: var(--nc-content-grey-subtle);
 }
 </style>

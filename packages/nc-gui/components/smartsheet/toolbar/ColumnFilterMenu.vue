@@ -140,7 +140,11 @@ const combinedFilterLength = computed(() => {
         <template v-if="filtersFromUrlParams">
           <a-divider class="!my-1" />
           <div class="px-2 pb-2">
-            <div class="p-2 leading-5 font-semibold inline-flex gap-2 w-full items-center" :class="{ 'pb-0': !queryFilterOpen }">
+            <div
+              class="p-2 leading-5 font-semibold inline-flex gap-2 w-full items-center cursor-pointer"
+              :class="{ 'pb-0': !queryFilterOpen }"
+              @click="queryFilterOpen = !queryFilterOpen"
+            >
               {{ $t('title.urlFilters') }}
               <div
                 v-if="filtersFromUrlParams?.filters?.length"
@@ -162,7 +166,6 @@ const combinedFilterLength = computed(() => {
                 icon="ncChevronDown"
                 class="transition-all cursor-pointer w-4 h-4"
                 :class="{ 'transform rotate-180': queryFilterOpen }"
-                @click="queryFilterOpen = !queryFilterOpen"
               />
             </div>
             <div

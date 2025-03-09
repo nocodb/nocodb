@@ -826,7 +826,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       columns,
     );
 
-    const { filters: filterObj } = extractFilterFromXwhere(
+    const { filtes: filterObj, _ } = extractFilterFromXwhere(
       where,
       aliasColObjMap,
     );
@@ -1401,7 +1401,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               logical_op: 'and',
             }),
             new Filter({
-              children: extractFilterFromXwhere(where, aliasColObjMap).filters,
+              children: {
+                filters: extractFilterFromXwhere(where, aliasColObjMap),
+              },
               is_group: true,
               logical_op: 'and',
             }),

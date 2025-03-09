@@ -52,24 +52,24 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const aliasColObjMap = computed(() => {
       const colObj = (meta.value as TableType)?.columns?.reduce((acc, col) => {
-        acc[col.title] = col
-        return acc
-      }, {})
-      return colObj
+        acc[col.title] = col;
+        return acc;
+      }, {});
+      return colObj;
     })
 
     const whereQueryFromUrlError = computed(() => {
-      if (route.value.query.where) {
-        return extractFilterFromXwhere(route.value.query.where, aliasColObjMap.value, false)?.errors
+      if(route.value.query.where) {
+        return computedWhereFilter(route.value.query.where, aliasColObjMap.value, false)?.errors;
       }
     })
     const whereQueryFromUrl = computed(() => {
-      if (whereQueryFromUrlError.value?.length) {
-        return
-      }
+if(whereQueryFromUrlError.value) {
+        return null;
+}
 
-      return route.value.query.where
-    })
+return route.value.query.where;
+    });
 
     const xWhere = computed(() => {
       let where

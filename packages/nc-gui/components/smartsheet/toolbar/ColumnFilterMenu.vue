@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { type ColumnType, type TableType, extractFilterFromXwhere } from 'nocodb-sdk'
-import type ColumnFilter from "./ColumnFilter.vue";
+import type ColumnFilter from './ColumnFilter.vue'
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -151,6 +151,18 @@ const combinedFilterLength = computed(() => {
                 class="bg-[#F0F3FF] px-1 rounded rounded-6px font-medium text-brand-500 h-5"
               >
                 {{ filtersFromUrlParams.filters.length }}
+              </div>
+
+              <div>
+                <NuxtLink
+                  to="https://docs.nocodb.com/category/table-operations/"
+                  class="text-nc-content-gray-muted"
+                  no-prefetch
+                  no-rel
+                  target="_blank"
+                >
+                  <GeneralIcon icon="ncInfo" class="text-gray w-4 h-4" />
+                </NuxtLink>
               </div>
             </div>
 

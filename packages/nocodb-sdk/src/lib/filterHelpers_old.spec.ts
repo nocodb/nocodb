@@ -250,7 +250,7 @@ describe('filterHelpers_old_specific', () => {
         const result = extractFilterFromXwhere(query, columnAlias);
         expect(result).toBeDefined();
         expect(result.filters.length).toBe(2);
-        expect(result[1].logical_op).toBe('and');
+        expect(result.filters[1].logical_op).toBe('and');
       });
       it('will parse nested logical query', () => {
         // isWithin need to have specific suboperator :|
@@ -274,7 +274,7 @@ describe('filterHelpers_old_specific', () => {
         const result = extractFilterFromXwhere(query, columnAlias);
         expect(result).toBeDefined();
         expect(result.filters.length).toBe(2);
-        expect(result[1].logical_op).toBe('or');
+        expect(result.filters[1].logical_op).toBe('or');
       });
     });
   });

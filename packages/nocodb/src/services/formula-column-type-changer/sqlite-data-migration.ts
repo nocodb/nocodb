@@ -5,6 +5,11 @@ import type { FormulaDataMigrationDriver } from '~/services/formula-column-type-
 import { ROOT_ALIAS } from '~/utils';
 import { _wherePk } from '~/helpers/dbHelpers';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import {
+  getIdOffsetTable,
+  getPrimaryKeySelectColumns,
+  getUpdatedRows,
+} from '~/services/formula-column-type-changer/data-migration.helper';
 
 /*
  result from formula qb:
@@ -32,50 +37,35 @@ export class SqliteDataMigration implements FormulaDataMigrationDriver {
     formulaColumnOption: FormulaColumn;
     offset: number;
     limit: number;
-  }): Promise<void> {
+  }) {
     const knex = baseModelSqlV2.dbDriver;
     const formulaColumnAlias = '__nc_formula_value';
     const idOffsetTableAlias = 'id_offset_tbl';
     const formulaValueTableAlias = 'formula_value_tbl';
 
-    const getPrimaryKeySelectColumns = (sourceTable?: string) => {
-      return baseModelSqlV2.model.primaryKeys.reduce((props, col) => {
-        const prefix = sourceTable ? `${sourceTable}.` : '';
-        props[col.column_name] = `${prefix}${col.column_name}`;
-        return props;
-      }, {});
-    };
-    const getPrimaryKeySortColumns = (sourceTable?: string) =>
-      Object.keys(getPrimaryKeySelectColumns(sourceTable)).map((colName) => {
-        return {
-          column: colName,
-          order: 'asc',
-        };
-      });
-
-    const idOffsetTable = knex(
-      baseModelSqlV2.getTnPath(
-        baseModelSqlV2.model.table_name,
-        idOffsetTableAlias,
-      ),
-    )
-      .select(getPrimaryKeySelectColumns(idOffsetTableAlias))
-      .whereRaw(
-        Object.keys(getPrimaryKeySelectColumns())
-          .map(() => '?? = ??')
-          .join(' and '),
-        Object.keys(getPrimaryKeySelectColumns()).reduce(
-          (arr, primaryColName) => {
-            arr.push(`${ROOT_ALIAS}.${primaryColName}`);
-            arr.push(`${idOffsetTableAlias}.${primaryColName}`);
-            return arr;
-          },
-          [],
-        ),
+    const idOffsetTable = getIdOffsetTable({
+      baseModelSqlV2,
+      alias: idOffsetTableAlias,
+      limit,
+      offset,
+    }).whereRaw(
+      Object.keys(
+        getPrimaryKeySelectColumns({
+          model: baseModelSqlV2.model,
+        }),
       )
-      .orderBy(getPrimaryKeySortColumns(idOffsetTableAlias))
-      .limit(limit)
-      .offset(offset);
+        .map(() => '?? = ??')
+        .join(' and '),
+      Object.keys(
+        getPrimaryKeySelectColumns({
+          model: baseModelSqlV2.model,
+        }),
+      ).reduce((arr, primaryColName) => {
+        arr.push(`${ROOT_ALIAS}.${primaryColName}`);
+        arr.push(`${idOffsetTableAlias}.${primaryColName}`);
+        return arr;
+      }, []),
+    );
 
     const formulaValueTable = knex(
       baseModelSqlV2.getTnPath(
@@ -100,17 +90,22 @@ export class SqliteDataMigration implements FormulaDataMigrationDriver {
         ).builder,
       })
       .whereRaw(
-        Object.keys(getPrimaryKeySelectColumns())
+        Object.keys(
+          getPrimaryKeySelectColumns({
+            model: baseModelSqlV2.model,
+          }),
+        )
           .map(() => '?? = ??')
           .join(' and '),
-        Object.keys(getPrimaryKeySelectColumns()).reduce(
-          (arr, primaryColName) => {
-            arr.push(`${ROOT_ALIAS}.${primaryColName}`);
-            arr.push(`${formulaValueTableAlias}.${primaryColName}`);
-            return arr;
-          },
-          [],
-        ),
+        Object.keys(
+          getPrimaryKeySelectColumns({
+            model: baseModelSqlV2.model,
+          }),
+        ).reduce((arr, primaryColName) => {
+          arr.push(`${ROOT_ALIAS}.${primaryColName}`);
+          arr.push(`${formulaValueTableAlias}.${primaryColName}`);
+          return arr;
+        }, []),
       );
 
     // knex qb is not yet suppport update select / update join
@@ -123,6 +118,14 @@ export class SqliteDataMigration implements FormulaDataMigrationDriver {
     ]);
     await baseModelSqlV2.execAndParse(qb.toQuery(), null, {
       raw: true,
+    });
+
+    return await getUpdatedRows({
+      baseModelSqlV2,
+      alias: idOffsetTableAlias,
+      destinationColumn,
+      limit,
+      offset,
     });
   }
 }

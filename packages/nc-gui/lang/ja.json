@@ -136,16 +136,16 @@
     "abort": "中止",
     "saving": "保存中",
     "cancel": "キャンセル",
-    "null": "ヌル",
+    "null": "NULL",
     "escape": "エスケープ",
     "hex": "16進数",
     "clear": "クリア",
-    "slack": "スラック",
+    "slack": "Slack",
     "comment": "コメント",
     "comments": "コメント",
     "microsoftTeams": "マイクロソフトチーム",
-    "discord": "ディスコード",
-    "matterMost": "マターモスト",
+    "discord": "Discord",
+    "matterMost": "Mattermost",
     "twilio": "トゥイリオ",
     "whatsappTwilio": "WhatsApp トゥイリオ",
     "quote": "引用",
@@ -496,7 +496,7 @@
       "noAction": "何もしない",
       "cascade": "カスケード",
       "restrict": "制約",
-      "setNull": "nullとする",
+      "setNull": "NULLとする",
       "setDefault": "デフォルトとする"
     }
   },
@@ -507,8 +507,8 @@
     "isNot like": "部分不一致",
     "isEmpty": "が空欄",
     "isNotEmpty": "が空欄でない",
-    "isNull": "がnull",
-    "isNotNull": "がnullでない"
+    "isNull": "がNULL",
+    "isNotNull": "がNULLでない"
   },
   "title": {
     "creatingScript": "スクリプトの作成",
@@ -603,7 +603,7 @@
     "teamAndSettings": "チームと設定",
     "apiDocs": "API ドキュメント",
     "importFromAirtable": "Airtable からインポート",
-    "importFromNocoDB": "Import From NocoDB",
+    "importFromNocoDB": "NocoDB からインポート",
     "generateToken": "トークンを生成",
     "APIsAndSupport": "APIとサポート",
     "helpCenter": "ヘルプセンター",
@@ -612,7 +612,7 @@
     "quickImportFrom": "クイックインポート元",
     "quickImport": "クイックインポート",
     "quickImportAirtable": "Airtable からインポート",
-    "quickImportNocoDB": "Import from NocoDB",
+    "quickImportNocoDB": "NocoDB からインポート",
     "quickImportCSV": "Import CSV",
     "quickImportExcel": "Import Excel",
     "quickImportJSON": "Import Json",
@@ -676,15 +676,15 @@
     "lockedByUser": "{user} によってロックされています",
     "thisPageDoesNotExist": "このページは存在しません",
     "customUrl": "カスタムURL",
-    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
-    "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "viewSettingsCantBeChangedWhenViewIs": "ビュー設定はビューが{type}の時には変更できません",
+    "youAreLeavingNocoDB": "NocoDBを離れます",
+    "onlyProceedIfYouTrustThisLink": "このリンクを信頼する場合のみ続行してください。"
   },
   "labels": {
-    "latitude": "Latitude",
-    "longitude": "Longitude",
-    "failed": "Failed",
-    "succeeded": "Succeeded",
+    "latitude": "緯度",
+    "longitude": "経度",
+    "failed": "失敗",
+    "succeeded": "成功",
     "noImage": "画像なし",
     "quickNavigation": "クイックナビゲーション",
     "recent": "最近",
@@ -984,7 +984,7 @@
     "barcodeFormat": "バーコードのフォーマット",
     "qrCodeValueTooLong": "QRコードにするには文字数が多すぎる",
     "barcodeValueTooLong": "バーコードの文字数が多すぎる",
-    "currentLocation": "Set to current location",
+    "currentLocation": "現在の位置に設定",
     "lng": "経度",
     "lat": "緯度",
     "aggregateFunction": "集約関数",
@@ -1043,12 +1043,12 @@
     "goToDashboard": "ダッシュボードに移動",
     "importing": "インポート中",
     "importingFromAirtable": "Airtableからのインポート",
-    "importingFromNocoDB": "Importing from NocoDB",
+    "importingFromNocoDB": "NocoDBからのインポート",
     "airtableBaseImported": "Airtableベースがインポートされました",
-    "nocoDBBaseImported": "NocoDB Base Imported",
+    "nocoDBBaseImported": "NocoDBプロジェクトがインポートされました",
     "formatJson": "JSONをフォーマット",
     "autoSelectFieldTypes": "フィールドタイプを自動選択",
-    "firstRowAsHeaders": "Use first record as header",
+    "firstRowAsHeaders": "最初のレコードをヘッダーとして使用",
     "flattenNested": "入れ子を平坦化",
     "downloadAllowed": "ダウンロードを許可",
     "weAreHiring": "We are Hiring!",
@@ -1128,9 +1128,9 @@
     "osBrowser": "OS、ブラウザ",
     "rowId": "行ID",
     "showJsonPayload": "JSONペイロードを表示",
-    "autoCreateMissingSelectionOptions": "Auto create missing select field options",
-    "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "autoCreateMissingSelectionOptions": "欠落している選択フィールドオプションを自動作成",
+    "fillForm": "フォームを入力",
+    "proceedToLink": "リンクに進む"
   },
   "activity": {
     "clickToResolve": "クリックして解決",
@@ -1387,7 +1387,7 @@
       "addOrEditStack": "スタックの追加/編集"
     },
     "map": {
-      "googleMaps": "Google Maps",
+      "googleMaps": "Google マップ",
       "osm": "OSM",
       "mappedBy": "によってマッピング",
       "chooseMappingField": "マッピングフィールドを選択",
@@ -1528,7 +1528,7 @@
   "msg": {
     "dropYourDocHere": "ここにドキュメントをドロップしてください",
     "airtableImportSuccess": "Airtableベースから正常にインポートしました。",
-    "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
+    "nocoDBImportSuccess": "NocoDBプロジェクトから正常にインポートしました。",
     "deleteAccountPermanently": "アカウントを永久に削除する",
     "learnMore": "詳細はこちら",
     "connectIntegrations": "NocoDBで統合を接続します。",
@@ -1597,7 +1597,7 @@
       "columnNotMatchedWithType": "{columnName} は {columnType} と一致しません"
     },
     "selectOption": {
-      "cantBeNull": "選択オプションをnullにすることはできません",
+      "cantBeNull": "選択オプションをNULLにすることはできません",
       "multiSelectCantHaveCommas": "マルチセレクトフィールドにはコンマ(',')を含めることはできません",
       "cantHaveDuplicates": "選択オプションに重複を含めることはできません",
       "createNewOptionNamed": "新しいオプション名を作成する"

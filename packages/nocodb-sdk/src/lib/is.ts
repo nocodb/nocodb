@@ -98,6 +98,28 @@ export function ncIsNumber(value: any): value is number {
 }
 
 /**
+ * Checks if a value is NaN (Not-a-Number).
+ *
+ * @param value - The value to check.
+ * @returns {boolean} - True if the value is NaN, false otherwise.
+ *
+ * @example
+ * ```typescript
+ * console.log(ncIsNaN(NaN)); // true
+ * console.log(ncIsNaN("abc")); // true
+ * console.log(ncIsNaN(42)); // false
+ * console.log(ncIsNaN("42")); // false
+ * ```
+ */
+export function ncIsNaN(value: any): boolean {
+  if (ncIsNumber(value)) return false;
+
+  if (!value || isNaN(Number(value))) return true;
+
+  return false;
+}
+
+/**
  * Checks if a value is a boolean.
  *
  * @param value - The value to check.

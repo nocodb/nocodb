@@ -2280,6 +2280,8 @@ export interface FormulaType {
   formula_raw?: string;
   /** Unique ID */
   id?: IdType;
+  /** Parsed Formula Tree */
+  parsed_tree?: any;
 }
 
 /**

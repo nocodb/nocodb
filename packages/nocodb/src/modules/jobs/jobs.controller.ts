@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { customAlphabet } from 'nanoid';
-import type { OnApplicationShutdown } from '@nestjs/common';
+import type { OnModuleDestroy } from '@nestjs/common';
 import type { Response } from 'express';
 import { JobStatus } from '~/interface/Jobs';
 import { JobEvents } from '~/interface/Jobs';
@@ -27,10 +27,21 @@ const POLLING_INTERVAL = 30000;
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-export class JobsController implements OnApplicationShutdown {
+export class JobsController implements OnModuleDestroy {
   constructor(
     @Inject('JobsService') private readonly jobsService: IJobsService,
   ) {}
+
+  onModuleDestroy() {
+    Object.keys(this.jobRooms).forEach((jobId) => {
+      const room = this.jobRooms[jobId];
+      room.listeners.forEach((res: Response & { resId?: string }) => {
+        if (!res.headersSent) {
+          res.send({ status: 'refresh' });
+        }
+      });
+    });
+  }
 
   private jobRooms = {};
   private localJobs = {};
@@ -118,13 +129,13 @@ export class JobsController implements OnApplicationShutdown {
                   // close the job after 1 second (to allow the update of messages)
                   setTimeout(() => {
                     this.closedJobs.push(jobId);
-                  }, 1000);
+                  }, 1000).unref();
                   // remove the job after polling interval * 2
                   setTimeout(() => {
                     this.closedJobs = this.closedJobs.filter(
                       (j) => j !== jobId,
                     );
-                  }, POLLING_INTERVAL * 2);
+                  }, POLLING_INTERVAL * 2).unref();
                 }
                 break;
             }
@@ -147,7 +158,7 @@ export class JobsController implements OnApplicationShutdown {
           status: 'refresh',
         });
       }
-    }, POLLING_INTERVAL);
+    }, POLLING_INTERVAL).unref();
   }
 
   @OnEvent(JobEvents.STATUS)
@@ -230,13 +241,13 @@ export class JobsController implements OnApplicationShutdown {
       this.closedJobs.push(jobId);
       setTimeout(() => {
         this.closedJobs = this.closedJobs.filter((j) => j !== jobId);
-      }, POLLING_INTERVAL * 2);
+      }, POLLING_INTERVAL * 2).unref();
 
       setTimeout(async () => {
         delete this.jobRooms[jobId];
         delete this.localJobs[jobId];
         await NocoCache.del(`${CacheScope.JOBS_POLLING}:${jobId}:messages`);
-      }, POLLING_INTERVAL * 2);
+      }, POLLING_INTERVAL * 2).unref();
     }
   }
 
@@ -295,21 +306,6 @@ export class JobsController implements OnApplicationShutdown {
       await JobsRedis.publish(jobId, {
         cmd: JobEvents.LOG,
         ...data,
-      });
-    }
-  }
-
-  async onApplicationShutdown() {
-    /*
-     * Close all long polling connections
-     */
-    for (const jobId in this.jobRooms) {
-      this.jobRooms[jobId].listeners.forEach((res) => {
-        if (!res.headersSent) {
-          res.send({
-            status: 'close',
-          });
-        }
       });
     }
   }

@@ -165,7 +165,7 @@ const changeActiveSync = async (id: string) => {
   })
 }
 
-const initialize = async () => {
+async function initialize() {
   tableSyncs.value = []
   syncOptions.value = []
 
@@ -417,7 +417,6 @@ const handleUpdateIntegrationOptionsExpansionPanel = (open: boolean) => {
             <div class="flex">
               <GeneralProgressPanel v-if="triggeredSync || completeSync" ref="progressRef" class="w-full h-[400px]" />
             </div>
-              
 
             <a-collapse v-model:active-key="integrationOptionsExpansionPanel" ghost class="nc-source-advanced-options !mt-6">
               <template #expandIcon="{ isActive }">

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
 
 const props = defineProps<{ modelValue: boolean; column: any; hideBackBtn?: boolean }>()
@@ -45,7 +45,9 @@ const {
   row,
   resetChildrenExcludedOffsetCount,
   loadRelatedTableMeta,
-  targetViewColumnsById,
+  attachmentCol,
+  fields,
+  refreshCurrentRow
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
@@ -110,6 +112,7 @@ watch(
   vModel,
   (nextVal, prevVal) => {
     if (nextVal && !prevVal) {
+      refreshCurrentRow()
       /** reset query and limit */
       childrenExcludedListPagination.query = ''
       childrenExcludedListPagination.page = 1
@@ -164,23 +167,6 @@ const newRowState = computed(() => {
       [colInRelatedTable.title as string]: row?.value && [row.value.row],
     }
   }
-})
-
-const attachmentCol = computedInject(FieldsInj, (_fields) => {
-  return (relatedTableMeta.value.columns ?? []).filter((col) => isAttachment(col))[0]
-})
-
-const fields = computedInject(FieldsInj, (_fields) => {
-  return (relatedTableMeta.value.columns ?? [])
-    .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
-    .sort((a, b) => {
-      if (isPublic.value) {
-        return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-      }
-
-      return (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
-    })
-    .slice(0, isMobileMode.value ? 1 : 3)
 })
 
 const totalItemsToShow = computed(() => {
@@ -451,7 +437,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
       <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between min-h-11">
         <div class="flex">
           <NcButton
-            v-if="!isPublic && !isDataReadOnly && isUIAllowed('dataEdit')"
+            v-if="!isPublic && !isDataReadOnly && isUIAllowed('dataEdit') && !isForm"
             v-e="['c:row-expand:open']"
             size="small"
             class="!hover:(bg-white text-brand-500) !h-7 !text-small"

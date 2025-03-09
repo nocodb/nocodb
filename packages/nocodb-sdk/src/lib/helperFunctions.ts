@@ -303,3 +303,10 @@ export function stringifyHelper(v: any): string {
     return v;
   }
 }
+
+export function toSafeInteger(value: number) {
+  return Math.max(
+    Number.MIN_SAFE_INTEGER,
+    Math.min(value, Number.MAX_SAFE_INTEGER)
+  );
+}

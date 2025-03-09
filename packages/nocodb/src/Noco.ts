@@ -23,6 +23,7 @@ import { DataReflection, Integration } from '~/models';
 import { getRedisURL } from '~/helpers/redisHelpers';
 
 dotenv.config();
+declare const module: any;
 
 export default class Noco {
   protected static _this: Noco;
@@ -100,8 +101,6 @@ export default class Noco {
     return (this.ee = false);
   }
 
-  declare module: any;
-
   static async init(param: any, httpServer: http.Server, server: Express) {
     const nestApp = await NestFactory.create(AppModule, {
       bufferLogs: true,
@@ -110,9 +109,9 @@ export default class Noco {
     NcDebug.log('Custom logger initialized');
     nestApp.flushLogs();
 
-    if ((module as any).hot) {
-      (module as any).hot.accept();
-      (module as any).hot.dispose(() => nestApp.close());
+    if ((module as any)?.hot) {
+      (module as any).hot?.accept?.();
+      (module as any).hot?.dispose?.(() => nestApp.close());
     }
 
     try {

@@ -367,13 +367,24 @@ export default class Source implements SourceType {
     // merge integration config with source config
     // override integration config with source config if exists
     // only override database and searchPath
-    return deepMerge(
+    let mergedConfig = deepMerge(
       integrationConfig,
       partialExtract(config || {}, [
         ['connection', 'database'],
         ['searchPath'],
       ]),
     );
+
+    // if searchPath is not array/string or if an empty array, remove it
+    if (
+      (!Array.isArray(mergedConfig.searchPath) &&
+        typeof mergedConfig.searchPath !== 'string') ||
+      !mergedConfig.searchPath?.length
+    ) {
+      mergedConfig = { ...mergedConfig, searchPath: undefined };
+    }
+
+    return mergedConfig;
   }
 
   public getSourceConfig(): any {

@@ -324,8 +324,9 @@ export function useViewData(
   }
 
   async function updateFormView(view: FormType | undefined) {
+    if (!viewMeta?.value?.id || !view || !isUIAllowed('viewFieldEdit')) return
+
     try {
-      if (!viewMeta?.value?.id || !view) return
       await $api.dbView.formUpdate(viewMeta.value.id, view)
     } catch (e: any) {
       return message.error(`${t('msg.error.formViewUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)

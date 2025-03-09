@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { integrationCategoryNeedDefault, IntegrationsType } from 'nocodb-sdk'
+import { IntegrationsType, integrationCategoryNeedDefault } from 'nocodb-sdk'
 import type { IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 

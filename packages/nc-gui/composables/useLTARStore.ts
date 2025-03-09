@@ -1,11 +1,5 @@
-import type {
-  type ColumnType,
-  type LinkToAnotherRecordType,
-  type PaginatedType,
-  type RequestParams,
-  type TableType,
-} from 'nocodb-sdk'
-import { RelationTypes, UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RequestParams, TableType } from 'nocodb-sdk'
+import { RelationTypes, UITypes, dateFormats, isLinksOrLTAR, isSystemColumn, parseStringDateTime, timeFormats } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 
 interface DataApiResponse {
@@ -21,12 +15,23 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     isNewRow: ComputedRef<boolean> | Ref<boolean>,
     _reloadData = (_params: { shouldShowLoading?: boolean }) => {},
   ) => {
+
+    // when initialized by link popup dialog, keep current row
+    // to avoid being changed by sort or filter
+    const currentRow = ref(row.value)
+
+    const refreshCurrentRow = () => {
+      currentRow.value = row.value
+    }
+
     // state
     const { metas, getMeta } = useMetas()
 
     const { base } = storeToRefs(useBase())
 
     const { $api, $e } = useNuxtApp()
+
+    const { isMobileMode } = useGlobal()
 
     const activeView = inject(ActiveViewInj, ref())
     const isForm = inject(IsFormInj, ref(false))
@@ -98,7 +103,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return metas.value?.[colOptions.value?.fk_related_model_id as string]
     })
 
-    const rowId = computed(() => extractPkFromRow(row.value.row, meta.value.columns))
+    const rowId = computed(() => extractPkFromRow(currentRow.value.row, meta.value.columns))
 
     const getRelatedTableRowId = (row: Record<string, any>) => {
       return extractPkFromRow(row, relatedTableMeta.value?.columns)
@@ -172,6 +177,34 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         )
       }
       return row.value.row[displayValueProp.value]
+    })
+
+    const attachmentCol = computedInject(FieldsInj, (_fields) => {
+      return (relatedTableMeta.value.columns ?? []).filter((col) => isAttachment(col))[0]
+    })
+
+    const fields = computedInject(FieldsInj, (_fields) => {
+      return (relatedTableMeta.value.columns ?? [])
+        .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
+        .sort((a, b) => {
+          if (isPublic.value) {
+            return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+          }
+
+          return (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
+        })
+        .slice(0, isMobileMode.value ? 1 : 3)
+    })
+
+    const requiredFieldsToLoad = computed(() => {
+      return Array.from(
+        new Set([
+          relatedTableDisplayValueProp.value,
+          ...relatedTablePrimaryKeyProps.value,
+          attachmentCol.value?.title,
+          ...(fields.value || [])?.map((f) => f.title as string),
+        ]),
+      )
     })
 
     /**
@@ -301,7 +334,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                 where:
                   childrenExcludedListPagination.query &&
                   `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
-                fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
+                fields: requiredFieldsToLoad.value,
 
                 // todo: include only required fields
                 rowData: JSON.stringify(row),
@@ -323,7 +356,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               where:
                 childrenExcludedListPagination.query &&
                 `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
-              // fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
+              // ...(isForm.value ? { fields: requiredFieldsToLoad.value } : {}),
 
               // todo: include only required fields
               linkColumnId: column.value.fk_column_id || column.value.id,
@@ -736,6 +769,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       relatedTableDisplayValuePropId,
       resetChildrenExcludedOffsetCount,
       resetChildrenListOffsetCount,
+      attachmentCol,
+      fields,
+      refreshCurrentRow,
     }
   },
   'ltar-store',

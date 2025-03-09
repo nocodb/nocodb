@@ -5,6 +5,8 @@ import duration from 'dayjs/plugin/duration.js';
 import utc from 'dayjs/plugin/utc.js';
 import weekday from 'dayjs/plugin/weekday.js';
 import timezone from 'dayjs/plugin/timezone.js';
+import { ColumnType } from './Api';
+import { parseProp } from './helperFunctions';
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
@@ -47,7 +49,7 @@ export function validateDateWithUnknownFormat(v: string) {
 }
 
 export function getDateFormat(v: string) {
-  for (const format of dateFormats) {
+  for (const format of dateFormats.concat(dateMonthFormats)) {
     if (dayjs(v, format, true).isValid()) {
       return format;
     }
@@ -150,3 +152,20 @@ export const isValidTimeFormat = (value: string, format: string) => {
   }
   return false;
 };
+
+export function constructDateTimeFormat(column: ColumnType) {
+  const dateFormat = constructDateFormat(column);
+  const timeFormat = constructTimeFormat(column);
+  return `${dateFormat} ${timeFormat}`;
+}
+
+export function constructDateFormat(column: ColumnType) {
+  return parseProp(column?.meta)?.date_format ?? dateFormats[0];
+}
+
+export function constructTimeFormat(column: ColumnType) {
+  const columnMeta = parseProp(column?.meta);
+  return columnMeta?.is12hrFormat
+    ? 'hh:mm A'
+    : columnMeta.time_format ?? timeFormats[0];
+}

@@ -118,7 +118,13 @@ const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 const isEditColumnDescription = ref(false)
 const mousePosition = reactive({ x: 0, y: 0 })
 const clientMousePosition = reactive({ clientX: 0, clientY: 0 })
-const paddingLessUITypes = new Set([UITypes.LongText, UITypes.DateTime, UITypes.SingleSelect, UITypes.MultiSelect])
+const paddingLessUITypes = new Set([
+  UITypes.LongText,
+  UITypes.DateTime,
+  UITypes.SingleSelect,
+  UITypes.MultiSelect,
+  UITypes.Formula,
+])
 const scroller = ref()
 provide(ClientMousePositionInj, clientMousePosition)
 // provide the column ref since at a time only one column can be active
@@ -319,7 +325,7 @@ const editEnabledCellPosition = computed(() => {
 const isClamped = computed(() => {
   if (!editEnabled.value || !containerRef.value) return false
 
-  if (editEnabled.value.column?.uidt === UITypes.LongText) {
+  if (editEnabled.value.column?.uidt === UITypes.LongText || editEnabled.value.column?.uidt === UITypes.Formula) {
     return true
   }
 
@@ -403,6 +409,7 @@ function onActiveCellChanged() {
   if (rowSortRequiredRows.value.length) {
     applySorting?.(rowSortRequiredRows.value)
   }
+  calculateSlices()
   requestAnimationFrame(triggerRefreshCanvas)
 }
 
@@ -963,6 +970,7 @@ async function handleMouseUp(e: MouseEvent) {
   } else if (rowIndex > totalRows.value) {
     selection.value.clear()
     activeCell.value = { row: -1, column: -1 }
+    onActiveCellChanged()
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
@@ -1129,7 +1137,7 @@ const getHeaderTooltipRegions = (
         disableTooltip: true,
         text: null,
       })
-    } else if (meta.value.synced && column.columnObj?.readonly) {
+    } else if (meta.value?.synced && column.columnObj?.readonly) {
       regions.push({
         x: rightOffset - scrollLeftValue,
         width: 14,
@@ -1593,9 +1601,7 @@ watch(rowHeight, () => {
 
 // watch for column hide and re-render canvas
 watch(
-  () => {
-    return columns.value?.length
-  },
+  () => [columns.value?.length, totalRows.value],
   () => {
     nextTick(() => {
       calculateSlices()
@@ -1714,6 +1720,7 @@ onKeyStroke('Escape', () => {
 
 const increaseMinHeightBy: Record<string, number> = {
   [UITypes.LongText]: 2,
+  [UITypes.Formula]: 2,
 }
 
 function updateValue(val: any) {
@@ -2015,6 +2022,11 @@ defineExpose({
     :deep(.nc-virtual-cell-lookup:has(.nc-cell-attachment)) {
       @apply !h-full;
     }
+  }
+
+  :deep(.nc-virtual-cell-lookup:has(.nc-virtual-cell-linktoanotherrecord)),
+  :deep(.nc-virtual-cell-lookup:has(.nc-virtual-cell-links)) {
+    @apply !overflow-hidden;
   }
 
   :deep(.nc-cell-longtext) {

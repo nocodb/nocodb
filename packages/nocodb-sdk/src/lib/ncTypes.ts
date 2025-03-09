@@ -25,3 +25,5 @@ export interface NcRequest extends Partial<Request> {
   query?: Record<string, any>;
   skipAudit?: boolean;
 }
+
+export type NcRecord<T = any> = Record<string, T>;

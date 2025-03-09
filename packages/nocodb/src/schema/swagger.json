@@ -22483,6 +22483,9 @@
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
+          },
+          "parsed_tree": {
+            "description": "Parsed Formula Tree"
           }
         },
         "x-stoplight": {

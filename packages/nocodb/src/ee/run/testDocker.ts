@@ -4,6 +4,8 @@ import express from 'express';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { User } from '~/models';
+import { handleUncaughtErrors } from '~/utils';
+handleUncaughtErrors(process);
 
 const IS_UPGRADE_ALLOWED_CACHE_KEY = 'nc_upgrade_allowed';
 

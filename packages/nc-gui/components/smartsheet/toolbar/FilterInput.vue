@@ -247,7 +247,7 @@ const isSingleOrMultiSelect = computed(() => {
   @apply !py-0;
 }
 
-:deep(.nc-cell-field){
-  @apply items-center
+:deep(.nc-cell-field) {
+  @apply items-center;
 }
 </style>

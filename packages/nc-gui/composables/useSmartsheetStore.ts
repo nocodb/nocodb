@@ -1,4 +1,3 @@
-import type {FilterType, KanbanType, SortType, TableType, ViewType} from 'nocodb-sdk'
 import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import { ViewLockType, ViewTypes, extractFilterFromXwhere } from 'nocodb-sdk'
 import type { Ref } from 'vue'

@@ -248,10 +248,14 @@ export function validateFilterComparison(
   uidt: UITypes,
   op: any,
   sub_op?: any,
-  errors: FilterParseError[] = []
+  errors: FilterParseError[] = [],
+  validateFilterComparison = false
 ): FilterParseError[] {
   // Check if the main comparison operator is valid
   if (!COMPARISON_OPS.includes(op) && !GROUPBY_COMPARISON_OPS.includes(op)) {
+    if (validateFilterComparison) {
+      throw new BadRequest(`${op} is not supported.`);
+    }
     errors.push({ message: `${op} is not supported.` });
   }
 
@@ -265,6 +269,11 @@ export function validateFilterComparison(
         UITypes.LastModifiedTime,
       ].includes(uidt)
     ) {
+      if (validateFilterComparison) {
+        throw new BadRequest(
+          `'${sub_op}' is not supported for UI Type'${uidt}'.`
+        );
+      }
       errors.push({
         message: `'${sub_op}' is not supported for UI Type '${uidt}'.`,
       });
@@ -272,6 +281,9 @@ export function validateFilterComparison(
 
     // Validate if the sub-operator exists in the allowed set
     if (!COMPARISON_SUB_OPS.includes(sub_op)) {
+      if (validateFilterComparison) {
+        throw new BadRequest(`'${sub_op}' is not supported.`);
+      }
       errors.push({ message: `'${sub_op}' is not supported.` });
     }
 
@@ -280,6 +292,9 @@ export function validateFilterComparison(
       (op === 'isWithin' && !IS_WITHIN_COMPARISON_SUB_OPS.includes(sub_op)) ||
       (op !== 'isWithin' && IS_WITHIN_COMPARISON_SUB_OPS.includes(sub_op))
     ) {
+      if (validateFilterComparison) {
+        throw new BadRequest(`'${sub_op}' is not supported for '${op}'`);
+      }
       errors.push({ message: `'${sub_op}' is not supported for '${op}'.` });
     }
   }
@@ -299,7 +314,7 @@ export function extractCondition(
   }
 
   const parsedFilters = nestedArrayConditions
-    .map<FilterType>((str) => {
+    .map<FilterType | null>((str) => {
       let logicOp: string | FilterType['logical_op'];
       let alias: string;
       let op: string | FilterType['comparison_op'];
@@ -357,7 +372,13 @@ export function extractCondition(
           value = (value as string).split(',');
         }
 
-        validateFilterComparison(columnType as UITypes, op, sub_op);
+        validateFilterComparison(
+          columnType as UITypes,
+          op,
+          sub_op,
+          errors,
+          throwErrorIfInvalid
+        );
       } else {
         const error = { message: 'INVALID_FILTER' };
         if (throwErrorIfInvalid) throw new NcSDKError(error.message);
@@ -376,14 +397,16 @@ export function extractCondition(
       }
 
       return {
-        comparison_op: op,
-        ...(sub_op && { comparison_sub_op: sub_op }),
+        comparison_op: op as FilterType['comparison_op'],
+        ...(sub_op && {
+          comparison_sub_op: sub_op as FilterType['comparison_sub_op'],
+        }),
         fk_column_id: columnId,
-        logical_op: logicOp,
+        logical_op: logicOp as FilterType['logical_op'],
         value,
       };
     })
     .filter(Boolean);
 
-  return { filters: parsedFilters };
+  return { filters: parsedFilters, errors };
 }

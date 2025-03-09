@@ -104,6 +104,7 @@ export function extractFilterFromXwhere(
       if (!filters) return acc;
       return [...acc, ...filters];
     }, []);
+
     const collectedErrors = nestedFilters.reduce((acc, { errors }) => {
       if (!errors) return acc;
       return [...acc, ...errors];

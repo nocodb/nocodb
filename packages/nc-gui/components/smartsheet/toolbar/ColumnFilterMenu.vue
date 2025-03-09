@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type TableType, extractFilterFromXwhere } from 'nocodb-sdk'
-import type ColumnFilter from './ColumnFilter.vue'
+import {type ColumnType, extractFilterFromXwhere, type TableType} from 'nocodb-sdk'
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -11,23 +10,22 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
+
 const router = useRouter()
 const route = router.currentRoute
 const meta = inject(MetaInj, ref())
 
 const aliasColObjMap = computed(() => {
-  if (!meta?.value?.columns) return {}
-
-  const colObj = (meta.value as TableType)?.columns?.reduce<Record<string, ColumnType>>((acc, col: ColumnType) => {
-    acc[col.title!] = col
-    return acc
-  }, {} as Record<string, ColumnType>)
-  return colObj
+  const colObj = (meta.value as TableType)?.columns?.reduce((acc, col) => {
+    acc[col.title] = col;
+    return acc;
+  }, {});
+  return colObj;
 })
 
 const filtersFromUrlParams = computed(() => {
-  if (route.value.query?.where) {
-    return extractFilterFromXwhere(route.value.query.where as string, aliasColObjMap.value, false)
+  if (route.value.query.where) {
+    return extractFilterFromXwhere(route.value.query.where, aliasColObjMap.value, false)?.filters
   }
 })
 
@@ -131,85 +129,27 @@ const combinedFilterLength = computed(() => {
 
     <template #overlay>
       <div>
+      <SmartsheetToolbarColumnFilter
+        ref="filterComp"
+        v-model:draft-filter="draftFilter"
+        v-model:is-open="open"
+        class="nc-table-toolbar-menu"
+        :auto-save="true"
+        data-testid="nc-filter-menu"
+        :is-view-filter="true"
+        @update:filters-length="filtersLength = $event"
+      >
+      </SmartsheetToolbarColumnFilter>
         <SmartsheetToolbarColumnFilter
-          ref="filterComp"
-          v-model:draft-filter="draftFilter"
-          v-model:is-open="open"
-          class="nc-table-toolbar-menu"
-          :auto-save="true"
-          data-testid="nc-filter-menu"
-          :is-view-filter="true"
-          @update:filters-length="filtersLength = $event"
+            ref="filterComp"
+            v-model="filtersFromUrlParams"
+            v-model:is-open="open"
+            class="nc-table-toolbar-menu"
+            :auto-save="false"
+            data-testid="nc-filter-menu"
+            :is-view-filter="false"
         >
         </SmartsheetToolbarColumnFilter>
-        <template v-if="filtersFromUrlParams">
-          <a-divider class="!my-1" />
-          <div class="px-2 pb-2">
-            <div
-              class="leading-5 font-semibold inline-flex w-full items-center cursor-pointer px-2"
-              :class="{ 'pb-0': !queryFilterOpen }"
-              @click="queryFilterOpen = !queryFilterOpen"
-            >
-              <div class="flex-grow gap-2 flex">
-                {{ $t('title.urlFilters') }}
-                <div
-                  v-if="filtersFromUrlParams?.filters?.length"
-                  class="bg-[#F0F3FF] px-1 rounded rounded-6px font-medium text-brand-500 h-5"
-                >
-                  {{ filtersFromUrlParams.filters.length }}
-                </div>
-
-                <div>
-                  <NcTooltip
-                    title="URL filters are applied from URL parameters and combine with view filters set via the toolbar."
-                    placement="top"
-                  >
-                    <GeneralIcon icon="ncInfo" class="nc-info-icon !w-3.5 !h-3.5" />
-                  </NcTooltip>
-                </div>
-              </div>
-              <div class="p-2">
-                <GeneralIcon
-                  icon="ncChevronDown"
-                  class="nc-chevron-icon transition-all cursor-pointer w-4 h-4"
-                  :class="{ 'transform rotate-180': queryFilterOpen }"
-                />
-              </div>
-            </div>
-            <div
-              class="overflow-hidden transition-all duration-300 mt-1"
-              :class="{ 'max-h-0': !queryFilterOpen, 'max-h-[1000px] overflow-auto': queryFilterOpen }"
-            >
-              <SmartsheetToolbarColumnFilter
-                v-if="filtersFromUrlParams.filters"
-                :key="route.query?.where"
-                ref="filterComp"
-                v-model="filtersFromUrlParams.filters"
-                v-model:is-open="open"
-                class="nc-query-filter readonly px-2 pb-2"
-                :auto-save="false"
-                :is-view-filter="false"
-                read-only
-                query-filter
-              >
-              </SmartsheetToolbarColumnFilter>
-
-              <div
-                v-else-if="filtersFromUrlParams?.errors?.length"
-                class="nc-error-alert rounded p-4 mx-2 mt-0 transition-margin duration-500 mt-1"
-                :class="{ 'mb-2': queryFilterOpen }"
-              >
-                <div class="flex gap-3">
-                  <GeneralIcon icon="ncAlertCircleFilled" class="text-orange-500 w-5 h-5 mt-0.5" />
-                  <div class="flex flex-col">
-                    <div class="nc-error-title font-semibold">Error</div>
-                    <span class="nc-error-msg">{{ $t('msg.urlFilterError') }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </template>
       </div>
     </template>
   </NcDropdown>

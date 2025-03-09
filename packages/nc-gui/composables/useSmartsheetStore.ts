@@ -59,16 +59,16 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     })
 
     const whereQueryFromUrlError = computed(() => {
-      if(route.value.query.where) {
-        return computedWhereFilter(route.value.query.where, aliasColObjMap.value, false)?.errors;
+      if (route.value.query.where) {
+        return extractFilterFromXwhere(route.value.query.where, aliasColObjMap.value, false)?.errors
       }
     })
     const whereQueryFromUrl = computed(() => {
-if(whereQueryFromUrlError.value) {
-        return null;
-}
+      if (whereQueryFromUrlError.value?.length) {
+        return;
+      }
 
-return route.value.query.where;
+      return route.value.query.where;
     });
 
     const xWhere = computed(() => {

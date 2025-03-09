@@ -116,14 +116,10 @@ const combinedFilterLength = computed(() => {
               $t('activity.filter')
             }}</span>
           </div>
-          <span v-if="filtersLength" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ filtersLength }}</span>
 
-          <!--    show a warning icon with tooltip if query filter error is there -->
-          <template v-if="filtersFromUrlParams?.errors?.length">
-            <NcTooltip :title="filtersFromUrlParams.errors?.[0]?.message" placement="top">
-              <GeneralIcon icon="ncAlertCircle" class="text-orange-500 w-3.5" />
-            </NcTooltip>
-          </template>
+          <span v-if="combinedFilterLength" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{
+            combinedFilterLength
+          }}</span>
         </div>
       </NcButton>
     </NcTooltip>
@@ -144,7 +140,7 @@ const combinedFilterLength = computed(() => {
         <template v-if="filtersFromUrlParams">
           <a-divider class="!my-1" />
           <div class="px-2 pb-2">
-            <div class="p-2 leading-5 font-semibold mb-3 inline-flex gap-2">
+            <div class="p-2 leading-5 font-semibold inline-flex gap-2 w-full items-center" :class="{ 'pb-0': !queryFilterOpen }">
               {{ $t('title.urlFilters') }}
               <div
                 v-if="filtersFromUrlParams?.filters?.length"
@@ -154,40 +150,49 @@ const combinedFilterLength = computed(() => {
               </div>
 
               <div>
-                <NuxtLink
-                  to="https://docs.nocodb.com/category/table-operations/"
-                  class="text-nc-content-gray-muted"
-                  no-prefetch
-                  no-rel
-                  target="_blank"
+                <NcTooltip
+                  title="URL filters are applied from URL parameters and combine with view filters set via the toolbar."
+                  placement="top"
                 >
                   <GeneralIcon icon="ncInfo" class="text-gray w-4 h-4" />
-                </NuxtLink>
+                </NcTooltip>
+              </div>
+              <div class="flex-grow" />
+              <GeneralIcon
+                icon="ncChevronDown"
+                class="transition-all cursor-pointer w-4 h-4"
+                :class="{ 'transform rotate-180': queryFilterOpen }"
+                @click="queryFilterOpen = !queryFilterOpen"
+              />
+            </div>
+            <div
+              class="overflow-hidden transition-all duration-300 mt-1"
+              :class="{ 'max-h-0': !queryFilterOpen, 'max-h-[1000px] overflow-auto': queryFilterOpen }"
+            >
+              <SmartsheetToolbarColumnFilter
+                v-if="filtersFromUrlParams.filters"
+                :key="route.query?.where"
+                ref="filterComp"
+                v-model="filtersFromUrlParams.filters"
+                v-model:is-open="open"
+                class="nc-query-filter readonly px-2 pb-2"
+                :auto-save="false"
+                :is-view-filter="false"
+                read-only
+                query-filter
+              >
+              </SmartsheetToolbarColumnFilter>
+
+              <div v-else-if="filtersFromUrlParams?.errors?.length" class="nc-error-alert rounded p-4">
+                <div class="flex gap-3">
+                  <GeneralIcon icon="ncAlertCircleFilled" class="text-orange-500 w-5 h-5 mt-0.5" />
+                  <div class="flex flex-col">
+                    <div class="nc-error-title font-semibold">Error</div>
+                    <span class="nc-error-msg">{{ $t('msg.urlFilterError') }}</span>
+                  </div>
+                </div>
               </div>
             </div>
-
-            <SmartsheetToolbarColumnFilter
-              v-if="filtersFromUrlParams.filters"
-              :key="route.query?.where"
-              ref="filterComp"
-              v-model="filtersFromUrlParams.filters"
-              v-model:is-open="open"
-              class="px-2 pb-2"
-              :auto-save="false"
-              :is-view-filter="false"
-              read-only
-              query-filter
-            >
-            </SmartsheetToolbarColumnFilter>
-
-            <a-alert v-else-if="filtersFromUrlParams?.errors?.length" type="warning !mx-2 !mb-2">
-              <template #message>
-                <div class="flex flex-row items-center gap-3">
-                  <GeneralIcon icon="ncAlertCircle" class="text-orange-500 w-6 h-6" />
-                  <span class="font-weight-bold">{{ filtersFromUrlParams.errors?.[0]?.message }}</span>
-                </div>
-              </template>
-            </a-alert>
           </div>
         </template>
       </div>
@@ -197,11 +202,8 @@ const combinedFilterLength = computed(() => {
 
 <style lang="scss">
 .nc-query-filter.readonly .nc-cell-field,
-.nc-query-filter.readonly {
-  input,
-  .text-nc-content-gray-muted {
-    @apply !text-gray-400;
-  }
+.nc-query-filter.readonly * {
+  @apply !text-gray-400;
 }
 </style>
 
@@ -219,17 +221,5 @@ const combinedFilterLength = computed(() => {
     font-size: 16px;
     line-height: 24px;
   }
-}
-
-.nc-error-icon {
-  color: var(--nc-content-red-dark);
-}
-
-.nc-info-icon {
-  color: var(--nc-content-grey-muted);
-}
-
-.nc-chevron-icon {
-  color: var(--nc-content-grey-subtle);
 }
 </style>

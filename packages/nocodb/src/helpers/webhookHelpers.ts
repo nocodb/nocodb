@@ -418,6 +418,8 @@ export function constructWebHookData(
   if (['v2', 'v3'].includes(hook.version)) {
     // extend in the future - currently only support records
     const scope = 'records';
+    const isBulkInsert =
+      hook.version === 'v2' && (hook.operation as any) === 'bulkInsert';
 
     // Check for include_user in notification object first, fall back to hook.include_user for backward compatibility
     const includeUser = parseMetaProp(hook, 'notification')?.include_user;
@@ -437,9 +439,9 @@ export function constructWebHookData(
         ...(prevData && {
           previous_rows: Array.isArray(prevData) ? prevData : [prevData],
         }),
-        ...(hook.operation !== 'bulkInsert' &&
+        ...(!isBulkInsert &&
           newData && { rows: Array.isArray(newData) ? newData : [newData] }),
-        ...(hook.operation === 'bulkInsert' && {
+        ...(isBulkInsert && {
           rows_inserted: Array.isArray(newData)
             ? newData.length
             : newData

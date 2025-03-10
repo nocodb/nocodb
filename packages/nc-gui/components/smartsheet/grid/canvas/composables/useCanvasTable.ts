@@ -171,7 +171,7 @@ export function useCanvasTable({
 
   const isDataEditAllowed = computed(() => isUIAllowed('dataEdit') && !isSqlView.value)
 
-  const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd') && !isSqlView.value)
+  const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd'))
 
   const isRowDraggingEnabled = computed(
     () => !selectedRows.value.length && isOrderColumnExists.value && !isRowReorderDisabled.value && !vSelectedAllRecords.value,

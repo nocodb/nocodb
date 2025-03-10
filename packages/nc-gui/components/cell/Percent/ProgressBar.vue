@@ -14,14 +14,14 @@ const labelMarginLeft = computed<number>(() => {
 <template>
   <div
     tabindex="0"
-    class="flex h-full w-full progress-container"
-    style="align-self: stretch; justify-self: stretch"
+    class="flex w-full progress-container min-h-[4px]"
+    style="align-self: stretch; justify-self: stretch; height: 100%"
     @focus="onFocus"
   >
-    <div class="input">
+    <div class="progress-bar-input">
       <slot></slot>
     </div>
-    <div class="h-full w-full progress-bar flex" style="align-self: stretch; border-radius: 9999px; overflow: hidden">
+    <div class="w-full progress-bar flex" style="align-self: stretch; border-radius: 9999px; overflow: hidden">
       <div style="align-self: stretch; background-color: #3366ff" :style="{ width: `${cPercentage}%` }"></div>
       <div style="align-self: stretch; background-color: #e5e5e5" :style="{ width: `${100 - cPercentage}%` }"></div>
       <template v-if="isShowNumber">
@@ -51,7 +51,7 @@ const labelMarginLeft = computed<number>(() => {
 </template>
 
 <style lang="scss" scoped>
-.progress-container:not(:focus-within) > div.input:not(:focus-within) {
+.progress-container:not(:focus-within) > div.progress-bar-input:not(:focus-within) {
   visibility: collapse;
   display: none;
 }

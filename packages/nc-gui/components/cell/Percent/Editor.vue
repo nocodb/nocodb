@@ -76,7 +76,7 @@ const onContainerFocus = ($event) => {
   $event?.target?.querySelector('input').focus()
 }
 onMounted(() => {
-  if (isCanvasInjected && (!isExpandedFormOpen.value || localEditEnabled.value) && !isEditColumn.value && !isForm.value) {
+  if (isCanvasInjected || (!isEditColumn.value && !isForm.value)) {
     inputRef.value?.focus()
     if (isExpandedFormOpen.value) {
       inputRef.value?.select()
@@ -87,7 +87,10 @@ onMounted(() => {
 
 <template>
   <CellPercentProgressBar
-    v-if="(col.meta as any).is_progress"
+    v-if="(col.meta as any).is_progress && (isForm)"
+    :style="{
+      ...(isForm && { 'min-height': '18px' }),
+    }"
     :is-show-number="true"
     :on-focus="onContainerFocus"
     :percentage="vModelNumber"
@@ -96,7 +99,7 @@ onMounted(() => {
     <input
       :ref="focus"
       v-model="vModel"
-      class="nc-cell-field w-full !border-none !outline-none focus:ring-0 py-1"
+      class="nc-cell-field w-full !border-none !outline-none focus:ring-0 py-1 min-h-[18px]"
       :type="inputType"
       :placeholder="placeholder"
       :disabled="readOnly"

@@ -20,7 +20,7 @@ const isOpen = useVModel(props, 'isOpen', emit)
 const column = toRef(props, 'column')
 provide(ColumnInj, column)
 
-const { eventBus, allFilters } = useSmartsheetStoreOrThrow()
+const { eventBus, allFilters, isSqlView } = useSmartsheetStoreOrThrow()
 
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
@@ -402,17 +402,20 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
 }
 
 const isColumnUpdateAllowed = computed(() => {
-  if (isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column.value?.uidt)) return false
+  if ((isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column.value?.uidt)) || isSqlView.value) return false
   return true
 })
 
 const isColumnEditAllowed = computed(() => {
   if (
-    isMetaReadOnly.value &&
-    !readonlyMetaAllowedTypes.includes(column.value?.uidt) &&
-    !partialUpdateAllowedTypes.includes(column.value?.uidt)
-  )
+    (isMetaReadOnly.value &&
+      !readonlyMetaAllowedTypes.includes(column.value?.uidt) &&
+      !partialUpdateAllowedTypes.includes(column.value?.uidt)) ||
+    isSqlView.value
+  ) {
     return false
+  }
+
   return true
 })
 
@@ -467,6 +470,7 @@ const onDeleteColumn = () => {
       v-if="isUIAllowed('fieldAlter')"
       message="Field properties cannot be edited."
       :enabled="!isColumnEditAllowed"
+      :is-sql-view="isSqlView"
     >
       <NcMenuItem
         :disabled="column?.pk || isSystemColumn(column) || !isColumnEditAllowed || linksAssociated?.length"
@@ -485,8 +489,9 @@ const onDeleteColumn = () => {
         v-if="!column?.pk"
         message="Field cannot be duplicated."
         :enabled="!isDuplicateAllowed && isMetaReadOnly"
+        :is-sql-view="isSqlView"
       >
-        <NcMenuItem :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
+        <NcMenuItem :disabled="!isDuplicateAllowed || isSqlView" @click="openDuplicateDlg">
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
             <component :is="iconMap.duplicate" class="opacity-80" />
             <!-- Duplicate -->
@@ -499,7 +504,7 @@ const onDeleteColumn = () => {
         message="Field cannot be duplicated."
         :enabled="!isDuplicateAllowed"
       >
-        <NcMenuItem :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
+        <NcMenuItem :disabled="!isDuplicateAllowed || isSqlView" @click="openDuplicateDlg">
           <div v-e="['a:field:duplicate']" class="nc-column-duplicate nc-header-menu-item">
             <component :is="iconMap.duplicate" class="opacity-80" />
             <!-- Duplicate -->
@@ -519,14 +524,18 @@ const onDeleteColumn = () => {
         {{ $t('labels.changeDisplayValueField') }}
       </div>
     </NcMenuItem>
-    <NcMenuItem v-if="isUIAllowed('fieldAlter')" title="Add field description" @click="onEditPress($event, true)">
+    <NcMenuItem v-if="isUIAllowed('fieldAlter') && !isSqlView" title="Add field description" @click="onEditPress($event, true)">
       <div class="nc-column-edit-description nc-header-menu-item">
         <GeneralIcon icon="ncAlignLeft" class="opacity-80 !w-4.25 !h-4.25" />
         {{ $t('labels.editDescription') }}
       </div>
     </NcMenuItem>
 
-    <NcMenuItem v-if="[UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)" @click="openLookupMenuDialog">
+    <NcMenuItem
+      v-if="[UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)"
+      :disabled="isSqlView"
+      @click="openLookupMenuDialog"
+    >
       <div v-e="['a:field:lookup:create']" class="nc-column-lookup-create nc-header-menu-item">
         <component :is="iconMap.cellLookup" class="opacity-80 !w-4.5 !h-4.5" />
         {{ t('general.addLookupField') }}
@@ -645,28 +654,30 @@ const onDeleteColumn = () => {
           </div>
         </NcMenuItem>
       </NcTooltip>
-
-      <NcDivider />
-      <NcMenuItem @click="onInsertAfter">
-        <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
-          <component :is="iconMap.colInsertAfter" class="opacity-80 w-4 h-4" />
-          <!-- Insert After -->
-          {{ t('general.insertAfter') }}
-        </div>
-      </NcMenuItem>
-      <NcMenuItem v-if="!column?.pv" @click="onInsertBefore">
-        <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
-          <component :is="iconMap.colInsertBefore" class="opacity-80 w-4 h-4" />
-          <!-- Insert Before -->
-          {{ t('general.insertBefore') }}
-        </div>
-      </NcMenuItem>
+      <template v-if="!isSqlView">
+        <NcDivider />
+        <NcMenuItem @click="onInsertAfter">
+          <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">
+            <component :is="iconMap.colInsertAfter" class="opacity-80 w-4 h-4" />
+            <!-- Insert After -->
+            {{ t('general.insertAfter') }}
+          </div>
+        </NcMenuItem>
+        <NcMenuItem v-if="!column?.pv" @click="onInsertBefore">
+          <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
+            <component :is="iconMap.colInsertBefore" class="opacity-80 w-4 h-4" />
+            <!-- Insert Before -->
+            {{ t('general.insertBefore') }}
+          </div>
+        </NcMenuItem>
+      </template>
     </template>
     <NcDivider v-if="!column?.pv" />
     <GeneralSourceRestrictionTooltip
       v-if="!column?.pv && isUIAllowed('fieldDelete')"
       message="Field cannot be deleted."
       :enabled="!isColumnUpdateAllowed"
+      :is-sql-view="isSqlView"
     >
       <NcMenuItem
         :disabled="!isDeleteAllowed || !isColumnUpdateAllowed || linksAssociated?.length"

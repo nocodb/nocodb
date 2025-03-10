@@ -27,10 +27,6 @@ const isOpen = ref<boolean>(false)
 
 const isSqlView = computed(() => (activeTable.value as TableType)?.type === 'view')
 
-watchEffect(() => {
-  console.log('isSqlView', isSqlView.value)
-})
-
 const activeSource = computed(() => {
   return base.value.sources?.find((s) => s.id === activeView.value?.source_id)
 })

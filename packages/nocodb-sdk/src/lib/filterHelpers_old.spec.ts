@@ -22,7 +22,6 @@ export const testExtractFilterFromXwhere = (
             uidt: UITypes.SingleLineText,
           },
         };
-
         const result = extractFilterFromXwhere(query, columnAlias);
         expect(result.filters).toBeDefined();
         expect(result.filters.length).toBe(1);
@@ -197,7 +196,9 @@ export const testExtractFilterFromXwhere = (
             },
           };
 
-          expect(() => extractFilterFromXwhere(query, columnAlias)).toThrow();
+          expect(() =>
+            extractFilterFromXwhere(query, columnAlias, true)
+          ).toThrow();
         });
       });
 

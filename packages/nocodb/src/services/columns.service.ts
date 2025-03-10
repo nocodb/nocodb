@@ -1411,6 +1411,40 @@ export class ColumnsService implements IColumnsService {
           }
         }
 
+        // handle trim single select value
+        if (
+          column.uidt !== UITypes.SingleSelect &&
+          colBody.uidt === UITypes.SingleSelect
+        ) {
+          if (driverType === 'mssql') {
+            await sqlClient.raw(
+              `UPDATE ??
+               SET ?? = LTRIM(RTRIM(??))
+               WHERE ?? <> LTRIM(RTRIM(??))`,
+              [
+                baseModel.getTnPath(table.table_name),
+                column.column_name,
+                column.column_name,
+                column.column_name,
+                column.column_name,
+              ],
+            );
+          } else {
+            await sqlClient.raw(
+              `UPDATE ??
+               SET ?? = TRIM(??)
+               WHERE ?? <> TRIM(??)`,
+              [
+                baseModel.getTnPath(table.table_name),
+                column.column_name,
+                column.column_name,
+                column.column_name,
+                column.column_name,
+              ],
+            );
+          }
+        }
+
         // Update value in filters that reference this column
         const filters = await Filter.getFiltersByColumn(context, column.id);
 

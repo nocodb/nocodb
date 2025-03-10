@@ -382,6 +382,7 @@ const calculateGroupSlices = () => {
 
   // Calculate estimated start index based on scroll position
   const itemHeight = GROUP_HEADER_HEIGHT + GROUP_PADDING
+
   const startIndex = Math.max(0, Math.floor(_scrollTop / itemHeight))
 
   // Calculate how many items can fit in viewport plus buffer
@@ -393,10 +394,8 @@ const calculateGroupSlices = () => {
 
   // Update group slice if changed
   if (startIndex !== groupSlice.value.start || endIndex !== groupSlice.value.end) {
-    groupSlice.value = {
-      start: Math.max(0, startIndex - bufferSize),
-      end: endIndex,
-    }
+    groupSlice.value = { start: Math.max(0, startIndex - bufferSize), end: endIndex }
+    fetchMissingGroupChunks(startIndex, endIndex)
   }
 
   // Handle column virtualization
@@ -425,30 +424,28 @@ const calculateGroupSlices = () => {
 const totalHeight = computed(() => {
   // For non-grouped view, use original calculation
   if (!isGroupBy.value) {
-    const rowsHeight = totalRows.value * rowHeight.value
-    const headerHeight = 32
-    return rowsHeight + headerHeight + 256
+    return totalRows.value * rowHeight.value + 32 + 256
   }
 
-  // For grouped view
-  let height = 32
+  function estimateTotalHeight(groups: Map<number, CanvasGroup>, level: number): number {
+    // Add height for all top-level groups
 
-  // Add height for all top-level groups
-  height += totalGroups.value * (GROUP_HEADER_HEIGHT + GROUP_PADDING)
-
-  // Add height for each expanded group's contents
-  for (const [_, group] of cachedGroups.value) {
-    if (group.isExpanded) {
-      // For leaf groups (with rows)
-      if (group.infiniteData) {
-        height += group.count * rowHeight.value
-      } else {
-        // Do nested groups check
+    let h = totalGroups.value * (GROUP_HEADER_HEIGHT + GROUP_PADDING)
+    // Add height for each expanded group's contents
+    for (const [, group] of groups) {
+      if (group.isExpanded) {
+        // For leaf groups (with rows)
+        if (group.infiniteData) {
+          h += group.count * rowHeight.value
+        } else if (group.groups.size > 0) {
+          // Do nested groups check
+          h += estimateTotalHeight(group.groups, level + 1)
+        }
       }
     }
+    return h
   }
-
-  return height + 256 // Additional padding
+  return estimateTotalHeight(cachedGroups.value, 0) + 32 + 256 // Additional padding
 })
 
 const isContextMenuOpen = computed({

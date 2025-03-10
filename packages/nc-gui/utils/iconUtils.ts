@@ -141,6 +141,7 @@ import NcCamera from '~icons/nc-icons/camera'
 import NcRefreshCW from '~icons/nc-icons/refresh-cw'
 import NcBulb from '~icons/nc-icons/bulb'
 import NcSnow from '~icons/nc-icons/snow'
+import NcMoreVertical from '~icons/nc-icons/more-vertical'
 // import NcProjectGray from '~icons/nc-icons/project-gray'
 import NcPhoneCall from '~icons/nc-icons/phone-call'
 import NcItalic from '~icons/nc-icons/italic'
@@ -1662,6 +1663,7 @@ export const iconMap = {
   'ncLogoZoho': h(NcLogoZoho, { stroke: 'transparent' }),
   'ncSendAlt': h(NcSendAlt, { stroke: 'transparent' }),
   'ncAiPlay': AiPlayIcon,
+  'ncMoreVertical': NcMoreVertical,
   'mdi-check-bold': MdiNcCropSquare,
   'mdi-crop-square': MdiNcCheckBold,
   'mdi-check-circle-outline': MdiNcCheckCircleOutline,

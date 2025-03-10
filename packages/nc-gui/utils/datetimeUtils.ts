@@ -58,6 +58,16 @@ export const hookLogFormatter = (date: string) => {
   return date && dayjs(date).format('YYYY-MM-DD HH:mm:ss')
 }
 
+/**
+ * Attempts to parse a date string using several common date formats.
+ *
+ * Iterates through a set of predefined date formats and uses strict parsing via the dayjs library.
+ * Returns the first valid dayjs object corresponding to a matching format.
+ * If the date string does not match any of the supported formats, the function returns undefined.
+ *
+ * @param dateString - The date string to be parsed.
+ * @returns A dayjs object for the parsed date if a matching format is found; otherwise, undefined.
+ */
 export function parseFlexibleDate(dateString: string) {
   const formats = ['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY/MM/DD', 'DD-MM-YYYY', 'MM-DD-YYYY', 'YYYY-MM-DD']
 

@@ -33,7 +33,7 @@ describe('filterHelpers_withparser_specific', () => {
         expect(result).toBeDefined();
         expect(result.filters).toBeDefined();
         expect(result.filters.length).toBe(1);
-        expect(result[0].children?.[1].logical_op).toBe('and');
+        expect(result.filters[0].children?.[1].logical_op).toBe('and');
       });
       it('will parse nested logical query', () => {
         // isWithin need to have specific suboperator :|

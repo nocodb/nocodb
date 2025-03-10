@@ -511,6 +511,7 @@
     "isNotNull": "がNULLでない"
   },
   "title": {
+    "urlFilters": "URL Filters",
     "creatingScript": "スクリプトの作成",
     "searchWebhook": "ウェブフックを検索",
     "webcam": "ウェブカメラ",
@@ -1526,6 +1527,7 @@
     "lockViewDescription": "ロックする理由を説明してください。このメッセージは、誰かがこのビューのロックを解除しようとしたときに表示されます（任意）。"
   },
   "msg": {
+    "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "ここにドキュメントをドロップしてください",
     "airtableImportSuccess": "Airtableベースから正常にインポートしました。",
     "nocoDBImportSuccess": "NocoDBプロジェクトから正常にインポートしました。",

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { type ColumnReqType, type ColumnType, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
-import { UITypes, UITypesName } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
+import { UITypes, UITypesName, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 
 interface Props {
   column: ColumnType
@@ -41,6 +41,8 @@ provide(ColumnInj, column)
 const editColumnDropdown = ref(false)
 
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
+
+const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
 
 const columnTypeName = computed(() => {
   if (column.value.uidt === UITypes.LongText) {
@@ -87,7 +89,9 @@ const isColumnEditAllowed = computed(() => {
 })
 
 const openHeaderMenu = (e?: MouseEvent, description = false) => {
-  if ((isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
+  if ((isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value || isSqlView.value) {
+    return
+  }
 
   if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value && (isColumnEditAllowed.value || description)) {
     if (description) {

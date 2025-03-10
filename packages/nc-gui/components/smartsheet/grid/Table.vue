@@ -165,7 +165,7 @@ const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${pro
 
 // #Permissions
 const { isUIAllowed, isDataReadOnly } = useRoles()
-const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
+const hasEditPermission = computed(() => isUIAllowed('dataEdit') && !isSqlView.value)
 const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
 const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
@@ -1474,7 +1474,8 @@ const showFillHandle = computed(
     !isViewDataLoading.value &&
     !isPaginationLoading.value &&
     dataRef.value.length &&
-    !selectedReadonly.value,
+    !selectedReadonly.value &&
+    !isSqlView.value,
 )
 
 watch(

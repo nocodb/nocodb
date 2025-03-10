@@ -47,6 +47,7 @@ const {
   loadRelatedTableMeta,
   attachmentCol,
   fields,
+  refreshCurrentRow,
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
@@ -111,6 +112,7 @@ watch(
   vModel,
   (nextVal, prevVal) => {
     if (nextVal && !prevVal) {
+      refreshCurrentRow()
       /** reset query and limit */
       childrenExcludedListPagination.query = ''
       childrenExcludedListPagination.page = 1

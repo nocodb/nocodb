@@ -15,6 +15,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     isNewRow: ComputedRef<boolean> | Ref<boolean>,
     _reloadData = (_params: { shouldShowLoading?: boolean }) => {},
   ) => {
+    // when initialized by link popup dialog, keep current row
+    // to avoid being changed by sort or filter
+    const currentRow = ref(row.value)
+
+    const refreshCurrentRow = () => {
+      currentRow.value = row.value
+    }
+
     // state
     const { metas, getMeta } = useMetas()
 
@@ -94,7 +102,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return metas.value?.[colOptions.value?.fk_related_model_id as string]
     })
 
-    const rowId = computed(() => extractPkFromRow(row.value.row, meta.value.columns))
+    const rowId = computed(() => extractPkFromRow(currentRow.value.row, meta.value.columns))
 
     const getRelatedTableRowId = (row: Record<string, any>) => {
       return extractPkFromRow(row, relatedTableMeta.value?.columns)
@@ -762,6 +770,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       resetChildrenListOffsetCount,
       attachmentCol,
       fields,
+      refreshCurrentRow,
     }
   },
   'ltar-store',

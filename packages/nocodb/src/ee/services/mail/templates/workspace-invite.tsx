@@ -31,26 +31,25 @@ export const WorkspaceInvite = ({
   <Html>
     <RootWrapper>
       <Head />
-      <Preview>You have been invited</Preview>
+      <Preview>You’ve been invited to a Workspace</Preview>
       <Body className="bg-white">
         <ContentWrapper>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
-            You’ve been invited
+            You’ve been invited to a Workspace
           </Heading>
           <Section className="py-6 mx-auto font-bold text-center text-gray-900 text-base">
             {workspaceTitle}
           </Section>
           <Text className="text-gray-600 text-center text-sm !mt-0 !mb-6">
             <span className="font-bold text-gray-800">{name}</span> ({email})
-            has invited you to join{' '}
-            <span className="font-bold text-gray-800">{workspaceTitle}</span>.
-            Click on ‘Accept invite’ to join.
+            has invited you to join workspace
+            <span className="font-bold text-gray-800"> {workspaceTitle} </span>.
           </Text>
           <Button
             className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10"
             href={link}
           >
-            <Text className="!my-[8px]"> Accept invite</Text>
+            <Text className="!my-[8px]"> Accept Workspace Invite</Text>
           </Button>
         </ContentWrapper>
         <Footer />

@@ -29,7 +29,8 @@ interface WorkspaceRoleUpdatePayload {
   workspace: WorkspaceType;
   user: UserType;
   req: NcRequest;
-  role: WorkspaceUserRoles;
+  oldRole: WorkspaceUserRoles;
+  newRole: WorkspaceUserRoles;
 }
 
 type MailParams =

@@ -18,9 +18,7 @@ import {
 interface MentionRowTemplateProps {
   name: string;
   email: string;
-  tableTitle: string;
   link: string;
-  workspaceTitle: string;
   baseTitle: string;
 }
 
@@ -28,9 +26,7 @@ export const MentionRow = ({
   name,
   email,
   baseTitle,
-  tableTitle,
   link,
-  workspaceTitle,
 }: MentionRowTemplateProps) => (
   <Html>
     <RootWrapper>
@@ -43,17 +39,14 @@ export const MentionRow = ({
           </Heading>
           <Section className="py-6 text-center">
             <span className="font-bold text-gray-900 text-base">
-              {workspaceTitle}
-            </span>
-            <span className="px-2 text-gray-700">/</span>
-            <span className="font-bold text-gray-900 text-base">
               {baseTitle}
             </span>
           </Section>
           <Text className="text-gray-600 text-center !mb-6 text-sm !mt-0">
-            {name} ({email}) has mentioned you in a record in the{' '}
-            <span className="font-semibold text-gray-800">{tableTitle}</span>{' '}
-            table.
+            <span className="font-bold text-gray-800">{`${name} `}</span>(
+            {email}) has mentioned you in a record in
+            <span className="font-semibold text-gray-800"> {baseTitle} </span>
+            base.
           </Text>
           <Button
             className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10"
@@ -71,9 +64,7 @@ export const MentionRow = ({
 MentionRow.PreviewProps = {
   name: 'John Doe',
   email: 'johnsnow@nocodb.com',
-  tableTitle: 'Table Title',
   link: 'https://nocodb.com',
-  workspaceTitle: 'Workspace Title',
   baseTitle: 'Base Title',
 };
 

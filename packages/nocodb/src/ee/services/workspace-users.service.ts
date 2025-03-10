@@ -163,8 +163,9 @@ export class WorkspaceUsersService {
         payload: {
           workspace,
           user,
+          oldRole: workspaceUser.roles as WorkspaceUserRoles,
           req: param.req,
-          role: param.roles,
+          newRole: param.roles,
         },
       })
       .then(() => {

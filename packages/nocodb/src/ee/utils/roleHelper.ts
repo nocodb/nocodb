@@ -47,6 +47,24 @@ export function getProjectRolePower(user: any) {
   return ind;
 }
 
+export function getProjectRole(user) {
+  if (!user.base_roles) {
+    return null;
+  }
+
+  // get most powerful role of user (TODO moving forward we will confirm that user has only one role)
+  let role = null;
+  let power = -1;
+  for (const r of Object.keys(user.base_roles)) {
+    const ind = OrderedProjectRoles.indexOf(r as ProjectRoles);
+    if (ind > power) {
+      role = r;
+      power = ind;
+    }
+  }
+
+  return role;
+}
 export function getWorkspaceRolePower(user: any) {
   const reverseOrderedWorkspaceRoles = [...OrderedWorkspaceRoles].reverse();
 

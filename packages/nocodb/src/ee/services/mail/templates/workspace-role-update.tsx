@@ -1,11 +1,13 @@
 import {
   Body,
   Button,
+  Column,
   Head,
   Heading,
   Html,
   Img,
   Preview,
+  Row,
   Section,
   Text,
 } from '@react-email/components';
@@ -20,7 +22,8 @@ import { NC_EMAIL_ASSETS_BASE_URL } from '~/constants';
 
 interface WorkspaceRoleUpdateTemplateProps {
   workspaceTitle: string;
-  role: string;
+  oldRole: string;
+  newRole: string;
   name: string;
   email: string;
   link: string;
@@ -28,7 +31,8 @@ interface WorkspaceRoleUpdateTemplateProps {
 
 export const WorkspaceRoleUpdate = ({
   workspaceTitle,
-  role,
+  oldRole,
+  newRole,
   name,
   email,
   link,
@@ -36,7 +40,7 @@ export const WorkspaceRoleUpdate = ({
   <Html>
     <RootWrapper>
       <Head />
-      <Preview>Your workspace role has been updated</Preview>
+      <Preview>Your Workspace role has been updated</Preview>
       <Body className="bg-white">
         <ContentWrapper>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
@@ -48,18 +52,30 @@ export const WorkspaceRoleUpdate = ({
             </span>
           </Section>
           <Section className="pb-6 text-center">
-            <Img
-              src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${role}.png`}
-              alt={role}
-              className="h-7 mx-auto"
-            />
+            <Row>
+              <Column className="flex max-w-[210px] mx-auto">
+                <Img
+                  src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${oldRole}.png`}
+                  alt={oldRole}
+                  className="h-7"
+                />
+                <Img
+                  src={`${NC_EMAIL_ASSETS_BASE_URL}/icons/arrow-right.png`}
+                  alt="Arrow Right"
+                  className="h-5 mt-1 ml-2"
+                />
+                <Img
+                  src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${newRole}.png`}
+                  alt={newRole}
+                  className="h-7 ml-2"
+                />
+              </Column>
+            </Row>
           </Section>
           <Text className="text-gray-600 text-center text-sm !mt-0 !mb-6">
-            Your access in
-            <span className="font-bold text-gray-800"> {workspaceTitle} </span>
-            has been updated to
-            <span className="font-bold text-gray-800 capitalize"> {role} </span>
-            by <span className="font-bold text-gray-800">{name}</span> ({email})
+            <span className="font-bold text-gray-800">{name}</span> ({email})
+            has updated your access in workspace
+            <span className="font-bold text-gray-800"> {workspaceTitle}. </span>
           </Text>
           <Button
             className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10"
@@ -76,7 +92,8 @@ export const WorkspaceRoleUpdate = ({
 
 WorkspaceRoleUpdate.PreviewProps = {
   workspaceTitle: 'Workspace Title',
-  role: 'editor',
+  oldRole: 'editor',
+  newRole: 'creator',
   name: 'John Doe',
   email: 'john@nocodb.com',
   link: 'https://nocodb.com',

@@ -39,7 +39,8 @@ interface BaseRoleUpdatePayload {
   base: BaseType;
   user: UserType;
   req: NcRequest;
-  role: ProjectRoles;
+  oldRole: ProjectRoles;
+  newRole: ProjectRoles;
 }
 
 interface BaseInvitePayload {
@@ -74,7 +75,8 @@ interface OrganizationInvitePayload {
 interface OrganizationRoleUpdatePayload {
   user: UserType;
   req: NcRequest;
-  role: OrgUserRoles;
+  oldRole: OrgUserRoles;
+  newRole: OrgUserRoles;
 }
 
 interface FormSubmissionPayload {

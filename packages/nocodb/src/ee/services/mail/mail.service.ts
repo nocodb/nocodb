@@ -45,7 +45,7 @@ export class MailService extends MailServiceCE {
 
             await mailerAdapter.mailSend({
               to: mentionedUser.email,
-              subject: `New comment on ${table.title}`,
+              subject: `You have been mentioned`,
               html: await this.renderMail('Mention', {
                 name: extractDisplayNameFromEmail(
                   user.email,
@@ -59,7 +59,6 @@ export class MailService extends MailServiceCE {
                   rowId,
                   commentId: comment.id,
                 }),
-                workspaceTitle: workspace.title,
                 baseTitle: base.title,
               }),
             });
@@ -93,13 +92,11 @@ export class MailService extends MailServiceCE {
 
           await mailerAdapter.mailSend({
             to: mentionedUser.email,
-            subject: `You have been mentioned on ${table.title}`,
+            subject: `You have been mentioned`,
             html: await this.renderMail('MentionRow', {
               name: extractDisplayNameFromEmail(user.email, user.display_name),
               email: user.email,
-              tableTitle: table.title,
               baseTitle: base.title,
-              workspaceTitle: workspace.title,
               link: this.buildUrl(req, {
                 workspaceId: workspace.id,
                 baseId: base.id,
@@ -112,34 +109,6 @@ export class MailService extends MailServiceCE {
         }
         break;
       }
-      case MailEvent.BASE_ROLE_UPDATE: {
-        const {
-          payload: { base, user, req, role },
-        } = params;
-
-        const invitee = req.user;
-        const workspace = await Workspace.get(base.fk_workspace_id);
-
-        await mailerAdapter.mailSend({
-          to: user.email,
-          subject: `Your role has been updated in ${base.title}`,
-          html: await this.renderMail('BaseRoleUpdate', {
-            baseTitle: base.title,
-            workspaceTitle: workspace.title,
-            name: extractDisplayNameFromEmail(
-              invitee.email,
-              invitee.display_name,
-            ),
-            email: invitee.email,
-            link: this.buildUrl(req, {
-              workspaceId: workspace.id,
-              baseId: base.id,
-            }),
-            role: RoleLabels[role],
-          }),
-        });
-        break;
-      }
       case MailEvent.WORKSPACE_INVITE: {
         const {
           payload: { workspace, user, req, token },
@@ -149,7 +118,7 @@ export class MailService extends MailServiceCE {
 
         await mailerAdapter.mailSend({
           to: user.email,
-          subject: `You have been invited to ${workspace.title}`,
+          subject: `You’ve been invited to a Workspace`,
           html: await this.renderMail('WorkspaceInvite', {
             workspaceTitle: workspace.title,
             name: extractDisplayNameFromEmail(
@@ -167,17 +136,18 @@ export class MailService extends MailServiceCE {
       }
       case MailEvent.WORKSPACE_ROLE_UPDATE: {
         const {
-          payload: { workspace, user, req, role },
+          payload: { workspace, user, req, oldRole, newRole },
         } = params;
 
         const invitee = req.user;
 
         await mailerAdapter.mailSend({
           to: user.email,
-          subject: `Your role has been updated in ${workspace.title}`,
+          subject: `Your Workspace role has been updated`,
           html: await this.renderMail('WorkspaceRoleUpdate', {
             workspaceTitle: workspace.title,
-            role: RoleLabels[role],
+            newRole: RoleLabels[newRole],
+            oldRole: RoleLabels[oldRole],
             name: extractDisplayNameFromEmail(
               invitee.email,
               invitee.display_name,

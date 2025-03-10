@@ -46,6 +46,7 @@ export class OrgUsersService {
     // todo: better typing
     user: Partial<UserType>;
     userId: string;
+    req: NcRequest;
   }) {
     validatePayload('swagger.json#/components/schemas/OrgUserReq', param.user);
 
@@ -56,6 +57,16 @@ export class OrgUsersService {
     if (extractRolesObj(user.roles)[OrgUserRoles.SUPER_ADMIN]) {
       NcError.badRequest('Cannot update super admin roles');
     }
+
+    await this.mailService.sendMail({
+      mailEvent: MailEvent.ORGANIZATION_ROLE_UPDATE,
+      payload: {
+        req: param.req,
+        user,
+        newRole: param.user.roles as OrgUserRoles,
+        oldRole: user.roles as OrgUserRoles,
+      },
+    });
 
     return await User.update(param.userId, {
       ...updateBody,

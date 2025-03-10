@@ -19,7 +19,6 @@ interface MentionCommentTemplateProps {
   name: string;
   email: string;
   link: string;
-  workspaceTitle: string;
   baseTitle: string;
 }
 
@@ -28,7 +27,6 @@ export const MentionComment = ({
   email,
   link,
   baseTitle,
-  workspaceTitle,
 }: MentionCommentTemplateProps) => (
   <Html>
     <RootWrapper>
@@ -41,16 +39,14 @@ export const MentionComment = ({
           </Heading>
           <Section className="py-6 text-center">
             <span className="font-bold text-gray-900 text-base">
-              {workspaceTitle}
-            </span>
-            <span className="px-2 text-gray-700">/</span>
-            <span className="font-bold text-gray-900 text-base">
               {baseTitle}
             </span>
           </Section>
           <Text className="text-gray-600 text-center text-sm !mb-6 !mt-0">
-            {name} ({email}) has mentioned you in
-            <span className="font-semibold text-gray-800"> {baseTitle}</span>
+            <span className="font-bold text-gray-800">{`${name} `}</span>(
+            {email}) has mentioned you in a comment in
+            <span className="font-semibold text-gray-800"> {baseTitle} </span>
+            base.
           </Text>
           <Button
             className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10"
@@ -69,7 +65,6 @@ MentionComment.PreviewProps = {
   name: 'John Doe',
   email: 'john@nocodb.com',
   link: 'https://nocodb.com',
-  workspaceTitle: 'Workspace Title',
   baseTitle: 'Base Title',
 };
 

@@ -60,7 +60,7 @@ export class MailService {
 
     let url = req.ncSiteUrl;
 
-    url += req.dashboardUrl || dashboardPath;
+    url += dashboardPath;
 
     if (params.resetPassword) {
       url += `/auth/password/reset/${params.resetPassword}`;

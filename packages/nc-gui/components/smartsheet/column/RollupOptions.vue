@@ -54,7 +54,13 @@ const refTables = computed(() => {
         ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
           (c.colOptions as LinkToAnotherRecordType).type as RelationTypes,
         ) &&
-        !c.system &&
+        // exclude system columns
+        (!c.system ||
+          // include system columns if it's self-referencing, mm, oo and bt are self-referencing
+          // hm is only used for LTAR with junction table
+          [RelationTypes.MANY_TO_MANY, RelationTypes.ONE_TO_ONE, RelationTypes.BELONGS_TO].includes(
+            (c.colOptions as LinkToAnotherRecordType).type as RelationTypes,
+          )) &&
         c.source_id === meta.value?.source_id,
     )
     .map((c: ColumnType) => ({

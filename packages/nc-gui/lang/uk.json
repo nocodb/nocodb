@@ -511,6 +511,7 @@
     "isNotNull": "не рівне null"
   },
   "title": {
+    "urlFilters": "URL Filters",
     "creatingScript": "Creating Script",
     "searchWebhook": "Пошук веб-хука",
     "webcam": "Веб-камера",
@@ -1526,6 +1527,7 @@
     "lockViewDescription": "Поясніть, чому ви блокуєте цей вигляд. Це повідомлення буде показано, коли хтось спробує розблокувати цей вигляд (необов'язково)."
   },
   "msg": {
+    "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
     "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",

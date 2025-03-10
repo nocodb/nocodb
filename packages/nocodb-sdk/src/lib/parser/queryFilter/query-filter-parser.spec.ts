@@ -204,4 +204,38 @@ describe('query-filter-parser', () => {
     };
     expect(result.parsedCst).toEqual(expectedParsedCst);
   });
+  it('will parse null as null', async () => {
+    const text = '("field(1)",eq, null)';
+    const result = QueryFilterParser.parse(text);
+    const expectedParsedCst = {
+      is_group: true,
+      logical_op: 'and',
+      children: [
+        {
+          is_group: false,
+          field: 'field(1)',
+          comparison_op: 'eq',
+          value: null,
+        },
+      ],
+    };
+    expect(result.parsedCst).toEqual(expectedParsedCst);
+  });
+  it('will parse empty string as empty', async () => {
+    const text = `("field(1)",eq,'')`;
+    const result = QueryFilterParser.parse(text);
+    const expectedParsedCst = {
+      is_group: true,
+      logical_op: 'and',
+      children: [
+        {
+          is_group: false,
+          field: 'field(1)',
+          comparison_op: 'eq',
+          value: '',
+        },
+      ],
+    };
+    expect(result.parsedCst).toEqual(expectedParsedCst);
+  });
 });

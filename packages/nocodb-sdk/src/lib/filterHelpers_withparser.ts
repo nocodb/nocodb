@@ -143,7 +143,7 @@ function mapFilterGroupSubType(
     )
     .filter((k) => k);
   if (children.length === 1) {
-    return { filter: children[0].filter as FilterType };
+    return children[0];
   } else {
     return {
       filter: {
@@ -190,42 +190,36 @@ function handleDataTypes(
   throwErrorIfInvalid = false,
   errors: FilterParseError[] = []
 ): { filter?: FilterType; errors?: FilterParseError[] } {
+  if (filterType.value === null) {
+    return { filter: filterType };
+  }
   if (
     [
       UITypes.Date,
       UITypes.DateTime,
       UITypes.CreatedTime,
       UITypes.LastModifiedTime,
-    ].includes(column.uidt as UITypes)
+    ].includes(column.uidt as UITypes) &&
+    filterType.value
   ) {
-    if (!filterType.value) {
-      if (throwErrorIfInvalid)
-        throw new BadRequest(
-          `'' is not supported for '${filterType.comparison_op}'`
-        );
-      else {
-        errors.push({
-          message: `'' is not supported for '${filterType.comparison_op}'`,
-        });
-        return { errors };
-      }
-    }
     const [subOp, ...value] = Array.isArray(filterType.value)
       ? filterType.value
       : (filterType.value as string).split(',').map((k) => k.trim());
 
     filterType.comparison_sub_op = subOp as any;
     filterType.value = value.join('');
-    if (!COMPARISON_SUB_OPS.includes(filterType.comparison_sub_op)) {
-      if (throwErrorIfInvalid)
-        throw new BadRequest(
-          `'${filterType.comparison_sub_op}' is not supported.`
-        );
-      else {
-        errors.push({
-          message: `'${filterType.comparison_sub_op}' is not supported.`,
-        });
-        return { errors };
+    if (filterType.comparison_sub_op) {
+      if (!COMPARISON_SUB_OPS.includes(filterType.comparison_sub_op)) {
+        if (throwErrorIfInvalid)
+          throw new BadRequest(
+            `'${filterType.comparison_sub_op}' is not supported.`
+          );
+        else {
+          errors.push({
+            message: `'${filterType.comparison_sub_op}' is not supported.`,
+          });
+          return { errors };
+        }
       }
     }
     if (

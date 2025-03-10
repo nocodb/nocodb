@@ -13,6 +13,7 @@ export type VariableRule = Rule<
     IDENTIFIER?: Token[];
     SUP_SGL_QUOTE_IDENTIFIER?: Token[];
     SUP_DBL_QUOTE_IDENTIFIER?: Token[];
+    EMPTY_QUOTED_IDENTIFIER?: Token[];
   },
   'VARIABLE'
 >;
@@ -51,6 +52,18 @@ export const parseVariable = (
     }
     return variable.map((eachVar) => parseVariable(eachVar) as string);
   } else {
+    if (
+      variable.children.IDENTIFIER?.[0]?.image &&
+      (variable.children.IDENTIFIER?.[0]?.image === 'NULL' ||
+        variable.children.IDENTIFIER?.[0]?.image === 'null')
+    ) {
+      return null;
+    } else if (
+      variable.children.EMPTY_QUOTED_IDENTIFIER &&
+      variable.children.EMPTY_QUOTED_IDENTIFIER?.[0]?.image
+    ) {
+      return '';
+    }
     return (
       variable.children.IDENTIFIER?.[0]?.image ??
       trimQuote(variable.children.SUP_SGL_QUOTE_IDENTIFIER?.[0]?.image) ??
@@ -74,7 +87,11 @@ export const parseVariableAsString = (
 ) => {
   const result = parseVariable(variable);
   if (Array.isArray(result)) {
-    return result.join(' ');
+    if (result.filter((k) => k === null).length === result.length) {
+      return null;
+    } else {
+      return result.join(' ');
+    }
   } else {
     return result;
   }
@@ -105,6 +122,11 @@ export abstract class CommonCstParser extends CstParser {
     if (opt.enabledRules.VARIABLE) {
       $.RULE(opt.enabledRules.VARIABLE, () => {
         $.OR([
+          {
+            ALT: () => {
+              $.CONSUME(COMMON_TOKEN.EMPTY_QUOTED_IDENTIFIER);
+            },
+          },
           {
             ALT: () => {
               $.CONSUME(COMMON_TOKEN.SUP_SGL_QUOTE_IDENTIFIER);

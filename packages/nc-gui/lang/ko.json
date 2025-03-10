@@ -369,7 +369,7 @@
       "orgLevelCreator": "조직 수준 생성",
       "orgLevelViewer": "조직 수준 뷰어"
     },
-    "sqlVIew": "SQL 보기",
+    "sqlView": "SQL View",
     "rowHeight": "레코드 높이",
     "heightClass": {
       "short": "짧음",
@@ -1465,7 +1465,8 @@
     "aiIntegrationReConfigure": "AI 연동이 제거되었습니다, NocoAI 기능을 사용하려면 필드 편집 모달에서 다시 구성하십시오",
     "aiIntegrationAddAndReConfigure": "AI 통합이 제거되었습니다, NocoAI 기능을 사용하려면 필드 편집 모달에서 다시 추가하고 재구성하십시오",
     "generateFieldDataUsingAiButtonOption": "레코드 정보와 NocoAI를 사용하여 이 테이블의 여러 필드에 대한 값을 생성합니다",
-    "sourceDataIsReadonly": "소스 데이터는 읽기 전용입니다"
+    "sourceDataIsReadonly": "소스 데이터는 읽기 전용입니다",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View."
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",
@@ -1527,6 +1528,7 @@
     "lockViewDescription": "이 뷰를 잠그는 이유를 설명하세요. 이 메시지는 누군가 이 뷰를 잠금 해제하려고 할 때 표시됩니다 (선택 사항)"
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "여기에 문서를 놓습니다",
     "airtableImportSuccess": "Airtable Base에서 성공적으로 가져왔습니다.",

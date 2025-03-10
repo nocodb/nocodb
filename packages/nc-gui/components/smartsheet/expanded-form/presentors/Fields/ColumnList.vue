@@ -84,7 +84,6 @@ const showCol = (col: ColumnType) => {
             '!select-text nc-system-field bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer':
               isReadOnlyVirtualCell(col) && shouldApplyDataCell(col) && !isLinksOrLTAR(col),
             '!select-text nc-readonly-div-data-cell': readOnly,
-            'nc-sql-view': isSqlView,
           }"
         >
           <LazySmartsheetVirtualCell
@@ -144,14 +143,7 @@ const showCol = (col: ColumnType) => {
 
     .nc-cell,
     .nc-virtual-cell {
-      @apply text-gray-400;
-    }
-
-    &.nc-sql-view {
-      .nc-cell,
-      .nc-virtual-cell {
-        @apply text-gray-500;
-      }
+      @apply text-nc-content-gray-muted;
     }
   }
 

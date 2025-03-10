@@ -12,6 +12,7 @@ const column = useVModel(props, 'column', emits)
 const { updateAggregate, getAggregations } = useViewAggregateOrThrow()
 
 const { gridViewCols } = useViewColumnsOrThrow()
+const isLocked = inject(IsLockedInj, ref(false))
 
 const gridCol = computed(() => gridViewCols.value[column.value.id])
 const aggregations = computed(() => getAggregations(column.value.columnObj))
@@ -23,7 +24,7 @@ const onClick = (agg) => {
 </script>
 
 <template>
-  <NcMenu v-if="column?.uidt" class="!max-h-55 overflow-auto" variant="small">
+  <NcMenu v-if="column?.uidt" :disabled="isLocked" class="!max-h-55 overflow-auto" variant="small">
     <NcMenuItem v-for="(agg, index) in aggregations" :key="index" @click="onClick(agg)">
       <div class="flex !w-full text-[13px] text-gray-800 items-center justify-between">
         {{ $t(`aggregation_type.${agg}`) }}

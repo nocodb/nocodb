@@ -238,13 +238,23 @@ const cellHeight = computed(() =>
 
 const handleCloseDropdown = (e: MouseEvent) => {
   if (e.target && e.target.closest('.nc-attachment-item')) {
+    e.stopPropagation()
     dropdownVisible.value = false
   }
 }
+
+const badgedVirtualColumns = [UITypes.Rollup, UITypes.Formula]
+const isBadgedVirtualColumn = computed(() => badgedVirtualColumns.includes(lookupColumn.value?.uidt as UITypes))
+
+const isPageDesignerLookup = inject(IsPageDesignerExtensionActiveInj, false)
+const { getPossibleAttachmentSrc } = useAttachment()
+const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])?.[0] ?? '')
 </script>
 
 <template>
+  <img v-if="isPageDesignerLookup && attachmentUrl" :src="attachmentUrl" class="object-contain h-full w-full" />
   <NcDropdown
+    v-else
     :disabled="disableDropdown"
     :trigger="[]"
     :visible="!disableDropdown && dropdownVisible"
@@ -261,16 +271,16 @@ const handleCloseDropdown = (e: MouseEvent) => {
       @dblclick="activateShowEditNonEditableFieldWarning"
     >
       <div
-        class="h-full w-full"
+        class="h-full w-full overflow-hidden"
         :class="{
-          '!overflow-x-hidden nc-cell-lookup-scroll !overflow-y-hidden': rowHeight === 1,
+          'nc-cell-lookup-scroll': rowHeight === 1,
           'flex gap-1': !(lookupColumn && isAttachment(lookupColumn) && arrValue[0] && ncIsObject(arrValue[0])),
         }"
         @click="handleCloseDropdown"
       >
         <template v-if="lookupColumn">
           <!-- Render virtual cell -->
-          <div v-if="isVirtualCol(lookupColumn) && lookupColumn.uidt !== UITypes.Rollup" class="flex h-full">
+          <div v-if="isVirtualCol(lookupColumn) && !isBadgedVirtualColumn" class="flex h-full virtual-lookup-cells">
             <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
             <template
               v-if="
@@ -306,16 +316,16 @@ const handleCloseDropdown = (e: MouseEvent) => {
             <!-- For attachment cell avoid adding chip style -->
             <template v-else>
               <div
-                class="max-h-full max-w-full w-full nc-cell-lookup-scroll"
+                class="max-h-full max-w-full w-full nc-cell-lookup-scroll !overflow-x-hidden"
                 :class="{
-                  'nc-scrollbar-md ': rowHeight !== 1 && !isAttachment(lookupColumn),
+                  'nc-scrollbar-thin ': rowHeight !== 1 && !isAttachment(lookupColumn),
                 }"
               >
                 <div
                   class="flex gap-1.5 w-full h-full"
                   :class="{
                     'flex-wrap': rowHeight !== 1 && !isAttachment(lookupColumn),
-                    '!overflow-x-hidden nc-cell-lookup-scroll !overflow-y-hidden': rowHeight === 1 || isAttachment(lookupColumn),
+                    '!overflow-hidden nc-cell-lookup-scroll': rowHeight === 1 || isAttachment(lookupColumn),
                     'items-center': rowHeight === 1,
                     'items-start': rowHeight !== 1,
                     'py-[3px]': !isAttachment(lookupColumn),
@@ -396,7 +406,7 @@ const handleCloseDropdown = (e: MouseEvent) => {
 
             {{ $t('title.noResultsMatchedYourSearch') }}
           </div>
-          <template v-else-if="isVirtualCol(lookupColumn) && lookupColumn.uidt !== UITypes.Rollup">
+          <template v-else-if="isVirtualCol(lookupColumn) && !isBadgedVirtualColumn">
             <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
             <template
               v-if="
@@ -481,7 +491,6 @@ const handleCloseDropdown = (e: MouseEvent) => {
     @apply bg-gray-200;
   }
 }
-
 .nc-lookup-cell .nc-text-area-clamped-text {
   @apply !mr-1;
 }

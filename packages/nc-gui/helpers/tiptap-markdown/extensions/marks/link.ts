@@ -38,9 +38,20 @@ export const Link = TiptapLink.extend<LinkOptions>({
   renderHTML({ HTMLAttributes }) {
     const attr = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)
 
+    if (isValidURL(attr.href)) {
+      return [
+        'a',
+        {
+          ...attr,
+          onclick: '(function(event) { window.tiptapLinkHandler?.(event);})(event)', // Global handler
+        },
+        0,
+      ]
+    }
+
     // We use this as a workaround to show a tooltip on the content
     // We use the href to store the tooltip content
-    if (isValidURL(attr.href) || !attr.href.includes('~~~###~~~')) {
+    if (!attr.href.includes('~~~###~~~')) {
       return ['a', attr, 0]
     }
 
@@ -71,32 +82,25 @@ export const Link = TiptapLink.extend<LinkOptions>({
         }, 100)
       },
       'Space': () => {
-        // If we press space twice we stop the link mark and have normal text
-        const editor = this.editor
-        const selection = editor.view.state.selection
-        const nodeBefore = selection.$to.nodeBefore
-        const nodeAfter = selection.$to.nodeAfter
+        const { state, dispatch } = this.editor.view
+        const { selection } = state
+        const { $to } = selection
+        const nodeBefore = $to.nodeBefore
+        const nodeAfter = $to.nodeAfter // Get the next node after the cursor
 
-        if (!nodeBefore) return false
+        const linkMarkType = state.schema.marks.link
+        if (!linkMarkType || !nodeBefore) return false
 
-        const nodeBeforeText = nodeBefore.text!
+        // Check if the cursor is inside a link
+        const linkMark = linkMarkType.isInSet(nodeBefore.marks)
+        if (!linkMark) return false
 
-        // If we are not inside a link, we don't do anything
-        if (
-          !nodeBefore?.marks.some((mark) => mark.type.name === 'link') ||
-          nodeAfter?.marks.some((mark) => mark.type.name === 'link')
-        ) {
-          return false
-        }
+        // Ensure space is typed at the very end of the link
+        const isAtEndOfLink = !nodeAfter || !linkMarkType.isInSet(nodeAfter.marks)
+        if (!isAtEndOfLink) return false
 
-        // Last text character should be a space
-        if (nodeBeforeText[nodeBeforeText.length - 1] !== ' ') {
-          return false
-        }
-
-        editor.view.dispatch(
-          editor.view.state.tr.removeMark(selection.$to.pos - 1, selection.$to.pos, editor.view.state.schema.marks.link),
-        )
+        // ✅ Insert space first, then remove link mark
+        dispatch(state.tr.insertText(' ', $to.pos).removeMark($to.pos, $to.pos + 1, linkMarkType))
 
         return true
       },

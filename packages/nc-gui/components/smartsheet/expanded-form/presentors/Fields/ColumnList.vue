@@ -9,11 +9,14 @@ const props = defineProps<{
 }>()
 
 const { changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
+
+const { isSqlView } = useSmartsheetStoreOrThrow()
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { isUIAllowed } = useRoles()
 
-const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
+const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || isSqlView.value)
 
 const shouldApplyDataCell = (column: ColumnType) =>
   !(isBarcode(column) || isQrCode(column) || isBoolean(column) || isRating(column))
@@ -63,6 +66,7 @@ const showCol = (col: ColumnType) => {
       />
       <NcTooltip
         v-else
+        :tooltip-style="{ zIndex: '1049' }"
         class="<lg:(!w-full !flex-none) lg:flex-1 flex"
         :class="{
           'w-full !flex-none': props.forceVerticalMode,
@@ -139,9 +143,10 @@ const showCol = (col: ColumnType) => {
 
     .nc-cell,
     .nc-virtual-cell {
-      @apply text-gray-400;
+      @apply text-nc-content-gray-muted;
     }
   }
+
   &.nc-readonly-div-data-cell:focus-within,
   &.nc-system-field:focus-within {
     @apply !border-gray-200;

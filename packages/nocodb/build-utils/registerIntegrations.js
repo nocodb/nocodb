@@ -15,7 +15,7 @@ async function registerIntegrations(EE = false) {
     ignore: [
       `${integrationRoot}/*`,
       `${integrationRoot}/*/*`,
-      `${integrationRoot}/ai/module/**/*`,
+      `${integrationRoot}/*/module/**/*`,
     ],
     cwd: `${__dirname}/../`,
     absolute: true,

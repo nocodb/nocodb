@@ -4,13 +4,13 @@ interface Prop {
   error?: any
 }
 
-const { extensionId, error } = defineProps<Prop>()
+const props = defineProps<Prop>()
 
 const { extensionList, extensionsLoaded, availableExtensions } = useExtensions()
 
-const isLoadedExtension = ref<boolean>(true)
+const activeError = toRef(props, 'error')
 
-const activeError = ref(error)
+const isLoadedExtension = ref<boolean>(true)
 
 const extensionRef = ref<HTMLElement>()
 
@@ -19,7 +19,7 @@ const extensionModalRef = ref<HTMLElement>()
 const isMouseDown = ref(false)
 
 const extension = computed(() => {
-  const ext = extensionList.value.find((ext) => ext.id === extensionId)
+  const ext = extensionList.value.find((ext) => ext.id === props.extensionId)
   if (!ext) {
     throw new Error('Extension not found')
   }
@@ -78,11 +78,10 @@ onMounted(() => {
     })
     .catch((err) => {
       if (!extensionManifest.value) {
-        activeError.value = 'There was an error loading the extension'
-        return
+        throw new Error('There was an error loading the extension')
       }
-      activeError.value = err
       isLoadedExtension.value = false
+      throw new Error(err)
     })
 })
 
@@ -98,6 +97,10 @@ useEventListener('keydown', (e) => {
     fullscreen.value = false
   }
 })
+
+const noExplicitHeightExtensions = ['nc-data-exporter']
+
+const isNoExplicitHeightExtension = computed(() => noExplicitHeightExtensions.includes(extension.value.extensionId))
 </script>
 
 <template>
@@ -114,7 +117,7 @@ useEventListener('keydown', (e) => {
       :style="
         !collapsed
           ? {
-              height: extensionHeight,
+              height: isNoExplicitHeightExtension ? '100%' : extensionHeight,
               minHeight: extensionManifest?.config?.contentMinHeight,
             }
           : {}
@@ -200,6 +203,7 @@ useEventListener('keydown', (e) => {
 <style scoped lang="scss">
 .extension-wrapper {
   @apply bg-white rounded-xl w-full border-1 relative;
+  box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.08);
 
   &.isOpen {
     resize: vertical;

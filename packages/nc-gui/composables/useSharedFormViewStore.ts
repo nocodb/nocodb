@@ -45,6 +45,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const sharedViewMeta = ref<SharedViewMeta>({})
   const formResetHook = createEventHook<void>()
 
+  const { isMobileMode } = useGlobal()
+
   const { api, isLoading } = useApi()
 
   const { metas, setMeta, getMeta } = useMetas()
@@ -664,26 +666,63 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   async function loadLinkedRecords(column: ColumnType, ids: string[]) {
     const relatedMeta = await getMeta((column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id)
-    const pkCol = relatedMeta?.columns?.find((col) => col.pk)
-    const pvCol = relatedMeta?.columns?.find((col) => col.pv)
+
+    if (!relatedMeta) return []
+
+    // Extract necessary columns in a single loop
+    let attachmentCol: ColumnType | undefined
+    let pkCol: ColumnType | undefined
+    let pvCol: ColumnType | undefined
+
+    const requiredFieldsToLoad = new Set<string>()
+
+    for (const col of relatedMeta.columns || []) {
+      if (!pkCol && col.pk) {
+        pkCol = col
+      }
+
+      if (!pvCol && col.pv) {
+        pvCol = col
+      }
+
+      if (!attachmentCol && isAttachment(col)) {
+        attachmentCol = col
+      }
+
+      if (isSystemColumn(col) || isPrimary(col) || isLinksOrLTAR(col) || isAttachment(col)) continue
+
+      if (requiredFieldsToLoad.size < (isMobileMode.value ? 1 : 3)) {
+        requiredFieldsToLoad.add(col.title!)
+      }
+    }
+
+    // Add important fields
+    if (attachmentCol) requiredFieldsToLoad.add(attachmentCol.title!)
+    if (pkCol) requiredFieldsToLoad.add(pkCol.title!)
+    if (pvCol) requiredFieldsToLoad.add(pvCol.title!)
+
+    // If no primary key column or ids are empty, return early
+    if (!pkCol || ids.length === 0) return []
 
     return (
-      await api.public.dataRelationList(
-        route.params.viewId as string,
-        column.id,
-        {},
-        {
-          headers: {
-            'xc-password': password.value,
+      (
+        await api.public.dataRelationList(
+          route.params.viewId as string,
+          column.id,
+          {},
+          {
+            headers: {
+              'xc-password': password.value,
+            },
+            query: {
+              limit: Math.max(25, ids.length),
+              where: `(${pkCol.title},in,${ids.join(',')})`,
+              fields: Array.from(requiredFieldsToLoad),
+            },
           },
-          query: {
-            limit: Math.max(25, ids.length),
-            where: `(${pkCol.title},in,${ids.join(',')})`,
-            fields: [pkCol.title, pvCol.title],
-          },
-        },
-      )
-    )?.list
+        )
+      )?.list || []
+    )
   }
 
   let intvl: NodeJS.Timeout

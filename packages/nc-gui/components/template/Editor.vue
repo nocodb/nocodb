@@ -46,16 +46,21 @@ const { getMeta } = useMetas()
 
 const meta = inject(MetaInj, ref())
 
-const columns = computed(
-  () => meta.value?.columns?.filter((col) => !isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)) || [],
-)
+const filterForDestinationColumn = (col: ColumnType): boolean => {
+  if ([UITypes.ForeignKey, UITypes.ID].includes(col.uidt as UITypes)) {
+    return true
+  } else {
+    return !isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)
+  }
+}
+
+const columns = computed(() => meta.value?.columns?.filter((col) => filterForDestinationColumn(col)) || [])
 
 const reloadHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const useForm = Form.useForm
 
 const { $api, $state } = useNuxtApp()
-const baseURL = $api.instance.defaults.baseURL
 
 const { addTab } = useTabs()
 
@@ -463,20 +468,23 @@ async function importTemplate() {
                   return res
                 }, {}),
               )
-              const autoInsertOptionQuery = isEeUI && autoInsertOption.value ? '&typecast=true' : ''
-              const res = await $fetch.raw(
-                `/api/v1/db/data/bulk/noco/${baseId}/${tableId}?wrapped=true&headers[nc-import-type]=${quickImportType}${
-                  operationId ? `&operation_id=${operationId}` : ''
-                }${autoInsertOptionQuery}`,
+              const res = await $api.dbTableRow.bulkCreate(
+                'noco',
+                baseId,
+                tableId,
+                batchData,
                 {
-                  baseURL,
-                  method: 'POST',
+                  'wrapped': 'true',
+                  'headers[nc-import-type]': quickImportType,
+                  'operation_id': operationId,
+                  'typecast': isEeUI && autoInsertOption.value ? 'true' : undefined,
+                },
+                {
                   headers: {
                     'xc-auth': $state.token.value as string,
                     'nc-operation-id': operationId,
                     'nc-import-type': quickImportType,
                   },
-                  body: batchData,
                 },
               )
 
@@ -578,11 +586,6 @@ async function importTemplate() {
           tab.title = createdTable.title as string
           tab.baseId = base.value.id as string
         }
-
-        // set display value
-        if (createdTable?.columns?.[0]?.id) {
-          await $api.dbTableColumn.primaryColumnSet(createdTable.columns[0].id as string)
-        }
       }
 
       // bulk insert data
@@ -640,7 +643,7 @@ function mapDefaultColumns() {
     for (const col of importColumns[i]) {
       const o = { srcCn: col.column_name, srcTitle: col.title, destCn: '', enabled: true }
       if (columns.value) {
-        const tableColumn = columns.value.find((c) => c.title === col.column_name || c.column_name === col.column_name)
+        const tableColumn = columns.value.find((c) => c.title === col.title || c.column_name === col.column_name)
         if (tableColumn) {
           o.destCn = tableColumn.title as string
         } else {
@@ -825,6 +828,7 @@ const currentColumnToEdit = ref('')
                     v-model:value="record.destCn"
                     class="w-full nc-upload-filter-field"
                     show-search
+                    allow-clear
                     :filter-option="filterOption"
                     dropdown-class-name="nc-dropdown-filter-field"
                   >

@@ -511,6 +511,7 @@
     "isNotNull": "nie je null"
   },
   "title": {
+    "urlFilters": "URL Filters",
     "creatingScript": "Creating Script",
     "searchWebhook": "Vyhľadávanie webhooku",
     "webcam": "Webkamera",
@@ -676,7 +677,9 @@
     "lockedByUser": "Locked by {user}",
     "thisPageDoesNotExist": "This page doesn’t exist",
     "customUrl": "Custom URL",
-    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}"
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
+    "youAreLeavingNocoDB": "You’re leaving NocoDB",
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
   },
   "labels": {
     "latitude": "Latitude",
@@ -1126,7 +1129,9 @@
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
     "showJsonPayload": "Show JSON payload",
-    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options",
+    "fillForm": "Fill Form",
+    "proceedToLink": "Proceed to link"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1522,6 +1527,7 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
     "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",

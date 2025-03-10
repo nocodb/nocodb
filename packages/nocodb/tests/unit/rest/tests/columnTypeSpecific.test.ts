@@ -38,11 +38,6 @@ function columnTypeSpecificTests() {
       system: false,
     },
     {
-      title: 'DateField',
-      uidt: UITypes.Date,
-      system: false,
-    },
-    {
       title: 'CreatedAt',
       uidt: UITypes.CreatedTime,
       system: true,
@@ -66,6 +61,11 @@ function columnTypeSpecificTests() {
       title: 'nc_order',
       uidt: UITypes.Order,
       system: true,
+    },
+    {
+      title: 'DateField',
+      uidt: UITypes.Date,
+      system: false,
     },
   ];
 
@@ -178,7 +178,7 @@ function columnTypeSpecificTests() {
       const rowAttributes: any = [];
       for (let i = 0; i < 100; i++) {
         const row = {
-          DateField: rowMixedValue(columns[1], i),
+          DateField: rowMixedValue(columns[6], i),
         };
         rowAttributes.push(row);
       }

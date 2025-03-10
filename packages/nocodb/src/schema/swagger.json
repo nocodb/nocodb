@@ -20031,6 +20031,15 @@
           "in": "query",
           "description": "Operation to trigger",
           "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "fk_model_id",
+          "in": "query",
+          "description": "Model ID",
+          "required": false
         }
       ]
     }
@@ -20873,6 +20882,8 @@
         "enum": [
           "database",
           "ai",
+          "auth",
+          "sync",
           "communication",
           "spread-sheet",
           "project-management",
@@ -21247,6 +21258,10 @@
           "visible": {
             "$ref": "#/components/schemas/Bool",
             "description": "Is Visible?"
+          },
+          "readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column readonly?"
           }
         },
         "x-stoplight": {
@@ -22468,6 +22483,9 @@
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
+          },
+          "parsed_tree": {
+            "description": "Parsed Formula Tree"
           }
         },
         "x-stoplight": {
@@ -25010,6 +25028,10 @@
           "unique": {
             "$ref": "#/components/schemas/Bool",
             "description": "Is this column unique?"
+          },
+          "readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column readonly?"
           }
         },
         "title": "Normal Column Request Model",
@@ -27018,6 +27040,10 @@
           "type": {
             "description": "Table Type",
             "type": "string"
+          },
+          "synced": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this table synced?"
           }
         },
         "required": [

@@ -369,7 +369,7 @@
       "orgLevelCreator": "Organization Level Creator",
       "orgLevelViewer": "Organization Level Viewer"
     },
-    "sqlVIew": "SQL View",
+    "sqlView": "SQL View",
     "rowHeight": "Record Height",
     "heightClass": {
       "short": "Short",
@@ -511,6 +511,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "urlFilters": "URL Filters",
     "creatingScript": "Creating Script",
     "searchWebhook": "Search webhook",
     "webcam": "Webcam",
@@ -676,7 +677,9 @@
     "lockedByUser": "Locked by {user}",
     "thisPageDoesNotExist": "This page doesn’t exist",
     "customUrl": "Custom URL",
-    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}"
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
+    "youAreLeavingNocoDB": "You’re leaving NocoDB",
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
   },
   "labels": {
     "latitude": "Latitude",
@@ -1127,7 +1130,8 @@
     "rowId": "Row Id",
     "showJsonPayload": "Show json payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
-    "fillForm": "Fill Form"
+    "fillForm": "Fill Form",
+    "proceedToLink": "Proceed to link"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1461,7 +1465,8 @@
     "aiIntegrationReConfigure": "AI integration has been removed, re-configure from field edit modal to use NocoAI features",
     "aiIntegrationAddAndReConfigure": "AI integration has been removed, re-add and re-configure from field edit modal to use NocoAI features",
     "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI",
-    "sourceDataIsReadonly": "Source data is readonly"
+    "sourceDataIsReadonly": "Source data is readonly",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View."
   },
   "placeholder": {
     "searchIcons": "Search icons",
@@ -1523,6 +1528,8 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
+    "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
     "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",

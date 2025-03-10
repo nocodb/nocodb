@@ -1555,6 +1555,8 @@ export interface BaseReqType {
 export enum IntegrationsType {
   Database = 'database',
   Ai = 'ai',
+  Auth = 'auth',
+  Sync = 'sync',
   Communication = 'communication',
   SpreadSheet = 'spread-sheet',
   ProjectManagement = 'project-management',
@@ -1741,6 +1743,8 @@ export interface ColumnType {
   unique?: BoolType;
   /** Is Visible? */
   visible?: BoolType;
+  /** Is this column readonly? */
+  readonly?: BoolType;
 }
 
 /**
@@ -2276,6 +2280,8 @@ export interface FormulaType {
   formula_raw?: string;
   /** Unique ID */
   id?: IdType;
+  /** Parsed Formula Tree */
+  parsed_tree?: any;
 }
 
 /**
@@ -3276,6 +3282,8 @@ export interface NormalColumnRequestType {
   un?: BoolType;
   /** Is this column unique? */
   unique?: BoolType;
+  /** Is this column readonly? */
+  readonly?: BoolType;
 }
 
 /**
@@ -3898,6 +3906,8 @@ export interface TableType {
   title: string;
   /** Table Type */
   type?: string;
+  /** Is this table synced? */
+  synced?: BoolType;
 }
 
 /**
@@ -14446,6 +14456,8 @@ export class Api<
       query: {
         /** Operation to trigger */
         operation: string;
+        /** Model ID */
+        fk_model_id?: string;
       },
       data: Record<string, any>,
       params: RequestParams = {}
@@ -14475,6 +14487,8 @@ export class Api<
       query: {
         /** Operation to trigger */
         operation: string;
+        /** Model ID */
+        fk_model_id?: string;
       },
       params: RequestParams = {}
     ) =>

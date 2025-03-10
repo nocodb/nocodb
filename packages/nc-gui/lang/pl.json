@@ -511,6 +511,7 @@
     "isNotNull": "Nie jest null"
   },
   "title": {
+    "urlFilters": "URL Filters",
     "creatingScript": "Tworzenie skryptu",
     "searchWebhook": "Szukaj webhooka",
     "webcam": "Kamera internetowa",
@@ -676,7 +677,9 @@
     "lockedByUser": "Zablokowane przez {user}",
     "thisPageDoesNotExist": "Ta strona nie istnieje",
     "customUrl": "Niestandardowy URL",
-    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}"
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
+    "youAreLeavingNocoDB": "You’re leaving NocoDB",
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
   },
   "labels": {
     "latitude": "Latitude",
@@ -1126,7 +1129,9 @@
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
     "showJsonPayload": "Show JSON payload",
-    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options",
+    "fillForm": "Fill Form",
+    "proceedToLink": "Proceed to link"
   },
   "activity": {
     "clickToResolve": "Kliknij, aby rozwiązać",
@@ -1522,6 +1527,7 @@
     "lockViewDescription": "Wyjaśnij, dlaczego blokujesz ten widok. Ta wiadomość zostanie wyświetlona, gdy ktoś spróbuje odblokować ten widok (opcjonalne)."
   },
   "msg": {
+    "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Upuść dokument tutaj",
     "airtableImportSuccess": "Pomyślnie zaimportowano z bazy Airtable.",
     "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",

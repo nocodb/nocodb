@@ -96,7 +96,7 @@ export function useCopyPaste({
 }) {
   const { $api } = useNuxtApp()
   const { isDataReadOnly } = useRoles()
-  const { getMeta } = useMetas()
+  const { getMeta, metas } = useMetas()
   const { isMysql, isPg } = useBase()
   const { appInfo } = useGlobal()
   const { addUndo, clone, defineViewScope } = useUndoRedo()
@@ -104,10 +104,13 @@ export function useCopyPaste({
   const { isUIAllowed } = useRoles()
   const { copy } = useCopy()
   const { cleaMMCell, clearLTARCell, addLTARRef, syncLTARRefs } = useSmartsheetLtarHelpersOrThrow()
+  const { isSqlView } = useSmartsheetStoreOrThrow()
 
   const { base } = storeToRefs(useBase())
   const fields = computed(() => (columns.value ?? []).map((c) => c.columnObj))
   const canPasteCell = computed(() => {
+    if (isSqlView.value) return false
+
     return (
       !editEnabled.value ||
       (editEnabled.value &&
@@ -126,7 +129,7 @@ export function useCopyPaste({
     }
 
     // skip pasting virtual columns (including LTAR columns for now) and system columns
-    if (isVirtualCol(col) || isSystemColumn(col)) {
+    if (isVirtualCol(col) || isSystemColumn(col) || col?.readonly) {
       if (showInfo) {
         message.info(t('msg.info.pasteNotSupported'))
       }
@@ -386,7 +389,7 @@ export function useCopyPaste({
               isMysql(meta.value?.source_id),
             )
 
-            if (pasteVal === undefined) return
+            if (pasteVal === undefined || !ncIsObject(pasteVal)) return
 
             const foreignKeyColumn = meta.value?.columns?.find(
               (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
@@ -423,7 +426,7 @@ export function useCopyPaste({
               isMysql(meta.value?.source_id),
             )
 
-            if (pasteVal === undefined) return
+            if (pasteVal === undefined || !ncIsObject(pasteVal)) return
 
             const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
             if (!pasteRowPk) return
@@ -593,9 +596,13 @@ export function useCopyPaste({
           }
 
           if (columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length && pasteValue?.length) {
-            const newAttachments = await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])
+            const newAttachments =
+              (await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
 
-            rowObj.row[columnObj.title!] = newAttachments ? JSON.stringify(newAttachments) : null
+            const oldAttachments = ncIsArray(rowObj.row[columnObj.title!]) ? rowObj.row[columnObj.title!] : []
+
+            rowObj.row[columnObj.title!] =
+              newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
           } else if (pasteValue !== undefined) {
             rowObj.row[columnObj.title!] = pasteValue
           }
@@ -772,6 +779,7 @@ export function useCopyPaste({
       isDataReadOnly.value ||
       !ctx ||
       !hasEditPermission.value ||
+      columnObj.readonly ||
       isSystemColumn(columnObj) ||
       (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj))
     )
@@ -910,6 +918,7 @@ export function useCopyPaste({
 
           const textToCopy = valueToCopy(rowObj, columnObj, {
             meta: meta.value,
+            metas: metas.value,
             isPg,
             isMysql,
           })

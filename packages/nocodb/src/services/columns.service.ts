@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import {
   AppEvents,
   ButtonActionsType,
@@ -21,7 +21,6 @@ import {
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import rfdc from 'rfdc';
-import { parseMetaProp } from 'src/utils/modelUtils';
 import { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnReqType,
@@ -32,9 +31,14 @@ import type {
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import type { Base, LinkToAnotherRecordColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
-import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type {
+  IColumnsService,
+  ReusableParams,
+} from '~/services/columns.service.type';
+import { Filter } from '~/models';
+import { parseMetaProp } from '~/utils/modelUtils';
 import {
   BaseUser,
   CalendarRange,
@@ -77,6 +81,9 @@ import {
   convertValueToAIRecordType,
 } from '~/utils/dataConversion';
 import { extractProps } from '~/helpers/extractProps';
+import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-changer.types';
+
+export type { ReusableParams } from '~/services/columns.service.type';
 
 const deepClone = rfdc();
 
@@ -85,16 +92,6 @@ export enum Altered {
   NEW_COLUMN = 1,
   DELETE_COLUMN = 4,
   UPDATE_COLUMN = 8,
-}
-
-export interface ReusableParams {
-  table?: Model;
-  source?: Source;
-  base?: Base;
-  dbDriver?: CustomKnex;
-  sqlClient?: SqlClient;
-  sqlMgr?: SqlMgrv2;
-  baseModel?: BaseModelSqlv2;
 }
 
 async function reuseOrSave(
@@ -185,10 +182,12 @@ async function getJunctionTableName(
 }
 
 @Injectable()
-export class ColumnsService {
+export class ColumnsService implements IColumnsService {
   constructor(
     protected readonly metaService: MetaService,
     protected readonly appHooksService: AppHooksService,
+    @Inject(forwardRef(() => 'FormulaColumnTypeChanger'))
+    protected readonly formulaColumnTypeChanger: IFormulaColumnTypeChanger,
   ) {}
 
   async updateFormulas(
@@ -291,13 +290,12 @@ export class ColumnsService {
       reuse?: ReusableParams;
       apiVersion?: NcApiVersion;
     },
-  ) {
+  ): Promise<Model | Column<any>> {
     const reuse = param.reuse || {};
 
     const { req } = param;
 
     const column = await Column.get(context, { colId: param.columnId });
-
     const oldColumn = deepClone(column);
 
     const table = await reuseOrSave('table', reuse, async () =>
@@ -698,6 +696,7 @@ export class ColumnsService {
                 },
               });
             }
+            await View.clearSingleQueryCache(context, column.fk_model_id, null);
 
             // check alias value present in colBody
             if (
@@ -745,6 +744,18 @@ export class ColumnsService {
         }
 
         await this.updateRollupOrLookup(context, colBody, column);
+      } else if ([UITypes.Formula].includes(column.uidt)) {
+        (param.column as any).id = undefined;
+        await this.formulaColumnTypeChanger.startChangeFormulaColumnType(
+          context,
+          {
+            req,
+            formulaColumn: column,
+            newColumnRequest: param.column,
+            user: param.user,
+            reuse: param.reuse,
+          },
+        );
       } else {
         NcError.notImplemented(`Updating ${column.uidt} => ${colBody.uidt}`);
       }
@@ -793,6 +804,20 @@ export class ColumnsService {
           NcConnectionMgrv2.get(source),
         );
         const driverType = dbDriver.clientType();
+
+        if (
+          column.uidt === UITypes.SingleSelect &&
+          colBody.uidt !== UITypes.SingleSelect
+        ) {
+          if (
+            (await KanbanView.getViewsByGroupingColId(context, column.id))
+              .length > 0
+          ) {
+            NcError.badRequest(
+              `The column '${column.title}' is being used in Kanban View.`,
+            );
+          }
+        }
 
         if (
           column.uidt === UITypes.MultiSelect &&
@@ -1115,8 +1140,19 @@ export class ColumnsService {
           }
         }
 
-        const interchange = [];
-
+        /*
+          Interchange is used to handle cyclic replacements without conflicts (e.g., A → B, B → C, C → A):
+          1. We replace conflicting new options with temporary unique titles (e.g., A → A_1, B → B_1, C → C_1)
+          2. We update the database with these temporary unique titles
+          3. Finally, we replace the temporary unique titles with the intended new option titles
+        */
+        const interchange: {
+          // Original new option
+          def_option: { title: string };
+          // Temporary unique title
+          temp_title: string;
+        }[] = [];
+        const titleChanges = []; // Title change keeps direct map of old title to new title
         // Handle option update
         if (column.colOptions?.options) {
           const old_titles = column.colOptions.options.map((el) => el.title);
@@ -1137,12 +1173,20 @@ export class ColumnsService {
             const newOp = {
               ...colBody.colOptions.options.find((el) => option.id === el.id),
             };
+
+            titleChanges.push({
+              old_title: option.title,
+              new_title: newOp.title,
+            });
+
+            // Handle title conflicts by creating unique temporary titles
             if (old_titles.includes(newOp.title)) {
               const def_option = { ...newOp };
               let title_counter = 1;
               while (old_titles.includes(newOp.title)) {
                 newOp.title = `${def_option.title}_${title_counter++}`;
               }
+              // Store the temporary title mapping
               interchange.push({
                 def_option,
                 temp_title: newOp.title,
@@ -1276,6 +1320,7 @@ export class ColumnsService {
           }
         }
 
+        // Process temporary title interchanges (conflict resolution)
         for (const ch of interchange) {
           const newOp = ch.def_option;
           if (column.uidt === UITypes.SingleSelect) {
@@ -1363,6 +1408,60 @@ export class ColumnsService {
                 ],
               );
             }
+          }
+        }
+
+        // handle trim value when converting it from SingleLineText cell to SingleSelect
+        if (
+          column.uidt === UITypes.SingleLineText &&
+          colBody.uidt === UITypes.SingleSelect
+        ) {
+          if (driverType === 'mssql') {
+            await sqlClient.raw(
+              `UPDATE ??
+               SET ?? = LTRIM(RTRIM(??))
+               WHERE ?? <> LTRIM(RTRIM(??))`,
+              [
+                baseModel.getTnPath(table.table_name),
+                column.column_name,
+                column.column_name,
+                column.column_name,
+                column.column_name,
+              ],
+            );
+          } else {
+            await sqlClient.raw(
+              `UPDATE ??
+               SET ?? = TRIM(??)
+               WHERE ?? <> TRIM(??)`,
+              [
+                baseModel.getTnPath(table.table_name),
+                column.column_name,
+                column.column_name,
+                column.column_name,
+                column.column_name,
+              ],
+            );
+          }
+        }
+
+        // Update value in filters that reference this column
+        const filters = await Filter.getFiltersByColumn(context, column.id);
+
+        for (const filter of filters ?? []) {
+          let newValue = filter.value;
+          // Split filter values and update them based on title changes
+          const values = filter.value?.split(',');
+          const updatedValues = values.map((val) => {
+            const change = titleChanges.find((c) => c.old_title === val.trim());
+            return change ? change.new_title : val;
+          });
+          newValue = updatedValues.join(',');
+          // Update filter if value changed
+          if (newValue !== filter.value) {
+            await Filter.update(context, filter.id, {
+              value: newValue,
+            });
           }
         }
       }
@@ -1647,7 +1746,7 @@ export class ColumnsService {
           0
       ) {
         NcError.badRequest(
-          `The column '${column.column_name}' is being used in Kanban View. Please update stack by field or delete Kanban View first.`,
+          `The column '${column.title}' is being used in Kanban View. Please update stack by field or delete Kanban View first.`,
         );
       }
 
@@ -1738,6 +1837,29 @@ export class ColumnsService {
     }
 
     if (
+      [
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+      ].includes(column.uidt) &&
+      ![
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+      ].includes(colBody.uidt)
+    ) {
+      const calendarRanges = await CalendarRange.IsColumnBeingUsedAsRange(
+        context,
+        column.id,
+      );
+      for (const col of calendarRanges ?? []) {
+        await CalendarRange.delete(col.id, context);
+      }
+    }
+
+    if (
       column.uidt === UITypes.Attachment &&
       colBody.uidt !== UITypes.Attachment
     ) {
@@ -1766,7 +1888,6 @@ export class ColumnsService {
     if (param.apiVersion === NcApiVersion.V3) {
       return column;
     }
-
     return table;
   }
 
@@ -2664,14 +2785,16 @@ export class ColumnsService {
         if (!column.colOptions) await column.getColOptions(context, ncMeta);
         if (column.colOptions.parsed_tree?.dataType === FormulaDataTypes.DATE) {
           if (
-            await CalendarRange.IsColumnBeingUsedAsRange(
-              context,
-              column.id,
-              ncMeta,
-            )
+            (
+              await CalendarRange.IsColumnBeingUsedAsRange(
+                context,
+                column.id,
+                ncMeta,
+              )
+            )?.length
           ) {
             NcError.badRequest(
-              `The column '${column.column_name}' is being used in Calendar View. Please delete Calendar View first.`,
+              `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
             );
           }
         }
@@ -2680,21 +2803,20 @@ export class ColumnsService {
         break;
       // on deleting created/last modified columns, keep the column in table and delete the column from meta
       case UITypes.CreatedTime:
-      case UITypes.LastModifiedTime:
-        if (
-          [UITypes.DateTime, UITypes.Date].includes(column.uidt) &&
-          (await CalendarRange.IsColumnBeingUsedAsRange(
-            context,
-            column.id,
-            ncMeta,
-          ))
-        ) {
+      case UITypes.LastModifiedTime: {
+        const rangesList = await CalendarRange.IsColumnBeingUsedAsRange(
+          context,
+          column.id,
+          ncMeta,
+        );
+        if (rangesList?.length) {
           NcError.badRequest(
-            `The column '${column.column_name}' is being used in Calendar View. Please delete Calendar View first.`,
+            `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
           );
         }
         await Column.delete(context, param.columnId, ncMeta);
         break;
+      }
       case UITypes.CreatedBy:
       case UITypes.LastModifiedBy: {
         await Column.delete(context, param.columnId, ncMeta);
@@ -2948,23 +3070,21 @@ export class ColumnsService {
             .length > 0
         ) {
           NcError.badRequest(
-            `The column '${column.column_name}' is being used in Kanban View. Please delete Kanban View first.`,
+            `The column '${column.title}' is being used in Kanban View. Please update Kanban View first.`,
           );
         }
         /* falls through to default */
       }
       case UITypes.DateTime:
       case UITypes.Date: {
-        if (
-          [UITypes.DateTime, UITypes.Date].includes(column.uidt) &&
-          (await CalendarRange.IsColumnBeingUsedAsRange(
-            context,
-            column.id,
-            ncMeta,
-          ))
-        ) {
+        const listRanges = await CalendarRange.IsColumnBeingUsedAsRange(
+          context,
+          column.id,
+          ncMeta,
+        );
+        if (listRanges?.length) {
           NcError.badRequest(
-            `The column '${column.column_name}' is being used in Calendar View. Please delete Calendar View first.`,
+            `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
           );
         }
         /* falls through to default */

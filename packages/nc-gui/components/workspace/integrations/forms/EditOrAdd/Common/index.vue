@@ -99,6 +99,7 @@ onMounted(async () => {
     <template #leftPanel="{ class: leftPanelClass }">
       <div :class="leftPanelClass">
         <NcFormBuilder class="px-2" />
+        <WorkspaceIntegrationsSyncPanel v-if="activeIntegrationItem.type === 'sync'" class="px-2" />
         <div class="mt-10"></div>
       </div>
     </template>

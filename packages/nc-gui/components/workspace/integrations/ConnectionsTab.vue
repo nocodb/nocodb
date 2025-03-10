@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { integrationCategoryNeedDefault } from 'nocodb-sdk'
+import { IntegrationsType, integrationCategoryNeedDefault } from 'nocodb-sdk'
 import type { IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
@@ -12,6 +12,7 @@ const {
   integrationPaginationData,
   successConfirmModal,
   searchQuery,
+  loadDynamicIntegrations,
   loadIntegrations,
   deleteIntegration,
   editIntegration,
@@ -65,42 +66,45 @@ const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string 
 })
 
 const filteredIntegrations = computed(() =>
-  (integrations.value || []).sort((a, b) => {
-    if (orderBy.value.title) {
-      if (a.title && b.title) {
-        return orderBy.value.title === 'asc' ? (a.title < b.title ? -1 : 1) : a.title > b.title ? -1 : 1
-      }
-    } else if (orderBy.value.sub_type) {
-      if (a.sub_type && b.sub_type) {
-        return orderBy.value.sub_type === 'asc' ? (a.sub_type < b.sub_type ? -1 : 1) : a.sub_type > b.sub_type ? -1 : 1
-      }
-    } else if (orderBy.value.created_at) {
-      if (a?.created_at && b?.created_at) {
-        return orderBy.value.created_at === 'asc'
-          ? dayjs(a.created_at).local().isBefore(dayjs(b.created_at).local())
+  (integrations.value || [])
+    .filter((i) => IntegrationsType.Sync !== i.type)
+    .sort((a, b) => {
+      if (orderBy.value.title) {
+        if (a.title && b.title) {
+          return orderBy.value.title === 'asc' ? (a.title < b.title ? -1 : 1) : a.title > b.title ? -1 : 1
+        }
+      } else if (orderBy.value.sub_type) {
+        if (a.sub_type && b.sub_type) {
+          return orderBy.value.sub_type === 'asc' ? (a.sub_type < b.sub_type ? -1 : 1) : a.sub_type > b.sub_type ? -1 : 1
+        }
+      } else if (orderBy.value.created_at) {
+        if (a?.created_at && b?.created_at) {
+          return orderBy.value.created_at === 'asc'
+            ? dayjs(a.created_at).local().diff(dayjs(b.created_at).local())
+            : dayjs(b.created_at).local().diff(dayjs(a.created_at).local())
+        }
+      } else if (orderBy.value.created_by) {
+        if (
+          a.created_by &&
+          b.created_by &&
+          collaboratorsMap.value.get(a.created_by) &&
+          collaboratorsMap.value.get(b.created_by)
+        ) {
+          return orderBy.value.created_by === 'asc'
+            ? collaboratorsMap.value.get(a.created_by)?.email < collaboratorsMap.value.get(b.created_by)?.email
+              ? -1
+              : 1
+            : collaboratorsMap.value.get(a.created_by)?.email > collaboratorsMap.value.get(b.created_by)?.email
             ? -1
             : 1
-          : dayjs(a.created_at).local().isAfter(dayjs(b.created_at).local())
-          ? -1
-          : 1
+        }
+      } else if (orderBy.value.source_count) {
+        if (a.source_count !== undefined && b.source_count !== undefined) {
+          return orderBy.value.source_count === 'asc' ? a.source_count - b.source_count : b.source_count - a.source_count
+        }
       }
-    } else if (orderBy.value.created_by) {
-      if (a.created_by && b.created_by && collaboratorsMap.value.get(a.created_by) && collaboratorsMap.value.get(b.created_by)) {
-        return orderBy.value.created_by === 'asc'
-          ? collaboratorsMap.value.get(a.created_by)?.email < collaboratorsMap.value.get(b.created_by)?.email
-            ? -1
-            : 1
-          : collaboratorsMap.value.get(a.created_by)?.email > collaboratorsMap.value.get(b.created_by)?.email
-          ? -1
-          : 1
-      }
-    } else if (orderBy.value.source_count) {
-      if (a.source_count !== undefined && b.source_count !== undefined) {
-        return orderBy.value.source_count === 'asc' ? a.source_count - b.source_count : b.source_count - a.source_count
-      }
-    }
-    return 0
-  }),
+      return 0
+    }),
 )
 
 async function loadConnections(
@@ -113,7 +117,7 @@ async function loadConnections(
       integrationPaginationData.value.page = 1
     }
 
-    await loadIntegrations(undefined, undefined, updateCurrentPage ? 1 : page, limit)
+    await loadIntegrations(null, undefined, updateCurrentPage ? 1 : page, limit)
   } catch {}
 }
 
@@ -243,6 +247,7 @@ useEventListener(tableWrapper, 'scroll', () => {
 })
 
 onMounted(async () => {
+  await loadDynamicIntegrations()
   if (!isEeUI) {
     await Promise.allSettled([!integrations.value.length && loadIntegrations(), loadOrgUsers()])
   } else if (!integrations.value.length) {

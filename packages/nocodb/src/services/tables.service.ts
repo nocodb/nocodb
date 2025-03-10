@@ -120,6 +120,22 @@ export class TablesService {
         'Leading or trailing whitespace not allowed in table names',
       );
     }
+    const specialCharRegex = /[./\\]/g;
+    if (specialCharRegex.test(param.table.table_name)) {
+      const match = param.table.table_name.match(specialCharRegex);
+      NcError.badRequest(
+        'Following characters are not allowed ' +
+          match.map((m) => JSON.stringify(m)).join(', '),
+      );
+    }
+
+    const replaceCharRegex = /[$?]/g;
+    if (replaceCharRegex.test(param.table.table_name)) {
+      param.table.table_name = param.table.table_name.replace(
+        replaceCharRegex,
+        '_',
+      );
+    }
 
     if (
       !(await Model.checkTitleAvailable(context, {
@@ -494,6 +510,7 @@ export class TablesService {
       table: TableReqType;
       user: User | UserType;
       req: NcRequest;
+      synced?: boolean;
       apiVersion?: NcApiVersion;
     },
   ) {
@@ -517,6 +534,7 @@ export class TablesService {
       columns: (ColumnType & { cn?: string })[];
     } = {
       ...param.table,
+      ...(param.synced ? { synced: true } : {}),
     };
 
     const base = await Base.getWithInfo(context, param.baseId);
@@ -564,7 +582,7 @@ export class TablesService {
             columnName = 'nc_order';
             break;
           case UITypes.ID:
-            columnTitle = 'id';
+            columnTitle = 'Id';
             columnName = 'id';
             break;
         }
@@ -585,7 +603,7 @@ export class TablesService {
             column_name: colName,
             cn: colName,
             title: colAlias,
-            system: true,
+            system: uidt !== UITypes.ID,
           });
         } else {
           // temporary fix for updating if user passed system columns with duplicate names
@@ -611,6 +629,43 @@ export class TablesService {
           }
         }
       }
+    }
+
+    {
+      // set order of system columns in columns list
+      const orderOfSystemColumns = [
+        UITypes.ID,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedBy,
+        UITypes.Order,
+      ];
+
+      tableCreatePayLoad.columns = tableCreatePayLoad.columns.sort((a, b) => {
+        const aIndex =
+          a.system || a.uidt === UITypes.ID
+            ? orderOfSystemColumns.indexOf(a.uidt as UITypes)
+            : -1;
+        const bIndex =
+          b.system || b.uidt === UITypes.ID
+            ? orderOfSystemColumns.indexOf(b.uidt as UITypes)
+            : -1;
+
+        if (aIndex === -1 && bIndex === -1) {
+          return 0;
+        }
+
+        if (aIndex === -1) {
+          return 1;
+        }
+
+        if (bIndex === -1) {
+          return -1;
+        }
+
+        return aIndex - bIndex;
+      });
     }
 
     if (!tableCreatePayLoad.title) {
@@ -651,6 +706,22 @@ export class TablesService {
     if (/^\s+|\s+$/.test(tableCreatePayLoad.table_name)) {
       NcError.badRequest(
         'Leading or trailing whitespace not allowed in table names',
+      );
+    }
+    const specialCharRegex = /[./\\]/g;
+    if (specialCharRegex.test(param.table.table_name)) {
+      const match = param.table.table_name.match(specialCharRegex);
+      NcError.badRequest(
+        'Following characters are not allowed ' +
+          match.map((m) => JSON.stringify(m)).join(', '),
+      );
+    }
+
+    const replaceCharRegex = /[$?]/g;
+    if (replaceCharRegex.test(param.table.table_name)) {
+      tableCreatePayLoad.table_name = param.table.table_name.replace(
+        replaceCharRegex,
+        '_',
       );
     }
 
@@ -801,6 +872,7 @@ export class TablesService {
             title: c.title || getColumnNameAlias(c.cn, source),
             column_name: colMetaFromDb?.cn || c.cn || c.column_name,
             order: i + 1,
+            readonly: c.readonly || false,
           } as NormalColumnRequestType;
         }),
         ...virtualColumns.map((c, i) => ({

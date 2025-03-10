@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  ColumnHelper,
   FormulaDataTypes,
   FormulaError,
   UITypes,
@@ -22,7 +23,7 @@ const vModel = useVModel(props, 'value', emit)
 
 // set default value
 vModel.value.meta = {
-  ...columnDefaultMeta[UITypes.Formula],
+  ...ColumnHelper.getColumnDefaultMeta(UITypes.Formula),
   ...(vModel.value.meta || {}),
 }
 

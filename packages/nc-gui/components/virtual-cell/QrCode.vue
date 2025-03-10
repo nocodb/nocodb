@@ -17,7 +17,13 @@ const column = inject(ColumnInj)
 
 const qrValue = computed(() => String(cellValue?.value ?? ''))
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
+const _isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
+
+const isLinkRecordDropdown = inject(IsLinkRecordDropdownInj, ref(false))
+
+const isExpandedFormOpen = computed(() => {
+  return _isExpandedFormOpen.value && !isLinkRecordDropdown.value
+})
 
 const tooManyCharsForQrCode = computed(() => qrValue?.value.length > maxNumberOfAllowedCharsForQrValue)
 
@@ -84,7 +90,7 @@ const height = computed(() => {
 })
 
 onMounted(() => {
-  if (isCanvasInjected && !isUnderLookup.value && !isExpandedFormOpen.value) {
+  if (isCanvasInjected && !isUnderLookup.value && !isExpandedFormOpen.value && !isLinkRecordDropdown.value) {
     if (showQrCode.value) {
       modalVisible.value = true
     }
@@ -159,7 +165,7 @@ onMounted(() => {
     class="nc-qrcode-container w-full flex"
     :class="{
       'flex-start h-20': isExpandedFormOpen,
-      'justify-center': !isExpandedFormOpen,
+      'justify-center': !isExpandedFormOpen && !isLinkRecordDropdown,
     }"
   >
     <img
@@ -176,7 +182,7 @@ onMounted(() => {
     <img
       v-else
       class="flex-none min-w-[1.4em]"
-      :class="!isExpandedFormOpen ? 'mx-auto' : ''"
+      :class="!isExpandedFormOpen && !isLinkRecordDropdown ? 'mx-auto' : ''"
       :src="qrCode"
       :alt="$t('title.qrCode')"
       @click="showQrModal"

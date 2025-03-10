@@ -19,7 +19,6 @@ export const BelongsToCellRenderer: CellRenderer = {
       setCursor,
       selected,
       cellRenderStore,
-      padding,
     } = props
 
     const relatedTableDisplayValueProp =

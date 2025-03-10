@@ -511,6 +511,7 @@
     "isNotNull": "לא NULL"
   },
   "title": {
+    "urlFilters": "URL Filters",
     "creatingScript": "Creating Script",
     "searchWebhook": "חיפוש Webhook",
     "webcam": "מצלמת רשת",
@@ -676,7 +677,9 @@
     "lockedByUser": "נעול על ידי {user}",
     "thisPageDoesNotExist": "עמוד זה לא קיים",
     "customUrl": "כתובת URL מותאמת אישית",
-    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}."
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}.",
+    "youAreLeavingNocoDB": "You’re leaving NocoDB",
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
   },
   "labels": {
     "latitude": "Latitude",
@@ -1126,7 +1129,9 @@
     "osBrowser": "OS, Browser",
     "rowId": "Row Id",
     "showJsonPayload": "Show JSON payload",
-    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options",
+    "fillForm": "Fill Form",
+    "proceedToLink": "Proceed to link"
   },
   "activity": {
     "clickToResolve": "לחץ כדי לפתור",
@@ -1522,6 +1527,7 @@
     "lockViewDescription": "הסבר מדוע אתה נועל תצוגה זו. הודעה זו תוצג כאשר מישהו ינסה לפתוח את תצוגה זו (אופציונלי)."
   },
   "msg": {
+    "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "גרור את המסמך שלך כאן",
     "airtableImportSuccess": "יובא בהצלחה ממסד Airtable.",
     "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",

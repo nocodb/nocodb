@@ -39,6 +39,7 @@ import FormulaColumn from '~/models/FormulaColumn';
 import { BaseUser, ButtonColumn } from '~/models';
 import { getRefColumnIfAlias } from '~/helpers';
 import { ExternalTimeout, NcError } from '~/helpers/catchError';
+import { sanitize } from '~/helpers/sqlSanitize';
 
 const logger = new Logger('FormulaQueryBuilderv2');
 
@@ -78,6 +79,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
   const getLinkedColumnDisplayValue = async (params: {
     model: Model;
     aliasToColumn?: Record<string, () => Promise<{ builder: any }>>;
+    parentColumns: Set<string>;
   }) => {
     const displayValueColumn = params.model?.displayValue;
     if (!displayValueColumn) {
@@ -102,6 +104,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         tableAlias,
         parsedTree: formulOption.getParsedTree(),
         baseUsers,
+        parentColumns: params.parentColumns,
       });
       return innerQb;
     }
@@ -187,6 +190,10 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       case UITypes.Button:
         {
           aliasToColumn[col.id] = async () => {
+            if (params.parentColumns.has(col.id)) {
+              NcError.formulaError('Circular reference detected');
+            }
+
             const formulOption = await col.getColOptions<
               FormulaColumn | ButtonColumn
             >(context);
@@ -199,6 +206,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               tableAlias,
               parsedTree: formulOption.getParsedTree(),
               baseUsers,
+              parentColumns: new Set([col.id, ...params.parentColumns]),
             });
             builder.sql = '(' + builder.sql + ')';
             return {
@@ -573,6 +581,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                   const formulaOption =
                     await lookupColumn.getColOptions<FormulaColumn>(context);
                   const lookupModel = await lookupColumn.getModel(context);
+                  if (params.parentColumns.has(lookupColumn.id)) {
+                    NcError.formulaError('Circular reference detected');
+                  }
                   const { builder } = await _formulaQueryBuilder({
                     baseModelSqlv2,
                     _tree: formulaOption.formula,
@@ -580,6 +591,10 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                     model: lookupModel,
                     aliasToColumn,
                     parsedTree: formulaOption.getParsedTree(),
+                    parentColumns: new Set([
+                      lookupColumn.id,
+                      ...params.parentColumns,
+                    ]),
                   });
                   if (isArray) {
                     const qb = selectQb;
@@ -673,6 +688,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             const linkedDisplayValue = await getLinkedColumnDisplayValue({
               model: parentModel,
               aliasToColumn: { ...aliasToColumn, [col.id]: null },
+              parentColumns: new Set(params.parentColumns),
             });
             selectQb = knex(baseModelSqlv2.getTnPath(parentModel.table_name))
               .select(
@@ -708,6 +724,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             const childDisplayValue = await getLinkedColumnDisplayValue({
               model: childModel,
               aliasToColumn: { ...aliasToColumn, [col.id]: null },
+              parentColumns: new Set(params.parentColumns),
             });
             selectQb = (fn) =>
               knex
@@ -920,7 +937,13 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       }
       default:
         aliasToColumn[col.id] = () =>
-          Promise.resolve({ builder: col.column_name });
+          Promise.resolve({
+            builder: knex.raw(`??`, [
+              `${tableAlias ?? baseModelSqlv2.getTnPath(model.table_name)}.${
+                col.column_name
+              }`,
+            ]),
+          });
         break;
     }
   }
@@ -960,14 +983,32 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               {
                 type: JSEPNode.BINARY_EXP,
                 operator: '+',
-                left: pt.arguments[0],
+                left: {
+                  type: JSEPNode.CALL_EXP,
+                  callee: { type: 'Identifier', name: 'COALESCE' },
+                  arguments: [
+                    pt.arguments[0],
+                    { type: JSEPNode.LITERAL, value: 0 } as ParsedFormulaNode,
+                  ],
+                },
                 right: { ...pt, arguments: pt.arguments.slice(1) },
               },
               a,
               prevBinaryOp,
             );
           } else {
-            return fn(pt.arguments[0], a, prevBinaryOp);
+            return fn(
+              {
+                type: JSEPNode.CALL_EXP,
+                callee: { type: 'Identifier', name: 'COALESCE' },
+                arguments: [
+                  pt.arguments[0],
+                  { type: JSEPNode.LITERAL, value: 0 } as ParsedFormulaNode,
+                ],
+              },
+              a,
+              prevBinaryOp,
+            );
           }
           break;
         case 'CONCAT':
@@ -1097,7 +1138,11 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         ),
       };
     } else if (pt.type === 'Literal') {
-      return { builder: knex.raw(`?${colAlias}`, [pt.value]) };
+      return {
+        builder: knex.raw(`?${colAlias}`, [
+          typeof pt.value === 'string' ? sanitize(pt.value) : pt.value,
+        ]),
+      };
     } else if (pt.type === 'Identifier') {
       const { builder } = (await aliasToColumn?.[pt.name]?.()) || {};
       if (typeof builder === 'function') {
@@ -1439,6 +1484,7 @@ export default async function formulaQueryBuilderv2(
           ?.getColOptions<FormulaColumn | ButtonColumn>(context)
           .then((formula) => formula?.getParsedTree())),
       baseUsers,
+      parentColumns: new Set(column?.id ? [column?.id] : []),
     });
 
     if (!validateFormula) return qb;

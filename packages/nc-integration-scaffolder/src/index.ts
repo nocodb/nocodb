@@ -14,6 +14,7 @@ const rootPath = path.resolve(
   "..",
   "nocodb",
   "src",
+  "ee",
   "integrations"
 );
 
@@ -234,7 +235,7 @@ async function generateFormBoilerplate(type: string, subType: string) {
 
     const options = [];
 
-    let selectMode: 'single' | 'multiple' | 'multipleWithInput';
+    let selectMode: "single" | "multiple" | "multipleWithInput";
 
     if (menu === "Select") {
       let counter = 0;
@@ -297,9 +298,7 @@ async function generateFormBoilerplate(type: string, subType: string) {
       category: '${category}',` +
         `${placeholder ? `\nplaceholder: '${placeholder}',\n` : ""}` +
         `${menu === "Select" ? `selectMode: '${selectMode}',\n` : ""}` +
-        `${
-          menu === "Select" ? `options: ${JSON.stringify(options)},\n` : ""
-        }` +
+        `${menu === "Select" ? `options: ${JSON.stringify(options)},\n` : ""}` +
         `${defaultValue ? `defaultValue: '${defaultValue}',\n` : ""}` +
         `${
           isRequired

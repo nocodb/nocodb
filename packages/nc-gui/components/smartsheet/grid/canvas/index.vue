@@ -118,7 +118,13 @@ const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 const isEditColumnDescription = ref(false)
 const mousePosition = reactive({ x: 0, y: 0 })
 const clientMousePosition = reactive({ clientX: 0, clientY: 0 })
-const paddingLessUITypes = new Set([UITypes.LongText, UITypes.DateTime, UITypes.SingleSelect, UITypes.MultiSelect])
+const paddingLessUITypes = new Set([
+  UITypes.LongText,
+  UITypes.DateTime,
+  UITypes.SingleSelect,
+  UITypes.MultiSelect,
+  UITypes.Formula,
+])
 const scroller = ref()
 provide(ClientMousePositionInj, clientMousePosition)
 // provide the column ref since at a time only one column can be active
@@ -152,7 +158,7 @@ const { height: windowHeight, width: windowWidth } = useWindowSize()
 const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
-const { eventBus } = useSmartsheetStoreOrThrow()
+const { eventBus, isSqlView } = useSmartsheetStoreOrThrow()
 const route = useRoute()
 const { $e } = useNuxtApp()
 const { t } = useI18n()
@@ -319,7 +325,7 @@ const editEnabledCellPosition = computed(() => {
 const isClamped = computed(() => {
   if (!editEnabled.value || !containerRef.value) return false
 
-  if (editEnabled.value.column?.uidt === UITypes.LongText) {
+  if (editEnabled.value.column?.uidt === UITypes.LongText || editEnabled.value.column?.uidt === UITypes.Formula) {
     return true
   }
 
@@ -403,6 +409,7 @@ function onActiveCellChanged() {
   if (rowSortRequiredRows.value.length) {
     applySorting?.(rowSortRequiredRows.value)
   }
+  calculateSlices()
   requestAnimationFrame(triggerRefreshCanvas)
 }
 
@@ -854,7 +861,7 @@ async function handleMouseUp(e: MouseEvent) {
 
       // If user is clicking on an existing column
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
-      const isFieldNotEditable = isLocked.value || !isUIAllowed('fieldEdit')
+      const isFieldNotEditable = !isUIAllowed('fieldEdit') || clickedColumn.columnObj?.readonly
       if (clickedColumn) {
         if (clickType === MouseClickType.RIGHT_CLICK) {
           if (isFieldNotEditable) return
@@ -917,7 +924,7 @@ async function handleMouseUp(e: MouseEvent) {
   }
 
   // If the user is clicking on the Aggregation in bottom
-  if (y > height.value - 36) {
+  if (y > height.value - 36 && !isLocked.value) {
     // If the click is not normal single click, return
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
 
@@ -963,6 +970,7 @@ async function handleMouseUp(e: MouseEvent) {
   } else if (rowIndex > totalRows.value) {
     selection.value.clear()
     activeCell.value = { row: -1, column: -1 }
+    onActiveCellChanged()
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
@@ -1121,13 +1129,21 @@ const getHeaderTooltipRegions = (
 
     let rightOffset = xOffset + width - rightPadding - (isFieldEditAllowed.value ? 16 : 0)
 
-    if (isFieldEditAllowed.value) {
+    if (isFieldEditAllowed.value && !column.columnObj?.readonly) {
       regions.push({
         x: rightOffset - scrollLeftValue,
         width: 14,
         type: 'columnChevron',
         disableTooltip: true,
         text: null,
+      })
+    } else if (meta.value?.synced && column.columnObj?.readonly) {
+      regions.push({
+        x: rightOffset - scrollLeftValue,
+        width: 14,
+        type: 'synced',
+        disableTooltip: false,
+        text: 'This field is synced',
       })
     }
 
@@ -1435,11 +1451,12 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
 }
 
 function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnType) {
-  if (isLocked.value) return
   if (
     isUIAllowed('fieldEdit') &&
     !isMobileMode.value &&
-    (isDescription ? true : !isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.uidt))
+    (isDescription ? true : !isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.uidt)) &&
+    !column.readonly &&
+    !isSqlView.value
   ) {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (isDescription) {
@@ -1585,9 +1602,7 @@ watch(rowHeight, () => {
 
 // watch for column hide and re-render canvas
 watch(
-  () => {
-    return columns.value?.length
-  },
+  () => [columns.value?.length, totalRows.value],
   () => {
     nextTick(() => {
       calculateSlices()
@@ -1706,6 +1721,7 @@ onKeyStroke('Escape', () => {
 
 const increaseMinHeightBy: Record<string, number> = {
   [UITypes.LongText]: 2,
+  [UITypes.Formula]: 2,
 }
 
 function updateValue(val: any) {
@@ -1991,6 +2007,9 @@ defineExpose({
 
     :deep(.nc-user-select) {
       margin-top: -2px;
+      .ant-select-selector {
+        @apply !h-7;
+      }
     }
 
     :deep(.nc-cell-datetime) {
@@ -2004,6 +2023,11 @@ defineExpose({
     :deep(.nc-virtual-cell-lookup:has(.nc-cell-attachment)) {
       @apply !h-full;
     }
+  }
+
+  :deep(.nc-virtual-cell-lookup:has(.nc-virtual-cell-linktoanotherrecord)),
+  :deep(.nc-virtual-cell-lookup:has(.nc-virtual-cell-links)) {
+    @apply !overflow-hidden;
   }
 
   :deep(.nc-cell-longtext) {

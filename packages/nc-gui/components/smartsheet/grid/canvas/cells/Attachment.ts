@@ -205,11 +205,21 @@ export const AttachmentCellRenderer: CellRenderer = {
         if (img) {
           ctx.strokeStyle = '#D5D5D9'
           ctx.lineWidth = 1
-          imageLoader.renderImage(ctx, img, itemX, itemY, itemSize, itemSize, 4, {
-            border: true,
-            borderColor: '#D5D5D9',
-            borderWidth: 1,
-          })
+          imageLoader.renderImage(
+            ctx,
+            img,
+            itemX,
+            itemY,
+            itemSize,
+            itemSize,
+            4,
+            {
+              border: true,
+              borderColor: '#D5D5D9',
+              borderWidth: 1,
+            },
+            'contain',
+          )
         } else {
           renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
         }

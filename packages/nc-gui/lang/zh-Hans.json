@@ -511,6 +511,7 @@
     "isNotNull": "不为空（Not Null）"
   },
   "title": {
+    "urlFilters": "URL Filters",
     "creatingScript": "创建脚本",
     "searchWebhook": "搜索网络钩子",
     "webcam": "网络摄像头",
@@ -676,7 +677,9 @@
     "lockedByUser": "被{user} 锁定",
     "thisPageDoesNotExist": "此页面不存在",
     "customUrl": "自定义URL",
-    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}"
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
+    "youAreLeavingNocoDB": "You’re leaving NocoDB",
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
   },
   "labels": {
     "latitude": "Latitude",
@@ -1126,7 +1129,9 @@
     "osBrowser": "操作系统，浏览器",
     "rowId": "行 ID",
     "showJsonPayload": "显示JSON负载",
-    "autoCreateMissingSelectionOptions": "Auto create missing select field options"
+    "autoCreateMissingSelectionOptions": "Auto create missing select field options",
+    "fillForm": "Fill Form",
+    "proceedToLink": "Proceed to link"
   },
   "activity": {
     "clickToResolve": "点击解决",
@@ -1522,6 +1527,7 @@
     "lockViewDescription": "解释锁定此视图的原因。任何人尝试解锁此视图时，都会显示此信息（可选）。"
   },
   "msg": {
+    "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "将文档拖放到这里",
     "airtableImportSuccess": "成功导入自Airtable Base。",
     "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",

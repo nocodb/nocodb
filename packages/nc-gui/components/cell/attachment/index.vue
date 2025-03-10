@@ -304,21 +304,25 @@ onMounted(() => {
         }}
       </NcButton>
     </div>
-    <NcButton
-      v-if="isEditAllowed"
-      data-testid="attachment-cell-file-picker-button"
-      type="secondary"
-      size="xsmall"
-      class="mb-1 !px-2"
-      @click="openAttachmentModal"
-    >
-      <div class="flex items-center gap-1.5 justify-center">
-        <GeneralIcon icon="upload" class="text-gray-500 h-3.5 w-3.5" />
-        <span class="text-tiny">
-          {{ $t('activity.uploadFiles') }}
-        </span>
-      </div>
-    </NcButton>
+    <div class="flex">
+      <NcTooltip :disabled="isEditAllowed" :title="$t('tooltip.sourceDataIsReadonly')">
+        <NcButton
+          data-testid="attachment-cell-file-picker-button"
+          type="secondary"
+          size="xsmall"
+          class="mb-1 !px-2"
+          :disabled="!isEditAllowed"
+          @click="openAttachmentModal"
+        >
+          <div class="flex items-center gap-1.5 justify-center">
+            <GeneralIcon icon="upload" class="text-current opacity-80 h-3.5 w-3.5" />
+            <span class="text-tiny">
+              {{ $t('activity.uploadFiles') }}
+            </span>
+          </div>
+        </NcButton>
+      </NcTooltip>
+    </div>
 
     <LazyGeneralDeleteModal
       v-model:visible="isConfirmModalOpen"
@@ -418,6 +422,7 @@ onMounted(() => {
             <LazyCellAttachmentPreviewImage
               v-if="isImage(item.title, item.mimetype ?? item.type)"
               :alt="item.title || `#${i}`"
+              object-fit="contain"
               class="nc-attachment rounded-lg w-full h-full object-cover overflow-hidden"
               :srcs="getPossibleAttachmentSrc(item, attachmentSize)"
               @click="() => onFileClick(item)"

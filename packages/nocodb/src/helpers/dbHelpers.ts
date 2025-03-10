@@ -1,6 +1,13 @@
-import { RelationTypes } from 'nocodb-sdk';
-import type { Column, LinkToAnotherRecordColumn } from '~/models';
+import { type NcContext, RelationTypes } from 'nocodb-sdk';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import {
+  type Column,
+  type LinkToAnotherRecordColumn,
+  Model,
+  Source,
+} from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { isEE, isOnPrem } from '~/utils';
 
 export function _wherePk(
   primaryKeys: Column[],
@@ -116,4 +123,38 @@ export function getOppositeRelationType(
     return RelationTypes.HAS_MANY;
   }
   return type as RelationTypes;
+}
+
+export async function getBaseModelSqlFromModelId({
+  modelId,
+  context,
+}: {
+  context: NcContext;
+  modelId: string;
+}) {
+  const model = await Model.get(context, modelId);
+  const source = await Source.get(context, model.source_id);
+  return await Model.getBaseModelSQL(context, {
+    id: model.id,
+    dbDriver: await NcConnectionMgrv2.get(source),
+    source,
+  });
+}
+
+// Audit logging is enabled by default unless explicitly disabled.
+// It remains enabled in the following cases:
+// 1. `NC_ENABLE_AUDIT` is set to 'true' (manual override).
+// 2. Running in a test environment (`NODE_ENV === 'test'`).
+// 3. Not an EE Cloud instance using an EE Cloud audit source (`isMeta`).
+export function isDataAuditEnabled({
+  isMetaSource,
+}: {
+  isMetaSource: boolean;
+}) {
+  return (
+    process.env.NC_DISABLE_AUDIT !== 'true' &&
+    (process.env.NC_ENABLE_AUDIT === 'true' ||
+      process.env.NODE_ENV === 'test' ||
+      !(isEE && !isOnPrem && isMetaSource)) // Disable only for EE Cloud using EE Cloud audit source
+  );
 }

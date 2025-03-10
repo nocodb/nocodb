@@ -78,6 +78,7 @@ export enum SmartsheetStoreEvents {
   GROUP_BY_REMOVE = 'group-by-remove',
   FILTER_ADD = 'filter-add',
   CELL_SELECTED = 'cell-selected',
+  FIELD_UPDATE = 'field-update',
 }
 
 export enum SmartsheetScriptActions {

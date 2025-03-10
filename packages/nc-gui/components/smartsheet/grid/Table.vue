@@ -165,8 +165,8 @@ const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${pro
 
 // #Permissions
 const { isUIAllowed, isDataReadOnly } = useRoles()
-const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
-const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
+const hasEditPermission = computed(() => isUIAllowed('dataEdit') && !isSqlView.value)
+const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
 const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
   fields,
@@ -247,7 +247,8 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
     isDataReadOnly.value ||
     !ctx ||
     !hasEditPermission.value ||
-    (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col]))
+    (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col])) ||
+    fields.value[ctx.col].readonly
   )
     return
 
@@ -366,7 +367,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 }
 
 function makeEditable(row: Row, col: ColumnType) {
-  if (!hasEditPermission.value || editEnabled.value || isView || readOnly.value || isSystemColumn(col)) {
+  if (!hasEditPermission.value || editEnabled.value || isView || readOnly.value || isSystemColumn(col) || col.readonly) {
     return
   }
 
@@ -1019,6 +1020,8 @@ async function clearSelectedRangeOfCells() {
       // skip readonly columns
       if (isReadonly(col)) continue
 
+      if (col.readonly) continue
+
       row.row[col.title] = null
       props.push(col.title)
     }
@@ -1471,7 +1474,8 @@ const showFillHandle = computed(
     !isViewDataLoading.value &&
     !isPaginationLoading.value &&
     dataRef.value.length &&
-    !selectedReadonly.value,
+    !selectedReadonly.value &&
+    !isSqlView.value,
 )
 
 watch(
@@ -1892,6 +1896,7 @@ onKeyStroke('ArrowDown', onDown)
                   class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
+                    'no-resize': isLocked,
                   }"
                   @xcstartresizing="onXcStartResizing(fields[0].id, $event)"
                   @xcresize="onresize(fields[0].id, $event)"
@@ -1937,6 +1942,7 @@ onKeyStroke('ArrowDown', onDown)
                   class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === col.id,
+                    'no-resize': isLocked,
                   }"
                   @xcstartresizing="onXcStartResizing(col.id, $event)"
                   @xcresize="onresize(col.id, $event)"
@@ -1945,7 +1951,7 @@ onKeyStroke('ArrowDown', onDown)
                 >
                   <div
                     class="w-full h-full flex items-center text-gray-500 pl-2 pr-1"
-                    :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission ? 'false' : 'true'"
+                    :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission || isLocked ? 'false' : 'true'"
                     @dragstart.stop="onDragStart(col.id!, $event)"
                     @drag.stop="onDrag($event)"
                     @dragend.stop="onDragEnd($event)"
@@ -3054,12 +3060,18 @@ onKeyStroke('ArrowDown', onDown)
   }
 }
 
-:deep(.resizer:hover),
-:deep(.resizer:active),
-:deep(.resizer:focus) {
-  // todo: replace with primary color
-  @apply bg-blue-500/50;
-  cursor: col-resize;
+.nc-grid-column-header {
+  &.no-resize :deep(.resizer) {
+    @apply hidden;
+  }
+
+  :deep(.resizer:hover),
+  :deep(.resizer:active),
+  :deep(.resizer:focus) {
+    // todo: replace with primary color
+    @apply bg-blue-500/50;
+    cursor: col-resize;
+  }
 }
 
 .nc-grid-row {

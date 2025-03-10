@@ -78,12 +78,20 @@ export class BulkDataAliasService {
       body: any;
       cookie: NcRequest;
       raw?: boolean;
+      allowSystemColumn?: boolean;
     },
   ) {
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkUpdate',
-      options: [param.body, { cookie: param.cookie, raw: param.raw }],
+      options: [
+        param.body,
+        {
+          cookie: param.cookie,
+          raw: param.raw,
+          allowSystemColumn: param.allowSystemColumn,
+        },
+      ],
     });
   }
 

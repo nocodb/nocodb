@@ -1734,7 +1734,8 @@ const showFillHandle = computed(
     activeCell.col !== null &&
     fields.value[activeCell.col] &&
     totalRows.value &&
-    !selectedReadonly.value,
+    !selectedReadonly.value &&
+    !isSqlView.value,
 )
 
 watch(

@@ -368,7 +368,7 @@ const updateVisibleRows = async (fromCalculateSlice = false) => {
 }
 
 const { isUIAllowed, isDataReadOnly } = useRoles()
-const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
+const hasEditPermission = computed(() => isUIAllowed('dataEdit') && !isSqlView.value)
 const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
 const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({

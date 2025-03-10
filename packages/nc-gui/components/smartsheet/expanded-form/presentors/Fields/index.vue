@@ -29,6 +29,8 @@ const newRecordSubmitBtnText = toRef(props, 'newRecordSubmitBtnText')
 
 const { commentsDrawer, changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
+const { isSqlView } = useSmartsheetStoreOrThrow()
+
 const { isUIAllowed } = useRoles()
 const { isMobileMode } = useGlobal()
 
@@ -36,7 +38,7 @@ const { isMobileMode } = useGlobal()
 
 const showRightSections = computed(() => !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
 
-const canEdit = computed(() => isUIAllowed('dataEdit'))
+const canEdit = computed(() => isUIAllowed('dataEdit') && !isSqlView.value)
 </script>
 
 <script lang="ts">
@@ -99,7 +101,7 @@ export default {
             </template>
           </NcDropdown>
         </div>
-        <div v-if="isMobileMode" class="p-2">
+        <div v-if="isMobileMode && !isSqlView" class="p-2">
           <NcButton
             v-e="['c:row-expand:save']"
             :disabled="changedColumns.size === 0 && !isUnsavedFormExist"

@@ -10,6 +10,7 @@ defineProps<{
   trigger?: 'hover' | 'click'
   message?: string
   enabled?: boolean
+  isSqlView?: boolean
 }>()
 </script>
 
@@ -23,10 +24,11 @@ defineProps<{
     trigger="hover"
   >
     <template #title>
-      {{ $t('tooltip.schemaChangeDisabled') }} <br />
+      {{ isSqlView ? $t('tooltip.schemaChangeDisabledFormSqlView') : $t('tooltip.schemaChangeDisabled') }} <br />
       {{ message }}
       <br v-if="message" />
       <a
+        v-if="!isSqlView"
         class="!text-current"
         href="https://docs.nocodb.com/data-sources/connect-to-data-source#configuring-permissions"
         target="_blank"

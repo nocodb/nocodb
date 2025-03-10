@@ -59,9 +59,6 @@ const vModelNumber = computed<number>(() => {
   }
   return 0
 })
-const labelMarginLeft = computed<number>(() => {
-  return Math.max(1, Math.min(vModelNumber.value / 2, 50))
-})
 
 const inputType = computed(() => (isForm.value && !isEditColumn.value ? 'text' : 'number'))
 
@@ -75,7 +72,7 @@ const onFocus = () => {
   cellFocused.value = true
 }
 const onContainerFocus = ($event) => {
-  setTimeout(() => $event?.target?.querySelector('input').focus(), 100)
+  $event?.target?.querySelector('input').focus()
 }
 onMounted(() => {
   if (isCanvasInjected && (!isExpandedFormOpen.value || localEditEnabled.value) && !isEditColumn.value && !isForm.value) {
@@ -88,13 +85,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    v-if="isForm"
-    tabindex="0"
-    class="flex h-full w-full progress-container"
-    style="align-self: stretch; justify-self: stretch"
-    @focus="onContainerFocus"
-  >
+  <CellPercentProgressBar v-if="isForm" :on-focus="onContainerFocus" :percentage="vModelNumber">
     <!-- eslint-disable vue/use-v-on-exact -->
     <input
       :ref="focus"
@@ -114,31 +105,7 @@ onMounted(() => {
       @selectstart.capture.stop
       @mousedown.stop
     />
-    <div class="h-full w-full progress-bar flex" style="align-self: stretch; border-radius: 9999px; overflow: hidden">
-      <div style="align-self: stretch; background-color: #3366ff" :style="{ width: `${vModelNumber}%` }"></div>
-      <div style="align-self: stretch; background-color: #e5e5e5" :style="{ width: `${100 - vModelNumber}%` }"></div>
-      <div style="position: absolute" :style="{ 'margin-left': `${labelMarginLeft}%` }">
-        <span
-          style="mix-blend-mode: difference; color: #ffffff"
-          :style="{
-            'margin-left': `${-Math.min(vModelNumber, 50)}%`,
-          }"
-        >
-          {{ `${vModelNumber}%` }}
-        </span>
-      </div>
-      <div style="position: absolute" :style="{ 'margin-left': `${labelMarginLeft}%` }">
-        <span
-          style="mix-blend-mode: overlay; color: #ffffff"
-          :style="{
-            'margin-left': `${-Math.min(vModelNumber, 50)}%`,
-          }"
-        >
-          {{ `${vModelNumber}%` }}
-        </span>
-      </div>
-    </div>
-  </div>
+  </CellPercentProgressBar>
   <div v-else>
     <!-- eslint-disable vue/use-v-on-exact -->
     <input
@@ -173,14 +140,5 @@ input::-webkit-inner-spin-button {
 /* Firefox */
 input[type='number'] {
   -moz-appearance: textfield;
-}
-.progress-container:not(:focus-within) > input {
-  visibility: collapse;
-  display: none;
-}
-.progress-container:focus > div.progress-bar,
-.progress-container > input:focus ~ div.progress-bar {
-  visibility: collapse;
-  display: none;
 }
 </style>

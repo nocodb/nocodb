@@ -98,6 +98,8 @@ export function useMultiSelect(
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
+  const { isSqlView } = useSmartsheetStoreOrThrow()
+
   const aiMode = ref(false)
 
   const isArrayStructure = typeof unref(data) === 'object' && Array.isArray(unref(data))
@@ -849,6 +851,8 @@ export function useMultiSelect(
           if (unref(editEnabled) || e.ctrlKey || e.altKey || e.metaKey) {
             return true
           }
+
+          if (isSqlView.value) return
 
           /** on letter key press make cell editable and empty */
           if (e.key.length === 1) {

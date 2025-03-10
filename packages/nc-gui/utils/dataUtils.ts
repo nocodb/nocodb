@@ -169,7 +169,7 @@ export const isRowEmpty = (record: Pick<Row, 'row'>, col: ColumnType): boolean =
   return !isValidValue(record.row[col.title])
 }
 
-export function validateRowFilters(_filters: FilterType[], data: any, columns: ColumnType[], client: any, metas?: Record<string, any> = {}) {
+export function validateRowFilters(_filters: FilterType[], data: any, columns: ColumnType[], client: any, metas: Record<string, any>) {
   if (!_filters.length) {
     return true
   }

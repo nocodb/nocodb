@@ -64,3 +64,5 @@ renovate.json
 packages/nc-gui/extensions/*-ee/**
 packages/nocodb/jest.config.js
 packages/nc-secret-mgr/dist/**
+flake.lock
+flake.nix

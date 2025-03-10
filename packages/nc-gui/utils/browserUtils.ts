@@ -102,3 +102,11 @@ export const focusInputEl = (querySelector: string, target?: HTMLElement) => {
 
   return inputEl
 }
+
+export const isExpandCellKey = (event: Event) => {
+  if (event instanceof KeyboardEvent) {
+    return event.key === ' ' && event.shiftKey
+  }
+
+  return false
+}

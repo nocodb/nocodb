@@ -422,7 +422,7 @@ watch(textAreaRef, (el) => {
 const onCellEvent = (event?: Event) => {
   if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event)) return
 
-  if (event.key === ' ' && event.shiftKey) {
+  if (isExpandCellKey(event)) {
     if (isVisible.value) {
       handleClose()
     } else {

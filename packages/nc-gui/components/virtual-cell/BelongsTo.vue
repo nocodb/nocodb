@@ -29,6 +29,10 @@ const cellClickHook = inject(CellClickHookInj, null)
 
 const onDivDataCellEventHook = inject(OnDivDataCellEventHookInj, null)
 
+const canvasCellEventData = inject(CanvasCellEventDataInj)!
+
+const cellEventHook = inject(CellEventHookInj, null)
+
 const { isUIAllowed } = useRoles()
 
 const listItemsDlg = ref(false)
@@ -105,13 +109,30 @@ function onCellClick(e: Event) {
   }
 }
 
+const onCellEvent = (event?: Event) => {
+  if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event) || !hasEditPermission.value) return
+
+  if (isExpandCellKey(event)) {
+    if (listItemsDlg.value) {
+      listItemsDlg.value = false
+    } else {
+      listItemsDlg.value = true
+    }
+
+    return true
+  }
+}
+
 onMounted(() => {
   onDivDataCellEventHook?.on(onCellClick)
   cellClickHook?.on(onCellClick)
+  cellEventHook?.on(onCellEvent)
 
   if (!hasEditPermission.value || !isCanvasInjected || isExpandedFormOpen.value || !clientMousePosition) return
 
   forcedNextTick(() => {
+    if (onCellEvent(canvasCellEventData?.event)) return
+
     if (getElementAtMouse('.unlink-icon', clientMousePosition)) {
       unlinkRef(value.value)
     } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-plus.nc-action-icon', clientMousePosition)) {
@@ -125,6 +146,7 @@ onMounted(() => {
 onUnmounted(() => {
   onDivDataCellEventHook?.off(onCellClick)
   cellClickHook?.off(onCellClick)
+  cellEventHook?.off(onCellEvent)
 })
 </script>
 

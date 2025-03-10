@@ -24,6 +24,10 @@ const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
+const canvasCellEventData = inject(CanvasCellEventDataInj)!
+
+const cellEventHook = inject(CellEventHookInj, null)
+
 const colTitle = computed(() => column.value?.title || '')
 
 const listItemsDlg = ref(false)
@@ -145,9 +149,28 @@ watch(
   { flush: 'post' },
 )
 
+const onCellEvent = (event?: Event) => {
+  if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event)) return
+
+  if (isExpandCellKey(event)) {
+    if (childListDlg.value) {
+      listItemsDlg.value = false
+      childListDlg.value = false
+    } else {
+      openChildList()
+    }
+
+    return true
+  }
+}
+
 onMounted(() => {
+  cellEventHook?.on(onCellEvent)
+
   if (!isUnderLookup.value && isCanvasInjected && !isExpandedFormOpen.value && clientMousePosition) {
     forcedNextTick(() => {
+      if (onCellEvent(canvasCellEventData?.event)) return
+
       if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-icon-plus', clientMousePosition)) {
         openListDlg()
       } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-text', clientMousePosition)) {
@@ -159,6 +182,10 @@ onMounted(() => {
       }
     })
   }
+})
+
+onUnmounted(() => {
+  cellEventHook?.off(onCellEvent)
 })
 </script>
 

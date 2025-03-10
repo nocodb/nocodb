@@ -390,7 +390,7 @@ export const AttachmentCellRenderer: CellRenderer = {
     tryShowTooltip({ rect: attachBox, text: getI18n().global.t('activity.addFiles'), mousePosition })
   },
   async handleKeyDown({ row, column, e, makeCellEditable }) {
-    if (e.key === 'Enter' || (e.key === ' ' && e.shiftKey)) {
+    if (e.key === 'Enter' || isExpandCellKey(e)) {
       makeCellEditable(row.rowMeta.rowIndex!, column)
       return true
     }

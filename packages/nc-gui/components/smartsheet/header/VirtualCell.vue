@@ -25,6 +25,8 @@ const column = toRef(props, 'column')
 
 const { base: activeBase, tables } = storeToRefs(useBase())
 
+const { isSqlView } = useSmartsheetStoreOrThrow()
+
 const isExternalSource = computed(() =>
   activeBase.value?.sources?.some((s) => s.id === column.value?.source_id && !s.is_meta && !s.is_local),
 )
@@ -154,7 +156,9 @@ watch(editColumnDropdown, (val) => {
 })
 
 const openHeaderMenu = (e?: MouseEvent, description = false) => {
-  if ((isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
+  if ((isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value || isSqlView.value) {
+    return
+  }
 
   if (
     !isForm.value &&

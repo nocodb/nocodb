@@ -883,7 +883,7 @@ export function useMultiSelect(
   const clearSelectedRange = selectedRange.clear.bind(selectedRange)
 
   const handlePaste = async (e: ClipboardEvent) => {
-    if (isDataReadOnly.value) {
+    if (isDataReadOnly.value || isSqlView.value) {
       return
     }
 

@@ -40,7 +40,7 @@ watch(
     if (
       (openedSubTab.value === 'field' && !isUIAllowed('fieldAdd')) ||
       (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) ||
-      isSqlView.value
+      (['field', 'webhook'].includes(openedSubTab.value) && isSqlView.value)
     ) {
       onViewsTabChange('relation')
     }

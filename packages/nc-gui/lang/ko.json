@@ -511,6 +511,7 @@
     "isNotNull": "null 값이 아님"
   },
   "title": {
+    "urlFilters": "URL Filters",
     "creatingScript": "스크립트 만들기",
     "searchWebhook": "웹훅 검색",
     "webcam": "웹캠",
@@ -1526,6 +1527,7 @@
     "lockViewDescription": "이 뷰를 잠그는 이유를 설명하세요. 이 메시지는 누군가 이 뷰를 잠금 해제하려고 할 때 표시됩니다 (선택 사항)"
   },
   "msg": {
+    "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "여기에 문서를 놓습니다",
     "airtableImportSuccess": "Airtable Base에서 성공적으로 가져왔습니다.",
     "nocoDBImportSuccess": "NocoDB Base에서 성공적으로 가져왔습니다.",

@@ -277,9 +277,7 @@ onMounted(() => {
 
   if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value) {
     forcedNextTick(() => {
-      const event = canvasCellEventData?.event
-
-      if (onCellEvent(event)) return
+      if (onCellEvent(canvasCellEventData?.event)) return
 
       const clickableSelectors = ['.view-attachments', '.add-files', '.nc-attachment', '.empty-add-files']
         .map((selector) => `.nc-canvas-table-editable-cell-wrapper ${selector}`)

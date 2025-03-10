@@ -20,6 +20,11 @@ const { showNull } = useGlobal()
 const editEnabled = inject(EditModeInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
+
+const cellEventHook = inject(CellEventHookInj, null)
+
+const canvasCellEventData = inject(CanvasCellEventDataInj)!
+
 const canvasSelectCell = inject(CanvasSelectCellInj)
 
 const isEditColumn = inject(EditColumnInj, ref(false))
@@ -197,11 +202,27 @@ watch(inputWrapperRef, () => {
   }
 })
 
+const onCellEvent = (event?: Event) => {
+  if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event)) return
+
+  if (event.key === ' ' && event.shiftKey) {
+    if (isExpanded.value) {
+      closeJSONEditor()
+    } else {
+      openJSONEditor()
+    }
+
+    return true
+  }
+}
+
 const el = useCurrentElement()
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 onMounted(() => {
+  cellEventHook?.on(onCellEvent)
+
   if (
     !isUnderLookup.value &&
     isCanvasInjected &&
@@ -211,6 +232,8 @@ onMounted(() => {
     !isExpandedFormOpen.value
   ) {
     forcedNextTick(() => {
+      if (onCellEvent(canvasCellEventData?.event)) return
+
       openJSONEditor()
     })
   }
@@ -225,6 +248,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  cellEventHook?.off(onCellEvent)
+
   const gridCell = el.value?.closest?.('td')
   if (gridCell && !readOnly.value) {
     gridCell.removeEventListener('dblclick', openJSONEditor)

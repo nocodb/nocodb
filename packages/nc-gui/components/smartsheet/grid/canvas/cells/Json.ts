@@ -73,7 +73,7 @@ export const JsonCellRenderer: CellRenderer = {
     const { e, row, column, makeCellEditable } = ctx
     const columnObj = column.columnObj
 
-    if (columnObj.title && e.key.length === 1) {
+    if (columnObj.title && (e.key.length === 1 || (e.key === ' ' && e.shiftKey))) {
       makeCellEditable(row, column)
       return true
     }

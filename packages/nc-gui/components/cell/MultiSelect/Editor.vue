@@ -113,6 +113,8 @@ const vModel = computed({
     if (isNewOptionCreateEnabled.value && isOptionMissing.value && val.length && val[val.length - 1] === searchVal.value) {
       return addIfMissingAndSave()
     }
+
+    searchVal.value = ''
     emit('update:modelValue', val.length === 0 ? null : val.join(','))
   },
 })

@@ -15,7 +15,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     isNewRow: ComputedRef<boolean> | Ref<boolean>,
     _reloadData = (_params: { shouldShowLoading?: boolean }) => {},
   ) => {
-
     // when initialized by link popup dialog, keep current row
     // to avoid being changed by sort or filter
     const currentRow = ref(row.value)

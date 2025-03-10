@@ -25,9 +25,8 @@ export default defineNuxtPlugin((nuxtApp) => {
     dsn: 'https://0da0f8ab4bc2afc11ee510490f452b22@o4505953073889280.ingest.sentry.io/4505953708867584',
     environment: env,
     integrations: [
-      new Sentry.BrowserTracing({
-        tracingOrigins: ['*'],
-        routingInstrumentation: Sentry.vueRouterInstrumentation(nuxtApp.$router),
+      Sentry.browserTracingIntegration({
+        router: nuxtApp.$router as any,
       }),
     ],
     beforeSend(event) {
@@ -38,7 +37,6 @@ export default defineNuxtPlugin((nuxtApp) => {
       }
       return null
     },
-    autoSessionTracking: false,
     // Set tracesSampleRate to 1.0 to capture 100%
     // of transactions for performance monitoring.
     // We recommend adjusting this value in production

@@ -10,6 +10,7 @@ interface Props {
 const props = defineProps<Props>()
 const emits = defineEmits(['update:modelValue'])
 
+const col = inject(ColumnInj)
 const editEnabled = inject(EditModeInj, ref(false))
 const isEditColumn = inject(EditColumnInj, ref(false))
 const readOnly = inject(ReadonlyInj, ref(false))
@@ -85,7 +86,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <CellPercentProgressBar v-if="isForm" :on-focus="onContainerFocus" :percentage="vModelNumber">
+  <CellPercentProgressBar
+    v-if="(col.meta as any).is_progress"
+    :is-show-number="true"
+    :on-focus="onContainerFocus"
+    :percentage="vModelNumber"
+  >
     <!-- eslint-disable vue/use-v-on-exact -->
     <input
       :ref="focus"

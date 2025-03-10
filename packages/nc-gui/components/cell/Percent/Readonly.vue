@@ -23,6 +23,12 @@ const expandedEditEnabled = ref(false)
 const percentValue = computed(() => {
   return props.modelValue && !isNaN(Number(props.modelValue)) ? `${props.modelValue}%` : props.modelValue
 })
+const percentValueNumber = computed(() => {
+  if (props.modelValue && props.modelValue !== '' && !isNaN(Number(props.modelValue))) {
+    return Number(props.modelValue)
+  }
+  return 0
+})
 
 const percentMeta = computed(() => {
   return {
@@ -61,7 +67,11 @@ const progressPercent = computed(() => {
 </script>
 
 <template>
+  <div v-if="(column.meta as any).is_progress" class="flex" style="height: 4px">
+    <CellPercentProgressBar :percentage="percentValueNumber"> </CellPercentProgressBar>
+  </div>
   <div
+    v-else
     :tabindex="readOnly ? -1 : 0"
     class="nc-filter-value-select w-full focus:outline-transparent relative z-3"
     :class="readOnly ? 'cursor-not-allowed pointer-events-none' : ''"

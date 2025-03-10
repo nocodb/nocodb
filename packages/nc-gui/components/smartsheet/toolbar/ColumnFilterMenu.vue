@@ -123,7 +123,9 @@ const combinedFilterLength = computed(() => {
 
           <!--    show a warning icon with tooltip if query filter error is there -->
           <template v-if="filtersFromUrlParams?.errors?.length">
-            <GeneralIcon icon="ncAlertCircle" class="nc-error-icon w-3.5" />
+            <NcTooltip :title="$t('msg.urlFilterError')" placement="top">
+              <GeneralIcon icon="ncAlertCircle" class="nc-error-icon w-3.5" />
+            </NcTooltip>
           </template>
         </div>
       </NcButton>
@@ -160,10 +162,7 @@ const combinedFilterLength = computed(() => {
                 </div>
 
                 <div>
-                  <NcTooltip
-                    title="URL filters are applied from URL parameters and combine with view filters set via the toolbar."
-                    placement="top"
-                  >
+                  <NcTooltip :title="$t('msg.urlFilter')" placement="top">
                     <GeneralIcon icon="ncInfo" class="nc-info-icon !w-3.5 !h-3.5" />
                   </NcTooltip>
                 </div>

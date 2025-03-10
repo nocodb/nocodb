@@ -47,7 +47,7 @@ const {
   loadRelatedTableMeta,
   attachmentCol,
   fields,
-  refreshCurrentRow
+  refreshCurrentRow,
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()

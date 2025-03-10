@@ -263,7 +263,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
         if (!id) {
-          return message.info("Update not allowed for table which doesn't have primary Key")
+          return message.info(t('msg.info.updateNotAllowedWithoutPK'))
         }
 
         await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id, encodeURIComponent(id), updateOrInsertObj)

@@ -158,7 +158,7 @@ const { height: windowHeight, width: windowWidth } = useWindowSize()
 const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
-const { eventBus } = useSmartsheetStoreOrThrow()
+const { eventBus, isSqlView } = useSmartsheetStoreOrThrow()
 const route = useRoute()
 const { $e } = useNuxtApp()
 const { t } = useI18n()
@@ -1455,7 +1455,8 @@ function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnT
     isUIAllowed('fieldEdit') &&
     !isMobileMode.value &&
     (isDescription ? true : !isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.uidt)) &&
-    !column.readonly
+    !column.readonly &&
+    !isSqlView.value
   ) {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (isDescription) {

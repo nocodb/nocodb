@@ -111,16 +111,18 @@ const { isSystem } = useColumnCreateStoreOrThrow()
             @click="editEnabled = true"
           />
         </div>
-        <component
-          :is="iconMap.close"
-          v-if="
-            ![UITypes.Year, UITypes.Date, UITypes.Time, UITypes.DateTime, UITypes.SingleSelect, UITypes.MultiSelect].includes(
-              vModel.uidt,
-            ) || isCurrentDate
-          "
-          class="w-4 h-4 cursor-pointer rounded-full z-3 !text-black-500 text-gray-500 cursor-pointer hover:bg-gray-50 default-value-clear"
-          @click.stop="updateCdfValue(null)"
-        />
+        <NcTooltip :title="$t('general.clear')">
+          <component
+            :is="iconMap.close"
+            v-if="
+              ![UITypes.Year, UITypes.Date, UITypes.Time, UITypes.DateTime, UITypes.SingleSelect, UITypes.MultiSelect].includes(
+                vModel.uidt,
+              ) || isCurrentDate
+            "
+            class="w-4 h-4 cursor-pointer rounded-full z-3 !text-black-500 text-gray-500 cursor-pointer hover:bg-gray-50 default-value-clear"
+            @click.stop="updateCdfValue(null)"
+          />
+        </NcTooltip>
       </div>
     </div>
   </div>

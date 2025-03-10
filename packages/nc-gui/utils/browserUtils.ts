@@ -82,3 +82,23 @@ export const isMousePointerType = (event: Event) => {
 }
 
 export const isTouchEvent = (event: Event | TouchEvent) => !isMousePointerType(event)
+
+export const focusInputEl = (querySelector: string, target?: HTMLElement) => {
+  if (typeof window === 'undefined') return
+
+  querySelector = querySelector ? `${querySelector} ` : ''
+
+  const targetEl = target || document
+  const inputEl =
+    (targetEl.querySelector(`${querySelector}input`) as HTMLInputElement) ||
+    (targetEl.querySelector(`${querySelector}textarea`) as HTMLTextAreaElement) ||
+    (targetEl.querySelector(`${querySelector}[contenteditable="true"]`) as HTMLElement) ||
+    (targetEl.querySelector(`${querySelector}[tabindex="0"]`) as HTMLElement)
+
+  if (inputEl) {
+    inputEl?.select?.()
+    inputEl?.focus?.()
+  }
+
+  return inputEl
+}

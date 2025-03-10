@@ -36,6 +36,8 @@ const { base } = storeToRefs(useBase())
 
 const { refreshCommandPalette } = useCommandPalette()
 
+const isSqlView = computed(() => (table.value as TableType)?.type === 'view')
+
 const lockType = computed(() => (view.value?.lock_type as LockType) || LockType.Collaborative)
 
 const currentSourceId = computed(() => table.value?.source_id)
@@ -254,7 +256,7 @@ const isDefaultView = computed(() => view.value?.is_default)
     </template>
     <template v-if="view.type !== ViewTypes.FORM">
       <NcDivider />
-      <template v-if="isUIAllowed('csvTableImport') && !isPublicView && !isDataReadOnly">
+      <template v-if="isUIAllowed('csvTableImport') && !isPublicView && !isDataReadOnly && !isSqlView">
         <NcSubMenu key="upload" variant="small">
           <template #title>
             <div

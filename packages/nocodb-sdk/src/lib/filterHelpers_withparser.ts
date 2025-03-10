@@ -118,7 +118,7 @@ function innerExtractFilterFromXwhere(
     aliasColObjMap,
     throwErrorIfInvalid
   );
-  if (parseErrors.length > 0) {
+  if (parseErrors?.length > 0) {
     return { errors: parseErrors };
   }
   return { filters: [filter] };
@@ -143,13 +143,13 @@ function mapFilterGroupSubType(
     )
     .filter((k) => k);
   if (children.length === 1) {
-    return { filter: children[0] as FilterType };
+    return { filter: children[0].filter as FilterType };
   } else {
     return {
       filter: {
         is_group: filter.is_group,
         logical_op: filter.logical_op,
-        children: children,
+        children: children.map((k) => k.filter),
       } as FilterType,
     };
   }

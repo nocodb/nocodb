@@ -60,7 +60,7 @@
     "month_range": "Rango",
     "checked": "Comprobado",
     "unchecked": "No seleccionado",
-    "percent_checked": "Comprobado",
+    "percent_checked": "Checked",
     "percent_unchecked": "No seleccionado",
     "attachment_size": "Tamaño",
     "none": "Nada"
@@ -93,7 +93,7 @@
     "none": "Ninguno"
   },
   "general": {
-    "supported": "Supported",
+    "supported": "",
     "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",

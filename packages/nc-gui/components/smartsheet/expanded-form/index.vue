@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { ViewTypes, isSystemColumn } from 'nocodb-sdk'
+import { ViewTypes, isReadOnlyColumn, isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { Drawer } from 'ant-design-vue'
 import NcModal from '../../nc/Modal.vue'
@@ -92,17 +92,41 @@ const loadingEmit = (event: 'update:modelValue' | 'cancel' | 'next' | 'prev' | '
   isLoading.value = true
 }
 
-const fields = computedInject(FieldsInj, (_fields) => {
+const fieldsFromParent = inject<ColumnType[] | null>(FieldsInj, ref(null))
+
+const fields = computed(() => {
+  if (fieldsFromParent.value) {
+    if (isNew.value) {
+      return fieldsFromParent.value.filter((col) => !isReadOnlyColumn(col))
+    }
+
+    return fieldsFromParent.value
+  }
+
   if (props.useMetaFields) {
     if (maintainDefaultViewOrder.value) {
       return (meta.value.columns ?? [])
-        .filter((col) => !isSystemColumn(col) && !!col.meta?.defaultViewColVisibility)
+        .filter(
+          (col) =>
+            !isSystemColumn(col) &&
+            !!col.meta?.defaultViewColVisibility &&
+            // if new record, then hide readonly fields
+            (!isNew.value || !isReadOnlyColumn(col)),
+        )
         .sort((a, b) => {
           return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
         })
     }
 
-    return (meta.value.columns ?? []).filter((col) => !isSystemColumn(col) && !!col.meta?.defaultViewColVisibility)
+    return (meta.value.columns ?? []).filter(
+      (col) =>
+        // if new record, then hide readonly fields
+        (!isNew.value || !isReadOnlyColumn(col)) &&
+        // exclude system columns
+        !isSystemColumn(col) &&
+        // exclude hidden columns
+        !!col.meta?.defaultViewColVisibility,
+    )
   }
   return _fields?.value ?? []
 })
@@ -135,7 +159,9 @@ const hiddenFields = computed(() => {
     (col) =>
       !isSystemColumn(col) &&
       !fields.value?.includes(col) &&
-      (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true),
+      (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true) &&
+      // exclude readonly fields from hidden fields if new record creation
+      (!isNew.value || !isReadOnlyColumn(col)),
   )
   if (props.useMetaFields) {
     return maintainDefaultViewOrder.value
@@ -671,7 +697,7 @@ export default {
         <div class="flex gap-2">
           <div class="flex gap-2">
             <NcTooltip v-if="props.showNextPrevIcons">
-              <template #title> {{ renderAltOrOptlKey() }} + ← </template>
+              <template #title> {{ renderAltOrOptlKey() }} + ←</template>
               <NcButton
                 :disabled="isFirstRow || isLoading"
                 class="nc-prev-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
@@ -683,7 +709,7 @@ export default {
               </NcButton>
             </NcTooltip>
             <NcTooltip v-if="props.showNextPrevIcons">
-              <template #title> {{ renderAltOrOptlKey() }} + → </template>
+              <template #title> {{ renderAltOrOptlKey() }} + →</template>
               <NcButton
                 :disabled="islastRow || isLoading"
                 class="nc-next-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
@@ -751,7 +777,7 @@ export default {
         </div>
         <div class="flex gap-2">
           <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit') && !isSqlView">
-            <template #title> {{ renderAltOrOptlKey() }} + S </template>
+            <template #title> {{ renderAltOrOptlKey() }} + S</template>
             <NcButton
               v-e="['c:row-expand:save']"
               :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
@@ -952,9 +978,11 @@ export default {
 .nc-expanded-cell-header > :nth-child(2) {
   @apply !text-sm xs:!text-small;
 }
+
 .nc-expanded-cell-header > :first-child {
   @apply !text-md pl-2 xs:(pl-0 -ml-0.5);
 }
+
 .nc-expanded-cell-header:not(.nc-cell-expanded-form-header) > :first-child {
   @apply pl-0;
 }

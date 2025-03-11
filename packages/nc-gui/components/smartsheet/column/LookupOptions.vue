@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
-import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -38,7 +38,18 @@ const refTables = computed(() => {
   }
 
   const _refTables = meta.value.columns
-    .filter((column) => isLinksOrLTAR(column) && !column.system && column.source_id === meta.value?.source_id)
+    .filter(
+      (column) =>
+        isLinksOrLTAR(column) &&
+        // exclude system columns
+        (!column.system ||
+          // include system columns if it's self-referencing, mm, oo and bt are self-referencing
+          // hm is only used for LTAR with junction table
+          [RelationTypes.MANY_TO_MANY, RelationTypes.ONE_TO_ONE, RelationTypes.BELONGS_TO].includes(
+            (column.colOptions as LinkToAnotherRecordType).type as RelationTypes,
+          )) &&
+        column.source_id === meta.value?.source_id,
+    )
     .map((column) => ({
       col: column.colOptions,
       column,

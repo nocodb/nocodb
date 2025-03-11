@@ -169,7 +169,13 @@ export const isRowEmpty = (record: Pick<Row, 'row'>, col: ColumnType): boolean =
   return !isValidValue(record.row[col.title])
 }
 
-export function validateRowFilters(_filters: FilterType[], data: any, columns: ColumnType[], client: any, metas: Record<string, any>) {
+export function validateRowFilters(
+  _filters: FilterType[],
+  data: any,
+  columns: ColumnType[],
+  client: any,
+  metas: Record<string, any>,
+) {
   if (!_filters.length) {
     return true
   }
@@ -330,12 +336,10 @@ export function validateRowFilters(_filters: FilterType[], data: any, columns: C
 
         if (
           [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(column.uidt!) ||
-          (
-            column.uidt === UITypes.Lookup &&
+          (column.uidt === UITypes.Lookup &&
             [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
-              getLookupColumnType(column, { columns }, metas) as UITypes
-            )
-          )
+              getLookupColumnType(column, { columns }, metas) as UITypes,
+            ))
         ) {
           const userIds: string[] = Array.isArray(data[field])
             ? data[field].map((user) => user.id)
@@ -709,7 +713,12 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   return parsePlainCellValue(modelValue, { ...params, col: childColumn! })
 }
 
-export const getLookupColumnType = (col: ColumnType, meta: { columns: ColumnType[] }, metas: Record<string, any>) => {
+export const getLookupColumnType = (
+  col: ColumnType,
+  meta: { columns: ColumnType[] },
+  metas: Record<string, any>,
+  visitedIds = new Set<string>(),
+) => {
   const colOptions = col.colOptions as LookupType
   const relationColumnOptions = colOptions.fk_relation_column_id
     ? meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
@@ -720,8 +729,15 @@ export const getLookupColumnType = (col: ColumnType, meta: { columns: ColumnType
   const childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_lookup_column_id) as
     | ColumnType
     | undefined
-    
-  return childColumn?.uidt || null;
+
+  // if child column is lookup column, then recursively find the column type
+  // and check for circular dependency
+  if (childColumn && childColumn.uidt === UITypes.Lookup && !visitedIds.has(childColumn.id)) {
+    visitedIds.add(childColumn.id)
+    return getLookupColumnType(childColumn, relatedTableMeta, metas, visitedIds)
+  }
+
+  return childColumn?.uidt || null
 }
 
 export const getAttachmentValue = (modelValue: string | null | number | Array<any>) => {

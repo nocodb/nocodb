@@ -25,7 +25,7 @@ const clientMousePosition = inject(ClientMousePositionInj)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
-const canvasCellEventData = inject(CanvasCellEventDataInj)!
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 
 const cellEventHook = inject(CellEventHookInj, null)
 
@@ -129,7 +129,7 @@ onMounted(() => {
   if (!hasEditPermission.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value) return
 
   forcedNextTick(() => {
-    if (onCellEvent(canvasCellEventData?.event)) return
+    if (onCellEvent(canvasCellEventData.event)) return
 
     if (getElementAtMouse('.unlink-icon', clientMousePosition)) {
       unlinkRef(value.value)

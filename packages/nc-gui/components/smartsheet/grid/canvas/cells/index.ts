@@ -55,7 +55,7 @@ export function useGridCellHandler(params: {
 
   const { t } = useI18n()
   const { metas } = useMetas()
-  const canvasCellEvents = reactive<ExtractInjectedReactive<typeof CanvasCellEventDataInj>>({})
+  const canvasCellEvents = reactive<CanvasCellEventDataInjType>({})
   provide(CanvasCellEventDataInj, canvasCellEvents)
 
   const baseStore = useBase()

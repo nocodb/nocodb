@@ -23,9 +23,9 @@ const active = inject(ActiveCellInj, ref(false))
 
 const cellEventHook = inject(CellEventHookInj, null)
 
-const canvasCellEventData = inject(CanvasCellEventDataInj)!
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 
-const canvasSelectCell = inject(CanvasSelectCellInj)
+const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
@@ -232,7 +232,7 @@ onMounted(() => {
     !isExpandedFormOpen.value
   ) {
     forcedNextTick(() => {
-      if (onCellEvent(canvasCellEventData?.event)) return
+      if (onCellEvent(canvasCellEventData.event)) return
 
       openJSONEditor()
     })

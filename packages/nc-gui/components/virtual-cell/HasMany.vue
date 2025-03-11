@@ -24,6 +24,16 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
+
+const cellEventHook = inject(CellEventHookInj, null)
+
+const rowHeight = inject(RowHeightInj, ref())
+
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
+const clientMousePosition = inject(ClientMousePositionInj)
+
 const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
@@ -31,10 +41,6 @@ const childListDlg = ref(false)
 const isOpen = ref(false)
 
 const hideBackBtn = ref(false)
-
-const rowHeight = inject(RowHeightInj, ref())
-const isCanvasInjected = inject(IsCanvasInjectionInj, false)
-const clientMousePosition = inject(ClientMousePositionInj)
 
 const { isUIAllowed } = useRoles()
 
@@ -148,13 +154,31 @@ function onCellClick(e: Event) {
   }
 }
 
+const onCellEvent = (event?: Event) => {
+  if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event)) return
+
+  if (isExpandCellKey(event)) {
+    if (childListDlg.value) {
+      listItemsDlg.value = false
+      childListDlg.value = false
+    } else {
+      openChildList()
+    }
+
+    return true
+  }
+}
+
 onMounted(() => {
   onDivDataCellEventHook?.on(onCellClick)
   cellClickHook?.on(onCellClick)
+  cellEventHook?.on(onCellEvent)
 
   if (isUnderLookup.value || !isCanvasInjected || isExpandedForm.value || !clientMousePosition) return
 
   forcedNextTick(() => {
+    if (onCellEvent(canvasCellEventData.event)) return
+
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-has-many-plus-icon', clientMousePosition)) {
       openListDlg()
     } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-has-many-maximize-icon', clientMousePosition)) {
@@ -170,6 +194,7 @@ onMounted(() => {
 onUnmounted(() => {
   onDivDataCellEventHook?.off(onCellClick)
   cellClickHook?.off(onCellClick)
+  cellEventHook?.off(onCellEvent)
 })
 </script>
 

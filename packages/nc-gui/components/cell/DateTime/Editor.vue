@@ -28,12 +28,12 @@ const editable = inject(EditModeInj, ref(false))
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
-const canvasSelectCell = inject(CanvasSelectCellInj)
+const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
 const isGrid = inject(IsGridInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
-const canvasCellEventData = inject(CanvasCellEventDataInj)!
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 

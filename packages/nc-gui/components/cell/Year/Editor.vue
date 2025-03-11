@@ -11,7 +11,7 @@ const { modelValue, isPk = false } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const canvasSelectCell = inject(CanvasSelectCellInj)
+const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
 const { showNull } = useGlobal()
 
@@ -282,7 +282,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
 }
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
-const canvasCellEventData = inject(CanvasCellEventDataInj)!
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 onMounted(() => {
   if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
     open.value = true

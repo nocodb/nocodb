@@ -24,4 +24,14 @@ export const LtarCellRenderer: CellRenderer = {
       return cellRenderer?.handleClick?.(props)
     }
   },
+  handleKeyDown: async (props) => {
+    const { row, column, e, makeCellEditable } = props
+
+    if (isExpandCellKey(e)) {
+      makeCellEditable(row.rowMeta.rowIndex!, column)
+      return true
+    }
+
+    return false
+  },
 }

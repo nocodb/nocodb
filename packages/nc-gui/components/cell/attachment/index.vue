@@ -35,10 +35,10 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 const isGrid = inject(IsGridInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
-const canvasCellEventData = inject(CanvasCellEventDataInj)!
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const clientMousePosition = inject(ClientMousePositionInj)
-const canvasSelectCell = inject(CanvasSelectCellInj)
+const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
 const cellEventHook = inject(CellEventHookInj, null)
 
@@ -277,7 +277,7 @@ onMounted(() => {
 
   if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value) {
     forcedNextTick(() => {
-      if (onCellEvent(canvasCellEventData?.event)) return
+      if (onCellEvent(canvasCellEventData.event)) return
 
       const clickableSelectors = ['.view-attachments', '.add-files', '.nc-attachment', '.empty-add-files']
         .map((selector) => `.nc-canvas-table-editable-cell-wrapper ${selector}`)

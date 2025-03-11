@@ -39,7 +39,6 @@ import FormulaColumn from '~/models/FormulaColumn';
 import { BaseUser, ButtonColumn } from '~/models';
 import { getRefColumnIfAlias } from '~/helpers';
 import { ExternalTimeout, NcError } from '~/helpers/catchError';
-import { sanitize } from '~/helpers/sqlSanitize';
 
 const logger = new Logger('FormulaQueryBuilderv2');
 
@@ -1102,47 +1101,44 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       }
 
       const calleeName = pt.callee.name.toUpperCase();
+      const callArgs = (
+        await Promise.all(
+          pt.arguments.map(async (arg) => {
+            let query = (await fn(arg)).builder.toQuery();
+            if (calleeName === 'CONCAT') {
+              if (knex.clientType() !== 'sqlite3') {
+                query = await convertDateFormatForConcat(
+                  context,
+                  arg,
+                  columnIdToUidt,
+                  query,
+                  knex.clientType(),
+                );
+              } else {
+                // sqlite3: special handling - See BinaryExpression
+              }
+
+              if (knex.clientType() === 'mysql2') {
+                // mysql2: CONCAT() returns NULL if any argument is NULL.
+                // adding IFNULL to convert NULL values to empty strings
+                return `IFNULL(${query}, '')`;
+              } else {
+                // do nothing
+                // pg / mssql: Concatenate all arguments. NULL arguments are ignored.
+                // sqlite3: special handling - See BinaryExpression
+              }
+            }
+            return query;
+          }),
+        )
+      ).join();
       return {
         builder: knex.raw(
-          `${calleeName}(${(
-            await Promise.all(
-              pt.arguments.map(async (arg) => {
-                let query = (await fn(arg)).builder.toQuery();
-                if (calleeName === 'CONCAT') {
-                  if (knex.clientType() !== 'sqlite3') {
-                    query = await convertDateFormatForConcat(
-                      context,
-                      arg,
-                      columnIdToUidt,
-                      query,
-                      knex.clientType(),
-                    );
-                  } else {
-                    // sqlite3: special handling - See BinaryExpression
-                  }
-
-                  if (knex.clientType() === 'mysql2') {
-                    // mysql2: CONCAT() returns NULL if any argument is NULL.
-                    // adding IFNULL to convert NULL values to empty strings
-                    return `IFNULL(${query}, '')`;
-                  } else {
-                    // do nothing
-                    // pg / mssql: Concatenate all arguments. NULL arguments are ignored.
-                    // sqlite3: special handling - See BinaryExpression
-                  }
-                }
-                return query;
-              }),
-            )
-          ).join()})${colAlias}`.replace(/\?/g, '\\?'),
+          `${calleeName}(${callArgs})${colAlias}`.replace(/\?/g, '\\?'),
         ),
       };
     } else if (pt.type === 'Literal') {
-      return {
-        builder: knex.raw(`?${colAlias}`, [
-          typeof pt.value === 'string' ? sanitize(pt.value) : pt.value,
-        ]),
-      };
+      return { builder: knex.raw(`? ${colAlias}`, [pt.value]) };
     } else if (pt.type === 'Identifier') {
       const { builder } = (await aliasToColumn?.[pt.name]?.()) || {};
       if (typeof builder === 'function') {

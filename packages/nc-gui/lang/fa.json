@@ -369,7 +369,7 @@
       "orgLevelCreator": "تولید کننده سطح سازمانی",
       "orgLevelViewer": "مشاهده کننده سطح سازمانی"
     },
-    "sqlVIew": "نمای SQL",
+    "sqlView": "SQL View",
     "rowHeight": "ارتفاع رکورد",
     "heightClass": {
       "short": "کوتاه",
@@ -1465,7 +1465,8 @@
     "aiIntegrationReConfigure": "AI integration has been removed, re-configure from field edit modal to use NocoAI features",
     "aiIntegrationAddAndReConfigure": "AI integration has been removed, re-add and re-configure from field edit modal to use NocoAI features",
     "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI",
-    "sourceDataIsReadonly": "Source data is readonly"
+    "sourceDataIsReadonly": "Source data is readonly",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View."
   },
   "placeholder": {
     "searchIcons": "جستجو آیکون",
@@ -1527,6 +1528,7 @@
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",

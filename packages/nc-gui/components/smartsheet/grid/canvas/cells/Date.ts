@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTagLabel, truncateText } from '../utils/canvas'
-
+import { parseFlexibleDate } from '~/utils/datetimeUtils'
 const defaultDateFormat = 'YYYY-MM-DD'
 
 export const DateCellRenderer: CellRenderer = {
@@ -23,6 +23,11 @@ export const DateCellRenderer: CellRenderer = {
       const date = dayjs(/^\d+$/.test(value) ? +value : value, defaultDateFormat)
       if (date.isValid()) {
         formattedDate = date.format(dateFormat)
+      } else {
+        const parsedDate = parseFlexibleDate(value)
+        if (parsedDate) {
+          formattedDate = parsedDate.format(dateFormat)
+        }
       }
     }
 

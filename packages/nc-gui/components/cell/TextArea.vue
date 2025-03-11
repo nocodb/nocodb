@@ -299,6 +299,42 @@ watch(textAreaRef, (el) => {
   }
 })
 
+const onCellEvent = (event?: Event) => {
+  if (!(event instanceof KeyboardEvent) || !event.target) return
+
+  if (isExpandCellKey(event)) {
+    if (isVisible.value && !isActiveInputElementExist(event)) {
+      handleClose()
+    } else {
+      onExpand()
+    }
+
+    return true
+  }
+}
+
+onMounted(() => {
+  cellEventHook?.on(onCellEvent)
+
+  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value) return
+  const position = { clientX: clientMousePosition.clientX, clientY: clientMousePosition.clientY + 2 }
+  forcedNextTick(() => {
+    if (onCellEvent(canvasCellEventData.event)) return
+
+    if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-expand', position)) {
+      onExpand()
+    } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-generate', position)) {
+      generate()
+    } else if (isRichMode.value || props.isAi) {
+      onExpand()
+    }
+  })
+})
+
+onUnmounted(() => {
+  cellEventHook?.off(onCellEvent)
+})
+
 /**
  * Tracks whether the size has been updated.
  * Prevents redundant updates when resizing elements.
@@ -398,42 +434,6 @@ useResizeObserver(inputWrapperRef, () => {
       height,
     }),
   )
-})
-
-const onCellEvent = (event?: Event) => {
-  if (!(event instanceof KeyboardEvent) || !event.target) return
-
-  if (isExpandCellKey(event)) {
-    if (isVisible.value && !isActiveInputElementExist(event)) {
-      handleClose()
-    } else {
-      onExpand()
-    }
-
-    return true
-  }
-}
-
-onMounted(() => {
-  cellEventHook?.on(onCellEvent)
-
-  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value) return
-  const position = { clientX: clientMousePosition.clientX, clientY: clientMousePosition.clientY + 2 }
-  forcedNextTick(() => {
-    if (onCellEvent(canvasCellEventData.event)) return
-
-    if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-expand', position)) {
-      onExpand()
-    } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-generate', position)) {
-      generate()
-    } else if (isRichMode.value || props.isAi) {
-      onExpand()
-    }
-  })
-})
-
-onUnmounted(() => {
-  cellEventHook?.off(onCellEvent)
 })
 </script>
 

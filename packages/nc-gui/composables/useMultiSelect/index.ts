@@ -98,6 +98,8 @@ export function useMultiSelect(
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
+  const { isSqlView } = useSmartsheetStoreOrThrow()
+
   const aiMode = ref(false)
 
   const isArrayStructure = typeof unref(data) === 'object' && Array.isArray(unref(data))
@@ -850,6 +852,8 @@ export function useMultiSelect(
             return true
           }
 
+          if (isSqlView.value) return
+
           /** on letter key press make cell editable and empty */
           if (e.key.length === 1) {
             if (!unref(isPkAvail) && !rowObj.rowMeta.new) {
@@ -879,7 +883,7 @@ export function useMultiSelect(
   const clearSelectedRange = selectedRange.clear.bind(selectedRange)
 
   const handlePaste = async (e: ClipboardEvent) => {
-    if (isDataReadOnly.value) {
+    if (isDataReadOnly.value || isSqlView.value) {
       return
     }
 

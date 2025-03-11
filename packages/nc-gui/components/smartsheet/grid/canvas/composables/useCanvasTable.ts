@@ -169,7 +169,7 @@ export function useCanvasTable({
 
   const isRowReorderDisabled = computed(() => sorts.value?.length || isPublicView.value || !isPrimaryKeyAvailable.value)
 
-  const isDataEditAllowed = computed(() => isUIAllowed('dataEdit'))
+  const isDataEditAllowed = computed(() => isUIAllowed('dataEdit') && !isSqlView.value)
 
   const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd'))
 
@@ -351,7 +351,8 @@ export function useCanvasTable({
         activeCell.value.column !== null &&
         fields.value[activeCell.value.column - 1] &&
         totalRows.value &&
-        !isSelectionReadOnly.value
+        !isSelectionReadOnly.value &&
+        !isSqlView.value
       ),
   )
 

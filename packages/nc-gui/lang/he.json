@@ -511,6 +511,7 @@
     "isNotNull": "לא NULL"
   },
   "title": {
+    "urlFilters": "URL Filters",
     "creatingScript": "Creating Script",
     "searchWebhook": "חיפוש Webhook",
     "webcam": "מצלמת רשת",
@@ -1526,6 +1527,7 @@
     "lockViewDescription": "הסבר מדוע אתה נועל תצוגה זו. הודעה זו תוצג כאשר מישהו ינסה לפתוח את תצוגה זו (אופציונלי)."
   },
   "msg": {
+    "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "גרור את המסמך שלך כאן",
     "airtableImportSuccess": "יובא בהצלחה ממסד Airtable.",
     "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",

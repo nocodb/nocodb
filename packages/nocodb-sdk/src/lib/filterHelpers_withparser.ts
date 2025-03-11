@@ -8,6 +8,7 @@ import { QueryFilterParser } from '~/lib/parser/queryFilter/query-filter-parser'
 import UITypes from './UITypes';
 import {
   COMPARISON_SUB_OPS,
+  FilterParseError,
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from './filterHelpers';
 export {
@@ -20,25 +21,32 @@ export {
 export function extractFilterFromXwhere(
   str: string | string[],
   aliasColObjMap: { [columnAlias: string]: ColumnType },
-  throwErrorIfInvalid = false
-): FilterType[] {
+  throwErrorIfInvalid = false,
+  errors: FilterParseError[] = []
+): { filters?: FilterType[]; errors?: FilterParseError[] } {
   if (!str) {
-    return [];
+    return { filters: [] };
   }
   for (const columnName of Object.keys(aliasColObjMap)) {
     const column = aliasColObjMap[columnName];
     aliasColObjMap[column.id] = column;
   }
-  return innerExtractFilterFromXwhere(str, aliasColObjMap, throwErrorIfInvalid);
+  return innerExtractFilterFromXwhere(
+    str,
+    aliasColObjMap,
+    throwErrorIfInvalid,
+    errors
+  );
 }
 
 function innerExtractFilterFromXwhere(
   str: string | string[],
   aliasColObjMap: { [columnAlias: string]: ColumnType },
-  throwErrorIfInvalid = false
-): FilterType[] {
+  throwErrorIfInvalid = false,
+  errors: FilterParseError[] = []
+): { filters?: FilterType[]; errors?: FilterParseError[] } {
   if (!str) {
-    return [];
+    return { filters: [] };
   } // if array treat it as `and` group
   else if (Array.isArray(str)) {
     // calling recursively for nested query
@@ -48,75 +56,122 @@ function innerExtractFilterFromXwhere(
       )
     );
 
+    // extract and flatten filters
+    const filters = nestedFilters.reduce((acc, { filters }) => {
+      if (!filters) return acc;
+      return [...acc, ...filters];
+    }, []);
+
+    // extract and flatten errors
+    const collectedErrors = nestedFilters.reduce((acc, { errors }) => {
+      if (!errors) return acc;
+      return [...acc, ...errors];
+    }, []);
+
+    // If errors exist, return them
+    if (collectedErrors.length > 0) {
+      return { errors: collectedErrors };
+    }
+
     // If there's only one filter, return it directly
-    if (nestedFilters.length === 1) {
-      return nestedFilters;
+    if (filters.length === 1) {
+      return { filters: nestedFilters };
     }
 
     // Otherwise, wrap it in an AND group
-    return [
-      {
-        is_group: true,
-        logical_op: 'and',
-        children: nestedFilters,
-      },
-    ];
+    return {
+      filters: [
+        {
+          is_group: true,
+          logical_op: 'and',
+          children: filters,
+        },
+      ],
+    };
   } else if (typeof str !== 'string' && throwErrorIfInvalid) {
-    throw new Error(
-      'Invalid filter format. Expected string or array of strings.'
-    );
+    const message =
+      'Invalid filter format. Expected string or array of strings.';
+    if (throwErrorIfInvalid) {
+      throw new Error(message);
+    } else {
+      errors.push({ message });
+      return { errors };
+    }
   }
   const parseResult = QueryFilterParser.parse(str);
   if (
     (parseResult.lexErrors.length > 0 || parseResult.parseErrors.length > 0) &&
     throwErrorIfInvalid
   ) {
-    throw new NcSDKError('INVALID_FILTER');
+    if (throwErrorIfInvalid) throw new NcSDKError('INVALID_FILTER');
+    else {
+      errors.push({
+        message: 'Invalid filter format.',
+      });
+      return { errors };
+    }
   }
   const filterSubType = parseResult.parsedCst;
-  return [
-    mapFilterGroupSubType(filterSubType, aliasColObjMap, throwErrorIfInvalid),
-  ];
+
+  const { filter, errors: parseErrors } = mapFilterGroupSubType(
+    filterSubType,
+    aliasColObjMap,
+    throwErrorIfInvalid
+  );
+  if (parseErrors?.length > 0) {
+    return { errors: parseErrors };
+  }
+  return { filters: [filter] };
 }
 
 function mapFilterGroupSubType(
   filter: FilterGroupSubType,
   aliasColObjMap: { [columnAlias: string]: ColumnType },
-  throwErrorIfInvalid = false
-): FilterType {
+  throwErrorIfInvalid = false,
+  errors: FilterParseError[] = []
+): { filter?: FilterType; errors?: FilterParseError[] } {
   const children = filter.children
     .map((k) =>
       k.is_group
-        ? mapFilterGroupSubType(k, aliasColObjMap, throwErrorIfInvalid)
+        ? mapFilterGroupSubType(k, aliasColObjMap, throwErrorIfInvalid, errors)
         : mapFilterClauseSubType(
             k as FilterClauseSubType,
             aliasColObjMap,
-            throwErrorIfInvalid
+            throwErrorIfInvalid,
+            errors
           )
     )
     .filter((k) => k);
   if (children.length === 1) {
-    return children[0];
+    return { filter: children[0].filter as FilterType };
   } else {
     return {
-      is_group: filter.is_group,
-      logical_op: filter.logical_op,
-      children: children,
-    } as FilterType;
+      filter: {
+        is_group: filter.is_group,
+        logical_op: filter.logical_op,
+        children: children.map((k) => k.filter),
+      } as FilterType,
+    };
   }
 }
 
 function mapFilterClauseSubType(
   filter: FilterClauseSubType,
   aliasColObjMap: { [columnAlias: string]: ColumnType },
-  throwErrorIfInvalid = false
-): FilterType | undefined {
+  throwErrorIfInvalid = false,
+  errors: FilterParseError[] = []
+): { filter?: FilterType; errors?: FilterParseError[] } {
   const aliasCol = aliasColObjMap[filter.field];
   if (!aliasCol) {
     if (throwErrorIfInvalid) {
       throw new NcSDKError('INVALID_FILTER');
+    } else {
+      errors.push({
+        message: `Column '${filter.field}' not found.`,
+      });
+      return { errors };
     }
-    return undefined;
+    return {};
   }
   const result: FilterType = {
     fk_column_id: aliasCol.id,
@@ -126,13 +181,15 @@ function mapFilterClauseSubType(
     comparison_sub_op: undefined,
     value: filter.value,
   };
-  return handleDataTypes(result, aliasCol);
+  return handleDataTypes(result, aliasCol, throwErrorIfInvalid, errors);
 }
 
 function handleDataTypes(
   filterType: FilterType,
-  column: ColumnType
-): FilterType {
+  column: ColumnType,
+  throwErrorIfInvalid = false,
+  errors: FilterParseError[] = []
+): { filter?: FilterType; errors?: FilterParseError[] } {
   if (
     [
       UITypes.Date,
@@ -142,9 +199,16 @@ function handleDataTypes(
     ].includes(column.uidt as UITypes)
   ) {
     if (!filterType.value) {
-      throw new BadRequest(
-        `'' is not supported for '${filterType.comparison_op}'`
-      );
+      if (throwErrorIfInvalid)
+        throw new BadRequest(
+          `'' is not supported for '${filterType.comparison_op}'`
+        );
+      else {
+        errors.push({
+          message: `'' is not supported for '${filterType.comparison_op}'`,
+        });
+        return { errors };
+      }
     }
     const [subOp, ...value] = Array.isArray(filterType.value)
       ? filterType.value
@@ -153,9 +217,16 @@ function handleDataTypes(
     filterType.comparison_sub_op = subOp as any;
     filterType.value = value.join('');
     if (!COMPARISON_SUB_OPS.includes(filterType.comparison_sub_op)) {
-      throw new BadRequest(
-        `'${filterType.comparison_sub_op}' is not supported.`
-      );
+      if (throwErrorIfInvalid)
+        throw new BadRequest(
+          `'${filterType.comparison_sub_op}' is not supported.`
+        );
+      else {
+        errors.push({
+          message: `'${filterType.comparison_sub_op}' is not supported.`,
+        });
+        return { errors };
+      }
     }
     if (
       (filterType.comparison_op === 'isWithin' &&
@@ -167,14 +238,21 @@ function handleDataTypes(
           filterType.comparison_sub_op as any
         ))
     ) {
-      throw new BadRequest(
-        `'${filterType.comparison_sub_op}' is not supported for '${filterType.comparison_op}'`
-      );
+      if (throwErrorIfInvalid)
+        throw new BadRequest(
+          `'${filterType.comparison_sub_op}' is not supported for '${filterType.comparison_op}'`
+        );
+      else {
+        errors.push({
+          message: `'${filterType.comparison_sub_op}' is not supported for '${filterType.comparison_op}'`,
+        });
+        return { errors };
+      }
     }
     if (filterType.value === '') {
       filterType.value = undefined;
     }
   }
 
-  return filterType;
+  return { filter: filterType };
 }

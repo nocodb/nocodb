@@ -1,4 +1,5 @@
 import { ColumnType, FilterType } from '~/lib/Api';
+
 export {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
@@ -7,6 +8,10 @@ export {
 } from '~/lib/parser/queryFilter/query-filter-lexer';
 import { extractFilterFromXwhere as parserExtract } from './filterHelpers_withparser';
 import { extractFilterFromXwhere as oldExtract } from './filterHelpers_old';
+
+export interface FilterParseError {
+  message: string;
+}
 
 /**
  * Converts a flat array of filter objects into a nested tree structure
@@ -53,11 +58,17 @@ export function buildFilterTree(items: FilterType[]) {
 export function extractFilterFromXwhere(
   str: string | string[],
   aliasColObjMap: { [columnAlias: string]: ColumnType },
-  throwErrorIfInvalid = false
-): FilterType[] {
+  throwErrorIfInvalid = false,
+  errors: FilterParseError[] = []
+): { filters?: FilterType[]; errors?: FilterParseError[] } {
   if (typeof str === 'string' && str.startsWith('@')) {
-    return parserExtract(str.substring(1), aliasColObjMap, throwErrorIfInvalid);
+    return parserExtract(
+      str.substring(1),
+      aliasColObjMap,
+      throwErrorIfInvalid,
+      errors
+    );
   } else {
-    return oldExtract(str, aliasColObjMap, throwErrorIfInvalid);
+    return oldExtract(str, aliasColObjMap, throwErrorIfInvalid, errors);
   }
 }

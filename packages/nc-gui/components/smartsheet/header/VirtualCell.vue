@@ -6,6 +6,7 @@ import {
   type LinkToAnotherRecordType,
   type LookupType,
   type RollupType,
+  type TableType,
   isLinksOrLTAR,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
@@ -54,6 +55,8 @@ const isForm = inject(IsFormInj, ref(false))
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isExpandedBulkUpdateForm = inject(IsExpandedBulkUpdateFormOpenInj, ref(false))
+
+const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
 
 const tableTile = computed(() => meta?.value?.title)
 
@@ -154,7 +157,9 @@ watch(editColumnDropdown, (val) => {
 })
 
 const openHeaderMenu = (e?: MouseEvent, description = false) => {
-  if ((isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
+  if ((isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value || isSqlView.value) {
+    return
+  }
 
   if (
     !isForm.value &&

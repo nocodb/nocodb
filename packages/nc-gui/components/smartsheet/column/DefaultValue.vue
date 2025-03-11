@@ -129,7 +129,7 @@ const handleShowInput = () => {
             @click="editEnabled = true"
           />
         </div>
-        <NcTooltip :title="$t('general.clear')">
+        <NcTooltip :title="$t('general.clear')" class="flex">
           <component
             :is="iconMap.close"
             v-if="

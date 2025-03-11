@@ -328,12 +328,16 @@ export function validateRowFilters(_filters: FilterType[], data: any, columns: C
             break
         }
 
-        if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy, UITypes.Lookup].includes(column.uidt!)) {
-          const userIds: string[] = Array.isArray(data[field])
-            ? data[field].map((user) => user.id)
-            : data[field]?.id
-            ? [data[field].id]
-            : []
+        if (
+          // Standard User field types
+          [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(column.uidt!) || 
+          // Lookup fields that are likely User field types
+          (column.uidt === UITypes.Lookup && 
+           ['anyof', 'nanyof', 'allof', 'nallof', 'empty', 'blank', 'notempty', 'notblank'].includes(filter.comparison_op) &&
+           data[field] && 
+           typeof data[field] !== 'string' && 
+           typeof data[field] === 'object')
+        ) {
 
           const filterValues = (filter.value?.split(',') || []).map((v) => v.trim())
 

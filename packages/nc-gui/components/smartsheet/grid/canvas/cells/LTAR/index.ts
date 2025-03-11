@@ -34,4 +34,10 @@ export const LtarCellRenderer: CellRenderer = {
 
     return false
   },
+  handleHover: async (props) => {
+    const cellRenderer = getLtarCellRenderer(props.column.columnObj)
+    if (cellRenderer) {
+      return cellRenderer?.handleHover?.(props)
+    }
+  },
 }

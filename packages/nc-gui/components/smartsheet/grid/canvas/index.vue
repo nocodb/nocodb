@@ -138,7 +138,11 @@ const activeCellElement = ref<HTMLElement>()
 
 const cellClickHook = createEventHook()
 
+const cellEventHook = createEventHook()
+
 provide(CellClickHookInj, cellClickHook)
+
+provide(CellEventHookInj, cellEventHook)
 
 provide(CurrentCellInj, activeCellElement)
 
@@ -1731,6 +1735,19 @@ function updateValue(val: any) {
     editEnabled.value.row.row[title] = val
   }
 }
+
+const isEditableCellVisible = computed(() => !!editEnabled.value?.row)
+
+useActiveKeydownListener(
+  isEditableCellVisible,
+  (event) => {
+    cellEventHook.trigger(event)
+  },
+  {
+    isGridCell: true,
+    immediate: true,
+  },
+)
 
 defineExpose({
   scrollToRow: scrollToCell,

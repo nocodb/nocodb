@@ -98,6 +98,6 @@ export const JsonCellRenderer: CellRenderer = {
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
     const expandIconBox = { x: x + width - 28, y: y + 7, width: 18, height: 18 }
-    tryShowTooltip({ text: getI18n().global.t('title.expand'), rect: expandIconBox, mousePosition })
+    tryShowTooltip({ text: getI18n().global.t('tooltip.expandShiftSpace'), rect: expandIconBox, mousePosition })
   },
 }

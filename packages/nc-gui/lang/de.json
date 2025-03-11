@@ -369,7 +369,7 @@
       "orgLevelCreator": "Organisationsebenen-Ersteller",
       "orgLevelViewer": "Organisationsebenen-Betrachter"
     },
-    "sqlVIew": "SQL-Ansicht",
+    "sqlView": "SQL-Ansicht",
     "rowHeight": "Zeilenhöhe",
     "heightClass": {
       "short": "klein",
@@ -1465,7 +1465,8 @@
     "aiIntegrationReConfigure": "Die KI-Integration wurde entfernt. Konfigurieren Sie das Feld im Bearbeitungsmodus neu, um die NocoAI-Funktionen zu nutzen.",
     "aiIntegrationAddAndReConfigure": "Die KI-Integration wurde entfernt. Fügen Sie das Feld neu hinzu und konfigurieren Sie es im Bearbeitungsmodus, um die NocoAI-Funktionen zu nutzen.",
     "generateFieldDataUsingAiButtonOption": "Generiere Werte für mehrere Felder in dieser Tabelle mittels bestehenden Datensätzen und NocoAI",
-    "sourceDataIsReadonly": "Quelldaten sind schreibgeschützt."
+    "sourceDataIsReadonly": "Quelldaten sind schreibgeschützt.",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View."
   },
   "placeholder": {
     "searchIcons": "Icons suchen",
@@ -1527,6 +1528,7 @@
     "lockViewDescription": "Erläutern Sie, warum Sie diese Ansicht sperren. Diese Nachricht wird angezeigt, wenn jemand versucht, diese Ansicht zu entsperren (optional)."
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Legen Sie Ihr Dokument hier ab",
     "airtableImportSuccess": "Daten aus Airtable-Datenbank erfolgreich importiert.",

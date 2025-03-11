@@ -369,7 +369,7 @@
       "orgLevelCreator": "Twórca na poziomie organizacji",
       "orgLevelViewer": "Obserwator na poziomie organizacji"
     },
-    "sqlVIew": "Widok SQL",
+    "sqlView": "Widok SQL",
     "rowHeight": "Wysokość rekordu",
     "heightClass": {
       "short": "Krótki",
@@ -1465,7 +1465,8 @@
     "aiIntegrationReConfigure": "Integracja AI została usunięta, skonfiguruj ponownie z modala edycji pola, aby używać funkcji NocoAI",
     "aiIntegrationAddAndReConfigure": "Integracja AI została usunięta, dodaj ponownie i skonfiguruj z poziomu okna edycji pola, aby używać funkcji NocoAI",
     "generateFieldDataUsingAiButtonOption": "Wygeneruj wartość dla wielu pól w tej tabeli, używając informacji z rekordu i NocoAI",
-    "sourceDataIsReadonly": "Dane źródłowe są tylko do odczytu"
+    "sourceDataIsReadonly": "Dane źródłowe są tylko do odczytu",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View."
   },
   "placeholder": {
     "searchIcons": "Wyszukaj ikony",
@@ -1527,6 +1528,7 @@
     "lockViewDescription": "Wyjaśnij, dlaczego blokujesz ten widok. Ta wiadomość zostanie wyświetlona, gdy ktoś spróbuje odblokować ten widok (opcjonalne)."
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Upuść dokument tutaj",
     "airtableImportSuccess": "Pomyślnie zaimportowano z bazy Airtable.",

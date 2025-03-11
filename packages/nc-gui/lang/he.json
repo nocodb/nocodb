@@ -369,7 +369,7 @@
       "orgLevelCreator": "יוצר ברמת הארגון",
       "orgLevelViewer": "צופה ברמת הארגון"
     },
-    "sqlVIew": "תצוגת SQL",
+    "sqlView": "תצוגת SQL",
     "rowHeight": "גובה רשומה",
     "heightClass": {
       "short": "נמוך",
@@ -1465,7 +1465,8 @@
     "aiIntegrationReConfigure": "אפשרות תאריך נוכחי אינה זמינה עבור מקור הנתונים או סוג הנתונים",
     "aiIntegrationAddAndReConfigure": "האינטגרציה של AI הוסרה, הוסף מחדש וחדש את הקונפיגורציה מתוך תיבת העריכה של השדה כדי להפעיל את התכונות של NocoAI",
     "generateFieldDataUsingAiButtonOption": "יצירת ערך למספר שדות בטבלה זו תוך שימוש במידע רשומה ו-NocoAI",
-    "sourceDataIsReadonly": "הנתונים המקוריים הם לקריאה בלבד"
+    "sourceDataIsReadonly": "הנתונים המקוריים הם לקריאה בלבד",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View."
   },
   "placeholder": {
     "searchIcons": "חפש אייקונים",
@@ -1527,6 +1528,7 @@
     "lockViewDescription": "הסבר מדוע אתה נועל תצוגה זו. הודעה זו תוצג כאשר מישהו ינסה לפתוח את תצוגה זו (אופציונלי)."
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "גרור את המסמך שלך כאן",
     "airtableImportSuccess": "יובא בהצלחה ממסד Airtable.",

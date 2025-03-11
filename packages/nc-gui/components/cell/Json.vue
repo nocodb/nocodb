@@ -307,7 +307,8 @@ onUnmounted(() => {
     <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
     <LazyCellClampedText v-else :value="vModel ? stringifyProp(vModel) : ''" :lines="rowHeight" class="nc-cell-field" />
     <NcTooltip placement="bottom" class="nc-json-expand-btn hidden absolute top-0 right-0">
-      <template #title>{{ $t('title.expand') }}</template>
+      <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
+
       <NcButton type="secondary" size="xsmall" class="!w-5 !h-5 !min-w-[fit-content]" @click.stop="openJSONEditor">
         <component :is="iconMap.maximize" class="w-3 h-3" />
       </NcButton>

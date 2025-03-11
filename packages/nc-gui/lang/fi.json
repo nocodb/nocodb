@@ -369,7 +369,7 @@
       "orgLevelCreator": "Organisaatiotason luoja",
       "orgLevelViewer": "Organisaatiotason katseluohjelma"
     },
-    "sqlView": "SQL View",
+    "sqlView": "SQL-näkymä",
     "rowHeight": "Tietueen korkeus",
     "heightClass": {
       "short": "Lyhyt",

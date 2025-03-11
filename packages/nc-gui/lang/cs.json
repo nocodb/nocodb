@@ -369,7 +369,7 @@
       "orgLevelCreator": "Tvůrce na úrovni organizace",
       "orgLevelViewer": "Prohlížeč na úrovni organizace"
     },
-    "sqlView": "SQL View",
+    "sqlView": "SQL pohled",
     "rowHeight": "Výška řádku",
     "heightClass": {
       "short": "Krátký",

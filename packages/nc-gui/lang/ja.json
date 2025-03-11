@@ -369,7 +369,7 @@
       "orgLevelCreator": "組織レベルのクリエイター",
       "orgLevelViewer": "組織レベルビューワ"
     },
-    "sqlView": "SQL View",
+    "sqlView": "SQL ビュー",
     "rowHeight": "レコード高さ",
     "heightClass": {
       "short": "短い",

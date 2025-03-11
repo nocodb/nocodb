@@ -369,7 +369,7 @@
       "orgLevelCreator": "組織レベルのクリエイター",
       "orgLevelViewer": "組織レベルビューワ"
     },
-    "sqlVIew": "SQL ビュー",
+    "sqlView": "SQL View",
     "rowHeight": "レコード高さ",
     "heightClass": {
       "short": "短い",
@@ -1465,7 +1465,8 @@
     "aiIntegrationReConfigure": "AI統合が削除されました。NocoAI機能を使用するには、フィールド編集モーダルから再設定してください",
     "aiIntegrationAddAndReConfigure": "AI統合が削除されました。NocoAI機能を使用するためにフィールド編集モーダルから再追加および再設定してください",
     "generateFieldDataUsingAiButtonOption": "レコード情報とNocoAIを使用して、このテーブルの複数のフィールドに値を生成します",
-    "sourceDataIsReadonly": "ソースデータは読み取り専用です"
+    "sourceDataIsReadonly": "ソースデータは読み取り専用です",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View."
   },
   "placeholder": {
     "searchIcons": "アイコンを検索",
@@ -1527,6 +1528,7 @@
     "lockViewDescription": "ロックする理由を説明してください。このメッセージは、誰かがこのビューのロックを解除しようとしたときに表示されます（任意）。"
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "ここにドキュメントをドロップしてください",
     "airtableImportSuccess": "Airtableベースから正常にインポートしました。",

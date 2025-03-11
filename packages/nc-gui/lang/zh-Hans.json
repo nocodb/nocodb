@@ -369,7 +369,7 @@
       "orgLevelCreator": "组织创建者",
       "orgLevelViewer": "组织浏览者"
     },
-    "sqlVIew": "SQL 视图",
+    "sqlView": "SQL 视图",
     "rowHeight": "行高",
     "heightClass": {
       "short": "短",
@@ -1465,7 +1465,8 @@
     "aiIntegrationReConfigure": "AI集成已被移除，请从字段编辑模式重新配置以使用NocoAI功能",
     "aiIntegrationAddAndReConfigure": "AI集成已被移除，请从字段编辑模式重新添加和配置以使用NocoAI功能",
     "generateFieldDataUsingAiButtonOption": "使用记录信息和 NocoAI 为该表中的多个字段生成值",
-    "sourceDataIsReadonly": "源数据只读"
+    "sourceDataIsReadonly": "源数据只读",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View."
   },
   "placeholder": {
     "searchIcons": "搜索图标",
@@ -1527,6 +1528,7 @@
     "lockViewDescription": "解释锁定此视图的原因。任何人尝试解锁此视图时，都会显示此信息（可选）。"
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "将文档拖放到这里",
     "airtableImportSuccess": "成功导入自Airtable Base。",

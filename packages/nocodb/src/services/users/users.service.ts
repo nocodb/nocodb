@@ -528,7 +528,11 @@ export class UsersService {
     }
     user = await User.getByEmail(email);
 
-    try {
+    // TODO: Right now we are not actively enforcing email verification @pranavxc
+    // so we are not sending email verification email
+    // but we should send email verification email
+    // once we start enforcing email
+    /* try {
       await this.mailService.sendMail({
         mailEvent: MailEvent.VERIFY_EMAIL,
         payload: {
@@ -541,7 +545,7 @@ export class UsersService {
         'Warning : `mailSend` failed, Please configure emailClient configuration.',
       );
     }
-
+*/
     const refreshToken = randomTokenString();
 
     await UserRefreshToken.insert({

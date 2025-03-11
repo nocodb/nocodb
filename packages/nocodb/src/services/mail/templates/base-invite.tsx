@@ -43,13 +43,13 @@ export const BaseInvite = ({
           <Text className="text-gray-600 text-center text-sm !mt-0 !mb-6">
             <span className="font-bold text-gray-800">{name}</span> ({email})
             has invited you to collaborate on{' '}
-            <span className="font-bold text-gray-800">{baseTitle}</span>
+            <span className="font-bold text-gray-800">{baseTitle}</span> base.
           </Text>
           <Button
             className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10"
             href={link}
           >
-            <Text className="!my-[8px]">Go to Base</Text>
+            <Text className="!my-[8px]">Accept Base Invite</Text>
           </Button>
         </ContentWrapper>
         <Footer />

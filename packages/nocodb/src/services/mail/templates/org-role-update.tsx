@@ -1,11 +1,13 @@
 import {
   Body,
   Button,
+  Column,
   Head,
   Heading,
   Html,
   Img,
   Preview,
+  Row,
   Section,
   Text,
 } from '@react-email/components';
@@ -18,14 +20,16 @@ import {
 } from '~/services/mail/templates/components';
 
 interface OrganizationRoleUpdateTemplateProps {
-  role: string;
+  oldRole: string;
+  newRole: string;
   name: string;
   email: string;
   link: string;
 }
 
 export const OrganizationRoleUpdate = ({
-  role,
+  oldRole,
+  newRole,
   email,
   name,
   link,
@@ -39,16 +43,33 @@ export const OrganizationRoleUpdate = ({
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             Your organization role has been updated
           </Heading>
-          <Section className="py-6 text-center">
-            <Img
-              src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${role}.png`}
-              alt={role}
-              className="h-7 mx-auto"
-            />
+          <Section className="pb-6 text-center">
+            <Row>
+              <Column className="items-center justify-center gap-2 flex">
+                <Img
+                  src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${newRole}.png`}
+                  alt={newRole}
+                  className="h-7"
+                />
+                <Img
+                  src={`${NC_EMAIL_ASSETS_BASE_URL}/icons/arrow-right.png`}
+                  alt="Arrow Right"
+                  className="h-7"
+                />
+                <Img
+                  src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${oldRole}.png`}
+                  alt={oldRole}
+                  className="h-7"
+                />
+              </Column>
+            </Row>
           </Section>
           <Text className="text-gray-600 text-center text-sm !mt-0 !mb-6">
             Your access in NocoDB has been updated to
-            <span className="font-bold text-gray-800 capitalize"> {role} </span>
+            <span className="font-bold text-gray-800 capitalize">
+              {' '}
+              {newRole}{' '}
+            </span>
             by <span className="font-bold text-gray-800">{name}</span> ({email})
           </Text>
           <Button
@@ -65,7 +86,8 @@ export const OrganizationRoleUpdate = ({
 );
 
 OrganizationRoleUpdate.PreviewProps = {
-  role: 'creator',
+  newRole: 'creator',
+  oldRole: 'editor',
   email: 'janedoe@nocodb.com',
   name: 'Jane Doe',
   link: 'https://nocodb.com',

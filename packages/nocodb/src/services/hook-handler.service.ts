@@ -101,6 +101,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
             model,
             metas,
           );
+
           formView.title = view.title;
           const base = await Base.get(context, model.base_id);
 

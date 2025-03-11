@@ -369,7 +369,7 @@
       "orgLevelCreator": "مبدع على مستوى المنظمة",
       "orgLevelViewer": "عارض على مستوى المنظمة"
     },
-    "sqlView": "SQL View",
+    "sqlView": "عرض SQL",
     "rowHeight": "ارتفاع السجل",
     "heightClass": {
       "short": "قصير",

@@ -237,12 +237,19 @@ const pg = {
     const numberOfCharacters = pt.arguments[2]
       ? (await fn(pt.arguments[2])).builder
       : null;
-    return {
-      builder: knex.raw(`SUBSTR(?::TEXT, ?)${colAlias}`, [
-        str,
-        `${positionFrom}${numberOfCharacters ? ', ' + numberOfCharacters : ''}`,
-      ]),
-    };
+    if (numberOfCharacters) {
+      return {
+        builder: knex.raw(`SUBSTR(?::TEXT, ?, ?)${colAlias}`, [
+          str,
+          positionFrom,
+          numberOfCharacters,
+        ]),
+      };
+    } else {
+      return {
+        builder: knex.raw(`SUBSTR(?::TEXT, ?)${colAlias}`, [str, positionFrom]),
+      };
+    }
   },
   MOD: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const x = (await fn(pt.arguments[0])).builder;

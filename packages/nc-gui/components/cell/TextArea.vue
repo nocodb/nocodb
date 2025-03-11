@@ -12,6 +12,8 @@ const props = defineProps<{
   isFieldAiIntegrationAvailable?: boolean
 }>()
 
+const STORAGE_KEY = 'nc-long-text-expanded-modal-size'
+
 const emits = defineEmits(['update:modelValue', 'update:isAiEdited', 'generate', 'close'])
 
 const meta = inject(MetaInj, ref())
@@ -288,78 +290,6 @@ const handleClose = () => {
   isVisible.value = false
 }
 
-const STORAGE_KEY = 'nc-long-text-expanded-modal-size'
-
-const { width: widthTextArea, height: heightTextArea } = useElementSize(inputRef)
-
-watch([widthTextArea, heightTextArea], () => {
-  if (isVisible.value) {
-    const size = {
-      width: widthTextArea.value,
-      height: heightTextArea.value,
-    }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(size))
-  }
-})
-
-const updateSize = () => {
-  try {
-    const size = localStorage.getItem(STORAGE_KEY)
-    let elem = document.querySelector('.nc-text-area-expanded') as HTMLElement
-
-    if (isRichMode.value) {
-      elem = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement
-    }
-
-    const parsedJSON = JSON.parse(size)
-
-    if (parsedJSON && elem) {
-      elem.style.width = `${parsedJSON.width}px`
-      elem.style.height = `${parsedJSON.height}px`
-    }
-  } catch (e) {
-    console.error(e)
-  }
-}
-
-watch(
-  [isVisible, inputRef],
-  (value) => {
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect
-
-        if (!isVisible.value) {
-          return
-        }
-
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ width, height }))
-      }
-    })
-
-    if (value) {
-      if (isRichMode.value && isVisible.value) {
-        setTimeout(() => {
-          const el = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement
-
-          if (!el) return
-
-          observer.observe(el)
-
-          updateSize()
-        }, 50)
-      } else {
-        updateSize()
-      }
-    } else {
-      observer.disconnect()
-    }
-  },
-  {
-    immediate: true,
-  },
-)
-
 watch(textAreaRef, (el) => {
   if (el && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
     el.focus()
@@ -378,6 +308,107 @@ onMounted(() => {
       onExpand()
     }
   })
+})
+
+/**
+ * Tracks whether the size has been updated.
+ * Prevents redundant updates when resizing elements.
+ */
+const isSizeUpdated = ref(false)
+
+/**
+ * Controls whether the next size update should be skipped.
+ * Used to avoid unnecessary updates on initialization.
+ */
+const skipSizeUpdate = ref(true)
+
+watch(isVisible, (open) => {
+  if (open) return
+
+  isSizeUpdated.value = false
+  skipSizeUpdate.value = true
+})
+
+/**
+ * Updates the size of the text area based on stored dimensions in localStorage.
+ * Retrieves the stored size and applies it to the corresponding text area element.
+ */
+const updateSize = () => {
+  try {
+    const size = localStorage.getItem(STORAGE_KEY)
+    let elem = document.querySelector('.nc-text-area-expanded') as HTMLElement
+
+    if (isRichMode.value) {
+      elem = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap.ProseMirror') as HTMLElement
+    }
+
+    const parsedJSON = JSON.parse(size)
+
+    if (parsedJSON && elem) {
+      elem.style.width = `${parsedJSON.width}px`
+      elem.style.height = `${parsedJSON.height}px`
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+/**
+ * Retrieves the element that should be observed for resizing.
+ * @returns {HTMLElement | null} The resize target element.
+ */
+const getResizeEl = () => {
+  if (!inputWrapperRef.value) return null
+
+  if (isRichMode.value) {
+    return inputWrapperRef.value.querySelector(
+      '.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap.ProseMirror',
+    ) as HTMLElement
+  }
+
+  return inputWrapperRef.value.querySelector('.nc-text-area-expanded') as HTMLElement
+}
+
+useResizeObserver(inputWrapperRef, () => {
+  /**
+   * Updates the size of the resize element when the modal becomes visible.
+   */
+  if (!isSizeUpdated.value) {
+    nextTick(() => {
+      until(() => !!getResizeEl())
+        .toBeTruthy()
+        .then(() => {
+          updateSize()
+        })
+    })
+    isSizeUpdated.value = true
+
+    return
+  }
+
+  /**
+   * When the size is manually updated, this callback is triggered again.
+   * To prevent unnecessary updates at that time, we skip the update.
+   */
+  if (skipSizeUpdate.value) {
+    skipSizeUpdate.value = false
+
+    return
+  }
+
+  const resizeEl = getResizeEl()
+
+  if (!resizeEl) return
+
+  const { width, height } = resizeEl.getBoundingClientRect()
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      width,
+      height,
+    }),
+  )
 })
 </script>
 

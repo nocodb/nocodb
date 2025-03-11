@@ -54,10 +54,10 @@ const coverImageColumn: any = computed(() =>
     : {},
 )
 
-const coverImageObjectFitClass = computed(() => {
+const coverImageObjectFitStyle = computed(() => {
   const fk_cover_image_object_fit = parseProp(galleryData.value?.meta)?.fk_cover_image_object_fit || CoverImageObjectFit.FIT
-  if (fk_cover_image_object_fit === CoverImageObjectFit.FIT) return '!object-contain'
-  if (fk_cover_image_object_fit === CoverImageObjectFit.COVER) return '!object-cover'
+  if (fk_cover_image_object_fit === CoverImageObjectFit.FIT) return 'contain'
+  if (fk_cover_image_object_fit === CoverImageObjectFit.COVER) return 'cover'
 })
 
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
@@ -447,7 +447,7 @@ reloadViewDataHook?.on(async () => {
                           v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                           :key="`carousel-${record.rowMeta.rowIndex}-${index}`"
                           class="h-52"
-                          :class="[`${coverImageObjectFitClass}`]"
+                          :object-fit="coverImageObjectFitStyle"
                           :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
                           @click="expandFormClick($event, record)"
                         />

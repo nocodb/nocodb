@@ -369,7 +369,7 @@
       "orgLevelCreator": "Organization Level Creator",
       "orgLevelViewer": "Organization Level Viewer"
     },
-    "sqlView": "SQL View",
+    "sqlVIew": "SQL View",
     "rowHeight": "Record Height",
     "heightClass": {
       "short": "Short",
@@ -1465,8 +1465,7 @@
     "aiIntegrationReConfigure": "AI integration has been removed, re-configure from field edit modal to use NocoAI features",
     "aiIntegrationAddAndReConfigure": "AI integration has been removed, re-add and re-configure from field edit modal to use NocoAI features",
     "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI",
-    "sourceDataIsReadonly": "Source data is readonly",
-    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View."
+    "sourceDataIsReadonly": "Source data is readonly"
   },
   "placeholder": {
     "searchIcons": "Search icons",

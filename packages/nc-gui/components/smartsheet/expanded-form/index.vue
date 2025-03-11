@@ -101,14 +101,22 @@ const fields = computedInject(FieldsInj, (_fields) => {
             !isSystemColumn(col) &&
             !!col.meta?.defaultViewColVisibility &&
             // if new record, then hide readonly fields
-            (!isNew.value || isReadOnlyColumn(col)),
+            (!isNew.value || !isReadOnlyColumn(col)),
         )
         .sort((a, b) => {
           return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
         })
     }
 
-    return (meta.value.columns ?? []).filter((col) => !isSystemColumn(col) && !!col.meta?.defaultViewColVisibility)
+    return (meta.value.columns ?? []).filter(
+      (col) =>
+        // if new record, then hide readonly fields
+        (!isNew.value || !isReadOnlyColumn(col)) &&
+        // exclude system columns
+        !isSystemColumn(col) &&
+        // exclude hidden columns
+        !!col.meta?.defaultViewColVisibility,
+    )
   }
   return _fields?.value ?? []
 })

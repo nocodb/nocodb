@@ -30,6 +30,8 @@ const cdfValue = ref<string | null>(null)
 
 const editEnabled = ref(false)
 
+const defaultValueWrapperRef = ref<HTMLDivElement>()
+
 const updateCdfValue = (cdf: string | null) => {
   vModel.value = { ...vModel.value, cdf }
   cdfValue.value = cdf
@@ -62,6 +64,18 @@ const isCurrentDate = computed(() => {
 })
 
 const { isSystem } = useColumnCreateStoreOrThrow()
+
+const handleShowInput = () => {
+  isVisibleDefaultValueInput.value = true
+
+  nextTick(() => {
+    ncDelay(300).then(() => {
+      if (defaultValueWrapperRef.value) {
+        focusInputEl('.nc-cell', defaultValueWrapperRef.value)
+      }
+    })
+  })
+}
 </script>
 
 <template>
@@ -72,7 +86,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
       class="!text-gray-700"
       data-testid="nc-show-default-value-btn"
       :disabled="isSystem"
-      @click.stop="isVisibleDefaultValueInput = true"
+      @click.stop="handleShowInput"
     >
       <div class="flex items-center gap-2">
         <GeneralIcon icon="plus" class="flex-none h-4 w-4" />
@@ -87,12 +101,12 @@ const { isSystem } = useColumnCreateStoreOrThrow()
     </div>
     <div class="flex flex-row gap-2 relative">
       <div
-        class="nc-default-value-wrapper border-1 flex items-center w-full px-3 border-gray-300 rounded-lg sm:min-h-[32px] xs:min-h-13 flex items-center focus-within:(border-brand-500 shadow-selected ring-0) transition-all duration-0.3s"
+        class="nc-default-value-wrapper border-1 flex items-center w-full px-3 border-gray-300 rounded-lg sm:min-h-[32px] xs:min-h-13 focus-within:(border-brand-500 shadow-selected ring-0) transition-all duration-0.3s"
         :class="{
           'bg-white': isAiModeFieldModal,
         }"
       >
-        <div class="relative flex-grow max-w-full">
+        <div ref="defaultValueWrapperRef" class="relative flex-grow max-w-full">
           <div
             v-if="isCurrentDate"
             class="absolute pointer-events-none h-full w-full bg-white z-2 top-0 left-0 rounded-full items-center flex bg-white"

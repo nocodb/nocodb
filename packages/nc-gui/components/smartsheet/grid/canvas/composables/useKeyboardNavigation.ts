@@ -74,7 +74,7 @@ export function useKeyboardNavigation({
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     const altOrOptionKey = e.altKey
 
-    if (e.key === ' ') {
+    if (e.key === ' ' && !e.shiftKey) {
       const isRichModalOpen = isExpandedCellInputExist()
 
       if (!editEnabled.value && isUIAllowed('dataEdit') && activeCell.value.row !== -1 && !isRichModalOpen) {

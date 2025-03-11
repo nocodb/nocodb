@@ -551,12 +551,15 @@ export const isReadOnlyColumn = (column: ColumnType): boolean => {
       UITypes.Button,
       UITypes.Barcode,
       UITypes.QrCode,
+      UITypes.ForeignKey,
     ].includes(column.uidt as UITypes) ||
     // Check if the column is a system-generated user tracking field (CreatedBy, LastModifiedBy)
     isCreatedOrLastModifiedByCol(column) ||
     // Check if the column is a system-generated timestamp field (CreatedTime, LastModifiedTime)
     isCreatedOrLastModifiedTimeCol(column) ||
     // Check if the column is used for row ordering
-    isOrderCol(column)
+    isOrderCol(column) ||
+    // if primary key and auto generated then treat as readonly
+    (column.pk && (column.ai || parseProp(column.meta)?.ag))
   );
 };

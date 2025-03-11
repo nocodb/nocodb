@@ -77,9 +77,10 @@ export function useKeyboardNavigation({
     if (e.key === ' ' && !e.shiftKey) {
       const isRichModalOpen = isExpandedCellInputExist()
 
-      if (!editEnabled.value && isUIAllowed('dataEdit') && activeCell.value.row !== -1 && !isRichModalOpen) {
+      if (activeCell.value.row !== -1 && !isRichModalOpen) {
         e.preventDefault()
         const row = cachedRows.value.get(activeCell.value.row)
+
         if (!row) return
         expandForm(row)
         return

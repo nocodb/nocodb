@@ -128,7 +128,7 @@ export const testExtractFilterFromXwhere = (
 
       describe('datetime', () => {
         it('will parse datetime exactDate', async () => {
-          // datetime need to have suboperator :|
+          // most datetime filter need to have suboperator
           const query = '(Date,lt,exactDate,2025-01-01)';
           const columnAlias: Record<string, ColumnType> = {
             Date: {
@@ -147,7 +147,7 @@ export const testExtractFilterFromXwhere = (
           expect(result.filters[0].value).toBe('2025-01-01');
         });
         it('will parse datetime oneMonthAgo', async () => {
-          // datetime need to have suboperator :|
+          // most datetime filter need to have suboperator
           const query = '(Date,lt,oneMonthAgo)';
           const columnAlias: Record<string, ColumnType> = {
             Date: {
@@ -165,7 +165,7 @@ export const testExtractFilterFromXwhere = (
           expect(result.filters[0].value).toBeUndefined();
         });
         it('will parse datetime isWithin', async () => {
-          // isWithin need to have specific suboperator :|
+          // isWithin need to have specific suboperator
           const query = '(Date,isWithin,pastMonth)';
           const columnAlias: Record<string, ColumnType> = {
             Date: {
@@ -184,7 +184,7 @@ export const testExtractFilterFromXwhere = (
           expect(result.filters[0].value).toBeUndefined();
         });
         it('will throw error isWithin', async () => {
-          // isWithin need to have specific suboperator :|
+          // isWithin need to have specific suboperator
           const query = '(Date,isWithin,oneMonthAgo)';
           const columnAlias: Record<string, ColumnType> = {
             Date: {
@@ -200,7 +200,6 @@ export const testExtractFilterFromXwhere = (
           ).toThrow();
         });
         it('will parse datetime is null', async () => {
-          // datetime need to have suboperator :|
           const query = '(Date,is,null)';
           const columnAlias: Record<string, ColumnType> = {
             Date: {

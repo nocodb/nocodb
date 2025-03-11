@@ -414,12 +414,6 @@ useResizeObserver(inputWrapperRef, () => {
   )
 })
 
-watch(textAreaRef, (el) => {
-  if (el && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
-    el.focus()
-  }
-})
-
 const onCellEvent = (event?: Event) => {
   if (!(event instanceof KeyboardEvent) || !event.target) return
 

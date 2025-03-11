@@ -200,7 +200,7 @@ export function useCanvasRender({
         })
       }
 
-      const isRequired = colObj.rqd && !colObj.cdf
+      const isRequired = column.virtual ? isVirtualColRequired(colObj, meta.value?.columns || []) : colObj?.rqd && !colObj?.cdf
 
       const availableTextWidth = width - (26 + iconSpace + (isRequired ? 4 : 0))
       const truncatedText = truncateText(ctx, column.title!, availableTextWidth)
@@ -404,7 +404,7 @@ export function useCanvasRender({
           })
         }
 
-        const isRequired = colObj?.rqd && !colObj?.cdf
+        const isRequired = column.virtual ? isVirtualColRequired(colObj, meta.value?.columns || []) : colObj?.rqd && !colObj?.cdf
 
         const availableTextWidth = width - (26 + iconSpace + (isRequired ? 4 : 0))
 

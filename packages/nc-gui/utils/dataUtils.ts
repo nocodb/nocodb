@@ -329,15 +329,11 @@ export function validateRowFilters(_filters: FilterType[], data: any, columns: C
         }
 
         if (
-          [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(column.uidt!) || 
+          [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(column.uidt!) ||
           (
-            column.uidt === UITypes.Lookup && 
+            column.uidt === UITypes.Lookup &&
             [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
-              getLookupColumnType({ 
-                col: column, 
-                meta: { columns },
-                metas
-              }) as UITypes
+              getLookupColumnType(column, { columns }, metas) as UITypes
             )
           )
         ) {
@@ -713,9 +709,7 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   return parsePlainCellValue(modelValue, { ...params, col: childColumn! })
 }
 
-export const getLookupColumnType = (params: { col: ColumnType, meta: { columns: ColumnType[] }, metas: Record<string, any> }) => {
-  const { col, meta, metas } = params
-  
+export const getLookupColumnType = (col: ColumnType, meta: { columns: ColumnType[] }, metas: Record<string, any>) => {
   const colOptions = col.colOptions as LookupType
   const relationColumnOptions = colOptions.fk_relation_column_id
     ? meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions

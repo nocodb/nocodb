@@ -299,20 +299,6 @@ watch(textAreaRef, (el) => {
   }
 })
 
-onMounted(() => {
-  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value) return
-  const position = { clientX: clientMousePosition.clientX, clientY: clientMousePosition.clientY + 2 }
-  forcedNextTick(() => {
-    if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-expand', position)) {
-      onExpand()
-    } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-generate', position)) {
-      generate()
-    } else if (isRichMode.value || props.isAi) {
-      onExpand()
-    }
-  })
-})
-
 /**
  * Tracks whether the size has been updated.
  * Prevents redundant updates when resizing elements.

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { UITypes } from 'nocodb-sdk'
+
 const props = defineProps<{
   value: any
   isVisibleDefaultValueInput: boolean
@@ -64,6 +65,10 @@ const isCurrentDate = computed(() => {
 })
 
 const { isSystem } = useColumnCreateStoreOrThrow()
+
+const validationError = computed(() => {
+  return getColumnValidationError(vModel.value)
+})
 
 const handleShowInput = () => {
   isVisibleDefaultValueInput.value = true
@@ -137,11 +142,12 @@ const handleShowInput = () => {
                 vModel.uidt,
               ) || isCurrentDate
             "
-            class="w-4 h-4 cursor-pointer rounded-full z-3 !text-black-500 text-gray-500 cursor-pointer hover:bg-gray-50 default-value-clear"
+            class="w-4 h-4 cursor-pointer rounded-full z-3 !text-black-500 text-gray-500 hover:bg-gray-50 default-value-clear"
             @click.stop="updateCdfValue(null)"
           />
         </NcTooltip>
       </div>
     </div>
+    <div v-if="validationError" class="text-nc-content-red-medium text-small leading-[18px] mt-1">{{ $t(validationError) }}</div>
   </div>
 </template>

@@ -29,6 +29,10 @@ const cdfValue = computed({
 const handleShowInput = () => {
   isVisibleDefaultValueInput.value = true
 
+  // In playwright testing we first enable this default input and then start filling all fields
+  // So it's imp to not to focus input
+  if (ncIsPlaywright()) return
+
   nextTick(() => {
     ncDelay(300).then(() => {
       if (defaultValueWrapperRef.value) {

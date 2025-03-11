@@ -1,5 +1,5 @@
 import type { AuditType, ColumnType, MetaType, TableType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
 
@@ -72,28 +72,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         return
       }
 
-      const value = row.value.row?.[col.title as string]
-
-      const uidt = col.uidt
-
-      if (uidt === UITypes.Date) {
-        return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD')
-      } else if (uidt === UITypes.DateTime) {
-        return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD HH:mm')
-      } else if (uidt === UITypes.Time) {
-        let dateTime = dayjs(value)
-        if (!dateTime.isValid()) {
-          dateTime = dayjs(value, 'HH:mm:ss')
-        }
-        if (!dateTime.isValid()) {
-          dateTime = dayjs(`1999-01-01 ${value}`)
-        }
-        if (!dateTime.isValid()) {
-          return value
-        }
-        return dateTime.format('HH:mm:ss')
-      }
-      return value
+      return row.value.row?.[col.title as string]
     }
   })
 

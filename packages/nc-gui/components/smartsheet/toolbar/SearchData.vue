@@ -81,7 +81,7 @@ const handleShowSearchInput = () => {
   })
 }
 
-const handleClickOutside = (e: MouseEvent) => {
+const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
   const targetEl = e.target as HTMLElement
   if (search.value.query || targetEl.closest('.nc-dropdown-toolbar-search-field-option')) {
     return

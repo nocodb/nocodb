@@ -1298,7 +1298,7 @@ const parseConditionV2 = async (
             );
             break;
           case 'is':
-            if (filter.value === 'null')
+            if (filter.value === 'null' || filter.value === null)
               qb = qb.whereNull(customWhereClause || field);
             else if (filter.value === 'notnull')
               qb = qb.whereNotNull(customWhereClause || field);

@@ -215,7 +215,11 @@ const handleOperatorAndValue = (filter: FilterClauseSubType) => {
       'gb_eq',
     ].includes(filter.comparison_op)
   ) {
-    filter.value = filter.value.filter((k) => k).join(',');
+    if (filter.value.length === filter.value.filter((k) => k === null).length) {
+      filter.value = null;
+    } else {
+      filter.value = filter.value.filter((k) => k).join(',');
+    }
   }
   // for equality, replace with empty string if value is undefined
   else if (

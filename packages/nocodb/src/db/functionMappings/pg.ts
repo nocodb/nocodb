@@ -237,13 +237,19 @@ const pg = {
     const numberOfCharacters = pt.arguments[2]
       ? (await fn(pt.arguments[2])).builder
       : null;
-    return {
-      builder: knex.raw(
-        `SUBSTR(${str}::TEXT, ${positionFrom}${
-          numberOfCharacters ? ', ' + numberOfCharacters : ''
-        })${colAlias}`,
-      ),
-    };
+    if (numberOfCharacters) {
+      return {
+        builder: knex.raw(`SUBSTR(?::TEXT, ?, ?)${colAlias}`, [
+          str,
+          positionFrom,
+          numberOfCharacters,
+        ]),
+      };
+    } else {
+      return {
+        builder: knex.raw(`SUBSTR(?::TEXT, ?)${colAlias}`, [str, positionFrom]),
+      };
+    }
   },
   MOD: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const x = (await fn(pt.arguments[0])).builder;
@@ -258,7 +264,8 @@ const pg = {
     const pattern = (await fn(pt.arguments[1])).builder;
     return {
       builder: knex.raw(
-        `CASE WHEN REGEXP_MATCH(${source}::TEXT, ${pattern}::TEXT) IS NULL THEN 0 ELSE 1 END ${colAlias}`,
+        `CASE WHEN REGEXP_MATCH(?::TEXT, ?::TEXT) IS NULL THEN 0 ELSE 1 END ${colAlias}`,
+        [source, pattern],
       ),
     };
   },
@@ -282,7 +289,8 @@ const pg = {
     const replacement = (await fn(pt.arguments[2])).builder;
     return {
       builder: knex.raw(
-        `REGEXP_REPLACE(${source}::TEXT, ${pattern}::TEXT, ${replacement}::TEXT, 'g') ${colAlias}`,
+        `REGEXP_REPLACE(?::TEXT, ?::TEXT, ?::TEXT, 'g') ${colAlias}`,
+        [source, pattern, replacement],
       ),
     };
   },

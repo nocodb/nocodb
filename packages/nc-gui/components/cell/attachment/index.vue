@@ -469,7 +469,9 @@ onUnmounted(() => {
         }"
         :style="isGrid && (!rowHeight || rowHeight === 1) ? { top: '50%', transform: 'translateY(-50%)' } : undefined"
       >
-        <template #title>{{ $t('activity.viewAttachment') }}</template>
+        <template #title>
+          {{ isExpandedForm ? $t('activity.viewAttachment') : `${$t('activity.viewAttachment')} '${$t('tooltip.shiftSpace')}'` }}
+        </template>
         <NcButton
           type="secondary"
           size="xsmall"

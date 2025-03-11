@@ -237,9 +237,11 @@ onUnmounted(() => {
         >
           <GeneralIcon icon="plus" class="text-sm nc-plus" />
         </NcButton>
-        <NcButton size="xsmall" type="secondary" class="nc-action-icon nc-has-many-maximize-icon" @click.stop="openChildList">
-          <GeneralIcon icon="maximize" />
-        </NcButton>
+        <NcTooltip :title="$t('tooltip.expandShiftSpace')" :disabled="isExpandedForm">
+          <NcButton size="xsmall" type="secondary" class="nc-action-icon nc-has-many-maximize-icon" @click.stop="openChildList">
+            <GeneralIcon icon="maximize" />
+          </NcButton>
+        </NcTooltip>
       </div>
     </div>
     <template #overlay>

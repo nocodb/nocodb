@@ -690,7 +690,7 @@ onUnmounted(() => {
           </NcButton>
         </NcTooltip>
         <NcTooltip v-if="!isVisible && !isForm" placement="bottom" class="nc-action-icon">
-          <template #title>{{ $t('title.expand') }}</template>
+          <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
           <NcButton
             type="secondary"
             size="xsmall"

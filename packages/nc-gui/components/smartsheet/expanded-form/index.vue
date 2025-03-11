@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { ViewTypes, isSystemColumn } from 'nocodb-sdk'
+import { ViewTypes, isReadOnlyColumn, isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { Drawer } from 'ant-design-vue'
 import NcModal from '../../nc/Modal.vue'
@@ -96,7 +96,13 @@ const fields = computedInject(FieldsInj, (_fields) => {
   if (props.useMetaFields) {
     if (maintainDefaultViewOrder.value) {
       return (meta.value.columns ?? [])
-        .filter((col) => !isSystemColumn(col) && !!col.meta?.defaultViewColVisibility)
+        .filter(
+          (col) =>
+            !isSystemColumn(col) &&
+            !!col.meta?.defaultViewColVisibility &&
+            // if new record, then hide readonly fields
+            (!isNew.value || isReadOnlyColumn(col)),
+        )
         .sort((a, b) => {
           return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
         })

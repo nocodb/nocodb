@@ -81,14 +81,16 @@ const handleShowSearchInput = () => {
   })
 }
 
-onClickOutside(globalSearchWrapperRef, (e) => {
+const handleClickOutside = (e: MouseEvent) => {
   const targetEl = e.target as HTMLElement
   if (search.value.query || targetEl.closest('.nc-dropdown-toolbar-search-field-option')) {
     return
   }
 
   showSearchBox.value = false
-})
+}
+
+onClickOutside(globalSearchWrapperRef, handleClickOutside)
 
 onMounted(() => {
   if (search.value.query && !showSearchBox.value) {
@@ -103,6 +105,15 @@ watch(
     eventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
   },
 )
+
+useEventListener('keydown', (e: KeyboardEvent) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    e.preventDefault()
+    handleShowSearchInput()
+  } else if (e.key === 'Escape') {
+    handleClickOutside(e)
+  }
+})
 </script>
 
 <template>

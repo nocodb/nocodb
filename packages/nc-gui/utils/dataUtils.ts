@@ -25,6 +25,7 @@ import type {
 import dayjs from 'dayjs'
 import { timeFormatsObj } from '../components/smartsheet/grid/canvas/utils/cell'
 import { isColumnRequiredAndNull } from './columnUtils'
+import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
 export const isValidValue = (val: unknown) => {
   if (ncIsNull(val) || ncIsUndefined(val)) {
@@ -499,11 +500,16 @@ export const getMultiSelectValue = (modelValue: any, params: ParsePlainCellValue
     : modelValue.split(', ')
 }
 
-export const getDateValue = (modelValue: string | null | number, col: ColumnType, isSystemCol?: boolean) => {
-  const dateFormat = !isSystemCol ? parseProp(col.meta)?.date_format ?? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'
+export const getDateValue = (modelValue: string | null | number, col: ColumnType) => {
+  const dateFormat = parseProp(col.meta)?.date_format ?? 'YYYY-MM-DD'
 
-  if (!modelValue || !dayjs(modelValue).isValid()) {
+  if (!modelValue) {
     return ''
+  } else if (!dayjs(modelValue).isValid()) {
+    const parsedDate = parseFlexibleDate(modelValue)
+    if (parsedDate) {
+      return parsedDate.format(dateFormat) as string
+    }
   } else {
     return dayjs(/^\d+$/.test(String(modelValue)) ? +modelValue : modelValue).format(dateFormat)
   }
@@ -834,7 +840,7 @@ export const parsePlainCellValue = (
     return getLookupValue(value, params)
   }
   if (isCreatedOrLastModifiedTimeCol(col)) {
-    return getDateValue(value, col, true)
+    return getDateTimeValue(value, params)
   }
   if (isCreatedOrLastModifiedByCol(col)) {
     return getUserValue(value, params)

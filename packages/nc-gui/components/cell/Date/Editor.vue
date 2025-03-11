@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { isDateMonthFormat, isSystemColumn } from 'nocodb-sdk'
+import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
 interface Props {
   modelValue?: string | null
@@ -61,6 +62,11 @@ const localState = computed({
     }
 
     if (!dayjs(modelValue).isValid()) {
+      const parsedDate = parseFlexibleDate(modelValue)
+      if (parsedDate) {
+        return parsedDate
+      }
+
       isDateInvalid.value = true
       return undefined
     }

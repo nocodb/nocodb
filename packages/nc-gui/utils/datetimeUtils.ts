@@ -59,7 +59,7 @@ export const hookLogFormatter = (date: string) => {
 }
 
 export function parseFlexibleDate(dateString: string) {
-  const formats = ['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY/MM/DD', 'DD-MM-YYYY', 'MM-DD-YYYY', 'YYYY-MM-DD']
+  const formats = ['YYYY-MM-DD', 'YYYY/MM/DD', 'DD/MM/YYYY', 'DD-MM-YYYY', 'MM/DD/YYYY', 'MM-DD-YYYY']
 
   for (const format of formats) {
     const date = dayjs(dateString, format, true)

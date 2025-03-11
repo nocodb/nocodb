@@ -369,7 +369,7 @@
       "orgLevelCreator": "组织创建者",
       "orgLevelViewer": "组织浏览者"
     },
-    "sqlView": "SQL View",
+    "sqlView": "SQL 视图",
     "rowHeight": "行高",
     "heightClass": {
       "short": "短",

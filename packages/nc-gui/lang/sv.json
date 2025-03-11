@@ -369,7 +369,7 @@
       "orgLevelCreator": "Organisatorisk nivå Skapare",
       "orgLevelViewer": "Visare för organisationsnivå"
     },
-    "sqlView": "SQL View",
+    "sqlView": "SQL-vy",
     "rowHeight": "Rad Höjd",
     "heightClass": {
       "short": "Kort",

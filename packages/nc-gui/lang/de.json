@@ -369,7 +369,7 @@
       "orgLevelCreator": "Organisationsebenen-Ersteller",
       "orgLevelViewer": "Organisationsebenen-Betrachter"
     },
-    "sqlView": "SQL View",
+    "sqlView": "SQL-Ansicht",
     "rowHeight": "Zeilenhöhe",
     "heightClass": {
       "short": "klein",

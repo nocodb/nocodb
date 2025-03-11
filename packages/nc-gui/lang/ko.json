@@ -369,7 +369,7 @@
       "orgLevelCreator": "조직 수준 생성",
       "orgLevelViewer": "조직 수준 뷰어"
     },
-    "sqlView": "SQL View",
+    "sqlView": "SQL 보기",
     "rowHeight": "레코드 높이",
     "heightClass": {
       "short": "짧음",

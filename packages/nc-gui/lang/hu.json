@@ -369,7 +369,7 @@
       "orgLevelCreator": "Szervezeti szintű létrehozó",
       "orgLevelViewer": "Szervezeti szintű néző"
     },
-    "sqlView": "SQL View",
+    "sqlView": "SQL nézet",
     "rowHeight": "Rekord magassága",
     "heightClass": {
       "short": "Alacsony",

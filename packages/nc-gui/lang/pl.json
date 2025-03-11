@@ -369,7 +369,7 @@
       "orgLevelCreator": "Twórca na poziomie organizacji",
       "orgLevelViewer": "Obserwator na poziomie organizacji"
     },
-    "sqlView": "SQL View",
+    "sqlView": "Widok SQL",
     "rowHeight": "Wysokość rekordu",
     "heightClass": {
       "short": "Krótki",

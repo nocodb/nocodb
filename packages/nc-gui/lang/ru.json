@@ -369,7 +369,7 @@
       "orgLevelCreator": "Уровень Создатель",
       "orgLevelViewer": "Уровень Наблюдатель"
     },
-    "sqlView": "SQL View",
+    "sqlView": "Представление SQL",
     "rowHeight": "Высота записи",
     "heightClass": {
       "short": "Коротко",

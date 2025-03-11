@@ -369,7 +369,7 @@
       "orgLevelCreator": "組織層級建立者",
       "orgLevelViewer": "組織層級檢視者"
     },
-    "sqlView": "SQL View",
+    "sqlView": "SQL 檢視",
     "rowHeight": "記錄高度",
     "heightClass": {
       "short": "短",

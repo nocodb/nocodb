@@ -369,7 +369,7 @@
       "orgLevelCreator": "Ustvarjalec na ravni organizacije",
       "orgLevelViewer": "Pregledovalnik na ravni organizacije"
     },
-    "sqlView": "SQL View",
+    "sqlView": "Pogled SQL",
     "rowHeight": "Višina zapisa",
     "heightClass": {
       "short": "Kratko",

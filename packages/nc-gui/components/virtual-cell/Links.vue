@@ -24,7 +24,7 @@ const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
-const canvasCellEventData = inject(CanvasCellEventDataInj)!
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 
 const cellEventHook = inject(CellEventHookInj, null)
 
@@ -169,7 +169,7 @@ onMounted(() => {
 
   if (!isUnderLookup.value && isCanvasInjected && !isExpandedFormOpen.value && clientMousePosition) {
     forcedNextTick(() => {
-      if (onCellEvent(canvasCellEventData?.event)) return
+      if (onCellEvent(canvasCellEventData.event)) return
 
       if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-canvas-links-icon-plus', clientMousePosition)) {
         openListDlg()

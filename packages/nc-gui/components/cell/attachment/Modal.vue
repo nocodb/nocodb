@@ -21,7 +21,7 @@ const {
 
 const dropZoneRef = ref<HTMLDivElement>()
 
-const canvasSelectCell = inject(CanvasSelectCellInj)
+const canvasSelectCell = inject(CanvasSelectCellInj, null)
 const sortableRef = ref<HTMLDivElement>()
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, readOnly)

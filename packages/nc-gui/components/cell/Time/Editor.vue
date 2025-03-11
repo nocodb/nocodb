@@ -34,7 +34,7 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
-const canvasSelectCell = inject(CanvasSelectCellInj)
+const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
@@ -332,7 +332,7 @@ function handleSelectTime(value?: dayjs.Dayjs) {
 }
 
 const cellValue = computed(() => localState.value?.format(parseProp(column.value.meta).is12hrFormat ? 'hh:mm A' : 'HH:mm') ?? '')
-const canvasCellEventData = inject(CanvasCellEventDataInj)!
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 onMounted(() => {
   if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
     open.value = true

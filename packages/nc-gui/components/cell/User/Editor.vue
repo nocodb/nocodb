@@ -62,7 +62,7 @@ const isFocusing = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
-const canvasSelectCell = inject(CanvasSelectCellInj)
+const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
 const searchVal = ref<string | null>()
 

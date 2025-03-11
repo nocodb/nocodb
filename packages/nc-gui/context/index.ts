@@ -119,7 +119,7 @@ export const CanvasCellEventDataInj: InjectionKey<
 > = Symbol('canvas-cell-event-data-injection')
 
 // triggering this hook from within an editable cell will turn it into "selection state"
-export const CanvasSelectCellInj: InjectionKey<EventHook> = Symbol('canvas-select-cell-inj')
+export const CanvasSelectCellInj: InjectionKey<EventHook | undefined> = Symbol('canvas-select-cell-inj')
 
 export const IsPageDesignerExtensionActiveInj: InjectionKey<boolean> = Symbol('is-page-designer-extension-active')
 export const IsLinkRecordDropdownInj: InjectionKey<Ref<boolean>> = Symbol('is-link-record-dropdown-injection')

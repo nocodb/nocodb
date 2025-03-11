@@ -420,10 +420,10 @@ watch(textAreaRef, (el) => {
 })
 
 const onCellEvent = (event?: Event) => {
-  if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event)) return
+  if (!(event instanceof KeyboardEvent) || !event.target) return
 
   if (isExpandCellKey(event)) {
-    if (isVisible.value) {
+    if (isVisible.value && !isActiveInputElementExist(event)) {
       handleClose()
     } else {
       onExpand()

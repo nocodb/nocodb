@@ -180,7 +180,7 @@ export const LongTextCellRenderer: CellRenderer = {
 
       const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
       const box = { x: x + width - 28, y: y + 7, width: 18, height: 18 }
-      tryShowTooltip({ rect: box, mousePosition, text: getI18n().global.t('title.expand') })
+      tryShowTooltip({ rect: box, mousePosition, text: getI18n().global.t('tooltip.expandShiftSpace') })
     }
   },
 }

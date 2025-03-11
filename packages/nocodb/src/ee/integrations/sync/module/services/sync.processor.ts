@@ -222,26 +222,30 @@ export class SyncModuleSyncDataProcessor {
 
       await new Promise<void>((resolve, reject) => {
         data.on('data', async (data) => {
-          Object.assign(data.data, {
-            RemoteId: data.recordId,
-            RemoteSyncedAt,
-            SyncConfigId: syncConfig.id,
-          });
+          try {
+            Object.assign(data.data, {
+              RemoteId: data.recordId,
+              RemoteSyncedAt,
+              SyncConfigId: syncConfig.id,
+            });
 
-          dataBuffer.push(data.data);
+            dataBuffer.push(data.data);
 
-          if (dataBuffer.length >= 100) {
-            recordCounter += dataBuffer.length;
+            if (dataBuffer.length >= 100) {
+              recordCounter += dataBuffer.length;
 
-            logBasic(`Synced ${recordCounter} records`);
+              logBasic(`Synced ${recordCounter} records`);
 
-            await this.pushData(
-              context,
-              syncConfig,
-              model,
-              dataBuffer.splice(0),
-              req,
-            );
+              await this.pushData(
+                context,
+                syncConfig,
+                model,
+                dataBuffer.splice(0),
+                req,
+              );
+            }
+          } catch (error) {
+            reject(error);
           }
         });
 
@@ -250,35 +254,37 @@ export class SyncModuleSyncDataProcessor {
         });
 
         data.on('end', async () => {
-          if (dataBuffer.length === 0) {
-            return;
+          try {
+            recordCounter += dataBuffer.length;
+
+            logBasic(`Synced ${recordCounter} records`);
+
+            if (dataBuffer.length > 0) {
+              await this.pushData(
+                context,
+                syncConfig,
+                model,
+                dataBuffer.splice(0),
+                req,
+              );
+            }
+
+            await SyncConfig.update(context, syncConfig.id, {
+              sync_job_id: null,
+              last_sync_at: RemoteSyncedAt,
+              next_sync_at: await SyncConfig.calculateNextSyncAt(
+                context,
+                syncConfig.id,
+                new Date(RemoteSyncedAt),
+              ),
+            });
+
+            logBasic(`Sync Completed`);
+
+            resolve();
+          } catch (error) {
+            reject(error);
           }
-
-          recordCounter += dataBuffer.length;
-
-          logBasic(`Synced ${recordCounter} records`);
-
-          await this.pushData(
-            context,
-            syncConfig,
-            model,
-            dataBuffer.splice(0),
-            req,
-          );
-
-          await SyncConfig.update(context, syncConfig.id, {
-            sync_job_id: null,
-            last_sync_at: RemoteSyncedAt,
-            next_sync_at: await SyncConfig.calculateNextSyncAt(
-              context,
-              syncConfig.id,
-              new Date(RemoteSyncedAt),
-            ),
-          });
-
-          logBasic(`Sync Completed`);
-
-          resolve();
         });
       });
     } catch (error) {

@@ -282,7 +282,8 @@ const pg = {
     const replacement = (await fn(pt.arguments[2])).builder;
     return {
       builder: knex.raw(
-        `REGEXP_REPLACE(${source}::TEXT, ${pattern}::TEXT, ${replacement}::TEXT, 'g') ${colAlias}`,
+        `REGEXP_REPLACE(?::TEXT, ?::TEXT, ?::TEXT, 'g') ${colAlias}`,
+        [source, pattern, replacement],
       ),
     };
   },

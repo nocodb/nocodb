@@ -439,9 +439,7 @@ onMounted(() => {
   if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value) return
   const position = { clientX: clientMousePosition.clientX, clientY: clientMousePosition.clientY + 2 }
   forcedNextTick(() => {
-    const event = canvasCellEventData?.event
-
-    if (onCellEvent(event)) return
+    if (onCellEvent(canvasCellEventData?.event)) return
 
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-expand', position)) {
       onExpand()

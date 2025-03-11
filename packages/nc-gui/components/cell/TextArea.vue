@@ -12,6 +12,8 @@ const props = defineProps<{
   isFieldAiIntegrationAvailable?: boolean
 }>()
 
+const STORAGE_KEY = 'nc-long-text-expanded-modal-size'
+
 const emits = defineEmits(['update:modelValue', 'update:isAiEdited', 'generate', 'close'])
 
 const meta = inject(MetaInj, ref())
@@ -288,27 +290,13 @@ const handleClose = () => {
   isVisible.value = false
 }
 
-const STORAGE_KEY = 'nc-long-text-expanded-modal-size'
-
-const { width: widthTextArea, height: heightTextArea } = useElementSize(inputRef)
-
-watch([widthTextArea, heightTextArea], () => {
-  if (isVisible.value) {
-    const size = {
-      width: widthTextArea.value,
-      height: heightTextArea.value,
-    }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(size))
-  }
-})
-
 const updateSize = () => {
   try {
     const size = localStorage.getItem(STORAGE_KEY)
     let elem = document.querySelector('.nc-text-area-expanded') as HTMLElement
 
     if (isRichMode.value) {
-      elem = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement
+      elem = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap.ProseMirror') as HTMLElement
     }
 
     const parsedJSON = JSON.parse(size)
@@ -321,44 +309,6 @@ const updateSize = () => {
     console.error(e)
   }
 }
-
-watch(
-  [isVisible, inputRef],
-  (value) => {
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect
-
-        if (!isVisible.value) {
-          return
-        }
-
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ width, height }))
-      }
-    })
-
-    if (value) {
-      if (isRichMode.value && isVisible.value) {
-        setTimeout(() => {
-          const el = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement
-
-          if (!el) return
-
-          observer.observe(el)
-
-          updateSize()
-        }, 50)
-      } else {
-        updateSize()
-      }
-    } else {
-      observer.disconnect()
-    }
-  },
-  {
-    immediate: true,
-  },
-)
 
 watch(textAreaRef, (el) => {
   if (el && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
@@ -378,6 +328,63 @@ onMounted(() => {
       onExpand()
     }
   })
+})
+
+const isSizeUpdated = ref(false)
+
+const skipSizeUpdate = ref(true)
+
+watch(isVisible, (open) => {
+  if (open) return
+
+  isSizeUpdated.value = false
+  skipSizeUpdate.value = true
+})
+
+const getResizeEl = () => {
+  if (isRichMode.value) {
+    return inputWrapperRef.value!.querySelector(
+      '.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap.ProseMirror',
+    ) as HTMLElement
+  }
+
+  return inputWrapperRef.value!.querySelector('.nc-text-area-expanded') as HTMLElement
+}
+
+useResizeObserver(inputWrapperRef, (entries) => {
+  const entry = entries[0]
+  if (!isSizeUpdated.value) {
+    nextTick(() => {
+      until(() => inputWrapperRef.value && !!getResizeEl())
+        .toBeTruthy()
+        .then(() => {
+          updateSize()
+        })
+    })
+    isSizeUpdated.value = true
+
+    return
+  }
+
+  if (skipSizeUpdate.value) {
+    skipSizeUpdate.value = false
+
+    return
+  }
+
+  const resizeEl = inputWrapperRef.value && getResizeEl()
+
+  if (!resizeEl) return
+
+  const { width, height } = resizeEl.getBoundingClientRect()
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      width,
+      height,
+    }),
+  )
 })
 </script>
 

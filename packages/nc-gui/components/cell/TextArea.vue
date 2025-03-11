@@ -412,6 +412,7 @@ useResizeObserver(inputWrapperRef, () => {
       height,
     }),
   )
+})
 
 watch(textAreaRef, (el) => {
   if (el && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {

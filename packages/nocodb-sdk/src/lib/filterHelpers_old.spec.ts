@@ -199,7 +199,7 @@ export const testExtractFilterFromXwhere = (
             extractFilterFromXwhere(query, columnAlias, true)
           ).toThrow();
         });
-        it.only('will parse datetime is null', async () => {
+        it('will parse datetime is null', async () => {
           // datetime need to have suboperator :|
           const query = '(Date,is,null)';
           const columnAlias: Record<string, ColumnType> = {

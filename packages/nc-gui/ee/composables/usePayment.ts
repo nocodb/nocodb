@@ -23,7 +23,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const workspaceStore = useWorkspace()
 
-  const { activeWorkspaceId } = storeToRefs(workspaceStore)
+  const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspaceStore)
 
   const baseURL = $api.instance.defaults.baseURL
 
@@ -38,6 +38,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const workspaceSeatCount = ref<number>(1)
 
   const plansAvailable = ref<PaymentPlan[]>([])
+
+  const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription)
 
   const loadWorkspaceSeatCount = async () => {
     const { count } = (await $fetch(`/api/payment/${activeWorkspaceId.value}/seat-count`, {
@@ -61,7 +63,9 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     plansAvailable.value = plans as any
   }
 
-  const getPlanPrice = (plan: PaymentPlan, mode?: 'year' | 'month') => {
+  const getPlanPrice = (plan?: PaymentPlan, mode?: 'year' | 'month') => {
+    if (!plan?.prices) return 0
+
     if (!mode) mode = paymentMode.value
 
     const price = plan.prices.find((price: any) => price.recurring.interval === mode)
@@ -106,29 +110,6 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     await workspaceStore.loadWorkspace(activeWorkspaceId.value)
   }
 
-  /* const updateSubscription = async () => {
-    if (!stripe.value) throw new Error('Stripe not loaded')
-    if (!selectedPlan.value) throw new Error('No plan selected')
-
-    const price = selectedPlan.value.prices.find((price: any) => price.recurring.interval === paymentMode.value)
-
-    if (!price) throw new Error('No price found')
-
-    const res = (await $fetch(`/api/payment/:workspaceId/update-subscription`, {
-      baseURL,
-      method: 'POST',
-      headers: { 'xc-auth': $state.token.value as string },
-      body: {
-        subscriptionId: subscriptionId.value,
-        seat: selectedSeats.value,
-        plan_id: selectedPlan.value.id,
-        price_id: price.id,
-      },
-    })) as any
-
-    return res.clientSecret
-  } */
-
   const onPaymentModeChange = (val: boolean) => {
     paymentMode.value = val ? 'year' : 'month'
   }
@@ -144,12 +125,24 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     subscriptionId.value = undefined
   }
 
+  watch(
+    activeWorkspaceId,
+    async () => {
+      reset()
+
+      if (activeWorkspaceId.value) {
+        await loadWorkspaceSeatCount()
+      }
+    },
+    { immediate: true },
+  )
+
   onMounted(async () => {
     stripe.value = (await loadStripe(
       'pk_test_51QhRouHU2WPCjTxw3ranXD6shPR0VbOjLflMfidsanV0m9mM0vZKQfYk3PserPAbnZAIJJhv701DV8FrwP6zJhaf00KYKhz11c',
     ))!
 
-    await loadWorkspaceSeatCount()
+    await loadPlans()
   })
 
   return {
@@ -168,6 +161,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     reset,
     createSubscription,
     cancelSubscription,
+    isPaidPlan,
+    activeWorkspaceId,
   }
 }, 'injected-payment-store')
 
@@ -176,7 +171,7 @@ export { useProvidePaymentStore }
 export function usePaymentStoreOrThrow() {
   const injectedPaymentStore = usePaymentStore()
 
-  if (injectedPaymentStore == null) throw new Error('Please call `useProvidePaymentStore` on the appropriate parent component')
+  if (injectedPaymentStore == null) throw new Error('usePaymentStore is not provided')
 
   return injectedPaymentStore
 }

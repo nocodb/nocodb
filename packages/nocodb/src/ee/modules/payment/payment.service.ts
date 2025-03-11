@@ -2,8 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 import dayjs from 'dayjs';
 import type { NcRequest } from 'nocodb-sdk';
-import { Plan, Subscription, User, Workspace } from '~/models';
+import { Plan, Subscription, Workspace } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import Noco from '~/Noco';
 
 const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder');
 
@@ -129,6 +130,7 @@ export class PaymentService {
       price_id: string;
     },
     req: NcRequest,
+    ncMeta = Noco.ncMeta,
   ) {
     const { seat, plan_id, price_id } = payload;
     const { user } = req;
@@ -157,19 +159,24 @@ export class PaymentService {
       );
     }
 
-    if (!user.stripe_customer_id) {
+    if (!workspace.stripe_customer_id) {
       const customer = await stripe.customers.create({
         email: user.email,
         metadata: {
-          id: user.id,
+          fk_workspace_id: workspaceId,
+          fk_user_id: user.id,
         },
       });
 
-      await User.update(user.id, {
-        stripe_customer_id: customer.id,
-      });
+      await Workspace.update(
+        workspace.id,
+        {
+          stripe_customer_id: customer.id,
+        },
+        ncMeta,
+      );
 
-      user.stripe_customer_id = customer.id;
+      workspace.stripe_customer_id = customer.id;
     }
 
     const plan = await Plan.get(plan_id);
@@ -185,7 +192,7 @@ export class PaymentService {
     }
 
     const subscription = await stripe.subscriptions.create({
-      customer: user.stripe_customer_id,
+      customer: workspace.stripe_customer_id,
       items: [
         {
           price: price_id,
@@ -197,7 +204,6 @@ export class PaymentService {
       expand: ['latest_invoice.payment_intent', 'pending_setup_intent'],
       metadata: {
         fk_workspace_id: workspaceId,
-        fk_user_id: user.id,
         fk_plan_id: plan_id,
       },
     });
@@ -352,20 +358,14 @@ export class PaymentService {
       switch (event.type) {
         case 'customer.subscription.created': {
           const metadata = dataObject.metadata;
-          if (
-            !metadata?.fk_workspace_id ||
-            !metadata?.fk_user_id ||
-            !metadata?.fk_plan_id
-          ) {
+          if (!metadata?.fk_workspace_id || !metadata?.fk_plan_id) {
             throw new Error('Missing metadata on subscription.created');
           }
 
           await Subscription.insert({
             fk_workspace_id: metadata.fk_workspace_id,
             fk_plan_id: metadata.fk_plan_id,
-            fk_user_id: metadata.fk_user_id,
             stripe_subscription_id: dataObject.id,
-            stripe_customer_id: dataObject.customer,
             stripe_price_id: dataObject.items.data[0].price.id,
             seat_count: dataObject.items.data[0].quantity,
             status: dataObject.status,
@@ -428,7 +428,6 @@ export class PaymentService {
 
           await Subscription.update(subscription.id, {
             stripe_subscription_id: dataObject.id,
-            stripe_customer_id: dataObject.customer,
             stripe_price_id: dataObject.items.data[0].price.id,
             seat_count: dataObject.items.data[0].quantity,
             status: dataObject.status,

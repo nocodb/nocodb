@@ -1,11 +1,15 @@
 <script lang="ts" setup>
-const { plansAvailable, paymentMode, getPlanPrice, onSelectPlan, onPaymentModeChange } = usePaymentStoreOrThrow()
+const { plansAvailable, paymentMode, getPlanPrice, onSelectPlan, loadPlans, onPaymentModeChange } = usePaymentStoreOrThrow()
+
+onMounted(async () => {
+  await loadPlans()
+})
 </script>
 
 <template>
   <div class="flex flex-col">
     <div class="flex">
-      <div class="text-2xl font-bold mb-4">Plans & Pricing</div>
+      <div class="text-lg font-bold mb-4">Plans & Pricing</div>
       <!-- toggle annual & monthly -->
       <div class="flex-1"></div>
       <div class="flex items-center gap-2">
@@ -21,7 +25,7 @@ const { plansAvailable, paymentMode, getPlanPrice, onSelectPlan, onPaymentModeCh
           <span class="text-xl">$</span><span class="text-3xl font-bold">0</span>/seat/month
         </div>
 
-        <NcButton type="ghost" size="small" class="w-full my-4" disabled>
+        <NcButton type="ghost" size="small" class="w-full my-4 !text-black" disabled>
           <div class="flex items-center justify-center gap-1">Current Plan</div>
         </NcButton>
 

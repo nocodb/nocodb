@@ -85,6 +85,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     if (route.value.params.typeOrId) return route.value.params.typeOrId as string
 
+    if (route.value.params.workspaceId) return route.value.params.workspaceId as string
+
     const lastLoadedWorkspace = workspacesList.value.find((w) => w.id === lastOpenedWorkspaceId.value)
     if (lastLoadedWorkspace) return lastLoadedWorkspace.id
 

@@ -15,6 +15,33 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
     },
   ]
 
+  if (route.name?.toString().includes('account-index-workspace')) {
+    payload.pop()
+
+    payload.push({
+      title: 'Workspace',
+    })
+
+    switch (route.name.toString().split('-').pop()) {
+      case 'billing': {
+        payload.push({
+          title: 'Billing',
+          active: true,
+        })
+        break
+      }
+      case 'settings': {
+        payload.push({
+          title: 'Settings',
+          active: true,
+        })
+        break
+      }
+    }
+
+    return payload
+  }
+
   switch (route.params.page) {
     case 'profile': {
       payload.push({

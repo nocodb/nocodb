@@ -11,6 +11,13 @@ const { appInfo, signedIn, signOut } = useGlobal()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const workspaceStore = useWorkspace()
+
+const { workspacesList } = storeToRefs(workspaceStore)
+const { loadWorkspaces } = workspaceStore
+
+const loadingWorkspaces = ref(false)
+
 const selectedKeys = computed(() => {
   if (/^\/account\/users\/?$/.test($route.fullPath)) {
     if (isUIAllowed('superAdminUserManagement')) return ['list']
@@ -40,6 +47,13 @@ const logout = async () => {
     redirectToSignin: true,
   })
 }
+
+onMounted(() => {
+  loadingWorkspaces.value = true
+  loadWorkspaces().then(() => {
+    loadingWorkspaces.value = false
+  })
+})
 </script>
 
 <template>
@@ -217,6 +231,56 @@ const logout = async () => {
                   <span class="ml-4">{{ $t('activity.settings') }}</span>
                 </NcMenuItem>
               </a-sub-menu>
+
+              <NcDivider class="!mt-0" />
+
+              <div class="text-sm text-gray-500 font-semibold ml-4 py-1.5">{{ $t('labels.workspaces') }}</div>
+
+              <template v-if="loadingWorkspaces">
+                <div class="w-full flex items-center justify-center">
+                  <GeneralLoader :size="20" />
+                </div>
+              </template>
+              <template v-else>
+                <a-sub-menu
+                  v-for="workspace in workspacesList"
+                  :key="workspace.id"
+                  :class="{
+                    active: $route.params.workspaceId === workspace.id,
+                  }"
+                  class="pt-[0.5px]"
+                >
+                  <template #icon>
+                    <GeneralWorkspaceIcon :workspace="workspace" size="medium" />
+                  </template>
+                  <template #title>
+                    <div class="select-none">{{ workspace.title }}</div>
+                  </template>
+                  <template #expandIcon="{ isOpen }">
+                    <NcButton type="text" size="xxsmall" class="">
+                      <GeneralIcon
+                        icon="chevronRight"
+                        class="flex-none cursor-pointer transform transition-transform duration-200 text-[20px]"
+                        :class="{ '!rotate-90': isOpen }"
+                      />
+                    </NcButton>
+                  </template>
+                  <NcMenuItem class="item" @click="navigateTo(`/account/workspace/${workspace.id}/billing`)">
+                    <div class="flex items-center space-x-2 ml-4">
+                      <GeneralIcon icon="ncDollarSign" class="!h-4 !w-4" />
+
+                      <div class="select-none">Billing</div>
+                    </div>
+                  </NcMenuItem>
+                  <NcMenuItem class="item" @click="navigateTo(`/account/workspace/${workspace.id}/settings`)">
+                    <div class="flex items-center space-x-2 ml-4">
+                      <GeneralIcon icon="ncSettings" class="!h-4 !w-4" />
+
+                      <div class="select-none">Settings</div>
+                    </div>
+                  </NcMenuItem>
+                </a-sub-menu>
+              </template>
             </NcMenu>
           </div>
 

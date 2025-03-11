@@ -62,6 +62,7 @@ export default class Workspace implements WorkspaceType {
   message?: string;
   infra_meta?: string | Record<string, any>;
   fk_org_id?: string;
+  stripe_customer_id?: string;
 
   payment?: {
     subscription?: Subscription;
@@ -156,6 +157,7 @@ export default class Workspace implements WorkspaceType {
       'status',
       'plan',
       'fk_org_id',
+      'stripe_customer_id',
     ]);
 
     // stringify meta if it is an object
@@ -199,6 +201,7 @@ export default class Workspace implements WorkspaceType {
       'deleted_at',
       'order',
       'fk_org_id',
+      'stripe_customer_id',
     ]);
 
     // stringify meta if it is an object

@@ -6,7 +6,7 @@ const { getPlanPrice, cancelSubscription } = usePaymentStoreOrThrow()
 const activePlan = computed(() => activeWorkspace.value?.payment?.plan)
 const activeSubscription = computed(() => activeWorkspace.value?.payment?.subscription)
 const activePrice = computed(() =>
-  activePlan.value?.prices.find((price) => price.id === activeSubscription.value?.stripe_price_id),
+  activePlan.value?.prices?.find((price) => price.id === activeSubscription.value?.stripe_price_id),
 )
 const activePaymentMode = computed(() => (activePrice.value?.recurring.interval === 'year' ? 'year' : 'month'))
 
@@ -19,7 +19,7 @@ const onCancelSubscription = async () => {
 </script>
 
 <template>
-  <div v-if="activePlan && activeSubscription" class="m-6 rounded-lg nc-border-gray-medium p-4 shadow-default max-w-[300px]">
+  <div v-if="activePlan" class="rounded-lg nc-border-gray-medium p-4 shadow-default max-w-[300px]">
     <div class="text-lg">{{ activePlan.title }}</div>
     <div class="flex flex-col my-4 gap-2">
       <div class="flex items-center gap-1">
@@ -27,7 +27,7 @@ const onCancelSubscription = async () => {
         <div class="text-3xl font-bold">{{ getPlanPrice(activePlan, activePaymentMode) }}</div>
         / seat / month
       </div>
-      <div class="w-full">{{ activeSubscription.seat_count }} active seats</div>
+      <div v-if="activeSubscription?.seat_count" class="w-full">{{ activeSubscription.seat_count }} active seats</div>
     </div>
     <NcButton type="ghost" size="small" class="w-full my-4" disabled>
       <div class="flex items-center justify-center gap-1">Current Plan</div>

@@ -1,6 +1,16 @@
 <script lang="ts" setup>
-const { stripe, createSubscription, selectedPlan, getPlanPrice, onPaymentModeChange, paymentMode, workspaceSeatCount } =
-  usePaymentStoreOrThrow()
+const {
+  stripe,
+  createSubscription,
+  selectedPlan,
+  getPlanPrice,
+  onPaymentModeChange,
+  paymentMode,
+  workspaceSeatCount,
+  paymentState,
+  reset,
+  activeWorkspaceId,
+} = usePaymentStoreOrThrow()
 
 const { appInfo } = useGlobal()
 
@@ -37,7 +47,7 @@ const submitPayment = async (e) => {
     elements: elements.value,
     clientSecret,
     confirmParams: {
-      return_url: `${appInfo.value.ncSiteUrl}?payment=success`,
+      return_url: `http://localhost:3000?afterPayment=true&workspaceId=${activeWorkspaceId.value}`,
     },
   })
 
@@ -67,64 +77,72 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="selectedPlan" class="flex">
-    <div class="flex flex-col flex-1 p-4">
-      <div class="text-2xl font-bold mb-4">Payment</div>
-      <div class="flex gap-4 justify-center">
-        <div
-          class="flex items-center gap-2 nc-border-gray-medium p-4 shadow-default rounded-lg w-1/2 cursor-pointer"
-          @click="onPaymentModeChange(false)"
-        >
-          <a-radio :checked="paymentMode === 'month'" />
-          <div class="flex flex-col">
-            <div class="text-sm font-bold">Paid Monthly</div>
-            <div class="flex items-center text-gray-500">${{ getPlanPrice(selectedPlan, 'month') }} / seat / month</div>
-          </div>
-        </div>
-        <div
-          class="flex items-center gap-2 nc-border-gray-medium p-4 shadow-default rounded-lg w-1/2 cursor-pointer"
-          @click="onPaymentModeChange(true)"
-        >
-          <a-radio :checked="paymentMode === 'year'" />
-          <div class="flex flex-col">
-            <div class="text-sm font-bold">Paid Yearly</div>
-            <div class="flex items-center text-gray-500">${{ getPlanPrice(selectedPlan, 'year') }} / seat / month</div>
-          </div>
-        </div>
+  <div v-if="selectedPlan" class="flex flex-col">
+    <div v-if="paymentState && paymentState !== PaymentState.SELECT_PLAN" class="pb-4">
+      <div class="flex items-center gap-2 cursor-pointer" @click="reset">
+        <GeneralIcon icon="ncArrowLeft" class="h-4 w-4" />
+        <div class="text-sm">Back</div>
       </div>
-      <form id="payment-form">
-        <div id="payment-element">
-          <!-- Stripe.js injects the Payment Element -->
-        </div>
-        <div id="payment-message" class="hidden"></div>
-      </form>
     </div>
-    <div class="flex flex-col min-w-[400px] shadow-default rounded-lg p-4">
-      <div class="text-xl font-bold">Invoice Preview</div>
-      <a-divider class="!my-4" />
-      <div class="flex flex-col items-center gap-2">
-        <div class="text-lg">{{ selectedPlan.title }}</div>
-        <div class="flex gap-2">
-          <div class="text-gray-500">${{ getPlanPrice(selectedPlan, paymentMode) }} / seat / month</div>
-          <div class="text-gray-500">x {{ workspaceSeatCount }}</div>
-        </div>
-      </div>
-      <div class="flex-1"></div>
-      <a-divider class="!my-4" />
-      <div class="flex items-center gap-2 justify-between px-6 pb-4">
-        <div class="text-lg">Total</div>
-        <div v-if="paymentMode === 'month'" class="text-gray-500">
-          ${{ getPlanPrice(selectedPlan, paymentMode) * workspaceSeatCount }} / month
-        </div>
-        <div v-else class="text-gray-500">${{ getPlanPrice(selectedPlan, paymentMode) * workspaceSeatCount * 12 }} / year</div>
-      </div>
-      <div class="flex justify-center">
-        <NcButton type="primary" class="w-full" :loading="isLoading" @click="submitPayment">
-          <div class="flex items-center justify-center gap-1">
-            <GeneralIcon icon="ncLock" class="h-4 w-4" />
-            <span>Confirm & Pay</span>
+    <div class="flex">
+      <div class="flex flex-col flex-1 p-4">
+        <div class="text-2xl font-bold mb-4">Upgrade Your Workspace</div>
+        <div class="flex gap-4 justify-center">
+          <div
+            class="flex items-center gap-2 nc-border-gray-medium p-4 shadow-default rounded-lg w-1/2 cursor-pointer"
+            @click="onPaymentModeChange(false)"
+          >
+            <a-radio :checked="paymentMode === 'month'" />
+            <div class="flex flex-col">
+              <div class="text-sm font-bold">Paid Monthly</div>
+              <div class="flex items-center text-gray-500">${{ getPlanPrice(selectedPlan, 'month') }} / seat / month</div>
+            </div>
           </div>
-        </NcButton>
+          <div
+            class="flex items-center gap-2 nc-border-gray-medium p-4 shadow-default rounded-lg w-1/2 cursor-pointer"
+            @click="onPaymentModeChange(true)"
+          >
+            <a-radio :checked="paymentMode === 'year'" />
+            <div class="flex flex-col">
+              <div class="text-sm font-bold">Paid Yearly</div>
+              <div class="flex items-center text-gray-500">${{ getPlanPrice(selectedPlan, 'year') }} / seat / month</div>
+            </div>
+          </div>
+        </div>
+        <form id="payment-form">
+          <div id="payment-element">
+            <!-- Stripe.js injects the Payment Element -->
+          </div>
+          <div id="payment-message" class="hidden"></div>
+        </form>
+      </div>
+      <div class="flex flex-col min-w-[400px] shadow-default rounded-lg p-4">
+        <div class="text-xl font-bold">Invoice Preview</div>
+        <a-divider class="!my-4" />
+        <div class="flex flex-col items-center gap-2">
+          <div class="text-lg">{{ selectedPlan.title }}</div>
+          <div class="flex gap-2">
+            <div class="text-gray-500">${{ getPlanPrice(selectedPlan, paymentMode) }} / seat / month</div>
+            <div class="text-gray-500">x {{ workspaceSeatCount }}</div>
+          </div>
+        </div>
+        <div class="flex-1"></div>
+        <a-divider class="!my-4" />
+        <div class="flex items-center gap-2 justify-between px-6 pb-4">
+          <div class="text-lg">Total</div>
+          <div v-if="paymentMode === 'month'" class="text-gray-500">
+            ${{ getPlanPrice(selectedPlan, paymentMode) * workspaceSeatCount }} / month
+          </div>
+          <div v-else class="text-gray-500">${{ getPlanPrice(selectedPlan, paymentMode) * workspaceSeatCount * 12 }} / year</div>
+        </div>
+        <div class="flex justify-center">
+          <NcButton type="primary" class="w-full" :loading="isLoading" @click="submitPayment">
+            <div class="flex items-center justify-center gap-1">
+              <GeneralIcon icon="ncLock" class="h-4 w-4" />
+              <span>Confirm & Pay</span>
+            </div>
+          </NcButton>
+        </div>
       </div>
     </div>
   </div>

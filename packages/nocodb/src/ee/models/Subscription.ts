@@ -15,7 +15,6 @@ export default class Subscription {
   fk_user_id: string;
 
   stripe_subscription_id: string;
-  stripe_customer_id: string;
   stripe_price_id: string;
 
   seat_count: number;
@@ -63,7 +62,6 @@ export default class Subscription {
       'fk_plan_id',
       'fk_user_id',
       'stripe_subscription_id',
-      'stripe_customer_id',
       'stripe_price_id',
       'seat_count',
       'status',

@@ -1,15 +1,12 @@
 <script lang="ts" setup>
-const { activeWorkspace } = storeToRefs(useWorkspace())
-
-const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription)
-
-useProvidePaymentStore()
+const { isPaidPlan, paymentState } = usePaymentStoreOrThrow()
 </script>
 
 <template>
   <div>
     <PaymentManage v-if="isPaidPlan" />
-    <PaymentBanner v-else />
+    <PaymentPlans v-else-if="paymentState === PaymentState.SELECT_PLAN" />
+    <PaymentPay v-else-if="paymentState === PaymentState.PAYMENT" />
   </div>
 </template>
 

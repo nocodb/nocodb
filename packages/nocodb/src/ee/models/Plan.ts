@@ -20,6 +20,7 @@ export const DefaultLimits = {
   limit_view: 200,
   limit_filter: 30,
   limit_sort: 10,
+  limit_storage: 1 * 1024,
 } as const;
 
 export const FreePlan = {

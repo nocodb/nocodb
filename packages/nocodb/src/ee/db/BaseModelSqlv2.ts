@@ -1009,7 +1009,16 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
   }
 
-  public async beforeInsert(data: any, _trx: any, req): Promise<void> {
+  public async beforeInsert(
+    data: any,
+    _trx: any,
+    req,
+    params?: {
+      allowSystemColumn?: boolean;
+    },
+  ): Promise<void> {
+    const { allowSystemColumn = false } = params || {};
+
     const modelStats = await ModelStat.get(
       this.context,
       this.model.fk_workspace_id,
@@ -1057,14 +1066,23 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       );
     }
 
-    if (this.model.synced) {
+    if (!allowSystemColumn && this.model.synced) {
       NcError.badRequest('Cannot insert into synced table');
     }
 
     await this.handleHooks('before.insert', null, data, req);
   }
 
-  public async beforeBulkInsert(data: any, _trx: any, req): Promise<void> {
+  public async beforeBulkInsert(
+    data: any,
+    _trx: any,
+    req,
+    params?: {
+      allowSystemColumn?: boolean;
+    },
+  ): Promise<void> {
+    const { allowSystemColumn = false } = params;
+
     const modelStats = await ModelStat.get(
       this.context,
       this.model.fk_workspace_id,
@@ -1112,7 +1130,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       );
     }
 
-    if (this.model.synced) {
+    if (!allowSystemColumn && this.model.synced) {
       NcError.badRequest('Cannot insert into synced table');
     }
 
@@ -1833,7 +1851,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if ('beforeBulkInsert' in this) {
-        await this.beforeBulkInsert(insertDatas, null, cookie);
+        await this.beforeBulkInsert(insertDatas, null, cookie, {
+          allowSystemColumn,
+        });
       }
 
       await this.runOps(preInsertOps.map((f) => f()));

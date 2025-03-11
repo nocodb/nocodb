@@ -198,7 +198,7 @@ export const FormulaCellRenderer: CellRenderer = {
     const colObj = column.columnObj
 
     // Todo: show inline warning
-    if (props.e.key === 'Enter') {
+    if (props.e.key === 'Enter' || (props.e.key === ' ' && props.e.shiftKey)) {
       // isUnderLookup is not present in props and also from lookup cell we are not triggering click event so no need to check isUnderLookup
       const showAsLongText = shouldShowAsLongText({ width: parseInt(column.width) || 200, value, column: colObj })
 
@@ -207,6 +207,8 @@ export const FormulaCellRenderer: CellRenderer = {
 
         return true
       }
+
+      if (props.e.key === ' ' && props.e.shiftKey) return
 
       showFieldEditWarning()
       return true

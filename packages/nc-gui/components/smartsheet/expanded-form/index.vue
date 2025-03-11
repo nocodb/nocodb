@@ -87,22 +87,55 @@ const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 // override cell click hook to avoid unexpected behavior at form fields
 provide(CellClickHookInj, undefined)
 
+const isKanban = inject(IsKanbanInj, ref(false))
+
+provide(MetaInj, meta)
+
+const isLoading = ref(true)
+
+const isSaving = ref(false)
+
+const expandedFormStore = useProvideExpandedFormStore(meta, row)
+
+const {
+  commentsDrawer,
+  changedColumns,
+  deleteRowById,
+  displayValue,
+  state: rowState,
+  isNew,
+  loadRow: _loadRow,
+  primaryKey,
+  row: _row,
+  comments,
+  save: _save,
+  loadComments,
+  loadAudits,
+  clearColumns,
+} = expandedFormStore
+
 const loadingEmit = (event: 'update:modelValue' | 'cancel' | 'next' | 'prev' | 'createdRecord') => {
   emits(event)
   isLoading.value = true
 }
 
-const fieldsFromParent = inject<ColumnType[] | null>(FieldsInj, ref(null))
+/**
+ * Injects the fields from the parent component if available.
+ * Uses a ref to ensure reactivity.
+ */
+const fieldsFromParent = inject<Ref<ColumnType[] | null>>(FieldsInj, ref(null))
 
+/**
+ * Computes the list of fields to be used based on the given conditions.
+ *
+ * - Prefers `props.useMetaFields` over `fieldsFromParent` if enabled.
+ * - Filters out system columns and readonly fields for new records.
+ * - Maintains default view order if `maintainDefaultViewOrder` is enabled.
+ *
+ * @returns {ColumnType[]} The computed list of fields.
+ */
 const fields = computed(() => {
-  if (fieldsFromParent.value) {
-    if (isNew.value) {
-      return fieldsFromParent.value.filter((col) => !isReadOnlyColumn(col))
-    }
-
-    return fieldsFromParent.value
-  }
-
+  // Give preference to props.useMetaFields instead of fieldsFromParent
   if (props.useMetaFields) {
     if (maintainDefaultViewOrder.value) {
       return (meta.value.columns ?? [])
@@ -128,7 +161,17 @@ const fields = computed(() => {
         !!col.meta?.defaultViewColVisibility,
     )
   }
-  return _fields?.value ?? []
+
+  // If `props.useMetaFields` is not enabled, use fields from the parent component
+  if (fieldsFromParent.value) {
+    if (isNew.value) {
+      return fieldsFromParent.value.filter((col) => !isReadOnlyColumn(col))
+    }
+
+    return fieldsFromParent.value
+  }
+
+  return []
 })
 
 const tableTitle = computed(() => meta.value?.title)
@@ -177,33 +220,6 @@ const hiddenFields = computed(() => {
     })
   }
 })
-
-const isKanban = inject(IsKanbanInj, ref(false))
-
-provide(MetaInj, meta)
-
-const isLoading = ref(true)
-
-const isSaving = ref(false)
-
-const expandedFormStore = useProvideExpandedFormStore(meta, row)
-
-const {
-  commentsDrawer,
-  changedColumns,
-  deleteRowById,
-  displayValue,
-  state: rowState,
-  isNew,
-  loadRow: _loadRow,
-  primaryKey,
-  row: _row,
-  comments,
-  save: _save,
-  loadComments,
-  loadAudits,
-  clearColumns,
-} = expandedFormStore
 
 reloadViewDataTrigger.on(async () => {
   await _loadRow(rowId.value, false, true)

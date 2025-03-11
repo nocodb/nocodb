@@ -290,26 +290,6 @@ const handleClose = () => {
   isVisible.value = false
 }
 
-const updateSize = () => {
-  try {
-    const size = localStorage.getItem(STORAGE_KEY)
-    let elem = document.querySelector('.nc-text-area-expanded') as HTMLElement
-
-    if (isRichMode.value) {
-      elem = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap.ProseMirror') as HTMLElement
-    }
-
-    const parsedJSON = JSON.parse(size)
-
-    if (parsedJSON && elem) {
-      elem.style.width = `${parsedJSON.width}px`
-      elem.style.height = `${parsedJSON.height}px`
-    }
-  } catch (e) {
-    console.error(e)
-  }
-}
-
 watch(textAreaRef, (el) => {
   if (el && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
     el.focus()
@@ -330,8 +310,16 @@ onMounted(() => {
   })
 })
 
+/**
+ * Tracks whether the size has been updated.
+ * Prevents redundant updates when resizing elements.
+ */
 const isSizeUpdated = ref(false)
 
+/**
+ * Controls whether the next size update should be skipped.
+ * Used to avoid unnecessary updates on initialization.
+ */
 const skipSizeUpdate = ref(true)
 
 watch(isVisible, (open) => {
@@ -341,21 +329,53 @@ watch(isVisible, (open) => {
   skipSizeUpdate.value = true
 })
 
+/**
+ * Updates the size of the text area based on stored dimensions in localStorage.
+ * Retrieves the stored size and applies it to the corresponding text area element.
+ */
+const updateSize = () => {
+  try {
+    const size = localStorage.getItem(STORAGE_KEY)
+    let elem = document.querySelector('.nc-text-area-expanded') as HTMLElement
+
+    if (isRichMode.value) {
+      elem = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap.ProseMirror') as HTMLElement
+    }
+
+    const parsedJSON = JSON.parse(size)
+
+    if (parsedJSON && elem) {
+      elem.style.width = `${parsedJSON.width}px`
+      elem.style.height = `${parsedJSON.height}px`
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+/**
+ * Retrieves the element that should be observed for resizing.
+ * @returns {HTMLElement | null} The resize target element.
+ */
 const getResizeEl = () => {
+  if (!inputWrapperRef.value) return null
+
   if (isRichMode.value) {
-    return inputWrapperRef.value!.querySelector(
+    return inputWrapperRef.value.querySelector(
       '.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap.ProseMirror',
     ) as HTMLElement
   }
 
-  return inputWrapperRef.value!.querySelector('.nc-text-area-expanded') as HTMLElement
+  return inputWrapperRef.value.querySelector('.nc-text-area-expanded') as HTMLElement
 }
 
-useResizeObserver(inputWrapperRef, (entries) => {
-  const entry = entries[0]
+useResizeObserver(inputWrapperRef, () => {
+  /**
+   * Updates the size of the resize element when the modal becomes visible.
+   */
   if (!isSizeUpdated.value) {
     nextTick(() => {
-      until(() => inputWrapperRef.value && !!getResizeEl())
+      until(() => !!getResizeEl())
         .toBeTruthy()
         .then(() => {
           updateSize()
@@ -366,13 +386,17 @@ useResizeObserver(inputWrapperRef, (entries) => {
     return
   }
 
+  /**
+   * When the size is manually updated, this callback is triggered again.
+   * To prevent unnecessary updates at that time, we skip the update.
+   */
   if (skipSizeUpdate.value) {
     skipSizeUpdate.value = false
 
     return
   }
 
-  const resizeEl = inputWrapperRef.value && getResizeEl()
+  const resizeEl = getResizeEl()
 
   if (!resizeEl) return
 

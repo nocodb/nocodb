@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
-import { type NcContext, SyncType } from 'nocodb-sdk';
+import { type NcContext, type NcRequest, SyncType } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import type SyncIntegration from '~/integrations/sync/sync.interface';
 import type AuthIntegration from '~/integrations/auth/auth.interface';
@@ -28,7 +28,7 @@ export class SyncModuleSyncDataProcessor {
     syncConfig: SyncConfig,
     model: Model,
     data: any[],
-    req: any,
+    req: NcRequest,
   ) {
     const toInsert = [];
     const toUpdate = [];

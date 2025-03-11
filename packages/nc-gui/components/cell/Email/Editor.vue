@@ -56,7 +56,10 @@ onBeforeUnmount(() => {
     localState.value &&
     !validateEmail(localState.value)
   ) {
-    !isEditColumn.value && message.error(t('msg.error.invalidEmail'))
+    if (!isEditColumn.value) {
+      message.error(t('msg.error.invalidEmail'))
+    }
+
     localState.value = undefined
     return
   }

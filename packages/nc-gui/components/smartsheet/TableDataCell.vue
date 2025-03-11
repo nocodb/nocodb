@@ -11,7 +11,7 @@ const cellClickHook = createEventHook()
 
 const cellEventHook = createEventHook()
 
-provide(CellClickHookInj, cellEventHook)
+provide(CellClickHookInj, cellClickHook)
 
 provide(CellEventHookInj, cellEventHook)
 

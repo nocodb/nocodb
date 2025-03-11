@@ -27,7 +27,7 @@ const vModel = computed({
   get: () => props.modelValue,
   set: (val) => {
     localState.value = val
-    if (!parseProp(column.value.meta)?.validate || (val && isValidURL(trim(val))) || !val || isForm.value) {
+    if (!parseProp(column.value.meta)?.validate || (val && isValidURL(trim(val))) || !val || isForm.value || isEditColumn.value) {
       emit('update:modelValue', val)
     }
   },
@@ -48,7 +48,7 @@ onBeforeUnmount(() => {
     localState.value &&
     !isValidURL(trim(localState.value))
   ) {
-    message.error(t('msg.error.invalidURL'))
+    !isEditColumn.value && message.error(t('msg.error.invalidURL'))
     localState.value = undefined
     return
   }

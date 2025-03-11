@@ -25,7 +25,7 @@ import type { Column, FormView, Hook, Model, View } from '~/models';
 import { Filter, HookLog, Source } from '~/models';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
-import { isEE } from '~/utils';
+import { isEE, isOnPrem } from '~/utils';
 
 for (const moduleName of [
   'array',
@@ -871,7 +871,24 @@ export async function invokeWebhook(
           : null,
       };
     }
-    if (throwErrorOnFailure) throw e;
+    if (throwErrorOnFailure) {
+      if (e.isAxiosError) {
+        if (
+          e.message.includes('private IP address') ||
+          e.response?.data?.message?.includes('private IP address')
+        ) {
+          throw new Error(
+            `Connection to a private network IP is blocked for security reasons.` +
+              // shoe env var only if it's not EE or it's on-prem
+              (!isEE || isOnPrem
+                ? `If this is intentional, set NC_ALLOW_LOCAL_HOOKS=true to allow local network webhooks.`
+                : ''),
+          );
+        }
+      }
+
+      throw e;
+    }
   } finally {
     if (hookLog) {
       hookLog.execution_time = parseHrtimeToMilliSeconds(

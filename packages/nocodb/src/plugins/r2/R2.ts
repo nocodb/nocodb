@@ -29,6 +29,11 @@ export default class R2 extends GenericS3 implements IStorageAdapterV2 {
     };
   }
 
+  protected patchUploadReturnKey(key: string): string {
+    // R2 by default encodes the key. But we expect the key to be decoded.
+    return decodeURI(key);
+  }
+
   public async init(): Promise<any> {
     const s3Options: S3ClientConfigType = {
       region: 'auto',

@@ -48,7 +48,10 @@ onBeforeUnmount(() => {
     localState.value &&
     !isValidURL(trim(localState.value))
   ) {
-    !isEditColumn.value && message.error(t('msg.error.invalidURL'))
+    if (!isEditColumn.value) {
+      message.error(t('msg.error.invalidURL'))
+    }
+
     localState.value = undefined
     return
   }

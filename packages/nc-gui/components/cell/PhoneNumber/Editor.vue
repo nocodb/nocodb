@@ -42,7 +42,10 @@ const focus: VNodeRef = (el) => {
 
 onBeforeUnmount(() => {
   if (parseProp(column.value.meta)?.validate && localState.value && !isMobilePhone(localState.value)) {
-    !isEditColumn.value && message.error(t('msg.invalidPhoneNumber'))
+    if (!isEditColumn.value) {
+      message.error(t('msg.invalidPhoneNumber'))
+    }
+
     localState.value = undefined
     return
   }

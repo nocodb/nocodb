@@ -53,7 +53,10 @@ watch(
       (parseProp(column.value.meta)?.validate && !editEnabled.value && localState.value && !isMobilePhone(localState.value)) ||
       isEditColumn.value
     ) {
-      !isEditColumn.value && message.error(t('msg.invalidPhoneNumber'))
+      if (!isEditColumn.value) {
+        message.error(t('msg.invalidPhoneNumber'))
+      }
+
       localState.value = undefined
       return
     }

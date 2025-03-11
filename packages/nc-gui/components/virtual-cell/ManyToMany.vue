@@ -235,7 +235,7 @@ onUnmounted(() => {
         >
           <GeneralIcon icon="plus" class="text-sm nc-plus" />
         </NcButton>
-        <NcTooltip :title="$t('tooltip.expandShiftSpace')" :disabled="isExpandedForm">
+        <NcTooltip :title="$t('tooltip.expandShiftSpace')" :disabled="isExpandedForm" class="flex">
           <NcButton
             size="xsmall"
             type="secondary"

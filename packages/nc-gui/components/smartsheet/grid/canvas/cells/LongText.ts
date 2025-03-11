@@ -132,7 +132,7 @@ export const LongTextCellRenderer: CellRenderer = {
       return AILongTextCellRenderer.handleKeyDown?.(ctx)
     }
 
-    if (e.key === ' ' && e.shiftKey) {
+    if (isExpandCellKey(e)) {
       makeCellEditable(row.rowMeta!.rowIndex!, column)
       return true
     }

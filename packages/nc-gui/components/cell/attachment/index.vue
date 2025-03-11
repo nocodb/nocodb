@@ -260,7 +260,7 @@ defineExpose({
 const onCellEvent = (event?: Event) => {
   if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event) || !visibleItems.value.length) return
 
-  if (event.key === ' ' && event.shiftKey) {
+  if (isExpandCellKey(event)) {
     if (modalVisible.value) {
       modalRendered.value = false
       modalVisible.value = false

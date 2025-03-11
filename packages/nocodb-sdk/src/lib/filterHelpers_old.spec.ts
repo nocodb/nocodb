@@ -157,7 +157,6 @@ export const testExtractFilterFromXwhere = (
               uidt: UITypes.DateTime,
             },
           };
-
           const result = extractFilterFromXwhere(query, columnAlias);
           expect(result.filters).toBeDefined();
           expect(result.filters.length).toBe(1);
@@ -199,6 +198,42 @@ export const testExtractFilterFromXwhere = (
           expect(() =>
             extractFilterFromXwhere(query, columnAlias, true)
           ).toThrow();
+        });
+        it.only('will parse datetime is null', async () => {
+          // datetime need to have suboperator :|
+          const query = '(Date,is,null)';
+          const columnAlias: Record<string, ColumnType> = {
+            Date: {
+              id: 'field1',
+              column_name: 'col1',
+              title: 'Date',
+              uidt: UITypes.DateTime,
+            },
+          };
+
+          const result = extractFilterFromXwhere(query, columnAlias);
+          expect(result.filters).toBeDefined();
+          expect(result.filters.length).toBe(1);
+          expect(result.filters[0].comparison_op).toBe('is');
+          expect(result.filters[0].value).toBe(null);
+        });
+        it('will parse datetime blank', async () => {
+          // datetime need to have suboperator :|
+          const query = '(Date,blank)';
+          const columnAlias: Record<string, ColumnType> = {
+            Date: {
+              id: 'field1',
+              column_name: 'col1',
+              title: 'Date',
+              uidt: UITypes.DateTime,
+            },
+          };
+
+          const result = extractFilterFromXwhere(query, columnAlias);
+          expect(result.filters).toBeDefined();
+          expect(result.filters.length).toBe(1);
+          expect(result.filters[0].comparison_op).toBe('blank');
+          expect(result.filters[0].value).toBeUndefined();
         });
       });
 

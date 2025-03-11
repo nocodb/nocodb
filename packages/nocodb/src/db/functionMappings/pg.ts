@@ -238,11 +238,10 @@ const pg = {
       ? (await fn(pt.arguments[2])).builder
       : null;
     return {
-      builder: knex.raw(
-        `SUBSTR(${str}::TEXT, ${positionFrom}${
-          numberOfCharacters ? ', ' + numberOfCharacters : ''
-        })${colAlias}`,
-      ),
+      builder: knex.raw(`SUBSTR(?::TEXT, ?)${colAlias}`, [
+        str,
+        `${positionFrom}${numberOfCharacters ? ', ' + numberOfCharacters : ''}`,
+      ]),
     };
   },
   MOD: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
@@ -258,7 +257,8 @@ const pg = {
     const pattern = (await fn(pt.arguments[1])).builder;
     return {
       builder: knex.raw(
-        `CASE WHEN REGEXP_MATCH(${source}::TEXT, ${pattern}::TEXT) IS NULL THEN 0 ELSE 1 END ${colAlias}`,
+        `CASE WHEN REGEXP_MATCH(?::TEXT, ?::TEXT) IS NULL THEN 0 ELSE 1 END ${colAlias}`,
+        [source, pattern],
       ),
     };
   },

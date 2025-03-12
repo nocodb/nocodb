@@ -164,7 +164,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             isValidValue(c?.cdf) &&
             !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(c.cdf)
           ) {
-            const defaultValue = typeof c.cdf === 'string' ? c.cdf.replace(/^'|'$/g, '') : c.cdf
+            const defaultValue = typeof c.cdf === 'string' ? c.cdf.replace(/^['"]|['"]$/g, '') : c.cdf
             if ([UITypes.Number, UITypes.Duration, UITypes.Percent, UITypes.Currency, UITypes.Decimal].includes(c.uidt)) {
               formState.value[c.title] = Number(defaultValue) || null
               preFilledDefaultValueformState.value[c.title] = Number(defaultValue) || null

@@ -35,9 +35,12 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 const isGrid = inject(IsGridInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const clientMousePosition = inject(ClientMousePositionInj)
-const canvasSelectCell = inject(CanvasSelectCellInj)
+const canvasSelectCell = inject(CanvasSelectCellInj, null)
+
+const cellEventHook = inject(CellEventHookInj, null)
 
 const { isMobileMode } = useGlobal()
 
@@ -254,9 +257,28 @@ defineExpose({
   updateAttachmentTitle,
 })
 
+const onCellEvent = (event?: Event) => {
+  if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event) || !visibleItems.value.length) return
+
+  if (isExpandCellKey(event)) {
+    if (modalVisible.value) {
+      modalRendered.value = false
+      modalVisible.value = false
+    } else {
+      onExpand()
+    }
+
+    return true
+  }
+}
+
 onMounted(() => {
+  cellEventHook?.on(onCellEvent)
+
   if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value) {
     forcedNextTick(() => {
+      if (onCellEvent(canvasCellEventData.event)) return
+
       const clickableSelectors = ['.view-attachments', '.add-files', '.nc-attachment', '.empty-add-files']
         .map((selector) => `.nc-canvas-table-editable-cell-wrapper ${selector}`)
         .join(', ')
@@ -273,6 +295,10 @@ onMounted(() => {
       }
     })
   }
+})
+
+onUnmounted(() => {
+  cellEventHook?.off(onCellEvent)
 })
 </script>
 
@@ -443,7 +469,9 @@ onMounted(() => {
         }"
         :style="isGrid && (!rowHeight || rowHeight === 1) ? { top: '50%', transform: 'translateY(-50%)' } : undefined"
       >
-        <template #title>{{ $t('activity.viewAttachment') }}</template>
+        <template #title>
+          {{ isExpandedForm ? $t('activity.viewAttachment') : `${$t('activity.viewAttachment')} '${$t('tooltip.shiftSpace')}'` }}
+        </template>
         <NcButton
           type="secondary"
           size="xsmall"

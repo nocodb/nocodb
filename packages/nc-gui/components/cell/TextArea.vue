@@ -38,12 +38,15 @@ const readOnlyInj = inject(ReadonlyInj, ref(false))
 
 const isUnderFormula = inject(IsUnderFormulaInj, ref(false))
 
+const cellEventHook = inject(CellEventHookInj, null)
+
 const readOnly = computed(() => readOnlyInj.value || column.value.readonly)
 
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const clientMousePosition = inject(ClientMousePositionInj)
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
-const canvasSelectCell = inject(CanvasSelectCellInj)
+const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
 const { showNull, user } = useGlobal()
 
@@ -296,10 +299,28 @@ watch(textAreaRef, (el) => {
   }
 })
 
+const onCellEvent = (event?: Event) => {
+  if (!(event instanceof KeyboardEvent) || !event.target) return
+
+  if (isExpandCellKey(event)) {
+    if (isVisible.value && !isActiveInputElementExist(event)) {
+      handleClose()
+    } else {
+      onExpand()
+    }
+
+    return true
+  }
+}
+
 onMounted(() => {
+  cellEventHook?.on(onCellEvent)
+
   if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value) return
   const position = { clientX: clientMousePosition.clientX, clientY: clientMousePosition.clientY + 2 }
   forcedNextTick(() => {
+    if (onCellEvent(canvasCellEventData.event)) return
+
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-expand', position)) {
       onExpand()
     } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-generate', position)) {
@@ -308,6 +329,10 @@ onMounted(() => {
       onExpand()
     }
   })
+})
+
+onUnmounted(() => {
+  cellEventHook?.off(onCellEvent)
 })
 
 /**
@@ -646,7 +671,7 @@ useResizeObserver(inputWrapperRef, () => {
           </NcButton>
         </NcTooltip>
         <NcTooltip v-if="!isVisible && !isForm" placement="bottom" class="nc-action-icon">
-          <template #title>{{ $t('title.expand') }}</template>
+          <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
           <NcButton
             type="secondary"
             size="xsmall"

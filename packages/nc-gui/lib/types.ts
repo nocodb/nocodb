@@ -573,6 +573,8 @@ type CanvasEditEnabledType = {
   fixed: boolean
 } | null
 
+type CanvasCellEventDataInjType = ExtractInjectedReactive<typeof CanvasCellEventDataInj>
+
 export type {
   User,
   ProjectMetaInfo,
@@ -620,4 +622,5 @@ export type {
   CanvasEditEnabledType,
   SetCursorType,
   CursorType,
+  CanvasCellEventDataInjType,
 }

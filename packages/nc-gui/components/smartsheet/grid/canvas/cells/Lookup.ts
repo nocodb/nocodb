@@ -272,7 +272,7 @@ export const LookupCellRenderer: CellRenderer = {
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' || isExpandCellKey(e)) {
       makeCellEditable(row, column)
       return true
     }

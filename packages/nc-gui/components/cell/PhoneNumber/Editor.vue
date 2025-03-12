@@ -26,7 +26,7 @@ const vModel = computed({
   get: () => props.modelValue,
   set: (val) => {
     localState.value = val
-    if (!parseProp(column.value.meta)?.validate || (val && isMobilePhone(val)) || !val || isForm.value) {
+    if (!parseProp(column.value.meta)?.validate || (val && isMobilePhone(val)) || !val || isForm.value || isEditColumn.value) {
       emit('update:modelValue', val)
     }
   },
@@ -42,7 +42,10 @@ const focus: VNodeRef = (el) => {
 
 onBeforeUnmount(() => {
   if (parseProp(column.value.meta)?.validate && localState.value && !isMobilePhone(localState.value)) {
-    message.error(t('msg.invalidPhoneNumber'))
+    if (!isEditColumn.value) {
+      message.error(t('msg.invalidPhoneNumber'))
+    }
+
     localState.value = undefined
     return
   }

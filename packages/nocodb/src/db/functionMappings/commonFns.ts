@@ -1,7 +1,7 @@
 import { FormulaDataTypes } from 'nocodb-sdk';
-import { concatKnexRaw } from 'src/helpers/dbHelpers';
 import type { Knex } from 'knex';
-import type { MapFnArgs } from '../mapFunctionName';
+import type { MapFnArgs } from '~/db/mapFunctionName';
+import { concatKnexRaw } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 
 async function treatArgAsConditionalExp(

@@ -6,7 +6,7 @@ on:
       - develop
     paths:
       - 'packages/nc-mail-assets/**'
-
+      - '.github/workflows/mail-assets-publish.yml'
 jobs:
   upload-to-s3:
     runs-on: ubuntu-latest

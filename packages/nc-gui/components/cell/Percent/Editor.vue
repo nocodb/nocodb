@@ -86,7 +86,7 @@ onMounted(() => {
 
 <template>
   <CellPercentProgressBar
-    v-if="parseProp(col!.meta).is_progress && (isForm || isExpandedFormOpen)"
+    v-if="parseProp(col!.meta).is_progress && (isForm)"
     :style="{
       ...(isForm && { 'min-height': '18px' }),
     }"

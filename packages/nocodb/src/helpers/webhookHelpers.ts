@@ -26,6 +26,7 @@ import { Filter, HookLog, Source } from '~/models';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
 import { isEE } from '~/utils';
+import {validateAndResolveURL} from "~/utils/securityUtils";
 
 for (const moduleName of [
   'array',
@@ -528,6 +529,9 @@ function populateAxiosReq({
   apiMeta.response = {};
   const url = parseBody(apiMeta.path, webhookData);
 
+
+  const finalURL = process.env.NC_ALLOW_LOCAL_HOOKS !== 'true' ? await validateAndResolveURL(url) : url;
+
   const reqPayload = {
     params: apiMeta.parameters
       ? apiMeta.parameters.reduce((paramsObj, param) => {
@@ -537,7 +541,7 @@ function populateAxiosReq({
           return paramsObj;
         }, {})
       : {},
-    url: url,
+    url: finalURL,
     method: apiMeta.method,
     data: apiMeta.body,
     headers: apiMeta.headers
@@ -551,10 +555,10 @@ function populateAxiosReq({
     withCredentials: true,
     ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true'
       ? {
-          httpAgent: useAgent(url, {
+          httpAgent: useAgent(finalURL, {
             stopPortScanningByUrlRedirection: true,
           }),
-          httpsAgent: useAgent(url, {
+          httpsAgent: useAgent(finalURL, {
             stopPortScanningByUrlRedirection: true,
           }),
         }

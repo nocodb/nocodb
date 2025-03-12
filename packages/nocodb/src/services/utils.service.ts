@@ -30,6 +30,7 @@ import {
 import { DriverClient } from '~/utils/nc-config';
 import NocoCache from '~/cache/NocoCache';
 import { getCircularReplacer } from '~/utils';
+import { validateAndResolveURL } from '~/utils/securityUtils';
 
 const versionCache = {
   releaseVersion: null,
@@ -133,6 +134,7 @@ export class UtilsService {
     };
   }) {
     const { apiMeta } = param.body;
+    const finalURL = await validateAndResolveURL(apiMeta.url);
 
     if (apiMeta?.body) {
       try {
@@ -160,7 +162,7 @@ export class UtilsService {
             return paramsObj;
           }, {})
         : {},
-      url: apiMeta.url,
+      url: finalURL,
       method: apiMeta.method || 'GET',
       data: apiMeta.body || {},
       headers: apiMeta.headers

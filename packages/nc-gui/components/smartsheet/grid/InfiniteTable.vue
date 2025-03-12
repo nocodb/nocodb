@@ -863,7 +863,7 @@ const {
 
       const isRichModalOpen = isExpandedCellInputExist()
 
-      if (isCellActive.value && activeCell.row !== null && !isRichModalOpen) {
+      if (!editEnabled.value && isCellActive.value && activeCell.row !== null && !isRichModalOpen) {
         e.preventDefault()
         const row = cachedRows.value.get(activeCell.row)
 

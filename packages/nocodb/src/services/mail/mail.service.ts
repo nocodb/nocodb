@@ -24,7 +24,7 @@ export class MailService {
     try {
       return await NcPluginMgrv2.emailAdapter();
     } catch (e) {
-      this.logger.error('Plugin not configured / active');
+      this.logger.error('Email Plugin not configured / active');
       return null;
     }
   }
@@ -107,7 +107,7 @@ export class MailService {
   async sendMail(params: MailParams) {
     const mailerAdapter = await this.getAdapter();
     if (!mailerAdapter) {
-      this.logger.error('Plugin not configured / active');
+      this.logger.error('Email Plugin not configured / active');
       return false;
     }
 

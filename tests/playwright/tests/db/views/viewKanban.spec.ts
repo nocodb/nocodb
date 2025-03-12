@@ -301,6 +301,7 @@ test.describe('View', () => {
     });
     // todo: Check why kanban doesnt reload the rows data
     await dashboard.expandedForm.save({ waitForRowsData: false });
+    await toolbar.fields.toggle({ title: 'Language1' });
     // kludge: reload the page
     await dashboard.rootPage.reload();
 

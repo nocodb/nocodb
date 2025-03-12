@@ -6,6 +6,7 @@ interface Prop {
   modelValue?: boolean
   cellValue: any
   column: any
+  tableData: Array<any>
   items: number
 }
 
@@ -80,6 +81,17 @@ watch(
   },
   { immediate: true },
 )
+const isURL = (value: any): boolean => {
+  if (typeof value !== "string") return false;
+  if (!value.startsWith("http://") && !value.startsWith("https://")) return false;
+  
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 const unlinkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
@@ -405,6 +417,30 @@ const handleKeyDown = (e: KeyboardEvent) => {
                 @keydown.enter.prevent.stop="() => linkOrUnLink(refRow, id)"
               />
             </template>
+            <template>
+              <div>
+                <table v-if="tableData && tableData.length">
+                  <thead>
+                    <tr>
+                      <th v-for="(key, index) in Object.keys(tableData[0] || {})" :key="index">
+                        {{ key }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(row, rowIndex) in tableData" :key="row.id || rowIndex">
+                      <td v-for="(value, key) in row" :key="key">
+                        <a v-if="isURL(value)" :href="value" target="_blank" rel="noopener noreferrer">
+                          {{ value }}
+                        </a>
+                        <span v-else>{{ value }}</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p v-else>No data available</p>
+              </div>
+            </template>
           </div>
         </div>
         <div v-else class="h-full flex flex-col gap-2 my-auto items-center justify-center text-gray-500 text-center">
@@ -536,5 +572,10 @@ const handleKeyDown = (e: KeyboardEvent) => {
       @apply text-gray-500;
     }
   }
+  a {
+  color: rgb(54, 54, 224);
+  text-decoration: underline;
+  cursor: pointer;
+}
 }
 </style>

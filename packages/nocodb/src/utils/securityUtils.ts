@@ -25,7 +25,7 @@ function isPrivateIP(ip: string): boolean {
 }
 
 // Function to resolve a hostname to its final IP addresses
-async function resolveFinalIPs(hostname: string): Promise<string[]> {
+export async function resolveFinalIPs(hostname: string): Promise<string[]> {
   if (isIPAddress(hostname)) return [hostname];
 
   try {
@@ -37,7 +37,7 @@ async function resolveFinalIPs(hostname: string): Promise<string[]> {
 }
 
 // Function to check if a URL resolves to a safe IP
-async function isSafeURL(url: string): Promise<boolean> {
+export async function isSafeURL(url: string): Promise<boolean> {
   const parsedURL = new URL(url);
   const ipAddresses = await resolveFinalIPs(parsedURL.hostname);
 
@@ -57,16 +57,11 @@ async function performHeadRequest(
     try {
       const response = await axios.head(currentURL, { maxRedirects: 0 });
 
-      if (response.headers.location) {
-        const newURL = new URL(
-          response.headers.location,
-          currentURL,
-        ).toString();
-
-        if (!(await isSafeURL(newURL))) {
-          // 'Redirect to forbidden IP blocked'
-          NcError.forbiddenIpRedirectBlocked(url);
-        }
+      if (response?.headers?.location) {
+        const newURL = new URL(response.headers.location, currentURL)
+          .toString()
+          // remove unnecessary slash at the end of the URL
+          .replace(/\/$/, '');
 
         currentURL = newURL;
         redirectCount++;

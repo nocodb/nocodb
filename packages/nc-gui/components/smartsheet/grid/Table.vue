@@ -608,7 +608,7 @@ const {
     if (e.key === ' ' && !e.shiftKey) {
       const isRichModalOpen = isExpandedCellInputExist()
 
-      if (isCellActive.value && activeCell.row !== null && !isRichModalOpen) {
+      if (!editEnabled.value && isCellActive.value && activeCell.row !== null && !isRichModalOpen) {
         e.preventDefault()
         const row = dataRef.value[activeCell.row]
 

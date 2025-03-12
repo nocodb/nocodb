@@ -2930,7 +2930,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }),
       !this.isSqlite,
     );
-    console.log(finalQb.toQuery());
 
     const children = await this.execAndParse(
       finalQb,

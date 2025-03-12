@@ -53,10 +53,12 @@ export async function isSafeURL(url: string): Promise<boolean> {
   return ipAddresses.every((ip) => !isPrivateIP(ip));
 }
 
+const axiosInstance = axios.create({ timeout: 30000 });
+
 // Create an Axios instance with a global timeout to prevent hanging on non-responsive URLs
-const axiosInstance = axios.create({
-  timeout: 30000, // 30-second timeout for all requests
-});
+// const axiosInstance = axios.create({
+//   timeout: 30000, // 30-second timeout for all requests
+// });
 
 // Add a response interceptor to handle errors, especially timeouts
 axiosInstance.interceptors.response.use(
@@ -83,7 +85,7 @@ async function performHeadRequest(
   while (redirectCount < maxRedirects) {
     try {
       // Send a HEAD request to check for redirects without fetching the body
-      const response = await axios.head(currentURL, {
+      const response = await axiosInstance.head(currentURL, {
         maxRedirects: 0, // Disable automatic redirect following
         httpAgent: useAgent(currentURL, {
           stopPortScanningByUrlRedirection: true, // Prevent port scanning via redirects
@@ -130,22 +132,8 @@ export async function validateAndResolveURL(url: string): Promise<string> {
   const parsedURL = new URL(url); // Parse the input URL
   const ipAddresses = await resolveFinalIPs(parsedURL.hostname); // Resolve hostname to IPs
 
-  // Early check for private IPs to fail fast on non-responsive local addresses
   if (ipAddresses.some(isPrivateIP)) {
-    try {
-      // Perform a quick HEAD request with a shorter timeout for private IPs
-      await axiosInstance.head(url, {
-        httpAgent: useAgent(url, {
-          stopPortScanningByUrlRedirection: true, // Secure the request
-        }),
-        httpsAgent: useAgent(url, {
-          stopPortScanningByUrlRedirection: true, // Secure HTTPS requests
-        }),
-      });
-    } catch (error) {
-      // Throw an error if the private IP is non-responsive or invalid
-      NcError.forbiddenIpRedirectBlocked(url);
-    }
+    throw NcError.forbiddenIpRedirectBlocked(url);
   }
 
   // Resolve redirects to get the final URL

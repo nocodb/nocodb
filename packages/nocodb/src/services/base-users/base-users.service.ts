@@ -6,6 +6,7 @@ import {
   OrgUserRoles,
   PluginCategory,
   ProjectRoles,
+  WorkspaceRolesToProjectRoles,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
@@ -24,7 +25,7 @@ import { randomTokenString } from '~/helpers/stringHelpers';
 import { Base, BaseUser, PresignedUrl, User } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
-import { getProjectRolePower } from '~/utils/roleHelper';
+import { getProjectRole, getProjectRolePower } from '~/utils/roleHelper';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 
@@ -139,14 +140,17 @@ export class BaseUsersService {
             param.baseUser.roles,
             ncMeta,
           );
-
           await this.mailService.sendMail({
             mailEvent: MailEvent.BASE_ROLE_UPDATE,
             payload: {
               req: param.req,
               user: user,
               base: base,
-              role: (param.baseUser.roles || 'editor') as ProjectRoles,
+              oldRole: (getProjectRole(baseUser) ??
+                WorkspaceRolesToProjectRoles[
+                  (baseUser as any)?.workspace_roles
+                ]) as ProjectRoles,
+              newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
             },
           });
         } else {
@@ -179,7 +183,11 @@ export class BaseUsersService {
                 req: param.req,
                 user: user,
                 base: base,
-                role: (param.baseUser.roles || 'editor') as ProjectRoles,
+                oldRole: (getProjectRole(baseUser) ??
+                  WorkspaceRolesToProjectRoles[
+                    (baseUser as any)?.workspace_roles
+                  ]) as ProjectRoles,
+                newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
               },
             });
           }
@@ -386,7 +394,11 @@ export class BaseUsersService {
         req: param.req,
         user: user,
         base,
-        role: (param.baseUser.roles || 'editor') as ProjectRoles,
+        oldRole: (getProjectRole(targetUser) ??
+          WorkspaceRolesToProjectRoles[
+            (targetUser as any)?.workspace_roles
+          ]) as ProjectRoles,
+        newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
       },
     });
 

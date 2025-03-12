@@ -9,6 +9,7 @@ import { MailEvent } from '~/interface/Mail';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import config from '~/app.config';
+import { extractDisplayNameFromEmail } from '~/utils';
 
 type TemplateComponent<K extends keyof typeof MailTemplates> =
   (typeof MailTemplates)[K];
@@ -111,9 +112,10 @@ export class MailService {
           subject: `You have been invited to ${base.title}`,
           html: await this.renderMail('BaseInvite', {
             baseTitle: base.title,
-            name:
-              invitee.display_name ??
-              invitee.email.split('@')[0].toLocaleUpperCase(),
+            name: extractDisplayNameFromEmail(
+              invitee.email,
+              invitee.display_name,
+            ),
             email: user.email,
             link: this.buildUrl(req, {
               workspaceId: base.fk_workspace_id,
@@ -133,8 +135,7 @@ export class MailService {
           // @ts-ignore
           html: await this.renderMail('BaseRoleUpdate', {
             baseTitle: base.title,
-            name:
-              user.display_name ?? user.email.split('@')[0].toLocaleUpperCase(),
+            name: extractDisplayNameFromEmail(user.email, user.display_name),
             email: user.email,
             role: RoleLabels[role],
             link: this.buildUrl(req, {
@@ -193,8 +194,7 @@ export class MailService {
           to: user.email,
           subject: `You have been invited to join NocoDB`,
           html: await this.renderMail('OrganizationInvite', {
-            name:
-              user.display_name ?? user.email.split('@')[0].toLocaleUpperCase(),
+            name: extractDisplayNameFromEmail(user.email, user.display_name),
             email: user.email,
             link: this.buildUrl(req, {
               token,
@@ -209,8 +209,7 @@ export class MailService {
           to: user.email,
           subject: `Role updated in NocoDB`,
           html: await this.renderMail('OrganizationRoleUpdate', {
-            name:
-              user.display_name ?? user.email.split('@')[0].toLocaleUpperCase(),
+            name: extractDisplayNameFromEmail(user.email, user.display_name),
             email: user.email,
             role: RoleLabels[role],
             link: this.buildUrl(req, {}),

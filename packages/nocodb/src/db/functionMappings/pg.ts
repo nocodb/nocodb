@@ -14,14 +14,14 @@ const pg = {
   POWER: 'pow',
   SQRT: 'sqrt',
   SEARCH: async (args: MapFnArgs) => {
+    const needle = (await args.fn(args.pt.arguments[1])).builder;
+    const source = (await args.fn(args.pt.arguments[0])).builder;
+
     return {
-      builder: args.knex.raw(
-        `POSITION(${args.knex.raw(
-          (await args.fn(args.pt.arguments[1])).builder.toQuery(),
-        )} in ${args.knex.raw(
-          (await args.fn(args.pt.arguments[0])).builder.toQuery(),
-        )})${args.colAlias}`,
-      ),
+      builder: args.knex.raw(`POSITION(? in ?)${args.colAlias}`, [
+        needle,
+        source,
+      ]),
     };
   },
   INT(args: MapFnArgs) {
@@ -36,36 +36,42 @@ const pg = {
   },
   MID: 'SUBSTR',
   FLOAT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+
     return {
       builder: knex
-        .raw(
-          `CAST(${
-            (await fn(pt.arguments[0])).builder
-          } as DOUBLE PRECISION)${colAlias}`,
-        )
+        .raw(`CAST(? as DOUBLE PRECISION)${colAlias}`, [source])
         .wrap('(', ')'),
     };
   },
   ROUND: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    const precision = pt?.arguments[1]
+      ? (await fn(pt.arguments[1])).builder
+      : 0;
+
     return {
-      builder: knex.raw(
-        `ROUND((${(await fn(pt.arguments[0])).builder})::numeric, ${
-          pt?.arguments[1] ? (await fn(pt.arguments[1])).builder : 0
-        }) ${colAlias}`,
-      ),
+      builder: knex.raw(`ROUND((?)::numeric, ?) ${colAlias}`, [
+        source,
+        precision,
+      ]),
     };
   },
   DATEADD: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    const typeCast =
+      pt.arguments[0].dataType !== FormulaDataTypes.DATE ? '::DATE' : '';
+    const modifier = (await fn(pt.arguments[1])).builder;
+    const scale = String((await fn(pt.arguments[2])).builder).replace(
+      /["']/g,
+      '',
+    );
     return {
       builder: knex
         .raw(
-          `(${(await fn(pt.arguments[0])).builder})${
-            pt.arguments[0].dataType !== FormulaDataTypes.DATE ? '::DATE' : ''
-          } + (${(await fn(pt.arguments[1])).builder} ||
-      '${String((await fn(pt.arguments[2])).builder).replace(
-        /["']/g,
-        '',
-      )}')::interval${colAlias}`,
+          `(?)${typeCast} + (? ||
+      '?')::interval${colAlias}`,
+          [source, modifier, knex.raw(scale)],
         )
         .wrap('(', ')'),
     };
@@ -196,38 +202,51 @@ const pg = {
     };
   },
   AND: async (args: MapFnArgs) => {
+    const predicates = (args.pt.arguments.map((_k) => '?') as string[]).join(
+      ' AND ',
+    );
+
+    const parsedArguments = await Promise.all(
+      args.pt.arguments.map(async (ar) => {
+        const argsStr = (await args.fn(ar, '', 'AND')).builder;
+        return { builder: argsStr };
+      }),
+    );
+
+    const clause = args.knex
+      .raw(
+        predicates,
+        parsedArguments.map((a) => a.builder),
+      )
+      .wrap('(', ')');
     return {
       builder: args.knex.raw(
-        `CASE WHEN ${args.knex
-          .raw(
-            `${(
-              await Promise.all(
-                args.pt.arguments.map(async (ar) =>
-                  (await args.fn(ar, '', 'AND')).builder.toQuery(),
-                ),
-              )
-            ).join(' AND ')}`,
-          )
-          .wrap('(', ')')
-          .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`,
+        `CASE WHEN ? THEN TRUE ELSE FALSE END ${args.colAlias}`,
+        [clause],
       ),
     };
   },
   OR: async (args: MapFnArgs) => {
+    const predicates = (args.pt.arguments.map((_k) => '?') as string[]).join(
+      ' OR ',
+    );
+
+    const parsedArguments = await Promise.all(
+      args.pt.arguments.map(async (ar) => {
+        const argsStr = (await args.fn(ar, '', 'AND')).builder;
+        return { builder: argsStr };
+      }),
+    );
+    const clause = args.knex
+      .raw(
+        predicates,
+        parsedArguments.map((a) => a.builder),
+      )
+      .wrap('(', ')');
     return {
       builder: args.knex.raw(
-        `CASE WHEN ${args.knex
-          .raw(
-            `${(
-              await Promise.all(
-                args.pt.arguments.map(async (ar) =>
-                  (await args.fn(ar, '', 'OR')).builder.toQuery(),
-                ),
-              )
-            ).join(' OR ')}`,
-          )
-          .wrap('(', ')')
-          .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`,
+        `CASE WHEN ? THEN TRUE ELSE FALSE END ${args.colAlias}`,
+        [clause],
       ),
     };
   },
@@ -295,14 +314,23 @@ const pg = {
     };
   },
   XOR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    const args = await Promise.all(
+    const predicates = (pt.arguments.map((_k) => '?') as string[]).join(' # ');
+    const parsedArguments = await Promise.all(
       pt.arguments.map(async (arg) => {
-        const query = (await fn(arg)).builder.toString();
-        return `CASE WHEN ${query}  IS NOT NULL AND ${query}::boolean = true THEN 1 ELSE 0 END`;
+        const query = (await fn(arg)).builder;
+        return {
+          builder: knex.raw(
+            `CASE WHEN :query IS NOT NULL AND :query::boolean = true THEN 1 ELSE 0 END`,
+            { query },
+          ),
+        };
       }),
     );
     return {
-      builder: knex.raw(`${args.join(' # ')} ${colAlias}`),
+      builder: knex.raw(
+        `${predicates} ${colAlias}`,
+        parsedArguments.map((a) => a.builder),
+      ),
     };
   },
   COUNT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
@@ -334,15 +362,17 @@ const pg = {
     };
   },
   VALUE: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    const value = (await fn(pt.arguments[0])).builder.toString();
-
+    const value = (await fn(pt.arguments[0])).builder;
     return {
       builder: knex.raw(
         `CASE
-  WHEN ${value} IS NULL OR REGEXP_REPLACE(${value}::TEXT, '[^\\d.]+', '', 'g') IN ('.', '') OR LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^.]+', '', 'g')) > 1 THEN NULL
-  WHEN LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^%]', '','g')) > 0 THEN POW(-1, LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^-]','', 'g'))) * (REGEXP_REPLACE(${value}::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC / 100
-  ELSE POW(-1, LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^-]', '', 'g'))) * (REGEXP_REPLACE(${value}::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC
+  WHEN :value IS NULL OR REGEXP_REPLACE(:value::TEXT, '[^\\d.]+', '', 'g') IN ('.', '') OR LENGTH(REGEXP_REPLACE(:value::TEXT, '[^.]+', '', 'g')) > 1 THEN NULL
+  WHEN LENGTH(REGEXP_REPLACE(:value::TEXT, '[^%]', '','g')) > 0 THEN POW(-1, LENGTH(REGEXP_REPLACE(:value::TEXT, '[^-]','', 'g'))) * (REGEXP_REPLACE(:value::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC / 100
+  ELSE POW(-1, LENGTH(REGEXP_REPLACE(:value::TEXT, '[^-]', '', 'g'))) * (REGEXP_REPLACE(:value::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC
 END ${colAlias}`,
+        {
+          value,
+        },
       ),
     };
   },
@@ -375,33 +405,24 @@ END ${colAlias}`,
     };
   },
   STRING: async (args: MapFnArgs) => {
+    const source = (await args.fn(args.pt.arguments[0])).builder;
     return {
-      builder: args.knex.raw(
-        `(${(await args.fn(args.pt.arguments[0])).builder})::text ${
-          args.colAlias
-        }`,
-      ),
+      builder: args.knex.raw(`(?)::text ${args.colAlias}`, [source]),
     };
   },
   BOOLEAN: async (args: MapFnArgs) => {
+    const source = (await args.fn(args.pt.arguments[0])).builder;
     return {
-      builder: args.knex.raw(
-        `(${(await args.fn(args.pt.arguments[0])).builder})::boolean${
-          args.colAlias
-        }`,
-      ),
+      builder: args.knex.raw(`(?)::boolean${args.colAlias}`, [source]),
     };
   },
   JSON_EXTRACT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const source = (await fn(pt.arguments[0])).builder;
+    const needle = (await fn(pt.arguments[1])).builder;
     return {
       builder: knex.raw(
-        `CASE WHEN (${
-          (await fn(pt.arguments[0])).builder
-        })::jsonb IS NOT NULL THEN jsonb_path_query_first((${
-          (await fn(pt.arguments[0])).builder
-        })::jsonb, CONCAT('$', ${
-          (await fn(pt.arguments[1])).builder
-        })::jsonpath) ELSE NULL END${colAlias}`,
+        `CASE WHEN (?)::jsonb IS NOT NULL THEN jsonb_path_query_first((?)::jsonb, CONCAT('$', ?)::jsonpath) ELSE NULL END${colAlias}`,
+        [source, source, needle],
       ),
     };
   },

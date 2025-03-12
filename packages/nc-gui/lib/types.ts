@@ -467,6 +467,7 @@ interface CellRenderer {
     imageLoader: ImageWindowLoader
     cellRenderStore: CellRenderStore
     isPublic?: boolean
+    openDetachedExpandedForm: (props: UseExpandedFormDetachedProps) => void
   }) => Promise<boolean>
   handleKeyDown?: (options: {
     e: KeyboardEvent

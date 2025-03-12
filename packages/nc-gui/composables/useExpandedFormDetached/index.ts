@@ -1,6 +1,6 @@
 import type { TableType, ViewType } from 'nocodb-sdk'
 
-interface UseExpandedFormDetachedProps {
+export interface UseExpandedFormDetachedProps {
   'isOpen'?: boolean
   'row': Row
   'state'?: Record<string, any> | null

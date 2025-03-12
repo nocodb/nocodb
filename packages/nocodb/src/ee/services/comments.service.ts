@@ -4,11 +4,15 @@ import type { UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import Comment from '~/models/Comment';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MailService } from '~/services/mail/mail.service';
 
 @Injectable()
 export class CommentsService extends CommentsServiceCE {
-  constructor(protected readonly appHooksService: AppHooksService) {
-    super(appHooksService);
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    protected readonly mailService: MailService,
+  ) {
+    super(appHooksService, mailService);
   }
 
   async commentResolve(

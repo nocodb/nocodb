@@ -13,12 +13,15 @@ import { extractMentions } from '~/utils/richTextHelper';
 import { DatasService } from '~/services/datas.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { Base, BaseUser, Column, Workspace } from '~/models';
+import { MailService } from '~/services/mail/mail.service';
+import { MailEvent } from '~/interface/Mail';
 
 @Injectable()
 export class NotificationsService extends NotificationsServiceCE {
   constructor(
     protected readonly appHooks: AppHooksService,
     protected readonly datasService: DatasService,
+    protected readonly mailService: MailService,
   ) {
     super(appHooks);
   }
@@ -35,9 +38,14 @@ export class NotificationsService extends NotificationsServiceCE {
       this.hookHandler({ event: AppEvents.COMMENT_UPDATE, data }),
     );
 
-    this.appHooks.on(AppEvents.ROW_USER_MENTION, (data) =>
-      this.hookHandler({ event: AppEvents.ROW_USER_MENTION, data }),
-    );
+    this.appHooks.on(AppEvents.ROW_USER_MENTION, (data) => {
+      this.hookHandler({ event: AppEvents.ROW_USER_MENTION, data });
+      // I cant call this in BaseModelSqlV2. So for now, I am keeping it here.
+      this.mailService.sendMail({
+        mailEvent: MailEvent.ROW_USER_MENTION,
+        payload: data,
+      });
+    });
   }
 
   protected async hookHandler({

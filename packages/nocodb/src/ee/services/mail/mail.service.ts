@@ -1,66 +1,24 @@
-import { AppEvents } from 'nocodb-sdk';
-import * as ejs from 'ejs';
 import { Injectable } from '@nestjs/common';
-import { Mention, MentionRow } from './templates';
-import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import type {
-  RowCommentEvent,
-  RowMentionEvent,
-} from '~/services/app-hooks/interfaces';
-import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MailService as MailServiceCE } from 'src/services/mail/mail.service';
+import { RoleLabels } from 'nocodb-sdk';
+import type { MailParams } from '~/interface/Mail';
+import { MailEvent } from '~/interface/Mail';
 import { extractMentions } from '~/utils/richTextHelper';
-import { DatasService } from '~/services/datas.service';
-import { Base, BaseUser, Column, Workspace } from '~/models';
+import { Base, BaseUser, Workspace } from '~/models';
+import { extractDisplayNameFromEmail } from '~/utils';
 
 @Injectable()
-export class MailService implements OnModuleInit, OnModuleDestroy {
-  constructor(
-    protected readonly appHooks: AppHooksService,
-    private readonly datasService: DatasService,
-  ) {}
-
-  async getAdapter() {
-    try {
-      return await NcPluginMgrv2.emailAdapter();
-    } catch (e) {
-      console.error('Plugin not configured / active');
-      return null;
-    }
-  }
-
-  onModuleDestroy() {
-    this.appHooks.removeAllListener(this.hookHandler);
-  }
-
-  onModuleInit() {
-    this.appHooks.on(AppEvents.COMMENT_CREATE, (data) =>
-      this.hookHandler({ event: AppEvents.COMMENT_CREATE, data }),
-    );
-    this.appHooks.on(AppEvents.COMMENT_UPDATE, (data) =>
-      this.hookHandler({ event: AppEvents.COMMENT_UPDATE, data }),
-    );
-
-    this.appHooks.on(AppEvents.ROW_USER_MENTION, (data) =>
-      this.hookHandler({ event: AppEvents.ROW_USER_MENTION, data }),
-    );
-  }
-
-  protected async hookHandler({
-    event,
-    data,
-  }: {
-    event: AppEvents;
-    data: any;
-  }) {
+export class MailService extends MailServiceCE {
+  async sendMail(params: MailParams) {
     const mailerAdapter = await this.getAdapter();
     if (!mailerAdapter) {
-      console.error('Plugin not configured / active');
-      return;
+      this.logger.error('Email Plugin not configured / active');
+      return false;
     }
-    switch (event) {
-      case AppEvents.COMMENT_CREATE:
-      case AppEvents.COMMENT_UPDATE: {
+
+    switch (params.mailEvent) {
+      case MailEvent.COMMENT_CREATE:
+      case MailEvent.COMMENT_UPDATE: {
         const {
           base,
           model: table,
@@ -68,27 +26,12 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
           comment,
           rowId,
           req,
-        } = data as RowCommentEvent;
+        } = params.payload;
 
         const mentions = extractMentions(comment.comment);
 
         if (mentions && mentions.length) {
-          const row = await this.datasService.dataRead(req.context, {
-            rowId: rowId,
-            baseName: base.id,
-            tableName: table.id,
-            query: {},
-          });
-
-          const cols = await Column.list(req.context, {
-            fk_model_id: table.id,
-          });
-
-          const ws = await Workspace.get(base.fk_workspace_id);
-
-          const pvc = cols.find((c) => c.pv);
-
-          const displayValue = row[pvc?.title ?? ''] ?? '';
+          const workspace = await Workspace.get(base.fk_workspace_id);
 
           const baseUsers = await BaseUser.getUsersList(req.context, {
             base_id: base.id,
@@ -102,25 +45,28 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
 
             await mailerAdapter.mailSend({
               to: mentionedUser.email,
-              subject: `New comment on ${table.title}`,
-              html: ejs.render(Mention, {
-                name: user.display_name ?? user.email,
-                display_name: displayValue ?? '',
-                table: table.title,
-                base: base.title,
-                url: `${(req as any).ncSiteUrl}${(req as any).dashboardUrl}#/${
-                  ws.id
-                }/${base.id}/${table.id}?rowId=${rowId}&commentId=${
-                  comment.id
-                }`,
+              subject: `You have been mentioned`,
+              html: await this.renderMail('Mention', {
+                name: extractDisplayNameFromEmail(
+                  user.email,
+                  user.display_name,
+                ),
+                email: user.email,
+                link: this.buildUrl(req, {
+                  workspaceId: workspace.id,
+                  baseId: base.id,
+                  tableId: table.id,
+                  rowId,
+                  commentId: comment.id,
+                }),
+                baseTitle: base.title,
               }),
             });
           }
         }
         break;
       }
-
-      case AppEvents.ROW_USER_MENTION: {
+      case MailEvent.ROW_USER_MENTION: {
         const {
           model: table,
           rowId,
@@ -128,26 +74,11 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
           column,
           req,
           mentions,
-        } = data as RowMentionEvent;
+        } = params.payload;
 
         const base = await Base.get(req.context, table.base_id);
 
-        const row = await this.datasService.dataRead(req.context, {
-          rowId: rowId,
-          baseName: base.id,
-          tableName: table.id,
-          query: {},
-        });
-
-        const cols = await Column.list(req.context, {
-          fk_model_id: table.id,
-        });
-
-        const ws = await Workspace.get(base.fk_workspace_id);
-
-        const pvc = cols.find((c) => c.pv);
-
-        const displayValue = row[pvc?.title ?? ''] ?? '';
+        const workspace = await Workspace.get(base.fk_workspace_id);
 
         const baseUsers = await BaseUser.getUsersList(req.context, {
           base_id: base.id,
@@ -161,20 +92,78 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
 
           await mailerAdapter.mailSend({
             to: mentionedUser.email,
-            subject: `You have been mentioned on ${table.title}`,
-            html: ejs.render(MentionRow, {
-              name: user.display_name ?? user.email,
-              display_name: displayValue ?? '',
-              table: table.title,
-              base: base.title,
-              url: `${(req as any).ncSiteUrl}${(req as any).dashboardUrl}#/${
-                ws.id
-              }/${base.id}/${table.id}?rowId=${rowId}&columnId=${column.id}`,
+            subject: `You have been mentioned`,
+            html: await this.renderMail('MentionRow', {
+              name: extractDisplayNameFromEmail(user.email, user.display_name),
+              email: user.email,
+              baseTitle: base.title,
+              link: this.buildUrl(req, {
+                workspaceId: workspace.id,
+                baseId: base.id,
+                tableId: table.id,
+                rowId,
+                columnId: column.id,
+              }),
             }),
           });
         }
         break;
       }
+      case MailEvent.WORKSPACE_INVITE: {
+        const {
+          payload: { workspace, user, req, token },
+        } = params;
+
+        const invitee = req.user;
+
+        await mailerAdapter.mailSend({
+          to: user.email,
+          subject: `You’ve been invited to a Workspace`,
+          html: await this.renderMail('WorkspaceInvite', {
+            workspaceTitle: workspace.title,
+            name: extractDisplayNameFromEmail(
+              invitee.email,
+              invitee.display_name,
+            ),
+            email: invitee.email,
+            link: this.buildUrl(req, {
+              workspaceId: workspace.id,
+              token,
+            }),
+          }),
+        });
+        break;
+      }
+      case MailEvent.WORKSPACE_ROLE_UPDATE: {
+        const {
+          payload: { workspace, user, req, oldRole, newRole },
+        } = params;
+
+        const invitee = req.user;
+
+        await mailerAdapter.mailSend({
+          to: user.email,
+          subject: `Your Workspace role has been updated`,
+          html: await this.renderMail('WorkspaceRoleUpdate', {
+            workspaceTitle: workspace.title,
+            newRole: RoleLabels[newRole],
+            oldRole: RoleLabels[oldRole],
+            name: extractDisplayNameFromEmail(
+              invitee.email,
+              invitee.display_name,
+            ),
+            email: invitee.email,
+            link: this.buildUrl(req, {
+              workspaceId: workspace.id,
+            }),
+          }),
+        });
+        break;
+      }
+
+      default:
+        await super.sendMail(params);
+        break;
     }
   }
 }

@@ -66,3 +66,4 @@ packages/nocodb/jest.config.js
 packages/nc-secret-mgr/dist/**
 flake.lock
 flake.nix
+packages/nc-mail-template/emails/*-ee.tsx

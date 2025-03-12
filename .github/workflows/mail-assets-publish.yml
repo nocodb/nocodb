@@ -5,8 +5,8 @@ on:
     branches:
       - develop
     paths:
-      - 'packages/nc-mail-template/emails/static/**'
-
+      - 'packages/nc-mail-assets/**'
+      - '.github/workflows/mail-assets-publish.yml'
 jobs:
   upload-to-s3:
     runs-on: ubuntu-latest
@@ -14,3 +14,25 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Move files to S3 Path
+        run: |
+          mkdir -p packages/nc-mail-asset/emails/v2
+          mv packages/nc-mail-assets/* packages/nc-mail-asset/emails/v2
+
+      - name: Deploy UI assets to CDN
+        uses: pranavxc/s3-deploy@2cdf96df65b6c97ee09a5771958582b77f22b738
+        with:
+          folder: packages/nc-mail-asset/
+          bucket: ${{ secrets.CDN_BUCKET }}
+          dist-id: ${{ secrets.CDN_DIST_ID }}
+          invalidation: /emails/v2/*

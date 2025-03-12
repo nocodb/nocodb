@@ -16,7 +16,6 @@ import {
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import isEmail from 'validator/lib/isEmail';
-import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { setTokenCookie } from './helpers';
@@ -44,13 +43,14 @@ import {
   WorkspaceUser,
 } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { WorkspacesService } from '~/services/workspaces.service';
 import Noco from '~/Noco';
 import { CacheGetType, MetaTable, RootScopes } from '~/utils/globals';
 import { IntegrationsService } from '~/services/integrations.service';
 import NocoCache from '~/cache/NocoCache';
+import { MailService } from '~/services/mail/mail.service';
+import { MailEvent } from '~/interface/Mail';
 
 async function listUserBases(
   fk_user_id: string,
@@ -134,10 +134,11 @@ export class UsersService extends UsersServiceCE {
     protected appHooksService: AppHooksService,
     protected workspaceService: WorkspacesService,
     protected baseService: BasesService,
+    protected mailService: MailService,
     protected integrationsService: IntegrationsService,
     protected configService: ConfigService<AppConfig>,
   ) {
-    super(metaService, appHooksService, baseService);
+    super(metaService, appHooksService, baseService, mailService);
   }
   async registerNewUserIfAllowed(
     {
@@ -150,6 +151,7 @@ export class UsersService extends UsersServiceCE {
       email_verification_token,
       meta,
       req,
+      invite_token,
       workspace_invite,
     }: {
       avatar;
@@ -161,6 +163,7 @@ export class UsersService extends UsersServiceCE {
       email_verification_token;
       meta?: MetaType;
       req: NcRequest;
+      invite_token?: string;
       workspace_invite?: boolean;
     },
     ncMeta = Noco.ncMeta,
@@ -200,6 +203,7 @@ export class UsersService extends UsersServiceCE {
         email_verification_token,
         roles,
         token_version,
+        invite_token,
         meta,
       },
       ncMeta,
@@ -217,6 +221,14 @@ export class UsersService extends UsersServiceCE {
       this.appHooksService.emit(AppEvents.USER_SIGNUP, {
         user: user,
         req: req,
+      });
+
+      await this.mailService.sendMail({
+        mailEvent: MailEvent.WELCOME,
+        payload: {
+          user,
+          req: req,
+        },
       });
     }
 
@@ -308,6 +320,14 @@ export class UsersService extends UsersServiceCE {
           req: param.req,
         });
 
+        await this.mailService.sendMail({
+          mailEvent: MailEvent.WELCOME,
+          payload: {
+            user,
+            req: param.req,
+          },
+        });
+
         this.appHooksService.emit(AppEvents.WELCOME, {
           user,
           req: param.req,
@@ -335,18 +355,12 @@ export class UsersService extends UsersServiceCE {
     user = await User.getByEmail(email);
 
     try {
-      const template = (await import('~/modules/auth/ui/emailTemplates/verify'))
-        .default;
-      await (
-        await NcPluginMgrv2.emailAdapter()
-      ).mailSend({
-        to: email,
-        subject: 'Verify email',
-        html: ejs.render(template, {
-          verifyLink:
-            (param.req as any).ncSiteUrl +
-            `/email/verify/${user.email_verification_token}`,
-        }),
+      await this.mailService.sendMail({
+        mailEvent: MailEvent.VERIFY_EMAIL,
+        payload: {
+          user,
+          req: param.req,
+        },
       });
     } catch (e) {
       this.logger.warn(

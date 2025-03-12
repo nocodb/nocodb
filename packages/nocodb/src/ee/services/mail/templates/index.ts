@@ -1,5 +1,8 @@
-import Welcome from './Welcome';
-import Mention from './Mention';
-import MentionRow from './MentionRow';
+import MentionRow from '~/services/mail/templates/mention-row';
+import Mention from '~/services/mail/templates/mention-comment';
+import WorkspaceInvite from '~/services/mail/templates/workspace-invite';
+import WorkspaceRoleUpdate from '~/services/mail/templates/workspace-role-update';
 
-export { Mention, Welcome, MentionRow };
+export * from 'src/services/mail/templates';
+
+export { Mention, MentionRow, WorkspaceInvite, WorkspaceRoleUpdate };

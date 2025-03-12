@@ -728,13 +728,13 @@ const errorHelpers: {
     code: 400,
   },
   [NcErrorType.FORBIDDEN_IP_REDIRECT_BLOCKED]: {
-    message: ({ url }: { url: string }) => {
+    message: (url: string) => {
       return `Access to ${url} is forbidden due to a blocked IP redirect.`;
     },
     code: 400,
   },
   [NcErrorType.TOO_MANY_REDIRECTS]: {
-    message: ({ url }: { url: string }) => {
+    message: (url: string) => {
       return `The request to ${url} failed due to too many redirects.`;
     },
     code: 400,
@@ -1133,10 +1133,10 @@ export class NcError {
   }
 
   static forbiddenIpRedirectBlocked(url: string) {
-    throw new NcBaseErrorv2(NcErrorType.FORBIDDEN_IP_REDIRECT_BLOCKED, { url });
+    throw new NcBaseErrorv2(NcErrorType.FORBIDDEN_IP_REDIRECT_BLOCKED, url);
   }
 
   static tooManyRedirects(url: string) {
-    throw new NcBaseErrorv2(NcErrorType.TOO_MANY_REDIRECTS, { url });
+    throw new NcBaseErrorv2(NcErrorType.TOO_MANY_REDIRECTS, url);
   }
 }

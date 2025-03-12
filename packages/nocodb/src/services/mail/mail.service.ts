@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { RoleLabels } from 'nocodb-sdk';
 import { render } from '@react-email/render';
 import type { NcRequest } from 'nocodb-sdk';
@@ -19,11 +19,12 @@ type TemplateProps<K extends keyof typeof MailTemplates> = ComponentProps<
 
 @Injectable()
 export class MailService {
+  protected logger = new Logger(MailService.name);
   async getAdapter() {
     try {
       return await NcPluginMgrv2.emailAdapter();
     } catch (e) {
-      console.error('Plugin not configured / active');
+      this.logger.error('Plugin not configured / active');
       return null;
     }
   }
@@ -96,7 +97,7 @@ export class MailService {
   async sendMail(params: MailParams) {
     const mailerAdapter = await this.getAdapter();
     if (!mailerAdapter) {
-      console.error('Plugin not configured / active');
+      this.logger.error('Plugin not configured / active');
       return;
     }
 

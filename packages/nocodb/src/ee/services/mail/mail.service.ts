@@ -12,7 +12,7 @@ export class MailService extends MailServiceCE {
   async sendMail(params: MailParams) {
     const mailerAdapter = await this.getAdapter();
     if (!mailerAdapter) {
-      this.logger.error('Plugin not configured / active');
+      this.logger.error('Email Plugin not configured / active');
       return false;
     }
 

@@ -227,6 +227,7 @@ export const HasManyCellRenderer: CellRenderer = {
     isPublic,
     readonly,
     isDoubleClick,
+    openDetachedExpandedForm,
   }) {
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width, height } = getCellPosition(column, rowIndex)
@@ -273,12 +274,10 @@ export const HasManyCellRenderer: CellRenderer = {
            */
           if (readonly) return true
 
-          const { open } = useExpandedFormDetached()
-
           const rowId = extractPkFromRow(cellItem.value, (column.relatedTableMeta?.columns || []) as ColumnType[])
 
           if (rowId) {
-            open({
+            openDetachedExpandedForm({
               isOpen: true,
               row: { row: cellItem.value, rowMeta: {}, oldRow: { ...cellItem.value } },
               meta: column.relatedTableMeta || ({} as TableType),

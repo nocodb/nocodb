@@ -170,7 +170,7 @@ export class MailService {
           html: await this.renderMail('PasswordReset', {
             email: user.email,
             link: this.buildUrl(req, {
-              token: (user as any).reset_password_token,
+              resetPassword: (user as any).reset_password_token,
             }),
           }),
         });

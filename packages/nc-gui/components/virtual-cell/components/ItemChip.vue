@@ -30,10 +30,14 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const isClickDisabled = computed(() => {
+  return !active.value && !isExpandedForm.value
+})
+
 const { open } = useExpandedFormDetached()
 
 function openExpandedForm() {
-  if (!active.value && !isExpandedForm.value) return
+  if (isClickDisabled.value) return
 
   const rowId = extractPkFromRow(item, relatedTableMeta.value.columns as ColumnType[])
   if (!readOnly.value && !readonlyProp && rowId) {
@@ -60,7 +64,7 @@ export default {
   <div
     v-e="['c:row-expand:open']"
     class="chip group mr-1 my-0.5 flex items-center rounded-[2px] flex-row"
-    :class="{ active, 'border-1 py-1 px-2': isAttachment(column), truncate }"
+    :class="{ active, 'border-1 py-1 px-2': isAttachment(column), truncate, 'cursor-pointer': !isClickDisabled }"
     @click.stop="openExpandedForm"
   >
     <div class="text-ellipsis overflow-hidden pointer-events-none">

@@ -145,6 +145,13 @@ export class ColumnHelperClass {
       return columnInstance.serializeValue(value, params);
     }
   }
+
+  parsePlainCellValue(value: any, params: SerializerOrParserFnProps['params']) {
+    const columnInstance = this.getColumn(params);
+    if (columnInstance) {
+      return columnInstance.parsePlainCellValue(value, params);
+    }
+  }
 }
 
 export const ColumnHelper = new ColumnHelperClass();

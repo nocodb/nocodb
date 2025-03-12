@@ -42,7 +42,7 @@ export const OrganizationRoleUpdate = ({
           <Section className="py-6 text-center">
             <Img
               src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${role}.png`}
-              alt="<%= role %>"
+              alt={role}
               className="h-7 mx-auto"
             />
           </Section>

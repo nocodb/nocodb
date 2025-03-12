@@ -244,7 +244,7 @@ const sqlite3 = {
     };
   },
   AND: async (args: MapFnArgs) => {
-    const predicates = (args.pt.arguments.map((_k) => '?') as string[]).join(
+    const predicates = (args.pt.arguments.map(() => '?') as string[]).join(
       ' AND ',
     );
 
@@ -269,7 +269,7 @@ const sqlite3 = {
     };
   },
   OR: async (args: MapFnArgs) => {
-    const predicates = (args.pt.arguments.map((_k) => '?') as string[]).join(
+    const predicates = (args.pt.arguments.map(() => '?') as string[]).join(
       ' OR ',
     );
 

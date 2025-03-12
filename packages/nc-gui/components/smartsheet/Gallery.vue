@@ -467,7 +467,13 @@ reloadViewDataHook?.on(async () => {
                           (isRowEmpty(record, displayField) && isAllowToRenderRowEmptyField(displayField)),
                       }"
                     >
-                      <template v-if="!isRowEmpty(record, displayField) || isAllowToRenderRowEmptyField(displayField)">
+                      <template
+                        v-if="
+                          !isRowEmpty(record, displayField) ||
+                          isAllowToRenderRowEmptyField(displayField) ||
+                          isPercent(displayField)
+                        "
+                      >
                         <LazySmartsheetVirtualCell
                           v-if="isVirtualCol(displayField)"
                           v-model="record.row[displayField.title]"

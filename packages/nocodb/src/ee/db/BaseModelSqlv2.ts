@@ -1081,7 +1081,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       allowSystemColumn?: boolean;
     },
   ): Promise<void> {
-    const { allowSystemColumn = false } = params;
+    const { allowSystemColumn = false } = params || {};
 
     const modelStats = await ModelStat.get(
       this.context,

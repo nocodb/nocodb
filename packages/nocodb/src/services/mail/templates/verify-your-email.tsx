@@ -36,7 +36,7 @@ export const VerifyYourEmail = ({
           <Section className="py-6 mx-auto font-bold text-center text-gray-900 text-base">
             {email}
           </Section>
-          <Text className="text-gray-600 text-center text-sm !mt-0">
+          <Text className="text-gray-600 text-center text-sm !mt-0 !mb-6">
             Please verify your account to complete the sign-up process.
           </Text>
           <Button

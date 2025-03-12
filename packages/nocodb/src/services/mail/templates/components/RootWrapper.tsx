@@ -197,9 +197,71 @@ export const RootWrapper = ({ children }: { children: React.ReactNode }) => {
         fontFamily="Manrope"
         fallbackFontFamily={['sans-serif']}
         webFont={{
-          url: 'https://fonts.gstatic.com/s/manrope/v15/xn7gYHE41ni1AdIRggqxSvfedN62Zw.woff2',
+          url: 'https://fonts.gstatic.com/s/manrope/v15/xn7_YHE41ni1AdIRqAuZuw1Bx9mbZk59FN_C-bnTfc7AGrY.woff2',
           format: 'woff2',
         }}
+        fontStyle="extra-light"
+        fontWeight={200}
+      />
+      <Font
+        fontFamily="Manrope"
+        fallbackFontFamily={['sans-serif']}
+        webFont={{
+          url: 'https://fonts.gstatic.com/s/manrope/v15/xn7_YHE41ni1AdIRqAuZuw1Bx9mbZk6jFN_C-bnTfc7AGrY.woff2',
+          format: 'woff2',
+        }}
+        fontStyle="light"
+        fontWeight={300}
+      />
+      <Font
+        fontFamily="Manrope"
+        fallbackFontFamily={['sans-serif']}
+        webFont={{
+          url: 'https://fonts.gstatic.com/s/manrope/v15/xn7_YHE41ni1AdIRqAuZuw1Bx9mbZk79FN_C-bnTfc7AGrY.woff2',
+          format: 'woff2',
+        }}
+        fontStyle="normal"
+        fontWeight={400}
+      />
+      <Font
+        fontFamily="Manrope"
+        fallbackFontFamily={['sans-serif']}
+        webFont={{
+          url: 'https://fonts.gstatic.com/s/manrope/v15/xn7_YHE41ni1AdIRqAuZuw1Bx9mbZk7PFN_C-bnTfc7AGrY.woff2',
+          format: 'woff2',
+        }}
+        fontStyle="medium"
+        fontWeight={500}
+      />
+      <Font
+        fontFamily="Manrope"
+        fallbackFontFamily={['sans-serif']}
+        webFont={{
+          url: 'https://fonts.gstatic.com/s/manrope/v15/xn7_YHE41ni1AdIRqAuZuw1Bx9mbZk4jE9_C-bnTfc7AGrY.woff2',
+          format: 'woff2',
+        }}
+        fontStyle="semibold"
+        fontWeight={600}
+      />
+      <Font
+        fontFamily="Manrope"
+        fallbackFontFamily={['sans-serif']}
+        webFont={{
+          url: 'https://fonts.gstatic.com/s/manrope/v15/xn7_YHE41ni1AdIRqAuZuw1Bx9mbZk4aE9_C-bnTfc7AGrY.woff2',
+          format: 'woff2',
+        }}
+        fontStyle="bold"
+        fontWeight={700}
+      />
+      <Font
+        fontFamily="Manrope"
+        fallbackFontFamily={['sans-serif']}
+        webFont={{
+          url: 'https://fonts.gstatic.com/s/manrope/v15/xn7_YHE41ni1AdIRqAuZuw1Bx9mbZk59E9_C-bnTfc7AGrY.woff2',
+          format: 'woff2',
+        }}
+        fontStyle="extra-bold"
+        fontWeight={800}
       />
       {children}
     </Tailwind>

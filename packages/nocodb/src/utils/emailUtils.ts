@@ -1,3 +1,5 @@
+import inflection from 'inflection';
+
 // html encode string
 const encode = (str: string) => {
   return str
@@ -12,21 +14,6 @@ export const sanitiseEmailContent = (content?: string) => {
   return content
     ?.replace(/[<>&;?#,'"$]+/g, encode)
     ?.replace(/\.|\/\/:/g, '<span>$&</span>');
-};
-
-/**
- * Capitalizes the first letter of a string and converts the rest to lowercase.
- *
- * @param {string} str - The input string to capitalize.
- * @returns {string} The capitalized string with the first letter uppercase and the rest lowercase.
- * @example
- * capitalize('john') // Returns 'John'
- * capitalize('DOE') // Returns 'Doe'
- * capitalize('') // Returns ''
- */
-const capitalize = (str: string): string => {
-  if (str.length === 0) return '';
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
 /**
@@ -52,7 +39,7 @@ export const extractDisplayNameFromEmail = (
   } else {
     const localPart = email.split('@')[0];
     const parts = localPart.split('.').filter((part) => part.length > 0);
-    const capitalizedParts = parts.map(capitalize);
+    const capitalizedParts = parts.map(inflection.capitalize);
     return capitalizedParts.join(' ');
   }
 };

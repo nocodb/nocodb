@@ -289,7 +289,7 @@ onUnmounted(() => {
 
       <LazyMonacoEditor
         ref="inputWrapperRef"
-        :model-value="localValue || ''"
+        :model-value="localValue ?? null"
         class="min-w-full w-[40rem] resize overflow-auto expanded-editor"
         :hide-minimap="true"
         :disable-deep-compare="true"
@@ -304,8 +304,13 @@ onUnmounted(() => {
         {{ error.toString() }}
       </span>
     </div>
-    <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
-    <LazyCellClampedText v-else :value="vModel ? stringifyProp(vModel) : ''" :lines="rowHeight" class="nc-cell-field" />
+    <span v-else-if="ncIsNull(vModel) && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
+    <LazyCellClampedText
+      v-else
+      :value="!ncIsUndefined(vModel) && !ncIsNull(vModel) ? stringifyProp(vModel) : ''"
+      :lines="rowHeight"
+      class="nc-cell-field"
+    />
     <NcTooltip placement="bottom" class="nc-json-expand-btn hidden absolute top-0 right-0">
       <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
 

@@ -7,7 +7,7 @@ export const JsonCellRenderer: CellRenderer = {
 
     const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
 
-    if (!value) {
+    if (ncIsUndefined(value)) {
       if (isHovered) {
         renderIconButton(ctx, {
           buttonX: x + width - 28,

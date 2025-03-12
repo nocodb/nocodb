@@ -1,5 +1,6 @@
 import dns from 'dns';
 import axios from 'axios';
+import { NcError } from '~/helpers/catchError';
 
 // Function to check if an IP address is private
 function isPrivateIP(ip: string): boolean {
@@ -54,7 +55,8 @@ async function performHeadRequest(
           currentURL,
         ).toString();
         if (!(await isSafeURL(newURL))) {
-          throw new Error('Redirect to forbidden IP blocked');
+          // 'Redirect to forbidden IP blocked'
+          NcError.forbiddenIpRedirectBlocked(url);
         }
         currentURL = newURL;
         redirectCount++;
@@ -66,14 +68,14 @@ async function performHeadRequest(
     }
   }
 
-  throw new Error('Too many redirects detected, possible redirect loop');
+  NcError.tooManyRedirects(url);
 }
 
 // Function to validate a URL and ensure it does not redirect to a restricted IP
 export async function validateAndResolveURL(url: string): Promise<string> {
   const finalURL = await performHeadRequest(url);
   if (!(await isSafeURL(finalURL))) {
-    throw new Error('Redirect to forbidden IP blocked');
+    NcError.forbiddenIpRedirectBlocked(url);
   }
   return finalURL;
 }

@@ -527,6 +527,7 @@ export class OptionsNotExistsError extends BadRequest {
     this.options = options;
     this.validOptions = validOptions;
   }
+
   columnTitle: string;
   options: string[];
   validOptions: string[];
@@ -543,6 +544,7 @@ export class TestConnectionError extends NcBaseError {
 
 export class AjvError extends NcBaseError {
   humanReadableError: boolean;
+
   constructor(param: {
     message: string;
     errors: ErrorObject[];
@@ -723,6 +725,18 @@ const errorHelpers: {
   },
   [NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER]: {
     message: 'Cannot calculate intermediate order',
+    code: 400,
+  },
+  [NcErrorType.FORBIDDEN_IP_REDIRECT_BLOCKED]: {
+    message: ({ url }: { url: string }) => {
+      return `Access to ${url} is forbidden due to a blocked IP redirect.`;
+    },
+    code: 400,
+  },
+  [NcErrorType.TOO_MANY_REDIRECTS]: {
+    message: ({ url }: { url: string }) => {
+      return `The request to ${url} failed due to too many redirects.`;
+    },
     code: 400,
   },
 };
@@ -946,6 +960,7 @@ export class NcError {
       ...args,
     });
   }
+
   static invalidPageValue(page: string | number, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.INVALID_PAGE_VALUE, {
       params: `${page}`,
@@ -1115,5 +1130,13 @@ export class NcError {
     validOptions: string[];
   }) {
     throw new OptionsNotExistsError(props);
+  }
+
+  static forbiddenIpRedirectBlocked(url: string) {
+    throw new NcBaseErrorv2(NcErrorType.FORBIDDEN_IP_REDIRECT_BLOCKED, { url });
+  }
+
+  static tooManyRedirects(url: string) {
+    throw new NcBaseErrorv2(NcErrorType.TOO_MANY_REDIRECTS, { url });
   }
 }

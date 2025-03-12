@@ -10,7 +10,7 @@ async function treatArgAsConditionalExp(
 ) {
   const condArg = (await args.fn(argument)).builder;
 
-  let cond = condArg;
+  let condStr: string;
   let bindings = {};
 
   // based on the data type of the argument, we need to handle the condition
@@ -20,23 +20,28 @@ async function treatArgAsConditionalExp(
   // if date - value is not null then true
   switch (argument.dataType as FormulaDataTypes) {
     case FormulaDataTypes.NUMERIC:
-      cond = `(:condArg) IS NOT NULL AND (:condArg) != 0`;
+      condStr = `(:condArg) IS NOT NULL AND (:condArg) != 0`;
       bindings = { condArg };
       break;
     case FormulaDataTypes.STRING:
-      cond = `(:condArg) IS NOT NULL AND (:condArg) != ''`;
+      condStr = `(:condArg) IS NOT NULL AND (:condArg) != ''`;
       bindings = { condArg };
       break;
     case FormulaDataTypes.BOOLEAN:
-      cond = `(:condArg) IS NOT NULL AND (:condArg) != false`;
+      condStr = `(:condArg) IS NOT NULL AND (:condArg) != false`;
       bindings = { condArg };
       break;
     case FormulaDataTypes.DATE:
-      cond = `(:condArg) IS NOT NULL`;
+      condStr = `(:condArg) IS NOT NULL`;
       bindings = { condArg };
       break;
   }
-  return { builder: args.knex.raw(cond, bindings) };
+
+  if (condStr) {
+    return { builder: args.knex.raw(condStr, bindings) };
+  } else {
+    return { builder: condArg };
+  }
 }
 
 export default {

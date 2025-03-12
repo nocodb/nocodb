@@ -8,6 +8,7 @@ import { useAgent } from 'request-filtering-agent';
 import { globStream } from 'glob';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
 import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
+import {validateAndResolveURL} from "~/utils/securityUtils";
 
 export default class Local implements IStorageAdapterV2 {
   name = 'Local';

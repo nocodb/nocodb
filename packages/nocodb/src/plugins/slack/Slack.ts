@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
 import type { IWebhookNotificationAdapter } from '~/types/nc-plugin';
+import {validateAndResolveURL} from "~/utils/securityUtils";
 
 export default class Slack implements IWebhookNotificationAdapter {
   public init(): Promise<any> {

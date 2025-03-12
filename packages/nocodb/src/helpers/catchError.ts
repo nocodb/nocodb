@@ -1133,10 +1133,12 @@ export class NcError {
   }
 
   static forbiddenIpRedirectBlocked(url: string) {
-    throw new NcBaseErrorv2(NcErrorType.FORBIDDEN_IP_REDIRECT_BLOCKED, url);
+    throw new NcBaseErrorv2(NcErrorType.FORBIDDEN_IP_REDIRECT_BLOCKED, {
+      params: [url],
+    });
   }
 
   static tooManyRedirects(url: string) {
-    throw new NcBaseErrorv2(NcErrorType.TOO_MANY_REDIRECTS, url);
+    throw new NcBaseErrorv2(NcErrorType.TOO_MANY_REDIRECTS, { params: [url] });
   }
 }

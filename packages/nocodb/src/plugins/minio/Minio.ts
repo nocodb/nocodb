@@ -4,6 +4,7 @@ import { Client as MinioClient } from 'minio';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
+import {validateAndResolveURL} from "~/utils/securityUtils";
 
 interface MinioObjectStorageInput {
   bucket: string;

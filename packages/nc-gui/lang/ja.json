@@ -303,13 +303,15 @@
     "extension": "拡張機能",
     "extensions": "拡張機能",
     "enable": "有効にする",
+    "disable": "Disable",
     "poweredBy": "提供元",
     "nocoAI": "Noco AI",
     "you": "あなた",
     "read": "読む",
     "unread": "未読",
     "shared": "共有",
-    "organization": "組織"
+    "organization": "組織",
+    "all": "All"
   },
   "objects": {
     "script": "スクリプト",
@@ -1466,7 +1468,9 @@
     "aiIntegrationAddAndReConfigure": "AI統合が削除されました。NocoAI機能を使用するためにフィールド編集モーダルから再追加および再設定してください",
     "generateFieldDataUsingAiButtonOption": "レコード情報とNocoAIを使用して、このテーブルの複数のフィールドに値を生成します",
     "sourceDataIsReadonly": "ソースデータは読み取り専用です",
-    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View."
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
+    "shiftSpace": "Shift + Space",
+    "expandShiftSpace": "Expand 'Shift + Space'"
   },
   "placeholder": {
     "searchIcons": "アイコンを検索",

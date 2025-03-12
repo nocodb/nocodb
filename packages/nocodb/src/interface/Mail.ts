@@ -21,6 +21,8 @@ enum MailEvent {
   WELCOME = 'WELCOME',
   RESET_PASSWORD = 'RESET_PASSWORD',
   VERIFY_EMAIL = 'VERIFY_EMAIL',
+  ORGANIZATION_INVITE = 'ORGANIZATION_INVITE',
+  ORGANIZATION_ROLE_UPDATE = 'ORGANIZATION_ROLE_UPDATE',
 }
 
 interface CommentPayload {
@@ -85,6 +87,18 @@ interface WelcomePayload {
   user: UserType;
 }
 
+interface OrganizationInvitePayload {
+  user: UserType;
+  req: NcRequest;
+  token?: string;
+}
+
+interface OrganizationRoleUpdatePayload {
+  user: UserType;
+  req: NcRequest;
+  role: WorkspaceUserRoles;
+}
+
 type MailParams =
   | {
       mailEvent: MailEvent.COMMENT_CREATE | MailEvent.COMMENT_UPDATE;
@@ -121,6 +135,14 @@ type MailParams =
   | {
       mailEvent: MailEvent.VERIFY_EMAIL;
       payload: VerifyEmailPayload;
+    }
+  | {
+      mailEvent: MailEvent.ORGANIZATION_INVITE;
+      payload: OrganizationInvitePayload;
+    }
+  | {
+      mailEvent: MailEvent.ORGANIZATION_ROLE_UPDATE;
+      payload: OrganizationRoleUpdatePayload;
     };
 
 export { MailEvent, CommentPayload, RowMentionPayload, MailParams };

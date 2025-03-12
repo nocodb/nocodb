@@ -11,7 +11,7 @@ import {
 import { NcError } from '~/helpers/catchError';
 
 export function concatKnexRaw(knex: CustomKnex, raws: Knex.Raw[]) {
-  return knex.raw(raws.map((_r) => '?').join(' '), raws);
+  return knex.raw(raws.map(() => '?').join(' '), raws);
 }
 
 export function _wherePk(

@@ -200,7 +200,7 @@ export default {
     if (args.pt.arguments[2]) {
       queries.push(args.knex.raw(`\n\tELSE ?`, [elseArg]));
     }
-    const predicates = queries.map((_k) => '?').join(' ');
+    const predicates = queries.map(() => '?').join(' ');
     return {
       builder: args.knex.raw(
         `CASE ${predicates}\n END${args.colAlias}`,
@@ -217,7 +217,7 @@ export default {
     return args.fn(args.pt?.arguments?.[0]);
   },
   AND: async (args: MapFnArgs) => {
-    const predicates = (args.pt.arguments.map((_k) => '?') as string[]).join(
+    const predicates = (args.pt.arguments.map(() => '?') as string[]).join(
       ' AND ',
     );
     const parsedArguments = await Promise.all(
@@ -236,7 +236,7 @@ export default {
     };
   },
   OR: async (args: MapFnArgs) => {
-    const predicates = (args.pt.arguments.map((_k) => '?') as string[]).join(
+    const predicates = (args.pt.arguments.map(() => '?') as string[]).join(
       ' OR ',
     );
     const parsedArguments = await Promise.all(

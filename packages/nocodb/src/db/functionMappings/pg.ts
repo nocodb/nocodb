@@ -202,7 +202,7 @@ const pg = {
     };
   },
   AND: async (args: MapFnArgs) => {
-    const predicates = (args.pt.arguments.map((_k) => '?') as string[]).join(
+    const predicates = (args.pt.arguments.map(() => '?') as string[]).join(
       ' AND ',
     );
 
@@ -227,7 +227,7 @@ const pg = {
     };
   },
   OR: async (args: MapFnArgs) => {
-    const predicates = (args.pt.arguments.map((_k) => '?') as string[]).join(
+    const predicates = (args.pt.arguments.map(() => '?') as string[]).join(
       ' OR ',
     );
 
@@ -314,7 +314,7 @@ const pg = {
     };
   },
   XOR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    const predicates = (pt.arguments.map((_k) => '?') as string[]).join(' # ');
+    const predicates = (pt.arguments.map(() => '?') as string[]).join(' # ');
     const parsedArguments = await Promise.all(
       pt.arguments.map(async (arg) => {
         const query = (await fn(arg)).builder;

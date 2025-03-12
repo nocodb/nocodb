@@ -184,7 +184,7 @@ const mysql2 = {
         return { builder: (await fn(arg)).builder };
       }),
     );
-    const predicates = args.map((_a) => '?').join(' XOR ');
+    const predicates = args.map(() => '?').join(' XOR ');
     return {
       builder: knex.raw(`${predicates} ${colAlias}`, args),
     };

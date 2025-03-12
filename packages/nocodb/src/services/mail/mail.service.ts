@@ -4,7 +4,7 @@ import { render } from '@react-email/render';
 import type { NcRequest } from 'nocodb-sdk';
 import type { MailParams } from '~/interface/Mail';
 import type { ComponentProps } from 'react';
-import * as MailTemplates from '~/services/mail/templates';
+import MailTemplates from '~/services/mail/templates';
 import { MailEvent } from '~/interface/Mail';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';

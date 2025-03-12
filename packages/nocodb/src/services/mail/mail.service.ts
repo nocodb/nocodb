@@ -108,7 +108,7 @@ export class MailService {
     const mailerAdapter = await this.getAdapter();
     if (!mailerAdapter) {
       this.logger.error('Plugin not configured / active');
-      return;
+      return false;
     }
 
     const { payload, mailEvent } = params;
@@ -256,5 +256,6 @@ export class MailService {
         });
       }
     }
+    return true;
   }
 }

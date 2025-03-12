@@ -179,7 +179,7 @@ export class OrgUsersService {
           // and send back token if failed
           if (emails.length === 1) {
             try {
-              await this.mailService.sendMail({
+              const res = await this.mailService.sendMail({
                 mailEvent: MailEvent.ORGANIZATION_INVITE,
                 payload: {
                   user,
@@ -187,6 +187,10 @@ export class OrgUsersService {
                   token: invite_token,
                 },
               });
+
+              if (!res) {
+                return { invite_token, email };
+              }
             } catch (e) {
               return { invite_token, email };
             }

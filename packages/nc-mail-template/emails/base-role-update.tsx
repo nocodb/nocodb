@@ -16,7 +16,6 @@ import { baseUrl } from '../utils/constant';
 
 // Corresponding ejs template
 interface Props {
-  workspaceTitle: string;
   baseTitle: string;
   role: string;
   name: string;
@@ -34,16 +33,8 @@ export const BaseRoleUpdate = () => (
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
             Your base role has been updated
           </Heading>
-          <Section className="py-6 text-center">
-          <span className="font-bold text-gray-900 text-base">
-            {'<%= workspaceTitle %>'}
-          </span>
-            <span className="px-2 text-gray-700">
-            /
-          </span>
-            <span className="font-bold text-gray-900 text-base">
+          <Section className="py-6 text-center font-bold text-gray-900 text-base">
             {'<%= baseTitle %>'}
-          </span>
           </Section>
           <Section className="pb-6 text-center">
             <Img

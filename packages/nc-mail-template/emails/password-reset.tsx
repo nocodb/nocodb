@@ -14,32 +14,29 @@ import ContentWrapper from '../components/ContentWrapper';
 
 // Corresponding ejs template
 interface Props {
-  workspaceTitle: string;
-  name: string;
   email: string;
   link: string;
 }
 
-export const WorkspaceInvite = () => (
+export const PasswordReset = () => (
   <Html>
     <RootWrapper>
       <Head />
-      <Preview>You have been invited</Preview>
+      <Preview>Password reset requested</Preview>
       <Body className="bg-white">
         <ContentWrapper>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
-            You’ve been invited
+            Password reset requested
           </Heading>
           <Section className="py-6 mx-auto font-bold text-center text-gray-900 text-base">
-            {'<%= workspaceTitle %>'}
+            {'<%= email %>'}
           </Section>
           <Text className="text-gray-600 text-center text-sm !mt-0">
-            <span className="font-bold text-gray-800">{'<%= name %>'}</span> ({'<%= email %>'}) has invited you to
-            join <span className="font-bold text-gray-800">{'<%= workspaceTitle %>'}</span>.  Click on ‘Accept invite’ to join.
+            You’ve requested for a password reset, click on the ‘Reset Password’ button to reset your password.
           </Text>
           <Button className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10" href="<%= link %>">
             <Text className="!my-[8px]">
-              Accept invite
+              Reset Password
             </Text>
           </Button>
         </ContentWrapper>
@@ -48,4 +45,4 @@ export const WorkspaceInvite = () => (
     </RootWrapper>
   </Html>
 );
-export default WorkspaceInvite;
+export default PasswordReset;

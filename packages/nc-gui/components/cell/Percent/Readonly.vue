@@ -81,7 +81,11 @@ const progressPercent = computed(() => {
     @click="onWrapperFocus"
   >
     <CellPercentProgressBar :percentage="percentValueNumber" :is-show-number="isExpandedFormOpen">
-      <input @focus="onWrapperFocus" />
+      <input
+        class="nc-cell-field w-full !border-none !outline-none focus:ring-0 min-h-[10px]"
+        :value="modelValue"
+        @focus="onWrapperFocus"
+      />
     </CellPercentProgressBar>
   </div>
   <div

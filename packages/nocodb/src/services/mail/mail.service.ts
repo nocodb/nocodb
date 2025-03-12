@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import * as ejs from 'ejs';
-import type { MailParams } from '~/interface/Mail';
+import { RoleLabels } from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
+import type { MailParams } from '~/interface/Mail';
 import { MailEvent } from '~/interface/Mail';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import {
@@ -126,7 +127,7 @@ export class MailService {
             name:
               user.display_name ?? user.email.split('@')[0].toLocaleUpperCase(),
             email: user.email,
-            role,
+            role: RoleLabels[role],
             link: this.buildUrl(req, {
               workspaceId: base.fk_workspace_id,
               baseId: base.id,
@@ -202,7 +203,7 @@ export class MailService {
             name:
               user.display_name ?? user.email.split('@')[0].toLocaleUpperCase(),
             email: user.email,
-            role,
+            role: RoleLabels[role],
             link: this.buildUrl(req, {}),
           }),
         });

@@ -739,6 +739,12 @@ const errorHelpers: {
     },
     code: 400,
   },
+  [NcErrorType.DNS_LOOKUP_FAILED]: {
+    message: (hostname: string, _message: string) => {
+      return `DNS lookup failed for ${hostname}`;
+    },
+    code: 400,
+  },
 };
 
 function generateError(
@@ -1140,5 +1146,11 @@ export class NcError {
 
   static tooManyRedirects(url: string) {
     throw new NcBaseErrorv2(NcErrorType.TOO_MANY_REDIRECTS, { params: [url] });
+  }
+
+  static dnsLookupFailed(hostname: string, message) {
+    throw new NcBaseErrorv2(NcErrorType.DNS_LOOKUP_FAILED, {
+      params: [hostname, message],
+    });
   }
 }

@@ -1,6 +1,12 @@
 import dns from 'dns';
+import net from 'net';
 import axios from 'axios';
 import { NcError } from '~/helpers/catchError';
+
+// Check if a string is a valid IP address (IPv4 or IPv6)
+function isIPAddress(hostname: string): boolean {
+  return net.isIP(hostname) !== 0; // Returns 4 (IPv4), 6 (IPv6), or 0 (invalid)
+}
 
 // Function to check if an IP address is private
 function isPrivateIP(ip: string): boolean {
@@ -18,23 +24,25 @@ function isPrivateIP(ip: string): boolean {
   return privateRanges.some((range) => range.test(ip));
 }
 
+// Function to resolve a hostname to its final IP addresses
+async function resolveFinalIPs(hostname: string): Promise<string[]> {
+  if (isIPAddress(hostname)) return [hostname];
+
+  try {
+    const addresses = await dns.promises.lookup(hostname, { all: true });
+    return addresses.map((entry) => entry.address);
+  } catch (error) {
+    NcError.dnsLookupFailed(hostname, error.message);
+  }
+}
+
 // Function to check if a URL resolves to a safe IP
 async function isSafeURL(url: string): Promise<boolean> {
-  try {
-    const parsedURL = new URL(url);
-    const ipAddresses = await dns.promises.resolve4(parsedURL.hostname);
+  const parsedURL = new URL(url);
+  const ipAddresses = await resolveFinalIPs(parsedURL.hostname);
 
-    // Check if any resolved IP is private
-    for (const ip of ipAddresses) {
-      if (isPrivateIP(ip)) {
-        return false;
-      }
-    }
-
-    return true;
-  } catch (error) {
-    return false; // Reject invalid URLs
-  }
+  // Check if any resolved IP is private
+  return ipAddresses.every((ip) => !isPrivateIP(ip));
 }
 
 // Function to perform a HEAD request to detect URL redirects and validate new domains
@@ -54,10 +62,12 @@ async function performHeadRequest(
           response.headers.location,
           currentURL,
         ).toString();
+
         if (!(await isSafeURL(newURL))) {
           // 'Redirect to forbidden IP blocked'
           NcError.forbiddenIpRedirectBlocked(url);
         }
+
         currentURL = newURL;
         redirectCount++;
       } else {

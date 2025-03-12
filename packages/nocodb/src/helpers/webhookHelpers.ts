@@ -959,7 +959,7 @@ export function transformDataForMailRendering(
           : '';
       }
     } catch (error) {
-      console.error(`Error processing column ${col.title}:`, error);
+      logger.error(`Error processing column ${col.title}:`, error);
       serializedValue = data[col.title]?.toString() || '';
     }
 

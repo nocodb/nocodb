@@ -7,6 +7,7 @@ import { useAgent } from 'request-filtering-agent';
 import type { GetSignedUrlConfig, StorageOptions } from '@google-cloud/storage';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
+import { validateAndResolveURL } from '~/utils/securityUtils';
 
 interface GoogleCloudStorageInput {
   client_email: string;
@@ -140,9 +141,12 @@ export default class Gcs implements IStorageAdapterV2 {
     url: string,
     { fetchOptions: { buffer } = { buffer: false } },
   ): Promise<{ url: string; data: any }> {
-    const response = await axios.get(url, {
-      httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-      httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+    const finalURL = await validateAndResolveURL(url);
+    const response = await axios.get(finalURL, {
+      httpAgent: useAgent(finalURL, { stopPortScanningByUrlRedirection: true }),
+      httpsAgent: useAgent(finalURL, {
+        stopPortScanningByUrlRedirection: true,
+      }),
       responseType: buffer ? 'arraybuffer' : 'stream',
     });
 

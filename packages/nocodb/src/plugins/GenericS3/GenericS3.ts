@@ -13,6 +13,7 @@ import { Upload } from '@aws-sdk/lib-storage';
 import type { PutObjectRequest, S3 as S3Client } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
+import { validateAndResolveURL } from '~/utils/securityUtils';
 
 interface GenericObjectStorageInput {
   bucket: string;
@@ -130,9 +131,15 @@ export default class GenericS3 implements IStorageAdapterV2 {
     { fetchOptions: { buffer } = { buffer: false } },
   ): Promise<any> {
     try {
-      const response = await axios.get(url, {
-        httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-        httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+      const finalURL = await validateAndResolveURL(url);
+
+      const response = await axios.get(finalURL, {
+        httpAgent: useAgent(finalURL, {
+          stopPortScanningByUrlRedirection: true,
+        }),
+        httpsAgent: useAgent(finalURL, {
+          stopPortScanningByUrlRedirection: true,
+        }),
         responseType: buffer ? 'arraybuffer' : 'stream',
       });
       const uploadParams: PutObjectRequest = {

@@ -175,10 +175,10 @@ export class UtilsService {
         : {},
       responseType: apiMeta.responseType || 'json',
       withCredentials: true,
-      httpAgent: useAgent(apiMeta.url, {
+      httpAgent: useAgent(finalURL, {
         stopPortScanningByUrlRedirection: true,
       }),
-      httpsAgent: useAgent(apiMeta.url, {
+      httpsAgent: useAgent(finalURL, {
         stopPortScanningByUrlRedirection: true,
       }),
     };

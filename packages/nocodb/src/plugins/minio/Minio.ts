@@ -138,9 +138,12 @@ export default class Minio implements IStorageAdapterV2 {
     url: string,
     { fetchOptions: { buffer } = { buffer: false } },
   ): Promise<any> {
-    const response = await axios.get(url, {
-      httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-      httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+    const finalURL = await validateAndResolveURL(url);
+    const response = await axios.get(finalURL, {
+      httpAgent: useAgent(finalURL, { stopPortScanningByUrlRedirection: true }),
+      httpsAgent: useAgent(finalURL, {
+        stopPortScanningByUrlRedirection: true,
+      }),
       responseType: buffer ? 'arraybuffer' : 'stream',
     });
 

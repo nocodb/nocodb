@@ -31,9 +31,10 @@ export default class Local implements IStorageAdapterV2 {
     { fetchOptions: { buffer } = { buffer: false } },
   ): Promise<any> {
     const destPath = validateAndNormaliseLocalPath(key);
+    const finalURL = await validateAndResolveURL(url);
     return new Promise((resolve, reject) => {
       axios
-        .get(url, {
+        .get(finalURL, {
           responseType: buffer ? 'arraybuffer' : 'stream',
           headers: {
             accept:
@@ -45,8 +46,12 @@ export default class Local implements IStorageAdapterV2 {
               'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
             origin: 'https://www.airtable.com/',
           },
-          httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-          httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+          httpAgent: useAgent(finalURL, {
+            stopPortScanningByUrlRedirection: true,
+          }),
+          httpsAgent: useAgent(finalURL, {
+            stopPortScanningByUrlRedirection: true,
+          }),
         })
         .then(async (response) => {
           await mkdirp(path.dirname(destPath));

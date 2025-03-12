@@ -26,7 +26,7 @@ const vModel = computed({
   get: () => props.modelValue,
   set: (val) => {
     localState.value = val
-    if (!parseProp(column.value.meta)?.validate || (val && validateEmail(val)) || !val || isForm.value) {
+    if (!parseProp(column.value.meta)?.validate || (val && validateEmail(val)) || !val || isForm.value || isEditColumn.value) {
       emit('update:modelValue', val)
     }
   },
@@ -56,7 +56,10 @@ onBeforeUnmount(() => {
     localState.value &&
     !validateEmail(localState.value)
   ) {
-    message.error(t('msg.error.invalidEmail'))
+    if (!isEditColumn.value) {
+      message.error(t('msg.error.invalidEmail'))
+    }
+
     localState.value = undefined
     return
   }

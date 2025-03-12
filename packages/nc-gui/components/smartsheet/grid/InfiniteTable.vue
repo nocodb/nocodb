@@ -859,11 +859,16 @@ const {
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     const altOrOptionKey = e.altKey
     if (e.key === ' ') {
+      if (e.shiftKey) return true
+
       const isRichModalOpen = isExpandedCellInputExist()
 
-      if (isCellActive.value && !editEnabled.value && hasEditPermission.value && activeCell.row !== null && !isRichModalOpen) {
+      if (isCellActive.value && activeCell.row !== null && !isRichModalOpen) {
         e.preventDefault()
         const row = cachedRows.value.get(activeCell.row)
+
+        if (!row) return
+
         expandForm?.(row)
         return true
       }
@@ -2604,6 +2609,10 @@ const cellAlignClass = computed(() => {
                       <SmartsheetTableDataCell
                         v-if="fields[0]"
                         :key="fields[0].id"
+                        :active="
+                          (activeCell.row === row.rowMeta.rowIndex && activeCell.col === 0) ||
+                          (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === 0)
+                        "
                         class="cell relative nc-grid-cell cursor-pointer"
                         :class="{
                           'active': selectRangeMap[`${row.rowMeta.rowIndex}-0`],
@@ -2700,6 +2709,10 @@ const cellAlignClass = computed(() => {
                       <SmartsheetTableDataCell
                         v-for="{ field: columnObj, index: colIndex } of visibleFields"
                         :key="`cell-${colIndex}-${row.rowMeta.rowIndex}`"
+                        :active="
+                          (activeCell.row === row.rowMeta.rowIndex && activeCell.col === colIndex) ||
+                          (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === colIndex)
+                        "
                         class="cell relative nc-grid-cell cursor-pointer"
                         :class="{
                           'active': selectRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],

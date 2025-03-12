@@ -23,8 +23,14 @@ const cellClickHook = inject(CellClickHookInj, null)
 const onDivDataCellEventHook = inject(OnDivDataCellEventHookInj, null)
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
 const clientMousePosition = inject(ClientMousePositionInj)
+
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
+
+const cellEventHook = inject(CellEventHookInj, null)
 
 // Change the row height of the child cell under lookup
 // Other wise things like text will can take multi line tag
@@ -178,6 +184,16 @@ function toggleDropdown(e: Event) {
   }
 }
 
+const onCellEvent = (event?: Event) => {
+  if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event)) return
+
+  if (isExpandCellKey(event)) {
+    dropdownVisible.value = !dropdownVisible.value
+
+    return true
+  }
+}
+
 onMounted(() => {
   onClickOutside(cell.value, (e) => {
     if ((e.target as HTMLElement)?.closest(`.${randomClass}`)) return
@@ -185,8 +201,12 @@ onMounted(() => {
   })
   onDivDataCellEventHook?.on(toggleDropdown)
   cellClickHook?.on(toggleDropdown)
+  cellEventHook?.on(onCellEvent)
 
   if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedForm.value || !isGrid.value) return
+
+  if (onCellEvent(canvasCellEventData.event)) return
+
   dropdownVisible.value = true
 })
 

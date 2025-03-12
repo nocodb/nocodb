@@ -56,6 +56,8 @@ export const SharedViewPasswordInj: InjectionKey<Ref<string | null>> = Symbol('s
 export const CellUrlDisableOverlayInj: InjectionKey<Ref<boolean>> = Symbol('cell-url-disable-url')
 export const DropZoneRef: InjectionKey<Ref<Element | undefined>> = Symbol('drop-zone-ref')
 export const CellClickHookInj: InjectionKey<EventHook<MouseEvent> | undefined> = Symbol('cell-click-injection')
+export const CellEventHookInj: InjectionKey<EventHook<MouseEvent | KeyboardEvent | PointerEvent> | undefined> =
+  Symbol('cell-event-injection')
 export const OnDivDataCellEventHookInj: InjectionKey<EventHook<Event> | undefined> = Symbol('on-div-data-cell-event-injection')
 export const SaveRowInj: InjectionKey<(() => void) | undefined> = Symbol('save-row-injection')
 export const CurrentCellInj: InjectionKey<Ref<Element | undefined>> = Symbol('current-cell-injection')
@@ -112,11 +114,12 @@ export const ClientMousePositionInj: InjectionKey<Reactive<{ clientX: number; cl
 export const CanvasCellEventDataInj: InjectionKey<
   Reactive<{
     keyboardKey?: string
+    event?: KeyboardEvent | MouseEvent | PointerEvent
   }>
 > = Symbol('canvas-cell-event-data-injection')
 
 // triggering this hook from within an editable cell will turn it into "selection state"
-export const CanvasSelectCellInj: InjectionKey<EventHook> = Symbol('canvas-select-cell-inj')
+export const CanvasSelectCellInj: InjectionKey<EventHook | undefined> = Symbol('canvas-select-cell-inj')
 
 export const IsPageDesignerExtensionActiveInj: InjectionKey<boolean> = Symbol('is-page-designer-extension-active')
 export const IsLinkRecordDropdownInj: InjectionKey<Ref<boolean>> = Symbol('is-link-record-dropdown-injection')

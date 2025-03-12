@@ -20,7 +20,12 @@ const { showNull } = useGlobal()
 const editEnabled = inject(EditModeInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
-const canvasSelectCell = inject(CanvasSelectCellInj)
+
+const cellEventHook = inject(CellEventHookInj, null)
+
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
+
+const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
@@ -197,11 +202,27 @@ watch(inputWrapperRef, () => {
   }
 })
 
+const onCellEvent = (event?: Event) => {
+  if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event)) return
+
+  if (isExpandCellKey(event)) {
+    if (isExpanded.value) {
+      closeJSONEditor()
+    } else {
+      openJSONEditor()
+    }
+
+    return true
+  }
+}
+
 const el = useCurrentElement()
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 onMounted(() => {
+  cellEventHook?.on(onCellEvent)
+
   if (
     !isUnderLookup.value &&
     isCanvasInjected &&
@@ -211,6 +232,8 @@ onMounted(() => {
     !isExpandedFormOpen.value
   ) {
     forcedNextTick(() => {
+      if (onCellEvent(canvasCellEventData.event)) return
+
       openJSONEditor()
     })
   }
@@ -225,6 +248,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  cellEventHook?.off(onCellEvent)
+
   const gridCell = el.value?.closest?.('td')
   if (gridCell && !readOnly.value) {
     gridCell.removeEventListener('dblclick', openJSONEditor)
@@ -282,7 +307,8 @@ onUnmounted(() => {
     <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
     <LazyCellClampedText v-else :value="vModel ? stringifyProp(vModel) : ''" :lines="rowHeight" class="nc-cell-field" />
     <NcTooltip placement="bottom" class="nc-json-expand-btn hidden absolute top-0 right-0">
-      <template #title>{{ $t('title.expand') }}</template>
+      <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
+
       <NcButton type="secondary" size="xsmall" class="!w-5 !h-5 !min-w-[fit-content]" @click.stop="openJSONEditor">
         <component :is="iconMap.maximize" class="w-3 h-3" />
       </NcButton>

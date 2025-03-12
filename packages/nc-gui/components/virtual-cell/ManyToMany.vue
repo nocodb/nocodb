@@ -34,7 +34,12 @@ const hideBackBtn = ref(false)
 const rowHeight = inject(RowHeightInj, ref())
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
 const clientMousePosition = inject(ClientMousePositionInj)
+
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
+
+const cellEventHook = inject(CellEventHookInj, null)
 
 const { isUIAllowed } = useRoles()
 
@@ -147,13 +152,31 @@ function onCellClick(e: Event) {
   }
 }
 
+const onCellEvent = (event?: Event) => {
+  if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event)) return
+
+  if (isExpandCellKey(event)) {
+    if (childListDlg.value) {
+      listItemsDlg.value = false
+      childListDlg.value = false
+    } else {
+      openChildList()
+    }
+
+    return true
+  }
+}
+
 onMounted(() => {
   onDivDataCellEventHook?.on(onCellClick)
   cellClickHook?.on(onCellClick)
+  cellEventHook?.on(onCellEvent)
 
   if (isUnderLookup.value || !isCanvasInjected || isExpandedForm.value || !clientMousePosition) return
 
   forcedNextTick(() => {
+    if (onCellEvent(canvasCellEventData.event)) return
+
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-many-to-many-plus-icon', clientMousePosition)) {
       openListDlg()
     } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-many-to-many-maximize-icon', clientMousePosition)) {
@@ -169,6 +192,7 @@ onMounted(() => {
 onUnmounted(() => {
   onDivDataCellEventHook?.off(onCellClick)
   cellClickHook?.off(onCellClick)
+  cellEventHook?.off(onCellEvent)
 })
 </script>
 
@@ -211,9 +235,16 @@ onUnmounted(() => {
         >
           <GeneralIcon icon="plus" class="text-sm nc-plus" />
         </NcButton>
-        <NcButton size="xsmall" type="secondary" class="nc-action-icon nc-many-to-many-maximize-icon" @click.stop="openChildList">
-          <GeneralIcon icon="maximize" />
-        </NcButton>
+        <NcTooltip :title="$t('tooltip.expandShiftSpace')" :disabled="isExpandedForm" class="flex">
+          <NcButton
+            size="xsmall"
+            type="secondary"
+            class="nc-action-icon nc-many-to-many-maximize-icon"
+            @click.stop="openChildList"
+          >
+            <GeneralIcon icon="maximize" />
+          </NcButton>
+        </NcTooltip>
       </div>
     </div>
 

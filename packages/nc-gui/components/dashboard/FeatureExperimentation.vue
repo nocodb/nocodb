@@ -13,6 +13,27 @@ const value = useVModel(props, 'value')
 
 const selectedFeatures = ref<Record<string, boolean>>({})
 
+const isFeatureVisible = (feature: BetaFeatureType) => {
+  return (!feature?.isEE || isEeUI) && (!feature?.isEngineering || isEngineeringModeOn.value)
+}
+
+const isAllFeaturesEnabled = computed({
+  get: () => {
+    return features.value.every((feature) => {
+      return !isFeatureVisible(feature) || selectedFeatures.value[feature.id]
+    })
+  },
+  set: (value: boolean) => {
+    features.value.forEach((feature) => {
+      if (isFeatureVisible(feature) && feature.enabled !== value) {
+        if (toggleFeature(feature.id, value)) {
+          selectedFeatures.value[feature.id] = value
+        }
+      }
+    })
+  },
+})
+
 const saveExperimentalFeatures = () => {
   features.value.forEach((feature) => {
     if (selectedFeatures.value[feature.id] !== feature.enabled) {
@@ -83,15 +104,27 @@ onUnmounted(() => {
         </nc-button>
       </div>
 
-      <div class="text-sm font-weight-500 text-gray-600 leading-5 m-4 mb-0">
-        {{ $t('labels.toggleExperimentalFeature') }}
+      <div class="text-sm font-weight-500 text-gray-600 leading-5 m-4 mb-0 flex items-center justify-between gap-3 pr-3">
+        <span>
+          {{ $t('labels.toggleExperimentalFeature') }}
+        </span>
+        <NcTooltip
+          :title="
+            isAllFeaturesEnabled
+              ? `${$t('general.disable')} ${$t('general.all')}`
+              : `${$t('general.enable')} ${$t('general.all')}`
+          "
+          class="flex"
+        >
+          <NcSwitch v-model:checked="isAllFeaturesEnabled" />
+        </NcTooltip>
       </div>
 
       <div class="h-full overflow-y-auto nc-scrollbar-thin flex-grow m-4 !rounded-lg">
         <div ref="contentRef" class="border-1 !border-gray-200 !rounded-lg">
           <template v-for="feature in features" :key="feature.id">
             <div
-              v-if="(!feature.isEE || isEeUI) && (!feature?.isEngineering || isEngineeringModeOn)"
+              v-if="isFeatureVisible(feature)"
               class="border-b-1 px-3 flex gap-2 flex-col py-2 !border-gray-200 last:border-b-0"
             >
               <div class="flex items-center justify-between">

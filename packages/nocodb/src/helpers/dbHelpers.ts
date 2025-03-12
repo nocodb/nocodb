@@ -1,4 +1,6 @@
 import { type NcContext, RelationTypes } from 'nocodb-sdk';
+import type CustomKnex from 'src/db/CustomKnex';
+import type { Knex } from 'knex';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   type Column,
@@ -7,7 +9,10 @@ import {
   Source,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { isEE, isOnPrem } from '~/utils';
+
+export function concatKnexRaw(knex: CustomKnex, raws: Knex.Raw[]) {
+  return knex.raw(raws.map((_r) => '?').join(' '), raws);
+}
 
 export function _wherePk(
   primaryKeys: Column[],

@@ -61,21 +61,20 @@ const sqlite3 = {
     };
   },
   LEFT: async (args: MapFnArgs) => {
+    const source = (await args.fn(args.pt.arguments[0])).builder;
+    const length = (await args.fn(args.pt.arguments[1])).builder;
     return {
-      builder: args.knex.raw(
-        `SUBSTR(${(await args.fn(args.pt.arguments[0])).builder},1,${
-          (await args.fn(args.pt.arguments[1])).builder
-        })${args.colAlias}`,
-      ),
+      builder: args.knex.raw(`SUBSTR(?,1,?)${args.colAlias}`, [source, length]),
     };
   },
   RIGHT: async (args: MapFnArgs) => {
+    const source = (await args.fn(args.pt.arguments[0])).builder;
+    const length = (await args.fn(args.pt.arguments[1])).builder;
     return {
-      builder: args.knex.raw(
-        `SUBSTR(${(await args.fn(args.pt.arguments[0])).builder},-(${
-          (await args.fn(args.pt.arguments[1])).builder
-        }))${args.colAlias}`,
-      ),
+      builder: args.knex.raw(`SUBSTR(?,-(?))${args.colAlias}`, [
+        source,
+        length,
+      ]),
     };
   },
   MID: 'SUBSTR',
@@ -245,51 +244,65 @@ const sqlite3 = {
     };
   },
   AND: async (args: MapFnArgs) => {
+    const predicates = (args.pt.arguments.map((_k) => '?') as string[]).join(
+      ' AND ',
+    );
+
+    const parsedArguments = await Promise.all(
+      args.pt.arguments.map(async (ar) => {
+        const argsStr = (await args.fn(ar, '', 'AND')).builder;
+        return { builder: argsStr };
+      }),
+    );
+
+    const clause = args.knex
+      .raw(
+        predicates,
+        parsedArguments.map((a) => a.builder),
+      )
+      .wrap('(', ')');
+
     return {
-      builder: args.knex.raw(
-        `CASE WHEN ${args.knex
-          .raw(
-            `${(
-              await Promise.all(
-                args.pt.arguments.map(async (ar) =>
-                  (await args.fn(ar, '', 'AND')).builder.toQuery(),
-                ),
-              )
-            ).join(' AND ')}`,
-          )
-          .wrap('(', ')')
-          .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`,
-      ),
+      builder: args.knex.raw(`CASE WHEN ? THEN 1 ELSE 0 END ${args.colAlias}`, [
+        clause,
+      ]),
     };
   },
   OR: async (args: MapFnArgs) => {
+    const predicates = (args.pt.arguments.map((_k) => '?') as string[]).join(
+      ' OR ',
+    );
+
+    const parsedArguments = await Promise.all(
+      args.pt.arguments.map(async (ar) => {
+        const argsStr = (await args.fn(ar, '', 'OR')).builder;
+        return { builder: argsStr };
+      }),
+    );
+
+    const clause = args.knex
+      .raw(
+        predicates,
+        parsedArguments.map((a) => a.builder),
+      )
+      .wrap('(', ')');
+
     return {
-      builder: args.knex.raw(
-        `CASE WHEN ${args.knex
-          .raw(
-            `${(
-              await Promise.all(
-                args.pt.arguments.map(async (ar) =>
-                  (await args.fn(ar, '', 'OR')).builder.toQuery(),
-                ),
-              )
-            ).join(' OR ')}`,
-          )
-          .wrap('(', ')')
-          .toQuery()} THEN 1 ELSE 0 END ${args.colAlias}`,
-      ),
+      builder: args.knex.raw(`CASE WHEN ? THEN 1 ELSE 0 END ${args.colAlias}`, [
+        clause,
+      ]),
     };
   },
   async JSON_EXTRACT(args: MapFnArgs) {
+    const source = (await args.fn(args.pt.arguments[0])).builder;
+    const needle = (await args.fn(args.pt.arguments[1])).builder;
     return {
       builder: args.knex.raw(
-        `CASE WHEN json_valid(${
-          (await args.fn(args.pt.arguments[0])).builder
-        }) = 1 THEN json_extract(${
-          (await args.fn(args.pt.arguments[0])).builder
-        }, CONCAT('$', ${
-          (await args.fn(args.pt.arguments[1])).builder
-        })) ELSE NULL END${args.colAlias}`,
+        `CASE WHEN json_valid(:source) = 1 THEN json_extract(:source, CONCAT('$', :needle)) ELSE NULL END${args.colAlias}`,
+        {
+          source,
+          needle,
+        },
       ),
     };
   },

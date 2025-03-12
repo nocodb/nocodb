@@ -69,7 +69,7 @@ export const useInfiniteGroups = (
 
     targetChunkStates[chunkId] = 'loading'
     const offset = chunkId * GROUP_CHUNK_SIZE
-    const level = parentGroup ? findGroupLevel(parentGroup) + 1 : 0
+    const level = parentGroup ? findGroupLevel(parentGroup) - 1 : 0
     const groupCol = groupByColumns.value[level]
 
     if (!groupCol || !view.value?.id || !base.value?.id) return
@@ -103,20 +103,22 @@ export const useInfiniteGroups = (
           value,
           nestedIn: parentGroup
             ? [
-              ...parentGroup.nestedIn,
-              {
-                title: groupCol.column.title!,
-                column_name: groupCol.column.title!,
-                key: value,
-                column_uidt: groupCol.column.uidt,
-              }
-            ]
-            : [{
-              title: groupCol.column.title!,
-              column_name: groupCol.column.title!,
-              key: value,
-              column_uidt: groupCol.column.uidt,
-            }],
+                ...parentGroup.nestedIn,
+                {
+                  title: groupCol.column.title!,
+                  column_name: groupCol.column.title!,
+                  key: value,
+                  column_uidt: groupCol.column.uidt,
+                },
+              ]
+            : [
+                {
+                  title: groupCol.column.title!,
+                  column_name: groupCol.column.title!,
+                  key: value,
+                  column_uidt: groupCol.column.uidt,
+                },
+              ],
         }
 
         if (group.column.uidt === UITypes.LinkToAnotherRecord) {
@@ -195,13 +197,11 @@ export const useInfiniteGroups = (
 
     const parentNestedIn = group.nestedIn.slice(0, -1)
     for (const [_, parent] of cachedGroups.value) {
-      if (parent.nestedIn.length === parentNestedIn.length &&
-        parent.nestedIn.every((n, i) => n.key === parentNestedIn[i].key)) {
+      if (parent.nestedIn.length === parentNestedIn.length && parent.nestedIn.every((n, i) => n.key === parentNestedIn[i].key)) {
         return parent
       }
       for (const [_, child] of parent.groups) {
-        if (child.nestedIn.length === parentNestedIn.length &&
-          child.nestedIn.every((n, i) => n.key === parentNestedIn[i].key)) {
+        if (child.nestedIn.length === parentNestedIn.length && child.nestedIn.every((n, i) => n.key === parentNestedIn[i].key)) {
           return child
         }
       }
@@ -279,7 +279,7 @@ export const useInfiniteGroups = (
     group.isExpanded = !group.isExpanded
     if (group.isExpanded) {
       const level = findGroupLevel(group)
-      if (level < groupByColumns.value.length - 1) {
+      if (level <= groupByColumns.value.length - 1) {
         await fetchMissingGroupChunks(startIndex, endIndex, group)
       } else if (group.infiniteData) {
         await fetchMissingRowChunks(group, startIndex, endIndex)

@@ -418,8 +418,8 @@ const handleKeyDown = (e: KeyboardEvent) => {
               />
             </template>
             <template>
-              <div>
-                <table v-if="tableData && tableData.length">
+              <div class="linked-table-container">
+                <table v-if="tableData && tableData.length" class="linked-items-table">
                   <thead>
                     <tr>
                       <th v-for="(key, index) in Object.keys(tableData[0] || {})" :key="index">
@@ -428,17 +428,31 @@ const handleKeyDown = (e: KeyboardEvent) => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(row, rowIndex) in tableData" :key="row.id || rowIndex">
-                      <td v-for="(value, key) in row" :key="key">
-                        <a v-if="isURL(value)" :href="value" target="_blank" rel="noopener noreferrer">
-                          {{ value }}
-                        </a>
-                        <span v-else>{{ value }}</span>
+                    <tr v-for="(row, rowIndex) in tableData" :key="row.id || rowIndex" class="linked-items-row">
+                     <td v-for="(value, key) in row" :key="key" class="linked-items-cell">
+                        <template v-if="isURL(value)">
+                          <a 
+                            :href="value" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            :title="value"
+                            class="linked-items-url"
+                            aria-label="Open link in new tab"
+                          >
+                            {{ value }}
+                          </a>
+                        </template>
+                        <span v-else>{{ value !== null && value !== undefined ? value : '' }}</span>
                       </td>
                     </tr>
                   </tbody>
                 </table>
-                <p v-else>No data available</p>
+                <div v-else-if="tableData && tableData.length === 0" class="no-data-message">
+                  <p>No data a vailable</p>
+                </div>
+                <div v-else class="loading-data">
+                  <p>Loading data...</p>
+                </div>
               </div>
             </template>
           </div>
@@ -576,6 +590,34 @@ const handleKeyDown = (e: KeyboardEvent) => {
   color: rgb(54, 54, 224);
   text-decoration: underline;
   cursor: pointer;
-}
+  }
+  .linked-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  }
+
+  .linked-items-table th, 
+  .linked-items-table td {
+    padding: 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .linked-items-table th {
+    font-weight: 600;
+    background-color: #f9fafb;
+  }
+
+  .linked-items-row:hover {
+    background-color: #f9fafb;
+  }
+
+  .no-data-message,
+  .loading-data {
+    text-align: center;
+    padding: 1rem;
+    color: #6b7280;
+  }
 }
 </style>

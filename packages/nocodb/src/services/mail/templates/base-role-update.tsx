@@ -53,10 +53,10 @@ export const BaseRoleUpdate = ({
           </Section>
           <Text className="text-gray-600 text-center text-sm !mt-0">
             Your access in
-            <span className="font-bold text-gray-800">{baseTitle}</span>
+            <span className="font-bold text-gray-800"> {baseTitle} </span>
             has been updated to{' '}
-            <span className="font-bold text-gray-800 capitalize ">{role}</span>
-            by <span className="font-bold text-gray-800">{` ${name}`}</span> ({' '}
+            <span className="font-bold text-gray-800 capitalize ">{role} </span>
+            by <span className="font-bold text-gray-800">{` ${name}`}</span> (
             {email})
           </Text>
           <Button

@@ -5,6 +5,7 @@ import VerifyEmail from '~/services/mail/templates/verify-your-email';
 import OrganizationInvite from '~/services/mail/templates/org-invite';
 import OrganizationRoleUpdate from '~/services/mail/templates/org-role-update';
 import BaseRoleUpdate from '~/services/mail/templates/base-role-update';
+import FormSubmission from '~/services/mail/templates/form-submission';
 
 export {
   Welcome,
@@ -14,4 +15,5 @@ export {
   VerifyEmail,
   OrganizationInvite,
   OrganizationRoleUpdate,
+  FormSubmission,
 };

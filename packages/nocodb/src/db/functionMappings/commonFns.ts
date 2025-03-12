@@ -230,7 +230,7 @@ export default {
 
     return {
       builder: args.knex.raw(
-        `${predicates}${args.colAlias}`,
+        `(${predicates})${args.colAlias}`,
         parsedArguments.map((k) => k.builder),
       ),
     };
@@ -249,7 +249,7 @@ export default {
 
     return {
       builder: args.knex.raw(
-        `${predicates}${args.colAlias}`,
+        `(${predicates})${args.colAlias}`,
         parsedArguments.map((k) => k.builder),
       ),
     };

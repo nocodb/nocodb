@@ -6283,7 +6283,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       if ('beforeBulkInsert' in this) {
-        await this.beforeBulkInsert(insertDatas, trx, cookie);
+        await this.beforeBulkInsert(insertDatas, trx, cookie, {
+          allowSystemColumn,
+        });
       }
 
       // await this.beforeInsertb(insertDatas, null);
@@ -7220,16 +7222,34 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return;
   }
 
-  public async beforeInsert(data: any, _trx: any, req): Promise<void> {
-    if (this.model.synced) {
+  public async beforeInsert(
+    data: any,
+    _trx: any,
+    req,
+    params?: {
+      allowSystemColumn?: boolean;
+    },
+  ): Promise<void> {
+    const { allowSystemColumn = false } = params || {};
+
+    if (!allowSystemColumn && this.model.synced) {
       NcError.badRequest('Cannot insert into synced table');
     }
 
     await this.handleHooks('before.insert', null, data, req);
   }
 
-  public async beforeBulkInsert(data: any, _trx: any, req): Promise<void> {
-    if (this.model.synced) {
+  public async beforeBulkInsert(
+    data: any,
+    _trx: any,
+    req,
+    params?: {
+      allowSystemColumn?: boolean;
+    },
+  ): Promise<void> {
+    const { allowSystemColumn = false } = params || {};
+
+    if (!allowSystemColumn && this.model.synced) {
       NcError.badRequest('Cannot insert into synced table');
     }
 

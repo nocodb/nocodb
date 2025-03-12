@@ -65,4 +65,12 @@ export default [
       },
     ],
   },
+  {
+    type: FormBuilderInputType.Switch,
+    label: 'Include closed issues',
+    width: 100,
+    model: 'config.includeClosed',
+    category: 'Source',
+    defaultValue: false,
+  },
 ];

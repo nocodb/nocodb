@@ -263,7 +263,10 @@ export class SyncModuleService {
       context,
       syncConfigId: syncConfig.id,
       trigger: SyncTrigger.Manual,
-      req,
+      req: {
+        user: req.user,
+        clientIp: req.clientIp,
+      },
     });
 
     await SyncConfig.update(context, syncConfig.id, {

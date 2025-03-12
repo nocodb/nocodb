@@ -13,6 +13,7 @@ export default class GithubIssuesIntegration extends SyncIntegration {
     payload: {
       owner: string;
       repo: string;
+      includeClosed: boolean;
     },
     options: {
       last_record?: RecordTypeFromSchema<typeof ticketingSchema>;
@@ -36,7 +37,13 @@ export default class GithubIssuesIntegration extends SyncIntegration {
       try {
         const iterator = await octokit.paginate.iterator(
           octokit.rest.issues.listForRepo,
-          { owner, repo, per_page: 100, since: fetchAfter },
+          {
+            owner,
+            repo,
+            per_page: 100,
+            since: fetchAfter,
+            ...(payload.includeClosed ? { state: 'all' } : {}),
+          },
         );
 
         for await (const { data } of iterator) {

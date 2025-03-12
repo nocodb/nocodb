@@ -77,7 +77,7 @@ export function useKeyboardNavigation({
     if (e.key === ' ' && !e.shiftKey) {
       const isRichModalOpen = isExpandedCellInputExist()
 
-      if (activeCell.value.row !== -1 && !isRichModalOpen) {
+      if (!editEnabled.value && activeCell.value.row !== -1 && !isRichModalOpen) {
         e.preventDefault()
         const row = cachedRows.value.get(activeCell.value.row)
 

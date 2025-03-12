@@ -26,8 +26,7 @@ const inputRef = ref<HTMLInputElement>()
 const vModel = useVModel(props, 'modelValue', emits)
 
 const precision = computed(() => {
-  const meta = typeof column?.value.meta === 'string' ? JSON.parse(column.value.meta) : column?.value.meta ?? {}
-  return meta.precision ?? 1
+  return parseProp(column?.value.meta).precision ?? 1
 })
 
 onMounted(() => {

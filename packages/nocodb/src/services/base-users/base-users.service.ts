@@ -59,6 +59,7 @@ export class BaseUsersService {
       baseId: string;
       baseUser: ProjectUserReqType;
       req: NcRequest;
+      workspaceInvited?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<any> {
@@ -160,15 +161,28 @@ export class BaseUsersService {
             ncMeta,
           );
 
-          await this.mailService.sendMail({
-            mailEvent: MailEvent.BASE_INVITE,
-            payload: {
-              req: param.req,
-              user: user,
-              base: base,
-              role: (param.baseUser.roles || 'editor') as ProjectRoles,
-            },
-          });
+          if (param?.workspaceInvited) {
+            await this.mailService.sendMail({
+              mailEvent: MailEvent.BASE_INVITE,
+              payload: {
+                req: param.req,
+                user: user,
+                base: base,
+                role: (param.baseUser.roles || 'editor') as ProjectRoles,
+                token: invite_token,
+              },
+            });
+          } else {
+            await this.mailService.sendMail({
+              mailEvent: MailEvent.BASE_ROLE_UPDATE,
+              payload: {
+                req: param.req,
+                user: user,
+                base: base,
+                role: (param.baseUser.roles || 'editor') as ProjectRoles,
+              },
+            });
+          }
         }
 
         this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
@@ -365,6 +379,16 @@ export class BaseUsersService {
       param.baseUser.roles,
       ncMeta,
     );
+
+    await this.mailService.sendMail({
+      mailEvent: MailEvent.BASE_ROLE_UPDATE,
+      payload: {
+        req: param.req,
+        user: user,
+        base,
+        role: (param.baseUser.roles || 'editor') as ProjectRoles,
+      },
+    });
 
     this.appHooksService.emit(AppEvents.PROJECT_USER_UPDATE, {
       base,

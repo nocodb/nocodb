@@ -303,13 +303,15 @@
     "extension": "Rozszerzenie",
     "extensions": "Rozszerzenia",
     "enable": "Włącz",
+    "disable": "Disable",
     "poweredBy": "Napędzane przez",
     "nocoAI": "Noco AI",
     "you": "Ty",
     "read": "Odczytane",
     "unread": "Nieprzeczytane",
     "shared": "Shared",
-    "organization": "Organization"
+    "organization": "Organization",
+    "all": "All"
   },
   "objects": {
     "script": "Skrypt",
@@ -1466,7 +1468,9 @@
     "aiIntegrationAddAndReConfigure": "Integracja AI została usunięta, dodaj ponownie i skonfiguruj z poziomu okna edycji pola, aby używać funkcji NocoAI",
     "generateFieldDataUsingAiButtonOption": "Wygeneruj wartość dla wielu pól w tej tabeli, używając informacji z rekordu i NocoAI",
     "sourceDataIsReadonly": "Dane źródłowe są tylko do odczytu",
-    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View."
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
+    "shiftSpace": "Shift + Space",
+    "expandShiftSpace": "Expand 'Shift + Space'"
   },
   "placeholder": {
     "searchIcons": "Wyszukaj ikony",

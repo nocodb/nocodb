@@ -303,13 +303,15 @@
     "extension": "תוסף",
     "extensions": "תוספים",
     "enable": "מופעל",
+    "disable": "Disable",
     "poweredBy": "מופעל ע״י",
     "nocoAI": "Noco AI",
     "you": "אתה",
     "read": "נקרא",
     "unread": "לא נקרא",
     "shared": "Shared",
-    "organization": "Organization"
+    "organization": "Organization",
+    "all": "All"
   },
   "objects": {
     "script": "Script",
@@ -1466,7 +1468,9 @@
     "aiIntegrationAddAndReConfigure": "האינטגרציה של AI הוסרה, הוסף מחדש וחדש את הקונפיגורציה מתוך תיבת העריכה של השדה כדי להפעיל את התכונות של NocoAI",
     "generateFieldDataUsingAiButtonOption": "יצירת ערך למספר שדות בטבלה זו תוך שימוש במידע רשומה ו-NocoAI",
     "sourceDataIsReadonly": "הנתונים המקוריים הם לקריאה בלבד",
-    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View."
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
+    "shiftSpace": "Shift + Space",
+    "expandShiftSpace": "Expand 'Shift + Space'"
   },
   "placeholder": {
     "searchIcons": "חפש אייקונים",

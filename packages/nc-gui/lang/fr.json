@@ -303,13 +303,15 @@
     "extension": "Extension",
     "extensions": "Extensions",
     "enable": "Activer",
+    "disable": "Disable",
     "poweredBy": "Propulsé par",
     "nocoAI": "Noco AI",
     "you": "Vous",
     "read": "Lu",
     "unread": "Non lu",
     "shared": "Partagé",
-    "organization": "Organisation"
+    "organization": "Organisation",
+    "all": "All"
   },
   "objects": {
     "script": "Script",
@@ -1466,7 +1468,9 @@
     "aiIntegrationAddAndReConfigure": "L'intégration de l'IA a été supprimée, ajoutez à nouveau et reconfigurez à partir de la fenêtre d'édition de champ pour utiliser les fonctionnalités de NocoAI",
     "generateFieldDataUsingAiButtonOption": "Générer des données pour plusieurs champs dans ce tableau en utilisant les informations de l'enregistrement et NocoAI",
     "sourceDataIsReadonly": "Les données source sont en lecture seule",
-    "schemaChangeDisabledFormSqlView": "La modification de schéma est désactivée pour cette vue SQL."
+    "schemaChangeDisabledFormSqlView": "La modification de schéma est désactivée pour cette vue SQL.",
+    "shiftSpace": "Shift + Space",
+    "expandShiftSpace": "Expand 'Shift + Space'"
   },
   "placeholder": {
     "searchIcons": "Rechercher des icônes",

@@ -417,7 +417,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
                 @keydown.enter.prevent.stop="() => linkOrUnLink(refRow, id)"
               />
             </template>
-            <template>
+            <template v-if="tableData && tableData.length > 0 && showAsTable">
               <div class="linked-table-container">
                 <table v-if="tableData && tableData.length" class="linked-items-table">
                   <thead>

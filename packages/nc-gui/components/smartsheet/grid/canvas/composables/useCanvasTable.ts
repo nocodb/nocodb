@@ -5,7 +5,12 @@ import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../utils/cell'
 import { clearTextCache } from '../utils/canvas'
-import { CELL_BOTTOM_BORDER_IN_PX, COLUMN_HEADER_HEIGHT_IN_PX, EDIT_INTERACTABLE } from '../utils/constants'
+import {
+  CELL_BOTTOM_BORDER_IN_PX,
+  COLUMN_HEADER_HEIGHT_IN_PX,
+  EDIT_INTERACTABLE,
+  GROUP_HEADER_HEIGHT, GROUP_PADDING,
+} from '../utils/constants';
 import { ActionManager } from '../loaders/ActionManager'
 import { useGridCellHandler } from '../cells'
 import { TableMetaLoader } from '../loaders/TableMetaLoader'
@@ -201,6 +206,9 @@ export function useCanvasTable({
   const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
 
   const partialRowHeight = computed(() => scrollTop.value % rowHeight.value)
+
+
+  const partialGroupHeight = computed(() => scrollTop.value % (GROUP_HEADER_HEIGHT + GROUP_PADDING))
 
   const isAiFillMode = computed(
     () => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES),
@@ -584,6 +592,7 @@ export function useCanvasTable({
     baseColor,
     scrollTop,
     totalGroups,
+    partialGroupHeight,
     cachedRows,
     rowSlice,
     rowHeight,

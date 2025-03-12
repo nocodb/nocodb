@@ -52,6 +52,7 @@ export function useCanvasRender({
   imageLoader,
   tableMetaLoader,
   partialRowHeight,
+  partialGroupHeight,
   vSelectedAllRecords,
   isRowDraggingEnabled,
   isAddingColumnAllowed,
@@ -102,6 +103,7 @@ export function useCanvasRender({
   spriteLoader: SpriteLoader
   tableMetaLoader: TableMetaLoader
   partialRowHeight: Ref<number>
+  partialGroupHeight: Ref<number>
   vSelectedAllRecords: WritableComputedRef<boolean>
   selectedRows: Ref<Row[]>
   isDragging: Ref<boolean>
@@ -1824,7 +1826,7 @@ export function useCanvasRender({
   ): number {
     if (!level) level = 0
     const groups = pGroup?.groups ?? cachedGroups.value
-    const total = pGroup ? pGroup.groupCount : totalGroups.value
+    const total = (pGroup ? pGroup.groupCount : totalGroups.value) ?? 0
 
     const fixedCols = columns.value.filter((col) => col.fixed)
 
@@ -2093,10 +2095,12 @@ export function useCanvasRender({
       ctx.fillRect(0, 0, width.value, height.value)
       ctx.restore()
 
+      const startGroupIndex = Math.floor(scrollTop.value / (GROUP_HEADER_HEIGHT + GROUP_PADDING))
+
       renderGroups(ctx, {
         level: 0,
-        yOffset: 32 + GROUP_PADDING,
-        startIndex: groupSlice.value.start,
+        yOffset: 32 + GROUP_PADDING - partialGroupHeight.value,
+        startIndex: startGroupIndex,
         endIndex: groupSlice.value.end,
       })
     }

@@ -64,6 +64,8 @@ export function useGridCellHandler(params: {
 
   const { basesUser } = storeToRefs(useBases())
 
+  const { open: openDetachedExpandedForm } = useExpandedFormDetached()
+
   const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() =>
     params.meta?.value?.base_id ? basesUser.value.get(params.meta?.value.base_id) || [] : [],
   )
@@ -257,6 +259,7 @@ export function useGridCellHandler(params: {
         actionManager,
         makeCellEditable,
         isPublic: isPublic.value,
+        openDetachedExpandedForm
       })
     }
     return false

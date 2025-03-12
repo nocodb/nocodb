@@ -24,7 +24,7 @@ const cellFocused = ref(false)
 const inputRef = ref<HTMLInputElement>()
 
 const focus: VNodeRef = (el) => {
-  if ((!isExpandedFormOpen.value || localEditEnabled.value) && !isEditColumn.value && !isForm.value) {
+  if ((!isExpandedFormOpen.value || localEditEnabled.value) && !isEditColumn.value) {
     inputRef.value = el as HTMLInputElement
 
     if (cellFocused.value) return
@@ -72,8 +72,8 @@ const onBlur = () => {
 const onFocus = () => {
   cellFocused.value = true
 }
-const onContainerFocus = ($event) => {
-  $event?.target?.querySelector('input').focus()
+const onContainerFocus = (e) => {
+  inputRef.value?.focus()
 }
 onMounted(() => {
   if (isCanvasInjected || (!isEditColumn.value && !isForm.value)) {
@@ -92,8 +92,8 @@ onMounted(() => {
       ...(isForm && { 'min-height': '18px' }),
     }"
     :is-show-number="true"
-    :on-focus="onContainerFocus"
     :percentage="vModelNumber"
+    @focus="onContainerFocus"
   >
     <!-- eslint-disable vue/use-v-on-exact -->
     <input

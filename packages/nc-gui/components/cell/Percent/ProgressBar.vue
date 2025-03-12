@@ -2,13 +2,16 @@
 interface Props {
   percentage: number
   isShowNumber?: boolean
-  onFocus?: (event: any) => void
 }
 const props = defineProps<Props>()
+const emit = defineEmits(['focus', 'submit'])
 const cPercentage = computed(() => Math.max(0, Math.min(100, props.percentage)))
 const labelMarginLeft = computed<number>(() => {
   return Math.max(1, Math.min(props.percentage / 2, 50))
 })
+const onContainerFocus = (e: FocusEvent) => {
+  emit('focus', e)
+}
 </script>
 
 <template>
@@ -16,7 +19,7 @@ const labelMarginLeft = computed<number>(() => {
     tabindex="0"
     class="flex w-full progress-container min-h-[4px]"
     style="align-self: stretch; justify-self: stretch; height: 100%"
-    @focus="onFocus"
+    @focus="onContainerFocus"
   >
     <div class="progress-bar-input">
       <slot></slot>

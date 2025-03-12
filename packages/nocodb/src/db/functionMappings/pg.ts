@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { FormulaDataTypes } from 'nocodb-sdk';
 import commonFns from './commonFns';
-import type { MapFnArgs } from '../mapFunctionName';
+import type { MapFnArgs } from '~/db/mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
 

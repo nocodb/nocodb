@@ -80,11 +80,9 @@ const progressPercent = computed(() => {
     @focus="onWrapperFocus"
     @click="onWrapperFocus"
   >
-    <CellPercentProgressBar
-      :percentage="percentValueNumber"
-      :is-show-number="isExpandedFormOpen"
-      @focus="onWrapperFocus"
-    ></CellPercentProgressBar>
+    <CellPercentProgressBar :percentage="percentValueNumber" :is-show-number="isExpandedFormOpen">
+      <input @focus="onWrapperFocus" />
+    </CellPercentProgressBar>
   </div>
   <div
     v-else

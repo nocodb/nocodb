@@ -193,7 +193,9 @@ const {
   groupChunkStates,
   totalGroups,
   isGroupBy,
+  toggleExpand,
   groupByColumns,
+  partialGroupHeight,
 
   rowSlice,
   colSlice,
@@ -765,6 +767,12 @@ async function handleMouseDown(e: MouseEvent) {
     return
   }
 
+  // TODO: @DarkPhoenix2704
+  // HandleMouseDown with Groupby
+  if (isGroupBy.value) {
+    return // #FIXME
+  }
+
   const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
 
   const row = cachedRows.value.get(rowIndex)
@@ -1054,6 +1062,19 @@ async function handleMouseUp(e: MouseEvent) {
         position: 'fixed',
       }
     }
+    requestAnimationFrame(triggerRefreshCanvas)
+    return
+  }
+
+  // #FIXME: If Groupby Handle it BRO @DarkPhoenix2704
+  // TODOOOOOO
+  if (isGroupBy.value) {
+    const groupIndex =
+      Math.floor((y - 32 + partialGroupHeight.value) / (GROUP_HEADER_HEIGHT + GROUP_PADDING)) + groupSlice.value.start
+
+    const group = cachedGroups.value.get(groupIndex)
+
+    toggleExpand(group)
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }

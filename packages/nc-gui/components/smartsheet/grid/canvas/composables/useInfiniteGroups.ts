@@ -101,6 +101,22 @@ export const useInfiniteGroups = (
           color: findKeyColor(value, groupCol.column, getNextColor),
           expandedGroups: 0,
           value,
+          nestedIn: parentGroup
+            ? [
+              ...parentGroup.nestedIn,
+              {
+                title: groupCol.column.title!,
+                column_name: groupCol.column.title!,
+                key: value,
+                column_uidt: groupCol.column.uidt,
+              }
+            ]
+            : [{
+              title: groupCol.column.title!,
+              column_name: groupCol.column.title!,
+              key: value,
+              column_uidt: groupCol.column.uidt,
+            }],
         }
 
         if (group.column.uidt === UITypes.LinkToAnotherRecord) {
@@ -146,38 +162,55 @@ export const useInfiniteGroups = (
   }
 
   function buildNestedWhere(group: CanvasGroup, existing = ''): string {
-    let current: CanvasGroup | undefined = group
-    const conditions: string[] = []
+    // Use nestedIn array instead of traversing parents
+    if (!group.nestedIn?.length) return existing
 
-    while (current) {
-      if (current.value !== null) {
-        conditions.push(`(${current.column.title},gb_eq,${current.value})`)
+    return group.nestedIn.reduce((acc, curr) => {
+      if (curr.key === GROUP_BY_VARS.NULL) {
+        acc += `${acc.length ? '~and' : ''}(${curr.title},gb_null)`
+      } else if (curr.column_uidt === UITypes.Checkbox) {
+        acc += `${acc.length ? '~and' : ''}(${curr.title},${curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
+      } else if (
+        [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(curr.column_uidt as UITypes)
+      ) {
+        acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,exactDate,${curr.key})`
+      } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(curr.column_uidt as UITypes)) {
+        try {
+          const value = JSON.parse(curr.key)
+          acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${(Array.isArray(value) ? value : [value])
+            .map((v: any) => v.id)
+            .join(',')})`
+        } catch (e) {
+          console.error(e)
+        }
       } else {
-        conditions.push(`(${current.column.title},gb_null)`)
+        acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${curr.key})`
       }
-      current = findParentGroup(current)
-    }
-
-    return conditions.length ? `${existing ? `${existing}~and` : ''}${conditions.join('~and')}` : existing
+      return acc
+    }, existing)
   }
 
   function findParentGroup(group: CanvasGroup): CanvasGroup | undefined {
+    if (!group.nestedIn?.length) return undefined
+
+    const parentNestedIn = group.nestedIn.slice(0, -1)
     for (const [_, parent] of cachedGroups.value) {
-      if (parent.groups.has([...parent.groups.values()].findIndex((g) => g === group))) return parent
+      if (parent.nestedIn.length === parentNestedIn.length &&
+        parent.nestedIn.every((n, i) => n.key === parentNestedIn[i].key)) {
+        return parent
+      }
       for (const [_, child] of parent.groups) {
-        if (child.groups.has([...child.groups.values()].findIndex((g) => g === group))) return child
+        if (child.nestedIn.length === parentNestedIn.length &&
+          child.nestedIn.every((n, i) => n.key === parentNestedIn[i].key)) {
+          return child
+        }
       }
     }
+    return undefined
   }
 
   function findGroupLevel(group: CanvasGroup): number {
-    let level = 0
-    let current: CanvasGroup | undefined = group
-    while (current) {
-      current = findParentGroup(current)
-      level++
-    }
-    return level - 1
+    return group.nestedIn?.length || 0
   }
 
   const fetchMissingGroupChunks = async (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => {

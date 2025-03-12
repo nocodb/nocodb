@@ -303,13 +303,15 @@
     "extension": "扩展",
     "extensions": "扩展",
     "enable": "启用",
+    "disable": "Disable",
     "poweredBy": "技术支持",
     "nocoAI": "Noco AI",
     "you": "您",
     "read": "阅读",
     "unread": "未读",
     "shared": "共享",
-    "organization": "组织"
+    "organization": "组织",
+    "all": "All"
   },
   "objects": {
     "script": "脚本",
@@ -1466,7 +1468,9 @@
     "aiIntegrationAddAndReConfigure": "AI集成已被移除，请从字段编辑模式重新添加和配置以使用NocoAI功能",
     "generateFieldDataUsingAiButtonOption": "使用记录信息和 NocoAI 为该表中的多个字段生成值",
     "sourceDataIsReadonly": "源数据只读",
-    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View."
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
+    "shiftSpace": "Shift + Space",
+    "expandShiftSpace": "Expand 'Shift + Space'"
   },
   "placeholder": {
     "searchIcons": "搜索图标",

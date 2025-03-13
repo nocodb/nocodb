@@ -1,5 +1,9 @@
-import { isLinksOrLTAR, RelationTypes, UITypes } from 'nocodb-sdk';
-import { isSelfLinkCol } from 'nocodb-sdk/build/main/lib/UITypes';
+import {
+  isLinksOrLTAR,
+  isSelfLinkCol,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { SwaggerColumn } from '../getSwaggerColumnMetas';
 import type { SwaggerView } from '~/services/api-docs/swaggerV2/getSwaggerJSONV2';

@@ -92,7 +92,7 @@ const onInputKeyDown = (e: KeyboardEvent) => {
   }
   if (!e.metaKey) {
     const { changed } = pasteText(target, e.key)
-    if (changed) {
+    if (changed || ['.'].includes(e.key)) {
       e.preventDefault()
       e.stopPropagation()
     }

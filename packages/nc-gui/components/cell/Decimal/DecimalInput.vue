@@ -98,8 +98,22 @@ const onInputKeyDown = (e: KeyboardEvent) => {
   if (!target) {
     return
   }
+  const functionKeys = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12']
   if (
-    ['ArrowLeft', 'ArrowRight', 'Enter', 'Escape', 'Home', 'End', 'PageUp', 'PageDown', 'Delete', 'Backspace', 'Tab'].includes(e.key) ||
+    [
+      'ArrowLeft',
+      'ArrowRight',
+      'Enter',
+      'Escape',
+      'Home',
+      'End',
+      'PageUp',
+      'PageDown',
+      'Delete',
+      'Backspace',
+      'Tab',
+      ...functionKeys,
+    ].includes(e.key) ||
     e.ctrlKey ||
     e.altKey ||
     e.metaKey
@@ -113,6 +127,7 @@ const onInputKeyDown = (e: KeyboardEvent) => {
     target.setSelectionRange(0, 0)
     return
   } else if (e.key.match('[^-0-9\.]')) {
+    console.log(e.key)
     // prevent everything non ctrl / alt and non . and non number
     e.preventDefault()
     e.stopPropagation()

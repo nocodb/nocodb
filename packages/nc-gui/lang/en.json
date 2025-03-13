@@ -681,7 +681,8 @@
     "customUrl": "Custom URL",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
     "latitude": "Latitude",
@@ -890,6 +891,7 @@
     "clickToCopyViewID": "Click to copy View ID",
     "viewMode": "View mode",
     "reAssignView": "Re-assign view",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "Search Users",
     "superAdmin": "Super Admin",
     "allTables": "All Tables",
@@ -1133,7 +1135,9 @@
     "showJsonPayload": "Show json payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
     "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "proceedToLink": "Proceed to link",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1529,7 +1533,8 @@
     "inviteYourTeam": "Invite your team",
     "inviteYourTeamLabel": "Fast track your projects by collaborating on them with your team!",
     "searchOptions": "Search options",
-    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
+    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional).",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
     "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",

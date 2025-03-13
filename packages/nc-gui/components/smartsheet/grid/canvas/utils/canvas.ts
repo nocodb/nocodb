@@ -558,25 +558,57 @@ export const renderMarkdownBlocks = (
       ctx.strokeStyle = defaultStrokeStyle
 
       const maxLinesToRender = maxLines - renderedLineCount
-      console.log('before', x, cursorX, cursorY)
-      const {
-        x: xOffset,
-        y: yOffset,
-        lastLineWidth,
-        lines,
-      } = renderMultiLineText(ctx, {
+
+      const isUrl = token.styles.includes('link') && !!token.url
+
+      const multilineTextFnProps = {
         x,
         y: cursorY,
         firstLineMaxWidth: maxWidth - (cursorX - x),
         text: tokenText,
         maxWidth,
         height,
-        fillStyle: token.styles.includes('link') ? '#4351e7' : (defaultFillStyle as string),
+        fillStyle: isUrl ? '#4351e7' : (defaultFillStyle as string),
         fontFamily: ctx.font,
         maxLines: maxLinesToRender,
-        underline: token.styles.includes('underline') || token.styles.includes('link'),
+        underline: token.styles.includes('underline') || isUrl,
         strikethrough: token.styles.includes('strikethrough'),
-      })
+      }
+
+      if (isUrl) {
+        const {
+          width: boxWidth,
+          height: boxHeight,
+          lines: linkLines,
+        } = renderMultiLineText(ctx, { ...multilineTextFnProps, render: false })
+        let linkX = x
+
+        if (linkLines.length === 1) {
+          linkX = cursorX
+        }
+
+        const linkBox = {
+          x: linkX,
+          y: cursorY,
+          width: boxWidth,
+          height: boxHeight,
+        }
+
+        const isHovered = isBoxHovered(linkBox, mousePosition)
+
+        if (isHovered) {
+          multilineTextFnProps.fillStyle = '#000'
+          ctx.fillStyle = '#000'
+          ctx.strokeStyle = '#000'
+        }
+
+        links.push({
+          ...linkBox,
+          url: token.url ?? '',
+        })
+      }
+
+      const { lastLineWidth, lines } = renderMultiLineText(ctx, { ...multilineTextFnProps })
 
       if (lines.length === 1) {
         cursorX += lastLineWidth
@@ -585,91 +617,24 @@ export const renderMarkdownBlocks = (
       }
 
       if (cursorX >= x + maxWidth + 10) {
-        console.log('reset x')
         cursorX = x
       }
 
       tokenIndex++
 
       if (tokenIndex !== tokens.length - 1 && (lines.length > 1 || cursorX === x)) {
-        console.log('changed before')
         renderedLineCount += lines.length
-        cursorY = y + renderedLineCount * lineHeight
+
+        if (cursorX === x) {
+          cursorY = y + renderedLineCount * lineHeight
+        } else {
+          cursorY = y + (renderedLineCount - 1) * lineHeight
+        }
       }
 
-      console.log('after', lines, x, cursorX, cursorY, yOffset)
-
-      if (renderedLineCount >= maxLinesToRender) break
-      // if (cursorX >= x + maxWidth) break
-      // if (isTruncated) break
-
-      // let tokenWidth = ctx.measureText(tokenText).width
-
-      // // Truncate the token if it exceeds the max width of the line
-      // if (cursorX + tokenWidth > x + maxWidth && tokenText.length > 0) {
-      //   // cursorX starts at x, so we need to subtract x to get used space
-      //   tokenText = truncateText(ctx, tokenText, maxWidth - (cursorX - x), false, false)
-      //   tokenWidth = ctx.measureText(tokenText).width
-      // }
-
-      // if (token.styles.includes('link')) {
-      //   const linkBox = {
-      //     x: cursorX - 2,
-      //     y: cursorY - baseFontSize / 2 - 2,
-      //     width: tokenWidth + 4,
-      //     height: baseFontSize + 4,
-      //   }
-
-      //   ctx.fillStyle = '#4351e7'
-      //   ctx.strokeStyle = '#4351e7'
-
-      //   const isHovered = isBoxHovered(linkBox, mousePosition)
-
-      //   if (isHovered) {
-      //     ctx.fillStyle = '#000'
-      //     ctx.strokeStyle = '#000'
-      //   }
-
-      //   links.push({
-      //     ...linkBox,
-      //     url: token.url ?? '',
-      //   })
-      // }
-
-      // let isTruncated = false
-
-      // // Add ellipsis if there is more text to render but we are on the last line
-      // if (renderedLineCount === maxLines - 1 && blocks.length > maxLines) {
-      //   const ellipsis = '...'
-      //   const ellipsisWidth = ctx.measureText(ellipsis).width
-
-      //   if (cursorX + tokenWidth + ellipsisWidth > x + maxWidth || tokenIndex === tokens.length - 1) {
-      //     if (cursorX + tokenWidth + ellipsisWidth > x + maxWidth && tokenText.length > 0) {
-      //       // cursorX starts at x, so we need to subtract x to get used space
-      //       tokenText = truncateText(ctx, tokenText, maxWidth - (cursorX - x) - ellipsisWidth, false, false)
-      //       tokenWidth = ctx.measureText(tokenText).width
-      //     }
-
-      //     tokenText += ellipsis
-      //     tokenWidth = ctx.measureText(tokenText).width
-      //     isTruncated = true
-      //   }
-      // }
-
-      // ctx.fillText(tokenText, cursorX, cursorY)
-
-      // if (token.styles.includes('underline') || token.styles.includes('link')) {
-      //   drawUnderline(ctx, { x: cursorX, y: cursorY, width: tokenWidth, fontSize: baseFontSize })
-      // }
-
-      // if (token.styles.includes('strikethrough')) {
-      //   drawStrikeThrough(ctx, { x: cursorX, y: cursorY, width: tokenWidth, fontSize: baseFontSize })
-      // }
-
-      // cursorX += tokenWidth
-      // tokenIndex++
-      // if (cursorX >= x + maxWidth) break
-      // if (isTruncated) break
+      if (renderedLineCount >= maxLines) {
+        break
+      }
     }
 
     renderedLineCount++

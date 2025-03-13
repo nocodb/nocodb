@@ -34,6 +34,13 @@ import Palette from '~icons/material-symbols/palette-outline'
 import MsSync from '~icons/material-symbols/sync-rounded'
 import MdiRefresh from '~icons/mdi/refresh'
 import ApiSnippet from '~icons/material-symbols/settings-ethernet-rounded'
+import MdiDoubleArrowLeft from '~icons/mdi/chevron-double-left'
+import MdiDoubleArrowRight from '~icons/mdi/chevron-double-right'
+import MdiPlus from '~icons/mdi/plus'
+import MdiChevronRight from '~icons/mdi/chevron-right'
+import MdiChevronLeft from '~icons/mdi/chevron-left'
+import MdiCogOutline from '~icons/mdi/cog-outline'
+import MdiMenu from '~icons/mdi/menu'
 import Phishing from '~icons/material-symbols/phishing-outline-rounded'
 import MdiAccountGroup from '~icons/mdi/account-group'
 import MdiDotsVertical from '~icons/mdi/dots-vertical'
@@ -969,8 +976,8 @@ export const iconMap = {
   'arrowCollapse': Up,
   'markerAlert': h('span', { class: 'material-symbols' }, 'warning'),
   'appStore': h('span', { class: 'material-symbols' }, 'apps'),
-  'chevronLeft': h('span', { class: 'material-symbols' }, 'chevron_left'),
-  'chevronRight': h('span', { class: 'material-symbols' }, 'chevron_right'),
+  'chevronLeft': MdiChevronLeft,
+  'chevronRight': MdiChevronRight,
   'imagePlaceholder': h('span', { class: 'material-symbols' }, 'insert_photo'),
   'linkRemove': h('span', { class: 'material-symbols' }, 'link_off'),
   'closeThick': h('span', { class: 'material-symbols' }, 'cancel'),
@@ -1025,14 +1032,14 @@ export const iconMap = {
   'upload': NcUpload,
   'hook': Phishing,
   'erd': h('span', { class: 'material-symbols' }, 'account_tree'),
-  'plus': h('span', { class: 'material-symbols', style: '-webkit-text-stroke: 0.3px' }, 'add'),
+  'plus': MdiPlus,
   'plusSquare': PlusSquare,
   'minus': Minus,
   'help': h('span', { class: 'material-symbols' }, 'help'),
   'copy': NcCopy,
   'duplicate': NcDuplicate,
   'clipboard': h('span', { class: 'material-symbols' }, 'content_paste'),
-  'settings': h('span', { class: 'material-symbols' }, 'settings'),
+  'settings': MdiCogOutline,
   'image': h('span', { class: 'material-symbols' }, 'image'),
   'datasource': h('span', { class: 'material-symbols' }, 'hard_drive'),
   'book': h('span', { class: 'material-symbols' }, 'menu_book'),
@@ -1042,12 +1049,8 @@ export const iconMap = {
   'arrowUp': Up,
   'layout': PhLayout,
   'sidebar': LayoutSidebar,
-  'doubleRightArrow': h(
-    'span',
-    { class: 'material-symbols', style: '-webkit-text-stroke: 0.5px' },
-    'keyboard_double_arrow_right',
-  ),
-  'doubleLeftArrow': h('span', { class: 'material-symbols', style: '-webkit-text-stroke: 0.5px' }, 'keyboard_double_arrow_left'),
+  'doubleRightArrow': MdiDoubleArrowRight,
+  'doubleLeftArrow': MdiDoubleArrowLeft,
   'sidebarMinimise': PhCaretDoubleLeftThin, // h('span', { class: 'material-symbols' }, 'left_panel_close'),
   // threeDotVertical: h('span', { class: 'material-symbols' }, 'more_vert'),
   // threeDotHorizontal: h('span', { class: 'material-symbols' }, 'more_horiz'),
@@ -1133,7 +1136,7 @@ export const iconMap = {
   'drag': MaterialSymbolsDragIndicator,
   'comment': h('span', { class: 'material-symbols' }, 'comment'),
   'doc': h('span', { class: 'material-symbols' }, 'menu_book'),
-  'menu': h('span', { class: 'material-symbols' }, 'menu'),
+  'menu': MdiMenu,
   'move': MsMove,
   'creditCard': NcCreditCard,
   'heightShort': NcIconsRowHeightShort,

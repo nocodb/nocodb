@@ -7,6 +7,7 @@ export const PaymentModuleMetadata = {
   imports: [],
   controllers: [PaymentController],
   providers: [PaymentService],
+  exports: [PaymentService],
 };
 
 @Module(PaymentModuleMetadata)

@@ -1,10 +1,9 @@
 import { Logger } from '@nestjs/common';
 import {
-  ProjectRoles,
+  NON_SEAT_ROLES,
   type WorkspacePlan,
   type WorkspaceStatus,
   type WorkspaceType,
-  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
@@ -34,15 +33,6 @@ import {
 import { FreePlan } from '~/models/Plan';
 
 const logger = new Logger('Workspace');
-
-const NON_SEAT_ROLES = [
-  WorkspaceUserRoles.NO_ACCESS,
-  WorkspaceUserRoles.VIEWER,
-  WorkspaceUserRoles.COMMENTER,
-  ProjectRoles.NO_ACCESS,
-  ProjectRoles.VIEWER,
-  ProjectRoles.COMMENTER,
-];
 
 export default class Workspace implements WorkspaceType {
   id?: string;

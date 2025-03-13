@@ -20,15 +20,19 @@ export class PaymentService {
     return plans.filter((plan) => !active || plan.is_active === active);
   }
 
-  async getSeatCount(workspaceId: string, _req: NcRequest) {
-    const workspace = await Workspace.get(workspaceId);
+  async getSeatCount(
+    workspaceId: string,
+    req?: NcRequest,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const workspace = await Workspace.get(workspaceId, null, ncMeta);
 
     if (!workspace) {
       throw new Error('Workspace not found');
     }
 
     return {
-      count: await Workspace.getSeatCount(workspaceId),
+      count: await Workspace.getSeatCount(workspaceId, ncMeta),
     };
   }
 
@@ -139,19 +143,25 @@ export class PaymentService {
       throw new Error('Invalid payload');
     }
 
-    const workspace = await Workspace.get(workspaceId);
+    const workspace = await Workspace.get(workspaceId, null, ncMeta);
 
     if (!workspace) {
       NcError.workspaceNotFound(workspaceId);
     }
 
-    const existingSubscription = await Subscription.getByWorkspace(workspaceId);
+    const existingSubscription = await Subscription.getByWorkspace(
+      workspaceId,
+      ncMeta,
+    );
 
     if (existingSubscription) {
       throw new Error('Subscription already exists for the workspace');
     }
 
-    const workspaceSeatCount = await Workspace.getSeatCount(workspaceId);
+    const workspaceSeatCount = await Workspace.getSeatCount(
+      workspaceId,
+      ncMeta,
+    );
 
     if (workspaceSeatCount !== seat) {
       throw new Error(
@@ -179,7 +189,7 @@ export class PaymentService {
       workspace.stripe_customer_id = customer.id;
     }
 
-    const plan = await Plan.get(plan_id);
+    const plan = await Plan.get(plan_id, ncMeta);
 
     if (!plan) {
       throw new Error('Plan not found');
@@ -236,15 +246,19 @@ export class PaymentService {
       plan_id: string;
       price_id: string;
     },
-    _req: NcRequest,
+    req?: NcRequest,
+    ncMeta = Noco.ncMeta,
   ) {
-    const workspace = await Workspace.get(workspaceId);
+    const workspace = await Workspace.get(workspaceId, null, ncMeta);
 
     if (!workspace) {
       throw new Error('Workspace not found');
     }
 
-    const workspaceSeatCount = await Workspace.getSeatCount(workspaceId);
+    const workspaceSeatCount = await Workspace.getSeatCount(
+      workspaceId,
+      ncMeta,
+    );
 
     if (workspaceSeatCount !== payload.seat) {
       throw new Error(
@@ -252,7 +266,10 @@ export class PaymentService {
       );
     }
 
-    const existingSubscription = await Subscription.getByWorkspace(workspaceId);
+    const existingSubscription = await Subscription.getByWorkspace(
+      workspaceId,
+      ncMeta,
+    );
 
     if (!existingSubscription) {
       throw new Error('Subscription not found');
@@ -270,7 +287,7 @@ export class PaymentService {
       throw new Error('Subscription does not belong to the workspace');
     }
 
-    const plan = await Plan.get(payload.plan_id);
+    const plan = await Plan.get(payload.plan_id, ncMeta);
 
     if (!plan) {
       throw new Error('Plan not found');
@@ -298,21 +315,96 @@ export class PaymentService {
 
     return {
       id: updatedSubscription.id,
-      clientSecret: (
-        (updatedSubscription.latest_invoice as Stripe.Invoice)
-          ?.payment_intent as Stripe.PaymentIntent
-      )?.client_secret,
     };
   }
 
-  async cancelSubscription(workspaceId: string, _req: NcRequest) {
-    const workspace = await Workspace.get(workspaceId);
+  async reseatSubscription(
+    workspaceId: string,
+    req?: NcRequest,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const workspace = await Workspace.get(workspaceId, null, ncMeta);
 
     if (!workspace) {
       throw new Error('Workspace not found');
     }
 
-    const existingSubscription = await Subscription.getByWorkspace(workspaceId);
+    const workspaceSeatCount = await Workspace.getSeatCount(
+      workspaceId,
+      ncMeta,
+    );
+
+    const existingSubscription = await Subscription.getByWorkspace(
+      workspaceId,
+      ncMeta,
+    );
+
+    if (!existingSubscription) {
+      throw new Error('Subscription not found');
+    }
+
+    if (existingSubscription.seat_count === workspaceSeatCount) {
+      return;
+    }
+
+    const subscription = await stripe.subscriptions.retrieve(
+      existingSubscription.stripe_subscription_id,
+    );
+
+    if (!subscription) {
+      throw new Error('Payment intent not found');
+    }
+
+    if (subscription.metadata.fk_workspace_id !== workspaceId) {
+      throw new Error('Subscription does not belong to the workspace');
+    }
+
+    const plan = await Plan.get(existingSubscription.fk_plan_id, ncMeta);
+
+    if (!plan) {
+      throw new Error('Plan not found');
+    }
+
+    const price = plan.prices.find(
+      (p) => p.id === existingSubscription.stripe_price_id,
+    );
+
+    if (!price) {
+      throw new Error('Price not found');
+    }
+
+    await stripe.subscriptions.update(
+      existingSubscription.stripe_subscription_id,
+      {
+        items: [
+          {
+            id: subscription.items.data[0].id,
+            price: existingSubscription.stripe_price_id,
+            quantity: workspaceSeatCount,
+          },
+        ],
+        expand: ['latest_invoice.payment_intent'],
+      },
+    );
+
+    return;
+  }
+
+  async cancelSubscription(
+    workspaceId: string,
+    req?: NcRequest,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const workspace = await Workspace.get(workspaceId, null, ncMeta);
+
+    if (!workspace) {
+      throw new Error('Workspace not found');
+    }
+
+    const existingSubscription = await Subscription.getByWorkspace(
+      workspaceId,
+      ncMeta,
+    );
 
     if (!existingSubscription) {
       throw new Error('Subscription not found');

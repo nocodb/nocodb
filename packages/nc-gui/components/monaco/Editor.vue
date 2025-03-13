@@ -52,6 +52,10 @@ const vModel = computed<string>({
     // Handle JSON-specific cases on the initial load
     if (lang === 'json' && !isInitialLoad) {
       try {
+        // if null string, return '"null"'
+        if (value.trim() === 'null') {
+          return '"null"'
+        }
         // If value is a valid JSON string, leave it as is
         JSON.parse(value)
       } catch (e) {
@@ -65,13 +69,15 @@ const vModel = computed<string>({
 
     return value
   },
-
   set: (newVal: string | Record<string, any>) => {
     try {
       // If the current value is an object, attempt to parse and update
       if (typeof modelValue.value === 'object') {
         const parsedValue = typeof newVal === 'object' ? newVal : JSON.parse(newVal)
         emits('update:modelValue', parsedValue)
+      } else if (modelValue.value === 'null') {
+        // if the current value is null, emit null
+        emits('update:modelValue', null)
       } else {
         // Directly emit new value if it's not an object
         emits('update:modelValue', newVal)

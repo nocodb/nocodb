@@ -7,13 +7,13 @@ interface Props {
   inputStyle?: StyleValue
   modelValue?: number | null
   disabled?: boolean
-  onBlur?: (payload: FocusEvent) => void
   precision?: number
   isFocusOnMounted?: boolean
 }
 
 interface Emits {
   (event: 'update:modelValue', model: number): void
+  (event: 'blur', model: FocusEvent): void
 }
 
 const props = defineProps<Props>()
@@ -140,6 +140,7 @@ const onInputPaste = (e: ClipboardEvent) => {
   pasteText(target, value)
 }
 const onInputBlur = (e: FocusEvent) => {
+  emits('blur', e)
   if (e.target) {
     const targetValue = (e.target as HTMLInputElement).value
     saveValue(targetValue)
@@ -177,7 +178,6 @@ onMounted(() => {
     style="letter-spacing: 0.06rem; height: 24px !important"
     :style="inputStyle"
     :disabled="disabled"
-    @blur="onBlur"
     @keydown.left.stop
     @keydown.right.stop
     @keydown.delete.stop

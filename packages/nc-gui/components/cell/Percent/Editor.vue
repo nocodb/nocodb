@@ -88,7 +88,7 @@ onMounted(() => {
   <CellPercentProgressBar
     v-if="parseProp(col!.meta).is_progress && (isForm)"
     :style="{
-      ...(isForm && { 'min-height': '18px' }),
+      ...(isForm && { 'min-height': '22px', 'height': '22px' }),
     }"
     :is-show-number="true"
     :percentage="vModelNumber"
@@ -97,7 +97,8 @@ onMounted(() => {
     <input
       :ref="focus"
       v-model="vModel"
-      class="nc-cell-field w-full !border-none !outline-none focus:ring-0 py-1 min-h-[18px]"
+      class="nc-cell-field w-full !border-none !outline-none focus:ring-0 h-full min-h-[18px]"
+      :class="isExpandedFormOpen ? 'py-1' : ''"
       :type="inputType"
       :placeholder="placeholder"
       :disabled="readOnly"

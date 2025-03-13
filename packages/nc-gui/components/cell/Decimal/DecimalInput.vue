@@ -99,7 +99,7 @@ const onInputKeyDown = (e: KeyboardEvent) => {
     return
   }
   if (
-    ['ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown', 'Delete', 'Backspace', 'Tab'].includes(e.key) ||
+    ['ArrowLeft', 'ArrowRight', 'Enter', 'Escape', 'Home', 'End', 'PageUp', 'PageDown', 'Delete', 'Backspace', 'Tab'].includes(e.key) ||
     e.ctrlKey ||
     e.altKey ||
     e.metaKey

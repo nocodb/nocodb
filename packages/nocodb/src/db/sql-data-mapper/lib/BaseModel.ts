@@ -3,6 +3,7 @@ import groupBy from 'lodash/groupBy';
 import type { Knex } from 'knex';
 import type Filter from '~/models/Filter';
 import type Sort from '~/models/Sort';
+import { customValidators } from 'src/db/util/customValidators';
 
 const autoBind = require('auto-bind');
 const Validator = require('validator');
@@ -133,7 +134,12 @@ abstract class BaseModel {
         cn,
       } = this.columns[i];
       for (let j = 0; j < func.length; ++j) {
-        const fn = typeof func[j] === 'string' ? Validator[func[j]] : func[j];
+        const fn =
+          typeof func[j] === 'string'
+            ? customValidators[func[j]]
+              ? customValidators[func[j]]
+              : Validator[func[j]]
+            : func[j];
         const arg =
           typeof func[j] === 'string' ? columns[cn] + '' : columns[cn];
         if (

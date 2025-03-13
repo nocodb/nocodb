@@ -1,6 +1,8 @@
-import isURL, { type IsURLOptions } from 'validator/lib/isURL'
+import isURL from 'validator/lib/isURL'
 import { decode } from 'html-entities'
 import { formulaTextSegmentsCache, replaceUrlsWithLinkCache } from '../components/smartsheet/grid/canvas/utils/canvas'
+import { isValidURL } from 'nocodb-sdk'
+export { isValidURL }
 
 const _replaceUrlsWithLink = (text: string): boolean | string => {
   if (!text) {
@@ -73,10 +75,6 @@ export function getFormulaTextSegments(anchorLinkHTML: string) {
   return result
 }
 
-export const isValidURL = (str: string, extraProps?: IsURLOptions) => {
-  return isURL(`${str}`, extraProps)
-}
-
 export const openLink = (path: string, baseURL?: string, target = '_blank') => {
   const url = new URL(path, baseURL)
   window.open(url.href, target, 'noopener,noreferrer')
@@ -90,7 +88,7 @@ export const navigateToBlankTargetOpenOption = {
   },
 }
 
-export const addMissingUrlSchma = (url: string) => {
+export const addMissingUrlSchma = (url?: string) => {
   url = url?.trim?.() ?? ''
 
   if (!url) return ''

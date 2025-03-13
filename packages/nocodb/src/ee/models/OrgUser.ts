@@ -60,7 +60,11 @@ export default class OrgUser {
       .where({
         [`${MetaTable.WORKSPACE}.fk_org_id`]: orgId,
       })
-      .whereNot(`${MetaTable.WORKSPACE_USER}.deleted`, true)
+      .where((kn) => {
+        kn.where(`${MetaTable.WORKSPACE_USER}.deleted`, false).orWhereNull(
+          `${MetaTable.WORKSPACE_USER}.deleted`,
+        );
+      })
       .groupBy(
         `${MetaTable.USERS}.id`,
         `${MetaTable.USERS}.email`,

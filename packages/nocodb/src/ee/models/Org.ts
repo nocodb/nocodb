@@ -64,9 +64,17 @@ export default class Org implements OrganizationType {
         `${MetaTable.WORKSPACE}.fk_org_id`,
       )
       .andWhere(`${MetaTable.ORG}.id`, orgId)
-      .whereNot(`${MetaTable.PROJECT}.deleted`, true)
-      .whereNot(`${MetaTable.WORKSPACE}.deleted`, true)
-      .whereNot(`${MetaTable.WORKSPACE_USER}.deleted`, true)
+      .where((kn) => {
+        kn.where(`${MetaTable.PROJECT}.deleted`, false).orWhereNull(
+          `${MetaTable.PROJECT}.deleted`,
+        );
+        kn.where(`${MetaTable.WORKSPACE}.deleted`, false).orWhereNull(
+          `${MetaTable.WORKSPACE}.deleted`,
+        );
+        kn.where(`${MetaTable.WORKSPACE_USER}.deleted`, false).orWhereNull(
+          `${MetaTable.WORKSPACE_USER}.deleted`,
+        );
+      })
       .groupBy(
         `${MetaTable.PROJECT}.id`,
         `${MetaTable.PROJECT}.title`,

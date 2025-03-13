@@ -357,7 +357,7 @@ export default class Workspace implements WorkspaceType {
   }
 
   static async listByOrgId(param: { orgId: string }, ncMeta = Noco.ncMeta) {
-    const queryBuilder = await ncMeta
+    const queryBuilder = ncMeta
       .knex(MetaTable.WORKSPACE)
       .select(
         `${MetaTable.WORKSPACE}.id`,
@@ -399,9 +399,13 @@ export default class Workspace implements WorkspaceType {
         `${MetaTable.PROJECT}.fk_workspace_id`,
         `${MetaTable.WORKSPACE}.id`,
       )
-      .where({
-        [`${MetaTable.WORKSPACE}.deleted`]: false,
-        [`${MetaTable.WORKSPACE_USER}.deleted`]: false,
+      .where((kn) => {
+        kn.where(`${MetaTable.WORKSPACE}.deleted`, false).orWhereNull(
+          `${MetaTable.WORKSPACE}.deleted`,
+        );
+        kn.where(`${MetaTable.WORKSPACE_USER}.deleted`, false).orWhereNull(
+          `${MetaTable.WORKSPACE_USER}.deleted`,
+        );
       })
       .andWhere(`${MetaTable.WORKSPACE}.fk_org_id`, param.orgId)
       .groupBy(

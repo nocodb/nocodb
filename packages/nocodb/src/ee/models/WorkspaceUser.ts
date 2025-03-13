@@ -63,28 +63,29 @@ export default class WorkspaceUser {
         }
       }
 
-      const order = await ncMetaTrans.metaGetNextOrder(
-        MetaTable.WORKSPACE_USER,
-        {
+      workspaceUser.order =
+        workspaceUser.order ??
+        (await ncMetaTrans.metaGetNextOrder(MetaTable.WORKSPACE_USER, {
           fk_user_id: workspaceUser.fk_user_id,
-        },
-      );
+        }));
+
+      const insertObj = extractProps(workspaceUser, [
+        'fk_user_id',
+        'fk_workspace_id',
+        'roles',
+        'created_at',
+        'updated_at',
+        'order',
+        'invited_by',
+        'deleted',
+        'deleted_at',
+      ]);
 
       await ncMetaTrans.metaInsert2(
         RootScopes.WORKSPACE,
         RootScopes.WORKSPACE,
         MetaTable.WORKSPACE_USER,
-        {
-          fk_user_id: workspaceUser.fk_user_id,
-          fk_workspace_id: workspaceUser.fk_workspace_id,
-          roles: workspaceUser.roles,
-          created_at: workspaceUser.created_at,
-          updated_at: workspaceUser.updated_at,
-          order: workspaceUser.order ?? order,
-          invited_by: workspaceUser.invited_by,
-          deleted: workspaceUser.deleted,
-          deleted_at: workspaceUser.deleted_at,
-        },
+        insertObj,
         true,
       );
 

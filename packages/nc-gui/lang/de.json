@@ -681,7 +681,8 @@
     "customUrl": "Eigene URL",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
     "latitude": "Latitude",
@@ -890,6 +891,7 @@
     "clickToCopyViewID": "Klicken, um Ansichts-ID zu kopieren",
     "viewMode": "Ansichtsmodus",
     "reAssignView": "Ansicht neu zuweisen",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "Benutzer durchsuchen",
     "superAdmin": "Super-Admin",
     "allTables": "Alle Tabellen",
@@ -1133,7 +1135,9 @@
     "showJsonPayload": "Show JSON payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
     "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "proceedToLink": "Proceed to link",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner"
   },
   "activity": {
     "clickToResolve": "Zum Klären klicken",
@@ -1529,7 +1533,8 @@
     "inviteYourTeam": "Laden Sie Ihr Team ein!",
     "inviteYourTeamLabel": "Arbeiten Sie mit Ihrem Team gemeinsam an Projekten und schließen Sie sie schneller ab! ",
     "searchOptions": "Optionen durchsuchen",
-    "lockViewDescription": "Erläutern Sie, warum Sie diese Ansicht sperren. Diese Nachricht wird angezeigt, wenn jemand versucht, diese Ansicht zu entsperren (optional)."
+    "lockViewDescription": "Erläutern Sie, warum Sie diese Ansicht sperren. Diese Nachricht wird angezeigt, wenn jemand versucht, diese Ansicht zu entsperren (optional).",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
     "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",

@@ -8,3 +8,6 @@ packages:
   - 'tests/playwright'
   - 'packages/nc-secret-mgr'
   - 'packages/nc-integration-scaffolder'
+
+catalog:
+  'validator': '^13.12.0'

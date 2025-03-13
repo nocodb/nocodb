@@ -20,7 +20,8 @@ const up = async (knex: Knex) => {
 
   await knex.schema.createTable(MetaTable.SUBSCRIPTIONS, (table) => {
     table.string('id', 20).primary();
-    table.string('fk_workspace_id', 20).notNullable();
+    table.string('fk_workspace_id', 20);
+    table.string('fk_org_id', 20);
     table.string('fk_plan_id', 20).notNullable();
 
     table.string('stripe_subscription_id', 255);
@@ -41,12 +42,19 @@ const up = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.WORKSPACE, (table) => {
     table.string('stripe_customer_id', 255);
   });
+
+  await knex.schema.alterTable(MetaTable.ORG, (table) => {
+    table.string('stripe_customer_id', 255);
+  });
 };
 
 const down = async (knex: Knex) => {
   await knex.schema.dropTableIfExists(MetaTable.PLANS);
   await knex.schema.dropTableIfExists(MetaTable.SUBSCRIPTIONS);
   await knex.schema.alterTable(MetaTable.WORKSPACE, (table) => {
+    table.dropColumn('stripe_customer_id');
+  });
+  await knex.schema.alterTable(MetaTable.ORG, (table) => {
     table.dropColumn('stripe_customer_id');
   });
 };

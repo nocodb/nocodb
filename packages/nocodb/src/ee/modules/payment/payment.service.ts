@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 import dayjs from 'dayjs';
 import type { NcRequest } from 'nocodb-sdk';
-import { Plan, Subscription, Workspace } from '~/models';
+import { Org, Plan, Subscription, Workspace } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 
@@ -20,20 +20,23 @@ export class PaymentService {
     return plans.filter((plan) => !active || plan.is_active === active);
   }
 
-  async getSeatCount(
-    workspaceId: string,
-    req?: NcRequest,
+  async getWorkspaceOrOrg(
+    workspaceOrOrgId: string,
     ncMeta = Noco.ncMeta,
-  ) {
-    const workspace = await Workspace.get(workspaceId, null, ncMeta);
+  ): Promise<
+    (Workspace & { entity: 'workspace' }) | (Org & { entity: 'org' })
+  > {
+    const workspace = await Workspace.get(workspaceOrOrgId, null, ncMeta);
 
-    if (!workspace) {
-      throw new Error('Workspace not found');
+    if (workspace) {
+      return { ...workspace, entity: 'workspace' };
     }
 
-    return {
-      count: await Workspace.getSeatCount(workspaceId, ncMeta),
-    };
+    const org = await Org.get(workspaceOrOrgId, ncMeta);
+
+    if (org) {
+      return { ...org, entity: 'org' };
+    }
   }
 
   async submitPlan(payload: {
@@ -127,7 +130,7 @@ export class PaymentService {
   }
 
   async createSubscription(
-    workspaceId: string,
+    workspaceOrOrgId: string,
     payload: {
       seat: number;
       plan_id: string;
@@ -143,50 +146,64 @@ export class PaymentService {
       throw new Error('Invalid payload');
     }
 
-    const workspace = await Workspace.get(workspaceId, null, ncMeta);
+    const workspaceOrOrg = await this.getWorkspaceOrOrg(
+      workspaceOrOrgId,
+      ncMeta,
+    );
 
-    if (!workspace) {
-      NcError.workspaceNotFound(workspaceId);
+    if (!workspaceOrOrg) {
+      NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
     }
 
-    const existingSubscription = await Subscription.getByWorkspace(
-      workspaceId,
+    const existingSubscription = await Subscription.getByWorkspaceOrOrg(
+      workspaceOrOrgId,
       ncMeta,
     );
 
     if (existingSubscription) {
-      throw new Error('Subscription already exists for the workspace');
+      throw new Error('Subscription already exists');
     }
 
-    const workspaceSeatCount = await Workspace.getSeatCount(
-      workspaceId,
-      ncMeta,
-    );
+    const seatCount = await existingSubscription.getSeatCount(ncMeta);
 
-    if (workspaceSeatCount !== seat) {
+    if (seatCount !== seat) {
       throw new Error(
         'There was a mismatch in the seat count, please try again',
       );
     }
 
-    if (!workspace.stripe_customer_id) {
+    if (!workspaceOrOrg.stripe_customer_id) {
       const customer = await stripe.customers.create({
         email: user.email,
         metadata: {
-          fk_workspace_id: workspaceId,
+          ...(workspaceOrOrg.entity === 'workspace'
+            ? { fk_workspace_id: workspaceOrOrg.id }
+            : { fk_org_id: workspaceOrOrg.id }),
           fk_user_id: user.id,
         },
       });
 
-      await Workspace.update(
-        workspace.id,
-        {
-          stripe_customer_id: customer.id,
-        },
-        ncMeta,
-      );
+      if (workspaceOrOrg.entity === 'workspace') {
+        await Workspace.update(
+          workspaceOrOrg.id,
+          {
+            stripe_customer_id: customer.id,
+          },
+          ncMeta,
+        );
 
-      workspace.stripe_customer_id = customer.id;
+        workspaceOrOrg.stripe_customer_id = customer.id;
+      } else {
+        await Org.update(
+          workspaceOrOrg.id,
+          {
+            stripe_customer_id: customer.id,
+          },
+          ncMeta,
+        );
+
+        workspaceOrOrg.stripe_customer_id = customer.id;
+      }
     }
 
     const plan = await Plan.get(plan_id, ncMeta);
@@ -202,7 +219,7 @@ export class PaymentService {
     }
 
     const subscription = await stripe.subscriptions.create({
-      customer: workspace.stripe_customer_id,
+      customer: workspaceOrOrg.stripe_customer_id,
       items: [
         {
           price: price_id,
@@ -213,9 +230,23 @@ export class PaymentService {
       payment_settings: { save_default_payment_method: 'on_subscription' },
       expand: ['latest_invoice.payment_intent', 'pending_setup_intent'],
       metadata: {
-        fk_workspace_id: workspaceId,
+        ...(workspaceOrOrg.entity === 'workspace'
+          ? { fk_workspace_id: workspaceOrOrg.id }
+          : { fk_org_id: workspaceOrOrg.id }),
         fk_plan_id: plan_id,
       },
+    });
+
+    await Subscription.insert({
+      fk_workspace_id:
+        workspaceOrOrg.entity === 'workspace' ? workspaceOrOrg.id : null,
+      fk_org_id: workspaceOrOrg.entity === 'org' ? workspaceOrOrg.id : null,
+      fk_plan_id: plan_id,
+      stripe_subscription_id: subscription.id,
+      stripe_price_id: price_id,
+      seat_count: seat,
+      status: 'incomplete',
+      start_at: dayjs.unix(subscription.start_date).utc().toISOString(),
     });
 
     if (subscription.pending_setup_intent !== null) {
@@ -240,7 +271,7 @@ export class PaymentService {
   }
 
   async updateSubscription(
-    workspaceId: string,
+    workspaceOrOrgId: string,
     payload: {
       seat: number;
       plan_id: string;
@@ -249,30 +280,30 @@ export class PaymentService {
     req?: NcRequest,
     ncMeta = Noco.ncMeta,
   ) {
-    const workspace = await Workspace.get(workspaceId, null, ncMeta);
-
-    if (!workspace) {
-      throw new Error('Workspace not found');
-    }
-
-    const workspaceSeatCount = await Workspace.getSeatCount(
-      workspaceId,
+    const workspaceOrOrg = await this.getWorkspaceOrOrg(
+      workspaceOrOrgId,
       ncMeta,
     );
 
-    if (workspaceSeatCount !== payload.seat) {
-      throw new Error(
-        'There was a mismatch in the seat count, please try again',
-      );
+    if (!workspaceOrOrg) {
+      NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
     }
 
-    const existingSubscription = await Subscription.getByWorkspace(
-      workspaceId,
+    const existingSubscription = await Subscription.getByWorkspaceOrOrg(
+      workspaceOrOrgId,
       ncMeta,
     );
 
     if (!existingSubscription) {
-      throw new Error('Subscription not found');
+      NcError.genericNotFound('Subscription', workspaceOrOrgId);
+    }
+
+    const seatCount = await existingSubscription.getSeatCount(ncMeta);
+
+    if (seatCount !== payload.seat) {
+      throw new Error(
+        'There was a mismatch in the seat count, please try again',
+      );
     }
 
     const subscription = await stripe.subscriptions.retrieve(
@@ -283,8 +314,18 @@ export class PaymentService {
       throw new Error('Payment intent not found');
     }
 
-    if (subscription.metadata.fk_workspace_id !== workspaceId) {
+    if (
+      workspaceOrOrg.entity === 'workspace' &&
+      subscription.metadata.fk_workspace_id !== workspaceOrOrgId
+    ) {
       throw new Error('Subscription does not belong to the workspace');
+    }
+
+    if (
+      workspaceOrOrg.entity === 'org' &&
+      subscription.metadata.fk_org_id !== workspaceOrOrgId
+    ) {
+      throw new Error('Subscription does not belong to the org');
     }
 
     const plan = await Plan.get(payload.plan_id, ncMeta);
@@ -318,32 +359,20 @@ export class PaymentService {
     };
   }
 
-  async reseatSubscription(
-    workspaceId: string,
-    req?: NcRequest,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const workspace = await Workspace.get(workspaceId, null, ncMeta);
-
-    if (!workspace) {
-      throw new Error('Workspace not found');
-    }
-
-    const workspaceSeatCount = await Workspace.getSeatCount(
-      workspaceId,
+  async reseatSubscription(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
+    const existingSubscription = await Subscription.getByWorkspaceOrOrg(
+      workspaceOrOrgId,
       ncMeta,
     );
 
-    const existingSubscription = await Subscription.getByWorkspace(
-      workspaceId,
-      ncMeta,
-    );
-
+    // If subscription does not exist
     if (!existingSubscription) {
-      throw new Error('Subscription not found');
+      return;
     }
 
-    if (existingSubscription.seat_count === workspaceSeatCount) {
+    const seatCount = await existingSubscription.getSeatCount(ncMeta);
+
+    if (existingSubscription.seat_count === seatCount) {
       return;
     }
 
@@ -355,7 +384,18 @@ export class PaymentService {
       throw new Error('Payment intent not found');
     }
 
-    if (subscription.metadata.fk_workspace_id !== workspaceId) {
+    if (
+      subscription.metadata.fk_org_id &&
+      subscription.metadata.fk_org_id !== existingSubscription.fk_org_id
+    ) {
+      throw new Error('Subscription does not belong to the org');
+    }
+
+    if (
+      subscription.metadata.fk_workspace_id &&
+      subscription.metadata.fk_workspace_id !==
+        existingSubscription.fk_workspace_id
+    ) {
       throw new Error('Subscription does not belong to the workspace');
     }
 
@@ -380,7 +420,7 @@ export class PaymentService {
           {
             id: subscription.items.data[0].id,
             price: existingSubscription.stripe_price_id,
-            quantity: workspaceSeatCount,
+            quantity: seatCount,
           },
         ],
         expand: ['latest_invoice.payment_intent'],
@@ -391,23 +431,26 @@ export class PaymentService {
   }
 
   async cancelSubscription(
-    workspaceId: string,
+    workspaceOrOrgId: string,
     req?: NcRequest,
     ncMeta = Noco.ncMeta,
   ) {
-    const workspace = await Workspace.get(workspaceId, null, ncMeta);
+    const workspaceOrOrg = await this.getWorkspaceOrOrg(
+      workspaceOrOrgId,
+      ncMeta,
+    );
 
-    if (!workspace) {
-      throw new Error('Workspace not found');
+    if (!workspaceOrOrg) {
+      NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
     }
 
-    const existingSubscription = await Subscription.getByWorkspace(
-      workspaceId,
+    const existingSubscription = await Subscription.getByWorkspaceOrOrg(
+      workspaceOrOrgId,
       ncMeta,
     );
 
     if (!existingSubscription) {
-      throw new Error('Subscription not found');
+      NcError.genericNotFound('Subscription', workspaceOrOrgId);
     }
 
     const subscription = await stripe.subscriptions.retrieve(
@@ -415,11 +458,21 @@ export class PaymentService {
     );
 
     if (!subscription) {
-      throw new Error('Subscription not found');
+      NcError.genericNotFound('Subscription', workspaceOrOrgId);
     }
 
-    if (subscription.metadata.fk_workspace_id !== workspaceId) {
+    if (
+      workspaceOrOrg.entity === 'workspace' &&
+      subscription.metadata.fk_workspace_id !== workspaceOrOrgId
+    ) {
       throw new Error('Subscription does not belong to the workspace');
+    }
+
+    if (
+      workspaceOrOrg.entity === 'org' &&
+      subscription.metadata.fk_org_id !== workspaceOrOrgId
+    ) {
+      throw new Error('Subscription does not belong to the org');
     }
 
     const canceledSubscription = await stripe.subscriptions.cancel(
@@ -427,6 +480,19 @@ export class PaymentService {
     );
 
     return canceledSubscription.id;
+  }
+
+  async getSeatCount(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
+    const existingSubscription = await Subscription.getByWorkspaceOrOrg(
+      workspaceOrOrgId,
+      ncMeta,
+    );
+
+    if (!existingSubscription) {
+      return 0;
+    }
+
+    return await existingSubscription.getSeatCount(ncMeta);
   }
 
   async handleWebhook(req: NcRequest): Promise<void> {
@@ -448,26 +514,6 @@ export class PaymentService {
 
     try {
       switch (event.type) {
-        case 'customer.subscription.created': {
-          const metadata = dataObject.metadata;
-          if (!metadata?.fk_workspace_id || !metadata?.fk_plan_id) {
-            throw new Error('Missing metadata on subscription.created');
-          }
-
-          await Subscription.insert({
-            fk_workspace_id: metadata.fk_workspace_id,
-            fk_plan_id: metadata.fk_plan_id,
-            stripe_subscription_id: dataObject.id,
-            stripe_price_id: dataObject.items.data[0].price.id,
-            seat_count: dataObject.items.data[0].quantity,
-            status: dataObject.status,
-            start_at: dayjs.unix(dataObject.start_date).utc().toISOString(),
-          });
-
-          this.logger.log(`Subscription created but plan not yet applied`);
-          break;
-        }
-
         case 'invoice.paid': {
           const subscriptionId = dataObject.subscription;
           const subscription = await Subscription.getByStripeSubscriptionId(
@@ -499,6 +545,8 @@ export class PaymentService {
           }
 
           const workspaceId = subscription.fk_workspace_id;
+
+          await Workspace.refreshPlanAndSubscription(workspaceId);
 
           this.logger.log(
             `Payment failed for workspace ${workspaceId}. No plan applied`,

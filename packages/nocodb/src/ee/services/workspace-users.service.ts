@@ -27,6 +27,7 @@ import { getWorkspaceRolePower } from '~/utils/roleHelper';
 import Noco from '~/Noco';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
 import { MailEvent } from '~/interface/Mail';
+import { PaymentService } from '~/modules/payment/payment.service';
 
 @Injectable()
 export class WorkspaceUsersService {
@@ -35,6 +36,7 @@ export class WorkspaceUsersService {
     private usersService: UsersService,
     private config: ConfigService<AppConfig>,
     private mailService: MailService,
+    private paymentService: PaymentService,
   ) {}
 
   async list(param: { workspaceId; includeDeleted?: boolean }) {

@@ -1,6 +1,5 @@
 import { Logger } from '@nestjs/common';
 import {
-  NON_SEAT_ROLES,
   type WorkspacePlan,
   type WorkspaceStatus,
   type WorkspaceType,
@@ -86,7 +85,11 @@ export default class Workspace implements WorkspaceType {
       }
     }
 
-    workspace.payment = await this.getActivePlanAndSubscription(workspace.id);
+    workspace.payment = await this.getActivePlanAndSubscription(
+      workspace.id,
+      workspace.fk_org_id,
+      ncMeta,
+    );
 
     return workspace && new Workspace(workspace);
   }
@@ -115,6 +118,8 @@ export default class Workspace implements WorkspaceType {
         workspaceData.infra_meta = parseMetaProp(workspaceData, 'infra_meta');
         workspaceData.payment = await this.getActivePlanAndSubscription(
           workspaceData.id,
+          workspaceData.fk_org_id,
+          ncMeta,
         );
         if (!workspaceData.deleted) {
           await NocoCache.set(
@@ -380,7 +385,11 @@ export default class Workspace implements WorkspaceType {
     for (const workspace of workspaces) {
       workspace.meta = parseMetaProp(workspace);
       workspace.infra_meta = parseMetaProp(workspace, 'infra_meta');
-      workspace.payment = await this.getActivePlanAndSubscription(workspace.id);
+      workspace.payment = await this.getActivePlanAndSubscription(
+        workspace.id,
+        workspace.fk_org_id,
+        ncMeta,
+      );
     }
 
     return workspaces.map((workspace) => new Workspace(workspace));
@@ -458,7 +467,11 @@ export default class Workspace implements WorkspaceType {
     const workspaces = await queryBuilder;
 
     for (const workspace of workspaces) {
-      workspace.payment = await this.getActivePlanAndSubscription(workspace.id);
+      workspace.payment = await this.getActivePlanAndSubscription(
+        workspace.id,
+        workspace.fk_org_id,
+        ncMeta,
+      );
     }
 
     return workspaces;
@@ -502,9 +515,13 @@ export default class Workspace implements WorkspaceType {
 
   public static async getActivePlanAndSubscription(
     workspaceId: string,
+    orgId?: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const subscription = await Subscription.getByWorkspace(workspaceId, ncMeta);
+    const subscription = await Subscription.getByWorkspaceOrOrg(
+      orgId || workspaceId,
+      ncMeta,
+    );
 
     if (!subscription) return { plan: FreePlan };
 
@@ -522,75 +539,11 @@ export default class Workspace implements WorkspaceType {
     if (!workspace) return;
 
     await NocoCache.update(`${CacheScope.WORKSPACE}:${workspaceId}`, {
-      payment: await this.getActivePlanAndSubscription(workspaceId),
+      payment: await this.getActivePlanAndSubscription(
+        workspaceId,
+        workspace.fk_org_id,
+        ncMeta,
+      ),
     });
-  }
-
-  public static async getSeatCount(workspaceId: string, ncMeta = Noco.ncMeta) {
-    const workspaceUsers = await ncMeta.metaList2(
-      workspaceId,
-      RootScopes.WORKSPACE,
-      MetaTable.WORKSPACE_USER,
-      {
-        xcCondition: {
-          _and: [
-            {
-              fk_workspace_id: {
-                eq: workspaceId,
-              },
-            },
-            {
-              _or: [
-                {
-                  deleted: {
-                    eq: false,
-                  },
-                },
-                {
-                  deleted: {
-                    eq: null,
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      },
-    );
-
-    const baseUsers = await ncMeta.metaList2(
-      workspaceId,
-      RootScopes.WORKSPACE,
-      MetaTable.PROJECT_USERS,
-      {
-        condition: {
-          fk_workspace_id: workspaceId,
-        },
-      },
-    );
-
-    /*
-      Count users based on their roles in either workspace or base
-      and exclude users with roles that do not consume a seat
-    */
-    const seatUsersMap = new Map<string, true>();
-
-    for (const user of workspaceUsers) {
-      const userId = user.fk_user_id;
-      const role = user.roles;
-      if (!seatUsersMap.has(userId) && !NON_SEAT_ROLES.includes(role)) {
-        seatUsersMap.set(userId, true);
-      }
-    }
-
-    for (const user of baseUsers) {
-      const userId = user.fk_user_id;
-      const role = user.roles;
-      if (!seatUsersMap.has(userId) && !NON_SEAT_ROLES.includes(role)) {
-        seatUsersMap.set(userId, true);
-      }
-    }
-
-    return seatUsersMap.size;
   }
 }

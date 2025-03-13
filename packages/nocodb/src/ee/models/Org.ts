@@ -26,6 +26,7 @@ export default class Org implements OrganizationType {
   slug: string;
   deleted?: boolean;
   fk_user_id: string;
+  stripe_customer_id?: string;
   meta: string;
 
   constructor(org: Partial<OrgType>) {

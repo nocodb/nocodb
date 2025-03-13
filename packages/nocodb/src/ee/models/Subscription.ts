@@ -1,3 +1,4 @@
+import { NON_SEAT_ROLES } from 'nocodb-sdk';
 import {
   CacheGetType,
   CacheScope,
@@ -11,8 +12,8 @@ import NocoCache from '~/cache/NocoCache';
 export default class Subscription {
   id: string;
   fk_workspace_id: string;
+  fk_org_id: string;
   fk_plan_id: string;
-  fk_user_id: string;
 
   stripe_subscription_id: string;
   stripe_price_id: string;
@@ -122,8 +123,86 @@ export default class Subscription {
     return true;
   }
 
-  public static async getByWorkspace(
+  private static async calculateWorkspaceSeatCount(
     workspaceId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const workspaceUsers = await ncMeta.metaList2(
+      workspaceId,
+      RootScopes.WORKSPACE,
+      MetaTable.WORKSPACE_USER,
+      {
+        xcCondition: {
+          _and: [
+            {
+              fk_workspace_id: {
+                eq: workspaceId,
+              },
+            },
+            {
+              _or: [
+                {
+                  deleted: {
+                    eq: false,
+                  },
+                },
+                {
+                  deleted: {
+                    eq: null,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    );
+
+    const baseUsers = await ncMeta.metaList2(
+      workspaceId,
+      RootScopes.WORKSPACE,
+      MetaTable.PROJECT_USERS,
+      {
+        condition: {
+          fk_workspace_id: workspaceId,
+        },
+      },
+    );
+
+    /*
+      Count users based on their roles in either workspace or base
+      and exclude users with roles that do not consume a seat
+    */
+    const seatUsersMap = new Map<string, true>();
+
+    for (const user of workspaceUsers) {
+      const userId = user.fk_user_id;
+      const role = user.roles;
+      if (!seatUsersMap.has(userId) && !NON_SEAT_ROLES.includes(role)) {
+        seatUsersMap.set(userId, true);
+      }
+    }
+
+    for (const user of baseUsers) {
+      const userId = user.fk_user_id;
+      const role = user.roles;
+      if (!seatUsersMap.has(userId) && !NON_SEAT_ROLES.includes(role)) {
+        seatUsersMap.set(userId, true);
+      }
+    }
+
+    return seatUsersMap.size;
+  }
+
+  private static async calculateOrgSeatCount(
+    orgId: string,
+    _ncMeta = Noco.ncMeta,
+  ): Promise<number> {
+    throw new Error('Method not implemented.');
+  }
+
+  public static async getByWorkspaceOrOrg(
+    workspaceOrOrgId: string,
     ncMeta = Noco.ncMeta,
   ) {
     const subscription = await ncMeta.metaGet2(
@@ -135,20 +214,24 @@ export default class Subscription {
       {
         _and: [
           {
-            fk_workspace_id: {
-              eq: workspaceId,
-            },
+            _or: [
+              {
+                fk_workspace_id: {
+                  eq: workspaceOrOrgId,
+                },
+              },
+              {
+                fk_org_id: {
+                  eq: workspaceOrOrgId,
+                },
+              },
+            ],
           },
           {
             _or: [
               {
                 status: {
-                  eq: 'active',
-                },
-              },
-              {
-                status: {
-                  eq: 'trialing',
+                  in: ['active', 'trialing', 'incomplete'],
                 },
               },
             ],
@@ -182,5 +265,16 @@ export default class Subscription {
     if (!subscription) return null;
 
     return new Subscription(subscription);
+  }
+
+  public async getSeatCount(ncMeta = Noco.ncMeta) {
+    if (this.fk_org_id) {
+      return Subscription.calculateOrgSeatCount(this.fk_org_id, ncMeta);
+    }
+
+    return Subscription.calculateWorkspaceSeatCount(
+      this.fk_workspace_id,
+      ncMeta,
+    );
   }
 }

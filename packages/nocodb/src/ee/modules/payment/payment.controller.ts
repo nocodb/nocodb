@@ -82,44 +82,54 @@ export class PaymentController {
 
   @UseGuards(GlobalGuard)
   @HttpCode(200)
-  @Get('/api/payment/:workspaceId/seat-count')
+  @Get('/api/payment/:workspaceOrOrgId/seat-count')
   async seatCount(
-    @Param('workspaceId') workspaceId: string,
-    @Req() req: NcRequest,
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Req() _req: NcRequest,
   ) {
-    return this.paymentService.getSeatCount(workspaceId, req);
+    return {
+      count: await this.paymentService.getSeatCount(workspaceOrOrgId),
+    };
   }
 
   @UseGuards(GlobalGuard)
   @HttpCode(200)
-  @Post('/api/payment/:workspaceId/create-subscription')
+  @Post('/api/payment/:workspaceOrOrgId/create-subscription')
   async createSubscription(
-    @Param('workspaceId') workspaceId: string,
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Body() payload: any,
     @Req() req: NcRequest,
   ) {
-    return this.paymentService.createSubscription(workspaceId, payload, req);
+    return this.paymentService.createSubscription(
+      workspaceOrOrgId,
+      payload,
+      req,
+    );
   }
 
   @UseGuards(GlobalGuard)
   @HttpCode(200)
-  @Post('/api/payment/:workspaceId/update-subscription')
+  @Post('/api/payment/:workspaceOrOrgId/update-subscription')
   async updateSubscription(
-    @Param('workspaceId') workspaceId: string,
+    @Param('workspaceId') workspaceOrOrgId: string,
     @Body() payload: any,
     @Req() req: NcRequest,
   ) {
-    return this.paymentService.updateSubscription(workspaceId, payload, req);
+    return this.paymentService.updateSubscription(
+      workspaceOrOrgId,
+      payload,
+      req,
+    );
   }
 
   @UseGuards(GlobalGuard)
   @HttpCode(200)
-  @Delete('/api/payment/:workspaceId/cancel-subscription')
+  @Delete('/api/payment/:workspaceOrOrgId/cancel-subscription')
   async cancelSubscription(
-    @Param('workspaceId') workspaceId: string,
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Req() req: NcRequest,
   ) {
-    return this.paymentService.cancelSubscription(workspaceId, req);
+    return this.paymentService.cancelSubscription(workspaceOrOrgId, req);
   }
 
   @Post('/api/payment/webhook')

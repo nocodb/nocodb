@@ -112,7 +112,7 @@ const onInputKeyDown = (e: KeyboardEvent) => {
   } else if (e.key === 'ArrowUp') {
     target.setSelectionRange(0, 0)
     return
-  } else if (e.key.match('[^0-9\.]')) {
+  } else if (e.key.match('[^-0-9\.]')) {
     // prevent everything non ctrl / alt and non . and non number
     e.preventDefault()
     e.stopPropagation()

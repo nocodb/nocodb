@@ -45,8 +45,12 @@ const pasteText = (target: HTMLInputElement, value: string) => {
   return { changed: false }
 }
 const refreshVModel = () => {
-  if (inputRef.value) {
-    inputRef.value.value = vModel.value?.toFixed(props.precision ?? 2) ?? ''
+  if (inputRef.value && vModel.value) {
+    if (typeof vModel.value === 'number') {
+      inputRef.value.value = vModel.value.toFixed(props.precision ?? 2) ?? ''
+    } else if (typeof vModel.value === 'string') {
+      inputRef.value.value = Number(vModel.value).toFixed(props.precision ?? 2) ?? ''
+    }
   }
 }
 const saveValue = (targetValue: string) => {

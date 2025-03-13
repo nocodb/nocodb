@@ -365,10 +365,20 @@ export const renderSingleLineText = (
 
 export const wrapTextToLines = (
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-  { text, maxWidth, maxLines }: { text: string; maxWidth: number; maxLines: number },
+  {
+    text,
+    maxWidth,
+    maxLines,
+    firstLineMaxWidth,
+  }: { text: string; maxWidth: number; maxLines: number; firstLineMaxWidth?: number },
 ): string[] => {
-  const lines: string[] = []
-  let remainingText = text
+  if (maxLines === 0) return [] // If maxLines is 0, return an empty array
+
+  const lines: string[] = [] // Stores the wrapped lines
+  let remainingText = text // Keep track of unprocessed text
+
+  // Determine the max width for the first line
+  let currentMaxWidth = firstLineMaxWidth ?? maxWidth
 
   while (remainingText.length > 0 && lines.length < maxLines) {
     let start = 0
@@ -376,22 +386,22 @@ export const wrapTextToLines = (
     let line = ''
     let width = 0
 
-    // Binary search to find the maximum number of characters that fit within maxWidth
+    // Binary search to find the max substring that fits within currentMaxWidth
     while (start < end) {
       const mid = Math.floor((start + end) / 2)
       const testText = remainingText.slice(0, mid + 1)
       const testWidth = ctx.measureText(testText).width
 
-      if (testWidth <= maxWidth) {
-        line = testText // Store the valid part of the text
+      if (testWidth <= currentMaxWidth) {
+        line = testText // Store the longest valid substring
         width = testWidth
-        start = mid + 1 // Try a longer line
+        start = mid + 1 // Try a longer substring
       } else {
-        end = mid // Try a shorter line
+        end = mid // Reduce the search space
       }
     }
 
-    // Check if the line ends in the middle of a word
+    // Handle word breaking: Prevent splitting words mid-way
     const lastSpaceIndex = line.lastIndexOf(' ')
     if (
       lastSpaceIndex !== -1 && // There is at least one space in the line
@@ -409,8 +419,8 @@ export const wrapTextToLines = (
       const ellipsis = '...'
       const ellipsisWidth = ctx.measureText(ellipsis).width
 
-      if (width + ellipsisWidth > maxWidth && line.length > 0) {
-        line = truncateText(ctx, line, maxWidth - ellipsisWidth, false, false) // Truncate the line to fit within maxWidth
+      if (width + ellipsisWidth > currentMaxWidth && line.length > 0) {
+        line = truncateText(ctx, line, currentMaxWidth - ellipsisWidth, false, false) // Truncate the line to fit within maxWidth
         width = ctx.measureText(line).width
       }
 
@@ -419,6 +429,9 @@ export const wrapTextToLines = (
 
     lines.push(line) // Store the current line
     remainingText = remainingText.slice(line.length).trimStart() // Remove the rendered part and trim leading spaces
+
+    // After the first line, all lines use maxWidth for consistency
+    currentMaxWidth = maxWidth
   }
 
   return lines
@@ -430,6 +443,7 @@ const renderLines = (
     lines,
     x,
     y,
+    startX, // Optional startX for the first line
     textAlign: _,
     verticalAlign: _1,
     lineHeight,
@@ -440,6 +454,7 @@ const renderLines = (
   }: {
     lines: string[]
     x: number
+    startX?: number // New parameter for first-line alignment
     y: number
     textAlign: CanvasTextAlign
     verticalAlign: CanvasTextBaseline
@@ -451,15 +466,16 @@ const renderLines = (
   },
 ) => {
   lines.forEach((line, index) => {
+    const lineX = index === 0 && startX !== undefined ? startX : x // First line uses startX, others use x
     const lineY = y + index * lineHeight
-    ctx.fillText(line, x, lineY)
+    ctx.fillText(line, lineX, lineY)
 
     if (underline) {
-      drawUnderline(ctx, { x, y: lineY, width: ctx.measureText(line).width, fontSize })
+      drawUnderline(ctx, { x: lineX, y: lineY, width: ctx.measureText(line).width, fontSize })
     }
 
     if (strikethrough) {
-      drawStrikeThrough(ctx, { x, y: lineY, width: ctx.measureText(line).width, fontSize })
+      drawStrikeThrough(ctx, { x: lineX, y: lineY, width: ctx.measureText(line).width, fontSize })
     }
   })
 }
@@ -479,6 +495,7 @@ export const renderMarkdownBlocks = (
     mousePosition = { x: 0, y: 0 },
     cellRenderStore,
     fontFamily,
+    height,
   }: {
     blocks: Block[]
     x: number
@@ -492,6 +509,7 @@ export const renderMarkdownBlocks = (
     fillStyle?: string
     fontFamily?: string
     mousePosition?: { x: number; y: number }
+    height?: number
   },
 ) => {
   if (fillStyle) {
@@ -527,7 +545,7 @@ export const renderMarkdownBlocks = (
 
     let tokenIndex = 0
     let cursorX = x
-    const cursorY = y + renderedLineCount * lineHeight
+    let cursorY = y + renderedLineCount * lineHeight
 
     for (const token of tokens) {
       let tokenText = token.value
@@ -539,73 +557,119 @@ export const renderMarkdownBlocks = (
       ctx.fillStyle = defaultFillStyle
       ctx.strokeStyle = defaultStrokeStyle
 
-      let tokenWidth = ctx.measureText(tokenText).width
+      const maxLinesToRender = maxLines - renderedLineCount
+      console.log('before', x, cursorX, cursorY)
+      const {
+        x: xOffset,
+        y: yOffset,
+        lastLineWidth,
+        lines,
+      } = renderMultiLineText(ctx, {
+        x,
+        y: cursorY,
+        firstLineMaxWidth: maxWidth - (cursorX - x),
+        text: tokenText,
+        maxWidth,
+        height,
+        fillStyle: token.styles.includes('link') ? '#4351e7' : (defaultFillStyle as string),
+        fontFamily: ctx.font,
+        maxLines: maxLinesToRender,
+        underline: token.styles.includes('underline') || token.styles.includes('link'),
+        strikethrough: token.styles.includes('strikethrough'),
+      })
 
-      // Truncate the token if it exceeds the max width of the line
-      if (cursorX + tokenWidth > x + maxWidth && tokenText.length > 0) {
-        // cursorX starts at x, so we need to subtract x to get used space
-        tokenText = truncateText(ctx, tokenText, maxWidth - (cursorX - x), false, false)
-        tokenWidth = ctx.measureText(tokenText).width
+      if (lines.length === 1) {
+        cursorX += lastLineWidth
+      } else {
+        cursorX = x + lastLineWidth
       }
 
-      if (token.styles.includes('link')) {
-        const linkBox = {
-          x: cursorX - 2,
-          y: cursorY - baseFontSize / 2 - 2,
-          width: tokenWidth + 4,
-          height: baseFontSize + 4,
-        }
-
-        ctx.fillStyle = '#4351e7'
-        ctx.strokeStyle = '#4351e7'
-
-        const isHovered = isBoxHovered(linkBox, mousePosition)
-
-        if (isHovered) {
-          ctx.fillStyle = '#000'
-          ctx.strokeStyle = '#000'
-        }
-
-        links.push({
-          ...linkBox,
-          url: token.url ?? '',
-        })
+      if (cursorX >= x + maxWidth + 10) {
+        console.log('reset x')
+        cursorX = x
       }
 
-      let isTruncated = false
-
-      // Add ellipsis if there is more text to render but we are on the last line
-      if (renderedLineCount === maxLines - 1 && blocks.length > maxLines) {
-        const ellipsis = '...'
-        const ellipsisWidth = ctx.measureText(ellipsis).width
-
-        if (cursorX + tokenWidth + ellipsisWidth > x + maxWidth || tokenIndex === tokens.length - 1) {
-          if (cursorX + tokenWidth + ellipsisWidth > x + maxWidth && tokenText.length > 0) {
-            // cursorX starts at x, so we need to subtract x to get used space
-            tokenText = truncateText(ctx, tokenText, maxWidth - (cursorX - x) - ellipsisWidth, false, false)
-            tokenWidth = ctx.measureText(tokenText).width
-          }
-
-          tokenText += ellipsis
-          tokenWidth = ctx.measureText(tokenText).width
-          isTruncated = true
-        }
-      }
-
-      ctx.fillText(tokenText, cursorX, cursorY)
-
-      if (token.styles.includes('underline') || token.styles.includes('link')) {
-        drawUnderline(ctx, { x: cursorX, y: cursorY, width: tokenWidth, fontSize: baseFontSize })
-      }
-
-      if (token.styles.includes('strikethrough')) {
-        drawStrikeThrough(ctx, { x: cursorX, y: cursorY, width: tokenWidth, fontSize: baseFontSize })
-      }
-
-      cursorX += tokenWidth
       tokenIndex++
-      if (cursorX >= x + maxWidth) break
-      if (isTruncated) break
+
+      if (tokenIndex !== tokens.length - 1 && (lines.length > 1 || cursorX === x)) {
+        console.log('changed before')
+        renderedLineCount += lines.length
+        cursorY = y + renderedLineCount * lineHeight
+      }
+
+      console.log('after', lines, x, cursorX, cursorY, yOffset)
+
+      if (renderedLineCount >= maxLinesToRender) break
+      // if (cursorX >= x + maxWidth) break
+      // if (isTruncated) break
+
+      // let tokenWidth = ctx.measureText(tokenText).width
+
+      // // Truncate the token if it exceeds the max width of the line
+      // if (cursorX + tokenWidth > x + maxWidth && tokenText.length > 0) {
+      //   // cursorX starts at x, so we need to subtract x to get used space
+      //   tokenText = truncateText(ctx, tokenText, maxWidth - (cursorX - x), false, false)
+      //   tokenWidth = ctx.measureText(tokenText).width
+      // }
+
+      // if (token.styles.includes('link')) {
+      //   const linkBox = {
+      //     x: cursorX - 2,
+      //     y: cursorY - baseFontSize / 2 - 2,
+      //     width: tokenWidth + 4,
+      //     height: baseFontSize + 4,
+      //   }
+
+      //   ctx.fillStyle = '#4351e7'
+      //   ctx.strokeStyle = '#4351e7'
+
+      //   const isHovered = isBoxHovered(linkBox, mousePosition)
+
+      //   if (isHovered) {
+      //     ctx.fillStyle = '#000'
+      //     ctx.strokeStyle = '#000'
+      //   }
+
+      //   links.push({
+      //     ...linkBox,
+      //     url: token.url ?? '',
+      //   })
+      // }
+
+      // let isTruncated = false
+
+      // // Add ellipsis if there is more text to render but we are on the last line
+      // if (renderedLineCount === maxLines - 1 && blocks.length > maxLines) {
+      //   const ellipsis = '...'
+      //   const ellipsisWidth = ctx.measureText(ellipsis).width
+
+      //   if (cursorX + tokenWidth + ellipsisWidth > x + maxWidth || tokenIndex === tokens.length - 1) {
+      //     if (cursorX + tokenWidth + ellipsisWidth > x + maxWidth && tokenText.length > 0) {
+      //       // cursorX starts at x, so we need to subtract x to get used space
+      //       tokenText = truncateText(ctx, tokenText, maxWidth - (cursorX - x) - ellipsisWidth, false, false)
+      //       tokenWidth = ctx.measureText(tokenText).width
+      //     }
+
+      //     tokenText += ellipsis
+      //     tokenWidth = ctx.measureText(tokenText).width
+      //     isTruncated = true
+      //   }
+      // }
+
+      // ctx.fillText(tokenText, cursorX, cursorY)
+
+      // if (token.styles.includes('underline') || token.styles.includes('link')) {
+      //   drawUnderline(ctx, { x: cursorX, y: cursorY, width: tokenWidth, fontSize: baseFontSize })
+      // }
+
+      // if (token.styles.includes('strikethrough')) {
+      //   drawStrikeThrough(ctx, { x: cursorX, y: cursorY, width: tokenWidth, fontSize: baseFontSize })
+      // }
+
+      // cursorX += tokenWidth
+      // tokenIndex++
+      // if (cursorX >= x + maxWidth) break
+      // if (isTruncated) break
     }
 
     renderedLineCount++
@@ -628,10 +692,13 @@ export const renderMultiLineText = (
   x: number
   y: number
   height: number
+  lastLineX: number
+  lastLineWidth: number
 } => {
   const {
     x = 0,
     y = 0,
+    yOffset: yOffsetInitial,
     text,
     fillStyle,
     height,
@@ -644,6 +711,7 @@ export const renderMultiLineText = (
     underline,
     strikethrough,
     py = 10,
+    firstLineMaxWidth, // Allows different width for the first line
   } = params
   let { maxWidth = Infinity, maxLines } = params
 
@@ -669,21 +737,23 @@ export const renderMultiLineText = (
     ctx.font = fontFamily
   }
 
-  const cacheKey = `${text}-${fontFamily}-${maxWidth}-${maxLines}`
+  // Include `firstLineMaxWidth` in the cache key to avoid incorrect caching
+  const cacheKey = `${text}-${fontFamily}-${maxWidth}-${maxLines}-${firstLineMaxWidth ?? 'default'}`
   const cachedText = multiLineTextCache.get(cacheKey)
 
   if (cachedText) {
     lines = cachedText.lines
     width = cachedText.width
   } else {
-    lines = wrapTextToLines(ctx, { text, maxWidth, maxLines })
+    lines = wrapTextToLines(ctx, { text, maxWidth, maxLines, firstLineMaxWidth })
     width = Math.min(Math.max(...lines.map((line) => ctx.measureText(line).width)), maxWidth)
 
     multiLineTextCache.set(cacheKey, { lines, width })
   }
 
   const yOffset =
-    verticalAlign === 'middle' ? (height && rowHeightInPx['1'] === height ? height / 2 : fontSize / 2 + (py ?? 0)) : py ?? 0
+    yOffsetInitial ??
+    (verticalAlign === 'middle' ? (height && rowHeightInPx['1'] === height ? height / 2 : fontSize / 2 + (py ?? 0)) : py ?? 0)
 
   if (render) {
     ctx.textAlign = textAlign
@@ -693,11 +763,15 @@ export const renderMultiLineText = (
       ctx.fillStyle = fillStyle
       ctx.strokeStyle = fillStyle
     }
+
+    const startX = !ncIsUndefined(firstLineMaxWidth) ? x + (maxWidth - firstLineMaxWidth) : undefined
+
     // Render the text lines
     renderLines(ctx, {
       lines,
       x,
       y: y + yOffset,
+      startX,
       textAlign,
       verticalAlign,
       lineHeight,
@@ -713,8 +787,14 @@ export const renderMultiLineText = (
      */
     ctx.font = originalFontFamily
   }
+
+  const lastLineStartX = lines.length === 1 && !ncIsUndefined(firstLineMaxWidth) ? x + (maxWidth - firstLineMaxWidth) : x
+
+  const lastLineWidth = lines.length ? Math.min(ctx.measureText(lines[lines.length - 1] ?? '').width, maxWidth) : 0
+
   const newY = y + yOffset + (lines.length - 1) * lineHeight
-  return { lines, width, x: x + width, y: newY, height: newY - y }
+
+  return { lines, width, x: x + width, y: newY, height: newY - y, lastLineX: lastLineStartX + lastLineWidth, lastLineWidth }
 }
 
 export function renderBarcode(
@@ -926,7 +1006,7 @@ export const renderMarkdown = (
     renderMarkdownBlocks(ctx, {
       blocks,
       x,
-      y: y + yOffset,
+      y,
       textAlign,
       verticalAlign,
       lineHeight,
@@ -936,6 +1016,7 @@ export const renderMarkdown = (
       mousePosition,
       cellRenderStore,
       fontFamily,
+      height,
     })
   } else {
     /**

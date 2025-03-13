@@ -295,6 +295,7 @@ export const renderSingleLineText = (
     verticalAlign = 'middle',
     render = true,
     underline,
+    strikethrough,
     py = 10,
     isTagLabel = false,
   } = params
@@ -346,6 +347,10 @@ export const renderSingleLineText = (
 
     if (underline) {
       drawUnderline(ctx, { x, y: y + yOffset, fontSize, width, strokeStyle: fillStyle })
+    }
+
+    if (strikethrough) {
+      drawStrikeThrough(ctx, { x, y: y + yOffset, fontSize, width, strokeStyle: fillStyle })
     }
   } else {
     /**
@@ -431,6 +436,7 @@ const renderLines = (
     fontSize,
     fillStyle: _2,
     underline,
+    strikethrough,
   }: {
     lines: string[]
     x: number
@@ -441,6 +447,7 @@ const renderLines = (
     fontSize: number
     fillStyle?: string
     underline?: boolean
+    strikethrough?: boolean
   },
 ) => {
   lines.forEach((line, index) => {
@@ -449,6 +456,10 @@ const renderLines = (
 
     if (underline) {
       drawUnderline(ctx, { x, y: lineY, width: ctx.measureText(line).width, fontSize })
+    }
+
+    if (strikethrough) {
+      drawStrikeThrough(ctx, { x, y: lineY, width: ctx.measureText(line).width, fontSize })
     }
   })
 }
@@ -631,6 +642,7 @@ export const renderMultiLineText = (
     verticalAlign = 'middle',
     render = true,
     underline,
+    strikethrough,
     py = 10,
   } = params
   let { maxWidth = Infinity, maxLines } = params
@@ -682,7 +694,18 @@ export const renderMultiLineText = (
       ctx.strokeStyle = fillStyle
     }
     // Render the text lines
-    renderLines(ctx, { lines, x, y: y + yOffset, textAlign, verticalAlign, lineHeight, fontSize, fillStyle, underline })
+    renderLines(ctx, {
+      lines,
+      x,
+      y: y + yOffset,
+      textAlign,
+      verticalAlign,
+      lineHeight,
+      fontSize,
+      fillStyle,
+      underline,
+      strikethrough,
+    })
   } else {
     /**
      * Set fontFamily is required for measureText to get currect matrics and

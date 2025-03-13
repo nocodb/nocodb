@@ -13,6 +13,7 @@ export interface RenderSingleLineTextProps {
   fillStyle?: string
   height?: number
   underline?: boolean
+  strikethrough?: boolean
   py?: number
   px?: number
 

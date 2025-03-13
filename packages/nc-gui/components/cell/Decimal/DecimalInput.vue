@@ -49,7 +49,10 @@ const refreshVModel = () => {
     if (typeof vModel.value === 'number') {
       inputRef.value.value = vModel.value.toFixed(props.precision ?? 2) ?? ''
     } else if (typeof vModel.value === 'string') {
-      inputRef.value.value = Number(vModel.value).toFixed(props.precision ?? 2) ?? ''
+      const numberValue = Number(vModel.value)
+      if (!ncIsNaN(numberValue)) {
+        inputRef.value.value = numberValue.toFixed(props.precision ?? 2) ?? ''
+      }
     }
   }
 }

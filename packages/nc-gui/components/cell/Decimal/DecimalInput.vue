@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { composeNewDecimalValue, extractDecimalFromString, ncIsNaN } from 'nocodb-sdk'
+import { composeNewDecimalValue, ncIsNaN } from 'nocodb-sdk'
 import type { StyleValue } from 'vue'
 
 interface Props {
@@ -45,11 +45,19 @@ const pasteText = (target: HTMLInputElement, value: string) => {
 const refreshVModel = () => {
   if (inputRef.value && vModel.value) {
     if (typeof vModel.value === 'number') {
-      inputRef.value.value = vModel.value.toFixed(props.precision ?? 2) ?? ''
+      if (props.precision) {
+        inputRef.value.value = vModel.value.toFixed(props.precision) ?? ''
+      } else {
+        inputRef.value.value = vModel.value.toString()
+      }
     } else if (typeof vModel.value === 'string') {
       const numberValue = Number(vModel.value)
       if (!ncIsNaN(numberValue)) {
-        inputRef.value.value = numberValue.toFixed(props.precision ?? 2) ?? ''
+        if (props.precision) {
+          inputRef.value.value = numberValue.toFixed(props.precision) ?? ''
+        } else {
+          inputRef.value.value = numberValue.toString()
+        }
       }
     }
   }

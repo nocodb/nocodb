@@ -127,7 +127,6 @@ const onInputKeyDown = (e: KeyboardEvent) => {
     target.setSelectionRange(0, 0)
     return
   } else if (e.key.match('[^-0-9\.]')) {
-    console.log(e.key)
     // prevent everything non ctrl / alt and non . and non number
     e.preventDefault()
     e.stopPropagation()

@@ -71,13 +71,15 @@ const vModel = computed<string>({
   },
   set: (newVal: string | Record<string, any>) => {
     try {
+      // if the new value is null, emit null
+      if (newVal === 'null') {
+        emits('update:modelValue', null)
+      }
       // If the current value is an object, attempt to parse and update
-      if (typeof modelValue.value === 'object') {
+      else if (typeof modelValue.value === 'object') {
+        // If the new value is 'null', emit null
         const parsedValue = typeof newVal === 'object' ? newVal : JSON.parse(newVal)
         emits('update:modelValue', parsedValue)
-      } else if (modelValue.value === 'null') {
-        // if the current value is null, emit null
-        emits('update:modelValue', null)
       } else {
         // Directly emit new value if it's not an object
         emits('update:modelValue', newVal)

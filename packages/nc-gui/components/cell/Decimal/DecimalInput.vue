@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { composeNewDecimalValue, ncIsNaN } from 'nocodb-sdk'
+import { composeNewDecimalValue, extractDecimalFromString, ncIsNaN } from 'nocodb-sdk'
 import type { StyleValue } from 'vue'
 
 interface Props {
@@ -36,13 +36,11 @@ const pasteText = (target: HTMLInputElement, value: string) => {
   })
   if (target.value !== newValue) {
     target.value = newValue
-    if (selectionEnd || selectionEnd === 0) {
-      const newCursorIndex = target.value.length - (lastValue.length - selectionEnd)
-      target.setSelectionRange(newCursorIndex, newCursorIndex)
-    }
-    return { changed: true }
   }
-  return { changed: false }
+  if (selectionEnd || selectionEnd === 0) {
+    const newCursorIndex = target.value.length - (lastValue.length - selectionEnd)
+    target.setSelectionRange(newCursorIndex, newCursorIndex)
+  }
 }
 const refreshVModel = () => {
   if (inputRef.value && vModel.value) {
@@ -72,6 +70,11 @@ let savingHandle: any
 const onInputKeyUp = (e: KeyboardEvent) => {
   const target: HTMLInputElement = e.target as HTMLInputElement
   if (target) {
+    // mac's double space insert period
+    // not perfect, but better
+    if (target.value.match(/\.\s/)?.[0]) {
+      target.value = target.value.replace(/\.\s/, '')
+    }
     // debounce, maybe there's some helpers in vue?
     if (savingHandle) {
       clearTimeout(savingHandle)
@@ -87,7 +90,12 @@ const onInputKeyDown = (e: KeyboardEvent) => {
   if (!target) {
     return
   }
-  if (['ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown', 'Delete', 'Backspace'].includes(e.key)) {
+  if (
+    ['ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown', 'Delete', 'Backspace', 'Tab'].includes(e.key) ||
+    e.ctrlKey ||
+    e.altKey ||
+    e.metaKey
+  ) {
     return
   }
   if (e.key === 'ArrowDown') {
@@ -96,14 +104,15 @@ const onInputKeyDown = (e: KeyboardEvent) => {
   } else if (e.key === 'ArrowUp') {
     target.setSelectionRange(0, 0)
     return
+  } else if (e.key.match('[^0-9\.]')) {
+    // prevent everything non ctrl / alt and non . and non number
+    e.preventDefault()
+    e.stopPropagation()
+    return
   }
-  if (!e.metaKey) {
-    const { changed } = pasteText(target, e.key)
-    if (changed || ['.'].includes(e.key)) {
-      e.preventDefault()
-      e.stopPropagation()
-    }
-  }
+  pasteText(target, e.key)
+  e.preventDefault()
+  e.stopPropagation()
 }
 
 const onInputPaste = (e: ClipboardEvent) => {

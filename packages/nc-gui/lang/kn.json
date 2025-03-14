@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಪಾತ್ರ ಇದೇ",
       "pleaseRequestAccessForView": "ಈ {viewName} ಗೆ ಪ್ರವೇಶ ಪಡೆಯಲು ಆಡಳಿತಕರಿಂದ / ಬೇಸ್ ಮಾಲಕರಿಂದ / ವರ್ಕ್‌ಸ್ಪೇಸ್ ಮಾಲಕರಿಂದ ಹೆಚ್ಚಿನ ಅನುಮತಿ ಕೋರಿ",
       "preventHideAllOptions": "ಕ್ಷೇತ್ರವು ಅಗತ್ಯವಿದ್ದರೆ ಎಲ್ಲಾ ಆಯ್ಕೆಗಳ ಹೋಲಿಕೆ ಅನ್ನು ನೈವ್ಯಾಧಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "ಮ್ಯಾನುಯಲ್ ಹೂಕ್‌ಗಳು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗುವುದಿಲ್ಲ",

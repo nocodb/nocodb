@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Nykyinen roolisi on",
       "pleaseRequestAccessForView": "Pyydä korkeampia oikeuksia adminilta/pohjan omistajalta/työtilan omistajalta saadaksesi pääsyn tähän {viewName} näkymään",
       "preventHideAllOptions": "Et voi piilottaa kaikkia vaihtoehtoja, jos kenttä on pakollinen",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Manuaalisia koukkuja ei voi poistaa käytöstä",

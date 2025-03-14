@@ -1,11 +1,11 @@
-import { GenericFieldHandler } from '../generic';
-import type CustomKnex from 'src/db/CustomKnex';
 import type { Knex } from 'knex';
+import type CustomKnex from '~/db/CustomKnex';
 import type { HandlerOptions } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
+import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import { sanitize } from '~/helpers/sqlSanitize';
 
-export class JsonPgHandler extends GenericFieldHandler {
+export class JsonGeneralHandler extends GenericFieldHandler {
   override async filter(
     knex: CustomKnex,
     filter: Filter,
@@ -21,7 +21,7 @@ export class JsonPgHandler extends GenericFieldHandler {
     return (qb: Knex.QueryBuilder) => {
       switch (filter.comparison_op) {
         case 'eq':
-          if (val === '') {
+          if (val === '' || typeof val === 'undefined' || val === null) {
             qb.where((nestedQb) => {
               nestedQb
                 .where(knex.raw("??::jsonb = '{}'::jsonb", [field]))
@@ -45,7 +45,7 @@ export class JsonPgHandler extends GenericFieldHandler {
               nestedQb
                 .whereNot(knex.raw("??::jsonb = '{}'::jsonb", [field]))
                 .whereNot(knex.raw("??::jsonb = '[]'::jsonb", [field]))
-                .orWhereNull(field);
+                .orWhereNotNull(field);
             });
           } else {
             const { jsonVal, isValidJson } = this.parseJsonValue(val);

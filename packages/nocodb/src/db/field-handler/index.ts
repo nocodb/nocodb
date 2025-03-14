@@ -1,6 +1,14 @@
 import { UITypes } from 'nocodb-sdk';
 import { ClientType } from 'nocodb-sdk';
 import { JsonGeneralHandler } from './handlers/json/json.general.handler';
+import { GenericFieldHandler } from './handlers/generic';
+import { CheckboxGeneralHandler } from './handlers/checkbox/checkbox.general.handler';
+import { DateTimeGeneralHandler } from './handlers/date-time/date-time.general.handler';
+import { DateGeneralHandler } from './handlers/date/date.general.handler';
+import { MultiSelectGeneralHandler } from './handlers/multi-select/multi-select.general.handler';
+import { SingleSelectGeneralHandler } from './handlers/single-select/single-select.general.handler';
+import { DecimalGeneralHandler } from './handlers/decimal/decimal.general.handler';
+import { NumberGeneralHandler } from './handlers/number/number.general.handler';
 import type CustomKnex from '../CustomKnex';
 import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
@@ -27,28 +35,56 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.LinkToAnotherRecord]: {},
   [UITypes.ForeignKey]: {},
   [UITypes.Lookup]: {},
-  [UITypes.SingleLineText]: {},
-  [UITypes.LongText]: {},
+  [UITypes.SingleLineText]: {
+    [CLIENT_DEFAULT]: GenericFieldHandler,
+  },
+  [UITypes.LongText]: {
+    [CLIENT_DEFAULT]: GenericFieldHandler,
+  },
   [UITypes.Attachment]: {},
-  [UITypes.Checkbox]: {},
-  [UITypes.MultiSelect]: {},
-  [UITypes.SingleSelect]: {},
-  [UITypes.Date]: {},
+  [UITypes.Checkbox]: {
+    [CLIENT_DEFAULT]: CheckboxGeneralHandler,
+  },
+  [UITypes.MultiSelect]: {
+    [CLIENT_DEFAULT]: MultiSelectGeneralHandler,
+  },
+  [UITypes.SingleSelect]: {
+    [CLIENT_DEFAULT]: SingleSelectGeneralHandler,
+  },
+  [UITypes.Date]: {
+    [CLIENT_DEFAULT]: DateGeneralHandler,
+  },
   [UITypes.Year]: {},
   [UITypes.Time]: {},
-  [UITypes.PhoneNumber]: {},
+  [UITypes.PhoneNumber]: {
+    [CLIENT_DEFAULT]: GenericFieldHandler,
+  },
   [UITypes.GeoData]: {},
-  [UITypes.Email]: {},
-  [UITypes.URL]: {},
-  [UITypes.Number]: {},
-  [UITypes.Decimal]: {},
-  [UITypes.Currency]: {},
-  [UITypes.Percent]: {},
+  [UITypes.Email]: {
+    [CLIENT_DEFAULT]: GenericFieldHandler,
+  },
+  [UITypes.URL]: {
+    [CLIENT_DEFAULT]: GenericFieldHandler,
+  },
+  [UITypes.Number]: {
+    [CLIENT_DEFAULT]: NumberGeneralHandler,
+  },
+  [UITypes.Decimal]: {
+    [CLIENT_DEFAULT]: DecimalGeneralHandler,
+  },
+  [UITypes.Currency]: {
+    [CLIENT_DEFAULT]: DecimalGeneralHandler,
+  },
+  [UITypes.Percent]: {
+    [CLIENT_DEFAULT]: DecimalGeneralHandler,
+  },
   [UITypes.Duration]: {},
   [UITypes.Rating]: {},
   [UITypes.Formula]: {},
   [UITypes.Rollup]: {},
-  [UITypes.DateTime]: {},
+  [UITypes.DateTime]: {
+    [CLIENT_DEFAULT]: DateTimeGeneralHandler,
+  },
   [UITypes.CreatedTime]: {},
   [UITypes.LastModifiedTime]: {},
   [UITypes.AutoNumber]: {},
@@ -202,5 +238,16 @@ export class FieldHandler {
       model: this.info.model,
       ...options,
     });
+  }
+
+  async verifyFilter(
+    filter: Filter,
+    column: Column,
+    options: HandlerOptions = {},
+  ) {
+    const knex = options.knex ?? this.info.knex;
+    return (
+      this.getHandler(column.uidt, knex.client) ?? new GenericFieldHandler()
+    ).verifyFilter(filter, column, options);
   }
 }

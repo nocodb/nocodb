@@ -54,7 +54,7 @@ provide(ColumnInj, column)
     <LazyCellCheckbox v-if="isBoolean(column)" :model-value="cellValue" />
     <LazyCellCurrency v-else-if="isCurrency(column)" :model-value="cellValue" />
     <LazyCellDecimal v-else-if="isDecimal(column)" :model-value="cellValue" />
-    <div class="h-[26px] min-h-[26px]" v-else-if="isPercent(column)">
+    <div class="h-[30px] min-h-[30px]" v-else-if="isPercent(column)">
       <LazyCellPercentReadonly :model-value="cellValue" />
     </div>
     <LazyCellRating v-else-if="isRating(column)" :model-value="cellValue" />

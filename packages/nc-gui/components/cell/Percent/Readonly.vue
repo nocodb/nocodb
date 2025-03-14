@@ -69,7 +69,7 @@ const progressPercent = computed(() => {
 <template>
   <div
     v-if="(column.meta as any).is_progress"
-    class="flex py-1"
+    class="nc-cell-field w-full flex py-1"
     :style="{
       ...(!isExpandedFormOpen && { height: '4px' }),
       ...(isExpandedFormOpen && { height: '100%' }),
@@ -81,13 +81,14 @@ const progressPercent = computed(() => {
     @click="onWrapperFocus"
   >
     <CellPercentProgressBar :percentage="percentValueNumber" :is-show-number="isExpandedFormOpen">
-      <input
-        class="nc-cell-field w-full !border-none !outline-none focus:ring-0 min-h-[10px]"
-        :value="modelValue"
-        :readonly="true"
-        @click="onWrapperFocus"
-        @focus="onWrapperFocus"
-      />
+      <template v-if="!readOnly" #default>
+        <input
+          class="w-full !border-none !outline-none focus:ring-0 min-h-[10px]"
+          :value="modelValue"
+          @click="onWrapperFocus"
+          @focus="onWrapperFocus"
+        />
+      </template>
     </CellPercentProgressBar>
   </div>
   <div

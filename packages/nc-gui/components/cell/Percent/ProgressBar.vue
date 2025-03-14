@@ -9,6 +9,10 @@ const cPercentage = computed(() => Math.max(0, Math.min(100, props.percentage)))
 const labelMarginLeft = computed<number>(() => {
   return Math.max(1, Math.min(props.percentage / 2, 50))
 })
+const slots = useSlots()
+const slotHasChildren = (name?: string) => {
+  return (slots[name ?? 'default']?.()?.length ?? 0) > 0
+}
 </script>
 
 <template>
@@ -16,7 +20,7 @@ const labelMarginLeft = computed<number>(() => {
     class="flex flex-col w-full progress-container min-h-[4px]"
     style="align-self: stretch; justify-self: stretch; height: 100%; border-radius: 9999px"
   >
-    <div class="progress-bar-input">
+    <div class="progress-bar-input" :class="slotHasChildren() ? 'has-child' : ''">
       <slot></slot>
     </div>
     <div class="w-full progress-bar flex" style="align-self: stretch; border-radius: 9999px; overflow: hidden; height: 100%">
@@ -52,12 +56,11 @@ const labelMarginLeft = computed<number>(() => {
 .progress-container:not(:focus-within):not(:hover) > div.progress-bar-input:not(:focus-within):not(:hover) {
   position: absolute;
   top: 0px;
-  // left: -1000px;
   max-height: 0px !important;
   overflow-y: hidden;
 }
-.progress-container:focus-within > div.progress-bar-input,
-.progress-container:hover > div.progress-bar-input {
+.progress-container:focus-within > div.progress-bar-input.has-child,
+.progress-container:hover > div.progress-bar-input.has-child {
   position: relative;
   width: 100%;
   max-height: 100%;
@@ -66,8 +69,8 @@ const labelMarginLeft = computed<number>(() => {
   transition: max-height 0.1s ease-in;
 }
 
-.progress-container:focus-within > div.progress-bar,
-.progress-container:hover > div.progress-bar {
+.progress-container:focus-within:has(div.progress-bar-input.has-child) > div.progress-bar,
+.progress-container:hover:has(div.progress-bar-input.has-child) > div.progress-bar {
   visibility: collapse;
   opacity: 0;
   display: none;

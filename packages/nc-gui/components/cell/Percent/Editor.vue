@@ -32,7 +32,7 @@ const focus: VNodeRef = (el) => {
     if (isExpandedFormOpen.value) {
       inputRef.value?.focus()
       inputRef.value?.select()
-    } else {
+    } else if (!isForm.value) {
       inputRef.value?.focus()
     }
   }

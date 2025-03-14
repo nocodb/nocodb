@@ -52,14 +52,14 @@ export const BaseRoleUpdate = ({
             <Row>
               <Column className="flex max-w-[210px] mx-auto">
                 <Img
-                  src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${newRole}.png`}
-                  alt={newRole}
+                  src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${oldRole}.png`}
+                  alt={oldRole}
                   className="h-7"
                 />
                 <Text className="h-5 text-gray-800 !mt-0.5 !ml-2">➜</Text>
                 <Img
-                  src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${oldRole}.png`}
-                  alt={oldRole}
+                  src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${newRole}.png`}
+                  alt={newRole}
                   className="h-7 ml-2"
                 />
               </Column>

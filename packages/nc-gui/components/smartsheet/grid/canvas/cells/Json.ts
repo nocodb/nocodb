@@ -35,7 +35,7 @@ export const JsonCellRenderer: CellRenderer = {
     let text = typeof value === 'string' ? value : JSON.stringify(value)
 
     // if invalid json string then stringify the value
-    if (!ncIsUndefined(text) && !ncIsNull(text) && typeof text === 'string') {
+    if (typeof text === 'string') {
       try {
         JSON.parse(text)
       } catch (e) {

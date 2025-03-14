@@ -681,7 +681,8 @@
     "customUrl": "Niestandardowy URL",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
     "latitude": "Latitude",
@@ -890,6 +891,7 @@
     "clickToCopyViewID": "Kliknij, aby skopiować ID widoku",
     "viewMode": "Tryb widoku",
     "reAssignView": "Przypisz widok ponownie",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "Szukaj użytkowników",
     "superAdmin": "Super Administrator",
     "allTables": "Wszystkie tabele",
@@ -1133,7 +1135,9 @@
     "showJsonPayload": "Show JSON payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
     "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "proceedToLink": "Proceed to link",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner"
   },
   "activity": {
     "clickToResolve": "Kliknij, aby rozwiązać",
@@ -1529,7 +1533,8 @@
     "inviteYourTeam": "Zaproś swój zespół",
     "inviteYourTeamLabel": "Usprawnij współpracę i produktywność ze swoim zespołem – zacznij od zaproszenia ich do przyłączenia się do twojej przestrzeni roboczej.",
     "searchOptions": "Opcje wyszukiwania",
-    "lockViewDescription": "Wyjaśnij, dlaczego blokujesz ten widok. Ta wiadomość zostanie wyświetlona, gdy ktoś spróbuje odblokować ten widok (opcjonalne)."
+    "lockViewDescription": "Wyjaśnij, dlaczego blokujesz ten widok. Ta wiadomość zostanie wyświetlona, gdy ktoś spróbuje odblokować ten widok (opcjonalne).",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
     "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",

@@ -681,7 +681,8 @@
     "customUrl": "Custom URL",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
     "latitude": "Latitude",
@@ -890,6 +891,7 @@
     "clickToCopyViewID": "കാഴ്ച്ച ID പകർത്താൻ ക്ലിക്കൽ ചെയ്യുക",
     "viewMode": "കാഴ്ച മോഡ്",
     "reAssignView": "Re-assign view",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "ഉപയോക്താക്കളെ തിരയുക",
     "superAdmin": "സുപർ അഡ്മിൻ",
     "allTables": "എല്ലാ പട്ടികകൾ",
@@ -1133,7 +1135,9 @@
     "showJsonPayload": "Show JSON payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
     "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "proceedToLink": "Proceed to link",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1529,7 +1533,8 @@
     "inviteYourTeam": "നിങ്ങളുടെ ടീമിനെ ക്ഷണിക്കുക",
     "inviteYourTeamLabel": "നിങ്ങളുടെ പ്രോജക്റ്റുകൾക്ക് വേഗം എത്തിയ്ക്കാൻ, നിങ്ങളുടെ ടീമിനൊപ്പം സഹകരിക്കുക!",
     "searchOptions": "തിരയൽ ഓപ്ഷനുകൾ",
-    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
+    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional).",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
     "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",

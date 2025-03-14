@@ -48,7 +48,7 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const formatValue = (val: ModelValueType) => {
-  return !val || val === 'null' ? null : val
+  return val ?? null
 }
 
 const localValue = computed<ModelValueType>({

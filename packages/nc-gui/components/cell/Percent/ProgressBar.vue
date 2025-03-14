@@ -66,9 +66,6 @@ const labelMarginLeft = computed<number>(() => {
   transition: max-height 0.1s ease-in;
 }
 
-.progress-container:not(:focus-within):not(:hover) > div.progress-bar {
-  
-}
 .progress-container:focus-within > div.progress-bar,
 .progress-container:hover > div.progress-bar {
   visibility: collapse;

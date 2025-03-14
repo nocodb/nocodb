@@ -107,13 +107,17 @@ const showClicableLink = computed(() => {
       @selectstart.capture.stop
       @mousedown.stop
     />
-    <div v-if="showClicableLink" class="nc-cell-field absolute flex items-center max-w-full overflow-hidden pointer-events-none">
-      <span
-        class="truncate hover:underline text-primary cursor-pointer pointer-events-auto no-user-select"
-        @click="confirmPageLeavingRedirect(url)"
+    <div
+      v-if="showClicableLink"
+      class="nc-cell-field absolute inset-0 flex items-center max-w-full overflow-hidden pointer-events-none"
+    >
+      <a
+        class="truncate text-primary cursor-pointer pointer-events-auto no-user-select pt-[1px]"
+        :href="url"
+        @click.prevent="confirmPageLeavingRedirect(url)"
       >
-        {{ url }}
-      </span>
+        {{ vModel }}
+      </a>
     </div>
   </div>
 </template>

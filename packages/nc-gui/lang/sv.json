@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Din nuvarande roll är",
       "pleaseRequestAccessForView": "Vänligen begär högre behörighet från Admin / Base-ägare / Arbetsytesägare för att få åtkomst till detta {viewName}",
       "preventHideAllOptions": "Du kan inte dölja alla alternativ om fältet är obligatoriskt",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Manuella krokar kan inte inaktiveras",

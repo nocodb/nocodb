@@ -150,14 +150,28 @@ export class WorkspaceUsersService {
       }
     }
 
-    await WorkspaceUser.update(
-      param.workspaceId,
-      param.userId,
-      {
-        roles: param.roles,
-      },
-      ncMeta,
-    );
+    const transaction = await ncMeta.startTransaction();
+
+    try {
+      await WorkspaceUser.update(
+        param.workspaceId,
+        param.userId,
+        {
+          roles: param.roles,
+        },
+        transaction,
+      );
+
+      await this.paymentService.reseatSubscription(
+        workspace.fk_org_id ?? workspace.id,
+        transaction,
+      );
+
+      await transaction.commit();
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
 
     this.mailService
       .sendMail({
@@ -189,67 +203,66 @@ export class WorkspaceUsersService {
     return workspaceUser;
   }
 
-  async delete(param: { workspaceId: string; userId: string; req: NcRequest }) {
+  async delete(
+    param: { workspaceId: string; userId: string; req: NcRequest },
+    ncMeta = Noco.ncMeta,
+  ) {
     const { workspaceId, userId } = param;
 
     const workspace = await Workspace.get(workspaceId);
 
-    const ncMeta = await Noco.ncMeta.startTransaction();
+    const user = await User.get(userId);
+    const workspaceUser = await WorkspaceUser.get(workspaceId, userId, ncMeta);
+
+    if (!workspaceUser) NcError.userNotFound(userId);
+
+    if (workspaceUser.roles === WorkspaceUserRoles.OWNER) {
+      // current workspaceUser should have owner role to delete owner
+      if (
+        !extractRolesObj(param.req.user.workspace_roles)?.[
+          WorkspaceUserRoles.OWNER
+        ]
+      ) {
+        NcError.badRequest('Insufficient privilege to delete owner');
+      }
+
+      // at least one owner should be there after deletion
+      const owners = await WorkspaceUser.userList({
+        fk_workspace_id: workspaceId,
+        roles: WorkspaceUserRoles.OWNER,
+      });
+
+      if (owners.length < 2) {
+        NcError.badRequest('At least one owner should be there');
+      }
+    }
+
+    // for other workspaceUser delete workspaceUser should have higher or equal role
+    if (
+      getWorkspaceRolePower(workspaceUser) >
+      getWorkspaceRolePower(param.req.user)
+    ) {
+      NcError.badRequest(`Insufficient privilege to delete user`);
+    }
+
+    // if not owner/creator then workspaceUser can only delete self
+    if (
+      ![WorkspaceUserRoles.OWNER, WorkspaceUserRoles.CREATOR].some((r) => {
+        return extractRolesObj(param.req.user.workspace_roles)?.[r];
+      }) &&
+      workspaceUser.fk_user_id !== param.req.user.id
+    ) {
+      NcError.badRequest('Insufficient privilege to delete workspaceUser');
+    }
+
+    const transaction = await ncMeta.startTransaction();
 
     try {
-      const user = await User.get(userId);
-      const workspaceUser = await WorkspaceUser.get(
-        workspaceId,
-        userId,
-        ncMeta,
-      );
-
-      if (!workspaceUser) NcError.userNotFound(userId);
-
-      if (workspaceUser.roles === WorkspaceUserRoles.OWNER) {
-        // current workspaceUser should have owner role to delete owner
-        if (
-          !extractRolesObj(param.req.user.workspace_roles)?.[
-            WorkspaceUserRoles.OWNER
-          ]
-        ) {
-          NcError.badRequest('Insufficient privilege to delete owner');
-        }
-
-        // at least one owner should be there after deletion
-        const owners = await WorkspaceUser.userList({
-          fk_workspace_id: workspaceId,
-          roles: WorkspaceUserRoles.OWNER,
-        });
-
-        if (owners.length < 2) {
-          NcError.badRequest('At least one owner should be there');
-        }
-      }
-
-      // for other workspaceUser delete workspaceUser should have higher or equal role
-      if (
-        getWorkspaceRolePower(workspaceUser) >
-        getWorkspaceRolePower(param.req.user)
-      ) {
-        NcError.badRequest(`Insufficient privilege to delete user`);
-      }
-
-      // if not owner/creator then workspaceUser can only delete self
-      if (
-        ![WorkspaceUserRoles.OWNER, WorkspaceUserRoles.CREATOR].some((r) => {
-          return extractRolesObj(param.req.user.workspace_roles)?.[r];
-        }) &&
-        workspaceUser.fk_user_id !== param.req.user.id
-      ) {
-        NcError.badRequest('Insufficient privilege to delete workspaceUser');
-      }
-
       // get all bases workspaceUser is part of and delete them
       const workspaceBases = await Base.listByWorkspace(
         workspaceId,
         true,
-        ncMeta,
+        transaction,
       );
 
       for (const base of workspaceBases) {
@@ -260,13 +273,22 @@ export class WorkspaceUsersService {
           },
           base.id,
           userId,
-          ncMeta,
+          transaction,
         );
       }
 
-      const res = await WorkspaceUser.softDelete(workspaceId, userId, ncMeta);
+      const res = await WorkspaceUser.softDelete(
+        workspaceId,
+        userId,
+        transaction,
+      );
 
-      await ncMeta.commit();
+      await this.paymentService.reseatSubscription(
+        workspace.fk_org_id ?? workspace.id,
+        transaction,
+      );
+
+      await transaction.commit();
 
       this.appHooksService.emit(AppEvents.WORKSPACE_USER_DELETE, {
         workspace,
@@ -277,7 +299,7 @@ export class WorkspaceUsersService {
 
       return res;
     } catch (e) {
-      await ncMeta.rollback();
+      await transaction.rollback();
       throw e;
     }
   }
@@ -343,6 +365,7 @@ export class WorkspaceUsersService {
     if (!emails.length) {
       return NcError.badRequest('Invalid email address');
     }
+
     if (invalidEmails.length) {
       NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '));
     }
@@ -375,11 +398,13 @@ export class WorkspaceUsersService {
 
     const invite_token = uuidv4();
     const error = [];
+    const emailUserMap = new Map<string, User>();
+    const invitedEmails = [];
+    const registeredEmails = [];
 
     for (const email of emails) {
-      // add user to base if user already exist
+      // register user if not exists
       let user = await User.getByEmail(email, ncMeta);
-      let isNewUser = false;
       if (!user) {
         const salt = await promisify(bcrypt.genSalt)(10);
         user = await this.usersService.registerNewUserIfAllowed(
@@ -397,33 +422,67 @@ export class WorkspaceUsersService {
           },
           ncMeta,
         );
-        isNewUser = true;
+        registeredEmails.push(email);
       }
 
-      // check if this user has been added to this base
-      const workspaceUser = await WorkspaceUser.get(
-        workspaceId,
-        user.id,
-        ncMeta,
-      );
-      if (workspaceUser) {
-        NcError.badRequest(
-          `${user.email} with role ${workspaceUser.roles} already exists in this base`,
+      emailUserMap.set(email, user);
+    }
+
+    // invite users
+    for (const email of emails) {
+      const transaction = await ncMeta.startTransaction();
+
+      const user = emailUserMap.get(email);
+
+      try {
+        const workspaceUser = await WorkspaceUser.get(
+          workspaceId,
+          user.id,
+          transaction,
         );
-      }
 
-      await WorkspaceUser.insert(
-        {
-          fk_workspace_id: workspaceId,
-          fk_user_id: user.id,
-          roles: roles || WorkspaceUserRoles.VIEWER,
-          invited_by: param.req?.user?.id,
-          ...(param.invitePassive
-            ? { deleted: true, deleted_at: ncMeta.now() }
-            : {}),
-        },
-        ncMeta,
-      );
+        if (workspaceUser) {
+          error.push({
+            email,
+            msg: `${user.email} with role ${workspaceUser.roles} already exists in this base`,
+          });
+          continue;
+        }
+
+        await WorkspaceUser.insert(
+          {
+            fk_workspace_id: workspaceId,
+            fk_user_id: user.id,
+            roles: roles || WorkspaceUserRoles.VIEWER,
+            invited_by: param.req?.user?.id,
+            ...(param.invitePassive
+              ? { deleted: true, deleted_at: transaction.now() }
+              : {}),
+          },
+          transaction,
+        );
+
+        await this.paymentService.reseatSubscription(
+          workspace.fk_org_id ?? workspace.id,
+          transaction,
+        );
+
+        await transaction.commit();
+
+        invitedEmails.push(email);
+      } catch (e) {
+        await transaction.rollback();
+        error.push({
+          email,
+          msg: e.message,
+        });
+      }
+    }
+
+    // send email and add audit log
+    for (const email of invitedEmails) {
+      const user = emailUserMap.get(email);
+
       if (!param.skipEmailInvite) {
         this.mailService
           .sendMail({
@@ -432,7 +491,7 @@ export class WorkspaceUsersService {
               workspace,
               user,
               req: param.req,
-              token: isNewUser ? user.invite_token : null,
+              token: invitedEmails.includes(email) ? user.invite_token : null,
             },
           })
           .then(() => {
@@ -442,6 +501,7 @@ export class WorkspaceUsersService {
             console.error(e);
           });
       }
+
       this.appHooksService.emit(AppEvents.WORKSPACE_USER_INVITE, {
         workspace,
         user,

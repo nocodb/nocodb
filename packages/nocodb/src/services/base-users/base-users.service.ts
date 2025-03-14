@@ -31,7 +31,7 @@ import { MailEvent } from '~/interface/Mail';
 
 @Injectable()
 export class BaseUsersService {
-  private readonly logger = new Logger(BaseUsersService.name);
+  protected readonly logger = new Logger(BaseUsersService.name);
 
   constructor(
     protected appHooksService: AppHooksService,

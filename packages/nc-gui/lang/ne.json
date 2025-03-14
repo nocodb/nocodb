@@ -681,7 +681,8 @@
     "customUrl": "Custom URL",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
     "latitude": "Latitude",
@@ -890,6 +891,7 @@
     "clickToCopyViewID": "View ID प्रतिलिपि गर्न क्लिक गर्नुहोस्",
     "viewMode": "हेर्ने तरिका",
     "reAssignView": "Re-assign view",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "प्रयोगकर्ताहरू खोज्नुहोस्",
     "superAdmin": "सुपर प्रशासक",
     "allTables": "सबै तालिकाहरू",
@@ -1133,7 +1135,9 @@
     "showJsonPayload": "Show JSON payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
     "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "proceedToLink": "Proceed to link",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1529,7 +1533,8 @@
     "inviteYourTeam": "आफ्नो टोलीलाई निम्तो दिनुहोस्",
     "inviteYourTeamLabel": "आफ्नो परियोजनाहरूमा आफ्नो टोलीसँग मिलेर काम गरेर चाँडै गर्नुहोस्!",
     "searchOptions": "विकल्पहरू खोज्नुहोस्",
-    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
+    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional).",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
     "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",

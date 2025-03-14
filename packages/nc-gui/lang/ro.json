@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Rolul tău actual este",
       "pleaseRequestAccessForView": "Solicită permisiuni mai mari de la Administrator / Proprietarul bazei / Proprietarul spațiului de lucru pentru a obține acces la acest {viewName}",
       "preventHideAllOptions": "Nu poți ascunde toate opțiunile dacă câmpul este obligatoriu",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Hook-urile manuale nu pot fi dezactivate",

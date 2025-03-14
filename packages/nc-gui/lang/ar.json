@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "دورك الحالي هو",
       "pleaseRequestAccessForView": "يرجى الطلب من المسؤول / مالك القاعدة / مالك مساحة العمل للحصول على إذن أعلى للوصول إلى هذا {viewName}",
       "preventHideAllOptions": "لا يمكنك إخفاء جميع الخيارات إذا كان الحقل مطلوبًا",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "لا يمكن تعطيل الخطافات اليدوية",

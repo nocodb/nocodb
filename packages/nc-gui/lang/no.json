@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Din nåværende rolle er",
       "pleaseRequestAccessForView": "Vennligst be om høyere tillatelser fra Admin/Basiseier/Arbeidsroms-eier for å få tilgang til denne {viewName}",
       "preventHideAllOptions": "Du kan ikke skjule alle alternativer hvis feltet er obligatorisk",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Manuelle kroker kan ikke deaktiveres",

@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Zure uneko rola da",
       "pleaseRequestAccessForView": "Eskatu sarbide handiagoa Administratzaileari / Base jabea / Workspace jabea {viewName} sarbidea izateko",
       "preventHideAllOptions": "Ezin dituzu aukera guztiak ezkutatu eremua beharrezkoa bada",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Eskuzko hook-ak ezin dira desgaitu",

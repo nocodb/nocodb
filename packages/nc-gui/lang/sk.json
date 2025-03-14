@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Vaša aktuálna rola je",
       "pleaseRequestAccessForView": "Požiadajte o vyššie povolenie od administrátora / vlastníka projektu / vlastníka pracovného priestoru, aby ste získali prístup k tomuto {viewName}",
       "preventHideAllOptions": "Nemôžete skryť všetky možnosti, ak je pole povinné",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Manuálne spúšťače nemôžu byť deaktivované",

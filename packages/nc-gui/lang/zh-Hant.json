@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "您目前的角色是",
       "pleaseRequestAccessForView": "請向管理員 / 基地所有者 / 工作區所有者申請更高的權限以訪問此 {viewName}",
       "preventHideAllOptions": "如果字段是必需的，您不能隱藏所有選項",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "手動鉤子無法禁用",

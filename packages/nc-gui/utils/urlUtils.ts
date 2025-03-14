@@ -117,7 +117,7 @@ const handleCopyToClipboard = async (text: string) => {
   try {
     await copy(text)
     // Copied to clipboard
-    message.info(getI18n().global.t('msg.info.copiedToClipboard'))
+    message.info(getI18n().global.t('msg.info.copyToClipboardLocalFileUrl'))
   } catch (e: any) {
     message.error(e.message)
   }

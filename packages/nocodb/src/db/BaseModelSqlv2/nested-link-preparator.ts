@@ -1,9 +1,9 @@
+import { type NcRequest, RelationTypes } from 'nocodb-sdk';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import {
   extractIdPropIfObjectOrReturn,
   getRelatedLinksColumn,
-} from 'src/helpers/dbHelpers';
-import { type NcRequest, RelationTypes } from 'nocodb-sdk';
-import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
+} from '~/helpers/dbHelpers';
 import { type Column, type LinkToAnotherRecordColumn, Model } from '~/models';
 
 export class NestedLinkPreparator {

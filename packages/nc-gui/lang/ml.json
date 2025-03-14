@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "താങ്കളുടെ നിലവിലെ പങ്ക്",
       "pleaseRequestAccessForView": "ബഹുദയാളിത്വത്തിനുള്ള അനുമതി നേടാൻ അഡ്മിന്നിൽ നിന്ന് / അടിസ്ഥാന ഉടമയിൽ നിന്ന് / വർക്ക്‌സ്പെയ്സ് ഉടമയിൽ നിന്ന് ആവശ്യം ചെയ്യുക {viewName}",
       "preventHideAllOptions": "ഫീൽഡ് ആവശ്യമാണ് എങ്കിൽ എല്ലാ ഓപ്ഷനുകളും ഒളിപ്പിക്കാൻ കഴിയില്ല",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "മാനുവൽ ഹുക്കുകൾ അപ്രാപ്തമാക്കാനാവില്ല",

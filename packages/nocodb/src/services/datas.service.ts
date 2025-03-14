@@ -185,7 +185,6 @@ export class DatasService {
 
     // if xcdb base skip checking for LTAR
     if (!source.isMeta()) {
-      // todo: Should have error http status code
       const message = await baseModel.hasLTARData(param.rowId, model);
       if (message.length) {
         NcError.badRequest(message);

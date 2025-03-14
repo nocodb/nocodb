@@ -61,4 +61,6 @@ export interface SqlUi {
     newColumn: Partial<ColumnType>,
     oldColumn?: ColumnType
   ): void;
+
+  isParsedJsonReturnType(col: ColumnType): boolean;
 }

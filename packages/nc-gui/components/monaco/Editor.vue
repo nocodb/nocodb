@@ -33,23 +33,59 @@ const { modelValue, readOnly } = toRefs(props)
 
 const { hideMinimap, lang, validate, disableDeepCompare, autoFocus, monacoConfig, monacoCustomTheme, placeholder } = props
 
+let isInitialLoad = false
+
 const vModel = computed<string>({
   get: () => {
-    if (typeof modelValue.value === 'object') {
-      return JSON.stringify(modelValue.value, null, 2)
-    } else {
-      return modelValue.value ?? ''
+    const value = modelValue.value
+
+    // If value is null or undefined, return null
+    if (ncIsNull(value) || ncIsUndefined(value)) {
+      return null
     }
+
+    // If value is not a string, convert it to a formatted JSON string
+    if (typeof value !== 'string') {
+      return JSON.stringify(value, null, 2)
+    }
+
+    // Handle JSON-specific cases on the initial load
+    if (lang === 'json' && !isInitialLoad) {
+      try {
+        // if null string, return '"null"'
+        if (value.trim() === 'null') {
+          return '"null"'
+        }
+        // If value is a valid JSON string, leave it as is
+        JSON.parse(value)
+      } catch (e) {
+        // If value is an invalid JSON string, convert it to a JSON string format
+        return JSON.stringify(value)
+      } finally {
+        // Ensure this block runs only once during the initial load
+        isInitialLoad = true
+      }
+    }
+
+    return value
   },
   set: (newVal: string | Record<string, any>) => {
-    if (typeof modelValue.value === 'object') {
-      try {
-        emits('update:modelValue', typeof newVal === 'object' ? newVal : JSON.parse(newVal))
-      } catch (e) {
-        console.error(e)
+    try {
+      // if the new value is null, emit null
+      if (newVal === 'null') {
+        emits('update:modelValue', null)
       }
-    } else {
-      emits('update:modelValue', newVal)
+      // If the current value is an object, attempt to parse and update
+      else if (typeof modelValue.value === 'object') {
+        // If the new value is 'null', emit null
+        const parsedValue = typeof newVal === 'object' ? newVal : JSON.parse(newVal)
+        emits('update:modelValue', parsedValue)
+      } else {
+        // Directly emit new value if it's not an object
+        emits('update:modelValue', newVal)
+      }
+    } catch (e) {
+      console.error('Failed to parse JSON:', e)
     }
   },
 })

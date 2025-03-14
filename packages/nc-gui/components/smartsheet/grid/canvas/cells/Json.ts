@@ -7,7 +7,8 @@ export const JsonCellRenderer: CellRenderer = {
 
     const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
 
-    if (!value) {
+    // skip rendering text if undefined/null
+    if (ncIsUndefined(value) || ncIsNull(value)) {
       if (isHovered) {
         renderIconButton(ctx, {
           buttonX: x + width - 28,
@@ -31,7 +32,16 @@ export const JsonCellRenderer: CellRenderer = {
       }
     }
 
-    const text = typeof value === 'string' ? value : JSON.stringify(value)
+    let text = typeof value === 'string' ? value : JSON.stringify(value)
+
+    // if invalid json string then stringify the value
+    if (typeof text === 'string') {
+      try {
+        JSON.parse(text)
+      } catch (e) {
+        text = JSON.stringify(text)
+      }
+    }
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })

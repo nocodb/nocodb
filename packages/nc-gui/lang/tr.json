@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Mevcut rolünüz",
       "pleaseRequestAccessForView": "Bu {viewName} erişimi sağlamak için Yönetici / Veri Tabanı Sahibi / Çalışma Alanı Sahibi'nden daha yüksek izin talebinde bulunun",
       "preventHideAllOptions": "Alan zorunlu ise tüm seçenekler gizlenemez",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Elle tetiklenen bağlantılar devre dışı bırakılamaz",

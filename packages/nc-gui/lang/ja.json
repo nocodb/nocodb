@@ -681,7 +681,8 @@
     "customUrl": "カスタムURL",
     "viewSettingsCantBeChangedWhenViewIs": "ビュー設定はビューが{type}の時には変更できません",
     "youAreLeavingNocoDB": "NocoDBを離れます",
-    "onlyProceedIfYouTrustThisLink": "このリンクを信頼する場合のみ続行してください。"
+    "onlyProceedIfYouTrustThisLink": "このリンクを信頼する場合のみ続行してください。",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
     "latitude": "緯度",
@@ -890,6 +891,7 @@
     "clickToCopyViewID": "クリックしてView IDをコピー",
     "viewMode": "ビュー モード",
     "reAssignView": "ビューを再割り当て",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "ユーザーを検索",
     "superAdmin": "スーパ管理者",
     "allTables": "すべてのテーブル",
@@ -1133,7 +1135,9 @@
     "showJsonPayload": "JSONペイロードを表示",
     "autoCreateMissingSelectionOptions": "欠落している選択フィールドオプションを自動作成",
     "fillForm": "フォームを入力",
-    "proceedToLink": "リンクに進む"
+    "proceedToLink": "リンクに進む",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner"
   },
   "activity": {
     "clickToResolve": "クリックして解決",
@@ -1529,7 +1533,8 @@
     "inviteYourTeam": "チームを招待",
     "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace.",
     "searchOptions": "オプションを検索",
-    "lockViewDescription": "ロックする理由を説明してください。このメッセージは、誰かがこのビューのロックを解除しようとしたときに表示されます（任意）。"
+    "lockViewDescription": "ロックする理由を説明してください。このメッセージは、誰かがこのビューのロックを解除しようとしたときに表示されます（任意）。",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
     "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",

@@ -681,7 +681,8 @@
     "customUrl": "自定义URL",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
     "latitude": "Latitude",
@@ -890,6 +891,7 @@
     "clickToCopyViewID": "点击复制视图ID",
     "viewMode": "视图模式",
     "reAssignView": "重新分配视图",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "搜索用户",
     "superAdmin": "超级管理员",
     "allTables": "所有表格",
@@ -1133,7 +1135,9 @@
     "showJsonPayload": "显示JSON负载",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
     "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "proceedToLink": "Proceed to link",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner"
   },
   "activity": {
     "clickToResolve": "点击解决",
@@ -1529,7 +1533,8 @@
     "inviteYourTeam": "邀请成员到您的团队",
     "inviteYourTeamLabel": "通过与你的团队协作来快速跟踪你的项目！",
     "searchOptions": "搜索选项",
-    "lockViewDescription": "解释锁定此视图的原因。任何人尝试解锁此视图时，都会显示此信息（可选）。"
+    "lockViewDescription": "解释锁定此视图的原因。任何人尝试解锁此视图时，都会显示此信息（可选）。",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
     "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",

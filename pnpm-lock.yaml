@@ -4,12 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-catalogs:
-  default:
-    validator:
-      specifier: ^13.12.0
-      version: 13.12.0
-
 overrides:
   '@azure/msal-node': ^2.16.2
   '@babel/traverse@<7.23.2': '>=7.23.2'
@@ -380,7 +374,7 @@ importers:
         specifier: ^1.3.2
         version: 1.3.2
       validator:
-        specifier: 'catalog:'
+        specifier: ^13.12.0
         version: 13.12.0
       vue-advanced-cropper:
         specifier: ^2.8.9
@@ -1215,7 +1209,7 @@ importers:
         specifier: ^9.0.1
         version: 9.0.1
       validator:
-        specifier: 'catalog:'
+        specifier: ^13.12.0
         version: 13.12.0
       xlsx:
         specifier: https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz
@@ -1369,7 +1363,7 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
       validator:
-        specifier: 'catalog:'
+        specifier: ^13.12.0
         version: 13.12.0
     devDependencies:
       '@types/jest':

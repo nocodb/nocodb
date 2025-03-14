@@ -67,8 +67,20 @@ const progressPercent = computed(() => {
 </script>
 
 <template>
-  <div v-if="(column.meta as any).is_progress" class="flex" style="height: 4px">
-    <CellPercentProgressBar :percentage="percentValueNumber"> </CellPercentProgressBar>
+  <div
+    v-if="(column.meta as any).is_progress"
+    class="flex py-1"
+    :style="{
+      ...(!isExpandedFormOpen && { height: '4px' }),
+      ...(isExpandedFormOpen && { height: '100%' }),
+    }"
+    style="min-height: 4px"
+    @mouseover="onMouseover"
+    @mouseleave="onMouseleave"
+    @focus="onWrapperFocus"
+    @click="onWrapperFocus"
+  >
+    <CellPercentProgressBar :percentage="percentValueNumber" :is-show-number="isExpandedFormOpen"></CellPercentProgressBar>
   </div>
   <div
     v-else
@@ -94,3 +106,9 @@ const progressPercent = computed(() => {
     <span v-else class="nc-cell-field">{{ percentValue ? percentValue : '&nbsp;' }} </span>
   </div>
 </template>
+
+<style lang="scss">
+.nc-cell:has(.progress-container) {
+  height: 100% !important;
+}
+</style>

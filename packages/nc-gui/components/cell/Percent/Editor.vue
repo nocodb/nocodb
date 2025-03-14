@@ -64,16 +64,15 @@ const vModelNumber = computed<number>(() => {
 const inputType = computed(() => (isForm.value && !isEditColumn.value ? 'text' : 'number'))
 
 const onBlur = () => {
-  editEnabled.value = false
-  cellFocused.value = false
-  localEditEnabled.value = false
+  if (isExpandedFormOpen.value) {
+    editEnabled.value = false
+    cellFocused.value = false
+    localEditEnabled.value = false
+  }
 }
 
 const onFocus = () => {
   cellFocused.value = true
-}
-const onContainerFocus = (e) => {
-  inputRef.value?.focus()
 }
 onMounted(() => {
   if (isCanvasInjected || (!isEditColumn.value && !isForm.value)) {
@@ -87,13 +86,12 @@ onMounted(() => {
 
 <template>
   <CellPercentProgressBar
-    v-if="(col.meta as any).is_progress && (isForm)"
+    v-if="(col.meta as any).is_progress && (isForm || isExpandedFormOpen)"
     :style="{
       ...(isForm && { 'min-height': '18px' }),
     }"
     :is-show-number="true"
     :percentage="vModelNumber"
-    @focus="onContainerFocus"
   >
     <!-- eslint-disable vue/use-v-on-exact -->
     <input

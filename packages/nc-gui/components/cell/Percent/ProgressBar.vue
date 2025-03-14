@@ -5,40 +5,16 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits(['focus', 'submit'])
-const containerRef = templateRef('container')
 const cPercentage = computed(() => Math.max(0, Math.min(100, props.percentage)))
 const labelMarginLeft = computed<number>(() => {
   return Math.max(1, Math.min(props.percentage / 2, 50))
 })
-const onContainerFocus = (e: FocusEvent) => {
-  emit('focus', e)
-}
-const onFocusOut = (_e: FocusEvent) => {
-  if ((containerRef.value as HTMLElement).dataset) {
-    ;(containerRef.value as HTMLElement).dataset.hasFocus = ''
-  }
-}
-const onFocusIn = (e: FocusEvent) => {
-  if ((containerRef.value as HTMLElement).dataset?.hasFocus === '1') {
-    ;(e.target as HTMLElement).blur()
-  } else {
-    if ((containerRef.value as HTMLElement).dataset) {
-      ;(containerRef.value as HTMLElement).dataset.hasFocus = '1'
-    }
-  }
-}
 </script>
 
 <template>
-  <label
-    ref="container"
-    tabindex="0"
+  <div
     class="flex w-full progress-container min-h-[4px]"
     style="align-self: stretch; justify-self: stretch; height: 100%; border-radius: 9999px"
-    @focus="onContainerFocus"
-    @focusin="onFocusIn"
-    @focusout="onFocusOut"
   >
     <div class="progress-bar-input">
       <slot></slot>
@@ -69,18 +45,15 @@ const onFocusIn = (e: FocusEvent) => {
         </div>
       </template>
     </div>
-  </label>
+  </div>
 </template>
 
 <style lang="scss" scoped>
-.progress-container:focus {
-  outline: 1;
-  outline-style: dotted;
-  outline-width: medium;
-}
 .progress-container:not(:focus-within) > div.progress-bar-input:not(:focus-within) {
-  visibility: collapse;
-  display: none;
+  // visibility: collapse;
+  // display: none;
+  position: absolute;
+  left: -1000px;
 }
 .progress-container:focus-within > div.progress-bar {
   visibility: collapse;

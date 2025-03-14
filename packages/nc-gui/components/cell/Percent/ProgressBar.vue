@@ -49,13 +49,20 @@ const labelMarginLeft = computed<number>(() => {
 </template>
 
 <style lang="scss" scoped>
-.progress-container:not(:focus-within) > div.progress-bar-input:not(:focus-within) {
+.progress-container:not(:focus-within):not(:hover) > div.progress-bar-input:not(:focus-within):not(:hover) {
   // visibility: collapse;
   // display: none;
   position: absolute;
   left: -1000px;
 }
-.progress-container:focus-within > div.progress-bar {
+.progress-container:focus-within > div.progress-bar-input,
+.progress-container:hover > div.progress-bar-input {
+  position: relative;
+  width: 100%;
+}
+
+.progress-container:focus-within > div.progress-bar,
+.progress-container:hover > div.progress-bar {
   visibility: collapse;
   display: none;
 }

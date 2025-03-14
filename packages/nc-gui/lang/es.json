@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Tu rol actual es",
       "pleaseRequestAccessForView": "Por favor solicite un permiso superior al Administrador / Propietario de la Base / Propietario del Espacio de trabajo para obtener acceso a este {viewName}",
       "preventHideAllOptions": "No puede ocultar todas las opciones si el campo es obligatorio",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Los hooks manuales no se pueden desactivar",

@@ -154,7 +154,7 @@ onUnmounted(() => {
   <div class="flex w-full chips-wrapper items-center" :class="{ active }">
     <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
       <div class="nc-cell-field flex items-center w-full">
-        <div class="chips flex items-center flex-1 min-h-[28px]" :class="{ 'max-w-[calc(100%_-_16px)]': !isUnderLookup }">
+        <div class="chips flex items-center flex-1 min-h-7" :class="{ 'max-w-[calc(100%_-_16px)]': !isUnderLookup }">
           <template v-if="value && (relatedTableDisplayValueProp || relatedTableDisplayValuePropId)">
             <VirtualCellComponentsItemChip
               :item="value"

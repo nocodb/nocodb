@@ -332,7 +332,7 @@ onUnmounted(() => {
 <style lang="scss">
 .nc-cell-json:hover .nc-json-expand-btn,
 .nc-grid-cell:hover .nc-json-expand-btn {
-  @apply block;
+  @apply flex items-center;
 }
 .nc-default-value-wrapper .nc-cell-json,
 .nc-grid-cell .nc-cell-json {
@@ -353,7 +353,7 @@ onUnmounted(() => {
 .nc-expanded-cell,
 .ant-form-item-control-input {
   .nc-json-expand-btn {
-    @apply !flex items-center;
+    @apply flex items-center;
   }
 }
 </style>

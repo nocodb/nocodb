@@ -681,7 +681,8 @@
     "customUrl": "URL personnalisée",
     "viewSettingsCantBeChangedWhenViewIs": "Les paramètres de la vue ne peuvent pas être modifiés lorsque la vue est {type}",
     "youAreLeavingNocoDB": "Vous quittez NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Continuez seulement si vous faites confiance à ce lien."
+    "onlyProceedIfYouTrustThisLink": "Continuez seulement si vous faites confiance à ce lien.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
     "latitude": "Latitude",
@@ -890,6 +891,7 @@
     "clickToCopyViewID": "Cliquer pour copier l'ID de la vue",
     "viewMode": "Mode d'affichage",
     "reAssignView": "Réassigner la vue",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "Rechercher des utilisateurs",
     "superAdmin": "Super administrateur",
     "allTables": "Toutes les tables",
@@ -1133,7 +1135,9 @@
     "showJsonPayload": "Afficher la payload du JSON",
     "autoCreateMissingSelectionOptions": "Créer automatiquement les options de champ de sélection manquantes",
     "fillForm": "Remplir le formulaire",
-    "proceedToLink": "Continuez vers le lien"
+    "proceedToLink": "Continuez vers le lien",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner"
   },
   "activity": {
     "clickToResolve": "Cliquer pour résoudre",
@@ -1529,7 +1533,8 @@
     "inviteYourTeam": "Invitez votre équipe",
     "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace.",
     "searchOptions": "Options de recherche",
-    "lockViewDescription": "Expliquez pourquoi vous verrouillez cette vue. Ce message sera affiché lorsque quelqu'un tentera de déverrouiller cette vue (facultatif)."
+    "lockViewDescription": "Expliquez pourquoi vous verrouillez cette vue. Ce message sera affiché lorsque quelqu'un tentera de déverrouiller cette vue (facultatif).",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
     "urlFilter": "Les filtres d'URL sont appliqués à partir des paramètres d'URL et se combinent avec les filtres de vue définis via la barre d'outils.",

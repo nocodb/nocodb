@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "현재 귀하의 역할은",
       "pleaseRequestAccessForView": "이 {viewName}에 액세스하려면 관리자/프로젝트 소유자/작업공간 소유자에게 상위 권한을 요청하세요.",
       "preventHideAllOptions": "필드가 필수인 경우 모든 옵션을 숨길 수 없습니다",
-      "valueMustBeAtMostCharLong": "값은 최대 {length}자여야 합니다"
+      "valueMustBeAtMostCharLong": "값은 최대 {length}자여야 합니다",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "수동 후크는 비활성화할 수 없습니다",

@@ -42,7 +42,8 @@
     "axios": "^1.7.9",
     "chevrotain": "^10.5.0",
     "dayjs": "^1.11.13",
-    "jsep": "^1.4.0"
+    "jsep": "^1.4.0",
+    "validator": "^13.12.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",

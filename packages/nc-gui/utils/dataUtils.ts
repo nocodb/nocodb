@@ -719,12 +719,12 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   return parsePlainCellValue(modelValue, { ...params, col: childColumn! })
 }
 
-export const getLookupColumnType = (
+export function getLookupColumnType(
   col: ColumnType,
   meta: { columns: ColumnType[] },
   metas: Record<string, any>,
   visitedIds = new Set<string>(),
-) => {
+): UITypes | null | undefined {
   const colOptions = col.colOptions as LookupType
   const relationColumnOptions = colOptions.fk_relation_column_id
     ? meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
@@ -743,7 +743,7 @@ export const getLookupColumnType = (
     return getLookupColumnType(childColumn, relatedTableMeta, metas, visitedIds)
   }
 
-  return childColumn?.uidt || null
+  return (childColumn?.uidt as UITypes) || null
 }
 
 export const getAttachmentValue = (modelValue: string | null | number | Array<any>) => {

@@ -21,6 +21,7 @@ const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 // Used in the logic of when to display error since we are not storing the phone if it's not valid
 const localState = ref(props.modelValue)
 const inputRef = ref<HTMLInputElement>()
+const isFocused = ref(false)
 
 const vModel = computed({
   get: () => props.modelValue,
@@ -41,7 +42,7 @@ const focus: VNodeRef = (el) => {
 }
 
 onBeforeUnmount(() => {
-  if (parseProp(column.value.meta)?.validate && localState.value && !isMobilePhone(localState.value)) {
+  if (parseProp(column.value.meta)?.validate && localState.value && !isMobilePhone(localState.value.toString())) {
     if (!isEditColumn.value) {
       message.error(t('msg.invalidPhoneNumber'))
     }
@@ -57,16 +58,32 @@ onMounted(() => {
     inputRef.value?.focus()
   }
 })
+
+const onBlur = () => {
+  editEnabled.value = false
+  isFocused.value = false
+}
+
+const validPhoneNumber = computed(() => vModel.value && isMobilePhone(vModel.value.toString()))
+
+const showClicableLink = computed(() => {
+  return (isExpandedFormOpen.value || isForm.value) && !isFocused.value && validPhoneNumber.value
+})
 </script>
 
 <template>
   <!-- eslint-disable vue/use-v-on-exact -->
   <input
+    v-bind="$attrs"
     :ref="focus"
     v-model="vModel"
     class="nc-cell-field w-full outline-none py-1"
+    :class="{
+      '!text-transparent': showClicableLink,
+    }"
     :disabled="readOnly"
-    @blur="editEnabled = false"
+    @blur="onBlur"
+    @focus="isFocused = true"
     @keydown.down.stop
     @keydown.left.stop
     @keydown.right.stop
@@ -76,4 +93,19 @@ onMounted(() => {
     @selectstart.capture.stop
     @mousedown.stop
   />
+  <div
+    v-if="showClicableLink"
+    class="nc-cell-field absolute inset-0 flex items-center max-w-full overflow-hidden pointer-events-none"
+  >
+    <a
+      no-ref
+      class="truncate text-primary cursor-pointer pointer-events-auto no-user-select tracking-tighter"
+      :href="`tel:${vModel}`"
+      target="_blank"
+      rel="noopener noreferrer"
+      :tabindex="-1"
+    >
+      {{ vModel }}
+    </a>
+  </div>
 </template>

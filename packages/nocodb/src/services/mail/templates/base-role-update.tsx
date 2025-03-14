@@ -56,11 +56,7 @@ export const BaseRoleUpdate = ({
                   alt={oldRole}
                   className="h-7"
                 />
-                <Img
-                  src={`${NC_EMAIL_ASSETS_BASE_URL}/icons/arrow-right.png`}
-                  alt="Arrow Right"
-                  className="h-5 mt-1 ml-2"
-                />
+                <Text className="h-5 text-gray-800 !mt-0.5 !ml-2">➜</Text>
                 <Img
                   src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${newRole}.png`}
                   alt={newRole}

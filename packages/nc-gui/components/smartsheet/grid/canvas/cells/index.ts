@@ -259,7 +259,7 @@ export function useGridCellHandler(params: {
         actionManager,
         makeCellEditable,
         isPublic: isPublic.value,
-        openDetachedExpandedForm
+        openDetachedExpandedForm,
       })
     }
     return false

@@ -99,7 +99,7 @@ const showClicableLink = computed(() => {
   >
     <a
       no-ref
-      class="truncate text-primary cursor-pointer pointer-events-auto no-user-select tracking-tight"
+      class="truncate text-primary cursor-pointer pointer-events-auto no-user-select tracking-tighter"
       :href="`tel:${vModel}`"
       target="_blank"
       rel="noopener noreferrer"

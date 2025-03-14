@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Ваша текущая роль:",
       "pleaseRequestAccessForView": "Пожалуйста, запросите более высокий уровень доступа у администратора / владельца базы / владельца рабочего пространства для доступа к этому {viewName}",
       "preventHideAllOptions": "Вы не можете скрыть все опции, если поле обязательно",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Ручные хуки не могут быть отключены",

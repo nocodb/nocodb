@@ -311,9 +311,8 @@ onUnmounted(() => {
       :lines="rowHeight"
       class="nc-cell-field"
     />
-    <NcTooltip placement="bottom" class="nc-json-expand-btn hidden absolute top-0 right-0">
+    <NcTooltip placement="bottom" class="nc-json-expand-btn hidden absolute top-0 bottom-0 right-0">
       <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
-
       <NcButton type="secondary" size="xsmall" class="!w-5 !h-5 !min-w-[fit-content]" @click.stop="openJSONEditor">
         <component :is="iconMap.maximize" class="w-3 h-3" />
       </NcButton>
@@ -344,13 +343,17 @@ onUnmounted(() => {
 }
 .nc-expand-col-JSON.nc-expanded-form-row .nc-cell-json {
   min-height: 34px;
+  @apply !flex items-center max-w-full;
+  & > div {
+    @apply !max-w-full w-full;
+  }
 }
 
 .nc-default-value-wrapper,
 .nc-expanded-cell,
 .ant-form-item-control-input {
   .nc-json-expand-btn {
-    @apply !block;
+    @apply !flex items-center;
   }
 }
 </style>

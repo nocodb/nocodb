@@ -112,7 +112,7 @@ const showClicableLink = computed(() => {
       class="nc-cell-field absolute inset-0 flex items-center max-w-full overflow-hidden pointer-events-none"
     >
       <a
-        class="truncate text-primary cursor-pointer pointer-events-auto no-user-select pt-[1px]"
+        class="truncate text-primary cursor-pointer pointer-events-auto no-user-select"
         :href="url"
         @click.prevent="confirmPageLeavingRedirect(url)"
       >

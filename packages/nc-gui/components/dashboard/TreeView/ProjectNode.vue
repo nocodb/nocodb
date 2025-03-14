@@ -103,7 +103,7 @@ const [searchActive] = useToggle()
 const filterQuery = ref('')
 const keys = ref<Record<string, number>>({})
 const isTableDeleteDialogVisible = ref(false)
-const isProjectDeleteDialogVisible = ref(false)
+const isBaseDeleteDialogVisible = ref(false)
 
 const { refreshViewTabTitle } = useViewsStore()
 
@@ -388,7 +388,7 @@ function openErdView(source: SourceType) {
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(resolveComponent('DlgProjectErd'), {
+  const { close } = useDialog(resolveComponent('DlgBaseErd'), {
     'modelValue': isOpen,
     'sourceId': source!.id,
     'onUpdate:modelValue': () => closeDialog(),
@@ -1057,8 +1057,8 @@ const shouldOpenContextMenu = computed(() => {
     :table-id="contextMenuTarget.value?.id"
     :base-id="base?.id"
   />
-  <DlgProjectDelete v-model:visible="isProjectDeleteDialogVisible" :base-id="base?.id" />
-  <DlgProjectDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
+  <DlgBaseDelete v-model:visible="isBaseDeleteDialogVisible" :base-id="base?.id" />
+  <DlgBaseDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
   <GeneralModal v-model:visible="isErdModalOpen" size="large">
     <div class="h-[80vh]">
       <LazyDashboardSettingsErd :base-id="base?.id" :source-id="activeBaseId" />

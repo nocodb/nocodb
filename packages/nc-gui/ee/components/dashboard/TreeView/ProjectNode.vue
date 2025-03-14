@@ -306,7 +306,7 @@ function openErdView(source: SourceType) {
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(resolveComponent('DlgProjectErd'), {
+  const { close } = useDialog(resolveComponent('DlgBaseErd'), {
     'modelValue': isOpen,
     'sourceId': source!.id,
     'onUpdate:modelValue': () => closeDialog(),
@@ -1185,9 +1185,9 @@ const onClickMenu = (e: { key?: string }) => {
     :table-id="contextMenuTarget.value?.id"
     :base-id="base?.id"
   />
-  <DlgProjectDelete v-model:visible="isProjectDeleteDialogVisible" :base-id="base?.id" />
+  <DlgBaseDelete v-model:visible="isProjectDeleteDialogVisible" :base-id="base?.id" />
 
-  <DlgProjectDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
+  <DlgBaseDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
 </template>
 
 <style lang="scss" scoped>

@@ -270,7 +270,7 @@ onUnmounted(() => {
     :footer="null"
     :wrap-class-name="isExpanded ? '!z-1051 nc-json-expanded-modal' : null"
     class="relative"
-    :class="{ 'json-modal min-w-80': isExpanded }"
+    :class="{ 'json-modal min-w-80': isExpanded, 'min-h-6 flex items-center': !isExpanded }"
   >
     <div v-if="isExpanded" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
       <div class="flex flex-row justify-between items-center -mt-2 pb-3 nc-json-action" @mousedown.stop>

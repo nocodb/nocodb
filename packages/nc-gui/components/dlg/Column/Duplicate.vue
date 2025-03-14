@@ -105,31 +105,39 @@ defineExpose({
   <GeneralModal
     v-model:visible="dialogShow"
     :class="{ active: dialogShow }"
-    :closable="!isLoading"
     :mask-closable="!isLoading"
     :keyboard="!isLoading"
     centered
+    :mask-style="{
+      'background-color': 'rgba(0, 0, 0, 0.08)',
+    }"
     wrap-class-name="nc-modal-column-duplicate"
     :footer="null"
     class="!w-[30rem]"
     @keydown.esc="dialogShow = false"
   >
     <div>
-      <div class="prose-xl font-bold self-center">{{ $t('general.duplicate') }} {{ $t('objects.column') }}</div>
+      <div class="text-base text-nc-content-gray-emphasis leading-6 font-bold self-center">
+        {{ $t('general.duplicate') }} {{ $t('objects.column') }} "{{ column.title }}"
+      </div>
 
-      <div class="mt-4">Are you sure you want to duplicate the field?</div>
-
-      <div class="prose-md self-center text-gray-500 mt-4">{{ $t('title.advancedSettings') }}</div>
-
-      <a-divider class="!m-0 !p-0 !my-2" />
-
-      <div class="text-xs p-2">
-        <a-checkbox v-model:checked="options.includeData" :disabled="isLoading">{{ $t('labels.includeData') }}</a-checkbox>
+      <div class="mt-5 flex gap-3 flex-col">
+        <div
+          class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
+          @click="options.includeData = !options.includeData"
+        >
+          <NcSwitch :checked="options.includeData" />
+          {{ $t('labels.includeRecords') }}
+        </div>
       </div>
     </div>
-    <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-      <NcButton v-if="!isLoading" key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
-      <NcButton key="submit" type="primary" :loading="isLoading" @click="_duplicate">{{ $t('general.confirm') }} </NcButton>
+    <div class="flex flex-row gap-x-2 mt-5 justify-end">
+      <NcButton v-if="!isLoading" key="back" type="secondary" size="small" @click="dialogShow = false">
+        {{ $t('general.cancel') }}
+      </NcButton>
+      <NcButton key="submit" type="primary" size="small" :loading="isLoading" @click="_duplicate">
+        Duplicate Field
+      </NcButton>
     </div>
   </GeneralModal>
 </template>

@@ -681,7 +681,8 @@
     "customUrl": "כתובת URL מותאמת אישית",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}.",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
     "latitude": "Latitude",
@@ -890,6 +891,7 @@
     "clickToCopyViewID": "לחץ כדי להעתיק את מזהה התצוגה",
     "viewMode": "מצב תצוגה",
     "reAssignView": "הקצה מחדש תצוגה",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "חפש משתמשים",
     "superAdmin": "מנהל מערכת",
     "allTables": "כל הטבלאות",
@@ -1133,7 +1135,9 @@
     "showJsonPayload": "Show JSON payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
     "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "proceedToLink": "Proceed to link",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner"
   },
   "activity": {
     "clickToResolve": "לחץ כדי לפתור",
@@ -1529,7 +1533,8 @@
     "inviteYourTeam": "הזמן את הצוות שלך",
     "inviteYourTeamLabel": "שפר את שיתוף הפעולה והיציבות עם הצוות שלך - התחל על ידי הזמנתם להצטרף למרחב העבודה שלך.",
     "searchOptions": "אפשרויות חיפוש",
-    "lockViewDescription": "הסבר מדוע אתה נועל תצוגה זו. הודעה זו תוצג כאשר מישהו ינסה לפתוח את תצוגה זו (אופציונלי)."
+    "lockViewDescription": "הסבר מדוע אתה נועל תצוגה זו. הודעה זו תוצג כאשר מישהו ינסה לפתוח את תצוגה זו (אופציונלי).",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
     "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",

@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "តួនាទីបច្ចុប្បន្នរបស់អ្នកគឺ",
       "pleaseRequestAccessForView": "សូមស្នើសុំការអនុញ្ញាតខ្ពស់ជាងនេះពីអ្នកគ្រប់គ្រង / ម្ចាស់មូលដ្ឋាន / ម្ចាស់កន្លែងធ្វើការ ដើម្បីទទួលបានការចូលដល់ {viewName}",
       "preventHideAllOptions": "អ្នកមិនអាចលាក់ជម្រើសទាំងអស់បានទេអាយផ្នែកនេះត្រូវមាន",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "ទំព័រមុខគឺមិនអាចបិទបាន",

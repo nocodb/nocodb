@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Din nuværende rolle er",
       "pleaseRequestAccessForView": "Bed om højere tilladelse fra administratoren/basisejeren/arbejdsområde-ejeren for at få adgang til denne {viewName}",
       "preventHideAllOptions": "Du kan ikke skjule alle muligheder, hvis feltet er obligatorisk",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Manuelle hooks kan ikke deaktiveres",

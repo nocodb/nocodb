@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Vaša trenutna uloga je",
       "pleaseRequestAccessForView": "Molimo zatražite veća dopuštenja od administratora / vlasnika baze / vlasnika radnog prostora kako biste dobili pristup ovom {viewName}",
       "preventHideAllOptions": "Ne možete sakriti sve opcije ako je polje obavezno",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Ručno okidače za hookse nije moguće onemogućiti",

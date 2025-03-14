@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Uw huidige rol is",
       "pleaseRequestAccessForView": "Vraag om hogere rechten van de Admin / Base eigenaar / Werkruimte eigenaar om toegang te krijgen tot deze {viewName}",
       "preventHideAllOptions": "U kunt niet alle opties verbergen als een veld verplicht is",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Handmatige hooks kunnen niet worden uitgeschakeld",

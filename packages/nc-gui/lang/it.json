@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Il suo ruolo attuale è",
       "pleaseRequestAccessForView": "Chieda un'autorizzazione più elevata all'amministratore / al proprietario della base / al proprietario dell'area di lavoro per accedere a questo {viewName}",
       "preventHideAllOptions": "Non può nascondere tutte le opzioni se il campo è obbligatorio",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "I ganci manuali non possono essere disabilitati",

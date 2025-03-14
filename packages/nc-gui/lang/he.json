@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "התפקיד הנוכחי שלך הוא",
       "pleaseRequestAccessForView": "אנא בקש הרשאה גבוהה יותר ממנהל / בעל הבסיס / בעל המרחב עבודה כדי לקבל גישה ל-{viewName} הזה",
       "preventHideAllOptions": "לא ניתן להסתיר את כל האפשרויות אם השדה נדרש",
-      "valueMustBeAtMostCharLong": "הערך יכול להכיל לכל היותר {length} תווים"
+      "valueMustBeAtMostCharLong": "הערך יכול להכיל לכל היותר {length} תווים",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "לא ניתן להשבית ווים ידניים",

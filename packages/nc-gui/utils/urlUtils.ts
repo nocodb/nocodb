@@ -145,11 +145,7 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {
     }
     link.style.display = 'none' // Hide the link
     document.body.appendChild(link)
-    try {
-      link.click()
-    } catch (e) {
-      console.log('error', e)
-    }
+    link.click()
     document.body.removeChild(link)
 
     return

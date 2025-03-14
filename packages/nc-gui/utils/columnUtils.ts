@@ -9,6 +9,14 @@ import {
   ratingIconList,
 } from 'nocodb-sdk'
 import isMobilePhone from 'validator/lib/isMobilePhone'
+import isURL, { type IsURLOptions } from 'validator/lib/isURL'
+
+export const isValidURL = (str: string, extraProps?: IsURLOptions) => {
+  return isURL(`${str}`, extraProps)
+}
+
+const validateEmail = (v: string) =>
+  /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(v)
 
 export interface UiTypesType {
   name: UITypes | string
@@ -385,8 +393,8 @@ const formViewHiddenColTypes = [
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const getColumnValidationError = (column: ColumnType, value?: any) => {
-  if (!columnToValidate.includes(column.uidt) || !parseProp(column.meta)?.validate) return ''
-  let cdfValue = column.cdf
+  if (!columnToValidate.includes(column.uidt as UITypes) || !parseProp(column.meta)?.validate) return ''
+  let cdfValue: any = column.cdf
   if (!ncIsUndefined(value)) {
     cdfValue = value
   }

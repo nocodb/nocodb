@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Ваша поточна роль -",
       "pleaseRequestAccessForView": "Будь ласка, зверніться до адміністратора / власника бази / власника робочої області для доступу до цієї {viewName}",
       "preventHideAllOptions": "Не можна приховати всі опції, якщо поле обов’язкове",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Ручні хуки не можуть бути вимкнуті",

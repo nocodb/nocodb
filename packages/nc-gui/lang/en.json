@@ -1879,8 +1879,7 @@
       "yourCurrentRoleIs": "Your current role is",
       "pleaseRequestAccessForView": "Please request for higher permission from the Admin / Base owner / Workspace owner to get access to this {viewName}",
       "preventHideAllOptions": "You cannot hide all options if field is required",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
-      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
     },
     "error": {
       "manualTriggerHook": "Manual hooks can't be disabled",

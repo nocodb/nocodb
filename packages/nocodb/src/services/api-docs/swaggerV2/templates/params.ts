@@ -1,4 +1,5 @@
 import { isLinksOrLTAR, RelationTypes, UITypes } from 'nocodb-sdk';
+import { isSelfLinkCol } from 'nocodb-sdk/build/main/lib/UITypes';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { SwaggerColumn } from '../getSwaggerColumnMetas';
 import type { SwaggerView } from '~/services/api-docs/swaggerV2/getSwaggerJSONV2';
@@ -94,7 +95,10 @@ export const linkFieldNameParam = (columns: SwaggerColumn[]) => {
     '**Links Field Identifier** corresponding to the relation field `Links` established between tables.\n\nLink Columns:',
   ];
   for (const { column } of columns) {
-    if (!isLinksOrLTAR(column) || column.system) continue;
+    // Skip non-link columns and non-self-link system columns
+    if (!isLinksOrLTAR(column) || (column.system && !isSelfLinkCol(column)))
+      continue;
+
     linkColumnIds.push(column.id);
 
     description.push(`* ${column.id} - ${column.title}`);

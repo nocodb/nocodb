@@ -84,7 +84,8 @@ const progressPercent = computed(() => {
       <input
         class="nc-cell-field w-full !border-none !outline-none focus:ring-0 min-h-[10px]"
         :value="modelValue"
-      @click="onWrapperFocus"
+        :readonly="true"
+        @click="onWrapperFocus"
         @focus="onWrapperFocus"
       />
     </CellPercentProgressBar>

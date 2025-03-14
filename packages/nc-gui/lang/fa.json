@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "نقش فعلی شما است",
       "pleaseRequestAccessForView": "لطفاً از مدیر / مالک پایگاه / مالک فضاهای کاری برای دسترسی به این {viewName} درخواست مجوز بیشتر کنید",
       "preventHideAllOptions": "نمی‌توانید تمامی گزینه‌ها را پنهان کنید اگر فیلد مورد نیاز باشد",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "قلاب‌های دستی نمی‌توانند غیرفعال شوند",

@@ -8,11 +8,9 @@ import {
   checkboxIconList,
   isValidURL,
   ratingIconList,
+  validateEmail,
 } from 'nocodb-sdk'
 import isMobilePhone from 'validator/lib/isMobilePhone'
-
-const validateEmail = (v: string) =>
-  /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(v)
 
 export interface UiTypesType {
   name: UITypes | string

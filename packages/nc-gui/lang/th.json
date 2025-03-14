@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "บทบาทปัจจุบันของคุณคือ",
       "pleaseRequestAccessForView": "โปรดขอสิทธิ์สูงสุดจากผู้ดูแลระบบ / เจ้าของฐาน / เจ้าของพื้นที่ทำงานเพื่อเข้าถึง {viewName} นี้",
       "preventHideAllOptions": "คุณไม่สามารถซ่อนทุกตัวเลือกหากช่องถูกกำหนดให้จำเป็น",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "ไม่สามารถปิดใช้งาน Hooks ด้วยตนเองได้",

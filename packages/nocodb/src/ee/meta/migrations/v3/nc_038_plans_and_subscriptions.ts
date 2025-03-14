@@ -34,6 +34,8 @@ const up = async (knex: Knex) => {
     table.timestamp('start_at');
     table.timestamp('end_at'); // end of trial or after cancelation - otherwise null
 
+    table.string('period', 255); // month, year
+
     table.timestamps(true, true);
 
     table.index('fk_workspace_id', 'nc_subscriptions_ws_idx');

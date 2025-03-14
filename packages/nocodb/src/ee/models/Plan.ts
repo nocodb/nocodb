@@ -1,3 +1,4 @@
+import Stripe from 'stripe';
 import {
   CacheGetType,
   CacheScope,
@@ -37,13 +38,7 @@ export default class Plan {
   stripe_product_id: string;
   is_active: boolean;
 
-  prices: {
-    id: string;
-    type: string;
-    billing_scheme: string;
-    currency: string;
-    unit_amount: number;
-  }[];
+  prices: Stripe.Price[];
 
   meta: {
     limit_workspace_row?: number;
@@ -68,7 +63,7 @@ export default class Plan {
     Object.assign(this, plan);
   }
 
-  public static prepare(data: Partial<Plan>) {
+  public static prepare(data: Partial<Plan>): Plan {
     const response = prepareForResponse(data, ['prices', 'meta']);
 
     Object.assign(response, {

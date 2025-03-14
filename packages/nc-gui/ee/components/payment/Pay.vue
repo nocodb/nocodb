@@ -39,7 +39,19 @@ const submitPayment = async (e) => {
 
   await elements.value.submit()
 
-  const { type, clientSecret } = await createSubscription()
+  const { type, clientSecret, error: subError } = await createSubscription()
+
+  if (subError) {
+    message.error(await extractSdkResponseErrorMsg(subError))
+    isLoading.value = false
+    return
+  }
+
+  if (!type || !clientSecret) {
+    message.error('Something went wrong. Please try again later.')
+    isLoading.value = false
+    return
+  }
 
   const confirmIntent = type === 'setup' ? stripe.value.confirmSetup : stripe.value.confirmPayment
 
@@ -47,14 +59,14 @@ const submitPayment = async (e) => {
     elements: elements.value,
     clientSecret,
     confirmParams: {
-      return_url: `http://localhost:3000?afterPayment=true&workspaceId=${activeWorkspaceId.value}`,
+      return_url: `${appInfo.value.ncSiteUrl}?afterPayment=true&workspaceId=${activeWorkspaceId.value}`,
     },
   })
 
   if (error.type === 'card_error' || error.type === 'validation_error') {
     message.error(error.message)
   } else {
-    message.error('An unexpected error occurred.')
+    message.error(error.message)
   }
 
   isLoading.value = false

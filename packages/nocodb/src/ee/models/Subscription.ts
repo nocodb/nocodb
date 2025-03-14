@@ -25,6 +25,8 @@ export default class Subscription {
   start_at: string;
   end_at: string;
 
+  period: string;
+
   // timestamps
   created_at: string;
   updated_at: string;
@@ -68,6 +70,7 @@ export default class Subscription {
       'status',
       'start_at',
       'end_at',
+      'period',
     ]);
 
     const { id } = await ncMeta.metaInsert2(
@@ -91,6 +94,7 @@ export default class Subscription {
       'seat_count',
       'status',
       'end_at',
+      'period',
     ]);
 
     await ncMeta.metaUpdate(
@@ -123,7 +127,7 @@ export default class Subscription {
     return true;
   }
 
-  private static async calculateWorkspaceSeatCount(
+  public static async calculateWorkspaceSeatCount(
     workspaceId: string,
     ncMeta = Noco.ncMeta,
   ) {
@@ -194,7 +198,7 @@ export default class Subscription {
     return seatUsersMap.size;
   }
 
-  private static async calculateOrgSeatCount(
+  public static async calculateOrgSeatCount(
     orgId: string,
     _ncMeta = Noco.ncMeta,
   ): Promise<number> {
@@ -265,16 +269,5 @@ export default class Subscription {
     if (!subscription) return null;
 
     return new Subscription(subscription);
-  }
-
-  public async getSeatCount(ncMeta = Noco.ncMeta) {
-    if (this.fk_org_id) {
-      return Subscription.calculateOrgSeatCount(this.fk_org_id, ncMeta);
-    }
-
-    return Subscription.calculateWorkspaceSeatCount(
-      this.fk_workspace_id,
-      ncMeta,
-    );
   }
 }

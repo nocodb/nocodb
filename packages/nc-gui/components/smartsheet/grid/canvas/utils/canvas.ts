@@ -545,8 +545,12 @@ export const renderMarkdownBlocks = (
 
     let tokenIndex = 0
     let cursorX = x
+    // New block should always start on next line
     let cursorY = y + renderedLineCount * lineHeight
 
+    /**
+     * We have to render tokens as multiline text, so we have to keep track of rendered cursorX and cursorY
+     */
     for (const token of tokens) {
       let tokenText = token.value
 
@@ -564,7 +568,8 @@ export const renderMarkdownBlocks = (
       const multilineTextFnProps = {
         x,
         y: cursorY,
-        firstLineMaxWidth: maxWidth - (cursorX - x),
+        yOffset: 0,
+        firstLineMaxWidth: cursorX !== x ? maxWidth - (cursorX - x) : undefined,
         text: tokenText,
         maxWidth,
         height,
@@ -575,15 +580,17 @@ export const renderMarkdownBlocks = (
         strikethrough: token.styles.includes('strikethrough'),
       }
 
+      // Apply extra style for link and store box info in `cellRenderStore.links`
       if (isUrl) {
         const {
           width: boxWidth,
           height: boxHeight,
-          lines: linkLines,
+          lines: linesToRender,
         } = renderMultiLineText(ctx, { ...multilineTextFnProps, render: false })
+
         let linkX = x
 
-        if (linkLines.length === 1) {
+        if (linesToRender.length === 1) {
           linkX = cursorX
         }
 
@@ -608,29 +615,46 @@ export const renderMarkdownBlocks = (
         })
       }
 
+      /**
+       * Here lastLineWidth is width of last line, we will use this to render next token from same position (x + lastLineWidth)
+       */
       const { lastLineWidth, lines } = renderMultiLineText(ctx, { ...multilineTextFnProps })
 
-      if (lines.length === 1) {
-        cursorX += lastLineWidth
-      } else {
-        cursorX = x + lastLineWidth
+      let additionalLines = lines.length
+
+      // Adjust line count if previous token was inline
+      /**
+       * We can't really increase renderedLineCount by lines.length as rendered token is started on existing line
+       * In such case we should not count that extra line as we already counted it in previous render
+       */
+      if (multilineTextFnProps.firstLineMaxWidth && lines.length > 1) {
+        additionalLines = Math.max(0, additionalLines - 1)
       }
 
-      if (cursorX >= x + maxWidth + 10) {
+      if (lines.length === 1) {
+        // If lines count is 1 then we just need to move cursorX as this is rendered inline
+        cursorX += lastLineWidth
+      } else {
+        /**
+         * If text is wrapped to next line then we can set cursorX to cell x + lastLineWidth
+         * And then move corsorY position
+         */
+        cursorX = x + lastLineWidth
+        renderedLineCount += additionalLines
+        cursorY = y + renderedLineCount * lineHeight
+      }
+
+      /**
+       * If new corsorX position is greater than equal to (maxWidth + padding)
+       * Then move corsorX to cell x position and increase renderedLineCount
+       */
+      if (cursorX >= x + maxWidth + 10 * 2) {
         cursorX = x
+        renderedLineCount += additionalLines
+        cursorY = y + renderedLineCount * lineHeight
       }
 
       tokenIndex++
-
-      if (tokenIndex !== tokens.length - 1 && (lines.length > 1 || cursorX === x)) {
-        renderedLineCount += lines.length
-
-        if (cursorX === x) {
-          cursorY = y + renderedLineCount * lineHeight
-        } else {
-          cursorY = y + (renderedLineCount - 1) * lineHeight
-        }
-      }
 
       if (renderedLineCount >= maxLines) {
         break
@@ -971,7 +995,7 @@ export const renderMarkdown = (
     renderMarkdownBlocks(ctx, {
       blocks,
       x,
-      y,
+      y: y + yOffset,
       textAlign,
       verticalAlign,
       lineHeight,

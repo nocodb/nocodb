@@ -31,6 +31,7 @@ import { customAlphabet } from 'nanoid';
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '@nestjs/common';
 import { NcApiVersion } from 'nocodb-sdk';
+import { NestedLinkPreparator } from './BaseModelSqlv2/nested-link-preparator';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type {
   BulkAuditV1OperationTypes,
@@ -114,6 +115,7 @@ import {
   _wherePk,
   getCompositePkValue,
   getOppositeRelationType,
+  getRelatedLinksColumn,
   isDataAuditEnabled as isDataAuditEnabledFn,
 } from '~/helpers/dbHelpers';
 
@@ -5438,336 +5440,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return rowId;
   }
 
-  protected async prepareNestedLinkQb({
-    nestedCols,
-    data,
-    insertObj,
-    req,
-  }: {
+  protected async prepareNestedLinkQb(param: {
     nestedCols: Column[];
     data: Record<string, any>;
     insertObj: Record<string, any>;
     req: NcRequest;
   }) {
-    const postInsertOps: ((rowId: any) => Promise<string>)[] = [];
-    const preInsertOps: (() => Promise<string>)[] = [];
-    const postInsertAuditOps: ((rowId: any) => Promise<void>)[] = [];
-    for (const col of nestedCols) {
-      if (col.title in data) {
-        const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>(
-          this.context,
-        );
-
-        const refModel = await Model.get(
-          this.context,
-          (colOptions as LinkToAnotherRecordColumn).fk_related_model_id,
-        );
-        await refModel.getCachedColumns(this.context);
-        const refModelPkCol = await refModel.primaryKey;
-        const refChildCol = getRelatedLinksColumn(col, refModel);
-
-        // parse data if it's JSON string
-        let nestedData;
-        try {
-          nestedData =
-            typeof data[col.title] === 'string'
-              ? JSON.parse(data[col.title])
-              : data[col.title];
-          if (nestedData.length === 0) {
-            continue;
-          }
-        } catch {
-          continue;
-        }
-
-        switch (colOptions.type) {
-          case RelationTypes.BELONGS_TO:
-            {
-              if (Array.isArray(nestedData)) {
-                nestedData = nestedData[0];
-              }
-
-              const childCol = await colOptions.getChildColumn(this.context);
-              const parentCol = await colOptions.getParentColumn(this.context);
-              insertObj[childCol.column_name] = extractIdPropIfObjectOrReturn(
-                nestedData,
-                parentCol.title,
-              );
-              const refModel = await parentCol.getModel(this.context);
-              postInsertAuditOps.push(async (rowId) => {
-                await this.afterAddChild({
-                  columnTitle: col.title,
-                  columnId: col.id,
-                  refColumnTitle: refChildCol.title,
-                  rowId,
-                  refRowId: nestedData?.[refModelPkCol.title],
-                  req,
-                  model: this.model,
-                  refModel,
-                  refDisplayValue: '',
-                  displayValue: '',
-                  type: RelationTypes.BELONGS_TO,
-                });
-
-                await this.afterAddChild({
-                  columnTitle: refChildCol.title,
-                  columnId: refChildCol.id,
-                  refColumnTitle: col.title,
-                  rowId: nestedData?.[refModelPkCol.title],
-                  refRowId: rowId,
-                  req,
-                  model: refModel,
-                  refModel: this.model,
-                  refDisplayValue: '',
-                  displayValue: '',
-                  type: RelationTypes.HAS_MANY,
-                });
-              });
-            }
-            break;
-          case RelationTypes.ONE_TO_ONE:
-            {
-              if (Array.isArray(nestedData)) {
-                nestedData = nestedData[0];
-              }
-
-              const isBt = col.meta?.bt;
-
-              const childCol = await colOptions.getChildColumn(this.context);
-              const childModel = await childCol.getModel(this.context);
-              await childModel.getColumns(this.context);
-
-              let refRowId;
-
-              if (isBt) {
-                // if array then extract value from first element
-                refRowId = Array.isArray(nestedData)
-                  ? nestedData[0]?.[childModel.primaryKey.title]
-                  : nestedData[childModel.primaryKey.title];
-
-                // todo: unlink the ref record
-                preInsertOps.push(async () => {
-                  const res = this.dbDriver(
-                    this.getTnPath(childModel.table_name),
-                  )
-                    .update({
-                      [childCol.column_name]: null,
-                    })
-                    .where(childCol.column_name, refRowId)
-                    .toQuery();
-
-                  return res;
-                });
-
-                const childCol = await colOptions.getChildColumn(this.context);
-                const parentCol = await colOptions.getParentColumn(
-                  this.context,
-                );
-
-                insertObj[childCol.column_name] = extractIdPropIfObjectOrReturn(
-                  nestedData,
-                  parentCol.title,
-                );
-              } else {
-                const parentCol = await colOptions.getParentColumn(
-                  this.context,
-                );
-                const parentModel = await parentCol.getModel(this.context);
-                await parentModel.getColumns(this.context);
-                refRowId = nestedData[childModel.primaryKey.title];
-
-                postInsertOps.push(async (rowId) => {
-                  let refId = rowId;
-                  if (parentModel.primaryKey.id !== parentCol.id) {
-                    refId = this.dbDriver(
-                      this.getTnPath(parentModel.table_name),
-                    )
-                      .select(parentCol.column_name)
-                      .where(parentModel.primaryKey.column_name, rowId)
-                      .first();
-                  }
-
-                  const linkRecId = extractIdPropIfObjectOrReturn(
-                    nestedData,
-                    childModel.primaryKey.title,
-                  );
-
-                  return this.dbDriver(this.getTnPath(childModel.table_name))
-                    .update({
-                      [childCol.column_name]: refId,
-                    })
-                    .where(childModel.primaryKey.column_name, linkRecId)
-                    .toQuery();
-                });
-              }
-
-              postInsertAuditOps.push(async (rowId) => {
-                await this.afterAddChild({
-                  columnTitle: col.title,
-                  columnId: col.id,
-                  refColumnTitle: refChildCol.title,
-                  rowId,
-                  refRowId: nestedData[refModelPkCol?.title],
-                  req,
-                  model: this.model,
-                  refModel,
-                  refDisplayValue: '',
-                  displayValue: '',
-                  type: RelationTypes.ONE_TO_ONE,
-                });
-
-                await this.afterAddChild({
-                  columnTitle: refChildCol.title,
-                  columnId: refChildCol.id,
-                  refColumnTitle: col.title,
-                  rowId: nestedData[refModelPkCol?.title],
-                  refRowId: rowId,
-                  req,
-                  model: refModel,
-                  refModel: this.model,
-                  refDisplayValue: '',
-                  displayValue: '',
-                  type: RelationTypes.ONE_TO_ONE,
-                });
-              });
-            }
-            break;
-          case RelationTypes.HAS_MANY:
-            {
-              if (!Array.isArray(nestedData)) continue;
-              const childCol = await colOptions.getChildColumn(this.context);
-              const parentCol = await colOptions.getParentColumn(this.context);
-              const childModel = await childCol.getModel(this.context);
-              const parentModel = await parentCol.getModel(this.context);
-              await childModel.getColumns(this.context);
-              await parentModel.getColumns(this.context);
-
-              postInsertOps.push(async (rowId) => {
-                let refId = rowId;
-                if (parentModel.primaryKey.id !== parentCol.id) {
-                  refId = this.dbDriver(this.getTnPath(parentModel.table_name))
-                    .select(parentCol.column_name)
-                    .where(parentModel.primaryKey.column_name, rowId)
-                    .first();
-                }
-                return this.dbDriver(this.getTnPath(childModel.table_name))
-                  .update({
-                    [childCol.column_name]: refId,
-                  })
-                  .whereIn(
-                    childModel.primaryKey.column_name,
-                    nestedData?.map((r) =>
-                      extractIdPropIfObjectOrReturn(
-                        r,
-                        childModel.primaryKey.title,
-                      ),
-                    ),
-                  )
-                  .toQuery();
-              });
-
-              postInsertAuditOps.push(async (rowId) => {
-                for (const nestedDataObj of Array.isArray(nestedData)
-                  ? nestedData
-                  : [nestedData]) {
-                  if (nestedDataObj === undefined) continue;
-                  await this.afterAddChild({
-                    columnTitle: col.title,
-                    columnId: col.id,
-                    refColumnTitle: refChildCol.title,
-                    rowId,
-                    refRowId: nestedDataObj[refModelPkCol?.title],
-                    req,
-                    model: this.model,
-                    refModel,
-                    refDisplayValue: '',
-                    displayValue: '',
-                    type: RelationTypes.HAS_MANY,
-                  });
-
-                  await this.afterAddChild({
-                    columnTitle: refChildCol.title,
-                    columnId: refChildCol.id,
-                    refColumnTitle: col.title,
-                    rowId: nestedDataObj[refModelPkCol?.title],
-                    refRowId: rowId,
-                    req,
-                    model: refModel,
-                    refModel: this.model,
-                    refDisplayValue: '',
-                    displayValue: '',
-                    type: RelationTypes.BELONGS_TO,
-                  });
-                }
-              });
-            }
-            break;
-          case RelationTypes.MANY_TO_MANY: {
-            if (!Array.isArray(nestedData)) continue;
-            postInsertOps.push(async (rowId) => {
-              const parentModel = await colOptions
-                .getParentColumn(this.context)
-                .then((c) => c.getModel(this.context));
-              await parentModel.getColumns(this.context);
-              const parentMMCol = await colOptions.getMMParentColumn(
-                this.context,
-              );
-              const childMMCol = await colOptions.getMMChildColumn(
-                this.context,
-              );
-              const mmModel = await colOptions.getMMModel(this.context);
-
-              const rows = nestedData.map((r) => ({
-                [parentMMCol.column_name]: extractIdPropIfObjectOrReturn(
-                  r,
-                  parentModel.primaryKey.title,
-                ),
-                [childMMCol.column_name]: rowId,
-              }));
-              return this.dbDriver(this.getTnPath(mmModel.table_name))
-                .insert(rows)
-                .toQuery();
-            });
-
-            postInsertAuditOps.push(async (rowId) => {
-              for (const nestedDataObj of Array.isArray(nestedData)
-                ? nestedData
-                : [nestedData]) {
-                if (nestedDataObj === undefined) continue;
-                await this.afterAddChild({
-                  columnTitle: col.title,
-                  columnId: col.id,
-                  refColumnTitle: refChildCol.title,
-                  rowId,
-                  refRowId: nestedDataObj[refModelPkCol?.title],
-                  req,
-                  model: this.model,
-                  refModel,
-                  refDisplayValue: '',
-                  displayValue: '',
-                  type: RelationTypes.MANY_TO_MANY,
-                });
-
-                await this.afterAddChild({
-                  columnTitle: refChildCol.title,
-                  columnId: refChildCol.id,
-                  refColumnTitle: col.title,
-                  rowId: nestedDataObj[refModelPkCol?.title],
-                  refRowId: rowId,
-                  req,
-                  model: refModel,
-                  refModel: this.model,
-                  refDisplayValue: '',
-                  displayValue: '',
-                  type: RelationTypes.MANY_TO_MANY,
-                });
-              }
-            });
-          }
-        }
-      }
-    }
-    return { postInsertOps, preInsertOps, postInsertAuditOps };
+    return new NestedLinkPreparator().prepareNestedLinkQb(this, param);
   }
 
   async bulkUpsert(
@@ -11201,29 +10880,6 @@ function extractIds(
   );
 }
 
-function getRelatedLinksColumn(
-  column: Column<LinkToAnotherRecordColumn>,
-  relatedModel: Model,
-) {
-  return relatedModel.columns.find((c: Column) => {
-    if (column.colOptions?.type === RelationTypes.MANY_TO_MANY) {
-      return (
-        column.colOptions.fk_mm_child_column_id ===
-          c.colOptions?.fk_mm_parent_column_id &&
-        column.colOptions.fk_mm_parent_column_id ===
-          c.colOptions?.fk_mm_child_column_id
-      );
-    } else {
-      return (
-        column.colOptions.fk_child_column_id ===
-          c.colOptions?.fk_child_column_id &&
-        column.colOptions.fk_parent_column_id ===
-          c.colOptions?.fk_parent_column_id
-      );
-    }
-  });
-}
-
 export function formatDataForAudit(
   data: Record<string, unknown>,
   columns: Column[],
@@ -11264,8 +10920,3 @@ export function formatDataForAudit(
 }
 
 export { BaseModelSqlv2 };
-
-// extractIdPropIfObjectOrReturn
-function extractIdPropIfObjectOrReturn(id: any, prop: string) {
-  return typeof id === 'object' ? id[prop] : id;
-}

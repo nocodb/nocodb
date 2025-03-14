@@ -289,8 +289,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             pageSize: keyExists.paginationData.pageSize || temp.paginationData.pageSize,
             totalRows: temp.count,
           }
-          temp.color = keyExists.color
-
           // update group
           Object.assign(keyExists, temp)
           continue

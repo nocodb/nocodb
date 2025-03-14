@@ -134,12 +134,12 @@ abstract class BaseModel {
         cn,
       } = this.columns[i];
       for (let j = 0; j < func.length; ++j) {
-        const fn =
-          typeof func[j] === 'string'
-            ? customValidators[func[j]]
-              ? customValidators[func[j]]
-              : Validator[func[j]]
-            : func[j];
+        let fn = func[j];
+
+        if (typeof func[j] === 'string') {
+          fn = customValidators[func[j]] ?? Validator[func[j]];
+        }
+
         const arg =
           typeof func[j] === 'string' ? columns[cn] + '' : columns[cn];
         if (

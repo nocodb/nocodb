@@ -1780,12 +1780,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               if (validate) {
                 const { func, msg } = validate;
                 for (let j = 0; j < func.length; ++j) {
-                  const fn =
-                    typeof func[j] === 'string'
-                      ? customValidators[func[j]]
-                        ? customValidators[func[j]]
-                        : Validator[func[j]]
-                      : func[j];
+                  let fn = func[j];
+
+                  if (typeof func[j] === 'string') {
+                    fn = customValidators[func[j]] ?? Validator[func[j]];
+                  }
+
                   const columnValue =
                     insertObj?.[cn] || insertObj?.[columnTitle];
                   const arg =

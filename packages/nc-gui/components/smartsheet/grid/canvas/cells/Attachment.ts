@@ -394,9 +394,7 @@ export const AttachmentCellRenderer: CellRenderer = {
     })
 
     const hoveredPreview = imageBoxes.find((box) => isBoxHovered(box, mousePosition))
-    if (tryShowTooltip({ rect: hoveredPreview, text: hoveredPreview?.title ?? '', mousePosition })) {
-      return
-    }
+    tryShowTooltip({ rect: hoveredPreview, text: hoveredPreview?.title ?? '', mousePosition })
   },
   async handleKeyDown({ row, column, e, makeCellEditable }) {
     if (e.key === 'Enter' || isExpandCellKey(e)) {

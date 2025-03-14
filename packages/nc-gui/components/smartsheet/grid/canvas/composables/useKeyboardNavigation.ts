@@ -51,7 +51,7 @@ export function useKeyboardNavigation({
   onActiveCellChanged: () => void
   handleCellKeyDown: (ctx: { e: KeyboardEvent; row: Row; column: CanvasGridColumn; value: any; pk: any }) => Promise<boolean>
 }) {
-  const { isDataReadOnly, isUIAllowed } = useRoles()
+  const { isDataReadOnly } = useRoles()
   const { $e } = useNuxtApp()
   const meta = inject(MetaInj, ref())
 

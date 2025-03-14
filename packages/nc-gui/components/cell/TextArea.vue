@@ -12,9 +12,9 @@ const props = defineProps<{
   isFieldAiIntegrationAvailable?: boolean
 }>()
 
-const STORAGE_KEY = 'nc-long-text-expanded-modal-size'
-
 const emits = defineEmits(['update:modelValue', 'update:isAiEdited', 'generate', 'close'])
+
+const STORAGE_KEY = 'nc-long-text-expanded-modal-size'
 
 const meta = inject(MetaInj, ref())
 

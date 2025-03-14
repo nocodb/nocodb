@@ -4,3 +4,4 @@ export * from './virtualCell';
 export * from './parser';
 export * from './serializer';
 export * from './decimal';
+export * from './url';

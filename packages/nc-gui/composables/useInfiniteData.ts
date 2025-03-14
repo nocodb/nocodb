@@ -1235,7 +1235,7 @@ export function useInfiniteData(args: {
       data,
       meta.value?.columns as ColumnType[],
       getBaseType(viewMeta.value?.view?.source_id),
-      metas.value
+      metas.value,
     )
 
     const changedFields = property ? [property] : Object.keys(row.row)

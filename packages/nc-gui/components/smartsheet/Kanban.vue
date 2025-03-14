@@ -897,7 +897,7 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
                                         </div>
 
                                         <div
-                                          v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col)"
+                                          v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col) || isPercent(col)"
                                           class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
                                         >
                                           <LazySmartsheetVirtualCell

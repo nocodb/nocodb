@@ -33,7 +33,7 @@ export const PercentCellRenderer: CellRenderer = {
     renderSingleLineText(ctx, {
       x: x + width - padding,
       y,
-      text: value ? `${value}%` : '',
+      text: value !== null && typeof value !== 'undefined' && value !== '' ? `${value}%` : '',
       textAlign: 'right',
       maxWidth: width - padding * 2,
       fontFamily: `${pv ? 600 : 500} 13px Manrope`,

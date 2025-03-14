@@ -6,14 +6,10 @@ import {
   UITypes,
   LongTextAiMetaProp as _LongTextAiMetaProp,
   checkboxIconList,
+  isValidURL,
   ratingIconList,
 } from 'nocodb-sdk'
 import isMobilePhone from 'validator/lib/isMobilePhone'
-import isURL, { type IsURLOptions } from 'validator/lib/isURL'
-
-export const isValidURL = (str: string, extraProps?: IsURLOptions) => {
-  return isURL(`${str}`, extraProps)
-}
 
 const validateEmail = (v: string) =>
   /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(v)

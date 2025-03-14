@@ -1,7 +1,7 @@
 import isURL from 'validator/lib/isURL'
 import { decode } from 'html-entities'
-import { formulaTextSegmentsCache, replaceUrlsWithLinkCache } from '../components/smartsheet/grid/canvas/utils/canvas'
 import { isValidURL } from 'nocodb-sdk'
+import { formulaTextSegmentsCache, replaceUrlsWithLinkCache } from '../components/smartsheet/grid/canvas/utils/canvas'
 import { getI18n } from '../plugins/a.i18n'
 export { isValidURL }
 

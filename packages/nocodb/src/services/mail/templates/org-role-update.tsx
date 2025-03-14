@@ -40,26 +40,22 @@ export const OrganizationRoleUpdate = ({
       <Preview>Your organization role has been updated</Preview>
       <Body className="bg-white">
         <ContentWrapper>
-          <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
+          <Heading className="text-gray-900 !mb-0 text-center font-bold m-auto text-xl md:text-2xl">
             Your organization role has been updated
           </Heading>
-          <Section className="pb-6 text-center">
+          <Section className="py-6 text-center">
             <Row>
-              <Column className="items-center justify-center gap-2 flex">
+              <Column className="flex max-w-[210px] mx-auto">
                 <Img
                   src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${newRole}.png`}
                   alt={newRole}
                   className="h-7"
                 />
-                <Img
-                  src={`${NC_EMAIL_ASSETS_BASE_URL}/icons/arrow-right.png`}
-                  alt="Arrow Right"
-                  className="h-7"
-                />
+                <Text className="h-5 text-gray-800 !mt-0.5 !ml-2">➜</Text>
                 <Img
                   src={`${NC_EMAIL_ASSETS_BASE_URL}/badges/${oldRole}.png`}
                   alt={oldRole}
-                  className="h-7"
+                  className="h-7 ml-2"
                 />
               </Column>
             </Row>

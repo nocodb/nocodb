@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, isDateOrDateTimeCol } from 'nocodb-sdk'
 import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
 
@@ -38,6 +38,7 @@ const {
   childrenExcludedListPagination,
   relatedTableDisplayValueProp,
   displayValueTypeAndFormatProp,
+  relatedTableDisplayValueColumn,
   link,
   relatedTableMeta,
   meta,
@@ -350,7 +351,21 @@ const handleKeyDown = (e: KeyboardEvent) => {
           </button>
 
           <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-0.5 rounded-md">
+            <!-- Utilize SmartsheetToolbarFilterInput component to filter the records for Date or DateTime column -->
+            <SmartsheetToolbarFilterInput
+              v-if="relatedTableDisplayValueColumn && isDateOrDateTimeCol(relatedTableDisplayValueColumn)"
+              class="nc-filter-value-select rounded-md min-w-34"
+              :column="relatedTableDisplayValueColumn"
+              :filter="{
+                comparison_op: 'eq',
+                comparison_sub_op: 'exactDate',
+                value: childrenExcludedListPagination.query,
+              }"
+              @update-filter-value="(value) => (childrenExcludedListPagination.query = value)"
+              @click.stop
+            />
             <a-input
+              v-else
               ref="filterQueryRef"
               v-model:value="childrenExcludedListPagination.query"
               :bordered="false"
@@ -514,6 +529,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
 <style lang="scss" scoped>
 :deep(.ant-skeleton-element .ant-skeleton-image-svg) {
   @apply !w-7;
+}
+:deep(.nc-filter-input-wrapper) {
+  height: 26px;
 }
 </style>
 

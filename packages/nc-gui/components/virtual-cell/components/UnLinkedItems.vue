@@ -229,6 +229,7 @@ const onCreatedRecord = (record: any) => {
   })
   reloadViewDataTrigger?.trigger({
     shouldShowLoading: false,
+    isFromLinkRecord: true,
   })
 
   if (!isNewRecord.value) {

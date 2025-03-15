@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV File",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON File",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",

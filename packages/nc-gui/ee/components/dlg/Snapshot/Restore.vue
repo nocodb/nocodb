@@ -65,9 +65,13 @@ const selectWorkspace = (workspace: WorkspaceType) => {
     :show-separator="false"
     nc-modal-class-name="!p-6"
   >
-    <div class="text-nc-content-gray-emphasis font-semibold text-lg">Confirm Snapshot Restore</div>
+    <div class="text-nc-content-gray-emphasis font-semibold text-lg">
+      {{ $t('title.confirmSnapshotRestore') }}
+    </div>
 
-    <div class="text-nc-content-gray-subtle my-2 leading-5">Are you sure you want to restore this base snapshot.</div>
+    <div class="text-nc-content-gray-subtle my-2 leading-5">
+      {{ $t('labels.snapshotRestoreConfirmation') }}
+    </div>
 
     <div class="my-5 px-4 py-2 bg-nc-bg-gray-light rounded-lg">
       <NcTooltip show-on-truncate-only class="truncate">
@@ -78,11 +82,17 @@ const selectWorkspace = (workspace: WorkspaceType) => {
       </NcTooltip>
     </div>
 
-    <div class="leading-5 text-nc-content-gray-subtle2">Note:</div>
+    <div class="leading-5 text-nc-content-gray-subtle2">
+      {{ $t('labels.note') }}
+    </div>
 
     <ul class="list-disc leading-5 text-nc-content-gray-subtle2 pl-4 !mb-5">
-      <li>Restoring this snapshot will not affect the existing base.</li>
-      <li>On restore, a new base will be created in the selected workspace.</li>
+      <li>
+        {{ $t('labels.snapshotRestoreMessage1') }}
+      </li>
+      <li>
+        {{ $t('labels.snapshotRestoreMessage2') }}
+      </li>
     </ul>
 
     <div class="flex flex-col mb-5 gap-1">
@@ -123,10 +133,11 @@ const selectWorkspace = (workspace: WorkspaceType) => {
             container-class-name="w-full"
             :list="filteredWorkspaces"
             option-label-key="title"
+            class="nc-snapshot-workspace-selection"
           >
             <template #listHeader>
               <div class="text-nc-content-gray-muted text-[13px] px-3 py-2.5 font-medium leading-5">
-                You can only restore into workspaces where you have creator access or above.
+                {{ $t('labels.snapshotBaseRestoreMessage') }}
               </div>
 
               <NcDivider />
@@ -166,11 +177,17 @@ const selectWorkspace = (workspace: WorkspaceType) => {
         :loading="isRestoringSnapshot"
         @click="restoreSnapshot(snapshot, selectedWorkspace)"
       >
-        {{ isRestoringSnapshot ? 'Restoring Snapshot' : $t('labels.confirmRestore') }}
+        {{ isRestoringSnapshot ? $t('labels.restoringSnapshot') : $t('labels.confirmRestore') }}
       </NcButton>
     </div>
   </NcModal>
 </template>
+
+<style scoped lang="scss">
+.nc-list-root {
+  @apply !w-[400px] !pt-0;
+}
+</style>
 
 <style lang="scss">
 .restore-snapshot {
@@ -179,13 +196,11 @@ const selectWorkspace = (workspace: WorkspaceType) => {
   }
 }
 
-.nc-list {
-  .nc-list-item {
-    @apply !py-1;
+.nc-snapshot-workspace-selection {
+  .nc-list {
+    .nc-list-item {
+      @apply !py-1;
+    }
   }
-}
-
-.nc-list-root {
-  @apply !w-[400px] !pt-0;
 }
 </style>

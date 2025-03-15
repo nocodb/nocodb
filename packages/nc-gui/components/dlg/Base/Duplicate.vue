@@ -296,6 +296,7 @@ onKeyStroke('Enter', () => {
                   :value="targetWorkspace"
                   :item-height="28"
                   close-on-select
+                  class="nc-base-workspace-selection"
                   :min-items-for-search="6"
                   container-class-name="w-full"
                   :list="workspaceOptions"
@@ -374,9 +375,11 @@ onKeyStroke('Enter', () => {
 </style>
 
 <style lang="scss">
-.nc-list {
-  .nc-list-item {
-    @apply !py-1;
+.nc-base-workspace-selection {
+  .nc-list {
+    .nc-list-item {
+      @apply !py-1;
+    }
   }
 }
 </style>

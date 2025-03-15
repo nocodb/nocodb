@@ -32,7 +32,14 @@ export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol
 export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')
 /** when shouldShowLoading bool is passed, it indicates if a loading spinner should be visible while reloading */
 export const ReloadViewDataHookInj: InjectionKey<
-  EventHook<{ shouldShowLoading?: boolean; offset?: number; isFormFieldFilters?: boolean; isFromLinkRecord?: boolean } | void>
+  EventHook<{
+    shouldShowLoading?: boolean
+    offset?: number
+    isFormFieldFilters?: boolean
+    isFromLinkRecord?: boolean
+    relatedTableMetaId?: string
+    rowId?: string
+  } | void>
 > = Symbol('reload-view-data-injection')
 export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')
 export const ReloadVisibleDataHookInj: InjectionKey<EventHook<void>> = Symbol('reload-visible-data-injection')

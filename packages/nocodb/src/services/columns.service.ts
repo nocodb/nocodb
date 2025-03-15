@@ -614,7 +614,12 @@ export class ColumnsService implements IColumnsService {
 
             const hook = await Hook.get(context, colBody.fk_webhook_id);
 
-            if (!hook || !hook.active || hook.event !== 'manual') {
+            if (
+              !hook ||
+              !hook.active ||
+              (hook.version !== 'v3' && hook.event === 'manual') ||
+              (hook.version === 'v3' && !hook.operation?.includes('trigger'))
+            ) {
               NcError.badRequest('Webhook not found');
             }
           } else if (colBody.type === ButtonActionsType.Script) {

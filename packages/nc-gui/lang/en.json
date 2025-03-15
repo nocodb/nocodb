@@ -311,7 +311,8 @@
     "unread": "Unread",
     "shared": "Shared",
     "organization": "Organization",
-    "all": "All"
+    "all": "All",
+    "record": "Record"
   },
   "objects": {
     "script": "Script",
@@ -1180,6 +1181,8 @@
     "openInANewTab": "Open in a new tab",
     "copyIFrameCode": "Copy IFrame code",
     "onCondition": "On Condition",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "Bulk Download",
     "attachFile": "Attach File",
     "viewAttachment": "View Attachments",

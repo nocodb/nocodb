@@ -158,13 +158,19 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 })
 
 const eventList = ref<Record<string, any>[]>([
-  { text: [t('general.on'), t('labels.recordInsert')], value: ['after', 'insert'] },
-  { text: [t('general.on'), t('labels.recordUpdate')], value: ['after', 'update'] },
-  { text: [t('general.on'), t('labels.recordDelete')], value: ['after', 'delete'] },
-  { text: [t('general.onMultiple'), t('labels.recordInsert')], value: ['after', 'bulkInsert'] },
-  { text: [t('general.onMultiple'), t('labels.recordUpdate')], value: ['after', 'bulkUpdate'] },
-  { text: [t('general.onMultiple'), t('labels.recordDelete')], value: ['after', 'bulkDelete'] },
-  { text: [t('general.manual'), t('general.trigger')], value: ['manual', 'trigger'] },
+  { text: [t('general.record'), t('general.insert')], value: ['after', 'insert'] },
+  { text: [t('general.record'), t('general.update')], value: ['after', 'update'] },
+  { text: [t('general.record'), t('general.delete')], value: ['after', 'delete'] },
+  {
+    text: [`${t('general.manual')} ${t('general.trigger')}`, `${t('general.manual')} ${t('general.trigger')}`],
+    value: ['manual', 'trigger'],
+  },
+])
+const v2EventList = ref<Record<string, any>[]>([
+  ...eventList.value,
+  { text: [t('general.record'), t('general.bulkInsert')], value: ['after', 'bulkInsert'] },
+  { text: [t('general.record'), t('general.bulkUpdate')], value: ['after', 'bulkUpdate'] },
+  { text: [t('general.record'), t('general.bulkDelete')], value: ['after', 'bulkDelete'] },
 ])
 
 const columns: NcTableColumnProps[] = [
@@ -212,8 +218,18 @@ const customRow = (hook: HookType) => {
 }
 
 const getHookTypeText = (hook: HookType) => {
+  if (hook.version === 'v3') {
+    const text = hook.event === 'after' ? `${t('general.after')} ` : ''
+    return (
+      text +
+      eventList.value
+        .filter((e) => e.value[0] === hook.event && hook.operation.includes(e.value[1]))
+        .map((event) => event.text[1])
+        .join(` ${t('general.or').toLowerCase()} `)
+    )
+  }
   return (
-    eventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text?.join(' ') ||
+    v2EventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text?.join(' ') ||
     `Before ${hook.operation}`
   )
 }
@@ -314,12 +330,24 @@ const getHookTypeText = (hook: HookType) => {
                 </NcTooltip>
               </template>
               <template v-if="column.key === 'type'">
-                {{ getHookTypeText(hook) }}
+                <div class="flex items-center">
+                  <NcTooltip v-if="hook.version === 'v2'" class="-ml-21 absolute">
+                    <template #title> Port this webhook from v2 to v3 </template>
+                    <a-tag color="orange">
+                      <GeneralIcon icon="alertTriangle" class="w-4 h-4 flex-none" />
+                      update
+                    </a-tag>
+                  </NcTooltip>
+                  <div>
+                    {{ getHookTypeText(hook) }}
+                  </div>
+                </div>
               </template>
               <template v-if="column.key === 'created_at'">
                 {{ dayjs(hook.created_at).format('DD MMM YYYY') }}
               </template>
               <template v-if="column.key === 'action'">
+                <!-- TODO: disable edit for v2 and add migration -->
                 <NcDropdown overlay-class-name="nc-webhook-item-action-dropdown">
                   <NcButton type="secondary" size="small" class="!w-8 !h-8" data-testid="nc-webhook-item-action" @click.stop>
                     <component :is="iconMap.threeDotVertical" class="text-gray-700" />
@@ -330,7 +358,12 @@ const getHookTypeText = (hook: HookType) => {
                         <GeneralIcon icon="edit" class="text-gray-800" />
                         <span>{{ $t('general.edit') }}</span>
                       </NcMenuItem>
-                      <NcMenuItem key="duplicate" data-testid="nc-webhook-item-action-duplicate" @click="copyWebhook(hook)">
+                      <NcMenuItem
+                        key="duplicate"
+                        data-testid="nc-webhook-item-action-duplicate"
+                        :disabled="hook.version !== 'v3'"
+                        @click="copyWebhook(hook)"
+                      >
                         <GeneralIcon icon="duplicate" class="text-gray-800" />
                         <span>{{ $t('general.duplicate') }}</span>
                       </NcMenuItem>
@@ -373,7 +406,14 @@ const getHookTypeText = (hook: HookType) => {
         </GeneralDeleteModal>
 
         <Webhook
-          v-if="isWebhookModalOpen"
+          v-if="isWebhookModalOpen && (!selectedHook || selectedHook.version === 'v3')"
+          v-model:value="isWebhookModalOpen"
+          :hook="selectedHook"
+          :event-list="eventList"
+          @close="onModalClose"
+        />
+        <WebhookV2
+          v-if="isWebhookModalOpen && selectedHook && selectedHook.version !== 'v3'"
           v-model:value="isWebhookModalOpen"
           :hook="selectedHook"
           :event-list="eventList"

@@ -8,6 +8,7 @@ import {
   AppEvents,
   CloudOrgUserRoles,
   extractRolesObj,
+  NON_SEAT_ROLES,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
@@ -18,7 +19,7 @@ import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import validateParams from '~/helpers/validateParams';
 import { NcError } from '~/helpers/catchError';
-import { Base, BaseUser, PresignedUrl, User } from '~/models';
+import { Base, BaseUser, PresignedUrl, Subscription, User } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Workspace from '~/models/Workspace';
 import { UsersService } from '~/services/users/users.service';
@@ -161,6 +162,29 @@ export class WorkspaceUsersService {
         },
         transaction,
       );
+
+      if (workspace.payment.plan.free) {
+        if (!NON_SEAT_ROLES.includes(param.roles)) {
+          const editorsInWorkspace =
+            await Subscription.calculateWorkspaceSeatCount(
+              param.workspaceId,
+              transaction,
+            );
+
+          const editorLimitForWorkspace = await getLimit(
+            PlanLimitTypes.WORKSPACE_EDITOR_LIMIT,
+            param.workspaceId,
+            transaction,
+          );
+
+          // check if user limit is reached or going to be exceeded
+          if (editorsInWorkspace > editorLimitForWorkspace) {
+            NcError.badRequest(
+              `Only ${editorLimitForWorkspace} editors are allowed for your plan, for more please upgrade your plan`,
+            );
+          }
+        }
+      }
 
       await this.paymentService.reseatSubscription(
         workspace.fk_org_id ?? workspace.id,
@@ -314,6 +338,7 @@ export class WorkspaceUsersService {
       skipEmailInvite?: boolean;
       // invite user as soft deleted from workspace
       invitePassive?: boolean;
+      baseEditor?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -371,6 +396,28 @@ export class WorkspaceUsersService {
     }
 
     if (workspace.payment.plan.free) {
+      if (!NON_SEAT_ROLES.includes(roles) || param.baseEditor) {
+        const editorsInWorkspace =
+          await Subscription.calculateWorkspaceSeatCount(workspaceId, ncMeta);
+
+        const editorLimitForWorkspace = await getLimit(
+          PlanLimitTypes.WORKSPACE_EDITOR_LIMIT,
+          workspaceId,
+          ncMeta,
+        );
+
+        // check if user limit is reached or going to be exceeded
+        if (
+          editorsInWorkspace + emails.length > editorLimitForWorkspace &&
+          // if invitePassive is true then don't check for user limit
+          !param.invitePassive
+        ) {
+          NcError.badRequest(
+            `Only ${editorLimitForWorkspace} editors are allowed for your plan, for more please upgrade your plan`,
+          );
+        }
+      }
+
       const usersInWorkspace = await WorkspaceUser.count(
         {
           workspaceId,
@@ -391,7 +438,7 @@ export class WorkspaceUsersService {
         !param.invitePassive
       ) {
         NcError.badRequest(
-          `Only ${userLimitForWorkspace} users are allowed, for more please upgrade your plan`,
+          `Only ${userLimitForWorkspace} users are allowed for your plan, for more please upgrade your plan`,
         );
       }
     }

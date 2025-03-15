@@ -3,8 +3,10 @@ import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
   extractRolesObj,
+  NON_SEAT_ROLES,
   OrderedProjectRoles,
   OrgUserRoles,
+  PlanLimitTypes,
   ProjectRoles,
   WorkspaceRolesToProjectRoles,
 } from 'nocodb-sdk';
@@ -17,11 +19,12 @@ import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { Base, BaseUser, User, Workspace } from '~/models';
+import { Base, BaseUser, Subscription, User, Workspace } from '~/models';
 import { getProjectRole, getProjectRolePower } from '~/utils/roleHelper';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import { PaymentService } from '~/modules/payment/payment.service';
+import { getLimit } from '~/plan-limits';
 
 @Injectable()
 export class BaseUsersService extends BaseUsersServiceCE {
@@ -414,6 +417,32 @@ export class BaseUsersService extends BaseUsersServiceCE {
         param.baseUser.roles,
         transaction,
       );
+
+      if (workspace.payment.plan.free) {
+        if (
+          !NON_SEAT_ROLES.includes(param.baseUser.roles as ProjectRoles) &&
+          NON_SEAT_ROLES.includes(oldBaseUser.roles as ProjectRoles)
+        ) {
+          const editorsInWorkspace =
+            await Subscription.calculateWorkspaceSeatCount(
+              workspace.id,
+              transaction,
+            );
+
+          const editorLimitForWorkspace = await getLimit(
+            PlanLimitTypes.WORKSPACE_EDITOR_LIMIT,
+            workspace.id,
+            transaction,
+          );
+
+          // check if user limit is reached or going to be exceeded
+          if (editorsInWorkspace > editorLimitForWorkspace) {
+            NcError.badRequest(
+              `Only ${editorLimitForWorkspace} editors are allowed for your plan, for more please upgrade your plan`,
+            );
+          }
+        }
+      }
 
       await this.paymentService.reseatSubscription(
         workspace.fk_org_id ?? workspace.id,

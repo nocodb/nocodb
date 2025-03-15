@@ -1,4 +1,4 @@
-import Stripe from 'stripe';
+import type Stripe from 'stripe';
 import {
   CacheGetType,
   CacheScope,
@@ -27,7 +27,11 @@ export const DefaultLimits = {
 export const FreePlan = {
   title: 'Free',
   description: 'Free plan',
-  meta: DefaultLimits,
+  meta: {
+    ...DefaultLimits,
+    // Free plan limits
+    limit_workspace_editor: 5,
+  },
   free: true,
 } as const;
 

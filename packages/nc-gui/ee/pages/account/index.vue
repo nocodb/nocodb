@@ -254,7 +254,9 @@ onMounted(() => {
                     <GeneralWorkspaceIcon :workspace="workspace" size="medium" />
                   </template>
                   <template #title>
-                    <div class="select-none">{{ workspace.title }}</div>
+                    <div class="nc-workspace-title font-semibold truncate capitalize">
+                      {{ workspace.title }}
+                    </div>
                   </template>
                   <template #expandIcon="{ isOpen }">
                     <NcButton type="text" size="xxsmall" class="">

@@ -17,12 +17,11 @@ import {
 import { useAgent } from 'request-filtering-agent';
 import { v4 as uuidv4 } from 'uuid';
 import NcPluginMgrv2 from './NcPluginMgrv2';
-import type { HookType } from 'jsep';
 import type {
   ColumnType,
   FormColumnType,
   HookLogType,
-  HookType as NcHookType,
+  HookType,
   TableType,
   UpdatePayload,
   UserType,
@@ -1064,7 +1063,7 @@ function parseHrtimeToMilliSeconds(hrtime) {
   return milliseconds;
 }
 
-export function operationArrToCode(value: NcHookType['operation']) {
+export function operationArrToCode(value: HookType['operation']) {
   let result = 0;
   for (const operation of value) {
     result += HookOperationCode[operation];
@@ -1073,7 +1072,7 @@ export function operationArrToCode(value: NcHookType['operation']) {
 }
 export function operationCodeToArr(code: number | string) {
   const numberCode = typeof code === 'number' ? code : Number(code);
-  const result: NcHookType['operation'] = [];
+  const result: HookType['operation'] = [];
   for (const operation of Object.keys(HookOperationCode)) {
     const operationCode = HookOperationCode[operation];
     if ((numberCode & operationCode) === operationCode) {

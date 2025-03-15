@@ -9,10 +9,14 @@ import { MultiSelectGeneralHandler } from './handlers/multi-select/multi-select.
 import { SingleSelectGeneralHandler } from './handlers/single-select/single-select.general.handler';
 import { DecimalGeneralHandler } from './handlers/decimal/decimal.general.handler';
 import { NumberGeneralHandler } from './handlers/number/number.general.handler';
+import { FilterVerificationError } from './error/filter-verification.error';
 import type CustomKnex from '../CustomKnex';
 import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
-import type { HandlerOptions } from './field-handler.interface';
+import type {
+  FilterVerificationResult,
+  HandlerOptions,
+} from './field-handler.interface';
 import type { Knex } from 'knex';
 import type { Column, Filter, Model } from '~/models';
 import type { FieldHandlerInterface } from '~/db/field-handler/field-handler.interface';
@@ -188,6 +192,9 @@ export class FieldHandler {
     options: HandlerOptions = {},
   ): Promise<(qb: Knex.QueryBuilder) => void> {
     const model = options.model ?? this.info.model;
+    if (!model.columns) {
+      await model.getColumns(options.context ?? this.info.context);
+    }
     const qbHandlers: {
       handler: (qb: Knex.QueryBuilder) => void;
       index: number;
@@ -202,7 +209,9 @@ export class FieldHandler {
           logicalOps: filter.logical_op,
         });
       } else {
-        const column = model.columns.find((col) => col.id === filter.id);
+        const column = model.columns.find(
+          (col) => col.id === filter.fk_column_id,
+        );
         qbHandlers.push({
           handler: await this.applyFilter(filter, column, options),
           index: index++,
@@ -249,5 +258,48 @@ export class FieldHandler {
     return (
       this.getHandler(column.uidt, knex.client) ?? new GenericFieldHandler()
     ).verifyFilter(filter, column, options);
+  }
+
+  async verifyFilters(filters: Filter[], options: HandlerOptions = {}) {
+    const model = options.model ?? this.info.model;
+    if (!model.columns) {
+      await model.getColumns(options.context ?? this.info.context);
+    }
+    const traverseResult: FilterVerificationResult[] = [];
+    await this.traverseFilters(filters, async (filter: Filter) => {
+      const column = model.columns.find(
+        (col) => col.id === filter.fk_column_id,
+      );
+      traverseResult.push(await this.verifyFilter(filter, column, options));
+    });
+    const invalidFilterResults = traverseResult
+      .filter((k) => !k.isValid)
+      .reduce(
+        (obj, res) => {
+          obj.errors = obj.errors.concat(res.errors);
+          return obj;
+        },
+        { errors: [] },
+      );
+    if (invalidFilterResults.errors.length > 0) {
+      throw new FilterVerificationError(invalidFilterResults.errors);
+    } else {
+      return true;
+    }
+  }
+
+  async traverseFilters(
+    filters: Filter[],
+    handler: <T>(filter: Filter) => Promise<void | T>,
+  ) {
+    return Promise.all(
+      filters.map(async (filter) => {
+        if (filter.is_group) {
+          return this.traverseFilters(filter.children, handler);
+        } else {
+          return handler(filter);
+        }
+      }),
+    );
   }
 }

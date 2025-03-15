@@ -16,7 +16,7 @@ export class CheckboxGeneralHandler extends GenericFieldHandler {
       return {
         isValid: false,
         errors: [
-          `Operation ${filter.comparison_op} is not supported for type ${column.uidt}`,
+          `Operation ${filter.comparison_op} is not supported for type ${column.uidt} on column ${column.title}`,
         ],
       } as FilterVerificationResult;
     }
@@ -28,7 +28,7 @@ export class CheckboxGeneralHandler extends GenericFieldHandler {
       return {
         isValid: false,
         errors: [
-          `Value ${filter.value} is not supported for type ${column.uidt}`,
+          `Value ${filter.value} is not supported for type ${column.uidt} on column ${column.title}`,
         ],
       } as FilterVerificationResult;
     }

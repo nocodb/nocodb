@@ -9026,6 +9026,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         (c) =>
           c.uidt === UITypes.DateTime ||
           c.uidt === UITypes.Date ||
+          c.uidt === UITypes.CreatedTime ||
+          c.uidt === UITypes.LastModifiedTime ||
           c.uidt === UITypes.Formula,
       );
       if (dateTimeColumns.length) {

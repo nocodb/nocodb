@@ -28,6 +28,7 @@ import {
   Integration,
   ModelStat,
   PresignedUrl,
+  Subscription,
   User,
 } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -38,6 +39,7 @@ import Noco from '~/Noco';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { JobTypes } from '~/interface/Jobs';
 import NocoCache from '~/cache/NocoCache';
+import { PaymentService } from '~/modules/payment/payment.service';
 
 const mockUser = {
   id: '1',
@@ -54,6 +56,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     protected basesService: BasesService,
     protected tablesService: TablesService,
     @Inject(forwardRef(() => 'JobsService')) protected jobsService,
+    protected paymentService: PaymentService,
   ) {}
 
   async onApplicationBootstrap() {
@@ -570,24 +573,53 @@ export class WorkspacesService implements OnApplicationBootstrap {
     return updatedWorkspace;
   }
 
-  async delete(param: { user: UserType; workspaceId: string; req: NcRequest }) {
-    const workspace = await Workspace.get(param.workspaceId);
+  async delete(
+    param: { user: UserType; workspaceId: string; req: NcRequest },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const workspace = await Workspace.get(param.workspaceId, false, ncMeta);
 
     if (!workspace) NcError.workspaceNotFound(param.workspaceId);
 
-    // todo: avoid removing owner
+    // check if workspace have subscription
+    const subscription = await Subscription.getByWorkspaceOrOrg(
+      workspace.id,
+      ncMeta,
+    );
 
-    // block unauthorized user form deleting
+    if (subscription) {
+      NcError.badRequest(
+        'Workspace cannot be deleted as it has an active subscription',
+      );
+    }
 
-    // todo: unlink any base linked
-    await Workspace.softDelete(param.workspaceId);
+    const transaction = await ncMeta.startTransaction();
 
-    this.appHooksService.emit(AppEvents.WORKSPACE_DELETE, {
-      workspace,
-      req: param.req,
-    });
+    try {
+      // todo: avoid removing owner
 
-    return true;
+      // block unauthorized user form deleting
+
+      // todo: unlink any base linked
+      await Workspace.softDelete(param.workspaceId);
+
+      await this.paymentService.reseatSubscription(
+        workspace.fk_org_id ?? workspace.id,
+        transaction,
+      );
+
+      await transaction.commit();
+
+      this.appHooksService.emit(AppEvents.WORKSPACE_DELETE, {
+        workspace,
+        req: param.req,
+      });
+
+      return true;
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
   }
 
   async moveProject(param: {

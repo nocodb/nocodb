@@ -112,6 +112,7 @@ export class GenericFieldHandler implements FieldHandlerInterface {
     };
     // not implemented
   }
+
   async verifyFilter(
     _filter: Filter,
     _column: Column,

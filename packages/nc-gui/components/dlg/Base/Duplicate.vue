@@ -190,19 +190,23 @@ onKeyStroke('Enter', () => {
     <div>
       <div class="text-base text-nc-content-gray-emphasis leading-6 font-bold self-center" @dblclick="isEaster = !isEaster">
         <template v-if="['pending', 'loading'].includes(status)">
-          {{ $t('general.duplicate') }} {{ $t('objects.project') }} "{{ base.title }}"
+          {{ $t('labels.duplicateBaseBaseTitle', { baseTitle: base.title }) }}
         </template>
 
         <template v-else-if="status === 'success'">
           <div class="flex items-center gap-2">
             <GeneralIcon class="text-white w-6 h-6" icon="checkFill" />
-            <div class="text-nc-content-gray-emphasis font-semibold">Base Duplication Successfull</div>
+            <div class="text-nc-content-gray-emphasis font-semibold">
+              {{ $t('labels.duplicateBaseSuccessfull') }}
+            </div>
           </div>
         </template>
         <template v-else-if="status === 'error'">
           <div class="flex items-center gap-2">
             <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-6 h-6" />
-            <div class="text-nc-content-gray-emphasis font-semibold">Base Duplication Failed</div>
+            <div class="text-nc-content-gray-emphasis font-semibold">
+              {{ $t('labels.duplicateBaseFailed') }}
+            </div>
           </div>
         </template>
       </div>
@@ -299,7 +303,7 @@ onKeyStroke('Enter', () => {
                 >
                   <template #listHeader>
                     <div class="text-nc-content-gray-muted text-[13px] px-3 py-2.5 font-medium leading-5">
-                      You can only duplicate bases into workspaces where you have creator access or above.
+                      {{ $t('labels.duplicateBaseMessage') }}
                     </div>
 
                     <NcDivider />
@@ -335,7 +339,7 @@ onKeyStroke('Enter', () => {
       </template>
 
       <template v-else-if="status === 'error'">
-        <div class="text-nc-content-gray-emphasis my-5 font-medium">Error message: {{ errorMessage }}</div>
+        <div class="text-nc-content-gray-emphasis my-5 font-medium">{{ $t('labels.errorMessage') }} {{ errorMessage }}</div>
       </template>
     </div>
     <div class="flex flex-row gap-x-2 justify-end">
@@ -352,8 +356,8 @@ onKeyStroke('Enter', () => {
       >
         <template v-if="status === 'pending'"> {{ $t('general.duplicate') }} {{ $t('objects.project') }} </template>
         <template v-else-if="status === 'loading'"> Duplicating {{ $t('objects.project') }} </template>
-        <template v-else-if="status === 'success'"> Go to Base </template>
-        <template v-else-if="status === 'error'"> Try again </template>
+        <template v-else-if="status === 'success'"> {{ $t('labels.goToBase') }} </template>
+        <template v-else-if="status === 'error'"> {{ $t('labels.tryAgain') }} </template>
       </NcButton>
     </div>
   </GeneralModal>

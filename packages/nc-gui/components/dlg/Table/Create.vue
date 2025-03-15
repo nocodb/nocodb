@@ -781,8 +781,8 @@ const handleRefreshOnError = () => {
           <div v-else></div>
           <div class="flex gap-2 items-center">
             <NcButton type="secondary" size="small" :disabled="creating || isAiSaving" @click="dialogShow = false">{{
-              $t('general.cancel')
-            }}</NcButton>
+                $t('general.cancel')
+              }}</NcButton>
 
             <NcButton
               v-if="!aiMode"
@@ -810,11 +810,11 @@ const handleRefreshOnError = () => {
                   activeTabSelectedTables.length
                     ? activeTabSelectedTables.length > 1
                       ? $t('activity.createTables_plural', {
-                          count: activeTabSelectedTables.length,
-                        })
+                        count: activeTabSelectedTables.length,
+                      })
                       : $t('activity.createTables', {
-                          count: activeTabSelectedTables.length,
-                        })
+                        count: activeTabSelectedTables.length,
+                      })
                     : $t('activity.createTable')
                 }}
               </div>

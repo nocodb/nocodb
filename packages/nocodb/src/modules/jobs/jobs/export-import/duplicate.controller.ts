@@ -23,6 +23,7 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { DuplicateService } from '~/modules/jobs/jobs/export-import/duplicate.service';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -31,6 +32,7 @@ export class DuplicateController {
     @Inject('JobsService') protected readonly jobsService: IJobsService,
     protected readonly basesService: BasesService,
     protected readonly appHooksService: AppHooksService,
+    protected readonly duplicateService: DuplicateService,
   ) {}
 
   @Post([
@@ -135,71 +137,13 @@ export class DuplicateController {
       base?: any;
     },
   ) {
-    const base = await Base.get(context, baseId);
-
-    if (!base) {
-      throw new Error(`Base not found for id '${baseId}'`);
-    }
-
-    const source = sourceId
-      ? await Source.get(context, sourceId)
-      : (await base.getSources())[0];
-
-    if (!source) {
-      throw new Error(`Source not found!`);
-    }
-
-    const bases = await Base.list(context.workspace_id);
-
-    const uniqueTitle = generateUniqueName(
-      `${base.title} copy`,
-      bases.map((p) => p.title),
-    );
-
-    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
-
-    req.ncParentAuditId = parentAuditId;
-
-    const dupProject = await this.basesService.baseCreate({
-      base: {
-        title: uniqueTitle,
-        status: ProjectStatus.JOB,
-        ...(body.base || {}),
-      },
-      user: {
-        id: req.user.id,
-        email: req.user.email,
-        display_name: req.user.display_name,
-      },
-      req,
-    });
-
-    this.appHooksService.emit(AppEvents.BASE_DUPLICATE_START, {
-      sourceBase: base,
-      destBase: dupProject,
-      user: req.user,
-      req,
+    return await this.duplicateService.duplicateBase({
       context,
-      id: parentAuditId,
-      options: body?.options,
+      req,
+      baseId,
+      sourceId,
+      body,
     });
-
-    const job = await this.jobsService.add(JobTypes.DuplicateBase, {
-      context,
-      user: req.user,
-      baseId: base.id,
-      sourceId: source.id,
-      dupProjectId: dupProject.id,
-      options: body.options || {},
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
-        headers: req.headers,
-        ncParentAuditId: parentAuditId,
-      },
-    });
-
-    return { id: job.id, base_id: dupProject.id };
   }
 
   @Post([

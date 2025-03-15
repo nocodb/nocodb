@@ -428,8 +428,8 @@ onMounted(async () => {
           const relationColumn =
             metaId || meta.value?.id
               ? metas.value[metaId || meta.value?.id]?.columns?.find(
-                  (c: ColumnType) => c.id === (column?.colOptions as LookupType)?.fk_relation_column_id,
-                )
+                (c: ColumnType) => c.id === (column?.colOptions as LookupType)?.fk_relation_column_id,
+              )
               : undefined
 
           if (relationColumn?.colOptions?.fk_related_model_id) {
@@ -505,10 +505,10 @@ onMounted(async () => {
       if (props.type === ViewTypes.CALENDAR) {
         viewSelectFieldOptions.value = meta
           .value!.columns!.filter(
-            (el) =>
-              [UITypes.DateTime, UITypes.Date, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(el.uidt) ||
-              (el.uidt === UITypes.Formula && (el.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE),
-          )
+          (el) =>
+            [UITypes.DateTime, UITypes.Date, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(el.uidt) ||
+            (el.uidt === UITypes.Formula && (el.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE),
+        )
           .map((field) => {
             return {
               value: field.id,
@@ -1502,11 +1502,11 @@ const getPluralName = (name: string) => {
                 activeTabSelectedViews.length
                   ? activeTabSelectedViews.length > 1
                     ? $t('labels.createViews_plural', {
-                        count: activeTabSelectedViews.length,
-                      })
+                      count: activeTabSelectedViews.length,
+                    })
                     : $t('labels.createViews', {
-                        count: activeTabSelectedViews.length,
-                      })
+                      count: activeTabSelectedViews.length,
+                    })
                   : $t('labels.createView')
               }}
             </div>

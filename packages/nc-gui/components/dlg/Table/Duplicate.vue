@@ -133,35 +133,50 @@ const isEaster = ref(false)
     :keyboard="!isLoading"
     centered
     wrap-class-name="nc-modal-table-duplicate"
+    :mask-style="{
+      'background-color': 'rgba(0, 0, 0, 0.08)',
+    }"
     :footer="null"
     class="!w-[30rem]"
     @keydown.esc="dialogShow = false"
   >
     <div>
-      <div class="font-medium text-lg text-gray-800 self-center" @dblclick="isEaster = !isEaster">
-        {{ $t('general.duplicate') }} {{ $t('objects.table') }}
+      <div class="text-base text-nc-content-gray-emphasis leading-6 font-bold self-center" @dblclick="isEaster = !isEaster">
+        {{ $t('general.duplicate') }} {{ $t('objects.table') }} "{{ table.title }}"
       </div>
 
-      <div class="mt-5">{{ $t('msg.warning.duplicateTable') }}</div>
+      <div class="mt-5 flex gap-3 flex-col">
+        <div
+          class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
+          @click="options.includeData = !options.includeData"
+        >
+          <NcSwitch :checked="options.includeData" />
+          {{ $t('labels.includeRecords') }}
+        </div>
+        <div
+          class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
+          @click="options.includeViews = !options.includeViews"
+        >
+          <NcSwitch :checked="options.includeViews" />
+          {{ $t('labels.includeView') }}
+        </div>
 
-      <div class="prose-md self-center text-gray-500 mt-4">{{ $t('title.advancedSettings') }}</div>
-
-      <a-divider class="!m-0 !p-0 !my-2" />
-
-      <div class="text-xs p-2">
-        <a-checkbox v-model:checked="options.includeData" :disabled="isLoading">{{ $t('labels.includeData') }}</a-checkbox>
-        <a-checkbox v-model:checked="options.includeViews" :disabled="isLoading">{{ $t('labels.includeView') }}</a-checkbox>
-        <a-checkbox v-show="isEaster" v-model:checked="options.includeHooks" :disabled="isLoading">
+        <div
+          v-show="isEaster"
+          class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
+          @click="options.includeHooks = !options.includeHooks"
+        >
+          <NcSwitch :checked="options.includeHooks" />
           {{ $t('labels.includeWebhook') }}
-        </a-checkbox>
+        </div>
       </div>
     </div>
-    <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+    <div class="flex flex-row gap-x-2 mt-5 justify-end">
       <NcButton v-if="!isLoading" key="back" type="secondary" size="small" @click="dialogShow = false">{{
         $t('general.cancel')
       }}</NcButton>
-      <NcButton key="submit" v-e="['a:table:duplicate']" type="primary" size="small" :loading="isLoading" @click="_duplicate"
-        >{{ $t('general.confirm') }}
+      <NcButton key="submit" v-e="['a:table:duplicate']" type="primary" size="small" :loading="isLoading" @click="_duplicate">
+        Duplicate Table
       </NcButton>
     </div>
   </GeneralModal>

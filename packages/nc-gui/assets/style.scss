@@ -985,7 +985,12 @@ svg.nc-virtual-cell-icon {
   }
 }
 
+.ant-switch {
+  background: #E7E7E9 !important;
+}
+
 .ant-switch-checked {
+  @apply !bg-nc-fill-primary;
   &.nc-ai-input {
     @apply !bg-nc-fill-purple-medium;
   }

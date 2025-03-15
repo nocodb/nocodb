@@ -1,6 +1,6 @@
 import { parse } from 'papaparse'
 import type { UploadFile } from 'ant-design-vue'
-import { UITypes, getDateFormat, validateDateWithUnknownFormat } from 'nocodb-sdk'
+import { UITypes, getDateFormat, validateDateWithUnknownFormat, type ColumnType } from 'nocodb-sdk'
 import {
   extractMultiOrSingleSelectProps,
   getCheckboxValue,
@@ -9,6 +9,8 @@ import {
   isEmailType,
   isMultiLineTextType,
   isUrlType,
+  isAttachmentType,
+  getAttachmentValue,
 } from './parserHelpers'
 
 export default class CSVTemplateAdapter {
@@ -27,7 +29,9 @@ export default class CSVTemplateAdapter {
 
   private progressCallback?: (msg: string) => void
 
-  constructor(source: UploadFile[] | string, parserConfig = {}, progressCallback?: (msg: string) => void) {
+  existingColumnMap: Record<string, ColumnType> = {}
+
+  constructor(source: UploadFile[] | string, parserConfig = {}, progressCallback?: (msg: string) => void, existingColumns?: ColumnType[],) {
     this.config = parserConfig
     this.source = source
     this.base = {
@@ -39,6 +43,13 @@ export default class CSVTemplateAdapter {
     this.columnValues = {}
     this.tables = {}
     this.progressCallback = progressCallback
+
+    if (existingColumns && existingColumns.length) {
+      for (const col of existingColumns) {
+        this.existingColumnMap[col.title as string] = col
+        this.existingColumnMap[col.column_name as string] = col
+      }
+    }
   }
 
   async init() {}
@@ -108,7 +119,9 @@ export default class CSVTemplateAdapter {
       if (isMultiLineTextType(colData)) {
         colProps.uidt = UITypes.LongText
       } else if (colProps.uidt === UITypes.SingleLineText) {
-        if (isEmailType(colData)) {
+        if (isAttachmentType(colData)) {
+          colProps.uidt = UITypes.Attachment
+        } else if (isEmailType(colData)) {
           colProps.uidt = UITypes.Email
         } else if (isUrlType(colData)) {
           colProps.uidt = UITypes.URL
@@ -150,6 +163,12 @@ export default class CSVTemplateAdapter {
     if (len === 0) {
       return UITypes.SingleLineText
     }
+
+    // Handle attachment case
+    if (UITypes.Attachment in detectedColTypes) {
+      return UITypes.Attachment
+    }
+
     // handle numeric case
     if (len === 2 && UITypes.Number in detectedColTypes && UITypes.Decimal in detectedColTypes) {
       return UITypes.Decimal
@@ -229,6 +248,8 @@ export default class CSVTemplateAdapter {
                 const data = (row.data as [])[columnIdx] === '' ? null : (row.data as [])[columnIdx]
                 if (column.uidt === UITypes.Checkbox) {
                   rowData[column.column_name] = getCheckboxValue(data)
+                } else if (column.uidt === UITypes.Attachment || that.existingColumnMap[column.column_name]?.uidt === UITypes.Attachment) {
+                  rowData[column.column_name] = getAttachmentValue(data);
                 } else if (column.uidt === UITypes.SingleSelect || column.uidt === UITypes.MultiSelect) {
                   rowData[column.column_name] = (data || '').toString().trim() || null
                 } else {

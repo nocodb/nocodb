@@ -230,6 +230,9 @@ reloadViewDataTrigger.on(async (params) => {
   // If same nested record udpated then udpate whole row
   if (isSameRecordUpdated) {
     await _loadRow(rowId.value)
+  } else if (params?.relatedTableMetaId && params?.rowId) {
+    // If it is not same record updated but it has relatedTableMetaId & rowId then update only virtual columns
+    await _loadRow(rowId.value, true)
   } else {
     // Else update only new/duplicated/renamed columns
     await _loadRow(rowId.value, false, true)

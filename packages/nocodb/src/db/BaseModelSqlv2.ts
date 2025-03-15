@@ -5366,6 +5366,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           : response?.[ai.id];
       }
       rowId = this.extractCompositePK({ ai, ag, rowId, insertObj });
+      // when auto generated (with default) pk columns
+      if (!rowId && response.length === 1) {
+        if (this.model.primaryKeys.length === 1) {
+          rowId = response[0][this.model.primaryKeys[0].id];
+        } else {
+          const responseWithColumnTitle = Object.keys(response[0]).reduce(
+            (res, colId) => {
+              const col = this.model.columns.find((c) => c.id === colId);
+              res[col.title] = response[0][colId];
+              return res;
+            },
+            {},
+          );
+          rowId = this.extractPksValues(responseWithColumnTitle, true);
+        }
+      }
 
       await this.runOps(postInsertOps.map((f) => f(rowId)));
 

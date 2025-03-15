@@ -54,7 +54,7 @@ function openExpandedForm() {
       maintainDefaultViewOrder: true,
       loadRow: !isPublic.value,
       skipReload: true,
-      ceratedRecord: onCreatedRecord,
+      createdRecord: onCreatedRecord,
     })
 
     function onCreatedRecord() {
@@ -65,6 +65,8 @@ function openExpandedForm() {
       reloadViewDataTrigger?.trigger({
         shouldShowLoading: false,
         isFromLinkRecord: true,
+        relatedTableMetaId: relatedTableMeta.value.id,
+        rowId: rowId!,
       })
     }
   }

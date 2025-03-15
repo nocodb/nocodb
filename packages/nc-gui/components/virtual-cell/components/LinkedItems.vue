@@ -65,6 +65,7 @@ const {
   attachmentCol,
   fields,
   refreshCurrentRow,
+  rowId,
 } = useLTARStoreOrThrow()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
@@ -169,6 +170,8 @@ const onCreatedRecord = async (record: any) => {
   reloadViewDataTrigger?.trigger({
     shouldShowLoading: false,
     isFromLinkRecord: true,
+    relatedTableMetaId: relatedTableMeta.value.id,
+    rowId: rowId.value!,
   })
 
   if (!isNewRecord.value) return
@@ -518,7 +521,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         :state="newRowState"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         use-meta-fields
-        :skip-reload="true"
+        skip-reload
         maintain-default-view-order
         :new-record-submit-btn-text="!isNewRecord ? undefined : 'Create & Link'"
         @created-record="onCreatedRecord"

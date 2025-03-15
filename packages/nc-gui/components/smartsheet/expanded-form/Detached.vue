@@ -21,7 +21,7 @@ const shouldClose = (isVisible: boolean, i: number) => {
       :skip-reload="state.skipReload"
       @update:model-value="shouldClose($event, i)"
       @cancel="close(i)"
-      @created-record="state?.ceratedRecord?.($event)"
+      @created-record="state?.createdRecord?.($event)"
     />
   </template>
 </template>

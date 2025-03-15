@@ -48,6 +48,7 @@ const {
   attachmentCol,
   fields,
   refreshCurrentRow,
+  rowId,
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
@@ -230,6 +231,8 @@ const onCreatedRecord = (record: any) => {
   reloadViewDataTrigger?.trigger({
     shouldShowLoading: false,
     isFromLinkRecord: true,
+    relatedTableMetaId: relatedTableMeta.value.id,
+    rowId: rowId.value!,
   })
 
   if (!isNewRecord.value) {
@@ -500,7 +503,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         :state="newRowState"
         use-meta-fields
         maintain-default-view-order
-        :skip-reload="true"
+        skip-reload
         :new-record-submit-btn-text="!isNewRecord ? undefined : 'Create & Link'"
         @created-record="onCreatedRecord"
       />

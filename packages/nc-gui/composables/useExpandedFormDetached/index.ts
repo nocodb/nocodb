@@ -13,7 +13,7 @@ export interface UseExpandedFormDetachedProps {
   'onUpdate:modelValue'?: Function
   'maintainDefaultViewOrder'?: boolean
   'skipReload'?: boolean
-  'ceratedRecord'?: (row: Row['row']) => void
+  'createdRecord'?: (row: Row['row']) => void
 }
 
 const [setup, use] = useInjectionState(() => {

@@ -2406,15 +2406,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             i === updateDatas.length - 1
           ) {
             const tempToRead = pkAndData.splice(0, pkAndData.length);
-            const oldRecords = await this.list(
-              {
-                pks: tempToRead.map((v) => v.pk).join(','),
-              },
-              {
-                limitOverride: tempToRead.length,
-                ignoreViewFilterAndSort: true,
-              },
-            );
+            const oldRecords = await this.chunkList({
+              chunkSize: 100,
+              pks: tempToRead.map((v) => v.pk),
+            });
 
             for (const record of tempToRead) {
               const oldRecord = oldRecords.find((r) =>
@@ -2527,16 +2522,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if (!raw) {
-        const pks = updatePkValues.splice(0, readChunkSize);
-
-        const updatedRecords = await this.list(
-          {
-            pks: pks.join(','),
-          },
-          {
-            limitOverride: readChunkSize,
-          },
-        );
+        const pks = updatePkValues;
+        const updatedRecords = await this.chunkList({
+          pks: updatePkValues,
+          chunkSize: 100,
+        });
 
         const pkMap = new Map(
           updatedRecords.map((record) => [

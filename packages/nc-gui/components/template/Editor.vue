@@ -809,22 +809,22 @@ const currentColumnToEdit = ref('')
               </template>
 
               <template #bodyCell="{ column, record }">
-                <template v-if="column.key === 'source_column'">
-                  <label class="flex items-center gap-3 w-70 h-full">
+                <div v-if="column.key === 'source_column'" class="w-full">
+                  <label class="w-full flex items-center gap-3 h-full">
                     <a-checkbox v-model:checked="record.enabled" />
-                    <div class="flex items-center flex-grow truncate">
-                      <NcTooltip class="inline-block max-w-full truncate">
-                        <template #title>{{ record.srcTitle }}</template>
-                        {{ record.srcTitle }}
-                      </NcTooltip>
-                    </div>
-                    <GeneralIcon icon="ncArrowRight" class="w-4 h-4 flex-shrink-0 mr-1" />
+
+                    <NcTooltip class="inline-block flex-1 max-w-[calc(100%_-_50px)] truncate" show-on-truncate-only>
+                      <template #title>{{ record.srcTitle }}</template>
+                      {{ record.srcTitle }}
+                    </NcTooltip>
+
+                    <GeneralIcon icon="ncArrowRight" class="w-4 h-4 flex-shrink-0 mr-2" />
                   </label>
                   <div class="absolute h-1 border-t top-0 left-3 right-3 cursor-default" />
-                </template>
+                </div>
 
                 <template v-else-if="column.key === 'destination_column'">
-                  <a-select
+                  <NcSelect
                     v-model:value="record.destCn"
                     class="w-full nc-upload-filter-field"
                     show-search
@@ -852,7 +852,7 @@ const currentColumnToEdit = ref('')
                         />
                       </div>
                     </a-select-option>
-                  </a-select>
+                  </NcSelect>
                 </template>
               </template>
             </NcTable>
@@ -1055,6 +1055,6 @@ const currentColumnToEdit = ref('')
   }
 }
 :deep(.ant-select.nc-upload-filter-field) .ant-select-selector {
-  @apply !border-gray-200 shadow-sm shadow-gray-200;
+  @apply !border-gray-200 shadow-sm shadow-gray-200 rounded-lg;
 }
 </style>

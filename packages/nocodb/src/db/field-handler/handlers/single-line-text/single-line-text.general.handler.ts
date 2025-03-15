@@ -20,6 +20,10 @@ export class SingleLineTextGeneralHandler extends GenericFieldHandler {
       'in',
       'like',
       'nlike',
+      'empty',
+      'notempty',
+      'null',
+      'notnull',
     ];
     if (!supportedOperations.includes(filter.comparison_op)) {
       return {

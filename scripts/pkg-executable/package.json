@@ -27,8 +27,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@nestjs/common": "^10.3.8",
-    "@nestjs/core": "^10.3.8",
+    "@nestjs/common": "^11.0.11",
+    "@nestjs/core": "^11.0.11",
     "express": "^4.18.3",
     "nocodb": "0.204.9"
   },
@@ -36,6 +36,6 @@
     "sqlite3": "5.1.6"
   },
   "devDependencies": {
-    "@mapbox/node-pre-gyp": "^1.0.11"
+    "@mapbox/node-pre-gyp": "^2.0.0"
   }
 }

@@ -221,8 +221,8 @@ const hiddenFields = computed(() => {
   }
 })
 
-reloadViewDataTrigger.on(async () => {
-  await _loadRow(rowId.value, false, true)
+reloadViewDataTrigger.on(async (params) => {
+  await _loadRow(rowId.value, false, !params?.isFromLinkRecord)
 })
 
 const duplicatingRowInProgress = ref(false)

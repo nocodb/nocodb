@@ -33,6 +33,10 @@ const injectedColumn = inject(ColumnInj, ref())
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
+const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
+
+const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
+
 const filterQueryRef = ref<HTMLInputElement>()
 
 const { isDataReadOnly } = useRoles()
@@ -150,7 +154,23 @@ const addNewRecord = () => {
   isNewRecord.value = true
 }
 
+reloadViewDataTrigger.on((params) => {
+  if (params?.isFromLinkRecord) {
+    refreshCurrentRow()
+    loadChildrenList()
+  }
+})
+
 const onCreatedRecord = async (record: any) => {
+  reloadTrigger?.trigger({
+    shouldShowLoading: false,
+  })
+
+  reloadViewDataTrigger?.trigger({
+    shouldShowLoading: false,
+    isFromLinkRecord: true,
+  })
+
   if (!isNewRecord.value) return
 
   if (!isNew.value) {
@@ -498,6 +518,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         :state="newRowState"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         use-meta-fields
+        :skip-reload="true"
         maintain-default-view-order
         :new-record-submit-btn-text="!isNewRecord ? undefined : 'Create & Link'"
         @created-record="onCreatedRecord"

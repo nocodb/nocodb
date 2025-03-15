@@ -231,7 +231,7 @@ reloadViewDataTrigger.on(async (params) => {
   if (isSameRecordUpdated) {
     await _loadRow(rowId.value)
   } else if (params?.relatedTableMetaId && params?.rowId) {
-    // If it is not same record updated but it has relatedTableMetaId & rowId then update only vertial columns
+    // If it is not same record updated but it has relatedTableMetaId & rowId then update only virtual columns
     await _loadRow(rowId.value, true)
   } else {
     // Else update only new/duplicated/renamed columns

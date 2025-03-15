@@ -9,6 +9,8 @@ export class CheckboxGeneralHandler extends GenericFieldHandler {
       'neq',
       'blank',
       'notblank',
+      'checked',
+      'notchecked',
       'is',
       'isnot',
     ];

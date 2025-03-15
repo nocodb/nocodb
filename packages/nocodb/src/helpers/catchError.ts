@@ -709,6 +709,10 @@ const errorHelpers: {
     },
     code: 400,
   },
+  [NcErrorType.FORMULA_CIRCULAR_REF_ERROR]: {
+    message: 'Circular reference detected in formula',
+    code: 400,
+  },
   [NcErrorType.PERMISSION_DENIED]: {
     message: 'Permission denied',
     code: 403,
@@ -1002,6 +1006,13 @@ export class NcError {
 
   static formulaError(message: string, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.FORMULA_ERROR, {
+      params: message,
+      ...args,
+    });
+  }
+
+  static formulaCircularRefError(message: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.FORMULA_CIRCULAR_REF_ERROR, {
       params: message,
       ...args,
     });

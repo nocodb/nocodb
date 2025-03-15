@@ -225,14 +225,24 @@ const customRow = (hook: HookType) => {
 
 const getHookTypeText = (hook: HookType) => {
   if (hook.version === 'v3') {
-    const text = hook.event === 'after' ? `${t('general.after')} ` : ''
-    return (
-      text +
-      eventList.value
-        .filter((e) => e.value[0] === hook.event && hook.operation.includes(e.value[1]))
-        .map((event) => event.text[1])
-        .join(` ${t('general.or').toLowerCase()} `)
-    )
+    const operationsArray = Array.isArray(hook.operation) ? hook.operation : []
+
+    const operations = operationsArray
+      .map((op) => {
+        const eventData = eventList.value.find((e) => e.value[0] === hook.event)
+        const operationData = eventData?.operations?.[op] || eventData?.[op]
+        return operationData?.text?.[1] || op
+      })
+      .filter(Boolean)
+
+    const prefix = hook.event === 'after' ? `${t('general.after')} ` : ''
+
+    if (operations.length === 1) {
+      return `${prefix}${operations[0]}`
+    }
+
+    const lastOperation = operations.pop()
+    return `${prefix}${operations.join(', ')} ${t('general.or').toLowerCase()} ${lastOperation}`
   }
   return (
     v2EventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text?.join(' ') ||

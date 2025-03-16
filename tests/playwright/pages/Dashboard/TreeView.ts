@@ -370,9 +370,11 @@ export class TreeViewPage extends BasePage {
     await contextMenu.waitFor();
     await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Duplicate")`).click();
 
-    await this.rootPage.locator('div.ant-modal-content').locator(`button.ant-btn:has-text("Confirm")`).click();
+    await this.rootPage.locator('div.ant-modal-content').locator(`button.ant-btn:has-text("Duplicate Base")`).click();
 
     await this.rootPage.waitForTimeout(10000);
+
+    await this.rootPage.locator('div.ant-modal-content').locator(`button.ant-btn:has-text("Go to Base")`).click();
   }
 
   async openProjectSourceSettings(param: { title: string; context: NcContext }) {

@@ -685,6 +685,7 @@
     "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
+    "currentWorkspace": "Current workspace",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "Failed",
@@ -1079,9 +1080,12 @@
     "restApis": "Rest APIs",
     "apis": "APIs",
     "apiSnippet": "API Snippets",
-    "includeData": "Include Data",
-    "includeView": "Include View",
-    "includeWebhook": "Include Webhook",
+    "includeData": "Include Date",
+    "includeRecords": "Include records",
+    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "includeView": "Include views",
+    "includeWebhook": "Include webhook",
+    "includeComments": "Include comments",
     "zoomInToViewColumns": "Zoom in to view columns",
     "embedInSite": "Embed this view in your site",
     "titleRequired": "title is required.",

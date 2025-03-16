@@ -75,12 +75,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     return price.unit_amount / 100 / (mode === 'year' ? 12 : 1)
   }
 
-  const createSubscription = async (): Promise<{
-    type?: 'setup' | 'payment'
-    id?: string
-    clientSecret?: string
-    error?: any
-  }> => {
+  const createPaymentForm = async () => {
     if (!activeWorkspaceId.value) throw new Error('No active workspace')
     if (!stripe.value) throw new Error('Stripe not loaded')
     if (!selectedPlan.value) throw new Error('No plan selected')
@@ -89,22 +84,14 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
     if (!price) throw new Error('No price found')
 
-    try {
-      const res = (await $fetch(`/api/payment/${activeWorkspaceId.value}/create-subscription`, {
-        baseURL,
-        method: 'POST',
-        headers: { 'xc-auth': $state.token.value as string },
-        body: { seat: workspaceSeatCount.value, plan_id: selectedPlan.value.id, price_id: price.id },
-      })) as {
-        type: 'setup' | 'payment'
-        id: string
-        clientSecret: string
-      }
+    const res = await $fetch(`/api/payment/${activeWorkspaceId.value}/create-subscription`, {
+      baseURL,
+      method: 'POST',
+      headers: { 'xc-auth': $state.token.value as string },
+      body: { seat: workspaceSeatCount.value, plan_id: selectedPlan.value.id, price_id: price.id },
+    })
 
-      return res
-    } catch (e) {
-      return { error: e }
-    }
+    return res
   }
 
   const cancelSubscription = async () => {
@@ -168,7 +155,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     paymentState,
     subscriptionId,
     reset,
-    createSubscription,
+    createPaymentForm,
     cancelSubscription,
     isPaidPlan,
     activeWorkspaceId,

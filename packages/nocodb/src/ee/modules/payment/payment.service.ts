@@ -140,6 +140,7 @@ export class PaymentService {
     ncMeta = Noco.ncMeta,
   ) {
     const { seat, plan_id, price_id } = payload;
+
     const { user } = req;
 
     if (!seat || !plan_id || !price_id) {
@@ -172,15 +173,42 @@ export class PaymentService {
       );
     }
 
+    const plan = await Plan.get(plan_id, ncMeta);
+
+    if (!plan) {
+      throw new Error('Plan not found');
+    }
+
+    const price = plan.prices.find((p) => p.id === price_id);
+
+    if (!price) {
+      throw new Error('Price not found');
+    }
+
+    if (workspaceOrOrg.stripe_customer_id) {
+      const stripe_customer = await stripe.customers.retrieve(
+        workspaceOrOrg.stripe_customer_id,
+      );
+
+      if (!stripe_customer || stripe_customer.deleted) {
+        this.logger.error(
+          `Stripe customer not found for ${workspaceOrOrg.entity} ${workspaceOrOrg.id} with id ${workspaceOrOrg.stripe_customer_id}`,
+        );
+
+        // Clear the customer id & recreate
+        workspaceOrOrg.stripe_customer_id = null;
+      }
+    }
+
     if (!workspaceOrOrg.stripe_customer_id) {
       const customer = await stripe.customers.create({
-        name: `${workspaceOrOrg.entity}_${workspaceOrOrg.id}`,
         email: user.email,
         metadata: {
           ...(workspaceOrOrg.entity === 'workspace'
             ? { fk_workspace_id: workspaceOrOrg.id }
             : { fk_org_id: workspaceOrOrg.id }),
           fk_user_id: user.id,
+          entity: `${workspaceOrOrg.entity}_${workspaceOrOrg.id}`,
         },
       });
 
@@ -207,77 +235,42 @@ export class PaymentService {
       }
     }
 
-    const plan = await Plan.get(plan_id, ncMeta);
-
-    if (!plan) {
-      throw new Error('Plan not found');
-    }
-
-    const price = plan.prices.find((p) => p.id === price_id);
-
-    if (!price) {
-      throw new Error('Price not found');
-    }
-
-    const subscription = await stripe.subscriptions.create({
-      customer: workspaceOrOrg.stripe_customer_id,
-      items: [
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      line_items: [
         {
-          price: price_id,
+          price: price.id,
           quantity: seat,
         },
       ],
-      payment_behavior: 'default_incomplete',
-      payment_settings: { save_default_payment_method: 'on_subscription' },
-      expand: ['latest_invoice.payment_intent', 'pending_setup_intent'],
-      metadata: {
-        ...(workspaceOrOrg.entity === 'workspace'
-          ? { fk_workspace_id: workspaceOrOrg.id }
-          : { fk_org_id: workspaceOrOrg.id }),
-        fk_plan_id: plan_id,
+      ui_mode: 'embedded',
+      return_url: `${req.ncSiteUrl}?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}`,
+      automatic_tax: {
+        enabled: true,
+      },
+      billing_address_collection: 'required',
+      customer: workspaceOrOrg.stripe_customer_id,
+      customer_update: {
+        address: 'auto',
+        name: 'auto',
+      },
+      tax_id_collection: {
+        enabled: true,
+      },
+      subscription_data: {
+        metadata: {
+          ...(workspaceOrOrg.entity === 'workspace'
+            ? { fk_workspace_id: workspaceOrOrg.id }
+            : {
+                fk_org_id: workspaceOrOrg.id,
+              }),
+          fk_user_id: user.id,
+          fk_plan_id: plan_id,
+        },
       },
     });
 
-    if (!existingSubscription) {
-      let period = 'month';
-
-      const price = plan.prices.find((p) => p.id === price_id);
-
-      if (price.recurring.interval) period = price.recurring.interval;
-
-      await Subscription.insert({
-        fk_workspace_id:
-          workspaceOrOrg.entity === 'workspace' ? workspaceOrOrg.id : null,
-        fk_org_id: workspaceOrOrg.entity === 'org' ? workspaceOrOrg.id : null,
-        fk_plan_id: plan_id,
-        stripe_subscription_id: subscription.id,
-        stripe_price_id: price_id,
-        seat_count: seat,
-        status: 'incomplete',
-        start_at: dayjs.unix(subscription.start_date).utc().toISOString(),
-        period,
-      });
-    }
-
-    if (subscription.pending_setup_intent !== null) {
-      return {
-        type: 'setup',
-        id: subscription.id,
-        clientSecret: (
-          (subscription.latest_invoice as Stripe.Invoice)
-            ?.payment_intent as Stripe.PaymentIntent
-        )?.client_secret,
-      };
-    } else {
-      return {
-        type: 'payment',
-        id: subscription.id,
-        clientSecret: (
-          (subscription.latest_invoice as Stripe.Invoice)
-            ?.payment_intent as Stripe.PaymentIntent
-        )?.client_secret,
-      };
-    }
+    return session;
   }
 
   async updateSubscription(
@@ -570,6 +563,37 @@ export class PaymentService {
           );
 
           // Optionally notify the user or flag the workspace for limited access
+          break;
+        }
+
+        case 'customer.subscription.created': {
+          const subscription = dataObject as Stripe.Subscription;
+          const plan_id = subscription.metadata.fk_plan_id;
+
+          const workspaceOrOrgId =
+            subscription.metadata.fk_workspace_id ||
+            subscription.metadata.fk_org_id;
+
+          const workspaceOrOrg = await this.getWorkspaceOrOrg(workspaceOrOrgId);
+
+          const price = subscription.items.data[0].price;
+
+          const period = price.recurring.interval;
+
+          await Subscription.insert({
+            fk_workspace_id:
+              workspaceOrOrg.entity === 'workspace' ? workspaceOrOrg.id : null,
+            fk_org_id:
+              workspaceOrOrg.entity === 'org' ? workspaceOrOrg.id : null,
+            fk_plan_id: plan_id,
+            stripe_subscription_id: subscription.id,
+            stripe_price_id: price.id,
+            seat_count: subscription.items.data[0].quantity,
+            status: subscription.status,
+            start_at: dayjs.unix(subscription.start_date).utc().toISOString(),
+            period,
+          });
+
           break;
         }
 

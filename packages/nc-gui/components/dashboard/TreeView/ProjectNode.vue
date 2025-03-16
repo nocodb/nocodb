@@ -453,7 +453,7 @@ const tableDelete = () => {
 }
 
 const projectDelete = () => {
-  isProjectDeleteDialogVisible.value = true
+  isBaseDeleteDialogVisible.value = true
   $e('c:project:delete')
 }
 

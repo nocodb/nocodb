@@ -215,7 +215,7 @@ export const renderCheckbox = (
     ctx.lineWidth = 1
     ctx.stroke()
   } else if (isChecked) {
-    ctx.fillStyle = '#4351e7'
+    ctx.fillStyle = '#3366FF'
     ctx.fill()
 
     const checkX = x + 3.5
@@ -573,7 +573,7 @@ export const renderMarkdownBlocks = (
         text: tokenText,
         maxWidth,
         height,
-        fillStyle: isUrl ? '#4351e7' : (defaultFillStyle as string),
+        fillStyle: isUrl ? '#3366FF' : (defaultFillStyle as string),
         fontFamily: ctx.font,
         maxLines: maxLinesToRender,
         underline: token.styles.includes('underline') || isUrl,
@@ -1273,62 +1273,214 @@ export function renderFormulaURL(
     height: number
     lineHeight: number
     underlineOffset: number
+    fillStyle?: string
+    fontFamily?: string
+    fontSize?: number
+    textAlign?: CanvasTextAlign
+    verticalAlign?: CanvasTextBaseline
   },
 ): { x: number; y: number; width: number; height: number; url?: string }[] {
-  const { texts, x, y, maxWidth, height, lineHeight, underlineOffset } = params
+  const {
+    texts,
+    x,
+    y,
+    maxWidth,
+    height,
+    lineHeight,
+    underlineOffset,
+    fillStyle = '#4a5268',
+    fontFamily = '500 13px Manrope',
+    fontSize = 13,
+    textAlign = 'left',
+    verticalAlign = 'middle',
+  } = params
 
+  let maxLines
+
+  if (ncIsUndefined(maxLines)) {
+    if (rowHeightInPx['1'] === height) {
+      maxLines = 1 // Only one line if rowHeightInPx['1'] matches height
+    } else if (height) {
+      maxLines = Math.min(Math.floor(height / lineHeight), rowHeightTruncateLines(height)) // Calculate max lines based on height and lineHeight
+    } else {
+      maxLines = 1
+    }
+  }
+  let currentLine = 0
   let currentX = x
   let currentY = y
-  let remainingHeight = height
+  const urlRects: { x: number; y: number; width: number; height: number; url?: string }[] = []
 
-  const urlRects: { x: number; y: number; width: number; height: number; url: string }[] = []
+  ctx.save()
+  ctx.font = fontFamily
+  ctx.textAlign = textAlign
+  ctx.textBaseline = verticalAlign
+  ctx.fillStyle = fillStyle
 
-  const renderText = (text: string, url?: string): void => {
+  // Helper function to split a long word into chunks
+  const splitLongWord = (word: string, availableWidth: number): string[] => {
+    const chunks: string[] = []
+    let currentChunk = ''
+    for (let i = 0; i < word.length; i++) {
+      const testChunk = currentChunk + word[i]
+      if (ctx.measureText(testChunk).width > availableWidth) {
+        if (currentChunk) chunks.push(currentChunk)
+        currentChunk = word[i]
+      } else {
+        currentChunk += word[i]
+      }
+    }
+    if (currentChunk) chunks.push(currentChunk)
+    return chunks
+  }
+
+  // Process each text segment
+  for (const { text, url } of texts) {
+    if (currentLine >= maxLines) break
+
+    // Split text into words
     const words = text.split(' ')
+    let lineText = ''
+    let lineWidth = 0
 
-    let wordCount = 0
-    for (const word of words) {
-      wordCount++
-      const separator = wordCount === words.length ? '' : ' '
-      const wordWidth = ctx.measureText(word + separator).width
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i]
+      const isLastWord = i === words.length - 1
+      const separator = isLastWord ? '' : ' '
+      const availableWidth = maxWidth - (currentX - x)
 
-      if (currentX + wordWidth > x + maxWidth) {
-        currentX = x
-        currentY += lineHeight
-        remainingHeight -= lineHeight
-
-        if (remainingHeight < lineHeight) {
-          return // Stop rendering if out of height
+      // Handle word splitting or truncation based on URL
+      let processedWord = word
+      if (ctx.measureText(word).width > availableWidth) {
+        if (url) {
+          processedWord = truncateText(ctx, word, availableWidth - ctx.measureText('...').width, false, true)
+        } else {
+          const chunks = splitLongWord(word, availableWidth)
+          processedWord = chunks[0] // Use the first chunk, rest will be processed in next iteration
         }
       }
 
-      ctx.fillText(word + separator, currentX, currentY + lineHeight * 0.8) // Adjust vertical position
+      const wordWidth = ctx.measureText(processedWord + separator).width
+      const newLineWidth = lineWidth + wordWidth
 
-      if (url) {
-        urlRects.push({
-          x: currentX,
-          y: currentY,
-          width: wordWidth,
-          height: lineHeight,
-          url,
-        })
+      // Check if the new line exceeds maxWidth
+      if (currentX + newLineWidth > x + maxWidth && lineText.length > 0) {
+        const lineY = currentY + currentLine * lineHeight + lineHeight * 0.8
+        if (lineY + lineHeight > y + height && currentLine === maxLines - 1) {
+          const ellipsisWidth = ctx.measureText('...').width
+          const truncatedLine = truncateText(ctx, lineText, maxWidth - ellipsisWidth, false, true)
+          ctx.fillText(truncatedLine, currentX, lineY)
+          if (url) {
+            ctx.fillStyle = '#3366FF'
+            ctx.fillText(truncatedLine, currentX, lineY)
+            ctx.fillStyle = fillStyle
+            const underlineY = lineY
+            ctx.strokeStyle = '#3366FF'
+            ctx.beginPath()
+            ctx.moveTo(currentX, underlineY)
+            ctx.lineTo(currentX + ctx.measureText(truncatedLine).width, underlineY)
+            ctx.stroke()
+            urlRects.push({
+              x: currentX,
+              y: currentY + currentLine * lineHeight,
+              width: ctx.measureText(truncatedLine).width,
+              height: lineHeight,
+              url,
+            })
+          }
+          break
+        }
 
-        const underlineY = currentY + lineHeight + underlineOffset
-        ctx.strokeStyle = 'black'
-        ctx.beginPath()
-        ctx.moveTo(currentX, underlineY)
-        ctx.lineTo(currentX + wordWidth, underlineY)
-        ctx.stroke()
+        // Render the current line
+        ctx.fillText(lineText, currentX, currentY + currentLine * lineHeight + lineHeight * 0.8)
+        if (url) {
+          ctx.fillStyle = '#3366FF'
+          ctx.fillText(lineText, currentX, currentY + currentLine * lineHeight + lineHeight * 0.8)
+          ctx.fillStyle = fillStyle
+          const underlineY = currentY + currentLine * lineHeight + lineHeight * 0.8 + underlineOffset
+          ctx.strokeStyle = '#3366FF'
+          ctx.beginPath()
+          ctx.moveTo(currentX, underlineY)
+          ctx.lineTo(currentX + ctx.measureText(lineText).width, underlineY)
+          ctx.stroke()
+          urlRects.push({
+            x: currentX,
+            y: currentY + currentLine * lineHeight,
+            width: ctx.measureText(lineText).width,
+            height: lineHeight,
+            url,
+          })
+        }
+
+        currentLine++
+        if (currentLine >= maxLines) break
+        lineText = processedWord
+        lineWidth = wordWidth
+        currentX = x
+      } else {
+        lineText += (lineText.length > 0 ? ' ' : '') + processedWord
+        lineWidth = ctx.measureText(lineText).width
       }
 
-      currentX += wordWidth
+      // Handle the last word
+      if (isLastWord) {
+        const lineY = currentY + currentLine * lineHeight + lineHeight * 0.8
+        if (lineY + lineHeight > y + height && currentLine === maxLines - 1) {
+          const ellipsisWidth = ctx.measureText('...').width
+          const truncatedLine = truncateText(ctx, lineText, maxWidth - ellipsisWidth, false, true)
+          ctx.fillText(truncatedLine, currentX, lineY)
+          if (url) {
+            ctx.fillStyle = '#3366FF'
+            ctx.fillText(truncatedLine, currentX, lineY)
+            ctx.fillStyle = fillStyle
+            const underlineY = lineY + underlineOffset
+            ctx.strokeStyle = '#3366FF'
+            ctx.beginPath()
+            ctx.moveTo(currentX, underlineY)
+            ctx.lineTo(currentX + ctx.measureText(truncatedLine).width, underlineY)
+            ctx.stroke()
+            urlRects.push({
+              x: currentX,
+              y: currentY + currentLine * lineHeight,
+              width: ctx.measureText(truncatedLine).width,
+              height: lineHeight,
+              url,
+            })
+          }
+        } else {
+          ctx.fillText(lineText, currentX, lineY)
+          if (url) {
+            ctx.fillStyle = '#3366FF'
+            ctx.fillText(lineText, currentX, lineY)
+            ctx.fillStyle = fillStyle
+            const underlineY = lineY + 8
+            ctx.strokeStyle = '#3366FF'
+            ctx.beginPath()
+            ctx.moveTo(currentX, underlineY)
+            ctx.lineTo(currentX + ctx.measureText(lineText).width, underlineY)
+            ctx.stroke()
+
+            urlRects.push({
+              x: currentX,
+              y: currentY + currentLine * lineHeight,
+              width: ctx.measureText(lineText).width,
+              height: lineHeight,
+              url,
+            })
+          }
+        }
+        currentX += lineWidth
+        if (currentX >= x + maxWidth) {
+          currentX = x
+          currentLine++
+        }
+      }
     }
+
+    if (currentLine >= maxLines) break
   }
 
-  for (const item of texts) {
-    renderText(item.text, item.url)
-  }
-
+  ctx.restore()
   return urlRects
 }
 const offscreenCanvas = new OffscreenCanvas(0, 0)

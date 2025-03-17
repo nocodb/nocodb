@@ -12,9 +12,10 @@ interface Props {
   sourceId: string
   importDataOnly?: boolean
   transition?: string
+  showBackBtn?: boolean
 }
 
-const { importType, importDataOnly = false, baseId, sourceId, transition, ...rest } = defineProps<Props>()
+const { importType, importDataOnly = false, baseId, sourceId, transition, showBackBtn, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'back'])
 
@@ -811,9 +812,10 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
     </a-spin>
     <template #footer>
       <div class="flex items-center gap-2 pt-3">
-        <nc-button v-if="templateEditorModal" key="back" type="text" size="small" @click="templateEditorModal = false">
+        <NcButton v-if="templateEditorModal" key="back" type="text" size="small" @click="templateEditorModal = false">
+          <GeneralIcon icon="chevronLeft" class="mr-1" />
           {{ $t('general.back') }}
-        </nc-button>
+        </NcButton>
 
         <nc-button
           v-else
@@ -827,7 +829,9 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
             }
           "
         >
-          {{ $t('general.back') }}
+          <GeneralIcon v-if="showBackBtn" icon="chevronLeft" class="mr-1" />
+
+          {{ showBackBtn ? $t('general.back') : $t('general.cancel') }}
         </nc-button>
 
         <div class="flex-1" />

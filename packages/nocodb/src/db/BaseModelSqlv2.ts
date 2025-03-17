@@ -4461,21 +4461,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
           break;
         case UITypes.LinkToAnotherRecord:
-          break;
         case UITypes.Lookup:
-          try {
-            const selectQb = await generateLookupSelectQuery({
-              baseModelSqlv2: this,
-              column,
-              model: this.model,
-              alias,
-            });
-            qb.select({
-              [getAs(column)]: selectQb.builder,
-            });
-          } catch {
-            continue;
-          }
           break;
         case UITypes.QrCode: {
           const qrCodeColumn = await column.getColOptions<QrCodeColumn>(

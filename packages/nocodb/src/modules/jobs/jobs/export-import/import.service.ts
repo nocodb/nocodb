@@ -1696,7 +1696,7 @@ export class ImportService {
           for (const [k, v] of Object.entries(galleryData)) {
             switch (k) {
               case 'fk_cover_image_col_id':
-                galleryData[k] = idMap.get(v as string);
+                galleryData[k] = idMap.get(v as string) ?? null;
                 break;
             }
           }
@@ -1726,7 +1726,7 @@ export class ImportService {
             switch (k) {
               case 'fk_grp_col_id':
               case 'fk_cover_image_col_id':
-                kanbanData[k] = idMap.get(v as string);
+                kanbanData[k] = idMap.get(v as string) ?? null;
                 break;
               case 'meta': {
                 const meta = {};

@@ -677,6 +677,12 @@ const modalProps = computed(() => {
   return {}
 })
 
+// check if the row is new and has some changes on LTAR/Links
+// this is to enable save if there are changes on LTAR/Links
+const isLTARChanged = computed(() =>{
+  return isNew.value && row.value?.rowMeta?.ltarState  && Object.keys(row.value?.rowMeta?.ltarState).length > 0;
+})
+
 watch(
   () => comments.value.length,
   (commentCount) => {
@@ -810,7 +816,7 @@ export default {
             <template #title> {{ renderAltOrOptlKey() }} + S</template>
             <NcButton
               v-e="['c:row-expand:save']"
-              :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
+              :disabled="changedColumns.size === 0 && !isUnsavedFormExist && !isLTARChanged"
               :loading="isSaving"
               class="nc-expand-form-save-btn !xs:(text-base) !h-7 !px-2"
               data-testid="nc-expanded-form-save"

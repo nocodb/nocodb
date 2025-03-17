@@ -22,6 +22,7 @@ import type { SuppressedError } from '../../../../../error/suppressed.error'
 import { EDIT_INTERACTABLE } from '../utils/constants'
 
 const CHUNK_SIZE = 50
+const MAX_ROWS = 200
 
 export function useCopyPaste({
   totalRows,
@@ -201,7 +202,13 @@ export function useCopyPaste({
           return message.error(parsedClipboard.errors[0]?.message)
         }
 
-        const clipboardMatrix = parsedClipboard.data as string[][]
+        let clipboardMatrix = parsedClipboard.data as string[][]
+
+        let isTruncated = false
+        if (clipboardMatrix.length > MAX_ROWS) {
+          clipboardMatrix = clipboardMatrix.slice(0, MAX_ROWS)
+          isTruncated = true
+        }
 
         const selectionRowCount = Math.max(clipboardMatrix.length, selection.value.end.row - selection.value.start.row + 1)
 
@@ -381,6 +388,10 @@ export function useCopyPaste({
           scrollToCell?.()
         } else {
           await bulkUpdateRows?.(updatedRows, propsToPaste)
+        }
+
+        if (isTruncated) {
+          message.warning(`Paste operation limited to ${MAX_ROWS} rows. Additional rows were truncated.`)
         }
       } else {
         if (selection.value.isSingleCell()) {

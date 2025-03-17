@@ -83,7 +83,7 @@ export class DuplicateProcessor {
       excludeViews?: boolean;
       excludeComments?: boolean;
     };
-    operation: string;
+    operation: JobTypes;
   }) {
     const hrTime = initTime();
 

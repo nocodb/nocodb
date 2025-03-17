@@ -90,11 +90,7 @@ export default {
       <span class="name">
         <!-- Render virtual cell except formula -->
         <div v-if="isVirtualCol(column) && column.uidt !== UITypes.Formula">
-          <template v-if="column.uidt === UITypes.LinkToAnotherRecord">
-            <LazySmartsheetVirtualCell :edit-enabled="false" :model-value="value" :column="column" :read-only="true" />
-          </template>
-
-          <LazySmartsheetVirtualCell v-else :edit-enabled="false" :read-only="true" :model-value="value" :column="column" />
+          <LazySmartsheetVirtualCell :edit-enabled="false" :read-only="true" :model-value="value" :column="column" />
         </div>
         <!-- Render normal cell and formula -->
         <template v-else>

@@ -1,5 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
+import { MigrateController } from '~/modules/jobs/jobs/export-import/migrate.controller';
+import { MigrateService } from '~/modules/jobs/jobs/export-import/migrate.service';
 import { RecoverDisconnectedTableNames } from './migration-jobs/nc_job_008_recover_disconnected_table_name';
 import { MigrateController } from '~/modules/jobs/jobs/export-import/migrate.controller';
 import { MigrateService } from '~/modules/jobs/jobs/export-import/migrate.service';

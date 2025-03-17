@@ -93,7 +93,7 @@ export class DuplicateProcessor {
     };
 
     if (
-      [JobTypes.DuplicateBase, JobTypes.RestoreSnapshot].includes(operation) &&
+      operation === JobTypes.DuplicateBase &&
       targetContext.workspace_id !== sourceBase.fk_workspace_id
     ) {
       await this.handleDuplicateDifferentWs({

@@ -1,4 +1,4 @@
-import { type Stripe, loadStripe } from '@stripe/stripe-js'
+import { type Stripe, type StripeCheckoutSession, loadStripe } from '@stripe/stripe-js'
 
 export interface PaymentPlan {
   id: string
@@ -114,6 +114,16 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     await workspaceStore.loadWorkspace(activeWorkspaceId.value)
   }
 
+  const getSessionResult = async (sessionId: string): Promise<StripeCheckoutSession> => {
+    if (!activeWorkspaceId.value) throw new Error('No active workspace')
+
+    return $fetch(`/api/payment/${activeWorkspaceId.value}/get-session-result/${sessionId}`, {
+      baseURL,
+      method: 'GET',
+      headers: { 'xc-auth': $state.token.value as string },
+    })
+  }
+
   const onPaymentModeChange = (val: boolean) => {
     paymentMode.value = val ? 'year' : 'month'
   }
@@ -168,6 +178,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     isPaidPlan,
     activePlan,
     activeWorkspaceId,
+    getSessionResult,
   }
 }, 'injected-payment-store')
 

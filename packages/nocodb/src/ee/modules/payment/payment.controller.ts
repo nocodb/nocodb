@@ -132,6 +132,16 @@ export class PaymentController {
     return this.paymentService.cancelSubscription(workspaceOrOrgId, req);
   }
 
+  @UseGuards(GlobalGuard)
+  @HttpCode(200)
+  @Get('/api/payment/:workspaceOrOrgId/get-session-result/:sessionId')
+  async getCheckoutSession(
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Param('sessionId') sessionId: string,
+  ) {
+    return this.paymentService.getCheckoutSession(workspaceOrOrgId, sessionId);
+  }
+
   @Post('/api/payment/webhook')
   async webhookListener(@Req() req: NcRequest) {
     return this.paymentService.handleWebhook(req);

@@ -244,7 +244,7 @@ export class PaymentService {
         },
       ],
       ui_mode: 'embedded',
-      return_url: `${req.ncSiteUrl}?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}`,
+      return_url: `http://localhost:3000/?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}`,
       automatic_tax: {
         enabled: true,
       },
@@ -483,6 +483,12 @@ export class PaymentService {
     );
 
     return canceledSubscription.id;
+  }
+
+  async getCheckoutSession(_workspaceOrOrgId: string, sessionId: string) {
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    return session;
   }
 
   async getSeatCount(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {

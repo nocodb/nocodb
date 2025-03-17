@@ -557,6 +557,10 @@ const handleKeyDown = (e: KeyboardEvent) => {
 :deep(.ant-skeleton-element .ant-skeleton-image-svg) {
   @apply !w-7;
 }
+
+:deep(.nc-filter-input-wrapper) {
+  height: 26px;
+}
 </style>
 
 <style lang="scss">

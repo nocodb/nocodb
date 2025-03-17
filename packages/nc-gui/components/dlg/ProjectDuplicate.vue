@@ -30,7 +30,7 @@ const options = ref({
   includeViews: true,
   includeHooks: true,
 })
-const targetWorkspace = ref('')
+const targetWorkspace = ref()
 const workspaceOptions = computed(() => {
   if (!isEeUI) return []
   return workspacesList.filter(
@@ -63,7 +63,8 @@ const _duplicate = async () => {
     const jobData = await api.base.duplicate(props.base.id as string, {
       options: optionsToExclude.value,
       base: {
-        fk_workspace_id: targetWorkspace.value ?? props.base.fk_workspace_id,
+        fk_workspace_id:
+          targetWorkspace.value && targetWorkspace.value !== '' ? targetWorkspace.value : props.base.fk_workspace_id,
         type: props.base.type,
         color,
         meta: JSON.stringify({

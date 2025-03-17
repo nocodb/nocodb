@@ -1131,6 +1131,8 @@ export class MssqlUi implements SqlUi {
       newColumn.dtxs = newDtxs;
     }
   }
-
+  isParsedJsonReturnType(_col: ColumnType): boolean {
+    return false;
+  }
   //#endregion methods
 }

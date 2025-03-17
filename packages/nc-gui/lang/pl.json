@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Twoja obecna rola to",
       "pleaseRequestAccessForView": "Proszę o żądanie wyższych uprawnień od Admina / Właściciela bazy / Właściciela przestrzeni roboczej, aby uzyskać dostęp do tego {viewName}",
       "preventHideAllOptions": "Nie możesz ukryć wszystkich opcji, jeśli pole jest wymagane",
-      "valueMustBeAtMostCharLong": "Wartość może mieć maksymalnie {length} znaków"
+      "valueMustBeAtMostCharLong": "Wartość może mieć maksymalnie {length} znaków",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Ręczne haki nie mogą być dezaktywowane",

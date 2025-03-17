@@ -590,7 +590,7 @@ eventBus.on(async (event) => {
         :disabled="disableAddNewFilter || isLockedView || readOnly"
       >
         <NcButton size="xs" type="text" :disabled="disableAddNewFilter || isLockedView || readOnly">
-          <GeneralIcon icon="plus" class="cursor-pointer" />
+          <GeneralIcon icon="plus" class="cursor-pointer" data-testid="filter-add-icon" />
         </NcButton>
 
         <template #overlay>
@@ -599,7 +599,7 @@ eventBus.on(async (event) => {
               <template v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)">
                 <NcMenuItem data-testid="add-filter-menu" @click.stop="addFilter">
                   <div class="flex items-center gap-1">
-                    <component :is="iconMap.plus" />
+                    <component :is="iconMap.plus" data-testid="filter-add-icon" />
                     <!-- Add Filter -->
                     {{ isForm && !webHook ? $t('activity.addCondition') : $t('activity.addFilter') }}
                   </div>
@@ -617,7 +617,7 @@ eventBus.on(async (event) => {
             <template v-else>
               <NcMenuItem data-testid="add-filter-menu" @click.stop="addFilter">
                 <div class="flex items-center gap-1">
-                  <component :is="iconMap.plus" />
+                  <component :is="iconMap.plus" data-testid="filter-add-icon" />
                   <!-- Add Filter -->
                   {{ isForm && !webHook ? $t('activity.addCondition') : $t('activity.addFilter') }}
                 </div>

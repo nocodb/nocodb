@@ -51,6 +51,12 @@ export const LongTextCellRenderer: CellRenderer = {
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text, renderAsMarkdown: isRichMode })
     } else if (isRichMode) {
+      // Begin clipping
+      ctx.save()
+      ctx.beginPath()
+      ctx.rect(x, y, width - padding, height) // Define the clipping rectangle
+      ctx.clip()
+
       const { x: xOffset, y: yOffset } = renderMarkdown(ctx, {
         x: x + padding,
         y,
@@ -63,6 +69,9 @@ export const LongTextCellRenderer: CellRenderer = {
         spriteLoader,
         cellRenderStore: props.cellRenderStore,
       })
+
+      // Restore context after clipping
+      ctx.restore()
 
       if (!props.tag?.renderAsTag && isHovered) {
         renderExpandIcon()

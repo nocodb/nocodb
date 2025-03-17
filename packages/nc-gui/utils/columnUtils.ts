@@ -6,7 +6,9 @@ import {
   UITypes,
   LongTextAiMetaProp as _LongTextAiMetaProp,
   checkboxIconList,
+  isValidURL,
   ratingIconList,
+  validateEmail,
 } from 'nocodb-sdk'
 import isMobilePhone from 'validator/lib/isMobilePhone'
 
@@ -385,8 +387,8 @@ const formViewHiddenColTypes = [
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const getColumnValidationError = (column: ColumnType, value?: any) => {
-  if (!columnToValidate.includes(column.uidt) || !parseProp(column.meta)?.validate) return ''
-  let cdfValue = column.cdf
+  if (!columnToValidate.includes(column.uidt as UITypes) || !parseProp(column.meta)?.validate) return ''
+  let cdfValue: any = column.cdf
   if (!ncIsUndefined(value)) {
     cdfValue = value
   }

@@ -2178,6 +2178,9 @@ export class PgUi implements SqlUi {
     _newColumn: Partial<ColumnType>,
     _oldColumn?: ColumnType
   ) {}
+  isParsedJsonReturnType(col: ColumnType): boolean {
+    return ['json', 'jsond'].includes(col.dt?.toLowerCase());
+  }
   //#endregion methods
 }
 

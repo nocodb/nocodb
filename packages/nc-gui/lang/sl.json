@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Vaša trenutna vloga je",
       "pleaseRequestAccessForView": "Prosim, zahtevajte višja dovoljenja od skrbnika / lastnika baze / lastnika prostora za dostop do tega {viewName}",
       "preventHideAllOptions": "Ne morete skriti vseh možnosti, če je polje obvezno",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Ročnih klicev ni mogoče onemogočiti",

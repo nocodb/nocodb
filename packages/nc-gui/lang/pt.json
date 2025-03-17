@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Seu papel atual é",
       "pleaseRequestAccessForView": "Por favor, solicite permissões mais elevadas ao Admin / Proprietário da Base / Proprietário do Espaço de Trabalho para obter acesso a esta {viewName}",
       "preventHideAllOptions": "Você não pode ocultar todas as opções se o campo for obrigatório",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Ganchos manuais não podem ser desativados",

@@ -156,3 +156,30 @@ export function isDataAuditEnabled() {
     (process.env.NC_ENABLE_AUDIT === 'true' || process.env.NODE_ENV === 'test')
   );
 }
+
+export function getRelatedLinksColumn(
+  column: Column<LinkToAnotherRecordColumn>,
+  relatedModel: Model,
+) {
+  return relatedModel.columns.find((c: Column) => {
+    if (column.colOptions?.type === RelationTypes.MANY_TO_MANY) {
+      return (
+        column.colOptions.fk_mm_child_column_id ===
+          c.colOptions?.fk_mm_parent_column_id &&
+        column.colOptions.fk_mm_parent_column_id ===
+          c.colOptions?.fk_mm_child_column_id
+      );
+    } else {
+      return (
+        column.colOptions.fk_child_column_id ===
+          c.colOptions?.fk_child_column_id &&
+        column.colOptions.fk_parent_column_id ===
+          c.colOptions?.fk_parent_column_id
+      );
+    }
+  });
+}
+
+export function extractIdPropIfObjectOrReturn(id: any, prop: string) {
+  return typeof id === 'object' ? id[prop] : id;
+}

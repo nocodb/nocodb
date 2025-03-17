@@ -1,4 +1,10 @@
-import { ButtonActionsType, ColumnReqType, ColumnType, TableType } from './Api';
+import {
+  ButtonActionsType,
+  ColumnReqType,
+  ColumnType,
+  LinkToAnotherRecordType,
+  TableType,
+} from './Api';
 import { FormulaDataTypes } from './formulaHelpers';
 import { LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
 import { parseProp } from './helperFunctions';
@@ -312,6 +318,18 @@ export function isLinksOrLTAR(
 ) {
   return [UITypes.LinkToAnotherRecord, UITypes.Links].includes(
     <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
+  );
+}
+
+export function isSelfLinkCol(
+  col: ColumnType & { colOptions: unknown }
+): boolean {
+  return (
+    isLinksOrLTAR(col) &&
+    col.system &&
+    // except has-many all other relation types are self link
+    // has-many system column get created to mm table only
+    (col.colOptions as LinkToAnotherRecordType)?.type !== RelationTypes.HAS_MANY
   );
 }
 

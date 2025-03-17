@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Vaše aktuální role je",
       "pleaseRequestAccessForView": "Požádejte o vyšší oprávnění od správce / vlastníka základny / vlastníka pracovního prostoru, abyste získali přístup k tomuto {viewName}",
       "preventHideAllOptions": "Pokud je pole povinné, nemůžete skrýt všechny možnosti",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Ruční háčky nelze zakázat",

@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "あなたの現在の役割は",
       "pleaseRequestAccessForView": "この{viewName}にアクセスするには管理者/Baseオーナー/ワークスペースオーナーからより高い権限をリクエストしてください",
       "preventHideAllOptions": "必須フィールドの場合、すべてのオプションを隠すことはできません",
-      "valueMustBeAtMostCharLong": "値は{length}文字以下でなければなりません"
+      "valueMustBeAtMostCharLong": "値は{length}文字以下でなければなりません",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "マニュアルフックは無効にできません",

@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "আপনার বর্তমান ভূমিকা হল",
       "pleaseRequestAccessForView": "এই {viewName} অ্যাক্সেস করতে অ্যাডমিন / বেস মালিক / ওয়ার্কস্পেস মালিক থেকে উচ্চতর অনুমতি অনুরোধ করুন",
       "preventHideAllOptions": "ক্ষেত্র প্রয়োজন হলে আপনি সমস্ত বিকল্প লুকাতে পারবেন না",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "ম্যানুয়াল হুকগুলি নিষ্ক্রিয় করা যায় না",

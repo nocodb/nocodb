@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "您当前的角色是",
       "pleaseRequestAccessForView": "请向上级角色申请更高的权限，以访问 {viewName}。",
       "preventHideAllOptions": "必填项不能为空",
-      "valueMustBeAtMostCharLong": "值长度不得超过 {length} 个字符"
+      "valueMustBeAtMostCharLong": "值长度不得超过 {length} 个字符",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "无法禁用手动钩子",

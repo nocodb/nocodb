@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Jelenlegi szerepköröd",
       "pleaseRequestAccessForView": "Kérj magasabb jogosultságot az adminisztrátortól / Bázis tulajdonostól / Munkaterület tulajdonostól, hogy hozzáférhess ehhez a {viewName}",
       "preventHideAllOptions": "Nem rejtheted el az összes opciót, ha a mező kötelező",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "A kézi horgokat nem lehet letiltani",

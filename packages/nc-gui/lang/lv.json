@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Jūsu pašreizējā loma ir",
       "pleaseRequestAccessForView": "Lūdzu, pieprasiet lielākas atļaujas no administratora / bāzes īpašnieka / darbavirsmas īpašnieka, lai iegūtu piekļuvi šim {viewName}",
       "preventHideAllOptions": "Jūs nevarat paslēpt visas opcijas, ja lauks ir nepieciešams",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Manuālie āķi nevar tikt atspējoti",

@@ -1879,7 +1879,8 @@
       "yourCurrentRoleIs": "Peran Anda saat ini adalah",
       "pleaseRequestAccessForView": "Silakan minta izin lebih tinggi dari Admin/Pemilik Dasar/Pemilik Ruang Kerja untuk mendapatkan akses ke {viewName} ini",
       "preventHideAllOptions": "Anda tidak dapat menyembunyikan semua opsi jika kolom wajib diisi",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Hook manual tidak dapat dinonaktifkan",

@@ -357,7 +357,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
   <div class="nc-modal-child-list h-full w-full" :class="{ active: vModel }" @keydown.enter.stop>
     <div class="flex flex-col h-full">
       <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
-        <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-0.5 rounded-md">
+        <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center rounded-md">
           <!-- Utilize SmartsheetToolbarFilterInput component to filter the records for Date or DateTime column -->
           <SmartsheetToolbarFilterInput
             v-if="relatedTableDisplayValueColumn && isDateOrDateTimeCol(relatedTableDisplayValueColumn)"
@@ -559,7 +559,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
 }
 
 :deep(.nc-filter-input-wrapper) {
-  height: 26px;
+  height: 28px;
 }
 </style>
 

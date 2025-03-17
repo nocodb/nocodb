@@ -350,7 +350,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
             <GeneralIcon icon="ncArrowLeft" class="flex-none h-4 w-4" />
           </button>
 
-          <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-0.5 rounded-md">
+          <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center rounded-md">
             <!-- Utilize SmartsheetToolbarFilterInput component to filter the records for Date or DateTime column -->
             <SmartsheetToolbarFilterInput
               v-if="relatedTableDisplayValueColumn && isDateOrDateTimeCol(relatedTableDisplayValueColumn)"
@@ -531,7 +531,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
   @apply !w-7;
 }
 :deep(.nc-filter-input-wrapper) {
-  height: 26px;
+  height: 28px;
 }
 </style>
 

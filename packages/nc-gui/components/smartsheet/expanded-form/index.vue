@@ -771,8 +771,14 @@ export default {
               v-else-if="displayValue && !row?.rowMeta?.new"
               class="flex items-center font-bold text-gray-800 text-2xl overflow-hidden"
             >
-              <span class="truncate min-w-[120px] md:min-w-[300px]">
-                <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
+              <span class="min-w-[120px] md:min-w-[300px]">
+                <NcTooltip class="truncate" show-on-truncate-only>
+                  <template #title>
+                    {{ displayValue }}
+                  </template>
+
+                  <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
+                </NcTooltip>
               </span>
             </div>
           </div>

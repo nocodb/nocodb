@@ -13,13 +13,14 @@ const { isUIAllowed } = useRoles()
 const workspaceStore = useWorkspace()
 
 const { loadRoles } = useRoles()
-const { activeWorkspace: _activeWorkspace, workspaces } = storeToRefs(workspaceStore)
+const { activeWorkspace: _activeWorkspace, workspaces, deletingWorkspace } = storeToRefs(workspaceStore)
 const { loadCollaborators, loadWorkspace } = workspaceStore
 
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
 const currentWorkspace = computedAsync(async () => {
+  if (deletingWorkspace.value) return
   let ws
   if (props.workspaceId) {
     ws = workspaces.value.get(props.workspaceId)

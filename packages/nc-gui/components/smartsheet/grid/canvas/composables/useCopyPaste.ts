@@ -278,6 +278,16 @@ export function useCopyPaste({
           colsToPaste = fields.value.slice(selection.value.start.col, selection.value.start.col + pasteMatrixCols)
         }
 
+        const startChunkId = Math.floor(selection.value.start.row / CHUNK_SIZE)
+        const endChunkId = Math.floor(selection.value.start.row + availableRowsToUpdate / CHUNK_SIZE)
+
+        const chunksToFetch = new Set<number>()
+        for (let chunkId = startChunkId; chunkId <= endChunkId; chunkId++) {
+          chunksToFetch.add(chunkId)
+        }
+        // Fetch all required chunks
+        await Promise.all([...chunksToFetch].map(fetchChunk))
+
         const dataRef = unref(cachedRows)
 
         const updatedRows: Row[] = [] as Row[]
@@ -615,6 +625,16 @@ export function useCopyPaste({
           const endRow = Math.max(start.row, end.row)
           const startCol = Math.min(start.col, end.col)
           const endCol = Math.max(start.col, end.col)
+
+          const startChunkId = Math.floor(startRow / CHUNK_SIZE)
+          const endChunkId = Math.floor(endRow / CHUNK_SIZE)
+
+          const chunksToFetch = new Set<number>()
+          for (let chunkId = startChunkId; chunkId <= endChunkId; chunkId++) {
+            chunksToFetch.add(chunkId)
+          }
+          // Fetch all required chunks
+          await Promise.all([...chunksToFetch].map(fetchChunk))
 
           const cols = unref(fields).slice(startCol, endCol + 1)
           const rows = Array.from(unref(cachedRows) as Map<number, Row>)

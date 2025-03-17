@@ -14,6 +14,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const route = router.currentRoute
 
+  const deletingWorkspace = ref(false)
+
   const { $api } = useNuxtApp()
 
   const { refreshCommandPalette } = useCommandPalette()
@@ -291,6 +293,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isIntegrationsPageOpened,
     navigateToIntegrations,
     isFeedPageOpened,
+    deletingWorkspace,
   }
 })
 

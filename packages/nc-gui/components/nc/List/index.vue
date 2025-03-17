@@ -197,7 +197,6 @@ const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: numb
  */
 const handleSelectOption = (option: NcListItemType, index?: number) => {
   if (!ncIsObject(option) || !(optionValueKey in option) || option.ncItemDisabled) return
-
   if (index !== undefined) {
     activeOptionIndex.value = index
   }
@@ -338,7 +337,7 @@ watch(
   <div
     ref="listRef"
     tabindex="0"
-    class="flex flex-col pt-2 w-64 !focus:(shadow-none outline-none)"
+    class="flex flex-col nc-list-root pt-2 w-64 !focus:(shadow-none outline-none)"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex])"
@@ -376,7 +375,7 @@ watch(
               <NcTooltip
                 v-for="{ data: option, index: idx } in virtualList"
                 :key="idx"
-                class="flex items-center gap-2 w-full py-2 px-2 rounded-md my-[2px] first-of-type:mt-0 last-of-type:mb-0"
+                class="flex items-center gap-2 nc-list-item w-full py-2 px-2 rounded-md my-[2px] first-of-type:mt-0 last-of-type:mb-0"
                 :class="[
                   `nc-list-option-${idx}`,
                   {

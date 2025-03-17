@@ -170,15 +170,15 @@ export const useBaseSettings = createSharedComposable(() => {
           }
         }) => {
           if (data.status === JobStatus.COMPLETED) {
-            await loadProjects('workspace')
+            const tBases = await loadProjects('workspace', workspace?.id)
 
-            const base = bases.value.get(data.data?.result.id)
+            const base = tBases?.find((b) => b.id === data.data?.result.id)
 
             isRestoringSnapshot.value = false
 
             // open project after snapshot success
             if (base) {
-              await navigateToProject({
+              navigateToProject({
                 workspaceId: isEeUI ? base.fk_workspace_id : undefined,
                 baseId: base.id,
                 type: base.type,

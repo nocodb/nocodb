@@ -7,7 +7,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { AppEvents, ProjectStatus } from 'nocodb-sdk';
+import { AppEvents, ProjectStatus, WorkspaceUserRoles } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -16,7 +16,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import Snapshot from '~/models/Snapshot';
 import { NcError } from '~/helpers/catchError';
-import { Base } from '~/models';
+import { Base, WorkspaceUser } from '~/models';
 import { BasesService } from '~/services/bases.service';
 import { JobTypes } from '~/interface/Jobs';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -133,21 +133,26 @@ export class SnapshotController {
     @Param('baseId') baseId: string,
     @Body()
     {
-      workspaceId: _ws,
+      workspaceId,
     }: {
       workspaceId: string;
     },
   ) {
-    // TODO: Followup
-    /*  if (!workspaceId) {
+    if (!workspaceId) {
       NcError.badRequest('Workspace id is required');
     }
 
-    const roles = await WorkspaceUser.get(workspaceId, req.user.id)
+    const roles = await WorkspaceUser.get(workspaceId, req.user.id);
 
-    if (![WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(roles.roles as WorkspaceUserRoles)) {
-      NcError.forbidden(`You don't have permission to restore snapshot in this workspace`);
-    }*/
+    if (
+      ![WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(
+        roles.roles as WorkspaceUserRoles,
+      )
+    ) {
+      NcError.forbidden(
+        `You don't have permission to restore snapshot in this workspace`,
+      );
+    }
 
     const base = await Base.get(context, baseId);
 
@@ -179,9 +184,9 @@ export class SnapshotController {
         meta: base.meta,
         color: base.color ?? '',
         type: 'database',
-        ...(base.fk_workspace_id // workspaceId
-          ? { fk_workspace_id: base.fk_workspace_id } // workspaceId
-          : {}),
+        ...(workspaceId
+          ? { fk_workspace_id: workspaceId }
+          : { fk_workspace_id: base?.fk_workspace_id }),
       } as any,
       user: { id: req.user.id },
       req: {
@@ -207,7 +212,7 @@ export class SnapshotController {
         base_id: snapshot.snapshot_base_id,
       },
       targetContext: {
-        workspace_id: base.fk_workspace_id, // workspaceId
+        workspace_id: workspaceId || targetBase?.fk_workspace_id,
         base_id: targetBase.id,
       },
       user: req.user,

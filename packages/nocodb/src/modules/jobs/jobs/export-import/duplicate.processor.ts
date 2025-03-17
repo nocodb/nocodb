@@ -83,7 +83,7 @@ export class DuplicateProcessor {
       excludeViews?: boolean;
       excludeComments?: boolean;
     };
-    operation: string;
+    operation: JobTypes;
   }) {
     const hrTime = initTime();
 
@@ -93,7 +93,7 @@ export class DuplicateProcessor {
     };
 
     if (
-      operation === JobTypes.DuplicateBase &&
+      [JobTypes.DuplicateBase, JobTypes.RestoreSnapshot].includes(operation) &&
       targetContext.workspace_id !== sourceBase.fk_workspace_id
     ) {
       await this.handleDuplicateDifferentWs({

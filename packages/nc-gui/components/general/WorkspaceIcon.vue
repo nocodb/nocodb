@@ -80,6 +80,7 @@ const size = computed(() => props.size || 'medium')
     :class="{
       'min-w-4 w-4 h-4 rounded': size === 'small',
       'min-w-6 w-6 h-6 rounded-md': size === 'medium',
+      'min-w-8 w-6 h-8 rounded-md': size === 'middle',
       'min-w-10 w-10 h-10 rounded-lg !text-base': size === 'large',
       'min-w-16 w-16 h-16 rounded-lg !text-4xl': size === 'xlarge',
       'min-w-8 w-6 h-8 rounded-md': size === 'middle',

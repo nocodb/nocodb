@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type WorkspaceType } from 'nocodb-sdk'
+import { type WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk'
 
 interface Props {
   modelValue: boolean
@@ -32,7 +32,6 @@ const restoreSnapshot = async (snapshot: SnapshotExtendedType, _workspace?: Work
   }
 }
 
-/*
 const selectedWorkspace = ref<WorkspaceType>()
 
 const workspaceStore = useWorkspace()
@@ -54,7 +53,7 @@ onMounted(() => {
 const selectWorkspace = (workspace: WorkspaceType) => {
   selectedWorkspace.value = workspace
   isDropdownActive.value = false
-} */
+}
 </script>
 
 <template>
@@ -66,9 +65,13 @@ const selectWorkspace = (workspace: WorkspaceType) => {
     :show-separator="false"
     nc-modal-class-name="!p-6"
   >
-    <div class="text-nc-content-gray-emphasis font-semibold text-lg">Confirm Snapshot Restore</div>
+    <div class="text-nc-content-gray-emphasis font-semibold text-lg">
+      {{ $t('title.confirmSnapshotRestore') }}
+    </div>
 
-    <div class="text-nc-content-gray-subtle my-2 leading-5">Are you sure you want to restore this base snapshot.</div>
+    <div class="text-nc-content-gray-subtle my-2 leading-5">
+      {{ $t('labels.snapshotRestoreConfirmation') }}
+    </div>
 
     <div class="my-5 px-4 py-2 bg-nc-bg-gray-light rounded-lg">
       <NcTooltip show-on-truncate-only class="truncate">
@@ -79,71 +82,87 @@ const selectWorkspace = (workspace: WorkspaceType) => {
       </NcTooltip>
     </div>
 
-    <div class="leading-5 text-nc-content-gray-subtle2">Note:</div>
+    <div class="leading-5 text-nc-content-gray-subtle2">
+      {{ $t('labels.note') }}
+    </div>
 
     <ul class="list-disc leading-5 text-nc-content-gray-subtle2 pl-4 !mb-5">
-      <li>Restoring this snapshot will not affect the existing base.</li>
-      <li>On restore, a new base will be created in the same workspace.</li>
+      <li>
+        {{ $t('labels.snapshotRestoreMessage1') }}
+      </li>
+      <li>
+        {{ $t('labels.snapshotRestoreMessage2') }}
+      </li>
     </ul>
 
-    <!--    <div class="flex flex-col mb-5 gap-1">
-      <NcDropdown v-model:visible="isDropdownActive">
+    <div class="flex flex-col mb-5 gap-1">
+      <NcDropdown v-model:visible="isDropdownActive" class="mt-2">
         <div
+          class="rounded-lg border-1 transition-all cursor-pointer flex items-center border-nc-border-grey-medium h-8 py-1 gap-2 px-3"
           style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
           :class="{
             '!border-brand-500 !shadow-selected': isDropdownActive,
           }"
-          class="border-1 border-nc-content-gray-medium transition-all cursor-pointer items-center py-2 flex gap-4 px-3 rounded-lg"
         >
-          <GeneralWorkspaceIcon :workspace="selectedWorkspace" size="middle" />
+          <GeneralWorkspaceIcon size="small" :workspace="selectedWorkspace" />
 
-          <NcTooltip
-            show-on-truncate-only
-            class="text-nc-content-gray truncate text-nc-content-gray flex-1 font-semibold leading-5"
-          >
-            <template #title>
-              {{ selectedWorkspace?.title }}
-            </template>
+          <div class="flex-1 capitalize truncate">
             {{ selectedWorkspace?.title }}
-          </NcTooltip>
+          </div>
 
-          <RolesBadge :border="false" :role="selectedWorkspace?.roles" size="small" />
-
-          <GeneralIcon icon="chevronDown" />
+          <div class="flex gap-2 items-center">
+            <div v-if="activeWorkspace?.id === selectedWorkspace?.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
+              {{ $t('labels.currentWorkspace') }}
+            </div>
+            <GeneralIcon
+              :class="{
+                'transform rotate-180': isDropdownActive,
+              }"
+              class="text-nc-content-gray transition-all w-4 h-4"
+              icon="ncChevronDown"
+            />
+          </div>
         </div>
 
         <template #overlay>
-          <div class="max-h-300px nc-scrollbar-md !overflow-y-auto py-1">
-            <div
-              v-for="workspace of filteredWorkspaces"
-              :key="workspace.id!"
-              class="group py-2 flex gap-4 cursor-pointer px-3 w-full rounded-lg capitalize flex items-center hover:bg-nc-bg-gray-light"
-              @click="selectWorkspace(workspace)"
-            >
-              <div class="flex flex-row w-full truncate items-center gap-2">
-                <GeneralWorkspaceIcon class="restore-snapshot" :workspace="workspace" size="middle" />
-
-                <NcTooltip show-on-truncate-only class="text-nc-content-gray flex-1 truncate font-semibold leading-5">
-                  {{ workspace?.title }}
-                  <template #title>
-                    {{ workspace?.title }}
-                  </template>
-                </NcTooltip>
-                <RolesBadge :border="false" :role="workspace?.roles" size="small" />
-
-                <GeneralIcon
-                  :class="{
-                    'opacity-100': selectedWorkspace === workspace,
-                  }"
-                  class="opacity-0 text-nc-content-brand"
-                  icon="ncCheck"
-                />
+          <NcList
+            :value="selectedWorkspace"
+            :item-height="28"
+            close-on-select
+            :min-items-for-search="6"
+            container-class-name="w-full"
+            :list="filteredWorkspaces"
+            option-label-key="title"
+            class="nc-snapshot-workspace-selection"
+          >
+            <template #listHeader>
+              <div class="text-nc-content-gray-muted text-[13px] px-3 py-2.5 font-medium leading-5">
+                {{ $t('labels.snapshotBaseRestoreMessage') }}
               </div>
-            </div>
-          </div>
+
+              <NcDivider />
+            </template>
+
+            <template #listItem="{ option }">
+              <div class="flex gap-2 w-full items-center" @click="selectWorkspace(option)">
+                <GeneralWorkspaceIcon :workspace="option" size="small" />
+
+                <div class="flex-1 text-[13px] truncate font-semibold leading-5 capitalize w-full">
+                  {{ option.title }}
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <div v-if="activeWorkspace?.id === option.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
+                    {{ $t('labels.currentWorkspace') }}
+                  </div>
+                  <GeneralIcon v-if="option.id === selectedWorkspace?.id" class="text-brand-500 w-4 h-4" icon="ncCheck" />
+                </div>
+              </div>
+            </template>
+          </NcList>
         </template>
       </NcDropdown>
-    </div> -->
+    </div>
 
     <div class="flex items-center gap-2 justify-end">
       <NcButton :disabled="isRestoringSnapshot" type="secondary" size="small" @click="vModel = false">
@@ -156,18 +175,32 @@ const selectWorkspace = (workspace: WorkspaceType) => {
         data-testid="confirm-restore-snapshot-btn"
         size="small"
         :loading="isRestoringSnapshot"
-        @click="restoreSnapshot(snapshot)"
+        @click="restoreSnapshot(snapshot, selectedWorkspace)"
       >
-        {{ isRestoringSnapshot ? 'Restoring Snapshot' : $t('labels.confirmRestore') }}
+        {{ isRestoringSnapshot ? $t('labels.restoringSnapshot') : $t('labels.confirmRestore') }}
       </NcButton>
     </div>
   </NcModal>
 </template>
 
+<style scoped lang="scss">
+.nc-list-root {
+  @apply !w-[400px] !pt-0;
+}
+</style>
+
 <style lang="scss">
 .restore-snapshot {
   .nc-workspace-avatar {
     @apply min-w-8 w-6 h-8 rounded-md;
+  }
+}
+
+.nc-snapshot-workspace-selection {
+  .nc-list {
+    .nc-list-item {
+      @apply !py-1;
+    }
   }
 }
 </style>

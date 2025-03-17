@@ -269,7 +269,7 @@ onKeyStroke('Enter', () => {
               >
                 <GeneralWorkspaceIcon size="small" :workspace="targetWorkspace" />
 
-                <div class="flex-1 capitalize">
+                <div class="flex-1 capitalize truncate">
                   {{ targetWorkspace?.title }}
                 </div>
 
@@ -309,7 +309,7 @@ onKeyStroke('Enter', () => {
                     <div class="flex gap-2 w-full items-center" @click="selectOption(option)">
                       <GeneralWorkspaceIcon :workspace="option" size="small" />
 
-                      <div class="flex-1 text-[13px] font-semibold leading-5 capitalize w-full">
+                      <div class="flex-1 text-[13px] truncate font-semibold leading-5 capitalize w-full">
                         {{ option.title }}
                       </div>
 

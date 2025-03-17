@@ -66,7 +66,10 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
         <template v-if="![UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!)">
           <div
             v-if="field?.aggregation === 'none' || field?.aggregation === null"
-            class="text-gray-500 opacity-0 transition group-hover-aggregation"
+            class="text-gray-500 opacity-0 transition"
+            :class="{
+              'group-hover-aggregation': !isLocked,
+            }"
           >
             <GeneralIcon class="text-gray-500" icon="arrowDown" />
             <span class="text-[10px] font-semibold"> Summary </span>

@@ -79,8 +79,11 @@ const _duplicate = async () => {
     const jobData = await api.base.duplicate(props.base.id as string, {
       options: optionsToExclude.value,
       base: {
-        fk_workspace_id:
-          targetWorkspace.value && targetWorkspace.value?.id ? targetWorkspace.value.id : props.base.fk_workspace_id,
+        fk_workspace_id: isEeUI
+          ? targetWorkspace.value?.id
+            ? targetWorkspace.value.id
+            : props.base.fk_workspace_id
+          : null,
         type: props.base.type,
         color,
         meta: JSON.stringify({

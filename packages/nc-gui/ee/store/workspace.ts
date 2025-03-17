@@ -24,6 +24,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const workspaceStore = useWorkspace()
 
+  const deletingWorkspace = ref(false)
+
   const { loadRoles } = useRoles()
 
   const { user: currentUser } = useGlobal()
@@ -176,13 +178,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const deleteWorkspace = async (workspaceId: string, { skipStateUpdate }: { skipStateUpdate?: boolean } = {}) => {
+  const deleteWorkspace = async (workspaceId: string, { _skipStateUpdate }: { skipStateUpdate?: boolean } = {}) => {
     // todo: pagination
     await $api.workspace.delete(workspaceId, {
       baseURL: appInfo.value.baseHostName ? `https://${workspaceId}.${appInfo.value.baseHostName}` : undefined,
     })
 
-    if (!skipStateUpdate) workspaces.value.delete(workspaceId)
+    await loadWorkspaces()
 
     refreshCommandPalette()
   }
@@ -586,6 +588,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     navigateToIntegrations,
     navigateToFeed,
     isFeedPageOpened,
+    deletingWorkspace,
   }
 })
 

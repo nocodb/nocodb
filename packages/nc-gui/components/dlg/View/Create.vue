@@ -68,7 +68,7 @@ interface Form {
     fk_from_column_id: string
     fk_to_column_id: string | null // for ee only
   }>
-  fk_cover_image_col_id: string | null
+  fk_cover_image_col_id: string | null | undefined
 }
 
 type AiSuggestedViewType = SerializedAiViewType & {
@@ -125,7 +125,7 @@ const form = reactive<Form>({
   fk_grp_col_id: null,
   fk_geo_data_col_id: null,
   calendar_range: props.calendarRange || [],
-  fk_cover_image_col_id: null,
+  fk_cover_image_col_id: undefined,
   description: props.description || '',
 })
 
@@ -466,7 +466,7 @@ onMounted(async () => {
         } else if (viewSelectFieldOptions.value.length > 1 && !form.copy_from_id) {
           form.fk_cover_image_col_id = viewSelectFieldOptions.value[1].value as string
         } else {
-          form.fk_cover_image_col_id = null
+          form.fk_cover_image_col_id = undefined
         }
       }
 
@@ -498,7 +498,7 @@ onMounted(async () => {
         } else if (viewSelectFieldOptions.value.length > 1 && !form.copy_from_id) {
           form.fk_cover_image_col_id = viewSelectFieldOptions.value[1].value as string
         } else {
-          form.fk_cover_image_col_id = null
+          form.fk_cover_image_col_id = undefined
         }
       }
 

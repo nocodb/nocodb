@@ -41,9 +41,13 @@ export class KanbansService {
     let fk_cover_image_col_id =
       (param.kanban as KanbanView).fk_cover_image_col_id ?? null;
 
-    // if attachment field not mapped and atleast one attachment field exists in the model
-    // map the first attachment field
-    if (!fk_cover_image_col_id) {
+    // if attachment field not mapped(undefined) and at-least one attachment field exists in the model
+    // map the first attachment field, skip if duplicating
+    // Skip if copy_from_id is present(which means duplicating)
+    if (
+      (param.kanban as KanbanView).fk_cover_image_col_id === undefined &&
+      !(param.kanban as { copy_from_id: string }).copy_from_id
+    ) {
       const attachmentField = (await model.getColumns(context)).find(
         (column) => column.uidt === UITypes.Attachment,
       );

@@ -611,7 +611,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                     baseModelSqlv2,
                     _tree: formulaOption.formula,
                     alias: '',
-                    tableAlias: prevAlias,
                     model: lookupModel,
                     aliasToColumn,
                     parsedTree: formulaOption.getParsedTree(),

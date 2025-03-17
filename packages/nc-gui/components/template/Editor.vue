@@ -812,7 +812,7 @@ const currentColumnToEdit = ref('')
                   {{ column.title }}
                 </span>
                 <span v-if="column.key === 'action'">
-                  <a-checkbox
+                  <NcCheckbox
                     v-model:checked="checkAllRecord[table.table_name]"
                     @change="handleCheckAllRecord($event, table.table_name)"
                   />
@@ -822,7 +822,7 @@ const currentColumnToEdit = ref('')
               <template #bodyCell="{ column, record }">
                 <div v-if="column.key === 'source_column'" class="w-full">
                   <label class="w-full flex items-center gap-3 h-full">
-                    <a-checkbox v-model:checked="record.enabled" />
+                    <NcCheckbox v-model:checked="record.enabled" />
 
                     <NcTooltip class="inline-block flex-1 max-w-[calc(100%_-_50px)] truncate" show-on-truncate-only>
                       <template #title>{{ record.srcTitle }}</template>
@@ -940,7 +940,7 @@ const currentColumnToEdit = ref('')
                 <template #body-prepend>
                   <tr class="nc-table-row">
                     <td colspan="2" class="nc-table-cell pl-3 flex h-full items-center">
-                      <a-checkbox :checked="table.columns.every((it) => it.selected)" @click="toggleTableSelecteds(table)" />
+                      <NcCheckbox :checked="table.columns.every((it) => it.selected)" @click="toggleTableSelecteds(table)" />
                       <span class="ml-4 font-weight-700 text-[13px]">
                         {{ table.columns.every((it) => it.selected) ? 'Deselect' : 'Select' }} all fields
                       </span>
@@ -949,7 +949,7 @@ const currentColumnToEdit = ref('')
                 </template>
                 <template #bodyCell="{ column, record }">
                   <template v-if="column.key === 'enabled'">
-                    <a-checkbox v-model:checked="record.selected" />
+                    <NcCheckbox v-model:checked="record.selected" />
                   </template>
                   <template v-if="column.key === 'column_name'">
                     <template v-if="`${tableIdx}-${record.column_name}` === currentColumnToEdit">

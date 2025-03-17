@@ -3,10 +3,9 @@ import { type Stripe, loadStripe } from '@stripe/stripe-js'
 export interface PaymentPlan {
   id: string
   title: string
-  description: string
-  stripe_product_id: string
-  prices: any[]
-  meta: any
+  descriptions?: string[]
+  stripe_product_id?: string
+  prices?: any[]
 }
 
 export enum PaymentState {
@@ -41,6 +40,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription)
 
+  const activePlan = computed(() => activeWorkspace.value?.payment?.plan)
+
   const loadWorkspaceSeatCount = async () => {
     const { count } = (await $fetch(`/api/payment/${activeWorkspaceId.value}/seat-count`, {
       baseURL,
@@ -61,6 +62,12 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     })
 
     plansAvailable.value = plans as any
+
+    plansAvailable.value.unshift({
+      id: 'free',
+      title: 'Free',
+      descriptions: ['10k rows / workspace', '1GB storage', '5 API request / second', 'All user roles'],
+    })
   }
 
   const getPlanPrice = (plan?: PaymentPlan, mode?: 'year' | 'month') => {
@@ -79,6 +86,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     if (!activeWorkspaceId.value) throw new Error('No active workspace')
     if (!stripe.value) throw new Error('Stripe not loaded')
     if (!selectedPlan.value) throw new Error('No plan selected')
+    if (!selectedPlan.value.prices) throw new Error('No prices found')
 
     const price = selectedPlan.value.prices.find((price: any) => price.recurring.interval === paymentMode.value)
 
@@ -158,6 +166,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     createPaymentForm,
     cancelSubscription,
     isPaidPlan,
+    activePlan,
     activeWorkspaceId,
   }
 }, 'injected-payment-store')

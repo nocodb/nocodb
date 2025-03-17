@@ -55,6 +55,11 @@ export default class Plan {
     limit_view?: number;
     limit_filter?: number;
     limit_sort?: number;
+    description_1?: string;
+    description_2?: string;
+    description_3?: string;
+    description_4?: string;
+    description_5?: string;
   };
 
   free?: boolean;
@@ -70,11 +75,34 @@ export default class Plan {
   public static prepare(data: Partial<Plan>): Plan {
     const response = prepareForResponse(data, ['prices', 'meta']);
 
+    const limits = Object.entries(response.meta).reduce((acc, [key, value]) => {
+      if (key.startsWith('limit_')) {
+        acc[key] = value;
+      }
+
+      return acc;
+    }, {});
+
     Object.assign(response, {
       limits: {
         ...DefaultLimits,
-        ...response.meta,
+        ...limits,
       },
+    });
+
+    const descriptions = Object.entries(response.meta).reduce(
+      (acc, [key, value]) => {
+        if (key.startsWith('description_')) {
+          acc.push(value);
+        }
+
+        return acc;
+      },
+      [],
+    );
+
+    Object.assign(response, {
+      descriptions,
     });
 
     return response;

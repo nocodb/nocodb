@@ -75,7 +75,7 @@ export class PaymentController {
         'description',
         'stripe_product_id',
         'prices',
-        'meta',
+        'descriptions',
       ]);
     });
   }

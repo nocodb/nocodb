@@ -244,7 +244,7 @@ export class PaymentService {
         },
       ],
       ui_mode: 'embedded',
-      return_url: `http://localhost:3000/?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}`,
+      return_url: `${req.ncSiteUrl}/?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}`,
       automatic_tax: {
         enabled: true,
       },

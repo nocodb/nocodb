@@ -3,11 +3,11 @@ import {
   RelationTypes,
   UITypes,
   dateFormats,
+  isDateOrDateTimeCol,
   isLinksOrLTAR,
   isSystemColumn,
   parseStringDateTime,
   timeFormats,
-  isDateOrDateTimeCol
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 
@@ -319,12 +319,16 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           childrenExcludedListPagination.page = 1
         }
         isChildrenExcludedLoading.value = true
-        const filterArrJson = childrenExcludedListPagination.query ? JSON.stringify([{
-          fk_column_id: relatedTableDisplayValuePropId.value,
-          value: childrenExcludedListPagination.query,
-          comparison_op: isDateOrDateTimeCol (relatedTableDisplayValueColumn.value) ? 'eq' : 'like',
-          comparison_sub_op: isDateOrDateTimeCol (relatedTableDisplayValueColumn.value) ? 'exactDate' : undefined,
-        }]) : undefined;
+        const filterArrJson = childrenExcludedListPagination.query
+          ? JSON.stringify([
+              {
+                fk_column_id: relatedTableDisplayValuePropId.value,
+                value: childrenExcludedListPagination.query,
+                comparison_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value) ? 'eq' : 'like',
+                comparison_sub_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value) ? 'exactDate' : undefined,
+              },
+            ])
+          : undefined
 
         if (isPublic.value) {
           const router = useRouter()

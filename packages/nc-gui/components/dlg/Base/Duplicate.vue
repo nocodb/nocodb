@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
-import { type BaseType, WorkspaceUserRoles } from 'nocodb-sdk'
+import { type BaseType, type WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: boolean
@@ -8,10 +8,6 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['update:modelValue'])
-
-const dialogShow = useVModel(props, 'modelValue', emit)
-
-const { navigateToProject } = useGlobal()
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -21,11 +17,13 @@ const { $e, $poller } = useNuxtApp()
 
 const basesStore = useBases()
 
+const { loadProjects, createProject: _createProject } = basesStore
+const { bases } = storeToRefs(basesStore)
+
+const { navigateToProject } = useGlobal()
 const { workspacesList, activeWorkspace } = useWorkspace()
 
-const { loadProjects, createProject: _createProject } = basesStore
-
-const { bases } = storeToRefs(basesStore)
+const dialogShow = useVModel(props, 'modelValue', emit)
 
 const options = ref({
   includeData: true,
@@ -34,17 +32,14 @@ const options = ref({
   includeComments: true,
 })
 const targetWorkspace = ref(activeWorkspace)
+const workspaceOptions = computed(() => {
+  if (!isEeUI) return []
+  return workspacesList.filter((ws) =>
+    [WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(ws.roles as WorkspaceUserRoles),
+  )
+})
 
-const errorMessage = ref()
-
-// Used to handle different Action in different states in Modal
-// pending -> Initial state
-// loading -> Set when duplicate is triggered
-const status = ref<'pending' | 'success' | 'error' | 'loading'>('pending')
-
-const isEaster = ref(false)
-
-const dropdownOpen = ref(false)
+const status = ref<'pending' | 'success' | 'error' | 'loading'>('success')
 
 const optionsToExclude = computed(() => {
   const { includeData, includeViews, includeHooks, includeComments } = options.value
@@ -56,20 +51,11 @@ const optionsToExclude = computed(() => {
   }
 })
 
-const workspaceOptions = computed(() => {
-  if (!isEeUI) return []
-  return workspacesList.filter((ws) =>
-    [WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(ws.roles as WorkspaceUserRoles),
-  )
-})
-
-const isLoading = computed(() => status.value === 'loading')
-
-const targetBase = ref()
+const isLoading = ref(false)
 
 const _duplicate = async () => {
   try {
-    status.value = 'loading'
+    isLoading.value = true
     // pick a random color from array and assign to base
     const color = baseThemeColors[Math.floor(Math.random() * 1000) % baseThemeColors.length]
     const tcolor = tinycolor(color)
@@ -108,15 +94,26 @@ const _duplicate = async () => {
       }) => {
         if (data.status !== 'close') {
           if (data.status === JobStatus.COMPLETED) {
-            const resBases = await loadProjects('workspace', targetWorkspace?.value?.id)
-            targetBase.value = resBases.find((b) => b.id === jobData.base_id)
-            status.value = 'success'
+            await loadProjects('workspace')
+            const base = bases.value.get(jobData.base_id)
 
+            // open project after duplication
+            /* if (base) {
+              navigateToProject({
+                workspaceId: isEeUI ? base.fk_workspace_id : undefined,
+                baseId: base.id,
+                type: base.type,
+              })
+            }
             refreshCommandPalette()
+            isLoading.value = false
+            dialogShow.value = false */
           } else if (data.status === JobStatus.FAILED) {
-            status.value = 'error'
+            /* message.error('Failed to duplicate project')
             await loadProjects('workspace')
             refreshCommandPalette()
+            isLoading.value = false
+            dialogShow.value = false */
           }
         }
       },
@@ -125,47 +122,10 @@ const _duplicate = async () => {
     $e('a:base:duplicate')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-    errorMessage.value = await extractSdkResponseErrorMsg(e)
-    status.value = 'error'
+    isLoading.value = false
     dialogShow.value = false
   }
 }
-
-const selectOption = (option: WorkspaceType) => {
-  targetWorkspace.value = option
-  dropdownOpen.value = false
-}
-
-const handleActionClick = () => {
-  switch (status.value) {
-    case 'pending': {
-      _duplicate()
-      break
-    }
-    case 'error': {
-      targetBase.value = null
-      errorMessage.value = null
-      status.value = 'pending'
-      break
-    }
-    case 'success': {
-      const base = targetBase.value
-      navigateToProject({
-        workspaceId: isEeUI ? base.fk_workspace_id : undefined,
-        baseId: base.id,
-        type: base.type,
-      })
-      dialogShow.value = false
-      break
-    }
-  }
-}
-
-watch(dialogShow, (newVal) => {
-  if (!newVal) {
-    status.value = 'pending'
-  }
-})
 
 onKeyStroke('Enter', () => {
   // should only trigger this when our modal is open
@@ -173,6 +133,15 @@ onKeyStroke('Enter', () => {
     _duplicate()
   }
 })
+
+const isEaster = ref(false)
+
+const dropdownOpen = ref(false)
+
+const selectOption = (option) => {
+  targetWorkspace.value = option
+  dropdownOpen.value = false
+}
 </script>
 
 <template>
@@ -188,162 +157,140 @@ onKeyStroke('Enter', () => {
     wrap-class-name="nc-modal-base-duplicate"
   >
     <div>
-      <div class="text-base text-nc-content-gray-emphasis leading-6 font-bold self-center" @dblclick="isEaster = !isEaster">
+      <div class="text-base text-nc-content-gray-emphasis font-bold self-center" @dblclick="isEaster = !isEaster">
         <template v-if="['pending', 'loading'].includes(status)">
-          {{ $t('labels.duplicateBaseBaseTitle', { baseTitle: base.title }) }}
+          {{ $t('general.duplicate') }} {{ $t('objects.project') }} "{{ base.title }}"
         </template>
 
         <template v-else-if="status === 'success'">
           <div class="flex items-center gap-2">
             <GeneralIcon class="text-white w-6 h-6" icon="checkFill" />
-            <div class="text-nc-content-gray-emphasis font-semibold">
-              {{ $t('labels.duplicateBaseSuccessfull') }}
+            <div class="text-brand-500 font-semibold">
+              {{ $t('general.success') }}
             </div>
           </div>
         </template>
         <template v-else-if="status === 'error'">
           <div class="flex items-center gap-2">
             <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-6 h-6" />
-            <div class="text-nc-content-gray-emphasis font-semibold">
-              {{ $t('labels.duplicateBaseFailed') }}
+            <div class="text-brand-500 font-semibold">
+              {{ $t('general.success') }}
             </div>
           </div>
         </template>
       </div>
 
-      <template v-if="['pending', 'loading'].includes(status)">
-        <div class="mt-5 flex gap-3 flex-col">
-          <div
-            class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
-            @click="options.includeData = !options.includeData"
-          >
-            <NcSwitch :checked="options.includeData" />
-            {{ $t('labels.includeRecords') }}
-          </div>
+      <div class="mt-5 flex gap-3 flex-col">
+        <div
+          class="flex gap-3 cursor-pointer text-nc-content-gray font-medium items-center"
+          @click="options.includeData = !options.includeData"
+        >
+          <NcSwitch :checked="options.includeData" />
+          {{ $t('labels.includeRecords') }}
+        </div>
 
-          <template v-if="isEaster">
-            <div
-              class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
-              @click="options.includeViews = !options.includeViews"
-            >
-              <NcSwitch :checked="options.includeViews" />
-              {{ $t('labels.includeView') }}
-            </div>
-
-            <div
-              class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
-              @click="options.includeHooks = !options.includeHooks"
-            >
-              <NcSwitch :checked="options.includeHooks" />
-              {{ $t('labels.includeWebhook') }}
-            </div>
-          </template>
-
-          <div
-            class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
-            @click="options.includeComments = !options.includeComments"
-          >
-            <NcSwitch :checked="options.includeComments" />
-            {{ $t('labels.includeComments') }}
-          </div>
+        <!--        <div
+          class="flex gap-3 cursor-pointer text-nc-content-gray font-medium items-center"
+          @click="options.includeViews = !options.includeViews"
+        >
+          <NcSwitch :checked="options.includeViews" />
+          {{ $t('labels.includeView') }}
         </div>
 
         <div
-          :class="{
-            'mb-5': !isEeUI,
-          }"
-          class="mt-5 text-nc-content-gray-subtle2 font-medium"
+          class="flex gap-3 cursor-pointer text-nc-content-gray font-medium items-center"
+          @click="options.includeHooks = !options.includeHooks"
         >
-          {{ $t('labels.baseDuplicateMessage') }}
+          <NcSwitch :checked="options.includeHooks" />
+          {{ $t('labels.includeWebhook') }}
+        </div> -->
+
+        <div
+          class="flex gap-3 cursor-pointer text-nc-content-gray font-medium items-center"
+          @click="options.includeComments = !options.includeComments"
+        >
+          <NcSwitch :checked="options.includeComments" />
+          {{ $t('labels.includeComments') }}
         </div>
+      </div>
 
-        <div v-if="isEeUI" class="mb-5">
-          <NcDivider divider-class="!my-5" />
+      <div class="mt-5 text-nc-content-gray-subtle2 font-medium">{{ $t('labels.baseDuplicateMessage') }}</div>
 
-          <div class="text-nc-content-gray font-medium leading-5">
-            {{ $t('labels.workspace') }}
+      <div v-if="isEeUI">
+        <NcDivider divider-class="!my-5" />
 
-            <NcDropdown v-model:visible="dropdownOpen" class="mt-2">
-              <div
-                class="rounded-lg border-1 transition-all cursor-pointer flex items-center border-nc-border-grey-medium h-8 py-1 gap-2 px-3"
-                style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
-                :class="{
-                  '!border-brand-500 !shadow-selected': dropdownOpen,
-                }"
-              >
-                <GeneralWorkspaceIcon size="small" :workspace="targetWorkspace" />
+        <div class="text-nc-content-gray font-medium leading-5">
+          {{ $t('labels.workspace') }}
 
-                <div class="flex-1 capitalize truncate">
-                  {{ targetWorkspace?.title }}
-                </div>
+          <NcDropdown v-model:visible="dropdownOpen" class="mt-2">
+            <div
+              class="rounded-lg border-1 transition-all cursor-pointer flex items-center border-nc-border-grey-medium h-8 py-1 gap-2 px-3"
+              style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
+              :class="{
+                '!border-brand-500 !shadow-selected': dropdownOpen,
+              }"
+            >
+              <GeneralWorkspaceIcon size="small" :workspace="targetWorkspace" />
 
-                <div class="flex gap-2 items-center">
-                  <div v-if="activeWorkspace?.id === targetWorkspace?.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
-                    {{ $t('labels.currentWorkspace') }}
-                  </div>
-                  <GeneralIcon
-                    :class="{
-                      'transform rotate-180': dropdownOpen,
-                    }"
-                    class="text-nc-content-gray transition-all w-4 h-4"
-                    icon="ncChevronDown"
-                  />
-                </div>
+              <div class="flex-1 capitalize">
+                {{ targetWorkspace.title }}
               </div>
 
-              <template #overlay>
-                <NcList
-                  :value="targetWorkspace"
-                  :item-height="28"
-                  close-on-select
-                  class="nc-base-workspace-selection"
-                  :min-items-for-search="6"
-                  container-class-name="w-full"
-                  :list="workspaceOptions"
-                  option-label-key="title"
-                >
-                  <template #listHeader>
-                    <div class="text-nc-content-gray-muted text-[13px] px-3 pt-2.5 pb-1.5 font-medium leading-5">
-                      {{ $t('labels.duplicateBaseMessage') }}
+              <div class="flex gap-2 items-center">
+                <div v-if="activeWorkspace.id === targetWorkspace?.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
+                  {{ $t('labels.currentWorkspace') }}
+                </div>
+                <GeneralIcon
+                  :class="{
+                    'transform rotate-180': dropdownOpen,
+                  }"
+                  class="text-nc-content-gray transition-all w-4 h-4"
+                  icon="ncChevronDown"
+                />
+              </div>
+            </div>
+
+            <template #overlay>
+              <NcList
+                v-model:value="targetWorkspace"
+                :item-height="28"
+                close-on-select
+                min-items-for-search="6"
+                container-class-name="w-full"
+                :list="workspaceOptions"
+                option-label-key="title"
+              >
+                <template #listHeader>
+                  <div class="text-nc-content-gray-muted text-[13px] px-3 py-2.5 font-medium leading-5">
+                    You can only duplicate bases into workspaces where you have creator access or above.
+                  </div>
+
+                  <NcDivider />
+                </template>
+
+                <template #listItem="{ option, isSelected }">
+                  <div class="flex gap-2 w-full items-center" @click="selectOption(option)">
+                    <GeneralWorkspaceIcon :workspace="option" size="small" />
+
+                    <div class="flex-1 text-[13px] font-semibold leading-5 capitalize w-full">
+                      {{ option.title }}
                     </div>
 
-                    <NcDivider />
-                  </template>
-
-                  <template #listItem="{ option }">
-                    <div class="flex gap-2 w-full items-center" @click="selectOption(option)">
-                      <GeneralWorkspaceIcon :workspace="option" size="small" />
-
-                      <div class="flex-1 text-[13px] truncate font-semibold leading-5 capitalize w-full">
-                        {{ option.title }}
+                    <div class="flex items-center gap-2">
+                      <div v-if="activeWorkspace.id === option.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
+                        {{ $t('labels.currentWorkspace') }}
                       </div>
-
-                      <div class="flex items-center gap-2">
-                        <div v-if="activeWorkspace?.id === option.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
-                          {{ $t('labels.currentWorkspace') }}
-                        </div>
-                        <GeneralIcon v-if="option.id === targetWorkspace?.id" class="text-brand-500 w-4 h-4" icon="ncCheck" />
-                      </div>
+                      <GeneralIcon v-if="option.id === targetWorkspace.id" class="text-brand-500 w-4 h-4" icon="ncCheck" />
                     </div>
-                  </template>
-                </NcList>
-              </template>
-            </NcDropdown>
-          </div>
+                  </div>
+                </template>
+              </NcList>
+            </template>
+          </NcDropdown>
         </div>
-      </template>
-
-      <template v-else-if="status === 'success'">
-        <div class="text-nc-content-gray-emphasis my-5 font-medium">
-          Base <span class="font-bold leading-5">"{{ base.title }}"</span> has finished duplication.
-        </div>
-      </template>
-
-      <template v-else-if="status === 'error'">
-        <div class="text-nc-content-gray-emphasis my-5 font-medium">{{ $t('labels.errorMessage') }} {{ errorMessage }}</div>
-      </template>
+      </div>
     </div>
-    <div class="flex flex-row gap-x-2 justify-end">
+    <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
       <NcButton v-if="!isLoading" key="back" type="secondary" size="small" @click="dialogShow = false">
         {{ $t('general.cancel') }}
       </NcButton>
@@ -353,12 +300,9 @@ onKeyStroke('Enter', () => {
         size="small"
         :loading="isLoading"
         :disabled="isLoading"
-        @click="handleActionClick"
+        @click="_duplicate"
       >
-        <template v-if="status === 'pending'"> {{ $t('general.duplicate') }} {{ $t('objects.project') }} </template>
-        <template v-else-if="status === 'loading'"> Duplicating {{ $t('objects.project') }} </template>
-        <template v-else-if="status === 'success'"> {{ $t('labels.goToBase') }} </template>
-        <template v-else-if="status === 'error'"> {{ $t('labels.tryAgain') }} </template>
+        {{ $t('general.duplicate') }} {{ $t('objects.project') }}
       </NcButton>
     </div>
   </GeneralModal>
@@ -375,12 +319,9 @@ onKeyStroke('Enter', () => {
 </style>
 
 <style lang="scss">
-.nc-base-workspace-selection {
-  .nc-list {
-    @apply !px-1;
-    .nc-list-item {
-      @apply !py-1;
-    }
+.nc-list {
+  .nc-list-item {
+    @apply !py-1;
   }
 }
 </style>

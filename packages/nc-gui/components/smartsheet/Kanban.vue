@@ -783,7 +783,11 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
                                   @click="expandFormClick($event, record)"
                                   @contextmenu="showContextMenu($event, record)"
                                 >
-                                  <template v-if="kanbanMetaData?.fk_cover_image_col_id" #cover>
+                                  <!--
+                                     Check the coverImageColumn ID because kanbanMetaData?.fk_cover_image_col_id
+                                     could reference a non-existent column. This is a workaround to handle such scenarios properly.
+                                 -->
+                                  <template v-if="coverImageColumn?.id" #cover>
                                     <template v-if="!reloadAttachments && attachments(record).length">
                                       <a-carousel
                                         :key="attachments(record).reduce((acc, curr) => acc + curr?.path, '')"
@@ -870,7 +874,7 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
                                           :read-only="true"
                                         />
                                       </template>
-                                      <template v-else> - </template>
+                                      <template v-else> -</template>
                                     </h2>
 
                                     <div
@@ -1236,9 +1240,11 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
 .ant-layout-footer {
   @apply !bg-white;
 }
+
 .ant-layout-content {
   background-color: unset;
 }
+
 .ant-layout-header,
 .ant-layout-footer {
   @apply p-2 text-sm;
@@ -1271,6 +1277,7 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
 .ant-carousel.gallery-carousel :deep(.slick-dots li) {
   @apply !w-auto;
 }
+
 .ant-carousel.gallery-carousel :deep(.slick-prev) {
   @apply left-0;
 }
@@ -1351,6 +1358,7 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
       .nc-readonly-rich-text-wrapper {
         @apply !min-h-1;
       }
+
       .nc-rich-text {
         @apply pl-0;
         .tiptap.ProseMirror {
@@ -1359,15 +1367,19 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
       }
     }
   }
+
   &.nc-cell-checkbox {
     @apply children:pl-0;
   }
+
   &.nc-cell-singleselect .nc-cell-field > div {
     @apply flex items-center;
   }
+
   &.nc-cell-multiselect .nc-cell-field > div {
     @apply h-5;
   }
+
   &.nc-cell-email,
   &.nc-cell-phonenumber {
     @apply flex items-center;
@@ -1386,6 +1398,7 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
   .nc-links-wrapper {
     @apply py-0 children:min-h-4;
   }
+
   &.nc-virtual-cell-linktoanotherrecord {
     .chips-wrapper {
       @apply min-h-4 !children:min-h-4;
@@ -1394,6 +1407,7 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
       }
     }
   }
+
   &.nc-virtual-cell-lookup {
     .nc-lookup-cell {
       &:has(.nc-attachment-wrapper) {
@@ -1407,14 +1421,17 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
           }
         }
       }
+
       &:not(:has(.nc-attachment-wrapper)) {
         @apply !h-5.5;
       }
+
       .nc-cell-lookup-scroll {
         @apply py-0 h-auto;
       }
     }
   }
+
   &.nc-virtual-cell-formula {
     .nc-cell-field {
       @apply py-0;

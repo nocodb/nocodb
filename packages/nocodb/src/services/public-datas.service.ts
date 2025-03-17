@@ -3,7 +3,7 @@ import { ncIsArray, UITypes, ViewTypes } from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
-import type { DependantFields, RequestQuery } from '~/helpers/getAst';
+import type { DependantFields } from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
 import { Column, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';

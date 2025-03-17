@@ -552,7 +552,7 @@ export const renderMarkdownBlocks = (
      * We have to render tokens as multiline text, so we have to keep track of rendered cursorX and cursorY
      */
     for (const token of tokens) {
-      let tokenText = token.value
+      const tokenText = token.value
 
       ctx.font = getFontForToken(token, block.type, {
         baseFontSize,

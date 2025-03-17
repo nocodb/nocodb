@@ -679,8 +679,8 @@ const modalProps = computed(() => {
 
 // check if the row is new and has some changes on LTAR/Links
 // this is to enable save if there are changes on LTAR/Links
-const isLTARChanged = computed(() =>{
-  return isNew.value && row.value?.rowMeta?.ltarState  && Object.keys(row.value?.rowMeta?.ltarState).length > 0;
+const isLTARChanged = computed(() => {
+  return isNew.value && row.value?.rowMeta?.ltarState && Object.keys(row.value?.rowMeta?.ltarState).length > 0
 })
 
 watch(

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-types,prefer-const */
 import groupBy from 'lodash/groupBy';
+import { customValidators } from 'src/db/util/customValidators';
 import type { Knex } from 'knex';
 import type Filter from '~/models/Filter';
 import type Sort from '~/models/Sort';
-import { customValidators } from 'src/db/util/customValidators';
 
 const autoBind = require('auto-bind');
 const Validator = require('validator');

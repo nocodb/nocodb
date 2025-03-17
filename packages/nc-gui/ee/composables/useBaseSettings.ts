@@ -25,7 +25,7 @@ export const useBaseSettings = createSharedComposable(() => {
 
   const isRestoringSnapshot = ref(false)
 
-  const { basesUser, bases } = storeToRefs(basesStore)
+  const { basesUser } = storeToRefs(basesStore)
 
   const baseUsers = computed(() => (activeProjectId.value ? basesUser.value.get(activeProjectId.value) || [] : []))
 

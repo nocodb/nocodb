@@ -25,8 +25,6 @@ const { workspacesList, activeWorkspace } = useWorkspace()
 
 const { loadProjects, createProject: _createProject } = basesStore
 
-const { bases } = storeToRefs(basesStore)
-
 const options = ref({
   includeData: true,
   includeViews: true,

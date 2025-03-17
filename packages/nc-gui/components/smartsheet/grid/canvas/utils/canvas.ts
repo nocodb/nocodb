@@ -543,7 +543,6 @@ export const renderMarkdownBlocks = (
       tokens = [{ styles: [], value: `${block.number}. ` }, ...tokens]
     }
 
-    let tokenIndex = 0
     let cursorX = x
     // New block should always start on next line
     let cursorY = y + renderedLineCount * lineHeight
@@ -552,7 +551,7 @@ export const renderMarkdownBlocks = (
      * We have to render tokens as multiline text, so we have to keep track of rendered cursorX and cursorY
      */
     for (const token of tokens) {
-      let tokenText = token.value
+      const tokenText = token.value
 
       ctx.font = getFontForToken(token, block.type, {
         baseFontSize,
@@ -654,8 +653,6 @@ export const renderMarkdownBlocks = (
         cursorY = y + renderedLineCount * lineHeight
       }
 
-      tokenIndex++
-
       if (renderedLineCount >= maxLines) {
         break
       }
@@ -672,7 +669,7 @@ export const renderMarkdownBlocks = (
   ctx.strokeStyle = defaultStrokeStyle
 }
 
-export const renderMultiLineText = (
+export function renderMultiLineText(
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   params: RenderMultiLineTextProps,
 ): {
@@ -683,7 +680,7 @@ export const renderMultiLineText = (
   height: number
   lastLineX: number
   lastLineWidth: number
-} => {
+} {
   const {
     x = 0,
     y = 0,

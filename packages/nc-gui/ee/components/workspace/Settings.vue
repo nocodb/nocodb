@@ -5,10 +5,8 @@ const props = defineProps<{
   workspaceId?: string
 }>()
 
-const { signOut } = useGlobal()
-
-const { deleteWorkspace, navigateToWorkspace, updateWorkspace, loadWorkspace } = useWorkspace()
-const { workspacesList, activeWorkspace, workspaces } = storeToRefs(useWorkspace())
+const { deleteWorkspace, navigateToWorkspace, updateWorkspace, loadWorkspace, loadWorkspaces } = useWorkspace()
+const { workspacesList, activeWorkspace, workspaces, deletingWorkspace } = storeToRefs(useWorkspace())
 
 const { orgId } = useOrganization()
 
@@ -17,7 +15,6 @@ const { refreshCommandPalette } = useCommandPalette()
 const router = useRouter()
 
 const formValidator = ref()
-const isDeleting = ref(false)
 const isErrored = ref(false)
 const isDeleteModalVisible = ref(false)
 // if activeworkspace.title is used it will show new workspace name in loading state
@@ -82,28 +79,26 @@ const imageCropperData = ref<Omit<ImageCropperProps, 'showCropper'>>({
 const onDelete = async () => {
   if (!currentWorkspace.value || !currentWorkspace.value.id) return
 
-  isDeleting.value = true
+  deletingWorkspace.value = true
   try {
-    const shouldSignOut = workspacesList.value.length < 2
-    await deleteWorkspace(currentWorkspace.value.id, { skipStateUpdate: true })
+    const workspaceId = currentWorkspace.value.id
+    // const shouldSignOut = workspacesList.value.length < 2
+    await deleteWorkspace(workspaceId, { skipStateUpdate: true })
     // We only remove the delete workspace from the list after the api call is successful
 
     if (isAdminPanel.value) {
       router.replace({ hash: `#/admin/${orgId.value}/workspaces` })
     }
 
-    workspaces.value.delete(currentWorkspace.value.id)
-    if (!shouldSignOut && !isAdminPanel.value) {
-      await navigateToWorkspace(workspacesList.value[0].id)
-    } else if (!isAdminPanel.value) {
-      // As signin page will clear the workspaces, we need to check if there are more than one workspace
-      await signOut({ skipRedirect: false })
-      setTimeout(() => {
-        window.location.href = '/'
-      }, 100)
+    await loadWorkspaces()
+    if (!isAdminPanel.value) {
+      await navigateToWorkspace(workspacesList.value?.find((ws) => ws.id !== workspaceId)?.id)
+
+      // remove the workspace from the list after navigating to another workspace
+      workspaces.value.delete(workspaceId)
     }
   } finally {
-    isDeleting.value = false
+    deletingWorkspace.value = false
     refreshCommandPalette()
     toBeDeletedWorkspaceTitle.value = ''
   }
@@ -281,9 +276,9 @@ watch(
             type="danger"
             size="small"
             :disabled="form.modalInput !== currentWorkspace?.title"
-            :loading="isDeleting"
-            >Delete Workspace</NcButton
-          >
+            :loading="deletingWorkspace"
+            >Delete Workspace
+          </NcButton>
         </div>
       </a-form>
     </div>

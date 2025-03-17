@@ -30,12 +30,14 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
         ],
       } as FilterVerificationResult;
     }
+
     if (
       !(
         typeof filter.value === 'undefined' ||
         filter.value === null ||
         typeof filter.value === 'number' ||
-        ncIsNumber(Number(filter.value))
+        ncIsNumber(Number(filter.value)) ||
+        (filter.comparison_op === 'in' && Array.isArray(filter.value))
       )
     ) {
       return {

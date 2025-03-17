@@ -167,6 +167,8 @@ export const useBases = defineStore('basesStore', () => {
       }, new Map())
 
       await updateIfBaseOrderIsNullOrDuplicate()
+
+      return _projects
     } catch (e) {
       console.error(e)
       message.error(e.message)

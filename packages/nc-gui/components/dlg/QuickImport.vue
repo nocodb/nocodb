@@ -716,7 +716,7 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
                   <span class="text-sm">{{ $t('labels.addFromUrl') }} </span>
                 </div>
               </template>
-              <div class="relative mt-5">
+              <div class="relative mt-5 mb-1 px-1">
                 <a-form :model="importState" name="quick-import-url-form" layout="vertical" class="!my-0">
                   <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url" :required="false" class="!my-0">
                     <a-input

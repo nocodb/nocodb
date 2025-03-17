@@ -222,14 +222,20 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         }
         break;
       case UITypes.Lookup:
+      case UITypes.LinkToAnotherRecord:
         aliasToColumn[col.id] = async (): Promise<any> => {
           let aliasCount = 0;
           let selectQb;
           let isArray = false;
           const alias = `__nc_formula${aliasCount++}`;
-          const lookup = await col.getColOptions<LookupColumn>(context);
+          const lookup =
+            col.uidt === UITypes.Lookup
+              ? await col.getColOptions<LookupColumn>(context)
+              : null;
           {
-            const relationCol = await lookup.getRelationColumn(context);
+            const relationCol = lookup
+              ? await lookup.getRelationColumn(context)
+              : col;
             const relation =
               await relationCol.getColOptions<LinkToAnotherRecordColumn>(
                 context,
@@ -250,6 +256,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                 ? RelationTypes.BELONGS_TO
                 : RelationTypes.HAS_MANY;
             }
+            let lookupColumn = lookup
+              ? await lookup.getLookupColumn(context)
+              : null;
 
             switch (relationType) {
               case RelationTypes.BELONGS_TO:
@@ -267,6 +276,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                     }.${childColumn.column_name}`,
                   ]),
                 );
+                lookupColumn = lookupColumn ?? parentModel.displayValue;
                 break;
               case RelationTypes.HAS_MANY:
                 isArray = relation.type !== RelationTypes.ONE_TO_ONE;
@@ -284,6 +294,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                     }.${parentColumn.column_name}`,
                   ]),
                 );
+                lookupColumn = lookupColumn ?? childModel.displayValue;
                 break;
               case RelationTypes.MANY_TO_MANY:
                 {
@@ -320,11 +331,11 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                         }.${childColumn.column_name}`,
                       ]),
                     );
+                  lookupColumn = lookupColumn ?? parentModel.displayValue;
                 }
                 break;
             }
 
-            let lookupColumn = await lookup.getLookupColumn(context);
             let prevAlias = alias;
             while (lookupColumn.uidt === UITypes.Lookup) {
               const nestedAlias = `__nc_formula${aliasCount++}`;
@@ -608,6 +619,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                       lookupColumn.id,
                       ...params.parentColumns,
                     ]),
+                    tableAlias: prevAlias,
                   });
                   if (isArray) {
                     const qb = selectQb;
@@ -668,161 +680,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             alias: tableAlias,
           });
           return { builder: knex.raw(qb.builder).wrap('(', ')') };
-        };
-        break;
-      case UITypes.LinkToAnotherRecord:
-        aliasToColumn[col.id] = async (): Promise<any> => {
-          const alias = `__nc_formula_ll`;
-          const relation = await col.getColOptions<LinkToAnotherRecordColumn>(
-            context,
-          );
-          // if (relation.type !== RelationTypes.BELONGS_TO) continue;
-
-          const colOptions = (await col.getColOptions(
-            context,
-          )) as LinkToAnotherRecordColumn;
-          const childColumn = await colOptions.getChildColumn(context);
-          const parentColumn = await colOptions.getParentColumn(context);
-          const childModel = await childColumn.getModel(context);
-          await childModel.getColumns(context);
-          const parentModel = await parentColumn.getModel(context);
-          await parentModel.getColumns(context);
-
-          let relationType = relation.type;
-
-          if (relationType === RelationTypes.ONE_TO_ONE) {
-            relationType = col.meta?.bt
-              ? RelationTypes.BELONGS_TO
-              : RelationTypes.HAS_MANY;
-          }
-
-          let selectQb;
-          if (relationType === RelationTypes.BELONGS_TO) {
-            const linkedDisplayValue = await getLinkedColumnDisplayValue({
-              model: parentModel,
-              aliasToColumn: { ...aliasToColumn, [col.id]: null },
-              parentColumns: new Set(params.parentColumns),
-            });
-            selectQb = knex(baseModelSqlv2.getTnPath(parentModel.table_name))
-              .select(
-                typeof linkedDisplayValue === 'string'
-                  ? linkedDisplayValue
-                  : knex.raw(linkedDisplayValue.builder).wrap('(', ')'),
-              )
-              .where(
-                `${baseModelSqlv2.getTnPath(parentModel.table_name)}.${
-                  parentColumn.column_name
-                }`,
-                knex.raw(`??`, [
-                  `${
-                    tableAlias ??
-                    baseModelSqlv2.getTnPath(childModel.table_name)
-                  }.${childColumn.column_name}`,
-                ]),
-              );
-          } else if (relationType == RelationTypes.HAS_MANY) {
-            const qb = knex(baseModelSqlv2.getTnPath(childModel.table_name))
-              // .select(knex.raw(`GROUP_CONCAT(??)`, [childModel?.pv?.title]))
-              .where(
-                `${baseModelSqlv2.getTnPath(childModel.table_name)}.${
-                  childColumn.column_name
-                }`,
-                knex.raw(`??`, [
-                  `${
-                    tableAlias ??
-                    baseModelSqlv2.getTnPath(parentModel.table_name)
-                  }.${parentColumn.column_name}`,
-                ]),
-              );
-            const childDisplayValue = await getLinkedColumnDisplayValue({
-              model: childModel,
-              aliasToColumn: { ...aliasToColumn, [col.id]: null },
-              parentColumns: new Set(params.parentColumns),
-            });
-            selectQb = (fn) =>
-              knex
-                .raw(
-                  getAggregateFn(fn)({
-                    qb,
-                    knex,
-                    cn:
-                      typeof childDisplayValue === 'string'
-                        ? childDisplayValue
-                        : childDisplayValue.builder,
-                  }),
-                )
-                .wrap('(', ')');
-            // getAggregateFn();
-          } else if (relationType == RelationTypes.MANY_TO_MANY) {
-            // todo:
-            // const qb = knex(childModel.title)
-            //   // .select(knex.raw(`GROUP_CONCAT(??)`, [childModel?.pv?.title]))
-            //   .where(
-            //     `${childModel.title}.${childColumn.title}`,
-            //     knex.raw(`??`, [`${parentModel.title}.${parentColumn.title}`])
-            //   );
-            //
-            // selectQb = fn =>
-            //   knex
-            //     .raw(
-            //       getAggregateFn(fn)({
-            //         qb,
-            //         knex,
-            //         cn: childModel?.pv?.title
-            //       })
-            //     )
-            //     .wrap('(', ')');
-            //
-            // // getAggregateFn();
-
-            //   todo: provide unique alias
-
-            const mmModel = await relation.getMMModel(context);
-            const mmParentColumn = await relation.getMMParentColumn(context);
-            const mmChildColumn = await relation.getMMChildColumn(context);
-
-            const qb = knex(
-              knex.raw(`?? as ??`, [
-                baseModelSqlv2.getTnPath(parentModel.table_name),
-                alias,
-              ]),
-            )
-              .join(
-                `${baseModelSqlv2.getTnPath(mmModel.table_name)}`,
-                `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
-                  mmParentColumn.column_name
-                }`,
-                `${alias}.${parentColumn.column_name}`,
-              )
-              .where(
-                `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
-                  mmChildColumn.column_name
-                }`,
-                knex.raw(`??`, [
-                  `${
-                    tableAlias ??
-                    baseModelSqlv2.getTnPath(childModel.table_name)
-                  }.${childColumn.column_name}`,
-                ]),
-              );
-            selectQb = (fn) =>
-              knex
-                .raw(
-                  getAggregateFn(fn)({
-                    qb,
-                    knex,
-                    cn: parentModel?.displayValue?.column_name,
-                  }),
-                )
-                .wrap('(', ')');
-          }
-          if (selectQb)
-            return {
-              builder:
-                typeof selectQb === 'function'
-                  ? selectQb
-                  : knex.raw(selectQb as any).wrap('(', ')'),
-            };
         };
         break;
       case UITypes.CreatedTime:

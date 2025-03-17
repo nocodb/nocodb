@@ -108,7 +108,7 @@ export const useBases = defineStore('basesStore', () => {
     await api.auth.baseUserRemove(baseId, user.id)
   }
 
-  const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace') => {
+  const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace', workspaceId?: string) => {
     // if shared source then get the shared base and create a list
     if (route.value.params.typeOrId === 'base' && route.value.params.baseId) {
       try {
@@ -140,8 +140,9 @@ export const useBases = defineStore('basesStore', () => {
 
     const activeWorkspace = workspaceStore.activeWorkspace
     const workspace = workspaceStore.workspace
+    const targetWorkspaceId = workspaceId ?? activeWorkspace?.id ?? workspace?.id
 
-    if ((!page || page === 'workspace') && !workspace?.id && !activeWorkspace?.id) {
+    if ((!page || page === 'workspace') && !targetWorkspaceId) {
       throw new Error('Workspace not selected')
     }
 
@@ -149,9 +150,9 @@ export const useBases = defineStore('basesStore', () => {
 
     isProjectsLoading.value = true
     try {
-      if (activeWorkspace?.id) {
-        const { list } = await $api.workspaceBase.list(activeWorkspace?.id ?? workspace?.id, {
-          baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
+      if (targetWorkspaceId) {
+        const { list } = await $api.workspaceBase.list(targetWorkspaceId, {
+          baseURL: getBaseUrl(targetWorkspaceId),
         })
         _projects = list
       } else {
@@ -161,31 +162,37 @@ export const useBases = defineStore('basesStore', () => {
                 query: {
                   [page]: true,
                 },
-                baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
+                baseURL: getBaseUrl(targetWorkspaceId),
               }
             : {
-                baseURL: getBaseUrl(activeWorkspace?.id ?? workspace?.id),
+                baseURL: getBaseUrl(targetWorkspaceId),
               },
         )
         _projects = list
       }
 
-      bases.value = _projects.reduce((acc, base) => {
-        const existingProjectMeta = bases.value.get(base.id!) || {}
-        acc.set(base.id!, {
-          ...existingProjectMeta,
-          ...base,
-          sources: [...(base.sources ?? bases.value.get(base.id!)?.sources ?? [])],
-          isExpanded: route.value.params.baseId === base.id || bases.value.get(base.id!)?.isExpanded,
-          isLoading: false,
-        })
-        return acc
-      }, new Map())
+      // Only update bases.value if the workspaceId matches activeWorkspace.id
+      if (!workspaceId || workspaceId === activeWorkspace?.id) {
+        bases.value = _projects.reduce((acc, base) => {
+          const existingProjectMeta = bases.value.get(base.id!) || {}
+          acc.set(base.id!, {
+            ...existingProjectMeta,
+            ...base,
+            sources: [...(base.sources ?? bases.value.get(base.id!)?.sources ?? [])],
+            isExpanded: route.value.params.baseId === base.id || bases.value.get(base.id!)?.isExpanded,
+            isLoading: false,
+          })
+          return acc
+        }, new Map())
 
-      await updateIfBaseOrderIsNullOrDuplicate()
+        await updateIfBaseOrderIsNullOrDuplicate()
+      }
+
+      return _projects
     } catch (e) {
       console.error(e)
       message.error(e.message)
+      throw e
     } finally {
       isProjectsLoading.value = false
     }

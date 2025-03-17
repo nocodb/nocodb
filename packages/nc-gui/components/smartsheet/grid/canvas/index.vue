@@ -64,6 +64,7 @@ const props = defineProps<{
   chunkStates: Array<'loading' | 'loaded' | undefined>
   isBulkOperationInProgress: boolean
   selectedAllRecords?: boolean
+  getRows: (start: number, end: number) => Promise<Row[]>
 }>()
 
 const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
@@ -86,6 +87,7 @@ const {
   applySorting,
   bulkDeleteAll,
   removeRowIfNew,
+  getRows,
 } = props
 
 // VModels
@@ -278,6 +280,7 @@ const {
   onActiveCellChanged,
   addNewColumn: addEmptyColumn,
   setCursor,
+  getRows,
 })
 
 const activeCursor = ref<CursorType>('auto')
@@ -1828,6 +1831,7 @@ defineExpose({
               :call-add-new-row="callAddNewRow"
               :copy-value="copyValue"
               :read-only="!hasEditPermission"
+              :get-rows="getRows"
               :bulk-update-rows="bulkUpdateRows"
               :expand-form="expandForm"
               :selected-rows="selectedRows"

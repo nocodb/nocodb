@@ -127,7 +127,7 @@ defineExpose({
           @click="options.includeData = !options.includeData"
         >
           <NcSwitch :checked="options.includeData" />
-          {{ $t('labels.includeData') }}
+          {{ $t('labels.includeRecords') }}
         </div>
       </div>
     </div>

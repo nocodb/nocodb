@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { type ColumnType, type LinkToAnotherRecordType, isDateOrDateTimeCol } from 'nocodb-sdk'
-import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { RelationTypes, isDateOrDateTimeCol, isLinksOrLTAR } from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
 
 const props = defineProps<{ modelValue: boolean; column: any; hideBackBtn?: boolean }>()
@@ -361,7 +361,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
                 comparison_sub_op: 'exactDate',
                 value: childrenExcludedListPagination.query,
               }"
-              @update-filter-value="(value) => (childrenExcludedListPagination.query = value)"
+              @update-filter-value="childrenExcludedListPagination.query = $event"
               @click.stop
             />
             <a-input

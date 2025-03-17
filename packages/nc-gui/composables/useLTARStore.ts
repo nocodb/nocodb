@@ -324,8 +324,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               {
                 fk_column_id: relatedTableDisplayValuePropId.value,
                 value: childrenExcludedListPagination.query,
-                comparison_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value) ? 'eq' : 'like',
-                comparison_sub_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value) ? 'exactDate' : undefined,
+                comparison_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq' : 'like',
+                comparison_sub_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'exactDate' : undefined,
               },
             ])
           : undefined
@@ -496,39 +496,54 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               totalRows: list.length,
             },
           }
-        } else if (isPublic.value) {
-          childrenList.value = await $api.public.dataNestedList(
-            sharedView.value?.uuid as string,
-            encodeURIComponent(rowId.value),
-            colOptions.value.type as RelationTypes,
-            column.value.id,
-            {
-              limit: String(childrenListPagination.size),
-              offset: String(offset),
-              where:
-                childrenListPagination.query && `(${relatedTableDisplayValueProp.value},like,${childrenListPagination.query})`,
-            } as any,
-            {
-              headers: {
-                'xc-password': sharedViewPassword.value,
-              },
-            },
-          )
         } else {
-          childrenList.value = await $api.dbTableRow.nestedList(
-            NOCO,
-            (base?.value?.id || (sharedView.value?.view as any)?.base_id) as string,
-            meta.value.id,
-            encodeURIComponent(rowId.value),
-            colOptions.value.type as RelationTypes,
-            column?.value?.id,
-            {
-              limit: String(limit ?? childrenListPagination.size),
-              offset: String(offset),
-              where:
-                childrenListPagination.query && `(${relatedTableDisplayValueProp.value},like,${childrenListPagination.query})`,
-            } as any,
-          )
+          const where = childrenListPagination.query
+            ? `(${relatedTableDisplayValueProp.value},${
+                isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq,exactDate' : 'like'
+              },${childrenListPagination.query})`
+            : undefined
+            ? JSON.stringify([
+                {
+                  fk_column_id: relatedTableDisplayValuePropId.value,
+                  value: childrenListPagination.query,
+                  comparison_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq' : 'like',
+                  comparison_sub_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'exactDate' : undefined,
+                },
+              ])
+            : undefined
+
+          if (isPublic.value) {
+            childrenList.value = await $api.public.dataNestedList(
+              sharedView.value?.uuid as string,
+              encodeURIComponent(rowId.value),
+              colOptions.value.type as RelationTypes,
+              column.value.id,
+              {
+                limit: String(childrenListPagination.size),
+                offset: String(offset),
+                where,
+              } as any,
+              {
+                headers: {
+                  'xc-password': sharedViewPassword.value,
+                },
+              },
+            )
+          } else {
+            childrenList.value = await $api.dbTableRow.nestedList(
+              NOCO,
+              (base?.value?.id || (sharedView.value?.view as any)?.base_id) as string,
+              meta.value.id,
+              encodeURIComponent(rowId.value),
+              colOptions.value.type as RelationTypes,
+              column?.value?.id,
+              {
+                limit: String(limit ?? childrenListPagination.size),
+                offset: String(offset),
+                where,
+              } as any,
+            )
+          }
         }
         childrenList.value?.list.forEach((row: Record<string, any>, index: number) => {
           isChildrenListLinked.value[index] = true

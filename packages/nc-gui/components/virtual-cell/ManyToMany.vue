@@ -198,7 +198,7 @@ onUnmounted(() => {
 
 <template>
   <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
-    <div class="nc-cell-field flex items-center gap-1 w-full chips-wrapper min-h-4">
+    <div class="nc-cell-field flex items-center gap-1 w-full chips-wrapper min-h-6.5 relative">
       <div
         class="chips flex items-center img-container flex-1 hm-items min-w-0 overflow-y-auto overflow-x-hidden"
         :class="{ 'flex-wrap': rowHeight !== 1 }"
@@ -222,7 +222,7 @@ onUnmounted(() => {
 
       <div
         v-if="!isUnderLookup || isForm"
-        class="flex justify-end gap-[2px] min-h-4 items-center absolute right-1 top-[3px] many-to-many-actions"
+        class="flex justify-end gap-[2px] min-h-4 items-center absolute right-0 top-0 bottom-0 many-to-many-actions"
         :class="{ active }"
         @click.stop
       >
@@ -287,12 +287,5 @@ onUnmounted(() => {
   .many-to-many-actions {
     @apply !flex;
   }
-}
-.ant-form-item-control-input .many-to-many-actions {
-  @apply top-[7px] right-[5px];
-}
-
-.nc-expanded-cell .many-to-many-actions {
-  @apply top-[2px] right-[5px];
 }
 </style>

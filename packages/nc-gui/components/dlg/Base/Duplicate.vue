@@ -303,7 +303,7 @@ onKeyStroke('Enter', () => {
                   option-label-key="title"
                 >
                   <template #listHeader>
-                    <div class="text-nc-content-gray-muted text-[13px] px-3 py-2.5 font-medium leading-5">
+                    <div class="text-nc-content-gray-muted text-[13px] px-3 pt-2.5 pb-1.5 font-medium leading-5">
                       {{ $t('labels.duplicateBaseMessage') }}
                     </div>
 
@@ -377,6 +377,7 @@ onKeyStroke('Enter', () => {
 <style lang="scss">
 .nc-base-workspace-selection {
   .nc-list {
+    @apply !px-1;
     .nc-list-item {
       @apply !py-1;
     }

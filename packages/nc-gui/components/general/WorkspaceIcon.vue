@@ -12,7 +12,7 @@ const props = withDefaults(
       iconType: IconType | string
     }
     hideLabel?: boolean
-    size?: 'small' | 'medium' | 'large' | 'xlarge'
+    size?: 'small' | 'medium' | 'large' | 'xlarge' | 'middle'
     isRounded?: boolean
     iconBgColor?: string
   }>(),
@@ -82,6 +82,7 @@ const size = computed(() => props.size || 'medium')
       'min-w-6 w-6 h-6 rounded-md': size === 'medium',
       'min-w-10 w-10 h-10 rounded-lg !text-base': size === 'large',
       'min-w-16 w-16 h-16 rounded-lg !text-4xl': size === 'xlarge',
+      'min-w-8 w-6 h-8 rounded-md': size === 'middle',
       '!rounded-[50%]': props.isRounded,
     }"
     :style="{
@@ -143,6 +144,7 @@ const size = computed(() => props.size || 'medium')
         :class="{
           'text-white': isColorDark(workspaceColor),
           'text-black': !isColorDark(workspaceColor),
+          'text-[8px]': size === 'small',
         }"
       >
         {{ workspace?.title?.slice(0, 2) }}

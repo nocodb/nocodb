@@ -6153,6 +6153,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           if (throwExceptionIfNotExist) {
             NcError.recordNotFound(pkValues);
           }
+          globalIndex++;
           continue;
         }
         if (!raw) {

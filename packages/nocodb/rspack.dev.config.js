@@ -109,11 +109,6 @@ const baseDevConfig = {
     //  hot: true,
   },
   cache: true,
-  experiments: {
-    cache: {
-      type: 'persistent',
-    },
-  },
   watch: true,
   watchOptions: {
     ignored: /node_modules/,

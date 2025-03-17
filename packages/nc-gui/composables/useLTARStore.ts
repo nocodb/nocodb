@@ -1,5 +1,14 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RequestParams, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, dateFormats, isLinksOrLTAR, isSystemColumn, parseStringDateTime, timeFormats } from 'nocodb-sdk'
+import {
+  RelationTypes,
+  UITypes,
+  dateFormats,
+  isLinksOrLTAR,
+  isSystemColumn,
+  parseStringDateTime,
+  timeFormats,
+  isDateOrDateTimeCol
+} from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 
 interface DataApiResponse {
@@ -120,13 +129,17 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       targetViewColumns.value = (await getViewColumns(viewId)) ?? []
     }
 
+    const relatedTableDisplayValueColumn = computed(() => {
+      return relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0]
+    })
+
     const relatedTableDisplayValueProp = computed(() => {
-      return (relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title || ''
+      return relatedTableDisplayValueColumn.value?.title || ''
     })
 
     // todo: temp fix, handle in backend
     const relatedTableDisplayValuePropId = computed(() => {
-      return (relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.id || ''
+      return relatedTableDisplayValueColumn.value?.id || ''
     })
 
     const relatedTablePrimaryKeyProps = computed(() => {
@@ -134,7 +147,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     })
 
     const displayValueProp = computed(() => {
-      return (meta.value?.columns?.find((c: Required<ColumnType>) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
+      return (meta.value?.columns?.find((c: Required<ColumnType>) => c.pv) || meta?.value?.columns?.[0])?.title
     })
 
     const displayValueTypeAndFormatProp = computed(() => {
@@ -306,6 +319,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           childrenExcludedListPagination.page = 1
         }
         isChildrenExcludedLoading.value = true
+        const filterArrJson = childrenExcludedListPagination.query ? JSON.stringify([{
+          fk_column_id: relatedTableDisplayValuePropId.value,
+          value: childrenExcludedListPagination.query,
+          comparison_op: isDateOrDateTimeCol (relatedTableDisplayValueColumn.value) ? 'eq' : 'like',
+          comparison_sub_op: isDateOrDateTimeCol (relatedTableDisplayValueColumn.value) ? 'exactDate' : undefined,
+        }]) : undefined;
+
         if (isPublic.value) {
           const router = useRouter()
 
@@ -330,11 +350,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               query: {
                 limit: childrenExcludedListPagination.size,
                 offset,
-                where:
-                  childrenExcludedListPagination.query &&
-                  `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
+                filterArrJson,
                 fields: requiredFieldsToLoad.value,
-
                 // todo: include only required fields
                 rowData: JSON.stringify(row),
               } as RequestParams,
@@ -352,11 +369,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             {
               limit: childrenExcludedListPagination.size,
               offset,
-              where:
-                childrenExcludedListPagination.query &&
-                `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
-              // ...(isForm.value ? { fields: requiredFieldsToLoad.value } : {}),
-
+              filterArrJson,
               // todo: include only required fields
               linkColumnId: column.value.fk_column_id || column.value.id,
               linkRowData: JSON.stringify(linkRowData),
@@ -390,10 +403,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             {
               limit: String(childrenExcludedListPagination.size),
               offset: String(offset),
-              // todo: where clause is missing from type
-              where:
-                childrenExcludedListPagination.query &&
-                `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
+              filterArrJson,
               linkRowData: changedRowData ? JSON.stringify(changedRowData) : undefined,
             } as any,
           )
@@ -765,6 +775,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       deleteRelatedRow,
       getRelatedTableRowId,
       headerDisplayValue,
+      relatedTableDisplayValueColumn,
       relatedTableDisplayValuePropId,
       resetChildrenExcludedOffsetCount,
       resetChildrenListOffsetCount,

@@ -581,3 +581,32 @@ export const isReadOnlyColumn = (column: ColumnType): boolean => {
     (column.pk && (column.ai || parseProp(column.meta)?.ag))
   );
 };
+
+/**
+ * Determines whether a given column type represents a Date or DateTime field.
+ *
+ * @param column - The column type to check.
+ * @returns `true` if the column is a Date, DateTime, CreatedTime, or LastModifiedTime field;
+ *          `true` if it is a Formula column that evaluates to DateTime;
+ *          otherwise, `false`.
+ */
+export const isDateOrDateTimeCol = (column: ColumnType) => {
+  // Check if the column's UI type is one of the predefined date-related types
+  if (
+    [
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+    ].includes(column.uidt as UITypes)
+  ) {
+    return true;
+  }
+
+  // If the column is a Formula, determine if its evaluated type is DateTime
+  if (column.uidt === UITypes.Formula) {
+    return getEquivalentUIType({ formulaColumn: column }) === UITypes.DateTime;
+  }
+
+  return false;
+};

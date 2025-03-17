@@ -213,8 +213,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         new Set([
           relatedTableDisplayValueProp.value,
           ...relatedTablePrimaryKeyProps.value,
-          attachmentCol.value?.title,
-          ...(fields.value || [])?.map((f) => f.title as string),
+          ...(attachmentCol.value ? [attachmentCol.value?.title] : []),
+          ...(fields.value || [])?.map((f) => f.title?.trim() as string),
         ]),
       )
     })

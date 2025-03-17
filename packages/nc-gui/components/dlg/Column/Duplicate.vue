@@ -135,9 +135,7 @@ defineExpose({
       <NcButton v-if="!isLoading" key="back" type="secondary" size="small" @click="dialogShow = false">
         {{ $t('general.cancel') }}
       </NcButton>
-      <NcButton key="submit" type="primary" size="small" :loading="isLoading" @click="_duplicate">
-        Duplicate Field
-      </NcButton>
+      <NcButton key="submit" type="primary" size="small" :loading="isLoading" @click="_duplicate"> Duplicate Field </NcButton>
     </div>
   </GeneralModal>
 </template>

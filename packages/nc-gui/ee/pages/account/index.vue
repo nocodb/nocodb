@@ -242,14 +242,7 @@ onMounted(() => {
                 </div>
               </template>
               <template v-else>
-                <a-sub-menu
-                  v-for="workspace in workspacesList"
-                  :key="workspace.id"
-                  :class="{
-                    active: $route.params.workspaceId === workspace.id,
-                  }"
-                  class="pt-[0.5px]"
-                >
+                <a-sub-menu v-for="workspace in workspacesList" :key="workspace.id" class="pt-[0.5px]">
                   <template #icon>
                     <GeneralWorkspaceIcon :workspace="workspace" size="medium" />
                   </template>
@@ -267,14 +260,30 @@ onMounted(() => {
                       />
                     </NcButton>
                   </template>
-                  <NcMenuItem class="item" @click="navigateTo(`/account/workspace/${workspace.id}/billing`)">
+                  <NcMenuItem
+                    class="item"
+                    :class="{
+                      active:
+                        $route.params.workspaceId === workspace.id &&
+                        $route.name === 'account-index-workspace-workspaceId-billing',
+                    }"
+                    @click="navigateTo(`/account/workspace/${workspace.id}/billing`)"
+                  >
                     <div class="flex items-center space-x-2 ml-4">
                       <GeneralIcon icon="ncDollarSign" class="!h-4 !w-4" />
 
                       <div class="select-none">Billing</div>
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem class="item" @click="navigateTo(`/account/workspace/${workspace.id}/settings`)">
+                  <NcMenuItem
+                    class="item"
+                    :class="{
+                      active:
+                        $route.params.workspaceId === workspace.id &&
+                        $route.name === 'account-index-workspace-workspaceId-settings',
+                    }"
+                    @click="navigateTo(`/account/workspace/${workspace.id}/settings`)"
+                  >
                     <div class="flex items-center space-x-2 ml-4">
                       <GeneralIcon icon="ncSettings" class="!h-4 !w-4" />
 

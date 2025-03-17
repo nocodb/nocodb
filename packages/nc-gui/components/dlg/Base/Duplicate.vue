@@ -188,7 +188,7 @@ onKeyStroke('Enter', () => {
     wrap-class-name="nc-modal-base-duplicate"
   >
     <div>
-      <div class="text-base text-nc-content-gray-emphasis font-bold self-center" @dblclick="isEaster = !isEaster">
+      <div class="text-base text-nc-content-gray-emphasis leading-6 font-bold self-center" @dblclick="isEaster = !isEaster">
         <template v-if="['pending', 'loading'].includes(status)">
           {{ $t('general.duplicate') }} {{ $t('objects.project') }} "{{ base.title }}"
         </template>
@@ -210,7 +210,7 @@ onKeyStroke('Enter', () => {
       <template v-if="['pending', 'loading'].includes(status)">
         <div class="mt-5 flex gap-3 flex-col">
           <div
-            class="flex gap-3 cursor-pointer text-nc-content-gray font-medium items-center"
+            class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
             @click="options.includeData = !options.includeData"
           >
             <NcSwitch :checked="options.includeData" />
@@ -219,7 +219,7 @@ onKeyStroke('Enter', () => {
 
           <template v-if="isEaster">
             <div
-              class="flex gap-3 cursor-pointer text-nc-content-gray font-medium items-center"
+              class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
               @click="options.includeViews = !options.includeViews"
             >
               <NcSwitch :checked="options.includeViews" />
@@ -227,7 +227,7 @@ onKeyStroke('Enter', () => {
             </div>
 
             <div
-              class="flex gap-3 cursor-pointer text-nc-content-gray font-medium items-center"
+              class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
               @click="options.includeHooks = !options.includeHooks"
             >
               <NcSwitch :checked="options.includeHooks" />
@@ -236,7 +236,7 @@ onKeyStroke('Enter', () => {
           </template>
 
           <div
-            class="flex gap-3 cursor-pointer text-nc-content-gray font-medium items-center"
+            class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
             @click="options.includeComments = !options.includeComments"
           >
             <NcSwitch :checked="options.includeComments" />

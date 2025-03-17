@@ -68,6 +68,7 @@ export function useGridViewData(
     selectedAllRecords,
     loadAggCommentsCount,
     navigateToSiblingRow,
+    getRows,
   } = useInfiniteData({
     meta,
     viewMeta,
@@ -774,5 +775,6 @@ export function useGridViewData(
     isBulkOperationInProgress,
     updateRecordOrder,
     selectedAllRecords,
+    getRows,
   }
 }

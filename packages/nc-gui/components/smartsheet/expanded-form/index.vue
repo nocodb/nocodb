@@ -724,7 +724,7 @@ export default {
       <div
         class="flex gap-2 min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header p-4 xs:(px-2 py-0 min-h-[48px]) border-b-1 border-gray-200"
       >
-        <div class="flex gap-2">
+        <div class="flex gap-2 min-w-0">
           <div class="flex gap-2">
             <NcTooltip v-if="props.showNextPrevIcons">
               <template #title> {{ renderAltOrOptlKey() }} + ←</template>
@@ -754,7 +754,7 @@ export default {
           <div v-if="isLoading" class="flex items-center">
             <a-skeleton-input active class="!h-6 !sm:mr-14 !w-52 !rounded-md !overflow-hidden" size="small" />
           </div>
-          <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end)">
+          <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end) min-w-0">
             <div v-if="!props.showNextPrevIcons" class="hidden md:flex items-center rounded-lg bg-gray-100 px-2 py-1 gap-2">
               <GeneralIcon icon="table" class="text-gray-700" />
               <span class="nc-expanded-form-table-name">
@@ -771,7 +771,7 @@ export default {
               v-else-if="displayValue && !row?.rowMeta?.new"
               class="flex items-center font-bold text-gray-800 text-2xl overflow-hidden"
             >
-              <span class="truncate w-[120px] md:w-[300px]">
+              <span class="truncate min-w-[120px] md:min-w-[300px]">
                 <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
               </span>
             </div>

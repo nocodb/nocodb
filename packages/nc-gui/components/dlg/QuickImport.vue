@@ -654,17 +654,14 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
                         <CellAttachmentIconView :item="{ title: file.name, mimetype: file.type }" class="w-9 h-9" />
                       </div>
                       <div class="flex flex-col flex-grow min-w-[0px]">
-                        <div class="text-[14px] text-[#15171A] font-weight-500">
-                          <NcTooltip>
-                            <template #title>
-                              {{ file.name }}
-                            </template>
-                            <span class="inline-block truncate w-full">
-                              {{ file.name }}
-                            </span>
-                          </NcTooltip>
-                        </div>
-                        <div class="text-[14px] text-[#565B66] mt-1 font-weight-500">
+                        <NcTooltip show-on-truncate-only class="truncate text-sm text-gray-900 font-weight-500">
+                          <template #title>
+                            {{ file.name }}
+                          </template>
+                          {{ file.name }}
+                        </NcTooltip>
+
+                        <div class="text-small text-nc-content-gray-muted font-weight-500">
                           {{ getReadableFileSize(file.size) }}
                         </div>
                       </div>
@@ -923,8 +920,9 @@ span:has(> .nc-modern-drag-import) {
     @apply ml-4;
   }
 
-  .tab-title {
-    @apply text-xs leading-[24px] px-2 rounded hover:bg-gray-100 transition-colors;
+  .tab-title,
+  :deep(.ant-tabs-tab-btn) {
+    @apply text-xs !leading-[24px] px-2 text-nc-content-gray-subtle2 rounded hover:bg-gray-100 transition-colors;
   }
 
   :deep(.ant-tabs-tab-disabled) {

@@ -40,13 +40,19 @@ const rowHeight = inject(RowHeightInj, ref(1) as any)
 
 provide(RowHeightInj, providedHeightRef)
 
-const relationColumn = computed(() =>
-  meta.value?.id
-    ? metas.value[meta.value?.id]?.columns?.find(
-        (c: ColumnType) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id,
-      )
-    : undefined,
-)
+const relationColumn = computedAsync(async () => {
+  const relatedMetaId = column.value?.fk_model_id
+
+  if (relatedMetaId) {
+    await getMeta(relatedMetaId)
+
+    return metas.value[relatedMetaId]?.columns?.find(
+      (c: ColumnType) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id,
+    )
+  }
+
+  return undefined
+})
 
 watch(
   relationColumn,

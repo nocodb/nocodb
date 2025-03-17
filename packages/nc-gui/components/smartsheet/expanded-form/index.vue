@@ -724,9 +724,9 @@ export default {
       <div
         class="flex gap-2 min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header p-4 xs:(px-2 py-0 min-h-[48px]) border-b-1 border-gray-200"
       >
-        <div class="flex gap-2 min-w-0">
+        <div class="flex gap-2 min-w-0 min-h-8">
           <div class="flex gap-2">
-            <NcTooltip v-if="props.showNextPrevIcons">
+            <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
               <template #title> {{ renderAltOrOptlKey() }} + ←</template>
               <NcButton
                 :disabled="isFirstRow || isLoading"
@@ -738,7 +738,7 @@ export default {
                 <GeneralIcon icon="chevronDown" class="transform rotate-180" />
               </NcButton>
             </NcTooltip>
-            <NcTooltip v-if="props.showNextPrevIcons">
+            <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
               <template #title> {{ renderAltOrOptlKey() }} + →</template>
               <NcButton
                 :disabled="islastRow || isLoading"

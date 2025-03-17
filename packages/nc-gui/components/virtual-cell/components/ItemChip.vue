@@ -20,6 +20,8 @@ const { relatedTableMeta } = useLTARStoreOrThrow()!
 
 const { isUIAllowed } = useRoles()
 
+provide(IsUnderLTARInj, ref(true))
+
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
@@ -211,13 +213,6 @@ export default {
     :deep(.clamped-text) {
       @apply !block text-ellipsis;
     }
-  }
-
-  :deep(.nc-cell-datetime),
-  :deep(.nc-cell-date),
-  :deep(.nc-cell-year),
-  :deep(.nc-cell-time) {
-    @apply !py-0;
   }
 }
 </style>

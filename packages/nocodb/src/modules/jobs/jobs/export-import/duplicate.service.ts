@@ -58,6 +58,8 @@ export class DuplicateService {
     }
 
     if (
+      body.base?.fk_workspace_id &&
+      body.base?.fk_workspace_id !== '' &&
       (base.fk_workspace_id || body.base?.fk_workspace_id) &&
       base.fk_workspace_id !== body.base?.fk_workspace_id
     ) {

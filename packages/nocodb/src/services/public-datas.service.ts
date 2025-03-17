@@ -537,6 +537,10 @@ export class PublicDatasService {
       extractOnlyPrimaries: true,
     });
 
+    try {
+      dependencyFields.filterArr = JSON.parse(dependencyFields.filterArrJson);
+    } catch (e) {}
+
     if (view.type === ViewTypes.FORM && ncIsArray(param.query?.fields)) {
       param.query.fields.forEach(
         dependencyFields.fieldsSet.add,

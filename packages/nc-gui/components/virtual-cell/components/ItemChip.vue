@@ -216,5 +216,12 @@ export default {
       @apply !block text-ellipsis;
     }
   }
+
+  :deep(.nc-cell-datetime),
+  :deep(.nc-cell-date),
+  :deep(.nc-cell-year),
+  :deep(.nc-cell-time) {
+    @apply !py-0;
+  }
 }
 </style>

@@ -30,6 +30,10 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
+
+const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
+
 const isClickDisabled = computed(() => {
   return !active.value && !isExpandedForm.value
 })
@@ -49,7 +53,22 @@ function openExpandedForm() {
       useMetaFields: true,
       maintainDefaultViewOrder: true,
       loadRow: !isPublic.value,
+      skipReload: true,
+      createdRecord: onCreatedRecord,
     })
+
+    function onCreatedRecord() {
+      reloadTrigger?.trigger({
+        shouldShowLoading: false,
+      })
+
+      reloadViewDataTrigger?.trigger({
+        shouldShowLoading: false,
+        isFromLinkRecord: true,
+        relatedTableMetaId: relatedTableMeta.value.id,
+        rowId: rowId!,
+      })
+    }
   }
 }
 </script>

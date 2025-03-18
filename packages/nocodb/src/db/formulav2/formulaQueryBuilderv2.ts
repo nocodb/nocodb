@@ -5,6 +5,7 @@ import {
   jsepCurlyHook,
   JSEPNode,
   LongTextAiMetaProp,
+  NcErrorType,
   RelationTypes,
   UITypes,
   validateDateWithUnknownFormat,
@@ -31,14 +32,14 @@ import type Column from '~/models/Column';
 import type { User } from '~/models';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type CustomKnex from '~/db/CustomKnex';
+import { BaseUser, ButtonColumn } from '~/models';
 import Model from '~/models/Model';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import { convertDateFormatForConcat } from '~/helpers/formulaFnHelper';
 import FormulaColumn from '~/models/FormulaColumn';
-import { BaseUser, ButtonColumn } from '~/models';
 import { getRefColumnIfAlias } from '~/helpers';
-import { ExternalTimeout, NcError } from '~/helpers/catchError';
+import { ExternalTimeout, NcBaseErrorv2, NcError } from '~/helpers/catchError';
 
 const logger = new Logger('FormulaQueryBuilderv2');
 
@@ -190,7 +191,13 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         {
           aliasToColumn[col.id] = async () => {
             if (params.parentColumns.has(col.id)) {
-              NcError.formulaError('Circular reference detected');
+              NcError.formulaError('Circular reference detected', {
+                details: {
+                  columnId: col.id,
+                  modelId: model.id,
+                  parentColumnIds: Array.from(params.parentColumns),
+                },
+              });
             }
 
             const formulOption = await col.getColOptions<
@@ -581,12 +588,19 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                     await lookupColumn.getColOptions<FormulaColumn>(context);
                   const lookupModel = await lookupColumn.getModel(context);
                   if (params.parentColumns.has(lookupColumn.id)) {
-                    NcError.formulaError('Circular reference detected');
+                    NcError.formulaError('Circular reference detected', {
+                      details: {
+                        columnId: lookupColumn.id,
+                        modelId: model.id,
+                        parentColumnIds: Array.from(params.parentColumns),
+                      },
+                    });
                   }
                   const { builder } = await _formulaQueryBuilder({
                     baseModelSqlv2,
                     _tree: formulaOption.formula,
                     alias: '',
+                    tableAlias: prevAlias,
                     model: lookupModel,
                     aliasToColumn,
                     parsedTree: formulaOption.getParsedTree(),
@@ -1514,30 +1528,46 @@ export default async function formulaQueryBuilderv2(
       }
     }
   } catch (e) {
-    if (!validateFormula) throw e;
+    // Mark formula error if formula validation is invoked
+    // or if a circular reference error occurs and a column is provided
+    if (
+      validateFormula ||
+      (column?.id &&
+        e instanceof NcBaseErrorv2 &&
+        e.error === NcErrorType.FORMULA_CIRCULAR_REF_ERROR)
+    ) {
+      console.error(e);
 
-    console.error(e);
-    if (column) {
-      if (column?.uidt === UITypes.Button) {
-        await ButtonColumn.update(context, column.id, {
-          error: null,
-        });
-        // update cache to reflect the error in UI
-        await NocoCache.update(`${CacheScope.COL_BUTTON}:${column.id}`, {
-          error: e.message,
-        });
-      } else if (!(e instanceof ExternalTimeout)) {
-        // add formula error to show in UI
-        await FormulaColumn.update(context, column.id, {
-          error: e.message,
-        });
+      if (column) {
+        if (column?.uidt === UITypes.Button) {
+          await ButtonColumn.update(context, column.id, {
+            error: null,
+          });
+          // update cache to reflect the error in UI
+          await NocoCache.update(`${CacheScope.COL_BUTTON}:${column.id}`, {
+            error: e.message,
+          });
+        } else if (!(e instanceof ExternalTimeout)) {
+          // add formula error to show in UI
+          await FormulaColumn.update(context, column.id, {
+            error: e.message,
+          });
 
-        // update cache to reflect the error in UI
-        await NocoCache.update(`${CacheScope.COL_FORMULA}:${column.id}`, {
-          error: e.message,
-        });
+          // update cache to reflect the error in UI
+          await NocoCache.update(`${CacheScope.COL_FORMULA}:${column.id}`, {
+            error: e.message,
+          });
+        }
       }
+    } else {
+      throw e;
     }
+
+    // if it's a formula error, throw it
+    if (e instanceof NcBaseErrorv2) {
+      throw e;
+    }
+
     NcError.formulaError(e.message);
   }
   return qb;

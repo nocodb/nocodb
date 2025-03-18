@@ -65,7 +65,7 @@ export class ToolbarFilterPage extends BasePage {
     await this.get().getByTestId('add-filter-group').last().click();
     const filterDropdown = this.get().locator('.menu-filter-dropdown').nth(filterGroupIndex);
     await filterDropdown.waitFor({ state: 'visible' });
-    const ADD_BUTTON_SELECTOR = `span:has-text("add")`;
+    const ADD_BUTTON_SELECTOR = '[data-testid="filter-add-icon"]';
     const FILTER_GROUP_SUB_MENU_SELECTOR = `.nc-dropdown-filter-group-sub-menu`;
     const ADD_FILTER_SELECTOR = `[data-testid="add-filter-menu"].nc-menu-item`;
 

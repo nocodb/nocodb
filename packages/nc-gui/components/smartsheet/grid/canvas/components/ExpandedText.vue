@@ -88,7 +88,7 @@ const updateSize = () => {
     const elem = inputRef.value as HTMLElement
     const parsedJSON = size ? JSON.parse(size) : null
 
-    if (parsedJSON && elem) {
+    if (parsedJSON && elem?.style) {
       elem.style.width = `${parsedJSON.width}px`
       elem.style.height = `${parsedJSON.height}px`
     }
@@ -157,6 +157,7 @@ const urls = replaceUrlsWithLink(result)
       ref="inputWrapperRef"
       class="flex flex-col pb-3 w-full relative"
       :class="{ 'cursor-move': isDragging }"
+      @keydown.enter.stop
     >
       <div
         v-if="column"
@@ -176,13 +177,16 @@ const urls = replaceUrlsWithLink(result)
       </div>
       <div class="p-3 pb-0 h-full">
 
-        <div    :style="{
+        <div
+          ref="inputRef"
+          :style="{
             resize: 'both',
             maxHeight: 'min(795px, 100vh - 170px)',
             width: 'min(1256px, 100vw - 124px)',
-          }"       class="nc-long-text-expanded-textarea border-1 border-gray-200 bg-gray-50 !py-1 !px-3 !text-black !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50 nc-longtext-scrollbar"
-                       v-if="urls" v-html="urls">
-
+          }"
+          class="nc-long-text-expanded-textarea border-1 border-gray-200 bg-gray-50 !py-1 !px-3 !text-black !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50 nc-longtext-scrollbar"
+          v-if="urls"
+          v-html="urls">
         </div>
 
         <a-textarea

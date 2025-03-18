@@ -33,7 +33,7 @@ import { ButtonCellRenderer } from './Button'
 import { LtarCellRenderer } from './LTAR'
 import { FormulaCellRenderer } from './Formula'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
-import { useDetachedLongText, UseDetachedLongText } from '../composables/useDetachedLongText';
+import { useDetachedLongText } from '../composables/useDetachedLongText';
 
 const CLEANUP_INTERVAL = 1000
 

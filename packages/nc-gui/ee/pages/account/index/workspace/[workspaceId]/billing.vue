@@ -191,9 +191,9 @@ onMounted(() => {
           <span data-rec="true"> Billing </span>
         </template>
       </NcPageHeader>
-      <div class="nc-content-max-w py-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
+      <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
         <div v-if="afterPayment">
-          <div class="flex flex-col gap-6 w-150 mx-auto items-center justify-center">
+          <div class="flex flex-col gap-6 mx-auto items-center justify-center">
             <template v-if="checkoutSession && checkoutSession.payment_status === 'paid'">
               <div class="border-1 border-nc-border-gray-medium rounded-lg p-6 flex gap-2 bg-green-50">
                 <GeneralIcon icon="checkFill" class="text-white h-8 w-8" />
@@ -277,59 +277,9 @@ onMounted(() => {
             <GeneralLoader v-else size="large" />
           </div>
         </div>
-        <div v-else class="flex flex-col gap-6 w-300 mx-auto">
+        <div v-else class="flex flex-col gap-6 w-full max-w-300 mx-auto">
           <div v-if="!paymentInitiated" class="text-base font-bold">Current Plan</div>
-          <div
-            v-if="!paymentInitiated"
-            class="flex flex-col rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight p-6 gap-4"
-          >
-            <div class="text-2xl font-bold">{{ activeWorkspace?.payment?.plan.title }}</div>
-            <div class="flex items-center border-1 border-nc-border-gray-medium rounded-lg w-[fit-content]">
-              <div class="w-[300px] flex flex-col p-4 gap-2 border-r-1">
-                <div class="flex items-center gap-2 text-nc-content-gray text-2xl font-bold">
-                  {{ activeWorkspace?.stats?.row_count ?? 0 }} <span class="text-base">of</span>
-                  <span class="text-base">{{ activeWorkspace?.payment?.plan.meta.limit_workspace_row }}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <div class="flex-1 h-2 bg-nc-border-gray-medium rounded-lg">
-                    <div
-                      class="h-full bg-brand-500 rounded-lg"
-                      :style="{
-                        width: `${
-                          ((activeWorkspace?.stats?.row_count ?? 0) /
-                            (activeWorkspace?.payment?.plan.meta.limit_workspace_row ?? 1)) *
-                          100
-                        }%`,
-                      }"
-                    ></div>
-                  </div>
-                </div>
-                <div class="flex items-center text-nc-content-gray-subtle2 text-sm">Number of records</div>
-              </div>
-              <div class="w-[300px] flex flex-col p-4 gap-2">
-                <div class="flex items-center gap-2 text-nc-content-gray text-2xl font-bold">
-                  {{ (activeWorkspace?.stats?.storage ?? 0) / 1024 }} <span class="text-base">of</span>
-                  <span class="text-base">{{ activeWorkspace?.payment?.plan.meta.limit_storage / 1024 }}GB</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <div class="flex-1 h-2 bg-nc-border-gray-medium rounded-lg">
-                    <div
-                      class="h-full bg-brand-500 rounded-lg"
-                      :style="{
-                        width: `${
-                          ((activeWorkspace?.stats?.storage ?? 0) /
-                            1024 /
-                            ((activeWorkspace?.payment?.plan.meta.limit_storage ?? 1) / 1024)) *
-                          100
-                        }%`,
-                      }"
-                    ></div>
-                  </div>
-                </div>
-                <div class="flex items-center text-nc-content-gray-subtle2 text-sm">Storage</div>
-              </div>
-            </div>
-          </div>
+          <PaymentPlanUsage v-if="!paymentInitiated" />
           <Payment v-if="paymentState" />
           <GeneralLoader v-else />
         </div>

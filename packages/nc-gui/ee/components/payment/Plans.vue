@@ -9,7 +9,7 @@ onMounted(async () => {
 <template>
   <div class="flex flex-col">
     <div class="flex">
-      <div class="text-base font-bold mb-4">Plans & Pricing</div>
+      <div class="text-base font-bold mb-4">All Plans</div>
       <!-- toggle annual & monthly -->
       <div class="flex-1"></div>
       <div class="flex items-center gap-2">

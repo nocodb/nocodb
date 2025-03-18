@@ -32,6 +32,7 @@ export class DataOptService {
       customConditions?: Filter[];
       getHiddenColumns?: boolean;
       apiVersion?: NcApiVersion;
+      includeSortAndFilterColumns?: boolean;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
     const params = { ...(ctx.params || {}) };

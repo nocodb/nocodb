@@ -34,6 +34,7 @@ export class DatasService extends DatasServiceCE {
       limitOverride?: number;
       getHiddenColumns?: boolean;
       apiVersion?: NcApiVersion;
+      includeSortAndFilterColumns?: boolean;
     },
   ) {
     let { model, view: _view } = param as { view?: View; model?: Model };
@@ -125,6 +126,7 @@ export class DatasService extends DatasServiceCE {
         customConditions,
         getHiddenColumns: param.getHiddenColumns,
         apiVersion: param.apiVersion,
+        includeSortAndFilterColumns: param.includeSortAndFilterColumns,
       });
     } else {
       responseData = await this.getDataList(context, {
@@ -138,6 +140,7 @@ export class DatasService extends DatasServiceCE {
         customConditions,
         getHiddenColumns: param.getHiddenColumns,
         apiVersion: param.apiVersion,
+        includeSortAndFilterColumns: param.includeSortAndFilterColumns,
       });
     }
 

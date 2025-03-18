@@ -256,6 +256,7 @@ export function useInfiniteData(args: {
             ...params,
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            includeSortAndFilterColumns: true,
             where: where?.value,
           } as any)
         : await fetchSharedViewData(
@@ -691,6 +692,8 @@ export function useInfiniteData(args: {
             }
           }
         }
+      } else {
+        inputRow.rowMeta.isRowOrderUpdated = false
       }
 
       const indices = new Set<number>()

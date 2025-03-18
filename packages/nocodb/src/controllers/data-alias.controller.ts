@@ -41,6 +41,8 @@ export class DataAliasController {
     @Param('viewName') viewName: string,
     @Query('opt') opt: string,
     @Query('getHiddenColumns') getHiddenColumns: string,
+    @Query('includeSortAndFilteredColumns')
+    includeSortAndFilteredColumns: string,
   ) {
     const startTime = process.hrtime();
     const responseData = await this.datasService.dataList(context, {
@@ -50,6 +52,7 @@ export class DataAliasController {
       viewName: viewName,
       disableOptimization: opt === 'false',
       getHiddenColumns: getHiddenColumns === 'true',
+      includeSortAndFilteredColumns: includeSortAndFilteredColumns === 'true',
     });
     const elapsedMilliSeconds = parseHrtimeToMilliSeconds(
       process.hrtime(startTime),

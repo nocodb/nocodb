@@ -35,12 +35,15 @@ export class DataTableController {
     @Res() res: Response,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
+    @Query('includeSortAndFilteredColumns')
+    includeSortAndFilteredColumns: string,
   ) {
     const startTime = process.hrtime();
     const responseData = await this.dataTableService.dataList(context, {
       query: req.query,
       modelId: modelId,
       viewId: viewId,
+      includeSortAndFilteredColumns: includeSortAndFilteredColumns === 'true',
     });
     const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);

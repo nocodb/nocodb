@@ -215,7 +215,7 @@ export const renderCheckbox = (
     ctx.lineWidth = 1
     ctx.stroke()
   } else if (isChecked) {
-    ctx.fillStyle = '#4351e7'
+    ctx.fillStyle = '#3366FF'
     ctx.fill()
 
     const checkX = x + 3.5
@@ -572,7 +572,7 @@ export const renderMarkdownBlocks = (
         text: tokenText,
         maxWidth,
         height,
-        fillStyle: isUrl ? '#4351e7' : (defaultFillStyle as string),
+        fillStyle: isUrl ? '#3366FF' : (defaultFillStyle as string),
         fontFamily: ctx.font,
         maxLines: maxLinesToRender,
         underline: token.styles.includes('underline') || isUrl,
@@ -1263,70 +1263,161 @@ export const getAbstractType = (column: ColumnType, sqlUis?: Record<string, any>
 export function renderFormulaURL(
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   params: {
-    texts: Array<{ text: string; url?: string }>
+    htmlText: string
     x: number
     y: number
     maxWidth: number
     height: number
     lineHeight: number
-    underlineOffset: number
+    fillStyle?: string
+    fontFamily?: string
+    fontSize?: number
+    textAlign?: CanvasTextAlign
+    verticalAlign?: CanvasTextBaseline
   },
 ): { x: number; y: number; width: number; height: number; url?: string }[] {
-  const { texts, x, y, maxWidth, height, lineHeight, underlineOffset } = params
+  const {
+    htmlText,
+    x,
+    y,
+    maxWidth,
+    height,
+    lineHeight,
+    fillStyle = '#4a5268',
+    fontFamily = '500 13px Manrope',
+    textAlign = 'left',
+    verticalAlign = 'middle',
+  } = params
 
+  let maxLines = 1
+  if (rowHeightInPx['1'] === height) {
+    maxLines = 1 // Only one line if rowHeightInPx['1'] matches height
+  } else if (height) {
+    maxLines = Math.min(Math.floor(height / lineHeight), rowHeightTruncateLines(height)) // Calculate max lines
+  }
+
+  const urlRects: { x: number; y: number; width: number; height: number; url?: string }[] = []
+
+  ctx.save()
+  ctx.font = fontFamily
+  ctx.textAlign = textAlign
+  ctx.textBaseline = verticalAlign
+  ctx.fillStyle = fillStyle
+
+  const container = document.createElement('div')
+  container.innerHTML = htmlText
+
+  let currentLine = 0
   let currentX = x
-  let currentY = y
-  let remainingHeight = height
+  const currentY = y
+  function processNode(node: ChildNode, currentUrl?: string) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent
+      if (!text) return
 
-  const urlRects: { x: number; y: number; width: number; height: number; url: string }[] = []
+      // Use wrapTextToLines for better text wrapping
+      const availableWidth = maxWidth - (currentX - x)
 
-  const renderText = (text: string, url?: string): void => {
-    const words = text.split(' ')
+      // Calculate remaining lines
+      const remainingLines = maxLines - currentLine
 
-    let wordCount = 0
-    for (const word of words) {
-      wordCount++
-      const separator = wordCount === words.length ? '' : ' '
-      const wordWidth = ctx.measureText(word + separator).width
+      // Determine first line max width based on current position
+      const firstLineMaxWidth = availableWidth
 
-      if (currentX + wordWidth > x + maxWidth) {
-        currentX = x
-        currentY += lineHeight
-        remainingHeight -= lineHeight
+      // Get wrapped lines using the new function
+      const lines = wrapTextToLines(ctx, {
+        text,
+        maxWidth,
+        maxLines: remainingLines,
+        firstLineMaxWidth,
+      })
 
-        if (remainingHeight < lineHeight) {
-          return // Stop rendering if out of height
+      // Render each line
+      for (let i = 0; i < lines.length; i++) {
+        const lineText = lines[i]
+        if (!lineText) continue
+        const isLastLine = currentLine + i === maxLines - 1
+
+        // Handle the first line differently, as it might not start at the beginning of the row
+        if (i === 0) {
+          renderLine(lineText, currentUrl, isLastLine && i === lines.length - 1 && lineText.endsWith('...'))
+          currentX += ctx.measureText(lineText).width
+
+          // If we've reached the end of the line, move to the next
+          if (currentX >= x + maxWidth) {
+            currentX = x
+            currentLine++
+          }
+        } else {
+          // Subsequent lines always start at the beginning of the row
+          currentX = x
+          currentLine++
+
+          // Don't render if we've exceeded maxLines
+          if (currentLine >= maxLines) break
+
+          renderLine(lineText, currentUrl, isLastLine && i === lines.length - 1 && lineText.endsWith('...'))
+          currentX += ctx.measureText(lineText).width
         }
       }
-
-      ctx.fillText(word + separator, currentX, currentY + lineHeight * 0.8) // Adjust vertical position
-
-      if (url) {
-        urlRects.push({
-          x: currentX,
-          y: currentY,
-          width: wordWidth,
-          height: lineHeight,
-          url,
-        })
-
-        const underlineY = currentY + lineHeight + underlineOffset
-        ctx.strokeStyle = 'black'
-        ctx.beginPath()
-        ctx.moveTo(currentX, underlineY)
-        ctx.lineTo(currentX + wordWidth, underlineY)
-        ctx.stroke()
-      }
-
-      currentX += wordWidth
+    } else if (node.nodeType === Node.ELEMENT_NODE && (node as Element).tagName === 'A') {
+      const anchor = node as HTMLAnchorElement
+      const url = anchor.href
+      node.childNodes.forEach((child) => processNode(child, url))
+    } else {
+      node.childNodes.forEach((child) => processNode(child, currentUrl))
     }
   }
 
-  for (const item of texts) {
-    renderText(item.text, item.url)
+  function truncateText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, ellipsis: boolean): string {
+    let truncated = text
+    if (ctx.measureText(text).width > maxWidth) {
+      truncated = text.substring(0, Math.floor(text.length * (maxWidth / ctx.measureText(text).width)))
+      while (ctx.measureText(truncated + (ellipsis ? '...' : '')).width > maxWidth && truncated.length > 0) {
+        truncated = truncated.slice(0, -1)
+      }
+      if (ellipsis) truncated += '...'
+    }
+    return truncated
   }
+
+  function renderLine(text: string, url?: string, addEllipsis: boolean = false) {
+    let finalText = text
+    const lineY = currentY + currentLine * lineHeight + lineHeight * 0.8
+    const availableWidth = maxWidth - (currentX - x)
+
+    if (ctx.measureText(text).width > availableWidth) {
+      finalText = truncateText(ctx, text, availableWidth, addEllipsis)
+    } else if (addEllipsis) {
+      finalText += '...'
+    }
+
+    ctx.fillStyle = url ? '#3366FF' : fillStyle
+    ctx.fillText(finalText, currentX, lineY)
+
+    if (url) {
+      const underlineY = lineY + 8
+      ctx.strokeStyle = '#3366FF'
+      ctx.beginPath()
+      ctx.moveTo(currentX, underlineY)
+      ctx.lineTo(currentX + ctx.measureText(finalText).width, underlineY)
+      ctx.stroke()
+
+      urlRects.push({
+        x: currentX,
+        y: currentY + currentLine * lineHeight,
+        width: ctx.measureText(finalText).width,
+        height: lineHeight,
+        url,
+      })
+    }
+  }
+
+  container.childNodes.forEach((node) => processNode(node))
+  ctx.restore()
 
   return urlRects
 }
+
 const offscreenCanvas = new OffscreenCanvas(0, 0)
 export const defaultOffscreen2DContext = offscreenCanvas.getContext('2d')!

@@ -691,6 +691,8 @@ export function useInfiniteData(args: {
             }
           }
         }
+      } else {
+        inputRow.rowMeta.isRowOrderUpdated = false
       }
 
       const indices = new Set<number>()

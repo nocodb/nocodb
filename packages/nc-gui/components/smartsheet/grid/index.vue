@@ -439,8 +439,6 @@ const pGoToPreviousRow = () => {
       />
     </Suspense>
   </div>
-
-  <DetachedExpandedText />
 </template>
 
 <style lang="scss">

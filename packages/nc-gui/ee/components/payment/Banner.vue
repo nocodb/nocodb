@@ -4,7 +4,7 @@ const { isPaidPlan, activeWorkspaceId } = useProvidePaymentStore()
 const isLoading = ref(false)
 
 const onUpgradePlan = async () => {
-  navigateTo(`/account/workspace/${activeWorkspaceId.value}/billing`)
+  navigateTo(`/account/workspace/${activeWorkspaceId.value}/settings`)
 }
 </script>
 

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
++ import { type ColumnType, UITypes, isLinksOrLTAR, isBt } from 'nocodb-sdk'
 import Table from './Table.vue'
 import { NavigateDir } from '~/lib/enums'
 

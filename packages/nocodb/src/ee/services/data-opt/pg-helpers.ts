@@ -1335,6 +1335,7 @@ export async function singleQueryList(
     customConditions?: Filter[];
     getHiddenColumns?: boolean;
     apiVersion?: NcApiVersion;
+    includeSortAndFilteredColumns?: boolean;
   },
 ): Promise<PagedResponseImpl<Record<string, any>>> {
   const excludeCount = ctx.params?.excludeCount;
@@ -1567,6 +1568,7 @@ export async function singleQueryList(
     view: ctx.view,
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
     apiVersion: ctx.apiVersion,
+    includeSortAndFilteredColumns: ctx.includeSortAndFilteredColumns,
     getHiddenColumn: ctx.getHiddenColumns,
   });
 

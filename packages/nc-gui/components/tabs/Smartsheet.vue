@@ -3,6 +3,7 @@ import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { UseDetachedLongTextProvider } from '../smartsheet/grid/canvas/composables/useDetachedLongText';
 
 const props = defineProps<{
   activeTab: TabItem
@@ -75,6 +76,7 @@ provide(
   ),
 )
 useExpandedFormDetachedProvider()
+UseDetachedLongTextProvider()
 
 useProvideViewColumns(activeView, meta, () => reloadViewDataEventHook?.trigger())
 

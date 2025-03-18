@@ -33,6 +33,7 @@ import { ButtonCellRenderer } from './Button'
 import { LtarCellRenderer } from './LTAR'
 import { FormulaCellRenderer } from './Formula'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
+import { useDetachedLongText, UseDetachedLongText } from '../composables/useDetachedLongText';
 
 const CLEANUP_INTERVAL = 1000
 
@@ -65,6 +66,7 @@ export function useGridCellHandler(params: {
   const { basesUser } = storeToRefs(useBases())
 
   const { open: openDetachedExpandedForm } = useExpandedFormDetached()
+  const { open: openDetachedLongText } = useDetachedLongText()
 
   const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() =>
     params.meta?.value?.base_id ? basesUser.value.get(params.meta?.value.base_id) || [] : [],
@@ -260,6 +262,7 @@ export function useGridCellHandler(params: {
         makeCellEditable,
         isPublic: isPublic.value,
         openDetachedExpandedForm,
+        openDetachedLongText,
       })
     }
     return false
@@ -279,6 +282,7 @@ export function useGridCellHandler(params: {
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
         makeCellEditable,
+        openDetachedLongText,
       })
     } else {
       console.log('No handler found for cell type', ctx.column.columnObj.uidt)

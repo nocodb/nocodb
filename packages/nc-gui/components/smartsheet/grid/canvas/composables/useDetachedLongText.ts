@@ -15,7 +15,7 @@ const [setup, use] = useInjectionState(() => {
 
 export { setup as UseDetachedLongTextProvider }
 
-export function UseDetachedLongText() {
+export function useDetachedLongText() {
   let states = use()!
 
   if (!states) {

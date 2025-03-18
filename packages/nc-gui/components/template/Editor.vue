@@ -824,7 +824,10 @@ const currentColumnToEdit = ref('')
               <template #bodyCell="{ column, record }">
                 <div v-if="column.key === 'source_column'" class="w-full">
                   <label class="w-full flex items-center gap-3 h-full">
-                    <NcCheckbox v-model:checked="record.enabled" />
+                    <NcTooltip :disabled="record.enabled || !!record.destCn">
+                      <template #title>Select NocoDB field to map</template>
+                      <NcCheckbox v-model:checked="record.enabled" :disabled="!record.destCn" />
+                    </NcTooltip>
 
                     <NcTooltip class="inline-block flex-1 max-w-[calc(100%_-_50px)] truncate" show-on-truncate-only>
                       <template #title>{{ record.srcTitle }}</template>
@@ -844,6 +847,11 @@ const currentColumnToEdit = ref('')
                     allow-clear
                     :filter-option="filterOption"
                     dropdown-class-name="nc-dropdown-filter-field"
+                    @update:value="
+                      (value) => {
+                        record.enabled = !!value
+                      }
+                    "
                   >
                     <template #suffixIcon>
                       <GeneralIcon icon="arrowDown" class="text-current" />
@@ -939,7 +947,11 @@ const currentColumnToEdit = ref('')
                 <template #body-prepend>
                   <tr class="nc-table-row">
                     <td colspan="2" class="nc-table-cell pl-3 flex h-full items-center">
-                      <NcCheckbox :checked="table.columns.every((it) => it.selected)" @click="toggleTableSelecteds(table)" />
+                      <NcCheckbox
+                        :indeterminate="table.columns.length && table.columns.some((it) => it.selected)"
+                        :checked="table.columns.every((it) => it.selected)"
+                        @click="toggleTableSelecteds(table)"
+                      />
                       <span class="ml-4 font-weight-700 text-[13px]">
                         {{
                           table.columns.every((it) => it.selected)

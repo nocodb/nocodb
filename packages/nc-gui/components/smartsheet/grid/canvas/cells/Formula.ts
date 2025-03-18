@@ -16,7 +16,7 @@ import { UrlCellRenderer } from './Url'
 import { FloatCellRenderer } from './Number'
 import { LongTextCellRenderer } from './LongText'
 
-function getDisplayValueCellRenderer(column: ColumnType, showAsLongText: boolean = false) {
+function getDisplayValueCellRenderer(column: ColumnType) {
   const colMeta = parseProp(column.meta)
   const modifiedColumn = {
     uidt: colMeta?.display_type,
@@ -33,17 +33,7 @@ function getDisplayValueCellRenderer(column: ColumnType, showAsLongText: boolean
   else if (isEmail(modifiedColumn)) return EmailCellRenderer
   else if (isURL(modifiedColumn)) return UrlCellRenderer
   else if (isPhoneNumber(modifiedColumn)) return PhoneNumberCellRenderer
-  else if (showAsLongText) return LongTextCellRenderer
   else return SingleLineTextCellRenderer
-}
-
-function shouldShowAsLongText({ column, width, value }: { column: ColumnType; width: number; value: any }) {
-  defaultOffscreen2DContext.font = '500 13px Manrope'
-
-  return (
-    (!column.colOptions?.parsed_tree?.dataType || column.colOptions?.parsed_tree?.dataType === FormulaDataTypes.STRING) &&
-    width - 24 <= defaultOffscreen2DContext.measureText(value?.toString() ?? '').width
-  )
 }
 
 export const FormulaCellRenderer: CellRenderer = {
@@ -73,10 +63,8 @@ export const FormulaCellRenderer: CellRenderer = {
       return
     }
 
-    const showAsLongText = !isUnderLookup && shouldShowAsLongText({ width, value, column })
-
-    if (colMeta?.display_type || showAsLongText) {
-      getDisplayValueCellRenderer(column, showAsLongText).render(ctx, {
+    if (colMeta?.display_type) {
+      getDisplayValueCellRenderer(column).render(ctx, {
         ...props,
         column: {
           ...column,
@@ -139,18 +127,16 @@ export const FormulaCellRenderer: CellRenderer = {
     const { isPg } = baseStore
 
     // isUnderLookup is not present in props and also from lookup cell we are not triggering click event so no need to check isUnderLookup
-    const showAsLongText = shouldShowAsLongText({ width, value, column: colObj })
-
-    if (colMeta?.display_type || !error || showAsLongText) {
+    if (colMeta?.display_type || !error) {
       // Call the display type cell renderer's handleClick method if it exists
-      if (getDisplayValueCellRenderer(colObj, showAsLongText)?.handleClick) {
-        return getDisplayValueCellRenderer(colObj, showAsLongText).handleClick!({
+      if (getDisplayValueCellRenderer(colObj)?.handleClick) {
+        return getDisplayValueCellRenderer(colObj).handleClick!({
           ...props,
           column: {
             ...column,
             columnObj: {
               ...colObj,
-              uidt: colMeta?.display_type || UITypes.LongText,
+              uidt: colMeta?.display_type,
               ...colMeta.display_column_meta,
             },
           },
@@ -200,13 +186,7 @@ export const FormulaCellRenderer: CellRenderer = {
     // Todo: show inline warning
     if (props.e.key === 'Enter' || (props.e.key === ' ' && props.e.shiftKey)) {
       // isUnderLookup is not present in props and also from lookup cell we are not triggering click event so no need to check isUnderLookup
-      const showAsLongText = shouldShowAsLongText({ width: parseInt(column.width) || 200, value, column: colObj })
-
-      if (showAsLongText) {
-        makeCellEditable(row.rowMeta.rowIndex!, column)
-
-        return true
-      }
+      // Open Long Text Popul
 
       if (props.e.key === ' ' && props.e.shiftKey) return
 
@@ -224,11 +204,8 @@ export const FormulaCellRenderer: CellRenderer = {
 
     const { width } = getCellPosition(column, props.row.rowMeta.rowIndex!)
 
-    // isUnderLookup is not present in props and also from lookup cell we are not triggering hover event so no need to check isUnderLookup
-    const showAsLongText = shouldShowAsLongText({ width, value, column: colObj })
-
-    if (colMeta?.display_type || !error || showAsLongText) {
-      return getDisplayValueCellRenderer(colObj, showAsLongText)?.handleHover?.({
+    if (colMeta?.display_type || !error) {
+      return getDisplayValueCellRenderer(colObj)?.handleHover?.({
         ...props,
         column: {
           ...column,

@@ -994,7 +994,7 @@ const currentColumnToEdit = ref('')
                       <template #title>
                         {{ formError?.[`tables.${tableIdx}.columns.${record.key}.title`].join('\n') }}
                       </template>
-                      <GeneralIcon icon="info" class="h-4 w-4 text-red-500 flex-none" />
+                      <GeneralIcon icon="info" class="h-4 w-4 text-nc-content-red-medium flex-none" />
                     </NcTooltip>
                     <div class="absolute h-1 border-t top-0 left-3 right-3" />
                   </template>
@@ -1006,24 +1006,24 @@ const currentColumnToEdit = ref('')
       </a-form>
       <a-alert v-if="!isAnyColumnSelectedInEachTable" type="error" class="!rounded-lg !mt-2 !border-none !p-3">
         <template #message>
-          <div class="flex flex-row items-center gap-2 mb-3">
-            <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
-            <span class="font-weight-700 text-[14px]">Required</span>
+          <div class="flex flex-row items-center gap-2 mb-1">
+            <GeneralIcon icon="ncAlertCircleFilled" class="text-nc-content-red-medium w-4 h-4" />
+            <span class="text-nc-content-gray font-bold text-[14px]">Required</span>
           </div>
         </template>
         <template #description>
-          <div class="text-gray-500 text-[13px] leading-5 ml-6">Select at least one field to continue</div>
+          <div class="text-nc-content-gray-subtle2 text-[13px] leading-5 ml-6">Select at least one field to continue</div>
         </template>
       </a-alert>
       <a-alert v-if="doesAnyColumnNameHaveTrailingWhitespace" type="error" class="!rounded-lg !mt-2 !border-none !p-3">
         <template #message>
-          <div class="flex flex-row items-center gap-2 mb-3">
-            <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
-            <span class="font-weight-700 text-[14px]">Trailing Whitespace</span>
+          <div class="flex flex-row items-center gap-2 mb-1">
+            <GeneralIcon icon="ncAlertCircleFilled" class="text-nc-content-red-medium w-4 h-4" />
+            <span class="text-nc-content-gray font-bold text-[14px]">Trailing Whitespace</span>
           </div>
         </template>
         <template #description>
-          <div class="text-gray-500 text-[13px] leading-5 ml-6">
+          <div class="text-nc-content-gray-subtle2 text-[13px] leading-5 ml-6">
             Table names should not have whitespace in the beginning or their end.
           </div>
         </template>

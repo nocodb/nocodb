@@ -141,10 +141,8 @@ watch(
 
 const isNewAttachmentModalOpen = ref(false)
 
-// on closing modal make cell active
-// and avoid triggering this action if within expanded form
 watch(isNewAttachmentModalOpen, (newVal, oldVal) => {
-  if (oldVal && !newVal && !isExpandedForm.value) canvasSelectCell?.trigger()
+  if (oldVal && !newVal) canvasSelectCell?.trigger()
 })
 
 watch(selectedFile, (newVal, oldVal) => {

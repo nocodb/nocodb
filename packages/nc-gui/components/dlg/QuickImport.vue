@@ -370,11 +370,6 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
 
 /** check if the file size exceeds the limit */
 const beforeUpload = (file: UploadFile) => {
-  if (importState.fileList.some((item) => item?.name === file.name)) {
-    message.error(`Duplicate file "${file.name}"`)
-    return Upload.LIST_IGNORE
-  }
-
   const exceedLimit = file.size! / 1024 / 1024 > 25
   if (exceedLimit) {
     message.error(`File ${file.name} is too big. The accepted file size is less than 25MB.`)

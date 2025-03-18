@@ -1186,9 +1186,10 @@ export async function getNotEmptyColumns(
   if (notEmptyCols.length) {
     notEmptyCols = [...new Set(notEmptyCols)];
     const columns = await model.getColumns(context);
-    return notEmptyCols.map(
-      (title) => columns.find((col) => col.title === title).id,
-    );
+    // filter to handle possibility that column does not exists
+    return notEmptyCols
+      .map((title) => columns.find((col) => col.title === title)?.id)
+      .filter((k) => k);
   } else {
     return undefined;
   }

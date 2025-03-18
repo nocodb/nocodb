@@ -175,11 +175,11 @@ export default class CSVTemplateAdapter {
 
   updateTemplate(tableIdx: number) {
     for (let columnIdx = 0; columnIdx < this.headers[tableIdx].length; columnIdx++) {
-      let uidt = this.getPossibleUidt(columnIdx)
+      const existingColumn = this.existingColumns?.find((col) => col.title === this.headers[tableIdx]?.[columnIdx]) as string
+      let uidt = existingColumn?.uidt
 
-      const existingColumn = this.existingColumns?.find((col) => col.title === this.headers[tableIdx]?.[columnIdx])
-      if (existingColumn) {
-        uidt = existingColumn.uidt
+      if (!uidt) {
+        uidt = this.getPossibleUidt(columnIdx)
       }
 
       if (this.columnValues[columnIdx].length > 0) {

@@ -569,6 +569,16 @@ function viewRowTests() {
       relatedTableColumnTitle: 'FirstName',
     });
 
+    // show column in gallery
+    await updateViewColumns(context, {
+      view,
+      viewColumns: {
+        [lookupColumn.id]: {
+          show: true,
+        },
+      },
+    });
+
     const nestedFilter = {
       is_group: true,
       status: 'create',

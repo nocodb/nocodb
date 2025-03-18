@@ -2029,7 +2029,7 @@ defineExpose({
       }
     }
 
-    :deep(.nc-cell-datetime) {
+    :deep(.nc-cell-datetime:not(.nc-under-ltar)) {
       @apply !py-0.75 !px-1.5;
     }
 
@@ -2110,13 +2110,13 @@ defineExpose({
     @apply !py-1;
   }
 
-  :deep(.nc-cell-datetime) {
+  :deep(.nc-cell-datetime:not(.nc-under-ltar)) {
     @apply !py-1 !px-2;
   }
 
-  :deep(.nc-cell-date),
-  :deep(.nc-cell-year),
-  :deep(.nc-cell-time) {
+  :deep(.nc-cell-date:not(.nc-under-ltar)),
+  :deep(.nc-cell-year:not(.nc-under-ltar)),
+  :deep(.nc-cell-time:not(.nc-under-ltar)) {
     @apply !h-auto !py-1;
   }
 
@@ -2143,6 +2143,14 @@ defineExpose({
         @apply !text-small leading-[18px];
       }
     }
+  }
+
+  :deep(.nc-cell-datetime.nc-under-ltar) {
+    @apply !py-0 !leading-[16px];
+  }
+
+  :deep(.nc-under-ltar .nc-cell-field div) {
+    @apply !leading-[16px];
   }
 }
 </style>

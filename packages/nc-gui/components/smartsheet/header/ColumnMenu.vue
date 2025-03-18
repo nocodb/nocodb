@@ -24,6 +24,8 @@ const { eventBus, allFilters, isSqlView } = useSmartsheetStoreOrThrow()
 
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
+const reloadRowTrigger = inject(ReloadRowDataHookInj, null)
+
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
@@ -91,6 +93,13 @@ const setAsDisplayValue = async () => {
       },
       scope: defineModelScope({ model: meta.value }),
     })
+
+    // reload data since there might be some changes in the data if there is LTAR
+    // or a formula field which refers to a LTAR field
+    reloadDataHook?.trigger()
+
+    // same way reload the row data if trigger is available
+    reloadRowTrigger?.trigger()
   } catch (e) {
     message.error(t('msg.error.primaryColumnUpdateFailed'))
   } finally {
@@ -716,6 +725,7 @@ const onDeleteColumn = () => {
 :deep(.nc-menu-item-inner) {
   @apply !w-full;
 }
+
 :deep(.nc-header-menu-item) {
   @apply text-dropdown flex items-center gap-2;
 }

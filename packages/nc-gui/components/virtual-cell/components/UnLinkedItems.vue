@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { RelationTypes, isDateOrDateTimeCol, isLinksOrLTAR } from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
 
 const props = defineProps<{ modelValue: boolean; column: any; hideBackBtn?: boolean }>()
@@ -38,6 +38,7 @@ const {
   childrenExcludedListPagination,
   relatedTableDisplayValueProp,
   displayValueTypeAndFormatProp,
+  relatedTableDisplayValueColumn,
   link,
   relatedTableMeta,
   meta,
@@ -349,8 +350,22 @@ const handleKeyDown = (e: KeyboardEvent) => {
             <GeneralIcon icon="ncArrowLeft" class="flex-none h-4 w-4" />
           </button>
 
-          <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-0.5 rounded-md">
+          <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center rounded-md">
+            <!-- Utilize SmartsheetToolbarFilterInput component to filter the records for Date or DateTime column -->
+            <SmartsheetToolbarFilterInput
+              v-if="relatedTableDisplayValueColumn && isDateOrDateTimeCol(relatedTableDisplayValueColumn)"
+              class="nc-filter-value-select rounded-md min-w-34"
+              :column="relatedTableDisplayValueColumn"
+              :filter="{
+                comparison_op: 'eq',
+                comparison_sub_op: 'exactDate',
+                value: childrenExcludedListPagination.query,
+              }"
+              @update-filter-value="childrenExcludedListPagination.query = $event"
+              @click.stop
+            />
             <a-input
+              v-else
               ref="filterQueryRef"
               v-model:value="childrenExcludedListPagination.query"
               :bordered="false"
@@ -514,6 +529,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
 <style lang="scss" scoped>
 :deep(.ant-skeleton-element .ant-skeleton-image-svg) {
   @apply !w-7;
+}
+:deep(.nc-filter-input-wrapper) {
+  height: 28px;
 }
 </style>
 

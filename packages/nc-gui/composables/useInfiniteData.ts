@@ -1400,6 +1400,27 @@ export function useInfiniteData(args: {
     return expandedRowIndex === 0
   })
 
+  async function getRows(startIndex: number, endIndex: number): Promise<Array<Row>> {
+    const startChunkId = getChunkIndex(startIndex)
+    const endChunkId = getChunkIndex(endIndex)
+
+    const chunksToFetch = new Set<number>()
+    for (let chunkId = startChunkId; chunkId <= endChunkId; chunkId++) {
+      chunksToFetch.add(chunkId)
+    }
+
+    await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
+
+    const rows = []
+    for (let rowId = startIndex; rowId <= endIndex; rowId++) {
+      if (cachedRows.value.has(rowId)) {
+        rows.push(cachedRows.value.get(rowId))
+      }
+    }
+
+    return rows
+  }
+
   return {
     insertRow,
     updateRowProperty,
@@ -1431,5 +1452,6 @@ export function useInfiniteData(args: {
     navigateToSiblingRow,
     updateRecordOrder,
     selectedAllRecords,
+    getRows,
   }
 }

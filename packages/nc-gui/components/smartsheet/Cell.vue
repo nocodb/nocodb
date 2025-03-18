@@ -39,6 +39,8 @@ provide(ReadonlyInj, readOnly)
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isUnderLTAR = inject(IsUnderLTARInj, ref(false))
+
 const isGrid = inject(IsGridInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
@@ -298,7 +300,7 @@ const cellClassName = computed(() => {
 
 <template>
   <div
-    :class="cellClassName"
+    :class="[cellClassName, { 'nc-under-ltar': isUnderLTAR }]"
     class="nc-cell w-full h-full relative"
     @contextmenu="onContextmenu"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"

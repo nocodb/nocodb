@@ -372,7 +372,7 @@ const extractRelationDependencies = async (
   }
 };
 
-type RequestQuery = {
+export type RequestQuery = {
   [fields in 'f' | 'fields']?: string | string[];
 } & {
   nested?: {

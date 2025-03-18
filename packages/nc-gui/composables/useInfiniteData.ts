@@ -16,7 +16,14 @@ import type { Row } from '~/lib/types'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
 
-const formatData = (list: Record<string, any>[], pageInfo?: PaginatedType, params?: { limit?: number; offset?: number }) => {
+const formatData = (
+  list: Record<string, any>[],
+  pageInfo?: PaginatedType,
+  params?: {
+    limit?: number
+    offset?: number
+  },
+) => {
   // If pageInfo exists, use it for calculation
   if (pageInfo?.page && pageInfo?.pageSize) {
     return list.map((row, index) => {
@@ -1320,6 +1327,7 @@ export function useInfiniteData(args: {
       return false
     }
   }
+
   const removeRowIfNew = (row: Row): boolean => {
     const index = Array.from(cachedRows.value.entries()).find(([_, r]) => r.rowMeta.rowIndex === row.rowMeta.rowIndex)?.[0]
     if (index !== undefined && row.rowMeta.new) {
@@ -1370,10 +1378,11 @@ export function useInfiniteData(args: {
     const rowId = routeQuery.value.rowId
     if (!rowId) return -1
 
-    await until(() => cachedRows.value.size > 0).toBeTruthy({
+    await until(() => chunkStates.value?.every((v) => v !== 'loading')).toBeTruthy({
       timeout: 5000,
       interval: 100,
     })
+
     return getExpandedRowIndex()
   }
 

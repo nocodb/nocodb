@@ -314,15 +314,25 @@ function populateUniqueTableName(tn: string, draftTn: string[] = []) {
 function getAdapter(val: any) {
   if (isImportTypeCsv.value) {
     if (isPreImportFileFilled.value) {
-      return new CSVTemplateAdapter(val, {
-        ...importState.parserConfig,
-        importFromURL: false,
-      })
+      return new CSVTemplateAdapter(
+        val,
+        {
+          ...importState.parserConfig,
+          importFromURL: false,
+        },
+        undefined,
+        unref(existingColumns),
+      )
     } else {
-      return new CSVTemplateAdapter(val, {
-        ...importState.parserConfig,
-        importFromURL: true,
-      })
+      return new CSVTemplateAdapter(
+        val,
+        {
+          ...importState.parserConfig,
+          importFromURL: true,
+        },
+        undefined,
+        unref(existingColumns),
+      )
     }
   } else if (IsImportTypeExcel.value) {
     if (isPreImportFileFilled.value) {

@@ -343,7 +343,7 @@ function fieldsValidation(record: Record<string, any>, tn: string) {
   }
 
   if (!record.destCn) {
-    message.error(`${t('msg.error.columnDescriptionNotFound')} ${record.srcCn}`)
+    message.error(`${t('msg.error.columnDescriptionNotFound')} ${record.srcTitle}`)
     return false
   }
 

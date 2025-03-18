@@ -142,6 +142,16 @@ export class PaymentController {
     return this.paymentService.getCheckoutSession(workspaceOrOrgId, sessionId);
   }
 
+  @UseGuards(GlobalGuard)
+  @HttpCode(200)
+  @Get('/api/payment/:workspaceOrOrgId/customer-portal')
+  async getCustomerPortal(
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Req() req: NcRequest,
+  ) {
+    return this.paymentService.getCustomerPortal(workspaceOrOrgId, req);
+  }
+
   @Post('/api/payment/webhook')
   async webhookListener(@Req() req: NcRequest) {
     return this.paymentService.handleWebhook(req);

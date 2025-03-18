@@ -491,6 +491,28 @@ export class PaymentService {
     return session;
   }
 
+  async getCustomerPortal(
+    workspaceOrOrgId: string,
+    req: NcRequest,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const workspaceOrOrg = await this.getWorkspaceOrOrg(
+      workspaceOrOrgId,
+      ncMeta,
+    );
+
+    if (!workspaceOrOrg) {
+      NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+    }
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: workspaceOrOrg.stripe_customer_id,
+      return_url: `${req.ncSiteUrl}?afterManage=true&workspaceId=${workspaceOrOrg.id}`,
+    });
+
+    return session;
+  }
+
   async getSeatCount(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
     const workspaceOrOrg = await this.getWorkspaceOrOrg(
       workspaceOrOrgId,
@@ -619,6 +641,9 @@ export class PaymentService {
             seat_count: dataObject.items.data[0].quantity,
             status: dataObject.status,
             start_at: dayjs.unix(dataObject.start_date).utc().toISOString(),
+            end_at: dataObject.cancel_at
+              ? dayjs.unix(dataObject.cancel_at).utc().toISOString()
+              : null,
           });
 
           const workspaceId = subscription.fk_workspace_id;

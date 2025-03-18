@@ -42,6 +42,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const activePlan = computed(() => activeWorkspace.value?.payment?.plan)
 
+  const activeSubscription = computed(() => activeWorkspace.value?.payment?.subscription)
+
   const loadWorkspaceSeatCount = async () => {
     const { count } = (await $fetch(`/api/payment/${activeWorkspaceId.value}/seat-count`, {
       baseURL,
@@ -114,6 +116,18 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     await workspaceStore.loadWorkspace(activeWorkspaceId.value)
   }
 
+  const getCustomerPortalSession = async () => {
+    if (!activeWorkspaceId.value) throw new Error('No active workspace')
+
+    const res = await $fetch(`/api/payment/${activeWorkspaceId.value}/customer-portal`, {
+      baseURL,
+      method: 'GET',
+      headers: { 'xc-auth': $state.token.value as string },
+    })
+
+    return res.url
+  }
+
   const getSessionResult = async (sessionId: string): Promise<StripeCheckoutSession> => {
     if (!activeWorkspaceId.value) throw new Error('No active workspace')
 
@@ -177,8 +191,10 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     cancelSubscription,
     isPaidPlan,
     activePlan,
+    activeSubscription,
     activeWorkspaceId,
     getSessionResult,
+    getCustomerPortalSession,
   }
 }, 'injected-payment-store')
 

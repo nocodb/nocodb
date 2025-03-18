@@ -189,13 +189,13 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       case UITypes.Formula:
       case UITypes.Button:
         {
-          aliasToColumn[col.id] = async () => {
-            if (params.parentColumns.has(col.id)) {
+          aliasToColumn[col.id] = async (parentColumns?: Set<string>) => {
+            if (parentColumns?.has(col.id)) {
               NcError.formulaError('Circular reference detected', {
                 details: {
                   columnId: col.id,
                   modelId: model.id,
-                  parentColumnIds: Array.from(params.parentColumns),
+                  parentColumnIds: Array.from(parentColumns),
                 },
               });
             }
@@ -212,7 +212,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               tableAlias,
               parsedTree: formulOption.getParsedTree(),
               baseUsers,
-              parentColumns: new Set([col.id, ...params.parentColumns]),
+              parentColumns: new Set([col.id, ...(parentColumns ?? [])]),
             });
             builder.sql = '(' + builder.sql + ')';
             return {
@@ -223,7 +223,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         break;
       case UITypes.Lookup:
       case UITypes.LinkToAnotherRecord:
-        aliasToColumn[col.id] = async (): Promise<any> => {
+        aliasToColumn[col.id] = async (
+          parentColumns?: Set<string>,
+        ): Promise<any> => {
           let aliasCount = 0;
           let selectQb;
           let isArray = false;
@@ -598,12 +600,12 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                   const formulaOption =
                     await lookupColumn.getColOptions<FormulaColumn>(context);
                   const lookupModel = await lookupColumn.getModel(context);
-                  if (params.parentColumns.has(lookupColumn.id)) {
+                  if (parentColumns?.has(lookupColumn.id)) {
                     NcError.formulaError('Circular reference detected', {
                       details: {
                         columnId: lookupColumn.id,
                         modelId: model.id,
-                        parentColumnIds: Array.from(params.parentColumns),
+                        parentColumnIds: Array.from(parentColumns),
                       },
                     });
                   }
@@ -616,7 +618,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                     parsedTree: formulaOption.getParsedTree(),
                     parentColumns: new Set([
                       lookupColumn.id,
-                      ...params.parentColumns,
+                      ...(parentColumns ?? []),
                     ]),
                     tableAlias: prevAlias,
                   });
@@ -671,7 +673,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         break;
       case UITypes.Rollup:
       case UITypes.Links:
-        aliasToColumn[col.id] = async (): Promise<any> => {
+        aliasToColumn[col.id] = async (
+          _parentColumns?: Set<string>,
+        ): Promise<any> => {
           const qb = await genRollupSelectv2({
             baseModelSqlv2,
             knex,
@@ -692,7 +696,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             break;
           }
           if (knex.clientType().startsWith('mysql')) {
-            aliasToColumn[col.id] = async (): Promise<any> => {
+            aliasToColumn[col.id] = async (
+              _parentColumns?: Set<string>,
+            ): Promise<any> => {
               return {
                 // convert from DB timezone to UTC
                 builder: knex.raw(
@@ -706,7 +712,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             refCol.dt !== 'timestamp with time zone' &&
             refCol.dt !== 'timestamptz'
           ) {
-            aliasToColumn[col.id] = async (): Promise<any> => {
+            aliasToColumn[col.id] = async (
+              _parentColumns?: Set<string>,
+            ): Promise<any> => {
               return {
                 // convert from DB timezone to UTC
                 builder: knex
@@ -741,7 +749,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       case UITypes.CreatedBy:
       case UITypes.LastModifiedBy:
         {
-          aliasToColumn[col.id] = async (): Promise<any> => {
+          aliasToColumn[col.id] = async (
+            _parentColumns?: Set<string>,
+          ): Promise<any> => {
             baseUsers =
               baseUsers ??
               (await BaseUser.getUsersList(context, {
@@ -1010,7 +1020,8 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
     } else if (pt.type === 'Literal') {
       return { builder: knex.raw(`? ${colAlias}`, [pt.value]) };
     } else if (pt.type === 'Identifier') {
-      const { builder } = (await aliasToColumn?.[pt.name]?.()) || {};
+      const { builder } =
+        (await aliasToColumn?.[pt.name]?.(params.parentColumns)) || {};
       if (typeof builder === 'function') {
         return { builder: knex.raw(`??${colAlias}`, builder(pt.fnName)) };
       }

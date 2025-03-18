@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { PlanMeta } from 'nocodb-sdk'
+
 const route = useRoute()
 
 const workspaceStore = useWorkspace()
@@ -12,15 +14,21 @@ const activeWorkspace = computed(() => workspacesList.value.find((w) => w.id ===
 const { paymentState, workspaceSeatCount } = useProvidePaymentStore()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
+
+const activePlanMeta = computed(() => PlanMeta[(activeWorkspace.value?.payment?.plan.title ?? 'Free') as keyof typeof PlanMeta])
 </script>
 
 <template>
   <div
     v-if="!paymentInitiated"
-    class="flex flex-col min-w-[fit-content] rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight p-6 gap-4"
+    class="flex flex-col min-w-[fit-content] rounded-lg border-1 p-6 gap-4"
+    :style="{ backgroundColor: activePlanMeta.color, borderColor: activePlanMeta.accent }"
   >
     <div class="text-2xl font-bold">{{ activeWorkspace?.payment?.plan.title }}</div>
-    <div class="flex items-center border-1 border-nc-border-gray-medium rounded-lg w-[fit-content]">
+    <div
+      class="flex items-center border-1 border-nc-border-gray-medium rounded-lg w-[fit-content] divide-x divide-inherit"
+      :style="{ borderColor: activePlanMeta.accent }"
+    >
       <PaymentPlanUsageCard
         :used="+(workspaceSeatCount ?? 0)"
         :total="activeWorkspace?.payment?.plan.title === 'Free' ? 5 : Infinity"
@@ -32,7 +40,7 @@ const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYM
         title="Records"
       />
       <PaymentPlanUsageCard
-        :used="+(activeWorkspace?.stats?.storage?? 0)"
+        :used="+(activeWorkspace?.stats?.storage ?? 0)"
         :total="+(activeWorkspace?.payment?.plan.meta.limit_storage ?? 0)"
         title="Storage"
         unit="GB"

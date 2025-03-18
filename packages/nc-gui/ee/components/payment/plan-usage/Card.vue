@@ -1,9 +1,12 @@
 <script lang="ts" setup>
+import type { PlanMeta } from 'nocodb-sdk'
+
 const props = defineProps<{
   used: number
   total: number
   title: string
   unit?: string
+  planMeta?: (typeof PlanMeta)[keyof typeof PlanMeta]
 }>()
 
 const isInfinity = computed(() => !Number.isFinite(props.total))
@@ -16,7 +19,7 @@ const isInfinity = computed(() => !Number.isFinite(props.total))
       <span class="text-base">{{ isInfinity ? '∞' : total ?? 0 }}</span>
     </div>
     <div class="flex items-center gap-2">
-      <div class="flex-1 h-2 bg-nc-border-gray-medium rounded-lg">
+      <div class="flex-1 h-2 rounded-lg">
         <div
           class="h-full bg-brand-500 rounded-lg"
           :class="{

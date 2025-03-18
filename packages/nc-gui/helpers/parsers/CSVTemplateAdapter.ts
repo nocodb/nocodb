@@ -1,6 +1,6 @@
 import { parse } from 'papaparse'
 import type { UploadFile } from 'ant-design-vue'
-import { UITypes, getDateFormat, validateDateWithUnknownFormat } from 'nocodb-sdk'
+import { type ColumnType, UITypes, getDateFormat, validateDateWithUnknownFormat } from 'nocodb-sdk'
 import {
   extractMultiOrSingleSelectProps,
   getCheckboxValue,
@@ -24,10 +24,16 @@ export default class CSVTemplateAdapter {
 
   data: Record<string, any> = {}
   columnValues: Record<number, []>
+  existingColumns?: ColumnType[]
 
   private progressCallback?: (msg: string) => void
 
-  constructor(source: UploadFile[] | string, parserConfig = {}, progressCallback?: (msg: string) => void) {
+  constructor(
+    source: UploadFile[] | string,
+    parserConfig = {},
+    progressCallback?: (msg: string) => void,
+    existingColumns?: ColumnType[],
+  ) {
     this.config = parserConfig
     this.source = source
     this.base = {
@@ -39,6 +45,7 @@ export default class CSVTemplateAdapter {
     this.columnValues = {}
     this.tables = {}
     this.progressCallback = progressCallback
+    this.existingColumns = existingColumns
   }
 
   async init() {}
@@ -168,7 +175,13 @@ export default class CSVTemplateAdapter {
 
   updateTemplate(tableIdx: number) {
     for (let columnIdx = 0; columnIdx < this.headers[tableIdx].length; columnIdx++) {
-      const uidt = this.getPossibleUidt(columnIdx)
+      const existingColumn = this.existingColumns?.find((col) => col.title === this.headers[tableIdx]?.[columnIdx]) as string
+      let uidt = existingColumn?.uidt
+
+      if (!uidt) {
+        uidt = this.getPossibleUidt(columnIdx)
+      }
+
       if (this.columnValues[columnIdx].length > 0) {
         if (uidt === UITypes.DateTime) {
           const dateFormat: Record<string, number> = {}

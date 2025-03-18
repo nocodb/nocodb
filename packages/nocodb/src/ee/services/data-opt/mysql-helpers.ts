@@ -1260,7 +1260,7 @@ export async function singleQueryList(
     customConditions?: Filter[];
     getHiddenColumns?: boolean;
     apiVersion?: NcApiVersion;
-    includeSortAndFilteredColumns?: boolean;
+    includeSortAndFilterColumns?: boolean;
   },
 ): Promise<PagedResponseImpl<Record<string, any>>> {
   if (!['mysql', 'mysql2'].includes(ctx.source.type)) {
@@ -1441,7 +1441,7 @@ export async function singleQueryList(
     getHiddenColumn: ctx.getHiddenColumns,
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
     apiVersion: ctx.apiVersion,
-    includeSortAndFilteredColumns: ctx.includeSortAndFilteredColumns,
+    includeSortAndFilterColumns: ctx.includeSortAndFilterColumns,
   });
 
   await extractColumns({

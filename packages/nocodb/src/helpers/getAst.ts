@@ -49,7 +49,7 @@ const getAst = async (
     extractOnlyRangeFields = false,
     apiVersion = NcApiVersion.V2,
     extractOrderColumn = false,
-    includeSortAndFilteredColumns = false,
+    includeSortAndFilterColumns = false,
   }: {
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
@@ -63,7 +63,7 @@ const getAst = async (
     extractOnlyRangeFields?: boolean;
     apiVersion?: NcApiVersion;
     extractOrderColumn?: boolean;
-    includeSortAndFilteredColumns?: boolean;
+    includeSortAndFilterColumns?: boolean;
   },
 ): Promise<{
   ast: Ast;
@@ -99,7 +99,7 @@ const getAst = async (
     }
   }
 
-  if (view && includeSortAndFilteredColumns) {
+  if (view && includeSortAndFilterColumns) {
     const sorts = await view.getSorts(context);
     const filters = await Filter.allViewFilterList(context, {
       viewId: view.id,
@@ -188,7 +188,7 @@ const getAst = async (
         allowedCols[id] = 1;
       });
     }
-    if (includeSortAndFilteredColumns) {
+    if (includeSortAndFilterColumns) {
       sortColumnIds.forEach((id) => (allowedCols[id] = 1));
       filterColumnIds.forEach((id) => (allowedCols[id] = 1));
     }
@@ -251,7 +251,7 @@ const getAst = async (
     const isForeignKey = col.uidt === UITypes.ForeignKey;
     const isInFields = fields?.length && fields.includes(col.title);
     const isSortOrFilterColumn =
-      includeSortAndFilteredColumns &&
+      includeSortAndFilterColumns &&
       (sortColumnIds.includes(col.id) || filterColumnIds.includes(col.id));
 
     if (isSortOrFilterColumn) {

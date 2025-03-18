@@ -15,6 +15,12 @@ interface Props {
   showBackBtn?: boolean
 }
 
+enum ImportTypeTabs {
+  'upload' = 'upload',
+  'uploadFromUrl' = 'uploadFromUrl',
+  'uploadJSON' = 'uploadJSON',
+}
+
 const { importType, importDataOnly = false, baseId, sourceId, transition, showBackBtn, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'back'])
@@ -64,6 +70,12 @@ const collapseKey = ref('')
 const temporaryJson = ref({})
 
 const jsonErrorText = ref('')
+
+const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
+
+const isError = ref(false)
+
+const refMonacoEditor = ref()
 
 const useForm = Form.useForm
 
@@ -150,17 +162,23 @@ const isPreImportUrlFilled = computed(() => {
 })
 
 const isPreImportJsonFilled = computed(() => {
-  return JSON.stringify(importState.jsonEditor).length > 2 && !jsonErrorText.value
+  try {
+    return refMonacoEditor.value.isValid && JSON.stringify(importState.jsonEditor).length > 2
+  } catch {
+    return false
+  }
 })
 
 const disablePreImportButton = computed(() => {
-  if (isImportTypeCsv.value) {
-    return isPreImportFileFilled.value === isPreImportUrlFilled.value
-  } else if (IsImportTypeExcel.value) {
-    return isPreImportFileFilled.value === isPreImportUrlFilled.value
-  } else if (isImportTypeJson.value) {
-    return !isPreImportFileFilled.value && !isPreImportJsonFilled.value
+  if (activeTab.value === ImportTypeTabs.upload) {
+    return !isPreImportFileFilled.value
+  } else if (activeTab.value === ImportTypeTabs.uploadFromUrl) {
+    return !isPreImportUrlFilled.value
+  } else if (activeTab.value === ImportTypeTabs.uploadJSON) {
+    return !isPreImportJsonFilled.value
   }
+
+  return true
 })
 
 const importBtnText = computed(() => {
@@ -183,9 +201,6 @@ const importBtnText = computed(() => {
   return importDataOnly ? `${t('activity.upload')} ${type}` : `${t('activity.import')} ${type}`
 })
 
-const isError = ref(false)
-const refMonacoEditor = ref()
-
 const disableImportButton = computed(() => !templateEditorRef.value?.isValid || isError.value)
 
 let templateGenerator: CSVTemplateAdapter | JSONTemplateAdapter | ExcelTemplateAdapter | null
@@ -198,8 +213,10 @@ async function handlePreImport() {
     await loadProjectTables(baseId)
   }
 
+  const isPreImportFileMode = isPreImportFileFilled.value && activeTab.value === ImportTypeTabs.upload
+
   if (isImportTypeCsv.value) {
-    if (isPreImportFileFilled.value) {
+    if (isPreImportFileMode) {
       await parseAndExtractData(importState.fileList as streamImportFileList)
     } else if (isPreImportUrlFilled.value) {
       try {
@@ -210,17 +227,17 @@ async function handlePreImport() {
       }
     }
   } else if (isImportTypeJson.value) {
-    if (isPreImportFileFilled.value) {
+    if (isPreImportFileMode) {
       if (isWorkerSupport && importWorker) {
         await parseAndExtractData(importState.fileList as streamImportFileList)
       } else {
         await parseAndExtractData((importState.fileList as importFileList)[0].data)
       }
-    } else {
+    } else if (isPreImportJsonFilled.value) {
       await parseAndExtractData(JSON.stringify(importState.jsonEditor))
     }
   } else if (IsImportTypeExcel) {
-    if (isPreImportFileFilled.value) {
+    if (isPreImportFileMode) {
       if (isWorkerSupport && importWorker) {
         await parseAndExtractData(importState.fileList as streamImportFileList)
       } else {
@@ -544,8 +561,12 @@ onMounted(() => {
   importState.parserConfig.autoSelectFieldTypes = importDataOnly
 })
 
-onUnmounted(() => {
+const onCancelImport = () => {
   $importWorker.terminate()
+}
+
+onUnmounted(() => {
+  onCancelImport()
 })
 
 function handleJsonChange(newValue: any) {
@@ -576,14 +597,6 @@ watch(
     }
   },
 )
-
-enum ImportTypeTabs {
-  'upload' = 'upload',
-  'uploadFromUrl' = 'uploadFromUrl',
-  'uploadJSON' = 'uploadJSON',
-}
-
-const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
 </script>
 
 <template>
@@ -746,12 +759,7 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
               <div class="relative mt-5 mb-1 px-1">
                 <a-form :model="importState" name="quick-import-url-form" layout="vertical" class="!my-0">
                   <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url" :required="false" class="!my-0">
-                    <a-input
-                      v-model:value="importState.url"
-                      class="!rounded-md"
-                      placeholder="Paste file link here..."
-                      :disabled="isPreImportFileFilled"
-                    />
+                    <a-input v-model:value="importState.url" class="!rounded-md" placeholder="Paste file link here..." />
                   </a-form-item>
                 </a-form>
               </div>
@@ -782,19 +790,19 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
                     @update:model-value="handleJsonChange($event)"
                   />
                   <a-alert
-                    v-if="jsonErrorText && !isPreImportFileFilled"
+                    v-if="jsonErrorText || refMonacoEditor?.error"
                     type="error"
                     class="!rounded-lg !mt-2 !border-none !p-3"
                   >
                     <template #message>
-                      <div class="flex flex-row items-center gap-2 mb-2">
+                      <div class="flex flex-row items-center gap-2 mb-1">
                         <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
                         <span class="font-weight-700 text-[14px]">Json Error</span>
                       </div>
                     </template>
                     <template #description>
                       <div class="text-gray-500 text-[13px] leading-5 ml-6">
-                        {{ jsonErrorText }}
+                        {{ jsonErrorText || refMonacoEditor?.error }}
                       </div>
                     </template>
                   </a-alert>
@@ -860,6 +868,7 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
             () => {
               dialogShow = false
               emit('back')
+              onCancelImport()
             }
           "
         >

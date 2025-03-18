@@ -149,8 +149,9 @@ onClickOutside(datePickerRef, (e) => {
 })
 
 const onBlur = (e) => {
-  if(tempDate.value && tempDate.value?.isValid?.()) {
-    localState.value = tempDate.value
+  const value = (e?.target as HTMLInputElement)?.value
+  if (value && dayjs(value, dateFormat.value).isValid()) {
+    handleUpdateValue(e, true)
   }
 
   if (

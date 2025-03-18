@@ -427,6 +427,11 @@ export class PaymentService {
           },
         ],
         expand: ['latest_invoice.payment_intent'],
+        ...(existingSubscription.period === 'year'
+          ? {
+              proration_behavior: 'always_invoice',
+            }
+          : {}),
       },
     );
 

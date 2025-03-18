@@ -1,6 +1,6 @@
 import request from 'supertest';
+import { APIContext } from 'nocodb-sdk';
 import type View from '../../../src/models/View';
-import { APIContext } from 'nocodb-sdk'
 
 const updateViewColumns = async (
   context,
@@ -9,7 +9,10 @@ const updateViewColumns = async (
     viewColumns,
   }: {
     view: View;
-    viewColumns: Record<string, any>[] | Record<string, Record<string, any>[]>;
+    viewColumns:
+      | Record<string, any>[]
+      | Record<string, Record<string, any>[]>
+      | Record<string, Record<string, any>>;
   },
 ) => {
   // generate key-value pair of column id and column

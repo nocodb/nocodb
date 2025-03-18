@@ -1263,6 +1263,23 @@ export const getAbstractType = (column: ColumnType, sqlUis?: Record<string, any>
   return abstractType
 }
 
+// Helper function to split a long word into chunks
+export const splitLongWord = (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, word: string, availableWidth: number): string[] => {
+  const chunks: string[] = []
+  let currentChunk = ''
+  for (let i = 0; i < word.length; i++) {
+    const testChunk = currentChunk + word[i]
+    if (ctx.measureText(testChunk).width > availableWidth) {
+      if (currentChunk) chunks.push(currentChunk)
+      currentChunk = word[i]
+    } else {
+      currentChunk += word[i]
+    }
+  }
+  if (currentChunk) chunks.push(currentChunk)
+  return chunks
+}
+
 export function renderFormulaURL(
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   params: {
@@ -1317,22 +1334,7 @@ export function renderFormulaURL(
   ctx.textBaseline = verticalAlign
   ctx.fillStyle = fillStyle
 
-  // Helper function to split a long word into chunks
-  const splitLongWord = (word: string, availableWidth: number): string[] => {
-    const chunks: string[] = []
-    let currentChunk = ''
-    for (let i = 0; i < word.length; i++) {
-      const testChunk = currentChunk + word[i]
-      if (ctx.measureText(testChunk).width > availableWidth) {
-        if (currentChunk) chunks.push(currentChunk)
-        currentChunk = word[i]
-      } else {
-        currentChunk += word[i]
-      }
-    }
-    if (currentChunk) chunks.push(currentChunk)
-    return chunks
-  }
+  const ellipsisWidth = ctx.measureText('...').width
 
   // Process each text segment
   for (const { text, url } of texts) {
@@ -1353,9 +1355,9 @@ export function renderFormulaURL(
       let processedWord = word
       if (ctx.measureText(word).width > availableWidth) {
         if (url) {
-          processedWord = truncateText(ctx, word, availableWidth - ctx.measureText('...').width, false, true)
+          processedWord = truncateText(ctx, word, availableWidth - ellipsisWidth, false, true)
         } else {
-          const chunks = splitLongWord(word, availableWidth)
+          const chunks = splitLongWord(ctx, word, availableWidth)
           processedWord = chunks[0] // Use the first chunk, rest will be processed in next iteration
         }
       }
@@ -1365,9 +1367,8 @@ export function renderFormulaURL(
 
       // Check if the new line exceeds maxWidth
       if (currentX + newLineWidth > x + maxWidth && lineText.length > 0) {
-        const lineY = currentY + currentLine * lineHeight + lineHeight * 0.8
+        const lineY = currentY + currentLine * lineHeight + lineHeight
         if (lineY + lineHeight > y + height && currentLine === maxLines - 1) {
-          const ellipsisWidth = ctx.measureText('...').width
           const truncatedLine = truncateText(ctx, lineText, maxWidth - ellipsisWidth, false, true)
           ctx.fillText(truncatedLine, currentX, lineY)
           if (url) {
@@ -1397,7 +1398,7 @@ export function renderFormulaURL(
           ctx.fillStyle = '#3366FF'
           ctx.fillText(lineText, currentX, currentY + currentLine * lineHeight + lineHeight * 0.8)
           ctx.fillStyle = fillStyle
-          const underlineY = currentY + currentLine * lineHeight + lineHeight * 0.8 + underlineOffset
+          const underlineY = currentY + currentLine * lineHeight + lineHeight * 0.8 + 8
           ctx.strokeStyle = '#3366FF'
           ctx.beginPath()
           ctx.moveTo(currentX, underlineY)
@@ -1426,7 +1427,6 @@ export function renderFormulaURL(
       if (isLastWord) {
         const lineY = currentY + currentLine * lineHeight + lineHeight * 0.8
         if (lineY + lineHeight > y + height && currentLine === maxLines - 1) {
-          const ellipsisWidth = ctx.measureText('...').width
           const truncatedLine = truncateText(ctx, lineText, maxWidth - ellipsisWidth, false, true)
           ctx.fillText(truncatedLine, currentX, lineY)
           if (url) {

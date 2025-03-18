@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { UseDetachedLongText } from '../composables/useDetachedLongText';
+import { useDetachedLongText } from '../composables/useDetachedLongText';
 import ExpandedText from '../components/ExpandedText.vue';
 
-const { states, close } = UseDetachedLongText()
+const { states, close } = useDetachedLongText()
 
 const shouldClose = (isVisible: boolean, i: number) => {
   if (!isVisible) close(i)
@@ -11,7 +11,6 @@ const shouldClose = (isVisible: boolean, i: number) => {
 
 <template>
   <template v-for="(state, i) of states" :key="`expanded-text-${i}`">
-
     <ExpandedText
       v-model:model-visible="state.isOpen"
       v-model="state.vModel"

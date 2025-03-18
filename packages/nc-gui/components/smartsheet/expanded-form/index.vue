@@ -91,6 +91,10 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 provide(MetaInj, meta)
 
+// override cell event hook to avoid unexpected behavior at form fields
+// issue happens when opening expanded form from cell (LTAR/Links)
+provide(CanvasSelectCellInj, undefined)
+
 const isLoading = ref(true)
 
 const isSaving = ref(false)

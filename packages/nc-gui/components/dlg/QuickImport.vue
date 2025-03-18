@@ -566,6 +566,18 @@ onMounted(() => {
 
 const onCancelImport = () => {
   $importWorker.terminate()
+  Object.assign(importState, structuredClone(defaultImportState))
+  preImportLoading.value = false
+  importLoading.value = false
+  templateData.value = undefined
+  importData.value = undefined
+  importColumns.value = []
+
+  templateEditorModal.value = false
+  isParsingData.value = false
+  temporaryJson.value = {}
+  jsonErrorText.value = ''
+  isError.value = false
 }
 
 onUnmounted(() => {
@@ -671,7 +683,7 @@ watch(
                   class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !border-gray-200"
                   list-type="picture"
                   :accept="importMeta.acceptTypes"
-                  :max-count="isImportTypeCsv ? 3 : 1"
+                  :max-count="isImportTypeCsv ? undefined : 1"
                   :multiple="true"
                   :custom-request="customReqCbk"
                   :before-upload="beforeUpload"

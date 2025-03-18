@@ -815,18 +815,26 @@ export async function extractColumn({
       {
         const model: Model = await column.getModel(context);
         const formula = await column.getColOptions<FormulaColumn>(context);
-        if (formula.error) return result;
-        const selectQb = await formulaQueryBuilderv2(
-          baseModel,
-          formula.formula,
-          null,
-          model,
-          column,
-          {},
-          rootAlias,
-          validateFormula,
-        );
-        qb.select(knex.raw(`?? as ??`, [selectQb.builder, getAs(column)]));
+        if (formula.error) {
+          qb.select(knex.raw(`'ERR' as ??`, [getAs(column)]));
+          return result;
+        }
+        try {
+          const selectQb = await formulaQueryBuilderv2(
+            baseModel,
+            formula.formula,
+            null,
+            model,
+            column,
+            {},
+            rootAlias,
+            validateFormula,
+          );
+          qb.select(knex.raw(`?? as ??`, [selectQb.builder, getAs(column)]));
+        } catch (e) {
+          logger.log(e);
+          qb.select(knex.raw(`'ERR' as ??`, [getAs(column)]));
+        }
       }
       break;
     case UITypes.Button:

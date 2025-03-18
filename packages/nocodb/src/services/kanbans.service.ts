@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, ViewTypes } from 'nocodb-sdk';
+import { AppEvents, UITypes, ViewTypes } from 'nocodb-sdk';
 import type {
   KanbanUpdateReqType,
   UserType,
@@ -38,6 +38,24 @@ export class KanbansService {
 
     const model = await Model.get(context, param.tableId);
 
+    let fk_cover_image_col_id =
+      (param.kanban as KanbanView).fk_cover_image_col_id ?? null;
+
+    // if attachment field not mapped(undefined) and at-least one attachment field exists in the model
+    // map the first attachment field, skip if duplicating
+    // Skip if copy_from_id is present(which means duplicating)
+    if (
+      (param.kanban as KanbanView).fk_cover_image_col_id === undefined &&
+      !(param.kanban as { copy_from_id: string }).copy_from_id
+    ) {
+      const attachmentField = (await model.getColumns(context)).find(
+        (column) => column.uidt === UITypes.Attachment,
+      );
+      if (attachmentField) {
+        fk_cover_image_col_id = attachmentField.id;
+      }
+    }
+
     const { id } = await View.insertMetaOnly(context, {
       view: {
         ...param.kanban,
@@ -48,6 +66,7 @@ export class KanbansService {
         source_id: model.source_id,
         created_by: param.user?.id,
         owned_by: param.ownedBy || param.user?.id,
+        fk_cover_image_col_id,
       },
       model,
       req: param.req,

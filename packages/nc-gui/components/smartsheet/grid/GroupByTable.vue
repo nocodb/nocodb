@@ -175,7 +175,7 @@ function addEmptyRow(group: Group, addAfter?: number, metaValue = meta.value) {
     if (
       curr.key !== '__nc_null__' &&
       // avoid setting default value for rollup, formula, barcode, qrcode, links, ltar
-      (!curr.column_uidt == UITypes.LinkToAnotherRecord && !isGroupBtLtar(curr.column_name))
+      !(curr.column_uidt == UITypes.LinkToAnotherRecord && !isGroupBtLTAR(curr.column_name)) &&
       ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode, UITypes.Links].includes(curr.column_uidt)
     ) {
       acc[curr.title] = curr.key

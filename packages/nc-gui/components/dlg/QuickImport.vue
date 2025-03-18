@@ -141,10 +141,6 @@ watch(
   { immediate: true },
 )
 
-const filterOption = (input = '', params: { key: string }) => {
-  return params.key?.toLowerCase().includes(input.toLowerCase())
-}
-
 const isPreImportFileFilled = computed(() => {
   return importState.fileList?.length > 0
 })
@@ -165,6 +161,26 @@ const disablePreImportButton = computed(() => {
   } else if (isImportTypeJson.value) {
     return !isPreImportFileFilled.value && !isPreImportJsonFilled.value
   }
+})
+
+const importBtnText = computed(() => {
+  // configure field screen
+  if (templateEditorModal.value) {
+    if (importLoading.value) {
+      return importDataOnly ? t('labels.uploading') : t('labels.importing')
+    }
+
+    return importDataOnly ? t('activity.upload') : t('activity.import')
+  }
+
+  const type = isImportTypeJson.value ? t('labels.jsonCapitalized') : t('objects.files')
+
+  // upload file screen
+  if (preImportLoading.value) {
+    return importDataOnly ? `${t('labels.uploading')} ${type}` : `${t('labels.importing')} ${type}`
+  }
+
+  return importDataOnly ? `${t('activity.upload')} ${type}` : `${t('activity.import')} ${type}`
 })
 
 const isError = ref(false)
@@ -581,7 +597,12 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
     :transition-name="transition"
     @keydown.esc="dialogShow = false"
   >
-    <a-spin :spinning="isParsingData" :tip="progressMsg" size="large">
+    <div
+      class="relative"
+      :class="{
+        'cursor-wait': preImportLoading || importLoading,
+      }"
+    >
       <div class="text-base font-weight-700 m-0 flex items-center gap-3">
         <GeneralIcon :icon="importMeta.icon" class="w-6 h-6" />
         {{ importMeta.header }}
@@ -595,7 +616,12 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
         </a>
       </div>
 
-      <div class="mt-5">
+      <div
+        class="mt-5"
+        :class="{
+          'pointer-events-none': preImportLoading || importLoading,
+        }"
+      >
         <LazyTemplateEditor
           v-if="templateEditorModal"
           ref="templateEditorRef"
@@ -703,9 +729,9 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
                           </template>
                         </NcDropdown>
                       </a-form-item>
-                      <nc-button type="text" size="xsmall" class="flex-shrink" @click="actions?.remove?.()">
+                      <NcButton type="text" size="xsmall" class="flex-shrink" @click="actions?.remove?.()">
                         <GeneralIcon icon="deleteListItem" />
-                      </nc-button>
+                      </NcButton>
                     </div>
                   </template>
                 </a-upload-dragger>
@@ -780,16 +806,23 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
       </div>
 
       <div v-if="!templateEditorModal" class="mt-5">
-        <nc-button type="text" size="small" @click="collapseKey = !collapseKey ? 'advanced-settings' : ''">
+        <NcButton type="text" size="small" @click="collapseKey = !collapseKey ? 'advanced-settings' : ''">
           {{ $t('title.advancedSettings') }}
           <GeneralIcon
             icon="chevronDown"
             class="ml-2 !transition-all !transform"
             :class="{ '!rotate-180': collapseKey === 'advanced-settings' }"
           />
-        </nc-button>
+        </NcButton>
 
-        <a-collapse v-model:active-key="collapseKey" ghost class="nc-import-collapse">
+        <a-collapse
+          v-model:active-key="collapseKey"
+          ghost
+          class="nc-import-collapse"
+          :class="{
+            'pointer-events-none': preImportLoading || importLoading,
+          }"
+        >
           <a-collapse-panel key="advanced-settings">
             <a-form-item v-if="isImportTypeCsv || IsImportTypeExcel" class="!my-2 nc-dense-checkbox-container">
               <a-checkbox v-model:checked="importState.parserConfig.firstRowAsHeaders">
@@ -809,7 +842,8 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
           </a-collapse-panel>
         </a-collapse>
       </div>
-    </a-spin>
+    </div>
+
     <template #footer>
       <div class="flex items-center gap-2 pt-3">
         <NcButton v-if="templateEditorModal" key="back" type="text" size="small" @click="templateEditorModal = false">
@@ -817,7 +851,7 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
           {{ $t('general.back') }}
         </NcButton>
 
-        <nc-button
+        <NcButton
           v-else
           key="cancel"
           type="text"
@@ -832,11 +866,11 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
           <GeneralIcon v-if="showBackBtn" icon="chevronLeft" class="mr-1" />
 
           {{ showBackBtn ? $t('general.back') : $t('general.cancel') }}
-        </nc-button>
+        </NcButton>
 
         <div class="flex-1" />
 
-        <nc-button
+        <NcButton
           v-if="!templateEditorModal"
           key="pre-import"
           size="small"
@@ -845,19 +879,12 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
           :disabled="disablePreImportButton"
           @click="handlePreImport"
         >
-          {{ importDataOnly ? $t('activity.upload') : $t('activity.import') }}
-        </nc-button>
+          {{ importBtnText }}
+        </NcButton>
 
-        <nc-button
-          v-else
-          key="import"
-          size="small"
-          :loading="importLoading"
-          :disabled="disableImportButton"
-          @click="handleImport"
-        >
-          {{ importDataOnly ? $t('activity.upload') : $t('activity.import') }}
-        </nc-button>
+        <NcButton v-else key="import" size="small" :loading="importLoading" :disabled="disableImportButton" @click="handleImport">
+          {{ importBtnText }}
+        </NcButton>
       </div>
     </template>
   </a-modal>

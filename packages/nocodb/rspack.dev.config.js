@@ -113,6 +113,7 @@ const baseDevConfig = {
   watchOptions: {
     ignored: /node_modules/,
     poll: 100,
+    aggregateTimeout: 600,
   },
 };
 

@@ -1260,37 +1260,20 @@ export const getAbstractType = (column: ColumnType, sqlUis?: Record<string, any>
   return abstractType
 }
 
-// Helper function to split a long word into chunks
-export const splitLongWord = (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, word: string, availableWidth: number): string[] => {
-  const chunks: string[] = []
-  let currentChunk = ''
-  for (let i = 0; i < word.length; i++) {
-    const testChunk = currentChunk + word[i]
-    if (ctx.measureText(testChunk).width > availableWidth) {
-      if (currentChunk) chunks.push(currentChunk)
-      currentChunk = word[i]
-    } else {
-      currentChunk += word[i]
-    }
-  }
-  if (currentChunk) chunks.push(currentChunk)
-  return chunks
-}
-
 export function renderFormulaURL(
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   params: {
-    htmlText: string;
-    x: number;
-    y: number;
-    maxWidth: number;
-    height: number;
-    lineHeight: number;
-    fillStyle?: string;
-    fontFamily?: string;
-    fontSize?: number;
-    textAlign?: CanvasTextAlign;
-    verticalAlign?: CanvasTextBaseline;
+    htmlText: string
+    x: number
+    y: number
+    maxWidth: number
+    height: number
+    lineHeight: number
+    fillStyle?: string
+    fontFamily?: string
+    fontSize?: number
+    textAlign?: CanvasTextAlign
+    verticalAlign?: CanvasTextBaseline
   },
 ): { x: number; y: number; width: number; height: number; url?: string }[] {
   const {
@@ -1302,149 +1285,130 @@ export function renderFormulaURL(
     lineHeight,
     fillStyle = '#4a5268',
     fontFamily = '500 13px Manrope',
-    fontSize = 13,
     textAlign = 'left',
     verticalAlign = 'middle',
-  } = params;
+  } = params
 
-  let maxLines
-
+  let maxLines = 1
   if (rowHeightInPx['1'] === height) {
     maxLines = 1 // Only one line if rowHeightInPx['1'] matches height
   } else if (height) {
-    maxLines = Math.min(Math.floor(height / lineHeight), rowHeightTruncateLines(height)) // Calculate max lines based on height and lineHeight
-  } else {
-    maxLines = 1
+    maxLines = Math.min(Math.floor(height / lineHeight), rowHeightTruncateLines(height)) // Calculate max lines
   }
 
-  const urlRects: { x: number; y: number; width: number; height: number; url?: string }[] = [];
+  const urlRects: { x: number; y: number; width: number; height: number; url?: string }[] = []
 
-  ctx.save();
-  ctx.font = fontFamily;
-  ctx.textAlign = textAlign;
-  ctx.textBaseline = verticalAlign;
-  ctx.fillStyle = fillStyle;
+  ctx.save()
+  ctx.font = fontFamily
+  ctx.textAlign = textAlign
+  ctx.textBaseline = verticalAlign
+  ctx.fillStyle = fillStyle
 
-  const container = document.createElement('div');
-  container.innerHTML = htmlText;
+  const container = document.createElement('div')
+  container.innerHTML = htmlText
 
-  let currentLine = 0;
-  let currentX = x;
-  let currentY = y;
-  let hasMoreContent = false;
+  let currentLine = 0
+  let currentX = x
+  const currentY = y
 
   function processNode(node: ChildNode, currentUrl?: string) {
-    if (currentLine >= maxLines) {
-      hasMoreContent = true;
-      return;
-    }
-
     if (node.nodeType === Node.TEXT_NODE) {
       const text = node.textContent
-      if (!text) return;
+      if (!text) return
 
-      let remainingText = text;
+      let remainingText = text
       while (remainingText && currentLine < maxLines) {
-        const availableWidth = maxWidth - (currentX - x);
-        const lineText = getTextForWidth(ctx, remainingText, availableWidth);
+        const availableWidth = maxWidth - (currentX - x)
+        const lineText = getTextForWidth(ctx, remainingText, availableWidth)
 
         if (!lineText) {
           // If no text fits but there’s content, move to next line
           if (currentX > x) {
-            currentLine++;
-            currentX = x;
-            continue;
+            currentLine++
+            currentX = x
+            continue
           }
-          break;
+          break
         }
 
-        const isLastLine = currentLine === maxLines - 1;
-        renderLine(lineText, currentUrl, isLastLine && remainingText.length > lineText.length);
+        const isLastLine = currentLine === maxLines - 1
+        renderLine(lineText, currentUrl, isLastLine && remainingText.length > lineText.length)
 
         remainingText = remainingText.slice(lineText.length)
-        currentX += ctx.measureText(lineText).width;
+        currentX += ctx.measureText(lineText).width
 
         if (currentX >= x + maxWidth) {
-          currentX = x;
-          currentLine++;
+          currentX = x
+          currentLine++
         }
 
-        if (!remainingText && currentLine < maxLines) break;
-        if (currentLine >= maxLines) {
-          hasMoreContent = true;
-          break;
-        }
+        if (!remainingText && currentLine < maxLines) break
       }
     } else if (node.nodeType === Node.ELEMENT_NODE && (node as Element).tagName === 'A') {
-      const anchor = node as HTMLAnchorElement;
-      const url = anchor.href;
-      node.childNodes.forEach((child) => processNode(child, url));
+      const anchor = node as HTMLAnchorElement
+      const url = anchor.href
+      node.childNodes.forEach((child) => processNode(child, url))
     } else {
-      node.childNodes.forEach((child) => processNode(child, currentUrl));
+      node.childNodes.forEach((child) => processNode(child, currentUrl))
     }
   }
 
   function getTextForWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
-    if (ctx.measureText(text).width <= maxWidth) return text;
+    if (ctx.measureText(text).width <= maxWidth) return text
 
-    let low = 0;
-    let high = text.length;
-    let fitText = '';
+    let low = 0
+    let high = text.length
+    let fitText = ''
 
     while (low <= high) {
-      const mid = Math.floor((low + high) / 2);
-      const candidate = text.slice(0, mid);
-      const width = ctx.measureText(candidate).width;
+      const mid = Math.floor((low + high) / 2)
+      const candidate = text.slice(0, mid)
+      const width = ctx.measureText(candidate).width
 
       if (width <= maxWidth) {
-        fitText = candidate;
-        low = mid + 1;
+        fitText = candidate
+        low = mid + 1
       } else {
-        high = mid - 1;
+        high = mid - 1
       }
     }
 
-    return fitText || text[0]; // Fallback to at least one character if possible
+    return fitText || text[0] // Fallback to at least one character if possible
   }
 
-  function truncateText(
-    ctx: CanvasRenderingContext2D,
-    text: string,
-    maxWidth: number,
-    ellipsis: boolean,
-  ): string {
-    let truncated = text;
+  function truncateText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, ellipsis: boolean): string {
+    let truncated = text
     if (ctx.measureText(text).width > maxWidth) {
-      truncated = text.substring(0, Math.floor(text.length * (maxWidth / ctx.measureText(text).width)));
+      truncated = text.substring(0, Math.floor(text.length * (maxWidth / ctx.measureText(text).width)))
       while (ctx.measureText(truncated + (ellipsis ? '...' : '')).width > maxWidth && truncated.length > 0) {
-        truncated = truncated.slice(0, -1);
+        truncated = truncated.slice(0, -1)
       }
-      if (ellipsis) truncated += '...';
+      if (ellipsis) truncated += '...'
     }
-    return truncated;
+    return truncated
   }
 
   function renderLine(text: string, url?: string, addEllipsis: boolean = false) {
-    let finalText = text;
-    const lineY = currentY + currentLine * lineHeight + lineHeight * 0.8;
-    const availableWidth = maxWidth - (currentX - x);
+    let finalText = text
+    const lineY = currentY + currentLine * lineHeight + lineHeight * 0.8
+    const availableWidth = maxWidth - (currentX - x)
 
     if (ctx.measureText(text).width > availableWidth) {
-      finalText = truncateText(ctx, text, availableWidth, addEllipsis);
+      finalText = truncateText(ctx, text, availableWidth, addEllipsis)
     } else if (addEllipsis) {
-      finalText += '...';
+      finalText += '...'
     }
 
-    ctx.fillStyle = url ? '#3366FF' : fillStyle;
-    ctx.fillText(finalText, currentX, lineY);
+    ctx.fillStyle = url ? '#3366FF' : fillStyle
+    ctx.fillText(finalText, currentX, lineY)
 
     if (url) {
-      const underlineY = lineY + 8;
-      ctx.strokeStyle = '#3366FF';
-      ctx.beginPath();
-      ctx.moveTo(currentX, underlineY);
-      ctx.lineTo(currentX + ctx.measureText(finalText).width, underlineY);
-      ctx.stroke();
+      const underlineY = lineY + 8
+      ctx.strokeStyle = '#3366FF'
+      ctx.beginPath()
+      ctx.moveTo(currentX, underlineY)
+      ctx.lineTo(currentX + ctx.measureText(finalText).width, underlineY)
+      ctx.stroke()
 
       urlRects.push({
         x: currentX,
@@ -1452,14 +1416,14 @@ export function renderFormulaURL(
         width: ctx.measureText(finalText).width,
         height: lineHeight,
         url,
-      });
+      })
     }
   }
 
-  container.childNodes.forEach((node) => processNode(node));
-  ctx.restore();
+  container.childNodes.forEach((node) => processNode(node))
+  ctx.restore()
 
-  return urlRects;
+  return urlRects
 }
 
 const offscreenCanvas = new OffscreenCanvas(0, 0)

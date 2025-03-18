@@ -2353,10 +2353,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     } = {},
   ) {
     const queries: string[] = [];
+    const readChunkSize = 100;
+
     try {
       const columns = await this.model.getColumns(this.context);
 
-      // validate update data
       if (!raw) {
         for (const d of datas) {
           await this.validate(d, columns, { allowSystemColumn });
@@ -2382,116 +2383,76 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const updatePkValues = [];
       const toBeUpdated = [];
       const pkAndData: { pk: any; data: any }[] = [];
-      const readChunkSize = 100;
-      let globalIndex = 0;
-      for (const [i, d] of updateDatas.entries()) {
+
+      for (const d of updateDatas) {
         const pkValues = getCompositePkValue(
           this.model.primaryKeys,
           this.extractPksValues(d),
         );
+
         if (pkValues === null || pkValues === undefined) {
-          // throw or skip if no pk provided
-          if (throwExceptionIfNotExist) {
-            NcError.recordNotFound(pkValues);
-          }
+          if (throwExceptionIfNotExist) NcError.recordNotFound(pkValues);
           continue;
         }
-        if (!raw) {
-          pkAndData.push({
-            pk: pkValues,
-            data: d,
-          });
 
-          if (
-            pkAndData.length >= readChunkSize ||
-            i === updateDatas.length - 1
-          ) {
-            const tempToRead = pkAndData.splice(0, pkAndData.length);
-            const oldRecords = await this.chunkList({
-              chunkSize: 100,
-              pks: tempToRead.map((v) => v.pk),
-            });
+        pkAndData.push({ pk: pkValues, data: d });
+      }
 
-            for (const record of tempToRead) {
-              const oldRecord = oldRecords.find((r) =>
-                this.comparePks(this.extractPksValues(r), record.pk),
-              );
+      for (let i = 0; i < pkAndData.length; i += readChunkSize) {
+        const chunk = pkAndData.slice(i, i + readChunkSize);
+        const pksToRead = chunk.map((v) => v.pk);
 
-              if (!oldRecord) {
-                // throw or skip if no record found
-                if (throwExceptionIfNotExist) {
-                  NcError.recordNotFound(pkValues);
-                }
-                continue;
-              }
+        const oldRecords = await this.list(
+          { pks: pksToRead.join(',') },
+          { limitOverride: chunk.length, ignoreViewFilterAndSort: true },
+        );
 
-              await this.prepareNocoData(record.data, false, cookie, oldRecord);
+        const oldRecordsMap = new Map<string, any>(
+          oldRecords.map((r) => [
+            getCompositePkValue(
+              this.model.primaryKeys,
+              this.extractPksValues(r),
+            ),
+            r,
+          ]),
+        );
 
-              prevData.push(oldRecord);
-            }
+        for (const { pk, data } of chunk) {
+          const oldRecord = oldRecordsMap.get(pk);
 
-            for (let i = 0; i < tempToRead.length; i++) {
-              const { pk, data } = tempToRead[i];
-              const wherePk = await this._wherePk(pk, true);
-
-              // remove pk from update data for databricks
-              if (this.isDatabricks) {
-                const dWithoutPk = {};
-
-                for (const k in data) {
-                  if (!(k in wherePk)) {
-                    dWithoutPk[k] = data[k];
-                  }
-                }
-
-                toBeUpdated.push({ d: dWithoutPk, wherePk });
-              } else {
-                toBeUpdated.push({ d: data, wherePk });
-              }
-
-              updatePkValues.push(
-                getCompositePkValue(this.model.primaryKeys, {
-                  ...prevData[globalIndex],
-                  ...data,
-                }),
-              );
-              globalIndex++;
-            }
+          if (!oldRecord) {
+            if (throwExceptionIfNotExist) NcError.recordNotFound(pk);
+            continue;
           }
-        } else {
-          await this.prepareNocoData(d, false, cookie, null, { raw });
 
-          const wherePk = await this._wherePk(pkValues, true);
+          await this.prepareNocoData(data, false, cookie, oldRecord);
 
-          // remove pk from update data for databricks
-          if (this.isDatabricks) {
-            const dWithoutPk = {};
+          prevData.push(oldRecord);
 
-            for (const k in d) {
-              if (!(k in wherePk)) {
-                dWithoutPk[k] = d[k];
-              }
-            }
+          const wherePk = await this._wherePk(pk, true);
 
-            toBeUpdated.push({ d: dWithoutPk, wherePk });
-          } else {
-            toBeUpdated.push({ d, wherePk });
-          }
+          const dataToUpdate = this.isDatabricks
+            ? Object.fromEntries(
+                Object.entries(data).filter(([k]) => !(k in wherePk)),
+              )
+            : data;
+
+          toBeUpdated.push({ d: dataToUpdate, wherePk });
 
           updatePkValues.push(
             getCompositePkValue(this.model.primaryKeys, {
-              ...pkValues,
-              ...d,
+              ...oldRecord,
+              ...data,
             }),
           );
         }
       }
 
-      for (const o of toBeUpdated) {
-        queries.push(
+      queries.push(
+        ...toBeUpdated.map((o) =>
           this.dbDriver(this.tnPath).update(o.d).where(o.wherePk).toQuery(),
-        );
-      }
+        ),
+      );
 
       if ((this.dbDriver as any).isExternal) {
         await runExternal(
@@ -2511,7 +2472,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
-      // todo: wrap with transaction
       if (apiVersion === NcApiVersion.V3) {
         for (const d of datas) {
           // remove LTAR/Links if part of the update request
@@ -2524,22 +2484,25 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if (!raw) {
-        const pks = updatePkValues;
-        const updatedRecords = await this.chunkList({
-          pks: updatePkValues,
-          chunkSize: 100,
-        });
+        for (let i = 0; i < updatePkValues.length; i += readChunkSize) {
+          const pksChunk = updatePkValues.slice(i, i + readChunkSize);
 
-        const pkMap = new Map(
-          updatedRecords.map((record) => [
-            getCompositePkValue(this.model.primaryKeys, record),
-            record,
-          ]),
-        );
+          const updatedRecords = await this.list(
+            { pks: pksChunk.join(',') },
+            { limitOverride: pksChunk.length },
+          );
 
-        for (const pk of pks) {
-          if (pkMap.has(pk)) {
-            newData.push(pkMap.get(pk));
+          const updatedRecordsMap = new Map(
+            updatedRecords.map((record) => [
+              getCompositePkValue(this.model.primaryKeys, record),
+              record,
+            ]),
+          );
+
+          for (const pk of pksChunk) {
+            if (updatedRecordsMap.has(pk)) {
+              newData.push(updatedRecordsMap.get(pk));
+            }
           }
         }
       }

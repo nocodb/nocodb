@@ -787,10 +787,6 @@ async function saveEmptyRow(rowObj: Row) {
 function addEmptyRow(row?: number, skipUpdate = false) {
   const rowObj = callAddEmptyRow?.(row)
 
-  if (!skipUpdate && rowObj) {
-    saveEmptyRow(rowObj)
-  }
-
   nextTick().then(() => {
     scrollToRow(row ?? dataRef.value.length - 1)
   })

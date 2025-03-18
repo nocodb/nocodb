@@ -6112,6 +6112,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } = {},
   ) {
     let transaction;
+    const readChunkSize = 100;
+
     try {
       const columns = await this.model.getColumns(this.context);
 
@@ -6141,75 +6143,54 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const updatePkValues = [];
       const toBeUpdated = [];
       const pkAndData: { pk: any; data: any }[] = [];
-      const readChunkSize = 100;
-      for (const [i, d] of updateDatas.entries()) {
+
+      for (const d of updateDatas) {
         const pkValues = getCompositePkValue(
           this.model.primaryKeys,
           this.extractPksValues(d),
         );
+
         if (!pkValues) {
-          // throw or skip if no pk provided
-          if (throwExceptionIfNotExist) {
-            NcError.recordNotFound(pkValues);
-          }
+          if (throwExceptionIfNotExist) NcError.recordNotFound(pkValues);
           continue;
         }
-        if (!raw) {
-          pkAndData.push({
-            pk: pkValues,
-            data: d,
-          });
 
-          if (
-            pkAndData.length >= readChunkSize ||
-            i === updateDatas.length - 1
-          ) {
-            const tempToRead = pkAndData.splice(0, pkAndData.length);
-            const oldRecords = await this.chunkList({
-              pks: tempToRead.map((v) => v.pk),
-            });
+        pkAndData.push({ pk: pkValues, data: d });
+      }
 
-            for (const record of tempToRead) {
-              const oldRecord = oldRecords.find((r) =>
-                this.comparePks(this.extractPksValues(r), record.pk),
-              );
+      for (let i = 0; i < pkAndData.length; i += readChunkSize) {
+        const chunk = pkAndData.slice(i, i + readChunkSize);
+        const pksToRead = chunk.map((v) => v.pk);
 
-              if (!oldRecord) {
-                // throw or skip if no record found
-                if (throwExceptionIfNotExist) {
-                  NcError.recordNotFound(record);
-                }
-                continue;
-              }
+        const oldRecords = await this.chunkList({ pks: pksToRead });
+        const oldRecordsMap = new Map<string, any>(
+          oldRecords.map((r) => [
+            getCompositePkValue(
+              this.model.primaryKeys,
+              this.extractPksValues(r),
+            ),
+            r,
+          ]),
+        );
 
-              await this.prepareNocoData(record.data, false, cookie, oldRecord);
+        for (const { pk, data } of chunk) {
+          const oldRecord = oldRecordsMap.get(pk);
 
-              prevData.push(oldRecord);
-            }
-
-            for (let i = 0; i < tempToRead.length; i++) {
-              const { pk, data } = tempToRead[i];
-              const wherePk = await this._wherePk(pk, true);
-              toBeUpdated.push({ d: data, wherePk });
-              updatePkValues.push(
-                getCompositePkValue(this.model.primaryKeys, {
-                  ...prevData[i],
-                  ...data,
-                }),
-              );
-            }
+          if (!oldRecord) {
+            if (throwExceptionIfNotExist) NcError.recordNotFound({ pk, data });
+            continue;
           }
-        } else {
-          await this.prepareNocoData(d, false, cookie, null, { raw });
 
-          const wherePk = await this._wherePk(pkValues, true);
+          await this.prepareNocoData(data, false, cookie, oldRecord);
+          prevData.push(oldRecord);
 
-          toBeUpdated.push({ d, wherePk });
+          const wherePk = await this._wherePk(pk, true);
+          toBeUpdated.push({ d: data, wherePk });
 
           updatePkValues.push(
             getCompositePkValue(this.model.primaryKeys, {
-              ...pkValues,
-              ...d,
+              ...oldRecord,
+              ...data,
             }),
           );
         }
@@ -6236,27 +6217,25 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       if (!raw) {
-        const pks = updatePkValues.splice(0, readChunkSize);
+        for (let i = 0; i < updatePkValues.length; i += readChunkSize) {
+          const pksChunk = updatePkValues.slice(i, i + readChunkSize);
 
-        const updatedRecords = await this.list(
-          {
-            pks: pks.join(','),
-          },
-          {
-            limitOverride: readChunkSize,
-          },
-        );
+          const updatedRecords = await this.list(
+            { pks: pksChunk.join(',') },
+            { limitOverride: pksChunk.length },
+          );
 
-        const pkMap = new Map(
-          updatedRecords.map((record) => [
-            getCompositePkValue(this.model.primaryKeys, record),
-            record,
-          ]),
-        );
+          const updatedRecordsMap = new Map(
+            updatedRecords.map((record) => [
+              getCompositePkValue(this.model.primaryKeys, record),
+              record,
+            ]),
+          );
 
-        for (const pk of pks) {
-          if (pkMap.has(pk)) {
-            newData.push(pkMap.get(pk));
+          for (const pk of pksChunk) {
+            if (updatedRecordsMap.has(pk)) {
+              newData.push(updatedRecordsMap.get(pk));
+            }
           }
         }
       }

@@ -67,6 +67,7 @@ export function useMultiSelect(
   changePage?: (page: number) => void,
   fetchChunk?: (chunkId: number) => Promise<void>,
   onActiveCellChanged?: () => void,
+  getRows?: Promise<Row[]>
 ) {
   const meta = ref(_meta)
 
@@ -215,10 +216,7 @@ export function useMultiSelect(
 
           // Fetch all required chunks
           await Promise.all([...chunksToFetch].map(fetchChunk))
-
-          cprows = Array.from(unref(data as Map<number, Row>).entries())
-            .filter(([index]) => index >= selectedRange.start.row && index <= selectedRange.end.row)
-            .map(([, row]) => row)
+          cprows = await getRows(selectedRange.start.row, selectedRange.end.row)
         }
         const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
 

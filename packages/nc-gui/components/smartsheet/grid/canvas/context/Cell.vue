@@ -39,13 +39,22 @@ const props = defineProps<{
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
   clearCell: (ctx: { row: number; col: number } | null, skipUpdate?: boolean) => Promise<void>
   clearSelectedRangeOfCells: () => Promise<void>
+  getRows: (start: number, end: number) => Promise<Row[]>
 }>()
 
 // Emits
 const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
 
-const { bulkDeleteAll, deleteRow, deleteSelectedRows, deleteRangeOfRows, expandForm, clearCell, clearSelectedRangeOfCells } =
-  props
+const {
+  bulkDeleteAll,
+  deleteRow,
+  deleteSelectedRows,
+  deleteRangeOfRows,
+  expandForm,
+  clearCell,
+  clearSelectedRangeOfCells,
+  getRows,
+} = props
 
 const contextMenuTarget = useVModel(props, 'contextMenuTarget', emits)
 const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
@@ -152,7 +161,7 @@ const generateAIBulk = async () => {
 
   if (!field || !field.id) return
 
-  const rows = Array.from(cachedRows.value.values()).slice(selection.value.start.row, selection.value.end.row + 1)
+  const rows = await getRows(selection.value.start.row, selection.value.end.row + 1)
 
   if (!rows || rows.length === 0) return
 

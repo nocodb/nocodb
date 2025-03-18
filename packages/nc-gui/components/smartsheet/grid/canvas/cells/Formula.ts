@@ -219,7 +219,7 @@ export const FormulaCellRenderer: CellRenderer = {
         // If selected and clicked, open the detached long text
         const hoveredBox = boxes.find((box) => isBoxHovered(box, props.mousePosition))
         if (hoveredBox) {
-          window.open(hoveredBox.url, '_blank')
+          confirmPageLeavingRedirect(hoveredBox.url, '_blank')
         } else if (selected) {
           openDetachedLongText({ column: colObj, vModel: value })
         }

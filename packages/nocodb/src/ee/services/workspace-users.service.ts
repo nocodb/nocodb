@@ -172,7 +172,7 @@ export class WorkspaceUsersService {
             );
 
           const editorLimitForWorkspace = await getLimit(
-            PlanLimitTypes.WORKSPACE_EDITOR_LIMIT,
+            PlanLimitTypes.PLAN_EDITOR_LIMIT,
             param.workspaceId,
             transaction,
           );
@@ -401,7 +401,7 @@ export class WorkspaceUsersService {
           await Subscription.calculateWorkspaceSeatCount(workspaceId, ncMeta);
 
         const editorLimitForWorkspace = await getLimit(
-          PlanLimitTypes.WORKSPACE_EDITOR_LIMIT,
+          PlanLimitTypes.PLAN_EDITOR_LIMIT,
           workspaceId,
           ncMeta,
         );
@@ -426,7 +426,7 @@ export class WorkspaceUsersService {
       );
 
       const userLimitForWorkspace = await getLimit(
-        PlanLimitTypes.WORKSPACE_USER_LIMIT,
+        PlanLimitTypes.PLAN_USER_LIMIT,
         workspaceId,
         ncMeta,
       );

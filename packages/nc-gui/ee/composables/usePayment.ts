@@ -124,8 +124,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     })
   }
 
-  const onPaymentModeChange = (val: boolean) => {
-    paymentMode.value = val ? 'year' : 'month'
+  const onPaymentModeChange = (val: 'year' | 'month') => {
+    paymentMode.value = val
   }
 
   const onSelectPlan = (plan: PaymentPlan) => {

@@ -1,0 +1,66 @@
+<script lang="ts" setup>
+const props = defineProps<{
+  value: 'year' | 'month'
+  discount?: number
+}>()
+
+const emit = defineEmits(['update:value', 'change'])
+
+const vModel = useVModel(props, 'value', (_, val) => {
+  emit('update:value', val)
+  emit('change', val)
+})
+</script>
+
+<template>
+  <div class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5 w-[fit-content]">
+    <div
+      class="tab"
+      :class="{
+        active: vModel === 'month',
+      }"
+      @click="vModel = 'month'"
+    >
+      <div class="tab-title nc-tab">Monthly</div>
+    </div>
+    <div
+      class="tab"
+      :class="{
+        active: vModel === 'year',
+      }"
+      @click="vModel = 'year'"
+    >
+      <div class="tab-title nc-tab">Annually</div>
+    </div>
+    <div
+      v-if="props.discount"
+      class="flex items-center gap-1 bg-nc-bg-green-light ml-1 px-1 rounded-lg text-xs text-nc-content-green-dark"
+    >
+      <div class="tab-title nc-tab">-{{ props.discount }}%</div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.tab {
+  @apply flex flex-row items-center h-6 justify-center px-2 py-1 rounded-md gap-x-2 text-gray-600 hover:text-black cursor-pointer transition-all duration-300 select-none;
+}
+
+.tab-icon {
+  font-size: 1rem !important;
+  @apply w-4;
+}
+.tab .tab-title {
+  @apply min-w-0 hover:text-brand-600;
+  word-break: keep-all;
+  white-space: nowrap;
+  display: inline;
+  line-height: 0.95;
+}
+
+.active {
+  @apply bg-white;
+
+  box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+}
+</style>

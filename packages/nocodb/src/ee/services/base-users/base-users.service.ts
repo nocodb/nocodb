@@ -430,7 +430,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
             );
 
           const editorLimitForWorkspace = await getLimit(
-            PlanLimitTypes.WORKSPACE_EDITOR_LIMIT,
+            PlanLimitTypes.PLAN_EDITOR_LIMIT,
             workspace.id,
             transaction,
           );

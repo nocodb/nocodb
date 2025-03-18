@@ -407,7 +407,7 @@ export function useInfiniteData(args: {
   }
 
   const navigateToSiblingRow = async (dir: NavigateDir) => {
-    const expandedRowIndex = getExpandedRowIndex()
+    const expandedRowIndex = await getExpandedRowIndexWithWait()
     if (expandedRowIndex === -1) return
 
     const sortedIndices = Array.from(cachedRows.value.keys()).sort((a, b) => a - b)
@@ -1363,6 +1363,18 @@ export function useInfiniteData(args: {
       }
     }
     return -1
+  }
+
+  // function which waits for the data to be loaded and then returns the expanded row index
+  async function getExpandedRowIndexWithWait(): number {
+    const rowId = routeQuery.value.rowId
+    if (!rowId) return -1
+
+    await until(() => cachedRows.value.size > 0).toBeTruthy({
+      timeout: 5000,
+      interval: 100,
+    })
+    return getExpandedRowIndex()
   }
 
   const isLastRow = computed(() => {

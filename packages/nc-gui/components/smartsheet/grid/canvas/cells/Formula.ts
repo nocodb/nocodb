@@ -111,13 +111,12 @@ export const FormulaCellRenderer: CellRenderer = {
         ctx.font = `${pv ? 600 : 500} 13px Manrope`
         ctx.fillStyle = pv ? '#3366FF' : textColor
         const boxes = renderFormulaURL(ctx, {
-          texts,
+          htmlText: urls,
           height,
           maxWidth,
           x: x + padding,
           y: y + 3,
           lineHeight: 16,
-          underlineOffset: y < 36 ? 0 : 3,
         })
         const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
         if (hoveredBox) {
@@ -204,17 +203,15 @@ export const FormulaCellRenderer: CellRenderer = {
       }
 
       if (typeof urls === 'string') {
-        const texts = getFormulaTextSegments(urls)
         const ctx = defaultOffscreen2DContext
         ctx.font = `${pv ? 600 : 500} 13px Manrope`
         const boxes = renderFormulaURL(ctx, {
-          texts,
+          htmlText: urls,
           height,
           maxWidth,
           x: x + padding,
           y: y + 3,
           lineHeight: 16,
-          underlineOffset: y < 36 ? 0 : 3,
         })
 
         // If clicked on url or other texts

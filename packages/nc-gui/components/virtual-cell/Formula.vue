@@ -2,6 +2,7 @@
 import { FormulaDataTypes, UITypes, handleTZ } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { useDetachedLongText } from '../smartsheet/grid/canvas/composables/useDetachedLongText';
 
 provide(IsUnderFormulaInj, ref(true))
 
@@ -9,6 +10,8 @@ provide(IsUnderFormulaInj, ref(true))
 const column = inject(ColumnInj) as Ref<ColumnType & { colOptions: { error: any } }>
 
 const cellValue = inject(CellValueInj)
+
+const active = inject(ActiveCellInj, ref(false))
 
 const { isPg } = useBase()
 
@@ -19,10 +22,9 @@ const result = computed(() =>
 const urls = computed(() => replaceUrlsWithLink(result.value))
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
-const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
-  useShowNotEditableWarning()
-
 const isNumber = computed(() => (column.value.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC)
+
+const { open: openDetachedLongText } = useDetachedLongText()
 
 const isStringDataType = computed(() => {
   if (isUnderLookup.value) return false
@@ -32,6 +34,32 @@ const isStringDataType = computed(() => {
     (column.value.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.STRING
   )
 })
+
+
+const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
+  useShowNotEditableWarning({
+    onEnter: e => {
+      if (isStringDataType.value) {
+        openLongText(e)
+      }
+    }
+  })
+
+
+const openLongText= (event) => {
+  if (!isStringDataType.value || !active.value) return
+
+  const target = event.target as HTMLElement;
+  if (target.tagName === 'A') {
+    event.stopPropagation();
+    return
+  }
+
+  openDetachedLongText({
+    column: column.value,
+    vModel: result.value,
+  })
+}
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
@@ -46,17 +74,13 @@ const updatedColumn = computed(() => {
       uidt: column.value.meta?.display_type,
       ...column.value.meta?.display_column_meta,
     }
-  } else if (isStringDataType.value) {
-    return {
-      ...column.value,
-      uidt: UITypes.LongText,
-    }
   }
 })
 
 const renderAsCell = computed(() => {
-  return !!(column.value.meta?.display_type || isStringDataType.value)
+  return !!(column.value.meta?.display_type)
 })
+
 </script>
 
 <template>
@@ -70,8 +94,8 @@ const renderAsCell = computed(() => {
       <span>ERR!</span>
     </a-tooltip>
 
-    <div v-else class="nc-cell-field py-1" @dblclick="activateShowEditNonEditableFieldWarning">
-      <div v-if="urls" v-html="urls" />
+    <div v-else class="nc-cell-field group py-1" @dblclick="activateShowEditNonEditableFieldWarning">
+      <div v-if="urls" v-html="urls" @click="openLongText" />
 
       <LazyCellClampedText v-else :value="result" :lines="rowHeight" />
 
@@ -81,6 +105,19 @@ const renderAsCell = computed(() => {
       <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         {{ $t('msg.info.computedFieldDeleteWarning') }}
       </div>
+
+      <NcTooltip v-if="isStringDataType" placement="bottom" class="nc-action-icon hidden group-hover:block absolute right-4 top-1">
+        <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
+        <NcButton
+          type="secondary"
+          size="xsmall"
+          class="nc-textarea-expand !p-0 !w-5 !h-5 !min-w-[fit-content]"
+          @click.stop="openLongText"
+        >
+          <component :is="iconMap.maximize" class="transform group-hover:(!text-grey-800) text-gray-700 w-3 h-3" />
+        </NcButton>
+      </NcTooltip>
     </div>
+
   </div>
 </template>

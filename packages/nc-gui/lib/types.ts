@@ -24,6 +24,7 @@ import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders
 import type { TableMetaLoader } from '../components/smartsheet/grid/canvas/loaders/TableMetaLoader'
 import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
+import type { UseDetachedLongTextProps } from '../components/smartsheet/grid/canvas/composables/useDetachedLongText';
 
 interface User {
   id: string
@@ -468,6 +469,7 @@ interface CellRenderer {
     cellRenderStore: CellRenderStore
     isPublic?: boolean
     openDetachedExpandedForm: (props: UseExpandedFormDetachedProps) => void
+    openDetachedLongText: (props: UseDetachedLongTextProps) => void
   }) => Promise<boolean>
   handleKeyDown?: (options: {
     e: KeyboardEvent
@@ -486,6 +488,7 @@ interface CellRenderer {
     actionManager: ActionManager
     makeCellEditable: (rowIndex: number | Row, clickedColumn: CanvasGridColumn) => void
     cellRenderStore: CellRenderStore
+    openDetachedLongText: (props: UseDetachedLongTextProps) => void
   }) => Promise<boolean | void>
   handleHover?: (options: {
     event: MouseEvent

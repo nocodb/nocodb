@@ -6126,6 +6126,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const toBeUpdated = [];
       const pkAndData: { pk: any; data: any }[] = [];
       const readChunkSize = 100;
+      let globalIndex = 0;
       for (const [i, d] of updateDatas.entries()) {
         const pkValues = getCompositePkValue(
           this.model.primaryKeys,
@@ -6177,10 +6178,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               toBeUpdated.push({ d: data, wherePk });
               updatePkValues.push(
                 getCompositePkValue(this.model.primaryKeys, {
-                  ...prevData[i],
+                  ...prevData[globalIndex],
                   ...data,
                 }),
               );
+              globalIndex++;
             }
           }
         } else {

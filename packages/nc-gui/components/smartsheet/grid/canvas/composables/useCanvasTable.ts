@@ -238,7 +238,11 @@ export function useCanvasTable({
           f.extra = getUserColOptions(f, baseUsers.value)
         }
 
-        const isInvalid = isColumnInvalid(f, aiIntegrations.value, isPublicView.value || !isAddingEmptyRowAllowed.value)
+        const isInvalid = isColumnInvalid(
+          f,
+          aiIntegrations.value,
+          isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
+        )
 
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
 

@@ -1313,39 +1313,55 @@ export function renderFormulaURL(
   let currentLine = 0
   let currentX = x
   const currentY = y
-
   function processNode(node: ChildNode, currentUrl?: string) {
     if (node.nodeType === Node.TEXT_NODE) {
       const text = node.textContent
       if (!text) return
 
-      let remainingText = text
-      while (remainingText && currentLine < maxLines) {
-        const availableWidth = maxWidth - (currentX - x)
-        const lineText = getTextForWidth(ctx, remainingText, availableWidth)
+      // Use wrapTextToLines for better text wrapping
+      const availableWidth = maxWidth - (currentX - x)
 
-        if (!lineText) {
-          // If no text fits but there’s content, move to next line
-          if (currentX > x) {
-            currentLine++
+      // Calculate remaining lines
+      const remainingLines = maxLines - currentLine
+
+      // Determine first line max width based on current position
+      const firstLineMaxWidth = availableWidth
+
+      // Get wrapped lines using the new function
+      const lines = wrapTextToLines(ctx, {
+        text,
+        maxWidth,
+        maxLines: remainingLines,
+        firstLineMaxWidth,
+      })
+
+      // Render each line
+      for (let i = 0; i < lines.length; i++) {
+        const lineText = lines[i]
+        if (!lineText) continue
+        const isLastLine = currentLine + i === maxLines - 1
+
+        // Handle the first line differently, as it might not start at the beginning of the row
+        if (i === 0) {
+          renderLine(lineText, currentUrl, isLastLine && i === lines.length - 1 && lineText.endsWith('...'))
+          currentX += ctx.measureText(lineText).width
+
+          // If we've reached the end of the line, move to the next
+          if (currentX >= x + maxWidth) {
             currentX = x
-            continue
+            currentLine++
           }
-          break
-        }
-
-        const isLastLine = currentLine === maxLines - 1
-        renderLine(lineText, currentUrl, isLastLine && remainingText.length > lineText.length)
-
-        remainingText = remainingText.slice(lineText.length)
-        currentX += ctx.measureText(lineText).width
-
-        if (currentX >= x + maxWidth) {
+        } else {
+          // Subsequent lines always start at the beginning of the row
           currentX = x
           currentLine++
-        }
 
-        if (!remainingText && currentLine < maxLines) break
+          // Don't render if we've exceeded maxLines
+          if (currentLine >= maxLines) break
+
+          renderLine(lineText, currentUrl, isLastLine && i === lines.length - 1 && lineText.endsWith('...'))
+          currentX += ctx.measureText(lineText).width
+        }
       }
     } else if (node.nodeType === Node.ELEMENT_NODE && (node as Element).tagName === 'A') {
       const anchor = node as HTMLAnchorElement
@@ -1354,29 +1370,6 @@ export function renderFormulaURL(
     } else {
       node.childNodes.forEach((child) => processNode(child, currentUrl))
     }
-  }
-
-  function getTextForWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
-    if (ctx.measureText(text).width <= maxWidth) return text
-
-    let low = 0
-    let high = text.length
-    let fitText = ''
-
-    while (low <= high) {
-      const mid = Math.floor((low + high) / 2)
-      const candidate = text.slice(0, mid)
-      const width = ctx.measureText(candidate).width
-
-      if (width <= maxWidth) {
-        fitText = candidate
-        low = mid + 1
-      } else {
-        high = mid - 1
-      }
-    }
-
-    return fitText || text[0] // Fallback to at least one character if possible
   }
 
   function truncateText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, ellipsis: boolean): string {

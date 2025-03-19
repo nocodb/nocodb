@@ -175,7 +175,7 @@ function addEmptyRow(group: Group, addAfter?: number, metaValue = meta.value) {
     if (
       curr.key !== '__nc_null__' &&
       // avoid setting default value for rollup, formula, barcode, qrcode, links
-	  // we will handle LinkToAnotherRecord down below
+      // we will handle LinkToAnotherRecord down below
       ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode, UITypes.Links].includes(curr.column_uidt)
     ) {
       acc[curr.title] = curr.key
@@ -203,7 +203,7 @@ function addEmptyRow(group: Group, addAfter?: number, metaValue = meta.value) {
     oldRow: {},
     rowMeta: { 
       new: true,
-      ltarState: {} // Initialize empty ltarState
+      ltarState: {} as Record<string, any>,
     },
   });
   
@@ -211,28 +211,27 @@ function addEmptyRow(group: Group, addAfter?: number, metaValue = meta.value) {
   if (ltarPromises && ltarPromises.length > 0) {
     Promise.all(ltarPromises)
       .then(results => {
-        // Initialize ltarState
-        const ltarState = {};
+        // Process valid results and build ltarStateData
+        const ltarStateData: Record<string, any> = {};
         
-        // Process valid results
         results
           .filter(result => result !== null)
           .forEach(result => {
             if (result && result.ltarId && result.ltarColumn) {
-              ltarState[result.ltarColumn.title] = [result.ltarId];
+              ltarStateData[result.ltarColumn.title] = [result.ltarId];
             }
           });
         
         // Update the row's ltarState if we have any LTAR data
-        if (Object.keys(ltarState).length > 0) {
-          group.rows[newRowIndex].rowMeta.ltarState = ltarState;
+        if (Object.keys(ltarStateData).length > 0) {
+          group.rows[newRowIndex].rowMeta.ltarState = ltarStateData;
         }
         
         // Remove any LinkToAnotherRecord fields that aren't in the ltarState
         const rowData = group.rows[newRowIndex].row;
         group.nestedIn.forEach(col => {
           if (col.column_uidt === UITypes.LinkToAnotherRecord && 
-              (!ltarState[col.title] || ltarState[col.title].length === 0)) {
+              (!ltarStateData[col.title] || ltarStateData[col.title].length === 0)) {
             delete rowData[col.title];
           }
         });
@@ -249,7 +248,7 @@ function addEmptyRow(group: Group, addAfter?: number, metaValue = meta.value) {
       }
     });
   }
-  console.log(group.rows[newRowIndex])
+  
   return group.rows[newRowIndex];
 }
 

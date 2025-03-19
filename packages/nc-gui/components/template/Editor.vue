@@ -761,7 +761,7 @@ function getMappedColumns(tableName: string) {
 
 function isAllMappedSelected(tableName: string) {
   const cols = getMappedColumns(tableName)
-  return cols.length && getMappedColumns(tableName).every((item) => item.enabled)
+  return !!cols.length && getMappedColumns(tableName).every((item) => item.enabled)
 }
 
 function isSomeMappedSelected(tableName: string) {
@@ -925,13 +925,16 @@ const getErrorByTableName = (tableName: string) => {
               </div>
             </div>
           </template>
-          <div v-if="srcDestMapping" class="bg-gray-50 max-h-[310px] overflow-y-auto nc-scrollbar-thin !py-1">
+          <div v-if="srcDestMapping" class="bg-gray-50 !py-1 flex-1 flex">
             <NcTable
-              class="template-form flex-1"
+              class="template-form flex-1 max-h-[310px]"
+              header-row-class-name="relative"
               body-row-class-name="template-form-row"
               :data="srcDestMapping[table.table_name]"
               :columns="srcDestMappingColumns"
               :bordered="false"
+              header-row-height="40px"
+              row-height="40px"
             >
               <template #headerCell="{ column }">
                 <NcTooltip v-if="column.key === 'source_column'">
@@ -954,6 +957,7 @@ const getErrorByTableName = (tableName: string) => {
                 <span v-if="column.key !== 'action'">
                   {{ column.title }}
                 </span>
+                <div class="absolute h-1 border-b bottom-0 left-3 right-3" />
               </template>
 
               <template #bodyCell="{ column, record }">
@@ -1106,42 +1110,42 @@ const getErrorByTableName = (tableName: string) => {
               </div>
             </template>
 
-            <div
-              v-if="table.columns && table.columns.length"
-              class="bg-gray-50 max-h-[310px] overflow-y-auto nc-scrollbar-thin !py-1"
-            >
+            <div v-if="table.columns && table.columns.length" class="bg-gray-50 !py-1 flex-1 flex">
               <NcTable
-                class="template-form flex-1"
+                class="template-form flex-1 max-h-[310px]"
                 body-row-class-name="template-form-row"
+                header-row-class-name="relative"
                 :data="table.columns"
                 :columns="tableColumns"
                 :bordered="false"
+                header-row-height="40px"
+                row-height="40px"
                 :pagination="table.columns.length > 50 ? { defaultPageSize: 50, position: ['bottomCenter'] } : false"
               >
-                <template #body-prepend>
-                  <tr class="nc-table-row">
-                    <td colspan="2" class="nc-table-cell pl-3 flex h-full items-center">
-                      <NcCheckbox
-                        :indeterminate="
-                          table.columns.length &&
-                          table.columns.some((it) => it.selected) &&
-                          !table.columns.every((it) => it.selected)
-                        "
-                        :checked="table.columns.every((it) => it.selected)"
-                        @click="toggleTableSelecteds(table)"
-                      />
-                      <span class="ml-4 font-weight-700 text-[13px]">
-                        {{
-                          table.columns.every((it) => it.selected)
-                            ? $t('activity.deselectAllFields')
-                            : $t('activity.selectAllFields')
-                        }}
-                        all fields
-                      </span>
-                    </td>
-                  </tr>
+                <template #headerCell="{ column }">
+                  <template v-if="column.key === 'enabled'">
+                    <NcCheckbox
+                      :indeterminate="
+                        table.columns.length &&
+                        table.columns.some((it) => it.selected) &&
+                        !table.columns.every((it) => it.selected)
+                      "
+                      :checked="table.columns.every((it) => it.selected)"
+                      @click="toggleTableSelecteds(table)"
+                    />
+                  </template>
+                  <template v-if="column.key === 'column_name'">
+                    <span class="font-weight-700 text-small text-nc-content-gray">
+                      {{
+                        table.columns.every((it) => it.selected)
+                          ? $t('activity.deselectAllFields')
+                          : $t('activity.selectAllFields')
+                      }}
+                    </span>
+                  </template>
+                  <div class="absolute h-1 border-b bottom-0 left-3 right-3" />
                 </template>
-                <template #bodyCell="{ column, record }">
+                <template #bodyCell="{ column, record, recordIndex }">
                   <template v-if="column.key === 'enabled'">
                     <NcCheckbox v-model:checked="record.selected" />
                   </template>
@@ -1154,7 +1158,7 @@ const getErrorByTableName = (tableName: string) => {
                         <a-input
                           :ref="(el: HTMLInputElement) => {inputRefs[record.key] = el; el?.focus?.(); return el;}"
                           v-model:value="record.title"
-                          class="!rounded-md animate-sidebar-node-input-padding"
+                          class="!rounded-md animate-sidebar-node-input-padding !font-weight-500 !text-nc-content-gray"
                           :autofocus="true"
                           @keydown.enter.prevent.stop="currentColumnToEdit = ''"
                           @keydown.esc.prevent.stop="currentColumnToEdit = ''"
@@ -1167,7 +1171,9 @@ const getErrorByTableName = (tableName: string) => {
                         class="relative group w-full flex items-center min-h-6"
                         @click="currentColumnToEdit = `${tableIdx}-${record.column_name}`"
                       >
-                        <span class="font-weight-500 max-w-[300px] inline-block truncate nc-import-table-field-name">
+                        <span
+                          class="font-weight-500 text-nc-content-gray max-w-[300px] inline-block truncate nc-import-table-field-name"
+                        >
                           {{ record.title }}
                         </span>
                         <NcButton
@@ -1186,7 +1192,7 @@ const getErrorByTableName = (tableName: string) => {
                       </template>
                       <GeneralIcon icon="info" class="h-4 w-4 text-nc-content-red-medium flex-none ml-2" />
                     </NcTooltip>
-                    <div class="absolute h-1 border-t top-0 left-3 right-3" />
+                    <div v-if="recordIndex" class="absolute h-1 border-t top-0 left-3 right-3" />
                   </template>
                 </template>
               </NcTable>
@@ -1222,13 +1228,10 @@ const getErrorByTableName = (tableName: string) => {
 }
 :deep(.nc-import-table-box .ant-collapse-content-box) {
   @apply p-0;
-  .nc-table-header-row {
-    @apply hidden;
-  }
+
+  .nc-table-header-row,
   .nc-table-row {
-    border: none !important;
-    height: 40px !important;
-    position: relative;
+    @apply !border-none relative;
   }
 }
 :deep(.nc-import-table-box.nc-upload-box .ant-collapse-content-box) {

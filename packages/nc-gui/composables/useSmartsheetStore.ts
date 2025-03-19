@@ -60,12 +60,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const whereQueryFromUrlError = computed(() => {
       if (route.value.query.where) {
-        return extractFilterFromXwhere(
-          { workspace_id: 'bypass', base_id: 'bypass', api_version: NcApiVersion.V1 },
-          route.value.query.where,
-          aliasColObjMap.value,
-          false,
-        )?.errors
+        return extractFilterFromXwhere({ api_version: NcApiVersion.V1 }, route.value.query.where, aliasColObjMap.value, false)
+          ?.errors
       }
     })
     const whereQueryFromUrl = computed(() => {

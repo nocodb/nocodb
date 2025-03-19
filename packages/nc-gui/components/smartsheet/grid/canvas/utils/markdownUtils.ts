@@ -68,7 +68,7 @@ const markers: Marker[] = [
 
 function parseTokens(
   text: string,
-  index: number = 0,
+  index = 0,
   activeStyles: MarkdownStyle[] = [],
   expectedClosing: string | null = null,
 ): { tokens: Token[]; newIndex: number } {

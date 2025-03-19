@@ -906,7 +906,7 @@ const getErrorByTableName = (tableName: string) => {
               </NcTooltip>
               <NcTooltip v-if="!isImporting && getErrorByTableName(table.table_name).length" class="ml-2">
                 <template #title>
-                  <div v-for="(err, idx) of getErrorByTableName(table.table_name)" class="mb-1 last-of-type:mb-0">
+                  <div v-for="(err, idx) of getErrorByTableName(table.table_name)" :key="idx" class="mb-1 last-of-type:mb-0">
                     {{ idx + 1 }}. {{ err }}
                   </div>
                 </template>
@@ -1085,7 +1085,7 @@ const getErrorByTableName = (tableName: string) => {
 
                 <NcTooltip v-if="!isImporting && getErrorForTable(tableIdx).length" class="ml-2">
                   <template #title>
-                    <div v-for="(err, idx) of getErrorForTable(tableIdx)" class="mb-1 last-of-type:mb-0">
+                    <div v-for="(err, idx) of getErrorForTable(tableIdx)" :key="idx" class="mb-1 last-of-type:mb-0">
                       {{ idx + 1 }}. {{ err }}
                     </div>
                   </template>

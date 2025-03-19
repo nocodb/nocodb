@@ -757,7 +757,7 @@ watch(
                               </NcButton>
                             </template>
 
-                            <template #overlay="{ visible, onChange }">
+                            <template #overlay="{ visible, onChange: onChangeVisibility }">
                               <NcList
                                 v-model:value="file.encoding"
                                 :open="visible"
@@ -767,7 +767,7 @@ watch(
                                 option-value-key="value"
                                 class="!w-full"
                                 variant="small"
-                                @update:open="onChange"
+                                @update:open="onChangeVisibility"
                               >
                               </NcList>
                             </template>

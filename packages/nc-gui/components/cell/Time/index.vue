@@ -55,7 +55,7 @@ const localState = computed({
       return undefined
     }
     let convertingValue = modelValue
-    const valueNumber: number = Number(modelValue)
+    const valueNumber = Number(modelValue)
     if (!isNaN(valueNumber)) {
       // FIXME: currently returned value is in minutes
       // so need to * 60 and need to be removed if changed to seconds

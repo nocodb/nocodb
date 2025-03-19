@@ -17,7 +17,7 @@ const onManageSubscription = async () => {
 </script>
 
 <template>
-  <div class="border-1 border-nc-border-gray-medium p-4 shadow-default rounded-lg w-[300px] flex flex-col gap-2">
+  <div class="border-1 border-nc-border-gray-medium p-4 shadow-default rounded-xl w-[300px] flex flex-col gap-4">
     <div class="flex flex-col">
       <div class="text-xl font-bold">
         {{ plan.title
@@ -25,13 +25,16 @@ const onManageSubscription = async () => {
           ({{ activeSubscription.period === 'year' ? 'Annually' : 'Monthly' }})</span
         >
       </div>
-      <div v-if="activePlan === plan.title && activeSubscription" class="flex items-center gap-1 h-[64px]">
-        <span class="text-xl">$</span
+      <div
+        v-if="activePlan === plan.title && activeSubscription"
+        class="flex items-center gap-1 h-[62px] w-[256px] text-nc-content-gray"
+      >
+        <span class="text-xl text-nc-content-gray-subtle2">$</span
         ><span class="text-3xl font-bold">{{ getPlanPrice(props.plan, activeSubscription.period) }}</span
         >/seat/month
       </div>
-      <div v-else class="flex items-center gap-1 h-[64px]">
-        <span class="text-xl">$</span><span class="text-3xl font-bold">{{ price }}</span
+      <div v-else class="flex items-center gap-1 h-[62px] w-[256px] text-nc-content-gray">
+        <span class="text-xl text-nc-content-gray-subtle2">$</span><span class="text-3xl font-bold">{{ price }}</span
         >/seat/month
       </div>
     </div>
@@ -52,10 +55,10 @@ const onManageSubscription = async () => {
       <div class="flex items-center justify-center gap-1">Choose {{ plan.title }}</div>
     </NcButton>
 
-    <div v-if="plan.descriptions" class="flex flex-col mt-4">
-      <div v-for="desc in plan.descriptions" :key="desc" class="flex items-center gap-2">
+    <div v-if="plan.descriptions" class="flex flex-col pt-2">
+      <div v-for="desc in plan.descriptions" :key="desc" class="flex items-center text-nc-content-gray-subtle2 leading-[24px]">
         <span>•</span>
-        <div>{{ desc }}</div>
+        <span>{{ desc }}</span>
       </div>
     </div>
   </div>

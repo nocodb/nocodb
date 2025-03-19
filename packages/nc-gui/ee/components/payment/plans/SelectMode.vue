@@ -31,19 +31,19 @@ const vModel = useVModel(props, 'value', (_, val) => {
       @click="vModel = 'year'"
     >
       <div class="tab-title nc-tab">Annually</div>
-    </div>
-    <div
-      v-if="props.discount"
-      class="flex items-center gap-1 bg-nc-bg-green-light ml-1 px-1 rounded-lg text-xs text-nc-content-green-dark"
-    >
-      <div class="tab-title nc-tab">-{{ props.discount }}%</div>
+      <span
+        v-if="props.discount"
+        class="flex items-center gap-1 px-1 py-[3px] bg-nc-bg-green-light rounded-[6px] text-xs text-nc-content-green-dark"
+      >
+        -{{ props.discount }}%
+      </span>
     </div>
   </div>
 </template>
 
 <style scoped>
 .tab {
-  @apply flex flex-row items-center h-6 justify-center px-2 py-1 rounded-md gap-x-2 text-gray-600 hover:text-black cursor-pointer transition-all duration-300 select-none;
+  @apply flex flex-row items-center h-8 justify-center px-2 py-1 rounded-[6px] gap-x-2 text-gray-600 hover:text-black cursor-pointer transition-all duration-300 select-none hover:text-brand-600;
 }
 
 .tab-icon {
@@ -51,7 +51,7 @@ const vModel = useVModel(props, 'value', (_, val) => {
   @apply w-4;
 }
 .tab .tab-title {
-  @apply min-w-0 hover:text-brand-600;
+  @apply min-w-0;
   word-break: keep-all;
   white-space: nowrap;
   display: inline;

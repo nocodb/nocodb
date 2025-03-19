@@ -196,7 +196,11 @@ export default class Plan {
       MetaTable.PLANS,
     );
 
-    return plans.map((plan) => this.prepare(plan));
+    return plans
+      .map((plan) => this.prepare(plan))
+      .sort((a, b) => {
+        return a.prices[0].unit_amount - b.prices[0].unit_amount;
+      });
   }
 
   static async getWithCondition(
@@ -212,6 +216,10 @@ export default class Plan {
       },
     );
 
-    return plans.map((plan) => this.prepare(plan));
+    return plans
+      .map((plan) => this.prepare(plan))
+      .sort((a, b) => {
+        return a.prices[0].unit_amount - b.prices[0].unit_amount;
+      });
   }
 }

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { WorkspaceUserRoles } from 'nocodb-sdk'
+
 definePageMeta({
   hideHeader: true,
 })
@@ -15,6 +17,8 @@ const workspaceStore = useWorkspace()
 
 const { workspacesList } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
+
+const filteredWorkspaces = computed(() => workspacesList.value.filter((w) => w.roles === WorkspaceUserRoles.OWNER))
 
 const loadingWorkspaces = ref(false)
 
@@ -243,7 +247,7 @@ onMounted(() => {
               </template>
               <template v-else>
                 <NcMenuItem
-                  v-for="workspace in workspacesList"
+                  v-for="workspace in filteredWorkspaces"
                   :key="workspace.id"
                   class="item"
                   :class="{
@@ -254,7 +258,7 @@ onMounted(() => {
                   @click="navigateTo(`/account/workspace/${workspace.id}/settings`)"
                 >
                   <div class="flex items-center space-x-2">
-                    <GeneralWorkspaceIcon :workspace="workspace" size="medium" />
+                    <GeneralWorkspaceIcon :workspace="workspace" size="account-sidebar" />
 
                     <div class="nc-workspace-title font-semibold truncate capitalize">
                       {{ workspace.title }}

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PlanMeta } from 'nocodb-sdk'
+import { PlanMeta, PlanTitles } from 'nocodb-sdk'
 
 const route = useRoute()
 
@@ -15,13 +15,15 @@ const { paymentState, workspaceSeatCount } = useProvidePaymentStore()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
-const activePlanMeta = computed(() => PlanMeta[(activeWorkspace.value?.payment?.plan.title ?? 'Free') as keyof typeof PlanMeta])
+const activePlanMeta = computed(
+  () => PlanMeta[(activeWorkspace.value?.payment?.plan.title ?? PlanTitles.FREE) as keyof typeof PlanMeta],
+)
 </script>
 
 <template>
   <div
     v-if="!paymentInitiated"
-    class="flex flex-col min-w-[fit-content] rounded-lg border-1 p-6 gap-4"
+    class="flex flex-col min-w-[fit-content] rounded-[20px] border-1 p-6 gap-4"
     :style="{ backgroundColor: activePlanMeta.color, borderColor: activePlanMeta.accent }"
   >
     <div class="text-2xl font-bold">{{ activeWorkspace?.payment?.plan.title }}</div>
@@ -33,17 +35,20 @@ const activePlanMeta = computed(() => PlanMeta[(activeWorkspace.value?.payment?.
         :used="+(workspaceSeatCount ?? 0)"
         :total="activeWorkspace?.payment?.plan.title === 'Free' ? 5 : Infinity"
         title="Seats"
+        :plan-meta="activePlanMeta"
       />
       <PaymentPlanUsageCard
         :used="+(activeWorkspace?.stats?.row_count ?? 0)"
         :total="+(activeWorkspace?.payment?.plan.meta.limit_workspace_row ?? 0)"
         title="Records"
+        :plan-meta="activePlanMeta"
       />
       <PaymentPlanUsageCard
-        :used="+(activeWorkspace?.stats?.storage ?? 0)"
-        :total="+(activeWorkspace?.payment?.plan.meta.limit_storage ?? 0)"
+        :used="+(activeWorkspace?.stats?.storage ?? 0) / 1024"
+        :total="+(activeWorkspace?.payment?.plan.meta.limit_storage ?? 0) / 1024"
         title="Storage"
         unit="GB"
+        :plan-meta="activePlanMeta"
       />
     </div>
   </div>

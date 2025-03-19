@@ -1,4 +1,4 @@
-import { type ColumnType, type SortType, UITypes } from 'nocodb-sdk'
+import { type ColumnType, type SortType, UITypes, getEquivalentUIType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
 export const getSortDirectionOptions = (uidt: UITypes | string, isGroupBy?: boolean) => {
@@ -222,4 +222,33 @@ export const isSortRelevantChange = (
   const sortColumnTitles = new Set(sorts.map((sort) => columnsById[sort.fk_column_id!]?.title).filter(Boolean))
 
   return changedFields.some((field) => sortColumnTitles.has(field))
+}
+
+export const getColumnUidtByID = (key?: string, columns: ColumnType[] | Record<string, ColumnType>) => {
+  let columnByID: Record<string, ColumnType> = {}
+  if (!columns) {
+    return ''
+  } else if (Array.isArray(columns)) {
+    columnByID = columns.reduce((obj, col) => {
+      if (col.id) {
+        obj[col.id] = col
+      }
+      return obj
+    }, {} as Record<string, ColumnType>)
+  } else {
+    columnByID = columns
+  }
+  if (!key || !columnByID[key]) return ''
+  const column = columnByID[key]
+
+  let uidt = column.uidt
+
+  if (column.uidt === UITypes.Formula) {
+    uidt =
+      getEquivalentUIType({
+        formulaColumn: column,
+      }) || uidt
+  }
+
+  return uidt || ''
 }

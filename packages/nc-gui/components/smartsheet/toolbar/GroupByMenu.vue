@@ -2,6 +2,7 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
+import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
 
 const meta = inject(MetaInj, ref())
 
@@ -84,8 +85,7 @@ const availableColumns = computed(() => {
 })
 
 const getColumnUidtByID = (key?: string) => {
-  if (!key) return ''
-  return columnByID.value[key]?.uidt || ''
+  return sortGetColumnUidtByID(key, columnByID.value)
 }
 
 const open = ref(false)

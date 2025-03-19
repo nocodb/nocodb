@@ -8,6 +8,7 @@ import { Reflector } from '@nestjs/core';
 import {
   CloudOrgUserRoles,
   extractRolesObj,
+  NcApiVersion,
   OrgUserRoles,
   ProjectRoles,
   SourceRestriction,
@@ -92,6 +93,13 @@ const workspacesOnThisServer: string[] = !process.env.NC_WORKSPACE_ID
   ? [] // If process.env.NC_WORKSPACE_ID is empty, set workspaceIds to an empty array
   : process.env.NC_WORKSPACE_ID.split(',').map((value) => value.trim());
 
+const getApiVersionFromUrl = (url: string) => {
+  if (url.startsWith('/api/v3')) return NcApiVersion.V3;
+  else if (url.startsWith('/api/v2')) return NcApiVersion.V2;
+  else if (url.startsWith('/api/v1')) return NcApiVersion.V1;
+  return undefined;
+};
+
 // todo: refactor name since we are using it as auth guard
 @Injectable()
 export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
@@ -102,6 +110,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     const context = {
       workspace_id: RootScopes.BYPASS,
       base_id: RootScopes.BYPASS,
+      api_version: getApiVersionFromUrl(req.route.path),
     };
 
     if (params.baseId && params.baseId !== 'nc') {
@@ -522,6 +531,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       org_id: req.ncOrgId,
       workspace_id: req.ncWorkspaceId,
       base_id: req.ncBaseId,
+      api_version: context.api_version,
     };
 
     await this.additionalValidation({ req, res, next });

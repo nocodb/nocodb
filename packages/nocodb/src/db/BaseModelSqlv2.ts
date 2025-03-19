@@ -23,6 +23,7 @@ import {
   LongTextAiMetaProp,
   NcErrorType,
   ncIsObject,
+  ncIsUndefined,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -7372,6 +7373,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public extractPksValues(data: any, asString = false) {
     // if data is not object return as it is
     if (!data || typeof data !== 'object') {
+      if (asString && !ncIsNull(data) && !ncIsUndefined(data)) {
+        return `${data}`;
+      }
       return data;
     }
 

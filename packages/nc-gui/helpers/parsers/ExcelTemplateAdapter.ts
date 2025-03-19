@@ -1,6 +1,6 @@
 import { type ColumnType, UITypes, getDateFormat } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import TemplateGenerator from './TemplateGenerator'
+import TemplateGenerator, { type ProgressMessageType } from './TemplateGenerator'
 import {
   extractMultiOrSingleSelectProps,
   getCheckboxValue,
@@ -38,7 +38,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
     data = {},
     parserConfig = {},
     xlsx: any = null,
-    progressCallback?: (msg: string) => void,
+    progressCallback?: (msg: ProgressMessageType) => void,
     existingColumns?: ColumnType[],
   ) {
     super(progressCallback)

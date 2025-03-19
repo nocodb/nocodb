@@ -104,6 +104,8 @@ const isImporting = ref(false)
 
 const importingTips = ref<Record<string, string>>({})
 
+const importingTableTips = ref<Record<string, number>>({})
+
 const checkAllRecord = ref<Record<string, boolean>>({})
 
 const formError = ref()
@@ -127,14 +129,39 @@ const validators = computed(() =>
       {
         validator: (_rule: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
-            if (data.tables.some((item, idx) => idx !== tableIdx && item.table_name === value)) {
+            if (!importDataOnly && data.tables.some((item, idx) => idx !== tableIdx && item.table_name === value)) {
               return reject(new Error(t('msg.error.duplicateTableName')))
             }
             resolve()
           })
         },
       },
+      {
+        validator: (_rule: any, value: any) => {
+          return new Promise<void>((resolve, reject) => {
+            if (value !== value?.trim()) {
+              return reject(new Error('Table names should not have whitespace in the beginning or their end.'))
+            }
+            resolve()
+          })
+        },
+      },
     ]
+
+    acc[`tables.${tableIdx}.columns`] = [
+      {
+        validator: (_rule: any, value: any) => {
+          return new Promise<void>((resolve, reject) => {
+            if (!importDataOnly && ncIsArray(value) && !value.some((item) => item.selected)) {
+              return reject(new Error(t('msg.error.selectAtleastOneColumn')))
+            }
+
+            resolve()
+          })
+        },
+      },
+    ]
+
     hasSelectColumn.value[tableIdx] = false
 
     table.columns?.forEach((column, columnIdx) => {
@@ -157,24 +184,16 @@ const { validate, validateInfos, modelRef } = useForm(data, validators)
 
 const isValid = ref(!importDataOnly)
 
-const isAnyColumnSelectedInEachTable = computed(() => {
-  return data.tables.every((table) => table.columns.some((column) => (column as any).selected))
-})
-
-const doesAnyColumnNameHaveTrailingWhitespace = computed(() => {
-  return data.tables.some((table) => table.table_name !== table.table_name?.trim())
-})
-
 const formRef = ref()
 
 watch(
-  [() => srcDestMapping.value, isAnyColumnSelectedInEachTable, doesAnyColumnNameHaveTrailingWhitespace],
+  [() => srcDestMapping.value],
   () => {
     let res = true
     if (importDataOnly) {
       for (const tn of Object.keys(srcDestMapping.value)) {
         let flag = false
-        if (!atLeastOneEnabledValidation(tn)) {
+        if (atLeastOneEnabledValidation(tn)) {
           res = false
         }
         for (const record of srcDestMapping.value[tn]) {
@@ -197,7 +216,7 @@ watch(
         }
       }
     }
-    isValid.value = res && isAnyColumnSelectedInEachTable.value && !doesAnyColumnNameHaveTrailingWhitespace.value
+    isValid.value = res
   },
   { deep: true },
 )
@@ -302,7 +321,7 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
   )
 }
 
-function missingRequiredColumnsValidation(tn: string) {
+function missingRequiredColumnsValidation(tn: string, showError = false) {
   const missingRequiredColumns = columns.value.filter(
     (c: Record<string, any>) =>
       (c.pk ? !c.ai && !c.cdf && !c.meta?.ag : !c.cdf && c.rqd) &&
@@ -310,19 +329,31 @@ function missingRequiredColumnsValidation(tn: string) {
   )
 
   if (missingRequiredColumns.length) {
-    message.error(`${t('msg.error.columnsRequired')} : ${missingRequiredColumns.map((c) => c.title).join(', ')}`)
-    return false
+    const error = `${t('msg.error.columnsRequired')} : ${missingRequiredColumns.map((c) => c.title).join(', ')}`
+    if (showError) {
+      message.error(error)
+    } else {
+      return error
+    }
+
+    return true
   }
 
-  return true
+  return false
 }
 
-function atLeastOneEnabledValidation(tn: string) {
+function atLeastOneEnabledValidation(tn: string, showError = false) {
   if (srcDestMapping.value[tn].filter((v: Record<string, any>) => v.enabled === true).length === 0) {
-    message.error(t('msg.error.selectAtleastOneColumn'))
-    return false
+    const err = t('msg.error.selectAtleastOneColumn')
+    if (showError) {
+      message.error(err)
+    } else {
+      return err
+    }
+
+    return true
   }
-  return true
+  return false
 }
 
 function getUnselectedFields(record: Record<string, any>, tn: string) {
@@ -415,16 +446,17 @@ function fieldsValidation(record: Record<string, any>, tn: string) {
 
 function updateImportTips(baseName: string, tableName: string, progress: number, total: number) {
   importingTips.value[`${baseName}-${tableName}`] = `Importing data to ${baseName} - ${tableName}: ${progress}/${total} records`
+  importingTableTips.value[tableName] = parseInt(`${(progress / total) * 100}`)
 }
 
 async function importTemplate() {
   if (importDataOnly) {
     for (const table of data.tables) {
       // validate required columns
-      if (!missingRequiredColumnsValidation(table.table_name)) return
+      if (missingRequiredColumnsValidation(table.table_name)) return
 
       // validate at least one column needs to be selected
-      if (!atLeastOneEnabledValidation(table.table_name)) return
+      if (atLeastOneEnabledValidation(table.table_name)) return
     }
 
     try {
@@ -757,6 +789,29 @@ function toggleTableSelecteds(table: any) {
 }
 
 const currentColumnToEdit = ref('')
+const currentTableToEdit = ref<number | undefined>()
+
+const getErrorForTable = (tableIdx: number) => {
+  return (formError.value?.[`tables.${tableIdx}.table_name`] || []).concat(formError.value?.[`tables.${tableIdx}.columns`] || [])
+}
+
+const getErrorByTableName = (tableName: string) => {
+  const errors = []
+
+  const atLeastOneEnabledValidationErr = atLeastOneEnabledValidation(tableName)
+
+  if (atLeastOneEnabledValidationErr) {
+    errors.push(atLeastOneEnabledValidationErr)
+  }
+
+  const missingRequiredColumnsValidationErr = missingRequiredColumnsValidation(tableName)
+
+  if (missingRequiredColumnsValidationErr) {
+    errors.push(missingRequiredColumnsValidationErr)
+  }
+
+  return errors
+}
 </script>
 
 <template>
@@ -790,12 +845,35 @@ const currentColumnToEdit = ref('')
           class="nc-import-table-box nc-upload-box !overflow-hidden"
         >
           <template #header>
-            <span class="font-weight-500 flex items-center gap-4 truncate">
+            <div class="w-[calc(100%_-_30px)] flex items-center space-x-3 group min-h-8">
               <div class="w-8 h-8 flex items-center justify-center bg-secondary rounded-md">
                 <GeneralIcon :icon="tableIcon" class="w-5 h-5" />
               </div>
-              {{ table.table_name }}
-            </span>
+              <NcTooltip :title="table.table_name" show-on-truncate-only class="flex-1 truncate">
+                <span>
+                  {{ table.table_name }}
+                </span>
+              </NcTooltip>
+              <NcTooltip v-if="!isImporting && getErrorByTableName(table.table_name).length" class="ml-2">
+                <template #title>
+                  <div v-for="(err, idx) of getErrorByTableName(table.table_name)" class="mb-1 last-of-type:mb-0">
+                    {{ idx + 1 }}. {{ err }}
+                  </div>
+                </template>
+                <NcBadge color="red" :border="false" class="w-6 flex-none">
+                  <GeneralIcon icon="ncInfo" class="text-nc-content-red-dark" />
+                </NcBadge>
+              </NcTooltip>
+              <div v-if="isImporting" class="w-[150px]">
+                <a-progress
+                  :percent="importingTableTips[meta!.id!] ?? 0"
+                  size="small"
+                  status="normal"
+                  stroke-color="#3366FF"
+                  trail-color="#F0F3FF"
+                />
+              </div>
+            </div>
           </template>
           <div v-if="srcDestMapping" class="bg-gray-50 max-h-[310px] overflow-y-auto nc-scrollbar-thin !py-1">
             <NcTable
@@ -919,24 +997,63 @@ const currentColumnToEdit = ref('')
 
           <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx" class="nc-import-table-box !overflow-hidden">
             <template #header>
-              <a-form-item v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
-                <div class="flex flex-col w-full mr-2">
-                  <div class="flex items-center">
-                    <GeneralIcon icon="table" class="w-4 h-4 mr-3" />
-                    <a-input
-                      v-model:value="table.table_name"
-                      class="!rounded-md !w-70"
-                      hide-details
-                      :bordered="true"
-                      @click.stop
-                    />
-                  </div>
+              <div class="w-[calc(100%_-_30px)] flex items-center space-x-3 nc-table-name-wrapper group min-h-6">
+                <GeneralIcon icon="table" class="w-4 h-4" />
+                <a-form-item
+                  v-if="!isImporting && currentTableToEdit === tableIdx"
+                  v-bind="validateInfos[`tables.${tableIdx}.table_name`]"
+                  class="!flex-1 !-my-1"
+                >
+                  <a-input
+                    :ref="(el: HTMLInputElement) => el?.focus?.()"
+                    v-model:value="table.table_name"
+                    class="!rounded-md animate-sidebar-node-input-padding"
+                    hide-details
+                    :bordered="true"
+                    @click.stop
+                    @keydown.enter.prevent.stop="currentTableToEdit = undefined"
+                    @keydown.esc.prevent.stop="currentTableToEdit = undefined"
+                    @blur.prevent.stop="currentTableToEdit = undefined"
+                  />
+                </a-form-item>
+                <template v-else>
+                  <NcTooltip :title="table.table_name" show-on-truncate-only class="flex-1 truncate">
+                    <span @click.stop="currentTableToEdit = tableIdx">
+                      {{ table.table_name }}
+                    </span>
+                  </NcTooltip>
+                  <NcButton
+                    v-if="!isImporting"
+                    type="text"
+                    size="xsmall"
+                    class="!hidden group-hover:!block !h-6 !w-6"
+                    @click.stop="currentTableToEdit = tableIdx"
+                  >
+                    <GeneralIcon icon="pencil" />
+                  </NcButton>
+                </template>
 
-                  <div v-if="formError?.[`tables.${tableIdx}.table_name`]" class="text-red-500 ml-7 text-small">
-                    {{ formError?.[`tables.${tableIdx}.table_name`].join('\n') }}
-                  </div>
+                <NcTooltip v-if="!isImporting && getErrorForTable(tableIdx).length" class="ml-2">
+                  <template #title>
+                    <div v-for="(err, idx) of getErrorForTable(tableIdx)" class="mb-1 last-of-type:mb-0">
+                      {{ idx + 1 }}. {{ err }}
+                    </div>
+                  </template>
+                  <NcBadge color="red" :border="false" class="w-6 flex-none">
+                    <GeneralIcon icon="ncInfo" class="text-nc-content-red-dark" />
+                  </NcBadge>
+                </NcTooltip>
+
+                <div v-if="isImporting" class="w-[150px]">
+                  <a-progress
+                    :percent="importingTableTips[table.title] ?? 0"
+                    size="small"
+                    status="normal"
+                    stroke-color="#3366FF"
+                    trail-color="#F0F3FF"
+                  />
                 </div>
-              </a-form-item>
+              </div>
             </template>
 
             <div
@@ -955,7 +1072,11 @@ const currentColumnToEdit = ref('')
                   <tr class="nc-table-row">
                     <td colspan="2" class="nc-table-cell pl-3 flex h-full items-center">
                       <NcCheckbox
-                        :indeterminate="table.columns.length && table.columns.some((it) => it.selected)"
+                        :indeterminate="
+                          table.columns.length &&
+                          table.columns.some((it) => it.selected) &&
+                          !table.columns.every((it) => it.selected)
+                        "
                         :checked="table.columns.every((it) => it.selected)"
                         @click="toggleTableSelecteds(table)"
                       />
@@ -1023,30 +1144,6 @@ const currentColumnToEdit = ref('')
           </a-collapse-panel>
         </a-collapse>
       </a-form>
-      <a-alert v-if="!isAnyColumnSelectedInEachTable" type="error" class="!rounded-lg !mt-2 !border-none !p-3">
-        <template #message>
-          <div class="flex flex-row items-center gap-2 mb-1">
-            <GeneralIcon icon="ncAlertCircleFilled" class="text-nc-content-red-medium w-4 h-4" />
-            <span class="text-nc-content-gray font-bold text-[14px]">Required</span>
-          </div>
-        </template>
-        <template #description>
-          <div class="text-nc-content-gray-subtle2 text-[13px] leading-5 ml-6">Select at least one field to continue</div>
-        </template>
-      </a-alert>
-      <a-alert v-if="doesAnyColumnNameHaveTrailingWhitespace" type="error" class="!rounded-lg !mt-2 !border-none !p-3">
-        <template #message>
-          <div class="flex flex-row items-center gap-2 mb-1">
-            <GeneralIcon icon="ncAlertCircleFilled" class="text-nc-content-red-medium w-4 h-4" />
-            <span class="text-nc-content-gray font-bold text-[14px]">Trailing Whitespace</span>
-          </div>
-        </template>
-        <template #description>
-          <div class="text-nc-content-gray-subtle2 text-[13px] leading-5 ml-6">
-            Table names should not have whitespace in the beginning or their end.
-          </div>
-        </template>
-      </a-alert>
     </a-card>
   </div>
 </template>
@@ -1094,5 +1191,13 @@ const currentColumnToEdit = ref('')
 }
 :deep(.ant-select.nc-upload-filter-field) .ant-select-selector {
   @apply !border-gray-200 shadow-sm shadow-gray-200 rounded-lg;
+}
+
+:deep(.nc-table-name-wrapper .ant-form-item-explain) {
+  @apply hidden;
+}
+
+:deep(.ant-progress-text) {
+  @apply text-nc-content-gray-muted;
 }
 </style>

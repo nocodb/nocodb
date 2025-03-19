@@ -18,6 +18,7 @@ import { planSchema } from '~/modules/payment/payment.helper';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { extractProps } from '~/helpers/extractProps';
 import { GlobalGuard } from '~/guards/global/global.guard';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 const ajv = new Ajv();
 
@@ -83,6 +84,7 @@ export class PaymentController {
   @UseGuards(GlobalGuard)
   @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/seat-count')
+  @Acl('paymentSeatCount')
   async seatCount(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Req() _req: NcRequest,
@@ -95,6 +97,7 @@ export class PaymentController {
   @UseGuards(GlobalGuard)
   @HttpCode(200)
   @Post('/api/payment/:workspaceOrOrgId/create-subscription')
+  @Acl('manageSubscription')
   async createSubscription(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Body() payload: any,
@@ -110,6 +113,7 @@ export class PaymentController {
   @UseGuards(GlobalGuard)
   @HttpCode(200)
   @Post('/api/payment/:workspaceOrOrgId/update-subscription')
+  @Acl('manageSubscription')
   async updateSubscription(
     @Param('workspaceId') workspaceOrOrgId: string,
     @Body() payload: any,
@@ -125,6 +129,7 @@ export class PaymentController {
   @UseGuards(GlobalGuard)
   @HttpCode(200)
   @Delete('/api/payment/:workspaceOrOrgId/cancel-subscription')
+  @Acl('manageSubscription')
   async cancelSubscription(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Req() req: NcRequest,
@@ -135,6 +140,7 @@ export class PaymentController {
   @UseGuards(GlobalGuard)
   @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/get-session-result/:sessionId')
+  @Acl('manageSubscription')
   async getCheckoutSession(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Param('sessionId') sessionId: string,
@@ -145,6 +151,7 @@ export class PaymentController {
   @UseGuards(GlobalGuard)
   @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/customer-portal')
+  @Acl('manageSubscription')
   async getCustomerPortal(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Req() req: NcRequest,

@@ -39,6 +39,11 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
 
     table.index('fk_workspace_id', 'nc_subscriptions_ws_idx');
+    table.index('fk_org_id', 'nc_subscriptions_org_idx');
+    table.index(
+      'stripe_subscription_id',
+      'nc_subscriptions_stripe_subscription_idx',
+    );
   });
 
   await knex.schema.alterTable(MetaTable.WORKSPACE, (table) => {

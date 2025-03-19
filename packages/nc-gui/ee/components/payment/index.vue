@@ -8,5 +8,3 @@ const { paymentState } = usePaymentStoreOrThrow()
     <PaymentPay v-else-if="paymentState === PaymentState.PAYMENT" />
   </div>
 </template>
-
-<style lang="scss" scoped></style>

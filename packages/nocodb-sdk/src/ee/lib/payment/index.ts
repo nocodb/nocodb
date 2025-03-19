@@ -17,4 +17,4 @@ export const PlanMeta = {
     color: '#0D1117',
     accent: '#663B1F',
   },
-};
+} as const;

@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 const { isPaidPlan, activeWorkspaceId } = useProvidePaymentStore()
 
-const isLoading = ref(false)
-
 const onUpgradePlan = async () => {
   navigateTo(`/account/workspace/${activeWorkspaceId.value}/settings`)
 }
@@ -26,7 +24,6 @@ const onUpgradePlan = async () => {
             type="primary"
             size="small"
             data-testid="nc-workspace-settings-upgrade-button"
-            :loading="isLoading"
             @click="onUpgradePlan"
           >
             <div class="flex items-center justify-center text-sm gap-1">
@@ -42,5 +39,3 @@ const onUpgradePlan = async () => {
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped></style>

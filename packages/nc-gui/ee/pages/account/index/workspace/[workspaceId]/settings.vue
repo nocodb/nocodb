@@ -156,7 +156,7 @@ const onBack = () => {
   afterPaymentState.value = null
   checkoutSession.value = null
 
-  navigateTo(`/account/workspace/${activeWorkspace.value?.id}/settings`)
+  navigateTo(`/account/workspace/${activeWorkspace.value.id}/settings`)
 }
 
 onMounted(() => {

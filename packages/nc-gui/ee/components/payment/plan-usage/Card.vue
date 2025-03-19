@@ -10,6 +10,17 @@ const props = defineProps<{
 }>()
 
 const isInfinity = computed(() => !Number.isFinite(props.total))
+
+const progressPercentage = computed(() => {
+  if (isInfinity.value) {
+    return 100
+  }
+  return Math.min(((props.used ?? 0) / (props.total || 1)) * 100, 100)
+})
+
+const isOverLimit = computed(() => {
+  return (props.used ?? 0) / (props.total || 1) >= 0.8
+})
 </script>
 
 <template>
@@ -23,11 +34,11 @@ const isInfinity = computed(() => !Number.isFinite(props.total))
         <div
           class="h-full bg-brand-500 rounded-lg"
           :class="{
-            '!bg-red-500': (used ?? 0) / (total || 1) >= 0.8,
+            '!bg-red-500': isOverLimit,
             'bg-gradient-to-r from-brand-500 to-brand-100': isInfinity,
           }"
           :style="{
-            width: `${isInfinity ? 100 : Math.min(((used ?? 0) / (total || 1)) * 100, 100)}%`,
+            width: `${progressPercentage}%`,
           }"
         ></div>
       </div>

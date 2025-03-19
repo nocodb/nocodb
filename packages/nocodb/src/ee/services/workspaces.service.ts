@@ -601,7 +601,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       // block unauthorized user form deleting
 
       // todo: unlink any base linked
-      await Workspace.softDelete(param.workspaceId);
+      await Workspace.softDelete(param.workspaceId, transaction);
 
       await this.paymentService.reseatSubscription(
         workspace.fk_org_id ?? workspace.id,

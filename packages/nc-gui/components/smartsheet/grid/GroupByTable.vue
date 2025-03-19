@@ -102,6 +102,14 @@ const addRowExpandOnClose = (row: Row) => {
   eventBus.emit(SmartsheetStoreEvents.CLEAR_NEW_ROW, row)
 }
 
+/**
+ * Retrieves LTAR information from a Group object by looking up parent records.
+ * 
+ * TODO: gh #10831 - Could be simplified if Group stored parent record IDs instead of just display text.
+ * 
+ * Processes each item in group.nestedIn to find the corresponding LTAR column and parent record.
+ * Currently requires querying parent tables by display text, which is potentially ambiguous.
+ */
 function getBtLtarFromGroup(group: Group, metaValue = meta.value): Promise<{ ltarId: string; ltarColumn: any } | null>[] {
   // Return early if the group is nested or doesn't have rows 
   if (group.nested || !group.rows) return []; 
@@ -129,18 +137,18 @@ function getBtLtarFromGroup(group: Group, metaValue = meta.value): Promise<{ lta
           return null; // Skip if metadata is invalid
         }
 
-        const columnWithOrderOne = Object.values(metadata.columnsById).find(
+        const displayColumn = Object.values(metadata.columnsById).find(
           column => column.meta?.defaultViewColOrder === 1
         );
 
-        if (!columnWithOrderOne) {
+        if (!displayColumn) {
           console.warn('No column with default view order 1 found:', relatedModelId);
           return null; // Skip if there's no matching column
         }
 
         // Query parent records based on the column and group key
         return api.dbDataTableRow.list(metadata.id as string, {
-          where: `(${columnWithOrderOne.title},eq,${curr.key})`,
+          where: `(${displayColumn.title},eq,${curr.key})`,
           limit: 2, // Limit to 2 results to efficiently check if there's more than one match
         })
         .then(parentRecords => {

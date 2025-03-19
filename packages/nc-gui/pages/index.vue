@@ -50,7 +50,6 @@ const { sharedBaseId } = useCopySharedBase()
 const isDuplicateDlgOpen = ref(false)
 
 async function handleRouteTypeIdChange() {
-  console.log('shared view', isSharedFormView.value, isSharedView.value)
   // avoid loading bases for shared views
   if (isSharedView.value) {
     return

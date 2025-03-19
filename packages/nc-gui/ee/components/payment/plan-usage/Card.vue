@@ -27,7 +27,7 @@ const isInfinity = computed(() => !Number.isFinite(props.total))
             'bg-gradient-to-r from-brand-500 to-brand-100': isInfinity,
           }"
           :style="{
-            width: `${isInfinity ? 100 : ((used ?? 0) / (total || 1)) * 100}%`,
+            width: `${isInfinity ? 100 : Math.min(((used ?? 0) / (total || 1)) * 100, 100)}%`,
           }"
         ></div>
       </div>

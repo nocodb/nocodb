@@ -21,6 +21,7 @@ const readOnly = inject(ReadonlyInj, ref(false))
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 const isForm = inject(IsFormInj)!
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 
 const inputRef = ref<HTMLInputElement>()
 const vModel = useVModel(props, 'modelValue', emits)
@@ -30,6 +31,9 @@ const precision = computed(() => {
 })
 
 onMounted(() => {
+  if (canvasCellEventData?.keyboardKey && isSinglePrintableKey(canvasCellEventData?.keyboardKey)) {
+    vModel.value = Number(canvasCellEventData.keyboardKey)
+  }
   if (isCanvasInjected && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
     inputRef.value?.focus()
   }

@@ -53,7 +53,8 @@ export const DecimalCellRenderer: CellRenderer = {
     if (column.readonly || column.columnObj?.readonly) return
     const columnObj = column.columnObj
     if (/^[0-9]$/.test(e.key) && columnObj.title) {
-      row.row[columnObj.title] = ''
+      // default null as to not raise error
+      row.row[columnObj.title] = null
       makeCellEditable(row, column)
       return true
     }

@@ -312,7 +312,27 @@ async function getSampleColumnValue(
       break;
     case UITypes.User:
       {
-        return 'user@example.com';
+        return [
+          {
+            id: 'u8z87rijgdsrpzdrbqsw',
+            email: 'user@example.com',
+            display_name: 'User',
+            meta: {
+              icon: {
+                url: 'https://cdn.mysite.example/image/sAlPwL3wqYPg74H7TMPb.webp',
+                title: 'sAlPwL3wqYPg74H7TMPb.webp',
+                mimetype: 'image/webp',
+                size: 26662,
+                width: 270,
+                height: 370,
+                signedUrl:
+                  'https://cdn.mysite.example/image/sAlPwL3wqYPg74H7TMPb.webp',
+                data: '',
+              },
+              iconType: 'IMAGE',
+            },
+          },
+        ];
       }
       break;
     case UITypes.GeoData:

@@ -7389,13 +7389,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             .join('___')
         : pkValues;
     } else if (this.model.primaryKey) {
-      if (typeof data === 'object')
-        return (
+      let pkValue;
+      if (typeof data === 'object') {
+        pkValue =
           data[this.model.primaryKey.title] ??
-          data[this.model.primaryKey.column_name]
-        );
+          data[this.model.primaryKey.column_name];
+      } else {
+        pkValue = data;
+      }
 
-      if (data !== undefined) return asString ? `${data}` : data;
+      if (pkValue !== undefined) return asString ? `${pkValue}` : pkValue;
     } else {
       return 'N/A';
     }

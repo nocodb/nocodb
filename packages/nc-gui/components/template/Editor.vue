@@ -167,15 +167,57 @@ const validators = computed(() =>
     table.columns?.forEach((column, columnIdx) => {
       acc[`tables.${tableIdx}.columns.${columnIdx}.title`] = [
         fieldRequiredValidator(),
-        fieldLengthValidator(),
-        reservedFieldNameValidator(),
         {
           validator: (_rule: any, value: any) => {
             return new Promise<void>((resolve, reject) => {
-              if (table.columns.some((item, idx) => idx !== columnIdx && item.title === value)) {
+              const field = table.columns.find((_item, idx) => idx === columnIdx)
+
+              if (!field || !field?.selected) return resolve()
+
+              const fieldToCheck = table.columns.filter((item) => item.selected)
+              if (
+                fieldToCheck.length &&
+                table.columns.some((item, idx) => idx !== columnIdx && item.selected && item.title === value)
+              ) {
                 return reject(new Error(t('msg.error.duplicateColumnName')))
               }
               resolve()
+            })
+          },
+        },
+        {
+          validator: (rule: any, value: any) => {
+            return new Promise<void>((resolve, reject) => {
+              const field = table.columns.find((_item, idx) => idx === columnIdx)
+
+              if (!field || !field?.selected) return resolve()
+
+              return reservedFieldNameValidator()
+                .validator(rule, value)
+                .then(() => {
+                  resolve()
+                })
+                .catch((e) => {
+                  reject(e)
+                })
+            })
+          },
+        },
+        {
+          validator: (rule: any, value: any) => {
+            return new Promise<void>((resolve, reject) => {
+              const field = table.columns.find((_item, idx) => idx === columnIdx)
+
+              if (!field || !field?.selected) return resolve()
+
+              return fieldLengthValidator()
+                .validator(rule, value)
+                .then(() => {
+                  resolve()
+                })
+                .catch((e) => {
+                  reject(e)
+                })
             })
           },
         },
@@ -1124,7 +1166,7 @@ const getErrorByTableName = (tableName: string) => {
                     </template>
                     <template v-else>
                       <div
-                        class="relative group w-full flex items-center"
+                        class="relative group w-full flex items-center min-h-6"
                         @click="currentColumnToEdit = `${tableIdx}-${record.column_name}`"
                       >
                         <span class="font-weight-500 max-w-[300px] inline-block truncate nc-import-table-field-name">

@@ -8,6 +8,8 @@ export {
 } from '~/lib/parser/queryFilter/query-filter-lexer';
 import { extractFilterFromXwhere as parserExtract } from './filterHelpers_withparser';
 import { extractFilterFromXwhere as oldExtract } from './filterHelpers_old';
+import { NcContext } from './ncTypes';
+import { NcApiVersion } from './enums';
 
 export interface FilterParseError {
   message: string;
@@ -56,12 +58,15 @@ export function buildFilterTree(items: FilterType[]) {
 }
 
 export function extractFilterFromXwhere(
+  context: Pick<NcContext, 'api_version'>,
   str: string | string[],
   aliasColObjMap: { [columnAlias: string]: ColumnType },
   throwErrorIfInvalid = false,
   errors: FilterParseError[] = []
 ): { filters?: FilterType[]; errors?: FilterParseError[] } {
-  if (typeof str === 'string' && str.startsWith('@')) {
+  if (context.api_version === NcApiVersion.V3) {
+    return parserExtract(str, aliasColObjMap, throwErrorIfInvalid, errors);
+  } else if (typeof str === 'string' && str.startsWith('@')) {
     return parserExtract(
       str.substring(1),
       aliasColObjMap,

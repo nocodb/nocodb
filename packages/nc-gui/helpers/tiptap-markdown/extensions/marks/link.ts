@@ -140,6 +140,52 @@ export const Link = TiptapLink.extend<LinkOptions>({
           }
         },
       }),
+      // ✅ Remove link when typing after it
+      new Plugin({
+        appendTransaction: (transactions, oldState, newState) => {
+          try {
+            if (transactions.length !== 1) return null
+            const steps = transactions[0].steps
+            if (steps.length !== 1) return null
+
+            const step: Step = steps[0] as Step
+            const stepJson = step.toJSON()
+
+            // If this is not inserting a new character, ignore
+            if (stepJson.stepType !== 'replace' || !stepJson.slice) return null
+
+            const { selection } = oldState
+            const { $from, $to } = selection
+            const nodeBefore = $to.nodeBefore
+            const nodeAfter = $to.nodeAfter
+
+            const linkMarkType = newState.schema.marks.link
+            if (!linkMarkType) return null
+            const tr = newState.tr
+
+            // ✅ Case 1: Typing at the END of a link
+            if (nodeBefore) {
+              const linkMark = linkMarkType.isInSet(nodeBefore.marks)
+              if (linkMark) {
+                const isAtEndOfLink = !nodeAfter || !linkMarkType.isInSet(nodeAfter.marks)
+                if (isAtEndOfLink) {
+                  return tr.removeMark($to.pos, $to.pos + 1, linkMarkType)
+                }
+              }
+            }
+
+            // ✅ Case 2: Typing at the START of a link
+            if ($from.pos === 0 || (!$from.nodeBefore && nodeAfter && linkMarkType.isInSet(nodeAfter.marks))) {
+              return tr.removeMark($from.pos, $from.pos + 1, linkMarkType)
+            }
+
+            return null
+          } catch (e) {
+            console.error(e)
+            return null
+          }
+        },
+      }),
     ]
   },
 

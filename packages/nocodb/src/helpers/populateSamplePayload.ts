@@ -310,5 +310,10 @@ async function getSampleColumnValue(
         return null;
       }
       break;
+    case UITypes.User:
+      {
+        return 'user@example.com';
+      }
+      break;
   }
 }

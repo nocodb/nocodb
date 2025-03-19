@@ -2047,16 +2047,13 @@ export default class View implements ViewType {
           if (
             (column.id === galleryView.fk_cover_image_col_id && column.pv) ||
             (column.id !== galleryView.fk_cover_image_col_id &&
-              (column.pv || galleryShowLimit < showLimit))
+              (column.pv || galleryShowLimit < showLimit) &&
+              // exclude system columns
+              !column.system)
           ) {
             show = true;
             // increment the count of columns shown in gallery view if it is not a primary value or cover image column
-            if (
-              !column.pk &&
-              column.id !== galleryView.fk_cover_image_col_id &&
-              // exclude system columns
-              !column.system
-            ) {
+            if (!column.pk && column.id !== galleryView.fk_cover_image_col_id) {
               galleryShowLimit++;
             }
           } else {

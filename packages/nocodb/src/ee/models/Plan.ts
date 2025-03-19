@@ -207,7 +207,9 @@ export default class Plan {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.PLANS,
-      condition,
+      {
+        condition,
+      },
     );
 
     return plans.map((plan) => this.prepare(plan));

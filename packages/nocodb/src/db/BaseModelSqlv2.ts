@@ -22,6 +22,7 @@ import {
   isVirtualCol,
   LongTextAiMetaProp,
   NcErrorType,
+  ncIsNull,
   ncIsObject,
   ncIsUndefined,
   RelationTypes,

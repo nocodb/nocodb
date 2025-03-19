@@ -224,9 +224,9 @@ export const isSortRelevantChange = (
   return changedFields.some((field) => sortColumnTitles.has(field))
 }
 
-export const getColumnUidtByID = (key?: string, columns: ColumnType[] | Record<string, ColumnType>) => {
+export const getColumnUidtByID = (key?: string, columns?: ColumnType[] | Record<string, ColumnType>) => {
   let columnByID: Record<string, ColumnType> = {}
-  if (!columns) {
+  if (!key || !columns) {
     return ''
   } else if (Array.isArray(columns)) {
     columnByID = columns.reduce((obj, col) => {
@@ -238,7 +238,7 @@ export const getColumnUidtByID = (key?: string, columns: ColumnType[] | Record<s
   } else {
     columnByID = columns
   }
-  if (!key || !columnByID[key]) return ''
+  if (!columnByID[key]) return ''
   const column = columnByID[key]
 
   let uidt = column.uidt

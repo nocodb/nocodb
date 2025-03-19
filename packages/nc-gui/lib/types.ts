@@ -22,9 +22,9 @@ import type { ImageWindowLoader } from '../components/smartsheet/grid/canvas/loa
 import type { SpriteLoader } from '../components/smartsheet/grid/canvas/loaders/SpriteLoader'
 import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
 import type { TableMetaLoader } from '../components/smartsheet/grid/canvas/loaders/TableMetaLoader'
+import type { UseDetachedLongTextProps } from '../components/smartsheet/grid/canvas/composables/useDetachedLongText'
 import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
-import type { UseDetachedLongTextProps } from '../components/smartsheet/grid/canvas/composables/useDetachedLongText';
 
 interface User {
   id: string

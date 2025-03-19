@@ -3,8 +3,8 @@ import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
-import { UseDetachedLongTextProvider } from '../smartsheet/grid/canvas/composables/useDetachedLongText';
-import DetachedExpandedText from '../smartsheet/grid/canvas/components/DetachedExpandedText.vue';
+import { UseDetachedLongTextProvider } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
+import DetachedExpandedText from '../smartsheet/grid/canvas/components/DetachedExpandedText.vue'
 
 const props = defineProps<{
   activeTab: TabItem

@@ -28,7 +28,7 @@ const aliasColObjMap = computed(() => {
 const filtersFromUrlParams = computed(() => {
   if (route.value.query?.where) {
     return extractFilterFromXwhere(
-      { workspace_id: 'bypass', base_id: 'bypass', api_version: NcApiVersion.V1 },
+      { api_version: NcApiVersion.V1 },
       route.value.query.where as string,
       aliasColObjMap.value,
       false,

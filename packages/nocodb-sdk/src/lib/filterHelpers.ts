@@ -58,7 +58,7 @@ export function buildFilterTree(items: FilterType[]) {
 }
 
 export function extractFilterFromXwhere(
-  context: NcContext,
+  context: Pick<NcContext, 'api_version'>,
   str: string | string[],
   aliasColObjMap: { [columnAlias: string]: ColumnType },
   throwErrorIfInvalid = false,

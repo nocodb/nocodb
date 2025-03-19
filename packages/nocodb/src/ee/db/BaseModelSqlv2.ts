@@ -2382,13 +2382,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const newData = [];
       const updatePkValues = [];
       const toBeUpdated = [];
-      const pkAndData: { pk: any; data: any }[] = [];
+      const pkAndData: { pk: string; data: any }[] = [];
 
       for (const d of updateDatas) {
-        const pkValues = getCompositePkValue(
-          this.model.primaryKeys,
-          this.extractPksValues(d),
-        );
+        const pkValues = this.extractPksValues(d, true);
 
         if (pkValues === null || pkValues === undefined) {
           if (throwExceptionIfNotExist) NcError.recordNotFound(pkValues);
@@ -2408,13 +2405,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         );
 
         const oldRecordsMap = new Map<string, any>(
-          oldRecords.map((r) => [
-            getCompositePkValue(
-              this.model.primaryKeys,
-              this.extractPksValues(r),
-            ),
-            r,
-          ]),
+          oldRecords.map((r) => [this.extractPksValues(r, true), r]),
         );
 
         for (const { pk, data } of chunk) {
@@ -2440,10 +2431,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           toBeUpdated.push({ d: dataToUpdate, wherePk });
 
           updatePkValues.push(
-            getCompositePkValue(this.model.primaryKeys, {
-              ...oldRecord,
-              ...data,
-            }),
+            this.extractPksValues(
+              {
+                ...oldRecord,
+                ...data,
+              },
+              true,
+            ),
           );
         }
       }

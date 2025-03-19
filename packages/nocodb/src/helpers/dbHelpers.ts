@@ -19,7 +19,7 @@ export function _wherePk(
   id: unknown | unknown[],
   skipPkValidation = false,
 ) {
-  const where = {};
+  const where:Record<string, unknown> = {};
 
   // if id object is provided use as it is
   if (id && typeof id === 'object' && !Array.isArray(id)) {

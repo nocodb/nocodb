@@ -6142,13 +6142,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const newData = [];
       const updatePkValues = [];
       const toBeUpdated = [];
-      const pkAndData: { pk: any; data: any }[] = [];
+      const pkAndData: { pk: string; data: any }[] = [];
 
       for (const d of updateDatas) {
-        const pkValues = getCompositePkValue(
-          this.model.primaryKeys,
-          this.extractPksValues(d),
-        );
+        const pkValues = this.extractPksValues(d, true);
 
         if (!pkValues) {
           if (throwExceptionIfNotExist) NcError.recordNotFound(pkValues);
@@ -6164,13 +6161,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
         const oldRecords = await this.chunkList({ pks: pksToRead });
         const oldRecordsMap = new Map<string, any>(
-          oldRecords.map((r) => [
-            getCompositePkValue(
-              this.model.primaryKeys,
-              this.extractPksValues(r),
-            ),
-            r,
-          ]),
+          oldRecords.map((r) => [this.extractPksValues(r, true), r]),
         );
 
         for (const { pk, data } of chunk) {
@@ -6188,10 +6179,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           toBeUpdated.push({ d: data, wherePk });
 
           updatePkValues.push(
-            getCompositePkValue(this.model.primaryKeys, {
-              ...oldRecord,
-              ...data,
-            }),
+            this.extractPksValues(
+              {
+                ...oldRecord,
+                ...data,
+              },
+              true,
+            ),
           );
         }
       }
@@ -6227,7 +6221,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           const updatedRecordsMap = new Map(
             updatedRecords.map((record) => [
-              getCompositePkValue(this.model.primaryKeys, record),
+              this.extractPksValues(record, true),
               record,
             ]),
           );
@@ -7377,7 +7371,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   // todo: handle composite primary key
   public extractPksValues(data: any, asString = false) {
     // if data is not object return as it is
-    if (!data || typeof data !== 'object') return data;
+    if (!data || typeof data !== 'object') {
+      return data;
+    }
 
     // data can be still inserted without PK
 

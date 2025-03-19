@@ -2,6 +2,7 @@ import { type ColumnType, type TableType, UITypes, type UserType, type ViewType,
 import { renderSingleLineText, renderSpinner } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
+import { useDetachedLongText } from '../composables/useDetachedLongText'
 import { EmailCellRenderer } from './Email'
 import { SingleLineTextCellRenderer } from './SingleLineText'
 import { LongTextCellRenderer } from './LongText'
@@ -33,7 +34,6 @@ import { ButtonCellRenderer } from './Button'
 import { LtarCellRenderer } from './LTAR'
 import { FormulaCellRenderer } from './Formula'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
-import { useDetachedLongText } from '../composables/useDetachedLongText';
 
 const CLEANUP_INTERVAL = 1000
 

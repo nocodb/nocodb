@@ -315,5 +315,10 @@ async function getSampleColumnValue(
         return 'user@example.com';
       }
       break;
+    case UITypes.GeoData:
+      {
+        return '51.50073334463501;-0.12462623347869291';
+      }
+      break;
   }
 }

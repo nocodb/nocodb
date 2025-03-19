@@ -445,6 +445,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
     } else if (req.params.workspaceId) {
       req.ncWorkspaceId = req.params.workspaceId;
+    } else if (req.params.workspaceOrOrgId) {
+      const workspace = await Workspace.get(req.params.workspaceOrOrgId);
+
+      if (workspace) {
+        req.ncWorkspaceId = workspace.id;
+      } else {
+        req.ncOrgId = req.params.workspaceOrOrgId;
+      }
     }
     // extract workspace id from body only if it's base create endpoint
     else if (

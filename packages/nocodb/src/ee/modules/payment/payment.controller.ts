@@ -84,7 +84,9 @@ export class PaymentController {
   @UseGuards(GlobalGuard)
   @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/seat-count')
-  @Acl('paymentSeatCount')
+  @Acl('paymentSeatCount', {
+    scope: 'workspace',
+  })
   async seatCount(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Req() _req: NcRequest,
@@ -97,7 +99,9 @@ export class PaymentController {
   @UseGuards(GlobalGuard)
   @HttpCode(200)
   @Post('/api/payment/:workspaceOrOrgId/create-subscription')
-  @Acl('manageSubscription')
+  @Acl('manageSubscription', {
+    scope: 'workspace',
+  })
   async createSubscription(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Body() payload: any,

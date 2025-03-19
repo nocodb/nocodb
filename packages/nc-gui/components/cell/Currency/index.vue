@@ -29,7 +29,7 @@ const _vModel = useVModel(props, 'modelValue', emit)
 
 const cellFocused = ref(false)
 
-const inputType = computed(() => (!isForm.value && !cellFocused.value ? 'text' : 'number'))
+const inputType = computed(() => (isExpandedFormOpen.value && !cellFocused.value ? 'text' : 'number'))
 
 const vModel = computed({
   get: () => _vModel.value,

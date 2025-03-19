@@ -1094,7 +1094,7 @@
     "restApis": "API-uri REST",
     "apis": "API-uri",
     "apiSnippet": "Fragmente API",
-    "includeData": "Include date",
+    "includeData": "Include data",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
     "includeView": "Include views",

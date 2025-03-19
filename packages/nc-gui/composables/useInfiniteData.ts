@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import { UITypes, extractFilterFromXwhere, isAIPromptCol } from 'nocodb-sdk'
+import { NcApiVersion, UITypes, extractFilterFromXwhere, isAIPromptCol } from 'nocodb-sdk'
 import {
   type Api,
   type ColumnType,
@@ -117,7 +117,11 @@ export function useInfiniteData(args: {
   })
 
   const computedWhereFilter = computed(() => {
-    const { filters: filter } = extractFilterFromXwhere(where?.value ?? '', columnsByAlias.value)
+    const { filters: filter } = extractFilterFromXwhere(
+      { workspace_id: 'bypass', base_id: 'bypass', api_version: NcApiVersion.V1 },
+      where?.value ?? '',
+      columnsByAlias.value,
+    )
 
     return filter.map((f) => {
       return { ...f, value: f.value ? f.value?.toString().replace(/(^%)(.*?)(%$)/, '$2') : f.value }

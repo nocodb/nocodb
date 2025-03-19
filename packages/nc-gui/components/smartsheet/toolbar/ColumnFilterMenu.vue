@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type TableType, extractFilterFromXwhere } from 'nocodb-sdk'
+import { type ColumnType, NcApiVersion, type TableType, extractFilterFromXwhere } from 'nocodb-sdk'
 import type ColumnFilter from './ColumnFilter.vue'
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -27,7 +27,12 @@ const aliasColObjMap = computed(() => {
 
 const filtersFromUrlParams = computed(() => {
   if (route.value.query?.where) {
-    return extractFilterFromXwhere(route.value.query.where as string, aliasColObjMap.value, false)
+    return extractFilterFromXwhere(
+      { workspace_id: 'bypass', base_id: 'bypass', api_version: NcApiVersion.V1 },
+      route.value.query.where as string,
+      aliasColObjMap.value,
+      false,
+    )
   }
 })
 

@@ -169,6 +169,16 @@ const validators = computed(() =>
         fieldRequiredValidator(),
         fieldLengthValidator(),
         reservedFieldNameValidator(),
+        {
+          validator: (_rule: any, value: any) => {
+            return new Promise<void>((resolve, reject) => {
+              if (table.columns.some((item, idx) => idx !== columnIdx && item.title === value)) {
+                return reject(new Error(t('msg.error.duplicateColumnName')))
+              }
+              resolve()
+            })
+          },
+        },
       ]
       acc[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator()]
       if (isSelect(column)) {
@@ -1134,7 +1144,7 @@ const getErrorByTableName = (tableName: string) => {
                       <template #title>
                         {{ formError?.[`tables.${tableIdx}.columns.${record.key}.title`].join('\n') }}
                       </template>
-                      <GeneralIcon icon="info" class="h-4 w-4 text-nc-content-red-medium flex-none" />
+                      <GeneralIcon icon="info" class="h-4 w-4 text-nc-content-red-medium flex-none ml-2" />
                     </NcTooltip>
                     <div class="absolute h-1 border-t top-0 left-3 right-3" />
                   </template>

@@ -554,7 +554,12 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
     templateEditorModal.value = true
   } catch (e: any) {
     console.log(e)
-    message.error((await extractSdkResponseErrorMsg(e)) || e?.toString())
+
+    if (typeof e === 'string' && isPreImportUrlFilled.value && activeTab.value === ImportTypeTabs.uploadFromUrl) {
+      message.error(e.replace(importState.url, '').replace(/''/, ''))
+    } else {
+      message.error((await extractSdkResponseErrorMsg(e)) || e?.toString())
+    }
   }
 }
 
@@ -799,13 +804,36 @@ watch(
               </template>
               <div class="relative mt-5 mb-1 px-1">
                 <a-form :model="importState" name="quick-import-url-form" layout="vertical" class="!my-0">
-                  <a-form-item v-bind="validateInfos.url" :required="false" class="!my-0">
+                  <a-form-item v-bind="validateInfos.url" :required="false" class="!my-0 quick-import-url-form">
                     <template #label>
-                      <span class="text-nc-content-gray text-sm">
-                        {{ importMeta.urlInputLabel }}
-                      </span>
+                      <div class="flex items-center space-x-2 w-full">
+                        <span class="flex-1 text-nc-content-gray text-sm">
+                          {{ importMeta.urlInputLabel }}
+                        </span>
+                        <template v-if="preImportLoading">
+                          <NcTooltip
+                            :key="progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg"
+                            class="!max-w-1/2 min-w-[120p] !leading-[18px] truncate"
+                            show-on-truncate-only
+                          >
+                            <template #title>
+                              {{ progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg }}</template
+                            >
+
+                            <span class="!text-small text-nc-content-gray-muted">
+                              {{ progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg }}
+                            </span>
+                          </NcTooltip>
+                          <GeneralLoader class="flex text-nc-content-brand" size="medium" />
+                        </template>
+                      </div>
                     </template>
-                    <a-input v-model:value="importState.url" class="!rounded-md" placeholder="Paste file link here..." />
+                    <a-input
+                      v-model:value="importState.url"
+                      class="!rounded-md"
+                      placeholder="Paste file link here..."
+                      :disabled="preImportLoading"
+                    />
                   </a-form-item>
                 </a-form>
               </div>
@@ -818,34 +846,41 @@ watch(
               </template>
               <div class="relative mt-5">
                 <div class="flex items-end gap-2">
-                  <label> Enter Json </label>
+                  <label class="text-nc-content-gray text-sm"> Enter Json </label>
                   <div class="flex-1" />
-                  <NcButton type="text" size="xsmall" class="!px-2" @click="formatJson()"> Format </NcButton>
+
+                  <template v-if="preImportLoading">
+                    <NcTooltip
+                      :key="progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg"
+                      class="!max-w-1/2 min-w-[120p] !leading-[25px] truncate"
+                      show-on-truncate-only
+                    >
+                      <template #title> {{ progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg }}</template>
+
+                      <span class="!text-small text-nc-content-gray-muted">
+                        {{ progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg }}
+                      </span>
+                    </NcTooltip>
+                    <GeneralLoader class="flex text-nc-content-brand" size="medium" />
+                  </template>
+                  <NcButton v-else type="text" size="xsmall" class="!px-2" @click="formatJson()"> Format </NcButton>
                 </div>
-                <LazyMonacoEditor
-                  ref="refMonacoEditor"
-                  class="nc-import-monaco-editor h-30 !border-1 !rounded-lg !mt-2"
-                  :auto-focus="false"
-                  hide-minimap
-                  :monaco-config="{
-                    lineNumbers: 'on',
-                  }"
-                  :model-value="temporaryJson"
-                  @update:model-value="handleJsonChange($event)"
-                />
-                <a-alert v-if="jsonErrorText || refMonacoEditor?.error" type="error" class="!rounded-lg !mt-2 !border-none !p-3">
-                  <template #message>
-                    <div class="flex flex-row items-center gap-2 mb-1">
-                      <GeneralIcon icon="ncAlertCircleFilled" class="text-nc-content-red-medium w-4 h-4" />
-                      <span class="text-nc-content-gray font-bold text-[14px]">Json Error</span>
-                    </div>
-                  </template>
-                  <template #description>
-                    <div class="text-nc-content-gray-subtle2 text-[13px] leading-5 ml-6">
-                      {{ jsonErrorText || refMonacoEditor?.error }}
-                    </div>
-                  </template>
-                </a-alert>
+                <div class="resize-y overflow-y-auto h-30 min-h-30 max-h-[400px] !border-1 !rounded-lg !mt-2">
+                  <LazyMonacoEditor
+                    ref="refMonacoEditor"
+                    class="nc-import-monaco-editor h-full"
+                    :auto-focus="false"
+                    hide-minimap
+                    :monaco-config="{
+                      lineNumbers: 'on',
+                    }"
+                    :model-value="temporaryJson"
+                    @update:model-value="handleJsonChange($event)"
+                  />
+                </div>
+                <div v-if="jsonErrorText || refMonacoEditor?.error" class="text-nc-content-red-medium text-small mt-2">
+                  {{ jsonErrorText || refMonacoEditor?.error }}
+                </div>
               </div>
             </a-tab-pane>
           </NcTabs>
@@ -1025,6 +1060,10 @@ span:has(> .nc-modern-drag-import) {
     .tab-title {
       @apply text-nc-content-gray-muted hover:bg-transparent;
     }
+  }
+
+  :deep(.quick-import-url-form label) {
+    @apply w-full;
   }
 }
 </style>

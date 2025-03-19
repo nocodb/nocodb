@@ -115,8 +115,9 @@ function getBtLtarFromGroup(group: Group, metaValue = meta.value): Promise<{ lta
   if (group.nested || !group.rows) return []; 
 
   // Process each item in nestedIn to build an array of promises
-  return group.nestedIn.map(curr => {
-    if (curr.key == '__nc_null__') return Promise.resolve(null);
+  return group.nestedIn
+  .filter(curr => curr.key !== '__nc_null__')
+  .map(curr => {
   
     const ltarColumn = metaValue?.columns?.find(col => col.title === curr.column_name); 
     

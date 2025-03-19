@@ -98,6 +98,7 @@ test.describe('Expanded form URL', () => {
       column: 'Cities',
       title: 'Kabul',
     });
+
     await dashboard.rootPage.waitForTimeout(1000);
 
     await dashboard.expandedForm.verifyCount({ count: 2 });

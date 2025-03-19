@@ -1112,6 +1112,7 @@ span:has(> .nc-modern-drag-import) {
   }
 
   :deep(.ant-tabs-tab-disabled) {
+    .ant-tabs-tab-btn,
     .tab-title {
       @apply text-nc-content-gray-muted hover:bg-transparent;
     }

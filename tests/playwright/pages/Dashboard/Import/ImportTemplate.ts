@@ -26,8 +26,8 @@ export class ImportTemplatePage extends BasePage {
       const tableName = await this.get()
         .locator(`.ant-collapse-header`)
         .nth(i)
-        .locator('input[type="text"]')
-        .inputValue();
+        .locator('.nc-import-table-name')
+        .textContent();
       tableList.push(tableName);
     }
     return tableList;

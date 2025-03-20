@@ -138,6 +138,8 @@ export function useCanvasRender({
   const { isMobileMode } = useGlobal()
   const isLocked = inject(IsLockedInj, ref(false))
 
+  const fixedColsComputed = computed(() => columns.value.filter((c) => c.fixed))
+
   const drawShimmerEffect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, rowIdx: number) => {
     ctx.save()
 
@@ -868,6 +870,219 @@ export function useCanvasRender({
     }
   }
 
+  function renderRow(
+    ctx: CanvasRenderingContext2D,
+    {
+      row,
+      initialXOffset,
+      visibleCols,
+      startColIndex,
+      rowIdx,
+      fixedCols,
+      yOffset,
+    }: {
+      row: Row
+      initialXOffset: number
+      visibleCols: CanvasGridColumn[]
+      fixedCols: CanvasGridColumn[]
+      startColIndex: number
+      yOffset: number
+      rowIdx: number
+    },
+  ) {
+    let activeState: { col: any; x: number; y: number; width: number; height: number } | null = null
+    const renderRedBorders: {
+      rowIndex: number
+      column: CanvasGridColumn
+    }[] = []
+
+    const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
+    let xOffset = initialXOffset
+
+    visibleCols.forEach((column, colIdx) => {
+      const width = parseCellWidth(column.width)
+
+      const absoluteColIdx = startColIndex + colIdx
+
+      const isCellEditEnabled = editEnabled.value && activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
+
+      if (column.fixed) {
+        xOffset += width
+        return
+      }
+
+      if (row.rowMeta.selected || selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
+        ctx.fillStyle = '#F6F7FE'
+        ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
+      }
+
+      ctx.strokeStyle = '#f4f4f5'
+      ctx.beginPath()
+      ctx.moveTo(xOffset - scrollLeft.value, yOffset)
+      ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
+      ctx.stroke()
+
+      // add white background color for active cell
+      if (startColIndex + colIdx === activeCell.value.column && rowIdx === activeCell.value.row) {
+        ctx.fillStyle = '#FFFFFF'
+        ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
+      }
+
+      const isActive = activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
+
+      if (isActive) {
+        activeState = {
+          col: column,
+          x: xOffset - scrollLeft.value,
+          y: yOffset,
+          width,
+          height: rowHeight.value,
+        }
+      }
+
+      const value = row.row[column.title]
+
+      if (isColumnRequiredAndNull(column.columnObj, row.row)) {
+        renderRedBorders.push({ rowIndex: rowIdx, column })
+      }
+
+      ctx.save()
+      renderCell(ctx, column.columnObj, {
+        value,
+        x: xOffset - scrollLeft.value,
+        y: yOffset,
+        width,
+        height: rowHeight.value,
+        row: row.row,
+        selected: isActive,
+        pv: column.pv,
+        spriteLoader,
+        readonly: column.readonly,
+        imageLoader,
+        tableMetaLoader,
+        relatedColObj: column.relatedColObj,
+        relatedTableMeta: column.relatedTableMeta,
+        disabled: column?.isInvalidColumn,
+        mousePosition,
+        pk,
+        skipRender: isCellEditEnabled,
+      })
+      ctx.restore()
+      xOffset += width
+    })
+
+    if (fixedCols.length) {
+      xOffset = 0
+      fixedCols.forEach((column) => {
+        const width = parseCellWidth(column.width)
+
+        const colIdx = columns.value.findIndex((col) => col.id === column.id)
+
+        const isCellEditEnabled = editEnabled.value && activeCell.value.row === rowIdx && activeCell.value.column === colIdx
+
+        if (row.rowMeta.selected || selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
+          ctx.fillStyle = '#F6F7FE'
+          ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+        } else {
+          ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
+          ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+        }
+
+        // add white background color for active cell
+        // For Fixed columns, do not need to add startColIndex
+        if (colIdx === activeCell.value.column && rowIdx === activeCell.value.row) {
+          ctx.fillStyle = '#FFFFFF'
+          ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+        }
+
+        if (column.id === 'row_number') {
+          renderRowMeta(ctx, row, { xOffset, yOffset, width })
+        } else {
+          const value = row.row[column.title]
+
+          const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
+
+          if (isActive) {
+            activeState = {
+              col: column,
+              x: xOffset,
+              y: yOffset,
+              width,
+              height: rowHeight.value,
+            }
+          }
+          ctx.save()
+
+          if (isColumnRequiredAndNull(column.columnObj, row.row)) {
+            renderRedBorders.push({ rowIndex: rowIdx, column })
+          }
+
+          renderCell(ctx, column.columnObj, {
+            value,
+            x: xOffset,
+            y: yOffset,
+            width,
+            height: rowHeight.value,
+            row: row.row,
+            selected: isActive,
+            pv: column.pv,
+            readonly: column.readonly,
+            spriteLoader,
+            imageLoader,
+            tableMetaLoader,
+            relatedColObj: column.relatedColObj,
+            relatedTableMeta: column.relatedTableMeta,
+            mousePosition,
+            disabled: column?.isInvalidColumn,
+            pk,
+            skipRender: isCellEditEnabled,
+          })
+          ctx.restore()
+        }
+
+        ctx.strokeStyle = '#f4f4f5'
+        ctx.beginPath()
+
+        ctx.moveTo(xOffset, yOffset)
+        ctx.lineTo(xOffset, yOffset + rowHeight.value)
+        ctx.stroke()
+
+        xOffset += width
+      })
+
+      if (scrollLeft.value) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
+        ctx.rect(xOffset, yOffset, 4, rowHeight.value)
+        ctx.fill()
+        ctx.strokeStyle = '#D5D5D9'
+        ctx.beginPath()
+        ctx.moveTo(xOffset, yOffset)
+        ctx.lineTo(xOffset, yOffset + rowHeight.value)
+        ctx.stroke()
+      }
+
+      if (!visibleCols.filter((f) => !f.fixed).length) {
+        ctx.strokeStyle = '#f4f4f5'
+        ctx.beginPath()
+        ctx.moveTo(xOffset, yOffset)
+        ctx.lineTo(xOffset, yOffset + rowHeight.value)
+        ctx.stroke()
+      }
+
+      ctx.fillStyle = 'transparent'
+      ctx.strokeStyle = 'white'
+      ctx.shadowColor = 'transparent'
+      ctx.shadowBlur = 0
+      ctx.shadowOffsetX = 0
+      ctx.shadowOffsetY = 0
+    }
+
+    return {
+      activeState,
+      renderRedBorders,
+    }
+  }
+
   function renderRows(ctx: CanvasRenderingContext2D) {
     const { end: endRowIndex } = rowSlice.value
     const { start: startColIndex, end: endColIndex } = colSlice.value
@@ -883,7 +1098,7 @@ export function useCanvasRender({
       initialXOffset += parseCellWidth(columns.value[i]?.width)
     }
 
-    const renderRedBorders: {
+    let renderRedBorders: {
       rowIndex: number
       column: CanvasGridColumn
     }[] = []
@@ -904,187 +1119,17 @@ export function useCanvasRender({
         ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
         ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
         if (row) {
-          const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
-
-          let xOffset = initialXOffset
-
-          visibleCols.forEach((column, colIdx) => {
-            const width = parseCellWidth(column.width)
-            const absoluteColIdx = startColIndex + colIdx
-
-            const isCellEditEnabled =
-              editEnabled.value && activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
-
-            if (column.fixed) {
-              xOffset += width
-              return
-            }
-
-            if (row.rowMeta.selected || selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
-              ctx.fillStyle = '#F6F7FE'
-              ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
-            }
-
-            ctx.strokeStyle = '#f4f4f5'
-            ctx.beginPath()
-            ctx.moveTo(xOffset - scrollLeft.value, yOffset)
-            ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
-            ctx.stroke()
-
-            // add white background color for active cell
-            if (startColIndex + colIdx === activeCell.value.column && rowIdx === activeCell.value.row) {
-              ctx.fillStyle = '#FFFFFF'
-              ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
-            }
-
-            const isActive = activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
-
-            if (isActive) {
-              activeState = {
-                col: column,
-                x: xOffset - scrollLeft.value,
-                y: yOffset,
-                width,
-                height: rowHeight.value,
-              }
-            }
-
-            const value = row.row[column.title]
-
-            if (isColumnRequiredAndNull(column.columnObj, row.row)) {
-              renderRedBorders.push({ rowIndex: rowIdx, column })
-            }
-
-            ctx.save()
-            renderCell(ctx, column.columnObj, {
-              value,
-              x: xOffset - scrollLeft.value,
-              y: yOffset,
-              width,
-              height: rowHeight.value,
-              row: row.row,
-              selected: isActive,
-              pv: column.pv,
-              spriteLoader,
-              readonly: column.readonly,
-              imageLoader,
-              tableMetaLoader,
-              relatedColObj: column.relatedColObj,
-              relatedTableMeta: column.relatedTableMeta,
-              disabled: column?.isInvalidColumn,
-              mousePosition,
-              pk,
-              skipRender: isCellEditEnabled,
-            })
-            ctx.restore()
-            xOffset += width
+          const renderedProp = renderRow(ctx, {
+            row,
+            initialXOffset,
+            visibleCols,
+            rowIdx,
+            startColIndex,
+            fixedCols: fixedColsComputed.value,
+            yOffset,
           })
-
-          const fixedCols = columns.value.filter((col) => col.fixed)
-          if (fixedCols.length) {
-            xOffset = 0
-
-            fixedCols.forEach((column) => {
-              const width = parseCellWidth(column.width)
-
-              const colIdx = columns.value.findIndex((col) => col.id === column.id)
-
-              const isCellEditEnabled = editEnabled.value && activeCell.value.row === rowIdx && activeCell.value.column === colIdx
-
-              if (row.rowMeta.selected || selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
-                ctx.fillStyle = '#F6F7FE'
-                ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
-              } else {
-                ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
-                ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
-              }
-
-              // add white background color for active cell
-              // For Fixed columns, do not need to add startColIndex
-              if (colIdx === activeCell.value.column && rowIdx === activeCell.value.row) {
-                ctx.fillStyle = '#FFFFFF'
-                ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
-              }
-
-              if (column.id === 'row_number') {
-                renderRowMeta(ctx, row, { xOffset, yOffset, width })
-              } else {
-                const value = row.row[column.title]
-
-                const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
-
-                if (isActive) {
-                  activeState = {
-                    col: column,
-                    x: xOffset,
-                    y: yOffset,
-                    width,
-                    height: rowHeight.value,
-                  }
-                }
-                ctx.save()
-                if (isColumnRequiredAndNull(column.columnObj, row.row)) {
-                  renderRedBorders.push({ rowIndex: rowIdx, column })
-                }
-                renderCell(ctx, column.columnObj, {
-                  value,
-                  x: xOffset,
-                  y: yOffset,
-                  width,
-                  height: rowHeight.value,
-                  row: row.row,
-                  selected: isActive,
-                  pv: column.pv,
-                  readonly: column.readonly,
-                  spriteLoader,
-                  imageLoader,
-                  tableMetaLoader,
-                  relatedColObj: column.relatedColObj,
-                  relatedTableMeta: column.relatedTableMeta,
-                  mousePosition,
-                  disabled: column?.isInvalidColumn,
-                  pk,
-                  skipRender: isCellEditEnabled,
-                })
-                ctx.restore()
-              }
-
-              ctx.strokeStyle = '#f4f4f5'
-              ctx.beginPath()
-
-              ctx.moveTo(xOffset, yOffset)
-              ctx.lineTo(xOffset, yOffset + rowHeight.value)
-              ctx.stroke()
-
-              xOffset += width
-            })
-
-            if (scrollLeft.value) {
-              ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
-              ctx.rect(xOffset, yOffset, 4, rowHeight.value)
-              ctx.fill()
-              ctx.strokeStyle = '#D5D5D9'
-              ctx.beginPath()
-              ctx.moveTo(xOffset, yOffset)
-              ctx.lineTo(xOffset, yOffset + rowHeight.value)
-              ctx.stroke()
-            }
-
-            if (!visibleCols.filter((f) => !f.fixed).length) {
-              ctx.strokeStyle = '#f4f4f5'
-              ctx.beginPath()
-              ctx.moveTo(xOffset, yOffset)
-              ctx.lineTo(xOffset, yOffset + rowHeight.value)
-              ctx.stroke()
-            }
-
-            ctx.fillStyle = 'transparent'
-            ctx.strokeStyle = 'white'
-            ctx.shadowColor = 'transparent'
-            ctx.shadowBlur = 0
-            ctx.shadowOffsetX = 0
-            ctx.shadowOffsetY = 0
-          }
+          activeState = renderedProp.activeState ?? activeState
+          renderRedBorders = [...renderRedBorders, ...renderedProp.renderRedBorders]
         } else {
           row = {
             row: {},
@@ -1744,67 +1789,29 @@ export function useCanvasRender({
   ): number {
     if (!group.infiniteData) return yOffset
     const rows = group.infiniteData.cachedRows
+    const { start: startColIndex, end: endColIndex } = colSlice.value
+    const visibleCols = columns.value.slice(startColIndex, endColIndex)
+
+
     for (let i = startIndex; i <= endIndex && i < group.count && yOffset < height.value; i++) {
       const row = rows?.get(i)
-      if (!row || yOffset + rowHeight.value < 0) {
-        yOffset += rowHeight.value
-        continue
-      }
-
       const indent = (level + 1) * 9
-      const adjustedWidth = Math.min(totalWidth.value - scrollLeft.value, width.value)
-      ctx.fillStyle = hoverRow.value === i ? '#F9F9FA' : '#ffffff'
-      ctx.fillRect(indent, yOffset, adjustedWidth - indent, rowHeight.value)
-
-      let xOffset = indent
-      columns.value.forEach((col, colIdx) => {
-        if (col.fixed) return
-        const width = parseCellWidth(col.width)
-        const isActive = activeCell.value.row === i && activeCell.value.column === colIdx
-        if (isActive) {
-          ctx.fillStyle = '#FFFFFF'
-          ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
-        }
-
-        ctx.save()
-        renderCell(ctx, col.columnObj, {
-          value: row.row[col.title],
-          x: xOffset - scrollLeft.value,
-          y: yOffset,
-          width,
-          height: rowHeight.value,
-          row: row.row,
-          selected: isActive,
-          pv: col.pv,
-          spriteLoader,
-          imageLoader,
-          tableMetaLoader,
-          readonly: col.readonly,
-          relatedColObj: col.relatedColObj,
-          relatedTableMeta: col.relatedTableMeta,
-          mousePosition,
-          pk: extractPkFromRow(row.row, meta.value?.columns ?? []),
+      if (row) {
+        renderRow(ctx, {
+          row,
+          initialXOffset: indent,
+          visibleCols,
+          startColIndex,
+          rowIdx: i,
+          fixedCols: fixedColsComputed.value,
+          yOffset,
         })
-        ctx.restore()
-
-        ctx.strokeStyle = '#f4f4f5'
-        ctx.beginPath()
-        ctx.moveTo(xOffset - scrollLeft.value, yOffset)
-        ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
-        ctx.stroke()
-
-        xOffset += width
-      })
-
-      ctx.strokeStyle = '#e7e7e9'
-      ctx.beginPath()
-      ctx.moveTo(indent, yOffset + rowHeight.value)
-      ctx.lineTo(adjustedWidth, yOffset + rowHeight.value)
-      ctx.stroke()
-
-      yOffset += rowHeight.value
+        yOffset += rowHeight.value
+      } else {
+        yOffset += rowHeight.value
+      }
     }
-    return yOffset
+    return yOffset;
   }
 
   function renderGroups(
@@ -1935,8 +1942,6 @@ export function useCanvasRender({
         strokeStyle: '#D5D5D9',
       })
 
-      yOffset += GROUP_HEADER_HEIGHT + GROUP_PADDING
-
       if (scrollLeft.value) {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
         ctx.rect(xOffset + mergedWidth, yOffset, 4, GROUP_HEADER_HEIGHT)
@@ -1944,13 +1949,13 @@ export function useCanvasRender({
       }
 
       renderGroupContent(ctx, group, contentX, contentY + 6, availableWidth - contentWidth - 8 - countWidth)
-
+      yOffset += GROUP_HEADER_HEIGHT
       if (group.isExpanded) {
         const nestedStart = Math.floor((scrollTop.value - yOffset) / (GROUP_HEADER_HEIGHT + GROUP_PADDING + rowHeight.value))
         const visibleCount = Math.ceil(height.value / (GROUP_HEADER_HEIGHT + GROUP_PADDING + rowHeight.value))
         const nestedEnd = Math.min(nestedStart + visibleCount, group.groupCount || group.count) - 1
         if (group.infiniteData) {
-          yOffset = renderGroupRows(ctx, group, yOffset, level + 1, nestedStart, nestedEnd)
+          yOffset = renderGroupRows(ctx, group, yOffset - 28, level + 1, nestedStart, nestedEnd)
         } else if (group.groups.size > 0) {
           yOffset = renderGroups(ctx, {
             level: level + 1,
@@ -1961,6 +1966,8 @@ export function useCanvasRender({
           })
         }
       }
+      yOffset += GROUP_PADDING
+
     }
     return yOffset
   }

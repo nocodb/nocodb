@@ -12,8 +12,6 @@ const source = toRef(props, 'source')
 
 const visible = useVModel(props, 'visible', emits)
 
-const transitionName = ref<string | undefined>(undefined)
-
 const { $e } = useNuxtApp()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
@@ -24,7 +22,6 @@ async function openAirtableImportDialog(baseId?: string, sourceId?: string) {
   $e('a:actions:import-airtable')
 
   const isOpen = ref(true)
-  transitionName.value = 'dissolve'
 
   await nextTick()
   visible.value = false
@@ -34,7 +31,6 @@ async function openAirtableImportDialog(baseId?: string, sourceId?: string) {
     'baseId': baseId,
     'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
-    'transition': 'dissolve',
     'showBackBtn': true,
     'onBack': () => {
       visible.value = true
@@ -54,7 +50,6 @@ async function openNocoDbImportDialog(baseId?: string) {
   // $e('a:actions:import-nocodb')
 
   const isOpen = ref(true)
-  transitionName.value = 'dissolve'
 
   await nextTick()
   visible.value = false
@@ -63,7 +58,6 @@ async function openNocoDbImportDialog(baseId?: string) {
     'modelValue': isOpen,
     'baseId': baseId,
     'onUpdate:modelValue': closeDialog,
-    'transition': 'dissolve',
     'showBackBtn': true,
     'onBack': () => {
       visible.value = true
@@ -83,7 +77,6 @@ async function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
   $e(`a:actions:import-${type}`)
 
   const isOpen = ref(true)
-  transitionName.value = 'dissolve'
 
   await nextTick()
   visible.value = false
@@ -94,7 +87,6 @@ async function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
     'baseId': source.value.base_id,
     'sourceId': source.value.id,
     'onUpdate:modelValue': closeDialog,
-    'transition': 'dissolve',
     'showBackBtn': true,
     'onBack': () => {
       visible.value = true
@@ -120,7 +112,7 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json' | 'nocodb') => {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="visible" width="448px" class="!top-[25vh]" :transition-name="transitionName">
+  <GeneralModal v-model:visible="visible" width="448px" class="!top-[25vh]">
     <div class="flex flex-col px-6 pt-6 pb-9">
       <div class="flex items-center gap-3 mb-6">
         <div class="text-base font-weight-700">{{ $t('labels.importDataFrom') }}</div>

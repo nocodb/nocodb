@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "Soubor CSV",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON soubor",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "Vymazat formulář",
     "addFieldFromFormView": "Přidat pole",
     "selectAllFields": "Vybrat všechna pole",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Povolit předvyplnění",
       "default": "Výchozí",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Hledat ikony",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "Nemůžete změnit viditelnost pole, které je upravováno. Uložte nebo zrušte změny nejdříve.",
         "moveEditedField": "Nelze přesunout pole, které je upravováno. Nejprve uložte nebo zrušte změny",
         "moveDeletedField": "Nelze přesunout pole, které je odstraněno. Nejprve uložte nebo zrušte změny"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Úspěšný export metadat projektu",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Zkopírovaný vložitelný kód HTML!",
       "userDetailsUpdated": "Úspěšná aktualizace údajů o uživateli",
       "tableDataImported": "Úspěšný import dat tabulky",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Úspěšná aktualizace údajů o webhooku",
       "webhookDeleted": "Háček úspěšně odstraněn",
       "webhookTested": "Webhook úspěšně otestován",

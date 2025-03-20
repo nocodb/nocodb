@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV ഫയൽ",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON ഫയൽ",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "ഫോം ക്ളിയർ ചെയ്യുക",
     "addFieldFromFormView": "ഫീൽഡ് ചേർക്കുക",
     "selectAllFields": "എല്ലാ ഫീൽഡുകളും തിരഞ്ഞെടുക്കുക",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "പ്രീ-ഫിൽ സജീവമാക്കുക",
       "default": "സ്ഥിരസ്ഥിതി",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "ചിഹ്നങ്ങൾ തിരയുക",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "എഡിറ്റ് ചെയ്യുന്ന ഫീൽഡിന്റെ ദൃശ്യതയും മാറ്റാൻ കഴിയില്ല. ആദ്യം മാറ്റങ്ങൾ സംരക്ഷിക്കുക അല്ലെങ്കിൽ ഒഴിവാക്കുക.",
         "moveEditedField": "എഡിറ്റ് ചെയ്യുന്ന ഫീൽഡിനെ മാറ്റാൻ കഴിയില്ല. ആദ്യമായി മാറ്റങ്ങൾ സംരക്ഷിക്കുക അല്ലെങ്കിൽ ഒഴിവാക്കുക",
         "moveDeletedField": "നീക്കം ചെയ്ത ഫീൽഡിനെ മാറ്റാൻ കഴിയില്ല. ആദ്യമായി മാറ്റങ്ങൾ സംരക്ഷിക്കുക അല്ലെങ്കിൽ ഒഴിവാക്കുക"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "അടിസ്ഥാന ഡാറ്റയുടെ മീറ്റാ വിവരങ്ങൾ വിജയകരമായി കയറ്റുമതി ചെയ്തു",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "പകർത്തിയ ഹ്രസ്വ HTML കോഡ്!",
       "userDetailsUpdated": "ഉപയോക്തൃ വിവരങ്ങൾ വിജയകരമായി അപ്ഡേറ്റ് ചെയ്തു",
       "tableDataImported": "പട്ടിക ഡാറ്റ വിജയകരമായി ഇറക്കുമതി ചെയ്തു",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "വെബ്‌ഹുക്ക് വിശദാംശങ്ങൾ വിജയകരമായി അപ്ഡേറ്റ് ചെയ്തു",
       "webhookDeleted": "ഹുക്ക് വിജയകരമായി മായിച്ചു",
       "webhookTested": "വെബ്‌ഹുക്ക് വിജയകരമായി പറയപ്പെട്ടു",

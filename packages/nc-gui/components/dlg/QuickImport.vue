@@ -319,9 +319,7 @@ function handleChange(info: UploadChangeParam) {
     }
   }
 
-  if (status === 'done') {
-    message.success(`Uploaded file ${info.file.name} successfully`)
-  } else if (status === 'error') {
+  if (status === 'error') {
     message.error(`${t('msg.error.fileUploadFailed')} ${info.file.name}`)
   }
 }
@@ -672,7 +670,6 @@ watch(
                   :multiple="true"
                   :custom-request="customReqCbk"
                   :before-upload="beforeUpload"
-                  :disabled="isImportTypeJson ? isPreImportJsonFilled && !isPreImportFileFilled : isPreImportUrlFilled"
                   @change="handleChange"
                   @reject="rejectDrop"
                 >
@@ -713,7 +710,7 @@ watch(
                               <NcTooltip class="flex-none w-[85px] truncate text-left !leading-[20px]" show-on-truncate-only>
                                 <template #title> {{ charsetOptionsMap[file.encoding]?.sortLabel ?? '' }}</template>
 
-                                {{ charsetOptionsMap[file.encoding]?.sortLabel ?? '' }}
+                                {{ charsetOptionsMap[file.encoding]?.sortLabel?.replace('Windows', 'Win') ?? '' }}
                               </NcTooltip>
 
                               <GeneralIcon
@@ -771,42 +768,36 @@ watch(
                 </div>
               </template>
               <div class="relative mt-5">
-                <div v-if="isImportTypeJson" class="my-5">
-                  <div class="flex items-end gap-2">
-                    <label> Enter Json </label>
-                    <div class="flex-1" />
-                    <NcButton type="text" size="xsmall" class="!px-2" @click="formatJson()"> Format </NcButton>
-                  </div>
-                  <LazyMonacoEditor
-                    ref="refMonacoEditor"
-                    class="nc-import-monaco-editor h-30 !border-1 !rounded-lg !mt-2"
-                    :auto-focus="false"
-                    hide-minimap
-                    :read-only="isPreImportFileFilled"
-                    :monaco-config="{
-                      lineNumbers: 'on',
-                    }"
-                    :model-value="temporaryJson"
-                    @update:model-value="handleJsonChange($event)"
-                  />
-                  <a-alert
-                    v-if="jsonErrorText || refMonacoEditor?.error"
-                    type="error"
-                    class="!rounded-lg !mt-2 !border-none !p-3"
-                  >
-                    <template #message>
-                      <div class="flex flex-row items-center gap-2 mb-1">
-                        <GeneralIcon icon="ncAlertCircleFilled" class="text-nc-content-red-medium w-4 h-4" />
-                        <span class="text-nc-content-gray font-bold text-[14px]">Json Error</span>
-                      </div>
-                    </template>
-                    <template #description>
-                      <div class="text-nc-content-gray-subtle2 text-[13px] leading-5 ml-6">
-                        {{ jsonErrorText || refMonacoEditor?.error }}
-                      </div>
-                    </template>
-                  </a-alert>
+                <div class="flex items-end gap-2">
+                  <label> Enter Json </label>
+                  <div class="flex-1" />
+                  <NcButton type="text" size="xsmall" class="!px-2" @click="formatJson()"> Format </NcButton>
                 </div>
+                <LazyMonacoEditor
+                  ref="refMonacoEditor"
+                  class="nc-import-monaco-editor h-30 !border-1 !rounded-lg !mt-2"
+                  :auto-focus="false"
+                  hide-minimap
+                  :read-only="isPreImportFileFilled"
+                  :monaco-config="{
+                    lineNumbers: 'on',
+                  }"
+                  :model-value="temporaryJson"
+                  @update:model-value="handleJsonChange($event)"
+                />
+                <a-alert v-if="jsonErrorText || refMonacoEditor?.error" type="error" class="!rounded-lg !mt-2 !border-none !p-3">
+                  <template #message>
+                    <div class="flex flex-row items-center gap-2 mb-1">
+                      <GeneralIcon icon="ncAlertCircleFilled" class="text-nc-content-red-medium w-4 h-4" />
+                      <span class="text-nc-content-gray font-bold text-[14px]">Json Error</span>
+                    </div>
+                  </template>
+                  <template #description>
+                    <div class="text-nc-content-gray-subtle2 text-[13px] leading-5 ml-6">
+                      {{ jsonErrorText || refMonacoEditor?.error }}
+                    </div>
+                  </template>
+                </a-alert>
               </div>
             </a-tab-pane>
           </NcTabs>

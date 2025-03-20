@@ -11,7 +11,6 @@ interface HandlerOptions {
   metaService?: MetaService;
   knex?: Knex;
   tnPath?: string;
-  columns?: Column[];
 }
 
 interface FieldHandlerInterface {

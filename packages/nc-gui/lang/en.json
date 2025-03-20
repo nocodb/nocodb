@@ -2014,7 +2014,8 @@
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
       "notSupported": "Not supported",
-      "duplicateTableName": "Duplicate table name"
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

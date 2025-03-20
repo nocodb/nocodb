@@ -67,7 +67,7 @@ export function useMultiSelect(
   changePage?: (page: number) => void,
   fetchChunk?: (chunkId: number) => Promise<void>,
   onActiveCellChanged?: () => void,
-  getRows?: Promise<Row[]>
+  getRows?: Promise<Row[]>,
 ) {
   const meta = ref(_meta)
 

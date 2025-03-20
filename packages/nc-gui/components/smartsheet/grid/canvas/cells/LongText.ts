@@ -1,11 +1,5 @@
 import { isAIPromptCol } from 'nocodb-sdk'
-import {
-  isBoxHovered,
-  renderIconButton,
-  renderMarkdown,
-  renderMultiLineText,
-  renderTagLabel,
-} from '../utils/canvas'
+import { isBoxHovered, renderIconButton, renderMarkdown, renderMultiLineText, renderTagLabel } from '../utils/canvas'
 import { getI18n } from '../../../../../plugins/a.i18n'
 import { AILongTextCellRenderer } from './AILongText'
 

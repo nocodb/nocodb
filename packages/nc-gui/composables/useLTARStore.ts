@@ -497,20 +497,18 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             },
           }
         } else {
-          const where = childrenListPagination.query
-            ? `(${relatedTableDisplayValueProp.value},${
-                isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq,exactDate' : 'like'
-              },${childrenListPagination.query})`
-            : undefined
-            ? JSON.stringify([
-                {
-                  fk_column_id: relatedTableDisplayValuePropId.value,
-                  value: childrenListPagination.query,
-                  comparison_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq' : 'like',
-                  comparison_sub_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'exactDate' : undefined,
-                },
-              ])
-            : undefined
+          let where: string | undefined
+
+          if (childrenListPagination.query) {
+            where = JSON.stringify([
+              {
+                fk_column_id: relatedTableDisplayValuePropId.value,
+                value: childrenListPagination.query,
+                comparison_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq' : 'like',
+                comparison_sub_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'exactDate' : undefined,
+              },
+            ])
+          }
 
           if (isPublic.value) {
             childrenList.value = await $api.public.dataNestedList(

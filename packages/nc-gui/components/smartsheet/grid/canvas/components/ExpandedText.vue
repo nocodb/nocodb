@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { type ColumnType, handleTZ } from 'nocodb-sdk';
+import { type ColumnType, handleTZ } from 'nocodb-sdk'
 
 const props = defineProps<{
-  column: ColumnType,
-  modelVisible: boolean,
+  column: ColumnType
+  modelVisible: boolean
   modelValue: string
 }>()
 
@@ -23,32 +23,17 @@ const isDragging = ref(false)
 const isSizeUpdated = ref(false)
 const skipSizeUpdate = ref(true)
 
-const dragStart = (e: MouseEvent) => {
-  const dom = document.querySelector('.nc-long-text-expanded .ant-modal-content') as HTMLElement
-  if (!dom) return
-
-  mousePosition.value = {
-    top: e.clientY - dom.getBoundingClientRect().top,
-    left: e.clientX - dom.getBoundingClientRect().left + 16,
-  }
-
-  document.addEventListener('mousemove', onMouseMove)
-  document.addEventListener('mouseup', onMouseUp)
-  isDragging.value = true
-}
-
 const onMouseMove = (e: MouseEvent) => {
   if (!isDragging.value) return
 
   e.stopPropagation()
 
   position.value = {
-    top: e.clientY - (mousePosition.value?.top || 0) > 0
-      ? e.clientY - (mousePosition.value?.top || 0)
-      : position.value?.top || 0,
-    left: e.clientX - (mousePosition.value?.left || 0) > -16
-      ? e.clientX - (mousePosition.value?.left || 0)
-      : position.value?.left || 0,
+    top: e.clientY - (mousePosition.value?.top || 0) > 0 ? e.clientY - (mousePosition.value?.top || 0) : position.value?.top || 0,
+    left:
+      e.clientX - (mousePosition.value?.left || 0) > -16
+        ? e.clientX - (mousePosition.value?.left || 0)
+        : position.value?.left || 0,
   }
 }
 
@@ -65,15 +50,32 @@ const onMouseUp = (e: MouseEvent) => {
   document.removeEventListener('mouseup', onMouseUp)
 }
 
-watch(position, () => {
+const dragStart = (e: MouseEvent) => {
   const dom = document.querySelector('.nc-long-text-expanded .ant-modal-content') as HTMLElement
-  if (!dom || !position.value) return
+  if (!dom) return
 
-  dom.style.transform = 'none'
-  dom.style.left = `${position.value.left}px`
-  dom.style.top = `${position.value.top}px`
-}, { deep: true })
+  mousePosition.value = {
+    top: e.clientY - dom.getBoundingClientRect().top,
+    left: e.clientX - dom.getBoundingClientRect().left + 16,
+  }
 
+  document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('mouseup', onMouseUp)
+  isDragging.value = true
+}
+
+watch(
+  position,
+  () => {
+    const dom = document.querySelector('.nc-long-text-expanded .ant-modal-content') as HTMLElement
+    if (!dom || !position.value) return
+
+    dom.style.transform = 'none'
+    dom.style.left = `${position.value.left}px`
+    dom.style.top = `${position.value.top}px`
+  },
+  { deep: true },
+)
 
 watch(isVisible, (open) => {
   if (!open) {
@@ -129,16 +131,14 @@ useResizeObserver(inputWrapperRef, () => {
     JSON.stringify({
       width,
       height,
-    })
+    }),
   )
 })
-
 
 const { isPg } = useBase()
 
 const result = isPg(column.value?.source_id) ? renderValue(handleTZ(modelValue.value)) : renderValue(modelValue.value)
 const urls = replaceUrlsWithLink(result)
-
 </script>
 
 <template>
@@ -176,8 +176,8 @@ const urls = replaceUrlsWithLink(result)
         </NcButton>
       </div>
       <div class="p-3 pb-0 h-full">
-
         <div
+          v-if="urls"
           ref="inputRef"
           :style="{
             resize: 'both',
@@ -185,14 +185,13 @@ const urls = replaceUrlsWithLink(result)
             width: 'min(1256px, 100vw - 124px)',
           }"
           class="nc-long-text-expanded-textarea border-1 border-gray-200 bg-gray-50 !py-1 !px-3 !text-black !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50 nc-longtext-scrollbar"
-          v-if="urls"
-          v-html="urls">
-        </div>
+          v-html="urls"
+        ></div>
 
         <a-textarea
           v-else
-          disabled
           ref="inputRef"
+          disabled
           :value="modelValue"
           class="nc-long-text-expanded-textarea !py-1 !px-3 !text-black !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50 nc-longtext-scrollbar"
           :placeholder="$t('activity.enterText')"

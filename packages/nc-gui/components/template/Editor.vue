@@ -686,9 +686,19 @@ function handleEditableTnChange(idx: number) {
   setEditableTn(idx, false)
 }
 
+function isAllMappedSelected(tableName: string) {
+  return (srcDestMapping.value[tableName] || [])?.every((item) => !item.destCn || item.enabled)
+}
+
+function isSomeMappedSelected(tableName: string) {
+  return (srcDestMapping.value[tableName] || [])?.some((item) => !item.destCn || item.enabled)
+}
+
 function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
   const isChecked = event.target.checked
   for (const record of srcDestMapping.value[tableName]) {
+    if (!record.destCn) continue
+
     record.enabled = isChecked
   }
 }
@@ -808,14 +818,23 @@ const currentColumnToEdit = ref('')
               :bordered="false"
             >
               <template #headerCell="{ column }">
+                <NcTooltip v-if="column.key === 'source_column'">
+                  <template #title>
+                    {{
+                      checkAllRecord[table.table_name] ? $t('activity.deselectAllFields') : $t('tooltip.selectAllMappedFields')
+                    }}
+                  </template>
+                  <div>
+                    <NcCheckbox
+                      :indeterminate="!isAllMappedSelected(table.table_name) && isSomeMappedSelected(table.table_name)"
+                      :checked="isAllMappedSelected(table.table_name)"
+                      @change="handleCheckAllRecord($event, table.table_name)"
+                    />
+                  </div>
+                </NcTooltip>
+
                 <span v-if="column.key !== 'action'">
                   {{ column.title }}
-                </span>
-                <span v-if="column.key === 'action'">
-                  <NcCheckbox
-                    v-model:checked="checkAllRecord[table.table_name]"
-                    @change="handleCheckAllRecord($event, table.table_name)"
-                  />
                 </span>
               </template>
 
@@ -942,7 +961,12 @@ const currentColumnToEdit = ref('')
                     <td colspan="2" class="nc-table-cell pl-3 flex h-full items-center">
                       <NcCheckbox :checked="table.columns.every((it) => it.selected)" @click="toggleTableSelecteds(table)" />
                       <span class="ml-4 font-weight-700 text-[13px]">
-                        {{ table.columns.every((it) => it.selected) ? 'Deselect' : 'Select' }} all fields
+                        {{
+                          table.columns.every((it) => it.selected)
+                            ? $t('activity.deselectAllFields')
+                            : $t('activity.selectAllFields')
+                        }}
+                        all fields
                       </span>
                     </td>
                   </tr>

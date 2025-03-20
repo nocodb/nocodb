@@ -234,6 +234,8 @@ const { validate, validateInfos, modelRef } = useForm(data, validators)
 
 const isValid = ref(!importDataOnly)
 
+const importError = ref('')
+
 const formRef = ref()
 
 watch(
@@ -503,10 +505,8 @@ async function importTemplate() {
   if (importDataOnly) {
     for (const table of data.tables) {
       // validate required columns
-      if (missingRequiredColumnsValidation(table.table_name)) return
-
-      // validate at least one column needs to be selected
-      if (atLeastOneEnabledValidation(table.table_name)) return
+      const validationErrors = getErrorByTableName(table.table_name)
+      if (validationErrors.length) throw new Error(`${validationErrors[0]}`)
     }
 
     try {
@@ -599,7 +599,7 @@ async function importTemplate() {
       // Successfully imported table data
       message.success(t('msg.success.tableDataImported'))
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      throw e
     } finally {
       isImporting.value = false
     }
@@ -608,7 +608,6 @@ async function importTemplate() {
     try {
       await validate()
     } catch (errorInfo) {
-      isImporting.value = false
       throw new Error('Please fill all the required values')
     }
 
@@ -722,7 +721,7 @@ async function importTemplate() {
         type: TabType.TABLE,
       })
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      throw e
     } finally {
       isImporting.value = false
     }
@@ -761,6 +760,10 @@ function mapDefaultColumns() {
 defineExpose({
   importTemplate,
   isValid,
+  importError,
+  updateImportError: (err: string) => {
+    importError.value = err
+  },
 })
 
 function getMappedColumns(tableName: string) {
@@ -853,7 +856,7 @@ const getErrorForTable = (tableIdx: number) => {
   return (formError.value?.[`tables.${tableIdx}.table_name`] || []).concat(formError.value?.[`tables.${tableIdx}.columns`] || [])
 }
 
-const getErrorByTableName = (tableName: string) => {
+function getErrorByTableName(tableName: string) {
   const errors = []
 
   const atLeastOneEnabledValidationErr = atLeastOneEnabledValidation(tableName)

@@ -171,6 +171,10 @@ const isPreImportJsonFilled = computed(() => {
   }
 })
 
+const localImportError = ref('')
+
+const importError = computed(() => localImportError.value ?? templateEditorRef.value?.importError ?? '')
+
 const maxFileUploadLimit = computed(() => (isImportTypeCsv.value ? 3 : 1))
 
 const hideUpload = computed(() => preImportLoading.value || importState.fileList.length >= maxFileUploadLimit.value)
@@ -214,6 +218,7 @@ let templateGenerator: CSVTemplateAdapter | JSONTemplateAdapter | ExcelTemplateA
 async function handlePreImport() {
   preImportLoading.value = true
   isParsingData.value = true
+  localImportError.value = ''
 
   if (!baseTables.value.get(baseId)) {
     await loadProjectTables(baseId)
@@ -229,7 +234,7 @@ async function handlePreImport() {
         await validate()
         await parseAndExtractData(importState.url)
       } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
+        localImportError.value = await extractSdkResponseErrorMsg(e)
       }
     }
   } else if (isImportTypeJson.value) {
@@ -254,7 +259,7 @@ async function handlePreImport() {
         await validate()
         await parseAndExtractData(importState.url)
       } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
+        localImportError.value = await extractSdkResponseErrorMsg(e)
       }
     }
   }
@@ -264,21 +269,27 @@ async function handlePreImport() {
 }
 
 async function handleImport() {
+  localImportError.value = ''
   try {
     if (!templateGenerator && !importWorker) {
-      message.error(t('msg.error.templateGeneratorNotFound'))
+      localImportError.value = t('msg.error.templateGeneratorNotFound')
       return
     }
     importLoading.value = true
     await templateEditorRef.value.importTemplate()
-  } catch (e: any) {
-    return message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    importLoading.value = false
+
     templateEditorModal.value = false
     Object.assign(importState, defaultImportState)
+    dialogShow.value = false
+  } catch (e: any) {
+    console.log(e)
+
+    const errorMsg = await extractSdkResponseErrorMsg(e)
+    localImportError.value = errorMsg
+    return
+  } finally {
+    importLoading.value = false
   }
-  dialogShow.value = false
 }
 
 function rejectDrop(fileList: UploadFile[]) {
@@ -538,7 +549,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
       templateGenerator = getAdapter(val)
 
       if (!templateGenerator) {
-        message.error(t('msg.error.templateGeneratorNotFound'))
+        localImportError.value = t('msg.error.templateGeneratorNotFound')
         return
       }
 
@@ -571,9 +582,9 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
      * @example: Failed to execute 'send' on 'XMLHttpRequest': Failed to load '<url>'
      */
     if (typeof e === 'string' && isPreImportUrlFilled.value && activeTab.value === ImportTypeTabs.uploadFromUrl) {
-      message.error(e.replace(importState.url, '').replace(/''/, ''))
+      localImportError.value = e.replace(importState.url, '').replace(/''/, '')
     } else {
-      message.error((await extractSdkResponseErrorMsg(e)) || e?.toString())
+      localImportError.value = (await extractSdkResponseErrorMsg(e)) || e?.toString()
     }
   }
 }
@@ -593,7 +604,7 @@ onMounted(() => {
 
 const onCancelImport = () => {
   $importWorker.terminate()
-  Object.assign(importState, structuredClone(defaultImportState))
+  Object.assign(importState, defaultImportState)
   preImportLoading.value = false
   importLoading.value = false
   templateData.value = undefined
@@ -605,6 +616,7 @@ const onCancelImport = () => {
   temporaryJson.value = {}
   jsonErrorText.value = ''
   isError.value = false
+  localImportError.value = ''
 }
 
 onUnmounted(() => {
@@ -625,6 +637,11 @@ function handleJsonChange(newValue: any) {
   } catch (e: any) {
     jsonErrorText.value = e.message || 'Invalid JSON'
   }
+}
+
+function handleResetImportError() {
+  localImportError.value = ''
+  templateEditorRef.value?.updateImportError?.('')
 }
 
 watch(
@@ -707,7 +724,7 @@ watch(
           @change="onChange"
         />
         <div v-else>
-          <NcTabs v-model:activeKey="activeTab" class="nc-quick-import-tabs">
+          <NcTabs v-model:activeKey="activeTab" class="nc-quick-import-tabs" @update:activeKey="handleResetImportError">
             <a-tab-pane :key="ImportTypeTabs.upload" :disabled="preImportLoading" class="!h-full">
               <template #tab>
                 <div class="flex gap-2 items-center">
@@ -948,6 +965,29 @@ watch(
           </NcTabs>
         </div>
       </div>
+
+      <a-alert v-if="importError" class="!rounded-lg !bg-transparent !border-nc-border-gray-medium !p-4 !w-full !mt-5">
+        <template #message>
+          <div class="flex flex-row items-center gap-2 mb-1">
+            <GeneralIcon icon="ncAlertCircleFilled" class="text-nc-content-red-dark w-6 h-6" />
+            <span class="font-weight-700 text-sm flex-1">{{ $t('msg.error.importError') }}</span>
+
+            <NcButton size="xsmall" type="text" @click="handleResetImportError">
+              <GeneralIcon icon="close" class="text-nc-content-gray-subtle" />
+            </NcButton>
+          </div>
+        </template>
+        <template #description>
+          <NcTooltip show-on-truncate-only class="truncate text-nc-content-gray-muted text-small leading-5 ml-8">
+            <template #title>
+              <div class="line-clamp-4">
+                {{ importError }}
+              </div>
+            </template>
+            {{ importError }}
+          </NcTooltip>
+        </template>
+      </a-alert>
 
       <div v-if="!templateEditorModal" class="mt-5">
         <NcButton type="text" size="small" @click="collapseKey = !collapseKey ? 'advanced-settings' : ''">

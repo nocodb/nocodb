@@ -925,7 +925,7 @@ const getErrorByTableName = (tableName: string) => {
               <NcTooltip v-if="!isImporting && getErrorByTableName(table.table_name).length" class="ml-2">
                 <template #title>
                   <div v-for="(err, idx) of getErrorByTableName(table.table_name)" :key="idx" class="mb-1 last-of-type:mb-0">
-                    {{ idx + 1 }}. {{ err }}
+                    {{ idx > 0 ? `${idx + 1}.` : '' }} {{ err }}
                   </div>
                 </template>
                 <NcBadge color="red" :border="false" class="w-6 flex-none">
@@ -1121,7 +1121,7 @@ const getErrorByTableName = (tableName: string) => {
                 <NcTooltip v-if="!isImporting && getErrorForTable(tableIdx).length" class="ml-2">
                   <template #title>
                     <div v-for="(err, idx) of getErrorForTable(tableIdx)" :key="idx" class="mb-1 last-of-type:mb-0">
-                      {{ idx + 1 }}. {{ err }}
+                      {{ idx > 0 ? `${idx + 1}.` : '' }} {{ err }}
                     </div>
                   </template>
                   <NcBadge color="red" :border="false" class="w-6 flex-none">
@@ -1219,7 +1219,13 @@ const getErrorByTableName = (tableName: string) => {
                     </template>
                     <NcTooltip v-if="formError?.[`tables.${tableIdx}.columns.${record.key}.title`]" class="flex">
                       <template #title>
-                        {{ formError?.[`tables.${tableIdx}.columns.${record.key}.title`].join('\n') }}
+                        <div
+                          v-for="(err, idx) of formError?.[`tables.${tableIdx}.columns.${record.key}.title`] || []"
+                          :key="idx"
+                          class="mb-1 last-of-type:mb-0"
+                        >
+                          {{ idx > 0 ? `${idx + 1}.` : '' }} {{ err }}
+                        </div>
                       </template>
                       <GeneralIcon icon="info" class="h-4 w-4 text-nc-content-red-medium flex-none ml-2" />
                     </NcTooltip>

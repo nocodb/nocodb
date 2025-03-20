@@ -96,8 +96,6 @@ const hasSelectColumn = ref<boolean[]>([])
 
 const expansionPanel = ref<number[]>([])
 
-const editableTn = ref<boolean[]>([])
-
 const autoInsertOption = ref<boolean>(false)
 
 const inputRefs = ref<HTMLInputElement[]>([])
@@ -124,7 +122,19 @@ const data = reactive<{
 
 const validators = computed(() =>
   data.tables.reduce<Record<string, [ReturnType<typeof fieldRequiredValidator>]>>((acc: Record<string, any>, table, tableIdx) => {
-    acc[`tables.${tableIdx}.table_name`] = [validateTableName]
+    acc[`tables.${tableIdx}.table_name`] = [
+      validateTableName,
+      {
+        validator: (_rule: any, value: any) => {
+          return new Promise<void>((resolve, reject) => {
+            if (data.tables.some((item, idx) => idx !== tableIdx && item.table_name === value)) {
+              return reject(new Error(t('msg.error.duplicateTableName')))
+            }
+            resolve()
+          })
+        },
+      },
+    ]
     hasSelectColumn.value[tableIdx] = false
 
     table.columns?.forEach((column, columnIdx) => {
@@ -192,15 +202,8 @@ watch(
   { deep: true },
 )
 
-const prevEditableTn = ref<string[]>([])
-
 onMounted(() => {
   parseAndLoadTemplate()
-
-  // used to record the previous EditableTn values
-  // for checking the table duplication in current import
-  // and updating the key in importData
-  prevEditableTn.value = data.tables.map((t) => t.table_name)
 
   if (importDataOnly) {
     mapDefaultColumns()
@@ -260,10 +263,6 @@ function isSelect(col: ColumnType) {
 
 function _deleteTable(tableIdx: number) {
   data.tables.splice(tableIdx, 1)
-}
-
-function setEditableTn(tableIdx: number, val: boolean) {
-  editableTn.value[tableIdx] = val
 }
 
 function remapColNames(batchData: any[], columns: ColumnType[]) {
@@ -674,18 +673,6 @@ defineExpose({
   isValid,
 })
 
-function handleEditableTnChange(idx: number) {
-  const oldValue = prevEditableTn.value[idx]
-  const newValue = data.tables[idx].table_name
-  if (data.tables.filter((t) => t.table_name === newValue).length > 1) {
-    message.warn('Duplicate Table Name')
-    data.tables[idx].table_name = oldValue
-  } else {
-    prevEditableTn.value[idx] = newValue
-  }
-  setEditableTn(idx, false)
-}
-
 function isAllMappedSelected(tableName: string) {
   return (srcDestMapping.value[tableName] || [])?.every((item) => !item.destCn || item.enabled)
 }
@@ -933,13 +920,10 @@ const currentColumnToEdit = ref('')
                       hide-details
                       :bordered="true"
                       @click.stop
-                      @blur="handleEditableTnChange(tableIdx)"
-                      @keydown.enter="handleEditableTnChange(tableIdx)"
-                      @dblclick="setEditableTn(tableIdx, true)"
                     />
                   </div>
 
-                  <div v-if="formError?.[`tables.${tableIdx}.table_name`]" class="text-red-500 ml-3">
+                  <div v-if="formError?.[`tables.${tableIdx}.table_name`]" class="text-red-500 ml-7 text-small">
                     {{ formError?.[`tables.${tableIdx}.table_name`].join('\n') }}
                   </div>
                 </div>

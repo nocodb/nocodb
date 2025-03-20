@@ -2010,7 +2010,8 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

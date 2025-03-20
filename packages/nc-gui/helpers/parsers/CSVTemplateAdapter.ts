@@ -25,6 +25,7 @@ export default class CSVTemplateAdapter {
   data: Record<string, any> = {}
   columnValues: Record<number, []>
   existingColumns?: ColumnType[]
+  tableNames: string[]
 
   private progressCallback?: (msg: string) => void
 
@@ -44,6 +45,7 @@ export default class CSVTemplateAdapter {
     this.headers = {}
     this.columnValues = {}
     this.tables = {}
+    this.tableNames = []
     this.progressCallback = progressCallback
     this.existingColumns = existingColumns
   }
@@ -274,9 +276,21 @@ export default class CSVTemplateAdapter {
     return new Promise((resolve, reject) => {
       const that = this
       let steppers = 0
-      const tn = ((this.config.importFromURL ? (source as string).split('/').pop() : (source as UploadFile).name) as string)
+      let tn = ((this.config.importFromURL ? (source as string).split('/').pop() : (source as UploadFile).name) as string)
         .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
         .trim()!
+
+      if (this.tableNames.includes(tn)) {
+        tn = generateUniqueTitle(
+          tn,
+          this.tableNames.map((t) => ({ title: t })),
+          'title',
+          '_',
+        )
+      }
+
+      this.tableNames.push(tn)
+
       this.data[tn] = []
       const parseSource = (this.config.importFromURL ? (source as string) : (source as UploadFile).originFileObj)!
       parse(parseSource, {

@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV文件",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON 文件",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "点击解决",
@@ -1425,6 +1428,7 @@
     "clearForm": "清除表单",
     "addFieldFromFormView": "添加字段",
     "selectAllFields": "选择所有字段",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "启用预填充",
       "default": "默认",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "源数据只读",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "搜索图标",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "您不能更改正在编辑的字段的可见性。请先保存或放弃更改。",
         "moveEditedField": "您不能移动正在编辑的字段的可见性。请先保存或放弃更改。",
         "moveDeletedField": "您不能移动已被删除的字段的可见性。请先保存或放弃更改。"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "邀请发送成功",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "更新字段可见性失败",
       "unsupportedCharacter": "不支持的字符：{char}",
       "unsupportedCharacters": "不支持的字符: {char}",
-      "notSupported": "不支持"
+      "notSupported": "不支持",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "已复制可嵌入的 HTML 代码！",
       "userDetailsUpdated": "成功更新用户详情",
       "tableDataImported": "成功导入表数据",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook 详细信息更新成功",
       "webhookDeleted": "Hook 删除成功",
       "webhookTested": "Webhook 测试成功",

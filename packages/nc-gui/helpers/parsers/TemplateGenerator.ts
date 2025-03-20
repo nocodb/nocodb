@@ -36,4 +36,5 @@ export default class TemplateGenerator {
   }
 }
 
-export type ProgressMessageType = string | { title: string; value: string }
+export type ProgressMessageObjType = { title: string; value: string }
+export type ProgressMessageType = string | ProgressMessageObjType

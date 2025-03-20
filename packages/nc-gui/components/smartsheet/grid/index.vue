@@ -4,8 +4,6 @@ import InfiniteTable from './InfiniteTable.vue'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import CanvasTable from './canvas/index.vue'
-import { UseDetachedLongTextProvider } from './canvas/composables/useDetachedLongText';
-import DetachedExpandedText from './canvas/components/DetachedExpandedText.vue';
 
 const meta = inject(MetaInj, ref())
 

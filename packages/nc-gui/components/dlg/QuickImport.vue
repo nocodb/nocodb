@@ -978,14 +978,9 @@ watch(
           </div>
         </template>
         <template #description>
-          <NcTooltip show-on-truncate-only class="truncate text-nc-content-gray-muted text-small leading-5 ml-8">
-            <template #title>
-              <div class="line-clamp-4">
-                {{ importError }}
-              </div>
-            </template>
+          <div class="text-nc-content-gray-muted text-small leading-5 ml-8 line-clamp-3">
             {{ importError }}
-          </NcTooltip>
+          </div>
         </template>
       </a-alert>
 

@@ -1068,7 +1068,7 @@ const getErrorByTableName = (tableName: string) => {
                 </a-form-item>
                 <template v-else>
                   <NcTooltip :title="table.table_name" show-on-truncate-only class="flex-1 truncate">
-                    <span @click.stop="currentTableToEdit = tableIdx">
+                    <span @click.stop="currentTableToEdit = tableIdx" class="nc-import-table-name">
                       {{ table.table_name }}
                     </span>
                   </NcTooltip>

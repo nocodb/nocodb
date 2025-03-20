@@ -34,6 +34,8 @@ const autoClose = computed(() => props.autoClose)
 
 const visible = useVModel(props, 'visible', emits)
 
+const localIsVisible = ref<boolean | undefined>(props.visible)
+
 const overlayClassNameComputed = computed(() => {
   let className = 'nc-dropdown bg-white rounded-lg border-1 border-gray-200 shadow-lg'
   if (overlayClassName.value) {
@@ -58,12 +60,24 @@ onClickOutside(overlayWrapperDomRef, () => {
 })
 
 const onVisibleUpdate = (event: any) => {
+  localIsVisible.value = event
+
   if (visible !== undefined) {
     visible.value = event
   } else {
     emits('update:visible', event)
   }
 }
+
+watch(
+  visible,
+  (newValue) => {
+    if (newValue === localIsVisible.value) return
+
+    localIsVisible.value = visible.value
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -76,10 +90,10 @@ const onVisibleUpdate = (event: any) => {
     :overlay-style="overlayStyle"
     @update:visible="onVisibleUpdate"
   >
-    <slot />
+    <slot :visible="localIsVisible" :on-change="onVisibleUpdate" />
 
     <template #overlay>
-      <slot ref="overlayWrapperDomRef" name="overlay" />
+      <slot ref="overlayWrapperDomRef" name="overlay" :visible="localIsVisible" :on-change="onVisibleUpdate" />
     </template>
   </a-dropdown>
 </template>

@@ -2,7 +2,7 @@
 import { toRaw, unref } from '@vue/runtime-core'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
-import { type TableType, charsetOptions } from 'nocodb-sdk'
+import { type TableType, charsetOptions, charsetOptionsMap } from 'nocodb-sdk'
 import rfdc from 'rfdc'
 
 interface Props {
@@ -558,6 +558,14 @@ watch(
     }
   },
 )
+
+enum ImportTypeTabs {
+  'upload' = 'upload',
+  'uploadFromUrl' = 'uploadFromUrl',
+  'uploadJSON' = 'uploadJSON',
+}
+
+const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
 </script>
 
 <template>
@@ -605,126 +613,171 @@ watch(
           @change="onChange"
         />
         <div v-else>
-          <a-upload-dragger
-            v-model:fileList="importState.fileList"
-            name="file"
-            class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !border-gray-200"
-            list-type="picture"
-            :accept="importMeta.acceptTypes"
-            :max-count="isImportTypeCsv ? 3 : 1"
-            :multiple="true"
-            :custom-request="customReqCbk"
-            :before-upload="beforeUpload"
-            :disabled="isImportTypeJson ? isPreImportJsonFilled && !isPreImportFileFilled : isPreImportUrlFilled"
-            @change="handleChange"
-            @reject="rejectDrop"
-          >
-            <component :is="iconMap.upload" class="w-6 h-6" />
-
-            <p class="!mt-2 text-[13px]">
-              {{ $t('msg.dropYourDocHere') }} {{ $t('general.or').toLowerCase() }}
-              <span class="text-nc-content-brand hover:underline">{{ $t('labels.browseFiles') }}</span>
-            </p>
-
-            <p class="!mt-3 text-[13px] text-gray-500">{{ $t('general.supported') }}: {{ importMeta.acceptTypes }}</p>
-
-            <p class="ant-upload-hint">
-              {{ importMeta.uploadHint }}
-            </p>
-
-            <template #itemRender="{ file, actions }">
-              <div class="flex items-center gap-4">
-                <div class="bg-gray-100 h-10 flex flex-shrink items-center justify-center rounded-lg">
-                  <CellAttachmentIconView :item="{ title: file.name, mimetype: file.type }" class="w-9 h-9" />
+          <NcTabs v-model:activeKey="activeTab" class="nc-quick-import-tabs">
+            <a-tab-pane :key="ImportTypeTabs.upload" class="!h-full">
+              <template #tab>
+                <div class="flex gap-2 items-center">
+                  <span class="text-sm">{{ $t('general.upload') }} </span>
                 </div>
-                <div class="flex flex-col flex-grow min-w-[0px]">
-                  <div class="text-[14px] text-[#15171A] font-weight-500">
-                    <NcTooltip>
-                      <template #title>
-                        {{ file.name }}
-                      </template>
-                      <span class="inline-block truncate w-full">
-                        {{ file.name }}
-                      </span>
-                    </NcTooltip>
-                  </div>
-                  <div class="text-[14px] text-[#565B66] mt-1 font-weight-500">
-                    {{ getReadableFileSize(file.size) }}
-                  </div>
-                </div>
-                <a-form-item class="flex-1 !my-0 max-w-[120px] min-w-[120px]">
-                  <NcSelect
-                    v-model:value="file.encoding"
-                    :filter-option="filterOption"
-                    class="w-[120px] max-w-[120px] nc-select-shadow"
-                    show-search
-                  >
-                    <a-select-option v-for="enc of charsetOptions" :key="enc.label" :value="enc.value">
-                      <div class="w-full flex items-center gap-2">
-                        <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                          <template #title>{{ enc.label }}</template>
-                          <span>{{ enc.label }}</span>
-                        </NcTooltip>
-                        <component
-                          :is="iconMap.check"
-                          v-if="file.encoding === enc.value"
-                          id="nc-selected-item-icon"
-                          class="text-nc-content-purple-medium w-4 h-4"
-                        />
+              </template>
+              <div class="relative mt-5">
+                <a-upload-dragger
+                  v-model:fileList="importState.fileList"
+                  name="file"
+                  class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !border-gray-200"
+                  list-type="picture"
+                  :accept="importMeta.acceptTypes"
+                  :max-count="isImportTypeCsv ? 3 : 1"
+                  :multiple="true"
+                  :custom-request="customReqCbk"
+                  :before-upload="beforeUpload"
+                  :disabled="isImportTypeJson ? isPreImportJsonFilled && !isPreImportFileFilled : isPreImportUrlFilled"
+                  @change="handleChange"
+                  @reject="rejectDrop"
+                >
+                  <component :is="iconMap.upload" class="w-6 h-6" />
+
+                  <p class="!mt-2 text-[13px]">
+                    {{ $t('msg.dropYourDocHere') }} {{ $t('general.or').toLowerCase() }}
+                    <span class="text-nc-content-brand hover:underline">{{ $t('labels.browseFiles') }}</span>
+                  </p>
+
+                  <p class="!mt-3 text-[13px] text-gray-500">{{ $t('general.supported') }}: {{ importMeta.acceptTypes }}</p>
+
+                  <p class="ant-upload-hint">
+                    {{ importMeta.uploadHint }}
+                  </p>
+
+                  <template #itemRender="{ file, actions }">
+                    <div class="flex items-center gap-4">
+                      <div class="bg-gray-100 h-10 flex flex-shrink items-center justify-center rounded-lg">
+                        <CellAttachmentIconView :item="{ title: file.name, mimetype: file.type }" class="w-9 h-9" />
                       </div>
-                    </a-select-option>
-                  </NcSelect>
-                </a-form-item>
-                <nc-button type="text" size="xsmall" class="flex-shrink" @click="actions?.remove?.()">
-                  <GeneralIcon icon="deleteListItem" />
-                </nc-button>
+                      <div class="flex flex-col flex-grow min-w-[0px]">
+                        <div class="text-[14px] text-[#15171A] font-weight-500">
+                          <NcTooltip>
+                            <template #title>
+                              {{ file.name }}
+                            </template>
+                            <span class="inline-block truncate w-full">
+                              {{ file.name }}
+                            </span>
+                          </NcTooltip>
+                        </div>
+                        <div class="text-[14px] text-[#565B66] mt-1 font-weight-500">
+                          {{ getReadableFileSize(file.size) }}
+                        </div>
+                      </div>
+                      <a-form-item class="flex-1 !my-0 max-w-[120px] min-w-[120px]">
+                        <NcDropdown overlay-class-name="overflow-hidden !w-[170px]">
+                          <template #default="{ visible }">
+                            <NcButton size="small" type="secondary" class="w-[120px] children:children:w-full">
+                              <NcTooltip class="flex-none w-[85px] truncate text-left !leading-[20px]" show-on-truncate-only>
+                                <template #title> {{ charsetOptionsMap[file.encoding]?.sortLabel ?? '' }}</template>
+
+                                {{ charsetOptionsMap[file.encoding]?.sortLabel ?? '' }}
+                              </NcTooltip>
+
+                              <GeneralIcon
+                                icon="chevronDown"
+                                class="flex-none transform"
+                                :class="{
+                                  'rotate-180': visible,
+                                }"
+                              />
+                            </NcButton>
+                          </template>
+
+                          <template #overlay="{ visible, onChange }">
+                            <NcList
+                              v-model:value="file.encoding"
+                              :open="visible"
+                              @update:open="onChange"
+                              :list="charsetOptions"
+                              search-input-placeholder="Search"
+                              option-label-key="sortLabel"
+                              option-value-key="value"
+                              class="!w-full"
+                              variant="small"
+                              container-class-name="!max-h-[171px]"
+                            >
+                            </NcList>
+                          </template>
+                        </NcDropdown>
+                      </a-form-item>
+                      <nc-button type="text" size="xsmall" class="flex-shrink" @click="actions?.remove?.()">
+                        <GeneralIcon icon="deleteListItem" />
+                      </nc-button>
+                    </div>
+                  </template>
+                </a-upload-dragger>
               </div>
-            </template>
-          </a-upload-dragger>
-
-          <div v-if="isImportTypeJson" class="my-5">
-            <div class="flex items-end gap-2">
-              <label> Enter Json </label>
-              <div class="flex-1" />
-              <NcButton type="text" size="xsmall" class="!px-2" @click="formatJson()"> Format </NcButton>
-            </div>
-            <LazyMonacoEditor
-              ref="refMonacoEditor"
-              class="nc-import-monaco-editor h-30 !border-1 !rounded-lg !mt-2"
-              :auto-focus="false"
-              hide-minimap
-              :read-only="isPreImportFileFilled"
-              :monaco-config="{
-                lineNumbers: 'on',
-              }"
-              :model-value="temporaryJson"
-              @update:model-value="handleJsonChange($event)"
-            />
-            <a-alert v-if="jsonErrorText && !isPreImportFileFilled" type="error" class="!rounded-lg !mt-2 !border-none !p-3">
-              <template #message>
-                <div class="flex flex-row items-center gap-2 mb-2">
-                  <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
-                  <span class="font-weight-700 text-[14px]">Json Error</span>
+            </a-tab-pane>
+            <a-tab-pane v-if="!isImportTypeJson" :key="ImportTypeTabs.uploadFromUrl" class="!h-full">
+              <template #tab>
+                <div class="flex gap-2 items-center">
+                  <span class="text-sm">{{ $t('labels.addFromUrl') }} </span>
                 </div>
               </template>
-              <template #description>
-                <div class="text-gray-500 text-[13px] leading-5 ml-6">
-                  {{ jsonErrorText }}
+              <div class="relative mt-5">
+                <a-form :model="importState" name="quick-import-url-form" layout="vertical" class="!my-0">
+                  <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url" :required="false" class="!my-0">
+                    <a-input
+                      v-model:value="importState.url"
+                      class="!rounded-md"
+                      placeholder="Paste file link here..."
+                      :disabled="isPreImportFileFilled"
+                    />
+                  </a-form-item>
+                </a-form>
+              </div>
+            </a-tab-pane>
+            <a-tab-pane v-if="isImportTypeJson" :key="ImportTypeTabs.uploadJSON" class="!h-full">
+              <template #tab>
+                <div class="flex gap-2 items-center">
+                  <span class="text-sm">{{ $t('labels.enterJson') }} </span>
                 </div>
               </template>
-            </a-alert>
-          </div>
-
-          <a-form v-if="!isImportTypeJson" :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0 !mt-5">
-            <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url" :required="false">
-              <a-input
-                v-model:value="importState.url"
-                class="!rounded-md"
-                placeholder="Paste file link here..."
-                :disabled="isPreImportFileFilled"
-              />
-            </a-form-item>
-          </a-form>
+              <div class="relative mt-5">
+                <div v-if="isImportTypeJson" class="my-5">
+                  <div class="flex items-end gap-2">
+                    <label> Enter Json </label>
+                    <div class="flex-1" />
+                    <NcButton type="text" size="xsmall" class="!px-2" @click="formatJson()"> Format </NcButton>
+                  </div>
+                  <LazyMonacoEditor
+                    ref="refMonacoEditor"
+                    class="nc-import-monaco-editor h-30 !border-1 !rounded-lg !mt-2"
+                    :auto-focus="false"
+                    hide-minimap
+                    :read-only="isPreImportFileFilled"
+                    :monaco-config="{
+                      lineNumbers: 'on',
+                    }"
+                    :model-value="temporaryJson"
+                    @update:model-value="handleJsonChange($event)"
+                  />
+                  <a-alert
+                    v-if="jsonErrorText && !isPreImportFileFilled"
+                    type="error"
+                    class="!rounded-lg !mt-2 !border-none !p-3"
+                  >
+                    <template #message>
+                      <div class="flex flex-row items-center gap-2 mb-2">
+                        <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
+                        <span class="font-weight-700 text-[14px]">Json Error</span>
+                      </div>
+                    </template>
+                    <template #description>
+                      <div class="text-gray-500 text-[13px] leading-5 ml-6">
+                        {{ jsonErrorText }}
+                      </div>
+                    </template>
+                  </a-alert>
+                </div>
+              </div>
+            </a-tab-pane>
+          </NcTabs>
         </div>
       </div>
 
@@ -852,5 +905,32 @@ span:has(> .nc-modern-drag-import) {
 }
 :deep(.nc-dense-checkbox-container .ant-form-item-control-input) {
   min-height: unset !important;
+}
+
+.nc-quick-import-tabs {
+  :deep(.ant-tabs-nav) {
+    @apply !pl-0;
+  }
+  :deep(.ant-tabs-tab) {
+    @apply px-2 pt-1 pb-2;
+
+    &.ant-tabs-tab-active {
+      @apply font-medium;
+    }
+  }
+
+  :deep(.ant-tabs-tab + .ant-tabs-tab) {
+    @apply ml-4;
+  }
+
+  .tab-title {
+    @apply text-xs leading-[24px] px-2 rounded hover:bg-gray-100 transition-colors;
+  }
+
+  :deep(.ant-tabs-tab-disabled) {
+    .tab-title {
+      @apply text-nc-content-gray-muted hover:bg-transparent;
+    }
+  }
 }
 </style>

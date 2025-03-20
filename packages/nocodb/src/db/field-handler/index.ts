@@ -308,7 +308,7 @@ export class FieldHandler implements IFieldHandler {
     handler: <T>(filter: Filter) => Promise<void | T>,
   ) {
     return Promise.all(
-      filters.map(async (filter) => {
+      (filters ?? []).map(async (filter) => {
         if (filter.is_group) {
           return this.traverseFilters(filter.children, handler);
         } else {

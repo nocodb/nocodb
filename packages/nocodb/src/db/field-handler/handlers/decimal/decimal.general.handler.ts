@@ -17,6 +17,10 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
       'gte',
       'lte',
       'in',
+      'empty',
+      'notempty',
+      'null',
+      'notnull',
     ];
     if (!supportedOperations.includes(filter.comparison_op)) {
       return {

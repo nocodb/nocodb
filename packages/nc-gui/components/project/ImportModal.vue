@@ -35,6 +35,7 @@ async function openAirtableImportDialog(baseId?: string, sourceId?: string) {
     'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
     'transition': 'dissolve',
+    'showBackBtn': true,
     'onBack': () => {
       visible.value = true
     },
@@ -63,6 +64,7 @@ async function openNocoDbImportDialog(baseId?: string) {
     'baseId': baseId,
     'onUpdate:modelValue': closeDialog,
     'transition': 'dissolve',
+    'showBackBtn': true,
     'onBack': () => {
       visible.value = true
     },
@@ -93,6 +95,7 @@ async function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
     'sourceId': source.value.id,
     'onUpdate:modelValue': closeDialog,
     'transition': 'dissolve',
+    'showBackBtn': true,
     'onBack': () => {
       visible.value = true
     },

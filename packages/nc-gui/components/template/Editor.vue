@@ -710,6 +710,10 @@ async function importTemplate() {
           ),
         )
       }
+
+      // Successfully imported table
+      message.success(t(`msg.success.${data.tables.length > 1 ? 'tableImportedPlural' : 'tableImported'}`))
+
       // reload table list
       await loadProjectTables(base.value.id, true)
 

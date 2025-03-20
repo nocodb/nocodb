@@ -2064,6 +2064,8 @@
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
       "userDetailsUpdated": "Successfully updated the user details",
       "tableDataImported": "Successfully imported table data",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook details updated successfully",
       "webhookDeleted": "Hook deleted successfully",
       "webhookTested": "Webhook tested successfully",

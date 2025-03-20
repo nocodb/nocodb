@@ -45,7 +45,7 @@ export class MailService extends MailServiceCE {
 
               await mailerAdapter.mailSend({
                 to: mentionedUser.email,
-                subject: `You have been mentioned`,
+                subject: 'You have been mentioned',
                 html: await this.renderMail('Mention', {
                   name: extractDisplayNameFromEmail(
                     user.email,
@@ -92,7 +92,7 @@ export class MailService extends MailServiceCE {
 
             await mailerAdapter.mailSend({
               to: mentionedUser.email,
-              subject: `You have been mentioned`,
+              subject: 'You have been mentioned',
               html: await this.renderMail('MentionRow', {
                 name: extractDisplayNameFromEmail(
                   user.email,
@@ -121,7 +121,7 @@ export class MailService extends MailServiceCE {
 
           await mailerAdapter.mailSend({
             to: user.email,
-            subject: `You’ve been invited to a Workspace`,
+            subject: 'You’ve been invited to a Workspace',
             html: await this.renderMail('WorkspaceInvite', {
               workspaceTitle: workspace.title,
               name: extractDisplayNameFromEmail(
@@ -146,7 +146,7 @@ export class MailService extends MailServiceCE {
 
           await mailerAdapter.mailSend({
             to: user.email,
-            subject: `Your Workspace role has been updated`,
+            subject: 'Your Workspace role has been updated',
             html: await this.renderMail('WorkspaceRoleUpdate', {
               workspaceTitle: workspace.title,
               newRole: RoleLabels[newRole],

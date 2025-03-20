@@ -21,6 +21,7 @@ const result = computed(() =>
 
 const urls = computed(() => replaceUrlsWithLink(result.value))
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const isNumber = computed(() => (column.value.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC)
 
@@ -35,8 +36,8 @@ const isStringDataType = computed(() => {
   )
 })
 
-const openLongText = (event) => {
-  if (!isStringDataType.value || !active.value) return
+const openLongText = (event: MouseEvent) => {
+  if (!isStringDataType.value) return
 
   const target = event.target as HTMLElement
   if (target.tagName === 'A') {
@@ -60,8 +61,6 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
   })
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
-
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
@@ -92,7 +91,19 @@ const renderAsCell = computed(() => {
     </a-tooltip>
 
     <div v-else class="nc-cell-field group py-1" @dblclick="activateShowEditNonEditableFieldWarning">
-      <div v-if="urls" @click="openLongText" v-html="urls" />
+      <div
+        v-if="urls"
+        :style="{
+          'display': '-webkit-box',
+          'max-width': '100%',
+          '-webkit-line-clamp': rowHeight || 1,
+          '-webkit-box-orient': 'vertical',
+          'overflow': 'hidden',
+          'word-break': 'break-all',
+        }"
+        @click="openLongText"
+        v-html="urls"
+      />
 
       <LazyCellClampedText v-else :value="result" :lines="rowHeight" />
 

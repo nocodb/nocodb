@@ -1295,6 +1295,7 @@ export function renderFormulaURL(
   } else if (height) {
     maxLines = Math.min(Math.floor(height / lineHeight), rowHeightTruncateLines(height)) // Calculate max lines
   }
+  const ellipsisWidth = ctx.measureText('...').width
 
   const urlRects: { x: number; y: number; width: number; height: number; url?: string }[] = []
 
@@ -1369,7 +1370,12 @@ export function renderFormulaURL(
     }
   }
 
-  function truncateText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, ellipsis: boolean): string {
+  function truncateText(
+    ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+    text: string,
+    maxWidth: number,
+    ellipsis: boolean,
+  ): string {
     let truncated = text
     if (ctx.measureText(text).width > maxWidth) {
       truncated = text.substring(0, Math.floor(text.length * (maxWidth / ctx.measureText(text).width)))
@@ -1386,9 +1392,16 @@ export function renderFormulaURL(
     const lineY = currentY + currentLine * lineHeight + lineHeight * 0.8
     const availableWidth = maxWidth - (currentX - x)
 
-    if (ctx.measureText(text).width > availableWidth) {
-      finalText = truncateText(ctx, text, availableWidth, addEllipsis)
-    } else if (addEllipsis) {
+    const textWidth = ctx.measureText(text).width
+
+    if (textWidth > availableWidth) {
+      if (addEllipsis && availableWidth >= ellipsisWidth) {
+        const adjustedMaxWidth = availableWidth - ellipsisWidth // Reserve space for ellipsis
+        finalText = `${truncateText(ctx, text, adjustedMaxWidth, false)}...`
+      } else {
+        finalText = truncateText(ctx, text, availableWidth, false) // No ellipsis
+      }
+    } else if (addEllipsis && textWidth + ellipsisWidth <= availableWidth) {
       finalText += '...'
     }
 

@@ -2487,12 +2487,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           );
 
           const updatedRecordsMap = new Map(
-            updatedRecords.map((record) => [
-              getCompositePkValue(this.model.primaryKeys, record),
-              record,
-            ]),
+            updatedRecords.map((record) => {
+              const compositePk = getCompositePkValue(
+                this.model.primaryKeys,
+                record,
+              );
+              return [
+                typeof compositePk === 'string'
+                  ? compositePk
+                  : compositePk.toString(),
+                record,
+              ];
+            }),
           );
-
           for (const pk of pksChunk) {
             if (updatedRecordsMap.has(pk)) {
               newData.push(updatedRecordsMap.get(pk));
@@ -2514,7 +2521,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
         }
       }
-
       return newData;
     } catch (e) {
       throw e;

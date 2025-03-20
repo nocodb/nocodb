@@ -194,7 +194,7 @@ const importPayload = computedAsync(async () => {
     }
   }
   return savedPayloads.value[0]
-})
+}, {})
 
 const updateHistory = async () => {
   // update last used

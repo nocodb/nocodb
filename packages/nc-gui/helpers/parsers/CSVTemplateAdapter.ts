@@ -10,6 +10,7 @@ import {
   isMultiLineTextType,
   isUrlType,
 } from './parserHelpers'
+import type { ProgressMessageType } from './TemplateGenerator'
 
 export default class CSVTemplateAdapter {
   config: Record<string, any>
@@ -25,13 +26,14 @@ export default class CSVTemplateAdapter {
   data: Record<string, any> = {}
   columnValues: Record<number, []>
   existingColumns?: ColumnType[]
+  tableNames: string[]
 
-  private progressCallback?: (msg: string) => void
+  private progressCallback?: (msg: ProgressMessageType) => void
 
   constructor(
     source: UploadFile[] | string,
     parserConfig = {},
-    progressCallback?: (msg: string) => void,
+    progressCallback?: (msg: ProgressMessageType) => void,
     existingColumns?: ColumnType[],
   ) {
     this.config = parserConfig
@@ -44,6 +46,7 @@ export default class CSVTemplateAdapter {
     this.headers = {}
     this.columnValues = {}
     this.tables = {}
+    this.tableNames = []
     this.progressCallback = progressCallback
     this.existingColumns = existingColumns
   }
@@ -219,12 +222,16 @@ export default class CSVTemplateAdapter {
     }
   }
 
-  async _parseTableData(tableIdx: number, source: (UploadFile & { encoding?: string }) | string, tn: string) {
+  async _parseTableData(tableIdx: number, source: (UploadFile & { encoding?: string }) | string, tn: string, oldTn: string) {
     return new Promise((resolve, reject) => {
       const that = this
       let steppers = 0
       if (that.config.shouldImportData) {
-        that.progress(`Processing ${tn} data`)
+        that.progress(`Processing ${oldTn} data`)
+        that.progress({
+          title: oldTn,
+          value: 'Processing...',
+        })
 
         steppers = 0
         const parseSource = (this.config.importFromURL ? (source as string) : (source as UploadFile).originFileObj)!
@@ -253,11 +260,19 @@ export default class CSVTemplateAdapter {
             }
 
             if (steppers % 1000 === 0) {
-              that.progress(`Processed ${steppers} rows of ${tn}`)
+              that.progress(`Processed ${steppers} rows of ${oldTn}`)
+              that.progress({
+                title: oldTn,
+                value: `Processed ${steppers} rows`,
+              })
             }
           },
           complete() {
-            that.progress(`Processed ${tn} data`)
+            that.progress(`Processed ${oldTn} data`)
+            that.progress({
+              title: oldTn,
+              value: `Processed`,
+            })
             resolve(true)
           },
           error(e: Error) {
@@ -274,9 +289,26 @@ export default class CSVTemplateAdapter {
     return new Promise((resolve, reject) => {
       const that = this
       let steppers = 0
-      const tn = ((this.config.importFromURL ? (source as string).split('/').pop() : (source as UploadFile).name) as string)
+
+      const oldTn = this.config.importFromURL
+        ? (source as string).split('/').pop() ?? ''
+        : ((source as UploadFile).name as string)
+
+      let tn = ((this.config.importFromURL ? (source as string).split('/').pop() : (source as UploadFile).name) as string)
         .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
         .trim()!
+
+      if (this.tableNames.includes(tn)) {
+        tn = generateUniqueTitle(
+          tn,
+          this.tableNames.map((t) => ({ title: t })),
+          'title',
+          '_',
+        )
+      }
+
+      this.tableNames.push(tn)
+
       this.data[tn] = []
       const parseSource = (this.config.importFromURL ? (source as string) : (source as UploadFile).originFileObj)!
       parse(parseSource, {
@@ -312,8 +344,11 @@ export default class CSVTemplateAdapter {
         async complete() {
           that.updateTemplate(tableIdx)
           that.base.tables.push(that.tables[tableIdx])
-          that.progress(`Processed ${tn} metadata`)
-          await that._parseTableData(tableIdx, source, tn)
+
+          that.progress(`Processed ${oldTn} metadata`)
+          that.progress({ title: oldTn, value: 'Processed metadata' })
+
+          await that._parseTableData(tableIdx, source, tn, oldTn)
           resolve(true)
         },
         error(e: Error) {
@@ -331,6 +366,8 @@ export default class CSVTemplateAdapter {
         (this.source as UploadFile[]).map((file: UploadFile, tableIdx: number) =>
           (async (f, idx) => {
             this.progress(`Parsing ${f.name}`)
+            this.progress({ title: f.name, value: `Parsing...` })
+
             await this._parseTableMeta(idx, f)
           })(file, tableIdx),
         ),
@@ -350,7 +387,7 @@ export default class CSVTemplateAdapter {
     return this.base
   }
 
-  progress(msg: string) {
+  progress(msg: ProgressMessageType) {
     this.progressCallback?.(msg)
   }
 }

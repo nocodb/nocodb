@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV फाइल",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON फाइल",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "फारम खाली गर्नुहोस्",
     "addFieldFromFormView": "फिल्ड थप्नुहोस्",
     "selectAllFields": "सबै क्षेत्रहरू चयन गर्नुहोस्",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "पूर्व-भरिएका विकल्पहरू सक्षम गर्नुहोस्",
       "default": "पूर्वनिर्धारित",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "आइकनहरू खोज्नुहोस्",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "तपाईंको परिवर्तनहरूसँग सम्बद्ध मुद्दाहरू छन् जसलाई पहिले समाधान गर्नु पर्छ। कृपया डेटा फोल्डर पुनःबनाउनुहोस् र फेरि प्रयास गर्नुहोस्।",
         "moveEditedField": "तपाईंले सम्पादन भइरहेको फिल्डलाई सार्न सक्नुहुन्न। पहिले सुरक्षित गर्नुहोस् वा परिवर्तनहरू त्याग्नुहोस्",
         "moveDeletedField": "तपाईं मेटिएको फिल्डलाई सार्न सक्नुहुन्न। पहिले सुरक्षित गर्नुहोस् वा परिवर्तनहरू त्याग्नुहोस्"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "आधार मेटाडेटा सफलतापूर्वक निर्यात गरिएको छ",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "एम्बेड गर्न सकिने HTML कोड कपि गरियो!",
       "userDetailsUpdated": "प्रयोगकर्ता विवरणहरू सफलतापूर्वक अपडेट गरियो",
       "tableDataImported": "टेबल डेटा सफलतापूर्वक आयात गरियो",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "वेबहुक विवरणहरू सफलतापूर्वक अपडेट गरियो",
       "webhookDeleted": "हेक सफलतापूर्वक हटाइयो",
       "webhookTested": "वेबहुक सफलतापूर्वक परीक्षण गरियो",

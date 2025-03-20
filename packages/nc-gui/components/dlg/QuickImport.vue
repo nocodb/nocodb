@@ -345,8 +345,10 @@ function populateUniqueTableName(tn: string, draftTn: string[] = []) {
 }
 
 function getAdapter(val: any) {
+  const isPreImportFileMode = isPreImportFileFilled.value && activeTab.value === ImportTypeTabs.upload
+
   if (isImportTypeCsv.value) {
-    if (isPreImportFileFilled.value) {
+    if (isPreImportFileMode) {
       return new CSVTemplateAdapter(
         val,
         {
@@ -368,13 +370,13 @@ function getAdapter(val: any) {
       )
     }
   } else if (IsImportTypeExcel.value) {
-    if (isPreImportFileFilled.value) {
+    if (isPreImportFileMode) {
       return new ExcelTemplateAdapter(val, importState.parserConfig, undefined, undefined, unref(existingColumns))
     } else {
       return new ExcelUrlTemplateAdapter(val, importState.parserConfig, $api, undefined, undefined, unref(existingColumns))
     }
   } else if (isImportTypeJson.value) {
-    if (isPreImportFileFilled.value) {
+    if (isPreImportFileMode) {
       return new JSONTemplateAdapter(val, importState.parserConfig)
     } else {
       return new JSONTemplateAdapter(val, importState.parserConfig)
@@ -422,7 +424,10 @@ function extractImportWorkerPayload(value: UploadFile[] | ArrayBuffer | string) 
   importType = importType! ?? ImportType.CSV
 
   let importSource: ImportSource
-  if (isPreImportFileFilled.value) {
+
+  const isPreImportFileMode = isPreImportFileFilled.value && activeTab.value === ImportTypeTabs.upload
+
+  if (isPreImportFileMode) {
     importSource = ImportSource.FILE
   } else if (isPreImportUrlFilled.value && importType !== ImportType.JSON) {
     importSource = ImportSource.URL
@@ -542,7 +547,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
     templateEditorModal.value = true
   } catch (e: any) {
     console.log(e)
-    message.error(await extractSdkResponseErrorMsg(e))
+    message.error((await extractSdkResponseErrorMsg(e)) || e?.toString())
   }
 }
 
@@ -691,13 +696,16 @@ watch(
                       <div class="bg-gray-100 h-10 w-10 flex flex-none items-center justify-center rounded-lg">
                         <GeneralIcon :icon="importMeta.icon" class="w-6 h-6 flex-none" />
                       </div>
-                      <div class="flex flex-col flex-grow min-w-[0px]">
-                        <NcTooltip show-on-truncate-only class="truncate text-sm text-gray-900 font-weight-500">
-                          <template #title>
+                      <div class="flex flex-col flex-grow min-w-[0px] w-[calc(100%_-_233px)]">
+                        <div class="flex-none">
+                          <NcTooltip show-on-truncate-only class="truncate text-sm text-nc-content-gray font-weight-500">
+                            <template #title>
+                              {{ file.name }}
+                            </template>
+
                             {{ file.name }}
-                          </template>
-                          {{ file.name }}
-                        </NcTooltip>
+                          </NcTooltip>
+                        </div>
 
                         <div class="text-small text-nc-content-gray-muted font-weight-500">
                           {{ getReadableFileSize(file.size) }}
@@ -778,7 +786,6 @@ watch(
                   class="nc-import-monaco-editor h-30 !border-1 !rounded-lg !mt-2"
                   :auto-focus="false"
                   hide-minimap
-                  :read-only="isPreImportFileFilled"
                   :monaco-config="{
                     lineNumbers: 'on',
                   }"

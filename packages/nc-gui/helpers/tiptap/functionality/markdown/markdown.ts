@@ -32,7 +32,7 @@ const strikeThroughRegex = /(?<!~)~(?!~)(.*?)(?<!~)~(?!~)/g // Matches strikethr
 export class NcMarkdownParser {
   private static instance: NcMarkdownParser | null = null
   private md: MarkdownIt
-  private openLinkOnClick: boolean = true
+  private openLinkOnClick = true
   private maxBlockTokens?: number
 
   private constructor({
@@ -120,11 +120,7 @@ export class NcMarkdownParser {
    * @param content - The markdown content to parse.
    * @param options - Optional options to initialize the parser instance dynamically.
    */
-  public static parse<T extends string>(
-    content: T,
-    options: NcMarkdownParserConstructorType = {},
-    useSingleton: boolean = false,
-  ): string {
+  public static parse<T extends string>(content: T, options: NcMarkdownParserConstructorType = {}, useSingleton = false): string {
     if (!ncIsString(content)) return content
 
     let parser: NcMarkdownParser

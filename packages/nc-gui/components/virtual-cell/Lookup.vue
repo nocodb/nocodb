@@ -6,8 +6,6 @@ const { metas, getMeta } = useMetas()
 
 const column = inject(ColumnInj, ref())
 
-const meta = inject(MetaInj, ref())
-
 const cellValue = inject(CellValueInj, ref())
 
 const isGroupByLabel = inject(IsGroupByLabelInj, ref(false))

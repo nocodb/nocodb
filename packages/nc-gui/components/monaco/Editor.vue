@@ -92,6 +92,8 @@ const vModel = computed<string>({
 
 const isValid = ref(true)
 
+const error = ref('')
+
 const root = ref<HTMLDivElement>()
 
 let editor: MonacoEditor.IStandaloneCodeEditor
@@ -108,6 +110,7 @@ const format = (space = monacoConfig.tabSize || 2) => {
 defineExpose({
   format,
   isValid,
+  error,
 })
 
 onMounted(async () => {
@@ -157,6 +160,7 @@ onMounted(async () => {
     editor.onDidChangeModelContent(async () => {
       try {
         isValid.value = true
+        error.value = ''
 
         if (disableDeepCompare || lang !== 'json') {
           vModel.value = editor.getValue()
@@ -167,7 +171,9 @@ onMounted(async () => {
         }
       } catch (e) {
         isValid.value = false
-        console.log(e)
+        const err = await extractSdkResponseErrorMsg(e)
+        error.value = err
+        console.log(err)
       }
     })
 

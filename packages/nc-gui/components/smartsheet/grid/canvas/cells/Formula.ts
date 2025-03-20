@@ -5,8 +5,9 @@ import {
   renderFormulaURL,
   renderIconButton,
   renderSingleLineText,
-} from '../utils/canvas';
+} from '../utils/canvas'
 import { showFieldEditWarning } from '../utils/cell'
+import { getI18n } from '../../../../../plugins/a.i18n'
 import { CheckboxCellRenderer } from './Checkbox'
 import { CurrencyRenderer } from './Currency'
 import { DateCellRenderer } from './Date'
@@ -20,8 +21,6 @@ import { SingleLineTextCellRenderer } from './SingleLineText'
 import { TimeCellRenderer } from './Time'
 import { UrlCellRenderer } from './Url'
 import { FloatCellRenderer } from './Number'
-import { LongTextCellRenderer } from './LongText'
-import { getI18n } from '../../../../../plugins/a.i18n';
 
 function getDisplayValueCellRenderer(column: ColumnType) {
   const colMeta = parseProp(column.meta)
@@ -107,7 +106,6 @@ export const FormulaCellRenderer: CellRenderer = {
       const maxWidth = width - padding * 2
       // If the field uses URL formula render it as a clickable link
       if (typeof urls === 'string') {
-        const texts = getFormulaTextSegments(urls)
         ctx.font = `${pv ? 600 : 500} 13px Manrope`
         ctx.fillStyle = pv ? '#3366FF' : textColor
         const boxes = renderFormulaURL(ctx, {
@@ -166,7 +164,7 @@ export const FormulaCellRenderer: CellRenderer = {
     const error = parseProp(colObj.colOptions)?.error ?? ''
 
     const { x, y, width, height } = getCellPosition(column, props.row.rowMeta.rowIndex!)
-    const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
+
     const baseStore = useBase()
     const { isPg } = baseStore
 
@@ -226,7 +224,7 @@ export const FormulaCellRenderer: CellRenderer = {
       }
       // If double-clicked on the cell, open the detached long text
       if (props.event?.detail === 2) {
-        openDetachedLongText({column: colObj, vModel: value})
+        openDetachedLongText({ column: colObj, vModel: value })
         return true
       }
     }
@@ -239,14 +237,14 @@ export const FormulaCellRenderer: CellRenderer = {
     return false
   },
   handleKeyDown: async (props) => {
-    const { column, value, makeCellEditable, row, openDetachedLongText } = props
+    const { column, value, openDetachedLongText } = props
 
     const colObj = column.columnObj
 
     // Todo: show inline warning
     if (props.e.key === 'Enter' || (props.e.key === ' ' && props.e.shiftKey)) {
       if (!isDrawerOrModalExist() && colObj?.colOptions?.parsed_tree?.dataType === FormulaDataTypes.STRING) {
-        openDetachedLongText({column: colObj, vModel: value})
+        openDetachedLongText({ column: colObj, vModel: value })
         return
       }
 
@@ -256,7 +254,7 @@ export const FormulaCellRenderer: CellRenderer = {
     }
   },
   async handleHover(props) {
-    const { mousePosition, getCellPosition, column, row, value } = props
+    const { mousePosition, getCellPosition, column, row } = props
     const colObj = column.columnObj
     const colMeta = parseProp(colObj.meta)
     const error = parseProp(colObj.colOptions)?.error ?? ''
@@ -276,14 +274,17 @@ export const FormulaCellRenderer: CellRenderer = {
         },
       })
     }
-    const { x, y, width} = getCellPosition(column, row.rowMeta.rowIndex!)
+    const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
     tryShowTooltip({
       rect: {
-        x: x + width - 28, y: y + 7, width: 18, height: 18
+        x: x + width - 28,
+        y: y + 7,
+        width: 18,
+        height: 18,
       },
       mousePosition,
-      text: getI18n().global.t('tooltip.expandShiftSpace')
+      text: getI18n().global.t('tooltip.expandShiftSpace'),
     })
 
     tryShowTooltip({ rect: { x: x + 10, y, height: 25, width: 45 }, mousePosition, text: error })

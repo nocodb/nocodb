@@ -12,8 +12,6 @@ const source = toRef(props, 'source')
 
 const visible = useVModel(props, 'visible', emits)
 
-const transitionName = ref<string | undefined>(undefined)
-
 const { $e } = useNuxtApp()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
@@ -24,7 +22,6 @@ async function openAirtableImportDialog(baseId?: string, sourceId?: string) {
   $e('a:actions:import-airtable')
 
   const isOpen = ref(true)
-  transitionName.value = 'dissolve'
 
   await nextTick()
   visible.value = false
@@ -34,7 +31,7 @@ async function openAirtableImportDialog(baseId?: string, sourceId?: string) {
     'baseId': baseId,
     'sourceId': sourceId,
     'onUpdate:modelValue': closeDialog,
-    'transition': 'dissolve',
+    'showBackBtn': true,
     'onBack': () => {
       visible.value = true
     },
@@ -53,7 +50,6 @@ async function openNocoDbImportDialog(baseId?: string) {
   // $e('a:actions:import-nocodb')
 
   const isOpen = ref(true)
-  transitionName.value = 'dissolve'
 
   await nextTick()
   visible.value = false
@@ -62,7 +58,7 @@ async function openNocoDbImportDialog(baseId?: string) {
     'modelValue': isOpen,
     'baseId': baseId,
     'onUpdate:modelValue': closeDialog,
-    'transition': 'dissolve',
+    'showBackBtn': true,
     'onBack': () => {
       visible.value = true
     },
@@ -81,7 +77,6 @@ async function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
   $e(`a:actions:import-${type}`)
 
   const isOpen = ref(true)
-  transitionName.value = 'dissolve'
 
   await nextTick()
   visible.value = false
@@ -92,7 +87,7 @@ async function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
     'baseId': source.value.base_id,
     'sourceId': source.value.id,
     'onUpdate:modelValue': closeDialog,
-    'transition': 'dissolve',
+    'showBackBtn': true,
     'onBack': () => {
       visible.value = true
     },
@@ -117,7 +112,7 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json' | 'nocodb') => {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="visible" width="448px" class="!top-[25vh]" :transition-name="transitionName">
+  <GeneralModal v-model:visible="visible" width="448px" class="!top-[25vh]">
     <div class="flex flex-col px-6 pt-6 pb-9">
       <div class="flex items-center gap-3 mb-6">
         <div class="text-base font-weight-700">{{ $t('labels.importDataFrom') }}</div>
@@ -125,27 +120,27 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json' | 'nocodb') => {
       <NcMenu class="border-1 divide-y-1 nc-import-items-menu overflow-clip">
         <NcMenuItem @click="onClick('airtable')">
           <GeneralIcon icon="importAirtable" class="w-5 h-5" />
-          <span class="ml-1 text-[13px] font-weight-700"> Airtable </span>
+          <span class="ml-1 text-[13px] font-weight-700"> {{ $t('labels.airtable') }} </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
         <NcMenuItem @click="onClick('csv')">
           <GeneralIcon icon="importCsv" class="w-5 h-5" />
-          <span class="ml-1 text-[13px] font-weight-700"> CSV </span>
+          <span class="ml-1 text-[13px] font-weight-700"> {{ $t('labels.csv') }} </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
         <NcMenuItem @click="onClick('json')">
           <GeneralIcon icon="importJson" class="w-5 h-5" />
-          <span class="ml-1 text-[13px] font-weight-700"> Json </span>
+          <span class="ml-1 text-[13px] font-weight-700"> {{ $t('labels.jsonCapitalized') }} </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
         <NcMenuItem @click="onClick('excel')">
           <GeneralIcon icon="importExcel" class="w-5 h-5" />
-          <span class="ml-1 text-[13px] font-weight-700"> Excel </span>
+          <span class="ml-1 text-[13px] font-weight-700"> {{ $t('labels.excel') }} </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
         <NcMenuItem v-if="isFeatureEnabled(FEATURE_FLAG.IMPORT_FROM_NOCODB)" @click="onClick('nocodb')">
           <GeneralIcon icon="nocodb" class="w-5 h-5" />
-          <span class="ml-1 text-[13px] font-weight-700"> NocoDB </span>
+          <span class="ml-1 text-[13px] font-weight-700"> {{ $t('objects.syncData.nocodb') }} </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
         <!-- <NcMenuItem disabled>

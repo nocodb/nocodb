@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { FormulaDataTypes, UITypes, handleTZ } from 'nocodb-sdk'
+import { FormulaDataTypes, handleTZ } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { useDetachedLongText } from '../smartsheet/grid/canvas/composables/useDetachedLongText';
+import { useDetachedLongText } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
 
 provide(IsUnderFormulaInj, ref(true))
 
@@ -21,6 +21,7 @@ const result = computed(() =>
 
 const urls = computed(() => replaceUrlsWithLink(result.value))
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const isNumber = computed(() => (column.value.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC)
 
@@ -35,23 +36,12 @@ const isStringDataType = computed(() => {
   )
 })
 
+const openLongText = (event: MouseEvent) => {
+  if (!isStringDataType.value) return
 
-const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
-  useShowNotEditableWarning({
-    onEnter: e => {
-      if (isStringDataType.value) {
-        openLongText(e)
-      }
-    }
-  })
-
-
-const openLongText= (event) => {
-  if (!isStringDataType.value || !active.value) return
-
-  const target = event.target as HTMLElement;
+  const target = event.target as HTMLElement
   if (target.tagName === 'A') {
-    event.stopPropagation();
+    event.stopPropagation()
     return
   }
 
@@ -61,9 +51,16 @@ const openLongText= (event) => {
   })
 }
 
-const rowHeight = inject(RowHeightInj, ref(undefined))
+const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
+  useShowNotEditableWarning({
+    onEnter: (e) => {
+      if (isStringDataType.value) {
+        openLongText(e)
+      }
+    },
+  })
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const isGrid = inject(IsGridInj, ref(false))
 
@@ -78,9 +75,8 @@ const updatedColumn = computed(() => {
 })
 
 const renderAsCell = computed(() => {
-  return !!(column.value.meta?.display_type)
+  return !!column.value.meta?.display_type
 })
-
 </script>
 
 <template>
@@ -95,7 +91,19 @@ const renderAsCell = computed(() => {
     </a-tooltip>
 
     <div v-else class="nc-cell-field group py-1" @dblclick="activateShowEditNonEditableFieldWarning">
-      <div v-if="urls" v-html="urls" @click="openLongText" />
+      <div
+        v-if="urls"
+        :style="{
+          'display': '-webkit-box',
+          'max-width': '100%',
+          '-webkit-line-clamp': rowHeight || 1,
+          '-webkit-box-orient': 'vertical',
+          'overflow': 'hidden',
+          'word-break': 'break-all',
+        }"
+        @click="openLongText"
+        v-html="urls"
+      />
 
       <LazyCellClampedText v-else :value="result" :lines="rowHeight" />
 
@@ -106,7 +114,11 @@ const renderAsCell = computed(() => {
         {{ $t('msg.info.computedFieldDeleteWarning') }}
       </div>
 
-      <NcTooltip v-if="isStringDataType" placement="bottom" class="nc-action-icon hidden group-hover:block absolute right-4 top-1">
+      <NcTooltip
+        v-if="isStringDataType"
+        placement="bottom"
+        class="nc-action-icon hidden group-hover:block absolute right-4 top-1"
+      >
         <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
         <NcButton
           type="secondary"
@@ -118,6 +130,5 @@ const renderAsCell = computed(() => {
         </NcButton>
       </NcTooltip>
     </div>
-
   </div>
 </template>

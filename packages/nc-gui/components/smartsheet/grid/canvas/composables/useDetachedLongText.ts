@@ -28,7 +28,7 @@ export function useDetachedLongText() {
   const open = (props: UseDetachedLongTextProps) => {
     states.value.push({
       isOpen: true,
-      ...props
+      ...props,
     })
     index.value = states.value.length - 1
   }

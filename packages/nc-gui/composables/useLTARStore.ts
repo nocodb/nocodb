@@ -457,11 +457,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       }
     }
 
-    const loadChildrenList = async (
-      resetOffset: boolean = false,
-      activeState: any = undefined,
-      limit: number | undefined = undefined,
-    ) => {
+    const loadChildrenList = async (resetOffset = false, activeState: any = undefined, limit: number | undefined = undefined) => {
       if (activeState) newRowState.state = activeState
 
       try {

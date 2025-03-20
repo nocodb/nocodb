@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "קובץ CSV",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "קובץ JSON",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "לחץ כדי לפתור",
@@ -1425,6 +1428,7 @@
     "clearForm": "נקה את הטופס",
     "addFieldFromFormView": "הוסף שדה",
     "selectAllFields": "בחר את כל השדות",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "הפעל מילוי מראש",
       "default": "ברירת מחדל",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "הנתונים המקוריים הם לקריאה בלבד",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "חפש אייקונים",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "אין אפשרות לשנות את נראות השדה שמנוהל כעת. אנא שמור או בטל את השינויים תחילה.",
         "moveEditedField": "אין אפשרות להעביר את השדה שמנוהל כעת. אנא שמור או בטל את השינויים תחילה.",
         "moveDeletedField": "אין אפשרות להעביר את השדה שנמחק. אנא שמור או בטל את השינויים תחילה."
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "הזמנה נשלחה בהצלחה",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "עדכון נראות השדה נכשלה",
       "unsupportedCharacter": "תו לא נתמך: {char}",
       "unsupportedCharacters": "תווים לא נתמכים: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "פרויקט Metadata מיוצא בהצלחה",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "קוד HTML המשובץ הועתק!",
       "userDetailsUpdated": "עדכון פרטי המשתמש בוצע בהצלחה",
       "tableDataImported": "נתוני הטבלה יובאו בהצלחה",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "פרטי ה-Webhook עודכנו בהצלחה",
       "webhookDeleted": "ה-Hook נמחק בהצלחה",
       "webhookTested": "ה-Webhook נבדק בהצלחה",

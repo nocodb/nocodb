@@ -45,6 +45,10 @@ export default class GenericS3 implements IStorageAdapterV2 {
     return key;
   }
 
+  protected patchUploadReturnKey(key: string): string {
+    return key;
+  }
+
   public async test(): Promise<boolean> {
     try {
       const tempFile = generateTempFilePath();
@@ -175,7 +179,7 @@ export default class GenericS3 implements IStorageAdapterV2 {
 
       const data = await upload.done();
 
-      return data.Location;
+      return this.patchUploadReturnKey(data.Location);
     } catch (error) {
       console.error('Error uploading file', error);
       throw error;

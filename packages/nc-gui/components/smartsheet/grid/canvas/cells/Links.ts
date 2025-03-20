@@ -75,4 +75,12 @@ export const LinksCellRenderer: CellRenderer = {
     }
     return false
   },
+  async handleKeyDown({ row, column, e, makeCellEditable }) {
+    if (isExpandCellKey(e)) {
+      makeCellEditable(row.rowMeta.rowIndex!, column)
+      return true
+    }
+
+    return false
+  },
 }

@@ -305,6 +305,10 @@ export function extractCondition(
           value = (value as string)?.split(',');
           sub_op = (value as string[])?.shift();
           value = (value as string[])?.[0];
+          if (sub_op === 'null') {
+            sub_op = undefined;
+            value = null;
+          }
         } else if (op === 'in') {
           value = (value as string).split(',');
         }

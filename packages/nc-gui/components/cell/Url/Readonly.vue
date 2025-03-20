@@ -20,12 +20,13 @@ const trim = (val: string) => val?.trim?.()
 const isValid = computed(() => value && isValidURL(trim(value)))
 
 const url = computed(() => {
-  if (!value || !isValidURL(trim(value))) return ''
+  if (!value) return ''
 
-  /** add url scheme if missing */
-  if (/^https?:\/\//.test(trim(value))) return trim(value)
+  const updatedValue = addMissingUrlSchma(value ?? '')
 
-  return `https://${trim(value)}`
+  if (!isValidURL(updatedValue)) return ''
+
+  return updatedValue
 })
 
 const { cellUrlOptions } = useCellUrlConfig(url)

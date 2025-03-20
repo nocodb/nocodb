@@ -303,13 +303,15 @@
     "extension": "拡張機能",
     "extensions": "拡張機能",
     "enable": "有効にする",
+    "disable": "Disable",
     "poweredBy": "提供元",
     "nocoAI": "Noco AI",
     "you": "あなた",
     "read": "読む",
     "unread": "未読",
     "shared": "共有",
-    "organization": "組織"
+    "organization": "組織",
+    "all": "All"
   },
   "objects": {
     "script": "スクリプト",
@@ -369,7 +371,7 @@
       "orgLevelCreator": "組織レベルのクリエイター",
       "orgLevelViewer": "組織レベルビューワ"
     },
-    "sqlVIew": "SQL ビュー",
+    "sqlView": "SQL ビュー",
     "rowHeight": "レコード高さ",
     "heightClass": {
       "short": "短い",
@@ -511,6 +513,7 @@
     "isNotNull": "がNULLでない"
   },
   "title": {
+    "confirmSnapshotRestore": "Confirm Snapshot Restore",
     "urlFilters": "URL Filters",
     "creatingScript": "スクリプトの作成",
     "searchWebhook": "ウェブフックを検索",
@@ -679,9 +682,24 @@
     "customUrl": "カスタムURL",
     "viewSettingsCantBeChangedWhenViewIs": "ビュー設定はビューが{type}の時には変更できません",
     "youAreLeavingNocoDB": "NocoDBを離れます",
-    "onlyProceedIfYouTrustThisLink": "このリンクを信頼する場合のみ続行してください。"
+    "onlyProceedIfYouTrustThisLink": "このリンクを信頼する場合のみ続行してください。",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
+    "restoringSnapshot": "Restoring Snapshot",
+    "note": "Note:",
+    "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",
+    "snapshotRestoreMessage2": "On restore, a new base will be created in the selected workspace.",
+    "snapshotRestoreConfirmation": "Are you sure you want to restore this base snapshot.",
+    "tryAgain": "Try again",
+    "goToBase": "Go to Base",
+    "errorMessage": "Error message:",
+    "duplicateBaseBaseTitle": "Duplicate Base \"{baseTitle}\"",
+    "duplicateBaseSuccessfull": "Base Duplication Successfull",
+    "duplicateBaseFailed": "Base Duplication Failed",
+    "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
+    "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
+    "currentWorkspace": "Current workspace",
     "latitude": "緯度",
     "longitude": "経度",
     "failed": "失敗",
@@ -888,6 +906,7 @@
     "clickToCopyViewID": "クリックしてView IDをコピー",
     "viewMode": "ビュー モード",
     "reAssignView": "ビューを再割り当て",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "ユーザーを検索",
     "superAdmin": "スーパ管理者",
     "allTables": "すべてのテーブル",
@@ -1076,8 +1095,11 @@
     "apis": "API",
     "apiSnippet": "APIスニペット",
     "includeData": "データを含む",
-    "includeView": "ビューを含む",
-    "includeWebhook": "Webhookを含む",
+    "includeRecords": "Include records",
+    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "includeView": "Include views",
+    "includeWebhook": "Include webhook",
+    "includeComments": "Include comments",
     "zoomInToViewColumns": "列を表示するにはズームインしてください",
     "embedInSite": "このビューをサイトに埋め込む",
     "titleRequired": "タイトルは必須です。",
@@ -1131,7 +1153,9 @@
     "showJsonPayload": "JSONペイロードを表示",
     "autoCreateMissingSelectionOptions": "欠落している選択フィールドオプションを自動作成",
     "fillForm": "フォームを入力",
-    "proceedToLink": "リンクに進む"
+    "proceedToLink": "リンクに進む",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner"
   },
   "activity": {
     "clickToResolve": "クリックして解決",
@@ -1465,7 +1489,10 @@
     "aiIntegrationReConfigure": "AI統合が削除されました。NocoAI機能を使用するには、フィールド編集モーダルから再設定してください",
     "aiIntegrationAddAndReConfigure": "AI統合が削除されました。NocoAI機能を使用するためにフィールド編集モーダルから再追加および再設定してください",
     "generateFieldDataUsingAiButtonOption": "レコード情報とNocoAIを使用して、このテーブルの複数のフィールドに値を生成します",
-    "sourceDataIsReadonly": "ソースデータは読み取り専用です"
+    "sourceDataIsReadonly": "ソースデータは読み取り専用です",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
+    "shiftSpace": "Shift + Space",
+    "expandShiftSpace": "Expand 'Shift + Space'"
   },
   "placeholder": {
     "searchIcons": "アイコンを検索",
@@ -1524,9 +1551,11 @@
     "inviteYourTeam": "チームを招待",
     "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace.",
     "searchOptions": "オプションを検索",
-    "lockViewDescription": "ロックする理由を説明してください。このメッセージは、誰かがこのビューのロックを解除しようとしたときに表示されます（任意）。"
+    "lockViewDescription": "ロックする理由を説明してください。このメッセージは、誰かがこのビューのロックを解除しようとしたときに表示されます（任意）。",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "ここにドキュメントをドロップしてください",
     "airtableImportSuccess": "Airtableベースから正常にインポートしました。",
@@ -1868,7 +1897,8 @@
       "yourCurrentRoleIs": "あなたの現在の役割は",
       "pleaseRequestAccessForView": "この{viewName}にアクセスするには管理者/Baseオーナー/ワークスペースオーナーからより高い権限をリクエストしてください",
       "preventHideAllOptions": "必須フィールドの場合、すべてのオプションを隠すことはできません",
-      "valueMustBeAtMostCharLong": "値は{length}文字以下でなければなりません"
+      "valueMustBeAtMostCharLong": "値は{length}文字以下でなければなりません",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "マニュアルフックは無効にできません",

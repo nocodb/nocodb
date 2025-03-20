@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, isDateOrDateTimeCol } from 'nocodb-sdk'
 import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 
 interface Prop {
@@ -33,6 +33,10 @@ const injectedColumn = inject(ColumnInj, ref())
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
+const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
+
+const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
+
 const filterQueryRef = ref<HTMLInputElement>()
 
 const { isDataReadOnly } = useRoles()
@@ -61,6 +65,8 @@ const {
   attachmentCol,
   fields,
   refreshCurrentRow,
+  rowId,
+  relatedTableDisplayValueColumn,
 } = useLTARStoreOrThrow()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
@@ -150,7 +156,25 @@ const addNewRecord = () => {
   isNewRecord.value = true
 }
 
+reloadViewDataTrigger.on((params) => {
+  if (params?.isFromLinkRecord) {
+    refreshCurrentRow()
+    loadChildrenList()
+  }
+})
+
 const onCreatedRecord = async (record: any) => {
+  reloadTrigger?.trigger({
+    shouldShowLoading: false,
+  })
+
+  reloadViewDataTrigger?.trigger({
+    shouldShowLoading: false,
+    isFromLinkRecord: true,
+    relatedTableMetaId: relatedTableMeta.value.id,
+    rowId: rowId.value!,
+  })
+
   if (!isNewRecord.value) return
 
   if (!isNew.value) {
@@ -333,8 +357,22 @@ const handleKeyDown = (e: KeyboardEvent) => {
   <div class="nc-modal-child-list h-full w-full" :class="{ active: vModel }" @keydown.enter.stop>
     <div class="flex flex-col h-full">
       <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
-        <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-0.5 rounded-md">
+        <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center rounded-md">
+          <!-- Utilize SmartsheetToolbarFilterInput component to filter the records for Date or DateTime column -->
+          <SmartsheetToolbarFilterInput
+            v-if="relatedTableDisplayValueColumn && isDateOrDateTimeCol(relatedTableDisplayValueColumn)"
+            class="nc-filter-value-select rounded-md min-w-34"
+            :column="relatedTableDisplayValueColumn"
+            :filter="{
+              comparison_op: 'eq',
+              comparison_sub_op: 'exactDate',
+              value: childrenListPagination.query,
+            }"
+            @update-filter-value="childrenListPagination.query = $event"
+            @click.stop
+          />
           <a-input
+            v-else
             ref="filterQueryRef"
             v-model:value="childrenListPagination.query"
             :bordered="false"
@@ -498,6 +536,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         :state="newRowState"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         use-meta-fields
+        skip-reload
         maintain-default-view-order
         :new-record-submit-btn-text="!isNewRecord ? undefined : 'Create & Link'"
         @created-record="onCreatedRecord"
@@ -517,6 +556,10 @@ const handleKeyDown = (e: KeyboardEvent) => {
 
 :deep(.ant-skeleton-element .ant-skeleton-image-svg) {
   @apply !w-7;
+}
+
+:deep(.nc-filter-input-wrapper) {
+  height: 28px;
 }
 </style>
 

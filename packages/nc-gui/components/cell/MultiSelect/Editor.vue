@@ -44,7 +44,7 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 const aselect = ref<typeof AntSelect>()
 
 const isOpen = ref(false)
-const canvasSelectCell = inject(CanvasSelectCellInj)
+const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
 const isFocusing = ref(false)
 
@@ -323,7 +323,7 @@ watch(
   },
 )
 
-const canvasCellEventData = inject(CanvasCellEventDataInj)!
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))

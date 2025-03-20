@@ -22,6 +22,7 @@ import type { SuppressedError } from '../../../../../error/suppressed.error'
 import { EDIT_INTERACTABLE } from '../utils/constants'
 
 const CHUNK_SIZE = 50
+const MAX_ROWS = 200
 
 export function useCopyPaste({
   totalRows,
@@ -39,6 +40,7 @@ export function useCopyPaste({
   bulkUpdateRows,
   fetchChunk,
   updateOrSaveRow,
+  getRows,
 }: {
   totalRows: Ref<number>
   activeCell: Ref<{ row: number; column: number }>
@@ -93,6 +95,7 @@ export function useCopyPaste({
     args?: { metaValue?: TableType; viewMetaValue?: ViewType },
     beforeRow?: string,
   ) => Promise<any>
+  getRows: (start: number, end: number) => Promise<Row[]>
 }) {
   const { $api } = useNuxtApp()
   const { isDataReadOnly } = useRoles()
@@ -199,7 +202,13 @@ export function useCopyPaste({
           return message.error(parsedClipboard.errors[0]?.message)
         }
 
-        const clipboardMatrix = parsedClipboard.data as string[][]
+        let clipboardMatrix = parsedClipboard.data as string[][]
+
+        let isTruncated = false
+        if (clipboardMatrix.length > MAX_ROWS) {
+          clipboardMatrix = clipboardMatrix.slice(0, MAX_ROWS)
+          isTruncated = true
+        }
 
         const selectionRowCount = Math.max(clipboardMatrix.length, selection.value.end.row - selection.value.start.row + 1)
 
@@ -277,6 +286,16 @@ export function useCopyPaste({
         } else {
           colsToPaste = fields.value.slice(selection.value.start.col, selection.value.start.col + pasteMatrixCols)
         }
+
+        const startChunkId = Math.floor(selection.value.start.row / CHUNK_SIZE)
+        const endChunkId = Math.floor(selection.value.start.row + availableRowsToUpdate / CHUNK_SIZE)
+
+        const chunksToFetch = new Set<number>()
+        for (let chunkId = startChunkId; chunkId <= endChunkId; chunkId++) {
+          chunksToFetch.add(chunkId)
+        }
+        // Fetch all required chunks
+        await Promise.all([...chunksToFetch].map(fetchChunk))
 
         const dataRef = unref(cachedRows)
 
@@ -369,6 +388,10 @@ export function useCopyPaste({
           scrollToCell?.()
         } else {
           await bulkUpdateRows?.(updatedRows, propsToPaste)
+        }
+
+        if (isTruncated) {
+          message.warning(`Paste operation limited to ${MAX_ROWS} rows. Additional rows were truncated.`)
         }
       } else {
         if (selection.value.isSingleCell()) {
@@ -616,11 +639,8 @@ export function useCopyPaste({
           const startCol = Math.min(start.col, end.col)
           const endCol = Math.max(start.col, end.col)
 
+          const rows = await getRows(startRow, endRow)
           const cols = unref(fields).slice(startCol, endCol + 1)
-          const rows = Array.from(unref(cachedRows) as Map<number, Row>)
-            .filter(([index]) => index >= startRow && index <= endRow)
-            .map(([, row]) => row)
-
           const props = []
 
           let pasteValue
@@ -886,20 +906,7 @@ export function useCopyPaste({
   async function copyValue(ctx?: Cell) {
     try {
       if (selection.value.start !== null && selection.value.end !== null && !selection.value.isSingleCell()) {
-        const startChunkId = Math.floor(selection.value.start.row / CHUNK_SIZE)
-        const endChunkId = Math.floor(selection.value.end.row / CHUNK_SIZE)
-
-        const chunksToFetch = new Set<number>()
-        for (let chunkId = startChunkId; chunkId <= endChunkId; chunkId++) {
-          chunksToFetch.add(chunkId)
-        }
-
-        // Fetch all required chunks
-        await Promise.all([...chunksToFetch].map(fetchChunk))
-
-        const cprows = Array.from(unref(cachedRows).entries())
-          .filter(([index]) => index >= selection.value.start.row && index <= selection.value.end.row)
-          .map(([, row]) => row)
+        const cprows = await getRows(selection.value.start.row, selection.value.end.row)
 
         const cpcols = unref(fields).slice(selection.value.start.col, selection.value.end.col + 1) // slice the selected cols for copy
 

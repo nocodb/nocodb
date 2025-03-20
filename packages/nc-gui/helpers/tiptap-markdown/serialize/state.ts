@@ -13,9 +13,9 @@ interface InlineState {
  * - handle commonmark delimiters (https://spec.commonmark.org/0.29/#left-flanking-delimiter-run)
  */
 export class MarkdownSerializerState extends BaseMarkdownSerializerState {
-  inTable: boolean = false
+  inTable = false
   public inlines: InlineState[] = []
-  public out: string = ''
+  public out = ''
 
   constructor(nodes, marks, options) {
     super(nodes, marks, options ?? {})

@@ -165,7 +165,7 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
       path = `/${workspaceId}${queryParams}`
     }
 
-    navigateTo({
+    return navigateTo({
       path,
     })
   }

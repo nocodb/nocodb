@@ -303,13 +303,15 @@
     "extension": "Extension",
     "extensions": "Extensions",
     "enable": "Activer",
+    "disable": "Disable",
     "poweredBy": "Propulsé par",
     "nocoAI": "Noco AI",
     "you": "Vous",
     "read": "Lu",
     "unread": "Non lu",
     "shared": "Partagé",
-    "organization": "Organisation"
+    "organization": "Organisation",
+    "all": "All"
   },
   "objects": {
     "script": "Script",
@@ -369,7 +371,7 @@
       "orgLevelCreator": "Créateur au niveau de l'organisation",
       "orgLevelViewer": "Visualiseur de niveau d'organisation"
     },
-    "sqlVIew": "Vue SQL",
+    "sqlView": "Vue SQL",
     "rowHeight": "Hauteur des lignes",
     "heightClass": {
       "short": "Court",
@@ -379,7 +381,7 @@
     },
     "externalDb": "Base de données externe",
     "syncData": {
-      "appleNumbers": "Nombres Apple",
+      "appleNumbers": "Apple Numbers",
       "asana": "Asana",
       "box": "Boîte",
       "github": "Github",
@@ -511,7 +513,8 @@
     "isNotNull": "est non null"
   },
   "title": {
-    "urlFilters": "URL Filters",
+    "confirmSnapshotRestore": "Confirm Snapshot Restore",
+    "urlFilters": "Filtres d'URL",
     "creatingScript": "Création du script",
     "searchWebhook": "Rechercher un webhook",
     "webcam": "Webcam",
@@ -678,10 +681,25 @@
     "thisPageDoesNotExist": "Cette page n'existe pas",
     "customUrl": "URL personnalisée",
     "viewSettingsCantBeChangedWhenViewIs": "Les paramètres de la vue ne peuvent pas être modifiés lorsque la vue est {type}",
-    "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "youAreLeavingNocoDB": "Vous quittez NocoDB",
+    "onlyProceedIfYouTrustThisLink": "Continuez seulement si vous faites confiance à ce lien.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
+    "restoringSnapshot": "Restoring Snapshot",
+    "note": "Note:",
+    "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",
+    "snapshotRestoreMessage2": "On restore, a new base will be created in the selected workspace.",
+    "snapshotRestoreConfirmation": "Are you sure you want to restore this base snapshot.",
+    "tryAgain": "Try again",
+    "goToBase": "Go to Base",
+    "errorMessage": "Error message:",
+    "duplicateBaseBaseTitle": "Duplicate Base \"{baseTitle}\"",
+    "duplicateBaseSuccessfull": "Base Duplication Successfull",
+    "duplicateBaseFailed": "Base Duplication Failed",
+    "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
+    "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
+    "currentWorkspace": "Current workspace",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "En erreur",
@@ -888,6 +906,7 @@
     "clickToCopyViewID": "Cliquer pour copier l'ID de la vue",
     "viewMode": "Mode d'affichage",
     "reAssignView": "Réassigner la vue",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "Rechercher des utilisateurs",
     "superAdmin": "Super administrateur",
     "allTables": "Toutes les tables",
@@ -1076,8 +1095,11 @@
     "apis": "APIs",
     "apiSnippet": "Extraits API",
     "includeData": "Inclure les données",
-    "includeView": "Inclure la vue",
-    "includeWebhook": "Inclure le Webhook",
+    "includeRecords": "Include records",
+    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "includeView": "Include views",
+    "includeWebhook": "Include webhook",
+    "includeComments": "Include comments",
     "zoomInToViewColumns": "Zoom avant pour afficher les colonnes",
     "embedInSite": "Intégrer cette vue dans votre site",
     "titleRequired": "le titre est obligatoire.",
@@ -1130,8 +1152,10 @@
     "rowId": "Id de ligne",
     "showJsonPayload": "Afficher la payload du JSON",
     "autoCreateMissingSelectionOptions": "Créer automatiquement les options de champ de sélection manquantes",
-    "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "fillForm": "Remplir le formulaire",
+    "proceedToLink": "Continuez vers le lien",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner"
   },
   "activity": {
     "clickToResolve": "Cliquer pour résoudre",
@@ -1465,7 +1489,10 @@
     "aiIntegrationReConfigure": "L'intégration IA a été supprimée, reconfigurer depuis la fenêtre d'édition du champ pour utiliser les fonctionnalités de NocoAI",
     "aiIntegrationAddAndReConfigure": "L'intégration de l'IA a été supprimée, ajoutez à nouveau et reconfigurez à partir de la fenêtre d'édition de champ pour utiliser les fonctionnalités de NocoAI",
     "generateFieldDataUsingAiButtonOption": "Générer des données pour plusieurs champs dans ce tableau en utilisant les informations de l'enregistrement et NocoAI",
-    "sourceDataIsReadonly": "Les données source sont en lecture seule"
+    "sourceDataIsReadonly": "Les données source sont en lecture seule",
+    "schemaChangeDisabledFormSqlView": "La modification de schéma est désactivée pour cette vue SQL.",
+    "shiftSpace": "Shift + Space",
+    "expandShiftSpace": "Expand 'Shift + Space'"
   },
   "placeholder": {
     "searchIcons": "Rechercher des icônes",
@@ -1524,10 +1551,12 @@
     "inviteYourTeam": "Invitez votre équipe",
     "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace.",
     "searchOptions": "Options de recherche",
-    "lockViewDescription": "Expliquez pourquoi vous verrouillez cette vue. Ce message sera affiché lorsque quelqu'un tentera de déverrouiller cette vue (facultatif)."
+    "lockViewDescription": "Expliquez pourquoi vous verrouillez cette vue. Ce message sera affiché lorsque quelqu'un tentera de déverrouiller cette vue (facultatif).",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
-    "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
+    "urlFilter": "Les filtres d'URL sont appliqués à partir des paramètres d'URL et se combinent avec les filtres de vue définis via la barre d'outils.",
+    "urlFilterError": "Filtre URL invalide. Ignoré car il n'a pas pu être appliqué.",
     "dropYourDocHere": "Déposer votre document ici",
     "airtableImportSuccess": "Base Airtable importée avec succès.",
     "nocoDBImportSuccess": "Import réussi de la base NocoDB.",
@@ -1868,7 +1897,8 @@
       "yourCurrentRoleIs": "Votre rôle actuel est",
       "pleaseRequestAccessForView": "Veuillez demander des droits plus élevés au propriétaire de l’Admin / Base / Espace de travail pour avoir accès à cette {viewName}",
       "preventHideAllOptions": "Vous ne pouvez pas masquer toutes les options si le champ est requis",
-      "valueMustBeAtMostCharLong": "La valeur doit comporter au maximum {length} caractères"
+      "valueMustBeAtMostCharLong": "La valeur doit comporter au maximum {length} caractères",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Les déclencheurs manuels ne peuvent pas être désactivés",

@@ -1,6 +1,9 @@
-import isURL, { type IsURLOptions } from 'validator/lib/isURL'
+import isURL from 'validator/lib/isURL'
 import { decode } from 'html-entities'
+import { isValidURL } from 'nocodb-sdk'
 import { formulaTextSegmentsCache, replaceUrlsWithLinkCache } from '../components/smartsheet/grid/canvas/utils/canvas'
+import { getI18n } from '../plugins/a.i18n'
+export { isValidURL }
 
 const _replaceUrlsWithLink = (text: string): boolean | string => {
   if (!text) {
@@ -73,10 +76,6 @@ export function getFormulaTextSegments(anchorLinkHTML: string) {
   return result
 }
 
-export const isValidURL = (str: string, extraProps?: IsURLOptions) => {
-  return isURL(`${str}`, extraProps)
-}
-
 export const openLink = (path: string, baseURL?: string, target = '_blank') => {
   const url = new URL(path, baseURL)
   window.open(url.href, target, 'noopener,noreferrer')
@@ -90,7 +89,7 @@ export const navigateToBlankTargetOpenOption = {
   },
 }
 
-export const addMissingUrlSchma = (url: string) => {
+export const addMissingUrlSchma = (url?: string) => {
   url = url?.trim?.() ?? ''
 
   if (!url) return ''
@@ -112,12 +111,32 @@ export const isSameOriginUrl = (url: string, addMissingUrlSchema = false) => {
   }
 }
 
+const handleCopyToClipboard = async (text: string) => {
+  const { copy } = useCopy()
+
+  try {
+    await copy(text)
+    // Copied to clipboard
+    message.info(getI18n().global.t('msg.info.copyToClipboardLocalFileUrl'))
+  } catch (e: any) {
+    message.error(e.message)
+  }
+}
+
 export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {
   url = addMissingUrlSchma(url)
 
   if (!url) return
 
   if (!url.startsWith('http')) {
+    /**
+     * Issue: Not allowed to load local resource
+     * To workaround this we can copy url to clipboard and user can manually paste it
+     */
+    if (url.startsWith('file')) {
+      return handleCopyToClipboard(url)
+    }
+
     const link = document.createElement('a')
     link.href = url
     if (target) {

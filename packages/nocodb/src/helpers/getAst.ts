@@ -18,6 +18,7 @@ import type {
 import type { NcContext } from '~/interface/config';
 import {
   CalendarRange,
+  Filter,
   GalleryView,
   GridViewColumn,
   KanbanView,
@@ -48,6 +49,7 @@ const getAst = async (
     extractOnlyRangeFields = false,
     apiVersion = NcApiVersion.V2,
     extractOrderColumn = false,
+    includeSortAndFilterColumns = false,
   }: {
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
@@ -61,6 +63,7 @@ const getAst = async (
     extractOnlyRangeFields?: boolean;
     apiVersion?: NcApiVersion;
     extractOrderColumn?: boolean;
+    includeSortAndFilterColumns?: boolean;
   },
 ): Promise<{
   ast: Ast;
@@ -74,6 +77,8 @@ const getAst = async (
   let coverImageId;
   let dependencyFieldsForCalenderView;
   let kanbanGroupColumnId;
+  let sortColumnIds: string[] = [];
+  let filterColumnIds: string[] = [];
   if (view && view.type === ViewTypes.GALLERY) {
     const gallery = await GalleryView.get(context, view.id);
     coverImageId = gallery.fk_cover_image_col_id;
@@ -92,6 +97,15 @@ const getAst = async (
         )
         .map(String);
     }
+  }
+
+  if (view && includeSortAndFilterColumns) {
+    const sorts = await view.getSorts(context);
+    const filters = await Filter.allViewFilterList(context, {
+      viewId: view.id,
+    });
+    sortColumnIds = sorts.map((s) => s.fk_column_id);
+    filterColumnIds = filters.map((f) => f.fk_column_id);
   }
 
   if (!model.columns?.length) await model.getColumns(context);
@@ -174,6 +188,10 @@ const getAst = async (
         allowedCols[id] = 1;
       });
     }
+    if (includeSortAndFilterColumns) {
+      sortColumnIds.forEach((id) => (allowedCols[id] = 1));
+      filterColumnIds.forEach((id) => (allowedCols[id] = 1));
+    }
   }
 
   const columns = model.columns;
@@ -232,9 +250,15 @@ const getAst = async (
 
     const isForeignKey = col.uidt === UITypes.ForeignKey;
     const isInFields = fields?.length && fields.includes(col.title);
+    const isSortOrFilterColumn =
+      includeSortAndFilterColumns &&
+      (sortColumnIds.includes(col.id) || filterColumnIds.includes(col.id));
 
+    if (isSortOrFilterColumn) {
+      isRequested = true;
+    }
     // exclude system column and foreign key from API response for v3
-    if ((col.system || isForeignKey) && apiVersion === NcApiVersion.V3) {
+    else if ((col.system || isForeignKey) && apiVersion === NcApiVersion.V3) {
       isRequested = false;
     } else if (isCreatedOrLastModifiedByCol(col) && col.system) {
       isRequested = false;
@@ -372,7 +396,7 @@ const extractRelationDependencies = async (
   }
 };
 
-type RequestQuery = {
+export type RequestQuery = {
   [fields in 'f' | 'fields']?: string | string[];
 } & {
   nested?: {

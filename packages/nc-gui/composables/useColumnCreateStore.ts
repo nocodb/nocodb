@@ -9,8 +9,6 @@ const clone = rfdc()
 
 const useForm = Form.useForm
 
-const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
-
 interface ValidationsObj {
   [key: string]: RuleObject[]
 }
@@ -279,6 +277,20 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             message: t('msg.error.uiDataTypeRequired'),
           },
         ],
+        cdf: [
+          {
+            validator: (rule: any, value: any) => {
+              return new Promise<void>((resolve, reject) => {
+                const columnValidationError = getColumnValidationError(formState.value, value)
+                if (columnValidationError) {
+                  return reject(new Error(t(columnValidationError)))
+                }
+
+                resolve()
+              })
+            },
+          },
+        ],
         ...(additionalValidations?.value || {}),
       }
     })
@@ -334,8 +346,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       try {
         if (!(await validate())) return
       } catch (e: any) {
-        const errorMsgs = e.errorFields
-          ?.map((e: any) => e.errors?.join(', '))
+        const errorMsgs = (e.errorFields || [])
+          .filter((f) => f?.name !== 'cdf')
+          .map((e: any) => e.errors?.join(', '))
           .filter(Boolean)
           .join(', ')
 

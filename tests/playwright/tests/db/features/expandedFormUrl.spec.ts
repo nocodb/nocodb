@@ -65,9 +65,6 @@ test.describe('Expanded form URL', () => {
       await dashboard.viewSidebar.createGalleryView({
         title: 'CountryExpand',
       });
-      await viewObj.toolbar.clickFields();
-      await viewObj.toolbar.fields.click({ title: 'Cities' });
-      await viewObj.toolbar.clickFields();
     }
 
     // expand row & verify URL
@@ -98,6 +95,7 @@ test.describe('Expanded form URL', () => {
       column: 'Cities',
       title: 'Kabul',
     });
+
     await dashboard.rootPage.waitForTimeout(1000);
 
     await dashboard.expandedForm.verifyCount({ count: 2 });

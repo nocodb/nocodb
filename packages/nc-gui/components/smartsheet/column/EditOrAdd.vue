@@ -144,8 +144,6 @@ const isVisibleDefaultValueInput = computed({
   },
 })
 
-const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
-
 const onlyNameUpdateOnEditColumns = [
   UITypes.LinkToAnotherRecord,
   UITypes.Lookup,

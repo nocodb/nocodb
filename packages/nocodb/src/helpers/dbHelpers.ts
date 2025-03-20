@@ -1,4 +1,6 @@
 import { type NcContext, RelationTypes } from 'nocodb-sdk';
+import type CustomKnex from 'src/db/CustomKnex';
+import type { Knex } from 'knex';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   type Column,
@@ -7,14 +9,17 @@ import {
   Source,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { isEE, isOnPrem } from '~/utils';
+
+export function concatKnexRaw(knex: CustomKnex, raws: Knex.Raw[]) {
+  return knex.raw(raws.map(() => '?').join(' '), raws);
+}
 
 export function _wherePk(
   primaryKeys: Column[],
   id: unknown | unknown[],
   skipPkValidation = false,
 ) {
-  const where = {};
+  const where:Record<string, unknown> = {};
 
   // if id object is provided use as it is
   if (id && typeof id === 'object' && !Array.isArray(id)) {
@@ -145,16 +150,36 @@ export async function getBaseModelSqlFromModelId({
 // It remains enabled in the following cases:
 // 1. `NC_ENABLE_AUDIT` is set to 'true' (manual override).
 // 2. Running in a test environment (`NODE_ENV === 'test'`).
-// 3. Not an EE Cloud instance using an EE Cloud audit source (`isMeta`).
-export function isDataAuditEnabled({
-  isMetaSource,
-}: {
-  isMetaSource: boolean;
-}) {
+export function isDataAuditEnabled() {
   return (
     process.env.NC_DISABLE_AUDIT !== 'true' &&
-    (process.env.NC_ENABLE_AUDIT === 'true' ||
-      process.env.NODE_ENV === 'test' ||
-      !(isEE && !isOnPrem && isMetaSource)) // Disable only for EE Cloud using EE Cloud audit source
+    (process.env.NC_ENABLE_AUDIT === 'true' || process.env.NODE_ENV === 'test')
   );
+}
+
+export function getRelatedLinksColumn(
+  column: Column<LinkToAnotherRecordColumn>,
+  relatedModel: Model,
+) {
+  return relatedModel.columns.find((c: Column) => {
+    if (column.colOptions?.type === RelationTypes.MANY_TO_MANY) {
+      return (
+        column.colOptions.fk_mm_child_column_id ===
+          c.colOptions?.fk_mm_parent_column_id &&
+        column.colOptions.fk_mm_parent_column_id ===
+          c.colOptions?.fk_mm_child_column_id
+      );
+    } else {
+      return (
+        column.colOptions.fk_child_column_id ===
+          c.colOptions?.fk_child_column_id &&
+        column.colOptions.fk_parent_column_id ===
+          c.colOptions?.fk_parent_column_id
+      );
+    }
+  });
+}
+
+export function extractIdPropIfObjectOrReturn(id: any, prop: string) {
+  return typeof id === 'object' ? id[prop] : id;
 }

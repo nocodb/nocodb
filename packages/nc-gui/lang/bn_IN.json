@@ -303,13 +303,15 @@
     "extension": "এক্সটেনশন",
     "extensions": "এক্সটেনশনসমূহ",
     "enable": "Enable",
+    "disable": "Disable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
     "unread": "Unread",
     "shared": "Shared",
-    "organization": "Organization"
+    "organization": "Organization",
+    "all": "All"
   },
   "objects": {
     "script": "Script",
@@ -369,7 +371,7 @@
       "orgLevelCreator": "সংগঠন স্তর স্রষ্টা",
       "orgLevelViewer": "সংগঠন স্তর দর্শক"
     },
-    "sqlVIew": "SQL ভিউ",
+    "sqlView": "SQL ভিউ",
     "rowHeight": "রেকর্ড উচ্চতা",
     "heightClass": {
       "short": "শর্ট",
@@ -511,6 +513,7 @@
     "isNotNull": "নাল নয়"
   },
   "title": {
+    "confirmSnapshotRestore": "Confirm Snapshot Restore",
     "urlFilters": "URL Filters",
     "creatingScript": "Creating Script",
     "searchWebhook": "ওয়েবহুক অনুসন্ধান",
@@ -679,9 +682,24 @@
     "customUrl": "Custom URL",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
+    "restoringSnapshot": "Restoring Snapshot",
+    "note": "Note:",
+    "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",
+    "snapshotRestoreMessage2": "On restore, a new base will be created in the selected workspace.",
+    "snapshotRestoreConfirmation": "Are you sure you want to restore this base snapshot.",
+    "tryAgain": "Try again",
+    "goToBase": "Go to Base",
+    "errorMessage": "Error message:",
+    "duplicateBaseBaseTitle": "Duplicate Base \"{baseTitle}\"",
+    "duplicateBaseSuccessfull": "Base Duplication Successfull",
+    "duplicateBaseFailed": "Base Duplication Failed",
+    "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
+    "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
+    "currentWorkspace": "Current workspace",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "Failed",
@@ -888,6 +906,7 @@
     "clickToCopyViewID": "Click to copy View ID",
     "viewMode": "দর্শন মোড",
     "reAssignView": "Re-assign view",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "Search Users",
     "superAdmin": "Super Admin",
     "allTables": "All Tables",
@@ -1076,8 +1095,11 @@
     "apis": "এপিআই",
     "apiSnippet": "এপিআই স্নিপেট",
     "includeData": "তথ্য অন্তর্ভুক্ত করুন",
-    "includeView": "দৃশ্য অন্তর্ভুক্ত করুন",
-    "includeWebhook": "ওয়েবহুক অন্তর্ভুক্ত করুন",
+    "includeRecords": "Include records",
+    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "includeView": "Include views",
+    "includeWebhook": "Include webhook",
+    "includeComments": "Include comments",
     "zoomInToViewColumns": "কলাম দেখতে জুম ইন করুন",
     "embedInSite": "আপনার সাইটে এই দৃশ্য এম্বেড করুন",
     "titleRequired": "শিরোনাম প্রয়োজন।",
@@ -1131,7 +1153,9 @@
     "showJsonPayload": "Show JSON payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
     "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "proceedToLink": "Proceed to link",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1465,7 +1489,10 @@
     "aiIntegrationReConfigure": "AI integration has been removed, re-configure from field edit modal to use NocoAI features",
     "aiIntegrationAddAndReConfigure": "AI integration has been removed, re-add and re-configure from field edit modal to use NocoAI features",
     "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI",
-    "sourceDataIsReadonly": "Source data is readonly"
+    "sourceDataIsReadonly": "Source data is readonly",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
+    "shiftSpace": "Shift + Space",
+    "expandShiftSpace": "Expand 'Shift + Space'"
   },
   "placeholder": {
     "searchIcons": "আইকন অনুসন্ধান করুন",
@@ -1524,9 +1551,11 @@
     "inviteYourTeam": "আপনার দলকে আমন্ত্রণ করুন",
     "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace.",
     "searchOptions": "বিকল্পগুলি অনুসন্ধান করুন",
-    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
+    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional).",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
@@ -1868,7 +1897,8 @@
       "yourCurrentRoleIs": "আপনার বর্তমান ভূমিকা হল",
       "pleaseRequestAccessForView": "এই {viewName} অ্যাক্সেস করতে অ্যাডমিন / বেস মালিক / ওয়ার্কস্পেস মালিক থেকে উচ্চতর অনুমতি অনুরোধ করুন",
       "preventHideAllOptions": "ক্ষেত্র প্রয়োজন হলে আপনি সমস্ত বিকল্প লুকাতে পারবেন না",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "ম্যানুয়াল হুকগুলি নিষ্ক্রিয় করা যায় না",

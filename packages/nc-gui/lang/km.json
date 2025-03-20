@@ -303,13 +303,15 @@
     "extension": "ផ្នែកបន្ថែម",
     "extensions": "ផ្នែកបន្ថែម",
     "enable": "Enable",
+    "disable": "Disable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
     "unread": "Unread",
     "shared": "Shared",
-    "organization": "Organization"
+    "organization": "Organization",
+    "all": "All"
   },
   "objects": {
     "script": "Script",
@@ -369,7 +371,7 @@
       "orgLevelCreator": "អ្នកបង្កើតថ្នាក់អង្គភាព",
       "orgLevelViewer": "អ្នកមើលថ្នាក់អង្គភាព"
     },
-    "sqlVIew": "SQL View",
+    "sqlView": "SQL View",
     "rowHeight": "កម្ពស់កំណត់ត្រា",
     "heightClass": {
       "short": "ខ្លី",
@@ -511,6 +513,7 @@
     "isNotNull": "មិនទទេ"
   },
   "title": {
+    "confirmSnapshotRestore": "Confirm Snapshot Restore",
     "urlFilters": "URL Filters",
     "creatingScript": "Creating Script",
     "searchWebhook": "ស្វែងរក webhook",
@@ -679,9 +682,24 @@
     "customUrl": "Custom URL",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
+    "restoringSnapshot": "Restoring Snapshot",
+    "note": "Note:",
+    "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",
+    "snapshotRestoreMessage2": "On restore, a new base will be created in the selected workspace.",
+    "snapshotRestoreConfirmation": "Are you sure you want to restore this base snapshot.",
+    "tryAgain": "Try again",
+    "goToBase": "Go to Base",
+    "errorMessage": "Error message:",
+    "duplicateBaseBaseTitle": "Duplicate Base \"{baseTitle}\"",
+    "duplicateBaseSuccessfull": "Base Duplication Successfull",
+    "duplicateBaseFailed": "Base Duplication Failed",
+    "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
+    "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
+    "currentWorkspace": "Current workspace",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "Failed",
@@ -888,6 +906,7 @@
     "clickToCopyViewID": "ចុចដើម្បីចម្លងទិដ្ឋភាព ID",
     "viewMode": "មើលមុខ",
     "reAssignView": "Re-assign view",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "ស្វែងរកអ្នកប្រើ",
     "superAdmin": "អ្នកគ្រប់គ្រងធំ",
     "allTables": "តារាងទាំងអស់",
@@ -1076,8 +1095,11 @@
     "apis": "APIs",
     "apiSnippet": "API Snippets",
     "includeData": "រួមបញ្ចូលទិន្នន័យ",
-    "includeView": "រួមបញ្ចូលទិដ្ឋភាព",
-    "includeWebhook": "រួមបញ្ចូល Webhook",
+    "includeRecords": "Include records",
+    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "includeView": "Include views",
+    "includeWebhook": "Include webhook",
+    "includeComments": "Include comments",
     "zoomInToViewColumns": "ផ្លោងចូលផ្ដើមមើលចំណង",
     "embedInSite": "បញ្ចូលទិដ្ឋភាពនេះនៅក្នុងគេហទំព័ររបស់អ្នក",
     "titleRequired": "ចំណងជើងត្រូវការជាក្រមតំណាង។",
@@ -1131,7 +1153,9 @@
     "showJsonPayload": "Show JSON payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
     "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "proceedToLink": "Proceed to link",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1465,7 +1489,10 @@
     "aiIntegrationReConfigure": "AI integration has been removed, re-configure from field edit modal to use NocoAI features",
     "aiIntegrationAddAndReConfigure": "AI integration has been removed, re-add and re-configure from field edit modal to use NocoAI features",
     "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI",
-    "sourceDataIsReadonly": "Source data is readonly"
+    "sourceDataIsReadonly": "Source data is readonly",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
+    "shiftSpace": "Shift + Space",
+    "expandShiftSpace": "Expand 'Shift + Space'"
   },
   "placeholder": {
     "searchIcons": "ស្វែងរកនិមិត្តសញ្ញា",
@@ -1524,9 +1551,11 @@
     "inviteYourTeam": "កូវែរក្រុមរបស់អ្នក",
     "inviteYourTeamLabel": "ធ្វើឱ្យគំរោងរបស់អ្នកឡើងកាន់តែមនុស្សល្បឿនដោយសហការនៅលើវាជាមួយក្រុមរបស់អ្នក!",
     "searchOptions": "ជម្រើសស្វែងរក",
-    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
+    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional).",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
@@ -1868,7 +1897,8 @@
       "yourCurrentRoleIs": "តួនាទីបច្ចុប្បន្នរបស់អ្នកគឺ",
       "pleaseRequestAccessForView": "សូមស្នើសុំការអនុញ្ញាតខ្ពស់ជាងនេះពីអ្នកគ្រប់គ្រង / ម្ចាស់មូលដ្ឋាន / ម្ចាស់កន្លែងធ្វើការ ដើម្បីទទួលបានការចូលដល់ {viewName}",
       "preventHideAllOptions": "អ្នកមិនអាចលាក់ជម្រើសទាំងអស់បានទេអាយផ្នែកនេះត្រូវមាន",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "ទំព័រមុខគឺមិនអាចបិទបាន",

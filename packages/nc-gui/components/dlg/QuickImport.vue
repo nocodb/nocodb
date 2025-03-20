@@ -667,7 +667,7 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
                         </div>
                       </div>
                       <a-form-item class="flex-1 !my-0 max-w-[120px] min-w-[120px]">
-                        <NcDropdown overlay-class-name="overflow-hidden !w-[170px]">
+                        <NcDropdown placement="bottomRight" overlay-class-name="overflow-hidden !w-[170px]">
                           <template #default="{ visible }">
                             <NcButton size="small" type="secondary" class="w-[120px] children:children:w-full">
                               <NcTooltip class="flex-none w-[85px] truncate text-left !leading-[20px]" show-on-truncate-only>
@@ -697,7 +697,6 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
                               option-value-key="value"
                               class="!w-full"
                               variant="small"
-                              container-class-name="!max-h-[171px]"
                             >
                             </NcList>
                           </template>

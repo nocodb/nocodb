@@ -691,13 +691,13 @@ function isAllMappedSelected(tableName: string) {
 }
 
 function isSomeMappedSelected(tableName: string) {
-  return (srcDestMapping.value[tableName] || [])?.some((item) => !item.destCn || item.enabled)
+  return (srcDestMapping.value[tableName] || [])?.some((item) => item.destCn && item.enabled)
 }
 
 function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
   const isChecked = event.target.checked
   for (const record of srcDestMapping.value[tableName]) {
-    if (!record.destCn) continue
+    if (!record.destCn && isChecked) continue
 
     record.enabled = isChecked
   }
@@ -821,7 +821,9 @@ const currentColumnToEdit = ref('')
                 <NcTooltip v-if="column.key === 'source_column'">
                   <template #title>
                     {{
-                      checkAllRecord[table.table_name] ? $t('activity.deselectAllFields') : $t('tooltip.selectAllMappedFields')
+                      isAllMappedSelected(table.table_name)
+                        ? $t('activity.deselectAllFields')
+                        : $t('tooltip.selectAllMappedFields')
                     }}
                   </template>
                   <div>

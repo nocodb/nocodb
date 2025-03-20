@@ -170,6 +170,8 @@ const isPreImportJsonFilled = computed(() => {
   }
 })
 
+const maxFileUploadLimit = computed(() => (isImportTypeCsv.value ? 3 : 1))
+
 const disablePreImportButton = computed(() => {
   if (activeTab.value === ImportTypeTabs.upload) {
     return !isPreImportFileFilled.value
@@ -402,8 +404,14 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
   customReqArgs.onSuccess()
 }
 
+const showMaxFileLimitError = ref(false)
+
 /** check if the file size exceeds the limit */
-const beforeUpload = (file: UploadFile) => {
+const beforeUpload = (file: UploadFile, fileList: UploadFile[]) => {
+  if (importState.fileList.length + fileList.length >= maxFileUploadLimit.value) {
+    showMaxFileLimitError.value = true
+  }
+
   const exceedLimit = file.size! / 1024 / 1024 > 25
   if (exceedLimit) {
     message.error(`File ${file.name} is too big. The accepted file size is less than 25MB.`)
@@ -552,6 +560,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
     }
 
     templateEditorModal.value = true
+    showMaxFileLimitError.value = false
   } catch (e: any) {
     console.log(e)
 
@@ -622,6 +631,11 @@ watch(
         }
       }, 500)
     }
+
+    // Hide max file limit error on removing file
+    if (importState.fileList.length < maxFileUploadLimit.value && showMaxFileLimitError.value) {
+      showMaxFileLimitError.value = false
+    }
   },
 )
 </script>
@@ -648,7 +662,7 @@ watch(
         {{ importMeta.header }}
         <a
           href="https://docs.nocodb.com/tables/create-table-via-import/"
-          class="!text-gray-500 prose-sm ml-auto"
+          class="!text-nc-content-gray-subtle2 text-sm font-weight-500 ml-auto"
           target="_blank"
           rel="noopener"
         >
@@ -693,9 +707,12 @@ watch(
                   v-model:fileList="importState.fileList"
                   name="file"
                   class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !border-gray-200"
+                  :class="{
+                    hidden: preImportLoading || importState.fileList.length >= (isImportTypeCsv ? 3 : 1),
+                  }"
                   list-type="picture"
                   :accept="importMeta.acceptTypes"
-                  :max-count="isImportTypeCsv ? undefined : 1"
+                  :max-count="isImportTypeCsv ? 3 : 1"
                   :multiple="true"
                   :disabled="preImportLoading"
                   :custom-request="customReqCbk"
@@ -794,6 +811,39 @@ watch(
                     </div>
                   </template>
                 </a-upload-dragger>
+
+                <a-alert
+                  v-if="showMaxFileLimitError"
+                  class="!rounded-lg !bg-transparent !border-nc-border-gray-medium !p-4 !w-full !mt-5"
+                >
+                  <template #message>
+                    <div class="flex flex-row items-center gap-2 mb-1">
+                      <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium w-6 h-6" />
+                      <span class="font-weight-700 text-sm flex-1">{{ $t('msg.warning.reachedUploadLimit') }}</span>
+
+                      <NcButton size="xsmall" type="text" @click="showMaxFileLimitError = false">
+                        <GeneralIcon icon="close" class="text-nc-content-gray-subtle" />
+                      </NcButton>
+                    </div>
+                  </template>
+                  <template #description>
+                    <div class="text-nc-content-gray-muted text-small leading-5 ml-8">
+                      {{
+                        $t(
+                          `msg.warning.${
+                            maxFileUploadLimit > 1
+                              ? 'youCanOnlyUploadMaxLimitFilesAtATimePlural'
+                              : 'youCanOnlyUploadMaxLimitFilesAtATime'
+                          }`,
+                          {
+                            limit: maxFileUploadLimit,
+                            type: $t(`labels.${importType}`),
+                          },
+                        )
+                      }}
+                    </div>
+                  </template>
+                </a-alert>
               </div>
             </a-tab-pane>
             <a-tab-pane v-if="!isImportTypeJson" :key="ImportTypeTabs.uploadFromUrl" :disabled="preImportLoading" class="!h-full">
@@ -1028,6 +1078,11 @@ span:has(> .nc-modern-drag-import) {
 :deep(.nc-modern-drag-import:not(.ant-upload-disabled)) {
   @apply bg-white hover:bg-gray-50;
 }
+
+:deep(.nc-modern-drag-import.hidden + .ant-upload-list) {
+  @apply !mb-0;
+}
+
 :deep(.nc-dense-checkbox-container .ant-form-item-control-input) {
   min-height: unset !important;
 }

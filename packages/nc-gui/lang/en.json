@@ -1709,7 +1709,10 @@
         "fieldVisibility": "You cannot change visibility of a field that is being edited. Please save or discard changes first.",
         "moveEditedField": "You cannot move field that is being edited. Either save or discard changes first",
         "moveDeletedField": "You cannot move field that is deleted. Either save or discard changes first"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",

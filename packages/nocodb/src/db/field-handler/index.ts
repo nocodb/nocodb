@@ -1,63 +1,100 @@
 import { UITypes } from 'nocodb-sdk';
-import { DbClient } from './field-handler.interface';
+import { ClientType } from 'nocodb-sdk';
+import { JsonGeneralHandler } from './handlers/json/json.general.handler';
+import type CustomKnex from '../CustomKnex';
+import type { NcContext } from 'nocodb-sdk';
+import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 import type { HandlerOptions } from './field-handler.interface';
 import type { Knex } from 'knex';
-import type { Column, Filter, Sort } from '~/models';
+import type { Column, Filter, Model } from '~/models';
 import type { FieldHandlerInterface } from '~/db/field-handler/field-handler.interface';
 import { JsonPgHandler } from '~/db/field-handler/handlers/json/json.pg.handler';
-import { JsonMssqlHandler } from '~/db/field-handler/handlers/json/json.mssql.handler';
-import { JsonMysqlHandler } from '~/db/field-handler/handlers/json/json.mysql.handler';
-import { JsonSqliteHandler } from '~/db/field-handler/handlers/json/json.sqlite.handler';
 
-class FieldHandlerClass {
-  private registry: Partial<
-    Record<UITypes, Partial<Record<DbClient, new () => FieldHandlerInterface>>>
-  > = {
-    [UITypes.ID]: {},
-    [UITypes.LinkToAnotherRecord]: {},
-    [UITypes.ForeignKey]: {},
-    [UITypes.Lookup]: {},
-    [UITypes.SingleLineText]: {},
-    [UITypes.LongText]: {},
-    [UITypes.Attachment]: {},
-    [UITypes.Checkbox]: {},
-    [UITypes.MultiSelect]: {},
-    [UITypes.SingleSelect]: {},
-    [UITypes.Date]: {},
-    [UITypes.Year]: {},
-    [UITypes.Time]: {},
-    [UITypes.PhoneNumber]: {},
-    [UITypes.GeoData]: {},
-    [UITypes.Email]: {},
-    [UITypes.URL]: {},
-    [UITypes.Number]: {},
-    [UITypes.Decimal]: {},
-    [UITypes.Currency]: {},
-    [UITypes.Percent]: {},
-    [UITypes.Duration]: {},
-    [UITypes.Rating]: {},
-    [UITypes.Formula]: {},
-    [UITypes.Rollup]: {},
-    [UITypes.DateTime]: {},
-    [UITypes.CreatedTime]: {},
-    [UITypes.LastModifiedTime]: {},
-    [UITypes.AutoNumber]: {},
-    [UITypes.Geometry]: {},
-    [UITypes.JSON]: {
-      [DbClient.PG]: JsonPgHandler,
-      [DbClient.MSSQL]: JsonMssqlHandler,
-      [DbClient.MYSQL]: JsonMysqlHandler,
-      [DbClient.SQLITE]: JsonSqliteHandler,
+const CLIENT_DEFAULT = '_default';
+
+const HANDLER_REGISTRY: Partial<
+  Record<
+    UITypes,
+    Partial<
+      Record<
+        ClientType | typeof CLIENT_DEFAULT,
+        new () => FieldHandlerInterface
+      >
+    >
+  >
+> = {
+  [UITypes.ID]: {},
+  [UITypes.LinkToAnotherRecord]: {},
+  [UITypes.ForeignKey]: {},
+  [UITypes.Lookup]: {},
+  [UITypes.SingleLineText]: {},
+  [UITypes.LongText]: {},
+  [UITypes.Attachment]: {},
+  [UITypes.Checkbox]: {},
+  [UITypes.MultiSelect]: {},
+  [UITypes.SingleSelect]: {},
+  [UITypes.Date]: {},
+  [UITypes.Year]: {},
+  [UITypes.Time]: {},
+  [UITypes.PhoneNumber]: {},
+  [UITypes.GeoData]: {},
+  [UITypes.Email]: {},
+  [UITypes.URL]: {},
+  [UITypes.Number]: {},
+  [UITypes.Decimal]: {},
+  [UITypes.Currency]: {},
+  [UITypes.Percent]: {},
+  [UITypes.Duration]: {},
+  [UITypes.Rating]: {},
+  [UITypes.Formula]: {},
+  [UITypes.Rollup]: {},
+  [UITypes.DateTime]: {},
+  [UITypes.CreatedTime]: {},
+  [UITypes.LastModifiedTime]: {},
+  [UITypes.AutoNumber]: {},
+  [UITypes.Geometry]: {},
+  [UITypes.JSON]: {
+    [ClientType.PG]: JsonPgHandler,
+    [CLIENT_DEFAULT]: JsonGeneralHandler,
+  },
+  [UITypes.SpecificDBType]: {},
+  [UITypes.Barcode]: {},
+  [UITypes.QrCode]: {},
+  [UITypes.Button]: {},
+  [UITypes.Links]: {},
+  [UITypes.User]: {},
+  [UITypes.CreatedBy]: {},
+  [UITypes.LastModifiedBy]: {},
+};
+
+function getLogicalOpMethod(logical_op?: string) {
+  switch (logical_op?.toLowerCase()) {
+    case 'or':
+      return 'orWhere';
+    case 'and':
+      return 'andWhere';
+    case 'not':
+      return 'whereNot';
+    default:
+      return 'where';
+  }
+}
+export class FieldHandler {
+  constructor(
+    public readonly info: {
+      model: Model;
+      knex: CustomKnex;
+      context: NcContext;
     },
-    [UITypes.SpecificDBType]: {},
-    [UITypes.Barcode]: {},
-    [UITypes.QrCode]: {},
-    [UITypes.Button]: {},
-    [UITypes.Links]: {},
-    [UITypes.User]: {},
-    [UITypes.CreatedBy]: {},
-    [UITypes.LastModifiedBy]: {},
-  };
+  ) {}
+
+  static fromBaseModel(baseModel: IBaseModelSqlV2) {
+    return new FieldHandler({
+      context: baseModel.context,
+      model: baseModel.model,
+      knex: baseModel.dbDriver,
+    });
+  }
 
   /**
    * Retrieves the appropriate FieldHandler instance based on UI type and database client.
@@ -68,13 +105,10 @@ class FieldHandlerClass {
    */
   private getHandler(
     uiType: UITypes,
-    dbClient: DbClient,
+    dbClient: ClientType,
   ): FieldHandlerInterface {
-    const dbHandlers = this.registry[uiType];
-    if (!dbHandlers) {
-      throw new Error(`No handlers registered for UIType: ${uiType}`);
-    }
-    const HandlerClass = dbHandlers[dbClient];
+    const dbHandlers = HANDLER_REGISTRY[uiType];
+    const HandlerClass = dbHandlers?.[dbClient] ?? dbHandlers?.[CLIENT_DEFAULT];
     if (!HandlerClass) {
       throw new Error(
         `No handler registered for UIType: ${uiType} and DB client: ${dbClient}`,
@@ -91,36 +125,60 @@ class FieldHandlerClass {
    * @param knex - Knex instance to determine the database client.
    * @param options - Additional options like alias.
    */
-  applyFilter(
-    qb: Knex.QueryBuilder,
+  async applyFilter(
     filter: Filter,
-    column: Column,
-    knex: Knex,
+    column?: Column,
     options: HandlerOptions = {},
-  ): void {
-    const dbClient = knex.client.config.client as DbClient;
+  ): Promise<(qb: Knex.QueryBuilder) => void> {
+    const knex = options.knex ?? this.info.knex;
+    const dbClient = knex.client.config.client as ClientType;
     const handler = this.getHandler(column.uidt, dbClient);
-    handler.filter(qb, filter, column, options);
+    const useColumn =
+      column ?? this.info.model.columns.find((col) => col.id === filter.id);
+    return handler.filter(knex, filter, useColumn, {
+      knex,
+      context: this.info.context,
+      model: this.info.model,
+      ...options,
+    });
   }
 
-  /**
-   * Applies a sort to the query builder using the appropriate handler.
-   * @param qb - Knex query builder instance.
-   * @param sort - Sort object
-   * @param column - Column object
-   * @param knex - Knex instance to determine the database client.
-   * @param options - Additional options like alias.
-   */
-  applySort(
-    qb: Knex.QueryBuilder,
-    sort: Sort,
-    column: Column,
-    knex: Knex,
+  async applyFilterGroup(filter: Filter, options: HandlerOptions = {}) {
+    return this.applyFilters(filter.children, options);
+  }
+
+  async applyFilters(
+    filters: Filter[],
     options: HandlerOptions = {},
-  ): void {
-    const dbClient = knex.client.config.client as DbClient;
-    const handler = this.getHandler(column.uidt, dbClient);
-    handler.sort(qb, sort, column, options);
+  ): Promise<(qb: Knex.QueryBuilder) => void> {
+    const model = options.model ?? this.info.model;
+    const qbHandlers: {
+      handler: (qb: Knex.QueryBuilder) => void;
+      index: number;
+      logicalOps?: string;
+    }[] = [];
+    let index = 0;
+    for (const filter of filters) {
+      if (filter.is_group) {
+        qbHandlers.push({
+          handler: await this.applyFilterGroup(filter, options),
+          index: index++,
+          logicalOps: filter.logical_op,
+        });
+      } else {
+        const column = model.columns.find((col) => col.id === filter.id);
+        qbHandlers.push({
+          handler: await this.applyFilter(filter, column, options),
+          index: index++,
+          logicalOps: filter.logical_op,
+        });
+      }
+    }
+    return (qb: Knex.QueryBuilder) => {
+      for (const handler of qbHandlers.sort((a, b) => a.index - b.index)) {
+        qb[getLogicalOpMethod(handler.logicalOps)](qb);
+      }
+    };
   }
 
   /**
@@ -130,16 +188,19 @@ class FieldHandlerClass {
    * @param knex - Knex instance to determine the database client.
    * @param options - Additional options like alias.
    */
-  applySelect(
+  async applySelect(
     qb: Knex.QueryBuilder,
     column: Column,
-    knex: Knex,
     options: HandlerOptions = {},
-  ): void {
-    const dbClient = knex.client.config.client as DbClient;
+  ): Promise<void> {
+    const knex = options.knex ?? this.info.knex;
+    const dbClient = knex.client as ClientType;
     const handler = this.getHandler(column.uidt, dbClient);
-    handler.select(qb, column, options);
+    return handler.select(qb, column, {
+      knex,
+      context: this.info.context,
+      model: this.info.model,
+      ...options,
+    });
   }
 }
-
-export const FieldHandler = new FieldHandlerClass();

@@ -354,7 +354,9 @@ export class UsersService extends UsersServiceCE {
     }
     user = await User.getByEmail(email);
 
-    try {
+    // We should not send verify email in cloud
+    // This is handled by Cognito
+    /*try {
       await this.mailService.sendMail({
         mailEvent: MailEvent.VERIFY_EMAIL,
         payload: {
@@ -366,7 +368,7 @@ export class UsersService extends UsersServiceCE {
       this.logger.warn(
         'Warning : `mailSend` failed, Please configure emailClient configuration.',
       );
-    }
+    }*/
 
     const refreshToken = randomTokenString();
 

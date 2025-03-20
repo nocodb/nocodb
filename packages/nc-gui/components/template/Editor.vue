@@ -511,6 +511,8 @@ async function importTemplate() {
 
     try {
       isImporting.value = true
+      // collapse table
+      expansionPanel.value = []
 
       const tableId = meta.value?.id
       const baseId = base.value.id!
@@ -612,6 +614,8 @@ async function importTemplate() {
 
     try {
       isImporting.value = true
+      // collapse table
+      expansionPanel.value = []
       // tab info to be used to show the tab after successful import
       const tab = {
         id: '',
@@ -733,7 +737,7 @@ function mapDefaultColumns() {
   srcDestMapping.value = {}
   for (let i = 0; i < data.tables.length; i++) {
     for (const col of importColumns[i]) {
-      const o = { srcCn: col.column_name, srcTitle: col.title, destCn: '', enabled: true }
+      const o = { srcCn: col.column_name, srcTitle: col.title, destCn: undefined, enabled: true }
       if (columns.value) {
         const tableColumn = columns.value.find((c) => c.title === col.title || c.column_name === col.column_name)
         if (tableColumn) {
@@ -883,6 +887,7 @@ const getErrorByTableName = (tableName: string) => {
       >
         <template #expandIcon="{ isActive }">
           <GeneralIcon
+            v-if="!isImporting"
             icon="ncChevronDown"
             class="text-lg !-translate-y-1/2 !transition"
             :class="{ '!transform !rotate-180': isActive }"
@@ -893,9 +898,18 @@ const getErrorByTableName = (tableName: string) => {
           v-for="(table, tableIdx) of data.tables"
           :key="tableIdx"
           class="nc-import-table-box nc-upload-box !overflow-hidden"
+          :class="{
+            'pointer-events-none': isImporting,
+          }"
         >
           <template #header>
-            <div class="w-[calc(100%_-_30px)] flex items-center space-x-3 group min-h-8">
+            <div
+              class="flex items-center space-x-3 group min-h-8"
+              :class="{
+                'w-[calc(100%_-_30px)]': !isImporting,
+                'w-full': isImporting,
+              }"
+            >
               <div class="w-8 h-8 flex items-center justify-center bg-secondary rounded-md">
                 <GeneralIcon :icon="tableIcon" class="w-5 h-5" />
               </div>
@@ -952,15 +966,15 @@ const getErrorByTableName = (tableName: string) => {
                       @change="handleCheckAllRecord($event, table.table_name)"
                     />
                   </div>
+                  <div class="absolute h-1 border-b bottom-0 left-3 right-3" />
                 </NcTooltip>
 
-                <span v-if="column.key !== 'action'">
+                <span v-if="column.key !== 'action'" class="font-weight-700 text-nc-content-gray text-small">
                   {{ column.title }}
                 </span>
-                <div class="absolute h-1 border-b bottom-0 left-3 right-3" />
               </template>
 
-              <template #bodyCell="{ column, record }">
+              <template #bodyCell="{ column, record, recordIndex }">
                 <div v-if="column.key === 'source_column'" class="w-full">
                   <label class="w-full flex items-center gap-3 h-full">
                     <NcTooltip :disabled="record.enabled || !!record.destCn">
@@ -968,55 +982,61 @@ const getErrorByTableName = (tableName: string) => {
                       <NcCheckbox v-model:checked="record.enabled" :disabled="!record.destCn" />
                     </NcTooltip>
 
-                    <NcTooltip class="inline-block flex-1 max-w-[calc(100%_-_50px)] truncate" show-on-truncate-only>
+                    <NcTooltip
+                      class="inline-block flex-1 max-w-[calc(100%_-_50px)] truncate text-nc-content-gray text-sm font-weight-500"
+                      show-on-truncate-only
+                    >
                       <template #title>{{ record.srcTitle }}</template>
                       {{ record.srcTitle }}
                     </NcTooltip>
 
                     <GeneralIcon icon="ncArrowRight" class="w-4 h-4 flex-shrink-0 mr-2" />
                   </label>
-                  <div class="absolute h-1 border-t top-0 left-3 right-3 cursor-default" />
+                  <div v-if="recordIndex" class="absolute h-1 border-t top-0 left-3 right-3 cursor-default" />
                 </div>
 
                 <template v-else-if="column.key === 'destination_column'">
-                  <NcSelect
-                    v-model:value="record.destCn"
-                    class="w-full nc-upload-filter-field"
-                    show-search
-                    allow-clear
-                    :filter-option="filterOption"
-                    dropdown-class-name="nc-dropdown-filter-field"
-                    @update:value="
-                      (value) => {
-                        record.enabled = !!value
-                      }
-                    "
-                  >
-                    <template #suffixIcon>
-                      <GeneralIcon icon="arrowDown" class="text-current" />
-                    </template>
-                    <a-select-option
-                      v-for="(col, i) of getUnselectedFields(record, table.table_name)"
-                      :key="i"
-                      :value="col.title"
+                  <a-form-item class="!my-0 w-full">
+                    <NcSelect
+                      v-model:value="record.destCn"
+                      class="nc-field-select-input w-full nc-select-shadow !border-none"
+                      show-search
+                      allow-clear
+                      :placeholder="`-${$t('labels.multiField.selectField').toLowerCase()}-`"
+                      :filter-option="filterOption"
+                      dropdown-class-name="nc-dropdown-filter-field"
+                      @update:value="
+                        (value) => {
+                          record.enabled = !!value
+                        }
+                      "
                     >
-                      <div class="flex items-center gap-2 w-full">
-                        <component :is="getUIDTIcon(col.uidt)" class="flex-none w-3.5 h-3.5" />
-                        <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                          <template #title>
+                      <template #suffixIcon>
+                        <GeneralIcon icon="arrowDown" class="text-current" />
+                      </template>
+                      <a-select-option
+                        v-for="(col, i) of getUnselectedFields(record, table.table_name)"
+                        :key="i"
+                        :value="col.title"
+                      >
+                        <div class="flex items-center gap-2 w-full">
+                          <component :is="getUIDTIcon(col.uidt)" class="flex-none w-3.5 h-3.5" />
+                          <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                            <template #title>
+                              {{ col.title }}
+                            </template>
                             {{ col.title }}
-                          </template>
-                          {{ col.title }}
-                        </NcTooltip>
-                        <component
-                          :is="iconMap.check"
-                          v-if="record.destCn === col.title"
-                          id="nc-selected-item-icon"
-                          class="flex-none text-primary w-4 h-4"
-                        />
-                      </div>
-                    </a-select-option>
-                  </NcSelect>
+                          </NcTooltip>
+                          <component
+                            :is="iconMap.check"
+                            v-if="record.destCn === col.title"
+                            id="nc-selected-item-icon"
+                            class="flex-none text-primary w-4 h-4"
+                          />
+                        </div>
+                      </a-select-option>
+                    </NcSelect>
+                  </a-form-item>
                 </template>
               </template>
             </NcTable>
@@ -1026,7 +1046,7 @@ const getErrorByTableName = (tableName: string) => {
 
       <div v-if="isEeUI" class="pt-4 pb-2 px-2">
         <label class="flex">
-          <NcCheckbox v-model:checked="autoInsertOption" />
+          <NcCheckbox v-model:checked="autoInsertOption" :disabled="isImporting" />
           <span class="ml-2">{{ $t('labels.autoCreateMissingSelectionOptions') }}</span>
         </label>
       </div>
@@ -1043,6 +1063,7 @@ const getErrorByTableName = (tableName: string) => {
         >
           <template #expandIcon="{ isActive }">
             <GeneralIcon
+              v-if="!isImporting"
               icon="ncChevronDown"
               class="text-lg !-translate-y-1/2 !transition"
               :class="{ '!transform !rotate-180': isActive }"
@@ -1051,7 +1072,13 @@ const getErrorByTableName = (tableName: string) => {
 
           <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx" class="nc-import-table-box !overflow-hidden">
             <template #header>
-              <div class="w-[calc(100%_-_30px)] flex items-center space-x-3 nc-table-name-wrapper group min-h-6">
+              <div
+                class="flex items-center space-x-3 nc-table-name-wrapper group min-h-6"
+                :class="{
+                  'w-[calc(100%_-_30px)]': !isImporting,
+                  'w-full': isImporting,
+                }"
+              >
                 <GeneralIcon icon="table" class="w-4 h-4" />
                 <a-form-item
                   v-if="!isImporting && currentTableToEdit === tableIdx"
@@ -1142,8 +1169,8 @@ const getErrorByTableName = (tableName: string) => {
                           : $t('activity.selectAllFields')
                       }}
                     </span>
+                    <div class="absolute h-1 border-b bottom-0 left-3 right-3" />
                   </template>
-                  <div class="absolute h-1 border-b bottom-0 left-3 right-3" />
                 </template>
                 <template #bodyCell="{ column, record, recordIndex }">
                   <template v-if="column.key === 'enabled'">
@@ -1242,15 +1269,47 @@ const getErrorByTableName = (tableName: string) => {
     }
   }
 }
-:deep(.ant-select.nc-upload-filter-field) .ant-select-selector {
-  @apply !border-gray-200 shadow-sm shadow-gray-200 rounded-lg;
-}
 
 :deep(.nc-table-name-wrapper .ant-form-item-explain) {
   @apply hidden;
 }
 
+:deep(.ant-progress-outer) {
+  margin-right: calc(-2em - 16px);
+  padding-right: calc(2em + 16px);
+}
+
 :deep(.ant-progress-text) {
   @apply text-nc-content-gray-muted;
+}
+
+:deep(.nc-field-select-input.ant-select) {
+  .ant-select-selector {
+    @apply !bg-transparent rounded-lg;
+
+    .ant-select-selection-item {
+      @apply text-nc-content-gray text-sm font-weight-500;
+    }
+  }
+
+  &:not(.ant-select-focused):hover .ant-select-selector {
+    @apply !bg-nc-bg-gray-medium;
+  }
+
+  &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
+  &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
+    @apply !shadow-none;
+  }
+
+  &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
+    @apply shadow-none;
+  }
+  &:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
+    @apply !border-transparent;
+  }
+
+  &:not(.ant-select-focused):hover .ant-select-clear {
+    @apply !bg-nc-bg-gray-medium;
+  }
 }
 </style>

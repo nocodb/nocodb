@@ -2,6 +2,7 @@ import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type {
   FieldHandlerInterface,
+  FilterVeriicationResult,
   HandlerOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
@@ -9,7 +10,7 @@ import { getColumnName } from '~/db/BaseModelSqlv2';
 import { getAs } from '~/db/field-handler/utils/handlerUtils';
 import { sanitize } from '~/helpers/sqlSanitize';
 
-export abstract class GenericFieldHandler implements FieldHandlerInterface {
+export class GenericFieldHandler implements FieldHandlerInterface {
   async select(
     qb: Knex.QueryBuilder,
     column: Column,
@@ -110,5 +111,13 @@ export abstract class GenericFieldHandler implements FieldHandlerInterface {
       }
     };
     // not implemented
+  }
+  async verifyFilter(
+    _filter: Filter,
+    _column: Column,
+  ): Promise<FilterVeriicationResult> {
+    return {
+      isValid: true,
+    };
   }
 }

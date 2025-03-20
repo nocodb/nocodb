@@ -1,11 +1,11 @@
-import { GenericFieldHandler } from '../generic';
-import type CustomKnex from 'src/db/CustomKnex';
+import { JsonGeneralHandler } from './json.general.handler';
 import type { Knex } from 'knex';
+import type CustomKnex from '~/db/CustomKnex';
 import type { HandlerOptions } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
 import { sanitize } from '~/helpers/sqlSanitize';
 
-export class JsonPgHandler extends GenericFieldHandler {
+export class JsonPgHandler extends JsonGeneralHandler {
   override async filter(
     knex: CustomKnex,
     filter: Filter,
@@ -108,23 +108,5 @@ export class JsonPgHandler extends GenericFieldHandler {
           );
       }
     };
-  }
-
-  private parseJsonValue(val: any): { jsonVal: string; isValidJson: boolean } {
-    let jsonVal = val;
-    let isValidJson = false;
-    if (typeof val === 'object' && val !== null) {
-      jsonVal = JSON.stringify(val);
-      isValidJson = true;
-    } else if (typeof val === 'string') {
-      try {
-        JSON.parse(val);
-        jsonVal = val;
-        isValidJson = true;
-      } catch {
-        jsonVal = val;
-      }
-    }
-    return { jsonVal, isValidJson };
   }
 }

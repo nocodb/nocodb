@@ -775,7 +775,12 @@ watch(
               </template>
               <div class="relative mt-5 mb-1 px-1">
                 <a-form :model="importState" name="quick-import-url-form" layout="vertical" class="!my-0">
-                  <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url" :required="false" class="!my-0">
+                  <a-form-item v-bind="validateInfos.url" :required="false" class="!my-0">
+                    <template #label>
+                      <span class="text-nc-content-gray text-sm">
+                        {{ importMeta.urlInputLabel }}
+                      </span>
+                    </template>
                     <a-input v-model:value="importState.url" class="!rounded-md" placeholder="Paste file link here..." />
                   </a-form-item>
                 </a-form>

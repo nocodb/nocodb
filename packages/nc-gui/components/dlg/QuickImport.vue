@@ -724,7 +724,7 @@ watch(
           @change="onChange"
         />
         <div v-else>
-          <NcTabs v-model:activeKey="activeTab" class="nc-quick-import-tabs" @update:activeKey="handleResetImportError">
+          <NcTabs v-model:activeKey="activeTab" class="nc-quick-import-tabs" @update:active-key="handleResetImportError">
             <a-tab-pane :key="ImportTypeTabs.upload" :disabled="preImportLoading" class="!h-full">
               <template #tab>
                 <div class="flex gap-2 items-center">

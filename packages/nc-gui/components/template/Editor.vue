@@ -599,6 +599,7 @@ async function importTemplate() {
       // Successfully imported table data
       message.success(t('msg.success.tableDataImported'))
     } catch (e: any) {
+      console.log(e)
       throw e
     } finally {
       isImporting.value = false
@@ -721,6 +722,7 @@ async function importTemplate() {
         type: TabType.TABLE,
       })
     } catch (e: any) {
+      console.log(e)
       throw e
     } finally {
       isImporting.value = false
@@ -1106,7 +1108,7 @@ function getErrorByTableName(tableName: string) {
                 </a-form-item>
                 <template v-else>
                   <NcTooltip :title="table.table_name" show-on-truncate-only class="flex-1 truncate">
-                    <span @click.stop="currentTableToEdit = tableIdx" class="nc-import-table-name">
+                    <span class="nc-import-table-name" @click.stop="currentTableToEdit = tableIdx">
                       {{ table.table_name }}
                     </span>
                   </NcTooltip>

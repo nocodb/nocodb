@@ -1387,7 +1387,7 @@ export function renderFormulaURL(
     return truncated
   }
 
-  function renderLine(text: string, url?: string, addEllipsis: boolean = false) {
+  function renderLine(text: string, url?: string, addEllipsis = false) {
     let finalText = text
     const lineY = currentY + currentLine * lineHeight + lineHeight * 0.8
     const availableWidth = maxWidth - (currentX - x)

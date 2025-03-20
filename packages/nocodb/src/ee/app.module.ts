@@ -4,7 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { AppModule as AppCEModule, ceModuleConfig } from 'src/app.module';
 import { LoggerModule } from 'nestjs-pino';
-import { DbMuxController } from 'src/ee/controllers/db-mux.controller';
+import { DbMuxController } from '~/controllers/db-mux.controller';
 import { ThrottlerConfigService } from '~/services/throttler/throttler-config.service';
 import appConfig from '~/app.config';
 import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';

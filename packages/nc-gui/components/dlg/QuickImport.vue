@@ -42,6 +42,7 @@ const isWorkerSupport = typeof Worker !== 'undefined'
 const { t } = useI18n()
 
 const progressMsg = ref('Parsing Data ...')
+const progressMsgNew = ref<Record<string, string>>({})
 
 const { tables } = storeToRefs(useBase())
 
@@ -500,7 +501,13 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
               importWorker?.removeEventListener('message', handler, false)
               break
             case ImportWorkerResponse.PROGRESS:
-              progressMsg.value = payload
+              if (ncIsObject(payload)) {
+                progressMsgNew.value[payload.title] = payload?.value ?? ''
+
+                progressMsgNew.value = { ...progressMsgNew.value }
+              } else {
+                progressMsg.value = payload
+              }
               break
             case ImportWorkerResponse.ERROR:
               reject(payload)
@@ -647,7 +654,7 @@ watch(
       <div
         class="mt-5"
         :class="{
-          'pointer-events-none': preImportLoading || importLoading,
+          'pointer-events-none': importLoading,
         }"
       >
         <LazyTemplateEditor
@@ -670,7 +677,7 @@ watch(
         />
         <div v-else>
           <NcTabs v-model:activeKey="activeTab" class="nc-quick-import-tabs">
-            <a-tab-pane :key="ImportTypeTabs.upload" class="!h-full">
+            <a-tab-pane :key="ImportTypeTabs.upload" :disabled="preImportLoading" class="!h-full">
               <template #tab>
                 <div class="flex gap-2 items-center">
                   <span class="text-sm">{{ $t('general.upload') }} </span>
@@ -685,6 +692,7 @@ watch(
                   :accept="importMeta.acceptTypes"
                   :max-count="isImportTypeCsv ? undefined : 1"
                   :multiple="true"
+                  :disabled="preImportLoading"
                   :custom-request="customReqCbk"
                   :before-upload="beforeUpload"
                   @change="handleChange"
@@ -723,51 +731,67 @@ watch(
                           {{ getReadableFileSize(file.size) }}
                         </div>
                       </div>
-                      <a-form-item class="flex-1 !my-0 max-w-[120px] min-w-[120px]">
-                        <NcDropdown placement="bottomRight" overlay-class-name="overflow-hidden !w-[170px]">
-                          <template #default="{ visible }">
-                            <NcButton size="small" type="secondary" class="w-[120px] children:children:w-full !text-small">
-                              <NcTooltip class="flex-none w-[85px] truncate text-left !leading-[20px]" show-on-truncate-only>
-                                <template #title> {{ charsetOptionsMap[file.encoding]?.sortLabel ?? '' }}</template>
+                      <template v-if="!preImportLoading">
+                        <a-form-item class="flex-1 !my-0 max-w-[120px] min-w-[120px]">
+                          <NcDropdown placement="bottomRight" overlay-class-name="overflow-hidden !w-[170px]">
+                            <template #default="{ visible }">
+                              <NcButton size="small" type="secondary" class="w-[120px] children:children:w-full !text-small">
+                                <NcTooltip class="flex-none w-[85px] truncate text-left !leading-[20px]" show-on-truncate-only>
+                                  <template #title> {{ charsetOptionsMap[file.encoding]?.sortLabel ?? '' }}</template>
 
-                                {{ charsetOptionsMap[file.encoding]?.sortLabel?.replace('Windows', 'Win') ?? '' }}
-                              </NcTooltip>
+                                  {{ charsetOptionsMap[file.encoding]?.sortLabel?.replace('Windows', 'Win') ?? '' }}
+                                </NcTooltip>
 
-                              <GeneralIcon
-                                icon="chevronDown"
-                                class="flex-none transform"
-                                :class="{
-                                  'rotate-180': visible,
-                                }"
-                              />
-                            </NcButton>
-                          </template>
+                                <GeneralIcon
+                                  icon="chevronDown"
+                                  class="flex-none transform"
+                                  :class="{
+                                    'rotate-180': visible,
+                                  }"
+                                />
+                              </NcButton>
+                            </template>
 
-                          <template #overlay="{ visible, onChange }">
-                            <NcList
-                              v-model:value="file.encoding"
-                              :open="visible"
-                              :list="charsetOptions"
-                              search-input-placeholder="Search"
-                              option-label-key="sortLabel"
-                              option-value-key="value"
-                              class="!w-full"
-                              variant="small"
-                              @update:open="onChange"
-                            >
-                            </NcList>
-                          </template>
-                        </NcDropdown>
-                      </a-form-item>
-                      <NcButton type="text" size="xsmall" class="flex-shrink" @click="actions?.remove?.()">
-                        <GeneralIcon icon="deleteListItem" />
-                      </NcButton>
+                            <template #overlay="{ visible, onChange }">
+                              <NcList
+                                v-model:value="file.encoding"
+                                :open="visible"
+                                :list="charsetOptions"
+                                search-input-placeholder="Search"
+                                option-label-key="sortLabel"
+                                option-value-key="value"
+                                class="!w-full"
+                                variant="small"
+                                @update:open="onChange"
+                              >
+                              </NcList>
+                            </template>
+                          </NcDropdown>
+                        </a-form-item>
+                        <NcButton type="text" size="xsmall" class="flex-shrink" @click="actions?.remove?.()">
+                          <GeneralIcon icon="deleteListItem" />
+                        </NcButton>
+                      </template>
+                      <template v-else>
+                        <NcTooltip
+                          :key="progressMsgNew[file.name] || progressMsg"
+                          class="!max-w-[120px] min-w-[120p] !leading-[18px] truncate"
+                          show-on-truncate-only
+                        >
+                          <template #title> {{ progressMsgNew[file.name] || progressMsg }}</template>
+
+                          <span class="!text-small text-nc-content-gray-muted">
+                            {{ progressMsgNew[file.name] || progressMsg }}
+                          </span>
+                        </NcTooltip>
+                        <GeneralLoader class="flex text-nc-content-brand" size="medium" />
+                      </template>
                     </div>
                   </template>
                 </a-upload-dragger>
               </div>
             </a-tab-pane>
-            <a-tab-pane v-if="!isImportTypeJson" :key="ImportTypeTabs.uploadFromUrl" class="!h-full">
+            <a-tab-pane v-if="!isImportTypeJson" :key="ImportTypeTabs.uploadFromUrl" :disabled="preImportLoading" class="!h-full">
               <template #tab>
                 <div class="flex gap-2 items-center">
                   <span class="text-sm">{{ $t('labels.addFromUrl') }} </span>
@@ -786,7 +810,7 @@ watch(
                 </a-form>
               </div>
             </a-tab-pane>
-            <a-tab-pane v-if="isImportTypeJson" :key="ImportTypeTabs.uploadJSON" class="!h-full">
+            <a-tab-pane v-if="isImportTypeJson" :key="ImportTypeTabs.uploadJSON" :disabled="preImportLoading" class="!h-full">
               <template #tab>
                 <div class="flex gap-2 items-center">
                   <span class="text-sm">{{ $t('labels.enterJson') }} </span>
@@ -869,7 +893,14 @@ watch(
 
     <template #footer>
       <div class="flex items-center gap-2 pt-3">
-        <NcButton v-if="templateEditorModal" key="back" type="text" size="small" @click="templateEditorModal = false">
+        <NcButton
+          v-if="templateEditorModal"
+          key="back"
+          type="text"
+          size="small"
+          :disabled="importLoading"
+          @click="templateEditorModal = false"
+        >
           <GeneralIcon icon="chevronLeft" class="mr-1" />
           {{ $t('general.back') }}
         </NcButton>
@@ -971,7 +1002,7 @@ span:has(> .nc-modern-drag-import) {
     @apply !pl-0;
   }
   :deep(.ant-tabs-tab) {
-    @apply px-2 pt-1 pb-2;
+    @apply px-0 pt-0 pb-2;
 
     &.ant-tabs-tab-active {
       @apply font-medium;
@@ -984,7 +1015,10 @@ span:has(> .nc-modern-drag-import) {
 
   .tab-title,
   :deep(.ant-tabs-tab-btn) {
-    @apply text-xs !leading-[24px] px-2 text-nc-content-gray-subtle2 rounded hover:bg-gray-100 transition-colors;
+    @apply px-2 text-nc-content-gray-subtle2 rounded-md hover:bg-gray-100 transition-colors;
+    span {
+      @apply text-small !leading-[24px];
+    }
   }
 
   :deep(.ant-tabs-tab-disabled) {

@@ -1,5 +1,5 @@
 import { ColumnType, FilterType } from '~/lib/Api';
-import { BadRequest, NcSDKError } from '~/lib/errorUtils';
+import { BadRequest } from '~/lib/errorUtils';
 import {
   FilterClauseSubType,
   FilterGroupSubType,
@@ -11,6 +11,7 @@ import {
   FilterParseError,
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from './filterHelpers';
+import { InvalidFilterError } from './error/invalid-filter.error';
 export {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
@@ -103,7 +104,10 @@ function innerExtractFilterFromXwhere(
     (parseResult.lexErrors.length > 0 || parseResult.parseErrors.length > 0) &&
     throwErrorIfInvalid
   ) {
-    if (throwErrorIfInvalid) throw new NcSDKError('INVALID_FILTER');
+    if (throwErrorIfInvalid) throw new InvalidFilterError({
+      lexingError: parseResult.lexErrors,
+      parsingError: parseResult.parseErrors,
+    });
     else {
       errors.push({
         message: 'Invalid filter format.',
@@ -164,7 +168,9 @@ function mapFilterClauseSubType(
   const aliasCol = aliasColObjMap[filter.field];
   if (!aliasCol) {
     if (throwErrorIfInvalid) {
-      throw new NcSDKError('INVALID_FILTER');
+      throw new InvalidFilterError({
+        message: `Column '${filter.field}' not found.`
+      });
     } else {
       errors.push({
         message: `Column '${filter.field}' not found.`,

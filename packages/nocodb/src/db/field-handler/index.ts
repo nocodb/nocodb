@@ -10,6 +10,7 @@ import { SingleSelectGeneralHandler } from './handlers/single-select/single-sele
 import { DecimalGeneralHandler } from './handlers/decimal/decimal.general.handler';
 import { NumberGeneralHandler } from './handlers/number/number.general.handler';
 import { FilterVerificationError } from './error/filter-verification.error';
+import { FormulaGeneralHandler } from './handlers/formula/formula.general.handler';
 import type CustomKnex from '../CustomKnex';
 import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
@@ -85,7 +86,9 @@ const HANDLER_REGISTRY: Partial<
   },
   [UITypes.Duration]: {},
   [UITypes.Rating]: {},
-  [UITypes.Formula]: {},
+  [UITypes.Formula]: {
+    [CLIENT_DEFAULT]: FormulaGeneralHandler,
+  },
   [UITypes.Rollup]: {},
   [UITypes.DateTime]: {
     [CLIENT_DEFAULT]: DateTimeGeneralHandler,

@@ -326,6 +326,17 @@ function atLeastOneEnabledValidation(tn: string) {
   return true
 }
 
+function getUnselectedFields(record: Record<string, any>, tn: string) {
+  // if it is not selected, then pass validation
+  const allRecord = srcDestMapping.value[tn]
+
+  return columns.value.filter((c) => {
+    // Exclude columns that are already mapped, except for the current record's `destCn`
+
+    return !allRecord?.some((item) => item.srcTitle !== record.srcTitle && item.destCn === c.title)
+  })
+}
+
 function fieldsValidation(record: Record<string, any>, tn: string) {
   // if it is not selected, then pass validation
   if (!record.enabled) {
@@ -835,7 +846,11 @@ const currentColumnToEdit = ref('')
                     <template #suffixIcon>
                       <GeneralIcon icon="arrowDown" class="text-current" />
                     </template>
-                    <a-select-option v-for="(col, i) of columns" :key="i" :value="col.title">
+                    <a-select-option
+                      v-for="(col, i) of getUnselectedFields(record, table.table_name)"
+                      :key="i"
+                      :value="col.title"
+                    >
                       <div class="flex items-center gap-2 w-full">
                         <component :is="getUIDTIcon(col.uidt)" class="flex-none w-3.5 h-3.5" />
                         <NcTooltip class="truncate flex-1" show-on-truncate-only>

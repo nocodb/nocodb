@@ -895,13 +895,20 @@ watch(
           size="small"
           class="nc-btn-import"
           :loading="preImportLoading"
-          :disabled="disablePreImportButton"
+          :disabled="disablePreImportButton || preImportLoading"
           @click="handlePreImport"
         >
           {{ importBtnText }}
         </NcButton>
 
-        <NcButton v-else key="import" size="small" :loading="importLoading" :disabled="disableImportButton" @click="handleImport">
+        <NcButton
+          v-else
+          key="import"
+          size="small"
+          :loading="importLoading"
+          :disabled="disableImportButton || importLoading"
+          @click="handleImport"
+        >
           {{ importBtnText }}
         </NcButton>
       </div>

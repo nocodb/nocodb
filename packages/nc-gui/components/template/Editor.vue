@@ -673,12 +673,19 @@ defineExpose({
   isValid,
 })
 
+function getMappedColumns(tableName: string) {
+  return (srcDestMapping.value[tableName] || []).filter((item) => item.destCn)
+}
+
 function isAllMappedSelected(tableName: string) {
-  return (srcDestMapping.value[tableName] || [])?.every((item) => !item.destCn || item.enabled)
+  const cols = getMappedColumns(tableName)
+  return cols.length && getMappedColumns(tableName).every((item) => item.enabled)
 }
 
 function isSomeMappedSelected(tableName: string) {
-  return (srcDestMapping.value[tableName] || [])?.some((item) => item.destCn && item.enabled)
+  const cols = getMappedColumns(tableName)
+
+  return cols.length && getMappedColumns(tableName).some((item) => item.destCn && item.enabled)
 }
 
 function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {

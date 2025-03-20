@@ -721,7 +721,7 @@ async function handleMouseDown(e: MouseEvent) {
     }
 
     if (isContextMenuAllowed.value) {
-      // Set the context Menu Targer and return
+      // Set the context Menu Target and return
       contextMenuTarget.value = { row: rowIndex, col: columnIndex }
       requestAnimationFrame(triggerRefreshCanvas)
     }

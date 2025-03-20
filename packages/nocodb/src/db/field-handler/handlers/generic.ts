@@ -2,7 +2,7 @@ import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type {
   FieldHandlerInterface,
-  FilterVeriicationResult,
+  FilterVerificationResult,
   HandlerOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
@@ -116,7 +116,7 @@ export class GenericFieldHandler implements FieldHandlerInterface {
   async verifyFilter(
     _filter: Filter,
     _column: Column,
-  ): Promise<FilterVeriicationResult> {
+  ): Promise<FilterVerificationResult> {
     return {
       isValid: true,
     };

@@ -1,5 +1,5 @@
 import { ncIsNumber } from 'nocodb-sdk';
-import type { FilterVeriicationResult } from '~/db/field-handler/field-handler.interface';
+import type { FilterVerificationResult } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 
@@ -16,8 +16,6 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
       'lt',
       'gte',
       'lte',
-      'ge',
-      'le',
       'in',
     ];
     if (!supportedOperations.includes(filter.comparison_op)) {
@@ -26,7 +24,7 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
         errors: [
           `Operation ${filter.comparison_op} is not supported for type ${column.uidt}`,
         ],
-      } as FilterVeriicationResult;
+      } as FilterVerificationResult;
     }
     if (
       !(
@@ -41,10 +39,10 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
         errors: [
           `Value ${filter.value} is not supported for type ${column.uidt}`,
         ],
-      } as FilterVeriicationResult;
+      } as FilterVerificationResult;
     }
     return {
       isValid: true,
-    } as FilterVeriicationResult;
+    } as FilterVerificationResult;
   }
 }

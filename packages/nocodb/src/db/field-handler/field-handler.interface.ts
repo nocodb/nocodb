@@ -12,7 +12,7 @@ export interface HandlerOptions {
   knex?: Knex;
   tnPath?: string;
 }
-export interface FilterVeriicationResult {
+export interface FilterVerificationResult {
   isValid: boolean;
   errors?: string[];
 }
@@ -28,5 +28,5 @@ export interface FieldHandlerInterface {
     filter: Filter,
     column: Column,
     options?: HandlerOptions,
-  ): Promise<FilterVeriicationResult>;
+  ): Promise<FilterVerificationResult>;
 }

@@ -634,10 +634,10 @@ async function importTemplate() {
           }
         }
 
-        const selectedColumns = table.columns?.filter((c) => !('selected' in c) || (c as any).selected)
+        table.columns = table.columns?.filter((c) => !('selected' in c) || (c as any).selected)
 
-        if (selectedColumns) {
-          for (const column of selectedColumns) {
+        if (table.columns) {
+          for (const column of table.columns) {
             // set pk & rqd if ID is provided
             if (column.column_name?.toLowerCase() === 'id' && !('pk' in column)) {
               column.pk = true
@@ -659,7 +659,7 @@ async function importTemplate() {
           table_name: table.table_name,
           // leave title empty to get a generated one based on table_name
           title: '',
-          columns: selectedColumns || [],
+          columns: table.columns || [],
         })
 
         if (process.env.NC_SANITIZE_COLUMN_NAME !== 'false') {
@@ -667,8 +667,8 @@ async function importTemplate() {
           // e.g. sanitize column name to something like field_1, field_2, and etc
           // todo: see why we have extra columns when json is imported through pasting
           createdTable.columns.forEach((column, i) => {
-            if (selectedColumns[i]) {
-              selectedColumns[i].column_name = column.column_name
+            if (table.columns[i]) {
+              table.columns[i].column_name = column.column_name
             }
           })
         }

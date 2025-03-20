@@ -753,13 +753,7 @@ const currentColumnToEdit = ref('')
 </script>
 
 <template>
-  <a-spin :spinning="isImporting" size="large">
-    <template #tip>
-      <p v-for="(importingTip, idx) of importingTips" :key="idx" class="mt-[10px]">
-        {{ importingTip }}
-      </p>
-    </template>
-
+  <div class="relative">
     <div v-if="importDataOnly">
       <a-form :model="data" name="import-only">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
@@ -1035,7 +1029,7 @@ const currentColumnToEdit = ref('')
         </template>
       </a-alert>
     </a-card>
-  </a-spin>
+  </div>
 </template>
 
 <style scoped lang="scss">

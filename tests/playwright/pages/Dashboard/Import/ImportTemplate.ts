@@ -38,7 +38,7 @@ export class ImportTemplatePage extends BasePage {
     const columnList: { type: string; name: string }[] = [];
     const tr = this.get().locator(`tr.nc-table-row:visible`);
     const rowCount = await tr.count();
-    for (let i = 1; i < rowCount; i++) {
+    for (let i = 0; i < rowCount; i++) {
       // we start from 1 because the first tr holds the select all toggle
       // replace \n and \t from innerText
       // const columnType = (await getTextExcludeIconText(tr.nth(i))).replace(/\n|\t/g, '');

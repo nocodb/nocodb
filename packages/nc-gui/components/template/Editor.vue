@@ -945,7 +945,7 @@ const currentColumnToEdit = ref('')
                         <a-input
                           :ref="(el: HTMLInputElement) => {inputRefs[record.key] = el; el?.focus?.(); return el;}"
                           v-model:value="record.title"
-                          class="!rounded-md"
+                          class="!rounded-md animate-sidebar-node-input-padding"
                           :autofocus="true"
                           @keydown.enter.prevent.stop="currentColumnToEdit = ''"
                           @keydown.esc.prevent.stop="currentColumnToEdit = ''"

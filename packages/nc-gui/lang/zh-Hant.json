@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV 文件",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON 文件",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "清除表單",
     "addFieldFromFormView": "添加欄位",
     "selectAllFields": "選擇所有欄位",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "啟用預填",
       "default": "預設",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "搜索圖標",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "您不能更改正在編輯的欄位的可見性。請先儲存或放棄更改。",
         "moveEditedField": "您不能移動正在編輯的欄位。請先儲存或放棄更改。",
         "moveDeletedField": "您不能移動已刪除的欄位。請先儲存或放棄更改。"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "專案中繼資料已成功匯出",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "已複製嵌入 HTML 代碼！",
       "userDetailsUpdated": "成功更新使用者資料",
       "tableDataImported": "成功匯入表格資料",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Ｗebhook 詳情更新成功",
       "webhookDeleted": "Hook 刪除成功",
       "webhookTested": "Webhook 測試成功",

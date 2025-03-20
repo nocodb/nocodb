@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV-tiedosto",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON-tiedosto",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "Tyhjennä lomake",
     "addFieldFromFormView": "Lisää kenttä",
     "selectAllFields": "Valitse kaikki kentät",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Ota esitäyttö käyttöön",
       "default": "Oletusarvo",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Etsi kuvakkeita",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "Et voi muuttaa muokattavan kentän näkyvyyttä. Tallenna tai hylkää muutokset ensin.",
         "moveEditedField": "Et voi siirtää muokattavaa kenttää. Tallenna tai hylkää muutokset ensin",
         "moveDeletedField": "Et voi siirtää poistettua kenttää. Tallenna tai hylkää muutokset ensin"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Project Metadata viedään onnistuneesti",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Kopioitu upotettava HTML-koodi!",
       "userDetailsUpdated": "Käyttäjätiedot päivitetty onnistuneesti",
       "tableDataImported": "Taulukon tietojen tuonti onnistui",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhookin tiedot päivitetty onnistuneesti",
       "webhookDeleted": "Koukku poistettu onnistuneesti",
       "webhookTested": "Webhook testattu onnistuneesti",

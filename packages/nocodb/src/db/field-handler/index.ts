@@ -16,6 +16,7 @@ import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 import type {
   FilterVerificationResult,
   HandlerOptions,
+  IFieldHandler,
 } from './field-handler.interface';
 import type { Knex } from 'knex';
 import type { Column, Filter, Model } from '~/models';
@@ -119,7 +120,7 @@ function getLogicalOpMethod(logical_op?: string) {
       return 'where';
   }
 }
-export class FieldHandler {
+export class FieldHandler implements IFieldHandler {
   constructor(
     public readonly info: {
       model: Model;
@@ -150,9 +151,7 @@ export class FieldHandler {
     const dbHandlers = HANDLER_REGISTRY[uiType];
     const HandlerClass = dbHandlers?.[dbClient] ?? dbHandlers?.[CLIENT_DEFAULT];
     if (!HandlerClass) {
-      throw new Error(
-        `No handler registered for UIType: ${uiType} and DB client: ${dbClient}`,
-      );
+      return undefined;
     }
     return new HandlerClass();
   }
@@ -179,6 +178,7 @@ export class FieldHandler {
       knex,
       context: this.info.context,
       model: this.info.model,
+      fieldHandler: this,
       ...options,
     });
   }
@@ -245,6 +245,7 @@ export class FieldHandler {
       knex,
       context: this.info.context,
       model: this.info.model,
+      fieldHandler: this,
       ...options,
     });
   }
@@ -257,10 +258,13 @@ export class FieldHandler {
     const knex = options.knex ?? this.info.knex;
     return (
       this.getHandler(column.uidt, knex.client) ?? new GenericFieldHandler()
-    ).verifyFilter(filter, column, options);
+    ).verifyFilter(filter, column, {
+      fieldHandler: this,
+      ...options,
+    });
   }
 
-  async verifyFilters(filters: Filter[], options: HandlerOptions = {}) {
+  async verifyFiltersSafe(filters: Filter[], options: HandlerOptions = {}) {
     const model = options.model ?? this.info.model;
     if (!model.columns) {
       await model.getColumns(options.context ?? this.info.context);
@@ -279,13 +283,21 @@ export class FieldHandler {
           obj.errors = obj.errors.concat(res.errors);
           return obj;
         },
-        { errors: [] },
+        { isValid: false, errors: [] } as FilterVerificationResult,
       );
-    if (invalidFilterResults.errors.length > 0) {
-      throw new FilterVerificationError(invalidFilterResults.errors);
+    if (invalidFilterResults.errors?.length > 0) {
+      return invalidFilterResults;
     } else {
-      return true;
+      return { isValid: true } as FilterVerificationResult;
     }
+  }
+
+  async verifyFilters(filters: Filter[], options: HandlerOptions = {}) {
+    const verificationResult = await this.verifyFiltersSafe(filters, options);
+    if (!verificationResult.isValid) {
+      throw new FilterVerificationError(verificationResult.errors!);
+    }
+    return true;
   }
 
   async traverseFilters(

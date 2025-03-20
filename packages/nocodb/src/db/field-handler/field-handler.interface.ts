@@ -11,6 +11,7 @@ export interface HandlerOptions {
   metaService?: MetaService;
   knex?: Knex;
   tnPath?: string;
+  fieldHandler?: IFieldHandler;
 }
 export interface FilterVerificationResult {
   isValid: boolean;
@@ -29,4 +30,41 @@ export interface FieldHandlerInterface {
     column: Column,
     options?: HandlerOptions,
   ): Promise<FilterVerificationResult>;
+}
+
+export interface IFieldHandler {
+  applyFilter(
+    filter: Filter,
+    column?: Column,
+    options?: HandlerOptions,
+  ): Promise<(qb: Knex.QueryBuilder) => void>;
+
+  applyFilters(
+    filters: Filter[],
+    options?: HandlerOptions,
+  ): Promise<(qb: Knex.QueryBuilder) => void>;
+
+  applySelect(
+    qb: Knex.QueryBuilder,
+    column: Column,
+    options?: HandlerOptions,
+  ): Promise<void>;
+
+  verifyFilter(
+    filter: Filter,
+    column: Column,
+    options?: HandlerOptions,
+  ): Promise<FilterVerificationResult>;
+
+  verifyFiltersSafe(
+    filters: Filter[],
+    column: Column,
+    options?: HandlerOptions,
+  ): Promise<FilterVerificationResult>;
+
+  verifyFilters(
+    filters: Filter[],
+    column: Column,
+    options?: HandlerOptions,
+  ): Promise<boolean>;
 }

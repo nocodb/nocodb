@@ -15,15 +15,15 @@ interface Props {
   showBackBtn?: boolean
 }
 
+const { importType, importDataOnly = false, baseId, sourceId, transition, showBackBtn, ...rest } = defineProps<Props>()
+
+const emit = defineEmits(['update:modelValue', 'back'])
+
 enum ImportTypeTabs {
   'upload' = 'upload',
   'uploadFromUrl' = 'uploadFromUrl',
   'uploadJSON' = 'uploadJSON',
 }
-
-const { importType, importDataOnly = false, baseId, sourceId, transition, showBackBtn, ...rest } = defineProps<Props>()
-
-const emit = defineEmits(['update:modelValue', 'back'])
 
 const { $api, $importWorker } = useNuxtApp()
 
@@ -691,8 +691,8 @@ watch(
 
                   <template #itemRender="{ file, actions }">
                     <div class="flex items-center gap-4">
-                      <div class="bg-gray-100 h-10 flex flex-shrink items-center justify-center rounded-lg">
-                        <CellAttachmentIconView :item="{ title: file.name, mimetype: file.type }" class="w-9 h-9" />
+                      <div class="bg-gray-100 h-10 w-10 flex flex-none items-center justify-center rounded-lg">
+                        <GeneralIcon :icon="importMeta.icon" class="w-6 h-6 flex-none" />
                       </div>
                       <div class="flex flex-col flex-grow min-w-[0px]">
                         <NcTooltip show-on-truncate-only class="truncate text-sm text-gray-900 font-weight-500">
@@ -730,13 +730,13 @@ watch(
                             <NcList
                               v-model:value="file.encoding"
                               :open="visible"
-                              @update:open="onChange"
                               :list="charsetOptions"
                               search-input-placeholder="Search"
                               option-label-key="sortLabel"
                               option-value-key="value"
                               class="!w-full"
                               variant="small"
+                              @update:open="onChange"
                             >
                             </NcList>
                           </template>

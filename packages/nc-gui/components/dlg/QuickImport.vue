@@ -709,7 +709,7 @@ watch(
                       <a-form-item class="flex-1 !my-0 max-w-[120px] min-w-[120px]">
                         <NcDropdown placement="bottomRight" overlay-class-name="overflow-hidden !w-[170px]">
                           <template #default="{ visible }">
-                            <NcButton size="small" type="secondary" class="w-[120px] children:children:w-full">
+                            <NcButton size="small" type="secondary" class="w-[120px] children:children:w-full !text-small">
                               <NcTooltip class="flex-none w-[85px] truncate text-left !leading-[20px]" show-on-truncate-only>
                                 <template #title> {{ charsetOptionsMap[file.encoding]?.sortLabel ?? '' }}</template>
 
@@ -796,12 +796,12 @@ watch(
                   >
                     <template #message>
                       <div class="flex flex-row items-center gap-2 mb-1">
-                        <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
-                        <span class="font-weight-700 text-[14px]">Json Error</span>
+                        <GeneralIcon icon="ncAlertCircleFilled" class="text-nc-content-red-medium w-4 h-4" />
+                        <span class="text-nc-content-gray font-bold text-[14px]">Json Error</span>
                       </div>
                     </template>
                     <template #description>
-                      <div class="text-gray-500 text-[13px] leading-5 ml-6">
+                      <div class="text-nc-content-gray-subtle2 text-[13px] leading-5 ml-6">
                         {{ jsonErrorText || refMonacoEditor?.error }}
                       </div>
                     </template>
@@ -833,19 +833,19 @@ watch(
         >
           <a-collapse-panel key="advanced-settings">
             <a-form-item v-if="isImportTypeCsv || IsImportTypeExcel" class="!my-2 nc-dense-checkbox-container">
-              <a-checkbox v-model:checked="importState.parserConfig.firstRowAsHeaders">
+              <NcCheckbox v-model:checked="importState.parserConfig.firstRowAsHeaders">
                 <span class="caption">{{ $t('labels.firstRowAsHeaders') }}</span>
-              </a-checkbox>
+              </NcCheckbox>
             </a-form-item>
 
             <a-form-item v-if="isImportTypeJson" class="!my-2 nc-dense-checkbox-container">
-              <a-checkbox v-model:checked="importState.parserConfig.normalizeNested">
+              <NcCheckbox v-model:checked="importState.parserConfig.normalizeNested">
                 <span class="caption">{{ $t('labels.flattenNested') }}</span>
-              </a-checkbox>
+              </NcCheckbox>
             </a-form-item>
 
             <a-form-item v-if="!importDataOnly" class="!my-2 nc-dense-checkbox-container">
-              <a-checkbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }} </a-checkbox>
+              <NcCheckbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }} </NcCheckbox>
             </a-form-item>
           </a-collapse-panel>
         </a-collapse>

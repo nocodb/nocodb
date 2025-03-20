@@ -2,8 +2,9 @@
 import { toRaw, unref } from '@vue/runtime-core'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
-import { type TableType, charsetOptions, charsetOptionsMap } from 'nocodb-sdk'
+import { type TableType, charsetOptions, charsetOptionsMap, ncHasProperties } from 'nocodb-sdk'
 import rfdc from 'rfdc'
+import type { ProgressMessageObjType } from '../../helpers/parsers/TemplateGenerator'
 
 interface Props {
   modelValue: boolean
@@ -171,6 +172,8 @@ const isPreImportJsonFilled = computed(() => {
 })
 
 const maxFileUploadLimit = computed(() => (isImportTypeCsv.value ? 3 : 1))
+
+const hideUpload = computed(() => preImportLoading.value || importState.fileList.length >= maxFileUploadLimit.value)
 
 const disablePreImportButton = computed(() => {
   if (activeTab.value === ImportTypeTabs.upload) {
@@ -408,7 +411,7 @@ const showMaxFileLimitError = ref(false)
 
 /** check if the file size exceeds the limit */
 const beforeUpload = (file: UploadFile, fileList: UploadFile[]) => {
-  if (importState.fileList.length + fileList.length >= maxFileUploadLimit.value) {
+  if (importState.fileList.length + fileList.length > maxFileUploadLimit.value) {
     showMaxFileLimitError.value = true
   }
 
@@ -509,13 +512,12 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
               importWorker?.removeEventListener('message', handler, false)
               break
             case ImportWorkerResponse.PROGRESS:
-              if (ncIsObject(payload)) {
-                progressMsgNew.value[payload.title] = payload?.value ?? ''
-
-                progressMsgNew.value = { ...progressMsgNew.value }
+              if (ncHasProperties<ProgressMessageObjType>(payload, ['title', 'value'])) {
+                progressMsgNew.value = { ...progressMsgNew.value, [payload.title]: payload?.value ?? '' }
               } else {
                 progressMsg.value = payload
               }
+
               break
             case ImportWorkerResponse.ERROR:
               reject(payload)
@@ -564,6 +566,10 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
   } catch (e: any) {
     console.log(e)
 
+    /**
+     * If it is import url and it fail to send req due to cross origin or any other reason the e type will be string
+     * @example: Failed to execute 'send' on 'XMLHttpRequest': Failed to load '<url>'
+     */
     if (typeof e === 'string' && isPreImportUrlFilled.value && activeTab.value === ImportTypeTabs.uploadFromUrl) {
       message.error(e.replace(importState.url, '').replace(/''/, ''))
     } else {
@@ -604,6 +610,12 @@ const onCancelImport = () => {
 onUnmounted(() => {
   onCancelImport()
 })
+
+const onClickCancel = () => {
+  dialogShow.value = false
+  emit('back')
+  onCancelImport()
+}
 
 function handleJsonChange(newValue: any) {
   try {
@@ -708,11 +720,11 @@ watch(
                   name="file"
                   class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !border-gray-200"
                   :class="{
-                    hidden: preImportLoading || importState.fileList.length >= (isImportTypeCsv ? 3 : 1),
+                    hidden: hideUpload,
                   }"
                   list-type="picture"
                   :accept="importMeta.acceptTypes"
-                  :max-count="isImportTypeCsv ? 3 : 1"
+                  :max-count="maxFileUploadLimit"
                   :multiple="true"
                   :disabled="preImportLoading"
                   :custom-request="customReqCbk"
@@ -990,19 +1002,7 @@ watch(
           {{ $t('general.back') }}
         </NcButton>
 
-        <NcButton
-          v-else
-          key="cancel"
-          type="text"
-          size="small"
-          @click="
-            () => {
-              dialogShow = false
-              emit('back')
-              onCancelImport()
-            }
-          "
-        >
+        <NcButton v-else key="cancel" type="text" size="small" @click="onClickCancel">
           <GeneralIcon v-if="showBackBtn" icon="chevronLeft" class="mr-1" />
 
           {{ showBackBtn ? $t('general.back') : $t('general.cancel') }}

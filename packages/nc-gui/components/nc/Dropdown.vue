@@ -59,7 +59,7 @@ onClickOutside(overlayWrapperDomRef, () => {
   visible.value = false
 })
 
-const onVisibleUpdate = (event: any) => {
+const onVisibleUpdate = (event: boolean) => {
   localIsVisible.value = event
 
   if (visible !== undefined) {

@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV Fitxategia",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON Fitxategia",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "Garbitu inprimakia",
     "addFieldFromFormView": "Gehitu eremua",
     "selectAllFields": "Hautatu eremu guztiak",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Aurrez betetzea gaitu",
       "default": "Lehenetsia",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Bilatu ikonoak",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "Ezingo duzu alda eremu baten ikusgarritasuna eremu hori editatzen ari den bitartean. Mesedez, gorde edo hautaz erabili aldaketak lehenik.",
         "moveEditedField": "Ezin duzu editatzen ari den eremua mugitu. Aldaketak gorde edo baztertu lehenik",
         "moveDeletedField": "Ezin duzu ezabatutako eremua mugitu. Aldaketak gorde edo baztertu lehenik"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Project metadata exported successfully",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Txertagarri HTML kodea kopiatu da!",
       "userDetailsUpdated": "Erabiltzailearen xehetasunak arrakastaz eguneratu dira",
       "tableDataImported": "Taula-datuak arrakastaz inportatu dira",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook xehetasunak arrakastaz eguneratu dira",
       "webhookDeleted": "Kirtena arrakastaz ezabatu da",
       "webhookTested": "Webhoka arrakastaz probatu da",

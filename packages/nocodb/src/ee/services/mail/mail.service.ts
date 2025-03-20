@@ -15,22 +15,69 @@ export class MailService extends MailServiceCE {
       this.logger.error('Email Plugin not configured / active');
       return false;
     }
+    try {
+      switch (params.mailEvent) {
+        case MailEvent.COMMENT_CREATE:
+        case MailEvent.COMMENT_UPDATE: {
+          const {
+            base,
+            model: table,
+            user,
+            comment,
+            rowId,
+            req,
+          } = params.payload;
 
-    switch (params.mailEvent) {
-      case MailEvent.COMMENT_CREATE:
-      case MailEvent.COMMENT_UPDATE: {
-        const {
-          base,
-          model: table,
-          user,
-          comment,
-          rowId,
-          req,
-        } = params.payload;
+          const mentions = extractMentions(comment.comment);
 
-        const mentions = extractMentions(comment.comment);
+          if (mentions && mentions.length) {
+            const workspace = await Workspace.get(base.fk_workspace_id);
 
-        if (mentions && mentions.length) {
+            const baseUsers = await BaseUser.getUsersList(req.context, {
+              base_id: base.id,
+            });
+
+            for (const mention of mentions ?? []) {
+              const mentionedUser = baseUsers.find((b) => b.id === mention);
+
+              if (!mentionedUser) continue;
+              if (mentionedUser.id === user.id) continue;
+
+              await mailerAdapter.mailSend({
+                to: mentionedUser.email,
+                subject: `You have been mentioned`,
+                html: await this.renderMail('Mention', {
+                  name: extractDisplayNameFromEmail(
+                    user.email,
+                    user.display_name,
+                  ),
+                  email: user.email,
+                  link: this.buildUrl(req, {
+                    workspaceId: workspace.id,
+                    baseId: base.id,
+                    tableId: table.id,
+                    rowId,
+                    commentId: comment.id,
+                  }),
+                  baseTitle: base.title,
+                }),
+              });
+            }
+          }
+          break;
+        }
+        case MailEvent.ROW_USER_MENTION: {
+          const {
+            model: table,
+            rowId,
+            user,
+            column,
+            req,
+            mentions,
+          } = params.payload;
+
+          const base = await Base.get(req.context, table.base_id);
+
           const workspace = await Workspace.get(base.fk_workspace_id);
 
           const baseUsers = await BaseUser.getUsersList(req.context, {
@@ -46,124 +93,84 @@ export class MailService extends MailServiceCE {
             await mailerAdapter.mailSend({
               to: mentionedUser.email,
               subject: `You have been mentioned`,
-              html: await this.renderMail('Mention', {
+              html: await this.renderMail('MentionRow', {
                 name: extractDisplayNameFromEmail(
                   user.email,
                   user.display_name,
                 ),
                 email: user.email,
+                baseTitle: base.title,
                 link: this.buildUrl(req, {
                   workspaceId: workspace.id,
                   baseId: base.id,
                   tableId: table.id,
                   rowId,
-                  commentId: comment.id,
+                  columnId: column.id,
                 }),
-                baseTitle: base.title,
               }),
             });
           }
+          break;
         }
-        break;
-      }
-      case MailEvent.ROW_USER_MENTION: {
-        const {
-          model: table,
-          rowId,
-          user,
-          column,
-          req,
-          mentions,
-        } = params.payload;
+        case MailEvent.WORKSPACE_INVITE: {
+          const {
+            payload: { workspace, user, req, token },
+          } = params;
 
-        const base = await Base.get(req.context, table.base_id);
-
-        const workspace = await Workspace.get(base.fk_workspace_id);
-
-        const baseUsers = await BaseUser.getUsersList(req.context, {
-          base_id: base.id,
-        });
-
-        for (const mention of mentions ?? []) {
-          const mentionedUser = baseUsers.find((b) => b.id === mention);
-
-          if (!mentionedUser) continue;
-          if (mentionedUser.id === user.id) continue;
+          const invitee = req.user;
 
           await mailerAdapter.mailSend({
-            to: mentionedUser.email,
-            subject: `You have been mentioned`,
-            html: await this.renderMail('MentionRow', {
-              name: extractDisplayNameFromEmail(user.email, user.display_name),
-              email: user.email,
-              baseTitle: base.title,
+            to: user.email,
+            subject: `You’ve been invited to a Workspace`,
+            html: await this.renderMail('WorkspaceInvite', {
+              workspaceTitle: workspace.title,
+              name: extractDisplayNameFromEmail(
+                invitee.email,
+                invitee.display_name,
+              ),
+              email: invitee.email,
               link: this.buildUrl(req, {
                 workspaceId: workspace.id,
-                baseId: base.id,
-                tableId: table.id,
-                rowId,
-                columnId: column.id,
+                token,
               }),
             }),
           });
+          break;
         }
-        break;
-      }
-      case MailEvent.WORKSPACE_INVITE: {
-        const {
-          payload: { workspace, user, req, token },
-        } = params;
+        case MailEvent.WORKSPACE_ROLE_UPDATE: {
+          const {
+            payload: { workspace, user, req, oldRole, newRole },
+          } = params;
 
-        const invitee = req.user;
+          const invitee = req.user;
 
-        await mailerAdapter.mailSend({
-          to: user.email,
-          subject: `You’ve been invited to a Workspace`,
-          html: await this.renderMail('WorkspaceInvite', {
-            workspaceTitle: workspace.title,
-            name: extractDisplayNameFromEmail(
-              invitee.email,
-              invitee.display_name,
-            ),
-            email: invitee.email,
-            link: this.buildUrl(req, {
-              workspaceId: workspace.id,
-              token,
+          await mailerAdapter.mailSend({
+            to: user.email,
+            subject: `Your Workspace role has been updated`,
+            html: await this.renderMail('WorkspaceRoleUpdate', {
+              workspaceTitle: workspace.title,
+              newRole: RoleLabels[newRole],
+              oldRole: RoleLabels[oldRole],
+              name: extractDisplayNameFromEmail(
+                invitee.email,
+                invitee.display_name,
+              ),
+              email: invitee.email,
+              link: this.buildUrl(req, {
+                workspaceId: workspace.id,
+              }),
             }),
-          }),
-        });
-        break;
+          });
+          break;
+        }
+
+        default:
+          return await super.sendMail(params);
       }
-      case MailEvent.WORKSPACE_ROLE_UPDATE: {
-        const {
-          payload: { workspace, user, req, oldRole, newRole },
-        } = params;
-
-        const invitee = req.user;
-
-        await mailerAdapter.mailSend({
-          to: user.email,
-          subject: `Your Workspace role has been updated`,
-          html: await this.renderMail('WorkspaceRoleUpdate', {
-            workspaceTitle: workspace.title,
-            newRole: RoleLabels[newRole],
-            oldRole: RoleLabels[oldRole],
-            name: extractDisplayNameFromEmail(
-              invitee.email,
-              invitee.display_name,
-            ),
-            email: invitee.email,
-            link: this.buildUrl(req, {
-              workspaceId: workspace.id,
-            }),
-          }),
-        });
-        break;
-      }
-
-      default:
-        await super.sendMail(params);
-        break;
+      return true;
+    } catch (e) {
+      this.logger.error('MailService Error', e);
+      return false;
     }
   }
 }

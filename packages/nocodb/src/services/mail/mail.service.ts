@@ -113,149 +113,154 @@ export class MailService {
 
     const { payload, mailEvent } = params;
 
-    switch (mailEvent) {
-      case MailEvent.BASE_INVITE: {
-        const { base, user, req, token } = payload;
+    try {
+      switch (mailEvent) {
+        case MailEvent.BASE_INVITE: {
+          const { base, user, req, token } = payload;
 
-        const invitee = req.user;
-        await mailerAdapter.mailSend({
-          to: user.email,
-          subject: `You’ve been invited to a Base`,
-          html: await this.renderMail('BaseInvite', {
-            baseTitle: base.title,
-            name: extractDisplayNameFromEmail(
-              invitee.email,
-              invitee.display_name,
-            ),
-            email: invitee.email,
-            link: this.buildUrl(req, {
-              workspaceId: base.fk_workspace_id,
-              baseId: base.id,
-              token,
+          const invitee = req.user;
+          await mailerAdapter.mailSend({
+            to: user.email,
+            subject: `You’ve been invited to a Base`,
+            html: await this.renderMail('BaseInvite', {
+              baseTitle: base.title,
+              name: extractDisplayNameFromEmail(
+                invitee.email,
+                invitee.display_name,
+              ),
+              email: invitee.email,
+              link: this.buildUrl(req, {
+                workspaceId: base.fk_workspace_id,
+                baseId: base.id,
+                token,
+              }),
             }),
-          }),
-        });
-        break;
-      }
-      case MailEvent.BASE_ROLE_UPDATE: {
-        const { req, user, base, oldRole, newRole } = payload;
-        const invitee = req.user;
+          });
+          break;
+        }
+        case MailEvent.BASE_ROLE_UPDATE: {
+          const { req, user, base, oldRole, newRole } = payload;
+          const invitee = req.user;
 
-        await mailerAdapter.mailSend({
-          to: user.email,
-          subject: `Your Base role has been updated`,
-          html: await this.renderMail('BaseRoleUpdate', {
-            baseTitle: base.title,
-            name: extractDisplayNameFromEmail(
-              invitee.email,
-              invitee.display_name,
-            ),
-            email: invitee.email,
-            oldRole: RoleLabels[oldRole],
-            newRole: RoleLabels[newRole],
-            link: this.buildUrl(req, {
-              workspaceId: base.fk_workspace_id,
-              baseId: base.id,
+          await mailerAdapter.mailSend({
+            to: user.email,
+            subject: `Your Base role has been updated`,
+            html: await this.renderMail('BaseRoleUpdate', {
+              baseTitle: base.title,
+              name: extractDisplayNameFromEmail(
+                invitee.email,
+                invitee.display_name,
+              ),
+              email: invitee.email,
+              oldRole: RoleLabels[oldRole],
+              newRole: RoleLabels[newRole],
+              link: this.buildUrl(req, {
+                workspaceId: base.fk_workspace_id,
+                baseId: base.id,
+              }),
             }),
-          }),
-        });
-        break;
-      }
-      case MailEvent.RESET_PASSWORD: {
-        const { user, req } = payload;
+          });
+          break;
+        }
+        case MailEvent.RESET_PASSWORD: {
+          const { user, req } = payload;
 
-        await mailerAdapter.mailSend({
-          to: user.email,
-          subject: `Reset your password`,
-          html: await this.renderMail('PasswordReset', {
-            email: user.email,
-            link: this.buildUrl(req, {
-              resetPassword: (user as any).reset_password_token,
+          await mailerAdapter.mailSend({
+            to: user.email,
+            subject: `Reset your password`,
+            html: await this.renderMail('PasswordReset', {
+              email: user.email,
+              link: this.buildUrl(req, {
+                resetPassword: (user as any).reset_password_token,
+              }),
             }),
-          }),
-        });
-        break;
-      }
+          });
+          break;
+        }
 
-      case MailEvent.VERIFY_EMAIL: {
-        const { user, req } = payload;
-        await mailerAdapter.mailSend({
-          to: user.email,
-          subject: `Verify your email`,
-          html: await this.renderMail('VerifyEmail', {
-            email: user.email,
-            link: this.buildUrl(req, {
-              verificationToken: (user as any).email_verification_token,
+        case MailEvent.VERIFY_EMAIL: {
+          const { user, req } = payload;
+          await mailerAdapter.mailSend({
+            to: user.email,
+            subject: `Verify your email`,
+            html: await this.renderMail('VerifyEmail', {
+              email: user.email,
+              link: this.buildUrl(req, {
+                verificationToken: (user as any).email_verification_token,
+              }),
             }),
-          }),
-        });
-        break;
-      }
-      case MailEvent.WELCOME: {
-        const { req, user } = payload;
-        await mailerAdapter.mailSend({
-          to: user.email,
-          subject: `Welcome to NocoDB!`,
-          html: await this.renderMail('Welcome', {
-            email: user.email,
-            link: this.buildUrl(req, {}),
-          }),
-        });
-        break;
-      }
-      case MailEvent.ORGANIZATION_INVITE: {
-        const { req, user, token } = payload;
-        const invitee = req.user;
-        await mailerAdapter.mailSend({
-          to: user.email,
-          subject: `You have been invited to join NocoDB`,
-          html: await this.renderMail('OrganizationInvite', {
-            name: extractDisplayNameFromEmail(
-              invitee.email,
-              invitee.display_name,
-            ),
-            email: invitee.email,
-            link: this.buildUrl(req, {
-              token,
+          });
+          break;
+        }
+        case MailEvent.WELCOME: {
+          const { req, user } = payload;
+          await mailerAdapter.mailSend({
+            to: user.email,
+            subject: `Welcome to NocoDB!`,
+            html: await this.renderMail('Welcome', {
+              email: user.email,
+              link: this.buildUrl(req, {}),
             }),
-          }),
-        });
-        break;
-      }
-      case MailEvent.ORGANIZATION_ROLE_UPDATE: {
-        const { req, user, oldRole, newRole } = payload;
-        const invitee = req.user;
-        await mailerAdapter.mailSend({
-          to: user.email,
-          subject: `Role updated in NocoDB`,
-          html: await this.renderMail('OrganizationRoleUpdate', {
-            name: extractDisplayNameFromEmail(
-              invitee.email,
-              invitee.display_name,
-            ),
-            email: invitee.email,
-            oldRole: RoleLabels[oldRole],
-            newRole: RoleLabels[newRole],
-            link: this.buildUrl(req, {}),
-          }),
-        });
-        break;
-      }
-      case MailEvent.FORM_SUBMISSION: {
-        const { formView, data, model, emails, base } = payload;
+          });
+          break;
+        }
+        case MailEvent.ORGANIZATION_INVITE: {
+          const { req, user, token } = payload;
+          const invitee = req.user;
+          await mailerAdapter.mailSend({
+            to: user.email,
+            subject: `You have been invited to join NocoDB`,
+            html: await this.renderMail('OrganizationInvite', {
+              name: extractDisplayNameFromEmail(
+                invitee.email,
+                invitee.display_name,
+              ),
+              email: invitee.email,
+              link: this.buildUrl(req, {
+                token,
+              }),
+            }),
+          });
+          break;
+        }
+        case MailEvent.ORGANIZATION_ROLE_UPDATE: {
+          const { req, user, oldRole, newRole } = payload;
+          const invitee = req.user;
+          await mailerAdapter.mailSend({
+            to: user.email,
+            subject: `Role updated in NocoDB`,
+            html: await this.renderMail('OrganizationRoleUpdate', {
+              name: extractDisplayNameFromEmail(
+                invitee.email,
+                invitee.display_name,
+              ),
+              email: invitee.email,
+              oldRole: RoleLabels[oldRole],
+              newRole: RoleLabels[newRole],
+              link: this.buildUrl(req, {}),
+            }),
+          });
+          break;
+        }
+        case MailEvent.FORM_SUBMISSION: {
+          const { formView, data, model, emails, base } = payload;
 
-        await mailerAdapter.mailSend({
-          to: emails.join(','),
-          subject: `NocoDB Forms: Someone has responded to ${formView.title}`,
-          html: await this.renderMail('FormSubmission', {
-            formTitle: formView.title,
-            tableTitle: model.title,
-            submissionData: data,
-            baseTitle: base.title,
-          }),
-        });
+          await mailerAdapter.mailSend({
+            to: emails.join(','),
+            subject: `NocoDB Forms: Someone has responded to ${formView.title}`,
+            html: await this.renderMail('FormSubmission', {
+              formTitle: formView.title,
+              tableTitle: model.title,
+              submissionData: data,
+              baseTitle: base.title,
+            }),
+          });
+        }
       }
+      return true;
+    } catch (e) {
+      this.logger.error('Error sending email', e);
+      return false;
     }
-    return true;
   }
 }

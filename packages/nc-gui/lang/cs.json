@@ -1095,7 +1095,7 @@
     "restApis": "REST API",
     "apis": "API",
     "apiSnippet": "API úryvky",
-    "includeData": "Zahrnout data",
+    "includeData": "Include Data",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
     "includeView": "Include views",

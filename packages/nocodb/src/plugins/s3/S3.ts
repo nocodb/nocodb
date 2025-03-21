@@ -50,7 +50,7 @@ export default class S3 extends GenericS3 implements IStorageAdapterV2 {
       region: this.input.region,
       forcePathStyle: this.input.force_path_style ?? false,
       requestChecksumCalculation: 'WHEN_REQUIRED',
-      responseChecksumValidation: 'WHEN_REQUIRED'
+      responseChecksumValidation: 'WHEN_REQUIRED',
     };
 
     if (this.input.access_key && this.input.access_secret) {

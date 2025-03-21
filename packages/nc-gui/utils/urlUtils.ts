@@ -12,7 +12,7 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
   const rawText = text.toString()
 
   const protocolRegex = /^(https?|ftp|mailto|file):\/\//
-  let isUrlFound = false
+  let isUrlPatternFound = false
   const out = rawText.replace(
     /**
      * Matches patterns of the form:
@@ -37,7 +37,7 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
      */
     /URI::\(((?:[^()]|\\\)|\\\()*[^\\]|)\)(?:\s*LABEL::\(((?:[^()]|\\\)|\\\()*[^\\]|)\))?/g,
     (_, _url, _label) => {
-      isUrlFound = true
+      isUrlPatternFound = true
       let isUrl = false
       // replace whitespace at beginning and end of URL and label if found
       // Unescape escaped parentheses (`(` and `)`) in the URL and label content
@@ -49,11 +49,12 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
       }
 
       const fullUrl = protocolRegex.test(url) ? url : url.trim() ? `https://${url}` : ''
+
       isUrl = isURL(fullUrl)
 
       const anchorLabel = label || url || ''
 
-      if (!isUrl) return label
+      if (!isUrl) return anchorLabel
 
       const a = document.createElement('a')
       a.textContent = anchorLabel
@@ -66,7 +67,7 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
     },
   )
 
-  return isUrlFound ? out : false // Return false if no URL found
+  return isUrlPatternFound ? out : false // Return false if no URL found
 }
 
 export const replaceUrlsWithLink = (text: string) => {

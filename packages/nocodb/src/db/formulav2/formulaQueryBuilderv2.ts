@@ -23,7 +23,7 @@ import type {
 } from 'nocodb-sdk';
 import type {
   FnParsedTreeNode,
-  FormulaQueryBuilderBaseParams,
+  FormulaQueryBuilderBaseParams, TAliasToClumn,
 } from './formula-query-builder.types';
 import type RollupColumn from '~/models/RollupColumn';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
@@ -1387,7 +1387,7 @@ export default async function formulaQueryBuilderv2({
   tree;
   model: Model;
   column?: Column;
-  aliasToColumn?: Record<string, any>;
+  aliasToColumn?: TAliasToClumn;
   tableAlias?: string;
   validateFormula?: boolean;
   parsedTree?: any;

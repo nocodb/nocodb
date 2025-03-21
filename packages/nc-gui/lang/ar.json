@@ -1095,7 +1095,7 @@
     "restApis": "REST APIs",
     "apis": "APIs",
     "apiSnippet": "مقتطفات API",
-    "includeData": "تضمين البيانات",
+    "includeData": "Include Data",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
     "includeView": "Include views",

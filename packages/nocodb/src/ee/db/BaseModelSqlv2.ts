@@ -2113,7 +2113,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const toUpdate = [];
 
       for (const { pk, data } of dataWithPks) {
-        if (existingPkSet.has(pk)) {
+        const comparativePk = typeof pk === 'string' ? pk : pk.toString();
+        if (existingPkSet.has(comparativePk)) {
           await this.prepareNocoData(data, false, cookie);
           toUpdate.push(data);
 

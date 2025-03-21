@@ -1276,18 +1276,7 @@ export function renderFormulaURL(
     verticalAlign?: CanvasTextBaseline
   },
 ): { x: number; y: number; width: number; height: number; url?: string }[] {
-  const {
-    htmlText,
-    x,
-    y,
-    maxWidth,
-    height,
-    lineHeight,
-    fillStyle = '#4a5268',
-    fontFamily = '500 13px Manrope',
-    textAlign = 'left',
-    verticalAlign = 'middle',
-  } = params
+  const { htmlText, x, y, maxWidth, height, lineHeight, fillStyle = '#4a5268' } = params
 
   let maxLines = 1
   if (rowHeightInPx['1'] === height) {
@@ -1298,12 +1287,6 @@ export function renderFormulaURL(
   const ellipsisWidth = ctx.measureText('...').width
 
   const urlRects: { x: number; y: number; width: number; height: number; url?: string }[] = []
-
-  ctx.save()
-  ctx.font = fontFamily
-  ctx.textAlign = textAlign
-  ctx.textBaseline = verticalAlign
-  ctx.fillStyle = fillStyle
 
   const container = document.createElement('div')
   container.innerHTML = htmlText
@@ -1427,7 +1410,6 @@ export function renderFormulaURL(
   }
 
   container.childNodes.forEach((node) => processNode(node))
-  ctx.restore()
 
   return urlRects
 }

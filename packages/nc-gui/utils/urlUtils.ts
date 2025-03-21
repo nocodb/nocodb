@@ -12,12 +12,12 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
   const rawText = text.toString()
 
   const protocolRegex = /^(https?|ftp|mailto|file):\/\//
-  let isUrl = false
+  let isUrlFound = false
 
   const out = rawText.replace(
     /**
-     * Matches patterns of the form:
-     * URI::(url_content)[optional space]LABEL::(label_content)
+     * * Matches patterns of the form:
+     * * URI::( url_content )[optional space]LABEL::( label_content )
      *
      * - `URI::(...)` - Extracts the URL content between parentheses.
      * - `LABEL::(...)` - (Optional) Extracts the label content between parentheses.
@@ -25,19 +25,25 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
      * - `[^()]|\\\)|\\\(` - Matches any character except parentheses or escaped parentheses.
      * - `\s*` - Matches any optional spaces between the URI and LABEL parts.
      *
+     *  * Important Notes:
+     *  *  - Whitespace has been intentionally added inside the regex
+     *  *    to prevent escape sequences from being misinterpreted.
+     *  *    For example, if string ends with `\` then it will be treated as escape sequence
+     *
      * Example Matches:
-     * - URI::(https://example.com)
-     * - URI::(https://example.com) LABEL::(My Label)
-     * - URI::(https://example.com\)with\)escapes) LABEL::(Label\))
+     * - URI::( https://example.com )
+     * - URI::( https://example.com ) LABEL::( My Label )
+     * - URI::( https://example.com\)with\)escapes ) LABEL::( Label\) )
      */
-    /URI::\(((?:[^()]|\\\)|\\\()*[^\\]|\s*)\)(?:\s*LABEL::\(((?:[^()]|\\\)|\\\()*[^\\]|\s*)\))?/g,
+    /URI::\( ((?:[^()]|\\\)|\\\()*) \)(?:\s*LABEL::\( ((?:[^()]|\\\)|\\\()*) \))?/g,
     (_, _url, _label) => {
+      isUrlFound = true
+      let isUrl = false
       // Unescape escaped parentheses (`(` and `)`) in the URL and label content
       const url = _url.replace(/\\([()])/g, '$1')
       const label = _label?.replace(/\\([()])/g, '$1')
 
       if (!url.trim()) {
-        isUrl = true
         return label || ' '
       }
 
@@ -46,17 +52,20 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
 
       const anchorLabel = label || url || ''
 
+      if (!isUrl) return label
+
       const a = document.createElement('a')
       a.textContent = anchorLabel
       a.setAttribute('href', decode(fullUrl))
       a.setAttribute('class', 'nc-cell-field-link')
       a.setAttribute('target', '_blank')
       a.setAttribute('rel', 'noopener noreferrer')
+      a.setAttribute('onClick', 'window.tiptapLinkHandler(event)')
       return a.outerHTML
     },
   )
 
-  return isUrl ? out : false
+  return isUrlFound ? out : false // Return false if no URL found
 }
 
 export const replaceUrlsWithLink = (text: string) => {

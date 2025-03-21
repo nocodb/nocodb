@@ -922,14 +922,36 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
           }
           break;
         case 'URL':
+          /**
+           * Added extra whitespace around URI and LABEL content to avoid conflicts during regex parsing.
+           *
+           * Reason for Adding Whitespace:
+           * - Our URI syntax uses parentheses `(` and `)` to wrap URL and label content.
+           * - Escaped parentheses `\(` and `\)` are allowed inside content, but without extra space,
+           *   trailing backslashes (e.g., `\)`) near the closing parenthesis can cause incomplete group matches.
+           * - Adding leading and trailing spaces around the content (`URI::( ` and ` )`) ensures that
+           *   closing parentheses after escaped characters are parsed correctly.
+           *
+           * Example Case:
+           * - Without space: `URI::(https://github.com/nocodb/nocodb/pull/10707\)`
+           *   - Results in incomplete or invalid group matches.
+           * - With space: `URI::( https://github.com/nocodb/nocodb/pull/10707\ )`
+           *   - Handles escaped characters and parses content as expected.
+           *
+           * How It Works:
+           * - The backend adds a leading space after `URI::(` and before the closing `)`.
+           * - For labels, a leading space is added after `LABEL::(` and before `)`.
+           * - The frontend regex is updated to accommodate these changes.
+           *
+           */
           return fn(
             {
               type: JSEPNode.CALL_EXP,
               arguments: [
                 {
                   type: JSEPNode.LITERAL,
-                  value: 'URI::(',
-                  raw: '"URI::("',
+                  value: 'URI::( ',
+                  raw: '"URI::( "',
                 },
                 // wrap with replace function to escape parenthesis since it has special meaning in our URI syntax
                 {
@@ -973,15 +995,15 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                 },
                 {
                   type: JSEPNode.LITERAL,
-                  value: ')',
-                  raw: '")"',
+                  value: ' )',
+                  raw: '" )"',
                 },
                 ...(pt.arguments[1]
                   ? ([
                       {
                         type: JSEPNode.LITERAL,
-                        value: ' LABEL::(',
-                        raw: ' LABEL::(',
+                        value: ' LABEL::( ',
+                        raw: ' LABEL::( ',
                       },
 
                       // wrap with replace function to escape parenthesis since it has special meaning in our URI syntax
@@ -1026,8 +1048,8 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                       },
                       {
                         type: JSEPNode.LITERAL,
-                        value: ')',
-                        raw: '")"',
+                        value: ' )',
+                        raw: '" )"',
                       },
                     ] as ParsedFormulaNode[])
                   : ([] as ParsedFormulaNode[])),

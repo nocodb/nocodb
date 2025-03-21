@@ -424,10 +424,7 @@ export class UtilsService {
 
     let giftUrl: string;
 
-    if (
-      process.env.NC_DISABLE_GIFT_BANNER !== 'true' &&
-      instance.impacted >= 5
-    ) {
+    if (instance.impacted >= 5) {
       giftUrl = `https://w21dqb1x.nocodb.com/#/nc/form/4d2e0e4b-df97-4c5e-ad8e-f8b8cca90330?Users=${
         instance.impacted
       }&Bases=${instance.projectsExt + instance.projectsMeta}`;

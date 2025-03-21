@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "Файл CSV",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "Файл JSON",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "Очистить форму",
     "addFieldFromFormView": "Добавить поле",
     "selectAllFields": "Выбрать все поля",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Включить автозаполнение",
       "default": "По умолчанию",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Поиск значков",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "Вы не можете изменить видимость редактируемого поля. Сначала сохраните или отмените изменения.",
         "moveEditedField": "Вы не можете переместить поле, которое редактируется. Сначала сохраните или отмените изменения",
         "moveDeletedField": "Вы не можете переместить поле, которое удалено. Сначала сохраните или отмените изменения"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Метаданные проекта успешно экспортированы",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Скопированный встраиваемый HTML-код!",
       "userDetailsUpdated": "Успешно обновлены данные о пользователе",
       "tableDataImported": "Успешный импорт данных таблицы",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Детали Webhook успешно обновлены",
       "webhookDeleted": "Крючок успешно удален",
       "webhookTested": "Webhook успешно протестирован",

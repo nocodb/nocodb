@@ -9,7 +9,7 @@ const onUpgradePlan = async () => {
 <template>
   <div
     v-if="!isPaidPlan"
-    class="m-6 rounded-lg border-1 border-nc-border-gray-medium shadow-default max-w-350 bg-nc-bg-maroon-light"
+    class="nc-payment-banner m-6 rounded-lg border-1 border-nc-border-gray-medium max-w-338 bg-nc-bg-maroon-light overflow-hidden"
   >
     <div class="flex">
       <div class="flex flex-col p-6">
@@ -37,9 +37,31 @@ const onUpgradePlan = async () => {
           </NcButton>
         </div>
       </div>
-      <div class="w-full flex items-end justify-end pt-6">
-        <img class="rounded-br-lg" src="~assets/img/upgrade-illustration.svg" alt="Upgrade Your Workspace" />
+      <div class="w-[60%] flex items-end justify-end pt-6 relative">
+        <div class="absolute top-6 left-0 border-t-1 border-l-1 rounded-tl-lg overflow-hidden bg-nc-bg-gray-medium min-w-[500px]">
+          <img class="!rounded-rl-lg" src="~assets/img/kanban-view.png" alt="Upgrade Your Workspace" />
+        </div>
+        <div class="absolute -bottom-[28px] overflow-hidden">
+          <img
+            class="!rounded-rl-lg nc-finance-img"
+            src="~assets/img/finance.png"
+            alt="Upgrade Your Workspace"
+            height="126px"
+            width="133px"
+          />
+        </div>
       </div>
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-payment-banner {
+  box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
+
+  .nc-finance-img {
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+  }
+}
+</style>

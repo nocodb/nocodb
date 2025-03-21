@@ -15,15 +15,13 @@ const { paymentState, workspaceSeatCount } = useProvidePaymentStore()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
-const activePlanMeta = computed(
-  () => PlanMeta[(activeWorkspace.value?.payment?.plan.title ?? PlanTitles.FREE) as keyof typeof PlanMeta],
-)
+const activePlanMeta = computed(() => PlanMeta[(activeWorkspace.value?.payment?.plan.title ?? PlanTitles.FREE) as PlanTitles])
 </script>
 
 <template>
   <div
     v-if="!paymentInitiated"
-    class="flex flex-col min-w-[fit-content] rounded-[20px] border-1 p-6 gap-4"
+    class="flex flex-col min-w-[fit-content] rounded-5 border-1 p-6 gap-5"
     :style="{ backgroundColor: activePlanMeta.color, borderColor: activePlanMeta.accent }"
   >
     <div class="text-2xl font-bold">{{ activeWorkspace?.payment?.plan.title }}</div>

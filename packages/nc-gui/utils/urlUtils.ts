@@ -36,9 +36,9 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
       const url = _url.replace(/\\([()])/g, '$1')
       const label = _label.replace(/\\([()])/g, '$1')
 
-      if (!url.trim() && !label) {
+      if (!url.trim()) {
         isUrl = true
-        return ' '
+        return label || ' '
       }
 
       const fullUrl = protocolRegex.test(url) ? url : url.trim() ? `https://${url}` : ''

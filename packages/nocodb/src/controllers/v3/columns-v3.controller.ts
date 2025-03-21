@@ -23,7 +23,7 @@ import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
 export class ColumnsV3Controller {
   constructor(private readonly columnsV3Service: ColumnsV3Service) {}
 
-  @Post(['/api/v3/meta/tables/:tableId/fields/'])
+  @Post(['/api/v3/:baseName/meta/tables/:tableId/fields/'])
   @HttpCode(200)
   @Acl('columnAdd')
   async columnAdd(
@@ -40,7 +40,7 @@ export class ColumnsV3Controller {
     });
   }
 
-  @Patch(['/api/v3/meta/fields/:columnId'])
+  @Patch(['/api/v3/:baseName/meta/fields/:columnId'])
   @Acl('columnUpdate')
   async columnUpdate(
     @TenantContext() context: NcContext,
@@ -56,7 +56,7 @@ export class ColumnsV3Controller {
     });
   }
 
-  @Delete(['/api/v3/meta/fields/:columnId'])
+  @Delete(['/api/v3/:baseName/meta/fields/:columnId'])
   @Acl('columnDelete')
   async columnDelete(
     @TenantContext() context: NcContext,
@@ -70,7 +70,7 @@ export class ColumnsV3Controller {
     });
   }
 
-  @Get(['/api/v3/meta/fields/:columnId'])
+  @Get(['/api/v3/:baseName/meta/fields/:columnId'])
   @Acl('columnGet')
   async columnGet(
     @TenantContext() context: NcContext,

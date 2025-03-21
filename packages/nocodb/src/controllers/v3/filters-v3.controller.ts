@@ -47,7 +47,7 @@ export type FilterGroup = FilterGroupLevel1;
 export class FiltersV3Controller {
   constructor(protected readonly filtersV3Service: FiltersV3Service) {}
 
-  @Get('/api/v3/meta/views/:viewId/filters')
+  @Get('/api/v3/:baseName/meta/views/:viewId/filters')
   @Acl('filterList')
   async filterList(
     @TenantContext() context: NcContext,
@@ -63,9 +63,9 @@ export class FiltersV3Controller {
   }
 
   @Post([
-    '/api/v3/meta/views/:viewId/filters',
-    '/api/v3/meta/hooks/:hookId/filters',
-    '/api/v3/meta/links/:linkColumnId/filters',
+    '/api/v3/:baseName/meta/views/:viewId/filters',
+    '/api/v3/:baseName/meta/hooks/:hookId/filters',
+    '/api/v3/:baseName/meta/links/:linkColumnId/filters',
   ])
   @HttpCode(200)
   @Acl('filterCreate')
@@ -86,7 +86,7 @@ export class FiltersV3Controller {
     return filter;
   }
 
-  @Patch('/api/v3/meta/views/:viewId/filters')
+  @Patch('/api/v3/:baseName/meta/views/:viewId/filters')
   @Acl('filterUpdate')
   async filterUpdate(
     @TenantContext() context: NcContext,
@@ -104,7 +104,7 @@ export class FiltersV3Controller {
     return filter;
   }
 
-  @Put('/api/v3/meta/views/:viewId/filters')
+  @Put('/api/v3/:baseName/meta/views/:viewId/filters')
   @Acl('filterUpdate')
   async filterReplace(
     @TenantContext() context: NcContext,
@@ -121,7 +121,7 @@ export class FiltersV3Controller {
     return filter;
   }
 
-  @Delete('/api/v3/meta/views/:viewId/filters')
+  @Delete('/api/v3/:baseName/meta/views/:viewId/filters')
   @Acl('filterDelete')
   async filterDelete(
     @TenantContext() context: NcContext,

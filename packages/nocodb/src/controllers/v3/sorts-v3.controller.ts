@@ -22,7 +22,7 @@ import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 export class SortsV3Controller {
   constructor(private readonly sortsV3Service: SortsV3Service) {}
 
-  @Get('/api/v3/meta/views/:viewId/sorts')
+  @Get('/api/v3/:baseName/meta/views/:viewId/sorts')
   @Acl('sortList')
   async sortList(
     @TenantContext() context: NcContext,
@@ -35,7 +35,7 @@ export class SortsV3Controller {
     };
   }
 
-  @Post('/api/v3/meta/views/:viewId/sorts/')
+  @Post('/api/v3/:baseName/meta/views/:viewId/sorts/')
   @Acl('sortCreate')
   async sortCreate(
     @TenantContext() context: NcContext,
@@ -51,7 +51,7 @@ export class SortsV3Controller {
     return sort;
   }
 
-  @Patch('/api/v3/meta/views/:viewId/sorts')
+  @Patch('/api/v3/:baseName/meta/views/:viewId/sorts')
   @Acl('sortUpdate')
   async sortUpdate(
     @TenantContext() context: NcContext,
@@ -68,7 +68,7 @@ export class SortsV3Controller {
     return sort;
   }
 
-  @Delete('/api/v3/meta/views/:viewId/sorts')
+  @Delete('/api/v3/:baseName/meta/views/:viewId/sorts')
   @Acl('sortDelete')
   async sortDelete(
     @TenantContext() context: NcContext,

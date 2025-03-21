@@ -428,18 +428,16 @@ const totalHeight = computed(() => {
   if (!isGroupBy.value) {
     return totalRows.value * rowHeight.value + 32 + 256
   }
-
   function estimateTotalHeight(groups: Map<number, CanvasGroup>, level: number): number {
     // Add height for all top-level groups
-
     let h = totalGroups.value * (GROUP_HEADER_HEIGHT + GROUP_PADDING)
     // Add height for each expanded group's contents
     for (const [, group] of groups) {
-      if (group.isExpanded) {
+      if (group?.isExpanded) {
         // For leaf groups (with rows)
         if (group.infiniteData) {
           h += group.count * rowHeight.value
-        } else if (group.groups.size > 0) {
+        } else if (group?.groups) {
           // Do nested groups check
           h += estimateTotalHeight(group.groups, level + 1)
         }

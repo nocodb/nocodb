@@ -893,15 +893,14 @@ export async function extractColumn({
           return result;
         }
         try {
-          const selectQb = await formulaQueryBuilderv2(
-            baseModel,
-            formula.formula,
+          const selectQb = await formulaQueryBuilderv2({
+            baseModel: baseModel,
+            tree: formula.formula,
             model,
             column,
-            {},
-            rootAlias,
+            tableAlias: rootAlias,
             validateFormula,
-          );
+          });
           qb.select(knex.raw(`?? as ??`, [selectQb.builder, getAs(column)]));
         } catch (e) {
           logger.log(e);
@@ -915,15 +914,14 @@ export async function extractColumn({
         const buttonColumn = await column.getColOptions<ButtonColumn>(context);
         if (buttonColumn.type === ButtonActionsType.Url) {
           if (buttonColumn.error) return result;
-          const selectQb = await formulaQueryBuilderv2(
-            baseModel,
-            buttonColumn.formula,
+          const selectQb = await formulaQueryBuilderv2({
+            baseModel: baseModel,
+            tree: buttonColumn.formula,
             model,
             column,
-            {},
-            rootAlias,
+            tableAlias: rootAlias,
             validateFormula,
-          );
+          });
           qb.select(
             knex.raw(
               `json_build_object('type', ?, 'label', ?, 'url', ??) as ??`,

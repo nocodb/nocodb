@@ -55,19 +55,22 @@ export default async function ({
         FormulaColumn | ButtonColumn
       >(context);
 
-      const formulaQb = await formulaQueryBuilderv2(
-        baseModelSqlv2,
-        formulOption.formula,
-        RelationManager.isRelationReversed(relationColumn, relationColumnOption)
+      const formulaQb = await formulaQueryBuilderv2({
+        baseModel: baseModelSqlv2,
+        tree: formulOption.formula,
+        model: RelationManager.isRelationReversed(
+          relationColumn,
+          relationColumnOption,
+        )
           ? parentModel
           : childModel,
-        rollupColumn,
-        {},
-        refTableAlias,
-        false,
-        formulOption.getParsedTree(),
-        undefined,
-      );
+        column: rollupColumn,
+        aliasToColumn: {},
+        tableAlias: refTableAlias,
+        validateFormula: false,
+        parsedTree: formulOption.getParsedTree(),
+        baseUsers: undefined,
+      });
 
       selectColumnName = knex.raw(formulaQb.builder).wrap('(', ')');
     } else if (
@@ -81,17 +84,18 @@ export default async function ({
       // since all field are virtual field,
       // we use formula to generate query that can represent the column
       // to prevent duplicate logic
-      const formulaQb = await formulaQueryBuilderv2(
-        baseModelSqlv2,
-        '{{' + rollupColumn.id + '}}',
-        RelationManager.isRelationReversed(relationColumn, relationColumnOption)
+      const formulaQb = await formulaQueryBuilderv2({
+        baseModel: baseModelSqlv2,
+        tree: '{{' + rollupColumn.id + '}}',
+        model: RelationManager.isRelationReversed(
+          relationColumn,
+          relationColumnOption,
+        )
           ? parentModel
           : childModel,
-        rollupColumn,
-        {},
-        refTableAlias,
-        false,
-        {
+        column: rollupColumn,
+        tableAlias: refTableAlias,
+        parsedTree: {
           type: 'Identifier',
           name: rollupColumn.id,
           raw: '{{' + rollupColumn.id + '}}',
@@ -101,8 +105,7 @@ export default async function ({
             ? 'date'
             : 'string',
         },
-        undefined,
-      );
+      });
 
       selectColumnName = knex.raw(formulaQb.builder).wrap('(', ')');
     }

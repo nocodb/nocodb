@@ -541,16 +541,14 @@ export class ColumnsService implements IColumnsService {
                 ),
               }),
             );
-            await formulaQueryBuilderv2(
-              baseModel,
-              colBody.formula,
-              table,
-              null,
-              {},
-              null,
-              true,
-              colBody.parsed_tree,
-            );
+            await formulaQueryBuilderv2({
+              baseModel: baseModel,
+              tree: colBody.formula,
+              model: table,
+              column: null,
+              validateFormula: true,
+              parsedTree: colBody.parsed_tree,
+            });
           } catch (e) {
             console.error(e);
             throw e;
@@ -591,16 +589,14 @@ export class ColumnsService implements IColumnsService {
                     ),
                   }),
               );
-              await formulaQueryBuilderv2(
-                baseModel,
-                colBody.formula,
-                table,
-                null,
-                {},
-                null,
-                true,
-                colBody.parsed_tree,
-              );
+              await formulaQueryBuilderv2({
+                baseModel: baseModel,
+                tree: colBody.formula,
+                model: table,
+                column: null,
+                validateFormula: true,
+                parsedTree: colBody.parsed_tree,
+              });
             } catch (e) {
               console.error(e);
               NcError.badRequest('Invalid Formula');
@@ -2157,15 +2153,14 @@ export class ColumnsService implements IColumnsService {
               ),
             }),
           );
-          await formulaQueryBuilderv2(
-            baseModel,
-            colBody.formula,
-            table,
-            null,
-            {},
-            null,
-            true,
-          );
+          await formulaQueryBuilderv2({
+            baseModel: baseModel,
+            tree: colBody.formula,
+            model: table,
+            column: null,
+            validateFormula: true,
+            parsedTree: colBody.parsed_tree,
+          });
         } catch (e) {
           colBody.error = e.message;
           colBody.parsed_tree = null;
@@ -2210,16 +2205,14 @@ export class ColumnsService implements IColumnsService {
                 ),
               }),
             );
-            await formulaQueryBuilderv2(
-              baseModel,
-              colBody.formula,
-              table,
-              null,
-              {},
-              null,
-              true,
-              colBody.parsed_tree,
-            );
+            await formulaQueryBuilderv2({
+              baseModel: baseModel,
+              tree: colBody.formula,
+              model: table,
+              column: null,
+              validateFormula: true,
+              parsedTree: colBody.parsed_tree,
+            });
           } catch (e) {
             colBody.error = e.message;
             colBody.parsed_tree = null;

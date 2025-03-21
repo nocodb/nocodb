@@ -147,6 +147,10 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     paymentState.value = PaymentState.PAYMENT
   }
 
+  const onContactSales = (plan: PaymentPlan) => {
+    // Todo: Handle redirect
+  }
+
   const reset = () => {
     paymentState.value = PaymentState.SELECT_PLAN
     selectedPlan.value = null
@@ -181,6 +185,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     getPlanPrice,
     onPaymentModeChange,
     onSelectPlan,
+    onContactSales,
     selectedPlan,
     workspaceSeatCount,
     paymentMode,

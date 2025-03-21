@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV datoteka",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON datoteka",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "Počisti obrazec",
     "addFieldFromFormView": "Dodaj polje",
     "selectAllFields": "Izberite vsa polja",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Omogoči predizpolnitev",
       "default": "Privzeto",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Iskanje ikon",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "Ne morete spremeniti vidljivosti polja, ki se ureja. Najprej shranite ali zavrzite spremembe.",
         "moveEditedField": "Polja, ki je v urejanju, ni mogoče premakniti. Najprej shranite ali zavrzite spremembe",
         "moveDeletedField": "Polja, ki je izbrisano, ni mogoče premakniti. Najprej shranite ali zavrzite spremembe"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Projekt Metapodatki se je uspešno izvozil",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Kopiranje kode HTML, ki jo je mogoče vgraditi!",
       "userDetailsUpdated": "Uspešno posodobite podatke o uporabniku",
       "tableDataImported": "Uspešno uvoženi podatki tabele",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Podrobnosti o spletni prijavi so bile uspešno posodobljene",
       "webhookDeleted": "Kljuka uspešno izbrisana",
       "webhookTested": "Webhook uspešno preizkušen",

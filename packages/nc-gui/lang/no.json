@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV-fil",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON-fil",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fyll ut skjema",
     "proceedToLink": "Gå til lenke",
     "currentOwner": "Nåværende eier",
-    "newOwner": "Ny eier"
+    "newOwner": "Ny eier",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Klikk for å løse",
@@ -1425,6 +1428,7 @@
     "clearForm": "Fjern skjema",
     "addFieldFromFormView": "Legg til felt",
     "selectAllFields": "Velg alle felt",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Aktiver forhåndsutfylling",
       "default": "Misligholde",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Kildedata er skrivebeskyttet",
     "schemaChangeDisabledFormSqlView": "Skjemaredigering er deaktivert for denne SQL-visningen.",
     "shiftSpace": "Shift + Mellomrom",
-    "expandShiftSpace": "Utvid 'Shift + Space'"
+    "expandShiftSpace": "Utvid 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Søk ikoner",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "Du kan ikke endre synligheten av et felt som redigeres. Vennligst lagre eller forkast endringer først.",
         "moveEditedField": "Du kan ikke flytte et felt som redigeres. Lagre eller forkast endringer først",
         "moveDeletedField": "Du kan ikke flytte et felt som er slettet. Lagre eller forkast endringer først"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Sending av invitasjon var vellykket",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Kunne ikke oppdatere feltets synlighet",
       "unsupportedCharacter": "Tegn støttes ikke: {char}",
       "unsupportedCharacters": "Tegn støttes ikke: {char}",
-      "notSupported": "Støttes ikke"
+      "notSupported": "Støttes ikke",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Prosjektmetadata eksporteres vellykket",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Kopiert innbyggbar HTML-kode!",
       "userDetailsUpdated": "Brukerdetaljer oppdatert vellykket",
       "tableDataImported": "Tabell data importert vellykket",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook detaljer oppdatert vellykket",
       "webhookDeleted": "Hook slettet vellykket",
       "webhookTested": "Webhook testet vellykket",

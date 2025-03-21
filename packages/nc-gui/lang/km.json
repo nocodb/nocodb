@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "ឯកសារ CSV",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "ឯកសារ JSON",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "ជម្រះប្រថាមតែណេប័រួយ៖",
     "addFieldFromFormView": "បន្ថែមវាល",
     "selectAllFields": "ជ្រើសវាលទាំងអស់",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "បើកការបំពេញរួច",
       "default": "លំនាំដើម",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "ស្វែងរកនិមិត្តសញ្ញា",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "អ្នកមិនអាចផ្លាស់ប្តូរទស្សនភាពនៃវាលដែលកំពុងកែសម្រួល។ សូមរក្សាទុកឬលុបចោលការផ្លាស់ប្តូរជាមុនសិន។",
         "moveEditedField": "អ្នកមិនអាចផ្លាស់ទីវាលដែលកំពុងកែសម្រួលបានទេ។ ធ្វើការរក្សាទុកឬលុបចោលការផ្លាស់ប្តូរក្នុងការខាងមុនសិន។",
         "moveDeletedField": "អ្នកមិនអាចផ្លាស់ទីវាលដែលត្រូវបានលុបទេ។ ធ្វើការរក្សាទុកឬលុបចោលការផ្លាស់ប្តូរក្នុងការខាងមុនសិន។"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "ធាតុមូលដ្ឋានត្រូវបាននាំចេញដោយជោគជ័យ",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "បានចម្លងកូដ HTML ដែលអាចបញ្ចូលបាន!",
       "userDetailsUpdated": "បានធ្វើបច្ចុប្បន្នភាពព័ត៌មានលំអិតអ្នកប្រើដោយជោគជ័យ",
       "tableDataImported": "បាននាំចូលទិន្នន័យតារាងដោយជោគជ័យ",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "ព័ត៌មានលំអិតនៃ Webhook បានធ្វើបច្ចុប្បន្នភាពដោយជោគជ័យ",
       "webhookDeleted": "បង្ហាញ Hook ទម្លាក់ទៅ",
       "webhookTested": "បានសាកល្បង Webhook ដោយជោគជ័យ",

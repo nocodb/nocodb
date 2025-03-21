@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "Ficheiro CSV",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "Ficheiro JSON",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "Limpar Formulário",
     "addFieldFromFormView": "Adicionar Campo",
     "selectAllFields": "Selecionar todos os campos",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Habilitar Pré-preenchimento",
       "default": "Padrão",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Pesquisar ícones",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "Você não pode mudar a visibilidade de um campo que está sendo editado. Por favor, salve ou descarte as alterações primeiro.",
         "moveEditedField": "Você não pode mover o campo que está sendo editado. Ou salve ou descarte as alterações primeiro",
         "moveDeletedField": "Você não pode mover o campo que foi eliminado. Ou salve ou descarte as alterações primeiro"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Metadados do projeto exportado com sucesso",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Código HTML copiado e encaixável!",
       "userDetailsUpdated": "Actualização bem sucedida dos detalhes do utilizador",
       "tableDataImported": "Dados de tabelas importadas com sucesso",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Detalhes do Webhook actualizados com sucesso",
       "webhookDeleted": "Gancho apagado com sucesso",
       "webhookTested": "Gancho da Web testado com sucesso",

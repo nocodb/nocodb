@@ -102,6 +102,13 @@ const onDelete = async () => {
       // remove the workspace from the list after navigating to another workspace
       workspaces.value.delete(workspaceId)
     }
+  } catch (e: any) {
+    console.log(e)
+    const msg = await extractSdkResponseErrorMsg(e)
+
+    if (msg) {
+      message.error(msg)
+    }
   } finally {
     deletingWorkspace.value = false
     refreshCommandPalette()
@@ -314,7 +321,8 @@ const onCancel = () => {
             size="small"
             :disabled="form.modalInput !== currentWorkspace?.title"
             :loading="deletingWorkspace"
-            >Delete Workspace
+          >
+            Delete Workspace
           </NcButton>
         </div>
       </a-form>

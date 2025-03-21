@@ -12,15 +12,14 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
   const rawText = text.toString()
 
   const protocolRegex = /^(https?|ftp|mailto|file):\/\//
-  let isUrl
+  let isUrl = false
 
-  const out = rawText.replace(/URI::\(([^)]*)\)(?: LABEL::\(([^)]*)\))?/g, (_, url, label) => {
+  const out = rawText.replace(/URI::\(([^)]*)\)(?:\s*LABEL::\((.*?(?=\)(?:\s|$)|$))\)?)?/g, (_, url, label) => {
     if (!url.trim() && !label) {
       return ' '
     }
 
     const fullUrl = protocolRegex.test(url) ? url : url.trim() ? `http://${url}` : ''
-
     isUrl = isURL(fullUrl)
 
     const anchorLabel = label || url || ''
@@ -28,7 +27,7 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
     const a = document.createElement('a')
     a.textContent = anchorLabel
     a.setAttribute('href', decode(fullUrl))
-    a.setAttribute('class', ' nc-cell-field-link')
+    a.setAttribute('class', 'nc-cell-field-link')
     a.setAttribute('target', '_blank')
     a.setAttribute('rel', 'noopener,noreferrer')
     return a.outerHTML

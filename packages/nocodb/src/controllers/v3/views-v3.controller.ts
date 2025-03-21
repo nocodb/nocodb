@@ -13,13 +13,14 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
 import { ViewsV3Service } from '~/services/v3/views-v3.service';
+import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class ViewsV3Controller {
   constructor(private readonly viewsV3Service: ViewsV3Service) {}
 
-  @Get('/api/v3/:baseName/meta/tables/:tableId/views')
+  @Get(`${PREFIX_APIV3_METABASE}/tables/:tableId/views`)
   @Acl('viewList')
   async viewList(
     @TenantContext() context: NcContext,
@@ -35,7 +36,7 @@ export class ViewsV3Controller {
     );
   }
 
-  @Get('/api/v3/:baseName/meta/views/:viewId')
+  @Get(`${PREFIX_APIV3_METABASE}/views/:viewId`)
   @Acl('viewGet')
   async viewGet(
     @TenantContext() context: NcContext,

@@ -19,7 +19,7 @@ export function _wherePk(
   id: unknown | unknown[],
   skipPkValidation = false,
 ) {
-  const where:Record<string, unknown> = {};
+  const where: Record<string, unknown> = {};
 
   // if id object is provided use as it is
   if (id && typeof id === 'object' && !Array.isArray(id)) {
@@ -146,15 +146,9 @@ export async function getBaseModelSqlFromModelId({
   });
 }
 
-// Audit logging is enabled by default unless explicitly disabled.
-// It remains enabled in the following cases:
-// 1. `NC_ENABLE_AUDIT` is set to 'true' (manual override).
-// 2. Running in a test environment (`NODE_ENV === 'test'`).
+// Audit logging is enabled by default unless explicitly disabled using NC_DISABLE_AUDIT=true
 export function isDataAuditEnabled() {
-  return (
-    process.env.NC_DISABLE_AUDIT !== 'true' &&
-    (process.env.NC_ENABLE_AUDIT === 'true' || process.env.NODE_ENV === 'test')
-  );
+  return process.env.NC_DISABLE_AUDIT !== 'true';
 }
 
 export function getRelatedLinksColumn(

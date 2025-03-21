@@ -1095,7 +1095,7 @@
     "restApis": "റെസ്റ്റ് APIs",
     "apis": "APIs",
     "apiSnippet": "API സ്നിപ്പറ്റുകൾ",
-    "includeData": "ഡാറ്റ ഉൾപ്പെടുത്തുക",
+    "includeData": "Include Data",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
     "includeView": "Include views",

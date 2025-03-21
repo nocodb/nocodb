@@ -13,11 +13,10 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
 
   const protocolRegex = /^(https?|ftp|mailto|file):\/\//
   let isUrlFound = false
-
   const out = rawText.replace(
     /**
-     * * Matches patterns of the form:
-     * * URI::( url_content )[optional space]LABEL::( label_content )
+     * Matches patterns of the form:
+     * URI::(url_content)[optional space]LABEL::(label_content)
      *
      * - `URI::(...)` - Extracts the URL content between parentheses.
      * - `LABEL::(...)` - (Optional) Extracts the label content between parentheses.
@@ -25,23 +24,25 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
      * - `[^()]|\\\)|\\\(` - Matches any character except parentheses or escaped parentheses.
      * - `\s*` - Matches any optional spaces between the URI and LABEL parts.
      *
-     *  * Important Notes:
-     *  *  - Whitespace has been intentionally added inside the regex
-     *  *    to prevent escape sequences from being misinterpreted.
-     *  *    For example, if string ends with `\` then it will be treated as escape sequence
+     * Important Notes:
+     * - Whitespace around the content is now optional and is
+     *   trimmed later during processing.
+     * - This prevents trailing backslashes (`\`) from being treated
+     *   as escape sequences when followed by a closing parenthesis.
      *
      * Example Matches:
-     * - URI::( https://example.com )
-     * - URI::( https://example.com ) LABEL::( My Label )
-     * - URI::( https://example.com\)with\)escapes ) LABEL::( Label\) )
+     * - URI::(https://example.com)
+     * - URI::(https://example.com) LABEL::(My Label)
+     * - URI::(https://example.com\)with\)escapes) LABEL::(Label\))
      */
-    /URI::\( ((?:[^()]|\\\)|\\\()*) \)(?:\s*LABEL::\( ((?:[^()]|\\\)|\\\()*) \))?/g,
+    /URI::\(((?:[^()]|\\\)|\\\()*[^\\]|)\)(?:\s*LABEL::\(((?:[^()]|\\\)|\\\()*[^\\]|)\))?/g,
     (_, _url, _label) => {
       isUrlFound = true
       let isUrl = false
+      // replace whitespace at beginning and end of URL and label if found
       // Unescape escaped parentheses (`(` and `)`) in the URL and label content
-      const url = _url.replace(/\\([()])/g, '$1')
-      const label = _label?.replace(/\\([()])/g, '$1')
+      const url = _url.replace(/^ | $/g, '').replace(/\\([()])/g, '$1')
+      const label = _label?.replace(/^ | $/g, '').replace(/\\([()])/g, '$1')
 
       if (!url.trim()) {
         return label || ' '

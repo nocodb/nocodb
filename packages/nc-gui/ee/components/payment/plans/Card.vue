@@ -6,7 +6,7 @@ const props = defineProps<{
   activePlan?: string
 }>()
 
-const { onSelectPlan, onContactSales, getPlanPrice, activeSubscription, getCustomerPortalSession } = usePaymentStoreOrThrow()
+const { onSelectPlan, getPlanPrice, activeSubscription, getCustomerPortalSession } = usePaymentStoreOrThrow()
 
 const price = computed(() => getPlanPrice(props.plan))
 
@@ -60,15 +60,11 @@ const popularPlan = PlanTitles.TEAM
     <NcButton v-else-if="activePlan === plan.title" type="secondary" size="medium" class="w-full pointer-events-none">
       <div class="flex items-center justify-center gap-1">{{ $t('title.currentPlan') }}</div>
     </NcButton>
-    <NcButton
-      v-else-if="plan.title === PlanTitles.ENTERPRISE"
-      type="secondary"
-      size="medium"
-      class="w-full"
-      @click="onContactSales(plan)"
-    >
-      {{ $t('labels.contactSales') }}
-    </NcButton>
+    <nuxt-link v-else-if="plan.title === PlanTitles.ENTERPRISE" no-ref href="mailto:support@nocodb.com" target="_blank">
+      <NcButton type="secondary" size="medium" class="w-full">
+        {{ $t('labels.contactSales') }}
+      </NcButton>
+    </nuxt-link>
     <NcButton
       v-else
       :type="plan.title === popularPlan ? 'primary' : 'secondary'"

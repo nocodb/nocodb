@@ -11,9 +11,11 @@ defineProps<Props>()
   <div class="flex items-stretch children:w-1/2 gap-8">
     <PaymentMoreInfoCard :title="$t('title.helpAndSupport')" :subtitle="$t('title.helpAndSupportSubtitle')">
       <template #action>
-        <NcButton type="secondary" size="small">
-          {{ $t('labels.contactSales') }}
-        </NcButton>
+        <nuxt-link no-ref to="mailto:support@nocodb.com" target="_blank">
+          <NcButton type="secondary" size="small">
+            {{ $t('labels.contactSales') }}
+          </NcButton>
+        </nuxt-link>
       </template>
     </PaymentMoreInfoCard>
 

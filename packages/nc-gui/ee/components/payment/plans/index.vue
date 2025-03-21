@@ -22,13 +22,13 @@ onMounted(async () => {
       <PaymentPlansCard v-for="plan in filteredPlansAvailable" :key="plan.title" :plan="plan" :active-plan="activePlan?.title" />
     </div>
 
-    <a
-      href="https://nocodb.com/pricing"
-      target="_blank"
-      class="h-[48px] !no-underline flex items-center gap-2 justify-center text-nc-content-gray-subtle hover:text-nc-content-gray-emphasis transition-colors text-base font-bold cursor-pointer"
-    >
-      {{ $t('labels.compareAllFeatures') }}
-      <GeneralIcon icon="ncExternalLink" />
+    <a href="https://nocodb.com/pricing" target="_blank" class="h-[48px] inline-block mx-auto">
+      <NcButton type="text" icon-position="right" inner-class="!gap-2" size="medium" class="!h-full !text-base">
+        <template #icon>
+          <GeneralIcon icon="ncExternalLink" />
+        </template>
+        {{ $t('labels.compareAllFeatures') }}
+      </NcButton>
     </a>
   </div>
 </template>

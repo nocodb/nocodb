@@ -689,7 +689,9 @@
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
     "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
-    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration.",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!"
   },
   "labels": {
     "restoringSnapshot": "Restoring Snapshot",
@@ -1165,7 +1167,9 @@
     "newOwner": "New owner",
     "addFromUrl": "Add from URL",
     "enterJson": "Enter JSON",
-    "airtableBase": "Airtable base"
+    "airtableBase": "Airtable base",
+    "upgradePlan": "Upgrade Plan",
+    "viewAllPlanDetails": "View all plan Details"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

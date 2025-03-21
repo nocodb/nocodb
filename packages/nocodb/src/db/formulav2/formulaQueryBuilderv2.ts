@@ -1219,8 +1219,8 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       (pt.right as FnParsedTreeNode).fnName =
         (pt.right as FnParsedTreeNode).fnName || 'ARITH';
 
-      let left = (await fn(pt.left, null, pt.operator)).builder.toQuery();
-      let right = (await fn(pt.right, null, pt.operator)).builder.toQuery();
+      let left = (await fn(pt.left, pt.operator)).builder.toQuery();
+      let right = (await fn(pt.right, pt.operator)).builder.toQuery();
       let sql = `${left} ${pt.operator} ${right}`;
 
       if (ComparisonOperators.includes(pt.operator as ComparisonOperator)) {
@@ -1357,7 +1357,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       } else {
         query = knex.raw(
           `${pt.operator}${(
-            await fn(pt.argument, null, pt.operator)
+            await fn(pt.argument, pt.operator)
           ).builder.toQuery()}`,
         );
       }
@@ -1368,7 +1368,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       return { builder: query };
     }
   };
-  const builder = (await fn(tree, alias)).builder;
+  const builder = (await fn(tree)).builder;
   return { builder };
 }
 

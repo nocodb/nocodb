@@ -5546,7 +5546,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const dataWithoutPks = [];
 
       for (const data of preparedDatas) {
-        const pkValues = this.extractPksValues(data);
+        const pkValues = this.extractPksValues(data, true);
         if (pkValues !== 'N/A' && pkValues !== undefined) {
           dataWithPks.push({ pk: pkValues, data });
         } else {

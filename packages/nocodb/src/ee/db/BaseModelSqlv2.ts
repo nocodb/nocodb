@@ -2086,7 +2086,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const updatePkValues = [];
 
       for (const data of preparedDatas) {
-        const pkValues = this.extractPksValues(data);
+        const pkValues = this.extractPksValues(data, true);
         if (pkValues !== 'N/A' && pkValues !== undefined) {
           dataWithPks.push({ pk: pkValues, data });
         } else {
@@ -2113,8 +2113,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const toUpdate = [];
 
       for (const { pk, data } of dataWithPks) {
-        const comparativePk = typeof pk === 'string' ? pk : pk.toString();
-        if (existingPkSet.has(comparativePk)) {
+        if (existingPkSet.has(pk)) {
           await this.prepareNocoData(data, false, cookie);
           toUpdate.push(data);
 

@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "Tệp CSV",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "Tệp JSON",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "Xóa biểu mẫu",
     "addFieldFromFormView": "Thêm trường",
     "selectAllFields": "Chọn tất cả các trường",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Bật điền trước",
       "default": "Mặc định",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Tìm kiếm biểu tượng",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "Bạn không thể thay đổi khả năng hiển thị của trường đang được chỉnh sửa. Vui lòng lưu hoặc hủy bỏ thay đổi trước.",
         "moveEditedField": "Bạn không thể di chuyển trường đang được chỉnh sửa. Hoặc lưu hoặc hủy thay đổi trước",
         "moveDeletedField": "Bạn không thể di chuyển trường bị xóa. Hoặc lưu hoặc hủy thay đổi trước"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Metadata dự án xuất khẩu thành công",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
       "userDetailsUpdated": "Successfully updated the user details",
       "tableDataImported": "Successfully imported table data",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook details updated successfully",
       "webhookDeleted": "Hook deleted successfully",
       "webhookTested": "Webhook tested successfully",

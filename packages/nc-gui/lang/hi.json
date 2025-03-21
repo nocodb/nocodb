@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV फ़ाइल",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON फ़ाइल",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "फॉर्म साफ़ करें",
     "addFieldFromFormView": "फ़ील्ड जोड़ें",
     "selectAllFields": "सभी फ़ील्ड का चयन करें",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "पूर्व-भरने को सक्षम करें",
       "default": "डिफ़ॉल्ट",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "आइकन खोजें",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "आप वर्तमान में संपादित किए जा रहे फ़ील्ड की दृश्यता नहीं बदल सकते। पहले परिवर्तनों को सुरक्षित करें या त्यागें।",
         "moveEditedField": "आप वर्तमान में संपादित किए जा रहे फ़ील्ड को नहीं हिला सकते। पहले परिवर्तनों को सुरक्षित करें या त्यागें।",
         "moveDeletedField": "आप हटाए गए फ़ील्ड को नहीं हिला सकते। पहले परिवर्तनों को सुरक्षित करें या त्यागें।"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "आधार मेटाडेटा सफलतापूर्वक निर्यात किया गया",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
       "userDetailsUpdated": "Successfully updated the user details",
       "tableDataImported": "Successfully imported table data",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook details updated successfully",
       "webhookDeleted": "Hook deleted successfully",
       "webhookTested": "Webhook tested successfully",

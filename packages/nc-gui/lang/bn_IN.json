@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV ফাইল",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON ফাইল",
     "excel": "Excel",
     "microsoftExcel": "মাইক্রোসফট এক্সেল",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "ফর্ম পরিষ্কার করুন",
     "addFieldFromFormView": "ক্ষেত্র যোগ করুন",
     "selectAllFields": "সমস্ত ক্ষেত্র নির্বাচন করুন",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "পূর্বভরা সক্ষম করুন",
       "default": "ডিফল্ট",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "আইকন অনুসন্ধান করুন",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "আপনি এমন একটি ক্ষেত্রের দৃশ্যমানতা পরিবর্তন করতে পারবেন না যা সম্পাদিত হচ্ছে। প্রথমে দয়া করে পরিবর্তনগুলি সংরক্ষণ করুন বা বাতিল করুন।",
         "moveEditedField": "যে ক্ষেত্রটি সম্পাদনা করা হচ্ছে সেটিকে সরানো যাবে না। প্রথমে পরিবর্তনগুলি সংরক্ষণ বা বাতিল করুন।",
         "moveDeletedField": "যে ক্ষেত্রটি মুছে ফেলা হয়েছে সেটিকে সরানো যাবে না। প্রথমে পরিবর্তনগুলি সংরক্ষণ বা বাতিল করুন।"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "প্রকল্প মেটাডেটা সফলভাবে রফতানি করেছে",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
       "userDetailsUpdated": "Successfully updated the user details",
       "tableDataImported": "Successfully imported table data",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook details updated successfully",
       "webhookDeleted": "Hook deleted successfully",
       "webhookTested": "Webhook tested successfully",

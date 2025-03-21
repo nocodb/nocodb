@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV fájl",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON fájl",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "Űrlap törlése",
     "addFieldFromFormView": "Mező hozzáadása",
     "selectAllFields": "Összes mező kiválasztása",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Előre kitöltés engedélyezése",
       "default": "Alapértelmezett",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "A forrás adat csak olvasható",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Ikonok keresése",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "Nem változtathatja meg egy szerkesztés alatt álló mező láthatóságát. Először mentse vagy vetítse el a változtatásokat.",
         "moveEditedField": "Nem lehet áthelyezni a módosított mezőt. Először mentse vagy elvetje a módosításokat",
         "moveDeletedField": "Nem lehet áthelyezni a törölt mezőt. Először mentse vagy elvetje a módosításokat"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Bázis metaadatai sikeresen exportálva",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Beágyazható HTML kód másolva!",
       "userDetailsUpdated": "A felhasználó adatai sikeresen frissítve",
       "tableDataImported": "Tábla adatai sikeresen importálva",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook részletei sikeresen frissítve",
       "webhookDeleted": "Webhook sikeresen törölve",
       "webhookTested": "Webhook sikeresen tesztelve",

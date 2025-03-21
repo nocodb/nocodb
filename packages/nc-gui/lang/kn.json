@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV ಫೈಲ್",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON ಫೈಲ್",
     "excel": "ಎಕ್ಸೆಲ್",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "ಫಾರ್ಮ್ ತೆರವುಗೊಳಿಸಿ",
     "addFieldFromFormView": "ಕ್ಷೇತ್ರವಾದರೂ ಸೇರಿಸಿ",
     "selectAllFields": "ಎಲ್ಲಾ ಕ್ಷೇತ್ರಗಳನ್ನು ಆಯ್ಕೆ ಮಾಡಿ",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "ಪೂರಕ ಪೂರ್ವ-ನಿರ್ವಹಣೆಯನ್ನು ಎನಬಲ್ ಮಾಡಿ",
       "default": "ಪೂರ್ವನಿರ್ದಿಷ್ಟ",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "ಐಕಾನ್‌ಗಳನ್ನು ಹುಡುಕಿ",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "ನೀವು ಯಶವಾಗಿ ಸಂಪಾದಿಸುವ ಕ್ಷೇತ್ರದ ದೃಶ್ಯತೆಯನ್ನು ಪರಿವರ್ತಿಸಬಲ್ಲಿರಾ. ದಯವಿಟ್ಟು ಮೊದಲು ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ ಅಥವಾ ತ್ಯಜಿಸಿ.",
         "moveEditedField": "ನೀವು ಸಂಪಾದಿಸಲಾಗುತ್ತಿರುವ ಕ್ಷೇತ್ರವನ್ನು ಸ್ಥಳಾಂತರಿಸಬಲ್ಲಿರಾ. ಮೊದಲು ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ ಅಥವಾ ತ್ಯಜಿಸಿ",
         "moveDeletedField": "ನೀವು ಅಳಿಸಲಾಗಿರುವ ಕ್ಷೇತ್ರವನ್ನು ಸ್ಥಳಾಂತರಿಸಬಲ್ಲಿರಾ. ಮೊದಲು ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ ಅಥವಾ ತ್ಯಜಿಸಿ"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "ಮೂಲಮಾಹಿತಿ ಯಶಸ್ವಿಯಾಗಿ ರಫ್ತು ಮಾಡಲಾಗಿದೆ",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "ಎಂಬೆಡ್ಡೆಬಲ್ HTML ಕೋಡ್ ನಕಲಿಸಲಾಗಿದೆ!",
       "userDetailsUpdated": "ಬಳಕೆದಾರರ ವಿವರಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ",
       "tableDataImported": "ಕೋಷ್ಟಕದ ಡೇಟಾವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಆಮದು ಮಾಡಲಾಗಿದೆ",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook ಮಾಹಿತಿಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ",
       "webhookDeleted": "Hook ಅನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಅಳಿಸಲಾಗಿದೆ",
       "webhookTested": "Webhook ಯಶಸ್ವಿಯಾಗಿ ಪರೀಕ್ಷಿಸಲಾಗಿದೆ",

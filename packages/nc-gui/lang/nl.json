@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV-bestand",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON-bestand",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "Formulier wissen",
     "addFieldFromFormView": "Veld toevoegen",
     "selectAllFields": "Selecteer alle velden",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Vooraf invullen inschakelen",
       "default": "Standaard",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Zoek pictogrammen",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "U kunt de zichtbaarheid van een veld dat wordt bewerkt niet wijzigen. Sla eerst de wijzigingen op of annuleer ze.",
         "moveEditedField": "U kunt een veld dat wordt bewerkt niet verplaatsen. Sla eerst de wijzigingen op of annuleer ze.",
         "moveDeletedField": "U kunt een verwijderd veld niet verplaatsen. Sla eerst de wijzigingen op of annuleer ze."
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Project metadata met succes geëxporteerd",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Gekopieerde insluitbare HTML-code!",
       "userDetailsUpdated": "De gebruikersgegevens zijn succesvol bijgewerkt",
       "tableDataImported": "Tabelgegevens succesvol geïmporteerd",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook details succesvol bijgewerkt",
       "webhookDeleted": "Haak succesvol verwijderd",
       "webhookTested": "Webhook succesvol getest",

@@ -363,7 +363,6 @@ export default async function generateLookupSelectQuery({
                 (
                   await lookupColumn.getColOptions<FormulaColumn>(context)
                 ).formula,
-                null,
                 model,
                 lookupColumn,
                 await model.getAliasColMapping(context),

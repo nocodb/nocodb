@@ -494,7 +494,6 @@ const parseConditionV2 = async (
         await formulaQueryBuilderv2(
           baseModelSqlv2,
           formula.formula,
-          null,
           model,
           column,
         )

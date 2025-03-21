@@ -544,7 +544,6 @@ export class ColumnsService implements IColumnsService {
             await formulaQueryBuilderv2(
               baseModel,
               colBody.formula,
-              null,
               table,
               null,
               {},
@@ -595,7 +594,6 @@ export class ColumnsService implements IColumnsService {
               await formulaQueryBuilderv2(
                 baseModel,
                 colBody.formula,
-                null,
                 table,
                 null,
                 {},
@@ -2162,7 +2160,6 @@ export class ColumnsService implements IColumnsService {
           await formulaQueryBuilderv2(
             baseModel,
             colBody.formula,
-            null,
             table,
             null,
             {},
@@ -2216,7 +2213,6 @@ export class ColumnsService implements IColumnsService {
             await formulaQueryBuilderv2(
               baseModel,
               colBody.formula,
-              null,
               table,
               null,
               {},

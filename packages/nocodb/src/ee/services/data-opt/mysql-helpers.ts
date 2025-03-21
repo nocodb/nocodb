@@ -824,7 +824,6 @@ export async function extractColumn({
           const selectQb = await formulaQueryBuilderv2(
             baseModel,
             formula.formula,
-            null,
             model,
             column,
             {},
@@ -847,7 +846,6 @@ export async function extractColumn({
           const selectQb = await formulaQueryBuilderv2(
             baseModel,
             buttonCol.formula,
-            null,
             model,
             column,
             {},

@@ -931,7 +931,46 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                   value: 'URI::(',
                   raw: '"URI::("',
                 },
-                pt.arguments[0],
+                // wrap with replace function to escape parenthesis since it has special meaning in our URI syntax
+                {
+                  type: JSEPNode.CALL_EXP,
+                  arguments: [
+                    {
+                      type: JSEPNode.CALL_EXP,
+                      arguments: [
+                        pt.arguments[0],
+                        {
+                          type: JSEPNode.LITERAL,
+                          value: '(',
+                          raw: '"("',
+                        },
+                        {
+                          type: JSEPNode.LITERAL,
+                          value: '\\(',
+                          raw: '"\\("',
+                        },
+                      ],
+                      callee: {
+                        type: 'Identifier',
+                        name: 'REPLACE',
+                      },
+                    },
+                    {
+                      type: JSEPNode.LITERAL,
+                      value: ')',
+                      raw: '")"',
+                    },
+                    {
+                      type: JSEPNode.LITERAL,
+                      value: '\\)',
+                      raw: '"\\)"',
+                    },
+                  ],
+                  callee: {
+                    type: 'Identifier',
+                    name: 'REPLACE',
+                  },
+                },
                 {
                   type: JSEPNode.LITERAL,
                   value: ')',
@@ -944,11 +983,51 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                         value: ' LABEL::(',
                         raw: ' LABEL::(',
                       },
-                      pt.arguments[1],
+
+                      // wrap with replace function to escape parenthesis since it has special meaning in our URI syntax
+                      {
+                        type: JSEPNode.CALL_EXP,
+                        arguments: [
+                          {
+                            type: JSEPNode.CALL_EXP,
+                            arguments: [
+                              pt.arguments[1],
+                              {
+                                type: JSEPNode.LITERAL,
+                                value: '(',
+                                raw: '"("',
+                              },
+                              {
+                                type: JSEPNode.LITERAL,
+                                value: '\\(',
+                                raw: '"\\("',
+                              },
+                            ],
+                            callee: {
+                              type: 'Identifier',
+                              name: 'REPLACE',
+                            },
+                          },
+                          {
+                            type: JSEPNode.LITERAL,
+                            value: ')',
+                            raw: '")"',
+                          },
+                          {
+                            type: JSEPNode.LITERAL,
+                            value: '\\)',
+                            raw: '"\\)"',
+                          },
+                        ],
+                        callee: {
+                          type: 'Identifier',
+                          name: 'REPLACE',
+                        },
+                      },
                       {
                         type: JSEPNode.LITERAL,
                         value: ')',
-                        raw: ')',
+                        raw: '")"',
                       },
                     ] as ParsedFormulaNode[])
                   : ([] as ParsedFormulaNode[])),

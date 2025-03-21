@@ -150,6 +150,18 @@ const editor = useEditor({
       emits('blur')
     }
   },
+  editorProps: {
+    handleKeyDown(this, view, event) {
+      if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey && !event.metaKey) {
+        const { state } = view
+        const { selection } = state
+
+        if (!selection.empty) {
+          return true
+        }
+      }
+    },
+  },
 })
 
 const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {

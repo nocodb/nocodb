@@ -34,7 +34,7 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
     (_, _url, _label) => {
       // Unescape escaped parentheses (`(` and `)`) in the URL and label content
       const url = _url.replace(/\\([()])/g, '$1')
-      const label = _label.replace(/\\([()])/g, '$1')
+      const label = _label?.replace(/\\([()])/g, '$1')
 
       if (!url.trim()) {
         isUrl = true

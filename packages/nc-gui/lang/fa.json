@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "فایل CSV",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "فایل JSON",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "فرم را پاک کنید",
     "addFieldFromFormView": "افزودن فیلد",
     "selectAllFields": "انتخاب همه فیلد‌ها",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "فعال کردن فیلدهای از پیش پرشده",
       "default": "پیش‌فرض",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "جستجو آیکون",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "شما نمی‌توانید قابلیت مشاهده فیلدی را که در حال ویرایش است تغییر دهید. لطفاً ابتدا تغییرات را ذخیره یا حذف کنید.",
         "moveEditedField": "شما نمی‌توانید فیلدی که در حال ویرایش است را جابجا کنید. ابتدا تغییرات را ذخیره کنید یا لغو کنید",
         "moveDeletedField": "شما نمی‌توانید فیلدی که حذف شده است را جابجا کنید. ابتدا تغییرات را ذخیره کنید یا لغو کنید"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "فراداده پروژه با موفقیت خارج شد",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "کد HTML امبد کپی شد!",
       "userDetailsUpdated": "اطلاعات کاربر با موفقیت به‌روزرسانی شد",
       "tableDataImported": "داده جدول با موفقیت ایمپورد شد",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "جزئیات وب‌هوک با موفقیت به‌روزرسانی شد",
       "webhookDeleted": "هوک با موفقیت حذف شد",
       "webhookTested": "وب هوک با موفقیت تست شد",

@@ -35,9 +35,11 @@ const onUpgradePlan = async () => {
             </template>
             {{ $t('labels.upgradePlan') }}
           </NcButton>
-          <NcButton type="text" size="small" data-testid="nc-workspace-settings-view-all-plan-btn">
-            {{ $t('labels.viewAllPlanDetails') }}
-          </NcButton>
+          <a href="https://nocodb.com/pricing" target="_blank" class="!no-underline">
+            <NcButton type="text" size="small" data-testid="nc-workspace-settings-view-all-plan-btn">
+              {{ $t('labels.viewAllPlanDetails') }}
+            </NcButton>
+          </a>
         </div>
       </div>
       <div class="w-[60%] flex items-end justify-end pt-6 relative">

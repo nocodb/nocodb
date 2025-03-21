@@ -21,7 +21,7 @@ const activeWorkspace = computed(() =>
   workspaceId.value ? workspacesList.value.find((w) => w.id === workspaceId.value)! : _activeWorkspace.value!,
 )
 
-const { paymentState, loadPlans, stripe, getSessionResult } = useProvidePaymentStore()
+const { paymentState, loadPlans, stripe, getSessionResult, isAccountPage } = useProvidePaymentStore()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
@@ -65,6 +65,7 @@ onMounted(async () => {
   await loadPlans()
 
   paymentState.value = PaymentState.SELECT_PLAN
+  isAccountPage.value = !!workspaceId.value
 
   if (route.query.afterPayment) {
     afterPayment.value = true
@@ -160,7 +161,7 @@ onMounted(async () => {
               </div>
 
               <!-- Actions -->
-              <NcButton type="primary" size="small" class="w-full" @click="onBack">
+              <NcButton type="primary" size="medium" class="w-full" @click="onBack">
                 {{ $t('general.finish') }}
               </NcButton>
             </div>

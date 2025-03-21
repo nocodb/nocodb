@@ -38,6 +38,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const plansAvailable = ref<PaymentPlan[]>([])
 
+  const isAccountPage = ref<boolean>(false)
+
   const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription)
 
   const activePlan = computed(() => activeWorkspace.value?.payment?.plan)
@@ -98,7 +100,12 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       baseURL,
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
-      body: { seat: workspaceSeatCount.value, plan_id: selectedPlan.value.id, price_id: price.id },
+      body: {
+        seat: workspaceSeatCount.value,
+        plan_id: selectedPlan.value.id,
+        price_id: price.id,
+        isAccountPage: isAccountPage.value,
+      },
     })
 
     return res
@@ -200,6 +207,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     activeWorkspaceId,
     getSessionResult,
     getCustomerPortalSession,
+    isAccountPage,
   }
 }, 'injected-payment-store')
 

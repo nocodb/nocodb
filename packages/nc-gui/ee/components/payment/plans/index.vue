@@ -8,10 +8,6 @@ const filteredPlansAvailable = computed(() => {
   return plansAvailable.value.filter((plan) => getPlanPrice(plan) >= getPlanPrice(activePlan.value, paymentMode.value))
 })
 
-const onClickCompareAllFeatures = () => {
-  // Todo: redirection
-}
-
 onMounted(async () => {
   await loadPlans()
 })
@@ -30,7 +26,6 @@ onMounted(async () => {
       href="https://nocodb.com/pricing"
       target="_blank"
       class="h-[48px] !no-underline flex items-center gap-2 justify-center text-nc-content-gray-subtle hover:text-nc-content-gray-emphasis transition-colors text-base font-bold cursor-pointer"
-      @click="onClickCompareAllFeatures"
     >
       {{ $t('labels.compareAllFeatures') }}
       <GeneralIcon icon="ncExternalLink" />

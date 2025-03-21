@@ -135,11 +135,12 @@ export class PaymentService {
       seat: number;
       plan_id: string;
       price_id: string;
+      isAccountPage?: boolean;
     },
     req: NcRequest,
     ncMeta = Noco.ncMeta,
   ) {
-    const { seat, plan_id, price_id } = payload;
+    const { seat, plan_id, price_id, isAccountPage = true } = payload;
 
     const { user } = req;
 
@@ -244,8 +245,7 @@ export class PaymentService {
         },
       ],
       ui_mode: 'embedded',
-      // return_url: `${req.ncSiteUrl}/?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}`,
-      return_url: `http://localhost:3000?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}`,
+      return_url: `${req.ncSiteUrl}/?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}&isAccountPage=${isAccountPage}`,
       automatic_tax: {
         enabled: true,
       },

@@ -17,7 +17,11 @@ const { paymentState, workspaceSeatCount } = useProvidePaymentStore()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
-const activePlanMeta = computed(() => PlanMeta[(activeWorkspace.value?.payment?.plan.title ?? PlanTitles.FREE) as PlanTitles])
+const activePlanMeta = computed(() =>
+  activeWorkspace.value?.payment?.plan.title === 'Plus'
+    ? PlanMeta[PlanTitles.BUSINESS]
+    : PlanMeta[(activeWorkspace.value?.payment?.plan.title ?? PlanTitles.FREE) as PlanTitles],
+)
 
 const enableOldUI = false
 </script>
@@ -26,7 +30,7 @@ const enableOldUI = false
   <div
     v-if="!paymentInitiated"
     class="nc-current-plan-card flex flex-col min-w-[fit-content] rounded-[20px] border-1 p-6 gap-5 border-nc-border-gray-medium"
-    :style="{ backgroundColor: activePlanMeta.color }"
+    :style="{ backgroundColor: activePlanMeta.color, color: activePlanMeta?.primary }"
   >
     <div class="text-2xl font-bold">
       {{ $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title ?? PlanTitles.FREE}`) }}
@@ -36,7 +40,6 @@ const enableOldUI = false
       class="nc-current-plan-table rounded-lg border-1"
       :style="{
         borderColor: activePlanMeta?.border,
-        color: activePlanMeta?.primary,
       }"
     >
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">

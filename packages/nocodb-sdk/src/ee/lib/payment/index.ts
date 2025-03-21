@@ -25,7 +25,7 @@ export const PlanMeta = {
     accent: '#FDCDAD',
     primary: '#C86827',
     bgLight: '#FFF5EF',
-    bgDark: '#FDCDAD',
+    bgDark: '#FEE6D6',
     border: '#FDCDAD',
   },
   [PlanTitles.ENTERPRISE]: {
@@ -34,7 +34,7 @@ export const PlanMeta = {
     accent: '#663B1F',
     primary: '#C86827',
     bgLight: '#FFF5EF',
-    bgDark: '#FDCDAD',
+    bgDark: '#FEE6D6',
     border: '#FDCDAD',
   },
 } as const;

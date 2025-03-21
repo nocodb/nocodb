@@ -41,12 +41,21 @@ onMounted(async () => {
   <div v-if="selectedPlan" class="flex flex-col w-full">
     <div class="flex flex-col w-full gap-6">
       <div v-if="paymentState && paymentState !== PaymentState.SELECT_PLAN">
-        <div class="flex items-center gap-1 cursor-pointer text-brand-500 hover:text-brand-800 font-weight-700" @click="onReset">
-          <GeneralIcon icon="chevronLeft" class="h-4 w-4 mt-0.3" />
-          <div class="text-sm">Back</div>
+        <div
+          class="flex items-center gap-1 cursor-pointer text-nc-content-brand hover:text-brand-600 font-weight-700"
+          @click="onReset"
+        >
+          <GeneralIcon icon="chevronLeft" class="h-4 w-4" />
+          <div class="text-sm">{{ $t('labels.back') }}</div>
         </div>
       </div>
-      <div class="text-2xl font-bold ml-1">Upgrade To {{ selectedPlan.title }}</div>
+      <div class="text-2xl font-bold ml-1">
+        {{
+          $t('labels.upgradeToPlan', {
+            plan: $t(`objects.paymentPlan.${selectedPlan.title}`),
+          })
+        }}
+      </div>
       <div id="checkout" class="w-full">
         <!-- Checkout inserts the payment form here -->
       </div>

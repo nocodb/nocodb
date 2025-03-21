@@ -76,39 +76,6 @@ export const getAggregateFn: (
 };
 
 async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
-  const getLinkedColumnDisplayValue = async (params: {
-    model: Model;
-    aliasToColumn?: Record<string, () => Promise<{ builder: any }>>;
-    parentColumns: Set<string>;
-  }) => {
-    const displayValueColumn = params.model?.displayValue;
-    if (!displayValueColumn) {
-      return undefined;
-    }
-    const formulOption = await params.model.displayValue.getColOptions<
-      FormulaColumn | ButtonColumn
-    >(baseModelSqlv2.context);
-    if (displayValueColumn.uidt !== UITypes.Formula) {
-      return displayValueColumn.column_name;
-    } else {
-      const innerQb = await _formulaQueryBuilder({
-        baseModelSqlv2: await Model.getBaseModelSQL(baseModelSqlv2.context, {
-          model: params.model,
-          dbDriver: baseModelSqlv2.dbDriver,
-        }),
-        _tree: formulOption.formula,
-        model: params.model,
-        column: params.model.displayValue,
-        aliasToColumn: params.aliasToColumn,
-        tableAlias,
-        parsedTree: formulOption.getParsedTree(),
-        baseUsers,
-        parentColumns: params.parentColumns,
-      });
-      return innerQb;
-    }
-  };
-
   const {
     baseModelSqlv2,
     _tree,

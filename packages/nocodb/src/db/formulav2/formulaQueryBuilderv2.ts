@@ -1387,7 +1387,7 @@ export default async function formulaQueryBuilderv2({
   tree;
   model: Model;
   column?: Column;
-  aliasToColumn;
+  aliasToColumn?: Record<string, any>;
   tableAlias?: string;
   validateFormula?: boolean;
   parsedTree?: any;

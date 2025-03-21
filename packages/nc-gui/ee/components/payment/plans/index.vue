@@ -22,16 +22,18 @@ onMounted(async () => {
     <div v-if="isPaidPlan" class="text-base font-bold">{{ $t('general.plans') }}</div>
     <div v-else class="text-base font-bold text-nc-content-gray">{{ $t('general.all') }} {{ $t('general.plans') }}</div>
     <PaymentPlansSelectMode v-if="!isPaidPlan" :value="paymentMode" :discount="10" @change="onPaymentModeChange" />
-    <div class="flex gap-4">
+    <div class="flex gap-4 flex-wrap">
       <PaymentPlansCard v-for="plan in filteredPlansAvailable" :key="plan.title" :plan="plan" :active-plan="activePlan?.title" />
     </div>
 
-    <div
-      class="h-[48px] flex items-center gap-2 justify-center text-nc-content-gray-subtle hover:text-nc-content-gray-emphasis transition-colors text-base font-bold cursor-pointer"
+    <a
+      href="https://nocodb.com/pricing"
+      target="_blank"
+      class="h-[48px] !no-underline flex items-center gap-2 justify-center text-nc-content-gray-subtle hover:text-nc-content-gray-emphasis transition-colors text-base font-bold cursor-pointer"
       @click="onClickCompareAllFeatures"
     >
       {{ $t('labels.compareAllFeatures') }}
       <GeneralIcon icon="ncExternalLink" />
-    </div>
+    </a>
   </div>
 </template>

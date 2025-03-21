@@ -189,7 +189,7 @@ onMounted(async () => {
         <GeneralLoader v-else size="large" />
       </div>
     </div>
-    <div v-else class="flex flex-col gap-8 w-full max-w-300 mx-auto">
+    <div v-else class="flex flex-col gap-8 w-full max-w-300 mx-auto min-w-[740px]">
       <div v-if="!paymentInitiated" class="flex flex-col gap-3">
         <div class="text-base font-bold text-nc-content-gray">{{ $t('title.currentPlan') }}</div>
         <PaymentPlanUsage />

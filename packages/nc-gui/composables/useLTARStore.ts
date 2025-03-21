@@ -725,13 +725,17 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       $e('a:links:link')
     }
 
+    const debounceLoadChildrenExcludedList = useDebounceFn(loadChildrenExcludedList, 500)
+
+    const debounceLoadChildrenList = useDebounceFn(loadChildrenList, 500)
+
     // watchers
     watch(childrenExcludedListPagination, async () => {
-      await loadChildrenExcludedList(newRowState.state)
+      await debounceLoadChildrenExcludedList(newRowState.state)
     })
 
     watch(childrenListPagination, async () => {
-      await loadChildrenList(false, newRowState.state)
+      await debounceLoadChildrenList(false, newRowState.state)
     })
 
     watch(childrenList, async () => {

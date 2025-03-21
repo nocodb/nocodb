@@ -3,11 +3,14 @@ const { plansAvailable, activePlan, paymentMode, getPlanPrice, loadPlans, onPaym
   usePaymentStoreOrThrow()
 
 const filteredPlansAvailable = computed(() => {
-  console.log('palns', activePlan.value, plansAvailable.value)
   if (!activePlan.value) return plansAvailable.value
   // hide cheaper plans
   return plansAvailable.value.filter((plan) => getPlanPrice(plan) >= getPlanPrice(activePlan.value, paymentMode.value))
 })
+
+const onClickCompareAllFeatures = () => {
+  // Todo: redirection
+}
 
 onMounted(async () => {
   await loadPlans()
@@ -21,6 +24,14 @@ onMounted(async () => {
     <PaymentPlansSelectMode v-if="!isPaidPlan" :value="paymentMode" :discount="10" @change="onPaymentModeChange" />
     <div class="flex gap-4">
       <PaymentPlansCard v-for="plan in filteredPlansAvailable" :key="plan.title" :plan="plan" :active-plan="activePlan?.title" />
+    </div>
+
+    <div
+      class="h-[48px] flex items-center gap-2 justify-center text-nc-content-gray-subtle hover:text-nc-content-gray-emphasis transition-colors text-base font-bold cursor-pointer"
+      @click="onClickCompareAllFeatures"
+    >
+      {{ $t('labels.compareAllFeatures') }}
+      <GeneralIcon icon="ncExternalLink" />
     </div>
   </div>
 </template>

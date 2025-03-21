@@ -5,11 +5,13 @@ const route = useRoute()
 
 const workspaceStore = useWorkspace()
 
-const { workspacesList } = storeToRefs(workspaceStore)
+const { workspacesList, activeWorkspace: _activeWorkspace } = storeToRefs(workspaceStore)
 
 const workspaceId = computed(() => route.params.workspaceId)
 
-const activeWorkspace = computed(() => workspacesList.value.find((w) => w.id === workspaceId.value)!)
+const activeWorkspace = computed(() =>
+  workspaceId.value ? workspacesList.value.find((w) => w.id === workspaceId.value)! : _activeWorkspace.value!,
+)
 
 const { paymentState, workspaceSeatCount } = useProvidePaymentStore()
 
@@ -23,8 +25,8 @@ const enableOldUI = false
 <template>
   <div
     v-if="!paymentInitiated"
-    class="nc-current-plan-card flex flex-col min-w-[fit-content] rounded-[20px] border-1 p-6 gap-5"
-    :style="{ backgroundColor: activePlanMeta.color, borderColor: activePlanMeta.accent }"
+    class="nc-current-plan-card flex flex-col min-w-[fit-content] rounded-[20px] border-1 p-6 gap-5 border-nc-border-gray-medium"
+    :style="{ backgroundColor: activePlanMeta.color }"
   >
     <div class="text-2xl font-bold">
       {{ $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title ?? PlanTitles.FREE}`) }}
@@ -93,6 +95,8 @@ const enableOldUI = false
 <style lang="scss" scoped>
 .nc-current-plan-card {
   @apply bg-nc-bg-gray-extralight;
+
+  box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
 }
 
 .nc-current-plan-table {

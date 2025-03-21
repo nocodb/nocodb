@@ -311,7 +311,8 @@
     "unread": "Unread",
     "shared": "Shared",
     "organization": "Organization",
-    "all": "All"
+    "all": "All",
+    "billing": "Billing"
   },
   "objects": {
     "script": "Script",

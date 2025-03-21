@@ -65,105 +65,103 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="h-full">
-    <div class="flex flex-col">
-      <NcPageHeader>
-        <template #icon>
-          <GeneralIcon icon="ncDollarSign" class="flex-none text-gray-700 text-[20px] h-5 w-5" />
-        </template>
-        <template #title>
-          <span data-rec="true"> Billing </span>
-        </template>
-      </NcPageHeader>
-      <div class="nc-content-max-w p-6 h-[calc(100vh)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
-        <div v-if="afterPayment">
-          <div class="flex flex-col gap-6 mx-auto items-center justify-center w-[600px]">
-            <template v-if="checkoutSession && checkoutSession.payment_status === 'paid'">
-              <div class="border-1 border-nc-border-gray-medium rounded-lg p-6 flex gap-2 bg-green-50 w-full">
-                <GeneralIcon icon="checkFill" class="text-white h-8 w-8" />
-                <div class="flex flex-col gap-2">
-                  <div class="text-xl font-bold">Payment Successful</div>
-                  <div class="text-nc-content-gray-subtle2">Your payment has been processed. You can now use your new plan.</div>
-                </div>
+  <div class="h-full flex flex-col">
+    <NcPageHeader>
+      <template #icon>
+        <GeneralIcon icon="ncDollarSign" class="flex-none text-gray-700 text-[20px] h-5 w-5" />
+      </template>
+      <template #title>
+        <span data-rec="true"> {{ $t('general.billing') }} </span>
+      </template>
+    </NcPageHeader>
+    <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
+      <div v-if="afterPayment">
+        <div class="flex flex-col gap-6 mx-auto items-center justify-center w-[600px]">
+          <template v-if="checkoutSession && checkoutSession.payment_status === 'paid'">
+            <div class="border-1 border-nc-border-gray-medium rounded-lg p-6 flex gap-2 bg-green-50 w-full">
+              <GeneralIcon icon="checkFill" class="text-white h-8 w-8" />
+              <div class="flex flex-col gap-2">
+                <div class="text-xl font-bold">Payment Successful</div>
+                <div class="text-nc-content-gray-subtle2">Your payment has been processed. You can now use your new plan.</div>
               </div>
+            </div>
 
-              <div class="border-1 border-nc-border-gray-medium rounded-lg p-6 flex w-full">
-                <div class="flex flex-col gap-8 w-full">
-                  <div>
-                    <div class="text-lg font-bold">Invoice</div>
+            <div class="border-1 border-nc-border-gray-medium rounded-lg p-6 flex w-full">
+              <div class="flex flex-col gap-8 w-full">
+                <div>
+                  <div class="text-lg font-bold">Invoice</div>
 
-                    <div class="flex flex-col gap-2">
-                      <div class="text-sm">
-                        {{ checkoutSession?.customer_details?.address?.line1 }},
-                        {{ checkoutSession?.customer_details?.address?.city }},
-                        {{ checkoutSession?.customer_details?.address?.state }},
-                        {{ checkoutSession?.customer_details?.address?.postal_code }},
-                        {{ checkoutSession?.customer_details?.address?.country }}
-                      </div>
+                  <div class="flex flex-col gap-2">
+                    <div class="text-sm">
+                      {{ checkoutSession?.customer_details?.address?.line1 }},
+                      {{ checkoutSession?.customer_details?.address?.city }},
+                      {{ checkoutSession?.customer_details?.address?.state }},
+                      {{ checkoutSession?.customer_details?.address?.postal_code }},
+                      {{ checkoutSession?.customer_details?.address?.country }}
                     </div>
                   </div>
+                </div>
 
-                  <div>
-                    <div class="flex flex-col my-4">
-                      <div class="flex justify-between">
-                        <div class="flex flex-col">
-                          <div class="text-sm">{{ activeWorkspace?.payment?.plan?.title ?? 'Plan' }}</div>
-                          <div v-if="activeWorkspace?.payment?.subscription?.period" class="text-sm text-nc-content-gray-subtle2">
-                            Paid {{ activeWorkspace?.payment?.subscription?.period === 'year' ? 'Yearly' : 'Monthly' }}
-                          </div>
-                        </div>
-                        <div class="text-sm">${{ (checkoutSession?.amount_total ?? 0) / 100 }}</div>
-                      </div>
-                    </div>
-
-                    <NcDivider class="!py-1" />
-
+                <div>
+                  <div class="flex flex-col my-4">
                     <div class="flex justify-between">
-                      <div class="text-sm">Total</div>
+                      <div class="flex flex-col">
+                        <div class="text-sm">{{ activeWorkspace?.payment?.plan?.title ?? 'Plan' }}</div>
+                        <div v-if="activeWorkspace?.payment?.subscription?.period" class="text-sm text-nc-content-gray-subtle2">
+                          Paid {{ activeWorkspace?.payment?.subscription?.period === 'year' ? 'Yearly' : 'Monthly' }}
+                        </div>
+                      </div>
                       <div class="text-sm">${{ (checkoutSession?.amount_total ?? 0) / 100 }}</div>
                     </div>
                   </div>
 
-                  <!-- Actions -->
-                  <NcButton type="primary" size="small" class="w-full" @click="onBack">
-                    <div class="flex items-center justify-center gap-2">
-                      <span>Finish</span>
-                    </div>
-                  </NcButton>
-                </div>
-              </div>
-            </template>
+                  <NcDivider class="!py-1" />
 
-            <template v-else-if="checkoutSession && checkoutSession.payment_status === 'failed'">
-              <div class="border-1 border-red-500 rounded-lg p-6 flex gap-2 bg-red-50">
-                <GeneralIcon icon="close" class="text-red-500 h-8 w-8" />
-                <div class="flex flex-col gap-2">
-                  <div class="text-xl font-bold text-red-600">Payment Failed</div>
-                  <div class="text-nc-content-gray-subtle2">
-                    Something went wrong while processing your payment. Please try again or contact support.
+                  <div class="flex justify-between">
+                    <div class="text-sm">Total</div>
+                    <div class="text-sm">${{ (checkoutSession?.amount_total ?? 0) / 100 }}</div>
                   </div>
                 </div>
+
+                <!-- Actions -->
+                <NcButton type="primary" size="small" class="w-full" @click="onBack">
+                  <div class="flex items-center justify-center gap-2">
+                    <span>Finish</span>
+                  </div>
+                </NcButton>
               </div>
+            </div>
+          </template>
 
-              <NcButton type="ghost" class="w-full" @click="onBack">
-                <div class="flex items-center justify-center gap-1">
-                  <span>Go Back & Retry</span>
+          <template v-else-if="checkoutSession && checkoutSession.payment_status === 'failed'">
+            <div class="border-1 border-red-500 rounded-lg p-6 flex gap-2 bg-red-50">
+              <GeneralIcon icon="close" class="text-red-500 h-8 w-8" />
+              <div class="flex flex-col gap-2">
+                <div class="text-xl font-bold text-red-600">Payment Failed</div>
+                <div class="text-nc-content-gray-subtle2">
+                  Something went wrong while processing your payment. Please try again or contact support.
                 </div>
-              </NcButton>
-            </template>
+              </div>
+            </div>
 
-            <!-- Loader while fetching session -->
-            <GeneralLoader v-else size="large" />
-          </div>
+            <NcButton type="ghost" class="w-full" @click="onBack">
+              <div class="flex items-center justify-center gap-1">
+                <span>Go Back & Retry</span>
+              </div>
+            </NcButton>
+          </template>
+
+          <!-- Loader while fetching session -->
+          <GeneralLoader v-else size="large" />
         </div>
-        <div v-else class="flex flex-col gap-8 w-full max-w-300 mx-auto">
-          <div class="flex flex-col gap-3">
-            <div v-if="!paymentInitiated" class="text-base font-bold">Current Plan</div>
-            <PaymentPlanUsage v-if="!paymentInitiated" />
-          </div>
-          <Payment v-if="paymentState" />
-          <GeneralLoader v-else />
+      </div>
+      <div v-else class="flex flex-col gap-8 w-full max-w-300 mx-auto">
+        <div class="flex flex-col gap-3">
+          <div v-if="!paymentInitiated" class="text-base font-bold">Current Plan</div>
+          <PaymentPlanUsage v-if="!paymentInitiated" />
         </div>
+        <Payment v-if="paymentState" />
+        <GeneralLoader v-else />
       </div>
     </div>
   </div>

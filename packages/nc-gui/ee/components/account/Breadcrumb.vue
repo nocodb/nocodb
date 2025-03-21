@@ -19,20 +19,20 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
     payload.pop()
 
     payload.push({
-      title: 'Workspace',
+      title: t('objects.workspace'),
     })
 
     switch (route.name.toString().split('-').pop()) {
       case 'billing': {
         payload.push({
-          title: 'Billing',
+          title: t('general.billing'),
           active: true,
         })
         break
       }
       case 'settings': {
         payload.push({
-          title: 'Settings',
+          title: t('labels.settings'),
           active: true,
         })
         break

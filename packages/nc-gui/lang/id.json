@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "File CSV",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "File JSON",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "Bersihkan Formulir",
     "addFieldFromFormView": "Tambahkan Bidang",
     "selectAllFields": "Pilih semua bidang",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Aktifkan Pengisian Awal",
       "default": "Bawaan",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Cari ikon",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "Anda tidak dapat mengubah visibilitas bidang yang sedang diedit. Silakan simpan atau batalkan perubahan terlebih dahulu.",
         "moveEditedField": "Anda tidak dapat memindahkan bidang yang sedang diedit. Simpan atau batalkan perubahan terlebih dahulu",
         "moveDeletedField": "Anda tidak dapat memindahkan bidang yang sudah dihapus. Simpan atau batalkan perubahan terlebih dahulu"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Metadata proyek berhasil diekspor",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Menyalin kode HTML yang dapat disematkan!",
       "userDetailsUpdated": "Berhasil memperbarui detail pengguna",
       "tableDataImported": "Berhasil mengimpor data tabel",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Detail webhook berhasil diperbarui",
       "webhookDeleted": "Pengait berhasil dihapus",
       "webhookTested": "Webhook berhasil diuji dengan sukses",

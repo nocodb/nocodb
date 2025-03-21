@@ -14,24 +14,47 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
   const protocolRegex = /^(https?|ftp|mailto|file):\/\//
   let isUrl = false
 
-  const out = rawText.replace(/URI::\(([^)]*)\)(?:\s*LABEL::\((.*?(?=\)(?:\s|$)|$))\)?)?/g, (_, url, label) => {
-    if (!url.trim() && !label) {
-      return ' '
-    }
+  const out = rawText.replace(
+    /**
+     * Matches patterns of the form:
+     * URI::(url_content)[optional space]LABEL::(label_content)
+     *
+     * - `URI::(...)` - Extracts the URL content between parentheses.
+     * - `LABEL::(...)` - (Optional) Extracts the label content between parentheses.
+     * - `(?:...)` - Non-capturing groups used for optional and grouped patterns.
+     * - `[^()]|\\\)|\\\(` - Matches any character except parentheses or escaped parentheses.
+     * - `\s*` - Matches any optional spaces between the URI and LABEL parts.
+     *
+     * Example Matches:
+     * - URI::(https://example.com)
+     * - URI::(https://example.com) LABEL::(My Label)
+     * - URI::(https://example.com\)with\)escapes) LABEL::(Label\))
+     */
+    /URI::\(((?:[^()]|\\\)|\\\()*[^\\]|\s*)\)(?:\s*LABEL::\(((?:[^()]|\\\)|\\\()*[^\\]|\s*)\))?/g,
+    (_, _url, _label) => {
+      // replace escaped characters (`(` and `)`) from url and label
+      const url = _url.replace(/\\([()])/g, '$1')
+      const label = _label.replace(/\\([()])/g, '$1')
 
-    const fullUrl = protocolRegex.test(url) ? url : url.trim() ? `http://${url}` : ''
-    isUrl = isURL(fullUrl)
+      if (!url.trim() && !label) {
+        isUrl = true
+        return ' '
+      }
 
-    const anchorLabel = label || url || ''
+      const fullUrl = protocolRegex.test(url) ? url : url.trim() ? `http://${url}` : ''
+      isUrl = isURL(fullUrl)
 
-    const a = document.createElement('a')
-    a.textContent = anchorLabel
-    a.setAttribute('href', decode(fullUrl))
-    a.setAttribute('class', 'nc-cell-field-link')
-    a.setAttribute('target', '_blank')
-    a.setAttribute('rel', 'noopener,noreferrer')
-    return a.outerHTML
-  })
+      const anchorLabel = label || url || ''
+
+      const a = document.createElement('a')
+      a.textContent = anchorLabel
+      a.setAttribute('href', decode(fullUrl))
+      a.setAttribute('class', 'nc-cell-field-link')
+      a.setAttribute('target', '_blank')
+      a.setAttribute('rel', 'noopener,noreferrer')
+      return a.outerHTML
+    },
+  )
 
   return isUrl ? out : false
 }

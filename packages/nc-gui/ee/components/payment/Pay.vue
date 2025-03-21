@@ -14,17 +14,22 @@ const initializeForm = async () => {
 
   isLoading.value = true
 
-  const res = await createPaymentForm()
+  try {
+    const res = await createPaymentForm()
 
-  // Initialize Checkout
-  checkout.value = await stripe.value.initEmbeddedCheckout({
-    clientSecret: res.client_secret,
-  })
+    // Initialize Checkout
+    checkout.value = await stripe.value.initEmbeddedCheckout({
+      clientSecret: res.client_secret,
+    })
 
-  // Mount Checkout
-  checkout.value.mount('#checkout')
-
-  isLoading.value = false
+    // Mount Checkout
+    checkout.value.mount('#checkout')
+  } catch (err: any) {
+    console.log(err)
+    message.error(await extractSdkResponseErrorMsg(err))
+  } finally {
+    isLoading.value = false
+  }
 }
 
 const onReset = () => {

@@ -14,7 +14,6 @@ export interface MapFnArgs {
     (() => Promise<{ builder: any }>) | string | undefined
   >;
   knex: XKnex;
-  alias: string;
   fn: (...args: any) => Promise<{ builder: Knex.QueryBuilder | any }>;
   prevBinaryOp?: any;
   model: Model;

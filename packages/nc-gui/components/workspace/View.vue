@@ -134,7 +134,7 @@ onMounted(() => {
             </div>
           </template>
           <div class="overflow-auto h-[calc(100vh-3rem)] nc-scrollbar-thin">
-            <PaymentBanner class="mb-0"/>
+            <PaymentBanner class="mb-0" />
             <WorkspaceCollaboratorsList class="h-[650px]" :workspace-id="currentWorkspace.id" />
           </div>
         </a-tab-pane>
@@ -149,6 +149,19 @@ onMounted(() => {
             </div>
           </template>
           <WorkspaceSettings :workspace-id="currentWorkspace.id" />
+        </a-tab-pane>
+      </template>
+
+      <template v-if="isEeUI && !props.workspaceId">
+        <a-tab-pane key="billing" class="w-full">
+          <template #tab>
+            <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
+              <GeneralIcon icon="ncDollarSign" class="flex-none h-4 w-4" />
+              {{ $t('general.billing') }}
+            </div>
+          </template>
+
+          <PaymentBillingPage class="!h-[calc(100vh_-_92px)]" />
         </a-tab-pane>
       </template>
     </NcTabs>

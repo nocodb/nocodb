@@ -1,8 +1,11 @@
 <script lang="ts" setup>
-const { isPaidPlan, activeWorkspaceId } = useProvidePaymentStore()
+const { isPaidPlan } = useProvidePaymentStore()
+
+const router = useRouter()
+const route = router.currentRoute
 
 const onUpgradePlan = async () => {
-  navigateTo(`/account/workspace/${activeWorkspaceId.value}/settings`)
+  router.push({ query: { ...route.value.query, tab: 'billing' } })
 }
 </script>
 

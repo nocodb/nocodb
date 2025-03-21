@@ -1095,7 +1095,7 @@
     "restApis": "Rest APIs",
     "apis": "APIs",
     "apiSnippet": "Đoạn mã API",
-    "includeData": "Bao gồm Dữ liệu",
+    "includeData": "Include Data",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
     "includeView": "Include views",

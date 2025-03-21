@@ -32,7 +32,7 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
      */
     /URI::\(((?:[^()]|\\\)|\\\()*[^\\]|\s*)\)(?:\s*LABEL::\(((?:[^()]|\\\)|\\\()*[^\\]|\s*)\))?/g,
     (_, _url, _label) => {
-      // replace escaped characters (`(` and `)`) from url and label
+      // Unescape escaped parentheses (`(` and `)`) in the URL and label content
       const url = _url.replace(/\\([()])/g, '$1')
       const label = _label.replace(/\\([()])/g, '$1')
 
@@ -41,7 +41,7 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
         return ' '
       }
 
-      const fullUrl = protocolRegex.test(url) ? url : url.trim() ? `http://${url}` : ''
+      const fullUrl = protocolRegex.test(url) ? url : url.trim() ? `https://${url}` : ''
       isUrl = isURL(fullUrl)
 
       const anchorLabel = label || url || ''
@@ -51,7 +51,7 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
       a.setAttribute('href', decode(fullUrl))
       a.setAttribute('class', 'nc-cell-field-link')
       a.setAttribute('target', '_blank')
-      a.setAttribute('rel', 'noopener,noreferrer')
+      a.setAttribute('rel', 'noopener noreferrer')
       return a.outerHTML
     },
   )

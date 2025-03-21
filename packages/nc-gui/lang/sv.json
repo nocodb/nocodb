@@ -1095,7 +1095,7 @@
     "restApis": "Vilar APIs",
     "apis": "APIs",
     "apiSnippet": "API Snippets",
-    "includeData": "Inkludera data",
+    "includeData": "Include Data",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
     "includeView": "Include views",

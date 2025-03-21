@@ -12,7 +12,7 @@ defineProps<Props>()
     <div class="text-base text-nc-content-gray font-weight-700">
       <slot name="title">{{ title }}</slot>
     </div>
-    <div class="text-base text-nc-content-gray-subtle font-weight-500">
+    <div class="text-sm text-nc-content-gray-subtle font-weight-500">
       <slot name="subTitle">{{ subtitle }}</slot>
     </div>
     <div>

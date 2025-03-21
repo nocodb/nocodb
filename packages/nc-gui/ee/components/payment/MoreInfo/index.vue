@@ -11,7 +11,7 @@ defineProps<Props>()
   <div class="flex items-stretch children:w-1/2 gap-8">
     <PaymentMoreInfoCard :title="$t('title.helpAndSupport')" :subtitle="$t('title.helpAndSupportSubtitle')">
       <template #action>
-        <NcButton type="secondary">
+        <NcButton type="secondary" size="small">
           {{ $t('labels.contactSales') }}
         </NcButton>
       </template>
@@ -19,7 +19,7 @@ defineProps<Props>()
 
     <PaymentMoreInfoCard :title="$t('title.faq')" :subtitle="$t('title.faqSubtitle')">
       <template #action>
-        <NcButton type="secondary" icon-position="right" inner-class="!gap-2">
+        <NcButton type="secondary" icon-position="right" inner-class="!gap-2" size="small">
           <template #icon>
             <GeneralIcon icon="ncExternalLink" />
           </template>

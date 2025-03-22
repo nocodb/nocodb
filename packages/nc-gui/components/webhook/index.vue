@@ -669,6 +669,7 @@ watch(
     } else {
       // Set the default hook title only when creating a new hook.
       hookRef.title = getDefaultHookName(hooks.value)
+      hookRef.event = eventList.value?.[0]?.value[0]
     }
   },
   { immediate: true },
@@ -796,7 +797,7 @@ onMounted(async () => {
                       :value="
                         sendMeEverythingChecked
                           ? 'Send me everything'
-                          : (hookRef.event === 'after' ? `${$t('general.after')} ` : '') +
+                          : (hookRef.event === 'after' && hookRef.operation?.length ? `${$t('general.after')} ` : '') +
                             hookRef.operation!
                               .map((o) => eventsLabelMap[hookRef.event!]?.[o]?.text[1])
                               .join(` ${t('general.or').toLowerCase()} `)

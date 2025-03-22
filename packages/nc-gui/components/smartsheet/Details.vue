@@ -10,7 +10,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
 const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())
@@ -33,14 +33,15 @@ const openedSubTab = computed({
 })
 
 watch(
-  openedSubTab,
+  [openedSubTab, isBaseRolesLoaded],
   () => {
-    // TODO: Find a good way to know when the roles are populated and check
     // Re-enable this check for first render
     if (
-      (openedSubTab.value === 'field' && !isUIAllowed('fieldAdd')) ||
-      (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) ||
-      (['field', 'webhook'].includes(openedSubTab.value) && isSqlView.value)
+      // check page access only after base roles are loaded
+      isBaseRolesLoaded.value &&
+      ((openedSubTab.value === 'field' && !isUIAllowed('fieldAdd')) ||
+        (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) ||
+        (['field', 'webhook'].includes(openedSubTab.value) && isSqlView.value))
     ) {
       onViewsTabChange('relation')
     }

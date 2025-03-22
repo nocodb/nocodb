@@ -8,8 +8,16 @@ export class WebhookHandlerProcessor {
   private logger = new Logger(WebhookHandlerProcessor.name);
 
   async job(job: Job<HandleWebhookJobData>) {
-    const { context, hookId, modelId, viewId, prevData, newData, user } =
-      job.data;
+    const {
+      context,
+      hookId,
+      modelId,
+      viewId,
+      prevData,
+      newData,
+      user,
+      hookName,
+    } = job.data;
 
     const hook = await Hook.get(context, hookId);
     if (!hook) {
@@ -32,6 +40,7 @@ export class WebhookHandlerProcessor {
       prevData,
       newData,
       user,
+      hookName,
     });
   }
 }

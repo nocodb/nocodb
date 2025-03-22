@@ -792,7 +792,10 @@ onMounted(async () => {
                       :value="
                         sendMeEverythingChecked
                           ? 'Send me everything'
-                          : hookRef.operation.map((o) => eventsLabelMap[hookRef.event]?.[o]?.text[1]).join(', ')
+                          : (hookRef.event === 'after' ? `${$t('general.after')} ` : '') +
+                            hookRef.operation
+                              .map((o) => eventsLabelMap[hookRef.event]?.[o]?.text[1])
+                              .join(` ${t('general.or').toLowerCase()} `)
                       "
                       placeholder="Choose trigger"
                     ></a-input>
@@ -832,7 +835,10 @@ onMounted(async () => {
                             @mousedown.prevent
                           >
                             <div class="w-full flex gap-2">
-                              <div class="flex-grow">{{ operation.text }}</div>
+                              <div class="flex-grow">
+                                <span v-if="hookRef.event === 'after'">{{ $t('general.after') }}&nbsp;</span>
+                                {{ operation.text }}
+                              </div>
                               <div class="flex flex-shrink max-w-[18px]">
                                 <a-checkbox :checked="hookRef.operation.includes(operation.value)" :disabled="true"></a-checkbox>
                               </div>

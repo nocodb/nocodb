@@ -631,16 +631,25 @@ async function loadSampleData() {
   )
 }
 
-const formattedSampleData = computed(() => {
-  // if non-URL based hook and version is v2, then return the newRowData as payload
-  // this is for backward compatibility
-  if (hookRef.notification.type !== 'URL' && ['v2'].includes(hookRef.version)) {
-    return {
-      event: sampleData.value?.data?.rows,
+const formattedSampleData = computed({
+  get() {
+    // if non-URL based hook and version is v2, then return the newRowData as payload
+    // this is for backward compatibility
+    if (hookRef.notification.type !== 'URL' && ['v2'].includes(hookRef.version)) {
+      return {
+        event: sampleData.value?.data?.rows,
+      }
     }
-  }
 
-  return sampleData.value
+    return sampleData.value
+  },
+  set(val) {
+    // if non-URL based hook and version is v2, then return the newRowData as payload
+    // this is for backward compatibility
+    if (hookRef.notification.type !== 'URL' && ['v2'].includes(hookRef.version)) {
+      if (sampleData.value?.data?.rows) sampleData.value.data.rows = val
+    } else sampleData.value = val
+  },
 })
 
 const getDefaultHookName = (hooks: HookType[]) => {

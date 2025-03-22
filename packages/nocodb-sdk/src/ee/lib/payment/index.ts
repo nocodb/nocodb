@@ -9,6 +9,7 @@ export const PlanMeta = {
     bgLight: '#F9F9FA',
     bgDark: '#F4F4F5',
     border: '#E7E7E9',
+    chartFillColor: '#6A7184',
   },
   [PlanTitles.TEAM]: {
     title: PlanTitles.TEAM,
@@ -18,6 +19,7 @@ export const PlanMeta = {
     bgLight: '#EDF9FF',
     bgDark: '#D7F2FF',
     border: '#AFE5FF',
+    chartFillColor: '#207399',
   },
   [PlanTitles.BUSINESS]: {
     title: PlanTitles.BUSINESS,
@@ -27,6 +29,7 @@ export const PlanMeta = {
     bgLight: '#FFF5EF',
     bgDark: '#FEE6D6',
     border: '#FDCDAD',
+    chartFillColor: '#C86827',
   },
   [PlanTitles.ENTERPRISE]: {
     title: PlanTitles.ENTERPRISE,
@@ -36,5 +39,6 @@ export const PlanMeta = {
     bgLight: '#FFF5EF',
     bgDark: '#FEE6D6',
     border: '#FDCDAD',
+    chartFillColor: '#C86827',
   },
 } as const;

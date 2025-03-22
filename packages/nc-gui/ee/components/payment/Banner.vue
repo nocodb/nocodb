@@ -16,8 +16,8 @@ const onUpgradePlan = async () => {
     v-if="!isPaidPlan"
     class="nc-payment-banner m-6 rounded-lg border-1 border-nc-border-gray-medium max-w-338 bg-nc-bg-maroon-light overflow-hidden relative flex gap-6 transition-all duration-300"
     :class="{
-      'p-4': isMinimised,
-      'p-6': !isMinimised,
+      'p-4 min-h-[66px]': isMinimised,
+      'p-6 min-h-[186px]': !isMinimised,
     }"
   >
     <NcButton

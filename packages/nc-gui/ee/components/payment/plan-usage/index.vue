@@ -24,6 +24,10 @@ const activePlanMeta = computed(() =>
 )
 
 const enableOldUI = false
+
+const chartFillColor = computed(() => {
+  return activePlanMeta.value.chartFillColor ?? activePlanMeta.value.primary
+})
 </script>
 
 <template>
@@ -44,27 +48,63 @@ const enableOldUI = false
     >
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.nextInvoice') }} </template>
-        <template #value> 16 July 2025</template>
+        <template #value>
+          <div class="w-6"></div>
+          16 July 2025</template
+        >
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.nextInvoiceAmount') }} </template>
-        <template #value> 60$ - 24 Jan 2025</template>
+        <template #value>
+          <div class="w-6"></div>
+          60$ - 24 Jan 2025
+        </template>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.numberOfBilledUsers') }} </template>
-        <template #value> 4</template>
+        <template #value>
+          <div class="w-6"></div>
+          4
+        </template>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.storageUsedGB') }} </template>
-        <template #value> 0.93/20 GB</template>
+        <template #value>
+          <NcPieChart
+            :value="3.93"
+            :total="20"
+            :size="24"
+            :fill-color="chartFillColor"
+            :background-color="activePlanMeta?.bgDark"
+          />
+          <span> 3.93/20 GB </span>
+        </template>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.webhookCallsMonthly') }} </template>
-        <template #value> 619/150K</template>
+        <template #value>
+          <NcPieChart
+            :value="4619"
+            :total="15000"
+            :size="24"
+            :fill-color="chartFillColor"
+            :background-color="activePlanMeta?.bgDark"
+          />
+          <span> 4619/150K </span>
+        </template>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.apiCallsMonthly') }} </template>
-        <template #value> 120/150K</template>
+        <template #value>
+          <NcPieChart
+            :value="12000"
+            :total="15000"
+            :size="24"
+            :fill-color="chartFillColor"
+            :background-color="activePlanMeta?.bgDark"
+          />
+          <span> 120K/150K </span>
+        </template>
       </PaymentPlanUsageRow>
     </div>
     <div
@@ -109,7 +149,7 @@ const enableOldUI = false
     @apply border-b last-of-type:border-b-0 border-inherit flex items-center children:w-1/2;
 
     .nc-current-plan-table-cell {
-      @apply h-[54px] px-6 py-3 text-sm text-inherit flex items-center gap-2;
+      @apply h-[54px] px-6 py-3 text-sm text-inherit flex items-center gap-3;
 
       &.nc-cell-label {
         @apply bg-nc-bg-gray-light font-weight-500;

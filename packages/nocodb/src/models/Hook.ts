@@ -1,3 +1,8 @@
+import {
+  compareOperationCode,
+  operationArrToCode,
+  operationCodeToArr,
+} from 'src/helpers/webhookHelpers';
 import type { BoolType, HookReqType, HookType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
@@ -37,10 +42,20 @@ export default class Hook implements HookType {
   fk_workspace_id?: string;
   base_id?: string;
   source_id?: string;
-  version?: 'v1' | 'v2';
+  version?: 'v1' | 'v2' | 'v3';
+  trigger_field?: boolean;
+  trigger_fields?: string[];
 
-  constructor(hook: Partial<Hook | HookReqType>) {
+  constructor(
+    hook: Partial<Hook | HookReqType> & {
+      version?: string;
+      operation?: string | string[];
+    },
+  ) {
     Object.assign(this, hook);
+    if (hook.version === 'v3' && typeof hook.operation === 'string') {
+      this.operation = operationCodeToArr(hook.operation);
+    }
   }
 
   public static async get(
@@ -61,6 +76,15 @@ export default class Hook implements HookType {
         MetaTable.HOOKS,
         hookId,
       );
+      const hookTriggerFields = await ncMeta.metaList2(
+        hook.fk_workspace_id,
+        hook.base_id,
+        MetaTable.HOOK_TRIGGER_FIELDS,
+        { condition: { fk_hook_id: hookId } },
+      );
+      hook.trigger_fields = hookTriggerFields.map(
+        (field) => field.fk_column_id,
+      );
       await NocoCache.set(`${CacheScope.HOOK}:${hookId}`, hook);
     }
     return hook && new Hook(hook);
@@ -79,7 +103,9 @@ export default class Hook implements HookType {
     param: {
       fk_model_id: string;
       event?: HookType['event'];
-      operation?: HookType['operation'];
+      operation?: HookType['operation'][0];
+      affectedColumns?: string[];
+      notEmptyColumns?: string[];
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -106,6 +132,24 @@ export default class Hook implements HookType {
           },
         },
       );
+      if (hooks && hooks.length > 0) {
+        const hookTriggerFields = await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.HOOK_TRIGGER_FIELDS,
+          {
+            xcCondition: { fk_hook_id: { in: hooks.map((k) => k.id) } },
+          },
+        );
+        for (const hook of hooks) {
+          if (hook.version === 'v3' && hook.trigger_field) {
+            const triggerFields = hookTriggerFields
+              .filter((k) => k.fk_hook_id === hook.id)
+              .map((k) => k.fk_column_id);
+            hook.trigger_fields = triggerFields;
+          }
+        }
+      }
       await NocoCache.setList(CacheScope.HOOK, [param.fk_model_id], hooks);
     }
     // filter event & operation
@@ -115,9 +159,43 @@ export default class Hook implements HookType {
       );
     }
     if (param.operation) {
-      hooks = hooks.filter(
-        (h) => h.operation?.toLowerCase() === param.operation?.toLowerCase(),
+      hooks = hooks.filter((h) =>
+        h.version === 'v3'
+          ? compareOperationCode({
+              code: h.operation,
+              operation: (param.operation as unknown as string)
+                .replace('bulk', '')
+                .toLowerCase(),
+            })
+          : h.operation?.toLowerCase() ===
+            (param.operation as unknown as string)?.toLowerCase(),
       );
+      if (
+        param.operation === 'update' ||
+        (param.operation as any) === 'bulkUpdate'
+      ) {
+        hooks = hooks.filter((hook) => {
+          return (
+            !hook.trigger_field ||
+            hook.trigger_fields?.some((field) =>
+              param.affectedColumns?.includes(field),
+            )
+          );
+        });
+      }
+      if (
+        param.operation === 'insert' ||
+        (param.operation as any) === 'bulkInsert'
+      ) {
+        hooks = hooks.filter((hook) => {
+          return (
+            !hook.trigger_field ||
+            hook.trigger_fields?.some((field) =>
+              param.notEmptyColumns?.includes(field),
+            )
+          );
+        });
+      }
     }
     return hooks?.map((h) => new Hook(h));
   }
@@ -127,26 +205,28 @@ export default class Hook implements HookType {
     hook: Partial<Hook>,
     ncMeta = Noco.ncMeta,
   ) {
-    const insertObj = extractProps(hook, [
-      'fk_model_id',
-      'title',
-      'description',
-      'env',
-      'type',
-      'event',
-      'operation',
-      'async',
-      'url',
-      'headers',
-      'condition',
-      'notification',
-      'retries',
-      'retry_interval',
-      'timeout',
-      'active',
-      'base_id',
-      'source_id',
-    ]);
+    const insertObj: Partial<Hook> & { operation?: string | string[] } =
+      extractProps(hook, [
+        'fk_model_id',
+        'title',
+        'description',
+        'env',
+        'type',
+        'event',
+        'operation',
+        'async',
+        'url',
+        'headers',
+        'condition',
+        'notification',
+        'retries',
+        'retry_interval',
+        'timeout',
+        'active',
+        'base_id',
+        'source_id',
+        'trigger_field',
+      ]);
 
     if (insertObj.notification && typeof insertObj.notification === 'object') {
       insertObj.notification = JSON.stringify(insertObj.notification);
@@ -162,8 +242,9 @@ export default class Hook implements HookType {
       insertObj.source_id = model.source_id;
     }
 
-    // new hook will set as version 2
-    insertObj.version = 'v2';
+    // new hook will set as version 3
+    insertObj.version = 'v3';
+    insertObj.operation = operationArrToCode(insertObj.operation) as any;
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
@@ -171,6 +252,20 @@ export default class Hook implements HookType {
       MetaTable.HOOKS,
       insertObj,
     );
+    if (hook.trigger_fields && hook.trigger_fields.length > 0) {
+      await ncMeta.bulkMetaInsert(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.HOOK_TRIGGER_FIELDS,
+        hook.trigger_fields.map((colId) => {
+          return {
+            fk_hook_id: id,
+            fk_column_id: colId,
+          };
+        }),
+        true,
+      );
+    }
 
     return this.get(context, id, ncMeta).then(async (hook) => {
       await NocoCache.appendToList(
@@ -188,37 +283,48 @@ export default class Hook implements HookType {
     hook: Partial<Hook>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(hook, [
-      'title',
-      'description',
-      'env',
-      'type',
-      'event',
-      'operation',
-      'async',
-      'payload',
-      'url',
-      'headers',
-      'condition',
-      'notification',
-      'retries',
-      'retry_interval',
-      'timeout',
-      'active',
-      'version',
-    ]);
+    const updateObj: HookType & { operation?: HookType['operation'] | string } =
+      extractProps(hook, [
+        'title',
+        'description',
+        'env',
+        'type',
+        'event',
+        'operation',
+        'async',
+        'payload',
+        'url',
+        'headers',
+        'condition',
+        'notification',
+        'retries',
+        'retry_interval',
+        'timeout',
+        'active',
+        'version',
+        'trigger_field',
+      ]);
 
     if (
       updateObj.version &&
       updateObj.operation &&
       updateObj.version === 'v1' &&
-      ['bulkInsert', 'bulkUpdate', 'bulkDelete'].includes(updateObj.operation)
+      ['bulkInsert', 'bulkUpdate', 'bulkDelete'].includes(
+        updateObj.operation as any,
+      )
     ) {
       NcError.badRequest(`${updateObj.operation} not supported in v1 hook`);
     }
 
     if (updateObj.notification && typeof updateObj.notification === 'object') {
       updateObj.notification = JSON.stringify(updateObj.notification);
+    }
+
+    // [DEPRECATED]: should not need to check for v3
+    if (updateObj.version === 'v3') {
+      (updateObj as any).operation = operationArrToCode(
+        updateObj.operation as HookType['operation'],
+      );
     }
 
     // set meta
@@ -229,6 +335,31 @@ export default class Hook implements HookType {
       updateObj,
       hookId,
     );
+    // [DEPRECATED]: should not need to check for v3
+    if (updateObj.version === 'v3') {
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.HOOK_TRIGGER_FIELDS,
+        {
+          fk_hook_id: hookId,
+        },
+      );
+
+      await ncMeta.bulkMetaInsert(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.HOOK_TRIGGER_FIELDS,
+        hook.trigger_fields.map((colId) => {
+          return {
+            fk_hook_id: hookId,
+            fk_column_id: colId,
+          };
+        }),
+        true,
+      );
+      updateObj.trigger_fields = hook.trigger_fields;
+    }
 
     await NocoCache.update(`${CacheScope.HOOK}:${hookId}`, updateObj);
 

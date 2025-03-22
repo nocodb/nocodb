@@ -1095,7 +1095,7 @@
     "restApis": "Rest API'er",
     "apis": "API'er",
     "apiSnippet": "API Udklip",
-    "includeData": "Include Data",
+    "includeData": "Inkluder data",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
     "includeView": "Include views",

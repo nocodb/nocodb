@@ -1095,7 +1095,7 @@
     "restApis": "REST API-ji",
     "apis": "API-ji",
     "apiSnippet": "API Izrezki",
-    "includeData": "Vključi podatke",
+    "includeData": "Include Data",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
     "includeView": "Include views",

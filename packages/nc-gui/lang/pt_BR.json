@@ -1095,7 +1095,7 @@
     "restApis": "APIs REST",
     "apis": "APIs",
     "apiSnippet": "Trechos de API",
-    "includeData": "Incluir Dados",
+    "includeData": "Include Data",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
     "includeView": "Include views",

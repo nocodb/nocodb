@@ -16,6 +16,8 @@ import { DatasService } from '~/services/datas.service';
 import { JobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 
+const SUPPORTED_HOOK_VERSION = ['v3'];
+
 @Injectable()
 export class HooksService {
   constructor(
@@ -58,8 +60,10 @@ export class HooksService {
       req: NcRequest;
     },
   ) {
+    if (!SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)) {
+      NcError.badRequest('hook version is deprecated / not supported anymore');
+    }
     validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
-
     this.validateHookPayload(param.hook.notification);
 
     const hook = await Hook.insert(context, {
@@ -117,6 +121,9 @@ export class HooksService {
       req: NcRequest;
     },
   ) {
+    if (!SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)) {
+      NcError.badRequest('hook version is deprecated / not supported anymore');
+    }
     validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
 
     const hook = await Hook.get(context, param.hookId);

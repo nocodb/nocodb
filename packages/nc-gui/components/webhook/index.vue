@@ -49,6 +49,17 @@ const testConnectionError = ref('')
 const useForm = Form.useForm
 
 const eventTriggerOption = ref(0)
+
+const eventsLabelMap = computed(() => {
+  const result: any = {}
+  for (const event of eventList.value) {
+    if (!result[event.value[0]]) {
+      result[event.value[0]] = {}
+    }
+    result[event.value[0]][event.value[1]] = event
+  }
+  return result
+})
 const eventsEnum = computed(() => {
   const result: { text: string; value: string } = []
   for (const event of eventList.value) {
@@ -98,7 +109,6 @@ let hookRef = reactive<
 })
 
 const operationsEnum = computed(() => {
-  console.log('hookRef.event', hookRef.event)
   if (!hookRef.event) {
     return []
   }
@@ -126,7 +136,6 @@ const teamsChannels = ref<Record<string, any>[]>([])
 const discordChannels = ref<Record<string, any>[]>([])
 
 const mattermostChannels = ref<Record<string, any>[]>([])
-const operationSelectRef = templateRef('operation-select-ref')
 const isOperationSelectOpen = ref<boolean>(false)
 const sendMeEverythingChecked = ref(false)
 
@@ -141,13 +150,15 @@ const toggleOperation = (operation: string) => {
     hookRef.operation!.push(operation as any)
   }
 }
-const toggleSendMeEverythingChecked = () => {
+const toggleSendMeEverythingChecked = (evt) => {
   sendMeEverythingChecked.value = !sendMeEverythingChecked.value
   if (sendMeEverythingChecked.value) {
     hookRef.operation = operationsEnum.value.map((k) => k.value)
+  } else {
+    evt.stopPropagation()
+    evt.preventDefault()
   }
   isOperationSelectOpen.value = false
-  operationSelectRef.value?.target?.blur()
 }
 
 const handleEventChange = (e) => {
@@ -763,18 +774,84 @@ onMounted(async () => {
                   <NcSelect v-model:value="hookRef.event" class="w-full" @change="handleEventChange">
                     <a-select-option v-for="event of eventsEnum" :key="event.value"> {{ event.text }}</a-select-option>
                   </NcSelect>
-                  <a-select
+
+                  <a-dropdown
+                    class="w-full"
+                    :trigger="['click']"
+                    :open="isOperationSelectOpen"
+                    @click="isOperationSelectOpen = true"
+                    @focus="isOperationSelectOpen = true"
+                    @blur="isOperationSelectOpen = false"
+                  >
+                    <a-input
+                      :readonly="true"
+                      :value="hookRef.operation.map((o) => eventsLabelMap[hookRef.event]?.[o]?.text[1]).join(', ')"
+                      placeholder="Choose trigger"
+                    ></a-input>
+                    <template #overlay>
+                      <a-card>
+                        <NcButton
+                          v-if="hookRef.event === 'after'"
+                          type="link"
+                          class="w-full"
+                          style="box-shadow: none"
+                          @click="toggleSendMeEverythingChecked"
+                          @mousedown.prevent
+                        >
+                          <div class="w-full flex gap-2">
+                            <div class="flex-grow">Send me everything</div>
+                            <div class="flex flex-shrink max-w-[18px]">
+                              <a-checkbox v-model:checked="sendMeEverythingChecked" :disabled="true"></a-checkbox>
+                            </div>
+                          </div>
+                        </NcButton>
+                        <a-divider v-if="hookRef.event === 'after' && !sendMeEverythingChecked" style="margin: 4px 0" />
+                        <template v-if="hookRef.event !== 'after' || !sendMeEverythingChecked">
+                          <NcButton
+                            v-for="operation of operationsEnum"
+                            :key="operation.value"
+                            type="link"
+                            class="w-full"
+                            style="box-shadow: none"
+                            @click="
+                              // eslint-disable-next-line prettier/prettier
+                              toggleOperation(operation.value);
+                              // eslint-disable-next-line prettier/prettier
+                              $event.preventDefault();
+                              // eslint-disable-next-line prettier/prettier
+                              $event.stopPropagation();
+                            "
+                            @mousedown.prevent
+                          >
+                            <div class="w-full flex gap-2">
+                              <div class="flex-grow">{{ operation.text }}</div>
+                              <div class="flex flex-shrink max-w-[18px]">
+                                <a-checkbox :checked="hookRef.operation.includes(operation.value)" :disabled="true"></a-checkbox>
+                              </div>
+                            </div>
+                          </NcButton>
+                        </template>
+                      </a-card>
+                    </template>
+                  </a-dropdown>
+
+                  <!-- <a-select
                     ref="operation-select-ref"
                     v-model:value="hookRef.operation"
                     mode="multiple"
                     class="w-full"
                     :open="isOperationSelectOpen"
                     @click="isOperationSelectOpen = true"
+                    @focus="isOperationSelectOpen = true"
                     @blur="isOperationSelectOpen = false"
                   >
                     <a-select-option v-for="operation of operationsEnum" :key="operation.value" :value="operation.value">
                       {{ operation.text }}</a-select-option
                     >
+
+                    <template #tagRender="{ label, value: val, onClose }">
+                      <a-tag v-if="hookRef.operation.some((el) => el.id === val)">{{ label }} {{ val }}</a-tag>
+                    </template>
 
                     <template #dropdownRender="{ menuNode: menu }">
                       <NcButton
@@ -796,7 +873,7 @@ onMounted(async () => {
                         <component :is="menu" />
                       </div>
                     </template>
-                  </a-select>
+                  </a-select> -->
                 </div>
               </a-card>
               <a-card>

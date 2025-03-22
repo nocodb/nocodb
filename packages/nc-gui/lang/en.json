@@ -701,6 +701,7 @@
     "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
     "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
     "currentWorkspace": "Current workspace",
+    "sendMeEverything": "Send me everything",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "Failed",
@@ -1563,6 +1564,8 @@
     "noBaseUsersFound": "No base users found"
   },
   "msg": {
+    "webhookV2Deprecated": "Alert, support for v2 Webhooks will soon be deprecated",
+    "webhookV2DeprecatedDesc": "Version 2 webhooks will be discontinued soon. Upgrade to v3 to retain your webhook settings and avoid disruptions.",
     "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Drop your document here",

@@ -358,7 +358,7 @@ watch(
     @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex])"
   >
     <template v-if="isSearchEnabled">
-      <div class="w-full px-2 flex items-center gap-2" @click.stop>
+      <div class="w-full px-2 flex nc-list-search-wrapper items-center gap-2" @click.stop>
         <slot name="headerExtraLeft"> </slot>
         <a-input
           ref="inputRef"

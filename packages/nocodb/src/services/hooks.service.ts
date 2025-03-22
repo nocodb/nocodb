@@ -10,7 +10,7 @@ import {
   populateSamplePayload,
   populateSamplePayloadV2,
 } from '~/helpers/populateSamplePayload';
-import { invokeWebhook } from '~/helpers/webhookHelpers';
+import { invokeWebhook, operationArrToCode } from '~/helpers/webhookHelpers';
 import { ButtonColumn, Hook, HookLog, Model } from '~/models';
 import { DatasService } from '~/services/datas.service';
 import { JobTypes } from '~/interface/Jobs';

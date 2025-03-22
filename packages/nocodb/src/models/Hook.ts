@@ -143,26 +143,27 @@ export default class Hook implements HookType {
     hook: Partial<Hook>,
     ncMeta = Noco.ncMeta,
   ) {
-    const insertObj = extractProps(hook, [
-      'fk_model_id',
-      'title',
-      'description',
-      'env',
-      'type',
-      'event',
-      'operation',
-      'async',
-      'url',
-      'headers',
-      'condition',
-      'notification',
-      'retries',
-      'retry_interval',
-      'timeout',
-      'active',
-      'base_id',
-      'source_id',
-    ]);
+    const insertObj: Partial<Hook> & { operation?: string | string[] } =
+      extractProps(hook, [
+        'fk_model_id',
+        'title',
+        'description',
+        'env',
+        'type',
+        'event',
+        'operation',
+        'async',
+        'url',
+        'headers',
+        'condition',
+        'notification',
+        'retries',
+        'retry_interval',
+        'timeout',
+        'active',
+        'base_id',
+        'source_id',
+      ]);
 
     if (insertObj.notification && typeof insertObj.notification === 'object') {
       insertObj.notification = JSON.stringify(insertObj.notification);
@@ -178,8 +179,9 @@ export default class Hook implements HookType {
       insertObj.source_id = model.source_id;
     }
 
-    // new hook will set as version 2
-    insertObj.version = 'v2';
+    // new hook will set as version 3
+    insertObj.version = 'v3';
+    insertObj.operation = operationArrToCode(insertObj.operation) as any;
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,

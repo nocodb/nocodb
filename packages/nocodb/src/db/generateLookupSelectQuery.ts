@@ -16,6 +16,7 @@ import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getAliasGenerator } from '~/utils';
 import { NcError } from '~/helpers/catchError';
+import { getAs } from '~/db/BaseModelSqlv2';
 
 const LOOKUP_VAL_SEPARATOR = '___';
 
@@ -362,7 +363,7 @@ export default async function generateLookupSelectQuery({
                 (
                   await lookupColumn.getColOptions<FormulaColumn>(context)
                 ).formula,
-                lookupColumn.id,
+                null,
                 model,
                 lookupColumn,
                 await model.getAliasColMapping(context),
@@ -370,7 +371,9 @@ export default async function generateLookupSelectQuery({
               )
             ).builder;
 
-            selectQb.select(builder);
+            selectQb.select(
+              knex.raw(`?? as ??`, [builder, getAs(lookupColumn)]),
+            );
           }
           break;
         case UITypes.DateTime:

@@ -12,7 +12,11 @@ import getInstance from '~/utils/getInstance';
 import initAdminFromEnv from '~/helpers/initAdminFromEnv';
 import { User } from '~/models';
 import { NcConfig, prepareEnv } from '~/utils/nc-config';
-import { MetaTable, RootScopes } from '~/utils/globals';
+import {
+  MetaTable,
+  NC_STORE_DEFAULT_WORKSPACE_ID_KEY,
+  RootScopes,
+} from '~/utils/globals';
 import { updateMigrationJobsState } from '~/helpers/migrationJobs';
 import { initBaseBehavior } from '~/helpers/initBaseBehaviour';
 import initDataSourceEncryption from '~/helpers/initDataSourceEncryption';
@@ -147,6 +151,21 @@ export const InitMetaServiceProvider: FactoryProvider = {
     // encrypt datasource if secret is set
     await initDataSourceEncryption(metaService);
     NcDebug.log('Datasource encryption initialized');
+
+    const ncDefaultWorkspaceId = await metaService.metaGet(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.STORE,
+      {
+        key: NC_STORE_DEFAULT_WORKSPACE_ID_KEY,
+      },
+    );
+
+    if (!ncDefaultWorkspaceId?.value) {
+      throw new Error('Default workspace not found');
+    }
+
+    Noco.ncDefaultWorkspaceId = ncDefaultWorkspaceId.value;
 
     return metaService;
   },

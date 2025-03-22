@@ -157,7 +157,7 @@ function openQuickImportDialog(type: string) {
       @click="openAirtableImportDialog(source.base_id, source.id)"
     >
       <GeneralIcon icon="airtable" class="max-w-3.75" />
-      <div class="ml-0.5">Airtable base</div>
+      <div class="ml-0.5">{{ $t('labels.airtableBase') }}</div>
     </NcMenuItem>
 
     <NcMenuItem
@@ -167,7 +167,7 @@ function openQuickImportDialog(type: string) {
       @click="openQuickImportDialog('csv')"
     >
       <GeneralIcon icon="ncFileTypeCsvSmall" class="w-4 h-4" />
-      CSV file
+      {{ $t('labels.csvFile') }}
     </NcMenuItem>
 
     <NcMenuItem
@@ -177,7 +177,7 @@ function openQuickImportDialog(type: string) {
       @click="openQuickImportDialog('json')"
     >
       <GeneralIcon icon="ncFileTypeJson" class="h-4" />
-      JSON file
+      {{ $t('labels.jsonFile') }}
     </NcMenuItem>
 
     <NcMenuItem
@@ -187,7 +187,7 @@ function openQuickImportDialog(type: string) {
       @click="openQuickImportDialog('excel')"
     >
       <GeneralIcon icon="ncFileTypeExcel" class="w-4 h-4" />
-      Microsoft Excel
+      {{ $t('labels.microsoftExcel') }}
     </NcMenuItem>
   </NcSubMenu>
 </template>

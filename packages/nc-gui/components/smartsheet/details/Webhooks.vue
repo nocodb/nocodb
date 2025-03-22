@@ -166,6 +166,12 @@ const eventList = ref<Record<string, any>[]>([
     value: ['manual', 'trigger'],
   },
 ])
+const v2EventList = ref<Record<string, any>[]>([
+  ...eventList.value,
+  { text: [t('general.record'), t('general.bulkInsert')], value: ['after', 'bulkInsert'] },
+  { text: [t('general.record'), t('general.bulkUpdate')], value: ['after', 'bulkUpdate'] },
+  { text: [t('general.record'), t('general.bulkDelete')], value: ['after', 'bulkDelete'] },
+])
 
 const columns: NcTableColumnProps[] = [
   {
@@ -223,7 +229,7 @@ const getHookTypeText = (hook: HookType) => {
     )
   }
   return (
-    eventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text?.join(' ') ||
+    v2EventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text?.join(' ') ||
     `Before ${hook.operation}`
   )
 }
@@ -324,7 +330,18 @@ const getHookTypeText = (hook: HookType) => {
                 </NcTooltip>
               </template>
               <template v-if="column.key === 'type'">
-                {{ getHookTypeText(hook) }}
+                <div class="flex items-center">
+                  <NcTooltip v-if="hook.version === 'v2'" class="-ml-21 absolute">
+                    <template #title> Port this webhook from v2 to v3 </template>
+                    <a-tag color="orange">
+                      <GeneralIcon icon="alertTriangle" class="w-4 h-4 flex-none" />
+                      update
+                    </a-tag>
+                  </NcTooltip>
+                  <div>
+                    {{ getHookTypeText(hook) }}
+                  </div>
+                </div>
               </template>
               <template v-if="column.key === 'created_at'">
                 {{ dayjs(hook.created_at).format('DD MMM YYYY') }}

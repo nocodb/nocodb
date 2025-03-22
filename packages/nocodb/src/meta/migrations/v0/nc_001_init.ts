@@ -13,7 +13,7 @@ const up = async (knex: Knex) => {
     table.boolean('enabled').defaultTo(true);
     table.string('fk_user_id', 20);
     table.string('fk_workspace_id', 20);
-    table.timestamps(true, true);
+    table.timestamps();
   });
 
   await knex.schema.createTable(MetaTable.AUDIT, (table) => {
@@ -57,7 +57,7 @@ const up = async (knex: Knex) => {
   });
 
   await knex.schema.createTable(MetaTable.PROJECT, (table) => {
-    table.string('id', 128).notNullable().primary();
+    table.string('id', 128);
     table.string('title', 255);
     table.string('prefix', 255);
     table.string('status', 255);
@@ -75,6 +75,8 @@ const up = async (knex: Knex) => {
     table.boolean('is_snapshot').defaultTo(false);
     table.string('fk_custom_url_id', 20);
     table.timestamps(true, true);
+
+    table.primary(['id'], { constraintName: 'nc_projects_v2_pkey' });
   });
 
   await knex.schema.createTable(MetaTable.CALENDAR_VIEW_COLUMNS, (table) => {
@@ -111,7 +113,7 @@ const up = async (knex: Knex) => {
     table.string('fk_cover_image_col_id', 20);
     table.text('meta');
     table.string('fk_workspace_id', 20);
-    table.timestamps(true, true);
+    table.timestamps();
   });
 
   await knex.schema.createTable(MetaTable.COL_BARCODE, (table) => {
@@ -149,7 +151,7 @@ const up = async (knex: Knex) => {
 
   await knex.schema.createTable(MetaTable.COL_FORMULA, (table) => {
     table.string('id', 20).notNullable().primary();
-    table.string('fk_column_id', 20).notNullable();
+    table.string('fk_column_id', 20);
     table.text('formula').notNullable();
     table.text('formula_raw');
     table.text('error');
@@ -455,7 +457,6 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
   });
 
-  // 36) nc_gallery_view_v2
   await knex.schema.createTable(MetaTable.GALLERY_VIEW, (table) => {
     table.string('source_id', 20);
     table.string('base_id', 20);
@@ -491,7 +492,7 @@ const up = async (knex: Knex) => {
     table.boolean('group_by');
     table.float('group_by_order');
     table.string('group_by_sort', 255);
-    table.string('aggregation', 30);
+    table.string('aggregation', 30).nullable().defaultTo(null);
     table.string('fk_workspace_id', 20);
     table.timestamps(true, true);
   });
@@ -661,7 +662,7 @@ const up = async (knex: Knex) => {
     table.string('fk_geo_data_col_id', 20);
     table.text('meta');
     table.string('fk_workspace_id', 20);
-    table.timestamps(true, true);
+    table.timestamps();
   });
 
   await knex.schema.createTable(MetaTable.MODEL_STAT, (table) => {
@@ -788,7 +789,7 @@ const up = async (knex: Knex) => {
   });
 
   await knex.schema.createTable(MetaTable.SOURCES, (table) => {
-    table.string('id', 20).notNullable().primary();
+    table.string('id', 20);
     table.string('base_id', 20);
     table.string('alias', 255);
     table.text('config');
@@ -810,6 +811,8 @@ const up = async (knex: Knex) => {
     table.string('fk_integration_id', 20);
     table.boolean('is_encrypted').defaultTo(false);
     table.timestamps(true, true);
+
+    table.primary(['id'], { constraintName: 'nc_bases_v2_pkey' });
   });
 
   await knex.schema.createTable(MetaTable.DB_MUX, (table) => {
@@ -853,7 +856,7 @@ const up = async (knex: Knex) => {
     table.string('type', 255);
     table.string('env', 255);
     table.string('tag', 255);
-    table.timestamps(true, true);
+    table.timestamps();
   });
 
   await knex.schema.createTable(MetaTable.SYNC_CONFIGS, (table) => {
@@ -1037,7 +1040,7 @@ const up = async (knex: Knex) => {
       ['base_id', 'fk_workspace_id'],
       'nc_base_users_v2_base_id_fk_workspace_id_index',
     );
-    table.index(['invited_by'], 'nc_base_users_v2_invited_by');
+    table.index(['invited_by'], 'nc_base_users_v2_invited_by_index');
     table.index(['fk_user_id'], 'nc_project_users_v2_fk_user_id_index');
   });
 
@@ -1301,6 +1304,7 @@ const up = async (knex: Knex) => {
       ['fk_view_id', 'fk_column_id'],
       'nc_gallery_view_columns_v2_fk_view_id_fk_column_id_index',
     );
+    table.index(['fk_view_id'], 'nc_gallery_view_columns_v2_fk_view_id_index');
   });
 
   await knex.schema.alterTable(MetaTable.GALLERY_VIEW, (table) => {
@@ -1321,6 +1325,7 @@ const up = async (knex: Knex) => {
       ['fk_view_id', 'fk_column_id'],
       'nc_grid_view_columns_v2_fk_view_id_fk_column_id_index',
     );
+    table.index(['fk_view_id'], 'nc_grid_view_columns_v2_fk_view_id_index');
   });
 
   await knex.schema.alterTable(MetaTable.GRID_VIEW, (table) => {
@@ -1379,6 +1384,7 @@ const up = async (knex: Knex) => {
       ['fk_view_id', 'fk_column_id'],
       'nc_kanban_view_columns_v2_fk_view_id_fk_column_id_index',
     );
+    table.index(['fk_view_id'], 'nc_kanban_view_columns_v2_fk_view_id_index');
   });
 
   await knex.schema.alterTable(MetaTable.KANBAN_VIEW, (table) => {
@@ -1400,6 +1406,7 @@ const up = async (knex: Knex) => {
       ['fk_view_id', 'fk_column_id'],
       'nc_map_view_columns_v2_fk_view_id_fk_column_id_index',
     );
+    table.index(['fk_view_id'], 'nc_map_view_columns_v2_fk_view_id_index');
   });
 
   await knex.schema.alterTable(MetaTable.MAP_VIEW, (table) => {

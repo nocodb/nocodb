@@ -1069,7 +1069,7 @@
     "nocoDBBaseImported": "NocoDB Base Imported",
     "formatJson": "Format JSON",
     "autoSelectFieldTypes": "Auto-Select Field Types",
-    "firstRowAsHeaders": "Use first record as headers",
+    "firstRowAsHeaders": "Use first record as header",
     "flattenNested": "Flatten nested",
     "downloadAllowed": "Download allowed",
     "weAreHiring": "We are Hiring!",

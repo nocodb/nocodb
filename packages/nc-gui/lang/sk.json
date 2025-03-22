@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV súbor",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON súbor",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "Vyčistiť formulár",
     "addFieldFromFormView": "Pridať pole",
     "selectAllFields": "Vybrať všetky polia",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Povoliť predvyplnenie",
       "default": "Predvolené",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Vyhľadať ikony",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "Nemôžete zmeniť viditeľnosť poľa, ktoré sa upravuje. Najprv uložte alebo zrušte zmeny.",
         "moveEditedField": "Nie je možné presunúť pole, ktoré sa práve upravuje. Najprv uložte alebo zrušte zmeny.",
         "moveDeletedField": "Nie je možné presunúť pole, ktoré bolo odstránené. Najprv uložte alebo zrušte zmeny."
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Úspešný export metadát projektu",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Skopírovaný vložiteľný kód HTML!",
       "userDetailsUpdated": "Úspešná aktualizácia údajov o používateľovi",
       "tableDataImported": "Úspešný import údajov tabuľky",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Podrobnosti webového háčika boli úspešne aktualizované",
       "webhookDeleted": "Háčik úspešne odstránený",
       "webhookTested": "Webhook úspešne otestovaný",

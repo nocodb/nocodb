@@ -12,29 +12,62 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
   const rawText = text.toString()
 
   const protocolRegex = /^(https?|ftp|mailto|file):\/\//
-  let isUrl
+  let isUrlPatternFound = false
+  const out = rawText.replace(
+    /**
+     * Matches patterns of the form:
+     * URI::(url_content)[optional space]LABEL::(label_content)
+     *
+     * - `URI::(...)` - Extracts the URL content between parentheses.
+     * - `LABEL::(...)` - (Optional) Extracts the label content between parentheses.
+     * - `(?:...)` - Non-capturing groups used for optional and grouped patterns.
+     * - `[^()]|\\\)|\\\(` - Matches any character except parentheses or escaped parentheses.
+     * - `\s*` - Matches any optional spaces between the URI and LABEL parts.
+     *
+     * Important Notes:
+     * - Whitespace around the content is now optional and is
+     *   trimmed later during processing.
+     * - This prevents trailing backslashes (`\`) from being treated
+     *   as escape sequences when followed by a closing parenthesis.
+     *
+     * Example Matches:
+     * - URI::(https://example.com)
+     * - URI::(https://example.com) LABEL::(My Label)
+     * - URI::(https://example.com\)with\)escapes) LABEL::(Label\))
+     */
+    /URI::\(((?:[^()]|\\\)|\\\()*[^\\]|)\)(?:\s*LABEL::\(((?:[^()]|\\\)|\\\()*[^\\]|)\))?/g,
+    (_, _url, _label) => {
+      isUrlPatternFound = true
+      let isUrl = false
+      // replace whitespace at beginning and end of URL and label if found
+      // Unescape escaped parentheses (`(` and `)`) in the URL and label content
+      const url = _url.replace(/^ | $/g, '').replace(/\\([()])/g, '$1')
+      const label = _label?.replace(/^ | $/g, '').replace(/\\([()])/g, '$1')
 
-  const out = rawText.replace(/URI::\(([^)]*)\)(?: LABEL::\(([^)]*)\))?/g, (_, url, label) => {
-    if (!url.trim() && !label) {
-      return ' '
-    }
+      if (!url.trim()) {
+        return label || ' '
+      }
 
-    const fullUrl = protocolRegex.test(url) ? url : url.trim() ? `http://${url}` : ''
+      const fullUrl = protocolRegex.test(url) ? url : url.trim() ? `https://${url}` : ''
 
-    isUrl = isURL(fullUrl)
+      isUrl = isURL(fullUrl)
 
-    const anchorLabel = label || url || ''
+      const anchorLabel = label || url || ''
 
-    const a = document.createElement('a')
-    a.textContent = anchorLabel
-    a.setAttribute('href', decode(fullUrl))
-    a.setAttribute('class', ' nc-cell-field-link')
-    a.setAttribute('target', '_blank')
-    a.setAttribute('rel', 'noopener,noreferrer')
-    return a.outerHTML
-  })
+      if (!isUrl) return anchorLabel
 
-  return isUrl ? out : false
+      const a = document.createElement('a')
+      a.textContent = anchorLabel
+      a.setAttribute('href', decode(fullUrl))
+      a.setAttribute('class', 'nc-cell-field-link')
+      a.setAttribute('target', '_blank')
+      a.setAttribute('rel', 'noopener noreferrer')
+      a.setAttribute('onClick', 'window.tiptapLinkHandler(event)')
+      return a.outerHTML
+    },
+  )
+
+  return isUrlPatternFound ? out : false // Return false if no URL found
 }
 
 export const replaceUrlsWithLink = (text: string) => {

@@ -52,7 +52,7 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'oss_to_enterprise_migration',
+    id: 'import_from_nocodb',
     title: 'OSS to Enterprise migration',
     description: 'Enable import from NocoDB OSS instance to Enterprise Edition.',
     enabled: true,

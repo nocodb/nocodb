@@ -319,15 +319,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           childrenExcludedListPagination.page = 1
         }
         isChildrenExcludedLoading.value = true
-        const filterArrJson = childrenExcludedListPagination.query
-          ? JSON.stringify([
-              {
-                fk_column_id: relatedTableDisplayValuePropId.value,
-                value: childrenExcludedListPagination.query,
-                comparison_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq' : 'like',
-                comparison_sub_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'exactDate' : undefined,
-              },
-            ])
+        const where = childrenExcludedListPagination.query
+          ? `(${relatedTableDisplayValueProp.value},${
+              isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq,exactDate' : 'like'
+            },${childrenExcludedListPagination.query})`
           : undefined
 
         if (isPublic.value) {
@@ -354,7 +349,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               query: {
                 limit: childrenExcludedListPagination.size,
                 offset,
-                filterArrJson,
+                where,
                 fields: requiredFieldsToLoad.value,
                 // todo: include only required fields
                 rowData: JSON.stringify(row),
@@ -373,7 +368,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             {
               limit: childrenExcludedListPagination.size,
               offset,
-              filterArrJson,
+              where,
               // todo: include only required fields
               linkColumnId: column.value.fk_column_id || column.value.id,
               linkRowData: JSON.stringify(linkRowData),
@@ -407,7 +402,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             {
               limit: String(childrenExcludedListPagination.size),
               offset: String(offset),
-              filterArrJson,
+              where,
               linkRowData: changedRowData ? JSON.stringify(changedRowData) : undefined,
             } as any,
           )
@@ -496,14 +491,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           let where: string | undefined
 
           if (childrenListPagination.query) {
-            where = JSON.stringify([
-              {
-                fk_column_id: relatedTableDisplayValuePropId.value,
-                value: childrenListPagination.query,
-                comparison_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq' : 'like',
-                comparison_sub_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'exactDate' : undefined,
-              },
-            ])
+            where = childrenListPagination.query
+              ? `(${relatedTableDisplayValueProp.value},${
+                  isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq,exactDate' : 'like'
+                },${childrenListPagination.query})`
+              : undefined
           }
 
           if (isPublic.value) {
@@ -733,13 +725,17 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       $e('a:links:link')
     }
 
+    const debounceLoadChildrenExcludedList = useDebounceFn(loadChildrenExcludedList, 500)
+
+    const debounceLoadChildrenList = useDebounceFn(loadChildrenList, 500)
+
     // watchers
     watch(childrenExcludedListPagination, async () => {
-      await loadChildrenExcludedList(newRowState.state)
+      await debounceLoadChildrenExcludedList(newRowState.state)
     })
 
     watch(childrenListPagination, async () => {
-      await loadChildrenList(false, newRowState.state)
+      await debounceLoadChildrenList(false, newRowState.state)
     })
 
     watch(childrenList, async () => {

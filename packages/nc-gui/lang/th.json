@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "ไฟล์ CSV",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "ไฟล์ JSON",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "ล้างแบบฟอร์ม",
     "addFieldFromFormView": "เพิ่มช่อง",
     "selectAllFields": "เลือกทุกช่อง",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "เปิดใช้งานการกรอกล่วงหน้า",
       "default": "ค่าเริ่มต้น",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "ค้นหาไอคอน",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "คุณไม่สามารถเปลี่ยนการมองเห็นของฟิลด์ที่กำลังแก้ไขอยู่ โปรดบันทึกหรือยกเลิกการแก้ไขก่อน",
         "moveEditedField": "คุณไม่สามารถย้ายฟิลด์ที่กำลังแก้ไขอยู่ กรุณาบันทึกหรือยกเลิกการเปลี่ยนแปลงก่อน",
         "moveDeletedField": "คุณไม่สามารถย้ายฟิลด์ที่ถูกลบได้ กรุณาบันทึกหรือยกเลิกการเปลี่ยนแปลงก่อน"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "ข้อมูลเมตาของโครงการส่งออกเรียบร้อยแล้ว",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
       "userDetailsUpdated": "Successfully updated the user details",
       "tableDataImported": "Successfully imported table data",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook details updated successfully",
       "webhookDeleted": "Hook deleted successfully",
       "webhookTested": "Webhook tested successfully",

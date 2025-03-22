@@ -655,6 +655,11 @@ async function handleMouseDown(e: MouseEvent) {
         }
       })
     } else {
+      if (isContextMenuAllowed.value && vSelectedAllRecords.value) {
+        // Set the context Menu Targer and return
+        contextMenuTarget.value = { row: 0, col: -1 }
+        requestAnimationFrame(triggerRefreshCanvas)
+      }
       return
     }
     // DO NOT TRIGGER ANY OTHER MOUSE_DOWN ACTION IF USER IS CLICKING ON COLUMN HEADER
@@ -716,7 +721,7 @@ async function handleMouseDown(e: MouseEvent) {
     }
 
     if (isContextMenuAllowed.value) {
-      // Set the context Menu Targer and return
+      // Set the context Menu Target and return
       contextMenuTarget.value = { row: rowIndex, col: columnIndex }
       requestAnimationFrame(triggerRefreshCanvas)
     }

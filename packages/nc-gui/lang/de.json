@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV-Datei",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON-Datei",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Zum Klären klicken",
@@ -1425,6 +1428,7 @@
     "clearForm": "Formular zurücksetzen",
     "addFieldFromFormView": "Feld hinzufügen",
     "selectAllFields": "Alle Felder auswählen",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Automatisches Ausfüllen aktivieren",
       "default": "Standard",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Quelldaten sind schreibgeschützt.",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Icons suchen",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "Sie können die Sichtbarkeit eines Feldes, das Sie gerade bearbeiten, nicht ändern. Bitte Änderungen zuerst speichern oder verwerfen.",
         "moveEditedField": "Sie können ein Feld, das bearbeitet wird, nicht verschieben. Speichern oder verwerfen Sie zuerst die Änderungen",
         "moveDeletedField": "Sie können ein gelöschtes Feld nicht verschieben. Speichern oder verwerfen Sie zuerst die Änderungen"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Einladung erfolgreich gesendet",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Fehler beim Aktualisieren der Feldsichtbarkeit",
       "unsupportedCharacter": "Nicht unterstütztes Zeichen: {char}",
       "unsupportedCharacters": "Nicht unterstützte Zeichen: {char}",
-      "notSupported": "Nicht unterstützt"
+      "notSupported": "Nicht unterstützt",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Projektmetadaten erfolgreich exportiert",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Einbettbarer HTML-Code in die Zwischenablage kopiert",
       "userDetailsUpdated": "Benutzerdaten erfolgreich aktualisiert",
       "tableDataImported": "Tabellendaten erfolgreich importiert",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook-Details erfolgreich aktualisiert",
       "webhookDeleted": "Hook erfolgreich gelöscht",
       "webhookTested": "Webhook erfolgreich getestet",

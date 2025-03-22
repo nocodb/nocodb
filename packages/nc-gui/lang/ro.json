@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "Fișier CSV",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "Fișier JSON",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "Șterge formularul",
     "addFieldFromFormView": "Adaugă câmp",
     "selectAllFields": "Selectează toate câmpurile",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Activează precompletarea",
       "default": "Implicit",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Caută icoane",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "Nu puteți schimba vizibilitatea unui câmp care este editat. Vă rugăm să salvați sau să anulați modificările mai întâi.",
         "moveEditedField": "Nu puteți muta câmpul care este editat. Fie salvați, fie anulați modificările mai întâi",
         "moveDeletedField": "Nu puteți muta câmpul care este șters. Fie salvați, fie anulați modificările mai întâi"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Metadatele bazei au fost exportate cu succes",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Codul HTML încorporabil copiat!",
       "userDetailsUpdated": "Detaliile utilizatorului au fost actualizate cu succes",
       "tableDataImported": "Datele tabelului au fost importate cu succes",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Detaliile webhook-ului au fost actualizate cu succes",
       "webhookDeleted": "Hook șters cu succes",
       "webhookTested": "Webhook testat cu succes",

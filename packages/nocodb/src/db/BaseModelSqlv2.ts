@@ -3956,16 +3956,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     const formula = await column.getColOptions<FormulaColumn>(this.context);
     if (formula.error) throw new Error(`Formula error: ${formula.error}`);
-    const qb = await formulaQueryBuilderv2(
-      this,
-      formula.formula,
-      null,
-      this.model,
+    const qb = await formulaQueryBuilderv2({
+      baseModel: this,
+      tree: formula.formula,
+      model: this.model,
       column,
-      aliasToColumnBuilder,
+      aliasToColumn: aliasToColumnBuilder,
       tableAlias,
       validateFormula,
-    );
+    });
     return qb;
   }
 

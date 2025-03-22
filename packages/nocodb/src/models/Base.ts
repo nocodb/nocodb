@@ -140,16 +140,29 @@ export default class Base implements BaseType {
         MetaTable.PROJECT,
         {
           xcCondition: {
-            _or: [
+            _and: [
+              ...(workspaceId
+                ? [
+                    {
+                      fk_workspace_id: {
+                        eq: workspaceId,
+                      },
+                    },
+                  ]
+                : []),
               {
-                deleted: {
-                  eq: false,
-                },
-              },
-              {
-                deleted: {
-                  eq: null,
-                },
+                _or: [
+                  {
+                    deleted: {
+                      eq: false,
+                    },
+                  },
+                  {
+                    deleted: {
+                      eq: null,
+                    },
+                  },
+                ],
               },
             ],
           },

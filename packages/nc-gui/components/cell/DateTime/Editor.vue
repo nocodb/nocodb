@@ -52,6 +52,8 @@ const datePickerRef = ref<HTMLInputElement>()
 
 const timePickerRef = ref<HTMLInputElement>()
 
+const { width: timePickerWidth } = useElementBounding(timePickerRef)
+
 const dateTimeFormat = computed(() => {
   const dateFormat = parseProp(column?.value?.meta)?.date_format ?? dateFormats[0]
   const timeFormat = parseProp(column?.value?.meta)?.time_format ?? timeFormats[0]
@@ -480,6 +482,10 @@ onMounted(() => {
   }
   cellClickHook?.on(cellClickHandler)
 })
+
+const minimizeMaxWidth = computed(() => {
+  return isExpandedForm.value || isForm.value || !isGrid.value || isEditColumn.value
+})
 </script>
 
 <template>
@@ -495,10 +501,13 @@ onMounted(() => {
     >
       <div
         :title="localState?.format(dateTimeFormat)"
-        class="nc-date-picker ant-picker-input flex items-center relative !w-auto gap-2"
+        class="nc-date-picker ant-picker-input flex items-center !w-auto relative gap-2"
+        :class="{
+          'max-w-[calc(100%_-_70px)]': minimizeMaxWidth,
+        }"
       >
         <div
-          class="flex-1 rounded-md box-border nc-truncate"
+          class="nc-flex-1 flex rounded-md box-border nc-truncate"
           :class="{
             'py-0': isForm,
             'py-0.5': !isForm && !isColDisabled,
@@ -511,7 +520,7 @@ onMounted(() => {
             ref="datePickerRef"
             :value="localState?.format(dateFormat) ?? ''"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
-            class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
+            class="nc-date-input nc-flex-1 w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
             :readonly="isColDisabled"
             @focus="onFocus(true)"
             @blur="onBlur($event, true)"
@@ -526,7 +535,7 @@ onMounted(() => {
           </span>
         </div>
         <div
-          class="flex-1 rounded-md box-border nc-truncate"
+          class="nc-flex-1 flex rounded-md box-border nc-truncate"
           :class="[
             {
               'py-0': isForm,
@@ -541,7 +550,7 @@ onMounted(() => {
             ref="timePickerRef"
             :value="cellValue"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
-            class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
+            class="nc-time-input nc-flex-1 w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
             :readonly="isColDisabled"
             @focus="onFocus(false)"
             @blur="onBlur($event, false)"
@@ -560,8 +569,8 @@ onMounted(() => {
       <template #overlay>
         <div
           class="min-w-[120px]"
-          :class="{
-            'w-[256px]': isDatePicker,
+          :style="{
+            width: isDatePicker ? '256px' : `${timePickerWidth + 8}px`,
           }"
         >
           <NcDatePicker
@@ -594,12 +603,14 @@ onMounted(() => {
       </template>
     </NcDropdown>
 
-    <div class="nc-timezone-field text-nc-content-gray-muted whitespace-nowrap text-tiny transition-all duration-300">
+    <div
+      class="nc-timezone-field text-nc-content-gray-muted whitespace-nowrap text-tiny transition-all duration-300 nc-flex-1 text-right"
+    >
       {{ timeZoneDisplay }}
     </div>
 
     <GeneralIcon
-      v-if="localState && (isExpandedForm || isForm || !isGrid || isEditColumn) && !readOnly"
+      v-if="localState && minimizeMaxWidth && !readOnly"
       icon="closeCircle"
       class="nc-clear-date-time-icon nc-action-icon h-4 w-4 absolute right-0 top-[50%] transform -translate-y-1/2 invisible cursor-pointer"
       @click.stop="handleSelectDate()"
@@ -613,8 +624,8 @@ onMounted(() => {
     .nc-clear-date-time-icon {
       @apply visible;
     }
-    .nc-timezone-field {
-      @apply pr-6;
+    &:has(.nc-clear-date-time-icon) .nc-timezone-field {
+      @apply pr-5;
     }
   }
 }

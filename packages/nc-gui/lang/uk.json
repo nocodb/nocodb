@@ -1095,7 +1095,7 @@
     "restApis": "REST API",
     "apis": "APIs",
     "apiSnippet": "API уривки",
-    "includeData": "Include Data",
+    "includeData": "Включити дані",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
     "includeView": "Include views",

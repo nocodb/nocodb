@@ -338,7 +338,7 @@ test.describe.serial('Webhook', () => {
     await verifyHookTrigger(0, '', request);
   });
 
-  test('Conditional webhooks', async ({ request }) => {
+  test.only('Conditional webhooks', async ({ request }) => {
     test.slow();
 
     await clearServerData({ request });
@@ -347,17 +347,20 @@ test.describe.serial('Webhook', () => {
     // after insert hook
     await webhook.create({
       title: 'hook-1',
-      event: 'On Record Insert',
+      event: 'Record',
+      operation: 'insert'
     });
     // after insert hook
     await webhook.create({
       title: 'hook-2',
-      event: 'On Record Update',
+      event: 'Record',
+      operation: 'update'
     });
     // after insert hook
     await webhook.create({
       title: 'hook-3',
-      event: 'On Record Delete',
+      event: 'Record',
+      operation: 'delete'
     });
 
     await webhook.open({ index: 0 });

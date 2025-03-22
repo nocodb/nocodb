@@ -670,7 +670,9 @@ export async function invokeWebhook(
     // for it to further be referenced during payload building
     const [event, operation] = hookName.split('.');
     hook.event = event as any;
-    hook.operation = operation as any;
+    hook.operation = (operation as any as string)
+      .replace('bulk', '')
+      .toLowerCase() as any;
   }
 
   let hookLog: HookLogType;

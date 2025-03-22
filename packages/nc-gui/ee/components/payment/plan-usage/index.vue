@@ -23,11 +23,19 @@ const activePlanMeta = computed(() =>
     : PlanMeta[(activeWorkspace.value?.payment?.plan.title ?? PlanTitles.FREE) as PlanTitles],
 )
 
-const enableOldUI = false
-
 const chartFillColor = computed(() => {
   return activePlanMeta.value.chartFillColor ?? activePlanMeta.value.primary
 })
+
+const isTableMode = ref(1)
+
+const toggleDesign = () => {
+  if (isTableMode.value < 3) {
+    isTableMode.value += isTableMode.value
+  } else {
+    isTableMode.value = 1
+  }
+}
 </script>
 
 <template>
@@ -36,11 +44,15 @@ const chartFillColor = computed(() => {
     class="nc-current-plan-card flex flex-col min-w-[fit-content] rounded-[20px] border-1 p-6 gap-5 border-nc-border-gray-medium"
     :style="{ backgroundColor: activePlanMeta.color, color: activePlanMeta?.primary }"
   >
-    <div class="text-2xl font-bold">
-      {{ $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title ?? PlanTitles.FREE}`) }}
+    <div class="flex items-center justify-between">
+      <div class="text-2xl font-bold">
+        {{ $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title ?? PlanTitles.FREE}`) }}
+      </div>
+      <NcButton size="small" type="secondary" @click="toggleDesign"> Toggle design </NcButton>
     </div>
 
     <div
+      v-if="isTableMode === 1"
       class="nc-current-plan-table rounded-lg border-1"
       :style="{
         borderColor: activePlanMeta?.border,
@@ -107,8 +119,43 @@ const chartFillColor = computed(() => {
         </template>
       </PaymentPlanUsageRow>
     </div>
+    <div v-else-if="isTableMode === 2" class="flex flex-col gap-3">
+      <div class="flex items-stretch gap-3">
+        <PaymentPlanUsageRow variant="banner">
+          <template #label> {{ $t('objects.currentPlan.nextInvoice') }} </template>
+          <template #value> 16 July 2025</template>
+        </PaymentPlanUsageRow>
+
+        <PaymentPlanUsageRow variant="banner">
+          <template #label> {{ $t('objects.currentPlan.nextInvoiceAmount') }} </template>
+          <template #value> 60$ - 24 Jan 2025 </template>
+        </PaymentPlanUsageRow>
+      </div>
+      <div class="flex items-stretch gap-3">
+        <PaymentPlanUsageRow variant="banner">
+          <template #label> {{ $t('objects.currentPlan.numberOfBilledUsers') }} </template>
+          <template #value> 4</template>
+        </PaymentPlanUsageRow>
+
+        <PaymentPlanUsageRow variant="banner">
+          <template #label> {{ $t('objects.currentPlan.storageUsedGB') }} </template>
+          <template #value> 3.93/20 GB </template>
+        </PaymentPlanUsageRow>
+      </div>
+      <div class="flex items-stretch gap-3">
+        <PaymentPlanUsageRow variant="banner">
+          <template #label> {{ $t('objects.currentPlan.webhookCallsMonthly') }} </template>
+          <template #value> 4619/150K </template>
+        </PaymentPlanUsageRow>
+
+        <PaymentPlanUsageRow variant="banner">
+          <template #label> {{ $t('objects.currentPlan.apiCallsMonthly') }} </template>
+          <template #value> 120K/150K </template>
+        </PaymentPlanUsageRow>
+      </div>
+    </div>
     <div
-      v-if="enableOldUI"
+      v-else
       class="flex items-center border-1 border-nc-border-gray-medium rounded-lg w-[fit-content] divide-x divide-inherit"
       :style="{ borderColor: activePlanMeta.accent }"
     >
@@ -144,21 +191,5 @@ const chartFillColor = computed(() => {
 
 .nc-current-plan-table {
   @apply border-nc-border-gray-medium overflow-hidden;
-
-  :deep(.nc-current-plan-table-row) {
-    @apply border-b last-of-type:border-b-0 border-inherit flex items-center children:w-1/2;
-
-    .nc-current-plan-table-cell {
-      @apply h-[54px] px-6 py-3 text-sm text-inherit flex items-center gap-3;
-
-      &.nc-cell-label {
-        @apply bg-nc-bg-gray-light font-weight-500;
-      }
-
-      &.nc-cell-value {
-        @apply text-nc-content-gray font-semibold;
-      }
-    }
-  }
 }
 </style>

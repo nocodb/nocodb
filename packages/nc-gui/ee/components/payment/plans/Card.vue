@@ -12,9 +12,14 @@ const price = computed(() => getPlanPrice(props.plan))
 
 const onManageSubscription = async () => {
   if (!activeSubscription.value) return
-  const url = await getCustomerPortalSession()
 
-  if (url) window.open(url, '_blank')
+  try {
+    const url = await getCustomerPortalSession()
+    if (url) window.open(url, '_blank')
+  } catch (e: any) {
+    console.log(e)
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 
 const popularPlan = PlanTitles.TEAM

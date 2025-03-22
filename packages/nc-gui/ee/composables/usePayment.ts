@@ -47,31 +47,41 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const activeSubscription = computed(() => activeWorkspace.value?.payment?.subscription)
 
   const loadWorkspaceSeatCount = async () => {
-    const { count } = (await $fetch(`/api/payment/${activeWorkspaceId.value}/seat-count`, {
-      baseURL,
-      method: 'GET',
-      headers: { 'xc-auth': $state.token.value as string },
-    })) as {
-      count: number
-    }
+    try {
+      const { count } = (await $fetch(`/api/payment/${activeWorkspaceId.value}/seat-count`, {
+        baseURL,
+        method: 'GET',
+        headers: { 'xc-auth': $state.token.value as string },
+      })) as {
+        count: number
+      }
 
-    workspaceSeatCount.value = count
+      workspaceSeatCount.value = count
+    } catch (e: any) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
   }
 
   const loadPlans = async () => {
-    const plans = await $fetch(`/api/public/payment/plan`, {
-      baseURL,
-      method: 'GET',
-      headers: { 'xc-auth': $state.token.value as string },
-    })
+    try {
+      const plans = await $fetch(`/api/public/payment/plan`, {
+        baseURL,
+        method: 'GET',
+        headers: { 'xc-auth': $state.token.value as string },
+      })
 
-    plansAvailable.value = plans as any
+      plansAvailable.value = plans as any
 
-    plansAvailable.value.unshift({
-      id: 'free',
-      title: 'Free',
-      descriptions: ['10k rows / workspace', '1GB storage', '5 API request / second', 'All user roles'],
-    })
+      plansAvailable.value.unshift({
+        id: 'free',
+        title: 'Free',
+        descriptions: ['10k rows / workspace', '1GB storage', '5 API request / second', 'All user roles'],
+      })
+    } catch (e: any) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
   }
 
   const getPlanPrice = (plan?: PaymentPlan, mode?: 'year' | 'month') => {
@@ -173,11 +183,15 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   )
 
   onMounted(async () => {
-    stripe.value = (await loadStripe(
-      'pk_test_51QhRouHU2WPCjTxw3ranXD6shPR0VbOjLflMfidsanV0m9mM0vZKQfYk3PserPAbnZAIJJhv701DV8FrwP6zJhaf00KYKhz11c',
-    ))!
+    try {
+      stripe.value = (await loadStripe(
+        'pk_test_51QhRouHU2WPCjTxw3ranXD6shPR0VbOjLflMfidsanV0m9mM0vZKQfYk3PserPAbnZAIJJhv701DV8FrwP6zJhaf00KYKhz11c',
+      ))!
 
-    await loadPlans()
+      await loadPlans()
+    } catch (e) {
+      console.log(e)
+    }
   })
 
   return {

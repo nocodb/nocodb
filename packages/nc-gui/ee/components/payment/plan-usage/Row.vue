@@ -46,14 +46,14 @@ withDefaults(
   @apply border-b last-of-type:border-b-0 border-inherit flex items-center children:w-1/2;
 
   .nc-current-plan-table-cell {
-    @apply h-[54px] px-6 py-3 text-sm text-inherit flex items-center gap-3;
+    @apply h-[54px] px-6 py-3 text-sm text-inherit flex items-center gap-3 font-semibold;
 
     &.nc-cell-label {
-      @apply bg-nc-bg-gray-light font-weight-500;
+      @apply bg-nc-bg-gray-light;
     }
 
     &.nc-cell-value {
-      @apply text-nc-content-gray font-semibold;
+      @apply text-nc-content-gray;
     }
   }
 }

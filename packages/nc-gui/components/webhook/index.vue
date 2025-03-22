@@ -370,10 +370,13 @@ function onNotificationTypeChange(reset = false) {
 }
 
 function setHook(newHook: HookType) {
-  const toAssign = {
-    ...newHook,
-    operation: typeof newHook.operation === 'string' ? [newHook.operation] : newHook.operation,
-    version: 'v3',
+  const toAssign = { ...newHook }
+  if (newHook.version === 'v2') {
+    toAssign.version = 'v3'
+    toAssign.operation =
+      typeof newHook.operation === 'string'
+        ? ([(newHook.operation as string).replace('bulk', '').toLowerCase()] as any[])
+        : newHook.operation
   }
   const notification = newHook.notification as Record<string, any>
   Object.assign(hookRef, {

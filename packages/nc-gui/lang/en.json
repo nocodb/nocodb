@@ -1160,7 +1160,8 @@
     "newOwner": "New owner",
     "addFromUrl": "Add from URL",
     "enterJson": "Enter JSON",
-    "displayTimezone": "Display time zone"
+    "displayTimezone": "Display time zone",
+    "useSameTimezoneForAllMembers": "Use same timezone for all members"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

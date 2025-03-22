@@ -683,7 +683,8 @@
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
     "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
-    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration.",
+    "selectTimezone": "Display timezone"
   },
   "labels": {
     "restoringSnapshot": "Restoring Snapshot",
@@ -1158,7 +1159,8 @@
     "currentOwner": "Current owner",
     "newOwner": "New owner",
     "addFromUrl": "Add from URL",
-    "enterJson": "Enter JSON"
+    "enterJson": "Enter JSON",
+    "displayTimezone": "Display time zone"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

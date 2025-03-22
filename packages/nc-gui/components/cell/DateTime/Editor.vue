@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { getTimeZones } from '@vvo/tzdb'
+
 import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
 import { timeCellMaxWidthMap, timeFormatsObj } from './utils'
+const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
+
+const emit = defineEmits(['update:modelValue', 'currentDate'])
 
 interface Props {
   modelValue?: string | null
@@ -9,10 +14,6 @@ interface Props {
   showCurrentDateOption?: boolean | 'disabled'
   isUpdatedFromCopyNPaste?: Record<string, boolean>
 }
-
-const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
-
-const emit = defineEmits(['update:modelValue', 'currentDate'])
 
 const { isXcdbBase } = useBase()
 
@@ -60,7 +61,9 @@ const dateTimeFormat = computed(() => {
 const dateFormat = computed(() => parseProp(column?.value?.meta)?.date_format ?? dateFormats[0])
 const timeFormat = computed(() => parseProp(column?.value?.meta)?.time_format ?? timeFormats[0])
 
-let localModelValue = modelValue ? dayjs(modelValue).utc().local() : undefined
+const { dayjsTz, timezonize: timezonizeDayjs } = withTimezone(column.value?.meta?.timezone)
+
+let localModelValue = modelValue ? timezonizeDayjs(dayjs(modelValue)) : undefined
 
 const isClearedInputMode = ref<boolean>(false)
 
@@ -88,19 +91,19 @@ const localState = computed({
     // when pasting a datetime cell, UTC (xcdb) will be saved in DB
     // we convert back to local time
     if (column.value.title! in (isUpdatedFromCopyNPaste ?? {})) {
-      localModelValue = dayjs(modelValue).utc().local()
+      localModelValue = timezonizeDayjs(dayjs(modelValue))
       return localModelValue
     }
 
     // ext db
     if (!isXcDB) {
-      return /^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)
+      return /^\d+$/.test(modelValue) ? timezonizeDayjs(dayjs(+modelValue)) : timezonizeDayjs(dayjs(modelValue))
     }
 
     // if cdf is defined, that means the value is auto-generated
     // hence, show the local time
     if (column?.value?.cdf) {
-      return dayjs(modelValue).utc().local()
+      return timezonizeDayjs(dayjs(modelValue))
     }
 
     // if localModelValue is defined, show localModelValue instead
@@ -114,13 +117,28 @@ const localState = computed({
     }
 
     // empty cell - use modelValue in local time
-    return dayjs(modelValue).utc().local()
+    return timezonizeDayjs(dayjs(modelValue))
   },
   set(val?: dayjs.Dayjs) {
     isClearedInputMode.value = false
 
     saveChanges(val)
   },
+})
+
+const timeZoneDisplay = computed(() => {
+  if (!isEeUI) {
+    return undefined
+  }
+  if (!localState.value) {
+    return undefined
+  }
+  if ((column.value.meta as any)?.isDisplayTimezone) {
+    const tzName = (column.value.meta as any)?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone
+    const timeZones = getTimeZones({ includeUtc: true })
+    return timeZones.find((k) => k.name === tzName)?.abbreviation
+  }
+  return undefined
 })
 
 const savingValue = ref()
@@ -143,10 +161,10 @@ function saveChanges(val?: dayjs.Dayjs, saveOnChange = false) {
 
   if (val.isValid()) {
     // setting localModelValue to cater NOW function in date picker
-    localModelValue = dayjs(val)
+    localModelValue = dayjsTz(val)
     // send the payload in UTC format
 
-    const formattedValue = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ')
+    const formattedValue = dayjsTz(val).utc().format('YYYY-MM-DD HH:mm:ssZ')
 
     if (savingValue.value === formattedValue) {
       return
@@ -182,11 +200,11 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean, save = false) => {
       return
     }
 
-    const date = dayjs(targetValue, dateFormat.value)
+    const date = dayjsTz(targetValue, dateFormat.value)
 
     if (date.isValid()) {
       if (localState.value) {
-        tempDate.value = dayjs(`${date.format('YYYY-MM-DD')} ${localState.value.format(timeFormat.value)}`)
+        tempDate.value = dayjsTz(`${date.format('YYYY-MM-DD')} ${localState.value.format(timeFormat.value)}`)
       } else {
         tempDate.value = date
       }
@@ -199,7 +217,7 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean, save = false) => {
 
   if (!_isDatePicker) {
     if (!targetValue) {
-      tempDate.value = dayjs(dayjs().format('YYYY-MM-DD'))
+      tempDate.value = dayjsTz(dayjsTz().format('YYYY-MM-DD'))
       return
     }
 
@@ -211,13 +229,13 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean, save = false) => {
           .replace(/\s+/g, ' ')
       : targetValue.trim()
 
-    const parsedDate = dayjs(
+    const parsedDate = dayjsTz(
       targetValue,
       parseProp(column.value.meta).is12hrFormat ? timeFormatsObj[timeFormat.value] : timeFormat.value,
     )
 
     if (parsedDate.isValid()) {
-      tempDate.value = dayjs(`${(tempDate.value ?? dayjs()).format('YYYY-MM-DD')} ${parsedDate.format(timeFormat.value)}`)
+      tempDate.value = dayjsTz(`${(tempDate.value ?? dayjsTz()).format('YYYY-MM-DD')} ${parsedDate.format(timeFormat.value)}`)
 
       if (save) {
         saveChanges(tempDate.value, true)
@@ -379,7 +397,7 @@ useSelectedCellKeydownListener(
     if (e.metaKey || e.ctrlKey) {
       if (e.key === ';') {
         if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
-          localState.value = dayjs(new Date())
+          localState.value = dayjsTz(new Date())
           e.preventDefault()
         }
       } else return
@@ -407,7 +425,7 @@ watch(editable, (nextValue) => {
 
 function handleSelectDate(value?: dayjs.Dayjs) {
   if (value && localState.value) {
-    const dateTime = dayjs(`${value.format('YYYY-MM-DD')} ${localState.value.format(timeFormat.value)}`)
+    const dateTime = dayjsTz(`${value.format('YYYY-MM-DD')} ${localState.value.format(timeFormat.value)}`)
     tempDate.value = dateTime
     localState.value = dateTime
   } else {
@@ -421,11 +439,11 @@ function handleSelectTime(value: dayjs.Dayjs) {
   if (!value.isValid()) return
 
   if (localState.value) {
-    const dateTime = dayjs(`${localState.value.format('YYYY-MM-DD')} ${value.format('HH:mm')}:00`)
+    const dateTime = dayjsTz(`${localState.value.format('YYYY-MM-DD')} ${value.format('HH:mm')}:00`)
     tempDate.value = dateTime
     localState.value = dateTime
   } else {
-    const dateTime = dayjs(`${dayjs().format('YYYY-MM-DD')} ${value.format('HH:mm')}:00`)
+    const dateTime = dayjsTz(`${dayjsTz().format('YYYY-MM-DD')} ${value.format('HH:mm')}:00`)
     tempDate.value = dateTime
     localState.value = dateTime
   }
@@ -476,71 +494,77 @@ onMounted(() => {
       :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
       :overlay-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''} !min-w-[0] overflow-hidden`"
     >
-      <div
-        :title="localState?.format(dateTimeFormat)"
-        class="nc-date-picker ant-picker-input flex relative !w-auto gap-2"
-        :class="{
-          'justify-between': !isColDisabled,
-        }"
-      >
+      <div class="flex gap-2 w-full justify-between">
         <div
-          class="flex-none rounded-md box-border w-[60%] max-w-[110px]"
+          :title="localState?.format(dateTimeFormat)"
+          class="nc-date-picker ant-picker-input flex relative !w-auto gap-2 min-w-[140px]"
           :class="{
-            'py-0': isForm,
-            'py-0.5': !isForm && !isColDisabled,
-            'bg-gray-100': isDatePicker && isOpen,
-            'hover:bg-gray-100 px-1': !isColDisabled,
+            'justify-between': !isColDisabled,
           }"
         >
-          <input
-            v-if="!rawReadOnly"
-            ref="datePickerRef"
-            :value="localState?.format(dateFormat) ?? ''"
-            :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
-            class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
-            :readonly="isColDisabled"
-            @focus="onFocus(true)"
-            @blur="onBlur($event, true)"
-            @keydown="handleKeydown($event, isOpen, true)"
-            @mouseup.stop
-            @mousedown.stop
-            @click.stop="clickHandler($event, true)"
-            @input="handleUpdateValue($event, true)"
-          />
-          <span v-else>
-            {{ localState?.format(dateFormat) ?? '' }}
-          </span>
-        </div>
-        <div
-          class="flex-none rounded-md box-border flex-1"
-          :class="[
-            `${timeCellMaxWidth}`,
-            {
+          <div
+            class="flex-none rounded-md box-border w-[60%] max-w-[110px]"
+            :class="{
               'py-0': isForm,
               'py-0.5': !isForm && !isColDisabled,
-              'bg-gray-100': !isDatePicker && isOpen,
+              'bg-gray-100': isDatePicker && isOpen,
               'hover:bg-gray-100 px-1': !isColDisabled,
-            },
-          ]"
-        >
-          <input
-            v-if="!rawReadOnly"
-            ref="timePickerRef"
-            :value="cellValue"
-            :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
-            class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
-            :readonly="isColDisabled"
-            @focus="onFocus(false)"
-            @blur="onBlur($event, false)"
-            @keydown="handleKeydown($event, open)"
-            @mouseup.stop
-            @mousedown.stop
-            @click.stop="clickHandler($event, false)"
-            @input="handleUpdateValue($event, false)"
-          />
-          <span v-else>
-            {{ cellValue }}
-          </span>
+            }"
+          >
+            <input
+              v-if="!rawReadOnly"
+              ref="datePickerRef"
+              :value="localState?.format(dateFormat) ?? ''"
+              :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
+              class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
+              :readonly="isColDisabled"
+              @focus="onFocus(true)"
+              @blur="onBlur($event, true)"
+              @keydown="handleKeydown($event, isOpen, true)"
+              @mouseup.stop
+              @mousedown.stop
+              @click.stop="clickHandler($event, true)"
+              @input="handleUpdateValue($event, true)"
+            />
+            <span v-else>
+              {{ localState?.format(dateFormat) ?? '' }}
+            </span>
+          </div>
+          <div
+            class="flex-none rounded-md box-border flex-1"
+            :class="[
+              `${timeCellMaxWidth}`,
+              {
+                'py-0': isForm,
+                'py-0.5': !isForm && !isColDisabled,
+                'bg-gray-100': !isDatePicker && isOpen,
+                'hover:bg-gray-100 px-1': !isColDisabled,
+              },
+            ]"
+          >
+            <input
+              v-if="!rawReadOnly"
+              ref="timePickerRef"
+              :value="cellValue"
+              :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
+              class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
+              :readonly="isColDisabled"
+              @focus="onFocus(false)"
+              @blur="onBlur($event, false)"
+              @keydown="handleKeydown($event, open)"
+              @mouseup.stop
+              @mousedown.stop
+              @click.stop="clickHandler($event, false)"
+              @input="handleUpdateValue($event, false)"
+            />
+            <span v-else>
+              {{ cellValue }}
+            </span>
+          </div>
+        </div>
+
+        <div class="text-gray-400 mr-2">
+          {{ timeZoneDisplay }}
         </div>
       </div>
 
@@ -558,6 +582,7 @@ onMounted(() => {
             :is-open="isOpen"
             type="date"
             size="medium"
+            :timezone="column?.meta?.timezone"
             :show-current-date-option="showCurrentDateOption"
             @update:selected-date="handleSelectDate"
             @current-date="currentDate"
@@ -571,6 +596,7 @@ onMounted(() => {
               :is12hr-format="!!parseProp(column.meta).is12hrFormat"
               :is-open="isOpen"
               :show-current-date-option="showCurrentDateOption"
+              :timezone="column?.meta?.timezone"
               @update:selected-date="handleSelectTime"
               @current-date="currentDate"
             />

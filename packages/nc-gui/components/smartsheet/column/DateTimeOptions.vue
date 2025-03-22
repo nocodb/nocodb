@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ColumnHelper, UITypes, dateFormats, timeFormats } from 'nocodb-sdk'
+import { getTimeZones } from '@vvo/tzdb'
 
 const props = defineProps<{
   value: any
@@ -9,6 +10,27 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
+const timezoneList = computed(() => {
+  const timezones = getTimeZones({ includeUtc: true })
+  const browserTzName = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const browserTz = timezones.find((tz) => tz.name === browserTzName)
+  const utcTz = timezones.find((tz) => tz.name === 'Etc/UTC')
+  const priorityTz = [utcTz, browserTz].filter((k) => k)
+  const restOfTz = []
+  for (const tz of timezones) {
+    if (['Etc/UTC', browserTzName].includes(tz.name)) {
+      continue
+    }
+    if (browserTz?.countryCode === tz.countryCode) {
+      priorityTz.push(tz)
+      continue
+    }
+    restOfTz.push(tz)
+  }
+
+  return [...priorityTz, ...restOfTz.sort((a, b) => a.name.localeCompare(b.name))]
+})
+
 // set default value
 vModel.value.meta = {
   ...ColumnHelper.getColumnDefaultMeta(UITypes.DateTime),
@@ -16,6 +38,13 @@ vModel.value.meta = {
 }
 
 const { isSystem } = useColumnCreateStoreOrThrow()
+const isDisplayTimezone = computed({
+  get: () => !!vModel.value.meta?.isDisplayTimezone,
+  set: (value) => {
+    if (!vModel.value.meta) vModel.value.meta = {}
+    vModel.value.meta.isDisplayTimezone = value
+  },
+})
 </script>
 
 <template>
@@ -76,6 +105,51 @@ const { isSystem } = useColumnCreateStoreOrThrow()
         <a-radio :value="false">24 Hrs</a-radio>
       </a-radio-group>
     </a-form-item>
+
+    <template v-if="isEeUI">
+      <a-form-item :label="$t('title.selectTimezone')">
+        <a-select
+          v-model:value="vModel.meta.timezone"
+          show-search
+          allow-clear
+          dropdown-class-name="nc-dropdown-date-format"
+          placeholder="Use same timezone for all collaborator"
+          :disabled="isSystem"
+        >
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </template>
+
+          <a-select-option v-for="(timezone, i) of timezoneList" :key="i" :value="timezone.name">
+            <div class="flex gap-2 w-full justify-between items-center">
+              {{ timezone.name }}
+              <div>
+                <span class="text-gray-400 mr-2">
+                  {{ timezone.abbreviation }}
+                </span>
+                <component
+                  :is="iconMap.check"
+                  id="nc-selected-item-icon"
+                  class="text-primary w-4 h-4"
+                  :class="{ invisible: vModel.meta.timezone !== timezone.name }"
+                />
+              </div>
+            </div>
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+      <a-form-item>
+        <NcTooltip :disabled="true">
+          <div class="flex items-center gap-1">
+            <NcSwitch v-model:checked="isDisplayTimezone">
+              <div class="text-sm text-gray-800 select-none font-semibold">
+                {{ $t('labels.displayTimezone') }}
+              </div>
+            </NcSwitch>
+          </div>
+        </NcTooltip>
+      </a-form-item>
+    </template>
   </div>
 </template>
 

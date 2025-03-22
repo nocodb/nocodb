@@ -134,10 +134,9 @@ const timeZoneDisplay = computed(() => {
     return undefined
   }
   if ((column.value.meta as any)?.isDisplayTimezone) {
-    const tzName = (column.value.meta as any)?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone
-    const timeZones = getTimeZones({ includeUtc: true })
-    return timeZones.find((k) => k.name === tzName)?.abbreviation
+    return getTimeZoneFromName((column.value.meta as any)?.timezone)?.abbreviation
   }
+
   return undefined
 })
 

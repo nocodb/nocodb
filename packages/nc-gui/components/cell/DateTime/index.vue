@@ -47,6 +47,8 @@ const datePickerRef = ref<HTMLInputElement>()
 
 const timePickerRef = ref<HTMLInputElement>()
 
+const { width: timePickerWidth } = useElementBounding(timePickerRef)
+
 const dateTimeFormat = computed(() => {
   const dateFormat = parseProp(column?.value?.meta)?.date_format ?? dateFormats[0]
   const timeFormat = parseProp(column?.value?.meta)?.time_format ?? timeFormats[0]
@@ -466,6 +468,10 @@ const currentDate = ($event) => {
   open.value = false
   emit('currentDate', $event)
 }
+
+const minimizeMaxWidth = computed(() => {
+  return isExpandedForm.value || isForm.value || !isGrid.value || isEditColumn.value
+})
 </script>
 
 <template>
@@ -482,10 +488,13 @@ const currentDate = ($event) => {
         <div
           :title="localState?.format(dateTimeFormat)"
           class="nc-date-picker ant-picker-input flex items-center relative !w-auto gap-2"
+          :class="{
+          'max-w-[calc(100%_-_70px)]': minimizeMaxWidth,
+        }"
           
         >
           <div
-            class="flex-none rounded-md box-border nc-truncate"
+            class="nc-flex-1 rounded-md box-border nc-truncate"
             :class="{
               'py-0': isForm,
               'py-0.5': !isForm && !isColDisabled,
@@ -513,7 +522,7 @@ const currentDate = ($event) => {
             </span>
           </div>
           <div
-          class="flex-1 rounded-md box-border nc-truncate"
+          class="nc-flex-1 rounded-md box-border nc-truncate"
             :class="[
               `${timeCellMaxWidth}`,
               {
@@ -529,7 +538,7 @@ const currentDate = ($event) => {
               ref="timePickerRef"
               :value="cellValue"
               :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
-              class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
+              class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
               :readonly="isColDisabled"
               @focus="onFocus(false)"
               @blur="onBlur($event, false)"
@@ -549,8 +558,8 @@ const currentDate = ($event) => {
       <template #overlay>
         <div
           class="min-w-[120px]"
-          :class="{
-            'w-[256px]': isDatePicker,
+          :style="{
+            width: isDatePicker ? '256px' : `${timePickerWidth + 8}px`,
           }"
         >
           <NcDatePicker
@@ -581,12 +590,12 @@ const currentDate = ($event) => {
       </template>
     </NcDropdown>
 
-    <div class="text-nc-content-gray-muted whitespace-nowrap text-tiny">
+    <div class="text-nc-content-gray-muted whitespace-nowrap text-tiny nc-flex-1 text-right">
       {{ timeZoneDisplay }}
     </div>
 
     <GeneralIcon
-      v-if="localState && (isExpandedForm || isForm || !isGrid || isEditColumn) && !readOnly"
+      v-if="localState && minimizeMaxWidth && !readOnly"
       icon="closeCircle"
       class="nc-clear-date-time-icon nc-action-icon h-4 w-4 absolute right-0 top-[50%] transform -translate-y-1/2 invisible cursor-pointer"
       @click.stop="handleSelectDate()"

@@ -1354,3 +1354,9 @@ svg.nc-virtual-cell-icon {
 .nc-truncate {
   @apply max-w-full overflow-hidden whitespace-nowrap overflow-ellipsis;
 }
+
+.nc-flex-1 {
+  -webkit-box-flex: 1;
+  flex-grow: 1;
+  flex-shrink: 1;
+}

@@ -58,17 +58,14 @@ export class MysqlDataMigration implements FormulaDataMigrationDriver {
     )
       .select({
         [formulaColumnAlias]: (
-          await formulaQueryBuilderv2(
-            baseModelSqlV2,
-            formulaColumnOption.formula_raw,
-            baseModelSqlV2.model,
-            formulaColumn,
-            {},
-            undefined,
-            false,
-            formulaColumnOption.getParsedTree(),
-            undefined,
-          )
+          await formulaQueryBuilderv2({
+            baseModel: baseModelSqlV2,
+            tree: formulaColumnOption.formula_raw,
+            model: baseModelSqlV2.model,
+            column: formulaColumn,
+            validateFormula: fale,
+            parsedTree: formulaColumnOption.getParsedTree(),
+          })
         ).builder,
         ...getPrimaryKeySelectColumns({
           model: baseModelSqlV2.model,

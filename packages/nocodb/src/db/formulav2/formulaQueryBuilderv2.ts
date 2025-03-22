@@ -1372,17 +1372,27 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
   return { builder };
 }
 
-export default async function formulaQueryBuilderv2(
-  baseModelSqlv2: BaseModelSqlv2,
-  _tree,
-  model: Model,
-  column?: Column,
+export default async function formulaQueryBuilderv2({
+  baseModel: baseModelSqlv2,
+  tree: _tree,
+  model,
+  column,
   aliasToColumn = {},
-  tableAlias?: string,
+  tableAlias,
   validateFormula = false,
-  parsedTree?: any,
-  baseUsers?: (Partial<User> & BaseUser)[],
-) {
+  parsedTree,
+  baseUsers,
+}: {
+  baseModel: BaseModelSqlv2;
+  tree;
+  model: Model;
+  column?: Column;
+  aliasToColumn;
+  tableAlias?: string;
+  validateFormula?: boolean;
+  parsedTree?: any;
+  baseUsers?: (Partial<User> & BaseUser)[];
+}) {
   const knex = baseModelSqlv2.dbDriver;
 
   const context = baseModelSqlv2.context;
@@ -1395,7 +1405,6 @@ export default async function formulaQueryBuilderv2(
     qb = await _formulaQueryBuilder({
       baseModelSqlv2,
       _tree,
-      alias,
       model,
       aliasToColumn,
       tableAlias,

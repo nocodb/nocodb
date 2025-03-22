@@ -63,7 +63,7 @@ export class MysqlDataMigration implements FormulaDataMigrationDriver {
             tree: formulaColumnOption.formula_raw,
             model: baseModelSqlV2.model,
             column: formulaColumn,
-            validateFormula: fale,
+            validateFormula: false,
             parsedTree: formulaColumnOption.getParsedTree(),
           })
         ).builder,

@@ -37,6 +37,7 @@ export enum MetaTable {
   AUDIT = 'nc_audit_v2',
   HOOKS = 'nc_hooks_v2',
   HOOK_LOGS = 'nc_hook_logs_v2',
+  HOOK_TRIGGER_FIELDS = 'nc_hook_trigger_fields',
   PLUGIN = 'nc_plugins_v2',
   PROJECT_USERS = 'nc_base_users_v2',
   MODEL_ROLE_VISIBILITY = 'nc_disabled_models_for_role_v2',

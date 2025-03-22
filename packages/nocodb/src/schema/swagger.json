@@ -23340,11 +23340,13 @@
             "id": "string",
             "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
             "null": null,
-            "operation": "insert",
+            "operation": ["insert"],
             "retries": 10,
             "retry_interval": 60000,
             "timeout": 60000,
-            "title": "My Webhook"
+            "title": "My Webhook",
+            "triggerField": false,
+            "triggerFields": ["c2965755662b"]
           }
         ],
         "title": "Hook Model",
@@ -23447,6 +23449,16 @@
               "v2",
               "v3"
             ]
+          },
+          "triggerField": {
+            "type": "boolean",
+            "description": "Is this hook only trigger when some fields are affected"
+          },
+          "triggerFields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -23567,6 +23579,16 @@
               "id": "wwzoum7rrlwun"
             },
             "description": "Is this hook assoicated with some filters"
+          },
+          "triggerField": {
+            "type": "boolean",
+            "description": "Is this hook only trigger when some fields are affected"
+          },
+          "triggerFields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [

@@ -358,17 +358,16 @@ export default async function generateLookupSelectQuery({
         case UITypes.Formula:
           {
             const builder = (
-              await formulaQueryBuilderv2(
-                baseModelSqlv2,
-                (
+              await formulaQueryBuilderv2({
+                baseModel: baseModelSqlv2,
+                tree: (
                   await lookupColumn.getColOptions<FormulaColumn>(context)
                 ).formula,
-                null,
                 model,
-                lookupColumn,
-                await model.getAliasColMapping(context),
-                prevAlias,
-              )
+                column: lookupColumn,
+                aliasToColumn: await model.getAliasColMapping(context),
+                tableAlias: prevAlias,
+              })
             ).builder;
 
             selectQb.select(

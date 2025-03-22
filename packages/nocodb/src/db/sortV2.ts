@@ -87,15 +87,13 @@ export default async function sortV2(
               break;
             }
             const builder = (
-              await formulaQueryBuilderv2(
-                baseModelSqlv2,
-                formulaOptions.formula,
-                null,
+              await formulaQueryBuilderv2({
+                baseModel: baseModelSqlv2,
+                tree: formulaOptions.formula,
                 model,
                 column,
-                {},
-                alias,
-              )
+                tableAlias: alias,
+              })
             ).builder;
             qb.orderBy(builder, sort.direction || 'asc', nulls);
           } else {

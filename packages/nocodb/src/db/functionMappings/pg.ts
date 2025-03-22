@@ -18,10 +18,7 @@ const pg = {
     const source = (await args.fn(args.pt.arguments[0])).builder;
 
     return {
-      builder: args.knex.raw(`POSITION(? in ?)${args.colAlias}`, [
-        needle,
-        source,
-      ]),
+      builder: args.knex.raw(`POSITION(? in ?)`, [needle, source]),
     };
   },
   INT(args: MapFnArgs) {
@@ -30,34 +27,29 @@ const pg = {
       builder: args.knex.raw(
         `REGEXP_REPLACE(COALESCE(${args.fn(
           args.pt.arguments[0],
-        )}::character varying, '0'), '[^0-9]+|\\.[0-9]+' ,'')${args.colAlias}`,
+        )}::character varying, '0'), '[^0-9]+|\\.[0-9]+' ,'')`,
       ),
     };
   },
   MID: 'SUBSTR',
-  FLOAT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  FLOAT: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
 
     return {
-      builder: knex
-        .raw(`CAST(? as DOUBLE PRECISION)${colAlias}`, [source])
-        .wrap('(', ')'),
+      builder: knex.raw(`CAST(? as DOUBLE PRECISION)`, [source]).wrap('(', ')'),
     };
   },
-  ROUND: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  ROUND: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
     const precision = pt?.arguments[1]
       ? (await fn(pt.arguments[1])).builder
       : 0;
 
     return {
-      builder: knex.raw(`ROUND((?)::numeric, ?) ${colAlias}`, [
-        source,
-        precision,
-      ]),
+      builder: knex.raw(`ROUND((?)::numeric, ?)`, [source, precision]),
     };
   },
-  DATEADD: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  DATEADD: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
     const typeCast =
       pt.arguments[0].dataType !== FormulaDataTypes.DATE ? '::DATE' : '';
@@ -70,13 +62,13 @@ const pg = {
       builder: knex
         .raw(
           `(?)${typeCast} + (? ||
-      '?')::interval${colAlias}`,
+      '?')::interval`,
           [source, modifier, knex.raw(scale)],
         )
         .wrap('(', ')'),
     };
   },
-  DATETIME_DIFF: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  DATETIME_DIFF: async ({ fn, knex, pt }: MapFnArgs) => {
     const datetime_expr1 = (await fn(pt.arguments[0])).builder;
     const datetime_expr2 = (await fn(pt.arguments[1])).builder;
     const rawUnit = pt.arguments[2]
@@ -137,9 +129,9 @@ const pg = {
       default:
         sql = '';
     }
-    return { builder: knex.raw(`${sql} ${colAlias}`) };
+    return { builder: knex.raw(`${sql}`) };
   },
-  WEEKDAY: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  WEEKDAY: async ({ fn, knex, pt }: MapFnArgs) => {
     // isodow: the day of the week as Monday (1) to Sunday (7)
     // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
     return {
@@ -152,52 +144,52 @@ const pg = {
             : (await fn(pt.arguments[0])).builder
         }) - 1 - ${getWeekdayByText(
           pt?.arguments[1]?.value,
-        )} % 7 + 7) ::INTEGER % 7 ${colAlias}`,
+        )} % 7 + 7) ::INTEGER % 7`,
       ),
     };
   },
-  DATESTR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  DATESTR: async ({ fn, knex, pt }: MapFnArgs) => {
     return {
       builder: knex.raw(
         `TO_CHAR((${
           (await fn(pt?.arguments[0])).builder
-        }), 'YYYY-MM-DD')::text ${colAlias}`,
+        }), 'YYYY-MM-DD')::text`,
       ),
     };
   },
-  DAY: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  DAY: async ({ fn, knex, pt }: MapFnArgs) => {
     return {
       builder: knex.raw(
         `EXTRACT('Day' FROM ((${
           (await fn(pt?.arguments[0])).builder
-        })::TIMESTAMP)) ${colAlias}`,
+        })::TIMESTAMP))`,
       ),
     };
   },
-  MONTH: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  MONTH: async ({ fn, knex, pt }: MapFnArgs) => {
     return {
       builder: knex.raw(
         `EXTRACT('Month' FROM ((${
           (await fn(pt?.arguments[0])).builder
-        })::TIMESTAMP)) ${colAlias}`,
+        })::TIMESTAMP))`,
       ),
     };
   },
-  YEAR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  YEAR: async ({ fn, knex, pt }: MapFnArgs) => {
     return {
       builder: knex.raw(
         `EXTRACT('Year' FROM ((${
           (await fn(pt?.arguments[0])).builder
-        })::TIMESTAMP)) ${colAlias}`,
+        })::TIMESTAMP))`,
       ),
     };
   },
-  HOUR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  HOUR: async ({ fn, knex, pt }: MapFnArgs) => {
     return {
       builder: knex.raw(
         `EXTRACT('Hour' FROM ((${
           (await fn(pt?.arguments[0])).builder
-        })::TIMESTAMP)) ${colAlias}`,
+        })::TIMESTAMP))`,
       ),
     };
   },
@@ -220,10 +212,7 @@ const pg = {
       )
       .wrap('(', ')');
     return {
-      builder: args.knex.raw(
-        `CASE WHEN ? THEN TRUE ELSE FALSE END ${args.colAlias}`,
-        [clause],
-      ),
+      builder: args.knex.raw(`CASE WHEN ? THEN TRUE ELSE FALSE END`, [clause]),
     };
   },
   OR: async (args: MapFnArgs) => {
@@ -244,13 +233,10 @@ const pg = {
       )
       .wrap('(', ')');
     return {
-      builder: args.knex.raw(
-        `CASE WHEN ? THEN TRUE ELSE FALSE END ${args.colAlias}`,
-        [clause],
-      ),
+      builder: args.knex.raw(`CASE WHEN ? THEN TRUE ELSE FALSE END`, [clause]),
     };
   },
-  SUBSTR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  SUBSTR: async ({ fn, knex, pt }: MapFnArgs) => {
     const str = (await fn(pt.arguments[0])).builder;
     const positionFrom = (await fn(pt.arguments[1] ?? 1)).builder;
     const numberOfCharacters = pt.arguments[2]
@@ -258,7 +244,7 @@ const pg = {
       : null;
     if (numberOfCharacters) {
       return {
-        builder: knex.raw(`SUBSTR(?::TEXT, ?, ?)${colAlias}`, [
+        builder: knex.raw(`SUBSTR(?::TEXT, ?, ?)`, [
           str,
           positionFrom,
           numberOfCharacters,
@@ -266,54 +252,55 @@ const pg = {
       };
     } else {
       return {
-        builder: knex.raw(`SUBSTR(?::TEXT, ?)${colAlias}`, [str, positionFrom]),
+        builder: knex.raw(`SUBSTR(?::TEXT, ?)`, [str, positionFrom]),
       };
     }
   },
-  MOD: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  MOD: async ({ fn, knex, pt }: MapFnArgs) => {
     const x = (await fn(pt.arguments[0])).builder;
     const y = (await fn(pt.arguments[1])).builder;
     return {
-      builder: knex.raw(`MOD((${x})::NUMERIC, (${y})::NUMERIC) ${colAlias}`),
+      builder: knex.raw(`MOD((${x})::NUMERIC, (${y})::NUMERIC)`),
     };
   },
-  REGEX_MATCH: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  REGEX_MATCH: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
 
     const pattern = (await fn(pt.arguments[1])).builder;
     return {
       builder: knex.raw(
-        `CASE WHEN REGEXP_MATCH(?::TEXT, ?::TEXT) IS NULL THEN 0 ELSE 1 END ${colAlias}`,
+        `CASE WHEN REGEXP_MATCH(?::TEXT, ?::TEXT) IS NULL THEN 0 ELSE 1 END`,
         [source, pattern],
       ),
     };
   },
-  REGEX_EXTRACT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  REGEX_EXTRACT: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
 
     const pattern = (await fn(pt.arguments[1])).builder;
     return {
       builder: knex.raw(
         // use `SUBSTRING` since REGEXP_MATCH returns array value
-        // `REGEXP_MATCH(${source}::TEXT, ${pattern}::TEXT) ${colAlias}`,
-        `SUBSTRING(??::TEXT from ??::TEXT) ${colAlias}`,
+        // `REGEXP_MATCH(${source}::TEXT, ${pattern}::TEXT)`,
+        `SUBSTRING(??::TEXT from ??::TEXT)`,
         [source, pattern],
       ),
     };
   },
-  REGEX_REPLACE: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  REGEX_REPLACE: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
     const pattern = (await fn(pt.arguments[1])).builder;
 
     const replacement = (await fn(pt.arguments[2])).builder;
     return {
-      builder: knex.raw(
-        `REGEXP_REPLACE(?::TEXT, ?::TEXT, ?::TEXT, 'g') ${colAlias}`,
-        [source, pattern, replacement],
-      ),
+      builder: knex.raw(`REGEXP_REPLACE(?::TEXT, ?::TEXT, ?::TEXT, 'g')`, [
+        source,
+        pattern,
+        replacement,
+      ]),
     };
   },
-  XOR: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  XOR: async ({ fn, knex, pt }: MapFnArgs) => {
     const predicates = (pt.arguments.map(() => '?') as string[]).join(' # ');
     const parsedArguments = await Promise.all(
       pt.arguments.map(async (arg) => {
@@ -328,12 +315,12 @@ const pg = {
     );
     return {
       builder: knex.raw(
-        `${predicates} ${colAlias}`,
+        `${predicates}`,
         parsedArguments.map((a) => a.builder),
       ),
     };
   },
-  COUNT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  COUNT: async ({ fn, knex, pt }: MapFnArgs) => {
     return {
       builder: knex.raw(
         `${(
@@ -343,11 +330,11 @@ const pg = {
               return `CASE WHEN pg_typeof(${builder}) IN ('smallint', 'integer', 'bigint', 'decimal', 'numeric', 'real', 'double precision') AND ${builder} IS NOT NULL THEN 1 ELSE 0 END`;
             }),
           )
-        ).join(' + ')} ${colAlias}`,
+        ).join(' + ')}`,
       ),
     };
   },
-  COUNTA: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  COUNTA: async ({ fn, knex, pt }: MapFnArgs) => {
     return {
       builder: knex.raw(
         `${(
@@ -357,11 +344,11 @@ const pg = {
               return `CASE WHEN ${builder} IS NOT NULL AND ${builder}::text != '' THEN 1 ELSE 0 END`;
             }),
           )
-        ).join(' + ')} ${colAlias}`,
+        ).join(' + ')}`,
       ),
     };
   },
-  VALUE: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  VALUE: async ({ fn, knex, pt }: MapFnArgs) => {
     const value = (await fn(pt.arguments[0])).builder;
     return {
       builder: knex.raw(
@@ -369,14 +356,14 @@ const pg = {
   WHEN :value IS NULL OR REGEXP_REPLACE(:value ::TEXT, '[^\\d.]+', '', 'g') IN ('.', '') OR LENGTH(REGEXP_REPLACE(:value ::TEXT, '[^.]+', '', 'g')) > 1 THEN NULL
   WHEN LENGTH(REGEXP_REPLACE(:value ::TEXT, '[^%]', '','g')) > 0 THEN POW(-1, LENGTH(REGEXP_REPLACE(:value ::TEXT, '[^-]','', 'g'))) * (REGEXP_REPLACE(:value ::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC / 100
   ELSE POW(-1, LENGTH(REGEXP_REPLACE(:value ::TEXT, '[^-]', '', 'g'))) * (REGEXP_REPLACE(:value ::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC
-END ${colAlias}`,
+END`,
         {
           value,
         },
       ),
     };
   },
-  ROUNDDOWN: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  ROUNDDOWN: async ({ fn, knex, pt }: MapFnArgs) => {
     const { builder: valueBuilder } = await fn(pt.arguments[0]);
     let precisionBuilder = knex.raw('0');
     if (pt.arguments[1]) {
@@ -386,11 +373,11 @@ END ${colAlias}`,
 
     return {
       builder: knex.raw(
-        `(FLOOR((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder})::numeric(30,${precisionBuilder}))${colAlias}`,
+        `(FLOOR((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder})::numeric(30,${precisionBuilder}))`,
       ),
     };
   },
-  ROUNDUP: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  ROUNDUP: async ({ fn, knex, pt }: MapFnArgs) => {
     const { builder: valueBuilder } = await fn(pt.arguments[0]);
     let precisionBuilder = knex.raw('0');
     if (pt.arguments[1]) {
@@ -400,28 +387,28 @@ END ${colAlias}`,
 
     return {
       builder: knex.raw(
-        `(CEIL((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder})::numeric(30,${precisionBuilder}))${colAlias}`,
+        `(CEIL((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder})::numeric(30,${precisionBuilder}))`,
       ),
     };
   },
   STRING: async (args: MapFnArgs) => {
     const source = (await args.fn(args.pt.arguments[0])).builder;
     return {
-      builder: args.knex.raw(`(?)::text ${args.colAlias}`, [source]),
+      builder: args.knex.raw(`(?)::text`, [source]),
     };
   },
   BOOLEAN: async (args: MapFnArgs) => {
     const source = (await args.fn(args.pt.arguments[0])).builder;
     return {
-      builder: args.knex.raw(`(?)::boolean${args.colAlias}`, [source]),
+      builder: args.knex.raw(`(?)::boolean`, [source]),
     };
   },
-  JSON_EXTRACT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  JSON_EXTRACT: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
     const needle = (await fn(pt.arguments[1])).builder;
     return {
       builder: knex.raw(
-        `CASE WHEN (?)::jsonb IS NOT NULL THEN jsonb_path_query_first((?)::jsonb, CONCAT('$', ?)::jsonpath) ELSE NULL END${colAlias}`,
+        `CASE WHEN (?)::jsonb IS NOT NULL THEN jsonb_path_query_first((?)::jsonb, CONCAT('$', ?)::jsonpath) ELSE NULL END`,
         [source, source, needle],
       ),
     };

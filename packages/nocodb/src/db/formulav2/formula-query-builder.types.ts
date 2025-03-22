@@ -14,7 +14,6 @@ import type { BaseUser, Column, Model, User } from '~/models';
 
 export interface FormulaBaseParams {
   baseModelSqlv2: BaseModelSqlv2;
-  alias?: string;
   tableAlias?: string;
   baseUsers?: (Partial<User> & BaseUser)[];
 }

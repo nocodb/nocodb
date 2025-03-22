@@ -17,7 +17,7 @@ const databricks = {
             ).join(' AND ')}`,
           )
           .wrap('(', ')')
-          .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`,
+          .toQuery()} THEN TRUE ELSE FALSE END`,
       ),
     };
   },
@@ -35,7 +35,7 @@ const databricks = {
             ).join(' OR ')}`,
           )
           .wrap('(', ')')
-          .toQuery()} THEN TRUE ELSE FALSE END ${args.colAlias}`,
+          .toQuery()} THEN TRUE ELSE FALSE END`,
       ),
     };
   },

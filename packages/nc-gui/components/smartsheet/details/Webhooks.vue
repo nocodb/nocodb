@@ -158,10 +158,13 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 })
 
 const eventList = ref<Record<string, any>[]>([
-  { text: [t('general.on'), t('labels.recordInsert')], value: ['after', 'insert'] },
-  { text: [t('general.on'), t('labels.recordUpdate')], value: ['after', 'update'] },
-  { text: [t('general.on'), t('labels.recordDelete')], value: ['after', 'delete'] },
-  { text: [t('general.manual'), t('general.trigger')], value: ['manual', 'trigger'] },
+  { text: [t('general.record'), t('labels.recordInsert')], value: ['after', 'insert'] },
+  { text: [t('general.record'), t('labels.recordUpdate')], value: ['after', 'update'] },
+  { text: [t('general.record'), t('labels.recordDelete')], value: ['after', 'delete'] },
+  {
+    text: [`${t('general.manual')} ${t('general.trigger')}`, `${t('general.manual')} ${t('general.trigger')}`],
+    value: ['manual', 'trigger'],
+  },
 ])
 
 const columns: NcTableColumnProps[] = [

@@ -53,7 +53,7 @@ const triggerByFieldColumns = computed(() => {
     return []
   }
   return meta.value.columns.filter((col) => {
-    return [UITypes.ID].includes(col.uidt) || isLinksOrLTAR(col) || (!isSystemColumn(col) && !isVirtualCol(col))
+    return [UITypes.ID].includes(col.uidt as UITypes) || isLinksOrLTAR(col) || (!isSystemColumn(col) && !isVirtualCol(col))
   })
 })
 
@@ -68,7 +68,7 @@ const eventsLabelMap = computed(() => {
   return result
 })
 const eventsEnum = computed(() => {
-  const result: { text: string; value: string } = []
+  const result: { text: string; value: string }[] = []
   for (const event of eventList.value) {
     if (!result.some((k) => k.value === event.value[0])) {
       result.push({
@@ -111,17 +111,20 @@ let hookRef = reactive<
     },
   },
   condition: false,
-  triggerField: false,
-  triggerFields: [],
+  trigger_field: false,
+  trigger_fields: [],
   active: true,
   version: 'v3',
 })
 
 const operationsEnum = computed(() => {
   if (!hookRef.event) {
-    return []
+    return [] as {
+      text: string
+      value: string
+    }[]
   }
-  const result: { text: string; value: string } = eventList.value
+  const result: { text: string; value: string }[] = eventList.value
     .filter((event) => event.value[0] === hookRef.event)
     .map((event) => {
       return {
@@ -158,20 +161,20 @@ const toggleOperation = (operation: string) => {
     hookRef.operation!.push(operation as any)
   }
 }
-const toggleSendMeEverythingChecked = (evt) => {
+const toggleSendMeEverythingChecked = (evt: Event) => {
   sendMeEverythingChecked.value = !sendMeEverythingChecked.value
   if (sendMeEverythingChecked.value) {
-    hookRef.operation = operationsEnum.value.map((k) => k.value)
+    hookRef.operation = operationsEnum.value.map((k) => k.value) as any[]
   } else {
     evt.stopPropagation()
     evt.preventDefault()
   }
 }
 
-const handleEventChange = (e) => {
+const handleEventChange = (e: string) => {
   sendMeEverythingChecked.value = false
   hookRef.operation = []
-  hookRef.event = e
+  hookRef.event = e as any
   if (e !== 'after') {
     hookRef.operation = ['trigger']
   }
@@ -791,8 +794,8 @@ onMounted(async () => {
                         sendMeEverythingChecked
                           ? 'Send me everything'
                           : (hookRef.event === 'after' ? `${$t('general.after')} ` : '') +
-                            hookRef.operation
-                              .map((o) => eventsLabelMap[hookRef.event]?.[o]?.text[1])
+                            hookRef.operation!
+                              .map((o) => eventsLabelMap[hookRef.event!]?.[o]?.text[1])
                               .join(` ${t('general.or').toLowerCase()} `)
                       "
                       placeholder="Choose trigger"
@@ -838,7 +841,10 @@ onMounted(async () => {
                                 {{ operation.text }}
                               </div>
                               <div class="flex flex-shrink max-w-[18px]">
-                                <a-checkbox :checked="hookRef.operation.includes(operation.value)" :readonly="true"></a-checkbox>
+                                <a-checkbox
+                                  :checked="hookRef.operation!.includes(operation.value as any)"
+                                  :readonly="true"
+                                ></a-checkbox>
                               </div>
                             </div>
                           </NcButton>
@@ -851,22 +857,22 @@ onMounted(async () => {
               <a-card>
                 <div
                   class="w-full cursor-pointer flex items-center px-3 my-2"
-                  @click.prevent="hookRef.triggerField = !hookRef.triggerField"
+                  @click.prevent="hookRef.trigger_field = !hookRef.trigger_field"
                 >
-                  <NcSwitch :checked="Boolean(hookRef.triggerField)" class="nc-check-box-hook-condition">
+                  <NcSwitch :checked="Boolean(hookRef.trigger_field)" class="nc-check-box-hook-condition">
                     <span class="!text-gray-700 font-semibold">
                       {{ $t('general.trigger') }} {{ $t('activity.forUpdatesInSpecificFields').toLowerCase() }}
                     </span>
                   </NcSwitch>
                 </div>
 
-                <div v-if="hookRef.triggerField" class="px-3">
+                <div v-if="hookRef.trigger_field" class="px-3">
                   <WebhookTriggerByField
                     :columns="triggerByFieldColumns"
-                    :selected-columns="hookRef.triggerFields"
+                    :selected-columns="hookRef.trigger_fields ?? []"
                     @change="
                       (columns) => {
-                        hookRef.triggerFields = columns
+                        hookRef.trigger_fields = columns
                       }
                     "
                   ></WebhookTriggerByField>

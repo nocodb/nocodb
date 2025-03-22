@@ -23345,8 +23345,8 @@
             "retry_interval": 60000,
             "timeout": 60000,
             "title": "My Webhook",
-            "triggerField": false,
-            "triggerFields": ["c2965755662b"]
+            "trigger_field": false,
+            "trigger_fields": ["c2965755662b"]
           }
         ],
         "title": "Hook Model",
@@ -23450,11 +23450,11 @@
               "v3"
             ]
           },
-          "triggerField": {
+          "trigger_field": {
             "type": "boolean",
             "description": "Is this hook only trigger when some fields are affected"
           },
-          "triggerFields": {
+          "trigger_fields": {
             "type": "array",
             "items": {
               "type": "string"
@@ -23580,11 +23580,11 @@
             },
             "description": "Is this hook assoicated with some filters"
           },
-          "triggerField": {
+          "trigger_field": {
             "type": "boolean",
             "description": "Is this hook only trigger when some fields are affected"
           },
-          "triggerFields": {
+          "trigger_fields": {
             "type": "array",
             "items": {
               "type": "string"

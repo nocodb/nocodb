@@ -413,7 +413,7 @@ export async function validateCondition(
 }
 
 export function constructWebHookData(hook, model, view, prevData, newData) {
-  if (hook.version === 'v2') {
+  if (['v2', 'v3'].includes(hook.version)) {
     // extend in the future - currently only support records
     const scope = 'records';
 
@@ -662,6 +662,15 @@ export async function invokeWebhook(
   } = param;
 
   let { newData } = param;
+
+  if (hook.version === 'v3' && hookName) {
+    // since we already verified the operation in v3,
+    // we'll assign the event and operation back to v2 format
+    // for it to further be referenced during payload building
+    const [event, operation] = hookName.split('.');
+    hook.event = event as any;
+    hook.operation = operation as any;
+  }
 
   let hookLog: HookLogType;
   const startTime = process.hrtime();

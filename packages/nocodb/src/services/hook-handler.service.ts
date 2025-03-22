@@ -34,6 +34,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
 
     // handle form view data submission
     if (
+      // [DEPRECATED]: v2 support for bulkInsert
       (hookName === 'after.insert' || hookName === 'after.bulkInsert') &&
       view.type === ViewTypes.FORM
     ) {

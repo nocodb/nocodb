@@ -27,7 +27,17 @@ export class WebhookFormPage extends BasePage {
     return this.rootPage.locator(`.nc-modal-webhook-create-edit`);
   }
 
-  async create({ title, event, operation, url = 'http://localhost:9090/hook' }: { title: string; event: string; operation?: string; url?: string }) {
+  async create({
+    title,
+    event,
+    operation,
+    url = 'http://localhost:9090/hook',
+  }: {
+    title: string;
+    event: string;
+    operation?: string;
+    url?: string;
+  }) {
     await this.dashboard.grid.topbar.openDetailedTab();
     await this.dashboard.details.clickWebhooksTab();
     // wait for tab transition
@@ -39,12 +49,28 @@ export class WebhookFormPage extends BasePage {
       key: 'Content-Type',
       value: 'application/json',
     });
+    // uncheck send everything
+    const dropdownHookOperation = this.get().locator(`[data-testid="nc-dropdown-hook-operation"]`);
+    await dropdownHookOperation.click();
+    const modal = this.rootPage.locator(`[data-testid="nc-dropdown-hook-operation-modal"]`);
+    await modal.locator(`[data-testid="nc-dropdown-hook-operation-option"][data-testvalue="sendMeEverything"]`).click();
+
     await this.configureWebhook({ title, event, operation, url });
     await this.save();
     await this.close();
   }
 
-  async configureWebhook({ title, event, operation, url }: { title?: string; event?: string; operation?: string; url?: string }) {
+  async configureWebhook({
+    title,
+    event,
+    operation,
+    url,
+  }: {
+    title?: string;
+    event?: string;
+    operation?: string;
+    url?: string;
+  }) {
     if (title) {
       await this.get().locator(`.nc-text-field-hook-title`).fill(title);
     }
@@ -53,9 +79,9 @@ export class WebhookFormPage extends BasePage {
       const modal = this.rootPage.locator(`.nc-modal-hook-event`);
       await modal.locator(`.ant-select-item:has-text("${event}")`).click();
     }
-    if(operation && operation !== 'trigger') {
+    if (operation && operation !== 'trigger') {
       const dropdownHookOperation = this.get().locator(`[data-testid="nc-dropdown-hook-operation"]`);
-      await dropdownHookOperation.click()
+      await dropdownHookOperation.click();
       const modal = this.rootPage.locator(`[data-testid="nc-dropdown-hook-operation-modal"]`);
       await modal.locator(`[data-testid="nc-dropdown-hook-operation-option"][data-testvalue="${operation}"]`).click();
     }

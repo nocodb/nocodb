@@ -78,7 +78,6 @@ export class SqliteDataMigration implements FormulaDataMigrationDriver {
           await formulaQueryBuilderv2(
             baseModelSqlV2,
             formulaColumnOption.formula_raw,
-            undefined,
             baseModelSqlV2.model,
             formulaColumn,
             {},

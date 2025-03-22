@@ -16,8 +16,6 @@ import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 export default async function ({
   baseModelSqlv2,
   knex,
-  // tn,
-  // column,
   alias,
   columnOptions,
 }: {
@@ -60,7 +58,6 @@ export default async function ({
       const formulaQb = await formulaQueryBuilderv2(
         baseModelSqlv2,
         formulOption.formula,
-        undefined,
         RelationManager.isRelationReversed(relationColumn, relationColumnOption)
           ? parentModel
           : childModel,
@@ -87,7 +84,6 @@ export default async function ({
       const formulaQb = await formulaQueryBuilderv2(
         baseModelSqlv2,
         '{{' + rollupColumn.id + '}}',
-        undefined,
         RelationManager.isRelationReversed(relationColumn, relationColumnOption)
           ? parentModel
           : childModel,

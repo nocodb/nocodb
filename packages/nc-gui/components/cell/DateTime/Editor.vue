@@ -483,7 +483,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-bind="$attrs" class="nc-cell-field relative">
+  <div v-bind="$attrs" class="nc-cell-field relative flex items-center gap-2">
     <NcDropdown
       :visible="isOpen"
       :placement="isDatePicker ? 'bottomLeft' : 'bottomRight'"
@@ -493,77 +493,67 @@ onMounted(() => {
       :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
       :overlay-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''} !min-w-[0] overflow-hidden`"
     >
-      <div class="flex gap-2 w-full justify-between">
+      <div
+        :title="localState?.format(dateTimeFormat)"
+        class="nc-date-picker ant-picker-input flex items-center relative !w-auto gap-2"
+      >
         <div
-          :title="localState?.format(dateTimeFormat)"
-          class="nc-date-picker ant-picker-input flex relative !w-auto gap-2 min-w-[140px]"
+          class="flex-1 rounded-md box-border nc-truncate"
           :class="{
-            'justify-between': !isColDisabled,
+            'py-0': isForm,
+            'py-0.5': !isForm && !isColDisabled,
+            'bg-gray-100': isDatePicker && isOpen,
+            'hover:bg-gray-100 px-1': !isColDisabled,
           }"
         >
-          <div
-            class="flex-none rounded-md box-border w-[60%] max-w-[110px]"
-            :class="{
+          <input
+            v-if="!rawReadOnly"
+            ref="datePickerRef"
+            :value="localState?.format(dateFormat) ?? ''"
+            :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
+            class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
+            :readonly="isColDisabled"
+            @focus="onFocus(true)"
+            @blur="onBlur($event, true)"
+            @keydown="handleKeydown($event, isOpen, true)"
+            @mouseup.stop
+            @mousedown.stop
+            @click.stop="clickHandler($event, true)"
+            @input="handleUpdateValue($event, true)"
+          />
+          <span v-else>
+            {{ localState?.format(dateFormat) ?? '' }}
+          </span>
+        </div>
+        <div
+          class="flex-1 rounded-md box-border nc-truncate"
+          :class="[
+            {
               'py-0': isForm,
               'py-0.5': !isForm && !isColDisabled,
-              'bg-gray-100': isDatePicker && isOpen,
+              'bg-gray-100': !isDatePicker && isOpen,
               'hover:bg-gray-100 px-1': !isColDisabled,
-            }"
-          >
-            <input
-              v-if="!rawReadOnly"
-              ref="datePickerRef"
-              :value="localState?.format(dateFormat) ?? ''"
-              :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
-              class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
-              :readonly="isColDisabled"
-              @focus="onFocus(true)"
-              @blur="onBlur($event, true)"
-              @keydown="handleKeydown($event, isOpen, true)"
-              @mouseup.stop
-              @mousedown.stop
-              @click.stop="clickHandler($event, true)"
-              @input="handleUpdateValue($event, true)"
-            />
-            <span v-else>
-              {{ localState?.format(dateFormat) ?? '' }}
-            </span>
-          </div>
-          <div
-            class="flex-none rounded-md box-border flex-1"
-            :class="[
-              `${timeCellMaxWidth}`,
-              {
-                'py-0': isForm,
-                'py-0.5': !isForm && !isColDisabled,
-                'bg-gray-100': !isDatePicker && isOpen,
-                'hover:bg-gray-100 px-1': !isColDisabled,
-              },
-            ]"
-          >
-            <input
-              v-if="!rawReadOnly"
-              ref="timePickerRef"
-              :value="cellValue"
-              :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
-              class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
-              :readonly="isColDisabled"
-              @focus="onFocus(false)"
-              @blur="onBlur($event, false)"
-              @keydown="handleKeydown($event, open)"
-              @mouseup.stop
-              @mousedown.stop
-              @click.stop="clickHandler($event, false)"
-              @input="handleUpdateValue($event, false)"
-            />
-            <span v-else>
-              {{ cellValue }}
-            </span>
-          </div>
-        </div>
-
-        <div class="text-gray-400 mr-2">
-          {{ timeZoneDisplay }}
+            },
+          ]"
+        >
+          <input
+            v-if="!rawReadOnly"
+            ref="timePickerRef"
+            :value="cellValue"
+            :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
+            class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
+            :readonly="isColDisabled"
+            @focus="onFocus(false)"
+            @blur="onBlur($event, false)"
+            @keydown="handleKeydown($event, open)"
+            @mouseup.stop
+            @mousedown.stop
+            @click.stop="clickHandler($event, false)"
+            @input="handleUpdateValue($event, false)"
+          />
+          <span v-else>
+            {{ cellValue }}
+          </span>
         </div>
       </div>
 
@@ -604,6 +594,10 @@ onMounted(() => {
       </template>
     </NcDropdown>
 
+    <div class="nc-timezone-field text-nc-content-gray-muted whitespace-nowrap text-tiny transition-all duration-300">
+      {{ timeZoneDisplay }}
+    </div>
+
     <GeneralIcon
       v-if="localState && (isExpandedForm || isForm || !isGrid || isEditColumn) && !readOnly"
       icon="closeCircle"
@@ -615,8 +609,13 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .nc-cell-field {
-  &:hover .nc-clear-date-time-icon {
-    @apply visible;
+  &:hover {
+    .nc-clear-date-time-icon {
+      @apply visible;
+    }
+    .nc-timezone-field {
+      @apply pr-6;
+    }
   }
 }
 </style>

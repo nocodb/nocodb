@@ -1,10 +1,17 @@
 {
   description = "Open Source Airtable Alternative";
 
-  inputs.nixpkgs.url = "github:NixOs/nixpkgs/nixos-unstable";
+  inputs = {
+    nixpkgs.url = "github:NixOs/nixpkgs/nixos-unstable";
+
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
   outputs =
-    inputs@{ self, nixpkgs }:
+    inputs@{ self, nixpkgs, nixos-generators }:
     let
       lib = nixpkgs.lib;
 
@@ -42,6 +49,10 @@
                 };
                 docker_aio = pkgs.callPackage ./nix/docker/all_in_one {
                   nocodb = self.packages.${system}.nocodb;
+                };
+                images = pkgs.callPackage (import ./nix/images inputs) {
+                  inherit system;
+                  nixosGenerate = nixos-generators.nixosGenerate;
                 };
               }
             )

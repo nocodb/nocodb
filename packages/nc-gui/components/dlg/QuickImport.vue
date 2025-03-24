@@ -764,8 +764,8 @@ watch(
 
                   <template #itemRender="{ file, actions }">
                     <div class="flex items-center gap-4">
-                      <div class="bg-gray-100 h-10 w-10 flex flex-none items-center justify-center rounded-lg">
-                        <GeneralIcon :icon="importMeta.icon" class="w-6 h-6 flex-none" />
+                      <div class="bg-nc-bg-gray-extralight h-9 w-9 flex flex-none items-center justify-center rounded-lg">
+                        <GeneralIcon :icon="importMeta.icon" class="w-5 h-5 flex-none" />
                       </div>
                       <div class="flex flex-col flex-grow min-w-[0px] w-[calc(100%_-_233px)]">
                         <div class="flex-none">

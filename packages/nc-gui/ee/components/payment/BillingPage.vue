@@ -25,7 +25,7 @@ const { paymentState, loadPlans, stripe, getSessionResult, isAccountPage } = use
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
-const afterPayment = ref(false)
+const afterPayment = ref(!!route.query.afterPayment)
 
 const afterPaymentState = ref<{ session_id: string } | null>(null)
 
@@ -142,8 +142,8 @@ onMounted(async () => {
                   <div>{{ $t('labels.annualSavings') }}</div>
                   <div class="px-3">
                     <NcBadge :border="false" color="green" class="!text-nc-content-green-dark">
-                      -${{ checkoutSession?.applicable_tax ?? 0 }}</NcBadge
-                    >
+                      -${{ checkoutSession?.applicable_tax ?? 0 }}
+                    </NcBadge>
                   </div>
                 </div>
 
@@ -169,11 +169,11 @@ onMounted(async () => {
         </template>
 
         <template v-else-if="checkoutSession && checkoutSession.payment_status === 'failed'">
-          <div class="border-1 border-red-500 rounded-lg p-6 flex gap-2 bg-red-50">
-            <GeneralIcon icon="close" class="text-red-500 h-8 w-8" />
-            <div class="flex flex-col gap-2">
-              <div class="text-xl font-bold text-red-600">Payment Failed</div>
-              <div class="text-nc-content-gray-subtle2">
+          <div class="border-1 border-nc-border-gray-medium rounded-xl p-4 flex gap-4 bg-nc-bg-red-light">
+            <GeneralIcon icon="ncAlertCircleFilled" class="text-nc-content-red-dark h-6 w-6" />
+            <div class="flex flex-col gap-1">
+              <div class="text-xl font-bold text-nc-content-red-dark">Payment Failed</div>
+              <div class="text-nc-content-gray-muted">
                 Something went wrong while processing your payment. Please try again or contact support.
               </div>
             </div>
@@ -187,7 +187,9 @@ onMounted(async () => {
         </template>
 
         <!-- Loader while fetching session -->
-        <GeneralLoader v-else size="large" />
+        <div v-else class="min-h-[256px] grid place-items-center">
+          <GeneralLoader size="xlarge" />
+        </div>
       </div>
     </div>
     <div v-else class="flex flex-col gap-8 w-full max-w-300 mx-auto min-w-[740px]">

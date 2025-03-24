@@ -198,60 +198,61 @@ const onCancel = () => {
 
 <template>
   <div
-    class="flex flex-col items-center nc-workspace-settings-settings pb-10 overflow-y-auto nc-scrollbar-x-lg px-6"
+    class="overflow-auto nc-scrollbar-thin"
     :class="{
       'h-[calc(100vh-144px)]': isAdminPanel,
       'h-[calc(100vh-92px)]': !isAdminPanel,
     }"
   >
-    <div class="item-card flex flex-col w-full">
-      <div class="font-bold text-base text-nc-content-gray-emphasis">
-        {{ $t('objects.workspace') }} {{ $t('general.appearance') }}
-      </div>
-      <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="() => saveChanges()">
-        <div class="flex gap-4 mt-6">
-          <div>
-            <GeneralIconSelector
-              v-model:icon="form.icon"
-              v-model:icon-type="form.iconType"
-              v-model:image-cropper-data="imageCropperData"
-              @submit="() => saveChanges(true)"
-            >
-              <template #default="{ isOpen }">
-                <div
-                  class="rounded-lg border-1 flex-none w-17 h-17 overflow-hidden transition-all duration-300 cursor-pointer"
-                  :class="{
-                    'border-transparent': !isOpen && form.iconType === IconType.IMAGE,
-                    'border-nc-gray-medium': !isOpen && form.iconType !== IconType.IMAGE,
-                    'border-primary shadow-selected': isOpen,
-                  }"
-                >
-                  <GeneralWorkspaceIcon
-                    :workspace="currentWorkspace"
-                    :workspace-icon="{
-                      icon: form.icon,
-                      iconType: form.iconType,
-                    }"
-                    size="xlarge"
-                    class="!w-full !h-full !min-w-full rounded-none select-none cursor-pointer"
-                  />
-                </div>
-              </template>
-            </GeneralIconSelector>
-          </div>
-          <div class="flex-1">
-            <div class="text-sm text-nc-content-gray-subtle2">{{ $t('general.name') }}</div>
-            <a-form-item name="title" :rules="formRules.title" class="!mt-2 !mb-0">
-              <a-input
-                v-model:value="form.title"
-                class="w-full !rounded-lg !px-4 h-10"
-                placeholder="Workspace name"
-                size="large"
-                data-testid="nc-workspace-settings-settings-rename-input"
-              />
-            </a-form-item>
-          </div>
+    <div class="nc-content-max-w flex flex-col items-center nc-workspace-settings-settings pb-10 px-6">
+      <div class="item-card flex flex-col w-full">
+        <div class="font-bold text-base text-nc-content-gray-emphasis">
+          {{ $t('objects.workspace') }} {{ $t('general.appearance') }}
         </div>
+        <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="() => saveChanges()">
+          <div class="flex gap-4 mt-6">
+            <div>
+              <GeneralIconSelector
+                v-model:icon="form.icon"
+                v-model:icon-type="form.iconType"
+                v-model:image-cropper-data="imageCropperData"
+                @submit="() => saveChanges(true)"
+              >
+                <template #default="{ isOpen }">
+                  <div
+                    class="rounded-lg border-1 flex-none w-17 h-17 overflow-hidden transition-all duration-300 cursor-pointer"
+                    :class="{
+                      'border-transparent': !isOpen && form.iconType === IconType.IMAGE,
+                      'border-nc-gray-medium': !isOpen && form.iconType !== IconType.IMAGE,
+                      'border-primary shadow-selected': isOpen,
+                    }"
+                  >
+                    <GeneralWorkspaceIcon
+                      :workspace="currentWorkspace"
+                      :workspace-icon="{
+                        icon: form.icon,
+                        iconType: form.iconType,
+                      }"
+                      size="xlarge"
+                      class="!w-full !h-full !min-w-full rounded-none select-none cursor-pointer"
+                    />
+                  </div>
+                </template>
+              </GeneralIconSelector>
+            </div>
+            <div class="flex-1">
+              <div class="text-sm text-nc-content-gray-subtle2">{{ $t('general.name') }}</div>
+              <a-form-item name="title" :rules="formRules.title" class="!mt-2 !mb-0">
+                <a-input
+                  v-model:value="form.title"
+                  class="w-full !rounded-lg !px-4 h-10"
+                  placeholder="Workspace name"
+                  size="large"
+                  data-testid="nc-workspace-settings-settings-rename-input"
+                  />
+              </a-form-item>
+            </div>
+          </div>
         <div class="flex flex-row w-full justify-end mt-8 gap-4">
           <NcButton
             v-if="isSaveChangesBtnEnabled"
@@ -276,19 +277,20 @@ const onCancel = () => {
             {{ $t('general.save') }}
           </NcButton>
         </div>
-      </a-form>
-    </div>
-    <div class="item-card flex flex-col border-1 border-red-500">
-      <div class="text-base font-bold text-nc-content-red-dark">{{ $t('labels.dangerZone') }}</div>
-      <div class="text-sm text-nc-content-gray-muted mt-2">{{ $t('msg.info.wsDeleteDlg') }}</div>
-      <div class="flex p-4 border-1 rounded-lg mt-6 items-center">
-        <component :is="iconMap.alertTriangleSolid" class="text-nc-content-orange-medium h-6 w-6 flex-none" />
-        <div class="text-base font-bold ml-3">{{ $t('msg.info.actionIrreversible') }}</div>
+        </a-form>
       </div>
-      <div class="flex flex-row w-full justify-end mt-8">
-        <NcButton v-e="['c:workspace:settings:delete']" type="danger" size="small" @click="handleDelete">
-          {{ $t('general.deleteEntity', { entity: $t('objects.workspace') }) }}
-        </NcButton>
+      <div class="item-card flex flex-col border-1 border-red-500">
+        <div class="text-base font-bold text-nc-content-red-dark">{{ $t('labels.dangerZone') }}</div>
+        <div class="text-sm text-nc-content-gray-muted mt-2">{{ $t('msg.info.wsDeleteDlg') }}</div>
+        <div class="flex p-4 border-1 rounded-lg mt-6 items-center">
+          <component :is="iconMap.alertTriangleSolid" class="text-nc-content-orange-medium h-6 w-6 flex-none" />
+          <div class="text-base font-bold ml-3">{{ $t('msg.info.actionIrreversible') }}</div>
+        </div>
+        <div class="flex flex-row w-full justify-end mt-8">
+          <NcButton v-e="['c:workspace:settings:delete']" type="danger" size="small" @click="handleDelete">
+            {{ $t('general.deleteEntity', { entity: $t('objects.workspace') }) }}
+          </NcButton>
+        </div>
       </div>
     </div>
   </div>

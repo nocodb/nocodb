@@ -45,9 +45,9 @@ onMounted(async () => {
 <template>
   <div v-if="selectedPlan" class="flex flex-col w-full">
     <div class="flex flex-col w-full gap-6">
-      <div v-if="paymentState && paymentState !== PaymentState.SELECT_PLAN">
+      <div v-if="paymentState && paymentState !== PaymentState.SELECT_PLAN" class="flex">
         <div
-          class="flex items-center gap-1 cursor-pointer text-nc-content-brand hover:text-brand-600 font-weight-700"
+          class="inline-flex items-center gap-1 cursor-pointer text-nc-content-brand hover:text-brand-600 font-weight-700"
           @click="onReset"
         >
           <GeneralIcon icon="chevronLeft" class="h-4 w-4" />

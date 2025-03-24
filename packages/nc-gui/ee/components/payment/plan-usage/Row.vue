@@ -14,20 +14,10 @@ withDefaults(
 
 <template>
   <div v-if="variant === 'table'" class="nc-current-plan-table-row">
-    <div
-      class="nc-current-plan-table-cell nc-cell-label"
-      :style="{
-        background: planMeta?.bgDark,
-      }"
-    >
+    <div class="nc-current-plan-table-cell nc-cell-label">
       <slot name="label"> </slot>
     </div>
-    <div
-      class="nc-current-plan-table-cell nc-cell-value"
-      :style="{
-        background: planMeta?.bgLight,
-      }"
-    >
+    <div class="nc-current-plan-table-cell nc-cell-value">
       <slot name="value"> </slot>
     </div>
   </div>
@@ -46,11 +36,7 @@ withDefaults(
   @apply border-b last-of-type:border-b-0 border-inherit flex items-center children:w-1/2;
 
   .nc-current-plan-table-cell {
-    @apply h-[54px] px-6 py-3 text-sm text-inherit flex items-center gap-3 font-semibold;
-
-    &.nc-cell-label {
-      @apply bg-nc-bg-gray-light;
-    }
+    @apply h-[54px] px-5 py-3 text-sm text-inherit flex items-center gap-3 font-semibold;
 
     &.nc-cell-value {
       @apply text-nc-content-gray;

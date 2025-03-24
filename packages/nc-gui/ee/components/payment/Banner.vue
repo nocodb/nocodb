@@ -52,7 +52,7 @@ const onUpgradePlan = async () => {
         }"
       >
         <NcButton
-          class="!bg-nc-fill-maroon-dark"
+          class="nc-upgrade-plan-btn"
           type="primary"
           size="small"
           data-testid="nc-workspace-settings-upgrade-button"
@@ -66,7 +66,12 @@ const onUpgradePlan = async () => {
           {{ $t('labels.upgradePlan') }}
         </NcButton>
         <a href="https://nocodb.com/pricing" target="_blank" class="!no-underline">
-          <NcButton type="text" size="small" data-testid="nc-workspace-settings-view-all-plan-btn">
+          <NcButton
+            type="text"
+            size="small"
+            data-testid="nc-workspace-settings-view-all-plan-btn"
+            class="!hover:bg-nc-bg-maroon-dark"
+          >
             {{ $t('labels.viewAllPlanDetails') }}
           </NcButton>
         </a>
@@ -96,6 +101,10 @@ const onUpgradePlan = async () => {
   .nc-finance-img {
     -webkit-transform: scaleX(-1);
     transform: scaleX(-1);
+  }
+
+  .nc-upgrade-plan-btn {
+    @apply bg-nc-fill-maroon-medium !hover:bg-nc-fill-maroon-dark;
   }
 }
 </style>

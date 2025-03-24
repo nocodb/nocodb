@@ -6,6 +6,18 @@ const props = defineProps<{
   activePlan?: string
 }>()
 
+const popularPlan = PlanTitles.TEAM
+
+// Todo: remove comingSoonPlans when we launch this
+const comingSoonPlans = [PlanTitles.BUSINESS, PlanTitles.ENTERPRISE]
+
+const PrevPlanTitleFromCurrentPlan = {
+  [PlanTitles.TEAM]: PlanTitles.FREE,
+  Plus: PlanTitles.TEAM,
+  [PlanTitles.BUSINESS]: PlanTitles.TEAM,
+  [PlanTitles.ENTERPRISE]: PlanTitles.BUSINESS,
+}
+
 const { onSelectPlan, getPlanPrice, activeSubscription, getCustomerPortalSession } = usePaymentStoreOrThrow()
 
 const price = computed(() => getPlanPrice(props.plan))
@@ -21,8 +33,6 @@ const onManageSubscription = async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
-
-const popularPlan = PlanTitles.TEAM
 </script>
 
 <template>
@@ -40,6 +50,12 @@ const popularPlan = PlanTitles.TEAM
           class="inline-block bg-nc-bg-brand text-nc-content-brand rounded-md text-sm font-normal px-1"
         >
           {{ $t('title.mostPopular') }}
+        </span>
+        <span
+          v-if="comingSoonPlans.includes(plan.title as PlanTitles)"
+          class="inline-block bg-nc-bg-brand text-nc-content-brand rounded-md text-sm font-normal px-1"
+        >
+          {{ $t('title.comingSoon') }}
         </span>
       </div>
       <div v-if="activePlan === plan.title && activeSubscription" class="flex items-center gap-1 h-[62px] text-nc-content-gray">
@@ -80,10 +96,29 @@ const popularPlan = PlanTitles.TEAM
       {{ $t('general.choose') }} {{ $t(`objects.paymentPlan.${plan.title}`) }}
     </NcButton>
 
-    <div v-if="plan.descriptions" class="flex flex-col pt-2">
-      <div v-for="desc in plan.descriptions" :key="desc" class="flex items-center text-nc-content-gray-subtle2 leading-[24px]">
-        <span class="mr-2">•</span>
-        <span>{{ desc }}</span>
+    <div class="flex flex-col gap-3">
+      <div class="pt-2 text-nc-content-gray-subtle2 font-weight-700 text-sm">
+        <span v-if="plan.title === PlanTitles.FREE">
+          {{
+            $t('labels.planIncludes:', {
+              plan: $t(`objects.paymentPlan.${plan.title}`),
+            })
+          }}
+        </span>
+        <span v-else>
+          {{
+            $t('labels.everythingInPlanPlus', {
+              plan: $t(`objects.paymentPlan.${PrevPlanTitleFromCurrentPlan[plan.title]}`),
+            })
+          }}
+        </span>
+      </div>
+
+      <div v-if="plan.descriptions" class="flex flex-col">
+        <div v-for="desc in plan.descriptions" :key="desc" class="flex items-center text-nc-content-gray-subtle2 leading-[24px]">
+          <span class="mr-2">•</span>
+          <span>{{ desc }}</span>
+        </div>
       </div>
     </div>
   </div>

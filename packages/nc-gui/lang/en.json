@@ -723,7 +723,6 @@
     "helpAndSupportSubtitle": "Visit our Support Center for detailed guides, customer service contact options, and a community forum for additional help.",
     "faq": "FAQ",
     "faqSubtitle": "Explore the FAQ section and get quick answers to common questions about our services, features, and troubleshooting. "
-
   },
   "labels": {
     "restoringSnapshot": "Restoring Snapshot",
@@ -1207,7 +1206,9 @@
     "upgradeToPlan": "Upgrade To {plan}",
     "applicableTax": "Applicable tax",
     "annualSavings": "Annual Savings",
-    "compareAllFeatures": "Compare all features"
+    "compareAllFeatures": "Compare all features",
+    "planIncludes": "{plan} Includes:",
+    "everythingInPlanPlus": "Everything in {plan}, Plus:"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

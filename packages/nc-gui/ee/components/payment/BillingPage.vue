@@ -7,8 +7,6 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emits = defineEmits([])
-
 const { workspaceId } = toRefs(props)
 
 const route = useRoute()

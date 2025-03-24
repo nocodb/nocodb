@@ -311,7 +311,7 @@ export default defineNuxtConfig({
         'lru-cache',
         'qrcode',
         '@floating-ui/vue',
-        '@stripe/stripe-js'
+        '@stripe/stripe-js',
       ],
       esbuildOptions: {
         define: {

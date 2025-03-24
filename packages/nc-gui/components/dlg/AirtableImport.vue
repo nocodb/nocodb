@@ -319,7 +319,13 @@ const collapseKey = ref('')
     </div>
 
     <div v-if="step === 1">
-      <a-form ref="form" :model="syncSource" name="quick-import-airtable-form" layout="vertical" class="m-0">
+      <a-form
+        ref="form"
+        :model="syncSource"
+        name="quick-import-airtable-form"
+        layout="vertical"
+        class="m-0 !text-nc-content-gray"
+      >
         <a-form-item v-bind="validateInfos['details.apiKey']">
           <div class="flex items-end">
             <label class="text-nc-content-gray text-sm"> {{ $t('labels.personalAccessToken') }} </label>

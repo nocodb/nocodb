@@ -40,6 +40,10 @@ const onReset = () => {
 onMounted(async () => {
   await initializeForm()
 })
+
+onUnmounted(() => {
+  onReset()
+})
 </script>
 
 <template>

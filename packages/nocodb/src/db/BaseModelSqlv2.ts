@@ -2489,6 +2489,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         qb,
         sort,
         view,
+        skipViewFilter: true,
       });
       const childQb = this.dbDriver.queryBuilder().from(
         this.dbDriver
@@ -2623,6 +2624,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       view,
       qb,
       sort,
+      skipViewFilter: true,
     });
 
     if (!sort || sort === '') {
@@ -2775,6 +2777,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         qb,
         sort,
         view,
+        skipViewFilter: true,
       });
 
       const children = await this.execAndParse(
@@ -2931,6 +2934,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       qb,
       sort,
       view,
+      skipViewFilter: true,
     });
 
     const finalQb = this.dbDriver.unionAll(
@@ -3338,6 +3342,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       qb,
       sort,
       where,
+      // condition is applied in getCustomConditionsAndApply and we don't want to apply it again
       onlySort: true,
     });
 
@@ -3432,6 +3437,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       qb,
       sort,
       where,
+      // condition is applied in getCustomConditionsAndApply and we don't want to apply it again
       onlySort: true,
     });
 
@@ -3620,6 +3626,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       qb,
       sort,
       where,
+      // condition is applied in getCustomConditionsAndApply and we don't want to apply it again
       onlySort: true,
     });
 
@@ -3864,6 +3871,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       qb,
       sort,
       where,
+      // condition is applied in getCustomConditionsAndApply and we don't want to apply it again
       onlySort: true,
     });
 
@@ -3888,6 +3896,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     qb,
     sort,
     onlySort = false,
+    skipViewFilter = false,
   }: {
     table: Model;
     view?: View;
@@ -3895,6 +3904,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     qb;
     sort: string;
     onlySort?: boolean;
+    skipViewFilter?: boolean;
   }) {
     const childAliasColMap = await table.getAliasColObjMap(this.context);
 
@@ -3907,7 +3917,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await conditionV2(
         this,
         [
-          ...(view
+          ...(view && !skipViewFilter
             ? [
                 new Filter({
                   children:

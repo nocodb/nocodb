@@ -28,7 +28,7 @@ export function shouldSkipCache(
     process.env.NC_DISABLE_CACHE === 'true' ||
     ctx.validateFormula ||
     queryParamKeys.some((key) => key in ctx.params) ||
-    ctx.customConditions?.length
+    ctx.customConditions?.length > 0
   );
 }
 

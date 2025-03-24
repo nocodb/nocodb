@@ -13,6 +13,7 @@ import {
   checkForStaticDateValFilters,
   shouldSkipCache,
 } from './common-helpers';
+import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -26,6 +27,7 @@ import type {
   QrCodeColumn,
   Source,
 } from '~/models';
+import type CustomKnex from 'src/db/CustomKnex';
 import { Column, Filter, Model, Sort, View } from '~/models';
 import {
   _wherePk,
@@ -1382,54 +1384,21 @@ export async function singleQueryList(
       CacheGetType.TYPE_STRING,
     );
     if (cachedQuery && cachedCountQuery) {
-      let res, countRes;
-      await Promise.all([
-        // skip count query if excludeCount is present or takes more than the timeout seconds
-        // or if the cached count query value is SKIP_COUNT_CACHE_VALUE
-        new Promise((resolve, reject) => {
-          if (excludeCount || cachedCountQuery === SKIP_COUNT_CACHE_VALUE) {
-            return resolve(null);
-          }
-
-          let resolved = false;
-
-          // if count query takes more than 3 seconds then skip it
-          setTimeout(() => {
-            if (resolved) return;
-            resolved = true;
-            resolve(null);
-          }, COUNT_QUERY_TIMEOUT).unref();
-
-          baseModel
-            .execAndParse(knex.raw(cachedCountQuery).toQuery(), null, {
-              skipDateConversion: true,
-            })
-            .then(
-              (count) => {
-                if (resolved) return;
-                resolved = true;
-                countRes = +count?.[0]?.count || 0;
-                resolve(null);
-              },
-              (err) => {
-                if (resolved) return;
-                resolved = true;
-                reject(err);
-              },
-            );
-        }),
-        (async () => {
-          const startTime = process.hrtime();
-          res = await baseModel.execAndParse(
-            knex
-              .raw(cachedQuery, [+listArgs.limit, +listArgs.offset])
-              .toQuery(),
-            null,
-            { skipDateConversion: true, apiVersion: ctx.apiVersion },
-          );
-          dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
-        })(),
-      ]);
+      const [countRes, res] = await getDataWithCountCache({
+        query: cachedQuery,
+        countQuery: cachedCountQuery,
+        limit: +listArgs.limit,
+        offset: +listArgs.offset,
+        knex,
+        countCacheKey,
+        skipCache,
+        excludeCount,
+        recordQueryTime: (time: string) => {
+          dbQueryTime = time;
+        },
+        apiVersion: ctx.apiVersion,
+        baseModel,
+      });
 
       // if count is less than the actual result length then reset the count cache
       if (
@@ -1627,97 +1596,44 @@ export async function singleQueryList(
 
   // const finalQb = qb.select(countQb.as('__nc_count'));
   const finalQb = qb;
-  let res: any;
-  let count: number;
-  await Promise.all([
-    // skip count query if excludeCount is present or takes more than the timeout seconds
-    new Promise((resolve, reject) => {
-      if (excludeCount) {
-        return resolve(null);
-      }
+  let dataQuery = finalQb.toQuery();
+  if (!skipCache) {
+    const { sql, bindings } = finalQb.toSQL();
 
-      let resolved = false;
+    // get unique placeholder for limit and offset which is not present in query
+    const placeholder = getUniquePlaceholders(finalQb.toQuery());
 
-      const countQuery = countQb.toQuery();
+    // bind all params and replace limit and offset with placeholders
+    // and in generated sql replace placeholders with bindings
+    dataQuery = knex
+      .raw(sql, [...bindings.slice(0, -2), placeholder, placeholder])
+      .toQuery()
+      // escape any `?` in the query to avoid replacing them with bindings
+      .replace(/\?/g, '\\?')
+      .replace(
+        `limit '${placeholder}' offset '${placeholder}'`,
+        'limit ? offset ?',
+      );
 
-      if (!skipCache) {
-        NocoCache.set(countCacheKey, countQuery).catch((e) => {
-          if (resolved) return;
-          resolved = true;
-          reject(e);
-        });
-      }
+    // cache query for later use
+    await NocoCache.set(cacheKey, dataQuery);
+  }
 
-      // if count query takes more than 3 seconds then skip it
-      setTimeout(() => {
-        if (resolved) return;
-        resolved = true;
-        resolve(null);
-        NocoCache.set(countCacheKey, SKIP_COUNT_CACHE_VALUE).catch((e) => {
-          // ignore
-          logger.error(e);
-        });
-      }, COUNT_QUERY_TIMEOUT).unref();
-
-      baseModel
-        .execAndParse(countQb.toQuery(), null, {
-          skipDateConversion: true,
-          first: true,
-        })
-        .then(
-          (r) => {
-            if (resolved) return;
-            resolved = true;
-            count = +r?.count || 0;
-            resolve(null);
-          },
-          (e) => {
-            if (resolved) return;
-            resolved = true;
-            reject(e);
-          },
-        );
-    }),
-    (async () => {
-      if (skipCache) {
-        const startTime = process.hrtime();
-        res = await baseModel.execAndParse(finalQb, null, {
-          skipDateConversion: true,
-        });
-        dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
-      } else {
-        const { sql, bindings } = finalQb.toSQL();
-
-        // get unique placeholder for limit and offset which is not present in query
-        const placeholder = getUniquePlaceholders(finalQb.toQuery());
-
-        // bind all params and replace limit and offset with placeholders
-        // and in generated sql replace placeholders with bindings
-        const query = knex
-          .raw(sql, [...bindings.slice(0, -2), placeholder, placeholder])
-          .toQuery()
-          // escape any `?` in the query to avoid replacing them with bindings
-          .replace(/\?/g, '\\?')
-          .replace(
-            `limit '${placeholder}' offset '${placeholder}'`,
-            'limit ? offset ?',
-          );
-
-        // cache query for later use
-        await NocoCache.set(cacheKey, query);
-
-        const startTime = process.hrtime();
-
-        // run the query with actual limit and offset
-        res = await baseModel.execAndParse(
-          knex.raw(query, [+listArgs.limit, +listArgs.offset]).toQuery(),
-          null,
-          { skipDateConversion: true },
-        );
-        dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
-      }
-    })(),
-  ]);
+  const [count, res] = await getDataWithCountCache({
+    query: dataQuery,
+    countQuery: countQb.toQuery(),
+    limit: +listArgs.limit,
+    offset: +listArgs.offset,
+    knex,
+    countCacheKey,
+    skipCache,
+    excludeCount,
+    recordQueryTime: (time: string) => {
+      dbQueryTime = time;
+    },
+    apiVersion: ctx.apiVersion,
+    baseModel,
+  });
 
   return new PagedResponseImpl(
     res.map(({ __nc_count, ...rest }) => rest),
@@ -1735,7 +1651,79 @@ export async function singleQueryList(
     },
   );
 }
+const getDataWithCountCache = async (params: {
+  query: string;
+  countQuery: string;
+  baseModel: IBaseModelSqlV2;
+  apiVersion: NcApiVersion;
+  limit: number;
+  offset: number;
+  knex: CustomKnex;
+  recordQueryTime?: (queryTime: string) => void;
+  excludeCount?: boolean;
+  skipCache?: boolean;
+  countCacheKey?: string;
+}): Promise<[count: number | undefined, data: any[]]> => {
+  const countHandler = async (): Promise<number | undefined> => {
+    if (params.excludeCount) {
+      return undefined;
+    }
 
+    if (!params.skipCache) {
+      await NocoCache.set(params.countCacheKey, params.countQuery);
+    }
+
+    let resolved = false;
+    return await Promise.race<number | undefined>([
+      new Promise<undefined>((resolve) => {
+        // if count query takes more than 3 seconds then skip it
+        setTimeout(() => {
+          if (resolved) return;
+          resolve(undefined);
+          NocoCache.set(params.countCacheKey, SKIP_COUNT_CACHE_VALUE).catch(
+            (e) => {
+              // ignore
+              logger.error(e);
+            },
+          );
+        }, COUNT_QUERY_TIMEOUT);
+      }),
+      (async (): Promise<number> => {
+        const r = await params.baseModel.execAndParse(params.countQuery, null, {
+          skipDateConversion: true,
+          first: true,
+        });
+        resolved = true;
+        return +r?.count || 0;
+      })(),
+    ]);
+  };
+  const dataHandler = async () => {
+    if (params.skipCache) {
+      const startTime = process.hrtime();
+      const result = await params.baseModel.execAndParse(params.query, null, {
+        skipDateConversion: true,
+      });
+      params?.recordQueryTime(
+        parseHrtimeToMilliSeconds(process.hrtime(startTime)),
+      );
+      return result;
+    } else {
+      const startTime = process.hrtime();
+      const res = await params.baseModel.execAndParse(
+        params.knex.raw(params.query, [params.limit, params.offset]).toQuery(),
+        null,
+        // unsure why params.apiVersion only used when fetching from cache
+        { skipDateConversion: true, apiVersion: params.apiVersion },
+      );
+      params?.recordQueryTime(
+        parseHrtimeToMilliSeconds(process.hrtime(startTime)),
+      );
+      return res;
+    }
+  };
+  return await Promise.all([countHandler(), dataHandler()]);
+};
 export function getSingleQueryReadFn(source: Source) {
   if (['mysql', 'mysql2'].includes(source.type)) {
     return mysqlSingleQueryRead;

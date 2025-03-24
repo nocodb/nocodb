@@ -154,8 +154,12 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     if (value instanceof Date) {
                       return value
                     }
-                    const dateValue = dayjs(value, (existingColumn.meta as any)?.date_format)
-                    return dateValue.isValid() ? dateValue.format('YYYY-MM-DD HH:mm:ss') : value
+                    const meta = parseProp(existingColumn.meta)
+                    const dateValue = withTimezone(meta?.timezone).dayjsTz(
+                      value,
+                      meta.date_format && meta.time_format ? `${meta.date_format} ${meta.time_format}` : undefined,
+                    )
+                    return dateValue?.isValid() ? dateValue.format('YYYY-MM-DD HH:mm:ss Z') : value
                   }
                 } else if (
                   existingColumn &&

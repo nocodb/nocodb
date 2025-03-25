@@ -13,7 +13,7 @@ const activeWorkspace = computed(() =>
   workspaceId.value ? workspacesList.value.find((w) => w.id === workspaceId.value)! : _activeWorkspace.value!,
 )
 
-const { paymentState } = useProvidePaymentStore()
+const { paymentState, workspaceSeatCount } = useProvidePaymentStore()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
@@ -49,7 +49,7 @@ const activePlanMeta = computed(() =>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.numberOfBilledUsers') }} </template>
-        <template #value> 4 </template>
+        <template #value>{{ workspaceSeatCount }} </template>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.storageUsedGB') }} </template>
@@ -57,11 +57,11 @@ const activePlanMeta = computed(() =>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.webhookCallsMonthly') }} </template>
-        <template #value> 4619/150K </template>
+        <template #value> 4619/150,000 </template>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.apiCallsMonthly') }} </template>
-        <template #value> 120K/150K </template>
+        <template #value> 120,000/150,000 </template>
       </PaymentPlanUsageRow>
     </div>
   </div>

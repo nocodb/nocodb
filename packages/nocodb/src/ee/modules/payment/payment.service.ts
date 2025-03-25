@@ -513,7 +513,9 @@ export class PaymentService {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: workspaceOrOrg.stripe_customer_id,
-      return_url: `${req.ncSiteUrl}?afterManage=true&workspaceId=${workspaceOrOrg.id}`,
+      return_url: `${req.ncSiteUrl}?afterManage=true&workspaceId=${
+        workspaceOrOrg.id
+      }&isAccountPage=${req.query.isAccountPage ?? true}`,
     });
 
     return session;

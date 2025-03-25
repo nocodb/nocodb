@@ -55,6 +55,9 @@ const onBack = () => {
   }
 }
 
+// Todo: handle download invoice action
+const downloadInvoice = () => {}
+
 onMounted(async () => {
   if (workspaceId.value) {
     await workspaceStore.loadWorkspace(workspaceId.value)
@@ -80,7 +83,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="h-full overflow-auto nc-scrollbar-thin">
+  <div class="h-full overflow-auto nc-scrollbar-thin text-nc-content-gray">
     <div class="nc-content-max-w p-6 pb-16 flex flex-col gap-6">
       <div v-if="afterPayment">
         <div class="flex flex-col gap-6 mx-auto items-center justify-center w-[600px]">
@@ -98,13 +101,20 @@ onMounted(async () => {
                 <div>
                   <div class="text-base font-bold text-nc-content-gray-emphasis">Invoice</div>
 
-                  <div class="flex flex-col gap-2 mt-2">
-                    <div class="text-sm">
+                  <div class="flex gap-2 mt-2">
+                    <div class="text-sm flex-1">
                       {{ checkoutSession?.customer_details?.address?.line1 }},
                       {{ checkoutSession?.customer_details?.address?.city }},
                       {{ checkoutSession?.customer_details?.address?.state }},
                       {{ checkoutSession?.customer_details?.address?.postal_code }},
                       {{ checkoutSession?.customer_details?.address?.country }}
+                    </div>
+
+                    <div
+                      v-if="ncIsArray(checkoutSession?.customer_details?.tax_ids)"
+                      class="text-sm text-nc-content-gray-subtle2"
+                    >
+                      {{ checkoutSession.customer_details.tax_ids.join(', ') }}
                     </div>
                   </div>
                 </div>
@@ -148,10 +158,12 @@ onMounted(async () => {
 
                   <NcDivider class="!my-0" />
 
-                  <!-- Todo: applicable_tax is missing in session  -->
-                  <div v-if="checkoutSession?.applicable_tax" class="flex justify-between text-nc-content-gray text-sm">
+                  <div
+                    v-if="checkoutSession?.total_details?.amount_tax"
+                    class="flex justify-between text-nc-content-gray text-sm"
+                  >
                     <div>{{ $t('labels.applicableTax') }}</div>
-                    <div>${{ checkoutSession?.applicable_tax ?? 0 }}</div>
+                    <div>${{ checkoutSession?.total_details?.amount_tax ?? 0 }}</div>
                   </div>
                   <div class="flex justify-between text-nc-content-gray font-weight-700 text-base">
                     <div>{{ $t('general.total') }}</div>
@@ -159,10 +171,19 @@ onMounted(async () => {
                   </div>
                 </div>
 
-                <!-- Actions -->
-                <NcButton type="primary" size="medium" class="w-full" @click="onBack">
-                  {{ $t('general.finish') }}
-                </NcButton>
+                <div class="w-full flex flex-col gap-3">
+                  <!-- Actions -->
+                  <NcButton type="primary" size="medium" class="w-full" @click="onBack">
+                    {{ $t('general.finish') }}
+                  </NcButton>
+
+                  <NcButton type="text" size="medium" class="w-full" inner-class="!gap-2" @click="downloadInvoice">
+                    <template #icon>
+                      <GeneralIcon icon="ncDownload" />
+                    </template>
+                    {{ $t('labels.downloadInvoice') }}
+                  </NcButton>
+                </div>
               </div>
             </div>
           </template>

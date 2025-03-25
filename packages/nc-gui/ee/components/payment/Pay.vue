@@ -49,7 +49,7 @@ onUnmounted(() => {
 <template>
   <div v-if="selectedPlan" class="flex flex-col w-full">
     <div class="flex flex-col w-full gap-6">
-      <div v-if="paymentState && paymentState !== PaymentState.SELECT_PLAN" class="flex">
+      <div v-if="paymentState && paymentState !== PaymentState.SELECT_PLAN" class="flex max-w-[888px] mx-auto w-full">
         <NcButton
           type="text"
           size="small"
@@ -63,7 +63,7 @@ onUnmounted(() => {
           <div>{{ $t('labels.back') }}</div>
         </NcButton>
       </div>
-      <div class="text-2xl text-nc-content-gray-emphasis font-weight-700">
+      <div class="text-2xl text-nc-content-gray-emphasis font-weight-700 max-w-[888px] mx-auto w-full flex">
         {{
           $t('labels.upgradeToPlan', {
             plan: $t(`objects.paymentPlan.${selectedPlan.title}`),

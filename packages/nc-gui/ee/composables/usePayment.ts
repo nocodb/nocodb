@@ -136,7 +136,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const getCustomerPortalSession = async () => {
     if (!activeWorkspaceId.value) throw new Error('No active workspace')
 
-    const res = await $fetch(`/api/payment/${activeWorkspaceId.value}/customer-portal`, {
+    const res = await $fetch(`/api/payment/${activeWorkspaceId.value}/customer-portal?isAccountPage=${isAccountPage.value}`, {
       baseURL,
       method: 'GET',
       headers: { 'xc-auth': $state.token.value as string },

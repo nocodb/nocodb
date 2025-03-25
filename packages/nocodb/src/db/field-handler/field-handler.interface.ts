@@ -1,11 +1,14 @@
+import type { MetaService } from 'src/meta/meta.service';
 import type { NcContext } from 'nocodb-sdk';
 import type { Knex } from 'knex';
-import type { Column, Filter, Sort } from '~/models';
+import type { Column, Filter, Model } from '~/models';
 
 interface HandlerOptions {
   alias?: string;
   throwErrorIfInvalid?: boolean;
   context?: NcContext;
+  model?: Model;
+  metaService?: MetaService;
   knex?: Knex;
   tnPath?: string;
   columns?: Column[];
@@ -14,26 +17,11 @@ interface HandlerOptions {
 interface FieldHandlerInterface {
   select(qb: Knex.QueryBuilder, column: Column, options: HandlerOptions): void;
   filter(
-    qb: Knex.QueryBuilder,
+    knex: Knex,
     filter: Filter,
     column: Column,
     options: HandlerOptions,
-  ): void | Promise<void>;
-  sort(
-    qb: Knex.QueryBuilder,
-    sort: Sort,
-    column: Column,
-    options: HandlerOptions,
-  ): void | Promise<void>;
+  ): Promise<(qb: Knex.QueryBuilder) => void>;
 }
 
-const DbClient = {
-  PG: 'pg',
-  MYSQL: 'mysql',
-  SQLITE: 'sqlite',
-  MSSQL: 'mssql',
-} as const;
-
-type DbClient = (typeof DbClient)[keyof typeof DbClient];
-
-export { FieldHandlerInterface, HandlerOptions, DbClient };
+export { FieldHandlerInterface, HandlerOptions };

@@ -1,12 +1,13 @@
 import type { Knex } from 'knex';
+import type CustomKnex from '~/db/CustomKnex';
 import type {
   FieldHandlerInterface,
   HandlerOptions,
 } from '~/db/field-handler/field-handler.interface';
-import type { Column, Filter, Sort } from '~/models';
-import { sanitize } from '~/helpers/sqlSanitize';
+import type { Column, Filter } from '~/models';
 import { getColumnName } from '~/db/BaseModelSqlv2';
 import { getAs } from '~/db/field-handler/utils/handlerUtils';
+import { sanitize } from '~/helpers/sqlSanitize';
 
 export abstract class GenericFieldHandler implements FieldHandlerInterface {
   async select(
@@ -33,21 +34,81 @@ export abstract class GenericFieldHandler implements FieldHandlerInterface {
     qb.select({ [selectAlias]: selectColumn });
   }
 
-  async sort(
-    _qb: Knex.QueryBuilder,
-    _sort: Sort,
-    _column: Column,
-    _options: HandlerOptions,
-  ) {
-    // not implemented
-  }
-
   async filter(
-    _qb: Knex.QueryBuilder,
-    _filter: Filter,
-    _column: Column,
-    _options: HandlerOptions,
+    knex: CustomKnex,
+    filter: Filter,
+    column: Column,
+    options: HandlerOptions,
   ) {
+    const { alias } = options;
+    const val = filter.value;
+    const field = alias ? `${alias}.${column.column_name}` : column.column_name;
+
+    return (qb: Knex.QueryBuilder) => {
+      switch (filter.comparison_op) {
+        case 'eq':
+          if (val === '' || typeof val === 'undefined' || val === null) {
+            qb.where((nestedQb) => {
+              nestedQb.where(knex.raw("?? = ''", [field])).orWhereNull(field);
+            });
+          } else {
+            qb.where(knex.raw('?? = ?', [field, val]));
+          }
+          break;
+
+        case 'neq':
+        case 'not':
+          if (val === '' || typeof val === 'undefined' || val === null) {
+            qb.where((nestedQb) => {
+              nestedQb
+                .where(knex.raw("?? != ''", [field]))
+                .orWhereNotNull(field);
+            });
+          } else {
+            qb.where((nestedQb) => {
+              nestedQb
+                .where(knex.raw('?? != ?', [field, val]))
+                .orWhereNull(field);
+            });
+          }
+          break;
+
+        case 'like':
+          if (val === '' || typeof val === 'undefined' || val === null) {
+            qb.whereNull(field);
+          } else {
+            qb.where(knex.raw('??::text ilike ?', [field, `%${val}%`]));
+          }
+          break;
+
+        case 'nlike':
+          if (val === '' || typeof val === 'undefined' || val === null) {
+            qb.whereNotNull(field);
+          } else {
+            qb.where((nestedQb) => {
+              nestedQb.where(
+                knex.raw('??::text not ilike ?', [field, `%${val}%`]),
+              );
+            });
+          }
+          break;
+
+        case 'blank':
+          qb.where((nestedQb) => {
+            nestedQb.whereNull(field).orWhere(knex.raw("?? = ''", [field]));
+          });
+          break;
+
+        case 'notblank':
+          qb.whereNotNull(field).orWhere(knex.raw("?? != ''", [field]));
+          break;
+
+        default:
+          throw new Error(
+            `Unsupported comparison operator for JSON: ${filter.comparison_op}`,
+          );
+      }
+    };
     // not implemented
   }
 }

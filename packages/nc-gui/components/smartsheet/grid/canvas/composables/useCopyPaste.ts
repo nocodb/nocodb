@@ -802,11 +802,13 @@ export function useCopyPaste({
       columnObj.readonly ||
       isSystemColumn(columnObj) ||
       (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj))
-    )
+    ) {
       return
+    }
 
     if (isVirtualCol(columnObj)) {
       let mmClearResult
+      const mmOldResult = rowObj.row[columnObj.title]
 
       if (isMm(columnObj) && rowObj) {
         mmClearResult = await cleaMMCell(rowObj, columnObj)
@@ -814,7 +816,7 @@ export function useCopyPaste({
 
       addUndo({
         undo: {
-          fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, mmClearResult: any[]) => {
+          fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, mmClearResult: any[], mmOldResult: any) => {
             const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
             const rowObj = cachedRows.value.get(ctx.row)
             const columnObj = fields.value[ctx.col]
@@ -837,7 +839,7 @@ export function useCopyPaste({
                   encodeURIComponent(rowId as string),
                   mmClearResult,
                 )
-                rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
+                rowObj.row[columnObj.title] = mmOldResult ?? null
               }
 
               activeCell.value.column = ctx.col
@@ -848,7 +850,7 @@ export function useCopyPaste({
               throw new Error(t('msg.recordCouldNotBeFound'))
             }
           },
-          args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult],
+          args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult, mmOldResult],
         },
         redo: {
           fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row) => {

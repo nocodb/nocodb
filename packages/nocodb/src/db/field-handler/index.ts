@@ -309,7 +309,10 @@ export class FieldHandler implements IFieldHandler {
   ) {
     return Promise.all(
       (filters ?? []).map(async (filter) => {
-        if (filter.is_group) {
+        // somehow filters is an array of array
+        if (Array.isArray(filter)) {
+          return this.traverseFilters(filter, handler);
+        } else if (filter.is_group) {
           return this.traverseFilters(filter.children, handler);
         } else {
           return handler(filter);

@@ -1069,7 +1069,7 @@
     "nocoDBBaseImported": "Base NocoDB importée",
     "formatJson": "Formater le JSON",
     "autoSelectFieldTypes": "Sélection automatique des types de champs",
-    "firstRowAsHeaders": "Use first record as header",
+    "firstRowAsHeaders": "Utiliser le premier enregistrement comme en-tête",
     "flattenNested": "Aplatir imbriqué",
     "downloadAllowed": "Téléchargement autorisé",
     "weAreHiring": "Nous recrutons !",

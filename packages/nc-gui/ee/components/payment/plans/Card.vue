@@ -28,43 +28,45 @@ const price = computed(() => getPlanPrice(props.plan))
     class="nc-payment-plan-card border-1 border-nc-border-gray-medium p-4 rounded-xl w-[288px] flex flex-col gap-4 transition-shadow duration-300 hover:!shadow-md"
   >
     <div class="flex flex-col">
-      <div class="text-xl font-bold text-nc-content-gray">
-        {{ $t(`objects.paymentPlan.${plan.title}`) }}
-        <span v-if="activePlan === plan.title && activeSubscription" class="text-xs text-nc-content-gray-muted">
-          ({{ activeSubscription.period === 'year' ? 'Annually' : 'Monthly' }})
-        </span>
-        <span
-          v-if="!activeSubscription && plan.title === PlanTitles.TEAM"
-          class="inline-block bg-nc-bg-brand text-nc-content-brand rounded-md text-sm font-normal px-1"
-        >
-          {{ $t('title.mostPopular') }}
-        </span>
-        <span
-          v-if="comingSoonPlans.includes(plan.title as PlanTitles)"
-          class="inline-block bg-nc-bg-brand text-nc-content-brand rounded-md text-sm font-normal px-1"
-        >
-          {{ $t('title.comingSoon') }}
-        </span>
+      <div class="flex items-center gap-4">
+        <div class="flex-1 text-xl font-bold text-nc-content-gray">
+          {{ $t(`objects.paymentPlan.${plan.title}`) }}
+          <span v-if="activePlan === plan.title && activeSubscription" class="text-xs text-nc-content-gray-muted">
+            ({{ activeSubscription.period === 'year' ? 'Annually' : 'Monthly' }})
+          </span>
+          <span
+            v-if="!activeSubscription && plan.title === PlanTitles.TEAM"
+            class="inline-block bg-nc-bg-brand text-nc-content-brand rounded-md text-sm font-normal px-1"
+          >
+            {{ $t('title.mostPopular') }}
+          </span>
+          <span
+            v-if="comingSoonPlans.includes(plan.title as PlanTitles)"
+            class="inline-block bg-nc-bg-brand text-nc-content-brand rounded-md text-sm font-normal px-1"
+          >
+            {{ $t('title.comingSoon') }}
+          </span>
+        </div>
+        <div v-if="activePlan === plan.title && activeSubscription" class="text-nc-content-brand flex children:flex-none">
+          <GeneralIcon icon="circleCheckSolid" />
+        </div>
       </div>
-      <div v-if="activePlan === plan.title && activeSubscription" class="flex items-center gap-1 h-[62px] text-nc-content-gray">
-        <span class="text-2xl text-nc-content-gray-subtle2">$</span>
-        <span class="text-[40px] leading-[62px] font-bold mr-3">{{ getPlanPrice(props.plan, activeSubscription.period) }}</span>
-        {{ $t('title.seatMonth') }}
-      </div>
-      <div v-else class="flex items-center gap-1 h-[62px] w-[256px] text-nc-content-gray">
-        <span class="text-xl text-nc-content-gray-subtle2">$</span><span class="text-3xl font-bold">{{ price }}</span>
-        {{ $t('title.seatMonth') }}
+      <div class="flex items-center gap-1 h-[62px] text-nc-content-gray mt-1">
+        <span class="text-2xl text-nc-content-gray-subtle2 font-weight-700">$</span>
+        <span class="text-[40px] leading-[62px] font-weight-700 mr-2">
+          {{ activePlan === plan.title && activeSubscription ? getPlanPrice(props.plan, activeSubscription.period) : price }}
+        </span>
+        {{ $t('title.editorMonth') }}
       </div>
     </div>
 
     <NcButton
       v-if="activeSubscription && activePlan === plan.title"
-      type="primary"
+      type="secondary"
       size="medium"
-      class="w-full"
-      @click="onManageSubscription"
+      class="w-full pointer-events-none !text-nc-content-brand"
     >
-      <div class="flex items-center justify-center gap-1">{{ $t('labels.manageSubscription') }}</div>
+      {{ $t('title.currentPlan') }}
     </NcButton>
     <NcButton v-else-if="activePlan === plan.title" type="secondary" size="medium" class="w-full pointer-events-none">
       <div class="flex items-center justify-center gap-1">{{ $t('title.currentPlan') }}</div>

@@ -20,8 +20,9 @@ import type {
   IFieldHandler,
 } from './field-handler.interface';
 import type { Knex } from 'knex';
-import type { Column, Filter, Model } from '~/models';
+import type { Filter, Model } from '~/models';
 import type { FieldHandlerInterface } from '~/db/field-handler/field-handler.interface';
+import { Column } from '~/models';
 import { JsonPgHandler } from '~/db/field-handler/handlers/json/json.pg.handler';
 
 const CLIENT_DEFAULT = '_default';
@@ -212,9 +213,15 @@ export class FieldHandler implements IFieldHandler {
           logicalOps: filter.logical_op,
         });
       } else {
-        const column = model.columns.find(
+        let column = model.columns.find(
           (col) => col.id === filter.fk_column_id,
         );
+        if (!column) {
+          column = await this.getRelatedColumnById(
+            options.context,
+            filter.fk_column_id,
+          );
+        }
         qbHandlers.push({
           handler: await this.applyFilter(filter, column, options),
           index: index++,
@@ -274,9 +281,13 @@ export class FieldHandler implements IFieldHandler {
     }
     const traverseResult: FilterVerificationResult[] = [];
     await this.traverseFilters(filters, async (filter: Filter) => {
-      const column = model.columns.find(
-        (col) => col.id === filter.fk_column_id,
-      );
+      let column = model.columns.find((col) => col.id === filter.fk_column_id);
+      if (!column) {
+        column = await this.getRelatedColumnById(
+          options.context,
+          filter.fk_column_id,
+        );
+      }
       traverseResult.push(await this.verifyFilter(filter, column, options));
     });
     const invalidFilterResults = traverseResult
@@ -319,5 +330,11 @@ export class FieldHandler implements IFieldHandler {
         }
       }),
     );
+  }
+
+  async getRelatedColumnById(context: NcContext, colId: string) {
+    // possibly to be enhanced into getting the model and basemodel too
+    const column = await Column.get(context, { colId });
+    return column;
   }
 }

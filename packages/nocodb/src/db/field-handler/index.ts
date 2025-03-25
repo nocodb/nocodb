@@ -11,6 +11,7 @@ import { DecimalGeneralHandler } from './handlers/decimal/decimal.general.handle
 import { NumberGeneralHandler } from './handlers/number/number.general.handler';
 import { FilterVerificationError } from './error/filter-verification.error';
 import { FormulaGeneralHandler } from './handlers/formula/formula.general.handler';
+import { JsonMySqlHandler } from './handlers/json/json.mysql.handler';
 import type CustomKnex from '../CustomKnex';
 import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
@@ -100,6 +101,7 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.Geometry]: {},
   [UITypes.JSON]: {
     [ClientType.PG]: JsonPgHandler,
+    [ClientType.MYSQL]: JsonMySqlHandler,
     [CLIENT_DEFAULT]: JsonGeneralHandler,
   },
   [UITypes.SpecificDBType]: {},

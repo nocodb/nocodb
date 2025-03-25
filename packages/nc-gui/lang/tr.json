@@ -1095,7 +1095,7 @@
     "restApis": "Rest API'ler",
     "apis": "API'ler",
     "apiSnippet": "API Kod Parçacıkları",
-    "includeData": "Veriyi Ekle",
+    "includeData": "Include Data",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
     "includeView": "Include views",

@@ -100,7 +100,7 @@ const onManageSubscription = async () => {
       <div class="pt-2 text-nc-content-gray-subtle2 font-weight-700 text-sm">
         <span v-if="plan.title === PlanTitles.FREE">
           {{
-            $t('labels.planIncludes:', {
+            $t('labels.planIncludes', {
               plan: $t(`objects.paymentPlan.${plan.title}`),
             })
           }}

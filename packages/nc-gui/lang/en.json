@@ -1158,7 +1158,8 @@
     "currentOwner": "Current owner",
     "newOwner": "New owner",
     "addFromUrl": "Add from URL",
-    "enterJson": "Enter JSON"
+    "enterJson": "Enter JSON",
+    "airtableBase": "Airtable base"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

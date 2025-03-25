@@ -342,7 +342,7 @@ const collapseKey = ref('')
           <a-input-password
             v-model:value="syncSource.details.apiKey"
             placeholder="Enter your Airtable Personal Access Token"
-            class="!rounded-lg mt-2 nc-input-api-key"
+            class="!rounded-lg mt-2 nc-input-api-key nc-input-shadow"
           >
             <template #iconRender="isVisible">
               <GeneralIcon :icon="!isVisible ? 'ncEye' : 'ncEyeOff'" />
@@ -355,7 +355,7 @@ const collapseKey = ref('')
           <a-input
             v-model:value="syncSource.details.syncSourceUrlOrId"
             placeholder="Paste the Base URL or Base ID from Airtable"
-            class="!rounded-lg !mt-2 nc-input-shared-base"
+            class="!rounded-lg !mt-2 nc-input-shared-base nc-input-shadow"
           />
         </a-form-item>
 
@@ -438,14 +438,14 @@ const collapseKey = ref('')
         </div>
       </div>
 
-      <div v-if="!isInProgress" class="text-right mt-4">
+      <div v-if="!isInProgress" class="text-right mt-5">
         <nc-button v-if="lastProgress?.status === JobStatus.FAILED" size="small" @click="step = 1"> Retry import </nc-button>
         <nc-button v-else size="small" @click="dialogShow = false"> Go to base </nc-button>
       </div>
     </div>
 
     <template #footer>
-      <div v-if="step === 1" class="flex justify-between mt-2">
+      <div v-if="step === 1" class="flex justify-between mt-5">
         <nc-button
           key="back"
           type="text"
@@ -482,6 +482,15 @@ const collapseKey = ref('')
 <style lang="scss" scoped>
 .nc-import-collapse :deep(.ant-collapse-header) {
   display: none !important;
+}
+.nc-import-collapse :deep(.ant-collapse-content-box) {
+  @apply !pb-0 !pt-2;
+}
+
+.nc-input-api-key {
+  :deep(.ant-input-password-icon) {
+    @apply !text-current !hover:text-current;
+  }
 }
 </style>
 

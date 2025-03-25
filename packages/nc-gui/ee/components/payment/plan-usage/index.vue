@@ -13,7 +13,7 @@ const activeWorkspace = computed(() =>
   workspaceId.value ? workspacesList.value.find((w) => w.id === workspaceId.value)! : _activeWorkspace.value!,
 )
 
-const { paymentState, workspaceSeatCount } = useProvidePaymentStore()
+const { paymentState, workspaceSeatCount, activeSubscription, onManageSubscription } = useProvidePaymentStore()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
@@ -33,6 +33,19 @@ const activePlanMeta = computed(() =>
           {{ $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title ?? PlanTitles.FREE}`) }}
         </span>
       </div>
+      <NcButton
+        v-if="activeSubscription"
+        type="secondary"
+        size="small"
+        @click="onManageSubscription"
+        icon-position="right"
+        inner-class="!gap-2"
+      >
+        <template #icon>
+          <GeneralIcon icon="ncArrowUpRight" />
+        </template>
+        {{ $t('labels.manageSubscription') }}
+      </NcButton>
     </div>
 
     <div

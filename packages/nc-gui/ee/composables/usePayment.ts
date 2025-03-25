@@ -155,6 +155,18 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     })
   }
 
+  const onManageSubscription = async () => {
+    if (!activeSubscription.value) return
+
+    try {
+      const url = await getCustomerPortalSession()
+      if (url) window.open(url, '_blank')
+    } catch (e: any) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   const onPaymentModeChange = (val: 'year' | 'month') => {
     paymentMode.value = val
   }
@@ -217,6 +229,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     getSessionResult,
     getCustomerPortalSession,
     isAccountPage,
+    onManageSubscription,
   }
 }, 'injected-payment-store')
 

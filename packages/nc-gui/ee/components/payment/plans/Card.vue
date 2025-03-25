@@ -18,21 +18,9 @@ const PrevPlanTitleFromCurrentPlan = {
   [PlanTitles.ENTERPRISE]: PlanTitles.BUSINESS,
 }
 
-const { onSelectPlan, getPlanPrice, activeSubscription, getCustomerPortalSession } = usePaymentStoreOrThrow()
+const { onSelectPlan, getPlanPrice, activeSubscription, onManageSubscription } = usePaymentStoreOrThrow()
 
 const price = computed(() => getPlanPrice(props.plan))
-
-const onManageSubscription = async () => {
-  if (!activeSubscription.value) return
-
-  try {
-    const url = await getCustomerPortalSession()
-    if (url) window.open(url, '_blank')
-  } catch (e: any) {
-    console.log(e)
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
 </script>
 
 <template>

@@ -3,9 +3,10 @@ const { plansAvailable, activePlan, paymentMode, getPlanPrice, loadPlans, onPaym
   usePaymentStoreOrThrow()
 
 const filteredPlansAvailable = computed(() => {
-  if (!activePlan.value) return plansAvailable.value
-  // hide cheaper plans
-  return plansAvailable.value.filter((plan) => getPlanPrice(plan) >= getPlanPrice(activePlan.value, paymentMode.value))
+  return plansAvailable.value
+  // if (!activePlan.value) return plansAvailable.value
+  // // hide cheaper plans
+  // return plansAvailable.value.filter((plan) => getPlanPrice(plan) >= getPlanPrice(activePlan.value, paymentMode.value))
 })
 
 onMounted(async () => {

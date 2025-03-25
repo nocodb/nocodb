@@ -93,7 +93,7 @@ onMounted(() => {
               </div>
               <NcDivider class="!mt-0" />
 
-              <div class="text-sm text-gray-500 font-semibold ml-4 py-1.5 mt-2">{{ $t('labels.account') }}</div>
+              <div class="text-sm text-nc-content-gray-muted font-semibold ml-4 py-1.5 mt-2">{{ $t('labels.account') }}</div>
 
               <NcMenuItem
                 key="profile"
@@ -238,7 +238,7 @@ onMounted(() => {
 
               <NcDivider class="!mt-0" />
 
-              <div class="text-sm text-gray-500 font-semibold ml-4 py-1.5">{{ $t('labels.workspaces') }}</div>
+              <div class="text-sm text-nc-content-gray-muted font-semibold ml-4 py-1.5">{{ $t('labels.workspaces') }}</div>
 
               <template v-if="loadingWorkspaces">
                 <div class="w-full flex items-center justify-center">
@@ -260,7 +260,7 @@ onMounted(() => {
                   <div class="flex items-center space-x-2">
                     <GeneralWorkspaceIcon :workspace="workspace" size="account-sidebar" />
 
-                    <div class="nc-workspace-title font-semibold truncate capitalize">
+                    <div class="nc-workspace-title truncate capitalize">
                       {{ workspace.title }}
                     </div>
                   </div>
@@ -352,17 +352,17 @@ onMounted(() => {
 
 .tabs-menu {
   :deep(.item) {
-    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 text-gray-700 !hover:(bg-gray-200 text-gray-700) font-medium;
+    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 text-nc-content-gray-subtle !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle) font-medium;
     width: calc(100% - 1rem);
   }
 
   :deep(.active) {
-    @apply !bg-brand-50 !text-brand-500 !hover:(bg-brand-50 text-brand-500) font-semibold;
+    @apply !bg-nc-bg-brand !text-nc-content-brand-disabled !hover:(bg-nc-bg-brand text-nc-content-brand-disabled ) font-semibold;
   }
 }
 
 :deep(.ant-menu-submenu-title) {
-  @apply select-none mx-2 !pl-3 !pr-1 !text-sm !rounded-md !mb-1 !hover:(bg-gray-200 text-gray-700);
+  @apply select-none mx-2 !pl-3 !pr-1 !text-sm !rounded-md !mb-1 !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle);
   width: calc(100% - 1rem);
 
   & + ul {

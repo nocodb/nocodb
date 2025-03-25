@@ -76,7 +76,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       plansAvailable.value.unshift({
         id: 'free',
         title: 'Free',
-        descriptions: ['10k rows / workspace', '1GB storage', '5 API request / second', 'All user roles'],
+        descriptions: ['10,000 rows / workspace', '1 GB storage', '5 API request / second', 'All user roles'],
       })
     } catch (e: any) {
       console.log(e)

@@ -1095,7 +1095,7 @@
     "restApis": "重置API",
     "apis": "APIs",
     "apiSnippet": "API代码片段",
-    "includeData": "包括数据",
+    "includeData": "Include Data",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
     "includeView": "Include views",

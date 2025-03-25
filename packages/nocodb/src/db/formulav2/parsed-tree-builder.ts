@@ -1,13 +1,26 @@
 import {
   type CallExpressionNode,
+  ComparisonOperators,
+  FormulaDataTypes,
   JSEPNode,
   type ParsedFormulaNode,
+  UITypes,
+  validateDateWithUnknownFormat,
 } from 'nocodb-sdk';
 import { convertDateFormatForConcat } from 'src/helpers/formulaFnHelper';
 import mapFunctionName from '../mapFunctionName';
-import type { NcContext, UITypes } from 'nocodb-sdk';
+import type {
+  BinaryExpressionNode,
+  ComparisonOperator,
+  IdentifierNode,
+  LiteralNode,
+  NcContext,
+} from 'nocodb-sdk';
 import type { Model } from 'src/models';
-import type { TAliasToColumn } from './formula-query-builder.types';
+import type {
+  FnParsedTreeNode,
+  TAliasToColumn,
+} from './formula-query-builder.types';
 import type CustomKnex from '../CustomKnex';
 
 export const callExpressionBuilder = async ({
@@ -22,7 +35,10 @@ export const callExpressionBuilder = async ({
 }: {
   context: NcContext;
   pt: CallExpressionNode;
-  fn: any;
+  fn: (
+    pt: FnParsedTreeNode,
+    prevBinaryOp?: string,
+  ) => undefined | Promise<{ builder: any }>;
   prevBinaryOp: string;
   aliasToColumn: TAliasToColumn;
   knex: CustomKnex;
@@ -281,4 +297,278 @@ export const callExpressionBuilder = async ({
   return {
     builder: knex.raw(`${calleeName}(${callArgs})`.replace(/\?/g, '\\?')),
   };
+};
+
+export const binaryExpressionBuilder = async ({
+  context,
+  pt,
+  fn,
+  prevBinaryOp,
+  knex,
+  columnIdToUidt,
+}: {
+  context: NcContext;
+  pt: BinaryExpressionNode;
+  fn: (
+    pt: FnParsedTreeNode,
+    prevBinaryOp?: string,
+  ) => undefined | Promise<{ builder: any }>;
+  prevBinaryOp: string;
+  knex: CustomKnex;
+  columnIdToUidt: Record<string, UITypes>;
+}) => {
+  // treat `&` as shortcut for concat
+  if (pt.operator === '&') {
+    return fn(
+      {
+        type: JSEPNode.CALL_EXP,
+        arguments: [pt.left, pt.right],
+        callee: {
+          type: 'Identifier',
+          name: 'CONCAT',
+        },
+      },
+      prevBinaryOp,
+    );
+  }
+
+  // if operator is + and expected return type is string, convert to concat
+  if (pt.operator === '+' && pt.dataType === FormulaDataTypes.STRING) {
+    return fn(
+      {
+        type: JSEPNode.CALL_EXP,
+        arguments: [pt.left, pt.right],
+        callee: {
+          type: 'Identifier',
+          name: 'CONCAT',
+        },
+      },
+      prevBinaryOp,
+    );
+  }
+
+  // if operator is == or !=, then handle comparison with BLANK which should accept NULL and empty string
+  if (pt.operator === '==' || pt.operator === '!=') {
+    for (const operand of ['left', 'right']) {
+      if (
+        pt[operand].dataType === FormulaDataTypes.BOOLEAN &&
+        pt[operand === 'left' ? 'right' : 'left'].dataType ===
+          FormulaDataTypes.NUMERIC
+      ) {
+        pt[operand === 'left' ? 'right' : 'left'] = {
+          type: JSEPNode.CALL_EXP,
+          arguments: [pt[operand === 'left' ? 'right' : 'left']],
+          callee: {
+            type: 'Identifier',
+            name: 'BOOLEAN',
+          },
+          dataType: FormulaDataTypes.BOOLEAN,
+        };
+      }
+    }
+    if (
+      (pt.left as CallExpressionNode).callee?.name !==
+      (pt.right as CallExpressionNode).callee?.name
+    ) {
+      // if left/right is BLANK, accept both NULL and empty string
+      for (const operand of ['left', 'right']) {
+        if (
+          pt[operand].type === 'CallExpression' &&
+          pt[operand].callee.name === 'BLANK'
+        ) {
+          const isString =
+            pt[operand === 'left' ? 'right' : 'left'].dataType ===
+            FormulaDataTypes.STRING;
+          let calleeName;
+
+          if (pt.operator === '==') {
+            calleeName = isString ? 'ISBLANK' : 'ISNULL';
+          } else {
+            calleeName = isString ? 'ISNOTBLANK' : 'ISNOTNULL';
+          }
+
+          return fn(
+            {
+              type: JSEPNode.CALL_EXP,
+              arguments: [operand === 'left' ? pt.right : pt.left],
+              callee: {
+                type: 'Identifier',
+                name: calleeName,
+              },
+            },
+            prevBinaryOp,
+          );
+        }
+      }
+    }
+  }
+
+  if (pt.operator === '==') {
+    pt.operator = '=';
+    // if left/right is of different type, convert to string and compare
+    if (
+      pt.left.dataType !== pt.right.dataType &&
+      [pt.left.dataType, pt.right.dataType].every(
+        (type) => type !== FormulaDataTypes.NULL,
+      )
+    ) {
+      pt.left = {
+        type: JSEPNode.CALL_EXP,
+        arguments: [pt.left],
+        callee: {
+          type: 'Identifier',
+          name: 'STRING',
+        },
+      };
+      pt.right = {
+        type: JSEPNode.CALL_EXP,
+        arguments: [pt.right],
+        callee: {
+          type: 'Identifier',
+          name: 'STRING',
+        },
+      };
+    }
+  }
+
+  if (pt.operator === '/') {
+    pt.left = {
+      callee: { name: 'FLOAT' },
+      type: JSEPNode.CALL_EXP,
+      arguments: [pt.left],
+    };
+    pt.right = {
+      callee: { name: 'FLOAT' },
+      type: JSEPNode.CALL_EXP,
+      arguments: [pt.right],
+    };
+  }
+  (pt.left as FnParsedTreeNode).fnName =
+    (pt.left as FnParsedTreeNode).fnName || 'ARITH';
+  (pt.right as FnParsedTreeNode).fnName =
+    (pt.right as FnParsedTreeNode).fnName || 'ARITH';
+
+  let left = (await fn(pt.left, pt.operator)).builder.toQuery();
+  let right = (await fn(pt.right, pt.operator)).builder.toQuery();
+  let sql = `${left} ${pt.operator} ${right}`;
+
+  if (ComparisonOperators.includes(pt.operator as ComparisonOperator)) {
+    // comparing a date with empty string would throw
+    // `ERROR: zero-length delimited identifier` in Postgres
+    if (
+      knex.clientType() === 'pg' &&
+      columnIdToUidt[(pt.left as IdentifierNode).name] === UITypes.Date
+    ) {
+      // The correct way to compare with Date should be using
+      // `IS_AFTER`, `IS_BEFORE`, or `IS_SAME`
+      // This is to prevent empty data returned to UI due to incorrect SQL
+      if ((pt.right as LiteralNode).value === '') {
+        if (pt.operator === '=') {
+          sql = `${left} IS NULL `;
+        } else {
+          sql = `${left} IS NOT NULL `;
+        }
+      } else if (
+        !validateDateWithUnknownFormat(
+          (pt.right as LiteralNode).value as string,
+        )
+      ) {
+        // left tree value is date but right tree value is not date
+        // return true if left tree value is not null, else false
+        sql = `${left} IS NOT NULL `;
+      }
+    }
+    if (
+      knex.clientType() === 'pg' &&
+      columnIdToUidt[(pt.right as IdentifierNode).name] === UITypes.Date
+    ) {
+      // The correct way to compare with Date should be using
+      // `IS_AFTER`, `IS_BEFORE`, or `IS_SAME`
+      // This is to prevent empty data returned to UI due to incorrect SQL
+      if ((pt.left as LiteralNode).value === '') {
+        if (pt.operator === '=') {
+          sql = `${right} IS NULL `;
+        } else {
+          sql = `${right} IS NOT NULL `;
+        }
+      } else if (
+        !validateDateWithUnknownFormat((pt.left as LiteralNode).value as string)
+      ) {
+        // right tree value is date but left tree value is not date
+        // return true if right tree value is not null, else false
+        sql = `${right} IS NOT NULL `;
+      }
+    }
+  }
+
+  if (
+    (pt.left as FnParsedTreeNode).fnName === 'CONCAT' &&
+    knex.clientType() === 'sqlite3'
+  ) {
+    // handle date format
+    left = await convertDateFormatForConcat(
+      context,
+      (pt.left as CallExpressionNode)?.arguments?.[0],
+      columnIdToUidt,
+      left,
+      knex.clientType(),
+    );
+    right = await convertDateFormatForConcat(
+      context,
+      (pt.right as CallExpressionNode)?.arguments?.[0],
+      columnIdToUidt,
+      right,
+      knex.clientType(),
+    );
+
+    // handle NULL values when calling CONCAT for sqlite3
+    sql = `COALESCE(${left}, '') ${pt.operator} COALESCE(${right},'')`;
+  }
+
+  if (knex.clientType() === 'mysql2') {
+    sql = `IFNULL(${left} ${pt.operator} ${right}, ${
+      pt.operator === '='
+        ? pt.left.type === 'Literal'
+          ? (pt.left as LiteralNode).value === ''
+          : (pt.right as LiteralNode).value === ''
+        : pt.operator === '!='
+        ? pt.left.type !== 'Literal'
+          ? (pt.left as any).value === ''
+          : (pt.right as any).value === ''
+        : 0
+    })`;
+  } else if (
+    knex.clientType() === 'sqlite3' ||
+    knex.clientType() === 'pg' ||
+    knex.clientType() === 'mssql'
+  ) {
+    if (pt.operator === '=') {
+      if (pt.left.type === 'Literal' && pt.left.value === '') {
+        sql = `${right} IS NULL OR CAST(${right} AS TEXT) = ''`;
+      } else if (pt.right.type === 'Literal' && pt.right.value === '') {
+        sql = `${left} IS NULL OR CAST(${left} AS TEXT) = ''`;
+      }
+    } else if (pt.operator === '!=') {
+      if (pt.left.type === 'Literal' && pt.left.value === '') {
+        sql = `${right} IS NOT NULL AND CAST(${right} AS TEXT) != ''`;
+      } else if (pt.right.type === 'Literal' && pt.right.value === '') {
+        sql = `${left} IS NOT NULL AND CAST(${left} AS TEXT) != ''`;
+      }
+    }
+
+    if (
+      (pt.operator === '=' || pt.operator === '!=') &&
+      prevBinaryOp !== 'AND' &&
+      prevBinaryOp !== 'OR'
+    ) {
+      sql = `(CASE WHEN ${sql} THEN true ELSE false END )`;
+    } else {
+      sql = `${sql} `;
+    }
+  }
+  const query = knex.raw(sql.replace(/\?/g, '\\?'));
+  if (prevBinaryOp && pt.operator !== prevBinaryOp) {
+    query.wrap('(', ')');
+  }
+  return { builder: query };
 };

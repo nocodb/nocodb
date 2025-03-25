@@ -3,7 +3,7 @@ import type { NcContext } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { Column, Filter, Model } from '~/models';
 
-interface HandlerOptions {
+export interface HandlerOptions {
   alias?: string;
   throwErrorIfInvalid?: boolean;
   context?: NcContext;
@@ -12,15 +12,21 @@ interface HandlerOptions {
   knex?: Knex;
   tnPath?: string;
 }
-
-interface FieldHandlerInterface {
+export interface FilterVeriicationResult {
+  isValid: boolean;
+  errors?: string[];
+}
+export interface FieldHandlerInterface {
   select(qb: Knex.QueryBuilder, column: Column, options: HandlerOptions): void;
   filter(
     knex: Knex,
     filter: Filter,
     column: Column,
-    options: HandlerOptions,
+    options?: HandlerOptions,
   ): Promise<(qb: Knex.QueryBuilder) => void>;
+  verifyFilter(
+    filter: Filter,
+    column: Column,
+    options?: HandlerOptions,
+  ): Promise<FilterVeriicationResult>;
 }
-
-export { FieldHandlerInterface, HandlerOptions };

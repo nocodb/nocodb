@@ -1,6 +1,9 @@
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
-import type { HandlerOptions } from '~/db/field-handler/field-handler.interface';
+import type {
+  FilterVeriicationResult,
+  HandlerOptions,
+} from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import { sanitize } from '~/helpers/sqlSanitize';
@@ -110,7 +113,10 @@ export class JsonGeneralHandler extends GenericFieldHandler {
     };
   }
 
-  private parseJsonValue(val: any): { jsonVal: string; isValidJson: boolean } {
+  protected parseJsonValue(val: any): {
+    jsonVal: string;
+    isValidJson: boolean;
+  } {
     let jsonVal = val;
     let isValidJson = false;
     if (typeof val === 'object' && val !== null) {
@@ -126,5 +132,11 @@ export class JsonGeneralHandler extends GenericFieldHandler {
       }
     }
     return { jsonVal, isValidJson };
+  }
+
+  override async verifyFilter(_filter: Filter, _column: Column) {
+    return {
+      isValid: true,
+    } as FilterVeriicationResult;
   }
 }

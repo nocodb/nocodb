@@ -19,7 +19,7 @@ import { ViewsV3Service } from '~/services/v3/views-v3.service';
 export class ViewsV3Controller {
   constructor(private readonly viewsV3Service: ViewsV3Service) {}
 
-  @Get('/api/v3/meta/tables/:tableId/views')
+  @Get('/api/v3/:baseName/meta/tables/:tableId/views')
   @Acl('viewList')
   async viewList(
     @TenantContext() context: NcContext,
@@ -35,7 +35,7 @@ export class ViewsV3Controller {
     );
   }
 
-  @Get('/api/v3/meta/views/:viewId')
+  @Get('/api/v3/:baseName/meta/views/:viewId')
   @Acl('viewGet')
   async viewGet(
     @TenantContext() context: NcContext,

@@ -35,7 +35,7 @@ export class Datav3Controller {
     protected readonly dataTableService: DataTableService,
   ) {}
 
-  @Get('/api/v3/tables/:modelId/records')
+  @Get('/api/v3/:baseName/tables/:modelId/records')
   @Acl('dataList')
   async dataList(
     @TenantContext() context: NcContext,
@@ -56,7 +56,7 @@ export class Datav3Controller {
     res.json(responseData);
   }
 
-  @Post(['/api/v3/tables/:modelId/records'])
+  @Post(['/api/v3/:baseName/tables/:modelId/records'])
   @HttpCode(200)
   @Acl('dataInsert')
   async dataInsert(
@@ -74,7 +74,7 @@ export class Datav3Controller {
     });
   }
 
-  @Delete(['/api/v3/tables/:modelId/records'])
+  @Delete(['/api/v3/:baseName/tables/:modelId/records'])
   @Acl('dataDelete')
   async dataDelete(
     @TenantContext() context: NcContext,
@@ -90,7 +90,7 @@ export class Datav3Controller {
     });
   }
 
-  @Patch(['/api/v3/tables/:modelId/records'])
+  @Patch(['/api/v3/:baseName/tables/:modelId/records'])
   @Acl('dataUpdate')
   async dataUpdate(
     @TenantContext() context: NcContext,
@@ -106,7 +106,8 @@ export class Datav3Controller {
     });
   }
 
-  @Get(['/api/v3/tables/:modelId/links/:columnId/records/:rowId'])
+  // TODO: modelId can be omitted
+  @Get(['/api/v3/:baseName/tables/:modelId/links/:columnId/records/:rowId'])
   @Acl('nestedDataList')
   async nestedDataList(
     @TenantContext() context: NcContext,
@@ -135,7 +136,8 @@ export class Datav3Controller {
     });
   }
 
-  @Post(['/api/v3/tables/:modelId/links/:columnId/records/:rowId'])
+  // TODO: modelId can be omitted
+  @Post(['/api/v3/:baseName/tables/:modelId/links/:columnId/records/:rowId'])
   @Acl('nestedDataLink')
   async nestedLink(
     @TenantContext() context: NcContext,
@@ -164,7 +166,8 @@ export class Datav3Controller {
     });
   }
 
-  @Delete(['/api/v3/tables/:modelId/links/:columnId/records/:rowId'])
+  // TODO: modelId can be omitted
+  @Delete(['/api/v3/:baseName/tables/:modelId/links/:columnId/records/:rowId'])
   @Acl('nestedDataUnlink')
   async nestedUnlink(
     @TenantContext() context: NcContext,
@@ -187,7 +190,7 @@ export class Datav3Controller {
     });
   }
 
-  @Get(['/api/v3/tables/:modelId/records/:rowId'])
+  @Get(['/api/v3/:baseName/tables/:modelId/records/:rowId'])
   @Acl('dataRead')
   async dataRead(
     @TenantContext() context: NcContext,
@@ -205,7 +208,7 @@ export class Datav3Controller {
     });
   }
 
-  @Get(['/api/v3/tables/:modelId/records/count'])
+  @Get(['/api/v3/:baseName/tables/:modelId/records/count'])
   @Acl('dataCount')
   async dataCount(
     @TenantContext() context: NcContext,

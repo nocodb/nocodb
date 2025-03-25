@@ -22,7 +22,7 @@ import { CommentsV3Service } from '~/services/v3/comments-v3.service';
 export class CommentsV3Controller {
   constructor(protected readonly commentsV3Service: CommentsV3Service) {}
 
-  @Get('/api/v3/meta/tables/:tableId/records/:rowId/comments')
+  @Get('/api/v3/:baseName/meta/tables/:tableId/records/:rowId/comments')
   @Acl('commentList')
   async commentList(
     @TenantContext() context: NcContext,
@@ -40,7 +40,7 @@ export class CommentsV3Controller {
     );
   }
 
-  @Post('/api/v3/meta/tables/:tableId/records/:rowId/comments')
+  @Post('/api/v3/:baseName/meta/tables/:tableId/records/:rowId/comments')
   @Acl('commentRow')
   async commentRow(
     @TenantContext() context: NcContext,
@@ -56,7 +56,7 @@ export class CommentsV3Controller {
     });
   }
 
-  @Delete('/api/v3/meta/comment/:commentId')
+  @Delete('/api/v3/:baseName/meta/comment/:commentId')
   @Acl('commentDelete')
   async commentDelete(
     @TenantContext() context: NcContext,
@@ -70,7 +70,7 @@ export class CommentsV3Controller {
     });
   }
 
-  @Patch('/api/v3/meta/comment/:commentId')
+  @Patch('/api/v3/:baseName/meta/comment/:commentId')
   @Acl('commentUpdate')
   async commentUpdate(
     @TenantContext() context: NcContext,

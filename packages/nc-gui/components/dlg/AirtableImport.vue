@@ -410,30 +410,27 @@ const collapseKey = ref('')
 
     <div v-if="step === 2">
       <GeneralProgressPanel v-show="detailsIsShown" ref="progressRef" class="w-full h-[200px]" />
-      <div v-show="!detailsIsShown" class="flex items-start gap-2">
+      <div v-show="!detailsIsShown" class="flex items-center gap-2">
         <template v-if="isInProgress">
-          <component :is="iconMap.loading" class="text-primary animate-spin mt-1" />
+          <GeneralLoader size="large" class="!mr-1" />
           <span class="truncate">
             {{ lastProgress?.msg ?? '---' }}
           </span>
         </template>
         <template v-else-if="lastProgress?.status === JobStatus.FAILED">
-          <a-alert class="!rounded-lg !bg-transparent !border-nc-border-gray-medium !p-4 !w-full">
-            <template #message>
-              <div class="flex flex-row items-center gap-2 mb-2">
-                <GeneralIcon icon="ncAlertCircleFilled" class="text-nc-content-red-dark w-6 h-6" />
-                <span class="font-weight-700 text-sm flex-1">{{ $t('msg.error.importError') }}</span>
-              </div>
-            </template>
-            <template #description>
-              <div class="text-nc-content-gray-muted text-small leading-5 ml-8 line-clamp-3">
-                {{ lastProgress?.msg ?? '---' }}
-              </div>
-            </template>
-          </a-alert>
+          <NcAlert
+            align="center"
+            type="error"
+            show-icon
+            message-class="!text-sm"
+            description-class="!text-small !leading-[18px]"
+            :copy-text="lastProgress?.msg"
+            :message="$t('msg.error.importError')"
+            :description="$t('msg.error.anErrorOccuredWhileAirtableBaseImport')"
+          />
         </template>
-        <div v-else class="flex items-start gap-3">
-          <GeneralIcon icon="checkFill" class="text-white w-4 h-4 mt-0.75" />
+        <div v-else class="flex items-center gap-3">
+          <GeneralIcon icon="checkFill" class="text-white w-4 h-4" />
           <span> {{ $t('msg.airtableImportSuccess') }} </span>
         </div>
       </div>

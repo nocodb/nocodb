@@ -1095,7 +1095,7 @@
     "restApis": "Rest API",
     "apis": "API",
     "apiSnippet": "API Snippets",
-    "includeData": "Include Data",
+    "includeData": "Sertakan Data",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
     "includeView": "Include views",

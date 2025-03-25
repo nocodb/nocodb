@@ -8,6 +8,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
+import { FieldHandler } from './field-handler';
 import type { FilterType } from 'nocodb-sdk';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -42,6 +43,11 @@ export default async function conditionV2(
   if (!conditionObj || typeof conditionObj !== 'object') {
     return;
   }
+  await FieldHandler.fromBaseModel(baseModelSqlv2).verifyFilters(
+    Array.isArray(conditionObj)
+      ? (conditionObj as Filter[])
+      : ([conditionObj] as Filter[]),
+  );
   (
     await parseConditionV2(
       baseModelSqlv2,
@@ -189,6 +195,19 @@ const parseConditionV2 = async (
       if (throwErrorIfInvalid) {
         NcError.fieldNotFound(filter.fk_column_id);
       }
+    }
+    if ([UITypes.JSON].includes(column.uidt)) {
+      return FieldHandler.fromBaseModel(baseModelSqlv2).applyFilter(
+        filter,
+        column,
+        {
+          knex: baseModelSqlv2.dbDriver,
+          model: baseModelSqlv2.model,
+          alias,
+          context: baseModelSqlv2.context,
+          throwErrorIfInvalid,
+        },
+      );
     }
     if (column.uidt === UITypes.LinkToAnotherRecord) {
       const colOptions = (await column.getColOptions(

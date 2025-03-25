@@ -43,6 +43,11 @@ export default async function conditionV2(
   if (!conditionObj || typeof conditionObj !== 'object') {
     return;
   }
+  await FieldHandler.fromBaseModel(baseModelSqlv2).verifyFilters(
+    Array.isArray(conditionObj)
+      ? (conditionObj as Filter[])
+      : ([conditionObj] as Filter[]),
+  );
   (
     await parseConditionV2(
       baseModelSqlv2,

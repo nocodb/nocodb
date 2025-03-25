@@ -690,6 +690,7 @@
     "termsOfService": "Terms of Service",
     "updateSelectedRows": "Update Selected Records",
     "noFiltersAdded": "No filters added",
+    "noFieldsSelected": "No fields selected",
     "editCards": "Edit Cards",
     "noFieldsFound": "No fields found",
     "displayValue": "Display Value",

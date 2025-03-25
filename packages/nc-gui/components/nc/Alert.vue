@@ -19,12 +19,12 @@ const props = withDefaults(defineProps<Props>(), {
   descriptionClass: '',
 })
 
+const emits = defineEmits<Emits>()
+
 interface Emits {
   (e: 'update:visible', value: boolean): void
   (e: 'close'): void
 }
-
-const emits = defineEmits<Emits>()
 
 const vVisible = useVModel(props, 'visible', emits, { defaultValue: true })
 

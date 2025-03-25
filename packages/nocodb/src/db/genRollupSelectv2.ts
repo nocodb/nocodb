@@ -1,6 +1,6 @@
 import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk';
+import type { IBaseModelSqlV2 } from './IBaseModelSqlV2';
 import type { Knex } from 'knex';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type {
   ButtonColumn,
   FormulaColumn,
@@ -19,7 +19,7 @@ export default async function ({
   alias,
   columnOptions,
 }: {
-  baseModelSqlv2: BaseModelSqlv2;
+  baseModelSqlv2: IBaseModelSqlV2;
   knex: XKnex;
   alias?: string;
   columnOptions: RollupColumn | LinksColumn;

@@ -467,6 +467,7 @@ function extractImportWorkerPayload(value: UploadFile[] | ArrayBuffer | string) 
     config: {
       ...toRaw(importState.parserConfig),
       importFromURL: importSource === ImportSource.URL,
+      isEeUI,
     },
     existingColumns: rfdc()(unref(existingColumns)),
     value,

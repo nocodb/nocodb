@@ -950,7 +950,7 @@ watch(
                 >
                   <LazyMonacoEditor
                     ref="refMonacoEditor"
-                    class="nc-import-monaco-editor h-full"
+                    class="nc-import-monaco-editor !h-full min-h-30"
                     :auto-focus="false"
                     hide-minimap
                     :monaco-config="{

@@ -1095,7 +1095,7 @@
     "restApis": "रेस्ट एपीआईज़",
     "apis": "एपीआई",
     "apiSnippet": "एपीआई स्निपेट्स",
-    "includeData": "Include Data",
+    "includeData": "डेटा शामिल करें",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
     "includeView": "Include views",

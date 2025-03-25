@@ -944,7 +944,14 @@ watch(
                   </template>
                   <NcButton v-else type="text" size="xsmall" class="!px-2" @click="formatJson()"> Format </NcButton>
                 </div>
-                <div class="resize-y overflow-y-auto h-30 min-h-30 max-h-[400px] !border-1 !rounded-lg !mt-2">
+
+                <div
+                  class="mx-0.5 mb-0.5 h-30 min-h-30 resize-y overflow-y-auto h-[calc(100%_-_8px)] max-h-[400px] border-1 rounded-lg mt-2 transition duration-300 focus-within:(shadow-selected border-primary)"
+                  :class="{
+                    'border-nc-border-red focus-within:(shadow-error border-nc-border-red) ':
+                      jsonErrorText || refMonacoEditor?.error,
+                  }"
+                >
                   <LazyMonacoEditor
                     ref="refMonacoEditor"
                     class="nc-import-monaco-editor h-full"
@@ -957,9 +964,11 @@ watch(
                     @update:model-value="handleJsonChange($event)"
                   />
                 </div>
+
                 <div v-if="jsonErrorText || refMonacoEditor?.error" class="text-nc-content-red-medium text-small mt-2">
                   {{ jsonErrorText || refMonacoEditor?.error }}
                 </div>
+                <div v-else></div>
               </div>
             </a-tab-pane>
           </NcTabs>

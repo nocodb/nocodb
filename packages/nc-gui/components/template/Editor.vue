@@ -1128,9 +1128,12 @@ function getErrorByTableName(tableName: string) {
                     type="text"
                     size="xsmall"
                     class="!hidden group-hover:!block !h-6 !w-6"
+                    icon-only
                     @click.stop="currentTableToEdit = tableIdx"
                   >
-                    <GeneralIcon icon="pencil" />
+                    <template #icon>
+                      <GeneralIcon icon="pencil" class="text-nc-content-gray-subtle2" />
+                    </template>
                   </NcButton>
                 </template>
 

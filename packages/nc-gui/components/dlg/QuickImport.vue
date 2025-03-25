@@ -511,6 +511,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
           importDataOnly,
           importColumns: !!importColumns.value,
           importData: !!importData.value,
+          isEeUI,
         },
       ])
 

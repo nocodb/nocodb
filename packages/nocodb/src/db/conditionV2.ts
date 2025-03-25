@@ -497,7 +497,8 @@ const parseConditionV2 = async (
           null,
           model,
           column,
-        )
+          tableAlias: alias,
+        })
       ).builder;
       return parseConditionV2(
         baseModelSqlv2,

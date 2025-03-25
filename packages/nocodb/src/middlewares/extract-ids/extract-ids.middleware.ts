@@ -73,11 +73,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     };
 
     // extract base id based on request path params
-    if (params.baseName) {
-      const base = await Base.getByTitleOrId(context, params.baseName);
+    if (params.baseId || params.baseName) {
+      const base = await Base.getByTitleOrId(
+        context,
+        params.baseId ?? params.baseName,
+      );
 
       if (!base) {
-        NcError.baseNotFound(params.baseName);
+        NcError.baseNotFound(params.baseId ?? params.baseName);
       }
 
       if (base) {

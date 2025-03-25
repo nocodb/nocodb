@@ -104,8 +104,23 @@ main {
     &:not(:hover):not(:focus):not(:disabled) {
       @apply shadow-default border-gray-200;
     }
-
     &:hover:not(:focus):not(:disabled) {
+      @apply border-gray-200 shadow-hover;
+    }
+    &:not(.nc-ai-input):focus {
+      @apply shadow-selected ring-0;
+    }
+    &.nc-ai-input:focus {
+      @apply shadow-selected-ai ring-0 !border-nc-border-purple;
+    }
+  }
+  
+  &.ant-input-affix-wrapper {
+    &:not(:hover):not(.ant-input-affix-wrapper-focused):not(.ant-input-affix-wrapper-disabled) {
+      @apply shadow-default border-gray-200;
+    }
+
+    &:hover:not(.ant-input-affix-wrapper-focused):not(.ant-input-affix-wrapper-disabled) {
       @apply border-gray-200 shadow-hover;
     }
     &:not(.nc-ai-input):focus {
@@ -986,7 +1001,7 @@ svg.nc-virtual-cell-icon {
 }
 
 .ant-switch {
-  background: #E7E7E9 !important;
+  background: #e7e7e9 !important;
 }
 
 .ant-switch-checked {

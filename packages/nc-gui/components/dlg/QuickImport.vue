@@ -1030,7 +1030,7 @@ watch(
     </div>
 
     <template #footer>
-      <div class="flex items-center gap-2 pt-3">
+      <div class="flex items-center gap-2 pt-5">
         <NcButton
           v-if="templateEditorModal"
           key="back"
@@ -1084,6 +1084,7 @@ watch(
   padding: 0 !important;
 }
 .nc-modal-quick-import .ant-collapse-content-box {
+  @apply !pb-0;
   padding-top: 0 !important;
   padding-left: 6px;
 }

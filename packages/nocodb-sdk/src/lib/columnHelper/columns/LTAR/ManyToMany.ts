@@ -3,13 +3,35 @@ import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../../column.interface';
 import { LinkToAnotherRecordType } from '~/lib/Api';
-import { ncIsNaN } from '~/lib/is';
+import { ncHasProperties } from '~/lib/is';
+import { isMm } from '../../utils';
 
 export class ManyToManyHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 
-  serializeValue(_value: any, _params: SerializerOrParserFnProps['params']) {
-    throw new SilentTypeConversionError();
+  serializeValue(value: any, params: SerializerOrParserFnProps['params']) {
+    if (!isMm(params.col)) throw new SilentTypeConversionError();
+
+    let parsedVal = value;
+
+    try {
+      parsedVal = typeof value === 'string' ? JSON.parse(value) : value;
+    } catch {}
+
+    if (
+      !ncHasProperties(parsedVal, [
+        'rowId',
+        'columnId',
+        'fk_related_model_id',
+        'value',
+      ]) ||
+      (parsedVal as Record<string, any>)?.fk_related_model_id !==
+        (params.col.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+    ) {
+      throw new SilentTypeConversionError();
+    }
+
+    return parsedVal;
   }
 
   parseValue(value: any, params: SerializerOrParserFnProps['params']) {
@@ -18,7 +40,7 @@ export class ManyToManyHelper extends AbstractColumnHelper {
       columnId: params.col.id,
       fk_related_model_id: (params.col.colOptions as LinkToAnotherRecordType)
         .fk_related_model_id,
-      value: !ncIsNaN(value) ? +value : 0,
+      value,
     });
   }
 

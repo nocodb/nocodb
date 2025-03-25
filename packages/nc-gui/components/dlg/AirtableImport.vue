@@ -326,7 +326,7 @@ const collapseKey = ref('')
         layout="vertical"
         class="m-0 !text-nc-content-gray"
       >
-        <a-form-item v-bind="validateInfos['details.apiKey']">
+        <a-form-item v-bind="validateInfos['details.apiKey']" class="!my-5">
           <div class="flex items-end">
             <label class="text-nc-content-gray text-sm"> {{ $t('labels.personalAccessToken') }} </label>
             <a
@@ -342,7 +342,7 @@ const collapseKey = ref('')
           <a-input-password
             v-model:value="syncSource.details.apiKey"
             placeholder="Enter your Airtable Personal Access Token"
-            class="!rounded-lg mt-2 nc-input-api-key nc-input-shadow"
+            class="!rounded-lg mt-2 nc-input-api-key nc-input-shadow !text-nc-content-gray"
           >
             <template #iconRender="isVisible">
               <GeneralIcon :icon="!isVisible ? 'ncEye' : 'ncEyeOff'" />
@@ -350,12 +350,12 @@ const collapseKey = ref('')
           </a-input-password>
         </a-form-item>
 
-        <a-form-item v-bind="validateInfos['details.syncSourceUrlOrId']" class="!mt-4 !mb-4">
+        <a-form-item v-bind="validateInfos['details.syncSourceUrlOrId']" class="!my-5">
           <label class="text-nc-content-gray text-sm"> {{ `${$t('labels.sharedBase')} ID/URL` }} </label>
           <a-input
             v-model:value="syncSource.details.syncSourceUrlOrId"
             placeholder="Paste the Base URL or Base ID from Airtable"
-            class="!rounded-lg !mt-2 nc-input-shared-base nc-input-shadow"
+            class="!rounded-lg !mt-2 nc-input-shared-base nc-input-shadow !text-nc-content-gray"
           />
         </a-form-item>
 
@@ -490,6 +490,14 @@ const collapseKey = ref('')
 .nc-input-api-key {
   :deep(.ant-input-password-icon) {
     @apply !text-current !hover:text-current;
+  }
+}
+
+.nc-input-api-key,
+.nc-input-shared-base {
+  @apply !text-nc-content-gray;
+  input {
+    @apply !text-nc-content-gray;
   }
 }
 </style>

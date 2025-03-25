@@ -64,12 +64,12 @@ export class JsonGeneralHandler extends GenericFieldHandler {
           break;
 
         case 'nlike':
-          val = val ? `%${val}%` : val;
-          if (!val) {
-            qb.whereNull(field);
+          if (typeof val === 'undefined' || val === null || val === '') {
+            qb.whereNotNull(field);
           } else {
+            val = `%${val}%`;
             qb.where((nestedQb) => {
-              nestedQb.where(knex.raw('?? not ilike ?', [field, val]));
+              nestedQb.where(knex.raw('?? not like ?', [field, val]));
               if (val !== '%%') {
                 nestedQb.orWhere(field, '').orWhereNull(field);
               } else {

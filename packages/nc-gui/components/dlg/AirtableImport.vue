@@ -306,7 +306,7 @@ const collapseKey = ref('')
       <a
         v-if="step === 1"
         href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
-        class="!text-gray-500 prose-sm ml-auto"
+        class="!text-nc-content-gray-subtle2 text-sm font-weight-500 ml-auto"
         target="_blank"
         rel="noopener"
       >
@@ -319,19 +319,20 @@ const collapseKey = ref('')
     </div>
 
     <div v-if="step === 1">
-      <a-form ref="form" :model="syncSource" name="quick-import-airtable-form" layout="horizontal" class="m-0">
+      <a-form ref="form" :model="syncSource" name="quick-import-airtable-form" layout="vertical" class="m-0">
         <a-form-item v-bind="validateInfos['details.apiKey']">
           <div class="flex items-end">
-            <label> {{ $t('labels.personalAccessToken') }} </label>
+            <label class="text-nc-content-gray text-sm"> {{ $t('labels.personalAccessToken') }} </label>
             <a
               href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
-              class="!text-brand prose-sm ml-auto"
+              class="!text-brand text-sm ml-auto"
               target="_blank"
               rel="noopener"
             >
               {{ $t('labels.whereToFind') }}
             </a>
           </div>
+
           <a-input-password
             v-model:value="syncSource.details.apiKey"
             placeholder="Enter your Airtable Personal Access Token"
@@ -344,7 +345,7 @@ const collapseKey = ref('')
         </a-form-item>
 
         <a-form-item v-bind="validateInfos['details.syncSourceUrlOrId']" class="!mt-4 !mb-4">
-          <label> {{ `${$t('labels.sharedBase')} ID/URL` }} </label>
+          <label class="text-nc-content-gray text-sm"> {{ `${$t('labels.sharedBase')} ID/URL` }} </label>
           <a-input
             v-model:value="syncSource.details.syncSourceUrlOrId"
             placeholder="Paste the Base URL or Base ID from Airtable"
@@ -364,37 +365,37 @@ const collapseKey = ref('')
         <a-collapse v-model:active-key="collapseKey" ghost class="nc-import-collapse">
           <a-collapse-panel key="advanced-settings">
             <div class="mb-2">
-              <a-checkbox v-model:checked="syncSource.details.options.syncData">{{ $t('labels.importData') }}</a-checkbox>
+              <NcCheckbox v-model:checked="syncSource.details.options.syncData">{{ $t('labels.importData') }}</NcCheckbox>
             </div>
 
             <div class="my-2">
-              <a-checkbox v-model:checked="syncSource.details.options.syncViews">
+              <NcCheckbox v-model:checked="syncSource.details.options.syncViews">
                 {{ $t('labels.importSecondaryViews') }}
-              </a-checkbox>
+              </NcCheckbox>
             </div>
 
             <div class="my-2">
-              <a-checkbox v-model:checked="syncSource.details.options.syncRollup">
+              <NcCheckbox v-model:checked="syncSource.details.options.syncRollup">
                 {{ $t('labels.importRollupColumns') }}
-              </a-checkbox>
+              </NcCheckbox>
             </div>
 
             <div class="my-2">
-              <a-checkbox v-model:checked="syncSource.details.options.syncLookup">
+              <NcCheckbox v-model:checked="syncSource.details.options.syncLookup">
                 {{ $t('labels.importLookupColumns') }}
-              </a-checkbox>
+              </NcCheckbox>
             </div>
 
             <div class="my-2">
-              <a-checkbox v-model:checked="syncSource.details.options.syncAttachment">
+              <NcCheckbox v-model:checked="syncSource.details.options.syncAttachment">
                 {{ $t('labels.importAttachmentColumns') }}
-              </a-checkbox>
+              </NcCheckbox>
             </div>
 
             <div class="my-2">
-              <a-checkbox v-model:checked="syncSource.details.options.syncFormula" disabled>
+              <NcCheckbox v-model:checked="syncSource.details.options.syncFormula" disabled>
                 {{ $t('labels.importFormulaColumns') }}
-              </a-checkbox>
+              </NcCheckbox>
             </div>
           </a-collapse-panel>
         </a-collapse>
@@ -406,21 +407,20 @@ const collapseKey = ref('')
       <div v-show="!detailsIsShown" class="flex items-start gap-2">
         <template v-if="isInProgress">
           <component :is="iconMap.loading" class="text-primary animate-spin mt-1" />
-          <span>
+          <span class="truncate">
             {{ lastProgress?.msg ?? '---' }}
           </span>
         </template>
         <template v-else-if="lastProgress?.status === JobStatus.FAILED">
-          <a-alert class="!rounded-lg !bg-transparent !border-gray-200 !p-3 !w-full">
-            >
+          <a-alert class="!rounded-lg !bg-transparent !border-nc-border-gray-medium !p-4 !w-full">
             <template #message>
               <div class="flex flex-row items-center gap-2 mb-2">
-                <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
-                <span class="font-weight-700 text-[14px]">Import error</span>
+                <GeneralIcon icon="ncAlertCircleFilled" class="text-nc-content-red-dark w-6 h-6" />
+                <span class="font-weight-700 text-sm flex-1">{{ $t('msg.error.importError') }}</span>
               </div>
             </template>
             <template #description>
-              <div class="text-gray-500 text-[13px] leading-5 ml-6">
+              <div class="text-nc-content-gray-muted text-small leading-5 ml-8 line-clamp-3">
                 {{ lastProgress?.msg ?? '---' }}
               </div>
             </template>

@@ -23,7 +23,8 @@ import type {
 } from 'nocodb-sdk';
 import type {
   FnParsedTreeNode,
-  FormulaQueryBuilderBaseParams, TAliasToClumn,
+  FormulaQueryBuilderBaseParams,
+  TAliasToClumn,
 } from './formula-query-builder.types';
 import type RollupColumn from '~/models/RollupColumn';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';

@@ -84,7 +84,7 @@ onMounted(async () => {
 
 <template>
   <div class="h-full overflow-auto nc-scrollbar-thin text-nc-content-gray">
-    <div class="nc-content-max-w p-6 pb-16 flex flex-col gap-6">
+    <div class="nc-content-max-w p-6 pb-16 flex flex-col gap-6 min-w-[740px]">
       <div v-if="afterPayment">
         <div class="flex flex-col gap-6 mx-auto items-center justify-center w-[600px]">
           <template v-if="checkoutSession && checkoutSession.payment_status === 'paid'">
@@ -212,7 +212,7 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      <div v-else class="flex flex-col gap-8 w-full max-w-300 mx-auto min-w-[740px]">
+      <div v-else class="flex flex-col gap-8 w-full max-w-300 mx-auto">
         <PaymentPlanUsage v-if="!paymentInitiated" />
         <Payment v-if="paymentState" />
         <GeneralLoader v-else />

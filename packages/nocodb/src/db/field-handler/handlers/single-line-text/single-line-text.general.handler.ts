@@ -24,6 +24,7 @@ export class SingleLineTextGeneralHandler extends GenericFieldHandler {
       'notempty',
       'null',
       'notnull',
+      'gb_eq',
     ];
     if (!supportedOperations.includes(filter.comparison_op)) {
       return {

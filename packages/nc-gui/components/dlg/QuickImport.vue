@@ -191,10 +191,10 @@ const disablePreImportButton = computed(() => {
   return true
 })
 
-const importBtnText = computed(() => {
+const getBtnText = (isLoading: boolean = false) => {
   // configure field screen
   if (templateEditorModal.value) {
-    if (importLoading.value) {
+    if (isLoading) {
       return importDataOnly ? t('labels.uploading') : t('labels.importing')
     }
 
@@ -204,11 +204,15 @@ const importBtnText = computed(() => {
   const type = isImportTypeJson.value ? t('labels.jsonCapitalized') : t('objects.files')
 
   // upload file screen
-  if (preImportLoading.value) {
+  if (isLoading) {
     return importDataOnly ? `${t('labels.uploading')} ${type}` : `${t('labels.importing')} ${type}`
   }
 
   return importDataOnly ? `${t('activity.upload')} ${type}` : `${t('activity.import')} ${type}`
+}
+
+const importBtnText = computed(() => {
+  return getBtnText(importLoading.value || preImportLoading.value)
 })
 
 const disableImportButton = computed(() => !templateEditorRef.value?.isValid || isError.value)
@@ -841,38 +845,30 @@ watch(
                   </template>
                 </a-upload-dragger>
 
-                <a-alert
-                  v-if="showMaxFileLimitError"
-                  class="!rounded-lg !bg-transparent !border-nc-border-gray-medium !p-4 !w-full !mt-5"
-                >
-                  <template #message>
-                    <div class="flex flex-row items-center gap-2 mb-1">
-                      <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium w-6 h-6" />
-                      <span class="font-weight-700 text-sm flex-1">{{ $t('msg.warning.reachedUploadLimit') }}</span>
-
-                      <NcButton size="xsmall" type="text" @click="showMaxFileLimitError = false">
-                        <GeneralIcon icon="close" class="text-nc-content-gray-subtle" />
-                      </NcButton>
-                    </div>
-                  </template>
-                  <template #description>
-                    <div class="text-nc-content-gray-muted text-small leading-5 ml-8">
-                      {{
-                        $t(
-                          `msg.warning.${
-                            maxFileUploadLimit > 1
-                              ? 'youCanOnlyUploadMaxLimitFilesAtATimePlural'
-                              : 'youCanOnlyUploadMaxLimitFilesAtATime'
-                          }`,
-                          {
-                            limit: maxFileUploadLimit,
-                            type: $t(`labels.${importType}`),
-                          },
-                        )
-                      }}
-                    </div>
-                  </template>
-                </a-alert>
+                <NcAlert
+                  v-model:visible="showMaxFileLimitError"
+                  closable
+                  align="center"
+                  type="warning"
+                  show-icon
+                  message-class="!text-sm"
+                  description-class="!text-small !leading-[18px]"
+                  class="mt-5"
+                  :message="$t('msg.warning.reachedUploadLimit')"
+                  :description="
+                    $t(
+                      `msg.warning.${
+                        maxFileUploadLimit > 1
+                          ? 'youCanOnlyUploadMaxLimitFilesAtATimePlural'
+                          : 'youCanOnlyUploadMaxLimitFilesAtATime'
+                      }`,
+                      {
+                        limit: maxFileUploadLimit,
+                        type: $t(`labels.${importType}`),
+                      },
+                    )
+                  "
+                />
               </div>
             </a-tab-pane>
             <a-tab-pane v-if="!isImportTypeJson" :key="ImportTypeTabs.uploadFromUrl" :disabled="preImportLoading" class="!h-full">
@@ -975,23 +971,24 @@ watch(
         </div>
       </div>
 
-      <a-alert v-if="importError" class="!rounded-lg !bg-transparent !border-nc-border-gray-medium !p-4 !w-full !mt-5">
-        <template #message>
-          <div class="flex flex-row items-center gap-2 mb-1">
-            <GeneralIcon icon="ncAlertCircleFilled" class="text-nc-content-red-dark w-6 h-6" />
-            <span class="font-weight-700 text-sm flex-1">{{ $t('msg.error.importError') }}</span>
-
-            <NcButton size="xsmall" type="text" @click="handleResetImportError">
-              <GeneralIcon icon="close" class="text-nc-content-gray-subtle" />
-            </NcButton>
-          </div>
-        </template>
-        <template #description>
-          <div class="text-nc-content-gray-muted text-small leading-5 ml-8 line-clamp-3">
-            {{ importError }}
-          </div>
-        </template>
-      </a-alert>
+      <NcAlert
+        :visible="!!importError"
+        closable
+        align="center"
+        type="error"
+        show-icon
+        class="mt-5"
+        message-class="!text-sm"
+        description-class="!text-small !leading-[18px]"
+        :copy-text="importError"
+        :message="$t('msg.error.importError')"
+        :description="
+          $t('msg.error.anErrorOccuredWhileImporting', {
+            type: getBtnText(true),
+          })
+        "
+        @close="handleResetImportError"
+      />
 
       <div v-if="!templateEditorModal" class="mt-5">
         <NcButton type="text" size="small" @click="collapseKey = !collapseKey ? 'advanced-settings' : ''">

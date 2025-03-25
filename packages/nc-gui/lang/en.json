@@ -1498,7 +1498,8 @@
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "Expand 'Shift + Space'",
-    "selectAllMappedFields": "Select all mapped fields"
+    "selectAllMappedFields": "Select all mapped fields",
+    "copyErrorCode": "Copy error code"
   },
   "placeholder": {
     "searchIcons": "Search icons",
@@ -2016,7 +2017,8 @@
       "unsupportedCharacters": "Unsupported characters: {char}",
       "notSupported": "Not supported",
       "duplicateTableName": "Duplicate table name",
-      "importError": "Import Error"
+      "importError": "Import Error",
+      "anErrorOccuredWhileImporting": "An error occurred while {type}"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

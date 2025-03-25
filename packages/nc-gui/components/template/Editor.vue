@@ -878,7 +878,7 @@ function getErrorByTableName(tableName: string) {
 </script>
 
 <template>
-  <div class="relative">
+  <div class="relative text-nc-content-gray">
     <div v-if="importDataOnly">
       <a-form :model="data" name="import-only">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
@@ -898,7 +898,7 @@ function getErrorByTableName(tableName: string) {
           <GeneralIcon
             v-if="!isImporting"
             icon="ncChevronDown"
-            class="text-lg !-translate-y-1/2 !transition"
+            class="text-lg !-translate-y-1/2 !transition text-nc-content-gray-subtle"
             :class="{ '!transform !rotate-180': isActive }"
           />
         </template>
@@ -919,10 +919,10 @@ function getErrorByTableName(tableName: string) {
                 'w-full': isImporting,
               }"
             >
-              <div class="w-8 h-8 flex items-center justify-center bg-secondary rounded-md">
+              <div class="w-8 h-8 flex items-center justify-center bg-nc-bg-gray-extralight rounded-md">
                 <GeneralIcon :icon="tableIcon" class="w-5 h-5" />
               </div>
-              <NcTooltip :title="table.table_name" show-on-truncate-only class="flex-1 truncate">
+              <NcTooltip :title="table.table_name" show-on-truncate-only class="flex-1 truncate text-nc-content-gray">
                 <span>
                   {{ table.table_name }}
                 </span>
@@ -948,7 +948,7 @@ function getErrorByTableName(tableName: string) {
               </div>
             </div>
           </template>
-          <div v-if="srcDestMapping" class="bg-gray-50 !py-1 flex-1 flex">
+          <div v-if="srcDestMapping" class="bg-gray-50 pl-4 flex-1 flex">
             <NcTable
               class="template-form flex-1 max-h-[310px]"
               header-row-class-name="relative"
@@ -960,25 +960,33 @@ function getErrorByTableName(tableName: string) {
               row-height="40px"
             >
               <template #headerCell="{ column }">
-                <NcTooltip v-if="column.key === 'source_column'">
-                  <template #title>
-                    {{
-                      isAllMappedSelected(table.table_name)
-                        ? $t('activity.deselectAllFields')
-                        : $t('tooltip.selectAllMappedFields')
-                    }}
-                  </template>
-                  <div>
-                    <NcCheckbox
-                      :indeterminate="!isAllMappedSelected(table.table_name) && isSomeMappedSelected(table.table_name)"
-                      :checked="isAllMappedSelected(table.table_name)"
-                      @change="handleCheckAllRecord($event, table.table_name)"
-                    />
-                  </div>
+                <template v-if="column.key === 'source_column'">
+                  <NcTooltip>
+                    <template #title>
+                      {{
+                        isAllMappedSelected(table.table_name)
+                          ? $t('activity.deselectAllFields')
+                          : $t('tooltip.selectAllMappedFields')
+                      }}
+                    </template>
+                    <div>
+                      <NcCheckbox
+                        :indeterminate="!isAllMappedSelected(table.table_name) && isSomeMappedSelected(table.table_name)"
+                        :checked="isAllMappedSelected(table.table_name)"
+                        @change="handleCheckAllRecord($event, table.table_name)"
+                      />
+                    </div>
+                  </NcTooltip>
                   <div class="absolute h-1 border-b bottom-0 border-nc-border-gray-medium left-3 right-3" />
-                </NcTooltip>
+                </template>
 
-                <span v-if="column.key !== 'action'" class="font-weight-700 text-nc-content-gray text-small">
+                <span
+                  v-if="column.key !== 'action'"
+                  class="font-weight-700 text-nc-content-gray-subtle2 text-small"
+                  :class="{
+                    'pl-3': column.key !== 'source_column',
+                  }"
+                >
                   {{ column.title }}
                 </span>
               </template>
@@ -1056,7 +1064,7 @@ function getErrorByTableName(tableName: string) {
         </a-collapse-panel>
       </a-collapse>
 
-      <div v-if="isEeUI" class="pt-4 pb-2 px-2">
+      <div v-if="isEeUI" class="pt-4 pb-1 pr-2">
         <label class="flex">
           <NcCheckbox v-model:checked="autoInsertOption" :disabled="isImporting" />
           <span class="ml-2">{{ $t('labels.autoCreateMissingSelectionOptions') }}</span>
@@ -1077,7 +1085,7 @@ function getErrorByTableName(tableName: string) {
             <GeneralIcon
               v-if="!isImporting"
               icon="ncChevronDown"
-              class="text-lg !-translate-y-1/2 !transition"
+              class="text-lg !-translate-y-1/2 !transition text-nc-content-gray-subtle"
               :class="{ '!transform !rotate-180': isActive }"
             />
           </template>
@@ -1100,7 +1108,7 @@ function getErrorByTableName(tableName: string) {
                   <a-input
                     :ref="(el: HTMLInputElement) => el?.focus?.()"
                     v-model:value="table.table_name"
-                    class="!rounded-md animate-sidebar-node-input-padding"
+                    class="!rounded-md animate-sidebar-node-input-padding !text-nc-content-gray"
                     hide-details
                     :bordered="true"
                     @click.stop
@@ -1110,7 +1118,7 @@ function getErrorByTableName(tableName: string) {
                   />
                 </a-form-item>
                 <template v-else>
-                  <NcTooltip :title="table.table_name" show-on-truncate-only class="flex-1 truncate">
+                  <NcTooltip :title="table.table_name" show-on-truncate-only class="flex-1 truncate text-nc-content-gray">
                     <span class="nc-import-table-name" @click.stop="currentTableToEdit = tableIdx">
                       {{ table.table_name }}
                     </span>
@@ -1174,7 +1182,7 @@ function getErrorByTableName(tableName: string) {
                     />
                   </template>
                   <template v-if="column.key === 'column_name'">
-                    <span class="font-weight-700 text-small text-nc-content-gray">
+                    <span class="font-weight-700 text-small text-nc-content-gray-subtle2">
                       {{
                         table.columns.every((it) => it.selected)
                           ? $t('activity.deselectAllFields')

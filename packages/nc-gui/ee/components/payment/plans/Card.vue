@@ -18,9 +18,26 @@ const PrevPlanTitleFromCurrentPlan = {
   [PlanTitles.ENTERPRISE]: PlanTitles.BUSINESS,
 }
 
-const { onSelectPlan, getPlanPrice, activeSubscription, onManageSubscription } = usePaymentStoreOrThrow()
+const { onSelectPlan, getPlanPrice, activeSubscription } = usePaymentStoreOrThrow()
 
 const price = computed(() => getPlanPrice(props.plan))
+
+const isHigherPlan = (plan: string) => {
+  if (!activeSubscription || !props.activePlan) return false
+
+  // Todo: remove later
+  if (plan === 'Plus') {
+    plan = PlanTitles.BUSINESS
+  }
+
+  const planTitleValues = Object.values(PlanTitles)
+
+  const activePlanIndex = planTitleValues.findIndex((p) => p === props.activePlan)
+
+  const planIndex = planTitleValues.findIndex((p) => p === plan)
+
+  return planIndex > activePlanIndex
+}
 </script>
 
 <template>
@@ -83,7 +100,13 @@ const price = computed(() => getPlanPrice(props.plan))
       class="w-full"
       @click="onSelectPlan(plan)"
     >
-      {{ $t('general.choose') }} {{ $t(`objects.paymentPlan.${plan.title}`) }}
+      {{
+        isHigherPlan(plan.title)
+          ? $t('labels.upgradeToPlan', {
+              plan: $t(`objects.paymentPlan.${plan.title}`),
+            })
+          : `${$t('general.choose')} ${$t(`objects.paymentPlan.${plan.title}`)}`
+      }}
     </NcButton>
 
     <div class="flex flex-col gap-3">

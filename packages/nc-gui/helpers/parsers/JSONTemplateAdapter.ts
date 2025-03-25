@@ -54,7 +54,7 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
   }
 
   parse(): any {
-    this.progress('Parsing json data')
+    this.progress('Reading json data')
     const jsonData = this.jsonData
     const tn = 'table'
     const table: any = { table_name: tn, ref_table_name: tn, columns: [] }

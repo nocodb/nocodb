@@ -42,7 +42,7 @@ const isWorkerSupport = typeof Worker !== 'undefined'
 
 const { t } = useI18n()
 
-const progressMsg = ref('Parsing Data ...')
+const progressMsg = ref('Reading data ...')
 const progressMsgNew = ref<Record<string, string>>({})
 
 const { tables } = storeToRefs(useBase())

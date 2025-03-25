@@ -227,10 +227,10 @@ export default class CSVTemplateAdapter {
       const that = this
       let steppers = 0
       if (that.config.shouldImportData) {
-        that.progress(`Processing ${oldTn} data`)
+        that.progress(`Preparing ${oldTn} data`)
         that.progress({
           title: oldTn,
-          value: 'Processing...',
+          value: 'Preparing...',
         })
 
         steppers = 0
@@ -260,18 +260,18 @@ export default class CSVTemplateAdapter {
             }
 
             if (steppers % 1000 === 0) {
-              that.progress(`Processed ${steppers} rows of ${oldTn}`)
+              that.progress(`Prepared ${steppers} rows of ${oldTn}`)
               that.progress({
                 title: oldTn,
-                value: `Processed ${steppers} rows`,
+                value: `Prepared ${steppers} rows`,
               })
             }
           },
           complete() {
-            that.progress(`Processed ${oldTn} data`)
+            that.progress(`Prepared ${oldTn} data`)
             that.progress({
               title: oldTn,
-              value: `Processed`,
+              value: `Prepared`,
             })
             resolve(true)
           },
@@ -345,8 +345,8 @@ export default class CSVTemplateAdapter {
           that.updateTemplate(tableIdx)
           that.base.tables.push(that.tables[tableIdx])
 
-          that.progress(`Processed ${oldTn} metadata`)
-          that.progress({ title: oldTn, value: 'Processed metadata' })
+          that.progress(`Prepared ${oldTn} metadata`)
+          that.progress({ title: oldTn, value: 'Prepared metadata' })
 
           await that._parseTableData(tableIdx, source, tn, oldTn)
           resolve(true)
@@ -365,8 +365,8 @@ export default class CSVTemplateAdapter {
       await Promise.all(
         (this.source as UploadFile[]).map((file: UploadFile, tableIdx: number) =>
           (async (f, idx) => {
-            this.progress(`Parsing ${f.name}`)
-            this.progress({ title: f.name, value: `Parsing...` })
+            this.progress(`Reading ${f.name}`)
+            this.progress({ title: f.name, value: `Reading...` })
 
             await this._parseTableMeta(idx, f)
           })(file, tableIdx),

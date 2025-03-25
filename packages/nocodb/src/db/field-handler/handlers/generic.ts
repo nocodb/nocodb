@@ -110,7 +110,6 @@ export class GenericFieldHandler implements FieldHandlerInterface {
           );
       }
     };
-    // not implemented
   }
 
   async verifyFilter(

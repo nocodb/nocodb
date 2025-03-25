@@ -2,7 +2,7 @@ import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
 import type {
   FormulaQueryBuilderBaseParams,
-  TAliasToClumn,
+  TAliasToColumn,
 } from '~/db/formulav2/formula-query-builder.types';
 import type { NcContext } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
@@ -31,7 +31,7 @@ export const lookupOrLtarBuilder =
   }: {
     baseModelSqlv2: IBaseModelSqlV2;
     col: Column;
-    aliasToColumn: TAliasToClumn;
+    aliasToColumn: TAliasToColumn;
     context?: NcContext;
     knex?: CustomKnex;
     tableAlias?: string;

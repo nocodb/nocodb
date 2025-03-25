@@ -18,7 +18,7 @@ export interface FormulaBaseParams {
   baseUsers?: (Partial<User> & BaseUser)[];
 }
 
-export type TAliasToClumn = Record<
+export type TAliasToColumn = Record<
   string,
   (parentColumns?: Set<string>) => Promise<{ builder: any }>
 >;
@@ -26,7 +26,7 @@ export type TAliasToClumn = Record<
 export interface FormulaQueryBuilderBaseParams extends FormulaBaseParams {
   _tree;
   model: Model;
-  aliasToColumn?: TAliasToClumn;
+  aliasToColumn?: TAliasToColumn;
   parsedTree?: ParsedFormulaNode;
   column?: Column;
   parentColumns: Set<string>;

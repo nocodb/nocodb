@@ -4,6 +4,7 @@ import type CustomKnex from '~/db/CustomKnex';
 import type { HandlerOptions } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
 import { sanitize } from '~/helpers/sqlSanitize';
+import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 
 const appendIsNull = ({
   qb,
@@ -55,7 +56,7 @@ export class JsonPgHandler extends JsonGeneralHandler {
     return (qb: Knex.QueryBuilder) => {
       switch (filter.comparison_op) {
         case 'eq':
-          if (val === '' || val === null || typeof val === 'undefined') {
+          if (!ncIsStringHasValue(val)) {
             appendIsNull({ qb, field, knex });
           } else {
             const { jsonVal, isValidJson } = this.parseJsonValue(val);
@@ -69,7 +70,7 @@ export class JsonPgHandler extends JsonGeneralHandler {
 
         case 'neq':
         case 'not':
-          if (val === '' || val === null || typeof val === 'undefined') {
+          if (!ncIsStringHasValue(val)) {
             appendIsNotNull({ qb, field, knex });
           } else {
             const { jsonVal, isValidJson } = this.parseJsonValue(val);
@@ -87,7 +88,7 @@ export class JsonPgHandler extends JsonGeneralHandler {
           break;
 
         case 'like':
-          if (typeof val === 'undefined' || val === null || val === '') {
+          if (!ncIsStringHasValue(val)) {
             appendIsNull({ qb, knex, field });
           } else {
             val = `%${val}%`;
@@ -96,7 +97,7 @@ export class JsonPgHandler extends JsonGeneralHandler {
           break;
 
         case 'nlike':
-          if (typeof val === 'undefined' || val === null || val === '') {
+          if (!ncIsStringHasValue(val)) {
             appendIsNotNull({ qb, knex, field });
           } else {
             val = `%${val}%`;

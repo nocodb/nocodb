@@ -1095,7 +1095,7 @@
     "restApis": "Rest API's",
     "apis": "API's",
     "apiSnippet": "API Snippets",
-    "includeData": "Include Data",
+    "includeData": "Gegevens opnemen",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
     "includeView": "Include views",

@@ -1095,7 +1095,7 @@
     "restApis": "Rest-APIer",
     "apis": "APIer",
     "apiSnippet": "API-utdrag",
-    "includeData": "Include Data",
+    "includeData": "Inkluder data",
     "includeRecords": "Inkluder poster",
     "baseDuplicateMessage": "Merk: Revisjonslogger og integrasjoner vil ikke bli duplisert.",
     "includeView": "Inkluder visninger",

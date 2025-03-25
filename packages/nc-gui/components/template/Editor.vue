@@ -933,7 +933,7 @@ function getErrorByTableName(tableName: string) {
                     {{ idx > 0 ? `${idx + 1}.` : '' }} {{ err }}
                   </div>
                 </template>
-                <NcBadge color="red" :border="false" class="w-6 flex-none">
+                <NcBadge color="red" :border="false" class="w-8 !px-2 flex-none !bg-nc-bg-red-light">
                   <GeneralIcon icon="ncInfo" class="text-nc-content-red-dark" />
                 </NcBadge>
               </NcTooltip>
@@ -975,7 +975,7 @@ function getErrorByTableName(tableName: string) {
                       @change="handleCheckAllRecord($event, table.table_name)"
                     />
                   </div>
-                  <div class="absolute h-1 border-b bottom-0 left-3 right-3" />
+                  <div class="absolute h-1 border-b bottom-0 border-nc-border-gray-medium left-3 right-3" />
                 </NcTooltip>
 
                 <span v-if="column.key !== 'action'" class="font-weight-700 text-nc-content-gray text-small">
@@ -1001,7 +1001,10 @@ function getErrorByTableName(tableName: string) {
 
                     <GeneralIcon icon="ncArrowRight" class="w-4 h-4 flex-shrink-0 mr-2" />
                   </label>
-                  <div v-if="recordIndex" class="absolute h-1 border-t top-0 left-3 right-3 cursor-default" />
+                  <div
+                    v-if="recordIndex"
+                    class="absolute h-1 border-t border-nc-border-gray-medium top-0 left-3 right-3 cursor-default"
+                  />
                 </div>
 
                 <template v-else-if="column.key === 'destination_column'">
@@ -1088,7 +1091,7 @@ function getErrorByTableName(tableName: string) {
                   'w-full': isImporting,
                 }"
               >
-                <GeneralIcon icon="table" class="w-4 h-4" />
+                <GeneralIcon icon="table" class="w-4 h-4 text-nc-content-gray-subtle" />
                 <a-form-item
                   v-if="!isImporting && currentTableToEdit === tableIdx"
                   v-bind="validateInfos[`tables.${tableIdx}.table_name`]"
@@ -1129,7 +1132,7 @@ function getErrorByTableName(tableName: string) {
                       {{ idx > 0 ? `${idx + 1}.` : '' }} {{ err }}
                     </div>
                   </template>
-                  <NcBadge color="red" :border="false" class="w-6 flex-none">
+                  <NcBadge color="red" :border="false" class="w-8 !px-2 flex-none !bg-nc-bg-red-light">
                     <GeneralIcon icon="ncInfo" class="text-nc-content-red-dark" />
                   </NcBadge>
                 </NcTooltip>
@@ -1146,7 +1149,7 @@ function getErrorByTableName(tableName: string) {
               </div>
             </template>
 
-            <div v-if="table.columns && table.columns.length" class="bg-gray-50 !py-1 flex-1 flex">
+            <div v-if="table.columns && table.columns.length" class="bg-nc-bg-gray-extralight pl-3 flex-1 flex">
               <NcTable
                 class="template-form flex-1 max-h-[310px]"
                 body-row-class-name="template-form-row"
@@ -1178,7 +1181,7 @@ function getErrorByTableName(tableName: string) {
                           : $t('activity.selectAllFields')
                       }}
                     </span>
-                    <div class="absolute h-1 border-b bottom-0 left-3 right-3" />
+                    <div class="absolute h-1 border-b bottom-0 border-nc-border-gray-medium left-3 right-3" />
                   </template>
                 </template>
                 <template #bodyCell="{ column, record, recordIndex }">
@@ -1234,7 +1237,7 @@ function getErrorByTableName(tableName: string) {
                       </template>
                       <GeneralIcon icon="info" class="h-4 w-4 text-nc-content-red-medium flex-none ml-2" />
                     </NcTooltip>
-                    <div v-if="recordIndex" class="absolute h-1 border-t top-0 left-3 right-3" />
+                    <div v-if="recordIndex" class="absolute h-1 border-t border-nc-border-gray-medium top-0 left-3 right-3" />
                   </template>
                 </template>
               </NcTable>
@@ -1248,7 +1251,7 @@ function getErrorByTableName(tableName: string) {
 
 <style scoped lang="scss">
 .template-collapse {
-  @apply bg-white;
+  @apply bg-white border-nc-border-gray-medium;
 }
 
 :deep(.ant-collapse-header) {

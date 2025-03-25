@@ -4,6 +4,7 @@ import type { HandlerOptions } from '~/db/field-handler/field-handler.interface'
 import type { Column, Filter } from '~/models';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import { sanitize } from '~/helpers/sqlSanitize';
+import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 
 export class JsonMySqlHandler extends GenericFieldHandler {
   override async filter(
@@ -21,7 +22,7 @@ export class JsonMySqlHandler extends GenericFieldHandler {
     return (qb: Knex.QueryBuilder) => {
       switch (filter.comparison_op) {
         case 'eq':
-          if (val === '' || typeof val === 'undefined' || val === null) {
+          if (!ncIsStringHasValue(val)) {
             qb.where((nestedQb) => {
               nestedQb.whereNull(field);
             });

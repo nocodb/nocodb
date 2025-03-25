@@ -7,7 +7,10 @@ import type {
 } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
 import { getColumnName } from '~/db/BaseModelSqlv2';
-import { getAs } from '~/db/field-handler/utils/handlerUtils';
+import {
+  getAs,
+  ncIsStringHasValue,
+} from '~/db/field-handler/utils/handlerUtils';
 import { sanitize } from '~/helpers/sqlSanitize';
 
 export class GenericFieldHandler implements FieldHandlerInterface {
@@ -48,7 +51,7 @@ export class GenericFieldHandler implements FieldHandlerInterface {
     return (qb: Knex.QueryBuilder) => {
       switch (filter.comparison_op) {
         case 'eq':
-          if (val === '' || typeof val === 'undefined' || val === null) {
+          if (!ncIsStringHasValue(val)) {
             qb.where((nestedQb) => {
               nestedQb.where(knex.raw("?? = ''", [field])).orWhereNull(field);
             });
@@ -59,7 +62,7 @@ export class GenericFieldHandler implements FieldHandlerInterface {
 
         case 'neq':
         case 'not':
-          if (val === '' || typeof val === 'undefined' || val === null) {
+          if (!ncIsStringHasValue(val)) {
             qb.where((nestedQb) => {
               nestedQb
                 .where(knex.raw("?? != ''", [field]))
@@ -75,7 +78,7 @@ export class GenericFieldHandler implements FieldHandlerInterface {
           break;
 
         case 'like':
-          if (val === '' || typeof val === 'undefined' || val === null) {
+          if (!ncIsStringHasValue(val)) {
             qb.whereNull(field);
           } else {
             qb.where(knex.raw('??::text ilike ?', [field, `%${val}%`]));
@@ -83,7 +86,7 @@ export class GenericFieldHandler implements FieldHandlerInterface {
           break;
 
         case 'nlike':
-          if (val === '' || typeof val === 'undefined' || val === null) {
+          if (!ncIsStringHasValue(val)) {
             qb.whereNotNull(field);
           } else {
             qb.where((nestedQb) => {
@@ -101,7 +104,9 @@ export class GenericFieldHandler implements FieldHandlerInterface {
           break;
 
         case 'notblank':
-          qb.whereNotNull(field).orWhere(knex.raw("?? != ''", [field]));
+          qb.where((nestedQb) => {
+            nestedQb.whereNotNull(field).orWhere(knex.raw("?? != ''", [field]));
+          });
           break;
 
         default:

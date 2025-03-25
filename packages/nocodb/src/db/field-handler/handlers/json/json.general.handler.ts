@@ -23,17 +23,14 @@ export class JsonGeneralHandler extends GenericFieldHandler {
         case 'eq':
           if (val === '' || typeof val === 'undefined' || val === null) {
             qb.where((nestedQb) => {
-              nestedQb
-                .where(knex.raw("??::jsonb = '{}'::jsonb", [field]))
-                .orWhere(knex.raw("??::jsonb = '[]'::jsonb", [field]))
-                .orWhereNull(field);
+              nestedQb.whereNull(field);
             });
           } else {
             const { jsonVal, isValidJson } = this.parseJsonValue(val);
             if (isValidJson) {
-              qb.where(knex.raw('??::jsonb = ?::jsonb', [field, jsonVal]));
+              qb.where(knex.raw('?? = ?', [field, jsonVal]));
             } else {
-              qb.where(knex.raw('??::text = ?', [field, jsonVal]));
+              qb.where(knex.raw('?? = ?', [field, jsonVal]));
             }
           }
           break;
@@ -42,20 +39,15 @@ export class JsonGeneralHandler extends GenericFieldHandler {
         case 'not':
           if (val === '') {
             qb.where((nestedQb) => {
-              nestedQb
-                .whereNot(knex.raw("??::jsonb = '{}'::jsonb", [field]))
-                .whereNot(knex.raw("??::jsonb = '[]'::jsonb", [field]))
-                .orWhereNotNull(field);
+              nestedQb.whereNotNull(field);
             });
           } else {
             const { jsonVal, isValidJson } = this.parseJsonValue(val);
             qb.where((nestedQb) => {
               if (isValidJson) {
-                nestedQb.where(
-                  knex.raw('??::jsonb != ?::jsonb', [field, jsonVal]),
-                );
+                nestedQb.where(knex.raw('?? != ?', [field, jsonVal]));
               } else {
-                nestedQb.where(knex.raw('??::text != ?', [field, jsonVal]));
+                nestedQb.where(knex.raw('?? != ?', [field, jsonVal]));
               }
               nestedQb.orWhereNull(field);
             });
@@ -67,7 +59,7 @@ export class JsonGeneralHandler extends GenericFieldHandler {
           if (!val) {
             qb.whereNotNull(field);
           } else {
-            qb.where(knex.raw('??::text ilike ?', [field, val]));
+            qb.where(knex.raw('?? ilike ?', [field, val]));
           }
           break;
 
@@ -77,7 +69,7 @@ export class JsonGeneralHandler extends GenericFieldHandler {
             qb.whereNull(field);
           } else {
             qb.where((nestedQb) => {
-              nestedQb.where(knex.raw('??::text not ilike ?', [field, val]));
+              nestedQb.where(knex.raw('?? not ilike ?', [field, val]));
               if (val !== '%%') {
                 nestedQb.orWhere(field, '').orWhereNull(field);
               } else {
@@ -91,15 +83,15 @@ export class JsonGeneralHandler extends GenericFieldHandler {
           qb.where((nestedQb) => {
             nestedQb
               .whereNull(field)
-              .orWhere(knex.raw("??::jsonb = '{}'::jsonb", [field]))
-              .orWhere(knex.raw("??::jsonb = '[]'::jsonb", [field]));
+              .orWhere(knex.raw("?? = '{}'", [field]))
+              .orWhere(knex.raw("?? = '[]'", [field]));
           });
           break;
 
         case 'notblank':
           qb.whereNotNull(field)
-            .whereNot(knex.raw("??::jsonb = '{}'::jsonb", [field]))
-            .whereNot(knex.raw("??::jsonb = '[]'::jsonb", [field]));
+            .whereNot(knex.raw("?? = '{}'", [field]))
+            .whereNot(knex.raw("?? = '[]'", [field]));
           break;
 
         default:

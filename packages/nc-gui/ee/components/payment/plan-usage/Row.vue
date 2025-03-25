@@ -36,7 +36,7 @@ withDefaults(
   @apply border-b last-of-type:border-b-0 border-inherit flex items-center children:w-1/2;
 
   .nc-current-plan-table-cell {
-    @apply h-[54px] px-5 py-3 text-sm text-inherit flex items-center gap-3 font-semibold;
+    @apply min-h-[44px] px-5 py-3 text-sm text-inherit flex items-center gap-3 font-semibold;
 
     &.nc-cell-value {
       @apply text-nc-content-gray;

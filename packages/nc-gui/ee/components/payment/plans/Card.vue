@@ -115,7 +115,11 @@ const onManageSubscription = async () => {
       </div>
 
       <div v-if="plan.descriptions" class="flex flex-col">
-        <div v-for="desc in plan.descriptions" :key="desc" class="flex items-center text-nc-content-gray-subtle2 leading-[24px]">
+        <div
+          v-for="desc in plan.descriptions"
+          :key="desc"
+          class="flex items-center text-nc-content-gray-subtle2 text-sm leading-[24px] font-weight-500"
+        >
           <span class="mr-2">•</span>
           <span>{{ desc }}</span>
         </div>

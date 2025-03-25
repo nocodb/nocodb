@@ -603,7 +603,8 @@ export class WorkspacesService implements OnApplicationBootstrap {
       // todo: unlink any base linked
       await Workspace.softDelete(param.workspaceId, transaction);
 
-      await this.paymentService.reseatSubscription(
+      // TODO: remove optional chaining on cloud only code updated
+      await this.paymentService?.reseatSubscription(
         workspace.fk_org_id ?? workspace.id,
         transaction,
       );

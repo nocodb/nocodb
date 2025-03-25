@@ -491,10 +491,9 @@ const parseConditionV2 = async (
       const model = await column.getModel(context);
       const formula = await column.getColOptions<FormulaColumn>(context);
       const builder = (
-        await formulaQueryBuilderv2(
-          baseModelSqlv2,
-          formula.formula,
-          null,
+        await formulaQueryBuilderv2({
+          baseModel: baseModelSqlv2,
+          tree: formula.formula,
           model,
           column,
           tableAlias: alias,

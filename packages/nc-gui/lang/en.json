@@ -2018,7 +2018,8 @@
       "notSupported": "Not supported",
       "duplicateTableName": "Duplicate table name",
       "importError": "Import Error",
-      "anErrorOccuredWhileImporting": "An error occurred while {type}"
+      "anErrorOccuredWhileImporting": "An error occurred while {type}",
+      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

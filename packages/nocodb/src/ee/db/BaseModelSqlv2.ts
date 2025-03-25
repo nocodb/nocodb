@@ -2086,7 +2086,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const updatePkValues = [];
 
       for (const data of preparedDatas) {
-        const pkValues = this.extractPksValues(data);
+        const pkValues = this.extractPksValues(data, true);
         if (pkValues !== 'N/A' && pkValues !== undefined) {
           dataWithPks.push({ pk: pkValues, data });
         } else {

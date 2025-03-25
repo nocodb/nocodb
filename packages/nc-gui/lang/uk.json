@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV файл",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON файл",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Заповнити форму",
     "proceedToLink": "Перейти за посиланням",
     "currentOwner": "Поточний власник",
-    "newOwner": "Новий власник"
+    "newOwner": "Новий власник",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Натисніть для вирішення",
@@ -1425,6 +1428,7 @@
     "clearForm": "Очистити форму",
     "addFieldFromFormView": "Додати поле",
     "selectAllFields": "Вибрати всі поля",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Увімкнути попереднє заповнення",
       "default": "За замовчуванням",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Джерело даних в режимі зчитування",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Пробіл",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Пошук іконок",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "Ви не можете змінити видимість поля, яке редагується. Будь ласка, спочатку збережіть або скасуйте зміни.",
         "moveEditedField": "Ви не можете перемістити поле, яке редагується. Або збережіть, або скасуйте зміни",
         "moveDeletedField": "Ви не можете перемістити видалене поле. Або збережіть, або скасуйте зміни"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Метадані проєкту експортовано",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Скопійовано вбудований HTML-код!",
       "userDetailsUpdated": "Дані користувача оновлено",
       "tableDataImported": "Дані таблиці імпортовано",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Дані вебхуку оновлено",
       "webhookDeleted": "Вебхук видалено",
       "webhookTested": "Webhook успішно протестовано",

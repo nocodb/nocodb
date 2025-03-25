@@ -211,7 +211,9 @@ export const useRolesShared = createSharedComposable(() => {
     )
   }
 
-  return { allRoles, orgRoles, workspaceRoles, baseRoles, loadRoles, isUIAllowed }
+  const isBaseRolesLoaded = computed(() => !!user.value?.base_roles || !!user.value?.workspace_roles)
+
+  return { allRoles, orgRoles, workspaceRoles, baseRoles, loadRoles, isUIAllowed, isBaseRolesLoaded }
 })
 
 type IsUIAllowedParams = Parameters<ReturnType<typeof useRolesShared>['isUIAllowed']>

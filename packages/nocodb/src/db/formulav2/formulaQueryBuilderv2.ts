@@ -24,6 +24,7 @@ import type {
 import type {
   FnParsedTreeNode,
   FormulaQueryBuilderBaseParams,
+  TAliasToClumn,
 } from './formula-query-builder.types';
 import type RollupColumn from '~/models/RollupColumn';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
@@ -76,44 +77,9 @@ export const getAggregateFn: (
 };
 
 async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
-  const getLinkedColumnDisplayValue = async (params: {
-    model: Model;
-    aliasToColumn?: Record<string, () => Promise<{ builder: any }>>;
-    parentColumns: Set<string>;
-  }) => {
-    const displayValueColumn = params.model?.displayValue;
-    if (!displayValueColumn) {
-      return undefined;
-    }
-    const formulOption = await params.model.displayValue.getColOptions<
-      FormulaColumn | ButtonColumn
-    >(baseModelSqlv2.context);
-    if (displayValueColumn.uidt !== UITypes.Formula) {
-      return displayValueColumn.column_name;
-    } else {
-      const innerQb = await _formulaQueryBuilder({
-        baseModelSqlv2: await Model.getBaseModelSQL(baseModelSqlv2.context, {
-          model: params.model,
-          dbDriver: baseModelSqlv2.dbDriver,
-        }),
-        _tree: formulOption.formula,
-        alias,
-        model: params.model,
-        column: params.model.displayValue,
-        aliasToColumn: params.aliasToColumn,
-        tableAlias,
-        parsedTree: formulOption.getParsedTree(),
-        baseUsers,
-        parentColumns: params.parentColumns,
-      });
-      return innerQb;
-    }
-  };
-
   const {
     baseModelSqlv2,
     _tree,
-    alias,
     model,
     aliasToColumn = {},
     tableAlias,
@@ -206,7 +172,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             const { builder } = await _formulaQueryBuilder({
               baseModelSqlv2,
               _tree: formulOption.formula,
-              alias,
               model,
               aliasToColumn: { ...aliasToColumn, [col.id]: null },
               tableAlias,
@@ -612,7 +577,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                   const { builder } = await _formulaQueryBuilder({
                     baseModelSqlv2,
                     _tree: formulaOption.formula,
-                    alias: '',
                     model: lookupModel,
                     aliasToColumn,
                     parsedTree: formulaOption.getParsedTree(),
@@ -827,8 +791,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
     }
   }
 
-  const fn = async (pt: FnParsedTreeNode, a?: string, prevBinaryOp?) => {
-    const colAlias = a ? ` as ${a}` : '';
+  const fn = async (pt: FnParsedTreeNode, prevBinaryOp?) => {
     if (pt.type === JSEPNode.CALL_EXP) {
       pt.arguments?.forEach?.((arg: FnParsedTreeNode) => {
         if (arg.fnName) return;
@@ -848,7 +811,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             name: 'STRING',
           },
         },
-        a,
         prevBinaryOp,
       );
     }
@@ -872,7 +834,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                 },
                 right: { ...pt, arguments: pt.arguments.slice(1) },
               },
-              a,
               prevBinaryOp,
             );
           } else {
@@ -885,7 +846,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                   { type: JSEPNode.LITERAL, value: 0 } as ParsedFormulaNode,
                 ],
               },
-              a,
               prevBinaryOp,
             );
           }
@@ -900,21 +860,17 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                   left: pt.arguments[0],
                   right: { ...pt, arguments: pt.arguments.slice(1) },
                 },
-                a,
                 prevBinaryOp,
               );
             } else {
-              return fn(pt.arguments[0], a, prevBinaryOp);
+              return fn(pt.arguments[0], prevBinaryOp);
             }
           } else if (knex.clientType() === 'databricks') {
             const res = await mapFunctionName({
               pt,
               knex,
-              alias,
-              a,
               aliasToCol: aliasToColumn,
               fn,
-              colAlias,
               prevBinaryOp,
               model,
             });
@@ -922,33 +878,134 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
           }
           break;
         case 'URL':
+          /**
+           * Added extra whitespace around URI and LABEL content to avoid conflicts during regex parsing.
+           *
+           * Reason for Adding Whitespace:
+           * - Our URI syntax uses parentheses `(` and `)` to wrap URL and label content.
+           * - Escaped parentheses `\(` and `\)` are allowed inside content, but without extra space,
+           *   trailing backslashes (e.g., `\)`) near the closing parenthesis can cause incomplete group matches.
+           * - Adding leading and trailing spaces around the content (`URI::( ` and ` )`) ensures that
+           *   closing parentheses after escaped characters are parsed correctly.
+           *
+           * Example Case:
+           * - Without space: `URI::(https://github.com/nocodb/nocodb/pull/10707\)`
+           *   - Results in incomplete or invalid group matches.
+           * - With space: `URI::( https://github.com/nocodb/nocodb/pull/10707\ )`
+           *   - Handles escaped characters and parses content as expected.
+           *
+           * How It Works:
+           * - The backend adds a leading space after `URI::(` and before the closing `)`.
+           * - For labels, a leading space is added after `LABEL::(` and before `)`.
+           * - The frontend regex is updated to accommodate these changes.
+           *
+           */
           return fn(
             {
               type: JSEPNode.CALL_EXP,
               arguments: [
                 {
                   type: JSEPNode.LITERAL,
-                  value: 'URI::(',
-                  raw: '"URI::("',
+                  value: 'URI::( ',
+                  raw: '"URI::( "',
                 },
-                pt.arguments[0],
+                // wrap with replace function to escape parenthesis since it has special meaning in our URI syntax
+                {
+                  type: JSEPNode.CALL_EXP,
+                  arguments: [
+                    {
+                      type: JSEPNode.CALL_EXP,
+                      arguments: [
+                        pt.arguments[0],
+                        {
+                          type: JSEPNode.LITERAL,
+                          value: '(',
+                          raw: '"("',
+                        },
+                        {
+                          type: JSEPNode.LITERAL,
+                          value: '\\(',
+                          raw: '"\\("',
+                        },
+                      ],
+                      callee: {
+                        type: 'Identifier',
+                        name: 'REPLACE',
+                      },
+                    },
+                    {
+                      type: JSEPNode.LITERAL,
+                      value: ')',
+                      raw: '")"',
+                    },
+                    {
+                      type: JSEPNode.LITERAL,
+                      value: '\\)',
+                      raw: '"\\)"',
+                    },
+                  ],
+                  callee: {
+                    type: 'Identifier',
+                    name: 'REPLACE',
+                  },
+                },
                 {
                   type: JSEPNode.LITERAL,
-                  value: ')',
-                  raw: '")"',
+                  value: ' )',
+                  raw: '" )"',
                 },
                 ...(pt.arguments[1]
                   ? ([
                       {
                         type: JSEPNode.LITERAL,
-                        value: ' LABEL::(',
-                        raw: ' LABEL::(',
+                        value: ' LABEL::( ',
+                        raw: ' LABEL::( ',
                       },
-                      pt.arguments[1],
+
+                      // wrap with replace function to escape parenthesis since it has special meaning in our URI syntax
+                      {
+                        type: JSEPNode.CALL_EXP,
+                        arguments: [
+                          {
+                            type: JSEPNode.CALL_EXP,
+                            arguments: [
+                              pt.arguments[1],
+                              {
+                                type: JSEPNode.LITERAL,
+                                value: '(',
+                                raw: '"("',
+                              },
+                              {
+                                type: JSEPNode.LITERAL,
+                                value: '\\(',
+                                raw: '"\\("',
+                              },
+                            ],
+                            callee: {
+                              type: 'Identifier',
+                              name: 'REPLACE',
+                            },
+                          },
+                          {
+                            type: JSEPNode.LITERAL,
+                            value: ')',
+                            raw: '")"',
+                          },
+                          {
+                            type: JSEPNode.LITERAL,
+                            value: '\\)',
+                            raw: '"\\)"',
+                          },
+                        ],
+                        callee: {
+                          type: 'Identifier',
+                          name: 'REPLACE',
+                        },
+                      },
                       {
                         type: JSEPNode.LITERAL,
-                        value: ')',
-                        raw: ')',
+                        value: ' )',
+                        raw: '" )"',
                       },
                     ] as ParsedFormulaNode[])
                   : ([] as ParsedFormulaNode[])),
@@ -958,7 +1015,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                 name: 'CONCAT',
               },
             },
-            alias,
             prevBinaryOp,
           );
           break;
@@ -967,11 +1023,8 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             const res = await mapFunctionName({
               pt,
               knex,
-              alias,
-              a,
               aliasToCol: aliasToColumn,
               fn,
-              colAlias,
               prevBinaryOp,
               model,
             });
@@ -1013,17 +1066,15 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         )
       ).join();
       return {
-        builder: knex.raw(
-          `${calleeName}(${callArgs})${colAlias}`.replace(/\?/g, '\\?'),
-        ),
+        builder: knex.raw(`${calleeName}(${callArgs})`.replace(/\?/g, '\\?')),
       };
     } else if (pt.type === 'Literal') {
-      return { builder: knex.raw(`? ${colAlias}`, [pt.value]) };
+      return { builder: knex.raw(`? `, [pt.value]) };
     } else if (pt.type === 'Identifier') {
       const { builder } =
         (await aliasToColumn?.[pt.name]?.(params.parentColumns)) || {};
       if (typeof builder === 'function') {
-        return { builder: knex.raw(`??${colAlias}`, builder(pt.fnName)) };
+        return { builder: knex.raw(`??`, builder(pt.fnName)) };
       }
 
       if (
@@ -1032,13 +1083,11 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       ) {
         // limit 1 for subquery
         return {
-          builder: knex.raw(
-            `${builder.toQuery().replace(/\)$/, '')} LIMIT 1)${colAlias}`,
-          ),
+          builder: knex.raw(`${builder.toQuery().replace(/\)$/, '')} LIMIT 1)`),
         };
       }
 
-      return { builder: knex.raw(`??${colAlias}`, [builder || pt.name]) };
+      return { builder: knex.raw(`??`, [builder || pt.name]) };
     } else if (pt.type === 'BinaryExpression') {
       // treat `&` as shortcut for concat
       if (pt.operator === '&') {
@@ -1051,7 +1100,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               name: 'CONCAT',
             },
           },
-          alias,
           prevBinaryOp,
         );
       }
@@ -1067,7 +1115,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               name: 'CONCAT',
             },
           },
-          alias,
           prevBinaryOp,
         );
       }
@@ -1121,7 +1168,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                     name: calleeName,
                   },
                 },
-                alias,
                 prevBinaryOp,
               );
             }
@@ -1174,9 +1220,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       (pt.right as FnParsedTreeNode).fnName =
         (pt.right as FnParsedTreeNode).fnName || 'ARITH';
 
-      let left = (await fn(pt.left, null, pt.operator)).builder.toQuery();
-      let right = (await fn(pt.right, null, pt.operator)).builder.toQuery();
-      let sql = `${left} ${pt.operator} ${right}${colAlias}`;
+      let left = (await fn(pt.left, pt.operator)).builder.toQuery();
+      let right = (await fn(pt.right, pt.operator)).builder.toQuery();
+      let sql = `${left} ${pt.operator} ${right}`;
 
       if (ComparisonOperators.includes(pt.operator as ComparisonOperator)) {
         // comparing a date with empty string would throw
@@ -1190,9 +1236,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
           // This is to prevent empty data returned to UI due to incorrect SQL
           if ((pt.right as LiteralNode).value === '') {
             if (pt.operator === '=') {
-              sql = `${left} IS NULL ${colAlias}`;
+              sql = `${left} IS NULL `;
             } else {
-              sql = `${left} IS NOT NULL ${colAlias}`;
+              sql = `${left} IS NOT NULL `;
             }
           } else if (
             !validateDateWithUnknownFormat(
@@ -1201,7 +1247,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
           ) {
             // left tree value is date but right tree value is not date
             // return true if left tree value is not null, else false
-            sql = `${left} IS NOT NULL ${colAlias}`;
+            sql = `${left} IS NOT NULL `;
           }
         }
         if (
@@ -1213,9 +1259,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
           // This is to prevent empty data returned to UI due to incorrect SQL
           if ((pt.left as LiteralNode).value === '') {
             if (pt.operator === '=') {
-              sql = `${right} IS NULL ${colAlias}`;
+              sql = `${right} IS NULL `;
             } else {
-              sql = `${right} IS NOT NULL ${colAlias}`;
+              sql = `${right} IS NOT NULL `;
             }
           } else if (
             !validateDateWithUnknownFormat(
@@ -1224,7 +1270,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
           ) {
             // right tree value is date but left tree value is not date
             // return true if right tree value is not null, else false
-            sql = `${right} IS NOT NULL ${colAlias}`;
+            sql = `${right} IS NOT NULL `;
           }
         }
       }
@@ -1250,7 +1296,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         );
 
         // handle NULL values when calling CONCAT for sqlite3
-        sql = `COALESCE(${left}, '') ${pt.operator} COALESCE(${right},'')${colAlias}`;
+        sql = `COALESCE(${left}, '') ${pt.operator} COALESCE(${right},'')`;
       }
 
       if (knex.clientType() === 'mysql2') {
@@ -1264,7 +1310,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               ? (pt.left as any).value === ''
               : (pt.right as any).value === ''
             : 0
-        }) ${colAlias}`;
+        })`;
       } else if (
         knex.clientType() === 'sqlite3' ||
         knex.clientType() === 'pg' ||
@@ -1289,9 +1335,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
           prevBinaryOp !== 'AND' &&
           prevBinaryOp !== 'OR'
         ) {
-          sql = `(CASE WHEN ${sql} THEN true ELSE false END ${colAlias})`;
+          sql = `(CASE WHEN ${sql} THEN true ELSE false END )`;
         } else {
-          sql = `${sql} ${colAlias}`;
+          sql = `${sql} `;
         }
       }
       const query = knex.raw(sql.replace(/\?/g, '\\?'));
@@ -1312,8 +1358,8 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       } else {
         query = knex.raw(
           `${pt.operator}${(
-            await fn(pt.argument, null, pt.operator)
-          ).builder.toQuery()}${colAlias}`,
+            await fn(pt.argument, pt.operator)
+          ).builder.toQuery()}`,
         );
       }
 
@@ -1323,22 +1369,31 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       return { builder: query };
     }
   };
-  const builder = (await fn(tree, alias)).builder;
+  const builder = (await fn(tree)).builder;
   return { builder };
 }
 
-export default async function formulaQueryBuilderv2(
-  baseModelSqlv2: BaseModelSqlv2,
-  _tree,
-  alias,
-  model: Model,
-  column?: Column,
+export default async function formulaQueryBuilderv2({
+  baseModel: baseModelSqlv2,
+  tree: _tree,
+  model,
+  column,
   aliasToColumn = {},
-  tableAlias?: string,
+  tableAlias,
   validateFormula = false,
-  parsedTree?: any,
-  baseUsers?: (Partial<User> & BaseUser)[],
-) {
+  parsedTree,
+  baseUsers,
+}: {
+  baseModel: BaseModelSqlv2;
+  tree;
+  model: Model;
+  column?: Column;
+  aliasToColumn?: TAliasToClumn;
+  tableAlias?: string;
+  validateFormula?: boolean;
+  parsedTree?: any;
+  baseUsers?: (Partial<User> & BaseUser)[];
+}) {
   const knex = baseModelSqlv2.dbDriver;
 
   const context = baseModelSqlv2.context;
@@ -1351,7 +1406,6 @@ export default async function formulaQueryBuilderv2(
     qb = await _formulaQueryBuilder({
       baseModelSqlv2,
       _tree,
-      alias,
       model,
       aliasToColumn,
       tableAlias,

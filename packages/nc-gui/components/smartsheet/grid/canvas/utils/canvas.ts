@@ -1276,18 +1276,7 @@ export function renderFormulaURL(
     verticalAlign?: CanvasTextBaseline
   },
 ): { x: number; y: number; width: number; height: number; url?: string }[] {
-  const {
-    htmlText,
-    x,
-    y,
-    maxWidth,
-    height,
-    lineHeight,
-    fillStyle = '#4a5268',
-    fontFamily = '500 13px Manrope',
-    textAlign = 'left',
-    verticalAlign = 'middle',
-  } = params
+  const { htmlText, x, y, maxWidth, height, lineHeight, fillStyle = '#4a5268' } = params
 
   let maxLines = 1
   if (rowHeightInPx['1'] === height) {
@@ -1295,14 +1284,9 @@ export function renderFormulaURL(
   } else if (height) {
     maxLines = Math.min(Math.floor(height / lineHeight), rowHeightTruncateLines(height)) // Calculate max lines
   }
+  const ellipsisWidth = ctx.measureText('...').width
 
   const urlRects: { x: number; y: number; width: number; height: number; url?: string }[] = []
-
-  ctx.save()
-  ctx.font = fontFamily
-  ctx.textAlign = textAlign
-  ctx.textBaseline = verticalAlign
-  ctx.fillStyle = fillStyle
 
   const container = document.createElement('div')
   container.innerHTML = htmlText
@@ -1369,7 +1353,12 @@ export function renderFormulaURL(
     }
   }
 
-  function truncateText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, ellipsis: boolean): string {
+  function truncateText(
+    ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+    text: string,
+    maxWidth: number,
+    ellipsis: boolean,
+  ): string {
     let truncated = text
     if (ctx.measureText(text).width > maxWidth) {
       truncated = text.substring(0, Math.floor(text.length * (maxWidth / ctx.measureText(text).width)))
@@ -1381,14 +1370,21 @@ export function renderFormulaURL(
     return truncated
   }
 
-  function renderLine(text: string, url?: string, addEllipsis: boolean = false) {
+  function renderLine(text: string, url?: string, addEllipsis = false) {
     let finalText = text
     const lineY = currentY + currentLine * lineHeight + lineHeight * 0.8
     const availableWidth = maxWidth - (currentX - x)
 
-    if (ctx.measureText(text).width > availableWidth) {
-      finalText = truncateText(ctx, text, availableWidth, addEllipsis)
-    } else if (addEllipsis) {
+    const textWidth = ctx.measureText(text).width
+
+    if (textWidth > availableWidth) {
+      if (addEllipsis && availableWidth >= ellipsisWidth) {
+        const adjustedMaxWidth = availableWidth - ellipsisWidth // Reserve space for ellipsis
+        finalText = `${truncateText(ctx, text, adjustedMaxWidth, false)}...`
+      } else {
+        finalText = truncateText(ctx, text, availableWidth, false) // No ellipsis
+      }
+    } else if (addEllipsis && textWidth + ellipsisWidth <= availableWidth) {
       finalText += '...'
     }
 
@@ -1414,7 +1410,6 @@ export function renderFormulaURL(
   }
 
   container.childNodes.forEach((node) => processNode(node))
-  ctx.restore()
 
   return urlRects
 }

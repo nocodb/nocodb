@@ -151,10 +151,10 @@ export default {
     }
     const queryRaw = concatKnexRaw(args.knex, query);
     return {
-      builder: args.knex.raw(
-        `CASE :switchVal :queryRaw\n END${args.colAlias}`,
-        { switchVal, queryRaw },
-      ),
+      builder: args.knex.raw(`CASE :switchVal :queryRaw\n END`, {
+        switchVal,
+        queryRaw,
+      }),
     };
   },
   IF: async (args: MapFnArgs) => {
@@ -202,10 +202,7 @@ export default {
     }
     const predicates = queries.map(() => '?').join(' ');
     return {
-      builder: args.knex.raw(
-        `CASE ${predicates}\n END${args.colAlias}`,
-        queries,
-      ),
+      builder: args.knex.raw(`CASE ${predicates}\n END`, queries),
     };
   },
   // used only for casting to string internally, this one is dummy function
@@ -230,7 +227,7 @@ export default {
 
     return {
       builder: args.knex.raw(
-        `(${predicates})${args.colAlias}`,
+        `(${predicates})`,
         parsedArguments.map((k) => k.builder),
       ),
     };
@@ -249,7 +246,7 @@ export default {
 
     return {
       builder: args.knex.raw(
-        `(${predicates})${args.colAlias}`,
+        `(${predicates})`,
         parsedArguments.map((k) => k.builder),
       ),
     };
@@ -263,11 +260,10 @@ export default {
           left: { ...args.pt, callee: { name: 'SUM' } },
           right: { type: 'Literal', value: args.pt.arguments.length },
         },
-        args.a,
         args.prevBinaryOp,
       );
     } else {
-      return args.fn(args.pt.arguments[0], args.a, args.prevBinaryOp);
+      return args.fn(args.pt.arguments[0], args.prevBinaryOp);
     }
   },
   FLOAT: async (args: MapFnArgs) => {
@@ -288,7 +284,7 @@ export default {
     const query = (await args.fn(args.pt.arguments[0])).builder;
     return {
       builder: args.knex.raw(
-        `CASE WHEN :query >= 0 THEN CEIL((:query) / 2.0) * 2 \n ELSE FLOOR((:query + 2) / 2.0) * 2 - 2\n END${args.colAlias}`,
+        `CASE WHEN :query >= 0 THEN CEIL((:query) / 2.0) * 2 \n ELSE FLOOR((:query + 2) / 2.0) * 2 - 2\n END`,
         { query },
       ),
     };
@@ -297,7 +293,7 @@ export default {
     const query = (await args.fn(args.pt.arguments[0])).builder;
     return {
       builder: args.knex.raw(
-        `CASE WHEN :query >= 0 THEN CEIL((:query - 1) / 2.0) * 2 + 1 \n ELSE FLOOR((:query + 1) / 2.0) * 2 - 1\n END${args.colAlias}`,
+        `CASE WHEN :query >= 0 THEN CEIL((:query - 1) / 2.0) * 2 + 1 \n ELSE FLOOR((:query + 1) / 2.0) * 2 - 1\n END`,
         { query },
       ),
     };
@@ -310,10 +306,7 @@ export default {
 
     return {
       builder: args.knex.raw(
-        `${
-          (await args.fn({ type: 'Identifier', name: pkCol.id }, args.a))
-            .builder
-        } ${args.colAlias}`,
+        `${(await args.fn({ type: 'Identifier', name: pkCol.id })).builder}`,
       ),
     };
   },
@@ -328,9 +321,8 @@ export default {
     return {
       builder: args.knex.raw(
         `${
-          (await args.fn({ type: 'Identifier', name: createdAtCol.id }, args.a))
-            .builder
-        } ${args.colAlias}`,
+          (await args.fn({ type: 'Identifier', name: createdAtCol.id })).builder
+        }`,
       ),
     };
   },
@@ -345,19 +337,18 @@ export default {
     return {
       builder: args.knex.raw(
         `${
-          (await args.fn({ type: 'Identifier', name: createdAtCol.id }, args.a))
-            .builder
-        } ${args.colAlias}`,
+          (await args.fn({ type: 'Identifier', name: createdAtCol.id })).builder
+        }`,
       ),
     };
   },
   // todo: verify the behaviour of this function
-  COUNTALL: async ({ knex, pt, colAlias }: MapFnArgs) => {
+  COUNTALL: async ({ knex, pt }: MapFnArgs) => {
     return {
-      builder: knex.raw(`? ${colAlias}`, [pt.arguments.length]),
+      builder: knex.raw(`? `, [pt.arguments.length]),
     };
   },
-  ROUNDDOWN: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  ROUNDDOWN: async ({ fn, knex, pt }: MapFnArgs) => {
     const { builder: valueBuilder } = await fn(pt.arguments[0]);
     let precisionBuilder = knex.raw('0');
     if (pt.arguments[1]) {
@@ -367,11 +358,11 @@ export default {
 
     return {
       builder: knex.raw(
-        `(FLOOR((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))${colAlias}`,
+        `(FLOOR((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))`,
       ),
     };
   },
-  ROUNDUP: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  ROUNDUP: async ({ fn, knex, pt }: MapFnArgs) => {
     const { builder: valueBuilder } = await fn(pt.arguments[0]);
     let precisionBuilder = knex.raw('0');
     if (pt.arguments[1]) {
@@ -381,11 +372,11 @@ export default {
 
     return {
       builder: knex.raw(
-        `(CEIL((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))${colAlias}`,
+        `(CEIL((${valueBuilder}) * POWER(10, ${precisionBuilder})) / POWER(10, ${precisionBuilder}))`,
       ),
     };
   },
-  ISBLANK: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  ISBLANK: async ({ fn, knex, pt }: MapFnArgs) => {
     const { builder: valueBuilder } = await fn(pt.arguments[0]);
     const { builder: stringValueBuilder } = await fn({
       type: 'CallExpression',
@@ -397,20 +388,20 @@ export default {
     });
 
     return {
-      builder: knex.raw(`(? IS NULL OR ? = '')${colAlias}`, [
+      builder: knex.raw(`(? IS NULL OR ? = '')`, [
         valueBuilder,
         stringValueBuilder,
       ]),
     };
   },
-  ISNULL: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  ISNULL: async ({ fn, knex, pt }: MapFnArgs) => {
     const { builder: valueBuilder } = await fn(pt.arguments[0]);
 
     return {
-      builder: knex.raw(`(? IS NULL)${colAlias}`, [valueBuilder]),
+      builder: knex.raw(`(? IS NULL)`, [valueBuilder]),
     };
   },
-  ISNOTBLANK: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  ISNOTBLANK: async ({ fn, knex, pt }: MapFnArgs) => {
     const { builder: valueBuilder } = await fn(pt.arguments[0]);
     const { builder: stringValueBuilder } = await fn({
       type: 'CallExpression',
@@ -422,18 +413,18 @@ export default {
     });
     return {
       builder: knex.raw(
-        `(${valueBuilder} IS NOT NULL AND ${stringValueBuilder} != '')${colAlias}`,
+        `(${valueBuilder} IS NOT NULL AND ${stringValueBuilder} != '')`,
       ),
     };
   },
-  ISNOTNULL: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  ISNOTNULL: async ({ fn, knex, pt }: MapFnArgs) => {
     const { builder: valueBuilder } = await fn(pt.arguments[0]);
 
     return {
-      builder: knex.raw(`(${valueBuilder} IS NOT NULL)${colAlias}`),
+      builder: knex.raw(`(${valueBuilder} IS NOT NULL)`),
     };
   },
-  URLENCODE: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  URLENCODE: async ({ fn, knex, pt }: MapFnArgs) => {
     const specialCharacters = '% :/?#[]@$&+,;=';
     let str = (await fn(pt.arguments[0])).builder;
     // Pass the characters as bound parameters to avoid problems with ? sign.
@@ -441,7 +432,7 @@ export default {
       str = `REPLACE(${str}, ?, '${encodeURIComponent(c)}')`;
     }
     return {
-      builder: knex.raw(`${str} ${colAlias}`, specialCharacters.split('')),
+      builder: knex.raw(`${str} `, specialCharacters.split('')),
     };
   },
 };

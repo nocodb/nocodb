@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { UsersService } from 'src/ee/services/users/users.service';
-import { WorkspaceUsersService } from 'src/ee/services/workspace-users.service';
 import { DuplicateProcessor as DuplicateProcessorCE } from 'src/modules/jobs/jobs/export-import/duplicate.processor';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Base, Source } from '~/models';
+import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
 import { ImportService } from '~/modules/jobs/jobs/export-import/import.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -15,7 +14,6 @@ import { ColumnsService } from '~/services/columns.service';
 export class DuplicateProcessor extends DuplicateProcessorCE {
   constructor(
     protected readonly workspaceUsersService: WorkspaceUsersService,
-    protected readonly usersService: UsersService,
 
     protected readonly exportService: ExportService,
     protected readonly importService: ImportService,

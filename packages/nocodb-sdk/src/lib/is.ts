@@ -31,6 +31,45 @@ export function ncIsEmptyObject(value: any): boolean {
 }
 
 /**
+ * Checks whether the given value is an object and contains all the specified properties.
+ *
+ * @template T - The expected object type.
+ * @param value - The value to check.
+ * @param keys - An array of property keys that should exist in the object.
+ * @returns {value is T} - Returns `true` if `value` is an object containing all specified keys, otherwise `false`.
+ *
+ * @example
+ * ```typescript
+ * type User = { name: string; age: number };
+ *
+ * const obj = { name: "Alice", age: 25 };
+ *
+ * if (ncHasProperties<User>(obj, ["name", "age"])) {
+ *   console.log(obj.name); // ✅ TypeScript ensures obj.name is safe to access
+ * }
+ * ```
+ *
+ * @example
+ * ```typescript
+ * const obj = { title: "Hello", value: "World" };
+ *
+ * if (ncHasProperties(obj, ["title", "value"])) {
+ *   console.log(obj["title"]); // ✅ Safe to access without explicit type
+ * }
+ * ```
+ */
+export function ncHasProperties<T extends object>(
+  value: any,
+  keys: readonly (keyof T)[]
+): value is T;
+export function ncHasProperties<T extends object = object>(
+  value: any,
+  keys: readonly string[]
+): value is T {
+  return ncIsObject(value) && keys.every((key) => key in value);
+}
+
+/**
  * Checks if a value is an array.
  *
  * @param value - The value to check.

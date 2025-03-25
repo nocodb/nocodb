@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSVファイル",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSONファイル",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "フォームを入力",
     "proceedToLink": "リンクに進む",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "クリックして解決",
@@ -1425,6 +1428,7 @@
     "clearForm": "フォームをクリア",
     "addFieldFromFormView": "フィールドを追加",
     "selectAllFields": "すべてのフィールドを選択",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "入力を有効にする",
       "default": "デフォルト",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "ソースデータは読み取り専用です",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "アイコンを検索",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "編集中のフィールドの可視性を変更できません。まず変更を保存するか、破棄してください。",
         "moveEditedField": "編集中のフィールドを移動できません。最初に変更を保存するか破棄してください",
         "moveDeletedField": "削除済みのフィールドを移動できません。最初に変更を保存するか破棄してください"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "招待を正常に送信しました",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "フィールドの表示を更新できませんでした",
       "unsupportedCharacter": "対応していない文字: {char}",
       "unsupportedCharacters": "サポートされていない文字: {char}",
-      "notSupported": "サポートされていません"
+      "notSupported": "サポートされていません",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "埋め込み用 HTML をコピーしました",
       "userDetailsUpdated": "ユーザーの詳細を更新しました",
       "tableDataImported": "テーブルへデータをインポートしました",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook の詳細を更新しました",
       "webhookDeleted": "フックの削除に成功",
       "webhookTested": "Webhook のテストに成功しました",

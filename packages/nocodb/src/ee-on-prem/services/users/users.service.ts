@@ -22,9 +22,9 @@ export class UsersService extends UsersServiceEE {
     protected workspaceService: WorkspacesService,
     protected baseService: BasesService,
     protected mailService: MailService,
-    protected licenseService: LicenseService,
     protected integrationsService: IntegrationsService,
     protected configService: ConfigService<AppConfig>,
+    protected licenseService: LicenseService,
   ) {
     super(
       metaService,
@@ -48,7 +48,8 @@ export class UsersService extends UsersServiceEE {
       email_verification_token,
       meta,
       req,
-      workspace_invite = false,
+      invite_token,
+      workspace_invite,
     }: {
       avatar;
       display_name;
@@ -59,6 +60,7 @@ export class UsersService extends UsersServiceEE {
       email_verification_token;
       meta?: MetaType;
       req: NcRequest;
+      invite_token?: string;
       workspace_invite?: boolean;
     },
     ncMeta = Noco.ncMeta,
@@ -89,6 +91,7 @@ export class UsersService extends UsersServiceEE {
         email_verification_token,
         meta,
         req,
+        invite_token,
         workspace_invite,
       },
       ncMeta,

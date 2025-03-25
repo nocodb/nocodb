@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV Dosyası",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON Dosyası",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "Formu Temizle",
     "addFieldFromFormView": "Sütun Ekle",
     "selectAllFields": "Tüm sütunları seç",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Önceden Doldurmayı Etkinleştir",
       "default": "Varsayılan",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "İkonları ara",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "Düzenlenen alanın görünürlüğünü değiştiremezsiniz. Lütfen önce değişiklikleri kaydedin veya iptal edin.",
         "moveEditedField": "Düzenlenen bir alan taşınamaz. Önce değişiklikleri kaydedin veya iptal edin.",
         "moveDeletedField": "Silinmiş bir alan taşınamaz. Önce değişiklikleri kaydedin veya iptal edin."
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Proje metaverileri başarıyla dışa aktarıldı",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
       "userDetailsUpdated": "Successfully updated the user details",
       "tableDataImported": "Successfully imported table data",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook details updated successfully",
       "webhookDeleted": "Hook deleted successfully",
       "webhookTested": "Webhook tested successfully",

@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV File",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON File",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1068,8 +1069,8 @@
     "nocoDBBaseImported": "NocoDB Base Imported",
     "formatJson": "Format JSON",
     "autoSelectFieldTypes": "Auto-Select Field Types",
-    "firstRowAsHeaders": "Use First Record as Headers",
-    "flattenNested": "Flatten Nested",
+    "firstRowAsHeaders": "Use first record as header",
+    "flattenNested": "Flatten nested",
     "downloadAllowed": "Download allowed",
     "weAreHiring": "We are Hiring!",
     "primaryKey": "Primary key",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "Clear Form",
     "addFieldFromFormView": "Add Field",
     "selectAllFields": "Select all fields",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Enable Pre-fill",
       "default": "Default",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Search icons",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "You cannot change visibility of a field that is being edited. Please save or discard changes first.",
         "moveEditedField": "You cannot move field that is being edited. Either save or discard changes first",
         "moveDeletedField": "You cannot move field that is deleted. Either save or discard changes first"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
       "userDetailsUpdated": "Successfully updated the user details",
       "tableDataImported": "Successfully imported table data",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook details updated successfully",
       "webhookDeleted": "Hook deleted successfully",
       "webhookTested": "Webhook tested successfully",

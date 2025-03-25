@@ -987,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV Datne",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON Datne",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1156,9 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1428,7 @@
     "clearForm": "Notīrīt formu",
     "addFieldFromFormView": "Pievienot lauku",
     "selectAllFields": "Izvēlēties visus laukus",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Iespējot iepriekš aizpildi",
       "default": "Noklusējuma",
@@ -1492,7 +1496,8 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Meklēt ikonas",
@@ -1704,7 +1709,10 @@
         "fieldVisibility": "Jūs nevarat mainīt lauka redzamību, kas tiek rediģēts. Lūdzu, vispirms saglabājiet vai atceliet izmaiņas.",
         "moveEditedField": "Jūs nevarat pārvietot rediģējamu lauku. Vispirms saglabājiet vai atmetiet izmaiņas",
         "moveDeletedField": "Jūs nevarat pārvietot dzēstu lauku. Vispirms saglabājiet vai atmetiet izmaiņas"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Projekta metadati eksportēti veiksmīgi",
@@ -2055,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Kopēts HTML kods, ko var ievietot!",
       "userDetailsUpdated": "Veiksmīgi atjaunināta lietotāja informācija",
       "tableDataImported": "Veiksmīgi importēti tabulas dati",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Veiksmīgi atjaunināta Webhook informācija",
       "webhookDeleted": "Āķis veiksmīgi izdzēsts",
       "webhookTested": "Veiksmīgi pārbaudīts Webhook",

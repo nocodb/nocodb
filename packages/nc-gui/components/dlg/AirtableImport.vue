@@ -6,6 +6,7 @@ const { modelValue, baseId, sourceId, transition } = defineProps<{
   baseId: string
   sourceId: string
   transition?: string
+  showBackBtn?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue', 'back'])
@@ -450,7 +451,9 @@ const collapseKey = ref('')
             }
           "
         >
-          {{ $t('general.back') }}
+          <GeneralIcon v-if="showBackBtn" icon="chevronLeft" class="mr-1" />
+
+          {{ showBackBtn ? $t('general.back') : $t('general.cancel') }}
         </nc-button>
 
         <nc-button

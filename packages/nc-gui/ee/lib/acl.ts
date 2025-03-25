@@ -173,6 +173,7 @@ const rolePermissions = {
       filterChildrenRead: true,
       viewFieldEdit: true,
       csvTableImport: true,
+      excelTableImport: true,
       hookTrigger: true,
 
       // Scripts

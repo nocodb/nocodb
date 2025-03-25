@@ -5,6 +5,41 @@ import type { HandlerOptions } from '~/db/field-handler/field-handler.interface'
 import type { Column, Filter } from '~/models';
 import { sanitize } from '~/helpers/sqlSanitize';
 
+const appendIsNull = ({
+  qb,
+  field,
+  knex,
+}: {
+  qb: Knex.QueryBuilder;
+  knex: CustomKnex;
+  field: string | any;
+}) => {
+  qb.where((nestedQb) => {
+    nestedQb
+      .where(knex.raw("??::jsonb = '{}'::jsonb", [field]))
+      .orWhere(knex.raw("??::jsonb = '[]'::jsonb", [field]))
+      .orWhere(knex.raw("??::text = ''", [field]))
+      .orWhereNull(field);
+  });
+};
+const appendIsNotNull = ({
+  qb,
+  field,
+  knex,
+}: {
+  qb: Knex.QueryBuilder;
+  knex: CustomKnex;
+  field: string | any;
+}) => {
+  qb.where((nestedQb) => {
+    nestedQb
+      .whereNot(knex.raw("??::jsonb = '{}'::jsonb", [field]))
+      .whereNot(knex.raw("??::jsonb = '[]'::jsonb", [field]))
+      .whereNot(knex.raw("??::text = ''", [field]))
+      .whereNotNull(field);
+  });
+};
+
 export class JsonPgHandler extends JsonGeneralHandler {
   override async filter(
     knex: CustomKnex,
@@ -17,17 +52,11 @@ export class JsonPgHandler extends JsonGeneralHandler {
       alias ? `${alias}.${column.column_name}` : column.column_name,
     );
     let val = filter.value;
-
     return (qb: Knex.QueryBuilder) => {
       switch (filter.comparison_op) {
         case 'eq':
-          if (val === '') {
-            qb.where((nestedQb) => {
-              nestedQb
-                .where(knex.raw("??::jsonb = '{}'::jsonb", [field]))
-                .orWhere(knex.raw("??::jsonb = '[]'::jsonb", [field]))
-                .orWhereNull(field);
-            });
+          if (val === '' || val === null || typeof val === 'undefined') {
+            appendIsNull({ qb, field, knex });
           } else {
             const { jsonVal, isValidJson } = this.parseJsonValue(val);
             if (isValidJson) {
@@ -40,13 +69,8 @@ export class JsonPgHandler extends JsonGeneralHandler {
 
         case 'neq':
         case 'not':
-          if (val === '') {
-            qb.where((nestedQb) => {
-              nestedQb
-                .whereNot(knex.raw("??::jsonb = '{}'::jsonb", [field]))
-                .whereNot(knex.raw("??::jsonb = '[]'::jsonb", [field]))
-                .orWhereNull(field);
-            });
+          if (val === '' || val === null || typeof val === 'undefined') {
+            appendIsNotNull({ qb, field, knex });
           } else {
             const { jsonVal, isValidJson } = this.parseJsonValue(val);
             qb.where((nestedQb) => {
@@ -63,43 +87,33 @@ export class JsonPgHandler extends JsonGeneralHandler {
           break;
 
         case 'like':
-          val = val ? `%${val}%` : val;
-          if (!val) {
-            qb.whereNotNull(field);
+          if (typeof val === 'undefined' || val === null || val === '') {
+            appendIsNull({ qb, knex, field });
           } else {
+            val = `%${val}%`;
             qb.where(knex.raw('??::text ilike ?', [field, val]));
           }
           break;
 
         case 'nlike':
-          val = val ? `%${val}%` : val;
-          if (!val) {
-            qb.whereNull(field);
+          if (typeof val === 'undefined' || val === null || val === '') {
+            appendIsNotNull({ qb, knex, field });
           } else {
+            val = `%${val}%`;
+
             qb.where((nestedQb) => {
               nestedQb.where(knex.raw('??::text not ilike ?', [field, val]));
-              if (val !== '%%') {
-                nestedQb.orWhere(field, '').orWhereNull(field);
-              } else {
-                nestedQb.orWhereNull(field);
-              }
+              nestedQb.orWhereNull(field);
             });
           }
           break;
 
         case 'blank':
-          qb.where((nestedQb) => {
-            nestedQb
-              .whereNull(field)
-              .orWhere(knex.raw("??::jsonb = '{}'::jsonb", [field]))
-              .orWhere(knex.raw("??::jsonb = '[]'::jsonb", [field]));
-          });
+          appendIsNull({ qb, knex, field });
           break;
 
         case 'notblank':
-          qb.whereNotNull(field)
-            .whereNot(knex.raw("??::jsonb = '{}'::jsonb", [field]))
-            .whereNot(knex.raw("??::jsonb = '[]'::jsonb", [field]));
+          appendIsNotNull({ qb, knex, field });
           break;
 
         default:

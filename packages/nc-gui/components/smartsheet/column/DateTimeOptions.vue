@@ -55,8 +55,6 @@ const useSameTimezoneForAll = computed({
     }
   },
 })
-
-watch(vModel, (a) => console.log(a.meta), { deep: true })
 </script>
 
 <template>

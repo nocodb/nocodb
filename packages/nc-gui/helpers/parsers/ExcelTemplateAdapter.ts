@@ -1,5 +1,5 @@
 import { type ColumnType, UITypes, getDateFormat, parseProp } from 'nocodb-sdk'
-import dayjs from 'dayjs'
+import { withTimezone } from '../../utils/datetimeUtils'
 import TemplateGenerator, { type ProgressMessageType } from './TemplateGenerator'
 import {
   extractMultiOrSingleSelectProps,

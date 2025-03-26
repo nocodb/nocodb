@@ -12,6 +12,8 @@ import { NumberGeneralHandler } from './handlers/number/number.general.handler';
 import { FilterVerificationError } from './error/filter-verification.error';
 import { FormulaGeneralHandler } from './handlers/formula/formula.general.handler';
 import { JsonMySqlHandler } from './handlers/json/json.mysql.handler';
+import { LtarGeneralHandler } from './handlers/ltar/ltar.general.handler';
+import { LookupGeneralHandler } from './handlers/lookup/lookup.general.handler';
 import type CustomKnex from '../CustomKnex';
 import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
@@ -21,7 +23,7 @@ import type {
   IFieldHandler,
 } from './field-handler.interface';
 import type { Knex } from 'knex';
-import type { Filter, Model } from '~/models';
+import type { Filter } from '~/models';
 import type { FieldHandlerInterface } from '~/db/field-handler/field-handler.interface';
 import { Column } from '~/models';
 import { JsonPgHandler } from '~/db/field-handler/handlers/json/json.pg.handler';
@@ -40,9 +42,13 @@ const HANDLER_REGISTRY: Partial<
   >
 > = {
   [UITypes.ID]: {},
-  [UITypes.LinkToAnotherRecord]: {},
+  [UITypes.LinkToAnotherRecord]: {
+    [CLIENT_DEFAULT]: LtarGeneralHandler,
+  },
   [UITypes.ForeignKey]: {},
-  [UITypes.Lookup]: {},
+  [UITypes.Lookup]: {
+    [CLIENT_DEFAULT]: LookupGeneralHandler,
+  },
   [UITypes.SingleLineText]: {
     [CLIENT_DEFAULT]: GenericFieldHandler,
   },
@@ -129,7 +135,7 @@ function getLogicalOpMethod(logical_op?: string) {
 export class FieldHandler implements IFieldHandler {
   constructor(
     public readonly info: {
-      model: Model;
+      baseModel: IBaseModelSqlV2;
       knex: CustomKnex;
       context: NcContext;
     },
@@ -138,7 +144,7 @@ export class FieldHandler implements IFieldHandler {
   static fromBaseModel(baseModel: IBaseModelSqlV2) {
     return new FieldHandler({
       context: baseModel.context,
-      model: baseModel.model,
+      baseModel: baseModel,
       knex: baseModel.dbDriver,
     });
   }
@@ -179,12 +185,12 @@ export class FieldHandler implements IFieldHandler {
     const dbClient = knex.client.config.client as ClientType;
     const handler = this.getHandler(column.uidt, dbClient);
     const useColumn =
-      column ?? this.info.model.columns.find((col) => col.id === filter.id);
+      column ??
+      this.info.baseModel.model.columns.find((col) => col.id === filter.id);
     return handler.filter(knex, filter, useColumn, {
       knex,
-      context: this.info.context,
-      model: this.info.model,
       fieldHandler: this,
+      ...this.info,
       ...options,
     });
   }
@@ -197,7 +203,7 @@ export class FieldHandler implements IFieldHandler {
     filters: Filter[],
     options: HandlerOptions = {},
   ): Promise<(qb: Knex.QueryBuilder) => void> {
-    const model = options.model ?? this.info.model;
+    const model = options.baseModel.model ?? this.info.baseModel.model;
     if (!model.columns) {
       await model.getColumns(options.context ?? this.info.context);
     }
@@ -255,9 +261,8 @@ export class FieldHandler implements IFieldHandler {
     const handler = this.getHandler(column.uidt, dbClient);
     return handler.select(qb, column, {
       knex,
-      context: this.info.context,
-      model: this.info.model,
       fieldHandler: this,
+      ...this.info,
       ...options,
     });
   }
@@ -272,12 +277,14 @@ export class FieldHandler implements IFieldHandler {
       this.getHandler(column.uidt, knex.client) ?? new GenericFieldHandler()
     ).verifyFilter(filter, column, {
       fieldHandler: this,
+      ...this.info,
       ...options,
     });
   }
 
   async verifyFiltersSafe(filters: Filter[], options: HandlerOptions = {}) {
-    const model = options.model ?? this.info.model;
+    const baseModel = options.baseModel ?? this.info.baseModel;
+    const model = baseModel.model;
     if (!model.columns) {
       await model.getColumns(options.context ?? this.info.context);
     }
@@ -290,7 +297,12 @@ export class FieldHandler implements IFieldHandler {
           filter.fk_column_id,
         );
       }
-      traverseResult.push(await this.verifyFilter(filter, column, options));
+      traverseResult.push(
+        await this.verifyFilter(filter, column, {
+          ...this.info,
+          ...options,
+        }),
+      );
     });
     const invalidFilterResults = traverseResult
       .filter((k) => !k.isValid)

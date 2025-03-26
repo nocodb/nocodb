@@ -63,7 +63,7 @@ export class UpdateWebhookHandler {
     }
   }
   async finishUpdate() {
-    const hookName = `before.${
+    const hookName = `after.${
       this.webhookContext.isSingleUpdate === false ? 'bulkUpdate' : 'update'
     }`;
     this.nextData = await this.webhookContext.baseModel.readByPk(

@@ -197,10 +197,11 @@ export class MetaService {
     }
 
     for (const d of Array.isArray(data) ? data : [data]) {
-      const id = d?.id || (await this.genNanoid(target));
       const tempObj = {
         ...d,
-        ...(ignoreIdGeneration ? {} : { id }),
+        ...(ignoreIdGeneration
+          ? {}
+          : { id: d?.id || (await this.genNanoid(target)) }),
         ...commonProps,
       };
       insertObj.push(tempObj);

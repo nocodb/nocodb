@@ -323,16 +323,15 @@ export default class Integration implements IntegrationType {
     const listQb = qb.clone();
 
     if (args.includeSourceCount) {
-      const sourceTable = await ncMeta.getTarget(MetaTable.SOURCES);
       listQb
         .select(
           `${MetaTable.INTEGRATIONS}.*`,
-          ncMeta.knex.raw(`count(${sourceTable}.id) as source_count`),
+          ncMeta.knex.raw(`count(${MetaTable.SOURCES}.id) as source_count`),
         )
         .leftJoin(
-          sourceTable,
+          MetaTable.SOURCES,
           `${MetaTable.INTEGRATIONS}.id`,
-          `${sourceTable}.fk_integration_id`,
+          `${MetaTable.SOURCES}.fk_integration_id`,
         )
         .groupBy(`${MetaTable.INTEGRATIONS}.id`);
     }
@@ -529,26 +528,24 @@ export default class Integration implements IntegrationType {
   }
 
   async getSources(ncMeta = Noco.ncMeta, force = false): Promise<Source[]> {
-    const sourceTable = await ncMeta.getTarget(MetaTable.SOURCES);
+    const qb = ncMeta.knex(MetaTable.SOURCES);
 
-    const qb = ncMeta.knex(sourceTable);
-
-    qb.select(`${sourceTable}.id`)
-      .select(`${sourceTable}.alias`)
+    qb.select(`${MetaTable.SOURCES}.id`)
+      .select(`${MetaTable.SOURCES}.alias`)
       .select(`${MetaTable.PROJECT}.title as project_title`)
-      .select(`${sourceTable}.base_id`)
+      .select(`${MetaTable.SOURCES}.base_id`)
       .innerJoin(
         MetaTable.PROJECT,
-        `${sourceTable}.base_id`,
+        `${MetaTable.SOURCES}.base_id`,
         `${MetaTable.PROJECT}.id`,
       )
-      .where(`${sourceTable}.fk_integration_id`, this.id);
+      .where(`${MetaTable.SOURCES}.fk_integration_id`, this.id);
 
     if (!force) {
       qb.where((whereQb) => {
         whereQb
-          .where(`${sourceTable}.deleted`, false)
-          .orWhereNull(`${sourceTable}.deleted`);
+          .where(`${MetaTable.SOURCES}.deleted`, false)
+          .orWhereNull(`${MetaTable.SOURCES}.deleted`);
       }).where((whereQb) => {
         whereQb
           .where(`${MetaTable.PROJECT}.deleted`, false)

@@ -242,23 +242,22 @@ export default class Source implements SourceType {
     let { list: sourceDataList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !sourceDataList.length) {
-      const sourceTable = await ncMeta.getTarget(MetaTable.SOURCES);
       const qb = ncMeta
-        .knex(sourceTable)
-        .select(`${sourceTable}.*`)
-        .where(`${sourceTable}.base_id`, context.base_id);
+        .knex(MetaTable.SOURCES)
+        .select(`${MetaTable.SOURCES}.*`)
+        .where(`${MetaTable.SOURCES}.base_id`, context.base_id);
 
       if (!args.includeDeleted) {
         qb.where((whereQb) => {
           whereQb
-            .where(`${sourceTable}.deleted`, false)
-            .orWhereNull(`${sourceTable}.deleted`);
+            .where(`${MetaTable.SOURCES}.deleted`, false)
+            .orWhereNull(`${MetaTable.SOURCES}.deleted`);
         });
       }
 
-      qb.orderBy(`${sourceTable}.order`, 'asc');
+      qb.orderBy(`${MetaTable.SOURCES}.order`, 'asc');
 
-      await this.extendQb(qb, context, ncMeta);
+      this.extendQb(qb, context);
 
       sourceDataList = await qb;
 
@@ -292,20 +291,19 @@ export default class Source implements SourceType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!sourceData) {
-      const sourceTable = await ncMeta.getTarget(MetaTable.SOURCES);
       const qb = ncMeta
-        .knex(sourceTable)
-        .select(`${sourceTable}.*`)
-        .where(`${sourceTable}.id`, id)
-        .where(`${sourceTable}.base_id`, context.base_id);
+        .knex(MetaTable.SOURCES)
+        .select(`${MetaTable.SOURCES}.*`)
+        .where(`${MetaTable.SOURCES}.id`, id)
+        .where(`${MetaTable.SOURCES}.base_id`, context.base_id);
 
-      await this.extendQb(qb, context, ncMeta);
+      this.extendQb(qb, context);
 
       if (!force) {
         qb.where((whereQb) => {
           whereQb
-            .where(`${sourceTable}.deleted`, false)
-            .orWhereNull(`${sourceTable}.deleted`);
+            .where(`${MetaTable.SOURCES}.deleted`, false)
+            .orWhereNull(`${MetaTable.SOURCES}.deleted`);
         });
       }
 
@@ -600,18 +598,13 @@ export default class Source implements SourceType {
     }
   }
 
-  protected static async extendQb(
-    qb: any,
-    _context: NcContext,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const sourceTable = await ncMeta.getTarget(MetaTable.SOURCES);
+  protected static extendQb(qb: any, _context: NcContext) {
     qb.select(
       `${MetaTable.INTEGRATIONS}.config as integration_config`,
       `${MetaTable.INTEGRATIONS}.title as integration_title`,
     ).leftJoin(
       MetaTable.INTEGRATIONS,
-      `${sourceTable}.fk_integration_id`,
+      `${MetaTable.SOURCES}.fk_integration_id`,
       `${MetaTable.INTEGRATIONS}.id`,
     );
   }

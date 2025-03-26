@@ -10,7 +10,6 @@ import type {
 import type { NcContext } from '~/interface/config';
 import {
   getAffectedColumns,
-  getNotEmptyColumns,
   transformDataForMailRendering,
 } from '~/helpers/webhookHelpers';
 import { JobTypes } from '~/interface/Jobs';
@@ -143,11 +142,6 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
         hookName,
         newData,
         prevData,
-        model,
-      }),
-      notEmptyColumns: await getNotEmptyColumns(context, {
-        hookName,
-        newData,
         model,
       }),
     });

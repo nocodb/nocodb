@@ -105,7 +105,6 @@ export default class Hook implements HookType {
       event?: HookType['event'];
       operation?: HookType['operation'][0];
       affectedColumns?: string[];
-      notEmptyColumns?: string[];
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -179,19 +178,6 @@ export default class Hook implements HookType {
             !hook.trigger_field ||
             hook.trigger_fields?.some((field) =>
               param.affectedColumns?.includes(field),
-            )
-          );
-        });
-      }
-      if (
-        param.operation === 'insert' ||
-        (param.operation as any) === 'bulkInsert'
-      ) {
-        hooks = hooks.filter((hook) => {
-          return (
-            !hook.trigger_field ||
-            hook.trigger_fields?.some((field) =>
-              param.notEmptyColumns?.includes(field),
             )
           );
         });

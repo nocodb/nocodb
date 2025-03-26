@@ -161,9 +161,6 @@ const eventList = ref<Record<string, any>[]>([
   { text: [t('general.on'), t('labels.recordInsert')], value: ['after', 'insert'] },
   { text: [t('general.on'), t('labels.recordUpdate')], value: ['after', 'update'] },
   { text: [t('general.on'), t('labels.recordDelete')], value: ['after', 'delete'] },
-  { text: [t('general.onMultiple'), t('labels.recordInsert')], value: ['after', 'bulkInsert'] },
-  { text: [t('general.onMultiple'), t('labels.recordUpdate')], value: ['after', 'bulkUpdate'] },
-  { text: [t('general.onMultiple'), t('labels.recordDelete')], value: ['after', 'bulkDelete'] },
   { text: [t('general.manual'), t('general.trigger')], value: ['manual', 'trigger'] },
 ])
 
@@ -320,6 +317,7 @@ const getHookTypeText = (hook: HookType) => {
                 {{ dayjs(hook.created_at).format('DD MMM YYYY') }}
               </template>
               <template v-if="column.key === 'action'">
+                <!-- TODO: disable edit for v2 and add migration -->
                 <NcDropdown overlay-class-name="nc-webhook-item-action-dropdown">
                   <NcButton type="secondary" size="small" class="!w-8 !h-8" data-testid="nc-webhook-item-action" @click.stop>
                     <component :is="iconMap.threeDotVertical" class="text-gray-700" />

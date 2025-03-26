@@ -254,7 +254,9 @@ export const RootScopeTables = {
     MetaTable.USERS,
     MetaTable.USER_REFRESH_TOKENS,
     MetaTable.API_TOKENS,
+    MetaTable.FOLLOWER,
     MetaTable.PLUGIN,
+    MetaTable.DB_MUX,
     MetaTable.STORE,
     MetaTable.NOTIFICATION,
     MetaTable.JOBS,
@@ -264,15 +266,20 @@ export const RootScopeTables = {
     MetaTable.AUDIT,
     MetaTable.CUSTOM_URLS,
   ],
-  [RootScopes.BASE]: [MetaTable.PROJECT],
-  // It's a special case and Workspace is equivalent to org in oss
-  [RootScopes.WORKSPACE]: [
-    MetaTable.INTEGRATIONS,
-    MetaTable.INTEGRATIONS_STORE,
-    // We need to clear fk_integration_id from following tables
-    MetaTable.COL_BUTTON,
-    MetaTable.COL_LONG_TEXT,
+  [RootScopes.ORG]: [
+    MetaTable.ORG,
+    MetaTable.ORG_DOMAIN,
+    MetaTable.ORG_USERS,
+    MetaTable.SSO_CLIENT,
+    MetaTable.SSO_CLIENT_DOMAIN,
   ],
+  [RootScopes.WORKSPACE]: [
+    MetaTable.WORKSPACE,
+    MetaTable.WORKSPACE_USER,
+    MetaTable.INTEGRATIONS,
+    MetaTable.SOURCES,
+  ],
+  [RootScopes.BASE]: [MetaTable.PROJECT],
 };
 
 export const CACHE_PREFIX =

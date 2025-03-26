@@ -194,8 +194,8 @@ export class UsersService {
       if (!Noco.ncDefaultWorkspaceId) {
         // create workspace
         const workspace = await ncMeta.metaInsert2(
-          RootScopes.ROOT,
-          RootScopes.ROOT,
+          RootScopes.WORKSPACE,
+          RootScopes.WORKSPACE,
           MetaTable.WORKSPACE,
           {
             title: 'Default Workspace',
@@ -207,14 +207,15 @@ export class UsersService {
         );
 
         await ncMeta.metaInsert2(
-          RootScopes.ROOT,
-          RootScopes.ROOT,
+          RootScopes.WORKSPACE,
+          RootScopes.WORKSPACE,
           MetaTable.WORKSPACE_USER,
           {
             fk_workspace_id: workspace.id,
             fk_user_id: user.id,
             roles: WorkspaceUserRoles.OWNER,
           },
+          true,
         );
 
         await ncMeta.metaInsert2(

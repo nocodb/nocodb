@@ -350,7 +350,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         prevBinaryOp,
       });
     } else if (pt.type === 'Literal') {
-      return { builder: knex.raw(`? `, [pt.value]) };
+      return { builder: knex.raw(`?`, [pt.value]) };
     } else if (pt.type === 'Identifier') {
       const { builder } =
         (await aliasToColumn?.[pt.name]?.(params.parentColumns)) || {};

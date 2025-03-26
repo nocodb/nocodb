@@ -98,6 +98,7 @@ export const orderedMetaTables = [
   MetaTable.FILTER_EXP,
   MetaTable.HOOK_LOGS,
   MetaTable.HOOKS,
+  MetaTable.HOOK_TRIGGER_FIELDS,
   MetaTable.VIEWS,
   MetaTable.COL_FORMULA,
   MetaTable.COL_ROLLUP,

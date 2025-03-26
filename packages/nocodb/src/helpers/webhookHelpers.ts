@@ -1031,5 +1031,8 @@ export function compareOperationCode(param: {
 }) {
   const numberCode =
     typeof param.code === 'number' ? param.code : Number(param.code);
-  return (HookOperationCode[param.operation] & numberCode) === numberCode;
+  return (
+    (HookOperationCode[param.operation] & numberCode) ===
+    HookOperationCode[param.operation]
+  );
 }

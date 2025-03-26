@@ -9,6 +9,7 @@ import type { Knex } from 'knex';
 import type { Condition } from '~/db/CustomKnex';
 import XcMigrationSource from '~/meta/migrations/XcMigrationSource';
 import XcMigrationSourcev2 from '~/meta/migrations/XcMigrationSourcev2';
+import XcMigrationSourcev0 from '~/meta/migrations/XcMigrationSourcev0';
 import { XKnex } from '~/db/CustomKnex';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable, RootScopes, RootScopeTables } from '~/utils/globals';
@@ -820,14 +821,28 @@ export class MetaService {
   }
 
   public async init(): Promise<boolean> {
-    await this.connection.migrate.latest({
-      migrationSource: new XcMigrationSource(),
-      tableName: 'xc_knex_migrations',
-    });
-    await this.connection.migrate.latest({
-      migrationSource: new XcMigrationSourcev2(),
-      tableName: 'xc_knex_migrationsv2',
-    });
+    /*
+      if xc_knex_migrations table exists, then run the migrations (Existing installations)
+      if xc_knex_migrations table does not exist, then run the migrations (Fresh installations)
+
+      Soon we will have a version where we will remove old migrations
+      So users will have to upgrade to specific version first and then to the latest version
+    */
+    if (await this.connection.schema.hasTable('xc_knex_migrations')) {
+      await this.connection.migrate.latest({
+        migrationSource: new XcMigrationSource(),
+        tableName: 'xc_knex_migrations',
+      });
+      await this.connection.migrate.latest({
+        migrationSource: new XcMigrationSourcev2(),
+        tableName: 'xc_knex_migrationsv2',
+      });
+    } else {
+      await this.connection.migrate.latest({
+        migrationSource: new XcMigrationSourcev0(),
+        tableName: 'xc_knex_migrationsv0',
+      });
+    }
     return true;
   }
 

@@ -81,7 +81,7 @@ export const InitMetaServiceProvider: FactoryProvider = {
       }
     } else {
       // if bases are present then it is an old version missing the config
-      const isOld = (await metaService.baseList())?.length;
+      const isOld = (await metaService.legacyProjectList())?.length;
       if (isOld) {
         throw new Error(
           `You are trying to upgrade from an old version of NocoDB. Please upgrade to 0.207.3 first and then you can upgrade to the latest version.`,

@@ -112,39 +112,10 @@ export class MetaService {
   }
 
   /***
-   * Update base config
-   * @param baseId - Base id
-   * @param config - Base config
+   * Get project list with decrypted config
+   * @returns {Promise<any[]>} - List of projects
    * */
-  public async baseUpdate(baseId: string, config: any): Promise<any> {
-    if (!baseId) {
-      NcError.metaError({
-        message: 'Base Id is required to update base config',
-        sql: '',
-      });
-    }
-
-    try {
-      const base = {
-        config: CryptoJS.AES.encrypt(
-          JSON.stringify(config, null, 2),
-          'secret', // todo: tobe replaced - this.config?.auth?.jwt?.secret
-        ).toString(),
-      };
-      // todo: check base name used or not
-      await this.knexConnection('nc_projects').update(base).where({
-        id: baseId,
-      });
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  /***
-   * Get base list with decrypted config
-   * @returns {Promise<any[]>} - List of bases
-   * */
-  public async baseList(): Promise<any[]> {
+  public async legacyProjectList(): Promise<any[]> {
     // check if table exists
     const tableExists = await this.knexConnection.schema.hasTable(
       'nc_projects',

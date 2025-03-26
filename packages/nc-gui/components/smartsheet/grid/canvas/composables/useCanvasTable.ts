@@ -332,18 +332,17 @@ export function useCanvasTable({
     }
   })
 
-  const isSelectionReadOnly = computed(() =>
+  const isSelectionReadOnly = computed(() => {
     // if all the selected columns are not readonly
-    {
-      return (
-        (selection.value.isEmpty() && activeCell.value.column && columns.value[activeCell.value.column]?.virtual) ||
-        (!selection.value.isEmpty() &&
-          Array.from({ length: selection.value.end.col - selection.value.start.col + 1 }).every(
-            (_, i) => !columns.value[selection.value.start.col + i]?.isCellEditable,
-          ))
-      )
-    },
-  )
+
+    return (
+      (selection.value.isEmpty() && activeCell.value.column && columns.value[activeCell.value.column]?.virtual) ||
+      (!selection.value.isEmpty() &&
+        Array.from({ length: selection.value.end.col - selection.value.start.col + 1 }).every(
+          (_, i) => !columns.value[selection.value.start.col + i]?.isCellEditable,
+        ))
+    )
+  })
 
   const isFillHandleDisabled = computed(
     () =>

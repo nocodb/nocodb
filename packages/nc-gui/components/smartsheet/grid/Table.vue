@@ -2532,7 +2532,10 @@ onKeyStroke('ArrowDown', onDown)
               v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly"
               class="nc-base-menu-item"
               data-testid="context-menu-item-paste"
-              :disabled="selectedReadonly"
+              :disabled="
+                selectedReadonly &&
+                (!selectedRange.isSingleCell() || (!isMm(fields[contextMenuTarget.col]) && !isBt(fields[contextMenuTarget.col])))
+              "
               @click="paste"
             >
               <div v-e="['a:row:paste']" class="flex gap-2 items-center">
@@ -2552,7 +2555,7 @@ onKeyStroke('ArrowDown', onDown)
                 !isDataReadOnly
               "
               class="nc-base-menu-item"
-              :disabled="selectedReadonly"
+              :disabled="selectedReadonly && !isLinksOrLTAR(fields[contextMenuTarget.col])"
               data-testid="context-menu-item-clear"
               @click="clearCell(contextMenuTarget)"
             >

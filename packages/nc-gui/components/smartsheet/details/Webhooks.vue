@@ -358,7 +358,12 @@ const getHookTypeText = (hook: HookType) => {
                         <GeneralIcon icon="edit" class="text-gray-800" />
                         <span>{{ $t('general.edit') }}</span>
                       </NcMenuItem>
-                      <NcMenuItem key="duplicate" data-testid="nc-webhook-item-action-duplicate" @click="copyWebhook(hook)">
+                      <NcMenuItem
+                        key="duplicate"
+                        data-testid="nc-webhook-item-action-duplicate"
+                        :disabled="hook.version !== 'v3'"
+                        @click="copyWebhook(hook)"
+                      >
                         <GeneralIcon icon="duplicate" class="text-gray-800" />
                         <span>{{ $t('general.duplicate') }}</span>
                       </NcMenuItem>

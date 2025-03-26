@@ -65,6 +65,11 @@ const emit = defineEmits<Emit>()
     }
     &.active {
       @apply bg-[#F0F3FF];
+
+      h4 {
+        @apply text-[#2952CC];
+        font-weight: bold;
+      }
     }
   }
 }

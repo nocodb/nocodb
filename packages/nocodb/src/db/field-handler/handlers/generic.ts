@@ -19,12 +19,12 @@ export class GenericFieldHandler implements FieldHandlerInterface {
     column: Column,
     options: HandlerOptions,
   ): Promise<void> {
-    const { alias, context, model, tnPath } = options;
+    const { alias, context, baseModel, tnPath } = options;
 
     const columnName = await getColumnName(
       context,
       column,
-      await model.getColumns(context),
+      await baseModel.model.getColumns(context),
     );
 
     const tableName = alias || tnPath || '';

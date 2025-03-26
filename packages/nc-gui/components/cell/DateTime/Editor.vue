@@ -501,14 +501,13 @@ const minimizeMaxWidth = computed(() => {
     >
       <div
         :title="localState?.format(dateTimeFormat)"
-        class="nc-date-picker ant-picker-input flex items-center relative gap-2 !truncate"
+        class="nc-date-picker ant-picker-input flex items-center relative gap-2 !truncate !w-auto"
         :class="{
-          'max-w-[calc(100%_-_70px)] flex-none': minimizeMaxWidth,
-          'flex-1': !minimizeMaxWidth,
+          'max-w-[calc(100%_-_70px)]': minimizeMaxWidth,
         }"
       >
         <div
-          class="nc-flex-1 rounded-md box-border nc-truncate"
+          class="flex rounded-md box-border w-[60%] max-w-[110px]"
           :class="{
             'py-0': isForm,
             'py-0.5': !isForm && !isColDisabled,
@@ -521,7 +520,7 @@ const minimizeMaxWidth = computed(() => {
             ref="datePickerRef"
             :value="localState?.format(dateFormat) ?? ''"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
-            class="nc-date-input nc-flex-1 w-full min-w-0 !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
+            class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
             :readonly="isColDisabled"
             @focus="onFocus(true)"
             @blur="onBlur($event, true)"
@@ -536,8 +535,9 @@ const minimizeMaxWidth = computed(() => {
           </template>
         </div>
         <div
-          class="nc-flex-1 rounded-md box-border nc-truncate"
+          class="rounded-md box-border"
           :class="[
+            `${timeCellMaxWidth}`,
             {
               'py-0': isForm,
               'py-0.5': !isForm && !isColDisabled,
@@ -551,7 +551,7 @@ const minimizeMaxWidth = computed(() => {
             ref="timePickerRef"
             :value="cellValue"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
-            class="nc-time-input nc-flex-1 w-full min-w-0 !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
+            class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
             :readonly="isColDisabled"
             @focus="onFocus(false)"
             @blur="onBlur($event, false)"
@@ -606,7 +606,7 @@ const minimizeMaxWidth = computed(() => {
 
     <div
       v-if="timeZoneDisplay"
-      class="nc-timezone-field text-nc-content-gray-muted whitespace-nowrap text-tiny transition-all duration-300 text-right"
+      class="nc-timezone-field text-nc-content-gray-muted whitespace-nowrap text-tiny transition-all duration-300 text-right flex-1"
       :class="{
         'nc-flex-1': minimizeMaxWidth,
       }"

@@ -722,6 +722,9 @@ reloadViewDataHook?.on(async () => {
     & > div {
       @apply !w-auto;
     }
+    div {
+      @apply flex-none !max-w-none !w-auto;
+    }
   }
 }
 

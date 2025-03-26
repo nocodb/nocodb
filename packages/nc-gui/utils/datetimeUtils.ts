@@ -1,7 +1,7 @@
 import { getTimeZones } from '@vvo/tzdb'
 import dayjs from 'dayjs'
 import { dateFormats, timeFormats } from 'nocodb-sdk'
-import { withTimezone as workerWithTimezone } from './worker/datetimeUtils'
+import { workerWithTimezone } from './worker/datetimeUtils'
 export { constructDateFormat, constructDateTimeFormat, constructTimeFormat } from 'nocodb-sdk'
 
 export function parseStringDateTime(v: string, dateTimeFormat = `${dateFormats[0]} ${timeFormats[0]}`, toLocal = true) {

@@ -1397,6 +1397,9 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
     & > div {
       @apply !w-auto;
     }
+    div {
+      @apply flex-none !max-w-none !w-auto;
+    }
   }
 }
 

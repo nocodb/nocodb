@@ -161,11 +161,31 @@ export const InitMetaServiceProvider: FactoryProvider = {
       },
     );
 
-    if (!ncDefaultWorkspaceId?.value) {
-      throw new Error('Default workspace not found');
-    }
+    Noco.ncDefaultWorkspaceId = ncDefaultWorkspaceId?.value;
 
-    Noco.ncDefaultWorkspaceId = ncDefaultWorkspaceId.value;
+    if (!ncDefaultWorkspaceId) {
+      // if default workspace is not set and there is a workspace, set the first workspace as default
+
+      const workspace = await metaService
+        .knexConnection(MetaTable.WORKSPACE)
+        .orderBy('created_at', 'asc')
+        .first();
+
+      if (workspace) {
+        await metaService.metaInsert2(
+          RootScopes.ROOT,
+          RootScopes.ROOT,
+          MetaTable.STORE,
+          {
+            key: NC_STORE_DEFAULT_WORKSPACE_ID_KEY,
+            value: workspace.id,
+          },
+          true,
+        );
+
+        Noco.ncDefaultWorkspaceId = workspace.id;
+      }
+    }
 
     return metaService;
   },

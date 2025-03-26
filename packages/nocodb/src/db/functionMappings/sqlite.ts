@@ -75,29 +75,30 @@ const sqlite3 = {
     };
   },
   DATEADD: async ({ fn, knex, pt }: MapFnArgs) => {
-    const dateIN = (await fn(pt.arguments[1])).builder;
+    const source = (await fn(pt.arguments[0])).builder;
+    let dateIN = (await fn(pt.arguments[1])).builder;
+    if (typeof dateIN === 'object' && dateIN.toQuery) {
+      dateIN = Number(dateIN.toQuery());
+    }
+
+    let dateModifier = (await fn(pt.arguments[2])).builder;
+    if (typeof dateModifier === 'object' && dateModifier.toQuery) {
+      dateModifier = dateModifier.toQuery().replace(/["']/g, '');
+    }
+
+    const fullModifier = `${dateIN > 0 ? '+' : ''}${dateIN} ${dateModifier}`;
     return {
       builder: knex.raw(
         `CASE
-      WHEN ${(await fn(pt.arguments[0])).builder} LIKE '%:%' THEN
-        STRFTIME('%Y-%m-%dT%H:%M:%fZ', DATETIME(DATETIME(${
-          (await fn(pt.arguments[0])).builder
-        }, 'utc'),
-        ${dateIN > 0 ? '+' : ''}${
-          (await fn(pt.arguments[1])).builder
-        } || ' ${String((await fn(pt.arguments[2])).builder).replace(
-          /["']/g,
-          '',
-        )}'))
+      WHEN :source LIKE '%:%' THEN
+        STRFTIME('%Y-%m-%dT%H:%M:%fZ', DATETIME(:source, 'utc', ':fullModifier'))
       ELSE
-        DATE(DATETIME(${(await fn(pt.arguments[0])).builder}),
-        ${dateIN > 0 ? '+' : ''}${
-          (await fn(pt.arguments[1])).builder
-        } || ' ${String((await fn(pt.arguments[2])).builder).replace(
-          /["']/g,
-          '',
-        )}')
+        DATE(:source, ':fullModifier')
       END`,
+        {
+          source,
+          fullModifier: knex.raw(fullModifier),
+        },
       ),
     };
   },

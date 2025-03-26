@@ -2,6 +2,10 @@ import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
+  if (await knex.schema.hasTable(MetaTable.WORKSPACE)) {
+    return;
+  }
+
   // Add fk_workspace_id to tables that need it
   const tablesToAddFkWorkspaceId = [
     MetaTable.API_TOKENS,

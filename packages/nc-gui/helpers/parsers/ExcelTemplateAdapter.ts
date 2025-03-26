@@ -1,4 +1,4 @@
-import { type ColumnType, UITypes, getDateFormat } from 'nocodb-sdk'
+import { type ColumnType, UITypes, getDateFormat, parseProp } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import TemplateGenerator, { type ProgressMessageType } from './TemplateGenerator'
 import {

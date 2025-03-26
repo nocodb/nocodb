@@ -269,7 +269,7 @@ const up = async (knex: Knex) => {
   // Drop existing base_id indexes
   const dropBaseIdIndexes = [
     MetaTable.AUDIT,
-    MetaTable.SOURCES,
+    MetaTable.SOURCES_OLD,
     MetaTable.MODELS,
     MetaTable.PROJECT_USERS,
     MetaTable.SYNC_SOURCE,
@@ -349,7 +349,7 @@ const up = async (knex: Knex) => {
     MetaTable.MAP_VIEW,
     MetaTable.MODELS,
     MetaTable.SORT,
-    MetaTable.SOURCES,
+    MetaTable.SOURCES_OLD,
     MetaTable.SYNC_LOGS,
     MetaTable.SYNC_SOURCE,
     MetaTable.VIEWS,

@@ -1,84 +1,131 @@
 <script setup lang="ts">
-import { renderIcon } from '~/components/smartsheet/header/VirtualCellIcon'
+import type { ColumnType } from 'nocodb-sdk'
+import { isVirtualCol } from 'nocodb-sdk'
 interface Props {
   columns: ColumnType[]
-  selectedColumns: string[]
-  onChange: (selectedColumns: string[]) => void
+  triggerFields: string[]
 }
 
 const props = defineProps<Props>()
 
-const searchColumnText = ref('')
+const emits = defineEmits(['update:selectedColumns'])
+
+const columns = toRef(props, 'columns')
+
+const triggerFields = useVModel(props, 'triggerFields', emits)
+
 const isDropdownOpen = ref(false)
-const dropdownRef = templateRef('dropdown')
-const columnOptions = computed(() => {
-  if (searchColumnText.value === '') {
-    return props.columns
-  } else {
-    return props.columns.filter((k) => {
-      return k.title.match(new RegExp(searchColumnText.value, 'i')) !== null
-    })
-  }
+
+const computedTags = computed(() => {
+  return triggerFields.value.map((colId) => {
+    return columns.value.find((k) => k.id === colId)
+  })
 })
-const toggleColumn = (col: ColumnType) => {
-  if (props.selectedColumns.includes(col.id)) {
-    props.onChange(props.selectedColumns.filter((k) => k !== col.id))
-  } else {
-    props.onChange([col.id, ...props.selectedColumns])
-  }
-}
+
 const removeColumnId = (colId: string) => {
-  props.onChange(props.selectedColumns.filter((k) => k !== colId))
+  triggerFields.value = triggerFields.value.filter((k) => k !== colId)
 }
-onClickOutside(dropdownRef, (e) => {
-  if (isDropdownOpen.value) {
-    isDropdownOpen.value = false
-  }
-})
-watch(() => {
-  if (!isDropdownOpen.value) {
-    searchColumnText.value = ''
-  }
-})
 </script>
 
 <template>
-  <div class="pb-3">
-    <a-dropdown :visible="isDropdownOpen">
-      <NcButton type="secondary" @click="isDropdownOpen = true"><GeneralIcon icon="plus"></GeneralIcon> Add</NcButton>
+  <div class="my-3">
+    <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!pt-0">
+      <NcButton size="small" type="secondary">
+        <div class="flex items-center justify-center gap-2">
+          <GeneralIcon icon="plus" />
+          Add
+        </div>
+      </NcButton>
       <template #overlay>
-        <a-card ref="dropdown">
-          <div class="flex px-2 py-1">
-            <a-input v-model:value="searchColumnText" :bordered="false" :placeholder="$t('general.search')">
-              <template #prefix><GeneralIcon icon="search" class="mr-2"> </GeneralIcon></template>
-            </a-input>
-          </div>
-          <a-divider style="margin: 4px 0" />
-          <div v-for="col of columnOptions" :key="col.id">
-            <a-button type="text" class="w-full" style="box-shadow: none" @click="toggleColumn(col)">
-              <div class="w-full flex gap-2" style="justify-content: space-between">
-                <div class="pr-1">
-                  <component :is="renderIcon(col).icon" class="max-h-[16px]" />
+        <NcList
+          v-model:value="triggerFields"
+          v-model:open="isDropdownOpen"
+          class="nc-list-field"
+          is-multi-select
+          :close-on-select="false"
+          :list="columns"
+          :item-height="30"
+          option-value-key="id"
+          option-label-key="title"
+        >
+          <template #headerExtraRight>
+            <NcBadge :border="false" color="brand"> {{ triggerFields.length }} fields </NcBadge>
+          </template>
+
+          <template #listItem="{ option }">
+            <div class="flex items-center w-full truncate gap-3">
+              <SmartsheetHeaderVirtualCellIcon v-if="isVirtualCol(option)" :column-meta="option" />
+              <SmartsheetHeaderCellIcon v-else :column-meta="option" />
+
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>
+                  {{ option?.title }}
+                </template>
+                <div class="flex-1 text-nc-content-gray font-semibold leading-5 text-[13px]">
+                  {{ option?.title }}
                 </div>
-                <div class="flex-grow text-left pr-2">
-                  {{ col.title }}
-                </div>
-                <div class="flex flex-shrink max-w-[18px]">
-                  <a-checkbox :checked="!!selectedColumns.includes(col.id)" :readonly="true"></a-checkbox>
-                </div>
-              </div>
-            </a-button>
-          </div>
-        </a-card>
+              </NcTooltip>
+
+              <NcCheckbox :checked="!!triggerFields.includes(option.id)" />
+            </div>
+          </template>
+        </NcList>
       </template>
-    </a-dropdown>
-    <div class="pt-1">
-      <a-tag v-for="colId of selectedColumns" :key="colId" :closable="true"  @close="removeColumnId(colId)">
-        <template v-for="col of [columnOptions.find((k) => k.id === colId)]" :key="col.id">
-          <component :is="renderIcon(col).icon" class="max-h-[16px]" />
+    </NcDropdown>
+
+    <div v-if="triggerFields?.length" class="mt-3 gap-2 flex flex-wrap">
+      <div
+        v-for="col of computedTags"
+        :key="col.id"
+        class="bg-nc-bg-gray-medium text-nc-content-gray-subtle2 px-1 py-0.5 rounded-md flex gap-1 items-center"
+      >
+        <SmartsheetHeaderVirtualCellIcon v-if="isVirtualCol(col)" :column-meta="col" />
+        <SmartsheetHeaderCellIcon v-else :column-meta="col" />
+        <div class="text-[13px] font-medium leading-4.5">
           {{ col.title }}
-        </template>
-      </a-tag>
+        </div>
+
+        <div class="w-0.25 h-4 bg-nc-border-gray-dark" />
+
+        <GeneralIcon class="cursor-pointer" icon="close" @click="removeColumnId(col.id)" />
+      </div>
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+.nc-list-field {
+  .nc-list-root {
+    @apply !pt-0;
+  }
+
+  .nc-search-icon {
+    @apply text-nc-content-gray-muted !w-4 !h-4;
+  }
+
+  :deep(.nc-list-item) {
+    @apply !p-1;
+    .ant-checkbox-checked .ant-checkbox-inner {
+      background-color: #3366FF !important;
+      border-color: #3366FF !important;
+    }
+  }
+
+  :deep(.nc-list-search-wrapper) {
+    @apply !px-3 !py-1;
+
+    .nc-toolbar-dropdown-search-field-input {
+      @apply !p-0;
+    }
+
+    :deep(.nc-divider) {
+      @apply !my-1;
+    }
+  }
+}
+.nc-dropdown {
+  [prefixcls='ant-dropdown-menu'] {
+    @apply !pt-1;
+  }
+}
+</style>

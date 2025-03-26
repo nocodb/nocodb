@@ -44,26 +44,31 @@ export const DateTimeCellRenderer: CellRenderer = {
     let dateTimeValue
     if (isValueValid) {
       if (timezone) {
-        dateTimeValue = dayjs(value).tz(timezone.name)
+        const { timezonize: timezonizeDayjs } = withTimezone(timezone.name)
+
+        dateTimeValue = timezonizeDayjs(dayjs(value))
       } else {
         dateTimeValue = dayjs(value).utc().local()
       }
     }
 
     const dateStr = dateTimeValue?.format(dateFormat) ?? ''
-    const truncatedDate = truncateText(ctx, dateStr, dateWidth - padding * 2)
+    const truncatedDate = truncateText(ctx, dateStr, dateWidth - 4 * 2)
 
     ctx.fillStyle = pv ? '#3366FF' : '#4a5268'
     ctx.fillText(truncatedDate, x + padding, textY)
 
     const timeStr = dateTimeValue?.format(is12hrFormat ? timeFormatsObj[timeFormat] : timeFormat) ?? ''
     const truncatedTime = truncateText(ctx, timeStr, timeWidth)
-    ctx.fillText(truncatedTime, x + dateWidth + padding, textY)
+    ctx.fillText(truncatedTime, x + dateWidth + padding * 2, textY)
     if (timezoneWidth && timezoneWidth > 0) {
-      const gray400 = '#9ca3af'
+      const gray400 = '#6A7184'
       const oldFillStyle = ctx.fillStyle
+      const oldFont = ctx.font
+      ctx.font = ctx.font = `500 11px Manrope`
       ctx.fillStyle = gray400
-      ctx.fillText(timezone!.abbreviation, x + dateTimeWidth + padding, textY)
+      ctx.fillText(timezone!.abbreviation, x + dateTimeWidth + padding * 3.5, textY)
+      ctx.font = oldFont
       ctx.fillStyle = oldFillStyle
     }
   },

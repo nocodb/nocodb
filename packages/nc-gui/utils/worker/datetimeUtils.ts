@@ -7,7 +7,7 @@ export function getTimeZoneFromName(name: string = Intl.DateTimeFormat().resolve
   return timezones.find((k) => isSameTimezone(k.name, name))
 }
 
-export function withTimezone(isEeUI: boolean, timezone?: string) {
+export function workerWithTimezone(isEeUI: boolean, timezone?: string) {
   return {
     dayjsTz(value?: string | number | null | dayjs.Dayjs, format?: string) {
       if (!isEeUI) {

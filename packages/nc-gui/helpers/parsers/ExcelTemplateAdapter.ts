@@ -1,5 +1,5 @@
 import { type ColumnType, UITypes, getDateFormat, parseProp } from 'nocodb-sdk'
-import { withTimezone } from '../../utils/worker/datetimeUtils'
+import { workerWithTimezone } from '../../utils/worker/datetimeUtils'
 import TemplateGenerator, { type ProgressMessageType } from './TemplateGenerator'
 import {
   extractMultiOrSingleSelectProps,
@@ -155,7 +155,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                       return value
                     }
                     const meta = parseProp(existingColumn.meta)
-                    const dateValue = withTimezone(this.config.isEeUI, meta?.timezone).dayjsTz(
+                    const dateValue = workerWithTimezone(this.config.isEeUI, meta?.timezone).dayjsTz(
                       value,
                       meta.date_format && meta.time_format ? `${meta.date_format} ${meta.time_format}` : undefined,
                     )

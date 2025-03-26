@@ -79,6 +79,8 @@ export default class Base implements BaseType {
       insertObj.meta = '{"iconColor":"#36BFFF"}';
     }
 
+    insertObj.fk_workspace_id = Noco.ncDefaultWorkspaceId;
+
     const { id: baseId } = await ncMeta.metaInsert2(
       RootScopes.BASE,
       RootScopes.BASE,

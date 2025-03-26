@@ -165,8 +165,13 @@ export default class Source extends SourceCE implements SourceType {
     return super.delete(context, ncMeta, { force });
   }
 
-  protected static extendQb(qb: any, context: NcContext) {
-    qb.where(`${MetaTable.SOURCES}.fk_workspace_id`, context.workspace_id);
-    return super.extendQb(qb, context);
+  protected static async extendQb(
+    qb: any,
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const sourceTable = await ncMeta.getTarget(MetaTable.SOURCES);
+    qb.where(`${sourceTable}.fk_workspace_id`, context.workspace_id);
+    return super.extendQb(qb, context, ncMeta);
   }
 }

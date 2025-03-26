@@ -37,10 +37,8 @@ const up = async (knex: Knex) => {
     });
   }
 
-  if (
-    !(await knex.schema.hasColumn(MetaTable.SOURCES_OLD, 'fk_integration_id'))
-  ) {
-    await knex.schema.alterTable(MetaTable.SOURCES_OLD, (table) => {
+  if (!(await knex.schema.hasColumn(MetaTable.SOURCES, 'fk_integration_id'))) {
+    await knex.schema.alterTable(MetaTable.SOURCES, (table) => {
       table.string('fk_integration_id', 20).index();
     });
   }
@@ -48,23 +46,23 @@ const up = async (knex: Knex) => {
   hrTime = process.hrtime();
 
   // get all external sources, add them to integrations table and map back to bases
-  const sources = await knex(MetaTable.SOURCES_OLD)
-    .select(`${MetaTable.SOURCES_OLD}.*`)
+  const sources = await knex(MetaTable.SOURCES)
+    .select(`${MetaTable.SOURCES}.*`)
     .select(`${MetaTable.PROJECT_USERS}.fk_user_id as created_by`)
     .innerJoin(
       MetaTable.PROJECT,
-      `${MetaTable.SOURCES_OLD}.base_id`,
+      `${MetaTable.SOURCES}.base_id`,
       `${MetaTable.PROJECT}.id`,
     )
     .where((qb) =>
       qb
-        .where(`${MetaTable.SOURCES_OLD}.is_meta`, false)
-        .orWhereNull(`${MetaTable.SOURCES_OLD}.is_meta`),
+        .where(`${MetaTable.SOURCES}.is_meta`, false)
+        .orWhereNull(`${MetaTable.SOURCES}.is_meta`),
     )
     .andWhere((qb) =>
       qb
-        .where(`${MetaTable.SOURCES_OLD}.is_local`, false)
-        .orWhereNull(`${MetaTable.SOURCES_OLD}.is_local`),
+        .where(`${MetaTable.SOURCES}.is_local`, false)
+        .orWhereNull(`${MetaTable.SOURCES}.is_local`),
     )
     .leftJoin(MetaTable.PROJECT_USERS, (qb) => {
       qb.on(
@@ -95,7 +93,7 @@ const up = async (knex: Knex) => {
     };
 
     await knex(MetaTable.INTEGRATIONS).insert(integration);
-    await knex(MetaTable.SOURCES_OLD).where('id', source.id).update({
+    await knex(MetaTable.SOURCES).where('id', source.id).update({
       fk_integration_id: integrationId,
     });
   }
@@ -106,7 +104,7 @@ const up = async (knex: Knex) => {
 const down = async (knex: Knex) => {
   await knex.schema.dropTable(MetaTable.INTEGRATIONS);
 
-  await knex.schema.alterTable(MetaTable.SOURCES_OLD, (table) => {
+  await knex.schema.alterTable(MetaTable.SOURCES, (table) => {
     table.dropColumn('fk_integration_id');
   });
 };

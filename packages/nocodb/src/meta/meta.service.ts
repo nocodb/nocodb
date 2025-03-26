@@ -495,6 +495,8 @@ export class MetaService {
     target: string,
     condition: { [key: string]: any },
   ): Promise<number> {
+    target = await this.getTarget(target);
+
     const query = this.knexConnection(target);
 
     query.where(condition);
@@ -873,7 +875,7 @@ export class MetaService {
     });
   }
 
-  protected async getTarget(target) {
+  public async getTarget(target) {
     if ([MetaTable.SOURCES_OLD, MetaTable.SOURCES].includes(target)) {
       // check if table exists
       const tableExists = await this.knexConnection.schema.hasTable(target);

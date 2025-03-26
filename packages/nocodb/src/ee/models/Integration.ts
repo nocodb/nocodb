@@ -258,15 +258,16 @@ export default class Integration extends IntegrationCE {
     const listQb = qb.clone();
 
     if (args.includeSourceCount) {
+      const sourceTable = await ncMeta.getTarget(MetaTable.SOURCES);
       listQb
         .select(
           `${MetaTable.INTEGRATIONS}.*`,
-          ncMeta.knex.raw(`count(${MetaTable.SOURCES}.id) as source_count`),
+          ncMeta.knex.raw(`count(${sourceTable}.id) as source_count`),
         )
         .leftJoin(
-          MetaTable.SOURCES,
+          sourceTable,
           `${MetaTable.INTEGRATIONS}.id`,
-          `${MetaTable.SOURCES}.fk_integration_id`,
+          `${sourceTable}.fk_integration_id`,
         )
         .groupBy(`${MetaTable.INTEGRATIONS}.id`);
     }
@@ -470,25 +471,27 @@ export default class Integration extends IntegrationCE {
   }
 
   async getSources(ncMeta = Noco.ncMeta, force = false): Promise<Source[]> {
-    const qb = ncMeta.knex(MetaTable.SOURCES);
+    const sourceTable = await ncMeta.getTarget(MetaTable.SOURCES);
 
-    qb.select(`${MetaTable.SOURCES}.id`)
-      .select(`${MetaTable.SOURCES}.alias`)
+    const qb = ncMeta.knex(sourceTable);
+
+    qb.select(`${sourceTable}.id`)
+      .select(`${sourceTable}.alias`)
       .select(`${MetaTable.PROJECT}.title as project_title`)
-      .select(`${MetaTable.SOURCES}.base_id`)
+      .select(`${sourceTable}.base_id`)
       .innerJoin(
         MetaTable.PROJECT,
-        `${MetaTable.SOURCES}.base_id`,
+        `${sourceTable}.base_id`,
         `${MetaTable.PROJECT}.id`,
       )
-      .where(`${MetaTable.SOURCES}.fk_integration_id`, this.id)
-      .where(`${MetaTable.SOURCES}.fk_workspace_id`, this.fk_workspace_id);
+      .where(`${sourceTable}.fk_integration_id`, this.id)
+      .where(`${sourceTable}.fk_workspace_id`, this.fk_workspace_id);
 
     if (!force) {
       qb.where((whereQb) => {
         whereQb
-          .where(`${MetaTable.SOURCES}.deleted`, false)
-          .orWhereNull(`${MetaTable.SOURCES}.deleted`);
+          .where(`${sourceTable}.deleted`, false)
+          .orWhereNull(`${sourceTable}.deleted`);
       }).where((whereQb) => {
         whereQb
           .where(`${MetaTable.PROJECT}.deleted`, false)

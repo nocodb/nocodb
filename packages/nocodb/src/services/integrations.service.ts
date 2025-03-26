@@ -122,9 +122,11 @@ export class IntegrationsService {
         NcError.integrationNotFound(param.integrationId);
       }
 
+      const sourceTable = await ncMeta.getTarget(MetaTable.SOURCES);
+
       // get linked sources
       const sourceListQb = ncMeta
-        .knex(MetaTable.SOURCES)
+        .knex(sourceTable)
         .where({
           fk_integration_id: integration.id,
         })
@@ -189,9 +191,10 @@ export class IntegrationsService {
 
       const ncMeta = await Noco.ncMeta.startTransaction();
       try {
+        const sourceTable = await ncMeta.getTarget(MetaTable.SOURCES);
         // get linked sources
         const sourceListQb = ncMeta
-          .knex(MetaTable.SOURCES)
+          .knex(sourceTable)
           .where({
             fk_integration_id: integration.id,
           })
@@ -376,11 +379,12 @@ export class IntegrationsService {
     },
     ncMeta = Noco.ncMeta,
   ) {
+    const sourceTable = await ncMeta.getTarget(MetaTable.SOURCES);
     // get all the bases which are using this integration
     const sources = await ncMeta.metaList2(
       integration.fk_workspace_id,
       RootScopes.WORKSPACE,
-      MetaTable.SOURCES,
+      sourceTable,
       {
         condition: {
           fk_integration_id: integration.id,

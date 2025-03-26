@@ -151,7 +151,9 @@ export default class DbMux {
   }
 
   public async getSources(ncMeta = Noco.ncMeta) {
-    return await ncMeta.knexConnection(MetaTable.SOURCES).where({
+    const target = await ncMeta.getTarget(MetaTable.SOURCES);
+
+    return await ncMeta.knexConnection(target).where({
       fk_sql_executor_id: this.id,
     });
   }

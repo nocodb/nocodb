@@ -18,9 +18,10 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
   const successStatus: boolean[] = [];
 
   try {
+    const sourceTable = await ncMeta.getTarget(MetaTable.SOURCES);
     // if configured, check for any non-encrypted data source by checking is_encrypted flag
     const sources = await ncMeta
-      .knex(MetaTable.SOURCES)
+      .knex(sourceTable)
       .where((qb) => {
         qb.where('is_encrypted', false).orWhereNull('is_encrypted');
       })

@@ -31,7 +31,10 @@ const manualHooks = computed(() => {
 })
 
 const eventList = ref<Record<string, any>[]>([
-  { text: [t('general.manual'), t('general.trigger')], value: ['manual', 'trigger'] },
+  {
+    text: [`${t('general.manual')} ${t('general.trigger')}`, `${t('general.manual')} ${t('general.trigger')}`],
+    value: ['manual', 'trigger'],
+  },
 ])
 
 const { isWebhookCreateModalOpen } = useColumnCreateStoreOrThrow()

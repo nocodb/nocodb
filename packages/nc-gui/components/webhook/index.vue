@@ -373,10 +373,14 @@ function setHook(newHook: HookType) {
       payload: notification.payload,
     },
   })
-  if (toAssign.operation && toAssign.operation.length === eventList.value.length) {
-    eventTriggerOption.value = 0
+  if (
+    toAssign.event === 'after' &&
+    toAssign.operation &&
+    toAssign.operation.length === eventList.value.filter((k) => k.value[0] === 'after').length
+  ) {
+    sendMeEverythingChecked.value = true
   } else {
-    eventTriggerOption.value = 1
+    sendMeEverythingChecked.value = false
   }
 }
 
@@ -785,7 +789,11 @@ onMounted(async () => {
                   >
                     <a-input
                       :readonly="true"
-                      :value="hookRef.operation.map((o) => eventsLabelMap[hookRef.event]?.[o]?.text[1]).join(', ')"
+                      :value="
+                        sendMeEverythingChecked
+                          ? 'Send me everything'
+                          : hookRef.operation.map((o) => eventsLabelMap[hookRef.event]?.[o]?.text[1]).join(', ')
+                      "
                       placeholder="Choose trigger"
                     ></a-input>
                     <template #overlay>

@@ -76,7 +76,11 @@ const up = async (knex: Knex) => {
     table.string('fk_custom_url_id', 20);
     table.timestamps(true, true);
 
-    table.primary(['id'], { constraintName: 'nc_projects_v2_pkey' });
+    if (['pg', 'postgres'].includes(knex.client.config.client)) {
+      table.primary(['id'], { constraintName: 'nc_projects_v2_pkey' });
+    } else {
+      table.primary(['id']);
+    }
   });
 
   await knex.schema.createTable(MetaTable.CALENDAR_VIEW_COLUMNS, (table) => {
@@ -812,7 +816,11 @@ const up = async (knex: Knex) => {
     table.boolean('is_encrypted').defaultTo(false);
     table.timestamps(true, true);
 
-    table.primary(['id'], { constraintName: 'nc_bases_v2_pkey' });
+    if (['pg', 'postgres'].includes(knex.client.config.client)) {
+      table.primary(['id'], { constraintName: 'nc_bases_v2_pkey' });
+    } else {
+      table.primary(['id']);
+    }
   });
 
   await knex.schema.createTable(MetaTable.DB_MUX, (table) => {

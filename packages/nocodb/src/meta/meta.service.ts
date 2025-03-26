@@ -105,6 +105,8 @@ export class MetaService {
     data: any,
     ignoreIdGeneration?: boolean,
   ): Promise<any> {
+    target = await this.getTarget(target);
+
     const insertObj = {
       ...data,
       ...(ignoreIdGeneration
@@ -163,6 +165,8 @@ export class MetaService {
     if (Array.isArray(data) ? !data.length : !data) {
       return [];
     }
+
+    target = await this.getTarget(target);
 
     const insertObj = [];
     const at = this.now();
@@ -230,6 +234,8 @@ export class MetaService {
     if (Array.isArray(data) ? !data.length : !data) {
       return [];
     }
+
+    target = await this.getTarget(target);
 
     const query = this.knexConnection(target);
 
@@ -363,6 +369,8 @@ export class MetaService {
     xcCondition?: Condition,
     force = false,
   ): Promise<void> {
+    target = await this.getTarget(target);
+
     const query = this.knexConnection(target);
 
     if (workspace_id === base_id) {
@@ -426,6 +434,8 @@ export class MetaService {
     fields?: string[],
     xcCondition?: Condition,
   ): Promise<any> {
+    target = await this.getTarget(target);
+
     const query = this.knexConnection(target);
 
     if (xcCondition) {
@@ -519,6 +529,8 @@ export class MetaService {
       orderBy?: { [key: string]: 'asc' | 'desc' };
     },
   ): Promise<any[]> {
+    target = await this.getTarget(target);
+
     const query = this.knexConnection(target);
 
     if (workspace_id === base_id) {
@@ -591,6 +603,8 @@ export class MetaService {
       aggField?: string;
     },
   ): Promise<number> {
+    target = await this.getTarget(target);
+
     const query = this.knexConnection(target);
 
     if (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) {
@@ -654,6 +668,8 @@ export class MetaService {
     skipUpdatedAt = false,
     force = false,
   ): Promise<any> {
+    target = await this.getTarget(target);
+
     const query = this.knexConnection(target);
 
     if (workspace_id === base_id) {
@@ -855,5 +871,19 @@ export class MetaService {
       message: 'A condition is required to ' + operation + ' records.',
       sql,
     });
+  }
+
+  protected async getTarget(target) {
+    if ([MetaTable.SOURCES_OLD, MetaTable.SOURCES].includes(target)) {
+      // check if table exists
+      const tableExists = await this.knexConnection.schema.hasTable(target);
+
+      if (tableExists) {
+        return target;
+      }
+
+      return target === MetaTable.SOURCES ? MetaTable.SOURCES_OLD : target;
+    }
+    return target;
   }
 }

@@ -49,6 +49,7 @@ export class MetaService extends MetaServiceCE {
     const prefixMap: { [key: string]: string } = {
       [MetaTable.PROJECT]: 'p',
       [MetaTable.SOURCES]: 'b',
+      [MetaTable.SOURCES_OLD]: 'b',
       [MetaTable.MODELS]: 'm',
       [MetaTable.COLUMNS]: 'c',
       [MetaTable.COL_RELATIONS]: 'l',
@@ -150,6 +151,8 @@ export class MetaService extends MetaServiceCE {
     data: any,
     ignoreIdGeneration?: boolean,
   ): Promise<any> {
+    target = await this.getTarget(target);
+
     const insertObj = {
       ...data,
       ...(ignoreIdGeneration
@@ -221,6 +224,8 @@ export class MetaService extends MetaServiceCE {
     if (Array.isArray(data) ? !data.length : !data) {
       return [];
     }
+
+    target = await this.getTarget(target);
 
     const insertObj = [];
     const at = this.now();
@@ -297,6 +302,8 @@ export class MetaService extends MetaServiceCE {
     if (Array.isArray(data) ? !data.length : !data) {
       return [];
     }
+
+    target = await this.getTarget(target);
 
     const query = this.knexConnection(target);
 
@@ -377,6 +384,8 @@ export class MetaService extends MetaServiceCE {
     xcCondition?: Condition,
     force = false,
   ): Promise<void> {
+    target = await this.getTarget(target);
+
     const query = this.knexConnection(target);
 
     if (workspace_id === base_id) {
@@ -449,6 +458,8 @@ export class MetaService extends MetaServiceCE {
     fields?: string[],
     xcCondition?: Condition,
   ): Promise<any> {
+    target = await this.getTarget(target);
+
     const query = this.knexConnection(target);
 
     if (xcCondition) {
@@ -536,6 +547,8 @@ export class MetaService extends MetaServiceCE {
       orderBy?: { [key: string]: 'asc' | 'desc' };
     },
   ): Promise<any[]> {
+    target = await this.getTarget(target);
+
     const query = this.knexConnection(target);
 
     if (workspace_id === base_id) {
@@ -622,6 +635,8 @@ export class MetaService extends MetaServiceCE {
       aggField?: string;
     },
   ): Promise<number> {
+    target = await this.getTarget(target);
+
     const query = this.knexConnection(target);
 
     if (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) {
@@ -694,6 +709,8 @@ export class MetaService extends MetaServiceCE {
     skipUpdatedAt = false,
     force = false,
   ): Promise<any> {
+    target = await this.getTarget(target);
+
     const query = this.knexConnection(target);
 
     if (workspace_id === base_id) {

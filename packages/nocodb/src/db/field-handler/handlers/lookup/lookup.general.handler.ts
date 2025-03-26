@@ -24,11 +24,10 @@ export class LookupGeneralHandler extends GenericFieldHandler {
       throwErrorIfInvalid,
       conditionParser: parseConditionV2,
     } = options;
-    const col = column;
 
     const context = baseModelSqlv2.context;
 
-    const colOptions = await col.getColOptions<LookupColumn>(context);
+    const colOptions = await column.getColOptions<LookupColumn>(context);
     const relationColumn = await colOptions.getRelationColumn(context);
     const relationColumnOptions =
       await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);

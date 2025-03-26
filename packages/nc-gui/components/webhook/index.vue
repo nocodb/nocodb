@@ -624,33 +624,22 @@ watch(
 )
 
 async function loadSampleData() {
-  sampleData.value = await $api.dbTableWebhook.samplePayloadGet(
+  const samplePayload = await $api.dbTableWebhook.samplePayloadGet(
     meta?.value?.id as string,
     ((hookRef?.operation && hookRef?.operation[0]) as any) || 'insert',
     hookRef.version!,
   )
-}
 
-const formattedSampleData = computed({
-  get() {
-    // if non-URL based hook and version is v2, then return the newRowData as payload
-    // this is for backward compatibility
-    if (hookRef.notification.type !== 'URL' && ['v2'].includes(hookRef.version)) {
-      return {
-        event: sampleData.value?.data?.rows,
-      }
+  // if non-URL based hook and version is v2, then return the newRowData as payload
+  // this is for backward compatibility
+  if (hookRef.notification.type !== 'URL' && ['v2'].includes(hookRef.version)) {
+    sampleData.value = {
+      event: sampleData.value?.data?.rows,
     }
-
-    return sampleData.value
-  },
-  set(val) {
-    // if non-URL based hook and version is v2, then return the newRowData as payload
-    // this is for backward compatibility
-    if (hookRef.notification.type !== 'URL' && ['v2'].includes(hookRef.version)) {
-      if (sampleData.value?.data?.rows) sampleData.value.data.rows = val
-    } else sampleData.value = val
-  },
-})
+  } else {
+    sampleData.value = samplePayload.value
+  }
+}
 
 const getDefaultHookName = (hooks: HookType[]) => {
   return extractNextDefaultName([...hooks.map((el) => el?.title || '')], defaultHookName)
@@ -1112,7 +1101,7 @@ onMounted(async () => {
               </div>
               <div v-show="isVisible">
                 <LazyMonacoEditor
-                  v-model="formattedSampleData"
+                  v-model="sampleData"
                   :monaco-config="{
                     minimap: {
                       enabled: false,

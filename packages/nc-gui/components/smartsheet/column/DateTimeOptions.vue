@@ -162,9 +162,9 @@ const useSameTimezoneForAll = computed({
               :data-abbreviation="timezone.abbreviation"
             >
               <div class="flex gap-2 w-full justify-between items-center">
-                <span class="font-650 text-[13px]">{{ timezone.name }}</span>
+                <span>{{ timezone.name }}</span>
                 <div>
-                  <span class="text-nc-content-gray-subtle2 text-[13px] font-500 mr-2">
+                  <span class="text-nc-content-gray-muted text-[13px] mr-2">
                     {{ timezone.abbreviation }}
                   </span>
                   <component
@@ -185,9 +185,9 @@ const useSameTimezoneForAll = computed({
               :data-abbreviation="timezone.abbreviation"
             >
               <div class="flex gap-2 w-full justify-between items-center">
-                <span class="font-650 text-[13px]">{{ timezone.name }}</span>
+                <span>{{ timezone.name }}</span>
                 <div>
-                  <span class="text-nc-content-gray-subtle2 text-[13px] font-500 mr-2">
+                  <span class="text-nc-content-gray-muted text-[13px] mr-2">
                     {{ timezone.abbreviation }}
                   </span>
                   <component

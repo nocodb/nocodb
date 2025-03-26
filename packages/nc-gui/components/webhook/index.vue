@@ -111,8 +111,8 @@ let hookRef = reactive<
     },
   },
   condition: false,
-  fieldTrigger: false,
-  fieldTriggerColumns: [],
+  triggerField: false,
+  triggerFields: [],
   active: true,
   version: 'v3',
 })
@@ -851,22 +851,22 @@ onMounted(async () => {
               <a-card>
                 <div
                   class="w-full cursor-pointer flex items-center px-3 my-2"
-                  @click.prevent="hookRef.fieldTrigger = !hookRef.fieldTrigger"
+                  @click.prevent="hookRef.triggerField = !hookRef.triggerField"
                 >
-                  <NcSwitch :checked="Boolean(hookRef.fieldTrigger)" class="nc-check-box-hook-condition">
+                  <NcSwitch :checked="Boolean(hookRef.triggerField)" class="nc-check-box-hook-condition">
                     <span class="!text-gray-700 font-semibold">
                       {{ $t('general.trigger') }} {{ $t('activity.forUpdatesInSpecificFields').toLowerCase() }}
                     </span>
                   </NcSwitch>
                 </div>
 
-                <div v-if="hookRef.fieldTrigger" class="px-3">
+                <div v-if="hookRef.triggerField" class="px-3">
                   <WebhookTriggerByField
                     :columns="triggerByFieldColumns"
-                    :selected-columns="hookRef.fieldTriggerColumns"
+                    :selected-columns="hookRef.triggerFields"
                     @change="
                       (columns) => {
-                        hookRef.fieldTriggerColumns = columns
+                        hookRef.triggerFields = columns
                       }
                     "
                   ></WebhookTriggerByField>

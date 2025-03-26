@@ -16,12 +16,13 @@ import { useAgent } from 'request-filtering-agent';
 import { v4 as uuidv4 } from 'uuid';
 import NcPluginMgrv2 from './NcPluginMgrv2';
 import type { HookType } from 'jsep';
-import type { HookType as NcHookType } from 'nocodb-sdk';
 import type {
   ColumnType,
   FormColumnType,
   HookLogType,
+  HookType as NcHookType,
   TableType,
+  UpdatePayload,
   UserType,
   ViewType,
 } from 'nocodb-sdk';
@@ -30,7 +31,7 @@ import type { Column, FormView, Hook, Model, View } from '~/models';
 import type { AxiosResponse } from 'axios';
 import { Filter, HookLog, Source } from '~/models';
 import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
-import { isEE, isOnPrem } from '~/utils';
+import { isEE, isOnPrem, populateUpdatePayloadDiff } from '~/utils';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 
 for (const moduleName of [
@@ -1044,4 +1045,54 @@ export function compareOperationCode(param: {
     (HookOperationCode[param.operation] & numberCode) ===
     HookOperationCode[param.operation]
   );
+}
+
+export async function getAffectedColumns(
+  context: NcContext,
+  {
+    hookName,
+    prevData,
+    newData,
+    model,
+  }: {
+    hookName: string;
+    prevData: any;
+    newData: any;
+    model: Model;
+  },
+) {
+  if (hookName !== 'after.update') {
+    return undefined;
+  }
+  let affectedCols = [];
+  if (typeof prevData === 'undefined' || prevData === null) {
+    return undefined;
+  }
+  const compareSingle = (prev, next) => {
+    const updatePayload = populateUpdatePayloadDiff({
+      prev,
+      next,
+    }) as UpdatePayload;
+    if (updatePayload) {
+      affectedCols = affectedCols.concat(
+        Object.keys(updatePayload.modifications),
+      );
+    }
+  };
+  if (Array.isArray(prevData)) {
+    for (let i = 0; i < prevData.length; i++) {
+      compareSingle(prevData[i], newData[i]);
+    }
+  } else {
+    compareSingle(prevData, newData);
+  }
+  if (affectedCols.length) {
+    affectedCols = [...new Set(affectedCols)];
+    const columns = await model.getColumns(context);
+    return affectedCols.map(
+      (title) => columns.find((col) => col.title === title).id,
+    );
+  } else {
+    return undefined;
+  }
 }

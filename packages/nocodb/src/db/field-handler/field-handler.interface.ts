@@ -1,17 +1,27 @@
+import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
-import type { NcContext } from 'nocodb-sdk';
+import type { FilterType, NcContext } from 'nocodb-sdk';
 import type { Knex } from 'knex';
-import type { Column, Filter, Model } from '~/models';
+import type { Column, Filter } from '~/models';
 
 export interface HandlerOptions {
   alias?: string;
-  throwErrorIfInvalid?: boolean;
+  throwErrorIfInvalid?: boolean; // required by formula and lookup
   context?: NcContext;
-  model?: Model;
+  baseModel?: IBaseModelSqlV2; // required by formula and lookup
   metaService?: MetaService;
   knex?: Knex;
   tnPath?: string;
   fieldHandler?: IFieldHandler;
+  depth?: { count: number }; // required by formula and lookup for alias
+  conditionParser?: (
+    baseModelSqlv2: IBaseModelSqlV2,
+    _filter: Filter | FilterType | FilterType[] | Filter[],
+    aliasCount: { count: number },
+    alias?: string,
+    customWhereClause?: string,
+    throwErrorIfInvalid?: boolean,
+  ) => Promise<(qbP: Knex.QueryBuilder) => void>; // backward compatibility aimed to conditionV2.parseConditionV2
 }
 export interface FilterVerificationResult {
   isValid: boolean;
@@ -58,13 +68,8 @@ export interface IFieldHandler {
 
   verifyFiltersSafe(
     filters: Filter[],
-    column: Column,
     options?: HandlerOptions,
   ): Promise<FilterVerificationResult>;
 
-  verifyFilters(
-    filters: Filter[],
-    column: Column,
-    options?: HandlerOptions,
-  ): Promise<boolean>;
+  verifyFilters(filters: Filter[], options?: HandlerOptions): Promise<boolean>;
 }

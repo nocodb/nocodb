@@ -34,7 +34,7 @@ const PlanLimits = {
     [PlanLimitTypes.SORT_LIMIT]: 10,
   },
   [WorkspacePlan.BUSINESS]: {
-    [PlanLimitTypes.WORKSPACE_USER_LIMIT]: 30,
+    [PlanLimitTypes.WORKSPACE_USER_LIMIT]: 50,
     [PlanLimitTypes.WORKSPACE_ROW_LIMIT]: 500 * 1000,
     [PlanLimitTypes.BASE_LIMIT]: 20,
     [PlanLimitTypes.SOURCE_LIMIT]: 10,

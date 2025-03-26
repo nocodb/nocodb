@@ -24,7 +24,7 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.alterTable(MetaTable.SOURCES, (table) => {
+  await knex.schema.alterTable(MetaTable.SOURCES_OLD, (table) => {
     table.string('fk_integration_id', 20);
   });
 
@@ -36,7 +36,7 @@ const up = async (knex: Knex) => {
 const down = async (knex: Knex) => {
   await knex.schema.dropTable(MetaTable.INTEGRATIONS);
 
-  await knex.schema.alterTable(MetaTable.SOURCES, (table) => {
+  await knex.schema.alterTable(MetaTable.SOURCES_OLD, (table) => {
     table.dropColumn('fk_integration_id');
   });
 };

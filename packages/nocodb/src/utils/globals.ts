@@ -14,7 +14,6 @@ export enum MetaTable {
   COL_BARCODE = 'nc_col_barcode_v2',
   COL_LONG_TEXT = 'nc_col_long_text_v2',
   FILTER_EXP = 'nc_filter_exp_v2',
-  // HOOK_FILTER_EXP = 'nc_hook_filter_exp_v2',
   SORT = 'nc_sort_v2',
   SHARED_VIEWS = 'nc_shared_views_v2',
   ACL = 'nc_acl_v2',
@@ -62,6 +61,23 @@ export enum MetaTable {
   CUSTOM_URLS = 'nc_custom_urls_v2',
   SCRIPTS = 'nc_scripts',
   SYNC_CONFIGS = 'nc_sync_configs',
+
+  LAYOUT = 'nc_ds_layout_v2',
+  WIDGET = 'nc_ds_widget_v2',
+  DASHBOARD_PROJECT_DB_PROJECT_LINKINGS = 'nc_ds_dashboard_project_db_project_linkings_v2',
+  WIDGET_DB_DEPENDENCIES = 'nc_ds_widget_db_dependencies_v2',
+  BOOK = 'nc_books',
+  WORKSPACE = 'workspace',
+  WORKSPACE_USER = 'workspace_user',
+  FOLLOWER = 'nc_follower',
+  COWRITER = 'cowriter',
+  MODEL_STAT = 'nc_model_stats_v2',
+  DB_MUX = 'nc_sql_executor_v2',
+  SSO_CLIENT = 'nc_sso_client',
+  SSO_CLIENT_DOMAIN = 'nc_sso_client_domain',
+  ORG_DOMAIN = 'nc_org_domain',
+  ORG = 'nc_org',
+  ORG_USERS = 'nc_org_users',
 }
 
 export enum MetaTableOldV2 {

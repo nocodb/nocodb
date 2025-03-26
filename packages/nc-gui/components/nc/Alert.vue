@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { AlertProps } from 'ant-design-vue/es'
+import { getI18n } from '~/plugins/a.i18n'
 
 interface Props extends Pick<AlertProps, 'type' | 'showIcon' | 'message' | 'description' | 'closable'> {
   visible?: boolean
@@ -9,14 +10,20 @@ interface Props extends Pick<AlertProps, 'type' | 'showIcon' | 'message' | 'desc
   copyBtnTooltip?: string
   messageClass?: string
   descriptionClass?: string
+  isNotification?: boolean
+  duration?: number
+  showDuration?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   visible: true,
+  showIcon: true,
   bordered: true,
   align: 'top',
   messageClass: '',
   descriptionClass: '',
+  isNotification: false,
+  showDuration: true,
 })
 
 const emits = defineEmits<Emits>()
@@ -30,7 +37,7 @@ const vVisible = useVModel(props, 'visible', emits, { defaultValue: true })
 
 const { type } = toRefs(props)
 
-const { t } = useI18n()
+const { t } = getI18n().global
 
 const { copy } = useCopy()
 
@@ -83,6 +90,39 @@ const handleClose = () => {
   vVisible.value = false
   emits('close')
 }
+const remDuration = ref(props.duration ?? ANT_MESSAGE_DURATION)
+const startTime = ref(performance.now())
+
+const remDurationPercent = computed(() => (remDuration.value / (props.duration ?? ANT_MESSAGE_DURATION)) * 100)
+
+let frameId: number
+
+const updateProgress = () => {
+  const elapsedTime = (performance.now() - startTime.value) / 1000 // Convert ms to seconds
+  const totalDuration = props.duration ?? ANT_MESSAGE_DURATION
+  const remaining = Math.max(totalDuration - elapsedTime, 0)
+
+  // Lerp (smooth transition instead of abrupt frame jumps)
+  remDuration.value = remDuration.value * 0.9 + remaining * 0.1
+
+  if (remDuration.value > 0.01) {
+    // Stop when close to zero
+    frameId = requestAnimationFrame(updateProgress)
+  } else {
+    remDuration.value = 0 // Ensure it reaches zero exactly
+  }
+}
+
+onMounted(() => {
+  if (!props.showDuration) return
+
+  startTime.value = performance.now()
+  updateProgress()
+})
+
+onUnmounted(() => {
+  cancelAnimationFrame(frameId)
+})
 </script>
 
 <template>
@@ -94,6 +134,8 @@ const handleClose = () => {
       {
         'items-center': align === 'center',
         'items-start': align === 'top',
+        'no-border': !bordered,
+        'nc-alert-notification': isNotification,
       },
     ]"
   >
@@ -129,12 +171,35 @@ const handleClose = () => {
         <GeneralIcon icon="close" class="text-nc-content-gray-subtle" />
       </NcButton>
     </div>
+
+    <div
+      class="nc-alert-progress-wrapper"
+      :class="{
+        'bg-nc-bg-brand': remDurationPercent > 0,
+        'bg-nc-bg-gray-medium': remDurationPercent <= 0,
+      }"
+    >
+      <div
+        class="nc-alert-progress"
+        :style="{
+          width: `${remDurationPercent}%`,
+        }"
+      ></div>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .nc-alert {
-  @apply rounded-lg p-4 flex gap-4 w-full border-1 border-nc-border-gray-medium;
+  @apply flex gap-4;
+
+  &:not(.nc-alert-notification) {
+    @apply rounded-lg p-4  w-full border-1 border-nc-border-gray-medium;
+  }
+
+  &.nc-alert-notification {
+    @apply min-w-[340px];
+  }
 
   &.no-border {
     @apply border-none;
@@ -164,7 +229,8 @@ const handleClose = () => {
     @apply flex items-center gap-3 children:flex-none;
   }
 
-  &.nc-alert-type-success {
+  &.nc-alert-type-success,
+  &.nc-alert-type-undefined {
     .nc-alert-icon-wrapper {
       @apply text-nc-content-green-dark;
     }
@@ -186,6 +252,22 @@ const handleClose = () => {
     .nc-alert-icon-wrapper {
       @apply text-nc-content-brand;
     }
+  }
+
+  .nc-alert-progress-wrapper {
+    @apply absolute bottom-0 left-0 right-0 h-1;
+
+    .nc-alert-progress {
+      @apply h-full transition-all duration-200 bg-brand-400;
+    }
+  }
+}
+</style>
+
+<style lang="scss">
+.ant-message-notice-content {
+  &:has(.ant-message-custom-content .nc-alert-notification) {
+    @apply bg-white rounded-lg p-4 gap-4 box-border border-1 border-nc-border-gray-medium text-left relative overflow-hidden;
   }
 }
 </style>

@@ -202,7 +202,7 @@ const sourceIdToIconMap = computed(() => {
 const { ncMessage } = useMessage()
 
 const showMessage = () => {
-  ncMessage.success({ message: 'something' })
+  ncMessage.success({ message: 'something', description: 'Lorem ipsum dolor sit amet, consectetur adipiscing.' })
 }
 </script>
 

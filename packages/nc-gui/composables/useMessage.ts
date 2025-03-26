@@ -1,4 +1,5 @@
 import { message } from 'ant-design-vue'
+import { NcAlert } from '#components'
 
 export interface MessageObjectProps {
   message?: string
@@ -23,6 +24,8 @@ const initialValue = {
   descriptionClass: '',
 } as MessageObjectProps
 
+const generateMessageKey = () => `ncMessage_${Date.now()}_${Math.random()}`
+
 export const useMessage = () => {
   const getMessageProps = (params: MessageProps) => {
     if (ncIsString(params)) {
@@ -31,11 +34,26 @@ export const useMessage = () => {
 
     return params || initialValue
   }
+
   const ncMessage = {
     success: (params: MessageProps = initialValue, duration?: number) => {
       const props = getMessageProps(params)
+      const key = generateMessageKey() // Unique key for each message
 
-      message.success({ content: props.message, duration })
+      message.open({
+        key,
+        content: () =>
+          h(NcAlert, {
+            message: props.message,
+            description: props.message,
+            copyText: props.message,
+            class: '',
+            isNotification: true,
+            closable: true,
+            onClose: () => message.destroy(key), // Close specific message
+          }),
+        duration,
+      })
     },
     error: (params: MessageProps = initialValue, duration?: number) => {
       const props = getMessageProps(params)

@@ -177,7 +177,7 @@ export default class Hook implements HookType {
         hooks = hooks.filter((hook) => {
           return (
             !hook.trigger_field ||
-            hook.trigger_fields.some((field) =>
+            hook.trigger_fields?.some((field) =>
               param.affectedColumns?.includes(field),
             )
           );
@@ -190,7 +190,7 @@ export default class Hook implements HookType {
         hooks = hooks.filter((hook) => {
           return (
             !hook.trigger_field ||
-            hook.trigger_fields.some((field) =>
+            hook.trigger_fields?.some((field) =>
               param.notEmptyColumns?.includes(field),
             )
           );

@@ -1,11 +1,12 @@
+import { Logger } from '@nestjs/common';
 import autoBind from 'auto-bind';
 import BigNumber from 'bignumber.js';
-import groupBy from 'lodash/groupBy';
 import DataLoader from 'dataloader';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc.js';
 import equal from 'fast-deep-equal';
+import groupBy from 'lodash/groupBy';
 import {
   AuditOperationSubTypes,
   AuditV1OperationTypes,
@@ -21,6 +22,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
+  NcApiVersion,
   NcErrorType,
   ncIsNull,
   ncIsObject,
@@ -28,13 +30,11 @@ import {
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
-import Validator from 'validator';
 import { v4 as uuidv4 } from 'uuid';
-import { Logger } from '@nestjs/common';
-import { NcApiVersion } from 'nocodb-sdk';
+import Validator from 'validator';
 import { NestedLinkPreparator } from './BaseModelSqlv2/nested-link-preparator';
 import { relationListCount } from './BaseModelSqlv2/relation-list-count';
-import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
   DataBulkDeletePayload,
@@ -47,13 +47,11 @@ import type {
   DataUpdatePayload,
   FilterType,
   NcRequest,
-  SortType,
   UpdatePayload,
 } from 'nocodb-sdk';
-import type { Knex } from 'knex';
-import type LookupColumn from '~/models/LookupColumn';
 import type CustomKnex from '~/db/CustomKnex';
 import type { XKnex } from '~/db/CustomKnex';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type {
   XcFilter,
   XcFilterWithAlias,
@@ -69,9 +67,44 @@ import type {
   SelectOption,
   User,
 } from '~/models';
+import type LookupColumn from '~/models/LookupColumn';
 import type { ResolverObj } from '~/utils';
+import applyAggregation from '~/db/aggregation';
+import conditionV2 from '~/db/conditionV2';
+import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
+import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { RelationManager } from '~/db/relation-manager';
+import sortV2 from '~/db/sortV2';
+import { customValidators } from '~/db/util/customValidators';
+import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
 import {
+  _wherePk,
+  applyPaginate,
+  checkColumnRequired,
+  extractIds,
+  extractSortsObject,
+  formatDataForAudit,
+  getAs,
+  getColumnName,
+  getCompositePkValue,
+  getListArgs,
+  getOppositeRelationType,
+  getRelatedLinksColumn,
+  haveFormulaColumn,
+  isDataAuditEnabled as isDataAuditEnabledFn,
+  isPrimitiveType,
+  nanoidv2,
+  populatePk,
+  shouldSkipField,
+  transformObject,
+} from '~/helpers/dbHelpers';
+import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
+import { extractProps } from '~/helpers/extractProps';
+import getAst from '~/helpers/getAst';
+import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
+import {
+  Audit,
   BaseUser,
   Column,
   FileReference,
@@ -83,50 +116,20 @@ import {
   Source,
   View,
 } from '~/models';
+import Noco from '~/Noco';
+import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import {
+  extractColsMetaForAudit,
   extractExcludedColumnNames,
+  generateAuditV1Payload,
   getAliasGenerator,
   nocoExecute,
   populateUpdatePayloadDiff,
-} from '~/utils';
-import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
-import genRollupSelectv2 from '~/db/genRollupSelectv2';
-import conditionV2 from '~/db/conditionV2';
-import sortV2 from '~/db/sortV2';
-import { customValidators } from '~/db/util/customValidators';
-import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
-import getAst from '~/helpers/getAst';
-import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
-import Noco from '~/Noco';
-import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
-import { extractProps } from '~/helpers/extractProps';
-import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
-import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
-import applyAggregation from '~/db/aggregation';
-import { chunkArray } from '~/utils/tsUtils';
-import {
-  excludeAttachmentProps,
-  generateAuditV1Payload,
   remapWithAlias,
   removeBlankPropsAndMask,
 } from '~/utils';
-import { Audit } from '~/models';
 import { MetaTable } from '~/utils/globals';
-import { extractColsMetaForAudit } from '~/utils';
-import {
-  _wherePk,
-  checkColumnRequired,
-  getAs,
-  getColumnName,
-  getCompositePkValue,
-  getOppositeRelationType,
-  getRelatedLinksColumn,
-  isDataAuditEnabled as isDataAuditEnabledFn,
-  isPrimitiveType,
-  nanoidv2,
-  populatePk,
-  transformObject,
-} from '~/helpers/dbHelpers';
+import { chunkArray } from '~/utils/tsUtils';
 
 dayjs.extend(utc);
 
@@ -2410,112 +2413,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
   // #endregion relation list count part 1
 
+  // #region relation list count part 2
   // todo: naming & optimizing
   public async getMmChildrenExcludedListCount(
     { colId, pid = null },
     args,
   ): Promise<any> {
-    const { where } = this._getListArgs(args as any);
-    const relColumn = (await this.model.getColumns(this.context)).find(
-      (c) => c.id === colId,
-    );
-    const relColOptions = (await relColumn.getColOptions(
-      this.context,
-    )) as LinkToAnotherRecordColumn;
-
-    const mmTable = await relColOptions.getMMModel(this.context);
-    const assocBaseModel = await Model.getBaseModelSQL(this.context, {
-      id: mmTable.id,
-      dbDriver: this.dbDriver,
-    });
-
-    const vtn = assocBaseModel.getTnPath(mmTable);
-    const vcn = (await relColOptions.getMMChildColumn(this.context))
-      .column_name;
-    const vrcn = (await relColOptions.getMMParentColumn(this.context))
-      .column_name;
-    const rcn = (await relColOptions.getParentColumn(this.context)).column_name;
-    const cn = (await relColOptions.getChildColumn(this.context)).column_name;
-    const childTable = await (
-      await relColOptions.getParentColumn(this.context)
-    ).getModel(this.context);
-
-    const childView = await relColOptions.getChildView(this.context);
-    let listArgs: any = {};
-    if (childView) {
-      const { dependencyFields } = await getAst(this.context, {
-        model: childTable,
-        query: {},
-        view: childView,
-        throwErrorIfInvalidParams: false,
-      });
-
-      listArgs = dependencyFields;
-      try {
-        listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-      } catch (e) {}
-      try {
-        listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-      } catch (e) {}
-    }
-
-    const parentTable = await (
-      await relColOptions.getChildColumn(this.context)
-    ).getModel(this.context);
-    await parentTable.getColumns(this.context);
-
-    const parentBaseModel = await Model.getBaseModelSQL(this.context, {
-      id: parentTable.id,
-      dbDriver: this.dbDriver,
-    });
-    const childBaseModel = await Model.getBaseModelSQL(this.context, {
-      id: childTable.id,
-      dbDriver: this.dbDriver,
-    });
-    const childTn = childBaseModel.getTnPath(childTable);
-    const parentTn = parentBaseModel.getTnPath(parentTable);
-
-    const rtn = childTn;
-    const qb = this.dbDriver(rtn)
-      .count(`*`, { as: 'count' })
-      .where((qb) => {
-        qb.whereNotIn(
-          rcn,
-          this.dbDriver(rtn)
-            .select(`${rtn}.${rcn}`)
-            .join(vtn, `${rtn}.${rcn}`, `${vtn}.${vrcn}`)
-            .whereIn(
-              `${vtn}.${vcn}`,
-              this.dbDriver(parentTn)
-                .select(cn)
-                // .where(parentTable.primaryKey.cn, pid)
-                .where(_wherePk(parentTable.primaryKeys, pid)),
-            ),
-        ).orWhereNull(rcn);
-      });
-
-    const aliasColObjMap = await childTable.getAliasColObjMap(this.context);
-    const { filters: filterObj } = extractFilterFromXwhere(
-      this.context,
-      where,
-      aliasColObjMap,
-    );
-
-    await this.getCustomConditionsAndApply({
-      column: relColumn,
-      view: childView,
-      filters: filterObj,
-      args,
-      qb,
-      rowId: pid,
-    });
-
-    return (
-      await this.execAndParse(qb, await childTable.getColumns(this.context), {
-        raw: true,
-        first: true,
-      })
-    )?.count;
+    return relationListCount({
+      baseModel: this,
+      logger,
+    }).getMmChildrenExcludedListCount({ colId, pid }, args);
   }
 
   // todo: naming & optimizing
@@ -2523,128 +2430,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     { colId, pid = null },
     args,
   ): Promise<any> {
-    const { where, sort, ...rest } = this._getListArgs(args as any);
-    const relColumn = (await this.model.getColumns(this.context)).find(
-      (c) => c.id === colId,
-    );
-    const relColOptions = (await relColumn.getColOptions(
-      this.context,
-    )) as LinkToAnotherRecordColumn;
-
-    const mmTable = await relColOptions.getMMModel(this.context);
-    const assocBaseModel = await Model.getBaseModelSQL(this.context, {
-      id: mmTable.id,
-      dbDriver: this.dbDriver,
-    });
-
-    const vtn = assocBaseModel.getTnPath(mmTable);
-    const vcn = (await relColOptions.getMMChildColumn(this.context))
-      .column_name;
-    const vrcn = (await relColOptions.getMMParentColumn(this.context))
-      .column_name;
-    const rcn = (await relColOptions.getParentColumn(this.context)).column_name;
-    const cn = (await relColOptions.getChildColumn(this.context)).column_name;
-
-    const childTable = await (
-      await relColOptions.getParentColumn(this.context)
-    ).getModel(this.context);
-    const parentTable = await (
-      await relColOptions.getChildColumn(this.context)
-    ).getModel(this.context);
-    await parentTable.getColumns(this.context);
-    const parentBaseModel = await Model.getBaseModelSQL(this.context, {
-      id: parentTable.id,
-      dbDriver: this.dbDriver,
-    });
-    const childBaseModel = await Model.getBaseModelSQL(this.context, {
-      dbDriver: this.dbDriver,
-      id: childTable.id,
-    });
-    const childTn = childBaseModel.getTnPath(childTable);
-    const parentTn = parentBaseModel.getTnPath(parentTable);
-
-    const childView = await relColOptions.getChildView(
-      this.context,
-      childTable,
-    );
-    let listArgs: any = {};
-    if (childView) {
-      const { dependencyFields } = await getAst(this.context, {
-        model: childTable,
-        query: {},
-        view: childView,
-        throwErrorIfInvalidParams: false,
-      });
-      listArgs = dependencyFields;
-    }
-
-    const rtn = childTn;
-
-    const qb = this.dbDriver(rtn).where((qb) =>
-      qb
-        .whereNotIn(
-          rcn,
-          this.dbDriver(rtn)
-            .select(`${rtn}.${rcn}`)
-            .join(vtn, `${rtn}.${rcn}`, `${vtn}.${vrcn}`)
-            .whereIn(
-              `${vtn}.${vcn}`,
-              this.dbDriver(parentTn)
-                .select(cn)
-                // .where(parentTable.primaryKey.cn, pid)
-                .where(_wherePk(parentTable.primaryKeys, pid)),
-            ),
-        )
-        .orWhereNull(rcn),
-    );
-
-    if (+rest?.shuffle) {
-      await this.shuffle({ qb });
-    }
-
-    await childBaseModel.selectObject({
-      qb,
-      fieldsSet: listArgs?.fieldsSet,
-      viewId: childView?.id,
-    });
-
-    const aliasColObjMap = await childTable.getAliasColObjMap(this.context);
-    const { filters: filterObj } = extractFilterFromXwhere(
-      this.context,
-      where,
-      aliasColObjMap,
-    );
-
-    await this.getCustomConditionsAndApply({
-      column: relColumn,
-      view: relColOptions.fk_target_view_id ? childView : null,
-      filters: filterObj,
-      args,
-      qb,
-      rowId: pid,
-    });
-
-    await this.applySortAndFilter({
-      table: childTable,
-      view: childView,
-      qb,
-      sort,
-      where,
-      // condition is applied in getCustomConditionsAndApply and we don't want to apply it again
-      onlySort: true,
-    });
-
-    applyPaginate(qb, rest);
-
-    const proto = await childBaseModel.getProto();
-    const data = await this.execAndParse(
-      qb,
-      await childTable.getColumns(this.context),
-    );
-    return data.map((c) => {
-      c.__proto__ = proto;
-      return c;
-    });
+    return relationListCount({
+      baseModel: this,
+      logger,
+    }).getMmChildrenExcludedList({ colId, pid }, args);
   }
 
   // todo: naming & optimizing
@@ -2652,94 +2441,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     { colId, pid = null },
     args,
   ): Promise<any> {
-    const { where, sort, ...rest } = this._getListArgs(args as any);
-    const relColumn = (await this.model.getColumns(this.context)).find(
-      (c) => c.id === colId,
-    );
-    const relColOptions = (await relColumn.getColOptions(
-      this.context,
-    )) as LinkToAnotherRecordColumn;
-
-    const cn = (await relColOptions.getChildColumn(this.context)).column_name;
-    const rcn = (await relColOptions.getParentColumn(this.context)).column_name;
-    const childTable = await (
-      await relColOptions.getChildColumn(this.context)
-    ).getModel(this.context);
-    const parentTable = await (
-      await relColOptions.getParentColumn(this.context)
-    ).getModel(this.context);
-    const childBaseModel = await Model.getBaseModelSQL(this.context, {
-      dbDriver: this.dbDriver,
-      model: childTable,
-    });
-    const parentBaseModel = await Model.getBaseModelSQL(this.context, {
-      dbDriver: this.dbDriver,
-      model: parentTable,
-    });
-    await parentTable.getColumns(this.context);
-
-    const childView = await relColOptions.getChildView(
-      this.context,
-      childTable,
-    );
-
-    const childTn = childBaseModel.getTnPath(childTable);
-    const parentTn = parentBaseModel.getTnPath(parentTable);
-
-    const tn = childTn;
-    const rtn = parentTn;
-
-    const qb = this.dbDriver(tn).where((qb) => {
-      qb.whereNotIn(
-        cn,
-        this.dbDriver(rtn)
-          .select(rcn)
-          // .where(parentTable.primaryKey.cn, pid)
-          .where(_wherePk(parentTable.primaryKeys, pid)),
-      ).orWhereNull(cn);
-    });
-
-    if (+rest?.shuffle) {
-      await this.shuffle({ qb });
-    }
-
-    await childBaseModel.selectObject({ qb });
-
-    const aliasColObjMap = await childTable.getAliasColObjMap(this.context);
-    const { filters: filterObj } = extractFilterFromXwhere(
-      this.context,
-      where,
-      aliasColObjMap,
-    );
-    await this.getCustomConditionsAndApply({
-      column: relColumn,
-      view: relColOptions.fk_target_view_id ? childView : null,
-      filters: filterObj,
-      args,
-      qb,
-      rowId: pid,
-    });
-    await this.applySortAndFilter({
-      table: childTable,
-      view: childView,
-      qb,
-      sort,
-      where,
-      // condition is applied in getCustomConditionsAndApply and we don't want to apply it again
-      onlySort: true,
-    });
-
-    applyPaginate(qb, rest);
-
-    const proto = await childBaseModel.getProto();
-    const data = await this.execAndParse(
-      qb,
-      await childTable.getColumns(this.context),
-    );
-    return data.map((c) => {
-      c.__proto__ = proto;
-      return c;
-    });
+    return relationListCount({
+      baseModel: this,
+      logger,
+    }).getHmChildrenExcludedList({ colId, pid }, args);
   }
 
   // todo: naming & optimizing
@@ -2747,68 +2452,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     { colId, pid = null },
     args,
   ): Promise<any> {
-    const { where } = this._getListArgs(args as any);
-    const relColumn = (await this.model.getColumns(this.context)).find(
-      (c) => c.id === colId,
-    );
-
-    const relColOptions = (await relColumn.getColOptions(
-      this.context,
-    )) as LinkToAnotherRecordColumn;
-
-    const cn = (await relColOptions.getChildColumn(this.context)).column_name;
-    const rcn = (await relColOptions.getParentColumn(this.context)).column_name;
-    const childTable = await (
-      await relColOptions.getChildColumn(this.context)
-    ).getModel(this.context);
-    const parentTable = await (
-      await relColOptions.getParentColumn(this.context)
-    ).getModel(this.context);
-
-    const childView = await relColOptions.getChildView(this.context);
-
-    const childBaseModel = await Model.getBaseModelSQL(this.context, {
-      dbDriver: this.dbDriver,
-      model: childTable,
-    });
-
-    const childTn = childBaseModel.getTnPath(childTable);
-    const parentTn = this.getTnPath(parentTable);
-
-    const tn = childTn;
-    const rtn = parentTn;
-    await parentTable.getColumns(this.context);
-
-    const qb = this.dbDriver(tn)
-      .count(`*`, { as: 'count' })
-      .where((qb) => {
-        qb.whereNotIn(
-          cn,
-          this.dbDriver(rtn)
-            .select(rcn)
-            // .where(parentTable.primaryKey.cn, pid)
-            .where(_wherePk(parentTable.primaryKeys, pid)),
-        ).orWhereNull(cn);
-      });
-
-    const aliasColObjMap = await childTable.getAliasColObjMap(this.context);
-    const { filters: filterObj } = extractFilterFromXwhere(
-      this.context,
-      where,
-      aliasColObjMap,
-    );
-
-    await this.getCustomConditionsAndApply({
-      column: relColumn,
-      view: childView,
-      filters: filterObj,
-      args,
-      qb,
-      rowId: pid,
-    });
-
-    return (await this.execAndParse(qb, null, { raw: true, first: true }))
-      ?.count;
+    return relationListCount({
+      baseModel: this,
+      logger,
+    }).getHmChildrenExcludedListCount({ colId, pid }, args);
   }
 
   // todo: naming & optimizing
@@ -2816,120 +2463,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     { colId, cid = null },
     args,
   ): Promise<any> {
-    const { where, sort, ...rest } = this._getListArgs(args as any);
-    const relColumn = (await this.model.getColumns(this.context)).find(
-      (c) => c.id === colId,
-    );
-    const relColOptions = (await relColumn.getColOptions(
-      this.context,
-    )) as LinkToAnotherRecordColumn;
-
-    const rcn = (await relColOptions.getParentColumn(this.context)).column_name;
-    const parentTable = await (
-      await relColOptions.getParentColumn(this.context)
-    ).getModel(this.context);
-    const cn = (await relColOptions.getChildColumn(this.context)).column_name;
-    const childTable = await (
-      await relColOptions.getChildColumn(this.context)
-    ).getModel(this.context);
-    const parentModel = await Model.getBaseModelSQL(this.context, {
-      dbDriver: this.dbDriver,
-      model: parentTable,
-    });
-    const childModel = await Model.getBaseModelSQL(this.context, {
-      dbDriver: this.dbDriver,
-      model: childTable,
-    });
-
-    // one-to-one relation is combination of both hm and bt to identify table which have
-    // foreign key column(similar to bt) we are adding a boolean flag `bt` under meta
-    const isBt = relColumn.meta?.bt;
-
-    const targetView = await relColOptions.getChildView(
-      this.context,
-      isBt ? parentTable : childTable,
-    );
-    let listArgs: any = {};
-    if (targetView) {
-      const { dependencyFields } = await getAst(this.context, {
-        model: isBt ? parentTable : childTable,
-        query: {},
-        view: targetView,
-        throwErrorIfInvalidParams: false,
-      });
-      listArgs = dependencyFields;
-    }
-
-    const rtn = this.getTnPath(parentTable);
-    const tn = this.getTnPath(childTable);
-    await childTable.getColumns(this.context);
-
-    const qb = this.dbDriver(isBt ? rtn : tn).where((qb) => {
-      qb.whereNotIn(
-        isBt ? rcn : cn,
-        this.dbDriver(isBt ? tn : rtn)
-          .select(isBt ? cn : rcn)
-          .where(_wherePk((isBt ? childTable : parentTable).primaryKeys, cid))
-          .whereNotNull(isBt ? cn : rcn),
-      ).orWhereNull(isBt ? rcn : cn);
-    });
-
-    if (+rest?.shuffle) {
-      await this.shuffle({ qb });
-    }
-
-    // pre-load columns for later user
-    await parentTable.getColumns(this.context);
-    await childTable.getColumns(this.context);
-
-    await (isBt ? parentModel : childModel).selectObject({
-      qb,
-      fieldsSet: listArgs.fieldsSet,
-      viewId: targetView?.id,
-    });
-
-    // extract col-alias map based on the correct relation table
-    const aliasColObjMap = await (relColumn.meta?.bt
-      ? parentTable
-      : childTable
-    ).getAliasColObjMap(this.context);
-    const { filters: filterObj } = extractFilterFromXwhere(
-      this.context,
-      where,
-      aliasColObjMap,
-    );
-
-    await this.getCustomConditionsAndApply({
-      column: relColumn,
-      view: relColOptions.fk_target_view_id ? targetView : null,
-      filters: filterObj,
-      args,
-      qb,
-      rowId: cid,
-    });
-
-    await this.applySortAndFilter({
-      table: isBt ? parentTable : childTable,
-      view: targetView,
-      qb,
-      sort,
-      where,
-      // condition is applied in getCustomConditionsAndApply and we don't want to apply it again
-      onlySort: true,
-    });
-
-    applyPaginate(qb, rest);
-
-    const proto = await (isBt ? parentModel : childModel).getProto();
-    const data = await this.execAndParse(
-      qb,
-      await (isBt ? parentTable : childTable).getColumns(this.context),
-    );
-
-    return data.map((c) => {
-      c.__proto__ = proto;
-      return c;
-    });
+    return relationListCount({
+      baseModel: this,
+      logger,
+    }).getExcludedOneToOneChildrenList({ colId, cid }, args);
   }
 
   // todo: naming & optimizing
@@ -2937,68 +2474,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     { colId, cid = null },
     args,
   ): Promise<any> {
-    const { where } = this._getListArgs(args as any);
-    const relColumn = (await this.model.getColumns(this.context)).find(
-      (c) => c.id === colId,
-    );
-    const relColOptions = (await relColumn.getColOptions(
-      this.context,
-    )) as LinkToAnotherRecordColumn;
-
-    const rcn = (await relColOptions.getParentColumn(this.context)).column_name;
-    const parentTable = await (
-      await relColOptions.getParentColumn(this.context)
-    ).getModel(this.context);
-    const cn = (await relColOptions.getChildColumn(this.context)).column_name;
-    const childTable = await (
-      await relColOptions.getChildColumn(this.context)
-    ).getModel(this.context);
-
-    const parentBaseModel = await Model.getBaseModelSQL(this.context, {
-      dbDriver: this.dbDriver,
-      model: parentTable,
-    });
-
-    const childTn = this.getTnPath(childTable);
-    const parentTn = parentBaseModel.getTnPath(parentTable);
-
-    const rtn = parentTn;
-    const tn = childTn;
-    await childTable.getColumns(this.context);
-
-    const qb = this.dbDriver(rtn)
-      .where((qb) => {
-        qb.whereNotIn(
-          rcn,
-          this.dbDriver(tn)
-            .select(cn)
-            // .where(childTable.primaryKey.cn, cid)
-            .where(_wherePk(childTable.primaryKeys, cid))
-            .whereNotNull(cn),
-        );
-      })
-      .count(`*`, { as: 'count' });
-
-    const aliasColObjMap = await parentTable.getAliasColObjMap(this.context);
-    const { filters: filterObj } = extractFilterFromXwhere(
-      this.context,
-      where,
-      aliasColObjMap,
-    );
-
-    const targetView = await relColOptions.getChildView(this.context);
-
-    await this.getCustomConditionsAndApply({
-      column: relColumn,
-      view: targetView,
-      filters: filterObj,
-      args,
-      qb,
-      rowId: cid,
-    });
-
-    return (await this.execAndParse(qb, null, { raw: true, first: true }))
-      ?.count;
+    return relationListCount({
+      baseModel: this,
+      logger,
+    }).getBtChildrenExcludedListCount({ colId, cid }, args);
   }
 
   // todo: naming & optimizing
@@ -3006,81 +2485,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     { colId, cid = null },
     args,
   ): Promise<any> {
-    const { where } = this._getListArgs(args as any);
-    const relColumn = (await this.model.getColumns(this.context)).find(
-      (c) => c.id === colId,
-    );
-    const relColOptions = (await relColumn.getColOptions(
-      this.context,
-    )) as LinkToAnotherRecordColumn;
-
-    const rcn = (await relColOptions.getParentColumn(this.context)).column_name;
-    const parentTable = await (
-      await relColOptions.getParentColumn(this.context)
-    ).getModel(this.context);
-    const cn = (await relColOptions.getChildColumn(this.context)).column_name;
-    const childTable = await (
-      await relColOptions.getChildColumn(this.context)
-    ).getModel(this.context);
-
-    const childView = await relColOptions.getChildView(this.context);
-    const parentBaseModel = await Model.getBaseModelSQL(this.context, {
-      dbDriver: this.dbDriver,
-      model: parentTable,
-    });
-    const childBaseModel = await Model.getBaseModelSQL(this.context, {
-      dbDriver: this.dbDriver,
-      model: childTable,
-    });
-    const childTn = childBaseModel.getTnPath(childTable);
-    const parentTn = parentBaseModel.getTnPath(parentTable);
-
-    const rtn = parentTn;
-    const tn = childTn;
-
-    // pre-load columns for later user
-    await childTable.getColumns(this.context);
-    await parentTable.getColumns(this.context);
-
-    // one-to-one relation is combination of both hm and bt to identify table which have
-    // foreign key column(similar to bt) we are adding a boolean flag `bt` under meta
-    const isBt = relColumn.meta?.bt;
-
-    const qb = this.dbDriver(isBt ? rtn : tn)
-      .where((qb) => {
-        qb.whereNotIn(
-          isBt ? rcn : cn,
-          this.dbDriver(isBt ? tn : rtn)
-            .select(isBt ? cn : rcn)
-            .where(_wherePk((isBt ? childTable : parentTable).primaryKeys, cid))
-            .whereNotNull(isBt ? cn : rcn),
-        ).orWhereNull(isBt ? rcn : cn);
-      })
-      .count(`*`, { as: 'count' });
-
-    // extract col-alias map based on the correct relation table
-    const aliasColObjMap = await (relColumn.meta?.bt
-      ? parentTable
-      : childTable
-    ).getAliasColObjMap(this.context);
-
-    const { filters: filterObj } = extractFilterFromXwhere(
-      this.context,
-      where,
-      aliasColObjMap,
-    );
-
-    await this.getCustomConditionsAndApply({
-      column: relColumn,
-      view: childView,
-      filters: filterObj,
-      args,
-      qb,
-      rowId: cid,
-    });
-
-    return (await this.execAndParse(qb, null, { raw: true, first: true }))
-      ?.count;
+    return relationListCount({
+      baseModel: this,
+      logger,
+    }).countExcludedOneToOneChildren({ colId, cid }, args);
   }
 
   // todo: naming & optimizing
@@ -3088,94 +2496,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     { colId, cid = null },
     args,
   ): Promise<any> {
-    const { where, sort, ...rest } = this._getListArgs(args as any);
-    const relColumn = (await this.model.getColumns(this.context)).find(
-      (c) => c.id === colId,
-    );
-    const relColOptions = (await relColumn.getColOptions(
-      this.context,
-    )) as LinkToAnotherRecordColumn;
-
-    const rcn = (await relColOptions.getParentColumn(this.context)).column_name;
-    const parentTable = await (
-      await relColOptions.getParentColumn(this.context)
-    ).getModel(this.context);
-    const cn = (await relColOptions.getChildColumn(this.context)).column_name;
-    const childTable = await (
-      await relColOptions.getChildColumn(this.context)
-    ).getModel(this.context);
-    const parentBaseModel = await Model.getBaseModelSQL(this.context, {
-      dbDriver: this.dbDriver,
-      model: parentTable,
-    });
-
-    const childTn = this.getTnPath(childTable);
-    const parentTn = parentBaseModel.getTnPath(parentTable);
-
-    const rtn = parentTn;
-    const tn = childTn;
-    await childTable.getColumns(this.context);
-
-    const qb = this.dbDriver(rtn).where((qb) => {
-      qb.whereNotIn(
-        rcn,
-        this.dbDriver(tn)
-          .select(cn)
-          // .where(childTable.primaryKey.cn, cid)
-          .where(_wherePk(childTable.primaryKeys, cid))
-          .whereNotNull(cn),
-      );
-    });
-
-    if (+rest?.shuffle) {
-      await this.shuffle({ qb });
-    }
-
-    await parentBaseModel.selectObject({ qb });
-
-    const aliasColObjMap = await parentTable.getAliasColObjMap(this.context);
-    const { filters: filterObj } = extractFilterFromXwhere(
-      this.context,
-      where,
-      aliasColObjMap,
-    );
-
-    const targetView = await relColOptions.getChildView(
-      this.context,
-      parentTable,
-    );
-    await this.getCustomConditionsAndApply({
-      column: relColumn,
-      view: relColOptions.fk_target_view_id ? targetView : null,
-      filters: filterObj,
-      args,
-      qb,
-      rowId: cid,
-    });
-
-    await this.applySortAndFilter({
-      table: parentTable,
-      view: targetView,
-      qb,
-      sort,
-      where,
-      // condition is applied in getCustomConditionsAndApply and we don't want to apply it again
-      onlySort: true,
-    });
-
-    applyPaginate(qb, rest);
-
-    const proto = await parentBaseModel.getProto();
-    const data = await this.execAndParse(
-      qb,
-      await parentTable.getColumns(this.context),
-    );
-
-    return data.map((c) => {
-      c.__proto__ = proto;
-      return c;
-    });
+    return relationListCount({
+      baseModel: this,
+      logger,
+    }).getBtChildrenExcludedList({ colId, cid }, args);
   }
+  // #endregion relation list count part 2
 
   protected async applySortAndFilter({
     table,
@@ -10066,189 +9392,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   getViewId() {
     return this.viewId;
   }
-}
-
-export function extractSortsObject(
-  _sorts: string | string[],
-  aliasColObjMap: { [columnAlias: string]: Column },
-  throwErrorIfInvalid = false,
-): Sort[] {
-  if (!_sorts?.length) return;
-
-  let sorts = _sorts;
-  if (!Array.isArray(sorts)) sorts = sorts.split(/\s*,\s*/);
-
-  return sorts.map((s) => {
-    const sort: SortType = { direction: 'asc' };
-    if (s.startsWith('-')) {
-      sort.direction = 'desc';
-      sort.fk_column_id = aliasColObjMap[s.slice(1)]?.id;
-    } else if (s.startsWith('~-')) {
-      sort.direction = 'count-desc';
-      sort.fk_column_id = aliasColObjMap[s.slice(2)]?.id;
-    } else if (s.startsWith('~+')) {
-      sort.direction = 'count-asc';
-      sort.fk_column_id = aliasColObjMap[s.slice(2)]?.id;
-    }
-    // replace + at the beginning if present
-    else {
-      sort.fk_column_id = aliasColObjMap[s.replace(/^\+/, '')]?.id;
-    }
-
-    if (throwErrorIfInvalid && !sort.fk_column_id)
-      NcError.fieldNotFound(s.replace(/^[+-]/, ''));
-    return new Sort(sort);
-  });
-}
-
-function applyPaginate(
-  query,
-  {
-    limit = 25,
-    offset = 0,
-    ignoreLimit = false,
-  }: XcFilter & { ignoreLimit?: boolean },
-) {
-  query.offset(offset);
-  if (!ignoreLimit) query.limit(limit);
-  return query;
-}
-
-export function haveFormulaColumn(columns: Column[]) {
-  return columns.some((c) => c.uidt === UITypes.Formula);
-}
-
-function shouldSkipField(
-  fieldsSet,
-  viewOrTableColumn,
-  view,
-  column,
-  extractPkAndPv,
-) {
-  if (fieldsSet) {
-    return !fieldsSet.has(column.title);
-  } else {
-    if (column.system && isCreatedOrLastModifiedByCol(column)) return true;
-    if (column.system && isOrderCol(column)) return true;
-    if (!extractPkAndPv) {
-      if (!(viewOrTableColumn instanceof Column)) {
-        if (
-          !(viewOrTableColumn as GridViewColumn)?.show &&
-          !(column.rqd && !column.cdf && !column.ai) &&
-          !column.pk &&
-          column.uidt !== UITypes.ForeignKey
-        )
-          return true;
-        if (
-          !view?.show_system_fields &&
-          column.uidt !== UITypes.ForeignKey &&
-          !column.pk &&
-          isSystemColumn(column)
-        )
-          return true;
-      }
-    }
-    return false;
-  }
-}
-
-export function getListArgs(
-  args: XcFilterWithAlias,
-  model: Model,
-  {
-    ignoreAssigningWildcardSelect = false,
-    apiVersion = NcApiVersion.V2,
-    nested = false,
-  } = {},
-): XcFilter {
-  const obj: XcFilter = {};
-  obj.where = args.where || args.filter || args.w || '';
-  obj.having = args.having || args.h || '';
-  obj.shuffle = args.shuffle || args.r || '';
-  obj.condition = args.condition || args.c || {};
-  obj.conditionGraph = args.conditionGraph || {};
-  obj.page = args.page || args.p;
-  if (apiVersion === NcApiVersion.V3 && nested) {
-    if (obj.nestedLimit) {
-      obj.limit = obj.limit = Math.max(
-        Math.min(
-          Math.max(+obj.nestedLimit, 0) || BaseModelSqlv2.config.limitDefault,
-          BaseModelSqlv2.config.limitMax,
-        ),
-        BaseModelSqlv2.config.limitMin,
-      );
-    } else {
-      obj.limit = BaseModelSqlv2.config.ltarV3Limit;
-    }
-  } else {
-    obj.limit = Math.max(
-      Math.min(
-        Math.max(+(args?.limit || args?.l), 0) ||
-          BaseModelSqlv2.config.limitDefault,
-        BaseModelSqlv2.config.limitMax,
-      ),
-      BaseModelSqlv2.config.limitMin,
-    );
-  }
-  obj.offset = Math.max(+(args?.offset || args?.o) || 0, 0);
-  if (obj.page) {
-    obj.offset = (+obj.page - 1) * +obj.limit;
-  }
-  obj.fields =
-    args?.fields || args?.f || (ignoreAssigningWildcardSelect ? null : '*');
-  obj.sort = args?.sort || args?.s || model.primaryKey?.[0]?.column_name;
-  obj.pks = args?.pks;
-  obj.aggregation = args.aggregation || [];
-  obj.column_name = args.column_name;
-  return obj;
-}
-
-function extractIds(
-  childIds: (string | number | Record<string, any>)[],
-  isBt = false,
-) {
-  return (isBt ? childIds.slice(0, 1) : childIds).map((r) =>
-    typeof r === 'object' ? JSON.stringify(r) : `${r}`,
-  );
-}
-
-export function formatDataForAudit(
-  data: Record<string, unknown>,
-  columns: Column[],
-) {
-  if (!data || typeof data !== 'object') return data;
-  const res = {};
-
-  for (const column of columns) {
-    if (isSystemColumn(column) || isVirtualCol(column)) continue;
-
-    if (!(column.title in data)) {
-      continue;
-    }
-
-    res[column.title] = data[column.title];
-
-    // if multi-select column, convert string to array
-    if (column.uidt === UITypes.MultiSelect) {
-      if (res[column.title] && typeof res[column.title] === 'string') {
-        res[column.title] = (res[column.title] as string).split(',');
-      }
-    }
-    // if attachment then exclude signed url and thumbnail
-    else if (column.uidt === UITypes.Attachment) {
-      if (res[column.title] && Array.isArray(res[column.title])) {
-        try {
-          res[column.title] = (res[column.title] as any[]).map((attachment) =>
-            excludeAttachmentProps(attachment),
-          );
-        } catch {
-          // ignore
-        }
-      }
-    }
-  }
-
-  return res;
 }
 
 export { BaseModelSqlv2 };

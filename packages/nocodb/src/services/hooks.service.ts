@@ -266,7 +266,7 @@ export class HooksService {
     context: NcContext,
     param: {
       tableId: string;
-      operation: HookType['operation'];
+      operation: HookType['operation'][0];
       version: any; // HookType['version'];
     },
   ) {
@@ -279,14 +279,14 @@ export class HooksService {
         context,
         model,
         false,
-        param.operation[0],
+        param.operation,
       );
     }
     return await populateSamplePayloadV2(
       context,
       model,
       false,
-      param.operation[0],
+      param.operation,
     );
   }
 

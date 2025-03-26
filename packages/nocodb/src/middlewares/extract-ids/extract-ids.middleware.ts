@@ -82,11 +82,8 @@ export function getRolesLabels(
     .map((role) => rolesLabel[role]);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const logger: Logger = new Logger('AclMiddleware');
-
-const workspacesOnThisServer: string[] = !process.env.NC_WORKSPACE_ID
-  ? [] // If process.env.NC_WORKSPACE_ID is empty, set workspaceIds to an empty array
-  : process.env.NC_WORKSPACE_ID.split(',').map((value) => value.trim());
 
 const getApiVersionFromUrl = (url: string) => {
   if (url.startsWith('/api/v3')) return NcApiVersion.V3;
@@ -459,16 +456,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncBaseId = base.id;
     }
 
-    if (req.route.path === '/api/v1/workspaces/:workspaceId/status') {
-      // skip workspace id check for workspace status update endpoint which is used internally
-    } else if (req.ncWorkspaceId && workspacesOnThisServer.length) {
-      if (!workspacesOnThisServer.includes(req.ncWorkspaceId)) {
-        logger.error(
-          `Requested workspace id: ${req.ncWorkspaceId} does not match with listed domain names, This can happen due to incorrect routing rules in LB`,
-        );
-      }
-    }
-
     // if view API and view is pesonal view then check if user has access to view
     if (view && view.lock_type === ViewLockType.Personal) {
       req[VIEW_KEY] = view;
@@ -478,9 +465,13 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncOrgId = req.params.orgId;
     }
 
+    if (!req.ncWorkspaceId) {
+      req.ncWorkspaceId = Noco.ncDefaultWorkspaceId;
+    }
+
     req.context = {
       org_id: req.ncOrgId,
-      workspace_id: req.ncWorkspaceId || Noco.ncDefaultWorkspaceId,
+      workspace_id: req.ncWorkspaceId,
       base_id: req.ncBaseId,
       api_version: context.api_version,
     };

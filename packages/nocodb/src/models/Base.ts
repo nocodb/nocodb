@@ -1,5 +1,10 @@
 import { Logger } from '@nestjs/common';
-import type { BaseType, BoolType, MetaType } from 'nocodb-sdk';
+import {
+  type BaseType,
+  type BoolType,
+  type MetaType,
+  ProjectTypes,
+} from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
 import type { NcContext } from '~/interface/config';
 import { BaseUser, CustomUrl, DataReflection, Source } from '~/models';
@@ -77,6 +82,11 @@ export default class Base implements BaseType {
     // set default meta if not present
     else if (!('meta' in insertObj)) {
       insertObj.meta = '{"iconColor":"#36BFFF"}';
+    }
+
+    // set as db if not set
+    if (!insertObj.type) {
+      insertObj.type = ProjectTypes.DATABASE;
     }
 
     insertObj.fk_workspace_id = Noco.ncDefaultWorkspaceId;

@@ -219,7 +219,7 @@ onUnmounted(() => {
     @keydown.esc="dialogShow = false"
   >
     <div class="text-base font-weight-bold flex items-center gap-4 mb-6">
-      <GeneralIcon icon="nocodb" class="w-6 h-6" @dblclick="advancedOptionsCounter++" />
+      <GeneralIcon icon="nocodb1" class="w-6 h-6" @dblclick="advancedOptionsCounter++" />
 
       <span v-if="step === 1">
         {{ $t('title.quickImportNocoDB') }}

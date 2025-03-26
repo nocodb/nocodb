@@ -11,8 +11,6 @@ const column = inject(ColumnInj) as Ref<ColumnType & { colOptions: { error: any 
 
 const cellValue = inject(CellValueInj)
 
-const active = inject(ActiveCellInj, ref(false))
-
 const { isPg } = useBase()
 
 const result = computed(() =>

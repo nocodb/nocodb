@@ -306,7 +306,7 @@ const collapseKey = ref('')
       <a
         v-if="step === 1"
         href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
-        class="!text-gray-500 prose-sm ml-auto"
+        class="!text-nc-content-gray-subtle2 text-sm font-weight-500 ml-auto"
         target="_blank"
         rel="noopener"
       >
@@ -319,23 +319,30 @@ const collapseKey = ref('')
     </div>
 
     <div v-if="step === 1">
-      <a-form ref="form" :model="syncSource" name="quick-import-airtable-form" layout="horizontal" class="m-0">
-        <a-form-item v-bind="validateInfos['details.apiKey']">
+      <a-form
+        ref="form"
+        :model="syncSource"
+        name="quick-import-airtable-form"
+        layout="vertical"
+        class="m-0 !text-nc-content-gray"
+      >
+        <a-form-item v-bind="validateInfos['details.apiKey']" class="!my-5">
           <div class="flex items-end">
-            <label> {{ $t('labels.personalAccessToken') }} </label>
+            <label class="text-nc-content-gray text-sm"> {{ $t('labels.personalAccessToken') }} </label>
             <a
               href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
-              class="!text-brand prose-sm ml-auto"
+              class="!text-brand text-sm ml-auto"
               target="_blank"
               rel="noopener"
             >
               {{ $t('labels.whereToFind') }}
             </a>
           </div>
+
           <a-input-password
             v-model:value="syncSource.details.apiKey"
             placeholder="Enter your Airtable Personal Access Token"
-            class="!rounded-lg mt-2 nc-input-api-key"
+            class="!rounded-lg mt-2 nc-input-api-key nc-input-shadow !text-nc-content-gray"
           >
             <template #iconRender="isVisible">
               <GeneralIcon :icon="!isVisible ? 'ncEye' : 'ncEyeOff'" />
@@ -343,12 +350,12 @@ const collapseKey = ref('')
           </a-input-password>
         </a-form-item>
 
-        <a-form-item v-bind="validateInfos['details.syncSourceUrlOrId']" class="!mt-4 !mb-4">
-          <label> {{ `${$t('labels.sharedBase')} ID/URL` }} </label>
+        <a-form-item v-bind="validateInfos['details.syncSourceUrlOrId']" class="!my-5">
+          <label class="text-nc-content-gray text-sm"> {{ `${$t('labels.sharedBase')} ID/URL` }} </label>
           <a-input
             v-model:value="syncSource.details.syncSourceUrlOrId"
             placeholder="Paste the Base URL or Base ID from Airtable"
-            class="!rounded-lg !mt-2 nc-input-shared-base"
+            class="!rounded-lg !mt-2 nc-input-shared-base nc-input-shadow !text-nc-content-gray"
           />
         </a-form-item>
 
@@ -364,37 +371,37 @@ const collapseKey = ref('')
         <a-collapse v-model:active-key="collapseKey" ghost class="nc-import-collapse">
           <a-collapse-panel key="advanced-settings">
             <div class="mb-2">
-              <a-checkbox v-model:checked="syncSource.details.options.syncData">{{ $t('labels.importData') }}</a-checkbox>
+              <NcCheckbox v-model:checked="syncSource.details.options.syncData">{{ $t('labels.importData') }}</NcCheckbox>
             </div>
 
             <div class="my-2">
-              <a-checkbox v-model:checked="syncSource.details.options.syncViews">
+              <NcCheckbox v-model:checked="syncSource.details.options.syncViews">
                 {{ $t('labels.importSecondaryViews') }}
-              </a-checkbox>
+              </NcCheckbox>
             </div>
 
             <div class="my-2">
-              <a-checkbox v-model:checked="syncSource.details.options.syncRollup">
+              <NcCheckbox v-model:checked="syncSource.details.options.syncRollup">
                 {{ $t('labels.importRollupColumns') }}
-              </a-checkbox>
+              </NcCheckbox>
             </div>
 
             <div class="my-2">
-              <a-checkbox v-model:checked="syncSource.details.options.syncLookup">
+              <NcCheckbox v-model:checked="syncSource.details.options.syncLookup">
                 {{ $t('labels.importLookupColumns') }}
-              </a-checkbox>
+              </NcCheckbox>
             </div>
 
             <div class="my-2">
-              <a-checkbox v-model:checked="syncSource.details.options.syncAttachment">
+              <NcCheckbox v-model:checked="syncSource.details.options.syncAttachment">
                 {{ $t('labels.importAttachmentColumns') }}
-              </a-checkbox>
+              </NcCheckbox>
             </div>
 
             <div class="my-2">
-              <a-checkbox v-model:checked="syncSource.details.options.syncFormula" disabled>
+              <NcCheckbox v-model:checked="syncSource.details.options.syncFormula" disabled>
                 {{ $t('labels.importFormulaColumns') }}
-              </a-checkbox>
+              </NcCheckbox>
             </div>
           </a-collapse-panel>
         </a-collapse>
@@ -403,43 +410,39 @@ const collapseKey = ref('')
 
     <div v-if="step === 2">
       <GeneralProgressPanel v-show="detailsIsShown" ref="progressRef" class="w-full h-[200px]" />
-      <div v-show="!detailsIsShown" class="flex items-start gap-2">
+      <div v-show="!detailsIsShown" class="flex items-center gap-2">
         <template v-if="isInProgress">
-          <component :is="iconMap.loading" class="text-primary animate-spin mt-1" />
-          <span>
+          <GeneralLoader size="large" class="!mr-1" />
+          <span class="truncate">
             {{ lastProgress?.msg ?? '---' }}
           </span>
         </template>
         <template v-else-if="lastProgress?.status === JobStatus.FAILED">
-          <a-alert class="!rounded-lg !bg-transparent !border-gray-200 !p-3 !w-full">
-            >
-            <template #message>
-              <div class="flex flex-row items-center gap-2 mb-2">
-                <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
-                <span class="font-weight-700 text-[14px]">Import error</span>
-              </div>
-            </template>
-            <template #description>
-              <div class="text-gray-500 text-[13px] leading-5 ml-6">
-                {{ lastProgress?.msg ?? '---' }}
-              </div>
-            </template>
-          </a-alert>
+          <NcAlert
+            align="center"
+            type="error"
+            show-icon
+            message-class="!text-sm"
+            description-class="!text-small !leading-[18px]"
+            :copy-text="lastProgress?.msg"
+            :message="$t('msg.error.importError')"
+            :description="$t('msg.error.anErrorOccuredWhileAirtableBaseImport')"
+          />
         </template>
-        <div v-else class="flex items-start gap-3">
-          <GeneralIcon icon="checkFill" class="text-white w-4 h-4 mt-0.75" />
+        <div v-else class="flex items-center gap-3">
+          <GeneralIcon icon="checkFill" class="text-white w-4 h-4" />
           <span> {{ $t('msg.airtableImportSuccess') }} </span>
         </div>
       </div>
 
-      <div v-if="!isInProgress" class="text-right mt-4">
+      <div v-if="!isInProgress" class="text-right mt-5">
         <nc-button v-if="lastProgress?.status === JobStatus.FAILED" size="small" @click="step = 1"> Retry import </nc-button>
         <nc-button v-else size="small" @click="dialogShow = false"> Go to base </nc-button>
       </div>
     </div>
 
     <template #footer>
-      <div v-if="step === 1" class="flex justify-between mt-2">
+      <div v-if="step === 1" class="flex justify-between mt-5">
         <nc-button
           key="back"
           type="text"
@@ -476,6 +479,23 @@ const collapseKey = ref('')
 <style lang="scss" scoped>
 .nc-import-collapse :deep(.ant-collapse-header) {
   display: none !important;
+}
+.nc-import-collapse :deep(.ant-collapse-content-box) {
+  @apply !pb-0 !pt-2;
+}
+
+.nc-input-api-key {
+  :deep(.ant-input-password-icon) {
+    @apply !text-current !hover:text-current;
+  }
+}
+
+.nc-input-api-key,
+.nc-input-shared-base {
+  @apply !text-nc-content-gray;
+  input {
+    @apply !text-nc-content-gray;
+  }
 }
 </style>
 

@@ -14,7 +14,11 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     workerInitializationPromise = (async () => {
       if (!isWorkerSupport) return null
       try {
-        const worker = new Worker(await getCrossOriginWorkerURL(importWorkerUrl), { type: 'module' })
+        console.log('importWorkerUrl', importWorkerUrl)
+        const worker = new Worker(
+          await getCrossOriginWorkerURL(importWorkerUrl),
+          process.env.NODE_ENV === 'development' ? { type: 'module' } : undefined,
+        )
 
         worker.onerror = (error) => {
           console.error('Import worker error:', error)

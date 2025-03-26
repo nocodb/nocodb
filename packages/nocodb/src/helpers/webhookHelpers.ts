@@ -757,10 +757,17 @@ export async function invokeWebhook(
     switch (notification?.type) {
       case 'Email':
         {
+          const webhookData = {
+            // for backward compatibility keep the old data syntax, will be removed in future
+            ...newData,
+            // for new data syntax
+            ...constructWebHookData(hook, model, view, prevData, newData),
+          };
+
           const parsedPayload = {
-            to: parseBody(notification?.payload?.to, newData),
-            subject: parseBody(notification?.payload?.subject, newData),
-            html: parseBody(notification?.payload?.body, newData),
+            to: parseBody(notification?.payload?.to, webhookData),
+            subject: parseBody(notification?.payload?.subject, webhookData),
+            html: parseBody(notification?.payload?.body, webhookData),
           };
           const res = await (
             await NcPluginMgrv2.emailAdapter(false)
@@ -817,13 +824,20 @@ export async function invokeWebhook(
         break;
       default:
         {
+          const webhookData = {
+            // for backward compatibility keep the old data syntax, will be removed in future
+            ...newData,
+            // for new data syntax
+            ...constructWebHookData(hook, model, view, prevData, newData),
+          };
+
           const res = await (
             await NcPluginMgrv2.webhookNotificationAdapters(notification.type)
           ).sendMessage(
-            parseBody(notification?.payload?.body, newData),
+            parseBody(notification?.payload?.body, webhookData),
             JSON.parse(JSON.stringify(notification?.payload), (_key, value) => {
               return typeof value === 'string'
-                ? parseBody(value, newData)
+                ? parseBody(value, webhookData)
                 : value;
             }),
           );

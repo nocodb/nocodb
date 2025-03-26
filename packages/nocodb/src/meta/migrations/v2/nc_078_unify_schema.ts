@@ -1002,7 +1002,7 @@ const down = async (knex: Knex) => {
   });
 
   await knex.schema.alterTable(MetaTable.VIEWS, (table) => {
-    table.dropColumn('fk_custom_url');
+    table.dropColumn('fk_custom_url_id');
   });
 
   await knex.schema.alterTable(MetaTable.VIEWS, (table) => {

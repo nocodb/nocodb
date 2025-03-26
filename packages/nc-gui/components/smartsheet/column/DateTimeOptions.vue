@@ -144,6 +144,7 @@ const useSameTimezoneForAll = computed({
           v-model:value="vModel.meta.timezone"
           show-search
           allow-clear
+          :filter-option="(input, option) => antSelectFilterOption(input, option, ['key', 'data-abbreviation'])"
           dropdown-class-name="nc-dropdown-timezone"
           placeholder="Use same timezone for all collaborator"
           class="nc-search-timezone"
@@ -154,7 +155,12 @@ const useSameTimezoneForAll = computed({
           </template>
 
           <a-select-opt-group label="Suggested">
-            <a-select-option v-for="timezone of priorityTzs" :key="timezone.name" :value="timezone.name">
+            <a-select-option
+              v-for="timezone of priorityTzs"
+              :key="timezone.name"
+              :value="timezone.name"
+              :data-abbreviation="timezone.abbreviation"
+            >
               <div class="flex gap-2 w-full justify-between items-center">
                 <span class="font-650 text-[13px]">{{ timezone.name }}</span>
                 <div>
@@ -172,7 +178,12 @@ const useSameTimezoneForAll = computed({
             </a-select-option>
           </a-select-opt-group>
           <a-select-opt-group label="All">
-            <a-select-option v-for="timezone of timezones" :key="timezone.name" :value="timezone.name">
+            <a-select-option
+              v-for="timezone of timezones"
+              :key="timezone.name"
+              :value="timezone.name"
+              :data-abbreviation="timezone.abbreviation"
+            >
               <div class="flex gap-2 w-full justify-between items-center">
                 <span class="font-650 text-[13px]">{{ timezone.name }}</span>
                 <div>

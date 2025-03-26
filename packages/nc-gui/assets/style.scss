@@ -1331,3 +1331,7 @@ svg.nc-virtual-cell-icon {
     }
   }
 }
+
+.nc-truncate {
+  @apply max-w-full overflow-hidden whitespace-nowrap overflow-ellipsis;
+}

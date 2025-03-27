@@ -791,7 +791,7 @@ export function useCopyPaste({
     const col = columns.value[ctx.col]
     const rowObj = cachedRows.value.get(ctx.row)
 
-    if (!col || !col?.columnObj || !rowObj || col?.virtual) return
+    if (!col || !col?.columnObj || !rowObj) return
     const columnObj = col.columnObj
 
     if (

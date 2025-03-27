@@ -474,7 +474,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
     return
 
   // If the cell is readonly, return
-  if (colMeta.value[ctx.col].isReadonly) return
+  if (colMeta.value[ctx.col].isReadonly && !isVirtualCol(fields.value[ctx.col])) return
 
   // Get the row and column object
   const rowObj = cachedRows.value.get(ctx.row)

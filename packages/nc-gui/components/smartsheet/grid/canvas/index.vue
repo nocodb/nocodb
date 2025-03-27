@@ -29,7 +29,7 @@ import {
   MAX_SELECTED_ROWS,
   ROW_META_COLUMN_WIDTH,
 } from './utils/constants'
-import { calculateGroupRange } from './utils/groupby'
+import { generateGroupPath } from './utils/groupby'
 
 const props = defineProps<{
   totalRows: number
@@ -517,13 +517,21 @@ function closeAddColumnDropdownMenu(scrollToLastCol = false, savedColumn?: Colum
   }
 }
 
-function extractHoverMetaColRegions(row: Row) {
+function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
   const isAtMaxSelection = selectedRows.value.length >= MAX_SELECTED_ROWS
   const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection) || vSelectedAllRecords.value || readOnly.value
   const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
-  const isHover = hoverRow.value === row.rowMeta.rowIndex
+
+  const path = group ? generateGroupPath(group) : []
+
+  const isHover = hoverRow.value?.rowIndex === row.rowMeta.rowIndex && (hoverRow.value?.path ?? []).join() === path.join()
   const regions = []
   let currentX = 4
+
+  if (groupByColumns.value) {
+    currentX += groupByColumns.value?.length * 9
+  }
+
   let isCheckboxRendered = false
   if (isChecked || (selectedRows.value.length && isHover) || (isHover && !isRowReOrderEnabled.value && !readOnly.value)) {
     if (isChecked || isHover) {
@@ -594,9 +602,9 @@ const handleRowMetaClick = ({
   row: Row
   x: number
   onlyDrag?: boolean
-  group: CanvasGroup
+  group?: CanvasGroup
 }) => {
-  const { isAtMaxSelection, isCheckboxDisabled, regions } = extractHoverMetaColRegions(row)
+  const { isAtMaxSelection, isCheckboxDisabled, regions } = extractHoverMetaColRegions(row, group)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
 
@@ -632,8 +640,8 @@ const handleRowMetaClick = ({
 }
 
 // check exact row meta region hovered and return the cursor type
-const getRowMetaCursor = ({ row, x }: { row: Row; x: number }) => {
-  const { regions } = extractHoverMetaColRegions(row)
+const getRowMetaCursor = ({ row, x, group }: { row: Row; x: number; group?: CanvasGroup }) => {
+  const { regions } = extractHoverMetaColRegions(row, group)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
 
@@ -733,6 +741,8 @@ async function handleMouseDown(e: MouseEvent) {
   const group = element?.group
   const row = element?.row
   const rowIndex = element?.rowIndex
+  const groupPath = group ? generateGroupPath(group) : []
+
 
   if (!row) return
   // onMouseDown event, we only handle the fillHandler and selectionHandler
@@ -759,7 +769,7 @@ async function handleMouseDown(e: MouseEvent) {
 
   // If the new cell user clicked is not the active cell
   // call onActiveCellChanged to clear invalid rows and reorder records locally if required
-  if (rowIndex !== activeCell.value?.row) {
+  if (rowIndex !== activeCell.value?.row || groupPath.join('-') !== row?.rowMeta?.groupPath) {
     onActiveCellChanged()
   }
 
@@ -880,12 +890,11 @@ async function handleMouseUp(e: MouseEvent) {
   const clickType = getMouseClickType(e)
   if (!clickType) return
 
-  if (!isMobileMode.value) {
+  if (isMobileMode.value) {
     if (y > 32 && y < height.value - 36) {
-        const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
-        const group = element?.group
-        const row = element?.row
-        const rowIndex = element?.rowIndex
+      const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
+      const group = element?.group
+      const row = element?.row
       if (group && !row) {
         toggleExpand(group)
       } else if (row) {
@@ -1026,27 +1035,15 @@ async function handleMouseUp(e: MouseEvent) {
     return
   }
 
-  // #FIXME: If Groupby Handle it BRO @DarkPhoenix2704
-  // TODOOOOOO
-  if (isGroupBy.value) {
-    const { startIndex, endIndex } = calculateGroupRange(
-      cachedGroups.value,
-      scrollTop.value,
-      rowHeight.value,
-      totalGroups.value,
-      height.value,
-    )
+  const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
+  const group = element?.group
+  const rowIndex = element?.row?.rowMeta?.rowIndex
 
-    const groupIndex = Math.floor((y - 32) / (GROUP_HEADER_HEIGHT + GROUP_PADDING)) + startIndex
-
-    const group = cachedGroups.value.get(groupIndex)
-
+  if (!rowIndex && group) {
     toggleExpand(group)
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
-
-  const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
 
   if (
     rowIndex === totalRows.value &&
@@ -1070,13 +1067,13 @@ async function handleMouseUp(e: MouseEvent) {
   }
 
   if (x < 80) {
-    const row = cachedRows.value.get(rowIndex)
+    const row = group ? element?.row : cachedRows.value.get(rowIndex)
     if (!row) return
     if (![MouseClickType.SINGLE_CLICK, MouseClickType.RIGHT_CLICK].includes(clickType)) return
 
     switch (clickType) {
       case MouseClickType.SINGLE_CLICK:
-        handleRowMetaClick({ e, row, x })
+        handleRowMetaClick({ e, row, x, group: element?.group })
         break
       case MouseClickType.RIGHT_CLICK:
         if (isContextMenuAllowed.value) {
@@ -1374,8 +1371,14 @@ const handleMouseMove = (e: MouseEvent) => {
     if (y <= 32 && resizeableColumn.value) {
       resizeMouseMove(e)
     } else {
-      const row = elementMap.findElementAt(mousePosition.x, mousePosition.y)
-      hoverRow.value = row?.rowIndex
+      const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
+
+      if (element) {
+        hoverRow.value = {
+          rowIndex: element?.rowIndex,
+          path: generateGroupPath(element?.group),
+        }
+      }
       onMouseMoveSelectionHandler(e)
     }
     requestAnimationFrame(triggerRefreshCanvas)
@@ -1418,8 +1421,7 @@ const handleMouseMove = (e: MouseEvent) => {
     if (mousePosition.y <= height.value - 36) {
       const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
       const row = element?.row
-      const rowIndex = element?.rowIndex
-      cursor = getRowMetaCursor({ row, x: mousePosition.x }) || cursor
+      cursor = getRowMetaCursor({ row, x: mousePosition.x, group: element?.group }) || cursor
     }
   }
 
@@ -1463,7 +1465,8 @@ const handleScroll = (e: { left: number; top: number }) => {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect) return
 
-    hoverRow.value = Math.floor(scrollTop.value / rowHeight.value + (mousePosition.y - 32) / rowHeight.value)
+    // TODO: @DarkPhoenix2704
+    // hoverRow.value = Math.floor(scrollTop.value / rowHeight.value + (mousePosition.y - 32) / rowHeight.value)
     requestAnimationFrame(triggerRefreshCanvas)
   }, 150)
 }

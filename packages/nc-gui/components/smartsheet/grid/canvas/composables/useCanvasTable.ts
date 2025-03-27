@@ -117,9 +117,19 @@ export function useCanvasTable({
   const { metas, getMeta } = useMetas()
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
-  const activeCell = ref({ row: -1, column: -1, path: '' })
+  const activeCell = ref<{
+    row?: number
+    column?: number
+    path?: Array<number>
+  }>({ row: -1, column: -1, path: [] })
   const selection = ref(new CellRange())
-  const hoverRow = ref(-1)
+  const hoverRow = ref<{
+    path?: Array<number> | null
+    rowIndex: number
+  }>({
+    path: '',
+    rowIndex: -2,
+  })
   const editEnabled = ref<CanvasEditEnabledType>(null)
   const isFillMode = ref(false)
   const dragOver = ref<{ id: string; index: number } | null>(null)

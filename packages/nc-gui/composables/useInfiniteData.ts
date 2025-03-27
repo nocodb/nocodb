@@ -24,6 +24,7 @@ const formatData = (
     limit?: number
     offset?: number
   },
+  groupPath?: Array<number> | null,
 ) => {
   // If pageInfo exists, use it for calculation
   if (pageInfo?.page && pageInfo?.pageSize) {
@@ -35,6 +36,7 @@ const formatData = (
         rowMeta: {
           rowIndex,
           isLastRow: rowIndex === pageInfo.totalRows! - 1,
+          groupPath: groupPath ?? [],
         },
       }
     })
@@ -61,6 +63,7 @@ export function useInfiniteData(args: {
   disableSmartsheet?: boolean
   isPublic?: Ref<boolean>
   disableInjection?: boolean
+  groupPath?: Array<number> | null
 }) {
   const NOCO = 'noco'
   const { meta, viewMeta, callbacks, where, disableSmartsheet, isPublic, disableInjection } = args
@@ -280,7 +283,7 @@ export function useInfiniteData(args: {
             },
           )
 
-      const data = formatData(response.list, response.pageInfo, params)
+      const data = formatData(response.list, response.pageInfo, params, args?.groupPath)
 
       loadAggCommentsCount(data)
 

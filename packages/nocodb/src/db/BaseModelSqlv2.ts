@@ -29,7 +29,6 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import Validator from 'validator';
-import { customAlphabet } from 'nanoid';
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '@nestjs/common';
 import { NcApiVersion } from 'nocodb-sdk';
@@ -115,10 +114,17 @@ import { MetaTable } from '~/utils/globals';
 import { extractColsMetaForAudit } from '~/utils';
 import {
   _wherePk,
+  checkColumnRequired,
+  getAs,
+  getColumnName,
   getCompositePkValue,
   getOppositeRelationType,
   getRelatedLinksColumn,
   isDataAuditEnabled as isDataAuditEnabledFn,
+  isPrimitiveType,
+  nanoidv2,
+  populatePk,
+  transformObject,
 } from '~/helpers/dbHelpers';
 
 dayjs.extend(utc);
@@ -129,129 +135,11 @@ const logger = new Logger('BaseModelSqlv2');
 
 const GROUP_COL = '__nc_group_id';
 
-const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
-
-const isPrimitiveType = (val) =>
-  typeof val === 'string' || typeof val === 'number';
-
 const JSON_COLUMN_TYPES = [UITypes.Button];
 
 const ORDER_STEP_INCREMENT = 1;
 
 const MAX_RECURSION_DEPTH = 2;
-
-export async function populatePk(
-  context: NcContext,
-  model: Model,
-  insertObj: any,
-) {
-  await model.getColumns(context);
-  for (const pkCol of model.primaryKeys) {
-    if (!pkCol.meta?.ag || insertObj[pkCol.title]) continue;
-    insertObj[pkCol.title] =
-      pkCol.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : uuidv4();
-  }
-}
-
-function checkColumnRequired(
-  column: Column<any>,
-  fields: string[],
-  extractPkAndPv?: boolean,
-) {
-  // if primary key or foreign key included in fields, it's required
-  if (column.pk || column.uidt === UITypes.ForeignKey) return true;
-
-  if (extractPkAndPv && column.pv) return true;
-
-  // check fields defined and if not, then select all
-  // if defined check if it is in the fields
-  return !fields || fields.includes(column.title);
-}
-
-export async function getColumnName(
-  context: NcContext,
-  column: Column<any>,
-  columns?: Column[],
-) {
-  if (
-    !isCreatedOrLastModifiedTimeCol(column) &&
-    !isCreatedOrLastModifiedByCol(column) &&
-    !isOrderCol(column)
-  )
-    return column.column_name;
-  columns =
-    columns ||
-    (await Column.list(context, { fk_model_id: column.fk_model_id }));
-
-  switch (column.uidt) {
-    case UITypes.CreatedTime: {
-      const createdTimeSystemCol = columns.find(
-        (col) => col.system && col.uidt === UITypes.CreatedTime,
-      );
-      if (createdTimeSystemCol) return createdTimeSystemCol.column_name;
-      return column.column_name || 'created_at';
-    }
-    case UITypes.LastModifiedTime: {
-      const lastModifiedTimeSystemCol = columns.find(
-        (col) => col.system && col.uidt === UITypes.LastModifiedTime,
-      );
-      if (lastModifiedTimeSystemCol)
-        return lastModifiedTimeSystemCol.column_name;
-      return column.column_name || 'updated_at';
-    }
-    case UITypes.CreatedBy: {
-      const createdBySystemCol = columns.find(
-        (col) => col.system && col.uidt === UITypes.CreatedBy,
-      );
-      if (createdBySystemCol) return createdBySystemCol.column_name;
-      return column.column_name || 'created_by';
-    }
-    case UITypes.LastModifiedBy: {
-      const lastModifiedBySystemCol = columns.find(
-        (col) => col.system && col.uidt === UITypes.LastModifiedBy,
-      );
-      if (lastModifiedBySystemCol) return lastModifiedBySystemCol.column_name;
-      return column.column_name || 'updated_by';
-    }
-    case UITypes.Order: {
-      const orderSystemCol = columns.find(
-        (col) => col.system && col.uidt === UITypes.Order,
-      );
-      if (orderSystemCol) return orderSystemCol.column_name;
-      return column.column_name || 'nc_order';
-    }
-    default:
-      return column.column_name;
-  }
-}
-
-export function getAs(column: Column) {
-  return column.asId || column.id;
-}
-
-export function replaceDynamicFieldWithValue(
-  _row: any,
-  _rowId,
-  _tableColumns: Column[],
-  _readByPk: typeof BaseModelSqlv2.prototype.readByPk,
-  _queryParams?: Record<string, string>,
-) {
-  const replaceWithValue = async (conditions: Filter[]) => {
-    return conditions;
-  };
-  return replaceWithValue;
-}
-
-function transformObject(value, idToAliasMap) {
-  const result = {};
-  Object.entries(value).forEach(([k, v]) => {
-    const btAlias = idToAliasMap[k];
-    if (btAlias) {
-      result[btAlias] = v;
-    }
-  });
-  return result;
-}
 
 /**
  * Base class for models

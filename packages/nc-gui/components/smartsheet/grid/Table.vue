@@ -253,7 +253,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
     return
 
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  if (colMeta.value[ctx.col].isReadonly) return
+  if (colMeta.value[ctx.col].isReadonly && !isVirtualCol(fields.value[ctx.col])) return
 
   const rowObj = dataRef.value[ctx.row]
   const columnObj = fields.value[ctx.col]

@@ -534,7 +534,11 @@ const onDeleteColumn = () => {
         {{ $t('labels.changeDisplayValueField') }}
       </div>
     </NcMenuItem>
-    <NcMenuItem v-if="isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey" title="Add field description" @click="onEditPress($event, true)">
+    <NcMenuItem
+      v-if="isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
+      title="Add field description"
+      @click="onEditPress($event, true)"
+    >
       <div class="nc-column-edit-description nc-header-menu-item">
         <GeneralIcon icon="ncAlignLeft" class="opacity-80 !w-4.25 !h-4.25" />
         {{ $t('labels.editDescription') }}

@@ -423,6 +423,7 @@ export default class BaseUser {
       .select(`${MetaTable.PROJECT}.status`)
       .select(`${MetaTable.PROJECT}.description`)
       .select(`${MetaTable.PROJECT}.meta`)
+      .select(`${MetaTable.PROJECT}.order`)
       .select(`${MetaTable.PROJECT}.color`)
       .select(`${MetaTable.PROJECT}.is_meta`)
       .select(`${MetaTable.PROJECT}.created_at`)

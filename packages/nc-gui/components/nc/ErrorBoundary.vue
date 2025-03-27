@@ -91,6 +91,7 @@ export default {
             class: '!w-auto !max-w-[fit-content]',
             showDuration: true,
           },
+          true,
           5,
         )
 

@@ -1158,7 +1158,8 @@
     "currentOwner": "Current owner",
     "newOwner": "New owner",
     "addFromUrl": "Add from URL",
-    "enterJson": "Enter JSON"
+    "enterJson": "Enter JSON",
+    "airtableBase": "Airtable base"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",
@@ -1497,7 +1498,8 @@
     "schemaChangeDisabledFormSqlView": "이 SQL 보기에 대해서는 스키마 편집이 비활성화되어 있습니다.",
     "shiftSpace": "Shift + 스페이스바",
     "expandShiftSpace": "'Shift + Space' 확장",
-    "selectAllMappedFields": "Select all mapped fields"
+    "selectAllMappedFields": "Select all mapped fields",
+    "copyErrorCode": "Copy error code"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",
@@ -2015,7 +2017,9 @@
       "unsupportedCharacters": "지원되지 않는 문자: {char}",
       "notSupported": "지원되지 않음",
       "duplicateTableName": "Duplicate table name",
-      "importError": "Import Error"
+      "importError": "Import Error",
+      "anErrorOccuredWhileImporting": "An error occurred while {type}",
+      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable"
     },
     "toast": {
       "exportMetadata": "프로젝트 메타 데이터를 성공적으로 내보냈습니다",

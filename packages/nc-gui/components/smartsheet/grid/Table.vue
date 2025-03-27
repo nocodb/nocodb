@@ -816,6 +816,10 @@ const {
   view,
   paginationDataRef,
   changePage,
+  undefined,
+  undefined,
+  undefined,
+  false,
 )
 
 function scrollToRow(row?: number) {

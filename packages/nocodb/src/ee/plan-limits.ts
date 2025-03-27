@@ -1,4 +1,4 @@
-import { PlanLimitTypes, WorkspacePlan } from 'nocodb-sdk';
+import { PlanLimitTypes } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import Workspace from '~/models/Workspace';
 import Noco from '~/Noco';

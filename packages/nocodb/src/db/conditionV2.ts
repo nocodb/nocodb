@@ -244,6 +244,7 @@ const parseConditionV2 = async (
           tree: formula.formula,
           model,
           column,
+          tableAlias: alias,
         })
       ).builder;
       return parseConditionV2(

@@ -1,9 +1,12 @@
 import { RelationTypes } from 'nocodb-sdk';
-import { getAlias, negatedMapping } from '../../utils/handlerUtils';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type { HandlerOptions } from '~/db/field-handler/field-handler.interface';
 import type { Knex } from '~/db/CustomKnex';
+import {
+  getAlias,
+  negatedMapping,
+} from '~/db/field-handler/utils/handlerUtils';
 import { Filter } from '~/models';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 

@@ -98,16 +98,16 @@ export class PaymentController {
 
   @UseGuards(GlobalGuard)
   @HttpCode(200)
-  @Post('/api/payment/:workspaceOrOrgId/create-subscription')
+  @Post('/api/payment/:workspaceOrOrgId/create-subscription-form')
   @Acl('manageSubscription', {
     scope: 'workspace',
   })
-  async createSubscription(
+  async createSubscriptionForm(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Body() payload: any,
     @Req() req: NcRequest,
   ) {
-    return this.paymentService.createSubscription(
+    return this.paymentService.createSubscriptionForm(
       workspaceOrOrgId,
       payload,
       req,
@@ -119,7 +119,7 @@ export class PaymentController {
   @Post('/api/payment/:workspaceOrOrgId/update-subscription')
   @Acl('manageSubscription')
   async updateSubscription(
-    @Param('workspaceId') workspaceOrOrgId: string,
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Body() payload: any,
     @Req() req: NcRequest,
   ) {

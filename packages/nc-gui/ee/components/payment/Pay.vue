@@ -34,7 +34,14 @@ const initializeForm = async () => {
 
 const onReset = () => {
   reset()
+
+  if (!checkout.value) {
+    return
+  }
+
+  checkout.value?.unmount()
   checkout.value?.destroy()
+  checkout.value = null
 }
 
 onMounted(async () => {

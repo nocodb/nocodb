@@ -129,7 +129,7 @@ export class PaymentService {
     return await Plan.update(plan.id, { is_active: false });
   }
 
-  async createSubscription(
+  async createSubscriptionForm(
     workspaceOrOrgId: string,
     payload: {
       seat: number;
@@ -344,17 +344,29 @@ export class PaymentService {
       throw new Error('Price not found');
     }
 
+    const item = subscription.items.data[0];
+
     const updatedSubscription = await stripe.subscriptions.update(
       existingSubscription.stripe_subscription_id,
       {
         items: [
           {
-            id: subscription.items.data[0].id,
+            id: item.id,
             price: payload.price_id,
             quantity: payload.seat,
           },
         ],
+        cancel_at_period_end: false,
         expand: ['latest_invoice.payment_intent'],
+        ...(existingSubscription.period === 'year'
+          ? {
+              proration_behavior: 'always_invoice',
+            }
+          : {}),
+        metadata: {
+          ...subscription.metadata,
+          fk_plan_id: payload.plan_id,
+        },
       },
     );
 
@@ -484,9 +496,20 @@ export class PaymentService {
       throw new Error('Subscription does not belong to the org');
     }
 
-    const canceledSubscription = await stripe.subscriptions.cancel(
+    const canceledSubscription = await stripe.subscriptions.update(
       existingSubscription.stripe_subscription_id,
+      {
+        cancel_at_period_end: true,
+      },
     );
+
+    await Subscription.update(existingSubscription.id, {
+      status: canceledSubscription.status,
+      end_at: dayjs
+        .unix(canceledSubscription.current_period_end)
+        .utc()
+        .toISOString(),
+    });
 
     return canceledSubscription.id;
   }
@@ -643,6 +666,8 @@ export class PaymentService {
             throw new Error(`Subscription ${dataObject.id} not found`);
           }
 
+          const plan_id = dataObject.metadata.fk_plan_id;
+
           await Subscription.update(subscription.id, {
             stripe_subscription_id: dataObject.id,
             stripe_price_id: dataObject.items.data[0].price.id,
@@ -652,6 +677,10 @@ export class PaymentService {
             end_at: dataObject.cancel_at
               ? dayjs.unix(dataObject.cancel_at).utc().toISOString()
               : null,
+            fk_plan_id: plan_id,
+            period: dataObject.items.data[0].price.recurring
+              ? dataObject.items.data[0].price.recurring.interval
+              : subscription.period,
           });
 
           const workspaceId = subscription.fk_workspace_id;

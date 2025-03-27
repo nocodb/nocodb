@@ -90,6 +90,7 @@ export default class Subscription {
   ) {
     const updateObj: Record<string, any> = extractProps(subscription, [
       'stripe_price_id',
+      'fk_plan_id',
       'status',
       'seat_count',
       'status',

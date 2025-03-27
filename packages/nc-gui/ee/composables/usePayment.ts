@@ -1,4 +1,5 @@
 import { type Stripe, type StripeCheckoutSession, loadStripe } from '@stripe/stripe-js'
+import { PlanMeta } from 'nocodb-sdk'
 
 export interface PaymentPlan {
   id: string
@@ -19,6 +20,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const stripe = ref<Stripe>()
 
   const { $state, $api } = useNuxtApp()
+
+  const { t } = useI18n()
 
   const workspaceStore = useWorkspace()
 
@@ -78,6 +81,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
         title: 'Free',
         descriptions: ['10,000 rows / workspace', '1 GB storage', '5 API request / second', 'All user roles'],
       })
+
+      paymentMode.value = activeSubscription.value?.period || 'year'
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -106,7 +111,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
     if (!price) throw new Error('No price found')
 
-    const res = await $fetch(`/api/payment/${activeWorkspaceId.value}/create-subscription`, {
+    const res = await $fetch(`/api/payment/${activeWorkspaceId.value}/create-subscription-form`, {
       baseURL,
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
@@ -121,6 +126,32 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     return res
   }
 
+  const updateSubscription = async (planId: string, priceId?: string) => {
+    if (!activeWorkspaceId.value) throw new Error('No active workspace')
+    if (!stripe.value) throw new Error('Stripe not loaded')
+
+    const plan = plansAvailable.value.find((plan) => plan.id === planId)
+
+    if (!plan) throw new Error('No plan found')
+
+    priceId = priceId || plan.prices?.find((price: any) => price.recurring.interval === activeSubscription.value?.period)?.id
+
+    if (!priceId) throw new Error('No price found')
+
+    await $fetch(`/api/payment/${activeWorkspaceId.value}/update-subscription`, {
+      baseURL,
+      method: 'POST',
+      headers: { 'xc-auth': $state.token.value as string },
+      body: {
+        seat: workspaceSeatCount.value,
+        plan_id: plan.id,
+        price_id: priceId,
+      },
+    })
+
+    window.location.reload()
+  }
+
   const cancelSubscription = async () => {
     if (!activeWorkspaceId.value) throw new Error('No active workspace')
 
@@ -130,7 +161,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       headers: { 'xc-auth': $state.token.value as string },
     })
 
-    await workspaceStore.loadWorkspace(activeWorkspaceId.value)
+    window.location.reload()
   }
 
   const getCustomerPortalSession = async () => {
@@ -172,8 +203,32 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   }
 
   const onSelectPlan = (plan: PaymentPlan) => {
-    selectedPlan.value = plan
-    paymentState.value = PaymentState.PAYMENT
+    if (!activeSubscription.value) {
+      selectedPlan.value = plan
+      paymentState.value = PaymentState.PAYMENT
+    } else {
+      if (plan.title === PlanMeta.Free.title) {
+        Modal.confirm({
+          title: 'Downgrade to free plan?',
+          content: 'You will lose access to premium features.',
+          okText: t('general.yes'),
+          cancelText: t('general.no'),
+          onOk: async () => {
+            await cancelSubscription()
+          },
+        })
+      } else {
+        Modal.confirm({
+          title: `Change your plan to ${plan.title}?`,
+          content: 'You will be charged immediately for the new plan.',
+          okText: t('general.yes'),
+          cancelText: t('general.no'),
+          onOk: async () => {
+            await updateSubscription(plan.id)
+          },
+        })
+      }
+    }
   }
 
   const reset = () => {
@@ -221,6 +276,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     subscriptionId,
     reset,
     createPaymentForm,
+    updateSubscription,
     cancelSubscription,
     isPaidPlan,
     activePlan,

@@ -78,7 +78,16 @@ const isHigherPlan = (plan: string) => {
     </div>
 
     <NcButton
-      v-if="activeSubscription && activePlan === plan.title"
+      v-if="activeSubscription && activePlan === plan.title && activeSubscription.end_at"
+      type="secondary"
+      size="medium"
+      class="w-full !text-nc-content-brand"
+      @click="onSelectPlan(plan)"
+    >
+      Reactivate
+    </NcButton>
+    <NcButton
+      v-else-if="activeSubscription && activePlan === plan.title"
       type="secondary"
       size="medium"
       class="w-full pointer-events-none !text-nc-content-brand"
@@ -98,6 +107,7 @@ const isHigherPlan = (plan: string) => {
       :type="plan.title === popularPlan ? 'primary' : 'secondary'"
       size="medium"
       class="w-full"
+      :disabled="plan.title === PlanTitles.FREE && activeSubscription.end_at"
       @click="onSelectPlan(plan)"
     >
       {{

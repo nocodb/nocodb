@@ -58,7 +58,10 @@ const activePlanMeta = computed(() =>
     >
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.nextInvoice') }} </template>
-        <template #value> $60, due 25 July 2025</template>
+        <template #value
+          ><div v-if="activeSubscription.end_at" class="text-red-500">Marked for cancellation, due 25 July 2025</div>
+          <div v-else>$60, due 25 July 2025</div></template
+        >
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.numberOfBilledUsers') }} </template>

@@ -14,7 +14,6 @@ import type { Knex } from 'knex';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type FormulaColumn from '~/models/FormulaColumn';
 import type RollupColumn from '~/models/RollupColumn';
-import { getColumnName } from '~/db/BaseModelSqlv2';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
@@ -25,6 +24,7 @@ import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
 import Filter from '~/models/Filter';
 import { getAliasGenerator } from '~/utils';
 import { validateAndStringifyJson } from '~/utils/tsUtils';
+import { getColumnName } from '~/helpers/dbHelpers';
 
 // tod: tobe fixed
 // extend(customParseFormat);

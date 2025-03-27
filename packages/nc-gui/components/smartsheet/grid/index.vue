@@ -241,6 +241,7 @@ const {
   islastRow: pisLastRow,
   getExpandedRowIndex: pGetExpandedRowIndex,
   changePage: pChangeView,
+  navigateToSiblingRow: pNavigateToSiblingRow,
 } = useViewData(meta, view, xWhere)
 
 const updateRowCommentCount = (count: number) => {
@@ -279,18 +280,17 @@ const pGoToNextRow = () => {
     const nextPage = pPaginationData.value?.page ? pPaginationData.value?.page + 1 : 1
     pChangeView(nextPage)
   }
-  navigateToSiblingRow(NavigateDir.NEXT)
+  pNavigateToSiblingRow(NavigateDir.NEXT)
 }
 const pGoToPreviousRow = () => {
   const currentIndex = pGetExpandedRowIndex()
-  /* when first index of current page is reached and then clicked back
-    previos page should be loaded
-  */
+  /* when first index of current page is reached and then clicked back previos page should be loaded  */
   if (!pPaginationData.value.isFirstPage && currentIndex === 1) {
     const nextPage = pPaginationData.value?.page ? pPaginationData.value?.page - 1 : 1
     pChangeView(nextPage)
   }
-  navigateToSiblingRow(NavigateDir.PREV)
+
+  pNavigateToSiblingRow(NavigateDir.PREV)
 }
 </script>
 

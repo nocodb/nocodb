@@ -921,6 +921,14 @@ input[type='number'] {
   }
 }
 
+.ant-message {
+  @apply !bottom-16 !md:bottom-4 !top-auto px-2 md:px-4;
+}
+
+.ant-message-notice {
+  @apply !text-center !md:text-right;
+}
+
 .ant-message-notice-content {
   @apply !rounded-md;
   .ant-message-custom-content {

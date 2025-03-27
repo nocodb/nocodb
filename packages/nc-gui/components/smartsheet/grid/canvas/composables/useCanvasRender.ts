@@ -26,7 +26,7 @@ import {
   ROW_META_COLUMN_WIDTH,
 } from '../utils/constants'
 import { parseCellWidth } from '../utils/cell'
-import { calculateGroupHeight, calculateGroupRange, getBackgroundColor } from '../utils/groupby'
+import { calculateGroupHeight, calculateGroupRange, generateGroupPath, getBackgroundColor } from '../utils/groupby'
 import { parseKey, shouldRenderCell } from '../../../../../utils/groupbyUtils'
 import type { CanvasElement } from '../utils/CanvasElement'
 
@@ -874,6 +874,7 @@ export function useCanvasRender({
       rowIdx,
       fixedCols,
       yOffset,
+      group,
     }: {
       row: Row
       initialXOffset: number
@@ -882,6 +883,7 @@ export function useCanvasRender({
       startColIndex: number
       yOffset: number
       rowIdx: number
+      group?: CanvasGroup
     },
   ) {
     let activeState: { col: any; x: number; y: number; width: number; height: number } | null = null
@@ -890,6 +892,8 @@ export function useCanvasRender({
       column: CanvasGridColumn
     }[] = []
     const isHovered = hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path.join('-') === row.rowMeta?.groupPath?.join('-')
+
+    const isActiveCellInCurrentGroup = (activeCell.value?.path?.join('-') ?? '') === (generateGroupPath(group)?.join('-') ?? '')
 
     if (row) {
       const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
@@ -918,9 +922,15 @@ export function useCanvasRender({
         const absoluteColIdx = startColIndex + colIdx
 
         const isCellEditEnabled =
-          editEnabled.value && activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
+          editEnabled.value &&
+          activeCell.value.row === rowIdx &&
+          activeCell.value.column === absoluteColIdx &&
+          isActiveCellInCurrentGroup
 
-        if (row.rowMeta.selected || selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
+        if (
+          row.rowMeta.selected ||
+          (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }) && isActiveCellInCurrentGroup)
+        ) {
           ctx.fillStyle = '#F6F7FE'
           ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
         }
@@ -931,12 +941,13 @@ export function useCanvasRender({
         ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
         ctx.stroke()
         // add white background color for active cell
-        if (startColIndex + colIdx === activeCell.value.column && rowIdx === activeCell.value.row) {
+        if (startColIndex + colIdx === activeCell.value.column && rowIdx === activeCell.value.row && isActiveCellInCurrentGroup) {
           ctx.fillStyle = '#FFFFFF'
           ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
         }
 
-        const isActive = activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
+        const isActive =
+          activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx && isActiveCellInCurrentGroup
 
         if (isActive) {
           activeState = {
@@ -986,9 +997,16 @@ export function useCanvasRender({
 
           const colIdx = columns.value.findIndex((col) => col.id === column.id)
 
-          const isCellEditEnabled = editEnabled.value && activeCell.value.row === rowIdx && activeCell.value.column === colIdx
+          const isCellEditEnabled =
+            editEnabled.value &&
+            activeCell.value.row === rowIdx &&
+            activeCell.value.column === colIdx &&
+            isActiveCellInCurrentGroup
 
-          if (row.rowMeta.selected || selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
+          if (
+            row.rowMeta.selected ||
+            (selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup)
+          ) {
             ctx.fillStyle = '#F6F7FE'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
@@ -998,7 +1016,7 @@ export function useCanvasRender({
 
           // add white background color for active cell
           // For Fixed columns, do not need to add startColIndex
-          if (colIdx === activeCell.value.column && rowIdx === activeCell.value.row) {
+          if (colIdx === activeCell.value.column && rowIdx === activeCell.value.row && isActiveCellInCurrentGroup) {
             ctx.fillStyle = '#FFFFFF'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           }
@@ -1009,7 +1027,7 @@ export function useCanvasRender({
           } else {
             const value = row.row[column.title]
 
-            const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
+            const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx && isActiveCellInCurrentGroup
 
             if (isActive) {
               activeState = {
@@ -1838,6 +1856,7 @@ export function useCanvasRender({
         rowIdx: i,
         fixedCols: fixedColsComputed.value,
         yOffset,
+        group,
       })
       ctx.restore()
       elementMap.addElement({

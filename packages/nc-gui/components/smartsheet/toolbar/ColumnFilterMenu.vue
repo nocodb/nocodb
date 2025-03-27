@@ -122,9 +122,7 @@ const combinedFilterLength = computed(() => {
             }}</span>
           </div>
 
-          <span v-if="combinedFilterLength" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{
-            combinedFilterLength
-          }}</span>
+          <span v-if="combinedFilterLength" class="bg-yellow-100 py-1 px-2 text-md rounded-md">{{ combinedFilterLength }}</span>
 
           <!--    show a warning icon with tooltip if query filter error is there -->
           <template v-if="filtersFromUrlParams?.errors?.length">

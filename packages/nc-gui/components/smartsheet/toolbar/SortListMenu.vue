@@ -140,7 +140,7 @@ onMounted(() => {
               $t('activity.sort')
             }}</span>
           </div>
-          <span v-if="sorts?.length" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ sorts.length }}</span>
+          <span v-if="sorts?.length" class="bg-red-100 py-1 px-2 text-md rounded-md">{{ sorts.length }}</span>
         </div>
       </NcButton>
     </NcTooltip>

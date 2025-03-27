@@ -262,6 +262,9 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
     let mmClearResult
     const mmOldResult = rowObj.row[columnObj.title]
 
+    // This will used to reload view data if it is self link column
+    const isSelfLinkColumn = columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id
+
     if (isMm(columnObj) && rowObj) {
       mmClearResult = await cleaMMCell(rowObj, columnObj)
     }
@@ -275,6 +278,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
           pg: PaginatedType,
           mmClearResult: any[],
           mmOldResult: any,
+          isSelfLinkColumn: boolean,
         ) => {
           if (paginationDataRef.value?.pageSize === pg.pageSize) {
             if (paginationDataRef.value?.page !== pg.page) {
@@ -307,6 +311,11 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
               activeCell.col = ctx.col
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
               activeCell.row = ctx.row
+
+              if (isSelfLinkColumn) {
+                reloadViewDataHook.trigger({ shouldShowLoading: false })
+              }
+
               scrollToCell?.()
             } else {
               throw new Error(t('msg.recordCouldNotBeFound'))
@@ -315,10 +324,24 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             throw new Error(t('msg.pageSizeChanged'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value), mmClearResult, mmOldResult],
+        args: [
+          clone(ctx),
+          clone(columnObj),
+          clone(rowObj),
+          clone(paginationDataRef.value),
+          mmClearResult,
+          mmOldResult,
+          isSelfLinkColumn,
+        ],
       },
       redo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
+        fn: async (
+          ctx: { row: number; col: number },
+          col: ColumnType,
+          row: Row,
+          pg: PaginatedType,
+          isSelfLinkColumn: boolean,
+        ) => {
           if (paginationDataRef.value?.pageSize === pg.pageSize) {
             if (paginationDataRef.value?.page !== pg.page) {
               await changePage?.(pg.page!)
@@ -336,6 +359,11 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
               activeCell.col = ctx.col
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
               activeCell.row = ctx.row
+
+              if (isSelfLinkColumn) {
+                reloadViewDataHook.trigger({ shouldShowLoading: false })
+              }
+
               scrollToCell?.()
             } else {
               throw new Error(t('msg.recordCouldNotBeFound'))
@@ -344,11 +372,15 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             throw new Error(t('msg.pageSizeChanged'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value)],
+        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value), isSelfLinkColumn],
       },
       scope: defineViewScope({ view: view.value }),
     })
     if (isBt(columnObj) || isOo(columnObj)) await clearLTARCell(rowObj, columnObj)
+
+    if (isSelfLinkColumn) {
+      reloadViewDataHook.trigger({ shouldShowLoading: false })
+    }
 
     return
   }
@@ -761,6 +793,11 @@ const {
     }
 
     if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
+      // Reload view data if it is self link column
+      if (columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id) {
+        reloadViewDataHook?.trigger({ shouldShowLoading: false })
+      }
+
       return
     }
 

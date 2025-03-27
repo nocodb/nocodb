@@ -11,7 +11,7 @@ import getAst from '~/helpers/getAst';
 
 const GROUP_COL = '__nc_group_id';
 
-export const relationListAndCount = (param: {
+export const relationDataFetcher = (param: {
   baseModel: IBaseModelSqlV2;
   logger: Logger;
 }) => {

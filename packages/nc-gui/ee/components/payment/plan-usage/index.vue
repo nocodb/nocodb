@@ -37,9 +37,9 @@ const activePlanMeta = computed(() =>
         v-if="activeSubscription"
         type="secondary"
         size="small"
-        @click="onManageSubscription"
         icon-position="right"
         inner-class="!gap-2"
+        @click="onManageSubscription"
       >
         <template #icon>
           <GeneralIcon icon="ncArrowUpRight" />

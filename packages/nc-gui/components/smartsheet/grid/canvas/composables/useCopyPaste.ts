@@ -108,6 +108,7 @@ export function useCopyPaste({
   const { copy } = useCopy()
   const { cleaMMCell, clearLTARCell, addLTARRef, syncLTARRefs } = useSmartsheetLtarHelpersOrThrow()
   const { isSqlView } = useSmartsheetStoreOrThrow()
+  const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
   const { base } = storeToRefs(useBase())
   const fields = computed(() => (columns.value ?? []).map((c) => c.columnObj))
@@ -800,7 +801,7 @@ export function useCopyPaste({
       !ctx ||
       !hasEditPermission.value ||
       columnObj.readonly ||
-      isSystemColumn(columnObj) ||
+      (isSystemColumn(columnObj) && !isLinksOrLTAR(columnObj)) ||
       (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj))
     ) {
       return
@@ -810,13 +811,23 @@ export function useCopyPaste({
       let mmClearResult
       const mmOldResult = rowObj.row[columnObj.title]
 
+      // This will used to reload view data if it is self link column
+      const isSelfLinkColumn = columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id
+
       if (isMm(columnObj) && rowObj) {
         mmClearResult = await cleaMMCell(rowObj, columnObj)
       }
 
       addUndo({
         undo: {
-          fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, mmClearResult: any[], mmOldResult: any) => {
+          fn: async (
+            ctx: { row: number; col: number },
+            col: ColumnType,
+            row: Row,
+            mmClearResult: any[],
+            mmOldResult: any,
+            isSelfLinkColumn: boolean,
+          ) => {
             const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
             const rowObj = cachedRows.value.get(ctx.row)
             const columnObj = fields.value[ctx.col]
@@ -845,15 +856,19 @@ export function useCopyPaste({
               activeCell.value.column = ctx.col
               activeCell.value.row = ctx.row
 
+              if (isSelfLinkColumn) {
+                reloadViewDataHook.trigger({ shouldShowLoading: false })
+              }
+
               scrollToCell?.()
             } else {
               throw new Error(t('msg.recordCouldNotBeFound'))
             }
           },
-          args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult, mmOldResult],
+          args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult, mmOldResult, isSelfLinkColumn],
         },
         redo: {
-          fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row) => {
+          fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, isSelfLinkColumn: boolean) => {
             const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
             const rowObj = cachedRows.value.get(ctx.row)
             const columnObj = fields.value[ctx.col]
@@ -870,16 +885,25 @@ export function useCopyPaste({
               }
               activeCell.value.column = ctx.col
               activeCell.value.row = ctx.row
+
+              if (isSelfLinkColumn) {
+                reloadViewDataHook.trigger({ shouldShowLoading: false })
+              }
+
               scrollToCell?.()
             } else {
               throw new Error(t('msg.recordCouldNotBeFound'))
             }
           },
-          args: [clone(ctx), clone(columnObj), clone(rowObj)],
+          args: [clone(ctx), clone(columnObj), clone(rowObj), isSelfLinkColumn],
         },
         scope: defineViewScope({ view: view.value }),
       })
       if (isBt(columnObj) || isOo(columnObj)) await clearLTARCell(rowObj, columnObj)
+
+      if (isSelfLinkColumn) {
+        reloadViewDataHook.trigger({ shouldShowLoading: false })
+      }
 
       return
     }

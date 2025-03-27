@@ -41,7 +41,7 @@
     "watch:run:ee-cloud": "cross-env NODE_ENV=development NC_DISABLE_TELE=true EE=true ENTRYPOINT=src/ee/run/docker rspack --config rspack.dev.ee-cloud.js",
     "watch:run:mysql": "cross-env NODE_ENV=development NC_DISABLE_TELE=true ENTRYPOINT=src/run/dockerRunMysql rspack --config rspack.dev.js",
     "watch:run:mysql:ee": "cross-env NODE_ENV=development NC_DISABLE_TELE=true EE=true ENTRYPOINT=src/ee/run/dockerRunMysql rspack --config rspack.dev.ee.js",
-    "watch:run:pg": "cross-env NODE_ENV=development NC_DISABLE_TELE=true EE=true ENTRYPOINT=src/run/dockerRunPG rspack --config rspack.dev.ee.js",
+    "watch:run:pg": "cross-env NODE_ENV=development NC_DISABLE_TELE=true ENTRYPOINT=src/run/dockerRunPG rspack --config rspack.dev.js",
     "watch:run:pg:ee": "cross-env NODE_ENV=development NC_DISABLE_TELE=true EE=true ENTRYPOINT=src/ee/run/dockerRunPG rspack --config rspack.dev.ee.js",
     "watch:run:playwright:mysql": "rm -f ./test_noco.db; cross-env NODE_ENV=test NC_DB=\"mysql2://localhost:3306?u=root&p=password&d=pw_ncdb\" PLAYWRIGHT_TEST=true NC_DISABLE_TELE=true EE=true ENTRYPOINT=src/run/testDocker rspack --config rspack.dev.ee.js",
     "watch:run:playwright": "rm -f ./test_noco.db; cross-env NODE_ENV=test DATABASE_URL=sqlite:./test_noco.db PLAYWRIGHT_TEST=true NC_DISABLE_TELE=true EE=true NC_SNAPSHOT_WINDOW_SEC=3 ENTRYPOINT=src/run/testDocker rspack --config rspack.dev.ee.js",

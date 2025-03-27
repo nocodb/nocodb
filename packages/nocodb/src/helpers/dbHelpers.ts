@@ -348,7 +348,7 @@ export function extractSortsObject(
     }
 
     if (throwErrorIfInvalid && !sort.fk_column_id)
-      NcError.fieldNotFound(s.replace(/^[+-]/, ''));
+      NcError.fieldNotFound(s.replace(/^~?[+-]/, ''));
     return new Sort(sort);
   });
 }

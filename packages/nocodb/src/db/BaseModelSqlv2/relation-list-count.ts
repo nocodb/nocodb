@@ -453,7 +453,8 @@ export const relationListCount = (param: {
         );
 
         await conditionV2(
-          this,
+          // cast as any before further refactor
+          baseModel as any,
           [
             new Filter({
               children: filterObj,
@@ -736,7 +737,8 @@ export const relationListCount = (param: {
       );
 
       await conditionV2(
-        this,
+        // cast as any before further refactor
+        baseModel as any,
         [
           new Filter({
             children: filterObj,

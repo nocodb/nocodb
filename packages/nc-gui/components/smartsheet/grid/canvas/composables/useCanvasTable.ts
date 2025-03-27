@@ -17,6 +17,7 @@ import { useGridCellHandler } from '../cells'
 import { TableMetaLoader } from '../loaders/TableMetaLoader'
 import { isReadonly } from '../../../../../utils/virtualCell'
 import type { CanvasGridColumn } from '../../../../../lib/types'
+import { CanvasElement } from '../utils/CanvasElement'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
@@ -116,7 +117,7 @@ export function useCanvasTable({
   const { metas, getMeta } = useMetas()
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
-  const activeCell = ref({ row: -1, column: -1 })
+  const activeCell = ref({ row: -1, column: -1, path: '' })
   const selection = ref(new CellRange())
   const hoverRow = ref(-1)
   const editEnabled = ref<CanvasEditEnabledType>(null)
@@ -127,6 +128,7 @@ export function useCanvasTable({
   const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas)
   const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+  const elementMap = new CanvasElement([])
 
   // Row Reorder related states
   const isDragging = ref(false)
@@ -588,6 +590,7 @@ export function useCanvasTable({
   const { canvasRef, renderCanvas, colResizeHoveredColIds } = useCanvasRender({
     width,
     mousePosition,
+    elementMap,
     height,
     columns,
     colSlice,
@@ -1118,7 +1121,7 @@ export function useCanvasTable({
     groupChunkStates,
     cachedGroups,
     toggleExpand,
-
+    elementMap,
     makeCellEditable,
     // Handler
     resizeMouseMove,

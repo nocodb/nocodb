@@ -217,7 +217,7 @@ const {
   partialRowHeight,
   makeCellEditable,
   findClickedColumn,
-
+  elementMap,
   // MouseSelectionHandler
   onMouseMoveSelectionHandler,
   onMouseDownSelectionHandler,
@@ -583,7 +583,19 @@ function extractHoverMetaColRegions(row: Row) {
   return { isAtMaxSelection, isCheckboxDisabled, regions, currentX }
 }
 
-const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; x: number; onlyDrag?: boolean }) => {
+const handleRowMetaClick = ({
+  e,
+  row,
+  x,
+  onlyDrag,
+  group,
+}: {
+  e: MouseEvent
+  row: Row
+  x: number
+  onlyDrag?: boolean
+  group: CanvasGroup
+}) => {
   const { isAtMaxSelection, isCheckboxDisabled, regions } = extractHoverMetaColRegions(row)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
@@ -596,7 +608,11 @@ const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; 
     case 'select':
       if (!isCheckboxDisabled && (row.rowMeta?.selected || !isAtMaxSelection)) {
         row.rowMeta.selected = !row.rowMeta?.selected
-        cachedRows.value.set(row.rowMeta.rowIndex!, row)
+        if (group) {
+          group.infiniteData?.cachedRows.value.set(row?.rowMeta.rowIndex, row)
+        } else {
+          cachedRows.value.set(row.rowMeta.rowIndex!, row)
+        }
       }
       break
 
@@ -713,22 +729,17 @@ async function handleMouseDown(e: MouseEvent) {
     return
   }
 
-  // TODO: @DarkPhoenix2704
-  // HandleMouseDown with Groupby
-  if (isGroupBy.value) {
-    return // #FIXME
-  }
-
-  const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
-
-  const row = cachedRows.value.get(rowIndex)
+  const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
+  const group = element?.group
+  const row = element?.row
+  const rowIndex = element?.rowIndex
 
   if (!row) return
   // onMouseDown event, we only handle the fillHandler and selectionHandler
   // and rowReorder. Other events should be handled in onMouseUp
   if (x < 80) {
     if (clickType !== MouseClickType.SINGLE_CLICK) return
-    handleRowMetaClick({ e, row, x, onlyDrag: true })
+    handleRowMetaClick({ e, row, x, onlyDrag: true, group })
     return
   }
 
@@ -869,12 +880,15 @@ async function handleMouseUp(e: MouseEvent) {
   const clickType = getMouseClickType(e)
   if (!clickType) return
 
-  if (isMobileMode.value) {
+  if (!isMobileMode.value) {
     if (y > 32 && y < height.value - 36) {
-      const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
-      const row = cachedRows.value.get(rowIndex)
-
-      if (row) {
+        const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
+        const group = element?.group
+        const row = element?.row
+        const rowIndex = element?.rowIndex
+      if (group && !row) {
+        toggleExpand(group)
+      } else if (row) {
         expandForm(row)
       }
       return
@@ -1360,14 +1374,17 @@ const handleMouseMove = (e: MouseEvent) => {
     if (y <= 32 && resizeableColumn.value) {
       resizeMouseMove(e)
     } else {
-      hoverRow.value = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
+      const row = elementMap.findElementAt(mousePosition.x, mousePosition.y)
+      hoverRow.value = row?.rowIndex
       onMouseMoveSelectionHandler(e)
     }
     requestAnimationFrame(triggerRefreshCanvas)
   }
   if (mousePosition.y > 32) {
-    const rowIndex = Math.floor((mousePosition.y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
-    const row = cachedRows.value.get(rowIndex)
+    const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
+    const row = element?.row
+    const rowIndex = element?.rowIndex
+
     const { column } = findClickedColumn(mousePosition.x, scrollLeft.value)
     if (!row || !column) {
       if (
@@ -1399,8 +1416,9 @@ const handleMouseMove = (e: MouseEvent) => {
   if (mousePosition.x < 80 && mousePosition.y > COLUMN_HEADER_HEIGHT_IN_PX) {
     // handle hovering on the aggregation dropdown
     if (mousePosition.y <= height.value - 36) {
-      const rowIndex = Math.floor((mousePosition.y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
-      const row = cachedRows.value.get(rowIndex)
+      const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
+      const row = element?.row
+      const rowIndex = element?.rowIndex
       cursor = getRowMetaCursor({ row, x: mousePosition.x }) || cursor
     }
   }

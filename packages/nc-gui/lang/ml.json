@@ -1158,7 +1158,8 @@
     "currentOwner": "Current owner",
     "newOwner": "New owner",
     "addFromUrl": "Add from URL",
-    "enterJson": "Enter JSON"
+    "enterJson": "Enter JSON",
+    "airtableBase": "Airtable base"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1497,7 +1498,8 @@
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "Expand 'Shift + Space'",
-    "selectAllMappedFields": "Select all mapped fields"
+    "selectAllMappedFields": "Select all mapped fields",
+    "copyErrorCode": "Copy error code"
   },
   "placeholder": {
     "searchIcons": "ചിഹ്നങ്ങൾ തിരയുക",
@@ -2015,7 +2017,9 @@
       "unsupportedCharacters": "Unsupported characters: {char}",
       "notSupported": "Not supported",
       "duplicateTableName": "Duplicate table name",
-      "importError": "Import Error"
+      "importError": "Import Error",
+      "anErrorOccuredWhileImporting": "An error occurred while {type}",
+      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable"
     },
     "toast": {
       "exportMetadata": "അടിസ്ഥാന ഡാറ്റയുടെ മീറ്റാ വിവരങ്ങൾ വിജയകരമായി കയറ്റുമതി ചെയ്തു",

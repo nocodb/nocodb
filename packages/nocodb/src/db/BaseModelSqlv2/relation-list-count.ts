@@ -15,6 +15,7 @@ export const relationListCount = (param: {
   baseModel: IBaseModelSqlV2;
   logger: Logger;
 }) => {
+  const { baseModel } = param;
   return {
     async multipleHmList(
       {
@@ -34,38 +35,40 @@ export const relationListCount = (param: {
         // skip duplicate id
         const ids = [...new Set(_ids)];
 
-        const { where, sort, ...rest } = this._getListArgs(args as any);
+        const { where, sort, ...rest } = baseModel._getListArgs(args as any);
         // todo: get only required fields
-        const relColumn = (await this.model.getColumns(this.context)).find(
-          (c) => c.id === colId,
-        );
+        const relColumn = (
+          await baseModel.model.getColumns(baseModel.context)
+        ).find((c) => c.id === colId);
 
         const relationColOpts = (await relColumn.getColOptions(
-          this.context,
+          baseModel.context,
         )) as LinkToAnotherRecordColumn;
-        const chilCol = await relationColOpts.getChildColumn(this.context);
-        const childTable = await chilCol.getModel(this.context);
-        const parentCol = await relationColOpts.getParentColumn(this.context);
-        const parentTable = await parentCol.getModel(this.context);
-        const childModel = await Model.getBaseModelSQL(this.context, {
+        const chilCol = await relationColOpts.getChildColumn(baseModel.context);
+        const childTable = await chilCol.getModel(baseModel.context);
+        const parentCol = await relationColOpts.getParentColumn(
+          baseModel.context,
+        );
+        const parentTable = await parentCol.getModel(baseModel.context);
+        const childModel = await Model.getBaseModelSQL(baseModel.context, {
           model: childTable,
-          dbDriver: this.dbDriver,
+          dbDriver: baseModel.dbDriver,
         });
-        await parentTable.getColumns(this.context);
+        await parentTable.getColumns(baseModel.context);
 
-        const childTn = this.getTnPath(childTable);
-        const parentTn = this.getTnPath(parentTable);
+        const childTn = baseModel.getTnPath(childTable);
+        const parentTn = baseModel.getTnPath(parentTable);
 
-        const qb = this.dbDriver(childTn);
+        const qb = baseModel.dbDriver(childTn);
         await childModel.selectObject({
           qb,
           extractPkAndPv: true,
           fieldsSet: args.fieldsSet,
         });
         const view = relationColOpts.fk_target_view_id
-          ? await View.get(this.context, relationColOpts.fk_target_view_id)
-          : await View.getDefaultView(this.context, childModel.model.id);
-        await this.applySortAndFilter({
+          ? await View.get(baseModel.context, relationColOpts.fk_target_view_id)
+          : await View.getDefaultView(baseModel.context, childModel.model.id);
+        await baseModel.applySortAndFilter({
           table: childTable,
           where,
           qb,
@@ -73,16 +76,17 @@ export const relationListCount = (param: {
           view,
           skipViewFilter: true,
         });
-        const childQb = this.dbDriver.queryBuilder().from(
-          this.dbDriver
+        const childQb = baseModel.dbDriver.queryBuilder().from(
+          baseModel.dbDriver
             .unionAll(
               ids.map((p) => {
                 const query = qb
                   .clone()
-                  .select(this.dbDriver.raw('? as ??', [p, GROUP_COL]))
+                  .select(baseModel.dbDriver.raw('? as ??', [p, GROUP_COL]))
                   .whereIn(
                     chilCol.column_name,
-                    this.dbDriver(parentTn)
+                    baseModel
+                      .dbDriver(parentTn)
                       .select(parentCol.column_name)
                       // .where(parentTable.primaryKey.cn, p)
                       .where(_wherePk(parentTable.primaryKeys, p)),
@@ -96,23 +100,23 @@ export const relationListCount = (param: {
                 );
                 query.offset(+rest?.offset || 0);
 
-                return this.isSqlite
-                  ? this.dbDriver.select().from(query)
+                return baseModel.isSqlite
+                  ? baseModel.dbDriver.select().from(query)
                   : query;
               }),
-              !this.isSqlite,
+              !baseModel.isSqlite,
             )
             .as('list'),
         );
 
-        const children = await this.execAndParse(
+        const children = await baseModel.execAndParse(
           childQb,
-          await childTable.getColumns(this.context),
+          await childTable.getColumns(baseModel.context),
         );
         const proto = await (
-          await Model.getBaseModelSQL(this.context, {
+          await Model.getBaseModelSQL(baseModel.context, {
             id: childTable.id,
-            dbDriver: this.dbDriver,
+            dbDriver: baseModel.dbDriver,
           })
         ).getProto();
 
@@ -143,51 +147,54 @@ export const relationListCount = (param: {
       args: { limit?; offset?; fieldsSet?: Set<string> } = {},
       selectAllRecords = false,
     ) {
-      const { where, sort, ...rest } = this._getListArgs(args as any, {
+      const { where, sort, ...rest } = baseModel._getListArgs(args as any, {
         apiVersion,
         nested: true,
       });
-      const relColumn = (await this.model.getColumns(this.context)).find(
-        (c) => c.id === colId,
-      );
+      const relColumn = (
+        await baseModel.model.getColumns(baseModel.context)
+      ).find((c) => c.id === colId);
       const relColOptions = (await relColumn.getColOptions(
-        this.context,
+        baseModel.context,
       )) as LinkToAnotherRecordColumn;
 
-      // const tn = this.model.tn;
+      // const tn = baseModel.model.tn;
       // const cn = (await relColOptions.getChildColumn()).title;
-      const mmTable = await relColOptions.getMMModel(this.context);
-      const vtn = this.getTnPath(mmTable);
-      const vcn = (await relColOptions.getMMChildColumn(this.context))
+      const mmTable = await relColOptions.getMMModel(baseModel.context);
+      const vtn = baseModel.getTnPath(mmTable);
+      const vcn = (await relColOptions.getMMChildColumn(baseModel.context))
         .column_name;
-      const vrcn = (await relColOptions.getMMParentColumn(this.context))
+      const vrcn = (await relColOptions.getMMParentColumn(baseModel.context))
         .column_name;
-      const rcn = (await relColOptions.getParentColumn(this.context))
+      const rcn = (await relColOptions.getParentColumn(baseModel.context))
         .column_name;
-      const cn = (await relColOptions.getChildColumn(this.context)).column_name;
+      const cn = (await relColOptions.getChildColumn(baseModel.context))
+        .column_name;
       const childTable = await (
-        await relColOptions.getParentColumn(this.context)
-      ).getModel(this.context);
+        await relColOptions.getParentColumn(baseModel.context)
+      ).getModel(baseModel.context);
       const parentTable = await (
-        await relColOptions.getChildColumn(this.context)
-      ).getModel(this.context);
-      await parentTable.getColumns(this.context);
-      const childModel = await Model.getBaseModelSQL(this.context, {
-        dbDriver: this.dbDriver,
+        await relColOptions.getChildColumn(baseModel.context)
+      ).getModel(baseModel.context);
+      await parentTable.getColumns(baseModel.context);
+      const childModel = await Model.getBaseModelSQL(baseModel.context, {
+        dbDriver: baseModel.dbDriver,
         model: childTable,
       });
 
-      const childTn = this.getTnPath(childTable);
-      const parentTn = this.getTnPath(parentTable);
+      const childTn = baseModel.getTnPath(childTable);
+      const parentTn = baseModel.getTnPath(parentTable);
 
       const rtn = childTn;
       const rtnId = childTable.id;
 
-      const qb = this.dbDriver(rtn)
+      const qb = baseModel
+        .dbDriver(rtn)
         .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`)
         .whereIn(
           `${vtn}.${vcn}`,
-          this.dbDriver(parentTn)
+          baseModel
+            .dbDriver(parentTn)
             .select(cn)
             // .where(parentTable.primaryKey.cn, id)
             .where(_wherePk(parentTable.primaryKeys, parentId)),
@@ -198,12 +205,12 @@ export const relationListCount = (param: {
         fieldsSet: args.fieldsSet,
       });
 
-      await childTable.getViews(this.context);
+      await childTable.getViews(baseModel.context);
       const viewId =
         relColumn.colOptions?.fk_target_view_id ?? childTable.views?.[0]?.id;
       let view: View | null = null;
-      if (viewId) view = await View.get(this.context, viewId);
-      await this.applySortAndFilter({
+      if (viewId) view = await View.get(baseModel.context, viewId);
+      await baseModel.applySortAndFilter({
         table: childTable,
         where,
         view,
@@ -214,9 +221,9 @@ export const relationListCount = (param: {
 
       if (!sort || sort === '') {
         const view = relColOptions.fk_target_view_id
-          ? await View.get(this.context, relColOptions.fk_target_view_id)
-          : await View.getDefaultView(this.context, childTable.id);
-        const childSorts = await view.getSorts(this.context);
+          ? await View.get(baseModel.context, relColOptions.fk_target_view_id)
+          : await View.getDefaultView(baseModel.context, childTable.id);
+        const childSorts = await view.getSorts(baseModel.context);
         await sortV2(childModel, childSorts, qb);
       }
 
@@ -230,14 +237,14 @@ export const relationListCount = (param: {
       }
       qb.offset(selectAllRecords ? 0 : +rest?.offset || 0);
 
-      const children = await this.execAndParse(
+      const children = await baseModel.execAndParse(
         qb,
-        await childTable.getColumns(this.context),
+        await childTable.getColumns(baseModel.context),
       );
       const proto = await (
-        await Model.getBaseModelSQL(this.context, {
+        await Model.getBaseModelSQL(baseModel.context, {
           id: rtnId,
-          dbDriver: this.dbDriver,
+          dbDriver: baseModel.dbDriver,
         })
       ).getProto();
 
@@ -249,44 +256,48 @@ export const relationListCount = (param: {
 
     async multipleHmListCount({ colId, ids }) {
       try {
-        // const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
-        const relColumn = (await this.model.getColumns(this.context)).find(
-          (c) => c.id === colId,
-        );
+        // const { cn } = baseModel.hasManyRelations.find(({ tn }) => tn === child) || {};
+        const relColumn = (
+          await baseModel.model.getColumns(baseModel.context)
+        ).find((c) => c.id === colId);
         const chilCol = await (
           (await relColumn.getColOptions(
-            this.context,
+            baseModel.context,
           )) as LinkToAnotherRecordColumn
-        ).getChildColumn(this.context);
-        const childTable = await chilCol.getModel(this.context);
+        ).getChildColumn(baseModel.context);
+        const childTable = await chilCol.getModel(baseModel.context);
         const parentCol = await (
           (await relColumn.getColOptions(
-            this.context,
+            baseModel.context,
           )) as LinkToAnotherRecordColumn
-        ).getParentColumn(this.context);
-        const parentTable = await parentCol.getModel(this.context);
-        await parentTable.getColumns(this.context);
+        ).getParentColumn(baseModel.context);
+        const parentTable = await parentCol.getModel(baseModel.context);
+        await parentTable.getColumns(baseModel.context);
 
-        const childTn = this.getTnPath(childTable);
-        const parentTn = this.getTnPath(parentTable);
+        const childTn = baseModel.getTnPath(childTable);
+        const parentTn = baseModel.getTnPath(parentTable);
 
-        const children = await this.execAndParse(
-          this.dbDriver.unionAll(
+        const children = await baseModel.execAndParse(
+          baseModel.dbDriver.unionAll(
             ids.map((p) => {
-              const query = this.dbDriver(childTn)
+              const query = baseModel
+                .dbDriver(childTn)
                 .count(`${chilCol?.column_name} as count`)
                 .whereIn(
                   chilCol.column_name,
-                  this.dbDriver(parentTn)
+                  baseModel
+                    .dbDriver(parentTn)
                     .select(parentCol.column_name)
                     // .where(parentTable.primaryKey.cn, p)
                     .where(_wherePk(parentTable.primaryKeys, p)),
                 )
                 .first();
 
-              return this.isSqlite ? this.dbDriver.select().from(query) : query;
+              return baseModel.isSqlite
+                ? baseModel.dbDriver.select().from(query)
+                : query;
             }),
-            !this.isSqlite,
+            !baseModel.isSqlite,
           ),
           null,
           { raw: true },
@@ -312,42 +323,45 @@ export const relationListCount = (param: {
       args: { limit?; offset?; fieldSet?: Set<string> } = {},
     ) {
       try {
-        const { where, sort, ...rest } = this._getListArgs(args as any, {
+        const { where, sort, ...rest } = baseModel._getListArgs(args as any, {
           apiVersion,
           nested: true,
         });
         // todo: get only required fields
 
-        const relColumn = (await this.model.getColumns(this.context)).find(
-          (c) => c.id === colId,
-        );
+        const relColumn = (
+          await baseModel.model.getColumns(baseModel.context)
+        ).find((c) => c.id === colId);
         const relationColOpts = (await relColumn.getColOptions(
-          this.context,
+          baseModel.context,
         )) as LinkToAnotherRecordColumn;
-        const chilCol = await relationColOpts.getChildColumn(this.context);
-        const childTable = await chilCol.getModel(this.context);
-        const parentCol = await relationColOpts.getParentColumn(this.context);
-        const parentTable = await parentCol.getModel(this.context);
-        const childBaseModel = await Model.getBaseModelSQL(this.context, {
+        const chilCol = await relationColOpts.getChildColumn(baseModel.context);
+        const childTable = await chilCol.getModel(baseModel.context);
+        const parentCol = await relationColOpts.getParentColumn(
+          baseModel.context,
+        );
+        const parentTable = await parentCol.getModel(baseModel.context);
+        const childBaseModel = await Model.getBaseModelSQL(baseModel.context, {
           model: childTable,
-          dbDriver: this.dbDriver,
+          dbDriver: baseModel.dbDriver,
         });
-        await parentTable.getColumns(this.context);
+        await parentTable.getColumns(baseModel.context);
 
         const childTn = childBaseModel.getTnPath(childTable);
-        const parentTn = this.getTnPath(parentTable);
+        const parentTn = baseModel.getTnPath(parentTable);
 
-        const qb = this.dbDriver(childTn);
+        const qb = baseModel.dbDriver(childTn);
 
-        await childTable.getViews(this.context);
+        await childTable.getViews(baseModel.context);
         const viewId =
           relColumn.colOptions?.fk_target_view_id ?? childTable.views?.[0]?.id;
         let view: View | null = null;
-        if (viewId) view = await View.get(this.context, viewId);
+        if (viewId) view = await View.get(baseModel.context, viewId);
 
         qb.whereIn(
           chilCol.column_name,
-          this.dbDriver(parentTn)
+          baseModel
+            .dbDriver(parentTn)
             .select(parentCol.column_name)
             // .where(parentTable.primaryKey.cn, p)
             .where(_wherePk(parentTable.primaryKeys, id)),
@@ -361,7 +375,7 @@ export const relationListCount = (param: {
           fieldsSet: args.fieldSet,
         });
 
-        await this.applySortAndFilter({
+        await baseModel.applySortAndFilter({
           table: childTable,
           where,
           qb,
@@ -370,15 +384,15 @@ export const relationListCount = (param: {
           skipViewFilter: true,
         });
 
-        const children = await this.execAndParse(
+        const children = await baseModel.execAndParse(
           qb,
-          await childTable.getColumns(this.context),
+          await childTable.getColumns(baseModel.context),
         );
 
         const proto = await (
-          await Model.getBaseModelSQL(this.context, {
+          await Model.getBaseModelSQL(baseModel.context, {
             id: childTable.id,
-            dbDriver: this.dbDriver,
+            dbDriver: baseModel.dbDriver,
           })
         ).getProto();
 
@@ -393,43 +407,47 @@ export const relationListCount = (param: {
 
     async hmListCount({ colId, id }, args) {
       try {
-        // const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
-        const { where } = this._getListArgs(args as any);
-        const relColumn = (await this.model.getColumns(this.context)).find(
-          (c) => c.id === colId,
-        );
+        // const { cn } = baseModel.hasManyRelations.find(({ tn }) => tn === child) || {};
+        const { where } = baseModel._getListArgs(args as any);
+        const relColumn = (
+          await baseModel.model.getColumns(baseModel.context)
+        ).find((c) => c.id === colId);
         const chilCol = await (
           (await relColumn.getColOptions(
-            this.context,
+            baseModel.context,
           )) as LinkToAnotherRecordColumn
-        ).getChildColumn(this.context);
-        const childTable = await chilCol.getModel(this.context);
+        ).getChildColumn(baseModel.context);
+        const childTable = await chilCol.getModel(baseModel.context);
         const parentCol = await (
           (await relColumn.getColOptions(
-            this.context,
+            baseModel.context,
           )) as LinkToAnotherRecordColumn
-        ).getParentColumn(this.context);
-        const parentTable = await parentCol.getModel(this.context);
-        await parentTable.getColumns(this.context);
+        ).getParentColumn(baseModel.context);
+        const parentTable = await parentCol.getModel(baseModel.context);
+        await parentTable.getColumns(baseModel.context);
 
-        const childBaseModel = await Model.getBaseModelSQL(this.context, {
-          dbDriver: this.dbDriver,
+        const childBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+          dbDriver: baseModel.dbDriver,
           model: childTable,
         });
         const childTn = childBaseModel.getTnPath(childTable);
-        const parentTn = this.getTnPath(parentTable);
+        const parentTn = baseModel.getTnPath(parentTable);
 
-        const query = this.dbDriver(childTn)
+        const query = baseModel
+          .dbDriver(childTn)
           .count(`${chilCol?.column_name} as count`)
           .whereIn(
             chilCol.column_name,
-            this.dbDriver(parentTn)
+            baseModel
+              .dbDriver(parentTn)
               .select(parentCol.column_name)
               .where(_wherePk(parentTable.primaryKeys, id)),
           );
-        const aliasColObjMap = await childTable.getAliasColObjMap(this.context);
+        const aliasColObjMap = await childTable.getAliasColObjMap(
+          baseModel.context,
+        );
         const { filters: filterObj } = extractFilterFromXwhere(
-          this.context,
+          baseModel.context,
           where,
           aliasColObjMap,
         );
@@ -447,7 +465,7 @@ export const relationListCount = (param: {
         );
 
         return (
-          await this.execAndParse(query, null, { raw: true, first: true })
+          await baseModel.execAndParse(query, null, { raw: true, first: true })
         )?.count;
       } catch (e) {
         throw e;
@@ -470,61 +488,60 @@ export const relationListCount = (param: {
     ) {
       // skip duplicate id
       const parentIds = [...new Set(_parentIds)];
-      const { where, sort, ...rest } = this._getListArgs(args as any);
-      const relColumn = (await this.model.getColumns(this.context)).find(
-        (c) => c.id === colId,
-      );
+      const { where, sort, ...rest } = baseModel._getListArgs(args as any);
+      const relColumn = (
+        await baseModel.model.getColumns(baseModel.context)
+      ).find((c) => c.id === colId);
       const relColOptions = (await relColumn.getColOptions(
-        this.context,
+        baseModel.context,
       )) as LinkToAnotherRecordColumn;
 
-      // const tn = this.model.tn;
-      // const cn = (await relColOptions.getChildColumn(this.context)).title;
-      const mmTable = await relColOptions.getMMModel(this.context);
+      // const tn = baseModel.model.tn;
+      // const cn = (await relColOptions.getChildColumn(baseModel.context)).title;
+      const mmTable = await relColOptions.getMMModel(baseModel.context);
 
       // if mm table is not present then return
       if (!mmTable) {
         return;
       }
 
-      const vtn = this.getTnPath(mmTable);
-      const vcn = (await relColOptions.getMMChildColumn(this.context))
+      const vtn = baseModel.getTnPath(mmTable);
+      const vcn = (await relColOptions.getMMChildColumn(baseModel.context))
         .column_name;
-      const vrcn = (await relColOptions.getMMParentColumn(this.context))
+      const vrcn = (await relColOptions.getMMParentColumn(baseModel.context))
         .column_name;
-      const rcn = (await relColOptions.getParentColumn(this.context))
+      const rcn = (await relColOptions.getParentColumn(baseModel.context))
         .column_name;
-      const cn = (await relColOptions.getChildColumn(this.context)).column_name;
+      const cn = (await relColOptions.getChildColumn(baseModel.context))
+        .column_name;
       const childTable = await (
-        await relColOptions.getParentColumn(this.context)
-      ).getModel(this.context);
+        await relColOptions.getParentColumn(baseModel.context)
+      ).getModel(baseModel.context);
       const parentTable = await (
-        await relColOptions.getChildColumn(this.context)
-      ).getModel(this.context);
-      await parentTable.getColumns(this.context);
-      const childModel = await Model.getBaseModelSQL(this.context, {
-        dbDriver: this.dbDriver,
+        await relColOptions.getChildColumn(baseModel.context)
+      ).getModel(baseModel.context);
+      await parentTable.getColumns(baseModel.context);
+      const childModel = await Model.getBaseModelSQL(baseModel.context, {
+        dbDriver: baseModel.dbDriver,
         model: childTable,
       });
 
-      const childTn = this.getTnPath(childTable);
-      const parentTn = this.getTnPath(parentTable);
+      const childTn = baseModel.getTnPath(childTable);
+      const parentTn = baseModel.getTnPath(parentTable);
 
       const rtn = childTn;
       const rtnId = childTable.id;
 
-      const qb = this.dbDriver(rtn).join(
-        vtn,
-        `${vtn}.${vrcn}`,
-        `${rtn}.${rcn}`,
-      );
+      const qb = baseModel
+        .dbDriver(rtn)
+        .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`);
 
       await childModel.selectObject({ qb, fieldsSet: args.fieldsSet });
 
       const view = relColOptions.fk_target_view_id
-        ? await View.get(this.context, relColOptions.fk_target_view_id)
-        : await View.getDefaultView(this.context, childTable.id);
-      await this.applySortAndFilter({
+        ? await View.get(baseModel.context, relColOptions.fk_target_view_id)
+        : await View.getDefaultView(baseModel.context, childTable.id);
+      await baseModel.applySortAndFilter({
         table: childTable,
         where,
         qb,
@@ -533,38 +550,41 @@ export const relationListCount = (param: {
         skipViewFilter: true,
       });
 
-      const finalQb = this.dbDriver.unionAll(
+      const finalQb = baseModel.dbDriver.unionAll(
         parentIds.map((id) => {
           const query = qb
             .clone()
             .whereIn(
               `${vtn}.${vcn}`,
-              this.dbDriver(parentTn)
+              baseModel
+                .dbDriver(parentTn)
                 .select(cn)
                 // .where(parentTable.primaryKey.cn, id)
                 .where(_wherePk(parentTable.primaryKeys, id)),
             )
-            .select(this.dbDriver.raw('? as ??', [id, GROUP_COL]));
+            .select(baseModel.dbDriver.raw('? as ??', [id, GROUP_COL]));
           // get one extra record to check if there are more records in case of v3 api and nested
           query.limit(
             (+rest?.limit || 25) +
               (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
           );
           query.offset(+rest?.offset || 0);
-          return this.isSqlite ? this.dbDriver.select().from(query) : query;
+          return baseModel.isSqlite
+            ? baseModel.dbDriver.select().from(query)
+            : query;
         }),
-        !this.isSqlite,
+        !baseModel.isSqlite,
       );
 
-      const children = await this.execAndParse(
+      const children = await baseModel.execAndParse(
         finalQb,
-        await childTable.getColumns(this.context),
+        await childTable.getColumns(baseModel.context),
       );
 
       const proto = await (
-        await Model.getBaseModelSQL(this.context, {
+        await Model.getBaseModelSQL(baseModel.context, {
           id: rtnId,
-          dbDriver: this.dbDriver,
+          dbDriver: baseModel.dbDriver,
         })
       ).getProto();
       const gs = groupBy(
@@ -578,36 +598,38 @@ export const relationListCount = (param: {
     },
 
     async multipleMmListCount({ colId, parentIds }) {
-      const relColumn = (await this.model.getColumns(this.context)).find(
-        (c) => c.id === colId,
-      );
+      const relColumn = (
+        await baseModel.model.getColumns(baseModel.context)
+      ).find((c) => c.id === colId);
       const relColOptions = (await relColumn.getColOptions(
-        this.context,
+        baseModel.context,
       )) as LinkToAnotherRecordColumn;
 
-      const mmTable = await relColOptions.getMMModel(this.context);
-      const vtn = this.getTnPath(mmTable);
-      const vcn = (await relColOptions.getMMChildColumn(this.context))
+      const mmTable = await relColOptions.getMMModel(baseModel.context);
+      const vtn = baseModel.getTnPath(mmTable);
+      const vcn = (await relColOptions.getMMChildColumn(baseModel.context))
         .column_name;
-      const vrcn = (await relColOptions.getMMParentColumn(this.context))
+      const vrcn = (await relColOptions.getMMParentColumn(baseModel.context))
         .column_name;
-      const rcn = (await relColOptions.getParentColumn(this.context))
+      const rcn = (await relColOptions.getParentColumn(baseModel.context))
         .column_name;
-      const cn = (await relColOptions.getChildColumn(this.context)).column_name;
+      const cn = (await relColOptions.getChildColumn(baseModel.context))
+        .column_name;
       const childTable = await (
-        await relColOptions.getParentColumn(this.context)
-      ).getModel(this.context);
+        await relColOptions.getParentColumn(baseModel.context)
+      ).getModel(baseModel.context);
       const parentTable = await (
-        await relColOptions.getChildColumn(this.context)
-      ).getModel(this.context);
-      await parentTable.getColumns(this.context);
+        await relColOptions.getChildColumn(baseModel.context)
+      ).getModel(baseModel.context);
+      await parentTable.getColumns(baseModel.context);
 
-      const childTn = this.getTnPath(childTable);
-      const parentTn = this.getTnPath(parentTable);
+      const childTn = baseModel.getTnPath(childTable);
+      const parentTn = baseModel.getTnPath(parentTable);
 
       const rtn = childTn;
 
-      const qb = this.dbDriver(rtn)
+      const qb = baseModel
+        .dbDriver(rtn)
         .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`)
         // .select({
         //   [`${tn}_${vcn}`]: `${vtn}.${vcn}`
@@ -615,23 +637,26 @@ export const relationListCount = (param: {
         .count(`${vtn}.${vcn}`, { as: 'count' });
 
       // await childModel.selectObject({ qb });
-      const children = await this.execAndParse(
-        this.dbDriver.unionAll(
+      const children = await baseModel.execAndParse(
+        baseModel.dbDriver.unionAll(
           parentIds.map((id) => {
             const query = qb
               .clone()
               .whereIn(
                 `${vtn}.${vcn}`,
-                this.dbDriver(parentTn)
+                baseModel
+                  .dbDriver(parentTn)
                   .select(cn)
                   // .where(parentTable.primaryKey.cn, id)
                   .where(_wherePk(parentTable.primaryKeys, id)),
               )
-              .select(this.dbDriver.raw('? as ??', [id, GROUP_COL]));
-            // this._paginateAndSort(query, { sort, limit, offset }, null, true);
-            return this.isSqlite ? this.dbDriver.select().from(query) : query;
+              .select(baseModel.dbDriver.raw('? as ??', [id, GROUP_COL]));
+            // baseModel._paginateAndSort(query, { sort, limit, offset }, null, true);
+            return baseModel.isSqlite
+              ? baseModel.dbDriver.select().from(query)
+              : query;
           }),
-          !this.isSqlite,
+          !baseModel.isSqlite,
         ),
         null,
         { raw: true },
@@ -642,50 +667,52 @@ export const relationListCount = (param: {
     },
 
     async mmListCount({ colId, parentId }, args) {
-      const { where } = this._getListArgs(args as any);
+      const { where } = baseModel._getListArgs(args as any);
 
-      const relColumn = (await this.model.getColumns(this.context)).find(
-        (c) => c.id === colId,
-      );
+      const relColumn = (
+        await baseModel.model.getColumns(baseModel.context)
+      ).find((c) => c.id === colId);
       const relColOptions = (await relColumn.getColOptions(
-        this.context,
+        baseModel.context,
       )) as LinkToAnotherRecordColumn;
 
-      const mmTable = await relColOptions.getMMModel(this.context);
+      const mmTable = await relColOptions.getMMModel(baseModel.context);
 
-      const assocBaseModel = await Model.getBaseModelSQL(this.context, {
+      const assocBaseModel = await Model.getBaseModelSQL(baseModel.context, {
         model: mmTable,
-        dbDriver: this.dbDriver,
+        dbDriver: baseModel.dbDriver,
       });
 
       const vtn = assocBaseModel.getTnPath(mmTable);
-      const vcn = (await relColOptions.getMMChildColumn(this.context))
+      const vcn = (await relColOptions.getMMChildColumn(baseModel.context))
         .column_name;
-      const vrcn = (await relColOptions.getMMParentColumn(this.context))
+      const vrcn = (await relColOptions.getMMParentColumn(baseModel.context))
         .column_name;
-      const rcn = (await relColOptions.getParentColumn(this.context))
+      const rcn = (await relColOptions.getParentColumn(baseModel.context))
         .column_name;
-      const cn = (await relColOptions.getChildColumn(this.context)).column_name;
+      const cn = (await relColOptions.getChildColumn(baseModel.context))
+        .column_name;
       const childTable = await (
-        await relColOptions.getParentColumn(this.context)
-      ).getModel(this.context);
+        await relColOptions.getParentColumn(baseModel.context)
+      ).getModel(baseModel.context);
 
       const parentTable = await (
-        await relColOptions.getChildColumn(this.context)
-      ).getModel(this.context);
-      await parentTable.getColumns(this.context);
+        await relColOptions.getChildColumn(baseModel.context)
+      ).getModel(baseModel.context);
+      await parentTable.getColumns(baseModel.context);
 
-      const childBaseModel = await Model.getBaseModelSQL(this.context, {
-        dbDriver: this.dbDriver,
+      const childBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+        dbDriver: baseModel.dbDriver,
         model: childTable,
       });
 
       const childTn = childBaseModel.getTnPath(childTable);
-      const parentTn = this.getTnPath(parentTable);
+      const parentTn = baseModel.getTnPath(parentTable);
 
       const rtn = childTn;
 
-      const qb = this.dbDriver(rtn)
+      const qb = baseModel
+        .dbDriver(rtn)
         .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`)
         // .select({
         //   [`${tn}_${vcn}`]: `${vtn}.${vcn}`
@@ -693,14 +720,17 @@ export const relationListCount = (param: {
         .count(`${vtn}.${vcn}`, { as: 'count' })
         .whereIn(
           `${vtn}.${vcn}`,
-          this.dbDriver(parentTn)
+          baseModel
+            .dbDriver(parentTn)
             .select(cn)
             // .where(parentTable.primaryKey.cn, id)
             .where(_wherePk(parentTable.primaryKeys, parentId)),
         );
-      const aliasColObjMap = await childTable.getAliasColObjMap(this.context);
+      const aliasColObjMap = await childTable.getAliasColObjMap(
+        baseModel.context,
+      );
       const { filters: filterObj } = extractFilterFromXwhere(
-        this.context,
+        baseModel.context,
         where,
         aliasColObjMap,
       );
@@ -716,44 +746,46 @@ export const relationListCount = (param: {
         ],
         qb,
       );
-      return (await this.execAndParse(qb, null, { raw: true, first: true }))
-        ?.count;
+      return (
+        await baseModel.execAndParse(qb, null, { raw: true, first: true })
+      )?.count;
     },
 
     async getMmChildrenExcludedListCount(
       { colId, pid = null },
       args,
     ): Promise<any> {
-      const { where } = this._getListArgs(args as any);
-      const relColumn = (await this.model.getColumns(this.context)).find(
-        (c) => c.id === colId,
-      );
+      const { where } = baseModel._getListArgs(args as any);
+      const relColumn = (
+        await baseModel.model.getColumns(baseModel.context)
+      ).find((c) => c.id === colId);
       const relColOptions = (await relColumn.getColOptions(
-        this.context,
+        baseModel.context,
       )) as LinkToAnotherRecordColumn;
 
-      const mmTable = await relColOptions.getMMModel(this.context);
-      const assocBaseModel = await Model.getBaseModelSQL(this.context, {
+      const mmTable = await relColOptions.getMMModel(baseModel.context);
+      const assocBaseModel = await Model.getBaseModelSQL(baseModel.context, {
         id: mmTable.id,
-        dbDriver: this.dbDriver,
+        dbDriver: baseModel.dbDriver,
       });
 
       const vtn = assocBaseModel.getTnPath(mmTable);
-      const vcn = (await relColOptions.getMMChildColumn(this.context))
+      const vcn = (await relColOptions.getMMChildColumn(baseModel.context))
         .column_name;
-      const vrcn = (await relColOptions.getMMParentColumn(this.context))
+      const vrcn = (await relColOptions.getMMParentColumn(baseModel.context))
         .column_name;
-      const rcn = (await relColOptions.getParentColumn(this.context))
+      const rcn = (await relColOptions.getParentColumn(baseModel.context))
         .column_name;
-      const cn = (await relColOptions.getChildColumn(this.context)).column_name;
+      const cn = (await relColOptions.getChildColumn(baseModel.context))
+        .column_name;
       const childTable = await (
-        await relColOptions.getParentColumn(this.context)
-      ).getModel(this.context);
+        await relColOptions.getParentColumn(baseModel.context)
+      ).getModel(baseModel.context);
 
-      const childView = await relColOptions.getChildView(this.context);
+      const childView = await relColOptions.getChildView(baseModel.context);
       let listArgs: any = {};
       if (childView) {
-        const { dependencyFields } = await getAst(this.context, {
+        const { dependencyFields } = await getAst(baseModel.context, {
           model: childTable,
           query: {},
           view: childView,
@@ -770,33 +802,36 @@ export const relationListCount = (param: {
       }
 
       const parentTable = await (
-        await relColOptions.getChildColumn(this.context)
-      ).getModel(this.context);
-      await parentTable.getColumns(this.context);
+        await relColOptions.getChildColumn(baseModel.context)
+      ).getModel(baseModel.context);
+      await parentTable.getColumns(baseModel.context);
 
-      const parentBaseModel = await Model.getBaseModelSQL(this.context, {
+      const parentBaseModel = await Model.getBaseModelSQL(baseModel.context, {
         id: parentTable.id,
-        dbDriver: this.dbDriver,
+        dbDriver: baseModel.dbDriver,
       });
-      const childBaseModel = await Model.getBaseModelSQL(this.context, {
+      const childBaseModel = await Model.getBaseModelSQL(baseModel.context, {
         id: childTable.id,
-        dbDriver: this.dbDriver,
+        dbDriver: baseModel.dbDriver,
       });
       const childTn = childBaseModel.getTnPath(childTable);
       const parentTn = parentBaseModel.getTnPath(parentTable);
 
       const rtn = childTn;
-      const qb = this.dbDriver(rtn)
+      const qb = baseModel
+        .dbDriver(rtn)
         .count(`*`, { as: 'count' })
         .where((qb) => {
           qb.whereNotIn(
             rcn,
-            this.dbDriver(rtn)
+            baseModel
+              .dbDriver(rtn)
               .select(`${rtn}.${rcn}`)
               .join(vtn, `${rtn}.${rcn}`, `${vtn}.${vrcn}`)
               .whereIn(
                 `${vtn}.${vcn}`,
-                this.dbDriver(parentTn)
+                baseModel
+                  .dbDriver(parentTn)
                   .select(cn)
                   // .where(parentTable.primaryKey.cn, pid)
                   .where(_wherePk(parentTable.primaryKeys, pid)),
@@ -804,14 +839,16 @@ export const relationListCount = (param: {
           ).orWhereNull(rcn);
         });
 
-      const aliasColObjMap = await childTable.getAliasColObjMap(this.context);
+      const aliasColObjMap = await childTable.getAliasColObjMap(
+        baseModel.context,
+      );
       const { filters: filterObj } = extractFilterFromXwhere(
-        this.context,
+        baseModel.context,
         where,
         aliasColObjMap,
       );
 
-      await this.getCustomConditionsAndApply({
+      await baseModel.getCustomConditionsAndApply({
         column: relColumn,
         view: childView,
         filters: filterObj,
@@ -821,62 +858,67 @@ export const relationListCount = (param: {
       });
 
       return (
-        await this.execAndParse(qb, await childTable.getColumns(this.context), {
-          raw: true,
-          first: true,
-        })
+        await baseModel.execAndParse(
+          qb,
+          await childTable.getColumns(baseModel.context),
+          {
+            raw: true,
+            first: true,
+          },
+        )
       )?.count;
     },
 
     async getMmChildrenExcludedList({ colId, pid = null }, args): Promise<any> {
-      const { where, sort, ...rest } = this._getListArgs(args as any);
-      const relColumn = (await this.model.getColumns(this.context)).find(
-        (c) => c.id === colId,
-      );
+      const { where, sort, ...rest } = baseModel._getListArgs(args as any);
+      const relColumn = (
+        await baseModel.model.getColumns(baseModel.context)
+      ).find((c) => c.id === colId);
       const relColOptions = (await relColumn.getColOptions(
-        this.context,
+        baseModel.context,
       )) as LinkToAnotherRecordColumn;
 
-      const mmTable = await relColOptions.getMMModel(this.context);
-      const assocBaseModel = await Model.getBaseModelSQL(this.context, {
+      const mmTable = await relColOptions.getMMModel(baseModel.context);
+      const assocBaseModel = await Model.getBaseModelSQL(baseModel.context, {
         id: mmTable.id,
-        dbDriver: this.dbDriver,
+        dbDriver: baseModel.dbDriver,
       });
 
       const vtn = assocBaseModel.getTnPath(mmTable);
-      const vcn = (await relColOptions.getMMChildColumn(this.context))
+      const vcn = (await relColOptions.getMMChildColumn(baseModel.context))
         .column_name;
-      const vrcn = (await relColOptions.getMMParentColumn(this.context))
+      const vrcn = (await relColOptions.getMMParentColumn(baseModel.context))
         .column_name;
-      const rcn = (await relColOptions.getParentColumn(this.context))
+      const rcn = (await relColOptions.getParentColumn(baseModel.context))
         .column_name;
-      const cn = (await relColOptions.getChildColumn(this.context)).column_name;
+      const cn = (await relColOptions.getChildColumn(baseModel.context))
+        .column_name;
 
       const childTable = await (
-        await relColOptions.getParentColumn(this.context)
-      ).getModel(this.context);
+        await relColOptions.getParentColumn(baseModel.context)
+      ).getModel(baseModel.context);
       const parentTable = await (
-        await relColOptions.getChildColumn(this.context)
-      ).getModel(this.context);
-      await parentTable.getColumns(this.context);
-      const parentBaseModel = await Model.getBaseModelSQL(this.context, {
+        await relColOptions.getChildColumn(baseModel.context)
+      ).getModel(baseModel.context);
+      await parentTable.getColumns(baseModel.context);
+      const parentBaseModel = await Model.getBaseModelSQL(baseModel.context, {
         id: parentTable.id,
-        dbDriver: this.dbDriver,
+        dbDriver: baseModel.dbDriver,
       });
-      const childBaseModel = await Model.getBaseModelSQL(this.context, {
-        dbDriver: this.dbDriver,
+      const childBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+        dbDriver: baseModel.dbDriver,
         id: childTable.id,
       });
       const childTn = childBaseModel.getTnPath(childTable);
       const parentTn = parentBaseModel.getTnPath(parentTable);
 
       const childView = await relColOptions.getChildView(
-        this.context,
+        baseModel.context,
         childTable,
       );
       let listArgs: any = {};
       if (childView) {
-        const { dependencyFields } = await getAst(this.context, {
+        const { dependencyFields } = await getAst(baseModel.context, {
           model: childTable,
           query: {},
           view: childView,
@@ -887,16 +929,18 @@ export const relationListCount = (param: {
 
       const rtn = childTn;
 
-      const qb = this.dbDriver(rtn).where((qb) =>
+      const qb = baseModel.dbDriver(rtn).where((qb) =>
         qb
           .whereNotIn(
             rcn,
-            this.dbDriver(rtn)
+            baseModel
+              .dbDriver(rtn)
               .select(`${rtn}.${rcn}`)
               .join(vtn, `${rtn}.${rcn}`, `${vtn}.${vrcn}`)
               .whereIn(
                 `${vtn}.${vcn}`,
-                this.dbDriver(parentTn)
+                baseModel
+                  .dbDriver(parentTn)
                   .select(cn)
                   // .where(parentTable.primaryKey.cn, pid)
                   .where(_wherePk(parentTable.primaryKeys, pid)),
@@ -915,14 +959,16 @@ export const relationListCount = (param: {
         viewId: childView?.id,
       });
 
-      const aliasColObjMap = await childTable.getAliasColObjMap(this.context);
+      const aliasColObjMap = await childTable.getAliasColObjMap(
+        baseModel.context,
+      );
       const { filters: filterObj } = extractFilterFromXwhere(
-        this.context,
+        baseModel.context,
         where,
         aliasColObjMap,
       );
 
-      await this.getCustomConditionsAndApply({
+      await baseModel.getCustomConditionsAndApply({
         column: relColumn,
         view: relColOptions.fk_target_view_id ? childView : null,
         filters: filterObj,
@@ -931,7 +977,7 @@ export const relationListCount = (param: {
         rowId: pid,
       });
 
-      await this.applySortAndFilter({
+      await baseModel.applySortAndFilter({
         table: childTable,
         view: childView,
         qb,
@@ -944,9 +990,9 @@ export const relationListCount = (param: {
       applyPaginate(qb, rest);
 
       const proto = await childBaseModel.getProto();
-      const data = await this.execAndParse(
+      const data = await baseModel.execAndParse(
         qb,
-        await childTable.getColumns(this.context),
+        await childTable.getColumns(baseModel.context),
       );
       return data.map((c) => {
         c.__proto__ = proto;
@@ -955,35 +1001,36 @@ export const relationListCount = (param: {
     },
 
     async getHmChildrenExcludedList({ colId, pid = null }, args): Promise<any> {
-      const { where, sort, ...rest } = this._getListArgs(args as any);
-      const relColumn = (await this.model.getColumns(this.context)).find(
-        (c) => c.id === colId,
-      );
+      const { where, sort, ...rest } = baseModel._getListArgs(args as any);
+      const relColumn = (
+        await baseModel.model.getColumns(baseModel.context)
+      ).find((c) => c.id === colId);
       const relColOptions = (await relColumn.getColOptions(
-        this.context,
+        baseModel.context,
       )) as LinkToAnotherRecordColumn;
 
-      const cn = (await relColOptions.getChildColumn(this.context)).column_name;
-      const rcn = (await relColOptions.getParentColumn(this.context))
+      const cn = (await relColOptions.getChildColumn(baseModel.context))
+        .column_name;
+      const rcn = (await relColOptions.getParentColumn(baseModel.context))
         .column_name;
       const childTable = await (
-        await relColOptions.getChildColumn(this.context)
-      ).getModel(this.context);
+        await relColOptions.getChildColumn(baseModel.context)
+      ).getModel(baseModel.context);
       const parentTable = await (
-        await relColOptions.getParentColumn(this.context)
-      ).getModel(this.context);
-      const childBaseModel = await Model.getBaseModelSQL(this.context, {
-        dbDriver: this.dbDriver,
+        await relColOptions.getParentColumn(baseModel.context)
+      ).getModel(baseModel.context);
+      const childBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+        dbDriver: baseModel.dbDriver,
         model: childTable,
       });
-      const parentBaseModel = await Model.getBaseModelSQL(this.context, {
-        dbDriver: this.dbDriver,
+      const parentBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+        dbDriver: baseModel.dbDriver,
         model: parentTable,
       });
-      await parentTable.getColumns(this.context);
+      await parentTable.getColumns(baseModel.context);
 
       const childView = await relColOptions.getChildView(
-        this.context,
+        baseModel.context,
         childTable,
       );
 
@@ -993,10 +1040,11 @@ export const relationListCount = (param: {
       const tn = childTn;
       const rtn = parentTn;
 
-      const qb = this.dbDriver(tn).where((qb) => {
+      const qb = baseModel.dbDriver(tn).where((qb) => {
         qb.whereNotIn(
           cn,
-          this.dbDriver(rtn)
+          baseModel
+            .dbDriver(rtn)
             .select(rcn)
             // .where(parentTable.primaryKey.cn, pid)
             .where(_wherePk(parentTable.primaryKeys, pid)),
@@ -1009,13 +1057,15 @@ export const relationListCount = (param: {
 
       await childBaseModel.selectObject({ qb });
 
-      const aliasColObjMap = await childTable.getAliasColObjMap(this.context);
+      const aliasColObjMap = await childTable.getAliasColObjMap(
+        baseModel.context,
+      );
       const { filters: filterObj } = extractFilterFromXwhere(
-        this.context,
+        baseModel.context,
         where,
         aliasColObjMap,
       );
-      await this.getCustomConditionsAndApply({
+      await baseModel.getCustomConditionsAndApply({
         column: relColumn,
         view: relColOptions.fk_target_view_id ? childView : null,
         filters: filterObj,
@@ -1023,7 +1073,7 @@ export const relationListCount = (param: {
         qb,
         rowId: pid,
       });
-      await this.applySortAndFilter({
+      await baseModel.applySortAndFilter({
         table: childTable,
         view: childView,
         qb,
@@ -1036,9 +1086,9 @@ export const relationListCount = (param: {
       applyPaginate(qb, rest);
 
       const proto = await childBaseModel.getProto();
-      const data = await this.execAndParse(
+      const data = await baseModel.execAndParse(
         qb,
-        await childTable.getColumns(this.context),
+        await childTable.getColumns(baseModel.context),
       );
       return data.map((c) => {
         c.__proto__ = proto;
@@ -1050,59 +1100,64 @@ export const relationListCount = (param: {
       { colId, pid = null },
       args,
     ): Promise<any> {
-      const { where } = this._getListArgs(args as any);
-      const relColumn = (await this.model.getColumns(this.context)).find(
-        (c) => c.id === colId,
-      );
+      const { where } = baseModel._getListArgs(args as any);
+      const relColumn = (
+        await baseModel.model.getColumns(baseModel.context)
+      ).find((c) => c.id === colId);
 
       const relColOptions = (await relColumn.getColOptions(
-        this.context,
+        baseModel.context,
       )) as LinkToAnotherRecordColumn;
 
-      const cn = (await relColOptions.getChildColumn(this.context)).column_name;
-      const rcn = (await relColOptions.getParentColumn(this.context))
+      const cn = (await relColOptions.getChildColumn(baseModel.context))
+        .column_name;
+      const rcn = (await relColOptions.getParentColumn(baseModel.context))
         .column_name;
       const childTable = await (
-        await relColOptions.getChildColumn(this.context)
-      ).getModel(this.context);
+        await relColOptions.getChildColumn(baseModel.context)
+      ).getModel(baseModel.context);
       const parentTable = await (
-        await relColOptions.getParentColumn(this.context)
-      ).getModel(this.context);
+        await relColOptions.getParentColumn(baseModel.context)
+      ).getModel(baseModel.context);
 
-      const childView = await relColOptions.getChildView(this.context);
+      const childView = await relColOptions.getChildView(baseModel.context);
 
-      const childBaseModel = await Model.getBaseModelSQL(this.context, {
-        dbDriver: this.dbDriver,
+      const childBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+        dbDriver: baseModel.dbDriver,
         model: childTable,
       });
 
       const childTn = childBaseModel.getTnPath(childTable);
-      const parentTn = this.getTnPath(parentTable);
+      const parentTn = baseModel.getTnPath(parentTable);
 
       const tn = childTn;
       const rtn = parentTn;
-      await parentTable.getColumns(this.context);
+      await parentTable.getColumns(baseModel.context);
 
-      const qb = this.dbDriver(tn)
+      const qb = baseModel
+        .dbDriver(tn)
         .count(`*`, { as: 'count' })
         .where((qb) => {
           qb.whereNotIn(
             cn,
-            this.dbDriver(rtn)
+            baseModel
+              .dbDriver(rtn)
               .select(rcn)
               // .where(parentTable.primaryKey.cn, pid)
               .where(_wherePk(parentTable.primaryKeys, pid)),
           ).orWhereNull(cn);
         });
 
-      const aliasColObjMap = await childTable.getAliasColObjMap(this.context);
+      const aliasColObjMap = await childTable.getAliasColObjMap(
+        baseModel.context,
+      );
       const { filters: filterObj } = extractFilterFromXwhere(
-        this.context,
+        baseModel.context,
         where,
         aliasColObjMap,
       );
 
-      await this.getCustomConditionsAndApply({
+      await baseModel.getCustomConditionsAndApply({
         column: relColumn,
         view: childView,
         filters: filterObj,
@@ -1111,37 +1166,39 @@ export const relationListCount = (param: {
         rowId: pid,
       });
 
-      return (await this.execAndParse(qb, null, { raw: true, first: true }))
-        ?.count;
+      return (
+        await baseModel.execAndParse(qb, null, { raw: true, first: true })
+      )?.count;
     },
 
     async getExcludedOneToOneChildrenList(
       { colId, cid = null },
       args,
     ): Promise<any> {
-      const { where, sort, ...rest } = this._getListArgs(args as any);
-      const relColumn = (await this.model.getColumns(this.context)).find(
-        (c) => c.id === colId,
-      );
+      const { where, sort, ...rest } = baseModel._getListArgs(args as any);
+      const relColumn = (
+        await baseModel.model.getColumns(baseModel.context)
+      ).find((c) => c.id === colId);
       const relColOptions = (await relColumn.getColOptions(
-        this.context,
+        baseModel.context,
       )) as LinkToAnotherRecordColumn;
 
-      const rcn = (await relColOptions.getParentColumn(this.context))
+      const rcn = (await relColOptions.getParentColumn(baseModel.context))
         .column_name;
       const parentTable = await (
-        await relColOptions.getParentColumn(this.context)
-      ).getModel(this.context);
-      const cn = (await relColOptions.getChildColumn(this.context)).column_name;
+        await relColOptions.getParentColumn(baseModel.context)
+      ).getModel(baseModel.context);
+      const cn = (await relColOptions.getChildColumn(baseModel.context))
+        .column_name;
       const childTable = await (
-        await relColOptions.getChildColumn(this.context)
-      ).getModel(this.context);
-      const parentModel = await Model.getBaseModelSQL(this.context, {
-        dbDriver: this.dbDriver,
+        await relColOptions.getChildColumn(baseModel.context)
+      ).getModel(baseModel.context);
+      const parentModel = await Model.getBaseModelSQL(baseModel.context, {
+        dbDriver: baseModel.dbDriver,
         model: parentTable,
       });
-      const childModel = await Model.getBaseModelSQL(this.context, {
-        dbDriver: this.dbDriver,
+      const childModel = await Model.getBaseModelSQL(baseModel.context, {
+        dbDriver: baseModel.dbDriver,
         model: childTable,
       });
 
@@ -1150,12 +1207,12 @@ export const relationListCount = (param: {
       const isBt = relColumn.meta?.bt;
 
       const targetView = await relColOptions.getChildView(
-        this.context,
+        baseModel.context,
         isBt ? parentTable : childTable,
       );
       let listArgs: any = {};
       if (targetView) {
-        const { dependencyFields } = await getAst(this.context, {
+        const { dependencyFields } = await getAst(baseModel.context, {
           model: isBt ? parentTable : childTable,
           query: {},
           view: targetView,
@@ -1164,14 +1221,15 @@ export const relationListCount = (param: {
         listArgs = dependencyFields;
       }
 
-      const rtn = this.getTnPath(parentTable);
-      const tn = this.getTnPath(childTable);
-      await childTable.getColumns(this.context);
+      const rtn = baseModel.getTnPath(parentTable);
+      const tn = baseModel.getTnPath(childTable);
+      await childTable.getColumns(baseModel.context);
 
-      const qb = this.dbDriver(isBt ? rtn : tn).where((qb) => {
+      const qb = baseModel.dbDriver(isBt ? rtn : tn).where((qb) => {
         qb.whereNotIn(
           isBt ? rcn : cn,
-          this.dbDriver(isBt ? tn : rtn)
+          baseModel
+            .dbDriver(isBt ? tn : rtn)
             .select(isBt ? cn : rcn)
             .where(_wherePk((isBt ? childTable : parentTable).primaryKeys, cid))
             .whereNotNull(isBt ? cn : rcn),
@@ -1183,8 +1241,8 @@ export const relationListCount = (param: {
       }
 
       // pre-load columns for later user
-      await parentTable.getColumns(this.context);
-      await childTable.getColumns(this.context);
+      await parentTable.getColumns(baseModel.context);
+      await childTable.getColumns(baseModel.context);
 
       await (isBt ? parentModel : childModel).selectObject({
         qb,
@@ -1196,14 +1254,14 @@ export const relationListCount = (param: {
       const aliasColObjMap = await (relColumn.meta?.bt
         ? parentTable
         : childTable
-      ).getAliasColObjMap(this.context);
+      ).getAliasColObjMap(baseModel.context);
       const { filters: filterObj } = extractFilterFromXwhere(
-        this.context,
+        baseModel.context,
         where,
         aliasColObjMap,
       );
 
-      await this.getCustomConditionsAndApply({
+      await baseModel.getCustomConditionsAndApply({
         column: relColumn,
         view: relColOptions.fk_target_view_id ? targetView : null,
         filters: filterObj,
@@ -1212,7 +1270,7 @@ export const relationListCount = (param: {
         rowId: cid,
       });
 
-      await this.applySortAndFilter({
+      await baseModel.applySortAndFilter({
         table: isBt ? parentTable : childTable,
         view: targetView,
         qb,
@@ -1225,9 +1283,9 @@ export const relationListCount = (param: {
       applyPaginate(qb, rest);
 
       const proto = await (isBt ? parentModel : childModel).getProto();
-      const data = await this.execAndParse(
+      const data = await baseModel.execAndParse(
         qb,
-        await (isBt ? parentTable : childTable).getColumns(this.context),
+        await (isBt ? parentTable : childTable).getColumns(baseModel.context),
       );
 
       return data.map((c) => {
@@ -1240,41 +1298,44 @@ export const relationListCount = (param: {
       { colId, cid = null },
       args,
     ): Promise<any> {
-      const { where } = this._getListArgs(args as any);
-      const relColumn = (await this.model.getColumns(this.context)).find(
-        (c) => c.id === colId,
-      );
+      const { where } = baseModel._getListArgs(args as any);
+      const relColumn = (
+        await baseModel.model.getColumns(baseModel.context)
+      ).find((c) => c.id === colId);
       const relColOptions = (await relColumn.getColOptions(
-        this.context,
+        baseModel.context,
       )) as LinkToAnotherRecordColumn;
 
-      const rcn = (await relColOptions.getParentColumn(this.context))
+      const rcn = (await relColOptions.getParentColumn(baseModel.context))
         .column_name;
       const parentTable = await (
-        await relColOptions.getParentColumn(this.context)
-      ).getModel(this.context);
-      const cn = (await relColOptions.getChildColumn(this.context)).column_name;
+        await relColOptions.getParentColumn(baseModel.context)
+      ).getModel(baseModel.context);
+      const cn = (await relColOptions.getChildColumn(baseModel.context))
+        .column_name;
       const childTable = await (
-        await relColOptions.getChildColumn(this.context)
-      ).getModel(this.context);
+        await relColOptions.getChildColumn(baseModel.context)
+      ).getModel(baseModel.context);
 
-      const parentBaseModel = await Model.getBaseModelSQL(this.context, {
-        dbDriver: this.dbDriver,
+      const parentBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+        dbDriver: baseModel.dbDriver,
         model: parentTable,
       });
 
-      const childTn = this.getTnPath(childTable);
+      const childTn = baseModel.getTnPath(childTable);
       const parentTn = parentBaseModel.getTnPath(parentTable);
 
       const rtn = parentTn;
       const tn = childTn;
-      await childTable.getColumns(this.context);
+      await childTable.getColumns(baseModel.context);
 
-      const qb = this.dbDriver(rtn)
+      const qb = baseModel
+        .dbDriver(rtn)
         .where((qb) => {
           qb.whereNotIn(
             rcn,
-            this.dbDriver(tn)
+            baseModel
+              .dbDriver(tn)
               .select(cn)
               // .where(childTable.primaryKey.cn, cid)
               .where(_wherePk(childTable.primaryKeys, cid))
@@ -1283,16 +1344,18 @@ export const relationListCount = (param: {
         })
         .count(`*`, { as: 'count' });
 
-      const aliasColObjMap = await parentTable.getAliasColObjMap(this.context);
+      const aliasColObjMap = await parentTable.getAliasColObjMap(
+        baseModel.context,
+      );
       const { filters: filterObj } = extractFilterFromXwhere(
-        this.context,
+        baseModel.context,
         where,
         aliasColObjMap,
       );
 
-      const targetView = await relColOptions.getChildView(this.context);
+      const targetView = await relColOptions.getChildView(baseModel.context);
 
-      await this.getCustomConditionsAndApply({
+      await baseModel.getCustomConditionsAndApply({
         column: relColumn,
         view: targetView,
         filters: filterObj,
@@ -1301,39 +1364,41 @@ export const relationListCount = (param: {
         rowId: cid,
       });
 
-      return (await this.execAndParse(qb, null, { raw: true, first: true }))
-        ?.count;
+      return (
+        await baseModel.execAndParse(qb, null, { raw: true, first: true })
+      )?.count;
     },
 
     async countExcludedOneToOneChildren(
       { colId, cid = null },
       args,
     ): Promise<any> {
-      const { where } = this._getListArgs(args as any);
-      const relColumn = (await this.model.getColumns(this.context)).find(
-        (c) => c.id === colId,
-      );
+      const { where } = baseModel._getListArgs(args as any);
+      const relColumn = (
+        await baseModel.model.getColumns(baseModel.context)
+      ).find((c) => c.id === colId);
       const relColOptions = (await relColumn.getColOptions(
-        this.context,
+        baseModel.context,
       )) as LinkToAnotherRecordColumn;
 
-      const rcn = (await relColOptions.getParentColumn(this.context))
+      const rcn = (await relColOptions.getParentColumn(baseModel.context))
         .column_name;
       const parentTable = await (
-        await relColOptions.getParentColumn(this.context)
-      ).getModel(this.context);
-      const cn = (await relColOptions.getChildColumn(this.context)).column_name;
+        await relColOptions.getParentColumn(baseModel.context)
+      ).getModel(baseModel.context);
+      const cn = (await relColOptions.getChildColumn(baseModel.context))
+        .column_name;
       const childTable = await (
-        await relColOptions.getChildColumn(this.context)
-      ).getModel(this.context);
+        await relColOptions.getChildColumn(baseModel.context)
+      ).getModel(baseModel.context);
 
-      const childView = await relColOptions.getChildView(this.context);
-      const parentBaseModel = await Model.getBaseModelSQL(this.context, {
-        dbDriver: this.dbDriver,
+      const childView = await relColOptions.getChildView(baseModel.context);
+      const parentBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+        dbDriver: baseModel.dbDriver,
         model: parentTable,
       });
-      const childBaseModel = await Model.getBaseModelSQL(this.context, {
-        dbDriver: this.dbDriver,
+      const childBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+        dbDriver: baseModel.dbDriver,
         model: childTable,
       });
       const childTn = childBaseModel.getTnPath(childTable);
@@ -1343,18 +1408,20 @@ export const relationListCount = (param: {
       const tn = childTn;
 
       // pre-load columns for later user
-      await childTable.getColumns(this.context);
-      await parentTable.getColumns(this.context);
+      await childTable.getColumns(baseModel.context);
+      await parentTable.getColumns(baseModel.context);
 
       // one-to-one relation is combination of both hm and bt to identify table which have
       // foreign key column(similar to bt) we are adding a boolean flag `bt` under meta
       const isBt = relColumn.meta?.bt;
 
-      const qb = this.dbDriver(isBt ? rtn : tn)
+      const qb = baseModel
+        .dbDriver(isBt ? rtn : tn)
         .where((qb) => {
           qb.whereNotIn(
             isBt ? rcn : cn,
-            this.dbDriver(isBt ? tn : rtn)
+            baseModel
+              .dbDriver(isBt ? tn : rtn)
               .select(isBt ? cn : rcn)
               .where(
                 _wherePk((isBt ? childTable : parentTable).primaryKeys, cid),
@@ -1368,15 +1435,15 @@ export const relationListCount = (param: {
       const aliasColObjMap = await (relColumn.meta?.bt
         ? parentTable
         : childTable
-      ).getAliasColObjMap(this.context);
+      ).getAliasColObjMap(baseModel.context);
 
       const { filters: filterObj } = extractFilterFromXwhere(
-        this.context,
+        baseModel.context,
         where,
         aliasColObjMap,
       );
 
-      await this.getCustomConditionsAndApply({
+      await baseModel.getCustomConditionsAndApply({
         column: relColumn,
         view: childView,
         filters: filterObj,
@@ -1385,44 +1452,47 @@ export const relationListCount = (param: {
         rowId: cid,
       });
 
-      return (await this.execAndParse(qb, null, { raw: true, first: true }))
-        ?.count;
+      return (
+        await baseModel.execAndParse(qb, null, { raw: true, first: true })
+      )?.count;
     },
 
     async getBtChildrenExcludedList({ colId, cid = null }, args): Promise<any> {
-      const { where, sort, ...rest } = this._getListArgs(args as any);
-      const relColumn = (await this.model.getColumns(this.context)).find(
-        (c) => c.id === colId,
-      );
+      const { where, sort, ...rest } = baseModel._getListArgs(args as any);
+      const relColumn = (
+        await baseModel.model.getColumns(baseModel.context)
+      ).find((c) => c.id === colId);
       const relColOptions = (await relColumn.getColOptions(
-        this.context,
+        baseModel.context,
       )) as LinkToAnotherRecordColumn;
 
-      const rcn = (await relColOptions.getParentColumn(this.context))
+      const rcn = (await relColOptions.getParentColumn(baseModel.context))
         .column_name;
       const parentTable = await (
-        await relColOptions.getParentColumn(this.context)
-      ).getModel(this.context);
-      const cn = (await relColOptions.getChildColumn(this.context)).column_name;
+        await relColOptions.getParentColumn(baseModel.context)
+      ).getModel(baseModel.context);
+      const cn = (await relColOptions.getChildColumn(baseModel.context))
+        .column_name;
       const childTable = await (
-        await relColOptions.getChildColumn(this.context)
-      ).getModel(this.context);
-      const parentBaseModel = await Model.getBaseModelSQL(this.context, {
-        dbDriver: this.dbDriver,
+        await relColOptions.getChildColumn(baseModel.context)
+      ).getModel(baseModel.context);
+      const parentBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+        dbDriver: baseModel.dbDriver,
         model: parentTable,
       });
 
-      const childTn = this.getTnPath(childTable);
+      const childTn = baseModel.getTnPath(childTable);
       const parentTn = parentBaseModel.getTnPath(parentTable);
 
       const rtn = parentTn;
       const tn = childTn;
-      await childTable.getColumns(this.context);
+      await childTable.getColumns(baseModel.context);
 
-      const qb = this.dbDriver(rtn).where((qb) => {
+      const qb = baseModel.dbDriver(rtn).where((qb) => {
         qb.whereNotIn(
           rcn,
-          this.dbDriver(tn)
+          baseModel
+            .dbDriver(tn)
             .select(cn)
             // .where(childTable.primaryKey.cn, cid)
             .where(_wherePk(childTable.primaryKeys, cid))
@@ -1436,18 +1506,20 @@ export const relationListCount = (param: {
 
       await parentBaseModel.selectObject({ qb });
 
-      const aliasColObjMap = await parentTable.getAliasColObjMap(this.context);
+      const aliasColObjMap = await parentTable.getAliasColObjMap(
+        baseModel.context,
+      );
       const { filters: filterObj } = extractFilterFromXwhere(
-        this.context,
+        baseModel.context,
         where,
         aliasColObjMap,
       );
 
       const targetView = await relColOptions.getChildView(
-        this.context,
+        baseModel.context,
         parentTable,
       );
-      await this.getCustomConditionsAndApply({
+      await baseModel.getCustomConditionsAndApply({
         column: relColumn,
         view: relColOptions.fk_target_view_id ? targetView : null,
         filters: filterObj,
@@ -1456,7 +1528,7 @@ export const relationListCount = (param: {
         rowId: cid,
       });
 
-      await this.applySortAndFilter({
+      await baseModel.applySortAndFilter({
         table: parentTable,
         view: targetView,
         qb,
@@ -1469,9 +1541,9 @@ export const relationListCount = (param: {
       applyPaginate(qb, rest);
 
       const proto = await parentBaseModel.getProto();
-      const data = await this.execAndParse(
+      const data = await baseModel.execAndParse(
         qb,
-        await parentTable.getColumns(this.context),
+        await parentTable.getColumns(baseModel.context),
       );
 
       return data.map((c) => {

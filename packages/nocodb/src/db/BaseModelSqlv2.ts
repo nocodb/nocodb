@@ -2503,7 +2503,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
   // #endregion relation list count part 2
 
-  protected async applySortAndFilter({
+  async applySortAndFilter({
     table,
     view,
     where,

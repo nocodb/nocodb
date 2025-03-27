@@ -192,6 +192,16 @@ const initEmblaApi = (val: any) => {
                   :src="getPossibleAttachmentSrc(item)"
                   @error="triggerReload"
                 />
+
+                <LazyCellAttachmentPreviewVideo
+                  v-else-if="isAudio(item.title, item.mimetype)"
+                  class="flex items-center w-full"
+                  :mime-type="item.mimetype"
+                  :title="item.title"
+                  :src="getPossibleAttachmentSrc(item)"
+                  @error="triggerReload"
+                />
+
                 <LazyCellAttachmentPreviewPdf
                   v-else-if="isPdf(item.title, item.mimetype)"
                   class="keep-open"
@@ -273,6 +283,13 @@ const initEmblaApi = (val: any) => {
                     class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200"
                   >
                     <GeneralIcon class="text-white" icon="play" />
+                  </div>
+
+                  <div
+                    v-else-if="isAudio(item.title, item.mimetype)"
+                    class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200"
+                  >
+                    <GeneralIcon class="text-white" icon="ncVolume2" />
                   </div>
 
                   <div

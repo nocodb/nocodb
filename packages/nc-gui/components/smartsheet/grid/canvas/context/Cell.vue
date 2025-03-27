@@ -93,14 +93,14 @@ const disablePasteCell = computed(() => {
     props.isSelectionReadOnly &&
     (!selection.value.isSingleCell() ||
       !contextMenuCol.value ||
-      (!isMm(columns.value[contextMenuCol.value]?.columnObj!) && !isBt(columns.value[contextMenuCol.value]?.columnObj!)))
+      (!isMm(columns.value[contextMenuCol.value]?.columnObj) && !isBt(columns.value[contextMenuCol.value]?.columnObj)))
   )
 })
 
 const disableClearCell = computed(() => {
   return (
     props.isSelectionReadOnly &&
-    (!selection.value.isSingleCell() || !contextMenuCol.value || !isLinksOrLTAR(columns.value[contextMenuCol.value]?.columnObj!))
+    (!selection.value.isSingleCell() || !contextMenuCol.value || !isLinksOrLTAR(columns.value[contextMenuCol.value]?.columnObj))
   )
 })
 

@@ -594,9 +594,10 @@ export function useCanvasRender({
     const isInFixedArea = activeState.x <= fixedWidth
 
     if (activeState.col.fixed || !isInFixedArea) {
-      ctx.strokeStyle = '#3366ff'
-      ctx.lineWidth = 2
-      roundedRect(ctx, activeState.x, activeState.y, activeState.width, activeState.height, 2)
+      roundedRect(ctx, activeState.x, activeState.y, activeState.width, activeState.height, 2, {
+        borderColor: '#3366ff',
+        borderWidth: 2,
+      })
       ctx.lineWidth = 1
       return
     }
@@ -612,11 +613,11 @@ export function useCanvasRender({
         x: fixedWidth,
         width: activeState.width - (fixedWidth - activeState.x),
       }
-
-      ctx.strokeStyle = '#3366ff'
-      ctx.lineWidth = 2
       // add extra 1px offset to x, since there is an additional border separating fixed and non-fixed columns
-      roundedRect(ctx, adjustedState.x + 1, adjustedState.y, adjustedState.width, adjustedState.height, 2)
+      roundedRect(ctx, adjustedState.x + 1, adjustedState.y, adjustedState.width, adjustedState.height, 2, {
+        borderColor: '#3366ff',
+        borderWidth: 2,
+      })
       ctx.lineWidth = 1
     }
   }
@@ -1255,7 +1256,7 @@ export function useCanvasRender({
         // Bottom border for each row
         ctx.strokeStyle = '#e7e7e9'
         ctx.beginPath()
-        ctx.moveTo(initialXOffset, yOffset + rowHeight.value)
+        ctx.moveTo(0, yOffset + rowHeight.value)
         ctx.lineTo(adjustedWidth, yOffset + rowHeight.value)
         ctx.stroke()
 
@@ -1812,9 +1813,12 @@ export function useCanvasRender({
       const indent = level * 9
       const isHovered = hoverRow.value?.rowIndex === i && hoverRow.value?.path.join('-') === row?.rowMeta?.groupPath?.join('-')
 
-      roundedRect(ctx, indent, yOffset, adjustedWidth - indent, rowHeight.value, 0, {
+      roundedRect(ctx, indent, yOffset, adjustedWidth - 2 * indent, rowHeight.value, 0, {
         backgroundColor: isHovered ? '#F9F9FA' : '#fff',
       })
+      ctx.save()
+      ctx.rect(indent, yOffset, adjustedWidth - 2 * indent, rowHeight.value)
+      ctx.clip()
       renderRow(ctx, {
         row,
         initialXOffset: indent,
@@ -1824,7 +1828,7 @@ export function useCanvasRender({
         fixedCols: fixedColsComputed.value,
         yOffset,
       })
-
+      ctx.restore()
       elementMap.addElement({
         y: yOffset,
         x: indent,
@@ -1925,10 +1929,11 @@ export function useCanvasRender({
               return h
             }).reduce((sum, c) => sum + c, 0)
 
-        // todo:  figure out the 2px difference which is not expected
+          // todo:  figure out the 2px difference which is not expected
           // calculate the relative scroll top for the group
           // where gHeight + GROUP_PADDING is the height of previous groups before startIndex
-          const relativeScrollTop = group.nestedIn?.length && i === startIndex ? scrollTop.value - (gHeight + GROUP_PADDING) - 2 : 0
+          const relativeScrollTop =
+            group.nestedIn?.length && i === startIndex ? scrollTop.value - (gHeight + GROUP_PADDING) - 2 : 0
 
           if (group.infiniteData) {
             // Calculate visible viewport height from current offset to container bottom

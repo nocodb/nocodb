@@ -474,7 +474,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
     return
 
   // If the cell is readonly, return
-  if (colMeta.value[ctx.col].isReadonly) return
+  if (colMeta.value[ctx.col].isReadonly && !isVirtualCol(fields.value[ctx.col])) return
 
   // Get the row and column object
   const rowObj = cachedRows.value.get(ctx.row)
@@ -487,6 +487,10 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 
   if (isVirtualCol(columnObj)) {
     let mmClearResult
+    const mmOldResult = rowObj.row[columnObj.title]
+
+    // This will used to reload view data if it is self link column
+    const isSelfLinkColumn = columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id
 
     if (isMm(columnObj) && rowObj) {
       mmClearResult = await cleaMMCell(rowObj, columnObj)
@@ -494,7 +498,14 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 
     addUndo({
       undo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, mmClearResult: any[]) => {
+        fn: async (
+          ctx: { row: number; col: number },
+          col: ColumnType,
+          row: Row,
+          mmClearResult: any[],
+          mmOldResult: any,
+          isSelfLinkColumn: boolean,
+        ) => {
           const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
           const rowObj = cachedRows.value.get(ctx.row)
           const columnObj = fields.value[ctx.col]
@@ -516,22 +527,27 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
                 encodeURIComponent(rowId as string),
                 mmClearResult,
               )
-              rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
+              rowObj.row[columnObj.title] = mmOldResult ?? null
             }
 
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             activeCell.col = ctx.col
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             activeCell.row = ctx.row
+
+            if (isSelfLinkColumn) {
+              reloadViewDataHook.trigger({ shouldShowLoading: false })
+            }
+
             scrollToCell?.()
           } else {
             throw new Error(t('msg.recordCouldNotBeFound'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult],
+        args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult, mmOldResult],
       },
       redo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row) => {
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, isSelfLinkColumn: boolean) => {
           const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
           const rowObj = cachedRows.value.get(ctx.row)
           const columnObj = fields.value[ctx.col]
@@ -545,16 +561,25 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             activeCell.col = ctx.col
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             activeCell.row = ctx.row
+
+            if (isSelfLinkColumn) {
+              reloadViewDataHook.trigger({ shouldShowLoading: false })
+            }
+
             scrollToCell?.()
           } else {
             throw new Error(t('msg.recordCouldNotBeFound'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj)],
+        args: [clone(ctx), clone(columnObj), clone(rowObj), isSelfLinkColumn],
       },
       scope: defineViewScope({ view: view.value }),
     })
     if (isBt(columnObj) || isOo(columnObj)) await clearLTARCell(rowObj, columnObj)
+
+    if (isSelfLinkColumn) {
+      reloadViewDataHook.trigger({ shouldShowLoading: false })
+    }
 
     return
   }
@@ -1005,6 +1030,11 @@ const {
     }
 
     if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
+      // Reload view data if it is self link column
+      if (columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id) {
+        reloadViewDataHook?.trigger({ shouldShowLoading: false })
+      }
+
       return
     }
 
@@ -1731,6 +1761,22 @@ const selectedReadonly = computed(
         (_, i) => colMeta.value[selectedRange.start.col + i].isReadonly,
       )),
 )
+
+const disablePasteCell = computed(() => {
+  return (
+    selectedReadonly.value &&
+    (!selectedRange.isSingleCell() ||
+      !contextMenuTarget.value ||
+      (!isMm(fields.value[contextMenuTarget.value.col]) && !isBt(fields.value[contextMenuTarget.value.col])))
+  )
+})
+
+const disableClearCell = computed(() => {
+  return (
+    selectedReadonly.value &&
+    (!selectedRange.isSingleCell() || !contextMenuTarget.value || !isLinksOrLTAR(fields.value[contextMenuTarget.value.col]))
+  )
+})
 
 const showFillHandle = computed(
   () =>
@@ -2986,7 +3032,7 @@ const cellAlignClass = computed(() => {
               v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly"
               class="nc-base-menu-item"
               data-testid="context-menu-item-paste"
-              :disabled="selectedReadonly"
+              :disabled="disablePasteCell"
               @click="paste"
             >
               <div v-e="['a:row:paste']" class="flex gap-2 items-center">
@@ -3006,7 +3052,7 @@ const cellAlignClass = computed(() => {
                 !isDataReadOnly
               "
               class="nc-base-menu-item"
-              :disabled="selectedReadonly"
+              :disabled="disableClearCell"
               data-testid="context-menu-item-clear"
               @click="clearCell(contextMenuTarget)"
             >

@@ -120,6 +120,7 @@ export function useCanvasTable({
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
   const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas)
   const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
+  const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
   // Row Reorder related states
   const isDragging = ref(false)
@@ -332,18 +333,17 @@ export function useCanvasTable({
     }
   })
 
-  const isSelectionReadOnly = computed(() =>
+  const isSelectionReadOnly = computed(() => {
     // if all the selected columns are not readonly
-    {
-      return (
-        (selection.value.isEmpty() && activeCell.value.column && columns.value[activeCell.value.column]?.virtual) ||
-        (!selection.value.isEmpty() &&
-          Array.from({ length: selection.value.end.col - selection.value.start.col + 1 }).every(
-            (_, i) => !columns.value[selection.value.start.col + i]?.isCellEditable,
-          ))
-      )
-    },
-  )
+
+    return (
+      (selection.value.isEmpty() && activeCell.value.column && columns.value[activeCell.value.column]?.virtual) ||
+      (!selection.value.isEmpty() &&
+        Array.from({ length: selection.value.end.col - selection.value.start.col + 1 }).every(
+          (_, i) => !columns.value[selection.value.start.col + i]?.isCellEditable,
+        ))
+    )
+  })
 
   const isFillHandleDisabled = computed(
     () =>
@@ -620,12 +620,17 @@ export function useCanvasTable({
     syncCellData: async (ctx: { row: number; column?: number; updatedColumnTitle?: string }) => {
       const rowObj = cachedRows.value.get(ctx.row)
       const columnObj = ctx.column !== undefined ? fields.value[ctx.column - 1] : null
+
       if (!rowObj || !columnObj) {
         triggerRefreshCanvas()
         return
       }
 
       if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
+        // Reload view data if it is self link column
+        if (columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id) {
+          reloadViewDataHook?.trigger({ shouldShowLoading: false })
+        }
         triggerRefreshCanvas()
         return
       }

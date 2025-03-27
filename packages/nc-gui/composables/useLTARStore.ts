@@ -44,6 +44,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const activeView = inject(ActiveViewInj, ref())
     const isForm = inject(IsFormInj, ref(false))
 
+    const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
+    // In canvas _reloadData will not work as we unmount editable component so on undo/redo we have to manually trigger view reload
+    const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
+
     const { addUndo, clone, defineViewScope } = useUndoRedo()
 
     const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
@@ -650,6 +655,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       }
 
       _reloadData?.({ shouldShowLoading: false })
+
+      if (undo && isCanvasInjected) {
+        reloadViewDataTrigger.trigger({ shouldShowLoading: false })
+      }
+
       $e('a:links:unlink')
     }
 
@@ -691,14 +701,30 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         // await loadChildrenList()
 
         if (!undo) {
+          let oldValue = null
+
+          // If it is bt or oo relation then we have to restore old value on undo
+          if (isBt(column.value) || isOo(column.value)) {
+            oldValue = currentRow.value.row?.[column.value?.title]
+          }
+
           addUndo({
             redo: {
-              fn: (row: Record<string, any>) => link(row, {}, true, index),
+              fn: (row: Record<string, any>) => {
+                link(row, {}, true, index)
+              },
               args: [clone(row)],
             },
             undo: {
-              fn: (row: Record<string, any>) => unlink(row, {}, true, index),
-              args: [clone(row)],
+              fn: (row: Record<string, any>, oldValue: Record<string, any> | null) => {
+                // Restore old value if present
+                if (oldValue) {
+                  link(oldValue, {}, true, index)
+                } else {
+                  unlink(row, {}, true, index)
+                }
+              },
+              args: [clone(row), clone(oldValue)],
             },
             scope: defineViewScope({ view: activeView.value }),
           })
@@ -722,6 +748,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       }
 
       _reloadData?.({ shouldShowLoading: false })
+
+      if (undo && isCanvasInjected) {
+        reloadViewDataTrigger.trigger({ shouldShowLoading: false })
+      }
+
       $e('a:links:link')
     }
 

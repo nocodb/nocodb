@@ -158,6 +158,7 @@ export function useKeyboardNavigation({
             await clearSelectedRangeOfCells()
             selection.value.clear()
           }
+          requestAnimationFrame(triggerReRender)
         }
         return
 

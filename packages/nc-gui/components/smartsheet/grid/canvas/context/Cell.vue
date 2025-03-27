@@ -314,7 +314,7 @@ const generateAIBulk = async () => {
       key="cell-paste"
       class="nc-base-menu-item"
       data-testid="context-menu-item-paste"
-      :disabled="isSelectionReadOnly"
+      :disabled="isSelectionReadOnly && !isMm(columns[contextMenuCol]?.columnObj!) && !isBt(columns[contextMenuCol]?.columnObj!)"
       @click="paste"
     >
       <div v-e="['a:row:paste']" class="flex gap-2 items-center">
@@ -334,7 +334,7 @@ const generateAIBulk = async () => {
       "
       key="cell-clear"
       class="nc-base-menu-item"
-      :disabled="isSelectionReadOnly"
+      :disabled="isSelectionReadOnly && !isLinksOrLTAR(columns[contextMenuCol]?.columnObj!)"
       data-testid="context-menu-item-clear"
       @click="clearCell(contextMenuTarget)"
     >

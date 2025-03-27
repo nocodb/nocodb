@@ -16,7 +16,7 @@ import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getAliasGenerator } from '~/utils';
 import { NcError } from '~/helpers/catchError';
-import { getAs } from '~/db/BaseModelSqlv2';
+import { getAs } from '~/helpers/dbHelpers';
 
 const LOOKUP_VAL_SEPARATOR = '___';
 

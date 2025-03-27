@@ -1,14 +1,14 @@
 import { RelationTypes } from 'nocodb-sdk';
-import {
-  getAlias,
-  negatedMapping,
-  nestedConditionJoin,
-} from '../../utils/handlerUtils';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import type { HandlerOptions } from '~/db/field-handler/field-handler.interface';
 import type { Knex } from '~/db/CustomKnex';
 import type { Filter } from '~/models';
+import {
+  getAlias,
+  negatedMapping,
+  nestedConditionJoin,
+} from '~/db/field-handler/utils/handlerUtils';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 
 export class LookupGeneralHandler extends GenericFieldHandler {

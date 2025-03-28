@@ -6,6 +6,8 @@ import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 export class DecimalGeneralHandler extends GenericFieldHandler {
   override async verifyFilter(filter: Filter, column: Column) {
     const supportedOperations = [
+      'gb_eq',
+      'gb_null',
       'eq',
       'neq',
       'blank',
@@ -16,12 +18,13 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
       'lt',
       'gte',
       'lte',
+      'ge',
+      'le',
       'in',
       'empty',
       'notempty',
       'null',
       'notnull',
-      'gb_eq',
     ];
     if (!supportedOperations.includes(filter.comparison_op)) {
       return {

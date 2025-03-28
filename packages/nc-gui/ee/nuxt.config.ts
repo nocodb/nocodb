@@ -169,7 +169,6 @@ export default defineNuxtConfig({
           AntDesignVueResolver({
             importStyle: false,
             resolveIcons: false,
-            exclude: ['message'],
           }),
           IconsResolver({
             prefix: false,

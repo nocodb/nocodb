@@ -199,10 +199,12 @@ const sourceIdToIconMap = computed(() => {
   return map
 })
 
-const { ncMessage } = useMessage()
-
 const showMessage = () => {
-  ncMessage.success({ message: 'something', description: 'Lorem ipsum dolor sit amet, consectetur adipiscing.' })
+  ncMessage.success({
+    message: 'something',
+    description:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing. Lorem ipsum dolor sit amet, consectetur adipiscing. Lorem ipsum dolor sit amet, consectetur adipiscing.',
+  })
 }
 </script>
 

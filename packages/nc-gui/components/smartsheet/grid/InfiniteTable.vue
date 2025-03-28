@@ -2193,6 +2193,47 @@ const cellAlignClass = computed(() => {
   }
   return 'align-top'
 })
+
+const filteredColumnIds = computed(() => {
+  const columnIds: Set<string> = new Set<string>()
+  const extractFilterArray = (filters: FilterType[]) => {
+    if (filters && filters.length > 0) {
+      for (const eachFilter of filters) {
+        if (eachFilter.is_group) {
+          if ((eachFilter.children?.length ?? 0) > 0) {
+            extractFilterArray(eachFilter.children!)
+          }
+        } else if (eachFilter.fk_column_id) {
+          columnIds.add(eachFilter.fk_column_id)
+        }
+      }
+    }
+  }
+  // console.log(JSON.stringify(allFilters.value, undefined, 2))
+  extractFilterArray(allFilters.value)
+  // console.log('filteredColumnIds', columnIds)
+  return columnIds
+})
+const sortedColumnIds = computed(() => {
+  const columnIds: Set<string> = new Set<string>()
+  if (!sorts?.value || sorts.value.length === 0) {
+    return columnIds
+  }
+  for (const sort of sorts.value) {
+    if (sort.fk_column_id) {
+      columnIds.add(sort.fk_column_id)
+    }
+  }
+  return columnIds
+})
+const cellFilteredOrSortedClass = (colId: string) => {
+  const isFiltered = filteredColumnIds.value.has(colId);
+  const isSorted = sortedColumnIds.value.has(colId);
+  return {
+    '!bg-yellow-100': isFiltered,
+    '!bg-red-100': isSorted && !isFiltered
+  }
+}
 </script>
 
 <template>
@@ -2238,7 +2279,7 @@ const cellAlignClass = computed(() => {
               mobile: isMobileMode,
               desktop: !isMobileMode,
             }"
-            class="nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5 bg-white"
+            class="nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5"
           >
             <thead>
               <tr v-if="isViewColumnsLoading">
@@ -2464,7 +2505,7 @@ const cellAlignClass = computed(() => {
             >
               <tbody
                 ref="tableBodyEl"
-                class="xc-row-table"
+                class="xc-row-table !bg-red-100"
                 :style="{
                   transform: `translateY(${topOffset}px)`,
                 }"
@@ -2638,6 +2679,7 @@ const cellAlignClass = computed(() => {
                             colMeta[0]?.isReadonly && hasEditPermission && selectRangeMap?.[`${row.rowMeta.rowIndex}-0`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
                           [cellAlignClass]: true,
+                          ...cellFilteredOrSortedClass(fields[0].id),
                         }"
                         :style="{
                           'min-width': gridViewCols[fields[0].id]?.width || '180px',
@@ -2741,6 +2783,7 @@ const cellAlignClass = computed(() => {
                             selectRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
                           [cellAlignClass]: true,
+                          ...cellFilteredOrSortedClass(columnObj.id),
                         }"
                         :style="{
                           'min-width': gridViewCols[columnObj.id]?.width || '180px',
@@ -3472,7 +3515,7 @@ const cellAlignClass = computed(() => {
       position: sticky !important;
       z-index: 4;
       left: 80px;
-      background: white;
+      // background: white;
       @apply border-r-1 border-r-gray-100;
     }
 

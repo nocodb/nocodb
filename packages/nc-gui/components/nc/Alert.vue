@@ -242,7 +242,7 @@ onUnmounted(() => {
 <template>
   <div
     v-if="vVisible"
-    class="nc-alert"
+    class="nc-alert group"
     :class="[
       `nc-alert-type-${type}`,
       {
@@ -280,7 +280,15 @@ onUnmounted(() => {
 
     <div v-if="$slots.action || copyText || closable" class="nc-alert-action">
       <slot name="action"> </slot>
-      <NcTooltip v-if="copyText" :title="copyBtnTooltip" :disabled="!copyBtnTooltip">
+      <NcTooltip
+        v-if="copyText"
+        :title="copyBtnTooltip"
+        :disabled="!copyBtnTooltip"
+        class="nc-alert-action-copy"
+        :class="{
+          'invisible group-hover:visible transition-all': isNotification,
+        }"
+      >
         <NcButton size="xsmall" type="text" @click.stop="onClickCopy">
           <div class="flex children:flex-none relative h-4 w-4">
             <Transition name="icon-fade" :duration="200">

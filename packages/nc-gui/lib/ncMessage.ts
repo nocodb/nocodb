@@ -4,18 +4,33 @@ import NcAlert, { type NcAlertProps } from '../components/nc/Alert.vue'
 import { getI18n } from '~/plugins/a.i18n'
 import type { VNode } from 'vue'
 
+interface NcAlertMessageProps
+  extends Pick<
+    NcAlertProps,
+    | 'showIcon'
+    | 'closable'
+    | 'align'
+    | 'copyText'
+    | 'copyBtnTooltip'
+    | 'messageClass'
+    | 'descriptionClass'
+    | 'duration'
+    | 'showDuration'
+  > {}
+
 /**
  * `NcMessageObjectProps` defines the properties allowed in `ncMessage`,
  * extending `NcAlertProps` while omitting fields that are irrelevant for messages.
  */
-export interface NcMessageObjectProps
-  extends Omit<NcAlertProps, 'visible' | 'bordered' | 'isNotification' | 'duration' | 'type' | 'message'>,
-    Omit<MessageArgsProps, 'type'> {
+export interface NcMessageObjectProps extends NcAlertMessageProps, Omit<MessageArgsProps, 'type'> {
+  title?: string
   /**
    * Custom action slot content to be rendered inside the alert.
    * It can be either a `VNode` or a function returning a `VNode`.
    */
   action?: VNode | (() => VNode)
+  showDefaultMessage?: boolean
+  showCopyBtn?: boolean
 }
 
 /**
@@ -23,10 +38,18 @@ export interface NcMessageObjectProps
  */
 export type NcMessageProps = NcMessageObjectProps | string
 
+export interface NcMessageExtraProps extends Pick<NcMessageObjectProps, 'showDefaultMessage' | 'showCopyBtn'> {}
+
+const defaultNcMessageExtraProps = {
+  showDefaultMessage: false,
+  showCopyBtn: true,
+}
+
 /**
  * Default values for `NcMessageObjectProps`.
  */
 const initialValue = {
+  title: '',
   content: '',
   showIcon: true,
   closable: true,
@@ -34,6 +57,7 @@ const initialValue = {
   class: '',
   messageClass: '',
   descriptionClass: '',
+  showDefaultMessage: false,
   showDuration: true,
 } as NcMessageObjectProps
 
@@ -62,7 +86,7 @@ const generateMessageKey = (params: NcMessageProps) => {
 const getMessageProps = (
   type: AlertProps['type'],
   params: NcMessageProps,
-  showDefaultMessage?: boolean,
+  ncMessageExtraProps: NcMessageExtraProps = defaultNcMessageExtraProps,
 ): NcMessageObjectProps => {
   let updatedParams = initialValue
 
@@ -70,17 +94,29 @@ const getMessageProps = (
     // If params is a string, use it as the description and apply a default message based on type
     return {
       ...updatedParams,
-      content: showDefaultMessage || !params ? getI18n().global.t(`objects.ncMessage.${type}`) : '',
-      description: params,
+      title: ncMessageExtraProps.showDefaultMessage || !params ? getI18n().global.t(`objects.ncMessage.${type}`) : '',
+      content: params,
+      copyText: ncMessageExtraProps.showCopyBtn ? params ?? '' : '',
     }
   }
 
-  // Merge provided object properties into the default values using the spread operator
-  updatedParams = { ...updatedParams, ...params }
+  const showDefaultMessage = ncMessageExtraProps.showDefaultMessage ?? params.showDefaultMessage
 
-  // If neither message nor description exist, set message to the default localized text
-  if (!updatedParams.content && !updatedParams.description) {
-    return { ...updatedParams, content: showDefaultMessage || !params ? getI18n().global.t(`objects.ncMessage.${type}`) : '' }
+  const showCopyBtn = ncMessageExtraProps.showCopyBtn ?? params.showCopyBtn
+
+  // Merge provided object properties into the default values using the spread operator
+  updatedParams = {
+    ...updatedParams,
+    ...params,
+    copyText: showCopyBtn ? params?.copyText || params.content || params.title || '' : '',
+  }
+
+  // If neither title nor content exist, set message to the default localized text
+  if (!updatedParams.title && !updatedParams.content) {
+    return {
+      ...updatedParams,
+      title: showDefaultMessage || !updatedParams.title ? getI18n().global.t(`objects.ncMessage.${type}`) : '',
+    }
   }
 
   return updatedParams
@@ -94,12 +130,18 @@ const getMessageProps = (
  * @param duration - Optional duration in seconds before auto-dismissal.
  */
 
-const showMessage = (type: AlertProps['type'], params: NcMessageProps, duration?: number, showDefaultMessage?: boolean) => {
-  const props = getMessageProps(type, params, showDefaultMessage)
+const showMessage = (
+  type: AlertProps['type'],
+  params: NcMessageProps,
+  duration?: number,
+  ncMessageExtraProps?: NcMessageExtraProps,
+) => {
+  const props = getMessageProps(type, params, ncMessageExtraProps)
   const {
     onClick,
     onClose,
     content,
+    title,
     getPopupContainer,
     style,
     appContext,
@@ -116,21 +158,22 @@ const showMessage = (type: AlertProps['type'], params: NcMessageProps, duration?
         NcAlert,
         {
           ...ncAlertProps,
-          message: content,
+          message: title,
+          description: content,
           type,
           isNotification: true,
           onClose: () => {
             onClose?.()
             message.destroy(key)
           },
-          duration: duration ?? ncAlertProps.duration,
+          duration: duration ?? ncAlertProps.duration ?? 100,
         },
         {
           action: ncIsFunction(ncAlertProps.action) ? ncAlertProps.action : () => ncAlertProps.action,
           icon: ncIsFunction(ncAlertProps.icon) ? ncAlertProps.icon : () => ncAlertProps.icon,
         },
       ),
-    duration: duration ?? ncAlertProps.duration,
+    duration: duration ?? ncAlertProps.duration ?? 100,
     prefixCls,
     rootPrefixCls,
     getPopupContainer,
@@ -205,15 +248,23 @@ const showMessage = (type: AlertProps['type'], params: NcMessageProps, duration?
  * });
  * ```
  */
+
 export const ncMessage = {
-  success: (params: NcMessageProps = '', duration?: number, showDefaultMessage: boolean = false) =>
-    showMessage('success', params, duration, showDefaultMessage),
-  error: (params: NcMessageProps = '', duration?: number, showDefaultMessage: boolean = false) =>
-    showMessage('error', params, duration, showDefaultMessage),
-  info: (params: NcMessageProps = '', duration?: number, showDefaultMessage: boolean = false) =>
-    showMessage('info', params, duration, showDefaultMessage),
-  warn: (params: NcMessageProps = '', duration?: number, showDefaultMessage: boolean = false) =>
-    showMessage('warning', params, duration, showDefaultMessage),
+  success: (params: NcMessageProps = '', duration?: number, ncMessageExtraProps?: NcMessageExtraProps) => {
+    return showMessage('success', params, duration, ncMessageExtraProps)
+  },
+
+  error: (params: NcMessageProps = '', duration?: number, ncMessageExtraProps?: NcMessageExtraProps) => {
+    return showMessage('error', params, duration, ncMessageExtraProps)
+  },
+
+  info: (params: NcMessageProps = '', duration?: number, ncMessageExtraProps?: NcMessageExtraProps) => {
+    return showMessage('info', params, duration, ncMessageExtraProps)
+  },
+
+  warn: (params: NcMessageProps = '', duration?: number, ncMessageExtraProps?: NcMessageExtraProps) => {
+    return showMessage('warning', params, duration, ncMessageExtraProps)
+  },
 }
 
 /**

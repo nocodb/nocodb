@@ -18,6 +18,8 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
       'lt',
       'gte',
       'lte',
+      'ge',
+      'le',
       'in',
       'empty',
       'notempty',

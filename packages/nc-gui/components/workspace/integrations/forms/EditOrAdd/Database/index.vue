@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Form, message } from 'ant-design-vue'
+import { Form } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import { diff } from 'deep-object-diff'
 import { IntegrationsType, validateAndExtractSSLProp } from 'nocodb-sdk'

@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { message } from 'ant-design-vue'
 import { ViewTypes } from 'nocodb-sdk'
 
 definePageMeta({

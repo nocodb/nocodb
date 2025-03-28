@@ -1,6 +1,5 @@
 import type { BaseType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
 
 export const useWorkspace = defineStore('workspaceStore', () => {

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Form, message } from 'ant-design-vue'
+import { Form } from 'ant-design-vue'
 import { type IntegrationType, validateAndExtractSSLProp } from 'nocodb-sdk'
 import {
   ClientType,

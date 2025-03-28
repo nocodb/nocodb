@@ -1,5 +1,4 @@
-import { Menu as AntMenu, Modal as AntModal } from 'ant-design-vue'
-import { message } from 'ant-design-vue/es'
+import { Menu as AntMenu, Modal as AntModal, message } from 'ant-design-vue/es'
 
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.component(AntMenu.name, AntMenu)

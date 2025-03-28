@@ -57,8 +57,7 @@ const initialValue = {
   class: '',
   messageClass: '',
   descriptionClass: '',
-  showDefaultMessage: false,
-  showDuration: true,
+  ...defaultNcMessageExtraProps,
 } as NcMessageObjectProps
 
 /**
@@ -102,7 +101,10 @@ const getMessageProps = (
 
   const showDefaultMessage = ncMessageExtraProps.showDefaultMessage ?? params.showDefaultMessage
 
-  const showCopyBtn = ncMessageExtraProps.showCopyBtn ?? params.showCopyBtn
+  /**
+   * default value of `ncMessageExtraProps.showCopyBtn` & `params.showCopyBtn` is true, so if one is false then we should not show
+   */
+  const showCopyBtn = ncMessageExtraProps.showCopyBtn && params.showCopyBtn
 
   // Merge provided object properties into the default values using the spread operator
   updatedParams = {

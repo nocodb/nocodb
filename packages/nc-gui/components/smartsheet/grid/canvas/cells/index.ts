@@ -181,11 +181,12 @@ export function useGridCellHandler(params: {
       isRowHovered = false,
       isRowChecked = false,
       isCellInSelectionRange = false,
+      rowMeta = {},
     }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
     const columnState = isColumnSortedOrFiltered(column.id!)
-    if (columnState !== undefined) {
+    if (columnState !== undefined && !rowMeta?.isValidationFailed) {
       let bgColorProps: 'cellBgColor' | 'cellBgColor.hovered' | 'cellBgColor.selected' = 'cellBgColor'
       if (selected || isRowChecked || isCellInSelectionRange) {
         bgColorProps = 'cellBgColor.selected'

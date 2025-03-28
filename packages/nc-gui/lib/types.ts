@@ -435,6 +435,44 @@ interface CellRendererOptions {
   isRowHovered?: boolean
   isRowChecked?: boolean
   isCellInSelectionRange?: boolean
+  rowMeta?: {
+    // Used in InfiniteScroll Grid View
+    isLastRow?: number
+    rowIndex?: number
+    isLoading?: boolean
+    isValidationFailed?: boolean
+    isRowOrderUpdated?: boolean
+    isDragging?: boolean
+    rowProgress?: {
+      message: string
+      progress: number
+    }
+
+    new?: boolean
+    selected?: boolean
+    commentCount?: number
+    changed?: boolean
+    saving?: boolean
+    ltarState?: Record<string, Record<string, any> | Record<string, any>[] | null>
+    fromExpandedForm?: boolean
+    // use in datetime picker component
+    isUpdatedFromCopyNPaste?: Record<string, boolean>
+    // Used in Calendar view
+    style?: Partial<CSSStyleDeclaration>
+    range?: {
+      fk_from_col: ColumnType
+      fk_to_col: ColumnType | null
+      is_readonly?: boolean
+    }
+    id?: string
+    position?: string
+    dayIndex?: number
+    overLapIteration?: number
+    numberOfOverlaps?: number
+    minutes?: number
+    recordIndex?: number // For week spanning records in month view
+    maxSpanning?: number
+  }
 }
 
 interface CellRenderStore {

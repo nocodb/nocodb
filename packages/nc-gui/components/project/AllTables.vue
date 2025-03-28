@@ -198,6 +198,12 @@ const sourceIdToIconMap = computed(() => {
   }
   return map
 })
+
+const { ncMessage } = useMessage()
+
+const showMessage = () => {
+  ncMessage.success({ message: 'something' })
+}
 </script>
 
 <template>
@@ -284,6 +290,9 @@ const sourceIdToIconMap = computed(() => {
           <div class="label">Sync Data</div>
           <div class="subtext">With internal or external sources</div>
         </div>
+      </div>
+      <div>
+        <NcButton @click="showMessage"> show message </NcButton>
       </div>
     </div>
     <div

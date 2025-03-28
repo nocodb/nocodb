@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { IntegrationsType, type SourceType } from 'nocodb-sdk'
-import { Form, message } from 'ant-design-vue'
+import { Form } from 'ant-design-vue'
 import { diff } from 'deep-object-diff'
 import {
   ClientType,

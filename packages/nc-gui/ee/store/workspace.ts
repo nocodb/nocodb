@@ -9,7 +9,6 @@ import type {
 } from 'nocodb-sdk'
 import { WorkspaceStatus } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
 
 interface NcWorkspace extends WorkspaceType {

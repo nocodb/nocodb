@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { message } from 'ant-design-vue'
-
 const props = withDefaults(defineProps<{ varient: 'old' | 'new' }>(), {
   varient: 'old',
 })

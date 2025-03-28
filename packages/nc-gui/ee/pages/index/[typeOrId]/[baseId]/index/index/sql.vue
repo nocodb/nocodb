@@ -2,7 +2,6 @@
 import type { Ref } from 'vue'
 import type { ModalFuncProps, SelectProps } from 'ant-design-vue'
 import type { ColumnType } from 'nocodb-sdk'
-import { message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
 import MdiHammer from '~icons/mdi/hammer'
 

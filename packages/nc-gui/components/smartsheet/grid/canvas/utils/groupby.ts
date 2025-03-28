@@ -41,7 +41,7 @@ export function calculateGroupHeight(group: CanvasGroup, rowHeight: number, isAd
           h += GROUP_HEADER_HEIGHT + GROUP_PADDING
           continue
         }
-        h += calculateGroupHeight(subGroup, rowHeight) // Recursively calculate subgroup height
+        h += calculateGroupHeight(subGroup, rowHeight, isAddingNewRowAllowed) // Recursively calculate subgroup height
       }
     }
   }
@@ -64,10 +64,12 @@ export function calculateGroupRange(
 
   for (let i = 0; i < groupCount; i++) {
     const group = groups.get(i)
-    const groupHeight = calculateGroupHeight(group, rowHeight)
+    const groupHeight = calculateGroupHeight(group, rowHeight, isAddingNewRowAllowed)
      if (currentOffset + groupHeight - GROUP_PADDING > scrollTop) {
       startIndex = i
-      const partialGroupHeight = scrollTop - currentOffset + GROUP_PADDING
+      // startGroupYOffset - is the offset of the group from the top of the viewport, this could be negative
+      // when the group is partially visible at the top of the viewport
+      const startGroupYOffset = 32 - (scrollTop - currentOffset)
       const viewportBottom = scrollTop + viewportHeight
 
       for (let j = i; j < groupCount; j++) {
@@ -82,8 +84,7 @@ export function calculateGroupRange(
         endIndex = j
       }
 
-      // console.log('calculateGroupRange - ret',  startIndex, endIndex, partialGroupHeight )
-      return { startIndex, endIndex, partialGroupHeight }
+      return { startIndex, endIndex, startGroupYOffset }
     }
 
     previousOffset = currentOffset

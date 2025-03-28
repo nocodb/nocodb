@@ -372,7 +372,7 @@ export class BaseUsersService {
       {
         user,
         baseId: param.baseId,
-        workspaceId: context.workspace_id,
+        workspaceId: base.fk_workspace_id,
       },
       ncMeta,
     );
@@ -464,7 +464,7 @@ export class BaseUsersService {
     // Check if a base role is defined and if it includes the OWNER role.
     if (targetUser.base_roles) {
       const baseRole = getProjectRole(targetUser);
-      if (baseRole && Object.keys(baseRole).length) {
+      if (baseRole) {
         return baseRole === ProjectRoles.OWNER;
       }
     }
@@ -606,7 +606,8 @@ export class BaseUsersService {
 
     const baseUser = await User.getWithRoles(context, param.userId, {
       baseId: base_id,
-      workspaceId: context.workspace_id,
+      workspaceId: base.fk_workspace_id,
+      user,
     });
 
     // check if user have access to delete user based on role power

@@ -16,6 +16,7 @@ const router = useRouter()
 
 const formValidator = ref()
 const isErrored = ref(false)
+const isWorkspaceUpdating = ref(false)
 const isDeleteModalVisible = ref(false)
 // if activeworkspace.title is used it will show new workspace name in loading state
 const toBeDeletedWorkspaceTitle = ref('')
@@ -76,6 +77,10 @@ const imageCropperData = ref<Omit<ImageCropperProps, 'showCropper'>>({
   },
 })
 
+const isSaveChangesBtnEnabled = computed(() => {
+  return !!(form.title && form.title !== currentWorkspace.value?.title)
+})
+
 const onDelete = async () => {
   if (!currentWorkspace.value || !currentWorkspace.value.id) return
 
@@ -109,12 +114,13 @@ const rules = {
 }
 
 const saveChanges = async () => {
-  if (!currentWorkspace.value || !currentWorkspace.value.id) return
+  if (!currentWorkspace.value || !currentWorkspace.value.id || isWorkspaceUpdating.value) return
 
   const valid = await formValidator.value.validate()
 
   if (!valid) return
 
+  isWorkspaceUpdating.value = true
   isErrored.value = false
 
   try {
@@ -128,6 +134,8 @@ const saveChanges = async () => {
     })
   } catch (e: any) {
     console.error(e)
+  } finally {
+    isWorkspaceUpdating.value = false
   }
 }
 
@@ -173,6 +181,10 @@ watch(
     }
   },
 )
+
+const onCancel = () => {
+  if (currentWorkspace.value?.title) form.title = currentWorkspace.value.title
+}
 </script>
 
 <template>
@@ -227,10 +239,33 @@ watch(
                 placeholder="Workspace name"
                 size="large"
                 data-testid="nc-workspace-settings-settings-rename-input"
-                @update:value="saveChangeWithDebounce"
               />
             </a-form-item>
           </div>
+        </div>
+        <div class="flex flex-row w-full justify-end mt-8 gap-4">
+          <NcButton
+            v-if="isSaveChangesBtnEnabled"
+            type="secondary"
+            size="small"
+            data-testid="nc-workspace-settings-settings-rename-cancel"
+            :disabled="isWorkspaceUpdating"
+            @click="onCancel"
+          >
+            {{ $t('general.cancel') }}
+          </NcButton>
+          <NcButton
+            v-e="['c:workspace:settings:rename']"
+            type="primary"
+            html-type="submit"
+            size="small"
+            :disabled="isErrored || !isSaveChangesBtnEnabled || isWorkspaceUpdating"
+            :loading="isWorkspaceUpdating"
+            data-testid="nc-workspace-settings-settings-rename-submit"
+          >
+            <template #loading> {{ $t('general.saving') }} </template>
+            {{ $t('general.save') }}
+          </NcButton>
         </div>
       </a-form>
     </div>

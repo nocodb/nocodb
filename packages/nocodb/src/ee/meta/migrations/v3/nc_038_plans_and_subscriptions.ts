@@ -36,6 +36,11 @@ const up = async (knex: Knex) => {
 
     table.string('period', 255); // month, year
 
+    table.timestamp('next_invoice_at');
+    table.timestamp('next_invoice_due_at');
+    table.integer('next_invoice_amount');
+    table.string('next_invoice_currency');
+
     table.timestamps(true, true);
 
     table.index('fk_workspace_id', 'nc_subscriptions_ws_idx');

@@ -564,6 +564,62 @@ export class PaymentService {
     return Subscription.calculateOrgSeatCount(workspaceOrOrg.id, ncMeta);
   }
 
+  async getNextInvoice(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
+    try {
+      const workspaceOrOrg = await this.getWorkspaceOrOrg(
+        workspaceOrOrgId,
+        ncMeta,
+      );
+
+      if (!workspaceOrOrg) {
+        NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+      }
+
+      const subscription = await Subscription.getByWorkspaceOrOrg(
+        workspaceOrOrg.id,
+        ncMeta,
+      );
+
+      if (!subscription) {
+        NcError.genericNotFound('Subscription', workspaceOrOrgId);
+      }
+
+      const invoice = await stripe.invoices.retrieveUpcoming({
+        customer: workspaceOrOrg.stripe_customer_id,
+        subscription: subscription.stripe_subscription_id,
+      });
+
+      return invoice;
+    } catch (err) {
+      this.logger.error(
+        `Error getting next invoice for workspace or org ${workspaceOrOrgId}:`,
+      );
+      this.logger.error(err);
+    }
+  }
+
+  async updateNextInvoice(
+    subscriptionId: string,
+    invoice: Stripe.Response<Stripe.UpcomingInvoice>,
+  ) {
+    try {
+      await Subscription.update(subscriptionId, {
+        next_invoice_at: dayjs.unix(invoice.period_end).utc().toISOString(),
+        next_invoice_due_at: dayjs
+          .unix(invoice.next_payment_attempt || invoice.due_date)
+          .utc()
+          .toISOString(),
+        next_invoice_amount: invoice.amount_due,
+        next_invoice_currency: invoice.currency,
+      });
+    } catch (err) {
+      this.logger.error(
+        `Error updating next invoice for subscription ${subscriptionId}:`,
+      );
+      this.logger.error(err);
+    }
+  }
+
   async handleWebhook(req: NcRequest): Promise<void> {
     let event;
 
@@ -593,13 +649,24 @@ export class PaymentService {
             throw new Error(`Subscription ${subscriptionId} not found`);
           }
 
-          const workspaceId = subscription.fk_workspace_id;
+          if (subscription.fk_workspace_id) {
+            const workspaceId = subscription.fk_workspace_id;
 
-          await Workspace.refreshPlanAndSubscription(workspaceId);
+            await this.updateNextInvoice(
+              subscription.id,
+              await this.getNextInvoice(workspaceId),
+            );
 
-          this.logger.log(
-            `Plan applied for workspace ${workspaceId} after successful payment`,
-          );
+            await Workspace.refreshPlanAndSubscription(workspaceId);
+
+            this.logger.log(
+              `Plan applied for workspace ${workspaceId} after successful payment`,
+            );
+          } else if (subscription.fk_org_id) {
+            this.logger.log(
+              `Org plans are not supported yet. Subscription ${subscriptionId} is for an org`,
+            );
+          }
           break;
         }
 
@@ -620,8 +687,6 @@ export class PaymentService {
           this.logger.log(
             `Payment failed for workspace ${workspaceId}. No plan applied`,
           );
-
-          // Optionally notify the user or flag the workspace for limited access
           break;
         }
 
@@ -668,6 +733,11 @@ export class PaymentService {
 
           const plan_id = dataObject.metadata.fk_plan_id;
 
+          const nextInvoice = await this.getNextInvoice(
+            subscription.fk_workspace_id,
+            Noco.ncMeta,
+          );
+
           await Subscription.update(subscription.id, {
             stripe_subscription_id: dataObject.id,
             stripe_price_id: dataObject.items.data[0].price.id,
@@ -681,6 +751,22 @@ export class PaymentService {
             period: dataObject.items.data[0].price.recurring
               ? dataObject.items.data[0].price.recurring.interval
               : subscription.period,
+            ...(nextInvoice
+              ? {
+                  next_invoice_at: dayjs
+                    .unix(nextInvoice.period_end)
+                    .utc()
+                    .toISOString(),
+                  next_invoice_due_at: dayjs
+                    .unix(
+                      nextInvoice.next_payment_attempt || nextInvoice.due_date,
+                    )
+                    .utc()
+                    .toISOString(),
+                  next_invoice_amount: nextInvoice.amount_due,
+                  next_invoice_currency: nextInvoice.currency,
+                }
+              : {}),
           });
 
           const workspaceId = subscription.fk_workspace_id;

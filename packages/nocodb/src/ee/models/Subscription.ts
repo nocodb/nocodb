@@ -27,6 +27,12 @@ export default class Subscription {
 
   period: string;
 
+  next_invoice_at: string;
+  next_invoice_due_at: string;
+
+  next_invoice_amount: number;
+  next_invoice_currency: string;
+
   // timestamps
   created_at: string;
   updated_at: string;
@@ -71,6 +77,10 @@ export default class Subscription {
       'start_at',
       'end_at',
       'period',
+      'next_invoice_at',
+      'next_invoice_due_at',
+      'next_invoice_amount',
+      'next_invoice_currency',
     ]);
 
     const { id } = await ncMeta.metaInsert2(
@@ -96,6 +106,10 @@ export default class Subscription {
       'status',
       'end_at',
       'period',
+      'next_invoice_at',
+      'next_invoice_due_at',
+      'next_invoice_amount',
+      'next_invoice_currency',
     ]);
 
     await ncMeta.metaUpdate(

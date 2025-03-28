@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { PlanMeta, PlanTitles } from 'nocodb-sdk'
+import dayjs from 'dayjs'
 
 const route = useRoute()
 
@@ -22,6 +23,18 @@ const activePlanMeta = computed(() =>
     ? PlanMeta[PlanTitles.BUSINESS]
     : PlanMeta[(activeWorkspace.value?.payment?.plan.title ?? PlanTitles.FREE) as PlanTitles],
 )
+
+const nextInvoiceInfo = computed(() => {
+  if (!activeSubscription.value) return null
+  const nextInvoiceDate = dayjs(activeSubscription.value.next_invoice_date)
+  return {
+    date: `${nextInvoiceDate.format('DD MMMM YYYY')}`,
+    amount: new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: activeSubscription.value.next_invoice_currency || 'USD',
+    }).format(activeSubscription.value.next_invoice_amount / 100),
+  }
+})
 </script>
 
 <template>
@@ -58,11 +71,12 @@ const activePlanMeta = computed(() =>
     >
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.nextInvoice') }} </template>
-        <template #value
-          ><div v-if="activeSubscription?.end_at" class="text-red-500">
+        <template #value>
+          <div v-if="!activeSubscription">-</div>
+          <div v-else-if="activeSubscription?.end_at" class="text-red-500">
             Marked for cancellation, due {{ new Date(activeSubscription.end_at).toLocaleDateString() }}
           </div>
-          <div v-else>$60, due 25 July 2025</div></template
+          <div v-else>{{ nextInvoiceInfo?.amount }}, {{ nextInvoiceInfo?.date }}</div></template
         >
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
@@ -71,15 +85,15 @@ const activePlanMeta = computed(() =>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.storageUsedGB') }} </template>
-        <template #value> 3.93/20 GB </template>
+        <template #value> Coming Soon/20 GB </template>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.webhookCallsMonthly') }} </template>
-        <template #value> 4619/150,000 </template>
+        <template #value> Coming Soon/150,000 </template>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.apiCallsMonthly') }} </template>
-        <template #value> 120,000/150,000 </template>
+        <template #value> Coming Soon/150,000 </template>
       </PaymentPlanUsageRow>
     </div>
   </div>

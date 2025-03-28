@@ -4,9 +4,6 @@ import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import { Filter } from '~/models';
 
-export function getAs(column: Column) {
-  return column.asId || column.id;
-}
 export function ncIsStringHasValue(val: string | undefined | null) {
   return val !== '' && !ncIsUndefined(val) && !ncIsNull(val);
 }

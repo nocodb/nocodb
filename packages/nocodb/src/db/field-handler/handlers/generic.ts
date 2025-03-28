@@ -6,11 +6,8 @@ import type {
   HandlerOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
-import { getColumnName } from '~/db/BaseModelSqlv2';
-import {
-  getAs,
-  ncIsStringHasValue,
-} from '~/db/field-handler/utils/handlerUtils';
+import { getAs, getColumnName } from '~/helpers/dbHelpers';
+import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { sanitize } from '~/helpers/sqlSanitize';
 
 export class GenericFieldHandler implements FieldHandlerInterface {

@@ -11,7 +11,7 @@ import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { getColumnByIdOrName } from '~/helpers/dataHelpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { replaceDynamicFieldWithValue } from '~/db/BaseModelSqlv2';
+import { replaceDynamicFieldWithValue } from '~/helpers/dbHelpers';
 import { Filter } from '~/models';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { DatasService } from '~/services/datas.service';

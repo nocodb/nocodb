@@ -35,7 +35,9 @@ export function calculateGroupHeight(group: CanvasGroup, rowHeight: number, isAd
       // 1 Px Offset is Added for Showing the activeBorders. Else it wont be visible
       h += 1
     } else if (group?.groupCount) {
-      for (let i = 0; i < group?.groups?.size; i++) {
+      // add group padding if expanded since there will be top padding in the beginning of the group
+      h += GROUP_PADDING
+      for (let i = 0; i < group?.groupCount; i++) {
         const subGroup = group.groups.get(i)
         if (!subGroup) {
           h += GROUP_HEADER_HEIGHT + GROUP_PADDING
@@ -56,7 +58,7 @@ export function calculateGroupRange(
   viewportHeight: number,
   nested = false,
   isAddingNewRowAllowed?: boolean,
-): { startIndex: number; endIndex: number; partialGroupHeight: number } {
+): { startIndex: number; endIndex: number; startGroupYOffset: number } {
   let currentOffset = GROUP_PADDING
   let startIndex = 0
   let endIndex = groupCount - 1
@@ -65,13 +67,13 @@ export function calculateGroupRange(
   for (let i = 0; i < groupCount; i++) {
     const group = groups.get(i)
     const groupHeight = calculateGroupHeight(group, rowHeight, isAddingNewRowAllowed)
-    if (currentOffset + groupHeight - GROUP_PADDING > scrollTop) {
+    if (currentOffset + groupHeight >= scrollTop) {
       startIndex = i
       // startGroupYOffset - is the offset of the group from the top of the viewport, this could be negative
       // when the group is partially visible at the top of the viewport
-      const startGroupYOffset = 32 - (scrollTop - currentOffset)
-      const viewportBottom = scrollTop + viewportHeight
-
+      // excluding column header height from the calculation since it will be sticky on top
+      const startGroupYOffset = COLUMN_HEADER_HEIGHT_IN_PX - (scrollTop - currentOffset)
+      const viewportBottom = scrollTop + viewportHeight + COLUMN_HEADER_HEIGHT_IN_PX
       for (let j = i; j < groupCount; j++) {
         const endGroup = groups.get(j)
 

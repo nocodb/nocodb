@@ -434,6 +434,7 @@ interface CellRendererOptions {
   fontFamily?: string
   isRowHovered?: boolean
   isRowChecked?: boolean
+  isCellInSelectionRange?: boolean
 }
 
 interface CellRenderStore {

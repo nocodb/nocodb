@@ -80,7 +80,7 @@ const getMessageProps = (type: AlertProps['type'], params: NcMessageProps, showD
     // If params is a string, use it as the description and apply a default message based on type
     return {
       ...updatedParams,
-      message: showDefaultMessage ? getI18n().global.t(`objects.ncMessage.${type}`) : '',
+      message: showDefaultMessage || !params ? getI18n().global.t(`objects.ncMessage.${type}`) : '',
       description: params,
     }
   }
@@ -90,7 +90,7 @@ const getMessageProps = (type: AlertProps['type'], params: NcMessageProps, showD
 
   // If neither message nor description exist, set message to the default localized text
   if (!updatedParams.message && !updatedParams.description) {
-    return { ...updatedParams, message: showDefaultMessage ? getI18n().global.t(`objects.ncMessage.${type}`) : '' }
+    return { ...updatedParams, message: showDefaultMessage || !params ? getI18n().global.t(`objects.ncMessage.${type}`) : '' }
   }
 
   return updatedParams

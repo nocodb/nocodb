@@ -34,7 +34,7 @@ export function calculateGroupHeight(group: CanvasGroup, rowHeight: number, isAd
       }
       // 1 Px Offset is Added for Showing the activeBorders. Else it wont be visible
       h += 1
-    } else if (group?.groups?.size) {
+    } else if (group?.groupCount) {
       for (let i = 0; i < group?.groups?.size; i++) {
         const subGroup = group.groups.get(i)
         if (!subGroup) {
@@ -100,44 +100,56 @@ export function calculateGroupRange(
 
 export function generateGroupPath(data?: CanvasGroup) {
   if (!data) return []
-  const path = []
+  const path: Array<number> = []
 
   // Add groupIndex from each nestedIn entry
   if (data.nestedIn && data.nestedIn.length > 0) {
-    data.nestedIn.forEach((nested) => path.push(nested.groupIndex))
+    data.nestedIn.forEach((nested) => path.push(nested.groupIndex!))
   }
 
   return path
 }
 
-function calculateGroupRowTop(groups: Map<number, CanvasGroup>,path: number[], rowIndex: number): number {
+export function calculateGroupRowTop(
+  groups: Map<number, CanvasGroup>,
+  path: number[],
+  rowIndex: number,
+  rowHeight: number,
+): number {
   let top = 0
-  let currentGroups = groups // Assume this is the root Map of groups
+  let currentGroups = groups
 
-  // Traverse the group hierarchy using the path
-  for (const groupIndex of path) {
-    const group = Array.from(currentGroups.values())[groupIndex]
-    if (!group) return top // Invalid path, stop here
-
-    // Add height of this group's header
-    top += GROUP_HEADER_HEIGHT + GROUP_PADDING
-
-    if (group.isExpanded) {
-      if (group.groups) {
-        // Move to nested groups
-        top += group.groupCount * (GROUP_HEADER_HEIGHT + GROUP_PADDING)
-        currentGroups = group.groups
-      }
-    } else {
-      return top // Group not expanded, stop traversal
-    }
+  if (path.length === 0) {
+    return rowIndex * rowHeight
   }
 
-  // After reaching the target group, calculate row offset
-  const finalGroup = Array.from(currentGroups.values())[path[path.length - 1]]
-  if (finalGroup?.infiniteData && finalGroup.isExpanded) {
-    top += rowIndex * rowHeight.value // Add height of rows up to target
-    top += 1 // Border offset (from totalHeight logic)
+  for (let depth = 0; depth < path.length; depth++) {
+    const groupIndex = path[depth]
+    const group = currentGroups.get(groupIndex)
+    if (!group) return top // Invalid path
+
+    // Add height for all groups up to this index at the current level
+    for (let i = 0; i < groupIndex; i++) {
+      const siblingGroup = currentGroups.get(i)
+      if (siblingGroup) {
+        top += GROUP_HEADER_HEIGHT + GROUP_PADDING
+      }
+    }
+
+    // Add this group's header
+    top += GROUP_HEADER_HEIGHT + GROUP_PADDING
+
+    if (group.isExpanded && group.groups) {
+      // Add height of previous subgroups at this level
+      currentGroups = group.groups
+    } else if (!group.groups && depth === path.length - 1) {
+      // Leaf group reached, add row offset
+      if (group.isExpanded && group.infiniteData) {
+        top += rowIndex * rowHeight + 1 // Row height + border offset
+      }
+    } else {
+      return top // Group not expanded or not a leaf
+    }
   }
 
   return top

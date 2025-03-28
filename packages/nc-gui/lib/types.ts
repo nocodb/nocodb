@@ -433,6 +433,7 @@ interface CellRendererOptions {
   renderAsPlainCell?: boolean
   fontFamily?: string
   isRowHovered?: boolean
+  isRowChecked?: boolean
 }
 
 interface CellRenderStore {

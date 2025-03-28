@@ -103,7 +103,7 @@ const showMessage = (type: AlertProps['type'], params: NcMessageProps, duration?
   const props = getMessageProps(type, params)
   const key = generateMessageKey(params)
 
-  message.open({
+  return message.open({
     key,
     content: () =>
       h(

@@ -16,6 +16,8 @@ const { sorts, saveOrUpdate, loadSorts, addSort: _addSort, deleteSort } = useVie
 
 const { showSystemFields, metaColumnById } = useViewColumnsOrThrow()
 
+const { appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
+
 const showCreateSort = ref(false)
 
 const { isMobileMode } = useGlobal()
@@ -140,7 +142,15 @@ onMounted(() => {
               $t('activity.sort')
             }}</span>
           </div>
-          <span v-if="sorts?.length" class="bg-red-100 py-1 px-2 text-md rounded-md">{{ sorts.length }}</span>
+          <span
+            v-if="sorts?.length"
+            class="py-1 px-2 text-md rounded-md"
+            :class="{
+              [filteredOrSortedAppearanceConfig.SORTED.toolbarBgClass]: true,
+              [filteredOrSortedAppearanceConfig.SORTED.toolbarTextClass]: true,
+            }"
+            >{{ sorts.length }}</span
+          >
         </div>
       </NcButton>
     </NcTooltip>

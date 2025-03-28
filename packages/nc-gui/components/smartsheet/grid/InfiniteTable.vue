@@ -122,7 +122,7 @@ const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlo
 
 const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource } = useSmartsheetStoreOrThrow()
 
-const { isColumnSortedOrFiltered } = useColumnFilteredOrSorted()
+const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
 const { $e, $api } = useNuxtApp()
 
@@ -2198,10 +2198,15 @@ const cellAlignClass = computed(() => {
 
 const cellFilteredOrSortedClass = (colId: string) => {
   const columnState = isColumnSortedOrFiltered(colId)
-  return {
-    '!bg-yellow-100': columnState === 'FILTERED',
-    '!bg-red-100': columnState === 'SORTED'
+  if (columnState) {
+    const className = filteredOrSortedAppearanceConfig[columnState]?.cellBgClass
+    if (className) {
+      return {
+        [className]: true,
+      }
+    }
   }
+  return {}
 }
 </script>
 

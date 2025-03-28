@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isLinksOrLTAR, isBt } from 'nocodb-sdk'
 import Table from './Table.vue'
 import { NavigateDir } from '~/lib/enums'
 
@@ -35,6 +35,10 @@ const { t } = useI18n()
 const router = useRouter()
 
 const meta = inject(MetaInj, ref())
+
+const { getMeta } = useMetas()
+
+const { api } = useApi()
 
 const view = inject(ActiveViewInj, ref())
 
@@ -98,6 +102,81 @@ const addRowExpandOnClose = (row: Row) => {
   eventBus.emit(SmartsheetStoreEvents.CLEAR_NEW_ROW, row)
 }
 
+/**
+ * Retrieves LTAR information from a Group object by looking up parent records.
+ * 
+ * TODO: gh #10831 - Could be simplified if Group stored parent record IDs instead of just display text.
+ * 
+ * Processes each item in group.nestedIn to find the corresponding LTAR column and parent record.
+ * Currently requires querying parent tables by display text, which is potentially ambiguous.
+ */
+function getBtLtarFromGroup(group: Group, metaValue = meta.value): Promise<{ ltarId: string; ltarColumn: any } | null>[] {
+  // Return early if the group is nested or doesn't have rows 
+  if (group.nested || !group.rows) return []; 
+
+  // Process each item in nestedIn to build an array of promises
+  return group.nestedIn
+  .filter(curr => curr.key !== '__nc_null__')
+  .map(curr => {
+  
+    const ltarColumn = metaValue?.columns?.find(col => col.title === curr.column_name); 
+    
+    // Skip processing if no LTAR column or column options
+    if (!ltarColumn?.colOptions || !isBt(ltarColumn)) return Promise.resolve(null);
+
+    const { fk_related_model_id: relatedModelId, fk_parent_column_id: parentColumnId } = ltarColumn.colOptions;
+
+    // Validate the existence of relation IDs
+    if (!relatedModelId || !parentColumnId) {
+      console.warn('Missing relation IDs:', { relatedModelId, parentColumnId });
+      return Promise.resolve(null);
+    }
+
+    // Fetch metadata and process the related model
+    return getMeta(relatedModelId)
+      .then(metadata => {
+        if (!metadata?.columnsById) {
+          console.warn('No metadata or columns found for related model:', relatedModelId);
+          return null; // Skip if metadata is invalid
+        }
+
+        const displayColumn = Object.values(metadata.columnsById).find(
+          column => column.meta?.defaultViewColOrder === 1
+        );
+
+        if (!displayColumn) {
+          console.warn('No column with default view order 1 found:', relatedModelId);
+          return null; // Skip if there's no matching column
+        }
+
+        // Query parent records based on the column and group key
+        return api.dbDataTableRow.list(metadata.id as string, {
+          where: `(${displayColumn.title},eq,${curr.key})`,
+          limit: 2, // Limit to 2 results to efficiently check if there's more than one match
+        })
+        .then(parentRecords => {
+          // Only proceed if exactly one record is found
+          if (parentRecords?.list?.length === 1) {
+            const parentPrimaryKey = parentRecords.list[0].Id;
+            return { ltarId: parentPrimaryKey, ltarColumn };
+          }
+          
+          if (parentRecords?.list?.length > 1) {
+            console.warn('Too many potential matches found:', { relatedModelId, groupKey: curr.key, count: parentRecords.list.length });
+          } else {
+            console.warn('No matching parent record found:', { relatedModelId, groupKey: curr.key });
+          }
+          
+          return null; // Return null for zero or multiple matches
+        });
+      })
+      .catch(error => {
+        console.error('Error processing LTAR promise:', error);
+        return null;
+      });
+  });
+}
+
 function addEmptyRow(group: Group, addAfter?: number, metaValue = meta.value) {
   if (group.nested || !group.rows) return
 
@@ -106,9 +185,9 @@ function addEmptyRow(group: Group, addAfter?: number, metaValue = meta.value) {
   const setGroup = group.nestedIn.reduce((acc, curr) => {
     if (
       curr.key !== '__nc_null__' &&
-      // avoid setting default value for rollup, formula, barcode, qrcode, links, ltar
-      !isLinksOrLTAR(curr.column_uidt) &&
-      ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(curr.column_uidt)
+      // avoid setting default value for rollup, formula, barcode, qrcode, links
+      // we will handle LinkToAnotherRecord down below
+      ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode, UITypes.Links].includes(curr.column_uidt)
     ) {
       acc[curr.title] = curr.key
 
@@ -119,18 +198,69 @@ function addEmptyRow(group: Group, addAfter?: number, metaValue = meta.value) {
     }
     return acc
   }, {} as Record<string, any>)
-  group.count = group.count + 1
+  
+  group.count = group.count + 1 
 
-  group.rows.splice(addAfter, 0, {
+  // Get LTAR promises
+  const ltarPromises = getBtLtarFromGroup(group);
+  
+  // Create a new row with all data first
+  const newRowIndex = addAfter;
+  group.rows.splice(newRowIndex, 0, {
     row: {
       ...rowDefaultData(metaValue?.columns),
       ...setGroup,
     },
     oldRow: {},
-    rowMeta: { new: true },
-  })
-
-  return group.rows[addAfter]
+    rowMeta: { 
+      new: true,
+      ltarState: {} as Record<string, any>,
+    },
+  });
+  
+  // If we have LTAR promises, process them and update the row afterward
+  if (ltarPromises && ltarPromises.length > 0) {
+    Promise.all(ltarPromises)
+      .then(results => {
+        // Process valid results and build ltarStateData
+        const ltarStateData: Record<string, any> = {};
+        
+        results
+          .filter(result => result !== null)
+          .forEach(result => {
+            if (result && result.ltarId && result.ltarColumn) {
+              ltarStateData[result.ltarColumn.title] = [result.ltarId];
+            }
+          });
+        
+        // Update the row's ltarState if we have any LTAR data
+        if (Object.keys(ltarStateData).length > 0) {
+          group.rows[newRowIndex].rowMeta.ltarState = ltarStateData;
+        }
+        
+        // Remove any LinkToAnotherRecord fields that aren't in the ltarState
+        const rowData = group.rows[newRowIndex].row;
+        group.nestedIn.forEach(col => {
+          if (col.column_uidt === UITypes.LinkToAnotherRecord && 
+              (!ltarStateData[col.title] || ltarStateData[col.title].length === 0)) {
+            delete rowData[col.title];
+          }
+        });
+      })
+      .catch(error => {
+        console.error('Error processing LTAR references:', error);
+      });
+  } else {
+    // If no LTAR promises, remove all LinkToAnotherRecord fields
+    const rowData = group.rows[newRowIndex].row;
+    group.nestedIn.forEach(col => {
+      if (col.column_uidt === UITypes.LinkToAnotherRecord) {
+        delete rowData[col.title];
+      }
+    });
+  }
+  
+  return group.rows[newRowIndex];
 }
 
 const formattedData = computed(() => {

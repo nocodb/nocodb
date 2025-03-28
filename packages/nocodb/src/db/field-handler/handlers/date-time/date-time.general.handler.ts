@@ -21,6 +21,8 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
       'lt',
       'gte',
       'lte',
+      'ge',
+      'le',
       'isnot',
       'is',
       'isWithin',

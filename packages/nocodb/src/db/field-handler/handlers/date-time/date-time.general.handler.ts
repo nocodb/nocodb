@@ -6,6 +6,8 @@ import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 export class DateTimeGeneralHandler extends GenericFieldHandler {
   override async verifyFilter(filter: Filter, column: Column) {
     const supportedOperations = [
+      'gb_eq',
+      'gb_null',
       'eq',
       'neq',
       'not',

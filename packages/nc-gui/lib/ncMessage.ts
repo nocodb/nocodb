@@ -92,6 +92,7 @@ function isNcMessageObjectProps(params: any): params is NcMessageObjectProps {
  *
  * @param type - The type of message (`success`, `error`, `info`, `warning`).
  * @param params - The message parameters, either a string or an object.
+ * @param ncMessageExtraProps - The extra props
  * @returns A full `NcMessageObjectProps` object with defaults applied.
  */
 const getMessageProps = (
@@ -231,7 +232,7 @@ const showMessage = (
  *
  * ## Usage Examples:
  *
- * ### Display a default success message (title/message based on type)
+ * ### Display a default success message (title based on type)
  * ```ts
  * ncMessage.success();
  * ncMessage.error();
@@ -239,33 +240,33 @@ const showMessage = (
  * ncMessage.warn();
  * ```
  *
- * ### Display a success message with a custom title/message only
+ * ### Display a success message with a custom title only
  * ```ts
  * ncMessage.success({
- *   message: 'Table created successfully',
+ *   title: 'Table created successfully',
  * });
  * ```
  *
  * ### Display a success message with a custom description only
  * ```ts
  * ncMessage.success({
- *   description: 'Lorem ipsum dolor sit amet, consectetur adipiscing.',
+ *   content: 'Lorem ipsum dolor sit amet, consectetur adipiscing.',
  * });
  * ```
  *
- * ### Display a default title/message based on type with a custom description
+ * ### Display a default title based on type with a custom description
  * ```ts
- * ncMessage.success('Lorem ipsum dolor sit amet, consectetur adipiscing', undefined, true);
- * ncMessage.error('Lorem ipsum dolor sit amet, consectetur adipiscing', undefined, true);
- * ncMessage.info('Lorem ipsum dolor sit amet, consectetur adipiscing', undefined, true);
- * ncMessage.warn('Lorem ipsum dolor sit amet, consectetur adipiscing', undefined, true);
+ * ncMessage.success('Lorem ipsum dolor sit amet, consectetur adipiscing', undefined, { showDefaultMessage: false });
+ * ncMessage.error('Lorem ipsum dolor sit amet, consectetur adipiscing', undefined, { showDefaultMessage: false });
+ * ncMessage.info('Lorem ipsum dolor sit amet, consectetur adipiscing', undefined, { showDefaultMessage: false });
+ * ncMessage.warn('Lorem ipsum dolor sit amet, consectetur adipiscing', undefined, { showDefaultMessage: false });
  * ```
  *
  * ### Fully customized success message
  * ```ts
  * ncMessage.success({
- *   content: 'Table created successfully',
- *   description: 'Lorem ipsum dolor sit amet, consectetur adipiscing',
+ *   title: 'Table created successfully',
+ *   content: 'Lorem ipsum dolor sit amet, consectetur adipiscing',
  *   copyText: 'Lorem ipsum dolor sit amet, consectetur adipiscing',
  *   showIcon: true,
  *   closable: true,

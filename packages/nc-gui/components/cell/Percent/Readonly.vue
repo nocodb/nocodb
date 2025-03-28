@@ -21,7 +21,9 @@ const localEditEnabled = useVModel(props, 'localEditEnabled', emits, { defaultVa
 const expandedEditEnabled = ref(false)
 
 const percentValue = computed(() => {
-  return props.modelValue && !isNaN(Number(props.modelValue)) ? `${props.modelValue}%` : props.modelValue
+  return !ncIsNull(props.modelValue) && !ncIsUndefined(props.modelValue) && !isNaN(Number(props.modelValue))
+    ? `${props.modelValue}%`
+    : props.modelValue
 })
 const percentValueNumber = computed(() => {
   if (props.modelValue && props.modelValue !== '' && !isNaN(Number(props.modelValue))) {

@@ -139,14 +139,6 @@ const saveChanges = async () => {
   }
 }
 
-const saveChangeWithDebounce = useDebounceFn(
-  async () => {
-    await saveChanges()
-  },
-  250,
-  { maxWait: 2000 },
-)
-
 const handleDelete = () => {
   if (!currentWorkspace.value || !currentWorkspace.value.title) return
   toBeDeletedWorkspaceTitle.value = currentWorkspace.value.title

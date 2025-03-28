@@ -126,6 +126,43 @@ export class BaseUsersService {
           user.id,
           ncMeta,
         );
+
+        const targetUser =
+          baseUser &&
+          (await User.getWithRoles(
+            context,
+            user.id,
+            {
+              user,
+              baseId: param.baseId,
+              workspaceId: context.workspace_id,
+            },
+            ncMeta,
+          ));
+
+        // if old role is owner and there is only one owner then restrict to update
+        if (targetUser && this.isOldRoleIsOwner(targetUser)) {
+          const baseUsers = await BaseUser.getUsersList(
+            context,
+            {
+              base_id: param.baseId,
+            },
+            ncMeta,
+          );
+          this.checkMultipleOwnerExist(baseUsers);
+          await this.ensureBaseOwner(context, {
+            baseUsers,
+            ignoreUserId: user.id,
+            baseId: param.baseId,
+            req: param.req,
+          });
+        }
+
+        const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
+        const newRolePower = reverseOrderedProjectRoles.indexOf(
+          param.baseUser.roles as ProjectRoles,
+        );
+
         // if already exists and has a role then throw error
         if (baseUser?.is_mapped && baseUser?.roles) {
           NcError.badRequest(
@@ -335,6 +372,7 @@ export class BaseUsersService {
       {
         user,
         baseId: param.baseId,
+        workspaceId: context.workspace_id,
       },
       ncMeta,
     );
@@ -427,7 +465,7 @@ export class BaseUsersService {
     if (targetUser.base_roles) {
       const baseRole = getProjectRole(targetUser);
       if (baseRole && Object.keys(baseRole).length) {
-        return baseRole?.[ProjectRoles.OWNER];
+        return baseRole === ProjectRoles.OWNER;
       }
     }
 
@@ -568,6 +606,7 @@ export class BaseUsersService {
 
     const baseUser = await User.getWithRoles(context, param.userId, {
       baseId: base_id,
+      workspaceId: context.workspace_id,
     });
 
     // check if user have access to delete user based on role power

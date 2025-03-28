@@ -38,7 +38,7 @@ export const useOrg = defineStore('orgStore', () => {
       }
 
       if (showToastMsg) {
-        message.success('Organization details updated successfully')
+        message.success('Organization details updated successfully', 3)
       }
     } catch (e) {
       console.log(e)

@@ -5,6 +5,8 @@ import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 export class SingleLineTextGeneralHandler extends GenericFieldHandler {
   override async verifyFilter(filter: Filter, column: Column) {
     const supportedOperations = [
+      'gb_eq',
+      'gb_null',
       'eq',
       'neq',
       'blank',
@@ -24,7 +26,6 @@ export class SingleLineTextGeneralHandler extends GenericFieldHandler {
       'notempty',
       'null',
       'notnull',
-      'gb_eq',
     ];
     if (!supportedOperations.includes(filter.comparison_op)) {
       return {

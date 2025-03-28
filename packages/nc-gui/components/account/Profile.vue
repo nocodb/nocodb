@@ -6,6 +6,7 @@ const { user } = useGlobal()
 const { t } = useI18n()
 
 const isErrored = ref(false)
+const isProfileUpdating = ref(false)
 
 const form = ref<{
   title: string
@@ -17,6 +18,10 @@ const form = ref<{
   email: '',
   icon: '',
   iconType: '',
+})
+
+const isSaveChangesBtnEnabled = computed(() => {
+  return !!(form.value.title && form.value.title !== user.value?.display_name)
 })
 
 const { updateUserProfile } = useUsers()
@@ -61,6 +66,8 @@ const saveChanges = async (isIconUpdate = false) => {
     }
   }
 
+  isProfileUpdating.value = true
+
   try {
     await updateUserProfile({
       attrs: {
@@ -70,16 +77,10 @@ const saveChanges = async (isIconUpdate = false) => {
   } catch (e: any) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isProfileUpdating.value = false
   }
 }
-
-const saveChangeWithDebounce = useDebounceFn(
-  async () => {
-    await saveChanges()
-  },
-  250,
-  { maxWait: 2000 },
-)
 
 const email = computed(() => user.value?.email)
 
@@ -124,6 +125,10 @@ watch(
     immediate: true,
   },
 )
+
+const onCancel = () => {
+  form.value.title = user.value?.display_name ?? ''
+}
 </script>
 
 <template>
@@ -148,7 +153,7 @@ watch(
             <div class="flex text-gray-500" data-rec="true">{{ $t('labels.controlAppearance') }}</div>
           </div>
 
-          <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="saveChanges">
+          <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="() => saveChanges()">
             <div class="flex gap-4 mt-6">
               <div>
                 <GeneralIconSelector
@@ -187,7 +192,6 @@ watch(
                       class="w-full !rounded-lg !px-4 h-10"
                       :placeholder="$t('general.name')"
                       data-testid="nc-account-settings-rename-input"
-                      @update:value="saveChangeWithDebounce"
                     />
                   </a-form-item>
                 </div>
@@ -202,6 +206,29 @@ watch(
                   />
                 </div>
               </div>
+            </div>
+            <div class="flex flex-row w-full justify-end mt-8 gap-4">
+              <NcButton
+                v-if="isSaveChangesBtnEnabled"
+                type="secondary"
+                size="small"
+                data-testid="nc-account-settings-cancel"
+                :disabled="isProfileUpdating"
+                @click="onCancel"
+              >
+                {{ $t('general.cancel') }}
+              </NcButton>
+              <NcButton
+                type="primary"
+                html-type="submit"
+                size="small"
+                :disabled="isErrored || !isSaveChangesBtnEnabled || isProfileUpdating"
+                :loading="isProfileUpdating"
+                data-testid="nc-account-settings-save"
+              >
+                <template #loading> {{ $t('general.saving') }} </template>
+                {{ $t('general.save') }}
+              </NcButton>
             </div>
           </a-form>
         </div>

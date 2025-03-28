@@ -109,3 +109,36 @@ export function generateGroupPath(data?: CanvasGroup) {
 
   return path
 }
+
+function calculateGroupRowTop(groups: Map<number, CanvasGroup>,path: number[], rowIndex: number): number {
+  let top = 0
+  let currentGroups = groups // Assume this is the root Map of groups
+
+  // Traverse the group hierarchy using the path
+  for (const groupIndex of path) {
+    const group = Array.from(currentGroups.values())[groupIndex]
+    if (!group) return top // Invalid path, stop here
+
+    // Add height of this group's header
+    top += GROUP_HEADER_HEIGHT + GROUP_PADDING
+
+    if (group.isExpanded) {
+      if (group.groups) {
+        // Move to nested groups
+        top += group.groupCount * (GROUP_HEADER_HEIGHT + GROUP_PADDING)
+        currentGroups = group.groups
+      }
+    } else {
+      return top // Group not expanded, stop traversal
+    }
+  }
+
+  // After reaching the target group, calculate row offset
+  const finalGroup = Array.from(currentGroups.values())[path[path.length - 1]]
+  if (finalGroup?.infiniteData && finalGroup.isExpanded) {
+    top += rowIndex * rowHeight.value // Add height of rows up to target
+    top += 1 // Border offset (from totalHeight logic)
+  }
+
+  return top
+}

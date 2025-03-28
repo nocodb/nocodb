@@ -1046,7 +1046,7 @@ async function handleMouseUp(e: MouseEvent) {
   const group = element?.group
   const row = element?.row
   const rowIndex = row?.rowMeta?.rowIndex
-  const groupPath = (group ? generateGroupPath(group) : [])
+  const groupPath = group ? generateGroupPath(group) : []
 
   const _totalRows = isGroupBy.value ? group?.infiniteData?.totalRows.value : totalRows.value
 
@@ -1137,7 +1137,10 @@ async function handleMouseUp(e: MouseEvent) {
     value: row?.row[clickedColumn.title],
     mousePosition: { x, y },
     pk,
-    selected: prevActiveCell?.row === rowIndex && prevActiveCell?.column === colIndex && prevActiveCell?.path.join('-') === groupPath.join('-'),
+    selected:
+      prevActiveCell?.row === rowIndex &&
+      prevActiveCell?.column === colIndex &&
+      prevActiveCell?.path.join('-') === groupPath.join('-'),
     imageLoader,
   })
   // Set the active cell to the clicked cell

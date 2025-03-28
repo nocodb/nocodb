@@ -709,7 +709,7 @@ export function useCanvasRender({
     },
   ) => {
     const isHover =
-      hoverRow.value?.rowIndex === row.rowMeta.rowIndex && hoverRow.value?.path.join('-') === row.rowMeta?.groupPath.join('-')
+      hoverRow.value?.rowIndex === row.rowMeta.rowIndex && hoverRow.value?.path?.join('-') === row.rowMeta?.groupPath?.join('-')
     ctx.fillStyle = isHover ? '#F9F9FA' : '#ffffff'
     if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
@@ -891,7 +891,7 @@ export function useCanvasRender({
       rowIndex: number
       column: CanvasGridColumn
     }[] = []
-    const isHovered = hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path.join('-') === row.rowMeta?.groupPath?.join('-')
+    const isHovered = hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path?.join('-') === row.rowMeta?.groupPath?.join('-')
 
     const isActiveCellInCurrentGroup = (activeCell.value?.path?.join('-') ?? '') === (generateGroupPath(group)?.join('-') ?? '')
 
@@ -1245,7 +1245,7 @@ export function useCanvasRender({
         }
 
         ctx.fillStyle =
-          hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path.join('-') === row.rowMeta?.groupPath.join('-')
+          hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path?.join('-') === row.rowMeta?.groupPath?.join('-')
             ? '#F9F9FA'
             : '#ffffff'
         ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)

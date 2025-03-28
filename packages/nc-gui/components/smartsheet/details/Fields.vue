@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { diff } from 'deep-object-diff'
-import { message } from 'ant-design-vue'
 import {
   ButtonActionsType,
   ColumnHelper,

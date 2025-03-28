@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { message } from 'ant-design-vue'
 
 const props = defineProps<{
   modelValue: boolean

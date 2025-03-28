@@ -1,5 +1,5 @@
 import { message } from 'ant-design-vue'
-import type { AlertProps } from 'ant-design-vue/es'
+import type { AlertProps, MessageArgsProps } from 'ant-design-vue/es'
 import NcAlert, { type NcAlertProps } from '../components/nc/Alert.vue'
 import { getI18n } from '~/plugins/a.i18n'
 import type { VNode } from 'vue'
@@ -8,27 +8,14 @@ import type { VNode } from 'vue'
  * `NcMessageObjectProps` defines the properties allowed in `ncMessage`,
  * extending `NcAlertProps` while omitting fields that are irrelevant for messages.
  */
-export interface NcMessageObjectProps extends Omit<NcAlertProps, 'visible' | 'bordered' | 'isNotification' | 'duration'> {
-  /**
-   * The unique identifier of the Message
-   */
-  key?: string | number
+export interface NcMessageObjectProps
+  extends Omit<NcAlertProps, 'visible' | 'bordered' | 'isNotification' | 'duration' | 'type' | 'message'>,
+    Omit<MessageArgsProps, 'type'> {
   /**
    * Custom action slot content to be rendered inside the alert.
    * It can be either a `VNode` or a function returning a `VNode`.
    */
   action?: VNode | (() => VNode)
-  /**
-   * Custom icon slot content to be rendered inside the alert.
-   * It can be either a `VNode` or a function returning a `VNode`.
-   */
-  icon?: VNode | (() => VNode)
-  /**
-   * Wrapper className
-   */
-  class?: string
-  onClick?: (event?: MouseEvent) => void
-  onClose?: () => void
 }
 
 /**
@@ -40,6 +27,7 @@ export type NcMessageProps = NcMessageObjectProps | string
  * Default values for `NcMessageObjectProps`.
  */
 const initialValue = {
+  content: '',
   showIcon: true,
   closable: true,
   align: 'top',
@@ -47,8 +35,6 @@ const initialValue = {
   messageClass: '',
   descriptionClass: '',
   showDuration: true,
-  onClick: () => undefined,
-  onClose: () => undefined,
 } as NcMessageObjectProps
 
 /**
@@ -65,22 +51,26 @@ const generateMessageKey = (params: NcMessageProps) => {
 
 /**
  * Processes `NcMessageProps` and merges them with default values.
- * - If a string is provided, it sets it as the description while applying a default message based on type.
- * - If neither `message` nor `description` exist, the message is set to the default localized text.
+ * - If a string is provided, it sets it as the description while applying a default content based on type.
+ * - If neither `content` nor `description` exist, the content is set to the default localized text.
  * - Uses the spread operator to ensure proper merging of values.
  *
  * @param type - The type of message (`success`, `error`, `info`, `warning`).
  * @param params - The message parameters, either a string or an object.
  * @returns A full `NcMessageObjectProps` object with defaults applied.
  */
-const getMessageProps = (type: AlertProps['type'], params: NcMessageProps, showDefaultMessage: boolean): NcMessageObjectProps => {
+const getMessageProps = (
+  type: AlertProps['type'],
+  params: NcMessageProps,
+  showDefaultMessage?: boolean,
+): NcMessageObjectProps => {
   let updatedParams = initialValue
 
   if (ncIsString(params)) {
     // If params is a string, use it as the description and apply a default message based on type
     return {
       ...updatedParams,
-      message: showDefaultMessage || !params ? getI18n().global.t(`objects.ncMessage.${type}`) : '',
+      content: showDefaultMessage || !params ? getI18n().global.t(`objects.ncMessage.${type}`) : '',
       description: params,
     }
   }
@@ -89,8 +79,8 @@ const getMessageProps = (type: AlertProps['type'], params: NcMessageProps, showD
   updatedParams = { ...updatedParams, ...params }
 
   // If neither message nor description exist, set message to the default localized text
-  if (!updatedParams.message && !updatedParams.description) {
-    return { ...updatedParams, message: showDefaultMessage || !params ? getI18n().global.t(`objects.ncMessage.${type}`) : '' }
+  if (!updatedParams.content && !updatedParams.description) {
+    return { ...updatedParams, content: showDefaultMessage || !params ? getI18n().global.t(`objects.ncMessage.${type}`) : '' }
   }
 
   return updatedParams
@@ -103,8 +93,20 @@ const getMessageProps = (type: AlertProps['type'], params: NcMessageProps, showD
  * @param params - The message content or properties.
  * @param duration - Optional duration in seconds before auto-dismissal.
  */
-const showMessage = (type: AlertProps['type'], params: NcMessageProps, showDefaultMessage: boolean, duration?: number) => {
+
+const showMessage = (type: AlertProps['type'], params: NcMessageProps, duration?: number, showDefaultMessage?: boolean) => {
   const props = getMessageProps(type, params, showDefaultMessage)
+  const {
+    onClick,
+    onClose,
+    content,
+    getPopupContainer,
+    style,
+    appContext,
+    prefixCls = '',
+    rootPrefixCls = '',
+    ...ncAlertProps
+  } = props
   const key = generateMessageKey(params)
 
   return message.open({
@@ -113,26 +115,32 @@ const showMessage = (type: AlertProps['type'], params: NcMessageProps, showDefau
       h(
         NcAlert,
         {
-          ...props,
+          ...ncAlertProps,
+          message: content,
           type,
           isNotification: true,
           onClose: () => {
-            props.onClose?.()
+            onClose?.()
             message.destroy(key)
           },
-          duration: duration,
+          duration: duration ?? ncAlertProps.duration,
         },
         {
-          action: ncIsFunction(props.action) ? props.action : () => props.action,
-          icon: ncIsFunction(props.icon) ? props.icon : () => props.icon,
+          action: ncIsFunction(ncAlertProps.action) ? ncAlertProps.action : () => ncAlertProps.action,
+          icon: ncIsFunction(ncAlertProps.icon) ? ncAlertProps.icon : () => ncAlertProps.icon,
         },
       ),
-    duration,
-    onClick(event) {
-      props.onClick?.(event)
-    },
+    duration: duration ?? ncAlertProps.duration,
+    prefixCls,
+    rootPrefixCls,
+    getPopupContainer,
     onClose() {
-      props.onClose?.()
+      onClose?.()
+    },
+    style,
+    appContext,
+    onClick(event) {
+      onClick?.(event)
     },
   })
 }
@@ -150,14 +158,14 @@ const showMessage = (type: AlertProps['type'], params: NcMessageProps, showDefau
  * ncMessage.warn();
  * ```
  *
- * ### Display a success message with a custom title/message
+ * ### Display a success message with a custom title/message only
  * ```ts
  * ncMessage.success({
  *   message: 'Table created successfully',
  * });
  * ```
  *
- * ### Display a success message with a custom description (title remains default)
+ * ### Display a success message with a custom description only
  * ```ts
  * ncMessage.success({
  *   description: 'Lorem ipsum dolor sit amet, consectetur adipiscing.',
@@ -166,16 +174,16 @@ const showMessage = (type: AlertProps['type'], params: NcMessageProps, showDefau
  *
  * ### Display a default title/message based on type with a custom description
  * ```ts
- * ncMessage.success('Lorem ipsum dolor sit amet, consectetur adipiscing');
- * ncMessage.error('Lorem ipsum dolor sit amet, consectetur adipiscing');
- * ncMessage.info('Lorem ipsum dolor sit amet, consectetur adipiscing');
- * ncMessage.warn('Lorem ipsum dolor sit amet, consectetur adipiscing');
+ * ncMessage.success('Lorem ipsum dolor sit amet, consectetur adipiscing', undefined, true);
+ * ncMessage.error('Lorem ipsum dolor sit amet, consectetur adipiscing', undefined, true);
+ * ncMessage.info('Lorem ipsum dolor sit amet, consectetur adipiscing', undefined, true);
+ * ncMessage.warn('Lorem ipsum dolor sit amet, consectetur adipiscing', undefined, true);
  * ```
  *
  * ### Fully customized success message
  * ```ts
  * ncMessage.success({
- *   message: 'Table created successfully',
+ *   content: 'Table created successfully',
  *   description: 'Lorem ipsum dolor sit amet, consectetur adipiscing',
  *   copyText: 'Lorem ipsum dolor sit amet, consectetur adipiscing',
  *   showIcon: true,
@@ -198,12 +206,17 @@ const showMessage = (type: AlertProps['type'], params: NcMessageProps, showDefau
  * ```
  */
 export const ncMessage = {
-  success: (params: NcMessageProps = '', showDefaultMessage: boolean = false, duration?: number) =>
-    showMessage('success', params, showDefaultMessage, duration),
-  error: (params: NcMessageProps = '', showDefaultMessage: boolean = false, duration?: number) =>
-    showMessage('error', params, showDefaultMessage, duration),
-  info: (params: NcMessageProps = '', showDefaultMessage: boolean = false, duration?: number) =>
-    showMessage('info', params, showDefaultMessage, duration),
-  warn: (params: NcMessageProps = '', showDefaultMessage: boolean = false, duration?: number) =>
-    showMessage('warning', params, showDefaultMessage, duration),
+  success: (params: NcMessageProps = '', duration?: number, showDefaultMessage: boolean = false) =>
+    showMessage('success', params, duration, showDefaultMessage),
+  error: (params: NcMessageProps = '', duration?: number, showDefaultMessage: boolean = false) =>
+    showMessage('error', params, duration, showDefaultMessage),
+  info: (params: NcMessageProps = '', duration?: number, showDefaultMessage: boolean = false) =>
+    showMessage('info', params, duration, showDefaultMessage),
+  warn: (params: NcMessageProps = '', duration?: number, showDefaultMessage: boolean = false) =>
+    showMessage('warning', params, duration, showDefaultMessage),
 }
+
+/**
+ * To overwrite default ant design message component
+ */
+export { ncMessage as message }

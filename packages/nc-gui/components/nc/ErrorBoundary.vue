@@ -63,7 +63,7 @@ export default {
         ncMessage.error(
           {
             key: MESSAGE_KEY,
-            message: 'Page Loading Error',
+            content: 'Page Loading Error',
             description: 'Something went wrong while loading page!',
             action:
               repeated[err.message] > 2
@@ -91,7 +91,6 @@ export default {
             class: '!w-auto !max-w-[fit-content]',
             showDuration: true,
           },
-          true,
           5,
         )
 

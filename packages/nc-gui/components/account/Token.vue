@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { message } from 'ant-design-vue'
 import type { ApiTokenType, RequestParams } from 'nocodb-sdk'
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 

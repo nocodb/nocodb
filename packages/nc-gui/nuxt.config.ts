@@ -166,6 +166,7 @@ export default defineNuxtConfig({
           AntDesignVueResolver({
             importStyle: false,
             resolveIcons: false,
+            exclude: ['message'],
           }),
           IconsResolver({
             prefix: false,
@@ -312,7 +313,7 @@ export default defineNuxtConfig({
     dirs: ['./context', './utils/**', './lib', './composables/**', './store/**', './helpers'],
     imports: [
       { name: 'useI18n', from: 'vue-i18n' },
-      { name: 'message', from: 'ant-design-vue/es' },
+      // { name: 'message', from: 'ant-design-vue/es' },
       { name: 'Modal', from: 'ant-design-vue/es' },
       { name: 'Empty', from: 'ant-design-vue/es' },
       { name: 'Form', from: 'ant-design-vue/es' },

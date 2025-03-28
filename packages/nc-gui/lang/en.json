@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "Spreadsheet",
       "spreadSheetSubtitle": "Connect and manage your spreadsheets with NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

@@ -107,9 +107,19 @@ const vVisible = useVModel(props, 'visible', emits, { defaultValue: true })
 
 const { type } = toRefs(props)
 
+const slots = useSlots()
+
 const { t } = getI18n().global
 
 const { copy } = useCopy()
+
+const isMessageAvailable = computed(() => !!(slots.message || props.message))
+
+const isDescriptionAvailable = computed(() => !!(slots.description || props.description))
+
+const align = computed<NcAlertProps['align']>(() => {
+  return isMessageAvailable.value && isDescriptionAvailable.value ? props.align : 'center'
+})
 
 /**
  * Tracks whether the text has been copied successfully.
@@ -118,7 +128,9 @@ const isCopied = ref<boolean>(false)
 
 const copyText = computed(() => props.copyText?.toString() ?? '')
 
-const copyBtnTooltip = computed(() => (ncIsUndefined(props.copyBtnTooltip) ? t('tooltip.copyErrorCode') : props.copyBtnTooltip))
+const copyBtnTooltip = computed(() =>
+  ncIsUndefined(props.copyBtnTooltip) && props.type === 'error' ? t('tooltip.copyErrorCode') : props.copyBtnTooltip,
+)
 
 let copiedTimeoutId: any
 
@@ -252,7 +264,16 @@ onUnmounted(() => {
         <slot name="message">{{ message }}</slot>
       </div>
 
-      <div v-if="description || $slots.description" class="nc-alert-description" :class="descriptionClass">
+      <div
+        v-if="description || $slots.description"
+        class="nc-alert-description"
+        :class="[
+          descriptionClass,
+          {
+            'nc-only-description': isDescriptionAvailable && !isMessageAvailable,
+          },
+        ]"
+      >
         <slot name="description">{{ description }}</slot>
       </div>
     </div>
@@ -275,6 +296,7 @@ onUnmounted(() => {
     </div>
 
     <div
+      v-if="isNotification && showDuration"
       class="nc-alert-progress-wrapper"
       :class="{
         'bg-nc-bg-brand': remDurationPercent > 0,
@@ -296,12 +318,11 @@ onUnmounted(() => {
   @apply flex gap-4;
 
   &:not(.nc-alert-notification) {
-    @apply rounded-lg p-4  w-full border-1 border-nc-border-gray-medium;
+    @apply rounded-lg p-4 w-full border-1 border-nc-border-gray-medium;
   }
 
   &.nc-alert-notification {
-    @apply min-w-[340px];
-
+    @apply min-w-[308px] max-w-[488px] w-[calc(30vw_-_32px)];
     .nc-alert-content {
       .nc-alert-description {
         @apply line-clamp-2;
@@ -329,7 +350,15 @@ onUnmounted(() => {
     }
 
     .nc-alert-description {
-      @apply text-sm text-nc-content-gray-muted font-weight-500 line-clamp-3;
+      @apply text-sm font-weight-500 line-clamp-3;
+
+      &:not(.nc-only-description) {
+        @apply text-nc-content-gray-muted;
+      }
+
+      &.nc-only-description {
+        @apply text-nc-content-gray;
+      }
     }
   }
 
@@ -375,7 +404,11 @@ onUnmounted(() => {
 <style lang="scss">
 .ant-message-notice-content {
   &:has(.ant-message-custom-content .nc-alert-notification) {
-    @apply bg-white !rounded-lg p-4 gap-4 box-border border-1 border-nc-border-gray-medium text-left relative overflow-hidden max-w-[528px];
+    @apply bg-white !rounded-lg p-4 gap-4 box-border border-1 border-nc-border-gray-medium text-left relative overflow-hidden;
+
+    .ant-message-custom-content > span {
+      @apply flex-none w-full block;
+    }
   }
 }
 </style>

@@ -175,7 +175,7 @@ watch(inviteData, (newVal) => {
       return
     }
     /**
-     if email is already enterd we delete the already
+     if email is already entered we delete the already
      existing email and add new one
      **/
     if (emailBadges.value.includes(emailToAdd)) {
@@ -223,7 +223,7 @@ const onPaste = (e: ClipboardEvent) => {
 
   const inputArray = pastedText?.split(',') || pastedText?.split(' ')
 
-  // if data is pasted to a already existing text in input
+  // if data is pasted to an already existing text in input
   // we add existingInput + pasted data
   if (inputArray?.length === 1 && inviteData.email.length) {
     inputArray[0] = inviteData.email += inputArray[0]
@@ -237,7 +237,7 @@ const onPaste = (e: ClipboardEvent) => {
     if (!isEmailIsValid) return
 
     /**
-     if email is already enterd we delete the already
+     if email is already entered we delete the already
      existing email and add new one
      **/
     if (emailBadges.value.includes(el)) {

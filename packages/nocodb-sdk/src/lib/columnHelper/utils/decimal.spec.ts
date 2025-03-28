@@ -8,7 +8,7 @@ describe('decimal-utils', () => {
       const result = extractDecimalFromString(sourceText);
       expect(result).toBe(expected);
     });
-    it('will remove 2nd and more occurence of decimal point', () => {
+    it('will remove 2nd and more occurrence of decimal point', () => {
       const sourceText = '123.456.0-01.231';
       const expected = '123.456001231';
       const result = extractDecimalFromString(sourceText);

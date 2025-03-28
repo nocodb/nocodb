@@ -38,7 +38,7 @@ export default class GenericS3 implements IStorageAdapterV2 {
   }
 
   public async init(): Promise<any> {
-    // Placeholder, should be initalized in child class
+    // Placeholder, should be initialized in child class
   }
 
   protected patchKey(key: string): string {

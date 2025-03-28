@@ -11,7 +11,7 @@ class MigrationMgr {
       args.type = args.type || 'mysql';
       await migrator.init(args);
     } catch (e) {
-      console.log('db.migrate.init : Error occured', e);
+      console.log('db.migrate.init : Error occurred', e);
     }
   }
 
@@ -20,7 +20,7 @@ class MigrationMgr {
       this._getFolder(args);
       await migrator.sync(args);
     } catch (e) {
-      console.log('db.migrate.sync : Error occured', e);
+      console.log('db.migrate.sync : Error occurred', e);
     }
   }
 
@@ -32,7 +32,7 @@ class MigrationMgr {
         folder: args.folder
       });
     } catch (e) {
-      console.log('db.migrate.create : Error occured', e);
+      console.log('db.migrate.create : Error occurred', e);
     }
   }
 
@@ -57,7 +57,7 @@ class MigrationMgr {
         sqlContentMigrate: +args.sqlContentMigrate === 0 ? 0 : 1
       });
     } catch (e) {
-      console.log('db.migrate.up : Error occured', e);
+      console.log('db.migrate.up : Error occurred', e);
     }
   }
 
@@ -81,7 +81,7 @@ class MigrationMgr {
         sqlContentMigrate: +args.sqlContentMigrate === 0 ? 0 : 1
       });
     } catch (e) {
-      console.log('db.migrate.down : Error occured', e);
+      console.log('db.migrate.down : Error occurred', e);
     }
   }
 
@@ -106,7 +106,7 @@ class MigrationMgr {
 
       console.log(data.data.object.list);
     } catch (e) {
-      console.log('db.migrate.up : Error occured', e);
+      console.log('db.migrate.up : Error occurred', e);
     }
   }
 
@@ -115,7 +115,7 @@ class MigrationMgr {
       args.type = args.type || 'mysql';
       await migrator.clean(args);
     } catch (e) {
-      console.log('db.migrate.clean : Error occured', e);
+      console.log('db.migrate.clean : Error occurred', e);
     }
   }
 }

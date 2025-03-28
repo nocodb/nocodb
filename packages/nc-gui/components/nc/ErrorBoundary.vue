@@ -90,6 +90,7 @@ export default {
             onClose: close,
             class: '!w-auto !max-w-[fit-content]',
             showDuration: true,
+            showCopyBtn: false,
           },
           5,
         )

@@ -1,5 +1,14 @@
 import { type FilterType } from 'nocodb-sdk'
 
+export enum AppearanceConfigOptionKey {
+  'cellBgColor' = 'cellBgColor',
+  'cellBgColorHovered' = 'cellBgColor.hovered',
+  'cellBgColorSelected' = 'cellBgColor.selected',
+  'cellBgClass' = 'cellBgClass',
+  'toolbarBgClass' = 'toolbarBgClass',
+  'toolbarTextClass' = 'toolbarTextClass',
+}
+
 export function useColumnFilteredOrSorted() {
   const { nestedFilters, allFilters, sorts } = useSmartsheetStoreOrThrow()
   const filteredColumnIds = computed(() => {
@@ -45,20 +54,20 @@ export function useColumnFilteredOrSorted() {
 
   const appearanceConfig = {
     FILTERED: {
-      'cellBgColor': '#ECFFF2',
-      'cellBgColor.hovered': '#D4F7E0',
-      'cellBgColor.selected': '#D4F7E0',
-      'cellBgClass': '!bg-green-50 column-filtered',
-      'toolbarBgClass': 'bg-green-50',
-      'toolbarTextClass': 'text-green-700',
+      [AppearanceConfigOptionKey.cellBgColor]: '#ECFFF2',
+      [AppearanceConfigOptionKey.cellBgColorHovered]: '#D4F7E0',
+      [AppearanceConfigOptionKey.cellBgColorSelected]: '#D4F7E0',
+      [AppearanceConfigOptionKey.cellBgClass]: '!bg-green-50 column-filtered',
+      [AppearanceConfigOptionKey.toolbarBgClass]: 'bg-green-50',
+      [AppearanceConfigOptionKey.toolbarTextClass]: 'text-green-700',
     },
     SORTED: {
-      'cellBgColor': '#FFF0F7',
-      'cellBgColor.hovered': '#FFDBEC',
-      'cellBgColor.selected': '#FFDBEC',
-      'cellBgClass': '!bg-maroon-50 column-sorted',
-      'toolbarBgClass': 'bg-maroon-50',
-      'toolbarTextClass': 'text-pink-700',
+      [AppearanceConfigOptionKey.cellBgColor]: '#FFF0F7',
+      [AppearanceConfigOptionKey.cellBgColorHovered]: '#FFDBEC',
+      [AppearanceConfigOptionKey.cellBgColorSelected]: '#FFDBEC',
+      [AppearanceConfigOptionKey.cellBgClass]: '!bg-maroon-50 column-sorted',
+      [AppearanceConfigOptionKey.toolbarBgClass]: 'bg-maroon-50',
+      [AppearanceConfigOptionKey.toolbarTextClass]: 'text-pink-700',
     },
   }
 

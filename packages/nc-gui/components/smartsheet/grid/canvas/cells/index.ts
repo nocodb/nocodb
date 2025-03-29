@@ -176,11 +176,11 @@ export function useGridCellHandler(params: {
     if (skipRender) return
     const columnState = isColumnSortedOrFiltered(column.id!)
     if (columnState !== undefined && !rowMeta?.isValidationFailed) {
-      let bgColorProps: 'cellBgColor' | 'cellBgColor.hovered' | 'cellBgColor.selected' = 'cellBgColor'
+      let bgColorProps: AppearanceConfigOptionKey = AppearanceConfigOptionKey.cellBgColor
       if (selected || isRowChecked || isCellInSelectionRange) {
-        bgColorProps = 'cellBgColor.selected'
+        bgColorProps = AppearanceConfigOptionKey.cellBgColorSelected
       } else if (isRowHovered) {
-        bgColorProps = 'cellBgColor.hovered'
+        bgColorProps = AppearanceConfigOptionKey.cellBgColorHovered
       }
       roundedRect(ctx, x, y, width, height, 0, { backgroundColor: filteredOrSortedAppearanceConfig[columnState][bgColorProps] })
     }

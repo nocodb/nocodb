@@ -1,7 +1,16 @@
 import type { WritableComputedRef } from '@vue/reactivity'
 import { AllAggregations, type ColumnType, type TableType } from 'nocodb-sdk'
 import type { Composer } from 'vue-i18n'
-import { isBoxHovered, renderCheckbox, renderIconButton, renderSingleLineText, roundedRect, truncateText } from '../utils/canvas'
+import tinycolor from 'tinycolor2'
+import {
+  isBoxHovered,
+  renderCheckbox,
+  renderIconButton,
+  renderSingleLineText,
+  renderTagLabel,
+  roundedRect,
+  truncateText,
+} from '../utils/canvas'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import { renderIcon } from '../../../header/CellIcon'
@@ -17,6 +26,7 @@ import {
 } from '../utils/constants'
 import { parseCellWidth } from '../utils/cell'
 import { getBackgroundColor } from '../utils/groupby'
+import { parseKey, shouldRenderCell } from '../../../../../utils/groupbyUtils'
 
 export function useCanvasRender({
   width,
@@ -1730,6 +1740,8 @@ export function useCanvasRender({
 
     for (let i = startSlice; i < endSlice; i++) {
       const group = cachedGroups.value.get(i)
+
+      if (!group) continue
       const xOffset = (level + 1) * 9
 
       const bg = getBackgroundColor(level, groupByColumns.value?.length)
@@ -1746,23 +1758,118 @@ export function useCanvasRender({
         y: yOffset + 11,
       })
 
-      ctx.fillStyle = '#6a7184'
-      ctx.font = '550 12px Manrope'
+      const availableWidth = adjustedWidth - (xOffset + 12 + 16) - 20 // 20px right padding
 
-      renderSingleLineText(ctx, {
-        text: group?.value,
-        x: xOffset + 12 + 16,
-        y: yOffset + 4,
-        fontWeight: 'normal',
-        textAlign: 'left',
-        verticalAlign: 'middle',
-        height: GROUP_HEADER_HEIGHT,
-      })
+      const contentX = xOffset + 12 + 20
+      const contentY = yOffset + 24
+
+      renderGroupContent(ctx, group, contentX, contentY, availableWidth)
 
       yOffset = yOffset + GROUP_PADDING + GROUP_HEADER_HEIGHT
     }
 
     ctx.restore()
+  }
+
+  function renderGroupContent(ctx: CanvasRenderingContext2D, group: CanvasGroup, x: number, y: number, maxWidth: number) {
+    if (group.column.uidt === 'MultiSelect') {
+      const tags = group.value.split(',')
+      const colors = group.color.split(',')
+
+      let xPosition = x
+      let tagsRendered = 0
+
+      for (let i = 0; i < tags.length; i++) {
+        const tag = tags[i] || ''
+        const color = colors[i] || '#ccc'
+        const displayText = tag in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[tag] : tag
+
+        const textColor = tinycolor.isReadable(color, '#fff', {
+          level: 'AA',
+          size: 'large',
+        })
+          ? '#fff'
+          : tinycolor.mostReadable(color, ['#0b1d05', '#fff']).toHex8String()
+
+        const { x: newX } = renderTagLabel(ctx, {
+          x: xPosition,
+          y: y - 12,
+          height: 24,
+          width: maxWidth - (xPosition - x),
+          padding: 0,
+          textColor,
+          text: displayText || '',
+          tag: {
+            tagPaddingX: 12,
+            tagHeight: 24,
+            tagRadius: 12,
+            tagBgColor: color,
+            tagSpacing: 0,
+          },
+        } as any)
+
+        xPosition = newX + 8
+        tagsRendered++
+
+        if (xPosition > x + maxWidth) {
+          if (i < tags.length - 1) {
+            ctx.fillStyle = '#6a7184'
+            ctx.font = '400 12px Manrope'
+            ctx.fillText(`+${tags.length - tagsRendered}`, xPosition - 8, y)
+          }
+          break
+        }
+      }
+    } else if (!(group.value in GROUP_BY_VARS.VAR_TITLES) && shouldRenderCell(group.column)) {
+      renderCell(ctx, group.column, {
+        value: group.value,
+        x,
+        y,
+        width,
+        height: rowHeight.value,
+        row: {},
+        selected: false,
+        pv: false,
+        spriteLoader,
+        readonly: true,
+        imageLoader,
+        tableMetaLoader,
+        relatedColObj: group.relatedColumn,
+        relatedTableMeta: group.relatedTableMeta,
+        mousePosition,
+        skipRender: false,
+      })
+    } else {
+      const isRoundedTag = group.column.uidt === 'SingleSelect'
+      const cornerRadius = isRoundedTag ? 12 : 6
+
+      const displayText =
+        group.value in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[group.value] : parseKey(group)?.join(', ')
+
+      const textColor = tinycolor.isReadable(group.color || '#ccc', '#fff', {
+        level: 'AA',
+        size: 'large',
+      })
+        ? '#fff'
+        : tinycolor.mostReadable(group.color || '#ccc', ['#0b1d05', '#fff']).toHex8String()
+
+      renderTagLabel(ctx, {
+        x,
+        y: y - 11,
+        height: 20,
+        width: maxWidth,
+        padding: 0,
+        textColor,
+        text: displayText,
+        tag: {
+          tagPaddingX: 8,
+          tagHeight: 20,
+          tagRadius: cornerRadius,
+          tagBgColor: group.color || '#ccc',
+          tagSpacing: 0,
+        },
+      })
+    }
   }
 
   function renderCanvas() {

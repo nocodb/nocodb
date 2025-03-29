@@ -1,6 +1,11 @@
 import { promisify } from 'util';
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, OrgUserRoles, validatePassword } from 'nocodb-sdk';
+import {
+  AppEvents,
+  OrgUserRoles,
+  validatePassword,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import isEmail from 'validator/lib/isEmail';
 import bcrypt from 'bcryptjs';
@@ -19,7 +24,11 @@ import { NC_APP_SETTINGS } from '~/constants';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
-import { MetaTable, RootScopes } from '~/utils/globals';
+import {
+  MetaTable,
+  NC_STORE_DEFAULT_WORKSPACE_ID_KEY,
+  RootScopes,
+} from '~/utils/globals';
 import Noco from '~/Noco';
 import { PresignedUrl, Store, User, UserRefreshToken } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
@@ -182,6 +191,47 @@ export class UsersService {
 
     // if first user and super admin, create a base
     if (isFirstUser && process.env.NC_CLOUD !== 'true') {
+      if (!Noco.ncDefaultWorkspaceId) {
+        // create workspace
+        const workspace = await ncMeta.metaInsert2(
+          RootScopes.WORKSPACE,
+          RootScopes.WORKSPACE,
+          MetaTable.WORKSPACE,
+          {
+            title: 'Default Workspace',
+            fk_user_id: user.id,
+            status: 1,
+            plan: 'free',
+            fk_org_id: null,
+          },
+        );
+
+        await ncMeta.metaInsert2(
+          RootScopes.WORKSPACE,
+          RootScopes.WORKSPACE,
+          MetaTable.WORKSPACE_USER,
+          {
+            fk_workspace_id: workspace.id,
+            fk_user_id: user.id,
+            roles: WorkspaceUserRoles.OWNER,
+          },
+          true,
+        );
+
+        await ncMeta.metaInsert2(
+          RootScopes.ROOT,
+          RootScopes.ROOT,
+          MetaTable.STORE,
+          {
+            key: NC_STORE_DEFAULT_WORKSPACE_ID_KEY,
+            value: workspace.id,
+          },
+          true,
+        );
+
+        Noco.ncDefaultWorkspaceId = workspace.id;
+      }
+
       // todo: update swagger type
       (user as any).createdProject = await this.createDefaultProject(
         user,

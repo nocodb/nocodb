@@ -63,6 +63,9 @@ import * as nc_073_file_reference_indexes from '~/meta/migrations/v2/nc_073_file
 import * as nc_074_missing_context_indexes from '~/meta/migrations/v2/nc_074_missing_context_indexes';
 import * as nc_075_audit_refactor from '~/meta/migrations/v2/nc_075_audit_refactor';
 import * as nc_076_sync_configs from '~/meta/migrations/v2/nc_076_sync_configs';
+import * as nc_077_deprecate_unused from '~/meta/migrations/v2/nc_077_deprecate_unused';
+import * as nc_078_unify_schema from '~/meta/migrations/v2/nc_078_unify_schema';
+import * as nc_079_default_workspace from '~/meta/migrations/v2/nc_079_default_workspace';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -137,6 +140,9 @@ export default class XcMigrationSourcev2 {
       'nc_074_missing_context_indexes',
       'nc_075_audit_refactor',
       'nc_076_sync_configs',
+      'nc_077_deprecate_unused',
+      'nc_078_unify_schema',
+      'nc_079_default_workspace',
     ]);
   }
 
@@ -276,6 +282,12 @@ export default class XcMigrationSourcev2 {
         return nc_075_audit_refactor;
       case 'nc_076_sync_configs':
         return nc_076_sync_configs;
+      case 'nc_077_deprecate_unused':
+        return nc_077_deprecate_unused;
+      case 'nc_078_unify_schema':
+        return nc_078_unify_schema;
+      case 'nc_079_default_workspace':
+        return nc_079_default_workspace;
     }
   }
 }

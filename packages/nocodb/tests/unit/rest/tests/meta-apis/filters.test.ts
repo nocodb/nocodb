@@ -128,9 +128,6 @@ export default async function (API_VERSION: 'v1' | 'v2' | 'v3') {
         expect(addedFilter).to.haveOwnProperty('fk_view_id');
         expect(addedFilter.fk_view_id).to.eq(defaultViewId);
 
-        expect(addedFilter).to.haveOwnProperty('fk_widget_id');
-        expect(addedFilter.fk_widget_id).to.be.null;
-
         if (isEE) {
           expect(addedFilter).to.haveOwnProperty('fk_workspace_id');
           expect(addedFilter.fk_workspace_id).to.eq(context.fk_workspace_id);

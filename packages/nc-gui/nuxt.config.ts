@@ -288,6 +288,7 @@ export default defineNuxtConfig({
         'lru-cache',
         'qrcode',
         '@floating-ui/vue',
+        'validator',
       ],
       esbuildOptions: {
         define: {

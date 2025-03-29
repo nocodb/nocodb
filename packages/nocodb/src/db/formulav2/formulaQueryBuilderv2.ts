@@ -377,6 +377,8 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         columnIdToUidt,
         knex,
         prevBinaryOp,
+        aliasToColumn,
+        model,
       });
     } else if (pt.type === 'UnaryExpression') {
       let query;

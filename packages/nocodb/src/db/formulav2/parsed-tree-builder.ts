@@ -306,6 +306,8 @@ export const binaryExpressionBuilder = async ({
   prevBinaryOp,
   knex,
   columnIdToUidt,
+  aliasToColumn,
+  model,
 }: {
   context: NcContext;
   pt: BinaryExpressionNode;
@@ -316,6 +318,8 @@ export const binaryExpressionBuilder = async ({
   prevBinaryOp: string;
   knex: CustomKnex;
   columnIdToUidt: Record<string, UITypes>;
+  aliasToColumn: TAliasToColumn;
+  model: Model;
 }) => {
   // treat `&` as shortcut for concat
   if (pt.operator === '&') {
@@ -562,6 +566,32 @@ export const binaryExpressionBuilder = async ({
       prevBinaryOp !== 'OR'
     ) {
       sql = `(CASE WHEN ${sql} THEN true ELSE false END )`;
+    } else if (pt.operator === '/') {
+      // handle divide by zero
+      const right = await callExpressionBuilder({
+        context,
+        pt: {
+          callee: { name: 'NULLIF', type: 'Identifier' },
+          dataType: FormulaDataTypes.NUMERIC,
+          type: JSEPNode.CALL_EXP,
+          arguments: [
+            pt.right,
+            {
+              type: JSEPNode.LITERAL,
+              dataType: FormulaDataTypes.NUMERIC,
+              value: 0,
+              raw: '0',
+            },
+          ],
+        } as CallExpressionNode,
+        fn,
+        prevBinaryOp,
+        aliasToColumn,
+        knex,
+        model,
+        columnIdToUidt,
+      });
+      sql = `${left} ${pt.operator} ${right.builder}`;
     } else {
       sql = `${sql} `;
     }

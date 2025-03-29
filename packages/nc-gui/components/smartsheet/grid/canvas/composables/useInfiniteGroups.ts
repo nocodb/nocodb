@@ -232,6 +232,12 @@ export const useInfiniteGroups = (
   }
 
   const clearGroupCache = (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => {
+    if (startIndex === Number.NEGATIVE_INFINITY && endIndex === Number.POSITIVE_INFINITY) {
+      cachedGroups.value = new Map()
+      chunkStates.value = []
+      return
+    }
+
     const targetGroups = parentGroup ? parentGroup.groups : cachedGroups.value
     if (targetGroups.size <= MAX_GROUP_CACHE_SIZE) return
 
@@ -286,6 +292,10 @@ export const useInfiniteGroups = (
       }
     }
   }
+
+  watch(groupByColumns, () => {
+    clearGroupCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+  })
 
   const isGroupBy = computed(() => !!groupByColumns.value.length)
 

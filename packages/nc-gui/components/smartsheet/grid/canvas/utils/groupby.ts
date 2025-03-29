@@ -73,7 +73,10 @@ export function calculateGroupRange(
       // when the group is partially visible at the top of the viewport
       // excluding column header height from the calculation since it will be sticky on top
       const startGroupYOffset = COLUMN_HEADER_HEIGHT_IN_PX - (scrollTop - currentOffset)
-      const viewportBottom = scrollTop + viewportHeight + COLUMN_HEADER_HEIGHT_IN_PX
+
+      // todo: verify - GROUP_HEADER_HEIGHT + GROUP_PADDING addition
+      // it's added to render one extra group at the bottom of the viewport to avoid empty space
+      const viewportBottom = scrollTop + viewportHeight + GROUP_HEADER_HEIGHT + GROUP_PADDING
       for (let j = i; j < groupCount; j++) {
         const endGroup = groups.get(j)
 

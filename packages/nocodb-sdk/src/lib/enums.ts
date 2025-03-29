@@ -355,6 +355,7 @@ export enum PlanLimitTypes {
   LIMIT_API_CALL = 'limit_api_call',
   LIMIT_AUDIT_RETENTION = 'limit_audit_retention',
   LIMIT_AUTOMATION_CALL = 'limit_automation_call',
+  LIMIT_API_PER_SECOND = 'limit_api_per_second',
 
   LIMIT_SNAPSHOTS_PER_WORKSPACE = 'limit_snapshots',
   LIMIT_STORAGE_PER_WORKSPACE = 'limit_storage',

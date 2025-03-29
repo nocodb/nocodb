@@ -1,4 +1,4 @@
-import type { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk';
+import { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk';
 import type Stripe from 'stripe';
 import {
   CacheGetType,
@@ -18,6 +18,16 @@ export const FreePlan = {
   meta: {
     ...GenericLimits,
     ...GenericFeatures,
+    // Free plan specific limits
+    [PlanLimitTypes.LIMIT_EDITOR]: 5,
+    [PlanLimitTypes.LIMIT_USER]: 25,
+    [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 1000,
+    [PlanLimitTypes.LIMIT_API_CALL]: 5000,
+    [PlanLimitTypes.LIMIT_AUTOMATION_CALL]: 5000,
+    [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 7,
+    [PlanLimitTypes.LIMIT_SOURCE_PER_BASE]: 1,
+    [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 1024,
+    [PlanLimitTypes.LIMIT_API_PER_SECOND]: 5,
   },
   free: true,
 } as const;

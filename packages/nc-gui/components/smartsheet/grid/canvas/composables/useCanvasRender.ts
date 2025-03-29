@@ -425,7 +425,7 @@ export function useCanvasRender({
 
         // Background
         ctx.fillStyle = '#f4f4f5'
-        ctx.fillRect(xOffset, 0, width + (column.id === 'row_number' ? groupByColumns.value.length * 9 : 0), 32)
+        ctx.fillRect(xOffset, 0, width, 32)
 
         ctx.fillStyle = '#6a7184'
         const iconConfig = (
@@ -708,10 +708,6 @@ export function useCanvasRender({
 
     let currentX = xOffset + 4
 
-    if (groupByColumns.value.length) {
-      currentX += groupByColumns.value.length * 9
-    }
-
     const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
     const isDisabled = (!row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS) || vSelectedAllRecords.value
     let isCheckboxRendered = false
@@ -886,190 +882,301 @@ export function useCanvasRender({
       column: CanvasGridColumn
     }[] = []
 
-    const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
-    let xOffset = initialXOffset
+    if (row) {
+      const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
+      let xOffset = initialXOffset
 
-    visibleCols.forEach((column, colIdx) => {
-      let width = parseCellWidth(column.width)
-
-      if (colIdx === 0) {
-        width -= initialXOffset
+      for (let i = 0; i < startColIndex; i++) {
+        const col = columns.value[i]
+        if (col.id === 'row_number') {
+          xOffset -= groupByColumns.value?.length * 9
+        }
+        xOffset += parseCellWidth(col?.width)
       }
 
-      const absoluteColIdx = startColIndex + colIdx
+      visibleCols.forEach((column, colIdx) => {
+        let width = parseCellWidth(column.width)
 
-      const isCellEditEnabled = editEnabled.value && activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
+        if (column.id === 'row_number') {
+          width -= initialXOffset
+        }
 
-      if (column.fixed) {
-        xOffset += width
-        return
-      }
+        if (column.fixed) {
+          xOffset += width
+          return
+        }
 
-      if (row.rowMeta.selected || selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
-        ctx.fillStyle = '#F6F7FE'
-        ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
-      }
+        const absoluteColIdx = startColIndex + colIdx
 
-      ctx.strokeStyle = '#f4f4f5'
-      ctx.beginPath()
-      ctx.moveTo(xOffset - scrollLeft.value, yOffset)
-      ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
-      ctx.stroke()
+        const isCellEditEnabled =
+          editEnabled.value && activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
 
-      // add white background color for active cell
-      if (startColIndex + colIdx === activeCell.value.column && rowIdx === activeCell.value.row) {
-        ctx.fillStyle = '#FFFFFF'
-        ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
-      }
+        if (row.rowMeta.selected || selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
+          ctx.fillStyle = '#F6F7FE'
+          ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
+        }
 
-      const isActive = activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
+        ctx.strokeStyle = '#f4f4f5'
+        ctx.beginPath()
+        ctx.moveTo(xOffset - scrollLeft.value, yOffset)
+        ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
+        ctx.stroke()
 
-      if (isActive) {
-        activeState = {
-          col: column,
+        // add white background color for active cell
+        if ((startColIndex + colIdx === activeCell.value.column && rowIdx === activeCell.value.row) || isGroupBy.value) {
+          ctx.fillStyle = '#FFFFFF'
+          ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
+        }
+
+        const isActive = activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
+
+        if (isActive) {
+          activeState = {
+            col: column,
+            x: xOffset - scrollLeft.value,
+            y: yOffset,
+            width,
+            height: rowHeight.value,
+          }
+        }
+
+        const value = row.row[column.title]
+
+        if (isColumnRequiredAndNull(column.columnObj, row.row)) {
+          renderRedBorders.push({ rowIndex: rowIdx, column })
+        }
+
+        ctx.save()
+        renderCell(ctx, column.columnObj, {
+          value,
           x: xOffset - scrollLeft.value,
           y: yOffset,
           width,
           height: rowHeight.value,
-        }
-      }
-
-      const value = row.row[column.title]
-
-      if (isColumnRequiredAndNull(column.columnObj, row.row)) {
-        renderRedBorders.push({ rowIndex: rowIdx, column })
-      }
-
-      ctx.save()
-      renderCell(ctx, column.columnObj, {
-        value,
-        x: xOffset - scrollLeft.value,
-        y: yOffset,
-        width,
-        height: rowHeight.value,
-        row: row.row,
-        selected: isActive,
-        pv: column.pv,
-        spriteLoader,
-        readonly: column.readonly,
-        imageLoader,
-        tableMetaLoader,
-        relatedColObj: column.relatedColObj,
-        relatedTableMeta: column.relatedTableMeta,
-        disabled: column?.isInvalidColumn,
-        mousePosition,
-        pk,
-        skipRender: isCellEditEnabled,
+          row: row.row,
+          selected: isActive,
+          pv: column.pv,
+          spriteLoader,
+          readonly: column.readonly,
+          imageLoader,
+          tableMetaLoader,
+          relatedColObj: column.relatedColObj,
+          relatedTableMeta: column.relatedTableMeta,
+          disabled: column?.isInvalidColumn,
+          mousePosition,
+          pk,
+          skipRender: isCellEditEnabled,
+        })
+        ctx.restore()
+        xOffset += width
       })
-      ctx.restore()
-      xOffset += width
-    })
 
-    if (fixedCols.length) {
-      xOffset = isGroupBy.value ? initialXOffset : 0
-      fixedCols.forEach((column) => {
-        let width = parseCellWidth(column.width)
+      if (fixedCols.length) {
+        xOffset = isGroupBy.value ? initialXOffset : 0
+        fixedCols.forEach((column) => {
+          let width = parseCellWidth(column.width)
 
-        const colIdx = columns.value.findIndex((col) => col.id === column.id)
+          const colIdx = columns.value.findIndex((col) => col.id === column.id)
 
-        const isCellEditEnabled = editEnabled.value && activeCell.value.row === rowIdx && activeCell.value.column === colIdx
+          const isCellEditEnabled = editEnabled.value && activeCell.value.row === rowIdx && activeCell.value.column === colIdx
 
-        if (row.rowMeta.selected || selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
-          ctx.fillStyle = '#F6F7FE'
-          ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
-        } else {
-          ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
-          ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
-        }
+          if (row.rowMeta.selected || selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
+            ctx.fillStyle = '#F6F7FE'
+            ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+          } else {
+            ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
+            ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+          }
 
-        // add white background color for active cell
-        // For Fixed columns, do not need to add startColIndex
-        if (colIdx === activeCell.value.column && rowIdx === activeCell.value.row) {
-          ctx.fillStyle = '#FFFFFF'
-          ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
-        }
+          // add white background color for active cell
+          // For Fixed columns, do not need to add startColIndex
+          if (colIdx === activeCell.value.column && rowIdx === activeCell.value.row) {
+            ctx.fillStyle = '#FFFFFF'
+            ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+          }
 
-        if (column.id === 'row_number') {
-          width -= initialXOffset
-          renderRowMeta(ctx, row, { xOffset, yOffset, width })
-        } else {
-          const value = row.row[column.title]
+          if (column.id === 'row_number') {
+            if (isGroupBy.value) width -= initialXOffset
+            renderRowMeta(ctx, row, { xOffset, yOffset, width })
+          } else {
+            const value = row.row[column.title]
 
-          const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
+            const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
 
-          if (isActive) {
-            activeState = {
-              col: column,
+            if (isActive) {
+              activeState = {
+                col: column,
+                x: xOffset,
+                y: yOffset,
+                width,
+                height: rowHeight.value,
+              }
+            }
+            ctx.save()
+
+            if (isColumnRequiredAndNull(column.columnObj, row.row)) {
+              renderRedBorders.push({ rowIndex: rowIdx, column })
+            }
+
+            renderCell(ctx, column.columnObj, {
+              value,
               x: xOffset,
               y: yOffset,
               width,
               height: rowHeight.value,
-            }
+              row: row.row,
+              selected: isActive,
+              pv: column.pv,
+              readonly: column.readonly,
+              spriteLoader,
+              imageLoader,
+              tableMetaLoader,
+              relatedColObj: column.relatedColObj,
+              relatedTableMeta: column.relatedTableMeta,
+              mousePosition,
+              disabled: column?.isInvalidColumn,
+              pk,
+              skipRender: isCellEditEnabled,
+            })
+            ctx.restore()
           }
-          ctx.save()
 
-          if (isColumnRequiredAndNull(column.columnObj, row.row)) {
-            renderRedBorders.push({ rowIndex: rowIdx, column })
-          }
+          ctx.strokeStyle = '#f4f4f5'
+          ctx.beginPath()
 
-          renderCell(ctx, column.columnObj, {
-            value,
-            x: xOffset,
-            y: yOffset,
-            width,
-            height: rowHeight.value,
-            row: row.row,
-            selected: isActive,
-            pv: column.pv,
-            readonly: column.readonly,
-            spriteLoader,
-            imageLoader,
-            tableMetaLoader,
-            relatedColObj: column.relatedColObj,
-            relatedTableMeta: column.relatedTableMeta,
-            mousePosition,
-            disabled: column?.isInvalidColumn,
-            pk,
-            skipRender: isCellEditEnabled,
-          })
-          ctx.restore()
+          ctx.moveTo(xOffset, yOffset)
+          ctx.lineTo(xOffset, yOffset + rowHeight.value)
+          ctx.stroke()
+
+          xOffset += width
+        })
+
+        if (scrollLeft.value) {
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
+          ctx.rect(xOffset, yOffset, 4, rowHeight.value)
+          ctx.fill()
+          ctx.strokeStyle = '#D5D5D9'
+          ctx.beginPath()
+          ctx.moveTo(xOffset, yOffset)
+          ctx.lineTo(xOffset, yOffset + rowHeight.value)
+          ctx.stroke()
+        }
+
+        if (!visibleCols.filter((f) => !f.fixed).length) {
+          ctx.strokeStyle = '#f4f4f5'
+          ctx.beginPath()
+          ctx.moveTo(xOffset, yOffset)
+          ctx.lineTo(xOffset, yOffset + rowHeight.value)
+          ctx.stroke()
+        }
+
+        ctx.fillStyle = 'transparent'
+        ctx.strokeStyle = 'white'
+        ctx.shadowColor = 'transparent'
+        ctx.shadowBlur = 0
+        ctx.shadowOffsetX = 0
+        ctx.shadowOffsetY = 0
+      }
+    } else {
+      row = {
+        row: {},
+        rowMeta: {
+          rowIndex: rowIdx,
+          selected: false,
+          commentCount: 0,
+        },
+        oldRow: {},
+      }
+      let xOffset = initialXOffset
+
+      visibleCols.forEach((column, colIdx) => {
+        const width = parseCellWidth(column.width)
+        const absoluteColIdx = startColIndex + colIdx
+
+        if (column.fixed) {
+          xOffset += width
+          return
+        }
+
+        if (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
+          ctx.fillStyle = '#F6F7FE'
+          ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
         }
 
         ctx.strokeStyle = '#f4f4f5'
         ctx.beginPath()
-
-        ctx.moveTo(xOffset, yOffset)
-        ctx.lineTo(xOffset, yOffset + rowHeight.value)
+        ctx.moveTo(xOffset - scrollLeft.value, yOffset)
+        ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
         ctx.stroke()
 
+        const isActive = activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
+
+        if (isActive) {
+          activeState = {
+            col: column,
+            x: xOffset - scrollLeft.value,
+            y: yOffset,
+            width,
+            height: rowHeight.value,
+          }
+        }
         xOffset += width
       })
 
-      if (scrollLeft.value) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
-        ctx.rect(xOffset, yOffset, 4, rowHeight.value)
-        ctx.fill()
-        ctx.strokeStyle = '#D5D5D9'
-        ctx.beginPath()
-        ctx.moveTo(xOffset, yOffset)
-        ctx.lineTo(xOffset, yOffset + rowHeight.value)
-        ctx.stroke()
-      }
+      const fixedCols = columns.value.filter((col) => col.fixed)
+      if (fixedCols.length) {
+        xOffset = 0
 
-      if (!visibleCols.filter((f) => !f.fixed).length) {
+        fixedCols.forEach((column) => {
+          const width = parseCellWidth(column.width)
+
+          const colIdx = columns.value.findIndex((col) => col.id === column.id)
+          if (selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
+            ctx.fillStyle = '#F6F7FE'
+            ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+          } else {
+            ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
+            ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+          }
+
+          if (column.id === 'row_number') {
+            renderRowMeta(ctx, row!, { xOffset, yOffset, width })
+          } else {
+            const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
+
+            if (isActive) {
+              activeState = {
+                col: column,
+                x: xOffset,
+                y: yOffset,
+                width,
+                height: rowHeight.value,
+              }
+            }
+            drawShimmerEffect(ctx, xOffset, yOffset, width, rowIdx)
+          }
+
+          ctx.strokeStyle = '#f4f4f5'
+          ctx.beginPath()
+
+          ctx.moveTo(xOffset, yOffset)
+          ctx.lineTo(xOffset, yOffset + rowHeight.value)
+          ctx.stroke()
+
+          xOffset += width
+        })
+
         ctx.strokeStyle = '#f4f4f5'
         ctx.beginPath()
         ctx.moveTo(xOffset, yOffset)
         ctx.lineTo(xOffset, yOffset + rowHeight.value)
         ctx.stroke()
-      }
 
-      ctx.fillStyle = 'transparent'
-      ctx.strokeStyle = 'white'
-      ctx.shadowColor = 'transparent'
-      ctx.shadowBlur = 0
-      ctx.shadowOffsetX = 0
-      ctx.shadowOffsetY = 0
+        ctx.shadowColor = 'transparent'
+        ctx.shadowBlur = 0
+        ctx.shadowOffsetX = 0
+        ctx.shadowOffsetY = 0
+      }
     }
 
     return {
@@ -1105,7 +1212,7 @@ export function useCanvasRender({
 
     for (let rowIdx = startRowIndex; rowIdx < endRowIndex; rowIdx++) {
       if (yOffset + rowHeight.value > 0 && yOffset < height.value) {
-        let row = cachedRows.value.get(rowIdx)
+        const row = cachedRows.value.get(rowIdx)
 
         if (rowIdx === draggedRowIndex.value) {
           ctx.globalAlpha = 0.5
@@ -1113,120 +1220,17 @@ export function useCanvasRender({
 
         ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
         ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
-        if (row) {
-          const renderedProp = renderRow(ctx, {
-            row,
-            initialXOffset,
-            visibleCols,
-            rowIdx,
-            startColIndex,
-            fixedCols: fixedColsComputed.value,
-            yOffset,
-          })
-          activeState = renderedProp.activeState ?? activeState
-          renderRedBorders = [...renderRedBorders, ...renderedProp.renderRedBorders]
-        } else {
-          row = {
-            row: {},
-            rowMeta: {
-              rowIndex: rowIdx,
-              selected: false,
-              commentCount: 0,
-            },
-            oldRow: {},
-          }
-          let xOffset = initialXOffset
-
-          visibleCols.forEach((column, colIdx) => {
-            const width = parseCellWidth(column.width)
-            const absoluteColIdx = startColIndex + colIdx
-
-            if (column.fixed) {
-              xOffset += width
-              return
-            }
-
-            if (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
-              ctx.fillStyle = '#F6F7FE'
-              ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
-            }
-
-            ctx.strokeStyle = '#f4f4f5'
-            ctx.beginPath()
-            ctx.moveTo(xOffset - scrollLeft.value, yOffset)
-            ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
-            ctx.stroke()
-
-            const isActive = activeCell.value.row === rowIdx && activeCell.value.column === absoluteColIdx
-
-            if (isActive) {
-              activeState = {
-                col: column,
-                x: xOffset - scrollLeft.value,
-                y: yOffset,
-                width,
-                height: rowHeight.value,
-              }
-            }
-            xOffset += width
-          })
-
-          const fixedCols = columns.value.filter((col) => col.fixed)
-          if (fixedCols.length) {
-            xOffset = 0
-
-            fixedCols.forEach((column) => {
-              const width = parseCellWidth(column.width)
-
-              const colIdx = columns.value.findIndex((col) => col.id === column.id)
-              if (selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
-                ctx.fillStyle = '#F6F7FE'
-                ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
-              } else {
-                ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
-                ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
-              }
-
-              if (column.id === 'row_number') {
-                renderRowMeta(ctx, row!, { xOffset, yOffset, width })
-              } else {
-                const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
-
-                if (isActive) {
-                  activeState = {
-                    col: column,
-                    x: xOffset,
-                    y: yOffset,
-                    width,
-                    height: rowHeight.value,
-                  }
-                }
-                drawShimmerEffect(ctx, xOffset, yOffset, width, rowIdx)
-              }
-
-              ctx.strokeStyle = '#f4f4f5'
-              ctx.beginPath()
-
-              ctx.moveTo(xOffset, yOffset)
-              ctx.lineTo(xOffset, yOffset + rowHeight.value)
-              ctx.stroke()
-
-              xOffset += width
-            })
-
-            ctx.strokeStyle = '#f4f4f5'
-            ctx.beginPath()
-            ctx.moveTo(xOffset, yOffset)
-            ctx.lineTo(xOffset, yOffset + rowHeight.value)
-            ctx.stroke()
-
-            ctx.shadowColor = 'transparent'
-            ctx.shadowBlur = 0
-            ctx.shadowOffsetX = 0
-            ctx.shadowOffsetY = 0
-          }
-        }
-
+        const renderedProp = renderRow(ctx, {
+          row,
+          initialXOffset,
+          visibleCols,
+          rowIdx,
+          startColIndex,
+          fixedCols: fixedColsComputed.value,
+          yOffset,
+        })
+        activeState = renderedProp.activeState ?? activeState
+        renderRedBorders = [...renderRedBorders, ...renderedProp.renderRedBorders]
         if (rowIdx === draggedRowIndex.value) {
           ctx.globalAlpha = 1
         }
@@ -1484,11 +1488,7 @@ export function useCanvasRender({
       const firstFixedCol = fixedCols.find((col) => col.id !== 'row_number')
 
       if (rowNumberCol && firstFixedCol) {
-        let mergedWidth = parseCellWidth(rowNumberCol.width) + parseCellWidth(firstFixedCol.width)
-
-        if (groupByColumns.value.length) {
-          mergedWidth += groupByColumns.value.length * 9
-        }
+        const mergedWidth = parseCellWidth(rowNumberCol.width) + parseCellWidth(firstFixedCol.width)
         const isHovered = isBoxHovered(
           {
             x: xOffset,
@@ -1787,23 +1787,28 @@ export function useCanvasRender({
     const { start: startColIndex, end: endColIndex } = colSlice.value
     const visibleCols = columns.value.slice(startColIndex, endColIndex)
     group.infiniteData?.fetchMissingChunks(startIndex, endIndex)
+    const adjustedWidth =
+      totalWidth.value - scrollLeft.value - 256 < width.value ? totalWidth.value - scrollLeft.value - 256 : width.value
+
     for (let i = startIndex; i <= endIndex; i++) {
       const row = rows?.get(i)
       const indent = level * 9
-      if (row) {
-        renderRow(ctx, {
-          row,
-          initialXOffset: indent,
-          visibleCols,
-          startColIndex,
-          rowIdx: i,
-          fixedCols: fixedColsComputed.value,
-          yOffset,
-        })
-        yOffset += rowHeight.value
-      } else {
-        yOffset += rowHeight.value
-      }
+      renderRow(ctx, {
+        row,
+        initialXOffset: indent,
+        visibleCols,
+        startColIndex,
+        rowIdx: i,
+        fixedCols: fixedColsComputed.value,
+        yOffset,
+      })
+      // Bottom border for each row
+      ctx.strokeStyle = '#e7e7e9'
+      ctx.beginPath()
+      ctx.moveTo(0, yOffset + rowHeight.value)
+      ctx.lineTo(adjustedWidth, yOffset + rowHeight.value)
+      ctx.stroke()
+      yOffset += rowHeight.value
     }
     return yOffset
   }
@@ -1952,10 +1957,10 @@ export function useCanvasRender({
         const nestedContentStart = currentOffset
         // Calculate the total height of groups up to the relevant index
         // If the group is at top, then use startIndex, else use endIndex
-        const gHeight = Array.from({ length: (i === startIndex ? startIndex : endIndex) + 1 }, (_, i) => i)
+        let gHeight = Array.from({ length: (startIndex) + 1 }, (_, i) => i)
           .map((g) => {
             const group = groups.get(g)
-            const h = calculateGroupHeight(g, rowHeight.value)
+            const h = calculateGroupHeight(group, rowHeight.value)
             return h
           })
           .reduce((sum, c) => sum + c, 0)

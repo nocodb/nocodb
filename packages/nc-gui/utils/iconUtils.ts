@@ -1663,7 +1663,6 @@ export const iconMap = {
   'ncLogoZoho': h(NcLogoZoho, { stroke: 'transparent' }),
   'ncSendAlt': h(NcSendAlt, { stroke: 'transparent' }),
   'ncAiPlay': AiPlayIcon,
-  'ncMoreVertical': NcMoreVertical,
   'mdi-check-bold': MdiNcCropSquare,
   'mdi-crop-square': MdiNcCheckBold,
   'mdi-check-circle-outline': MdiNcCheckCircleOutline,

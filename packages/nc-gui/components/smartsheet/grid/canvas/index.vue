@@ -29,6 +29,7 @@ import {
   MAX_SELECTED_ROWS,
   ROW_META_COLUMN_WIDTH,
 } from './utils/constants'
+import { calculateGroupRange } from './utils/groupby'
 
 const props = defineProps<{
   totalRows: number
@@ -1010,11 +1011,19 @@ async function handleMouseUp(e: MouseEvent) {
   // #FIXME: If Groupby Handle it BRO @DarkPhoenix2704
   // TODOOOOOO
   if (isGroupBy.value) {
-    /* const groupIndex = Math.floor((y - 32) / (GROUP_HEADER_HEIGHT + GROUP_PADDING)) + groupSlice.value.start
+    const { startIndex, endIndex } = calculateGroupRange(
+      cachedGroups.value,
+      scrollTop.value,
+      rowHeight.value,
+      totalGroups.value,
+      height.value,
+    )
+
+    const groupIndex = Math.floor((y - 32) / (GROUP_HEADER_HEIGHT + GROUP_PADDING)) + startIndex
 
     const group = cachedGroups.value.get(groupIndex)
 
-    toggleExpand(group) */
+    toggleExpand(group)
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }

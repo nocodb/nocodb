@@ -424,6 +424,7 @@ interface CellRendererOptions {
   baseUsers?: (Partial<UserType> | Partial<User>)[]
   formula?: boolean
   isPublic?: boolean
+  isRowHovered?: boolean
 }
 
 interface CellRenderStore {

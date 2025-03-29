@@ -853,6 +853,7 @@ export function useCanvasRender({
         ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
         ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
         if (row) {
+          const isHover = hoverRow.value === row.rowMeta.rowIndex
           const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
 
           let xOffset = initialXOffset
@@ -924,6 +925,7 @@ export function useCanvasRender({
               mousePosition,
               pk,
               skipRender: isCellEditEnabled,
+              isRowHovered: isHover,
             })
             ctx.restore()
             xOffset += width
@@ -994,6 +996,7 @@ export function useCanvasRender({
                   disabled: column?.isInvalidColumn,
                   pk,
                   skipRender: isCellEditEnabled,
+                  isRowHovered: isHover,
                 })
                 ctx.restore()
               }

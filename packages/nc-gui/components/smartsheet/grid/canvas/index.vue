@@ -195,7 +195,6 @@ const {
   isGroupBy,
   toggleExpand,
   groupByColumns,
-  partialGroupHeight,
 
   rowSlice,
   colSlice,
@@ -1067,8 +1066,7 @@ async function handleMouseUp(e: MouseEvent) {
   // #FIXME: If Groupby Handle it BRO @DarkPhoenix2704
   // TODOOOOOO
   if (isGroupBy.value) {
-    const groupIndex =
-      Math.floor((y - 32 + partialGroupHeight.value) / (GROUP_HEADER_HEIGHT + GROUP_PADDING)) + groupSlice.value.start
+    const groupIndex = Math.floor((y - 32) / (GROUP_HEADER_HEIGHT + GROUP_PADDING)) + groupSlice.value.start
 
     const group = cachedGroups.value.get(groupIndex)
 

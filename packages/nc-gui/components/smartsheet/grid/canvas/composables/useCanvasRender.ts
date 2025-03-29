@@ -52,7 +52,6 @@ export function useCanvasRender({
   imageLoader,
   tableMetaLoader,
   partialRowHeight,
-  partialGroupHeight,
   vSelectedAllRecords,
   isRowDraggingEnabled,
   isAddingColumnAllowed,
@@ -103,7 +102,6 @@ export function useCanvasRender({
   spriteLoader: SpriteLoader
   tableMetaLoader: TableMetaLoader
   partialRowHeight: Ref<number>
-  partialGroupHeight: Ref<number>
   vSelectedAllRecords: WritableComputedRef<boolean>
   selectedRows: Ref<Row[]>
   isDragging: Ref<boolean>
@@ -2109,7 +2107,7 @@ export function useCanvasRender({
       ctx.fillRect(0, 0, width.value, height.value)
       ctx.restore()
 
-      const { startIndex, endIndex, partialGroupHeight } = calculateGroupRange(
+      const { startIndex, endIndex } = calculateGroupRange(
         cachedGroups.value,
         scrollTop.value,
         rowHeight.value,

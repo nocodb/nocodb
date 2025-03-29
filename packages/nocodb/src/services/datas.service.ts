@@ -8,9 +8,9 @@ import type { PathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';
 import type { Filter } from '~/models';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
-import { nocoExecute } from '~/utils';
-import { getDbRows, getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import { Base, Column, Model, Source, View } from '~/models';
+import { getDbRows, getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
+import { nocoExecute } from '~/utils';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -88,6 +88,18 @@ export class DatasService {
   async dataGroupBy(context: NcContext, param: PathParams & { query: any }) {
     const { model, view } = await getViewAndModelByAliasOrId(context, param);
     return await this.getDataGroupBy(context, {
+      model,
+      view,
+      query: param.query,
+    });
+  }
+
+  async dataGroupByCount(
+    context: NcContext,
+    param: PathParams & { query: any },
+  ) {
+    const { model, view } = await getViewAndModelByAliasOrId(context, param);
+    return await this.getDataGroupByCount(context, {
       model,
       view,
       query: param.query,
@@ -353,6 +365,33 @@ export class DatasService {
       ...query,
       count,
     });
+  }
+
+  async getDataGroupByCount(
+    context: NcContext,
+    param: { model: Model; view: View; query?: any },
+  ) {
+    const { model, view, query = {} } = param;
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
+    const listArgs: any = { ...query };
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+    try {
+      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+    } catch (e) {}
+
+    return await baseModel.groupByCount(listArgs);
   }
 
   async dataRead(

@@ -388,6 +388,12 @@ const totalHeight = computed(() => {
         // For leaf groups (with rows)
         if (group.infiniteData) {
           sum += group.count * rowHeight.value
+
+          if (isAddingEmptyRowAllowed.value) {
+            sum += COLUMN_HEADER_HEIGHT_IN_PX
+          }
+          // 1 Px Offset is Added for Showing the activeBorders. Else it wont be visible
+          sum += 1
         } else if (group?.groups) {
           sum += group.groupCount * (GROUP_HEADER_HEIGHT + GROUP_PADDING)
           // Do nested groups check

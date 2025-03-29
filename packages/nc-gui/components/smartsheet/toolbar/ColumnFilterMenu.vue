@@ -127,10 +127,10 @@ const combinedFilterLength = computed(() => {
           <span
             v-if="combinedFilterLength"
             class="py-1 px-2 text-md rounded-md"
-            :class="{
-              [filteredOrSortedAppearanceConfig.FILTERED.toolbarBgClass]: true,
-              [filteredOrSortedAppearanceConfig.FILTERED.toolbarTextClass]: true,
-            }"
+            :class="[
+              filteredOrSortedAppearanceConfig.FILTERED.toolbarBgClass,
+              filteredOrSortedAppearanceConfig.FILTERED.toolbarTextClass,
+            ]"
             >{{ combinedFilterLength }}</span
           >
 

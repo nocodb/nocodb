@@ -132,10 +132,10 @@ onMounted(() => {
           <span
             v-if="sorts?.length"
             class="py-1 px-2 text-md rounded-md"
-            :class="{
-              [filteredOrSortedAppearanceConfig.SORTED.toolbarBgClass]: true,
-              [filteredOrSortedAppearanceConfig.SORTED.toolbarTextClass]: true,
-            }"
+            :class="[
+              filteredOrSortedAppearanceConfig.SORTED.toolbarBgClass,
+              filteredOrSortedAppearanceConfig.SORTED.toolbarTextClass,
+            ]"
             >{{ sorts.length }}</span
           >
         </div>

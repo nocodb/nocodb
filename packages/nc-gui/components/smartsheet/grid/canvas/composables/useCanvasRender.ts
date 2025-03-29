@@ -1743,8 +1743,7 @@ export function useCanvasRender({
     endIndex: number,
   ): number {
     if (!group.infiniteData) return yOffset
-    const rows = group.infiniteData.cachedRows.value
-
+    const rows = group.infiniteData.cachedRows
     for (let i = startIndex; i <= endIndex && i < group.count && yOffset < height.value; i++) {
       const row = rows?.get(i)
       if (!row || yOffset + rowHeight.value < 0) {
@@ -1950,7 +1949,6 @@ export function useCanvasRender({
         const nestedStart = Math.floor((scrollTop.value - yOffset) / (GROUP_HEADER_HEIGHT + GROUP_PADDING + rowHeight.value))
         const visibleCount = Math.ceil(height.value / (GROUP_HEADER_HEIGHT + GROUP_PADDING + rowHeight.value))
         const nestedEnd = Math.min(nestedStart + visibleCount, group.groupCount || group.count) - 1
-
         if (group.infiniteData) {
           yOffset = renderGroupRows(ctx, group, yOffset, level + 1, nestedStart, nestedEnd)
         } else if (group.groups.size > 0) {

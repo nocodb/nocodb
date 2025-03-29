@@ -592,6 +592,7 @@ interface CanvasGroup {
   relatedColumn?: ColumnType
   color: string
   groupCount?: number
+  nestedIn: GroupNestedIn[]
 }
 
 export type {

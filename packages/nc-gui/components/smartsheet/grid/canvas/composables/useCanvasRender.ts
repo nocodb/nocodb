@@ -1957,7 +1957,7 @@ export function useCanvasRender({
         const nestedContentStart = currentOffset
         // Calculate the total height of groups up to the relevant index
         // If the group is at top, then use startIndex, else use endIndex
-        let gHeight = Array.from({ length: (startIndex) + 1 }, (_, i) => i)
+        const gHeight = Array.from({ length: startIndex - 1 }, (_, i) => i)
           .map((g) => {
             const group = groups.get(g)
             const h = calculateGroupHeight(group, rowHeight.value)
@@ -1969,7 +1969,7 @@ export function useCanvasRender({
         // scrollTop.value: current scroll position
         // currentOffset: accumulated offset from previous groups
         // gHeight: total height of groups calculated above
-        const relativeScrollTop = scrollTop.value + currentOffset - gHeight
+        const relativeScrollTop = i === startIndex ? scrollTop.value + currentOffset - gHeight : 0
 
         if (group.infiniteData) {
           // Calculate visible viewport height from current offset to container bottom
@@ -2166,7 +2166,7 @@ export function useCanvasRender({
       ctx.fillRect(0, 0, width.value, height.value)
       ctx.restore()
 
-      const { startIndex, endIndex } = calculateGroupRange(
+      const { startIndex, endIndex, partialGroupHeight } = calculateGroupRange(
         cachedGroups.value,
         scrollTop.value,
         rowHeight.value,

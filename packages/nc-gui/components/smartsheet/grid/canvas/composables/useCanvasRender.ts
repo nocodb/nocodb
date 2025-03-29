@@ -1313,6 +1313,14 @@ export function useCanvasRender({
         y: yOffset + 9,
         size: 14,
       })
+
+      elementMap.addElement({
+        y: yOffset,
+        x: 0,
+        height: COLUMN_HEADER_HEIGHT_IN_PX,
+        path: [],
+        type: 'ADD_NEW_ROW',
+      })
     }
 
     if (warningRow) {
@@ -1909,10 +1917,21 @@ export function useCanvasRender({
       spriteLoader.renderIcon(ctx, {
         icon: 'ncPlus',
         color: isNewRowHovered ? '#000000' : '#4a5268',
-        x: 16,
+        x: 16 + level * 9,
         y: yOffset + 9,
         size: 14,
       })
+
+      elementMap.addElement({
+        y: yOffset,
+        x: level * 9,
+        group,
+        level,
+        height: COLUMN_HEADER_HEIGHT_IN_PX,
+        path: group.nestedIn,
+        type: 'ADD_NEW_ROW',
+      })
+
       yOffset += COLUMN_HEADER_HEIGHT_IN_PX
     }
 
@@ -1959,7 +1978,7 @@ export function useCanvasRender({
         currentOffset += GROUP_HEADER_HEIGHT + GROUP_PADDING
         continue
       }
-      const groupHeaderY = currentOffset + ((group.isExpanded) && i === startIndex ? partialGroupHeight : 0)
+      const groupHeaderY = currentOffset + (group.isExpanded && i === startIndex ? partialGroupHeight : 0)
       const groupHeight = calculateGroupHeight(group, rowHeight.value)
       const groupBottom = groupHeaderY + groupHeight
       const xOffset = (level + 1) * 9
@@ -2010,7 +2029,7 @@ export function useCanvasRender({
           // todo:  figure out the 2px difference which is not expected
           // calculate the relative scroll top for the group
           // where gHeight + GROUP_PADDING is the height of previous groups before startIndex
-          const relativeScrollTop = group.nestedIn?.length && isStartGroup ? scrollTop.value - gHeight  : 0
+          const relativeScrollTop = group.nestedIn?.length && isStartGroup ? scrollTop.value - gHeight : 0
 
           if (group.infiniteData) {
             // Calculate visible viewport height from current offset to container bottom
@@ -2018,7 +2037,7 @@ export function useCanvasRender({
             const itemHeight = rowHeight.value
             // Calculate first visible item index, accounting for header height
             // Math.max ensures no negative indices
-            const nestedStart = Math.max(0, Math.floor((relativeScrollTop) / itemHeight))
+            const nestedStart = Math.max(0, Math.floor(relativeScrollTop / itemHeight))
             // Calculate number of visible rows based on viewport height
             const visibleRowCount = Math.ceil(viewportHeight / itemHeight)
             // Calculate last visible item index, bounded by total count
@@ -2026,7 +2045,7 @@ export function useCanvasRender({
 
             const nestedPartialRowHeight = 0 // partialGroupHeight - (relativeScrollTop % rowHeight.value)
 
-            console.log(group.value,{
+            console.log(group.value, {
               viewPortHeight: viewportHeight,
               relativeScrollTop,
               nestedContentStart,
@@ -2076,7 +2095,7 @@ export function useCanvasRender({
 
             tempCurrentOffset = renderGroups(ctx, {
               level: level + 1,
-              yOffset: nestedContentStart + GROUP_PADDING + (isStartGroup ? partialGroupHeight - nestedPartialGroupHeight  : 0),
+              yOffset: nestedContentStart + GROUP_PADDING + (isStartGroup ? partialGroupHeight - nestedPartialGroupHeight : 0),
               pGroup: group,
               startIndex: nestedStart,
               endIndex: Math.max(0, nestedEnd),

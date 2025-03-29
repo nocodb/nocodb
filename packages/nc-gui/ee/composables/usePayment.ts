@@ -79,7 +79,12 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       plansAvailable.value.unshift({
         id: 'free',
         title: 'Free',
-        descriptions: ['10,000 rows / workspace', '1 GB storage', '5 API request / second', 'All user roles'],
+        descriptions: [
+          '10,000 rows per workspace',
+          '1 GB of attachments per workspace',
+          '5 API requests per second',
+          'All user roles',
+        ],
       })
 
       paymentMode.value = activeSubscription.value?.period || 'year'

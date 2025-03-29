@@ -460,6 +460,9 @@ export function useViewFilters(
   }
 
   function deleteFilterGroupFromAllFilters(filter: ColumnFilterType) {
+    // leaving this commented for now
+    // with this condition, there's a bug that deleting filter group
+    // will leave dangling child filters affecting the column style
     // if (!isLink && !isWebhook) return
 
     // Find all child filters of the specified parentId

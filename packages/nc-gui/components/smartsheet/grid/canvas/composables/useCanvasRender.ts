@@ -888,11 +888,11 @@ export function useCanvasRender({
       rowIndex: number
       column: CanvasGridColumn
     }[] = []
+    const isHovered = hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path.join('-') === row.rowMeta?.groupPath?.join('-')
 
     if (row) {
       const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
       let xOffset = initialXOffset
-
       if (isGroupBy.value) {
         for (let i = 0; i < startColIndex; i++) {
           const col = columns.value[i]
@@ -929,9 +929,8 @@ export function useCanvasRender({
         ctx.moveTo(xOffset - scrollLeft.value, yOffset)
         ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
         ctx.stroke()
-
         // add white background color for active cell
-        if ((startColIndex + colIdx === activeCell.value.column && rowIdx === activeCell.value.row) || isGroupBy.value) {
+        if (startColIndex + colIdx === activeCell.value.column && rowIdx === activeCell.value.row) {
           ctx.fillStyle = '#FFFFFF'
           ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
         }
@@ -992,10 +991,7 @@ export function useCanvasRender({
             ctx.fillStyle = '#F6F7FE'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
-            ctx.fillStyle =
-              hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path.join('-') === row.rowMeta?.groupPath.join('-')
-                ? '#F9F9FA'
-                : '#ffffff'
+            ctx.fillStyle = isHovered ? '#F9F9FA' : '#ffffff'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           }
 
@@ -1146,10 +1142,7 @@ export function useCanvasRender({
             ctx.fillStyle = '#F6F7FE'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
-            ctx.fillStyle =
-              hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path.join('-') === row.rowMeta?.groupPath.join('-')
-                ? '#F9F9FA'
-                : '#ffffff'
+            ctx.fillStyle = isHovered ? '#F9F9FA' : '#ffffff'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           }
 
@@ -1262,7 +1255,7 @@ export function useCanvasRender({
         // Bottom border for each row
         ctx.strokeStyle = '#e7e7e9'
         ctx.beginPath()
-        ctx.moveTo(0, yOffset + rowHeight.value)
+        ctx.moveTo(initialXOffset, yOffset + rowHeight.value)
         ctx.lineTo(adjustedWidth, yOffset + rowHeight.value)
         ctx.stroke()
 
@@ -1817,6 +1810,11 @@ export function useCanvasRender({
     for (let i = startIndex; i <= endIndex; i++) {
       const row = rows?.get(i)
       const indent = level * 9
+      const isHovered = hoverRow.value?.rowIndex === i && hoverRow.value?.path.join('-') === row?.rowMeta?.groupPath?.join('-')
+
+      roundedRect(ctx, indent, yOffset, adjustedWidth - indent, rowHeight.value, 0, {
+        backgroundColor: isHovered ? '#F9F9FA' : '#fff',
+      })
       renderRow(ctx, {
         row,
         initialXOffset: indent,
@@ -1841,8 +1839,8 @@ export function useCanvasRender({
       // Bottom border for each row
       ctx.strokeStyle = '#e7e7e9'
       ctx.beginPath()
-      ctx.moveTo(0, yOffset + rowHeight.value)
-      ctx.lineTo(adjustedWidth, yOffset + rowHeight.value)
+      ctx.moveTo(indent, yOffset + rowHeight.value)
+      ctx.lineTo(adjustedWidth - indent, yOffset + rowHeight.value)
       ctx.stroke()
       yOffset += rowHeight.value
     }

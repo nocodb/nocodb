@@ -49,7 +49,7 @@ export function calculateGroupRange(
   rowHeight: number,
   groupCount: number,
   viewportHeight: number,
-  nested = false
+  nested = false,
 ): { startIndex: number; endIndex: number; partialGroupHeight: number } {
   let currentOffset = GROUP_PADDING
   let startIndex = 0
@@ -62,7 +62,7 @@ export function calculateGroupRange(
     // console.log('calculateGroupRange', nested, currentOffset + groupHeight - GROUP_PADDING , scrollTop )
     if (currentOffset + groupHeight - (!nested ? GROUP_PADDING : 0) > scrollTop) {
       startIndex = i
-      const partialGroupHeight = (scrollTop - (previousOffset - 8 )) % 50
+      const partialGroupHeight = (scrollTop - (previousOffset - 8)) % 50
       const viewportBottom = scrollTop + viewportHeight
 
       for (let j = i; j < groupCount; j++) {
@@ -77,7 +77,6 @@ export function calculateGroupRange(
         endIndex = j
       }
 
-
       // console.log('calculateGroupRange - ret',  startIndex, endIndex, partialGroupHeight )
       return { startIndex, endIndex, partialGroupHeight }
     }
@@ -89,4 +88,16 @@ export function calculateGroupRange(
 
   const partialGroupHeight = scrollTop - previousOffset
   return { startIndex, endIndex, partialGroupHeight }
+}
+
+export function generateGroupPath(data?: CanvasGroup) {
+  if (!data) return []
+  const path = []
+
+  // Add groupIndex from each nestedIn entry
+  if (data.nestedIn && data.nestedIn.length > 0) {
+    data.nestedIn.forEach((nested) => path.push(nested.groupIndex))
+  }
+
+  return path
 }

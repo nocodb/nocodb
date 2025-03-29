@@ -6,7 +6,7 @@ interface Element {
   x: number
   y: number
   height: number
-  group?: Group
+  group?: CanvasGroup
   row?: Row
 }
 

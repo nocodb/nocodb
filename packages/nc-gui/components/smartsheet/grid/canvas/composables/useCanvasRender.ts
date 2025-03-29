@@ -191,10 +191,6 @@ export function useCanvasRender({
 
     let initialOffset = 1
 
-    if (groupByColumns.value.length) {
-      initialOffset += groupByColumns.value.length * 9
-    }
-
     for (let i = 0; i < startColIndex; i++) {
       initialOffset += parseCellWidth(columns.value[i]?.width)
     }
@@ -475,10 +471,6 @@ export function useCanvasRender({
             )
           } else {
             ctx.fillText(truncatedText, x, y)
-          }
-
-          if (groupByColumns.value.length) {
-            xOffset += groupByColumns.value.length * 9
           }
         } else {
           ctx.fillText(truncatedText, x, y)
@@ -1791,8 +1783,8 @@ export function useCanvasRender({
     const rows = group.infiniteData.cachedRows
     const { start: startColIndex, end: endColIndex } = colSlice.value
     const visibleCols = columns.value.slice(startColIndex, endColIndex)
-
-    for (let i = startIndex; i <= endIndex && i < group.count && yOffset < height.value; i++) {
+    group.infiniteData?.fetchMissingChunks(startIndex, endIndex)
+    for (let i = startIndex; i <= endIndex; i++) {
       const row = rows?.get(i)
       const indent = level * 9
       if (row) {
@@ -1830,16 +1822,15 @@ export function useCanvasRender({
     },
   ): number {
     const groups = pGroup?.groups ?? cachedGroups.value
-    const total = (pGroup ? pGroup.groupCount : totalGroups.value) ?? 0
 
     const fixedCols = columns.value.filter((col) => col.fixed)
     const rowNumberCol = fixedCols.find((col) => col.id === 'row_number')
     const firstFixedCol = fixedCols.find((col) => col.id !== 'row_number')
-    const mergedWidth = parseCellWidth(rowNumberCol?.width) + parseCellWidth(firstFixedCol?.width)
+    const mergedWidth = parseCellWidth(rowNumberCol?.width) + parseCellWidth(firstFixedCol?.width) - (level + 1) * 9
     // Track absolute position in virtual space
     let currentOffset = yOffset
 
-    for (let i = startIndex; i <= endIndex && i < total; i++) {
+    for (let i = startIndex; i <= endIndex; i++) {
       const group = groups.get(i)
       if (!group) {
         currentOffset += GROUP_HEADER_HEIGHT + GROUP_PADDING
@@ -1847,22 +1838,21 @@ export function useCanvasRender({
       }
 
       const groupHeaderY = currentOffset
-      const groupHeight = calculateGroupHeight(group, rowHeight.value) // From previous code
+      const groupHeight = calculateGroupHeight(group, rowHeight.value)
       const groupBottom = groupHeaderY + groupHeight
 
-      // Check if group or its content is in viewport
-      if (groupBottom < 0 || groupHeaderY > height.value + scrollTop.value) {
+      // Skip if group is fully outside viewport
+      if (groupBottom < 0 || groupHeaderY > height.value) {
         currentOffset += groupHeight
         continue
       }
 
-      const xOffset = (level + 1) * 9
-      const bg = getBackgroundColor(level, groupByColumns.value.length)
-      const adjustedWidth =
-        totalWidth.value - scrollLeft.value - 256 < width.value ? totalWidth.value - scrollLeft.value - 256 : width.value
+      if (groupHeaderY + GROUP_HEADER_HEIGHT > 0 && groupHeaderY < height.value) {
+        const xOffset = (level + 1) * 9
+        const bg = getBackgroundColor(level, groupByColumns.value.length)
+        const adjustedWidth =
+          totalWidth.value - scrollLeft.value - 256 < width.value ? totalWidth.value - scrollLeft.value - 256 : width.value
 
-      // Render group header
-      if (groupHeaderY >= -GROUP_HEADER_HEIGHT && groupHeaderY < height.value) {
         roundedRect(
           ctx,
           xOffset,
@@ -1889,7 +1879,6 @@ export function useCanvasRender({
           { x: xOffset, y: groupHeaderY, width: mergedWidth, height: GROUP_HEADER_HEIGHT },
           mousePosition,
         )
-
         let contentWidth = 0
         let countWidth = 0
 
@@ -1954,33 +1943,33 @@ export function useCanvasRender({
       currentOffset += GROUP_HEADER_HEIGHT
 
       if (group.isExpanded) {
-        const itemHeight = group.infiniteData ? rowHeight.value : GROUP_HEADER_HEIGHT + GROUP_PADDING
         const nestedContentStart = currentOffset
-        const nestedCount = group.infiniteData ? group.count : group.groupCount ?? 0
-        const nestedTotalHeight = nestedCount * itemHeight
+        if (group.infiniteData) {
+          const itemHeight = rowHeight.value
+          const offsetIntoNested = Math.max(0, scrollTop.value - nestedContentStart)
+          const nestedStart = Math.floor(offsetIntoNested / itemHeight)
+          const visibleCount = Math.ceil(height.value / itemHeight) + 2
+          const nestedEnd = Math.min(nestedStart + visibleCount, group.count - 1)
 
-        const visibleArea = scrollTop.value - nestedContentStart
-        const nestedStart = Math.max(0, Math.floor(visibleArea / itemHeight))
-        const visibleCount = Math.ceil(height.value / itemHeight) + 2 // +2 for partial items above/below
-        const nestedEnd = Math.min(nestedStart + visibleCount, nestedCount - 1)
-
-        console.log(nestedStart, nestedEnd)
-
-        if (group.infiniteData && nestedEnd >= nestedStart) {
-          currentOffset = renderGroupRows(ctx, group, currentOffset, level + 1, nestedStart, nestedEnd)
-        } else if (group.groups?.size > 0 && nestedEnd >= nestedStart) {
+          currentOffset = renderGroupRows(ctx, group, nestedContentStart, level + 1, nestedStart, nestedEnd)
+        } else {
+          const relativeScrollTop = Math.max(0, scrollTop.value - nestedContentStart)
+          const { startIndex: nestedStart, endIndex: nestedEnd } = calculateGroupRange(
+            group.groups,
+            relativeScrollTop,
+            rowHeight.value,
+            group.groupCount,
+            height.value,
+          )
           currentOffset = renderGroups(ctx, {
             level: level + 1,
-            yOffset: currentOffset,
+            yOffset: nestedContentStart + GROUP_PADDING,
             pGroup: group,
             startIndex: nestedStart,
-            endIndex: nestedEnd,
+            endIndex: Math.max(0, nestedEnd),
           })
-        } else {
-          currentOffset += nestedTotalHeight
         }
       }
-
       currentOffset += GROUP_PADDING
     }
 
@@ -2125,7 +2114,7 @@ export function useCanvasRender({
 
       renderGroups(ctx, {
         level: 0,
-        yOffset: 32 + GROUP_PADDING - partialGroupHeight,
+        yOffset: 32 - partialGroupHeight,
         startIndex,
         endIndex,
       })

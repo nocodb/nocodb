@@ -1992,7 +1992,7 @@ export function useCanvasRender({
           const gHeight =
             pgHeight +
             // add partial group height to normalise the height
-            partialGroupHeight +
+            // ( partialGroupHeight) +
             Array.from({ length: startIndex }, (_, g) => {
               const group = groups.get(g)
               const h = calculateGroupHeight(group!, rowHeight.value)
@@ -2002,8 +2002,7 @@ export function useCanvasRender({
           // todo:  figure out the 2px difference which is not expected
           // calculate the relative scroll top for the group
           // where gHeight + GROUP_PADDING is the height of previous groups before startIndex
-          const relativeScrollTop =
-            group.nestedIn?.length && i === startIndex ? scrollTop.value - (gHeight + GROUP_PADDING) - 2 : 0
+          const relativeScrollTop = group.nestedIn?.length && i === startIndex ? scrollTop.value - (gHeight) : 0
 
           if (group.infiniteData) {
             // Calculate visible viewport height from current offset to container bottom
@@ -2043,13 +2042,13 @@ export function useCanvasRender({
             )
 
             console.log(group.value, {
+              relativeScrollTop,
+              yOffset,
+              partialGroupHeight,
+              viewportHeight: groupHeight - relativeScrollTop - GROUP_HEADER_HEIGHT,
               startIndex,
               gHeight,
               pgHeight,
-              partialGroupHeight,
-              viewportHeight: groupHeight - relativeScrollTop - GROUP_HEADER_HEIGHT,
-              relativeScrollTop,
-              yOffset,
               currentOffset,
               nestedStart,
               scrollTop: scrollTop.value,

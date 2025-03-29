@@ -140,7 +140,17 @@ export function roundedRect(
   width: number,
   height: number,
   radius: number | { topRight?: number; bottomRight?: number; bottomLeft?: number; topLeft?: number },
-  { backgroundColor, borderColor, borderWidth }: { backgroundColor?: string; borderColor?: string; borderWidth?: number } = {},
+  {
+    backgroundColor,
+    borderColor,
+    borderWidth,
+    borders = { top: true, right: true, bottom: true, left: true },
+  }: {
+    backgroundColor?: string
+    borderColor?: string
+    borderWidth?: number
+    borders?: { top?: boolean; right?: boolean; bottom?: boolean; left?: boolean }
+  } = {},
 ): void {
   const {
     topLeft = 0,
@@ -149,32 +159,57 @@ export function roundedRect(
     bottomLeft = 0,
   } = typeof radius === 'number' ? { topLeft: radius, topRight: radius, bottomRight: radius, bottomLeft: radius } : radius
 
+  const { top = true, right = true, bottom = true, left = true } = borders
   ctx.beginPath()
   if (borderWidth) {
     ctx.lineWidth = borderWidth
   }
   ctx.moveTo(x + topLeft, y)
 
-  // Top right corner
-  ctx.lineTo(x + width - topRight, y)
-  ctx.arcTo(x + width, y, x + width, y + topRight, topRight)
+  if (top) {
+    ctx.lineTo(x + width - topRight, y)
+  } else {
+    ctx.moveTo(x + width - topRight, y)
+  }
+  if (right) {
+    ctx.arcTo(x + width, y, x + width, y + topRight, topRight)
+  }
 
-  // Bottom right corner
-  ctx.lineTo(x + width, y + height - bottomRight)
-  ctx.arcTo(x + width, y + height, x + width - bottomRight, y + height, bottomRight)
+  if (right) {
+    ctx.lineTo(x + width, y + height - bottomRight)
+  } else {
+    ctx.moveTo(x + width, y + height - bottomRight)
+  }
+  if (bottom) {
+    ctx.arcTo(x + width, y + height, x + width - bottomRight, y + height, bottomRight)
+  }
 
-  // Bottom left corner
-  ctx.lineTo(x + bottomLeft, y + height)
-  ctx.arcTo(x, y + height, x, y + height - bottomLeft, bottomLeft)
+  if (bottom) {
+    ctx.lineTo(x + bottomLeft, y + height)
+  } else {
+    ctx.moveTo(x + bottomLeft, y + height)
+  }
+  if (left) {
+    ctx.arcTo(x, y + height, x, y + height - bottomLeft, bottomLeft)
+  }
 
-  // Top left corner
-  ctx.lineTo(x, y + topLeft)
-  ctx.arcTo(x, y, x + topLeft, y, topLeft)
+  if (left) {
+    ctx.lineTo(x, y + topLeft)
+  } else {
+    ctx.moveTo(x, y + topLeft)
+  }
+  if (top) {
+    ctx.arcTo(x, y, x + topLeft, y, topLeft)
+  }
 
   ctx.closePath()
 
-  if (borderColor) ctx.strokeStyle = borderColor
-  ctx.stroke()
+  if (borderColor) {
+    ctx.strokeStyle = borderColor
+    if (top || right || bottom || left) {
+      ctx.stroke()
+    }
+  }
 
   if (backgroundColor) {
     ctx.fillStyle = backgroundColor

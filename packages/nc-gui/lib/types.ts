@@ -591,6 +591,7 @@ interface CanvasGroup {
   relatedTableMeta?: TableType
   relatedColumn?: ColumnType
   color: string
+  groupCount?: number
 }
 
 export type {

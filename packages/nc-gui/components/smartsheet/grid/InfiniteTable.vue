@@ -2246,6 +2246,7 @@ const cellFilteredOrSortedClass = (colId: string) => {
   const columnState = isColumnSortedOrFiltered(colId)
   if (columnState) {
     const className = filteredOrSortedAppearanceConfig[columnState]?.cellBgClass
+    console.log(className)
     if (className) {
       return {
         [className]: true,
@@ -3564,6 +3565,12 @@ const cellFilteredOrSortedClass = (colId: string) => {
     &.nc-comment {
       display: flex;
     }
+  }
+  td.nc-grid-cell.column-filtered {
+    @apply !bg-green-50;
+  }
+  td.nc-grid-cell.column-sorted {
+    @apply !bg-maroon-50;
   }
 
   &.active-row,

@@ -3168,6 +3168,12 @@ onKeyStroke('ArrowDown', onDown)
       display: flex;
     }
   }
+  td.nc-grid-cell.column-filtered {
+    @apply !bg-green-50;
+  }
+  td.nc-grid-cell.column-sorted {
+    @apply !bg-maroon-50;
+  }
 
   &.active-row,
   &:not(.mouse-down):hover {

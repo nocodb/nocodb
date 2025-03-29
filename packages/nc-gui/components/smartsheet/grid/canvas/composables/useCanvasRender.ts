@@ -892,7 +892,11 @@ export function useCanvasRender({
     let xOffset = initialXOffset
 
     visibleCols.forEach((column, colIdx) => {
-      const width = parseCellWidth(column.width)
+      let width = parseCellWidth(column.width)
+
+      if (colIdx === 0) {
+        width -= initialXOffset
+      }
 
       const absoluteColIdx = startColIndex + colIdx
 
@@ -966,7 +970,7 @@ export function useCanvasRender({
     if (fixedCols.length) {
       xOffset = isGroupBy.value ? initialXOffset : 0
       fixedCols.forEach((column) => {
-        const width = parseCellWidth(column.width)
+        let width = parseCellWidth(column.width)
 
         const colIdx = columns.value.findIndex((col) => col.id === column.id)
 
@@ -988,6 +992,7 @@ export function useCanvasRender({
         }
 
         if (column.id === 'row_number') {
+          width -= initialXOffset
           renderRowMeta(ctx, row, { xOffset, yOffset, width })
         } else {
           const value = row.row[column.title]
@@ -2114,7 +2119,7 @@ export function useCanvasRender({
 
       renderGroups(ctx, {
         level: 0,
-        yOffset: 32 - partialGroupHeight,
+        yOffset: 40,
         startIndex,
         endIndex,
       })

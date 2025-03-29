@@ -60,9 +60,10 @@ export function useInfiniteData(args: {
   where?: ComputedRef<string | undefined>
   disableSmartsheet?: boolean
   isPublic?: Ref<boolean>
+  disableInjection?: boolean
 }) {
   const NOCO = 'noco'
-  const { meta, viewMeta, callbacks, where, disableSmartsheet, isPublic } = args
+  const { meta, viewMeta, callbacks, where, disableSmartsheet, isPublic, disableInjection } = args
 
   const { $api } = useNuxtApp()
 
@@ -74,7 +75,11 @@ export function useInfiniteData(args: {
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
-  const reloadAggregate = inject(ReloadAggregateHookInj)
+  let reloadAggregate
+
+  if (!disableInjection) {
+    reloadAggregate = inject(ReloadAggregateHookInj)
+  }
 
   const tablesStore = useTablesStore()
 

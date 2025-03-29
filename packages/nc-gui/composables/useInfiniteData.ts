@@ -1244,13 +1244,17 @@ export function useInfiniteData(args: {
       data = await updateRowProperty(row, property, args)
     }
 
-    row.rowMeta.isValidationFailed = !validateRowFilters(
+    const isValidationFailed = !validateRowFilters(
       [...allFilters.value, ...computedWhereFilter.value],
       data,
       meta.value?.columns as ColumnType[],
       getBaseType(viewMeta.value?.view?.source_id),
       metas.value,
     )
+    const newRow = cachedRows.value.get(row.rowMeta.rowIndex!)
+    if (newRow) newRow.rowMeta.isValidationFailed = isValidationFailed
+
+    row.rowMeta.isValidationFailed = isValidationFailed
 
     const changedFields = property ? [property] : Object.keys(row.row)
 

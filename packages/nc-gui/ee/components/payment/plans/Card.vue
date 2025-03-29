@@ -58,7 +58,7 @@ const isHigherPlan = (plan: string) => {
             {{ $t('title.mostPopular') }}
           </span>
           <span
-            v-if="comingSoonPlans.includes(plan.title as PlanTitles)"
+            v-if="comingSoonPlans.includes(plan.title)"
             class="inline-block bg-nc-bg-brand text-nc-content-brand rounded-md text-sm font-normal px-1"
           >
             {{ $t('title.comingSoon') }}
@@ -102,6 +102,14 @@ const isHigherPlan = (plan: string) => {
         {{ $t('labels.contactSales') }}
       </NcButton>
     </nuxt-link>
+    <NcButton
+      v-else-if="!plan.is_active && comingSoonPlans.includes(plan.title)"
+      type="secondary"
+      size="medium"
+      class="w-full pointer-events-none"
+    >
+      <div class="flex items-center justify-center gap-1">{{ $t('title.comingSoon') }}</div>
+    </NcButton>
     <NcButton
       v-else
       :type="plan.title === popularPlan ? 'primary' : 'secondary'"

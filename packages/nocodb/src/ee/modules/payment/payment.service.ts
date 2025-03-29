@@ -14,10 +14,8 @@ export class PaymentService {
 
   constructor() {}
 
-  async getPlans(active = true) {
-    const plans = await Plan.list();
-
-    return plans.filter((plan) => !active || plan.is_active === active);
+  async getPlans() {
+    return await Plan.list();
   }
 
   async getWorkspaceOrOrg(
@@ -74,7 +72,7 @@ export class PaymentService {
       title,
       description,
       stripe_product_id: payload.stripe_product_id,
-      is_active: payload.is_active || true,
+      is_active: payload.is_active ?? true,
       prices: prices.data.map((price) => price),
       // TODO : extract with proper types
       meta: metadata as any,
@@ -83,7 +81,7 @@ export class PaymentService {
     return await Plan.insert(plan);
   }
 
-  async syncPlan(planId: string) {
+  async syncPlan(planId: string, payload?: { is_active?: boolean }) {
     const plan = await Plan.get(planId);
 
     if (!plan) {
@@ -113,8 +111,7 @@ export class PaymentService {
       description,
       prices: prices.data.map((price) => price),
       meta: metadata,
-      // Activate the plan on sync
-      is_active: true,
+      is_active: payload?.is_active,
     });
 
     return await Plan.update(plan.id, plan);
@@ -179,6 +176,10 @@ export class PaymentService {
 
     if (!plan) {
       throw new Error('Plan not found');
+    }
+
+    if (!plan.is_active) {
+      throw new Error('This plan is not available');
     }
 
     const price = plan.prices.find((p) => p.id === price_id);
@@ -337,6 +338,10 @@ export class PaymentService {
 
     if (!plan) {
       throw new Error('Plan not found');
+    }
+
+    if (!plan.is_active) {
+      throw new Error('This plan is not available');
     }
 
     const price = plan.prices.find((p) => p.id === payload.price_id);

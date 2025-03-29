@@ -1,12 +1,14 @@
 import { type Stripe, type StripeCheckoutSession, loadStripe } from '@stripe/stripe-js'
+import type { PlanTitles } from 'nocodb-sdk'
 import { PlanMeta } from 'nocodb-sdk'
 
 export interface PaymentPlan {
   id: string
-  title: string
+  title: PlanTitles
   descriptions?: string[]
   stripe_product_id?: string
   prices?: any[]
+  is_active?: boolean
 }
 
 export enum PaymentState {

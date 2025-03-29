@@ -48,8 +48,14 @@ export class PaymentController {
 
   @UseGuards(AuthGuard('basic'))
   @Patch('/api/internal/payment/plan/:planId')
-  async syncPlan(@Param('planId') planId: string) {
-    return this.paymentService.syncPlan(planId);
+  async syncPlan(
+    @Param('planId') planId: string,
+    @Body()
+    payload: {
+      is_active?: boolean;
+    },
+  ) {
+    return this.paymentService.syncPlan(planId, payload);
   }
 
   @UseGuards(AuthGuard('basic'))
@@ -61,7 +67,7 @@ export class PaymentController {
   @UseGuards(AuthGuard('basic'))
   @Get('/api/internal/payment/plan')
   async getAllPlans() {
-    return this.paymentService.getPlans(false);
+    return this.paymentService.getPlans();
   }
 
   @UseGuards(PublicApiLimiterGuard)
@@ -77,6 +83,7 @@ export class PaymentController {
         'stripe_product_id',
         'prices',
         'descriptions',
+        'is_active',
       ]);
     });
   }

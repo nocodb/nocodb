@@ -1,4 +1,5 @@
-import { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk';
+import { PlanLimitTypes } from 'nocodb-sdk';
+import type { PlanFeatureTypes } from 'nocodb-sdk';
 import type Stripe from 'stripe';
 import {
   CacheGetType,
@@ -73,7 +74,7 @@ export default class Plan {
     const descriptions: string[] = [];
 
     for (const [key, value] of Object.entries(
-      response.meta as Record<string, string>,
+      (response.meta || {}) as Record<string, string>,
     )) {
       if (key.startsWith('limit_')) {
         limits[key] = +value;

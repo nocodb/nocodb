@@ -833,10 +833,10 @@ async function handleMouseDown(e: MouseEvent) {
 const PADDING_BOTTOM = 96
 const FIXED_COLUMN_PADDING = 128
 
-function scrollToCell(row?: number, column?: number): void {
+function scrollToCell(row?: number, column?: number, path?: Array<number>): void {
   const currentRow = row ?? activeCell.value.row ?? -1
   const currentColumn = column ?? activeCell.value.column ?? -1
-  const currentPath = activeCell.value.path ?? []
+  const currentPath = path ?? activeCell.value.path ?? []
 
   // If not grouped or no valid row, exit early
   if (!isGroupBy.value || currentRow < 0) {
@@ -1199,14 +1199,13 @@ async function handleMouseUp(e: MouseEvent) {
     selected:
       prevActiveCell?.row === rowIndex &&
       prevActiveCell?.column === colIndex &&
-      prevActiveCell?.path.join('-') === groupPath.join('-'),
+      prevActiveCell?.path?.join('-') === groupPath.join('-'),
     imageLoader,
   })
   // Set the active cell to the clicked cell
   activeCell.value.row = rowIndex
   activeCell.value.column = colIndex
   activeCell.value.path = groupPath
-
   if (res) {
     // If the cellClick performed an action, return
     // Set the cell as selected

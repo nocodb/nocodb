@@ -2045,14 +2045,6 @@ export function useCanvasRender({
 
             const nestedPartialRowHeight = 0 // partialGroupHeight - (relativeScrollTop % rowHeight.value)
 
-            console.log(group.value, {
-              viewPortHeight: viewportHeight,
-              relativeScrollTop,
-              nestedContentStart,
-              nestedStart,
-              nestedEnd,
-            })
-
             tempCurrentOffset = renderGroupRows(
               ctx,
               group,
@@ -2081,16 +2073,6 @@ export function useCanvasRender({
               true,
               isAddingEmptyRowAllowed.value,
             )
-
-            // console.log(group.value, {
-            //   nestedContentStart,
-            //   relativeScrollTop,
-            //   nestedStart,
-            //   scrollTop: scrollTop.value,
-            //   yOffset,
-            //   partialGroupHeight,
-            // })
-
             fetchMissingGroupChunks(nestedStart, nestedEnd, group)
 
             tempCurrentOffset = renderGroups(ctx, {
@@ -2367,9 +2349,6 @@ export function useCanvasRender({
       )
 
       fetchMissingGroupChunks(startIndex, endIndex)
-
-      // console.log({startIndex, endIndex, partialGroupHeight})
-
       renderGroups(ctx, {
         level: 0,
         yOffset: 40,

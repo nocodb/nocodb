@@ -28,7 +28,7 @@ export function useKeyboardNavigation({
   activeCell: Ref<{ row: number; column: number }>
   triggerReRender: () => void
   columns: ComputedRef<CanvasGridColumn[]>
-  scrollToCell: (row?: number, column?: number) => void
+  scrollToCell: (row?: number, column?: number, path?: Array<number>) => void
   selection: Ref<CellRange>
   editEnabled: Ref<{
     rowIndex: number

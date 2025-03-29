@@ -67,7 +67,7 @@ export function useCanvasTable({
   scrollTop: Ref<number>
   width: Ref<number>
   height: Ref<number>
-  scrollToCell: (row?: number, column?: number) => void
+  scrollToCell: (row?: number, column?: number, path?: Array<number>) => void
   aggregations: Ref<Record<string, any>>
   vSelectedAllRecords: WritableComputedRef<boolean>
   selectedRows: Ref<Row[]>
@@ -895,10 +895,13 @@ export function useCanvasTable({
   } = useMouseSelection({
     activeCell,
     selection,
+    scrollTop,
+    isGroupby: isGroupBy,
     totalRows,
     triggerReRender: triggerRefreshCanvas,
     columns,
     canvasRef,
+    cachedGroups,
     rowSlice,
     scrollLeft,
     rowHeight,

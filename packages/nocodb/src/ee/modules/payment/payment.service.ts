@@ -76,7 +76,8 @@ export class PaymentService {
       stripe_product_id: payload.stripe_product_id,
       is_active: payload.is_active || true,
       prices: prices.data.map((price) => price),
-      meta: metadata,
+      // TODO : extract with proper types
+      meta: metadata as any,
     };
 
     return await Plan.insert(plan);

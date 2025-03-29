@@ -8,7 +8,7 @@ import { NcError } from '~/helpers/catchError';
 import { Model } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { DatasService } from '~/services/datas.service';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 
@@ -50,7 +50,7 @@ export class HooksService extends HooksServiceCE {
     );
 
     const webhookLimitForWorkspace = await getLimit(
-      PlanLimitTypes.WEBHOOK_LIMIT,
+      PlanLimitTypes.LIMIT_WEBHOOK_PER_TABLE,
       context.workspace_id,
     );
 

@@ -15,7 +15,7 @@ import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import type { OnApplicationBootstrap } from '@nestjs/common';
 import type { BaseType, UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
-import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import Workspace from '~/models/Workspace';
@@ -182,7 +182,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     if (
       userFreeWorkspacesCount >=
-      (await getLimit(PlanLimitTypes.FREE_WORKSPACE_LIMIT))
+      (await getLimit(PlanLimitTypes.LIMIT_FREE_WORKSPACE))
     ) {
       NcError.badRequest('You have reached the limit of free workspaces');
     }

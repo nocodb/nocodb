@@ -26,7 +26,7 @@ import { UsersService } from '~/services/users/users.service';
 import { MailService } from '~/services/mail/mail.service';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
 import Noco from '~/Noco';
-import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { MailEvent } from '~/interface/Mail';
 import { PaymentService } from '~/modules/payment/payment.service';
 
@@ -172,7 +172,7 @@ export class WorkspaceUsersService {
             );
 
           const editorLimitForWorkspace = await getLimit(
-            PlanLimitTypes.PLAN_EDITOR_LIMIT,
+            PlanLimitTypes.LIMIT_EDITOR,
             param.workspaceId,
             transaction,
           );
@@ -401,7 +401,7 @@ export class WorkspaceUsersService {
           await Subscription.calculateWorkspaceSeatCount(workspaceId, ncMeta);
 
         const editorLimitForWorkspace = await getLimit(
-          PlanLimitTypes.PLAN_EDITOR_LIMIT,
+          PlanLimitTypes.LIMIT_EDITOR,
           workspaceId,
           ncMeta,
         );
@@ -426,7 +426,7 @@ export class WorkspaceUsersService {
       );
 
       const userLimitForWorkspace = await getLimit(
-        PlanLimitTypes.PLAN_USER_LIMIT,
+        PlanLimitTypes.LIMIT_USER,
         workspaceId,
         ncMeta,
       );

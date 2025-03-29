@@ -9,7 +9,7 @@ import { Base } from '~/models';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { ColumnsService } from '~/services/columns.service';
-import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 
@@ -55,7 +55,7 @@ export class TablesService extends TableServiceCE {
       );
 
       const tableLimitForWorkspace = await getLimit(
-        PlanLimitTypes.TABLE_LIMIT,
+        PlanLimitTypes.LIMIT_TABLE_PER_BASE,
         context.workspace_id,
       );
 
@@ -66,7 +66,7 @@ export class TablesService extends TableServiceCE {
       }
 
       const columnLimitForWorkspace = await getLimit(
-        PlanLimitTypes.COLUMN_LIMIT,
+        PlanLimitTypes.LIMIT_COLUMN_PER_TABLE,
         context.workspace_id,
       );
 

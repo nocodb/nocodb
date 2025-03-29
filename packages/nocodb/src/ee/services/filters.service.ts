@@ -9,7 +9,7 @@ import { NcError } from '~/helpers/catchError';
 import { Column, Filter, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class FiltersService extends FiltersServiceCE {
@@ -57,7 +57,7 @@ export class FiltersService extends FiltersServiceCE {
     );
 
     const filterLimitForWorkspace = await getLimit(
-      PlanLimitTypes.FILTER_LIMIT,
+      PlanLimitTypes.LIMIT_FILTER_PER_VIEW,
       context.workspace_id,
     );
 

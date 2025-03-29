@@ -24,7 +24,7 @@ import { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TablesService } from '~/services/tables.service';
-import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { DataReflectionService } from '~/services/data-reflection.service';
 import { PaymentService } from '~/modules/payment/payment.service';
 
@@ -113,7 +113,7 @@ export class BasesService extends BasesServiceCE {
 
       const basesInWorkspace = await Base.countByWorkspace(fk_workspace_id);
       const baseLimitForWorkspace = await getLimit(
-        PlanLimitTypes.BASE_LIMIT,
+        PlanLimitTypes.LIMIT_BASE_PER_WORKSPACE,
         fk_workspace_id,
       );
 

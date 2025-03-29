@@ -13,7 +13,7 @@ import Noco from '~/Noco';
 import Model from '~/models/Model';
 import { NcError } from '~/helpers/catchError';
 import { MetaTable } from '~/utils/globals';
-import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 
 export default class View extends ViewCE implements ViewType {
   expanded_record_mode?: ExpandedFormModeType;
@@ -52,7 +52,7 @@ export default class View extends ViewCE implements ViewType {
     );
 
     const viewLimitForWorkspace = await getLimit(
-      PlanLimitTypes.VIEW_LIMIT,
+      PlanLimitTypes.LIMIT_VIEW_PER_TABLE,
       model.fk_workspace_id,
     );
 

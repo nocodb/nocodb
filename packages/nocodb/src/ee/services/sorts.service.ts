@@ -8,7 +8,7 @@ import { NcError } from '~/helpers/catchError';
 import { View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class SortsService extends SortsServiceCE {
@@ -40,7 +40,7 @@ export class SortsService extends SortsServiceCE {
     );
 
     const sortLimitForWorkspace = await getLimit(
-      PlanLimitTypes.SORT_LIMIT,
+      PlanLimitTypes.LIMIT_SORT_PER_VIEW,
       context.workspace_id,
     );
 

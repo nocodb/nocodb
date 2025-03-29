@@ -18,7 +18,7 @@ import { JobTypes } from '~/interface/Jobs';
 import { Base, Integration } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { NcContext, NcRequest } from '~/interface/config';
 import { deepMerge } from '~/utils';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
@@ -69,7 +69,7 @@ export class SourceCreateController {
     );
 
     const sourceLimitForWorkspace = await getLimit(
-      PlanLimitTypes.SOURCE_LIMIT,
+      PlanLimitTypes.LIMIT_SOURCE_PER_BASE,
       base.fk_workspace_id,
     );
 

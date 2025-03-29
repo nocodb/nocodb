@@ -24,7 +24,7 @@ import { getProjectRole, getProjectRolePower } from '~/utils/roleHelper';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import { PaymentService } from '~/modules/payment/payment.service';
-import { getLimit } from '~/plan-limits';
+import { getLimit } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class BaseUsersService extends BaseUsersServiceCE {
@@ -430,7 +430,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
             );
 
           const editorLimitForWorkspace = await getLimit(
-            PlanLimitTypes.PLAN_EDITOR_LIMIT,
+            PlanLimitTypes.LIMIT_EDITOR,
             workspace.id,
             transaction,
           );

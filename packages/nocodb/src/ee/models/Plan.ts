@@ -1,3 +1,4 @@
+import type { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk';
 import type Stripe from 'stripe';
 import {
   CacheGetType,
@@ -9,28 +10,14 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
-
-export const DefaultLimits = {
-  limit_workspace_row: 10 * 1000,
-  limit_base: 5,
-  limit_source: 1,
-  limit_table: 100,
-  limit_column: 500,
-  limit_table_row: 10 * 1000,
-  limit_webhook: 5,
-  limit_view: 200,
-  limit_filter: 30,
-  limit_sort: 10,
-  limit_storage: 1 * 1024,
-} as const;
+import { GenericFeatures, GenericLimits } from '~/helpers/paymentHelpers';
 
 export const FreePlan = {
   title: 'Free',
   description: 'Free plan',
   meta: {
-    ...DefaultLimits,
-    // Free plan limits
-    limit_workspace_editor: 5,
+    ...GenericLimits,
+    ...GenericFeatures,
   },
   free: true,
 } as const;
@@ -44,17 +31,9 @@ export default class Plan {
 
   prices: Stripe.Price[];
 
-  meta: {
-    limit_workspace_row?: number;
-    limit_base?: number;
-    limit_source?: number;
-    limit_table?: number;
-    limit_column?: number;
-    limit_table_row?: number;
-    limit_webhook?: number;
-    limit_view?: number;
-    limit_filter?: number;
-    limit_sort?: number;
+  meta: { [key in PlanLimitTypes]: number } & {
+    [key in PlanFeatureTypes]: boolean;
+  } & {
     description_1?: string;
     description_2?: string;
     description_3?: string;
@@ -75,33 +54,29 @@ export default class Plan {
   public static prepare(data: Partial<Plan>): Plan {
     const response = prepareForResponse(data, ['prices', 'meta']);
 
-    const limits = Object.entries(response.meta).reduce((acc, [key, value]) => {
+    const limits: Record<string, number> = {
+      ...GenericLimits,
+    };
+    const features: Record<string, boolean> = {
+      ...GenericFeatures,
+    };
+    const descriptions: string[] = [];
+
+    for (const [key, value] of Object.entries(
+      response.meta as Record<string, string>,
+    )) {
       if (key.startsWith('limit_')) {
-        acc[key] = value;
+        limits[key] = +value;
+      } else if (key.startsWith('feature_')) {
+        features[key] = !!value;
+      } else if (key.startsWith('description_')) {
+        descriptions.push(value);
       }
-
-      return acc;
-    }, {});
+    }
 
     Object.assign(response, {
-      limits: {
-        ...DefaultLimits,
-        ...limits,
-      },
-    });
-
-    const descriptions = Object.entries(response.meta).reduce(
-      (acc, [key, value]) => {
-        if (key.startsWith('description_')) {
-          acc.push(value);
-        }
-
-        return acc;
-      },
-      [],
-    );
-
-    Object.assign(response, {
+      limits,
+      features,
       descriptions,
     });
 

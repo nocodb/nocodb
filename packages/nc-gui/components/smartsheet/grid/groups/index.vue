@@ -1,85 +1,72 @@
 <script setup lang="ts">
 import { useScroll } from '@vueuse/core'
 import { useInfiniteGroups } from './useInfiniteGroups'
+import { useCanvasTable } from './useCanvasTable'
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
-const { xWhere, eventBus } = useSmartsheetStoreOrThrow()
-const isPublic = inject(IsPublicInj, ref(false))
+const { xWhere } = useSmartsheetStoreOrThrow()
 
-const containerRef = ref<HTMLElement>()
-const wrapperRef = ref<HTMLElement>()
 const {
   cachedGroups,
+  groupByColumns,
   syncCount: syncGroupCount,
   totalGroups,
-  groupByColumns,
   fetchMissingGroupChunks,
   toggleExpand,
+  chunkStates,
   GROUP_CHUNK_SIZE,
 } = useInfiniteGroups(view, meta, xWhere)
 
+const containerRef = ref<HTMLElement>()
+const wrapperRef = ref<HTMLElement>()
 const totalHeight = computed(() => totalGroups.value * 30)
-
-const groupSlice = reactive({
-  start: 0,
-  end: 100,
-})
-
-const visibleGroups = computed(() => {
-  const groups = []
-  for (let i = groupSlice.start; i < groupSlice.end && i < totalGroups.value; i++) {
-    const group = cachedGroups.value.get(i)
-    if (!group) {
-      groups.push({
-        column: groupByColumns.value[0]?.column || {},
-        rows: new Map(),
-        groups: new Map(),
-        chunkStates: [],
-        count: undefined,
-        isExpanded: false,
-        value: 'Loading...',
-        groupIndex: i,
-      })
-    } else {
-      groups.push({
-        ...group,
-        groupIndex: i,
-      })
-    }
-  }
-  return groups
-})
-
 const scrollTop = ref(0)
 const scrollLeft = ref(0)
+const { height, width } = useElementSize(wrapperRef)
+const COLUMN_BUFFER_SIZE = 5
 
-const { height } = useElementSize(wrapperRef)
+const { aggregations } = useViewAggregateOrThrow()
+
+const { colSlice, groupSlice, renderCanvas, canvasRef, findColumnIndex, columnWidths } = useCanvasTable({
+  scrollLeft,
+  scrollTop,
+  width,
+  height,
+  groupChunkStates: chunkStates,
+  cachedGroups,
+  totalGroups,
+  aggregations,
+  groupByColumns,
+})
 
 const calculateSlices = () => {
   const start = Math.max(0, Math.floor(scrollTop.value / 30))
   const end = Math.min(totalGroups.value, Math.ceil((scrollTop.value + height.value) / 30))
-  if (start === groupSlice.start && end === groupSlice.end) return
+  if (start === groupSlice.value.start && end === groupSlice.value.end) return
 
-  groupSlice.start = start
-  groupSlice.end = end
+  groupSlice.value = {
+    start,
+    end,
+  }
+
+  const startColIndex = Math.max(0, findColumnIndex(scrollLeft.value))
+  const endColIndex = Math.min(
+    columnWidths.value.length,
+    findColumnIndex(scrollLeft.value + containerRef.value.clientWidth + COLUMN_BUFFER_SIZE) + 1,
+  )
+
+  if (startColIndex === colSlice.value.start && endColIndex === colSlice.value.end) return
+
+  colSlice.value = {
+    start: startColIndex,
+    end: endColIndex,
+  }
+
   fetchMissingGroupChunks(start, end - 1)
 }
 
-let rafnId = null
-
-useScroll(containerRef, {
-  throttle: 200,
-  onScroll: async (e) => {
-    if (rafnId) cancelAnimationFrame(rafnId)
-
-    rafnId = requestAnimationFrame(() => {
-      scrollTop.value = e.target.scrollTop
-      scrollLeft.value = e.target.scrollLeft
-      calculateSlices()
-    })
-  },
-})
+let rafnId: number | null = null
 
 onMounted(async () => {
   await syncGroupCount()
@@ -91,18 +78,13 @@ onMounted(async () => {
   <div ref="wrapperRef" class="h-full w-full overflow-auto">
     <div ref="containerRef" class="relative overflow-auto w-full h-full">
       <div class="w-full" :style="{ height: `${totalHeight}px` }">
-        <div
-          v-for="group in visibleGroups"
-          :key="group.groupIndex"
-          class="flex items-center h-[30px] bg-gray-100 w-full border-b border-gray-200 absolute"
-          :style="{ top: `${group.groupIndex * 30}px` }"
-          @click="toggleExpand(group)"
-        >
-          <div class="flex items-center w-full px-2">
-            <span class="font-semibold">{{ group.value }}</span>
-            <span class="ml-2 text-gray-600">({{ group.count ?? '...' }})</span>
-          </div>
-        </div>
+        <canvas
+          ref="canvasRef"
+          class="sticky top-0 left-0"
+          :height="`${height}px`"
+          :width="`${width}px`"
+          oncontextmenu="return false"
+        />
       </div>
     </div>
   </div>

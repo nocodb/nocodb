@@ -1,14 +1,5 @@
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-
-interface Group {
-  column: ColumnType
-  groups: Map<number, Group>
-  chunkStates: Array<'loading' | 'loaded' | undefined>
-  count: number
-  isExpanded: boolean
-  value: any
-  infiniteData?: ReturnType<typeof useInfiniteData>
-}
+import type { CanvasGroup } from '../../../../../lib/types'
 
 const GROUP_CHUNK_SIZE = 100
 const MAX_GROUP_CACHE_SIZE = 100
@@ -50,13 +41,13 @@ export const useInfiniteGroups = (
     return tempGroupBy
   })
 
-  const cachedGroups = ref<Map<number, Group>>(new Map())
+  const cachedGroups = ref<Map<number, CanvasGroup>>(new Map())
   const totalGroups = ref(0)
   const chunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
 
   const getGroupChunkIndex = (offset: number) => Math.floor(offset / GROUP_CHUNK_SIZE)
 
-  const fetchGroupChunk = async (chunkId: number, parentGroup?: Group) => {
+  const fetchGroupChunk = async (chunkId: number, parentGroup?: CanvasGroup) => {
     const targetChunkStates = parentGroup ? parentGroup.chunkStates : chunkStates.value
     if (targetChunkStates[chunkId] === 'loading' || targetChunkStates[chunkId] === 'loaded') return
 
@@ -82,7 +73,7 @@ export const useInfiniteGroups = (
 
       response.list.forEach((item: Record<string, any>, index: number) => {
         const value = item[groupCol.column.title!] ?? null
-        const group: Group = {
+        const group: CanvasGroup = {
           column: groupCol.column,
           groups: new Map(),
           chunkStates: [],
@@ -122,8 +113,8 @@ export const useInfiniteGroups = (
     }
   }
 
-  function buildNestedWhere(group: Group, existing = ''): string {
-    let current: Group | undefined = group
+  function buildNestedWhere(group: CanvasGroup, existing = ''): string {
+    let current: CanvasGroup | undefined = group
     const conditions: string[] = []
 
     while (current) {
@@ -138,7 +129,7 @@ export const useInfiniteGroups = (
     return conditions.length ? `${existing ? `${existing}~and` : ''}${conditions.join('~and')}` : existing
   }
 
-  function findParentGroup(group: Group): Group | undefined {
+  function findParentGroup(group: CanvasGroup): CanvasGroup | undefined {
     for (const [_, parent] of cachedGroups.value) {
       if (parent.groups.has([...parent.groups.values()].findIndex((g) => g === group))) return parent
       for (const [_, child] of parent.groups) {
@@ -147,9 +138,9 @@ export const useInfiniteGroups = (
     }
   }
 
-  function findGroupLevel(group: Group): number {
+  function findGroupLevel(group: CanvasGroup): number {
     let level = 0
-    let current: Group | undefined = group
+    let current: CanvasGroup | undefined = group
     while (current) {
       current = findParentGroup(current)
       level++
@@ -157,7 +148,7 @@ export const useInfiniteGroups = (
     return level - 1
   }
 
-  const fetchMissingGroupChunks = async (startIndex: number, endIndex: number, parentGroup?: Group) => {
+  const fetchMissingGroupChunks = async (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => {
     const firstChunkId = getGroupChunkIndex(startIndex)
     const lastChunkId = getGroupChunkIndex(endIndex)
 
@@ -169,19 +160,19 @@ export const useInfiniteGroups = (
     await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup)))
   }
 
-  const fetchMissingRowChunks = async (group: Group, startIndex: number, endIndex: number) => {
+  const fetchMissingRowChunks = async (group: CanvasGroup, startIndex: number, endIndex: number) => {
     if (!group.infiniteData) return
     await group.infiniteData.fetchMissingChunks(startIndex, endIndex)
     group.infiniteData.clearCache(startIndex, endIndex)
   }
 
-  const clearGroupCache = (startIndex: number, endIndex: number, parentGroup?: Group) => {
+  const clearGroupCache = (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => {
     const targetGroups = parentGroup ? parentGroup.groups : cachedGroups.value
     if (targetGroups.size <= MAX_GROUP_CACHE_SIZE) return
 
     const safeStartIndex = Math.max(0, startIndex)
     const safeEndIndex = Math.min((parentGroup ? parentGroup.count : totalGroups.value) - 1, endIndex)
-    const newGroups = new Map<number, Group>()
+    const newGroups = new Map<number, CanvasGroup>()
 
     for (let i = safeStartIndex; i <= safeEndIndex; i++) {
       const group = targetGroups.get(i)
@@ -201,7 +192,7 @@ export const useInfiniteGroups = (
     }
   }
 
-  async function syncCount(group?: Group) {
+  async function syncCount(group?: CanvasGroup) {
     if (!view.value || !meta.value?.columns?.length) return
 
     if (!group) {
@@ -210,7 +201,7 @@ export const useInfiniteGroups = (
 
       totalGroups.value = await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
         where: where?.value,
-        sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}`,
+        sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any[],
         column_name: groupCol.column.title,
       })
     } else if (group.infiniteData) {
@@ -219,7 +210,7 @@ export const useInfiniteGroups = (
     }
   }
 
-  const toggleExpand = async (group: Group, startIndex = 0, endIndex = GROUP_CHUNK_SIZE - 1) => {
+  const toggleExpand = async (group: CanvasGroup, startIndex = 0, endIndex = GROUP_CHUNK_SIZE - 1) => {
     group.isExpanded = !group.isExpanded
     if (group.isExpanded) {
       const level = findGroupLevel(group)
@@ -231,10 +222,14 @@ export const useInfiniteGroups = (
     }
   }
 
+  const isGroupBy = computed(() => !!groupByColumns.value.length)
+
   return {
+    isGroupBy,
     cachedGroups,
     groupByColumns,
     totalGroups,
+    chunkStates,
     syncCount,
     fetchMissingGroupChunks,
     fetchMissingRowChunks,

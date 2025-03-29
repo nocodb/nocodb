@@ -3,6 +3,7 @@ import type { ColumnType, GridType } from 'nocodb-sdk'
 import InfiniteTable from './InfiniteTable.vue'
 import Table from './Table.vue'
 import CanvasTable from './canvas/index.vue'
+import { useInfiniteGroups } from './canvas/composables/useInfiniteGroups'
 
 const meta = inject(MetaInj, ref())
 
@@ -159,18 +160,6 @@ const toggleOptimisedQuery = () => {
   }
 }
 
-const {
-  rootGroup,
-  groupBy,
-  isGroupBy,
-  loadGroups,
-  loadGroupData,
-  loadGroupPage,
-  groupWrapperChangePage,
-  redistributeRows,
-  loadGroupAggregation,
-} = useViewGroupByOrThrow()
-
 const sidebarStore = useSidebarStore()
 
 const { windowSize, leftSidebarWidth } = toRefs(sidebarStore)
@@ -198,19 +187,6 @@ const updateViewWidth = () => {
   }
   viewWidth.value = windowSize.value - leftSidebarWidth.value
 }
-
-const baseColor = computed(() => {
-  switch (groupBy.value.length) {
-    case 1:
-      return '#F9F9FA'
-    case 2:
-      return '#F4F4F5'
-    case 3:
-      return '#E7E7E9'
-    default:
-      return '#F9F9FA'
-  }
-})
 
 const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING))
 
@@ -242,6 +218,8 @@ const {
   changePage: pChangeView,
   navigateToSiblingRow: pNavigateToSiblingRow,
 } = useViewData(meta, view, xWhere)
+
+const { isGroupBy } = useViewGroupByOrThrow()
 
 const updateRowCommentCount = (count: number) => {
   if (!routeQuery.value.rowId) return
@@ -297,7 +275,7 @@ const pGoToPreviousRow = () => {
   <div
     class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
-    :style="`background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
+    style="background-color: var(--nc-grid-bg)"
   >
     <Table
       v-if="!isGroupBy && !isInfiniteScrollingEnabled"
@@ -321,7 +299,7 @@ const pGoToPreviousRow = () => {
     />
 
     <CanvasTable
-      v-else-if="!isGroupBy && isInfiniteScrollingEnabled && isCanvasTableEnabled && !isMobileMode"
+      v-else-if="isInfiniteScrollingEnabled && isCanvasTableEnabled && !isMobileMode"
       ref="tableRef"
       v-model:selected-all-records="selectedAllRecords"
       :load-data="loadData"
@@ -383,8 +361,6 @@ const pGoToPreviousRow = () => {
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateDlg = true"
     />
-
-    <SmartsheetGridGroups v-else />
 
     <Suspense v-if="!isGroupBy">
       <LazySmartsheetExpandedForm

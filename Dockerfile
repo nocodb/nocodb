@@ -1,20 +1,20 @@
-# استخدم صورة Node.js الرسمية كأساس
+# استخدم صورة Node الرسمية
 FROM node:18
 
-# أنشئ مجلد العمل داخل الحاوية
+# تحديد مجلد العمل داخل الحاوية
 WORKDIR /app
 
 # انسخ ملفات المشروع إلى الحاوية
 COPY . .
 
-# ثبّت الحزم المطلوبة
-RUN npm install
+# ثبّت pnpm والحزم المطلوبة
+RUN corepack enable && corepack prepare pnpm@8.6.6 --activate && pnpm install
 
 # ابني المشروع (اختياري حسب الحاجة)
-RUN npm run build
+RUN pnpm run build
 
-# افتح المنفذ الذي سيستخدمه التطبيق
+# افتح المنفذ الذي يستخدمه التطبيق
 EXPOSE 8080
 
 # شغّل التطبيق
-CMD ["npm", "start"]
+CMD ["pnpm", "start"]

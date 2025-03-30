@@ -1,17 +1,14 @@
-# استخدم صورة Node الرسمية
+# استخدم صورة Node.js كأساس
 FROM node:18
 
-# تحديد مجلد العمل داخل الحاوية
+# أنشئ مجلد للتطبيق
 WORKDIR /app
 
 # انسخ ملفات المشروع إلى الحاوية
 COPY . .
 
-# ثبّت pnpm والحزم المطلوبة
+# ثبّت pnpm والاعتماديات
 RUN corepack enable && corepack prepare pnpm@8.6.6 --activate && pnpm install
-
-# ابني المشروع (اختياري حسب الحاجة)
-RUN pnpm run build
 
 # افتح المنفذ الذي يستخدمه التطبيق
 EXPOSE 8080

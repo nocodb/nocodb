@@ -105,7 +105,7 @@ export class SqliteDataMigration implements FormulaDataMigrationDriver {
         }, []),
       );
 
-    // knex qb is not yet suppport update select / update join
+    // knex qb is not yet support update select / update join
     // so we need to compose them manually (sad)
     const qb = knex.raw(`update ?? set ?? = (??) where exists (??)`, [
       baseModelSqlV2.getTnPath(baseModelSqlV2.model, ROOT_ALIAS),

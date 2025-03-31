@@ -1662,7 +1662,7 @@ export default class KnexMigratorv2 {
   //     }
   //   } catch (e) {
   //     result.code = -1;
-  //     result.code = `Exception occured in ${func} : ${e}`;
+  //     result.code = `Exception occurred in ${func} : ${e}`;
   //     result.object = e;
   //     console.log(e);
   //   }
@@ -1707,7 +1707,7 @@ export default class KnexMigratorv2 {
   //     }
   //   } catch (e) {
   //     result.code = -1;
-  //     result.code = `Exception occured in ${func} : ${e}`;
+  //     result.code = `Exception occurred in ${func} : ${e}`;
   //     result.object = e;
   //     console.log(e);
   //   }
@@ -1794,7 +1794,7 @@ export default class KnexMigratorv2 {
   //     }
   //   } catch (e) {
   //     result.code = -1;
-  //     result.code = `Exception occured in ${func} : ${e}`;
+  //     result.code = `Exception occurred in ${func} : ${e}`;
   //     result.object = e;
   //     console.log(e);
   //   }

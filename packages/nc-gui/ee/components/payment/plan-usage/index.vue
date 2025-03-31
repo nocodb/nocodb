@@ -44,9 +44,9 @@ const currentPlanTitle = computed(() => {
 <template>
   <div v-if="!paymentInitiated" class="flex flex-col gap-3">
     <div class="flex items-center justify-between gap-4 min-h-8">
-      <div class="text-base font-weight-700 text-nc-content-gray">
+      <div class="text-base font-weight-700 text-nc-content-gray !leading-7">
         {{ $t('title.currentPlan') }}:
-        <span :style="{ color: activePlanMeta?.primary }">
+        <span class="text-xl" :style="{ color: activePlanMeta?.primary }">
           {{ $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title ?? PlanTitles.FREE}`) }}
         </span>
       </div>

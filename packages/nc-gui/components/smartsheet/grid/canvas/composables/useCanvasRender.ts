@@ -40,7 +40,6 @@ export function useCanvasRender({
   scrollTop,
   rowSlice,
   rowHeight,
-  cachedRows,
   activeCell,
   dragOver,
   hoverRow,
@@ -90,7 +89,6 @@ export function useCanvasRender({
   scrollLeft: Ref<number>
   scrollTop: Ref<number>
   cachedGroups: Ref<Map<number, CanvasGroup>>
-  cachedRows: Ref<Map<number, Row>>
   dragOver: Ref<{ id: string; index: number } | null>
   hoverRow: Ref<{
     path?: Array<number> | null
@@ -717,6 +715,7 @@ export function useCanvasRender({
       yOffset: number
       width: number
     },
+    path?: Array<number>,
   ) => {
     const isHover =
       hoverRow.value?.rowIndex === row.rowMeta.rowIndex && hoverRow.value?.path?.join('-') === row.rowMeta?.path?.join('-')
@@ -1034,7 +1033,7 @@ export function useCanvasRender({
 
           if (column.id === 'row_number') {
             if (isGroupBy.value) width -= initialXOffset
-            renderRowMeta(ctx, row, { xOffset, yOffset, width })
+            renderRowMeta(ctx, row, { xOffset, yOffset, width }, group.path)
           } else {
             const value = row.row[column.title]
 
@@ -1177,7 +1176,7 @@ export function useCanvasRender({
           }
 
           if (column.id === 'row_number') {
-            renderRowMeta(ctx, row!, { xOffset, yOffset, width })
+            renderRowMeta(ctx, row!, { xOffset, yOffset, width }, group.path)
           } else {
             const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
 
@@ -1748,7 +1747,7 @@ export function useCanvasRender({
     }
   }
 
-  const renderRowDragPreview = (ctx: CanvasRenderingContext2D) => {
+  const renderRowDragPreview = (ctx: CanvasRenderingContext2D, path?: Array<number> = []) => {
     if (!isDragging.value || draggedRowIndex.value === null || targetRowIndex.value === null) return
 
     const targetRowLine = (targetRowIndex.value - rowSlice.value.start) * rowHeight.value - partialRowHeight.value + 32
@@ -1796,7 +1795,9 @@ export function useCanvasRender({
     ctx.lineWidth = 1
     ctx.stroke()
 
-    const row = cachedRows.value.get(draggedRowIndex.value)
+    const dataCache = getDataCache(path)
+
+    const row = dataCache.cachedRows.value.get(draggedRowIndex.value)
     if (row) {
       let xOffset = xPos
       columns.value.forEach((column) => {

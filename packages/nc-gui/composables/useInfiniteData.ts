@@ -206,7 +206,7 @@ export function useInfiniteData(args: {
     const offset = chunkId * CHUNK_SIZE
 
     try {
-      const newItems = await loadData({ offset, limit: CHUNK_SIZE })
+      const newItems = await loadData({ offset, limit: CHUNK_SIZE }, false, path)
       if (!newItems) {
         dataCache.chunkStates.value[chunkId] = undefined
         return

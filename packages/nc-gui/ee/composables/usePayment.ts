@@ -230,6 +230,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
           },
           'onCancel': closeDialog1,
           'update:visible': closeDialog1,
+          'okClass': '!px-4',
+          'cancelClass': '!px-4',
         })
 
         function closeDialog1() {
@@ -238,6 +240,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
         }
       } else {
         const isOpen = ref(true)
+
         const { close } = useDialog(NcModalConfirm, {
           'visible': isOpen,
           'title': `Change your plan to ${plan.title}?`,
@@ -251,6 +254,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
             await updateSubscription(plan.id)
           },
           'update:visible': closeDialog,
+          'okClass': '!px-4',
+          'cancelClass': '!px-4',
         })
 
         function closeDialog() {

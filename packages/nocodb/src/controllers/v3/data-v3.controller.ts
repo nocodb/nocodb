@@ -189,24 +189,6 @@ export class Datav3Controller {
     });
   }
 
-  @Get([`${PREFIX_APIV3_DATA}/:modelId/:rowId`])
-  @Acl('dataRead')
-  async dataRead(
-    @TenantContext() context: NcContext,
-    @Req() req: NcRequest,
-    @Param('modelId') modelId: string,
-    @Query('view_id') viewId: string,
-    @Param('rowId') rowId: string,
-  ) {
-    return await this.dataTableService.dataRead(context, {
-      modelId,
-      rowId: rowId,
-      query: req.query,
-      viewId,
-      apiVersion: NcApiVersion.V3,
-    });
-  }
-
   @Get([`${PREFIX_APIV3_DATA}/:modelId/count`])
   @Acl('dataCount')
   async dataCount(
@@ -224,5 +206,23 @@ export class Datav3Controller {
     });
 
     res.json(countResult);
+  }
+
+  @Get([`${PREFIX_APIV3_DATA}/:modelId/:rowId`])
+  @Acl('dataRead')
+  async dataRead(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('modelId') modelId: string,
+    @Query('view_id') viewId: string,
+    @Param('rowId') rowId: string,
+  ) {
+    return await this.dataTableService.dataRead(context, {
+      modelId,
+      rowId: rowId,
+      query: req.query,
+      viewId,
+      apiVersion: NcApiVersion.V3,
+    });
   }
 }

@@ -30,7 +30,7 @@ const onUpgradePlan = async () => {
         }"
         @click="isMinimised = !isMinimised"
       >
-        <GeneralIcon icon="chevronDown" class="flex-none transform" :class="{ '!rotate-180': !isMinimised }" />
+        <GeneralIcon icon="chevronRight" class="flex-none transform transition-transform duration-200" :class="{ '!rotate-90': !isMinimised }" />
       </NcButton>
 
       <div

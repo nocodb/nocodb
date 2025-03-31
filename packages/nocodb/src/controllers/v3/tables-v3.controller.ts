@@ -23,13 +23,14 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
+import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class TablesV3Controller {
   constructor(private readonly tablesV3Service: TablesV3Service) {}
 
-  @Get('/api/v3/meta/bases/:baseId/tables')
+  @Get(`${PREFIX_APIV3_METABASE}/bases/:baseId/tables`)
   @Acl('tableList')
   async tableList(
     @TenantContext() context: NcContext,
@@ -48,7 +49,7 @@ export class TablesV3Controller {
     );
   }
 
-  @Post('/api/v3/meta/bases/:baseId/tables')
+  @Post(`${PREFIX_APIV3_METABASE}/bases/:baseId/tables`)
   @HttpCode(200)
   @Acl('tableCreate')
   async tableCreate(
@@ -68,7 +69,7 @@ export class TablesV3Controller {
     return result;
   }
 
-  @Get('/api/v3/meta/tables/:tableId')
+  @Get(`${PREFIX_APIV3_METABASE}/tables/:tableId`)
   @Acl('tableGet')
   async tableGet(
     @TenantContext() context: NcContext,
@@ -86,7 +87,7 @@ export class TablesV3Controller {
     return table;
   }
 
-  @Patch('/api/v3/meta/tables/:tableId')
+  @Patch(`${PREFIX_APIV3_METABASE}/tables/:tableId`)
   @Acl('tableUpdate')
   async tableUpdate(
     @TenantContext() context: NcContext,
@@ -103,7 +104,7 @@ export class TablesV3Controller {
     });
   }
 
-  @Delete('/api/v3/meta/tables/:tableId')
+  @Delete(`${PREFIX_APIV3_METABASE}/tables/:tableId`)
   @Acl('tableDelete')
   async tableDelete(
     @TenantContext() context: NcContext,

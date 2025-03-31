@@ -413,9 +413,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     // todo:  verify all scenarios
     // extract workspace id based on request path params or
     // extract base id based on request path params
-    if (params.baseName && !req.ncBaseId) {
+    if ((params.baseId || params.baseName) && !req.ncBaseId) {
       // we expect project_name to be id for EE
-      const base = await Base.get(context, params.baseName);
+      const base = await Base.get(context, params.baseId ?? params.baseName);
       if (base) {
         req.ncBaseId = base.id;
         req.ncWorkspaceId = (base as Base).fk_workspace_id;
@@ -434,7 +434,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           req.ncSourceId = model?.source_id;
         }
       } else {
-        NcError.baseNotFound(params.baseName);
+        NcError.baseNotFound(params.baseId ?? params.baseName);
       }
     } else if (req.ncBaseId && req.ncBaseId !== 'nc') {
       const base = await Base.get(context, req.ncBaseId);

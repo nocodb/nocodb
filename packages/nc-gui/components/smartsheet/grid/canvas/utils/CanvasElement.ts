@@ -26,6 +26,7 @@ interface GroupElement extends BaseElement {
 
 type Element = RowElement | GroupElement
 
+// Todo: refactor and clean up this class
 // Class representing a single canvas element with utility methods
 class CanvasElementItem implements RowElement, GroupElement {
   x: number
@@ -36,17 +37,22 @@ class CanvasElementItem implements RowElement, GroupElement {
   group?: CanvasGroup
   level?: number
 
+  _groupPath?: number[]
+  _rowIndex?: number
+
   constructor(element: Element) {
-    this.x = element.x
-    this.y = element.y
-    this.height = element.height
-    this.level = element.level
-    this.type = element.type
-    if (element.type === ElementTypes.ROW || element.type === ElementTypes.ADD_NEW_ROW) {
-      this.row = element.row
-    } else {
-      this.group = (element as GroupElement).group
-    }
+    // this.x = element.x
+    // this.y = element.y
+    // this.height = element.height
+    // this.level = element.level
+    // this.type = element.type
+    // this.row = (element as RowElement).row
+    // this.group = (element as GroupElement).group
+
+    Object.assign(this, element)
+    // Todo: remove this hack after refactoring
+    this._groupPath = (element as any).groupPath
+    this._rowIndex = (element as any).rowIndex
   }
 
   // Checks if the element is a group
@@ -66,7 +72,12 @@ class CanvasElementItem implements RowElement, GroupElement {
 
   // Gets the row index or returns -1 if not available
   get rowIndex() {
-    return this.row?.rowMeta?.rowIndex ?? -1
+    return this._rowIndex ?? this.row?.rowMeta?.rowIndex ?? -1
+  }
+
+  // Get the group or return null if not available
+  get groupPath() {
+    return this._groupPath ?? this.row?.rowMeta?.path ?? []
   }
 }
 
@@ -74,6 +85,7 @@ class CanvasElementItem implements RowElement, GroupElement {
 // and find elements at a given point
 export class CanvasElement {
   private elements: Array<Element>
+
   constructor(elements: Array<Element> = []) {
     this.elements = elements
   }

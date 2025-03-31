@@ -1329,13 +1329,12 @@ export function useCanvasRender({
         y: yOffset + 9,
         size: 14,
       })
-
       elementMap.addElement({
         y: yOffset,
         x: 0,
         height: COLUMN_HEADER_HEIGHT_IN_PX,
         path: [],
-        type: 'ADD_NEW_ROW',
+        type: ElementTypes.ADD_NEW_ROW,
       })
     }
 

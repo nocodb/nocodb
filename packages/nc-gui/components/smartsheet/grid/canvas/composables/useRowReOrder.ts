@@ -1,3 +1,7 @@
+import type { CanvasElement } from '../utils/CanvasElement'
+import { ElementTypes } from '../utils/CanvasElement'
+import { GROUP_HEADER_HEIGHT } from '../utils/constants'
+
 export function useRowReorder({
   isDragging,
   draggedRowIndex,
@@ -11,6 +15,8 @@ export function useRowReorder({
   triggerRefreshCanvas,
   totalRows,
   scrollToCell,
+  elementMap,
+  getDataCache,
 }: {
   isDragging: Ref<boolean>
   draggedRowIndex: Ref<number | null>
@@ -24,22 +30,40 @@ export function useRowReorder({
   updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
   triggerRefreshCanvas: () => void
   scrollToCell: (row?: number, column?: number, path?: Array<number>) => void
+  elementMAp: CanvasElement
+  getDataCache: (path?: Array<number>) => {
+    cachedRows: Ref<Map<number, Row>>
+    totalRows: Ref<number>
+    chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
+    selectedRows: ComputedRef<Array<Row>>
+    isRowSortRequiredRows: ComputedRef<Array<Row>>
+  }
 }) {
   const dragStartY = ref(0)
   const currentDragY = ref(0)
 
-  const findRowFromPosition = (y: number): number => {
-    const mouseTop = y + scrollTop.value - 32 + partialRowHeight.value
-    return Math.max(0, Math.min(Math.round(mouseTop / rowHeight.value), totalRows.value + 1))
+  const findElement = (x: number, y: number): number => {
+    const mouseTop = y
+
+    return elementMap.findElementAt(x, mouseTop, ElementTypes.ROW)
   }
 
   const handleDragStart = (e: MouseEvent) => {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect) return
 
-    const rowIndex = findRowFromPosition(e.clientY - rect.top) - 1
+    const element = findElement(e.clientX - rect.left, e.clientY - rect.top)
+
+    if (!element) return
+    const { cachedRows } = getDataCache(element.groupPath)
+
+    const rowIndex = element.rowIndex
+
     const row = cachedRows.value.get(rowIndex)
-    if (!row) return
+
+    if (!row) {
+      return
+    }
 
     row.rowMeta.isDragging = true
     cachedRows.value.set(rowIndex, row)
@@ -58,7 +82,7 @@ export function useRowReorder({
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect) return
 
-    targetRowIndex.value = findRowFromPosition(e.clientY - rect.top)
+    targetRowIndex.value = findElement(e.clientX - rect.left, e.clientY - rect.top)
     triggerRefreshCanvas()
 
     const edgeThreshold = 100

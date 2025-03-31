@@ -91,7 +91,7 @@ export class Datav3Controller {
     });
   }
 
-  @Patch(['/api/v3/:baseName/:modelId'])
+  @Patch([`${PREFIX_APIV3_DATA}/:modelId`])
   @Acl('dataUpdate')
   async dataUpdate(
     @TenantContext() context: NcContext,

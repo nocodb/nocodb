@@ -27,7 +27,7 @@ export function getBackgroundColor(depth: number, maxDepth: number): string {
 export function calculateGroupHeight(group: CanvasGroup, rowHeight: number, isAddingNewRowAllowed?: boolean) {
   let h = GROUP_HEADER_HEIGHT + GROUP_PADDING // Base height for group header
   if (group?.isExpanded) {
-    if (group.infiniteData) {
+    if (group.path) {
       h += (group.count || 0) * rowHeight
       if (isAddingNewRowAllowed) {
         h += COLUMN_HEADER_HEIGHT_IN_PX
@@ -147,7 +147,7 @@ export function calculateGroupRowTop(
       currentGroups = group.groups
     } else if (!group.groups && depth === path.length - 1) {
       // Leaf group reached, add row offset
-      if (group.isExpanded && group.infiniteData) {
+      if (group.isExpanded && group.path) {
         top += rowIndex * rowHeight + 1 // Row height + border offset
       }
     } else {
@@ -173,7 +173,7 @@ export function findRowInGroups(groups: Map<number, CanvasGroup>, y: number, row
       currentOffset += groupHeaderHeight
 
       if (group.isExpanded) {
-        if (group.infiniteData) {
+        if (group.path) {
           // Leaf group with rows
           const rowCount = group.count
           const groupContentHeight = rowCount * rowHeight + 1 // Include border offset

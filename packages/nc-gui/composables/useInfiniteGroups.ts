@@ -1,6 +1,6 @@
 import { type ColumnType, type LinkToAnotherRecordType, type TableType, UITypes, type ViewType } from 'nocodb-sdk'
-import type { CanvasGroup } from '../../../../../lib/types'
-import { generateGroupPath } from '../utils/groupby'
+import { generateGroupPath } from '../components/smartsheet/grid/canvas/utils/groupby'
+import type { CanvasGroup } from '#imports'
 
 const GROUP_CHUNK_SIZE = 100
 const MAX_GROUP_CACHE_SIZE = 100
@@ -22,8 +22,6 @@ export const useInfiniteGroups = (
   const { base } = storeToRefs(useBase())
   const { $api } = useNuxtApp()
   const { getMeta } = useMetas()
-
-  const isPublic = inject(IsPublicInj, ref(false))
 
   const groupByColumns = computed(() => {
     const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
@@ -78,6 +76,7 @@ export const useInfiniteGroups = (
     try {
       const nestedWhere = parentGroup ? buildNestedWhere(parentGroup, where?.value) : ''
 
+      // TODO: @DarkPhoenix2704 - Add Public Endpoint here
       const response = await $api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
         offset,
         limit: GROUP_CHUNK_SIZE,
@@ -136,19 +135,9 @@ export const useInfiniteGroups = (
           group.displayValueProp = col?.title
         }
 
-        const groupPath = generateGroupPath(group)
-
         // Create useInfiniteData for leaf groups
         if (level === groupByColumns.value.length - 1) {
-          group.infiniteData = useInfiniteData({
-            meta,
-            viewMeta: view,
-            where: computed(() => buildNestedWhere(group, where?.value)),
-            callbacks: {},
-            isPublic,
-            disableInjection: true,
-            groupPath,
-          })
+          group.path = generateGroupPath(group)
         }
 
         if (parentGroup) {
@@ -199,23 +188,6 @@ export const useInfiniteGroups = (
     }, existing)
   }
 
-  function findParentGroup(group: CanvasGroup): CanvasGroup | undefined {
-    if (!group.nestedIn?.length) return undefined
-
-    const parentNestedIn = group.nestedIn.slice(0, -1)
-    for (const [_, parent] of cachedGroups.value) {
-      if (parent.nestedIn.length === parentNestedIn.length && parent.nestedIn.every((n, i) => n.key === parentNestedIn[i].key)) {
-        return parent
-      }
-      for (const [_, child] of parent.groups) {
-        if (child.nestedIn.length === parentNestedIn.length && child.nestedIn.every((n, i) => n.key === parentNestedIn[i].key)) {
-          return child
-        }
-      }
-    }
-    return undefined
-  }
-
   function findGroupLevel(group: CanvasGroup): number {
     return group.nestedIn?.length || 0
   }
@@ -230,12 +202,6 @@ export const useInfiniteGroups = (
     )
 
     await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup)))
-  }
-
-  const fetchMissingRowChunks = async (group: CanvasGroup, startIndex: number, endIndex: number) => {
-    if (!group.infiniteData) return
-    await group.infiniteData.fetchMissingChunks(startIndex, endIndex)
-    group.infiniteData.clearCache(startIndex, endIndex)
   }
 
   const clearGroupCache = (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => {
@@ -282,22 +248,11 @@ export const useInfiniteGroups = (
         sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any[],
         column_name: groupCol.column.title,
       })
-    } else if (group.infiniteData) {
-      await group.infiniteData.syncCount()
-      group.count = group.infiniteData.totalRows.value
     }
   }
 
-  const toggleExpand = async (group: CanvasGroup, startIndex = 0, endIndex = GROUP_CHUNK_SIZE - 1) => {
+  const toggleExpand = async (group: CanvasGroup) => {
     group.isExpanded = !group.isExpanded
-    if (group.isExpanded) {
-      const level = findGroupLevel(group)
-      if (level <= groupByColumns.value.length - 1) {
-        await fetchMissingGroupChunks(startIndex, endIndex, group)
-      } else if (group.infiniteData) {
-        await fetchMissingRowChunks(group, startIndex, endIndex)
-      }
-    }
   }
 
   watch(groupByColumns, () => {
@@ -314,7 +269,6 @@ export const useInfiniteGroups = (
     chunkStates,
     syncCount,
     fetchMissingGroupChunks,
-    fetchMissingRowChunks,
     clearGroupCache,
     toggleExpand,
     GROUP_CHUNK_SIZE,

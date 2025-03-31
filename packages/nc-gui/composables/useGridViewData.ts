@@ -8,6 +8,7 @@ import {
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
+import { useInfiniteGroups } from './useInfiniteGroups'
 import { type CellRange, type Row } from '#imports'
 
 export function useGridViewData(
@@ -38,6 +39,16 @@ export function useGridViewData(
   const { $api } = useNuxtApp()
 
   const isBulkOperationInProgress = ref(false)
+
+  const {
+    cachedGroups,
+    totalGroups,
+    toggleExpand,
+    groupByColumns,
+    isGroupBy,
+    syncCount: groupSyncCount,
+    fetchMissingGroupChunks,
+  } = useInfiniteGroups(viewMeta, meta, where)
 
   const {
     insertRow,
@@ -72,6 +83,7 @@ export function useGridViewData(
     navigateToSiblingRow,
     getRows,
     getDataCache,
+    groupDataCache,
   } = useInfiniteData({
     meta,
     viewMeta,
@@ -804,5 +816,15 @@ export function useGridViewData(
     updateRecordOrder,
     selectedAllRecords,
     getRows,
+    getDataCache,
+    groupDataCache,
+    // Groupby
+    cachedGroups,
+    totalGroups,
+    toggleExpand,
+    groupByColumns,
+    isGroupBy,
+    groupSyncCount,
+    fetchMissingGroupChunks,
   }
 }

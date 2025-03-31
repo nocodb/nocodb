@@ -77,6 +77,8 @@ export function useCanvasRender({
   baseColor,
   fetchMissingGroupChunks,
   elementMap,
+  getDataCache,
+  getRows,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -135,6 +137,14 @@ export function useCanvasRender({
   baseColor: Ref<string>
   fetchMissingGroupChunks: (startIndex: number, endIndex: number, canvasGroup?: CanvasGroup) => Promise<void>
   elementMap: CanvasElement
+  getDataCache: (path?: Array<number>) => {
+    cachedRows: Ref<Map<number, Row>>
+    totalRows: Ref<number>
+    chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
+    selectedRows: ComputedRef<Array<Row>>
+    isRowSortRequiredRows: ComputedRef<Array<Row>>
+  }
+  getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
@@ -709,7 +719,8 @@ export function useCanvasRender({
     },
   ) => {
     const isHover =
-      hoverRow.value?.rowIndex === row.rowMeta.rowIndex && hoverRow.value?.path?.join('-') === row.rowMeta?.groupPath?.join('-')
+      hoverRow.value?.rowIndex === row.rowMeta.rowIndex && hoverRow.value?.path?.join('-') === row.rowMeta?.path?.join('-')
+
     ctx.fillStyle = isHover ? '#F9F9FA' : '#ffffff'
     if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
@@ -891,7 +902,7 @@ export function useCanvasRender({
       rowIndex: number
       column: CanvasGridColumn
     }[] = []
-    const isHovered = hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path?.join('-') === row.rowMeta?.groupPath?.join('-')
+    const isHovered = hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path?.join('-') === row?.rowMeta?.path?.join('-')
 
     const isActiveCellInCurrentGroup = (activeCell.value?.path?.join('-') ?? '') === (generateGroupPath(group)?.join('-') ?? '')
 
@@ -1235,17 +1246,18 @@ export function useCanvasRender({
       totalWidth.value - scrollLeft.value - 256 < width.value ? totalWidth.value - scrollLeft.value - 256 : width.value
 
     let warningRow: { row: Row; yOffset: number } | null = null
+    const dataCache = getDataCache()
 
     for (let rowIdx = startRowIndex; rowIdx < endRowIndex; rowIdx++) {
       if (yOffset + rowHeight.value > 0 && yOffset < height.value) {
-        const row = cachedRows.value.get(rowIdx)
+        const row = dataCache.cachedRows.value.get(rowIdx)
 
         if (rowIdx === draggedRowIndex.value) {
           ctx.globalAlpha = 0.5
         }
 
         ctx.fillStyle =
-          hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path?.join('-') === row.rowMeta?.groupPath?.join('-')
+          hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path?.join('-') === row?.rowMeta?.path?.join('-')
             ? '#F9F9FA'
             : '#ffffff'
         ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
@@ -1826,11 +1838,14 @@ export function useCanvasRender({
     startIndex: number,
     endIndex: number,
   ): number {
-    if (!group.infiniteData) return yOffset
-    const rows = group.infiniteData.cachedRows
+    if (!group.path) return yOffset
+    const dataCache = getDataCache(group.path)
+
+    const rows = dataCache.cachedRows.value
     const { start: startColIndex, end: endColIndex } = colSlice.value
     const visibleCols = columns.value.slice(startColIndex, endColIndex)
-    group.infiniteData?.fetchMissingChunks(startIndex, endIndex)
+
+    getRows(startIndex, endIndex, group.path)
 
     let activeState: { col: any; x: number; y: number; width: number; height: number } | null = null
 
@@ -1848,7 +1863,7 @@ export function useCanvasRender({
     for (let i = startIndex; i <= endIndex; i++) {
       const row = rows?.get(i)
       const indent = level * 9
-      const isHovered = hoverRow.value?.rowIndex === i && hoverRow.value?.path.join('-') === row?.rowMeta?.groupPath?.join('-')
+      const isHovered = hoverRow.value?.rowIndex === i && hoverRow.value?.path?.join('-') === row?.rowMeta?.path?.join('-')
 
       roundedRect(ctx, indent, yOffset, adjustedWidth - 2 * indent, rowHeight.value, 0, {
         backgroundColor: isHovered ? '#F9F9FA' : '#fff',
@@ -2018,7 +2033,7 @@ export function useCanvasRender({
           // where gHeight + GROUP_PADDING is the height of previous groups before startIndex
           const relativeScrollTop = isStartGroup ? scrollTop.value - gHeight : 0
 
-          if (group.infiniteData) {
+          if (group.path) {
             // Calculate visible viewport height from current offset to container bottom
             const viewportHeight = height.value - tempCurrentOffset
             const itemHeight = rowHeight.value

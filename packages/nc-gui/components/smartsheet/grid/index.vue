@@ -65,11 +65,20 @@ const {
   selectedAllRecords,
   bulkDeleteAll,
   getRows,
+  groupDataCache,
+  getDataCache,
+  cachedGroups,
+  groupByColumns,
+  groupSyncCount,
+  fetchMissingGroupChunks,
+  toggleExpand,
+  totalGroups,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
 const rowHeight = computed(() => {
-  if ((view.value?.view as GridType)?.row_height !== undefined) {
-    switch ((view.value?.view as GridType)?.row_height) {
+  const gridView = view.value?.view as GridType
+  if (gridView?.row_height !== undefined) {
+    switch (gridView?.row_height) {
       case 0:
         return 1
       case 1:
@@ -324,6 +333,13 @@ const pGoToPreviousRow = () => {
       :row-height-enum="rowHeight"
       :selected-rows="selectedRows"
       :row-sort-required-rows="isRowSortRequiredRows"
+      :total-groups="totalGroups"
+      :get-data-cache="getDataCache"
+      :cached-groups="cachedGroups"
+      :group-by-columns="groupByColumns"
+      :toggle-expand="toggleExpand"
+      :group-sync-count="groupSyncCount"
+      :fetch-missing-group-chunks="fetchMissingGroupChunks"
       :is-bulk-operation-in-progress="isBulkOperationInProgress"
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateDlg = true"

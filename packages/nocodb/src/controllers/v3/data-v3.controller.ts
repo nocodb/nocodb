@@ -26,6 +26,7 @@ import {
   PagedResponseImpl,
   PagedResponseV3Impl,
 } from '~/helpers/PagedResponse';
+import { PREFIX_APIV3_DATA } from '~/constants/controllers';
 
 @Controller()
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
@@ -35,7 +36,7 @@ export class Datav3Controller {
     protected readonly dataTableService: DataTableService,
   ) {}
 
-  @Get('/api/v3/:baseName/tables/:modelId/records')
+  @Get(`${PREFIX_APIV3_DATA}/:modelId`)
   @Acl('dataList')
   async dataList(
     @TenantContext() context: NcContext,
@@ -56,7 +57,7 @@ export class Datav3Controller {
     res.json(responseData);
   }
 
-  @Post(['/api/v3/:baseName/tables/:modelId/records'])
+  @Post([`${PREFIX_APIV3_DATA}/:modelId`])
   @HttpCode(200)
   @Acl('dataInsert')
   async dataInsert(
@@ -74,7 +75,7 @@ export class Datav3Controller {
     });
   }
 
-  @Delete(['/api/v3/:baseName/tables/:modelId/records'])
+  @Delete([`${PREFIX_APIV3_DATA}/:modelId`])
   @Acl('dataDelete')
   async dataDelete(
     @TenantContext() context: NcContext,
@@ -90,7 +91,7 @@ export class Datav3Controller {
     });
   }
 
-  @Patch(['/api/v3/:baseName/tables/:modelId/records'])
+  @Patch(['/api/v3/:baseName/:modelId'])
   @Acl('dataUpdate')
   async dataUpdate(
     @TenantContext() context: NcContext,
@@ -106,8 +107,7 @@ export class Datav3Controller {
     });
   }
 
-  // TODO: modelId can be omitted
-  @Get(['/api/v3/:baseName/tables/:modelId/links/:columnId/records/:rowId'])
+  @Get([`${PREFIX_APIV3_DATA}/:modelId/nested/:columnId/:rowId`])
   @Acl('nestedDataList')
   async nestedDataList(
     @TenantContext() context: NcContext,
@@ -136,8 +136,7 @@ export class Datav3Controller {
     });
   }
 
-  // TODO: modelId can be omitted
-  @Post(['/api/v3/:baseName/tables/:modelId/links/:columnId/records/:rowId'])
+  @Post([`${PREFIX_APIV3_DATA}/:modelId/links/:columnId/:rowId`])
   @Acl('nestedDataLink')
   async nestedLink(
     @TenantContext() context: NcContext,
@@ -167,7 +166,7 @@ export class Datav3Controller {
   }
 
   // TODO: modelId can be omitted
-  @Delete(['/api/v3/:baseName/tables/:modelId/links/:columnId/records/:rowId'])
+  @Delete([`${PREFIX_APIV3_DATA}/:modelId/links/:columnId/:rowId`])
   @Acl('nestedDataUnlink')
   async nestedUnlink(
     @TenantContext() context: NcContext,
@@ -190,7 +189,7 @@ export class Datav3Controller {
     });
   }
 
-  @Get(['/api/v3/:baseName/tables/:modelId/records/:rowId'])
+  @Get([`${PREFIX_APIV3_DATA}/:modelId/:rowId`])
   @Acl('dataRead')
   async dataRead(
     @TenantContext() context: NcContext,
@@ -208,7 +207,7 @@ export class Datav3Controller {
     });
   }
 
-  @Get(['/api/v3/:baseName/tables/:modelId/records/count'])
+  @Get([`${PREFIX_APIV3_DATA}/:modelId/count`])
   @Acl('dataCount')
   async dataCount(
     @TenantContext() context: NcContext,

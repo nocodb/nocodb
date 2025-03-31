@@ -6,13 +6,14 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
+import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class HooksController {
   constructor(private readonly hooksService: HooksService) {}
 
-  @Get('/api/v3/:baseName/meta/tables/:tableId/hooks')
+  @Get(`${PREFIX_APIV3_METABASE}/tables/:tableId/hooks`)
   @Acl('hookList')
   async hookList(
     @TenantContext() context: NcContext,

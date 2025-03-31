@@ -445,6 +445,7 @@ type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorTy
 
 interface CellRenderer {
   render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x?: number; y?: number }
+  renderEmpty?: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x?: number; y?: number }
   handleClick?: (options: {
     event: MouseEvent
     mousePosition: { x: number; y: number }

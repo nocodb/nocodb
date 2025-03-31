@@ -21,6 +21,8 @@ const currentCellRef = inject(CurrentCellInj, ref())
 
 const { width } = useElementSize(wapperRef)
 
+const { showNull } = useGlobal()
+
 const isNumericField = computed(() => {
   return isNumericFieldType(column.value, null)
 })
@@ -51,7 +53,10 @@ provide(ColumnInj, column)
       'nc-grid-numeric-cell-right': isGrid && isNumericField && !isExpandedFormOpen && !isRating(column),
     }"
   >
-    <LazyCellCheckbox v-if="isBoolean(column)" :model-value="cellValue" />
+    <template v-if="showNull && (ncIsNull(cellValue) || ncIsUndefined(cellValue))">
+      <LazyCellText model-value="NULL" />
+    </template>
+    <LazyCellCheckbox v-else-if="isBoolean(column)" :model-value="cellValue" />
     <LazyCellCurrency v-else-if="isCurrency(column)" :model-value="cellValue" />
     <LazyCellDecimal v-else-if="isDecimal(column)" :model-value="cellValue" />
     <div v-else-if="isPercent(column)" class="h-[30px] min-h-[30px]">

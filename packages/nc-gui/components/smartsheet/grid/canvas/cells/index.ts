@@ -34,6 +34,7 @@ import { ButtonCellRenderer } from './Button'
 import { LtarCellRenderer } from './LTAR'
 import { FormulaCellRenderer } from './Formula'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
+import { NullCellRenderer } from './Null'
 
 const CLEANUP_INTERVAL = 1000
 
@@ -60,6 +61,7 @@ export function useGridCellHandler(params: {
   provide(CanvasCellEventDataInj, canvasCellEvents)
 
   const baseStore = useBase()
+  const { showNull } = useGlobal()
   const { isMssql, isMysql, isXcdbBase, isPg } = baseStore
   const { sqlUis } = storeToRefs(baseStore)
 
@@ -177,127 +179,74 @@ export function useGridCellHandler(params: {
 
     // TODO: Reset all the styles here
     ctx.textAlign = 'left'
+
+    let cellRenderer: CellRenderFn
+    const shouldRenderNull = showNull && (ncIsUndefined(value) || ncIsNull(value))
     if (cellType) {
-      if (!ncIsUndefined(value) && !ncIsNull(value)) {
-        return cellType.render(ctx, {
-          value,
-          row,
-          column,
-          x,
-          y,
-          width,
-          height,
-          selected,
-          pv,
-          readonly: readonly || !params.hasEditPermission.value,
-          spriteLoader,
-          imageLoader,
-          actionManager,
-          tableMetaLoader,
-          isMssql,
-          isMysql,
-          isPg,
-          isXcdbBase,
-          t,
-          padding,
-          relatedColObj,
-          relatedTableMeta,
-          renderCell,
-          meta,
-          metas: metas.value,
-          tag,
-          fontSize,
-          textAlign,
-          mousePosition,
-          textColor,
-          pk,
-          disabled,
-          sqlUis: sqlUis.value,
-          setCursor,
-          cellRenderStore,
-          baseUsers: baseUsers.value,
-          isUnderLookup,
-          isPublic: isPublic.value,
-        })
+      if (!shouldRenderNull) {
+        cellRenderer = cellType.render
       } else {
         if (cellType.renderEmpty) {
-          return cellType.render(ctx, {
-            value,
-            row,
-            column,
-            x,
-            y,
-            width,
-            height,
-            selected,
-            pv,
-            readonly: readonly || !params.hasEditPermission.value,
-            spriteLoader,
-            imageLoader,
-            actionManager,
-            tableMetaLoader,
-            isMssql,
-            isMysql,
-            isPg,
-            isXcdbBase,
-            t,
-            padding,
-            relatedColObj,
-            relatedTableMeta,
-            renderCell,
-            meta,
-            metas: metas.value,
-            tag,
-            fontSize,
-            textAlign,
-            mousePosition,
-            textColor,
-            pk,
-            disabled,
-            sqlUis: sqlUis.value,
-            setCursor,
-            cellRenderStore,
-            baseUsers: baseUsers.value,
-            isUnderLookup,
-            isPublic: isPublic.value,
-          })
+          cellRenderer = cellType.renderEmpty
         } else {
-          return renderSingleLineText(ctx, {
-            x: x + padding,
-            y,
-            text: 'NULL',
-            fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-            fillStyle: '#d5d5d9',
-            height,
-            py: padding,
-            cellRenderStore,
-          })
+          cellRenderer = NullCellRenderer.render
         }
       }
+    } else if (shouldRenderNull) {
+      cellRenderer = NullCellRenderer.render
+    }
+    if (cellRenderer!) {
+      return cellRenderer(ctx, {
+        value,
+        row,
+        column,
+        x,
+        y,
+        width,
+        height,
+        selected,
+        pv,
+        readonly: readonly || !params.hasEditPermission.value,
+        spriteLoader,
+        imageLoader,
+        actionManager,
+        tableMetaLoader,
+        isMssql,
+        isMysql,
+        isPg,
+        isXcdbBase,
+        t,
+        padding,
+        relatedColObj,
+        relatedTableMeta,
+        renderCell,
+        meta,
+        metas: metas.value,
+        tag,
+        fontSize,
+        textAlign,
+        mousePosition,
+        textColor,
+        pk,
+        disabled,
+        sqlUis: sqlUis.value,
+        setCursor,
+        cellRenderStore,
+        baseUsers: baseUsers.value,
+        isUnderLookup,
+        isPublic: isPublic.value,
+      })
     } else {
-      if (!ncIsUndefined(value) && !ncIsNull(value)) {
-        return renderSingleLineText(ctx, {
-          x: x + padding,
-          y,
-          text: value?.toString() ?? '',
-          fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-          fillStyle: pv ? '#3366FF' : textColor,
-          height,
-          py: padding,
-          cellRenderStore,
-        })
-      } else {
-        return renderSingleLineText(ctx, {
-          x: x + padding,
-          y,
-          text: 'NULL',
-          fontFamily: `${pv ? 600 : 500} 13px Manrope`,
-          fillStyle: '#d5d5d9',
-          height,
-          py: padding,
-          cellRenderStore,
-        })
-      }
+      return renderSingleLineText(ctx, {
+        x: x + padding,
+        y,
+        text: value?.toString() ?? '',
+        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        fillStyle: pv ? '#3366FF' : textColor,
+        height,
+        py: padding,
+        cellRenderStore,
+      })
     }
   }
 

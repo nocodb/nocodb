@@ -444,7 +444,7 @@ type CursorType = 'auto' | 'pointer' | 'col-resize' | 'crosshair'
 type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) => void
 
 interface CellRenderFn {
-  (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x?: number; y?: number }
+  (ctx: CanvasRenderingContext2D, options: CellRendererOptions): void | { x?: number; y?: number }
 }
 
 interface CellRenderer {

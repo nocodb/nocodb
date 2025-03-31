@@ -249,7 +249,7 @@ ${'VARIATIONS :'.bold}
         - If database doesnt exist - it will be created.
 
         ${'xc gen.module blog.comment'.bold}
-        - Multiple tables can be created with '.' seperated files
+        - Multiple tables can be created with '.' separated files
         - Creates blog and comment table in primary database with all component files
 
         ${'xc gen.module blog --dbAlias secondary'.bold}
@@ -585,7 +585,7 @@ ${'ARGS :'.bold}
   The following are arguments to function:
   ${
     'model(s)'.bold
-  }   Model name | Multiple models with dot seperated | $ - means all models
+  }   Model name | Multiple models with dot separated | $ - means all models
   ${
     'userType(s)'.bold
   }User role name | Multiple user role names with dot separated | $ - means all user models

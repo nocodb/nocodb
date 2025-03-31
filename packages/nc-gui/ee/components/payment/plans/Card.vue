@@ -149,7 +149,7 @@ const isHigherPlan = (plan: string) => {
         <div
           v-for="desc in plan.descriptions"
           :key="desc"
-          class="flex items-center text-nc-content-gray-subtle2 text-sm leading-[24px] font-weight-500"
+          class="flex items-start text-nc-content-gray-subtle2 text-sm leading-[24px] font-weight-500"
         >
           <span class="mr-2">•</span>
           <span>{{ desc }}</span>

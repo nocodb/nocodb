@@ -1,29 +1,30 @@
 <script lang="ts" setup>
-const props = withDefaults(
-  defineProps<{
-    visible: boolean
-    width?: string | number
-    height?: string | number
-    size?: 'small' | 'medium' | 'large' | keyof typeof modalSizes
-    destroyOnClose?: boolean
-    maskClosable?: boolean
-    showSeparator?: boolean
-    wrapClassName?: string
-    closable?: boolean
-    ncModalClassName?: string
-    stopEventPropogation?: boolean
-  }>(),
-  {
-    size: 'medium',
-    destroyOnClose: true,
-    maskClosable: true,
-    showSeparator: true,
-    wrapClassName: '',
-    closable: false,
-    ncModalClassName: '',
-    stopEventPropogation: false,
-  },
-)
+export interface NcModalProps {
+  visible: boolean
+  width?: string | number
+  height?: string | number
+  size?: 'small' | 'medium' | 'large' | keyof typeof modalSizes
+  destroyOnClose?: boolean
+  maskClosable?: boolean
+  showSeparator?: boolean
+  wrapClassName?: string
+  closable?: boolean
+  ncModalClassName?: string
+  stopEventPropogation?: boolean
+  class?: string
+}
+
+const props = withDefaults(defineProps<NcModalProps>(), {
+  size: 'medium',
+  destroyOnClose: true,
+  maskClosable: true,
+  showSeparator: true,
+  wrapClassName: '',
+  closable: false,
+  ncModalClassName: '',
+  stopEventPropogation: false,
+  class: '',
+})
 
 const emits = defineEmits(['update:visible'])
 
@@ -128,7 +129,7 @@ if (stopEventPropogation.value) {
 <template>
   <a-modal
     v-model:visible="visible"
-    :class="{ active: visible }"
+    :class="[{ active: visible }, props.class]"
     :width="width"
     :centered="true"
     :closable="closable"

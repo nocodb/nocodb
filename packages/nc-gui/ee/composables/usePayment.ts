@@ -1,6 +1,7 @@
 import { type Stripe, type StripeCheckoutSession, loadStripe } from '@stripe/stripe-js'
 import type { PlanTitles } from 'nocodb-sdk'
 import { PlanMeta } from 'nocodb-sdk'
+import NcModalConfirm from '../../components/nc/ModalConfirm.vue'
 
 export interface PaymentPlan {
   id: string
@@ -215,25 +216,47 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       paymentState.value = PaymentState.PAYMENT
     } else {
       if (plan.title === PlanMeta.Free.title) {
-        Modal.confirm({
-          title: 'Downgrade to free plan?',
-          content: 'You will lose access to premium features.',
-          okText: t('general.yes'),
-          cancelText: t('general.no'),
-          onOk: async () => {
+        const isOpen = ref(true)
+        const { close } = useDialog(NcModalConfirm, {
+          'visible': isOpen,
+          'title': 'Downgrade to free plan?',
+          'content': 'You will lose access to premium features.',
+          'okText': t('general.yes'),
+          'cancelText': t('general.no'),
+          'onOk': async () => {
+            closeDialog1()
+
             await cancelSubscription()
           },
+          'onCancel': closeDialog1,
+          'update:visible': closeDialog1,
         })
+
+        function closeDialog1() {
+          isOpen.value = false
+          close(1000)
+        }
       } else {
-        Modal.confirm({
-          title: `Change your plan to ${plan.title}?`,
-          content: 'You will be charged immediately for the new plan.',
-          okText: t('general.yes'),
-          cancelText: t('general.no'),
-          onOk: async () => {
+        const isOpen = ref(true)
+        const { close } = useDialog(NcModalConfirm, {
+          'visible': isOpen,
+          'title': `Change your plan to ${plan.title}?`,
+          'content': 'You will be charged immediately for the new plan.',
+          'okText': t('general.yes'),
+          'cancelText': t('general.no'),
+          'onCancel': closeDialog,
+          'onOk': async () => {
+            closeDialog()
+
             await updateSubscription(plan.id)
           },
+          'update:visible': closeDialog,
         })
+
+        function closeDialog() {
+          isOpen.value = false
+          close(1000)
+        }
       }
     }
   }

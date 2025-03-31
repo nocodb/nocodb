@@ -25,29 +25,29 @@ const CHUNK_SIZE = 50
 const MAX_ROWS = 200
 
 export function useCopyPaste({
-  totalRows,
   activeCell,
   columns,
   scrollToCell,
   selection,
   editEnabled,
-  cachedRows,
   expandRows,
   view,
   meta,
   syncCellData,
   bulkUpsertRows,
   bulkUpdateRows,
-  fetchChunk,
   updateOrSaveRow,
   getRows,
+  getDataCache,
 }: {
-  totalRows: Ref<number>
-  activeCell: Ref<{ row: number; column: number }>
+  activeCell: Ref<{
+    row?: number
+    column?: number
+    path?: Array<number>
+  }>
   columns: ComputedRef<CanvasGridColumn[]>
   scrollToCell: (row?: number, column?: number, path?: Array<number>) => void
   selection: Ref<CellRange>
-  cachedRows: Ref<Map<number, Row>>
   editEnabled: Ref<{
     rowIndex: number
     column: ColumnType
@@ -80,22 +80,32 @@ export function useCopyPaste({
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
+    undo?: boolean,
+    path?: Array<number>,
   ) => Promise<void>
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     undo?: boolean,
+    path?: Array<number>,
   ) => Promise<void>
-  fetchChunk: (chunkId: number) => Promise<void>
   updateOrSaveRow: (
     row: Row,
     property?: string,
     ltarState?: Record<string, any>,
     args?: { metaValue?: TableType; viewMetaValue?: ViewType },
     beforeRow?: string,
+    path?: Array<number>,
   ) => Promise<any>
-  getRows: (start: number, end: number) => Promise<Row[]>
+  getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
+  getDataCache: (path?: Array<number>) => {
+    cachedRows: Ref<Map<number, Row>>
+    totalRows: Ref<number>
+    chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
+    selectedRows: ComputedRef<Array<Row>>
+    isRowSortRequiredRows: ComputedRef<Array<Row>>
+  }
 }) {
   const { $api } = useNuxtApp()
   const { isDataReadOnly } = useRoles()
@@ -180,6 +190,10 @@ export function useCopyPaste({
     if (isNcDropdownOpen()) return
 
     e.preventDefault()
+
+    const dataCache = getDataCache(activeCell.value.path)
+
+    const { totalRows, cachedRows } = dataCache
 
     // Replace \" with " in clipboard data
     let clipboardData = e.clipboardData?.getData('text/plain') || ''
@@ -774,13 +788,17 @@ export function useCopyPaste({
     )
   }
 
-  async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
+  async function clearCell(ctx: { row: number; col: number; path?: Array<number> } | null, skipUpdate = false) {
     // If the data is readonly, return
     // If the cell is not available, return
     // If the user doesn't have edit permission, return
     // If the cell is a virtual column and not Links/Ltar, return
 
     if (!ctx) return
+
+    const dataCache = getDataCache(ctx?.path)
+    const { cachedRows } = dataCache
+
     const col = columns.value[ctx.col]
     const rowObj = cachedRows.value.get(ctx.row)
 
@@ -921,7 +939,7 @@ export function useCopyPaste({
     }
   }
 
-  async function copyValue(ctx?: Cell) {
+  async function copyValue(ctx?: Cell, path?: Array<number> = []) {
     try {
       if (selection.value.start !== null && selection.value.end !== null && !selection.value.isSingleCell()) {
         const cprows = await getRows(selection.value.start.row, selection.value.end.row)
@@ -931,13 +949,15 @@ export function useCopyPaste({
         await copyTable(cprows, cpcols)
         message.success(t('msg.info.copiedToClipboard'))
       } else {
+        const dataCache = getDataCache(path)
+
         // if copy was called with context (right click position) - copy value from context
         // else if there is just one selected cell, copy it's value
         const cpRow = ctx?.row ?? activeCell.value.row
         const cpCol = ctx?.col ?? activeCell.value.column
 
         if (cpRow != null && cpCol != null) {
-          const rowObj = unref(cachedRows).get(cpRow)
+          const rowObj = unref(dataCache.cachedRows).get(cpRow)
           const columnObj = unref(fields)[cpCol]
           if (!rowObj || !columnObj) return
 
@@ -952,7 +972,8 @@ export function useCopyPaste({
           message.success(t('msg.info.copiedToClipboard'))
         }
       }
-    } catch {
+    } catch(e) {
+      console.log(e)
       message.error(t('msg.error.copyToClipboardError'))
     }
   }

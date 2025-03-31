@@ -12,7 +12,7 @@ import { NcContext } from '~/interface/config';
 export class HooksController {
   constructor(private readonly hooksService: HooksService) {}
 
-  @Get('/api/v3/meta/tables/:tableId/hooks')
+  @Get('/api/v3/:baseName/meta/tables/:tableId/hooks')
   @Acl('hookList')
   async hookList(
     @TenantContext() context: NcContext,

@@ -485,6 +485,7 @@
       "nextInvoice": "Next Invoice",
       "nextInvoiceAmount": "Next Invoice Amount",
       "numberOfBilledUsers": "Number of Billed Users",
+      "numberOfBillableUsers": "Number of Billable Users",
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
       "apiCallsMonthly": "API calls (monthly)"

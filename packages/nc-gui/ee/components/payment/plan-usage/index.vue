@@ -35,6 +35,10 @@ const nextInvoiceInfo = computed(() => {
     }).format(activeSubscription.value.next_invoice_amount / 100),
   }
 })
+
+const currentPlanTitle = computed(() => {
+  return activeWorkspace.value?.payment?.plan.title ?? PlanTitles.FREE
+})
 </script>
 
 <template>
@@ -69,7 +73,7 @@ const nextInvoiceInfo = computed(() => {
         color: activePlanMeta?.primary,
       }"
     >
-      <PaymentPlanUsageRow :plan-meta="activePlanMeta">
+      <PaymentPlanUsageRow v-if="currentPlanTitle !== PlanTitles.FREE" :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.nextInvoice') }} </template>
         <template #value>
           <div v-if="!activeSubscription">-</div>
@@ -80,7 +84,13 @@ const nextInvoiceInfo = computed(() => {
         >
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
-        <template #label> {{ $t('objects.currentPlan.numberOfBilledUsers') }} </template>
+        <template #label>
+          {{
+            currentPlanTitle === PlanTitles.FREE
+              ? $t('objects.currentPlan.numberOfBillableUsers')
+              : $t('objects.currentPlan.numberOfBilledUsers')
+          }}
+        </template>
         <template #value>{{ workspaceSeatCount }} </template>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">

@@ -311,7 +311,7 @@
     "unread": "未读",
     "shared": "共享",
     "organization": "组织",
-    "all": "All"
+    "all": "全部"
   },
   "objects": {
     "script": "脚本",
@@ -513,8 +513,8 @@
     "isNotNull": "不为空（Not Null）"
   },
   "title": {
-    "confirmSnapshotRestore": "Confirm Snapshot Restore",
-    "urlFilters": "URL Filters",
+    "confirmSnapshotRestore": "确认恢复快照",
+    "urlFilters": "URL过滤",
     "creatingScript": "创建脚本",
     "searchWebhook": "搜索网络钩子",
     "webcam": "网络摄像头",
@@ -607,7 +607,7 @@
     "teamAndSettings": "团队和设置",
     "apiDocs": "API 文档",
     "importFromAirtable": "从 Airtable 导入",
-    "importFromNocoDB": "Import From NocoDB",
+    "importFromNocoDB": "从 NocoDB 导入",
     "generateToken": "生成令牌",
     "APIsAndSupport": "API与支持",
     "helpCenter": "帮助中心",
@@ -616,7 +616,7 @@
     "quickImportFrom": "快速导入自",
     "quickImport": "快速导入",
     "quickImportAirtable": "从 Airtable 导入",
-    "quickImportNocoDB": "Import from NocoDB",
+    "quickImportNocoDB": "从 NocoDB 导入",
     "quickImportCSV": "Import CSV",
     "quickImportExcel": "Import Excel",
     "quickImportJSON": "Import Json",
@@ -681,13 +681,13 @@
     "thisPageDoesNotExist": "此页面不存在",
     "customUrl": "自定义URL",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
-    "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
-    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
+    "youAreLeavingNocoDB": "您将离开 NocoDB",
+    "onlyProceedIfYouTrustThisLink": "仅在您信任此链接时继续。",
+    "reAssignViewModalSubtitle": "一旦重新分配，当前所有者将无法编辑视图配置。"
   },
   "labels": {
-    "restoringSnapshot": "Restoring Snapshot",
-    "note": "Note:",
+    "restoringSnapshot": "恢复快照",
+    "note": "备注：",
     "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",
     "snapshotRestoreMessage2": "On restore, a new base will be created in the selected workspace.",
     "snapshotRestoreConfirmation": "Are you sure you want to restore this base snapshot.",
@@ -1153,12 +1153,12 @@
     "rowId": "行 ID",
     "showJsonPayload": "显示JSON负载",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
-    "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link",
-    "currentOwner": "Current owner",
-    "newOwner": "New owner",
-    "addFromUrl": "Add from URL",
-    "enterJson": "Enter JSON",
+    "fillForm": "填写表单",
+    "proceedToLink": "前往链接",
+    "currentOwner": "当前所有者",
+    "newOwner": "新所有者",
+    "addFromUrl": "从 URL 添加",
+    "enterJson": "输入JSON",
     "airtableBase": "Airtable base"
   },
   "activity": {
@@ -1416,7 +1416,7 @@
       "addOrEditStack": "添加/编辑分类标签"
     },
     "map": {
-      "googleMaps": "Google Maps",
+      "googleMaps": "Google 地图",
       "osm": "OSM",
       "mappedBy": "映射字段",
       "chooseMappingField": "选择映射字段",
@@ -1429,7 +1429,7 @@
     "clearForm": "清除表单",
     "addFieldFromFormView": "添加字段",
     "selectAllFields": "选择所有字段",
-    "deselectAllFields": "Deselect all fields",
+    "deselectAllFields": "取消选择所有字段",
     "preFilledFields": {
       "title": "启用预填充",
       "default": "默认",

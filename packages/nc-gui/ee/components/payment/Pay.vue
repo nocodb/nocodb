@@ -56,26 +56,28 @@ onUnmounted(() => {
 <template>
   <div v-if="selectedPlan" class="flex flex-col w-full">
     <div class="flex flex-col w-full gap-6">
-      <div v-if="paymentState && paymentState !== PaymentState.SELECT_PLAN" class="flex max-w-[888px] mx-auto w-full">
-        <NcButton
-          type="text"
-          size="small"
-          inner-class="!gap-1"
-          class="!text-nc-content-brand !hover:text-brand-600"
-          @click="onReset"
-        >
-          <template #icon>
-            <GeneralIcon icon="chevronLeft" class="h-4 w-4" />
-          </template>
-          <div>{{ $t('labels.back') }}</div>
-        </NcButton>
-      </div>
-      <div class="text-2xl text-nc-content-gray-emphasis font-weight-700 max-w-[888px] mx-auto w-full flex">
-        {{
-          $t('labels.upgradeToPlan', {
-            plan: $t(`objects.paymentPlan.${selectedPlan.title}`),
-          })
-        }}
+      <div class="sticky top-0 bg-white pt-6 -mt-6">
+        <div v-if="paymentState && paymentState !== PaymentState.SELECT_PLAN" class="flex max-w-[888px] mx-auto w-full">
+          <NcButton
+            type="text"
+            size="small"
+            inner-class="!gap-1"
+            class="!text-nc-content-brand !hover:text-brand-600"
+            @click="onReset"
+          >
+            <template #icon>
+              <GeneralIcon icon="chevronLeft" class="h-4 w-4" />
+            </template>
+            <div>{{ $t('labels.back') }}</div>
+          </NcButton>
+        </div>
+        <div class="text-2xl text-nc-content-gray-emphasis font-weight-700 max-w-[888px] mx-auto w-full flex">
+          {{
+            $t('labels.upgradeToPlan', {
+              plan: $t(`objects.paymentPlan.${selectedPlan.title}`),
+            })
+          }}
+        </div>
       </div>
       <div id="checkout" class="w-full">
         <!-- Checkout inserts the payment form here -->

@@ -113,24 +113,34 @@ const rules = {
   modalInput: [{ required: true, message: 'input is required.' }],
 }
 
-const saveChanges = async () => {
+const saveChanges = async (isIconUpdate = false) => {
   if (!currentWorkspace.value || !currentWorkspace.value.id || isWorkspaceUpdating.value) return
 
-  const valid = await formValidator.value.validate()
+  if (!isIconUpdate) {
+    const valid = await formValidator.value.validate()
 
-  if (!valid) return
+    if (!valid) {
+      isErrored.value = true
+      return
+    } else {
+      isErrored.value = false
+    }
+  }
 
   isWorkspaceUpdating.value = true
   isErrored.value = false
 
   try {
     await updateWorkspace(currentWorkspace.value?.id, {
-      title: form.title,
-      meta: {
-        ...(currentWorkspace.value?.meta ? currentWorkspace.value.meta : {}),
-        icon: form.iconType === IconType.IMAGE && ncIsObject(form.icon) ? { ...form.icon, data: '' } : form.icon,
-        iconType: form.iconType,
-      },
+      ...(isIconUpdate
+        ? {
+            meta: {
+              ...(currentWorkspace.value?.meta ? currentWorkspace.value.meta : {}),
+              icon: form.iconType === IconType.IMAGE && ncIsObject(form.icon) ? { ...form.icon, data: '' } : form.icon,
+              iconType: form.iconType,
+            },
+          }
+        : { title: form.title }),
     })
   } catch (e: any) {
     console.error(e)
@@ -152,7 +162,7 @@ const handleDelete = () => {
 watch(
   currentWorkspace,
   () => {
-    form.title = currentWorkspace.value?.title ?? ''
+    form.title = form.title || (currentWorkspace.value?.title ?? '')
     form.icon = currentWorkspace.value?.meta?.icon ?? ''
     form.iconType = currentWorkspace.value?.meta?.iconType ?? ''
   },
@@ -191,14 +201,14 @@ const onCancel = () => {
       <div class="font-bold text-base text-nc-content-gray-emphasis">
         {{ $t('objects.workspace') }} {{ $t('general.appearance') }}
       </div>
-      <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="saveChanges">
+      <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="() => saveChanges()">
         <div class="flex gap-4 mt-6">
           <div>
             <GeneralIconSelector
               v-model:icon="form.icon"
               v-model:icon-type="form.iconType"
               v-model:image-cropper-data="imageCropperData"
-              @submit="saveChanges"
+              @submit="() => saveChanges(true)"
             >
               <template #default="{ isOpen }">
                 <div

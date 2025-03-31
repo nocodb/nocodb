@@ -115,7 +115,7 @@ watch(
     }
 
     if (!isErrored.value) {
-      form.value.title = user.value.display_name ?? ''
+      form.value.title = form.value.title || (user.value.display_name ?? '')
     }
 
     form.value.email = user.value.email

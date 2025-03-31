@@ -127,7 +127,7 @@ watch(
     }
 
     if (!isErrored.value) {
-      form.value.title = val?.title
+      form.value.title = form.value.title || (val?.title ?? '')
     }
 
     form.value.icon = val.meta?.icon ?? ''

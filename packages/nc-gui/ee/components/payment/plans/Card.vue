@@ -42,7 +42,7 @@ const isHigherPlan = (plan: string) => {
 
 <template>
   <div
-    class="nc-payment-plan-card border-1 border-nc-border-gray-medium p-4 rounded-xl w-[288px] flex flex-col gap-4 transition-shadow duration-300 hover:!shadow-md"
+    class="nc-payment-plan-card border-1 border-nc-border-gray-medium p-4 rounded-xl flex flex-col gap-4 transition-shadow duration-300 hover:!shadow-md"
   >
     <div class="flex flex-col">
       <div class="flex items-center gap-4">

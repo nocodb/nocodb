@@ -20,7 +20,7 @@ onMounted(async () => {
   <div class="flex flex-col gap-3">
     <div class="text-base font-bold text-nc-content-gray">{{ $t('general.all') }} {{ $t('general.plans') }}</div>
     <PaymentPlansSelectMode :value="paymentMode" :discount="10" @change="onPaymentModeChange" />
-    <div class="flex gap-4 flex-wrap justify-center">
+    <div class="w-full grid gap-4 grid-cols-[repeat(auto-fill,minmax(288px,1fr))]">
       <PaymentPlansCard v-for="plan in filteredPlansAvailable" :key="plan.title" :plan="plan" :active-plan="activePlan?.title" />
     </div>
 

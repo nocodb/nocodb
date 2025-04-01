@@ -259,6 +259,7 @@ export class WorkspacesController {
   async deleteDeprecatedWorkspaces() {
     try {
       await this.workspacesService.deleteDeprecatedWorkspaces();
+      await this.workspacesService.prepopulateWorkspaces();
     } catch (e) {
       this.logger.error(e);
       NcError.internalServerError(

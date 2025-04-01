@@ -44,9 +44,10 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
       excludeHooks?: boolean;
       excludeViews?: boolean;
       excludeComments?: boolean;
+      excludeUsers?: boolean;
     };
   }) {
-    if (!params.options?.excludeData) {
+    if (!params.options?.excludeData && !params.options?.excludeUsers) {
       // we get all ws users and not just base users
       // because non-base users can be assigned as value in user field
       const wsUsers = await this.workspaceUsersService.list({

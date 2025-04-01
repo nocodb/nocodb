@@ -57,10 +57,10 @@ export class WorkspacesService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap() {
-    await this.prepopulateWorkspaces(null);
+    await this.prepopulateWorkspaces();
   }
 
-  async prepopulateWorkspaces(req: NcRequest) {
+  async prepopulateWorkspaces() {
     if (process.env.NC_SEED_WORKSPACE === 'true') {
       const templateBase = await Base.get(
         {
@@ -81,7 +81,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       });
 
       while (preWorkspacesCount < preCount) {
-        await this.createPrepopulatedWorkspace(templateBase, req);
+        await this.createPrepopulatedWorkspace(templateBase);
         preWorkspacesCount = await Workspace.count({
           fk_user_id: mockUser.id,
         });
@@ -89,7 +89,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     }
   }
 
-  async createPrepopulatedWorkspace(templateBase: Base, req: NcRequest) {
+  async createPrepopulatedWorkspace(templateBase: Base) {
     const workspace = await Workspace.insert({
       title: 'Untitled Workspace',
       fk_user_id: mockUser.id,
@@ -113,7 +113,10 @@ export class WorkspacesService implements OnApplicationBootstrap {
         type: 'database',
       } as any,
       user: mockUser,
-      req,
+      req: {
+        user: mockUser,
+        clientIp: 'system',
+      },
     });
 
     await this.jobsService.add(JobTypes.DuplicateBase, {
@@ -124,7 +127,9 @@ export class WorkspacesService implements OnApplicationBootstrap {
       baseId: templateBase.id,
       sourceId: source.id,
       dupProjectId: dupBase.id,
-      options: {},
+      options: {
+        excludeUsers: true,
+      },
       req: {
         user: mockUser,
         clientIp: 'system',
@@ -390,7 +395,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
       if (workspace.fk_user_id === mockUser.id) {
         // prepopulate more workspaces if required
-        this.prepopulateWorkspaces(param.req as any).catch((e) => {
+        this.prepopulateWorkspaces().catch((e) => {
           this.logger.error('### Failed to prepopulate workspace');
           this.logger.error(e);
         });

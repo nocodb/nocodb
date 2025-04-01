@@ -249,7 +249,7 @@ export class AppHooksListenerService
     const { clientId, req = { user: {} } } = data;
 
     // skip audit if explicitly set, this is to bypass events for snapshot and any similar audits
-    if ((<NcRequest>req).skipAudit) {
+    if ((<NcRequest>req)?.skipAudit) {
       return;
     }
 

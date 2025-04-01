@@ -73,7 +73,7 @@ export function useCopyPaste({
   }>
   view: ComputedRef<ViewType | undefined>
   meta: Ref<TableType>
-  syncCellData: (ctx: { row: number; col?: number; updatedColumnTitle?: string }) => Promise<void>
+  syncCellData: (ctx: { row: number; col?: number; updatedColumnTitle?: string }, path?: Array<number>) => Promise<void>
   bulkUpsertRows: (
     insertRows: Row[],
     updateRows: Row[],
@@ -441,7 +441,10 @@ export function useCopyPaste({
               ? extractPkFromRow(pasteVal.value, (relatedTableMeta as any)!.columns!)
               : null
 
-            return await syncCellData?.({ ...activeCell.value, updatedColumnTitle: foreignKeyColumn.title })
+            return await syncCellData?.(
+              { ...activeCell.value, updatedColumnTitle: foreignKeyColumn.title },
+              activeCell?.value?.path,
+            )
           }
 
           // Handle many-to-many column paste
@@ -538,7 +541,7 @@ export function useCopyPaste({
 
                       rowObj.row[columnObj.title!] = value
 
-                      await syncCellData?.(activeCell)
+                      await syncCellData?.(activeCell, activeCell?.value?.path)
                     }
                   },
                   args: [clone(activeCell.value), clone(columnObj), clone(rowObj), clone(pasteVal.value), result],
@@ -578,7 +581,7 @@ export function useCopyPaste({
 
                       rowObj.row[columnObj.title!] = value
 
-                      await syncCellData?.(activeCell)
+                      await syncCellData?.(activeCell.activeCell?.value?.path)
                     }
                   },
                   args: [clone(activeCell.value), clone(columnObj), clone(rowObj), clone(oldCellValue), result],
@@ -587,7 +590,7 @@ export function useCopyPaste({
               })
             }
 
-            return await syncCellData?.(activeCell.value)
+            return await syncCellData?.(activeCell.value, activeCell?.value?.path)
           }
 
           if (!isPasteable(rowObj, columnObj, true)) {
@@ -637,7 +640,7 @@ export function useCopyPaste({
             rowObj.row[columnObj.title!] = pasteValue
           }
 
-          await syncCellData?.(activeCell.value)
+          await syncCellData?.(activeCell.value, activeCell?.value?.path)
         } else {
           const { start, end } = selection.value
 

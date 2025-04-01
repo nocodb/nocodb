@@ -1,28 +1,19 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { expect } from 'chai';
-import { customColumns } from '../../../factory/column';
-import { createBulkRows, listRow, rowMixedValue } from '../../../factory/row';
-import { createTable } from '../../../factory/table';
-import { beforeEach as dataApiV3BeforeEach } from './beforeEach';
+import {
+  beforeEachTextBased,
+  beforeEach as dataApiV3BeforeEach,
+} from './beforeEach';
 import { ncAxios } from './ncAxios';
-import type init from '../../../init';
+import type { Column, Model } from '../../../../../src/models';
+import type { ITestContext } from './beforeEach';
 import type { INcAxios } from './ncAxios';
-import type { Base, Column, Model } from '../../../../../src/models';
 
 const API_VERSION = 'v3';
 
 describe('dataApiV3', () => {
   describe('post-insert', () => {
-    let testContext: {
-      context: Awaited<ReturnType<typeof init>>;
-      ctx: {
-        workspace_id: any;
-        base_id: any;
-      };
-      sakilaProject: Base;
-      base: Base;
-      countryTable: Model;
-      cityTable: Model;
-    };
+    let testContext: ITestContext;
     let testAxios: INcAxios;
     let urlPrefix: string;
 
@@ -38,47 +29,10 @@ describe('dataApiV3', () => {
       let insertedRecords: any[];
 
       beforeEach(async function () {
-        table = await createTable(testContext.context, testContext.base, {
-          table_name: 'textBased',
-          title: 'TextBased',
-          columns: customColumns('textBased'),
-        });
-
-        // retrieve column meta
-        columns = await table.getColumns(testContext.ctx);
-
-        // build records
-        const rowAttributes: {
-          SingleLineText: string | string[] | number | null;
-          MultiLineText: string | string[] | number | null;
-          Email: string | string[] | number | null;
-          Phone: string | string[] | number | null;
-          Url: string | string[] | number | null;
-        }[] = [];
-        for (let i = 0; i < 400; i++) {
-          const row = {
-            SingleLineText: rowMixedValue(columns[6], i),
-            MultiLineText: rowMixedValue(columns[7], i),
-            Email: rowMixedValue(columns[8], i),
-            Phone: rowMixedValue(columns[9], i),
-            Url: rowMixedValue(columns[10], i),
-          };
-          rowAttributes.push(row);
-        }
-
-        // insert records
-        // creating bulk records using older set of APIs
-        await createBulkRows(testContext.context, {
-          base: testContext.base,
-          table,
-          values: rowAttributes,
-        });
-
-        // retrieve inserted records
-        insertedRecords = await listRow({ base: testContext.base, table });
-
-        // verify length of unfiltered records to be 400
-        expect(insertedRecords.length).to.equal(400);
+        const initResult = await beforeEachTextBased(testContext);
+        table = initResult.table;
+        columns = initResult.columns;
+        insertedRecords = initResult.insertedRecords;
       });
 
       const newRecord = {

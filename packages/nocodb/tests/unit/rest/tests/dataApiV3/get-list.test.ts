@@ -1,12 +1,18 @@
 import { expect } from 'chai';
+import { isCreatedOrLastModifiedTimeCol, ViewTypes } from 'nocodb-sdk';
 import {
   createLookupColumn,
   createRollupColumn,
 } from '../../../factory/column';
-import { beforeEach as dataApiV3BeforeEach } from './beforeEach';
+import { createView, updateView } from '../../../factory/view';
+import {
+  beforeEachTextBased,
+  beforeEach as dataApiV3BeforeEach,
+} from './beforeEach';
 import { ncAxios } from './ncAxios';
-import type { Base, Model } from '../../../../../src/models';
-import type init from '../../../init';
+import { normalizeObject, verifyColumnsInRsp } from './helpers';
+import type { Column, Model } from '../../../../../src/models';
+import type { ITestContext } from './beforeEach';
 import type { INcAxios } from './ncAxios';
 
 interface ListResult {
@@ -20,17 +26,7 @@ const API_VERSION = 'v3';
 
 describe('dataApiV3', () => {
   describe('get-list', () => {
-    let testContext: {
-      context: Awaited<ReturnType<typeof init>>;
-      ctx: {
-        workspace_id: any;
-        base_id: any;
-      };
-      sakilaProject: Base;
-      base: Base;
-      countryTable: Model;
-      cityTable: Model;
-    };
+    let testContext: ITestContext;
     let testAxios: INcAxios;
     let urlPrefix: string;
 
@@ -169,6 +165,584 @@ describe('dataApiV3', () => {
 
         expect(rollupData).to.deep.equal(expectedRecords);
       });
+    });
+
+    describe.skip('text-based', () => {
+      let table: Model;
+      let columns: Column[] = [];
+      let insertedRecords: any[];
+
+      beforeEach(async function () {
+        const initResult = await beforeEachTextBased(testContext);
+        table = initResult.table;
+        columns = initResult.columns;
+        insertedRecords = initResult.insertedRecords;
+      });
+
+      it('List: default', async function () {
+        const rsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {},
+          status: 200,
+        });
+
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+
+        // verify if all the columns are present in the response
+        expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+
+        // verify column data
+        const expectedData = insertedRecords.slice(0, 1);
+
+        // compare ignoring property order
+        expect(normalizeObject(rsp.body.list[0])).to.deep.equal(
+          normalizeObject(expectedData[0]),
+        );
+      });
+
+      it('List: offset, limit', async function () {
+        const rsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: { offset: 200, limit: 100 },
+          status: 200,
+        });
+
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo).to.have.property('prev');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=4`,
+        );
+        expect(rsp.body.pageInfo.prev).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+      });
+
+      it('List: fields, single', async function () {
+        const rsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: { fields: 'SingleLineText' },
+        });
+
+        expect(
+          verifyColumnsInRsp(rsp.body.list[0], [{ title: 'SingleLineText' }]),
+        ).to.equal(true);
+      });
+
+      it('List: fields, multiple', async function () {
+        const rsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: { fields: ['SingleLineText', 'MultiLineText'] },
+        });
+
+        expect(
+          verifyColumnsInRsp(rsp.body.list[0], [
+            { title: 'SingleLineText' },
+            { title: 'MultiLineText' },
+          ]),
+        ).to.equal(true);
+      });
+
+      it('List: sort, ascending', async function () {
+        const sortColumn = columns.find((c) => c.title === 'SingleLineText')!;
+        const rsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: { sort: 'SingleLineText', limit: 400 },
+        });
+
+        expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+        const sortedArray = rsp.body.list.map((r) => r[sortColumn.title]);
+        expect(sortedArray).to.deep.equal(sortedArray.sort());
+      });
+
+      it('List: sort, descending', async function () {
+        const sortColumn = columns.find((c) => c.title === 'SingleLineText')!;
+        const rsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: { sort: '-SingleLineText', limit: 400 },
+        });
+
+        expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+        const descSortedArray = rsp.body.list.map((r) => r[sortColumn.title]);
+        expect(descSortedArray).to.deep.equal(descSortedArray.sort().reverse());
+      });
+
+      it('List: sort, multiple', async function () {
+        const rsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            sort: ['-SingleLineText', '-MultiLineText'],
+            limit: 400,
+          },
+        });
+
+        expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+        // Combination of SingleLineText & MultiLineText should be in descending order
+        const sortedArray = rsp.body.list.map(
+          (r: any) => r.SingleLineText + r.MultiLineText,
+        );
+        expect(sortedArray).to.deep.equal(sortedArray.sort().reverse());
+      });
+
+      it('List: filter, single', async function () {
+        const rsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            where: '(SingleLineText,eq,Afghanistan)',
+            limit: 400,
+          },
+        });
+
+        expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+        const filteredArray = rsp.body.list.map((r: any) => r.SingleLineText);
+        expect(filteredArray).to.deep.equal(filteredArray.fill('Afghanistan'));
+      });
+
+      it('List: filter, multiple', async function () {
+        const rsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            where:
+              '(SingleLineText,eq,Afghanistan)~and(MultiLineText,eq,Allahabad, India)',
+            limit: 400,
+          },
+        });
+        expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+        const filteredArray = rsp.body.list.map(
+          (r: any) => r.SingleLineText + ' ' + r.MultiLineText,
+        );
+        expect(filteredArray).to.deep.equal(
+          filteredArray.fill('Afghanistan Allahabad, India'),
+        );
+      });
+
+      it('List: view ID', async function () {
+        const gridView = await createView(context, {
+          title: 'grid0',
+          table,
+          type: ViewTypes.GRID,
+        });
+
+        const fk_column_id = columns.find(
+          (c) => c.title === 'SingleLineText',
+        )!.id;
+        await updateView(context, {
+          table,
+          view: gridView,
+          filter: [
+            {
+              comparison_op: 'eq',
+              fk_column_id,
+              logical_op: 'or',
+              value: 'Afghanistan',
+            },
+          ],
+        });
+
+        // fetch records from view
+        let rsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: { viewId: gridView.id },
+        });
+
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+
+        await updateView(context, {
+          table,
+          view: gridView,
+          filter: [
+            {
+              comparison_op: 'eq',
+              fk_column_id,
+              logical_op: 'or',
+              value: 'Austria',
+            },
+          ],
+        });
+
+        // fetch records from view
+        rsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            viewId: gridView.id,
+          },
+        });
+
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+
+        // use count api to verify since we are not including count in pageInfo
+        let countRsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records/count`,
+          query: {
+            viewId: gridView.id,
+          },
+        });
+        expect(countRsp.body.count).to.equal(61);
+
+        // Sort by SingleLineText
+        await updateView(context, {
+          table,
+          view: gridView,
+          sort: [
+            {
+              direction: 'asc',
+              fk_column_id,
+              push_to_top: true,
+            },
+          ],
+        });
+
+        // fetch records from view
+        rsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            viewId: gridView.id,
+          },
+        });
+
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+
+        // use count api to verify since we are not including count in pageInfo
+        countRsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records/count`,
+          query: {
+            viewId: gridView.id,
+          },
+        });
+        expect(countRsp.body.count).to.equal(61);
+
+        // verify sorted order
+        // Would contain all 'Afghanistan' as we have 31 records for it
+        expect(
+          verifyColumnsInRsp(
+            rsp.body.list[0],
+            columns.filter(
+              (c) => !isCreatedOrLastModifiedTimeCol(c) || !c.system,
+            ),
+          ),
+        ).to.equal(true);
+        const filteredArray = rsp.body.list.map((r) => r.SingleLineText);
+        expect(filteredArray).to.deep.equal(filteredArray.fill('Afghanistan'));
+
+        await updateView(context, {
+          table,
+          view: gridView,
+          field: ['MultiLineText'],
+        });
+
+        // fetch records from view
+        rsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            viewId: gridView.id,
+          },
+        });
+        const displayColumns = columns.filter(
+          (c) =>
+            c.title !== 'MultiLineText' &&
+            (!isCreatedOrLastModifiedTimeCol(c) || !c.system),
+        );
+        expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(
+          true,
+        );
+      });
+
+      async function prepareViewForTests() {
+        const gridView = await createView(context, {
+          title: 'grid0',
+          table,
+          type: ViewTypes.GRID,
+        });
+
+        const fk_column_id = columns.find(
+          (c) => c.title === 'SingleLineText',
+        )!.id;
+        await updateView(context, {
+          table,
+          view: gridView,
+          filter: [
+            {
+              comparison_op: 'eq',
+              fk_column_id,
+              logical_op: 'or',
+              value: 'Afghanistan',
+            },
+            {
+              comparison_op: 'eq',
+              fk_column_id,
+              logical_op: 'or',
+              value: 'Austria',
+            },
+          ],
+          sort: [
+            {
+              direction: 'asc',
+              fk_column_id,
+              push_to_top: true,
+            },
+          ],
+          field: ['MultiLineText', 'Email'],
+        });
+
+        // fetch records from view
+        const rsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: { viewId: gridView.id },
+        });
+        expect(rsp.body.pageInfo.totalRows).to.equal(61);
+        const displayColumns = columns.filter(
+          (c) =>
+            c.title !== 'MultiLineText' &&
+            c.title !== 'Email' &&
+            !isCreatedOrLastModifiedTimeCol(c),
+        );
+        expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(
+          true,
+        );
+        return gridView;
+      }
+
+      it('List: view ID + sort', async function () {
+        const gridView = await prepareViewForTests();
+
+        const rsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            viewId: gridView.id,
+            sort: 'Url',
+            limit: 100,
+          },
+        });
+        const displayColumns = columns.filter(
+          (c) =>
+            c.title !== 'MultiLineText' &&
+            c.title !== 'Email' &&
+            !isCreatedOrLastModifiedTimeCol(c),
+        );
+
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+
+        // use count api to verify since we are not including count in pageInfo
+        const countRsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records/count`,
+          query: {
+            viewId: gridView.id,
+          },
+        });
+        expect(countRsp.body.count).to.equal(61);
+        expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(
+          true,
+        );
+        const sortedArray = rsp.body.list.map((r) => r['Url']);
+        expect(sortedArray).to.deep.equal(sortedArray.sort());
+      });
+
+      it('List: view ID + filter', async function () {
+        const gridView = await prepareViewForTests();
+
+        const rsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            viewId: gridView.id,
+            where: '(Phone,eq,1-541-754-3010)',
+            limit: 100,
+          },
+        });
+        const displayColumns = columns.filter(
+          (c) =>
+            c.title !== 'MultiLineText' &&
+            c.title !== 'Email' &&
+            !isCreatedOrLastModifiedTimeCol(c),
+        );
+        expect(rsp.body.pageInfo.totalRows).to.equal(7);
+        expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(
+          true,
+        );
+        const filteredArray = rsp.body.list.map((r) => r['Phone']);
+        expect(filteredArray).to.deep.equal(
+          filteredArray.fill('1-541-754-3010'),
+        );
+      });
+
+      it('List: view ID + fields', async function () {
+        const gridView = await prepareViewForTests();
+
+        const rsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            viewId: gridView.id,
+            fields: ['Phone', 'MultiLineText', 'SingleLineText', 'Email'],
+            limit: 100,
+          },
+        });
+
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `/api/v3/tables/${table.id}/records?page=2`,
+        );
+
+        // use count api to verify since we are not including count in pageInfo
+        const countRsp = await testAxios.ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records/count`,
+          query: {
+            viewId: gridView.id,
+          },
+        });
+        expect(countRsp.body.count).to.equal(61);
+
+        expect(rsp.body.pageInfo.totalRows).to.equal(61);
+        expect(
+          verifyColumnsInRsp(rsp.body.list[0], [
+            { title: 'Phone' },
+            { title: 'SingleLineText' },
+          ]),
+        ).to.equal(true);
+      });
+
+      // Error handling
+      /*
+      it('List: invalid ID', async function () {
+        // Invalid table ID
+        await ncAxiosGet({
+          url: `/api/v2/tables/123456789/records`,
+          status: 404,
+        });
+
+        // Invalid view ID
+        await ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            viewId: '123456789',
+          },
+          status: 404,
+        });
+      });
+
+      it('List: invalid limit & offset', async function () {
+        const expectedPageInfo = {
+          totalRows: 400,
+          page: 1,
+          pageSize: 25,
+          isFirstPage: true,
+          isLastPage: false,
+        };
+
+        // Invalid limit : falls back to default value
+        let rsp = await ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            limit: -100,
+          },
+          status: 200,
+        });
+
+        if (isV3) {
+          expect(rsp.body.pageInfo).to.have.property('next');
+          expect(rsp.body.pageInfo.next).to.include(
+            `/api/v3/tables/${table.id}/records?page=2`,
+          );
+        } else {
+          expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+        }
+        rsp = await ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            limit: 'abc',
+          },
+          status: 200,
+        });
+        if (isV3) {
+          expect(rsp.body.pageInfo).to.have.property('next');
+          expect(rsp.body.pageInfo.next).to.include(
+            `/api/v3/tables/${table.id}/records?page=2`,
+          );
+        } else {
+          expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+        }
+
+        // Invalid offset : falls back to default value
+        rsp = await ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            offset: -100,
+          },
+          status: 200,
+        });
+        if (isV3) {
+          expect(rsp.body.pageInfo).to.have.property('next');
+          expect(rsp.body.pageInfo.next).to.include(
+            `/api/v3/tables/${table.id}/records?page=2`,
+          );
+        } else {
+          expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+        }
+
+        rsp = await ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            offset: 'abc',
+          },
+          status: 200,
+        });
+        if (isV3) {
+          expect(rsp.body.pageInfo).to.have.property('next');
+          expect(rsp.body.pageInfo.next).to.include(
+            `/api/v3/tables/${table.id}/records?page=2`,
+          );
+        } else {
+          expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
+        }
+
+        // Offset > totalRows : returns empty list
+        rsp = await ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            offset: 10000,
+          },
+          status: 422,
+        });
+        expect(rsp.body.message).to.equal("Offset value '10000' is invalid");
+      });
+
+      it('List: invalid sort, filter, fields', async function () {
+        // expect to ignore invalid sort, filter, fields
+        await ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            sort: 'abc',
+          },
+          status: 404,
+        });
+        await ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            where: 'abc',
+          },
+          status: 422,
+        });
+        await ncAxiosGet({
+          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          query: {
+            fields: 'abc',
+          },
+          status: 404,
+        });
+      });
+      */
     });
   });
 });

@@ -443,8 +443,13 @@ type CursorType = 'auto' | 'pointer' | 'col-resize' | 'crosshair'
 
 type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) => void
 
+interface CellRenderFn {
+  (ctx: CanvasRenderingContext2D, options: CellRendererOptions): void | { x?: number; y?: number }
+}
+
 interface CellRenderer {
-  render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x?: number; y?: number }
+  render: CellRenderFn
+  renderEmpty?: CellRenderFn
   handleClick?: (options: {
     event: MouseEvent
     mousePosition: { x: number; y: number }
@@ -617,6 +622,7 @@ export type {
   Attachment,
   NestedArray,
   ViewActionState,
+  CellRenderFn,
   CellRenderer,
   CellRendererOptions,
   CellRenderStore,

@@ -34,6 +34,7 @@ import { ButtonCellRenderer } from './Button'
 import { LtarCellRenderer } from './LTAR'
 import { FormulaCellRenderer } from './Formula'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
+import { NullCellRenderer } from './Null'
 
 const CLEANUP_INTERVAL = 1000
 
@@ -60,6 +61,7 @@ export function useGridCellHandler(params: {
   provide(CanvasCellEventDataInj, canvasCellEvents)
 
   const baseStore = useBase()
+  const { showNull } = useGlobal()
   const { isMssql, isMysql, isXcdbBase, isPg } = baseStore
   const { sqlUis } = storeToRefs(baseStore)
 
@@ -177,8 +179,24 @@ export function useGridCellHandler(params: {
 
     // TODO: Reset all the styles here
     ctx.textAlign = 'left'
+
+    let cellRenderer: CellRenderFn
+    const shouldRenderNull = showNull.value && isShowNullField(column) && (ncIsUndefined(value) || ncIsNull(value))
     if (cellType) {
-      return cellType.render(ctx, {
+      if (!shouldRenderNull) {
+        cellRenderer = cellType.render
+      } else {
+        if (cellType.renderEmpty) {
+          cellRenderer = cellType.renderEmpty
+        } else {
+          cellRenderer = NullCellRenderer.render
+        }
+      }
+    } else if (shouldRenderNull) {
+      cellRenderer = NullCellRenderer.render
+    }
+    if (cellRenderer!) {
+      return cellRenderer(ctx, {
         value,
         row,
         column,

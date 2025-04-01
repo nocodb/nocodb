@@ -88,6 +88,14 @@ export const isShowNullField = (column: ColumnType) => {
     UITypes.Percent,
     UITypes.Duration,
     UITypes.JSON,
+    UITypes.Geometry,
+    UITypes.GeoData,
+    UITypes.Date,
+    UITypes.DateTime,
+    UITypes.Time,
+    UITypes.Year,
+    UITypes.Currency,
+    UITypes.Formula,
   ].includes(column.uidt as UITypes)
 }
 

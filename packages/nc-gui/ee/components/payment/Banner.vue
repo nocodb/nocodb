@@ -14,7 +14,7 @@ const onUpgradePlan = async () => {
 <template>
   <div v-if="!isPaidPlan" class="p-6 nc-content-max-w">
     <div
-      class="nc-payment-banner rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-maroon-light overflow-hidden relative flex gap-6 transition-all duration-300"
+      class="nc-payment-banner rounded-xl border-1 border-nc-border-gray-medium bg-nc-bg-maroon-light overflow-hidden relative flex gap-6 transition-all duration-300"
       :class="{
         'p-4 min-h-[66px]': isMinimised,
         'p-6 min-h-[186px]': !isMinimised,

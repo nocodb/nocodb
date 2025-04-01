@@ -80,11 +80,32 @@ onMounted(async () => {
     getPaymentIntent()
   }
 })
+
+const isScrolledToTop = ref(true)
+
+const handleScroll = (e) => {
+  if (e.target?.scrollTop <= 0) {
+    isScrolledToTop.value = true
+  } else {
+    isScrolledToTop.value = false
+  }
+}
 </script>
 
 <template>
-  <div class="h-full overflow-auto nc-scrollbar-thin text-nc-content-gray">
-    <div class="nc-content-max-w p-6 pb-16 flex flex-col gap-6 min-w-[740px]">
+  <div
+    class="nc-payment-billing-page h-full overflow-auto nc-scrollbar-thin text-nc-content-gray"
+    :class="{
+      'nc-scrolled-to-bottom': !isScrolledToTop,
+    }"
+    @scroll.passive="handleScroll"
+  >
+    <div
+      class="p-6 pb-16 flex flex-col gap-6 min-w-[740px]"
+      :class="{
+        'nc-content-max-w': paymentState !== PaymentState.PAYMENT,
+      }"
+    >
       <div v-if="afterPayment">
         <div class="flex flex-col gap-6 mx-auto items-center justify-center w-[600px]">
           <template v-if="checkoutSession && checkoutSession.payment_status === 'paid'">
@@ -212,7 +233,13 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      <div v-else class="flex flex-col gap-8 w-full max-w-300 mx-auto">
+      <div
+        v-else
+        class="flex flex-col gap-8 w-full"
+        :class="{
+          'max-w-250 mx-auto': !(paymentState && paymentState === PaymentState.PAYMENT),
+        }"
+      >
         <PaymentPlanUsage v-if="!paymentInitiated" />
         <Payment v-if="paymentState" />
         <GeneralLoader v-else />

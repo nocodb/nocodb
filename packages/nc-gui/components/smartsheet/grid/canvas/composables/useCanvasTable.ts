@@ -718,7 +718,7 @@ export function useCanvasTable({
     expandRows,
     view: view!,
     meta: meta as Ref<TableType>,
-    syncCellData: async (ctx: { row: number; column?: number; updatedColumnTitle?: string }, path?: Array<number> = []) => {
+    syncCellData: async (ctx: { row: number; column?: number; updatedColumnTitle?: string }, path: Array<number> = []) => {
       const dataCache = getDataCache(path)
       const rowObj = dataCache.cachedRows.value.get(ctx.row)
       const columnObj = ctx.column !== undefined ? fields.value[ctx.column - 1] : null
@@ -954,7 +954,7 @@ export function useCanvasTable({
     const endCol = Math.max(start.col, end.col)
 
     const cols = columns.value.slice(startCol, endCol + 1)
-    const rows = await getRows(start.row, end.row)
+    const rows = await getRows(start.row, end.row, path)
     const props = []
     let isInfoShown = false
 
@@ -981,7 +981,7 @@ export function useCanvasTable({
       }
     }
 
-    await bulkUpdateRows(rows, props)
+    await bulkUpdateRows(rows, props, undefined, false, path)
   }
 
   const cachedCurrentRow = ref<Row>()

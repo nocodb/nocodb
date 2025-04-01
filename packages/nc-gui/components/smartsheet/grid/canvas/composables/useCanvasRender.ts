@@ -667,6 +667,8 @@ export function useCanvasRender({
 
   const renderFillHandle = (ctx: CanvasRenderingContext2D) => {
     const fillHandler = getFillHandlerPosition()
+    const groupPath = activeCell?.value.path
+
     if (!fillHandler) return true
 
     let fixedWidth = 0
@@ -683,7 +685,16 @@ export function useCanvasRender({
     }
 
     if (isFillMode.value) {
-      const startY = -partialRowHeight.value + 33 + (selection.value.start.row - rowSlice.value.start) * rowHeight.value
+      const startY =
+        calculateGroupRowTop(
+          cachedGroups.value,
+          groupPath,
+          selection.value.start.row,
+          rowHeight.value,
+          isAddingEmptyRowAllowed.value,
+        ) -
+        scrollTop.value +
+        COLUMN_HEADER_HEIGHT_IN_PX
 
       ctx.setLineDash([2, 2])
       ctx.strokeStyle = isAiFillMode.value ? '#9751d7' : '#3366ff'
@@ -1977,6 +1988,8 @@ export function useCanvasRender({
     }
 
     renderActiveState(ctx, activeState)
+
+    renderFillHandle(ctx)
 
     return yOffset
   }

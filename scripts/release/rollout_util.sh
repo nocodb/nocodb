@@ -121,7 +121,7 @@ function pause_workers_and_gracefully_shutdown(){
     # Replace these placeholders with your values
     # CURRENT_DESIRED_COUNT=$(aws ecs describe-services --cluster $CLUSTER --services $WORKERS_SERVICE_NAME --query 'services[0].desiredCount' --output text)
     # NEW_DESIRED_COUNT=$((CURRENT_DESIRED_COUNT + 1 ))
-    HOST_NAME=${HOST_NAME:-https://staging.noco.to}
+    HOST_NAME=${HOST_NAME:-https://staging.noco.ws}
 
     # 1. trigger pause and exit 
     curl -u ${API_CREDENTIALS} ${HOST_NAME}/internal/workers/pause-and-exit -XPOST || exit 1

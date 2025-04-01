@@ -17,7 +17,7 @@ STAGE_TAG="ws-pre-release"
 WORKERS_SERVICE_NAME=nocohub-noco_to_worker
 EXCLUDED_SVC=" ${WORKERS_SERVICE_NAME} nocohub-service nocohub-001-prod nocohub-001-ingester nocohub-001-prod-ingester "
 CLUSTER="nocodb-staging"
-HOST_NAME="https://staging.noco.to"
+HOST_NAME="https://staging.noco.ws"
 API_CREDENTIALS=${API_CREDENTIALS}
 ASG_NAME=nocohub-noco_to_main
 

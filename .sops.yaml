@@ -1,0 +1,13 @@
+keys:
+  - &sinan age1q5sfy74d53n6jxlgsc2zrsz4wcl9d830nxuagc3wfmdkrrp55ckq9ev6nv
+  - &kay age15989j5lkkf2kn5wa2p6qc8wlxjjksc63k5ync8rz8t4e87394pzqm7h4rm
+  - &kay-github-runner age1tzzrt9zn2gfef2z9mxfaen4was2smrsj4hdncyk50dfdura86gvqgxprll
+
+creation_rules:
+  - path_regex: nix/workflows/aiopusher/.*
+    age: >-
+      age1q5sfy74d53n6jxlgsc2zrsz4wcl9d830nxuagc3wfmdkrrp55ckq9ev6nv,
+      age1tzzrt9zn2gfef2z9mxfaen4was2smrsj4hdncyk50dfdura86gvqgxprll,
+      age15989j5lkkf2kn5wa2p6qc8wlxjjksc63k5ync8rz8t4e87394pzqm7h4rm
+
+  - age: *sinan

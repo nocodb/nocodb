@@ -1,7 +1,7 @@
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import { NO_EDITABLE_CELL } from '../utils/cell'
 import { EDIT_INTERACTABLE } from '../utils/constants'
-import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData } from '../utils/groupby';
+import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData } from '../utils/groupby'
 
 const MAX_SELECTION_LIMIT = 100
 const MIN_COLUMN_INDEX = 1
@@ -163,7 +163,7 @@ export function useKeyboardNavigation({
           // ALT + R
           if (isAddingEmptyRowAllowed.value) {
             $e('c:shortcut', { key: 'ALT + R' })
-            addEmptyRow(undefined, undefined, undefined,defaultData, groupPath)
+            addEmptyRow(undefined, undefined, undefined, defaultData, groupPath)
             activeCell.value.row = totalRows.value
             activeCell.value.column = 1
             activeCell.value.path = groupPath

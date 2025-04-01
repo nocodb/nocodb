@@ -40,7 +40,8 @@ class CanvasElementItem implements RowElement, GroupElement {
   _groupPath?: number[]
   _rowIndex?: number
 
-  constructor(element: Element) {
+  constructor({ groupPath, rowIndex, ...element }: any) {
+    // Element) {
     // this.x = element.x
     // this.y = element.y
     // this.height = element.height
@@ -51,8 +52,8 @@ class CanvasElementItem implements RowElement, GroupElement {
 
     Object.assign(this, element)
     // Todo: remove this hack after refactoring
-    this._groupPath = (element as any).groupPath
-    this._rowIndex = (element as any).rowIndex
+    this._groupPath = groupPath
+    this._rowIndex = rowIndex
   }
 
   // Checks if the element is a group
@@ -72,7 +73,7 @@ class CanvasElementItem implements RowElement, GroupElement {
 
   // Gets the row index or returns -1 if not available
   get rowIndex() {
-    return this._rowIndex ?? this.row?.rowMeta?.rowIndex ?? -1
+    return this._rowIndex ?? this.row?.rowMeta?.rowIndex
   }
 
   // Get the group or return null if not available

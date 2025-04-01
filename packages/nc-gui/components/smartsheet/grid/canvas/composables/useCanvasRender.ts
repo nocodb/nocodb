@@ -26,7 +26,13 @@ import {
   ROW_META_COLUMN_WIDTH,
 } from '../utils/constants'
 import { parseCellWidth } from '../utils/cell'
-import { calculateGroupHeight, calculateGroupRange, generateGroupPath, getBackgroundColor } from '../utils/groupby'
+import {
+  calculateGroupHeight,
+  calculateGroupRange,
+  calculateGroupRowTop,
+  generateGroupPath,
+  getBackgroundColor,
+} from '../utils/groupby'
 import { parseKey, shouldRenderCell } from '../../../../../utils/groupbyUtils'
 import type { CanvasElement } from '../utils/CanvasElement'
 import { ElementTypes } from '../utils/CanvasElement'
@@ -79,6 +85,7 @@ export function useCanvasRender({
   elementMap,
   getDataCache,
   getRows,
+  draggedRowGroupPath,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -148,6 +155,7 @@ export function useCanvasRender({
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
   getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
+  draggedRowGroupPath: Ref<number[]>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
@@ -1751,15 +1759,27 @@ export function useCanvasRender({
     }
   }
 
-  const renderRowDragPreview = (ctx: CanvasRenderingContext2D, path?: Array<number> = []) => {
+  const renderRowDragPreview = (ctx: CanvasRenderingContext2D, path: Array<number> = []) => {
     if (!isDragging.value || draggedRowIndex.value === null || targetRowIndex.value === null) return
 
-    const targetRowLine = (targetRowIndex.value - rowSlice.value.start) * rowHeight.value - partialRowHeight.value + 32
+    let targetRowLine
+    if (isGroupBy.value) {
+      targetRowLine =
+        calculateGroupRowTop(cachedGroups.value, path, targetRowIndex.value, rowHeight.value, isAddingEmptyRowAllowed.value) -
+        scrollTop.value +
+        // add column header height since it's not included
+        COLUMN_HEADER_HEIGHT_IN_PX
+    } else {
+      targetRowLine =
+        (targetRowIndex.value - rowSlice.value.start) * rowHeight.value - partialRowHeight.value + COLUMN_HEADER_HEIGHT_IN_PX
+    }
+
     // First render the blue line indicator
     ctx.strokeStyle = '#3366ff'
     ctx.lineWidth = 2
     ctx.beginPath()
-    ctx.moveTo(0, targetRowLine)
+    // pass x offset based on number of group level(8px padding and 1px border)
+    ctx.moveTo(groupByColumns.value.length * 9, targetRowLine)
     ctx.lineTo(ctx.canvas.width, targetRowLine)
     ctx.stroke()
 
@@ -1949,6 +1969,7 @@ export function useCanvasRender({
         level,
         height: COLUMN_HEADER_HEIGHT_IN_PX,
         path: group.nestedIn,
+        groupPath: group?.path,
         type: ElementTypes.ADD_NEW_ROW,
       })
 
@@ -2360,7 +2381,7 @@ export function useCanvasRender({
 
     renderHeader(ctx, activeState)
     renderColumnDragIndicator(ctx)
-    renderRowDragPreview(ctx)
+    renderRowDragPreview(ctx, draggedRowGroupPath.value)
     renderAggregations(ctx)
   }
 

@@ -589,7 +589,7 @@ export function useInfiniteData(args: {
     dataCache.cachedRows.value = newCachedRows
 
     dataCache.totalRows.value = Math.max(0, (dataCache.totalRows.value || 0) - invalidIndexes.length)
-    callbacks?.syncTotalRows(path, dataCache.totalRows.value)
+    callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
     callbacks?.syncVisibleData?.()
   }
 
@@ -834,7 +834,7 @@ export function useInfiniteData(args: {
     dataCache.cachedRows.value.set(newRowIndex, newRow)
 
     dataCache.totalRows.value++
-    callbacks?.syncTotalRows(path, dataCache.totalRows.value)
+    callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
     callbacks?.syncVisibleData?.()
 
     return newRow
@@ -985,7 +985,7 @@ export function useInfiniteData(args: {
       }
 
       dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
-      callbacks?.syncTotalRows(path, dataCache.totalRows.value)
+      callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
       await syncCount(path)
       callbacks?.syncVisibleData?.()
     } catch (e: any) {
@@ -1000,7 +1000,7 @@ export function useInfiniteData(args: {
     undo = false,
     ignoreShifting = false,
     beforeRowID?: string,
-    path: Array<string> = [],
+    path: Array<number> = [],
   ): Promise<Record<string, any> | undefined> {
     if (!currentRow.rowMeta) {
       throw new Error('Row metadata is missing')
@@ -1080,7 +1080,7 @@ export function useInfiniteData(args: {
                 }
               }
               dataCache.totalRows.value = dataCache.totalRows.value! - 1
-              callbacks?.syncTotalRows(path, dataCache.totalRows.value)
+              callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
               callbacks?.syncVisibleData?.()
             },
             args: [
@@ -1116,7 +1116,7 @@ export function useInfiniteData(args: {
                 const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
                 if (newRow) newRow.rowMeta.isRowOrderUpdated = needsResorting
               }
-              callbacks?.syncTotalRows(path, dataCache.totalRows.value)
+              callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
               callbacks?.syncVisibleData?.()
             },
             args: [
@@ -1157,7 +1157,7 @@ export function useInfiniteData(args: {
       if (!ignoreShifting) {
         dataCache.totalRows.value++
       }
-      callbacks?.syncTotalRows(path, dataCache.totalRows.value)
+      callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
       reloadAggregate?.trigger()
       callbacks?.syncVisibleData?.()
 
@@ -1265,7 +1265,7 @@ export function useInfiniteData(args: {
       if (toUpdate.rowMeta.rowIndex !== undefined) {
         dataCache.cachedRows.value.set(toUpdate.rowMeta.rowIndex, toUpdate)
       }
-      callbacks?.syncTotalRows(path, dataCache.totalRows.value)
+      callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
       reloadAggregate?.trigger({ fields: [{ title: property }] })
 
       callbacks?.syncVisibleData?.()
@@ -1451,10 +1451,10 @@ export function useInfiniteData(args: {
     if (index !== undefined && row.rowMeta.new) {
       dataCache.cachedRows.value.delete(index)
       dataCache.totalRows.value--
-      callbacks?.syncTotalRows(path, dataCache.totalRows.value)
+      callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
       return true
     }
-    callbacks?.syncTotalRows(path, dataCache.totalRows.value)
+    callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
     callbacks?.syncVisibleData?.()
     return false
   }
@@ -1475,7 +1475,7 @@ export function useInfiniteData(args: {
           })
 
       dataCache.totalRows.value = count as number
-      callbacks?.syncTotalRows(path, dataCache.totalRows.value)
+      callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
       callbacks?.syncVisibleData?.()
     } catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)
@@ -1520,7 +1520,6 @@ export function useInfiniteData(args: {
   }
 
   const _isFirstRow = (path: Array<number> = []) => {
-    const dataCache = getDataCache(path)
     const expandedRowIndex = getExpandedRowIndex(path)
     if (expandedRowIndex === -1) return false
     return expandedRowIndex === 0

@@ -1,3 +1,4 @@
+import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import { COLUMN_HEADER_HEIGHT_IN_PX, GROUP_HEADER_HEIGHT, GROUP_PADDING } from './constants'
 
 export function getBackgroundColor(depth: number, maxDepth: number): string {
@@ -129,36 +130,36 @@ export function calculateGroupRowTop(
   for (let depth = 0; depth < path.length; depth++) {
     const groupIndex = path[depth]
     const group = currentGroups.get(groupIndex)
-    if (!group) return top // Invalid path
+    if (!group) return top
 
-    // Add height for all groups up to this index at the current level
     for (let i = 0; i < groupIndex; i++) {
       const siblingGroup = currentGroups.get(i)
       if (siblingGroup) {
-        top += GROUP_HEADER_HEIGHT + GROUP_PADDING
+        top += calculateGroupHeight(siblingGroup, rowHeight)
       }
     }
 
-    // Add this group's header
     top += GROUP_HEADER_HEIGHT + GROUP_PADDING
 
-    if (group.isExpanded && group.groups) {
-      // Add height of previous subgroups at this level
-      currentGroups = group.groups
-    } else if (!group.groups && depth === path.length - 1) {
-      // Leaf group reached, add row offset
-      if (group.isExpanded && group.path) {
-        top += rowIndex * rowHeight + 1 // Row height + border offset
+    if (!group.isExpanded) {
+      return top
+    }
+
+    if (group.path?.length && depth === path.length - 1) {
+      if (rowIndex >= 0 && rowIndex < (group.count || 0)) {
+        top += rowIndex * rowHeight + 1
       }
+      return top
+    } else if (group.groups) {
+      currentGroups = group.groups
     } else {
-      return top // Group not expanded or not a leaf
+      return top
     }
   }
-
   return top
 }
 
-export function findRowInGroups(groups: Map<number, CanvasGroup>, y: number, rowHeight): { row: number; path: number[] } {
+export function findRowInGroups(groups: Map<number, CanvasGroup>, y: number, rowHeight: number): { row: number; path: number[] } {
   let currentOffset = 0
   const path: number[] = []
 
@@ -239,4 +240,54 @@ export function findFirstExpandedGroupWithPath(groups: Map<number, CanvasGroup>)
   }
 
   return traverseGroups(groups)
+}
+
+export function findGroupByPath(groups: Map<number, CanvasGroup>, groupPath: number[]): CanvasGroup | null {
+  if (!groupPath || groupPath.length === 0) {
+    return null
+  }
+
+  let currentGroups = groups
+  let targetGroup: CanvasGroup | null = null
+
+  for (let depth = 0; depth < groupPath.length; depth++) {
+    const groupIndex = groupPath[depth]
+    targetGroup = currentGroups.get(groupIndex)
+
+    if (!targetGroup) {
+      return null
+    }
+
+    if (depth === groupPath.length - 1) {
+      return targetGroup
+    }
+
+    if (!targetGroup.isExpanded || !targetGroup.groups) {
+      return null
+    }
+
+    currentGroups = targetGroup.groups
+  }
+
+  return targetGroup
+}
+
+export function getDefaultGroupData(group?: CanvasGroup) {
+  if (!group) return {}
+  return group.nestedIn.reduce((acc, curr) => {
+    if (
+      curr.key !== '__nc_null__' &&
+      // avoid setting default value for rollup, formula, barcode, qrcode, links, ltar
+      !isLinksOrLTAR(curr.column_uidt) &&
+      ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(curr.column_uidt)
+    ) {
+      acc[curr.title] = curr.key
+
+      if (curr.column_uidt === UITypes.Checkbox) {
+        acc[curr.title] =
+          acc[curr.title] === GROUP_BY_VARS.TRUE ? true : acc[curr.title] === GROUP_BY_VARS.FALSE ? false : !!acc[curr.title]
+      }
+    }
+    return acc
+  }, {} as Record<string, any>)
 }

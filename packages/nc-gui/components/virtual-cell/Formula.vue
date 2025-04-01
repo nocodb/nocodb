@@ -82,7 +82,10 @@ const renderAsCell = computed(() => {
 <template>
   <LazySmartsheetFormulaWrapperCell v-if="renderAsCell" :column="updatedColumn" />
   <template v-else-if="showNull && (ncIsNull(cellValue) || ncIsUndefined(cellValue))">
-    <div class="nc-cell w-full h-full relative nc-display-value-cell">
+    <div
+      class="nc-cell w-full h-full relative nc-display-value-cell"
+      :class="{ 'text-right': isNumber && isGrid && !isExpandedFormOpen }"
+    >
       <LazyCellNull />
     </div>
   </template>

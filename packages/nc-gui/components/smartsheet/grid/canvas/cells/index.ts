@@ -181,7 +181,7 @@ export function useGridCellHandler(params: {
     ctx.textAlign = 'left'
 
     let cellRenderer: CellRenderFn
-    const shouldRenderNull = showNull && isShowNullField(column) && (ncIsUndefined(value) || ncIsNull(value))
+    const shouldRenderNull = showNull.value && isShowNullField(column) && (ncIsUndefined(value) || ncIsNull(value))
     if (cellType) {
       if (!shouldRenderNull) {
         cellRenderer = cellType.render

@@ -16,6 +16,7 @@ const router = useRouter()
 
 const formValidator = ref()
 const isErrored = ref(false)
+const isWorkspaceUpdating = ref(false)
 const isDeleteModalVisible = ref(false)
 // if activeworkspace.title is used it will show new workspace name in loading state
 const toBeDeletedWorkspaceTitle = ref('')
@@ -76,6 +77,10 @@ const imageCropperData = ref<Omit<ImageCropperProps, 'showCropper'>>({
   },
 })
 
+const isSaveChangesBtnEnabled = computed(() => {
+  return !!(form.title && form.title !== currentWorkspace.value?.title)
+})
+
 const onDelete = async () => {
   if (!currentWorkspace.value || !currentWorkspace.value.id) return
 
@@ -108,36 +113,41 @@ const rules = {
   modalInput: [{ required: true, message: 'input is required.' }],
 }
 
-const saveChanges = async () => {
-  if (!currentWorkspace.value || !currentWorkspace.value.id) return
+const saveChanges = async (isIconUpdate = false) => {
+  if (!currentWorkspace.value || !currentWorkspace.value.id || isWorkspaceUpdating.value) return
 
-  const valid = await formValidator.value.validate()
+  if (!isIconUpdate) {
+    const valid = await formValidator.value.validate()
 
-  if (!valid) return
+    if (!valid) {
+      isErrored.value = true
+      return
+    } else {
+      isErrored.value = false
+    }
+  }
 
+  isWorkspaceUpdating.value = true
   isErrored.value = false
 
   try {
     await updateWorkspace(currentWorkspace.value?.id, {
-      title: form.title,
-      meta: {
-        ...(currentWorkspace.value?.meta ? currentWorkspace.value.meta : {}),
-        icon: form.iconType === IconType.IMAGE && ncIsObject(form.icon) ? { ...form.icon, data: '' } : form.icon,
-        iconType: form.iconType,
-      },
+      ...(isIconUpdate
+        ? {
+            meta: {
+              ...(currentWorkspace.value?.meta ? currentWorkspace.value.meta : {}),
+              icon: form.iconType === IconType.IMAGE && ncIsObject(form.icon) ? { ...form.icon, data: '' } : form.icon,
+              iconType: form.iconType,
+            },
+          }
+        : { title: form.title }),
     })
   } catch (e: any) {
     console.error(e)
+  } finally {
+    isWorkspaceUpdating.value = false
   }
 }
-
-const saveChangeWithDebounce = useDebounceFn(
-  async () => {
-    await saveChanges()
-  },
-  250,
-  { maxWait: 2000 },
-)
 
 const handleDelete = () => {
   if (!currentWorkspace.value || !currentWorkspace.value.title) return
@@ -152,7 +162,7 @@ const handleDelete = () => {
 watch(
   currentWorkspace,
   () => {
-    form.title = currentWorkspace.value?.title ?? ''
+    form.title = form.title || (currentWorkspace.value?.title ?? '')
     form.icon = currentWorkspace.value?.meta?.icon ?? ''
     form.iconType = currentWorkspace.value?.meta?.iconType ?? ''
   },
@@ -173,6 +183,10 @@ watch(
     }
   },
 )
+
+const onCancel = () => {
+  if (currentWorkspace.value?.title) form.title = currentWorkspace.value.title
+}
 </script>
 
 <template>
@@ -187,14 +201,14 @@ watch(
       <div class="font-bold text-base text-nc-content-gray-emphasis">
         {{ $t('objects.workspace') }} {{ $t('general.appearance') }}
       </div>
-      <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="saveChanges">
+      <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="() => saveChanges()">
         <div class="flex gap-4 mt-6">
           <div>
             <GeneralIconSelector
               v-model:icon="form.icon"
               v-model:icon-type="form.iconType"
               v-model:image-cropper-data="imageCropperData"
-              @submit="saveChanges"
+              @submit="() => saveChanges(true)"
             >
               <template #default="{ isOpen }">
                 <div
@@ -227,10 +241,33 @@ watch(
                 placeholder="Workspace name"
                 size="large"
                 data-testid="nc-workspace-settings-settings-rename-input"
-                @update:value="saveChangeWithDebounce"
               />
             </a-form-item>
           </div>
+        </div>
+        <div class="flex flex-row w-full justify-end mt-8 gap-4">
+          <NcButton
+            v-if="isSaveChangesBtnEnabled"
+            type="secondary"
+            size="small"
+            data-testid="nc-workspace-settings-settings-rename-cancel"
+            :disabled="isWorkspaceUpdating"
+            @click="onCancel"
+          >
+            {{ $t('general.cancel') }}
+          </NcButton>
+          <NcButton
+            v-e="['c:workspace:settings:rename']"
+            type="primary"
+            html-type="submit"
+            size="small"
+            :disabled="isErrored || !isSaveChangesBtnEnabled || isWorkspaceUpdating"
+            :loading="isWorkspaceUpdating"
+            data-testid="nc-workspace-settings-settings-rename-submit"
+          >
+            <template #loading> {{ $t('general.saving') }} </template>
+            {{ $t('general.save') }}
+          </NcButton>
         </div>
       </a-form>
     </div>

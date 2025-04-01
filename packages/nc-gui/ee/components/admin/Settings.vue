@@ -9,6 +9,7 @@ const { org } = storeToRefs(orgStore)
 const { updateOrg } = orgStore
 
 const isErrored = ref(false)
+const isOrganizationUpdating = ref(false)
 
 const form = ref<{
   title: string
@@ -19,6 +20,10 @@ const form = ref<{
   title: '',
   icon: '',
   iconType: '',
+})
+
+const isSaveChangesBtnEnabled = computed(() => {
+  return !!(form.value.title && form.value.title !== org.value?.title)
 })
 
 const formValidator = ref()
@@ -63,6 +68,8 @@ const saveChanges = async (isIconUpdate = false, showToastMsg = true) => {
     }
   }
 
+  isOrganizationUpdating.value = true
+
   try {
     await updateOrg(
       {
@@ -74,16 +81,10 @@ const saveChanges = async (isIconUpdate = false, showToastMsg = true) => {
   } catch (e: any) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isOrganizationUpdating.value = false
   }
 }
-
-const saveChangeWithDebounce = useDebounceFn(
-  async () => {
-    await saveChanges(false, false)
-  },
-  250,
-  { maxWait: 2000 },
-)
 
 const imageCropperData = ref<Omit<ImageCropperProps, 'showCropper'>>({
   cropperConfig: {
@@ -126,7 +127,7 @@ watch(
     }
 
     if (!isErrored.value) {
-      form.value.title = val?.title
+      form.value.title = form.value.title || (val?.title ?? '')
     }
 
     form.value.icon = val.meta?.icon ?? ''
@@ -136,6 +137,10 @@ watch(
     immediate: true,
   },
 )
+
+const onCancel = () => {
+  form.value.title = org.value?.title ?? ''
+}
 </script>
 
 <template>
@@ -172,7 +177,7 @@ watch(
             {{ $t('msg.controlOrgAppearance') }}
           </span>
 
-          <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="saveChanges">
+          <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="() => saveChanges()">
             <div class="flex gap-4 mt-6">
               <div>
                 <GeneralIconSelector
@@ -212,11 +217,33 @@ watch(
                       v-model:value="form.title"
                       class="w-full !rounded-lg !px-4 h-10"
                       placeholder="Acme Inc"
-                      @update:value="saveChangeWithDebounce"
                     />
                   </a-form-item>
                 </div>
               </div>
+            </div>
+            <div class="flex flex-row w-full justify-end mt-8 gap-4">
+              <NcButton
+                v-if="isSaveChangesBtnEnabled"
+                type="secondary"
+                size="small"
+                data-testid="nc-organization-settings-cancel"
+                :disabled="isOrganizationUpdating"
+                @click="onCancel"
+              >
+                {{ $t('general.cancel') }}
+              </NcButton>
+              <NcButton
+                type="primary"
+                html-type="submit"
+                size="small"
+                :disabled="isErrored || !isSaveChangesBtnEnabled || isOrganizationUpdating"
+                :loading="isOrganizationUpdating"
+                data-testid="nc-organization-settings-submit"
+              >
+                <template #loading> {{ $t('general.saving') }} </template>
+                {{ $t('general.save') }}
+              </NcButton>
             </div>
           </a-form>
         </div>

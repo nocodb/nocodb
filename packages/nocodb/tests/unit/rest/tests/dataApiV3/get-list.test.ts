@@ -621,18 +621,17 @@ describe('dataApiV3', () => {
         ).to.equal(true);
       });
 
-      // Error handling
-      /*
+      // #region Error handling
       it('List: invalid ID', async function () {
         // Invalid table ID
-        await ncAxiosGet({
-          url: `/api/v2/tables/123456789/records`,
+        await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/123456789`,
           status: 404,
         });
 
         // Invalid view ID
-        await ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+        await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/${table.id}`,
           query: {
             viewId: '123456789',
           },
@@ -641,83 +640,63 @@ describe('dataApiV3', () => {
       });
 
       it('List: invalid limit & offset', async function () {
-        const expectedPageInfo = {
-          totalRows: 400,
-          page: 1,
-          pageSize: 25,
-          isFirstPage: true,
-          isLastPage: false,
-        };
-
         // Invalid limit : falls back to default value
-        let rsp = await ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+        let rsp = await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/${table.id}`,
           query: {
             limit: -100,
           },
           status: 200,
         });
+        console.log('B');
 
-        if (isV3) {
-          expect(rsp.body.pageInfo).to.have.property('next');
-          expect(rsp.body.pageInfo.next).to.include(
-            `/api/v3/tables/${table.id}/records?page=2`,
-          );
-        } else {
-          expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
-        }
-        rsp = await ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `${urlPrefix}/${table.id}?page=2`,
+        );
+
+        rsp = await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/${table.id}`,
           query: {
             limit: 'abc',
           },
           status: 200,
         });
-        if (isV3) {
-          expect(rsp.body.pageInfo).to.have.property('next');
-          expect(rsp.body.pageInfo.next).to.include(
-            `/api/v3/tables/${table.id}/records?page=2`,
-          );
-        } else {
-          expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
-        }
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `${urlPrefix}/${table.id}?page=2`,
+        );
 
         // Invalid offset : falls back to default value
-        rsp = await ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+        rsp = await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/${table.id}`,
           query: {
             offset: -100,
           },
           status: 200,
         });
-        if (isV3) {
-          expect(rsp.body.pageInfo).to.have.property('next');
-          expect(rsp.body.pageInfo.next).to.include(
-            `/api/v3/tables/${table.id}/records?page=2`,
-          );
-        } else {
-          expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
-        }
 
-        rsp = await ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `${urlPrefix}/${table.id}?page=2`,
+        );
+
+        rsp = await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/${table.id}`,
           query: {
             offset: 'abc',
           },
           status: 200,
         });
-        if (isV3) {
-          expect(rsp.body.pageInfo).to.have.property('next');
-          expect(rsp.body.pageInfo.next).to.include(
-            `/api/v3/tables/${table.id}/records?page=2`,
-          );
-        } else {
-          expect(rsp.body.pageInfo).to.deep.equal(expectedPageInfo);
-        }
+
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `${urlPrefix}/${table.id}?page=2`,
+        );
 
         // Offset > totalRows : returns empty list
-        rsp = await ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+        rsp = await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/${table.id}`,
           query: {
             offset: 10000,
           },
@@ -728,29 +707,29 @@ describe('dataApiV3', () => {
 
       it('List: invalid sort, filter, fields', async function () {
         // expect to ignore invalid sort, filter, fields
-        await ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+        await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/${table.id}`,
           query: {
             sort: 'abc',
           },
           status: 404,
         });
-        await ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+        await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/${table.id}`,
           query: {
             where: 'abc',
           },
           status: 422,
         });
-        await ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+        await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/${table.id}`,
           query: {
             fields: 'abc',
           },
           status: 404,
         });
       });
-      */
+      // #endregion error handling
     });
   });
 });

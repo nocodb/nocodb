@@ -13,6 +13,8 @@ const cellValue = inject(CellValueInj)
 
 const { isPg } = useBase()
 
+const { showNull } = useGlobal()
+
 const result = computed(() =>
   isPg(column.value.source_id) ? renderValue(handleTZ(cellValue?.value)) : renderValue(cellValue?.value),
 )
@@ -79,7 +81,14 @@ const renderAsCell = computed(() => {
 
 <template>
   <LazySmartsheetFormulaWrapperCell v-if="renderAsCell" :column="updatedColumn" />
-
+  <template v-else-if="showNull && (ncIsNull(cellValue) || ncIsUndefined(cellValue))">
+    <div
+      class="nc-cell w-full h-full relative nc-display-value-cell"
+      :class="{ 'text-right': isNumber && isGrid && !isExpandedFormOpen }"
+    >
+      <LazyCellNull />
+    </div>
+  </template>
   <div v-else class="w-full" :class="{ 'text-right': isNumber && isGrid && !isExpandedFormOpen }">
     <a-tooltip v-if="column && column.colOptions && column.colOptions.error" placement="bottom" class="text-orange-700">
       <template #title>

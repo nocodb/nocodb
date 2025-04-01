@@ -11,7 +11,7 @@ import type { Base, Column, Model } from '../../../../../src/models';
 const API_VERSION = 'v3';
 
 describe('dataApiV3', () => {
-  describe('get-record', () => {
+  describe('post-insert', () => {
     let testContext: {
       context: Awaited<ReturnType<typeof init>>;
       ctx: {
@@ -81,22 +81,68 @@ describe('dataApiV3', () => {
         expect(insertedRecords.length).to.equal(400);
       });
 
-      it('Read: all fields', async function () {
-        await testAxios.ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/100`,
+      const newRecord = {
+        SingleLineText: 'abc',
+        MultiLineText: 'abc abc \n abc \r abc \t abc 1234!@#$%^&*()_+',
+        Email: 'a@b.com',
+        Url: 'https://www.abc.com',
+        Phone: '1-234-567-8910',
+      };
+
+      it('Create: all fields', async function () {
+        const rsp = await testAxios.ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: newRecord,
         });
+
+        expect(rsp.body).to.deep.equal({ Id: 401 });
       });
 
-      it('Read: invalid ID', async function () {
-        await testAxios.ncAxiosGet({
-          url: `${urlPrefix}/123456789/100`,
+      it('Create: few fields left out', async function () {
+        const newRecord = {
+          SingleLineText: 'abc',
+          MultiLineText: 'abc abc \n abc \r abc \t abc 1234!@#$%^&*()_+',
+        };
+        const rsp = await testAxios.ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: newRecord,
+        });
+
+        // fields left out should be null
+        expect(rsp.body).to.deep.equal({ Id: 401 });
+      });
+
+      it('Create: bulk', async function () {
+        const rsp = await testAxios.ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: [newRecord, newRecord, newRecord],
+        });
+        expect(rsp.body.sort((a, b) => a.Id - b.Id)).to.deep.equal([
+          { Id: 401 },
+          { Id: 402 },
+          { Id: 403 },
+        ]);
+      });
+
+      // Error handling
+      it('Create: invalid ID', async function () {
+        // Invalid table ID
+        await testAxios.ncAxiosPost({
+          url: `${urlPrefix}/123456789`,
           status: 404,
         });
 
-        await testAxios.ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/1000`,
-          status: 404,
+        // Invalid data - create should not specify ID
+        await testAxios.ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: { ...newRecord, Id: 300 },
+          status: 400,
         });
+        // Invalid data - number instead of string
+        // await ncAxiosPost({
+        //   body: { ...newRecord, SingleLineText: 300 },
+        //   status: 400,
+        // });
       });
     });
   });

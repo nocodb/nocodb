@@ -272,6 +272,7 @@ export const useInfiniteGroups = (
     clearGroupCache,
     toggleExpand,
     GROUP_CHUNK_SIZE,
+    buildNestedWhere,
     CHUNK_SIZE: 50,
   }
 }

@@ -8,6 +8,7 @@ import {
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
+import { findGroupByPath } from '../components/smartsheet/grid/canvas/utils/groupby'
 import { useInfiniteGroups } from './useInfiniteGroups'
 import { type CellRange, type Row } from '#imports'
 
@@ -96,7 +97,7 @@ export function useGridViewData(
     isPublic,
   })
 
-  function getCount(path?: Arr) {
+  function getCount(path?: Array<number>) {
     if (!path?.length) return
     let currentGroups = cachedGroups.value
     const pathCopy = [...path]
@@ -124,7 +125,7 @@ export function useGridViewData(
     return targetGroup.count
   }
 
-  function syncTotalRows(path?: Array<number>, count: number) {
+  function syncTotalRows(path: Array<number> = [], count: number) {
     if (!path?.length) return
     let currentGroups = cachedGroups.value
     const pathCopy = [...path]
@@ -150,6 +151,12 @@ export function useGridViewData(
     }
 
     targetGroup.count = count
+  }
+
+  function getGroupFilter(path: Array<number> = []) {
+    const group = findGroupByPath(cachedGroups.value, path)
+
+    return buildNestedWhere(group, where?.value)
   }
 
   function syncVisibleData() {

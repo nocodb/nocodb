@@ -24,7 +24,7 @@ const formatData = (
     limit?: number
     offset?: number
   },
-  path,
+  path: Array<number>,
 ) => {
   // If pageInfo exists, use it for calculation
   if (pageInfo?.page && pageInfo?.pageSize) {
@@ -60,6 +60,7 @@ export function useInfiniteData(args: {
     syncVisibleData?: () => void
     syncTotalRows?: (path: Array<number>, count: number) => void
     getCount?: (path: Array<number>) => void
+    getWhereFilter?: (path: Array<number>) => string
   }
   where?: ComputedRef<string | undefined>
   disableSmartsheet?: boolean
@@ -318,6 +319,8 @@ export function useInfiniteData(args: {
   ): Promise<Row[]> {
     if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return []
 
+    const whereFilter = callbacks?.getWhereFilter?.(path)
+
     try {
       const response = !isPublic?.value
         ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
@@ -325,13 +328,13 @@ export function useInfiniteData(args: {
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             includeSortAndFilterColumns: true,
-            where: params?.where ? params?.where : where?.value,
+            where: whereFilter,
           } as any)
         : await fetchSharedViewData(
             {
               sortsArr: sorts.value,
               filtersArr: nestedFilters.value,
-              where: params?.where ? params?.where : where?.value,
+              where: whereFilter,
               offset: params.offset,
               limit: params.limit,
             },
@@ -1464,14 +1467,16 @@ export function useInfiniteData(args: {
 
     const dataCache = getDataCache(path)
 
+    const whereFilter = callbacks?.getWhereFilter?.(path)
+
     try {
       const { count } = isPublic?.value
         ? await fetchCount({
             filtersArr: nestedFilters.value,
-            where: where?.value,
+            where: whereFilter,
           })
         : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
-            where: where?.value,
+            where: whereFilter,
           })
 
       dataCache.totalRows.value = count as number

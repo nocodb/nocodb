@@ -51,6 +51,7 @@ export class DataV3Service {
     }
 
     return new PagedResponseV3Impl(pagedData, {
+      context,
       tableId: param.modelId,
       baseUrl: param.req.ncSiteUrl,
       nestedNextPageAvail,

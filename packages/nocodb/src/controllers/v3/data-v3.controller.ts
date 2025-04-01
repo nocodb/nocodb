@@ -43,7 +43,7 @@ export class Datav3Controller {
     @Req() req: NcRequest,
     @Res() res: Response,
     @Param('modelId') modelId: string,
-    @Query('view_id') viewId: string,
+    @Query('viewId') viewId: string,
   ) {
     const startTime = process.hrtime();
     const responseData = await this.dataV3Service.dataList(context, {
@@ -131,6 +131,7 @@ export class Datav3Controller {
     }
 
     return new PagedResponseV3Impl(response as PagedResponseImpl<any>, {
+      context,
       baseUrl: req.baseUrl,
       tableId: modelId,
     });
@@ -196,7 +197,7 @@ export class Datav3Controller {
     @Req() req: NcRequest,
     @Res() res: Response,
     @Param('modelId') modelId: string,
-    @Query('view_id') viewId: string,
+    @Query('viewId') viewId: string,
   ) {
     const countResult = await this.dataTableService.dataCount(context, {
       query: req.query,

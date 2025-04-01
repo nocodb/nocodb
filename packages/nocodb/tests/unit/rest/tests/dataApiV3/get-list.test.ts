@@ -167,7 +167,7 @@ describe('dataApiV3', () => {
       });
     });
 
-    describe.skip('text-based', () => {
+    describe('text-based', () => {
       let table: Model;
       let columns: Column[] = [];
       let insertedRecords: any[];
@@ -181,14 +181,14 @@ describe('dataApiV3', () => {
 
       it('List: default', async function () {
         const rsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           query: {},
           status: 200,
         });
 
         expect(rsp.body.pageInfo).to.have.property('next');
         expect(rsp.body.pageInfo.next).to.include(
-          `/api/v3/tables/${table.id}/records?page=2`,
+          `${urlPrefix}/${table.id}?page=2`,
         );
 
         // verify if all the columns are present in the response
@@ -196,16 +196,16 @@ describe('dataApiV3', () => {
 
         // verify column data
         const expectedData = insertedRecords.slice(0, 1);
-
         // compare ignoring property order
-        expect(normalizeObject(rsp.body.list[0])).to.deep.equal(
-          normalizeObject(expectedData[0]),
+        // rsp.body.list only return a part of columns as per specification
+        expect(normalizeObject(expectedData[0])).to.contain(
+          normalizeObject(rsp.body.list[0]),
         );
       });
 
       it('List: offset, limit', async function () {
         const rsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           query: { offset: 200, limit: 100 },
           status: 200,
         });
@@ -213,16 +213,16 @@ describe('dataApiV3', () => {
         expect(rsp.body.pageInfo).to.have.property('next');
         expect(rsp.body.pageInfo).to.have.property('prev');
         expect(rsp.body.pageInfo.next).to.include(
-          `/api/v3/tables/${table.id}/records?page=4`,
+          `${urlPrefix}/${table.id}?page=4`,
         );
         expect(rsp.body.pageInfo.prev).to.include(
-          `/api/v3/tables/${table.id}/records?page=2`,
+          `${urlPrefix}/${table.id}?page=2`,
         );
       });
 
       it('List: fields, single', async function () {
         const rsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           query: { fields: 'SingleLineText' },
         });
 
@@ -233,7 +233,7 @@ describe('dataApiV3', () => {
 
       it('List: fields, multiple', async function () {
         const rsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           query: { fields: ['SingleLineText', 'MultiLineText'] },
         });
 
@@ -248,7 +248,7 @@ describe('dataApiV3', () => {
       it('List: sort, ascending', async function () {
         const sortColumn = columns.find((c) => c.title === 'SingleLineText')!;
         const rsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           query: { sort: 'SingleLineText', limit: 400 },
         });
 
@@ -260,7 +260,7 @@ describe('dataApiV3', () => {
       it('List: sort, descending', async function () {
         const sortColumn = columns.find((c) => c.title === 'SingleLineText')!;
         const rsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           query: { sort: '-SingleLineText', limit: 400 },
         });
 
@@ -271,7 +271,7 @@ describe('dataApiV3', () => {
 
       it('List: sort, multiple', async function () {
         const rsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           query: {
             sort: ['-SingleLineText', '-MultiLineText'],
             limit: 400,
@@ -288,7 +288,7 @@ describe('dataApiV3', () => {
 
       it('List: filter, single', async function () {
         const rsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           query: {
             where: '(SingleLineText,eq,Afghanistan)',
             limit: 400,
@@ -302,10 +302,10 @@ describe('dataApiV3', () => {
 
       it('List: filter, multiple', async function () {
         const rsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           query: {
             where:
-              '(SingleLineText,eq,Afghanistan)~and(MultiLineText,eq,Allahabad, India)',
+              '(SingleLineText,eq,Afghanistan)~and(MultiLineText,eq,"Allahabad, India")',
             limit: 400,
           },
         });
@@ -319,7 +319,7 @@ describe('dataApiV3', () => {
       });
 
       it('List: view ID', async function () {
-        const gridView = await createView(context, {
+        const gridView = await createView(testContext.context, {
           title: 'grid0',
           table,
           type: ViewTypes.GRID,
@@ -328,7 +328,7 @@ describe('dataApiV3', () => {
         const fk_column_id = columns.find(
           (c) => c.title === 'SingleLineText',
         )!.id;
-        await updateView(context, {
+        await updateView(testContext.context, {
           table,
           view: gridView,
           filter: [
@@ -343,16 +343,16 @@ describe('dataApiV3', () => {
 
         // fetch records from view
         let rsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           query: { viewId: gridView.id },
         });
 
         expect(rsp.body.pageInfo).to.have.property('next');
         expect(rsp.body.pageInfo.next).to.include(
-          `/api/v3/tables/${table.id}/records?page=2`,
+          `${urlPrefix}/${table.id}?page=2`,
         );
 
-        await updateView(context, {
+        await updateView(testContext.context, {
           table,
           view: gridView,
           filter: [
@@ -367,7 +367,7 @@ describe('dataApiV3', () => {
 
         // fetch records from view
         rsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
           },
@@ -375,12 +375,12 @@ describe('dataApiV3', () => {
 
         expect(rsp.body.pageInfo).to.have.property('next');
         expect(rsp.body.pageInfo.next).to.include(
-          `/api/v3/tables/${table.id}/records?page=2`,
+          `${urlPrefix}/${table.id}?page=2`,
         );
 
         // use count api to verify since we are not including count in pageInfo
         let countRsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records/count`,
+          url: `${urlPrefix}/${table.id}/count`,
           query: {
             viewId: gridView.id,
           },
@@ -388,7 +388,7 @@ describe('dataApiV3', () => {
         expect(countRsp.body.count).to.equal(61);
 
         // Sort by SingleLineText
-        await updateView(context, {
+        await updateView(testContext.context, {
           table,
           view: gridView,
           sort: [
@@ -402,7 +402,7 @@ describe('dataApiV3', () => {
 
         // fetch records from view
         rsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
           },
@@ -410,12 +410,12 @@ describe('dataApiV3', () => {
 
         expect(rsp.body.pageInfo).to.have.property('next');
         expect(rsp.body.pageInfo.next).to.include(
-          `/api/v3/tables/${table.id}/records?page=2`,
+          `${urlPrefix}/${table.id}?page=2`,
         );
 
         // use count api to verify since we are not including count in pageInfo
         countRsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records/count`,
+          url: `${urlPrefix}/${table.id}/count`,
           query: {
             viewId: gridView.id,
           },
@@ -435,7 +435,7 @@ describe('dataApiV3', () => {
         const filteredArray = rsp.body.list.map((r) => r.SingleLineText);
         expect(filteredArray).to.deep.equal(filteredArray.fill('Afghanistan'));
 
-        await updateView(context, {
+        await updateView(testContext.context, {
           table,
           view: gridView,
           field: ['MultiLineText'],
@@ -443,7 +443,7 @@ describe('dataApiV3', () => {
 
         // fetch records from view
         rsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
           },
@@ -459,7 +459,7 @@ describe('dataApiV3', () => {
       });
 
       async function prepareViewForTests() {
-        const gridView = await createView(context, {
+        const gridView = await createView(testContext.context, {
           title: 'grid0',
           table,
           type: ViewTypes.GRID,
@@ -468,7 +468,7 @@ describe('dataApiV3', () => {
         const fk_column_id = columns.find(
           (c) => c.title === 'SingleLineText',
         )!.id;
-        await updateView(context, {
+        await updateView(testContext.context, {
           table,
           view: gridView,
           filter: [
@@ -497,10 +497,14 @@ describe('dataApiV3', () => {
 
         // fetch records from view
         const rsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           query: { viewId: gridView.id },
         });
-        expect(rsp.body.pageInfo.totalRows).to.equal(61);
+        const rspCount = await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/${table.id}/count`,
+          query: { viewId: gridView.id },
+        });
+        expect(rspCount.body.count).to.equal(61);
         const displayColumns = columns.filter(
           (c) =>
             c.title !== 'MultiLineText' &&
@@ -517,7 +521,7 @@ describe('dataApiV3', () => {
         const gridView = await prepareViewForTests();
 
         const rsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
             sort: 'Url',
@@ -531,14 +535,12 @@ describe('dataApiV3', () => {
             !isCreatedOrLastModifiedTimeCol(c),
         );
 
-        expect(rsp.body.pageInfo).to.have.property('next');
-        expect(rsp.body.pageInfo.next).to.include(
-          `/api/v3/tables/${table.id}/records?page=2`,
-        );
+        // limit > count has no next property
+        expect(rsp.body.pageInfo).to.not.have.property('next');
 
         // use count api to verify since we are not including count in pageInfo
         const countRsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records/count`,
+          url: `${urlPrefix}/${table.id}/count`,
           query: {
             viewId: gridView.id,
           },
@@ -555,7 +557,7 @@ describe('dataApiV3', () => {
         const gridView = await prepareViewForTests();
 
         const rsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
             where: '(Phone,eq,1-541-754-3010)',
@@ -568,7 +570,16 @@ describe('dataApiV3', () => {
             c.title !== 'Email' &&
             !isCreatedOrLastModifiedTimeCol(c),
         );
-        expect(rsp.body.pageInfo.totalRows).to.equal(7);
+
+        const rspCount = await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/${table.id}/count`,
+          query: {
+            viewId: gridView.id,
+            where: '(Phone,eq,1-541-754-3010)',
+            limit: 100,
+          },
+        });
+        expect(rspCount.body.count).to.equal(7);
         expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(
           true,
         );
@@ -582,7 +593,7 @@ describe('dataApiV3', () => {
         const gridView = await prepareViewForTests();
 
         const rsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
             fields: ['Phone', 'MultiLineText', 'SingleLineText', 'Email'],
@@ -590,21 +601,18 @@ describe('dataApiV3', () => {
           },
         });
 
-        expect(rsp.body.pageInfo).to.have.property('next');
-        expect(rsp.body.pageInfo.next).to.include(
-          `/api/v3/tables/${table.id}/records?page=2`,
-        );
+        // limit > count has no next property
+        expect(rsp.body.pageInfo).to.not.have.property('next');
 
         // use count api to verify since we are not including count in pageInfo
         const countRsp = await testAxios.ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${table.id}/records/count`,
+          url: `${urlPrefix}/${table.id}/count`,
           query: {
             viewId: gridView.id,
           },
         });
         expect(countRsp.body.count).to.equal(61);
 
-        expect(rsp.body.pageInfo.totalRows).to.equal(61);
         expect(
           verifyColumnsInRsp(rsp.body.list[0], [
             { title: 'Phone' },

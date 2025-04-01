@@ -2,6 +2,7 @@ import type {
   Api,
   BaseType,
   IntegrationType,
+  PlanFeatureTypes,
   PlanLimitTypes,
   WorkspaceType,
   WorkspaceUserRoles,
@@ -11,14 +12,16 @@ import { WorkspaceStatus } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { isString } from '@vue/shared'
 
-interface NcWorkspace extends WorkspaceType {
+export interface NcWorkspace extends WorkspaceType {
   edit?: boolean
   temp_title?: string | null
   roles?: string
   payment?: {
     plan: {
       title: string
-      meta: Record<PlanLimitTypes, number>
+      meta: { [key in PlanLimitTypes]: number } & {
+        [key in PlanFeatureTypes]: boolean
+      }
     }
   }
 }

@@ -17,7 +17,7 @@ import type { INcAxios } from './ncAxios';
 
 const API_VERSION = 'v3';
 
-describe.only('dataApiV3', () => {
+describe('dataApiV3', () => {
   describe('list-and-crud', () => {
     let testContext: ITestContext;
     let testAxios: INcAxios;
@@ -157,8 +157,7 @@ describe.only('dataApiV3', () => {
         },
       ];
 
-      // TODO: skipped for now, v3 CRUD api is not ordered by db rows
-      it.skip('Number based- List & CRUD', async function () {
+      it('Number based- List & CRUD', async function () {
         // list 10 records
         let rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
@@ -863,7 +862,7 @@ describe.only('dataApiV3', () => {
 
       // Create mm link between Actor and Film
       // List them for a record & verify in both tables
-      it('Create Many-Many ', async function () {
+      it.skip('Create Many-Many ', async function () {
         await ncAxiosLinkAdd({
           urlParams: {
             tableId: tblActor.id,

@@ -71,15 +71,10 @@ export class DataV3Service {
   ) {
     // todo: refactor and do within a transaction
     if (Array.isArray(param.body)) {
-      return Promise.all(
-        param.body.map((data) => {
-          return this.dataTableService.dataInsert(context, {
-            ...param,
-            body: data,
-            apiVersion: NcApiVersion.V3,
-          });
-        }),
-      );
+      return this.dataTableService.dataInsert(context, {
+        ...param,
+        apiVersion: NcApiVersion.V3,
+      });
     }
 
     return this.dataTableService.dataInsert(context, {

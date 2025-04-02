@@ -159,7 +159,7 @@ const overlayStyle = ref<Record<string, any> | null>(null)
 const openAggregationField = ref<CanvasGridColumn | null>(null)
 const openColumnDropdownField = ref<ColumnType | null>(null)
 const isDropdownVisible = ref(false)
-const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
+const contextMenuTarget = ref<{ row: number; col: number; path: Array<number> } | null>(null)
 const _isContextMenuOpen = ref(false)
 const isCreateOrEditColumnDropdownOpen = ref(false)
 const columnEditOrAddProviderRef = ref()
@@ -790,7 +790,7 @@ async function handleMouseDown(e: MouseEvent) {
     } else {
       if (isContextMenuAllowed.value && vSelectedAllRecords.value) {
         // Set the context Menu Targer and return
-        contextMenuTarget.value = { row: 0, col: -1 }
+        contextMenuTarget.value = { row: 0, col: -1, path: [] }
         requestAnimationFrame(triggerRefreshCanvas)
       }
       return
@@ -858,7 +858,7 @@ async function handleMouseDown(e: MouseEvent) {
 
     if (isContextMenuAllowed.value) {
       // Set the context Menu Target and return
-      contextMenuTarget.value = { row: rowIndex, col: columnIndex }
+      contextMenuTarget.value = { row: rowIndex, col: columnIndex, path: groupPath }
       requestAnimationFrame(triggerRefreshCanvas)
     }
     return
@@ -1171,7 +1171,7 @@ async function handleMouseUp(e: MouseEvent) {
         break
       case MouseClickType.RIGHT_CLICK:
         if (isContextMenuAllowed.value) {
-          contextMenuTarget.value = { row: rowIndex, col: -1 }
+          contextMenuTarget.value = { row: rowIndex, col: -1, path: groupPath }
           requestAnimationFrame(triggerRefreshCanvas)
         }
         break
@@ -1227,7 +1227,7 @@ async function handleMouseUp(e: MouseEvent) {
       prevActiveCell?.column === colIndex &&
       prevActiveCell?.path?.join('-') === groupPath.join('-'),
     imageLoader,
-    path: groupPath
+    path: groupPath,
   })
   // Set the active cell to the clicked cell
   activeCell.value.row = rowIndex
@@ -1753,13 +1753,17 @@ async function openNewRecordHandler() {
   if (newRow) expandForm?.(newRow, undefined, true)
 }
 
-const callAddNewRow = (context: { row: number; col: number }, direction: 'above' | 'below') => {
+const callAddNewRow = (context: { row: number; col: number; path: Array<number> }, direction: 'above' | 'below') => {
+  const dataCache = getDataCache(context?.path)
+
+  const { cachedRows } = dataCache
+
   const row = cachedRows.value.get(direction === 'above' ? context.row : context.row + 1)
   if (row) {
     const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-    addEmptyRow(context.row + (direction === 'above' ? 0 : 1), false, rowId)
+    addEmptyRow(context.row + (direction === 'above' ? 0 : 1), false, rowId!, {}, context?.path)
   } else {
-    addEmptyRow()
+    addEmptyRow(undefined, false, undefined, {}, context?.path)
   }
 }
 
@@ -2020,16 +2024,16 @@ defineExpose({
               v-if="
                 contextMenuTarget &&
                 contextMenuTarget?.row !== -1 &&
-                (contextMenuTarget?.col !== -1 || selectedRows.length || vSelectedAllRecords)
+                (contextMenuTarget?.col !== -1 || selectedRows.length || vSelectedAllRecords || isGroupBy)
               "
               v-model:context-menu-target="contextMenuTarget"
               v-model:selected-all-records="vSelectedAllRecords"
-              :total-rows="totalRows"
               :selection="selection"
               :columns="columns"
-              :cached-rows="cachedRows"
               :active-cell="activeCell"
               :action-manager="actionManager"
+              :is-group-by="isGroupBy"
+              :get-data-cache="getDataCache"
               :clear-cell="clearCell"
               :is-primary-key-available="isPrimaryKeyAvailable"
               :is-selection-read-only="isSelectionReadOnly"
@@ -2047,7 +2051,6 @@ defineExpose({
               :get-rows="getRows"
               :bulk-update-rows="bulkUpdateRows"
               :expand-form="expandForm"
-              :selected-rows="selectedRows"
               :clear-selected-range-of-cells="clearSelectedRangeOfCells"
               @click="isContextMenuOpen = false"
               @bulk-update-dlg="emits('bulkUpdateDlg')"

@@ -1227,6 +1227,7 @@ async function handleMouseUp(e: MouseEvent) {
       prevActiveCell?.column === colIndex &&
       prevActiveCell?.path?.join('-') === groupPath.join('-'),
     imageLoader,
+    path: groupPath
   })
   // Set the active cell to the clicked cell
   activeCell.value.row = rowIndex
@@ -1513,6 +1514,7 @@ const handleMouseMove = (e: MouseEvent) => {
       pk,
       selected: activeCell.value.row === rowIndex && activeCell.value.column === colIndex,
       imageLoader,
+      path: groupPath,
     })
   }
 

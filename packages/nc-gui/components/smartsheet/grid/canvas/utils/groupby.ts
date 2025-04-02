@@ -147,7 +147,6 @@ export function calculateGroupRowTop(
     }
 
     if (group.path?.length && depth === path.length - 1) {
-      console.log(rowIndex, group.count)
       // if (rowIndex >= 0 && rowIndex <= (group.count || 0)) {
       top += rowIndex * rowHeight + 1
       // }

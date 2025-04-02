@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { expect } from 'chai';
+import { type ColumnType, UITypes } from 'nocodb-sdk';
+import { createTable } from '../../../factory/table';
+import { createLtarColumn, customColumns } from '../../../factory/column';
 import {
+  beforeEachLinkBased,
   beforeEachTextBased,
   beforeEach as dataApiV3BeforeEach,
 } from './beforeEach';
@@ -112,6 +116,196 @@ describe('dataApiV3', () => {
         //   body: { ...newRecord, SingleLineText: 300 },
         //   status: 400,
         // });
+      });
+    });
+
+    describe('link-insert', () => {
+      let tblCity: Model;
+      let tblCountry: Model;
+      let tblActor: Model;
+      let tblFilm: Model;
+
+      let columnsFilm: ColumnType[];
+      let columnsActor: ColumnType[];
+      let columnsCountry: ColumnType[];
+      let columnsCity: ColumnType[];
+
+      beforeEach(async function () {
+        const initResult = await beforeEachLinkBased(testContext);
+        tblCity = initResult.tblCity;
+        tblCountry = initResult.tblCountry;
+        tblActor = initResult.tblActor;
+        tblFilm = initResult.tblFilm;
+        columnsFilm = initResult.columnsFilm;
+        columnsActor = initResult.columnsActor;
+        columnsCountry = initResult.columnsCountry;
+        columnsCity = initResult.columnsCity;
+      });
+
+      it('will perform single insert with linked field', async () => {
+        const citiesToInsert = {
+          City: 'ImaginaryCity',
+          Country: {
+            Id: 1,
+          },
+        };
+
+        const citiesInsertResponse = await ncAxiosPost({
+          url: `${urlPrefix}/${tblCity.id}`,
+          body: citiesToInsert,
+        });
+        const emptyCitiesToInsert = [
+          {
+            City: 'TestCity1',
+          },
+          {
+            City: 'TestCity2',
+          },
+          {
+            City: 'TestCity3',
+          },
+          {
+            City: 'TestCity4',
+          },
+          {
+            City: 'TestCity5',
+          },
+        ];
+        const emptyCitiesInsertResponse = await ncAxiosPost({
+          url: `${urlPrefix}/${tblCity.id}`,
+          body: emptyCitiesToInsert,
+        });
+        const countriesToInsert = {
+          Country: 'ImaginaryCountry',
+          Cities: emptyCitiesInsertResponse.body,
+        };
+
+        const countryInsertResponse = await ncAxiosPost({
+          url: `${urlPrefix}/${tblCountry.id}`,
+          body: countriesToInsert,
+        });
+
+        const citiesToValidate = await ncAxiosGet({
+          url: `${urlPrefix}/${tblCity.id}`,
+          query: {
+            filter: '(Id, gt, 100)',
+          },
+        });
+        const countriesToValidate = await ncAxiosGet({
+          url: `${urlPrefix}/${tblCountry.id}`,
+          query: {
+            filter: '(Id, gt, 100)',
+          },
+        });
+        const insertedCity = citiesToValidate.body.list.find(
+          (city) => city.Id === citiesInsertResponse.body.Id,
+        );
+        expect(
+          insertedCity !== null && typeof insertedCity !== 'undefined',
+        ).to.eq(true);
+        const emptyInsertedCity = citiesToValidate.body.list.filter((city) =>
+          emptyCitiesInsertResponse.body.some((k) => k.Id === city.Id),
+        );
+
+        expect(emptyInsertedCity.length).to.eq(emptyCitiesToInsert.length);
+        expect(emptyInsertedCity.map((k) => k.City)).to.deep.eq(
+          emptyCitiesToInsert.map((k) => k.City),
+        );
+        expect(insertedCity.Country.Id).to.eq(1);
+        expect(emptyInsertedCity[0].Country.Id).to.eq(
+          countriesToValidate.body.list[0].Id,
+        );
+      });
+
+      // TODO:L perform bulk insert with an LTAR field filled with value
+      // make sure that the inserted link is correctly mapped and inserted id is ordered
+      it.skip('will perform bulk insert with linked field', async () => {
+        const citiesToInsert = [
+          {
+            City: 'ImaginaryCity',
+            Country: {
+              Id: 1,
+            },
+          },
+          {
+            City: 'ImaginaryCity2',
+            Country: {
+              Id: 2,
+            },
+          },
+        ];
+
+        const citiesInsertResponse = await ncAxiosPost({
+          url: `${urlPrefix}/${tblCity.id}`,
+          body: citiesToInsert,
+        });
+        const emptyCitiesToInsert = [
+          {
+            City: 'TestCity1',
+          },
+          {
+            City: 'TestCity2',
+          },
+          {
+            City: 'TestCity3',
+          },
+          {
+            City: 'TestCity4',
+          },
+          {
+            City: 'TestCity5',
+          },
+        ];
+        const emptyCitiesInsertResponse = await ncAxiosPost({
+          url: `${urlPrefix}/${tblCity.id}`,
+          body: emptyCitiesToInsert,
+        });
+        const countriesToInsert = [
+          {
+            Country: 'ImaginaryCountry',
+            Cities: emptyCitiesInsertResponse.body.slice(0, 1),
+          },
+          {
+            Country: 'ImaginaryCountry2',
+            Cities: emptyCitiesInsertResponse.body[2],
+          },
+        ];
+
+        const countryInsertResponse = await ncAxiosPost({
+          url: `${urlPrefix}/${tblCountry.id}`,
+          body: countriesToInsert,
+        });
+
+        const citiesToValidate = await ncAxiosGet({
+          url: `${urlPrefix}/${tblCity.id}`,
+          query: {
+            filter: '(Id, gt, 100)',
+            sort: 'Id',
+          },
+        });
+        const countriesToValidate = await ncAxiosGet({
+          url: `${urlPrefix}/${tblCountry.id}`,
+          query: {
+            filter: '(Id, gt, 100)',
+            sort: 'Id',
+          },
+        });
+        const insertedCities = citiesToValidate.body.list.filter((city) =>
+          citiesInsertResponse.body.some((k) => k.Id === city.Id),
+        );
+        expect(insertedCities.length).to.eq(2);
+        const emptyInsertedCity = citiesToValidate.body.list.filter((city) =>
+          emptyCitiesInsertResponse.body.some((k) => k.Id === city.Id),
+        );
+
+        expect(emptyInsertedCity.length).to.eq(emptyCitiesToInsert.length);
+        expect(insertedCities.map((k) => k.Country)).to.deep.equal([
+          { Id: 1 },
+          { Id: 2 },
+        ]);
+        expect(emptyInsertedCity[0].Country.Id).to.eq(
+          countriesToValidate.body.list[0].Id,
+        );
       });
     });
   });

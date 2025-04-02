@@ -27,11 +27,14 @@ export function prepareRecords(
   title: string,
   count: number,
   start: number = 1,
+  option?: {
+    ignoreId: boolean;
+  },
 ) {
   const records: Record<string, string | number>[] = [];
   for (let i = start; i <= start + count - 1; i++) {
     records.push({
-      Id: i,
+      ...(option?.ignoreId ? {} : { Id: i }),
       [title]: `${title} ${i}`,
     });
   }

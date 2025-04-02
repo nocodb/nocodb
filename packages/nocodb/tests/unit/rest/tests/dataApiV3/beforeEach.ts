@@ -276,7 +276,7 @@ export const beforeEachLinkBased = async (testContext: ITestContext) => {
       table_name: 'City',
       columns: customColumns('custom', columns),
     });
-    const cityRecords = prepareRecords('City', 100);
+    const cityRecords = prepareRecords('City', 100, 1, { ignoreId: true });
 
     // insert records
     await createBulkRows(testContext.context, {
@@ -298,7 +298,9 @@ export const beforeEachLinkBased = async (testContext: ITestContext) => {
       table_name: 'Country',
       columns: customColumns('custom', columns),
     });
-    const countryRecords = prepareRecords('Country', 100);
+    const countryRecords = prepareRecords('Country', 100, 1, {
+      ignoreId: true,
+    });
     // insert records
     await createBulkRows(testContext.context, {
       base: testContext.base,
@@ -314,7 +316,7 @@ export const beforeEachLinkBased = async (testContext: ITestContext) => {
       table_name: 'Actor',
       columns: customColumns('custom', columns),
     });
-    const actorRecords = prepareRecords('Actor', 100);
+    const actorRecords = prepareRecords('Actor', 100, 1, { ignoreId: true });
     await createBulkRows(testContext.context, {
       base: testContext.base,
       table: tblActor,
@@ -329,7 +331,7 @@ export const beforeEachLinkBased = async (testContext: ITestContext) => {
       table_name: 'Film',
       columns: customColumns('custom', columns),
     });
-    const filmRecords = prepareRecords('Film', 100);
+    const filmRecords = prepareRecords('Film', 100, 1, { ignoreId: true });
     await createBulkRows(testContext.context, {
       base: testContext.base,
       table: tblFilm,

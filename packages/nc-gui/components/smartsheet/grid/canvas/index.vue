@@ -804,7 +804,7 @@ async function handleMouseDown(e: MouseEvent) {
     return
   }
 
-  const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
+  const element = elementMap.findElementAt(x, y)
   const group = element?.group
   const row = element?.row
   const rowIndex = element?.rowIndex
@@ -835,7 +835,7 @@ async function handleMouseDown(e: MouseEvent) {
 
   // If the new cell user clicked is not the active cell
   // call onActiveCellChanged to clear invalid rows and reorder records locally if required
-  if (rowIndex !== activeCell.value?.row || groupPath.map((v) => `${v}`).join('-') !== row?.rowMeta?.path.join('-')) {
+  if (rowIndex !== activeCell.value?.row || groupPath.map((v) => `${v}`).join('-') !== row?.rowMeta?.path?.join('-')) {
     onActiveCellChanged()
   }
 
@@ -974,7 +974,7 @@ async function handleMouseUp(e: MouseEvent) {
 
   if (isMobileMode.value) {
     if (y > 32 && y < height.value - 36) {
-      const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
+      const element = elementMap.findElementAt(x, y)
       const group = element?.group
       const row = element?.row
       if (element?.isGroup) {
@@ -1118,7 +1118,7 @@ async function handleMouseUp(e: MouseEvent) {
     return
   }
 
-  const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
+  const element = elementMap.findElementAt(x, y)
   let group = element?.group
   const row = element?.row
   const rowIndex = row?.rowMeta?.rowIndex ?? -1

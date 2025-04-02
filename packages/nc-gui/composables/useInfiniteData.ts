@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import { UITypes, extractFilterFromXwhere, isAIPromptCol } from 'nocodb-sdk'
+import { NcApiVersion, UITypes, extractFilterFromXwhere, isAIPromptCol } from 'nocodb-sdk'
 import {
   type Api,
   type ColumnType,
@@ -16,7 +16,14 @@ import type { Row } from '~/lib/types'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
 
-const formatData = (list: Record<string, any>[], pageInfo?: PaginatedType, params?: { limit?: number; offset?: number }) => {
+const formatData = (
+  list: Record<string, any>[],
+  pageInfo?: PaginatedType,
+  params?: {
+    limit?: number
+    offset?: number
+  },
+) => {
   // If pageInfo exists, use it for calculation
   if (pageInfo?.page && pageInfo?.pageSize) {
     return list.map((row, index) => {
@@ -110,7 +117,11 @@ export function useInfiniteData(args: {
   })
 
   const computedWhereFilter = computed(() => {
-    const { filters: filter } = extractFilterFromXwhere(where?.value ?? '', columnsByAlias.value)
+    const { filters: filter } = extractFilterFromXwhere(
+      { api_version: NcApiVersion.V1 },
+      where?.value ?? '',
+      columnsByAlias.value,
+    )
 
     return filter.map((f) => {
       return { ...f, value: f.value ? f.value?.toString().replace(/(^%)(.*?)(%$)/, '$2') : f.value }
@@ -249,6 +260,7 @@ export function useInfiniteData(args: {
             ...params,
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            includeSortAndFilterColumns: true,
             where: where?.value,
           } as any)
         : await fetchSharedViewData(
@@ -407,7 +419,7 @@ export function useInfiniteData(args: {
   }
 
   const navigateToSiblingRow = async (dir: NavigateDir) => {
-    const expandedRowIndex = getExpandedRowIndex()
+    const expandedRowIndex = await getExpandedRowIndexWithWait()
     if (expandedRowIndex === -1) return
 
     const sortedIndices = Array.from(cachedRows.value.keys()).sort((a, b) => a - b)
@@ -684,6 +696,8 @@ export function useInfiniteData(args: {
             }
           }
         }
+      } else {
+        inputRow.rowMeta.isRowOrderUpdated = false
       }
 
       const indices = new Set<number>()
@@ -1235,6 +1249,7 @@ export function useInfiniteData(args: {
       data,
       meta.value?.columns as ColumnType[],
       getBaseType(viewMeta.value?.view?.source_id),
+      metas.value,
     )
 
     const changedFields = property ? [property] : Object.keys(row.row)
@@ -1319,6 +1334,7 @@ export function useInfiniteData(args: {
       return false
     }
   }
+
   const removeRowIfNew = (row: Row): boolean => {
     const index = Array.from(cachedRows.value.entries()).find(([_, r]) => r.rowMeta.rowIndex === row.rowMeta.rowIndex)?.[0]
     if (index !== undefined && row.rowMeta.new) {
@@ -1364,6 +1380,19 @@ export function useInfiniteData(args: {
     return -1
   }
 
+  // function which waits for the data to be loaded and then returns the expanded row index
+  async function getExpandedRowIndexWithWait(): number {
+    const rowId = routeQuery.value.rowId
+    if (!rowId) return -1
+
+    await until(() => chunkStates.value?.every((v) => v !== 'loading')).toBeTruthy({
+      timeout: 5000,
+      interval: 100,
+    })
+
+    return getExpandedRowIndex()
+  }
+
   const isLastRow = computed(() => {
     const expandedRowIndex = getExpandedRowIndex()
     if (expandedRowIndex === -1) return false
@@ -1377,6 +1406,27 @@ export function useInfiniteData(args: {
 
     return expandedRowIndex === 0
   })
+
+  async function getRows(startIndex: number, endIndex: number): Promise<Array<Row>> {
+    const startChunkId = getChunkIndex(startIndex)
+    const endChunkId = getChunkIndex(endIndex)
+
+    const chunksToFetch = new Set<number>()
+    for (let chunkId = startChunkId; chunkId <= endChunkId; chunkId++) {
+      chunksToFetch.add(chunkId)
+    }
+
+    await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
+
+    const rows = []
+    for (let rowId = startIndex; rowId <= endIndex; rowId++) {
+      if (cachedRows.value.has(rowId)) {
+        rows.push(cachedRows.value.get(rowId))
+      }
+    }
+
+    return rows
+  }
 
   return {
     insertRow,
@@ -1409,5 +1459,6 @@ export function useInfiniteData(args: {
     navigateToSiblingRow,
     updateRecordOrder,
     selectedAllRecords,
+    getRows,
   }
 }

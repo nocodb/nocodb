@@ -4,7 +4,7 @@ export const tableColumns: NcTableColumnProps[] = [
     key: 'enabled',
     padding: '0px 0px 0px 12px',
     minWidth: 0,
-    width: 64,
+    width: 33,
   },
   {
     title: 'Column Name',
@@ -12,7 +12,7 @@ export const tableColumns: NcTableColumnProps[] = [
     dataIndex: 'column_name',
     key: 'column_name',
     minWidth: 200,
-    padding: '0px 12px',
+    padding: '0px 12px 0 9px',
   },
 ]
 

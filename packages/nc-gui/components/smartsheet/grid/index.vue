@@ -65,6 +65,7 @@ const {
   isBulkOperationInProgress,
   selectedAllRecords,
   bulkDeleteAll,
+  getRows,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
 const rowHeight = computed(() => {
@@ -240,6 +241,7 @@ const {
   islastRow: pisLastRow,
   getExpandedRowIndex: pGetExpandedRowIndex,
   changePage: pChangeView,
+  navigateToSiblingRow: pNavigateToSiblingRow,
 } = useViewData(meta, view, xWhere)
 
 const updateRowCommentCount = (count: number) => {
@@ -278,18 +280,17 @@ const pGoToNextRow = () => {
     const nextPage = pPaginationData.value?.page ? pPaginationData.value?.page + 1 : 1
     pChangeView(nextPage)
   }
-  navigateToSiblingRow(NavigateDir.NEXT)
+  pNavigateToSiblingRow(NavigateDir.NEXT)
 }
 const pGoToPreviousRow = () => {
   const currentIndex = pGetExpandedRowIndex()
-  /* when first index of current page is reached and then clicked back
-    previos page should be loaded
-  */
+  /* when first index of current page is reached and then clicked back previos page should be loaded  */
   if (!pPaginationData.value.isFirstPage && currentIndex === 1) {
     const nextPage = pPaginationData.value?.page ? pPaginationData.value?.page - 1 : 1
     pChangeView(nextPage)
   }
-  navigateToSiblingRow(NavigateDir.PREV)
+
+  pNavigateToSiblingRow(NavigateDir.PREV)
 }
 </script>
 
@@ -340,6 +341,7 @@ const pGoToPreviousRow = () => {
       :data="cachedRows"
       :total-rows="totalRows"
       :sync-count="syncCount"
+      :get-rows="getRows"
       :chunk-states="chunkStates"
       :expand-form="expandForm"
       :remove-row-if-new="removeRowIfNew"
@@ -364,6 +366,7 @@ const pGoToPreviousRow = () => {
       :apply-sorting="applySorting"
       :bulk-update-rows="bulkUpdateRows"
       :bulk-upsert-rows="bulkUpsertRows"
+      :get-rows="getRows"
       :update-record-order="updateRecordOrder"
       :bulk-delete-all="bulkDeleteAll"
       :clear-cache="clearCache"

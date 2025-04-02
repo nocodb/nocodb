@@ -193,7 +193,7 @@ export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
       expect(updatedTable.table_name.endsWith('new_title')).to.eq(true);
     });
 
-    // todo: Check the condtion where the table being deleted is being refered by multiple tables
+    // todo: Check the condtion where the table being deleted is being referred by multiple tables
     // todo: Check the if views are also deleted
 
     it(`Get table ${API_VERSION}`, async function () {

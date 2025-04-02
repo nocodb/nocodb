@@ -63,6 +63,7 @@ const props = defineProps<{
   chunkStates: Array<'loading' | 'loaded' | undefined>
   isBulkOperationInProgress: boolean
   selectedAllRecords?: boolean
+  getRows: (start: number, end: number) => Promise<Row[]>
 }>()
 
 const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
@@ -85,6 +86,7 @@ const {
   updateRecordOrder,
   applySorting,
   bulkDeleteAll,
+  getRows,
 } = props
 
 // Injections
@@ -472,7 +474,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
     return
 
   // If the cell is readonly, return
-  if (colMeta.value[ctx.col].isReadonly) return
+  if (colMeta.value[ctx.col].isReadonly && !isVirtualCol(fields.value[ctx.col])) return
 
   // Get the row and column object
   const rowObj = cachedRows.value.get(ctx.row)
@@ -485,6 +487,10 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 
   if (isVirtualCol(columnObj)) {
     let mmClearResult
+    const mmOldResult = rowObj.row[columnObj.title]
+
+    // This will used to reload view data if it is self link column
+    const isSelfLinkColumn = columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id
 
     if (isMm(columnObj) && rowObj) {
       mmClearResult = await cleaMMCell(rowObj, columnObj)
@@ -492,7 +498,14 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 
     addUndo({
       undo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, mmClearResult: any[]) => {
+        fn: async (
+          ctx: { row: number; col: number },
+          col: ColumnType,
+          row: Row,
+          mmClearResult: any[],
+          mmOldResult: any,
+          isSelfLinkColumn: boolean,
+        ) => {
           const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
           const rowObj = cachedRows.value.get(ctx.row)
           const columnObj = fields.value[ctx.col]
@@ -514,22 +527,27 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
                 encodeURIComponent(rowId as string),
                 mmClearResult,
               )
-              rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
+              rowObj.row[columnObj.title] = mmOldResult ?? null
             }
 
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             activeCell.col = ctx.col
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             activeCell.row = ctx.row
+
+            if (isSelfLinkColumn) {
+              reloadViewDataHook.trigger({ shouldShowLoading: false })
+            }
+
             scrollToCell?.()
           } else {
             throw new Error(t('msg.recordCouldNotBeFound'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult],
+        args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult, mmOldResult],
       },
       redo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row) => {
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, isSelfLinkColumn: boolean) => {
           const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
           const rowObj = cachedRows.value.get(ctx.row)
           const columnObj = fields.value[ctx.col]
@@ -543,16 +561,25 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             activeCell.col = ctx.col
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             activeCell.row = ctx.row
+
+            if (isSelfLinkColumn) {
+              reloadViewDataHook.trigger({ shouldShowLoading: false })
+            }
+
             scrollToCell?.()
           } else {
             throw new Error(t('msg.recordCouldNotBeFound'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj)],
+        args: [clone(ctx), clone(columnObj), clone(rowObj), isSelfLinkColumn],
       },
       scope: defineViewScope({ view: view.value }),
     })
     if (isBt(columnObj) || isOo(columnObj)) await clearLTARCell(rowObj, columnObj)
+
+    if (isSelfLinkColumn) {
+      reloadViewDataHook.trigger({ shouldShowLoading: false })
+    }
 
     return
   }
@@ -859,11 +886,16 @@ const {
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     const altOrOptionKey = e.altKey
     if (e.key === ' ') {
+      if (e.shiftKey) return true
+
       const isRichModalOpen = isExpandedCellInputExist()
 
-      if (isCellActive.value && !editEnabled.value && hasEditPermission.value && activeCell.row !== null && !isRichModalOpen) {
+      if (!editEnabled.value && isCellActive.value && activeCell.row !== null && !isRichModalOpen) {
         e.preventDefault()
         const row = cachedRows.value.get(activeCell.row)
+
+        if (!row) return
+
         expandForm?.(row)
         return true
       }
@@ -998,6 +1030,11 @@ const {
     }
 
     if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
+      // Reload view data if it is self link column
+      if (columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id) {
+        reloadViewDataHook?.trigger({ shouldShowLoading: false })
+      }
+
       return
     }
 
@@ -1028,6 +1065,7 @@ const {
   undefined,
   fetchChunk,
   onActiveCellChanged,
+  getRows,
 )
 
 function scrollToRow(row?: number) {
@@ -1138,12 +1176,12 @@ const isSelectedOnlyScript = computed(() => {
 
 const { runScript } = useScriptExecutor()
 
-const bulkExecuteScript = () => {
+const bulkExecuteScript = async () => {
   if (!isSelectedOnlyScript.value.enabled || !meta?.value?.id || !meta.value.columns) return
 
   const field = fields.value[selectedRange.start.col]
 
-  const rows = Array.from(cachedRows.value.values()).slice(selectedRange.start.row, selectedRange.end.row + 1)
+  const rows = await getRows(selectedRange.start.row, selectedRange.end.row + 1)
 
   for (const row of rows) {
     const pk = extractPkFromRow(row.row, meta.value.columns)
@@ -1163,7 +1201,7 @@ const generateAIBulk = async () => {
 
   if (!field.id) return
 
-  const rows = Array.from(cachedRows.value.values()).slice(selectedRange.start.row, selectedRange.end.row + 1)
+  const rows = await getRows(selectedRange.start.row, selectedRange.end.row + 1)
 
   if (!rows || rows.length === 0) return
 
@@ -1287,7 +1325,7 @@ async function clearSelectedRangeOfCells() {
 
   const cols = fields.value.slice(startCol, endCol + 1)
   // Get rows in the selected range
-  const rows = Array.from(cachedRows.value.values()).slice(start.row, end.row + 1)
+  const rows = await getRows(start.row, end.row)
 
   const props = []
   let isInfoShown = false
@@ -1723,6 +1761,22 @@ const selectedReadonly = computed(
         (_, i) => colMeta.value[selectedRange.start.col + i].isReadonly,
       )),
 )
+
+const disablePasteCell = computed(() => {
+  return (
+    selectedReadonly.value &&
+    (!selectedRange.isSingleCell() ||
+      !contextMenuTarget.value ||
+      (!isMm(fields.value[contextMenuTarget.value.col]) && !isBt(fields.value[contextMenuTarget.value.col])))
+  )
+})
+
+const disableClearCell = computed(() => {
+  return (
+    selectedReadonly.value &&
+    (!selectedRange.isSingleCell() || !contextMenuTarget.value || !isLinksOrLTAR(fields.value[contextMenuTarget.value.col]))
+  )
+})
 
 const showFillHandle = computed(
   () =>
@@ -2604,6 +2658,10 @@ const cellAlignClass = computed(() => {
                       <SmartsheetTableDataCell
                         v-if="fields[0]"
                         :key="fields[0].id"
+                        :active="
+                          (activeCell.row === row.rowMeta.rowIndex && activeCell.col === 0) ||
+                          (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === 0)
+                        "
                         class="cell relative nc-grid-cell cursor-pointer"
                         :class="{
                           'active': selectRangeMap[`${row.rowMeta.rowIndex}-0`],
@@ -2700,6 +2758,10 @@ const cellAlignClass = computed(() => {
                       <SmartsheetTableDataCell
                         v-for="{ field: columnObj, index: colIndex } of visibleFields"
                         :key="`cell-${colIndex}-${row.rowMeta.rowIndex}`"
+                        :active="
+                          (activeCell.row === row.rowMeta.rowIndex && activeCell.col === colIndex) ||
+                          (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === colIndex)
+                        "
                         class="cell relative nc-grid-cell cursor-pointer"
                         :class="{
                           'active': selectRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],
@@ -2970,7 +3032,7 @@ const cellAlignClass = computed(() => {
               v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly"
               class="nc-base-menu-item"
               data-testid="context-menu-item-paste"
-              :disabled="selectedReadonly"
+              :disabled="disablePasteCell"
               @click="paste"
             >
               <div v-e="['a:row:paste']" class="flex gap-2 items-center">
@@ -2990,7 +3052,7 @@ const cellAlignClass = computed(() => {
                 !isDataReadOnly
               "
               class="nc-base-menu-item"
-              :disabled="selectedReadonly"
+              :disabled="disableClearCell"
               data-testid="context-menu-item-clear"
               @click="clearCell(contextMenuTarget)"
             >
@@ -3245,9 +3307,9 @@ const cellAlignClass = computed(() => {
         @apply text-gray-600;
         font-weight: 500;
 
-        .nc-cell-field,
-        input,
-        textarea {
+        .nc-cell-field:not(.nc-null),
+        input:not(.nc-null),
+        textarea:not(.nc-null) {
           @apply text-gray-600;
           font-weight: 500;
         }

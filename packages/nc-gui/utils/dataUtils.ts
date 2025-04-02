@@ -25,6 +25,7 @@ import type {
 import dayjs from 'dayjs'
 import { timeFormatsObj } from '../components/smartsheet/grid/canvas/utils/cell'
 import { isColumnRequiredAndNull } from './columnUtils'
+import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
 export const isValidValue = (val: unknown) => {
   if (ncIsNull(val) || ncIsUndefined(val)) {
@@ -155,7 +156,7 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
       !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(col.cdf)
     ) {
       const defaultValue = col.cdf
-      acc[col.title!] = typeof defaultValue === 'string' ? defaultValue.replace(/^'|'$/g, '') : defaultValue
+      acc[col.title!] = typeof defaultValue === 'string' ? defaultValue.replace(/^['"]|['"]$/g, '') : defaultValue
     }
     return acc
   }, {} as Record<string, any>)
@@ -169,7 +170,13 @@ export const isRowEmpty = (record: Pick<Row, 'row'>, col: ColumnType): boolean =
   return !isValidValue(record.row[col.title])
 }
 
-export function validateRowFilters(_filters: FilterType[], data: any, columns: ColumnType[], client: any) {
+export function validateRowFilters(
+  _filters: FilterType[],
+  data: any,
+  columns: ColumnType[],
+  client: any,
+  metas: Record<string, any>,
+) {
   if (!_filters.length) {
     return true
   }
@@ -180,7 +187,7 @@ export function validateRowFilters(_filters: FilterType[], data: any, columns: C
   for (const filter of filters) {
     let res
     if (filter.is_group && filter.children?.length) {
-      res = validateRowFilters(filter.children, data, columns, client)
+      res = validateRowFilters(filter.children, data, columns, client, metas)
     } else {
       const column = columns.find((c) => c.id === filter.fk_column_id)
       if (!column) {
@@ -328,7 +335,13 @@ export function validateRowFilters(_filters: FilterType[], data: any, columns: C
             break
         }
 
-        if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(column.uidt!)) {
+        if (
+          [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(column.uidt!) ||
+          (column.uidt === UITypes.Lookup &&
+            [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+              getLookupColumnType(column, { columns }, metas) as UITypes,
+            ))
+        ) {
           const userIds: string[] = Array.isArray(data[field])
             ? data[field].map((user) => user.id)
             : data[field]?.id
@@ -487,11 +500,16 @@ export const getMultiSelectValue = (modelValue: any, params: ParsePlainCellValue
     : modelValue.split(', ')
 }
 
-export const getDateValue = (modelValue: string | null | number, col: ColumnType, isSystemCol?: boolean) => {
-  const dateFormat = !isSystemCol ? parseProp(col.meta)?.date_format ?? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'
+export const getDateValue = (modelValue: string | null | number, col: ColumnType) => {
+  const dateFormat = parseProp(col.meta)?.date_format ?? 'YYYY-MM-DD'
 
-  if (!modelValue || !dayjs(modelValue).isValid()) {
+  if (!modelValue) {
     return ''
+  } else if (!dayjs(modelValue).isValid()) {
+    const parsedDate = parseFlexibleDate(modelValue)
+    if (parsedDate) {
+      return parsedDate.format(dateFormat) as string
+    }
   } else {
     return dayjs(/^\d+$/.test(String(modelValue)) ? +modelValue : modelValue).format(dateFormat)
   }
@@ -701,6 +719,33 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   return parsePlainCellValue(modelValue, { ...params, col: childColumn! })
 }
 
+export function getLookupColumnType(
+  col: ColumnType,
+  meta: { columns: ColumnType[] },
+  metas: Record<string, any>,
+  visitedIds = new Set<string>(),
+): UITypes | null | undefined {
+  const colOptions = col.colOptions as LookupType
+  const relationColumnOptions = colOptions.fk_relation_column_id
+    ? meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
+    : null
+  const relatedTableMeta =
+    relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
+
+  const childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_lookup_column_id) as
+    | ColumnType
+    | undefined
+
+  // if child column is lookup column, then recursively find the column type
+  // and check for circular dependency
+  if (childColumn && childColumn.uidt === UITypes.Lookup && !visitedIds.has(childColumn.id)) {
+    visitedIds.add(childColumn.id)
+    return getLookupColumnType(childColumn, relatedTableMeta, metas, visitedIds)
+  }
+
+  return (childColumn?.uidt as UITypes) || null
+}
+
 export const getAttachmentValue = (modelValue: string | null | number | Array<any>) => {
   if (Array.isArray(modelValue)) {
     return modelValue.map((v) => `${v.title}`).join(', ')
@@ -795,7 +840,7 @@ export const parsePlainCellValue = (
     return getLookupValue(value, params)
   }
   if (isCreatedOrLastModifiedTimeCol(col)) {
-    return getDateValue(value, col, true)
+    return getDateTimeValue(value, params)
   }
   if (isCreatedOrLastModifiedByCol(col)) {
     return getUserValue(value, params)

@@ -1,11 +1,11 @@
 export default class TemplateGenerator {
-  progressCallback?: (msg: string) => void
+  progressCallback?: (msg: ProgressMessageType) => void
 
-  constructor(progressCallback?: (msg: string) => void) {
+  constructor(progressCallback?: (msg: ProgressMessageType) => void) {
     this.progressCallback = progressCallback
   }
 
-  progress(msg: string) {
+  progress(msg: ProgressMessageType) {
     this.progressCallback?.(msg)
   }
 
@@ -35,3 +35,9 @@ export default class TemplateGenerator {
     throw new Error("'getData' method is not implemented")
   }
 }
+
+export interface ProgressMessageObjType {
+  title: string
+  value: string
+}
+export type ProgressMessageType = string | ProgressMessageObjType

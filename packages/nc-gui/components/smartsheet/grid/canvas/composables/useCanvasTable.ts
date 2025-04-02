@@ -47,6 +47,7 @@ export function useCanvasTable({
   addNewColumn,
   mousePosition,
   setCursor,
+  getRows,
 }: {
   rowHeightEnum?: Ref<number | undefined>
   cachedRows: Ref<Map<number, Row>>
@@ -103,6 +104,7 @@ export function useCanvasTable({
   onActiveCellChanged: () => void
   addNewColumn: () => void
   setCursor: SetCursorType
+  getRows: (start: number, end: number) => Promise<Row[]>
 }) {
   const { metas, getMeta } = useMetas()
 
@@ -118,6 +120,7 @@ export function useCanvasTable({
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
   const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas)
   const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
+  const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
   // Row Reorder related states
   const isDragging = ref(false)
@@ -236,7 +239,11 @@ export function useCanvasTable({
           f.extra = getUserColOptions(f, baseUsers.value)
         }
 
-        const isInvalid = isColumnInvalid(f, aiIntegrations.value, isPublicView.value || !isAddingEmptyRowAllowed.value)
+        const isInvalid = isColumnInvalid(
+          f,
+          aiIntegrations.value,
+          isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
+        )
 
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
 
@@ -326,18 +333,17 @@ export function useCanvasTable({
     }
   })
 
-  const isSelectionReadOnly = computed(() =>
+  const isSelectionReadOnly = computed(() => {
     // if all the selected columns are not readonly
-    {
-      return (
-        (selection.value.isEmpty() && activeCell.value.column && columns.value[activeCell.value.column]?.virtual) ||
-        (!selection.value.isEmpty() &&
-          Array.from({ length: selection.value.end.col - selection.value.start.col + 1 }).every(
-            (_, i) => !columns.value[selection.value.start.col + i]?.isCellEditable,
-          ))
-      )
-    },
-  )
+
+    return (
+      (selection.value.isEmpty() && activeCell.value.column && columns.value[activeCell.value.column]?.virtual) ||
+      (!selection.value.isEmpty() &&
+        Array.from({ length: selection.value.end.col - selection.value.start.col + 1 }).every(
+          (_, i) => !columns.value[selection.value.start.col + i]?.isCellEditable,
+        ))
+    )
+  })
 
   const isFillHandleDisabled = computed(
     () =>
@@ -614,12 +620,17 @@ export function useCanvasTable({
     syncCellData: async (ctx: { row: number; column?: number; updatedColumnTitle?: string }) => {
       const rowObj = cachedRows.value.get(ctx.row)
       const columnObj = ctx.column !== undefined ? fields.value[ctx.column - 1] : null
+
       if (!rowObj || !columnObj) {
         triggerRefreshCanvas()
         return
       }
 
       if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
+        // Reload view data if it is self link column
+        if (columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id) {
+          reloadViewDataHook?.trigger({ shouldShowLoading: false })
+        }
         triggerRefreshCanvas()
         return
       }
@@ -649,6 +660,7 @@ export function useCanvasTable({
     bulkUpsertRows,
     fetchChunk,
     updateOrSaveRow,
+    getRows,
   })
 
   const { handleFillEnd, handleFillMove, handleFillStart } = useFillHandler({
@@ -835,9 +847,7 @@ export function useCanvasTable({
     const endCol = Math.max(start.col, end.col)
 
     const cols = columns.value.slice(startCol, endCol + 1)
-    // Get rows in the selected range
-    const rows = Array.from(cachedRows.value.values()).slice(start.row, end.row + 1)
-
+    const rows = await getRows(start.row, end.row)
     const props = []
     let isInfoShown = false
 

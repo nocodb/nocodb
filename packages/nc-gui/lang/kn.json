@@ -303,13 +303,15 @@
     "extension": "ವಿಸ್ತರಣೆ",
     "extensions": "ವಿಸ್ತರಣೆಗಳು",
     "enable": "Enable",
+    "disable": "Disable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
     "unread": "Unread",
     "shared": "Shared",
-    "organization": "Organization"
+    "organization": "Organization",
+    "all": "All"
   },
   "objects": {
     "script": "Script",
@@ -369,7 +371,7 @@
       "orgLevelCreator": "ಸಂಸ್ಥೆ ಮಟ್ಟ ಸೃಷ್ಟಿಕರ್ತ",
       "orgLevelViewer": "ಸಂಸ್ಥೆ ಮಟ್ಟ ವೀಕ್ಷಕ"
     },
-    "sqlVIew": "SQL ವೀಕ್ಷಣೆ",
+    "sqlView": "SQL ವೀಕ್ಷಣೆ",
     "rowHeight": "ದಾಖಲೆಯ ಎತ್ತರ",
     "heightClass": {
       "short": "ಚುಟುಕು",
@@ -511,6 +513,7 @@
     "isNotNull": "null ಅಲ್ಲ"
   },
   "title": {
+    "confirmSnapshotRestore": "Confirm Snapshot Restore",
     "urlFilters": "URL Filters",
     "creatingScript": "Creating Script",
     "searchWebhook": "ವೆಬ್‌ಹುಕ್ ಹುಡುಕಿ",
@@ -679,9 +682,24 @@
     "customUrl": "Custom URL",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
+    "restoringSnapshot": "Restoring Snapshot",
+    "note": "Note:",
+    "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",
+    "snapshotRestoreMessage2": "On restore, a new base will be created in the selected workspace.",
+    "snapshotRestoreConfirmation": "Are you sure you want to restore this base snapshot.",
+    "tryAgain": "Try again",
+    "goToBase": "Go to Base",
+    "errorMessage": "Error message:",
+    "duplicateBaseBaseTitle": "Duplicate Base \"{baseTitle}\"",
+    "duplicateBaseSuccessfull": "Base Duplication Successfull",
+    "duplicateBaseFailed": "Base Duplication Failed",
+    "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
+    "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
+    "currentWorkspace": "Current workspace",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "Failed",
@@ -888,6 +906,7 @@
     "clickToCopyViewID": "ವೀಕ್ಷಣೆ ID ನಕಲು ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
     "viewMode": "ನೋಟ ಸ್ಥಿತಿ",
     "reAssignView": "Re-assign view",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "ಬಳಕೆದಾರರನ್ನು ಹುಡುಕಿ",
     "superAdmin": "ಸುಪರ್ ಅಡ್ಮಿನ್",
     "allTables": "ಎಲ್ಲಾ ಟೇಬಲ್‌ಗಳು",
@@ -968,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV ಫೈಲ್",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON ಫೈಲ್",
     "excel": "ಎಕ್ಸೆಲ್",
     "microsoftExcel": "Microsoft Excel",
@@ -1076,8 +1096,11 @@
     "apis": "APIಗಳು",
     "apiSnippet": "API ತುಂಡುಗಳು",
     "includeData": "ಡೇಟಾವನ್ನು ಸೇರಿಸಿ",
-    "includeView": "ವೀಕ್ಷಣೆ ಸೇರಿಸಿ",
-    "includeWebhook": "Webhook ಸೇರಿಸಿ",
+    "includeRecords": "Include records",
+    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "includeView": "Include views",
+    "includeWebhook": "Include webhook",
+    "includeComments": "Include comments",
     "zoomInToViewColumns": "ಕಾಲಮ್‌ಗಳನ್ನು ವೀಕ್ಷಿಸಲು_zoomIn_ಮಾಡಿ",
     "embedInSite": "ನಿಮ್ಮ ತಾಣದಲ್ಲಿ ಈ ವೀಕ್ಷಣೆಯನ್ನು ಸೇರಿಸಿ",
     "titleRequired": "ಶೀರ್ಷಿಕೆ ಅಗತ್ಯವಿದೆ.",
@@ -1131,7 +1154,12 @@
     "showJsonPayload": "Show JSON payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
     "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "proceedToLink": "Proceed to link",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON",
+    "airtableBase": "Airtable base"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1401,6 +1429,7 @@
     "clearForm": "ಫಾರ್ಮ್ ತೆರವುಗೊಳಿಸಿ",
     "addFieldFromFormView": "ಕ್ಷೇತ್ರವಾದರೂ ಸೇರಿಸಿ",
     "selectAllFields": "ಎಲ್ಲಾ ಕ್ಷೇತ್ರಗಳನ್ನು ಆಯ್ಕೆ ಮಾಡಿ",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "ಪೂರಕ ಪೂರ್ವ-ನಿರ್ವಹಣೆಯನ್ನು ಎನಬಲ್ ಮಾಡಿ",
       "default": "ಪೂರ್ವನಿರ್ದಿಷ್ಟ",
@@ -1465,7 +1494,12 @@
     "aiIntegrationReConfigure": "AI integration has been removed, re-configure from field edit modal to use NocoAI features",
     "aiIntegrationAddAndReConfigure": "AI integration has been removed, re-add and re-configure from field edit modal to use NocoAI features",
     "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI",
-    "sourceDataIsReadonly": "Source data is readonly"
+    "sourceDataIsReadonly": "Source data is readonly",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
+    "shiftSpace": "Shift + Space",
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields",
+    "copyErrorCode": "Copy error code"
   },
   "placeholder": {
     "searchIcons": "ಐಕಾನ್‌ಗಳನ್ನು ಹುಡುಕಿ",
@@ -1524,9 +1558,11 @@
     "inviteYourTeam": "ನಿಮ್ಮ ತಂಡವನ್ನು ಆಹ್ವಾನಿಸಿ",
     "inviteYourTeamLabel": "ನಿಮ್ಮ ಯೋಜನೆಗಳನ್ನು ವೇಗವಾಗಿ ಬದಲಿಸಿ ನಿಮ್ಮ ತಂಡದೊಂದಿಗೆ ಅವುಗಳಲ್ಲಿ ಸಹಕರಿಸಿ!",
     "searchOptions": "ಹುಡುಕಿ ಆಯ್ಕೆಗಳನ್ನು",
-    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
+    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional).",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
@@ -1675,7 +1711,10 @@
         "fieldVisibility": "ನೀವು ಯಶವಾಗಿ ಸಂಪಾದಿಸುವ ಕ್ಷೇತ್ರದ ದೃಶ್ಯತೆಯನ್ನು ಪರಿವರ್ತಿಸಬಲ್ಲಿರಾ. ದಯವಿಟ್ಟು ಮೊದಲು ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ ಅಥವಾ ತ್ಯಜಿಸಿ.",
         "moveEditedField": "ನೀವು ಸಂಪಾದಿಸಲಾಗುತ್ತಿರುವ ಕ್ಷೇತ್ರವನ್ನು ಸ್ಥಳಾಂತರಿಸಬಲ್ಲಿರಾ. ಮೊದಲು ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ ಅಥವಾ ತ್ಯಜಿಸಿ",
         "moveDeletedField": "ನೀವು ಅಳಿಸಲಾಗಿರುವ ಕ್ಷೇತ್ರವನ್ನು ಸ್ಥಳಾಂತರಿಸಬಲ್ಲಿರಾ. ಮೊದಲು ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ ಅಥವಾ ತ್ಯಜಿಸಿ"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -1868,7 +1907,8 @@
       "yourCurrentRoleIs": "ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಪಾತ್ರ ಇದೇ",
       "pleaseRequestAccessForView": "ಈ {viewName} ಗೆ ಪ್ರವೇಶ ಪಡೆಯಲು ಆಡಳಿತಕರಿಂದ / ಬೇಸ್ ಮಾಲಕರಿಂದ / ವರ್ಕ್‌ಸ್ಪೇಸ್ ಮಾಲಕರಿಂದ ಹೆಚ್ಚಿನ ಅನುಮತಿ ಕೋರಿ",
       "preventHideAllOptions": "ಕ್ಷೇತ್ರವು ಅಗತ್ಯವಿದ್ದರೆ ಎಲ್ಲಾ ಆಯ್ಕೆಗಳ ಹೋಲಿಕೆ ಅನ್ನು ನೈವ್ಯಾಧಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "ಮ್ಯಾನುಯಲ್ ಹೂಕ್‌ಗಳು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗುವುದಿಲ್ಲ",
@@ -1975,7 +2015,11 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error",
+      "anErrorOccuredWhileImporting": "An error occurred while {type}",
+      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable"
     },
     "toast": {
       "exportMetadata": "ಮೂಲಮಾಹಿತಿ ಯಶಸ್ವಿಯಾಗಿ ರಫ್ತು ಮಾಡಲಾಗಿದೆ",
@@ -2025,6 +2069,8 @@
       "embeddableHTMLCodeCopied": "ಎಂಬೆಡ್ಡೆಬಲ್ HTML ಕೋಡ್ ನಕಲಿಸಲಾಗಿದೆ!",
       "userDetailsUpdated": "ಬಳಕೆದಾರರ ವಿವರಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ",
       "tableDataImported": "ಕೋಷ್ಟಕದ ಡೇಟಾವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಆಮದು ಮಾಡಲಾಗಿದೆ",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook ಮಾಹಿತಿಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ನವೀಕರಿಸಲಾಗಿದೆ",
       "webhookDeleted": "Hook ಅನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಅಳಿಸಲಾಗಿದೆ",
       "webhookTested": "Webhook ಯಶಸ್ವಿಯಾಗಿ ಪರೀಕ್ಷಿಸಲಾಗಿದೆ",

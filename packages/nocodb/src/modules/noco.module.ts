@@ -16,7 +16,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
 import { HookHandlerService } from '~/services/hook-handler.service';
-
+import { MailService } from '~/services/mail/mail.service';
 /* User */
 import { UsersController } from '~/controllers/users/users.controller';
 import { UsersService } from '~/services/users/users.service';
@@ -130,7 +130,7 @@ import { CalendarDatasService } from '~/services/calendar-datas.service';
 import { IntegrationsController } from '~/controllers/integrations.controller';
 import { IntegrationsService } from '~/services/integrations.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
-import { Datav3Controller } from '~/controllers/data-v3.controller';
+import { Datav3Controller } from '~/controllers/v3/data-v3.controller';
 import { BaseUsersV3Controller } from '~/controllers/v3/base-users-v3.controller';
 import { BaseUsersV3Service } from '~/services/v3/base-users-v3.service';
 import { BasesV3Controller } from '~/controllers/v3/bases-v3.controller';
@@ -243,6 +243,7 @@ export const nocoModuleMetadata = {
     AppHooksListenerService,
     TelemetryService,
     HookHandlerService,
+    MailService,
 
     /* Users */
     UsersService,

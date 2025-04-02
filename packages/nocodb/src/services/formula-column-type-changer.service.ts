@@ -196,11 +196,7 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
       limit,
       offset,
     });
-    if (
-      isDataAuditEnabled({
-        isMetaSource: !!(await baseModelSqlV2.getSource()).isMeta(),
-      })
-    ) {
+    if (isDataAuditEnabled()) {
       const auditPayloads: AuditV1<DataUpdatePayload>[] = [];
       for (const row of updatedRows) {
         auditPayloads.push(

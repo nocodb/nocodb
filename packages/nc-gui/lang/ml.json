@@ -303,13 +303,15 @@
     "extension": "വിസ്തീർണം",
     "extensions": "വിസ്താരങ്ങൾ",
     "enable": "Enable",
+    "disable": "Disable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
     "unread": "Unread",
     "shared": "Shared",
-    "organization": "Organization"
+    "organization": "Organization",
+    "all": "All"
   },
   "objects": {
     "script": "Script",
@@ -369,7 +371,7 @@
       "orgLevelCreator": "സംഘടന തല സൃഷ്ടി",
       "orgLevelViewer": "സംഘടന തല ദർശകൻ"
     },
-    "sqlVIew": "SQL വീവ്",
+    "sqlView": "SQL വീവ്",
     "rowHeight": "റെക്കോർഡ് ഉയരം",
     "heightClass": {
       "short": "ചുരുങ്ങിയത്",
@@ -511,6 +513,7 @@
     "isNotNull": "നാള്‍"
   },
   "title": {
+    "confirmSnapshotRestore": "Confirm Snapshot Restore",
     "urlFilters": "URL Filters",
     "creatingScript": "Creating Script",
     "searchWebhook": "വെബ്‌ഹുക്ക് തിരയുക",
@@ -679,9 +682,24 @@
     "customUrl": "Custom URL",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
+    "restoringSnapshot": "Restoring Snapshot",
+    "note": "Note:",
+    "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",
+    "snapshotRestoreMessage2": "On restore, a new base will be created in the selected workspace.",
+    "snapshotRestoreConfirmation": "Are you sure you want to restore this base snapshot.",
+    "tryAgain": "Try again",
+    "goToBase": "Go to Base",
+    "errorMessage": "Error message:",
+    "duplicateBaseBaseTitle": "Duplicate Base \"{baseTitle}\"",
+    "duplicateBaseSuccessfull": "Base Duplication Successfull",
+    "duplicateBaseFailed": "Base Duplication Failed",
+    "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
+    "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
+    "currentWorkspace": "Current workspace",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "Failed",
@@ -888,6 +906,7 @@
     "clickToCopyViewID": "കാഴ്ച്ച ID പകർത്താൻ ക്ലിക്കൽ ചെയ്യുക",
     "viewMode": "കാഴ്ച മോഡ്",
     "reAssignView": "Re-assign view",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "ഉപയോക്താക്കളെ തിരയുക",
     "superAdmin": "സുപർ അഡ്മിൻ",
     "allTables": "എല്ലാ പട്ടികകൾ",
@@ -968,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV ഫയൽ",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON ഫയൽ",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1076,8 +1096,11 @@
     "apis": "APIs",
     "apiSnippet": "API സ്നിപ്പറ്റുകൾ",
     "includeData": "ഡാറ്റ ഉൾപ്പെടുത്തുക",
-    "includeView": "കാഴ്ച ഉൾപ്പെടുത്തുക",
-    "includeWebhook": "Webhook ഉൾപ്പെടുത്തുക",
+    "includeRecords": "Include records",
+    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "includeView": "Include views",
+    "includeWebhook": "Include webhook",
+    "includeComments": "Include comments",
     "zoomInToViewColumns": "കോളങ്ങൾ കാണുന്നതിന് സൂം ചെയ്യുക",
     "embedInSite": "ഈ കാഴ്ച നിങ്ങളുടെ സൈറ്റിൽ ഏർപ്പെടുത്തുക",
     "titleRequired": "ശീർഷകം ആവശ്യമാണ്.",
@@ -1131,7 +1154,12 @@
     "showJsonPayload": "Show JSON payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
     "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "proceedToLink": "Proceed to link",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON",
+    "airtableBase": "Airtable base"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1401,6 +1429,7 @@
     "clearForm": "ഫോം ക്ളിയർ ചെയ്യുക",
     "addFieldFromFormView": "ഫീൽഡ് ചേർക്കുക",
     "selectAllFields": "എല്ലാ ഫീൽഡുകളും തിരഞ്ഞെടുക്കുക",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "പ്രീ-ഫിൽ സജീവമാക്കുക",
       "default": "സ്ഥിരസ്ഥിതി",
@@ -1465,7 +1494,12 @@
     "aiIntegrationReConfigure": "AI integration has been removed, re-configure from field edit modal to use NocoAI features",
     "aiIntegrationAddAndReConfigure": "AI integration has been removed, re-add and re-configure from field edit modal to use NocoAI features",
     "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI",
-    "sourceDataIsReadonly": "Source data is readonly"
+    "sourceDataIsReadonly": "Source data is readonly",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
+    "shiftSpace": "Shift + Space",
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields",
+    "copyErrorCode": "Copy error code"
   },
   "placeholder": {
     "searchIcons": "ചിഹ്നങ്ങൾ തിരയുക",
@@ -1524,9 +1558,11 @@
     "inviteYourTeam": "നിങ്ങളുടെ ടീമിനെ ക്ഷണിക്കുക",
     "inviteYourTeamLabel": "നിങ്ങളുടെ പ്രോജക്റ്റുകൾക്ക് വേഗം എത്തിയ്ക്കാൻ, നിങ്ങളുടെ ടീമിനൊപ്പം സഹകരിക്കുക!",
     "searchOptions": "തിരയൽ ഓപ്ഷനുകൾ",
-    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
+    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional).",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
@@ -1675,7 +1711,10 @@
         "fieldVisibility": "എഡിറ്റ് ചെയ്യുന്ന ഫീൽഡിന്റെ ദൃശ്യതയും മാറ്റാൻ കഴിയില്ല. ആദ്യം മാറ്റങ്ങൾ സംരക്ഷിക്കുക അല്ലെങ്കിൽ ഒഴിവാക്കുക.",
         "moveEditedField": "എഡിറ്റ് ചെയ്യുന്ന ഫീൽഡിനെ മാറ്റാൻ കഴിയില്ല. ആദ്യമായി മാറ്റങ്ങൾ സംരക്ഷിക്കുക അല്ലെങ്കിൽ ഒഴിവാക്കുക",
         "moveDeletedField": "നീക്കം ചെയ്ത ഫീൽഡിനെ മാറ്റാൻ കഴിയില്ല. ആദ്യമായി മാറ്റങ്ങൾ സംരക്ഷിക്കുക അല്ലെങ്കിൽ ഒഴിവാക്കുക"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -1868,7 +1907,8 @@
       "yourCurrentRoleIs": "താങ്കളുടെ നിലവിലെ പങ്ക്",
       "pleaseRequestAccessForView": "ബഹുദയാളിത്വത്തിനുള്ള അനുമതി നേടാൻ അഡ്മിന്നിൽ നിന്ന് / അടിസ്ഥാന ഉടമയിൽ നിന്ന് / വർക്ക്‌സ്പെയ്സ് ഉടമയിൽ നിന്ന് ആവശ്യം ചെയ്യുക {viewName}",
       "preventHideAllOptions": "ഫീൽഡ് ആവശ്യമാണ് എങ്കിൽ എല്ലാ ഓപ്ഷനുകളും ഒളിപ്പിക്കാൻ കഴിയില്ല",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "മാനുവൽ ഹുക്കുകൾ അപ്രാപ്തമാക്കാനാവില്ല",
@@ -1975,7 +2015,11 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error",
+      "anErrorOccuredWhileImporting": "An error occurred while {type}",
+      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable"
     },
     "toast": {
       "exportMetadata": "അടിസ്ഥാന ഡാറ്റയുടെ മീറ്റാ വിവരങ്ങൾ വിജയകരമായി കയറ്റുമതി ചെയ്തു",
@@ -2025,6 +2069,8 @@
       "embeddableHTMLCodeCopied": "പകർത്തിയ ഹ്രസ്വ HTML കോഡ്!",
       "userDetailsUpdated": "ഉപയോക്തൃ വിവരങ്ങൾ വിജയകരമായി അപ്ഡേറ്റ് ചെയ്തു",
       "tableDataImported": "പട്ടിക ഡാറ്റ വിജയകരമായി ഇറക്കുമതി ചെയ്തു",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "വെബ്‌ഹുക്ക് വിശദാംശങ്ങൾ വിജയകരമായി അപ്ഡേറ്റ് ചെയ്തു",
       "webhookDeleted": "ഹുക്ക് വിജയകരമായി മായിച്ചു",
       "webhookTested": "വെബ്‌ഹുക്ക് വിജയകരമായി പറയപ്പെട്ടു",

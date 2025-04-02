@@ -5,6 +5,7 @@ const { modelValue, baseId, transition } = defineProps<{
   modelValue: boolean
   baseId: string
   transition?: string
+  showBackBtn?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue', 'back'])
@@ -218,7 +219,7 @@ onUnmounted(() => {
     @keydown.esc="dialogShow = false"
   >
     <div class="text-base font-weight-bold flex items-center gap-4 mb-6">
-      <GeneralIcon icon="nocodb" class="w-6 h-6" @dblclick="advancedOptionsCounter++" />
+      <GeneralIcon icon="nocodb1" class="w-6 h-6" @dblclick="advancedOptionsCounter++" />
 
       <span v-if="step === 1">
         {{ $t('title.quickImportNocoDB') }}
@@ -347,7 +348,9 @@ onUnmounted(() => {
             }
           "
         >
-          {{ $t('general.back') }}
+          <GeneralIcon v-if="showBackBtn" icon="chevronLeft" class="mr-1" />
+
+          {{ showBackBtn ? $t('general.back') : $t('general.cancel') }}
         </NcButton>
         <NcButton v-else key="abort" type="danger" size="small" @click="abortListening">
           {{ $t('general.abort') }}

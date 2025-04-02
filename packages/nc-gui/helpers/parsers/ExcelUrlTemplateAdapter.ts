@@ -1,5 +1,6 @@
 import type { Api, ColumnType } from 'nocodb-sdk'
 import ExcelTemplateAdapter from './ExcelTemplateAdapter'
+import type { ProgressMessageType } from './TemplateGenerator'
 
 export default class ExcelUrlTemplateAdapter extends ExcelTemplateAdapter {
   url: string
@@ -11,7 +12,7 @@ export default class ExcelUrlTemplateAdapter extends ExcelTemplateAdapter {
     parserConfig: Record<string, any>,
     api: Api<any>,
     xlsx: any = null,
-    progressCallback?: (msg: string) => void,
+    progressCallback?: (msg: ProgressMessageType) => void,
     existingColumns?: ColumnType[],
   ) {
     super({}, parserConfig, xlsx, progressCallback, existingColumns)

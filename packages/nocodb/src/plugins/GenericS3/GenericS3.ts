@@ -38,10 +38,14 @@ export default class GenericS3 implements IStorageAdapterV2 {
   }
 
   public async init(): Promise<any> {
-    // Placeholder, should be initalized in child class
+    // Placeholder, should be initialized in child class
   }
 
   protected patchKey(key: string): string {
+    return key;
+  }
+
+  protected patchUploadReturnKey(key: string): string {
     return key;
   }
 
@@ -175,7 +179,7 @@ export default class GenericS3 implements IStorageAdapterV2 {
 
       const data = await upload.done();
 
-      return data.Location;
+      return this.patchUploadReturnKey(data.Location);
     } catch (error) {
       console.error('Error uploading file', error);
       throw error;

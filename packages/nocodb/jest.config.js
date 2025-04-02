@@ -3,7 +3,7 @@
 // which contains the path mapping (ie the `compilerOptions.paths` option):
 
 module.exports = {
-  moduleFileExtensions: ['js', 'json', 'ts', 'node'],
+  moduleFileExtensions: ['js', 'json', 'ts', 'tsx', 'jsx', 'node'],
   rootDir: 'src',
   testRegex: '(Integration|Source)\\.spec\\.ts$',
   collectCoverageFrom: ['**/*.(t|j)s'],
@@ -31,7 +31,7 @@ module.exports = {
   //   prefix: '<rootDir>/../',
   // }),
   transform: {
-    '^.+\\.ts$': [
+    '^.+\\.tsx?$': [
       'ts-jest',
       {
         tsconfig: 'tsconfig.json',

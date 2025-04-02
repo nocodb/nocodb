@@ -22,6 +22,7 @@ import type { ImageWindowLoader } from '../components/smartsheet/grid/canvas/loa
 import type { SpriteLoader } from '../components/smartsheet/grid/canvas/loaders/SpriteLoader'
 import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
 import type { TableMetaLoader } from '../components/smartsheet/grid/canvas/loaders/TableMetaLoader'
+import type { UseDetachedLongTextProps } from '../components/smartsheet/grid/canvas/composables/useDetachedLongText'
 import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
 
@@ -442,8 +443,13 @@ type CursorType = 'auto' | 'pointer' | 'col-resize' | 'crosshair'
 
 type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) => void
 
+interface CellRenderFn {
+  (ctx: CanvasRenderingContext2D, options: CellRendererOptions): void | { x?: number; y?: number }
+}
+
 interface CellRenderer {
-  render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x?: number; y?: number }
+  render: CellRenderFn
+  renderEmpty?: CellRenderFn
   handleClick?: (options: {
     event: MouseEvent
     mousePosition: { x: number; y: number }
@@ -467,6 +473,8 @@ interface CellRenderer {
     imageLoader: ImageWindowLoader
     cellRenderStore: CellRenderStore
     isPublic?: boolean
+    openDetachedExpandedForm: (props: UseExpandedFormDetachedProps) => void
+    openDetachedLongText: (props: UseDetachedLongTextProps) => void
   }) => Promise<boolean>
   handleKeyDown?: (options: {
     e: KeyboardEvent
@@ -485,6 +493,7 @@ interface CellRenderer {
     actionManager: ActionManager
     makeCellEditable: (rowIndex: number | Row, clickedColumn: CanvasGridColumn) => void
     cellRenderStore: CellRenderStore
+    openDetachedLongText: (props: UseDetachedLongTextProps) => void
   }) => Promise<boolean | void>
   handleHover?: (options: {
     event: MouseEvent
@@ -573,6 +582,8 @@ type CanvasEditEnabledType = {
   fixed: boolean
 } | null
 
+type CanvasCellEventDataInjType = ExtractInjectedReactive<typeof CanvasCellEventDataInj>
+
 export type {
   User,
   ProjectMetaInfo,
@@ -611,6 +622,7 @@ export type {
   Attachment,
   NestedArray,
   ViewActionState,
+  CellRenderFn,
   CellRenderer,
   CellRendererOptions,
   CellRenderStore,
@@ -620,4 +632,5 @@ export type {
   CanvasEditEnabledType,
   SetCursorType,
   CursorType,
+  CanvasCellEventDataInjType,
 }

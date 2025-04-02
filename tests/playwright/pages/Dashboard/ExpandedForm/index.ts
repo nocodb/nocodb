@@ -98,7 +98,7 @@ export class ExpandedFormPage extends BasePage {
     ltarCount,
   }: {
     columnTitle: string;
-    value: string;
+    value: any;
     type?: string;
     ltarCount?: number | string;
   }) {

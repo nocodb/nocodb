@@ -303,13 +303,15 @@
     "extension": "एक्सटेन्सन",
     "extensions": "एक्सटेन्सनहरू",
     "enable": "Enable",
+    "disable": "Disable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
     "unread": "Unread",
     "shared": "Shared",
-    "organization": "Organization"
+    "organization": "Organization",
+    "all": "All"
   },
   "objects": {
     "script": "Script",
@@ -369,7 +371,7 @@
       "orgLevelCreator": "संस्था स्तर सिर्जनाकर्ता",
       "orgLevelViewer": "संस्था स्तर दर्शक"
     },
-    "sqlVIew": "SQL दृश्य",
+    "sqlView": "SQL दृश्य",
     "rowHeight": "रेकर्ड उचाइ",
     "heightClass": {
       "short": "छोटो",
@@ -511,6 +513,7 @@
     "isNotNull": "शून्य छैन"
   },
   "title": {
+    "confirmSnapshotRestore": "Confirm Snapshot Restore",
     "urlFilters": "URL Filters",
     "creatingScript": "Creating Script",
     "searchWebhook": "वेबहुक खोज्नुहोस्",
@@ -679,9 +682,24 @@
     "customUrl": "Custom URL",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
+    "restoringSnapshot": "Restoring Snapshot",
+    "note": "Note:",
+    "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",
+    "snapshotRestoreMessage2": "On restore, a new base will be created in the selected workspace.",
+    "snapshotRestoreConfirmation": "Are you sure you want to restore this base snapshot.",
+    "tryAgain": "Try again",
+    "goToBase": "Go to Base",
+    "errorMessage": "Error message:",
+    "duplicateBaseBaseTitle": "Duplicate Base \"{baseTitle}\"",
+    "duplicateBaseSuccessfull": "Base Duplication Successfull",
+    "duplicateBaseFailed": "Base Duplication Failed",
+    "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
+    "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
+    "currentWorkspace": "Current workspace",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "Failed",
@@ -888,6 +906,7 @@
     "clickToCopyViewID": "View ID प्रतिलिपि गर्न क्लिक गर्नुहोस्",
     "viewMode": "हेर्ने तरिका",
     "reAssignView": "Re-assign view",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "प्रयोगकर्ताहरू खोज्नुहोस्",
     "superAdmin": "सुपर प्रशासक",
     "allTables": "सबै तालिकाहरू",
@@ -968,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV फाइल",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON फाइल",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1076,8 +1096,11 @@
     "apis": "APIs",
     "apiSnippet": "API टुक्राहरू",
     "includeData": "डेटा समावेश गर्नुहोस्",
-    "includeView": "दृश्य समावेश गर्नुहोस्",
-    "includeWebhook": "Webhook समावेश गर्नुहोस्",
+    "includeRecords": "Include records",
+    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "includeView": "Include views",
+    "includeWebhook": "Include webhook",
+    "includeComments": "Include comments",
     "zoomInToViewColumns": "कक्षहरू हेर्नका लागि जुम गर्नुहोस्",
     "embedInSite": "यस्तो दृशलाई आफ्नो साइटमा सम्मिलित गर्नुहोस्",
     "titleRequired": "शीर्षक आवश्यक छ।",
@@ -1131,7 +1154,12 @@
     "showJsonPayload": "Show JSON payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
     "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "proceedToLink": "Proceed to link",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON",
+    "airtableBase": "Airtable base"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1401,6 +1429,7 @@
     "clearForm": "फारम खाली गर्नुहोस्",
     "addFieldFromFormView": "फिल्ड थप्नुहोस्",
     "selectAllFields": "सबै क्षेत्रहरू चयन गर्नुहोस्",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "पूर्व-भरिएका विकल्पहरू सक्षम गर्नुहोस्",
       "default": "पूर्वनिर्धारित",
@@ -1465,7 +1494,12 @@
     "aiIntegrationReConfigure": "AI integration has been removed, re-configure from field edit modal to use NocoAI features",
     "aiIntegrationAddAndReConfigure": "AI integration has been removed, re-add and re-configure from field edit modal to use NocoAI features",
     "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI",
-    "sourceDataIsReadonly": "Source data is readonly"
+    "sourceDataIsReadonly": "Source data is readonly",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
+    "shiftSpace": "Shift + Space",
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields",
+    "copyErrorCode": "Copy error code"
   },
   "placeholder": {
     "searchIcons": "आइकनहरू खोज्नुहोस्",
@@ -1524,9 +1558,11 @@
     "inviteYourTeam": "आफ्नो टोलीलाई निम्तो दिनुहोस्",
     "inviteYourTeamLabel": "आफ्नो परियोजनाहरूमा आफ्नो टोलीसँग मिलेर काम गरेर चाँडै गर्नुहोस्!",
     "searchOptions": "विकल्पहरू खोज्नुहोस्",
-    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
+    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional).",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
@@ -1675,7 +1711,10 @@
         "fieldVisibility": "तपाईंको परिवर्तनहरूसँग सम्बद्ध मुद्दाहरू छन् जसलाई पहिले समाधान गर्नु पर्छ। कृपया डेटा फोल्डर पुनःबनाउनुहोस् र फेरि प्रयास गर्नुहोस्।",
         "moveEditedField": "तपाईंले सम्पादन भइरहेको फिल्डलाई सार्न सक्नुहुन्न। पहिले सुरक्षित गर्नुहोस् वा परिवर्तनहरू त्याग्नुहोस्",
         "moveDeletedField": "तपाईं मेटिएको फिल्डलाई सार्न सक्नुहुन्न। पहिले सुरक्षित गर्नुहोस् वा परिवर्तनहरू त्याग्नुहोस्"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -1868,7 +1907,8 @@
       "yourCurrentRoleIs": "तपाईंको वर्तमान भूमिका छ",
       "pleaseRequestAccessForView": "कृपया यस {viewName} पहुँचको लागि एडमिन / बेस मालिक / वर्कस्पेस मालिकसँग उच्च अनुमति अनुरोध गर्नुहोस्",
       "preventHideAllOptions": "यदि फिल्ड आवश्यक छ भने तपाईं सबै विकल्पहरू लुकाउन सक्नुहुन्न",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "म्यानुअल हुकहरू डिसेबल गर्न सकिँदैन",
@@ -1975,7 +2015,11 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error",
+      "anErrorOccuredWhileImporting": "An error occurred while {type}",
+      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable"
     },
     "toast": {
       "exportMetadata": "आधार मेटाडेटा सफलतापूर्वक निर्यात गरिएको छ",
@@ -2025,6 +2069,8 @@
       "embeddableHTMLCodeCopied": "एम्बेड गर्न सकिने HTML कोड कपि गरियो!",
       "userDetailsUpdated": "प्रयोगकर्ता विवरणहरू सफलतापूर्वक अपडेट गरियो",
       "tableDataImported": "टेबल डेटा सफलतापूर्वक आयात गरियो",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "वेबहुक विवरणहरू सफलतापूर्वक अपडेट गरियो",
       "webhookDeleted": "हेक सफलतापूर्वक हटाइयो",
       "webhookTested": "वेबहुक सफलतापूर्वक परीक्षण गरियो",

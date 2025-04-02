@@ -1513,5 +1513,8 @@ export class MysqlUi implements SqlUi {
       newColumn.dtxs = newDtxs;
     }
   }
+  isParsedJsonReturnType(col: ColumnType): boolean {
+    return ['json'].includes(col.dt?.toLowerCase());
+  }
   //#endregion methods
 }

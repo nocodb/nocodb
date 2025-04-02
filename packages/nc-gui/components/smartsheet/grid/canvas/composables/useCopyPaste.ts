@@ -22,6 +22,7 @@ import type { SuppressedError } from '../../../../../error/suppressed.error'
 import { EDIT_INTERACTABLE } from '../utils/constants'
 
 const CHUNK_SIZE = 50
+const MAX_ROWS = 200
 
 export function useCopyPaste({
   totalRows,
@@ -39,6 +40,7 @@ export function useCopyPaste({
   bulkUpdateRows,
   fetchChunk,
   updateOrSaveRow,
+  getRows,
 }: {
   totalRows: Ref<number>
   activeCell: Ref<{ row: number; column: number }>
@@ -93,6 +95,7 @@ export function useCopyPaste({
     args?: { metaValue?: TableType; viewMetaValue?: ViewType },
     beforeRow?: string,
   ) => Promise<any>
+  getRows: (start: number, end: number) => Promise<Row[]>
 }) {
   const { $api } = useNuxtApp()
   const { isDataReadOnly } = useRoles()
@@ -105,6 +108,7 @@ export function useCopyPaste({
   const { copy } = useCopy()
   const { cleaMMCell, clearLTARCell, addLTARRef, syncLTARRefs } = useSmartsheetLtarHelpersOrThrow()
   const { isSqlView } = useSmartsheetStoreOrThrow()
+  const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
   const { base } = storeToRefs(useBase())
   const fields = computed(() => (columns.value ?? []).map((c) => c.columnObj))
@@ -199,7 +203,13 @@ export function useCopyPaste({
           return message.error(parsedClipboard.errors[0]?.message)
         }
 
-        const clipboardMatrix = parsedClipboard.data as string[][]
+        let clipboardMatrix = parsedClipboard.data as string[][]
+
+        let isTruncated = false
+        if (clipboardMatrix.length > MAX_ROWS) {
+          clipboardMatrix = clipboardMatrix.slice(0, MAX_ROWS)
+          isTruncated = true
+        }
 
         const selectionRowCount = Math.max(clipboardMatrix.length, selection.value.end.row - selection.value.start.row + 1)
 
@@ -277,6 +287,16 @@ export function useCopyPaste({
         } else {
           colsToPaste = fields.value.slice(selection.value.start.col, selection.value.start.col + pasteMatrixCols)
         }
+
+        const startChunkId = Math.floor(selection.value.start.row / CHUNK_SIZE)
+        const endChunkId = Math.floor(selection.value.start.row + availableRowsToUpdate / CHUNK_SIZE)
+
+        const chunksToFetch = new Set<number>()
+        for (let chunkId = startChunkId; chunkId <= endChunkId; chunkId++) {
+          chunksToFetch.add(chunkId)
+        }
+        // Fetch all required chunks
+        await Promise.all([...chunksToFetch].map(fetchChunk))
 
         const dataRef = unref(cachedRows)
 
@@ -369,6 +389,10 @@ export function useCopyPaste({
           scrollToCell?.()
         } else {
           await bulkUpdateRows?.(updatedRows, propsToPaste)
+        }
+
+        if (isTruncated) {
+          message.warning(`Paste operation limited to ${MAX_ROWS} rows. Additional rows were truncated.`)
         }
       } else {
         if (selection.value.isSingleCell()) {
@@ -616,11 +640,8 @@ export function useCopyPaste({
           const startCol = Math.min(start.col, end.col)
           const endCol = Math.max(start.col, end.col)
 
+          const rows = await getRows(startRow, endRow)
           const cols = unref(fields).slice(startCol, endCol + 1)
-          const rows = Array.from(unref(cachedRows) as Map<number, Row>)
-            .filter(([index]) => index >= startRow && index <= endRow)
-            .map(([, row]) => row)
-
           const props = []
 
           let pasteValue
@@ -771,7 +792,7 @@ export function useCopyPaste({
     const col = columns.value[ctx.col]
     const rowObj = cachedRows.value.get(ctx.row)
 
-    if (!col || !col?.columnObj || !rowObj || col?.virtual) return
+    if (!col || !col?.columnObj || !rowObj) return
     const columnObj = col.columnObj
 
     if (
@@ -780,13 +801,18 @@ export function useCopyPaste({
       !ctx ||
       !hasEditPermission.value ||
       columnObj.readonly ||
-      isSystemColumn(columnObj) ||
+      (isSystemColumn(columnObj) && !isLinksOrLTAR(columnObj)) ||
       (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj))
-    )
+    ) {
       return
+    }
 
     if (isVirtualCol(columnObj)) {
       let mmClearResult
+      const mmOldResult = rowObj.row[columnObj.title]
+
+      // This will used to reload view data if it is self link column
+      const isSelfLinkColumn = columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id
 
       if (isMm(columnObj) && rowObj) {
         mmClearResult = await cleaMMCell(rowObj, columnObj)
@@ -794,7 +820,14 @@ export function useCopyPaste({
 
       addUndo({
         undo: {
-          fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, mmClearResult: any[]) => {
+          fn: async (
+            ctx: { row: number; col: number },
+            col: ColumnType,
+            row: Row,
+            mmClearResult: any[],
+            mmOldResult: any,
+            isSelfLinkColumn: boolean,
+          ) => {
             const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
             const rowObj = cachedRows.value.get(ctx.row)
             const columnObj = fields.value[ctx.col]
@@ -817,21 +850,25 @@ export function useCopyPaste({
                   encodeURIComponent(rowId as string),
                   mmClearResult,
                 )
-                rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
+                rowObj.row[columnObj.title] = mmOldResult ?? null
               }
 
               activeCell.value.column = ctx.col
               activeCell.value.row = ctx.row
+
+              if (isSelfLinkColumn) {
+                reloadViewDataHook.trigger({ shouldShowLoading: false })
+              }
 
               scrollToCell?.()
             } else {
               throw new Error(t('msg.recordCouldNotBeFound'))
             }
           },
-          args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult],
+          args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult, mmOldResult, isSelfLinkColumn],
         },
         redo: {
-          fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row) => {
+          fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, isSelfLinkColumn: boolean) => {
             const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
             const rowObj = cachedRows.value.get(ctx.row)
             const columnObj = fields.value[ctx.col]
@@ -848,16 +885,25 @@ export function useCopyPaste({
               }
               activeCell.value.column = ctx.col
               activeCell.value.row = ctx.row
+
+              if (isSelfLinkColumn) {
+                reloadViewDataHook.trigger({ shouldShowLoading: false })
+              }
+
               scrollToCell?.()
             } else {
               throw new Error(t('msg.recordCouldNotBeFound'))
             }
           },
-          args: [clone(ctx), clone(columnObj), clone(rowObj)],
+          args: [clone(ctx), clone(columnObj), clone(rowObj), isSelfLinkColumn],
         },
         scope: defineViewScope({ view: view.value }),
       })
       if (isBt(columnObj) || isOo(columnObj)) await clearLTARCell(rowObj, columnObj)
+
+      if (isSelfLinkColumn) {
+        reloadViewDataHook.trigger({ shouldShowLoading: false })
+      }
 
       return
     }
@@ -886,20 +932,7 @@ export function useCopyPaste({
   async function copyValue(ctx?: Cell) {
     try {
       if (selection.value.start !== null && selection.value.end !== null && !selection.value.isSingleCell()) {
-        const startChunkId = Math.floor(selection.value.start.row / CHUNK_SIZE)
-        const endChunkId = Math.floor(selection.value.end.row / CHUNK_SIZE)
-
-        const chunksToFetch = new Set<number>()
-        for (let chunkId = startChunkId; chunkId <= endChunkId; chunkId++) {
-          chunksToFetch.add(chunkId)
-        }
-
-        // Fetch all required chunks
-        await Promise.all([...chunksToFetch].map(fetchChunk))
-
-        const cprows = Array.from(unref(cachedRows).entries())
-          .filter(([index]) => index >= selection.value.start.row && index <= selection.value.end.row)
-          .map(([, row]) => row)
+        const cprows = await getRows(selection.value.start.row, selection.value.end.row)
 
         const cpcols = unref(fields).slice(selection.value.start.col, selection.value.end.col + 1) // slice the selected cols for copy
 

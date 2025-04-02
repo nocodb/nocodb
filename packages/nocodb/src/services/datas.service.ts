@@ -31,6 +31,7 @@ export class DatasService {
       limitOverride?: number;
       throwErrorIfInvalidParams?: boolean;
       getHiddenColumns?: boolean;
+      includeSortAndFilterColumns?: boolean;
       apiVersion?: NcApiVersion;
     },
   ) {
@@ -75,6 +76,7 @@ export class DatasService {
       limitOverride: param.limitOverride,
       getHiddenColumns: param.getHiddenColumns,
       apiVersion: param.apiVersion,
+      includeSortAndFilterColumns: param.includeSortAndFilterColumns,
     });
   }
 
@@ -185,7 +187,6 @@ export class DatasService {
 
     // if xcdb base skip checking for LTAR
     if (!source.isMeta()) {
-      // todo: Should have error http status code
       const message = await baseModel.hasLTARData(param.rowId, model);
       if (message.length) {
         NcError.badRequest(message);
@@ -209,6 +210,7 @@ export class DatasService {
       customConditions?: Filter[];
       getHiddenColumns?: boolean;
       apiVersion?: NcApiVersion;
+      includeSortAndFilterColumns?: boolean;
     },
   ) {
     const {
@@ -216,6 +218,7 @@ export class DatasService {
       view: view,
       query = {},
       ignoreViewFilterAndSort = false,
+      includeSortAndFilterColumns = false,
       apiVersion,
     } = param;
 
@@ -237,6 +240,7 @@ export class DatasService {
       throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
       getHiddenColumn: param.getHiddenColumns,
       apiVersion,
+      includeSortAndFilterColumns: includeSortAndFilterColumns,
     });
 
     const listArgs: any = dependencyFields;
@@ -1013,7 +1017,7 @@ export class DatasService {
   ) {
     const base = await Base.getWithInfoByTitleOrId(
       context,
-      req.params.baseName,
+      req.params.baseId ?? req.params.baseName,
     );
 
     const model = await Model.getByAliasOrId(context, {

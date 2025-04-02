@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotImplementedException } from '@nestjs/common';
 import debug from 'debug';
 import {
   isAIPromptCol,
@@ -58,22 +58,37 @@ export class ImportService {
   protected readonly logger = new Logger(ImportService.name);
 
   constructor(
-    private tablesService: TablesService,
-    private columnsService: ColumnsService,
-    private filtersService: FiltersService,
-    private sortsService: SortsService,
-    private viewColumnsService: ViewColumnsService,
-    private gridColumnsService: GridColumnsService,
-    private formColumnsService: FormColumnsService,
-    private gridsService: GridsService,
-    private formsService: FormsService,
-    private galleriesService: GalleriesService,
-    private calendarsService: CalendarsService,
-    private kanbansService: KanbansService,
-    private bulkDataService: BulkDataAliasService,
-    private hooksService: HooksService,
-    private viewsService: ViewsService,
+    protected tablesService: TablesService,
+    protected columnsService: ColumnsService,
+    protected filtersService: FiltersService,
+    protected sortsService: SortsService,
+    protected viewColumnsService: ViewColumnsService,
+    protected gridColumnsService: GridColumnsService,
+    protected formColumnsService: FormColumnsService,
+    protected gridsService: GridsService,
+    protected formsService: FormsService,
+    protected galleriesService: GalleriesService,
+    protected calendarsService: CalendarsService,
+    protected kanbansService: KanbansService,
+    protected bulkDataService: BulkDataAliasService,
+    protected hooksService: HooksService,
+    protected viewsService: ViewsService,
   ) {}
+
+  async importUsers(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    context: NcContext,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    payload: {
+      users: {
+        email: string;
+        display_name?: string;
+      }[];
+      req: NcRequest;
+    },
+  ) {
+    throw new NotImplementedException();
+  }
 
   async importModels(
     context: NcContext,
@@ -1681,7 +1696,7 @@ export class ImportService {
           for (const [k, v] of Object.entries(galleryData)) {
             switch (k) {
               case 'fk_cover_image_col_id':
-                galleryData[k] = idMap.get(v as string);
+                galleryData[k] = idMap.get(v as string) ?? null;
                 break;
             }
           }
@@ -1711,7 +1726,7 @@ export class ImportService {
             switch (k) {
               case 'fk_grp_col_id':
               case 'fk_cover_image_col_id':
-                kanbanData[k] = idMap.get(v as string);
+                kanbanData[k] = idMap.get(v as string) ?? null;
                 break;
               case 'meta': {
                 const meta = {};

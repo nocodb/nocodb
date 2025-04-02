@@ -253,13 +253,17 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
     return
 
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  if (colMeta.value[ctx.col].isReadonly) return
+  if (colMeta.value[ctx.col].isReadonly && !isVirtualCol(fields.value[ctx.col])) return
 
   const rowObj = dataRef.value[ctx.row]
   const columnObj = fields.value[ctx.col]
 
   if (isVirtualCol(columnObj)) {
     let mmClearResult
+    const mmOldResult = rowObj.row[columnObj.title]
+
+    // This will used to reload view data if it is self link column
+    const isSelfLinkColumn = columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id
 
     if (isMm(columnObj) && rowObj) {
       mmClearResult = await cleaMMCell(rowObj, columnObj)
@@ -267,7 +271,15 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 
     addUndo({
       undo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType, mmClearResult: any[]) => {
+        fn: async (
+          ctx: { row: number; col: number },
+          col: ColumnType,
+          row: Row,
+          pg: PaginatedType,
+          mmClearResult: any[],
+          mmOldResult: any,
+          isSelfLinkColumn: boolean,
+        ) => {
           if (paginationDataRef.value?.pageSize === pg.pageSize) {
             if (paginationDataRef.value?.page !== pg.page) {
               await changePage?.(pg.page!)
@@ -292,13 +304,18 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
                   encodeURIComponent(rowId as string),
                   mmClearResult,
                 )
-                rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
+                rowObj.row[columnObj.title] = mmOldResult ?? null
               }
 
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
               activeCell.col = ctx.col
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
               activeCell.row = ctx.row
+
+              if (isSelfLinkColumn) {
+                reloadViewDataHook.trigger({ shouldShowLoading: false })
+              }
+
               scrollToCell?.()
             } else {
               throw new Error(t('msg.recordCouldNotBeFound'))
@@ -307,10 +324,24 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             throw new Error(t('msg.pageSizeChanged'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value), mmClearResult],
+        args: [
+          clone(ctx),
+          clone(columnObj),
+          clone(rowObj),
+          clone(paginationDataRef.value),
+          mmClearResult,
+          mmOldResult,
+          isSelfLinkColumn,
+        ],
       },
       redo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
+        fn: async (
+          ctx: { row: number; col: number },
+          col: ColumnType,
+          row: Row,
+          pg: PaginatedType,
+          isSelfLinkColumn: boolean,
+        ) => {
           if (paginationDataRef.value?.pageSize === pg.pageSize) {
             if (paginationDataRef.value?.page !== pg.page) {
               await changePage?.(pg.page!)
@@ -328,6 +359,11 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
               activeCell.col = ctx.col
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
               activeCell.row = ctx.row
+
+              if (isSelfLinkColumn) {
+                reloadViewDataHook.trigger({ shouldShowLoading: false })
+              }
+
               scrollToCell?.()
             } else {
               throw new Error(t('msg.recordCouldNotBeFound'))
@@ -336,11 +372,15 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             throw new Error(t('msg.pageSizeChanged'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value)],
+        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value), isSelfLinkColumn],
       },
       scope: defineViewScope({ view: view.value }),
     })
     if (isBt(columnObj) || isOo(columnObj)) await clearLTARCell(rowObj, columnObj)
+
+    if (isSelfLinkColumn) {
+      reloadViewDataHook.trigger({ shouldShowLoading: false })
+    }
 
     return
   }
@@ -605,12 +645,15 @@ const {
 
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     const altOrOptionKey = e.altKey
-    if (e.key === ' ') {
+    if (e.key === ' ' && !e.shiftKey) {
       const isRichModalOpen = isExpandedCellInputExist()
 
-      if (isCellActive.value && !editEnabled.value && hasEditPermission.value && activeCell.row !== null && !isRichModalOpen) {
+      if (!editEnabled.value && isCellActive.value && activeCell.row !== null && !isRichModalOpen) {
         e.preventDefault()
         const row = dataRef.value[activeCell.row]
+
+        if (!row) return true
+
         expandForm?.(row)
         return true
       }
@@ -750,6 +793,11 @@ const {
     }
 
     if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
+      // Reload view data if it is self link column
+      if (columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id) {
+        reloadViewDataHook?.trigger({ shouldShowLoading: false })
+      }
+
       return
     }
 
@@ -768,6 +816,10 @@ const {
   view,
   paginationDataRef,
   changePage,
+  undefined,
+  undefined,
+  undefined,
+  false,
 )
 
 function scrollToRow(row?: number) {
@@ -2227,6 +2279,10 @@ onKeyStroke('ArrowDown', onDown)
                       <SmartsheetTableDataCell
                         v-if="fields[0]"
                         :key="fields[0].id"
+                        :active="
+                          (activeCell.row === rowIndex && activeCell.col === 0) ||
+                          (selectedRange._start?.row === rowIndex && selectedRange._start?.col === 0)
+                        "
                         class="cell relative nc-grid-cell cursor-pointer"
                         :class="{
                           'active': selectRangeMap[`${rowIndex}-0`],
@@ -2299,6 +2355,10 @@ onKeyStroke('ArrowDown', onDown)
                       <SmartsheetTableDataCell
                         v-for="{ field: columnObj, index: colIndex } of visibleFields"
                         :key="`cell-${colIndex}-${rowIndex}`"
+                        :active="
+                          (activeCell.row === rowIndex && activeCell.col === colIndex) ||
+                          (selectedRange._start?.row === rowIndex && selectedRange._start?.col === colIndex)
+                        "
                         class="cell relative nc-grid-cell cursor-pointer"
                         :class="{
                           'active': selectRangeMap[`${rowIndex}-${colIndex}`],
@@ -2513,7 +2573,10 @@ onKeyStroke('ArrowDown', onDown)
               v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly"
               class="nc-base-menu-item"
               data-testid="context-menu-item-paste"
-              :disabled="selectedReadonly"
+              :disabled="
+                selectedReadonly &&
+                (!selectedRange.isSingleCell() || (!isMm(fields[contextMenuTarget.col]) && !isBt(fields[contextMenuTarget.col])))
+              "
               @click="paste"
             >
               <div v-e="['a:row:paste']" class="flex gap-2 items-center">
@@ -2533,7 +2596,7 @@ onKeyStroke('ArrowDown', onDown)
                 !isDataReadOnly
               "
               class="nc-base-menu-item"
-              :disabled="selectedReadonly"
+              :disabled="selectedReadonly && !isLinksOrLTAR(fields[contextMenuTarget.col])"
               data-testid="context-menu-item-clear"
               @click="clearCell(contextMenuTarget)"
             >
@@ -2887,9 +2950,9 @@ onKeyStroke('ArrowDown', onDown)
         @apply text-gray-600;
         font-weight: 500;
 
-        .nc-cell-field,
-        input,
-        textarea {
+        .nc-cell-field:not(.nc-null),
+        input:not(.nc-null),
+        textarea:not(.nc-null) {
           @apply text-gray-600;
           font-weight: 500;
         }

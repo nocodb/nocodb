@@ -34,7 +34,12 @@ const hideBackBtn = ref(false)
 const rowHeight = inject(RowHeightInj, ref())
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
 const clientMousePosition = inject(ClientMousePositionInj)
+
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
+
+const cellEventHook = inject(CellEventHookInj, null)
 
 const { isUIAllowed } = useRoles()
 
@@ -147,13 +152,31 @@ function onCellClick(e: Event) {
   }
 }
 
+const onCellEvent = (event?: Event) => {
+  if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event)) return
+
+  if (isExpandCellKey(event)) {
+    if (childListDlg.value) {
+      listItemsDlg.value = false
+      childListDlg.value = false
+    } else {
+      openChildList()
+    }
+
+    return true
+  }
+}
+
 onMounted(() => {
   onDivDataCellEventHook?.on(onCellClick)
   cellClickHook?.on(onCellClick)
+  cellEventHook?.on(onCellEvent)
 
   if (isUnderLookup.value || !isCanvasInjected || isExpandedForm.value || !clientMousePosition) return
 
   forcedNextTick(() => {
+    if (onCellEvent(canvasCellEventData.event)) return
+
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-many-to-many-plus-icon', clientMousePosition)) {
       openListDlg()
     } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-many-to-many-maximize-icon', clientMousePosition)) {
@@ -169,12 +192,13 @@ onMounted(() => {
 onUnmounted(() => {
   onDivDataCellEventHook?.off(onCellClick)
   cellClickHook?.off(onCellClick)
+  cellEventHook?.off(onCellEvent)
 })
 </script>
 
 <template>
   <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
-    <div class="nc-cell-field flex items-center gap-1 w-full chips-wrapper min-h-4">
+    <div class="nc-cell-field flex items-center gap-1 w-full chips-wrapper min-h-6.5 relative">
       <div
         class="chips flex items-center img-container flex-1 hm-items min-w-0 overflow-y-auto overflow-x-hidden"
         :class="{ 'flex-wrap': rowHeight !== 1 }"
@@ -198,7 +222,7 @@ onUnmounted(() => {
 
       <div
         v-if="!isUnderLookup || isForm"
-        class="flex justify-end gap-[2px] min-h-4 items-center absolute right-1 top-[3px] many-to-many-actions"
+        class="flex justify-end gap-[2px] min-h-4 items-center absolute right-0 top-0 bottom-0 many-to-many-actions"
         :class="{ active }"
         @click.stop
       >
@@ -211,9 +235,16 @@ onUnmounted(() => {
         >
           <GeneralIcon icon="plus" class="text-sm nc-plus" />
         </NcButton>
-        <NcButton size="xsmall" type="secondary" class="nc-action-icon nc-many-to-many-maximize-icon" @click.stop="openChildList">
-          <GeneralIcon icon="maximize" />
-        </NcButton>
+        <NcTooltip :title="$t('tooltip.expandShiftSpace')" :disabled="isExpandedForm" class="flex">
+          <NcButton
+            size="xsmall"
+            type="secondary"
+            class="nc-action-icon nc-many-to-many-maximize-icon"
+            @click.stop="openChildList"
+          >
+            <GeneralIcon icon="maximize" />
+          </NcButton>
+        </NcTooltip>
       </div>
     </div>
 
@@ -256,12 +287,5 @@ onUnmounted(() => {
   .many-to-many-actions {
     @apply !flex;
   }
-}
-.ant-form-item-control-input .many-to-many-actions {
-  @apply top-[7px] right-[5px];
-}
-
-.nc-expanded-cell .many-to-many-actions {
-  @apply top-[2px] right-[5px];
 }
 </style>

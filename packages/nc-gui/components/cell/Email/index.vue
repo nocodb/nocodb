@@ -35,7 +35,7 @@ const vModel = computed({
   get: () => value,
   set: (val) => {
     localState.value = val
-    if (!parseProp(column.value.meta)?.validate || (val && validateEmail(val)) || !val || isForm.value) {
+    if (!parseProp(column.value.meta)?.validate || (val && validateEmail(val)) || !val || isForm.value || isEditColumn.value) {
       emit('update:modelValue', val)
     }
   },

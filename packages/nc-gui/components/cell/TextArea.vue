@@ -14,6 +14,8 @@ const props = defineProps<{
 
 const emits = defineEmits(['update:modelValue', 'update:isAiEdited', 'generate', 'close'])
 
+const STORAGE_KEY = 'nc-long-text-expanded-modal-size'
+
 const meta = inject(MetaInj, ref())
 
 const column = inject(ColumnInj)
@@ -36,12 +38,15 @@ const readOnlyInj = inject(ReadonlyInj, ref(false))
 
 const isUnderFormula = inject(IsUnderFormulaInj, ref(false))
 
+const cellEventHook = inject(CellEventHookInj, null)
+
 const readOnly = computed(() => readOnlyInj.value || column.value.readonly)
 
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const clientMousePosition = inject(ClientMousePositionInj)
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
-const canvasSelectCell = inject(CanvasSelectCellInj)
+const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
 const { showNull, user } = useGlobal()
 
@@ -288,27 +293,78 @@ const handleClose = () => {
   isVisible.value = false
 }
 
-const STORAGE_KEY = 'nc-long-text-expanded-modal-size'
-
-const { width: widthTextArea, height: heightTextArea } = useElementSize(inputRef)
-
-watch([widthTextArea, heightTextArea], () => {
-  if (isVisible.value) {
-    const size = {
-      width: widthTextArea.value,
-      height: heightTextArea.value,
-    }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(size))
+watch(textAreaRef, (el) => {
+  if (el && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
+    el.focus()
   }
 })
 
+const onCellEvent = (event?: Event) => {
+  if (!(event instanceof KeyboardEvent) || !event.target) return
+
+  if (isExpandCellKey(event)) {
+    if (isVisible.value && !isActiveInputElementExist(event)) {
+      handleClose()
+    } else {
+      onExpand()
+    }
+
+    return true
+  }
+}
+
+onMounted(() => {
+  cellEventHook?.on(onCellEvent)
+
+  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value) return
+  const position = { clientX: clientMousePosition.clientX, clientY: clientMousePosition.clientY + 2 }
+  forcedNextTick(() => {
+    if (onCellEvent(canvasCellEventData.event)) return
+
+    if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-expand', position)) {
+      onExpand()
+    } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-generate', position)) {
+      generate()
+    } else if (isRichMode.value || props.isAi) {
+      onExpand()
+    }
+  })
+})
+
+onUnmounted(() => {
+  cellEventHook?.off(onCellEvent)
+})
+
+/**
+ * Tracks whether the size has been updated.
+ * Prevents redundant updates when resizing elements.
+ */
+const isSizeUpdated = ref(false)
+
+/**
+ * Controls whether the next size update should be skipped.
+ * Used to avoid unnecessary updates on initialization.
+ */
+const skipSizeUpdate = ref(true)
+
+watch(isVisible, (open) => {
+  if (open) return
+
+  isSizeUpdated.value = false
+  skipSizeUpdate.value = true
+})
+
+/**
+ * Updates the size of the text area based on stored dimensions in localStorage.
+ * Retrieves the stored size and applies it to the corresponding text area element.
+ */
 const updateSize = () => {
   try {
     const size = localStorage.getItem(STORAGE_KEY)
     let elem = document.querySelector('.nc-text-area-expanded') as HTMLElement
 
     if (isRichMode.value) {
-      elem = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement
+      elem = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap.ProseMirror') as HTMLElement
     }
 
     const parsedJSON = JSON.parse(size)
@@ -322,62 +378,62 @@ const updateSize = () => {
   }
 }
 
-watch(
-  [isVisible, inputRef],
-  (value) => {
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect
+/**
+ * Retrieves the element that should be observed for resizing.
+ * @returns {HTMLElement | null} The resize target element.
+ */
+const getResizeEl = () => {
+  if (!inputWrapperRef.value) return null
 
-        if (!isVisible.value) {
-          return
-        }
-
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ width, height }))
-      }
-    })
-
-    if (value) {
-      if (isRichMode.value && isVisible.value) {
-        setTimeout(() => {
-          const el = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement
-
-          if (!el) return
-
-          observer.observe(el)
-
-          updateSize()
-        }, 50)
-      } else {
-        updateSize()
-      }
-    } else {
-      observer.disconnect()
-    }
-  },
-  {
-    immediate: true,
-  },
-)
-
-watch(textAreaRef, (el) => {
-  if (el && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
-    el.focus()
+  if (isRichMode.value) {
+    return inputWrapperRef.value.querySelector(
+      '.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap.ProseMirror',
+    ) as HTMLElement
   }
-})
 
-onMounted(() => {
-  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value) return
-  const position = { clientX: clientMousePosition.clientX, clientY: clientMousePosition.clientY + 2 }
-  forcedNextTick(() => {
-    if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-expand', position)) {
-      onExpand()
-    } else if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-generate', position)) {
-      generate()
-    } else if (isRichMode.value || props.isAi) {
-      onExpand()
-    }
-  })
+  return inputWrapperRef.value.querySelector('.nc-text-area-expanded') as HTMLElement
+}
+
+useResizeObserver(inputWrapperRef, () => {
+  /**
+   * Updates the size of the resize element when the modal becomes visible.
+   */
+  if (!isSizeUpdated.value) {
+    nextTick(() => {
+      until(() => !!getResizeEl())
+        .toBeTruthy()
+        .then(() => {
+          updateSize()
+        })
+    })
+    isSizeUpdated.value = true
+
+    return
+  }
+
+  /**
+   * When the size is manually updated, this callback is triggered again.
+   * To prevent unnecessary updates at that time, we skip the update.
+   */
+  if (skipSizeUpdate.value) {
+    skipSizeUpdate.value = false
+
+    return
+  }
+
+  const resizeEl = getResizeEl()
+
+  if (!resizeEl) return
+
+  const { width, height } = resizeEl.getBoundingClientRect()
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      width,
+      height,
+    }),
+  )
 })
 </script>
 
@@ -615,7 +671,7 @@ onMounted(() => {
           </NcButton>
         </NcTooltip>
         <NcTooltip v-if="!isVisible && !isForm" placement="bottom" class="nc-action-icon">
-          <template #title>{{ $t('title.expand') }}</template>
+          <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
           <NcButton
             type="secondary"
             size="xsmall"

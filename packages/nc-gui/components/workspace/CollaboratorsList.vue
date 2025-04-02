@@ -11,17 +11,15 @@ const { user } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { removeCollaborator, updateCollaborator: _updateCollaborator, loadWorkspace } = workspaceStore
+const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
 
 const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading } = storeToRefs(workspaceStore)
 
 const currentWorkspace = computedAsync(async () => {
   if (props.workspaceId) {
     const ws = workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
-    if (!ws) {
-      await loadWorkspace(props.workspaceId)
-
-      return workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
+    if (ws) {
+      return ws
     }
   }
   return activeWorkspace.value ?? workspacesList.value[0]

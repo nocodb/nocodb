@@ -523,6 +523,18 @@ export class PaymentService {
   async getCheckoutSession(_workspaceOrOrgId: string, sessionId: string) {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
+    if (!session) {
+      NcError.genericNotFound('Checkout session', sessionId);
+    }
+
+    if (session.invoice) {
+      const invoice = await stripe.invoices.retrieve(session.invoice as string);
+
+      Object.assign(session, {
+        invoice,
+      });
+    }
+
     return session;
   }
 
@@ -604,6 +616,42 @@ export class PaymentService {
     }
   }
 
+  async listInvoice(
+    workspaceOrOrgId: string,
+    options: {
+      starting_after?: string;
+      ending_before?: string;
+    } = {},
+  ) {
+    const workspaceOrOrg = await this.getWorkspaceOrOrg(workspaceOrOrgId);
+
+    if (!workspaceOrOrg) {
+      NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+    }
+
+    const subscription = await Subscription.getByWorkspaceOrOrg(
+      workspaceOrOrg.id,
+    );
+
+    if (!subscription) {
+      NcError.genericNotFound('Subscription', workspaceOrOrgId);
+    }
+
+    const invoices = await stripe.invoices.list({
+      customer: workspaceOrOrg.stripe_customer_id,
+      subscription: subscription.stripe_subscription_id,
+      limit: 10,
+      starting_after: options.starting_after,
+      ending_before: options.ending_before,
+    });
+
+    if (!invoices) {
+      NcError.genericNotFound('Invoices', workspaceOrOrgId);
+    }
+
+    return invoices;
+  }
+
   async updateNextInvoice(
     subscriptionId: string,
     invoice: Stripe.Response<Stripe.UpcomingInvoice>,
@@ -624,6 +672,98 @@ export class PaymentService {
       );
       this.logger.error(err);
     }
+  }
+
+  async recoverSubscription(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
+    const workspaceOrOrg = await this.getWorkspaceOrOrg(
+      workspaceOrOrgId,
+      ncMeta,
+    );
+
+    if (!workspaceOrOrg) {
+      NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+    }
+
+    const existingSubscription = await Subscription.getByWorkspaceOrOrg(
+      workspaceOrOrgId,
+      ncMeta,
+    );
+
+    if (existingSubscription) {
+      return existingSubscription;
+    }
+
+    const stripeCustomer = await stripe.customers.retrieve(
+      workspaceOrOrg.stripe_customer_id,
+    );
+
+    if (!stripeCustomer) {
+      NcError.genericNotFound(
+        'Stripe customer',
+        workspaceOrOrg.stripe_customer_id,
+      );
+    }
+
+    const subscriptions = await stripe.subscriptions.list({
+      customer: stripeCustomer.id,
+    });
+
+    if (!subscriptions.data.length) {
+      NcError.genericNotFound('Subscription', workspaceOrOrgId);
+    }
+
+    const subscriptionData = subscriptions.data.find(
+      (s) =>
+        (s.metadata.fk_workspace_id === workspaceOrOrg.id ||
+          s.metadata.fk_org_id === workspaceOrOrg.id) &&
+        ['active', 'trialing', 'incomplete'].includes(s.status),
+    );
+
+    if (!subscriptionData) {
+      NcError.genericNotFound('Subscription', workspaceOrOrgId);
+    }
+
+    const plan = await Plan.get(subscriptionData.metadata.fk_plan_id, ncMeta);
+
+    if (!plan) {
+      NcError.genericNotFound('Plan', subscriptionData.metadata.fk_plan_id);
+    }
+
+    const price = plan.prices.find(
+      (p) => p.id === subscriptionData.items.data[0].price.id,
+    );
+
+    if (!price) {
+      NcError.genericNotFound('Price', subscriptionData.items.data[0].price.id);
+    }
+
+    const subscription = await Subscription.insert({
+      fk_workspace_id:
+        workspaceOrOrg.entity === 'workspace' ? workspaceOrOrg.id : null,
+      fk_org_id: workspaceOrOrg.entity === 'org' ? workspaceOrOrg.id : null,
+      fk_plan_id: plan.id,
+      stripe_subscription_id: subscriptionData.id,
+      stripe_price_id: price.id,
+      seat_count: subscriptionData.items.data[0].quantity,
+      status: subscriptionData.status,
+      start_at: dayjs.unix(subscriptionData.start_date).utc().toISOString(),
+      period: price.recurring.interval,
+    });
+
+    if (subscriptionData.status === 'active') {
+      await this.updateNextInvoice(
+        subscription.id,
+        await this.getNextInvoice(workspaceOrOrg.id),
+      );
+    }
+
+    await Workspace.refreshPlanAndSubscription(workspaceOrOrg.id);
+
+    this.logger.log(
+      `Subscription recovered for workspace or org ${workspaceOrOrg.id}`,
+    );
+
+    return subscription;
   }
 
   async handleWebhook(req: NcRequest): Promise<void> {

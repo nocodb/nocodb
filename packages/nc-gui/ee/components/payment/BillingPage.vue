@@ -55,8 +55,17 @@ const onBack = () => {
   }
 }
 
-// Todo: handle download invoice action
-const downloadInvoice = () => {}
+const downloadInvoice = () => {
+  if (!checkoutSession.value) {
+    return
+  }
+
+  const { invoice } = checkoutSession.value
+
+  if (invoice) {
+    window.open(invoice.invoice_pdf, '_blank')
+  }
+}
 
 onMounted(async () => {
   if (workspaceId.value) {

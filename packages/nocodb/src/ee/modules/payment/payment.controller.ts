@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -150,6 +151,16 @@ export class PaymentController {
 
   @UseGuards(GlobalGuard)
   @HttpCode(200)
+  @Post('/api/payment/:workspaceOrOrgId/recover-subscription')
+  @Acl('manageSubscription')
+  async recoverSubscription(
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+  ) {
+    return this.paymentService.recoverSubscription(workspaceOrOrgId);
+  }
+
+  @UseGuards(GlobalGuard)
+  @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/get-session-result/:sessionId')
   @Acl('manageSubscription')
   async getCheckoutSession(
@@ -168,6 +179,21 @@ export class PaymentController {
     @Req() req: NcRequest,
   ) {
     return this.paymentService.getCustomerPortal(workspaceOrOrgId, req);
+  }
+
+  @UseGuards(GlobalGuard)
+  @HttpCode(200)
+  @Get('/api/payment/:workspaceOrOrgId/invoice')
+  @Acl('manageSubscription')
+  async getInvoice(
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Query('starting_after') starting_after: string,
+    @Query('ending_before') ending_before: string,
+  ) {
+    return this.paymentService.listInvoice(workspaceOrOrgId, {
+      starting_after,
+      ending_before,
+    });
   }
 
   @Post('/api/payment/webhook')

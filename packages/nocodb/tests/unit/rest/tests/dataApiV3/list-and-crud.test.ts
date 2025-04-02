@@ -661,7 +661,6 @@ describe('dataApiV3', () => {
         expect(rspFromRecordAPI.body.list).to.deep.equal(
           citiesExpectedFromListAPI,
         );
-        console.log('A')
         ///////////////////////////////////////////////////////////////////
 
         // verify in City table

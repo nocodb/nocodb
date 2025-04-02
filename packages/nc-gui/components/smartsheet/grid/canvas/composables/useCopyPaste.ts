@@ -21,7 +21,6 @@ import { TypeConversionError } from '../../../../../error/type-conversion.error'
 import type { SuppressedError } from '../../../../../error/suppressed.error'
 import { EDIT_INTERACTABLE } from '../utils/constants'
 
-const CHUNK_SIZE = 50
 const MAX_ROWS = 200
 
 export function useCopyPaste({
@@ -56,6 +55,7 @@ export function useCopyPaste({
     y: number
     width: number
     height: number
+    path: Array<number>
   } | null>
   expandRows: ({
     newRows,
@@ -303,7 +303,7 @@ export function useCopyPaste({
           colsToPaste = fields.value.slice(selection.value.start.col, selection.value.start.col + pasteMatrixCols)
         }
 
-        await getRows(selection.value.start.row, selection.value.start.row + clipboardMatrix.length)
+        await getRows(selection.value.start.row, selection.value.start.row + clipboardMatrix.length, groupPath)
 
         const dataRef = unref(cachedRows)
 
@@ -392,10 +392,12 @@ export function useCopyPaste({
             propsToPaste,
             undefined,
             bulkOpsCols.map(({ column }) => column),
+            false,
+            groupPath,
           )
           scrollToCell?.(undefined, undefined, groupPath)
         } else {
-          await bulkUpdateRows?.(updatedRows, propsToPaste)
+          await bulkUpdateRows?.(updatedRows, propsToPaste, undefined, false, groupPath)
         }
 
         if (isTruncated) {

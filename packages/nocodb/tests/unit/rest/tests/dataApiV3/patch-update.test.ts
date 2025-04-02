@@ -16,11 +16,26 @@ describe('dataApiV3', () => {
     let testContext: ITestContext;
     let testAxios: INcAxios;
     let urlPrefix: string;
+    let ncAxiosGet: INcAxios['ncAxiosGet'];
+    let ncAxiosPost: INcAxios['ncAxiosPost'];
+    let ncAxiosPatch: INcAxios['ncAxiosPatch'];
+    let ncAxiosDelete: INcAxios['ncAxiosDelete'];
+    let ncAxiosLinkGet: INcAxios['ncAxiosLinkGet'];
+    let ncAxiosLinkAdd: INcAxios['ncAxiosLinkAdd'];
+    let ncAxiosLinkRemove: INcAxios['ncAxiosLinkRemove'];
 
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
-      testAxios = ncAxios(testContext.context);
+      testAxios = ncAxios(testContext);
       urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+
+      ncAxiosGet = testAxios.ncAxiosGet;
+      ncAxiosPost = testAxios.ncAxiosPost;
+      ncAxiosPatch = testAxios.ncAxiosPatch;
+      ncAxiosDelete = testAxios.ncAxiosDelete;
+      ncAxiosLinkGet = testAxios.ncAxiosLinkGet;
+      ncAxiosLinkAdd = testAxios.ncAxiosLinkAdd;
+      ncAxiosLinkRemove = testAxios.ncAxiosLinkRemove;
     });
 
     describe('text-based', () => {
@@ -43,7 +58,7 @@ describe('dataApiV3', () => {
         Phone: '1-234-567-8910',
       };
       it('Update: all fields', async function () {
-        const rsp = await testAxios.ncAxiosPatch({
+        const rsp = await ncAxiosPatch({
           url: `${urlPrefix}/${table.id}`,
           body: [
             {
@@ -56,14 +71,14 @@ describe('dataApiV3', () => {
       });
 
       it('Update: partial', async function () {
-        const recordBeforeUpdate = await testAxios.ncAxiosGet({
+        const recordBeforeUpdate = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/1`,
           query: {
             fields: 'Id,SingleLineText,MultiLineText',
           },
         });
 
-        const rsp = await testAxios.ncAxiosPatch({
+        const rsp = await ncAxiosPatch({
           url: `${urlPrefix}/${table.id}`,
           body: [
             {
@@ -75,7 +90,7 @@ describe('dataApiV3', () => {
         });
         expect(rsp.body).to.deep.equal([{ Id: 1 }]);
 
-        const recordAfterUpdate = await testAxios.ncAxiosGet({
+        const recordAfterUpdate = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/1`,
           query: {
             fields: 'Id,SingleLineText,MultiLineText',
@@ -89,7 +104,7 @@ describe('dataApiV3', () => {
       });
 
       it('Update: bulk', async function () {
-        const rsp = await testAxios.ncAxiosPatch({
+        const rsp = await ncAxiosPatch({
           url: `${urlPrefix}/${table.id}`,
           body: [
             {
@@ -111,13 +126,13 @@ describe('dataApiV3', () => {
 
       it('Update: invalid ID', async function () {
         // Invalid table ID
-        await testAxios.ncAxiosPatch({
+        await ncAxiosPatch({
           url: `${urlPrefix}/123456789`,
           body: { Id: 100, SingleLineText: 'some text' },
           status: 404,
         });
         // Invalid row ID
-        await testAxios.ncAxiosPatch({
+        await ncAxiosPatch({
           url: `${urlPrefix}/${table.id}`,
           body: { Id: 123456789, SingleLineText: 'some text' },
           status: 404,

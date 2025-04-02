@@ -20,16 +20,31 @@ describe('dataApiV3', () => {
     let testContext: ITestContext;
     let testAxios: INcAxios;
     let urlPrefix: string;
+    let ncAxiosGet: INcAxios['ncAxiosGet'];
+    let ncAxiosPost: INcAxios['ncAxiosPost'];
+    let ncAxiosPatch: INcAxios['ncAxiosPatch'];
+    let ncAxiosDelete: INcAxios['ncAxiosDelete'];
+    let ncAxiosLinkGet: INcAxios['ncAxiosLinkGet'];
+    let ncAxiosLinkAdd: INcAxios['ncAxiosLinkAdd'];
+    let ncAxiosLinkRemove: INcAxios['ncAxiosLinkRemove'];
 
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
-      testAxios = ncAxios(testContext.context);
+      testAxios = ncAxios(testContext);
       urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+
+      ncAxiosGet = testAxios.ncAxiosGet;
+      ncAxiosPost = testAxios.ncAxiosPost;
+      ncAxiosPatch = testAxios.ncAxiosPatch;
+      ncAxiosDelete = testAxios.ncAxiosDelete;
+      ncAxiosLinkGet = testAxios.ncAxiosLinkGet;
+      ncAxiosLinkAdd = testAxios.ncAxiosLinkAdd;
+      ncAxiosLinkRemove = testAxios.ncAxiosLinkRemove;
     });
 
     describe('general-based', () => {
       it('Nested Read - Link to another record', async function () {
-        const records = await testAxios.ncAxiosGet({
+        const records = await ncAxiosGet({
           url: `${urlPrefix}/${testContext.countryTable.id}/1`,
         });
         expect(+records.body['Cities']).to.equal(1);
@@ -44,7 +59,7 @@ describe('dataApiV3', () => {
           relatedTableColumnTitle: 'City',
         });
 
-        const records = await testAxios.ncAxiosGet({
+        const records = await ncAxiosGet({
           url: `${urlPrefix}/${testContext.countryTable.id}/1`,
         });
         expect(records.body.Lookup).to.deep.equal(['Kabul']);
@@ -60,7 +75,7 @@ describe('dataApiV3', () => {
           rollupFunction: 'count',
         });
 
-        const records = await testAxios.ncAxiosGet({
+        const records = await ncAxiosGet({
           url: `${urlPrefix}/${testContext.countryTable.id}/1`,
         });
         expect(records.body.Rollup).to.equal(1);
@@ -79,18 +94,18 @@ describe('dataApiV3', () => {
         insertedRecords = initResult.insertedRecords;
       });
       it('Read: all fields', async function () {
-        await testAxios.ncAxiosGet({
+        await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/100`,
         });
       });
 
       it('Read: invalid ID', async function () {
-        await testAxios.ncAxiosGet({
+        await ncAxiosGet({
           url: `${urlPrefix}/123456789/100`,
           status: 404,
         });
 
-        await testAxios.ncAxiosGet({
+        await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/1000`,
           status: 404,
         });

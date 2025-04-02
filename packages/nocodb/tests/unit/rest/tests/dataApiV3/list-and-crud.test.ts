@@ -587,7 +587,7 @@ describe('dataApiV3', () => {
       });
     });
 
-    describe.skip('Link based', () => {
+    describe('Link based', () => {
       let tblCity: Model;
       let tblCountry: Model;
       let tblActor: Model;
@@ -638,10 +638,8 @@ describe('dataApiV3', () => {
           },
         });
 
-        expect(rspFromRecordAPI.body.pageInfo).to.have.property('next');
-        expect(rspFromRecordAPI.body.pageInfo.next).to.include(
-          `${urlPrefix}/${tblCountry.id}?page=2`,
-        );
+        // low record count list has no next
+        expect(rspFromRecordAPI.body.pageInfo).not.to.have.property('next');
 
         let citiesExpected = [
           { Id: 1, City: 'City 1' },
@@ -663,7 +661,7 @@ describe('dataApiV3', () => {
         expect(rspFromRecordAPI.body.list).to.deep.equal(
           citiesExpectedFromListAPI,
         );
-
+        console.log('A')
         ///////////////////////////////////////////////////////////////////
 
         // verify in City table

@@ -113,7 +113,7 @@ export class Datav3Controller {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('modelId') modelId: string,
-    @Query('view_id') viewId: string,
+    @Query('viewId') viewId: string,
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
   ) {

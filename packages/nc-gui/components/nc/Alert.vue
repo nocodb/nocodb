@@ -1,21 +1,82 @@
 <script lang="ts" setup>
+/**
+ * NcAlert Component
+ *
+ * A customizable alert component built with Ant Design Vue.
+ * It supports various alert types, optional icons, copy functionality, and automatic dismissal.
+ */
+
 import type { AlertProps } from 'ant-design-vue/es'
 import { getI18n } from '~/plugins/a.i18n'
 
-interface Props extends Pick<AlertProps, 'type' | 'showIcon' | 'message' | 'description' | 'closable'> {
+/**
+ * NcAlert Component
+ *
+ * A customizable alert component with optional icons, descriptions, actions, and notifications.
+ * Can be used as a standalone alert or inside the `message` notification system.
+ */
+export interface NcAlertProps extends Pick<AlertProps, 'type' | 'showIcon' | 'message' | 'description' | 'closable'> {
+  /**
+   * Controls the visibility of the alert.
+   * @default true
+   */
   visible?: boolean
+
+  /**
+   * Whether the alert has a border.
+   * @default true
+   */
   bordered?: boolean
+
+  /**
+   * Aligns the content vertically.
+   * - `top`: Align to the top
+   * - `center`: Align to the center
+   * @default 'top'
+   */
   align?: 'top' | 'center'
+
+  /**
+   * The text to be copied when clicking the copy button.
+   */
   copyText?: any
+
+  /**
+   * Tooltip text for the copy button.
+   * @default 'tooltip.copyErrorCode' (from i18n)
+   */
   copyBtnTooltip?: string
+
+  /**
+   * Custom class for the message text.
+   */
   messageClass?: string
+
+  /**
+   * Custom class for the description text.
+   */
   descriptionClass?: string
+
+  /**
+   * Whether this alert is used inside a notification message.
+   * @default false
+   */
   isNotification?: boolean
+
+  /**
+   * Duration before the alert disappears (in seconds).
+   * If not provided, uses default Ant Design message duration.
+   */
   duration?: number
+
+  /**
+   * Whether to show a visual progress bar for the remaining duration.
+   * @default true
+   */
   showDuration?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<NcAlertProps>(), {
   visible: true,
   showIcon: true,
   bordered: true,
@@ -26,12 +87,21 @@ const props = withDefaults(defineProps<Props>(), {
   showDuration: true,
 })
 
-const emits = defineEmits<Emits>()
-
-interface Emits {
+/**
+ * Emits events when the alert is closed or visibility changes.
+ */
+const emits = defineEmits<{
+  /**
+   * Event triggered when visibility is updated.
+   * @param value - The new visibility state
+   */
   (e: 'update:visible', value: boolean): void
+
+  /**
+   * Event triggered when the alert is closed.
+   */
   (e: 'close'): void
-}
+}>()
 
 const vVisible = useVModel(props, 'visible', emits, { defaultValue: true })
 
@@ -41,6 +111,9 @@ const { t } = getI18n().global
 
 const { copy } = useCopy()
 
+/**
+ * Tracks whether the text has been copied successfully.
+ */
 const isCopied = ref<boolean>(false)
 
 const copyText = computed(() => props.copyText?.toString() ?? '')
@@ -49,6 +122,10 @@ const copyBtnTooltip = computed(() => (ncIsUndefined(props.copyBtnTooltip) ? t('
 
 let copiedTimeoutId: any
 
+/**
+ * Handles the copy button click event.
+ * Copies the `copyText` value to the clipboard and shows a success indicator.
+ */
 const onClickCopy = async () => {
   if (copiedTimeoutId) {
     clearTimeout(copiedTimeoutId)
@@ -70,6 +147,9 @@ const onClickCopy = async () => {
   }
 }
 
+/**
+ * Computes the appropriate icon based on the alert type.
+ */
 const iconName = computed<IconMapKey>(() => {
   if (type.value === 'error') {
     return 'ncAlertCircleFilled'
@@ -86,17 +166,34 @@ const iconName = computed<IconMapKey>(() => {
   return 'circleCheckSolid'
 })
 
+/**
+ * Handles alert close action.
+ */
 const handleClose = () => {
   vVisible.value = false
   emits('close')
 }
+
+/**
+ * Remaining duration of the alert in seconds.
+ */
 const remDuration = ref(props.duration ?? ANT_MESSAGE_DURATION)
+
+/**
+ * Tracks the start time of the alert.
+ */
 const startTime = ref(performance.now())
 
+/**
+ * Computes the progress percentage based on remaining duration.
+ */
 const remDurationPercent = computed(() => (remDuration.value / (props.duration ?? ANT_MESSAGE_DURATION)) * 100)
 
 let frameId: number
 
+/**
+ * Updates the progress bar smoothly using requestAnimationFrame.
+ */
 const updateProgress = () => {
   const elapsedTime = (performance.now() - startTime.value) / 1000 // Convert ms to seconds
   const totalDuration = props.duration ?? ANT_MESSAGE_DURATION
@@ -112,7 +209,9 @@ const updateProgress = () => {
     remDuration.value = 0 // Ensure it reaches zero exactly
   }
 }
-
+/**
+ * Starts the progress bar animation when the component is mounted.
+ */
 onMounted(() => {
   if (!props.showDuration) return
 
@@ -120,6 +219,9 @@ onMounted(() => {
   updateProgress()
 })
 
+/**
+ * Cancels the animation frame when the component is unmounted.
+ */
 onUnmounted(() => {
   cancelAnimationFrame(frameId)
 })
@@ -199,6 +301,12 @@ onUnmounted(() => {
 
   &.nc-alert-notification {
     @apply min-w-[340px];
+
+    .nc-alert-content {
+      .nc-alert-description {
+        @apply line-clamp-2;
+      }
+    }
   }
 
   &.no-border {
@@ -258,7 +366,7 @@ onUnmounted(() => {
     @apply absolute bottom-0 left-0 right-0 h-1;
 
     .nc-alert-progress {
-      @apply h-full transition-all duration-200 bg-brand-400;
+      @apply h-full  bg-brand-400;
     }
   }
 }
@@ -267,7 +375,7 @@ onUnmounted(() => {
 <style lang="scss">
 .ant-message-notice-content {
   &:has(.ant-message-custom-content .nc-alert-notification) {
-    @apply bg-white rounded-lg p-4 gap-4 box-border border-1 border-nc-border-gray-medium text-left relative overflow-hidden;
+    @apply bg-white !rounded-lg p-4 gap-4 box-border border-1 border-nc-border-gray-medium text-left relative overflow-hidden max-w-[528px];
   }
 }
 </style>

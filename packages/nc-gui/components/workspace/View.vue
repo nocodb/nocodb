@@ -10,6 +10,8 @@ const route = router.currentRoute
 
 const { isUIAllowed } = useRoles()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const workspaceStore = useWorkspace()
 
 const { loadRoles } = useRoles()
@@ -152,7 +154,7 @@ onMounted(() => {
         </a-tab-pane>
       </template>
 
-      <template v-if="isEeUI && !props.workspaceId">
+      <template v-if="isEeUI && !props.workspaceId && isFeatureEnabled(FEATURE_FLAG.PAYMENT)">
         <a-tab-pane key="billing" class="w-full">
           <template #tab>
             <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">

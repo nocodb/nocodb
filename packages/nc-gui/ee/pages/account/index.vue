@@ -238,33 +238,35 @@ onMounted(() => {
 
               <NcDivider class="!mt-0" />
 
-              <div class="text-sm text-nc-content-gray-muted font-semibold ml-4 py-1.5">{{ $t('labels.workspaces') }}</div>
+              <template v-if="isFeatureEnabled(FEATURE_FLAG.PAYMENT)">
+                <div class="text-sm text-nc-content-gray-muted font-semibold ml-4 py-1.5">{{ $t('labels.workspaces') }}</div>
 
-              <template v-if="loadingWorkspaces">
-                <div class="w-full flex items-center justify-center">
-                  <GeneralLoader :size="20" />
-                </div>
-              </template>
-              <template v-else>
-                <NcMenuItem
-                  v-for="workspace in filteredWorkspaces"
-                  :key="workspace.id"
-                  class="item"
-                  :class="{
-                    active:
-                      $route.params.workspaceId === workspace.id &&
-                      $route.name === 'account-index-workspace-workspaceId-settings',
-                  }"
-                  @click="navigateTo(`/account/workspace/${workspace.id}/settings`)"
-                >
-                  <div class="flex items-center space-x-2">
-                    <GeneralWorkspaceIcon :workspace="workspace" size="account-sidebar" />
-
-                    <div class="nc-workspace-title truncate capitalize">
-                      {{ workspace.title }}
-                    </div>
+                <template v-if="loadingWorkspaces">
+                  <div class="w-full flex items-center justify-center">
+                    <GeneralLoader :size="20" />
                   </div>
-                </NcMenuItem>
+                </template>
+                <template v-else>
+                  <NcMenuItem
+                    v-for="workspace in filteredWorkspaces"
+                    :key="workspace.id"
+                    class="item"
+                    :class="{
+                      active:
+                        $route.params.workspaceId === workspace.id &&
+                        $route.name === 'account-index-workspace-workspaceId-settings',
+                    }"
+                    @click="navigateTo(`/account/workspace/${workspace.id}/settings`)"
+                  >
+                    <div class="flex items-center space-x-2">
+                      <GeneralWorkspaceIcon :workspace="workspace" size="account-sidebar" />
+
+                      <div class="nc-workspace-title truncate capitalize">
+                        {{ workspace.title }}
+                      </div>
+                    </div>
+                  </NcMenuItem>
+                </template>
               </template>
             </NcMenu>
           </div>

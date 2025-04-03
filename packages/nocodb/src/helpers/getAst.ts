@@ -262,7 +262,11 @@ const getAst = async (
       isRequested = true;
     }
     // exclude system column and foreign key from API response for v3
-    else if ((col.system || isForeignKey) && apiVersion === NcApiVersion.V3) {
+    else if (
+      (col.system || isForeignKey) &&
+      ![UITypes.CreatedTime, UITypes.LastModifiedTime].includes(col.uidt) &&
+      apiVersion === NcApiVersion.V3
+    ) {
       isRequested = false;
     } else if (isCreatedOrLastModifiedByCol(col) && col.system) {
       isRequested = false;

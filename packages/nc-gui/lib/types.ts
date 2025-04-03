@@ -426,6 +426,7 @@ interface CellRendererOptions {
   isPublic?: boolean
   isRowHovered?: boolean
   isRowChecked?: boolean
+  isCellInSelectionRange?: boolean
 }
 
 interface CellRenderStore {

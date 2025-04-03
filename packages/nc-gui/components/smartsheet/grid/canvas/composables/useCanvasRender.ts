@@ -1897,7 +1897,7 @@ export function useCanvasRender({
     const { start: startColIndex, end: endColIndex } = colSlice.value
     const visibleCols = columns.value.slice(startColIndex, endColIndex)
 
-    getRows(startIndex, endIndex, group.path)
+    const rowsToFetch = []
 
     let activeState: { col: any; x: number; y: number; width: number; height: number } | null = null
 
@@ -1914,6 +1914,11 @@ export function useCanvasRender({
 
     for (let i = startIndex; i <= endIndex; i++) {
       const row = rows?.get(i)
+
+      if (!row) {
+        rowsToFetch.push(i)
+      }
+
       const indent = level * 9
       const isHovered = hoverRow.value?.rowIndex === i && hoverRow.value?.path?.join('-') === row?.rowMeta?.path?.join('-')
 
@@ -2040,6 +2045,12 @@ export function useCanvasRender({
     renderActiveState(ctx, activeState)
 
     renderFillHandle(ctx)
+
+    if (rowsToFetch?.length) {
+      const minIndex = Math.min(...rowsToFetch)
+      const maxIndex = Math.max(...rowsToFetch)
+      getRows(minIndex, maxIndex, group.path)
+    }
 
     return yOffset
   }

@@ -50,7 +50,14 @@ const currentPlanTitle = computed(() => {
           {{ $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title ?? PlanTitles.FREE}`) }}
         </span>
       </div>
-      <NcButton v-if="activeSubscription" size="small" icon-position="right" inner-class="!gap-2" @click="onManageSubscription">
+      <NcButton
+        v-if="activeSubscription"
+        type="secondary"
+        size="small"
+        icon-position="right"
+        inner-class="!gap-2"
+        @click="onManageSubscription"
+      >
         <template #icon>
           <GeneralIcon icon="ncArrowUpRight" />
         </template>

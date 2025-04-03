@@ -131,7 +131,7 @@ const handleScroll = (e) => {
             @close="onClosePaymentBanner"
           >
             <template #action>
-              <NcButton size="xsmall" class="!px-2" inner-class="!gap-2" @click="downloadInvoice">
+              <NcButton size="xsmall" type="secondary" class="!px-2" inner-class="!gap-2" @click="downloadInvoice">
                 {{ $t('labels.downloadInvoice') }}
               </NcButton>
             </template>

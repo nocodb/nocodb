@@ -2078,7 +2078,9 @@
       "duplicateTableName": "Duplicate table name",
       "importError": "Import Error",
       "anErrorOccuredWhileImporting": "An error occurred while {type}",
-      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable"
+      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable",
+      "paymentFailed": "Payment Failed",
+      "paymentFailedSubtitle": "Something went wrong while processing your payment. Please try again or contact support."
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",
@@ -2139,7 +2141,9 @@
       "settingsSaved": "Settings saved successfully",
       "roleUpdated": "Role updated successfully",
       "connectionAdded": "Integration connected successfully",
-      "connectionAddedDesc": "Base owners and creators can now add a data source without re-entering credentials."
+      "connectionAddedDesc": "Base owners and creators can now add a data source without re-entering credentials.",
+      "paymentSuccessful": "Payment Successful",
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

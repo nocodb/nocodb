@@ -126,8 +126,8 @@ const handleScroll = (e) => {
             type="success"
             show-icon
             class="!rounded-xl bg-nc-bg-green-light"
-            :message="$t('Payment Successful')"
-            :description="$t('Your payment has been processed. You can now use your new plan.')"
+            :message="$t('msg.success.paymentSuccessful')"
+            :description="$t('msg.success.paymentSuccessfulSubtitle')"
             @close="onClosePaymentBanner"
           >
             <template #action>
@@ -143,8 +143,8 @@ const handleScroll = (e) => {
             type="error"
             show-icon
             class="!rounded-xl bg-nc-bg-red-light"
-            :message="$t('Payment Failed')"
-            :description="$t('Something went wrong while processing your payment. Please try again or contact support.')"
+            :message="$t('msg.error.paymentFailed')"
+            :description="$t('msg.error.paymentFailedSubtitle')"
             @close="onClosePaymentBanner"
           >
           </NcAlert>

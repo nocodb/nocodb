@@ -2201,31 +2201,36 @@ export function useCanvasRender({
         let contentWidth = 0
         let countWidth = 0
 
-        if (!isMouseHoveringOverGroupHeader) {
+        if (isMouseHoveringOverGroupHeader) {
           setCursor('pointer')
-          const countRender = renderSingleLineText(ctx, {
-            text: `${group.count}`,
-            x: xOffset + mergedWidth - 8,
-            y: groupHeaderY + 7,
-            height: GROUP_HEADER_HEIGHT,
-            verticalAlign: 'middle',
-            fontSize: 12,
-            fillStyle: '#374151',
-            fontWeight: 'lighter',
-            textAlign: 'right',
-          })
-          countWidth = countRender.width
+        }
+        const countRender = renderSingleLineText(ctx, {
+          text: `${group.count}`,
+          x: xOffset + mergedWidth - 8,
+          y: groupHeaderY + 7,
+          height: GROUP_HEADER_HEIGHT,
+          verticalAlign: 'middle',
+          fontSize: 12,
+          fillStyle: '#374151',
+          fontWeight: 'lighter',
+          textAlign: 'right',
+        })
+        countWidth = countRender.width
 
-          const contentRender = renderSingleLineText(ctx, {
-            text: 'Count',
-            x: xOffset + mergedWidth - 8 - countWidth - 4,
-            y: groupHeaderY + 7,
-            fontSize: 12,
-            textAlign: 'right',
-            fillStyle: '#6A7184',
-            fontWeight: 'lighter',
-          })
-          contentWidth = contentRender.width
+        const contentRender = renderSingleLineText(ctx, {
+          text: 'Count',
+          x: xOffset + mergedWidth - 8 - countWidth - 4,
+          y: groupHeaderY + 7,
+          fontSize: 12,
+          textAlign: 'right',
+          fillStyle: '#6A7184',
+          fontWeight: 'lighter',
+        })
+        contentWidth = contentRender.width
+
+        // SKipped in initial iteration. Will add support when we have expandAllGroups support
+        /* if (!isMouseHoveringOverGroupHeader) {
+
         } else {
           renderIconButton(ctx, {
             icon: 'ncMoreVertical',
@@ -2241,7 +2246,7 @@ export function useCanvasRender({
             spriteLoader,
           })
           contentWidth = 32
-        }
+        } */
 
         drawStraightLine(ctx, {
           startX: xOffset + mergedWidth,
@@ -2344,9 +2349,9 @@ export function useCanvasRender({
     } else if (!(group.value in GROUP_BY_VARS.VAR_TITLES) && shouldRenderCell(group.column)) {
       renderCell(ctx, group.column, {
         value: group.value,
-        x,
-        y,
-        width,
+        x: x - 8,
+        y: y - GROUP_HEADER_HEIGHT / 2,
+        width: maxWidth,
         height: rowHeight.value,
         row: {},
         selected: false,

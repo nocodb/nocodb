@@ -160,7 +160,11 @@ const getAst = async (
         (f) => !colAliasMap[f] && !aliasColMap[f],
       );
       if (invalidFields.length) {
-        NcError.fieldNotFound(invalidFields.join(', '));
+        if (apiVersion === NcApiVersion.V3) {
+          NcError.fieldNotFoundV3(invalidFields.join(', '));
+        } else {
+          NcError.fieldNotFound(invalidFields.join(', '));
+        }
       }
     }
   } else {

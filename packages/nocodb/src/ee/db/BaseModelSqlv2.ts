@@ -1434,6 +1434,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       typecast = false,
       allowSystemColumn = false,
       undo = false,
+      apiVersion = NcApiVersion.V2,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -1449,10 +1450,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     } = {},
   ) {
     const queries: string[] = [];
+
     try {
       // TODO: ag column handling for raw bulk insert
       const insertDatas = raw ? datas : [];
-      let postInsertOps: ((rowId: any) => Promise<string>)[] = [];
+      const postInsertOpsMap: Record<
+        number,
+        ((rowId: any) => Promise<string>)[]
+      > = {};
       let preInsertOps: (() => Promise<string>)[] = [];
       let aiPkCol: Column;
       let agPkCol: Column;
@@ -1677,7 +1682,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           });
 
           // prepare nested link data for insert only if it is single record insertion
-          if (isSingleRecordInsertion) {
+          if (isSingleRecordInsertion || apiVersion === NcApiVersion.V3) {
             const operations = await this.prepareNestedLinkQb({
               nestedCols,
               data: d,
@@ -1685,7 +1690,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               insertObj,
             });
 
-            postInsertOps = operations.postInsertOps;
+            postInsertOpsMap[index] = operations.postInsertOps;
             preInsertOps = operations.preInsertOps;
           }
 
@@ -1805,33 +1810,37 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       const postSingleRecordInsertionCbk = async (responses, trx?) => {
         // insert nested link data for single record insertion
-        if (isSingleRecordInsertion) {
-          let rowId;
-          if (this.isSqlite || this.isMySQL) {
-            if (this.isMySQL && this.isSqlite) {
-              rowId = responses[0];
+        if (isSingleRecordInsertion || apiVersion === NcApiVersion.V3) {
+          for (let i = 0; i < responses.length; i++) {
+            const row = responses[i];
+            let rowId;
+            if (this.isSqlite || this.isMySQL) {
+              if (this.isMySQL && this.isSqlite) {
+                rowId = row;
+              }
+
+              if (agPkCol) {
+                // ??? insertDatas should be an array
+                rowId = insertDatas[agPkCol.column_name];
+              }
+            } else {
+              rowId = row[this.model.primaryKey?.title];
             }
 
-            if (agPkCol) {
-              rowId = insertDatas[agPkCol.column_name];
+            if (aiPkCol || agPkCol) {
+              rowId = this.extractCompositePK({
+                rowId,
+                ai: aiPkCol,
+                ag: agPkCol,
+                insertObj: insertDatas[i],
+              });
             }
-          } else {
-            rowId = responses[0][this.model.primaryKey?.title];
-          }
 
-          if (aiPkCol || agPkCol) {
-            rowId = this.extractCompositePK({
-              rowId,
-              ai: aiPkCol,
-              ag: agPkCol,
-              insertObj: insertDatas[0],
-            });
+            await this.runOps(
+              postInsertOpsMap[i].map((f) => f(rowId)),
+              trx,
+            );
           }
-
-          await this.runOps(
-            postInsertOps.map((f) => f(rowId)),
-            trx,
-          );
         }
       };
 

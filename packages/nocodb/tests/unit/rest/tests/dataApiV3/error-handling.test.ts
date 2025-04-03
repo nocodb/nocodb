@@ -111,7 +111,7 @@ describe('dataApiV3', () => {
         query: {
           fields: ['Country', 'NotFoundField'],
         },
-        status: 404,
+        status: 422,
       });
     });
     // our api can accept array or not array

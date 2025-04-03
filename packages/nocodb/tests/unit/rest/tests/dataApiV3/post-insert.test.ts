@@ -217,9 +217,7 @@ describe('dataApiV3', () => {
         );
       });
 
-      // TODO:L perform bulk insert with an LTAR field filled with value
-      // make sure that the inserted link is correctly mapped and inserted id is ordered
-      it.skip('will perform bulk insert with linked field', async () => {
+      it('will perform bulk insert with linked field', async () => {
         const citiesToInsert = [
           {
             City: 'ImaginaryCity',
@@ -263,11 +261,11 @@ describe('dataApiV3', () => {
         const countriesToInsert = [
           {
             Country: 'ImaginaryCountry',
-            Cities: emptyCitiesInsertResponse.body.slice(0, 1),
+            Cities: emptyCitiesInsertResponse.body.slice(0, 2),
           },
           {
             Country: 'ImaginaryCountry2',
-            Cities: emptyCitiesInsertResponse.body[2],
+            Cities: [emptyCitiesInsertResponse.body[2]],
           },
         ];
 
@@ -294,18 +292,23 @@ describe('dataApiV3', () => {
           citiesInsertResponse.body.some((k) => k.Id === city.Id),
         );
         expect(insertedCities.length).to.eq(2);
-        const emptyInsertedCity = citiesToValidate.body.list.filter((city) =>
+        const emptyInsertedCities = citiesToValidate.body.list.filter((city) =>
           emptyCitiesInsertResponse.body.some((k) => k.Id === city.Id),
         );
 
-        expect(emptyInsertedCity.length).to.eq(emptyCitiesToInsert.length);
-        expect(insertedCities.map((k) => k.Country)).to.deep.equal([
-          { Id: 1 },
-          { Id: 2 },
+        expect(emptyInsertedCities.length).to.eq(emptyCitiesToInsert.length);
+        expect(
+          insertedCities.map((k) => ({ Id: k.Country?.Id })),
+        ).to.deep.equal([{ Id: 1 }, { Id: 2 }]);
+        expect(
+          emptyInsertedCities.map((k) => ({ Id: k.Country?.Id })),
+        ).to.deep.eq([
+          { Id: 101 },
+          { Id: 101 },
+          { Id: 102 },
+          { Id: undefined },
+          { Id: undefined },
         ]);
-        expect(emptyInsertedCity[0].Country.Id).to.eq(
-          countriesToValidate.body.list[0].Id,
-        );
       });
     });
   });

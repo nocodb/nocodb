@@ -1,15 +1,6 @@
 <script setup lang="ts">
-import {
-  type ColumnReqType,
-  type ColumnType,
-  type TableType,
-  UITypes,
-  type ViewType,
-  ViewTypes,
-  isVirtualCol,
-  ncIsNullOrUndefined,
-  readonlyMetaAllowedTypes,
-} from 'nocodb-sdk'
+import { UITypes, ViewTypes, isVirtualCol, ncIsNullOrUndefined, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import type { BaseType, ColumnReqType, ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
 import axios from 'axios'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
@@ -30,7 +21,7 @@ import {
   ROW_META_COLUMN_WIDTH,
 } from './utils/constants'
 import { calculateGroupRowTop, findGroupByPath, generateGroupPath, getDefaultGroupData } from './utils/groupby'
-import { ElementTypes } from './utils/CanvasElement'
+import { CanvasElement, CanvasElementItem, ElementTypes } from './utils/CanvasElement'
 
 const props = defineProps<{
   totalRows: number
@@ -737,8 +728,11 @@ let prevMenuState: {
   columnOrder?: unknown
 } = {}
 
+let mouseUpListener = null
 async function handleMouseDown(e: MouseEvent) {
-  document.addEventListener('mouseup', handleMouseUp)
+  const _elementMap = new CanvasElement(elementMap.elements)
+  mouseUpListener = (e) => handleMouseUp(e, _elementMap);
+  document.addEventListener('mouseup', mouseUpListener)
 
   // keep it for later use inside mouseup event for showing/hiding dropdown based on the previous state
   prevMenuState = {
@@ -804,7 +798,7 @@ async function handleMouseDown(e: MouseEvent) {
     return
   }
 
-  const element = elementMap.findElementAt(x, y)
+  const element = _elementMap.findElementAt(x, y)
   const group = element?.group
   const row = element?.row
   const rowIndex = element?.rowIndex
@@ -943,9 +937,11 @@ function scrollToCell(row?: number, column?: number, path?: Array<number>): void
   }
 }
 
-async function handleMouseUp(e: MouseEvent) {
+async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   e.preventDefault()
-  document.removeEventListener('mouseup', handleMouseUp)
+  if (mouseUpListener) {
+    document.removeEventListener('mouseup', mouseUpListener);
+  }
   await onMouseUpFillHandlerEnd()
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
@@ -969,7 +965,7 @@ async function handleMouseUp(e: MouseEvent) {
 
   if (isMobileMode.value) {
     if (y > 32 && y < height.value - 36) {
-      const element = elementMap.findElementAt(x, y)
+      const element = _elementMap.findElementAt(x, y)
       const group = element?.group
       const row = element?.row
       if (element?.isGroup) {
@@ -1113,7 +1109,7 @@ async function handleMouseUp(e: MouseEvent) {
     return
   }
 
-  const element = elementMap.findElementAt(x, y)
+  const element = _elementMap.findElementAt(x, y)
   let group = element?.group
   const row = element?.row
   const rowIndex = row?.rowMeta?.rowIndex ?? -1

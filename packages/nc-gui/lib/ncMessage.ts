@@ -168,14 +168,14 @@ const showMessage = (
             onClose?.()
             message.destroy(key)
           },
-          duration: duration ?? ncAlertProps.duration ?? 100,
+          duration: duration ?? ncAlertProps.duration,
         },
         {
           action: ncIsFunction(ncAlertProps.action) ? ncAlertProps.action : () => ncAlertProps.action,
           icon: ncIsFunction(ncAlertProps.icon) ? ncAlertProps.icon : () => ncAlertProps.icon,
         },
       ),
-    duration: duration ?? ncAlertProps.duration ?? 100,
+    duration: duration ?? ncAlertProps.duration,
     prefixCls,
     rootPrefixCls,
     getPopupContainer,
@@ -251,7 +251,7 @@ const showMessage = (
  * ```
  */
 
-export const ncMessage = {
+const ncMessage = {
   success: (params: NcMessageProps = '', duration?: number, ncMessageExtraProps?: NcMessageExtraProps) => {
     return showMessage('success', params, duration, ncMessageExtraProps)
   },
@@ -267,9 +267,10 @@ export const ncMessage = {
   warn: (params: NcMessageProps = '', duration?: number, ncMessageExtraProps?: NcMessageExtraProps) => {
     return showMessage('warning', params, duration, ncMessageExtraProps)
   },
+
+  warning: (params: NcMessageProps = '', duration?: number, ncMessageExtraProps?: NcMessageExtraProps) => {
+    return showMessage('warning', params, duration, ncMessageExtraProps)
+  },
 }
 
-/**
- * To overwrite default ant design message component
- */
-export { ncMessage as message }
+export { ncMessage }

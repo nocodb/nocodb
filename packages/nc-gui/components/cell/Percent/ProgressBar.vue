@@ -5,11 +5,15 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
 const cPercentage = computed(() => Math.max(0, Math.min(100, props.percentage)))
+
 const labelMarginLeft = computed<number>(() => {
   return Math.max(1, Math.min(props.percentage / 2, 50))
 })
+
 const slots = useSlots()
+
 const slotHasChildren = (name?: string) => {
   return (slots[name ?? 'default']?.()?.length ?? 0) > 0
 }

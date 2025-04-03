@@ -73,12 +73,16 @@ const generateMessageKey = (params: NcMessageProps) => {
  * @param params - The message parameters, either a string or an object.
  * @returns A full `NcMessageObjectProps` object with defaults applied.
  */
-const getMessageProps = (type: AlertProps['type'], params: NcMessageProps): NcMessageObjectProps => {
+const getMessageProps = (type: AlertProps['type'], params: NcMessageProps, showDefaultMessage: boolean): NcMessageObjectProps => {
   let updatedParams = initialValue
 
   if (ncIsString(params)) {
     // If params is a string, use it as the description and apply a default message based on type
-    return { ...updatedParams, message: getI18n().global.t(`objects.ncMessage.${type}`), description: params }
+    return {
+      ...updatedParams,
+      message: showDefaultMessage ? getI18n().global.t(`objects.ncMessage.${type}`) : '',
+      description: params,
+    }
   }
 
   // Merge provided object properties into the default values using the spread operator
@@ -86,7 +90,7 @@ const getMessageProps = (type: AlertProps['type'], params: NcMessageProps): NcMe
 
   // If neither message nor description exist, set message to the default localized text
   if (!updatedParams.message && !updatedParams.description) {
-    return { ...updatedParams, message: getI18n().global.t(`objects.ncMessage.${type}`) }
+    return { ...updatedParams, message: showDefaultMessage ? getI18n().global.t(`objects.ncMessage.${type}`) : '' }
   }
 
   return updatedParams
@@ -99,8 +103,8 @@ const getMessageProps = (type: AlertProps['type'], params: NcMessageProps): NcMe
  * @param params - The message content or properties.
  * @param duration - Optional duration in seconds before auto-dismissal.
  */
-const showMessage = (type: AlertProps['type'], params: NcMessageProps, duration?: number) => {
-  const props = getMessageProps(type, params)
+const showMessage = (type: AlertProps['type'], params: NcMessageProps, showDefaultMessage: boolean, duration?: number) => {
+  const props = getMessageProps(type, params, showDefaultMessage)
   const key = generateMessageKey(params)
 
   return message.open({
@@ -194,8 +198,12 @@ const showMessage = (type: AlertProps['type'], params: NcMessageProps, duration?
  * ```
  */
 export const ncMessage = {
-  success: (params: NcMessageProps = '', duration?: number) => showMessage('success', params, duration),
-  error: (params: NcMessageProps = '', duration?: number) => showMessage('error', params, duration),
-  info: (params: NcMessageProps = '', duration?: number) => showMessage('info', params, duration),
-  warn: (params: NcMessageProps = '', duration?: number) => showMessage('warning', params, duration),
+  success: (params: NcMessageProps = '', showDefaultMessage: boolean = false, duration?: number) =>
+    showMessage('success', params, showDefaultMessage, duration),
+  error: (params: NcMessageProps = '', showDefaultMessage: boolean = false, duration?: number) =>
+    showMessage('error', params, showDefaultMessage, duration),
+  info: (params: NcMessageProps = '', showDefaultMessage: boolean = false, duration?: number) =>
+    showMessage('info', params, showDefaultMessage, duration),
+  warn: (params: NcMessageProps = '', showDefaultMessage: boolean = false, duration?: number) =>
+    showMessage('warning', params, showDefaultMessage, duration),
 }

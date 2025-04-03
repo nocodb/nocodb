@@ -13,29 +13,6 @@ import NocoCache from '~/cache/NocoCache';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import { GenericFeatures, GenericLimits } from '~/helpers/paymentHelpers';
 
-export const FreePlan = {
-  title: 'Free',
-  description: 'Free plan',
-  meta: {
-    ...GenericLimits,
-    ...GenericFeatures,
-    // Free plan specific limits
-    [PlanLimitTypes.LIMIT_EDITOR]: 5,
-    [PlanLimitTypes.LIMIT_USER]: 25,
-    [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 1000,
-    [PlanLimitTypes.LIMIT_API_CALL]: 1000,
-    [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 100,
-    [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 7,
-    [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 14,
-    [PlanLimitTypes.LIMIT_SOURCE_PER_BASE]: 1,
-    [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 1024,
-    [PlanLimitTypes.LIMIT_API_PER_SECOND]: 5,
-    [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: 1,
-    [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: 1,
-  },
-  free: true,
-} as const;
-
 export default class Plan {
   id: string;
   title: string;
@@ -212,3 +189,28 @@ export default class Plan {
       });
   }
 }
+
+export const FreePlan = Plan.prepare({
+  title: 'Free',
+  description: 'Free plan',
+  meta: {
+    ...GenericLimits,
+    ...GenericFeatures,
+    // Free plan specific limits
+    [PlanLimitTypes.LIMIT_EDITOR]: 5,
+    [PlanLimitTypes.LIMIT_USER]: 25,
+    [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 1000,
+    [PlanLimitTypes.LIMIT_API_CALL]: 1000,
+    [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 100,
+    [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 7,
+    [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 14,
+    [PlanLimitTypes.LIMIT_SOURCE_PER_BASE]: 1,
+    [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 1024,
+    [PlanLimitTypes.LIMIT_API_PER_SECOND]: 5,
+    [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: 1,
+    [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: 1,
+    [PlanLimitTypes.LIMIT_AI_TOKEN]: 0,
+    [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 0,
+  },
+  free: true,
+});

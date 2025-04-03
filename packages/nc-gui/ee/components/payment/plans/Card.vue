@@ -61,7 +61,7 @@ const price = computed(() => getPlanPrice(props.plan))
     </div>
 
     <NcButton
-      v-if="activeSubscription && activePlan === plan.title && activeSubscription.end_at"
+      v-if="activeSubscription && activePlan === plan.title && activeSubscription.canceled_at"
       type="secondary"
       size="medium"
       class="w-full !text-nc-content-brand"
@@ -98,7 +98,7 @@ const price = computed(() => getPlanPrice(props.plan))
       :type="plan.title === popularPlan ? 'primary' : 'secondary'"
       size="medium"
       class="w-full"
-      :disabled="plan.title === PlanTitles.FREE && activeSubscription.end_at"
+      :disabled="plan.title === PlanTitles.FREE && activeSubscription.canceled_at"
       @click="onSelectPlan(plan)"
     >
       {{

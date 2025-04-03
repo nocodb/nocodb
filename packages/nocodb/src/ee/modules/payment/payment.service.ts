@@ -53,7 +53,7 @@ export class PaymentService {
     const product = await stripe.products.retrieve(payload.stripe_product_id);
 
     if (!product) {
-      throw new Error('Product not found');
+      NcError.genericNotFound('Product', payload.stripe_product_id);
     }
 
     const { name: title, description, metadata } = product;
@@ -85,13 +85,13 @@ export class PaymentService {
     const plan = await Plan.get(planId);
 
     if (!plan) {
-      throw new Error('Plan not found');
+      NcError.genericNotFound('Plan', planId);
     }
 
     const product = await stripe.products.retrieve(plan.stripe_product_id);
 
     if (!product) {
-      throw new Error('Product not found');
+      NcError.genericNotFound('Product', plan.stripe_product_id);
     }
 
     const { name: title, description, metadata } = product;
@@ -121,7 +121,7 @@ export class PaymentService {
     const plan = await Plan.get(planId);
 
     if (!plan) {
-      throw new Error('Plan not found');
+      NcError.genericNotFound('Plan', planId);
     }
 
     return await Plan.update(plan.id, { is_active: false });
@@ -175,7 +175,7 @@ export class PaymentService {
     const plan = await Plan.get(plan_id, ncMeta);
 
     if (!plan) {
-      throw new Error('Plan not found');
+      NcError.genericNotFound('Plan', plan_id);
     }
 
     if (!plan.is_active) {
@@ -185,7 +185,7 @@ export class PaymentService {
     const price = plan.prices.find((p) => p.id === price_id);
 
     if (!price) {
-      throw new Error('Price not found');
+      NcError.genericNotFound('Price', price_id);
     }
 
     if (workspaceOrOrg.stripe_customer_id) {
@@ -290,7 +290,6 @@ export class PaymentService {
       workspaceOrOrgId,
       ncMeta,
     );
-
     if (!workspaceOrOrg) {
       NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
     }
@@ -304,12 +303,47 @@ export class PaymentService {
       NcError.genericNotFound('Subscription', workspaceOrOrgId);
     }
 
-    const seatCount = await this.getSeatCount(workspaceOrOrgId, ncMeta);
+    const existingPlan = await Plan.get(
+      existingSubscription.fk_plan_id,
+      ncMeta,
+    );
+    if (!existingPlan) {
+      NcError.genericNotFound('Plan', existingSubscription.fk_plan_id);
+    }
 
+    const existingPrice = existingPlan.prices.find(
+      (p) => p.id === existingSubscription.stripe_price_id,
+    );
+
+    const seatCount = await this.getSeatCount(workspaceOrOrgId, ncMeta);
     if (seatCount !== payload.seat) {
       throw new Error(
         'There was a mismatch in the seat count, please try again',
       );
+    }
+
+    if (
+      existingPlan.id === payload.plan_id &&
+      existingPrice.id === payload.price_id &&
+      seatCount === payload.seat
+    ) {
+      if (existingSubscription.scheduled_plan_start_at) {
+        await Subscription.update(existingSubscription.id, {
+          scheduled_fk_plan_id: null,
+          scheduled_stripe_price_id: null,
+          scheduled_plan_start_at: null,
+          scheduled_plan_period: null,
+        });
+
+        await this.updateNextInvoice(
+          existingSubscription.id,
+          await this.getNextInvoice(workspaceOrOrg.id),
+        );
+
+        await Workspace.refreshPlanAndSubscription(workspaceOrOrg.id, ncMeta);
+      }
+
+      return { id: existingSubscription.stripe_subscription_id };
     }
 
     const subscription = await stripe.subscriptions.retrieve(
@@ -317,7 +351,10 @@ export class PaymentService {
     );
 
     if (!subscription) {
-      throw new Error('Payment intent not found');
+      NcError.genericNotFound(
+        'Stripe subscription',
+        existingSubscription.stripe_subscription_id,
+      );
     }
 
     if (
@@ -337,7 +374,7 @@ export class PaymentService {
     const plan = await Plan.get(payload.plan_id, ncMeta);
 
     if (!plan) {
-      throw new Error('Plan not found');
+      NcError.genericNotFound('Plan', payload.plan_id);
     }
 
     if (!plan.is_active) {
@@ -345,40 +382,171 @@ export class PaymentService {
     }
 
     const price = plan.prices.find((p) => p.id === payload.price_id);
-
     if (!price) {
-      throw new Error('Price not found');
+      NcError.genericNotFound('Price', payload.price_id);
     }
 
     const item = subscription.items.data[0];
 
-    const updatedSubscription = await stripe.subscriptions.update(
-      existingSubscription.stripe_subscription_id,
-      {
-        items: [
-          {
-            id: item.id,
-            price: payload.price_id,
-            quantity: payload.seat,
-          },
-        ],
-        cancel_at_period_end: false,
-        expand: ['latest_invoice.payment_intent'],
-        ...(existingSubscription.period === 'year'
-          ? {
-              proration_behavior: 'always_invoice',
-            }
-          : {}),
-        metadata: {
-          ...subscription.metadata,
-          fk_plan_id: payload.plan_id,
-        },
-      },
-    );
+    const intervalChanged =
+      price.recurring.interval !== item.price.recurring.interval;
+    const priceIncreased =
+      !existingPrice || price.unit_amount > existingPrice.unit_amount;
 
-    return {
-      id: updatedSubscription.id,
-    };
+    let updatedSubscription;
+
+    // CASE: monthly-to-yearly or yearly-to-monthly
+    if (intervalChanged) {
+      // Monthly to Yearly: immediate change with proration (invoice immediately)
+      if (
+        price.recurring.interval === 'year' &&
+        item.price.recurring.interval === 'month'
+      ) {
+        updatedSubscription = await stripe.subscriptions.update(
+          subscription.id,
+          {
+            items: [
+              {
+                id: item.id,
+                price: price.id,
+                quantity: seatCount,
+              },
+            ],
+            proration_behavior: 'always_invoice',
+          },
+        );
+        return { id: updatedSubscription.id };
+      }
+      // Yearly to Monthly: schedule change at period end (no prorate)
+      if (
+        price.recurring.interval === 'month' &&
+        item.price.recurring.interval === 'year'
+      ) {
+        // calculate upcoming_invoice with preview using scheduled plan
+        const upcomingInvoice = await stripe.invoices.createPreview({
+          subscription_details: {
+            items: [
+              {
+                price: price.id,
+                quantity: seatCount,
+              },
+            ],
+          },
+        });
+
+        await Subscription.update(existingSubscription.id, {
+          scheduled_fk_plan_id: plan.id,
+          scheduled_stripe_price_id: price.id,
+          scheduled_plan_start_at: dayjs
+            .unix(subscription.current_period_end)
+            .utc()
+            .toISOString(),
+          scheduled_plan_period: price.recurring.interval,
+          upcoming_invoice_at: dayjs
+            .unix(upcomingInvoice.period_start)
+            .utc()
+            .toISOString(),
+          upcoming_invoice_due_at: dayjs
+            .unix(
+              upcomingInvoice.next_payment_attempt || upcomingInvoice.due_date,
+            )
+            .utc()
+            .toISOString(),
+          upcoming_invoice_amount: upcomingInvoice.amount_due,
+          upcoming_invoice_currency: upcomingInvoice.currency,
+        });
+
+        await Workspace.refreshPlanAndSubscription(workspaceOrOrg.id, ncMeta);
+
+        return {
+          id: subscription.id,
+          message: 'Plan change scheduled at period end',
+        };
+      }
+    }
+
+    // CASE: When intervals are same
+    if (!intervalChanged) {
+      // Yearly plan
+      if (price.recurring.interval === 'year') {
+        // If the new price is higher upgrade immediately (invoice now with prorations)
+        if (priceIncreased) {
+          updatedSubscription = await stripe.subscriptions.update(
+            subscription.id,
+            {
+              items: [
+                {
+                  id: item.id,
+                  price: price.id,
+                  quantity: seatCount,
+                },
+              ],
+              proration_behavior: 'always_invoice',
+            },
+          );
+          return { id: updatedSubscription.id };
+        } else {
+          // calculate upcoming_invoice with preview using scheduled plan
+          const upcomingInvoice = await stripe.invoices.createPreview({
+            subscription_details: {
+              items: [
+                {
+                  price: price.id,
+                  quantity: seatCount,
+                },
+              ],
+            },
+          });
+
+          // For a downgrade on a yearly plan schedule update at period end
+          await Subscription.update(existingSubscription.id, {
+            scheduled_fk_plan_id: plan.id,
+            scheduled_stripe_price_id: price.id,
+            scheduled_plan_start_at: dayjs
+              .unix(subscription.current_period_end)
+              .utc()
+              .toISOString(),
+            scheduled_plan_period: price.recurring.interval,
+            upcoming_invoice_at: dayjs
+              .unix(upcomingInvoice.period_start)
+              .utc()
+              .toISOString(),
+            upcoming_invoice_due_at: dayjs
+              .unix(
+                upcomingInvoice.next_payment_attempt ||
+                  upcomingInvoice.due_date,
+              )
+              .utc()
+              .toISOString(),
+            upcoming_invoice_amount: upcomingInvoice.amount_due,
+            upcoming_invoice_currency: upcomingInvoice.currency,
+          });
+
+          await Workspace.refreshPlanAndSubscription(workspaceOrOrg.id, ncMeta);
+
+          return {
+            id: subscription.id,
+            message: 'Plan downgrade scheduled at period end',
+          };
+        }
+      } else {
+        // Monthly plan: change immediately with proration
+        updatedSubscription = await stripe.subscriptions.update(
+          subscription.id,
+          {
+            items: [
+              {
+                id: item.id,
+                price: price.id,
+                quantity: seatCount,
+              },
+            ],
+          },
+        );
+
+        return { id: updatedSubscription.id };
+      }
+    }
   }
 
   async reseatSubscription(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
@@ -511,7 +679,7 @@ export class PaymentService {
 
     await Subscription.update(existingSubscription.id, {
       status: canceledSubscription.status,
-      end_at: dayjs
+      canceled_at: dayjs
         .unix(canceledSubscription.current_period_end)
         .utc()
         .toISOString(),
@@ -658,13 +826,13 @@ export class PaymentService {
   ) {
     try {
       await Subscription.update(subscriptionId, {
-        next_invoice_at: dayjs.unix(invoice.period_end).utc().toISOString(),
-        next_invoice_due_at: dayjs
+        upcoming_invoice_at: dayjs.unix(invoice.period_end).utc().toISOString(),
+        upcoming_invoice_due_at: dayjs
           .unix(invoice.next_payment_attempt || invoice.due_date)
           .utc()
           .toISOString(),
-        next_invoice_amount: invoice.amount_due,
-        next_invoice_currency: invoice.currency,
+        upcoming_invoice_amount: invoice.amount_due,
+        upcoming_invoice_currency: invoice.currency,
       });
     } catch (err) {
       this.logger.error(
@@ -792,7 +960,7 @@ export class PaymentService {
           );
 
           if (!subscription) {
-            throw new Error(`Subscription ${subscriptionId} not found`);
+            NcError.genericNotFound('Subscription', subscriptionId);
           }
 
           if (subscription.fk_workspace_id) {
@@ -823,7 +991,7 @@ export class PaymentService {
           );
 
           if (!subscription) {
-            throw new Error(`Subscription ${subscriptionId} not found`);
+            NcError.genericNotFound('Subscription', subscriptionId);
           }
 
           const workspaceId = subscription.fk_workspace_id;
@@ -874,7 +1042,7 @@ export class PaymentService {
           );
 
           if (!subscription) {
-            throw new Error(`Subscription ${dataObject.id} not found`);
+            NcError.genericNotFound('Subscription', dataObject.id);
           }
 
           const plan_id = dataObject.metadata.fk_plan_id;
@@ -890,7 +1058,7 @@ export class PaymentService {
             seat_count: dataObject.items.data[0].quantity,
             status: dataObject.status,
             start_at: dayjs.unix(dataObject.start_date).utc().toISOString(),
-            end_at: dataObject.cancel_at
+            canceled_at: dataObject.cancel_at
               ? dayjs.unix(dataObject.cancel_at).utc().toISOString()
               : null,
             fk_plan_id: plan_id,
@@ -899,18 +1067,18 @@ export class PaymentService {
               : subscription.period,
             ...(nextInvoice
               ? {
-                  next_invoice_at: dayjs
+                  upcoming_invoice_at: dayjs
                     .unix(nextInvoice.period_end)
                     .utc()
                     .toISOString(),
-                  next_invoice_due_at: dayjs
+                  upcoming_invoice_due_at: dayjs
                     .unix(
                       nextInvoice.next_payment_attempt || nextInvoice.due_date,
                     )
                     .utc()
                     .toISOString(),
-                  next_invoice_amount: nextInvoice.amount_due,
-                  next_invoice_currency: nextInvoice.currency,
+                  upcoming_invoice_amount: nextInvoice.amount_due,
+                  upcoming_invoice_currency: nextInvoice.currency,
                 }
               : {}),
           });

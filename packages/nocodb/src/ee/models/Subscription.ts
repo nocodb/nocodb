@@ -23,15 +23,22 @@ export default class Subscription {
   status: string;
 
   start_at: string;
-  end_at: string;
+  trial_end_at: string;
+  canceled_at: string;
 
   period: string;
 
-  next_invoice_at: string;
-  next_invoice_due_at: string;
+  upcoming_invoice_at: string;
+  upcoming_invoice_due_at: string;
 
-  next_invoice_amount: number;
-  next_invoice_currency: string;
+  upcoming_invoice_amount: number;
+  upcoming_invoice_currency: string;
+
+  // Mark for downgrade (upgrades are applied immediately)
+  scheduled_fk_plan_id: string;
+  scheduled_stripe_price_id: string;
+  scheduled_plan_start_at: string;
+  scheduled_plan_period: string;
 
   // timestamps
   created_at: string;
@@ -75,12 +82,18 @@ export default class Subscription {
       'seat_count',
       'status',
       'start_at',
-      'end_at',
+      'trial_end_at',
+      'canceled_at',
       'period',
-      'next_invoice_at',
-      'next_invoice_due_at',
-      'next_invoice_amount',
-      'next_invoice_currency',
+      'upcoming_invoice_at',
+      'upcoming_invoice_due_at',
+      'upcoming_invoice_amount',
+      'upcoming_invoice_currency',
+      'scheduled_fk_plan_id',
+      'scheduled_stripe_price_id',
+      'scheduled_plan_start_at',
+      'scheduled_plan_period',
+      'meta',
     ]);
 
     const { id } = await ncMeta.metaInsert2(
@@ -104,12 +117,18 @@ export default class Subscription {
       'status',
       'seat_count',
       'status',
-      'end_at',
+      'trial_end_at',
+      'canceled_at',
       'period',
-      'next_invoice_at',
-      'next_invoice_due_at',
-      'next_invoice_amount',
-      'next_invoice_currency',
+      'upcoming_invoice_at',
+      'upcoming_invoice_due_at',
+      'upcoming_invoice_amount',
+      'upcoming_invoice_currency',
+      'scheduled_fk_plan_id',
+      'scheduled_stripe_price_id',
+      'scheduled_plan_start_at',
+      'scheduled_plan_period',
+      'meta',
     ]);
 
     await ncMeta.metaUpdate(

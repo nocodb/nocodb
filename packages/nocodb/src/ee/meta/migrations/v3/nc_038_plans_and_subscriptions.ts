@@ -32,14 +32,22 @@ const up = async (knex: Knex) => {
     table.string('status', 255); // active, canceled, paused, trial
 
     table.timestamp('start_at');
-    table.timestamp('end_at'); // end of trial or after cancelation - otherwise null
+    table.timestamp('trial_end_at'); // when trial ends - otherwise null
+    table.timestamp('canceled_at'); // when canceled - otherwise null
 
     table.string('period', 255); // month, year
 
-    table.timestamp('next_invoice_at');
-    table.timestamp('next_invoice_due_at');
-    table.integer('next_invoice_amount');
-    table.string('next_invoice_currency');
+    table.timestamp('upcoming_invoice_at');
+    table.timestamp('upcoming_invoice_due_at');
+    table.integer('upcoming_invoice_amount');
+    table.string('upcoming_invoice_currency');
+
+    table.string('scheduled_fk_plan_id', 20); // next plan id - if any
+    table.string('scheduled_stripe_price_id', 255); // next stripe price id - if any
+    table.timestamp('scheduled_plan_start_at'); // next plan start date - if any
+    table.string('scheduled_plan_period', 255); // month, year
+
+    table.text('meta'); // JSON - limits override
 
     table.timestamps(true, true);
 

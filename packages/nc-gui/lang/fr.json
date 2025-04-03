@@ -458,6 +458,12 @@
       "ai": "IA",
       "spreadSheet": "Feuille de calcul",
       "spreadSheetSubtitle": "Connectez et gérez vos feuilles de calcul avec NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

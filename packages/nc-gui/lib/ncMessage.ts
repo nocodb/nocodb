@@ -1,8 +1,10 @@
 import { message } from 'ant-design-vue/es'
 import type { AlertProps, MessageArgsProps } from 'ant-design-vue/es'
+import type { VueNode } from 'ant-design-vue/es/_util/type'
+import type { VNode } from 'vue'
+import { isPrimitiveValue } from 'nocodb-sdk'
 import NcAlert, { type NcAlertProps } from '../components/nc/Alert.vue'
 import { getI18n } from '~/plugins/a.i18n'
-import type { VNode } from 'vue'
 
 interface NcAlertMessageProps
   extends Pick<
@@ -22,21 +24,26 @@ interface NcAlertMessageProps
  * `NcMessageObjectProps` defines the properties allowed in `ncMessage`,
  * extending `NcAlertProps` while omitting fields that are irrelevant for messages.
  */
-export interface NcMessageObjectProps extends NcAlertMessageProps, Omit<MessageArgsProps, 'type'> {
+export interface NcMessageObjectProps extends NcAlertMessageProps, Omit<MessageArgsProps, 'type' | 'content'> {
   title?: string
+  content?: string | (() => VueNode) | VueNode
   /**
    * Custom action slot content to be rendered inside the alert.
-   * It can be either a `VNode` or a function returning a `VNode`.
+   * It can be either a `VueNode` or a function returning a `VueNode`.
    */
   action?: VNode | (() => VNode)
   showDefaultMessage?: boolean
   showCopyBtn?: boolean
+  /**
+   * For internal use only
+   */
+  renderAsNcAlert?: boolean
 }
 
 /**
  * `NcMessageProps` can either be a string (message text) or an object of type `NcMessageObjectProps`.
  */
-export type NcMessageProps = NcMessageObjectProps | string
+export type NcMessageProps = NcMessageObjectProps | VueNode
 
 export interface NcMessageExtraProps extends Pick<NcMessageObjectProps, 'showDefaultMessage' | 'showCopyBtn'> {}
 
@@ -57,6 +64,7 @@ const initialValue = {
   class: '',
   messageClass: '',
   descriptionClass: '',
+  renderAsNcAlert: true,
   ...defaultNcMessageExtraProps,
 } as NcMessageObjectProps
 
@@ -70,6 +78,10 @@ const generateMessageKey = (params: NcMessageProps) => {
   }
 
   return params.key
+}
+
+function isNcMessageObjectProps(params: any): params is NcMessageObjectProps {
+  return !ncIsEmptyObject(params)
 }
 
 /**
@@ -87,49 +99,65 @@ const getMessageProps = (
   params: NcMessageProps,
   ncMessageExtraProps: NcMessageExtraProps = defaultNcMessageExtraProps,
 ): NcMessageObjectProps => {
-  let updatedParams = initialValue
+  const updatedParams = { ...initialValue }
+  let content = ''
 
-  if (ncIsString(params)) {
+  if (isPrimitiveValue(params)) {
+    content = params?.toString() ?? ''
     // If params is a string, use it as the description and apply a default message based on type
     return {
       ...updatedParams,
-      title: ncMessageExtraProps.showDefaultMessage || !params ? getI18n().global.t(`objects.ncMessage.${type}`) : '',
-      content: params,
-      copyText: ncMessageExtraProps.showCopyBtn ? params ?? '' : '',
+      title: ncMessageExtraProps.showDefaultMessage || !content ? getI18n().global.t(`objects.ncMessage.${type}`) : '',
+      content,
+      copyText: ncMessageExtraProps.showCopyBtn ? content ?? '' : '',
     }
-  }
-
-  const showDefaultMessage = ncMessageExtraProps.showDefaultMessage ?? params.showDefaultMessage
-
-  /**
-   * default value of `ncMessageExtraProps.showCopyBtn` & `params.showCopyBtn` is true, so if one is false then we should not show
-   */
-  const showCopyBtn = ncMessageExtraProps.showCopyBtn && params.showCopyBtn
-
-  // Merge provided object properties into the default values using the spread operator
-  updatedParams = {
-    ...updatedParams,
-    ...params,
-    copyText: showCopyBtn ? params?.copyText || params.content || params.title || '' : '',
-  }
-
-  // If neither title nor content exist, set message to the default localized text
-  if (!updatedParams.title && !updatedParams.content) {
+  } else if (!isNcMessageObjectProps(params)) {
+    content = params
     return {
       ...updatedParams,
-      title: showDefaultMessage || !updatedParams.title ? getI18n().global.t(`objects.ncMessage.${type}`) : '',
+      title: ncMessageExtraProps.showDefaultMessage || !content ? getI18n().global.t(`objects.ncMessage.${type}`) : '',
+      content,
+      renderAsNcAlert: false,
+    }
+  } else {
+    const showDefaultMessage = ncMessageExtraProps.showDefaultMessage ?? params.showDefaultMessage
+
+    /**
+     * default value of `ncMessageExtraProps.showCopyBtn` & `params.showCopyBtn` is true, so if one is false then we should not show
+     */
+    const showCopyBtn = ncMessageExtraProps.showCopyBtn && params.showCopyBtn
+
+    let copyText = ''
+
+    if (showCopyBtn) {
+      if (params?.copyText) {
+        copyText = params?.copyText
+      } else if (isPrimitiveValue(params.content)) {
+        copyText = params.content?.toString() ?? params.title ?? ''
+      }
+    }
+
+    // If neither title nor content exist, set message to the default localized text
+    const showDefaultTitle = !updatedParams.title && !updatedParams.content && showDefaultMessage
+
+    // Merge provided object properties into the default values using the spread operator
+    return {
+      ...updatedParams,
+      ...params,
+      copyText,
+      ...(showDefaultTitle ? { title: getI18n().global.t(`objects.ncMessage.${type}`) } : {}),
+      renderAsNcAlert: isPrimitiveValue(params.content),
     }
   }
-
-  return updatedParams
 }
 
 /**
  * Displays a message using Ant Design's `message.open`, rendering an `NcAlert` inside.
- *
+ * Note: we have to render our `NcAlert` only if content is primitive value
  * @param type - The type of message (`success`, `error`, `info`, `warning`).
  * @param params - The message content or properties.
  * @param duration - Optional duration in seconds before auto-dismissal.
+ *
  */
 
 const showMessage = (
@@ -139,6 +167,7 @@ const showMessage = (
   ncMessageExtraProps?: NcMessageExtraProps,
 ) => {
   const props = getMessageProps(type, params, ncMessageExtraProps)
+
   const {
     onClick,
     onClose,
@@ -149,32 +178,39 @@ const showMessage = (
     appContext,
     prefixCls = '',
     rootPrefixCls = '',
+    renderAsNcAlert,
+    showCopyBtn: _showCopyBtn,
+    showDefaultMessage: _showDefaultMessage,
     ...ncAlertProps
   } = props
+
   const key = generateMessageKey(params)
 
   return message.open({
     key,
-    content: () =>
-      h(
-        NcAlert,
-        {
-          ...ncAlertProps,
-          message: title,
-          description: content,
-          type,
-          isNotification: true,
-          onClose: () => {
-            onClose?.()
-            message.destroy(key)
-          },
-          duration: duration ?? ncAlertProps.duration,
-        },
-        {
-          action: ncIsFunction(ncAlertProps.action) ? ncAlertProps.action : () => ncAlertProps.action,
-          icon: ncIsFunction(ncAlertProps.icon) ? ncAlertProps.icon : () => ncAlertProps.icon,
-        },
-      ),
+    content: renderAsNcAlert
+      ? () =>
+          h(
+            NcAlert,
+            {
+              ...ncAlertProps,
+              message: title,
+              description: content,
+              type,
+              isNotification: true,
+              onClose: () => {
+                onClose?.()
+                message.destroy(key)
+              },
+              duration: duration ?? ncAlertProps.duration,
+            },
+            {
+              action: ncIsFunction(ncAlertProps.action) ? ncAlertProps.action : () => ncAlertProps.action,
+              icon: ncIsFunction(ncAlertProps.icon) ? ncAlertProps.icon : () => ncAlertProps.icon,
+            },
+          )
+      : content,
+    type: !renderAsNcAlert ? type : undefined,
     duration: duration ?? ncAlertProps.duration,
     prefixCls,
     rootPrefixCls,

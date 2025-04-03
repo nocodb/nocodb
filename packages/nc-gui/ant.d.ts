@@ -1,4 +1,4 @@
-import type { MessageType, MessageApi as AntMessageApi } from 'ant-design-vue/es'
+import type { MessageApi as AntMessageApi, MessageType } from 'ant-design-vue/es'
 
 declare module 'ant-design-vue/es/message' {
   interface MessageApi extends Omit<AntMessageApi, 'success' | 'error' | 'info' | 'warn' | 'warning'> {

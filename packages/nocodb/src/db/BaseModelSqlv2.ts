@@ -6061,14 +6061,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         for (const col of multiSelectColumns) {
           if (d[col.id] && typeof d[col.id] === 'string') {
             d[col.id] = d[col.id].split(',');
-          }
-
-          if (d[col.id]?.length) {
-            for (let i = 0; i < d[col.id].length; i++) {
-              if (typeof d[col.id][i] === 'string') {
-                d[col.id][i] = d[col.id][i].split(',');
-              }
-            }
+          } else if (d[col.title] && typeof d[col.title] === 'string') {
+            d[col.title] = d[col.title].split(',');
           }
         }
       }

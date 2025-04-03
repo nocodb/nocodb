@@ -347,9 +347,7 @@ describe('dataApiV3', () => {
         MultiSelect: r.MultiSelect?.split(',') ?? null,
       }));
 
-      // TODO: skipped for now, v3 return undefined instead of null
-      // need to investigate first
-      it.skip('Select based- List & CRUD', async function () {
+      it('Select based- List & CRUD', async function () {
         // list 10 records
         let rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
@@ -382,7 +380,6 @@ describe('dataApiV3', () => {
           ids.push({ Id: i });
         }
         expect(rsp.body).to.deep.equal(ids);
-        console.log('D')
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -393,12 +390,10 @@ describe('dataApiV3', () => {
             fields: 'Id,SingleSelect,MultiSelect',
           },
         });
-        console.log(rsp.body)
         expect(rsp.body).to.deep.equal({
           Id: 401,
           ...recordsV3[0],
         });
-        console.log('D')
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -432,7 +427,6 @@ describe('dataApiV3', () => {
         expect(rsp.body).to.deep.equal(
           updatedRecords.map((record) => ({ Id: record.Id })),
         );
-        console.log('E')
 
         // verify updated records
         rsp = await ncAxiosGet({
@@ -444,7 +438,6 @@ describe('dataApiV3', () => {
           },
         });
         expect(rsp.body.list.slice(0, 4)).to.deep.equal(updatedRecords);
-        console.log('F')
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -489,7 +482,6 @@ describe('dataApiV3', () => {
         // extract first 10 records from inserted records
         const records = insertedRecords.slice(0, 10);
         rsp.body.list.forEach((record: any, index: number) => {
-          console.log(record, records[index]);
           expect(record).to.include(records[index]);
         });
 

@@ -325,6 +325,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         aliasColumns,
       );
     }
+    if (options.apiVersion === NcApiVersion.V3) {
+      data = await this.convertMultiSelectTypes(data, dependencyColumns);
+    }
 
     if (options.first) {
       return data?.[0];

@@ -4,6 +4,8 @@ import NcModalConfirm, { type NcConfirmModalProps } from '../../components/nc/Mo
 export const useEeConfig = createSharedComposable(() => {
   const { t } = useI18n()
 
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
   const workspaceStore = useWorkspace()
 
   const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspaceStore)
@@ -13,6 +15,8 @@ export const useEeConfig = createSharedComposable(() => {
   const activePlan = computed(() => activeWorkspace.value?.payment?.plan)
 
   const activeSubscription = computed(() => activeWorkspace.value?.payment?.subscription)
+
+  const isPaymentEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.PAYMENT))
 
   const getLimit = (type: PlanLimitTypes, workspace?: NcWorkspace | null) => {
     if (!workspace) {
@@ -32,7 +36,7 @@ export const useEeConfig = createSharedComposable(() => {
       : workspace?.payment?.plan?.meta?.[type]
   }
 
-  const getHigherPlan = (plan: string | PlanTitles) => {
+  const getHigherPlan = (plan: string | PlanTitles | undefined = activePlan.value?.title) => {
     const planTitleValues = Object.values(PlanTitles)
 
     const activePlanIndex = planTitleValues.findIndex((p) => p === plan)
@@ -45,22 +49,36 @@ export const useEeConfig = createSharedComposable(() => {
     return planTitleValues[activePlanIndex + 1]
   }
 
-  const getPlanTitle = (plan: string | PlanTitles) => {
+  const getPlanTitle = (plan: string | PlanTitles = PlanTitles.FREE) => {
     return t(`objects.paymentPlan.${plan}`, plan)
   }
 
   const handleUpgradePlan = ({
-    planTitle = PlanTitles.TEAM,
+    newPlanTitle,
     title = t('title.upgradeToPlan', {
-      plan: planTitle,
+      plan: newPlanTitle,
     }),
     content,
     okText,
     cancelText,
   }: Pick<NcConfirmModalProps, 'content' | 'okText' | 'cancelText'> & {
     title?: string
-    planTitle: PlanTitles
-  }) => {
+    newPlanTitle?: PlanTitles
+  } = {}) => {
+    const higherPlan = getHigherPlan(activePlan.value?.title ?? PlanTitles.FREE)
+    if (!higherPlan) {
+      return
+    }
+
+    if (!newPlanTitle) {
+      newPlanTitle = higherPlan
+    }
+
+    if (!title) {
+      title = t('title.upgradeToPlan', {
+        plan: newPlanTitle,
+      })
+    }
     const isOpen = ref(true)
 
     const { close } = useDialog(NcModalConfirm, {
@@ -73,18 +91,24 @@ export const useEeConfig = createSharedComposable(() => {
       'cancelProps': {
         type: 'text',
       },
-      'onOk': async () => {
+      'onOk': () => {
         closeDialog()
         navigateTo(`/${activeWorkspaceId.value}/settings?tab=billing`)
       },
+      'onClickCancel': () => {
+        window.open('https://nocodb.com/pricing', '_blank', 'noopener,noreferrer')
+      },
       'update:visible': closeDialog,
       'showIcon': false,
+      'maskClosable': true,
     })
 
     function closeDialog() {
       isOpen.value = false
       close(1000)
     }
+
+    return true
   }
 
   return {
@@ -96,5 +120,6 @@ export const useEeConfig = createSharedComposable(() => {
     getHigherPlan,
     getPlanTitle,
     handleUpgradePlan,
+    isPaymentEnabled,
   }
 })

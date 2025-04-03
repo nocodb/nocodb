@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "試算表",
       "spreadSheetSubtitle": "使用 NocoDB 連接和管理您的試算表。"
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

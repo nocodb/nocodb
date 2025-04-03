@@ -836,7 +836,7 @@ export function useInfiniteData(args: {
     const newRow = {
       row: { ...rowDefaultData(metaValue?.columns), ...rowOverwrite },
       oldRow: {},
-      rowMeta: { new: true, rowIndex: newRowIndex },
+      rowMeta: { new: true, rowIndex: newRowIndex, path },
     }
     dataCache.cachedRows.value.set(newRowIndex, newRow)
 

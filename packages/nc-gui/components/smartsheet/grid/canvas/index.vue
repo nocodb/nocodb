@@ -880,11 +880,6 @@ function scrollToCell(row?: number, column?: number, path?: Array<number>): void
   const currentColumn = column ?? activeCell.value.column ?? -1
   const currentPath = path ?? activeCell.value.path ?? []
 
-  // If not grouped or no valid row, exit early
-  if (!isGroupBy.value || currentRow < 0) {
-    return
-  }
-
   let cellTop = 0
   let cellBottom = 0
 
@@ -1488,15 +1483,10 @@ const handleMouseMove = (e: MouseEvent) => {
     const row = element?.row
     const rowIndex = element?.rowIndex
     const groupPath = generateGroupPath(element?.group)
-    const dataCache = getDataCache(groupPath)
 
     const { column } = findClickedColumn(mousePosition.x, scrollLeft.value)
     if (!row || !column) {
-      if (
-        rowIndex === dataCache.totalRows.value &&
-        isAddingEmptyRowAllowed.value &&
-        mousePosition.x < totalColumnsWidth.value - scrollLeft.value
-      ) {
+      if (element?.type === ElementTypes.ADD_NEW_ROW && mousePosition.x < totalColumnsWidth.value - scrollLeft.value) {
         setCursor('pointer')
       } else {
         setCursor('auto')

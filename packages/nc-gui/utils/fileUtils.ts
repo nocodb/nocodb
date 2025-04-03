@@ -38,7 +38,6 @@ const videoExt = [
   'mp4a',
 ]
 
-
 const wordExt = ['txt', 'doc', 'docx']
 
 const excelExt = ['xls', 'xlsx', 'csv']

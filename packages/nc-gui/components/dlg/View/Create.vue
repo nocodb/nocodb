@@ -239,8 +239,8 @@ const onAiEnter = async () => {
       const data = await createViews(activeTabSelectedViews.value, baseId.value)
 
       emits('created', ncIsArray(data) && data.length ? data[0] : undefined)
-    } catch (e) {
-      message.error(e)
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       await refreshCommandPalette()
     }

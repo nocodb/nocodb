@@ -281,7 +281,11 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
         'onOk': async () => {
           closeDialog()
 
-          await updateSubscription(plan.id)
+          if (changes.plan === PlanTitles.FREE) {
+            await cancelSubscription()
+          } else {
+            await updateSubscription(plan.id)
+          }
         },
         'update:visible': closeDialog,
         'showIcon': false,

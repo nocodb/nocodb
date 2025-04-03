@@ -1,8 +1,7 @@
 import { type FilterType } from 'nocodb-sdk'
 
 export function useColumnFilteredOrSorted() {
-  // TODO: handle nested filters
-  const { nestedFilters: _nestedFilters, allFilters, sorts } = useSmartsheetStoreOrThrow()
+  const { nestedFilters, allFilters, sorts } = useSmartsheetStoreOrThrow()
   const filteredColumnIds = computed(() => {
     const columnIds: Set<string> = new Set<string>()
     const extractFilterArray = (filters: FilterType[]) => {
@@ -18,7 +17,7 @@ export function useColumnFilteredOrSorted() {
         }
       }
     }
-    extractFilterArray(allFilters.value)
+    extractFilterArray([...allFilters.value, ...nestedFilters.value])
     return columnIds
   })
   const sortedColumnIds = computed(() => {

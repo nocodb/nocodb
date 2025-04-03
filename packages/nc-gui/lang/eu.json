@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "Kalkulu-orria",
       "spreadSheetSubtitle": "Konektatu eta kudeatu zure kalkulu-orriak NocoDB-rekin."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

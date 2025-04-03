@@ -43,7 +43,27 @@ export function useColumnFilteredOrSorted() {
     }
   }
 
+  const appearanceConfig = {
+    FILTERED: {
+      'cellBgColor': '#ECFFF2',
+      'cellBgColor.hovered': '#D4F7E0',
+      'cellBgColor.selected': '#D4F7E0',
+      'cellBgClass': '!bg-green-50 hover:(bg-green-100)',
+      'toolbarBgClass': 'bg-green-50',
+      'toolbarTextClass': 'text-green-700',
+    },
+    SORTED: {
+      'cellBgColor': '#FFF0F7',
+      'cellBgColor.hovered': '#FFCFE6',
+      'cellBgColor.selected': '#FFCFE6',
+      'cellBgClass': '!bg-maroon-50 hover:(bg-maroon-100)',
+      'toolbarBgClass': 'bg-maroon-50',
+      'toolbarTextClass': 'text-pink-700',
+    },
+  }
+
   return {
+    appearanceConfig,
     filteredColumnIds,
     sortedColumnIds,
     isColumnSortedOrFiltered,

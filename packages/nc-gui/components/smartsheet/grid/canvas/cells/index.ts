@@ -45,8 +45,6 @@ import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
 import { NullCellRenderer } from './Null'
 
 const CLEANUP_INTERVAL = 1000
-const CELL_COLOR_SORTED = '#FFDBD9'
-const CELL_COLOR_FILTERED = '#FFF0D1'
 
 export function useGridCellHandler(params: {
   getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { x: number; y: number; width: number; height: number }
@@ -70,7 +68,7 @@ export function useGridCellHandler(params: {
   const canvasCellEvents = reactive<CanvasCellEventDataInjType>({})
   provide(CanvasCellEventDataInj, canvasCellEvents)
 
-  const { isColumnSortedOrFiltered } = useColumnFilteredOrSorted()
+  const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
   const baseStore = useBase()
   const { showNull } = useGlobal()
   const { isMssql, isMysql, isXcdbBase, isPg } = baseStore
@@ -175,10 +173,8 @@ export function useGridCellHandler(params: {
   ) => {
     if (skipRender) return
     const columnState = isColumnSortedOrFiltered(column.id!)
-    if (columnState === 'FILTERED') {
-      roundedRect(ctx, x, y, width, height, 0, { backgroundColor: CELL_COLOR_FILTERED })
-    } else if (columnState === 'SORTED') {
-      roundedRect(ctx, x, y, width, height, 0, { backgroundColor: CELL_COLOR_SORTED })
+    if (columnState !== undefined) {
+      roundedRect(ctx, x, y, width, height, 0, { backgroundColor: filteredOrSortedAppearanceConfig[columnState].cellBgColor })
     }
     const cellType = cellTypesRegistry.get(column.uidt)
     if (actionManager?.isLoading(pk, column.id) && !isAIPromptCol(column) && !isButton(column)) {

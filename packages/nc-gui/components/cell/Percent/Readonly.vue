@@ -18,6 +18,10 @@ const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const isUnderLTAR = inject(IsUnderLTARInj, ref(false))
 
+const isGrid = inject(IsGridInj, ref(false))
+
+const isLinkRecordDropdown = inject(IsLinkRecordDropdownInj, ref(false))
+
 const localEditEnabled = useVModel(props, 'localEditEnabled', emits, { defaultValue: false })
 
 const expandedEditEnabled = ref(false)
@@ -68,21 +72,27 @@ const progressPercent = computed(() => {
 
   return null
 })
+
+const showAsProgres = computed(
+  () => (column.value.meta as any)?.is_progress && (isLinkRecordDropdown.value || (!isUnderLTAR.value && !isUnderLookup.value)),
+)
+
+const showInput = computed(() => !readOnly.value && (!isGrid.value || isExpandedFormOpen.value))
 </script>
 
 <template>
   <div
-    v-if="(column.meta as any).is_progress"
+    v-if="showAsProgres"
     class="nc-cell-field percent-progress w-full py-1 flex"
     :style="{
-      ...(isExpandedFormOpen && { height: '100%' }),
+      ...(isExpandedFormOpen && !isLinkRecordDropdown && { height: '100%' }),
+      ...(isLinkRecordDropdown && { height: '16px' }),
     }"
   >
     <div
-      class="w-full"
+      class="w-full min-w-[100px]"
       :style="{
-        ...((!isExpandedFormOpen && !isUnderLookup && !isUnderLTAR) && { height: '4px' }),
-        ...((isUnderLookup || isUnderLTAR) && { height: '16px' }),
+        ...(!isExpandedFormOpen && { height: '4px' }),
       }"
       style="min-height: 4px"
       @mouseover="onMouseover"
@@ -91,7 +101,7 @@ const progressPercent = computed(() => {
       @click="onWrapperFocus"
     >
       <CellPercentProgressBar :percentage="percentValueNumber" :is-show-number="isExpandedFormOpen">
-        <template v-if="!readOnly" #default>
+        <template v-if="showInput" #default>
           <input
             class="w-full !border-none !outline-none focus:ring-0 min-h-[10px]"
             :value="modelValue"

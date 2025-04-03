@@ -3,6 +3,7 @@ import { decode } from 'html-entities'
 import { isValidURL } from 'nocodb-sdk'
 import { formulaTextSegmentsCache, replaceUrlsWithLinkCache } from '../components/smartsheet/grid/canvas/utils/canvas'
 import { getI18n } from '../plugins/a.i18n'
+import { message } from '#imports'
 export { isValidURL }
 
 const _replaceUrlsWithLink = (text: string): boolean | string => {

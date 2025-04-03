@@ -9,7 +9,7 @@ const props = defineProps<{
 const popularPlan = PlanTitles.TEAM
 
 // Todo: remove comingSoonPlans when we launch this
-const comingSoonPlans = [PlanTitles.BUSINESS, PlanTitles.ENTERPRISE]
+const comingSoonPlans = [PlanTitles.ENTERPRISE]
 
 const PrevPlanTitleFromCurrentPlan = {
   [PlanTitles.TEAM]: PlanTitles.FREE,
@@ -18,7 +18,7 @@ const PrevPlanTitleFromCurrentPlan = {
   [PlanTitles.ENTERPRISE]: PlanTitles.BUSINESS,
 }
 
-const { onSelectPlan, getPlanPrice, activeSubscription, isHigherPlan } = usePaymentStoreOrThrow()
+const { onSelectPlan, getPlanPrice, activeSubscription, paymentMode, isHigherPlan } = usePaymentStoreOrThrow()
 
 const price = computed(() => getPlanPrice(props.plan))
 </script>
@@ -54,14 +54,19 @@ const price = computed(() => getPlanPrice(props.plan))
       <div class="flex items-center gap-1 h-[62px] text-nc-content-gray mt-1">
         <span class="text-2xl text-nc-content-gray-subtle2 font-weight-700">$</span>
         <span class="text-[40px] leading-[62px] font-weight-700 mr-2">
-          {{ activePlan === plan.title && activeSubscription ? getPlanPrice(props.plan, activeSubscription.period) : price }}
+          {{ price }}
         </span>
         {{ $t('title.editorMonth') }}
       </div>
     </div>
 
     <NcButton
-      v-if="activeSubscription && activePlan === plan.title && activeSubscription.canceled_at"
+      v-if="
+        activeSubscription &&
+        activePlan === plan.title &&
+        activeSubscription.canceled_at &&
+        paymentMode === activeSubscription.period
+      "
       type="secondary"
       size="medium"
       class="w-full !text-nc-content-brand"
@@ -70,15 +75,15 @@ const price = computed(() => getPlanPrice(props.plan))
       {{ $t('general.reactivate') }}
     </NcButton>
     <NcButton
-      v-else-if="activeSubscription && activePlan === plan.title"
+      v-else-if="
+        (activeSubscription && paymentMode === activeSubscription.period && activePlan === plan.title) ||
+        (activePlan === PlanTitles.FREE && activePlan === plan.title)
+      "
       type="secondary"
       size="medium"
       class="w-full pointer-events-none !text-nc-content-brand"
     >
       {{ $t('title.currentPlan') }}
-    </NcButton>
-    <NcButton v-else-if="activePlan === plan.title" type="secondary" size="medium" class="w-full pointer-events-none">
-      <div class="flex items-center justify-center gap-1">{{ $t('title.currentPlan') }}</div>
     </NcButton>
     <nuxt-link v-else-if="plan.title === PlanTitles.ENTERPRISE" no-ref href="mailto:support@nocodb.com" target="_blank">
       <NcButton type="secondary" size="medium" class="w-full">
@@ -95,10 +100,10 @@ const price = computed(() => getPlanPrice(props.plan))
     </NcButton>
     <NcButton
       v-else
-      :type="plan.title === popularPlan ? 'primary' : 'secondary'"
+      :type="!activeSubscription && plan.title === popularPlan ? 'primary' : 'secondary'"
       size="medium"
       class="w-full"
-      :disabled="plan.title === PlanTitles.FREE && activeSubscription.canceled_at"
+      :disabled="plan.title === PlanTitles.FREE && activeSubscription?.canceled_at"
       @click="onSelectPlan(plan)"
     >
       {{

@@ -343,6 +343,19 @@ export class PaymentService {
         await Workspace.refreshPlanAndSubscription(workspaceOrOrg.id, ncMeta);
       }
 
+      if (existingSubscription.canceled_at) {
+        await stripe.subscriptions.update(
+          existingSubscription.stripe_subscription_id,
+          {
+            cancel_at_period_end: false,
+          },
+        );
+
+        await Subscription.update(existingSubscription.id, {
+          canceled_at: null,
+        });
+      }
+
       return { id: existingSubscription.stripe_subscription_id };
     }
 
@@ -412,6 +425,14 @@ export class PaymentService {
                 quantity: seatCount,
               },
             ],
+            metadata: {
+              ...(workspaceOrOrg.entity === 'workspace'
+                ? { fk_workspace_id: workspaceOrOrg.id }
+                : { fk_org_id: workspaceOrOrg.id }),
+              fk_user_id: req.user.id,
+              fk_plan_id: plan.id,
+            },
+            cancel_at_period_end: false,
             proration_behavior: 'always_invoice',
           },
         );
@@ -431,8 +452,18 @@ export class PaymentService {
                 quantity: seatCount,
               },
             ],
+            start_date: subscription.current_period_end,
           },
         });
+
+        if (existingSubscription.canceled_at) {
+          await stripe.subscriptions.update(
+            existingSubscription.stripe_subscription_id,
+            {
+              cancel_at_period_end: false,
+            },
+          );
+        }
 
         await Subscription.update(existingSubscription.id, {
           scheduled_fk_plan_id: plan.id,
@@ -454,6 +485,7 @@ export class PaymentService {
             .toISOString(),
           upcoming_invoice_amount: upcomingInvoice.amount_due,
           upcoming_invoice_currency: upcomingInvoice.currency,
+          ...(existingSubscription.canceled_at ? { canceled_at: null } : {}),
         });
 
         await Workspace.refreshPlanAndSubscription(workspaceOrOrg.id, ncMeta);
@@ -481,7 +513,15 @@ export class PaymentService {
                   quantity: seatCount,
                 },
               ],
+              metadata: {
+                ...(workspaceOrOrg.entity === 'workspace'
+                  ? { fk_workspace_id: workspaceOrOrg.id }
+                  : { fk_org_id: workspaceOrOrg.id }),
+                fk_user_id: req.user.id,
+                fk_plan_id: plan.id,
+              },
               proration_behavior: 'always_invoice',
+              cancel_at_period_end: false,
             },
           );
           return { id: updatedSubscription.id };
@@ -495,8 +535,18 @@ export class PaymentService {
                   quantity: seatCount,
                 },
               ],
+              start_date: subscription.current_period_end,
             },
           });
+
+          if (existingSubscription.canceled_at) {
+            await stripe.subscriptions.update(
+              existingSubscription.stripe_subscription_id,
+              {
+                cancel_at_period_end: false,
+              },
+            );
+          }
 
           // For a downgrade on a yearly plan schedule update at period end
           await Subscription.update(existingSubscription.id, {
@@ -520,6 +570,7 @@ export class PaymentService {
               .toISOString(),
             upcoming_invoice_amount: upcomingInvoice.amount_due,
             upcoming_invoice_currency: upcomingInvoice.currency,
+            ...(existingSubscription.canceled_at ? { canceled_at: null } : {}),
           });
 
           await Workspace.refreshPlanAndSubscription(workspaceOrOrg.id, ncMeta);
@@ -541,6 +592,14 @@ export class PaymentService {
                 quantity: seatCount,
               },
             ],
+            metadata: {
+              ...(workspaceOrOrg.entity === 'workspace'
+                ? { fk_workspace_id: workspaceOrOrg.id }
+                : { fk_org_id: workspaceOrOrg.id }),
+              fk_user_id: req.user.id,
+              fk_plan_id: plan.id,
+            },
+            cancel_at_period_end: false,
           },
         );
 
@@ -613,8 +672,11 @@ export class PaymentService {
             quantity: seatCount,
           },
         ],
+        cancel_at_period_end: false,
         expand: ['latest_invoice.payment_intent'],
-        ...(existingSubscription.period === 'year'
+        // invoice immediately if the plan is yearly or change is scheduled
+        ...(existingSubscription.period === 'year' ||
+        existingSubscription.scheduled_plan_start_at
           ? {
               proration_behavior: 'always_invoice',
             }
@@ -683,6 +745,14 @@ export class PaymentService {
         .unix(canceledSubscription.current_period_end)
         .utc()
         .toISOString(),
+      scheduled_fk_plan_id: null,
+      scheduled_stripe_price_id: null,
+      scheduled_plan_start_at: null,
+      scheduled_plan_period: null,
+      upcoming_invoice_at: null,
+      upcoming_invoice_due_at: null,
+      upcoming_invoice_amount: null,
+      upcoming_invoice_currency: null,
     });
 
     return canceledSubscription.id;
@@ -770,10 +840,26 @@ export class PaymentService {
         NcError.genericNotFound('Subscription', workspaceOrOrgId);
       }
 
-      const invoice = await stripe.invoices.retrieveUpcoming({
-        customer: workspaceOrOrg.stripe_customer_id,
-        subscription: subscription.stripe_subscription_id,
-      });
+      let invoice;
+
+      if (subscription.scheduled_stripe_price_id) {
+        invoice = await stripe.invoices.createPreview({
+          subscription_details: {
+            items: [
+              {
+                price: subscription.scheduled_stripe_price_id,
+                quantity: subscription.seat_count,
+              },
+            ],
+            start_date: dayjs(subscription.scheduled_plan_start_at).unix(),
+          },
+        });
+      } else {
+        invoice = await stripe.invoices.retrieveUpcoming({
+          customer: workspaceOrOrg.stripe_customer_id,
+          subscription: subscription.stripe_subscription_id,
+        });
+      }
 
       return invoice;
     } catch (err) {

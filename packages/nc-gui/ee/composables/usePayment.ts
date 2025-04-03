@@ -141,7 +141,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
     if (!plan) throw new Error('No plan found')
 
-    priceId = priceId || plan.prices?.find((price: any) => price.recurring.interval === activeSubscription.value?.period)?.id
+    priceId = priceId || plan.prices?.find((price: any) => price.recurring.interval === paymentMode.value)?.id
 
     if (!priceId) throw new Error('No price found')
 

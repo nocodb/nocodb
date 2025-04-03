@@ -45,7 +45,7 @@ const scheduledChangeInfo = computed(() => {
 
 const nextInvoiceInfo = computed(() => {
   if (!activeSubscription.value) return null
-  const nextInvoiceDate = dayjs(activeSubscription.value.upcoming_invoice_date)
+  const nextInvoiceDate = dayjs(activeSubscription.value.upcoming_invoice_at)
   return {
     date: `${nextInvoiceDate.format('DD MMMM YYYY')}`,
     amount: new Intl.NumberFormat('en-US', {
@@ -71,7 +71,7 @@ const currentPlanTitle = computed(() => {
       </div>
       <NcButton
         v-if="activeSubscription"
-        type="secondary"
+        type="primary"
         size="small"
         icon-position="right"
         inner-class="!gap-2"

@@ -1,5 +1,4 @@
 import type { SSOClientType } from 'nocodb-sdk'
-import { message } from 'ant-design-vue'
 
 export const useAuthentication = (isOrg = false) => {
   const { api } = useApi()

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
 
 const props = defineProps<{

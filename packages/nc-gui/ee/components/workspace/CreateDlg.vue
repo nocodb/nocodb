@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
 import InputOrTags from './InputOrTags.vue'
 
 const props = defineProps<{

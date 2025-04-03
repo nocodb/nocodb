@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { RuleObject } from 'ant-design-vue/es/form'
-import { message } from 'ant-design-vue'
 import type { GoogleClientConfigType, SSOClientType } from 'nocodb-sdk'
 
 const props = defineProps<{

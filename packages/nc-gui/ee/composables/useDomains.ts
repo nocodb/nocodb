@@ -1,5 +1,4 @@
 import type { Api, DomainReqType, DomainType } from 'nocodb-sdk'
-import { message } from 'ant-design-vue'
 import { useNuxtApp } from 'nuxt/app'
 
 export const useDomains = () => {

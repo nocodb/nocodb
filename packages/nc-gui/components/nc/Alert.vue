@@ -322,7 +322,7 @@ onUnmounted(() => {
   }
 
   &.nc-alert-notification {
-    @apply min-w-[308px] max-w-[488px] w-[calc(30vw_-_32px)];
+    @apply min-w-[calc(100vw_-_64px)] md:min-w-[308px] max-w-[488px] w-[calc(30vw_-_32px)];
     .nc-alert-content {
       .nc-alert-description {
         @apply line-clamp-2;
@@ -402,12 +402,16 @@ onUnmounted(() => {
 </style>
 
 <style lang="scss">
-.ant-message-notice-content {
-  &:has(.ant-message-custom-content .nc-alert-notification) {
-    @apply bg-white !rounded-lg p-4 gap-4 box-border border-1 border-nc-border-gray-medium text-left relative overflow-hidden;
+.ant-message {
+  .ant-message-notice {
+    &:has(.nc-alert-notification) {
+      .ant-message-notice-content {
+        @apply bg-white !rounded-lg p-4 gap-4 box-border border-1 border-nc-border-gray-medium text-left relative overflow-hidden;
 
-    .ant-message-custom-content > span {
-      @apply flex-none w-full block;
+        .ant-message-custom-content > span {
+          @apply flex-none w-full block;
+        }
+      }
     }
   }
 }

@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "Bảng tính",
       "spreadSheetSubtitle": "Kết nối và quản lý bảng tính của bạn với NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

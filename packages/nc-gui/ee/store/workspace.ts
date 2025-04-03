@@ -19,6 +19,8 @@ export interface NcWorkspace extends WorkspaceType {
   payment?: {
     plan: {
       title: string
+      limit: { [key in PlanLimitTypes]: number }
+      features: { [key in PlanFeatureTypes]: boolean }
       meta: { [key in PlanLimitTypes]: number } & {
         [key in PlanFeatureTypes]: boolean
       }

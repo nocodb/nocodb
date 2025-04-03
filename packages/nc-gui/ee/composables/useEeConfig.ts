@@ -6,7 +6,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const workspaceStore = useWorkspace()
 
-  const { activeWorkspace } = storeToRefs(workspaceStore)
+  const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspaceStore)
 
   const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription)
 
@@ -19,7 +19,7 @@ export const useEeConfig = createSharedComposable(() => {
       workspace = activeWorkspace.value
     }
 
-    return workspace?.payment?.plan?.meta?.[type]
+    return workspace?.payment?.plan?.limit ? workspace?.payment?.plan?.limit?.[type] : workspace?.payment?.plan?.meta?.[type]
   }
 
   const getFeature = (type: PlanFeatureTypes, workspace?: NcWorkspace | null) => {
@@ -27,7 +27,26 @@ export const useEeConfig = createSharedComposable(() => {
       workspace = activeWorkspace.value
     }
 
-    return workspace?.payment?.plan?.meta?.[type]
+    return workspace?.payment?.plan?.features
+      ? workspace?.payment?.plan?.features?.[type]
+      : workspace?.payment?.plan?.meta?.[type]
+  }
+
+  const getHigherPlan = (plan: string | PlanTitles) => {
+    const planTitleValues = Object.values(PlanTitles)
+
+    const activePlanIndex = planTitleValues.findIndex((p) => p === plan)
+
+    // Return if plan does not exist or current plan is higher plan
+    if (activePlanIndex === -1 || activePlanIndex === planTitleValues.length - 1) {
+      return
+    }
+
+    return planTitleValues[activePlanIndex + 1]
+  }
+
+  const getPlanTitle = (plan: string | PlanTitles) => {
+    return t(`objects.paymentPlan.${plan}`, plan)
   }
 
   const handleUpgradePlan = ({
@@ -56,7 +75,7 @@ export const useEeConfig = createSharedComposable(() => {
       },
       'onOk': async () => {
         closeDialog()
-        // Todo: Redirection
+        navigateTo(`/${activeWorkspaceId.value}/settings?tab=billing`)
       },
       'update:visible': closeDialog,
       'showIcon': false,
@@ -74,6 +93,8 @@ export const useEeConfig = createSharedComposable(() => {
     isPaidPlan,
     activePlan,
     activeSubscription,
+    getHigherPlan,
+    getPlanTitle,
     handleUpgradePlan,
   }
 })

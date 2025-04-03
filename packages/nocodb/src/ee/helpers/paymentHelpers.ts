@@ -34,7 +34,6 @@ const GenericFeatures = {
   [PlanFeatureTypes.FEATURE_SCRIPTS]: false,
   [PlanFeatureTypes.FEATURE_SSO]: false,
   [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]: false,
-  [PlanFeatureTypes.FEATURE_WEBHOOK_LOGS]: false,
 } as const;
 
 async function getLimit(

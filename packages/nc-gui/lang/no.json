@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "Regneark",
       "spreadSheetSubtitle": "Koble til og administrer regnearkene dine med NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

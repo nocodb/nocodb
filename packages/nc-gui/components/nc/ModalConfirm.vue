@@ -101,7 +101,9 @@ const emits = defineEmits<Emits>()
 
 interface Emits {
   (e: 'update:visible', value: boolean): void
+  // cancel is generic, on click cancel or close modal using keybord shortcut or overlay click
   (e: 'cancel'): void
+  (e: 'clickCancel'): void
   (e: 'ok'): void
 }
 
@@ -146,6 +148,11 @@ const cancelBtnRef = ref<HTMLButtonElement>()
 
 const okBtnRef = ref<HTMLButtonElement>()
 
+const onClickCancel = () => {
+  vModel.value = false
+  emits('clickCancel')
+}
+
 /** Watches for cancel button reference and sets focus if applicable */
 watch(cancelBtnRef, () => {
   if (!cancelBtnRef.value?.$el || props.focusBtn !== 'cancel') return
@@ -185,7 +192,7 @@ watch(okBtnRef, () => {
           :type="cancelProps?.type ?? 'secondary'"
           size="small"
           :class="cancelClass"
-          @click="vModel = false"
+          @click="onClickCancel"
         >
           {{ cancelText || $t('general.cancel') }}
         </NcButton>

@@ -458,6 +458,12 @@
       "ai": "IA",
       "spreadSheet": "Tabel",
       "spreadSheetSubtitle": "Conectează și gestionează tabelele tale cu NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

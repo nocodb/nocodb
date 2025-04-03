@@ -191,12 +191,19 @@ describe('dataApiV3', () => {
     describe('text-based', () => {
       let table: Model;
       let columns: Column[] = [];
+      let expectedColumns: Column[] = [];
       let insertedRecords: any[];
 
       beforeEach(async function () {
         const initResult = await beforeEachTextBased(testContext);
         table = initResult.table;
         columns = initResult.columns;
+        expectedColumns = [
+          // if we want to include created at & updated at as default
+          { column_name: 'CreatedAt', title: 'CreatedAt' } as any,
+          { column_name: 'UpdatedAt', title: 'UpdatedAt' } as any,
+          ...columns,
+        ];
         insertedRecords = initResult.insertedRecords;
       });
 
@@ -213,7 +220,9 @@ describe('dataApiV3', () => {
         );
 
         // verify if all the columns are present in the response
-        expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+        expect(verifyColumnsInRsp(rsp.body.list[0], expectedColumns)).to.equal(
+          true,
+        );
 
         // verify column data
         const expectedData = insertedRecords.slice(0, 1);
@@ -273,7 +282,9 @@ describe('dataApiV3', () => {
           query: { sort: 'SingleLineText', limit: 400 },
         });
 
-        expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+        expect(verifyColumnsInRsp(rsp.body.list[0], expectedColumns)).to.equal(
+          true,
+        );
         const sortedArray = rsp.body.list.map((r) => r[sortColumn.title]);
         expect(sortedArray).to.deep.equal(sortedArray.sort());
       });
@@ -285,7 +296,9 @@ describe('dataApiV3', () => {
           query: { sort: '-SingleLineText', limit: 400 },
         });
 
-        expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+        expect(verifyColumnsInRsp(rsp.body.list[0], expectedColumns)).to.equal(
+          true,
+        );
         const descSortedArray = rsp.body.list.map((r) => r[sortColumn.title]);
         expect(descSortedArray).to.deep.equal(descSortedArray.sort().reverse());
       });
@@ -299,7 +312,9 @@ describe('dataApiV3', () => {
           },
         });
 
-        expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+        expect(verifyColumnsInRsp(rsp.body.list[0], expectedColumns)).to.equal(
+          true,
+        );
         // Combination of SingleLineText & MultiLineText should be in descending order
         const sortedArray = rsp.body.list.map(
           (r: any) => r.SingleLineText + r.MultiLineText,
@@ -316,7 +331,9 @@ describe('dataApiV3', () => {
           },
         });
 
-        expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+        expect(verifyColumnsInRsp(rsp.body.list[0], expectedColumns)).to.equal(
+          true,
+        );
         const filteredArray = rsp.body.list.map((r: any) => r.SingleLineText);
         expect(filteredArray).to.deep.equal(filteredArray.fill('Afghanistan'));
       });
@@ -330,7 +347,9 @@ describe('dataApiV3', () => {
             limit: 400,
           },
         });
-        expect(verifyColumnsInRsp(rsp.body.list[0], columns)).to.equal(true);
+        expect(verifyColumnsInRsp(rsp.body.list[0], expectedColumns)).to.equal(
+          true,
+        );
         const filteredArray = rsp.body.list.map(
           (r: any) => r.SingleLineText + ' ' + r.MultiLineText,
         );

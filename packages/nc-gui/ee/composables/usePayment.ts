@@ -219,10 +219,9 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
         const isOpen = ref(true)
         const { close } = useDialog(NcModalConfirm, {
           'visible': isOpen,
-          'title': 'Downgrade to free plan?',
-          'content': 'You will lose access to premium features.',
-          'okText': t('general.yes'),
-          'cancelText': t('general.no'),
+          'title': t('title.downgradeToFreePlan'),
+          'content': t('title.downgradeToFreePlanSubtitle'),
+          'okText': t('general.downgrade'),
           'onOk': async () => {
             closeDialog1()
 
@@ -230,8 +229,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
           },
           'onCancel': closeDialog1,
           'update:visible': closeDialog1,
-          'okClass': '!px-4',
-          'cancelClass': '!px-4',
+          'showIcon': false,
+          'focusBtn': 'cancel',
         })
 
         function closeDialog1() {
@@ -243,10 +242,11 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
         const { close } = useDialog(NcModalConfirm, {
           'visible': isOpen,
-          'title': `Change your plan to ${plan.title}?`,
-          'content': 'You will be charged immediately for the new plan.',
-          'okText': t('general.yes'),
-          'cancelText': t('general.no'),
+          'title': t('title.upgradeToPlan', {
+            plan: plan.title,
+          }),
+          'content': t('title.upgradeToPlanSubtitle'),
+          'okText': t('general.upgrade'),
           'onCancel': closeDialog,
           'onOk': async () => {
             closeDialog()
@@ -254,8 +254,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
             await updateSubscription(plan.id)
           },
           'update:visible': closeDialog,
-          'okClass': '!px-4',
-          'cancelClass': '!px-4',
+          'showIcon': false,
         })
 
         function closeDialog() {

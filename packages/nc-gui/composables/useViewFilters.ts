@@ -460,7 +460,7 @@ export function useViewFilters(
   }
 
   function deleteFilterGroupFromAllFilters(filter: ColumnFilterType) {
-    if (!isLink && !isWebhook) return
+    // if (!isLink && !isWebhook) return
 
     // Find all child filters of the specified parentId
     const childFilters = allFilters.value.filter((f) => f.fk_parent_id === filter.id)

@@ -1,3 +1,4 @@
+import { message } from 'ant-design-vue/es'
 import type { AlertProps, MessageArgsProps } from 'ant-design-vue/es'
 import NcAlert, { type NcAlertProps } from '../components/nc/Alert.vue'
 import { getI18n } from '~/plugins/a.i18n'
@@ -152,7 +153,7 @@ const showMessage = (
   } = props
   const key = generateMessageKey(params)
 
-  return antMessage.open({
+  return message.open({
     key,
     content: () =>
       h(
@@ -165,7 +166,7 @@ const showMessage = (
           isNotification: true,
           onClose: () => {
             onClose?.()
-            antMessage.destroy(key)
+            message.destroy(key)
           },
           duration: duration ?? ncAlertProps.duration ?? 100,
         },

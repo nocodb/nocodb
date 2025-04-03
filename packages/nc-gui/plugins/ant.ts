@@ -4,6 +4,6 @@ export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.component(AntMenu.name, AntMenu)
   nuxtApp.vueApp.component(AntModal.name, AntModal)
   message.config({
-    duration: +(process.env.ANT_MESSAGE_DURATION ?? (ncIsPlaywright() ? 1 : 8)),
+    duration: ANT_MESSAGE_DURATION,
   })
 })

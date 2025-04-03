@@ -24,3 +24,5 @@ export const GROUP_BY_VARS = {
 export const INITIAL_LEFT_SIDEBAR_WIDTH = 288
 
 export const NO_SCOPE = SDK_NO_SCOPE
+
+export const ANT_MESSAGE_DURATION = +(process.env.ANT_MESSAGE_DURATION ?? (ncIsPlaywright() ? 1 : 8))

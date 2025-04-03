@@ -322,7 +322,8 @@
     "paid": "Paid",
     "total": "Total",
     "downgrade": "Downgrade",
-    "upgrade": "Upgrade"
+    "upgrade": "Upgrade",
+    "reactivate": "Reactivate"
   },
   "objects": {
     "script": "Script",
@@ -726,10 +727,11 @@
     "helpAndSupportSubtitle": "Visit our Support Center for detailed guides, customer service contact options, and a community forum for additional help.",
     "faq": "FAQ",
     "faqSubtitle": "Explore the FAQ section and get quick answers to common questions about our services, features, and troubleshooting. ",
-    "downgradeToFreePlan": "Downgrade to Free plan?",
-    "downgradeToFreePlanSubtitle": "You'll lose access to Team plan features that aren't available in the Free plan.",
+    "downgradeToPlan": "Downgrade to {plan} plan?",
+    "downgradeToPlanSubtitle": "You'll lose access to {activePlan} plan features that aren't available in the {plan} plan.",
     "upgradeToPlan": "Upgrade to {plan} plan?",
-    "upgradeToPlanSubtitle": "You will be charged immediately for this plan."
+    "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
+    "reactivateToPlan": "Reactivate {plan} plan?"
   },
   "labels": {
     "restoringSnapshot": "Restoring Snapshot",

@@ -1,6 +1,5 @@
 import { type Stripe, type StripeCheckoutSession, loadStripe } from '@stripe/stripe-js'
-import type { PlanTitles } from 'nocodb-sdk'
-import { PlanMeta } from 'nocodb-sdk'
+import { PlanMeta, PlanTitles } from 'nocodb-sdk'
 import NcModalConfirm from '../../components/nc/ModalConfirm.vue'
 
 export interface PaymentPlan {
@@ -210,6 +209,18 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     paymentMode.value = val
   }
 
+  const isHigherPlan = (plan: string) => {
+    if (!activeSubscription.value || !activePlan.value) return false
+
+    const planTitleValues = Object.values(PlanTitles)
+
+    const activePlanIndex = planTitleValues.findIndex((p) => p === activePlan.value?.title)
+
+    const planIndex = planTitleValues.findIndex((p) => p === plan)
+
+    return planIndex > activePlanIndex
+  }
+
   const onSelectPlan = (plan: PaymentPlan) => {
     if (!activeSubscription.value) {
       selectedPlan.value = plan
@@ -219,8 +230,13 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
         const isOpen = ref(true)
         const { close } = useDialog(NcModalConfirm, {
           'visible': isOpen,
-          'title': t('title.downgradeToFreePlan'),
-          'content': t('title.downgradeToFreePlanSubtitle'),
+          'title': t('title.downgradeToPlan', {
+            plan: t(`objects.paymentPlan.${PlanTitles.FREE}`),
+          }),
+          'content': t('title.downgradeToPlanSubtitle', {
+            activePlan: t(`objects.paymentPlan.${activePlan.value?.title}`),
+            plan: t(`objects.paymentPlan.${PlanTitles.FREE}`),
+          }),
           'okText': t('general.downgrade'),
           'onOk': async () => {
             closeDialog1()
@@ -238,15 +254,40 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
           close(1000)
         }
       } else {
+        const higherPlan = isHigherPlan(plan.title)
+
+        let title = ''
+        let content = t('title.upgradeToPlanSubtitle')
+        let okText = ''
+        let focusBtn = 'ok'
+
+        if (plan.title === activePlan.value?.title && activeSubscription.value.end_at) {
+          title = t('title.reactivateToPlan', {
+            plan: plan.title,
+          })
+          okText = t('general.reactivate')
+          focusBtn = 'ok'
+        } else if (higherPlan) {
+          title = t('title.upgradeToPlan', {
+            plan: plan.title,
+          })
+          okText = t('general.upgrade')
+          focusBtn = 'ok'
+        } else {
+          title = t('title.downgradeToPlan', {
+            plan: t(`objects.paymentPlan.${plan.title}`),
+          })
+          okText = t('general.downgrade')
+          focusBtn = 'cancel'
+        }
+
         const isOpen = ref(true)
 
         const { close } = useDialog(NcModalConfirm, {
           'visible': isOpen,
-          'title': t('title.upgradeToPlan', {
-            plan: plan.title,
-          }),
-          'content': t('title.upgradeToPlanSubtitle'),
-          'okText': t('general.upgrade'),
+          'title': title,
+          'content': content,
+          'okText': okText,
           'onCancel': closeDialog,
           'onOk': async () => {
             closeDialog()
@@ -255,6 +296,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
           },
           'update:visible': closeDialog,
           'showIcon': false,
+          'focusBtn': focusBtn,
         })
 
         function closeDialog() {
@@ -320,6 +362,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     getCustomerPortalSession,
     isAccountPage,
     onManageSubscription,
+    isHigherPlan,
   }
 }, 'injected-payment-store')
 

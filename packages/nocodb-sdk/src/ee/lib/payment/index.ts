@@ -42,3 +42,10 @@ export const PlanMeta = {
     chartFillColor: '#C86827',
   },
 } as const;
+
+export const PlanOrder = {
+  [PlanTitles.FREE]: 0,
+  [PlanTitles.TEAM]: 1,
+  [PlanTitles.BUSINESS]: 2,
+  [PlanTitles.ENTERPRISE]: 3,
+}

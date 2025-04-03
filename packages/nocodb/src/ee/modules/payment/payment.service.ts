@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 import dayjs from 'dayjs';
-import type { NcRequest } from 'nocodb-sdk';
+import { PlanOrder } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { Org, Plan, Subscription, Workspace } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
@@ -401,15 +402,13 @@ export class PaymentService {
 
     const item = subscription.items.data[0];
 
-    const intervalChanged =
-      price.recurring.interval !== item.price.recurring.interval;
-    const priceIncreased =
-      !existingPrice || price.unit_amount > existingPrice.unit_amount;
-
     let updatedSubscription;
 
-    // CASE: monthly-to-yearly or yearly-to-monthly
-    if (intervalChanged) {
+    // CASE: monthly-to-yearly or yearly-to-monthly (same plan or lower plan)
+    if (
+      price.recurring.interval !== item.price.recurring.interval &&
+      PlanOrder[existingPlan.title] >= PlanOrder[plan.title]
+    ) {
       // Monthly to Yearly: immediate change with proration (invoice immediately)
       if (
         price.recurring.interval === 'year' &&
@@ -495,14 +494,15 @@ export class PaymentService {
           message: 'Plan change scheduled at period end',
         };
       }
-    }
-
-    // CASE: When intervals are same
-    if (!intervalChanged) {
+    } else {
       // Yearly plan
       if (price.recurring.interval === 'year') {
-        // If the new price is higher upgrade immediately (invoice now with prorations)
-        if (priceIncreased) {
+        // If the new price or plan is higher upgrade immediately (invoice now with prorations)
+        if (
+          !existingPrice ||
+          price.unit_amount > existingPrice.unit_amount ||
+          PlanOrder[plan.title] > PlanOrder[existingPlan.title]
+        ) {
           updatedSubscription = await stripe.subscriptions.update(
             subscription.id,
             {

@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import { PlanTitles } from 'nocodb-sdk'
+import { PlanOrder, PlanTitles } from 'nocodb-sdk'
 
 const props = defineProps<{
   plan: PaymentPlan
-  activePlan?: string
+  activePlan?: PlanTitles
 }>()
 
 const popularPlan = PlanTitles.TEAM
@@ -18,7 +18,7 @@ const PrevPlanTitleFromCurrentPlan = {
   [PlanTitles.ENTERPRISE]: PlanTitles.BUSINESS,
 }
 
-const { onSelectPlan, getPlanPrice, activeSubscription, paymentMode, isHigherPlan } = usePaymentStoreOrThrow()
+const { onSelectPlan, getPlanPrice, activeSubscription, paymentMode } = usePaymentStoreOrThrow()
 
 const price = computed(() => getPlanPrice(props.plan))
 </script>
@@ -107,7 +107,7 @@ const price = computed(() => getPlanPrice(props.plan))
       @click="onSelectPlan(plan)"
     >
       {{
-        isHigherPlan(plan.title)
+        activePlan && PlanOrder[plan.title] > PlanOrder[activePlan]
           ? $t('labels.upgradeToPlan', {
               plan: $t(`objects.paymentPlan.${plan.title}`),
             })

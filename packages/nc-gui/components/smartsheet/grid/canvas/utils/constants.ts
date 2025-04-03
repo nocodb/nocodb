@@ -12,3 +12,5 @@ export const CHUNK_SIZE = 50
 export const GROUP_CHUNK_SIZE = 5
 export const GROUP_HEADER_HEIGHT = 42
 export const GROUP_PADDING = 8
+
+export const AGGREGATION_HEIGHT = 36

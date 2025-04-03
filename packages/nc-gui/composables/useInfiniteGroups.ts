@@ -95,9 +95,11 @@ export const useInfiniteGroups = (
     return tempColor
   }
 
-  const fetchGroupChunk = async (chunkId: number, parentGroup?: CanvasGroup) => {
+  const fetchParentGroupChunk = async (parentGroup: CanvasGroup, force = false) => {}
+
+  const fetchGroupChunk = async (chunkId: number, parentGroup?: CanvasGroup, force = false) => {
     const targetChunkStates = parentGroup ? parentGroup.chunkStates : chunkStates.value
-    if (targetChunkStates[chunkId] === 'loading' || targetChunkStates[chunkId] === 'loaded') return
+    if (targetChunkStates[chunkId] === 'loading' || (targetChunkStates[chunkId] === 'loaded' && !force)) return
 
     targetChunkStates[chunkId] = 'loading'
     const offset = chunkId * GROUP_CHUNK_SIZE
@@ -143,6 +145,13 @@ export const useInfiniteGroups = (
         const value = valueToTitle(item[groupCol.column.title!], groupCol.column)
         const groupIndex = offset + index
 
+        // maintain old group state if it exists
+        let oldGroup = parentGroup?.groups.get(groupIndex) || cachedGroups.value.get(groupIndex)
+
+        if(oldGroup && oldGroup?.value !== value) {
+          oldGroup = [...((parentGroup?.groups || cachedGroups.value)?.values() || [])].find(g => g.value === value)
+        }
+
         const group: CanvasGroup = {
           groupIndex,
           column: groupCol.column,
@@ -150,9 +159,9 @@ export const useInfiniteGroups = (
           chunkStates: [],
           count: +item.count,
           groupCount: +item[groupByColumns.value?.[level + 1]?.column?.title],
-          isExpanded: false,
+          isExpanded: oldGroup?.isExpanded || false,
           color: findKeyColor(value, groupCol.column, getNextColor),
-          expandedGroups: 0,
+          expandedGroups: oldGroup?.expandedGroups || 0,
           value,
           nestedIn: parentGroup
             ? [
@@ -299,17 +308,33 @@ export const useInfiniteGroups = (
     return group.nestedIn?.length || 0
   }
 
-  const fetchMissingGroupChunks = async (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => {
+  const fetchMissingGroupChunks = async (startIndex: number, endIndex: number, parentGroup?: CanvasGroup, force = false) => {
     const firstChunkId = getGroupChunkIndex(startIndex)
     const lastChunkId = getGroupChunkIndex(endIndex)
 
     const targetChunkStates = parentGroup ? parentGroup.chunkStates : chunkStates.value
     const chunksToFetch = Array.from({ length: lastChunkId - firstChunkId + 1 }, (_, i) => firstChunkId + i).filter(
-      (chunkId) => !targetChunkStates[chunkId],
+      (chunkId) => !targetChunkStates[chunkId] || force,
     )
 
     await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup)))
     callbacks?.syncVisibleData()
+    // if found empty chunk, remove all chunks after it and fetch all chunks again
+    if (force) {
+      let foundEmptyChunk = false
+      for (let i = startIndex; i <= endIndex; i++) {
+        // const id = getGroupChunkIndex(i)
+        const targetGroup = cachedGroups.value.get(i)
+        if (targetGroup.count === 0) {
+          foundEmptyChunk = true
+        }
+        if (foundEmptyChunk) {
+          cachedGroups.value.delete(i)
+        }
+      }
+    }
+
+    await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup, force)))
   }
 
   const clearGroupCache = (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => {

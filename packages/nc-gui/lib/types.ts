@@ -90,6 +90,7 @@ interface Row {
     isValidationFailed?: boolean
     isRowOrderUpdated?: boolean
     isGroupChanged?: boolean
+    changedGroupIndex?: number
     isDragging?: boolean
     rowProgress?: {
       message: string

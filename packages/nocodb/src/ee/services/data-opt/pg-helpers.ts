@@ -1700,14 +1700,14 @@ const getDataWithCountCache = async (params: {
   };
   const dataHandler = async () => {
     if (params.skipCache) {
-      const startTime = process.hrtime();
-      const result = await params.baseModel.execAndParse(params.query, null, {
-        skipDateConversion: true,
-      });
-      params?.recordQueryTime(
-        parseHrtimeToMilliSeconds(process.hrtime(startTime)),
-      );
-      return result;
+        const startTime = process.hrtime();
+        const result = await params.baseModel.execAndParse(params.query, null, {
+          skipDateConversion: true,
+        });
+        params?.recordQueryTime(
+          parseHrtimeToMilliSeconds(process.hrtime(startTime)),
+        );
+        return result;
     } else {
       const startTime = process.hrtime();
       const res = await params.baseModel.execAndParse(

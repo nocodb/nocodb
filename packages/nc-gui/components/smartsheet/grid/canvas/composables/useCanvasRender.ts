@@ -854,6 +854,8 @@ export function useCanvasRender({
         ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
         if (row) {
           const isHover = hoverRow.value === row.rowMeta.rowIndex
+          const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
+
           const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
 
           let xOffset = initialXOffset
@@ -926,6 +928,7 @@ export function useCanvasRender({
               pk,
               skipRender: isCellEditEnabled,
               isRowHovered: isHover,
+              isRowChecked: isChecked,
             })
             ctx.restore()
             xOffset += width
@@ -997,6 +1000,7 @@ export function useCanvasRender({
                   pk,
                   skipRender: isCellEditEnabled,
                   isRowHovered: isHover,
+                  isRowChecked: isChecked,
                 })
                 ctx.restore()
               }

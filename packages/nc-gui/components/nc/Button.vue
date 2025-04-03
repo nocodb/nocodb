@@ -14,7 +14,7 @@ import type { GeneralLoaderProps } from '../general/Loader.vue'
  * </NcButton>
  */
 
-interface Props {
+export interface NcButtonProps {
   loading?: boolean
   disabled?: boolean
   showAsDisabled?: boolean
@@ -31,7 +31,7 @@ interface Props {
   innerClass?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<NcButtonProps>(), {
   disabled: false,
   showAsDisabled: false,
   size: 'medium',

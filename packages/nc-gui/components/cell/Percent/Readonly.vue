@@ -16,6 +16,8 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
+const isUnderLTAR = inject(IsUnderLTARInj, ref(false))
+
 const localEditEnabled = useVModel(props, 'localEditEnabled', emits, { defaultValue: false })
 
 const expandedEditEnabled = ref(false)
@@ -71,27 +73,34 @@ const progressPercent = computed(() => {
 <template>
   <div
     v-if="(column.meta as any).is_progress"
-    class="nc-cell-field w-full flex py-1"
+    class="nc-cell-field percent-progress w-full py-1 flex"
     :style="{
-      ...(!isExpandedFormOpen && { height: '4px' }),
       ...(isExpandedFormOpen && { height: '100%' }),
     }"
-    style="min-height: 4px"
-    @mouseover="onMouseover"
-    @mouseleave="onMouseleave"
-    @focus="onWrapperFocus"
-    @click="onWrapperFocus"
   >
-    <CellPercentProgressBar :percentage="percentValueNumber" :is-show-number="isExpandedFormOpen">
-      <template v-if="!readOnly" #default>
-        <input
-          class="w-full !border-none !outline-none focus:ring-0 min-h-[10px]"
-          :value="modelValue"
-          @click="onWrapperFocus"
-          @focus="onWrapperFocus"
-        />
-      </template>
-    </CellPercentProgressBar>
+    <div
+      class="w-full"
+      :style="{
+        ...((!isExpandedFormOpen && !isUnderLookup && !isUnderLTAR) && { height: '4px' }),
+        ...((isUnderLookup || isUnderLTAR) && { height: '16px' }),
+      }"
+      style="min-height: 4px"
+      @mouseover="onMouseover"
+      @mouseleave="onMouseleave"
+      @focus="onWrapperFocus"
+      @click="onWrapperFocus"
+    >
+      <CellPercentProgressBar :percentage="percentValueNumber" :is-show-number="isExpandedFormOpen">
+        <template v-if="!readOnly" #default>
+          <input
+            class="w-full !border-none !outline-none focus:ring-0 min-h-[10px]"
+            :value="modelValue"
+            @click="onWrapperFocus"
+            @focus="onWrapperFocus"
+          />
+        </template>
+      </CellPercentProgressBar>
+    </div>
   </div>
   <div
     v-else
@@ -121,5 +130,15 @@ const progressPercent = computed(() => {
 <style lang="scss">
 .nc-cell:has(.progress-container) {
   height: 100% !important;
+}
+</style>
+
+<style lang="scss" scoped>
+td.align-middle .percent-progress {
+  align-items: center;
+}
+td.align-top .percent-progress {
+  align-items: center;
+  height: 16px;
 }
 </style>

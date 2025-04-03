@@ -2217,6 +2217,109 @@ export function useCanvasRender({
           { backgroundColor: bg, borderColor: '#D5D5D9' },
         )
 
+        const { start: startColIndex, end: endColIndex } = colSlice.value
+
+        const visibleCols = columns.value.slice(startColIndex, endColIndex)
+
+        const initialOffset = 0
+
+        let aggXOffset = initialOffset
+
+        for (let i = 0; i < startColIndex; i++) {
+          aggXOffset += parseCellWidth(columns.value[i].width)
+        }
+
+        visibleCols.forEach((column) => {
+          const width = parseCellWidth(column.width)
+
+          if (column.fixed) {
+            aggXOffset += width
+            return
+          }
+
+          const isHovered = isBoxHovered(
+            {
+              x: aggXOffset - scrollLeft.value,
+              y: currentOffset,
+              width,
+              height: GROUP_HEADER_HEIGHT,
+            },
+            mousePosition,
+          )
+
+          ctx.fillStyle = isHovered ? '#F4F4F5' : 'transparent'
+
+          if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
+            ctx.save()
+            ctx.beginPath()
+
+            ctx.rect(aggXOffset - scrollLeft.value, currentOffset, width, GROUP_HEADER_HEIGHT)
+            ctx.fill()
+            ctx.clip()
+
+            ctx.textBaseline = 'middle'
+            ctx.textAlign = 'right'
+
+            ctx.font = '600 12px Manrope'
+            const aggWidth = ctx.measureText(group.aggregations[column.title]).width
+            if (column.agg_prefix) {
+              ctx.font = '400 12px Manrope'
+              ctx.fillStyle = '#6a7184'
+              ctx.fillText(
+                column.agg_prefix,
+                aggXOffset + width - aggWidth - 16 - scrollLeft.value,
+                height.value - GROUP_HEADER_HEIGHT / 2,
+              )
+            }
+            ctx.fillStyle = '#4a5268'
+            ctx.fillText(
+              group.aggregations[column.title],
+              aggXOffset + width - 8 - scrollLeft.value,
+              groupHeaderY + GROUP_HEADER_HEIGHT / 2,
+            )
+
+            ctx.restore()
+          } else if (isHovered) {
+            if (!isLocked.value) {
+              ctx.save()
+              ctx.beginPath()
+
+              ctx.rect(xOffset - scrollLeft.value, currentOffset, width, GROUP_HEADER_HEIGHT)
+              ctx.fill()
+              ctx.clip()
+
+              ctx.font = '600 10px Manrope'
+              ctx.fillStyle = '#6a7184'
+              ctx.textAlign = 'right'
+              ctx.textBaseline = 'middle'
+
+              const rightEdge = xOffset + width - 8 - scrollLeft.value
+              const textY = currentOffset - GROUP_HEADER_HEIGHT / 2
+
+              ctx.fillText('Summary', rightEdge, textY)
+
+              const textLen = ctx.measureText('Summary').width
+
+              spriteLoader.renderIcon(ctx, {
+                icon: 'chevronDown',
+                size: 14,
+                color: '#6a7184',
+                x: rightEdge - textLen - 18,
+                y: textY - 7,
+              })
+            }
+            ctx.restore()
+          }
+
+          ctx.beginPath()
+          ctx.strokeStyle = '#f4f4f5'
+          ctx.moveTo(aggXOffset - scrollLeft.value, groupHeaderY - GROUP_HEADER_HEIGHT)
+          ctx.lineTo(aggXOffset - scrollLeft.value, groupHeaderY + GROUP_HEADER_HEIGHT)
+          ctx.stroke()
+
+          aggXOffset += width
+        })
+
         spriteLoader.renderIcon(ctx, {
           icon: group.isExpanded ? 'ncChevronDown' : 'ncChevronRight',
           size: 16,

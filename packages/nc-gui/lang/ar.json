@@ -458,6 +458,12 @@
       "ai": "الذكاء الاصطناعي",
       "spreadSheet": "جدول البيانات",
       "spreadSheetSubtitle": "ربط وإدارة جداول البيانات الخاصة بك مع NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

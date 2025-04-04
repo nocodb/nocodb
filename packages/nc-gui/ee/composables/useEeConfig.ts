@@ -1,4 +1,4 @@
-import { type PlanFeatureTypes, type PlanLimitTypes, PlanTitles } from 'nocodb-sdk'
+import { HigherPlan, type PlanFeatureTypes, type PlanLimitTypes, PlanTitles } from 'nocodb-sdk'
 import NcModalConfirm, { type NcConfirmModalProps } from '../../components/nc/ModalConfirm.vue'
 
 export const useEeConfig = createSharedComposable(() => {
@@ -54,7 +54,11 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   const handleUpgradePlan = ({
+    activePlanTitle,
     newPlanTitle,
+    workspaceId,
+    callback,
+    redirectToWorkspace = true,
     title = t('title.upgradeToPlan', {
       plan: newPlanTitle,
     }),
@@ -63,9 +67,13 @@ export const useEeConfig = createSharedComposable(() => {
     cancelText,
   }: Pick<NcConfirmModalProps, 'content' | 'okText' | 'cancelText'> & {
     title?: string
+    activePlanTitle?: PlanTitles
     newPlanTitle?: PlanTitles
+    workspaceId?: string
+    callback?: (type: 'ok' | 'cancel') => void
+    redirectToWorkspace?: boolean
   } = {}) => {
-    const higherPlan = getHigherPlan(activePlan.value?.title ?? PlanTitles.FREE)
+    const higherPlan = HigherPlan[activePlanTitle ?? activePlan.value?.title ?? PlanTitles.FREE]
     if (!higherPlan) {
       return
     }
@@ -93,9 +101,16 @@ export const useEeConfig = createSharedComposable(() => {
       },
       'onOk': () => {
         closeDialog()
-        navigateTo(`/${activeWorkspaceId.value}/settings?tab=billing`)
+        callback?.('ok')
+
+        if (redirectToWorkspace) {
+          navigateTo(`/${workspaceId ?? activeWorkspaceId.value}/settings?tab=billing`)
+        } else {
+          navigateTo(`/account/workspace/${workspaceId ?? activeWorkspaceId.value}/settings`)
+        }
       },
       'onClickCancel': () => {
+        callback?.('cancel')
         window.open('https://nocodb.com/pricing', '_blank', 'noopener,noreferrer')
       },
       'update:visible': closeDialog,

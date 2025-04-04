@@ -275,6 +275,11 @@ export function findGroupByPath(groups: Map<number, CanvasGroup>, groupPath: num
   return targetGroup
 }
 
+export function isGroupExpanded(groups: Map<number, CanvasGroup>, groupPath: number[]): boolean {
+  const group = findGroupByPath(groups, groupPath)
+  return !!group?.isExpanded
+}
+
 export function getDefaultGroupData(group?: CanvasGroup) {
   if (!group) return {}
   return group.nestedIn.reduce((acc, curr) => {

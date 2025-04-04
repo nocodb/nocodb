@@ -146,10 +146,10 @@ const size = computed(() => props.size || 'medium')
           'text-white': isColorDark(workspaceColor),
           'text-black': !isColorDark(workspaceColor),
           'text-[8px]': size === 'small',
-          'text-[10px]': size === 'account-sidebar',
+          'text-sm': size === 'account-sidebar',
         }"
       >
-        {{ workspace?.title?.slice(0, 2) }}
+        {{ workspace?.title?.slice(0, size === 'account-sidebar' ? 1 : 2) }}
       </div>
     </template>
   </div>

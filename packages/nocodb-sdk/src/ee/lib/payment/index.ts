@@ -50,8 +50,12 @@ export const PlanOrder = {
   [PlanTitles.ENTERPRISE]: 3,
 };
 
-export const PlanOrderToPlan = Object.fromEntries(
-  Object.entries(PlanOrder).map(([plan, order]) => [order, plan])
+export const PlanOrderToPlan = Object.entries(PlanOrder).reduce(
+  (acc, [plan, order]) => {
+    acc[order] = plan as PlanTitles;
+    return acc;
+  },
+  {} as Record<string, PlanTitles>
 );
 
 export const HigherPlan = {

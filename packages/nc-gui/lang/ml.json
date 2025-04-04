@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "സ്പ്രെഡ്ഷീറ്റ്",
       "spreadSheetSubtitle": "NocoDB-യുമായി നിങ്ങളുടെ സ്പ്രെഡ്ഷീറ്റുകൾ കണക്ട് ചെയ്തും നിയന്ത്രിച്ചും നടത്തൂ."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

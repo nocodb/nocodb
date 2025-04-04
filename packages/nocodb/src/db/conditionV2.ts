@@ -189,14 +189,11 @@ const parseConditionV2 = async (
       }
     }
     if (
-      [
-        UITypes.JSON,
-        UITypes.LinkToAnotherRecord,
-        UITypes.Lookup,
-        UITypes.Rollup,
-        UITypes.Links,
-      ].includes(column.uidt) ||
-      (column.uidt === UITypes.Formula && !customWhereClause)
+      [UITypes.JSON, UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(
+        column.uidt,
+      ) ||
+      ([UITypes.Rollup, UITypes.Formula, UITypes.Links].includes(column.uidt) &&
+        !customWhereClause)
     ) {
       return FieldHandler.fromBaseModel(baseModelSqlv2).applyFilter(
         filter,

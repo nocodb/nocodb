@@ -458,6 +458,12 @@
       "ai": "IA",
       "spreadSheet": "Planilha",
       "spreadSheetSubtitle": "Conecte e gerencie suas planilhas com o NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

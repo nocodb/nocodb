@@ -23,6 +23,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const groupByLimit = 3
 
     const { api } = useApi()
+    const { $api } = useNuxtApp()
 
     const { appInfo } = useGlobal()
 
@@ -467,6 +468,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         group.count = response.pageInfo.totalRows ?? 0
         group.rows = formatData(response.list)
+        await loadAggCommentsCount(group.rows)
         group.paginationData = response.pageInfo
       } catch (e) {
         message.error(await extractSdkResponseErrorMsg(e))
@@ -709,6 +711,32 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }
     })
 
+    async function loadAggCommentsCount(formattedData: Array<Row>) {
+      if (!isUIAllowed('commentCount') || isPublic.value) return
+
+      const ids = formattedData
+        .filter(({ rowMeta: { new: isNew } }) => !isNew)
+        .map(({ row }) => extractPkFromRow(row, meta?.value?.columns as ColumnType[]))
+        .filter(Boolean)
+
+      if (!ids.length) return
+
+      try {
+        const aggCommentCount = await $api.utils.commentCount({
+          ids,
+          fk_model_id: meta.value!.id as string,
+        })
+
+        formattedData.forEach((row) => {
+          const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+          const count = aggCommentCount?.find((c: Record<string, any>) => c.row_id === id)?.count || 0
+          row.rowMeta = row.rowMeta ?? {}
+          row.rowMeta.commentCount = +count
+        })
+      } catch (e) {
+        console.error('Failed to load aggregate comment count:', e)
+      }
+    }
     return {
       rootGroup,
       groupBy,

@@ -1,4 +1,4 @@
-import { NcErrorType } from 'nocodb-sdk';
+import { HigherPlan, NcErrorType } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import { generateReadablePermissionErr } from 'src/utils/acl';
 import type { BaseType, SourceType } from 'nocodb-sdk';
@@ -729,6 +729,10 @@ const errorHelpers: {
     message: 'Cannot calculate intermediate order',
     code: 400,
   },
+  [NcErrorType.PLAN_LIMIT_EXCEEDED]: {
+    message: (message: string) => message || 'Plan limit exceeded',
+    code: 403,
+  },
 };
 
 function generateError(
@@ -1126,5 +1130,12 @@ export class NcError {
     validOptions: string[];
   }) {
     throw new OptionsNotExistsError(props);
+  }
+
+  static planLimitExceeded(message: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.PLAN_LIMIT_EXCEEDED, {
+      params: message,
+      ...args,
+    });
   }
 }

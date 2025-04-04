@@ -17,7 +17,7 @@ import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
 import { Base, Integration } from '~/models';
 import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { NcContext, NcRequest } from '~/interface/config';
 import { deepMerge } from '~/utils';
@@ -57,23 +57,57 @@ export class SourceCreateController {
       NcError.baseNotFound(baseId);
     }
 
-    const sourcesInBase = await Noco.ncMeta.metaCount(
+    const sourcesInWorkspace = await Noco.ncMeta.metaCount(
       context.workspace_id,
-      context.base_id,
+      RootScopes.WORKSPACE,
       MetaTable.SOURCES,
       {
-        condition: {
-          base_id: base.id,
+        xcCondition: {
+          _and: [
+            {
+              fk_workspace_id: {
+                eq: context.workspace_id,
+              },
+            },
+            {
+              _or: [
+                {
+                  is_meta: {
+                    eq: false,
+                  },
+                },
+                {
+                  is_meta: {
+                    eq: null,
+                  },
+                },
+              ],
+            },
+            {
+              _or: [
+                {
+                  is_local: {
+                    eq: false,
+                  },
+                },
+                {
+                  is_local: {
+                    eq: null,
+                  },
+                },
+              ],
+            },
+          ],
         },
       },
     );
 
     const sourceLimitForWorkspace = await getLimit(
-      PlanLimitTypes.LIMIT_SOURCE_PER_BASE,
+      PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
       base.fk_workspace_id,
     );
 
-    if (sourcesInBase >= sourceLimitForWorkspace) {
+    if (sourcesInWorkspace >= sourceLimitForWorkspace) {
       NcError.badRequest(
         `Only ${sourceLimitForWorkspace} sources are allowed, for more please upgrade your plan`,
       );

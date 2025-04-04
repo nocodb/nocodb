@@ -1,20 +1,70 @@
 <script lang="ts" setup>
 import type { NcModalProps } from './Modal.vue'
 
+/**
+ * NcModalConfirm component - A customizable modal confirmation dialog.
+ *
+ * @example
+ * ```ts
+ * const isOpen = ref(true)
+ *
+ * const { close } = useDialog(NcModalConfirm, {
+ *   'visible': isOpen,
+ *   'title': 'Confirm Action',
+ *   'content': 'Are you sure you want to proceed?',
+ *   'okText': 'Yes',
+ *   'cancelText': 'No',
+ *   'onCancel': closeDialog,
+ *   'onOk': async () => {
+ *     closeDialog()
+ *     await performAction()
+ *   },
+ *   'update:visible': closeDialog,
+ * })
+ *
+ * function closeDialog() {
+ *   isOpen.value = false
+ *   close(1000)
+ * }
+ * ```
+ */
+
+/**
+ * Props interface extending NcModalProps with additional customization options.
+ */
 interface Props extends NcModalProps {
+  /** Type of modal (affects icon and styling) */
   type?: 'error' | 'success' | 'warning' | 'info'
+
+  /** Whether to show an icon next to the title */
   showIcon?: boolean
+
+  /** Title of the modal */
   title: string
+
+  /** Additional class for title styling */
   titleClass?: string
 
+  /** Content of the modal */
   content?: string
+
+  /** Additional class for content styling */
   contentClass?: string
 
+  /** Text for the OK button */
   okText?: string
+
+  /** Additional class for the OK button */
   okClass?: string
 
+  /** Text for the Cancel button */
   cancelText?: string
+
+  /** Additional class for the Cancel button */
   cancelClass?: string
+
+  /** Determines which button gets focus on open */
+  focusBtn?: 'ok' | 'cancel' | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -37,6 +87,7 @@ const props = withDefaults(defineProps<Props>(), {
 
   cancelText: '',
   cancelClass: '',
+  focusBtn: 'ok',
 })
 
 const { visible: _visible, title, ...restProps } = props
@@ -86,12 +137,21 @@ const iconName = computed<IconMapKey>(() => {
   return 'alertTriangleSolid'
 })
 
-const onCancel = () => {
-  vModel.value = false
-  emits('update:visible', false)
+const cancelBtnRef = ref<HTMLButtonElement>()
 
-  emits('cancel')
-}
+const okBtnRef = ref<HTMLButtonElement>()
+
+/** Watches for cancel button reference and sets focus if applicable */
+watch(cancelBtnRef, () => {
+  if (!cancelBtnRef.value?.$el || props.focusBtn !== 'cancel') return
+  ;(cancelBtnRef.value?.$el as HTMLButtonElement)?.focus()
+})
+
+/** Watches for OK button reference and sets focus if applicable */
+watch(okBtnRef, () => {
+  if (!okBtnRef.value?.$el || props.focusBtn !== 'ok') return
+  ;(okBtnRef.value?.$el as HTMLButtonElement)?.focus()
+})
 </script>
 
 <template>
@@ -114,10 +174,10 @@ const onCancel = () => {
       </div>
 
       <div class="flex flex-row w-full justify-end gap-4">
-        <NcButton type="secondary" size="small" :class="cancelClass" @click="onCancel">
+        <NcButton ref="cancelBtnRef" type="secondary" size="small" :class="cancelClass" @click="vModel = false">
           {{ cancelText ?? $t('general.cancel') }}
         </NcButton>
-        <NcButton type="primary" size="small" :class="okClass" @click="emits('ok')">
+        <NcButton ref="okBtnRef" type="primary" size="small" :class="okClass" @click="emits('ok')">
           {{ okText ?? $t('general.ok') }}
         </NcButton>
       </div>

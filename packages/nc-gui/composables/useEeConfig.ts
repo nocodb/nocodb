@@ -5,6 +5,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const activeSubscription = computed(() => undefined)
 
+  const isPaymentEnabled = computed(() => undefined)
+
   const getLimit = (..._args: any[]) => {}
 
   const getFeature = (..._args: any[]) => {}
@@ -24,5 +26,6 @@ export const useEeConfig = createSharedComposable(() => {
     getHigherPlan,
     getPlanTitle,
     handleUpgradePlan,
+    isPaymentEnabled,
   }
 })

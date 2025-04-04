@@ -718,7 +718,12 @@
     "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "currentPlan": "Current Plan",
     "seatMonth": "/seat/month",
-    "mostPopular": "Most Popular"
+    "mostPopular": "Most Popular",
+    "helpAndSupport": "Help & Support",
+    "helpAndSupportSubtitle": "For help and support, please visit our Support Center where you can find detailed guides, contact our customer service team, or access our community forum for additional assistance.",
+    "faq": "FAQ",
+    "faqSubtitle": "Explore the FAQ section and get quick answers to common questions about our services, features, and troubleshooting. "
+
   },
   "labels": {
     "restoringSnapshot": "Restoring Snapshot",
@@ -1201,7 +1206,8 @@
     "manageSubscription": "Manage Subscription",
     "upgradeToPlan": "Upgrade To {plan}",
     "applicableTax": "Applicable tax",
-    "annualSavings": "Annual Savings"
+    "annualSavings": "Annual Savings",
+    "compareAllFeatures": "Compare all features"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1484,7 +1490,8 @@
     "goToDocs": "Go to Docs",
     "addCondition": "Add condition",
     "addConditionGroup": "Add condition group",
-    "pending": "Pending"
+    "pending": "Pending",
+    "goToPage": "Go to Page"
   },
   "tooltip": {
     "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",

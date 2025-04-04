@@ -83,11 +83,11 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
         title: PlanTitles.FREE,
         descriptions: [
           'Unlimited bases',
-          'Upto 5 editors per workspace',
+          'Upto 5 editors',
           '1,000 rows per workspace',
           '1 GB of attachments per workspace',
-          '5 API requests per second',
-          'All user roles',
+          '100 automation runs per month',
+          '1,000 API calls per month',
         ],
       })
 

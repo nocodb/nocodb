@@ -186,6 +186,15 @@ export const LongTextAiMetaProp = 'ai';
 
 export const NO_SCOPE = 'nc';
 
+export const NON_SEAT_ROLES = [
+  WorkspaceUserRoles.NO_ACCESS,
+  WorkspaceUserRoles.VIEWER,
+  WorkspaceUserRoles.COMMENTER,
+  ProjectRoles.NO_ACCESS,
+  ProjectRoles.VIEWER,
+  ProjectRoles.COMMENTER,
+];
+
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
 
 type RolesObj = Partial<Record<Roles, boolean>>;

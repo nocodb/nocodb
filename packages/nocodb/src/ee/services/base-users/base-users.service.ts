@@ -418,30 +418,45 @@ export class BaseUsersService extends BaseUsersServiceCE {
         transaction,
       );
 
-      if (workspace.payment.plan.free) {
-        if (
-          !NON_SEAT_ROLES.includes(param.baseUser.roles as ProjectRoles) &&
-          NON_SEAT_ROLES.includes(oldBaseUser.roles as ProjectRoles)
-        ) {
-          const editorsInWorkspace = (
-            await Subscription.calculateWorkspaceSeatCount(
-              workspace.id,
-              transaction,
-            )
-          ).seatCount;
+      const { seatCount, nonSeatCount } =
+        await Subscription.calculateWorkspaceSeatCount(
+          workspace.id,
+          transaction,
+        );
 
-          const editorLimitForWorkspace = await getLimit(
-            PlanLimitTypes.LIMIT_EDITOR,
-            workspace.id,
-            transaction,
+      if (
+        !NON_SEAT_ROLES.includes(param.baseUser.roles as ProjectRoles) &&
+        NON_SEAT_ROLES.includes(oldBaseUser.roles as ProjectRoles)
+      ) {
+        const editorLimitForWorkspace = await getLimit(
+          PlanLimitTypes.LIMIT_EDITOR,
+          workspace.id,
+          transaction,
+        );
+
+        // check if user limit is reached or going to be exceeded
+        if (seatCount + 1 > editorLimitForWorkspace) {
+          NcError.badRequest(
+            `Only ${editorLimitForWorkspace} editors are allowed for your plan, for more please upgrade your plan`,
           );
+        }
+      }
 
-          // check if user limit is reached or going to be exceeded
-          if (editorsInWorkspace > editorLimitForWorkspace) {
-            NcError.badRequest(
-              `Only ${editorLimitForWorkspace} editors are allowed for your plan, for more please upgrade your plan`,
-            );
-          }
+      if (
+        NON_SEAT_ROLES.includes(param.baseUser.roles as ProjectRoles) &&
+        !NON_SEAT_ROLES.includes(oldBaseUser.roles as ProjectRoles)
+      ) {
+        const commenterLimitForWorkspace = await getLimit(
+          PlanLimitTypes.LIMIT_COMMENTER,
+          workspace.id,
+          transaction,
+        );
+
+        // check if commenter limit is reached or going to be exceeded
+        if (nonSeatCount + 1 > commenterLimitForWorkspace) {
+          NcError.badRequest(
+            `Only ${commenterLimitForWorkspace} commenters are allowed for your plan, for more please upgrade your plan`,
+          );
         }
       }
 

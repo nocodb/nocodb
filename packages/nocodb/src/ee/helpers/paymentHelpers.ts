@@ -25,9 +25,14 @@ async function getLimit(
     NcError.forbidden('You are not allowed to perform this action');
   }
 
-  return (
-    workspace?.payment?.plan?.meta?.[type] || GenericLimits[type] || Infinity
-  );
+  const limit =
+    workspace?.payment?.plan?.meta?.[type] ?? GenericLimits[type] ?? Infinity;
+
+  if (limit === -1) {
+    return Infinity;
+  }
+
+  return limit;
 }
 
 async function getFeature(

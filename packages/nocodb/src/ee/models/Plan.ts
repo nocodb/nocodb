@@ -197,7 +197,7 @@ export const GenericLimits = {
   [PlanLimitTypes.LIMIT_VIEW_PER_TABLE]: 200,
   [PlanLimitTypes.LIMIT_FILTER_PER_VIEW]: 50,
   [PlanLimitTypes.LIMIT_SORT_PER_VIEW]: 10,
-  [PlanLimitTypes.LIMIT_BASE_PER_WORKSPACE]: 20,
+  [PlanLimitTypes.LIMIT_BASE_PER_WORKSPACE]: 100,
 } as const;
 
 export const GenericFeatures = {
@@ -230,7 +230,7 @@ export const FreePlan = Plan.prepare({
     ...GenericFeatures,
     // Free plan specific limits
     [PlanLimitTypes.LIMIT_EDITOR]: 5,
-    [PlanLimitTypes.LIMIT_USER]: 25,
+    [PlanLimitTypes.LIMIT_COMMENTER]: 10,
     [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 1000,
     [PlanLimitTypes.LIMIT_API_CALL]: 1000,
     [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 100,

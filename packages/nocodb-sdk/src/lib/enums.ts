@@ -348,8 +348,8 @@ export const OrderedProjectRoles = [
 
 export enum PlanLimitTypes {
   LIMIT_FREE_WORKSPACE = 'limit_free_workspace',
-  LIMIT_EDITOR = 'limit_editor', // ONLY FOR FREE PLAN
-  LIMIT_USER = 'limit_user',
+  LIMIT_EDITOR = 'limit_editor',
+  LIMIT_COMMENTER = 'limit_commenter',
 
   LIMIT_AI_TOKEN = 'limit_ai_token',
   LIMIT_API_CALL = 'limit_api_call',

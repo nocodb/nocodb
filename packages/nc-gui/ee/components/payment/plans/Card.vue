@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PlanOrder, PlanTitles } from 'nocodb-sdk'
+import { HigherPlan, PlanOrder, PlanTitles } from 'nocodb-sdk'
 
 const props = defineProps<{
   plan: PaymentPlan
@@ -86,7 +86,11 @@ const price = computed(() => getPlanPrice(props.plan))
       {{ $t('title.currentPlan') }}
     </NcButton>
     <nuxt-link v-else-if="plan.title === PlanTitles.ENTERPRISE" no-ref href="mailto:support@nocodb.com" target="_blank">
-      <NcButton type="secondary" size="medium" class="w-full">
+      <NcButton
+        :type="activeSubscription && activePlan && HigherPlan[activePlan] === plan.title ? 'primary' : 'secondary'"
+        size="medium"
+        class="w-full"
+      >
         {{ $t('labels.contactSales') }}
       </NcButton>
     </nuxt-link>
@@ -100,7 +104,12 @@ const price = computed(() => getPlanPrice(props.plan))
     </NcButton>
     <NcButton
       v-else
-      :type="!activeSubscription && plan.title === popularPlan ? 'primary' : 'secondary'"
+      :type="
+        (!activeSubscription && plan.title === popularPlan) ||
+        (activeSubscription && activePlan && HigherPlan[activePlan] === plan.title)
+          ? 'primary'
+          : 'secondary'
+      "
       size="medium"
       class="w-full"
       :disabled="plan.title === PlanTitles.FREE && activeSubscription?.canceled_at"

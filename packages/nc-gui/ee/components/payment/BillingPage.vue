@@ -118,9 +118,9 @@ const handleScroll = (e) => {
       }"
     >
       <template v-if="!paymentInitiated">
-        <template v-if="afterPayment">
+        <template v-if="afterPayment && checkoutSession">
           <NcAlert
-            v-if="checkoutSession && checkoutSession.payment_status === 'paid'"
+            v-if="checkoutSession.payment_status === 'paid'"
             :visible="afterPayment"
             closable
             type="success"
@@ -137,7 +137,7 @@ const handleScroll = (e) => {
             </template>
           </NcAlert>
           <NcAlert
-            v-else-if="checkoutSession && checkoutSession.payment_status === 'failed'"
+            v-else-if="checkoutSession.payment_status === 'failed'"
             :visible="afterPayment"
             closable
             type="error"
@@ -148,16 +148,15 @@ const handleScroll = (e) => {
             @close="onClosePaymentBanner"
           >
           </NcAlert>
-          <div v-else class="min-h-[82px] grid place-items-center">
-            <GeneralLoader size="xlarge" />
-          </div>
         </template>
 
-        <PaymentPlanUsage />
+        <PaymentPlanUsage v-if="!afterPayment || !!checkoutSession" />
       </template>
 
-      <Payment v-if="paymentState" />
-      <GeneralLoader v-else size="xlarge" />
+      <Payment v-if="paymentState && (!afterPayment || !!checkoutSession)" />
+      <div v-else class="min-h-[80dvh] grid place-items-center">
+        <GeneralLoader size="xlarge" />
+      </div>
     </div>
   </div>
 </template>

@@ -1222,7 +1222,8 @@
     "compareAllFeatures": "Compare all features",
     "planIncludes": "{plan} Includes:",
     "everythingInPlanPlus": "Everything in {plan}, Plus:",
-    "downloadInvoice": "Download Invoice"
+    "downloadInvoice": "Download Invoice",
+    "proceed": "Proceed"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

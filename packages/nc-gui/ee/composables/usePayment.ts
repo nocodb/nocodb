@@ -19,6 +19,8 @@ export enum PaymentState {
 }
 
 const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
+  const annualDiscount = 16
+
   const stripe = ref<Stripe>()
 
   const { $state, $api } = useNuxtApp()
@@ -39,11 +41,15 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const selectedPlan = ref<PaymentPlan | null>(null)
 
+  const upgradePlan = ref<PaymentPlan | null>(null)
+
   const workspaceSeatCount = ref<number>(1)
 
   const plansAvailable = ref<PaymentPlan[]>([])
 
   const isAccountPage = ref<boolean>(false)
+
+  const isOpenUpgradePlanModal = ref<boolean>(false)
 
   const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription)
 
@@ -259,6 +265,12 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
         title = t('title.upgradeToPlan', { plan: changes.plan })
         content = t('title.upgradeToPlanSubtitle', { plan: changes.plan })
         okText = t('general.upgrade')
+
+        upgradePlan.value = plan
+
+        isOpenUpgradePlanModal.value = true
+
+        return
       } else if (changes.change === 'downgrade') {
         if (changes.plan) {
           title = t('title.downgradeToPlan', { plan: changes.plan })
@@ -332,6 +344,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   })
 
   return {
+    annualDiscount,
     stripe,
     plansAvailable,
     loadPlans,
@@ -356,6 +369,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     getCustomerPortalSession,
     isAccountPage,
     onManageSubscription,
+    isOpenUpgradePlanModal,
+    upgradePlan,
   }
 }, 'injected-payment-store')
 

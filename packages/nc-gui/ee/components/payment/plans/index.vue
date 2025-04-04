@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { plansAvailable, activePlan, paymentMode, loadPlans, onPaymentModeChange } = usePaymentStoreOrThrow()
+const { annualDiscount, plansAvailable, activePlan, paymentMode, loadPlans, onPaymentModeChange } = usePaymentStoreOrThrow()
 
 onMounted(async () => {
   await loadPlans()
@@ -9,9 +9,11 @@ onMounted(async () => {
 <template>
   <div class="flex flex-col gap-3">
     <div class="text-base font-bold text-nc-content-gray">{{ $t('general.all') }} {{ $t('general.plans') }}</div>
-    <PaymentPlansSelectMode :value="paymentMode" :discount="16" @change="onPaymentModeChange" />
+    <PaymentPlansSelectMode :value="paymentMode" :discount="annualDiscount" @change="onPaymentModeChange" />
     <div class="w-full grid gap-4 grid-cols-[repeat(auto-fill,minmax(288px,1fr))]">
       <PaymentPlansCard v-for="plan in plansAvailable" :key="plan.title" :plan="plan" :active-plan="activePlan?.title" />
+
+      <LazyPaymentPlansUpgradePlanModal />
     </div>
 
     <a href="https://nocodb.com/pricing" target="_blank" class="h-[48px] inline-block mx-auto">

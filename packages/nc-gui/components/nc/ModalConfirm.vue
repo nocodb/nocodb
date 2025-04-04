@@ -163,7 +163,7 @@ watch(okBtnRef, () => {
             <GeneralIcon :icon="iconName" class="nc-confirm-modal-icon" />
           </slot>
         </div>
-        <div class="flex flex-col gap-1">
+        <div class="flex flex-col gap-2">
           <div class="nc-modal-confirm-title" :class="titleClass">
             <slot name="title">{{ title }}</slot>
           </div>
@@ -175,10 +175,10 @@ watch(okBtnRef, () => {
 
       <div class="flex flex-row w-full justify-end gap-4">
         <NcButton ref="cancelBtnRef" type="secondary" size="small" :class="cancelClass" @click="vModel = false">
-          {{ cancelText ?? $t('general.cancel') }}
+          {{ cancelText || $t('general.cancel') }}
         </NcButton>
         <NcButton ref="okBtnRef" type="primary" size="small" :class="okClass" @click="emits('ok')">
-          {{ okText ?? $t('general.ok') }}
+          {{ okText || $t('general.ok') }}
         </NcButton>
       </div>
     </div>
@@ -200,7 +200,7 @@ watch(okBtnRef, () => {
   }
 
   .nc-modal-confirm-content {
-    @apply text-sm text-nc-content-gray-muted font-weight-500 line-clamp-3;
+    @apply text-sm text-nc-content-gray-subtle2 font-weight-500 line-clamp-3;
   }
 
   &.nc-modal-confirm-type-success {

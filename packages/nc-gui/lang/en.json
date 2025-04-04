@@ -320,7 +320,9 @@
     "annually": "Annually",
     "yearly": "Yearly",
     "paid": "Paid",
-    "total": "Total"
+    "total": "Total",
+    "downgrade": "Downgrade",
+    "upgrade": "Upgrade"
   },
   "objects": {
     "script": "Script",
@@ -723,7 +725,11 @@
     "helpAndSupport": "Help & Support",
     "helpAndSupportSubtitle": "Visit our Support Center for detailed guides, customer service contact options, and a community forum for additional help.",
     "faq": "FAQ",
-    "faqSubtitle": "Explore the FAQ section and get quick answers to common questions about our services, features, and troubleshooting. "
+    "faqSubtitle": "Explore the FAQ section and get quick answers to common questions about our services, features, and troubleshooting. ",
+    "downgradeToFreePlan": "Downgrade to Free plan?",
+    "downgradeToFreePlanSubtitle": "You'll lose access to Team plan features that aren't available in the Free plan.",
+    "upgradeToPlan": "Upgrade to {plan} plan?",
+    "upgradeToPlanSubtitle": "You will be charged immediately for this plan."
   },
   "labels": {
     "restoringSnapshot": "Restoring Snapshot",
@@ -1494,7 +1500,8 @@
     "addCondition": "Add condition",
     "addConditionGroup": "Add condition group",
     "pending": "Pending",
-    "goToPage": "Go to Page"
+    "goToPage": "Go to Page",
+    "changePlan": "ChangePlan"
   },
   "tooltip": {
     "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",

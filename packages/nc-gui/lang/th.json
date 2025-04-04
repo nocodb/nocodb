@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "สเปรดชีต",
       "spreadSheetSubtitle": "เชื่อมต่อและจัดการสเปรดชีตของคุณกับ NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

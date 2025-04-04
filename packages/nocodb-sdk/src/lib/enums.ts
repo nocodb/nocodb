@@ -347,12 +347,15 @@ export const OrderedProjectRoles = [
 ];
 
 export enum PlanLimitTypes {
+  // PER PLAN
+  PLAN_STORAGE_LIMIT = 'limit_storage',
+  PLAN_EDITOR_LIMIT = 'limit_editor',
+  PLAN_USER_LIMIT = 'limit_user',
+
   // PER USER
   FREE_WORKSPACE_LIMIT = 'limit_free_workspace',
 
   // PER WORKSPACE
-  WORKSPACE_EDITOR_LIMIT = 'limit_workspace_editor',
-  WORKSPACE_USER_LIMIT = 'limit_workspace_user',
   WORKSPACE_ROW_LIMIT = 'limit_workspace_row',
   BASE_LIMIT = 'limit_base',
 

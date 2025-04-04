@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "Hesap Tablosu",
       "spreadSheetSubtitle": "Elektronik tablolarınızı NocoDB ile bağlayın ve yönetin."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

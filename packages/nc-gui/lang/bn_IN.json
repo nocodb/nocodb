@@ -458,6 +458,12 @@
       "ai": "এআই",
       "spreadSheet": "স্প্রেডশীট",
       "spreadSheetSubtitle": "NocoDB এর সাথে আপনার স্প্রেডশীটগুলিকে সংযুক্ত এবং পরিচালনা করুন।"
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

@@ -6,8 +6,11 @@ export default defineNuxtRouteMiddleware(() => {
 
   if (afterPayment || afterManage) {
     const workspaceId = params.get('workspaceId')
+    const isAccountPage = params.get('isAccountPage') === 'true'
 
-    const url = `/#/account/workspace/${workspaceId}/settings?${params.toString()}`
+    const url = isAccountPage
+      ? `/#/account/workspace/${workspaceId}/settings?${params.toString()}`
+      : `/#/${workspaceId}/settings?tab=billing`
 
     window.location.href = url
   }

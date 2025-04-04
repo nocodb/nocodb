@@ -94,7 +94,8 @@ export function useRowReorder({
     if (!rect) return
 
     const targetElement = findElement(e.clientX - rect.left, e.clientY - rect.top + rowHeight.value / 2)
-    if (!targetElement?.isRow) if (!targetElement) return
+
+    if (!targetElement) return
 
     if (targetElement.groupPath?.join('-') !== draggedRowGroupPath.value?.join('-')) {
       return
@@ -117,6 +118,7 @@ export function useRowReorder({
   }
   async function handleDragEnd() {
     if (draggedRowIndex.value !== null && draggedRowIndex.value + 1 !== targetRowIndex.value) {
+      const { totalRows } = getDataCache(draggedRowGroupPath.value)
       await updateRecordOrder(
         draggedRowIndex.value,
         targetRowIndex.value === totalRows.value ? null : targetRowIndex.value,

@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 import dayjs from 'dayjs';
-import { PlanOrder, PlanTitles } from 'nocodb-sdk';
+import { PlanOrder } from 'nocodb-sdk';
+import type { PlanTitles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { Org, Plan, Subscription, Workspace } from '~/models';
 import { NcError } from '~/helpers/catchError';

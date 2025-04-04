@@ -1000,7 +1000,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     // If x less than 80px, use is hovering over the row meta column
     if (x < 80 + groupByColumns.value.length * 9) {
       // If the click is not normal single click, return
-      if (clickType !== MouseClickType.SINGLE_CLICK || readOnly.value) return
+      if (clickType !== MouseClickType.SINGLE_CLICK || readOnly.value || isGroupBy.value) return
       if (isBoxHovered({ x: 10, y: 8, height: 16, width: 16 }, mousePosition)) {
         vSelectedAllRecords.value = !vSelectedAllRecords.value
       }
@@ -1838,6 +1838,10 @@ const onNavigate = (dir: NavigateDir) => {
   })
 }
 
+const bulkUpdataContext = (path: Array<number>) => {
+  emits('bulkUpdateDlg', path)
+}
+
 watch([height, width, windowWidth, windowHeight], () => {
   nextTick(() => {
     calculateSlices()
@@ -2098,7 +2102,7 @@ defineExpose({
               :expand-form="expandForm"
               :clear-selected-range-of-cells="clearSelectedRangeOfCells"
               @click="isContextMenuOpen = false"
-              @bulk-update-dlg="emits('bulkUpdateDlg')"
+              @bulk-update-dlg="bulkUpdataContext"
             />
           </template>
         </NcDropdown>

@@ -239,7 +239,7 @@ const generateAIBulk = async (path: Array<number>) => {
       <NcMenuItem
         v-if="isEeUI && contextMenuCol == null && contextMenuPath !== null && !isDataReadOnly && selectedRows.length"
         key="update-selected-rows"
-        @click="emits('bulkUpdateDlg')"
+        @click="emits('bulkUpdateDlg', contextMenuPath)"
       >
         <div v-e="['a:row:update-bulk']" class="flex gap-2 items-center">
           <GeneralIcon icon="ncEdit" />

@@ -9,6 +9,7 @@ interface Props {
   view?: ViewType
   bulkUpdateRows?: Function
   rows?: Row[]
+  path?: Array<number>
 }
 
 const props = defineProps<Props>()
@@ -16,6 +17,8 @@ const props = defineProps<Props>()
 const emits = defineEmits(['update:modelValue', 'cancel'])
 
 const meta = toRef(props, 'meta')
+
+const path = toRef(props, 'path')
 
 const isExpanded = useVModel(props, 'modelValue', emits, {
   defaultValue: false,
@@ -61,7 +64,7 @@ const fields = computed(() => {
 })
 
 const editCount = computed(() => {
-  return props.rows!.length
+  return props.rows?.length
 })
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
@@ -134,7 +137,7 @@ const saveData = async () => {
           }
         }
       }
-      await props.bulkUpdateRows(props.rows, propsToUpdate)
+      await props.bulkUpdateRows(props.rows, propsToUpdate, undefined, false, path.value)
     }
   } finally {
     isExpanded.value = false

@@ -28,6 +28,7 @@ interface Props {
   theme?: 'default' | 'ai'
   bordered?: boolean
   shadow?: boolean
+  innerClass?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -42,6 +43,7 @@ const props = withDefaults(defineProps<Props>(), {
   theme: 'default',
   bordered: true,
   shadow: true,
+  innerClass: '',
 })
 
 const emits = defineEmits(['update:loading'])
@@ -107,10 +109,13 @@ useEventListener(NcButton, 'mousedown', () => {
     @focus="onFocus"
   >
     <div
-      :class="{
-        'justify-center': props.centered,
-        'justify-start': !props.centered,
-      }"
+      :class="[
+        {
+          'justify-center': props.centered,
+          'justify-start': !props.centered,
+        },
+        innerClass,
+      ]"
       class="flex flex-row gap-x-2.5 nc-btn-inner w-full"
     >
       <template v-if="iconPosition === 'left'">

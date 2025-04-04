@@ -477,7 +477,6 @@ export function useCanvasTable({
       if (x >= xOffset && x < xOffset + width) {
         if (!column.uidt) {
           xOffset += width
-          continue
         }
         return { column, xOffset }
       }

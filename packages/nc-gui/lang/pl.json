@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "Arkusz kalkulacyjny",
       "spreadSheetSubtitle": "Połącz i zarządzaj swoimi arkuszami kalkulacyjnymi z NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

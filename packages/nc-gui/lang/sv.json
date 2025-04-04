@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "Spreadsheet",
       "spreadSheetSubtitle": "Anslut och hantera dina kalkylblad med NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

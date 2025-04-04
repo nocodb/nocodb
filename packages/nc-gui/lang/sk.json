@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "Tabuľk",
       "spreadSheetSubtitle": "Spojte a spravujte svoje tabuľky s NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

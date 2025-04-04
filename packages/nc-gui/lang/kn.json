@@ -458,6 +458,12 @@
       "ai": "ಎಐ",
       "spreadSheet": "ಸ್ಪ್ರೆಡ್‌ಶೀಟ್",
       "spreadSheetSubtitle": "ನಿಮ್ಮ ಸ್ಪ್ರೆಡ್‌ಶೀಟ್‌ಗಳನ್ನು NocoDB ಜೊತೆಗೆ ಸಂಪರ್ಕಿಸಿ ಮತ್ತು ನಿರ್ವಹಿಸಿ."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

@@ -458,6 +458,12 @@
       "ai": "هوش مصنوعی",
       "spreadSheet": "صفحه‌گسترده",
       "spreadSheetSubtitle": "صفحه‌گسترده‌های خود را با NocoDB متصل و مدیریت کنید."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

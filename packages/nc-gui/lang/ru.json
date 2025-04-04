@@ -458,6 +458,12 @@
       "ai": "ИИ",
       "spreadSheet": "Электронная таблица",
       "spreadSheetSubtitle": "Подключайте и управляйте вашими электронными таблицами с помощью NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

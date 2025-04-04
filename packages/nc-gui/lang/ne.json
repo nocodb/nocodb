@@ -458,6 +458,12 @@
       "ai": "एआई",
       "spreadSheet": "स्प्रेडशीट",
       "spreadSheetSubtitle": "NocoDB सँग आफ्नो स्प्रेडशीटहरू जड्नुहोस् र सञ्चालन गर्नुहोस्।"
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

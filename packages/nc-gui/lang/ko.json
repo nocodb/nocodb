@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "스프레드시트",
       "spreadSheetSubtitle": "NocoDB로 스프레드시트를 연결하고 관리하세요."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

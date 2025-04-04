@@ -458,6 +458,12 @@
       "ai": "KI",
       "spreadSheet": "Tabellenkalkulation",
       "spreadSheetSubtitle": "Verbinden und verwalten Sie Ihre Tabellenkalkulationen mit NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

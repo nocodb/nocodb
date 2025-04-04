@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "Izklājlapas",
       "spreadSheetSubtitle": "Savienojiet un pārvaldiet savas izklājlapas ar NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

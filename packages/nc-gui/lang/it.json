@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "Foglio di calcolo",
       "spreadSheetSubtitle": "Collega e gestisci i tuoi fogli di calcolo con NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

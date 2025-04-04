@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "Proračunska tablica",
       "spreadSheetSubtitle": "Povežite i upravljajte svojim proračunskim tablicama s NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

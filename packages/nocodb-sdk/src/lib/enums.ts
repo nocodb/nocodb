@@ -351,27 +351,26 @@ export enum PlanLimitTypes {
   LIMIT_EDITOR = 'limit_editor',
   LIMIT_COMMENTER = 'limit_commenter',
 
+  LIMIT_API_PER_SECOND = 'limit_api_per_second',
   LIMIT_AI_TOKEN = 'limit_ai_token',
   LIMIT_API_CALL = 'limit_api_call',
   LIMIT_AUDIT_RETENTION = 'limit_audit_retention',
   LIMIT_AUTOMATION_RUN = 'limit_automation_run',
   LIMIT_AUTOMATION_RETENTION = 'limit_automation_retention',
-  LIMIT_API_PER_SECOND = 'limit_api_per_second',
 
   LIMIT_WEBHOOK_PER_WORKSPACE = 'limit_webhook',
   LIMIT_EXTENSION_PER_WORKSPACE = 'limit_extension',
-
-  LIMIT_SNAPSHOT_PER_WORKSPACE = 'limit_snapshots',
+  LIMIT_SNAPSHOT_PER_WORKSPACE = 'limit_snapshot',
   LIMIT_STORAGE_PER_WORKSPACE = 'limit_storage',
-  LIMIT_RECORD_PER_WORKSPACE = 'limit_table_record',
+  LIMIT_RECORD_PER_WORKSPACE = 'limit_record',
   LIMIT_BASE_PER_WORKSPACE = 'limit_base',
   LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE = 'limit_external_source',
-  LIMIT_TABLE_PER_BASE = 'limit_table',
-  LIMIT_COLUMN_PER_TABLE = 'limit_column',
-  LIMIT_WEBHOOK_PER_TABLE = 'limit_webhook',
-  LIMIT_VIEW_PER_TABLE = 'limit_view',
-  LIMIT_FILTER_PER_VIEW = 'limit_filter',
-  LIMIT_SORT_PER_VIEW = 'limit_sort',
+  LIMIT_TABLE_PER_BASE = 'limit_table_per_base',
+  LIMIT_COLUMN_PER_TABLE = 'limit_column_per_table',
+  LIMIT_WEBHOOK_PER_TABLE = 'limit_webhook_per_table',
+  LIMIT_VIEW_PER_TABLE = 'limit_view_per_table',
+  LIMIT_FILTER_PER_VIEW = 'limit_filter_per_view',
+  LIMIT_SORT_PER_VIEW = 'limit_sort_per_view',
 }
 
 export enum PlanFeatureTypes {

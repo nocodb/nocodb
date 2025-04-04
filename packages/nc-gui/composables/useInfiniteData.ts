@@ -65,7 +65,7 @@ export function useInfiniteData(args: {
   where?: ComputedRef<string | undefined>
   disableSmartsheet?: boolean
   isPublic?: Ref<boolean>
-  groupByColumns?: Computed<{ column: ColumnType; sort: string; order?: number }[]>
+  groupByColumns?: ComputedRef<{ column: ColumnType; sort: string; order?: number }[]>
 }) {
   const NOCO = 'noco'
   const { meta, viewMeta, callbacks, where, disableSmartsheet, isPublic, groupByColumns = ref(null) } = args

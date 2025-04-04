@@ -85,7 +85,7 @@ export class CanvasElementItem implements RowElement, GroupElement {
 // CanvasElement class is used to manage elements on the canvas
 // and find elements at a given point
 export class CanvasElement {
-  private elements: Array<Element>
+  public elements: Array<Element>
 
   constructor(elements: Array<Element> = []) {
     this.elements = elements
@@ -106,10 +106,6 @@ export class CanvasElement {
 
   addElement(element: Element) {
     this.elements.push(element)
-  }
-
-  get elements() {
-    return this.elements
   }
 
   clear() {

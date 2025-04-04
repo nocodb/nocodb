@@ -317,7 +317,10 @@
     "plan": "Plan",
     "plans": "Plans",
     "monthly": "Monthly",
-    "annually": "Annually"
+    "annually": "Annually",
+    "yearly": "Yearly",
+    "paid": "Paid",
+    "total": "Total"
   },
   "objects": {
     "script": "Script",
@@ -477,6 +480,14 @@
       "Plus": "Plus",
       "Business": "Business",
       "Enterprise": "Enterprise"
+    },
+    "currentPlan": {
+      "nextInvoice": "Next Invoice",
+      "nextInvoiceAmount": "Next Invoice Amount",
+      "numberOfBilledUsers": "Number of Billed Users",
+      "storageUsedGB": "Storage Used (GB)",
+      "webhookCallsMonthly": "Webhook calls (monthly)",
+      "apiCallsMonthly": "API calls (monthly)"
     }
   },
   "datatype": {
@@ -1187,7 +1198,10 @@
     "upgradePlan": "Upgrade Plan",
     "viewAllPlanDetails": "View all plan Details",
     "contactSales": "Contact Sales",
-    "manageSubscription": "Manage Subscription"
+    "manageSubscription": "Manage Subscription",
+    "upgradeToPlan": "Upgrade To {plan}",
+    "applicableTax": "Applicable tax",
+    "annualSavings": "Annual Savings"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

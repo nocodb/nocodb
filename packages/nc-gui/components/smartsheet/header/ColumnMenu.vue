@@ -392,7 +392,8 @@ const { getPlanLimit } = useWorkspace()
 
 const isFilterLimitExceeded = computed(
   () =>
-    allFilters.value.filter((f) => !(f.is_group || f.status === 'delete')).length >= getPlanLimit(PlanLimitTypes.FILTER_LIMIT),
+    allFilters.value.filter((f) => !(f.is_group || f.status === 'delete')).length >=
+    getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW),
 )
 
 const isGroupedByThisField = computed(() => !!gridViewCols.value[column?.value?.id]?.group_by)

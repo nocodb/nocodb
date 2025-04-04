@@ -13,7 +13,7 @@ import {
   isSystemColumn,
 } from 'nocodb-sdk'
 import { getI18n } from '../plugins/a.i18n'
-import type { Row } from '~/lib/types'
+import type { Row } from '#imports'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
 
@@ -61,6 +61,10 @@ export function useInfiniteData(args: {
     syncTotalRows?: (path: Array<number>, count: number) => void
     getCount?: (path: Array<number>) => void
     getWhereFilter?: (path: Array<number>) => string
+    reloadAggregate?: (params: {
+      fields?: Array<{title: string; aggregation?: string | undefined}>
+      path: Array<number>
+    }) => void
   }
   where?: ComputedRef<string | undefined>
   disableSmartsheet?: boolean
@@ -79,8 +83,6 @@ export function useInfiniteData(args: {
   const { isUIAllowed } = useRoles()
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
-
-  const reloadAggregate = inject(ReloadAggregateHookInj)
 
   const tablesStore = useTablesStore()
 
@@ -182,7 +184,7 @@ export function useInfiniteData(args: {
       return cachedData
     }
 
-    const currCount = callbacks?.getCount(path)
+    const currCount = callbacks?.getCount?.(path)
 
     const newCache = {
       cachedRows: ref<Map<number, Row>>(new Map<number, Row>()),
@@ -1169,7 +1171,7 @@ export function useInfiniteData(args: {
         dataCache.totalRows.value++
       }
       callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
-      reloadAggregate?.trigger()
+      callbacks?.reloadAggregate?.({path})
       callbacks?.syncVisibleData?.()
 
       return insertedData
@@ -1289,7 +1291,8 @@ export function useInfiniteData(args: {
         dataCache.cachedRows.value.set(toUpdate.rowMeta.rowIndex, toUpdate)
       }
       callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
-      reloadAggregate?.trigger({ fields: [{ title: property }] })
+
+      callbacks?.reloadAggregate?.({ fields: [{ title: property }], path })
 
       callbacks?.syncVisibleData?.()
 
@@ -1433,7 +1436,7 @@ export function useInfiniteData(args: {
       viewId: viewMetaValue.id,
     })
 
-    reloadAggregate?.trigger()
+    callbacks?.reloadAggregate?.()
     callbacks?.syncVisibleData?.()
   }
 
@@ -1454,7 +1457,7 @@ export function useInfiniteData(args: {
         encodeURIComponent(id),
       )
 
-      reloadAggregate?.trigger()
+      callbacks?.reloadAggregate?.()
 
       if (res.message) {
         const errorMessage = `Unable to delete record with ID ${id} because of the following:\n${res.message.join(

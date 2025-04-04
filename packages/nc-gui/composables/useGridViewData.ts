@@ -97,11 +97,23 @@ export function useGridViewData(
       syncTotalRows,
       getCount,
       getWhereFilter: getGroupFilter,
+      reloadAggregate: triggerAggregateReload,
     },
     groupByColumns,
     where,
     isPublic,
   })
+
+  function triggerAggregateReload(params: {
+    fields?: Array<{ title: string; aggregation?: string | undefined }>
+    path: Array<number>
+  }) {
+    reloadAggregate?.trigger(params)
+
+    // If path is provided, update aggregation under the path, nested way
+
+    // If Path is there,
+  }
 
   function getCount(path?: Array<number>) {
     if (!path?.length) return
@@ -417,7 +429,7 @@ export function useGridViewData(
         updateArray,
       )) as Record<string, any>
 
-      reloadAggregate?.trigger({ fields: props.map((p) => ({ title: p })) })
+      triggerAggregateReload({ fields: props.map((p) => ({ title: p })) })
 
       newRows.forEach((newRow: Record<string, any>) => {
         const pk = extractPkFromRow(newRow, metaValue?.columns as ColumnType[])
@@ -826,7 +838,8 @@ export function useGridViewData(
       const bulkDeletedRowsData = await $api.dbDataTableRow.delete(metaValue?.id as string, rows.length === 1 ? rows[0] : rows, {
         viewId: viewMetaValue?.id as string,
       })
-      reloadAggregate?.trigger()
+
+      triggerAggregateReload()
 
       return rows.length === 1 && bulkDeletedRowsData ? [bulkDeletedRowsData] : bulkDeletedRowsData
     } catch (error: any) {

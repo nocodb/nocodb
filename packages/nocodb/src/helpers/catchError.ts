@@ -1,7 +1,7 @@
 import { HigherPlan, NcErrorType } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import { generateReadablePermissionErr } from 'src/utils/acl';
-import type { BaseType, SourceType } from 'nocodb-sdk';
+import type { BaseType, PlanTitles, SourceType } from 'nocodb-sdk';
 import type { ErrorObject } from 'ajv';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 
@@ -1132,10 +1132,22 @@ export class NcError {
     throw new OptionsNotExistsError(props);
   }
 
-  static planLimitExceeded(message: string, args?: NcErrorArgs) {
+  static planLimitExceeded(
+    message: string,
+    details: {
+      plan?: PlanTitles;
+      limit?: number;
+      current?: number;
+    },
+    args?: NcErrorArgs,
+  ) {
     throw new NcBaseErrorv2(NcErrorType.PLAN_LIMIT_EXCEEDED, {
       params: message,
       ...args,
+      details: {
+        ...details,
+        ...(details?.plan ? { higherPlan: HigherPlan[details.plan] } : {}),
+      },
     });
   }
 }

@@ -1,4 +1,4 @@
-import { PlanLimitTypes } from 'nocodb-sdk';
+import { PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
 import { PlanFeatureTypes } from 'nocodb-sdk';
 import type Stripe from 'stripe';
 import {
@@ -14,7 +14,7 @@ import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 export default class Plan {
   id: string;
-  title: string;
+  title: PlanTitles;
   description: string;
   stripe_product_id: string;
   is_active: boolean;
@@ -223,7 +223,7 @@ export const GenericFeatures = {
 } as const;
 
 export const FreePlan = Plan.prepare({
-  title: 'Free',
+  title: PlanTitles.FREE,
   description: 'Free plan',
   meta: {
     ...GenericLimits,

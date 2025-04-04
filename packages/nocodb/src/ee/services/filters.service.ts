@@ -56,14 +56,19 @@ export class FiltersService extends FiltersServiceCE {
       },
     );
 
-    const filterLimitForWorkspace = await getLimit(
+    const { limit: filterLimitForWorkspace, plan } = await getLimit(
       PlanLimitTypes.LIMIT_FILTER_PER_VIEW,
       context.workspace_id,
     );
 
     if (filtersInView >= filterLimitForWorkspace) {
-      NcError.badRequest(
+      NcError.planLimitExceeded(
         `Only ${filterLimitForWorkspace} filters are allowed, for more please upgrade your plan`,
+        {
+          plan: plan?.title,
+          limit: filterLimitForWorkspace,
+          current: filtersInView,
+        },
       );
     }
 

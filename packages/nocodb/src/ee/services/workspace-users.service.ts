@@ -171,7 +171,7 @@ export class WorkspaceUsersService {
         );
 
       if (!NON_SEAT_ROLES.includes(param.roles)) {
-        const editorLimitForWorkspace = await getLimit(
+        const { limit: editorLimitForWorkspace, plan } = await getLimit(
           PlanLimitTypes.LIMIT_EDITOR,
           param.workspaceId,
           transaction,
@@ -179,16 +179,21 @@ export class WorkspaceUsersService {
 
         // check if user limit is reached or going to be exceeded
         if (seatCount > editorLimitForWorkspace) {
-          NcError.badRequest(
+          NcError.planLimitExceeded(
             `Only ${editorLimitForWorkspace} editors are allowed on the ${
               workspace.payment.plan.title
             } plan, Upgrade to the ${
               HigherPlan[workspace.payment.plan.title]
             } plan to add more users`,
+            {
+              plan: plan.title,
+              limit: editorLimitForWorkspace,
+              current: seatCount,
+            },
           );
         }
       } else {
-        const usersLimitForWorkspace = await getLimit(
+        const { limit: usersLimitForWorkspace, plan } = await getLimit(
           PlanLimitTypes.LIMIT_COMMENTER,
           param.workspaceId,
           transaction,
@@ -196,12 +201,13 @@ export class WorkspaceUsersService {
 
         // check if user limit is reached or going to be exceeded
         if (nonSeatCount > usersLimitForWorkspace) {
-          NcError.badRequest(
-            `Only ${usersLimitForWorkspace} users are allowed on the ${
-              workspace.payment.plan.title
-            } plan, Upgrade to the ${
-              HigherPlan[workspace.payment.plan.title]
-            } plan to add more users`,
+          NcError.planLimitExceeded(
+            `Only ${usersLimitForWorkspace} users are allowed on the ${workspace.payment.plan.title} plan`,
+            {
+              plan: plan.title,
+              limit: usersLimitForWorkspace,
+              current: nonSeatCount,
+            },
           );
         }
       }
@@ -419,7 +425,7 @@ export class WorkspaceUsersService {
       await Subscription.calculateWorkspaceSeatCount(workspaceId, ncMeta);
 
     if (!NON_SEAT_ROLES.includes(roles) || param.baseEditor) {
-      const editorLimitForWorkspace = await getLimit(
+      const { limit: editorLimitForWorkspace, plan } = await getLimit(
         PlanLimitTypes.LIMIT_EDITOR,
         workspaceId,
         ncMeta,
@@ -431,18 +437,19 @@ export class WorkspaceUsersService {
         // if invitePassive is true then don't check for user limit
         !param.invitePassive
       ) {
-        NcError.badRequest(
-          `Only ${editorLimitForWorkspace} editors are allowed on the ${
-            workspace.payment.plan.title
-          } plan, Upgrade to the ${
-            HigherPlan[workspace.payment.plan.title]
-          } plan to add more users`,
+        NcError.planLimitExceeded(
+          `Only ${editorLimitForWorkspace} editors are allowed on the ${workspace.payment.plan.title} plan`,
+          {
+            plan: plan.title,
+            limit: editorLimitForWorkspace,
+            current: seatCount,
+          },
         );
       }
     }
 
     if (NON_SEAT_ROLES.includes(roles) && !param.baseEditor) {
-      const commenterLimitForWorkspace = await getLimit(
+      const { limit: commenterLimitForWorkspace, plan } = await getLimit(
         PlanLimitTypes.LIMIT_COMMENTER,
         workspaceId,
         ncMeta,
@@ -454,8 +461,13 @@ export class WorkspaceUsersService {
         // if invitePassive is true then don't check for user limit
         !param.invitePassive
       ) {
-        NcError.badRequest(
+        NcError.planLimitExceeded(
           `Only ${commenterLimitForWorkspace} users are allowed for your plan, for more please upgrade your plan`,
+          {
+            plan: plan.title,
+            limit: commenterLimitForWorkspace,
+            current: nonSeatCount,
+          },
         );
       }
     }

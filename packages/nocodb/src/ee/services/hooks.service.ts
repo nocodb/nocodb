@@ -49,14 +49,19 @@ export class HooksService extends HooksServiceCE {
       },
     );
 
-    const webhookLimitForWorkspace = await getLimit(
+    const { limit: webhookLimitForWorkspace, plan } = await getLimit(
       PlanLimitTypes.LIMIT_WEBHOOK_PER_TABLE,
       context.workspace_id,
     );
 
     if (webhooksInTable >= webhookLimitForWorkspace) {
-      NcError.badRequest(
+      NcError.planLimitExceeded(
         `Only ${webhookLimitForWorkspace} webhooks are allowed, for more please upgrade your plan`,
+        {
+          plan: plan?.title,
+          limit: webhookLimitForWorkspace,
+          current: webhooksInTable,
+        },
       );
     }
 

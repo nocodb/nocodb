@@ -39,14 +39,19 @@ export class SortsService extends SortsServiceCE {
       },
     );
 
-    const sortLimitForWorkspace = await getLimit(
+    const { limit: sortLimitForWorkspace, plan } = await getLimit(
       PlanLimitTypes.LIMIT_SORT_PER_VIEW,
       context.workspace_id,
     );
 
     if (sortsInView >= sortLimitForWorkspace) {
-      NcError.badRequest(
+      NcError.planLimitExceeded(
         `Only ${sortLimitForWorkspace} sorts are allowed, for more please upgrade your plan`,
+        {
+          plan: plan?.title,
+          limit: sortLimitForWorkspace,
+          current: sortsInView,
+        },
       );
     }
 

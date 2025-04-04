@@ -180,11 +180,16 @@ export class WorkspacesService implements OnApplicationBootstrap {
       plan: WorkspacePlan.FREE,
     });
 
-    if (
-      userFreeWorkspacesCount >=
-      (await getLimit(PlanLimitTypes.LIMIT_FREE_WORKSPACE))
-    ) {
-      NcError.badRequest('You have reached the limit of free workspaces');
+    const { limit } = await getLimit(PlanLimitTypes.LIMIT_FREE_WORKSPACE);
+
+    if (userFreeWorkspacesCount >= limit) {
+      NcError.planLimitExceeded(
+        'You have reached the limit of free workspaces',
+        {
+          limit: limit,
+          current: userFreeWorkspacesCount,
+        },
+      );
     }
 
     const workspacePayloads = Array.isArray(param.workspaces)

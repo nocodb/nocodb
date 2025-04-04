@@ -10,13 +10,18 @@ async function getLimit(
   type: PlanLimitTypes,
   workspaceId?: string,
   ncMeta = Noco.ncMeta,
-) {
+): Promise<{
+  limit: number;
+  plan?: Partial<Plan>;
+}> {
   if (!workspaceId) {
     if (!GenericLimits[type]) {
       NcError.forbidden('You are not allowed to perform this action');
     }
 
-    return GenericLimits[type] || Infinity;
+    return {
+      limit: GenericLimits[type] || Infinity,
+    };
   }
 
   const workspace = await Workspace.get(workspaceId, undefined, ncMeta);
@@ -25,14 +30,21 @@ async function getLimit(
     NcError.forbidden('You are not allowed to perform this action');
   }
 
-  const limit =
-    workspace?.payment?.plan?.meta?.[type] ?? GenericLimits[type] ?? Infinity;
+  const plan = workspace?.payment?.plan;
+
+  const limit = plan?.meta?.[type] ?? GenericLimits[type] ?? Infinity;
 
   if (limit === -1) {
-    return Infinity;
+    return {
+      limit: Infinity,
+      plan,
+    };
   }
 
-  return limit;
+  return {
+    limit,
+    plan,
+  };
 }
 
 async function getFeature(

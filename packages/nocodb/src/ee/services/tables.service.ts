@@ -54,18 +54,23 @@ export class TablesService extends TableServiceCE {
         },
       );
 
-      const tableLimitForWorkspace = await getLimit(
+      const { limit: tableLimitForWorkspace, plan } = await getLimit(
         PlanLimitTypes.LIMIT_TABLE_PER_BASE,
         context.workspace_id,
       );
 
       if (tablesInSource >= tableLimitForWorkspace) {
-        NcError.badRequest(
+        NcError.planLimitExceeded(
           `Only ${tableLimitForWorkspace} tables are allowed, for more please upgrade your plan`,
+          {
+            plan: plan?.title,
+            limit: tableLimitForWorkspace,
+            current: tablesInSource,
+          },
         );
       }
 
-      const columnLimitForWorkspace = await getLimit(
+      const { limit: columnLimitForWorkspace } = await getLimit(
         PlanLimitTypes.LIMIT_COLUMN_PER_TABLE,
         context.workspace_id,
       );
@@ -74,8 +79,13 @@ export class TablesService extends TableServiceCE {
         param.table?.columns?.length &&
         param.table.columns.length >= columnLimitForWorkspace
       ) {
-        NcError.badRequest(
+        NcError.planLimitExceeded(
           `Maximum ${columnLimitForWorkspace} columns are allowed, for more please upgrade your plan`,
+          {
+            plan: plan?.title,
+            limit: columnLimitForWorkspace,
+            current: param.table.columns.length,
+          },
         );
       }
     }

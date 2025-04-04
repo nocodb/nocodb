@@ -112,14 +112,19 @@ export class BasesService extends BasesServiceCE {
       }
 
       const basesInWorkspace = await Base.countByWorkspace(fk_workspace_id);
-      const baseLimitForWorkspace = await getLimit(
+      const { limit: baseLimitForWorkspace, plan } = await getLimit(
         PlanLimitTypes.LIMIT_BASE_PER_WORKSPACE,
         fk_workspace_id,
       );
 
       if (basesInWorkspace >= baseLimitForWorkspace) {
-        NcError.badRequest(
+        NcError.planLimitExceeded(
           `Only ${baseLimitForWorkspace} bases are allowed, for more please upgrade your plan`,
+          {
+            plan: plan?.title,
+            limit: baseLimitForWorkspace,
+            current: basesInWorkspace,
+          },
         );
       }
     }

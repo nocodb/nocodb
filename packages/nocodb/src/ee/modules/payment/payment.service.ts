@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 import dayjs from 'dayjs';
-import { PlanOrder } from 'nocodb-sdk';
+import { PlanOrder, PlanTitles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { Org, Plan, Subscription, Workspace } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -55,7 +55,7 @@ export class PaymentService {
     }
 
     const plan = {
-      title,
+      title: title as PlanTitles,
       description,
       stripe_product_id: payload.stripe_product_id,
       is_active: payload.is_active ?? true,

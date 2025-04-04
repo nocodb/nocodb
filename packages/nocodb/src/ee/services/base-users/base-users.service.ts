@@ -428,7 +428,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
         !NON_SEAT_ROLES.includes(param.baseUser.roles as ProjectRoles) &&
         NON_SEAT_ROLES.includes(oldBaseUser.roles as ProjectRoles)
       ) {
-        const editorLimitForWorkspace = await getLimit(
+        const { limit: editorLimitForWorkspace, plan } = await getLimit(
           PlanLimitTypes.LIMIT_EDITOR,
           workspace.id,
           transaction,
@@ -436,8 +436,13 @@ export class BaseUsersService extends BaseUsersServiceCE {
 
         // check if user limit is reached or going to be exceeded
         if (seatCount + 1 > editorLimitForWorkspace) {
-          NcError.badRequest(
+          NcError.planLimitExceeded(
             `Only ${editorLimitForWorkspace} editors are allowed for your plan, for more please upgrade your plan`,
+            {
+              plan: plan?.title,
+              limit: editorLimitForWorkspace,
+              current: seatCount,
+            },
           );
         }
       }
@@ -446,7 +451,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
         NON_SEAT_ROLES.includes(param.baseUser.roles as ProjectRoles) &&
         !NON_SEAT_ROLES.includes(oldBaseUser.roles as ProjectRoles)
       ) {
-        const commenterLimitForWorkspace = await getLimit(
+        const { limit: commenterLimitForWorkspace, plan } = await getLimit(
           PlanLimitTypes.LIMIT_COMMENTER,
           workspace.id,
           transaction,
@@ -454,8 +459,13 @@ export class BaseUsersService extends BaseUsersServiceCE {
 
         // check if commenter limit is reached or going to be exceeded
         if (nonSeatCount + 1 > commenterLimitForWorkspace) {
-          NcError.badRequest(
+          NcError.planLimitExceeded(
             `Only ${commenterLimitForWorkspace} commenters are allowed for your plan, for more please upgrade your plan`,
+            {
+              plan: plan?.title,
+              limit: commenterLimitForWorkspace,
+              current: nonSeatCount,
+            },
           );
         }
       }

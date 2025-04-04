@@ -1037,14 +1037,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       workspaceRowCount = 0;
     }
 
-    const workspaceRowLimit = await getLimit(
+    const { limit: workspaceRowLimit, plan } = await getLimit(
       PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
       this.model.fk_workspace_id,
     );
 
     if (workspaceRowCount >= workspaceRowLimit) {
-      NcError.badRequest(
+      NcError.planLimitExceeded(
         `Only ${workspaceRowLimit} records are allowed in your workspace, for more please upgrade your plan`,
+        {
+          plan: plan?.title,
+          limit: workspaceRowLimit,
+          current: workspaceRowCount,
+        },
       );
     }
 
@@ -1082,14 +1087,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       workspaceRowCount = 0;
     }
 
-    const workspaceRowLimit = await getLimit(
+    const { limit: workspaceRowLimit, plan } = await getLimit(
       PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
       this.model.fk_workspace_id,
     );
 
     if (workspaceRowCount + data.length >= workspaceRowLimit) {
-      NcError.badRequest(
+      NcError.planLimitExceeded(
         `Only ${workspaceRowLimit} records are allowed in your workspace, for more please upgrade your plan`,
+        {
+          plan: plan?.title,
+          limit: workspaceRowLimit,
+          current: workspaceRowCount,
+        },
       );
     }
 
@@ -1266,7 +1276,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     const workspaceRowCount = workspaceStats ? workspaceStats.row_count : 0;
 
-    const workspaceRowLimit = await getLimit(
+    const { limit: workspaceRowLimit } = await getLimit(
       PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
       this.model.fk_workspace_id,
     );
@@ -1360,7 +1370,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     const workspaceRowCount = workspaceStats ? workspaceStats.row_count : 0;
 
-    const workspaceRowLimit = await getLimit(
+    const { limit: workspaceRowLimit } = await getLimit(
       PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
       this.model.fk_workspace_id,
     );

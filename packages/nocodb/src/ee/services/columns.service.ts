@@ -77,14 +77,19 @@ export class ColumnsService extends ColumnsServiceCE {
         },
       );
 
-      const columnLimitForWorkspace = await getLimit(
+      const { limit: columnLimitForWorkspace, plan } = await getLimit(
         PlanLimitTypes.LIMIT_COLUMN_PER_TABLE,
         workspaceId,
       );
 
       if (columnsInTable >= columnLimitForWorkspace) {
-        NcError.badRequest(
+        NcError.planLimitExceeded(
           `Only ${columnLimitForWorkspace} columns are allowed, for more please upgrade your plan`,
+          {
+            plan: plan?.title,
+            limit: columnLimitForWorkspace,
+            current: columnsInTable,
+          },
         );
       }
     }

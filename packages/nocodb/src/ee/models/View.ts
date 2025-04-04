@@ -51,14 +51,19 @@ export default class View extends ViewCE implements ViewType {
       },
     );
 
-    const viewLimitForWorkspace = await getLimit(
+    const { limit: viewLimitForWorkspace, plan } = await getLimit(
       PlanLimitTypes.LIMIT_VIEW_PER_TABLE,
       model.fk_workspace_id,
     );
 
     if (viewsInTable >= viewLimitForWorkspace) {
-      NcError.badRequest(
+      NcError.planLimitExceeded(
         `Only ${viewLimitForWorkspace} views are allowed, for more please upgrade your plan`,
+        {
+          plan: plan?.title,
+          limit: viewLimitForWorkspace,
+          current: viewsInTable,
+        },
       );
     }
 

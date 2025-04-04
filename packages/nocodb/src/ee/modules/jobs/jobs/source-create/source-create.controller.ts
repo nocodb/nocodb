@@ -102,14 +102,19 @@ export class SourceCreateController {
       },
     );
 
-    const sourceLimitForWorkspace = await getLimit(
+    const { limit: sourceLimitForWorkspace, plan } = await getLimit(
       PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
       base.fk_workspace_id,
     );
 
     if (sourcesInWorkspace >= sourceLimitForWorkspace) {
-      NcError.badRequest(
+      NcError.planLimitExceeded(
         `Only ${sourceLimitForWorkspace} sources are allowed, for more please upgrade your plan`,
+        {
+          plan: plan?.title,
+          limit: sourceLimitForWorkspace,
+          current: sourcesInWorkspace,
+        },
       );
     }
 

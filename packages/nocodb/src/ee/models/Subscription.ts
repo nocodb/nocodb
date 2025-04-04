@@ -64,6 +64,16 @@ export default class Subscription {
       if (!subscription) return null;
 
       await NocoCache.set(key, subscription);
+      await NocoCache.set(
+        `${CacheScope.SUBSCRIPTIONS_ALIAS}:${subscription.stripe_subscription_id}`,
+        key,
+      );
+      await NocoCache.set(
+        `${CacheScope.SUBSCRIPTIONS_ALIAS}:${
+          subscription.fk_org_id || subscription.fk_workspace_id
+        }`,
+        key,
+      );
     }
 
     return new Subscription(subscription);
@@ -148,6 +158,10 @@ export default class Subscription {
   }
 
   public static async delete(subscriptionId: string, ncMeta = Noco.ncMeta) {
+    const subscription = await this.get(subscriptionId, ncMeta);
+
+    if (!subscription) return false;
+
     await ncMeta.metaDelete(
       RootScopes.ROOT,
       RootScopes.ROOT,
@@ -157,6 +171,14 @@ export default class Subscription {
 
     const key = `${CacheScope.SUBSCRIPTIONS}:${subscriptionId}`;
     await NocoCache.del(key);
+    await NocoCache.del(
+      `${CacheScope.SUBSCRIPTIONS_ALIAS}:${subscription.stripe_subscription_id}`,
+    );
+    await NocoCache.del(
+      `${CacheScope.SUBSCRIPTIONS_ALIAS}:${
+        subscription.fk_org_id || subscription.fk_workspace_id
+      }`,
+    );
 
     return true;
   }
@@ -243,42 +265,52 @@ export default class Subscription {
     workspaceOrOrgId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const subscription = await ncMeta.metaGet2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.SUBSCRIPTIONS,
-      null,
-      null,
-      {
-        _and: [
-          {
-            _or: [
-              {
-                fk_workspace_id: {
-                  eq: workspaceOrOrgId,
-                },
-              },
-              {
-                fk_org_id: {
-                  eq: workspaceOrOrgId,
-                },
-              },
-            ],
-          },
-          {
-            _or: [
-              {
-                status: {
-                  in: ['active', 'trialing', 'incomplete'],
-                },
-              },
-            ],
-          },
-        ],
-      },
-    );
+    const aliasKey = `${CacheScope.SUBSCRIPTIONS_ALIAS}:${workspaceOrOrgId}`;
+    const cacheKey = await NocoCache.get(aliasKey, CacheGetType.TYPE_STRING);
 
-    if (!subscription) return null;
+    let subscription = await NocoCache.get(cacheKey, CacheGetType.TYPE_OBJECT);
+    if (!subscription) {
+      subscription = await ncMeta.metaGet2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.SUBSCRIPTIONS,
+        null,
+        null,
+        {
+          _and: [
+            {
+              _or: [
+                {
+                  fk_workspace_id: {
+                    eq: workspaceOrOrgId,
+                  },
+                },
+                {
+                  fk_org_id: {
+                    eq: workspaceOrOrgId,
+                  },
+                },
+              ],
+            },
+            {
+              _or: [
+                {
+                  status: {
+                    in: ['active', 'trialing', 'incomplete'],
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      );
+    }
+
+    if (
+      !subscription ||
+      !['active', 'trialing', 'incomplete'].includes(subscription.status)
+    )
+      return null;
 
     return new Subscription(subscription);
   }
@@ -287,18 +319,23 @@ export default class Subscription {
     stripeSubscriptionId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const subscription = await ncMeta.metaGet2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.SUBSCRIPTIONS,
-      null,
-      null,
-      {
-        stripe_subscription_id: {
-          eq: stripeSubscriptionId,
+    const aliasKey = `${CacheScope.SUBSCRIPTIONS_ALIAS}:${stripeSubscriptionId}`;
+    const cacheKey = await NocoCache.get(aliasKey, CacheGetType.TYPE_STRING);
+    let subscription = await NocoCache.get(cacheKey, CacheGetType.TYPE_OBJECT);
+    if (!subscription) {
+      subscription = await ncMeta.metaGet2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.SUBSCRIPTIONS,
+        null,
+        null,
+        {
+          stripe_subscription_id: {
+            eq: stripeSubscriptionId,
+          },
         },
-      },
-    );
+      );
+    }
 
     if (!subscription) return null;
 

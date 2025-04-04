@@ -12,6 +12,7 @@ import { SnapshotController } from '~/modules/jobs/jobs/snapshot/snapshot.contro
 import { SnapshotProcessor } from '~/modules/jobs/jobs/snapshot/snapshot.processor';
 import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
 import { SyncModuleSyncDataProcessor } from '~/integrations/sync/module/services/sync.processor';
+import { SubscriptionScheduleProcessor } from '~/modules/jobs/jobs/subscription-schedule.processor';
 
 @Module({
   ...JobsModuleMetadata,
@@ -30,6 +31,7 @@ import { SyncModuleSyncDataProcessor } from '~/integrations/sync/module/services
     SnapshotProcessor,
     RemoteImportService,
     SyncModuleSyncDataProcessor,
+    SubscriptionScheduleProcessor,
   ],
   exports: [...JobsModuleMetadata.exports, RemoteImportService],
 })

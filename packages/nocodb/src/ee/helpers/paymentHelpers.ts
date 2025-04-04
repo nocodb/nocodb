@@ -1,40 +1,10 @@
 import { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
-import { Workspace } from '~/models';
+import { Org, Subscription, Workspace } from '~/models';
 import Noco from '~/Noco';
-
-const GenericLimits = {
-  [PlanLimitTypes.LIMIT_FREE_WORKSPACE]: 8,
-  [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 200,
-  [PlanLimitTypes.LIMIT_COLUMN_PER_TABLE]: 500,
-  [PlanLimitTypes.LIMIT_WEBHOOK_PER_TABLE]: 25,
-  [PlanLimitTypes.LIMIT_VIEW_PER_TABLE]: 200,
-  [PlanLimitTypes.LIMIT_FILTER_PER_VIEW]: 50,
-  [PlanLimitTypes.LIMIT_SORT_PER_VIEW]: 10,
-  [PlanLimitTypes.LIMIT_BASE_PER_WORKSPACE]: 20,
-} as const;
-
-const GenericFeatures = {
-  [PlanFeatureTypes.FEATURE_AI]: false,
-  [PlanFeatureTypes.FEATURE_AI_INTEGRATIONS]: false,
-  [PlanFeatureTypes.FEATURE_AT_MENTION]: false,
-  [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: false,
-  [PlanFeatureTypes.FEATURE_COMMENT_RESOLVE]: false,
-  [PlanFeatureTypes.FEATURE_CUSTOM_URL]: false,
-  [PlanFeatureTypes.FEATURE_DISCUSSION_MODE]: false,
-  [PlanFeatureTypes.FEATURE_EXTENSIONS]: false,
-  [PlanFeatureTypes.FEATURE_FILE_MODE]: false,
-  [PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO]: false,
-  [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]: false,
-  [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]: false,
-  [PlanFeatureTypes.FEATURE_GROUP_BY_AGGREGATIONS]: false,
-  [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: false,
-  [PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER]: false,
-  [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: false,
-  [PlanFeatureTypes.FEATURE_SCRIPTS]: false,
-  [PlanFeatureTypes.FEATURE_SSO]: false,
-  [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]: false,
-} as const;
+import NocoCache from '~/cache/NocoCache';
+import Plan, { FreePlan, GenericFeatures, GenericLimits } from '~/models/Plan';
+import { CacheScope } from '~/utils/globals';
 
 async function getLimit(
   type: PlanLimitTypes,
@@ -84,6 +54,59 @@ async function getFeature(
   );
 }
 
+async function getWorkspaceOrOrg(
+  workspaceOrOrgId: string,
+  ncMeta = Noco.ncMeta,
+): Promise<(Workspace & { entity: 'workspace' }) | (Org & { entity: 'org' })> {
+  const workspace = await Workspace.get(workspaceOrOrgId, null, ncMeta);
+
+  if (workspace) {
+    return { ...workspace, entity: 'workspace' };
+  }
+
+  const org = await Org.get(workspaceOrOrgId, ncMeta);
+
+  if (org) {
+    return { ...org, entity: 'org' };
+  }
+}
+
+async function getActivePlanAndSubscription(
+  workspaceOrOrgId: string,
+  ncMeta = Noco.ncMeta,
+) {
+  const subscription = await Subscription.getByWorkspaceOrOrg(
+    workspaceOrOrgId,
+    ncMeta,
+  );
+
+  if (!subscription) return { plan: FreePlan };
+
+  const plan = await Plan.get(subscription.fk_plan_id, ncMeta);
+
+  return { plan, subscription };
+}
+
+async function refreshPlanAndSubscription(
+  workspaceOrOrgId: string,
+  ncMeta = Noco.ncMeta,
+) {
+  const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
+
+  const activePlanAndSubscription = await getActivePlanAndSubscription(
+    workspaceOrOrgId,
+    ncMeta,
+  );
+
+  if (workspaceOrOrg.entity === 'workspace') {
+    await NocoCache.update(`${CacheScope.WORKSPACE}:${workspaceOrOrg.id}`, {
+      payment: activePlanAndSubscription,
+    });
+  } else {
+    // TODO Org
+  }
+}
+
 export {
   PlanLimitTypes,
   PlanFeatureTypes,
@@ -91,4 +114,7 @@ export {
   getFeature,
   GenericLimits,
   GenericFeatures,
+  getWorkspaceOrOrg,
+  getActivePlanAndSubscription,
+  refreshPlanAndSubscription,
 };

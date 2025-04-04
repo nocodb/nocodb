@@ -221,6 +221,7 @@ export enum CacheScope {
   SYNC_CONFIGS = 'syncConfigs',
   PLANS = 'plans',
   SUBSCRIPTIONS = 'subscriptions',
+  SUBSCRIPTIONS_ALIAS = 'subscriptionsAlias',
 }
 
 export const RootScopeTables = {

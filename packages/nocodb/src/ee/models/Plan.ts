@@ -1,5 +1,5 @@
 import { PlanLimitTypes } from 'nocodb-sdk';
-import type { PlanFeatureTypes } from 'nocodb-sdk';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import type Stripe from 'stripe';
 import {
   CacheGetType,
@@ -11,7 +11,6 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
-import { GenericFeatures, GenericLimits } from '~/helpers/paymentHelpers';
 
 export default class Plan {
   id: string;
@@ -189,6 +188,39 @@ export default class Plan {
       });
   }
 }
+
+export const GenericLimits = {
+  [PlanLimitTypes.LIMIT_FREE_WORKSPACE]: 8,
+  [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 200,
+  [PlanLimitTypes.LIMIT_COLUMN_PER_TABLE]: 500,
+  [PlanLimitTypes.LIMIT_WEBHOOK_PER_TABLE]: 25,
+  [PlanLimitTypes.LIMIT_VIEW_PER_TABLE]: 200,
+  [PlanLimitTypes.LIMIT_FILTER_PER_VIEW]: 50,
+  [PlanLimitTypes.LIMIT_SORT_PER_VIEW]: 10,
+  [PlanLimitTypes.LIMIT_BASE_PER_WORKSPACE]: 20,
+} as const;
+
+export const GenericFeatures = {
+  [PlanFeatureTypes.FEATURE_AI]: false,
+  [PlanFeatureTypes.FEATURE_AI_INTEGRATIONS]: false,
+  [PlanFeatureTypes.FEATURE_AT_MENTION]: false,
+  [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: false,
+  [PlanFeatureTypes.FEATURE_COMMENT_RESOLVE]: false,
+  [PlanFeatureTypes.FEATURE_CUSTOM_URL]: false,
+  [PlanFeatureTypes.FEATURE_DISCUSSION_MODE]: false,
+  [PlanFeatureTypes.FEATURE_EXTENSIONS]: false,
+  [PlanFeatureTypes.FEATURE_FILE_MODE]: false,
+  [PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO]: false,
+  [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]: false,
+  [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]: false,
+  [PlanFeatureTypes.FEATURE_GROUP_BY_AGGREGATIONS]: false,
+  [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: false,
+  [PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER]: false,
+  [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: false,
+  [PlanFeatureTypes.FEATURE_SCRIPTS]: false,
+  [PlanFeatureTypes.FEATURE_SSO]: false,
+  [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]: false,
+} as const;
 
 export const FreePlan = Plan.prepare({
   title: 'Free',

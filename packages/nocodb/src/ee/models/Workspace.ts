@@ -4,6 +4,7 @@ import {
   type WorkspaceStatus,
   type WorkspaceType,
 } from 'nocodb-sdk';
+import type { Plan, Subscription } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
 import {
@@ -21,15 +22,8 @@ import {
   prepareForDb,
   prepareForResponse,
 } from '~/utils/modelUtils';
-import {
-  Base,
-  CustomUrl,
-  DataReflection,
-  Integration,
-  Plan,
-  Subscription,
-} from '~/models';
-import { FreePlan } from '~/models/Plan';
+import { Base, CustomUrl, DataReflection, Integration } from '~/models';
+import { getActivePlanAndSubscription } from '~/helpers/paymentHelpers';
 
 const logger = new Logger('Workspace');
 
@@ -85,9 +79,8 @@ export default class Workspace implements WorkspaceType {
       }
     }
 
-    workspace.payment = await this.getActivePlanAndSubscription(
-      workspace.id,
-      workspace.fk_org_id,
+    workspace.payment = await getActivePlanAndSubscription(
+      workspace.fk_org_id || workspace.id,
       ncMeta,
     );
 
@@ -116,9 +109,8 @@ export default class Workspace implements WorkspaceType {
       if (workspaceData) {
         workspaceData.meta = parseMetaProp(workspaceData);
         workspaceData.infra_meta = parseMetaProp(workspaceData, 'infra_meta');
-        workspaceData.payment = await this.getActivePlanAndSubscription(
-          workspaceData.id,
-          workspaceData.fk_org_id,
+        workspaceData.payment = await getActivePlanAndSubscription(
+          workspaceData.fk_org_id || workspaceData.id,
           ncMeta,
         );
         if (!workspaceData.deleted) {
@@ -385,9 +377,8 @@ export default class Workspace implements WorkspaceType {
     for (const workspace of workspaces) {
       workspace.meta = parseMetaProp(workspace);
       workspace.infra_meta = parseMetaProp(workspace, 'infra_meta');
-      workspace.payment = await this.getActivePlanAndSubscription(
-        workspace.id,
-        workspace.fk_org_id,
+      workspace.payment = await getActivePlanAndSubscription(
+        workspace.fk_org_id || workspace.id,
         ncMeta,
       );
     }
@@ -467,9 +458,8 @@ export default class Workspace implements WorkspaceType {
     const workspaces = await queryBuilder;
 
     for (const workspace of workspaces) {
-      workspace.payment = await this.getActivePlanAndSubscription(
-        workspace.id,
-        workspace.fk_org_id,
+      workspace.payment = await getActivePlanAndSubscription(
+        workspace.fk_org_id || workspace.id,
         ncMeta,
       );
     }
@@ -511,39 +501,5 @@ export default class Workspace implements WorkspaceType {
     );
 
     return workspace;
-  }
-
-  public static async getActivePlanAndSubscription(
-    workspaceId: string,
-    orgId?: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const subscription = await Subscription.getByWorkspaceOrOrg(
-      orgId || workspaceId,
-      ncMeta,
-    );
-
-    if (!subscription) return { plan: FreePlan };
-
-    const plan = await Plan.get(subscription.fk_plan_id, ncMeta);
-
-    return { plan, subscription };
-  }
-
-  public static async refreshPlanAndSubscription(
-    workspaceId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const workspace = await this.get(workspaceId, true, ncMeta);
-
-    if (!workspace) return;
-
-    await NocoCache.update(`${CacheScope.WORKSPACE}:${workspaceId}`, {
-      payment: await this.getActivePlanAndSubscription(
-        workspaceId,
-        workspace.fk_org_id,
-        ncMeta,
-      ),
-    });
   }
 }

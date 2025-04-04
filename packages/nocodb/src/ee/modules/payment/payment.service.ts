@@ -6,6 +6,10 @@ import type { NcRequest } from '~/interface/config';
 import { Org, Plan, Subscription, Workspace } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
+import {
+  getWorkspaceOrOrg,
+  refreshPlanAndSubscription,
+} from '~/helpers/paymentHelpers';
 
 const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder');
 
@@ -17,25 +21,6 @@ export class PaymentService {
 
   async getPlans() {
     return await Plan.list();
-  }
-
-  async getWorkspaceOrOrg(
-    workspaceOrOrgId: string,
-    ncMeta = Noco.ncMeta,
-  ): Promise<
-    (Workspace & { entity: 'workspace' }) | (Org & { entity: 'org' })
-  > {
-    const workspace = await Workspace.get(workspaceOrOrgId, null, ncMeta);
-
-    if (workspace) {
-      return { ...workspace, entity: 'workspace' };
-    }
-
-    const org = await Org.get(workspaceOrOrgId, ncMeta);
-
-    if (org) {
-      return { ...org, entity: 'org' };
-    }
   }
 
   async submitPlan(payload: {
@@ -147,10 +132,7 @@ export class PaymentService {
       throw new Error('Invalid payload');
     }
 
-    const workspaceOrOrg = await this.getWorkspaceOrOrg(
-      workspaceOrOrgId,
-      ncMeta,
-    );
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
 
     if (!workspaceOrOrg) {
       NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
@@ -248,7 +230,7 @@ export class PaymentService {
         },
       ],
       ui_mode: 'embedded',
-      return_url: `${req.ncSiteUrl}/?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}&isAccountPage=${isAccountPage}`,
+      return_url: `http://localhost:3000/?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}&isAccountPage=${isAccountPage}`,
       automatic_tax: {
         enabled: true,
       },
@@ -287,10 +269,7 @@ export class PaymentService {
     req?: NcRequest,
     ncMeta = Noco.ncMeta,
   ) {
-    const workspaceOrOrg = await this.getWorkspaceOrOrg(
-      workspaceOrOrgId,
-      ncMeta,
-    );
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
     if (!workspaceOrOrg) {
       NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
     }
@@ -341,7 +320,7 @@ export class PaymentService {
           await this.getNextInvoice(workspaceOrOrg.id),
         );
 
-        await Workspace.refreshPlanAndSubscription(workspaceOrOrg.id, ncMeta);
+        await refreshPlanAndSubscription(workspaceOrOrg.id, ncMeta);
       }
 
       if (existingSubscription.canceled_at) {
@@ -487,7 +466,7 @@ export class PaymentService {
           ...(existingSubscription.canceled_at ? { canceled_at: null } : {}),
         });
 
-        await Workspace.refreshPlanAndSubscription(workspaceOrOrg.id, ncMeta);
+        await refreshPlanAndSubscription(workspaceOrOrg.id, ncMeta);
 
         return {
           id: subscription.id,
@@ -573,7 +552,7 @@ export class PaymentService {
             ...(existingSubscription.canceled_at ? { canceled_at: null } : {}),
           });
 
-          await Workspace.refreshPlanAndSubscription(workspaceOrOrg.id, ncMeta);
+          await refreshPlanAndSubscription(workspaceOrOrg.id, ncMeta);
 
           return {
             id: subscription.id,
@@ -692,10 +671,7 @@ export class PaymentService {
     req?: NcRequest,
     ncMeta = Noco.ncMeta,
   ) {
-    const workspaceOrOrg = await this.getWorkspaceOrOrg(
-      workspaceOrOrgId,
-      ncMeta,
-    );
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
 
     if (!workspaceOrOrg) {
       NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
@@ -781,10 +757,7 @@ export class PaymentService {
     req: NcRequest,
     ncMeta = Noco.ncMeta,
   ) {
-    const workspaceOrOrg = await this.getWorkspaceOrOrg(
-      workspaceOrOrgId,
-      ncMeta,
-    );
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
 
     if (!workspaceOrOrg) {
       NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
@@ -792,7 +765,7 @@ export class PaymentService {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: workspaceOrOrg.stripe_customer_id,
-      return_url: `${req.ncSiteUrl}?afterManage=true&workspaceId=${
+      return_url: `http://localhost:3000?afterManage=true&workspaceId=${
         workspaceOrOrg.id
       }&isAccountPage=${req.query.isAccountPage ?? true}`,
     });
@@ -801,10 +774,7 @@ export class PaymentService {
   }
 
   async getSeatCount(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
-    const workspaceOrOrg = await this.getWorkspaceOrOrg(
-      workspaceOrOrgId,
-      ncMeta,
-    );
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
 
     if (!workspaceOrOrg) {
       NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
@@ -822,10 +792,7 @@ export class PaymentService {
 
   async getNextInvoice(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
     try {
-      const workspaceOrOrg = await this.getWorkspaceOrOrg(
-        workspaceOrOrgId,
-        ncMeta,
-      );
+      const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
 
       if (!workspaceOrOrg) {
         NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
@@ -877,7 +844,7 @@ export class PaymentService {
       ending_before?: string;
     } = {},
   ) {
-    const workspaceOrOrg = await this.getWorkspaceOrOrg(workspaceOrOrgId);
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId);
 
     if (!workspaceOrOrg) {
       NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
@@ -929,10 +896,7 @@ export class PaymentService {
   }
 
   async recoverSubscription(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
-    const workspaceOrOrg = await this.getWorkspaceOrOrg(
-      workspaceOrOrgId,
-      ncMeta,
-    );
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
 
     if (!workspaceOrOrg) {
       NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
@@ -1011,7 +975,7 @@ export class PaymentService {
       );
     }
 
-    await Workspace.refreshPlanAndSubscription(workspaceOrOrg.id);
+    await refreshPlanAndSubscription(workspaceOrOrg.id);
 
     this.logger.log(
       `Subscription recovered for workspace or org ${workspaceOrOrg.id}`,
@@ -1057,7 +1021,7 @@ export class PaymentService {
               await this.getNextInvoice(workspaceId),
             );
 
-            await Workspace.refreshPlanAndSubscription(workspaceId);
+            await refreshPlanAndSubscription(workspaceId);
 
             this.logger.log(
               `Plan applied for workspace ${workspaceId} after successful payment`,
@@ -1080,12 +1044,13 @@ export class PaymentService {
             NcError.genericNotFound('Subscription', subscriptionId);
           }
 
-          const workspaceId = subscription.fk_workspace_id;
+          const workspaceOrOrgId =
+            subscription.fk_org_id || subscription.fk_workspace_id;
 
-          await Workspace.refreshPlanAndSubscription(workspaceId);
+          await refreshPlanAndSubscription(workspaceOrOrgId);
 
           this.logger.log(
-            `Payment failed for workspace ${workspaceId}. No plan applied`,
+            `Payment failed for ${workspaceOrOrgId}. No plan applied`,
           );
           break;
         }
@@ -1098,7 +1063,7 @@ export class PaymentService {
             subscription.metadata.fk_workspace_id ||
             subscription.metadata.fk_org_id;
 
-          const workspaceOrOrg = await this.getWorkspaceOrOrg(workspaceOrOrgId);
+          const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId);
 
           const price = subscription.items.data[0].price;
 
@@ -1169,11 +1134,13 @@ export class PaymentService {
               : {}),
           });
 
-          const workspaceId = subscription.fk_workspace_id;
-          await Workspace.refreshPlanAndSubscription(workspaceId);
+          const workspaceOrOrgId =
+            subscription.fk_org_id || subscription.fk_workspace_id;
+
+          await refreshPlanAndSubscription(workspaceOrOrgId);
 
           this.logger.log(
-            `Subscription ${event.type} processed for workspace ${workspaceId}.`,
+            `Subscription ${event.type} processed for ${workspaceOrOrgId}.`,
           );
           break;
         }

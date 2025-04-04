@@ -1,6 +1,15 @@
 <script setup lang="ts">
-import { UITypes, ViewTypes, isVirtualCol, ncIsNullOrUndefined, readonlyMetaAllowedTypes } from 'nocodb-sdk'
-import type { ColumnReqType, ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import {
+  type ColumnReqType,
+  type ColumnType,
+  type TableType,
+  UITypes,
+  type ViewType,
+  ViewTypes,
+  isLinksOrLTAR,
+  isVirtualCol,
+  readonlyMetaAllowedTypes,
+} from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
 import axios from 'axios'
 import type { ComputedRef, Ref } from 'vue'

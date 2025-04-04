@@ -95,9 +95,12 @@ export const useInfiniteGroups = (
     return tempColor
   }
 
-  const fetchParentGroupChunk = async (parentGroup: CanvasGroup, force = false) => {}
-
-  const fetchGroupChunk = async (chunkId: number, parentGroup?: CanvasGroup, force = false) => {
+  const fetchGroupChunk = async (
+    chunkId: number,
+    parentGroup?: CanvasGroup,
+    oldGroupMapState?: Map<string, CanvasGroup>,
+    force = false,
+  ) => {
     const targetChunkStates = parentGroup ? parentGroup.chunkStates : chunkStates.value
     if (targetChunkStates[chunkId] === 'loading' || (targetChunkStates[chunkId] === 'loaded' && !force)) return
 
@@ -148,9 +151,13 @@ export const useInfiniteGroups = (
         // maintain old group state if it exists
         let oldGroup = parentGroup?.groups.get(groupIndex) || cachedGroups.value.get(groupIndex)
 
-        if(oldGroup && oldGroup?.value !== value) {
-          oldGroup = [...((parentGroup?.groups || cachedGroups.value)?.values() || [])].find(g => g.value === value)
+        if (!oldGroup || oldGroup?.value !== value) {
+          oldGroup =
+            oldGroupMapState?.get(value) ??
+            [...((parentGroup?.groups || cachedGroups.value)?.values() || [])].find((g) => g.value === value)
         }
+
+        console.log('oldGroup', oldGroup)
 
         const group: CanvasGroup = {
           groupIndex,
@@ -319,22 +326,25 @@ export const useInfiniteGroups = (
 
     await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup)))
     callbacks?.syncVisibleData()
+
+    let oldGroupMapState: Map<number, CanvasGroup>
     // if found empty chunk, remove all chunks after it and fetch all chunks again
     if (force) {
+      oldGroupMapState = new Map([...cachedGroups.value.entries()].map(([key, value]) => [value.value, value]))
       let foundEmptyChunk = false
       for (let i = startIndex; i <= endIndex; i++) {
-        // const id = getGroupChunkIndex(i)
         const targetGroup = cachedGroups.value.get(i)
-        if (targetGroup.count === 0) {
+        if (targetGroup?.count === 0) {
           foundEmptyChunk = true
         }
+
         if (foundEmptyChunk) {
           cachedGroups.value.delete(i)
         }
       }
     }
 
-    await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup, force)))
+    await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup, oldGroupMapState, force)))
   }
 
   const clearGroupCache = (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => {

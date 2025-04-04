@@ -423,11 +423,12 @@ export class BaseUsersService extends BaseUsersServiceCE {
           !NON_SEAT_ROLES.includes(param.baseUser.roles as ProjectRoles) &&
           NON_SEAT_ROLES.includes(oldBaseUser.roles as ProjectRoles)
         ) {
-          const editorsInWorkspace =
+          const editorsInWorkspace = (
             await Subscription.calculateWorkspaceSeatCount(
               workspace.id,
               transaction,
-            );
+            )
+          ).seatCount;
 
           const editorLimitForWorkspace = await getLimit(
             PlanLimitTypes.LIMIT_EDITOR,

@@ -235,11 +235,17 @@ export default class Subscription {
     */
     const seatUsersMap = new Map<string, true>();
 
+    const nonSeatUsersMap = new Map<string, true>();
+
     for (const user of workspaceUsers) {
       const userId = user.fk_user_id;
       const role = user.roles;
       if (!seatUsersMap.has(userId) && !NON_SEAT_ROLES.includes(role)) {
         seatUsersMap.set(userId, true);
+      }
+
+      if (!nonSeatUsersMap.has(userId) && NON_SEAT_ROLES.includes(role)) {
+        nonSeatUsersMap.set(userId, true);
       }
     }
 
@@ -249,9 +255,22 @@ export default class Subscription {
       if (!seatUsersMap.has(userId) && !NON_SEAT_ROLES.includes(role)) {
         seatUsersMap.set(userId, true);
       }
+
+      if (nonSeatUsersMap.has(userId) && !NON_SEAT_ROLES.includes(role)) {
+        // If user is present in nonSeatUsersMap and in some base it is seat user then remove it
+        nonSeatUsersMap.delete(userId);
+      } else if (
+        !nonSeatUsersMap.has(userId) &&
+        NON_SEAT_ROLES.includes(role)
+      ) {
+        nonSeatUsersMap.set(userId, true);
+      }
     }
 
-    return seatUsersMap.size;
+    return {
+      seatCount: seatUsersMap.size,
+      nonSeatCount: nonSeatUsersMap.size,
+    };
   }
 
   public static async calculateOrgSeatCount(

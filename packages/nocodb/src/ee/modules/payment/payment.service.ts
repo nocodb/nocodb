@@ -781,10 +781,12 @@ export class PaymentService {
     }
 
     if (workspaceOrOrg.entity === 'workspace') {
-      return Subscription.calculateWorkspaceSeatCount(
-        workspaceOrOrg.id,
-        ncMeta,
-      );
+      return (
+        await Subscription.calculateWorkspaceSeatCount(
+          workspaceOrOrg.id,
+          ncMeta,
+        )
+      ).seatCount;
     }
 
     return Subscription.calculateOrgSeatCount(workspaceOrOrg.id, ncMeta);

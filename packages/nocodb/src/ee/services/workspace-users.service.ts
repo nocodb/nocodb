@@ -8,7 +8,9 @@ import {
   AppEvents,
   CloudOrgUserRoles,
   extractRolesObj,
+  HigherPlan,
   NON_SEAT_ROLES,
+  PlanTitles,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
@@ -163,13 +165,14 @@ export class WorkspaceUsersService {
         transaction,
       );
 
-      if (workspace.payment.plan.free) {
+      if (workspace.payment.plan.title !== PlanTitles.ENTERPRISE) {
         if (!NON_SEAT_ROLES.includes(param.roles)) {
-          const editorsInWorkspace =
+          const editorsInWorkspace = (
             await Subscription.calculateWorkspaceSeatCount(
               param.workspaceId,
               transaction,
-            );
+            )
+          ).seatCount;
 
           const editorLimitForWorkspace = await getLimit(
             PlanLimitTypes.LIMIT_EDITOR,
@@ -180,7 +183,35 @@ export class WorkspaceUsersService {
           // check if user limit is reached or going to be exceeded
           if (editorsInWorkspace > editorLimitForWorkspace) {
             NcError.badRequest(
-              `Only ${editorLimitForWorkspace} editors are allowed for your plan, for more please upgrade your plan`,
+              `Only ${editorLimitForWorkspace} editors are allowed on the ${
+                workspace.payment.plan.title
+              } plan, Upgrade to the ${
+                HigherPlan[workspace.payment.plan.title]
+              } plan to add more users`,
+            );
+          }
+        } else if (workspace.payment.plan.free) {
+          const usersInWorkspace = (
+            await Subscription.calculateWorkspaceSeatCount(
+              param.workspaceId,
+              transaction,
+            )
+          ).nonSeatCount;
+
+          const usersLimitForWorkspace = await getLimit(
+            PlanLimitTypes.LIMIT_USER,
+            param.workspaceId,
+            transaction,
+          );
+
+          // check if user limit is reached or going to be exceeded
+          if (usersInWorkspace > usersLimitForWorkspace) {
+            NcError.badRequest(
+              `Only ${usersLimitForWorkspace} users are allowed on the ${
+                workspace.payment.plan.title
+              } plan, Upgrade to the ${
+                HigherPlan[workspace.payment.plan.title]
+              } plan to add more users`,
             );
           }
         }
@@ -397,8 +428,9 @@ export class WorkspaceUsersService {
 
     if (workspace.payment.plan.free) {
       if (!NON_SEAT_ROLES.includes(roles) || param.baseEditor) {
-        const editorsInWorkspace =
-          await Subscription.calculateWorkspaceSeatCount(workspaceId, ncMeta);
+        const editorsInWorkspace = (
+          await Subscription.calculateWorkspaceSeatCount(workspaceId, ncMeta)
+        ).seatCount;
 
         const editorLimitForWorkspace = await getLimit(
           PlanLimitTypes.LIMIT_EDITOR,

@@ -48,4 +48,14 @@ export const PlanOrder = {
   [PlanTitles.TEAM]: 1,
   [PlanTitles.BUSINESS]: 2,
   [PlanTitles.ENTERPRISE]: 3,
-}
+};
+
+export const PlanOrderToPlan = Object.fromEntries(
+  Object.entries(PlanOrder).map(([plan, order]) => [order, plan])
+);
+
+export const HigherPlan = {
+  [PlanTitles.FREE]: PlanTitles.TEAM,
+  [PlanTitles.TEAM]: PlanTitles.BUSINESS,
+  [PlanTitles.BUSINESS]: PlanTitles.ENTERPRISE,
+};

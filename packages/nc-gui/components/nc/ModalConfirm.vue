@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { NcButtonProps } from './Button.vue'
 import type { NcModalProps } from './Modal.vue'
 
 /**
@@ -32,7 +33,7 @@ import type { NcModalProps } from './Modal.vue'
 /**
  * Props interface extending NcModalProps with additional customization options.
  */
-interface Props extends NcModalProps {
+export interface NcConfirmModalProps extends NcModalProps {
   /** Type of modal (affects icon and styling) */
   type?: 'error' | 'success' | 'warning' | 'info'
 
@@ -57,17 +58,21 @@ interface Props extends NcModalProps {
   /** Additional class for the OK button */
   okClass?: string
 
+  okProps?: Partial<NcButtonProps>
+
   /** Text for the Cancel button */
   cancelText?: string
 
   /** Additional class for the Cancel button */
   cancelClass?: string
 
+  cancelProps?: Partial<NcButtonProps>
+
   /** Determines which button gets focus on open */
   focusBtn?: 'ok' | 'cancel' | null
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<NcConfirmModalProps>(), {
   maskClosable: false,
   showSeparator: false,
   size: 'xs',
@@ -174,10 +179,24 @@ watch(okBtnRef, () => {
       </div>
 
       <div class="flex flex-row w-full justify-end gap-4">
-        <NcButton ref="cancelBtnRef" type="secondary" size="small" :class="cancelClass" @click="vModel = false">
+        <NcButton
+          v-bind="cancelProps"
+          ref="cancelBtnRef"
+          :type="cancelProps?.type ?? 'secondary'"
+          size="small"
+          :class="cancelClass"
+          @click="vModel = false"
+        >
           {{ cancelText || $t('general.cancel') }}
         </NcButton>
-        <NcButton ref="okBtnRef" type="primary" size="small" :class="okClass" @click="emits('ok')">
+        <NcButton
+          v-bind="okProps"
+          ref="okBtnRef"
+          :type="okProps?.type ?? 'primary'"
+          size="small"
+          :class="okClass"
+          @click="emits('ok')"
+        >
           {{ okText || $t('general.ok') }}
         </NcButton>
       </div>

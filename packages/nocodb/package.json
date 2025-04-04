@@ -202,6 +202,7 @@
     "socket.io": "^4.8.1",
     "sqlite3": "^5.1.7",
     "stream-json": "^1.9.1",
+    "stripe": "^17.6.0",
     "tedious": "^16.7.1",
     "tinycolor2": "^1.6.0",
     "twilio": "^4.23.0",

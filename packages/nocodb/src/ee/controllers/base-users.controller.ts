@@ -7,7 +7,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ProjectUserReqType, WorkspaceUserRoles } from 'nocodb-sdk';
+import {
+  NON_SEAT_ROLES,
+  type ProjectRoles,
+  ProjectUserReqType,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import { BaseUsersController as BaseUsersControllerCE } from 'src/controllers/base-users.controller';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
@@ -66,6 +71,7 @@ export class BaseUsersController extends BaseUsersControllerCE {
           email: body.email,
           roles: WorkspaceUserRoles.NO_ACCESS,
         },
+        baseEditor: !NON_SEAT_ROLES.includes(body.roles as ProjectRoles),
       });
       wsUserInvited = true;
     }

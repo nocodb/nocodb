@@ -15,7 +15,7 @@ import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import type { OnApplicationBootstrap } from '@nestjs/common';
 import type { BaseType, UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
-import { getLimit, getLimitsForPlan, PlanLimitTypes } from '~/plan-limits';
+import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import Workspace from '~/models/Workspace';
@@ -28,6 +28,7 @@ import {
   Integration,
   ModelStat,
   PresignedUrl,
+  Subscription,
   User,
 } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -38,6 +39,7 @@ import Noco from '~/Noco';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { JobTypes } from '~/interface/Jobs';
 import NocoCache from '~/cache/NocoCache';
+import { PaymentService } from '~/modules/payment/payment.service';
 
 const mockUser = {
   id: '1',
@@ -54,6 +56,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     protected basesService: BasesService,
     protected tablesService: TablesService,
     @Inject(forwardRef(() => 'JobsService')) protected jobsService,
+    protected paymentService: PaymentService,
   ) {}
 
   async onApplicationBootstrap() {
@@ -177,11 +180,16 @@ export class WorkspacesService implements OnApplicationBootstrap {
       plan: WorkspacePlan.FREE,
     });
 
-    if (
-      userFreeWorkspacesCount >=
-      (await getLimit(PlanLimitTypes.FREE_WORKSPACE_LIMIT))
-    ) {
-      NcError.badRequest('You have reached the limit of free workspaces');
+    const { limit } = await getLimit(PlanLimitTypes.LIMIT_FREE_WORKSPACE);
+
+    if (userFreeWorkspacesCount >= limit) {
+      NcError.planLimitExceeded(
+        'You have reached the limit of free workspaces',
+        {
+          limit: limit,
+          current: userFreeWorkspacesCount,
+        },
+      );
     }
 
     const workspacePayloads = Array.isArray(param.workspaces)
@@ -445,8 +453,6 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     if (!workspace) NcError.workspaceNotFound(param.workspaceId);
 
-    const limits = getLimitsForPlan(workspace.plan);
-
     const stats = await ModelStat.getWorkspaceSum(workspace.id);
 
     const workspaceRoles = await WorkspaceUser.get(workspace.id, param.user.id);
@@ -481,7 +487,6 @@ export class WorkspacesService implements OnApplicationBootstrap {
     return {
       ...workspace,
       roles: workspaceRoles?.roles,
-      limits,
       stats,
       integrations: integrations,
       data_reflection_enabled: !!dataReflection,
@@ -573,24 +578,54 @@ export class WorkspacesService implements OnApplicationBootstrap {
     return updatedWorkspace;
   }
 
-  async delete(param: { user: UserType; workspaceId: string; req: NcRequest }) {
-    const workspace = await Workspace.get(param.workspaceId);
+  async delete(
+    param: { user: UserType; workspaceId: string; req: NcRequest },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const workspace = await Workspace.get(param.workspaceId, false, ncMeta);
 
     if (!workspace) NcError.workspaceNotFound(param.workspaceId);
 
-    // todo: avoid removing owner
+    // check if workspace have subscription
+    const subscription = await Subscription.getByWorkspaceOrOrg(
+      workspace.id,
+      ncMeta,
+    );
 
-    // block unauthorized user form deleting
+    if (subscription) {
+      NcError.badRequest(
+        'Workspace cannot be deleted as it has an active subscription',
+      );
+    }
 
-    // todo: unlink any base linked
-    await Workspace.softDelete(param.workspaceId);
+    const transaction = await ncMeta.startTransaction();
 
-    this.appHooksService.emit(AppEvents.WORKSPACE_DELETE, {
-      workspace,
-      req: param.req,
-    });
+    try {
+      // todo: avoid removing owner
 
-    return true;
+      // block unauthorized user form deleting
+
+      // todo: unlink any base linked
+      await Workspace.softDelete(param.workspaceId, transaction);
+
+      // TODO: remove optional chaining on cloud only code updated
+      await this.paymentService?.reseatSubscription(
+        workspace.fk_org_id ?? workspace.id,
+        transaction,
+      );
+
+      await transaction.commit();
+
+      this.appHooksService.emit(AppEvents.WORKSPACE_DELETE, {
+        workspace,
+        req: param.req,
+      });
+
+      return true;
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
   }
 
   async moveProject(param: {

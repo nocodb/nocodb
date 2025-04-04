@@ -1,4 +1,4 @@
-import type { SnapshotType, WorkspaceType } from 'nocodb-sdk'
+import { PlanLimitTypes, type SnapshotType, type WorkspaceType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
 export type SnapshotExtendedType = SnapshotType & {
@@ -11,6 +11,8 @@ export type SnapshotExtendedType = SnapshotType & {
 export const useBaseSettings = createSharedComposable(() => {
   const { $api, $poller } = useNuxtApp()
 
+  const { t } = useI18n()
+
   const basesStore = useBases()
 
   const { activeProjectId } = storeToRefs(basesStore)
@@ -20,6 +22,8 @@ export const useBaseSettings = createSharedComposable(() => {
   const { navigateToProject } = useGlobal()
 
   const { refreshCommandPalette } = useCommandPalette()
+
+  const { getLimit, handleUpgradePlan, getPlanTitle, getHigherPlan, activePlan, isPaymentEnabled } = useEeConfig()
 
   const isCreatingSnapshot = ref(false)
 
@@ -205,7 +209,25 @@ export const useBaseSettings = createSharedComposable(() => {
     }
   }
 
+  const verifySnapshotLimit = () => {
+    if (!isPaymentEnabled.value) return false
+
+    // Todo: snapshot limit is workspace level so how to get count of snapshots
+    return false
+  }
+
   const addNewSnapshot = () => {
+    if (verifySnapshotLimit()) {
+      return handleUpgradePlan({
+        title: t('upgrade.UpgradeToCreateAdditionalSnapshots'),
+        content: t('upgrade.UpgradeToCreateAdditionalSnapshotsSubtitle', {
+          n: getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE) ?? 2,
+          activePlan: getPlanTitle(activePlan.value?.title),
+          plan: getHigherPlan(),
+        }),
+      })
+    }
+
     checkIfCooldownPeriodReached()
     if (isSnapshotLimitReached.value) {
       message.error('Maximum 2 snapshots allowed per base at a time in the free plan')

@@ -24,8 +24,9 @@ import { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TablesService } from '~/services/tables.service';
-import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { DataReflectionService } from '~/services/data-reflection.service';
+import { PaymentService } from '~/modules/payment/payment.service';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -77,6 +78,7 @@ export class BasesService extends BasesServiceCE {
     protected metaService: MetaService,
     protected tablesService: TablesService,
     protected dataReflectionService: DataReflectionService,
+    protected paymentService: PaymentService,
   ) {
     super(appHooksService, metaService, tablesService);
   }
@@ -110,14 +112,19 @@ export class BasesService extends BasesServiceCE {
       }
 
       const basesInWorkspace = await Base.countByWorkspace(fk_workspace_id);
-      const baseLimitForWorkspace = await getLimit(
-        PlanLimitTypes.BASE_LIMIT,
+      const { limit: baseLimitForWorkspace, plan } = await getLimit(
+        PlanLimitTypes.LIMIT_BASE_PER_WORKSPACE,
         fk_workspace_id,
       );
 
       if (basesInWorkspace >= baseLimitForWorkspace) {
-        NcError.badRequest(
+        NcError.planLimitExceeded(
           `Only ${baseLimitForWorkspace} bases are allowed, for more please upgrade your plan`,
+          {
+            plan: plan?.title,
+            limit: baseLimitForWorkspace,
+            current: basesInWorkspace,
+          },
         );
       }
     }
@@ -308,8 +315,44 @@ export class BasesService extends BasesServiceCE {
   async baseSoftDelete(
     context: NcContext,
     param: { baseId: any; user: UserType; req: NcRequest },
+    ncMeta = Noco.ncMeta,
   ) {
-    return super.baseSoftDelete(context, param);
+    const base = await Base.getWithInfo(context, param.baseId);
+
+    if (!base) {
+      NcError.baseNotFound(param.baseId);
+    }
+
+    const workspace = await Workspace.get(base.fk_workspace_id);
+
+    if (!workspace) {
+      NcError.workspaceNotFound(base.fk_workspace_id);
+    }
+
+    const transaction = await ncMeta.startTransaction();
+
+    try {
+      await Base.softDelete(context, param.baseId, ncMeta);
+
+      await this.paymentService.reseatSubscription(
+        workspace.fk_org_id ?? workspace.id,
+        ncMeta,
+      );
+
+      await transaction.commit();
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
+
+    this.appHooksService.emit(AppEvents.PROJECT_DELETE, {
+      base,
+      user: param.user,
+      req: param.req,
+      context,
+    });
+
+    return true;
   }
 
   protected async validateProjectTitle(

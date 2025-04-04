@@ -42,6 +42,23 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
       },
     );
 
+    if (process.env.NC_STRIPE_SECRET_KEY) {
+      await this.jobsQueue.add(
+        {
+          jobName: JobTypes.SubscriptionSchedule,
+        },
+        {
+          jobId: JobTypes.SubscriptionSchedule,
+          repeat: { cron: '0 * * * *' },
+        },
+      );
+    } else {
+      await this.jobsQueue.removeRepeatable({
+        jobId: JobTypes.SubscriptionSchedule,
+        cron: '0 * * * *',
+      });
+    }
+
     // common cmds
     const sourceReleaseCmd = async (commaSeperatedSourceIds: string) => {
       const sourceIds = commaSeperatedSourceIds.split(',');

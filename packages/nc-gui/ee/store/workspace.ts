@@ -2,6 +2,7 @@ import type {
   Api,
   BaseType,
   IntegrationType,
+  PlanFeatureTypes,
   PlanLimitTypes,
   WorkspaceType,
   WorkspaceUserRoles,
@@ -11,10 +12,20 @@ import { WorkspaceStatus } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { isString } from '@vue/shared'
 
-interface NcWorkspace extends WorkspaceType {
+export interface NcWorkspace extends WorkspaceType {
   edit?: boolean
   temp_title?: string | null
   roles?: string
+  payment?: {
+    plan: {
+      title: string
+      limit: { [key in PlanLimitTypes]: number }
+      features: { [key in PlanFeatureTypes]: boolean }
+      meta: { [key in PlanLimitTypes]: number } & {
+        [key in PlanFeatureTypes]: boolean
+      }
+    }
+  }
 }
 
 export const useWorkspace = defineStore('workspaceStore', () => {
@@ -78,6 +89,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (route.value.query.workspaceId) return route.value.query.workspaceId as string
 
     if (route.value.params.typeOrId) return route.value.params.typeOrId as string
+
+    if (route.value.params.workspaceId) return route.value.params.workspaceId as string
 
     const lastLoadedWorkspace = workspacesList.value.find((w) => w.id === lastOpenedWorkspaceId.value)
     if (lastLoadedWorkspace) return lastLoadedWorkspace.id
@@ -337,7 +350,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     const wsState = workspaces.value.get(workspaceId)
 
-    if (force || !wsState || !(wsState as any)?.limits) {
+    if (force || !wsState || !(wsState as any)?.payment) {
       await loadWorkspace(workspaceId)
       await loadRoles()
     }
@@ -529,7 +542,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const workspaceRole = computed(() => activeWorkspace.value?.roles)
 
   const getPlanLimit = (limitType: PlanLimitTypes) => {
-    return activeWorkspace.value?.limits?.[limitType] ?? 0
+    return activeWorkspace.value?.payment?.plan?.meta?.[limitType] ?? 0
   }
 
   watch(activeWorkspaceId, async () => {

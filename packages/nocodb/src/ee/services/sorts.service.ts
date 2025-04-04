@@ -8,7 +8,7 @@ import { NcError } from '~/helpers/catchError';
 import { View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class SortsService extends SortsServiceCE {
@@ -39,14 +39,19 @@ export class SortsService extends SortsServiceCE {
       },
     );
 
-    const sortLimitForWorkspace = await getLimit(
-      PlanLimitTypes.SORT_LIMIT,
+    const { limit: sortLimitForWorkspace, plan } = await getLimit(
+      PlanLimitTypes.LIMIT_SORT_PER_VIEW,
       context.workspace_id,
     );
 
     if (sortsInView >= sortLimitForWorkspace) {
-      NcError.badRequest(
+      NcError.planLimitExceeded(
         `Only ${sortLimitForWorkspace} sorts are allowed, for more please upgrade your plan`,
+        {
+          plan: plan?.title,
+          limit: sortLimitForWorkspace,
+          current: sortsInView,
+        },
       );
     }
 

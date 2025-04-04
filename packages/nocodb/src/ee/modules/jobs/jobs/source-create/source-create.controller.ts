@@ -17,8 +17,8 @@ import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
 import { Base, Integration } from '~/models';
 import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
-import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { MetaTable, RootScopes } from '~/utils/globals';
+import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { NcContext, NcRequest } from '~/interface/config';
 import { deepMerge } from '~/utils';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
@@ -57,25 +57,64 @@ export class SourceCreateController {
       NcError.baseNotFound(baseId);
     }
 
-    const sourcesInBase = await Noco.ncMeta.metaCount(
+    const sourcesInWorkspace = await Noco.ncMeta.metaCount(
       context.workspace_id,
-      context.base_id,
+      RootScopes.WORKSPACE,
       MetaTable.SOURCES,
       {
-        condition: {
-          base_id: base.id,
+        xcCondition: {
+          _and: [
+            {
+              fk_workspace_id: {
+                eq: context.workspace_id,
+              },
+            },
+            {
+              _or: [
+                {
+                  is_meta: {
+                    eq: false,
+                  },
+                },
+                {
+                  is_meta: {
+                    eq: null,
+                  },
+                },
+              ],
+            },
+            {
+              _or: [
+                {
+                  is_local: {
+                    eq: false,
+                  },
+                },
+                {
+                  is_local: {
+                    eq: null,
+                  },
+                },
+              ],
+            },
+          ],
         },
       },
     );
 
-    const sourceLimitForWorkspace = await getLimit(
-      PlanLimitTypes.SOURCE_LIMIT,
+    const { limit: sourceLimitForWorkspace, plan } = await getLimit(
+      PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
       base.fk_workspace_id,
     );
 
-    if (sourcesInBase >= sourceLimitForWorkspace) {
-      NcError.badRequest(
+    if (sourcesInWorkspace >= sourceLimitForWorkspace) {
+      NcError.planLimitExceeded(
         `Only ${sourceLimitForWorkspace} sources are allowed, for more please upgrade your plan`,
+        {
+          plan: plan?.title,
+          limit: sourceLimitForWorkspace,
+          current: sourcesInWorkspace,
+        },
       );
     }
 

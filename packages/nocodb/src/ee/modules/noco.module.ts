@@ -1,6 +1,8 @@
 import { nocoModuleMetadata } from 'src/modules/noco.module';
 import { Module } from '@nestjs/common';
 
+import { PaymentModule } from '~/modules/payment/payment.module';
+
 /* Generic */
 import { Producer } from '~/services/producer/producer';
 import { ProducerProvider } from '~/services/producer';
@@ -63,7 +65,12 @@ import { ScriptsService } from '~/services/scripts.service';
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 export const nocoModuleEeMetadata = {
-  imports: [...nocoModuleMetadata.imports, NocoAiModule, NocoSyncModule],
+  imports: [
+    ...nocoModuleMetadata.imports,
+    NocoAiModule,
+    NocoSyncModule,
+    PaymentModule,
+  ],
   providers: [
     ...nocoModuleMetadata.providers,
 

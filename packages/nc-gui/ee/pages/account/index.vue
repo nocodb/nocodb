@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { WorkspaceUserRoles } from 'nocodb-sdk'
+
 definePageMeta({
   hideHeader: true,
 })
@@ -10,6 +12,15 @@ const $route = useRoute()
 const { appInfo, signedIn, signOut } = useGlobal()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const workspaceStore = useWorkspace()
+
+const { workspacesList } = storeToRefs(workspaceStore)
+const { loadWorkspaces } = workspaceStore
+
+const filteredWorkspaces = computed(() => workspacesList.value.filter((w) => w.roles === WorkspaceUserRoles.OWNER))
+
+const loadingWorkspaces = ref(false)
 
 const selectedKeys = computed(() => {
   if (/^\/account\/users\/?$/.test($route.fullPath)) {
@@ -40,6 +51,13 @@ const logout = async () => {
     redirectToSignin: true,
   })
 }
+
+onMounted(() => {
+  loadingWorkspaces.value = true
+  loadWorkspaces().then(() => {
+    loadingWorkspaces.value = false
+  })
+})
 </script>
 
 <template>
@@ -75,7 +93,7 @@ const logout = async () => {
               </div>
               <NcDivider class="!mt-0" />
 
-              <div class="text-sm text-gray-500 font-semibold ml-4 py-1.5 mt-2">{{ $t('labels.account') }}</div>
+              <div class="text-sm text-nc-content-gray-muted font-semibold ml-4 py-1.5 mt-2">{{ $t('labels.account') }}</div>
 
               <NcMenuItem
                 key="profile"
@@ -217,6 +235,39 @@ const logout = async () => {
                   <span class="ml-4">{{ $t('activity.settings') }}</span>
                 </NcMenuItem>
               </a-sub-menu>
+
+              <NcDivider class="!mt-0" />
+
+              <template v-if="isFeatureEnabled(FEATURE_FLAG.PAYMENT)">
+                <div class="text-sm text-nc-content-gray-muted font-semibold ml-4 py-1.5">{{ $t('labels.workspaces') }}</div>
+
+                <template v-if="loadingWorkspaces">
+                  <div class="w-full flex items-center justify-center">
+                    <GeneralLoader :size="20" />
+                  </div>
+                </template>
+                <template v-else>
+                  <NcMenuItem
+                    v-for="workspace in filteredWorkspaces"
+                    :key="workspace.id"
+                    class="item"
+                    :class="{
+                      active:
+                        $route.params.workspaceId === workspace.id &&
+                        $route.name === 'account-index-workspace-workspaceId-settings',
+                    }"
+                    @click="navigateTo(`/account/workspace/${workspace.id}/settings`)"
+                  >
+                    <div class="flex items-center space-x-2">
+                      <GeneralWorkspaceIcon :workspace="workspace" size="account-sidebar" />
+
+                      <div class="nc-workspace-title truncate capitalize">
+                        {{ workspace.title }}
+                      </div>
+                    </div>
+                  </NcMenuItem>
+                </template>
+              </template>
             </NcMenu>
           </div>
 
@@ -303,17 +354,17 @@ const logout = async () => {
 
 .tabs-menu {
   :deep(.item) {
-    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 text-gray-700 !hover:(bg-gray-200 text-gray-700) font-medium;
+    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 text-nc-content-gray-subtle !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle) font-medium;
     width: calc(100% - 1rem);
   }
 
   :deep(.active) {
-    @apply !bg-brand-50 !text-brand-500 !hover:(bg-brand-50 text-brand-500) font-semibold;
+    @apply !bg-nc-bg-brand !text-nc-content-brand-disabled !hover:(bg-nc-bg-brand text-nc-content-brand-disabled ) font-semibold;
   }
 }
 
 :deep(.ant-menu-submenu-title) {
-  @apply select-none mx-2 !pl-3 !pr-1 !text-sm !rounded-md !mb-1 !hover:(bg-gray-200 text-gray-700);
+  @apply select-none mx-2 !pl-3 !pr-1 !text-sm !rounded-md !mb-1 !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle);
   width: calc(100% - 1rem);
 
   & + ul {

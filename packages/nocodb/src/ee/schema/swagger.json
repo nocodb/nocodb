@@ -5255,7 +5255,11 @@
           "title": {
             "type": "string"
           },
-          "updated_at": {}
+          "updated_at": {},
+          "stripe_customer_id": {
+            "description": "Stripe customer ID",
+            "type": "string"
+          }
         },
         "title": "Workspace",
         "type": "object"
@@ -6249,37 +6253,6 @@
           "id": "24eab7d1ead43"
         }
       },
-      "Org": {
-        "description": "Model for Organisation",
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique ID"
-          },
-          "title": {
-            "type": "string",
-            "description": "Name of the Organization"
-          },
-          "image": {
-            "type": "string",
-            "description": "Image URL of the Organization"
-          },
-          "meta": {
-            "oneOf": [
-              {
-                "type": ""
-              },
-              {
-                "type": "null"
-              },
-              {
-                "type": "string"
-              }
-            ]
-          }
-        }
-      },
       "FormColumn": {
         "description": "Model for Form Column",
         "examples": [
@@ -7036,6 +7009,11 @@
                 "type": "string"
               }
             ]
+          },
+
+          "stripe_customer_id": {
+            "description": "Stripe customer ID",
+            "type": "string"
           }
         }
       },

@@ -50,6 +50,7 @@
     "@iconify/vue": "^4.3.0",
     "@pinia/nuxt": "^0.5.5",
     "@sentry/vue": "^9.2.0",
+    "@stripe/stripe-js": "^5.7.0",
     "@tiptap/extension-blockquote": "^2.11.5",
     "@tiptap/extension-bold": "^2.11.5",
     "@tiptap/extension-bubble-menu": "^2.11.5",

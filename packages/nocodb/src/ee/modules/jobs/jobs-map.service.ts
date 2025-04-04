@@ -18,6 +18,7 @@ import { SnapshotProcessor } from '~/modules/jobs/jobs/snapshot/snapshot.process
 import { JobTypes } from '~/interface/Jobs';
 import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
 import { SyncModuleSyncDataProcessor } from '~/integrations/sync/module/services/sync.processor';
+import { SubscriptionScheduleProcessor } from '~/modules/jobs/jobs/subscription-schedule.processor';
 
 @Injectable()
 export class JobsMap extends JobsMapCE {
@@ -40,6 +41,7 @@ export class JobsMap extends JobsMapCE {
     protected readonly snapshotProcessor: SnapshotProcessor,
     protected readonly noOpJob: NoOpMigration,
     protected readonly syncModuleSyncDataProcessor: SyncModuleSyncDataProcessor,
+    protected readonly subscriptionScheduleProcessor: SubscriptionScheduleProcessor,
   ) {
     super(
       duplicateProcessor,
@@ -90,6 +92,9 @@ export class JobsMap extends JobsMapCE {
       },
       [JobTypes.SyncModuleSyncData]: {
         this: this.syncModuleSyncDataProcessor,
+      },
+      [JobTypes.SubscriptionSchedule]: {
+        this: this.subscriptionScheduleProcessor,
       },
     };
   }

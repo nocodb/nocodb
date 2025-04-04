@@ -1,5 +1,10 @@
 import { Logger } from '@nestjs/common';
-import type { WorkspacePlan, WorkspaceStatus, WorkspaceType } from 'nocodb-sdk';
+import {
+  type WorkspacePlan,
+  type WorkspaceStatus,
+  type WorkspaceType,
+} from 'nocodb-sdk';
+import type { Plan, Subscription } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
 import {
@@ -18,6 +23,7 @@ import {
   prepareForResponse,
 } from '~/utils/modelUtils';
 import { Base, CustomUrl, DataReflection, Integration } from '~/models';
+import { getActivePlanAndSubscription } from '~/helpers/paymentHelpers';
 
 const logger = new Logger('Workspace');
 
@@ -39,6 +45,12 @@ export default class Workspace implements WorkspaceType {
   message?: string;
   infra_meta?: string | Record<string, any>;
   fk_org_id?: string;
+  stripe_customer_id?: string;
+
+  payment?: {
+    subscription?: Subscription;
+    plan: Partial<Plan>;
+  };
 
   constructor(workspace: Workspace | WorkspaceType) {
     Object.assign(this, workspace);
@@ -66,6 +78,12 @@ export default class Workspace implements WorkspaceType {
         workspace.meta = {};
       }
     }
+
+    workspace.payment = await getActivePlanAndSubscription(
+      workspace.fk_org_id || workspace.id,
+      ncMeta,
+    );
+
     return workspace && new Workspace(workspace);
   }
 
@@ -91,6 +109,10 @@ export default class Workspace implements WorkspaceType {
       if (workspaceData) {
         workspaceData.meta = parseMetaProp(workspaceData);
         workspaceData.infra_meta = parseMetaProp(workspaceData, 'infra_meta');
+        workspaceData.payment = await getActivePlanAndSubscription(
+          workspaceData.fk_org_id || workspaceData.id,
+          ncMeta,
+        );
         if (!workspaceData.deleted) {
           await NocoCache.set(
             `${CacheScope.WORKSPACE}:${workspaceData.id}`,
@@ -122,6 +144,7 @@ export default class Workspace implements WorkspaceType {
       'status',
       'plan',
       'fk_org_id',
+      'stripe_customer_id',
     ]);
 
     // stringify meta if it is an object
@@ -165,6 +188,7 @@ export default class Workspace implements WorkspaceType {
       'deleted_at',
       'order',
       'fk_org_id',
+      'stripe_customer_id',
     ]);
 
     // stringify meta if it is an object
@@ -333,16 +357,33 @@ export default class Workspace implements WorkspaceType {
       RootScopes.WORKSPACE,
       MetaTable.WORKSPACE,
       {
-        condition: {
-          deleted: false,
+        xcCondition: {
+          _or: [
+            {
+              deleted: {
+                eq: false,
+              },
+            },
+            {
+              deleted: {
+                eq: null,
+              },
+            },
+          ],
         },
       },
     );
-    return workspaces.map((workspace) => {
+
+    for (const workspace of workspaces) {
       workspace.meta = parseMetaProp(workspace);
       workspace.infra_meta = parseMetaProp(workspace, 'infra_meta');
-      new Workspace(workspace);
-    });
+      workspace.payment = await getActivePlanAndSubscription(
+        workspace.fk_org_id || workspace.id,
+        ncMeta,
+      );
+    }
+
+    return workspaces.map((workspace) => new Workspace(workspace));
   }
 
   static async count(condition: any, ncMeta = Noco.ncMeta) {
@@ -415,6 +456,13 @@ export default class Workspace implements WorkspaceType {
       );
 
     const workspaces = await queryBuilder;
+
+    for (const workspace of workspaces) {
+      workspace.payment = await getActivePlanAndSubscription(
+        workspace.fk_org_id || workspace.id,
+        ncMeta,
+      );
+    }
 
     return workspaces;
   }

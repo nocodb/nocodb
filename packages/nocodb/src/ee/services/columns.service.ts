@@ -22,7 +22,7 @@ import {
 import { Base, Column, Filter, Model, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { NcError } from '~/helpers/catchError';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
@@ -77,14 +77,19 @@ export class ColumnsService extends ColumnsServiceCE {
         },
       );
 
-      const columnLimitForWorkspace = await getLimit(
-        PlanLimitTypes.COLUMN_LIMIT,
+      const { limit: columnLimitForWorkspace, plan } = await getLimit(
+        PlanLimitTypes.LIMIT_COLUMN_PER_TABLE,
         workspaceId,
       );
 
       if (columnsInTable >= columnLimitForWorkspace) {
-        NcError.badRequest(
+        NcError.planLimitExceeded(
           `Only ${columnLimitForWorkspace} columns are allowed, for more please upgrade your plan`,
+          {
+            plan: plan?.title,
+            limit: columnLimitForWorkspace,
+            current: columnsInTable,
+          },
         );
       }
     }

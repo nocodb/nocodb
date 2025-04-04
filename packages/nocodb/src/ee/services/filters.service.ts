@@ -9,7 +9,7 @@ import { NcError } from '~/helpers/catchError';
 import { Column, Filter, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class FiltersService extends FiltersServiceCE {
@@ -56,14 +56,19 @@ export class FiltersService extends FiltersServiceCE {
       },
     );
 
-    const filterLimitForWorkspace = await getLimit(
-      PlanLimitTypes.FILTER_LIMIT,
+    const { limit: filterLimitForWorkspace, plan } = await getLimit(
+      PlanLimitTypes.LIMIT_FILTER_PER_VIEW,
       context.workspace_id,
     );
 
     if (filtersInView >= filterLimitForWorkspace) {
-      NcError.badRequest(
+      NcError.planLimitExceeded(
         `Only ${filterLimitForWorkspace} filters are allowed, for more please upgrade your plan`,
+        {
+          plan: plan?.title,
+          limit: filterLimitForWorkspace,
+          current: filtersInView,
+        },
       );
     }
 

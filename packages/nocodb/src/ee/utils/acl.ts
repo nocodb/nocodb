@@ -125,6 +125,8 @@ const permissionScopes = {
     'createDataReflection',
     'deleteDataReflection',
     'getDataReflection',
+    'paymentSeatCount',
+    'manageSubcription',
   ],
   base: [
     'formViewGet',
@@ -352,6 +354,7 @@ const rolePermissions:
   [WorkspaceUserRoles.CREATOR]: {
     exclude: {
       workspaceDelete: true,
+      manageSubcription: true,
     },
   },
   [WorkspaceUserRoles.OWNER]: {

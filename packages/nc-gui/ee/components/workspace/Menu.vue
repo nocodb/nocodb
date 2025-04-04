@@ -167,7 +167,9 @@ const onWorkspaceCreateClick = () => {
                     </template>
                   </template>
                   <template v-else>
-                    <div class="nc-workspace-dropdown-active-workspace-info">Free Plan</div>
+                    <div class="nc-workspace-dropdown-active-workspace-info">
+                      {{ activeWorkspace.payment?.plan?.title || 'Free Plan' }}
+                    </div>
                     <template v-if="workspaceUserCount !== undefined">
                       <div class="nc-workspace-dropdown-active-workspace-info">-</div>
                       <div class="nc-workspace-dropdown-active-workspace-info">

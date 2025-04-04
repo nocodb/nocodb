@@ -15,6 +15,8 @@ import { JobsModule } from '~/modules/jobs/jobs.module';
 
 import appConfig from '~/app.config';
 import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { RawBodyMiddleware } from '~/middlewares/raw-body.middleware';
+import { JsonBodyMiddleware } from '~/middlewares/json-body.middleware';
 
 import { packageInfo } from '~/utils/packageVersion';
 
@@ -59,6 +61,13 @@ export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
     consumer
+      .apply(RawBodyMiddleware)
+      .forRoutes({
+        path: '/api/payment/webhook',
+        method: RequestMethod.POST,
+      })
+      .apply(JsonBodyMiddleware)
+      .forRoutes('*')
       .apply(GuiMiddleware)
       .forRoutes({ path: `${dashboardPath}*`, method: RequestMethod.GET })
       .apply(GlobalMiddleware)

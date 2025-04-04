@@ -9,7 +9,7 @@ import { Base } from '~/models';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { ColumnsService } from '~/services/columns.service';
-import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 
@@ -54,19 +54,24 @@ export class TablesService extends TableServiceCE {
         },
       );
 
-      const tableLimitForWorkspace = await getLimit(
-        PlanLimitTypes.TABLE_LIMIT,
+      const { limit: tableLimitForWorkspace, plan } = await getLimit(
+        PlanLimitTypes.LIMIT_TABLE_PER_BASE,
         context.workspace_id,
       );
 
       if (tablesInSource >= tableLimitForWorkspace) {
-        NcError.badRequest(
+        NcError.planLimitExceeded(
           `Only ${tableLimitForWorkspace} tables are allowed, for more please upgrade your plan`,
+          {
+            plan: plan?.title,
+            limit: tableLimitForWorkspace,
+            current: tablesInSource,
+          },
         );
       }
 
-      const columnLimitForWorkspace = await getLimit(
-        PlanLimitTypes.COLUMN_LIMIT,
+      const { limit: columnLimitForWorkspace } = await getLimit(
+        PlanLimitTypes.LIMIT_COLUMN_PER_TABLE,
         context.workspace_id,
       );
 
@@ -74,8 +79,13 @@ export class TablesService extends TableServiceCE {
         param.table?.columns?.length &&
         param.table.columns.length >= columnLimitForWorkspace
       ) {
-        NcError.badRequest(
+        NcError.planLimitExceeded(
           `Maximum ${columnLimitForWorkspace} columns are allowed, for more please upgrade your plan`,
+          {
+            plan: plan?.title,
+            limit: columnLimitForWorkspace,
+            current: param.table.columns.length,
+          },
         );
       }
     }

@@ -42,12 +42,14 @@ const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) 
       if (initial) {
         await tableStore.loadProjectTables(firstBase.id)
         const firstTable = tableStore.baseTables.get(firstBase.id)?.[0]
+        const query = route.value.query
 
         if (firstTable) {
           ncNavigateTo({
             workspaceId: firstBase.fk_workspace_id!,
             baseId: basesStore.basesList[0].id!,
             tableId: firstTable.id,
+            query,
           })
         }
       } else {

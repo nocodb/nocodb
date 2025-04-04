@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "Spreadsheet",
       "spreadSheetSubtitle": "Hubungkan dan kelola spreadsheet Anda dengan NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

@@ -458,6 +458,12 @@
       "ai": "Штучний інтелект",
       "spreadSheet": "Таблиці",
       "spreadSheetSubtitle": "Підключайте та керуйте своїми таблицями з NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

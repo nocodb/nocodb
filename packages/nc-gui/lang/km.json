@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "សៀវភៅគំនូសតារាង",
       "spreadSheetSubtitle": "ភ្ជាប់ និងគ្រប់គ្រងសៀវភៅគំនូសតារាងរបស់អ្នកជាមួយ NocoDB។"
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

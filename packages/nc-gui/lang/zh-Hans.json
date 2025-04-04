@@ -458,6 +458,12 @@
       "ai": "人工智能",
       "spreadSheet": "电子表格",
       "spreadSheetSubtitle": "使用 NocoDB 连接和管理电子表格。"
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

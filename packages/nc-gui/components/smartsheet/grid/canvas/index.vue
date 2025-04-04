@@ -219,7 +219,7 @@ const { height, width } = useElementSize(wrapperRef)
 const { height: windowHeight, width: windowWidth } = useWindowSize()
 const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
-const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
+const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode, appInfo } = useGlobal()
 const { eventBus, isSqlView } = useSmartsheetStoreOrThrow()
 const route = useRoute()
 const { $e } = useNuxtApp()
@@ -1139,7 +1139,31 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   const dataCache = getDataCache(groupPath)
 
   if (element?.isGroup) {
-    toggleExpand(group)
+    if (clickType === MouseClickType.SINGLE_CLICK) {
+      const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
+
+      if ((clickedColumn && clickedColumn?.fixed) || !appInfo.value.ee) {
+        toggleExpand(group)
+      } else if (clickedColumn) {
+        // if clicked on same aggregation field, close the dropdown
+        if (
+          prevMenuState.isDropdownVisible &&
+          prevMenuState.openAggregationFieldId &&
+          prevMenuState.openAggregationFieldId === clickedColumn.id
+        ) {
+          return
+        }
+        openAggregationField.value = clickedColumn
+        isDropdownVisible.value = true
+        overlayStyle.value = {
+          top: `${rect.top + y - 36}px`,
+          left: `${rect.left + xOffset}px`,
+          width: clickedColumn.width,
+          height: `36px`,
+          position: 'fixed',
+        }
+      }
+    }
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }

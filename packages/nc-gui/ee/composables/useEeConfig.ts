@@ -1,13 +1,5 @@
-import {
-  HigherPlan,
-  NON_SEAT_ROLES,
-  PlanTitles,
-  ProjectRoles,
-  WorkspaceUserRoles,
-  type PlanFeatureTypes,
-  type PlanLimitExceededDetailsType,
-  type PlanLimitTypes,
-} from 'nocodb-sdk'
+import { HigherPlan, NON_SEAT_ROLES, PlanTitles } from 'nocodb-sdk'
+import type { PlanFeatureTypes, PlanLimitExceededDetailsType, PlanLimitTypes, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import NcModalConfirm, { type NcConfirmModalProps } from '../../components/nc/ModalConfirm.vue'
 
 export const useEeConfig = createSharedComposable(() => {

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { NON_SEAT_ROLES, type PlanLimitExceededDetailsType, ProjectRoles, type RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
+import { type PlanLimitExceededDetailsType, ProjectRoles, type RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
 
 import { extractEmail } from '../../helpers/parsers/parserHelpers'
 

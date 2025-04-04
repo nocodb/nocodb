@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "Spreadsheet",
       "spreadSheetSubtitle": "Verbind en beheer uw spreadsheets met NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

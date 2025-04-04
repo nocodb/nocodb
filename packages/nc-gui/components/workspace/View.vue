@@ -179,9 +179,7 @@ onMounted(() => {
 :deep(.ant-tabs-tab) {
   @apply pt-2 pb-3;
 }
-:deep(.ant-tabs-content) {
-  @apply nc-content-max-w;
-}
+
 .ant-tabs-content-top {
   @apply !h-full;
 }

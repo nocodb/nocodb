@@ -7,7 +7,7 @@ import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Model } from '~/models';
 import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { DatasService } from '~/services/datas.service';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
@@ -49,18 +49,45 @@ export class HooksService extends HooksServiceCE {
       },
     );
 
-    const { limit: webhookLimitForWorkspace, plan } = await getLimit(
+    const { limit: webhookLimitPerTable, plan } = await getLimit(
       PlanLimitTypes.LIMIT_WEBHOOK_PER_TABLE,
       context.workspace_id,
     );
 
-    if (webhooksInTable >= webhookLimitForWorkspace) {
+    if (webhooksInTable >= webhookLimitPerTable) {
+      NcError.planLimitExceeded(
+        `Only ${webhookLimitPerTable} webhooks are allowed, for more please upgrade your plan`,
+        {
+          plan: plan?.title,
+          limit: webhookLimitPerTable,
+          current: webhooksInTable,
+        },
+      );
+    }
+
+    const webhooksInWorkspace = await Noco.ncMeta.metaCount(
+      context.workspace_id,
+      RootScopes.WORKSPACE,
+      MetaTable.HOOKS,
+      {
+        condition: {
+          fk_workspace_id: context.workspace_id,
+        },
+      },
+    );
+
+    const { limit: webhookLimitForWorkspace } = await getLimit(
+      PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE,
+      context.workspace_id,
+    );
+
+    if (webhooksInWorkspace >= webhookLimitForWorkspace) {
       NcError.planLimitExceeded(
         `Only ${webhookLimitForWorkspace} webhooks are allowed, for more please upgrade your plan`,
         {
           plan: plan?.title,
           limit: webhookLimitForWorkspace,
-          current: webhooksInTable,
+          current: webhooksInWorkspace,
         },
       );
     }

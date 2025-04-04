@@ -336,7 +336,7 @@ export const useInfiniteGroups = (
   }
 
   async function updateGroupAggregations(groups: CanvasGroup[], fields?: Array<{ title: string; aggregation?: string }>) {
-    const BATCH_SIZE = 50
+    const BATCH_SIZE = 100
     const aggregationAliasMapper = new AliasMapper()
 
     const aggregation = fields

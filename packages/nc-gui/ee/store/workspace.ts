@@ -3,12 +3,13 @@ import type {
   BaseType,
   IntegrationType,
   PlanFeatureTypes,
+  PlanLimitExceededDetailsType,
   PlanLimitTypes,
   WorkspaceType,
   WorkspaceUserRoles,
   WorkspaceUserType,
 } from 'nocodb-sdk'
-import { WorkspaceStatus } from 'nocodb-sdk'
+import { NON_SEAT_ROLES, WorkspaceStatus } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { isString } from '@vue/shared'
 
@@ -291,7 +292,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   // update existing collaborator role
-  const updateCollaborator = async (userId: string, roles: WorkspaceUserRoles, workspaceId?: string) => {
+  const updateCollaborator = async (userId: string, roles: WorkspaceUserRoles, workspaceId?: string, isAdminPanel?: boolean) => {
     try {
       if (!workspaceId && !activeWorkspace.value?.id) {
         throw new Error('Workspace not selected')
@@ -319,7 +320,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       basesStore.clearBasesUser()
       return true
     } catch (e) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      const errorInfo = await extractSdkResponseErrorMsgv2(e)
+
+      if (errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+        throw e
+      } else {
+        message.error(errorInfo.message)
+      }
     }
   }
 

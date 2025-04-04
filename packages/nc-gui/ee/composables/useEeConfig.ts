@@ -1,4 +1,13 @@
-import { HigherPlan, type PlanFeatureTypes, type PlanLimitTypes, PlanTitles } from 'nocodb-sdk'
+import {
+  HigherPlan,
+  NON_SEAT_ROLES,
+  PlanTitles,
+  ProjectRoles,
+  WorkspaceUserRoles,
+  type PlanFeatureTypes,
+  type PlanLimitExceededDetailsType,
+  type PlanLimitTypes,
+} from 'nocodb-sdk'
 import NcModalConfirm, { type NcConfirmModalProps } from '../../components/nc/ModalConfirm.vue'
 
 export const useEeConfig = createSharedComposable(() => {
@@ -103,6 +112,8 @@ export const useEeConfig = createSharedComposable(() => {
         closeDialog()
         callback?.('ok')
 
+        console.log('workspaceId', workspaceId, redirectToWorkspace)
+
         if (redirectToWorkspace) {
           navigateTo(`/${workspaceId ?? activeWorkspaceId.value}/settings?tab=billing`)
         } else {
@@ -126,6 +137,32 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUserPlanLimitExceededModal = ({
+    details,
+    role,
+    workspaceId,
+    isAdminPanel,
+    callback,
+  }: {
+    details: PlanLimitExceededDetailsType
+    role: WorkspaceUserRoles | ProjectRoles
+    workspaceId?: string
+    isAdminPanel?: boolean
+    callback?: (type: 'ok' | 'cancel') => void
+  }) => {
+    const userType = NON_SEAT_ROLES.includes(role) ? 'users' : 'editors'
+
+    handleUpgradePlan({
+      title: 'Invite more members',
+      activePlanTitle: details.plan,
+      newPlanTitle: details.higherPlan,
+      content: `The ${details.plan} plan allows up to ${details.limit} ${userType}. Upgrade to the ${details.higherPlan} plan for unlimited ${userType}.`,
+      workspaceId,
+      redirectToWorkspace: !isAdminPanel,
+      callback,
+    })
+  }
+
   return {
     getLimit,
     getFeature,
@@ -136,5 +173,6 @@ export const useEeConfig = createSharedComposable(() => {
     getPlanTitle,
     handleUpgradePlan,
     isPaymentEnabled,
+    showUserPlanLimitExceededModal,
   }
 })

@@ -1,9 +1,10 @@
 <script lang="ts" setup>
-import { OrderedWorkspaceRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import { OrderedWorkspaceRoles, WorkspaceUserRoles, type PlanLimitExceededDetailsType } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
   height?: string
+  isAdminPanel?: boolean
 }>()
 
 const { workspaceRoles } = useRoles()
@@ -15,6 +16,8 @@ const workspaceStore = useWorkspace()
 const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
 
 const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading } = storeToRefs(workspaceStore)
+
+const { showUserPlanLimitExceededModal } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
   if (props.workspaceId) {
@@ -79,15 +82,30 @@ const selectAll = computed({
 const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
   if (!currentWorkspace.value || !currentWorkspace.value.id) return
 
-  const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id)
-  if (!res) return
-  message.success(t('msg.info.userRoleUpdated'))
+  try {
+    const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id, props.isAdminPanel)
+    if (!res) return
+    message.success(t('msg.info.userRoleUpdated'))
 
-  collaborators.value?.forEach((collaborator) => {
-    if (collaborator.id === collab.id) {
-      collaborator.roles = roles
+    collaborators.value?.forEach((collaborator) => {
+      if (collaborator.id === collab.id) {
+        collaborator.roles = roles
+      }
+    })
+  } catch (e: any) {
+    const errorInfo = await extractSdkResponseErrorMsgv2(e)
+
+    if (errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+      const details = errorInfo.details as PlanLimitExceededDetailsType
+
+      showUserPlanLimitExceededModal({
+        details,
+        role: roles,
+        workspaceId: currentWorkspace.value.id,
+        isAdminPanel: props.isAdminPanel,
+      })
     }
-  })
+  }
 }
 
 const isOwnerOrCreator = computed(() => {

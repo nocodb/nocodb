@@ -36,7 +36,6 @@ export const useInfiniteGroups = (
   const { nestedFilters } = useSmartsheetStoreOrThrow()
   const { fetchBulkAggregatedData } = useSharedView()
   const isPublic = inject(IsPublicInj, ref(false))
-  const fields = inject(FieldsInj, ref([]))
 
   const columnsById = computed(() => {
     if (!meta.value?.columns?.length) return {}

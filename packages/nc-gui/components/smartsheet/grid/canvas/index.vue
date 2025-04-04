@@ -823,7 +823,7 @@ async function handleMouseDown(e: MouseEvent) {
   if (!row) return
   // onMouseDown event, we only handle the fillHandler and selectionHandler
   // and rowReorder. Other events should be handled in onMouseUp
-  if (x < 80) {
+  if (x < 80 + groupByColumns.value.length * 9) {
     if (clickType !== MouseClickType.SINGLE_CLICK) return
     handleRowMetaClick({ e, row, x, onlyDrag: true, group })
     return
@@ -998,7 +998,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   // Handle all Column Header Operations
   if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
     // If x less than 80px, use is hovering over the row meta column
-    if (x < 80) {
+    if (x < 80 + groupByColumns.value.length * 9) {
       // If the click is not normal single click, return
       if (clickType !== MouseClickType.SINGLE_CLICK || readOnly.value) return
       if (isBoxHovered({ x: 10, y: 8, height: 16, width: 16 }, mousePosition)) {
@@ -1168,7 +1168,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     return
   }
 
-  if (x < 80) {
+  if (x < 80 + groupByColumns.value.length * 9) {
     if (!row) return
     if (![MouseClickType.SINGLE_CLICK, MouseClickType.RIGHT_CLICK].includes(clickType)) return
 
@@ -1521,7 +1521,7 @@ const handleMouseMove = (e: MouseEvent) => {
   }
 
   // check if hovering row meta column and set cursor
-  if (mousePosition.x < 80 && mousePosition.y > COLUMN_HEADER_HEIGHT_IN_PX) {
+  if (mousePosition.x < 80 + groupByColumns.value.length * 9 && mousePosition.y > COLUMN_HEADER_HEIGHT_IN_PX) {
     // handle hovering on the aggregation dropdown
     if (mousePosition.y <= height.value - 36) {
       const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)

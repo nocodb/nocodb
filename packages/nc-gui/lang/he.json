@@ -458,6 +458,12 @@
       "ai": "AI",
       "spreadSheet": "גיליון נתונים",
       "spreadSheetSubtitle": "חבר ונהל את גיליונות הנתונים שלך עם NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
     }
   },
   "datatype": {

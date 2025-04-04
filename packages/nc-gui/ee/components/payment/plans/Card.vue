@@ -31,7 +31,10 @@ const price = computed(() => getPlanPrice(props.plan))
       <div class="flex items-center gap-4">
         <div class="flex-1 text-xl font-bold text-nc-content-gray">
           {{ $t(`objects.paymentPlan.${plan.title}`) }}
-          <span v-if="activePlan === plan.title && activeSubscription" class="text-xs text-nc-content-gray-muted">
+          <span
+            v-if="activePlan === plan.title && activeSubscription && paymentMode === activeSubscription.period"
+            class="text-xs text-nc-content-gray-muted"
+          >
             ({{ activeSubscription.period === 'year' ? 'Annually' : 'Monthly' }})
           </span>
           <span

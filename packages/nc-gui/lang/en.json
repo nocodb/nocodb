@@ -1208,7 +1208,8 @@
     "annualSavings": "Annual Savings",
     "compareAllFeatures": "Compare all features",
     "planIncludes": "{plan} Includes:",
-    "everythingInPlanPlus": "Everything in {plan}, Plus:"
+    "everythingInPlanPlus": "Everything in {plan}, Plus:",
+    "downloadInvoice": "Download Invoice"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

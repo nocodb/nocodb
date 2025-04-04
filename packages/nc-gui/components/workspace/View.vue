@@ -126,15 +126,17 @@ onMounted(() => {
         <div class="w-3"></div>
       </template>
       <template v-if="isUIAllowed('workspaceCollaborators')">
-        <a-tab-pane key="collaborators" class="w-full">
+        <a-tab-pane key="collaborators" class="w-full h-full">
           <template #tab>
             <div class="tab-title">
               <GeneralIcon icon="users" class="h-4 w-4" />
               {{ $t('labels.members') }}
             </div>
           </template>
-          <PaymentBanner />
-          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
+          <div class="overflow-auto h-[calc(100vh-3rem)] nc-scrollbar-thin">
+            <PaymentBanner />
+            <WorkspaceCollaboratorsList class="h-[650px]" :workspace-id="currentWorkspace.id" />
+          </div>
         </a-tab-pane>
       </template>
 

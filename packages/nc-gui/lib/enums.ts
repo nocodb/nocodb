@@ -79,6 +79,7 @@ export enum SmartsheetStoreEvents {
   FILTER_ADD = 'filter-add',
   CELL_SELECTED = 'cell-selected',
   FIELD_UPDATE = 'field-update',
+  GROUP_PATH_CHANGE = 'group-path-change',
 }
 
 export enum SmartsheetScriptActions {

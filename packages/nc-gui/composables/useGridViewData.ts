@@ -44,7 +44,7 @@ export function useGridViewData(
 
   const isBulkOperationInProgress = ref(false)
 
-  const { nestedFilters } = useSmartsheetStoreOrThrow()
+  const { nestedFilters, eventBus } = useSmartsheetStoreOrThrow()
 
   const {
     cachedGroups,
@@ -84,7 +84,7 @@ export function useGridViewData(
     const endIndex = Math.max(...groupMap.keys())
 
     // reload all groups in current level since any one of them can be in updated state
-    await fetchMissingGroupChunks(0, endIndex, parentGroup ?? undefined, true)
+    await fetchMissingGroupChunks(0, endIndex, parentGroup ?? undefined, true, eventBus)
 
     // iterate and clear if expanded grid present
     const clearGridCache = (groupMap: Map<number, CanvasGroup>, toalGroupCount: number, path = []) => {

@@ -578,7 +578,13 @@ export function useInfiniteData(args: {
         const groupByColumn = groupByColumns.value[row.rowMeta.changedGroupIndex]
         const property = groupByColumn?.column?.title
         // invoke group by callback
-        callbacks?.onGroupRowChange?.({ row, property, groupByColumn, level: row.rowMeta.changedGroupIndex, path: row.rowMeta.path })
+        callbacks?.onGroupRowChange?.({
+          row,
+          property,
+          groupByColumn,
+          level: row.rowMeta.changedGroupIndex,
+          path: row.rowMeta.path,
+        })
       }
 
       dataCache.cachedRows.value.delete(index)

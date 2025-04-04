@@ -33,7 +33,9 @@ export const useInfiniteGroups = (
   const { $api } = useNuxtApp()
   const { getMeta } = useMetas()
   const { appInfo } = useGlobal()
-  const { nestedFilters, sorts } = useSmartsheetStoreOrThrow()
+  const { nestedFilters, eventBus, sorts } = useSmartsheetStoreOrThrow()
+  const { fetchBulkAggregatedData } = useSharedView()
+  const { sorts } = useSmartsheetStoreOrThrow()
   const { fetchBulkAggregatedData, sharedView } = useSharedView()
   const isPublic = inject(IsPublicInj, ref(false))
   const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
@@ -152,12 +154,18 @@ export const useInfiniteGroups = (
         let oldGroup = parentGroup?.groups.get(groupIndex) || cachedGroups.value.get(groupIndex)
 
         if (!oldGroup || oldGroup?.value !== value) {
+          const oldPath = oldGroup?.path
           oldGroup =
             oldGroupMapState?.get(value) ??
             [...((parentGroup?.groups || cachedGroups.value)?.values() || [])].find((g) => g.value === value)
+          const newPath = [...generateGroupPath(parentGroup), groupIndex]
+          if (oldPath && newPath && oldPath.toString() !== newPath.toString()) {
+            eventBus.emit(SmartsheetStoreEvents.GROUP_PATH_CHANGE, {
+              oldPath,
+              newPath,
+            })
+          }
         }
-
-        console.log('oldGroup', oldGroup)
 
         const group: CanvasGroup = {
           groupIndex,

@@ -1917,20 +1917,18 @@ export function useCanvasRender({
           // If the group is at top, then use startIndex, else use endIndex
           const gHeight =
             pgHeight +
-            Array.from({ length: startIndex - 1 }, (_, i) => i)
-              .map((g) => {
-                const group = groups.get(g)
-                const h = calculateGroupHeight(group, rowHeight.value)
-                return h
-              })
-              .reduce((sum, c) => sum + c, 0)
+            // add partial group height to normalise the height
+            partialGroupHeight +
+            Array.from({ length: startIndex }, (_, g) => {
+              const group = groups.get(g)
+              const h = calculateGroupHeight(group!, rowHeight.value)
+              return h
+            }).reduce((sum, c) => sum + c, 0)
 
-          // Calculate scroll position relative to the group height
-          // scrollTop.value: current scroll position
-          // currentOffset: accumulated offset from previous groups
-          // gHeight: total height of groups calculated above
-          const relativeScrollTop =
-            group.nestedIn?.length && i === startIndex ? scrollTop.value - gHeight - GROUP_HEADER_HEIGHT : 0
+        // todo:  figure out the 2px difference which is not expected
+          // calculate the relative scroll top for the group
+          // where gHeight + GROUP_PADDING is the height of previous groups before startIndex
+          const relativeScrollTop = group.nestedIn?.length && i === startIndex ? scrollTop.value - (gHeight + GROUP_PADDING) - 2 : 0
 
           if (group.infiniteData) {
             // Calculate visible viewport height from current offset to container bottom
@@ -1964,9 +1962,22 @@ export function useCanvasRender({
               relativeScrollTop,
               rowHeight.value,
               group.groupCount,
-              groupHeight - relativeScrollTop,
+              groupHeight - relativeScrollTop - groupHeaderY - GROUP_HEADER_HEIGHT,
               true,
             )
+
+            console.log(group.value, {
+              startIndex,
+              gHeight,
+              pgHeight,
+              partialGroupHeight,
+              viewportHeight: groupHeight - relativeScrollTop - GROUP_HEADER_HEIGHT,
+              relativeScrollTop,
+              yOffset,
+              currentOffset,
+              nestedStart,
+              scrollTop: scrollTop.value,
+            })
 
             fetchMissingGroupChunks(nestedStart, nestedEnd, group)
 

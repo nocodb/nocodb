@@ -27,6 +27,7 @@ export function getBackgroundColor(depth: number, maxDepth: number): string {
 export function calculateGroupHeight(group: CanvasGroup, rowHeight: number) {
   let h = GROUP_HEADER_HEIGHT + GROUP_PADDING // Base height for group header
   if (group?.isExpanded) {
+    console.log(group?.groupCount)
     if (group.infiniteData) {
       h += (group.count || 0) * rowHeight
     } else if (group?.groupCount) {
@@ -59,10 +60,11 @@ export function calculateGroupRange(
   for (let i = 0; i < groupCount; i++) {
     const group = groups.get(i)
     const groupHeight = calculateGroupHeight(group, rowHeight)
-    // console.log('calculateGroupRange', nested, currentOffset + groupHeight - GROUP_PADDING , scrollTop )
-    if (currentOffset + groupHeight - (!nested ? GROUP_PADDING : 0) > scrollTop) {
+    // if(nested)
+    // console.log('calculateGroupRange', nested, currentOffset,groupHeight, currentOffset + groupHeight - GROUP_PADDING , scrollTop )
+    if (currentOffset + groupHeight - GROUP_PADDING > scrollTop) {
       startIndex = i
-      const partialGroupHeight = (scrollTop - (previousOffset - 8)) % 50
+      const partialGroupHeight = (scrollTop - (previousOffset - GROUP_PADDING)) % 50
       const viewportBottom = scrollTop + viewportHeight
 
       for (let j = i; j < groupCount; j++) {

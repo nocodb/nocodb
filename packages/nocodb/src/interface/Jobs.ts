@@ -133,6 +133,7 @@ export interface DuplicateBaseJobData extends JobData {
     excludeViews?: boolean;
     excludeHooks?: boolean;
     excludeComments?: boolean;
+    excludeUsers?: boolean;
   };
 }
 

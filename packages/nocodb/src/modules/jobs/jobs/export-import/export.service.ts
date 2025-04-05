@@ -562,6 +562,7 @@ export class ExportService {
       _fieldIds?: string[];
       ncSiteUrl?: string;
       delimiter?: string;
+      excludeUsers?: boolean;
     },
   ) {
     const { dataStream, linkStream, handledMmList } = param;
@@ -671,6 +672,12 @@ export class ExportService {
               case UITypes.User:
               case UITypes.CreatedBy:
               case UITypes.LastModifiedBy:
+                // skip populating if excludeUsers is true
+                if (param.excludeUsers === true) {
+                  row[colId] = null;
+                  break;
+                }
+
                 if (v) {
                   const userEmails = [];
                   const userRecord = Array.isArray(v) ? v : [v];

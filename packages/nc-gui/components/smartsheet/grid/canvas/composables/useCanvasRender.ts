@@ -1931,6 +1931,7 @@ export function useCanvasRender({
       endIndex,
       partialGroupHeight = 0,
       gHeight: pgHeight = 0,
+      _isStartGroup,
     }: {
       level: number
       yOffset: number
@@ -1939,6 +1940,7 @@ export function useCanvasRender({
       endIndex: number
       partialGroupHeight?: number
       gHeight?: number
+      _isStartGroup?: boolean
     },
   ): number {
     const groups = pGroup?.groups ?? cachedGroups.value
@@ -1951,13 +1953,14 @@ export function useCanvasRender({
     let currentOffset = yOffset
 
     for (let i = startIndex; i <= endIndex; i++) {
+      const isStartGroup = (_isStartGroup ?? true) && i === startIndex
       const group = groups.get(i)
       if (!group) {
         currentOffset += GROUP_HEADER_HEIGHT + GROUP_PADDING
         continue
       }
 
-      const groupHeaderY = currentOffset + (group.isExpanded && i === startIndex ? partialGroupHeight : 0)
+      const groupHeaderY = currentOffset + ((group.isExpanded) && i === startIndex ? partialGroupHeight : 0)
       const groupHeight = calculateGroupHeight(group, rowHeight.value)
       const groupBottom = groupHeaderY + groupHeight
       const xOffset = (level + 1) * 9
@@ -1971,6 +1974,13 @@ export function useCanvasRender({
         currentOffset += groupHeight
         continue
       }
+
+      // if (level > 0 && i === startIndex) {
+      //   console.log(group.value, {
+      //     groupHeaderY,
+      //     currentOffset,
+      //   })
+      // }
 
       elementMap.addElement({
         y: groupHeaderY,
@@ -2001,7 +2011,7 @@ export function useCanvasRender({
           // todo:  figure out the 2px difference which is not expected
           // calculate the relative scroll top for the group
           // where gHeight + GROUP_PADDING is the height of previous groups before startIndex
-          const relativeScrollTop = group.nestedIn?.length && i === startIndex ? scrollTop.value - gHeight : 0
+          const relativeScrollTop = group.nestedIn?.length && isStartGroup ? scrollTop.value - gHeight - ( group.infiniteData ? 0 : GROUP_PADDING) : 0
 
           if (group.infiniteData) {
             // Calculate visible viewport height from current offset to container bottom
@@ -2009,13 +2019,23 @@ export function useCanvasRender({
             const itemHeight = rowHeight.value
             // Calculate first visible item index, accounting for header height
             // Math.max ensures no negative indices
-            const nestedStart = Math.max(0, Math.floor(relativeScrollTop / itemHeight))
+            const nestedStart = Math.max(0, Math.floor((relativeScrollTop) / itemHeight))
             // Calculate number of visible rows based on viewport height
             const visibleRowCount = Math.ceil(viewportHeight / itemHeight)
             // Calculate last visible item index, bounded by total count
             const nestedEnd = Math.min(nestedStart + visibleRowCount, group.count - 1)
 
             const nestedPartialRowHeight = partialGroupHeight - (relativeScrollTop % rowHeight.value)
+
+            console.log(group.value,{
+              relativeScrollTop,
+              nestedContentStart,
+              nestedStart,
+              nestedEnd,
+              tempCurrentOffset,
+              viewPortHeight: viewportHeight,
+              isStartGroup
+            })
 
             tempCurrentOffset = renderGroupRows(
               ctx,
@@ -2030,7 +2050,11 @@ export function useCanvasRender({
           } else {
             // Calculate the range of nested groups that should be visible
             // based on scroll position and available height
-            const { startIndex: nestedStart, endIndex: nestedEnd } = calculateGroupRange(
+            const {
+              startIndex: nestedStart,
+              endIndex: nestedEnd,
+              partialGroupHeight: nestedPartialGroupHeight,
+            } = calculateGroupRange(
               group.groups,
               relativeScrollTop,
               rowHeight.value,
@@ -2040,24 +2064,26 @@ export function useCanvasRender({
               isAddingEmptyRowAllowed.value,
             )
 
-            console.log(group.value, {
-              relativeScrollTop,
-              nestedStart,
-              scrollTop: scrollTop.value,
-              yOffset,
-              partialGroupHeight,
-            })
+            // console.log(group.value, {
+            //   nestedContentStart,
+            //   relativeScrollTop,
+            //   nestedStart,
+            //   scrollTop: scrollTop.value,
+            //   yOffset,
+            //   partialGroupHeight,
+            // })
 
             fetchMissingGroupChunks(nestedStart, nestedEnd, group)
 
             tempCurrentOffset = renderGroups(ctx, {
               level: level + 1,
-              yOffset: nestedContentStart + GROUP_PADDING ,
+              yOffset: nestedContentStart + GROUP_PADDING + (isStartGroup ? partialGroupHeight - nestedPartialGroupHeight : 0),
               pGroup: group,
               startIndex: nestedStart,
               endIndex: Math.max(0, nestedEnd),
               gHeight,
-              // partialGroupHeight
+              _isStartGroup: isStartGroup,
+              partialGroupHeight: isStartGroup ? nestedPartialGroupHeight : 0,
             })
           }
         }

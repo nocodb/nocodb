@@ -740,7 +740,6 @@ export function useCanvasRender({
       yOffset: number
       width: number
     },
-    path?: Array<number>,
   ) => {
     const isHover =
       hoverRow.value?.rowIndex === row.rowMeta.rowIndex && hoverRow.value?.path?.join('-') === row.rowMeta?.path?.join('-')
@@ -937,7 +936,7 @@ export function useCanvasRender({
       if (isGroupBy.value) {
         for (let i = 0; i < startColIndex; i++) {
           const col = columns.value[i]
-          if (col.id === 'row_number') {
+          if (col?.id === 'row_number') {
             xOffset -= groupByColumns.value?.length * 9
           }
           xOffset += parseCellWidth(col?.width)
@@ -1060,7 +1059,7 @@ export function useCanvasRender({
 
           if (column.id === 'row_number') {
             if (isGroupBy.value) width -= initialXOffset
-            renderRowMeta(ctx, row, { xOffset, yOffset, width }, group?.path)
+            renderRowMeta(ctx, row, { xOffset, yOffset, width })
           } else {
             const value = row.row[column.title]
 
@@ -1155,7 +1154,7 @@ export function useCanvasRender({
       if (isGroupBy.value) {
         for (let i = 0; i < startColIndex; i++) {
           const col = columns.value[i]
-          if (col.id === 'row_number') {
+          if (col?.id === 'row_number') {
             xOffset -= groupByColumns.value?.length * 9
           }
           xOffset += parseCellWidth(col?.width)
@@ -1217,7 +1216,7 @@ export function useCanvasRender({
           }
 
           if (column.id === 'row_number') {
-            renderRowMeta(ctx, row!, { xOffset, yOffset, width }, group?.path)
+            renderRowMeta(ctx, row!, { xOffset, yOffset, width })
           } else {
             const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
 
@@ -2078,7 +2077,6 @@ export function useCanvasRender({
       pGroup,
       startIndex,
       endIndex,
-      gHeight: pgHeight = 0,
       _isStartGroup,
     }: {
       level: number
@@ -2089,7 +2087,7 @@ export function useCanvasRender({
       gHeight?: number
       _isStartGroup?: boolean
     },
-  ): number {
+  ) {
     const groups = pGroup?.groups ?? cachedGroups.value
 
     const missingChunks = []
@@ -2175,7 +2173,7 @@ export function useCanvasRender({
           } else {
             // Calculate the range of nested groups that should be visible
             // based on scroll position and available height
-            const { startIndex: nestedStart, endIndex: nestedEnd } = calculateGroupRange(
+            const { endIndex: nestedEnd } = calculateGroupRange(
               group.groups,
               relativeScrollTop,
               rowHeight.value,
@@ -2221,12 +2219,14 @@ export function useCanvasRender({
 
         const visibleCols = columns.value.slice(startColIndex, endColIndex)
 
+        const fixedColsWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 1)
+
         const initialOffset = 0
 
         let aggXOffset = initialOffset
 
         for (let i = 0; i < startColIndex; i++) {
-          aggXOffset += parseCellWidth(columns.value[i].width)
+          aggXOffset += parseCellWidth(columns.value[i]?.width)
         }
 
         visibleCols.forEach((column) => {
@@ -2253,7 +2253,7 @@ export function useCanvasRender({
             ctx.save()
             ctx.beginPath()
 
-            ctx.rect(aggXOffset - scrollLeft.value, currentOffset, width, GROUP_HEADER_HEIGHT)
+            ctx.rect(Math.max(aggXOffset - scrollLeft.value, fixedColsWidth), currentOffset, width, GROUP_HEADER_HEIGHT)
             ctx.fill()
             ctx.clip()
 
@@ -2268,7 +2268,7 @@ export function useCanvasRender({
               ctx.fillText(
                 column.agg_prefix,
                 aggXOffset + width - aggWidth - 16 - scrollLeft.value,
-                height.value - GROUP_HEADER_HEIGHT / 2,
+                groupHeaderY + GROUP_HEADER_HEIGHT / 2,
               )
             }
             ctx.fillStyle = '#4a5268'
@@ -2284,7 +2284,7 @@ export function useCanvasRender({
               ctx.save()
               ctx.beginPath()
 
-              ctx.rect(xOffset - scrollLeft.value, currentOffset, width, GROUP_HEADER_HEIGHT)
+              ctx.rect(Math.max(aggXOffset - scrollLeft.value, fixedColsWidth), groupHeaderY, width, GROUP_HEADER_HEIGHT)
               ctx.fill()
               ctx.clip()
 
@@ -2293,8 +2293,10 @@ export function useCanvasRender({
               ctx.textAlign = 'right'
               ctx.textBaseline = 'middle'
 
-              const rightEdge = xOffset + width - 8 - scrollLeft.value
-              const textY = currentOffset - GROUP_HEADER_HEIGHT / 2
+              const rightEdge = aggXOffset + width - 8 - scrollLeft.value
+              const textY = groupHeaderY + GROUP_HEADER_HEIGHT / 2
+
+              console.log(rightEdge, textY)
 
               ctx.fillText('Summary', rightEdge, textY)
 
@@ -2310,12 +2312,6 @@ export function useCanvasRender({
             }
             ctx.restore()
           }
-
-          ctx.beginPath()
-          ctx.strokeStyle = '#f4f4f5'
-          ctx.moveTo(aggXOffset - scrollLeft.value, groupHeaderY - GROUP_HEADER_HEIGHT)
-          ctx.lineTo(aggXOffset - scrollLeft.value, groupHeaderY + GROUP_HEADER_HEIGHT)
-          ctx.stroke()
 
           aggXOffset += width
         })
@@ -2561,7 +2557,6 @@ export function useCanvasRender({
         yOffset: startGroupYOffset,
         startIndex,
         endIndex,
-        partialGroupHeight: 0,
       })
 
       if (missingChunks.length) {

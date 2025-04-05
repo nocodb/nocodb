@@ -31,7 +31,7 @@ export function useMouseSelection({
   rowSlice: Ref<{ start: number; end: number }>
   partialRowHeight: Ref<number>
   totalRows: Ref<number>
-  isGroupby: Ref<boolean>
+  isGroupby: ComputedRef<boolean>
   cachedGroups: Ref<Map<number, CanvasGroup>>
 }) {
   const isSelecting = ref(false)

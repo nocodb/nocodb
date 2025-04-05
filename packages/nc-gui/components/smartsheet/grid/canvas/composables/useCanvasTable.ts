@@ -409,22 +409,23 @@ export function useCanvasTable({
     )
   })
 
-  const isFillHandleDisabled = computed(
-    () =>
-      !(
-        !isDataReadOnly.value &&
-        !readOnly.value &&
-        (!editEnabled.value || EDIT_INTERACTABLE.includes(editEnabled.value?.column?.uidt)) &&
-        (!selection.value.isEmpty() || (activeCell.value.row !== null && activeCell.value.column !== null)) &&
-        !cachedRows.value.get((isNaN(selection.value.end.row) ? activeCell.value.row : selection.value.end.row) ?? -1)?.rowMeta
-          ?.new &&
-        activeCell.value.column !== null &&
-        fields.value[activeCell.value.column - 1] &&
-        totalRows.value &&
-        !isSelectionReadOnly.value &&
-        !isSqlView.value
-      ),
-  )
+  const isFillHandleDisabled = computed(() => {
+    const dataCache = getDataCache(activeCell?.value?.path)
+
+    return !(
+      !isDataReadOnly.value &&
+      !readOnly.value &&
+      (!editEnabled.value || EDIT_INTERACTABLE.includes(editEnabled.value?.column?.uidt)) &&
+      (!selection.value.isEmpty() || (activeCell.value.row !== null && activeCell.value.column !== null)) &&
+      !dataCache.cachedRows.value.get((isNaN(selection.value.end.row) ? activeCell.value.row : selection.value.end.row) ?? -1)
+        ?.rowMeta?.new &&
+      activeCell.value.column !== null &&
+      fields.value[activeCell.value.column - 1] &&
+      dataCache.totalRows.value &&
+      !isSelectionReadOnly.value &&
+      !isSqlView.value
+    )
+  })
 
   const totalWidth = computed(() => {
     let xOffSet = 0
@@ -717,8 +718,9 @@ export function useCanvasTable({
     expandRows,
     view: view!,
     meta: meta as Ref<TableType>,
-    syncCellData: async (ctx: { row: number; column?: number; updatedColumnTitle?: string }) => {
-      const rowObj = cachedRows.value.get(ctx.row)
+    syncCellData: async (ctx: { row: number; column?: number; updatedColumnTitle?: string }, path?: Array<number> = []) => {
+      const dataCache = getDataCache(path)
+      const rowObj = dataCache.cachedRows.value.get(ctx.row)
       const columnObj = ctx.column !== undefined ? fields.value[ctx.column - 1] : null
 
       if (!rowObj || !columnObj) {
@@ -736,7 +738,7 @@ export function useCanvasTable({
       }
 
       // See DateTimePicker.vue for details
-      const row = cachedRows.value.get(ctx.row)
+      const row = dataCache.cachedRows.value.get(ctx.row)
       if (row) {
         const updatedRow = {
           ...row,
@@ -748,12 +750,12 @@ export function useCanvasTable({
             },
           },
         }
-        cachedRows.value.set(ctx.row, updatedRow)
+        dataCache.cachedRows.value.set(ctx.row, updatedRow)
         triggerRefreshCanvas()
       }
 
       // update/save cell value
-      await updateOrSaveRow?.(rowObj, ctx.updatedColumnTitle || columnObj.title)
+      await updateOrSaveRow?.(rowObj, ctx.updatedColumnTitle || columnObj.title, undefined, undefined, undefined, path)
       triggerRefreshCanvas()
     },
     bulkUpdateRows,

@@ -1392,6 +1392,15 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
       @apply py-0;
     }
   }
+  &.nc-cell-datetime {
+    @apply !w-auto;
+    & > div {
+      @apply !w-auto;
+    }
+    div {
+      @apply flex-none !max-w-none !w-auto;
+    }
+  }
 }
 
 :deep(.nc-virtual-cell) {

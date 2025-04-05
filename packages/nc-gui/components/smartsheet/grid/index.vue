@@ -110,7 +110,7 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
 
 const skipRowRemovalOnCancel = ref(false)
 
-function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) {
+function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, path: Array<number> = []) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
   expandedFormRowState.value = state
   if (rowId && !isPublic.value) {
@@ -120,6 +120,7 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) 
       query: {
         ...routeQuery.value,
         rowId,
+        path: path.join('-'),
       },
     })
   } else {
@@ -147,6 +148,7 @@ const expandedFormOnRowIdDlg = computed({
       router.push({
         query: {
           ...routeQuery.value,
+          path: undefined,
           rowId: undefined,
         },
       })

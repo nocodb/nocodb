@@ -494,7 +494,9 @@ export function useInfiniteData(args: {
     dataCache.cachedRows.value = newCachedRows
   }
 
-  const navigateToSiblingRow = async (dir: NavigateDir, path = []) => {
+  const navigateToSiblingRow = async (dir: NavigateDir) => {
+    const path = (routeQuery.value?.path?.split('-') ?? []).map((c) => +c)
+
     const expandedRowIndex = await getExpandedRowIndexWithWait(path)
     if (expandedRowIndex === -1) return
 
@@ -1542,36 +1544,25 @@ export function useInfiniteData(args: {
 
     await until(() => dataCache.chunkStates.value?.every((v) => v !== 'loading')).toBeTruthy({
       timeout: 5000,
-      interval: 100,
     })
 
     return getExpandedRowIndex(path)
   }
 
-  const _isLastRow = (path: Array<number> = []) => {
-    const dataCache = getDataCache(path)
-    const expandedRowIndex = getExpandedRowIndex(path)
-    if (expandedRowIndex === -1) return false
-    return expandedRowIndex === dataCache.totalRows.value - 1
-  }
-
-  const _isFirstRow = (path: Array<number> = []) => {
-    const expandedRowIndex = getExpandedRowIndex(path)
-    if (expandedRowIndex === -1) return false
-    return expandedRowIndex === 0
-  }
-
-  // TODO: @DarkPhoenix2704: Replace the computed with function
   const isLastRow = computed(() => {
-    const expandedRowIndex = getExpandedRowIndex()
+    const path = (routeQuery.value?.path?.split('-') ?? []).map((c) => +c)
+    const dataCache = getDataCache(path)
+
+    const expandedRowIndex = getExpandedRowIndex(path)
     if (expandedRowIndex === -1) return false
 
-    return expandedRowIndex === totalRows.value - 1
+    return expandedRowIndex === dataCache.totalRows.value - 1
   })
 
-  // TODO: @DarkPhoenix2704: Replace the computed with function
   const isFirstRow = computed(() => {
-    const expandedRowIndex = getExpandedRowIndex()
+    const path = (routeQuery.value?.path?.split('-') ?? []).map((c) => +c)
+
+    const expandedRowIndex = getExpandedRowIndex(path)
     if (expandedRowIndex === -1) return false
 
     return expandedRowIndex === 0

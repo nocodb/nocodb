@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Validation } from 'nocodb-sdk'
-import { StringValidationType, UITypes, ValidationTypeLabel } from 'nocodb-sdk'
+import { PlanFeatureTypes, StringValidationType, UITypes, ValidationTypeLabel } from 'nocodb-sdk'
 
 const { activeField, updateColMeta, v$ } = useFormViewStoreOrThrow()
 
@@ -104,92 +104,120 @@ onMounted(() => {
         <div class="text-gray-800 font-medium">Custom validations</div>
 
         <div class="flex flex-col">
-          <NcDropdown v-model:visible="isOpen" placement="bottomLeft" overlay-class-name="nc-custom-validator-dropdown">
-            <div
-              class="nc-custom-validation-btn border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all cursor-pointer select-none text-sm"
-              :class="{
-                '!border-brand-500 shadow-selected': isOpen,
-                'border-gray-200': !isOpen,
-                'bg-[#F0F3FF]': filteredValidators.length,
-              }"
-              @click="isOpen = !isOpen"
-            >
-              <div
-                class="nc-custom-validation-count flex-1"
-                :class="{
-                  'text-brand-500 ': filteredValidators.length,
-                }"
-              >
-                {{
-                  filteredValidators.length
-                    ? `${filteredValidators.length} validation${filteredValidators.length !== 1 ? 's' : ''}`
-                    : 'No validations'
-                }}
-              </div>
-
-              <GeneralIcon v-if="hasValidationError" icon="alertTriangle" class="flex-none !text-red-500" />
-
-              <GeneralIcon
-                icon="settings"
-                class="flex-none w-4 h-4"
-                :class="{
-                  'text-brand-500 ': filteredValidators.length,
-                }"
+          <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION">
+            <template #default="{ click, isFeatureEnabled }">
+              <LazyPaymentUpgradeBadge
+                v-if="!isFeatureEnabled && !validators.length"
+                :feature="PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION"
+                :content="$t('upgrade.upgradeToAddCustomValidationSubtitle')"
               />
-            </div>
-            <template #overlay>
-              <div class="p-4 nc-custom-validator-dropdown-container">
-                <div class="flex flex-col gap-3">
-                  <div class="nc-custom-validation-table table">
-                    <div class="thead">
-                      <div class="tr">
-                        <div class="th">Validator</div>
-                        <div class="th">Validation Value</div>
-                        <div class="th">
-                          <span> Warning Message </span>
-                          <NcTooltip class="flex cursor-pointer" placement="bottomLeft">
-                            <template #title> This warning message will be displayed to form users for invalid inputs.</template>
 
-                            <GeneralIcon icon="info" class="flex-none text-gray-500 hover:text-gray-700" />
-                          </NcTooltip>
-                        </div>
-                        <div class="th"></div>
-                      </div>
-                    </div>
-                    <div class="tbody">
-                      <template v-if="validators.length">
-                        <template v-for="(validator, i) of validators" :key="i">
-                          <LazySmartsheetFormCustomValidationItem
-                            v-if="customValidatorTypes.includes(validator.type)"
-                            class="tr"
-                            :validator="validator"
-                            :index="i"
-                            :options="options"
-                            :validators-map="validatorsMap"
-                            @remove="handleRemoveValidator(i)"
-                          ></LazySmartsheetFormCustomValidationItem>
-                        </template>
-                      </template>
-                      <div v-else class="tr flex items-center justify-center text-gray-500">No validations</div>
-                    </div>
+              <NcDropdown
+                v-else
+                v-model:visible="isOpen"
+                placement="bottomLeft"
+                overlay-class-name="nc-custom-validator-dropdown"
+              >
+                <div
+                  class="nc-custom-validation-btn border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all cursor-pointer select-none text-sm"
+                  :class="{
+                    '!border-brand-500 shadow-selected': isOpen,
+                    'border-gray-200': !isOpen,
+                    'bg-[#F0F3FF]': filteredValidators.length,
+                  }"
+                  @click="isOpen = !isOpen"
+                >
+                  <div
+                    class="nc-custom-validation-count flex-1"
+                    :class="{
+                      'text-brand-500 ': filteredValidators.length,
+                    }"
+                  >
+                    {{
+                      filteredValidators.length
+                        ? `${filteredValidators.length} validation${filteredValidators.length !== 1 ? 's' : ''}`
+                        : 'No validations'
+                    }}
                   </div>
-                  <div>
-                    <NcButton
-                      class="nc-custom-validation-add-btn border-1 flex items-center"
-                      type="link"
-                      size="small"
-                      @click="addPlaceholderValidator"
-                    >
-                      <div class="flex items-center gap-2">
-                        <span class="text-sm"> Add Validation </span>
-                        <GeneralIcon icon="plus" class="flex-none" />
-                      </div>
-                    </NcButton>
-                  </div>
+
+                  <GeneralIcon v-if="hasValidationError" icon="alertTriangle" class="flex-none !text-red-500" />
+
+                  <GeneralIcon
+                    icon="settings"
+                    class="flex-none w-4 h-4"
+                    :class="{
+                      'text-brand-500 ': filteredValidators.length,
+                    }"
+                  />
                 </div>
-              </div>
+                <template #overlay>
+                  <div class="p-4 nc-custom-validator-dropdown-container">
+                    <div class="flex flex-col gap-3">
+                      <div class="nc-custom-validation-table table">
+                        <div class="thead">
+                          <div class="tr">
+                            <div class="th">Validator</div>
+                            <div class="th">Validation Value</div>
+                            <div class="th">
+                              <span> Warning Message </span>
+                              <NcTooltip class="flex cursor-pointer" placement="bottomLeft">
+                                <template #title>
+                                  This warning message will be displayed to form users for invalid inputs.</template
+                                >
+
+                                <GeneralIcon icon="info" class="flex-none text-gray-500 hover:text-gray-700" />
+                              </NcTooltip>
+                            </div>
+                            <div class="th"></div>
+                          </div>
+                        </div>
+                        <div class="tbody">
+                          <template v-if="validators.length">
+                            <template v-for="(validator, i) of validators" :key="i">
+                              <LazySmartsheetFormCustomValidationItem
+                                v-if="customValidatorTypes.includes(validator.type)"
+                                class="tr"
+                                :validator="validator"
+                                :index="i"
+                                :options="options"
+                                :validators-map="validatorsMap"
+                                @remove="handleRemoveValidator(i)"
+                              ></LazySmartsheetFormCustomValidationItem>
+                            </template>
+                          </template>
+                          <div v-else class="tr flex items-center justify-center text-gray-500">No validations</div>
+                        </div>
+                      </div>
+                      <div>
+                        <NcButton
+                          class="nc-custom-validation-add-btn border-1 flex items-center"
+                          type="link"
+                          size="small"
+                          @click="
+                            () => {
+                              if (click(PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION)) return
+
+                              addPlaceholderValidator()
+                            }
+                          "
+                        >
+                          <div class="flex items-center gap-2">
+                            <span class="text-sm"> Add Validation </span>
+                            <GeneralIcon icon="plus" class="flex-none" />
+                            <LazyPaymentUpgradeBadge
+                              v-if="!isFeatureEnabled"
+                              :feature="PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION"
+                              :content="$t('upgrade.upgradeToAddCustomValidationSubtitle')"
+                            />
+                          </div>
+                        </NcButton>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </NcDropdown>
             </template>
-          </NcDropdown>
+          </PaymentUpgradeBadgeProvider>
         </div>
       </div>
       <div class="text-sm text-gray-500">Apply rules and regular expressions on inputs.</div>

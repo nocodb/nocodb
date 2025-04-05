@@ -167,7 +167,7 @@ watch(okBtnRef, () => {
 </script>
 
 <template>
-  <NcModal v-bind="restProps" v-model:visible="vModel">
+  <NcModal v-bind="restProps" v-model:visible="vModel" wrap-class-name="nc-modal-confirm-wrapper">
     <div class="nc-modal-confirm flex flex-col gap-5" :class="[`nc-modal-confirm-type-${type}`]">
       <div class="flex gap-4">
         <div v-if="showIcon" class="nc-modal-confirm-icon-wrapper">
@@ -252,5 +252,11 @@ watch(okBtnRef, () => {
       @apply text-nc-content-brand;
     }
   }
+}
+</style>
+
+<style lang="scss">
+.nc-modal-confirm-wrapper {
+  @apply z-1050;
 }
 </style>

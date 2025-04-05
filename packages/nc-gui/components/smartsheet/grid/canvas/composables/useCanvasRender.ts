@@ -2275,6 +2275,10 @@ export function useCanvasRender({
 
           ctx.fillStyle = isHovered ? '#F4F4F5' : 'transparent'
 
+          if (isHovered) {
+            setCursor('pointer')
+          }
+
           if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
             ctx.save()
             ctx.beginPath()

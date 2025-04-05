@@ -13,6 +13,8 @@ export const useBaseSettings = createSharedComposable(() => {
 
   const { t } = useI18n()
 
+  const { activeWorkspace, workspaces } = storeToRefs(useWorkspace())
+
   const basesStore = useBases()
 
   const { activeProjectId } = storeToRefs(basesStore)
@@ -54,7 +56,19 @@ export const useBaseSettings = createSharedComposable(() => {
     isCooldownPeriodReached.value = dayjs().diff(dayjs(lastSnapshot.created_at), 'hour') < 3
   }
 
-  const isSnapshotLimitReached = computed(() => snapshots.value.length >= 2)
+  const updateSnapshotWorkspaceStat = (count: number) => {
+    if (!activeWorkspace.value) return
+
+    const newCount = (activeWorkspace.value?.stats?.[PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE] ?? 0) + count
+
+    workspaces.value.set(activeWorkspace.value.id!, {
+      ...activeWorkspace.value,
+      stats: {
+        ...(activeWorkspace.value?.stats || {}),
+        [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: newCount,
+      },
+    })
+  }
 
   const updateSnapshot = async (snapshot: SnapshotExtendedType) => {
     try {
@@ -77,6 +91,8 @@ export const useBaseSettings = createSharedComposable(() => {
       snapshots.value = snapshots.value.filter((s) => s.id !== snapshot.id)
 
       checkIfCooldownPeriodReached()
+
+      updateSnapshotWorkspaceStat(-1)
     } catch (error) {
       message.error(await extractSdkResponseErrorMsg(error))
       console.error(error)
@@ -134,6 +150,7 @@ export const useBaseSettings = createSharedComposable(() => {
               message.info('Snapshot created successfully')
               await listSnapshots()
               isCreatingSnapshot.value = false
+              updateSnapshotWorkspaceStat(1)
             } else if (data.status === JobStatus.FAILED) {
               message.error('Failed to create snapshot')
               isCreatingSnapshot.value = false
@@ -261,10 +278,6 @@ export const useBaseSettings = createSharedComposable(() => {
     }
 
     checkIfCooldownPeriodReached()
-    if (isSnapshotLimitReached.value) {
-      message.error('Maximum 2 snapshots allowed per base at a time in the free plan')
-      return
-    }
 
     if (isCooldownPeriodReached.value) {
       message.error('Please wait for 3 hours before creating a new snapshot')
@@ -294,7 +307,6 @@ export const useBaseSettings = createSharedComposable(() => {
     isRestoringSnapshot,
     restoreSnapshot,
     newSnapshotTitle,
-    isSnapshotLimitReached,
     isCooldownPeriodReached,
     isSnapshotCreationFailed,
   }

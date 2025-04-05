@@ -95,7 +95,7 @@ interface Row {
       message: string
       progress: number
     }
-    groupPath?: Array<number> | null
+    path?: Array<number> | null
 
     new?: boolean
     selected?: boolean
@@ -473,7 +473,7 @@ interface CellRenderer {
       beforeRow?: string,
     ) => Promise<any>
     actionManager: ActionManager
-    makeCellEditable: (rowIndex: number | Row, clickedColumn: CanvasGridColumn) => void
+    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
     selected: boolean
     imageLoader: ImageWindowLoader
     cellRenderStore: CellRenderStore
@@ -497,7 +497,7 @@ interface CellRenderer {
       beforeRow?: string,
     ) => Promise<any>
     actionManager: ActionManager
-    makeCellEditable: (rowIndex: number | Row, clickedColumn: CanvasGridColumn) => void
+    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
     cellRenderStore: CellRenderStore
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
   }) => Promise<boolean | void>
@@ -517,7 +517,7 @@ interface CellRenderer {
       beforeRow?: string,
     ) => Promise<any>
     actionManager: ActionManager
-    makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
+    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
     selected: boolean
     imageLoader: ImageWindowLoader
     cellRenderStore: CellRenderStore
@@ -585,8 +585,9 @@ type CanvasEditEnabledType = {
   y: number
   width: number
   minHeight: number
-  height: number
+  height: number | string
   fixed: boolean
+  path: Array<number>
 } | null
 
 type CanvasCellEventDataInjType = ExtractInjectedReactive<typeof CanvasCellEventDataInj>

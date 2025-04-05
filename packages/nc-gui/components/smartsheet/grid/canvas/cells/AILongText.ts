@@ -246,7 +246,7 @@ export const AILongTextCellRenderer: CellRenderer = {
       isBoxHovered({ x: x + width - 28, y: y + 7, width: 18, height: 18 }, mousePosition) ||
       isBoxHovered({ x: x + width - 52, y: y + 7, width: 18, height: 18 }, mousePosition)
     ) {
-      makeCellEditable(row.rowMeta.rowIndex!, column)
+      makeCellEditable(row, column)
       return true
     }
 
@@ -291,7 +291,7 @@ export const AILongTextCellRenderer: CellRenderer = {
       return true
     }
     if (/^[a-zA-Z0-9]$/.test(e.key)) {
-      makeCellEditable(row.rowMeta!.rowIndex!, column)
+      makeCellEditable(row, column)
       return true
     }
     return false

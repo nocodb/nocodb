@@ -28,7 +28,7 @@ export const LtarCellRenderer: CellRenderer = {
     const { row, column, e, makeCellEditable } = props
 
     if (isExpandCellKey(e)) {
-      makeCellEditable(row.rowMeta.rowIndex!, column)
+      makeCellEditable(row, column)
       return true
     }
 

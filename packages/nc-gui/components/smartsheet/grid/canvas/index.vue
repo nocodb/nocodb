@@ -835,7 +835,7 @@ async function handleMouseDown(e: MouseEvent) {
 
   // If the new cell user clicked is not the active cell
   // call onActiveCellChanged to clear invalid rows and reorder records locally if required
-  if (rowIndex !== activeCell.value?.row || groupPath.map((v) => `${v}`).join('-') !== row?.rowMeta?.groupPath) {
+  if (rowIndex !== activeCell.value?.row || groupPath.map((v) => `${v}`).join('-') !== row?.rowMeta?.path.join('-')) {
     onActiveCellChanged()
   }
 
@@ -889,7 +889,7 @@ function scrollToCell(row?: number, column?: number, path?: Array<number>): void
   let cellBottom = 0
 
   if (isGroupBy.value && cachedGroups.value) {
-    cellTop = calculateGroupRowTop(cachedGroups.value, currentPath, currentRow, rowHeight.value)
+    cellTop = calculateGroupRowTop(cachedGroups.value, currentPath, currentRow, rowHeight.value, isAddingEmptyRowAllowed.value)
     cellBottom = cellTop + rowHeight.value + PADDING_BOTTOM
   } else {
     cellTop = currentRow * rowHeight.value
@@ -1252,7 +1252,7 @@ async function handleMouseUp(e: MouseEvent) {
 
     const supportedVirtualColumns = [UITypes.Barcode, UITypes.QrCode, UITypes.Lookup]
     if (!supportedVirtualColumns.includes(columnUIType) && clickedColumn?.virtual) return
-    makeCellEditable(rowIndex, clickedColumn)
+    makeCellEditable(row, clickedColumn)
   }
 }
 
@@ -1770,12 +1770,16 @@ const callAddNewRow = (context: { row: number; col: number; path: Array<number> 
 const onNavigate = (dir: NavigateDir) => {
   if (ncIsNullOrUndefined(activeCell.value?.row) || ncIsNullOrUndefined(activeCell.value?.column)) return
 
+  const path = editEnabled.value?.path || activeCell.value.path
+
+  const dataCache = getDataCache(path)
+
   editEnabled.value = null
   selection.value.clear()
 
   switch (dir) {
     case NavigateDir.NEXT:
-      if (activeCell.value.row < totalRows.value - 1) {
+      if (activeCell.value.row < dataCache.totalRows.value - 1) {
         activeCell.value.row++
       } else {
         addEmptyRow()
@@ -1832,7 +1836,13 @@ watch(
 watch(
   activeCell,
   (activeCell) => {
-    const row = activeCell.row !== null ? cachedRows.value.get(activeCell.row)?.row : undefined
+    const path = activeCell.path
+
+    if (isGroupBy.value && ncIsNullOrUndefined(path)) return
+
+    const dataCache = getDataCache(path)
+
+    const row = activeCell.row !== null ? dataCache.cachedRows.value.get(activeCell.row)?.row : undefined
     const col = row && activeCell.column !== null ? columns.value[activeCell.column]?.columnObj : undefined
     const val = row && col ? row[col.title as string] : undefined
     const rowId = extractPkFromRow(row!, meta.value?.columns as ColumnType[])
@@ -1926,7 +1936,7 @@ onClickOutside(
     openColumnDropdownField.value = null
     openAggregationField.value = null
     if (activeCell.value.row >= 0 || activeCell.value.column >= 0 || editEnabled.value) {
-      activeCell.value = { row: -1, column: -1 }
+      activeCell.value = { row: -1, column: -1, path: activeCell.value.path }
       editEnabled.value = null
       isFillHandlerActive.value = false
       selection.value.clear()
@@ -2092,7 +2102,9 @@ defineExpose({
                     :row="editEnabled.row"
                     active
                     :read-only="!isDataEditAllowed"
-                    @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
+                    @save="
+                      updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state, undefined, undefined, editEnabled.path)
+                    "
                     @navigate="onNavigate"
                   />
                   <SmartsheetCell
@@ -2100,6 +2112,7 @@ defineExpose({
                     :model-value="editEnabled.row.row[editEnabled.column.title]"
                     :column="editEnabled.column"
                     :row-index="editEnabled.rowIndex"
+                    :path="editEnabled.path"
                     active
                     edit-enabled
                     :read-only="!isDataEditAllowed"

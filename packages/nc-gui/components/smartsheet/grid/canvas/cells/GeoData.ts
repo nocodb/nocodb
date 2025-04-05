@@ -61,7 +61,7 @@ export const GeoDataCellRenderer: CellRenderer = {
   async handleClick({ row, column, mousePosition, getCellPosition, value, selected, makeCellEditable }) {
     const { hideTooltip } = useTooltipStore()
     hideTooltip()
-    const enableEdit = () => makeCellEditable(row.rowMeta.rowIndex!, column)
+    const enableEdit = () => makeCellEditable(row, column)
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
     const [latitude, longitude] = (value || '').split(';')

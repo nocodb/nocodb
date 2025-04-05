@@ -347,33 +347,49 @@ export const OrderedProjectRoles = [
 ];
 
 export enum PlanLimitTypes {
-  // PER PLAN
-  PLAN_STORAGE_LIMIT = 'limit_storage',
-  PLAN_EDITOR_LIMIT = 'limit_editor',
-  PLAN_USER_LIMIT = 'limit_user',
+  LIMIT_FREE_WORKSPACE = 'limit_free_workspace',
+  LIMIT_EDITOR = 'limit_editor', // ONLY FOR FREE PLAN
+  LIMIT_USER = 'limit_user',
 
-  // PER USER
-  FREE_WORKSPACE_LIMIT = 'limit_free_workspace',
+  LIMIT_AI_TOKEN = 'limit_ai_token',
+  LIMIT_API_CALL = 'limit_api_call',
+  LIMIT_AUDIT_RETENTION = 'limit_audit_retention',
+  LIMIT_AUTOMATION_CALL = 'limit_automation_call',
 
-  // PER WORKSPACE
-  WORKSPACE_ROW_LIMIT = 'limit_workspace_row',
-  BASE_LIMIT = 'limit_base',
+  LIMIT_SNAPSHOTS_PER_WORKSPACE = 'limit_snapshots',
+  LIMIT_STORAGE_PER_WORKSPACE = 'limit_storage',
+  LIMIT_RECORD_PER_WORKSPACE = 'limit_table_record',
+  LIMIT_BASE_PER_WORKSPACE = 'limit_base',
+  LIMIT_SOURCE_PER_BASE = 'limit_source',
+  LIMIT_TABLE_PER_BASE = 'limit_table',
+  LIMIT_COLUMN_PER_TABLE = 'limit_column',
+  LIMIT_WEBHOOK_PER_TABLE = 'limit_webhook',
+  LIMIT_VIEW_PER_TABLE = 'limit_view',
+  LIMIT_FILTER_PER_VIEW = 'limit_filter',
+  LIMIT_SORT_PER_VIEW = 'limit_sort',
+}
 
-  // PER BASE
-  SOURCE_LIMIT = 'limit_source',
-
-  // PER BASE
-  TABLE_LIMIT = 'limit_table',
-
-  // PER TABLE
-  COLUMN_LIMIT = 'limit_column',
-  TABLE_ROW_LIMIT = 'limit_table_row',
-  WEBHOOK_LIMIT = 'limit_webhook',
-  VIEW_LIMIT = 'limit_view',
-
-  // PER VIEW
-  FILTER_LIMIT = 'limit_filter',
-  SORT_LIMIT = 'limit_sort',
+export enum PlanFeatureTypes {
+  FEATURE_AI = 'feature_ai',
+  FEATURE_AI_INTEGRATIONS = 'feature_ai_integrations',
+  FEATURE_AT_MENTION = 'feature_at_mention',
+  FEATURE_AUDIT_WORKSPACE = 'feature_audit_workspace',
+  FEATURE_COMMENT_RESOLVE = 'feature_comment_resolve',
+  FEATURE_CUSTOM_URL = 'feature_custom_url',
+  FEATURE_DISCUSSION_MODE = 'feature_discussion_mode',
+  FEATURE_EXTENSIONS = 'feature_extensions',
+  FEATURE_FILE_MODE = 'feature_file_mode',
+  FEATURE_FORM_CUSTOM_LOGO = 'feature_form_custom_logo',
+  FEATURE_FORM_FIELD_ON_CONDITION = 'feature_form_field_on_condition',
+  FEATURE_FORM_FIELD_VALIDATION = 'feature_form_field_validation',
+  FEATURE_GROUP_BY_AGGREGATIONS = 'feature_group_by_aggregations',
+  FEATURE_HIDE_BRANDING = 'feature_hide_branding',
+  FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER = 'feature_ltar_limit_selection_by_filter',
+  FEATURE_PERSONAL_VIEWS = 'feature_personal_views',
+  FEATURE_SCRIPTS = 'feature_scripts',
+  FEATURE_SSO = 'feature_sso',
+  FEATURE_WEBHOOK_CUSTOM_PAYLOAD = 'feature_webhook_custom_payload',
+  FEATURE_WEBHOOK_LOGS = 'feature_webhook_logs',
 }
 
 export enum PlanTitles {

@@ -69,20 +69,18 @@ export const useInfiniteGroups = (
 
     targetChunkStates[chunkId] = 'loading'
     const offset = chunkId * GROUP_CHUNK_SIZE
-    const level = parentGroup ? findGroupLevel(parentGroup) - 1 : 0
+    const level = parentGroup ? findGroupLevel(parentGroup) : 0
     const groupCol = groupByColumns.value[level]
 
     if (!groupCol || !view.value?.id || !base.value?.id) return
 
     try {
-      const whereClause = parentGroup
-        ? `${where?.value ? `${where.value}~and` : ''}(${parentGroup.column.title},gb_eq,${parentGroup.value})`
-        : where?.value
+      const nestedWhere = parentGroup ? buildNestedWhere(parentGroup, where?.value) : ''
 
       const response = await $api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
         offset,
         limit: GROUP_CHUNK_SIZE,
-        where: whereClause,
+        where: nestedWhere,
         sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
         column_name: groupCol.column.title,
         subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
@@ -140,7 +138,7 @@ export const useInfiniteGroups = (
             where: computed(() => buildNestedWhere(group, where?.value)),
             callbacks: {},
             isPublic,
-            disableInjection: true
+            disableInjection: true,
           })
         }
 

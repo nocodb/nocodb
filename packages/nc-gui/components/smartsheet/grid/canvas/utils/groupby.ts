@@ -28,9 +28,14 @@ export function calculateGroupHeight(group: CanvasGroup, rowHeight: number) {
   let h = GROUP_HEADER_HEIGHT + GROUP_PADDING // Base height for group header
   if (group?.isExpanded) {
     if (group.infiniteData) {
-      h += (group.count || 0) * rowHeight // Rows
-    } else if (group?.groups) {
-      for (const [, subGroup] of group.groups) {
+      h += (group.count || 0) * rowHeight
+    } else if (group?.groupCount) {
+      for (let i = 0; i < group.groupCount; i++) {
+        const subGroup = group.groups.get(i)
+        if (!subGroup) {
+          h += GROUP_HEADER_HEIGHT + GROUP_PADDING
+          continue
+        }
         h += calculateGroupHeight(subGroup, rowHeight) // Recursively calculate subgroup height
       }
     }
@@ -61,7 +66,6 @@ export function calculateGroupRange(
 
       for (let j = i; j < groupCount; j++) {
         const endGroup = groups.get(j)
-        if (!endGroup) break
 
         const endGroupHeight = calculateGroupHeight(endGroup, rowHeight)
         if (currentOffset + endGroupHeight > viewportBottom) {

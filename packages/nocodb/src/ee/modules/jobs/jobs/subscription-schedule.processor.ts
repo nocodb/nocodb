@@ -4,7 +4,6 @@ import dayjs from 'dayjs';
 import { Subscription } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
-import { refreshPlanAndSubscription } from '~/helpers/paymentHelpers';
 
 const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder');
 
@@ -80,11 +79,6 @@ export class SubscriptionScheduleProcessor {
             scheduled_plan_start_at: null,
             scheduled_plan_period: null,
           },
-          ncMeta,
-        );
-
-        await refreshPlanAndSubscription(
-          subscription.fk_org_id || subscription.fk_workspace_id,
           ncMeta,
         );
       } catch (error) {

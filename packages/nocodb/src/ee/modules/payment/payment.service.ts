@@ -7,10 +7,7 @@ import type { NcRequest } from '~/interface/config';
 import { Org, Plan, Subscription, Workspace } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
-import {
-  getWorkspaceOrOrg,
-  refreshPlanAndSubscription,
-} from '~/helpers/paymentHelpers';
+import { getWorkspaceOrOrg } from '~/helpers/paymentHelpers';
 
 const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder');
 
@@ -320,8 +317,6 @@ export class PaymentService {
           existingSubscription.id,
           await this.getNextInvoice(workspaceOrOrg.id),
         );
-
-        await refreshPlanAndSubscription(workspaceOrOrg.id, ncMeta);
       }
 
       if (existingSubscription.canceled_at) {
@@ -467,8 +462,6 @@ export class PaymentService {
           ...(existingSubscription.canceled_at ? { canceled_at: null } : {}),
         });
 
-        await refreshPlanAndSubscription(workspaceOrOrg.id, ncMeta);
-
         return {
           id: subscription.id,
           message: 'Plan change scheduled at period end',
@@ -552,8 +545,6 @@ export class PaymentService {
             upcoming_invoice_currency: upcomingInvoice.currency,
             ...(existingSubscription.canceled_at ? { canceled_at: null } : {}),
           });
-
-          await refreshPlanAndSubscription(workspaceOrOrg.id, ncMeta);
 
           return {
             id: subscription.id,
@@ -978,8 +969,6 @@ export class PaymentService {
       );
     }
 
-    await refreshPlanAndSubscription(workspaceOrOrg.id);
-
     this.logger.log(
       `Subscription recovered for workspace or org ${workspaceOrOrg.id}`,
     );
@@ -1024,8 +1013,6 @@ export class PaymentService {
               await this.getNextInvoice(workspaceId),
             );
 
-            await refreshPlanAndSubscription(workspaceId);
-
             this.logger.log(
               `Plan applied for workspace ${workspaceId} after successful payment`,
             );
@@ -1049,8 +1036,6 @@ export class PaymentService {
 
           const workspaceOrOrgId =
             subscription.fk_org_id || subscription.fk_workspace_id;
-
-          await refreshPlanAndSubscription(workspaceOrOrgId);
 
           this.logger.log(
             `Payment failed for ${workspaceOrOrgId}. No plan applied`,
@@ -1139,8 +1124,6 @@ export class PaymentService {
 
           const workspaceOrOrgId =
             subscription.fk_org_id || subscription.fk_workspace_id;
-
-          await refreshPlanAndSubscription(workspaceOrOrgId);
 
           this.logger.log(
             `Subscription ${event.type} processed for ${workspaceOrOrgId}.`,

@@ -65,7 +65,7 @@ export function calculateGroupRange(
   for (let i = 0; i < groupCount; i++) {
     const group = groups.get(i)
     const groupHeight = calculateGroupHeight(group, rowHeight, isAddingNewRowAllowed)
-     if (currentOffset + groupHeight - GROUP_PADDING > scrollTop) {
+    if (currentOffset + groupHeight - GROUP_PADDING > scrollTop) {
       startIndex = i
       // startGroupYOffset - is the offset of the group from the top of the viewport, this could be negative
       // when the group is partially visible at the top of the viewport

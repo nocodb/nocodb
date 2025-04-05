@@ -25,6 +25,7 @@ export default class Subscription {
   start_at: string;
   trial_end_at: string;
   canceled_at: string;
+  billing_cycle_anchor: string;
 
   period: string;
 
@@ -92,6 +93,7 @@ export default class Subscription {
       'seat_count',
       'status',
       'start_at',
+      'billing_cycle_anchor',
       'trial_end_at',
       'canceled_at',
       'period',
@@ -129,6 +131,7 @@ export default class Subscription {
       'status',
       'trial_end_at',
       'canceled_at',
+      'billing_cycle_anchor',
       'period',
       'upcoming_invoice_at',
       'upcoming_invoice_due_at',

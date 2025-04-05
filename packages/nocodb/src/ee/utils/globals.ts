@@ -85,6 +85,7 @@ export enum MetaTable {
   SYNC_CONFIGS = 'nc_sync_configs',
   PLANS = 'nc_plans',
   SUBSCRIPTIONS = 'nc_subscriptions',
+  USAGE_STATS = 'nc_usage_stats',
 }
 
 export const orderedMetaTables = [
@@ -222,6 +223,7 @@ export enum CacheScope {
   PLANS = 'plans',
   SUBSCRIPTIONS = 'subscriptions',
   SUBSCRIPTIONS_ALIAS = 'subscriptionsAlias',
+  USAGE_STATS = 'usageStats',
 }
 
 export const RootScopeTables = {

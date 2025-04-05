@@ -36,6 +36,7 @@ import * as nc_035_missing_context_indexes from './v3/nc_035_missing_context_ind
 import * as nc_036_scripts from './v3/nc_036_scripts';
 import * as nc_037_rename_source from './v3/nc_037_rename_source';
 import * as nc_038_plans_and_subscriptions from './v3/nc_038_plans_and_subscriptions';
+import * as nc_039_plans_and_subscriptions_limits from './v3/nc_039_plans_and_subscriptions_limits';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -83,6 +84,7 @@ export default class XcMigrationSourcev3 {
       'nc_036_scripts',
       'nc_037_rename_source',
       'nc_038_plans_and_subscriptions',
+      'nc_039_plans_and_subscriptions_limits',
     ]);
   }
 
@@ -168,6 +170,8 @@ export default class XcMigrationSourcev3 {
         return nc_037_rename_source;
       case 'nc_038_plans_and_subscriptions':
         return nc_038_plans_and_subscriptions;
+      case 'nc_039_plans_and_subscriptions_limits':
+        return nc_039_plans_and_subscriptions_limits;
     }
   }
 }

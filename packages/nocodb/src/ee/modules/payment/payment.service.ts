@@ -384,7 +384,7 @@ export class PaymentService {
       price.recurring.interval !== item.price.recurring.interval &&
       PlanOrder[existingPlan.title] >= PlanOrder[plan.title]
     ) {
-      // Monthly to Yearly: immediate change with proration (invoice immediately)
+      // Monthly to Yearly: immediate change with proration (invoice immediately) + reset billing cycle
       if (
         price.recurring.interval === 'year' &&
         item.price.recurring.interval === 'month'
@@ -406,8 +406,9 @@ export class PaymentService {
               fk_user_id: req.user.id,
               fk_plan_id: plan.id,
             },
-            cancel_at_period_end: false,
             proration_behavior: 'always_invoice',
+            billing_cycle_anchor: 'now',
+            cancel_at_period_end: false,
           },
         );
         return { id: updatedSubscription.id };
@@ -470,7 +471,7 @@ export class PaymentService {
     } else {
       // Yearly plan
       if (price.recurring.interval === 'year') {
-        // If the new price or plan is higher upgrade immediately (invoice now with prorations)
+        // If the new price or plan is higher upgrade immediately (invoice now with prorations) + reset billing cycle
         if (
           !existingPrice ||
           price.unit_amount > existingPrice.unit_amount ||
@@ -494,6 +495,7 @@ export class PaymentService {
                 fk_plan_id: plan.id,
               },
               proration_behavior: 'always_invoice',
+              billing_cycle_anchor: 'now',
               cancel_at_period_end: false,
             },
           );
@@ -552,7 +554,7 @@ export class PaymentService {
           };
         }
       } else {
-        // Monthly plan: change immediately with proration
+        // Monthly plan: change immediately with proration (invoice now) + reset billing cycle
         updatedSubscription = await stripe.subscriptions.update(
           subscription.id,
           {
@@ -570,6 +572,8 @@ export class PaymentService {
               fk_user_id: req.user.id,
               fk_plan_id: plan.id,
             },
+            proration_behavior: 'always_invoice',
+            billing_cycle_anchor: 'now',
             cancel_at_period_end: false,
           },
         );
@@ -960,6 +964,10 @@ export class PaymentService {
       status: subscriptionData.status,
       start_at: dayjs.unix(subscriptionData.start_date).utc().toISOString(),
       period: price.recurring.interval,
+      billing_cycle_anchor: dayjs
+        .unix(subscriptionData.billing_cycle_anchor)
+        .utc()
+        .toISOString(),
     });
 
     if (subscriptionData.status === 'active') {
@@ -1069,6 +1077,10 @@ export class PaymentService {
             status: subscription.status,
             start_at: dayjs.unix(subscription.start_date).utc().toISOString(),
             period,
+            billing_cycle_anchor: dayjs
+              .unix(subscription.billing_cycle_anchor)
+              .utc()
+              .toISOString(),
           });
 
           break;
@@ -1101,6 +1113,10 @@ export class PaymentService {
               ? dayjs.unix(dataObject.cancel_at).utc().toISOString()
               : null,
             fk_plan_id: plan_id,
+            billing_cycle_anchor: dayjs
+              .unix(dataObject.billing_cycle_anchor)
+              .utc()
+              .toISOString(),
             period: dataObject.items.data[0].price.recurring
               ? dataObject.items.data[0].price.recurring.interval
               : subscription.period,

@@ -104,6 +104,7 @@ export default class Noco {
   static async init(param: any, httpServer: http.Server, server: Express) {
     const nestApp = await NestFactory.create(AppModule, {
       bufferLogs: true,
+      bodyParser: false,
     });
     this.initCustomLogger(nestApp);
     NcDebug.log('Custom logger initialized');
@@ -140,10 +141,6 @@ export default class Noco {
 
     nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
     NcDebug.log('Websocket adapter initialized');
-
-    nestApp.use(
-      express.json({ limit: process.env.NC_REQUEST_BODY_SIZE || '50mb' }),
-    );
 
     await nestApp.init();
     NcDebug.log('Nest app initialized');

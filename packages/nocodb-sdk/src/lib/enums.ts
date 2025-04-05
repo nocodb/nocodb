@@ -354,10 +354,14 @@ export enum PlanLimitTypes {
   LIMIT_AI_TOKEN = 'limit_ai_token',
   LIMIT_API_CALL = 'limit_api_call',
   LIMIT_AUDIT_RETENTION = 'limit_audit_retention',
-  LIMIT_AUTOMATION_CALL = 'limit_automation_call',
+  LIMIT_AUTOMATION_RUN = 'limit_automation_run',
+  LIMIT_AUTOMATION_RETENTION = 'limit_automation_retention',
   LIMIT_API_PER_SECOND = 'limit_api_per_second',
 
-  LIMIT_SNAPSHOTS_PER_WORKSPACE = 'limit_snapshots',
+  LIMIT_WEBHOOK_PER_WORKSPACE = 'limit_webhook',
+  LIMIT_EXTENSION_PER_WORKSPACE = 'limit_extension',
+
+  LIMIT_SNAPSHOT_PER_WORKSPACE = 'limit_snapshots',
   LIMIT_STORAGE_PER_WORKSPACE = 'limit_storage',
   LIMIT_RECORD_PER_WORKSPACE = 'limit_table_record',
   LIMIT_BASE_PER_WORKSPACE = 'limit_base',
@@ -390,7 +394,6 @@ export enum PlanFeatureTypes {
   FEATURE_SCRIPTS = 'feature_scripts',
   FEATURE_SSO = 'feature_sso',
   FEATURE_WEBHOOK_CUSTOM_PAYLOAD = 'feature_webhook_custom_payload',
-  FEATURE_WEBHOOK_LOGS = 'feature_webhook_logs',
 }
 
 export enum PlanTitles {

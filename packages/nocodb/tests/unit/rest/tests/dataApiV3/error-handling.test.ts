@@ -112,8 +112,7 @@ describe('dataApiV3', () => {
     // skip, our sort direction is either {field} (asc) or -{field} (desc) so no validation required
     it.skip('invalid sort direction', async () => {});
 
-    it('invalid filter field', async () => {
-      // TODO: body change msg to message
+    it('invalid filter field (column not found)', async () => {
       const response = await ncAxiosGet({
         url: `${urlPrefix}/${testContext.countryTable.id}`,
         query: {
@@ -121,7 +120,23 @@ describe('dataApiV3', () => {
         },
         status: 422,
       });
-      expect(response.body.msg).to.eq(`Column 'NotFoundField' not found.`);
+      expect(response.body.message).to.eq(
+        `INVALID_FILTER column 'NotFoundField' not found`,
+      );
+    });
+
+    it('invalid filter field (invalid parsing)', async () => {
+      // TODO: body change msg to message
+      const response = await ncAxiosGet({
+        url: `${urlPrefix}/${testContext.countryTable.id}`,
+        query: {
+          where: '(NotFoundField,eq',
+        },
+        status: 422,
+      });
+      expect(response.body.message).to.eq(
+        `INVALID_FILTER parsing_error: Expecting token of type --> PAREN_END <-- but found --> '' <--`,
+      );
     });
 
     it('invalid select field', async () => {

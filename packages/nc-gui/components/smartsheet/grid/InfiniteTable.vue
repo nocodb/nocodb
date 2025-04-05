@@ -142,6 +142,8 @@ const { generateRows, generatingRows, generatingColumnRows, generatingColumns, a
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const { showRecordPlanLimitExceededModal } = useEeConfig()
+
 const tableBodyEl = ref<HTMLElement>()
 
 const gridWrapper = ref<HTMLElement>()
@@ -694,11 +696,15 @@ const onDraftRecordClick = () => {
 }
 
 const onNewRecordToGridClick = () => {
+  if (showRecordPlanLimitExceededModal()) return
+
   setAddNewRecordGridMode(true)
   addEmptyRow()
 }
 
 const onNewRecordToFormClick = () => {
+  if (showRecordPlanLimitExceededModal()) return
+
   setAddNewRecordGridMode(false)
   onDraftRecordClick()
 }
@@ -1080,6 +1086,8 @@ async function saveEmptyRow(rowObj: Row, before?: string) {
 }
 
 async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
+  if (showRecordPlanLimitExceededModal()) return
+
   clearInvalidRows?.()
   if (rowSortRequiredRows.value.length) {
     applySorting?.(rowSortRequiredRows.value)

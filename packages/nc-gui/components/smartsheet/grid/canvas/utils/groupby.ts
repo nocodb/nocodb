@@ -3,13 +3,14 @@ import { COLUMN_HEADER_HEIGHT_IN_PX, GROUP_HEADER_HEIGHT, GROUP_PADDING } from '
 
 export function getGroupColors(depth: number, maxDepth: number) {
   depth = depth + 1
-
-  console.log(depth, maxDepth)
-
   if (maxDepth === 1) {
     return {
       border: '#E7E7E9',
       background: '#FFF',
+      aggregation: {
+        hover: '#F9F9FA', // Hover State
+        default: '#FFF', // Default Bg State
+      },
     }
   }
 
@@ -19,12 +20,20 @@ export function getGroupColors(depth: number, maxDepth: number) {
         return {
           background: '#FFF',
           border: '#E7E7E9',
+          aggregation: {
+            hover: '#F9F9FA', // Hover State
+            default: '#FFF', // Default Bg State
+          },
         }
       }
       case 1: {
         return {
           background: '#F9F9FA',
           border: '#E7E7E9',
+          aggregation: {
+            hover: '#F4F4F5', // Hover State
+            default: '#F9F9FA', // Default Bg State
+          },
         }
       }
     }
@@ -36,18 +45,30 @@ export function getGroupColors(depth: number, maxDepth: number) {
         return {
           background: '#FFF',
           border: '#E7E7E9',
+          aggregation: {
+            hover: '#F9F9FA', // Hover State
+            default: '#FFF', // Default Bg State
+          },
         }
       }
       case 2: {
         return {
           background: '#F9F9FA',
           border: '#E7E7E9',
+          aggregation: {
+            hover: '#F4F4F5', // Hover State
+            default: '#F9F9FA', // Default Bg State
+          },
         }
       }
       case 1: {
         return {
           background: '#F4F4F5',
           border: '#9AA2AF',
+          aggregation: {
+            hover: '#E7E7E8', // Hover State
+            default: '#F4F4F5', // Default Bg State
+          },
         }
       }
     }

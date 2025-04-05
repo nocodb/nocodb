@@ -2177,23 +2177,26 @@ defineExpose({
           </NcButton>
           <NcButton
             v-else
-            v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
-            class="!rounded-r-none !border-r-0 nc-grid-add-new-row"
+            v-e="[isAddNewRecordGridMode && !isGroupBy ? 'c:row:add:grid' : 'c:row:add:form']"
+            class="nc-grid-add-new-row"
             size="small"
+            :class="{
+              '!rounded-r-none !border-r-0': !isGroupBy,
+            }"
             type="secondary"
             :shadow="false"
-            @click.stop="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+            @click.stop="isAddNewRecordGridMode && !isGroupBy ? addEmptyRow() : onNewRecordToFormClick()"
           >
             <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
               <GeneralIcon icon="plus" />
-              <template v-if="isAddNewRecordGridMode">
+              <template v-if="isAddNewRecordGridMode || isGroupBy">
                 {{ $t('activity.newRecord') }}
               </template>
               <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}</template>
             </div>
           </NcButton>
           <NcButton
-            v-if="!isMobileMode"
+            v-if="!isMobileMode && !isGroupBy"
             size="small"
             class="!rounded-l-none nc-add-record-more-info"
             type="secondary"

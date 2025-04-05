@@ -11,7 +11,13 @@ export const useRowDragging = ({
   cachedRows,
 }: {
   gridWrapper: Ref<HTMLElement | undefined>
-  updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
+  updateRecordOrder: (
+    originalIndex: number,
+    targetIndex: number | null,
+    undo?: boolean,
+    isFailed?: boolean,
+    path?: Array<number>,
+  ) => Promise<void>
   onDragStart?: (row: Row, e: MouseEvent) => void
   rowHeight: ComputedRef<number>
   rowSlice: { start: number; end: number }

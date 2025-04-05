@@ -4,13 +4,11 @@ import { GROUP_HEADER_HEIGHT } from '../utils/constants'
 
 export function useRowReorder({
   isDragging,
+  draggedRowGroupPath,
   draggedRowIndex,
   targetRowIndex,
   canvasRef,
   rowHeight,
-  cachedRows,
-  partialRowHeight,
-  scrollTop,
   updateRecordOrder,
   triggerRefreshCanvas,
   totalRows,
@@ -20,6 +18,7 @@ export function useRowReorder({
 }: {
   isDragging: Ref<boolean>
   draggedRowIndex: Ref<number | null>
+  draggedRowGroupPath: Ref<number[] | null>
   targetRowIndex: Ref<number | null>
   canvasRef: Ref<HTMLCanvasElement>
   rowHeight: Ref<number>
@@ -27,10 +26,16 @@ export function useRowReorder({
   cachedRows: Ref<Map<number, Row>>
   scrollTop: Ref<number>
   totalRows: Ref<number>
-  updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
+  updateRecordOrder: (
+    originalIndex: number,
+    targetIndex: number | null,
+    undo?: boolean,
+    isFailed?: boolean,
+    path?: Array<number>,
+  ) => Promise<void>
   triggerRefreshCanvas: () => void
   scrollToCell: (row?: number, column?: number, path?: Array<number>) => void
-  elementMAp: CanvasElement
+  elementMap: CanvasElement
   getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
     totalRows: Ref<number>
@@ -42,10 +47,14 @@ export function useRowReorder({
   const dragStartY = ref(0)
   const currentDragY = ref(0)
 
-  const findElement = (x: number, y: number): number => {
+  const findElement = (x: number, y: number) => {
     const mouseTop = y
 
-    return elementMap.findElementAt(x, mouseTop, ElementTypes.ROW)
+    const element = elementMap.findElementAt(x, mouseTop)
+
+    if (element?.isRow || element?.isAddNewRow) {
+      return element
+    }
   }
 
   const handleDragStart = (e: MouseEvent) => {
@@ -55,6 +64,7 @@ export function useRowReorder({
     const element = findElement(e.clientX - rect.left, e.clientY - rect.top)
 
     if (!element) return
+
     const { cachedRows } = getDataCache(element.groupPath)
 
     const rowIndex = element.rowIndex
@@ -72,6 +82,7 @@ export function useRowReorder({
     targetRowIndex.value = rowIndex + 1
     dragStartY.value = e.clientY
     currentDragY.value = e.clientY
+    draggedRowGroupPath.value = element.groupPath
 
     window.addEventListener('mousemove', handleDrag)
     window.addEventListener('mouseup', handleDragEnd)
@@ -82,7 +93,17 @@ export function useRowReorder({
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect) return
 
-    targetRowIndex.value = findElement(e.clientX - rect.left, e.clientY - rect.top)
+    const targetElement = findElement(e.clientX - rect.left, e.clientY - rect.top + rowHeight.value / 2)
+    if (!targetElement?.isRow) if (!targetElement) return
+
+    if (targetElement.groupPath?.join('-') !== draggedRowGroupPath.value?.join('-')) {
+      return
+    }
+
+    const { totalRows } = getDataCache(targetElement.groupPath)
+
+    targetRowIndex.value = targetElement.rowIndex ?? totalRows.value
+
     triggerRefreshCanvas()
 
     const edgeThreshold = 100
@@ -96,7 +117,13 @@ export function useRowReorder({
   }
   async function handleDragEnd() {
     if (draggedRowIndex.value !== null && draggedRowIndex.value + 1 !== targetRowIndex.value) {
-      await updateRecordOrder(draggedRowIndex.value, targetRowIndex.value === totalRows.value ? null : targetRowIndex.value)
+      await updateRecordOrder(
+        draggedRowIndex.value,
+        targetRowIndex.value === totalRows.value ? null : targetRowIndex.value,
+        undefined,
+        undefined,
+        draggedRowGroupPath.value,
+      )
     }
     cleanup()
   }
@@ -105,6 +132,7 @@ export function useRowReorder({
     isDragging.value = false
     draggedRowIndex.value = null
     targetRowIndex.value = null
+    draggedRowGroupPath.value = null
     window.removeEventListener('mousemove', handleDrag)
     window.removeEventListener('mouseup', handleDragEnd)
     triggerRefreshCanvas()

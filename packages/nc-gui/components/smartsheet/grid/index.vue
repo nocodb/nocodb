@@ -65,7 +65,6 @@ const {
   selectedAllRecords,
   bulkDeleteAll,
   getRows,
-  groupDataCache,
   getDataCache,
   cachedGroups,
   groupByColumns,

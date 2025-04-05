@@ -38,7 +38,13 @@ const props = defineProps<{
   deleteSelectedRows?: () => Promise<void>
   clearInvalidRows?: () => void
   deleteRangeOfRows?: (cellRange: CellRange) => Promise<void>
-  updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
+  updateRecordOrder: (
+    originalIndex: number,
+    targetIndex: number | null,
+    undo?: boolean,
+    isFailed?: boolean,
+    path?: Array<number>,
+  ) => Promise<void>
   bulkUpdateRows?: (
     rows: Row[],
     props: string[],

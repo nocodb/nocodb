@@ -1805,6 +1805,17 @@ export function useCanvasRender({
     const { start: startColIndex, end: endColIndex } = colSlice.value
     const visibleCols = columns.value.slice(startColIndex, endColIndex)
     group.infiniteData?.fetchMissingChunks(startIndex, endIndex)
+
+    let activeState: { col: any; x: number; y: number; width: number; height: number } | null = null
+
+    let renderRedBorders: {
+      rowIndex: number
+      column: CanvasGridColumn
+    }[] = []
+
+    let warningRow: { row: Row; yOffset: number } | null = null
+    yOffset += 1
+
     const adjustedWidth =
       totalWidth.value - scrollLeft.value - 256 < width.value ? totalWidth.value - scrollLeft.value - 256 : width.value
 
@@ -1819,7 +1830,7 @@ export function useCanvasRender({
       ctx.save()
       ctx.rect(indent, yOffset, adjustedWidth - 2 * indent, rowHeight.value)
       ctx.clip()
-      renderRow(ctx, {
+      const renderedProp = renderRow(ctx, {
         row,
         initialXOffset: indent,
         visibleCols,
@@ -1840,14 +1851,54 @@ export function useCanvasRender({
         row,
       })
 
+      activeState = renderedProp.activeState ?? activeState
+      renderRedBorders = [...renderRedBorders, ...renderedProp.renderRedBorders]
+
       // Bottom border for each row
       ctx.strokeStyle = '#e7e7e9'
       ctx.beginPath()
       ctx.moveTo(indent, yOffset + rowHeight.value)
       ctx.lineTo(adjustedWidth - indent, yOffset + rowHeight.value)
       ctx.stroke()
+
+      if (row?.rowMeta.isValidationFailed || row?.rowMeta.isRowOrderUpdated) {
+        warningRow = { row, yOffset }
+      }
+
       yOffset += rowHeight.value
     }
+
+    if (isAddingEmptyRowAllowed.value && !isMobileMode.value) {
+      const isNewRowHovered = isBoxHovered(
+        {
+          x: 0,
+          y: yOffset,
+          height: COLUMN_HEADER_HEIGHT_IN_PX,
+          width: adjustedWidth - 2 * level * 9,
+        },
+        mousePosition,
+      )
+      ctx.fillStyle = isNewRowHovered ? '#F9F9FA' : '#ffffff'
+      ctx.fillRect(level * 9, yOffset, adjustedWidth - 2 * level * 9, COLUMN_HEADER_HEIGHT_IN_PX)
+      // Bottom border for new row
+      ctx.strokeStyle = '#f4f4f5'
+      ctx.beginPath()
+      ctx.moveTo(level * 9, yOffset + COLUMN_HEADER_HEIGHT_IN_PX)
+      ctx.lineTo(adjustedWidth - 2 * level * 9, yOffset + COLUMN_HEADER_HEIGHT_IN_PX)
+      ctx.stroke()
+
+      spriteLoader.renderIcon(ctx, {
+        icon: 'ncPlus',
+        color: isNewRowHovered ? '#000000' : '#4a5268',
+        x: 16,
+        y: yOffset + 9,
+        size: 14,
+      })
+      yOffset += COLUMN_HEADER_HEIGHT_IN_PX
+    }
+
+    renderActiveState(ctx, activeState)
+
     return yOffset
   }
 
@@ -1969,6 +2020,7 @@ export function useCanvasRender({
               group.groupCount,
               groupHeight - relativeScrollTop - groupHeaderY - GROUP_HEADER_HEIGHT,
               true,
+              isAddingEmptyRowAllowed.value,
             )
 
             console.log(group.value, {
@@ -2253,6 +2305,8 @@ export function useCanvasRender({
         rowHeight.value,
         totalGroups.value,
         height.value,
+        false,
+        isAddingEmptyRowAllowed.value,
       )
 
       fetchMissingGroupChunks(startIndex, endIndex)

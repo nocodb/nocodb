@@ -60,6 +60,7 @@ export const useEeConfig = createSharedComposable(() => {
     workspaceId,
     callback,
     redirectToWorkspace = true,
+    stopEventPropogation = true,
     title,
     content,
     okText,
@@ -71,6 +72,7 @@ export const useEeConfig = createSharedComposable(() => {
     workspaceId?: string
     callback?: (type: 'ok' | 'cancel') => void
     redirectToWorkspace?: boolean
+    stopEventPropogation?: boolean
   } = {}) => {
     const higherPlan = HigherPlan[activePlanTitle ?? activePlan.value?.title ?? PlanTitles.FREE]
     if (!higherPlan) {
@@ -117,6 +119,7 @@ export const useEeConfig = createSharedComposable(() => {
       'update:visible': closeDialog,
       'showIcon': false,
       'maskClosable': true,
+      'stopEventPropogation': stopEventPropogation,
     })
 
     function closeDialog() {

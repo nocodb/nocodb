@@ -1855,12 +1855,6 @@ watch(rowHeight, () => {
   requestAnimationFrame(triggerRefreshCanvas)
 })
 
-watch(groupByColumns, async () => {
-  await syncGroupCount()
-  calculateSlices()
-  requestAnimationFrame(triggerRefreshCanvas)
-})
-
 // watch for column hide and re-render canvas
 watch(
   () => [columns.value?.length, totalRows.value],

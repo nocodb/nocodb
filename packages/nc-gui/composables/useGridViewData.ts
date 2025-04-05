@@ -843,6 +843,10 @@ export function useGridViewData(
     }
   }
 
+  watch(groupByColumns, () => {
+    groupDataCache.value.clear()
+  })
+
   return {
     cachedRows,
     loadData,

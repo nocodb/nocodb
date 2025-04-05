@@ -54,6 +54,8 @@ const {
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
 
+const { showRecordPlanLimitExceededModal } = useEeConfig()
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 const isExpandedFormCloseAfterSave = ref(false)
@@ -217,6 +219,8 @@ const onClick = (refRow: any, id: string) => {
 }
 
 const addNewRecord = () => {
+  if (showRecordPlanLimitExceededModal()) return
+
   expandedFormRow.value = {}
   expandedFormDlg.value = true
   isExpandedFormCloseAfterSave.value = true

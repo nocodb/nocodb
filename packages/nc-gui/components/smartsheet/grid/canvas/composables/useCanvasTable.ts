@@ -11,6 +11,7 @@ import { useGridCellHandler } from '../cells'
 import { TableMetaLoader } from '../loaders/TableMetaLoader'
 import type { CanvasGridColumn } from '../../../../../lib/types'
 import { CanvasElement } from '../utils/CanvasElement'
+import { calculateGroupRowTop } from '../utils/groupby'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
@@ -564,7 +565,11 @@ export function useCanvasTable({
   const getFillHandlerPosition = (): FillHandlerPosition | null => {
     if (isFillHandleDisabled.value) return null
 
-    if (selection.value.end.row < rowSlice.value.start || selection.value.end.row >= rowSlice.value.end) {
+    const groupPath = activeCell?.value.path
+
+    const dataCache = getDataCache(groupPath)
+
+    if ((selection.value.end.row < rowSlice.value.start || selection.value.end.row >= rowSlice.value.end) && !isGroupBy.value) {
       return null
     }
     // If selection is single cell and cell is virtual, hide fill handler
@@ -606,7 +611,19 @@ export function useCanvasTable({
       xPos -= scrollLeft.value
     }
 
-    const startY = -partialRowHeight.value + 33 + (selection.value.end.row - rowSlice.value.start + 1) * rowHeight.value
+    const startY =
+      calculateGroupRowTop(
+        cachedGroups.value,
+        groupPath,
+        selection.value.end.row,
+        rowHeight.value,
+        isAddingEmptyRowAllowed.value,
+      ) -
+      scrollTop.value +
+      COLUMN_HEADER_HEIGHT_IN_PX +
+      rowHeight.value
+
+    // const startY = -partialRowHeight.value + 33 + (selection.value.end.row - rowSlice.value.start + 1) * rowHeight.value
 
     return {
       x: xPos,
@@ -771,16 +788,16 @@ export function useCanvasTable({
     isAiFillMode,
     selection,
     canvasRef,
-    rowHeight,
     getFillHandlerPosition,
     triggerReRender: triggerRefreshCanvas,
-    rowSlice,
+    getRows,
     meta: meta as Ref<TableType>,
-    cachedRows,
     columns,
     bulkUpdateRows,
     isPasteable,
     activeCell,
+    elementMap,
+    getDataCache,
   })
 
   const handleColumnWidth = (columnId: string, width: number, updateFn: (normalizedWidth: string) => void) => {

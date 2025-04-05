@@ -951,7 +951,7 @@ function scrollToCell(row?: number, column?: number, path?: Array<number>): void
 async function handleMouseUp(e: MouseEvent) {
   e.preventDefault()
   document.removeEventListener('mouseup', handleMouseUp)
-  onMouseUpFillHandlerEnd()
+  await onMouseUpFillHandlerEnd()
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
   const y = e.clientY - rect.top

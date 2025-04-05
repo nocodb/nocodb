@@ -1,5 +1,4 @@
 import { parseCellWidth } from '../utils/cell'
-import { findRowInGroups } from '../utils/groupby'
 import { type CanvasElement, ElementTypes } from '../utils/CanvasElement'
 
 const MAX_SELECTION_LIMIT = 100
@@ -101,7 +100,7 @@ export function useMouseSelection({
 
     const cell = findCellFromPosition(e.clientX - rect.left, e.clientY - rect.top)
 
-    if (!cell.row) return
+    if (ncIsNullOrUndefined(cell.row)) return
 
     const dataCache = getDataCache(cell?.path)
 

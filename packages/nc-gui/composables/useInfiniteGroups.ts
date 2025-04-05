@@ -33,9 +33,10 @@ export const useInfiniteGroups = (
   const { $api } = useNuxtApp()
   const { getMeta } = useMetas()
   const { appInfo } = useGlobal()
-  const { nestedFilters } = useSmartsheetStoreOrThrow()
-  const { fetchBulkAggregatedData } = useSharedView()
+  const { nestedFilters, sorts } = useSmartsheetStoreOrThrow()
+  const { fetchBulkAggregatedData, sharedView } = useSharedView()
   const isPublic = inject(IsPublicInj, ref(false))
+  const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
 
   const activeGroupKeys = ref<Array<string>>([])
 
@@ -108,15 +109,33 @@ export const useInfiniteGroups = (
     try {
       const nestedWhere = parentGroup ? buildNestedWhere(parentGroup, where?.value) : where.value
 
-      // TODO: @DarkPhoenix2704 - Add Public Endpoint here
-      const response = await $api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
-        offset,
-        limit: GROUP_CHUNK_SIZE,
-        where: nestedWhere,
-        sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
-        column_name: groupCol.column.title,
-        subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
-      })
+      const response = isPublic.value
+        ? await $api.public.dataGroupBy(
+            sharedView.value!.uuid!,
+            {
+              offset,
+              limit: GROUP_CHUNK_SIZE,
+              where: nestedWhere,
+              sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
+              column_name: groupCol.column.title,
+              subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
+              sortsArr: sorts.value,
+              filtersArr: nestedFilters.value,
+            },
+            {
+              headers: {
+                'xc-password': sharedViewPassword.value,
+              },
+            },
+          )
+        : await $api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
+            offset,
+            limit: GROUP_CHUNK_SIZE,
+            where: nestedWhere,
+            sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
+            column_name: groupCol.column.title,
+            subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
+          })
 
       const groups: CanvasGroup[] = []
       for (const item of response.list) {
@@ -332,11 +351,17 @@ export const useInfiniteGroups = (
       const groupCol = groupByColumns.value?.[0]
       if (!groupCol) return
 
-      totalGroups.value = await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
-        where: where?.value,
-        sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any[],
-        column_name: groupCol.column.title,
-      })
+      totalGroups.value = isPublic.value
+        ? await $api.public.dataGroupByCount(sharedView.value!.uuid!, {
+            where: where?.value,
+            sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any[],
+            column_name: groupCol.column.title,
+          })
+        : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
+            where: where?.value,
+            sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any[],
+            column_name: groupCol.column.title,
+          })
     }
   }
 

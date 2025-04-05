@@ -1991,13 +1991,6 @@ export function useCanvasRender({
         continue
       }
 
-      // if (level > 0 && i === startIndex) {
-      //   console.log(group.value, {
-      //     groupHeaderY,
-      //     currentOffset,
-      //   })
-      // }
-
       elementMap.addElement({
         y: groupHeaderY,
         x: currentOffset,
@@ -2008,7 +2001,7 @@ export function useCanvasRender({
         group,
       })
 
-      if (groupHeaderY + groupHeight > 0 && groupHeaderY < height.value) {
+      if (groupHeaderY + groupHeight >= 0 && groupHeaderY < height.value) {
         let tempCurrentOffset = currentOffset + GROUP_HEADER_HEIGHT
         if (group.isExpanded) {
           const nestedContentStart = tempCurrentOffset
@@ -2340,6 +2333,7 @@ export function useCanvasRender({
         yOffset: startGroupYOffset,
         startIndex,
         endIndex,
+        partialGroupHeight: 0,
       })
     }
 

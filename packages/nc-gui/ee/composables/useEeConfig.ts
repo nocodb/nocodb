@@ -29,6 +29,16 @@ export const useEeConfig = createSharedComposable(() => {
     return limit === -1 ? Infinity : limit
   }
 
+  const getStatLimit = (type: PlanLimitTypes, workspace?: NcWorkspace | null) => {
+    if (!workspace) {
+      workspace = activeWorkspace.value
+    }
+
+    const limit = workspace?.payment?.plan?.meta?.[type] ?? 0
+
+    return limit === -1 ? 0 : limit
+  }
+
   const getFeature = (type: PlanFeatureTypes, workspace?: NcWorkspace | null) => {
     if (!workspace) {
       workspace = activeWorkspace.value
@@ -158,6 +168,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   return {
     getLimit,
+    getStatLimit,
     getFeature,
     isPaidPlan,
     activePlan,

@@ -178,7 +178,7 @@ export class WorkspaceUsersService {
         );
 
         // check if user limit is reached or going to be exceeded
-        if (seatCount > editorLimitForWorkspace) {
+        if (seatCount + 1 > editorLimitForWorkspace) {
           NcError.planLimitExceeded(
             `Only ${editorLimitForWorkspace} editors are allowed on the ${
               workspace.payment.plan.title
@@ -200,7 +200,7 @@ export class WorkspaceUsersService {
         );
 
         // check if user limit is reached or going to be exceeded
-        if (nonSeatCount > usersLimitForWorkspace) {
+        if (nonSeatCount + 1 > usersLimitForWorkspace) {
           NcError.planLimitExceeded(
             `Only ${usersLimitForWorkspace} users are allowed on the ${workspace.payment.plan.title} plan`,
             {

@@ -9,6 +9,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const getLimit = (..._args: any[]) => {}
 
+  const getStatLimit = (..._args: any[]) => {}
+
   const getFeature = (..._args: any[]) => {}
 
   const getHigherPlan = (..._args: any[]) => {}
@@ -21,6 +23,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   return {
     getLimit,
+    getStatLimit,
     getFeature,
     isPaidPlan,
     activePlan,

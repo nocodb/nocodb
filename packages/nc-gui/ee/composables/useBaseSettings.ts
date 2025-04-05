@@ -23,7 +23,7 @@ export const useBaseSettings = createSharedComposable(() => {
 
   const { refreshCommandPalette } = useCommandPalette()
 
-  const { getLimit, handleUpgradePlan, getPlanTitle, getHigherPlan, activePlan, isPaymentEnabled } = useEeConfig()
+  const { getLimit, handleUpgradePlan, getPlanTitle, getHigherPlan, getStatLimit, activePlan, isPaymentEnabled } = useEeConfig()
 
   const isCreatingSnapshot = ref(false)
 
@@ -212,19 +212,30 @@ export const useBaseSettings = createSharedComposable(() => {
   const verifySnapshotLimit = () => {
     if (!isPaymentEnabled.value) return false
 
-    // Todo: snapshot limit is workspace level so how to get count of snapshots
+    // If snapshot count is greater than or equal to limit then show upgrade modal
+    if (getStatLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE)) {
+      return true
+    }
+
     return false
   }
 
   const addNewSnapshot = () => {
     if (verifySnapshotLimit()) {
+      const limit = getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE)
       return handleUpgradePlan({
-        title: t('upgrade.UpgradeToCreateAdditionalSnapshots'),
-        content: t('upgrade.UpgradeToCreateAdditionalSnapshotsSubtitle', {
-          n: getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE) ?? 2,
-          activePlan: getPlanTitle(activePlan.value?.title),
-          plan: getHigherPlan(),
-        }),
+        title: limit === 0 ? t('upgrade.UpgradeToCreateSnapshots') : t('upgrade.UpgradeToCreateAdditionalSnapshots'),
+        content:
+          limit === 0
+            ? t('upgrade.UpgradeToCreateSnapshotsSubtitle', {
+                activePlan: getPlanTitle(activePlan.value?.title),
+                plan: getHigherPlan(),
+              })
+            : t('upgrade.UpgradeToCreateAdditionalSnapshotsSubtitle', {
+                n: getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE),
+                activePlan: getPlanTitle(activePlan.value?.title),
+                plan: getHigherPlan(),
+              }),
       })
     }
 

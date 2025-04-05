@@ -14,22 +14,26 @@ interface Props {
   content: string
   /** Callback will be triggered on click upgrade plan modal buttons or close modal*/
   callback?: (type: 'ok' | 'cancel') => void
+
+  disabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   planTitle: PlanTitles.TEAM,
 })
 
+const { disabled } = toRefs(props)
+
 const planUpgraderClick = inject(PlanUpgraderClickHookInj, createEventHook())
 
-const { handleUpgradePlan, getFeature, getPlanTitle } = useEeConfig()
+const { handleUpgradePlan, getFeature, getPlanTitle, isPaymentEnabled } = useEeConfig()
 
 const isFeatureEnabled = computed(() => getFeature(props.feature))
 
 const activePlanMeta = computed(() => PlanMeta[props.planTitle])
 
 const showUpgradeModal = () => {
-  if (isFeatureEnabled.value) return
+  if (isFeatureEnabled.value || !isPaymentEnabled.value) return
 
   handleUpgradePlan({
     title: props.title,
@@ -46,19 +50,19 @@ planUpgraderClick.on(() => {
 
 <template>
   <NcBadge
-    v-if="!isFeatureEnabled"
+    v-if="!isFeatureEnabled && isPaymentEnabled"
     size="sm"
     :border="false"
     @click.stop="showUpgradeModal"
     class="nc-upgrade-badge cursor-pointer select-none"
     :class="`nc-upgrade-${planTitle}-badge`"
     :style="{
-      'color': activePlanMeta.primary,
+      'color': disabled ? activePlanMeta.accent : activePlanMeta.primary,
       '--nc-badge-bg-light': activePlanMeta.bgLight,
       '--nc-badge-bg-dark': activePlanMeta.bgDark,
     }"
   >
-    <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4 mr-1" />
+    <!-- <GeneralIcon  icon="ncArrowUpCircle" class="h-4 w-4 mr-1" /> -->
     {{ getPlanTitle(planTitle) }}
   </NcBadge>
 </template>

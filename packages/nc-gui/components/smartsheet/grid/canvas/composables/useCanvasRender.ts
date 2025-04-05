@@ -7,14 +7,24 @@ import type { SpriteLoader } from '../loaders/SpriteLoader'
 import { renderIcon } from '../../../header/CellIcon'
 import { renderIcon as renderVIcon } from '../../../header/VirtualCellIcon'
 import type { TableMetaLoader } from '../loaders/TableMetaLoader'
-import { ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS, ROW_META_COLUMN_WIDTH } from '../utils/constants'
+import {
+  ADD_NEW_COLUMN_WIDTH,
+  COLUMN_HEADER_HEIGHT_IN_PX,
+  GROUP_HEADER_HEIGHT,
+  GROUP_PADDING,
+  MAX_SELECTED_ROWS,
+  ROW_META_COLUMN_WIDTH,
+} from '../utils/constants'
 import { parseCellWidth } from '../utils/cell'
+import { getBackgroundColor } from '../utils/groupby'
 
 export function useCanvasRender({
   width,
   height,
   columns,
   colSlice,
+  groupSlice,
+  cachedGroups,
   scrollLeft,
   scrollTop,
   rowSlice,
@@ -47,10 +57,13 @@ export function useCanvasRender({
   totalRows,
   t,
   readOnly,
-
   isFieldEditAllowed,
   setCursor,
   totalColumnsWidth,
+  groupByColumns,
+  totalGroups,
+  isGroupBy,
+  baseColor,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -58,9 +71,11 @@ export function useCanvasRender({
   columns: ComputedRef<CanvasGridColumn[]>
   colSlice: Ref<{ start: number; end: number }>
   rowSlice: Ref<{ start: number; end: number }>
+  groupSlice: Ref<{ start: number; end: number }>
   activeCell: Ref<{ row: number; column: number }>
   scrollLeft: Ref<number>
   scrollTop: Ref<number>
+  cachedGroups: Ref<Map<number, CanvasGroup>>
   cachedRows: Ref<Map<number, Row>>
   dragOver: Ref<{ id: string; index: number } | null>
   hoverRow: Ref<number>
@@ -86,6 +101,7 @@ export function useCanvasRender({
   meta: ComputedRef<TableType>
   editEnabled: Ref<CanvasEditEnabledType>
   totalRows: Ref<number>
+  totalGroups: Ref<number>
   t: Composer['t']
   readOnly: Ref<boolean>
   isFillHandleDisabled: ComputedRef<boolean>
@@ -93,6 +109,15 @@ export function useCanvasRender({
   isDataEditAllowed: ComputedRef<boolean>
   setCursor: SetCursorType
   totalColumnsWidth: ComputedRef<number>
+  groupByColumns: ComputedRef<
+    {
+      column: ColumnType
+      sort: string
+      order?: number
+    }[]
+  >
+  isGroupBy: Ref<boolean>
+  baseColor: Ref<string>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
@@ -150,6 +175,11 @@ export function useCanvasRender({
     const visibleCols = columns.value.slice(startColIndex, endColIndex)
 
     let initialOffset = 1
+
+    if (groupByColumns.value.length) {
+      initialOffset += groupByColumns.value.length * 9
+    }
+
     for (let i = 0; i < startColIndex; i++) {
       initialOffset += parseCellWidth(columns.value[i]?.width)
     }
@@ -386,7 +416,7 @@ export function useCanvasRender({
 
         // Background
         ctx.fillStyle = '#f4f4f5'
-        ctx.fillRect(xOffset, 0, width, 32)
+        ctx.fillRect(xOffset, 0, width + (column.id === 'row_number' ? groupByColumns.value.length * 9 : 0), 32)
 
         ctx.fillStyle = '#6a7184'
         const iconConfig = (
@@ -430,6 +460,10 @@ export function useCanvasRender({
             )
           } else {
             ctx.fillText(truncatedText, x, y)
+          }
+
+          if (groupByColumns.value.length) {
+            xOffset += groupByColumns.value.length * 9
           }
         } else {
           ctx.fillText(truncatedText, x, y)
@@ -668,6 +702,10 @@ export function useCanvasRender({
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
 
     let currentX = xOffset + 4
+
+    if (groupByColumns.value.length) {
+      currentX += groupByColumns.value.length * 9
+    }
 
     const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
     const isDisabled = (!row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS) || vSelectedAllRecords.value
@@ -1288,6 +1326,11 @@ export function useCanvasRender({
     ctx.stroke()
 
     let initialOffset = 0
+
+    if (groupByColumns.value.length) {
+      initialOffset += groupByColumns.value.length * 9
+    }
+
     for (let i = 0; i < startColIndex; i++) {
       initialOffset += parseCellWidth(columns.value[i]?.width)
     }
@@ -1388,8 +1431,11 @@ export function useCanvasRender({
       const firstFixedCol = fixedCols.find((col) => col.id !== 'row_number')
 
       if (rowNumberCol && firstFixedCol) {
-        const mergedWidth = parseCellWidth(rowNumberCol.width) + parseCellWidth(firstFixedCol.width)
+        let mergedWidth = parseCellWidth(rowNumberCol.width) + parseCellWidth(firstFixedCol.width)
 
+        if (groupByColumns.value.length) {
+          mergedWidth += groupByColumns.value.length * 9
+        }
         const isHovered = isBoxHovered(
           {
             x: xOffset,
@@ -1464,10 +1510,17 @@ export function useCanvasRender({
           ctx.restore()
         }
 
+        const count = isGroupBy.value ? totalGroups.value : totalRows.value
+        const label = isGroupBy.value
+          ? count !== 1
+            ? t('objects.groups')
+            : t('objects.group')
+          : count !== 1
+          ? t('objects.records')
+          : t('objects.record')
+
         renderSingleLineText(ctx, {
-          text: `${Intl.NumberFormat('en', { notation: 'compact' }).format(totalRows.value)} ${
-            totalRows.value !== 1 ? t('objects.records') : t('objects.record')
-          }`,
+          text: `${Intl.NumberFormat('en', { notation: 'compact' }).format(count)} ${label}`,
           x: xOffset + 8,
           y: height.value - AGGREGATION_HEIGHT + 2,
           fillStyle: '#6a7184',
@@ -1480,7 +1533,7 @@ export function useCanvasRender({
         if (height.value) {
           tryShowTooltip({
             mousePosition,
-            text: `${totalRows.value} ${totalRows.value !== 1 ? t('objects.records') : t('objects.record')}`,
+            text: `${count} ${label}`,
             rect: {
               x: xOffset,
               y: height.value - AGGREGATION_HEIGHT,
@@ -1668,6 +1721,50 @@ export function useCanvasRender({
     ctx.restore()
   }
 
+  function renderGroups(ctx: CanvasRenderingContext2D, level = 0) {
+    ctx.save()
+
+    const { start: startSlice, end: endSlice } = groupSlice.value
+
+    let yOffset = 32 + GROUP_PADDING
+
+    for (let i = startSlice; i < endSlice; i++) {
+      const group = cachedGroups.value.get(i)
+      const xOffset = (level + 1) * 9
+
+      const bg = getBackgroundColor(level, groupByColumns.value?.length)
+
+      const adjustedWidth =
+        totalWidth.value - scrollLeft.value - 256 < width.value ? totalWidth.value - scrollLeft.value - 256 : width.value
+      roundedRect(ctx, xOffset, yOffset, adjustedWidth, 36, 8, { backgroundColor: bg, borderColor: '#D5D5D9' })
+
+      spriteLoader.renderIcon(ctx, {
+        icon: group.isExpanded ? 'ncChevronDown' : 'ncChevronRight',
+        size: 16,
+        color: '#374150',
+        x: xOffset + 8 + 4,
+        y: yOffset + 11,
+      })
+
+      ctx.fillStyle = '#6a7184'
+      ctx.font = '550 12px Manrope'
+
+      renderSingleLineText(ctx, {
+        text: group?.value,
+        x: xOffset + 12 + 16,
+        y: yOffset + 4,
+        fontWeight: 'normal',
+        textAlign: 'left',
+        verticalAlign: 'middle',
+        height: GROUP_HEADER_HEIGHT,
+      })
+
+      yOffset = yOffset + GROUP_PADDING + GROUP_HEADER_HEIGHT
+    }
+
+    ctx.restore()
+  }
+
   function renderCanvas() {
     const canvas = canvasRef.value
     if (!canvas) return
@@ -1685,7 +1782,21 @@ export function useCanvasRender({
 
     ctx.clearRect(0, 0, width.value, canvas.height)
 
-    const activeState = renderRows(ctx)
+    let activeState
+
+    if (!groupByColumns.value?.length) {
+      activeState = renderRows(ctx)
+    } else {
+      ctx.save()
+      ctx.fillStyle = baseColor.value
+      ctx.fillRect(0, 0, width.value, height.value)
+      ctx.fill()
+      ctx.restore()
+
+      renderGroups(ctx)
+      // Render Groups Here
+    }
+
     renderHeader(ctx, activeState)
     renderColumnDragIndicator(ctx)
     renderRowDragPreview(ctx)

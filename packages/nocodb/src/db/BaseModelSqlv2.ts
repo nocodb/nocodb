@@ -7131,7 +7131,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             ),
           );
         } else {
-          data = await this._convertUserFormat(
+          data = this._convertUserFormat(
             userColumns,
             baseUsers,
             data,

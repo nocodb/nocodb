@@ -928,20 +928,15 @@ export function useCanvasTable({
     handleMouseMove: onMouseMoveSelectionHandler,
     handleMouseUp: onMouseUpSelectionHandler,
   } = useMouseSelection({
-    activeCell,
     selection,
-    scrollTop,
-    isGroupby: isGroupBy,
-    totalRows,
-    triggerReRender: triggerRefreshCanvas,
-    columns,
+    activeCell,
     canvasRef,
-    cachedGroups,
-    rowSlice,
     scrollLeft,
-    rowHeight,
+    columns,
+    triggerReRender: triggerRefreshCanvas,
     scrollToCell,
-    partialRowHeight,
+    elementMap,
+    getDataCache,
   })
 
   async function clearSelectedRangeOfCells(path?: Array<number>) {

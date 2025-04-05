@@ -2001,15 +2001,10 @@ export function useCanvasRender({
           borders: {
             bottom: true,
           },
-          borderColor: '#f4f4f5',
+          borderColor: '#D5D5D9',
           borderWidth: 1,
         },
       )
-      ctx.beginPath()
-      ctx.moveTo(level * 9, yOffset + COLUMN_HEADER_HEIGHT_IN_PX)
-      ctx.lineTo(adjustedWidth, yOffset + COLUMN_HEADER_HEIGHT_IN_PX)
-      ctx.stroke()
-
       spriteLoader.renderIcon(ctx, {
         icon: 'ncPlus',
         color: isNewRowHovered ? '#000000' : '#4a5268',
@@ -2171,7 +2166,6 @@ export function useCanvasRender({
             },
             {
               backgroundColor: bg,
-              borderWidth: 0.5,
               borderColor: '#D5D5D9',
               borders: {
                 top: false,
@@ -2243,7 +2237,16 @@ export function useCanvasRender({
           adjustedWidth,
           GROUP_HEADER_HEIGHT,
           group.isExpanded ? { topLeft: 8, topRight: 8, bottomLeft: 0, bottomRight: 0 } : 8,
-          { backgroundColor: bg, borderColor: '#D5D5D9' },
+          {
+            backgroundColor: bg,
+            borderColor: '#D5D5D9',
+            borders: {
+              bottom: !group.isExpanded || !!group?.path?.length,
+              top: true,
+              left: true,
+              right: true,
+            },
+          },
         )
 
         const { start: startColIndex, end: endColIndex } = colSlice.value

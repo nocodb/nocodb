@@ -143,7 +143,7 @@ export function roundedRect(
   {
     backgroundColor,
     borderColor,
-    borderWidth,
+    borderWidth = 1,
     borders = { top: true, right: true, bottom: true, left: true },
   }: {
     backgroundColor?: string
@@ -160,60 +160,78 @@ export function roundedRect(
   } = typeof radius === 'number' ? { topLeft: radius, topRight: radius, bottomRight: radius, bottomLeft: radius } : radius
 
   const { top = true, right = true, bottom = true, left = true } = borders
-  ctx.beginPath()
-  if (borderWidth) {
-    ctx.lineWidth = borderWidth
-  }
-  ctx.moveTo(x + topLeft, y)
 
-  if (top) {
+  if (backgroundColor) {
+    ctx.beginPath()
+    ctx.moveTo(x + topLeft, y)
     ctx.lineTo(x + width - topRight, y)
-  } else {
-    ctx.moveTo(x + width - topRight, y)
-  }
-  if (right) {
     ctx.arcTo(x + width, y, x + width, y + topRight, topRight)
-  }
-
-  if (right) {
     ctx.lineTo(x + width, y + height - bottomRight)
-  } else {
-    ctx.moveTo(x + width, y + height - bottomRight)
-  }
-  if (bottom) {
     ctx.arcTo(x + width, y + height, x + width - bottomRight, y + height, bottomRight)
-  }
-
-  if (bottom) {
     ctx.lineTo(x + bottomLeft, y + height)
-  } else {
-    ctx.moveTo(x + bottomLeft, y + height)
-  }
-  if (left) {
     ctx.arcTo(x, y + height, x, y + height - bottomLeft, bottomLeft)
-  }
-
-  if (left) {
     ctx.lineTo(x, y + topLeft)
-  } else {
-    ctx.moveTo(x, y + topLeft)
-  }
-  if (top) {
     ctx.arcTo(x, y, x + topLeft, y, topLeft)
+    ctx.closePath()
+    ctx.fillStyle = backgroundColor
+    ctx.fill()
   }
-
-  ctx.closePath()
 
   if (borderColor) {
     ctx.strokeStyle = borderColor
-    if (top || right || bottom || left) {
+    ctx.lineWidth = borderWidth
+
+    if (top) {
+      ctx.beginPath()
+      ctx.moveTo(x + topLeft, y)
+      ctx.lineTo(x + width - topRight, y)
+      if (right) {
+        ctx.arcTo(x + width, y, x + width, y + topRight, topRight)
+      }
       ctx.stroke()
     }
-  }
 
-  if (backgroundColor) {
-    ctx.fillStyle = backgroundColor
-    ctx.fill()
+    if (right) {
+      ctx.beginPath()
+      if (!top) {
+        ctx.moveTo(x + width, y + topRight)
+      } else {
+        ctx.moveTo(x + width, y + topRight)
+      }
+      ctx.lineTo(x + width, y + height - bottomRight)
+      if (bottom) {
+        ctx.arcTo(x + width, y + height, x + width - bottomRight, y + height, bottomRight)
+      }
+      ctx.stroke()
+    }
+
+    if (bottom) {
+      ctx.beginPath()
+      if (!right) {
+        ctx.moveTo(x + width - bottomRight, y + height)
+      } else {
+        ctx.moveTo(x + width - bottomRight, y + height)
+      }
+      ctx.lineTo(x + bottomLeft, y + height)
+      if (left) {
+        ctx.arcTo(x, y + height, x, y + height - bottomLeft, bottomLeft)
+      }
+      ctx.stroke()
+    }
+
+    if (left) {
+      ctx.beginPath()
+      if (!bottom) {
+        ctx.moveTo(x, y + height - bottomLeft)
+      } else {
+        ctx.moveTo(x, y + height - bottomLeft)
+      }
+      ctx.lineTo(x, y + topLeft)
+      if (top) {
+        ctx.arcTo(x, y, x + topLeft, y, topLeft)
+      }
+      ctx.stroke()
+    }
   }
 }
 

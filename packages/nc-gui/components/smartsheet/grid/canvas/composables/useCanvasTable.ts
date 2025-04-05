@@ -298,7 +298,7 @@ export function useCanvasTable({
       grid_column_id: 'row_number',
       uidt: null,
       title: '#',
-      width: '80px',
+      width: `${80 + groupByColumns.value?.length * 9}px`,
       fixed: true,
       pv: false,
       columnObj: {
@@ -308,7 +308,14 @@ export function useCanvasTable({
     return cols as unknown as CanvasGridColumn[]
   })
 
-  const columnWidths = computed(() => columns.value.map((col) => parseCellWidth(col.width)))
+  const columnWidths = computed(() =>
+    columns.value.map((col) => {
+      if (col.id === 'row_number') {
+        return parseCellWidth(col.width) - groupByColumns.value?.length * 9
+      }
+      return parseCellWidth(col.width)
+    }),
+  )
 
   const totalColumnsWidth = computed(() => columnWidths.value.reduce((sum, val) => sum + val, 0))
 
@@ -408,14 +415,12 @@ export function useCanvasTable({
 
   const findColumnIndex = (target: number, _start = 0, end = columnWidths.value.length) => {
     let accumulatedWidth = 0
-
     for (let i = 0; i < end; i++) {
       if (accumulatedWidth > target) {
         return Math.max(0, i - 1)
       }
       accumulatedWidth += columnWidths.value[i] ?? 0
     }
-
     return end - 1
   }
 
@@ -448,6 +453,10 @@ export function useCanvasTable({
     const startOffset = columnWidths.value.slice(0, visibleStart).reduce((sum, width) => sum + width, 0)
 
     xOffset = startOffset - scrollLeft
+
+    if (groupByColumns.value.length) {
+      xOffset += groupByColumns.value.length * 9
+    }
 
     for (let i = visibleStart; i < visibleEnd; i++) {
       const width = columnWidths.value[i] ?? 180

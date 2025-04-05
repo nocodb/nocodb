@@ -152,7 +152,7 @@ const updateScroll = (vertical?: number, horizontal?: number) => {
 const isWindows = ref(false)
 
 const handleWheel = (e: WheelEvent) => {
-  e.preventDefault()
+  // e.preventDefault()
 
   if (isWindows.value && e.shiftKey) {
     // When Shift is pressed on Windows, treat vertical wheel movement as horizontal scroll

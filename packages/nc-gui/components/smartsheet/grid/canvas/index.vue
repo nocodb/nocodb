@@ -1152,7 +1152,6 @@ async function handleMouseUp(e: MouseEvent) {
         }, {} as Record<string, any>)
 
         const newRow = group?.infiniteData?.addEmptyRow(group.count, undefined, setGroup)
-        group.count++
         group?.infiniteData?.updateOrSaveRow?.(newRow)
       } else {
         await addEmptyRow()

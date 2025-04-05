@@ -207,3 +207,36 @@ export function findRowInGroups(groups: Map<number, CanvasGroup>, y: number, row
   const result = traverseGroups(groups, y)
   return result.row === -1 ? { row: -1, path: [] } : result
 }
+
+export function findFirstExpandedGroupWithPath(groups: Map<number, CanvasGroup>): {
+  group: CanvasGroup | null
+  index: number
+  path: number[]
+} {
+  function traverseGroups(
+    currentGroups: Map<number, CanvasGroup>,
+    currentPath: number[] = [],
+  ): { group: CanvasGroup | null; index: number; path: number[] } {
+    for (const [index, group] of currentGroups) {
+      if (!group) continue
+
+      // Check if group is expanded and has a path
+      if (group.isExpanded && group.path) {
+        return { group, index, path: [...currentPath, index] }
+      }
+
+      // If group has subgroups, recursively check them
+      if (group.isExpanded && group.groups) {
+        const subgroupResult = traverseGroups(group.groups, [...currentPath, index])
+        if (subgroupResult.group !== null) {
+          return subgroupResult
+        }
+      }
+    }
+
+    // No matching group found
+    return { group: null, index: -1, path: [] }
+  }
+
+  return traverseGroups(groups)
+}

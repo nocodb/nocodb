@@ -58,6 +58,8 @@ export function useInfiniteData(args: {
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>
   callbacks: {
     syncVisibleData?: () => void
+    syncTotalRows?: (path: Array<number>, count: number) => void
+    getCount?: (path: Array<number>) => void
   }
   where?: ComputedRef<string | undefined>
   disableSmartsheet?: boolean
@@ -178,14 +180,20 @@ export function useInfiniteData(args: {
       return cachedData
     }
 
+    const currCount = callbacks?.getCount(path)
+
     const newCache = {
       cachedRows: ref<Map<number, Row>>(new Map<number, Row>()),
       chunkStates: ref<Array<'loading' | 'loaded' | undefined>>([]),
-      totalRows: ref<number>(0),
+      totalRows: ref<number>(currCount ?? 0),
       selectedRows: computed<Row[]>(() => Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.selected)),
       isRowSortRequiredRows: computed<Array<Row>>(() =>
         Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.isRowOrderUpdated),
       ),
+    }
+
+    if (currCount === null) {
+      syncCount(path)
     }
     groupDataCache.value.set(key, newCache)
     return newCache
@@ -581,7 +589,7 @@ export function useInfiniteData(args: {
     dataCache.cachedRows.value = newCachedRows
 
     dataCache.totalRows.value = Math.max(0, (dataCache.totalRows.value || 0) - invalidIndexes.length)
-
+    callbacks?.syncTotalRows(path, dataCache.totalRows.value)
     callbacks?.syncVisibleData?.()
   }
 
@@ -826,6 +834,7 @@ export function useInfiniteData(args: {
     dataCache.cachedRows.value.set(newRowIndex, newRow)
 
     dataCache.totalRows.value++
+    callbacks?.syncTotalRows(path, dataCache.totalRows.value)
     callbacks?.syncVisibleData?.()
 
     return newRow
@@ -976,7 +985,7 @@ export function useInfiniteData(args: {
       }
 
       dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
-
+      callbacks?.syncTotalRows(path, dataCache.totalRows.value)
       await syncCount(path)
       callbacks?.syncVisibleData?.()
     } catch (e: any) {
@@ -1071,6 +1080,7 @@ export function useInfiniteData(args: {
                 }
               }
               dataCache.totalRows.value = dataCache.totalRows.value! - 1
+              callbacks?.syncTotalRows(path, dataCache.totalRows.value)
               callbacks?.syncVisibleData?.()
             },
             args: [
@@ -1106,7 +1116,7 @@ export function useInfiniteData(args: {
                 const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
                 if (newRow) newRow.rowMeta.isRowOrderUpdated = needsResorting
               }
-
+              callbacks?.syncTotalRows(path, dataCache.totalRows.value)
               callbacks?.syncVisibleData?.()
             },
             args: [
@@ -1147,7 +1157,7 @@ export function useInfiniteData(args: {
       if (!ignoreShifting) {
         dataCache.totalRows.value++
       }
-
+      callbacks?.syncTotalRows(path, dataCache.totalRows.value)
       reloadAggregate?.trigger()
       callbacks?.syncVisibleData?.()
 
@@ -1255,7 +1265,7 @@ export function useInfiniteData(args: {
       if (toUpdate.rowMeta.rowIndex !== undefined) {
         dataCache.cachedRows.value.set(toUpdate.rowMeta.rowIndex, toUpdate)
       }
-
+      callbacks?.syncTotalRows(path, dataCache.totalRows.value)
       reloadAggregate?.trigger({ fields: [{ title: property }] })
 
       callbacks?.syncVisibleData?.()
@@ -1441,8 +1451,10 @@ export function useInfiniteData(args: {
     if (index !== undefined && row.rowMeta.new) {
       dataCache.cachedRows.value.delete(index)
       dataCache.totalRows.value--
+      callbacks?.syncTotalRows(path, dataCache.totalRows.value)
       return true
     }
+    callbacks?.syncTotalRows(path, dataCache.totalRows.value)
     callbacks?.syncVisibleData?.()
     return false
   }
@@ -1463,6 +1475,7 @@ export function useInfiniteData(args: {
           })
 
       dataCache.totalRows.value = count as number
+      callbacks?.syncTotalRows(path, dataCache.totalRows.value)
       callbacks?.syncVisibleData?.()
     } catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)

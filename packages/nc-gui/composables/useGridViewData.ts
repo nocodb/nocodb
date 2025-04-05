@@ -89,10 +89,68 @@ export function useGridViewData(
     viewMeta,
     callbacks: {
       syncVisibleData,
+      syncTotalRows,
+      getCount,
     },
     where,
     isPublic,
   })
+
+  function getCount(path?: Arr) {
+    if (!path?.length) return
+    let currentGroups = cachedGroups.value
+    const pathCopy = [...path]
+
+    for (let i = 0; i < path.length - 1; i++) {
+      const groupIndex = pathCopy[i]
+      const group = currentGroups.get(groupIndex)
+
+      if (!group || !group.groups) {
+        console.warn(`Invalid path: Group at index ${groupIndex} not found or has no subgroups`)
+        return undefined
+      }
+
+      currentGroups = group.groups
+    }
+
+    const finalIndex = pathCopy[path.length - 1]
+    const targetGroup = currentGroups.get(finalIndex)
+
+    if (!targetGroup) {
+      console.warn(`Target group at path [${path}] not found`)
+      return undefined
+    }
+
+    return targetGroup.count
+  }
+
+  function syncTotalRows(path?: Array<number>, count: number) {
+    if (!path?.length) return
+    let currentGroups = cachedGroups.value
+    const pathCopy = [...path]
+
+    for (let i = 0; i < path.length - 1; i++) {
+      const groupIndex = pathCopy[i]
+      const group = currentGroups.get(groupIndex)
+
+      if (!group || !group.groups) {
+        console.warn(`Invalid path: Group at index ${groupIndex} not found or has no subgroups`)
+        return
+      }
+
+      currentGroups = group.groups
+    }
+
+    const finalIndex = pathCopy[path.length - 1]
+    const targetGroup = currentGroups.get(finalIndex)
+
+    if (!targetGroup) {
+      console.warn(`Target group at path [${path}] not found`)
+      return
+    }
+
+    targetGroup.count = count
+  }
 
   function syncVisibleData() {
     reloadVisibleDataHook?.trigger()

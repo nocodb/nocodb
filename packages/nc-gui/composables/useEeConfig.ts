@@ -19,7 +19,9 @@ export const useEeConfig = createSharedComposable(() => {
 
   const updateStatLimit = (..._args: any[]) => {}
 
-  const getFeature = (..._args: any[]) => {}
+  const getFeature = (..._args: any[]) => {
+    return true
+  }
 
   const getHigherPlan = (..._args: any[]) => {}
 

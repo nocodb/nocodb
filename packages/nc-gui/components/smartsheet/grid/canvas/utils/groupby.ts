@@ -50,7 +50,7 @@ export function calculateGroupRange(
   groupCount: number,
   viewportHeight: number,
 ): { startIndex: number; endIndex: number; partialGroupHeight: number } {
-  let currentOffset = 0
+  let currentOffset = GROUP_PADDING
   let startIndex = 0
   let endIndex = groupCount - 1
   let previousOffset = currentOffset

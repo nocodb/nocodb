@@ -60,9 +60,7 @@ export const useEeConfig = createSharedComposable(() => {
     workspaceId,
     callback,
     redirectToWorkspace = true,
-    title = t('title.upgradeToPlan', {
-      plan: newPlanTitle,
-    }),
+    title,
     content,
     okText,
     cancelText,
@@ -85,7 +83,7 @@ export const useEeConfig = createSharedComposable(() => {
 
     if (!title) {
       title = t('title.upgradeToPlan', {
-        plan: newPlanTitle,
+        plan: getPlanTitle(newPlanTitle),
       })
     }
     const isOpen = ref(true)

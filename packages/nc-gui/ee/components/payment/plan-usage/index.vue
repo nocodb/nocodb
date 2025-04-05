@@ -19,11 +19,7 @@ const { paymentState, workspaceSeatCount, activeSubscription, onManageSubscripti
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
-const activePlanMeta = computed(() =>
-  activeWorkspace.value?.payment?.plan.title === 'Plus'
-    ? PlanMeta[PlanTitles.BUSINESS]
-    : PlanMeta[(activeWorkspace.value?.payment?.plan.title ?? PlanTitles.FREE) as PlanTitles],
-)
+const activePlanMeta = computed(() => PlanMeta[(activeWorkspace.value?.payment?.plan.title ?? PlanTitles.FREE) as PlanTitles])
 
 const scheduledChangeInfo = computed(() => {
   if (!activeSubscription.value || !activeSubscription.value.scheduled_plan_start_at) return null

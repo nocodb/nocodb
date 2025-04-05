@@ -94,7 +94,11 @@
   },
   "upgrade": {
     "UpgradeToCreateAdditionalSnapshots": "Upgrade to create additional snapshots",
-    "UpgradeToCreateAdditionalSnapshotsSubtitle": "The {activePlan} plan allows up to {n} snapshots. Upgrade to the {plan} plan and get access to additional snapshots."
+    "UpgradeToCreateAdditionalSnapshotsSubtitle": "The {activePlan} plan allows up to {n} snapshots. Upgrade to the {plan} plan and get access to additional snapshots.",
+    "upgradeToAddCustomBannerSubtitle": "Upload a custom banner to the form by upgrading your workspace to the Team plan.",
+    "upgradeToAddCustomLogoSubtitle": "Upload your Logo on the form by upgrading your workspace  to the Team plan.",
+    "upgradeToHideFormBrandingSubtitle": "Hide NocoDB branding by upgrading your workspace  to the Team plan.",
+    "upgradeToAddRedirectUrlSubtitle": "Redirect your users to another webpage after filling out the form by upgrading to the Team plan."
   },
   "general": {
     "supported": "Supported",
@@ -735,7 +739,7 @@
     "faqSubtitle": "Explore the FAQ section and get quick answers to common questions about our services, features, and troubleshooting. ",
     "downgradeToPlan": "Downgrade to {plan} plan?",
     "downgradeToPlanSubtitle": "You'll lose access to {activePlan} plan features that aren't available in the {plan} plan.",
-    "upgradeToPlan": "Upgrade to {plan} plan?",
+    "upgradeToPlan": "Upgrade to {plan} plan",
     "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
     "reactivateToPlan": "Reactivate {plan} plan?"
   },

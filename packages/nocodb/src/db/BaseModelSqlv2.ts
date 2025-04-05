@@ -1934,7 +1934,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (subGroupColumnName) {
       const subGroupQuery = await processColumn(subGroupColumnName, true);
       qb.select(
-        this.dbDriver.raw('COUNT(DISTINCT ??) as ??', [
+        this.dbDriver.raw("COUNT(DISTINCT COALESCE(??, '__null__')) as ??", [
           this.dbDriver.raw(subGroupQuery),
           subGroupColumnName,
         ]),

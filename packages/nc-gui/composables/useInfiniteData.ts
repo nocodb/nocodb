@@ -346,7 +346,7 @@ export function useInfiniteData(args: {
 
       const data = formatData(response.list, response.pageInfo, params, path)
 
-      loadAggCommentsCount(data)
+      loadAggCommentsCount(data, path)
 
       return data
     } catch (error: any) {

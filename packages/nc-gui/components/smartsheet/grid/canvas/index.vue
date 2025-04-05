@@ -29,7 +29,7 @@ import {
   MAX_SELECTED_ROWS,
   ROW_META_COLUMN_WIDTH,
 } from './utils/constants'
-import { calculateGroupRowTop, generateGroupPath, getDefaultGroupData } from './utils/groupby'
+import { calculateGroupRowTop, findGroupByPath, generateGroupPath, getDefaultGroupData } from './utils/groupby'
 import { ElementTypes } from './utils/CanvasElement'
 
 const props = defineProps<{
@@ -1762,6 +1762,10 @@ const onNavigate = (dir: NavigateDir) => {
 
   const path = editEnabled.value?.path || activeCell.value.path
 
+  const group = findGroupByPath(cachedGroups.value, path)
+
+  const defaultData = getDefaultGroupData(group)
+
   const dataCache = getDataCache(path)
 
   editEnabled.value = null
@@ -1772,7 +1776,7 @@ const onNavigate = (dir: NavigateDir) => {
       if (activeCell.value.row < dataCache.totalRows.value - 1) {
         activeCell.value.row++
       } else {
-        addEmptyRow()
+        addEmptyRow(undefined, false, undefined, defaultData, path)
         activeCell.value.row++
       }
       break

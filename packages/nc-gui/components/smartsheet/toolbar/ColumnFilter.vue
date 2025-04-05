@@ -21,6 +21,7 @@ interface Props {
   filterOption?: (column: ColumnType) => boolean
   visibilityError?: Record<string, string>
   disableAddNewFilter?: boolean
+  hiddenAddNewFilter?: boolean
   isViewFilter?: boolean
   readOnly?: boolean
   queryFilter?: boolean
@@ -39,6 +40,7 @@ const props = withDefaults(defineProps<Props>(), {
   actionBtnType: 'text',
   visibilityError: () => ({}),
   disableAddNewFilter: false,
+  hiddenAddNewFilter: false,
   isViewFilter: false,
   readOnly: false,
 })
@@ -340,11 +342,6 @@ const updateFilterValue = (value: string, filter: Filter, index: number) => {
   saveOrUpdateDebounced(filter, index)
 }
 
-defineExpose({
-  applyChanges,
-  parentId,
-})
-
 const scrollToBottom = () => {
   wrapperDomRef.value?.scrollTo({
     top: wrapperDomRef.value.scrollHeight,
@@ -565,6 +562,13 @@ eventBus.on(async (event) => {
       loadAllFilters: true,
     })
   }
+})
+
+defineExpose({
+  applyChanges,
+  parentId,
+  addFilterGroup,
+  addFilter,
 })
 </script>
 
@@ -982,6 +986,7 @@ eventBus.on(async (event) => {
           }"
         >
           <NcButton
+            v-if="!hiddenAddNewFilter"
             size="small"
             :type="actionBtnType"
             :disabled="disableAddNewFilter || isLockedView || readOnly"
@@ -997,7 +1002,7 @@ eventBus.on(async (event) => {
           </NcButton>
 
           <NcButton
-            v-if="nestedLevel < 5 && !readOnly"
+            v-if="nestedLevel < 5 && !readOnly && !hiddenAddNewFilter"
             class="nc-btn-focus"
             :disabled="disableAddNewFilter || isLockedView"
             :type="actionBtnType"

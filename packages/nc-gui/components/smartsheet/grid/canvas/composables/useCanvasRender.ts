@@ -2304,7 +2304,7 @@ export function useCanvasRender({
               Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
               groupHeaderY + 1,
               width,
-              GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
+              GROUP_HEADER_HEIGHT - 1 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
             )
 
             ctx.fill()
@@ -2342,7 +2342,7 @@ export function useCanvasRender({
                 Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
                 groupHeaderY + 1,
                 width,
-                GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
+                GROUP_HEADER_HEIGHT - 1 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
               )
               ctx.fill()
               ctx.clip()
@@ -2371,7 +2371,12 @@ export function useCanvasRender({
           }
 
           ctx.save()
-          ctx.rect(Math.max(aggXOffset - scrollLeft.value, fixedColsWidth), groupHeaderY + 1, width, GROUP_HEADER_HEIGHT - 2)
+          ctx.rect(
+            Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
+            groupHeaderY + 1,
+            width,
+            GROUP_HEADER_HEIGHT - 1 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
+          )
 
           ctx.clip()
           ctx.beginPath()

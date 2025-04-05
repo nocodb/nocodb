@@ -523,10 +523,6 @@ async function openNewRecordHandler(groupKey?: string) {
   if (newRow) expandForm?.(newRow, undefined, true, groupKey)
 }
 
-const onDraftRecordClick = () => {
-  openNewRecordFormHook.trigger(vGroup?.key)
-}
-
 const onNewRecordToGridClick = () => {
   setAddNewRecordGridMode(true)
   addEmptyRow()
@@ -534,7 +530,7 @@ const onNewRecordToGridClick = () => {
 
 const onNewRecordToFormClick = () => {
   setAddNewRecordGridMode(false)
-  onDraftRecordClick()
+  openNewRecordHandler(vGroup?.key)
 }
 
 const getContainerScrollForElement = (
@@ -835,10 +831,6 @@ async function saveEmptyRow(rowObj: Row) {
 
 function addEmptyRow(row?: number, skipUpdate = false) {
   const rowObj = callAddEmptyRow?.(row)
-
-  if (!skipUpdate && rowObj) {
-    saveEmptyRow(rowObj)
-  }
 
   nextTick().then(() => {
     scrollToRow(row ?? dataRef.value.length - 1)

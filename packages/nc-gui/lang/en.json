@@ -721,7 +721,7 @@
     "getMoreFromNocodb": "Get more from NocoDB",
     "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "currentPlan": "Current Plan",
-    "seatMonth": "/seat/month",
+    "editorMonth": "/editor/month",
     "mostPopular": "Most Popular",
     "helpAndSupport": "Help & Support",
     "helpAndSupportSubtitle": "Visit our Support Center for detailed guides, customer service contact options, and a community forum for additional help.",

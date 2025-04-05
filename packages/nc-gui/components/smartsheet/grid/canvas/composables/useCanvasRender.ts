@@ -925,9 +925,10 @@ export function useCanvasRender({
       rowIndex: number
       column: CanvasGridColumn
     }[] = []
+    const groupPath = generateGroupPath(group)
     const isHovered = hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path?.join('-') === row?.rowMeta?.path?.join('-')
 
-    const isActiveCellInCurrentGroup = (activeCell.value?.path?.join('-') ?? '') === (generateGroupPath(group)?.join('-') ?? '')
+    const isActiveCellInCurrentGroup = (activeCell.value?.path?.join('-') ?? '') === (groupPath?.join('-') ?? '')
 
     if (row) {
       const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
@@ -1018,6 +1019,7 @@ export function useCanvasRender({
           disabled: column?.isInvalidColumn,
           mousePosition,
           pk,
+          path: groupPath,
           skipRender: isCellEditEnabled,
         })
         ctx.restore()
@@ -1097,6 +1099,7 @@ export function useCanvasRender({
               disabled: column?.isInvalidColumn,
               pk,
               skipRender: isCellEditEnabled,
+              path: groupPath,
             })
             ctx.restore()
           }

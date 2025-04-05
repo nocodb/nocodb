@@ -323,7 +323,7 @@ export const ButtonCellRenderer: CellRenderer = {
       ctx.fillText(truncatedLabel, contentX, startY + 13)
     }
   },
-  async handleClick({ mousePosition, column, row, pk, actionManager, getCellPosition }) {
+  async handleClick({ mousePosition, column, row, pk, actionManager, getCellPosition, path }) {
     if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid) return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
@@ -377,8 +377,7 @@ export const ButtonCellRenderer: CellRenderer = {
       mousePosition.y <= startY + buttonHeight
 
     if (!isHovered) return false
-
-    await actionManager.executeButtonAction([pk], column, { row: [row] })
+    await actionManager.executeButtonAction([pk], column, { row: [row], path })
     return true
   },
 
@@ -436,10 +435,10 @@ export const ButtonCellRenderer: CellRenderer = {
     tryShowTooltip({ rect: box, mousePosition, text: tooltip })
   },
   async handleKeyDown(ctx) {
-    const { e, row, column, actionManager, pk } = ctx
+    const { e, row, column, actionManager, pk, path } = ctx
     if (e.key === 'Enter') {
       if (column.readonly || column.columnObj?.readonly) return false
-      await actionManager.executeButtonAction([pk], column, { row: [row] })
+      await actionManager.executeButtonAction([pk], column, { row: [row], path })
       return true
     }
 

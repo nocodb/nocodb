@@ -541,7 +541,7 @@ export function useCopyPaste({
 
                       rowObj.row[columnObj.title!] = value
 
-                      await syncCellData?.(activeCell, activeCell?.value?.path)
+                      await syncCellData?.(activeCell, activeCell?.path)
                     }
                   },
                   args: [clone(activeCell.value), clone(columnObj), clone(rowObj), clone(pasteVal.value), result],
@@ -649,7 +649,7 @@ export function useCopyPaste({
           const startCol = Math.min(start.col, end.col)
           const endCol = Math.max(start.col, end.col)
 
-          const rows = await getRows(startRow, endRow)
+          const rows = await getRows(startRow, endRow, groupPath)
           const cols = unref(fields).slice(startCol, endCol + 1)
           const props = []
 
@@ -735,7 +735,7 @@ export function useCopyPaste({
           }
 
           if (!props.length) return
-          await bulkUpdateRows?.(rows, props)
+          await bulkUpdateRows?.(rows, props, undefined, false, groupPath)
         }
       }
     } catch (error: any) {
@@ -945,10 +945,10 @@ export function useCopyPaste({
     }
   }
 
-  async function copyValue(ctx?: Cell, path?: Array<number> = []) {
+  async function copyValue(ctx?: Cell, path: Array<number> = []) {
     try {
       if (selection.value.start !== null && selection.value.end !== null && !selection.value.isSingleCell()) {
-        const cprows = await getRows(selection.value.start.row, selection.value.end.row)
+        const cprows = await getRows(selection.value.start.row, selection.value.end.row, path)
 
         const cpcols = unref(fields).slice(selection.value.start.col, selection.value.end.col + 1) // slice the selected cols for copy
 

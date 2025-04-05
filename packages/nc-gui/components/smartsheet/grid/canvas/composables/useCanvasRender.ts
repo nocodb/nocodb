@@ -2189,6 +2189,7 @@ export function useCanvasRender({
         let countWidth = 0
 
         if (!isMouseHoveringOverGroupHeader) {
+          setCursor('pointer')
           const countRender = renderSingleLineText(ctx, {
             text: `${group.count}`,
             x: xOffset + mergedWidth - 8,

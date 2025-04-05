@@ -1310,10 +1310,6 @@ const getHeaderTooltipRegions = (
   }[] = []
   let xOffset = initialOffset + 1
 
-  if (groupByColumns.value.length) {
-    xOffset += groupByColumns.value.length * 9
-  }
-
   const ctx = defaultOffscreen2DContext
   ctx.save()
   ctx.font = '550 12px Manrope'

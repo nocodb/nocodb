@@ -24,7 +24,7 @@ export function getBackgroundColor(depth: number, maxDepth: number): string {
   return '#F9F9FA'
 }
 
-function calculateGroupHeight(group: CanvasGroup, rowHeight: number) {
+export function calculateGroupHeight(group: CanvasGroup, rowHeight: number) {
   let h = GROUP_HEADER_HEIGHT + GROUP_PADDING // Base height for group header
   if (group?.isExpanded) {
     if (group.infiniteData) {
@@ -38,27 +38,48 @@ function calculateGroupHeight(group: CanvasGroup, rowHeight: number) {
   return h
 }
 
-export function calculateStartGroupIndex(
+export function calculateGroupRange(
   groups: Map<number, CanvasGroup>,
   scrollTop: number,
   rowHeight: number,
   groupCount: number,
-) {
-  let currentOffset = 32 + GROUP_PADDING // Initial offset from yOffset
+  viewportHeight: number,
+): { startIndex: number; endIndex: number; partialGroupHeight: number } {
+  let currentOffset = 0
   let startIndex = 0
+  let endIndex = groupCount - 1
+  let previousOffset = currentOffset
 
   for (let i = 0; i < groupCount; i++) {
     const group = groups.get(i)
     const groupHeight = calculateGroupHeight(group, rowHeight)
 
     if (currentOffset + groupHeight > scrollTop) {
-      // This group starts at or after scrollTop
-      return i
+      startIndex = i
+      const partialGroupHeight = scrollTop - previousOffset
+      const viewportBottom = scrollTop + viewportHeight
+
+      for (let j = i; j < groupCount; j++) {
+        const endGroup = groups.get(j)
+        if (!endGroup) break
+
+        const endGroupHeight = calculateGroupHeight(endGroup, rowHeight)
+        if (currentOffset + endGroupHeight > viewportBottom) {
+          endIndex = j
+          break
+        }
+        currentOffset += endGroupHeight
+        endIndex = j
+      }
+
+      return { startIndex, endIndex, partialGroupHeight }
     }
 
+    previousOffset = currentOffset
     currentOffset += groupHeight
-    startIndex = i + 1 // Move to next group if not yet at scrollTop
+    startIndex = i + 1
   }
 
-  return startIndex // Default to last index if scrollTop exceeds content
+  const partialGroupHeight = scrollTop - previousOffset
+  return { startIndex, endIndex, partialGroupHeight }
 }

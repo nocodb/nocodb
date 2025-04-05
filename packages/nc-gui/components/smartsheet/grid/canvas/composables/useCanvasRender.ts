@@ -1987,6 +1987,36 @@ export function useCanvasRender({
       yOffset += COLUMN_HEADER_HEIGHT_IN_PX
     }
 
+    if (warningRow) {
+      const orange = '#fcbe3a'
+      // Warning top border
+      ctx.strokeStyle = 'orange'
+      ctx.beginPath()
+      ctx.moveTo(level * 9, warningRow.yOffset - 2)
+      ctx.lineTo(adjustedWidth - level * 9, warningRow.yOffset)
+      ctx.lineWidth = 2
+      ctx.stroke()
+
+      // Warning bottom border
+      ctx.strokeStyle = 'orange'
+      ctx.beginPath()
+      ctx.moveTo(level * 9, warningRow.yOffset + rowHeight.value)
+      ctx.lineTo(adjustedWidth - level * 9, warningRow.yOffset + rowHeight.value)
+      ctx.lineWidth = 2
+      ctx.stroke()
+
+      roundedRect(ctx, 0, warningRow.yOffset + rowHeight.value, 90, 25, { bottomRight: 6 }, { backgroundColor: orange })
+      renderSingleLineText(ctx, {
+        text: warningRow.row.rowMeta.isValidationFailed ? 'Row filtered' : 'Row moved',
+        x: 10,
+        y: warningRow.yOffset + rowHeight.value,
+        py: 7,
+        fillStyle: '#1f293a',
+        fontSize: 12,
+        fontFamily: '600 12px Manrope',
+      })
+    }
+
     renderActiveState(ctx, activeState)
 
     renderFillHandle(ctx)

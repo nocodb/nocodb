@@ -41,7 +41,7 @@ export const useEeConfig = createSharedComposable(() => {
       workspace = activeWorkspace.value
     }
 
-    const limit = workspace?.stats?.[type] ?? 100000
+    const limit = workspace?.stats?.[type] ?? 0
 
     return limit === -1 ? 0 : limit
   }

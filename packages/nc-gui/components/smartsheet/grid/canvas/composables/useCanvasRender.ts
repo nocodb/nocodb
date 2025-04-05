@@ -1914,11 +1914,6 @@ export function useCanvasRender({
         : width.value
 
     for (let i = startIndex; i <= endIndex; i++) {
-      if (rowHeight.value + yOffset < 0) {
-        yOffset += rowHeight.value
-        continue
-      }
-
       const row = rows?.get(i)
 
       if (!row) {
@@ -2182,7 +2177,11 @@ export function useCanvasRender({
             const itemHeight = rowHeight.value
             // Calculate first visible item index, accounting for header height
             // Math.max ensures no negative indices
-            const nestedStart = 0 // Math.max(0, Math.floor((scrollTop.value - gHeight + GROUP_PADDING) / itemHeight))
+            const nestedStart = Math.min(
+              group.count,
+              // Use the negative offset to calculate the start index, as it helps determine how many rows are hidden
+              Math.max(0, Math.floor(-(groupHeaderY + GROUP_HEADER_HEIGHT - COLUMN_HEADER_HEIGHT_IN_PX) / itemHeight)),
+            )
             // Calculate number of visible rows based on viewport height
             const visibleRowCount = Math.ceil(viewportHeight / itemHeight)
             // Calculate last visible item index, bounded by total count
@@ -2192,7 +2191,7 @@ export function useCanvasRender({
               ctx,
               group,
               // Start rendering from the top of the group
-              nestedContentStart,
+              nestedContentStart + nestedStart * rowHeight.value,
               level + 1,
               nestedStart,
               nestedEnd,

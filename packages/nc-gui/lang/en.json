@@ -316,18 +316,7 @@
     "shared": "Shared",
     "organization": "Organization",
     "all": "All",
-    "billing": "Billing",
-    "choose": "Choose",
-    "plan": "Plan",
-    "plans": "Plans",
-    "monthly": "Monthly",
-    "annually": "Annually",
-    "yearly": "Yearly",
-    "paid": "Paid",
-    "total": "Total",
-    "downgrade": "Downgrade",
-    "upgrade": "Upgrade",
-    "reactivate": "Reactivate"
+    "billing": "Billing"
   },
   "objects": {
     "script": "Script",

@@ -365,7 +365,7 @@ export enum PlanLimitTypes {
   LIMIT_STORAGE_PER_WORKSPACE = 'limit_storage',
   LIMIT_RECORD_PER_WORKSPACE = 'limit_table_record',
   LIMIT_BASE_PER_WORKSPACE = 'limit_base',
-  LIMIT_SOURCE_PER_BASE = 'limit_source',
+  LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE = 'limit_external_source',
   LIMIT_TABLE_PER_BASE = 'limit_table',
   LIMIT_COLUMN_PER_TABLE = 'limit_column',
   LIMIT_WEBHOOK_PER_TABLE = 'limit_webhook',

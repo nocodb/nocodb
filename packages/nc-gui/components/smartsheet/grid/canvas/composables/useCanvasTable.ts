@@ -685,7 +685,6 @@ export function useCanvasTable({
     totalRows,
     t,
     isAddingColumnAllowed,
-    isAddingEmptyRowAllowed,
     readOnly,
     isFillHandleDisabled,
     isDataEditAllowed,

@@ -351,6 +351,7 @@ export enum PlanLimitTypes {
   FREE_WORKSPACE_LIMIT = 'limit_free_workspace',
 
   // PER WORKSPACE
+  WORKSPACE_EDITOR_LIMIT = 'limit_workspace_editor',
   WORKSPACE_USER_LIMIT = 'limit_workspace_user',
   WORKSPACE_ROW_LIMIT = 'limit_workspace_row',
   BASE_LIMIT = 'limit_base',

@@ -723,19 +723,7 @@
     "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
     "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration.",
     "getMoreFromNocodb": "Get more from NocoDB",
-    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
-    "currentPlan": "Current Plan",
-    "editorMonth": "/editor/month",
-    "mostPopular": "Most Popular",
-    "helpAndSupport": "Help & Support",
-    "helpAndSupportSubtitle": "Visit our Support Center for detailed guides, customer service contact options, and a community forum for additional help.",
-    "faq": "FAQ",
-    "faqSubtitle": "Explore the FAQ section and get quick answers to common questions about our services, features, and troubleshooting. ",
-    "downgradeToPlan": "Downgrade to {plan} plan?",
-    "downgradeToPlanSubtitle": "You'll lose access to {activePlan} plan features that aren't available in the {plan} plan.",
-    "upgradeToPlan": "Upgrade to {plan} plan?",
-    "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
-    "reactivateToPlan": "Reactivate {plan} plan?"
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!"
   },
   "labels": {
     "restoringSnapshot": "Restoring Snapshot",
@@ -1213,17 +1201,7 @@
     "enterJson": "Enter JSON",
     "airtableBase": "Airtable base",
     "upgradePlan": "Upgrade Plan",
-    "viewAllPlanDetails": "View all plan details",
-    "contactSales": "Contact Sales",
-    "manageSubscription": "Manage Subscription",
-    "upgradeToPlan": "Upgrade To {plan}",
-    "applicableTax": "Applicable tax",
-    "annualSavings": "Annual Savings",
-    "compareAllFeatures": "Compare all features",
-    "planIncludes": "{plan} Includes:",
-    "everythingInPlanPlus": "Everything in {plan}, Plus:",
-    "downloadInvoice": "Download Invoice",
-    "proceed": "Proceed"
+    "viewAllPlanDetails": "View all plan Details"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

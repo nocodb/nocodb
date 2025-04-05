@@ -187,10 +187,8 @@ const { tryShowTooltip, hideTooltip } = tooltipStore
 
 const {
   fetchMissingGroupChunks,
-  groupSlice,
   syncGroupCount,
   cachedGroups,
-  groupChunkStates,
   totalGroups,
   isGroupBy,
   toggleExpand,
@@ -372,56 +370,6 @@ const isClamped = computed(() => {
   return verticalStuck || horizontalStuck
 })
 
-const calculateGroupSlices = () => {
-  if (!containerRef.value?.clientWidth || !containerRef.value?.clientHeight) {
-    setTimeout(calculateGroupSlices, 50)
-    return
-  }
-
-  const viewportHeight = containerRef.value.clientHeight
-  const _scrollTop = Math.max(0, scrollTop.value)
-
-  // Calculate estimated start index based on scroll position
-  const itemHeight = GROUP_HEADER_HEIGHT + GROUP_PADDING
-
-  const startIndex = Math.max(0, Math.floor(_scrollTop / itemHeight))
-
-  // Calculate how many items can fit in viewport plus buffer
-  const visibleCount = Math.ceil(viewportHeight / itemHeight)
-  const bufferSize = GROUP_CHUNK_SIZE
-
-  // Calculate end index with buffer
-  const endIndex = Math.min(totalGroups.value - 1, startIndex + visibleCount + bufferSize)
-
-  // Update group slice if changed
-  if (startIndex !== groupSlice.value.start || endIndex !== groupSlice.value.end) {
-    groupSlice.value = { start: Math.max(0, startIndex - bufferSize), end: endIndex }
-    fetchMissingGroupChunks(startIndex, endIndex)
-  }
-
-  // Handle column virtualization
-  const startColIndex = Math.max(0, findColumnIndex(scrollLeft.value))
-  const endColIndex = Math.min(
-    columnWidths.value.length,
-    findColumnIndex(scrollLeft.value + containerRef.value.clientWidth + COLUMN_BUFFER_SIZE) + 1,
-  )
-
-  // Update column slice if changed
-  if (startColIndex !== colSlice.value.start || endColIndex !== colSlice.value.end) {
-    colSlice.value = { start: startColIndex, end: endColIndex }
-  }
-
-  // Only trigger update if any slices changed
-  if (
-    startIndex !== groupSlice.value.start ||
-    endIndex !== groupSlice.value.end ||
-    startColIndex !== colSlice.value.start ||
-    endColIndex !== colSlice.value.end
-  ) {
-    fetchMissingGroupChunks(startIndex, endIndex)
-  }
-}
-
 const totalHeight = computed(() => {
   // For non-grouped view, use original calculation
   if (!isGroupBy.value) {
@@ -477,25 +425,21 @@ const calculateSlices = () => {
     return
   }
 
-  if (isGroupBy.value) {
-    calculateGroupSlices()
-    return
+  if (!isGroupBy.value) {
+    const startRowIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
+    const visibleRowCount = Math.ceil(containerRef.value.clientHeight / rowHeight.value)
+    const endRowIndex = Math.min(startRowIndex + visibleRowCount, totalRows.value)
+    const newEndRow = Math.min(totalRows.value, endRowIndex)
+    if (startRowIndex !== rowSlice.value.start || newEndRow !== rowSlice.value.end) {
+      rowSlice.value = { start: startRowIndex, end: newEndRow }
+    }
   }
-
-  const startRowIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
-  const visibleRowCount = Math.ceil(containerRef.value.clientHeight / rowHeight.value)
-  const endRowIndex = Math.min(startRowIndex + visibleRowCount, totalRows.value)
-  const newEndRow = Math.min(totalRows.value, endRowIndex)
 
   const startColIndex = Math.max(0, findColumnIndex(scrollLeft.value))
   const endColIndex = Math.min(
     columnWidths.value.length,
     findColumnIndex(scrollLeft.value + containerRef.value.clientWidth + COLUMN_BUFFER_SIZE) + 1,
   )
-
-  if (startRowIndex !== rowSlice.value.start || newEndRow !== rowSlice.value.end) {
-    rowSlice.value = { start: startRowIndex, end: newEndRow }
-  }
 
   if (startColIndex !== colSlice.value.start || endColIndex !== colSlice.value.end) {
     colSlice.value = { start: startColIndex, end: endColIndex }
@@ -1066,11 +1010,11 @@ async function handleMouseUp(e: MouseEvent) {
   // #FIXME: If Groupby Handle it BRO @DarkPhoenix2704
   // TODOOOOOO
   if (isGroupBy.value) {
-    const groupIndex = Math.floor((y - 32) / (GROUP_HEADER_HEIGHT + GROUP_PADDING)) + groupSlice.value.start
+    /* const groupIndex = Math.floor((y - 32) / (GROUP_HEADER_HEIGHT + GROUP_PADDING)) + groupSlice.value.start
 
     const group = cachedGroups.value.get(groupIndex)
 
-    toggleExpand(group)
+    toggleExpand(group) */
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }

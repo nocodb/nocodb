@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ProjectRoles, type RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
+import { NON_SEAT_ROLES, type PlanLimitExceededDetailsType, ProjectRoles, type RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
 
 import { extractEmail } from '../../helpers/parsers/parserHelpers'
 
@@ -21,6 +21,8 @@ const { baseRoles, workspaceRoles } = useRoles()
 const { createProjectUser } = basesStore
 
 const { inviteCollaborator: inviteWsCollaborator } = workspaceStore
+
+const { handleUpgradePlan } = useEeConfig()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -281,7 +283,37 @@ const inviteCollaborator = async () => {
     emailBadges.value = []
     dialogShow.value = false
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
+    const errorInfo = await extractSdkResponseErrorMsgv2(e)
+
+    if (errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+      let errorWsId
+      if (props.type === 'workspace' && props.workspaceId) {
+        errorWsId = props.workspaceId
+      } else if (props.type === 'organization') {
+        // We have to extract ws id from request url as we are making multple api calls
+        errorWsId = e?.config?.url?.split('/')?.[4]
+      }
+
+      const details = errorInfo.details as PlanLimitExceededDetailsType
+
+      handleUpgradePlan({
+        title: 'Invite more members',
+        activePlanTitle: details.plan,
+        newPlanTitle: details.higherPlan,
+        content: `The ${details.plan} plan allows up to ${details.limit} ${
+          NON_SEAT_ROLES.includes(inviteData.roles) ? 'users' : 'editors'
+        }. Upgrade to the ${details.higherPlan} plan for unlimited ${
+          NON_SEAT_ROLES.includes(inviteData.roles) ? 'users' : 'editors'
+        }.`,
+        callback() {
+          dialogShow.value = false
+        },
+        workspaceId: errorWsId,
+        redirectToWorkspace: props.type !== 'organization',
+      })
+    } else {
+      message.error(errorInfo.message)
+    }
   } finally {
     singleEmailValue.value = ''
     isLoading.value = false

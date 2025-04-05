@@ -1040,7 +1040,7 @@ async function handleMouseUp(e: MouseEvent) {
   const group = element?.group
   const row = element?.row
   const rowIndex = row?.rowMeta?.rowIndex
-  const groupPath = group? generateGroupPath(group) : []
+  const groupPath = group ? generateGroupPath(group) : []
 
   const _totalRows = isGroupBy.value ? group?.infiniteData?.totalRows.value : totalRows.value
 
@@ -1050,11 +1050,7 @@ async function handleMouseUp(e: MouseEvent) {
     return
   }
 
-  if (
-    rowIndex === _totalRows &&
-    clickType === MouseClickType.SINGLE_CLICK &&
-    x < totalColumnsWidth.value - scrollLeft.value
-  ) {
+  if (rowIndex === _totalRows && clickType === MouseClickType.SINGLE_CLICK && x < totalColumnsWidth.value - scrollLeft.value) {
     if (isAddingEmptyRowAllowed.value) {
       await addEmptyRow()
     }

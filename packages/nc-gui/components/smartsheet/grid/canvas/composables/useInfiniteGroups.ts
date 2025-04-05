@@ -85,6 +85,7 @@ export const useInfiniteGroups = (
         where: whereClause,
         sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
         column_name: groupCol.column.title,
+        subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
       })
 
       for (const item of response.list) {

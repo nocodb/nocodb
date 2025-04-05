@@ -136,7 +136,7 @@ onMounted(() => {
             </div>
           </template>
           <div class="overflow-auto h-[calc(100vh-3rem)] nc-scrollbar-thin">
-            <PaymentBanner class="mb-0"/>
+            <PaymentBanner class="mb-0" />
             <WorkspaceCollaboratorsList class="h-[650px]" :workspace-id="currentWorkspace.id" />
           </div>
         </a-tab-pane>
@@ -154,7 +154,7 @@ onMounted(() => {
         </a-tab-pane>
       </template>
 
-      <template v-if="isEeUI && !props.workspaceId && isFeatureEnabled(FEATURE_FLAG.PAYMENT)">
+      <template v-if="isEeUI && !props.workspaceId">
         <a-tab-pane key="billing" class="w-full">
           <template #tab>
             <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">

@@ -90,7 +90,10 @@ export function useCanvasRender({
   cachedGroups: Ref<Map<number, CanvasGroup>>
   cachedRows: Ref<Map<number, Row>>
   dragOver: Ref<{ id: string; index: number } | null>
-  hoverRow: Ref<number>
+  hoverRow: Ref<{
+    path?: Array<number> | null
+    rowIndex: number
+  }>
   totalWidth: ComputedRef<number>
   selection: Ref<CellRange>
   isAiFillMode: ComputedRef<boolean>
@@ -704,7 +707,8 @@ export function useCanvasRender({
       width: number
     },
   ) => {
-    const isHover = hoverRow.value === row.rowMeta.rowIndex
+    const isHover =
+      hoverRow.value?.rowIndex === row.rowMeta.rowIndex && hoverRow.value?.path.join('-') === row.rowMeta?.groupPath.join('-')
     ctx.fillStyle = isHover ? '#F9F9FA' : '#ffffff'
     if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
@@ -988,7 +992,10 @@ export function useCanvasRender({
             ctx.fillStyle = '#F6F7FE'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
-            ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
+            ctx.fillStyle =
+              hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path.join('-') === row.rowMeta?.groupPath.join('-')
+                ? '#F9F9FA'
+                : '#ffffff'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           }
 
@@ -1139,7 +1146,10 @@ export function useCanvasRender({
             ctx.fillStyle = '#F6F7FE'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
-            ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
+            ctx.fillStyle =
+              hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path.join('-') === row.rowMeta?.groupPath.join('-')
+                ? '#F9F9FA'
+                : '#ffffff'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           }
 
@@ -1222,7 +1232,10 @@ export function useCanvasRender({
           ctx.globalAlpha = 0.5
         }
 
-        ctx.fillStyle = hoverRow.value === rowIdx ? '#F9F9FA' : '#ffffff'
+        ctx.fillStyle =
+          hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path.join('-') === row.rowMeta?.groupPath.join('-')
+            ? '#F9F9FA'
+            : '#ffffff'
         ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
         const renderedProp = renderRow(ctx, {
           row,

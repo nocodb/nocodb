@@ -1,11 +1,4 @@
 <script lang="ts" setup>
-/**
- * NcAlert Component
- *
- * A customizable alert component built with Ant Design Vue.
- * It supports various alert types, optional icons, copy functionality, and automatic dismissal.
- */
-
 import type { AlertProps } from 'ant-design-vue/es'
 import { getI18n } from '~/plugins/a.i18n'
 
@@ -14,6 +7,17 @@ import { getI18n } from '~/plugins/a.i18n'
  *
  * A customizable alert component with optional icons, descriptions, actions, and notifications.
  * Can be used as a standalone alert or inside the `message` notification system.
+ *
+ * @example
+ * ```vue
+ * <NcAlert
+ *   type="error"
+ *   message="Something went wrong"
+ *   description="We couldn’t complete your request. Please try again."
+ *   :closable="true"
+ *   :copy-text="'ERR_CODE_404'"
+ * />
+ * ```
  */
 export interface NcAlertProps extends Pick<AlertProps, 'type' | 'showIcon' | 'message' | 'description' | 'closable'> {
   /**

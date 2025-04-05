@@ -1732,43 +1732,140 @@ export function useCanvasRender({
     ctx.restore()
   }
 
-  function renderGroups(ctx: CanvasRenderingContext2D, level = 0) {
+  function renderGroupRows(
+    ctx: CanvasRenderingContext2D,
+    group: CanvasGroup,
+    yOffset: number,
+    level: number,
+    startIndex: number,
+    endIndex: number,
+  ): number {
+    if (!group.infiniteData) return yOffset
+    const rows = group.infiniteData.cachedRows.value
+
+    for (let i = startIndex; i <= endIndex && i < group.count && yOffset < height.value; i++) {
+      const row = rows?.get(i)
+      if (!row || yOffset + rowHeight.value < 0) {
+        yOffset += rowHeight.value
+        continue
+      }
+
+      const indent = (level + 1) * 9
+      const adjustedWidth = Math.min(totalWidth.value - scrollLeft.value, width.value)
+      ctx.fillStyle = hoverRow.value === i ? '#F9F9FA' : '#ffffff'
+      ctx.fillRect(indent, yOffset, adjustedWidth - indent, rowHeight.value)
+
+      let xOffset = indent
+      columns.value.forEach((col, colIdx) => {
+        if (col.fixed) return
+        const width = parseCellWidth(col.width)
+        const isActive = activeCell.value.row === i && activeCell.value.column === colIdx
+        if (isActive) {
+          ctx.fillStyle = '#FFFFFF'
+          ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
+        }
+
+        ctx.save()
+        renderCell(ctx, col.columnObj, {
+          value: row.row[col.title],
+          x: xOffset - scrollLeft.value,
+          y: yOffset,
+          width,
+          height: rowHeight.value,
+          row: row.row,
+          selected: isActive,
+          pv: col.pv,
+          spriteLoader,
+          imageLoader,
+          tableMetaLoader,
+          readonly: col.readonly,
+          relatedColObj: col.relatedColObj,
+          relatedTableMeta: col.relatedTableMeta,
+          mousePosition,
+          pk: extractPkFromRow(row.row, meta.value?.columns ?? []),
+        })
+        ctx.restore()
+
+        ctx.strokeStyle = '#f4f4f5'
+        ctx.beginPath()
+        ctx.moveTo(xOffset - scrollLeft.value, yOffset)
+        ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
+        ctx.stroke()
+
+        xOffset += width
+      })
+
+      ctx.strokeStyle = '#e7e7e9'
+      ctx.beginPath()
+      ctx.moveTo(indent, yOffset + rowHeight.value)
+      ctx.lineTo(adjustedWidth, yOffset + rowHeight.value)
+      ctx.stroke()
+
+      yOffset += rowHeight.value
+    }
+    return yOffset
+  }
+
+  function renderGroups(
+    ctx: CanvasRenderingContext2D,
+    {
+      level,
+      yOffset,
+      pGroup,
+      startIndex,
+      endIndex,
+    }: {
+      level: number
+      yOffset: number
+      pGroup?: CanvasGroup
+      startIndex: number
+      endIndex: number
+    },
+  ): number {
+    if (!level) level = 0
+    const groups = pGroup?.groups ?? cachedGroups.value
+    const total = pGroup ? pGroup.groupCount : totalGroups.value
+
     const fixedCols = columns.value.filter((col) => col.fixed)
 
     const rowNumberCol = fixedCols.find((col) => col.id === 'row_number')
     const firstFixedCol = fixedCols.find((col) => col.id !== 'row_number')
-
     const mergedWidth = parseCellWidth(rowNumberCol?.width) + parseCellWidth(firstFixedCol?.width)
 
-    ctx.save()
-    const { start: startSlice, end: endSlice } = groupSlice.value
+    for (let i = startIndex; i <= endIndex && i < total && yOffset < height.value; i++) {
+      const group = groups.get(i)
+      if (!group || yOffset + GROUP_HEADER_HEIGHT < 0) {
+        yOffset += GROUP_HEADER_HEIGHT + GROUP_PADDING
+        continue
+      }
 
-    let yOffset = 32 + GROUP_PADDING
-
-    for (let i = startSlice; i < endSlice; i++) {
-      const group = cachedGroups.value.get(i)
-
-      if (!group) continue
       const xOffset = (level + 1) * 9
-
-      const bg = getBackgroundColor(level, groupByColumns.value?.length)
-
+      const bg = getBackgroundColor(level, groupByColumns.value.length)
       const adjustedWidth =
         totalWidth.value - scrollLeft.value - 256 < width.value ? totalWidth.value - scrollLeft.value - 256 : width.value
-      roundedRect(ctx, xOffset, yOffset, adjustedWidth, GROUP_HEADER_HEIGHT, 8, { backgroundColor: bg, borderColor: '#D5D5D9' })
+
+      // Render group header
+      roundedRect(
+        ctx,
+        xOffset,
+        yOffset,
+        adjustedWidth,
+        GROUP_HEADER_HEIGHT,
+        group.isExpanded ? { topLeft: 8, topRight: 8, bottomLeft: 0, bottomRight: 0 } : 8,
+        { backgroundColor: bg, borderColor: '#D5D5D9' },
+      )
 
       spriteLoader.renderIcon(ctx, {
         icon: group.isExpanded ? 'ncChevronDown' : 'ncChevronRight',
         size: 16,
         color: '#374150',
-        x: xOffset + 8 + 4,
+        x: xOffset + 12,
         y: yOffset + (GROUP_HEADER_HEIGHT - 16) / 2,
       })
 
       const availableWidth = mergedWidth - (xOffset + 12 + 16) - 20
-
-      const contentX = xOffset + 12 + 20
-      const contentY = yOffset + 27
+      const contentX = xOffset + 36
+      const contentY = yOffset + GROUP_HEADER_HEIGHT / 2
 
       const isMouseHoveringOverGroupHeader = isBoxHovered(
         {
@@ -1810,16 +1907,23 @@ export function useCanvasRender({
         contentWidth = contentRender.width
       } else {
         renderIconButton(ctx, {
-          icon: 'threeDotVertical',
+          icon: 'ncMoreVertical',
           mousePosition,
           buttonSize: 32,
+          iconData: {
+            xOffset: 8,
+            yOffset: 8,
+          },
           setCursor,
+          background: 'transparent',
           borderColor: 'transparent',
           borderRadius: 8,
           buttonX: xOffset + mergedWidth - 8 - 32,
           buttonY: yOffset + 6,
           spriteLoader,
         })
+
+        contentWidth = 32
       }
 
       drawStraightLine(ctx, {
@@ -1830,18 +1934,35 @@ export function useCanvasRender({
         strokeStyle: '#D5D5D9',
       })
 
+      yOffset += GROUP_HEADER_HEIGHT + GROUP_PADDING
+
       if (scrollLeft.value) {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
         ctx.rect(xOffset + mergedWidth, yOffset, 4, GROUP_HEADER_HEIGHT)
         ctx.fill()
       }
 
-      renderGroupContent(ctx, group, contentX, contentY, availableWidth - contentWidth - 8 - countWidth)
+      renderGroupContent(ctx, group, contentX, contentY + 6, availableWidth - contentWidth - 8 - countWidth)
 
-      yOffset = yOffset + GROUP_PADDING + GROUP_HEADER_HEIGHT
+      if (group.isExpanded) {
+        const nestedStart = Math.floor((scrollTop.value - yOffset) / (GROUP_HEADER_HEIGHT + GROUP_PADDING + rowHeight.value))
+        const visibleCount = Math.ceil(height.value / (GROUP_HEADER_HEIGHT + GROUP_PADDING + rowHeight.value))
+        const nestedEnd = Math.min(nestedStart + visibleCount, group.groupCount || group.count) - 1
+
+        if (group.infiniteData) {
+          yOffset = renderGroupRows(ctx, group, yOffset, level + 1, nestedStart, nestedEnd)
+        } else if (group.groups.size > 0) {
+          yOffset = renderGroups(ctx, {
+            level: level + 1,
+            yOffset,
+            pGroup: group,
+            startIndex: nestedStart,
+            endIndex: nestedEnd,
+          })
+        }
+      }
     }
-
-    ctx.restore()
+    return yOffset
   }
 
   function renderGroupContent(ctx: CanvasRenderingContext2D, group: CanvasGroup, x: number, y: number, maxWidth: number) {
@@ -1970,11 +2091,14 @@ export function useCanvasRender({
       ctx.save()
       ctx.fillStyle = baseColor.value
       ctx.fillRect(0, 0, width.value, height.value)
-      ctx.fill()
       ctx.restore()
 
-      renderGroups(ctx)
-      // Render Groups Here
+      renderGroups(ctx, {
+        level: 0,
+        yOffset: 32 + GROUP_PADDING,
+        startIndex: groupSlice.value.start,
+        endIndex: groupSlice.value.end,
+      })
     }
 
     renderHeader(ctx, activeState)

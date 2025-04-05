@@ -1471,8 +1471,8 @@ export function useCanvasRender({
     // Top border
     ctx.beginPath()
     ctx.strokeStyle = '#E7E7E9'
-    ctx.moveTo(0, height.value - AGGREGATION_HEIGHT - 1)
-    ctx.lineTo(width.value, height.value - AGGREGATION_HEIGHT - 1)
+    ctx.moveTo(0, height.value - AGGREGATION_HEIGHT - .5)
+    ctx.lineTo(width.value, height.value - AGGREGATION_HEIGHT - .5)
     ctx.stroke()
 
     // Background

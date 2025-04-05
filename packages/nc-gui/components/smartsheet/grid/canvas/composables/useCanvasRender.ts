@@ -28,6 +28,7 @@ import {
 import { parseCellWidth } from '../utils/cell'
 import { calculateGroupHeight, calculateGroupRange, getBackgroundColor } from '../utils/groupby'
 import { parseKey, shouldRenderCell } from '../../../../../utils/groupbyUtils'
+import type { CanvasElement } from '../utils/CanvasElement'
 
 export function useCanvasRender({
   width,
@@ -75,6 +76,7 @@ export function useCanvasRender({
   isGroupBy,
   baseColor,
   fetchMissingGroupChunks,
+  elementMap,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -129,6 +131,7 @@ export function useCanvasRender({
   isGroupBy: Ref<boolean>
   baseColor: Ref<string>
   fetchMissingGroupChunks: (startIndex: number, endIndex: number, canvasGroup?: CanvasGroup) => Promise<void>
+  elementMap: CanvasElement
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
@@ -895,7 +898,6 @@ export function useCanvasRender({
           xOffset += parseCellWidth(col?.width)
         }
       }
-
       visibleCols.forEach((column, colIdx) => {
         let width = parseCellWidth(column.width)
 
@@ -1230,6 +1232,13 @@ export function useCanvasRender({
           startColIndex,
           fixedCols: fixedColsComputed.value,
           yOffset,
+        })
+        elementMap.addElement({
+          y: yOffset,
+          x: 0,
+          height: rowHeight.value,
+          rowIndex: rowIdx,
+          row,
         })
         activeState = renderedProp.activeState ?? activeState
         renderRedBorders = [...renderRedBorders, ...renderedProp.renderRedBorders]
@@ -1804,6 +1813,18 @@ export function useCanvasRender({
         fixedCols: fixedColsComputed.value,
         yOffset,
       })
+
+      elementMap.addElement({
+        y: yOffset,
+        x: indent,
+        group,
+        level,
+        height: rowHeight.value,
+        path: group.nestedIn,
+        rowIndex: i,
+        row,
+      })
+
       // Bottom border for each row
       ctx.strokeStyle = '#e7e7e9'
       ctx.beginPath()
@@ -1866,6 +1887,16 @@ export function useCanvasRender({
         continue
       }
 
+      elementMap.addElement({
+        y: groupHeaderY,
+        x: currentOffset,
+        level,
+        height: GROUP_HEADER_HEIGHT,
+        path: group.nestedIn,
+        groupIndex: i,
+        group,
+      })
+
       if (groupHeaderY + GROUP_HEADER_HEIGHT > 0 && groupHeaderY < height.value) {
         let tempCurrentOffset = currentOffset + GROUP_HEADER_HEIGHT
         if (group.isExpanded) {
@@ -1889,10 +1920,6 @@ export function useCanvasRender({
           // gHeight: total height of groups calculated above
           const relativeScrollTop =
             group.nestedIn?.length && i === startIndex ? scrollTop.value - gHeight - GROUP_HEADER_HEIGHT : 0
-
-          console.log('group is expanded', { currentOffset, tempCurrentOffset, yOffset, relativeScrollTop, gHeight })
-
-          // console.log('====', group.value, scrollTop.value, tempCurrentOffset, gHeight)
 
           if (group.infiniteData) {
             // Calculate visible viewport height from current offset to container bottom
@@ -1929,8 +1956,6 @@ export function useCanvasRender({
               groupHeight - relativeScrollTop,
               true,
             )
-
-            // console.log(group.value, groupHeight , relativeScrollTop)
 
             fetchMissingGroupChunks(nestedStart, nestedEnd, group)
 
@@ -2184,6 +2209,8 @@ export function useCanvasRender({
     ctx.clearRect(0, 0, width.value, canvas.height)
 
     let activeState
+
+    elementMap.clear()
 
     if (!groupByColumns.value?.length) {
       activeState = renderRows(ctx)

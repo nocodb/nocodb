@@ -403,6 +403,7 @@ export const useInfiniteGroups = (
         console.error('Error refreshing group aggregations batch:', error)
       }
     }
+    callbacks?.syncVisibleData()
   }
 
   const toggleExpand = async (group: CanvasGroup) => {

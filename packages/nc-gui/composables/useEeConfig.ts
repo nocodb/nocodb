@@ -9,11 +9,20 @@ export const useEeConfig = createSharedComposable(() => {
 
   const getFeature = (..._args: any[]) => {}
 
+  const getHigherPlan = (..._args: any[]) => {}
+
+  const getPlanTitle = (..._args: any[]) => {}
+
+  const handleUpgradePlan = (..._args: any[]) => {}
+
   return {
     getLimit,
     getFeature,
     isPaidPlan,
     activePlan,
     activeSubscription,
+    getHigherPlan,
+    getPlanTitle,
+    handleUpgradePlan,
   }
 })

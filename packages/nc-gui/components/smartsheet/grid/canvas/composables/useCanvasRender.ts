@@ -2137,7 +2137,11 @@ export function useCanvasRender({
         group,
         type: ElementTypes.GROUP,
       })
-      const { background: groupBackgroundColor, border: groupBorderColor } = getGroupColors(level, groupByColumns.value.length)
+      const {
+        background: groupBackgroundColor,
+        border: groupBorderColor,
+        aggregation: { hover: aggregationHoverBg, default: aggregationDefaultBg },
+      } = getGroupColors(level, groupByColumns.value.length)
 
       if (groupHeaderY + groupHeight >= 0 && groupHeaderY < height.value) {
         let tempCurrentOffset = currentOffset + GROUP_HEADER_HEIGHT
@@ -2287,39 +2291,45 @@ export function useCanvasRender({
             mousePosition,
           )
 
-          ctx.fillStyle = isHovered ? '#F4F4F5' : 'transparent'
-
           if (isHovered) {
             setCursor('pointer')
           }
+          ctx.fillStyle = isHovered ? aggregationHoverBg : aggregationDefaultBg
 
           if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
             ctx.save()
             ctx.beginPath()
 
-            ctx.rect(Math.max(aggXOffset - scrollLeft.value, fixedColsWidth), currentOffset + 1, width, GROUP_HEADER_HEIGHT - 2)
+            ctx.rect(
+              Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
+              groupHeaderY + 1,
+              width,
+              GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
+            )
+
             ctx.fill()
             ctx.clip()
 
             ctx.textBaseline = 'middle'
             ctx.textAlign = 'right'
 
-            ctx.font = '600 12px Manrope'
+            ctx.font = '700 13px Manrope'
             const aggWidth = ctx.measureText(group.aggregations[column.title] ?? '').width
             if (column.agg_prefix) {
-              ctx.font = '400 12px Manrope'
+              ctx.font = '500 12px Manrope'
               ctx.fillStyle = '#6a7184'
               ctx.fillText(
                 column.agg_prefix,
                 aggXOffset + width - aggWidth - 16 - scrollLeft.value,
-                groupHeaderY + GROUP_HEADER_HEIGHT / 2,
+                groupHeaderY + (GROUP_HEADER_HEIGHT + (group.isExpanded && !group?.path ? GROUP_PADDING : 0)) / 2,
               )
             }
-            ctx.fillStyle = '#4a5268'
+            ctx.fillStyle = '#374151'
+            ctx.font = '700 13px Manrope'
             ctx.fillText(
               group.aggregations[column.title] ?? '',
               aggXOffset + width - 8 - scrollLeft.value,
-              groupHeaderY + GROUP_HEADER_HEIGHT / 2,
+              groupHeaderY + (GROUP_HEADER_HEIGHT + (group.isExpanded && !group?.path ? GROUP_PADDING : 0)) / 2,
             )
 
             ctx.restore()
@@ -2328,17 +2338,22 @@ export function useCanvasRender({
               ctx.save()
               ctx.beginPath()
 
-              ctx.rect(Math.max(aggXOffset - scrollLeft.value, fixedColsWidth), groupHeaderY + 1, width, GROUP_HEADER_HEIGHT - 2)
+              ctx.rect(
+                Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
+                groupHeaderY + 1,
+                width,
+                GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
+              )
               ctx.fill()
               ctx.clip()
 
-              ctx.font = '600 10px Manrope'
+              ctx.font = '500 12px Manrope'
               ctx.fillStyle = '#6a7184'
               ctx.textAlign = 'right'
               ctx.textBaseline = 'middle'
 
               const rightEdge = aggXOffset + width - 8 - scrollLeft.value
-              const textY = groupHeaderY + GROUP_HEADER_HEIGHT / 2
+              const textY = groupHeaderY + (GROUP_HEADER_HEIGHT + (group.isExpanded && !group?.path ? GROUP_PADDING : 0)) / 2
 
               ctx.fillText('Summary', rightEdge, textY)
 

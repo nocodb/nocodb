@@ -1948,7 +1948,6 @@ export function useCanvasRender({
       pGroup,
       startIndex,
       endIndex,
-      partialGroupHeight = 0,
       gHeight: pgHeight = 0,
       _isStartGroup,
     }: {
@@ -1957,7 +1956,6 @@ export function useCanvasRender({
       pGroup?: CanvasGroup
       startIndex: number
       endIndex: number
-      partialGroupHeight?: number
       gHeight?: number
       _isStartGroup?: boolean
     },
@@ -1978,8 +1976,8 @@ export function useCanvasRender({
         currentOffset += GROUP_HEADER_HEIGHT + GROUP_PADDING
         continue
       }
-      const groupHeaderY = currentOffset + (group.isExpanded && i === startIndex ? partialGroupHeight : 0)
-      const groupHeight = calculateGroupHeight(group, rowHeight.value)
+      const groupHeaderY = currentOffset
+      const groupHeight = calculateGroupHeight(group, rowHeight.value, isAddingEmptyRowAllowed.value)
       const groupBottom = groupHeaderY + groupHeight
       const xOffset = (level + 1) * 9
       const adjustedWidth =
@@ -2010,26 +2008,22 @@ export function useCanvasRender({
         group,
       })
 
-      if (groupHeaderY + GROUP_HEADER_HEIGHT > 0 && groupHeaderY < height.value) {
+      if (groupHeaderY + groupHeight > 0 && groupHeaderY < height.value) {
         let tempCurrentOffset = currentOffset + GROUP_HEADER_HEIGHT
         if (group.isExpanded) {
-          const groupHeight = calculateGroupHeight(group, rowHeight.value)
           const nestedContentStart = tempCurrentOffset
           // Calculate the total height of groups up to the relevant index
           // If the group is at top, then use startIndex, else use endIndex
-          const gHeight =
-            pgHeight +
-            // add partial group height to normalise the height
-            Array.from({ length: startIndex }, (_, g) => {
-              const group = groups.get(g)
-              const h = calculateGroupHeight(group!, rowHeight.value)
-              return h
-            }).reduce((sum, c) => sum + c, 0)
+          const gHeight = Array.from({ length: startIndex }, (_, g) => {
+            const group = groups.get(g)
+            const h = calculateGroupHeight(group!, rowHeight.value, isAddingEmptyRowAllowed.value)
+            return h
+          }).reduce((sum, c) => sum + c, 0)
 
           // todo:  figure out the 2px difference which is not expected
           // calculate the relative scroll top for the group
           // where gHeight + GROUP_PADDING is the height of previous groups before startIndex
-          const relativeScrollTop = group.nestedIn?.length && isStartGroup ? scrollTop.value - gHeight : 0
+          const relativeScrollTop = isStartGroup ? scrollTop.value - gHeight : 0
 
           if (group.infiniteData) {
             // Calculate visible viewport height from current offset to container bottom
@@ -2037,34 +2031,25 @@ export function useCanvasRender({
             const itemHeight = rowHeight.value
             // Calculate first visible item index, accounting for header height
             // Math.max ensures no negative indices
-            const nestedStart = Math.max(0, Math.floor(relativeScrollTop / itemHeight))
+            const nestedStart = 0 // Math.max(0, Math.floor((scrollTop.value - gHeight + GROUP_PADDING) / itemHeight))
             // Calculate number of visible rows based on viewport height
             const visibleRowCount = Math.ceil(viewportHeight / itemHeight)
             // Calculate last visible item index, bounded by total count
             const nestedEnd = Math.min(nestedStart + visibleRowCount, group.count - 1)
 
-            const nestedPartialRowHeight = 0 // partialGroupHeight - (relativeScrollTop % rowHeight.value)
-
             tempCurrentOffset = renderGroupRows(
               ctx,
               group,
               // Start rendering from the top of the group
-              // subtract the nestedPartialRowHeight from the parent and add the partialGroupHeight of the current group
-              nestedContentStart + (i === startIndex ? nestedPartialRowHeight : 0),
+              nestedContentStart,
               level + 1,
               nestedStart,
               nestedEnd,
             )
           } else {
-            const nestedPartialGroupHeight = 0
-
             // Calculate the range of nested groups that should be visible
             // based on scroll position and available height
-            const {
-              startIndex: nestedStart,
-              endIndex: nestedEnd,
-              // partialGroupHeight: nestedPartialGroupHeight,
-            } = calculateGroupRange(
+            const { startIndex: nestedStart, endIndex: nestedEnd } = calculateGroupRange(
               group.groups,
               relativeScrollTop,
               rowHeight.value,
@@ -2073,17 +2058,17 @@ export function useCanvasRender({
               true,
               isAddingEmptyRowAllowed.value,
             )
+
             fetchMissingGroupChunks(nestedStart, nestedEnd, group)
 
             tempCurrentOffset = renderGroups(ctx, {
               level: level + 1,
-              yOffset: nestedContentStart + GROUP_PADDING + (isStartGroup ? partialGroupHeight - nestedPartialGroupHeight : 0),
+              yOffset: nestedContentStart + GROUP_PADDING,
               pGroup: group,
-              startIndex: nestedStart,
+              startIndex: 0,
               endIndex: Math.max(0, nestedEnd),
-              gHeight,
+              gHeight: 0,
               _isStartGroup: isStartGroup,
-              partialGroupHeight: isStartGroup ? nestedPartialGroupHeight : 0,
             })
           }
         }
@@ -2338,7 +2323,7 @@ export function useCanvasRender({
       ctx.fillRect(0, 0, width.value, height.value)
       ctx.restore()
 
-      const { startIndex, endIndex, partialGroupHeight } = calculateGroupRange(
+      const { startIndex, endIndex, startGroupYOffset } = calculateGroupRange(
         cachedGroups.value,
         scrollTop.value,
         rowHeight.value,
@@ -2349,12 +2334,12 @@ export function useCanvasRender({
       )
 
       fetchMissingGroupChunks(startIndex, endIndex)
+
       renderGroups(ctx, {
         level: 0,
-        yOffset: 40,
+        yOffset: startGroupYOffset,
         startIndex,
         endIndex,
-        partialGroupHeight: 0,
       })
     }
 

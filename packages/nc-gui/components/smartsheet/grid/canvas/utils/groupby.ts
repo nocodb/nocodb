@@ -2,13 +2,15 @@ import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import { COLUMN_HEADER_HEIGHT_IN_PX, GROUP_HEADER_HEIGHT, GROUP_PADDING } from './constants'
 
 export function getBackgroundColor(depth: number, maxDepth: number): string {
+  depth = depth + 1
+
   if (maxDepth === 3) {
     switch (depth) {
-      case 2:
+      case 3:
         return '#F9F9FA'
-      case 1:
+      case 2:
         return '#F4F4F5'
-      default:
+      case 1:
         return '#F1F1F1'
     }
   }
@@ -16,9 +18,9 @@ export function getBackgroundColor(depth: number, maxDepth: number): string {
   if (maxDepth === 2) {
     switch (depth) {
       case 1:
-        return '#F9F9FA'
-      default:
         return '#F4F4F5'
+      case 2:
+        return '#F9F9FA'
     }
   }
 

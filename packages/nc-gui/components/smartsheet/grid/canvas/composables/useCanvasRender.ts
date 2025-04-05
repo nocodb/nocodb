@@ -1,7 +1,7 @@
-import type { WritableComputedRef } from '@vue/reactivity'
-import { AllAggregations, type ColumnType, type TableType, UITypes } from 'nocodb-sdk'
-import type { Composer } from 'vue-i18n'
-import tinycolor from 'tinycolor2'
+import type { WritableComputedRef } from '@vue/reactivity';
+import { AllAggregations, type ColumnType, type TableType, UITypes } from 'nocodb-sdk';
+import type { Composer } from 'vue-i18n';
+import tinycolor from 'tinycolor2';
 import {
   drawStraightLine,
   isBoxHovered,
@@ -11,12 +11,12 @@ import {
   renderTagLabel,
   roundedRect,
   truncateText,
-} from '../utils/canvas'
-import type { ImageWindowLoader } from '../loaders/ImageLoader'
-import type { SpriteLoader } from '../loaders/SpriteLoader'
-import { renderIcon } from '../../../header/CellIcon'
-import { renderIcon as renderVIcon } from '../../../header/VirtualCellIcon'
-import type { TableMetaLoader } from '../loaders/TableMetaLoader'
+} from '../utils/canvas';
+import type { ImageWindowLoader } from '../loaders/ImageLoader';
+import type { SpriteLoader } from '../loaders/SpriteLoader';
+import { renderIcon } from '../../../header/CellIcon';
+import { renderIcon as renderVIcon } from '../../../header/VirtualCellIcon';
+import type { TableMetaLoader } from '../loaders/TableMetaLoader';
 import {
   ADD_NEW_COLUMN_WIDTH,
   COLUMN_HEADER_HEIGHT_IN_PX,
@@ -24,18 +24,18 @@ import {
   GROUP_PADDING,
   MAX_SELECTED_ROWS,
   ROW_META_COLUMN_WIDTH,
-} from '../utils/constants'
-import { parseCellWidth } from '../utils/cell'
+} from '../utils/constants';
+import { parseCellWidth } from '../utils/cell';
 import {
   calculateGroupHeight,
   calculateGroupRange,
   calculateGroupRowTop,
   generateGroupPath,
   getBackgroundColor,
-} from '../utils/groupby'
-import { parseKey, shouldRenderCell } from '../../../../../utils/groupbyUtils'
-import type { CanvasElement } from '../utils/CanvasElement'
-import { ElementTypes } from '../utils/CanvasElement'
+} from '../utils/groupby';
+import { parseKey, shouldRenderCell } from '../../../../../utils/groupbyUtils';
+import type { CanvasElement } from '../utils/CanvasElement';
+import { ElementTypes } from '../utils/CanvasElement';
 
 export function useCanvasRender({
   width,
@@ -2144,8 +2144,7 @@ export function useCanvasRender({
           // If the group is at top, then use startIndex, else use endIndex
           const gHeight = Array.from({ length: startIndex }, (_, g) => {
             const group = groups.get(g)
-            const h = calculateGroupHeight(group!, rowHeight.value, isAddingEmptyRowAllowed.value)
-            return h
+            return calculateGroupHeight(group!, rowHeight.value, isAddingEmptyRowAllowed.value)
           }).reduce((sum, c) => sum + c, 0)
 
           // todo:  figure out the 2px difference which is not expected

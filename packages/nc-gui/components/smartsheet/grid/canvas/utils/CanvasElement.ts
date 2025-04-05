@@ -28,7 +28,7 @@ type Element = RowElement | GroupElement
 
 // Todo: refactor and clean up this class
 // Class representing a single canvas element with utility methods
-class CanvasElementItem implements RowElement, GroupElement {
+export class CanvasElementItem implements RowElement, GroupElement {
   x: number
   y: number
   height: number
@@ -106,6 +106,10 @@ export class CanvasElement {
 
   addElement(element: Element) {
     this.elements.push(element)
+  }
+
+  get elements() {
+    return this.elements
   }
 
   clear() {

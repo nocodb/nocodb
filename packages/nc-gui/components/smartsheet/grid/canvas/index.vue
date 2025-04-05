@@ -1852,15 +1852,12 @@ watch(rowHeight, () => {
 })
 
 // watch for column hide and re-render canvas
-watch(
-  () => [columns.value?.length, totalRows.value],
-  () => {
-    nextTick(() => {
-      calculateSlices()
-      requestAnimationFrame(triggerRefreshCanvas)
-    })
-  },
-)
+watch([() => columns.value?.length, () => totalRows.value], () => {
+  nextTick(() => {
+    calculateSlices()
+    requestAnimationFrame(triggerRefreshCanvas)
+  })
+})
 
 watch(
   activeCell,
@@ -1896,15 +1893,18 @@ reloadVisibleDataHook?.on(triggerReload)
 openNewRecordFormHook?.on(openNewRecordHandler)
 selectCellHook.on(selectCell)
 
+const { isViewColumnsLoading } = useViewColumnsOrThrow()
+
 watch(
   view,
   async (next, old) => {
     try {
       if (next && next.id !== old?.id && (next.fk_model_id === route.params.viewId || isPublicView.value)) {
         clearTextCache()
-
+        await until(isViewColumnsLoading).toMatch((c) => !c)
         if (isGroupBy.value) {
           await syncGroupCount()
+          calculateSlices()
         } else {
           await syncCount()
           calculateSlices()

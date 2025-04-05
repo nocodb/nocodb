@@ -185,8 +185,47 @@ const onCancel = () => {
 
               <div class="flex-1 flex flex-col gap-4">
                 <div>
-                  <div class="text-gray-800 mb-2" data-rec="true">{{ $t('general.name') }}</div>
-                  <a-form-item name="title" :rules="formRules.title" class="!my-0">
+                  <GeneralIconSelector
+                    v-model:icon="form.icon"
+                    v-model:icon-type="form.iconType"
+                    v-model:image-cropper-data="imageCropperData"
+                    :default-active-tab="IconType.IMAGE"
+                    :tab-order="[IconType.IMAGE, IconType.ICON, IconType.EMOJI]"
+                    @submit="() => saveChanges(true)"
+                  >
+                    <template #default="{ isOpen }">
+                      <div
+                        class="border-1 w-26.25 h-26.25 flex-none rounded-full overflow-hidden transition-all duration-300 cursor-pointer"
+                        :class="{
+                          'border-transparent': !isOpen && form.iconType === IconType.IMAGE,
+                          'border-nc-gray-medium': !isOpen && form.iconType !== IconType.IMAGE,
+                          'border-primary shadow-selected': isOpen,
+                        }"
+                      >
+                        <GeneralUserIcon
+                          size="xlarge"
+                          :user="user"
+                          class="!w-full !h-full !min-w-full select-none cursor-pointer"
+                        />
+                      </div>
+                    </template>
+                  </GeneralIconSelector>
+                </div>
+
+                <div class="flex-1 flex flex-col gap-4">
+                  <div>
+                    <div class="text-gray-800 mb-2" data-rec="true">{{ $t('general.name') }}</div>
+                    <a-form-item name="title" :rules="formRules.title" class="!my-0">
+                      <a-input
+                        v-model:value="form.title"
+                        class="w-full !rounded-lg !px-4 h-10"
+                        :placeholder="$t('general.name')"
+                        data-testid="nc-account-settings-rename-input"
+                      />
+                    </a-form-item>
+                  </div>
+                  <div>
+                    <div class="text-gray-800 mb-2" data-rec="true">{{ $t('labels.accountEmailID') }}</div>
                     <a-input
                       v-model:value="form.title"
                       class="w-full !rounded-lg !px-4 h-10"
@@ -206,31 +245,31 @@ const onCancel = () => {
                   />
                 </div>
               </div>
-            </div>
-            <div class="flex flex-row w-full justify-end mt-8 gap-4">
-              <NcButton
-                v-if="isSaveChangesBtnEnabled"
-                type="secondary"
-                size="small"
-                data-testid="nc-account-settings-cancel"
-                :disabled="isProfileUpdating"
-                @click="onCancel"
-              >
-                {{ $t('general.cancel') }}
-              </NcButton>
-              <NcButton
-                type="primary"
-                html-type="submit"
-                size="small"
-                :disabled="isErrored || !isSaveChangesBtnEnabled || isProfileUpdating"
-                :loading="isProfileUpdating"
-                data-testid="nc-account-settings-save"
-              >
-                <template #loading> {{ $t('general.saving') }} </template>
-                {{ $t('general.save') }}
-              </NcButton>
-            </div>
-          </a-form>
+              <div class="flex flex-row w-full justify-end mt-8 gap-4">
+                <NcButton
+                  v-if="isSaveChangesBtnEnabled"
+                  type="secondary"
+                  size="small"
+                  data-testid="nc-account-settings-cancel"
+                  :disabled="isProfileUpdating"
+                  @click="onCancel"
+                >
+                  {{ $t('general.cancel') }}
+                </NcButton>
+                <NcButton
+                  type="primary"
+                  html-type="submit"
+                  size="small"
+                  :disabled="isErrored || !isSaveChangesBtnEnabled || isProfileUpdating"
+                  :loading="isProfileUpdating"
+                  data-testid="nc-account-settings-save"
+                >
+                  <template #loading> {{ $t('general.saving') }} </template>
+                  {{ $t('general.save') }}
+                </NcButton>
+              </div>
+            </a-form>
+          </div>
         </div>
       </div>
     </div>

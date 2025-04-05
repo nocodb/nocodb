@@ -1,10 +1,9 @@
 <script lang="ts" setup>
-import { OrderedWorkspaceRoles, WorkspaceUserRoles, type PlanLimitExceededDetailsType } from 'nocodb-sdk'
+import { OrderedWorkspaceRoles, type PlanLimitExceededDetailsType, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
   height?: string
-  isAdminPanel?: boolean
 }>()
 
 const { workspaceRoles } = useRoles()
@@ -83,7 +82,7 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
   if (!currentWorkspace.value || !currentWorkspace.value.id) return
 
   try {
-    const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id, props.isAdminPanel)
+    const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id, isAdminPanel.value)
     if (!res) return
     message.success(t('msg.info.userRoleUpdated'))
 
@@ -102,7 +101,7 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
         details,
         role: roles,
         workspaceId: currentWorkspace.value.id,
-        isAdminPanel: props.isAdminPanel,
+        isAdminPanel: isAdminPanel.value,
       })
     }
   }

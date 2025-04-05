@@ -1,4 +1,4 @@
-import { FormulaDataTypes, isNumericFieldType, UITypes } from 'nocodb-sdk'
+import { FormulaDataTypes, UITypes, isNumericFieldType } from 'nocodb-sdk'
 import { getAbstractType, renderSingleLineText } from '../utils/canvas'
 
 export const NullCellRenderer: CellRenderer = {

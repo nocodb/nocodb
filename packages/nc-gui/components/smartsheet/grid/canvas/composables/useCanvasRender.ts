@@ -2273,9 +2273,9 @@ export function useCanvasRender({
           const isHovered = isBoxHovered(
             {
               x: aggXOffset - scrollLeft.value,
-              y: currentOffset,
+              y: currentOffset + 1,
               width,
-              height: GROUP_HEADER_HEIGHT,
+              height: GROUP_HEADER_HEIGHT - 2,
             },
             mousePosition,
           )
@@ -2290,7 +2290,7 @@ export function useCanvasRender({
             ctx.save()
             ctx.beginPath()
 
-            ctx.rect(Math.max(aggXOffset - scrollLeft.value, fixedColsWidth), currentOffset, width, GROUP_HEADER_HEIGHT)
+            ctx.rect(Math.max(aggXOffset - scrollLeft.value, fixedColsWidth), currentOffset + 1, width, GROUP_HEADER_HEIGHT - 2)
             ctx.fill()
             ctx.clip()
 
@@ -2321,7 +2321,7 @@ export function useCanvasRender({
               ctx.save()
               ctx.beginPath()
 
-              ctx.rect(Math.max(aggXOffset - scrollLeft.value, fixedColsWidth), groupHeaderY, width, GROUP_HEADER_HEIGHT)
+              ctx.rect(Math.max(aggXOffset - scrollLeft.value, fixedColsWidth), groupHeaderY + 1, width, GROUP_HEADER_HEIGHT - 2)
               ctx.fill()
               ctx.clip()
 

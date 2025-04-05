@@ -110,6 +110,8 @@ const { state, row } = useProvideSmartsheetRowStore(
   }),
 )
 
+const { blockAddNewRecord, navigateToBilling } = useEeConfig()
+
 const columns = computed(() => meta?.value?.columns || [])
 
 const draggableRef = ref()
@@ -297,7 +299,7 @@ const updatePreFillFormSearchParams = useDebounceFn(() => {
 }, 250)
 
 async function submitForm() {
-  if (!isUIAllowed('dataInsert')) return
+  if (!isUIAllowed('dataInsert') || blockAddNewRecord.value) return
 
   for (const col of localColumns.value) {
     if (col.show && col.title && isRequired(col, col.required) && formState.value[col.title] === undefined) {
@@ -1040,6 +1042,20 @@ const { message: templatedMessage } = useTemplatedMessage(
                       </div>
                     </div>
                   </div>
+                  <NcAlert
+                    v-if="blockAddNewRecord"
+                    type="warning"
+                    show-icon
+                    class="mt-6 bg-nc-bg-orange-light"
+                    :message="$t('upgrade.updateToAddRecordFormView')"
+                    :description="$t('upgrade.updateToAddRecordFormViewSubtitle')"
+                  >
+                    <template #action>
+                      <NcButton class="nc-upgrade-plan-btn" type="primary" size="small" @click.stop="navigateToBilling()">
+                        {{ $t('labels.upgradePlan') }}
+                      </NcButton>
+                    </template>
+                  </NcAlert>
                   <a-card
                     class="!py-8 !lg:py-12 !border-gray-200 !rounded-3xl !mt-6 !max-w-[max(33%,688px)] !mx-auto"
                     :body-style="{
@@ -1395,7 +1411,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                         <NcButton
                           type="primary"
                           size="small"
-                          :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length"
+                          :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length || blockAddNewRecord"
                           class="nc-form-submit nc-form-focus-element"
                           data-testid="nc-form-submit"
                           data-title="nc-form-submit"

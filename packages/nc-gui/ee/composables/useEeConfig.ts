@@ -31,7 +31,7 @@ export const useEeConfig = createSharedComposable(() => {
       workspace = activeWorkspace.value
     }
 
-    const limit = workspace?.payment?.plan?.meta?.[type] ?? Infinity
+    const limit = Number(workspace?.payment?.plan?.meta?.[type] ?? Infinity)
 
     return limit === -1 ? Infinity : limit
   }
@@ -41,7 +41,7 @@ export const useEeConfig = createSharedComposable(() => {
       workspace = activeWorkspace.value
     }
 
-    const limit = workspace?.stats?.[type] ?? 0
+    const limit = workspace?.stats?.[type] ?? 100000
 
     return limit === -1 ? 0 : limit
   }
@@ -87,6 +87,14 @@ export const useEeConfig = createSharedComposable(() => {
 
   const getPlanTitle = (plan: string | PlanTitles = PlanTitles.FREE) => {
     return t(`objects.paymentPlan.${plan}`, plan)
+  }
+
+  const navigateToBilling = (workspaceId?: string, redirectToWorkspace: boolean = true) => {
+    if (redirectToWorkspace) {
+      navigateTo(`/${workspaceId ?? activeWorkspaceId.value}/settings?tab=billing`)
+    } else {
+      navigateTo(`/account/workspace/${workspaceId ?? activeWorkspaceId.value}/settings`)
+    }
   }
 
   const handleUpgradePlan = ({
@@ -139,11 +147,7 @@ export const useEeConfig = createSharedComposable(() => {
         closeDialog()
         callback?.('ok')
 
-        if (redirectToWorkspace) {
-          navigateTo(`/${workspaceId ?? activeWorkspaceId.value}/settings?tab=billing`)
-        } else {
-          navigateTo(`/account/workspace/${workspaceId ?? activeWorkspaceId.value}/settings`)
-        }
+        navigateToBilling(workspaceId, redirectToWorkspace)
       },
       'onClickCancel': () => {
         callback?.('cancel')
@@ -242,5 +246,6 @@ export const useEeConfig = createSharedComposable(() => {
     gracePeriodDaysLeft,
     blockAddNewRecord,
     showRecordPlanLimitExceededModal,
+    navigateToBilling,
   }
 })

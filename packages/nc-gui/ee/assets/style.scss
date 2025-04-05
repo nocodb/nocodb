@@ -114,7 +114,7 @@ main {
       @apply shadow-selected-ai ring-0 !border-nc-border-purple;
     }
   }
-  
+
   &.ant-input-affix-wrapper {
     &:not(:hover):not(.ant-input-affix-wrapper-focused):not(.ant-input-affix-wrapper-disabled) {
       @apply shadow-default border-gray-200;
@@ -1327,6 +1327,10 @@ svg.nc-virtual-cell-icon {
       font-synthesis: initial !important;
     }
   }
+}
+
+.nc-upgrade-plan-btn {
+  @apply !bg-nc-fill-maroon-medium !hover:bg-nc-fill-maroon-dark;
 }
 
 .nc-cell-field {

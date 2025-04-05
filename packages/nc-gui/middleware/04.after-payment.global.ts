@@ -10,7 +10,7 @@ export default defineNuxtRouteMiddleware(() => {
 
     const url = isAccountPage
       ? `/#/account/workspace/${workspaceId}/settings?${params.toString()}`
-      : `/#/${workspaceId}/settings?tab=billing`
+      : `/#/${workspaceId}/settings?tab=billing&${params.toString()}`
 
     window.location.href = url
   }

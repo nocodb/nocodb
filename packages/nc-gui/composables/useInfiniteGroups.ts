@@ -161,7 +161,7 @@ export const useInfiniteGroups = (
 
   function buildNestedWhere(group: CanvasGroup, existing = ''): string {
     // Use nestedIn array instead of traversing parents
-    if (!group.nestedIn?.length) return existing
+    if (!group?.nestedIn?.length) return existing
 
     return group.nestedIn.reduce((acc, curr) => {
       if (curr.key === GROUP_BY_VARS.NULL) {

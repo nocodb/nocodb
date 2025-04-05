@@ -70,7 +70,7 @@ export function useKeyboardNavigation({
   const { $e } = useNuxtApp()
   const meta = inject(MetaInj, ref())
 
-  const handleKeyDown = async (e: KeyboardEvent) => {
+  const _handleKeyDown = async (e: KeyboardEvent) => {
     if (isViewSearchActive() || isCreateViewActive() || isActiveElementInsideExtension()) return
     const activeDropdownEl = document.querySelector(
       '.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active',
@@ -362,6 +362,8 @@ export function useKeyboardNavigation({
     }
     triggerReRender()
   }
+
+  const handleKeyDown = useThrottleFn(_handleKeyDown, 50)
 
   useEventListener('keydown', handleKeyDown)
 }

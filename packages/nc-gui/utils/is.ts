@@ -6,6 +6,7 @@ import {
   ncIsEmptyObject,
   ncIsFunction,
   ncIsNull,
+  ncIsNullOrUndefined,
   ncIsNumber,
   ncIsObject,
   ncIsPromise,
@@ -36,4 +37,5 @@ export {
   ncIsArrayIncludes,
   ncIsPlaywright,
   ncIsSharedViewOrBase,
+  ncIsNullOrUndefined,
 }

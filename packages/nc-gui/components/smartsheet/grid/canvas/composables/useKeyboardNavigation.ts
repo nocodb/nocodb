@@ -1,7 +1,7 @@
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import { NO_EDITABLE_CELL } from '../utils/cell'
 import { EDIT_INTERACTABLE } from '../utils/constants'
-import { findFirstExpandedGroupWithPath } from '../utils/groupby'
+import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData } from '../utils/groupby';
 
 const MAX_SELECTION_LIMIT = 100
 const MIN_COLUMN_INDEX = 1
@@ -49,7 +49,13 @@ export function useKeyboardNavigation({
   cachedGroups: Ref<Map<number, CanvasGroup>>
   isAddingEmptyRowAllowed: ComputedRef<boolean>
   addNewColumn: () => void
-  addEmptyRow: (row?: number, skipUpdate?: boolean, before?: string) => void
+  addEmptyRow: (
+    addAfter?: number,
+    skipUpdate?: boolean,
+    before?: string,
+    overwrite?: Record<string, any>,
+    path?: Array<number>,
+  ) => Row | undefined
   onActiveCellChanged: () => void
   handleCellKeyDown: (ctx: { e: KeyboardEvent; row: Row; column: CanvasGridColumn; value: any; pk: any }) => Promise<boolean>
   getDataCache: (path?: Array<number>) => {
@@ -83,7 +89,10 @@ export function useKeyboardNavigation({
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     const altOrOptionKey = e.altKey
 
-    let groupPath = []
+    let groupPath: Array<number> = []
+    let group: CanvasGroup
+
+    let defaultData = {}
 
     if (isGroupBy.value) {
       if (activeCell.value.path?.length) {
@@ -93,6 +102,8 @@ export function useKeyboardNavigation({
         if (group.path?.length) groupPath = group.path
         else return
       }
+      group = findGroupByPath(cachedGroups.value, groupPath)
+      defaultData = getDefaultGroupData(group)
     }
 
     const dataCache = getDataCache(groupPath)
@@ -152,9 +163,10 @@ export function useKeyboardNavigation({
           // ALT + R
           if (isAddingEmptyRowAllowed.value) {
             $e('c:shortcut', { key: 'ALT + R' })
-            addEmptyRow(undefined, undefined, groupPath)
+            addEmptyRow(undefined, undefined, undefined,defaultData, groupPath)
             activeCell.value.row = totalRows.value
             activeCell.value.column = 1
+            activeCell.value.path = groupPath
             selection.value.clear()
             scrollToCell(activeCell.value.row, 1, groupPath)
           }
@@ -178,6 +190,7 @@ export function useKeyboardNavigation({
             await clearCell?.({
               row: activeCell.value.row,
               col: activeCell.value.column,
+              path: groupPath,
             })
           } else {
             await clearSelectedRangeOfCells(groupPath)
@@ -305,7 +318,7 @@ export function useKeyboardNavigation({
         e.preventDefault()
         if (!e.shiftKey && activeCell.value.row === lastRow && activeCell.value.column === lastCol) {
           if (isAddingEmptyRowAllowed.value) {
-            addEmptyRow(undefined, false, groupPath)
+            addEmptyRow(undefined, false, undefined, defaultData, groupPath)
             isAdded = true
           }
         } else if (e.shiftKey && activeCell.value.row === 0 && activeCell.value.column === MIN_COLUMN_INDEX) {

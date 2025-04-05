@@ -6,8 +6,8 @@ import {
   UITypes,
   type ViewType,
   ViewTypes,
-  isLinksOrLTAR,
   isVirtualCol,
+  ncIsNullOrUndefined,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
@@ -29,7 +29,7 @@ import {
   MAX_SELECTED_ROWS,
   ROW_META_COLUMN_WIDTH,
 } from './utils/constants'
-import { calculateGroupRowTop, generateGroupPath } from './utils/groupby'
+import { calculateGroupRowTop, generateGroupPath, getDefaultGroupData } from './utils/groupby'
 import { ElementTypes } from './utils/CanvasElement'
 
 const props = defineProps<{
@@ -37,7 +37,12 @@ const props = defineProps<{
   data: Map<number, Row>
   rowHeightEnum?: number
   loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
-  callAddEmptyRow?: (addAfter?: number, path?: Array<number>) => Row | undefined
+  callAddEmptyRow?: (
+    newRowIndex?: number,
+    metaValue?: TableType,
+    rowOverwrite?: Record<string, any>,
+    path?: Array<number>,
+  ) => Row | undefined
   deleteRow?: (rowIndex: number, undo?: boolean, path?: Array<number>) => Promise<void>
   updateOrSaveRow: (
     row: Row,
@@ -1135,29 +1140,9 @@ async function handleMouseUp(e: MouseEvent) {
   if (isAddNewRow && clickType === MouseClickType.SINGLE_CLICK && x < totalColumnsWidth.value - scrollLeft.value) {
     if (isAddingEmptyRowAllowed.value) {
       if (isGroupBy.value) {
-        const setGroup = group.nestedIn.reduce((acc, curr) => {
-          if (
-            curr.key !== '__nc_null__' &&
-            // avoid setting default value for rollup, formula, barcode, qrcode, links, ltar
-            !isLinksOrLTAR(curr.column_uidt) &&
-            ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(curr.column_uidt)
-          ) {
-            acc[curr.title] = curr.key
+        const setGroup = getDefaultGroupData(group)
 
-            if (curr.column_uidt === UITypes.Checkbox) {
-              acc[curr.title] =
-                acc[curr.title] === GROUP_BY_VARS.TRUE
-                  ? true
-                  : acc[curr.title] === GROUP_BY_VARS.FALSE
-                  ? false
-                  : !!acc[curr.title]
-            }
-          }
-          return acc
-        }, {} as Record<string, any>)
-
-        const newRow = group?.infiniteData?.addEmptyRow(group.count, undefined, setGroup)
-        group?.infiniteData?.updateOrSaveRow?.(newRow)
+        addEmptyRow(undefined, undefined, undefined, setGroup, groupPath)
       } else {
         await addEmptyRow()
       }
@@ -1216,7 +1201,6 @@ async function handleMouseUp(e: MouseEvent) {
     return
   }
   // If the user is trying to click on a cell
-  // const row = cachedRows.value.get(rowIndex)
   if (!row) return
   const pk = extractPkFromRow(row?.row, meta.value?.columns as ColumnType[])
   const colIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
@@ -1634,8 +1618,8 @@ async function expandRows({
   return options
 }
 
-async function saveEmptyRow(rowObj: Row, before?: string) {
-  await updateOrSaveRow?.(rowObj, null, null, { metaValue: meta.value, viewMetaValue: view.value }, before)
+async function saveEmptyRow(rowObj: Row, before?: string, path: Array<number> = []) {
+  await updateOrSaveRow?.(rowObj, null, null, { metaValue: meta.value, viewMetaValue: view.value }, before, path)
 }
 
 function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | null = null, renderAtCurrentPosition = false) {
@@ -1734,23 +1718,24 @@ function openColumnCreate(data: any) {
   }, 500)
 }
 
-async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
-  clearInvalidRows?.()
-  if (rowSortRequiredRows.value.length) {
-    applySorting?.(rowSortRequiredRows.value)
+async function addEmptyRow(row?: number, skipUpdate = false, before?: string, overwrite = {}, path: Array<number> = []) {
+  const dataCache = getDataCache(path)
+  clearInvalidRows?.(path)
+  if (dataCache?.isRowSortRequiredRows.value.length) {
+    applySorting?.(dataCache?.isRowSortRequiredRows.value, path)
   }
 
-  const rowObj = callAddEmptyRow?.(row)
+  const rowObj = callAddEmptyRow?.(row, undefined, overwrite, path)
 
   if (!skipUpdate && rowObj) {
-    saveEmptyRow(rowObj, before)
+    saveEmptyRow(rowObj, before, path)
   }
 
   calculateSlices()
   requestAnimationFrame(triggerRefreshCanvas)
 
   nextTick().then(() => {
-    activeCell.value = { row: row ?? totalRows.value - 1, column: contextMenuTarget.value?.col ?? 1 }
+    activeCell.value = { row: row ?? totalRows.value - 1, column: contextMenuTarget.value?.col ?? 1, path }
     selection.value.startRange({ row: row ?? totalRows.value - 1, col: contextMenuTarget.value?.col ?? 1 })
     selection.value.endRange({ row: row ?? totalRows.value - 1, col: contextMenuTarget.value?.col ?? 1 })
     scrollToCell()
@@ -1768,7 +1753,6 @@ async function openNewRecordHandler() {
 
 const callAddNewRow = (context: { row: number; col: number }, direction: 'above' | 'below') => {
   const row = cachedRows.value.get(direction === 'above' ? context.row : context.row + 1)
-
   if (row) {
     const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
     addEmptyRow(context.row + (direction === 'above' ? 0 : 1), false, rowId)
@@ -1778,7 +1762,7 @@ const callAddNewRow = (context: { row: number; col: number }, direction: 'above'
 }
 
 const onNavigate = (dir: NavigateDir) => {
-  if (activeCell.value.row === null || activeCell.value.column === null) return
+  if (ncIsNullOrUndefined(activeCell.value?.row) || ncIsNullOrUndefined(activeCell.value?.column)) return
 
   editEnabled.value = null
   selection.value.clear()

@@ -207,9 +207,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     ) {
       return response.status(422).json({ msg: exception.message });
     } else if (exception instanceof NcSDKErrorV2) {
-      return response
-        .status(exception.getStatus?.() ?? 422)
-        .json({ message: exception.message });
+      return response.status(exception.getStatus?.() ?? 422).json({
+        error: exception.errorType,
+        message: exception.message,
+      });
     } else if (exception instanceof TestConnectionError) {
       return response
         .status(422)

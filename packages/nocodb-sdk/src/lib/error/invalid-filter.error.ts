@@ -22,7 +22,7 @@ export class InvalidFilterError extends NcSDKErrorV2 {
     }
     super({
       message,
-      errorType: NcErrorType.INVALID_FILTER,
+      error: NcErrorType.INVALID_FILTER,
       getStatus: () => 422,
     });
     this.innerInfo = info;

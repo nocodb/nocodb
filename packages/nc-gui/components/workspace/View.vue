@@ -133,7 +133,14 @@ onMounted(() => {
               {{ $t('labels.members') }}
             </div>
           </template>
-          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
+          <div class="overflow-auto h-[calc(100vh-3rem)] nc-scrollbar-thin">
+            <PaymentBanner v-if="isFeatureEnabled(FEATURE_FLAG.PAYMENT)" class="mb-0" />
+            <WorkspaceCollaboratorsList
+              class="h-[650px]"
+              :workspace-id="currentWorkspace.id"
+              :is-admin-panel="!!props.workspaceId"
+            />
+          </div>
         </a-tab-pane>
       </template>
 

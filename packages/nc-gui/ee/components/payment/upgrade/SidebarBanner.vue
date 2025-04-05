@@ -3,7 +3,7 @@ const { isRecordLimitReached, gracePeriodDaysLeft, navigateToBilling } = useEeCo
 </script>
 
 <template>
-  <div v-if="isRecordLimitReached" class="-mx-1 px-1 pb-1 border-b border-nc-border-gray-medium">
+  <div v-if="isRecordLimitReached" class="-mx-1 px-2 pb-2 pt-1 border-b border-nc-border-gray-medium">
     <NcAlert type="warning" show-icon class="nc-upgrade-sidebar-banner" @click="navigateToBilling()">
       <template #icon>
         <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-red-dark h-5 w-5" />

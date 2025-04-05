@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { Validation } from 'nocodb-sdk'
-import { PlanFeatureTypes, StringValidationType, UITypes, ValidationTypeLabel } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, StringValidationType, UITypes, ValidationTypeLabel } from 'nocodb-sdk'
 
 const { activeField, updateColMeta, v$ } = useFormViewStoreOrThrow()
+
+const { getPlanTitle } = useEeConfig()
 
 const validators = computed(() => {
   return activeField.value!.meta.validators as Validation[]
@@ -109,7 +111,11 @@ onMounted(() => {
               <LazyPaymentUpgradeBadge
                 v-if="!isFeatureEnabled && !validators.length"
                 :feature="PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION"
-                :content="$t('upgrade.upgradeToAddCustomValidationSubtitle')"
+                :content="
+                  $t('upgrade.upgradeToAddCustomValidationSubtitle', {
+                    plan: getPlanTitle(PlanTitles.TEAM),
+                  })
+                "
               />
 
               <NcDropdown

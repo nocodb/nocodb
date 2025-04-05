@@ -9,6 +9,7 @@ import {
   type ColumnType,
   type LinkToAnotherRecordType,
   PlanFeatureTypes,
+  PlanTitles,
   ProjectRoles,
   RelationTypes,
   UITypes,
@@ -110,7 +111,7 @@ const { state, row } = useProvideSmartsheetRowStore(
   }),
 )
 
-const { blockAddNewRecord, navigateToBilling } = useEeConfig()
+const { blockAddNewRecord, navigateToBilling, getPlanTitle, activePlan } = useEeConfig()
 
 const columns = computed(() => meta?.value?.columns || [])
 
@@ -1010,7 +1011,11 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   <LazyPaymentUpgradeBadge
                                     v-if="!isLocked"
                                     :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
-                                    :content="$t('upgrade.upgradeToAddCustomBannerSubtitle')"
+                                    :content="
+                                      $t('upgrade.upgradeToAddCustomBannerSubtitle', {
+                                        plan: getPlanTitle(PlanTitles.TEAM),
+                                      })
+                                    "
                                   />
                                 </div>
                               </NcButton>
@@ -1048,7 +1053,11 @@ const { message: templatedMessage } = useTemplatedMessage(
                     show-icon
                     class="mt-6 bg-nc-bg-orange-light"
                     :message="$t('upgrade.updateToAddRecordFormView')"
-                    :description="$t('upgrade.updateToAddRecordFormViewSubtitle')"
+                    :description="
+                      $t('upgrade.updateToAddRecordFormViewSubtitle', {
+                        activePlan: getPlanTitle(activePlan?.title),
+                      })
+                    "
                   >
                     <template #action>
                       <NcButton class="nc-upgrade-plan-btn" type="primary" size="small" @click.stop="navigateToBilling()">
@@ -1114,7 +1123,11 @@ const { message: templatedMessage } = useTemplatedMessage(
                                         <LazyPaymentUpgradeBadge
                                           v-if="!isLocked"
                                           :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
-                                          :content="$t('upgrade.upgradeToAddCustomLogoSubtitle')"
+                                          :content="
+                                            $t('upgrade.upgradeToAddCustomLogoSubtitle', {
+                                              plan: getPlanTitle(PlanTitles.TEAM),
+                                            })
+                                          "
                                           class="-my-1"
                                         />
                                       </div>
@@ -1793,7 +1806,11 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                                   <LazyPaymentUpgradeBadge
                                     :feature="PlanFeatureTypes.FEATURE_HIDE_BRANDING"
-                                    :content="$t('upgrade.upgradeToHideFormBrandingSubtitle')"
+                                    :content="
+                                      $t('upgrade.upgradeToHideFormBrandingSubtitle', {
+                                        plan: getPlanTitle(PlanTitles.TEAM),
+                                      })
+                                    "
                                   />
                                 </span>
 
@@ -1864,7 +1881,11 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     <LazyPaymentUpgradeBadge
                                       v-if="!isOpenRedirectUrl"
                                       :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
-                                      :content="$t('upgrade.upgradeToAddRedirectUrlSubtitle')"
+                                      :content="
+                                        $t('upgrade.upgradeToAddRedirectUrlSubtitle', {
+                                          plan: getPlanTitle(PlanTitles.TEAM),
+                                        })
+                                      "
                                     />
                                   </span>
                                   <a-switch

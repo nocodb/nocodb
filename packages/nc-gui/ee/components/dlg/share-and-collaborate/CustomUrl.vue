@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import axios from 'axios'
-import { type CustomUrlType, PlanFeatureTypes, type StringOrNullType } from 'nocodb-sdk'
+import { type CustomUrlType, PlanFeatureTypes, PlanTitles, type StringOrNullType } from 'nocodb-sdk'
 
 interface Props {
   /**
@@ -45,6 +45,8 @@ const { t } = useI18n()
 const { api } = useApi()
 
 const { showShareModal } = storeToRefs(useShare())
+
+const { getPlanTitle } = useEeConfig()
 
 const isLoading = ref({
   customUrl: false,
@@ -266,7 +268,11 @@ watch(
             <LazyPaymentUpgradeBadge
               v-if="!isOpenCustomUrl"
               :feature="PlanFeatureTypes.FEATURE_CUSTOM_URL"
-              :content="$t('upgrade.upgradeToAddCustomUrlSubtitle')"
+              :content="
+                $t('upgrade.upgradeToAddCustomUrlSubtitle', {
+                  plan: getPlanTitle(PlanTitles.TEAM),
+                })
+              "
             />
             <NcTooltip v-if="tooltip" class="flex items-center">
               <template #title>

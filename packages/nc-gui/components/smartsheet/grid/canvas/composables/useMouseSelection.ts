@@ -1,4 +1,5 @@
 import { parseCellWidth } from '../utils/cell'
+import { findRowInGroups } from '../utils/groupby'
 
 const MAX_SELECTION_LIMIT = 100
 
@@ -7,6 +8,7 @@ export function useMouseSelection({
   activeCell,
   canvasRef,
   scrollLeft,
+  scrollTop,
   columns,
   rowHeight,
   triggerReRender,
@@ -14,23 +16,37 @@ export function useMouseSelection({
   rowSlice,
   partialRowHeight,
   totalRows,
+  isGroupby,
+  cachedGroups,
 }: {
   selection: Ref<CellRange>
   activeCell: Ref<{ row: number; column: number }>
   canvasRef: Ref<HTMLCanvasElement>
   scrollLeft: Ref<number>
+  scrollTop: Ref<number>
   columns: ComputedRef<CanvasGridColumn[]>
   rowHeight: Ref<number>
   triggerReRender: () => void
-  scrollToCell: (row?: number, column?: number) => void
+  scrollToCell: (row?: number, column?: number, path?: Array<number>) => void
   rowSlice: Ref<{ start: number; end: number }>
   partialRowHeight: Ref<number>
   totalRows: Ref<number>
+  isGroupby: Ref<boolean>
+  cachedGroups: Ref<Map<number, CanvasGroup>>
 }) {
   const isSelecting = ref(false)
 
   const findCellFromPosition = (x: number, y: number) => {
-    const row = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
+    let row
+    let path = []
+
+    if (isGroupby.value) {
+      const result = findRowInGroups(cachedGroups.value, y - 40 + scrollTop.value, rowHeight.value)
+      row = result.row
+      path = result.path
+    } else {
+      row = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
+    }
 
     let fixedWidth = 0
     const fixedCols = columns.value.filter((col) => col.fixed)

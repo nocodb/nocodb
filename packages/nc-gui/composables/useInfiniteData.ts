@@ -1496,18 +1496,18 @@ export function useInfiniteData(args: {
     return getExpandedRowIndex(path)
   }
 
-  const _isLastRow = (path: Array<number> = []) {
+  const _isLastRow = (path: Array<number> = []) => {
     const dataCache = getDataCache(path)
     const expandedRowIndex = getExpandedRowIndex(path)
     if (expandedRowIndex === -1) return false
-     return expandedRowIndex === dataCache.totalRows.value - 1
+    return expandedRowIndex === dataCache.totalRows.value - 1
   }
 
-  const _isFirstRow = (path: Array<number> = []) {
+  const _isFirstRow = (path: Array<number> = []) => {
     const dataCache = getDataCache(path)
     const expandedRowIndex = getExpandedRowIndex(path)
     if (expandedRowIndex === -1) return false
-     return expandedRowIndex === 0
+    return expandedRowIndex === 0
   }
 
   // TODO: @DarkPhoenix2704: Replace the computed with function

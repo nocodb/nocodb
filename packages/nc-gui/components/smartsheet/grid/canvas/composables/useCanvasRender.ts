@@ -2088,6 +2088,7 @@ export function useCanvasRender({
       _isStartGroup?: boolean
     },
   ) {
+
     const groups = pGroup?.groups ?? cachedGroups.value
 
     const missingChunks = []
@@ -2098,7 +2099,6 @@ export function useCanvasRender({
     const mergedWidth = parseCellWidth(rowNumberCol?.width) + parseCellWidth(firstFixedCol?.width) - (level + 1) * 9
     // Track absolute position in virtual space
     let currentOffset = yOffset
-
     for (let i = startIndex; i <= endIndex; i++) {
       const isStartGroup = (_isStartGroup ?? true) && i === startIndex
       const group = groups.get(i)
@@ -2178,7 +2178,7 @@ export function useCanvasRender({
               relativeScrollTop,
               rowHeight.value,
               group.groupCount,
-              groupHeight - relativeScrollTop - groupHeaderY - GROUP_HEADER_HEIGHT,
+              height.value - groupHeaderY - GROUP_HEADER_HEIGHT - GROUP_PADDING,
               true,
               isAddingEmptyRowAllowed.value,
             )

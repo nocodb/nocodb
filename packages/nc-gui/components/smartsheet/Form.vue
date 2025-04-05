@@ -1090,7 +1090,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     <NcButton
                                       type="secondary"
                                       size="small"
-                                      class="nc-form-upload-logo-btn"
+                                      class="nc-form-upload-logo-btn group"
                                       data-testid="nc-form-upload-log-btn"
                                       :disabled="!isEeUI || isLocked"
                                       @click="
@@ -1109,6 +1109,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                         <LazyPaymentUpgradeBadge
                                           :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
                                           :content="$t('upgrade.upgradeToAddCustomLogoSubtitle')"
+                                          class="-my-1"
                                         />
                                       </div>
                                     </NcButton>

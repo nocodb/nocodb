@@ -83,7 +83,7 @@ const props = defineProps<{
     undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
-  expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
+  expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path: Array<number>) => void
   removeRowIfNew: (row: Row, path?: Array<number>) => void
   rowSortRequiredRows: Row[]
   applySorting?: (newRows?: Row | Row[], path?: Array<number>) => void
@@ -706,7 +706,7 @@ const handleRowMetaClick = ({
 
     case 'comment':
       isExpandedFormCommentMode.value = !!row.rowMeta?.commentCount
-      expandForm(row)
+      expandForm(row, undefined, false, group.path)
       break
   }
 
@@ -987,7 +987,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       if (element?.isGroup) {
         toggleExpand(group)
       } else if (element?.isRow && row) {
-        expandForm(row)
+        expandForm(row, undefined, false, group?.path)
       }
       requestAnimationFrame(triggerRefreshCanvas)
       return
@@ -1781,7 +1781,7 @@ async function openNewRecordHandler() {
   // Add an empty row
   const newRow = await addEmptyRow(totalRows.value + 1, true)
   // Expand the form
-  if (newRow) expandForm?.(newRow, undefined, true)
+  if (newRow) expandForm?.(newRow, undefined, true, [])
 }
 
 const callAddNewRow = (context: { row: number; col: number; path: Array<number> }, direction: 'above' | 'below') => {

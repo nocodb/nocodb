@@ -21,6 +21,14 @@ const FEATURES = [
     enabled: false,
   },
   {
+    id: 'payment',
+    title: 'Payment Flows',
+    description: 'Enable NocoDB Payment Flows.',
+    enabled: false,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
     id: 'ai_features',
     title: 'AI features',
     description: 'Unlock AI features to enhance your NocoDB experience.',

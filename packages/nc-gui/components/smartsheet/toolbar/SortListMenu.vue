@@ -205,7 +205,7 @@ onMounted(() => {
           >
             <template v-if="isEeUI && !isPublic">
               <NcButton
-                v-if="sorts.length < getPlanLimit(PlanLimitTypes.SORT_LIMIT)"
+                v-if="sorts.length < getPlanLimit(PlanLimitTypes.LIMIT_SORT_PER_VIEW)"
                 v-e="['c:sort:add']"
                 class="mt-1 mb-2"
                 :class="{

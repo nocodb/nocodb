@@ -596,7 +596,7 @@ eventBus.on(async (event) => {
         <template #overlay>
           <NcMenu>
             <template v-if="!isEeUI && !isPublic">
-              <template v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)">
+              <template v-if="filtersCount < getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW)">
                 <NcMenuItem data-testid="add-filter-menu" @click.stop="addFilter">
                   <div class="flex items-center gap-1">
                     <component :is="iconMap.plus" data-testid="filter-add-icon" />
@@ -975,7 +975,7 @@ eventBus.on(async (event) => {
     <template v-if="!nested">
       <template v-if="isEeUI && !isPublic">
         <div
-          v-if="!readOnly && filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)"
+          v-if="!readOnly && filtersCount < getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW)"
           class="flex gap-2"
           :class="{
             'mt-1 mb-2': filters.length,

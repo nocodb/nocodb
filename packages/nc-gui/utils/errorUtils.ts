@@ -20,8 +20,8 @@ export async function extractSdkResponseErrorMsg(e: Error & { response?: any }) 
       msg = 'Some internal error occurred'
     }
   } else {
-    msg = e.response.data.msg || e.response.data.message || 'Some internal error occurred'
-    errors = e.response.data.errors
+    msg = e.response?.data?.msg || e.response?.data?.message || 'Some internal error occurred'
+    errors = e.response.data?.errors
   }
 
   if (Array.isArray(errors) && errors.length) {

@@ -1,19 +1,32 @@
-interface Element {
-  path: Array<GroupNestedIn>
-  level?: number
-  rowIndex?: number
-  groupIndex?: number
+export enum ElementTypes {
+  ROW = 'ROW',
+  GROUP = 'GROUP',
+  ADD_NEW_ROW = 'ADD_NEW_ROW',
+}
+
+interface BaseElement {
   x: number
   y: number
   height: number
-  group?: CanvasGroup
-  row?: Row
-  type?: 'ADD_NEW_ROW'
+  level: number
+  type: ElementTypes
 }
 
+interface RowElement extends BaseElement {
+  row?: Row
+  type: ElementTypes.ROW | ElementTypes.ADD_NEW_ROW
+}
+
+interface GroupElement extends BaseElement {
+  group: CanvasGroup
+  type: ElementTypes.GROUP
+}
+
+type Element = RowElement | GroupElement
+
 export class CanvasElement {
-  private elements: Array<Element> = []
-  constructor(elements: Array<Element>) {
+  private elements: Array<Element>
+  constructor(elements: Array<Element> = []) {
     this.elements = elements
   }
 

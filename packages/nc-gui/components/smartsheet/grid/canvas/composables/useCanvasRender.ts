@@ -29,6 +29,7 @@ import { parseCellWidth } from '../utils/cell'
 import { calculateGroupHeight, calculateGroupRange, generateGroupPath, getBackgroundColor } from '../utils/groupby'
 import { parseKey, shouldRenderCell } from '../../../../../utils/groupbyUtils'
 import type { CanvasElement } from '../utils/CanvasElement'
+import { ElementTypes } from '../utils/CanvasElement'
 
 export function useCanvasRender({
   width,
@@ -1277,8 +1278,8 @@ export function useCanvasRender({
           y: yOffset,
           x: 0,
           height: rowHeight.value,
-          rowIndex: rowIdx,
           row,
+          type: ElementTypes.ROW,
         })
         activeState = renderedProp.activeState ?? activeState
         renderRedBorders = [...renderRedBorders, ...renderedProp.renderRedBorders]
@@ -1894,8 +1895,8 @@ export function useCanvasRender({
         level,
         height: rowHeight.value,
         path: group.nestedIn,
-        rowIndex: i,
         row,
+        type: ElementTypes.ROW,
       })
 
       activeState = renderedProp.activeState ?? activeState
@@ -1949,7 +1950,7 @@ export function useCanvasRender({
         level,
         height: COLUMN_HEADER_HEIGHT_IN_PX,
         path: group.nestedIn,
-        type: 'ADD_NEW_ROW',
+        type: ElementTypes.ADD_NEW_ROW,
       })
 
       yOffset += COLUMN_HEADER_HEIGHT_IN_PX
@@ -2019,6 +2020,7 @@ export function useCanvasRender({
         path: group.nestedIn,
         groupIndex: i,
         group,
+        type: ElementTypes.GROUP,
       })
 
       if (groupHeaderY + groupHeight >= 0 && groupHeaderY < height.value) {

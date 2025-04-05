@@ -607,6 +607,7 @@ interface CanvasGroup {
   groupCount?: number
   path?: Array<number>
   nestedIn: GroupNestedIn[]
+  aggregations: Record<string, any>
 }
 
 export type {

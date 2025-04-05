@@ -36,6 +36,24 @@ export const useInfiniteGroups = (
   const { nestedFilters } = useSmartsheetStoreOrThrow()
   const { fetchBulkAggregatedData } = useSharedView()
   const isPublic = inject(IsPublicInj, ref(false))
+  const fields = inject(FieldsInj, ref([]))
+
+  const columnsById = computed(() => {
+    if (!meta.value?.columns?.length) return {}
+    return meta.value?.columns.reduce((acc, column) => {
+      acc[column.id!] = column
+      return acc
+    }, {} as Record<string, ColumnType>)
+  })
+
+  const gridViewColByTitle = computed(() => {
+    const x = Object.values(gridViewCols.value).reduce((prev, curr) => {
+      const title = curr.title
+      prev[title] = curr
+      return prev
+    }, {})
+    return x
+  })
 
   const groupByColumns = computed(() => {
     const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
@@ -200,6 +218,13 @@ export const useInfiniteGroups = (
 
           await aggregationAliasMapper.process(aggResponse, (originalKey, value) => {
             const group = groups.find((g) => g.value.toString() === originalKey.toString())
+
+            Object.keys(value).forEach((key) => {
+              const field = gridViewColByTitle.value[key]
+              const col = columnsById.value[field.fk_column_id]
+              value[key] = formatAggregation(field.aggregation, value[key], col)
+            })
+
             if (group) {
               Object.assign(group.aggregations, value)
             }

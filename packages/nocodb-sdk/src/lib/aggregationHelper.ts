@@ -92,12 +92,6 @@ const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
         ...Object.values(CommonAggregations),
       ];
       break;
-    case UITypes.Attachment:
-      returnAggregations = [
-        ...Object.values(AttachmentAggregations),
-        ...Object.values(CommonAggregations),
-      ];
-      break;
     case UITypes.Checkbox:
       returnAggregations = [
         ...Object.values(BooleanAggregations),
@@ -116,6 +110,9 @@ const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
     case UITypes.SpecificDBType:
     case UITypes.ForeignKey:
       returnAggregations = [CommonAggregations.None];
+    case UITypes.Button:
+    case UITypes.Attachment:
+      return [CommonAggregations.None];
   }
 
   if (!returnAggregations.length) {

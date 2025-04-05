@@ -743,7 +743,6 @@ async function handleMouseDown(e: MouseEvent) {
   const rowIndex = element?.rowIndex
   const groupPath = group ? generateGroupPath(group) : []
 
-
   if (!row) return
   // onMouseDown event, we only handle the fillHandler and selectionHandler
   // and rowReorder. Other events should be handled in onMouseUp
@@ -763,7 +762,7 @@ async function handleMouseDown(e: MouseEvent) {
 
   if (!clickedColumn?.columnObj) {
     selection.value.clear()
-    activeCell.value = { row: -1, column: -1 }
+    activeCell.value = { row: -1, column: -1, path: [] }
     editEnabled.value = null
   }
 
@@ -779,6 +778,7 @@ async function handleMouseDown(e: MouseEvent) {
     if (selection.value.isEmpty()) {
       activeCell.value.row = rowIndex
       activeCell.value.column = columns.value.findIndex((col) => col.id === clickedColumn.id)
+      activeCell.value.path = groupPath
     }
     const columnIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
     const isWithinSelection = selection.value.isCellInRange({ row: rowIndex, col: columnIndex })
@@ -900,6 +900,7 @@ async function handleMouseUp(e: MouseEvent) {
       } else if (row) {
         expandForm(row)
       }
+      requestAnimationFrame(triggerRefreshCanvas)
       return
     } else if (y < 32) {
       return
@@ -1037,16 +1038,20 @@ async function handleMouseUp(e: MouseEvent) {
 
   const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
   const group = element?.group
-  const rowIndex = element?.row?.rowMeta?.rowIndex
+  const row = element?.row
+  const rowIndex = row?.rowMeta?.rowIndex
+  const groupPath = group? generateGroupPath(group) : []
 
-  if (!rowIndex && group) {
+  const _totalRows = isGroupBy.value ? group?.infiniteData?.totalRows.value : totalRows.value
+
+  if (!row && group) {
     toggleExpand(group)
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
 
   if (
-    rowIndex === totalRows.value &&
+    rowIndex === _totalRows &&
     clickType === MouseClickType.SINGLE_CLICK &&
     x < totalColumnsWidth.value - scrollLeft.value
   ) {
@@ -1056,18 +1061,19 @@ async function handleMouseUp(e: MouseEvent) {
     selection.value.clear()
     activeCell.value.row = rowIndex
     activeCell.value.column = 1
+    activeCell.value.path = groupPath
     requestAnimationFrame(triggerRefreshCanvas)
     return
-  } else if (rowIndex > totalRows.value) {
+  } else if (rowIndex > _totalRows) {
     selection.value.clear()
-    activeCell.value = { row: -1, column: -1 }
+    activeCell.value = { row: -1, column: -1, path: [] }
     onActiveCellChanged()
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
 
   if (x < 80) {
-    const row = group ? element?.row : cachedRows.value.get(rowIndex)
+    // const row = group ? element?.row : cachedRows.value.get(rowIndex)
     if (!row) return
     if (![MouseClickType.SINGLE_CLICK, MouseClickType.RIGHT_CLICK].includes(clickType)) return
 
@@ -1090,6 +1096,7 @@ async function handleMouseUp(e: MouseEvent) {
   if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
     activeCell.value.row = -1
     activeCell.value.column = -1
+    activeCell.value.path = []
     requestAnimationFrame(triggerRefreshCanvas)
   }
 
@@ -1100,12 +1107,13 @@ async function handleMouseUp(e: MouseEvent) {
     // Return
     activeCell.value.row = -1
     activeCell.value.column = -1
+    activeCell.value.path = []
     selection.value.clear()
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
   // If the user is trying to click on a cell
-  const row = cachedRows.value.get(rowIndex)
+  // const row = cachedRows.value.get(rowIndex)
   if (!row) return
   const pk = extractPkFromRow(row?.row, meta.value?.columns as ColumnType[])
   const colIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
@@ -1113,6 +1121,7 @@ async function handleMouseUp(e: MouseEvent) {
   if (clickType === MouseClickType.RIGHT_CLICK) {
     activeCell.value.row = rowIndex
     activeCell.value.column = colIndex
+    activeCell.value.path = groupPath
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
@@ -1126,12 +1135,13 @@ async function handleMouseUp(e: MouseEvent) {
     value: row?.row[clickedColumn.title],
     mousePosition: { x, y },
     pk,
-    selected: prevActiveCell?.row === rowIndex && prevActiveCell?.column === colIndex,
+    selected: prevActiveCell?.row === rowIndex && prevActiveCell?.column === colIndex && prevActiveCell?.path === groupPath,
     imageLoader,
   })
   // Set the active cell to the clicked cell
   activeCell.value.row = rowIndex
   activeCell.value.column = colIndex
+  activeCell.value.path = groupPath
 
   if (res) {
     // If the cellClick performed an action, return

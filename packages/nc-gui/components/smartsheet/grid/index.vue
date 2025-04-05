@@ -361,7 +361,7 @@ const pGoToPreviousRow = () => {
       @bulk-update-dlg="bulkUpdateDlg = true"
     />
 
-    <Suspense v-if="!isGroupBy">
+    <Suspense>
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"
@@ -374,7 +374,7 @@ const pGoToPreviousRow = () => {
       />
     </Suspense>
     <SmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg && meta?.id && !isGroupBy"
+      v-if="expandedFormOnRowIdDlg && meta?.id"
       v-model="expandedFormOnRowIdDlg"
       :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"

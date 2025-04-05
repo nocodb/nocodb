@@ -191,7 +191,8 @@ export function useCopyPaste({
 
     e.preventDefault()
 
-    const dataCache = getDataCache(activeCell.value.path)
+    const groupPath = activeCell.value.path
+    const dataCache = getDataCache(groupPath)
 
     const { totalRows, cachedRows } = dataCache
 
@@ -392,7 +393,7 @@ export function useCopyPaste({
             undefined,
             bulkOpsCols.map(({ column }) => column),
           )
-          scrollToCell?.()
+          scrollToCell?.(undefined, undefined, groupPath)
         } else {
           await bulkUpdateRows?.(updatedRows, propsToPaste)
         }
@@ -441,10 +442,7 @@ export function useCopyPaste({
               ? extractPkFromRow(pasteVal.value, (relatedTableMeta as any)!.columns!)
               : null
 
-            return await syncCellData?.(
-              { ...activeCell.value, updatedColumnTitle: foreignKeyColumn.title },
-              activeCell?.value?.path,
-            )
+            return await syncCellData?.({ ...activeCell.value, updatedColumnTitle: foreignKeyColumn.title }, groupPath)
           }
 
           // Handle many-to-many column paste
@@ -590,7 +588,7 @@ export function useCopyPaste({
               })
             }
 
-            return await syncCellData?.(activeCell.value, activeCell?.value?.path)
+            return await syncCellData?.(activeCell.value, groupPath)
           }
 
           if (!isPasteable(rowObj, columnObj, true)) {
@@ -640,7 +638,7 @@ export function useCopyPaste({
             rowObj.row[columnObj.title!] = pasteValue
           }
 
-          await syncCellData?.(activeCell.value, activeCell?.value?.path)
+          await syncCellData?.(activeCell.value, groupPath)
         } else {
           const { start, end } = selection.value
 
@@ -796,10 +794,11 @@ export function useCopyPaste({
     // If the cell is not available, return
     // If the user doesn't have edit permission, return
     // If the cell is a virtual column and not Links/Ltar, return
-
     if (!ctx) return
 
-    const dataCache = getDataCache(ctx?.path)
+    const groupPath = ctx?.path
+
+    const dataCache = getDataCache(groupPath)
     const { cachedRows } = dataCache
 
     const col = columns.value[ctx.col]
@@ -868,12 +867,13 @@ export function useCopyPaste({
 
               activeCell.value.column = ctx.col
               activeCell.value.row = ctx.row
+              activeCell.value.path = groupPath
 
               if (isSelfLinkColumn) {
                 reloadViewDataHook.trigger({ shouldShowLoading: false })
               }
 
-              scrollToCell?.()
+              scrollToCell?.(undefined, undefined, groupPath)
             } else {
               throw new Error(t('msg.recordCouldNotBeFound'))
             }
@@ -898,12 +898,13 @@ export function useCopyPaste({
               }
               activeCell.value.column = ctx.col
               activeCell.value.row = ctx.row
+              activeCell.value.path = groupPath
 
               if (isSelfLinkColumn) {
                 reloadViewDataHook.trigger({ shouldShowLoading: false })
               }
 
-              scrollToCell?.()
+              scrollToCell?.(undefined, undefined, groupPath)
             } else {
               throw new Error(t('msg.recordCouldNotBeFound'))
             }
@@ -938,7 +939,7 @@ export function useCopyPaste({
 
     if (!skipUpdate) {
       // update/save cell value
-      await updateOrSaveRow?.(rowObj, columnObj.title)
+      await updateOrSaveRow?.(rowObj, columnObj.title, undefined, undefined, undefined, groupPath)
     }
   }
 

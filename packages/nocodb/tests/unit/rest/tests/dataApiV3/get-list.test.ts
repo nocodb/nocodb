@@ -752,7 +752,7 @@ describe('dataApiV3', () => {
           query: {
             sort: 'abc',
           },
-          status: 404,
+          status: 422,
         });
         await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,

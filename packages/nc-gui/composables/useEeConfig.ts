@@ -7,9 +7,17 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isPaymentEnabled = computed(() => undefined)
 
+  const blockAddNewRecord = computed(() => false)
+
+  const isRecordLimitReached = computed(() => false)
+
+  const gracePeriodDaysLeft = computed(() => Infinity)
+
   const getLimit = (..._args: any[]) => {}
 
   const getStatLimit = (..._args: any[]) => {}
+
+  const updateStatLimit = (..._args: any[]) => {}
 
   const getFeature = (..._args: any[]) => {}
 
@@ -21,9 +29,12 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUserPlanLimitExceededModal = (..._args: any[]) => {}
 
+  const showRecordPlanLimitExceededModal = (..._args: any[]) => {}
+
   return {
     getLimit,
     getStatLimit,
+    updateStatLimit,
     getFeature,
     isPaidPlan,
     activePlan,
@@ -33,5 +44,9 @@ export const useEeConfig = createSharedComposable(() => {
     handleUpgradePlan,
     isPaymentEnabled,
     showUserPlanLimitExceededModal,
+    isRecordLimitReached,
+    gracePeriodDaysLeft,
+    blockAddNewRecord,
+    showRecordPlanLimitExceededModal,
   }
 })

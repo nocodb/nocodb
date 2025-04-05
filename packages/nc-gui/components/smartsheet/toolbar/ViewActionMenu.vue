@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ProjectRoles, type TableType, type ViewType, WorkspaceUserRoles } from 'nocodb-sdk'
+import { PlanFeatureTypes, ProjectRoles, type TableType, type ViewType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 import { LockType } from '#imports'
 
@@ -364,14 +364,24 @@ const isDefaultView = computed(() => view.value?.is_default)
           :enabled="!isViewOwner || !!isDefaultView"
           :message="isDefaultView ? 'Default view can\'t be made personal' : 'Only view owner can change to personal view'"
         >
-          <NcMenuItem
-            data-testid="nc-view-action-lock-subaction-Personal"
-            :disabled="!isViewOwner || !!isDefaultView"
-            class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
-            @click="changeLockType(LockType.Personal)"
-          >
-            <LazySmartsheetToolbarLockType :type="LockType.Personal" :disabled="!isViewOwner || isDefaultView" />
-          </NcMenuItem>
+          <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
+            <template #default="{ click }">
+              <NcMenuItem
+                data-testid="nc-view-action-lock-subaction-Personal"
+                :disabled="!isViewOwner || !!isDefaultView"
+                class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px] children:w-full children:children:w-full group"
+                @click="
+                  () => {
+                    if (click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS)) return
+
+                    changeLockType(LockType.Personal)
+                  }
+                "
+              >
+                <LazySmartsheetToolbarLockType :type="LockType.Personal" :disabled="!isViewOwner || isDefaultView" />
+              </NcMenuItem>
+            </template>
+          </PaymentUpgradeBadgeProvider>
         </SmartsheetToolbarNotAllowedTooltip>
         <NcMenuItem
           data-testid="nc-view-action-lock-subaction-Locked"

@@ -53,11 +53,18 @@ planUpgraderClick.on(() => {
     class="nc-upgrade-badge cursor-pointer select-none"
     :class="`nc-upgrade-${planTitle}-badge`"
     :style="{
-      color: activePlanMeta.primary,
-      background: activePlanMeta.bgLight,
+      'color': activePlanMeta.primary,
+      '--nc-badge-bg-light': activePlanMeta.bgLight,
+      '--nc-badge-bg-dark': activePlanMeta.bgDark,
     }"
   >
     <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4 mr-1" />
     {{ getPlanTitle(planTitle) }}
   </NcBadge>
 </template>
+
+<style lang="scss" scoped>
+.nc-upgrade-badge {
+  @apply bg-[var(--nc-badge-bg-light)] hover:bg-[var(--nc-badge-bg-dark)] group-hover:bg-[var(--nc-badge-bg-dark)] transition-colors duration-200;
+}
+</style>

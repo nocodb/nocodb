@@ -24,7 +24,9 @@ export const useEeConfig = createSharedComposable(() => {
       workspace = activeWorkspace.value
     }
 
-    return workspace?.payment?.plan?.limit ? workspace?.payment?.plan?.limit?.[type] : workspace?.payment?.plan?.meta?.[type]
+    const limit = workspace?.payment?.plan?.meta?.[type] ?? Infinity
+
+    return limit === -1 ? Infinity : limit
   }
 
   const getFeature = (type: PlanFeatureTypes, workspace?: NcWorkspace | null) => {
@@ -32,9 +34,7 @@ export const useEeConfig = createSharedComposable(() => {
       workspace = activeWorkspace.value
     }
 
-    return workspace?.payment?.plan?.features
-      ? workspace?.payment?.plan?.features?.[type]
-      : workspace?.payment?.plan?.meta?.[type]
+    return workspace?.payment?.plan?.meta?.[type]
   }
 
   const getHigherPlan = (plan: string | PlanTitles | undefined = activePlan.value?.title) => {

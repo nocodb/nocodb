@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PlanFeatureTypes } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 import { LockType } from '#imports'
 
 const { type, hideTick } = defineProps<{
@@ -13,6 +13,8 @@ const emit = defineEmits(['select'])
 const types = viewLockIcons
 
 const selectedView = inject(ActiveViewInj)
+
+const { getPlanTitle } = useEeConfig()
 </script>
 
 <template>
@@ -55,7 +57,11 @@ const selectedView = inject(ActiveViewInj)
             <LazyPaymentUpgradeBadge
               v-else-if="type === LockType.Personal"
               :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
-              :content="$t('upgrade.upgradeToAccessPersonalViewSubtitle')"
+              :content="
+                $t('upgrade.upgradeToAccessPersonalViewSubtitle', {
+                  plan: getPlanTitle(PlanTitles.TEAM),
+                })
+              "
             />
             <span v-else />
           </template>

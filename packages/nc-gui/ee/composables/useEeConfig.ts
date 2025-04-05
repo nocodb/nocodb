@@ -1,4 +1,4 @@
-import { GRACE_PERIOD_DURATION, HigherPlan, NON_SEAT_ROLES, PlanTitles } from 'nocodb-sdk'
+import { GRACE_PERIOD_DURATION, HigherPlan, NON_SEAT_ROLES, PlanOrder, PlanTitles } from 'nocodb-sdk'
 import {
   type PlanFeatureTypes,
   type PlanLimitExceededDetailsType,
@@ -25,6 +25,10 @@ export const useEeConfig = createSharedComposable(() => {
   const activeSubscription = computed(() => activeWorkspace.value?.payment?.subscription)
 
   const isPaymentEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.PAYMENT))
+
+  const isWsAuditEnabled = computed(() => {
+    return activePlan.value?.title && PlanOrder[activePlan.value.title as PlanTitles] >= PlanOrder[PlanTitles.BUSINESS]
+  })
 
   const getLimit = (type: PlanLimitTypes, workspace?: NcWorkspace | null) => {
     if (!workspace) {
@@ -69,7 +73,9 @@ export const useEeConfig = createSharedComposable(() => {
       workspace = activeWorkspace.value
     }
 
-    return workspace?.payment?.plan?.meta?.[type]
+    return ncIsString(workspace?.payment?.plan?.meta?.[type])
+      ? JSON.parse(workspace?.payment?.plan?.meta?.[type])
+      : workspace?.payment?.plan?.meta?.[type]
   }
 
   const getHigherPlan = (plan: string | PlanTitles | undefined = activePlan.value?.title) => {
@@ -247,5 +253,6 @@ export const useEeConfig = createSharedComposable(() => {
     blockAddNewRecord,
     showRecordPlanLimitExceededModal,
     navigateToBilling,
+    isWsAuditEnabled,
   }
 })

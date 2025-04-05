@@ -84,6 +84,7 @@ const rolePermissions = {
       // todo: temporary permission
       moveWorkspaceToOrg: true,
       createConnectionDetails: true,
+      workspaceAuditList: true,
     },
   },
   [WorkspaceUserRoles.CREATOR]: {
@@ -99,7 +100,6 @@ const rolePermissions = {
       airtableImport: true,
       jsonImport: true,
       excelImport: true,
-      workspaceAuditList: true,
       workspaceIntegrations: true,
     },
   },

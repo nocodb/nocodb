@@ -115,7 +115,7 @@ export default class Audit extends AuditCE {
       baseId?: string;
       sourceId?: string;
       user?: string;
-      type?: string;
+      type?: string[];
       startDate?: string;
       endDate?: string;
       orderBy?: {
@@ -137,7 +137,6 @@ export default class Audit extends AuditCE {
           ...(user ? { user: user } : {}),
           ...(baseId ? { base_id: baseId } : {}),
           ...(sourceId ? { source_id: sourceId } : {}),
-          ...(type ? { op_type: type } : {}),
         },
         orderBy: {
           ...(orderBy?.created_at
@@ -151,6 +150,7 @@ export default class Audit extends AuditCE {
           _and: [
             ...(startDate ? [{ created_at: { ge: startDate } }] : []),
             ...(endDate ? [{ created_at: { le: endDate } }] : []),
+            ...(type ? [{ op_type: { in: type } }] : []),
           ],
         },
       },
@@ -170,7 +170,7 @@ export default class Audit extends AuditCE {
       user?: string;
       baseId?: string;
       sourceId?: string;
-      type?: string;
+      type?: string[];
       startDate?: string;
       endDate?: string;
     },
@@ -186,12 +186,12 @@ export default class Audit extends AuditCE {
           ...(user ? { user: user } : {}),
           ...(baseId ? { base_id: baseId } : {}),
           ...(sourceId ? { source_id: sourceId } : {}),
-          ...(type ? { op_type: type } : {}),
         },
         xcCondition: {
           _and: [
             ...(startDate ? [{ created_at: { ge: startDate } }] : []),
             ...(endDate ? [{ created_at: { le: endDate } }] : []),
+            ...(type ? [{ op_type: { in: type } }] : []),
           ],
         },
       },

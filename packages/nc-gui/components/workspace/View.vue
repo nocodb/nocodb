@@ -21,6 +21,8 @@ const { loadCollaborators, loadWorkspace } = workspaceStore
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
+const { isWsAuditEnabled } = useEeConfig()
+
 const currentWorkspace = computedAsync(async () => {
   if (deletingWorkspace.value) return
   let ws
@@ -151,6 +153,17 @@ onMounted(() => {
             </div>
           </template>
           <WorkspaceSettings :workspace-id="currentWorkspace.id" />
+        </a-tab-pane>
+      </template>
+      <template v-if="isEeUI && isWsAuditEnabled && isUIAllowed('workspaceAuditList')">
+        <a-tab-pane key="audits" class="w-full">
+          <template #tab>
+            <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
+              <GeneralIcon icon="audit" class="h-4 w-4" />
+              {{ $t('title.audits') }}
+            </div>
+          </template>
+          <WorkspaceAudits />
         </a-tab-pane>
       </template>
 

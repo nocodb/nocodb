@@ -20,6 +20,8 @@ const defaultPaginationData = { page: 1, pageSize: 25, totalRows: 0 }
 export type CollaboratorType = (WorkspaceUserType & { id: string }) | User | UserType
 
 export const useAuditsStore = defineStore('auditsStore', () => {
+  const loadActionWorkspaceLogsOnly = ref<boolean>(false)
+
   const audits = ref<null | Array<AuditType>>(null)
 
   const isRowExpanded = ref(false)
@@ -80,6 +82,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     loadUsersForWorkspace,
     onInit,
     getUserName,
+    loadActionWorkspaceLogsOnly,
   }
 })
 

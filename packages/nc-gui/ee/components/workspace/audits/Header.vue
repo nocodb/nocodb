@@ -235,12 +235,15 @@ const selectedWorkspace = computed(() => {
 const selectedBase = computed(() => {
   return (auditLogsQuery.value.baseId && bases.value.get(auditLogsQuery.value.baseId)?.title) || 'All'
 })
+
+const showWorkspaceSelector = ref(false)
 </script>
 
 <template>
   <div class="flex items-center gap-3 justify-between flex-wrap">
     <div class="flex items-center gap-3">
       <NcDropdown
+        v-if="showWorkspaceSelector"
         v-model:visible="auditDropdowns.workspace"
         overlay-class-name="overflow-hidden"
         @update:visible="handleClearDropdownSearch($event, 'workspace')"

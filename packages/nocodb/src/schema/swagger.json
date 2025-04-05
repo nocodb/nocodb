@@ -27406,10 +27406,6 @@
           "meta": {
             "$ref": "#/components/schemas/Meta",
             "description": "Meta data for user"
-          },
-          "stripe_customer_id": {
-            "description": "Stripe customer ID",
-            "type": "string"
           }
         },
         "required": [

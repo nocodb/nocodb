@@ -13,8 +13,6 @@ export const useBaseSettings = createSharedComposable(() => {
 
   const { t } = useI18n()
 
-  const { activeWorkspace, workspaces } = storeToRefs(useWorkspace())
-
   const basesStore = useBases()
 
   const { activeProjectId } = storeToRefs(basesStore)

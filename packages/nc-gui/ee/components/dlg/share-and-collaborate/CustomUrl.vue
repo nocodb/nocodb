@@ -260,7 +260,7 @@ watch(
 <template>
   <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
     <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_CUSTOM_URL">
-      <template #default="{ click, isFeatureEnabled }">
+      <template #default="{ click }">
         <div class="flex flex-row items-center justify-between">
           <div class="flex text-black items-center gap-1">
             {{ $t('title.customUrl') }}

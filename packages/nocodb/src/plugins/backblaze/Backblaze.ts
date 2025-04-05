@@ -39,6 +39,8 @@ export default class Backblaze extends GenericS3 implements IStorageAdapterV2 {
       endpoint: `https://s3.${this.patchRegion(
         this.input.region,
       )}.backblazeb2.com`,
+      requestChecksumCalculation: 'WHEN_REQUIRED',
+      responseChecksumValidation: 'WHEN_REQUIRED',
     };
 
     this.s3Client = new S3Client(s3Options);

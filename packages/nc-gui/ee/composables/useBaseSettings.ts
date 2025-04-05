@@ -1,4 +1,4 @@
-import { PlanLimitTypes, type SnapshotType, type WorkspaceType } from 'nocodb-sdk'
+import { PlanLimitTypes, type PlanLimitExceededDetailsType, type SnapshotType, type WorkspaceType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
 export type SnapshotExtendedType = SnapshotType & {
@@ -142,11 +142,32 @@ export const useBaseSettings = createSharedComposable(() => {
           }
         },
       )
-    } catch (error) {
-      message.error(await extractSdkResponseErrorMsg(error))
+    } catch (error: any) {
+      const errorInfo = await extractSdkResponseErrorMsgv2(error)
 
-      snapshot.error = true
-      console.error(error)
+      if (errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+        const details = errorInfo.details as PlanLimitExceededDetailsType
+
+        return handleUpgradePlan({
+          title: details.limit === 0 ? t('upgrade.UpgradeToCreateSnapshots') : t('upgrade.UpgradeToCreateAdditionalSnapshots'),
+          content:
+            details.limit === 0
+              ? t('upgrade.UpgradeToCreateSnapshotsSubtitle', {
+                  activePlan: details.plan,
+                  plan: details.higherPlan,
+                })
+              : t('upgrade.UpgradeToCreateAdditionalSnapshotsSubtitle', {
+                  n: details.current,
+                  activePlan: details.plan,
+                  plan: details.higherPlan,
+                }),
+        })
+      } else {
+        message.error(errorInfo.message)
+
+        snapshot.error = true
+        console.error(error)
+      }
     }
   }
 

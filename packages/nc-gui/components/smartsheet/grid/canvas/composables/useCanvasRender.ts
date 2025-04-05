@@ -1151,10 +1151,23 @@ export function useCanvasRender({
         oldRow: {},
       }
       let xOffset = initialXOffset
+      if (isGroupBy.value) {
+        for (let i = 0; i < startColIndex; i++) {
+          const col = columns.value[i]
+          if (col.id === 'row_number') {
+            xOffset -= groupByColumns.value?.length * 9
+          }
+          xOffset += parseCellWidth(col?.width)
+        }
+      }
 
       visibleCols.forEach((column, colIdx) => {
-        const width = parseCellWidth(column.width)
+        let width = parseCellWidth(column.width)
         const absoluteColIdx = startColIndex + colIdx
+
+        if (column.id === 'row_number') {
+          width -= initialXOffset
+        }
 
         if (column.fixed) {
           xOffset += width
@@ -1188,7 +1201,7 @@ export function useCanvasRender({
 
       const fixedCols = columns.value.filter((col) => col.fixed)
       if (fixedCols.length) {
-        xOffset = 0
+        xOffset = isGroupBy.value ? initialXOffset : 0
 
         fixedCols.forEach((column) => {
           const width = parseCellWidth(column.width)

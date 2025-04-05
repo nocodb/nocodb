@@ -1592,6 +1592,8 @@ export function useInfiniteData(args: {
       }
     }
 
+    callbacks?.syncVisibleData?.()
+
     return rows
   }
 

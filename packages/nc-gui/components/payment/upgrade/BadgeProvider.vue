@@ -16,12 +16,14 @@ const { getFeature } = useEeConfig()
 
 const isFeatureEnabled = computed(() => getFeature(props.feature))
 
-const onClick = (feature: PlanFeatureTypes) => {
+const onClick = (feature: PlanFeatureTypes, successCallback?: (...arg: any[]) => any | Promise<any>) => {
   if (!getFeature(feature)) {
     planUpgradeClickHook.trigger()
 
     // Return true if feature is not available so that we can prevent any action
     return true
+  } else {
+    successCallback?.()
   }
 }
 </script>

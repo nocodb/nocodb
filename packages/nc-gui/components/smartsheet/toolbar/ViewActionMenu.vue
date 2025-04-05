@@ -370,13 +370,7 @@ const isDefaultView = computed(() => view.value?.is_default)
                 data-testid="nc-view-action-lock-subaction-Personal"
                 :disabled="!isViewOwner || !!isDefaultView"
                 class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px] children:w-full children:children:w-full group"
-                @click="
-                  () => {
-                    if (click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS)) return
-
-                    changeLockType(LockType.Personal)
-                  }
-                "
+                @click="click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS, () => changeLockType(LockType.Personal))"
               >
                 <LazySmartsheetToolbarLockType :type="LockType.Personal" :disabled="!isViewOwner || isDefaultView" />
               </NcMenuItem>

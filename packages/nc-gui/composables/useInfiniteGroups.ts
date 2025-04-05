@@ -336,6 +336,7 @@ export const useInfiniteGroups = (
   }
 
   async function updateGroupAggregations(groups: CanvasGroup[], fields?: Array<{ title: string; aggregation?: string }>) {
+    const BATCH_SIZE = 50
     const aggregationAliasMapper = new AliasMapper()
 
     const aggregation = fields
@@ -359,44 +360,48 @@ export const useInfiniteGroups = (
 
     if (!aggregation.length) return
 
-    const aggregationParams = groups.map((group) => ({
-      where: buildNestedWhere(group, where?.value),
-      alias: aggregationAliasMapper.generateAlias(group.value),
-      filterArrJson: JSON.stringify(nestedFilters.value),
-    }))
+    for (let i = 0; i < groups.length; i += BATCH_SIZE) {
+      const batchGroups = groups.slice(i, i + BATCH_SIZE)
 
-    try {
-      const aggResponse = !isPublic.value
-        ? await $api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
-            meta.value!.id,
-            {
-              viewId: view.value!.id,
-              aggregation,
-            },
-            aggregationParams,
-          )
-        : await fetchBulkAggregatedData(
-            {
-              aggregation,
-            },
-            aggregationParams,
-          )
+      const aggregationParams = batchGroups.map((group) => ({
+        where: buildNestedWhere(group, where?.value),
+        alias: aggregationAliasMapper.generateAlias(group.value),
+        filterArrJson: JSON.stringify(nestedFilters.value),
+      }))
 
-      await aggregationAliasMapper.process(aggResponse, (originalKey, value) => {
-        const group = groups.find((g) => g.value.toString() === originalKey.toString())
+      try {
+        const aggResponse = !isPublic.value
+          ? await $api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
+              meta.value!.id,
+              {
+                viewId: view.value!.id,
+                aggregation,
+              },
+              aggregationParams,
+            )
+          : await fetchBulkAggregatedData(
+              {
+                aggregation,
+              },
+              aggregationParams,
+            )
 
-        Object.keys(value).forEach((key) => {
-          const field = gridViewColByTitle.value[key]
-          const col = columnsById.value[field.fk_column_id]
-          value[key] = formatAggregation(field.aggregation, value[key], col) ?? ''
+        await aggregationAliasMapper.process(aggResponse, (originalKey, value) => {
+          const group = batchGroups.find((g) => g.value.toString() === originalKey.toString())
+
+          Object.keys(value).forEach((key) => {
+            const field = gridViewColByTitle.value[key]
+            const col = columnsById.value[field.fk_column_id]
+            value[key] = formatAggregation(field.aggregation, value[key], col) ?? ''
+          })
+
+          if (group) {
+            Object.assign(group.aggregations, value)
+          }
         })
-
-        if (group) {
-          Object.assign(group.aggregations, value)
-        }
-      })
-    } catch (error) {
-      console.error('Error refreshing group aggregations:', error)
+      } catch (error) {
+        console.error('Error refreshing group aggregations batch:', error)
+      }
     }
   }
 

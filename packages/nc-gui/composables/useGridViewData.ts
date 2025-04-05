@@ -119,7 +119,7 @@ export function useGridViewData(
 
     reloadAggregate?.trigger(params)
 
-    if (!isGroupBy.value || !path.length || !appInfo.value?.ee) {
+    if (!isGroupBy.value || !appInfo.value?.ee) {
       return
     }
 
@@ -138,6 +138,30 @@ export function useGridViewData(
       }
     }
   }
+
+  reloadAggregate?.on((v) => {
+    const { path, fields } = v
+    if (!path?.length && isGroupBy.value) {
+      const allGroups: CanvasGroup[] = []
+
+      function collectAllGroups(groups: Map<number, CanvasGroup>) {
+        const groupArray = Array.from(groups.values())
+        allGroups.push(...groupArray)
+
+        for (const group of groupArray) {
+          if (group.groups && group.groups.size > 0) {
+            collectAllGroups(group.groups)
+          }
+        }
+      }
+
+      collectAllGroups(cachedGroups.value)
+
+      if (allGroups.length) {
+        updateGroupAggregations(allGroups, fields)
+      }
+    }
+  })
 
   function getCount(path?: Array<number>) {
     if (!path?.length) return

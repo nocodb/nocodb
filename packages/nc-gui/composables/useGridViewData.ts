@@ -50,7 +50,9 @@ export function useGridViewData(
     buildNestedWhere,
     syncCount: groupSyncCount,
     fetchMissingGroupChunks,
-  } = useInfiniteGroups(viewMeta, meta, where)
+  } = useInfiniteGroups(viewMeta, meta, where, {
+    syncVisibleData,
+  })
 
   const {
     insertRow,

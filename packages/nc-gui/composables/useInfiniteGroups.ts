@@ -16,7 +16,10 @@ const getSortParams = (sort: string) => {
 export const useInfiniteGroups = (
   view: Ref<ViewType | undefined>,
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
-  where?: ComputedRef<string | undefined>,
+  where: ComputedRef<string | undefined>,
+  callbacks: {
+    syncVisibleData: () => void
+  },
 ) => {
   const { gridViewCols } = useViewColumnsOrThrow()
   const { base } = storeToRefs(useBase())
@@ -202,6 +205,7 @@ export const useInfiniteGroups = (
     )
 
     await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup)))
+    callbacks?.syncVisibleData()
   }
 
   const clearGroupCache = (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => {
@@ -249,14 +253,17 @@ export const useInfiniteGroups = (
         column_name: groupCol.column.title,
       })
     }
+    callbacks?.syncVisibleData()
   }
 
   const toggleExpand = async (group: CanvasGroup) => {
     group.isExpanded = !group.isExpanded
+    callbacks?.syncVisibleData()
   }
 
   watch(groupByColumns, () => {
     clearGroupCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+    callbacks?.syncVisibleData()
   })
 
   const isGroupBy = computed(() => !!groupByColumns.value.length)

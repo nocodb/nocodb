@@ -48,6 +48,7 @@ export function useGridViewData(
     groupByColumns,
     isGroupBy,
     buildNestedWhere,
+    clearGroupCache,
     syncCount: groupSyncCount,
     fetchMissingGroupChunks,
   } = useInfiniteGroups(viewMeta, meta, where, {
@@ -845,10 +846,6 @@ export function useGridViewData(
     }
   }
 
-  watch(groupByColumns, () => {
-    groupDataCache.value.clear()
-  })
-
   return {
     cachedRows,
     loadData,
@@ -894,5 +891,6 @@ export function useGridViewData(
     isGroupBy,
     groupSyncCount,
     fetchMissingGroupChunks,
+    clearGroupCache,
   }
 }

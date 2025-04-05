@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { UITypes, ViewTypes, isVirtualCol, ncIsNullOrUndefined, readonlyMetaAllowedTypes } from 'nocodb-sdk'
-import type { BaseType, ColumnReqType, ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
 import axios from 'axios'
+import type { ComputedRef, Ref } from 'vue'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { hasAncestorWithClass, isGeneralOverlayActive } from '../../../../utils/browserUtils'
+import type { CanvasGroup } from '../../../../lib/types'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
 import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils/canvas'
@@ -21,11 +23,22 @@ import {
   ROW_META_COLUMN_WIDTH,
 } from './utils/constants'
 import { calculateGroupRowTop, findGroupByPath, generateGroupPath, getDefaultGroupData } from './utils/groupby'
-import { CanvasElement, CanvasElementItem, ElementTypes } from './utils/CanvasElement'
+import { CanvasElement, ElementTypes } from './utils/CanvasElement'
+import type { Row } from '#imports'
 
 const props = defineProps<{
   totalRows: number
   data: Map<number, Row>
+  groupDataCache: Map<
+    string,
+    {
+      cachedRows: Ref<Map<number, Row>>
+      chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
+      totalRows: Ref<number>
+      selectedRows: ComputedRef<Array<Row>>
+      isRowSortRequiredRows: ComputedRef<Array<Row>>
+    }
+  >
   rowHeightEnum?: number
   loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
   callAddEmptyRow?: (
@@ -98,6 +111,7 @@ const props = defineProps<{
   toggleExpand: (group: CanvasGroup) => void
   groupSyncCount: (group?: CanvasGroup) => Promise<void>
   fetchMissingGroupChunks: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => Promise<void>
+  clearGroupCache: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => void
 }>()
 
 const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
@@ -125,6 +139,7 @@ const {
   toggleExpand,
   groupSyncCount: syncGroupCount,
   fetchMissingGroupChunks,
+  clearGroupCache,
 } = props
 
 // VModels
@@ -140,6 +155,7 @@ const rowHeightEnum = toRef(props, 'rowHeightEnum')
 const selectedRows = toRef(props, 'selectedRows')
 const rowSortRequiredRows = toRef(props, 'rowSortRequiredRows')
 const groupByColumns = toRef(props, 'groupByColumns')
+const groupDataCache = toRef(props, 'groupDataCache')
 
 // Refs
 const wrapperRef = ref()
@@ -731,7 +747,7 @@ let prevMenuState: {
 let mouseUpListener = null
 async function handleMouseDown(e: MouseEvent) {
   const _elementMap = new CanvasElement(elementMap.elements)
-  mouseUpListener = (e) => handleMouseUp(e, _elementMap);
+  mouseUpListener = (e) => handleMouseUp(e, _elementMap)
   document.addEventListener('mouseup', mouseUpListener)
 
   // keep it for later use inside mouseup event for showing/hiding dropdown based on the previous state
@@ -940,7 +956,7 @@ function scrollToCell(row?: number, column?: number, path?: Array<number>): void
 async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   e.preventDefault()
   if (mouseUpListener) {
-    document.removeEventListener('mouseup', mouseUpListener);
+    document.removeEventListener('mouseup', mouseUpListener)
   }
   await onMouseUpFillHandlerEnd()
   const rect = canvasRef.value?.getBoundingClientRect()
@@ -1522,9 +1538,14 @@ const handleMouseMove = (e: MouseEvent) => {
 }
 
 const reloadViewDataHookHandler = async () => {
-  clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
-
-  await syncCount()
+  if (isGroupBy.value) {
+    await syncGroupCount()
+    groupDataCache.value.clear()
+    clearGroupCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+  } else {
+    clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+    await syncCount()
+  }
 
   calculateSlices()
   updateVisibleRows()

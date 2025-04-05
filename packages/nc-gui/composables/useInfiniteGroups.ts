@@ -106,7 +106,7 @@ export const useInfiniteGroups = (
     if (!groupCol || !view.value?.id || !base.value?.id) return
 
     try {
-      const nestedWhere = parentGroup ? buildNestedWhere(parentGroup, where?.value) : ''
+      const nestedWhere = parentGroup ? buildNestedWhere(parentGroup, where?.value) : where.value
 
       // TODO: @DarkPhoenix2704 - Add Public Endpoint here
       const response = await $api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {

@@ -274,6 +274,37 @@ const drawStrikeThrough = (
   ctx.stroke()
 }
 
+export const drawStraightLine = (
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  {
+    startX,
+    startY,
+    endX,
+    endY,
+    strokeStyle,
+    lineWidth = 1,
+  }: {
+    startX: number
+    startY: number
+    endX: number
+    endY: number
+    strokeStyle?: string
+    lineWidth?: number
+  },
+) => {
+  ctx.beginPath()
+
+  ctx.moveTo(startX, startY)
+  ctx.lineTo(endX, endY)
+
+  if (strokeStyle) {
+    ctx.strokeStyle = strokeStyle
+  }
+
+  ctx.lineWidth = lineWidth
+  ctx.stroke()
+}
+
 export const renderSingleLineText = (
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   params: RenderSingleLineTextProps,

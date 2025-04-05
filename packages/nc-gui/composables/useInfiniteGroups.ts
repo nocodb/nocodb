@@ -37,6 +37,8 @@ export const useInfiniteGroups = (
   const { fetchBulkAggregatedData } = useSharedView()
   const isPublic = inject(IsPublicInj, ref(false))
 
+  const activeGroupKeys = ref<Array<string>>([])
+
   const columnsById = computed(() => {
     if (!meta.value?.columns?.length) return {}
     return meta.value?.columns.reduce((acc, column) => {
@@ -155,6 +157,9 @@ export const useInfiniteGroups = (
               ],
           aggregations: {},
         }
+
+        const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
+        group.isExpanded = activeGroupKeys.value.includes(nestedKey)
 
         if (group.column.uidt === UITypes.LinkToAnotherRecord) {
           const relatedTableMeta = await getMeta(
@@ -408,6 +413,18 @@ export const useInfiniteGroups = (
 
   const toggleExpand = async (group: CanvasGroup) => {
     group.isExpanded = !group.isExpanded
+    const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
+
+    if (group.isExpanded) {
+      if (!activeGroupKeys.value.includes(nestedKey)) {
+        activeGroupKeys.value.push(nestedKey)
+      }
+    } else {
+      const index = activeGroupKeys.value.indexOf(nestedKey)
+      if (index !== -1) {
+        activeGroupKeys.value.splice(index, 1)
+      }
+    }
   }
 
   watch(groupByColumns, () => {

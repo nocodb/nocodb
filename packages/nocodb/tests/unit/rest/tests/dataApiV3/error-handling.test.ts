@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { expect } from 'chai';
 import { beforeEach as dataApiV3BeforeEach } from './beforeEach';
 import { ncAxios } from './ncAxios';
 import type { ITestContext } from './beforeEach';
@@ -51,68 +52,87 @@ describe('dataApiV3', () => {
     });
 
     it('tableId not found', async () => {
-      await ncAxiosGet({
+      const response = await ncAxiosGet({
         url: `${urlPrefix}/123456789`,
         status: 404,
       });
+      expect(response.body.message).to.eq(`Table '123456789' not found`);
     });
     it('baseId not found', async () => {
-      await ncAxiosGet({
-        url: `/api/v3/123456789/123456789`,
+      // TODO: fix base not found error message
+      const response = await ncAxiosGet({
+        url: `/api/v3/234567890/123456789`,
         status: 404,
       });
+      expect(response.body.message).to.eq(`Table '123456789' not found`);
     });
     it('invalid api version', async () => {
-      await ncAxiosGet({
-        url: `/api/v4/${testContext.base.id}/${testContext.countryTable.id}`,
+      // TODO: somehow it's body.msg than body.message
+      const response = await ncAxiosGet({
+        url: `/api/v4/1234567890/2134567890`,
         status: 404,
       });
+      /*
+      {
+        "msg": "Cannot GET /api/v4/pnzomgow3a1cfm2/mrp2x452lfu131q",
+        "path": "/api/v4/pnzomgow3a1cfm2/mrp2x452lfu131q"
+      }
+       */
+      expect(response.body.msg).to.eq(
+        `Cannot GET /api/v4/1234567890/2134567890`,
+      );
     });
     it('invalid view param', async () => {
-      await ncAxiosGet({
+      const response = await ncAxiosGet({
         url: `${urlPrefix}/${testContext.countryTable.id}?viewId=123456890`,
         status: 404,
       });
+      expect(response.body.message).to.eq(`View '123456890' not found`);
     });
     it('invalid page', async () => {
-      await ncAxiosGet({
+      const response = await ncAxiosGet({
         url: `${urlPrefix}/${testContext.countryTable.id}`,
         query: {
           page: 500,
         },
         status: 422,
       });
+      expect(response.body.message).to.eq(`Offset value '12475' is invalid`);
     });
     it('invalid sort field', async () => {
-      await ncAxiosGet({
+      const response = await ncAxiosGet({
         url: `${urlPrefix}/${testContext.countryTable.id}`,
         query: {
           sort: 'NotFoundField',
         },
         status: 404,
       });
+      expect(response.body.message).to.eq(`Field 'NotFoundField' not found`);
     });
     // skip, our sort direction is either {field} (asc) or -{field} (desc) so no validation required
     it.skip('invalid sort direction', async () => {});
 
     it('invalid filter field', async () => {
-      await ncAxiosGet({
+      // TODO: body change msg to message
+      const response = await ncAxiosGet({
         url: `${urlPrefix}/${testContext.countryTable.id}`,
         query: {
           where: '(NotFoundField,eq,1)',
         },
         status: 422,
       });
+      expect(response.body.msg).to.eq(`Column 'NotFoundField' not found.`);
     });
 
     it('invalid select field', async () => {
-      await ncAxiosGet({
+      const response = await ncAxiosGet({
         url: `${urlPrefix}/${testContext.countryTable.id}`,
         query: {
           fields: ['Country', 'NotFoundField'],
         },
         status: 422,
       });
+      expect(response.body.message).to.eq(`Field 'NotFoundField' not found`);
     });
     // our api can accept array or not array
     it.skip('field parameter malformed', async () => {

@@ -98,7 +98,8 @@
     "upgradeToAddCustomBannerSubtitle": "Upload a custom banner to the form by upgrading your workspace to the Team plan.",
     "upgradeToAddCustomLogoSubtitle": "Upload your Logo on the form by upgrading your workspace  to the Team plan.",
     "upgradeToHideFormBrandingSubtitle": "Hide NocoDB branding by upgrading your workspace  to the Team plan.",
-    "upgradeToAddRedirectUrlSubtitle": "Redirect your users to another webpage after filling out the form by upgrading to the Team plan."
+    "upgradeToAddRedirectUrlSubtitle": "Redirect your users to another webpage after filling out the form by upgrading to the Team plan.",
+    "upgradeToAddCustomValidationSubtitle": "Add custom validations by upgrading your workspace to the Team plan."
   },
   "general": {
     "supported": "Supported",

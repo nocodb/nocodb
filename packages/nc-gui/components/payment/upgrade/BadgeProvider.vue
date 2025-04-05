@@ -1,11 +1,20 @@
 <script lang="ts" setup>
 import type { PlanFeatureTypes } from 'nocodb-sdk'
 
+interface Props {
+  /** Feature to check */
+  feature: PlanFeatureTypes
+}
+
+const props = withDefaults(defineProps<Props>(), {})
+
 const planUpgradeClickHook = createEventHook()
 
 provide(PlanUpgraderClickHookInj, planUpgradeClickHook)
 
 const { getFeature } = useEeConfig()
+
+const isFeatureEnabled = computed(() => getFeature(props.feature))
 
 const onClick = (feature: PlanFeatureTypes) => {
   if (!getFeature(feature)) {
@@ -17,4 +26,4 @@ const onClick = (feature: PlanFeatureTypes) => {
 }
 </script>
 
-<template><slot :click="onClick" /></template>
+<template><slot :isFeatureEnabled="isFeatureEnabled" :click="onClick" /></template>

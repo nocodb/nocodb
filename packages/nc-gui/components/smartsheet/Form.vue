@@ -989,7 +989,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
                             </div>
                           </template>
-                          <PaymentUpgradeBadgeProvider>
+                          <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO">
                             <template #default="{ click }">
                               <NcButton
                                 type="secondary"
@@ -1082,7 +1082,10 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
                                   </div>
                                 </template>
-                                <PaymentUpgradeBadgeProvider v-if="isEditable">
+                                <PaymentUpgradeBadgeProvider
+                                  v-if="isEditable"
+                                  :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
+                                >
                                   <template #default="{ click }">
                                     <NcButton
                                       type="secondary"
@@ -1773,7 +1776,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             </div>
                           </div>
 
-                          <PaymentUpgradeBadgeProvider>
+                          <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_HIDE_BRANDING">
                             <template #default="{ click }">
                               <div class="flex items-center justify-between gap-3">
                                 <!-- Hide NocoDB Branding -->
@@ -1782,7 +1785,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   {{ $t('labels.hideNocodbBranding') }}
 
                                   <LazyPaymentUpgradeBadge
-                                    :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
+                                    :feature="PlanFeatureTypes.FEATURE_HIDE_BRANDING"
                                     :content="$t('upgrade.upgradeToHideFormBrandingSubtitle')"
                                   />
                                 </span>
@@ -1843,7 +1846,7 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                         <div class="flex flex-col gap-3">
                           <div class="flex flex-col gap-3">
-                            <PaymentUpgradeBadgeProvider>
+                            <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO">
                               <template #default="{ click }">
                                 <div class="flex items-center justify-between gap-3">
                                   <!-- Redirect to URL -->

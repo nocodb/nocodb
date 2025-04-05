@@ -1914,6 +1914,11 @@ export function useCanvasRender({
         : width.value
 
     for (let i = startIndex; i <= endIndex; i++) {
+      if (rowHeight.value + yOffset < 0) {
+        yOffset += rowHeight.value
+        continue
+      }
+
       const row = rows?.get(i)
 
       if (!row) {

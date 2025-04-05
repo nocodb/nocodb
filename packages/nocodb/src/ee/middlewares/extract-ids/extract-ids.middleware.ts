@@ -138,7 +138,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       });
 
       if (!model) {
-        NcError.tableNotFound(params.tableId || params.modelId);
+        if (context.api_version === NcApiVersion.V3) {
+          NcError.tableNotFoundV3(params.tableId || params.modelId);
+        } else {
+          NcError.tableNotFound(params.tableId || params.modelId);
+        }
       }
 
       req.ncBaseId = model.base_id;
@@ -355,7 +359,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       });
 
       if (!model) {
-        NcError.tableNotFound(req.body.fk_model_id);
+        if (context.api_version === NcApiVersion.V3) {
+          NcError.tableNotFoundV3(params.tableId || params.modelId);
+        } else {
+          NcError.tableNotFound(req.body.fk_model_id);
+        }
       }
 
       req.ncBaseId = model.base_id;
@@ -377,7 +385,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       });
 
       if (!model) {
-        NcError.tableNotFound(req.query?.fk_model_id);
+        if (context.api_version === NcApiVersion.V3) {
+          NcError.tableNotFoundV3(params.tableId || params.modelId);
+        } else {
+          NcError.tableNotFound(req.query?.fk_model_id);
+        }
       }
 
       req.ncBaseId = model.base_id;
@@ -440,7 +452,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           });
 
           if (!model) {
-            NcError.tableNotFound(req.params.tableName);
+            if (context.api_version === NcApiVersion.V3) {
+              NcError.tableNotFoundV3(params.tableId || params.modelId);
+            } else {
+              NcError.tableNotFound(req.params.tableName);
+            }
           }
 
           req.ncSourceId = model?.source_id;

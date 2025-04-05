@@ -2,6 +2,7 @@ import { Injectable, SetMetadata, UseInterceptors } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import {
   extractRolesObj,
+  NcApiVersion,
   OrgUserRoles,
   ProjectRoles,
   SourceRestriction,
@@ -61,6 +62,13 @@ export function getRolesLabels(
     .map((role) => rolesLabel[role]);
 }
 
+const getApiVersionFromUrl = (url: string) => {
+  if (url.startsWith('/api/v3')) return NcApiVersion.V3;
+  else if (url.startsWith('/api/v2')) return NcApiVersion.V2;
+  else if (url.startsWith('/api/v1')) return NcApiVersion.V1;
+  return undefined;
+};
+
 // todo: refactor name since we are using it as auth guard
 @Injectable()
 export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
@@ -70,6 +78,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     const context = {
       workspace_id: RootScopes.BYPASS,
       base_id: RootScopes.BYPASS,
+      api_version: getApiVersionFromUrl(req.route.path),
     };
 
     // extract base id based on request path params
@@ -93,7 +102,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           });
 
           if (!model) {
-            NcError.tableNotFound(req.params.tableName);
+            if (context.api_version === NcApiVersion.V3) {
+              NcError.tableNotFoundV3(params.tableId || params.modelId);
+            } else {
+              NcError.tableNotFound(req.params.tableName);
+            }
           }
 
           req.ncSourceId = model?.source_id;
@@ -110,7 +123,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       });
 
       if (!model) {
-        NcError.tableNotFound(params.tableId || params.modelId);
+        if (context.api_version === NcApiVersion.V3) {
+          NcError.tableNotFoundV3(params.tableId || params.modelId);
+        } else {
+          NcError.tableNotFound(params.tableId || params.modelId);
+        }
       }
 
       req.ncBaseId = model.base_id;
@@ -297,7 +314,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       });
 
       if (!model) {
-        NcError.tableNotFound(req.body.fk_model_id);
+        if (context.api_version === NcApiVersion.V3) {
+          NcError.tableNotFoundV3(params.tableId || params.modelId);
+        } else {
+          NcError.tableNotFound(req.body.fk_model_id);
+        }
       }
 
       req.ncBaseId = model.base_id;
@@ -321,7 +342,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       });
 
       if (!model) {
-        NcError.tableNotFound(req.query?.fk_model_id);
+        if (context.api_version === NcApiVersion.V3) {
+          NcError.tableNotFoundV3(params.tableId || params.modelId);
+        } else {
+          NcError.tableNotFound(req.query?.fk_model_id);
+        }
       }
 
       req.ncBaseId = model.base_id;

@@ -1942,7 +1942,7 @@ export function useCanvasRender({
       ctx.lineTo(adjustedWidth - indent, yOffset + rowHeight.value)
       ctx.stroke()
 
-      if (row?.rowMeta.isValidationFailed || row?.rowMeta.isRowOrderUpdated) {
+      if (row?.rowMeta.isValidationFailed || row?.rowMeta.isRowOrderUpdated || row?.rowMeta.isGroupChanged) {
         warningRow = { row, yOffset }
       }
 

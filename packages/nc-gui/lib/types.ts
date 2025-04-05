@@ -89,6 +89,7 @@ interface Row {
     isLoading?: boolean
     isValidationFailed?: boolean
     isRowOrderUpdated?: boolean
+    isGroupChanged?: boolean
     isDragging?: boolean
     rowProgress?: {
       message: string

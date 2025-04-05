@@ -65,9 +65,10 @@ export function useInfiniteData(args: {
   where?: ComputedRef<string | undefined>
   disableSmartsheet?: boolean
   isPublic?: Ref<boolean>
+  groupByColumns?: Computed<{ column: ColumnType; sort: string; order?: number }[]>
 }) {
   const NOCO = 'noco'
-  const { meta, viewMeta, callbacks, where, disableSmartsheet, isPublic } = args
+  const { meta, viewMeta, callbacks, where, disableSmartsheet, isPublic, groupByColumns = ref(null) } = args
 
   const { $api } = useNuxtApp()
 
@@ -556,11 +557,14 @@ export function useInfiniteData(args: {
     await Promise.all(chunksToFetch.map(fetchChunk, path))
   }
 
+  // Remove invalid and moved(group change) rows from the cache
   function clearInvalidRows(path: Array<number> = []) {
     const dataCache = getDataCache(path)
     const sortedEntries = Array.from(dataCache.cachedRows.value.entries()).sort(([indexA], [indexB]) => indexA - indexB)
 
-    const invalidIndexes = sortedEntries.filter(([_, row]) => row.rowMeta.isValidationFailed).map(([index]) => index)
+    const invalidIndexes = sortedEntries
+      .filter(([_, row]) => row.rowMeta.isValidationFailed || row.rowMeta.isGroupChanged)
+      .map(([index]) => index)
 
     if (invalidIndexes.length === 0) return
 
@@ -1379,6 +1383,12 @@ export function useInfiniteData(args: {
       getBaseType(viewMeta.value?.view?.source_id),
       metas.value,
     )
+
+    // check if the column is part of group by and value changed
+    if (row.rowMeta?.path?.length && groupByColumns?.value && groupByColumns.value.some((c) => c.column.title === property)) {
+      // check if column is group by and value changed
+      row.rowMeta.isGroupChanged = true
+    }
 
     const changedFields = property ? [property] : Object.keys(row.row)
 

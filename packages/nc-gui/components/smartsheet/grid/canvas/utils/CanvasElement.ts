@@ -1,5 +1,5 @@
 interface Element {
-  path: Array<CanvasGroup>
+  path: Array<GroupNestedIn>
   level?: number
   rowIndex?: number
   groupIndex?: number
@@ -8,6 +8,7 @@ interface Element {
   height: number
   group?: CanvasGroup
   row?: Row
+  type?: 'ADD_NEW_ROW'
 }
 
 export class CanvasElement {

@@ -721,7 +721,7 @@ export function useInfiniteData(args: {
     callbacks?.syncVisibleData?.()
   }
 
-  function addEmptyRow(newRowIndex = totalRows.value, metaValue = meta.value) {
+  function addEmptyRow(newRowIndex = totalRows.value, metaValue = meta.value, rowOverwrite = {}) {
     if (cachedRows.value.has(newRowIndex)) {
       const entriesToShift = Array.from(cachedRows.value.entries())
         .filter(([index]) => index >= newRowIndex)
@@ -740,7 +740,7 @@ export function useInfiniteData(args: {
     }
 
     const newRow = {
-      row: { ...rowDefaultData(metaValue?.columns) },
+      row: { ...rowDefaultData(metaValue?.columns), ...rowOverwrite },
       oldRow: {},
       rowMeta: { new: true, rowIndex: newRowIndex },
     }

@@ -6,6 +6,7 @@ import {
   UITypes,
   type ViewType,
   ViewTypes,
+  isLinksOrLTAR,
   isVirtualCol,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
@@ -29,7 +30,7 @@ import {
   MAX_SELECTED_ROWS,
   ROW_META_COLUMN_WIDTH,
 } from './utils/constants'
-import { generateGroupPath } from './utils/groupby'
+import { calculateGroupRowTop, generateGroupPath } from './utils/groupby'
 
 const props = defineProps<{
   totalRows: number
@@ -187,7 +188,6 @@ const { floatingStyles } = useFloating(targetReference, tooltipRef, {
 const { tryShowTooltip, hideTooltip } = tooltipStore
 
 const {
-  fetchMissingGroupChunks,
   syncGroupCount,
   cachedGroups,
   totalGroups,
@@ -214,7 +214,6 @@ const {
   startResize,
   hoverRow,
   selection,
-  partialRowHeight,
   makeCellEditable,
   findClickedColumn,
   elementMap,
@@ -321,6 +320,7 @@ const fixedLeftWidth = computed(() => {
 })
 
 const editEnabledCellPosition = computed(() => {
+  // TODO: @DarkPhoenix2704 handle for GroupBy
   if (!editEnabled.value) {
     return {
       top: 0,
@@ -395,7 +395,7 @@ const totalHeight = computed(() => {
           // 1 Px Offset is Added for Showing the activeBorders. Else it wont be visible
           sum += 1
         } else if (group?.groups) {
-          sum += group.groupCount * (GROUP_HEADER_HEIGHT + GROUP_PADDING)
+          sum += (group?.groupCount ?? 0) * (GROUP_HEADER_HEIGHT + GROUP_PADDING)
           // Do nested groups check
           sum += estimateTotalHeight(group.groups)
         }
@@ -460,9 +460,28 @@ const calculateSlices = () => {
 }
 
 function onActiveCellChanged() {
-  clearInvalidRows?.()
-  if (rowSortRequiredRows.value.length) {
-    applySorting?.(rowSortRequiredRows.value)
+  if (isGroupBy.value) {
+    function processGroups(groups: Map<number, CanvasGroup>) {
+      for (const [, group] of groups) {
+        if (group?.isExpanded) {
+          if (group.infiniteData) {
+            clearInvalidRows?.()
+            if (rowSortRequiredRows.value.length) {
+              applySorting?.(rowSortRequiredRows.value)
+            }
+            calculateSlices()
+          } else if (group.groups) {
+            processGroups(group.groups)
+          }
+        }
+      }
+    }
+    processGroups(cachedGroups.value)
+  } else {
+    clearInvalidRows?.()
+    if (rowSortRequiredRows.value.length) {
+      applySorting?.(rowSortRequiredRows.value)
+    }
   }
   calculateSlices()
   requestAnimationFrame(triggerRefreshCanvas)
@@ -815,11 +834,26 @@ const PADDING_BOTTOM = 96
 const FIXED_COLUMN_PADDING = 128
 
 function scrollToCell(row?: number, column?: number): void {
-  const currentRow = row ?? activeCell.value.row
-  const currentColumn = column ?? activeCell.value.column
+  const currentRow = row ?? activeCell.value.row ?? -1
+  const currentColumn = column ?? activeCell.value.column ?? -1
+  const currentPath = activeCell.value.path ?? []
 
-  const cellTop = currentRow * rowHeight.value
-  const cellBottom = cellTop + rowHeight.value + PADDING_BOTTOM
+  // If not grouped or no valid row, exit early
+  if (!isGroupBy.value || currentRow < 0) {
+    return
+  }
+
+  let cellTop = 0
+  let cellBottom = 0
+
+  if (isGroupBy.value && cachedGroups.value) {
+    cellTop = calculateGroupRowTop(cachedGroups.value, currentPath, currentRow, rowHeight.value)
+    cellBottom = cellTop + rowHeight.value + PADDING_BOTTOM
+  } else {
+    cellTop = currentRow * rowHeight.value
+    cellBottom = cellTop + rowHeight.value + PADDING_BOTTOM
+  }
+
   const scrollTop = scroller.value?.getScrollPosition().top ?? 0
   const viewportHeight = height.value
 
@@ -1045,20 +1079,46 @@ async function handleMouseUp(e: MouseEvent) {
   const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
   const group = element?.group
   const row = element?.row
-  const rowIndex = row?.rowMeta?.rowIndex
+  const rowIndex = row?.rowMeta?.rowIndex ?? -1
   const groupPath = group ? generateGroupPath(group) : []
+  const isAddNewRow = element?.type === 'ADD_NEW_ROW'
 
-  const _totalRows = isGroupBy.value ? group?.infiniteData?.totalRows.value : totalRows.value
-
-  if (!row && group) {
+  if (!row && group && !isAddNewRow) {
     toggleExpand(group)
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
 
-  if (rowIndex === _totalRows && clickType === MouseClickType.SINGLE_CLICK && x < totalColumnsWidth.value - scrollLeft.value) {
+  if (isAddNewRow && clickType === MouseClickType.SINGLE_CLICK && x < totalColumnsWidth.value - scrollLeft.value) {
     if (isAddingEmptyRowAllowed.value) {
-      await addEmptyRow()
+      if (isGroupBy.value) {
+        const setGroup = group.nestedIn.reduce((acc, curr) => {
+          if (
+            curr.key !== '__nc_null__' &&
+            // avoid setting default value for rollup, formula, barcode, qrcode, links, ltar
+            !isLinksOrLTAR(curr.column_uidt) &&
+            ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(curr.column_uidt)
+          ) {
+            acc[curr.title] = curr.key
+
+            if (curr.column_uidt === UITypes.Checkbox) {
+              acc[curr.title] =
+                acc[curr.title] === GROUP_BY_VARS.TRUE
+                  ? true
+                  : acc[curr.title] === GROUP_BY_VARS.FALSE
+                  ? false
+                  : !!acc[curr.title]
+            }
+          }
+          return acc
+        }, {} as Record<string, any>)
+
+        const newRow = group?.infiniteData?.addEmptyRow(group.count, undefined, setGroup)
+        group.count++
+        group?.infiniteData?.updateOrSaveRow?.(newRow)
+      } else {
+        await addEmptyRow()
+      }
     }
     selection.value.clear()
     activeCell.value.row = rowIndex
@@ -1066,7 +1126,7 @@ async function handleMouseUp(e: MouseEvent) {
     activeCell.value.path = groupPath
     requestAnimationFrame(triggerRefreshCanvas)
     return
-  } else if (rowIndex > _totalRows) {
+  } else if (rowIndex > totalRows.value && !isGroupBy.value) {
     selection.value.clear()
     activeCell.value = { row: -1, column: -1, path: [] }
     onActiveCellChanged()
@@ -1075,7 +1135,6 @@ async function handleMouseUp(e: MouseEvent) {
   }
 
   if (x < 80) {
-    // const row = group ? element?.row : cachedRows.value.get(rowIndex)
     if (!row) return
     if (![MouseClickType.SINGLE_CLICK, MouseClickType.RIGHT_CLICK].includes(clickType)) return
 

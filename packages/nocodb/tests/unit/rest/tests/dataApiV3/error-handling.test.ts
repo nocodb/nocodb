@@ -144,7 +144,7 @@ describe('dataApiV3', () => {
         query: {
           sort: 'NotFoundField',
         },
-        status: 404,
+        status: 422,
       });
       expect(response.body.message).to.eq(`Field 'NotFoundField' not found`);
     });

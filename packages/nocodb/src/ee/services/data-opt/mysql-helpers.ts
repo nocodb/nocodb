@@ -213,6 +213,7 @@ export async function extractColumn({
         }
 
         const sorts = extractSortsObject(
+          context,
           listArgs?.sort,
           aliasColObjMap,
           throwErrorIfInvalidParams,
@@ -1347,6 +1348,7 @@ export async function singleQueryList(
 
   const aliasColObjMap = await ctx.model.getAliasColObjMap(context);
   let sorts = extractSortsObject(
+    context,
     listArgs?.sort,
     aliasColObjMap,
     ctx.throwErrorIfInvalidParams,

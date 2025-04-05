@@ -18,7 +18,7 @@ const baseRole = computed(() => base.project_role || base.workspace_role)
 
 const { $e } = useNuxtApp()
 
-const { blockAddNewRecord, showRecordPlanLimitExceededModal } = useEeConfig()
+const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 const TODOMagic = ref(false)
 
@@ -66,11 +66,7 @@ function openSchemaMagicDialog(sourceId?: string) {
 function openAirtableImportDialog(baseId?: string, sourceId?: string) {
   if (!baseId || !sourceId) return
 
-  if (blockAddNewRecord.value) {
-    showRecordPlanLimitExceededModal()
-
-    return
-  }
+  if (showRecordPlanLimitExceededModal()) return
 
   $e('a:actions:import-airtable')
 
@@ -93,11 +89,7 @@ function openAirtableImportDialog(baseId?: string, sourceId?: string) {
 function openQuickImportDialog(type: string) {
   if (!source.value?.id || !base.value?.id) return
 
-  if (blockAddNewRecord.value) {
-    showRecordPlanLimitExceededModal()
-
-    return
-  }
+  if (showRecordPlanLimitExceededModal()) return
 
   $e(`a:actions:import-${type}`)
 

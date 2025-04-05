@@ -18,7 +18,7 @@ const route = useRoute()
 const { getPossibleAttachmentSrc } = useAttachment()
 const router = useRouter()
 
-const { blockAddNewRecord, showRecordPlanLimitExceededModal } = useEeConfig()
+const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
@@ -359,11 +359,9 @@ reloadViewDataHook?.on(async () => {
 })
 
 const handleOpenNewRecordForm = () => {
-  if (!blockAddNewRecord.value) {
-    openNewRecordFormHook.trigger()
-  } else {
-    showRecordPlanLimitExceededModal()
-  }
+  if (showRecordPlanLimitExceededModal()) return
+
+  openNewRecordFormHook.trigger()
 }
 </script>
 

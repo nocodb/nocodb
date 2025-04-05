@@ -357,7 +357,7 @@ const {
   getDataCache,
 })
 
-const { blockAddNewRecord, showRecordPlanLimitExceededModal } = useEeConfig()
+const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 const activeCursor = ref<CursorType>('auto')
 
@@ -601,6 +601,8 @@ function onActiveCellChanged() {
 }
 
 const onNewRecordToGridClick = (path: Array<number> = []) => {
+  if (showRecordPlanLimitExceededModal()) return
+
   setAddNewRecordGridMode(true)
 
   let overwrite = {}
@@ -616,6 +618,8 @@ const onNewRecordToGridClick = (path: Array<number> = []) => {
 }
 
 const onNewRecordToFormClick = (path: Array<number> = []) => {
+  if (showRecordPlanLimitExceededModal()) return
+
   setAddNewRecordGridMode(false)
   let overwrite = {}
 
@@ -1891,10 +1895,7 @@ function openColumnCreate(data: any) {
 }
 
 async function addEmptyRow(row?: number, skipUpdate = false, before?: string, overwrite = {}, path: Array<number> = []) {
-  if (blockAddNewRecord.value) {
-    showRecordPlanLimitExceededModal()
-    return
-  }
+  if (showRecordPlanLimitExceededModal()) return
 
   const dataCache = getDataCache(path)
 

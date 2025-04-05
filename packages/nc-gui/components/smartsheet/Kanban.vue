@@ -80,7 +80,7 @@ const { appInfo, isMobileMode } = useGlobal()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
-const { blockAddNewRecord, showRecordPlanLimitExceededModal } = useEeConfig()
+const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 provide(IsFormInj, ref(false))
 
@@ -476,11 +476,9 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
 }
 
 const handleOpenNewRecordForm = (_stackTitle?: string) => {
-  if (!blockAddNewRecord.value) {
-    openNewRecordFormHook.trigger()
-  } else {
-    showRecordPlanLimitExceededModal()
-  }
+  if (showRecordPlanLimitExceededModal()) return
+
+  openNewRecordFormHook.trigger()
 }
 </script>
 

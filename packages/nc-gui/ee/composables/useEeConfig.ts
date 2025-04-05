@@ -203,6 +203,8 @@ export const useEeConfig = createSharedComposable(() => {
       )} records. Upgrade to the ${HigherPlan[activePlan.value?.title]} plan to increase your record limit.`,
       callback,
     })
+
+    return true
   }
 
   return {

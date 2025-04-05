@@ -25,7 +25,16 @@ export const useBaseSettings = createSharedComposable(() => {
 
   const { refreshCommandPalette } = useCommandPalette()
 
-  const { getLimit, handleUpgradePlan, getPlanTitle, getHigherPlan, getStatLimit, activePlan, isPaymentEnabled } = useEeConfig()
+  const {
+    getLimit,
+    handleUpgradePlan,
+    getPlanTitle,
+    getHigherPlan,
+    getStatLimit,
+    activePlan,
+    isPaymentEnabled,
+    updateStatLimit,
+  } = useEeConfig()
 
   const isCreatingSnapshot = ref(false)
 
@@ -56,20 +65,6 @@ export const useBaseSettings = createSharedComposable(() => {
     isCooldownPeriodReached.value = dayjs().diff(dayjs(lastSnapshot.created_at), 'hour') < 3
   }
 
-  const updateSnapshotWorkspaceStat = (count: number) => {
-    if (!activeWorkspace.value) return
-
-    const newCount = (activeWorkspace.value?.stats?.[PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE] ?? 0) + count
-
-    workspaces.value.set(activeWorkspace.value.id!, {
-      ...activeWorkspace.value,
-      stats: {
-        ...(activeWorkspace.value?.stats || {}),
-        [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: newCount,
-      },
-    })
-  }
-
   const updateSnapshot = async (snapshot: SnapshotExtendedType) => {
     try {
       snapshot.loading = true
@@ -92,7 +87,7 @@ export const useBaseSettings = createSharedComposable(() => {
 
       checkIfCooldownPeriodReached()
 
-      updateSnapshotWorkspaceStat(-1)
+      updateStatLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE, -1)
     } catch (error) {
       message.error(await extractSdkResponseErrorMsg(error))
       console.error(error)
@@ -150,7 +145,7 @@ export const useBaseSettings = createSharedComposable(() => {
               message.info('Snapshot created successfully')
               await listSnapshots()
               isCreatingSnapshot.value = false
-              updateSnapshotWorkspaceStat(1)
+              updateStatLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE, 1)
             } else if (data.status === JobStatus.FAILED) {
               message.error('Failed to create snapshot')
               isCreatingSnapshot.value = false

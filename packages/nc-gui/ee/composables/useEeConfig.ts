@@ -16,7 +16,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const workspaceStore = useWorkspace()
 
-  const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspaceStore)
+  const { activeWorkspace, activeWorkspaceId, workspaces } = storeToRefs(workspaceStore)
 
   const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription)
 
@@ -44,6 +44,24 @@ export const useEeConfig = createSharedComposable(() => {
     const limit = workspace?.stats?.[type] ?? 0
 
     return limit === -1 ? 0 : limit
+  }
+
+  /**
+   * @param type - PlanLimitTypes to update
+   * @param count - Can be positive or negative
+   */
+  const updateStatLimit = (type: PlanLimitTypes, count: number) => {
+    if (!activeWorkspace.value) return
+
+    const newCount = (activeWorkspace.value?.stats?.[type] ?? 0) + count
+
+    workspaces.value.set(activeWorkspace.value.id!, {
+      ...activeWorkspace.value,
+      stats: {
+        ...(activeWorkspace.value?.stats || {}),
+        [type]: newCount,
+      },
+    })
   }
 
   const getFeature = (type: PlanFeatureTypes, workspace?: NcWorkspace | null) => {
@@ -210,6 +228,7 @@ export const useEeConfig = createSharedComposable(() => {
   return {
     getLimit,
     getStatLimit,
+    updateStatLimit,
     getFeature,
     isPaidPlan,
     activePlan,

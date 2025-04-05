@@ -57,6 +57,8 @@ onUnmounted(() => {
       <DashboardTreeView v-if="!isWorkspaceLoading" />
     </div>
     <div v-if="!isSharedBase" class="nc-sidebar-bottom-section">
+      <PaymentUpgradeSidebarBanner v-if="isEeUI" />
+
       <GeneralGift v-if="!isEeUI" />
       <DashboardSidebarBeforeUserInfo />
       <DashboardSidebarFeed v-if="appInfo.feedEnabled" />

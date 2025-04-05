@@ -303,7 +303,7 @@ export function useCopyPaste({
           colsToPaste = fields.value.slice(selection.value.start.col, selection.value.start.col + pasteMatrixCols)
         }
 
-        await getRows(selection.value.start.row, selection.value.start.row + availableRowsToUpdate, groupPath)
+        await getRows(selection.value.start.row, selection.value.start.row + clipboardMatrix.length, groupPath)
 
         const dataRef = unref(cachedRows)
 

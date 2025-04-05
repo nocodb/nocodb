@@ -31,12 +31,12 @@ export function useRowReorder({
     targetIndex: number | null,
     undo?: boolean,
     isFailed?: boolean,
-    path?: Array<number>,
+    path?: Array<number> | null,
   ) => Promise<void>
   triggerRefreshCanvas: () => void
   scrollToCell: (row?: number, column?: number, path?: Array<number>) => void
   elementMap: CanvasElement
-  getDataCache: (path?: Array<number>) => {
+  getDataCache: (path?: Array<number> | null) => {
     cachedRows: Ref<Map<number, Row>>
     totalRows: Ref<number>
     chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>

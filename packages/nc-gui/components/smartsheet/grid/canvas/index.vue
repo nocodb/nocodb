@@ -1114,11 +1114,15 @@ async function handleMouseUp(e: MouseEvent) {
   }
 
   const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
-  const group = element?.group
+  let group = element?.group
   const row = element?.row
   const rowIndex = row?.rowMeta?.rowIndex ?? -1
   const groupPath = group ? generateGroupPath(group) : []
   const isAddNewRow = element?.type === ElementTypes.ADD_NEW_ROW
+
+  if (!group && element.groupPath) {
+    group = cachedGroups.value.get(groupPath[0])
+  }
 
   const dataCache = getDataCache(groupPath)
 

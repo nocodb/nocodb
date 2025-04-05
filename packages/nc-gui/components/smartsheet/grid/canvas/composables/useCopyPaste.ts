@@ -972,7 +972,7 @@ export function useCopyPaste({
           message.success(t('msg.info.copiedToClipboard'))
         }
       }
-    } catch(e) {
+    } catch (e) {
       console.log(e)
       message.error(t('msg.error.copyToClipboardError'))
     }

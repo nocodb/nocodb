@@ -18,6 +18,8 @@ const route = useRoute()
 const { getPossibleAttachmentSrc } = useAttachment()
 const router = useRouter()
 
+const { blockAddNewRecord, showRecordPlanLimitExceededModal } = useEeConfig()
+
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
@@ -355,6 +357,14 @@ reloadViewDataHook?.on(async () => {
   await syncCount()
   calculateSlices()
 })
+
+const handleOpenNewRecordForm = () => {
+  if (!blockAddNewRecord.value) {
+    openNewRecordFormHook.trigger()
+  } else {
+    showRecordPlanLimitExceededModal()
+  }
+}
 </script>
 
 <template>
@@ -545,7 +555,7 @@ reloadViewDataHook?.on(async () => {
       </div>
     </NcDropdown>
     <div class="sticky bottom-4">
-      <NcButton v-if="isUIAllowed('dataInsert')" size="xs" type="secondary" class="ml-4" @click="openNewRecordFormHook.trigger">
+      <NcButton v-if="isUIAllowed('dataInsert')" size="xs" type="secondary" class="ml-4" @click="handleOpenNewRecordForm">
         <div class="flex items-center gap-2">
           <component :is="iconMap.plus" class="" />
           {{ $t('activity.newRecord') }}

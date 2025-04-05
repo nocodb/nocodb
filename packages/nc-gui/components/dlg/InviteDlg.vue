@@ -299,8 +299,10 @@ const inviteCollaborator = async () => {
       showUserPlanLimitExceededModal({
         details,
         role: inviteData.roles,
-        callback() {
-          dialogShow.value = false
+        callback(type) {
+          if (type === 'ok') {
+            dialogShow.value = false
+          }
         },
         workspaceId: errorWsId,
         isAdminPanel: props.type !== 'organization',

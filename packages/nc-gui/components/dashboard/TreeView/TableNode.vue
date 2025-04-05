@@ -54,6 +54,8 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
+const { blockAddNewRecord, showRecordPlanLimitExceededModal } = useEeConfig()
+
 // todo: temp
 const { baseTables } = storeToRefs(useTablesStore())
 const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
@@ -240,7 +242,12 @@ watch(openedTableId, () => {
 
 const duplicateTable = (table: SidebarTableNode) => {
   isOptionsOpen.value = false
-  _duplicateTable(table)
+
+  if (!blockAddNewRecord.value) {
+    _duplicateTable(table)
+  } else {
+    showRecordPlanLimitExceededModal()
+  }
 }
 
 const onSyncOptions = () => {

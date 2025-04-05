@@ -283,6 +283,8 @@ const {
   getRows,
 })
 
+const { blockAddNewRecord, showRecordPlanLimitExceededModal } = useEeConfig()
+
 const activeCursor = ref<CursorType>('auto')
 
 function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) {
@@ -421,13 +423,21 @@ function onActiveCellChanged() {
 }
 
 const onNewRecordToGridClick = () => {
-  setAddNewRecordGridMode(true)
-  addEmptyRow()
+  if (!blockAddNewRecord.value) {
+    setAddNewRecordGridMode(true)
+    addEmptyRow()
+  } else {
+    showRecordPlanLimitExceededModal()
+  }
 }
 
 const onNewRecordToFormClick = () => {
-  setAddNewRecordGridMode(false)
-  openNewRecordFormHook.trigger()
+  if (!blockAddNewRecord.value) {
+    setAddNewRecordGridMode(false)
+    openNewRecordFormHook.trigger()
+  } else {
+    showRecordPlanLimitExceededModal()
+  }
 }
 
 const onVisibilityChange = (value) => {
@@ -1525,6 +1535,11 @@ function openColumnCreate(data: any) {
 }
 
 async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
+  if (blockAddNewRecord.value) {
+    showRecordPlanLimitExceededModal()
+    return
+  }
+
   clearInvalidRows?.()
   if (rowSortRequiredRows.value.length) {
     applySorting?.(rowSortRequiredRows.value)

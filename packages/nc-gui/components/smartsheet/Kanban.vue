@@ -80,6 +80,8 @@ const { appInfo, isMobileMode } = useGlobal()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
+const { blockAddNewRecord, showRecordPlanLimitExceededModal } = useEeConfig()
+
 provide(IsFormInj, ref(false))
 
 provide(IsGalleryInj, ref(false))
@@ -472,6 +474,14 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
   )
   // || isTouchEvent(event) // allow drag and drop for touch devices for now
 }
+
+const handleOpenNewRecordForm = (_stackTitle?: string) => {
+  if (!blockAddNewRecord.value) {
+    openNewRecordFormHook.trigger()
+  } else {
+    showRecordPlanLimitExceededModal()
+  }
+}
 </script>
 
 <template>
@@ -659,7 +669,7 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
                                 @click="
                                   () => {
                                     selectedStackTitle = stack.title
-                                    openNewRecordFormHook.trigger(stack.title)
+                                    handleOpenNewRecordForm(stack.title)
                                   }
                                 "
                               >
@@ -946,7 +956,7 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
                                 @click="
                                   () => {
                                     selectedStackTitle = stack.title
-                                    openNewRecordFormHook.trigger(stack.title)
+                                    handleOpenNewRecordForm(stack.title)
                                   }
                                 "
                               >
@@ -970,7 +980,7 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
                           @click="
                             () => {
                               selectedStackTitle = stack.title
-                              openNewRecordFormHook.trigger(stack.title)
+                              handleOpenNewRecordForm(stack.title)
                             }
                           "
                         >

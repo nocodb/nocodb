@@ -110,6 +110,8 @@ export function useCopyPaste({
   const { isSqlView } = useSmartsheetStoreOrThrow()
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
+  const { blockAddNewRecord } = useEeConfig()
+
   const { base } = storeToRefs(useBase())
   const fields = computed(() => (columns.value ?? []).map((c) => c.columnObj))
   const canPasteCell = computed(() => {
@@ -227,7 +229,7 @@ export function useCopyPaste({
         // Check if expansion is needed
         let options = {
           continue: false,
-          expand: rowsToAdd > 0 || newColsNeeded > 0,
+          expand: blockAddNewRecord.value ? false : rowsToAdd > 0 || newColsNeeded > 0,
         }
 
         if (options.expand) {

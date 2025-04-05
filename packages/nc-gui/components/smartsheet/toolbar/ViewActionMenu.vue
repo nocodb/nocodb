@@ -36,6 +36,8 @@ const { base } = storeToRefs(useBase())
 
 const { refreshCommandPalette } = useCommandPalette()
 
+const { blockAddNewRecord, showRecordPlanLimitExceededModal } = useEeConfig()
+
 const isSqlView = computed(() => (table.value as TableType)?.type === 'view')
 
 const lockType = computed(() => (view.value?.lock_type as LockType) || LockType.Collaborative)
@@ -73,7 +75,12 @@ const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<bo
 
 const onImportClick = (dialog: any) => {
   emits('closeModal')
-  dialog.value = true
+
+  if (!blockAddNewRecord.value) {
+    dialog.value = true
+  } else {
+    showRecordPlanLimitExceededModal()
+  }
 }
 
 const onLockTypeChange = (type: LockType) => {

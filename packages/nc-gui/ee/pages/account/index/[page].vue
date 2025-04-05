@@ -1,7 +1,5 @@
 <script lang="ts" setup>
 const { appInfo } = useGlobal()
-
-const { isUIAllowed } = useRoles()
 </script>
 
 <template>

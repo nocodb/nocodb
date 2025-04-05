@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { WorkspaceAuditsExpandedAudit, WorkspaceAuditsHeader } from '#components'
 import { type AuditType, auditV1OperationTypesAlias } from 'nocodb-sdk'
 
 const { t } = useI18n()

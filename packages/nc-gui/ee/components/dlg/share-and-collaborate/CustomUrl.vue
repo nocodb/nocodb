@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import axios from 'axios'
-import { PlanFeatureTypes, type CustomUrlType, type StringOrNullType } from 'nocodb-sdk'
+import { type CustomUrlType, PlanFeatureTypes, type StringOrNullType } from 'nocodb-sdk'
 
 interface Props {
   /**

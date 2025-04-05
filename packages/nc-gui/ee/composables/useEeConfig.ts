@@ -1,13 +1,13 @@
 import { GRACE_PERIOD_DURATION, HigherPlan, NON_SEAT_ROLES, PlanTitles } from 'nocodb-sdk'
 import {
-  PlanLimitTypes,
   type PlanFeatureTypes,
   type PlanLimitExceededDetailsType,
+  PlanLimitTypes,
   type ProjectRoles,
   type WorkspaceUserRoles,
 } from 'nocodb-sdk'
-import NcModalConfirm, { type NcConfirmModalProps } from '../../components/nc/ModalConfirm.vue'
 import dayjs from 'dayjs'
+import NcModalConfirm, { type NcConfirmModalProps } from '../../components/nc/ModalConfirm.vue'
 
 export const useEeConfig = createSharedComposable(() => {
   const { t } = useI18n()

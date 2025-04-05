@@ -262,7 +262,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       let okText = ''
 
       if (changes.change === 'upgrade') {
-        title = t('title.upgradeToPlan', { plan: changes.plan }) + '?'
+        title = `${t('title.upgradeToPlan', { plan: changes.plan })}?`
         content = t('title.upgradeToPlanSubtitle', { plan: changes.plan })
         okText = t('general.upgrade')
 

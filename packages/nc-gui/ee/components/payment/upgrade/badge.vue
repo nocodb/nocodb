@@ -2,9 +2,10 @@
 /**
  * PaymentUpgradeBadge component - will only visible if feature is not available in current plan
  */
-import { PlanFeatureTypes, PlanMeta, PlanTitles } from 'nocodb-sdk'
+import type { PlanFeatureTypes } from 'nocodb-sdk'
+import { PlanMeta, PlanTitles } from 'nocodb-sdk'
 interface Props {
-  /** Required plan to access new feature*/
+  /** Required plan to access new feature */
   planTitle?: PlanTitles
   /** Feature to check */
   feature: PlanFeatureTypes
@@ -12,7 +13,7 @@ interface Props {
   title?: string
   /** Content to show in upgrade modal */
   content: string
-  /** Callback will be triggered on click upgrade plan modal buttons or close modal*/
+  /** Callback will be triggered on click upgrade plan modal buttons or close modal */
   callback?: (type: 'ok' | 'cancel') => void
 
   disabled?: boolean
@@ -53,7 +54,6 @@ planUpgraderClick.on(() => {
     v-if="!isFeatureEnabled && isPaymentEnabled"
     size="sm"
     :border="false"
-    @click.stop="showUpgradeModal"
     class="nc-upgrade-badge cursor-pointer select-none"
     :class="`nc-upgrade-${planTitle}-badge`"
     :style="{
@@ -61,6 +61,7 @@ planUpgraderClick.on(() => {
       '--nc-badge-bg-light': activePlanMeta.bgLight,
       '--nc-badge-bg-dark': activePlanMeta.bgDark,
     }"
+    @click.stop="showUpgradeModal"
   >
     <!-- <GeneralIcon  icon="ncArrowUpCircle" class="h-4 w-4 mr-1" /> -->
     {{ getPlanTitle(planTitle) }}

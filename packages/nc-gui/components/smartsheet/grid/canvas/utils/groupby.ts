@@ -59,7 +59,7 @@ export function calculateGroupRange(
   rowHeight: number,
   groupCount: number,
   viewportHeight: number,
-  nested = false,
+  _nested = false,
   isAddingNewRowAllowed?: boolean,
 ): { startIndex: number; endIndex: number; startGroupYOffset: number } {
   let currentOffset = GROUP_PADDING

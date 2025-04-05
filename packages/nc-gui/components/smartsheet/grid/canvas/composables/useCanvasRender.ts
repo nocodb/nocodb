@@ -2091,7 +2091,6 @@ export function useCanvasRender({
       _isStartGroup?: boolean
     },
   ) {
-
     const groups = pGroup?.groups ?? cachedGroups.value
 
     const missingChunks = []
@@ -2298,8 +2297,6 @@ export function useCanvasRender({
 
               const rightEdge = aggXOffset + width - 8 - scrollLeft.value
               const textY = groupHeaderY + GROUP_HEADER_HEIGHT / 2
-
-              console.log(rightEdge, textY)
 
               ctx.fillText('Summary', rightEdge, textY)
 

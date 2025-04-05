@@ -569,8 +569,6 @@ export function useCanvasTable({
 
     const groupPath = activeCell?.value.path
 
-    const dataCache = getDataCache(groupPath)
-
     if ((selection.value.end.row < rowSlice.value.start || selection.value.end.row >= rowSlice.value.end) && !isGroupBy.value) {
       return null
     }

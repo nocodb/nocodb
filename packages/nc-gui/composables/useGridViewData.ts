@@ -25,6 +25,8 @@ export function useGridViewData(
 
   const optimisedQuery = useState('optimisedQuery', () => true)
 
+  const isPublic = inject(IsPublicInj, ref(false))
+
   const { getMeta } = useMetas()
 
   const reloadAggregate = inject(ReloadAggregateHookInj)
@@ -76,6 +78,7 @@ export function useGridViewData(
       syncVisibleData,
     },
     where,
+    isPublic,
   })
 
   function syncVisibleData() {

@@ -376,6 +376,13 @@ export enum PlanLimitTypes {
   SORT_LIMIT = 'limit_sort',
 }
 
+export enum PlanTitles {
+  FREE = 'Free',
+  TEAM = 'Team',
+  BUSINESS = 'Business',
+  ENTERPRISE = 'Enterprise',
+}
+
 export enum APIContext {
   VIEW_COLUMNS = 'fields',
   FILTERS = 'filters',

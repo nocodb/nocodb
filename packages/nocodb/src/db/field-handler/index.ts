@@ -14,6 +14,8 @@ import { FormulaGeneralHandler } from './handlers/formula/formula.general.handle
 import { JsonMySqlHandler } from './handlers/json/json.mysql.handler';
 import { LtarGeneralHandler } from './handlers/ltar/ltar.general.handler';
 import { LookupGeneralHandler } from './handlers/lookup/lookup.general.handler';
+import { LinksGeneralHandler } from './handlers/links/links.general.handler';
+import { RollupGeneralHandler } from './handlers/rollup/rollup.general.handler';
 import type CustomKnex from '../CustomKnex';
 import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
@@ -97,7 +99,9 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.Formula]: {
     [CLIENT_DEFAULT]: FormulaGeneralHandler,
   },
-  [UITypes.Rollup]: {},
+  [UITypes.Rollup]: {
+    [CLIENT_DEFAULT]: RollupGeneralHandler,
+  },
   [UITypes.DateTime]: {
     [CLIENT_DEFAULT]: DateTimeGeneralHandler,
   },
@@ -114,7 +118,9 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.Barcode]: {},
   [UITypes.QrCode]: {},
   [UITypes.Button]: {},
-  [UITypes.Links]: {},
+  [UITypes.Links]: {
+    [CLIENT_DEFAULT]: LinksGeneralHandler,
+  },
   [UITypes.User]: {},
   [UITypes.CreatedBy]: {},
   [UITypes.LastModifiedBy]: {},

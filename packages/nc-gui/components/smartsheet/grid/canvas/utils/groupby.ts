@@ -10,6 +10,7 @@ export function getGroupColors(depth: number, maxDepth: number) {
       aggregation: {
         hover: '#F9F9FA', // Hover State
         default: '#FFF', // Default Bg State
+        border: '#F4F4F5',
       },
     }
   }
@@ -23,6 +24,7 @@ export function getGroupColors(depth: number, maxDepth: number) {
           aggregation: {
             hover: '#F9F9FA', // Hover State
             default: '#FFF', // Default Bg State
+            border: '#F4F4F5',
           },
         }
       }
@@ -33,6 +35,7 @@ export function getGroupColors(depth: number, maxDepth: number) {
           aggregation: {
             hover: '#F4F4F5', // Hover State
             default: '#F9F9FA', // Default Bg State
+            border: '#E7E7E8',
           },
         }
       }
@@ -48,6 +51,7 @@ export function getGroupColors(depth: number, maxDepth: number) {
           aggregation: {
             hover: '#F9F9FA', // Hover State
             default: '#FFF', // Default Bg State
+            border: '#F4F4F5',
           },
         }
       }
@@ -58,6 +62,7 @@ export function getGroupColors(depth: number, maxDepth: number) {
           aggregation: {
             hover: '#F4F4F5', // Hover State
             default: '#F9F9FA', // Default Bg State
+            border: '#E7E7E8',
           },
         }
       }
@@ -68,6 +73,7 @@ export function getGroupColors(depth: number, maxDepth: number) {
           aggregation: {
             hover: '#E7E7E8', // Hover State
             default: '#F4F4F5', // Default Bg State
+            border: '#E7E7E9',
           },
         }
       }

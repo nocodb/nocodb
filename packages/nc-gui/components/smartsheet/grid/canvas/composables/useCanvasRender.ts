@@ -2140,7 +2140,7 @@ export function useCanvasRender({
       const {
         background: groupBackgroundColor,
         border: groupBorderColor,
-        aggregation: { hover: aggregationHoverBg, default: aggregationDefaultBg },
+        aggregation: { hover: aggregationHoverBg, default: aggregationDefaultBg, border: aggregationBorderColor },
       } = getGroupColors(level, groupByColumns.value.length)
 
       if (groupHeaderY + groupHeight >= 0 && groupHeaderY < height.value) {
@@ -2369,20 +2369,20 @@ export function useCanvasRender({
               ctx.restore()
             }
           }
-          /* ctx.save()
-          ctx.beginPath()
 
+          ctx.save()
           ctx.rect(Math.max(aggXOffset - scrollLeft.value, fixedColsWidth), groupHeaderY + 1, width, GROUP_HEADER_HEIGHT - 2)
-          ctx.fill()
+
           ctx.clip()
           ctx.beginPath()
-          ctx.strokeStyle = '#f4f4f5'
+          ctx.strokeStyle = aggregationBorderColor
           ctx.moveTo(aggXOffset - scrollLeft.value, groupHeaderY + 1)
-          ctx.lineTo(aggXOffset - scrollLeft.value, groupHeaderY + GROUP_HEADER_HEIGHT - 2)
+          ctx.lineTo(
+            aggXOffset - scrollLeft.value,
+            groupHeaderY + GROUP_HEADER_HEIGHT - 1 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
+          )
           ctx.stroke()
-
           ctx.restore()
-*/
           aggXOffset += width
         })
 

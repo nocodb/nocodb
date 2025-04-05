@@ -31,6 +31,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showRecordPlanLimitExceededModal = (..._args: any[]) => {}
 
+  const navigateToBilling = (..._args: any[]) => {}
+
   return {
     getLimit,
     getStatLimit,
@@ -48,5 +50,6 @@ export const useEeConfig = createSharedComposable(() => {
     gracePeriodDaysLeft,
     blockAddNewRecord,
     showRecordPlanLimitExceededModal,
+    navigateToBilling,
   }
 })

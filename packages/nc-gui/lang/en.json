@@ -103,7 +103,9 @@
     "upgradeToAddRedirectUrlSubtitle": "Redirect your users to another webpage after filling out the form by upgrading to the Team plan.",
     "upgradeToAddCustomValidationSubtitle": "Add custom validations by upgrading your workspace to the Team plan.",
     "upgradeToAddCustomUrlSubtitle": "Create custom url by upgrading your workspace to the Team plan.",
-    "upgradeToAccessPersonalViewSubtitle": "Access Personal view by upgrading your workspace to the Team plan."
+    "upgradeToAccessPersonalViewSubtitle": "Access Personal view by upgrading your workspace to the Team plan.",
+    "updateToAddRecordFormView": "This Form is no longer accepting submissions",
+    "updateToAddRecordFormViewSubtitle": "You’ve reached the limit for number of records on your {plan} plan. Upgrade to increase your record limit."
   },
   "general": {
     "supported": "Supported",

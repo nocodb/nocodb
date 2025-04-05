@@ -303,6 +303,7 @@ watch(isOpen, (newValue) => {
                     v-for="({ icon: i, name }, idx) in icons"
                     :key="idx"
                     :icon="i"
+                    :title="name"
                     class="w-6 hover:bg-gray-100 cursor-pointer rounded p-1 text-gray-700 h-6"
                     @click="selectIcon(name)"
                   />

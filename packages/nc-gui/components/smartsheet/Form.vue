@@ -8,6 +8,7 @@ import {
   type AttachmentResType,
   type ColumnType,
   type LinkToAnotherRecordType,
+  PlanFeatureTypes,
   ProjectRoles,
   RelationTypes,
   UITypes,
@@ -988,23 +989,36 @@ const { message: templatedMessage } = useTemplatedMessage(
                               {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
                             </div>
                           </template>
+                          <PaymentUpgradeBadgeProvider>
+                            <template #default="{ click }">
+                              <NcButton
+                                type="secondary"
+                                size="small"
+                                class="nc-form-upload-banner-btn"
+                                data-testid="nc-form-upload-banner-btn"
+                                :disabled="!isEeUI || isLocked"
+                                @click="
+                                  () => {
+                                    if (click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO)) return
 
-                          <NcButton
-                            type="secondary"
-                            size="small"
-                            class="nc-form-upload-banner-btn"
-                            data-testid="nc-form-upload-banner-btn"
-                            :disabled="!isEeUI || isLocked"
-                            @click="openUploadImage(true)"
-                          >
-                            <div class="flex gap-2 items-center">
-                              <component :is="iconMap.upload" class="w-4 h-4" />
-                              <span>
-                                {{ formViewData.banner_image_url ? $t('general.replace') : $t('general.upload') }}
-                                {{ $t('general.banner') }}
-                              </span>
-                            </div>
-                          </NcButton>
+                                    openUploadImage(true)
+                                  }
+                                "
+                              >
+                                <div class="flex gap-2 items-center">
+                                  <component :is="iconMap.upload" class="w-4 h-4" />
+                                  <span>
+                                    {{ formViewData.banner_image_url ? $t('general.replace') : $t('general.upload') }}
+                                    {{ $t('general.banner') }}
+                                  </span>
+                                  <LazyPaymentUpgradeBadge
+                                    :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
+                                    :content="$t('upgrade.upgradeToAddCustomBannerSubtitle')"
+                                  />
+                                </div>
+                              </NcButton>
+                            </template>
+                          </PaymentUpgradeBadgeProvider>
                         </NcTooltip>
                         <NcTooltip v-if="isEeUI && formViewData.banner_image_url" :disabled="isLocked">
                           <template #title> {{ $t('general.delete') }} {{ $t('general.banner') }} </template>
@@ -1044,11 +1058,11 @@ const { message: templatedMessage } = useTemplatedMessage(
                         <!-- Form logo  -->
                         <div class="mb-4">
                           <div
-                            class="nc-form-logo-wrapper mx-6 group relative inline-block h-56px overflow-hidden flex items-center"
+                            class="nc-form-logo-wrapper mx-6 group relative h-56px overflow-hidden inline-flex items-center"
                             :class="
                               formViewData.logo_url
                                 ? 'max-w-189px hover:(w-full bg-gray-100 rounded-xl) '
-                                : 'bg-gray-100 max-w-147px rounded-xl'
+                                : 'bg-gray-100  rounded-xl'
                             "
                             style="transition: all 0.3s ease-in"
                           >
@@ -1068,20 +1082,35 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
                                   </div>
                                 </template>
-                                <NcButton
-                                  v-if="isEditable"
-                                  type="secondary"
-                                  size="small"
-                                  class="nc-form-upload-logo-btn"
-                                  data-testid="nc-form-upload-log-btn"
-                                  :disabled="!isEeUI || isLocked"
-                                  @click="openUploadImage(false)"
-                                >
-                                  <div class="flex gap-2 items-center">
-                                    <component :is="iconMap.upload" class="w-4 h-4" />
-                                    <span> {{ formViewData.logo_url ? $t('general.replace') : $t('general.upload') }} Logo</span>
-                                  </div>
-                                </NcButton>
+                                <PaymentUpgradeBadgeProvider v-if="isEditable">
+                                  <template #default="{ click }">
+                                    <NcButton
+                                      type="secondary"
+                                      size="small"
+                                      class="nc-form-upload-logo-btn"
+                                      data-testid="nc-form-upload-log-btn"
+                                      :disabled="!isEeUI || isLocked"
+                                      @click="
+                                        () => {
+                                          if (click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO)) return
+
+                                          openUploadImage(false)
+                                        }
+                                      "
+                                    >
+                                      <div class="flex gap-2 items-center">
+                                        <component :is="iconMap.upload" class="w-4 h-4" />
+                                        <span>
+                                          {{ formViewData.logo_url ? $t('general.replace') : $t('general.upload') }} Logo</span
+                                        >
+                                        <LazyPaymentUpgradeBadge
+                                          :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
+                                          :content="$t('upgrade.upgradeToAddCustomLogoSubtitle')"
+                                        />
+                                      </div>
+                                    </NcButton>
+                                  </template>
+                                </PaymentUpgradeBadgeProvider>
                               </NcTooltip>
                               <NcTooltip v-if="isEeUI && formViewData.logo_url" :disabled="isLocked">
                                 <template #title> {{ $t('general.delete') }} {{ $t('general.logo') }} </template>
@@ -1744,36 +1773,47 @@ const { message: templatedMessage } = useTemplatedMessage(
                             </div>
                           </div>
 
-                          <div class="flex items-center justify-between gap-3">
-                            <!-- Hide NocoDB Branding -->
+                          <PaymentUpgradeBadgeProvider>
+                            <template #default="{ click }">
+                              <div class="flex items-center justify-between gap-3">
+                                <!-- Hide NocoDB Branding -->
 
-                            <span>{{ $t('labels.hideNocodbBranding') }}</span>
+                                <span class="flex items-center gap-3">
+                                  {{ $t('labels.hideNocodbBranding') }}
 
-                            <a-switch
-                              v-if="isEeUI"
-                              v-e="[`a:form-view:hide-branding`]"
-                              :checked="parseProp(formViewData.meta)?.hide_branding"
-                              size="small"
-                              class="nc-form-hide-branding"
-                              data-testid="nc-form-hide-branding"
-                              :disabled="isLocked || !isEditable"
-                              @change="(value) => {
-                                  if (isLocked || !isEditable) return
+                                  <LazyPaymentUpgradeBadge
+                                    :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
+                                    :content="$t('upgrade.upgradeToHideFormBrandingSubtitle')"
+                                  />
+                                </span>
+
+                                <a-switch
+                                  v-if="isEeUI"
+                                  v-e="[`a:form-view:hide-branding`]"
+                                  :checked="parseProp(formViewData.meta)?.hide_branding"
+                                  size="small"
+                                  class="nc-form-hide-branding"
+                                  data-testid="nc-form-hide-branding"
+                                  :disabled="isLocked || !isEditable"
+                                  @change="(value) => {
+                                  if (isLocked || !isEditable || click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO)) return
 
                                   (formViewData!.meta as Record<string,any>).hide_branding = value
                                   updateView()
                                 }"
-                            />
+                                />
 
-                            <NcTooltip v-else placement="top">
-                              <template #title>
-                                <div class="text-center">
-                                  {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
-                                </div>
-                              </template>
-                              <a-switch :checked="false" size="small" :disabled="true" />
-                            </NcTooltip>
-                          </div>
+                                <NcTooltip v-else placement="top">
+                                  <template #title>
+                                    <div class="text-center">
+                                      {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
+                                    </div>
+                                  </template>
+                                  <a-switch :checked="false" size="small" :disabled="true" />
+                                </NcTooltip>
+                              </div>
+                            </template>
+                          </PaymentUpgradeBadgeProvider>
                           <div class="flex items-center justify-between gap-3">
                             <!-- Hide Banner -->
                             <span>{{ $t('general.hide') }} {{ $t('general.banner') }}</span>
@@ -1803,19 +1843,39 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                         <div class="flex flex-col gap-3">
                           <div class="flex flex-col gap-3">
-                            <div class="flex items-center justify-between gap-3">
-                              <!-- Redirect to URL -->
-                              <span>{{ $t('labels.redirectToUrl') }}</span>
-                              <a-switch
-                                v-model:checked="isOpenRedirectUrl"
-                                v-e="[`a:form-view:redirect-url`]"
-                                size="small"
-                                class="nc-form-checkbox-redirect-url"
-                                data-testid="nc-form-checkbox-redirect-url"
-                                :disabled="isLocked || !isEditable"
-                                @change="updateView"
-                              />
-                            </div>
+                            <PaymentUpgradeBadgeProvider>
+                              <template #default="{ click }">
+                                <div class="flex items-center justify-between gap-3">
+                                  <!-- Redirect to URL -->
+
+                                  <span class="flex items-center gap-3">
+                                    {{ $t('labels.redirectToUrl') }}
+
+                                    <LazyPaymentUpgradeBadge
+                                      v-if="!isOpenRedirectUrl"
+                                      :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
+                                      :content="$t('upgrade.upgradeToAddRedirectUrlSubtitle')"
+                                    />
+                                  </span>
+                                  <a-switch
+                                    :checked="isOpenRedirectUrl"
+                                    v-e="[`a:form-view:redirect-url`]"
+                                    size="small"
+                                    class="nc-form-checkbox-redirect-url"
+                                    data-testid="nc-form-checkbox-redirect-url"
+                                    :disabled="isLocked || !isEditable"
+                                    @change="
+                                      (value) => {
+                                        if (value && click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO)) return
+
+                                        isOpenRedirectUrl = !!value
+                                        updateView()
+                                      }
+                                    "
+                                  />
+                                </div>
+                              </template>
+                            </PaymentUpgradeBadgeProvider>
                             <div v-if="isOpenRedirectUrl" class="flex flex-col gap-2 max-w-[calc(100%_-_40px)]">
                               <a-form-item class="!my-0" v-bind="redirectLinkValidation">
                                 <a-input

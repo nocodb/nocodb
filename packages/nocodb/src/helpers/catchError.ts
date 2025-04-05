@@ -1132,10 +1132,22 @@ export class NcError {
     throw new OptionsNotExistsError(props);
   }
 
-  static planLimitExceeded(message: string, args?: NcErrorArgs) {
+  static planLimitExceeded(
+    message: string,
+    details: {
+      plan?: PlanTitles;
+      limit?: number;
+      current?: number;
+    },
+    args?: NcErrorArgs,
+  ) {
     throw new NcBaseErrorv2(NcErrorType.PLAN_LIMIT_EXCEEDED, {
       params: message,
       ...args,
+      details: {
+        ...details,
+        ...(details?.plan ? { higherPlan: HigherPlan[details.plan] } : {}),
+      },
     });
   }
 }

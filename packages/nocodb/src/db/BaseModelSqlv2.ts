@@ -2029,6 +2029,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             sort.direction === 'count-desc' ? 'desc' : 'asc',
             sort.direction === 'count-desc' ? 'LAST' : 'FIRST',
           );
+          qb.orderBy(
+            sanitize(this.dbDriver.raw(finalStatement)),
+            sort.direction,
+            sort.direction === 'desc' ? 'LAST' : 'FIRST',
+          );
         } else {
           qb.orderBy(
             sanitize(this.dbDriver.raw(finalStatement)),
@@ -2042,6 +2047,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             'count',
             sort.direction === 'count-desc' ? 'desc' : 'asc',
             sort.direction === 'count-desc' ? 'LAST' : 'FIRST',
+          );
+          qb.orderBy(
+            getAs(column),
+            sort.direction,
+            sort.direction === 'desc' ? 'LAST' : 'FIRST',
           );
         } else {
           qb.orderBy(

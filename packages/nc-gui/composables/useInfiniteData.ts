@@ -24,6 +24,7 @@ const formatData = (
     limit?: number
     offset?: number
   },
+  path,
 ) => {
   // If pageInfo exists, use it for calculation
   if (pageInfo?.page && pageInfo?.pageSize) {
@@ -35,6 +36,7 @@ const formatData = (
         rowMeta: {
           rowIndex,
           isLastRow: rowIndex === pageInfo.totalRows! - 1,
+          path: path ?? [],
         },
       }
     })
@@ -104,7 +106,7 @@ export function useInfiniteData(args: {
 
   const chunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
 
-  const groupDataCache = ref(
+  const groupDataCache = shallowRef(
     new Map<
       string,
       {
@@ -159,7 +161,6 @@ export function useInfiniteData(args: {
   })
 
   const getDataCache = (path: Array<number> = []) => {
-    const key = path.join('_')
     if (path.length === 0) {
       return {
         cachedRows,
@@ -170,23 +171,24 @@ export function useInfiniteData(args: {
       }
     }
 
+    const key = path.join('-')
     const cachedData = groupDataCache.value.get(key)
 
-    if (!cachedData) {
-      const newCache = {
-        cachedRows: ref(new Map<number, Row>()),
-        chunkStates: ref([]),
-        totalRows: ref(),
-        selectedRows: computed(() => Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.selected)),
-        isRowSortRequiredRows: computed(() =>
-          Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.isRowOrderUpdated),
-        ),
-      }
-      groupDataCache.value.set(key, newCache)
-      return newCache
+    if (cachedData) {
+      return cachedData
     }
 
-    return cachedData
+    const newCache = {
+      cachedRows: ref<Map<number, Row>>(new Map<number, Row>()),
+      chunkStates: ref<Array<'loading' | 'loaded' | undefined>>([]),
+      totalRows: ref<number>(0),
+      selectedRows: computed<Row[]>(() => Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.selected)),
+      isRowSortRequiredRows: computed<Array<Row>>(() =>
+        Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.isRowOrderUpdated),
+      ),
+    }
+    groupDataCache.value.set(key, newCache)
+    return newCache
   }
 
   const MAX_CACHE_SIZE = 200
@@ -301,6 +303,7 @@ export function useInfiniteData(args: {
     params: Parameters<Api<any>['dbViewRow']['list']>[4] & {
       limit?: number
       offset?: number
+      where?: string
     } = {},
     _shouldShowLoading?: boolean,
     path?: Array<number> = [],
@@ -314,13 +317,13 @@ export function useInfiniteData(args: {
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             includeSortAndFilterColumns: true,
-            where: where?.value,
+            where: params?.where ? params?.where : where?.value,
           } as any)
         : await fetchSharedViewData(
             {
               sortsArr: sorts.value,
               filtersArr: nestedFilters.value,
-              where: where?.value,
+              where: params?.where ? params?.where : where?.value,
               offset: params.offset,
               limit: params.limit,
             },
@@ -329,7 +332,7 @@ export function useInfiniteData(args: {
             },
           )
 
-      const data = formatData(response.list, response.pageInfo, params)
+      const data = formatData(response.list, response.pageInfo, params, path)
 
       loadAggCommentsCount(data)
 
@@ -1163,7 +1166,7 @@ export function useInfiniteData(args: {
     property: string,
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
     undo = false,
-    path: Array<number> = [],
+    path?: Array<number> = [],
   ): Promise<Record<string, any> | undefined> {
     if (!toUpdate.rowMeta) {
       throw new Error('Row metadata is missing')
@@ -1582,5 +1585,6 @@ export function useInfiniteData(args: {
     updateRecordOrder,
     selectedAllRecords,
     getRows,
+    groupDataCache,
   }
 }

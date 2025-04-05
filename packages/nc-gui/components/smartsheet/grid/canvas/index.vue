@@ -36,44 +36,71 @@ const props = defineProps<{
   data: Map<number, Row>
   rowHeightEnum?: number
   loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
-  callAddEmptyRow?: (addAfter?: number) => Row | undefined
-  deleteRow?: (rowIndex: number, undo?: boolean) => Promise<void>
+  callAddEmptyRow?: (addAfter?: number, path?: Array<number>) => Row | undefined
+  deleteRow?: (rowIndex: number, undo?: boolean, path?: Array<number>) => Promise<void>
   updateOrSaveRow: (
     row: Row,
     property?: string,
     ltarState?: Record<string, any>,
     args?: { metaValue?: TableType; viewMetaValue?: ViewType },
     beforeRow?: string,
+    path?: Array<number>,
   ) => Promise<any>
-  deleteSelectedRows: () => Promise<void>
-  clearInvalidRows?: () => void
-  deleteRangeOfRows: (cellRange: CellRange) => Promise<void>
-  updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
+  deleteSelectedRows: (path?: Array<number>) => Promise<void>
+  clearInvalidRows?: (path?: Array<number>) => void
+  deleteRangeOfRows: (cellRange: CellRange, path?: Array<number>) => Promise<void>
+  updateRecordOrder: (
+    originalIndex: number,
+    targetIndex: number | null,
+    undo?: boolean,
+    isFailed?: boolean,
+    path?: Array<number>,
+  ) => Promise<void>
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     undo?: boolean,
+    path?: Array<number>,
   ) => Promise<void>
-  bulkDeleteAll: () => Promise<void>
+  bulkDeleteAll: (path?: Array<number>) => Promise<void>
   bulkUpsertRows: (
     insertRows: Row[],
     updateRows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
+    undo?: boolean,
+    path?: Array<number>,
   ) => Promise<void>
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
-  removeRowIfNew: (row: Row) => void
+  removeRowIfNew: (row: Row, path?: Array<number>) => void
   rowSortRequiredRows: Row[]
-  applySorting?: (newRows?: Row | Row[]) => void
-  clearCache: (visibleStartIndex: number, visibleEndIndex: number) => void
-  syncCount: () => Promise<void>
+  applySorting?: (newRows?: Row | Row[], path?: Array<number>) => void
+  clearCache: (visibleStartIndex: number, visibleEndIndex: number, path?: Array<number>) => void
+  syncCount: (path?: Array<number>) => Promise<void>
   selectedRows: Array<Row>
   chunkStates: Array<'loading' | 'loaded' | undefined>
   isBulkOperationInProgress: boolean
   selectedAllRecords?: boolean
-  getRows: (start: number, end: number) => Promise<Row[]>
+  getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
+  getDataCache: (path?: Array<number>) => {
+    cachedRows: Ref<Map<number, Row>>
+    totalRows: Ref<number>
+    chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
+    selectedRows: ComputedRef<Array<Row>>
+    isRowSortRequiredRows: ComputedRef<Array<Row>>
+  }
+  cachedGroups: Map<number, CanvasGroup>
+  totalGroups: number
+  groupByColumns: Array<{
+    column: ColumnType
+    order?: number
+    sort: string
+  }>
+  toggleExpand: (group: CanvasGroup) => void
+  groupSyncCount: (group?: CanvasGroup) => Promise<void>
+  fetchMissingGroupChunks: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => Promise<void>
 }>()
 
 const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
@@ -97,6 +124,10 @@ const {
   bulkDeleteAll,
   removeRowIfNew,
   getRows,
+  getDataCache,
+  toggleExpand,
+  groupSyncCount: syncGroupCount,
+  fetchMissingGroupChunks,
 } = props
 
 // VModels
@@ -104,11 +135,14 @@ const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
 // Props to Refs
 const totalRows = toRef(props, 'totalRows')
+const totalGroups = toRef(props, 'totalGroups')
 const chunkStates = toRef(props, 'chunkStates')
 const cachedRows = toRef(props, 'data')
+const cachedGroups = toRef(props, 'cachedGroups')
 const rowHeightEnum = toRef(props, 'rowHeightEnum')
 const selectedRows = toRef(props, 'selectedRows')
 const rowSortRequiredRows = toRef(props, 'rowSortRequiredRows')
+const groupByColumns = toRef(props, 'groupByColumns')
 
 // Refs
 const wrapperRef = ref()
@@ -187,12 +221,7 @@ const { floatingStyles } = useFloating(targetReference, tooltipRef, {
 const { tryShowTooltip, hideTooltip } = tooltipStore
 
 const {
-  syncGroupCount,
-  cachedGroups,
-  totalGroups,
   isGroupBy,
-  toggleExpand,
-  groupByColumns,
 
   rowSlice,
   colSlice,
@@ -296,6 +325,13 @@ const {
   addNewColumn: addEmptyColumn,
   setCursor,
   getRows,
+  cachedGroups,
+  toggleExpand,
+  totalGroups,
+  groupSyncCount: syncGroupCount,
+  groupByColumns,
+  fetchMissingGroupChunks,
+  getDataCache,
 })
 
 const activeCursor = ref<CursorType>('auto')
@@ -373,7 +409,8 @@ const isClamped = computed(() => {
 const totalHeight = computed(() => {
   // For non-grouped view, use original calculation
   if (!isGroupBy.value) {
-    return totalRows.value * rowHeight.value + 32 + 256
+    const dataCache = getDataCache()
+    return dataCache.totalRows.value * rowHeight.value + 32 + 256
   }
 
   // Add height for all top-level groups
@@ -385,7 +422,7 @@ const totalHeight = computed(() => {
     for (const [, group] of groups) {
       if (group?.isExpanded) {
         // For leaf groups (with rows)
-        if (group.infiniteData) {
+        if (group.path) {
           sum += group.count * rowHeight.value
 
           if (isAddingEmptyRowAllowed.value) {
@@ -422,7 +459,8 @@ const isContextMenuOpen = computed({
 })
 
 watch(vSelectedAllRecords, (val) => {
-  cachedRows.value.forEach((row) => {
+  const dataCache = getDataCache()
+  dataCache.cachedRows.value.forEach((row) => {
     row.rowMeta.selected = !!val
   })
 })
@@ -436,10 +474,11 @@ const calculateSlices = () => {
   }
 
   if (!isGroupBy.value) {
+    const dataCache = getDataCache()
     const startRowIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
     const visibleRowCount = Math.ceil(containerRef.value.clientHeight / rowHeight.value)
-    const endRowIndex = Math.min(startRowIndex + visibleRowCount, totalRows.value)
-    const newEndRow = Math.min(totalRows.value, endRowIndex)
+    const endRowIndex = Math.min(startRowIndex + visibleRowCount, dataCache.totalRows.value)
+    const newEndRow = Math.min(dataCache.totalRows.value, endRowIndex)
     if (startRowIndex !== rowSlice.value.start || newEndRow !== rowSlice.value.end) {
       rowSlice.value = { start: startRowIndex, end: newEndRow }
     }
@@ -463,7 +502,7 @@ function onActiveCellChanged() {
     function processGroups(groups: Map<number, CanvasGroup>) {
       for (const [, group] of groups) {
         if (group?.isExpanded) {
-          if (group.infiniteData) {
+          if (group?.path) {
             clearInvalidRows?.()
             if (rowSortRequiredRows.value.length) {
               applySorting?.(rowSortRequiredRows.value)
@@ -640,11 +679,9 @@ const handleRowMetaClick = ({
     case 'select':
       if (!isCheckboxDisabled && (row.rowMeta?.selected || !isAtMaxSelection)) {
         row.rowMeta.selected = !row.rowMeta?.selected
-        if (group) {
-          group.infiniteData?.cachedRows.value.set(row?.rowMeta.rowIndex, row)
-        } else {
-          cachedRows.value.set(row.rowMeta.rowIndex!, row)
-        }
+        const path = generateGroupPath(group)
+        const dataCache = getDataCache(path)
+        dataCache?.cachedRows.value.set(row?.rowMeta.rowIndex, row)
       }
       break
 
@@ -1082,6 +1119,8 @@ async function handleMouseUp(e: MouseEvent) {
   const groupPath = group ? generateGroupPath(group) : []
   const isAddNewRow = element?.type === 'ADD_NEW_ROW'
 
+  const dataCache = getDataCache(groupPath)
+
   if (!row && group && !isAddNewRow) {
     toggleExpand(group)
     requestAnimationFrame(triggerRefreshCanvas)
@@ -1125,7 +1164,7 @@ async function handleMouseUp(e: MouseEvent) {
     activeCell.value.path = groupPath
     requestAnimationFrame(triggerRefreshCanvas)
     return
-  } else if (rowIndex > totalRows.value && !isGroupBy.value) {
+  } else if (rowIndex > dataCache.totalRows.value && !isGroupBy.value) {
     selection.value.clear()
     activeCell.value = { row: -1, column: -1, path: [] }
     onActiveCellChanged()
@@ -1459,11 +1498,14 @@ const handleMouseMove = (e: MouseEvent) => {
     const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
     const row = element?.row
     const rowIndex = element?.rowIndex
+    const groupPath = generateGroupPath(element?.group)
+    const dataCache = getDataCache(groupPath)
+
 
     const { column } = findClickedColumn(mousePosition.x, scrollLeft.value)
     if (!row || !column) {
       if (
-        rowIndex === totalRows.value &&
+        rowIndex === dataCache.totalRows.value &&
         isAddingEmptyRowAllowed.value &&
         mousePosition.x < totalColumnsWidth.value - scrollLeft.value
       ) {

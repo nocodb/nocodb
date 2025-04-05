@@ -1,23 +1,17 @@
-import { UITypes, isAIPromptCol, isLinksOrLTAR, isOrderCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isAIPromptCol, isLinksOrLTAR, isOrderCol, isReadonly, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { ButtonType, ColumnType, TableType, UserType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../utils/cell'
 import { clearTextCache } from '../utils/canvas'
-import {
-  CELL_BOTTOM_BORDER_IN_PX,
-  COLUMN_HEADER_HEIGHT_IN_PX,
-  EDIT_INTERACTABLE,
-  GROUP_HEADER_HEIGHT,
-  GROUP_PADDING,
-} from '../utils/constants'
+import { CELL_BOTTOM_BORDER_IN_PX, COLUMN_HEADER_HEIGHT_IN_PX, EDIT_INTERACTABLE } from '../utils/constants'
 import { ActionManager } from '../loaders/ActionManager'
 import { useGridCellHandler } from '../cells'
 import { TableMetaLoader } from '../loaders/TableMetaLoader'
-import { isReadonly } from '../../../../../utils/virtualCell'
 import type { CanvasGridColumn } from '../../../../../lib/types'
 import { CanvasElement } from '../utils/CanvasElement'
+import { useInfiniteGroups } from '../../../../../composables/useInfiniteGroups'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
@@ -27,7 +21,6 @@ import { useMouseSelection } from './useMouseSelection'
 import { useFillHandler } from './useFillHandler'
 import { useRowReorder } from './useRowReOrder'
 import { useCopyPaste } from './useCopyPaste'
-import { useInfiniteGroups } from './useInfiniteGroups'
 
 export function useCanvasTable({
   rowHeightEnum,
@@ -56,10 +49,17 @@ export function useCanvasTable({
   mousePosition,
   setCursor,
   getRows,
+  cachedGroups,
+  toggleExpand,
+  totalGroups,
+  groupSyncCount: syncGroupCount,
+  groupByColumns,
+  fetchMissingGroupChunks,
+  getDataCache,
 }: {
   rowHeightEnum?: Ref<number | undefined>
   cachedRows: Ref<Map<number, Row>>
-  clearCache: (start: number, end: number) => void
+  clearCache: (visibleStartIndex: number, visibleEndIndex: number, path?: Array<number>) => void
   chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
   totalRows: Ref<number>
   loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
@@ -73,7 +73,13 @@ export function useCanvasTable({
   selectedRows: Ref<Row[]>
   mousePosition: { x: number; y: number }
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
-  updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
+  updateRecordOrder: (
+    originalIndex: number,
+    targetIndex: number | null,
+    undo?: boolean,
+    isFailed?: boolean,
+    path?: Array<number>,
+  ) => Promise<void>
   expandRows: ({
     newRows,
     newColumns,
@@ -94,6 +100,7 @@ export function useCanvasTable({
     ltarState?: Record<string, any>,
     args?: { metaValue?: TableType; viewMetaValue?: ViewType },
     beforeRow?: string,
+    path?: Array<number>,
   ) => Promise<any>
   bulkUpsertRows: (
     insertRows: Row[],
@@ -101,18 +108,40 @@ export function useCanvasTable({
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
+    undo?: boolean,
+    path?: Array<number>,
   ) => Promise<void>
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     undo?: boolean,
+    path?: Array<number>,
   ) => Promise<void>
-  addEmptyRow: (row?: number, skipUpdate?: boolean, before?: string) => void
+  addEmptyRow: (addAfter?: number, path?: Array<number>) => Row | undefined
   onActiveCellChanged: () => void
   addNewColumn: () => void
   setCursor: SetCursorType
-  getRows: (start: number, end: number) => Promise<Row[]>
+  getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
+  cachedGroups: Ref<Map<number, CanvasGroup>>
+  totalGroups: Ref<number>
+  groupByColumns: ComputedRef<
+    Array<{
+      column: ColumnType
+      order?: number
+      sort: string
+    }>
+  >
+  toggleExpand: (group: CanvasGroup) => void
+  groupSyncCount: (group?: CanvasGroup) => Promise<void>
+  fetchMissingGroupChunks: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => Promise<void>
+  getDataCache: (path?: Array<number>) => {
+    cachedRows: Ref<Map<number, Row>>
+    totalRows: Ref<number>
+    chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
+    selectedRows: ComputedRef<Array<Row>>
+    isRowSortRequiredRows: ComputedRef<Array<Row>>
+  }
 }) {
   const { metas, getMeta } = useMetas()
   const rowSlice = ref({ start: 0, end: 0 })
@@ -127,7 +156,7 @@ export function useCanvasTable({
     path?: Array<number> | null
     rowIndex: number
   }>({
-    path: '',
+    path: [],
     rowIndex: -2,
   })
   const editEnabled = ref<CanvasEditEnabledType>(null)
@@ -160,16 +189,6 @@ export function useCanvasTable({
     isSqlView,
     xWhere,
   } = useSmartsheetStoreOrThrow()
-  const {
-    cachedGroups,
-    groupByColumns,
-    isGroupBy,
-    syncCount: syncGroupCount,
-    totalGroups,
-    fetchMissingGroupChunks,
-    toggleExpand,
-    chunkStates: groupChunkStates,
-  } = useInfiniteGroups(view, meta, xWhere)
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
@@ -177,7 +196,10 @@ export function useCanvasTable({
   const { aiIntegrations, generateRows: _generateRows } = useNocoAi()
   const { isFeatureEnabled } = useBetaFeatureToggle()
   const automationStore = useAutomationStore()
+  const tooltipStore = useTooltipStore()
+
   const fields = inject(FieldsInj, ref([]))
+
   const { sqlUis } = storeToRefs(useBase())
 
   const { basesUser } = storeToRefs(useBases())
@@ -186,7 +208,6 @@ export function useCanvasTable({
     meta.value?.base_id ? basesUser.value.get(meta.value?.base_id) || [] : [],
   )
 
-  const tooltipStore = useTooltipStore()
   const { hideTooltip } = tooltipStore
 
   const isPublicView = inject(IsPublicInj, ref(false))
@@ -194,6 +215,8 @@ export function useCanvasTable({
 
   const { loadAutomation } = automationStore
   const actionManager = new ActionManager($api, loadAutomation, generateRows, meta, cachedRows, triggerRefreshCanvas)
+
+  const isGroupBy = computed(() => groupByColumns.value?.length)
 
   const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some((col) => isOrderCol(col)))
 
@@ -647,7 +670,9 @@ export function useCanvasTable({
     setCursor,
     isGroupBy,
     totalColumnsWidth,
+    getDataCache,
     fetchMissingGroupChunks,
+    getRows,
   })
 
   const { handleDragStart } = useRowReorder({
@@ -1131,7 +1156,6 @@ export function useCanvasTable({
     isGroupBy,
     fetchMissingGroupChunks,
     groupByColumns,
-    groupChunkStates,
     cachedGroups,
     toggleExpand,
     elementMap,

@@ -486,17 +486,6 @@ const calculateSlices = () => {
     return
   }
 
-  if (!isGroupBy.value) {
-    const dataCache = getDataCache()
-    const startRowIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
-    const visibleRowCount = Math.ceil(containerRef.value.clientHeight / rowHeight.value)
-    const endRowIndex = Math.min(startRowIndex + visibleRowCount, dataCache.totalRows.value)
-    const newEndRow = Math.min(dataCache.totalRows.value, endRowIndex)
-    if (startRowIndex !== rowSlice.value.start || newEndRow !== rowSlice.value.end) {
-      rowSlice.value = { start: startRowIndex, end: newEndRow }
-    }
-  }
-
   const startColIndex = Math.max(0, findColumnIndex(scrollLeft.value))
   const endColIndex = Math.min(
     columnWidths.value.length,
@@ -507,7 +496,18 @@ const calculateSlices = () => {
     colSlice.value = { start: startColIndex, end: endColIndex }
   }
 
-  updateVisibleRows()
+  if (!isGroupBy.value) {
+    const dataCache = getDataCache()
+    const startRowIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
+    const visibleRowCount = Math.ceil(containerRef.value.clientHeight / rowHeight.value)
+    const endRowIndex = Math.min(startRowIndex + visibleRowCount, dataCache.totalRows.value)
+    const newEndRow = Math.min(dataCache.totalRows.value, endRowIndex)
+    if (startRowIndex !== rowSlice.value.start || newEndRow !== rowSlice.value.end) {
+      rowSlice.value = { start: startRowIndex, end: newEndRow }
+    }
+
+    updateVisibleRows()
+  }
 }
 
 function onActiveCellChanged() {

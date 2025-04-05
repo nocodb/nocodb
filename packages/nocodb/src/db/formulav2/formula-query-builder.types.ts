@@ -30,6 +30,7 @@ export interface FormulaQueryBuilderBaseParams extends FormulaBaseParams {
   parsedTree?: ParsedFormulaNode;
   column?: Column;
   parentColumns: Set<string>;
+  getAliasCount: () => number;
 }
 export type FnParsedTreeBase = {
   fnName?: string;

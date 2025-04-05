@@ -1468,16 +1468,16 @@ export function useCanvasRender({
   function renderAggregations(ctx: CanvasRenderingContext2D) {
     const { start: startColIndex, end: endColIndex } = colSlice.value
 
-    // Background
-    ctx.fillStyle = '#F9F9FA'
-    ctx.fillRect(0, height.value - AGGREGATION_HEIGHT, width.value, AGGREGATION_HEIGHT)
-
     // Top border
     ctx.beginPath()
     ctx.strokeStyle = '#E7E7E9'
     ctx.moveTo(0, height.value - AGGREGATION_HEIGHT)
     ctx.lineTo(width.value, height.value - AGGREGATION_HEIGHT)
     ctx.stroke()
+
+    // Background
+    ctx.fillStyle = '#F9F9FA'
+    ctx.fillRect(0, height.value - AGGREGATION_HEIGHT, width.value, AGGREGATION_HEIGHT)
 
     let initialOffset = 0
 

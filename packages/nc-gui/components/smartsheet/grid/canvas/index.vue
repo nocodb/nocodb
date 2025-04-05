@@ -357,6 +357,8 @@ const {
   getDataCache,
 })
 
+const { blockAddNewRecord, showRecordPlanLimitExceededModal } = useEeConfig()
+
 const activeCursor = ref<CursorType>('auto')
 
 function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) {
@@ -1889,7 +1891,13 @@ function openColumnCreate(data: any) {
 }
 
 async function addEmptyRow(row?: number, skipUpdate = false, before?: string, overwrite = {}, path: Array<number> = []) {
+  if (blockAddNewRecord.value) {
+    showRecordPlanLimitExceededModal()
+    return
+  }
+
   const dataCache = getDataCache(path)
+
   clearInvalidRows?.(path, {
     onGroupRowChange,
   })

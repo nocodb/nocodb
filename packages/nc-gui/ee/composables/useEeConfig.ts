@@ -1,6 +1,13 @@
-import { HigherPlan, NON_SEAT_ROLES, PlanTitles } from 'nocodb-sdk'
-import type { PlanFeatureTypes, PlanLimitExceededDetailsType, PlanLimitTypes, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import { GRACE_PERIOD_DURATION, HigherPlan, NON_SEAT_ROLES, PlanTitles } from 'nocodb-sdk'
+import {
+  PlanLimitTypes,
+  type PlanFeatureTypes,
+  type PlanLimitExceededDetailsType,
+  type ProjectRoles,
+  type WorkspaceUserRoles,
+} from 'nocodb-sdk'
 import NcModalConfirm, { type NcConfirmModalProps } from '../../components/nc/ModalConfirm.vue'
+import dayjs from 'dayjs'
 
 export const useEeConfig = createSharedComposable(() => {
   const { t } = useI18n()
@@ -34,7 +41,7 @@ export const useEeConfig = createSharedComposable(() => {
       workspace = activeWorkspace.value
     }
 
-    const limit = workspace?.payment?.plan?.meta?.[type] ?? 0
+    const limit = workspace?.stats?.[type] ?? 0
 
     return limit === -1 ? 0 : limit
   }
@@ -114,8 +121,6 @@ export const useEeConfig = createSharedComposable(() => {
         closeDialog()
         callback?.('ok')
 
-        console.log('workspaceId', workspaceId, redirectToWorkspace)
-
         if (redirectToWorkspace) {
           navigateTo(`/${workspaceId ?? activeWorkspaceId.value}/settings?tab=billing`)
         } else {
@@ -166,6 +171,40 @@ export const useEeConfig = createSharedComposable(() => {
     })
   }
 
+  const isRecordLimitReached = computed(() => {
+    return getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)
+  })
+
+  const gracePeriodDaysLeft = computed(() => {
+    if (!isRecordLimitReached.value) return Infinity
+
+    if (!activeWorkspace.value?.grace_period_start_at) return 0
+
+    const start = dayjs(activeWorkspace.value.grace_period_start_at)
+    const graceEnd = start.add(GRACE_PERIOD_DURATION, 'day')
+
+    const daysLeft = graceEnd.diff(dayjs(), 'day')
+
+    // Ensure it's never negative (e.g., if grace period is over)
+    return Math.max(daysLeft, 0)
+  })
+
+  const blockAddNewRecord = computed(() => {
+    return gracePeriodDaysLeft.value === 0
+  })
+
+  const showRecordPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockAddNewRecord.value) return
+
+    handleUpgradePlan({
+      title: 'Upgrade to create more records',
+      content: `The ${activePlan.value?.title} plan allows up to ${getLimit(
+        PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
+      )} records. Upgrade to the ${HigherPlan[activePlan.value?.title]} plan to increase your record limit.`,
+      callback,
+    })
+  }
+
   return {
     getLimit,
     getStatLimit,
@@ -178,5 +217,9 @@ export const useEeConfig = createSharedComposable(() => {
     handleUpgradePlan,
     isPaymentEnabled,
     showUserPlanLimitExceededModal,
+    isRecordLimitReached,
+    gracePeriodDaysLeft,
+    blockAddNewRecord,
+    showRecordPlanLimitExceededModal,
   }
 })

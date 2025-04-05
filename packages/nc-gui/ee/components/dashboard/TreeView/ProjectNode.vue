@@ -105,6 +105,8 @@ const { $e } = useNuxtApp()
 
 const { copy } = useCopy()
 
+const { blockAddNewRecord, showRecordPlanLimitExceededModal } = useEeConfig()
+
 const isOptionsOpen = ref(false)
 const isBasesOptionsOpen = ref<Record<string, boolean>>({})
 
@@ -510,8 +512,12 @@ const isDuplicateDlgOpen = ref(false)
 const selectedProjectToDuplicate = ref()
 
 const duplicateProject = (base: BaseType) => {
-  selectedProjectToDuplicate.value = base
-  isDuplicateDlgOpen.value = true
+  if (!blockAddNewRecord.value) {
+    selectedProjectToDuplicate.value = base
+    isDuplicateDlgOpen.value = true
+  } else {
+    showRecordPlanLimitExceededModal()
+  }
 }
 
 const getSource = (sourceId: string) => {

@@ -373,8 +373,8 @@ const onFilterLabelClick = () => {
           <template #default="{ click }">
             <div class="flex gap-2 items-center">
               <a-switch
-                :checked="limitRecToCond"
                 v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
+                :checked="limitRecToCond"
                 :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
                 size="small"
                 @change="

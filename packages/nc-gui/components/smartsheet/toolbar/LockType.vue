@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { LockType } from '#imports'
 import { PlanFeatureTypes } from 'nocodb-sdk'
+import { LockType } from '#imports'
 
 const { type, hideTick } = defineProps<{
   hideTick?: boolean

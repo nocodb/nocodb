@@ -62,7 +62,7 @@ export function useInfiniteData(args: {
     getCount?: (path: Array<number>) => void
     getWhereFilter?: (path: Array<number>) => string
     reloadAggregate?: (params: {
-      fields?: Array<{title: string; aggregation?: string | undefined}>
+      fields?: Array<{ title: string; aggregation?: string | undefined }>
       path: Array<number>
     }) => void
   }
@@ -76,7 +76,7 @@ export function useInfiniteData(args: {
 
   const { $api } = useNuxtApp()
 
-  const t = getI18n().global
+  const { t } = useI18n()
 
   const router = useRouter()
 

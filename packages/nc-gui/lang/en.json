@@ -316,7 +316,12 @@
     "shared": "Shared",
     "organization": "Organization",
     "all": "All",
-    "billing": "Billing"
+    "billing": "Billing",
+    "choose": "Choose",
+    "plan": "Plan",
+    "plans": "Plans",
+    "monthly": "Monthly",
+    "annually": "Annually"
   },
   "objects": {
     "script": "Script",
@@ -476,15 +481,6 @@
       "Plus": "Plus",
       "Business": "Business",
       "Enterprise": "Enterprise"
-    },
-    "currentPlan": {
-      "nextInvoice": "Next Invoice",
-      "nextInvoiceAmount": "Next Invoice Amount",
-      "numberOfBilledUsers": "Number of Billed Users",
-      "numberOfBillableUsers": "Number of Billable Users",
-      "storageUsedGB": "Storage Used (GB)",
-      "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
     }
   },
   "datatype": {
@@ -713,7 +709,9 @@
     "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration.",
     "getMoreFromNocodb": "Get more from NocoDB",
     "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
-    "currentPlan": "Current Plan"
+    "currentPlan": "Current Plan",
+    "seatMonth": "/seat/month",
+    "mostPopular": "Most Popular"
   },
   "labels": {
     "restoringSnapshot": "Restoring Snapshot",
@@ -1191,7 +1189,9 @@
     "enterJson": "Enter JSON",
     "airtableBase": "Airtable base",
     "upgradePlan": "Upgrade Plan",
-    "viewAllPlanDetails": "View all plan Details"
+    "viewAllPlanDetails": "View all plan Details",
+    "contactSales": "Contact Sales",
+    "manageSubscription": "Manage Subscription"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

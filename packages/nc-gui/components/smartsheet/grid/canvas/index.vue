@@ -706,7 +706,7 @@ const handleRowMetaClick = ({
 
     case 'comment':
       isExpandedFormCommentMode.value = !!row.rowMeta?.commentCount
-      expandForm(row, undefined, false, group.path)
+      expandForm(row, undefined, false, group?.path)
       break
   }
 

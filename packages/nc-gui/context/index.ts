@@ -48,10 +48,11 @@ export const ReloadRowDataHookInj: InjectionKey<EventHook<{ shouldShowLoading?: 
 export const ReloadAggregateHookInj: InjectionKey<
   EventHook<
     | {
-        fields: {
+        fields?: {
           title: string
           aggregation?: string
         }[]
+        path?: Array<number>
       }
     | undefined
   >

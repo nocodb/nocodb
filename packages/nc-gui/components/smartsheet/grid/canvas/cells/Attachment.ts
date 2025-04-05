@@ -398,7 +398,7 @@ export const AttachmentCellRenderer: CellRenderer = {
   },
   async handleKeyDown({ row, column, e, makeCellEditable }) {
     if (e.key === 'Enter' || isExpandCellKey(e)) {
-      makeCellEditable(row.rowMeta.rowIndex!, column)
+      makeCellEditable(row, column)
       return true
     }
 
@@ -408,7 +408,7 @@ export const AttachmentCellRenderer: CellRenderer = {
   async handleClick({ row, column, mousePosition, getCellPosition, value, selected, imageLoader, makeCellEditable }) {
     const { hideTooltip } = useTooltipStore()
     hideTooltip()
-    const enableEdit = () => makeCellEditable(row.rowMeta.rowIndex!, column)
+    const enableEdit = () => makeCellEditable(row, column)
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
 
     let attachments: Attachment[] = []

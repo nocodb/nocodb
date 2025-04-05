@@ -185,7 +185,7 @@ export const OneToOneCellRenderer: CellRenderer = {
       isBoxHovered({ x: cellRenderStore.x + 2, y: y + 8, height: size, width: size }, mousePosition)
 
     if (isClickedOnMaximizeOrPlusIcon || isClickedOnXCircleIcon) {
-      makeCellEditable(rowIndex, column)
+      makeCellEditable(row, column)
       return true
     }
 
@@ -237,7 +237,7 @@ export const OneToOneCellRenderer: CellRenderer = {
      * This is same as `cellClickHook`, on click cell make cell editable
      */
     if ((selected || isDoubleClick) && !readonly && isBoxHovered({ x, y, width, height }, mousePosition)) {
-      makeCellEditable(rowIndex, column)
+      makeCellEditable(row, column)
       return true
     }
 

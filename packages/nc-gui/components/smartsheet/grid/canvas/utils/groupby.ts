@@ -1,6 +1,59 @@
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import { COLUMN_HEADER_HEIGHT_IN_PX, GROUP_HEADER_HEIGHT, GROUP_PADDING } from './constants'
 
+export function getGroupColors(depth: number, maxDepth: number) {
+  depth = depth + 1
+
+  console.log(depth, maxDepth)
+
+  if (maxDepth === 1) {
+    return {
+      border: '#E7E7E9',
+      background: '#FFF',
+    }
+  }
+
+  if (maxDepth === 2) {
+    switch (depth) {
+      case 2: {
+        return {
+          background: '#FFF',
+          border: '#E7E7E9',
+        }
+      }
+      case 1: {
+        return {
+          background: '#F9F9FA',
+          border: '#E7E7E9',
+        }
+      }
+    }
+  }
+
+  if (maxDepth === 3) {
+    switch (depth) {
+      case 3: {
+        return {
+          background: '#FFF',
+          border: '#E7E7E9',
+        }
+      }
+      case 2: {
+        return {
+          background: '#F9F9FA',
+          border: '#E7E7E9',
+        }
+      }
+      case 1: {
+        return {
+          background: '#F4F4F5',
+          border: '#9AA2AF',
+        }
+      }
+    }
+  }
+}
+
 export function getBackgroundColor(depth: number, maxDepth: number): string {
   depth = depth + 1
 

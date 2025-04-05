@@ -1989,26 +1989,29 @@ export function useCanvasRender({
 
     if (warningRow) {
       const orange = '#fcbe3a'
+      // Group level x axis offset
+      const gXOffset = level * 9
+
       // Warning top border
       ctx.strokeStyle = 'orange'
       ctx.beginPath()
-      ctx.moveTo(level * 9, warningRow.yOffset - 2)
-      ctx.lineTo(adjustedWidth - level * 9, warningRow.yOffset)
+      ctx.moveTo(gXOffset, warningRow.yOffset - 2)
+      ctx.lineTo(adjustedWidth - gXOffset, warningRow.yOffset)
       ctx.lineWidth = 2
       ctx.stroke()
 
       // Warning bottom border
       ctx.strokeStyle = 'orange'
       ctx.beginPath()
-      ctx.moveTo(level * 9, warningRow.yOffset + rowHeight.value)
-      ctx.lineTo(adjustedWidth - level * 9, warningRow.yOffset + rowHeight.value)
+      ctx.moveTo(gXOffset, warningRow.yOffset + rowHeight.value)
+      ctx.lineTo(adjustedWidth - gXOffset, warningRow.yOffset + rowHeight.value)
       ctx.lineWidth = 2
       ctx.stroke()
 
-      roundedRect(ctx, 0, warningRow.yOffset + rowHeight.value, 90, 25, { bottomRight: 6 }, { backgroundColor: orange })
+      roundedRect(ctx, gXOffset, warningRow.yOffset + rowHeight.value, 90, 25, { bottomRight: 6 }, { backgroundColor: orange })
       renderSingleLineText(ctx, {
         text: warningRow.row.rowMeta.isValidationFailed ? 'Row filtered' : 'Row moved',
-        x: 10,
+        x: 10 + gXOffset,
         y: warningRow.yOffset + rowHeight.value,
         py: 7,
         fillStyle: '#1f293a',

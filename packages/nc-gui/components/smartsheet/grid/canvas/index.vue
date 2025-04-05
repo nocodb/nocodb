@@ -509,11 +509,11 @@ function onActiveCellChanged() {
       for (const [, group] of groups) {
         if (group?.isExpanded) {
           if (group?.path) {
-            clearInvalidRows?.()
-            if (rowSortRequiredRows.value.length) {
-              applySorting?.(rowSortRequiredRows.value)
+            const { isRowSortRequiredRows } = getDataCache(group.path)
+            clearInvalidRows?.(group.path)
+            if (isRowSortRequiredRows.value.length) {
+              applySorting?.(isRowSortRequiredRows.value, group.path)
             }
-            calculateSlices()
           } else if (group.groups) {
             processGroups(group.groups)
           }

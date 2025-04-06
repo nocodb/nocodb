@@ -92,6 +92,10 @@
     "attachment_size": "Размер вложений",
     "none": "Нет"
   },
+  "upgrade": {
+    "UpgradeToCreateAdditionalSnapshots": "Upgrade to create additional snapshots",
+    "UpgradeToCreateAdditionalSnapshotsSubtitle": "The {activePlan} plan allows up to {n} snapshots. Upgrade to the {plan} plan and get access to additional snapshots."
+  },
   "general": {
     "supported": "Поддерживается",
     "usage": "Использование",
@@ -311,7 +315,19 @@
     "unread": "Непрочитано",
     "shared": "Общий",
     "organization": "Организация",
-    "all": "Все"
+    "all": "Все",
+    "billing": "Billing",
+    "choose": "Choose",
+    "plan": "Plan",
+    "plans": "Plans",
+    "monthly": "Monthly",
+    "annually": "Annually",
+    "yearly": "Yearly",
+    "paid": "Paid",
+    "total": "Total",
+    "downgrade": "Downgrade",
+    "upgrade": "Upgrade",
+    "reactivate": "Reactivate"
   },
   "objects": {
     "script": "Скрипт",
@@ -464,6 +480,22 @@
       "error": "Error",
       "info": "Information",
       "warning": "Alert"
+    },
+    "paymentPlan": {
+      "Free": "Free",
+      "Team": "Team",
+      "Plus": "Plus",
+      "Business": "Business",
+      "Enterprise": "Enterprise"
+    },
+    "currentPlan": {
+      "nextInvoice": "Next Invoice",
+      "nextInvoiceAmount": "Next Invoice Amount",
+      "numberOfBilledUsers": "Number of Billed Users",
+      "numberOfBillableUsers": "Number of Billable Users",
+      "storageUsedGB": "Storage Used (GB)",
+      "webhookCallsMonthly": "Webhook calls (monthly)",
+      "apiCallsMonthly": "API calls (monthly)"
     }
   },
   "datatype": {
@@ -689,7 +721,21 @@
     "viewSettingsCantBeChangedWhenViewIs": "Настройки представления нельзя изменить, когда представление {type}",
     "youAreLeavingNocoDB": "Вы покидаете NocoDB",
     "onlyProceedIfYouTrustThisLink": "Переходите по ссылке, только если вы ей доверяете.",
-    "reAssignViewModalSubtitle": "После переназначения текущий владелец больше не сможет редактировать конфигурацию представления."
+    "reAssignViewModalSubtitle": "После переназначения текущий владелец больше не сможет редактировать конфигурацию представления.",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
+    "currentPlan": "Current Plan",
+    "editorMonth": "/editor/month",
+    "mostPopular": "Most Popular",
+    "helpAndSupport": "Help & Support",
+    "helpAndSupportSubtitle": "Visit our Support Center for detailed guides, customer service contact options, and a community forum for additional help.",
+    "faq": "FAQ",
+    "faqSubtitle": "Explore the FAQ section and get quick answers to common questions about our services, features, and troubleshooting. ",
+    "downgradeToPlan": "Downgrade to {plan} plan?",
+    "downgradeToPlanSubtitle": "You'll lose access to {activePlan} plan features that aren't available in the {plan} plan.",
+    "upgradeToPlan": "Upgrade to {plan} plan?",
+    "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
+    "reactivateToPlan": "Reactivate {plan} plan?"
   },
   "labels": {
     "restoringSnapshot": "Восстановление снимка",
@@ -1165,7 +1211,19 @@
     "newOwner": "Новый владелец",
     "addFromUrl": "Добавить по URL",
     "enterJson": "Ввести JSON",
-    "airtableBase": "База Airtable"
+    "airtableBase": "База Airtable",
+    "upgradePlan": "Upgrade Plan",
+    "viewAllPlanDetails": "View all plan details",
+    "contactSales": "Contact Sales",
+    "manageSubscription": "Manage Subscription",
+    "upgradeToPlan": "Upgrade To {plan}",
+    "applicableTax": "Applicable tax",
+    "annualSavings": "Annual Savings",
+    "compareAllFeatures": "Compare all features",
+    "planIncludes": "{plan} Includes:",
+    "everythingInPlanPlus": "Everything in {plan}, Plus:",
+    "downloadInvoice": "Download Invoice",
+    "proceed": "Proceed"
   },
   "activity": {
     "clickToResolve": "Нажмите, чтобы разрешить",
@@ -1448,7 +1506,9 @@
     "goToDocs": "Перейти к документации",
     "addCondition": "Добавить условие",
     "addConditionGroup": "Добавить группу условий",
-    "pending": "В ожидании"
+    "pending": "В ожидании",
+    "goToPage": "Go to Page",
+    "changePlan": "ChangePlan"
   },
   "tooltip": {
     "leaveWorkspace": "Каждое рабочее пространство должно иметь хотя бы одного владельца. Пожалуйста, назначьте другого пользователя Владельцем перед тем, как покинуть рабочее пространство. Если вы последний участник, рассмотрите возможность удаления рабочего пространства.",
@@ -2025,7 +2085,9 @@
       "duplicateTableName": "Дублирующееся имя таблицы",
       "importError": "Ошибка импорта",
       "anErrorOccuredWhileImporting": "Произошла ошибка при {type}",
-      "anErrorOccuredWhileAirtableBaseImport": "Произошла ошибка при импорте базы из Airtable"
+      "anErrorOccuredWhileAirtableBaseImport": "Произошла ошибка при импорте базы из Airtable",
+      "paymentFailed": "Payment Failed",
+      "paymentFailedSubtitle": "Something went wrong while processing your payment. Please try again or contact support."
     },
     "toast": {
       "exportMetadata": "Метаданные проекта успешно экспортированы",
@@ -2086,7 +2148,9 @@
       "settingsSaved": "Настройки успешно сохранены",
       "roleUpdated": "Роль успешно обновлена",
       "connectionAdded": "Интеграция успешно подключена",
-      "connectionAddedDesc": "Владельцы и создатели проектов теперь могут добавлять источники данных без повторного ввода учетных данных."
+      "connectionAddedDesc": "Владельцы и создатели проектов теперь могут добавлять источники данных без повторного ввода учетных данных.",
+      "paymentSuccessful": "Payment Successful",
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Начните с нуля.",

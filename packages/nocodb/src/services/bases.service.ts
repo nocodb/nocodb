@@ -152,7 +152,12 @@ export class BasesService {
     param: { baseId: any; user: UserType; req: NcRequest },
     ncMeta = Noco.ncMeta,
   ) {
-    const base = await Base.getWithInfo(context, param.baseId);
+    const base = await Base.getWithInfo(
+      context,
+      param.baseId,
+      undefined,
+      ncMeta,
+    );
 
     if (!base) {
       NcError.baseNotFound(param.baseId);
@@ -161,7 +166,7 @@ export class BasesService {
     const transaction = await ncMeta.startTransaction();
 
     try {
-      await Base.softDelete(context, param.baseId, ncMeta);
+      await Base.softDelete(context, param.baseId, transaction);
 
       await transaction.commit();
     } catch (e) {

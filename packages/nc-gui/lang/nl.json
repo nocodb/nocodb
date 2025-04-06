@@ -92,6 +92,10 @@
     "attachment_size": "Bijlage Grootte",
     "none": "Geen"
   },
+  "upgrade": {
+    "UpgradeToCreateAdditionalSnapshots": "Upgrade to create additional snapshots",
+    "UpgradeToCreateAdditionalSnapshotsSubtitle": "The {activePlan} plan allows up to {n} snapshots. Upgrade to the {plan} plan and get access to additional snapshots."
+  },
   "general": {
     "supported": "Supported",
     "usage": "Usage",
@@ -311,7 +315,19 @@
     "unread": "Unread",
     "shared": "Shared",
     "organization": "Organization",
-    "all": "All"
+    "all": "All",
+    "billing": "Billing",
+    "choose": "Choose",
+    "plan": "Plan",
+    "plans": "Plans",
+    "monthly": "Monthly",
+    "annually": "Annually",
+    "yearly": "Yearly",
+    "paid": "Paid",
+    "total": "Total",
+    "downgrade": "Downgrade",
+    "upgrade": "Upgrade",
+    "reactivate": "Reactivate"
   },
   "objects": {
     "script": "Script",
@@ -464,6 +480,22 @@
       "error": "Error",
       "info": "Information",
       "warning": "Alert"
+    },
+    "paymentPlan": {
+      "Free": "Free",
+      "Team": "Team",
+      "Plus": "Plus",
+      "Business": "Business",
+      "Enterprise": "Enterprise"
+    },
+    "currentPlan": {
+      "nextInvoice": "Next Invoice",
+      "nextInvoiceAmount": "Next Invoice Amount",
+      "numberOfBilledUsers": "Number of Billed Users",
+      "numberOfBillableUsers": "Number of Billable Users",
+      "storageUsedGB": "Storage Used (GB)",
+      "webhookCallsMonthly": "Webhook calls (monthly)",
+      "apiCallsMonthly": "API calls (monthly)"
     }
   },
   "datatype": {
@@ -689,7 +721,21 @@
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
     "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
-    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration.",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
+    "currentPlan": "Current Plan",
+    "editorMonth": "/editor/month",
+    "mostPopular": "Most Popular",
+    "helpAndSupport": "Help & Support",
+    "helpAndSupportSubtitle": "Visit our Support Center for detailed guides, customer service contact options, and a community forum for additional help.",
+    "faq": "FAQ",
+    "faqSubtitle": "Explore the FAQ section and get quick answers to common questions about our services, features, and troubleshooting. ",
+    "downgradeToPlan": "Downgrade to {plan} plan?",
+    "downgradeToPlanSubtitle": "You'll lose access to {activePlan} plan features that aren't available in the {plan} plan.",
+    "upgradeToPlan": "Upgrade to {plan} plan?",
+    "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
+    "reactivateToPlan": "Reactivate {plan} plan?"
   },
   "labels": {
     "restoringSnapshot": "Restoring Snapshot",
@@ -1165,7 +1211,19 @@
     "newOwner": "New owner",
     "addFromUrl": "Add from URL",
     "enterJson": "Enter JSON",
-    "airtableBase": "Airtable base"
+    "airtableBase": "Airtable base",
+    "upgradePlan": "Upgrade Plan",
+    "viewAllPlanDetails": "View all plan details",
+    "contactSales": "Contact Sales",
+    "manageSubscription": "Manage Subscription",
+    "upgradeToPlan": "Upgrade To {plan}",
+    "applicableTax": "Applicable tax",
+    "annualSavings": "Annual Savings",
+    "compareAllFeatures": "Compare all features",
+    "planIncludes": "{plan} Includes:",
+    "everythingInPlanPlus": "Everything in {plan}, Plus:",
+    "downloadInvoice": "Download Invoice",
+    "proceed": "Proceed"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1448,7 +1506,9 @@
     "goToDocs": "Ga naar Documenten",
     "addCondition": "Voorwaarde toevoegen",
     "addConditionGroup": "Voorwaardengroep toevoegen",
-    "pending": "Pending"
+    "pending": "Pending",
+    "goToPage": "Go to Page",
+    "changePlan": "ChangePlan"
   },
   "tooltip": {
     "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
@@ -2025,7 +2085,9 @@
       "duplicateTableName": "Duplicate table name",
       "importError": "Import Error",
       "anErrorOccuredWhileImporting": "An error occurred while {type}",
-      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable"
+      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable",
+      "paymentFailed": "Payment Failed",
+      "paymentFailedSubtitle": "Something went wrong while processing your payment. Please try again or contact support."
     },
     "toast": {
       "exportMetadata": "Project metadata met succes geëxporteerd",
@@ -2086,7 +2148,9 @@
       "settingsSaved": "Instellingen succesvol opgeslagen",
       "roleUpdated": "Rol succesvol bijgewerkt",
       "connectionAdded": "Integratie succesvol verbonden",
-      "connectionAddedDesc": "Basis eigenaren en makers kunnen nu een gegevensbron toevoegen zonder inloggegevens opnieuw in te voeren."
+      "connectionAddedDesc": "Basis eigenaren en makers kunnen nu een gegevensbron toevoegen zonder inloggegevens opnieuw in te voeren.",
+      "paymentSuccessful": "Payment Successful",
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

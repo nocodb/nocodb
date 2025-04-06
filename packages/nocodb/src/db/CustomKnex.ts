@@ -1,6 +1,8 @@
 import { Knex, knex } from 'knex';
 import { defaults, types } from 'pg';
 import dayjs from 'dayjs';
+import Client_Libsql from '@libsql/knex-libsql';
+import KnexFull from 'knex';
 import type { FilterType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import Filter from '~/models/Filter';
@@ -1051,8 +1053,17 @@ function CustomKnex(
   if (arg?.client === 'sqlite3') {
     arg.useNullAsDefault = true;
   }
-
-  const kn: any = knex(arg);
+  const kn: any =
+    arg?.client != 'libsql'
+      ? knex(arg)
+      : KnexFull({
+          useNullAsDefault: true,
+          client: Client_Libsql,
+          connection: {
+            filename:
+              arg.connection.url + '?authToken=' + arg.connection.authToken,
+          },
+        });
 
   const knexRaw = kn.raw;
 

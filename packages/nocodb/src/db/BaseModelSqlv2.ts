@@ -961,6 +961,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             break;
           }
 
+          case 'libsql':
           case 'sqlite3': {
             jsonBuildObject = this.dbDriver.raw(`json_object(
                 ${Object.keys(aggregateExpressions)
@@ -2092,6 +2093,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     ),
                   );
                   break;
+                case 'libsql':
                 case 'sqlite3':
                   qb.select(
                     this.dbDriver.raw(
@@ -2144,6 +2146,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     ),
                   );
                   break;
+                case 'libsql':
                 case 'sqlite3':
                   qb.select(
                     this.dbDriver.raw(
@@ -2555,7 +2558,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   get isSqlite() {
-    return this.clientType === 'sqlite3';
+    return this.clientType === 'sqlite3' || this.clientType === 'libsql';
   }
 
   get isMssql() {

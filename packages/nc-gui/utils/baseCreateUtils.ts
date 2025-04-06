@@ -10,7 +10,7 @@ interface ProjectCreateForm {
   title: string
   dataSource: {
     client: ClientType
-    connection: DefaultConnection | SQLiteConnection | SnowflakeConnection | DatabricksConnection
+    connection: DefaultConnection | SQLiteConnection | SnowflakeConnection | DatabricksConnection | LibsqlConnection
     searchPath?: string[]
   }
   inflection: {
@@ -41,6 +41,11 @@ interface SQLiteConnection {
     filename?: string
   }
   useNullAsDefault?: boolean
+}
+interface LibsqlConnection {
+  client: ClientType.LIBSQL
+  url: string
+  authToken: string
 }
 
 interface SnowflakeConnection {
@@ -78,6 +83,10 @@ export const clientTypes = [
     value: ClientType.PG,
   },
   {
+    text: 'Libsql',
+    value: ClientType.LIBSQL,
+  },
+  {
     text: 'SQLite',
     value: ClientType.SQLITE,
   },
@@ -99,7 +108,7 @@ export const clientTypesMap = clientTypes.reduce((acc, curr) => {
 const homeDir = ''
 
 type ConnectionClientType =
-  | Exclude<ClientType, ClientType.SQLITE | ClientType.SNOWFLAKE | ClientType.DATABRICKS>
+  | Exclude<ClientType, ClientType.SQLITE | ClientType.LIBSQL | ClientType.SNOWFLAKE | ClientType.DATABRICKS>
   | 'tidb'
   | 'yugabyte'
   | 'citusdb'
@@ -145,6 +154,11 @@ const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection }
       filename: homeDir,
     },
     useNullAsDefault: true,
+  },
+  [ClientType.LIBSQL]: {
+    client: ClientType.LIBSQL,
+    url: 'http://localhost:8080',
+    authToken: 'password',
   },
   [ClientType.SNOWFLAKE]: {
     account: 'LOCATOR.REGION',
@@ -272,12 +286,15 @@ function generateConfigFix(e: any) {
 }
 
 export {
-  generateConfigFix,
-  SSLUsage,
-  CertTypes,
-  ProjectCreateForm,
-  DefaultConnection,
-  SQLiteConnection,
-  SnowflakeConnection,
-  DatabricksConnection,
+    generateConfigFix,
+    SSLUsage,
+    CertTypes
+}
+export type {
+    ProjectCreateForm,
+    DefaultConnection,
+    SQLiteConnection,
+    SnowflakeConnection,
+    DatabricksConnection,
+    LibsqlConnection
 }

@@ -3,6 +3,7 @@ import ModelXcMetaMysql from './ModelXcMetaMysql';
 import ModelXcMetaOracle from './ModelXcMetaOracle';
 import ModelXcMetaPg from './ModelXcMetaPg';
 import ModelXcMetaSqlite from './ModelXcMetaSqlite';
+import ModelXcMetaLibsql from './ModelXcMetaLibsql';
 import ModelXcMetaSnowflake from './ModelXcMetaSnowflake';
 import ModelXcMetaDatabricks from './ModelXcMetaDatabricks';
 import type BaseModelXcMeta from './BaseModelXcMeta';
@@ -16,6 +17,8 @@ class ModelXcMetaFactory {
       return new ModelXcMetaMysql(args);
     } else if (connectionConfig.client === 'sqlite3') {
       return new ModelXcMetaSqlite(args);
+    } else if (connectionConfig.client === 'libsql') {
+      return new ModelXcMetaLibsql(args);
     } else if (connectionConfig.client === 'mssql') {
       return new ModelXcMetaMssql(args);
     } else if (connectionConfig.client === 'pg') {

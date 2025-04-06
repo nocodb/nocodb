@@ -32,6 +32,8 @@ const activeIntegrationType = computed(() => {
       return IntegrationCategoryType.DATABASE
     case integrationType.SQLITE:
       return IntegrationCategoryType.DATABASE
+    case integrationType.LIBSQL:
+      return IntegrationCategoryType.DATABASE
     default: {
       return activeIntegrationItem.value?.type
     }

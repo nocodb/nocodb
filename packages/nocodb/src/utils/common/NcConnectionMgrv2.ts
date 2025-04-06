@@ -63,7 +63,8 @@ export default class NcConnectionMgrv2 {
   public static async get(source: Source): Promise<XKnex> {
     if (source.isMeta()) return Noco.ncMeta.knex;
 
-    if (this.connectionRefs?.[source.base_id]?.[source.id]) {
+    const isLibSql = this.isLibSqlSource(source);
+    if (!isLibSql && this.connectionRefs?.[source.base_id]?.[source.id]) {
       return this.connectionRefs?.[source.base_id]?.[source.id];
     }
     this.connectionRefs[source.base_id] =
@@ -71,7 +72,7 @@ export default class NcConnectionMgrv2 {
 
     const connectionConfig = await source.getConnectionConfig();
 
-    this.connectionRefs[source.base_id][source.id] = XKnex({
+    const knexConnection = XKnex({
       ...defaultConnectionOptions,
       ...connectionConfig,
       connection: {
@@ -101,7 +102,12 @@ export default class NcConnectionMgrv2 {
         },
       },
     } as any);
-    return this.connectionRefs[source.base_id][source.id];
+
+    if (!isLibSql) {
+      this.connectionRefs[source.base_id][source.id] = knexConnection;
+    }
+
+    return knexConnection;
   }
 
   public static async getSqlClient(source: Source, _knex = null) {
@@ -110,6 +116,10 @@ export default class NcConnectionMgrv2 {
       knex,
       ...(await source.getConnectionConfig()),
     });
+  }
+
+  private static isLibSqlSource(source: Source): boolean {
+    return source.type === 'libsql';
   }
 
   public static async getDataConfig?() {

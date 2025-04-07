@@ -151,6 +151,8 @@ export default class UsageStat {
         },
       );
 
+      await NocoCache.update(cacheKey, updateObj);
+
       await NocoCache.setHashField(
         `${CacheScope.USAGE_STATS}:${fk_workspace_id}:${usageStat.period_start}`,
         usage_type,

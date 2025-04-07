@@ -1211,7 +1211,7 @@ export function useCanvasRender({
         xOffset = isGroupBy.value ? initialXOffset : 0
 
         fixedCols.value.forEach((column) => {
-          const width = parseCellWidth(column.width)
+          let width = parseCellWidth(column.width)
 
           const colIdx = columns.value.findIndex((col) => col.id === column.id)
           if (selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
@@ -1223,6 +1223,7 @@ export function useCanvasRender({
           }
 
           if (column.id === 'row_number') {
+            if (isGroupBy.value) width -= initialXOffset
             renderRowMeta(ctx, row!, { xOffset, yOffset, width })
           } else {
             const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx

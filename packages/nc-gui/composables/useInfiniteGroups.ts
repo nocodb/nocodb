@@ -308,7 +308,7 @@ export const useInfiniteGroups = (
       (chunkId) => !targetChunkStates[chunkId] || force,
     )
 
-    await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup)))
+    await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup, force)))
     callbacks?.syncVisibleData()
 
     // if found empty chunk, remove all chunks after it and fetch all chunks again

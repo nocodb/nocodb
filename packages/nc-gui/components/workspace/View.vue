@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
+import { PlanTitles } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
@@ -7,6 +8,8 @@ const props = defineProps<{
 
 const router = useRouter()
 const route = router.currentRoute
+
+const { t } = useI18n()
 
 const { isUIAllowed } = useRoles()
 
@@ -21,7 +24,7 @@ const { loadCollaborators, loadWorkspace } = workspaceStore
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
-const { isWsAuditEnabled } = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
   if (deletingWorkspace.value) return
@@ -44,6 +47,15 @@ const tab = computed({
     return route.value.query?.tab ?? 'collaborators'
   },
   set(tab: string) {
+    if (!isWsAuditEnabled.value && tab === 'audits') {
+      return handleUpgradePlan({
+        title: t('upgrade.upgradeToAccessWsAudit'),
+        content: t('upgrade.upgradeToAccessWsAuditSubtitle', {
+          plan: PlanTitles.BUSINESS,
+        }),
+      })
+    }
+
     if (tab === 'collaborators') loadCollaborators({} as any, props.workspaceId)
     router.push({ query: { ...route.value.query, tab } })
   },
@@ -70,6 +82,18 @@ onMounted(() => {
       await loadCollaborators({} as any, currentWorkspace.value!.id)
     })
 })
+
+watch(
+  () => route.value.query?.tab,
+  (newTab) => {
+    if (!isWsAuditEnabled.value && newTab === 'audits') {
+      tab.value = 'collaborators'
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -156,7 +180,7 @@ onMounted(() => {
         </a-tab-pane>
       </template>
 
-      <template v-if="isEeUI && isWsAuditEnabled && isUIAllowed('workspaceAuditList')">
+      <template v-if="isEeUI && isUIAllowed('workspaceAuditList')">
         <a-tab-pane key="audits" class="w-full">
           <template #tab>
             <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
@@ -164,7 +188,8 @@ onMounted(() => {
               {{ $t('title.audits') }}
             </div>
           </template>
-          <WorkspaceAudits />
+          <WorkspaceAudits v-if="isWsAuditEnabled" />
+          <div v-else>&nbsp;</div>
         </a-tab-pane>
       </template>
 

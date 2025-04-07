@@ -113,7 +113,9 @@
     "planLimitReachedSubtitle": "Upgrade to add more records",
     "upgradeToAddLimitRecordSelection": "To limit record selection using filters, please upgrade to the {plan} plan.",
     "upgradeToAdd": "Upgrade to Add",
-    "upgradeToAddMoreExtensions": "You're currently on the Free plan, which allows only one extension. Upgrade to unlock unlimited extensions."
+    "upgradeToAddMoreExtensions": "You're currently on the Free plan, which allows only one extension. Upgrade to unlock unlimited extensions.",
+    "upgradeToAccessWsAudit": "Upgrade to access workspace audit",
+    "upgradeToAccessWsAuditSubtitle": "Upgrade your plan to the {plan} plan to unlock workspace audit logs and track key activities with ease."
   },
   "general": {
     "supported": "Supported",

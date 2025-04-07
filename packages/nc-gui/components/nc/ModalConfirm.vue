@@ -95,9 +95,9 @@ const props = withDefaults(defineProps<NcConfirmModalProps>(), {
   focusBtn: 'ok',
 })
 
-const { visible: _visible, title, ...restProps } = props
-
 const emits = defineEmits<Emits>()
+
+const { visible: _visible, title, ...restProps } = props
 
 interface Emits {
   (e: 'update:visible', value: boolean): void

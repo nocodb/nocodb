@@ -170,7 +170,11 @@ export class WorkspaceUsersService {
           ncMeta,
         );
 
-      if (!NON_SEAT_ROLES.includes(param.roles)) {
+      // Throw error only if old role is NON_SEAT_ROLES and new role is SEAT_ROLES and vice versa
+      if (
+        !NON_SEAT_ROLES.includes(param.roles) &&
+        NON_SEAT_ROLES.includes(workspaceUser.roles as WorkspaceUserRoles)
+      ) {
         const { limit: editorLimitForWorkspace, plan } = await getLimit(
           PlanLimitTypes.LIMIT_EDITOR,
           param.workspaceId,
@@ -192,7 +196,10 @@ export class WorkspaceUsersService {
             },
           );
         }
-      } else {
+      } else if (
+        NON_SEAT_ROLES.includes(param.roles) &&
+        !NON_SEAT_ROLES.includes(workspaceUser.roles as WorkspaceUserRoles)
+      ) {
         const { limit: usersLimitForWorkspace, plan } = await getLimit(
           PlanLimitTypes.LIMIT_COMMENTER,
           param.workspaceId,

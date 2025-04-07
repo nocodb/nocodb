@@ -1,5 +1,5 @@
 import { type Stripe, type StripeCheckoutSession, loadStripe } from '@stripe/stripe-js'
-import { PlanMeta, PlanOrder, PlanTitles } from 'nocodb-sdk'
+import { PlanOrder, PlanTitles } from 'nocodb-sdk'
 import NcModalConfirm from '../../components/nc/ModalConfirm.vue'
 
 export interface PaymentPlan {
@@ -106,7 +106,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const getPlanPrice = (plan?: PaymentPlan, mode?: 'year' | 'month') => {
     if (!plan?.prices) return 0
-    calculateChange
+
     if (!mode) mode = paymentMode.value
 
     const price = plan.prices.find((price: any) => price.recurring.interval === mode)

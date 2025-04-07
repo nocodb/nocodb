@@ -193,7 +193,7 @@ const onCancel = () => {
                         class="w-full !rounded-lg !px-4 h-10"
                         :placeholder="$t('general.name')"
                         data-testid="nc-account-settings-rename-input"
-                        />
+                      />
                     </a-form-item>
                   </div>
                   <div>
@@ -208,29 +208,29 @@ const onCancel = () => {
                   </div>
                 </div>
               </div>
-            <div class="flex flex-row w-full justify-end mt-8 gap-4">
-              <NcButton
-                v-if="isSaveChangesBtnEnabled"
-                type="secondary"
-                size="small"
-                data-testid="nc-account-settings-cancel"
-                :disabled="isProfileUpdating"
-                @click="onCancel"
-              >
-                {{ $t('general.cancel') }}
-              </NcButton>
-              <NcButton
-                type="primary"
-                html-type="submit"
-                size="small"
-                :disabled="isErrored || !isSaveChangesBtnEnabled || isProfileUpdating"
-                :loading="isProfileUpdating"
-                data-testid="nc-account-settings-save"
-              >
-                <template #loading> {{ $t('general.saving') }} </template>
-                {{ $t('general.save') }}
-              </NcButton>
-            </div>
+              <div class="flex flex-row w-full justify-end mt-8 gap-4">
+                <NcButton
+                  v-if="isSaveChangesBtnEnabled"
+                  type="secondary"
+                  size="small"
+                  data-testid="nc-account-settings-cancel"
+                  :disabled="isProfileUpdating"
+                  @click="onCancel"
+                >
+                  {{ $t('general.cancel') }}
+                </NcButton>
+                <NcButton
+                  type="primary"
+                  html-type="submit"
+                  size="small"
+                  :disabled="isErrored || !isSaveChangesBtnEnabled || isProfileUpdating"
+                  :loading="isProfileUpdating"
+                  data-testid="nc-account-settings-save"
+                >
+                  <template #loading> {{ $t('general.saving') }} </template>
+                  {{ $t('general.save') }}
+                </NcButton>
+              </div>
             </a-form>
           </div>
         </div>

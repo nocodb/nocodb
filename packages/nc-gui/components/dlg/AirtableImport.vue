@@ -297,25 +297,34 @@ const collapseKey = ref('')
     <div class="text-base font-weight-bold flex items-center gap-4 mb-6" @dblclick="enableAbort = true">
       <GeneralIcon icon="airtable" class="w-6 h-6" />
 
-      <span v-if="step === 1">
+      <span v-if="step === 1" class="flex-1">
         {{ $t('title.quickImportAirtable') }}
       </span>
-      <span v-else-if="isInProgress"> {{ `${$t('labels.importingFromAirtable')}...` }} </span>
-      <span v-else> {{ $t('labels.airtableBaseImported') }} </span>
+      <span v-else-if="isInProgress" class="flex-1"> {{ `${$t('labels.importingFromAirtable')}...` }} </span>
+      <span v-else class="flex-1"> {{ $t('labels.airtableBaseImported') }} </span>
 
-      <a
-        v-if="step === 1"
-        href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
-        class="!text-nc-content-gray-subtle2 text-sm font-weight-500 ml-auto"
-        target="_blank"
-        rel="noopener"
-      >
-        Docs
-      </a>
-      <nc-button v-else-if="step === 2" type="text" size="xs" class="ml-auto" @click="detailsIsShown = !detailsIsShown">
-        {{ detailsIsShown ? 'Hide' : 'Show' }} Details
-        <GeneralIcon icon="chevronDown" class="ml-2 transition-all transform" :class="{ 'rotate-180': detailsIsShown }" />
-      </nc-button>
+      <template v-if="step === 1">
+        <a
+          href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
+          class="!text-nc-content-gray-subtle2 text-sm font-weight-500 ml-auto"
+          target="_blank"
+          rel="noopener"
+        >
+          Docs
+        </a>
+      </template>
+
+      <div v-else-if="step === 2" class="flex items-center gap-2">
+        <nc-button type="text" size="xs" class="ml-auto" @click="detailsIsShown = !detailsIsShown">
+          {{ detailsIsShown ? 'Hide' : 'Show' }} Details
+          <GeneralIcon icon="chevronDown" class="ml-2 transition-all transform" :class="{ 'rotate-180': detailsIsShown }" />
+        </nc-button>
+        <NcButton v-if="!isInProgress" icon-only type="text" size="xs" @click.stop="dialogShow = false">
+          <template #icon>
+            <GeneralIcon icon="close" class="text-gray-600" />
+          </template>
+        </NcButton>
+      </div>
     </div>
 
     <div v-if="step === 1">

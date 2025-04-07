@@ -245,6 +245,19 @@ const {
   redistributeRows,
 } = useViewGroupByOrThrow()
 
+const baseColor = computed(() => {
+  switch (groupBy.value.length) {
+    case 1:
+      return '#F9F9FA'
+    case 2:
+      return '#F4F4F5'
+    case 3:
+      return '#E7E7E9'
+    default:
+      return '#F9F9FA'
+  }
+})
+
 const updateRowCommentCount = (count: number) => {
   if (!routeQuery.value.rowId) return
 
@@ -311,7 +324,7 @@ const bulkUpdateTrigger = (path: Array<number>) => {
   <div
     class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
-    style="background-color: var(--nc-grid-bg)"
+    :style="`background-color: ${isGroupBy && !isCanvasGroupByTableEnabled ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
   >
     <Table
       v-if="!isGroupBy && !isInfiniteScrollingEnabled"

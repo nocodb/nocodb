@@ -185,6 +185,9 @@ const showMessage = (
     ...ncAlertProps
   } = props
 
+  // If title & content is blank then no need to show blank toast message
+  if (!title && !content) return
+
   const key = generateMessageKey(params)
 
   return message.open({

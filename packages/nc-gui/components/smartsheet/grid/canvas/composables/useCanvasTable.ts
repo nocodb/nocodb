@@ -1002,7 +1002,7 @@ export function useCanvasTable({
     () => {
       if (isGroupBy.value && !activeCell.value.path) return null
       const dataCache = getDataCache(activeCell.value.path)
-      dataCache.cachedRows.value.get(editEnabled.value?.row.rowMeta.rowIndex ?? Infinity)
+      return dataCache.cachedRows.value.get(editEnabled.value?.row.rowMeta.rowIndex ?? Infinity)
     },
     (row) => {
       if (row == null) return

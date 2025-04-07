@@ -22,7 +22,13 @@ import {
   prepareForDb,
   prepareForResponse,
 } from '~/utils/modelUtils';
-import { Base, CustomUrl, DataReflection, Integration } from '~/models';
+import {
+  Base,
+  CustomUrl,
+  DataReflection,
+  Integration,
+  UsageStat,
+} from '~/models';
 import { getActivePlanAndSubscription } from '~/helpers/paymentHelpers';
 
 const logger = new Logger('Workspace');
@@ -50,6 +56,10 @@ export default class Workspace implements WorkspaceType {
   payment?: {
     subscription?: Subscription;
     plan: Partial<Plan>;
+  };
+
+  stats?: {
+    [key: string]: number;
   };
 
   created_at?: string;
@@ -94,6 +104,7 @@ export default class Workspace implements WorkspaceType {
     workspaceId: string,
     force = false,
     ncMeta = Noco.ncMeta,
+    withStats = true,
   ) {
     let workspaceData = await NocoCache.get(
       `${CacheScope.WORKSPACE}:${workspaceId}`,
@@ -127,6 +138,15 @@ export default class Workspace implements WorkspaceType {
       workspaceData.fk_org_id || workspaceData.id,
       ncMeta,
     );
+
+    if (withStats) {
+      workspaceData.stats = await UsageStat.getPeriodStats(
+        workspaceData.id,
+        workspaceData.payment?.subscription?.billing_cycle_anchor ||
+          workspaceData.created_at,
+        ncMeta,
+      );
+    }
 
     return workspaceData && new Workspace(workspaceData);
   }

@@ -59,6 +59,16 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
       });
     }
 
+    await this.jobsQueue.add(
+      {
+        jobName: JobTypes.UpdateUsageStats,
+      },
+      {
+        jobId: JobTypes.UpdateUsageStats,
+        repeat: { cron: '1 * * * *' },
+      },
+    );
+
     // common cmds
     const sourceReleaseCmd = async (commaSeperatedSourceIds: string) => {
       const sourceIds = commaSeperatedSourceIds.split(',');

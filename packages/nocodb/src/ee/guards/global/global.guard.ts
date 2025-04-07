@@ -1,10 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { lastValueFrom, Observable } from 'rxjs';
-import { extractRolesObj } from 'nocodb-sdk';
+import { extractRolesObj, PlanLimitTypes } from 'nocodb-sdk';
 import type { Request } from 'express';
 import type { ExecutionContext } from '@nestjs/common';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
+import { UsageStat } from '~/models';
 
 @Injectable()
 export class GlobalGuard extends AuthGuard(['jwt']) {
@@ -51,6 +52,16 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
       } catch {}
 
       if (canActivate) {
+        if (req.ncWorkspace) {
+          await UsageStat.incrby(
+            req.ncWorkspace.id,
+            PlanLimitTypes.LIMIT_API_CALL,
+            1,
+            req.ncWorkspace?.payment?.subscription?.billing_cycle_anchor ||
+              req.ncWorkspace?.created_at,
+          );
+        }
+
         return this.authenticate(req, {
           ...req.user,
           isAuthorized: true,

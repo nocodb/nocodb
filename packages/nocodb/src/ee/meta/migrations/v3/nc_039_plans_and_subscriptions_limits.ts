@@ -6,7 +6,7 @@ const up = async (knex: Knex) => {
     table.string('fk_workspace_id', 20);
     table.string('usage_type', 255); // 'api', 'automation', 'storage', 'webhook'
 
-    table.date('period_start');
+    table.timestamp('period_start');
 
     table.integer('count').defaultTo(0);
 

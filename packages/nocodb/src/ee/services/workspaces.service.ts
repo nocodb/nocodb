@@ -487,7 +487,10 @@ export class WorkspacesService implements OnApplicationBootstrap {
     return {
       ...workspace,
       roles: workspaceRoles?.roles,
-      stats,
+      stats: {
+        ...workspace.stats,
+        ...stats,
+      },
       integrations: integrations,
       data_reflection_enabled: !!dataReflection,
     } as Workspace;

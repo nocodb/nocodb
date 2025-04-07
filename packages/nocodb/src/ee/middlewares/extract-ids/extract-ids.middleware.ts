@@ -450,6 +450,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       if (workspace) {
         req.ncWorkspaceId = workspace.id;
+        req.ncWorkspace = workspace;
       } else {
         req.ncOrgId = req.params.workspaceOrOrgId;
       }
@@ -493,6 +494,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           ? await Workspace.get(req.ncWorkspaceId)
           : null;
 
+      req.ncWorkspace = workspace;
+
       if (!workspace) {
         NcError.workspaceNotFound(req.ncWorkspaceId);
       }
@@ -521,6 +524,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
 
       req.ncOrgId = workspace.fk_org_id;
+      req.ncWorkspace = workspace;
     } else if (req.params.domainId) {
       const domain = await Domain.get(req.params.domainId);
 

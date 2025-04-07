@@ -44,6 +44,7 @@ export enum JobTypes {
   ListenImport = 'listen-import',
   SyncModuleSyncData = 'sync-module-sync-data',
   SubscriptionSchedule = 'subscription-schedule',
+  UpdateUsageStats = 'update-usage-stats',
 }
 
 export const SKIP_STORING_JOB_META = [

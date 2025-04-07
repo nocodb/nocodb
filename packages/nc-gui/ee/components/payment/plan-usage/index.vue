@@ -67,10 +67,11 @@ const currentPlanTitle = computed(() => {
       </div>
       <NcButton
         v-if="activeSubscription"
-        type="primary"
+        type="secondary"
         size="small"
         icon-position="right"
         inner-class="!gap-2"
+        class="!text-nc-content-brand"
         @click="onManageSubscription"
       >
         <template #icon>

@@ -303,15 +303,29 @@ const collapseKey = ref('')
       <span v-else-if="isInProgress"> {{ `${$t('labels.importingFromAirtable')}...` }} </span>
       <span v-else> {{ $t('labels.airtableBaseImported') }} </span>
 
-      <a
-        v-if="step === 1"
-        href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
-        class="!text-nc-content-gray-subtle2 text-sm font-weight-500 ml-auto"
-        target="_blank"
-        rel="noopener"
-      >
-        Docs
-      </a>
+      <template v-if="step === 1">
+        <a
+          href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
+          class="!text-nc-content-gray-subtle2 text-sm font-weight-500 ml-auto"
+          target="_blank"
+          rel="noopener"
+        >
+          Docs
+        </a>
+      </template>
+      <template v-else-if="!isInProgress">
+        <a
+          class="!text-nc-content-gray-subtle2 text-sm font-weight-500 ml-auto"
+          @click="
+            () => {
+              dialogShow = false
+              emit('back')
+            }
+          "
+          ><GeneralIcon icon="ncX" class="w-4 h-4" />
+        </a>
+      </template>
+
       <nc-button v-else-if="step === 2" type="text" size="xs" class="ml-auto" @click="detailsIsShown = !detailsIsShown">
         {{ detailsIsShown ? 'Hide' : 'Show' }} Details
         <GeneralIcon icon="chevronDown" class="ml-2 transition-all transform" :class="{ 'rotate-180': detailsIsShown }" />

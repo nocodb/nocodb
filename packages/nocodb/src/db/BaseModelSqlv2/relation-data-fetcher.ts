@@ -247,7 +247,6 @@ export const relationDataFetcher = (param: {
           dbDriver: baseModel.dbDriver,
         })
       ).getProto();
-
       return children.map((c) => {
         c.__proto__ = proto;
         return c;

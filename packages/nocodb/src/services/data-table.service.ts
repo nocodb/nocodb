@@ -434,7 +434,9 @@ export class DataTableService {
     try {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
-
+    if (param.query.limit > 0) {
+      listArgs.nestedLimit = param.query.limit;
+    }
     let data: any[];
     let count: number;
     if (colOptions.type === RelationTypes.MANY_TO_MANY) {

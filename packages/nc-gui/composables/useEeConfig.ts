@@ -3,6 +3,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const activePlan = computed(() => undefined)
 
+  const activePlanTitle = computed(() => undefined)
+
   const activeSubscription = computed(() => undefined)
 
   const isPaymentEnabled = computed(() => undefined)
@@ -15,7 +17,9 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isWsAuditEnabled = computed(() => false)
 
-  const isAllowAddExtension = computed(() => false)
+  const isAllowToAddExtension = computed(() => true)
+
+  const blockAddNewAttachment = computed(() => false)
 
   const getLimit = (..._args: any[]) => {}
 
@@ -31,13 +35,15 @@ export const useEeConfig = createSharedComposable(() => {
 
   const getPlanTitle = (..._args: any[]) => {}
 
+  const navigateToBilling = (..._args: any[]) => {}
+
   const handleUpgradePlan = (..._args: any[]) => {}
 
   const showUserPlanLimitExceededModal = (..._args: any[]) => {}
 
   const showRecordPlanLimitExceededModal = (..._args: any[]) => {}
 
-  const navigateToBilling = (..._args: any[]) => {}
+  const showStoragePlanLimitExceededModal = (..._args: any[]) => {}
 
   return {
     getLimit,
@@ -46,6 +52,7 @@ export const useEeConfig = createSharedComposable(() => {
     getFeature,
     isPaidPlan,
     activePlan,
+    activePlanTitle,
     activeSubscription,
     getHigherPlan,
     getPlanTitle,
@@ -58,6 +65,8 @@ export const useEeConfig = createSharedComposable(() => {
     showRecordPlanLimitExceededModal,
     navigateToBilling,
     isWsAuditEnabled,
-    isAllowAddExtension,
+    isAllowToAddExtension,
+    blockAddNewAttachment,
+    showStoragePlanLimitExceededModal,
   }
 })

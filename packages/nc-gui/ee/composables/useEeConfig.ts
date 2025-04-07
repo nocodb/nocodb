@@ -18,19 +18,55 @@ export const useEeConfig = createSharedComposable(() => {
 
   const { activeWorkspace, activeWorkspaceId, workspaces } = storeToRefs(workspaceStore)
 
+  /** Ref or Computed value */
   const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription)
 
   const activePlan = computed(() => activeWorkspace.value?.payment?.plan)
+
+  const activePlanTitle = computed(() => (activePlan.value?.title as PlanTitles) ?? PlanTitles.FREE)
 
   const activeSubscription = computed(() => activeWorkspace.value?.payment?.subscription)
 
   const isPaymentEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.PAYMENT))
 
   const isWsAuditEnabled = computed(() => {
-    return activePlan.value?.title && PlanOrder[activePlan.value.title as PlanTitles] >= PlanOrder[PlanTitles.BUSINESS]
+    return activePlan.value?.title && PlanOrder[activePlanTitle.value] >= PlanOrder[PlanTitles.BUSINESS]
   })
 
-  const getLimit = (type: PlanLimitTypes, workspace?: NcWorkspace | null) => {
+  const isRecordLimitReached = computed(() => {
+    return getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)
+  })
+
+  const gracePeriodDaysLeft = computed(() => {
+    if (!isRecordLimitReached.value) return Infinity
+
+    if (!activeWorkspace.value?.grace_period_start_at) return 0
+
+    const start = dayjs(activeWorkspace.value.grace_period_start_at)
+    const graceEnd = start.add(GRACE_PERIOD_DURATION, 'day')
+
+    const daysLeft = graceEnd.diff(dayjs(), 'day')
+
+    // Ensure it's never negative (e.g., if grace period is over)
+    return Math.max(daysLeft, 0)
+  })
+
+  const blockAddNewRecord = computed(() => {
+    return gracePeriodDaysLeft.value === 0
+  })
+
+  const isAllowToAddExtension = computed(
+    () =>
+      (getFeature(PlanFeatureTypes.FEATURE_EXTENSIONS) || getLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE) > 0) &&
+      getStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE) < getLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE),
+  )
+
+  const blockAddNewAttachment = computed(() => {
+    return getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE)
+  })
+
+  /** Helper functions */
+  function getLimit(type: PlanLimitTypes, workspace?: NcWorkspace | null) {
     if (!workspace) {
       workspace = activeWorkspace.value
     }
@@ -40,7 +76,7 @@ export const useEeConfig = createSharedComposable(() => {
     return limit === -1 ? Infinity : limit
   }
 
-  const getStatLimit = (type: PlanLimitTypes, workspace?: NcWorkspace | null) => {
+  function getStatLimit(type: PlanLimitTypes, workspace?: NcWorkspace | null) {
     if (!workspace) {
       workspace = activeWorkspace.value
     }
@@ -49,7 +85,7 @@ export const useEeConfig = createSharedComposable(() => {
       type = 'row_count'
     }
 
-    const limit = workspace?.stats?.[type] ?? 0
+    const limit = workspace?.stats?.[type] ?? 20480
 
     return limit === -1 ? 0 : limit
   }
@@ -58,7 +94,7 @@ export const useEeConfig = createSharedComposable(() => {
    * @param type - PlanLimitTypes to update
    * @param count - Can be positive or negative
    */
-  const updateStatLimit = (type: PlanLimitTypes, count: number) => {
+  function updateStatLimit(type: PlanLimitTypes, count: number) {
     if (!activeWorkspace.value) return
 
     const newCount = Math.max(0, (activeWorkspace.value?.stats?.[type] ?? 0) + count)
@@ -72,7 +108,7 @@ export const useEeConfig = createSharedComposable(() => {
     })
   }
 
-  const getFeature = (type: PlanFeatureTypes, workspace?: NcWorkspace | null) => {
+  function getFeature(type: PlanFeatureTypes, workspace?: NcWorkspace | null) {
     if (!workspace) {
       workspace = activeWorkspace.value
     }
@@ -82,7 +118,7 @@ export const useEeConfig = createSharedComposable(() => {
       : workspace?.payment?.plan?.meta?.[type]
   }
 
-  const getHigherPlan = (plan: string | PlanTitles | undefined = activePlan.value?.title) => {
+  const getHigherPlan = (plan: string | PlanTitles | undefined = activePlanTitle.value) => {
     const planTitleValues = Object.values(PlanTitles)
 
     const activePlanIndex = planTitleValues.findIndex((p) => p === plan)
@@ -108,7 +144,7 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   const handleUpgradePlan = ({
-    activePlanTitle,
+    currentPlanTitle,
     newPlanTitle,
     workspaceId,
     callback,
@@ -120,14 +156,14 @@ export const useEeConfig = createSharedComposable(() => {
     cancelText,
   }: Pick<NcConfirmModalProps, 'content' | 'okText' | 'cancelText'> & {
     title?: string
-    activePlanTitle?: PlanTitles
+    currentPlanTitle?: PlanTitles
     newPlanTitle?: PlanTitles
     workspaceId?: string
     callback?: (type: 'ok' | 'cancel') => void
     redirectToWorkspace?: boolean
     stopEventPropogation?: boolean
   } = {}) => {
-    const higherPlan = HigherPlan[activePlanTitle ?? activePlan.value?.title ?? PlanTitles.FREE]
+    const higherPlan = HigherPlan[currentPlanTitle ?? activePlanTitle.value]
     if (!higherPlan) {
       return
     }
@@ -194,7 +230,7 @@ export const useEeConfig = createSharedComposable(() => {
 
     handleUpgradePlan({
       title: 'Invite more members',
-      activePlanTitle: details.plan,
+      currentPlanTitle: details.plan,
       newPlanTitle: details.higherPlan,
       content: `The ${details.plan} plan allows up to ${details.limit} ${userType}. Upgrade to the ${details.higherPlan} plan for unlimited ${userType}.`,
       workspaceId,
@@ -203,47 +239,37 @@ export const useEeConfig = createSharedComposable(() => {
     })
   }
 
-  const isRecordLimitReached = computed(() => {
-    return getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)
-  })
-
-  const gracePeriodDaysLeft = computed(() => {
-    if (!isRecordLimitReached.value) return Infinity
-
-    if (!activeWorkspace.value?.grace_period_start_at) return 0
-
-    const start = dayjs(activeWorkspace.value.grace_period_start_at)
-    const graceEnd = start.add(GRACE_PERIOD_DURATION, 'day')
-
-    const daysLeft = graceEnd.diff(dayjs(), 'day')
-
-    // Ensure it's never negative (e.g., if grace period is over)
-    return Math.max(daysLeft, 0)
-  })
-
-  const blockAddNewRecord = computed(() => {
-    return gracePeriodDaysLeft.value === 0
-  })
-
   const showRecordPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockAddNewRecord.value) return
 
     handleUpgradePlan({
-      title: 'Upgrade to create more records',
-      content: `The ${activePlan.value?.title} plan allows up to ${getLimit(
-        PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
-      )} records. Upgrade to the ${HigherPlan[activePlan.value?.title]} plan to increase your record limit.`,
+      title: t('upgrade.upgradeToCreateMoreRecords'),
+      content: t('upgrade.upgradeToAddMoreAttachmentsSubtitle', {
+        activePlan: activePlanTitle.value,
+        limit: getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE),
+        plan: HigherPlan[activePlanTitle.value],
+      }),
       callback,
     })
 
     return true
   }
 
-  const isAllowAddExtension = computed(
-    () =>
-      (getFeature(PlanFeatureTypes.FEATURE_EXTENSIONS) || getLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE) > 0) &&
-      getStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE) < getLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE),
-  )
+  const showStoragePlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockAddNewAttachment.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToAddMoreAttachments'),
+      content: t('upgrade.upgradeToAddMoreAttachmentsSubtitle', {
+        activePlan: activePlanTitle.value,
+        limit: `${getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1024} GB`,
+        plan: HigherPlan[activePlanTitle.value],
+      }),
+      callback,
+    })
+
+    return true
+  }
 
   return {
     getLimit,
@@ -252,6 +278,7 @@ export const useEeConfig = createSharedComposable(() => {
     getFeature,
     isPaidPlan,
     activePlan,
+    activePlanTitle,
     activeSubscription,
     getHigherPlan,
     getPlanTitle,
@@ -264,6 +291,8 @@ export const useEeConfig = createSharedComposable(() => {
     showRecordPlanLimitExceededModal,
     navigateToBilling,
     isWsAuditEnabled,
-    isAllowAddExtension,
+    isAllowToAddExtension,
+    blockAddNewAttachment,
+    showStoragePlanLimitExceededModal,
   }
 })

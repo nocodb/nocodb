@@ -839,7 +839,7 @@ export function useCanvasRender({
       ctx.font = '600 12px Manrope'
       const textMetrics = ctx.measureText(commentCount)
 
-      const maxX = ROW_META_COLUMN_WIDTH
+      const maxX = ROW_META_COLUMN_WIDTH + groupByColumns.value?.length * 12
 
       if (maxX - currentX < textMetrics.width + 8) {
         currentX = maxX - textMetrics.width - 8

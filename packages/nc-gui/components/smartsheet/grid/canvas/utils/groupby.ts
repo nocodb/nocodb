@@ -1,5 +1,5 @@
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
-import { COLUMN_HEADER_HEIGHT_IN_PX, GROUP_HEADER_HEIGHT, GROUP_PADDING } from './constants'
+import { COLUMN_HEADER_HEIGHT_IN_PX, GROUP_EXPANDED_BOTTOM_PADDING, GROUP_HEADER_HEIGHT, GROUP_PADDING } from './constants'
 
 export function getGroupColors(depth: number, maxDepth: number) {
   depth = depth + 1
@@ -31,7 +31,7 @@ export function getGroupColors(depth: number, maxDepth: number) {
       case 1: {
         return {
           background: '#F9F9FA',
-          border: '#E7E7E9',
+          border: '#d5d5d9',
           aggregation: {
             hover: '#F4F4F5', // Hover State
             default: '#F9F9FA', // Default Bg State
@@ -58,7 +58,7 @@ export function getGroupColors(depth: number, maxDepth: number) {
       case 2: {
         return {
           background: '#F9F9FA',
-          border: '#E7E7E9',
+          border: '#d5d5d9',
           aggregation: {
             hover: '#F4F4F5', // Hover State
             default: '#F9F9FA', // Default Bg State
@@ -78,6 +78,16 @@ export function getGroupColors(depth: number, maxDepth: number) {
         }
       }
     }
+  }
+
+  return {
+    background: '#FFF',
+    border: '#E7E7E9',
+    aggregation: {
+      hover: '#F9F9FA', // Hover State
+      default: '#FFF', // Default Bg State
+      border: '#F4F4F5',
+    },
   }
 }
 
@@ -119,7 +129,7 @@ export function calculateGroupHeight(group: CanvasGroup, rowHeight: number, isAd
       h += 1
     } else if (group?.groupCount) {
       // add group padding if expanded since there will be top padding in the beginning of the group
-      h += GROUP_PADDING
+      h += GROUP_EXPANDED_BOTTOM_PADDING
       for (let i = 0; i < group?.groupCount; i++) {
         const subGroup = group.groups.get(i)
         if (!subGroup) {
@@ -181,7 +191,7 @@ export function calculateGroupRange(
   }
 
   const partialGroupHeight = scrollTop - previousOffset
-  return { startIndex, endIndex, partialGroupHeight }
+  return { startIndex, endIndex, startGroupYOffset: partialGroupHeight }
 }
 
 export function generateGroupPath(data?: CanvasGroup) {

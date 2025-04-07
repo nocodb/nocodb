@@ -20,6 +20,7 @@ import {
   ADD_NEW_COLUMN_WIDTH,
   AGGREGATION_HEIGHT,
   COLUMN_HEADER_HEIGHT_IN_PX,
+  GROUP_EXPANDED_BOTTOM_PADDING,
   GROUP_HEADER_HEIGHT,
   GROUP_PADDING,
   MAX_SELECTED_ROWS,
@@ -33,7 +34,7 @@ import {
   generateGroupPath,
   getGroupColors,
 } from '../utils/groupby'
-import { parseKey, shouldRenderCell } from '../../../../../utils/groupbyUtils'
+import { parseKey } from '../../../../../utils/groupbyUtils'
 import type { CanvasElement } from '../utils/CanvasElement'
 import { ElementTypes } from '../utils/CanvasElement'
 
@@ -2213,7 +2214,7 @@ export function useCanvasRender({
               relativeScrollTop,
               rowHeight.value,
               group.groupCount,
-              height.value - groupHeaderY - GROUP_HEADER_HEIGHT - GROUP_PADDING,
+              height.value - groupHeaderY - GROUP_HEADER_HEIGHT - GROUP_EXPANDED_BOTTOM_PADDING,
               true,
               isAddingEmptyRowAllowed.value,
             )
@@ -2224,7 +2225,7 @@ export function useCanvasRender({
               postRenderCbk,
             } = renderGroups(ctx, {
               level: level + 1,
-              yOffset: nestedContentStart + GROUP_PADDING,
+              yOffset: nestedContentStart + GROUP_EXPANDED_BOTTOM_PADDING,
               pGroup: group,
               startIndex: 0,
               endIndex: Math.max(0, nestedEnd),
@@ -2263,14 +2264,11 @@ export function useCanvasRender({
         )
 
         const { start: startColIndex, end: endColIndex } = colSlice.value
-
         const visibleCols = columns.value.slice(startColIndex, endColIndex)
 
         const fixedColsWidth = fixedCols.value.reduce((sum, col) => sum + parseCellWidth(col.width), 1)
 
-        const initialOffset = 0
-
-        let aggXOffset = initialOffset
+        let aggXOffset = 0
 
         for (let i = 0; i < startColIndex; i++) {
           aggXOffset += parseCellWidth(columns.value[i]?.width)
@@ -2289,7 +2287,7 @@ export function useCanvasRender({
               x: aggXOffset - scrollLeft.value,
               y: currentOffset + 1,
               width,
-              height: GROUP_HEADER_HEIGHT - 1 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
+              height: GROUP_HEADER_HEIGHT - 1 + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
             },
             mousePosition,
           )
@@ -2297,6 +2295,7 @@ export function useCanvasRender({
           if (isHovered) {
             setCursor('pointer')
           }
+
           ctx.fillStyle = isHovered ? aggregationHoverBg : aggregationDefaultBg
 
           if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
@@ -2307,7 +2306,7 @@ export function useCanvasRender({
               Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
               groupHeaderY + 1,
               width,
-              GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
+              GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
             )
 
             ctx.fill()
@@ -2316,23 +2315,23 @@ export function useCanvasRender({
             ctx.textBaseline = 'middle'
             ctx.textAlign = 'right'
 
-            ctx.font = '700 13px Manrope'
+            ctx.font = '700 12px Manrope'
             const aggWidth = ctx.measureText(group.aggregations[column.title] ?? '').width
             if (column.agg_prefix) {
-              ctx.font = '500 12px Manrope'
+              ctx.font = '600 10px Manrope'
               ctx.fillStyle = '#6a7184'
               ctx.fillText(
                 column.agg_prefix,
                 aggXOffset + width - aggWidth - 16 - scrollLeft.value,
-                groupHeaderY + (GROUP_HEADER_HEIGHT + (group.isExpanded && !group?.path ? GROUP_PADDING : 0)) / 2,
+                groupHeaderY + (GROUP_HEADER_HEIGHT + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
               )
             }
             ctx.fillStyle = '#374151'
-            ctx.font = '700 13px Manrope'
+            ctx.font = '700 12px Manrope'
             ctx.fillText(
               group.aggregations[column.title] ?? '',
               aggXOffset + width - 8 - scrollLeft.value,
-              groupHeaderY + (GROUP_HEADER_HEIGHT + (group.isExpanded && !group?.path ? GROUP_PADDING : 0)) / 2,
+              groupHeaderY + (GROUP_HEADER_HEIGHT + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
             )
 
             ctx.restore()
@@ -2345,18 +2344,19 @@ export function useCanvasRender({
                 Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
                 groupHeaderY + 1,
                 width,
-                GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
+                GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
               )
               ctx.fill()
               ctx.clip()
 
-              ctx.font = '500 12px Manrope'
+              ctx.font = '600 10px Manrope'
               ctx.fillStyle = '#6a7184'
               ctx.textAlign = 'right'
               ctx.textBaseline = 'middle'
 
               const rightEdge = aggXOffset + width - 8 - scrollLeft.value
-              const textY = groupHeaderY + (GROUP_HEADER_HEIGHT + (group.isExpanded && !group?.path ? GROUP_PADDING : 0)) / 2
+              const textY =
+                groupHeaderY + (GROUP_HEADER_HEIGHT + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2
 
               ctx.fillText('Summary', rightEdge, textY)
 
@@ -2378,7 +2378,7 @@ export function useCanvasRender({
             Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
             groupHeaderY + 1,
             width,
-            GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
+            GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
           )
 
           ctx.clip()
@@ -2387,7 +2387,7 @@ export function useCanvasRender({
           ctx.moveTo(aggXOffset - scrollLeft.value, groupHeaderY + 1)
           ctx.lineTo(
             aggXOffset - scrollLeft.value,
-            groupHeaderY + GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
+            groupHeaderY + GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
           )
           ctx.stroke()
           ctx.restore()
@@ -2398,48 +2398,67 @@ export function useCanvasRender({
           icon: group.isExpanded ? 'ncChevronDown' : 'ncChevronRight',
           size: 16,
           color: '#374150',
-          x: xOffset + 12,
+          x: xOffset + 16,
           y: groupHeaderY + (GROUP_HEADER_HEIGHT - 16) / 2,
         })
 
-        const availableWidth = mergedWidth - (xOffset + 12 + 16) - 20
-        const contentX = xOffset + 36
-        const contentY = groupHeaderY + GROUP_HEADER_HEIGHT / 2
+        // 16px is the icon size
+        // 16px is the right padding
+        // xOffset + 16 is the left padding
+        const availableWidth = mergedWidth - (xOffset + 16 + 16) - 16
+
+        const contentX = xOffset + 32 + 16
+
+        const contentY = groupHeaderY + (GROUP_HEADER_HEIGHT - 30) / 2
 
         const isMouseHoveringOverGroupHeader = isBoxHovered(
           { x: xOffset, y: groupHeaderY, width: mergedWidth, height: GROUP_HEADER_HEIGHT },
           mousePosition,
         )
+
         let contentWidth = 0
         let countWidth = 0
 
         if (isMouseHoveringOverGroupHeader) {
           setCursor('pointer')
         }
+
         const countRender = renderSingleLineText(ctx, {
           text: `${group.count}`,
-          x: xOffset + mergedWidth - 8,
-          y: groupHeaderY + 5,
+          x: xOffset + mergedWidth - 12,
+          y: contentY,
           height: GROUP_HEADER_HEIGHT,
           verticalAlign: 'middle',
-          fontFamily: '700 13px Manrope',
+          fontFamily: '600 12px Manrope',
           fillStyle: '#374151',
           textAlign: 'right',
         })
+
         countWidth = countRender.width
 
         const contentRender = renderSingleLineText(ctx, {
           text: 'Count',
-          x: xOffset + mergedWidth - 8 - countWidth - 8,
-          y: groupHeaderY + 5,
+          x: xOffset + mergedWidth - 12 - countWidth - 8,
+          y: contentY,
           height: GROUP_HEADER_HEIGHT,
           verticalAlign: 'middle',
           textAlign: 'right',
-          fontFamily: '500 12px Manrope',
+          fontFamily: '600 10px Manrope',
           fillStyle: '#6A7184',
         })
+
         contentWidth = contentRender.width
-        renderGroupContent(ctx, group, contentX, contentY + 6, availableWidth - contentWidth - 8 - countWidth)
+
+        renderSingleLineText(ctx, {
+          text: (group.column?.title ?? '').toUpperCase(),
+          fillStyle: '#4A5268',
+          x: contentX,
+          fontFamily: '600 10px Manrope',
+          y: groupHeaderY - 2,
+        })
+
+        renderGroupContent(ctx, group, contentX, contentY + 26, availableWidth - contentWidth - 20 - countWidth)
+
         currentOffset = tempCurrentOffset
       }
       currentOffset += GROUP_PADDING
@@ -2453,10 +2472,9 @@ export function useCanvasRender({
   }
 
   function renderGroupContent(ctx: CanvasRenderingContext2D, group: CanvasGroup, x: number, y: number, maxWidth: number) {
-    if (group.column.uidt === UITypes.MultiSelect) {
+    if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(group.column?.uidt)) {
       const tags = group.value.split(',')
       const colors = group.color.split(',')
-
       let xPosition = x
       let tagsRendered = 0
 
@@ -2470,60 +2488,68 @@ export function useCanvasRender({
           size: 'large',
         })
           ? '#fff'
-          : tinycolor.mostReadable(color, ['#0b1d05', '#fff']).toHex8String()
+          : tinycolor.mostReadable(color, ['#374151', '#fff']).toHex8String()
+
+        ctx.save()
+        ctx.font = '700 13px Manrope'
+        const tagPaddingX = 12
+        const tagSpacing = 0
+        const remainingWidth = maxWidth - (xPosition - x)
+
+        const textMetrics = ctx.measureText(displayText || '')
+        const estimatedTagWidth = textMetrics.width + tagPaddingX * 2 + tagSpacing
+
+        if (xPosition > x && (estimatedTagWidth > remainingWidth - 30 || remainingWidth < 50)) {
+          ctx.fillStyle = '#6a7184'
+          ctx.font = '400 12px Manrope'
+
+          const indicatorX = Math.min(xPosition, x + maxWidth - 24)
+
+          ctx.fillText(`+${tags.length - tagsRendered}`, indicatorX, y)
+          ctx.restore()
+          break
+        }
 
         const { x: newX } = renderTagLabel(ctx, {
           x: xPosition,
           y: y - 12,
           height: 24,
-          width: maxWidth - (xPosition - x),
+          width: remainingWidth,
           padding: 0,
           textColor,
           text: displayText || '',
           tag: {
             tagPaddingX: 12,
-            tagHeight: 24,
+            tagPaddingY: 4,
+            tagHeight: 26,
             tagRadius: 12,
             tagBgColor: color,
             tagSpacing: 0,
           },
         } as any)
 
+        ctx.restore()
+
         xPosition = newX + 8
         tagsRendered++
 
-        if (xPosition > x + maxWidth) {
+        if (xPosition + 30 >= x + maxWidth) {
           if (i < tags.length - 1) {
+            ctx.save()
             ctx.fillStyle = '#6a7184'
             ctx.font = '400 12px Manrope'
-            ctx.fillText(`+${tags.length - tagsRendered}`, xPosition - 8, y)
+
+            const indicatorSpace = Math.max(24, x + maxWidth - xPosition)
+
+            const indicatorX = indicatorSpace < 24 ? x + maxWidth - 24 : xPosition
+
+            ctx.fillText(`+${tags.length - tagsRendered}`, indicatorX, y)
+            ctx.restore()
           }
           break
         }
       }
-    } else if (!(group.value in GROUP_BY_VARS.VAR_TITLES) && shouldRenderCell(group.column)) {
-      renderCell(ctx, group.column, {
-        value: group.value,
-        x: x - 8,
-        y: y - GROUP_HEADER_HEIGHT / 2,
-        width: maxWidth,
-        height: rowHeight.value,
-        row: {},
-        selected: false,
-        pv: false,
-        spriteLoader,
-        readonly: true,
-        imageLoader,
-        tableMetaLoader,
-        relatedColObj: group.relatedColumn,
-        relatedTableMeta: group.relatedTableMeta,
-        mousePosition,
-        skipRender: false,
-      })
-    } else {
-      const isRoundedTag = group.column.uidt === 'SingleSelect'
-      const cornerRadius = isRoundedTag ? 12 : 6
-
+    } else if (group.value in GROUP_BY_VARS.VAR_TITLES) {
       const displayText =
         group.value in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[group.value] : parseKey(group)?.join(', ')
 
@@ -2543,12 +2569,35 @@ export function useCanvasRender({
         textColor,
         text: displayText,
         tag: {
-          tagPaddingX: 8,
-          tagHeight: 20,
-          tagRadius: cornerRadius,
-          tagBgColor: group.color || '#ccc',
+          tagPaddingX: 12,
+          tagPaddingY: 4,
+          tagHeight: 26,
+          tagRadius: 12,
           tagSpacing: 0,
+          tagBgColor: group.color || '#ccc',
         },
+      } as any)
+    } else {
+      renderCell(ctx, group.column, {
+        value: group.value,
+        x: x - 11,
+        y: y - GROUP_HEADER_HEIGHT / 2 + 12,
+        width: maxWidth,
+        height: rowHeight.value,
+        row: {},
+        selected: false,
+        pv: false,
+        spriteLoader,
+        readonly: true,
+        textColor: '#374151',
+        imageLoader,
+        tableMetaLoader,
+        relatedColObj: group.relatedColumn,
+        relatedTableMeta: group.relatedTableMeta,
+        mousePosition,
+        skipRender: false,
+        renderAsPlainCell: true,
+        fontFamily: '700 13px Manrope',
       })
     }
   }

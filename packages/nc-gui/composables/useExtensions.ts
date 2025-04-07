@@ -1,6 +1,6 @@
 import { useStorage } from '@vueuse/core'
-import { ExtensionsEvents } from '#imports'
 import { PlanLimitTypes } from 'nocodb-sdk'
+import { ExtensionsEvents } from '#imports'
 
 const extensionsState = createGlobalState(() => {
   const baseExtensions = ref<Record<string, any>>({})

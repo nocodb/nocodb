@@ -11,13 +11,8 @@ export const valueToCopy = (
   },
 ) => {
   const { isPg, isMysql, meta, metas } = cb
-  let textToCopy = ''
-  if (columnObj.title) {
-    const rowValue = rowObj.row[columnObj.title]
-    if (!ncIsUndefined(rowValue) && !ncIsNull(rowValue)) {
-      textToCopy = rowObj.row[columnObj.title]
-    }
-  }
+  const textToCopy = (columnObj.title && rowObj.row[columnObj.title]) ?? ''
+
   return ColumnHelper.parseValue(textToCopy, {
     col: columnObj,
     isMysql,

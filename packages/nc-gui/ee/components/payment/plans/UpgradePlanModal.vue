@@ -98,8 +98,8 @@ watchEffect(() => {
                 <PaymentPlansSelectMode
                   :value="paymentMode"
                   :discount="annualDiscount"
-                  @change="onPaymentModeChange"
                   class="text-xs nc-upgrade-plan-select-mode"
+                  @change="onPaymentModeChange"
                 />
               </div>
 

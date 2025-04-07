@@ -1,4 +1,4 @@
-import { PlanTitles, type PlanFeatureTypes, type PlanLimitTypes } from 'nocodb-sdk'
+import { type PlanFeatureTypes, type PlanLimitTypes, PlanTitles } from 'nocodb-sdk'
 import NcModalConfirm, { type NcConfirmModalProps } from '../../components/nc/ModalConfirm.vue'
 
 export const useEeConfig = createSharedComposable(() => {

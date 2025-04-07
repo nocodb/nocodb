@@ -249,34 +249,34 @@ const onCancel = () => {
                   placeholder="Workspace name"
                   size="large"
                   data-testid="nc-workspace-settings-settings-rename-input"
-                  />
+                />
               </a-form-item>
             </div>
           </div>
-        <div class="flex flex-row w-full justify-end mt-8 gap-4">
-          <NcButton
-            v-if="isSaveChangesBtnEnabled"
-            type="secondary"
-            size="small"
-            data-testid="nc-workspace-settings-settings-rename-cancel"
-            :disabled="isWorkspaceUpdating"
-            @click="onCancel"
-          >
-            {{ $t('general.cancel') }}
-          </NcButton>
-          <NcButton
-            v-e="['c:workspace:settings:rename']"
-            type="primary"
-            html-type="submit"
-            size="small"
-            :disabled="isErrored || !isSaveChangesBtnEnabled || isWorkspaceUpdating"
-            :loading="isWorkspaceUpdating"
-            data-testid="nc-workspace-settings-settings-rename-submit"
-          >
-            <template #loading> {{ $t('general.saving') }} </template>
-            {{ $t('general.save') }}
-          </NcButton>
-        </div>
+          <div class="flex flex-row w-full justify-end mt-8 gap-4">
+            <NcButton
+              v-if="isSaveChangesBtnEnabled"
+              type="secondary"
+              size="small"
+              data-testid="nc-workspace-settings-settings-rename-cancel"
+              :disabled="isWorkspaceUpdating"
+              @click="onCancel"
+            >
+              {{ $t('general.cancel') }}
+            </NcButton>
+            <NcButton
+              v-e="['c:workspace:settings:rename']"
+              type="primary"
+              html-type="submit"
+              size="small"
+              :disabled="isErrored || !isSaveChangesBtnEnabled || isWorkspaceUpdating"
+              :loading="isWorkspaceUpdating"
+              data-testid="nc-workspace-settings-settings-rename-submit"
+            >
+              <template #loading> {{ $t('general.saving') }} </template>
+              {{ $t('general.save') }}
+            </NcButton>
+          </div>
         </a-form>
       </div>
       <div class="item-card flex flex-col border-1 border-red-500">

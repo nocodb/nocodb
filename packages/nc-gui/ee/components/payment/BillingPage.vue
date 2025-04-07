@@ -15,12 +15,6 @@ const router = useRouter()
 
 const workspaceStore = useWorkspace()
 
-const { workspacesList, activeWorkspace: _activeWorkspace } = storeToRefs(workspaceStore)
-
-const activeWorkspace = computed(() =>
-  workspaceId.value ? workspacesList.value.find((w) => w.id === workspaceId.value)! : _activeWorkspace.value!,
-)
-
 const { paymentState, loadPlans, stripe, getSessionResult, isAccountPage } = useProvidePaymentStore()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)

@@ -102,7 +102,7 @@ describe('dataApiV3', () => {
       it('Read: invalid ID', async function () {
         await ncAxiosGet({
           url: `${urlPrefix}/123456789/100`,
-          status: 404,
+          status: 422,
         });
 
         await ncAxiosGet({

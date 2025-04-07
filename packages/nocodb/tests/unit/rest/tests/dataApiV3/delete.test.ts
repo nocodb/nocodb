@@ -89,7 +89,7 @@ describe('dataApiV3', () => {
         await ncAxiosDelete({
           url: `${urlPrefix}/123456789`,
           body: { Id: 100 },
-          status: 404,
+          status: 422,
         });
         // Invalid row ID
         await ncAxiosDelete({

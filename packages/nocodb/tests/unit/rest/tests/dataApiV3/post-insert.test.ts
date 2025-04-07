@@ -102,7 +102,7 @@ describe('dataApiV3', () => {
         // Invalid table ID
         await ncAxiosPost({
           url: `${urlPrefix}/123456789`,
-          status: 404,
+          status: 422,
         });
 
         // Invalid data - create should not specify ID

@@ -2934,7 +2934,7 @@ const cellAlignClass = computed(() => {
                 v-if="!contextMenuClosing && !contextMenuTarget && !isDataReadOnly && selectedRows.length"
                 class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
                 data-testid="nc-delete-row"
-                @click="deleteSelectedRows"
+                @click="deleteSelectedRows([])"
               >
                 <div v-if="selectedRows.length === 1" v-e="['a:row:delete']" class="flex gap-2 items-center">
                   <component :is="iconMap.delete" />
@@ -2950,7 +2950,7 @@ const cellAlignClass = computed(() => {
               v-if="vSelectedAllRecords"
               class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
               data-testid="nc-delete-all-row"
-              @click="deleteAllRecords"
+              @click="deleteAllRecords([])"
             >
               <div v-e="['a:row:delete-all']" class="flex gap-2 items-center">
                 <component :is="iconMap.delete" />

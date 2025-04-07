@@ -2426,7 +2426,7 @@ export function useCanvasRender({
         const countRender = renderSingleLineText(ctx, {
           text: `${group.count}`,
           x: xOffset + mergedWidth - 12,
-          y: contentY,
+          y: contentY + (group?.isExpanded && !group?.path ? 1 : 0),
           height: GROUP_HEADER_HEIGHT,
           verticalAlign: 'middle',
           fontFamily: '600 12px Manrope',
@@ -2439,7 +2439,7 @@ export function useCanvasRender({
         const contentRender = renderSingleLineText(ctx, {
           text: 'Count',
           x: xOffset + mergedWidth - 12 - countWidth - 8,
-          y: contentY,
+          y: contentY + (group?.isExpanded && !group?.path ? 1 : 0),
           height: GROUP_HEADER_HEIGHT,
           verticalAlign: 'middle',
           textAlign: 'right',

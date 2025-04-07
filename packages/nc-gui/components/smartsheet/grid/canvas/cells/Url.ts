@@ -5,7 +5,7 @@ export const UrlCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { value, x, y, column, width, height, selected, pv, padding, textColor = '#4a5268', spriteLoader, setCursor } = props
 
-    const text = value?.toString() ?? ''
+    const text = addMissingUrlSchma(value?.toString() ?? '')
 
     if (!text) {
       return {
@@ -68,7 +68,7 @@ export const UrlCellRenderer: CellRenderer = {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
 
-    const text = value?.toString().trim() ?? ''
+    const text = addMissingUrlSchma(value?.toString() ?? '')
 
     const isValid = text && isValidURL(text)
     if (isValid || !text?.length) return
@@ -117,7 +117,7 @@ export const UrlCellRenderer: CellRenderer = {
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 10
 
-    const text = value?.toString().trim() ?? ''
+    const text = addMissingUrlSchma(value?.toString() ?? '')
 
     const isValid = text && isValidURL(text)
     if (!isValid) return false

@@ -200,7 +200,7 @@ export function useCanvasRender({
         })
       }
 
-      const isRequired = colObj.rqd && !colObj.cdf
+      const isRequired = column.virtual ? isVirtualColRequired(colObj, meta.value?.columns || []) : colObj?.rqd && !colObj?.cdf
 
       const availableTextWidth = width - (26 + iconSpace + (isRequired ? 4 : 0))
       const truncatedText = truncateText(ctx, column.title!, availableTextWidth)
@@ -404,7 +404,7 @@ export function useCanvasRender({
           })
         }
 
-        const isRequired = colObj?.rqd && !colObj?.cdf
+        const isRequired = column.virtual ? isVirtualColRequired(colObj, meta.value?.columns || []) : colObj?.rqd && !colObj?.cdf
 
         const availableTextWidth = width - (26 + iconSpace + (isRequired ? 4 : 0))
 
@@ -1341,25 +1341,26 @@ export function useCanvasRender({
 
         ctx.restore()
       } else if (isHovered) {
-        ctx.save()
-        ctx.beginPath()
-
-        ctx.rect(xOffset - scrollLeft.value, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
-        ctx.fill()
-        ctx.clip()
-
-        ctx.font = '600 10px Manrope'
-        ctx.fillStyle = '#6a7184'
-        ctx.textAlign = 'right'
-        ctx.textBaseline = 'middle'
-
-        const rightEdge = xOffset + width - 8 - scrollLeft.value
-        const textY = height.value - AGGREGATION_HEIGHT / 2
-
-        ctx.fillText('Summary', rightEdge, textY)
-
-        const textLen = ctx.measureText('Summary').width
         if (!isLocked.value) {
+          ctx.save()
+          ctx.beginPath()
+
+          ctx.rect(xOffset - scrollLeft.value, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
+          ctx.fill()
+          ctx.clip()
+
+          ctx.font = '600 10px Manrope'
+          ctx.fillStyle = '#6a7184'
+          ctx.textAlign = 'right'
+          ctx.textBaseline = 'middle'
+
+          const rightEdge = xOffset + width - 8 - scrollLeft.value
+          const textY = height.value - AGGREGATION_HEIGHT / 2
+
+          ctx.fillText('Summary', rightEdge, textY)
+
+          const textLen = ctx.measureText('Summary').width
+
           spriteLoader.renderIcon(ctx, {
             icon: 'chevronDown',
             size: 14,
@@ -1433,23 +1434,24 @@ export function useCanvasRender({
           availWidth -= w
           ctx.restore()
         } else if (isHovered) {
-          ctx.save()
-          ctx.beginPath()
-          ctx.rect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
-          ctx.clip()
-
-          ctx.font = '600 10px Manrope'
-          ctx.textAlign = 'right'
-
-          const rightEdge = xOffset + mergedWidth - 8
-          const textY = height.value - AGGREGATION_HEIGHT / 2
-
-          ctx.fillText('Summary', rightEdge, textY)
-
-          const textLen = ctx.measureText('Summary').width
-
-          availWidth -= textLen
           if (!isLocked.value) {
+            ctx.save()
+            ctx.beginPath()
+            ctx.rect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
+            ctx.clip()
+
+            ctx.font = '600 10px Manrope'
+            ctx.textAlign = 'right'
+
+            const rightEdge = xOffset + mergedWidth - 8
+            const textY = height.value - AGGREGATION_HEIGHT / 2
+
+            ctx.fillText('Summary', rightEdge, textY)
+
+            const textLen = ctx.measureText('Summary').width
+
+            availWidth -= textLen
+
             spriteLoader.renderIcon(ctx, {
               icon: 'chevronDown',
               size: 14,

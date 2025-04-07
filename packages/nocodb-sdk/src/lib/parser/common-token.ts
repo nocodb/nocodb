@@ -44,6 +44,11 @@ export const COMMON_TOKEN = {
   SGL_QUOTE: createToken({ name: 'SGL_QUOTE', pattern: /'/ }),
   IDENTIFIER: IDENTIFIER,
   COMMA_SUPPORTED_IDENTIFIER: COMMA_SUPPORTED_IDENTIFIER,
+  EMPTY_QUOTED_IDENTIFIER: createToken({
+    name: 'EMPTY_QUOTED_IDENTIFIER',
+    pattern: /''|""|``/,
+    longer_alt: IDENTIFIER,
+  }),
   SUP_SGL_QUOTE_IDENTIFIER: createToken({
     name: 'SUP_SGL_QUOTE_IDENTIFIER',
     pattern: /'((?:\\'|[^'])+)'/,

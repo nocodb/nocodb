@@ -20,11 +20,11 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
 
-const showProjectDeleteModal = ref(false)
+const showBaseDeleteModal = ref(false)
 
-const toBeDeletedProjectId = ref<string | undefined>()
+const toBeDeletedBaseId = ref<string | undefined>()
 
-const openProject = async (base: BaseType) => {
+const openBase = async (base: BaseType) => {
   navigateToProject({
     baseId: base.id!,
     type: base.type as NcProjectType,
@@ -44,11 +44,11 @@ const roleAlias = {
   [ProjectRoles.OWNER]: 'Base Owner',
 }
 
-const deleteProject = (base: BaseType) => {
+const deleteBase = (base: BaseType) => {
   $e('c:base:delete')
 
-  showProjectDeleteModal.value = true
-  toBeDeletedProjectId.value = base.id
+  showBaseDeleteModal.value = true
+  toBeDeletedBaseId.value = base.id
 }
 
 const renameInput = ref<HTMLInputElement>()
@@ -68,7 +68,7 @@ const disableEdit = (index: number) => {
 
 const customRow = (record: BaseType) => ({
   onClick: async () => {
-    openProject(record)
+    openBase(record)
 
     $e('a:base:open')
   },
@@ -156,7 +156,7 @@ function onProjectTitleClick(index: number) {
   clickCount++
   if (clickCount === 1) {
     timer = setTimeout(function () {
-      openProject(basesList.value![index])
+      openBase(basesList.value![index])
       clickCount = 0
     }, delay)
   } else {
@@ -352,7 +352,7 @@ const setColor = async (color: string, base: BaseType) => {
                 -->
                 <a-menu-item
                   v-if="isUIAllowed('baseDelete', { roles: [record.workspace_role, record.project_role].join() })"
-                  @click="deleteProject(record)"
+                  @click="deleteBase(record)"
                 >
                   <div class="nc-menu-item-wrapper text-red-500">
                     <GeneralIcon icon="delete" />
@@ -366,14 +366,14 @@ const setColor = async (color: string, base: BaseType) => {
         </template>
       </template>
     </a-table>
-    <DlgProjectDelete v-if="toBeDeletedProjectId" v-model:visible="showProjectDeleteModal" :base-id="toBeDeletedProjectId" />
+    <DlgBaseDelete v-if="toBeDeletedBaseId" v-model:visible="showBaseDeleteModal" :base-id="toBeDeletedBaseId" />
     <WorkspaceMoveProjectDlg
       v-if="selectedProjectToMove"
       v-model="isMoveDlgOpen"
       :base="selectedProjectToMove"
       @success="workspaceMoveProjectOnSuccess"
     />
-    <DlgProjectDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
+    <DlgBaseDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
   </div>
 </template>
 

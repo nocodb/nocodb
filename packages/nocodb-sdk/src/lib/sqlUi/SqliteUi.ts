@@ -1,6 +1,7 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
 import { ColumnType } from '~/lib';
+import {SqlUi} from "~/lib/sqlUi/SqlUI.types";
 
 const dbTypes = [
   'int',
@@ -27,7 +28,7 @@ const dbTypes = [
   'timestamp',
 ];
 
-export class SqliteUi {
+export class SqliteUi implements SqlUi {
   //#region statics
   static getNewTableColumns() {
     return [
@@ -1063,5 +1064,8 @@ export class SqliteUi {
     _newColumn: Partial<ColumnType>,
     _oldColumn?: ColumnType
   ) {}
+  isParsedJsonReturnType(_col: ColumnType): boolean {
+    return false;
+  }
   //#endregion methods
 }

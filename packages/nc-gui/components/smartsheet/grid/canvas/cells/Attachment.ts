@@ -302,6 +302,35 @@ export const AttachmentCellRenderer: CellRenderer = {
       for now, the tooltip does not make sense */
       return
     }
+
+    if (attachments.length) {
+      const buttonY = y + 5
+      const maximizeBox = {
+        x: x + width - 30,
+        y: buttonY,
+        width: 18,
+        height: 18,
+      }
+
+      const attachBox = {
+        x: x + 11,
+        y: buttonY,
+        width: 18,
+        height: 18,
+      }
+
+      if (
+        tryShowTooltip({
+          rect: maximizeBox,
+          text: `${getI18n().global.t('activity.viewAttachment')} '${getI18n().global.t('tooltip.shiftSpace')}'`,
+          mousePosition,
+        })
+      )
+        return
+
+      if (tryShowTooltip({ rect: attachBox, text: getI18n().global.t('activity.addFiles'), mousePosition })) return
+    }
+
     const rowHeight = pxToRowHeight[height] ?? 1
 
     const { getPossibleAttachmentSrc } = useAttachment()
@@ -365,35 +394,14 @@ export const AttachmentCellRenderer: CellRenderer = {
     })
 
     const hoveredPreview = imageBoxes.find((box) => isBoxHovered(box, mousePosition))
-    if (tryShowTooltip({ rect: hoveredPreview, text: hoveredPreview?.title ?? '', mousePosition })) {
-      return
-    }
-
-    if (!attachments.length) return
-
-    const buttonY = y + 5
-    const maximizeBox = {
-      x: x + width - 30,
-      y: buttonY,
-      width: 18,
-      height: 18,
-    }
-
-    const attachBox = {
-      x: x + 11,
-      y: buttonY,
-      width: 18,
-      height: 18,
-    }
-
-    tryShowTooltip({ rect: maximizeBox, text: getI18n().global.t('activity.viewAttachment'), mousePosition })
-    tryShowTooltip({ rect: attachBox, text: getI18n().global.t('activity.addFiles'), mousePosition })
+    tryShowTooltip({ rect: hoveredPreview, text: hoveredPreview?.title ?? '', mousePosition })
   },
   async handleKeyDown({ row, column, e, makeCellEditable }) {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' || isExpandCellKey(e)) {
       makeCellEditable(row.rowMeta.rowIndex!, column)
       return true
     }
+
     return false
   },
 

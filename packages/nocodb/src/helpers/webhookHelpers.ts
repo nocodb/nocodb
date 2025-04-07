@@ -5,20 +5,27 @@ import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
 import { Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
-import { isDateMonthFormat, UITypes } from 'nocodb-sdk';
+import { ColumnHelper, isDateMonthFormat, UITypes } from 'nocodb-sdk';
 import isBetween from 'dayjs/plugin/isBetween';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import NcPluginMgrv2 from './NcPluginMgrv2';
 import type { AxiosResponse } from 'axios';
 import type { HookType } from 'jsep';
-import type { HookLogType, TableType, UserType, ViewType } from 'nocodb-sdk';
-import type { Column, FormView, Hook, Model, View } from '~/models';
+import type {
+  ColumnType,
+  FormColumnType,
+  HookLogType,
+  TableType,
+  UserType,
+  ViewType,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type { Column, FormView, Hook, Model, View } from '~/models';
 import { Filter, HookLog, Source } from '~/models';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
-import { isEE } from '~/utils';
+import { isEE, isOnPrem } from '~/utils';
 
 for (const moduleName of [
   'array',
@@ -864,7 +871,24 @@ export async function invokeWebhook(
           : null,
       };
     }
-    if (throwErrorOnFailure) throw e;
+    if (throwErrorOnFailure) {
+      if (e.isAxiosError) {
+        if (
+          e.message.includes('private IP address') ||
+          e.response?.data?.message?.includes('private IP address')
+        ) {
+          throw new Error(
+            `Connection to a private network IP is blocked for security reasons.` +
+              // shoe env var only if it's not EE or it's on-prem
+              (!isEE || isOnPrem
+                ? `If this is intentional, set NC_ALLOW_LOCAL_HOOKS=true to allow local network webhooks.`
+                : ''),
+          );
+        }
+      }
+
+      throw e;
+    }
   } finally {
     if (hookLog) {
       hookLog.execution_time = parseHrtimeToMilliSeconds(
@@ -905,6 +929,64 @@ export function _transformSubmittedFormDataForEmail(
       transformedData[col.title] = JSON.stringify(transformedData[col.title]);
     }
   }
+  return transformedData;
+}
+
+export function transformDataForMailRendering(
+  data: Record<string, any>,
+  columns: (ColumnType & FormColumnType)[],
+  source: Source,
+  model: Model,
+  models: Record<string, TableType>,
+) {
+  const transformedData: Array<{
+    parsedValue?: any;
+    columnTitle: string;
+    uidt: UITypes | string;
+  }> = [];
+
+  columns.map((col) => {
+    let serializedValue: string | undefined;
+
+    try {
+      serializedValue = ColumnHelper.serializeValue(data[col.title], {
+        col,
+        isMssql: () => source.type === 'mssql',
+        isMysql: () => source.type.startsWith('mysql'),
+        isPg: () => source.type === 'pg',
+        isXcdbBase: () => !!source.isMeta(),
+        meta: model,
+        metas: models,
+      });
+
+      if (col.uidt === 'Attachment') {
+        let attachments = data[col.title] || [];
+        if (typeof data[col.title] === 'string') {
+          try {
+            attachments = JSON.parse(data[col.title]);
+          } catch (e) {
+            attachments = [];
+          }
+        }
+        serializedValue = Array.isArray(attachments)
+          ? attachments
+              .map((attachment) => attachment?.title || '')
+              .filter(Boolean)
+              .join(', ')
+          : '';
+      }
+    } catch (error) {
+      logger.error(`Error processing column ${col.title}:`, error);
+      serializedValue = data[col.title]?.toString() || '';
+    }
+
+    transformedData.push({
+      parsedValue: serializedValue,
+      uidt: col.uidt,
+      columnTitle: col.title,
+    });
+  });
+
   return transformedData;
 }
 

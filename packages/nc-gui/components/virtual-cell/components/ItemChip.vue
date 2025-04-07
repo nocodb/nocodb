@@ -20,6 +20,8 @@ const { relatedTableMeta } = useLTARStoreOrThrow()!
 
 const { isUIAllowed } = useRoles()
 
+provide(IsUnderLTARInj, ref(true))
+
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
@@ -30,10 +32,18 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
+
+const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
+
+const isClickDisabled = computed(() => {
+  return !active.value && !isExpandedForm.value
+})
+
 const { open } = useExpandedFormDetached()
 
 function openExpandedForm() {
-  if (!active.value && !isExpandedForm.value) return
+  if (isClickDisabled.value) return
 
   const rowId = extractPkFromRow(item, relatedTableMeta.value.columns as ColumnType[])
   if (!readOnly.value && !readonlyProp && rowId) {
@@ -45,7 +55,22 @@ function openExpandedForm() {
       useMetaFields: true,
       maintainDefaultViewOrder: true,
       loadRow: !isPublic.value,
+      skipReload: true,
+      createdRecord: onCreatedRecord,
     })
+
+    function onCreatedRecord() {
+      reloadTrigger?.trigger({
+        shouldShowLoading: false,
+      })
+
+      reloadViewDataTrigger?.trigger({
+        shouldShowLoading: false,
+        isFromLinkRecord: true,
+        relatedTableMetaId: relatedTableMeta.value.id,
+        rowId: rowId!,
+      })
+    }
   }
 }
 </script>
@@ -60,20 +85,16 @@ export default {
   <div
     v-e="['c:row-expand:open']"
     class="chip group mr-1 my-0.5 flex items-center rounded-[2px] flex-row"
-    :class="{ active, 'border-1 py-1 px-2': isAttachment(column), truncate }"
+    :class="{ active, 'border-1 py-1 px-2': isAttachment(column), truncate, 'cursor-pointer': !isClickDisabled }"
     @click.stop="openExpandedForm"
   >
     <div class="text-ellipsis overflow-hidden pointer-events-none">
       <span class="name">
-        <!-- Render virtual cell -->
-        <div v-if="isVirtualCol(column)">
-          <template v-if="column.uidt === UITypes.LinkToAnotherRecord">
-            <LazySmartsheetVirtualCell :edit-enabled="false" :model-value="value" :column="column" :read-only="true" />
-          </template>
-
-          <LazySmartsheetVirtualCell v-else :edit-enabled="false" :read-only="true" :model-value="value" :column="column" />
+        <!-- Render virtual cell except formula -->
+        <div v-if="isVirtualCol(column) && column.uidt !== UITypes.Formula">
+          <LazySmartsheetVirtualCell :edit-enabled="false" :read-only="true" :model-value="value" :column="column" />
         </div>
-        <!-- Render normal cell -->
+        <!-- Render normal cell and formula -->
         <template v-else>
           <div v-if="isAttachment(column) && value && !Array.isArray(value) && typeof value === 'object'">
             <LazySmartsheetCell :model-value="value" :column="column" :edit-enabled="false" :read-only="true" />
@@ -87,7 +108,22 @@ export default {
                   border && ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(column.uidt),
               }"
             >
-              <LazySmartsheetCell :model-value="value" :column="column" :edit-enabled="false" :virtual="true" :read-only="true" />
+              <LazySmartsheetCell
+                v-if="!isVirtualCol(column)"
+                :model-value="value"
+                :column="column"
+                :edit-enabled="false"
+                :virtual="true"
+                :read-only="true"
+              />
+              <LazySmartsheetVirtualCell
+                v-else
+                :edit-enabled="false"
+                :read-only="true"
+                :model-value="value"
+                :column="column"
+                class="!max-h-5"
+              />
             </div>
           </template>
         </template>
@@ -116,6 +152,7 @@ export default {
     white-space: nowrap;
     word-break: keep-all;
   }
+
   :deep(.nc-action-icon) {
     @apply invisible;
   }
@@ -127,6 +164,7 @@ export default {
         .nc-readonly-rich-text-wrapper {
           @apply !min-h-1;
         }
+
         .nc-rich-text {
           @apply pl-0;
           .tiptap.ProseMirror {
@@ -135,18 +173,22 @@ export default {
         }
       }
     }
+
     &.nc-cell-checkbox {
       @apply children:pl-0;
       & > div {
         @apply !h-auto;
       }
     }
+
     &.nc-cell-singleselect .nc-cell-field > div {
       @apply flex items-center;
     }
+
     &.nc-cell-multiselect .nc-cell-field > div {
       @apply h-5;
     }
+
     &.nc-cell-email,
     &.nc-cell-phonenumber {
       @apply flex items-center;
@@ -160,12 +202,14 @@ export default {
       }
     }
   }
+
   .blue-chip {
     @apply !bg-nc-bg-brand !border-none px-2 py-[3px] rounded-lg;
     &,
     & * {
       @apply !text-nc-content-brand !bg-nc-bg-brand;
     }
+
     :deep(.clamped-text) {
       @apply !block text-ellipsis;
     }

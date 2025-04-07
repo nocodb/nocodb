@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { FormulaDataTypes, UITypes, handleTZ } from 'nocodb-sdk'
+import { FormulaDataTypes, handleTZ } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { useDetachedLongText } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
 
 provide(IsUnderFormulaInj, ref(true))
 
@@ -9,6 +10,8 @@ provide(IsUnderFormulaInj, ref(true))
 const column = inject(ColumnInj) as Ref<ColumnType & { colOptions: { error: any } }>
 
 const cellValue = inject(CellValueInj)
+
+const active = inject(ActiveCellInj, ref(false))
 
 const { isPg } = useBase()
 
@@ -18,11 +21,11 @@ const result = computed(() =>
 
 const urls = computed(() => replaceUrlsWithLink(result.value))
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
-
-const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
-  useShowNotEditableWarning()
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const isNumber = computed(() => (column.value.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC)
+
+const { open: openDetachedLongText } = useDetachedLongText()
 
 const isStringDataType = computed(() => {
   if (isUnderLookup.value) return false
@@ -33,9 +36,31 @@ const isStringDataType = computed(() => {
   )
 })
 
-const rowHeight = inject(RowHeightInj, ref(undefined))
+const openLongText = (event: MouseEvent) => {
+  if (!isStringDataType.value) return
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
+  const target = event.target as HTMLElement
+  if (target.tagName === 'A') {
+    event.stopPropagation()
+    return
+  }
+
+  openDetachedLongText({
+    column: column.value,
+    vModel: result.value,
+  })
+}
+
+const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
+  useShowNotEditableWarning({
+    onEnter: (e) => {
+      if (isStringDataType.value) {
+        openLongText(e)
+      }
+    },
+  })
+
+const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const isGrid = inject(IsGridInj, ref(false))
 
@@ -46,16 +71,11 @@ const updatedColumn = computed(() => {
       uidt: column.value.meta?.display_type,
       ...column.value.meta?.display_column_meta,
     }
-  } else if (isStringDataType.value) {
-    return {
-      ...column.value,
-      uidt: UITypes.LongText,
-    }
   }
 })
 
 const renderAsCell = computed(() => {
-  return !!(column.value.meta?.display_type || isStringDataType.value)
+  return !!column.value.meta?.display_type
 })
 </script>
 
@@ -70,8 +90,20 @@ const renderAsCell = computed(() => {
       <span>ERR!</span>
     </a-tooltip>
 
-    <div v-else class="nc-cell-field py-1" @dblclick="activateShowEditNonEditableFieldWarning">
-      <div v-if="urls" v-html="urls" />
+    <div v-else class="nc-cell-field group py-1" @dblclick="activateShowEditNonEditableFieldWarning">
+      <div
+        v-if="urls"
+        :style="{
+          'display': '-webkit-box',
+          'max-width': '100%',
+          '-webkit-line-clamp': rowHeight || 1,
+          '-webkit-box-orient': 'vertical',
+          'overflow': 'hidden',
+          'word-break': 'break-all',
+        }"
+        @click="openLongText"
+        v-html="urls"
+      />
 
       <LazyCellClampedText v-else :value="result" :lines="rowHeight" />
 
@@ -81,6 +113,22 @@ const renderAsCell = computed(() => {
       <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         {{ $t('msg.info.computedFieldDeleteWarning') }}
       </div>
+
+      <NcTooltip
+        v-if="isStringDataType"
+        placement="bottom"
+        class="nc-action-icon hidden group-hover:block absolute right-4 top-1"
+      >
+        <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
+        <NcButton
+          type="secondary"
+          size="xsmall"
+          class="nc-textarea-expand !p-0 !w-5 !h-5 !min-w-[fit-content]"
+          @click.stop="openLongText"
+        >
+          <component :is="iconMap.maximize" class="transform group-hover:(!text-grey-800) text-gray-700 w-3 h-3" />
+        </NcButton>
+      </NcTooltip>
     </div>
   </div>
 </template>

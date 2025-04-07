@@ -1,5 +1,5 @@
 import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
-import { ViewLockType, ViewTypes, extractFilterFromXwhere } from 'nocodb-sdk'
+import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { SmartsheetStoreEvents } from '#imports'
 
@@ -60,7 +60,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const whereQueryFromUrlError = computed(() => {
       if (route.value.query.where) {
-        return extractFilterFromXwhere(route.value.query.where, aliasColObjMap.value, false)?.errors
+        return extractFilterFromXwhere({ api_version: NcApiVersion.V1 }, route.value.query.where, aliasColObjMap.value, false)
+          ?.errors
       }
     })
     const whereQueryFromUrl = computed(() => {

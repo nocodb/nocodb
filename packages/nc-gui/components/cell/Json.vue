@@ -20,7 +20,12 @@ const { showNull } = useGlobal()
 const editEnabled = inject(EditModeInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
-const canvasSelectCell = inject(CanvasSelectCellInj)
+
+const cellEventHook = inject(CellEventHookInj, null)
+
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
+
+const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
@@ -43,7 +48,7 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const formatValue = (val: ModelValueType) => {
-  return !val || val === 'null' ? null : val
+  return val ?? null
 }
 
 const localValue = computed<ModelValueType>({
@@ -197,11 +202,27 @@ watch(inputWrapperRef, () => {
   }
 })
 
+const onCellEvent = (event?: Event) => {
+  if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event)) return
+
+  if (isExpandCellKey(event)) {
+    if (isExpanded.value) {
+      closeJSONEditor()
+    } else {
+      openJSONEditor()
+    }
+
+    return true
+  }
+}
+
 const el = useCurrentElement()
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 onMounted(() => {
+  cellEventHook?.on(onCellEvent)
+
   if (
     !isUnderLookup.value &&
     isCanvasInjected &&
@@ -211,6 +232,8 @@ onMounted(() => {
     !isExpandedFormOpen.value
   ) {
     forcedNextTick(() => {
+      if (onCellEvent(canvasCellEventData.event)) return
+
       openJSONEditor()
     })
   }
@@ -225,6 +248,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  cellEventHook?.off(onCellEvent)
+
   const gridCell = el.value?.closest?.('td')
   if (gridCell && !readOnly.value) {
     gridCell.removeEventListener('dblclick', openJSONEditor)
@@ -245,7 +270,7 @@ onUnmounted(() => {
     :footer="null"
     :wrap-class-name="isExpanded ? '!z-1051 nc-json-expanded-modal' : null"
     class="relative"
-    :class="{ 'json-modal min-w-80': isExpanded }"
+    :class="{ 'json-modal min-w-80': isExpanded, 'min-h-6 flex items-center': !isExpanded }"
   >
     <div v-if="isExpanded" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
       <div class="flex flex-row justify-between items-center -mt-2 pb-3 nc-json-action" @mousedown.stop>
@@ -264,7 +289,7 @@ onUnmounted(() => {
 
       <LazyMonacoEditor
         ref="inputWrapperRef"
-        :model-value="localValue || ''"
+        :model-value="localValue ?? null"
         class="min-w-full w-[40rem] resize overflow-auto expanded-editor"
         :hide-minimap="true"
         :disable-deep-compare="true"
@@ -279,10 +304,15 @@ onUnmounted(() => {
         {{ error.toString() }}
       </span>
     </div>
-    <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
-    <LazyCellClampedText v-else :value="vModel ? stringifyProp(vModel) : ''" :lines="rowHeight" class="nc-cell-field" />
-    <NcTooltip placement="bottom" class="nc-json-expand-btn hidden absolute top-0 right-0">
-      <template #title>{{ $t('title.expand') }}</template>
+    <span v-else-if="ncIsNull(vModel) && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
+    <LazyCellClampedText
+      v-else
+      :value="!ncIsUndefined(vModel) && !ncIsNull(vModel) ? stringifyProp(vModel) : ''"
+      :lines="rowHeight"
+      class="nc-cell-field"
+    />
+    <NcTooltip placement="bottom" class="nc-json-expand-btn hidden absolute top-0 bottom-0 right-0">
+      <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
       <NcButton type="secondary" size="xsmall" class="!w-5 !h-5 !min-w-[fit-content]" @click.stop="openJSONEditor">
         <component :is="iconMap.maximize" class="w-3 h-3" />
       </NcButton>
@@ -302,7 +332,7 @@ onUnmounted(() => {
 <style lang="scss">
 .nc-cell-json:hover .nc-json-expand-btn,
 .nc-grid-cell:hover .nc-json-expand-btn {
-  @apply block;
+  @apply flex items-center;
 }
 .nc-default-value-wrapper .nc-cell-json,
 .nc-grid-cell .nc-cell-json {
@@ -313,13 +343,17 @@ onUnmounted(() => {
 }
 .nc-expand-col-JSON.nc-expanded-form-row .nc-cell-json {
   min-height: 34px;
+  @apply !flex items-center max-w-full;
+  & > div {
+    @apply !max-w-full w-full;
+  }
 }
 
 .nc-default-value-wrapper,
 .nc-expanded-cell,
 .ant-form-item-control-input {
   .nc-json-expand-btn {
-    @apply !block;
+    @apply flex items-center;
   }
 }
 </style>

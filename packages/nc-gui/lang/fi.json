@@ -303,13 +303,15 @@
     "extension": "Laajennus",
     "extensions": "Laajennukset",
     "enable": "Enable",
+    "disable": "Disable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
     "unread": "Unread",
     "shared": "Shared",
-    "organization": "Organization"
+    "organization": "Organization",
+    "all": "All"
   },
   "objects": {
     "script": "Script",
@@ -369,7 +371,7 @@
       "orgLevelCreator": "Organisaatiotason luoja",
       "orgLevelViewer": "Organisaatiotason katseluohjelma"
     },
-    "sqlVIew": "SQL-näkymä",
+    "sqlView": "SQL-näkymä",
     "rowHeight": "Tietueen korkeus",
     "heightClass": {
       "short": "Lyhyt",
@@ -511,6 +513,7 @@
     "isNotNull": "ei ole nolla"
   },
   "title": {
+    "confirmSnapshotRestore": "Confirm Snapshot Restore",
     "urlFilters": "URL Filters",
     "creatingScript": "Creating Script",
     "searchWebhook": "Hae webhotok",
@@ -679,9 +682,24 @@
     "customUrl": "Custom URL",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
+    "restoringSnapshot": "Restoring Snapshot",
+    "note": "Note:",
+    "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",
+    "snapshotRestoreMessage2": "On restore, a new base will be created in the selected workspace.",
+    "snapshotRestoreConfirmation": "Are you sure you want to restore this base snapshot.",
+    "tryAgain": "Try again",
+    "goToBase": "Go to Base",
+    "errorMessage": "Error message:",
+    "duplicateBaseBaseTitle": "Duplicate Base \"{baseTitle}\"",
+    "duplicateBaseSuccessfull": "Base Duplication Successfull",
+    "duplicateBaseFailed": "Base Duplication Failed",
+    "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
+    "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
+    "currentWorkspace": "Current workspace",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "Failed",
@@ -888,6 +906,7 @@
     "clickToCopyViewID": "Klikkaa kopioidaksesi näkymän ID",
     "viewMode": "Näyttötila",
     "reAssignView": "Re-assign view",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "Etsi käyttäjiä",
     "superAdmin": "Super Admin",
     "allTables": "Kaikki taulukot",
@@ -968,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV-tiedosto",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON-tiedosto",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1076,8 +1096,11 @@
     "apis": "Rajapinnat",
     "apiSnippet": "API Pätkät",
     "includeData": "Sisällytä tiedot",
-    "includeView": "Sisällytä näkymä",
-    "includeWebhook": "Sisällytä Webhook",
+    "includeRecords": "Include records",
+    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "includeView": "Include views",
+    "includeWebhook": "Include webhook",
+    "includeComments": "Include comments",
     "zoomInToViewColumns": "Lähennä nähdäksesi sarakkeet",
     "embedInSite": "Upota tämä näkymä sivustollesi",
     "titleRequired": "otsikko vaaditaan.",
@@ -1131,7 +1154,11 @@
     "showJsonPayload": "Show JSON payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
     "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "proceedToLink": "Proceed to link",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1401,6 +1428,7 @@
     "clearForm": "Tyhjennä lomake",
     "addFieldFromFormView": "Lisää kenttä",
     "selectAllFields": "Valitse kaikki kentät",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Ota esitäyttö käyttöön",
       "default": "Oletusarvo",
@@ -1465,7 +1493,11 @@
     "aiIntegrationReConfigure": "AI integration has been removed, re-configure from field edit modal to use NocoAI features",
     "aiIntegrationAddAndReConfigure": "AI integration has been removed, re-add and re-configure from field edit modal to use NocoAI features",
     "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI",
-    "sourceDataIsReadonly": "Source data is readonly"
+    "sourceDataIsReadonly": "Source data is readonly",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
+    "shiftSpace": "Shift + Space",
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Etsi kuvakkeita",
@@ -1524,9 +1556,11 @@
     "inviteYourTeam": "Kutsu tiimisi",
     "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace.",
     "searchOptions": "Hae vaihtoehtoja",
-    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
+    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional).",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
@@ -1675,7 +1709,10 @@
         "fieldVisibility": "Et voi muuttaa muokattavan kentän näkyvyyttä. Tallenna tai hylkää muutokset ensin.",
         "moveEditedField": "Et voi siirtää muokattavaa kenttää. Tallenna tai hylkää muutokset ensin",
         "moveDeletedField": "Et voi siirtää poistettua kenttää. Tallenna tai hylkää muutokset ensin"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -1868,7 +1905,8 @@
       "yourCurrentRoleIs": "Nykyinen roolisi on",
       "pleaseRequestAccessForView": "Pyydä korkeampia oikeuksia adminilta/pohjan omistajalta/työtilan omistajalta saadaksesi pääsyn tähän {viewName} näkymään",
       "preventHideAllOptions": "Et voi piilottaa kaikkia vaihtoehtoja, jos kenttä on pakollinen",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Manuaalisia koukkuja ei voi poistaa käytöstä",
@@ -1975,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Project Metadata viedään onnistuneesti",
@@ -2025,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Kopioitu upotettava HTML-koodi!",
       "userDetailsUpdated": "Käyttäjätiedot päivitetty onnistuneesti",
       "tableDataImported": "Taulukon tietojen tuonti onnistui",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhookin tiedot päivitetty onnistuneesti",
       "webhookDeleted": "Koukku poistettu onnistuneesti",
       "webhookTested": "Webhook testattu onnistuneesti",

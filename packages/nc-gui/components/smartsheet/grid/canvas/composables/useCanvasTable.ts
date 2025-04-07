@@ -47,6 +47,7 @@ export function useCanvasTable({
   addNewColumn,
   mousePosition,
   setCursor,
+  getRows,
 }: {
   rowHeightEnum?: Ref<number | undefined>
   cachedRows: Ref<Map<number, Row>>
@@ -103,6 +104,7 @@ export function useCanvasTable({
   onActiveCellChanged: () => void
   addNewColumn: () => void
   setCursor: SetCursorType
+  getRows: (start: number, end: number) => Promise<Row[]>
 }) {
   const { metas, getMeta } = useMetas()
 
@@ -236,7 +238,11 @@ export function useCanvasTable({
           f.extra = getUserColOptions(f, baseUsers.value)
         }
 
-        const isInvalid = isColumnInvalid(f, aiIntegrations.value, isPublicView.value || !isAddingEmptyRowAllowed.value)
+        const isInvalid = isColumnInvalid(
+          f,
+          aiIntegrations.value,
+          isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
+        )
 
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
 
@@ -649,6 +655,7 @@ export function useCanvasTable({
     bulkUpsertRows,
     fetchChunk,
     updateOrSaveRow,
+    getRows,
   })
 
   const { handleFillEnd, handleFillMove, handleFillStart } = useFillHandler({
@@ -835,9 +842,7 @@ export function useCanvasTable({
     const endCol = Math.max(start.col, end.col)
 
     const cols = columns.value.slice(startCol, endCol + 1)
-    // Get rows in the selected range
-    const rows = Array.from(cachedRows.value.values()).slice(start.row, end.row + 1)
-
+    const rows = await getRows(start.row, end.row)
     const props = []
     let isInfoShown = false
 

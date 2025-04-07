@@ -303,13 +303,15 @@
     "extension": "Extensão",
     "extensions": "Extensões",
     "enable": "Habilitar",
+    "disable": "Disable",
     "poweredBy": "Desenvolvido por",
     "nocoAI": "Noco AI",
     "you": "Você",
     "read": "Lida",
     "unread": "Não lida",
     "shared": "Compartilhado",
-    "organization": "Organization"
+    "organization": "Organization",
+    "all": "All"
   },
   "objects": {
     "script": "Script",
@@ -369,7 +371,7 @@
       "orgLevelCreator": "Criador de Nível da Organização",
       "orgLevelViewer": "Visualizador de nível da organização"
     },
-    "sqlVIew": "Exibição SQL",
+    "sqlView": "Exibição SQL",
     "rowHeight": "Altura do Registro",
     "heightClass": {
       "short": "Curto",
@@ -511,6 +513,7 @@
     "isNotNull": "não é nulo"
   },
   "title": {
+    "confirmSnapshotRestore": "Confirm Snapshot Restore",
     "urlFilters": "URL Filters",
     "creatingScript": "Criando Script",
     "searchWebhook": "Pesquisar webhook",
@@ -679,9 +682,24 @@
     "customUrl": "URL Personalizada",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
+    "restoringSnapshot": "Restoring Snapshot",
+    "note": "Note:",
+    "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",
+    "snapshotRestoreMessage2": "On restore, a new base will be created in the selected workspace.",
+    "snapshotRestoreConfirmation": "Are you sure you want to restore this base snapshot.",
+    "tryAgain": "Try again",
+    "goToBase": "Go to Base",
+    "errorMessage": "Error message:",
+    "duplicateBaseBaseTitle": "Duplicate Base \"{baseTitle}\"",
+    "duplicateBaseSuccessfull": "Base Duplication Successfull",
+    "duplicateBaseFailed": "Base Duplication Failed",
+    "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
+    "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
+    "currentWorkspace": "Current workspace",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "Falhou",
@@ -888,6 +906,7 @@
     "clickToCopyViewID": "Clique para copiar o ID da Visualização",
     "viewMode": "Modo de visualização",
     "reAssignView": "Reatribuir visualização",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "Pesquisar Usuários",
     "superAdmin": "Super Administrador",
     "allTables": "Todas as Tabelas",
@@ -968,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "Arquivo CSV",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "Arquivo JSON",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1076,8 +1096,11 @@
     "apis": "APIs",
     "apiSnippet": "Trechos de API",
     "includeData": "Incluir Dados",
-    "includeView": "Incluir Visualização",
-    "includeWebhook": "Incluir Webhook",
+    "includeRecords": "Include records",
+    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "includeView": "Include views",
+    "includeWebhook": "Include webhook",
+    "includeComments": "Include comments",
     "zoomInToViewColumns": "Aumente o zoom para ver as colunas",
     "embedInSite": "Incorporar esta visualização no seu site",
     "titleRequired": "título é obrigatório.",
@@ -1131,7 +1154,11 @@
     "showJsonPayload": "Show JSON payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
     "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "proceedToLink": "Proceed to link",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Clique para resolver",
@@ -1401,6 +1428,7 @@
     "clearForm": "Limpar Formulário",
     "addFieldFromFormView": "Adicionar Campo",
     "selectAllFields": "Selecionar todos os campos",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Habilitar Pré-preenchimento",
       "default": "Padrão",
@@ -1465,7 +1493,11 @@
     "aiIntegrationReConfigure": "A integração com AI foi removida, reconfigure a partir da modal de edição de campo para usar os recursos do NocoAI",
     "aiIntegrationAddAndReConfigure": "A integração de IA foi removida, adicione novamente e reconfigure a partir da modal de edição de campo para usar os recursos do NocoAI",
     "generateFieldDataUsingAiButtonOption": "Gerar valor para múltiplos campos nesta tabela usando informações de registro e NocoAI",
-    "sourceDataIsReadonly": "Os dados de origem são somente leitura"
+    "sourceDataIsReadonly": "Os dados de origem são somente leitura",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
+    "shiftSpace": "Shift + Space",
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Pesquisar ícones",
@@ -1524,9 +1556,11 @@
     "inviteYourTeam": "Convide sua equipe",
     "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace.",
     "searchOptions": "Procure opções",
-    "lockViewDescription": "Explique por que você está bloqueando esta visualização. Esta mensagem será mostrada quando alguém tentar desbloquear esta visualização (opcional)."
+    "lockViewDescription": "Explique por que você está bloqueando esta visualização. Esta mensagem será mostrada quando alguém tentar desbloquear esta visualização (opcional).",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Solte seu documento aqui",
     "airtableImportSuccess": "Importado com sucesso da base do Airtable.",
@@ -1675,7 +1709,10 @@
         "fieldVisibility": "Você não pode alterar a visibilidade de um campo que está sendo editado. Por favor, salve ou descarte as alterações primeiro.",
         "moveEditedField": "Você não pode mover um campo que está sendo editado. Primeiro, salve ou descarte as alterações",
         "moveDeletedField": "Você não pode mover um campo que foi deletado. Primeiro, salve ou descarte as alterações"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Convite enviado com sucesso",
@@ -1868,7 +1905,8 @@
       "yourCurrentRoleIs": "Seu papel atual é",
       "pleaseRequestAccessForView": "Por favor, solicite permissão superior do Admin / Proprietário Base / Proprietário Espaço de Trabalho para acessar este {viewName}",
       "preventHideAllOptions": "Você não pode ocultar todas as opções se o campo for obrigatório",
-      "valueMustBeAtMostCharLong": "O valor deve ter no máximo {length} caracteres"
+      "valueMustBeAtMostCharLong": "O valor deve ter no máximo {length} caracteres",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Gatilhos manuais não podem ser desativados",
@@ -1975,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Falha ao atualizar a visibilidade do campo",
       "unsupportedCharacter": "Caractere não suportado: {char}",
       "unsupportedCharacters": "Caracteres não suportados: {char}",
-      "notSupported": "Não suportado"
+      "notSupported": "Não suportado",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Metadados do projeto exportado com sucesso",
@@ -2025,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "Código HTML copiado e encaixável!",
       "userDetailsUpdated": "Actualização bem sucedida dos detalhes do utilizador",
       "tableDataImported": "Dados de tabelas importadas com sucesso",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Detalhes do Webhook actualizados com sucesso",
       "webhookDeleted": "Gancho apagado com sucesso",
       "webhookTested": "Gancho da Web testado com sucesso",

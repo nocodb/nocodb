@@ -2041,13 +2041,21 @@ export default class View implements ViewType {
 
         if (view.type === ViewTypes.GALLERY) {
           const galleryView = await GalleryView.get(context, view.id, ncMeta);
+          // define the limit of columns to show in gallery view, excluding the cover image column and primary value column
+          const showLimit = galleryView.fk_cover_image_col_id ? 2 : 3;
+
           if (
             (column.id === galleryView.fk_cover_image_col_id && column.pv) ||
             (column.id !== galleryView.fk_cover_image_col_id &&
-              (column.pv || galleryShowLimit < 3))
+              (column.pv || galleryShowLimit < showLimit) &&
+              // exclude system columns
+              !column.system)
           ) {
             show = true;
-            galleryShowLimit++;
+            // increment the count of columns shown in gallery view if it is not a primary value or cover image column
+            if (!column.pk && column.id !== galleryView.fk_cover_image_col_id) {
+              galleryShowLimit++;
+            }
           } else {
             show = false;
           }

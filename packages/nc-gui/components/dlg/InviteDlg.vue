@@ -325,9 +325,9 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
             ref="divRef"
             :class="{
               'border-primary/100': isDivFocused,
-              'p-1': emailBadges?.length > 1,
+              'p-1': emailBadges?.length > 0,
             }"
-            class="flex items-center border-1 gap-1 w-full overflow-x-scroll nc-scrollbar-x-md items-center h-10 rounded-lg !min-w-96"
+            class="flex items-center flex-wrap border-1 gap-1 w-full overflow-x-scroll nc-scrollbar-x-md min-h-10 rounded-lg !min-w-96"
             tabindex="0"
             @blur="isDivFocused = false"
             @click="focusOnDiv"
@@ -335,12 +335,12 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
             <span
               v-for="(email, index) in emailBadges"
               :key="email"
-              class="border-1 text-gray-800 first:ml-1 bg-gray-100 rounded-md flex items-center px-2 py-1"
+              class="border-1 text-nc-content-gray bg-nc-bg-gray-light rounded-md flex items-center px-1 whitespace-nowrap"
             >
               {{ email }}
               <component
                 :is="iconMap.close"
-                class="ml-0.5 hover:cursor-pointer mt-0.5 w-4 h-4"
+                class="ml-0.5 hover:(cursor-pointer text-nc-content-gray-subtle) mt-0.5 w-4 h-4 text-nc-content-gray-subtle2"
                 @click="emailBadges.splice(index, 1)"
               />
             </span>
@@ -350,7 +350,7 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
               v-model="inviteData.email"
               :disabled="isLoading"
               :placeholder="$t('activity.enterEmail')"
-              class="w-full min-w-36 outline-none px-2"
+              class="flex-1 min-w-36 outline-none px-2"
               data-testid="email-input"
               @blur="isDivFocused = false"
               @keyup.enter="handleEnter"

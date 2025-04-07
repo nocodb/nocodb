@@ -60,7 +60,7 @@
     "month_range": "Rango",
     "checked": "Comprobado",
     "unchecked": "No seleccionado",
-    "percent_checked": "Comprobado",
+    "percent_checked": "Checked",
     "percent_unchecked": "No seleccionado",
     "attachment_size": "Tamaño",
     "none": "Nada"
@@ -93,7 +93,7 @@
     "none": "Ninguno"
   },
   "general": {
-    "supported": "Supported",
+    "supported": "Apoyado",
     "usage": "Usage",
     "snapshot": "Snapshot",
     "snapshots": "Snapshots",
@@ -303,13 +303,15 @@
     "extension": "Extensión",
     "extensions": "Extensiones",
     "enable": "Enable",
+    "disable": "Disable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
     "unread": "Unread",
     "shared": "Shared",
-    "organization": "Organization"
+    "organization": "Organization",
+    "all": "All"
   },
   "objects": {
     "script": "Script",
@@ -369,7 +371,7 @@
       "orgLevelCreator": "Creador a nivel de organización",
       "orgLevelViewer": "Visor de nivel de organización"
     },
-    "sqlVIew": "Vista SQL",
+    "sqlView": "Vista SQL",
     "rowHeight": "Altura del registro",
     "heightClass": {
       "short": "Corto",
@@ -511,6 +513,7 @@
     "isNotNull": "no es nulo"
   },
   "title": {
+    "confirmSnapshotRestore": "Confirm Snapshot Restore",
     "urlFilters": "URL Filters",
     "creatingScript": "Creating Script",
     "searchWebhook": "Buscar webhook",
@@ -679,9 +682,24 @@
     "customUrl": "Custom URL",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
+    "restoringSnapshot": "Restoring Snapshot",
+    "note": "Note:",
+    "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",
+    "snapshotRestoreMessage2": "On restore, a new base will be created in the selected workspace.",
+    "snapshotRestoreConfirmation": "Are you sure you want to restore this base snapshot.",
+    "tryAgain": "Try again",
+    "goToBase": "Go to Base",
+    "errorMessage": "Error message:",
+    "duplicateBaseBaseTitle": "Duplicate Base \"{baseTitle}\"",
+    "duplicateBaseSuccessfull": "Base Duplication Successfull",
+    "duplicateBaseFailed": "Base Duplication Failed",
+    "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
+    "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
+    "currentWorkspace": "Current workspace",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "Failed",
@@ -888,6 +906,7 @@
     "clickToCopyViewID": "Clic para copiar View ID",
     "viewMode": "Modo solo lectura",
     "reAssignView": "Re-assign view",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "Buscar usuarios",
     "superAdmin": "Super Admin",
     "allTables": "Todas las tablas",
@@ -968,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "Archivo CSV",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "Archivo JSON",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1076,8 +1096,11 @@
     "apis": "API",
     "apiSnippet": "API Snippets",
     "includeData": "Incluir datos",
-    "includeView": "Incluir vista",
-    "includeWebhook": "Incluir Webhook",
+    "includeRecords": "Include records",
+    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "includeView": "Include views",
+    "includeWebhook": "Include webhook",
+    "includeComments": "Include comments",
     "zoomInToViewColumns": "Ampliar para ver las columnas",
     "embedInSite": "Incruste esta vista en su sitio",
     "titleRequired": "se requiere un título.",
@@ -1131,7 +1154,11 @@
     "showJsonPayload": "Show JSON payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
     "fillForm": "Fill Form",
-    "proceedToLink": "Proceed to link"
+    "proceedToLink": "Proceed to link",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1401,6 +1428,7 @@
     "clearForm": "Limpiar formulario",
     "addFieldFromFormView": "Añadir Campo",
     "selectAllFields": "Seleccionar todos los campos",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Activar pre-rellenado",
       "default": "Por defecto",
@@ -1465,7 +1493,11 @@
     "aiIntegrationReConfigure": "AI integration has been removed, re-configure from field edit modal to use NocoAI features",
     "aiIntegrationAddAndReConfigure": "AI integration has been removed, re-add and re-configure from field edit modal to use NocoAI features",
     "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI",
-    "sourceDataIsReadonly": "Source data is readonly"
+    "sourceDataIsReadonly": "Source data is readonly",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
+    "shiftSpace": "Shift + Space",
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "Buscar iconos",
@@ -1524,9 +1556,11 @@
     "inviteYourTeam": "Invita a tu equipo",
     "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace.",
     "searchOptions": "Buscar opciones",
-    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
+    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional).",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
@@ -1675,7 +1709,10 @@
         "fieldVisibility": "No puedes cambiar la visibilidad de un campo que se está editando. Por favor guarda o descarta los cambios primero.",
         "moveEditedField": "No se puede mover el campo que está siendo editado. Guarde o descarte los cambios primero",
         "moveDeletedField": "No se puede mover el campo que ha sido eliminado. Guarde o descarte los cambios primero"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -1868,7 +1905,8 @@
       "yourCurrentRoleIs": "Tu rol actual es",
       "pleaseRequestAccessForView": "Por favor solicite un permiso superior al Administrador / Propietario de la Base / Propietario del Espacio de trabajo para obtener acceso a este {viewName}",
       "preventHideAllOptions": "No puede ocultar todas las opciones si el campo es obligatorio",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Los hooks manuales no se pueden desactivar",
@@ -1975,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "Metadatos del proyecto exportados con éxito.",
@@ -2025,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "¡Código HTML incrustable copiado!",
       "userDetailsUpdated": "Actualizados con éxito los datos del usuario",
       "tableDataImported": "Datos de la tabla importados con éxito",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Detalles del webhook actualizados correctamente",
       "webhookDeleted": "Gancho eliminado con éxito",
       "webhookTested": "Webhook probado con éxito",

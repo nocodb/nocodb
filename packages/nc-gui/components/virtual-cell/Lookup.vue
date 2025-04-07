@@ -6,8 +6,6 @@ const { metas, getMeta } = useMetas()
 
 const column = inject(ColumnInj, ref())
 
-const meta = inject(MetaInj, ref())
-
 const cellValue = inject(CellValueInj, ref())
 
 const isGroupByLabel = inject(IsGroupByLabelInj, ref(false))
@@ -23,8 +21,14 @@ const cellClickHook = inject(CellClickHookInj, null)
 const onDivDataCellEventHook = inject(OnDivDataCellEventHookInj, null)
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
 const clientMousePosition = inject(ClientMousePositionInj)
+
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
+
+const cellEventHook = inject(CellEventHookInj, null)
 
 // Change the row height of the child cell under lookup
 // Other wise things like text will can take multi line tag
@@ -34,12 +38,22 @@ const rowHeight = inject(RowHeightInj, ref(1) as any)
 
 provide(RowHeightInj, providedHeightRef)
 
-const relationColumn = computed(() =>
-  meta.value?.id
-    ? metas.value[meta.value?.id]?.columns?.find(
-        (c: ColumnType) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id,
-      )
-    : undefined,
+const relationColumn = computed(() => {
+  if (column.value?.fk_model_id) {
+    return metas.value[column.value.fk_model_id]?.columns?.find(
+      (c: ColumnType) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id,
+    )
+  }
+  return undefined
+})
+
+watch(
+  column,
+  async (newColumn) => {
+    if (!newColumn?.fk_model_id || metas.value[newColumn?.fk_model_id]) return
+    await getMeta(newColumn.fk_model_id)
+  },
+  { immediate: true },
 )
 
 watch(
@@ -178,6 +192,16 @@ function toggleDropdown(e: Event) {
   }
 }
 
+const onCellEvent = (event?: Event) => {
+  if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event)) return
+
+  if (isExpandCellKey(event)) {
+    dropdownVisible.value = !dropdownVisible.value
+
+    return true
+  }
+}
+
 onMounted(() => {
   onClickOutside(cell.value, (e) => {
     if ((e.target as HTMLElement)?.closest(`.${randomClass}`)) return
@@ -185,8 +209,12 @@ onMounted(() => {
   })
   onDivDataCellEventHook?.on(toggleDropdown)
   cellClickHook?.on(toggleDropdown)
+  cellEventHook?.on(onCellEvent)
 
   if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedForm.value || !isGrid.value) return
+
+  if (onCellEvent(canvasCellEventData.event)) return
+
   dropdownVisible.value = true
 })
 

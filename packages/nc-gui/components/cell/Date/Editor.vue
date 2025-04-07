@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { isDateMonthFormat, isSystemColumn } from 'nocodb-sdk'
+import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
 interface Props {
   modelValue?: string | null
@@ -30,7 +31,7 @@ const editable = inject(EditModeInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
-const canvasSelectCell = inject(CanvasSelectCellInj)
+const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -52,7 +53,7 @@ const open = ref<boolean>(false)
 
 const tempDate = ref<dayjs.Dayjs | undefined>()
 
-const canvasCellEventData = inject(CanvasCellEventDataInj)!
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 
 const localState = computed({
   get() {
@@ -61,6 +62,11 @@ const localState = computed({
     }
 
     if (!dayjs(modelValue).isValid()) {
+      const parsedDate = parseFlexibleDate(modelValue)
+      if (parsedDate) {
+        return parsedDate
+      }
+
       isDateInvalid.value = true
       return undefined
     }
@@ -144,9 +150,8 @@ onClickOutside(datePickerRef, (e) => {
 
 const onBlur = (e) => {
   const value = (e?.target as HTMLInputElement)?.value
-
-  if (value && dayjs(value).isValid()) {
-    handleUpdateValue(e, true, dayjs(dayjs(value).format(dateFormat.value)))
+  if (value && dayjs(value, dateFormat.value).isValid()) {
+    handleUpdateValue(e, true)
   }
 
   if (

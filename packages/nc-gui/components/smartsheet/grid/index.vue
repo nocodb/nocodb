@@ -65,6 +65,7 @@ const {
   isBulkOperationInProgress,
   selectedAllRecords,
   bulkDeleteAll,
+  getRows,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
 const rowHeight = computed(() => {
@@ -340,6 +341,7 @@ const pGoToPreviousRow = () => {
       :data="cachedRows"
       :total-rows="totalRows"
       :sync-count="syncCount"
+      :get-rows="getRows"
       :chunk-states="chunkStates"
       :expand-form="expandForm"
       :remove-row-if-new="removeRowIfNew"
@@ -364,6 +366,7 @@ const pGoToPreviousRow = () => {
       :apply-sorting="applySorting"
       :bulk-update-rows="bulkUpdateRows"
       :bulk-upsert-rows="bulkUpsertRows"
+      :get-rows="getRows"
       :update-record-order="updateRecordOrder"
       :bulk-delete-all="bulkDeleteAll"
       :clear-cache="clearCache"

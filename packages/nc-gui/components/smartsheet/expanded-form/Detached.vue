@@ -18,8 +18,10 @@ const shouldClose = (isVisible: boolean, i: number) => {
       :use-meta-fields="state.useMetaFields"
       :maintain-default-view-order="state.maintainDefaultViewOrder"
       :view="state.view"
+      :skip-reload="state.skipReload"
       @update:model-value="shouldClose($event, i)"
       @cancel="close(i)"
+      @created-record="state?.createdRecord?.($event)"
     />
   </template>
 </template>

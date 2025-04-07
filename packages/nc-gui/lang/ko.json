@@ -303,13 +303,15 @@
     "extension": "확장",
     "extensions": "확장",
     "enable": "활성",
+    "disable": "비활성화",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
     "you": "당신",
     "read": "읽음",
     "unread": "읽지 않음",
     "shared": "공유된 뷰가 성공적으로 삭제되었습니다",
-    "organization": "조직"
+    "organization": "조직",
+    "all": "모두"
   },
   "objects": {
     "script": "스크립트",
@@ -369,7 +371,7 @@
       "orgLevelCreator": "조직 수준 생성",
       "orgLevelViewer": "조직 수준 뷰어"
     },
-    "sqlVIew": "SQL 보기",
+    "sqlView": "SQL 보기",
     "rowHeight": "레코드 높이",
     "heightClass": {
       "short": "짧음",
@@ -511,7 +513,8 @@
     "isNotNull": "null 값이 아님"
   },
   "title": {
-    "urlFilters": "URL Filters",
+    "confirmSnapshotRestore": "Confirm Snapshot Restore",
+    "urlFilters": "URL 필터",
     "creatingScript": "스크립트 만들기",
     "searchWebhook": "웹훅 검색",
     "webcam": "웹캠",
@@ -678,10 +681,25 @@
     "thisPageDoesNotExist": "이 페이지는 존재하지 않습니다.",
     "customUrl": "사용자 정의 URL",
     "viewSettingsCantBeChangedWhenViewIs": "보기가 {type} 때는 보기 설정을 변경할 수 없습니다.",
-    "youAreLeavingNocoDB": "You’re leaving NocoDB",
-    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link."
+    "youAreLeavingNocoDB": "NocoDB를 떠납니다",
+    "onlyProceedIfYouTrustThisLink": "이 링크를 신뢰하는 경우에만 진행하십시오.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
   },
   "labels": {
+    "restoringSnapshot": "Restoring Snapshot",
+    "note": "Note:",
+    "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",
+    "snapshotRestoreMessage2": "On restore, a new base will be created in the selected workspace.",
+    "snapshotRestoreConfirmation": "Are you sure you want to restore this base snapshot.",
+    "tryAgain": "Try again",
+    "goToBase": "Go to Base",
+    "errorMessage": "Error message:",
+    "duplicateBaseBaseTitle": "Duplicate Base \"{baseTitle}\"",
+    "duplicateBaseSuccessfull": "Base Duplication Successfull",
+    "duplicateBaseFailed": "Base Duplication Failed",
+    "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
+    "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
+    "currentWorkspace": "Current workspace",
     "latitude": "위도",
     "longitude": "경도",
     "failed": "실패",
@@ -743,7 +761,7 @@
     "addNewLookupHelperText1": "조회 필드는 연결된 레코드의 데이터를 표시합니다. 다음에서 특정 필드를 선택하세요 ",
     "addNewLookupHelperText2": "이 테이블에 조회 필드로 추가하려면 테이블을 클릭합니다",
     "formatting": "서식 설정",
-    "selectAFormatType": "- -Select a format type (optional)- -",
+    "selectAFormatType": "- -양식 유형을 선택하세요(선택 사항)- -",
     "formatType": "형식 유형",
     "toUpload": "업로드하기",
     "dragFilesHere": "여기로 파일 드래그",
@@ -884,10 +902,11 @@
     "forRole": "역할",
     "clickToCopy": "복사하기",
     "clickToCopyTableID": "클릭하여 테이블 ID 복사",
-    "clickToCopyScriptID": "스크립트 ID를 복사하려면 클릭하십시오.",
+    "clickToCopyScriptID": "스크립트 ID를 복사하려면 클릭하십시오",
     "clickToCopyViewID": "클릭하여 뷰 ID 복사",
     "viewMode": "보기 모드",
     "reAssignView": "뷰 재할당",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "사용자 검색",
     "superAdmin": "최고 운영자",
     "allTables": "모든 테이블",
@@ -968,6 +987,7 @@
     "csv": "CSV",
     "csvFile": "CSV 파일",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON 파일",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1064,7 +1084,7 @@
     "subscribeNewsletter": "뉴스 레터 구독",
     "signUpWithProvider": "{provider}에 가입",
     "signInWithProvider": "{provider}에 로그인",
-    "agreeToTos": "NocoDB의 {tosLink}에 동의합니다.",
+    "agreeToTos": "NocoDB의 {tosLink}에 동의합니다",
     "welcomeToNc": "Welcome to NocoDB!",
     "inviteOnlySignup": "초대 URL을 사용한 가입만 허용",
     "nextRow": "다음 행",
@@ -1076,8 +1096,11 @@
     "apis": "APIs",
     "apiSnippet": "API 스니펫",
     "includeData": "데이터 포함",
-    "includeView": "뷰 포함",
-    "includeWebhook": "웹훅 포함",
+    "includeRecords": "Include records",
+    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "includeView": "Include views",
+    "includeWebhook": "Include webhook",
+    "includeComments": "Include comments",
     "zoomInToViewColumns": "열을 보려면 확대하세요",
     "embedInSite": "사이트에 삽입",
     "titleRequired": "제목이 필요합니다.",
@@ -1131,7 +1154,11 @@
     "showJsonPayload": "JSON 페이로드 표시",
     "autoCreateMissingSelectionOptions": "누락된 선택 필드 옵션 자동 생성",
     "fillForm": "양식 채우기",
-    "proceedToLink": "Proceed to link"
+    "proceedToLink": "연결 진행",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",
@@ -1401,6 +1428,7 @@
     "clearForm": "양식 초기화",
     "addFieldFromFormView": "필드 추가",
     "selectAllFields": "모든 필드 선택",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "자동 입력 활성화",
       "default": "기본",
@@ -1465,7 +1493,11 @@
     "aiIntegrationReConfigure": "AI 연동이 제거되었습니다, NocoAI 기능을 사용하려면 필드 편집 모달에서 다시 구성하십시오",
     "aiIntegrationAddAndReConfigure": "AI 통합이 제거되었습니다, NocoAI 기능을 사용하려면 필드 편집 모달에서 다시 추가하고 재구성하십시오",
     "generateFieldDataUsingAiButtonOption": "레코드 정보와 NocoAI를 사용하여 이 테이블의 여러 필드에 대한 값을 생성합니다",
-    "sourceDataIsReadonly": "소스 데이터는 읽기 전용입니다"
+    "sourceDataIsReadonly": "소스 데이터는 읽기 전용입니다",
+    "schemaChangeDisabledFormSqlView": "이 SQL 보기에 대해서는 스키마 편집이 비활성화되어 있습니다.",
+    "shiftSpace": "Shift + 스페이스바",
+    "expandShiftSpace": "'Shift + Space' 확장",
+    "selectAllMappedFields": "Select all mapped fields"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",
@@ -1475,7 +1507,7 @@
     "selectMattermostChannels": "Mattermost 채널 선택",
     "webhookTitle": "웹훅 제목",
     "barcodeColumn": "바코드 열",
-    "notFoundContent": "내용을 찾을 수 없습니다",
+    "notFoundContent": "내용을 찾을 수 없습니",
     "selectBarcodeFormat": "바코드 형식 선택",
     "projName": "프로젝트 이름을 입력하십시오",
     "selectGroupField": "그룹화 필드 선택",
@@ -1519,19 +1551,21 @@
     "createScripts": "첫 번째 스크립트를 만드세요!",
     "createTableLabel": "처음부터 시작하거나 가져오기 또는 외부 데이터베이스에 연결하기",
     "createScriptsLabel": "처음부터 또는 템플릿 스크립트 사용",
-    "noTokenCreated": "생성된 API 토큰이 없습니다.",
+    "noTokenCreated": "생성된 API 토큰이 없습니다",
     "noTokenCreatedLabel": "Begin by creating API tokens to unlock advanced functionalities.",
     "inviteYourTeam": "팀 초대",
     "inviteYourTeamLabel": "팀과 협력하여 프로젝트를 빠르게 진행하세요!",
     "searchOptions": "검색 옵션",
-    "lockViewDescription": "이 뷰를 잠그는 이유를 설명하세요. 이 메시지는 누군가 이 뷰를 잠금 해제하려고 할 때 표시됩니다 (선택 사항)"
+    "lockViewDescription": "이 뷰를 잠그는 이유를 설명하세요. 이 메시지는 누군가 이 뷰를 잠금 해제하려고 할 때 표시됩니다 (선택 사항)",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
-    "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
+    "urlFilter": "URL 필터는 URL 매개 변수에서 적용되며 도구 모음을 통해 설정된 보기 필터와 결합됩니다.",
+    "urlFilterError": "URL 필터가 잘못되었습니다. 적용할 수 없으므로 무시됩니다.",
     "dropYourDocHere": "여기에 문서를 놓습니다",
     "airtableImportSuccess": "Airtable Base에서 성공적으로 가져왔습니다.",
     "nocoDBImportSuccess": "NocoDB Base에서 성공적으로 가져왔습니다.",
-    "deleteAccountPermanently": "계정을 영구적으로 삭제하십시오.",
+    "deleteAccountPermanently": "계정을 영구적으로 삭제하십시오",
     "learnMore": "더 보기",
     "connectIntegrations": "NocoDB와 통합을 연결합니다.",
     "manageConnections": "통합에 대한 연결을 관리합니다.",
@@ -1552,9 +1586,9 @@
     "bySigningUp": "회원가입시 다음 약관에 동의한 것으로 간주합니다.",
     "subscribeToOurWeeklyNewsletter": "주간 뉴스레터 구독",
     "verifyingPassword": "비밀번호 확인 중",
-    "thisSharedViewIsProtected": "이 공유 뷰는 비밀번호로 보호됩니다.",
-    "successfullySubmittedFormData": "양식 데이터가 성공적으로 제출되었습니다.",
-    "formViewNotSupportedOnMobile": "모바일에서는 폼 뷰가 지원되지 않습니다.",
+    "thisSharedViewIsProtected": "이 공유 뷰는 비밀번호로 보호됩니다",
+    "successfullySubmittedFormData": "양식 데이터가 성공적으로 제출되었습니다",
+    "formViewNotSupportedOnMobile": "양식 뷰는 모바일에서 지원되지 않습니다",
     "calendarViewNotSupportedOnMobile": "캘린더 뷰는 모바일에서 지원되지 않습니다",
     "newFormWillBeLoaded": "{seconds}초 후에 새 양식이 로드됩니다",
     "optimizedQueryDisabled": "최적화된 쿼리가 비활성화되었습니다",
@@ -1675,7 +1709,10 @@
         "fieldVisibility": "편집 중인 필드의 표시 여부는 변경할 수 없습니다. 먼저 변경 내용을 저장하거나 취소하세요.",
         "moveEditedField": "편집 중인 필드는 이동할 수 없습니다. 변경 사항을 먼저 저장하거나 취소하세요",
         "moveDeletedField": "삭제된 필드는 이동할 수 없습니다. 변경 사항을 먼저 저장하거나 취소하세요"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "초대장이 성공적으로 전송되었습니다",
@@ -1765,7 +1802,7 @@
       "metaNoChange": "변경된 사항이 없습니다",
       "sqlMigration": "스키마 마이그레이션이 자동으로 생성됩니다. 테이블을 만들고이 페이지를 새로 고칩니다.",
       "dbConnectionStatus": "환경 검증",
-      "dbConnected": "연결 되었습니다.",
+      "dbConnected": "연결에 성공했습니다",
       "notifications": {
         "no_new": "새로운 알림 없음",
         "clear": "지우기"
@@ -1813,16 +1850,16 @@
         "credentials": "이걸 어디서 찾을 수 있나요?"
       },
       "import": {
-        "clickOrDrag": "클릭하거나 파일을 여기로 드래그하십시오."
+        "clickOrDrag": "클릭하거나 파일을 여기로 드래그하십시오"
       },
       "metaDataRecreated": "메타 데이터가 다시 생성되었습니다.",
       "invalidCredentials": "권한이 올바르지 않습니다",
       "downloadingMoreFiles": "여러 파일을 다운로드하는 중입니다.",
       "copiedToClipboard": "클립 보드에 복사되었습니다.",
       "requriedFieldsCantBeMoved": "필수 필드는 이동할 수 없습니다",
-      "updateNotAllowedWithoutPK": "기본 키가 없는 경우 업데이트가 허용되지 않습니다.",
-      "autoIncFieldNotEditable": "자동 증가 필드는 편집할 수 없습니다.",
-      "editingPKnotSupported": "기본 키 편집은 지원되지 않습니다.",
+      "updateNotAllowedWithoutPK": "기본 키가 없는 경우 업데이트가 허용되지 않습니다",
+      "autoIncFieldNotEditable": "자동 증가 필드는 편집할 수 없습니다",
+      "editingPKnotSupported": "기본 키 편집은 지원되지 않습니다",
       "deletedCache": "캐시가 삭제되었습니다",
       "cacheEmpty": "캐시가 비어 있습니다",
       "exportedCache": "캐시가 내보내졌습니다",
@@ -1849,8 +1886,8 @@
       "tokenNameMaxLength": "토큰 이름은 255자를 넘지 않아야 합니다",
       "dbNameRequired": "데이터베이스 이름이 필요합니다",
       "wsNameRequired": "작업공간 이름 필요",
-      "wsNameMinLength": "작업공간 이름은 3자 이상이어야 합니다.",
-      "wsNameMaxLength": "작업공간 이름은 최대 50자여야 합니다.",
+      "wsNameMinLength": "작업공간 이름은 3자 이상이어야 합니다",
+      "wsNameMaxLength": "작업공간 이름은 최대 50자여야 합니다",
       "wsDeleteDlg": "이 작업 영역과 모든 내용을 삭제합니다.",
       "userConfirmation": "이 작업은 되돌릴 수 없음을 이해합니다",
       "pageNotFound": "페이지를 찾을 수 없습니다",
@@ -1868,7 +1905,8 @@
       "yourCurrentRoleIs": "현재 귀하의 역할은",
       "pleaseRequestAccessForView": "이 {viewName}에 액세스하려면 관리자/프로젝트 소유자/작업공간 소유자에게 상위 권한을 요청하세요.",
       "preventHideAllOptions": "필드가 필수인 경우 모든 옵션을 숨길 수 없습니다",
-      "valueMustBeAtMostCharLong": "값은 최대 {length}자여야 합니다"
+      "valueMustBeAtMostCharLong": "값은 최대 {length}자여야 합니다",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "수동 후크는 비활성화할 수 없습니다",
@@ -1945,7 +1983,7 @@
       "setFormDataFailed": "양식 데이터 설정 실패",
       "formViewUpdateFailed": "양식 뷰 업데이트 실패",
       "tableNameRequired": "테이블 이름이 필요합니다",
-      "scriptNameRequired": "스크립트 이름은 필수입니다.",
+      "scriptNameRequired": "스크립트 이름은 필수입니다",
       "scriptNameDuplicate": "다른 스크립트에 이미 사용된 이름",
       "nameShouldStartWithAnAlphabetOr_": "이름은 영문자 또는 _로 시작해야 합니다",
       "followingCharactersAreNotAllowed": "다음 문자는 허용되지 않습니다",
@@ -1975,7 +2013,9 @@
       "columnVisibilityUpdateFailed": "필드 가시성을 업데이트하지 못했습니다",
       "unsupportedCharacter": "지원되지 않는 문자: {char}",
       "unsupportedCharacters": "지원되지 않는 문자: {char}",
-      "notSupported": "지원되지 않음"
+      "notSupported": "지원되지 않음",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error"
     },
     "toast": {
       "exportMetadata": "프로젝트 메타 데이터를 성공적으로 내보냈습니다",
@@ -2025,6 +2065,8 @@
       "embeddableHTMLCodeCopied": "임베드 가능한 HTML 코드가 클립보드에 복사되었습니다!",
       "userDetailsUpdated": "사용자 세부 정보가 성공적으로 업데이트되었습니다",
       "tableDataImported": "테이블 데이터가 성공적으로 가져와졌습니다",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook가 성공적으로 업데이트되었습니다",
       "webhookDeleted": "Webhook가 성공적으로 삭제되었습니다",
       "webhookTested": "Webhook가 성공적으로 테스트되었습니다",

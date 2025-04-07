@@ -99,18 +99,18 @@ const inputEl = (el: HTMLInputElement) => {
 <template>
   <NcModal v-model:visible="vModel" wrap-class-name="nc-modal-re-assign" width="448px">
     <div class="mb-5">
-      <div class="flex text-base font-bold mb-2">Re-assign this view</div>
-      <div class="flex text-nc-content-gray-subtle">
-        Once reassigned, current owner will no longer be able to edit the view configuration.
+      <div class="flex text-base font-bold mb-2 text-nc-content-gray-emphasis">{{ $t('labels.reAssignThisView') }}</div>
+      <div class="flex text-sm text-nc-content-gray-subtle">
+        {{ $t('title.reAssignViewModalSubtitle') }}
       </div>
     </div>
 
     <div class="mb-5">
-      <div class="mb-2">Current owner</div>
-      <UserItem :user="currentOwner" class="bg-nc-bg-gray-light rounded-lg" />
+      <div class="mb-2 text-nc-content-gray">{{ $t('labels.currentOwner') }}</div>
+      <UserItem :user="currentOwner" class="bg-nc-bg-gray-light rounded-lg px-4" />
     </div>
     <div class="mb-5">
-      <div class="mb-2">New owner</div>
+      <div class="mb-2 text-nc-content-gray">{{ $t('labels.newOwner') }}</div>
       <div
         class="rounded-lg border-1"
         :class="{
@@ -120,7 +120,7 @@ const inputEl = (el: HTMLInputElement) => {
         <UserItem
           v-if="selectedUser && !userSelectMenu"
           :user="selectedUser"
-          class="cursor-pointer"
+          class="cursor-pointer px-3"
           @click="userSelectMenu = true"
         >
           <template #append>
@@ -128,13 +128,13 @@ const inputEl = (el: HTMLInputElement) => {
           </template>
         </UserItem>
 
-        <div v-else class="flex flex-row items-center gap-x-2 h-12.5 p-2 nc-list-user-item">
-          <GeneralIcon icon="search" class="text-gray-500 ml-2" />
+        <div v-else class="flex flex-row items-center h-12.5 p-2 nc-list-user-item">
+          <GeneralIcon icon="search" class="text-nc-content-gray-muted ml-3 flex-none" />
           <input
             :ref="inputEl"
             v-model="searchQuery"
             placeholder="Search User to assign..."
-            class="border-0 px-2.5 outline-none nc-search-input"
+            class="border-0 px-2 outline-none nc-search-input flex-1"
           />
         </div>
 
@@ -142,7 +142,7 @@ const inputEl = (el: HTMLInputElement) => {
           <UserItem
             v-for="user of filterdBaseUsers"
             :key="user.id"
-            class="cursor-pointer hover:(bg-gray-100) nc-list-user-item"
+            class="cursor-pointer hover:(bg-gray-100) px-3 nc-list-user-item"
             :class="{ 'bg-gray-100': selectedUser === user }"
             :user="user"
             @click="selectUser(user)"
@@ -151,7 +151,7 @@ const inputEl = (el: HTMLInputElement) => {
         </div>
 
         <div v-if="!filterdBaseUsers?.length" class="h-25 p-2 text-gray-400 text-sm flex items-center justify-center">
-          No base users found
+          {{ $t('placeholder.noBaseUsersFound') }}
         </div>
       </div>
     </div>

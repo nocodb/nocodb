@@ -57,3 +57,14 @@ export const timeAgo = (date: string) => {
 export const hookLogFormatter = (date: string) => {
   return date && dayjs(date).format('YYYY-MM-DD HH:mm:ss')
 }
+
+export function parseFlexibleDate(dateString: string) {
+  const formats = ['YYYY-MM-DD', 'YYYY/MM/DD', 'DD/MM/YYYY', 'DD-MM-YYYY', 'MM/DD/YYYY', 'MM-DD-YYYY']
+
+  for (const format of formats) {
+    const date = dayjs(dateString, format, true)
+    if (date.isValid()) {
+      return date
+    }
+  }
+}

@@ -140,7 +140,7 @@ export default class Model implements TableType {
 
   public get primaryKey(): Column {
     if (!this.columns) return null;
-    //  return first auto increment or augto generated column
+    //  return first auto increment or auto generated column
     // if not found return first pk column
     return (
       this.columns.find((c) => c.pk && (c.ai || c.meta?.ag)) ||

@@ -7,7 +7,8 @@ export const JsonCellRenderer: CellRenderer = {
 
     const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
 
-    if (!value) {
+    // skip rendering text if undefined/null
+    if (ncIsUndefined(value) || ncIsNull(value)) {
       if (isHovered) {
         renderIconButton(ctx, {
           buttonX: x + width - 28,
@@ -31,7 +32,16 @@ export const JsonCellRenderer: CellRenderer = {
       }
     }
 
-    const text = typeof value === 'string' ? value : JSON.stringify(value)
+    let text = typeof value === 'string' ? value : JSON.stringify(value)
+
+    // if invalid json string then stringify the value
+    if (typeof text === 'string') {
+      try {
+        JSON.parse(text)
+      } catch (e) {
+        text = JSON.stringify(text)
+      }
+    }
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
@@ -73,7 +83,7 @@ export const JsonCellRenderer: CellRenderer = {
     const { e, row, column, makeCellEditable } = ctx
     const columnObj = column.columnObj
 
-    if (columnObj.title && e.key.length === 1) {
+    if (columnObj.title && (e.key.length === 1 || isExpandCellKey(e))) {
       makeCellEditable(row, column)
       return true
     }
@@ -98,6 +108,6 @@ export const JsonCellRenderer: CellRenderer = {
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
     const expandIconBox = { x: x + width - 28, y: y + 7, width: 18, height: 18 }
-    tryShowTooltip({ text: getI18n().global.t('title.expand'), rect: expandIconBox, mousePosition })
+    tryShowTooltip({ text: getI18n().global.t('tooltip.expandShiftSpace'), rect: expandIconBox, mousePosition })
   },
 }

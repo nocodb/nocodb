@@ -2067,6 +2067,8 @@ watch(
   async (next, old) => {
     try {
       if (next && next.id !== old?.id && (next.fk_model_id === route.params.viewId || isPublicView.value)) {
+        await until(isViewColumnsLoading).toMatch((c) => !c)
+
         switchingTab.value = true
         // whenever tab changes or view changes save any unsaved data
         if (old?.id) {

@@ -4,10 +4,16 @@ const { isPaidPlan } = useProvidePaymentStore()
 const router = useRouter()
 const route = router.currentRoute
 
-const isMinimised = ref(false)
+const isMinimised = ref(true)
 
 const onUpgradePlan = async () => {
   router.push({ query: { ...route.value.query, tab: 'billing' } })
+}
+
+const handleClickBanner = () => {
+  if (!isMinimised.value) return
+
+  isMinimised.value = false
 }
 </script>
 
@@ -16,9 +22,10 @@ const onUpgradePlan = async () => {
     <div
       class="nc-payment-banner rounded-xl border-1 border-nc-border-gray-medium bg-nc-bg-maroon-light overflow-hidden relative flex gap-6 transition-all duration-300"
       :class="{
-        'p-4 min-h-[66px]': isMinimised,
+        'p-4 min-h-[66px] cursor-pointer': isMinimised,
         'p-6 min-h-[186px]': !isMinimised,
       }"
+      @click="handleClickBanner"
     >
       <NcButton
         size="small"
@@ -28,7 +35,7 @@ const onUpgradePlan = async () => {
           'right-4 top-4': isMinimised,
           'right-3 top-3': !isMinimised,
         }"
-        @click="isMinimised = !isMinimised"
+        @click.stop="isMinimised = !isMinimised"
       >
         <GeneralIcon
           icon="chevronRight"
@@ -62,7 +69,7 @@ const onUpgradePlan = async () => {
             data-testid="nc-workspace-settings-upgrade-button"
             icon-position="right"
             inner-class="!gap-2"
-            @click="onUpgradePlan"
+            @click.stop="onUpgradePlan"
           >
             <template #icon>
               <GeneralIcon icon="ncArrowUpRight" class="h-4 w-4" />
@@ -75,6 +82,7 @@ const onUpgradePlan = async () => {
               size="small"
               data-testid="nc-workspace-settings-view-all-plan-btn"
               class="!hover:bg-nc-bg-maroon-dark"
+              @click.stop
             >
               {{ $t('labels.viewAllPlanDetails') }}
             </NcButton>

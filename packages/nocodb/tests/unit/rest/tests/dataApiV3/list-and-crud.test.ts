@@ -9,13 +9,14 @@ import {
   beforeEach as dataApiV3BeforeEach,
 } from './beforeEach';
 import { ncAxios } from './ncAxios';
-import { getColumnId, idc, prepareRecords } from './helpers';
+import { getColumnId, idc, initArraySeq, prepareRecords } from './helpers';
 import type { ColumnType } from 'nocodb-sdk';
 import type { Column, Model } from '../../../../../src/models';
 import type { ITestContext } from './beforeEach';
 import type { INcAxios } from './ncAxios';
 
 const API_VERSION = 'v3';
+const debugMode = true;
 
 describe('dataApiV3', () => {
   describe('list-and-crud', () => {
@@ -1240,12 +1241,11 @@ describe('dataApiV3', () => {
         expect(respFromRecordAPI.body.list.length).to.eq(1);
         expect(respFromRecordAPI.body.list[0]['Cities']).to.eq(2);
       });
-      /*
 
       // limit & offset verification
       // Records API not tested since it has different limit requirements
       // (upto 1000 records allowed, so different test will be required)
-      it.skip('Limit & offset verification', async function () {
+      it('Limit & offset verification', async function () {
         // add a link
         await ncAxiosLinkAdd({
           urlParams: {
@@ -1334,7 +1334,7 @@ describe('dataApiV3', () => {
         await ncAxiosLinkAdd({
           ...validParams,
           urlParams: { ...validParams.urlParams, tableId: 9999 },
-          status: 404,
+          status: 422,
         });
 
         // Link Add: Invalid link ID
@@ -1406,7 +1406,7 @@ describe('dataApiV3', () => {
         await ncAxiosLinkRemove({
           ...validParams,
           urlParams: { ...validParams.urlParams, tableId: 9999 },
-          status: 404,
+          status: 422,
         });
 
         // Link Remove: Invalid link ID
@@ -1567,7 +1567,7 @@ describe('dataApiV3', () => {
       }
 
       // Error handling (has-many)
-      it.skip('Error handling : HM: Nested ADD', async function () {
+      it('Error handling : HM: Nested ADD', async function () {
         const validParams = {
           urlParams: {
             tableId: tblCountry.id,
@@ -1581,7 +1581,7 @@ describe('dataApiV3', () => {
         await nestedAddTests(validParams);
       });
 
-      it.skip('Error handling : HM: Nested REMOVE', async function () {
+      it('Error handling : HM: Nested REMOVE', async function () {
         // Prepare data
         await ncAxiosLinkAdd({
           urlParams: {
@@ -1605,6 +1605,7 @@ describe('dataApiV3', () => {
 
         await nestedRemoveTests(validParams);
       });
+      /*
 
       it.skip('Error handling : HM: Nested List', async function () {
         // Prepare data

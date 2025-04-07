@@ -675,7 +675,7 @@ describe('dataApiV3', () => {
           query: {
             viewId: '123456789',
           },
-          status: 404,
+          status: 422,
         });
       });
 

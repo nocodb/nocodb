@@ -2110,9 +2110,7 @@ export function useCanvasRender({
       const isStartGroup = (_isStartGroup ?? true) && i === startIndex
       const group = groups.get(i)
       if (!group) {
-        currentOffset += GROUP_HEADER_HEIGHT + GROUP_PADDING
         missingChunks.push(i)
-        continue
       }
       const groupHeaderY = currentOffset
       const groupHeight = calculateGroupHeight(group, rowHeight.value, isAddingEmptyRowAllowed.value)
@@ -2124,16 +2122,19 @@ export function useCanvasRender({
         continue
       }
 
-      elementMap.addElement({
-        y: groupHeaderY,
-        x: xOffset,
-        level,
-        height: GROUP_HEADER_HEIGHT,
-        path: group.nestedIn,
-        groupIndex: i,
-        group,
-        type: ElementTypes.GROUP,
-      })
+      if (group) {
+        elementMap.addElement({
+          y: groupHeaderY,
+          x: xOffset,
+          level,
+          height: GROUP_HEADER_HEIGHT,
+          path: group.nestedIn,
+          groupIndex: i,
+          group,
+          type: ElementTypes.GROUP,
+        })
+      }
+
       const {
         background: groupBackgroundColor,
         border: groupBorderColor,
@@ -2143,7 +2144,7 @@ export function useCanvasRender({
       if (groupHeaderY + groupHeight >= 0 && groupHeaderY < height.value) {
         let tempCurrentOffset = currentOffset + GROUP_HEADER_HEIGHT
 
-        if (group.isExpanded) {
+        if (group?.isExpanded) {
           const nestedContentStart = tempCurrentOffset
           // Calculate the total height of groups up to the relevant index
           // If the group is at top, then use startIndex, else use endIndex
@@ -2250,12 +2251,12 @@ export function useCanvasRender({
           groupHeaderY,
           adjustedWidth,
           GROUP_HEADER_HEIGHT,
-          group.isExpanded ? { topLeft: 8, topRight: 8, bottomLeft: 0, bottomRight: 0 } : 8,
+          group?.isExpanded ? { topLeft: 8, topRight: 8, bottomLeft: 0, bottomRight: 0 } : 8,
           {
             backgroundColor: groupBackgroundColor,
             borderColor: groupBorderColor,
             borders: {
-              bottom: !group.isExpanded || !!group?.path?.length,
+              bottom: !group?.isExpanded || !!group?.path?.length,
               top: true,
               left: true,
               right: true,
@@ -2274,7 +2275,7 @@ export function useCanvasRender({
           aggXOffset += parseCellWidth(columns.value[i]?.width)
         }
 
-        visibleCols.forEach((column) => {
+        visibleCols.forEach((column, index) => {
           const width = parseCellWidth(column.width)
 
           if (column.fixed) {
@@ -2287,7 +2288,7 @@ export function useCanvasRender({
               x: aggXOffset - scrollLeft.value,
               y: currentOffset + 1,
               width,
-              height: GROUP_HEADER_HEIGHT - 1 + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
+              height: GROUP_HEADER_HEIGHT - 1 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
             },
             mousePosition,
           )
@@ -2302,11 +2303,19 @@ export function useCanvasRender({
             ctx.save()
             ctx.beginPath()
 
-            ctx.rect(
+            roundedRect(
+              ctx,
               Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
               groupHeaderY + 1,
-              width - Math.max(0, fixedColsWidth - (aggXOffset - scrollLeft.value)),
-              GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
+              width - Math.max(0, fixedColsWidth - (aggXOffset - scrollLeft.value)) - (index === visibleCols.length - 1 ? 1 : 0),
+              GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
+              {
+                topLeft: 0,
+                bottomLeft: 0,
+                topRight: index === visibleCols.length - 1 ? 8 : 0,
+                bottomRight: index === visibleCols.length - 1 ? 8 : 0,
+              },
+              { backgroundColor: isHovered ? aggregationHoverBg : aggregationDefaultBg },
             )
 
             ctx.fill()
@@ -2316,22 +2325,23 @@ export function useCanvasRender({
             ctx.textAlign = 'right'
 
             ctx.font = '600 12px Manrope'
-            const aggWidth = ctx.measureText(group.aggregations[column.title] ?? '').width
+            const aggWidth = ctx.measureText(group?.aggregations[column.title] ?? '').width
             if (column.agg_prefix) {
               ctx.font = '400 12px Manrope'
               ctx.fillStyle = '#6a7184'
               ctx.fillText(
                 column.agg_prefix,
                 aggXOffset + width - aggWidth - 16 - scrollLeft.value,
-                groupHeaderY + (GROUP_HEADER_HEIGHT + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
+                groupHeaderY +
+                  (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
               )
             }
             ctx.fillStyle = '#374151'
             ctx.font = '600 12px Manrope'
             ctx.fillText(
-              group.aggregations[column.title] ?? '',
+              group?.aggregations[column.title] ?? '',
               aggXOffset + width - 8 - scrollLeft.value,
-              groupHeaderY + (GROUP_HEADER_HEIGHT + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
+              groupHeaderY + (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
             )
 
             ctx.restore()
@@ -2340,12 +2350,23 @@ export function useCanvasRender({
               ctx.save()
               ctx.beginPath()
 
-              ctx.rect(
+              roundedRect(
+                ctx,
                 Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
                 groupHeaderY + 1,
-                width - Math.max(0, fixedColsWidth - (aggXOffset - scrollLeft.value)),
-                GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
+                width -
+                  Math.max(0, fixedColsWidth - (aggXOffset - scrollLeft.value)) -
+                  (index === visibleCols.length - 1 ? 1 : 0),
+                GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
+                {
+                  topLeft: 0,
+                  bottomLeft: 0,
+                  topRight: index === visibleCols.length - 1 ? 8 : 0,
+                  bottomRight: index === visibleCols.length - 1 ? 8 : 0,
+                },
+                { backgroundColor: isHovered ? aggregationHoverBg : aggregationDefaultBg },
               )
+
               ctx.fill()
               ctx.clip()
 
@@ -2356,7 +2377,7 @@ export function useCanvasRender({
 
               const rightEdge = aggXOffset + width - 8 - scrollLeft.value
               const textY =
-                groupHeaderY + (GROUP_HEADER_HEIGHT + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2
+                groupHeaderY + (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2
 
               ctx.fillText('Summary', rightEdge, textY)
 
@@ -2378,7 +2399,7 @@ export function useCanvasRender({
             Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
             groupHeaderY + 1,
             width,
-            GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
+            GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
           )
 
           ctx.clip()
@@ -2387,7 +2408,7 @@ export function useCanvasRender({
           ctx.moveTo(aggXOffset - scrollLeft.value, groupHeaderY + 1)
           ctx.lineTo(
             aggXOffset - scrollLeft.value,
-            groupHeaderY + GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
+            groupHeaderY + GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
           )
           ctx.stroke()
           ctx.restore()
@@ -2395,7 +2416,7 @@ export function useCanvasRender({
         })
 
         spriteLoader.renderIcon(ctx, {
-          icon: group.isExpanded ? 'ncChevronDown' : 'ncChevronRight',
+          icon: group?.isExpanded ? 'ncChevronDown' : 'ncChevronRight',
           size: 16,
           color: '#374150',
           x: xOffset + 12,
@@ -2424,7 +2445,7 @@ export function useCanvasRender({
         }
 
         const countRender = renderSingleLineText(ctx, {
-          text: `${group.count}`,
+          text: `${group?.count ?? '-'}`,
           x: xOffset + mergedWidth - 12,
           y: contentY + (group?.isExpanded && !group?.path ? 1 : 0),
           height: GROUP_HEADER_HEIGHT,
@@ -2433,7 +2454,6 @@ export function useCanvasRender({
           fillStyle: '#374151',
           textAlign: 'right',
         })
-
         countWidth = countRender.width
 
         const contentRender = renderSingleLineText(ctx, {
@@ -2450,14 +2470,14 @@ export function useCanvasRender({
         contentWidth = contentRender.width
 
         renderSingleLineText(ctx, {
-          text: (group.column?.title ?? '').toUpperCase(),
+          text: (group?.column?.title ?? '').toUpperCase(),
           fillStyle: '#4A5268',
           x: contentX,
           fontFamily: '600 10px Manrope',
           y: groupHeaderY - 2,
         })
 
-        renderGroupContent(ctx, group, contentX, contentY + 26, availableWidth - contentWidth - 20 - countWidth)
+        renderGroupContent(ctx, group, contentX, contentY + 26, availableWidth - contentWidth - 20 - countWidth, i)
 
         currentOffset = tempCurrentOffset
       }
@@ -2471,8 +2491,20 @@ export function useCanvasRender({
     }
   }
 
-  function renderGroupContent(ctx: CanvasRenderingContext2D, group: CanvasGroup, x: number, y: number, maxWidth: number) {
-    if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(group.column?.uidt)) {
+  function renderGroupContent(
+    ctx: CanvasRenderingContext2D,
+    group: CanvasGroup,
+    x: number,
+    y: number,
+    maxWidth: number,
+    groupIdx,
+  ) {
+    if (!group) {
+      drawShimmerEffect(ctx, x - 11, y - GROUP_HEADER_HEIGHT / 2 + 2, maxWidth, groupIdx)
+      return
+    }
+
+    if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(group?.column?.uidt)) {
       const tags = group.value.split(',')
       const colors = group.color.split(',')
       let xPosition = x

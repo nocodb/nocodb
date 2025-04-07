@@ -132,7 +132,7 @@ const currentPlanTitle = computed(() => {
           </span>
         </template>
         <template #value>
-          {{ Number(getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) || getStatLimit('row_count')).toLocaleString() }}/{{
+          {{ Number(getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)).toLocaleString() }}/{{
             Number(getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) ?? 1000).toLocaleString()
           }}
         </template>

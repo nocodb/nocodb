@@ -15,6 +15,8 @@ const vModel = useVModel(props, 'modelValue', emit)
 
 const { availableExtensions, descriptionContent, addExtension, getExtensionAssetsUrl, isMarketVisible } = useExtensions()
 
+const { isAllowAddExtension, navigateToBilling } = useEeConfig()
+
 const onBack = () => {
   vModel.value = false
   isMarketVisible.value = true
@@ -82,11 +84,23 @@ const detailsBody = computed(() => {
           <div class="text-small leading-[18px] text-gray-500 truncate">{{ activeExtension.subTitle }}</div>
         </div>
         <div class="self-start flex items-center gap-2.5">
-          <NcButton size="small" class="w-full" @click="onAddExtension(activeExtension)">
+          <NcButton v-if="isAllowAddExtension" size="small" class="w-full" @click="onAddExtension(activeExtension)">
             <div class="flex items-center justify-center gap-1 -ml-3px">
               <GeneralIcon icon="plus" /> {{ $t('general.add') }} {{ $t('general.extension') }}
             </div>
           </NcButton>
+          <NcTooltip v-else>
+            <template #title>
+              {{ $t('upgrade.upgradeToAddMoreExtensions') }}
+            </template>
+            <NcButton size="small" class="w-full nc-upgrade-plan-btn" @click="navigateToBilling()">
+              <div class="flex items-center justify-center gap-2">
+                <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4" />
+
+                {{ $t('upgrade.upgradeToAdd') }}
+              </div>
+            </NcButton>
+          </NcTooltip>
           <NcButton size="small" type="text" @click="vModel = false">
             <GeneralIcon icon="close" class="text-gray-600" />
           </NcButton>

@@ -15,6 +15,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isWsAuditEnabled = computed(() => false)
 
+  const isAllowAddExtension = computed(() => false)
+
   const getLimit = (..._args: any[]) => {}
 
   const getStatLimit = (..._args: any[]) => {}
@@ -56,5 +58,6 @@ export const useEeConfig = createSharedComposable(() => {
     showRecordPlanLimitExceededModal,
     navigateToBilling,
     isWsAuditEnabled,
+    isAllowAddExtension,
   }
 })

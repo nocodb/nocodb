@@ -1,6 +1,6 @@
 import { GRACE_PERIOD_DURATION, HigherPlan, NON_SEAT_ROLES, PlanOrder, PlanTitles } from 'nocodb-sdk'
 import {
-  type PlanFeatureTypes,
+  PlanFeatureTypes,
   type PlanLimitExceededDetailsType,
   PlanLimitTypes,
   type ProjectRoles,
@@ -45,6 +45,10 @@ export const useEeConfig = createSharedComposable(() => {
       workspace = activeWorkspace.value
     }
 
+    if (type === PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) {
+      type = 'row_count'
+    }
+
     const limit = workspace?.stats?.[type] ?? 0
 
     return limit === -1 ? 0 : limit
@@ -57,7 +61,7 @@ export const useEeConfig = createSharedComposable(() => {
   const updateStatLimit = (type: PlanLimitTypes, count: number) => {
     if (!activeWorkspace.value) return
 
-    const newCount = (activeWorkspace.value?.stats?.[type] ?? 0) + count
+    const newCount = Math.max(0, (activeWorkspace.value?.stats?.[type] ?? 0) + count)
 
     workspaces.value.set(activeWorkspace.value.id!, {
       ...activeWorkspace.value,
@@ -203,6 +207,7 @@ export const useEeConfig = createSharedComposable(() => {
     return getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)
   })
 
+  console.log('ws', activeWorkspace.value?.payment?.plan, activeWorkspace.value?.stats)
   const gracePeriodDaysLeft = computed(() => {
     if (!isRecordLimitReached.value) return Infinity
 
@@ -235,6 +240,12 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const isAllowAddExtension = computed(
+    () =>
+      (getFeature(PlanFeatureTypes.FEATURE_EXTENSIONS) || getLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE) > 0) &&
+      getStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE) < getLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE),
+  )
+
   return {
     getLimit,
     getStatLimit,
@@ -254,5 +265,6 @@ export const useEeConfig = createSharedComposable(() => {
     showRecordPlanLimitExceededModal,
     navigateToBilling,
     isWsAuditEnabled,
+    isAllowAddExtension,
   }
 })

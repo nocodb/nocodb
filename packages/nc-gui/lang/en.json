@@ -111,7 +111,9 @@
     "updateToExtendRecordHistorySubtitle": "The {activePlan} plan allows up to {period} of audit history. Upgrade to the {plan} plan to increase your audit history period.",
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "Upgrade to add more records",
-    "upgradeToAddLimitRecordSelection": "To limit record selection using filters, please upgrade to the {plan} plan."
+    "upgradeToAddLimitRecordSelection": "To limit record selection using filters, please upgrade to the {plan} plan.",
+    "upgradeToAdd": "Upgrade to Add",
+    "upgradeToAddMoreExtensions": "You're currently on the Free plan, which allows only one extension. Upgrade to unlock unlimited extensions."
   },
   "general": {
     "supported": "Supported",

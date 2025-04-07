@@ -298,7 +298,7 @@ onUnmounted(() => {
           </div>
         </NcButton>
       </NcTooltip>
-      <slot v-if="closable" name="closable" :handleClose="handleClose">
+      <slot v-if="closable" name="closable" :handle-close="handleClose">
         <NcButton size="xsmall" type="text" @click.stop="handleClose">
           <GeneralIcon icon="close" class="text-nc-content-gray-subtle" />
         </NcButton>

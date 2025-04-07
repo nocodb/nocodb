@@ -2315,10 +2315,10 @@ export function useCanvasRender({
             ctx.textBaseline = 'middle'
             ctx.textAlign = 'right'
 
-            ctx.font = '700 12px Manrope'
+            ctx.font = '600 12px Manrope'
             const aggWidth = ctx.measureText(group.aggregations[column.title] ?? '').width
             if (column.agg_prefix) {
-              ctx.font = '600 10px Manrope'
+              ctx.font = '400 12px Manrope'
               ctx.fillStyle = '#6a7184'
               ctx.fillText(
                 column.agg_prefix,
@@ -2327,7 +2327,7 @@ export function useCanvasRender({
               )
             }
             ctx.fillStyle = '#374151'
-            ctx.font = '700 12px Manrope'
+            ctx.font = '600 12px Manrope'
             ctx.fillText(
               group.aggregations[column.title] ?? '',
               aggXOffset + width - 8 - scrollLeft.value,
@@ -2443,7 +2443,7 @@ export function useCanvasRender({
           height: GROUP_HEADER_HEIGHT,
           verticalAlign: 'middle',
           textAlign: 'right',
-          fontFamily: '600 10px Manrope',
+          fontFamily: '400 12px Manrope',
           fillStyle: '#6A7184',
         })
 

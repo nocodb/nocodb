@@ -139,11 +139,29 @@ export const useInfiniteGroups = (
 
       const groups: CanvasGroup[] = []
       for (const item of response.list) {
+        let group: CanvasGroup = {} as any
+
+        if (groupCol.column.uidt === UITypes.LinkToAnotherRecord) {
+          const relatedTableMeta = await getMeta(
+            (groupCol.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
+          )
+          if (!relatedTableMeta) continue
+          group.relatedTableMeta = relatedTableMeta
+          const col = relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0]
+          group.relatedColumn = col
+          group.displayValueProp = col?.title
+        }
+
         const index: number = response.list.indexOf(item)
-        const value = valueToTitle(item[groupCol.column.title!], groupCol.column)
+        const value = valueToTitle(
+          item[groupCol.column.title!] ?? item[groupCol.column.column_name!],
+          groupCol.column,
+          group?.displayValueProp,
+        )
         const groupIndex = offset + index
 
-        const group: CanvasGroup = {
+        group = {
+          ...group,
           groupIndex,
           column: groupCol.column,
           groups: new Map(),
@@ -179,17 +197,6 @@ export const useInfiniteGroups = (
 
         const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
         group.isExpanded = activeGroupKeys.value.includes(nestedKey)
-
-        if (group.column.uidt === UITypes.LinkToAnotherRecord) {
-          const relatedTableMeta = await getMeta(
-            (group.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
-          )
-          if (!relatedTableMeta) continue
-          group.relatedTableMeta = relatedTableMeta
-          const col = relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0]
-          group.relatedColumn = col
-          group.displayValueProp = col?.title
-        }
 
         // Create useInfiniteData for leaf groups
         if (level === groupByColumns.value.length - 1) {

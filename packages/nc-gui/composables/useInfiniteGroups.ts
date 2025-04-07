@@ -95,12 +95,7 @@ export const useInfiniteGroups = (
     return tempColor
   }
 
-  const fetchGroupChunk = async (
-    chunkId: number,
-    parentGroup?: CanvasGroup,
-    oldGroupMapState?: Map<string, CanvasGroup>,
-    force = false,
-  ) => {
+  const fetchGroupChunk = async (chunkId: number, parentGroup?: CanvasGroup, force = false) => {
     const targetChunkStates = parentGroup ? parentGroup.chunkStates : chunkStates.value
     if (targetChunkStates[chunkId] === 'loading' || (targetChunkStates[chunkId] === 'loaded' && !force)) return
 
@@ -148,23 +143,6 @@ export const useInfiniteGroups = (
         const value = valueToTitle(item[groupCol.column.title!], groupCol.column)
         const groupIndex = offset + index
 
-        // maintain old group state if it exists
-        let oldGroup = parentGroup?.groups.get(groupIndex) || cachedGroups.value.get(groupIndex)
-
-        if (!oldGroup || oldGroup?.value !== value) {
-          const oldPath = oldGroup?.path
-          oldGroup =
-            oldGroupMapState?.get(value) ??
-            [...((parentGroup?.groups || cachedGroups.value)?.values() || [])].find((g) => g.value === value)
-          const newPath = [...generateGroupPath(parentGroup), groupIndex]
-          if (oldPath && newPath && oldPath.toString() !== newPath.toString()) {
-            eventBus.emit(SmartsheetStoreEvents.GROUP_PATH_CHANGE, {
-              oldPath,
-              newPath,
-            })
-          }
-        }
-
         const group: CanvasGroup = {
           groupIndex,
           column: groupCol.column,
@@ -172,9 +150,9 @@ export const useInfiniteGroups = (
           chunkStates: [],
           count: +item.count,
           groupCount: +item[groupByColumns.value?.[level + 1]?.column?.title],
-          isExpanded: oldGroup?.isExpanded || false,
+          isExpanded: false,
           color: findKeyColor(value, groupCol.column, getNextColor),
-          expandedGroups: oldGroup?.expandedGroups || 0,
+          expandedGroups: 0,
           value,
           nestedIn: parentGroup
             ? [
@@ -333,10 +311,8 @@ export const useInfiniteGroups = (
     await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup)))
     callbacks?.syncVisibleData()
 
-    let oldGroupMapState: Map<number, CanvasGroup>
     // if found empty chunk, remove all chunks after it and fetch all chunks again
     if (force) {
-      oldGroupMapState = new Map([...cachedGroups.value.entries()].map(([key, value]) => [value.value, value]))
       let foundEmptyChunk = false
       for (let i = startIndex; i <= endIndex; i++) {
         const targetGroup = cachedGroups.value.get(i)
@@ -350,7 +326,7 @@ export const useInfiniteGroups = (
       }
     }
 
-    await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup, oldGroupMapState, force)))
+    await Promise.all(chunksToFetch.map((chunkId) => fetchGroupChunk(chunkId, parentGroup, force)))
   }
 
   const clearGroupCache = (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => {

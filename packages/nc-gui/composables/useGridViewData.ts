@@ -44,7 +44,7 @@ export function useGridViewData(
 
   const isBulkOperationInProgress = ref(false)
 
-  const { nestedFilters, eventBus } = useSmartsheetStoreOrThrow()
+  const { nestedFilters } = useSmartsheetStoreOrThrow()
 
   const {
     cachedGroups,
@@ -64,19 +64,9 @@ export function useGridViewData(
   })
 
   const onGroupRowChange = async ({ row, groupByColumn, property, level }) => {
-    // check  the group level which is changed
-    // check the target group and reload the data
-    //   - the target could be non-exist, in that scenario reload the parent group
-    //   - if the target group already present reload recursively
-    //   - if the target group is expanded, reload the data
     const parentGroupPath = row.rowMeta?.path?.slice(0, level)
 
     const parentGroup = parentGroupPath?.length ? findGroupByPath(cachedGroups.value, parentGroupPath) : undefined
-
-    // const cachedGroupsInCurrentLevel = findGroupByPath(cachedGroups.value, row.)
-
-    // find target group index
-    // const groupIndex = cachedGroups
 
     const groupMap = parentGroup?.groups ?? cachedGroups.value
 
@@ -84,7 +74,7 @@ export function useGridViewData(
     const endIndex = Math.max(...groupMap.keys())
 
     // reload all groups in current level since any one of them can be in updated state
-    await fetchMissingGroupChunks(0, endIndex, parentGroup ?? undefined, true, eventBus)
+    await fetchMissingGroupChunks(0, endIndex, parentGroup ?? undefined, true)
 
     // iterate and clear if expanded grid present
     const clearGridCache = (groupMap: Map<number, CanvasGroup>, toalGroupCount: number, path = []) => {
@@ -99,11 +89,6 @@ export function useGridViewData(
     }
 
     clearGridCache(groupMap, parentGroup?.groupCount ?? totalGroups.value, parentGroup?.path ?? [])
-
-    // clear cache of all groups in current group level
-
-    // check the group level which is changed
-    // reloadVisibleDataHook?.trigger()
   }
 
   const {

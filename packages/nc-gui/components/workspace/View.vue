@@ -143,18 +143,19 @@ onMounted(() => {
           </div>
         </a-tab-pane>
       </template>
-
-      <template v-if="isUIAllowed('workspaceManage')">
-        <a-tab-pane key="settings" class="w-full">
+      <template v-if="isEeUI && !props.workspaceId && isFeatureEnabled(FEATURE_FLAG.PAYMENT)">
+        <a-tab-pane key="billing" class="w-full">
           <template #tab>
-            <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
-              <GeneralIcon icon="ncSettings" class="h-4 w-4" />
-              {{ $t('labels.settings') }}
+            <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
+              <GeneralIcon icon="ncDollarSign" class="flex-none h-4 w-4" />
+              {{ $t('general.billing') }}
             </div>
           </template>
-          <WorkspaceSettings :workspace-id="currentWorkspace.id" />
+
+          <PaymentBillingPage class="!h-[calc(100vh_-_92px)]" />
         </a-tab-pane>
       </template>
+
       <template v-if="isEeUI && isWsAuditEnabled && isUIAllowed('workspaceAuditList')">
         <a-tab-pane key="audits" class="w-full">
           <template #tab>
@@ -167,16 +168,15 @@ onMounted(() => {
         </a-tab-pane>
       </template>
 
-      <template v-if="isEeUI && !props.workspaceId && isFeatureEnabled(FEATURE_FLAG.PAYMENT)">
-        <a-tab-pane key="billing" class="w-full">
+      <template v-if="isUIAllowed('workspaceManage')">
+        <a-tab-pane key="settings" class="w-full">
           <template #tab>
-            <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
-              <GeneralIcon icon="ncDollarSign" class="flex-none h-4 w-4" />
-              {{ $t('general.billing') }}
+            <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
+              <GeneralIcon icon="ncSettings" class="h-4 w-4" />
+              {{ $t('labels.settings') }}
             </div>
           </template>
-
-          <PaymentBillingPage class="!h-[calc(100vh_-_92px)]" />
+          <WorkspaceSettings :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
       </template>
     </NcTabs>

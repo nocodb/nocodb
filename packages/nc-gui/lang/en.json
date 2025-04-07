@@ -103,14 +103,15 @@
     "upgradeToHideFormBrandingSubtitle": "Hide NocoDB branding by upgrading your workspace  to the {plan} plan.",
     "upgradeToAddRedirectUrlSubtitle": "Redirect your users to another webpage after filling out the form by upgrading to the {plan} plan.",
     "upgradeToAddCustomValidationSubtitle": "Add custom validations by upgrading your workspace to the {plan} plan.",
-    "upgradeToAddCustomUrlSubtitle": "Create custom url by upgrading your workspace to the {plan} plan.",
+    "upgradeToAddCustomUrlSubtitle": "Create custom URL by upgrading your workspace to the {plan} plan.",
     "upgradeToAccessPersonalViewSubtitle": "Access Personal view by upgrading your workspace to the {plan} plan.",
     "updateToAddRecordFormView": "This Form is no longer accepting submissions",
     "updateToAddRecordFormViewSubtitle": "You’ve reached the limit for number of records on your {activePlan} plan. Upgrade to increase your record limit.",
     "updateToExtendRecordHistory": "Upgrade to extend your history",
     "updateToExtendRecordHistorySubtitle": "The {activePlan} plan allows up to {period} of audit history. Upgrade to the {plan} plan to increase your audit history period.",
     "planLimitReached": "Plan limit reached",
-    "planLimitReachedSubtitle": "Upgrade to add more records"
+    "planLimitReachedSubtitle": "Upgrade to add more records",
+    "upgradeToAddLimitRecordSelection": "To limit record selection using filters, please upgrade to the {plan} plan."
   },
   "general": {
     "supported": "Supported",

@@ -2305,7 +2305,7 @@ export function useCanvasRender({
             ctx.rect(
               Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
               groupHeaderY + 1,
-              width,
+              width - Math.max(0, fixedColsWidth - (aggXOffset - scrollLeft.value)),
               GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
             )
 
@@ -2343,7 +2343,7 @@ export function useCanvasRender({
               ctx.rect(
                 Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
                 groupHeaderY + 1,
-                width,
+                width - Math.max(0, fixedColsWidth - (aggXOffset - scrollLeft.value)),
                 GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
               )
               ctx.fill()

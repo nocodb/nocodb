@@ -102,8 +102,6 @@ export function useMultiSelect(
 
   const { isSqlView } = useSmartsheetStoreOrThrow()
 
-  const { blockAddNewRecord } = useEeConfig()
-
   const aiMode = ref(false)
 
   const isArrayStructure = typeof unref(data) === 'object' && Array.isArray(unref(data))
@@ -963,7 +961,7 @@ export function useMultiSelect(
 
         let options = {
           continue: false,
-          expand: blockAddNewRecord.value ? false : (rowsToAdd > 0 || newColsNeeded > 0) && !isArrayStructure,
+          expand: (rowsToAdd > 0 || newColsNeeded > 0) && !isArrayStructure,
         }
         if (options.expand && !isArrayStructure) {
           options = await expandRows?.({

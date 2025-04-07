@@ -207,7 +207,6 @@ export const useEeConfig = createSharedComposable(() => {
     return getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)
   })
 
-  console.log('ws', activeWorkspace.value?.payment?.plan, activeWorkspace.value?.stats)
   const gracePeriodDaysLeft = computed(() => {
     if (!isRecordLimitReached.value) return Infinity
 

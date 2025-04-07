@@ -1987,6 +1987,16 @@ const { message: templatedMessage } = useTemplatedMessage(
   &.nc-cell:not(.nc-cell-longtext) {
     @apply p-2;
   }
+
+  :deep(&.nc-cell:not(.nc-cell-longtext)) {
+    &.nc-cell-phonenumber,
+    &.nc-cell-email,
+    &.nc-cell-url {
+      .nc-cell-field.nc-cell-link-preview {
+        @apply px-3;
+      }
+    }
+  }
   &.nc-virtual-cell {
     @apply px-2 py-1 min-h-10;
   }

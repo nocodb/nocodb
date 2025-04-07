@@ -59,15 +59,37 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
       });
     }
 
-    await this.jobsQueue.add(
-      {
-        jobName: JobTypes.UpdateUsageStats,
-      },
-      {
+    // for development and test env, we run the job every minute
+    // for production, we run the job every hour
+    if (
+      process.env.NODE_ENV === 'test' ||
+      process.env.NODE_ENV === 'development'
+    ) {
+      await this.jobsQueue.add(
+        {
+          jobName: JobTypes.UpdateUsageStats,
+        },
+        {
+          jobId: JobTypes.UpdateUsageStats,
+          repeat: { cron: '* * * * *' },
+        },
+      );
+    } else {
+      await this.jobsQueue.removeRepeatable({
         jobId: JobTypes.UpdateUsageStats,
-        repeat: { cron: '1 * * * *' },
-      },
-    );
+        cron: '* * * * *',
+      });
+
+      await this.jobsQueue.add(
+        {
+          jobName: JobTypes.UpdateUsageStats,
+        },
+        {
+          jobId: JobTypes.UpdateUsageStats,
+          repeat: { cron: '1 * * * *' },
+        },
+      );
+    }
 
     // common cmds
     const sourceReleaseCmd = async (commaSeperatedSourceIds: string) => {

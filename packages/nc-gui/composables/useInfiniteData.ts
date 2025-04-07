@@ -1,3 +1,4 @@
+import path from 'path'
 import type { ComputedRef, Ref } from 'vue'
 import { NcApiVersion, UITypes, extractFilterFromXwhere, isAIPromptCol } from 'nocodb-sdk'
 import {
@@ -13,6 +14,7 @@ import {
   isSystemColumn,
 } from 'nocodb-sdk'
 import { getI18n } from '../plugins/a.i18n'
+import type { CanvasGroup } from '../lib/types'
 import type { Row } from '#imports'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
@@ -58,7 +60,6 @@ export function useInfiniteData(args: {
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>
   callbacks: {
     syncVisibleData?: () => void
-    syncTotalRows?: (path: Array<number>, count: number) => void
     getCount?: (path: Array<number>) => void
     getWhereFilter?: (path: Array<number>) => string
     onGroupRowChange?: (params: { row: Row; property: string; groupByColumn: ColumnType; level: number }) => void
@@ -66,6 +67,7 @@ export function useInfiniteData(args: {
       fields?: Array<{ title: string; aggregation?: string | undefined }>
       path: Array<number>
     }) => void
+    findGroupByPath?: (path?: Array<number>) => CanvasGroup | undefined
   }
   where?: ComputedRef<string | undefined>
   disableSmartsheet?: boolean
@@ -188,7 +190,21 @@ export function useInfiniteData(args: {
     const newCache = {
       cachedRows: ref<Map<number, Row>>(new Map<number, Row>()),
       chunkStates: ref<Array<'loading' | 'loaded' | undefined>>([]),
-      totalRows: ref<number>(currCount ?? 0),
+      totalRows: computed({
+        get: () => {
+          const group = callbacks?.findGroupByPath?.(path)
+          if (group) {
+            return group.count
+          }
+          return 0
+        },
+        set: (value) => {
+          const group = callbacks?.findGroupByPath?.(path)
+          if (group) {
+            group.count = value
+          }
+        },
+      }),
       selectedRows: computed<Row[]>(() => Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.selected)),
       isRowSortRequiredRows: computed<Array<Row>>(() =>
         Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.isRowOrderUpdated),
@@ -614,7 +630,6 @@ export function useInfiniteData(args: {
     dataCache.cachedRows.value = newCachedRows
 
     dataCache.totalRows.value = Math.max(0, (dataCache.totalRows.value || 0) - invalidIndexes.length)
-    callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
     callbacks?.syncVisibleData?.()
   }
 
@@ -859,7 +874,6 @@ export function useInfiniteData(args: {
     dataCache.cachedRows.value.set(newRowIndex, newRow)
 
     dataCache.totalRows.value++
-    callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
     callbacks?.syncVisibleData?.()
 
     return newRow
@@ -1010,7 +1024,6 @@ export function useInfiniteData(args: {
       }
 
       dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
-      callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
       await syncCount(path)
       callbacks?.syncVisibleData?.()
     } catch (e: any) {
@@ -1108,7 +1121,6 @@ export function useInfiniteData(args: {
                 }
               }
               dataCache.totalRows.value = dataCache.totalRows.value! - 1
-              callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
               callbacks?.syncVisibleData?.()
             },
             args: [
@@ -1146,7 +1158,6 @@ export function useInfiniteData(args: {
                 const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
                 if (newRow) newRow.rowMeta.isRowOrderUpdated = needsResorting
               }
-              callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
               callbacks?.syncVisibleData?.()
             },
             args: [
@@ -1188,7 +1199,6 @@ export function useInfiniteData(args: {
       if (!ignoreShifting) {
         dataCache.totalRows.value++
       }
-      callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
       callbacks?.reloadAggregate?.({ path })
       callbacks?.syncVisibleData?.()
 
@@ -1308,8 +1318,6 @@ export function useInfiniteData(args: {
       if (toUpdate.rowMeta.rowIndex !== undefined) {
         dataCache.cachedRows.value.set(toUpdate.rowMeta.rowIndex, toUpdate)
       }
-      callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
-
       callbacks?.reloadAggregate?.({ fields: [{ title: property }], path })
 
       callbacks?.syncVisibleData?.()
@@ -1507,10 +1515,8 @@ export function useInfiniteData(args: {
     if (index !== undefined && row.rowMeta.new) {
       dataCache.cachedRows.value.delete(index)
       dataCache.totalRows.value--
-      callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
       return true
     }
-    callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
     callbacks?.syncVisibleData?.()
     return false
   }
@@ -1533,7 +1539,6 @@ export function useInfiniteData(args: {
           })
 
       dataCache.totalRows.value = count as number
-      callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
       callbacks?.syncVisibleData?.()
     } catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)

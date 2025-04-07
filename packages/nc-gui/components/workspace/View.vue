@@ -143,7 +143,7 @@ onMounted(() => {
           </div>
         </a-tab-pane>
       </template>
-      <template v-if="isEeUI && !props.workspaceId && isFeatureEnabled(FEATURE_FLAG.PAYMENT)">
+      <template v-if="isEeUI && !props.workspaceId && isFeatureEnabled(FEATURE_FLAG.PAYMENT) && isUIAllowed('workspaceBilling')">
         <a-tab-pane key="billing" class="w-full">
           <template #tab>
             <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">

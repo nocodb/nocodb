@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PlanMeta, PlanTitles } from 'nocodb-sdk'
+import { PlanLimitTypes, PlanMeta, PlanTitles } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
 const route = useRoute()
@@ -16,6 +16,8 @@ const activeWorkspace = computed(() =>
 
 const { paymentState, workspaceSeatCount, activeSubscription, onManageSubscription, plansAvailable, updateSubscription } =
   useProvidePaymentStore()
+
+const { getLimit, getStatLimit } = useEeConfig()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
@@ -122,6 +124,18 @@ const currentPlanTitle = computed(() => {
           }}
         </template>
         <template #value>{{ workspaceSeatCount }} </template>
+      </PaymentPlanUsageRow>
+      <PaymentPlanUsageRow :plan-meta="activePlanMeta">
+        <template #label>
+          <span class="capitalize">
+            {{ $t('objects.records') }}
+          </span>
+        </template>
+        <template #value>
+          {{ Number(getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) || getStatLimit('row_count')).toLocaleString() }}/{{
+            Number(getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) ?? 1000).toLocaleString()
+          }}
+        </template>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.storageUsedGB') }} </template>

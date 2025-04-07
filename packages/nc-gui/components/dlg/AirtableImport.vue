@@ -319,7 +319,7 @@ const collapseKey = ref('')
           {{ detailsIsShown ? 'Hide' : 'Show' }} Details
           <GeneralIcon icon="chevronDown" class="ml-2 transition-all transform" :class="{ 'rotate-180': detailsIsShown }" />
         </nc-button>
-        <NcButton v-if="!isInProgress" icon-only type="text" size="xs">
+        <NcButton v-if="!isInProgress" icon-only type="text" size="xs" @click.stop="dialogShow = false">
           <template #icon>
             <GeneralIcon icon="close" class="text-gray-600" />
           </template>

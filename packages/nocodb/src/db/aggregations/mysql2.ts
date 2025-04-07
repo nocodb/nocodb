@@ -395,15 +395,14 @@ export function genMysql2AggregatedQuery({
     }
   }
 
+  if (
+    ![AllAggregations.EarliestDate, AllAggregations.LatestDate].includes(
+      aggregation as any,
+    )
+  ) {
+    aggregationSql = knex.raw(`COALESCE(??, 0)`, [aggregationSql]);
+  }
   if (alias && aggregationSql) {
-    if (
-      ![AllAggregations.EarliestDate, AllAggregations.LatestDate].includes(
-        aggregation as any,
-      )
-    ) {
-      aggregationSql = knex.raw(`COALESCE(??, 0)`, [aggregationSql]);
-    }
-
     aggregationSql = knex.raw(`?? AS ??`, [aggregationSql, alias]);
   }
 

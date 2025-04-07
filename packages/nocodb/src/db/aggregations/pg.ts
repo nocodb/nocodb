@@ -392,15 +392,15 @@ export function genPgAggregateQuery({
     }
   }
 
-  if (alias && aggregationSql) {
-    if (
-      ![AllAggregations.EarliestDate, AllAggregations.LatestDate].includes(
-        aggregation as any,
-      )
-    ) {
-      aggregationSql = knex.raw(`COALESCE(??, 0)`, [aggregationSql]);
-    }
+  if (
+    ![AllAggregations.EarliestDate, AllAggregations.LatestDate].includes(
+      aggregation as any,
+    )
+  ) {
+    aggregationSql = knex.raw(`COALESCE(??, 0)`, [aggregationSql]);
+  }
 
+  if (alias && aggregationSql) {
     aggregationSql = knex.raw(`?? AS ??`, [aggregationSql, alias]);
   }
 

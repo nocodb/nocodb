@@ -512,8 +512,7 @@ export function useInfiniteData(args: {
   }
 
   const navigateToSiblingRow = async (dir: NavigateDir) => {
-    const path = (routeQuery.value?.path?.split('-') ?? []).map((c) => +c)
-
+    const path = routeQuery.value?.path?.length === 0 ? [] : (routeQuery.value?.path?.split('-') ?? []).map((c) => +c)
     const expandedRowIndex = await getExpandedRowIndexWithWait(path)
     if (expandedRowIndex === -1) return
 

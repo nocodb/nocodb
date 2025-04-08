@@ -2286,7 +2286,7 @@ export function useCanvasRender({
           const isHovered = isBoxHovered(
             {
               x: aggXOffset - scrollLeft.value,
-              y: currentOffset + 1,
+              y: Math.max(currentOffset, COLUMN_HEADER_HEIGHT_IN_PX) + 1,
               width,
               height: GROUP_HEADER_HEIGHT - 1 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
             },

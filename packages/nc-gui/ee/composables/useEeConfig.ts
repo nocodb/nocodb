@@ -65,6 +65,13 @@ export const useEeConfig = createSharedComposable(() => {
     return getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE)
   })
 
+  const blockAddNewExternalSource = computed(() => {
+    return (
+      getStatLimit(PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE) >=
+      getLimit(PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE)
+    )
+  })
+
   /** Helper functions */
   function getLimit(type: PlanLimitTypes, workspace?: NcWorkspace | null) {
     if (!workspace) {
@@ -277,6 +284,10 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  watchEffect(() => {
+    console.log('stats', activeWorkspace.value?.stats, activePlan.value?.meta, activeWorkspace.value)
+  })
+
   return {
     getLimit,
     getStatLimit,
@@ -300,5 +311,6 @@ export const useEeConfig = createSharedComposable(() => {
     isAllowToAddExtension,
     blockAddNewAttachment,
     showStoragePlanLimitExceededModal,
+    blockAddNewExternalSource,
   }
 })

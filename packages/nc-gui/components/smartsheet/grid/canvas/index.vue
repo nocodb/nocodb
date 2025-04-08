@@ -1624,8 +1624,17 @@ const handleMouseMove = (e: MouseEvent) => {
   if (cursor) setCursor(cursor)
 }
 
-const reloadViewDataHookHandler = async () => {
+const reloadViewDataHookHandler = async (params) => {
   if (isGroupBy.value) {
+    if (params?.path) {
+      const datacache = getDataCache(params?.path)
+      clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, params?.path)
+      syncCount(params?.path)
+      calculateSlices()
+      requestAnimationFrame(triggerRefreshCanvas)
+      return
+    }
+
     await syncGroupCount()
     groupDataCache.value.clear()
     clearGroupCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
@@ -2206,6 +2215,7 @@ defineExpose({
                     v-model="editEnabled.row.row[editEnabled.column.title]"
                     :column="editEnabled.column"
                     :row="editEnabled.row"
+                    :path="editEnabled.path"
                     active
                     :read-only="!isDataEditAllowed"
                     @save="

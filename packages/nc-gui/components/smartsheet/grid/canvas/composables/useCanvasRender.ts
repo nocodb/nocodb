@@ -166,6 +166,8 @@ export function useCanvasRender({
 
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
 
+  const fixedColsWidth = computed(() => fixedCols.value.reduce((sum, col) => sum + parseCellWidth(col.width), 1))
+
   const drawShimmerEffect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, rowIdx: number) => {
     ctx.save()
 
@@ -431,11 +433,13 @@ export function useCanvasRender({
         }
       } else if (visibleCols.filter((f) => !f.fixed).length) {
         // Draw full line if not intersecting with active state
+        // To avoid rendering the line inside fixed columns, set the xOffset to the right of fixed columns if xOffset is less than fixedColsWidth
+        const verticalLineXOffset = Math.max(fixedColsWidth.value, xOffset - scrollLeft.value)
         ctx.strokeStyle = '#f4f4f5'
         ctx.beginPath()
-        ctx.moveTo(xOffset - scrollLeft.value, 32)
+        ctx.moveTo(verticalLineXOffset, 32)
         ctx.lineTo(
-          xOffset - scrollLeft.value,
+          verticalLineXOffset,
           (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 33 - partialRowHeight.value,
         )
         ctx.stroke()
@@ -1298,8 +1302,10 @@ export function useCanvasRender({
       column: CanvasGridColumn
     }[] = []
 
-    const adjustedWidth =
-      totalWidth.value - scrollLeft.value - 256 < width.value ? totalWidth.value - scrollLeft.value - 256 : width.value
+    const adjustedWidth = Math.max(
+      fixedColsWidth.value,
+      totalWidth.value - scrollLeft.value - 256 < width.value ? totalWidth.value - scrollLeft.value - 256 : width.value,
+    )
 
     let warningRow: { row: Row; yOffset: number } | null = null
     const dataCache = getDataCache()
@@ -1920,10 +1926,12 @@ export function useCanvasRender({
     yOffset += 1
     const indent = level * 13 + 1
 
-    const adjustedWidth =
+    const adjustedWidth = Math.max(
+      fixedColsWidth.value - indent,
       totalWidth.value - scrollLeft.value - 256 < width.value
         ? totalWidth.value - scrollLeft.value - 256 - 2 * indent
-        : width.value
+        : width.value,
+    )
 
     for (let i = startIndex; i <= endIndex; i++) {
       const row = rows?.get(i)
@@ -2108,10 +2116,12 @@ export function useCanvasRender({
     const xOffset = (level + 1) * 13
 
     const mergedWidth = parseCellWidth(rowNumberCol?.width) + parseCellWidth(firstFixedCol?.width) - xOffset
-    const adjustedWidth =
+    const adjustedWidth = Math.max(
+      fixedColsWidth.value - (level + 1) * 13,
       totalWidth.value - scrollLeft.value - 256 < width.value
         ? totalWidth.value - scrollLeft.value - 256 - 2 * xOffset
-        : width.value
+        : width.value,
+    )
     // Track absolute position in virtual space
     let currentOffset = yOffset
 
@@ -2277,8 +2287,6 @@ export function useCanvasRender({
         const { start: startColIndex, end: endColIndex } = colSlice.value
         const visibleCols = columns.value.slice(startColIndex, endColIndex)
 
-        const fixedColsWidth = fixedCols.value.reduce((sum, col) => sum + parseCellWidth(col.width), 1)
-
         let aggXOffset = 1
 
         for (let i = 0; i < startColIndex; i++) {
@@ -2313,14 +2321,14 @@ export function useCanvasRender({
           const aggOffset = aggXOffset - scrollLeft.value
 
           // If fixed columns overlap with the scrolling columns, calculate the overlap
-          const overlap = Math.max(0, fixedColsWidth - aggOffset)
+          const overlap = Math.max(0, fixedColsWidth.value - aggOffset)
 
           // Whether the current column is the last visible one (for minor visual adjustment)
           const isLastCol = index === visibleCols.length - 1
           const adjustment = isLastCol ? 1 : 0
 
           // Final `left` position: Either the scroll-adjusted offset or the width of fixed columns, whichever is greater
-          const left = Math.max(aggOffset, fixedColsWidth)
+          const left = Math.max(aggOffset, fixedColsWidth.value)
 
           // Final `width`: Remaining space after accounting for fixed column overlap and last column adjustment
           const widthClamped = Math.max(width - overlap - adjustment, 0)
@@ -2420,7 +2428,7 @@ export function useCanvasRender({
 
           ctx.save()
           ctx.rect(
-            Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
+            Math.max(aggXOffset - scrollLeft.value, fixedColsWidth.value),
             groupHeaderY + 1,
             width,
             GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),

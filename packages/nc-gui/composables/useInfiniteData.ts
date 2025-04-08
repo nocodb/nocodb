@@ -13,7 +13,6 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isSystemColumn,
 } from 'nocodb-sdk'
-import { getI18n } from '../plugins/a.i18n'
 import type { CanvasGroup } from '../lib/types'
 import type { Row } from '#imports'
 import { validateRowFilters } from '~/utils/dataUtils'

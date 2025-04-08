@@ -59,7 +59,7 @@ export function useGridViewData(
     syncVisibleData,
   })
 
-  const onGroupRowChange = async ({ row, groupByColumn, property, level }) => {
+  const onGroupRowChange = async ({ row, level }) => {
     const parentGroupPath = row.rowMeta?.path?.slice(0, level)
 
     const parentGroup = parentGroupPath?.length ? findGroupByPath(cachedGroups.value, parentGroupPath) : undefined
@@ -101,7 +101,6 @@ export function useGridViewData(
     removeRowIfNew,
     syncCount,
     fetchChunk,
-    fetchMissingChunks,
     recoverLTARRefs,
     getChunkIndex,
     selectedRows,

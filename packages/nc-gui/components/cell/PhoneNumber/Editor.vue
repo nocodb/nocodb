@@ -79,7 +79,7 @@ const showClicableLink = computed(() => {
     v-model="vModel"
     class="nc-cell-field w-full outline-none py-1"
     :class="{
-      '!text-transparent': showClicableLink,
+      'nc-text-transparent': showClicableLink,
     }"
     :disabled="readOnly"
     @blur="onBlur"
@@ -95,7 +95,7 @@ const showClicableLink = computed(() => {
   />
   <div
     v-if="showClicableLink"
-    class="nc-cell-field absolute inset-0 flex items-center max-w-full overflow-hidden pointer-events-none"
+    class="nc-cell-field nc-cell-link-preview absolute inset-0 flex items-center max-w-full overflow-hidden pointer-events-none"
   >
     <a
       no-ref

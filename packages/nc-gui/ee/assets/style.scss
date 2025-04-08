@@ -1328,3 +1328,10 @@ svg.nc-virtual-cell-icon {
     }
   }
 }
+
+.nc-cell-field {
+  &.nc-text-transparent {
+    @apply text-transparent;
+    -webkit-text-fill-color: transparent;
+  }
+}

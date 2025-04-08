@@ -52,7 +52,7 @@ export default class Plan {
       if (key.startsWith('limit_')) {
         response.meta[key] = +value;
       } else if (key.startsWith('feature_')) {
-        response.meta[key] = !!value;
+        response.meta[key] = value === 'true';
       } else if (key.startsWith('description_')) {
         descriptions.push(value);
       }

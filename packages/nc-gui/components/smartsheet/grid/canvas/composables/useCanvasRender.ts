@@ -161,7 +161,7 @@ export function useCanvasRender({
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
   const { tryShowTooltip } = useTooltipStore()
-  const { isMobileMode, isAddNewRecordGridMode } = useGlobal()
+  const { isMobileMode, isAddNewRecordGridMode, appInfo } = useGlobal()
   const isLocked = inject(IsLockedInj, ref(false))
 
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
@@ -2317,103 +2317,48 @@ export function useCanvasRender({
           },
         )
 
-        const { start: startColIndex, end: endColIndex } = colSlice.value
-        const visibleCols = columns.value.slice(startColIndex, endColIndex)
+        if (appInfo.value?.ee) {
+          visibleCols.forEach((column, index) => {
+            const width = parseCellWidth(column.width)
 
-        let aggXOffset = 1
-
-        for (let i = 0; i < startColIndex; i++) {
-          aggXOffset += parseCellWidth(columns.value[i]?.width)
-        }
-
-        visibleCols.forEach((column, index) => {
-          const width = parseCellWidth(column.width)
-
-          if (column.fixed) {
-            aggXOffset += width
-            return
-          }
-
-          const isHovered = isBoxHovered(
-            {
-              x: aggXOffset - scrollLeft.value,
-              y: Math.max(currentOffset, COLUMN_HEADER_HEIGHT_IN_PX) + 1,
-              width,
-              height: GROUP_HEADER_HEIGHT - 1 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
-            },
-            mousePosition,
-          )
-
-          if (isHovered) {
-            setCursor('pointer')
-          }
-
-          ctx.fillStyle = isHovered ? aggregationHoverBg : aggregationDefaultBg
-
-          // Difference between where the column starts and how much the user has scrolled
-          const aggOffset = aggXOffset - scrollLeft.value
-
-          // If fixed columns overlap with the scrolling columns, calculate the overlap
-          const overlap = Math.max(0, fixedColsWidth.value - aggOffset)
-
-          // Whether the current column is the last visible one (for minor visual adjustment)
-          const isLastCol = index === visibleCols.length - 1
-          const adjustment = isLastCol ? 1 : 0
-
-          // Final `left` position: Either the scroll-adjusted offset or the width of fixed columns, whichever is greater
-          const left = Math.max(aggOffset, fixedColsWidth.value)
-
-          // Final `width`: Remaining space after accounting for fixed column overlap and last column adjustment
-          const widthClamped = Math.max(width - overlap - adjustment, 0)
-
-          if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
-            ctx.save()
-            ctx.beginPath()
-
-            roundedRect(
-              ctx,
-              left,
-              groupHeaderY + 1,
-              widthClamped,
-              GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
-              {
-                topLeft: 0,
-                bottomLeft: 0,
-                topRight: index === visibleCols.length - 1 ? 8 : 0,
-                bottomRight: index === visibleCols.length - 1 ? 8 : 0,
-              },
-              { backgroundColor: isHovered ? aggregationHoverBg : aggregationDefaultBg },
-            )
-
-            ctx.fill()
-            ctx.clip()
-
-            ctx.textBaseline = 'middle'
-            ctx.textAlign = 'right'
-
-            ctx.font = '600 12px Manrope'
-            const aggWidth = ctx.measureText(group?.aggregations[column.title] ?? ' - ').width
-            if (column.agg_prefix) {
-              ctx.font = '400 12px Manrope'
-              ctx.fillStyle = '#6a7184'
-              ctx.fillText(
-                column.agg_prefix,
-                aggXOffset + width - aggWidth - 16 - scrollLeft.value,
-                groupHeaderY +
-                  (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
-              )
+            if (column.fixed) {
+              aggXOffset += width
+              return
             }
-            ctx.fillStyle = '#374151'
-            ctx.font = '600 12px Manrope'
-            ctx.fillText(
-              group?.aggregations[column.title] ?? ' - ',
-              aggXOffset + width - 8 - scrollLeft.value,
-              groupHeaderY + (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
+
+            const isHovered = isBoxHovered(
+              {
+                x: aggXOffset - scrollLeft.value,
+                y: Math.max(currentOffset, COLUMN_HEADER_HEIGHT_IN_PX) + 1,
+                width,
+                height: GROUP_HEADER_HEIGHT - 1 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
+              },
+              mousePosition,
             )
 
-            ctx.restore()
-          } else if (isHovered) {
-            if (!isLocked.value) {
+            if (isHovered) {
+              setCursor('pointer')
+            }
+
+            ctx.fillStyle = isHovered ? aggregationHoverBg : aggregationDefaultBg
+
+            // Difference between where the column starts and how much the user has scrolled
+            const aggOffset = aggXOffset - scrollLeft.value
+
+            // If fixed columns overlap with the scrolling columns, calculate the overlap
+            const overlap = Math.max(0, fixedColsWidth.value - aggOffset)
+
+            // Whether the current column is the last visible one (for minor visual adjustment)
+            const isLastCol = index === visibleCols.length - 1
+            const adjustment = isLastCol ? 1 : 0
+
+            // Final `left` position: Either the scroll-adjusted offset or the width of fixed columns, whichever is greater
+            const left = Math.max(aggOffset, fixedColsWidth.value)
+
+            // Final `width`: Remaining space after accounting for fixed column overlap and last column adjustment
+            const widthClamped = Math.max(width - overlap - adjustment, 0)
+
+            if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
               ctx.save()
               ctx.beginPath()
 
@@ -2435,50 +2380,100 @@ export function useCanvasRender({
               ctx.fill()
               ctx.clip()
 
-              ctx.font = '600 10px Manrope'
-              ctx.fillStyle = '#6a7184'
-              ctx.textAlign = 'right'
               ctx.textBaseline = 'middle'
+              ctx.textAlign = 'right'
 
-              const rightEdge = aggXOffset + width - 8 - scrollLeft.value
-              const textY =
-                groupHeaderY + (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2
+              ctx.font = '600 12px Manrope'
+              const aggWidth = ctx.measureText(group?.aggregations[column.title] ?? ' - ').width
+              if (column.agg_prefix) {
+                ctx.font = '400 12px Manrope'
+                ctx.fillStyle = '#6a7184'
+                ctx.fillText(
+                  column.agg_prefix,
+                  aggXOffset + width - aggWidth - 16 - scrollLeft.value,
+                  groupHeaderY +
+                    (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
+                )
+              }
+              ctx.fillStyle = '#374151'
+              ctx.font = '600 12px Manrope'
+              ctx.fillText(
+                group?.aggregations[column.title] ?? ' - ',
+                aggXOffset + width - 8 - scrollLeft.value,
+                groupHeaderY +
+                  (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
+              )
 
-              ctx.fillText('Summary', rightEdge, textY)
-
-              const textLen = ctx.measureText('Summary').width
-
-              spriteLoader.renderIcon(ctx, {
-                icon: 'chevronDown',
-                size: 14,
-                color: '#6a7184',
-                x: rightEdge - textLen - 18,
-                y: textY - 7,
-              })
               ctx.restore()
+            } else if (isHovered) {
+              if (!isLocked.value) {
+                ctx.save()
+                ctx.beginPath()
+
+                roundedRect(
+                  ctx,
+                  left,
+                  groupHeaderY + 1,
+                  widthClamped,
+                  GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
+                  {
+                    topLeft: 0,
+                    bottomLeft: 0,
+                    topRight: index === visibleCols.length - 1 ? 8 : 0,
+                    bottomRight: index === visibleCols.length - 1 ? 8 : 0,
+                  },
+                  { backgroundColor: isHovered ? aggregationHoverBg : aggregationDefaultBg },
+                )
+
+                ctx.fill()
+                ctx.clip()
+
+                ctx.font = '600 10px Manrope'
+                ctx.fillStyle = '#6a7184'
+                ctx.textAlign = 'right'
+                ctx.textBaseline = 'middle'
+
+                const rightEdge = aggXOffset + width - 8 - scrollLeft.value
+                const textY =
+                  groupHeaderY +
+                  (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2
+
+                ctx.fillText('Summary', rightEdge, textY)
+
+                const textLen = ctx.measureText('Summary').width
+
+                spriteLoader.renderIcon(ctx, {
+                  icon: 'chevronDown',
+                  size: 14,
+                  color: '#6a7184',
+                  x: rightEdge - textLen - 18,
+                  y: textY - 7,
+                })
+                ctx.restore()
+              }
             }
-          }
 
-          ctx.save()
-          ctx.rect(
-            Math.max(aggXOffset - scrollLeft.value, fixedColsWidth.value),
-            groupHeaderY + 1,
-            width,
-            GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
-          )
+            ctx.save()
+            ctx.rect(
+              Math.max(aggXOffset - scrollLeft.value, fixedColsWidth.value),
+              groupHeaderY + 1,
+              width,
+              GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
+            )
 
-          ctx.clip()
-          ctx.beginPath()
-          ctx.strokeStyle = aggregationBorderColor
-          ctx.moveTo(aggXOffset - scrollLeft.value, groupHeaderY + 1)
-          ctx.lineTo(
-            aggXOffset - scrollLeft.value,
-            groupHeaderY + GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
-          )
-          ctx.stroke()
-          ctx.restore()
-          aggXOffset += width
-        })
+            ctx.clip()
+            ctx.beginPath()
+            ctx.strokeStyle = aggregationBorderColor
+            ctx.moveTo(aggXOffset - scrollLeft.value, groupHeaderY + 1)
+            ctx.lineTo(
+              aggXOffset - scrollLeft.value,
+              groupHeaderY + GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
+            )
+            ctx.stroke()
+            ctx.restore()
+            aggXOffset += width
+          })
+        }
 
         spriteLoader.renderIcon(ctx, {
           icon: group?.isExpanded ? 'ncChevronDown' : 'ncChevronRight',

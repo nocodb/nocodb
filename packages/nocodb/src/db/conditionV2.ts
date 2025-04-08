@@ -11,10 +11,7 @@ import { FieldHandler } from './field-handler';
 import type { FilterType } from 'nocodb-sdk';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { Knex } from 'knex';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import type FormulaColumn from '~/models/FormulaColumn';
-import type RollupColumn from '~/models/RollupColumn';
-import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getRefColumnIfAlias } from '~/helpers';
@@ -30,7 +27,7 @@ import { getColumnName } from '~/helpers/dbHelpers';
 // extend(customParseFormat);
 
 export default async function conditionV2(
-  baseModelSqlv2: BaseModelSqlv2,
+  baseModelSqlv2: IBaseModelSqlV2,
   conditionObj: Filter | FilterType | FilterType[] | Filter[],
   qb: Knex.QueryBuilder,
   alias?: string,
@@ -70,7 +67,7 @@ function getLogicalOpMethod(filter: Filter) {
 }
 
 const parseConditionV2 = async (
-  baseModelSqlv2: BaseModelSqlv2,
+  baseModelSqlv2: IBaseModelSqlV2,
   _filter: Filter | FilterType | FilterType[] | Filter[],
   aliasCount = { count: 0 },
   alias?,

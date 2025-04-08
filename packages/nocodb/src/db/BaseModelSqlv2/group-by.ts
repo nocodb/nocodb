@@ -76,7 +76,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             selectors.push(
               (
                 await genRollupSelectv2({
-                  baseModelSqlv2: this,
+                  baseModelSqlv2: baseModel,
                   knex: baseModel.dbDriver,
                   columnOptions: (await column.getColOptions(
                     baseModel.context,
@@ -113,7 +113,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           case UITypes.LinkToAnotherRecord:
             {
               const _selectQb = await generateLookupSelectQuery({
-                baseModelSqlv2: this,
+                baseModelSqlv2: baseModel,
                 column,
                 alias: null,
                 model: baseModel.model,
@@ -232,7 +232,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       aliasColObjMap,
     );
     await conditionV2(
-      this,
+      baseModel,
       [
         ...(baseModel.viewId
           ? [
@@ -391,7 +391,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             selectors.push(
               (
                 await genRollupSelectv2({
-                  baseModelSqlv2: this,
+                  baseModelSqlv2: baseModel,
                   // tn: baseModel.title,
                   knex: baseModel.dbDriver,
                   // column,
@@ -429,7 +429,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           case UITypes.LinkToAnotherRecord:
             {
               const _selectQb = await generateLookupSelectQuery({
-                baseModelSqlv2: this,
+                baseModelSqlv2: baseModel,
                 column,
                 alias: null,
                 model: baseModel.model,
@@ -537,7 +537,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       aliasColObjMap,
     );
     await conditionV2(
-      this,
+      baseModel,
       [
         ...(baseModel.viewId
           ? [
@@ -655,7 +655,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 colSelectors.push(
                   (
                     await genRollupSelectv2({
-                      baseModelSqlv2: this,
+                      baseModelSqlv2: baseModel,
                       knex: baseModel.dbDriver,
                       columnOptions: (await column.getColOptions(
                         baseModel.context,
@@ -688,7 +688,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               case UITypes.Lookup:
               case UITypes.LinkToAnotherRecord: {
                 const _selectQb = await generateLookupSelectQuery({
-                  baseModelSqlv2: this,
+                  baseModelSqlv2: baseModel,
                   column,
                   alias: null,
                   model: baseModel.model,
@@ -791,7 +791,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         }
 
         await conditionV2(
-          this,
+          baseModel,
           [
             ...(baseModel.viewId
               ? [
@@ -986,7 +986,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 colSelectors.push(
                   (
                     await genRollupSelectv2({
-                      baseModelSqlv2: this,
+                      baseModelSqlv2: baseModel,
                       knex: baseModel.dbDriver,
                       columnOptions: (await column.getColOptions(
                         baseModel.context,
@@ -1019,7 +1019,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               case UITypes.Lookup:
               case UITypes.LinkToAnotherRecord: {
                 const _selectQb = await generateLookupSelectQuery({
-                  baseModelSqlv2: this,
+                  baseModelSqlv2: baseModel,
                   column,
                   alias: null,
                   model: baseModel.model,
@@ -1122,7 +1122,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         }
 
         await conditionV2(
-          this,
+          baseModel,
           [
             ...(baseModel.viewId
               ? [

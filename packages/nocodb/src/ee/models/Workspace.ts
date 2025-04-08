@@ -1,5 +1,7 @@
 import { Logger } from '@nestjs/common';
 import {
+  NON_SEAT_ROLES,
+  PlanLimitTypes,
   type WorkspacePlan,
   type WorkspaceStatus,
   type WorkspaceType,
@@ -140,12 +142,21 @@ export default class Workspace implements WorkspaceType {
     );
 
     if (withStats) {
-      workspaceData.stats = await UsageStat.getPeriodStats(
+      const periodStats = await UsageStat.getPeriodStats(
         workspaceData.id,
         workspaceData.payment?.subscription?.billing_cycle_anchor ||
           workspaceData.created_at,
         ncMeta,
       );
+      const resourceStats = await this.getResourceStats(
+        workspaceData.id,
+        ncMeta,
+      );
+
+      workspaceData.stats = {
+        ...periodStats,
+        ...resourceStats,
+      };
     }
 
     return workspaceData && new Workspace(workspaceData);
@@ -514,5 +525,75 @@ export default class Workspace implements WorkspaceType {
     );
 
     return workspace;
+  }
+
+  public static async getResourceStats(id: string, ncMeta = Noco.ncMeta) {
+    let stats = await NocoCache.getHash(`${CacheScope.RESOURCE_STATS}:${id}`);
+    if (!stats) {
+      stats = await ncMeta.knexConnection
+        .select({
+          [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: ncMeta
+            .knexConnection(MetaTable.HOOKS)
+            .count('*')
+            .where('fk_workspace_id', id),
+          [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: ncMeta
+            .knexConnection(MetaTable.EXTENSIONS)
+            .count('*')
+            .where('fk_workspace_id', id),
+          [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: ncMeta
+            .knexConnection(MetaTable.SNAPSHOT)
+            .count('*')
+            .where('fk_workspace_id', id),
+          [PlanLimitTypes.LIMIT_EDITOR]: ncMeta
+            .knexConnection(`${MetaTable.WORKSPACE_USER} AS wu`)
+            .leftJoin(
+              `${MetaTable.PROJECT_USERS} AS bu`,
+              'wu.fk_user_id',
+              'bu.fk_user_id',
+            )
+            .countDistinct('wu.fk_user_id')
+            .where('wu.fk_workspace_id', id)
+            .andWhere((qb) => {
+              qb.whereNotIn('wu.roles', NON_SEAT_ROLES).orWhereNotIn(
+                'bu.roles',
+                NON_SEAT_ROLES,
+              );
+            }),
+          [PlanLimitTypes.LIMIT_COMMENTER]: ncMeta
+            .knexConnection(`${MetaTable.WORKSPACE_USER} AS wu`)
+            .leftJoin(
+              `${MetaTable.PROJECT_USERS} AS bu`,
+              'wu.fk_user_id',
+              'bu.fk_user_id',
+            )
+            .countDistinct('wu.fk_user_id')
+            .where('wu.fk_workspace_id', id)
+            .whereNotIn('wu.fk_user_id', function () {
+              this.select('wu2.fk_user_id')
+                .from(`${MetaTable.WORKSPACE_USER} AS wu2`)
+                .join(
+                  `${MetaTable.PROJECT_USERS} AS bu2`,
+                  'wu2.fk_user_id',
+                  'bu2.fk_user_id',
+                )
+                .where('wu2.fk_workspace_id', id)
+                .andWhere((qb) => {
+                  qb.whereNotIn('wu2.roles', NON_SEAT_ROLES).orWhereNotIn(
+                    'bu2.roles',
+                    NON_SEAT_ROLES,
+                  );
+                });
+            }),
+        })
+        .first();
+
+      await NocoCache.setHash(`${CacheScope.RESOURCE_STATS}:${id}`, stats);
+    }
+
+    return Object.fromEntries(
+      Object.entries(stats).map(([key, value]) => {
+        return [key, parseInt(value as string, 10)];
+      }),
+    );
   }
 }

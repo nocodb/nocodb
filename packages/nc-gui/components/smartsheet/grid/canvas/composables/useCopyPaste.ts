@@ -119,11 +119,12 @@ export function useCopyPaste({
   const { cleaMMCell, clearLTARCell, addLTARRef, syncLTARRefs } = useSmartsheetLtarHelpersOrThrow()
   const { isSqlView } = useSmartsheetStoreOrThrow()
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+  const isPublic = inject(IsPublicInj, ref(false))
 
   const { base } = storeToRefs(useBase())
   const fields = computed(() => (columns.value ?? []).map((c) => c.columnObj))
   const canPasteCell = computed(() => {
-    if (isSqlView.value) return false
+    if (isSqlView.value || isPublic.value) return false
 
     return (
       !editEnabled.value ||

@@ -151,17 +151,29 @@ export function useGridViewData(
       return
     }
 
+    function collectChildGroups(group: CanvasGroup): CanvasGroup[] {
+      const result: CanvasGroup[] = [group]
+      if (group.groups && group.groups.size > 0) {
+        for (const childGroup of group.groups.values()) {
+          result.push(...collectChildGroups(childGroup))
+        }
+      }
+      return result
+    }
+
     const targetGroup = findGroupByPath(cachedGroups.value, path)
     if (!targetGroup) return
 
-    updateGroupAggregations([targetGroup], fields)
+    const groupsToUpdate = collectChildGroups(targetGroup)
+    updateGroupAggregations(groupsToUpdate, fields)
 
     if (path.length > 1) {
       for (let i = path.length - 1; i > 0; i--) {
         const parentPath = path.slice(0, i)
         const parentGroup = findGroupByPath(cachedGroups.value, parentPath)
         if (parentGroup) {
-          updateGroupAggregations([parentGroup], fields)
+          const parentAndChildren = collectChildGroups(parentGroup)
+          updateGroupAggregations(parentAndChildren, fields)
         }
       }
     }

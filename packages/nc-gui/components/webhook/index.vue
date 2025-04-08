@@ -384,8 +384,8 @@ async function saveHooks() {
   loading.value = true
   try {
     await validate()
-  } catch (_: any) {
-    message.error(t('msg.error.invalidForm'))
+  } catch (error: any) {
+    console.error('validation error', error)
 
     loading.value = false
 

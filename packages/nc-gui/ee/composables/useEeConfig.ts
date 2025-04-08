@@ -157,7 +157,9 @@ export const useEeConfig = createSharedComposable(() => {
     return t(`objects.paymentPlan.${plan}`, plan)
   }
 
-  const handleRequestUpgrade = (..._arg: any[]) => {}
+  const handleRequestUpgrade = (..._arg: any[]) => {
+    // Todo: send request to owner
+  }
 
   const navigateToBilling = (workspaceId?: string, redirectToWorkspace: boolean = true) => {
     if (!isWsOwner.value) return handleRequestUpgrade()

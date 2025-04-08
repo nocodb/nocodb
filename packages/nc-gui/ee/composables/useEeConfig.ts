@@ -12,6 +12,10 @@ import NcModalConfirm, { type NcConfirmModalProps } from '../../components/nc/Mo
 export const useEeConfig = createSharedComposable(() => {
   const { t } = useI18n()
 
+  const { user } = useGlobal()
+
+  const { isUIAllowed } = useRoles()
+
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
   const workspaceStore = useWorkspace()
@@ -19,6 +23,13 @@ export const useEeConfig = createSharedComposable(() => {
   const { activeWorkspace, activeWorkspaceId, workspaces } = storeToRefs(workspaceStore)
 
   /** Ref or Computed value */
+
+  // Will only consider ws owner not super admin
+  const isWsOwner = computed(() =>
+    isUIAllowed('workspaceBilling', {
+      roles: user.value?.workspace_roles,
+    }),
+  )
   const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription)
 
   const activePlan = computed(() => activeWorkspace.value?.payment?.plan)
@@ -146,7 +157,11 @@ export const useEeConfig = createSharedComposable(() => {
     return t(`objects.paymentPlan.${plan}`, plan)
   }
 
+  const handleRequestUpgrade = (..._arg: any[]) => {}
+
   const navigateToBilling = (workspaceId?: string, redirectToWorkspace: boolean = true) => {
+    if (!isWsOwner.value) return handleRequestUpgrade()
+
     if (redirectToWorkspace) {
       navigateTo(`/${workspaceId ?? activeWorkspaceId.value}/settings?tab=billing`)
     } else {
@@ -189,13 +204,19 @@ export const useEeConfig = createSharedComposable(() => {
         plan: getPlanTitle(newPlanTitle),
       })
     }
+
+    let okBtnText = okText
+
+    if (!okBtnText) {
+      okBtnText = isWsOwner.value ? t('general.upgrade') : t('general.requestUpgrade')
+    }
     const isOpen = ref(true)
 
     const { close } = useDialog(NcModalConfirm, {
       'visible': isOpen,
       'title': title,
       'content': content,
-      'okText': okText || t('general.upgrade'),
+      'okText': okBtnText,
       'cancelText': cancelText || t('msg.learnMore'),
       'onCancel': closeDialog,
       'cancelProps': {
@@ -325,6 +346,7 @@ export const useEeConfig = createSharedComposable(() => {
   // })
 
   return {
+    isWsOwner,
     getLimit,
     getStatLimit,
     updateStatLimit,

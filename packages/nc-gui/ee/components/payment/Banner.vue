@@ -1,8 +1,5 @@
 <script lang="ts" setup>
-const { isPaidPlan, navigateToBilling } = useEeConfig()
-
-const router = useRouter()
-const route = router.currentRoute
+const { isPaidPlan, isWsOwner, navigateToBilling } = useEeConfig()
 
 const isMinimised = ref(true)
 
@@ -70,7 +67,7 @@ const handleClickBanner = () => {
             <template #icon>
               <GeneralIcon icon="ncArrowUpRight" class="h-4 w-4" />
             </template>
-            {{ $t('labels.upgradePlan') }}
+            {{ isWsOwner ? $t('labels.upgradePlan') : $t('general.requestUpgrade') }}
           </NcButton>
           <a href="https://nocodb.com/pricing" target="_blank" class="!no-underline">
             <NcButton

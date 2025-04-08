@@ -546,6 +546,14 @@ export default class Workspace implements WorkspaceType {
             .knexConnection(MetaTable.SNAPSHOT)
             .count('*')
             .where('fk_workspace_id', id),
+          [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: ncMeta
+            .knexConnection(MetaTable.SOURCES)
+            .count('*')
+            .where('fk_workspace_id', id)
+            .where((qb) => {
+              qb.where('is_meta', false).orWhereNull('is_meta');
+              qb.where('is_local', false).orWhereNull('is_local');
+            }),
           [PlanLimitTypes.LIMIT_EDITOR]: ncMeta
             .knexConnection(`${MetaTable.WORKSPACE_USER} AS wu`)
             .leftJoin(

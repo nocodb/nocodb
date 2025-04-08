@@ -115,7 +115,7 @@ export default class Extension {
     );
 
     await NocoCache.incrHashField(
-      `${CacheScope.RESOURCE_STATS}:${context.workspace_id}`,
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE,
       1,
     );
@@ -180,7 +180,7 @@ export default class Extension {
     );
 
     await NocoCache.incrHashField(
-      `${CacheScope.RESOURCE_STATS}:${context.workspace_id}`,
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE,
       -1,
     );

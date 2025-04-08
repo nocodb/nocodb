@@ -528,7 +528,9 @@ export default class Workspace implements WorkspaceType {
   }
 
   public static async getResourceStats(id: string, ncMeta = Noco.ncMeta) {
-    let stats = await NocoCache.getHash(`${CacheScope.RESOURCE_STATS}:${id}`);
+    let stats = await NocoCache.getHash(
+      `${CacheScope.RESOURCE_STATS}:workspace:${id}`,
+    );
     if (!stats) {
       stats = await ncMeta.knexConnection
         .select({
@@ -587,7 +589,10 @@ export default class Workspace implements WorkspaceType {
         })
         .first();
 
-      await NocoCache.setHash(`${CacheScope.RESOURCE_STATS}:${id}`, stats);
+      await NocoCache.setHash(
+        `${CacheScope.RESOURCE_STATS}:workspace:${id}`,
+        stats,
+      );
     }
 
     return Object.fromEntries(

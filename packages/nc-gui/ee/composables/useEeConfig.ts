@@ -85,7 +85,7 @@ export const useEeConfig = createSharedComposable(() => {
       type = 'row_count'
     }
 
-    const limit = workspace?.stats?.[type] ?? 20480
+    const limit = workspace?.stats?.[type] ?? 0
 
     return limit === -1 ? 0 : limit
   }

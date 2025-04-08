@@ -105,7 +105,7 @@ export default class Snapshot implements SnapshotType {
     );
 
     await NocoCache.incrHashField(
-      `${CacheScope.RESOURCE_STATS}:${context.workspace_id}`,
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE,
       1,
     );
@@ -159,7 +159,7 @@ export default class Snapshot implements SnapshotType {
     );
 
     await NocoCache.incrHashField(
-      `${CacheScope.RESOURCE_STATS}:${context.workspace_id}`,
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE,
       -1,
     );

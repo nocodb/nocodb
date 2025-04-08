@@ -181,7 +181,7 @@ export default class FileReference {
         await NocoCache.incrHashField(
           `${CacheScope.STORAGE_STATS}:workspace:${context.workspace_id}`,
           PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE,
-          decrement ? -size : size,
+          decrement ? -(size ?? 0) : size ?? 0,
         );
       }
     }
@@ -215,7 +215,7 @@ export default class FileReference {
       .first();
 
     if (fileReferenceData) {
-      return fileReferenceData.totalSize;
+      return +fileReferenceData.totalSize;
     }
     return 0;
   }

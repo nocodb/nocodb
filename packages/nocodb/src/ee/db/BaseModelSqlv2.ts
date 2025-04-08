@@ -68,7 +68,7 @@ import Noco from '~/Noco';
 import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { runExternal } from '~/helpers/muxHelpers';
-import { getLimit } from '~/helpers/paymentHelpers';
+import { checkLimit, getLimit } from '~/helpers/paymentHelpers';
 import { extractMentions } from '~/utils/richTextHelper';
 import { MetaTable } from '~/utils/globals';
 import {
@@ -1037,21 +1037,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       workspaceRowCount = 0;
     }
 
-    const { limit: workspaceRowLimit, plan } = await getLimit(
-      PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
-      this.model.fk_workspace_id,
-    );
-
-    if (workspaceRowCount >= workspaceRowLimit) {
-      NcError.planLimitExceeded(
-        `Only ${workspaceRowLimit} records are allowed in your workspace, for more please upgrade your plan`,
-        {
-          plan: plan?.title,
-          limit: workspaceRowLimit,
-          current: workspaceRowCount,
-        },
-      );
-    }
+    await checkLimit({
+      workspaceId: this.model.fk_workspace_id,
+      type: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
+      count: workspaceRowCount,
+      message: ({ limit }) =>
+        `Only ${limit} records are allowed in your workspace, for more please upgrade your plan`,
+    });
 
     if (!allowSystemColumn && this.model.synced) {
       NcError.badRequest('Cannot insert into synced table');
@@ -1087,21 +1079,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       workspaceRowCount = 0;
     }
 
-    const { limit: workspaceRowLimit, plan } = await getLimit(
-      PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
-      this.model.fk_workspace_id,
-    );
-
-    if (workspaceRowCount + data.length >= workspaceRowLimit) {
-      NcError.planLimitExceeded(
-        `Only ${workspaceRowLimit} records are allowed in your workspace, for more please upgrade your plan`,
-        {
-          plan: plan?.title,
-          limit: workspaceRowLimit,
-          current: workspaceRowCount,
-        },
-      );
-    }
+    await checkLimit({
+      workspaceId: this.model.fk_workspace_id,
+      type: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
+      count: workspaceRowCount,
+      message: ({ limit }) =>
+        `Only ${limit} records are allowed in your workspace, for more please upgrade your plan`,
+    });
 
     if (!allowSystemColumn && this.model.synced) {
       NcError.badRequest('Cannot insert into synced table');

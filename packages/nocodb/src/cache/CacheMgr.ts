@@ -682,7 +682,7 @@ export default abstract class CacheMgr {
     return this.client.hset(key, hash);
   }
 
-  async getHash(key: string): Promise<Record<string, string> | null> {
+  async getHash(key: string): Promise<Record<string, string | number> | null> {
     log(`${this.context}::getHash: getting hash ${key}`);
     const hash = await this.client.hgetall(key);
     if (hash && Object.keys(hash).length) {
@@ -709,7 +709,19 @@ export default abstract class CacheMgr {
     log(
       `${this.context}::incrHashField: incrementing hash ${key} field ${field}`,
     );
-    return await this.client.hincrby(key, field, value);
+    console.log(
+      `${this.context}::incrHashField: incrementing hash ${key} field ${field}`,
+    );
+
+    return new Promise((resolve) => {
+      this.client.call('HINCRBY', key, field, value, (err, res) => {
+        if (err) {
+          resolve(0);
+        } else {
+          resolve(+Promise.resolve(res));
+        }
+      });
+    });
   }
 
   async processPattern(

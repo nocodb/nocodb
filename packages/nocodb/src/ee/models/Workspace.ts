@@ -65,6 +65,8 @@ export default class Workspace implements WorkspaceType {
     [key: string]: number;
   };
 
+  grace_period_start_at?: string;
+
   created_at?: string;
   updated_at?: string;
 
@@ -605,15 +607,23 @@ export default class Workspace implements WorkspaceType {
         })
         .first();
 
-      await NocoCache.setHash(
-        `${CacheScope.RESOURCE_STATS}:workspace:${id}`,
-        stats,
-      );
+      if (stats) {
+        stats = Object.fromEntries(
+          Object.entries(stats).map(([key, value]) => {
+            return [key, +value];
+          }),
+        );
+
+        await NocoCache.setHash(
+          `${CacheScope.RESOURCE_STATS}:workspace:${id}`,
+          stats,
+        );
+      }
     }
 
     return Object.fromEntries(
       Object.entries(stats).map(([key, value]) => {
-        return [key, parseInt(value as string, 10)];
+        return [key, +value];
       }),
     );
   }
@@ -639,6 +649,12 @@ export default class Workspace implements WorkspaceType {
         })
         .first();
 
+      if (!storage) {
+        storage = {
+          [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 0,
+        };
+      }
+
       await NocoCache.setHash(
         `${CacheScope.STORAGE_STATS}:workspace:${id}`,
         storage,
@@ -648,12 +664,7 @@ export default class Workspace implements WorkspaceType {
     // convert bytes to MB
     return {
       [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: Math.floor(
-        parseInt(
-          storage[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] || '0',
-          10,
-        ) /
-          1000 /
-          1000,
+        +storage[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] / 1000 / 1000,
       ),
     };
   }

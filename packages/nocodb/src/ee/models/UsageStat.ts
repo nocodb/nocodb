@@ -98,7 +98,7 @@ export default class UsageStat {
       // convert to object
       usageStats = {};
       for (const usageStat of usageStatsList) {
-        usageStats[usageStat.usage_type] = usageStat.count;
+        usageStats[usageStat.usage_type] = +usageStat.count;
       }
 
       await NocoCache.setHash(key, usageStats, {

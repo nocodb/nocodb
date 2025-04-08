@@ -215,6 +215,12 @@ export const GenericFeatures = {
   [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]: false,
 } as const;
 
+export const GraceLimits = {
+  [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 100000,
+  [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 10000,
+  [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 10000,
+};
+
 const legacyLimitAndFeatures = {
   [PlanLimitTypes.LIMIT_EDITOR]: 50,
   [PlanLimitTypes.LIMIT_COMMENTER]: 50,

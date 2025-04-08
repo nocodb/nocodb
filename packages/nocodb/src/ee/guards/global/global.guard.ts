@@ -6,6 +6,7 @@ import type { Request } from 'express';
 import type { ExecutionContext } from '@nestjs/common';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { UsageStat } from '~/models';
+import { checkLimit } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class GlobalGuard extends AuthGuard(['jwt']) {
@@ -53,6 +54,13 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
 
       if (canActivate) {
         if (req.ncWorkspace) {
+          await checkLimit({
+            workspace: req.ncWorkspace,
+            type: PlanLimitTypes.LIMIT_API_CALL,
+            message: ({ limit }) =>
+              `You have reached the limit of ${limit} API calls for your plan.`,
+          });
+
           await UsageStat.incrby(
             req.ncWorkspace.id,
             PlanLimitTypes.LIMIT_API_CALL,

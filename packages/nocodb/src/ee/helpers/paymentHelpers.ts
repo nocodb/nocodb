@@ -1,8 +1,18 @@
-import { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk';
+import {
+  GRACE_PERIOD_DURATION,
+  PlanFeatureTypes,
+  PlanLimitTypes,
+} from 'nocodb-sdk';
+import dayjs from 'dayjs';
 import { NcError } from '~/helpers/catchError';
 import { Org, Subscription, Workspace } from '~/models';
 import Noco from '~/Noco';
-import Plan, { FreePlan, GenericFeatures, GenericLimits } from '~/models/Plan';
+import Plan, {
+  FreePlan,
+  GenericFeatures,
+  GenericLimits,
+  GraceLimits,
+} from '~/models/Plan';
 
 async function getLimit(
   type: PlanLimitTypes,
@@ -43,6 +53,112 @@ async function getLimit(
     limit,
     plan,
   };
+}
+
+async function checkLimit(args: {
+  workspace?: Workspace;
+  workspaceId?: string;
+  type: PlanLimitTypes;
+  count?: number;
+  delta?: number;
+  message?: (args: { limit?: number; plan?: string }) => string;
+  ncMeta?: typeof Noco.ncMeta;
+}): Promise<void> {
+  const { workspaceId, type, delta, message, ncMeta = Noco.ncMeta } = args;
+
+  let workspace = args.workspace;
+
+  if (!workspace) {
+    if (!workspaceId)
+      NcError.badRequest('Workspace ID or workspace is required');
+
+    workspace = await Workspace.get(workspaceId, undefined, ncMeta);
+  }
+
+  if (!workspace) {
+    NcError.forbidden('You are not allowed to perform this action');
+  }
+
+  const plan = workspace?.payment?.plan;
+
+  const limit = plan?.meta?.[type] ?? GenericLimits[type] ?? Infinity;
+
+  const statName =
+    type === PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE ? 'row_count' : type;
+
+  const count = args.count ?? workspace.stats?.[statName] ?? 0;
+
+  if (limit === -1) {
+    return;
+  }
+
+  if (count + (delta || 0) > limit) {
+    if (type in GraceLimits) {
+      const gracePeriodStartAt = workspace.grace_period_start_at;
+
+      if (gracePeriodStartAt) {
+        const gracePeriodEndAt = dayjs(gracePeriodStartAt)
+          .add(GRACE_PERIOD_DURATION, 'day')
+          .endOf('day')
+          .toDate();
+
+        if (dayjs().isBefore(gracePeriodEndAt)) {
+          if (count + (delta || 0) > GraceLimits[type]) {
+            NcError.planLimitExceeded(
+              message?.({
+                limit: GraceLimits[type],
+                plan: plan?.title,
+              }) ||
+                `You have reached the limit of ${limit} (${type}) for your plan.`,
+              {
+                plan: plan?.title,
+                limit: GraceLimits[type],
+                current: count,
+              },
+            );
+          }
+          return;
+        }
+
+        NcError.planLimitExceeded(
+          message?.({
+            limit: GraceLimits[type],
+            plan: plan?.title,
+          }) ||
+            `You have reached the limit of ${limit} (${type}) for your plan.`,
+          {
+            plan: plan?.title,
+            limit: GraceLimits[type],
+            current: count,
+          },
+        );
+      } else {
+        const gracePeriodStartAt = ncMeta.now();
+
+        await Workspace.update(
+          workspaceId,
+          {
+            grace_period_start_at: gracePeriodStartAt,
+          },
+          ncMeta,
+        );
+
+        return;
+      }
+    } else {
+      NcError.planLimitExceeded(
+        message?.({
+          limit,
+          plan: plan?.title,
+        }) || `You have reached the limit of ${limit} (${type}) for your plan.`,
+        {
+          plan: plan?.title,
+          limit,
+          current: count,
+        },
+      );
+    }
+  }
 }
 
 async function getFeature(
@@ -105,6 +221,7 @@ async function getActivePlanAndSubscription(
 export {
   PlanLimitTypes,
   PlanFeatureTypes,
+  checkLimit,
   getLimit,
   getFeature,
   GenericLimits,

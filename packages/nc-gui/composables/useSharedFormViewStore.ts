@@ -29,7 +29,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { sharedView } = storeToRefs(useViewsStore())
 
-  const { showRecordPlanLimitExceededModal } = useEeConfig()
+  const { blockAddNewRecord, showRecordPlanLimitExceededModal } = useEeConfig()
 
   provide(SharedViewPasswordInj, password)
 
@@ -232,7 +232,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       checkFieldVisibility()
 
       nextTick(() => {
-        showRecordPlanLimitExceededModal({ focusBtn: null })
+        showRecordPlanLimitExceededModal({ isSharedFormView: true, focusBtn: null })
       })
     } catch (e: any) {
       const error = await extractSdkResponseErrorMsgv2(e)
@@ -382,6 +382,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   }
 
   const submitForm = async () => {
+    // If blockAddNewRecord is true that means we have to upgrade plan to add more records
+    if (blockAddNewRecord.value) return
+
     try {
       if (!(await validateAllFields())) {
         return

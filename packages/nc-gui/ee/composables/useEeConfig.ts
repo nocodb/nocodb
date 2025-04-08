@@ -62,6 +62,9 @@ export const useEeConfig = createSharedComposable(() => {
     return Math.max(daysLeft, 0)
   })
 
+  /**
+   * User has to upgrade plan in order to add new records
+   */
   const blockAddNewRecord = computed(() => {
     return gracePeriodDaysLeft.value === 0
   })
@@ -183,7 +186,10 @@ export const useEeConfig = createSharedComposable(() => {
     okText,
     cancelText,
     focusBtn,
-  }: Pick<NcConfirmModalProps, 'content' | 'okText' | 'cancelText' | 'focusBtn'> & {
+    maskClosable = true,
+    keyboard = true,
+    disableClose,
+  }: Pick<NcConfirmModalProps, 'content' | 'okText' | 'cancelText' | 'focusBtn' | 'maskClosable' | 'keyboard'> & {
     title?: string
     currentPlanTitle?: PlanTitles
     newPlanTitle?: PlanTitles
@@ -191,6 +197,7 @@ export const useEeConfig = createSharedComposable(() => {
     callback?: (type: 'ok' | 'cancel') => void
     redirectToWorkspace?: boolean
     stopEventPropogation?: boolean
+    disableClose?: boolean
   } = {}) => {
     const higherPlan = HigherPlan[currentPlanTitle ?? activePlanTitle.value]
     if (!higherPlan) {
@@ -236,12 +243,15 @@ export const useEeConfig = createSharedComposable(() => {
       },
       'update:visible': closeDialog,
       'showIcon': false,
-      'maskClosable': true,
+      'maskClosable': disableClose ? false : maskClosable,
+      'keyboard': disableClose ? false : keyboard,
       'stopEventPropogation': stopEventPropogation,
       'focusBtn': focusBtn,
     })
 
     function closeDialog() {
+      if (disableClose) return
+
       isOpen.value = false
       close(1000)
     }
@@ -278,18 +288,22 @@ export const useEeConfig = createSharedComposable(() => {
   const showRecordPlanLimitExceededModal = ({
     callback,
     focusBtn,
-  }: Pick<NcConfirmModalProps, 'focusBtn'> & { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    isSharedFormView,
+  }: Pick<NcConfirmModalProps, 'focusBtn'> & { isSharedFormView?: boolean; callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockAddNewRecord.value) return
 
     handleUpgradePlan({
-      title: t('upgrade.upgradeToCreateMoreRecords'),
-      content: t('upgrade.upgradeToAddMoreAttachmentsSubtitle', {
-        activePlan: activePlanTitle.value,
-        limit: getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE),
-        plan: HigherPlan[activePlanTitle.value],
-      }),
+      title: isSharedFormView ? t('upgrade.upgradeToCreateMoreRecordsForm') : t('upgrade.upgradeToCreateMoreRecords'),
+      content: isSharedFormView
+        ? t('upgrade.upgradeToCreateMoreRecordsFormSubtitle')
+        : t('upgrade.upgradeToAddMoreAttachmentsSubtitle', {
+            activePlan: activePlanTitle.value,
+            limit: getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE),
+            plan: HigherPlan[activePlanTitle.value],
+          }),
       callback,
       focusBtn,
+      disableClose: isSharedFormView,
     })
 
     return true

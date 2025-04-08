@@ -1,27 +1,21 @@
+import { sanitize } from 'isomorphic-dompurify';
 import { extractFilterFromXwhere, UITypes } from 'nocodb-sdk';
-import { NcError } from 'src/helpers/catchError';
+import type { Logger } from '@nestjs/common';
+import type { Knex } from 'knex';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { BarcodeColumn, QrCodeColumn, RollupColumn, View } from '~/models';
+import conditionV2 from '~/db/conditionV2';
+import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
+import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import { NcError } from '~/helpers/catchError';
 import {
   applyPaginate,
   extractSortsObject,
   getAs,
   getColumnName,
-} from 'src/helpers/dbHelpers';
-import { BaseUser, Column, Filter } from 'src/models';
-import { getAliasGenerator } from 'src/utils';
-import { Sort } from 'src/models';
-import { sanitize } from 'isomorphic-dompurify';
-import generateLookupSelectQuery from '../generateLookupSelectQuery';
-import conditionV2 from '../conditionV2';
-import genRollupSelectv2 from '../genRollupSelectv2';
-import type { Knex } from 'knex';
-import type {
-  BarcodeColumn,
-  QrCodeColumn,
-  RollupColumn,
-  View,
-} from 'src/models';
-import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { Logger } from '@nestjs/common';
+} from '~/helpers/dbHelpers';
+import { BaseUser, Column, Filter, Sort } from '~/models';
+import { getAliasGenerator } from '~/utils';
 
 export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
   const list = async (args: {

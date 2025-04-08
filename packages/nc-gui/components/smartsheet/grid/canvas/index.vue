@@ -2183,14 +2183,14 @@ defineExpose({
     <template v-if="overlayStyle">
       <NcDropdown
         :trigger="['click']"
-        :visible="isDropdownVisible"
+        :visible="isDropdownVisible && (openColumnDropdownField || isCreateOrEditColumnDropdownOpen || openAggregationField)"
         :overlay-class-name="`!bg-transparent !min-w-[220px] ${
           !openAggregationField && !openColumnDropdownField ? '!border-none !shadow-none' : ''
         }`"
         placement="bottomRight"
         @visible-change="onVisibilityChange"
       >
-        <div :style="overlayStyle" class="hide pointer-events-none"></div>
+        <div v-if="isDropdownVisible" :style="overlayStyle" class="hide pointer-events-none"></div>
         <template #overlay>
           <Aggregation v-if="openAggregationField" v-model:column="openAggregationField" class="canvas-aggregation" />
           <SmartsheetHeaderColumnMenu

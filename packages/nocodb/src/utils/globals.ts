@@ -204,6 +204,7 @@ export enum CacheScope {
   SYNC_CONFIGS = 'syncConfigs',
   USAGE_STATS = 'usageStats',
   RESOURCE_STATS = 'resourceStats',
+  STORAGE_STATS = 'storageStats',
 }
 
 export enum CacheGetType {

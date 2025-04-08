@@ -620,9 +620,8 @@ export default class Workspace implements WorkspaceType {
   ): Promise<{
     [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: number;
   }> {
-    let storage = await NocoCache.get(
+    let storage = await NocoCache.getHash(
       `${CacheScope.STORAGE_STATS}:workspace:${id}`,
-      CacheGetType.TYPE_OBJECT,
     );
 
     if (!storage) {
@@ -636,19 +635,22 @@ export default class Workspace implements WorkspaceType {
         })
         .first();
 
-      await NocoCache.set(
+      await NocoCache.setHash(
         `${CacheScope.STORAGE_STATS}:workspace:${id}`,
         storage,
       );
     }
 
     // convert bytes to MB
-    storage[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] = Math.floor(
-      parseInt(storage[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] || 0, 10) /
-        1000 /
-        1000,
-    );
-
-    return storage;
+    return {
+      [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: Math.floor(
+        parseInt(
+          storage[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] || '0',
+          10,
+        ) /
+          1000 /
+          1000,
+      ),
+    };
   }
 }

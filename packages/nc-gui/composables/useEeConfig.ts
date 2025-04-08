@@ -47,6 +47,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showStoragePlanLimitExceededModal = (..._args: any[]) => {}
 
+  const showExternalSourcePlanLimitExceededModal = (..._args: any[]) => {}
+
   return {
     getLimit,
     getStatLimit,
@@ -71,5 +73,6 @@ export const useEeConfig = createSharedComposable(() => {
     blockAddNewAttachment,
     showStoragePlanLimitExceededModal,
     blockAddNewExternalSource,
+    showExternalSourcePlanLimitExceededModal,
   }
 })

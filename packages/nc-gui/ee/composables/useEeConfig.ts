@@ -284,9 +284,21 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  watchEffect(() => {
-    console.log('stats', activeWorkspace.value?.stats, activePlan.value?.meta, activeWorkspace.value)
-  })
+  const showExternalSourcePlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockAddNewExternalSource.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToAddExternalSource'),
+      content: t('upgrade.upgradeToAddExternalSourceSubtitle', {
+        activePlan: activePlanTitle.value,
+        limit: getLimit(PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE),
+        plan: HigherPlan[activePlanTitle.value],
+      }),
+      callback,
+    })
+
+    return true
+  }
 
   return {
     getLimit,
@@ -312,5 +324,6 @@ export const useEeConfig = createSharedComposable(() => {
     blockAddNewAttachment,
     showStoragePlanLimitExceededModal,
     blockAddNewExternalSource,
+    showExternalSourcePlanLimitExceededModal,
   }
 })

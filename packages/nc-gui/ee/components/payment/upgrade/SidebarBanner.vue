@@ -11,7 +11,7 @@ const { isRecordLimitReached, gracePeriodDaysLeft, navigateToBilling } = useEeCo
       <template #message>
         <div class="flex items-center justify-between gap-3">
           <div class="text-sm">{{ $t('upgrade.planLimitReached') }}</div>
-          <div class="text-xs text-nc-content-gray-muted font-500">
+          <div v-if="gracePeriodDaysLeft" class="text-xs text-nc-content-gray-muted font-500">
             {{ gracePeriodDaysLeft }} {{ gracePeriodDaysLeft === 1 ? $t('objects.day') : $t('objects.days') }}
             {{ $t('general.left') }}
           </div>
@@ -26,7 +26,7 @@ const { isRecordLimitReached, gracePeriodDaysLeft, navigateToBilling } = useEeCo
 
 <style lang="scss" scoped>
 .nc-upgrade-sidebar-banner {
-  @apply bg-white !p-3 cursor-pointer !gap-2;
+  @apply bg-white !p-3 cursor-pointer !gap-3;
 
   box-shadow: 0px -4px 16px 0px rgba(0, 0, 0, 0.08);
 }

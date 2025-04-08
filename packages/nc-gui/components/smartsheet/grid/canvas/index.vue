@@ -1895,7 +1895,7 @@ function openColumnCreate(data: any) {
 }
 
 async function addEmptyRow(row?: number, skipUpdate = false, before?: string, overwrite = {}, path: Array<number> = []) {
-  if (showRecordPlanLimitExceededModal()) return
+  if (showRecordPlanLimitExceededModal({ focusBtn: null })) return
 
   const dataCache = getDataCache(path)
 

@@ -154,7 +154,8 @@ export const useEeConfig = createSharedComposable(() => {
     content,
     okText,
     cancelText,
-  }: Pick<NcConfirmModalProps, 'content' | 'okText' | 'cancelText'> & {
+    focusBtn,
+  }: Pick<NcConfirmModalProps, 'content' | 'okText' | 'cancelText' | 'focusBtn'> & {
     title?: string
     currentPlanTitle?: PlanTitles
     newPlanTitle?: PlanTitles
@@ -203,6 +204,7 @@ export const useEeConfig = createSharedComposable(() => {
       'showIcon': false,
       'maskClosable': true,
       'stopEventPropogation': stopEventPropogation,
+      'focusBtn': focusBtn,
     })
 
     function closeDialog() {
@@ -239,7 +241,10 @@ export const useEeConfig = createSharedComposable(() => {
     })
   }
 
-  const showRecordPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+  const showRecordPlanLimitExceededModal = ({
+    callback,
+    focusBtn,
+  }: Pick<NcConfirmModalProps, 'focusBtn'> & { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockAddNewRecord.value) return
 
     handleUpgradePlan({
@@ -250,6 +255,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
+      focusBtn,
     })
 
     return true

@@ -840,7 +840,7 @@ async function saveEmptyRow(rowObj: Row) {
 }
 
 function addEmptyRow(row?: number, skipUpdate = false) {
-  if (showRecordPlanLimitExceededModal()) return
+  if (showRecordPlanLimitExceededModal({ focusBtn: null })) return
 
   const rowObj = callAddEmptyRow?.(row)
 

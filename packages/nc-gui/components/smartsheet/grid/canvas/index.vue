@@ -1630,6 +1630,7 @@ const reloadViewDataHookHandler = async (params) => {
       clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, params?.path)
       syncCount(params?.path)
       calculateSlices()
+      editEnabled.value = null
       requestAnimationFrame(triggerRefreshCanvas)
       return
     }

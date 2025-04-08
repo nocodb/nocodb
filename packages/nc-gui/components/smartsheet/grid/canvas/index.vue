@@ -1323,6 +1323,14 @@ const getHeaderTooltipRegions = (
   ctx.font = '550 12px Manrope'
   columns.value.slice(startColIndex, endColIndex).forEach((column) => {
     const width = parseCellWidth(column.width)
+
+    const isRowNumber = column.id === 'row_number'
+
+    if (isRowNumber && isGroupBy.value) {
+      xOffset += width
+      return
+    }
+
     const rightPadding = 8
     let totalIconWidth = rightPadding + 16
 
@@ -1358,6 +1366,11 @@ const getHeaderTooltipRegions = (
     })
 
     let rightOffset = xOffset + width - rightPadding - (isFieldEditAllowed.value ? 16 : 0)
+
+    if (isRowNumber) {
+      xOffset += width
+      return
+    }
 
     if (isFieldEditAllowed.value && !column.columnObj?.readonly) {
       regions.push({

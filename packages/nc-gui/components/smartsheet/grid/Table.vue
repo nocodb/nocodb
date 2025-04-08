@@ -3163,6 +3163,13 @@ onKeyStroke('ArrowDown', onDown)
 }
 
 .nc-grid-row {
+  td.nc-grid-cell.column-filtered.active {
+    @apply !bg-green-100;
+  }
+  td.nc-grid-cell.column-sorted.active {
+    @apply !bg-maroon-100;
+  }
+
   .nc-row-expand-and-checkbox {
     @apply !xs:hidden w-full items-center justify-between;
   }

@@ -1,9 +1,9 @@
-import { sanitize } from 'isomorphic-dompurify';
 import { extractFilterFromXwhere, UITypes } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { BarcodeColumn, QrCodeColumn, RollupColumn, View } from '~/models';
+import { sanitize } from '~/helpers/sqlSanitize';
 import conditionV2 from '~/db/conditionV2';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
@@ -161,18 +161,18 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 selectors.push(
                   baseModel.dbDriver.raw(
                     `strftime ('%Y-%m-%d %H:%M:00',:column:) ||
-    (
-     CASE WHEN substr(:column:, 20, 1) = '+' THEN
-      printf ('+%s:',
-       substr(:column:, 21, 2)) || printf ('%s',
-       substr(:column:, 24, 2))
-     WHEN substr(:column:, 20, 1) = '-' THEN
-      printf ('-%s:',
-       substr(:column:, 21, 2)) || printf ('%s',
-       substr(:column:, 24, 2))
-     ELSE
-      '+00:00'
-     END) AS :id:`,
+  (
+   CASE WHEN substr(:column:, 20, 1) = '+' THEN
+    printf ('+%s:',
+     substr(:column:, 21, 2)) || printf ('%s',
+     substr(:column:, 24, 2))
+   WHEN substr(:column:, 20, 1) = '-' THEN
+    printf ('-%s:',
+     substr(:column:, 21, 2)) || printf ('%s',
+     substr(:column:, 24, 2))
+   ELSE
+    '+00:00'
+   END) AS :id:`,
                     {
                       column: columnName,
                       id: getAs(column),

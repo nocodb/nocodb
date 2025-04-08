@@ -225,6 +225,7 @@ export enum CacheScope {
   SUBSCRIPTIONS_ALIAS = 'subscriptionsAlias',
   USAGE_STATS = 'usageStats',
   RESOURCE_STATS = 'resourceStats',
+  STORAGE_STATS = 'storageStats',
 }
 
 export const RootScopeTables = {

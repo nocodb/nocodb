@@ -302,7 +302,7 @@ export const useEeConfig = createSharedComposable(() => {
       title: t('upgrade.upgradeToAddMoreAttachments'),
       content: t('upgrade.upgradeToAddMoreAttachmentsSubtitle', {
         activePlan: activePlanTitle.value,
-        limit: `${getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1024} GB`,
+        limit: `${getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000} GB`,
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,

@@ -139,20 +139,26 @@ const currentPlanTitle = computed(() => {
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.storageUsedGB') }} </template>
-        <template #value> Coming Soon/20 GB </template>
+        <template #value>
+          {{ (Number(getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE)) / 1000).toFixed(3).toLocaleString() }}/{{
+            (Number(getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE)) / 1000).toLocaleString()
+          }}
+        </template>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.webhookCallsMonthly') }} </template>
         <template #value>
-          {{ Number(getStatLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)) }}/{{
-            Number(getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN))
+          {{ Number(getStatLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)).toLocaleString() }}/{{
+            Number(getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)).toLocaleString()
           }}
         </template>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.apiCallsMonthly') }} </template>
         <template #value>
-          {{ Number(getStatLimit(PlanLimitTypes.LIMIT_API_CALL)) }}/{{ Number(getLimit(PlanLimitTypes.LIMIT_API_CALL)) }}
+          {{ Number(getStatLimit(PlanLimitTypes.LIMIT_API_CALL)).toLocaleString() }}/{{
+            Number(getLimit(PlanLimitTypes.LIMIT_API_CALL)).toLocaleString()
+          }}
         </template>
       </PaymentPlanUsageRow>
     </div>

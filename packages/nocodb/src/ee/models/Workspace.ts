@@ -148,14 +148,18 @@ export default class Workspace implements WorkspaceType {
           workspaceData.created_at,
         ncMeta,
       );
+
       const resourceStats = await this.getResourceStats(
         workspaceData.id,
         ncMeta,
       );
 
+      const storageStats = await this.getStorageStats(workspaceData.id, ncMeta);
+
       workspaceData.stats = {
         ...periodStats,
         ...resourceStats,
+        ...storageStats,
       };
     }
 
@@ -608,5 +612,43 @@ export default class Workspace implements WorkspaceType {
         return [key, parseInt(value as string, 10)];
       }),
     );
+  }
+
+  public static async getStorageStats(
+    id: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<{
+    [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: number;
+  }> {
+    let storage = await NocoCache.get(
+      `${CacheScope.STORAGE_STATS}:workspace:${id}`,
+      CacheGetType.TYPE_OBJECT,
+    );
+
+    if (!storage) {
+      storage = await ncMeta.knexConnection
+        .select({
+          [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: ncMeta
+            .knexConnection(MetaTable.FILE_REFERENCES)
+            .sum('file_size')
+            .where('fk_workspace_id', id)
+            .where('deleted', false),
+        })
+        .first();
+
+      await NocoCache.set(
+        `${CacheScope.STORAGE_STATS}:workspace:${id}`,
+        storage,
+      );
+    }
+
+    // convert bytes to MB
+    storage[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] = Math.floor(
+      parseInt(storage[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] || 0, 10) /
+        1000 /
+        1000,
+    );
+
+    return storage;
   }
 }

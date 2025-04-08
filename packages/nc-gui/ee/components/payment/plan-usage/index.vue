@@ -143,11 +143,17 @@ const currentPlanTitle = computed(() => {
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.webhookCallsMonthly') }} </template>
-        <template #value> {{ Number(getStatLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)) }}/150,000 </template>
+        <template #value>
+          {{ Number(getStatLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)) }}/{{
+            Number(getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN))
+          }}
+        </template>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.apiCallsMonthly') }} </template>
-        <template #value> {{ Number(getStatLimit(PlanLimitTypes.LIMIT_API_CALL)) }}/150,000 </template>
+        <template #value>
+          {{ Number(getStatLimit(PlanLimitTypes.LIMIT_API_CALL)) }}/{{ Number(getLimit(PlanLimitTypes.LIMIT_API_CALL)) }}
+        </template>
       </PaymentPlanUsageRow>
     </div>
   </div>

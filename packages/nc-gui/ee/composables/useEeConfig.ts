@@ -331,10 +331,10 @@ export const useEeConfig = createSharedComposable(() => {
     if (!blockAddNewWebhook.value) return
 
     handleUpgradePlan({
-      title: t('upgrade.upgradeToAddExternalSource'),
-      content: t('upgrade.upgradeToAddExternalSourceSubtitle', {
+      title: t('upgrade.upgradeToAddWebhook'),
+      content: t('upgrade.upgradeToAddWebhookSubtitle', {
         activePlan: activePlanTitle.value,
-        limit: getLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_TABLE),
+        limit: getLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE),
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
@@ -342,10 +342,6 @@ export const useEeConfig = createSharedComposable(() => {
 
     return true
   }
-
-  // watchEffect(() => {
-  //   console.log('stats', activeWorkspace.value?.stats, activePlan.value?.meta, activeWorkspace.value)
-  // })
 
   return {
     isWsOwner,

@@ -17,13 +17,14 @@ interface Props {
   callback?: (type: 'ok' | 'cancel') => void
 
   disabled?: boolean
+  removeClick?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   planTitle: PlanTitles.TEAM,
 })
 
-const { disabled } = toRefs(props)
+const { disabled, removeClick } = toRefs(props)
 
 const planUpgraderClick = inject(PlanUpgraderClickHookInj, createEventHook())
 
@@ -33,7 +34,13 @@ const isFeatureEnabled = computed(() => getFeature(props.feature))
 
 const activePlanMeta = computed(() => PlanMeta[props.planTitle])
 
-const showUpgradeModal = () => {
+const showUpgradeModal = (e?: MouseEvent) => {
+  if (e) {
+    if (removeClick.value) return
+
+    e.stopPropagation()
+  }
+
   if (isFeatureEnabled.value || !isPaymentEnabled.value) return
 
   handleUpgradePlan({
@@ -61,7 +68,7 @@ planUpgraderClick.on(() => {
       '--nc-badge-bg-light': activePlanMeta.bgLight,
       '--nc-badge-bg-dark': activePlanMeta.bgDark,
     }"
-    @click.stop="showUpgradeModal"
+    @click="showUpgradeModal"
   >
     <!-- <GeneralIcon  icon="ncArrowUpCircle" class="h-4 w-4 mr-1" /> -->
     {{ getPlanTitle(planTitle) }}

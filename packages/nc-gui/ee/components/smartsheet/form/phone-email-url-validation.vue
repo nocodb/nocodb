@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { StringValidationType, UITypes, type Validation } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, StringValidationType, UITypes, type Validation } from 'nocodb-sdk'
 
 const validatorMap = {
   [UITypes.Email]: StringValidationType.Email,
@@ -8,6 +8,8 @@ const validatorMap = {
 }
 
 const { activeField, updateColMeta } = useFormViewStoreOrThrow()
+
+const { getPlanTitle } = useEeConfig()
 
 const isDefaultValidateEnabled = computed(() => !!parseProp(activeField.value?.meta)?.validate)
 
@@ -120,25 +122,51 @@ const addPlaceholderValidators = (value, type: 'validate' | 'businessEmail') => 
       @change="addPlaceholderValidators($event, 'validate')"
     />
   </div>
-  <div
-    v-if="activeField?.uidt === UITypes.Email && (isValidateEnabled || isDefaultValidateEnabled)"
-    class="w-full flex items-center justify-between gap-3"
-  >
-    <div class="max-w-[calc(100%_-_40px)]">
-      <div
-        class="font-medium text-gray-800 cursor-pointer select-none"
-        @click="addPlaceholderValidators(!isBusinessEmailEnabled, 'businessEmail')"
-      >
-        Accept only work email
-      </div>
-    </div>
 
-    <a-switch
-      :checked="isBusinessEmailEnabled"
-      size="small"
-      class="flex-none nc-form-switch-focus"
-      data-testid="nc-form-field-allow-only-work-email"
-      @change="addPlaceholderValidators($event, 'businessEmail')"
-    />
-  </div>
+  <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION">
+    <template #default="{ click }">
+      <div
+        v-if="activeField?.uidt === UITypes.Email && (isValidateEnabled || isDefaultValidateEnabled)"
+        class="w-full flex items-center justify-between gap-3"
+      >
+        <div class="max-w-[calc(100%_-_40px)]">
+          <div
+            class="font-medium text-gray-800 cursor-pointer select-none flex items-center gap-2"
+            @click="
+              click(
+                PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,
+                () => addPlaceholderValidators(!isBusinessEmailEnabled, 'businessEmail'),
+                isBusinessEmailEnabled,
+              )
+            "
+          >
+            Accept only work email
+            <LazyPaymentUpgradeBadge
+              class="-my-1"
+              :feature="PlanFeatureTypes.FEATURE_HIDE_BRANDING"
+              :content="
+                $t('upgrade.upgradeToAccessFieldValidationSubtitle', {
+                  plan: getPlanTitle(PlanTitles.TEAM),
+                })
+              "
+            />
+          </div>
+        </div>
+
+        <a-switch
+          :checked="isBusinessEmailEnabled"
+          size="small"
+          class="flex-none nc-form-switch-focus"
+          data-testid="nc-form-field-allow-only-work-email"
+          @change="
+            click(
+              PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,
+              () => addPlaceholderValidators($event, 'businessEmail'),
+              isBusinessEmailEnabled,
+            )
+          "
+        />
+      </div>
+    </template>
+  </PaymentUpgradeBadgeProvider>
 </template>

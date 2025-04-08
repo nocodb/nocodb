@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { NumberValidationType, UITypes, type Validation } from 'nocodb-sdk'
+import { NumberValidationType, PlanFeatureTypes, PlanTitles, UITypes, type Validation } from 'nocodb-sdk'
 
 const { activeField, updateColMeta } = useFormViewStoreOrThrow()
+
+const { getPlanTitle } = useEeConfig()
 
 const isLimitRangeEnabled = computed(() => {
   return !!(
@@ -74,57 +76,83 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
 </script>
 
 <template>
-  <div v-if="activeField" class="w-full flex items-start justify-between gap-3">
-    <div class="flex-1 max-w-[calc(100%_-_40px)]">
-      <div
-        class="font-medium text-gray-800 cursor-pointer select-none"
-        @click="addPlaceholderValidators(!isLimitRangeEnabled, 'minMax')"
-      >
-        {{ title }}
-      </div>
-      <div v-if="subtitle" class="text-gray-500 mt-1">{{ subtitle }}</div>
-
-      <div v-if="isLimitRangeEnabled" class="nc-limit-to-range-wrapper mt-3 flex flex-col gap-3">
-        <div>
-          <LazySmartsheetFormValidationInput
-            v-if="getMinValidator"
-            :column="activeField"
-            :validator="getMinValidator"
-            :data-testid="`nc-limit-to-range-min-${activeField?.uidt}`"
-            @update-validation-value="updateColMeta(activeField)"
+  <PaymentUpgradeBadgeProvider v-if="activeField" :feature="PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION">
+    <template #default="{ click }">
+      <div class="w-full flex items-start justify-between gap-3">
+        <div class="flex-1 max-w-[calc(100%_-_40px)]">
+          <div
+            class="font-medium text-gray-800 cursor-pointer select-none flex items-center gap-2"
+            @click="
+              click(
+                PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,
+                () => addPlaceholderValidators(!isLimitRangeEnabled, 'minMax'),
+                isLimitRangeEnabled,
+              )
+            "
           >
-            <template #prefix> Minimum</template>
-            <template v-if="activeField.uidt === UITypes.Currency && activeField?.meta?.currency_code" #suffix>
-              {{ activeField?.meta?.currency_code }}</template
-            >
-          </LazySmartsheetFormValidationInput>
-          <LazySmartsheetFormValidationInputError :type="NumberValidationType.Min" />
+            {{ title }}
+
+            <LazyPaymentUpgradeBadge
+              class="-my-1"
+              :feature="PlanFeatureTypes.FEATURE_HIDE_BRANDING"
+              :content="
+                $t('upgrade.upgradeToAccessFieldValidationSubtitle', {
+                  plan: getPlanTitle(PlanTitles.TEAM),
+                })
+              "
+            />
+          </div>
+          <div v-if="subtitle" class="text-gray-500 mt-1">{{ subtitle }}</div>
+
+          <div v-if="isLimitRangeEnabled" class="nc-limit-to-range-wrapper mt-3 flex flex-col gap-3">
+            <div>
+              <LazySmartsheetFormValidationInput
+                v-if="getMinValidator"
+                :column="activeField"
+                :validator="getMinValidator"
+                :data-testid="`nc-limit-to-range-min-${activeField?.uidt}`"
+                @update-validation-value="updateColMeta(activeField)"
+              >
+                <template #prefix> Minimum</template>
+                <template v-if="activeField.uidt === UITypes.Currency && activeField?.meta?.currency_code" #suffix>
+                  {{ activeField?.meta?.currency_code }}</template
+                >
+              </LazySmartsheetFormValidationInput>
+              <LazySmartsheetFormValidationInputError :type="NumberValidationType.Min" />
+            </div>
+
+            <div>
+              <LazySmartsheetFormValidationInput
+                v-if="getMaxValidator"
+                :column="activeField"
+                :validator="getMaxValidator"
+                :data-testid="`nc-limit-to-range-max-${activeField?.uidt}`"
+                @update-validation-value="updateColMeta(activeField)"
+              >
+                <template #prefix> Maximum</template>
+                <template v-if="activeField.uidt === UITypes.Currency && activeField?.meta?.currency_code" #suffix>
+                  {{ activeField?.meta?.currency_code }}</template
+                >
+              </LazySmartsheetFormValidationInput>
+              <LazySmartsheetFormValidationInputError :type="NumberValidationType.Max" />
+            </div>
+          </div>
         </div>
 
-        <div>
-          <LazySmartsheetFormValidationInput
-            v-if="getMaxValidator"
-            :column="activeField"
-            :validator="getMaxValidator"
-            :data-testid="`nc-limit-to-range-max-${activeField?.uidt}`"
-            @update-validation-value="updateColMeta(activeField)"
-          >
-            <template #prefix> Maximum</template>
-            <template v-if="activeField.uidt === UITypes.Currency && activeField?.meta?.currency_code" #suffix>
-              {{ activeField?.meta?.currency_code }}</template
-            >
-          </LazySmartsheetFormValidationInput>
-          <LazySmartsheetFormValidationInputError :type="NumberValidationType.Max" />
-        </div>
+        <a-switch
+          :checked="isLimitRangeEnabled"
+          size="small"
+          class="flex-none nc-form-switch-focus"
+          :data-testid="`nc-limit-to-range-${activeField?.uidt}`"
+          @change="
+            click(
+              PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,
+              () => addPlaceholderValidators($event, 'minMax'),
+              isLimitRangeEnabled,
+            )
+          "
+        />
       </div>
-    </div>
-
-    <a-switch
-      :checked="isLimitRangeEnabled"
-      size="small"
-      class="flex-none nc-form-switch-focus"
-      :data-testid="`nc-limit-to-range-${activeField?.uidt}`"
-      @change="addPlaceholderValidators($event, 'minMax')"
-    />
-  </div>
+    </template>
+  </PaymentUpgradeBadgeProvider>
 </template>

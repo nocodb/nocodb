@@ -72,6 +72,10 @@ export const useEeConfig = createSharedComposable(() => {
     )
   })
 
+  const blockAddNewWebhook = computed(() => {
+    return getStatLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE)
+  })
+
   /** Helper functions */
   function getLimit(type: PlanLimitTypes, workspace?: NcWorkspace | null) {
     if (!workspace) {
@@ -300,6 +304,26 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showWebhookPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockAddNewWebhook.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToAddExternalSource'),
+      content: t('upgrade.upgradeToAddExternalSourceSubtitle', {
+        activePlan: activePlanTitle.value,
+        limit: getLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_TABLE),
+        plan: HigherPlan[activePlanTitle.value],
+      }),
+      callback,
+    })
+
+    return true
+  }
+
+  watchEffect(() => {
+    console.log('stats', activeWorkspace.value?.stats, activePlan.value?.meta, activeWorkspace.value)
+  })
+
   return {
     getLimit,
     getStatLimit,
@@ -325,5 +349,7 @@ export const useEeConfig = createSharedComposable(() => {
     showStoragePlanLimitExceededModal,
     blockAddNewExternalSource,
     showExternalSourcePlanLimitExceededModal,
+    blockAddNewWebhook,
+    showWebhookPlanLimitExceededModal,
   }
 })

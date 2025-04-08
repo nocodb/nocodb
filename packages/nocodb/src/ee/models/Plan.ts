@@ -267,7 +267,7 @@ export const FreePlan = Plan.prepare({
     ...GenericLimits,
     ...GenericFeatures,
     // Free plan specific limits
-    [PlanLimitTypes.LIMIT_EDITOR]: 5,
+    [PlanLimitTypes.LIMIT_EDITOR]: 3,
     [PlanLimitTypes.LIMIT_COMMENTER]: 10,
     [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 1000,
     [PlanLimitTypes.LIMIT_API_CALL]: 1000,

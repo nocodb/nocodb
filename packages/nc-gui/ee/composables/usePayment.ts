@@ -31,6 +31,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspaceStore)
 
+  const { isUIAllowed } = useRoles()
+
   const baseURL = $api.instance.defaults.baseURL
 
   const paymentState = ref<PaymentState>()
@@ -58,6 +60,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const activeSubscription = computed(() => activeWorkspace.value?.payment?.subscription)
 
   const loadWorkspaceSeatCount = async () => {
+    if (!isUIAllowed('workspaceBilling')) return
+
     try {
       const { count } = (await $fetch(`/api/payment/${activeWorkspaceId.value}/seat-count`, {
         baseURL,
@@ -332,6 +336,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   )
 
   onMounted(async () => {
+    if (!isUIAllowed('workspaceBilling')) return
+
     try {
       stripe.value = (await loadStripe(
         'pk_test_51QhRouHU2WPCjTxw3ranXD6shPR0VbOjLflMfidsanV0m9mM0vZKQfYk3PserPAbnZAIJJhv701DV8FrwP6zJhaf00KYKhz11c',

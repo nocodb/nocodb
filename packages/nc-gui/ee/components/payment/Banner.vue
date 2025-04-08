@@ -1,14 +1,10 @@
 <script lang="ts" setup>
-const { isPaidPlan } = useProvidePaymentStore()
+const { isPaidPlan, navigateToBilling } = useEeConfig()
 
 const router = useRouter()
 const route = router.currentRoute
 
 const isMinimised = ref(true)
-
-const onUpgradePlan = async () => {
-  router.push({ query: { ...route.value.query, tab: 'billing' } })
-}
 
 const handleClickBanner = () => {
   if (!isMinimised.value) return
@@ -69,7 +65,7 @@ const handleClickBanner = () => {
             data-testid="nc-workspace-settings-upgrade-button"
             icon-position="right"
             inner-class="!gap-2"
-            @click.stop="onUpgradePlan"
+            @click.stop="navigateToBilling"
           >
             <template #icon>
               <GeneralIcon icon="ncArrowUpRight" class="h-4 w-4" />

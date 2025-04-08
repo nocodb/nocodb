@@ -320,9 +320,9 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  watchEffect(() => {
-    console.log('stats', activeWorkspace.value?.stats, activePlan.value?.meta, activeWorkspace.value)
-  })
+  // watchEffect(() => {
+  //   console.log('stats', activeWorkspace.value?.stats, activePlan.value?.meta, activeWorkspace.value)
+  // })
 
   return {
     getLimit,

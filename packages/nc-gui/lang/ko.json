@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "새 인터페이스 만들기",
+    "create_new_table": "새 테이블 만들기",
     "connect_data_sources": "데이터소스 연결",
     "alert": "알림",
     "alert-message": "이 대시보드는 데이터베이스에 연결되어 있지 않습니다. 데이터베이스에 연결하려면 대시보드 프로젝트를 편집하십시오.",

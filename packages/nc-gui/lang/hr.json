@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Stvaranje novog sučelja",
+    "create_new_table": "Stvoriti novu tablicu",
     "connect_data_sources": "Spoji izvore podataka",
     "alert": "Upozorenje",
     "alert-message": "Nema povezanih baza podataka. Spojite baze podataka kako biste izradili sučelja. Preskočite ovaj korak i dodajte baze s početne stranice baze kasnije.",

@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Új felület létrehozása",
+    "create_new_table": "Új tábla létrehozása",
     "connect_data_sources": "Adatforrások csatlakoztatása",
     "alert": "Értesítés",
     "alert-message": "Nincs adatbázis csatlakoztatva. Csatlakoztasson adatbázisokat az felületek építéséhez. Ugorja át ezt a lépést, és később az alap kezdőlapon adjon külön adatbázisokat hozzá.",

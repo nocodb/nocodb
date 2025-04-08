@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "创建新界面",
+    "create_new_table": "创建新表",
     "connect_data_sources": "连接数据源",
     "alert": "警告",
     "alert-message": "尚未连接数据库，连接数据库以构建界面。跳过此步骤，稍后从数据库主页添加数据库。",

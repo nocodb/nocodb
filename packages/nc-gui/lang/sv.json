@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Skapa nytt gränssnitt",
+    "create_new_table": "Skapa ny tabell",
     "connect_data_sources": "Anslut datakällor",
     "alert": "Varning",
     "alert-message": "Inga databaser har anslutits. Anslut databasbaser för att bygga gränssnitt. Hoppa över det här steget och lägg till databaser från projektets startsida senare.",

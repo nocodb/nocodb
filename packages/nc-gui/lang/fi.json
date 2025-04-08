@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Luo uusi käyttöliittymä",
+    "create_new_table": "Luo uusi taulukko",
     "connect_data_sources": "Yhdistä tietolähteet",
     "alert": "Varoitus",
     "alert-message": "Tietokantoja ei ole yhdistetty. Yhdistä tietokantapohjat rajapintojen rakentamiseksi. Ohita tämä vaihe ja lisää tietokannat tietokantojen etusivulta myöhemmin.",

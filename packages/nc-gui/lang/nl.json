@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Nieuwe Interface Maken",
+    "create_new_table": "Nieuwe Tabel Maken",
     "connect_data_sources": "Verbind gegevensbronnen",
     "alert": "Waarschuwing",
     "alert-message": "Er zijn geen databases verbonden. Verbind databasebases om interfaces te bouwen. Sla deze stap over en voeg later databases toe vanaf de projecthomepage.",

@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Interfaze Berria Sortu",
+    "create_new_table": "Taula Berria Sortu",
     "connect_data_sources": "Datu iturriak konektatu",
     "alert": "Alerta",
     "alert-message": "Ez da datu-baseekin konektatu. Konektatu datu-baseak interfazeak eraikitzeko. Jauzi urrats hau eta gehitu datu-baseak oinarrizko hasiera orritik geroago.",

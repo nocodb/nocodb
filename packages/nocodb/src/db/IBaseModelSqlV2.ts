@@ -84,6 +84,31 @@ export interface IBaseModelSqlV2 {
     type: RelationTypes;
   }): Promise<void>;
 
+  afterRemoveChild({
+    columnTitle,
+    columnId,
+    rowId,
+    refRowId,
+    req,
+    model,
+    refModel,
+    displayValue,
+    refDisplayValue,
+    type,
+  }: {
+    columnTitle: string;
+    columnId: string;
+    refColumnTitle: string;
+    rowId: unknown;
+    refRowId: unknown;
+    req: NcRequest;
+    model: Model;
+    refModel: Model;
+    displayValue: unknown;
+    refDisplayValue: unknown;
+    type: RelationTypes;
+  }): Promise<void>;
+
   applySortAndFilter(param: {
     table: Model;
     view?: View;
@@ -112,6 +137,15 @@ export interface IBaseModelSqlV2 {
     columns?: Column[];
   }): Promise<any>;
 
+  shuffle({ qb }: { qb: Knex.QueryBuilder }): Promise<void>;
+  getSelectQueryBuilderForFormula(
+    column: Column<any>,
+    tableAlias?: string,
+    validateFormula?: boolean,
+    aliasToColumnBuilder?: any,
+  ): Promise<any>;
+
+  get viewId(): string;
   get dbDriver(): CustomKnex;
   get isSqlite(): boolean;
   get isMssql(): boolean;

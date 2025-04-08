@@ -5,7 +5,6 @@ import {
   type TableType,
   UITypes,
   type ViewType,
-  ViewTypes,
   isVirtualCol,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
@@ -32,6 +31,7 @@ import {
 } from './utils/constants'
 import { calculateGroupRowTop, findGroupByPath, generateGroupPath, getDefaultGroupData } from './utils/groupby'
 import { CanvasElement, ElementTypes } from './utils/CanvasElement'
+import AddNewRowMenu from './components/AddNewRowMenu.vue'
 import type { Row } from '#imports'
 
 const props = defineProps<{
@@ -172,6 +172,7 @@ const scrollLeft = ref(0)
 const preloadColumn = ref<any>()
 const overlayStyle = ref<Record<string, any> | null>(null)
 const openAggregationField = ref<CanvasGridColumn | null>(null)
+const openAddNewRowDropdown = ref<Array<number> | null>(null)
 const openColumnDropdownField = ref<ColumnType | null>(null)
 const isDropdownVisible = ref(false)
 const contextMenuTarget = ref<{ row: number; col: number; path: Array<number> } | null>(null)
@@ -546,14 +547,32 @@ function onActiveCellChanged() {
   requestAnimationFrame(triggerRefreshCanvas)
 }
 
-const onNewRecordToGridClick = () => {
+const onNewRecordToGridClick = (path: Array<number> = []) => {
   setAddNewRecordGridMode(true)
-  addEmptyRow()
+
+  let overwrite = {}
+
+  if (isGroupBy.value) {
+    const group = findGroupByPath(cachedGroups.value, path)
+    overwrite = getDefaultGroupData(group)
+  }
+
+  addEmptyRow(undefined, undefined, undefined, overwrite, path)
+  openAddNewRowDropdown.value = null
+  isDropdownVisible.value = false
 }
 
-const onNewRecordToFormClick = () => {
+const onNewRecordToFormClick = (path: Array<number> = []) => {
   setAddNewRecordGridMode(false)
-  openNewRecordFormHook.trigger()
+  let overwrite = {}
+
+  if (isGroupBy.value) {
+    const group = findGroupByPath(cachedGroups.value, path)
+    overwrite = getDefaultGroupData(group)
+  }
+  openNewRecordFormHook.trigger({ overwrite, path })
+  openAddNewRowDropdown.value = null
+  isDropdownVisible.value = false
 }
 
 const onVisibilityChange = (value) => {
@@ -747,6 +766,7 @@ let prevMenuState: {
   openColumnDropdownField?: unknown
   editEnabled?: boolean | null
   openAggregationFieldId?: string
+  openAddNewRowDropdown?: boolean | null
   isDropdownVisible?: boolean
   editColumn?: unknown
   columnOrder?: unknown
@@ -765,6 +785,7 @@ async function handleMouseDown(e: MouseEvent) {
     editEnabled: editEnabled.value,
     // storing id since the value get alteredand it's reactive
     openAggregationFieldId: openAggregationField.value?.id,
+    openAddNewRowDropdown: openAddNewRowDropdown.value,
     isDropdownVisible: isDropdownVisible.value,
     editColumn: editColumn.value,
     columnOrder: columnOrder.value,
@@ -772,6 +793,7 @@ async function handleMouseDown(e: MouseEvent) {
 
   editEnabled.value = null
   openAggregationField.value = null
+  openAddNewRowDropdown.value = null
   openColumnDropdownField.value = null
   isDropdownVisible.value = false
   editColumn.value = null
@@ -822,7 +844,11 @@ async function handleMouseDown(e: MouseEvent) {
     return
   }
 
-  const element = _elementMap.findElementAt(x, y)
+  const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [
+    ElementTypes.ADD_NEW_ROW,
+    ElementTypes.ROW,
+    ElementTypes.GROUP,
+  ])
   const group = element?.group
   const row = element?.row
   const rowIndex = element?.rowIndex
@@ -989,7 +1015,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
 
   if (isMobileMode.value) {
     if (y > 32 && y < height.value - 36) {
-      const element = _elementMap.findElementAt(x, y)
+      const element = _elementMap.findElementAt(x, y, [ElementTypes.ROW, ElementTypes.GROUP, ElementTypes.ADD_NEW_ROW])
       const group = element?.group
       const row = element?.row
       if (element?.isGroup) {
@@ -1133,7 +1159,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     return
   }
 
-  const element = _elementMap.findElementAt(x, y)
+  const element = _elementMap.findElementAt(x, y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW, ElementTypes.GROUP])
   let group = element?.group
   const row = element?.row
   const rowIndex = row?.rowMeta?.rowIndex ?? -1
@@ -1179,9 +1205,29 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   if (isAddNewRow && clickType === MouseClickType.SINGLE_CLICK && x < totalColumnsWidth.value - scrollLeft.value) {
     if (isAddingEmptyRowAllowed.value) {
       if (isGroupBy.value) {
+        const elem = _elementMap.findElementAtWithX(x, y, ElementTypes.EDIT_NEW_ROW_METHOD)
+
+        if (elem) {
+          openAddNewRowDropdown.value = groupPath
+          isDropdownVisible.value = true
+          overlayStyle.value = {
+            top: `${rect.top + elem.y}px`,
+            left: `${rect.left + x - elem.width}px`,
+            width: elem.width,
+            height: `36px`,
+            position: 'fixed',
+          }
+          requestAnimationFrame(triggerRefreshCanvas)
+          return
+        }
+
         const setGroup = getDefaultGroupData(group)
 
-        addEmptyRow(undefined, undefined, undefined, setGroup, groupPath)
+        if (isAddNewRecordGridMode.value || !isGroupBy.value) {
+          addEmptyRow(undefined, undefined, undefined, setGroup, groupPath)
+        } else {
+          openNewRecordHandler({ overwrite: setGroup, path: groupPath })
+        }
       } else {
         await addEmptyRow()
       }
@@ -1519,7 +1565,7 @@ const handleMouseMove = (e: MouseEvent) => {
     if (y <= 32 && resizeableColumn.value) {
       resizeMouseMove(e)
     } else {
-      const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
+      const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
 
       if (element) {
         hoverRow.value = {
@@ -1532,7 +1578,7 @@ const handleMouseMove = (e: MouseEvent) => {
     requestAnimationFrame(triggerRefreshCanvas)
   }
   if (mousePosition.y > 32) {
-    const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
+    const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
     const row = element?.row
     const rowIndex = element?.rowIndex
     const groupPath = generateGroupPath(element?.group)
@@ -1565,7 +1611,7 @@ const handleMouseMove = (e: MouseEvent) => {
   if (mousePosition.x < 80 + groupByColumns.value.length * 13 && mousePosition.y > COLUMN_HEADER_HEIGHT_IN_PX) {
     // handle hovering on the aggregation dropdown
     if (mousePosition.y <= height.value - 36) {
-      const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
+      const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
       const row = element?.row
       cursor = getRowMetaCursor({ row, x: mousePosition.x, group: element?.group }) || cursor
     }
@@ -1794,11 +1840,11 @@ async function addEmptyRow(row?: number, skipUpdate = false, before?: string, ov
   return rowObj
 }
 
-async function openNewRecordHandler() {
+async function openNewRecordHandler({ overwrite, path }) {
   // Add an empty row
-  const newRow = await addEmptyRow(totalRows.value + 1, true)
+  const newRow = await addEmptyRow(undefined, true, undefined, overwrite, path)
   // Expand the form
-  if (newRow) expandForm?.(newRow, undefined, true, [])
+  if (newRow) expandForm?.(newRow, undefined, true, path)
 }
 
 const callAddNewRow = (context: { row: number; col: number; path: Array<number> }, direction: 'above' | 'below') => {
@@ -1980,11 +2026,14 @@ onClickOutside(
       return
     }
     onActiveCellChanged()
-    const aggregationOrColumnMenuOpen = document.querySelector('.canvas-aggregation, .canvas-header-column-menu')
+    const aggregationOrColumnMenuOpen = document.querySelector(
+      '.canvas-aggregation, .canvas-header-column-menu, .canvas-header-add-new-row-menu',
+    )
     if (!aggregationOrColumnMenuOpen && isNcDropdownOpen()) return
 
     openColumnDropdownField.value = null
     openAggregationField.value = null
+    openAddNewRowDropdown.value = null
     if (activeCell.value.row >= 0 || activeCell.value.column >= 0 || editEnabled.value) {
       activeCell.value = { row: -1, column: -1, path: activeCell.value.path }
       editEnabled.value = null
@@ -1994,13 +2043,19 @@ onClickOutside(
     }
   },
   {
-    ignore: ['.nc-edit-or-add-provider-wrapper', '.canvas-aggregation', '.canvas-header-column-menu'],
+    ignore: [
+      '.nc-edit-or-add-provider-wrapper',
+      '.canvas-aggregation',
+      '.canvas-header-column-menu',
+      '.canvas-header-add-new-row-menu',
+    ],
   },
 )
 
 onKeyStroke('Escape', () => {
   openColumnDropdownField.value = null
   openAggregationField.value = null
+  openAddNewRowDropdown.value = null
   isDropdownVisible.value = false
 })
 
@@ -2183,9 +2238,12 @@ defineExpose({
     <template v-if="overlayStyle">
       <NcDropdown
         :trigger="['click']"
-        :visible="isDropdownVisible && (openColumnDropdownField || isCreateOrEditColumnDropdownOpen || openAggregationField)"
+        :visible="
+          isDropdownVisible &&
+          (openColumnDropdownField || isCreateOrEditColumnDropdownOpen || openAggregationField || openAddNewRowDropdown)
+        "
         :overlay-class-name="`!bg-transparent !min-w-[220px] ${
-          !openAggregationField && !openColumnDropdownField ? '!border-none !shadow-none' : ''
+          !openAggregationField && !openColumnDropdownField && !openAddNewRowDropdown ? '!border-none !shadow-none' : ''
         }`"
         placement="bottomRight"
         @visible-change="onVisibilityChange"
@@ -2201,6 +2259,14 @@ defineExpose({
             @edit="handleEditColumn"
             @add-column="addEmptyColumn($event, true)"
           />
+          <AddNewRowMenu
+            v-else-if="openAddNewRowDropdown"
+            class="canvas-header-add-new-row-menu"
+            :path="openAddNewRowDropdown"
+            :on-new-record-to-grid-click="onNewRecordToGridClick"
+            :on-new-record-to-form-click="onNewRecordToFormClick"
+          />
+
           <div v-if="isCreateOrEditColumnDropdownOpen" class="nc-edit-or-add-provider-wrapper">
             <SmartsheetColumnEditOrAddProvider
               :key="editColumn?.id || 'new'"
@@ -2268,24 +2334,11 @@ defineExpose({
         </div>
 
         <template #overlay>
-          <NcMenu variant="small">
-            <NcMenuItem v-e="['c:row:add:grid']" class="nc-new-record-with-grid group" @click="onNewRecordToGridClick">
-              <div class="flex flex-row items-center justify-start gap-x-3">
-                <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
-                {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}
-              </div>
-
-              <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
-            </NcMenuItem>
-            <NcMenuItem v-e="['c:row:add:form']" class="nc-new-record-with-form group" @click="onNewRecordToFormClick">
-              <div class="flex flex-row items-center justify-start gap-x-3">
-                <component :is="viewIcons[ViewTypes.FORM]?.icon" class="nc-view-icon text-inherit" />
-                {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
-              </div>
-
-              <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
-            </NcMenuItem>
-          </NcMenu>
+          <AddNewRowMenu
+            :path="openAddNewRowDropdown"
+            :on-new-record-to-grid-click="onNewRecordToGridClick"
+            :on-new-record-to-form-click="onNewRecordToFormClick"
+          />
         </template>
       </NcDropdown>
     </div>

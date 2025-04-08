@@ -44,29 +44,21 @@ export default class Plan {
   public static prepare(data: Partial<Plan>): Plan {
     const response = prepareForResponse(data, ['prices', 'meta']);
 
-    const limits: Record<string, number> = {
-      ...GenericLimits,
-    };
-    const features: Record<string, boolean> = {
-      ...GenericFeatures,
-    };
     const descriptions: string[] = [];
 
     for (const [key, value] of Object.entries(
       (response.meta || {}) as Record<string, string>,
     )) {
       if (key.startsWith('limit_')) {
-        limits[key] = +value;
+        response.meta[key] = +value;
       } else if (key.startsWith('feature_')) {
-        features[key] = !!value;
+        response.meta[key] = !!value;
       } else if (key.startsWith('description_')) {
         descriptions.push(value);
       }
     }
 
     Object.assign(response, {
-      limits,
-      features,
       descriptions,
     });
 
@@ -275,7 +267,7 @@ export const FreePlan = Plan.prepare({
     [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 0,
     [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 14,
     [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 1,
-    [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 1024,
+    [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 1000,
     [PlanLimitTypes.LIMIT_API_PER_SECOND]: 5,
     [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: 50,
     [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: 1,

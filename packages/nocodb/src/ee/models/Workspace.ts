@@ -29,6 +29,7 @@ import {
   CustomUrl,
   DataReflection,
   Integration,
+  ModelStat,
   UsageStat,
 } from '~/models';
 import { getActivePlanAndSubscription } from '~/helpers/paymentHelpers';
@@ -156,10 +157,13 @@ export default class Workspace implements WorkspaceType {
 
       const storageStats = await this.getStorageStats(workspaceData.id, ncMeta);
 
+      const recordStats = await ModelStat.getWorkspaceSum(workspaceData.id);
+
       workspaceData.stats = {
         ...periodStats,
         ...resourceStats,
         ...storageStats,
+        ...recordStats,
       };
     }
 

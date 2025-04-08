@@ -26,7 +26,6 @@ import {
   BaseUser,
   DataReflection,
   Integration,
-  ModelStat,
   PresignedUrl,
   Subscription,
   User,
@@ -453,8 +452,6 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     if (!workspace) NcError.workspaceNotFound(param.workspaceId);
 
-    const stats = await ModelStat.getWorkspaceSum(workspace.id);
-
     const workspaceRoles = await WorkspaceUser.get(workspace.id, param.user.id);
 
     const rawIntegrations = await Integration.list({
@@ -487,10 +484,6 @@ export class WorkspacesService implements OnApplicationBootstrap {
     return {
       ...workspace,
       roles: workspaceRoles?.roles,
-      stats: {
-        ...workspace.stats,
-        ...stats,
-      },
       integrations: integrations,
       data_reflection_enabled: !!dataReflection,
     } as Workspace;

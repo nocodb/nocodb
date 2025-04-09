@@ -58,3 +58,4 @@ export * from '~/lib/sync';
 export * from '~/lib/columnHelper';
 export * from '~/lib/error';
 export * from '~/lib/geoDataUtils';
+export * from '~/lib/filter';

@@ -140,7 +140,7 @@ const currentPlanTitle = computed(() => {
       <PaymentPlanUsageRow :plan-meta="activePlanMeta">
         <template #label> {{ $t('objects.currentPlan.storageUsedGB') }} </template>
         <template #value>
-          {{ (Number(getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE)) / 1000).toFixed(3).toLocaleString() }}/{{
+          {{ (Number(getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE)) / 1000).toFixed(1).toLocaleString() }}/{{
             (Number(getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE)) / 1000).toLocaleString()
           }}
         </template>

@@ -321,7 +321,6 @@ export class NotificationsService extends NotificationsServiceCE {
                 title: workspace.title,
               },
               requester: {
-                id: requester.id,
                 email: requester.email,
                 display_name: requester.display_name,
               },

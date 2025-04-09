@@ -9,6 +9,8 @@ import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import { getWorkspaceOrOrg } from '~/helpers/paymentHelpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import NocoCache from '~/cache/NocoCache';
+import { CacheGetType } from '~/utils/globals';
 
 const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder');
 
@@ -1028,7 +1030,39 @@ export class PaymentService {
       NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
     }
 
-    const requester = req.user;
+    const requester = req.user?.id
+      ? req.user
+      : {
+          display_name: 'Anonymous',
+        };
+
+    if (!req.user?.id) {
+      const requestedAt = await NocoCache.get(
+        `requestUpgrade:${workspaceOrOrgId}`,
+        CacheGetType.TYPE_STRING,
+      );
+
+      if (requestedAt) {
+        const requestedAtTime = dayjs(requestedAt);
+        const now = dayjs();
+
+        if (requestedAtTime.isAfter(now.subtract(1, 'hour'))) {
+          return true;
+        }
+      } else {
+        await NocoCache.set(
+          `requestUpgrade:${workspaceOrOrgId}`,
+          dayjs().toISOString(),
+        );
+      }
+    } else {
+      // check if the user part of the workspace or org
+      const user = await WorkspaceUser.get(workspaceOrOrgId, req.user.id);
+
+      if (!user) {
+        NcError.workspaceNotFound(workspaceOrOrgId);
+      }
+    }
 
     if (workspaceOrOrg.entity === 'workspace') {
       const workspace = workspaceOrOrg as Workspace;
@@ -1056,6 +1090,8 @@ export class PaymentService {
         });
       }
     }
+
+    return true;
   }
 
   async handleWebhook(req: NcRequest): Promise<void> {

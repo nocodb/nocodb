@@ -36,7 +36,10 @@ interface WorkspaceRoleUpdatePayload {
 interface WorkspaceRequestUpgradePayload {
   workspace: WorkspaceType;
   user: UserType;
-  requester: UserType;
+  requester: {
+    email?: string;
+    display_name?: string;
+  };
   req: NcRequest;
   limitOrFeature: string;
 }

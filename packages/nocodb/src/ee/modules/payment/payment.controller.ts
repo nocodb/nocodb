@@ -215,9 +215,6 @@ export class PaymentController {
   @UseGuards(GlobalGuard)
   @HttpCode(200)
   @Post('/api/payment/:workspaceOrOrgId/request-upgrade')
-  @Acl('requestUpgrade', {
-    scope: 'workspace',
-  })
   async requestUpgrade(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Body()

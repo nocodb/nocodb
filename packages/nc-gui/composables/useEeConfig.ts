@@ -53,6 +53,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showWebhookPlanLimitExceededModal = (..._args: any[]) => {}
 
+  const showWebhookLogsFeatureAccessModal = (..._args: any[]) => {}
+
   return {
     getLimit,
     getStatLimit,
@@ -80,5 +82,6 @@ export const useEeConfig = createSharedComposable(() => {
     showExternalSourcePlanLimitExceededModal,
     blockAddNewWebhook,
     showWebhookPlanLimitExceededModal,
+    showWebhookLogsFeatureAccessModal,
   }
 })

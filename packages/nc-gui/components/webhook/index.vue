@@ -40,7 +40,7 @@ const { getMeta } = useMetas()
 
 const { activeTable } = toRefs(useTablesStore())
 
-const { updateStatLimit } = useEeConfig()
+const { updateStatLimit, showWebhookLogsFeatureAccessModal } = useEeConfig()
 
 const defaultHookName = t('labels.webhook')
 
@@ -554,6 +554,12 @@ const getNotificationIconName = (type: string): keyof typeof iconMap => {
   }
 }
 
+const handleChangeTab = (tab: HookTab) => {
+  if (tab === HookTab.Log && showWebhookLogsFeatureAccessModal()) return
+
+  activeTab.value = tab
+}
+
 onKeyDown('Escape', () => {
   modalVisible.value = false
 })
@@ -626,7 +632,7 @@ onMounted(async () => {
             :class="{
               active: activeTab === HookTab.Configuration,
             }"
-            @click="activeTab = HookTab.Configuration"
+            @click="handleChangeTab(HookTab.Configuration)"
           >
             <div class="tab-title nc-tab">{{ $t('general.details') }}</div>
           </div>
@@ -636,7 +642,7 @@ onMounted(async () => {
             :class="{
               active: activeTab === HookTab.Log,
             }"
-            @click="activeTab = HookTab.Log"
+            @click="handleChangeTab(HookTab.Log)"
           >
             <div class="tab-title nc-tab">{{ $t('general.logs') }}</div>
           </div>

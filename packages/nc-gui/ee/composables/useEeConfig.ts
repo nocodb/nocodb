@@ -372,6 +372,19 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showWebhookLogsFeatureAccessModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (activePlanTitle.value !== PlanTitles.FREE) return
+
+    handleUpgradePlan({
+      content: t('upgrade.upgradeToAccessWebhookLogsSubtitle', {
+        plan: HigherPlan[activePlanTitle.value],
+      }),
+      callback,
+    })
+
+    return true
+  }
+
   return {
     isWsOwner,
     getLimit,
@@ -400,5 +413,6 @@ export const useEeConfig = createSharedComposable(() => {
     showExternalSourcePlanLimitExceededModal,
     blockAddNewWebhook,
     showWebhookPlanLimitExceededModal,
+    showWebhookLogsFeatureAccessModal,
   }
 })

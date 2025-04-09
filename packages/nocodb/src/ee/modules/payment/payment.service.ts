@@ -182,6 +182,25 @@ export class PaymentService {
         // Clear the customer id & recreate
         workspaceOrOrg.stripe_customer_id = null;
       }
+
+      const customerSubscription = await stripe.subscriptions.list({
+        customer: workspaceOrOrg.stripe_customer_id,
+      });
+
+      if (customerSubscription.data.length) {
+        const subscription = customerSubscription.data.find(
+          (s) =>
+            ((s.metadata.fk_workspace_id &&
+              s.metadata.fk_workspace_id === workspaceOrOrg.id) ||
+              (s.metadata.fk_org_id &&
+                s.metadata.fk_org_id === workspaceOrOrg.id)) &&
+            ['active', 'trialing', 'incomplete'].includes(s.status),
+        );
+
+        if (subscription) {
+          return await this.recoverSubscription(workspaceOrOrg.id, ncMeta);
+        }
+      }
     }
 
     if (!workspaceOrOrg.stripe_customer_id) {
@@ -930,8 +949,10 @@ export class PaymentService {
 
     const subscriptionData = subscriptions.data.find(
       (s) =>
-        (s.metadata.fk_workspace_id === workspaceOrOrg.id ||
-          s.metadata.fk_org_id === workspaceOrOrg.id) &&
+        ((s.metadata.fk_workspace_id &&
+          s.metadata.fk_workspace_id === workspaceOrOrg.id) ||
+          (s.metadata.fk_org_id &&
+            s.metadata.fk_org_id === workspaceOrOrg.id)) &&
         ['active', 'trialing', 'incomplete'].includes(s.status),
     );
 

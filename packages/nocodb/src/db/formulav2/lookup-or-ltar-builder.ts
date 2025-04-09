@@ -409,6 +409,7 @@ export const lookupOrLtarBuilder =
                 ...(parentColumns ?? []),
               ]),
               tableAlias: prevAlias,
+              column: lookupColumn,
             });
             if (isArray) {
               const qb = selectQb;

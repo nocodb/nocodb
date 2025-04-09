@@ -1,4 +1,4 @@
-import { PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
+import { ncIsBoolean, PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
 import { PlanFeatureTypes } from 'nocodb-sdk';
 import type Stripe from 'stripe';
 import {
@@ -52,7 +52,7 @@ export default class Plan {
       if (key.startsWith('limit_')) {
         response.meta[key] = +value;
       } else if (key.startsWith('feature_')) {
-        response.meta[key] = value === 'true';
+        response.meta[key] = ncIsBoolean(value) ? value : value === 'true';
       } else if (key.startsWith('description_')) {
         descriptions.push(value);
       }

@@ -26,17 +26,25 @@ export function workerWithTimezone(isEeUI: boolean, timezone?: string) {
         return dayjs(value, format)
       }
     },
-    timezonize(value?: dayjs.Dayjs) {
+    timezonize(value?: string | number | null | dayjs.Dayjs) {
       if (!value) {
-        return undefined
+        return this.dayjsTz()
       }
+
+      let dayjsObject
+      if (typeof value === 'object' && value.isValid && value.isValid()) {
+        dayjsObject = value.isUTC() ? value : value.utc()
+      } else {
+        dayjsObject = dayjs.utc(value)
+      }
+
       if (!isEeUI) {
-        return value.local()
+        return dayjsObject.local()
       }
       if (timezone) {
-        return value.tz(timezone)
+        return dayjsObject.tz(timezone)
       } else {
-        return value.local()
+        return dayjsObject.local()
       }
     },
   }

@@ -62,7 +62,7 @@ const handleClickBanner = () => {
             data-testid="nc-workspace-settings-upgrade-button"
             icon-position="right"
             inner-class="!gap-2"
-            @click.stop="navigateToBilling"
+            @click.stop="navigateToBilling()"
           >
             <template #icon>
               <GeneralIcon icon="ncArrowUpRight" class="h-4 w-4" />

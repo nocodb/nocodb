@@ -229,9 +229,6 @@ export const useEeConfig = createSharedComposable(() => {
         'content': content,
         'okText': okBtnText,
         'onCancel': closeDialog,
-        'cancelProps': {
-          type: 'text',
-        },
         'onOk': () => {
           closeDialog()
           callback?.('ok')

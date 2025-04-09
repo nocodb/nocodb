@@ -221,33 +221,45 @@ export const useEeConfig = createSharedComposable(() => {
     }
     const isOpen = ref(true)
 
-    const { close } = useDialog(NcModalConfirm, {
-      'visible': isOpen,
-      'title': title,
-      'content': content,
-      'okText': okBtnText,
-      'cancelText': cancelText || t('msg.learnMore'),
-      'onCancel': closeDialog,
-      'cancelProps': {
-        type: 'text',
-      },
-      'onOk': () => {
-        closeDialog()
-        callback?.('ok')
+    const { close } = useDialog(
+      NcModalConfirm,
+      {
+        'visible': isOpen,
+        'title': title,
+        'content': content,
+        'okText': okBtnText,
+        'onCancel': closeDialog,
+        'cancelProps': {
+          type: 'text',
+        },
+        'onOk': () => {
+          closeDialog()
+          callback?.('ok')
 
-        navigateToBilling(workspaceId, redirectToWorkspace)
+          navigateToBilling(workspaceId, redirectToWorkspace)
+        },
+        'onClickCancel': () => {
+          callback?.('cancel')
+        },
+        'update:visible': closeDialog,
+        'showIcon': false,
+        'maskClosable': disableClose ? false : maskClosable,
+        'keyboard': disableClose ? false : keyboard,
+        'stopEventPropogation': stopEventPropogation,
+        'focusBtn': focusBtn,
       },
-      'onClickCancel': () => {
-        callback?.('cancel')
-        window.open('https://nocodb.com/pricing', '_blank', 'noopener,noreferrer')
+      {
+        slots: {
+          headerAction: () => [
+            h(
+              'a',
+              { href: 'https://nocodb.com/pricing', target: '_blank', rel: 'noopener noreferrer', class: 'text-sm' },
+              t('msg.learnMore'),
+            ),
+          ],
+        },
       },
-      'update:visible': closeDialog,
-      'showIcon': false,
-      'maskClosable': disableClose ? false : maskClosable,
-      'keyboard': disableClose ? false : keyboard,
-      'stopEventPropogation': stopEventPropogation,
-      'focusBtn': focusBtn,
-    })
+    )
 
     function closeDialog() {
       if (disableClose) return

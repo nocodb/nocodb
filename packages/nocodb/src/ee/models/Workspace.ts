@@ -190,6 +190,7 @@ export default class Workspace implements WorkspaceType {
       'plan',
       'fk_org_id',
       'stripe_customer_id',
+      'grace_period_start_at',
     ]);
 
     // stringify meta if it is an object
@@ -234,6 +235,7 @@ export default class Workspace implements WorkspaceType {
       'order',
       'fk_org_id',
       'stripe_customer_id',
+      'grace_period_start_at',
     ]);
 
     // stringify meta if it is an object

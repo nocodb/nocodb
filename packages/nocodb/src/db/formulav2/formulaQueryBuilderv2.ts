@@ -139,6 +139,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               baseUsers,
               parentColumns: new Set([col.id, ...(parentColumns ?? [])]),
               getAliasCount,
+              column: col,
             });
             builder.sql = '(' + builder.sql + ')';
             return {
@@ -450,6 +451,7 @@ export default async function formulaQueryBuilderv2({
       model,
       aliasToColumn,
       tableAlias,
+      column,
       parsedTree:
         parsedTree ??
         (await column

@@ -562,6 +562,8 @@ export default class Workspace implements WorkspaceType {
             .where('fk_workspace_id', id)
             .where((qb) => {
               qb.where('is_meta', false).orWhereNull('is_meta');
+            })
+            .where((qb) => {
               qb.where('is_local', false).orWhereNull('is_local');
             }),
           [PlanLimitTypes.LIMIT_EDITOR]: ncMeta

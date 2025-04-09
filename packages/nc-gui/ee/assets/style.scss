@@ -1339,3 +1339,7 @@ svg.nc-virtual-cell-icon {
     -webkit-text-fill-color: transparent;
   }
 }
+
+.nc-custom-daner-btn {
+  @apply !text-nc-content-red-medium !hover:(bg-nc-fill-red-medium border-nc-fill-red-medium text-white);
+}

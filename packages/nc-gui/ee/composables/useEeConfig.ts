@@ -189,6 +189,7 @@ export const useEeConfig = createSharedComposable(() => {
     maskClosable = true,
     keyboard = true,
     disableClose,
+    requestUpgrade,
   }: Pick<NcConfirmModalProps, 'content' | 'okText' | 'cancelText' | 'focusBtn' | 'maskClosable' | 'keyboard'> & {
     title?: string
     currentPlanTitle?: PlanTitles
@@ -198,6 +199,7 @@ export const useEeConfig = createSharedComposable(() => {
     redirectToWorkspace?: boolean
     stopEventPropogation?: boolean
     disableClose?: boolean
+    requestUpgrade?: boolean
   } = {}) => {
     const higherPlan = HigherPlan[currentPlanTitle ?? activePlanTitle.value]
     if (!higherPlan) {
@@ -229,6 +231,9 @@ export const useEeConfig = createSharedComposable(() => {
         'content': content,
         'okText': okBtnText,
         'onCancel': closeDialog,
+        'cancelProps': {
+          class: requestUpgrade ? '!hidden' : '',
+        },
         'onOk': () => {
           closeDialog()
           callback?.('ok')
@@ -250,7 +255,7 @@ export const useEeConfig = createSharedComposable(() => {
           headerAction: () => [
             h(
               'a',
-              { href: 'https://nocodb.com/pricing', target: '_blank', rel: 'noopener noreferrer', class: 'text-sm' },
+              { href: 'https://nocodb.com/pricing', target: '_blank', rel: 'noopener noreferrer', class: 'text-sm leading-6' },
               t('msg.learnMore'),
             ),
           ],
@@ -258,8 +263,8 @@ export const useEeConfig = createSharedComposable(() => {
       },
     )
 
-    function closeDialog() {
-      if (disableClose) return
+    function closeDialog(forceClose = false) {
+      if (!forceClose & (disableClose || requestUpgrade)) return
 
       isOpen.value = false
       close(1000)
@@ -313,6 +318,7 @@ export const useEeConfig = createSharedComposable(() => {
       callback,
       focusBtn,
       disableClose: isSharedFormView,
+      requestUpgrade: isSharedFormView,
     })
 
     return true

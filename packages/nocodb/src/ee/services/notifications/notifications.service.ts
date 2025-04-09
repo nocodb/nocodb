@@ -7,6 +7,7 @@ import type {
   RowCommentEvent,
   RowMentionEvent,
   WelcomeEvent,
+  WorkspaceRequestUpgradeEvent,
   WorkspaceUserInviteEvent,
 } from '~/services/app-hooks/interfaces';
 import { extractMentions } from '~/utils/richTextHelper';
@@ -43,6 +44,23 @@ export class NotificationsService extends NotificationsServiceCE {
       // I cant call this in BaseModelSqlV2. So for now, I am keeping it here.
       this.mailService.sendMail({
         mailEvent: MailEvent.ROW_USER_MENTION,
+        payload: data,
+      });
+    });
+
+    this.appHooks.on(AppEvents.WORKSPACE_UPGRADE_REQUEST, (data) => {
+      this.hookHandler({ event: AppEvents.WORKSPACE_UPGRADE_REQUEST, data });
+
+      /*
+        workspace: WorkspaceType;
+        user: UserType;
+        requester: UserType;
+        req: NcRequest;
+        limitOrFeature: string;
+      */
+
+      this.mailService.sendMail({
+        mailEvent: MailEvent.WORKSPACE_REQUEST_UPGRADE,
         payload: data,
       });
     });
@@ -287,6 +305,31 @@ export class NotificationsService extends NotificationsServiceCE {
           );
         }
 
+        break;
+      }
+      case AppEvents.WORKSPACE_UPGRADE_REQUEST: {
+        const { workspace, user, requester, req, limitOrFeature } =
+          data as WorkspaceRequestUpgradeEvent;
+
+        await this.insertNotification(
+          {
+            fk_user_id: user.id,
+            type: AppEvents.WORKSPACE_UPGRADE_REQUEST,
+            body: {
+              workspace: {
+                id: workspace.id,
+                title: workspace.title,
+              },
+              requester: {
+                id: requester.id,
+                email: requester.email,
+                display_name: requester.display_name,
+              },
+              limitOrFeature,
+            },
+          },
+          req,
+        );
         break;
       }
     }

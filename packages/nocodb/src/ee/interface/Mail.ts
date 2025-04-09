@@ -33,6 +33,14 @@ interface WorkspaceRoleUpdatePayload {
   newRole: WorkspaceUserRoles;
 }
 
+interface WorkspaceRequestUpgradePayload {
+  workspace: WorkspaceType;
+  user: UserType;
+  requester: UserType;
+  req: NcRequest;
+  limitOrFeature: string;
+}
+
 type MailParams =
   | CEMailParams // Base CE types
   | {
@@ -46,6 +54,10 @@ type MailParams =
   | {
       mailEvent: MailEvent.WORKSPACE_ROLE_UPDATE;
       payload: WorkspaceRoleUpdatePayload;
+    }
+  | {
+      mailEvent: MailEvent.WORKSPACE_REQUEST_UPGRADE;
+      payload: WorkspaceRequestUpgradePayload;
     };
 
 export { MailEvent, MailParams };

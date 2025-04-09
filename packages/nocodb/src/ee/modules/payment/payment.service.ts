@@ -1,13 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 import dayjs from 'dayjs';
-import { PlanOrder } from 'nocodb-sdk';
-import type { PlanTitles } from 'nocodb-sdk';
+import { AppEvents, PlanOrder, WorkspaceUserRoles } from 'nocodb-sdk';
+import type { PlanFeatureTypes, PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { Org, Plan, Subscription, Workspace } from '~/models';
+import { Org, Plan, Subscription, Workspace, WorkspaceUser } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import { getWorkspaceOrOrg } from '~/helpers/paymentHelpers';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder');
 
@@ -15,7 +16,7 @@ const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder');
 export class PaymentService {
   logger = new Logger('PaymentService');
 
-  constructor() {}
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async getPlans() {
     return await Plan.list();
@@ -1009,6 +1010,49 @@ export class PaymentService {
     );
 
     return subscription;
+  }
+
+  async requestUpgrade(
+    workspaceOrOrgId: string,
+    payload: {
+      limitOrFeature: PlanLimitTypes | PlanFeatureTypes;
+    },
+    req: NcRequest,
+  ) {
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId);
+
+    if (!workspaceOrOrg) {
+      NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+    }
+
+    const requester = req.user;
+
+    if (workspaceOrOrg.entity === 'workspace') {
+      const workspace = workspaceOrOrg as Workspace;
+
+      const owners = await WorkspaceUser.userList({
+        fk_workspace_id: workspace.id,
+        roles: WorkspaceUserRoles.OWNER,
+      });
+
+      if (!owners.length) {
+        NcError.genericNotFound('Owners', workspace.id);
+      }
+
+      for (const owner of owners) {
+        this.appHooksService.emit(AppEvents.WORKSPACE_UPGRADE_REQUEST, {
+          context: {
+            workspace_id: workspace.id,
+            base_id: undefined,
+          },
+          workspace,
+          requester,
+          user: owner,
+          limitOrFeature: payload.limitOrFeature,
+          req,
+        });
+      }
+    }
   }
 
   async handleWebhook(req: NcRequest): Promise<void> {

@@ -127,6 +127,7 @@ const permissionScopes = {
     'getDataReflection',
     'paymentSeatCount',
     'manageSubcription',
+    'requestUpgrade',
   ],
   base: [
     'formViewGet',
@@ -343,6 +344,7 @@ const rolePermissions:
       workspaceUserList: true,
       workspaceInvite: true,
       workspaceUserDelete: true,
+      requestUpgrade: true,
     },
   },
   [WorkspaceUserRoles.COMMENTER]: {

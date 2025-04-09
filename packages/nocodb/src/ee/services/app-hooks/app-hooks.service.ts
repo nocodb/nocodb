@@ -56,6 +56,7 @@ import type {
   ViewDuplicateEvent,
   ViewUpdateEvent,
   WebhookEvent,
+  WorkspaceRequestUpgradeEvent,
   WorkspaceUserDeleteEvent,
   WorkspaceUserUpdateEvent,
 } from '~/services/app-hooks/interfaces';
@@ -203,6 +204,11 @@ export class AppHooksService extends ApppHookServiceCE {
     listener: (data: IntegrationUpdateEvent) => void,
   ): () => void;
 
+  on(
+    event: AppEvents.WORKSPACE_UPGRADE_REQUEST,
+    listener: (data: WorkspaceRequestUpgradeEvent) => void,
+  ): () => void;
+
   on(event, listener): () => void {
     return super.on(event, listener);
   }
@@ -239,6 +245,10 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(
     event: AppEvents.WORKSPACE_USER_DELETE,
     data: WorkspaceUserDeleteEvent,
+  ): void;
+  emit(
+    event: AppEvents.WORKSPACE_UPGRADE_REQUEST,
+    data: WorkspaceRequestUpgradeEvent,
   ): void;
   emit(event: AppEvents.WELCOME, data: WelcomeEvent): void;
   emit(

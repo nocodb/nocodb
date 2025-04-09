@@ -576,7 +576,7 @@ export function useGridViewData(
           row.rowMeta.rowIndex = newIndex
           newCachedRows.set(newIndex, row)
           affectedChunks.add(getChunkIndex(i))
-          affectedChunks.add(getChunkIndex(newIndex)
+          affectedChunks.add(getChunkIndex(newIndex))
         }
       }
     }
@@ -589,7 +589,7 @@ export function useGridViewData(
 
     for (const chunkIndex of affectedChunks) {
       if (!rowsByChunk.has(chunkIndex) || rowsByChunk.get(chunkIndex) < CHUNK_SIZE) {
-        dataCache.chunkStates.value[chunkIndex] = undefined
+        chunkStates.value[chunkIndex] = undefined
       }
     }
 

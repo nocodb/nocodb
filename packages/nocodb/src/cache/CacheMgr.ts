@@ -709,12 +709,9 @@ export default abstract class CacheMgr {
     log(
       `${this.context}::incrHashField: incrementing hash ${key} field ${field}`,
     );
-    console.log(
-      `${this.context}::incrHashField: incrementing hash ${key} field ${field}`,
-    );
 
     return new Promise((resolve) => {
-      this.client.call('HINCRBY', key, field, value, (err, res) => {
+      this.client.hincrby(key, field, value, (err, res) => {
         if (err) {
           resolve(0);
         } else {

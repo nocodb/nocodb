@@ -214,8 +214,8 @@ export function useCopyPaste({
         const selectionRowCount = Math.max(clipboardMatrix.length, selection.value.end.row - selection.value.start.row + 1)
 
         const pasteMatrixCols = clipboardMatrix[0]?.length || 0
-        const startColIndex = selection.value.start.col - 1
-        const existingFields = fields.value
+        const startColIndex = activeCell.value.column
+        const existingFields = unref(fields)
         const existingColCount = existingFields.length - startColIndex
         const newColsNeeded = Math.max(0, pasteMatrixCols - existingColCount)
 
@@ -288,15 +288,7 @@ export function useCopyPaste({
           colsToPaste = fields.value.slice(selection.value.start.col, selection.value.start.col + pasteMatrixCols)
         }
 
-        const startChunkId = Math.floor(selection.value.start.row / CHUNK_SIZE)
-        const endChunkId = Math.floor(selection.value.start.row + availableRowsToUpdate / CHUNK_SIZE)
-
-        const chunksToFetch = new Set<number>()
-        for (let chunkId = startChunkId; chunkId <= endChunkId; chunkId++) {
-          chunksToFetch.add(chunkId)
-        }
-        // Fetch all required chunks
-        await Promise.all([...chunksToFetch].map(fetchChunk))
+        await getRows(selection.value.start.row, selection.value.start.row + clipboardMatrix.length)
 
         const dataRef = unref(cachedRows)
 

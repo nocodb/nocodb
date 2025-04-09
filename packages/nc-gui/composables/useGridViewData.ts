@@ -558,13 +558,13 @@ export function useGridViewData(
     const newCachedRows = new Map<number, Row>()
 
     const deleteSet = new Set(rowsToDelete.map((row) => (nested ? row.row : row).rowMeta.rowIndex))
-
+    const affectedChunks = new Set<number>()
     let deletionCount = 0
-    let lastIndex = -1
 
     for (let i = 0; i <= maxCachedIndex + 1; i++) {
       if (deleteSet.has(i)) {
         deletionCount++
+        affectedChunks.add(getChunkIndex(i))
         continue
       }
 
@@ -572,19 +572,25 @@ export function useGridViewData(
         const row = cachedRows.value.get(i)
         if (row) {
           const newIndex = i - deletionCount
-          if (lastIndex !== -1 && newIndex - lastIndex > 1) {
-            chunkStates.value[getChunkIndex(lastIndex)] = undefined
-          }
 
           row.rowMeta.rowIndex = newIndex
           newCachedRows.set(newIndex, row)
-          lastIndex = newIndex
+          affectedChunks.add(getChunkIndex(i))
+          affectedChunks.add(getChunkIndex(newIndex))
         }
       }
     }
 
-    if (lastIndex !== -1) {
-      chunkStates.value[getChunkIndex(lastIndex)] = undefined
+    const rowsByChunk = new Map<number, number>()
+    for (const [_, row] of newCachedRows) {
+      const chunkIndex = getChunkIndex(row.rowMeta.rowIndex)
+      rowsByChunk.set(chunkIndex, (rowsByChunk.get(chunkIndex) || 0) + 1)
+    }
+
+    for (const chunkIndex of affectedChunks) {
+      if (!rowsByChunk.has(chunkIndex) || rowsByChunk.get(chunkIndex) < CHUNK_SIZE) {
+        chunkStates.value[chunkIndex] = undefined
+      }
     }
 
     const indices = new Set<number>()

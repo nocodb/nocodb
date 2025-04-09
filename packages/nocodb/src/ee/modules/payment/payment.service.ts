@@ -199,7 +199,10 @@ export class PaymentService {
         );
 
         if (subscription) {
-          return await this.recoverSubscription(workspaceOrOrg.id, ncMeta);
+          await this.recoverSubscription(workspaceOrOrg.id, ncMeta);
+          return {
+            recover: true,
+          };
         }
       }
     }

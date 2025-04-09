@@ -1,4 +1,8 @@
-export function parseMetaProp(model: any, propName = 'meta'): any {
+export function parseMetaProp(
+  model: any,
+  propName = 'meta',
+  fallbackValue: any = {},
+): any {
   if (!model) return;
 
   // parse meta property
@@ -7,13 +11,14 @@ export function parseMetaProp(model: any, propName = 'meta'): any {
       ? JSON.parse(model[propName])
       : model[propName];
   } catch {
-    return {};
+    return fallbackValue;
   }
 }
 
 export function stringifyMetaProp(
   model: any,
   propName = 'meta',
+  fallbackValue = '{}',
 ): string | null {
   if (!model) return null;
 
@@ -23,7 +28,7 @@ export function stringifyMetaProp(
       ? model[propName]
       : JSON.stringify(model[propName]);
   } catch (e) {
-    return '{}';
+    return fallbackValue;
   }
 }
 

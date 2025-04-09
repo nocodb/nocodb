@@ -73,7 +73,7 @@ export default class ButtonColumn {
     ]);
 
     if (buttonColumn.type === ButtonActionsType.Url) {
-      insertObj.parsed_tree = stringifyMetaProp(insertObj, 'parsed_tree');
+      insertObj.parsed_tree = stringifyMetaProp(insertObj, 'parsed_tree', null);
     }
 
     await ncMeta.metaInsert2(
@@ -106,7 +106,7 @@ export default class ButtonColumn {
       );
       if (column) {
         if (column.type === ButtonActionsType.Url) {
-          column.parsed_tree = parseMetaProp(column, 'parsed_tree');
+          column.parsed_tree = parseMetaProp(column, 'parsed_tree', null);
         }
         await NocoCache.set(`${CacheScope.COL_BUTTON}:${columnId}`, column);
       }
@@ -162,11 +162,11 @@ export default class ButtonColumn {
     ]);
 
     if (button.type === ButtonActionsType.Url) {
-      button.parsed_tree = stringifyMetaProp(button, 'parsed_tree');
+      button.parsed_tree = stringifyMetaProp(button, 'parsed_tree', null);
     }
 
     if ('parsed_tree' in updateObj)
-      updateObj.parsed_tree = stringifyMetaProp(updateObj, 'parsed_tree');
+      updateObj.parsed_tree = stringifyMetaProp(updateObj, 'parsed_tree', null);
     // set meta
     await ncMeta.metaUpdate(
       context.workspace_id,

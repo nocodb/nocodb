@@ -213,6 +213,12 @@ export class PaymentService {
           fk_user_id: user.id,
           entity: `${workspaceOrOrg.entity}_${workspaceOrOrg.id}`,
         },
+        invoice_settings: {
+          custom_fields: [
+            { name: 'NocoDB Workspace ID', value: workspaceOrOrg.id },
+            { name: 'NocoDB Workspace Title', value: workspaceOrOrg.title },
+          ],
+        },
       });
 
       if (workspaceOrOrg.entity === 'workspace') {

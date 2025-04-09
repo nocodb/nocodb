@@ -649,7 +649,11 @@ export default class Workspace implements WorkspaceType {
         })
         .first();
 
-      if (!storage) {
+      if (
+        !storage ||
+        storage[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] === null ||
+        storage[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] === undefined
+      ) {
         storage = {
           [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 0,
         };

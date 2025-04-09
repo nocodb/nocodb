@@ -1120,11 +1120,19 @@ const getPluralName = (name: string) => {
                         v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
                           // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
                           // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
-
                           const firstRange = viewSelectFieldOptions.find(
-                            (f) => f.value === form.calendar_range[0].fk_from_column_id,
+                            (f) => f.value === form.calendar_range[0].fk_from_column_id
                           )
-                          return firstRange?.uidt === f.uidt && f.value !== range.fk_from_column_id
+                          // First ensure the data type matches
+                          const dataTypeMatches = firstRange?.uidt === f.uidt && f.value !== range.fk_from_column_id
+
+                          // If no match in data type, return false
+                          if (!dataTypeMatches) return false
+
+                          // If first range has a timezone configured, ensure this option has the same timezone
+                        const firstRangeColumn = meta?.columns?.find(c => c.id === form.calendar_range[0].fk_from_column_id)
+                        const optionColumn = meta.value?.columns?.find(c => c.id === f.value)
+                        return optionColumn?.meta?.timezone === firstRangeColumn.meta.timezone
                         })"
                         :key="id"
                         :value="option.value"

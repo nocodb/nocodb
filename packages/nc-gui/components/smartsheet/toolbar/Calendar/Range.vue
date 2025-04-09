@@ -138,6 +138,24 @@ const saveCalendarRanges = async () => {
   }
 }
 
+const filterEndDateOptions = (options, startColumnId) => {
+  if (!options || !startColumnId) return []
+
+  const startColumn = meta.value?.columns?.find((c) => c.id === startColumnId)
+  const startTimezone = startColumn?.meta?.timezone
+
+  return options.filter((option) => {
+    const firstRange = dateFieldOptions.value.find((f) => f.value === startColumnId)
+    const uidtMatches = firstRange?.uidt === option.uidt
+
+    const optionColumn = meta.value?.columns?.find((c) => c.id === option.value)
+    const timezoneMatches = optionColumn?.meta?.timezone === startTimezone
+    return uidtMatches && option.value !== startColumnId && timezoneMatches
+
+    return uidtMatches && option.value !== startColumnId
+  })
+}
+
 /*
 const removeRange = async (id: number) => {
   _calendar_ranges.value = _calendar_ranges.value.filter((_, i) => i !== id)
@@ -291,10 +309,7 @@ const onValueChange = async () => {
                   <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
 
                   <a-select-option
-                    v-for="(option, opId) in [...dateFieldOptions].filter((f) => {
-                      const firstRange = dateFieldOptions.find((f) => f.value === calendarRange[0].fk_from_column_id)
-                      return firstRange?.uidt === f.uidt && f.value !== range.fk_from_column_id
-                    })"
+                    v-for="(option, opId) in filterEndDateOptions(dateFieldOptions, range.fk_from_column_id)"
                     :key="opId"
                     :value="option.value"
                   >

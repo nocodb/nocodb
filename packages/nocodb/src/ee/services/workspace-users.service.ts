@@ -155,15 +155,6 @@ export class WorkspaceUsersService {
     const transaction = await ncMeta.startTransaction();
 
     try {
-      await WorkspaceUser.update(
-        param.workspaceId,
-        param.userId,
-        {
-          roles: param.roles,
-        },
-        transaction,
-      );
-
       const { seatCount, nonSeatCount } =
         await Subscription.calculateWorkspaceSeatCount(
           param.workspaceId,
@@ -218,6 +209,15 @@ export class WorkspaceUsersService {
           );
         }
       }
+
+      await WorkspaceUser.update(
+        param.workspaceId,
+        param.userId,
+        {
+          roles: param.roles,
+        },
+        transaction,
+      );
 
       await this.paymentService.reseatSubscription(
         workspace.fk_org_id ?? workspace.id,

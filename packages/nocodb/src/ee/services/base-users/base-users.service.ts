@@ -410,14 +410,6 @@ export class BaseUsersService extends BaseUsersServiceCE {
     const transaction = await ncMeta.startTransaction();
 
     try {
-      await BaseUser.updateRoles(
-        context,
-        param.baseId,
-        param.userId,
-        param.baseUser.roles,
-        transaction,
-      );
-
       const { seatCount, nonSeatCount } =
         await Subscription.calculateWorkspaceSeatCount(
           workspace.id,
@@ -469,6 +461,14 @@ export class BaseUsersService extends BaseUsersServiceCE {
           );
         }
       }
+
+      await BaseUser.updateRoles(
+        context,
+        param.baseId,
+        param.userId,
+        param.baseUser.roles,
+        transaction,
+      );
 
       await this.paymentService.reseatSubscription(
         workspace.fk_org_id ?? workspace.id,

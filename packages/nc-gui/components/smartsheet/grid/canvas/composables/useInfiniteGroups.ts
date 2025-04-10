@@ -96,8 +96,10 @@ export const useInfiniteGroups = (
           groups: new Map(),
           chunkStates: [],
           count: +item.count,
+          groupCount: +item[groupByColumns.value?.[level + 1]?.column?.title],
           isExpanded: false,
           color: findKeyColor(value, groupCol.column, getNextColor),
+          expandedGroups: 0,
           value,
         }
 

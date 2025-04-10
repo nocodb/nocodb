@@ -70,7 +70,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       return calendarRange.value[0]?.fk_from_col?.meta?.timezone ?? dayjs.tz.guess()
     })
 
-    const timezoneDayjs = reactive(workerWithTimezone(true, timezone?.value))
+    const timezoneDayjs = reactive(workerWithTimezone(isEeUI, timezone?.value))
 
     const searchQuery = reactive({
       value: '',
@@ -97,8 +97,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       start: dayjs.Dayjs
       end: dayjs.Dayjs
     }>({
-      start: timezoneDayjs.dayjsTz(selectedDate.value).startOf('week'), // This will be the previous Monday
-      end: timezoneDayjs.dayjsTz(selectedDate.value).startOf('week').add(6, 'day'), // This will be the following Sunday
+      start: timezoneDayjs.dayjsTz(selectedDate.value)!.startOf('week'), // This will be the previous Monday
+      end: timezoneDayjs.dayjsTz(selectedDate.value)!.startOf('week').add(6, 'day'), // This will be the following Sunday
     })
 
     const defaultPageSize = 25
@@ -909,13 +909,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       const temp = workerWithTimezone(true, newTimezone)
       timezoneDayjs.dayjsTz = temp.dayjsTz
       timezoneDayjs.timezonize = temp.timezonize
-      pageDate.value = timezoneDayjs.timezonize(pageDate.value)
-      selectedDate.value = timezoneDayjs.timezonize(selectedDate.value)
-      selectedTime.value = timezoneDayjs.timezonize(selectedTime.value)
-      selectedMonth.value = timezoneDayjs.timezonize(selectedMonth.value)
+      pageDate.value = timezoneDayjs.timezonize(pageDate.value)!
+      selectedDate.value = timezoneDayjs.timezonize(selectedDate.value)!
+      selectedTime.value = timezoneDayjs.timezonize(selectedTime.value)!
+      selectedMonth.value = timezoneDayjs.timezonize(selectedMonth.value)!
       selectedDateRange.value = {
-        start: timezoneDayjs.timezonize(selectedDateRange.value.start),
-        end: timezoneDayjs.timezonize(selectedDateRange.value.end),
+        start: timezoneDayjs.timezonize(selectedDateRange.value.start)!,
+        end: timezoneDayjs.timezonize(selectedDateRange.value.end)!,
       }
     })
 

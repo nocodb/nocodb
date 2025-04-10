@@ -43,7 +43,7 @@ const {
   showSideMenu,
   updateFormat,
   timezone,
-  timezoneDayjs
+  timezoneDayjs,
 } = useCalendarViewStoreOrThrow()
 
 const sideBarListRef = ref<VNodeRef | null>(null)
@@ -358,6 +358,7 @@ onClickOutside(searchRef, toggleSearch)
         :hide-calendar="height < 700"
         is-week-picker
         size="medium"
+        :timezone="timezone"
       />
       <NcMonthYearSelector
         v-else-if="activeCalendarView === ('month' as const)"

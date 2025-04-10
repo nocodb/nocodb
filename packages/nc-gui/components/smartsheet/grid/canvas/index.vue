@@ -844,7 +844,7 @@ async function handleMouseDown(e: MouseEvent) {
     return
   }
 
-  const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [
+  const element = _elementMap.findElementAt(mousePosition.x, mousePosition.y, [
     ElementTypes.ADD_NEW_ROW,
     ElementTypes.ROW,
     ElementTypes.GROUP,
@@ -1626,8 +1626,7 @@ const handleMouseMove = (e: MouseEvent) => {
 
 const reloadViewDataHookHandler = async (params) => {
   if (isGroupBy.value) {
-    if (params?.path) {
-      const datacache = getDataCache(params?.path)
+    if (params?.path?.length) {
       clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, params?.path)
       syncCount(params?.path)
       calculateSlices()
@@ -1638,13 +1637,15 @@ const reloadViewDataHookHandler = async (params) => {
     await syncGroupCount()
     groupDataCache.value.clear()
     clearGroupCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+    // if scrolltop is beyond totaheight, reset it to maximum possible value
+    scroller.value?.scrollTo({ top: Math.max(0, Math.min(totalHeight.value - height.value, scrollTop.value)) })
   } else {
     clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
     await syncCount()
+    updateVisibleRows()
   }
 
   calculateSlices()
-  updateVisibleRows()
 
   requestAnimationFrame(triggerRefreshCanvas)
 }

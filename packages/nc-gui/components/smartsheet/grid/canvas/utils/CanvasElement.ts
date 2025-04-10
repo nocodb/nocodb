@@ -1,3 +1,5 @@
+import type { Row } from '../../../../../lib/types'
+
 export enum ElementTypes {
   ROW = 'ROW',
   GROUP = 'GROUP',
@@ -8,8 +10,8 @@ interface BaseElement {
   x: number
   y: number
   height: number
-  level: number
   type: ElementTypes
+  level?: number
 }
 
 interface RowElement extends BaseElement {
@@ -24,22 +26,69 @@ interface GroupElement extends BaseElement {
 
 type Element = RowElement | GroupElement
 
+// Class representing a single canvas element with utility methods
+class CanvasElementItem implements RowElement, GroupElement {
+  x: number
+  y: number
+  height: number
+  type: ElementTypes
+  row?: Row
+  group?: CanvasGroup
+  level?: number
+
+  constructor(element: Element) {
+    this.x = element.x
+    this.y = element.y
+    this.height = element.height
+    this.level = element.level
+    this.type = element.type
+    if (element.type === ElementTypes.ROW || element.type === ElementTypes.ADD_NEW_ROW) {
+      this.row = element.row
+    } else {
+      this.group = (element as GroupElement).group
+    }
+  }
+
+  // Checks if the element is a group
+  get isGroup() {
+    return this.type === ElementTypes.GROUP
+  }
+
+  // Checks if the element is a row
+  get isRow() {
+    return this.type === ElementTypes.ROW
+  }
+
+  // Checks if the element is an "add new row"
+  get isAddNewRow() {
+    return this.type === ElementTypes.ADD_NEW_ROW
+  }
+
+  // Gets the row index or returns -1 if not available
+  get rowIndex() {
+    return this.row?.rowMeta?.rowIndex ?? -1
+  }
+}
+
+// CanvasElement class is used to manage elements on the canvas
+// and find elements at a given point
 export class CanvasElement {
   private elements: Array<Element>
   constructor(elements: Array<Element> = []) {
     this.elements = elements
   }
 
-  findElementAt(x: number, y: number) {
+  findElementAt(x: number, y: number, type?: ElementTypes): CanvasElementItem | null {
     const candidates = this.elements
       .filter((el) => {
         // Only check if point is within vertical bounds
-        return y >= el.y && y <= el.y + el.height
+        // and if type is not provided or matches
+        return y >= el.y && y <= el.y + el.height && (!type || el.type === type)
         // No horizontal bounds check since width is not defined
       })
       .sort((a, b) => (b.level || 0) - (a.level || 0))
 
-    return candidates[0] || null
+    return candidates[0] ? new CanvasElementItem(candidates[0]) : null
   }
 
   addElement(element: Element) {

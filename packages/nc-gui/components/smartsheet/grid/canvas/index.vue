@@ -30,6 +30,7 @@ import {
   ROW_META_COLUMN_WIDTH,
 } from './utils/constants'
 import { calculateGroupRowTop, generateGroupPath } from './utils/groupby'
+import { ElementTypes } from './utils/CanvasElement'
 
 const props = defineProps<{
   totalRows: number
@@ -829,7 +830,7 @@ async function handleMouseDown(e: MouseEvent) {
 
   // If the new cell user clicked is not the active cell
   // call onActiveCellChanged to clear invalid rows and reorder records locally if required
-  if (rowIndex !== activeCell.value?.row || groupPath.join('-') !== row?.rowMeta?.groupPath) {
+  if (rowIndex !== activeCell.value?.row || groupPath.map((v) => `${v}`).join('-') !== row?.rowMeta?.groupPath) {
     onActiveCellChanged()
   }
 
@@ -971,9 +972,9 @@ async function handleMouseUp(e: MouseEvent) {
       const element = elementMap.findElementAt(mousePosition.x, mousePosition.y)
       const group = element?.group
       const row = element?.row
-      if (group && !row) {
+      if (element?.isGroup) {
         toggleExpand(group)
-      } else if (row) {
+      } else if (element?.isRow && row) {
         expandForm(row)
       }
       requestAnimationFrame(triggerRefreshCanvas)
@@ -1117,11 +1118,11 @@ async function handleMouseUp(e: MouseEvent) {
   const row = element?.row
   const rowIndex = row?.rowMeta?.rowIndex ?? -1
   const groupPath = group ? generateGroupPath(group) : []
-  const isAddNewRow = element?.type === 'ADD_NEW_ROW'
+  const isAddNewRow = element?.type === ElementTypes.ADD_NEW_ROW
 
   const dataCache = getDataCache(groupPath)
 
-  if (!row && group && !isAddNewRow) {
+  if (element?.isGroup) {
     toggleExpand(group)
     requestAnimationFrame(triggerRefreshCanvas)
     return
@@ -1499,7 +1500,6 @@ const handleMouseMove = (e: MouseEvent) => {
     const rowIndex = element?.rowIndex
     const groupPath = generateGroupPath(element?.group)
     const dataCache = getDataCache(groupPath)
-
 
     const { column } = findClickedColumn(mousePosition.x, scrollLeft.value)
     if (!row || !column) {

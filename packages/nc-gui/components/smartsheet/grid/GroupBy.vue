@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
-import { CommonAggregations} from 'nocodb-sdk'
-import { shouldRenderCell } from '../../../utils/groupbyUtils';
+import { CommonAggregations } from 'nocodb-sdk'
+import { shouldRenderCell } from '../../../utils/groupbyUtils'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import GroupByTable from './GroupByTable.vue'

@@ -118,7 +118,7 @@ const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
 
-const { isPkAvail, isSqlView, eventBus, allFilters, sorts } = useSmartsheetStoreOrThrow()
+const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource } = useSmartsheetStoreOrThrow()
 
 const { $e, $api } = useNuxtApp()
 
@@ -148,7 +148,7 @@ const { generateRows, generatingRows, generatingColumnRows, generatingColumns, a
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { showRecordPlanLimitExceededModal } = useEeConfig()
+const { showRecordPlanLimitExceededModal, blockExternalSourceRecordVisibility, showAsBluredRecord } = useEeConfig()
 
 const tableBodyEl = ref<HTMLElement>()
 
@@ -159,6 +159,8 @@ const fillHandle = ref<HTMLElement>()
 const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta.value)
 
 const resizingColumn = ref(false)
+
+const isVisibleShowUpgrade = ref(false)
 
 const isPlaywright = computed(() => ncIsPlaywright())
 
@@ -210,7 +212,12 @@ const cachedRows = toRef(props, 'data')
 
 const rowSortRequiredRows = toRef(props, 'rowSortRequiredRows')
 
-const totalRows = toRef(props, 'totalRows')
+// const totalRows = toRef(props, 'totalRows')
+const totalRows = computed(() => {
+  if (blockExternalSourceRecordVisibility(isExternalSource.value)) return 200
+
+  return props.totalRows
+})
 
 const chunkStates = toRef(props, 'chunkStates')
 
@@ -328,6 +335,15 @@ const updateVisibleRows = async (fromCalculateSlice = false) => {
   const lastChunkId = Math.floor((end - 1) / CHUNK_SIZE)
 
   const chunksToFetch = new Set<number>()
+
+  if (blockExternalSourceRecordVisibility(isExternalSource.value) && firstChunkId >= 2) {
+    isVisibleShowUpgrade.value = true
+    return
+  }
+
+  isVisibleShowUpgrade.value = false
+
+  console.log('load more')
 
   // Collect chunks that need to be fetched (i.e., chunks that are not loaded yet)
   for (let chunkId = firstChunkId; chunkId <= lastChunkId; chunkId++) {
@@ -2485,6 +2501,12 @@ const cellAlignClass = computed(() => {
                       class="nc-grid-row transition transition-all duration-500 opacity-100 !xs:h-14"
                       :style="{
                         height: `${rowHeight}px`,
+                        filter:
+                          showAsBluredRecord(isExternalSource, row.rowMeta.rowIndex + 1) && !row.rowMeta.new
+                            ? 'blur(4px)'
+                            : undefined,
+                        pointerEvents:
+                          showAsBluredRecord(isExternalSource, row.rowMeta.rowIndex + 1) && !row.rowMeta.new ? 'none' : 'auto',
                       }"
                       :data-testid="`grid-row-${row.rowMeta.rowIndex}`"
                       :class="{
@@ -3027,6 +3049,12 @@ const cellAlignClass = computed(() => {
       </NcDropdown>
     </div>
 
+    <NcModalConfirm
+      v-model:visible="isVisibleShowUpgrade"
+      title="Upgrade to unlock full data access"
+      content="Unlock complete visibility into your connected sources. View all records by upgrading to the Team plan."
+    ></NcModalConfirm>
+
     <div class="absolute bottom-12 z-5 left-2" @click.stop>
       <NcDropdown v-if="isAddingEmptyRowAllowed">
         <div class="flex shadow-nc-sm rounded-lg">
@@ -3095,7 +3123,7 @@ const cellAlignClass = computed(() => {
       </NcDropdown>
     </div>
 
-    <LazySmartsheetGridPaginationV2 :total-rows="totalRows" :scroll-left="scrollLeft" :disable-pagination="true" />
+    <LazySmartsheetGridPaginationV2 :total-rows="props.totalRows" :scroll-left="scrollLeft" :disable-pagination="true" />
   </div>
 </template>
 

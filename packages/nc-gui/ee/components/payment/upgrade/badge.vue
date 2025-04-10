@@ -8,7 +8,7 @@ interface Props {
   /** Required plan to access new feature */
   planTitle?: PlanTitles
   /** Feature to check */
-  feature: PlanFeatureTypes
+  feature?: PlanFeatureTypes
   /** Title to show in upgrade modal */
   title?: string
   /** Content to show in upgrade modal */
@@ -18,6 +18,7 @@ interface Props {
 
   disabled?: boolean
   removeClick?: boolean
+  featureEnabledCallback?: () => boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -30,7 +31,13 @@ const planUpgraderClick = inject(PlanUpgraderClickHookInj, createEventHook())
 
 const { handleUpgradePlan, getFeature, getPlanTitle, isPaymentEnabled } = useEeConfig()
 
-const isFeatureEnabled = computed(() => getFeature(props.feature))
+const isFeatureEnabled = computed(() => {
+  if (ncIsFunction(props.featureEnabledCallback)) {
+    return props.featureEnabledCallback()
+  }
+
+  return !props.feature && getFeature(props.feature)
+})
 
 const activePlanMeta = computed(() => PlanMeta[props.planTitle])
 

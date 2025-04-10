@@ -133,7 +133,8 @@
     "formOwnerNotifiedSubtitle": "We've notified the form owner about your submission request.",
     "WorkspaceOwnerNotified": "Workspace owner notified",
     "WorkspaceOwnerNotifiedSubtitle": "Your request to upgrade has been shared with the workspace owner.",
-    "failedToSendUpgradeRequest": "Failed to send upgrade request"
+    "failedToSendUpgradeRequest": "Failed to send upgrade request",
+    "upgradeToSeeMoreRecord": "Only first 100 records will be visible, upgrade to Team plan to access all records visiblility"
   },
   "general": {
     "supported": "Supported",

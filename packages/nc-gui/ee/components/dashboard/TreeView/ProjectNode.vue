@@ -1010,6 +1010,14 @@ const onClickMenu = (e: { key?: string }) => {
                             v-if="!(source.id && sourceRenameHelpers[source.id]?.editMode)"
                             class="flex flex-row items-center gap-x-0.25"
                           >
+                            <LazyPaymentUpgradeBadge
+                              :content="$t('upgrade.upgradeToSeeMoreRecord')"
+                              class="-my-1 mx-0.5 nc-sidebar-node-btn nc-sidebar-upgrade-badge"
+                              :class="{
+                                'nc-sidebar-option-open': isBasesOptionsOpen[source!.id!]
+                              }"
+                            />
+
                             <NcDropdown
                               :visible="isBasesOptionsOpen[source!.id!]"
                               :trigger="['click']"
@@ -1214,12 +1222,28 @@ const onClickMenu = (e: { key?: string }) => {
   @apply h-full;
 }
 
-:deep(.ant-collapse-header:hover) {
-  .nc-sidebar-node-btn {
-    @apply !opacity-100 !inline-block;
+:deep(.ant-collapse-header) {
+  .nc-sidebar-upgrade-badge {
+    @apply -mr-6;
 
-    &:not(.nc-sidebar-expand) {
-      @apply !xs:hidden;
+    &.nc-sidebar-option-open {
+      @apply mr-0;
+    }
+  }
+
+  &:hover {
+    .nc-sidebar-node-btn {
+      &:not(.nc-sidebar-upgrade-badge) {
+        @apply !opacity-100 !inline-block;
+      }
+
+      &.nc-sidebar-upgrade-badge {
+        @apply mr-0;
+      }
+
+      &:not(.nc-sidebar-expand) {
+        @apply !xs:hidden;
+      }
     }
   }
 }

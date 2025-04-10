@@ -480,6 +480,16 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const blockExternalSourceRecordVisibility = (isExternalSource: boolean = false) => {
+    return isExternalSource && activePlanTitle.value === PlanTitles.FREE
+  }
+
+  const showAsBluredRecord = (isExternalSource: boolean = false, rowIndex?: number) => {
+    if (!rowIndex) return false
+
+    return blockExternalSourceRecordVisibility(isExternalSource) && rowIndex > 100
+  }
+
   return {
     isWsOwner,
     getLimit,
@@ -509,5 +519,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockAddNewWebhook,
     showWebhookPlanLimitExceededModal,
     showWebhookLogsFeatureAccessModal,
+    blockExternalSourceRecordVisibility,
+    showAsBluredRecord,
   }
 })

@@ -119,6 +119,7 @@ export function calculateGroupRowTop(
   path: number[],
   rowIndex: number,
   rowHeight: number,
+  isAddingEmptyRowAllowed: boolean,
 ): number {
   let top = 0
   let currentGroups = groups
@@ -135,7 +136,7 @@ export function calculateGroupRowTop(
     for (let i = 0; i < groupIndex; i++) {
       const siblingGroup = currentGroups.get(i)
       if (siblingGroup) {
-        top += calculateGroupHeight(siblingGroup, rowHeight)
+        top += calculateGroupHeight(siblingGroup, rowHeight, isAddingEmptyRowAllowed)
       }
     }
 
@@ -146,9 +147,10 @@ export function calculateGroupRowTop(
     }
 
     if (group.path?.length && depth === path.length - 1) {
-      if (rowIndex >= 0 && rowIndex < (group.count || 0)) {
-        top += rowIndex * rowHeight + 1
-      }
+      console.log(rowIndex, group.count)
+      // if (rowIndex >= 0 && rowIndex <= (group.count || 0)) {
+      top += rowIndex * rowHeight + 1
+      // }
       return top
     } else if (group.groups) {
       currentGroups = group.groups

@@ -177,6 +177,7 @@ export function useCanvasTable({
   // Row Reorder related states
   const isDragging = ref(false)
   const draggedRowIndex = ref(-1)
+  const draggedRowGroupPath = ref([])
   const targetRowIndex = ref(-1)
 
   const { isMobileMode } = useGlobal()
@@ -676,12 +677,15 @@ export function useCanvasTable({
     getDataCache,
     fetchMissingGroupChunks,
     getRows,
+    draggedRowGroupPath,
+    isAddingEmptyRowAllowed,
   })
 
   const { handleDragStart } = useRowReorder({
     canvasRef,
     rowHeight,
     isDragging,
+    draggedRowGroupPath,
     draggedRowIndex,
     targetRowIndex,
     partialRowHeight,

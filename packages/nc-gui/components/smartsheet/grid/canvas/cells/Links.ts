@@ -70,14 +70,14 @@ export const LinksCellRenderer: CellRenderer = {
       isBoxHovered({ x: x + width - 16 - padding, y: y + 7, height: buttonSize, width: buttonSize }, mousePosition) ||
       isBoxHovered({ x: x + padding, y, height, width: width - padding * 2 }, mousePosition)
     ) {
-      makeCellEditable(rowIndex, column)
+      makeCellEditable(row, column)
       return true
     }
     return false
   },
   async handleKeyDown({ row, column, e, makeCellEditable }) {
     if (isExpandCellKey(e)) {
-      makeCellEditable(row.rowMeta.rowIndex!, column)
+      makeCellEditable(row, column)
       return true
     }
 

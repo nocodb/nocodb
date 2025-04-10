@@ -1000,7 +1000,11 @@ export function useCanvasTable({
   const cachedCurrentRow = ref<Row>()
 
   watch(
-    () => cachedRows.value.get(editEnabled.value?.row.rowMeta.rowIndex ?? Infinity),
+    () => {
+      if (isGroupBy.value && !activeCell.value.path) return null
+      const dataCache = getDataCache(activeCell.value.path)
+      dataCache.cachedRows.value.get(editEnabled.value?.row.rowMeta.rowIndex ?? Infinity)
+    },
     (row) => {
       if (row == null) return
       cachedCurrentRow.value = row
@@ -1025,8 +1029,16 @@ export function useCanvasTable({
   function makeEditable(row: Row, clickedColumn: CanvasGridColumn) {
     const column = metaColumnById.value[clickedColumn.id]
 
-    const rowIndex = row.rowMeta.rowIndex!
-    let xOffset = 0
+    const rowIndex = row.rowMeta.rowIndex + 1!
+    const path = row.rowMeta.path
+
+    if (!path) return
+
+    const yOffset =
+      calculateGroupRowTop(cachedGroups.value, path, rowIndex, rowHeight.value, isAddingEmptyRowAllowed.value) +
+      COLUMN_HEADER_HEIGHT_IN_PX
+
+    let xOffset = (groupByColumns.value?.length ?? 0) * 9
     const columnIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
 
     if (clickedColumn.fixed) {
@@ -1053,13 +1065,14 @@ export function useCanvasTable({
     editEnabled.value = {
       rowIndex,
       x: xOffset,
-      y: (rowIndex + 1) * rowHeight.value + 32,
+      y: yOffset,
       column,
       row,
       minHeight: rowHeight.value,
       height: [UITypes.LongText, UITypes.Formula].includes(column.uidt) ? 'auto' : rowHeight.value + 2,
       width: parseCellWidth(clickedColumn.width) + 2,
       fixed: clickedColumn.fixed,
+      path,
     }
     hideTooltip()
     return true
@@ -1067,6 +1080,7 @@ export function useCanvasTable({
 
   function makeCellEditable(row: number | Row, clickedColumn: CanvasGridColumn) {
     const column = metaColumnById.value[clickedColumn.id]
+
     row = typeof row === 'number' ? cachedRows.value.get(row)! : row
 
     if (!row || !column) return null

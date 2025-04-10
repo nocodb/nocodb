@@ -45,7 +45,7 @@ export function useGridCellHandler(params: {
     path: Array<number>,
   ) => { x: number; y: number; width: number; height: number }
   actionManager: ActionManager
-  makeCellEditable: (row: number | Row, clickedColumn: CanvasGridColumn) => void
+  makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
   updateOrSaveRow: (
     row: Row,
     property?: string,

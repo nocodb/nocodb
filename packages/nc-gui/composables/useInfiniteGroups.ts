@@ -406,6 +406,16 @@ export const useInfiniteGroups = (
 
     if (!aggregation.length) return
 
+    const fieldAggregationMap = new Map<string, string>()
+    if (fields) {
+      fields.forEach((f) => {
+        const col = gridViewColByTitle.value[f.title]
+        if (col?.fk_column_id) {
+          fieldAggregationMap.set(col.fk_column_id, f.aggregation ?? col.aggregation ?? CommonAggregations.None)
+        }
+      })
+    }
+
     for (let i = 0; i < groups.length; i += BATCH_SIZE) {
       const batchGroups = groups.slice(i, i + BATCH_SIZE)
 
@@ -435,15 +445,16 @@ export const useInfiniteGroups = (
         await aggregationAliasMapper.process(aggResponse, (originalKey, value) => {
           const group = batchGroups.find((g) => g.value.toString() === originalKey.toString())
 
+          if (!group) return
+
           Object.keys(value).forEach((key) => {
             const field = gridViewColByTitle.value[key]
             const col = columnsById.value[field.fk_column_id]
-            value[key] = formatAggregation(field.aggregation, value[key], col) ?? ''
+            const aggregationType = fieldAggregationMap.get(field.fk_column_id) ?? field.aggregation
+            value[key] = formatAggregation(aggregationType, value[key], col) ?? ''
           })
 
-          if (group) {
-            Object.assign(group.aggregations, value)
-          }
+          Object.assign(group.aggregations, value)
         })
       } catch (error) {
         console.error('Error refreshing group aggregations batch:', error)

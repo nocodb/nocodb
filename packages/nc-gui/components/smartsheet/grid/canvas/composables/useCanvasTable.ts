@@ -339,7 +339,7 @@ export function useCanvasTable({
       grid_column_id: 'row_number',
       uidt: null,
       title: '#',
-      width: `${80 + groupByColumns.value?.length * 9}px`,
+      width: `${80 + groupByColumns.value?.length * 13}px`,
       fixed: true,
       pv: false,
       columnObj: {
@@ -352,7 +352,7 @@ export function useCanvasTable({
   const columnWidths = computed(() =>
     columns.value.map((col) => {
       if (col.id === 'row_number') {
-        return parseCellWidth(col.width) - groupByColumns.value?.length * 9
+        return parseCellWidth(col.width) - groupByColumns.value?.length * 13
       }
       return parseCellWidth(col.width)
     }),
@@ -432,7 +432,7 @@ export function useCanvasTable({
     let xOffSet = 0
 
     if (groupByColumns.value.length) {
-      xOffSet += groupByColumns.value.length * 9
+      xOffSet += groupByColumns.value.length * 13
     }
 
     return (
@@ -492,7 +492,7 @@ export function useCanvasTable({
     xOffset = startOffset - scrollLeft
 
     if (groupByColumns.value.length) {
-      xOffset += groupByColumns.value.length * 9
+      xOffset += groupByColumns.value.length * 13
     }
 
     for (let i = visibleStart; i < visibleEnd; i++) {
@@ -1037,7 +1037,7 @@ export function useCanvasTable({
       calculateGroupRowTop(cachedGroups.value, path, rowIndex, rowHeight.value, isAddingEmptyRowAllowed.value) +
       COLUMN_HEADER_HEIGHT_IN_PX
 
-    let xOffset = (groupByColumns.value?.length ?? 0) * 9
+    let xOffset = (groupByColumns.value?.length ?? 0) * 13
     const columnIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
 
     if (clickedColumn.fixed) {

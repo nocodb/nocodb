@@ -33,6 +33,7 @@ import {
   calculateGroupRowTop,
   generateGroupPath,
   getBackgroundColor,
+  getGroupColors,
 } from '../utils/groupby'
 import { parseKey, shouldRenderCell } from '../../../../../utils/groupbyUtils'
 import type { CanvasElement } from '../utils/CanvasElement'
@@ -596,12 +597,18 @@ export function useCanvasRender({
         ctx.strokeStyle = '#D5D5D9'
         ctx.beginPath()
         ctx.moveTo(xOffset, 0)
-        ctx.lineTo(xOffset, 32)
+        ctx.lineTo(xOffset, isGroupBy.value ? height.value : 32)
         ctx.stroke()
 
         ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
-        ctx.rect(xOffset, 0, 4, 32)
+        ctx.rect(xOffset, 0, 4, isGroupBy.value ? height.value : 32)
         ctx.fill()
+      } else {
+        ctx.strokeStyle = '#E7E7E9'
+        ctx.beginPath()
+        ctx.moveTo(xOffset, 0)
+        ctx.lineTo(xOffset, isGroupBy.value ? height.value : 32)
+        ctx.stroke()
       }
       ctx.shadowColor = 'transparent'
       ctx.shadowBlur = 0
@@ -941,7 +948,7 @@ export function useCanvasRender({
         for (let i = 0; i < startColIndex; i++) {
           const col = columns.value[i]
           if (col?.id === 'row_number') {
-            xOffset -= groupByColumns.value?.length * 9
+            xOffset -= groupByColumns.value?.length * 13
           }
           xOffset += parseCellWidth(col?.width)
         }
@@ -1159,7 +1166,7 @@ export function useCanvasRender({
         for (let i = 0; i < startColIndex; i++) {
           const col = columns.value[i]
           if (col?.id === 'row_number') {
-            xOffset -= groupByColumns.value?.length * 9
+            xOffset -= groupByColumns.value?.length * 13
           }
           xOffset += parseCellWidth(col?.width)
         }
@@ -1471,8 +1478,8 @@ export function useCanvasRender({
     // Top border
     ctx.beginPath()
     ctx.strokeStyle = '#E7E7E9'
-    ctx.moveTo(0, height.value - AGGREGATION_HEIGHT - .5)
-    ctx.lineTo(width.value, height.value - AGGREGATION_HEIGHT - .5)
+    ctx.moveTo(0, height.value - AGGREGATION_HEIGHT - 0.5)
+    ctx.lineTo(width.value, height.value - AGGREGATION_HEIGHT - 0.5)
     ctx.stroke()
 
     // Background
@@ -1805,7 +1812,7 @@ export function useCanvasRender({
     ctx.lineWidth = 2
     ctx.beginPath()
     // pass x offset based on number of group level(8px padding and 1px border)
-    ctx.moveTo(groupByColumns.value.length * 9, targetRowLine)
+    ctx.moveTo(groupByColumns.value.length * 13, targetRowLine)
     ctx.lineTo(ctx.canvas.width, targetRowLine)
     ctx.stroke()
 
@@ -1910,7 +1917,7 @@ export function useCanvasRender({
 
     const adjustedWidth =
       totalWidth.value - scrollLeft.value - 256 < width.value
-        ? totalWidth.value - scrollLeft.value - 256 - 2 * level * 9
+        ? totalWidth.value - scrollLeft.value - 256 - 2 * level * 13
         : width.value
 
     for (let i = startIndex; i <= endIndex; i++) {
@@ -1920,7 +1927,7 @@ export function useCanvasRender({
         rowsToFetch.push(i)
       }
 
-      const indent = level * 9
+      const indent = level * 13
       const isHovered = hoverRow.value?.rowIndex === i && hoverRow.value?.path?.join('-') === row?.rowMeta?.path?.join('-')
 
       roundedRect(ctx, indent, yOffset, adjustedWidth, rowHeight.value, 0, {
@@ -1981,7 +1988,7 @@ export function useCanvasRender({
       )
       roundedRect(
         ctx,
-        level * 9,
+        level * 13,
         yOffset,
         adjustedWidth,
         COLUMN_HEADER_HEIGHT_IN_PX,
@@ -1996,21 +2003,21 @@ export function useCanvasRender({
           borders: {
             bottom: true,
           },
-          borderColor: '#D5D5D9',
+          borderColor: '#e7e7e9',
           borderWidth: 1,
         },
       )
       spriteLoader.renderIcon(ctx, {
         icon: 'ncPlus',
         color: isNewRowHovered ? '#000000' : '#4a5268',
-        x: 16 + level * 9,
+        x: 16 + level * 13,
         y: yOffset + 9,
         size: 14,
       })
 
       elementMap.addElement({
         y: yOffset,
-        x: level * 9,
+        x: level * 13,
         group,
         level,
         height: COLUMN_HEADER_HEIGHT_IN_PX,
@@ -2025,7 +2032,7 @@ export function useCanvasRender({
     if (warningRow) {
       const orange = '#fcbe3a'
       // Group level x axis offset
-      const gXOffset = level * 9
+      const gXOffset = level * 13
 
       // Warning top border
       ctx.strokeStyle = 'orange'
@@ -2094,7 +2101,7 @@ export function useCanvasRender({
     const fixedCols = columns.value.filter((col) => col.fixed)
     const rowNumberCol = fixedCols.find((col) => col.id === 'row_number')
     const firstFixedCol = fixedCols.find((col) => col.id !== 'row_number')
-    const mergedWidth = parseCellWidth(rowNumberCol?.width) + parseCellWidth(firstFixedCol?.width) - (level + 1) * 9
+    const mergedWidth = parseCellWidth(rowNumberCol?.width) + parseCellWidth(firstFixedCol?.width) - (level + 1) * 13
     // Track absolute position in virtual space
     let currentOffset = yOffset
     for (let i = startIndex; i <= endIndex; i++) {
@@ -2108,7 +2115,7 @@ export function useCanvasRender({
       const groupHeaderY = currentOffset
       const groupHeight = calculateGroupHeight(group, rowHeight.value, isAddingEmptyRowAllowed.value)
       const groupBottom = groupHeaderY + groupHeight
-      const xOffset = (level + 1) * 9
+      const xOffset = (level + 1) * 13
       const adjustedWidth =
         totalWidth.value - scrollLeft.value - 256 < width.value
           ? totalWidth.value - scrollLeft.value - 256 - 2 * xOffset
@@ -2130,7 +2137,7 @@ export function useCanvasRender({
         group,
         type: ElementTypes.GROUP,
       })
-      const bg = getBackgroundColor(level, groupByColumns.value.length)
+      const { background: groupBackgroundColor, border: groupBorderColor } = getGroupColors(level, groupByColumns.value.length)
 
       if (groupHeaderY + groupHeight >= 0 && groupHeaderY < height.value) {
         let tempCurrentOffset = currentOffset + GROUP_HEADER_HEIGHT
@@ -2160,8 +2167,8 @@ export function useCanvasRender({
               bottomLeft: 8,
             },
             {
-              backgroundColor: bg,
-              borderColor: '#D5D5D9',
+              backgroundColor: groupBackgroundColor,
+              borderColor: groupBorderColor,
               borders: {
                 top: false,
                 right: true,
@@ -2237,8 +2244,8 @@ export function useCanvasRender({
           GROUP_HEADER_HEIGHT,
           group.isExpanded ? { topLeft: 8, topRight: 8, bottomLeft: 0, bottomRight: 0 } : 8,
           {
-            backgroundColor: bg,
-            borderColor: '#D5D5D9',
+            backgroundColor: groupBackgroundColor,
+            borderColor: groupBorderColor,
             borders: {
               bottom: !group.isExpanded || !!group?.path?.length,
               top: true,
@@ -2347,6 +2354,19 @@ export function useCanvasRender({
             }
             ctx.restore()
           }
+          ctx.save()
+          ctx.beginPath()
+
+          ctx.rect(Math.max(aggXOffset - scrollLeft.value, fixedColsWidth), groupHeaderY + 1, width, GROUP_HEADER_HEIGHT - 2)
+          ctx.fill()
+          ctx.clip()
+          ctx.beginPath()
+          ctx.strokeStyle = '#f4f4f5'
+          ctx.moveTo(aggXOffset - scrollLeft.value, groupHeaderY + 1)
+          ctx.lineTo(aggXOffset - scrollLeft.value, groupHeaderY + GROUP_HEADER_HEIGHT - 2)
+          ctx.stroke()
+
+          ctx.restore()
 
           aggXOffset += width
         })
@@ -2379,7 +2399,7 @@ export function useCanvasRender({
           y: groupHeaderY + 7,
           height: GROUP_HEADER_HEIGHT,
           verticalAlign: 'middle',
-          fontFamily: '300 12px Manrope',
+          fontFamily: '700 13px Manrope',
           fillStyle: '#374151',
           textAlign: 'right',
         })
@@ -2390,24 +2410,10 @@ export function useCanvasRender({
           x: xOffset + mergedWidth - 8 - countWidth - 8,
           y: groupHeaderY + 7,
           textAlign: 'right',
-          fontFamily: '300 12px Manrope',
+          fontFamily: '500 12px Manrope',
           fillStyle: '#6A7184',
         })
         contentWidth = contentRender.width
-        drawStraightLine(ctx, {
-          startX: xOffset + mergedWidth,
-          endX: xOffset + mergedWidth,
-          startY: groupHeaderY,
-          endY: groupHeaderY + GROUP_HEADER_HEIGHT,
-          strokeStyle: '#D5D5D9',
-        })
-
-        if (scrollLeft.value) {
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
-          ctx.rect(xOffset + mergedWidth, groupHeaderY, 4, GROUP_HEADER_HEIGHT)
-          ctx.fill()
-        }
-
         renderGroupContent(ctx, group, contentX, contentY + 6, availableWidth - contentWidth - 8 - countWidth)
         currentOffset = tempCurrentOffset
       }

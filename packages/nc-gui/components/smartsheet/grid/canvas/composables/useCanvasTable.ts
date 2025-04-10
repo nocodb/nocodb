@@ -114,7 +114,6 @@ export function useCanvasTable({
   getRows: (start: number, end: number) => Promise<Row[]>
 }) {
   const { metas, getMeta } = useMetas()
-  const groupSlice = ref({ start: 0, end: 100 })
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
   const activeCell = ref({ row: -1, column: -1 })
@@ -584,7 +583,6 @@ export function useCanvasTable({
     columns,
     colSlice,
     groupByColumns,
-    groupSlice,
     cachedGroups,
     scrollLeft,
     baseColor,
@@ -627,6 +625,7 @@ export function useCanvasTable({
     setCursor,
     isGroupBy,
     totalColumnsWidth,
+    fetchMissingGroupChunks,
   })
 
   const { handleDragStart } = useRowReorder({
@@ -1106,7 +1105,6 @@ export function useCanvasTable({
     totalGroups,
     isGroupBy,
     fetchMissingGroupChunks,
-    groupSlice,
     groupByColumns,
     groupChunkStates,
     cachedGroups,

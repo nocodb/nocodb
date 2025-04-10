@@ -34,7 +34,6 @@ export function useCanvasRender({
   height,
   columns,
   colSlice,
-  groupSlice,
   cachedGroups,
   scrollLeft,
   scrollTop,
@@ -75,6 +74,7 @@ export function useCanvasRender({
   totalGroups,
   isGroupBy,
   baseColor,
+  fetchMissingGroupChunks,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -82,7 +82,6 @@ export function useCanvasRender({
   columns: ComputedRef<CanvasGridColumn[]>
   colSlice: Ref<{ start: number; end: number }>
   rowSlice: Ref<{ start: number; end: number }>
-  groupSlice: Ref<{ start: number; end: number }>
   activeCell: Ref<{ row: number; column: number }>
   scrollLeft: Ref<number>
   scrollTop: Ref<number>
@@ -129,6 +128,7 @@ export function useCanvasRender({
   >
   isGroupBy: Ref<boolean>
   baseColor: Ref<string>
+  fetchMissingGroupChunks: (startIndex: number, endIndex: number, canvasGroup?: CanvasGroup) => Promise<void>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
@@ -1843,6 +1843,11 @@ export function useCanvasRender({
       const groupHeaderY = currentOffset
       const groupHeight = calculateGroupHeight(group, rowHeight.value)
       const groupBottom = groupHeaderY + groupHeight
+      const xOffset = (level + 1) * 9
+      const adjustedWidth =
+        totalWidth.value - scrollLeft.value - 256 < width.value
+          ? totalWidth.value - scrollLeft.value - 256 - 2 * xOffset
+          : width.value
 
       // Skip if group is fully outside viewport
       if (groupBottom < 0 || groupHeaderY > height.value) {
@@ -1851,10 +1856,7 @@ export function useCanvasRender({
       }
 
       if (groupHeaderY + GROUP_HEADER_HEIGHT > 0 && groupHeaderY < height.value) {
-        const xOffset = (level + 1) * 9
         const bg = getBackgroundColor(level, groupByColumns.value.length)
-        const adjustedWidth =
-          totalWidth.value - scrollLeft.value - 256 < width.value ? totalWidth.value - scrollLeft.value - 256 : width.value
 
         roundedRect(
           ctx,
@@ -1964,6 +1966,9 @@ export function useCanvasRender({
             group.groupCount,
             height.value,
           )
+
+          fetchMissingGroupChunks(nestedStart, nestedEnd, group)
+
           currentOffset = renderGroups(ctx, {
             level: level + 1,
             yOffset: nestedContentStart + GROUP_PADDING,
@@ -1972,6 +1977,32 @@ export function useCanvasRender({
             endIndex: Math.max(0, nestedEnd),
           })
         }
+      }
+
+      const borderTop = Math.max(0, groupHeaderY + GROUP_HEADER_HEIGHT)
+      const borderBottom = Math.min(height.value, currentOffset)
+      if (borderBottom > borderTop) {
+        roundedRect(
+          ctx,
+          xOffset,
+          borderTop,
+          adjustedWidth,
+          borderBottom - borderTop,
+          {
+            bottomRight: 8,
+            bottomLeft: 8,
+          },
+          {
+            borderWidth: 0.5,
+            borderColor: '#D5D5D9',
+            borders: {
+              top: false,
+              right: true,
+              bottom: true,
+              left: true,
+            },
+          },
+        )
       }
       currentOffset += GROUP_PADDING
     }
@@ -2114,6 +2145,8 @@ export function useCanvasRender({
         totalGroups.value,
         height.value,
       )
+
+      fetchMissingGroupChunks(startIndex, endIndex)
 
       renderGroups(ctx, {
         level: 0,

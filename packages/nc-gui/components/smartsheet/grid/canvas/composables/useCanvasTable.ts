@@ -208,8 +208,6 @@ export function useCanvasTable({
 
   const partialRowHeight = computed(() => scrollTop.value % rowHeight.value)
 
-  const partialGroupHeight = computed(() => scrollTop.value % (GROUP_HEADER_HEIGHT + GROUP_PADDING))
-
   const isAiFillMode = computed(
     () => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES),
   )
@@ -592,7 +590,6 @@ export function useCanvasTable({
     baseColor,
     scrollTop,
     totalGroups,
-    partialGroupHeight,
     cachedRows,
     rowSlice,
     rowHeight,
@@ -1113,7 +1110,6 @@ export function useCanvasTable({
     groupByColumns,
     groupChunkStates,
     cachedGroups,
-    partialGroupHeight,
     toggleExpand,
 
     makeCellEditable,

@@ -73,7 +73,7 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 reloadAggregate?.on(async (_fields) => {
   if (!fields.value?.length) return
-  if (!_fields || !_fields?.fields.length) {
+  if (!_fields || !_fields?.fields?.length) {
     await props.loadGroupAggregation(vGroup.value)
   }
   if (_fields?.fields) {

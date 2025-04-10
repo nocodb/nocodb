@@ -45,7 +45,7 @@ export const findKeyColor = (key?: string, col?: ColumnType, getNextColor: () =>
         return 'gray'
       }
       case UITypes.Checkbox: {
-        if (key) {
+        if (key === '__nc_true__') {
           return themeColors.success
         }
         return themeColors.error

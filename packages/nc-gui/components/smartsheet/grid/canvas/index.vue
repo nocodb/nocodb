@@ -1132,7 +1132,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   const groupPath = group ? generateGroupPath(group) : []
   const isAddNewRow = element?.type === ElementTypes.ADD_NEW_ROW
 
-  if (!group && element.groupPath) {
+  if (!group && element?.groupPath) {
     group = cachedGroups.value.get(groupPath[0])
   }
 

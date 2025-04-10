@@ -121,7 +121,7 @@ export default class Workspace implements WorkspaceType {
       }
     }
 
-    if (workspaceData?.deleted && !force) return undefined;
+    if (!workspaceData || (workspaceData?.deleted && !force)) return undefined;
 
     workspaceData.payment = await getActivePlanAndSubscription(
       workspaceData.fk_org_id || workspaceData.id,

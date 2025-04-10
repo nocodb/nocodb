@@ -56,6 +56,60 @@ const nextInvoiceInfo = computed(() => {
 const currentPlanTitle = computed(() => {
   return activeWorkspace.value?.payment?.plan.title ?? PlanTitles.FREE
 })
+
+const showWarningStatusForSeatCount = computed(() => {
+  return currentPlanTitle.value === PlanTitles.FREE && workspaceSeatCount.value >= getLimit(PlanLimitTypes.LIMIT_EDITOR) - 1
+})
+
+const recordInfo = computed(() => {
+  const value = getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)
+  const total = getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) ?? 1000
+  const showWarningStatus = (value / total) * 100 > 80
+
+  console.log('total', total)
+
+  return {
+    value: Number(value).toLocaleString(),
+    total: Number(total).toLocaleString(),
+    showWarningStatus: showWarningStatus,
+  }
+})
+
+const storageInfo = computed(() => {
+  const value = getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000
+  const total = getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000
+  const showWarningStatus = (value / total) * 100 > 80
+
+  return {
+    value: Number(value).toFixed(1).toLocaleString(),
+    total: Number(total).toLocaleString(),
+    showWarningStatus: showWarningStatus,
+  }
+})
+
+const automationInfo = computed(() => {
+  const value = getStatLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)
+  const total = getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)
+  const showWarningStatus = (value / total) * 100 > 80
+
+  return {
+    value: Number(value).toLocaleString(),
+    total: Number(total).toLocaleString(),
+    showWarningStatus: showWarningStatus,
+  }
+})
+
+const apiCallsInfo = computed(() => {
+  const value = getStatLimit(PlanLimitTypes.LIMIT_API_CALL)
+  const total = getLimit(PlanLimitTypes.LIMIT_API_CALL)
+  const showWarningStatus = (value / total) * 100 > 80
+
+  return {
+    value: Number(value).toLocaleString(),
+    total: Number(total).toLocaleString(),
+    showWarningStatus: showWarningStatus,
+  }
+})
 </script>
 
 <template>
@@ -115,7 +169,7 @@ const currentPlanTitle = computed(() => {
           </div>
         </template>
       </PaymentPlanUsageRow>
-      <PaymentPlanUsageRow :plan-meta="activePlanMeta">
+      <PaymentPlanUsageRow :plan-meta="activePlanMeta" :show-warning-status="showWarningStatusForSeatCount">
         <template #label>
           {{
             currentPlanTitle === PlanTitles.FREE
@@ -125,41 +179,25 @@ const currentPlanTitle = computed(() => {
         </template>
         <template #value>{{ workspaceSeatCount }} </template>
       </PaymentPlanUsageRow>
-      <PaymentPlanUsageRow :plan-meta="activePlanMeta">
+      <PaymentPlanUsageRow :plan-meta="activePlanMeta" :show-warning-status="recordInfo.showWarningStatus">
         <template #label>
           <span class="capitalize">
             {{ $t('objects.records') }}
           </span>
         </template>
-        <template #value>
-          {{ Number(getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)).toLocaleString() }}/{{
-            Number(getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) ?? 1000).toLocaleString()
-          }}
-        </template>
+        <template #value> {{ recordInfo.value }}/{{ recordInfo.total }} </template>
       </PaymentPlanUsageRow>
-      <PaymentPlanUsageRow :plan-meta="activePlanMeta">
+      <PaymentPlanUsageRow :plan-meta="activePlanMeta" :show-warning-status="storageInfo.showWarningStatus">
         <template #label> {{ $t('objects.currentPlan.storageUsedGB') }} </template>
-        <template #value>
-          {{ (Number(getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE)) / 1000).toFixed(1).toLocaleString() }}/{{
-            (Number(getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE)) / 1000).toLocaleString()
-          }}
-        </template>
+        <template #value> {{ storageInfo.value }}/{{ storageInfo.total }} </template>
       </PaymentPlanUsageRow>
-      <PaymentPlanUsageRow :plan-meta="activePlanMeta">
+      <PaymentPlanUsageRow :plan-meta="activePlanMeta" :show-warning-status="automationInfo.showWarningStatus">
         <template #label> {{ $t('objects.currentPlan.webhookCallsMonthly') }} </template>
-        <template #value>
-          {{ Number(getStatLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)).toLocaleString() }}/{{
-            Number(getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)).toLocaleString()
-          }}
-        </template>
+        <template #value> {{ automationInfo.value }}/{{ automationInfo.total }} </template>
       </PaymentPlanUsageRow>
-      <PaymentPlanUsageRow :plan-meta="activePlanMeta">
+      <PaymentPlanUsageRow :plan-meta="activePlanMeta" :show-warning-status="apiCallsInfo.showWarningStatus">
         <template #label> {{ $t('objects.currentPlan.apiCallsMonthly') }} </template>
-        <template #value>
-          {{ Number(getStatLimit(PlanLimitTypes.LIMIT_API_CALL)).toLocaleString() }}/{{
-            Number(getLimit(PlanLimitTypes.LIMIT_API_CALL)).toLocaleString()
-          }}
-        </template>
+        <template #value> {{ apiCallsInfo.value }}/{{ apiCallsInfo.total }} </template>
       </PaymentPlanUsageRow>
     </div>
   </div>

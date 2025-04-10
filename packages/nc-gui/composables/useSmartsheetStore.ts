@@ -25,7 +25,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const baseStore = useBase()
 
-    const { sqlUis } = storeToRefs(baseStore)
+    const { sqlUis, base } = storeToRefs(baseStore)
 
     const sqlUi = computed(() =>
       (meta.value as TableType)?.source_id ? sqlUis.value[(meta.value as TableType).source_id!] : Object.values(sqlUis.value)[0],
@@ -49,6 +49,10 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isMap = computed(() => view.value?.type === ViewTypes.MAP)
     const isSharedForm = computed(() => isForm.value && shared)
     const isDefaultView = computed(() => view.value?.is_default)
+
+    const isExternalSource = computed(() =>
+      base.value?.sources?.some((s) => s.id === (meta.value as TableType)?.source_id && !s.is_meta && !s.is_local),
+    )
 
     const aliasColObjMap = computed(() => {
       const colObj = (meta.value as TableType)?.columns?.reduce((acc, col) => {
@@ -181,6 +185,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       isActionPaneActive,
       viewColumnsMap,
       getViewColumns,
+      isExternalSource,
     }
   },
   'smartsheet-store',

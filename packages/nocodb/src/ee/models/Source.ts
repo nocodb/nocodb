@@ -1,5 +1,5 @@
 import { default as SourceCE } from 'src/models/Source';
-import type { BoolType, SourceType } from 'nocodb-sdk';
+import { PlanLimitTypes, type BoolType, type SourceType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
 import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
@@ -65,6 +65,14 @@ export default class Source extends SourceCE implements SourceType {
       MetaTable.SOURCES,
       insertObj,
     );
+
+    if (!insertObj.is_meta && !insertObj.is_local) {
+      await NocoCache.incrHashField(
+        `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+        PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
+        1,
+      );
+    }
 
     // call before reorder to update cache
     const returnBase = await this.get(context, id, false, ncMeta);
@@ -133,6 +141,14 @@ export default class Source extends SourceCE implements SourceType {
       { deleted: true, fk_sql_executor_id: null },
       ncMeta,
     );
+
+    if (!this.isMeta()) {
+      await NocoCache.incrHashField(
+        `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+        PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
+        -1,
+      );
+    }
 
     await NocoCache.deepDel(
       `${CacheScope.SOURCE}:${this.id}`,

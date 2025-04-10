@@ -4,19 +4,21 @@ export enum ElementTypes {
   ROW = 'ROW',
   GROUP = 'GROUP',
   ADD_NEW_ROW = 'ADD_NEW_ROW',
+  EDIT_NEW_ROW_METHOD = 'EDIT_NEW_ROW_METHOD',
 }
 
 interface BaseElement {
   x: number
   y: number
   height: number
+  width?: number
   type: ElementTypes
   level?: number
 }
 
 interface RowElement extends BaseElement {
   row?: Row
-  type: ElementTypes.ROW | ElementTypes.ADD_NEW_ROW
+  type: ElementTypes.ROW | ElementTypes.ADD_NEW_ROW | ElementTypes.EDIT_NEW_ROW_METHOD
 }
 
 interface GroupElement extends BaseElement {
@@ -32,6 +34,7 @@ export class CanvasElementItem implements RowElement, GroupElement {
   x: number
   y: number
   height: number
+  width?: number
   type: ElementTypes
   row?: Row
   group?: CanvasGroup
@@ -91,13 +94,31 @@ export class CanvasElement {
     this.elements = elements
   }
 
-  findElementAt(x: number, y: number, type?: ElementTypes): CanvasElementItem | null {
+  findElementAt(x: number, y: number, type?: ElementTypes | ElementTypes[]): CanvasElementItem | null {
     const candidates = this.elements
       .filter((el) => {
-        // Only check if point is within vertical bounds
-        // and if type is not provided or matches
-        return y >= el.y && y <= el.y + el.height && (!type || el.type === type)
-        // No horizontal bounds check since width is not defined
+        const withinVertical = y >= el.y && y <= el.y + el.height
+
+        const typeMatches = !type || (Array.isArray(type) ? type.includes(el.type) : el.type === type)
+
+        return withinVertical && typeMatches
+      })
+      .sort((a, b) => (b.level || 0) - (a.level || 0))
+
+    return candidates[0] ? new CanvasElementItem(candidates[0]) : null
+  }
+
+  findElementAtWithX(x: number, y: number, type?: ElementTypes): CanvasElementItem | null {
+    const candidates = this.elements
+      .filter((el) => {
+        // Check vertical bounds
+        const withinVertical = y >= el.y && y <= el.y + el.height
+
+        const withinHorizontal = el.width !== undefined && el.width !== null ? x >= el.x && x <= el.x + el.width : true
+
+        const typeMatches = !type || el.type === type
+
+        return withinVertical && withinHorizontal && typeMatches
       })
       .sort((a, b) => (b.level || 0) - (a.level || 0))
 

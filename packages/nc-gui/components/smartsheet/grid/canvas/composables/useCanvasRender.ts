@@ -161,7 +161,7 @@ export function useCanvasRender({
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
   const { tryShowTooltip } = useTooltipStore()
-  const { isMobileMode } = useGlobal()
+  const { isMobileMode, isAddNewRecordGridMode } = useGlobal()
   const isLocked = inject(IsLockedInj, ref(false))
 
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
@@ -199,7 +199,9 @@ export function useCanvasRender({
     const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
     const columnsWidth =
       totalColumnsWidth.value +
-      (!isAddingColumnAllowed.value && isGroupBy.value ? groupByColumns?.value?.length * 13 + (groupByColumns?.value?.length - 1) * 13 : 0) +
+      (!isAddingColumnAllowed.value && isGroupBy.value
+        ? groupByColumns?.value?.length * 13 + (groupByColumns?.value?.length - 1) * 13
+        : 0) +
       (isAddingColumnAllowed.value && !isMobileMode.value ? plusColumnWidth : 0) -
       scrollLeft.value
 
@@ -2024,6 +2026,37 @@ export function useCanvasRender({
         x: 16 + level * 13,
         y: yOffset + 9,
         size: 14,
+      })
+
+      const { width: renderedWidth } = renderSingleLineText(ctx, {
+        x: 16 + 27 + level * 13,
+        y: yOffset + 2,
+        fontFamily: '600 13px Manrope',
+        height: COLUMN_HEADER_HEIGHT_IN_PX,
+        fillStyle: '#374151',
+        text: isAddNewRecordGridMode.value
+          ? `${t('activity.newRecord')}`
+          : `${t('activity.newRecord')} - ${t('objects.viewType.form')}`,
+      })
+
+      spriteLoader.renderIcon(ctx, {
+        icon: 'chevronDown',
+        color: isNewRowHovered ? '#000000' : '#4a5268',
+        x: 16 + 27 + level * 13 + renderedWidth + 12,
+        y: yOffset + 9,
+        size: 14,
+      })
+
+      elementMap.addElement({
+        x: 16 + 27 + level * 13 + renderedWidth + 12,
+        y: yOffset + 9,
+        width: 16,
+        group,
+        level,
+        height: COLUMN_HEADER_HEIGHT_IN_PX,
+        path: group.nestedIn,
+        groupPath: group?.path,
+        type: ElementTypes.EDIT_NEW_ROW_METHOD,
       })
 
       elementMap.addElement({

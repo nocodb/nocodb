@@ -1506,6 +1506,7 @@ export function useInfiniteData(args: {
   }
 
   const removeRowIfNew = (row: Row, path: Array<number> = []): boolean => {
+    path = row?.rowMeta?.path ?? []
     const dataCache = getDataCache(path)
     const index = Array.from(dataCache.cachedRows.value.entries()).find(
       ([_, r]) => r.rowMeta.rowIndex === row.rowMeta.rowIndex,

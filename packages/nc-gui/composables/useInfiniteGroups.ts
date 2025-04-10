@@ -46,12 +46,11 @@ export const useInfiniteGroups = (
   })
 
   const gridViewColByTitle = computed(() => {
-    const x = Object.values(gridViewCols.value).reduce((prev, curr) => {
+    return Object.values(gridViewCols.value).reduce((prev, curr) => {
       const title = curr.title
       prev[title] = curr
       return prev
     }, {})
-    return x
   })
 
   const groupByColumns = computed(() => {
@@ -336,6 +335,71 @@ export const useInfiniteGroups = (
     }
   }
 
+  async function updateGroupAggregations(groups: CanvasGroup[], fields?: Array<{ title: string; aggregation?: string }>) {
+    const aggregationAliasMapper = new AliasMapper()
+
+    const aggregation = fields
+      ? fields
+          .map((f) => {
+            const col = gridViewColByTitle.value[f.title]
+            return col
+              ? {
+                  field: col.fk_column_id!,
+                  type: f.aggregation ?? col.aggregation ?? CommonAggregations.None,
+                }
+              : null
+          })
+          .filter(Boolean)
+      : Object.values(gridViewCols.value)
+          .map((f) => ({
+            field: f.fk_column_id!,
+            type: f.aggregation ?? CommonAggregations.None,
+          }))
+          .filter((f) => f.type !== CommonAggregations.None)
+
+    if (!aggregation.length) return
+
+    const aggregationParams = groups.map((group) => ({
+      where: buildNestedWhere(group, where?.value),
+      alias: aggregationAliasMapper.generateAlias(group.value),
+      filterArrJson: JSON.stringify(nestedFilters.value),
+    }))
+
+    try {
+      const aggResponse = !isPublic.value
+        ? await $api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
+            meta.value!.id,
+            {
+              viewId: view.value!.id,
+              aggregation,
+            },
+            aggregationParams,
+          )
+        : await fetchBulkAggregatedData(
+            {
+              aggregation,
+            },
+            aggregationParams,
+          )
+
+      await aggregationAliasMapper.process(aggResponse, (originalKey, value) => {
+        const group = groups.find((g) => g.value.toString() === originalKey.toString())
+
+        Object.keys(value).forEach((key) => {
+          const field = gridViewColByTitle.value[key]
+          const col = columnsById.value[field.fk_column_id]
+          value[key] = formatAggregation(field.aggregation, value[key], col) ?? ''
+        })
+
+        if (group) {
+          Object.assign(group.aggregations, value)
+        }
+      })
+    } catch (error) {
+      console.error('Error refreshing group aggregations:', error)
+    }
+  }
+
   const toggleExpand = async (group: CanvasGroup) => {
     group.isExpanded = !group.isExpanded
   }
@@ -359,5 +423,8 @@ export const useInfiniteGroups = (
     GROUP_CHUNK_SIZE,
     buildNestedWhere,
     CHUNK_SIZE: 50,
+    columnsById,
+    gridViewColByTitle,
+    updateGroupAggregations,
   }
 }

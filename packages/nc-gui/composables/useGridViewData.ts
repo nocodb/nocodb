@@ -39,7 +39,11 @@ export function useGridViewData(
 
   const { $api } = useNuxtApp()
 
+  const { appInfo } = useGlobal()
+
   const isBulkOperationInProgress = ref(false)
+
+  const { nestedFilters } = useSmartsheetStoreOrThrow()
 
   const {
     cachedGroups,
@@ -49,8 +53,11 @@ export function useGridViewData(
     isGroupBy,
     buildNestedWhere,
     clearGroupCache,
+    gridViewColByTitle,
+    columnsById,
     syncCount: groupSyncCount,
     fetchMissingGroupChunks,
+    updateGroupAggregations,
   } = useInfiniteGroups(viewMeta, meta, where, {
     syncVisibleData,
   })
@@ -108,11 +115,28 @@ export function useGridViewData(
     fields?: Array<{ title: string; aggregation?: string | undefined }>
     path: Array<number>
   }) {
+    const { fields, path } = params
+
     reloadAggregate?.trigger(params)
 
-    // If path is provided, update aggregation under the path, nested way
+    if (!isGroupBy.value || !path.length || !appInfo.value?.ee) {
+      return
+    }
 
-    // If Path is there,
+    const targetGroup = findGroupByPath(cachedGroups.value, path)
+    if (!targetGroup) return
+
+    updateGroupAggregations([targetGroup], fields)
+
+    if (path.length > 1) {
+      for (let i = path.length - 1; i > 0; i--) {
+        const parentPath = path.slice(0, i)
+        const parentGroup = findGroupByPath(cachedGroups.value, parentPath)
+        if (parentGroup) {
+          updateGroupAggregations([parentGroup], fields)
+        }
+      }
+    }
   }
 
   function getCount(path?: Array<number>) {

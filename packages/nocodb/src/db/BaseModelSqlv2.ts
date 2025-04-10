@@ -1934,10 +1934,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (subGroupColumnName) {
       const subGroupQuery = await processColumn(subGroupColumnName, true);
       qb.select(
-        this.dbDriver.raw("COUNT(DISTINCT COALESCE(??, '__null__')) as ??", [
-          this.dbDriver.raw(subGroupQuery),
-          subGroupColumnName,
-        ]),
+        this.dbDriver.raw(
+          `COUNT(DISTINCT COALESCE(${
+            this.isPg ? '(??)::text' : '??'
+          }, '__null__')) as ??`,
+          [this.dbDriver.raw(subGroupQuery), subGroupColumnName],
+        ),
       );
     }
 
@@ -2398,6 +2400,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       args,
     );
   }
+
   // #endregion relation list count part 1
 
   // #region relation list count part 2
@@ -2488,6 +2491,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       logger,
     }).getBtChildrenExcludedList({ colId, cid }, args);
   }
+
   // #endregion relation list count part 2
 
   async applySortAndFilter({

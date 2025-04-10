@@ -34,8 +34,8 @@ export function calculateGroupHeight(group: CanvasGroup, rowHeight: number, isAd
       }
       // 1 Px Offset is Added for Showing the activeBorders. Else it wont be visible
       h += 1
-    } else if (group?.groupCount) {
-      for (let i = 0; i < group.groupCount; i++) {
+    } else if (group?.groups?.size) {
+      for (let i = 0; i < group?.groups?.size; i++) {
         const subGroup = group.groups.get(i)
         if (!subGroup) {
           h += GROUP_HEADER_HEIGHT + GROUP_PADDING
@@ -65,6 +65,7 @@ export function calculateGroupRange(
   for (let i = 0; i < groupCount; i++) {
     const group = groups.get(i)
     const groupHeight = calculateGroupHeight(group, rowHeight)
+    if (!nested) console.log(`calculateGroupRange${group?.value}`, group, groupHeight)
     // if(nested)
     // console.log('calculateGroupRange', nested, currentOffset,groupHeight, currentOffset + groupHeight - GROUP_PADDING , scrollTop )
     if (currentOffset + groupHeight - GROUP_PADDING > scrollTop) {

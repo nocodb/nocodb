@@ -66,10 +66,6 @@ export class JobsMap extends JobsMapCE {
       [JobTypes.HealthCheck]: {
         this: this.healthCheckProcessor,
       },
-      [JobTypes.UpdateModelStat]: {
-        this: this.updateStatsProcessor,
-        fn: 'updateModelStat',
-      },
       [JobTypes.UpdateWsStat]: {
         this: this.updateStatsProcessor,
         fn: 'updateWorkspaceStat',

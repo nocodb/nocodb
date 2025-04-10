@@ -1,12 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import type { NcContext } from '~/interface/config';
 import { CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { JobTypes } from '~/interface/Jobs';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 
-export const UPDATE_MODEL_STAT = '__nc_update_modal_stat';
 export const UPDATE_WORKSPACE_STAT = '__nc_update_workspace_stat';
 export const UPDATE_WORKSPACE_COUNTER = '__nc_update_workspace_counter';
 
@@ -19,30 +17,6 @@ export class UpdateStatsService implements OnModuleInit, OnModuleDestroy {
     @Inject('IEventEmitter') private readonly eventEmitter: IEventEmitter,
     @Inject('JobsService') private jobsService,
   ) {}
-
-  private async updateModelStat(
-    context: NcContext,
-    {
-      fk_workspace_id,
-      fk_model_id,
-      row_count,
-      updated_at,
-    }: {
-      fk_workspace_id?: string;
-      base_id?: string;
-      fk_model_id: string;
-      row_count?: number;
-      updated_at?: string;
-    },
-  ): Promise<void> {
-    await this.jobsService.add(JobTypes.UpdateModelStat, {
-      context,
-      fk_workspace_id,
-      fk_model_id,
-      row_count,
-      updated_at: updated_at || new Date().toISOString(),
-    });
-  }
 
   private async updateWorkspaceStat({
     fk_workspace_id,
@@ -78,7 +52,7 @@ export class UpdateStatsService implements OnModuleInit, OnModuleDestroy {
     }
 
     // TODO env
-    if (+updatedCount > 500) {
+    if (+updatedCount > 100) {
       await NocoCache.del(
         `${CacheScope.WORKSPACE_CREATE_DELETE_COUNTER}:${fk_workspace_id}`,
       );
@@ -91,13 +65,6 @@ export class UpdateStatsService implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit(): any {
     this.unsubscribe = [
-      this.eventEmitter.on(UPDATE_MODEL_STAT, (arg) => {
-        const { context, ...rest } = arg;
-        return this.updateModelStat(context, rest).catch((e) => {
-          this.logger.error('Error in UPDATE_MODEL_STAT');
-          this.logger.error(e);
-        });
-      }),
       this.eventEmitter.on(UPDATE_WORKSPACE_STAT, (arg) => {
         return this.updateWorkspaceStat(arg).catch((e) => {
           this.logger.error('Error in UPDATE_WORKSPACE_STAT');

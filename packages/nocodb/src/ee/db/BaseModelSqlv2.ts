@@ -60,7 +60,6 @@ import {
 import { getSingleQueryReadFn } from '~/services/data-opt/pg-helpers';
 import { canUseOptimisedQuery, removeBlankPropsAndMask } from '~/utils';
 import {
-  UPDATE_MODEL_STAT,
   UPDATE_WORKSPACE_COUNTER,
   UPDATE_WORKSPACE_STAT,
 } from '~/services/update-stats.service';
@@ -547,6 +546,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         req: cookie,
         insertData: data,
       });
+
+      await this.statsUpdate({
+        count: 1,
+      });
+
       return Array.isArray(response) ? response[0] : response;
     } catch (e) {
       await this.errorInsert(e, data, trx, cookie);
@@ -1139,14 +1143,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       );
 
     await this.handleRichTextMentions(null, data, req);
-
-    Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
-      context: this.context,
-      fk_workspace_id: this.model.fk_workspace_id,
-      base_id: this.model.base_id,
-      fk_model_id: this.model.id,
-      count: 1,
-    });
   }
 
   public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
@@ -1216,14 +1212,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     await this.handleRichTextMentions(null, data, req);
-
-    Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
-      context: this.context,
-      fk_workspace_id: this.model.fk_workspace_id,
-      base_id: this.model.base_id,
-      fk_model_id: this.model.id,
-      count: data.length,
-    });
   }
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
@@ -1253,35 +1241,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     await this.handleHooks('after.delete', null, data, req);
-
-    const workspaceStats = await ModelStat.getWorkspaceSum(
-      this.model.fk_workspace_id,
-    );
-
-    const workspaceRowCount = workspaceStats ? workspaceStats.row_count : 0;
-
-    const { limit: workspaceRowLimit } = await getLimit(
-      PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
-      this.model.fk_workspace_id,
-    );
-
-    // force update workspace stat on delete if already over limit
-    if (workspaceRowCount >= workspaceRowLimit) {
-      Noco.eventEmitter.emit(UPDATE_MODEL_STAT, {
-        context: this.context,
-        fk_workspace_id: this.model.fk_workspace_id,
-        fk_model_id: this.model.id,
-        updated_at: new Date().toISOString(),
-      });
-    } else {
-      Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
-        context: this.context,
-        fk_workspace_id: this.model.fk_workspace_id,
-        base_id: this.model.base_id,
-        fk_model_id: this.model.id,
-        count: 1,
-      });
-    }
   }
 
   public async afterBulkDelete(
@@ -1290,11 +1249,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     req,
     isBulkAllOperation = false,
   ): Promise<void> {
-    let noOfDeletedRecords: number = Array.isArray(data)
-      ? data.length
-      : +data || 0;
     if (!isBulkAllOperation) {
-      noOfDeletedRecords = data.length;
       await this.handleHooks('after.bulkDelete', null, data, req);
     }
 
@@ -1346,35 +1301,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           ),
         ),
       );
-    }
-
-    const workspaceStats = await ModelStat.getWorkspaceSum(
-      this.model.fk_workspace_id,
-    );
-
-    const workspaceRowCount = workspaceStats ? workspaceStats.row_count : 0;
-
-    const { limit: workspaceRowLimit } = await getLimit(
-      PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
-      this.model.fk_workspace_id,
-    );
-
-    // force update workspace stat on delete if already over limit
-    if (workspaceRowCount >= workspaceRowLimit) {
-      Noco.eventEmitter.emit(UPDATE_MODEL_STAT, {
-        context: this.context,
-        fk_workspace_id: this.model.fk_workspace_id,
-        fk_model_id: this.model.id,
-        updated_at: new Date().toISOString(),
-      });
-    } else {
-      Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
-        context: this.context,
-        fk_workspace_id: this.model.fk_workspace_id,
-        base_id: this.model.base_id,
-        fk_model_id: this.model.id,
-        count: noOfDeletedRecords,
-      });
     }
   }
 
@@ -1483,6 +1409,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       });
 
       await this.afterDelete(data, null, cookie);
+
+      await this.statsUpdate({
+        count: -1,
+      });
 
       return responses.pop()?.rowCount;
     } catch (e) {
@@ -1963,6 +1893,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
+      await this.statsUpdate({
+        count: insertDatas.length,
+      });
+
       return responses;
     } catch (e) {
       // await this.errorInsertb(e, data, null);
@@ -2259,6 +2193,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           }
         }
       }
+
+      await this.statsUpdate({
+        count: insertResponses.length,
+      });
 
       return [...updateResponses, ...insertResponses];
     } catch (e) {
@@ -2806,6 +2744,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         await this.afterBulkDelete(deleted, this.dbDriver, cookie);
       }
 
+      await this.statsUpdate({
+        count: -deleted.length,
+      });
+
       return res;
     } catch (e) {
       throw e;
@@ -3057,6 +2999,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       await this.afterBulkDelete(response, this.dbDriver, cookie, true);
+
+      await this.statsUpdate({
+        count: -response.length,
+      });
 
       return response;
     } catch (e) {
@@ -3353,6 +3299,38 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       qb,
       undefined,
     );
+  }
+
+  async statsUpdate(args: { count: number }) {
+    const count = Math.abs(args.count || 1);
+
+    const workspaceStats = await ModelStat.getWorkspaceSum(
+      this.model.fk_workspace_id,
+    );
+
+    const workspaceRowCount = workspaceStats ? workspaceStats.row_count : 0;
+
+    const { limit: workspaceRowLimit } = await getLimit(
+      PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
+      this.model.fk_workspace_id,
+    );
+
+    // force update workspace stat if already over limit
+    if (workspaceRowCount >= workspaceRowLimit) {
+      Noco.eventEmitter.emit(UPDATE_WORKSPACE_STAT, {
+        context: this.context,
+        fk_workspace_id: this.model.fk_workspace_id,
+        force: true,
+      });
+    } else {
+      Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
+        context: this.context,
+        fk_workspace_id: this.model.fk_workspace_id,
+        base_id: this.model.base_id,
+        fk_model_id: this.model.id,
+        count,
+      });
+    }
   }
 }
 

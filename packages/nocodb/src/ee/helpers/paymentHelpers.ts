@@ -62,101 +62,116 @@ async function checkLimit(args: {
   count?: number;
   delta?: number;
   message?: (args: { limit?: number; plan?: string }) => string;
+  throwError?: boolean;
   ncMeta?: typeof Noco.ncMeta;
 }): Promise<void> {
-  const { workspaceId, type, delta, message, ncMeta = Noco.ncMeta } = args;
+  const {
+    workspaceId,
+    type,
+    delta,
+    message,
+    throwError = true,
+    ncMeta = Noco.ncMeta,
+  } = args;
 
-  let workspace = args.workspace;
+  try {
+    let workspace = args.workspace;
 
-  if (!workspace) {
-    if (!workspaceId)
-      NcError.badRequest('Workspace ID or workspace is required');
+    if (!workspace) {
+      if (!workspaceId)
+        NcError.badRequest('Workspace ID or workspace is required');
 
-    workspace = await Workspace.get(workspaceId, undefined, ncMeta);
-  }
+      workspace = await Workspace.get(workspaceId, undefined, ncMeta);
+    }
 
-  if (!workspace) {
-    NcError.forbidden('You are not allowed to perform this action');
-  }
+    if (!workspace) {
+      NcError.forbidden('You are not allowed to perform this action');
+    }
 
-  const plan = workspace?.payment?.plan;
+    const plan = workspace?.payment?.plan;
 
-  const limit = plan?.meta?.[type] ?? GenericLimits[type] ?? Infinity;
+    const limit = plan?.meta?.[type] ?? GenericLimits[type] ?? Infinity;
 
-  const statName =
-    type === PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE ? 'row_count' : type;
+    const statName =
+      type === PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE ? 'row_count' : type;
 
-  const count = args.count ?? workspace.stats?.[statName] ?? 0;
+    const count = args.count ?? workspace.stats?.[statName] ?? 0;
 
-  if (limit === -1) {
-    return;
-  }
+    if (limit === -1) {
+      return;
+    }
 
-  if (count + (delta || 0) > limit) {
-    if (type in GraceLimits) {
-      const gracePeriodStartAt = workspace.grace_period_start_at;
+    if (count + (delta || 0) > limit) {
+      if (type in GraceLimits) {
+        const gracePeriodStartAt = workspace.grace_period_start_at;
 
-      if (gracePeriodStartAt) {
-        const gracePeriodEndAt = dayjs(gracePeriodStartAt)
-          .add(GRACE_PERIOD_DURATION, 'day')
-          .endOf('day')
-          .toDate();
+        if (gracePeriodStartAt) {
+          const gracePeriodEndAt = dayjs(gracePeriodStartAt)
+            .add(GRACE_PERIOD_DURATION, 'day')
+            .endOf('day')
+            .toDate();
 
-        if (dayjs().isBefore(gracePeriodEndAt)) {
-          if (count + (delta || 0) > GraceLimits[type]) {
-            NcError.planLimitExceeded(
-              message?.({
-                limit: GraceLimits[type],
-                plan: plan?.title,
-              }) ||
-                `You have reached the limit of ${limit} (${type}) for your plan.`,
-              {
-                plan: plan?.title,
-                limit: GraceLimits[type],
-                current: count,
-              },
-            );
+          if (dayjs().isBefore(gracePeriodEndAt)) {
+            if (count + (delta || 0) > GraceLimits[type]) {
+              NcError.planLimitExceeded(
+                message?.({
+                  limit: GraceLimits[type],
+                  plan: plan?.title,
+                }) ||
+                  `You have reached the limit of ${limit} (${type}) for your plan.`,
+                {
+                  plan: plan?.title,
+                  limit: GraceLimits[type],
+                  current: count,
+                },
+              );
+            }
+            return;
           }
+
+          NcError.planLimitExceeded(
+            message?.({
+              limit: GraceLimits[type],
+              plan: plan?.title,
+            }) ||
+              `You have reached the limit of ${limit} (${type}) for your plan.`,
+            {
+              plan: plan?.title,
+              limit: GraceLimits[type],
+              current: count,
+            },
+          );
+        } else {
+          const gracePeriodStartAt = ncMeta.now();
+
+          await Workspace.update(
+            workspaceId,
+            {
+              grace_period_start_at: gracePeriodStartAt,
+            },
+            ncMeta,
+          );
+
           return;
         }
-
+      } else {
         NcError.planLimitExceeded(
           message?.({
-            limit: GraceLimits[type],
+            limit,
             plan: plan?.title,
           }) ||
             `You have reached the limit of ${limit} (${type}) for your plan.`,
           {
             plan: plan?.title,
-            limit: GraceLimits[type],
+            limit,
             current: count,
           },
         );
-      } else {
-        const gracePeriodStartAt = ncMeta.now();
-
-        await Workspace.update(
-          workspaceId,
-          {
-            grace_period_start_at: gracePeriodStartAt,
-          },
-          ncMeta,
-        );
-
-        return;
       }
-    } else {
-      NcError.planLimitExceeded(
-        message?.({
-          limit,
-          plan: plan?.title,
-        }) || `You have reached the limit of ${limit} (${type}) for your plan.`,
-        {
-          plan: plan?.title,
-          limit,
-          current: count,
-        },
-      );
+    }
+  } catch (e) {
+    if (throwError) {
+      throw e;
     }
   }
 }

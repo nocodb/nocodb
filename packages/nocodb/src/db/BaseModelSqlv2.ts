@@ -3522,6 +3522,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         trx,
         req: request,
       });
+
+      await this.statsUpdate({
+        count: 1,
+      });
+
       return Array.isArray(response) ? response[0] : response;
     } catch (e) {
       await this.errorInsert(e, data, trx, request);
@@ -4054,6 +4059,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         insertData: data,
       });
 
+      await this.statsUpdate({
+        count: 1,
+      });
+
       return response;
     } catch (e) {
       throw e;
@@ -4301,8 +4310,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           req: cookie,
           insertData: datas[0],
         });
+
+        await this.statsUpdate({
+          count: insertedDataList.length,
+        });
       } else if (insertedDatas.length > 1) {
         await this.afterBulkInsert(insertedDataList, this.dbDriver, cookie);
+
+        await this.statsUpdate({
+          count: insertedDataList.length,
+        });
       }
 
       if (updatedDataList.length === 1) {
@@ -4733,6 +4750,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
         }
       }
+
+      await this.statsUpdate({
+        count: insertDatas.length,
+      });
 
       return responses;
     } catch (e) {
@@ -9383,6 +9404,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   getViewId() {
     return this.viewId;
   }
+
+  async statsUpdate(_args: { count: number }) {}
 }
 
 export { BaseModelSqlv2 };

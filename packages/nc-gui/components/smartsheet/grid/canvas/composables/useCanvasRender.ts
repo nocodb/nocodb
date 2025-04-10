@@ -2135,9 +2135,11 @@ export function useCanvasRender({
         group,
         type: ElementTypes.GROUP,
       })
+      const bg = getBackgroundColor(level, groupByColumns.value.length)
 
       if (groupHeaderY + groupHeight >= 0 && groupHeaderY < height.value) {
         let tempCurrentOffset = currentOffset + GROUP_HEADER_HEIGHT
+
         if (group.isExpanded) {
           const nestedContentStart = tempCurrentOffset
           // Calculate the total height of groups up to the relevant index
@@ -2151,6 +2153,29 @@ export function useCanvasRender({
           // calculate the relative scroll top for the group
           // where gHeight + GROUP_PADDING is the height of previous groups before startIndex
           const relativeScrollTop = isStartGroup ? scrollTop.value - gHeight : 0
+
+          roundedRect(
+            ctx,
+            xOffset,
+            groupHeaderY + GROUP_HEADER_HEIGHT,
+            adjustedWidth,
+            groupHeight - GROUP_PADDING - GROUP_HEADER_HEIGHT,
+            {
+              bottomRight: 8,
+              bottomLeft: 8,
+            },
+            {
+              backgroundColor: bg,
+              borderWidth: 0.5,
+              borderColor: '#D5D5D9',
+              borders: {
+                top: false,
+                right: true,
+                bottom: true,
+                left: true,
+              },
+            },
+          )
 
           if (group.path) {
             // Calculate visible viewport height from current offset to container bottom
@@ -2206,8 +2231,6 @@ export function useCanvasRender({
             }
           }
         }
-        const bg = getBackgroundColor(level, groupByColumns.value.length)
-
         roundedRect(
           ctx,
           xOffset,
@@ -2376,33 +2399,6 @@ export function useCanvasRender({
 
         renderGroupContent(ctx, group, contentX, contentY + 6, availableWidth - contentWidth - 8 - countWidth)
         currentOffset = tempCurrentOffset
-      }
-
-      const borderTop = Math.max(0, groupHeaderY + GROUP_HEADER_HEIGHT)
-      const borderBottom = Math.min(height.value, currentOffset)
-
-      if (borderBottom > borderTop) {
-        roundedRect(
-          ctx,
-          xOffset,
-          borderTop,
-          adjustedWidth,
-          borderBottom - borderTop,
-          {
-            bottomRight: 8,
-            bottomLeft: 8,
-          },
-          {
-            borderWidth: 0.5,
-            borderColor: '#D5D5D9',
-            borders: {
-              top: false,
-              right: true,
-              bottom: true,
-              left: true,
-            },
-          },
-        )
       }
       currentOffset += GROUP_PADDING
     }

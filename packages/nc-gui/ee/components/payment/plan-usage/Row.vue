@@ -20,7 +20,7 @@ withDefaults(
       <slot name="label"> </slot>
 
       <NcTooltip v-if="showWarningStatus" :disabled="!tooltip" :title="tooltip">
-        <GeneralIcon icon="ncAlertTriangle" class="text-nc-content-red-dark" />
+        <GeneralIcon icon="ncAlertTriangle" class="text-nc-content-red-dark cursor-pointer" />
       </NcTooltip>
     </div>
     <div

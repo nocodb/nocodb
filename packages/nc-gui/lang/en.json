@@ -135,7 +135,12 @@
     "WorkspaceOwnerNotifiedSubtitle": "Your request to upgrade has been shared with the workspace owner.",
     "failedToSendUpgradeRequest": "Failed to send upgrade request",
     "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordSubtitle": "Unlock complete visibility into your connected sources. View all records by upgrading to the Team plan."
+    "upgradeToSeeMoreRecordSubtitle": "Unlock complete visibility into your connected sources. View all records by upgrading to the Team plan.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month."
   },
   "general": {
     "supported": "Supported",

@@ -1,6 +1,4 @@
 import type { CanvasElement } from '../utils/CanvasElement'
-import { ElementTypes } from '../utils/CanvasElement'
-import { GROUP_HEADER_HEIGHT } from '../utils/constants'
 
 export function useRowReorder({
   isDragging,
@@ -11,7 +9,6 @@ export function useRowReorder({
   rowHeight,
   updateRecordOrder,
   triggerRefreshCanvas,
-  totalRows,
   scrollToCell,
   elementMap,
   getDataCache,

@@ -1,5 +1,5 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { AllAggregations, type ColumnType, type TableType } from 'nocodb-sdk'
+import { AllAggregations, type ColumnType, type TableType, UITypes } from 'nocodb-sdk'
 import type { Composer } from 'vue-i18n'
 import tinycolor from 'tinycolor2'
 import {
@@ -1732,8 +1732,14 @@ export function useCanvasRender({
   }
 
   function renderGroups(ctx: CanvasRenderingContext2D, level = 0) {
-    ctx.save()
+    const fixedCols = columns.value.filter((col) => col.fixed)
 
+    const rowNumberCol = fixedCols.find((col) => col.id === 'row_number')
+    const firstFixedCol = fixedCols.find((col) => col.id !== 'row_number')
+
+    const mergedWidth = parseCellWidth(rowNumberCol?.width) + parseCellWidth(firstFixedCol?.width)
+
+    ctx.save()
     const { start: startSlice, end: endSlice } = groupSlice.value
 
     let yOffset = 32 + GROUP_PADDING
@@ -1758,7 +1764,7 @@ export function useCanvasRender({
         y: yOffset + 11,
       })
 
-      const availableWidth = adjustedWidth - (xOffset + 12 + 16) - 20 // 20px right padding
+      const availableWidth = mergedWidth - (xOffset + 12 + 16) - 20
 
       const contentX = xOffset + 12 + 20
       const contentY = yOffset + 24
@@ -1772,7 +1778,7 @@ export function useCanvasRender({
   }
 
   function renderGroupContent(ctx: CanvasRenderingContext2D, group: CanvasGroup, x: number, y: number, maxWidth: number) {
-    if (group.column.uidt === 'MultiSelect') {
+    if (group.column.uidt === UITypes.MultiSelect) {
       const tags = group.value.split(',')
       const colors = group.color.split(',')
 

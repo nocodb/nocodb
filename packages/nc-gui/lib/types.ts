@@ -584,6 +584,16 @@ type CanvasEditEnabledType = {
 
 type CanvasCellEventDataInjType = ExtractInjectedReactive<typeof CanvasCellEventDataInj>
 
+interface CanvasGroup {
+  column: ColumnType
+  groups: Map<number, CanvasGroup>
+  chunkStates: Array<'loading' | 'loaded' | undefined>
+  count: number
+  isExpanded: boolean
+  value: any
+  infiniteData?: ReturnType<typeof useInfiniteData>
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -633,4 +643,5 @@ export type {
   SetCursorType,
   CursorType,
   CanvasCellEventDataInjType,
+  CanvasGroup,
 }

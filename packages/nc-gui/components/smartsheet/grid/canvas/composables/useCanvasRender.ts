@@ -2351,10 +2351,10 @@ export function useCanvasRender({
                 x: rightEdge - textLen - 18,
                 y: textY - 7,
               })
+              ctx.restore()
             }
-            ctx.restore()
           }
-          ctx.save()
+          /* ctx.save()
           ctx.beginPath()
 
           ctx.rect(Math.max(aggXOffset - scrollLeft.value, fixedColsWidth), groupHeaderY + 1, width, GROUP_HEADER_HEIGHT - 2)
@@ -2367,7 +2367,7 @@ export function useCanvasRender({
           ctx.stroke()
 
           ctx.restore()
-
+*/
           aggXOffset += width
         })
 

@@ -1980,6 +1980,7 @@ onClickOutside(
 onKeyStroke('Escape', () => {
   openColumnDropdownField.value = null
   openAggregationField.value = null
+  isDropdownVisible.value = false
 })
 
 const increaseMinHeightBy: Record<string, number> = {

@@ -12,7 +12,8 @@ const { isRecordLimitReached, gracePeriodDaysLeft, navigateToBilling } = useEeCo
         <div class="flex items-center justify-between gap-3">
           <div class="text-sm">{{ $t('upgrade.planLimitReached') }}</div>
           <div v-if="gracePeriodDaysLeft" class="text-xs text-nc-content-gray-muted font-500">
-            {{ gracePeriodDaysLeft }} d
+            {{ gracePeriodDaysLeft }}
+            {{ gracePeriodDaysLeft === 1 ? $t('objects.day').toLowerCase() : $t('objects.days').toLowerCase() }}
             {{ $t('general.left') }}
           </div>
         </div>

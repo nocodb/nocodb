@@ -6,6 +6,7 @@ withDefaults(
     planMeta?: (typeof PlanMeta)[keyof typeof PlanMeta]
     variant?: 'table' | 'banner'
     showWarningStatus?: boolean
+    tooltip?: string
   }>(),
   {
     variant: 'table',
@@ -18,7 +19,9 @@ withDefaults(
     <div class="nc-current-plan-table-cell nc-cell-label">
       <slot name="label"> </slot>
 
-      <GeneralIcon v-if="showWarningStatus" icon="ncAlertTriangle" class="text-nc-content-red-dark" />
+      <NcTooltip v-if="showWarningStatus" :disabled="!tooltip" :title="tooltip">
+        <GeneralIcon icon="ncAlertTriangle" class="text-nc-content-red-dark" />
+      </NcTooltip>
     </div>
     <div
       class="nc-current-plan-table-cell nc-cell-value"

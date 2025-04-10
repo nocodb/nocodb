@@ -400,7 +400,7 @@ export const useEeConfig = createSharedComposable(() => {
       title: isSharedFormView ? t('upgrade.upgradeToCreateMoreRecordsForm') : t('upgrade.upgradeToCreateMoreRecords'),
       content: isSharedFormView
         ? t('upgrade.upgradeToCreateMoreRecordsFormSubtitle')
-        : t('upgrade.upgradeToAddMoreAttachmentsSubtitle', {
+        : t('upgrade.upgradeToCreateMoreRecordsSubtitle', {
             activePlan: activePlanTitle.value,
             limit: getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE),
             plan: HigherPlan[activePlanTitle.value],

@@ -72,7 +72,7 @@ export function useCanvasTable({
   vSelectedAllRecords: WritableComputedRef<boolean>
   selectedRows: Ref<Row[]>
   mousePosition: { x: number; y: number }
-  expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
+  expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
   updateRecordOrder: (
     originalIndex: number,
     targetIndex: number | null,

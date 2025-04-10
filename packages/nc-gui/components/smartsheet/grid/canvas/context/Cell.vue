@@ -39,7 +39,7 @@ const props = defineProps<{
     undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
-  expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
+  expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
   clearCell: (ctx: { row: number; col: number; path: Array<number> } | null, skipUpdate?: boolean) => Promise<void>
   clearSelectedRangeOfCells: (path?: Array<number>) => Promise<void>
   getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
@@ -191,7 +191,7 @@ const commentRow = (rowId: number, path: Array<number>) => {
 
     const row = dataCache.cachedRows.value.get(rowId)
     if (!row) return
-    expandForm(row)
+    expandForm(row, {}, false, path)
 
     activeCell.value.row = -1
     activeCell.value.column = -1

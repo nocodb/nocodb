@@ -45,7 +45,7 @@ export function useKeyboardNavigation({
   clearCell: (ctx: { row: number; col: number; path?: Array<number> } | null, skipUpdate?: boolean) => Promise<void>
   clearSelectedRangeOfCells: (path?: Array<number>) => Promise<void>
   makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
-  expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
+  expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
   cachedGroups: Ref<Map<number, CanvasGroup>>
   isAddingEmptyRowAllowed: ComputedRef<boolean>
   addNewColumn: () => void
@@ -118,7 +118,7 @@ export function useKeyboardNavigation({
         const row = cachedRows.value.get(activeCell.value.row)
 
         if (!row) return
-        expandForm(row)
+        expandForm(row, undefined, false, groupPath)
         return
       }
     }

@@ -203,5 +203,7 @@ export default class UsageStat {
     await this.getPeriodStats(fk_workspace_id, anchor, ncMeta);
 
     await NocoCache.incrHashField(key, usage_type, count);
+
+    await NocoCache.set(`${CacheScope.USAGE_STATS}:workspaces`, [key]);
   }
 }

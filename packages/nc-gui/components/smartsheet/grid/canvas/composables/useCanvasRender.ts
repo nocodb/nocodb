@@ -2318,6 +2318,14 @@ export function useCanvasRender({
         )
 
         if (appInfo.value?.ee) {
+          const { start: startColIndex, end: endColIndex } = colSlice.value
+          const visibleCols = columns.value.slice(startColIndex, endColIndex)
+
+          let aggXOffset = 1
+
+          for (let i = 0; i < startColIndex; i++) {
+            aggXOffset += parseCellWidth(columns.value[i]?.width)
+          }
           visibleCols.forEach((column, index) => {
             const width = parseCellWidth(column.width)
 

@@ -4,7 +4,7 @@ const { isRecordLimitReached, gracePeriodDaysLeft, navigateToBilling } = useEeCo
 
 <template>
   <div v-if="isRecordLimitReached" class="-mx-1 px-2 pb-2 pt-1.5 border-b border-nc-border-gray-medium pointer-events-none">
-    <NcAlert type="warning" align="center" show-icon class="nc-upgrade-sidebar-banner" @click="navigateToBilling()">
+    <NcAlert type="warning" show-icon class="nc-upgrade-sidebar-banner" @click="navigateToBilling()">
       <template #icon>
         <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-red-dark h-5 w-5" />
       </template>
@@ -12,7 +12,7 @@ const { isRecordLimitReached, gracePeriodDaysLeft, navigateToBilling } = useEeCo
         <div class="flex items-center justify-between gap-3">
           <div class="text-sm">{{ $t('upgrade.planLimitReached') }}</div>
           <div v-if="gracePeriodDaysLeft" class="text-xs text-nc-content-gray-muted font-500">
-            {{ gracePeriodDaysLeft }} {{ gracePeriodDaysLeft === 1 ? $t('objects.day') : $t('objects.days') }}
+            {{ gracePeriodDaysLeft }} d
             {{ $t('general.left') }}
           </div>
         </div>

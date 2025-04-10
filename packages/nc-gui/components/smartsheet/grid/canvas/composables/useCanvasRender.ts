@@ -1532,7 +1532,7 @@ export function useCanvasRender({
         }
         ctx.font = '600 12px Manrope'
         ctx.fillStyle = '#4a5268'
-        ctx.fillText(column.aggregation, xOffset + width - 8 - scrollLeft.value, height.value - AGGREGATION_HEIGHT / 2)
+        ctx.fillText(column.aggregation ?? ' - ', xOffset + width - 8 - scrollLeft.value, height.value - AGGREGATION_HEIGHT / 2)
 
         ctx.restore()
       } else if (isHovered) {
@@ -1621,7 +1621,7 @@ export function useCanvasRender({
 
           ctx.font = '600 12px Manrope'
           ctx.fillStyle = '#4a5268'
-          ctx.fillText(firstFixedCol.aggregation, mergedWidth - 8, height.value - AGGREGATION_HEIGHT / 2)
+          ctx.fillText(firstFixedCol.aggregation ?? ' - ', mergedWidth - 8, height.value - AGGREGATION_HEIGHT / 2)
 
           const w = ctx.measureText(firstFixedCol.aggregation).width
           availWidth -= w

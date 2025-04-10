@@ -699,13 +699,13 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   const colOptions = col.colOptions as LookupType
   const relationColumnOptions = colOptions.fk_relation_column_id
     ? meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
-    : null
+    : col.colOptions
   const relatedTableMeta =
     relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
 
-  const childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_lookup_column_id) as
-    | ColumnType
-    | undefined
+  const childColumn = relatedTableMeta?.columns.find(
+    (c: ColumnType) => c.id === (colOptions?.fk_lookup_column_id ?? colOptions?.fk_child_column_id),
+  ) as ColumnType | undefined
 
   if (Array.isArray(modelValue)) {
     return modelValue
@@ -756,13 +756,13 @@ export const getAttachmentValue = (modelValue: string | null | number | Array<an
 export const getLinksValue = (modelValue: string, params: ParsePlainCellValueProps['params']) => {
   const { col, t } = params
 
-  if (typeof col.meta === 'string') {
+  if (typeof col?.meta === 'string') {
     col.meta = JSON.parse(col.meta)
   }
 
   const parsedValue = +modelValue || 0
   if (!parsedValue) {
-    return ''
+    return `0 ${col?.meta?.plural || t('general.links')}`
   } else if (parsedValue === 1) {
     return `1 ${col?.meta?.singular || t('general.link')}`
   } else {
@@ -779,6 +779,7 @@ export const parsePlainCellValue = (
   if (!col) {
     return ''
   }
+
   if (isGeoData(col)) {
     const [latitude, longitude] = ((value as string) || '').split(';')
     return latitude && longitude ? `${latitude}; ${longitude}` : value
@@ -819,6 +820,10 @@ export const parsePlainCellValue = (
   if (isDecimal(col)) {
     return getDecimalValue(value, col)
   }
+  if (isRating(col)) {
+    return value ? `${value}` : '0'
+  }
+
   if (isInt(col, abstractType)) {
     return getIntValue(value)
   }
@@ -836,6 +841,9 @@ export const parsePlainCellValue = (
   if (isRollup(col)) {
     return getRollupValue(value, params)
   }
+  if (isLink(col)) {
+    return getLinksValue(value, params)
+  }
   if (isLookup(col) || isLTAR(col.uidt, col.colOptions)) {
     return getLookupValue(value, params)
   }
@@ -847,9 +855,6 @@ export const parsePlainCellValue = (
   }
   if (isAttachment(col)) {
     return getAttachmentValue(value)
-  }
-  if (isLink(col)) {
-    return getLinksValue(value, col)
   }
 
   if (isFormula(col) && col?.meta?.display_type) {

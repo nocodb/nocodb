@@ -37,6 +37,7 @@ export function useGalleryViewData(
     viewMeta,
     callbacks: {},
     where,
+    isPublic,
   })
 
   async function loadGalleryData() {

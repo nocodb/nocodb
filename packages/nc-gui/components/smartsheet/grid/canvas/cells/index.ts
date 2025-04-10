@@ -35,13 +35,18 @@ import { LtarCellRenderer } from './LTAR'
 import { FormulaCellRenderer } from './Formula'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
 import { NullCellRenderer } from './Null'
+import { PlainCellRenderer } from './Plain'
 
 const CLEANUP_INTERVAL = 1000
 
 export function useGridCellHandler(params: {
-  getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { x: number; y: number; width: number; height: number }
+  getCellPosition: (
+    column: CanvasGridColumn,
+    rowIndex: number,
+    path: Array<number>,
+  ) => { x: number; y: number; width: number; height: number }
   actionManager: ActionManager
-  makeCellEditable: (row: number | Row, clickedColumn: CanvasGridColumn) => void
+  makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
   updateOrSaveRow: (
     row: Row,
     property?: string,
@@ -161,7 +166,10 @@ export function useGridCellHandler(params: {
       pk,
       meta = params.meta?.value,
       skipRender = false,
+      renderAsPlainCell = false,
       isUnderLookup = false,
+      path = [],
+      fontFamily,
     }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
@@ -182,7 +190,10 @@ export function useGridCellHandler(params: {
 
     let cellRenderer: CellRenderFn
     const shouldRenderNull = showNull.value && isShowNullField(column) && (ncIsUndefined(value) || ncIsNull(value))
-    if (cellType) {
+
+    if (renderAsPlainCell) {
+      cellRenderer = PlainCellRenderer.render
+    } else if (cellType) {
       if (!shouldRenderNull) {
         cellRenderer = cellType.render
       } else {
@@ -195,6 +206,7 @@ export function useGridCellHandler(params: {
     } else if (shouldRenderNull) {
       cellRenderer = NullCellRenderer.render
     }
+
     if (cellRenderer!) {
       return cellRenderer(ctx, {
         value,
@@ -235,6 +247,8 @@ export function useGridCellHandler(params: {
         baseUsers: baseUsers.value,
         isUnderLookup,
         isPublic: isPublic.value,
+        path,
+        fontFamily,
       })
     } else {
       return renderSingleLineText(ctx, {
@@ -259,6 +273,7 @@ export function useGridCellHandler(params: {
     pk: any
     selected: boolean
     imageLoader: ImageWindowLoader
+    path: Array<number>
   }) => {
     if (!ctx.column?.columnObj?.uidt) return
 
@@ -273,7 +288,7 @@ export function useGridCellHandler(params: {
         ...ctx,
         cellRenderStore,
         isDoubleClick: ctx.event.detail === 2,
-        getCellPosition: params?.getCellPosition,
+        getCellPosition: (...args) => params?.getCellPosition?.(...args, ctx.path),
         readonly: !params.hasEditPermission.value,
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
@@ -281,12 +296,20 @@ export function useGridCellHandler(params: {
         isPublic: isPublic.value,
         openDetachedExpandedForm,
         openDetachedLongText,
+        path: ctx.path ?? [],
       })
     }
     return false
   }
 
-  const handleCellKeyDown = async (ctx: { e: KeyboardEvent; row: Row; column: CanvasGridColumn; value: any; pk: any }) => {
+  const handleCellKeyDown = async (ctx: {
+    e: KeyboardEvent
+    row: Row
+    column: CanvasGridColumn
+    value: any
+    pk: any
+    path: Array<number>
+  }) => {
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj!.uidt!)
 
     const cellRenderStore = getCellRenderStore(`${ctx.column.id}-${ctx.pk}`)
@@ -301,6 +324,7 @@ export function useGridCellHandler(params: {
         actionManager,
         makeCellEditable,
         openDetachedLongText,
+        path: ctx.path ?? [],
       })
     } else {
       console.log('No handler found for cell type', ctx.column.columnObj.uidt)
@@ -329,7 +353,7 @@ export function useGridCellHandler(params: {
       return await cellHandler.handleHover({
         ...ctx,
         cellRenderStore,
-        getCellPosition: params?.getCellPosition,
+        getCellPosition: (...args) => params?.getCellPosition?.(...args, ctx.path),
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
         makeCellEditable,

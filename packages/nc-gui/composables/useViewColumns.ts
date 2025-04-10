@@ -38,7 +38,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const { isSharedBase } = storeToRefs(useBase())
 
-    const isViewColumnsLoading = ref(false)
+    const isViewColumnsLoading = ref(true)
 
     const { addUndo, defineViewScope } = useUndoRedo()
 

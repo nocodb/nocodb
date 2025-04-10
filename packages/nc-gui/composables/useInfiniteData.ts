@@ -1,3 +1,4 @@
+import path from 'path'
 import type { ComputedRef, Ref } from 'vue'
 import { NcApiVersion, UITypes, extractFilterFromXwhere, isAIPromptCol } from 'nocodb-sdk'
 import {
@@ -12,7 +13,8 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isSystemColumn,
 } from 'nocodb-sdk'
-import type { Row } from '~/lib/types'
+import type { CanvasGroup } from '../lib/types'
+import type { Row } from '#imports'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
 
@@ -23,6 +25,7 @@ const formatData = (
     limit?: number
     offset?: number
   },
+  path: Array<number>,
 ) => {
   // If pageInfo exists, use it for calculation
   if (pageInfo?.page && pageInfo?.pageSize) {
@@ -34,6 +37,7 @@ const formatData = (
         rowMeta: {
           rowIndex,
           isLastRow: rowIndex === pageInfo.totalRows! - 1,
+          path: path ?? [],
         },
       }
     })
@@ -55,13 +59,22 @@ export function useInfiniteData(args: {
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>
   callbacks: {
     syncVisibleData?: () => void
+    getCount?: (path: Array<number>) => void
+    getWhereFilter?: (path: Array<number>) => string
+    onGroupRowChange?: (params: { row: Row; property: string; groupByColumn: ColumnType; level: number }) => void
+    reloadAggregate?: (params: {
+      fields?: Array<{ title: string; aggregation?: string | undefined }>
+      path: Array<number>
+    }) => void
+    findGroupByPath?: (path?: Array<number>) => CanvasGroup | undefined
   }
   where?: ComputedRef<string | undefined>
   disableSmartsheet?: boolean
+  isPublic?: Ref<boolean>
+  groupByColumns?: ComputedRef<{ column: ColumnType; sort: string; order?: number }[]>
 }) {
   const NOCO = 'noco'
-
-  const { meta, viewMeta, callbacks, where, disableSmartsheet } = args
+  const { meta, viewMeta, callbacks, where, disableSmartsheet, isPublic, groupByColumns = ref(null) } = args
 
   const { $api } = useNuxtApp()
 
@@ -72,10 +85,6 @@ export function useInfiniteData(args: {
   const { isUIAllowed } = useRoles()
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
-
-  const isPublic = inject(IsPublicInj, ref(false))
-
-  const reloadAggregate = inject(ReloadAggregateHookInj)
 
   const tablesStore = useTablesStore()
 
@@ -98,6 +107,25 @@ export function useInfiniteData(args: {
     : useSmartsheetStoreOrThrow()
 
   const selectedAllRecords = ref(false)
+
+  const totalRows = ref(0)
+
+  const cachedRows = ref<Map<number, Row>>(new Map())
+
+  const chunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
+
+  const groupDataCache = shallowRef(
+    new Map<
+      string,
+      {
+        cachedRows: Ref<Map<number, Row>>
+        chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
+        totalRows: Ref<number>
+        selectedRows: ComputedRef<Array<Row>>
+        isRowSortRequiredRows: ComputedRef<Array<Row>>
+      }
+    >(),
+  )
 
   const routeQuery = computed(() => router.currentRoute.value.query as Record<string, string>)
 
@@ -123,12 +151,12 @@ export function useInfiniteData(args: {
       columnsByAlias.value,
     )
 
-    return filter.map((f) => {
+    if (!filter?.length) return []
+
+    return filter?.map((f) => {
       return { ...f, value: f.value ? f.value?.toString().replace(/(^%)(.*?)(%$)/, '$2') : f.value }
     })
   })
-
-  const cachedRows = ref<Map<number, Row>>(new Map())
 
   const selectedRows = computed<Row[]>(() => {
     return Array.from(cachedRows.value.values()).filter((row) => row.rowMeta?.selected)
@@ -138,58 +166,108 @@ export function useInfiniteData(args: {
     return Array.from(cachedRows.value.values()).filter((row) => row.rowMeta?.isRowOrderUpdated)
   })
 
-  const totalRows = ref(0)
+  const getDataCache = (path: Array<number> = []) => {
+    if (path.length === 0) {
+      return {
+        cachedRows,
+        chunkStates,
+        totalRows,
+        isRowSortRequiredRows,
+        selectedRows,
+      }
+    }
+
+    const key = path.join('-')
+    const cachedData = groupDataCache.value.get(key)
+
+    if (cachedData) {
+      return cachedData
+    }
+
+    const currCount = callbacks?.getCount?.(path)
+
+    const newCache = {
+      cachedRows: ref<Map<number, Row>>(new Map<number, Row>()),
+      chunkStates: ref<Array<'loading' | 'loaded' | undefined>>([]),
+      totalRows: computed({
+        get: () => {
+          const group = callbacks?.findGroupByPath?.(path)
+          if (group) {
+            return group.count
+          }
+          return 0
+        },
+        set: (value) => {
+          const group = callbacks?.findGroupByPath?.(path)
+          if (group) {
+            group.count = value
+          }
+        },
+      }),
+      selectedRows: computed<Row[]>(() => Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.selected)),
+      isRowSortRequiredRows: computed<Array<Row>>(() =>
+        Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.isRowOrderUpdated),
+      ),
+    }
+
+    if (currCount === null) {
+      syncCount(path)
+    }
+    groupDataCache.value.set(key, newCache)
+    return newCache
+  }
 
   const MAX_CACHE_SIZE = 200
 
   const CHUNK_SIZE = 50
 
-  const chunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
-
   const getChunkIndex = (rowIndex: number) => Math.floor(rowIndex / CHUNK_SIZE)
 
-  const fetchChunk = async (chunkId: number) => {
-    if (chunkStates.value[chunkId]) return
+  const fetchChunk = async (chunkId: number, path: Array<number> = [], forceFetch = false) => {
+    const dataCache = getDataCache(path)
 
-    chunkStates.value[chunkId] = 'loading'
+    if (dataCache.chunkStates.value[chunkId] && !forceFetch) return
+
+    dataCache.chunkStates.value[chunkId] = 'loading'
     const offset = chunkId * CHUNK_SIZE
 
     try {
-      const newItems = await loadData({ offset, limit: CHUNK_SIZE })
+      const newItems = await loadData({ offset, limit: CHUNK_SIZE }, false, path)
       if (!newItems) {
-        chunkStates.value[chunkId] = undefined
+        dataCache.chunkStates.value[chunkId] = undefined
         return
       }
       newItems.forEach((item) => {
-        cachedRows.value.set(item.rowMeta.rowIndex!, item)
+        dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
       })
-      chunkStates.value[chunkId] = 'loaded'
+      dataCache.chunkStates.value[chunkId] = 'loaded'
     } catch (error) {
       console.error('Error fetching chunk:', error)
-      chunkStates.value[chunkId] = undefined
+      dataCache.chunkStates.value[chunkId] = undefined
     }
   }
 
-  const clearCache = (visibleStartIndex: number, visibleEndIndex: number) => {
+  const clearCache = (visibleStartIndex: number, visibleEndIndex: number, path: Array<number> = []) => {
+    const dataCache = getDataCache(path)
     if (visibleEndIndex === Number.POSITIVE_INFINITY && visibleStartIndex === Number.NEGATIVE_INFINITY) {
-      cachedRows.value.clear()
-      chunkStates.value = []
+      dataCache.cachedRows.value.clear()
+      dataCache.chunkStates.value = []
       return
     }
 
-    if (cachedRows.value.size <= MAX_CACHE_SIZE) return
+    if (dataCache.cachedRows.value.size <= MAX_CACHE_SIZE) return
 
     const safeStartIndex = Math.max(0, visibleStartIndex)
-    const safeEndIndex = Math.min(totalRows.value - 1, visibleEndIndex)
+    const safeEndIndex = Math.min(dataCache.totalRows.value - 1, visibleEndIndex)
     const safeStartChunk = getChunkIndex(safeStartIndex)
     const safeEndChunk = getChunkIndex(safeEndIndex)
 
     const importantChunks = new Set<number>()
     let maxChunk = 0
-    for (const index of cachedRows.value.keys()) {
+    for (const index of dataCache.cachedRows.value.keys()) {
       const chunkIndex = getChunkIndex(index)
       maxChunk = Math.max(maxChunk, chunkIndex)
-      const row = cachedRows.value.get(index)
+      const row = dataCache.cachedRows.value.get(index)
       if (row && (row.rowMeta?.selected || row.rowMeta?.new || row.rowMeta?.isDragging)) {
         importantChunks.add(chunkIndex)
       }
@@ -202,20 +280,20 @@ export function useInfiniteData(args: {
         const chunkStart = chunk * CHUNK_SIZE
         const chunkEnd = chunkStart + CHUNK_SIZE
         for (let i = chunkStart; i < chunkEnd; i++) {
-          const row = cachedRows.value.get(i)
+          const row = dataCache.cachedRows.value.get(i)
           if (row) newCachedRows.set(i, row)
         }
       }
     }
 
-    cachedRows.value = newCachedRows
-    chunkStates.value = chunkStates.value.map((state, chunkIndex) =>
+    dataCache.cachedRows.value = newCachedRows
+    dataCache.chunkStates.value = dataCache.chunkStates.value.map((state, chunkIndex) =>
       (chunkIndex >= safeStartChunk && chunkIndex <= safeEndChunk) || importantChunks.has(chunkIndex) ? state : undefined,
     )
   }
 
-  async function loadAggCommentsCount(formattedData: Array<Row>) {
-    if (!isUIAllowed('commentCount') || isPublic.value) return
+  async function loadAggCommentsCount(formattedData: Array<Row>, path: Array<number> = []) {
+    if (!isUIAllowed('commentCount') || isPublic?.value) return
 
     const ids = formattedData
       .filter(({ rowMeta: { new: isNew } }) => !isNew)
@@ -224,6 +302,8 @@ export function useInfiniteData(args: {
 
     if (!ids.length) return
 
+    const dataCache = getDataCache(path)
+
     try {
       const aggCommentCount = await $api.utils.commentCount({
         ids,
@@ -231,7 +311,7 @@ export function useInfiniteData(args: {
       })
 
       formattedData.forEach((row) => {
-        const cachedRow = Array.from(cachedRows.value.values()).find(
+        const cachedRow = Array.from(dataCache.cachedRows.value.values()).find(
           (cachedRow) => cachedRow.rowMeta.rowIndex === row.rowMeta.rowIndex,
         )
         if (!cachedRow) return
@@ -249,25 +329,29 @@ export function useInfiniteData(args: {
     params: Parameters<Api<any>['dbViewRow']['list']>[4] & {
       limit?: number
       offset?: number
+      where?: string
     } = {},
     _shouldShowLoading?: boolean,
+    path?: Array<number> = [],
   ): Promise<Row[]> {
-    if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return []
+    if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return []
+
+    const whereFilter = callbacks?.getWhereFilter?.(path)
 
     try {
-      const response = !isPublic.value
+      const response = !isPublic?.value
         ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
             ...params,
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             includeSortAndFilterColumns: true,
-            where: where?.value,
+            where: whereFilter,
           } as any)
         : await fetchSharedViewData(
             {
               sortsArr: sorts.value,
               filtersArr: nestedFilters.value,
-              where: where?.value,
+              where: whereFilter,
               offset: params.offset,
               limit: params.limit,
             },
@@ -276,9 +360,9 @@ export function useInfiniteData(args: {
             },
           )
 
-      const data = formatData(response.list, response.pageInfo, params)
+      const data = formatData(response.list, response.pageInfo, params, path)
 
-      loadAggCommentsCount(data)
+      loadAggCommentsCount(data, path)
 
       return data
     } catch (error: any) {
@@ -296,14 +380,22 @@ export function useInfiniteData(args: {
     }
   }
 
-  const updateRecordOrder = async (draggedIndex: number, targetIndex: number | null, undo = false, isFailed = false) => {
-    const originalRecord = cachedRows.value.get(draggedIndex)
+  const updateRecordOrder = async (
+    draggedIndex: number,
+    targetIndex: number | null,
+    undo = false,
+    isFailed = false,
+    path = [],
+  ) => {
+    const dataCache = getDataCache(path)
+
+    const originalRecord = dataCache.cachedRows.value.get(draggedIndex)
     if (!originalRecord) return
 
     const recordPk = extractPkFromRow(originalRecord.row, meta.value?.columns as ColumnType[])
-    const newCachedRows = new Map(cachedRows.value.entries())
+    const newCachedRows = new Map(dataCache.cachedRows.value.entries())
 
-    const beforeDraggedRecord = cachedRows.value.get(draggedIndex + 1)
+    const beforeDraggedRecord = dataCache.cachedRows.value.get(draggedIndex + 1)
     const beforeDraggedPk = beforeDraggedRecord
       ? extractPkFromRow(beforeDraggedRecord.row, meta.value?.columns as ColumnType[])
       : null
@@ -313,10 +405,10 @@ export function useInfiniteData(args: {
     let finalTargetIndex: number | null
 
     if (targetIndex === null) {
-      finalTargetIndex = cachedRows.value.size - 1
+      finalTargetIndex = dataCache.cachedRows.value.size - 1
     } else {
       finalTargetIndex = targetIndex > draggedIndex ? targetIndex - 1 : targetIndex
-      targetRecord = cachedRows.value.get(targetIndex) ?? null
+      targetRecord = dataCache.cachedRows.value.get(targetIndex) ?? null
       if (!targetRecord) return
       targetRecordPk = extractPkFromRow(targetRecord.row, meta.value?.columns as ColumnType[]) || null
     }
@@ -415,27 +507,30 @@ export function useInfiniteData(args: {
       })
     }
 
-    cachedRows.value = newCachedRows
+    dataCache.cachedRows.value = newCachedRows
   }
 
   const navigateToSiblingRow = async (dir: NavigateDir) => {
-    const expandedRowIndex = await getExpandedRowIndexWithWait()
+    const path = routeQuery.value?.path?.length === 0 ? [] : (routeQuery.value?.path?.split('-') ?? []).map((c) => +c)
+    const expandedRowIndex = await getExpandedRowIndexWithWait(path)
     if (expandedRowIndex === -1) return
 
-    const sortedIndices = Array.from(cachedRows.value.keys()).sort((a, b) => a - b)
+    const dataCache = getDataCache(path)
+
+    const sortedIndices = Array.from(dataCache.cachedRows.value.keys()).sort((a, b) => a - b)
     let siblingIndex = sortedIndices.findIndex((index) => index === expandedRowIndex) + (dir === NavigateDir.NEXT ? 1 : -1)
 
     // Skip unsaved rows
     while (
       siblingIndex >= 0 &&
       siblingIndex < sortedIndices.length &&
-      cachedRows.value.get(sortedIndices[siblingIndex])?.rowMeta?.new
+      dataCache.cachedRows.value.get(sortedIndices[siblingIndex])?.rowMeta?.new
     ) {
       siblingIndex += dir === NavigateDir.NEXT ? 1 : -1
     }
 
     // Check if we've gone out of bounds
-    if (siblingIndex < 0 || siblingIndex >= totalRows.value) {
+    if (siblingIndex < 0 || siblingIndex >= dataCache.totalRows.value) {
       return message.info(t('msg.info.noMoreRecords'))
     }
 
@@ -446,14 +541,14 @@ export function useInfiniteData(args: {
         limit: 10,
       })
       sortedIndices.push(
-        ...Array.from(cachedRows.value.keys())
+        ...Array.from(dataCache.cachedRows.value.keys())
           .filter((key) => !sortedIndices.includes(key))
           .sort((a, b) => a - b),
       )
     }
 
     // Extract the row id of the sibling row
-    const siblingRow = cachedRows.value.get(sortedIndices[siblingIndex])
+    const siblingRow = dataCache.cachedRows.value.get(sortedIndices[siblingIndex])
     if (siblingRow) {
       const rowId = extractPkFromRow(siblingRow.row, meta.value?.columns as ColumnType[])
       if (rowId) {
@@ -467,26 +562,46 @@ export function useInfiniteData(args: {
     }
   }
 
-  const fetchMissingChunks = async (startIndex: number, endIndex: number) => {
+  const fetchMissingChunks = async (startIndex: number, endIndex: number, path: Array<number> = []) => {
     const firstChunkId = Math.floor(startIndex / CHUNK_SIZE)
     const lastChunkId = Math.floor(endIndex / CHUNK_SIZE)
 
-    const chunksToFetch = Array.from({ length: lastChunkId - firstChunkId + 1 }, (_, i) => firstChunkId + i).filter(
-      (chunkId) => !chunkStates.value[chunkId],
-    )
+    const dataCache = getDataCache(path)
 
-    await Promise.all(chunksToFetch.map(fetchChunk))
+    const chunksToFetch = Array.from({ length: lastChunkId - firstChunkId + 1 }, (_, i) => firstChunkId + i).filter(
+      (chunkId) => !dataCache.chunkStates.value[chunkId],
+    )
+    await Promise.all(chunksToFetch.map(fetchChunk, path))
   }
 
-  function clearInvalidRows() {
-    const sortedEntries = Array.from(cachedRows.value.entries()).sort(([indexA], [indexB]) => indexA - indexB)
+  // Remove invalid and moved(group change) rows from the cache
+  function clearInvalidRows(path: Array<number> = []) {
+    const dataCache = getDataCache(path)
+    const sortedEntries = Array.from(dataCache.cachedRows.value.entries()).sort(([indexA], [indexB]) => indexA - indexB)
 
-    const invalidIndexes = sortedEntries.filter(([_, row]) => row.rowMeta.isValidationFailed).map(([index]) => index)
+    const invalidIndexes = sortedEntries
+      .filter(([_, row]) => row.rowMeta.isValidationFailed || row.rowMeta.isGroupChanged)
+      .map(([index]) => index)
 
     if (invalidIndexes.length === 0) return
 
     for (const index of invalidIndexes) {
-      cachedRows.value.delete(index)
+      const row = dataCache.cachedRows.value.get(index)
+
+      if (row.rowMeta?.isGroupChanged) {
+        const groupByColumn = groupByColumns.value[row.rowMeta.changedGroupIndex]
+        const property = groupByColumn?.column?.title
+        // invoke group by callback
+        callbacks?.onGroupRowChange?.({
+          row,
+          property,
+          groupByColumn,
+          level: row.rowMeta.changedGroupIndex,
+          path: row.rowMeta.path,
+        })
+      }
+
+      dataCache.cachedRows.value.delete(index)
     }
 
     const newCachedRows = new Map<number, Row>()
@@ -499,7 +614,7 @@ export function useInfiniteData(args: {
       }
     }
 
-    chunkStates.value[getChunkIndex(Math.max(...invalidIndexes))] = undefined
+    dataCache.chunkStates.value[getChunkIndex(Math.max(...invalidIndexes))] = undefined
 
     const indices = new Set<number>()
     for (const [_, row] of newCachedRows) {
@@ -510,23 +625,32 @@ export function useInfiniteData(args: {
       indices.add(row.rowMeta.rowIndex)
     }
 
-    cachedRows.value = newCachedRows
+    dataCache.cachedRows.value = newCachedRows
 
-    totalRows.value = Math.max(0, (totalRows.value || 0) - invalidIndexes.length)
-
+    dataCache.totalRows.value = Math.max(0, (dataCache.totalRows.value || 0) - invalidIndexes.length)
     callbacks?.syncVisibleData?.()
   }
 
-  const willSortOrderChange = ({ row, newData }: { row: Row; newData: Record<string, any> }): boolean => {
+  const willSortOrderChange = ({
+    row,
+    newData,
+    path,
+  }: {
+    row: Row
+    newData: Record<string, any>
+    path: Array<number>
+  }): boolean => {
     if (!sorts.value.length) return false
 
     const currentIndex = row.rowMeta.rowIndex!
     if (currentIndex === undefined) return true
 
-    const indices = Array.from(cachedRows.value.keys()).sort((a, b) => a - b)
+    const dataCache = getDataCache(path)
+
+    const indices = Array.from(dataCache.cachedRows.value.keys()).sort((a, b) => a - b)
     const currentPos = indices.indexOf(currentIndex)
-    const prevRow = currentPos > 0 ? cachedRows.value.get(indices[currentPos - 1]) : null
-    const nextRow = currentPos < indices.length - 1 ? cachedRows.value.get(indices[currentPos + 1]) : null
+    const prevRow = currentPos > 0 ? dataCache.cachedRows.value.get(indices[currentPos - 1]) : null
+    const nextRow = currentPos < indices.length - 1 ? dataCache.cachedRows.value.get(indices[currentPos + 1]) : null
 
     const updatedRow = {
       ...row,
@@ -610,18 +734,19 @@ export function useInfiniteData(args: {
     return ranges
   }
 
-  const applySorting = (rows: Row | Row[]) => {
+  const applySorting = (rows: Row | Row[], path: Array<number> = []) => {
     if (!sorts.value.length) return
+    const dataCache = getDataCache(path)
     const orderedSorts = sorts.value.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     const inputRows = Array.isArray(rows) ? rows : [rows]
-    const ranges = getContinuousRanges(cachedRows.value)
+    const ranges = getContinuousRanges(dataCache.cachedRows.value)
 
     inputRows.forEach((inputRow) => {
       const originalIndex = inputRow.rowMeta.rowIndex!
       const sourceRange = ranges.find((r) => originalIndex >= r.start && originalIndex <= r.end)
       if (!sourceRange) return
 
-      const rangeEntries = Array.from(cachedRows.value.entries())
+      const rangeEntries = Array.from(dataCache.cachedRows.value.entries())
         .filter(([index]) => index >= sourceRange.start && index <= sourceRange.end)
         .map(([index, row]) => ({
           currentIndex: index,
@@ -653,7 +778,7 @@ export function useInfiniteData(args: {
 
       const targetIndex = sourceRange.start + sortedRangeEntries.indexOf(entry)
 
-      const newCachedRows = new Map(cachedRows.value)
+      const newCachedRows = new Map(dataCache.cachedRows.value)
 
       if (targetIndex !== originalIndex) {
         if (targetIndex < originalIndex) {
@@ -688,11 +813,11 @@ export function useInfiniteData(args: {
         if (targetIndex <= sourceRange.start || targetIndex >= sourceRange.end) {
           if (targetIndex <= sourceRange.start) {
             for (let i = 0; i <= targetChunkIndex; i++) {
-              chunkStates.value[i] = undefined
+              dataCache.chunkStates.value[i] = undefined
             }
           } else if (targetIndex >= sourceRange.end) {
-            for (let i = targetChunkIndex; i <= getChunkIndex(totalRows.value - 1); i++) {
-              chunkStates.value[i] = undefined
+            for (let i = targetChunkIndex; i <= getChunkIndex(dataCache.totalRows.value - 1); i++) {
+              dataCache.chunkStates.value[i] = undefined
             }
           }
         }
@@ -709,15 +834,21 @@ export function useInfiniteData(args: {
         indices.add(row.rowMeta.rowIndex)
       }
 
-      cachedRows.value = newCachedRows
+      dataCache.cachedRows.value = newCachedRows
     })
 
     callbacks?.syncVisibleData?.()
   }
 
-  function addEmptyRow(newRowIndex = totalRows.value, metaValue = meta.value) {
-    if (cachedRows.value.has(newRowIndex)) {
-      const entriesToShift = Array.from(cachedRows.value.entries())
+  function addEmptyRow(newRowIndex?: number, metaValue = meta.value, rowOverwrite = {}, path: Array<number> = []) {
+    const dataCache = getDataCache(path)
+
+    if (ncIsUndefined(newRowIndex) || ncIsNull(newRowIndex)) {
+      newRowIndex = dataCache.totalRows.value
+    }
+
+    if (dataCache.cachedRows.value.has(newRowIndex)) {
+      const entriesToShift = Array.from(dataCache.cachedRows.value.entries())
         .filter(([index]) => index >= newRowIndex)
         .sort((a, b) => b[0] - a[0])
 
@@ -729,18 +860,18 @@ export function useInfiniteData(args: {
             rowIndex: index + 1,
           },
         }
-        cachedRows.value.set(index + 1, shiftedRowData)
+        dataCache.cachedRows.value.set(index + 1, shiftedRowData)
       }
     }
 
     const newRow = {
-      row: { ...rowDefaultData(metaValue?.columns) },
+      row: { ...rowDefaultData(metaValue?.columns), ...rowOverwrite },
       oldRow: {},
-      rowMeta: { new: true, rowIndex: newRowIndex },
+      rowMeta: { new: true, rowIndex: newRowIndex, path },
     }
-    cachedRows.value.set(newRowIndex, newRow)
+    dataCache.cachedRows.value.set(newRowIndex, newRow)
 
-    totalRows.value++
+    dataCache.totalRows.value++
     callbacks?.syncVisibleData?.()
 
     return newRow
@@ -810,9 +941,10 @@ export function useInfiniteData(args: {
     callbacks?.syncVisibleData?.()
   }
 
-  async function deleteRow(rowIndex: number, undo = false) {
+  async function deleteRow(rowIndex: number, undo = false, path: Array<number> = []) {
+    const dataCache = getDataCache(path)
     try {
-      const row = cachedRows.value.get(rowIndex)
+      const row = dataCache.cachedRows.value.get(rowIndex)
       if (!row) return
 
       if (!row.rowMeta.new) {
@@ -831,7 +963,7 @@ export function useInfiniteData(args: {
           },
         )
 
-        const deleted = await deleteRowById(id as string)
+        const deleted = await deleteRowById(id as string, undefined, path)
         if (!deleted) {
           return
         }
@@ -841,15 +973,15 @@ export function useInfiniteData(args: {
         if (!undo) {
           addUndo({
             undo: {
-              fn: async (row: Row, ltarState: Record<string, any>) => {
+              fn: async (row: Row, ltarState: Record<string, any>, path: Array<number>) => {
                 const pkData = rowPkData(row.row, meta?.value?.columns as ColumnType[])
 
                 row.row = { ...pkData, ...row.row }
 
-                await insertRow(row, ltarState, {}, true)
+                await insertRow(row, ltarState, {}, true, undefined, undefined, path)
                 // refreshing the view
-                cachedRows.value.clear()
-                chunkStates.value = []
+                dataCache.cachedRows.value.clear()
+                dataCache.chunkStates.value = []
 
                 try {
                   await recoverLTARRefs(row.row, undefined, { suppressError: true })
@@ -859,41 +991,42 @@ export function useInfiniteData(args: {
                   // this is left to keep things unchanged
                 }
               },
-              args: [clone(row), {}],
+              args: [clone(row), {}, clone(path)],
             },
             redo: {
-              fn: async (rowIndex: number) => {
-                await deleteRow(rowIndex)
+              fn: async (rowIndex: number, path) => {
+                await deleteRow(rowIndex, false, path)
               },
-              args: [rowIndex],
+              args: [rowIndex, clone(path)],
             },
             scope: defineViewScope({ view: viewMeta.value }),
           })
         }
       }
 
-      cachedRows.value.delete(rowIndex)
+      dataCache.cachedRows.value.delete(rowIndex)
 
-      const rows = Array.from(cachedRows.value.entries())
+      const rows = Array.from(dataCache.cachedRows.value.entries())
       const rowsToShift = rows.filter(([index]) => index > rowIndex)
       rowsToShift.sort((a, b) => a[0] - b[0])
 
       for (const [index, row] of rowsToShift) {
         const newIndex = index - 1
         row.rowMeta.rowIndex = newIndex
-        cachedRows.value.delete(index)
-        cachedRows.value.set(newIndex, row)
+        dataCache.cachedRows.value.delete(index)
+        dataCache.cachedRows.value.set(newIndex, row)
       }
 
       if (rowsToShift.length) {
-        chunkStates.value[getChunkIndex(rowsToShift[rowsToShift.length - 1][0])] = undefined
+        dataCache.chunkStates.value[getChunkIndex(rowsToShift[rowsToShift.length - 1][0])] = undefined
       }
 
-      totalRows.value = (totalRows.value || 0) - 1
-
-      await syncCount()
+      dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
+      await syncCount(path)
       callbacks?.syncVisibleData?.()
     } catch (e: any) {
+      console.error(e)
+
       message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
   }
@@ -905,10 +1038,13 @@ export function useInfiniteData(args: {
     undo = false,
     ignoreShifting = false,
     beforeRowID?: string,
+    path: Array<number> = [],
   ): Promise<Record<string, any> | undefined> {
     if (!currentRow.rowMeta) {
       throw new Error('Row metadata is missing')
     }
+
+    const dataCache = getDataCache(path)
 
     currentRow.rowMeta.saving = true
 
@@ -967,24 +1103,31 @@ export function useInfiniteData(args: {
               tempLocalCache: Map<number, Row>,
               tempTotalRows: number,
               tempChunkStates: Array<'loading' | 'loaded' | undefined>,
+              path: Array<number>,
             ) => {
-              cachedRows.value = new Map(tempLocalCache)
-              totalRows.value = tempTotalRows
-              chunkStates.value = tempChunkStates
+              dataCache.cachedRows.value = new Map(tempLocalCache)
+              dataCache.totalRows.value = tempTotalRows
+              dataCache.chunkStates.value = tempChunkStates
 
-              await deleteRowById(id)
-              cachedRows.value.delete(insertIndex)
+              await deleteRowById(id, undefined, path)
+              dataCache.cachedRows.value.delete(insertIndex)
 
-              for (const [index, row] of cachedRows.value) {
+              for (const [index, row] of dataCache.cachedRows.value) {
                 if (index > insertIndex) {
                   row.rowMeta.rowIndex = index - 1
-                  cachedRows.value.set(index - 1, row)
+                  dataCache.cachedRows.value.set(index - 1, row)
                 }
               }
-              totalRows.value = totalRows.value! - 1
+              dataCache.totalRows.value = dataCache.totalRows.value! - 1
               callbacks?.syncVisibleData?.()
             },
-            args: [id, clone(new Map(cachedRows.value)), clone(totalRows.value), clone(chunkStates.value)],
+            args: [
+              id,
+              clone(new Map(dataCache.cachedRows.value)),
+              clone(dataCache.totalRows.value),
+              clone(dataCache.chunkStates.value),
+              clone(path),
+            ],
           },
           redo: {
             fn: async (
@@ -994,10 +1137,11 @@ export function useInfiniteData(args: {
               tempTotalRows: number,
               tempChunkStates: Array<'loading' | 'loaded' | undefined>,
               rowID: string,
+              path: Array<number>,
             ) => {
-              cachedRows.value = new Map(tempLocalCache)
-              totalRows.value = tempTotalRows
-              chunkStates.value = tempChunkStates
+              dataCache.cachedRows.value = new Map(tempLocalCache)
+              dataCache.totalRows.value = tempTotalRows
+              dataCache.chunkStates.value = tempChunkStates
 
               row.row = { ...pkData, ...row.row }
               const newData = await insertRow(row, ltarState, undefined, true, true, rowID)
@@ -1005,43 +1149,41 @@ export function useInfiniteData(args: {
               const needsResorting = willSortOrderChange({
                 row,
                 newData,
-                sorts: sorts.value,
-                columnsById: columnsById.value,
-                cachedRows: cachedRows.value,
+                path,
               })
 
               if (needsResorting) {
-                const newRow = cachedRows.value.get(row.rowMeta.rowIndex!)
+                const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
                 if (newRow) newRow.rowMeta.isRowOrderUpdated = needsResorting
               }
-
               callbacks?.syncVisibleData?.()
             },
             args: [
               clone(currentRow),
               clone(ltarState),
-              clone(new Map(cachedRows.value)),
-              clone(totalRows.value),
-              clone(chunkStates.value),
+              clone(new Map(dataCache.cachedRows.value)),
+              clone(dataCache.totalRows.value),
+              clone(dataCache.chunkStates.value),
               clone(beforeRowID),
+              clone(path),
             ],
           },
           scope: defineViewScope({ view: viewMeta.value }),
         })
       }
 
-      if (cachedRows.value.has(insertIndex) && !ignoreShifting) {
-        const rows = Array.from(cachedRows.value.entries())
+      if (dataCache.cachedRows.value.has(insertIndex) && !ignoreShifting) {
+        const rows = Array.from(dataCache.cachedRows.value.entries())
         const rowsToShift = rows.filter(([index]) => index >= insertIndex)
         rowsToShift.sort((a, b) => b[0] - a[0]) // Sort in descending order
 
         for (const [index, row] of rowsToShift) {
           row.rowMeta.rowIndex = index + 1
-          cachedRows.value.set(index + 1, row)
+          dataCache.cachedRows.value.set(index + 1, row)
         }
       }
 
-      cachedRows.value.set(insertIndex, {
+      dataCache.cachedRows.value.set(insertIndex, {
         row: { ...insertedData, ...currentRow.row },
         oldRow: { ...insertedData },
         rowMeta: {
@@ -1053,10 +1195,9 @@ export function useInfiniteData(args: {
       })
 
       if (!ignoreShifting) {
-        totalRows.value++
+        dataCache.totalRows.value++
       }
-
-      reloadAggregate?.trigger()
+      callbacks?.reloadAggregate?.({ path })
       callbacks?.syncVisibleData?.()
 
       return insertedData
@@ -1074,10 +1215,13 @@ export function useInfiniteData(args: {
     property: string,
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
     undo = false,
+    path: Array<number> = [],
   ): Promise<Record<string, any> | undefined> {
     if (!toUpdate.rowMeta) {
       throw new Error('Row metadata is missing')
     }
+
+    const dataCache = getDataCache(path)
 
     toUpdate.rowMeta.saving = true
 
@@ -1098,24 +1242,37 @@ export function useInfiniteData(args: {
       if (!undo) {
         addUndo({
           undo: {
-            fn: async (toUpdate: Row, property: string, previousCache: Map<number, Row>, tempTotalRows: number) => {
-              cachedRows.value = new Map(previousCache)
-              totalRows.value = tempTotalRows
+            fn: async (
+              toUpdate: Row,
+              property: string,
+              previousCache: Map<number, Row>,
+              tempTotalRows: number,
+              path: Array<number>,
+            ) => {
+              dataCache.cachedRows.value = new Map(previousCache)
+              dataCache.totalRows.value = tempTotalRows
 
               await updateRowProperty(
                 { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
                 property,
                 undefined,
                 true,
+                path,
               )
             },
-            args: [clone(toUpdate), property, clone(new Map(cachedRows.value)), clone(totalRows.value)],
+            args: [
+              clone(toUpdate),
+              property,
+              clone(new Map(dataCache.cachedRows.value)),
+              clone(dataCache.totalRows.value),
+              clone(path),
+            ],
           },
           redo: {
-            fn: async (toUpdate: Row, property: string) => {
-              await updateRowProperty(toUpdate, property, undefined, true)
+            fn: async (toUpdate: Row, property: string, path) => {
+              await updateRowProperty(toUpdate, property, undefined, true, path)
             },
-            args: [clone(toUpdate), property],
+            args: [clone(toUpdate), property, clone(path)],
           },
           scope: defineViewScope({ view: viewMeta.value }),
         })
@@ -1157,15 +1314,14 @@ export function useInfiniteData(args: {
 
       // Update the row in cachedRows
       if (toUpdate.rowMeta.rowIndex !== undefined) {
-        cachedRows.value.set(toUpdate.rowMeta.rowIndex, toUpdate)
+        dataCache.cachedRows.value.set(toUpdate.rowMeta.rowIndex, toUpdate)
       }
-
-      reloadAggregate?.trigger({ fields: [{ title: property }] })
+      callbacks?.reloadAggregate?.({ fields: [{ title: property }], path })
 
       callbacks?.syncVisibleData?.()
 
       if (undo) {
-        applySorting(toUpdate)
+        applySorting(toUpdate, path)
       }
 
       return updatedRowData
@@ -1185,17 +1341,20 @@ export function useInfiniteData(args: {
     ltarState?: Record<string, any>,
     args: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
     beforeRowID?: string,
+    path: Array<number> = [],
   ): Promise<void> {
     if (!row.rowMeta) {
       throw new Error('Row metadata is missing')
     }
+
+    const dataCache = getDataCache(path)
 
     row.rowMeta.changed = false
     let cachedRow
 
     await new Promise((resolve) => {
       const checkStatus = () => {
-        cachedRow = cachedRows.value.get(row.rowMeta.rowIndex!)
+        cachedRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
         // Wait until either the row is not saving OR the row is not new
         const isComplete = !cachedRow?.rowMeta?.saving || !cachedRow?.rowMeta?.new
 
@@ -1231,7 +1390,7 @@ export function useInfiniteData(args: {
     )
 
     if (row.rowMeta.new) {
-      data = await insertRow(row, ltarState, args, false, true, beforeRowID)
+      data = await insertRow(row, ltarState, args, false, true, beforeRowID, path)
     } else if (property) {
       if (cachedRow) {
         Object.assign(row.row, {
@@ -1241,7 +1400,7 @@ export function useInfiniteData(args: {
           }, {}) ?? {}),
         })
       }
-      data = await updateRowProperty(row, property, args)
+      data = await updateRowProperty(row, property, args, false, path)
     }
 
     row.rowMeta.isValidationFailed = !validateRowFilters(
@@ -1251,6 +1410,16 @@ export function useInfiniteData(args: {
       getBaseType(viewMeta.value?.view?.source_id),
       metas.value,
     )
+
+    // check if the column is part of group by and value changed
+    if (row.rowMeta?.path?.length && groupByColumns?.value) {
+      const index = groupByColumns.value.findIndex((c) => c.column.title === property)
+      if (index > -1) {
+        // check if column is group by and value changed
+        row.rowMeta.isGroupChanged = true
+        row.rowMeta.changedGroupIndex = index
+      }
+    }
 
     const changedFields = property ? [property] : Object.keys(row.row)
 
@@ -1274,11 +1443,10 @@ export function useInfiniteData(args: {
         row,
         newData: data,
         sorts: sorts.value,
-        columnsById: columnsById.value,
-        cachedRows: cachedRows.value,
+        path,
       })
 
-      const newRow = cachedRows.value.get(row.rowMeta.rowIndex!)
+      const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
       if (newRow) newRow.rowMeta.isRowOrderUpdated = needsResorting
     }
     callbacks?.syncVisibleData?.()
@@ -1287,6 +1455,7 @@ export function useInfiniteData(args: {
   async function bulkUpdateView(
     data: Record<string, any>[],
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    path: Array<number> = [],
   ): Promise<void> {
     if (!viewMetaValue) {
       throw new Error('View meta value is missing')
@@ -1296,13 +1465,14 @@ export function useInfiniteData(args: {
       viewId: viewMetaValue.id,
     })
 
-    reloadAggregate?.trigger()
+    callbacks?.reloadAggregate?.({ path })
     callbacks?.syncVisibleData?.()
   }
 
   async function deleteRowById(
     id: string,
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    path: Array<number> = [],
   ): Promise<boolean> {
     if (!id) {
       throw new Error("Delete not allowed for table which doesn't have primary Key")
@@ -1317,7 +1487,7 @@ export function useInfiniteData(args: {
         encodeURIComponent(id),
       )
 
-      reloadAggregate?.trigger()
+      callbacks?.reloadAggregate?.({ path })
 
       if (res.message) {
         const errorMessage = `Unable to delete record with ID ${id} because of the following:\n${res.message.join(
@@ -1335,31 +1505,39 @@ export function useInfiniteData(args: {
     }
   }
 
-  const removeRowIfNew = (row: Row): boolean => {
-    const index = Array.from(cachedRows.value.entries()).find(([_, r]) => r.rowMeta.rowIndex === row.rowMeta.rowIndex)?.[0]
+  const removeRowIfNew = (row: Row, path: Array<number> = []): boolean => {
+    path = row?.rowMeta?.path ?? []
+    const dataCache = getDataCache(path)
+    const index = Array.from(dataCache.cachedRows.value.entries()).find(
+      ([_, r]) => r.rowMeta.rowIndex === row.rowMeta.rowIndex,
+    )?.[0]
     if (index !== undefined && row.rowMeta.new) {
-      cachedRows.value.delete(index)
-      totalRows.value--
+      dataCache.cachedRows.value.delete(index)
+      dataCache.totalRows.value--
       return true
     }
     callbacks?.syncVisibleData?.()
     return false
   }
 
-  async function syncCount(): Promise<void> {
-    if (!isPublic.value && (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id)) return
+  async function syncCount(path: Array<number> = []): Promise<void> {
+    if (!isPublic?.value && (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id)) return
+
+    const dataCache = getDataCache(path)
+
+    const whereFilter = callbacks?.getWhereFilter?.(path)
 
     try {
-      const { count } = isPublic.value
+      const { count } = isPublic?.value
         ? await fetchCount({
             filtersArr: nestedFilters.value,
-            where: where?.value,
+            where: whereFilter,
           })
         : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
-            where: where?.value,
+            where: whereFilter,
           })
 
-      totalRows.value = count as number
+      dataCache.totalRows.value = count as number
       callbacks?.syncVisibleData?.()
     } catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)
@@ -1368,11 +1546,12 @@ export function useInfiniteData(args: {
     }
   }
 
-  function getExpandedRowIndex(): number {
+  function getExpandedRowIndex(path: Array<number>): number {
     const rowId = routeQuery.value.rowId
     if (!rowId) return -1
+    const dataCache = getDataCache(path)
 
-    for (const [_index, row] of cachedRows.value.entries()) {
+    for (const [_index, row] of dataCache.cachedRows.value.entries()) {
       if (extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === rowId) {
         return row.rowMeta.rowIndex!
       }
@@ -1381,33 +1560,39 @@ export function useInfiniteData(args: {
   }
 
   // function which waits for the data to be loaded and then returns the expanded row index
-  async function getExpandedRowIndexWithWait(): number {
+  async function getExpandedRowIndexWithWait(path: Array<number>): Promise<number> {
     const rowId = routeQuery.value.rowId
     if (!rowId) return -1
 
-    await until(() => chunkStates.value?.every((v) => v !== 'loading')).toBeTruthy({
+    const dataCache = getDataCache(path)
+
+    await until(() => dataCache.chunkStates.value?.every((v) => v !== 'loading')).toBeTruthy({
       timeout: 5000,
-      interval: 100,
     })
 
-    return getExpandedRowIndex()
+    return getExpandedRowIndex(path)
   }
 
   const isLastRow = computed(() => {
-    const expandedRowIndex = getExpandedRowIndex()
+    const path = (routeQuery.value?.path?.split('-') ?? []).map((c) => +c)
+    const dataCache = getDataCache(path)
+
+    const expandedRowIndex = getExpandedRowIndex(path)
     if (expandedRowIndex === -1) return false
 
-    return expandedRowIndex === totalRows.value - 1
+    return expandedRowIndex === dataCache.totalRows.value - 1
   })
 
   const isFirstRow = computed(() => {
-    const expandedRowIndex = getExpandedRowIndex()
+    const path = (routeQuery.value?.path?.split('-') ?? []).map((c) => +c)
+
+    const expandedRowIndex = getExpandedRowIndex(path)
     if (expandedRowIndex === -1) return false
 
     return expandedRowIndex === 0
   })
 
-  async function getRows(startIndex: number, endIndex: number): Promise<Array<Row>> {
+  async function getRows(startIndex: number, endIndex: number, path: Array<number> = []): Promise<Array<Row>> {
     const startChunkId = getChunkIndex(startIndex)
     const endChunkId = getChunkIndex(endIndex)
 
@@ -1416,19 +1601,24 @@ export function useInfiniteData(args: {
       chunksToFetch.add(chunkId)
     }
 
-    await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
+    await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId, path)))
+
+    const dataCache = getDataCache(path)
 
     const rows = []
     for (let rowId = startIndex; rowId <= endIndex; rowId++) {
-      if (cachedRows.value.has(rowId)) {
-        rows.push(cachedRows.value.get(rowId))
+      if (dataCache.cachedRows.value.has(rowId)) {
+        rows.push(dataCache.cachedRows.value.get(rowId))
       }
     }
+
+    callbacks?.syncVisibleData?.()
 
     return rows
   }
 
   return {
+    getDataCache,
     insertRow,
     updateRowProperty,
     addEmptyRow,
@@ -1460,5 +1650,6 @@ export function useInfiniteData(args: {
     updateRecordOrder,
     selectedAllRecords,
     getRows,
+    groupDataCache,
   }
 }

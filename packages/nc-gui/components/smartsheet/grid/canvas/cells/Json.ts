@@ -95,7 +95,7 @@ export const JsonCellRenderer: CellRenderer = {
     if (typeof rowIndex !== 'number') return false
     const { x, y, width } = getCellPosition(column, rowIndex)
     if (isBoxHovered({ x: x + width - 28, y: y + 7, height: 18, width: 18 }, mousePosition)) {
-      makeCellEditable(rowIndex, column)
+      makeCellEditable(row, column)
       return true
     }
     return false

@@ -9497,6 +9497,90 @@
         }
       }
     },
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/groupby/count": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseName",
+          "in": "path",
+          "required": true,
+          "description": "Base Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true,
+          "description": "Table Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "query",
+          "name": "column_name",
+          "description": "Column name of the column you want to group by, eg. `column_name=column1`"
+        }
+      ],
+      "get": {
+        "summary": "Group By Table Row Count",
+        "operationId": "db-table-row-group-by-count",
+        "description": "Get the number of groups by the given query",
+        "tags": [
+          "DB Table Row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/group/{columnId}": {
       "parameters": [
         {
@@ -10864,6 +10948,101 @@
             },
             "in": "query",
             "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/groupby/count": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseName",
+          "in": "path",
+          "required": true,
+          "description": "Base Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true,
+          "description": "Table Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "query",
+          "name": "column_name",
+          "description": "Column name of the column you want to group by, eg. `column_name=column1`"
+        }
+      ],
+      "get": {
+        "summary": "Count of Group By Table View Row ",
+        "operationId": "db-view-row-group-by-count",
+        "description": "Get the table view rows grouped by count the given query",
+        "tags": [
+          "DB View Row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
           },
           {
             "schema": {
@@ -13770,6 +13949,93 @@
           }
         ],
         "description": "List all shared view rows grouped by a column"
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/groupby/count": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Group By Table Row Count",
+        "operationId": "public-data-group-by-count",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "column_name",
+            "description": "Columns to group by"
+          }
+        ],
+        "description": "Get the number of groups by the given query"
       }
     },
     "/api/v1/db/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}": {

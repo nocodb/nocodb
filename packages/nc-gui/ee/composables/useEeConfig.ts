@@ -52,9 +52,11 @@ export const useEeConfig = createSharedComposable(() => {
     return getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)
   })
 
-  const gracePeriodDaysLeft = computed(() => {
-    if (!isRecordLimitReached.value) return Infinity
+  const isStorageLimitReached = computed(() => {
+    return getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE)
+  })
 
+  const gracePeriodDaysLeft = computed(() => {
     if (!activeWorkspace.value?.grace_period_start_at) return 0
 
     const start = dayjs(activeWorkspace.value.grace_period_start_at)
@@ -70,7 +72,11 @@ export const useEeConfig = createSharedComposable(() => {
    * User has to upgrade plan in order to add new records
    */
   const blockAddNewRecord = computed(() => {
-    return gracePeriodDaysLeft.value === 0
+    return isRecordLimitReached.value && gracePeriodDaysLeft.value === 0
+  })
+
+  const blockAddNewAttachment = computed(() => {
+    return isStorageLimitReached.value && gracePeriodDaysLeft.value === 0
   })
 
   const isAllowToAddExtension = computed(
@@ -78,10 +84,6 @@ export const useEeConfig = createSharedComposable(() => {
       (getFeature(PlanFeatureTypes.FEATURE_EXTENSIONS) || getLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE) > 0) &&
       getStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE) < getLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE),
   )
-
-  const blockAddNewAttachment = computed(() => {
-    return getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE)
-  })
 
   const blockAddNewExternalSource = computed(() => {
     return (
@@ -523,6 +525,7 @@ export const useEeConfig = createSharedComposable(() => {
     isPaymentEnabled,
     showUserPlanLimitExceededModal,
     isRecordLimitReached,
+    isStorageLimitReached,
     gracePeriodDaysLeft,
     blockAddNewRecord,
     showRecordPlanLimitExceededModal,

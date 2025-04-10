@@ -1966,7 +1966,7 @@ export function useCanvasRender({
       ctx.strokeStyle = '#e7e7e9'
       ctx.beginPath()
       ctx.moveTo(indent, yOffset + rowHeight.value)
-      ctx.lineTo(adjustedWidth - indent, yOffset + rowHeight.value)
+      ctx.lineTo(adjustedWidth + indent, yOffset + rowHeight.value)
       ctx.stroke()
 
       if (row?.rowMeta.isValidationFailed || row?.rowMeta.isRowOrderUpdated || row?.rowMeta.isGroupChanged) {

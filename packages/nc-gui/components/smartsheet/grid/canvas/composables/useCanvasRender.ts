@@ -1889,7 +1889,7 @@ export function useCanvasRender({
     level: number,
     startIndex: number,
     endIndex: number,
-  ): number {
+  ) {
     if (!group.path) return yOffset
     const dataCache = getDataCache(group.path)
 
@@ -2055,17 +2055,19 @@ export function useCanvasRender({
       })
     }
 
-    renderActiveState(ctx, activeState)
-
-    renderFillHandle(ctx)
+    const postRenderCbk = () => {
+      // render this at the end to avoid clipping
+      renderActiveState(ctx, activeState)
+      renderFillHandle(ctx)
+    }
 
     if (rowsToFetch?.length) {
-      const minIndex = Math.min(...rowsToFetch)
       const maxIndex = Math.max(...rowsToFetch)
+      const minIndex = Math.min(...rowsToFetch)
       getRows(minIndex, maxIndex, group.path)
     }
 
-    return yOffset
+    return { yOffset, postRenderCbk }
   }
 
   function renderGroups(
@@ -2102,6 +2104,8 @@ export function useCanvasRender({
         : width.value
     // Track absolute position in virtual space
     let currentOffset = yOffset
+
+    const postRenderCbks: Array<() => void> = []
     for (let i = startIndex; i <= endIndex; i++) {
       const isStartGroup = (_isStartGroup ?? true) && i === startIndex
       const group = groups.get(i)
@@ -2191,7 +2195,7 @@ export function useCanvasRender({
             // Calculate last visible item index, bounded by total count
             const nestedEnd = Math.min(nestedStart + visibleRowCount, group.count - 1)
 
-            tempCurrentOffset = renderGroupRows(
+            const { yOffset: _tempCurrentOffset, postRenderCbk } = renderGroupRows(
               ctx,
               group,
               // Start rendering from the top of the group
@@ -2200,6 +2204,8 @@ export function useCanvasRender({
               nestedStart,
               nestedEnd,
             )
+            tempCurrentOffset = _tempCurrentOffset
+            postRenderCbks.push(postRenderCbk)
           } else {
             // Calculate the range of nested groups that should be visible
             // based on scroll position and available height
@@ -2213,7 +2219,11 @@ export function useCanvasRender({
               isAddingEmptyRowAllowed.value,
             )
 
-            const { currentOffset: _tempOffset, missingChunks: nestedMissingChunks } = renderGroups(ctx, {
+            const {
+              currentOffset: _tempOffset,
+              missingChunks: nestedMissingChunks,
+              postRenderCbk,
+            } = renderGroups(ctx, {
               level: level + 1,
               yOffset: nestedContentStart + GROUP_PADDING,
               pGroup: group,
@@ -2222,6 +2232,7 @@ export function useCanvasRender({
               gHeight: 0,
               _isStartGroup: isStartGroup,
             })
+            postRenderCbks.push(postRenderCbk)
 
             tempCurrentOffset = _tempOffset
 
@@ -2438,6 +2449,7 @@ export function useCanvasRender({
     return {
       currentOffset,
       missingChunks,
+      postRenderCbk: () => postRenderCbks.map((p) => p?.()),
     }
   }
 
@@ -2562,7 +2574,7 @@ export function useCanvasRender({
     let activeState
 
     elementMap.clear()
-
+    let postRenderCbk
     if (!groupByColumns.value?.length) {
       activeState = renderRows(ctx)
     } else {
@@ -2581,12 +2593,13 @@ export function useCanvasRender({
         isAddingEmptyRowAllowed.value,
       )
 
-      const { missingChunks } = renderGroups(ctx, {
+      const { missingChunks, postRenderCbk: _postRenderCbk } = renderGroups(ctx, {
         level: 0,
         yOffset: startGroupYOffset,
         startIndex,
         endIndex,
       })
+      postRenderCbk = _postRenderCbk
 
       if (missingChunks.length) {
         const minIndex = Math.min(...missingChunks)
@@ -2600,6 +2613,13 @@ export function useCanvasRender({
     renderColumnDragIndicator(ctx)
     renderRowDragPreview(ctx, draggedRowGroupPath.value)
     renderAggregations(ctx)
+
+    // render the active cell state and clip the header and aggregation footer areas
+    ctx.beginPath()
+    ctx.rect(0, COLUMN_HEADER_HEIGHT_IN_PX, totalWidth.value, height.value - COLUMN_HEADER_HEIGHT_IN_PX - AGGREGATION_HEIGHT)
+    ctx.clip()
+    postRenderCbk?.()
+    ctx.restore()
   }
 
   return {

@@ -148,7 +148,12 @@ const { generateRows, generatingRows, generatingColumnRows, generatingColumns, a
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { showRecordPlanLimitExceededModal, blockExternalSourceRecordVisibility, showAsBluredRecord } = useEeConfig()
+const {
+  showRecordPlanLimitExceededModal,
+  blockExternalSourceRecordVisibility,
+  showAsBluredRecord,
+  showUpgradeToSeeMoreRecordsModal,
+} = useEeConfig()
 
 const tableBodyEl = ref<HTMLElement>()
 
@@ -159,8 +164,6 @@ const fillHandle = ref<HTMLElement>()
 const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta.value)
 
 const resizingColumn = ref(false)
-
-const isVisibleShowUpgrade = ref(false)
 
 const isPlaywright = computed(() => ncIsPlaywright())
 
@@ -328,6 +331,8 @@ const topOffset = computed(() => {
 let debounceTimeout: any = null // To store the debounced timeout
 const debounceDelay = 50 // Delay in ms after the last scroll event
 
+const isAlreadyShownUpgradeModal = ref(false)
+
 const updateVisibleRows = async (fromCalculateSlice = false) => {
   const { start, end } = rowSlice
 
@@ -336,14 +341,19 @@ const updateVisibleRows = async (fromCalculateSlice = false) => {
 
   const chunksToFetch = new Set<number>()
 
-  if (blockExternalSourceRecordVisibility(isExternalSource.value) && firstChunkId >= 2) {
-    isVisibleShowUpgrade.value = true
+  if (
+    !isAlreadyShownUpgradeModal.value &&
+    firstChunkId >= 2 &&
+    showUpgradeToSeeMoreRecordsModal({
+      isExternalSource: isExternalSource.value,
+      callback: () => {
+        isAlreadyShownUpgradeModal.value = true
+      },
+    })
+  ) {
+    isAlreadyShownUpgradeModal.value = true
     return
   }
-
-  isVisibleShowUpgrade.value = false
-
-  console.log('load more')
 
   // Collect chunks that need to be fetched (i.e., chunks that are not loaded yet)
   for (let chunkId = firstChunkId; chunkId <= lastChunkId; chunkId++) {
@@ -3048,12 +3058,6 @@ const cellAlignClass = computed(() => {
         </template>
       </NcDropdown>
     </div>
-
-    <NcModalConfirm
-      v-model:visible="isVisibleShowUpgrade"
-      title="Upgrade to unlock full data access"
-      content="Unlock complete visibility into your connected sources. View all records by upgrading to the Team plan."
-    ></NcModalConfirm>
 
     <div class="absolute bottom-12 z-5 left-2" @click.stop>
       <NcDropdown v-if="isAddingEmptyRowAllowed">

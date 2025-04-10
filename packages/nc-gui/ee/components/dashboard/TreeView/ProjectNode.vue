@@ -1011,7 +1011,8 @@ const onClickMenu = (e: { key?: string }) => {
                             class="flex flex-row items-center gap-x-0.25"
                           >
                             <LazyPaymentUpgradeBadge
-                              :content="$t('upgrade.upgradeToSeeMoreRecord')"
+                              :title="$t('upgrade.upgradeToSeeMoreRecord')"
+                              :content="$t('upgrade.upgradeToSeeMoreRecordSubtitle')"
                               class="-my-1 mx-0.5 nc-sidebar-node-btn nc-sidebar-upgrade-badge"
                               :class="{
                                 'nc-sidebar-option-open': isBasesOptionsOpen[source!.id!]
@@ -1227,7 +1228,7 @@ const onClickMenu = (e: { key?: string }) => {
     @apply -mr-6;
 
     &.nc-sidebar-option-open {
-      @apply mr-0;
+      @apply mr-0.5;
     }
   }
 
@@ -1238,7 +1239,7 @@ const onClickMenu = (e: { key?: string }) => {
       }
 
       &.nc-sidebar-upgrade-badge {
-        @apply mr-0;
+        @apply mr-0.5;
       }
 
       &:not(.nc-sidebar-expand) {

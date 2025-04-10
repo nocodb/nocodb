@@ -490,6 +490,23 @@ export const useEeConfig = createSharedComposable(() => {
     return blockExternalSourceRecordVisibility(isExternalSource) && rowIndex > 100
   }
 
+  const showUpgradeToSeeMoreRecordsModal = ({
+    isExternalSource,
+    callback,
+  }: { isExternalSource?: boolean; callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockExternalSourceRecordVisibility(isExternalSource)) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToSeeMoreRecord'),
+      content: t('upgrade.upgradeToSeeMoreRecordSubtitle'),
+      callback,
+      maskClosable: false,
+      keyboard: false,
+    })
+
+    return true
+  }
+
   return {
     isWsOwner,
     getLimit,
@@ -521,5 +538,6 @@ export const useEeConfig = createSharedComposable(() => {
     showWebhookLogsFeatureAccessModal,
     blockExternalSourceRecordVisibility,
     showAsBluredRecord,
+    showUpgradeToSeeMoreRecordsModal,
   }
 })

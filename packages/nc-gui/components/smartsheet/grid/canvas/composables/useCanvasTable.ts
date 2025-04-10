@@ -11,7 +11,6 @@ import { useGridCellHandler } from '../cells'
 import { TableMetaLoader } from '../loaders/TableMetaLoader'
 import type { CanvasGridColumn } from '../../../../../lib/types'
 import { CanvasElement } from '../utils/CanvasElement'
-import { useInfiniteGroups } from '../../../../../composables/useInfiniteGroups'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
@@ -118,7 +117,13 @@ export function useCanvasTable({
     undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
-  addEmptyRow: (addAfter?: number, skipUpdate?: boolean, path?: Array<number>) => Row | undefined
+  addEmptyRow: (
+    addAfter?: number,
+    skipUpdate?: boolean,
+    before?: string,
+    overwrite?: Record<string, any>,
+    path?: Array<number>,
+  ) => Row | undefined
   onActiveCellChanged: () => void
   addNewColumn: () => void
   setCursor: SetCursorType
@@ -187,7 +192,6 @@ export function useCanvasTable({
     isPkAvail: isPrimaryKeyAvailable,
     view,
     isSqlView,
-    xWhere,
   } = useSmartsheetStoreOrThrow()
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
@@ -216,7 +220,7 @@ export function useCanvasTable({
   const { loadAutomation } = automationStore
   const actionManager = new ActionManager($api, loadAutomation, generateRows, meta, cachedRows, triggerRefreshCanvas)
 
-  const isGroupBy = computed(() => groupByColumns.value?.length)
+  const isGroupBy = computed(() => !!groupByColumns.value?.length)
 
   const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some((col) => isOrderCol(col)))
 
@@ -893,7 +897,6 @@ export function useCanvasTable({
 
   useKeyboardNavigation({
     activeCell,
-    totalRows,
     triggerReRender: triggerRefreshCanvas,
     columns,
     scrollToCell,
@@ -906,7 +909,6 @@ export function useCanvasTable({
     clearCell,
     clearSelectedRangeOfCells,
     makeCellEditable,
-    cachedRows,
     expandForm,
     isAddingEmptyRowAllowed,
     addEmptyRow,

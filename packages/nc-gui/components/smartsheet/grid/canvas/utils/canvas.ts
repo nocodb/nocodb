@@ -1128,6 +1128,7 @@ export const renderTagLabel = (
   const { x, y, height, width, padding, textColor = '#4a5268', mousePosition, spriteLoader, text, renderAsMarkdown } = props
   const {
     tagPaddingX = 8,
+    tagPaddingY = 0,
     tagHeight = 20,
     tagRadius = 6,
     tagBgColor = '#f4f4f0',
@@ -1156,10 +1157,10 @@ export const renderTagLabel = (
   if (renderAsMarkdown) {
     const { width: textWidth } = renderMarkdown(ctx, {
       x: x + tagSpacing + tagPaddingX,
-      y: initialY,
+      y: initialY + tagPaddingY,
       text,
       maxWidth,
-      height: tagHeight,
+      height: tagHeight - tagPaddingY * 2,
       fontFamily: '500 13px Manrope',
       fillStyle: textColor,
       isTagLabel: true,
@@ -1173,10 +1174,10 @@ export const renderTagLabel = (
 
     renderMarkdown(ctx, {
       x: x + tagSpacing + tagPaddingX,
-      y: initialY,
+      y: initialY + tagPaddingY,
       text,
       maxWidth,
-      height: tagHeight,
+      height: tagHeight - tagPaddingY * 2,
       fontFamily: '500 13px Manrope',
       fillStyle: textColor,
       isTagLabel: true,
@@ -1203,10 +1204,10 @@ export const renderTagLabel = (
 
     renderSingleLineText(ctx, {
       x: x + tagSpacing + tagPaddingX,
-      y: initialY,
+      y: initialY + tagPaddingY,
       text: truncatedText,
       maxWidth,
-      height: tagHeight,
+      height: tagHeight - tagPaddingY * 2,
       fontFamily: '500 13px Manrope',
       fillStyle: textColor,
       isTagLabel: true,

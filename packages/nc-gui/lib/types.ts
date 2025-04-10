@@ -429,6 +429,8 @@ interface CellRendererOptions {
   formula?: boolean
   isPublic?: boolean
   path?: Array<number>
+  renderAsPlainCell?: boolean
+  fontFamily?: string
 }
 
 interface CellRenderStore {

@@ -35,6 +35,7 @@ import { LtarCellRenderer } from './LTAR'
 import { FormulaCellRenderer } from './Formula'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
 import { NullCellRenderer } from './Null'
+import { PlainCellRenderer } from './Plain'
 
 const CLEANUP_INTERVAL = 1000
 
@@ -165,8 +166,10 @@ export function useGridCellHandler(params: {
       pk,
       meta = params.meta?.value,
       skipRender = false,
+      renderAsPlainCell = false,
       isUnderLookup = false,
       path = [],
+      fontFamily,
     }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
@@ -187,7 +190,10 @@ export function useGridCellHandler(params: {
 
     let cellRenderer: CellRenderFn
     const shouldRenderNull = showNull.value && isShowNullField(column) && (ncIsUndefined(value) || ncIsNull(value))
-    if (cellType) {
+
+    if (renderAsPlainCell) {
+      cellRenderer = PlainCellRenderer.render
+    } else if (cellType) {
       if (!shouldRenderNull) {
         cellRenderer = cellType.render
       } else {
@@ -200,6 +206,7 @@ export function useGridCellHandler(params: {
     } else if (shouldRenderNull) {
       cellRenderer = NullCellRenderer.render
     }
+
     if (cellRenderer!) {
       return cellRenderer(ctx, {
         value,
@@ -241,6 +248,7 @@ export function useGridCellHandler(params: {
         isUnderLookup,
         isPublic: isPublic.value,
         path,
+        fontFamily,
       })
     } else {
       return renderSingleLineText(ctx, {

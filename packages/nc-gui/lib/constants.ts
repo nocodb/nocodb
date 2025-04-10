@@ -15,7 +15,7 @@ export const GROUP_BY_VARS = {
   TRUE: '__nc_true__',
   FALSE: '__nc_false__',
   VAR_TITLES: {
-    __nc_null__: 'Empty',
+    __nc_null__: '(Empty)',
     __nc_true__: 'Checked',
     __nc_false__: 'Unchecked',
   } as Record<string, string>,

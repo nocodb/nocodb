@@ -2461,7 +2461,7 @@ export function useCanvasRender({
         const countRender = renderSingleLineText(ctx, {
           text: `${group?.count ?? '-'}`,
           x: xOffset + mergedWidth - 12,
-          y: contentY + (group?.isExpanded && !group?.path ? 1 : 0),
+          y: contentY,
           height: GROUP_HEADER_HEIGHT,
           verticalAlign: 'middle',
           fontFamily: '600 12px Manrope',
@@ -2473,7 +2473,7 @@ export function useCanvasRender({
         const contentRender = renderSingleLineText(ctx, {
           text: 'Count',
           x: xOffset + mergedWidth - 12 - countWidth - 8,
-          y: contentY + (group?.isExpanded && !group?.path ? 1 : 0),
+          y: contentY,
           height: GROUP_HEADER_HEIGHT,
           verticalAlign: 'middle',
           textAlign: 'right',
@@ -2483,13 +2483,18 @@ export function useCanvasRender({
 
         contentWidth = contentRender.width
 
+        ctx.save()
+
+        ctx.letterSpacing = '1px'
         renderSingleLineText(ctx, {
           text: (group?.column?.title ?? '').toUpperCase(),
           fillStyle: '#4A5268',
           x: contentX,
           fontFamily: '600 10px Manrope',
-          y: groupHeaderY - 2,
+          y: groupHeaderY,
         })
+
+        ctx.restore()
 
         renderGroupContent(ctx, group, contentX, contentY + 26, availableWidth - contentWidth - 20 - countWidth, i)
 
@@ -2511,14 +2516,14 @@ export function useCanvasRender({
     x: number,
     y: number,
     maxWidth: number,
-    groupIdx,
+    groupIdx: number,
   ) {
     if (!group) {
       drawShimmerEffect(ctx, x - 11, y - GROUP_HEADER_HEIGHT / 2 + 2, maxWidth, groupIdx)
       return
     }
 
-    if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(group?.column?.uidt)) {
+    if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(group?.column?.uidt) && !(group.value in GROUP_BY_VARS.VAR_TITLES)) {
       const tags = group.value.split(',')
       const colors = group.color.split(',')
       let xPosition = x
@@ -2534,7 +2539,7 @@ export function useCanvasRender({
           size: 'large',
         })
           ? '#fff'
-          : tinycolor.mostReadable(color, ['#374151', '#fff']).toHex8String()
+          : tinycolor.mostReadable(color, ['#1f293a', '#fff']).toHex8String()
 
         ctx.save()
         ctx.font = '700 13px Manrope'
@@ -2558,16 +2563,16 @@ export function useCanvasRender({
 
         const { x: newX } = renderTagLabel(ctx, {
           x: xPosition,
-          y: y - 12,
-          height: 24,
+          y: y - 10,
+          height: 22,
           width: remainingWidth,
           padding: 0,
           textColor,
           text: displayText || '',
           tag: {
             tagPaddingX: 12,
-            tagPaddingY: 4,
-            tagHeight: 26,
+            tagPaddingY: 2,
+            tagHeight: 22,
             tagRadius: 12,
             tagBgColor: color,
             tagSpacing: 0,
@@ -2599,35 +2604,20 @@ export function useCanvasRender({
       const displayText =
         group.value in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[group.value] : parseKey(group)?.join(', ')
 
-      const textColor = tinycolor.isReadable(group.color || '#ccc', '#fff', {
-        level: 'AA',
-        size: 'large',
-      })
-        ? '#fff'
-        : tinycolor.mostReadable(group.color || '#ccc', ['#0b1d05', '#fff']).toHex8String()
-
-      renderTagLabel(ctx, {
-        x,
-        y: y - 11,
-        height: 20,
-        width: maxWidth,
-        padding: 0,
-        textColor,
+      renderSingleLineText(ctx, {
         text: displayText,
-        tag: {
-          tagPaddingX: 12,
-          tagPaddingY: 4,
-          tagHeight: 26,
-          tagRadius: 12,
-          tagSpacing: 0,
-          tagBgColor: group.color || '#ccc',
-        },
-      } as any)
+        fillStyle: '#6A7184',
+        fontFamily: '700 13px Manrope',
+        x,
+        y: y - GROUP_HEADER_HEIGHT / 2 + 10,
+        height: 20,
+        maxWidth,
+      })
     } else {
       renderCell(ctx, group.column, {
         value: group.value,
         x: x - 11,
-        y: y - GROUP_HEADER_HEIGHT / 2 + 12,
+        y: y - 14,
         width: maxWidth,
         height: rowHeight.value,
         row: {},
@@ -2635,7 +2625,7 @@ export function useCanvasRender({
         pv: false,
         spriteLoader,
         readonly: true,
-        textColor: '#374151',
+        textColor: '#1f293a', // gray-800
         imageLoader,
         tableMetaLoader,
         relatedColObj: group.relatedColumn,

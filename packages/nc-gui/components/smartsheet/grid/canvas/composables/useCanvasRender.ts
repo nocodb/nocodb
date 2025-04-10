@@ -1928,6 +1928,7 @@ export function useCanvasRender({
         level,
         height: rowHeight.value,
         path: group.nestedIn,
+        rowIndex: i,
         row,
         type: ElementTypes.ROW,
       })

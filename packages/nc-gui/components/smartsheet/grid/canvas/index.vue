@@ -1735,9 +1735,9 @@ async function addEmptyRow(row?: number, skipUpdate = false, before?: string, ov
   requestAnimationFrame(triggerRefreshCanvas)
 
   nextTick().then(() => {
-    activeCell.value = { row: row ?? totalRows.value - 1, column: contextMenuTarget.value?.col ?? 1, path }
-    selection.value.startRange({ row: row ?? totalRows.value - 1, col: contextMenuTarget.value?.col ?? 1 })
-    selection.value.endRange({ row: row ?? totalRows.value - 1, col: contextMenuTarget.value?.col ?? 1 })
+    activeCell.value = { row: row ?? dataCache.totalRows.value - 1, column: contextMenuTarget.value?.col ?? 1, path }
+    selection.value.startRange({ row: row ?? dataCache.totalRows.value - 1, col: contextMenuTarget.value?.col ?? 1 })
+    selection.value.endRange({ row: row ?? dataCache.totalRows.value - 1, col: contextMenuTarget.value?.col ?? 1 })
     scrollToCell()
   })
 

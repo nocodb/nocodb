@@ -1,5 +1,6 @@
 import { type ColumnType, type LinkToAnotherRecordType, type TableType, UITypes, type ViewType } from 'nocodb-sdk'
 import type { CanvasGroup } from '../../../../../lib/types'
+import { generateGroupPath } from '../utils/groupby'
 
 const GROUP_CHUNK_SIZE = 100
 const MAX_GROUP_CACHE_SIZE = 100
@@ -89,7 +90,10 @@ export const useInfiniteGroups = (
       for (const item of response.list) {
         const index: number = response.list.indexOf(item)
         const value = valueToTitle(item[groupCol.column.title!], groupCol.column)
+        const groupIndex = offset + index
+
         const group: CanvasGroup = {
+          groupIndex,
           column: groupCol.column,
           groups: new Map(),
           chunkStates: [],
@@ -107,6 +111,7 @@ export const useInfiniteGroups = (
                   column_name: groupCol.column.title!,
                   key: value,
                   column_uidt: groupCol.column.uidt,
+                  groupIndex,
                 },
               ]
             : [
@@ -115,6 +120,7 @@ export const useInfiniteGroups = (
                   column_name: groupCol.column.title!,
                   key: value,
                   column_uidt: groupCol.column.uidt,
+                  groupIndex,
                 },
               ],
         }
@@ -130,6 +136,8 @@ export const useInfiniteGroups = (
           group.displayValueProp = col?.title
         }
 
+        const groupPath = generateGroupPath(group)
+
         // Create useInfiniteData for leaf groups
         if (level === groupByColumns.value.length - 1) {
           group.infiniteData = useInfiniteData({
@@ -139,10 +147,10 @@ export const useInfiniteGroups = (
             callbacks: {},
             isPublic,
             disableInjection: true,
+            groupPath,
           })
         }
 
-        const groupIndex = offset + index
         if (parentGroup) {
           parentGroup.groups.set(groupIndex, group)
         } else {

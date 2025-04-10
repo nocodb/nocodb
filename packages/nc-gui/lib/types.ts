@@ -94,6 +94,7 @@ interface Row {
       message: string
       progress: number
     }
+    groupPath?: Array<number> | null
 
     new?: boolean
     selected?: boolean
@@ -230,6 +231,7 @@ interface GroupNestedIn {
   column_name: string
   key: string
   column_uidt: string
+  groupIndex?: number
 }
 
 interface Users {
@@ -585,6 +587,7 @@ type CanvasEditEnabledType = {
 type CanvasCellEventDataInjType = ExtractInjectedReactive<typeof CanvasCellEventDataInj>
 
 interface CanvasGroup {
+  groupIndex?: number
   column: ColumnType
   groups: Map<number, CanvasGroup>
   chunkStates: Array<'loading' | 'loaded' | undefined>

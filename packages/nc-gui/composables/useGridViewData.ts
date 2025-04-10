@@ -21,6 +21,7 @@ export function useGridViewData(
 ) {
   const tablesStore = useTablesStore()
   const { activeTable } = storeToRefs(tablesStore)
+  const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
   const meta = computed(() => _meta.value || activeTable.value)
 
@@ -546,7 +547,7 @@ export function useGridViewData(
 
     applySorting(rows)
     syncVisibleData()
-
+    reloadViewDataHook?.trigger()
     isBulkOperationInProgress.value = false
   }
 
@@ -714,7 +715,7 @@ export function useGridViewData(
           scope: defineViewScope({ view: viewMeta.value }),
         })
       }
-
+      reloadViewDataHook?.trigger()
       syncVisibleData()
       await syncCount(path)
     } catch (error: any) {

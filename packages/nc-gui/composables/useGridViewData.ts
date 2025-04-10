@@ -167,7 +167,7 @@ export function useGridViewData(
     }
   }
 
-  reloadAggregate?.on((v) => {
+  reloadAggregate?.on((v: Record<string, any> = {}) => {
     const { path, fields } = v
     if (!path?.length && isGroupBy.value) {
       const allGroups: CanvasGroup[] = []

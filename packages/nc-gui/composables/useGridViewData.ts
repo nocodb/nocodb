@@ -773,7 +773,7 @@ export function useGridViewData(
     const indices = new Set<number>()
     for (const [_, row] of newCachedRows) {
       if (indices.has(row.rowMeta.rowIndex)) {
-        console.error(`Op: updateCacheAfterDelete:  Duplicate index detected:`, row.rowMeta.rowIndex)
+        console.error(`Op: updateCacheAfterDelete: Duplicate index detected:`, row.rowMeta.rowIndex)
         break
       }
       indices.add(row.rowMeta.rowIndex)
@@ -797,13 +797,7 @@ export function useGridViewData(
     let rowsToDelete: Record<string, any>[] = []
     let compositePrimaryKey = ''
 
-    const uncachedRows = Array.from({ length: end - start + 1 }, (_, i) => start + i).filter(
-      (index) => !dataCache.cachedRows.value.has(index),
-    )
-
-    if (uncachedRows.length > 0) {
-      await fetchMissingChunks(uncachedRows[0], uncachedRows[uncachedRows.length - 1])
-    }
+    const rows = await getRows(start, end, path)
 
     for (let i = start; i <= end; i++) {
       const cachedRow = dataCache.cachedRows.value.get(i)

@@ -343,13 +343,6 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   )
 
   onMounted(async () => {
-    if (
-      !isUIAllowed('workspaceBilling', {
-        roles: user.value?.workspace_roles,
-      })
-    )
-      return
-
     try {
       stripe.value = (await loadStripe(
         'pk_test_51QhRouHU2WPCjTxw3ranXD6shPR0VbOjLflMfidsanV0m9mM0vZKQfYk3PserPAbnZAIJJhv701DV8FrwP6zJhaf00KYKhz11c',

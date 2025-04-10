@@ -96,7 +96,8 @@ onMounted(() => {
 
 // Since it is a datetime Week view, we need to create a 2D array of dayjs objects to represent the hours in a day for each day in the week
 const datesHours = computed(() => {
-  const start = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('week')
+  // startOf and endOf dayjs is bugged with timezone
+  const start = timezoneDayjs.dayjsTz(timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('week').toISOString())
   return Array.from({ length: maxVisibleDays.value }, (_, i) =>
     Array.from({ length: 24 }, (_, h) => start.add(i, 'day').hour(h).minute(0).second(0)),
   )
@@ -199,8 +200,8 @@ const hasSlotForRecord = (
       endDate: columnToCol
         ? timezoneDayjs.timezonize(column.row[columnToCol.title!])
         : timezoneDayjs.timezonize(column.row[columnFromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
-      scheduleStart: timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day'),
-      scheduleEnd: timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('day'),
+      scheduleStart: timezoneDayjs.dayjsTz(timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day').toISOString()),
+      scheduleEnd: timezoneDayjs.dayjsTz(timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('day').toISOString()),
     })
 
     if (

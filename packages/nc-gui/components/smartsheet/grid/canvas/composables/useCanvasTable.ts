@@ -9,8 +9,9 @@ import {
   CELL_BOTTOM_BORDER_IN_PX,
   COLUMN_HEADER_HEIGHT_IN_PX,
   EDIT_INTERACTABLE,
-  GROUP_HEADER_HEIGHT, GROUP_PADDING,
-} from '../utils/constants';
+  GROUP_HEADER_HEIGHT,
+  GROUP_PADDING,
+} from '../utils/constants'
 import { ActionManager } from '../loaders/ActionManager'
 import { useGridCellHandler } from '../cells'
 import { TableMetaLoader } from '../loaders/TableMetaLoader'
@@ -206,7 +207,6 @@ export function useCanvasTable({
   const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
 
   const partialRowHeight = computed(() => scrollTop.value % rowHeight.value)
-
 
   const partialGroupHeight = computed(() => scrollTop.value % (GROUP_HEADER_HEIGHT + GROUP_PADDING))
 
@@ -1113,6 +1113,8 @@ export function useCanvasTable({
     groupByColumns,
     groupChunkStates,
     cachedGroups,
+    partialGroupHeight,
+    toggleExpand,
 
     makeCellEditable,
     // Handler

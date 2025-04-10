@@ -426,6 +426,7 @@ interface CellRendererOptions {
   baseUsers?: (Partial<UserType> | Partial<User>)[]
   formula?: boolean
   isPublic?: boolean
+  path?: Array<number>
 }
 
 interface CellRenderStore {
@@ -459,6 +460,7 @@ interface CellRenderer {
     column: CanvasGridColumn
     row: Row
     pk: any
+    path: Array<number>
     readonly: boolean
     isDoubleClick: boolean
     getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number; height: number; x: number; y: number }
@@ -485,6 +487,7 @@ interface CellRenderer {
     value: any
     pk: any
     readonly: boolean
+    path: Array<number>
     updateOrSaveRow: (
       row: Row,
       property?: string,
@@ -518,6 +521,7 @@ interface CellRenderer {
     imageLoader: ImageWindowLoader
     cellRenderStore: CellRenderStore
     setCursor: SetCursorType
+    path: Array<number>
   }) => Promise<void>
   [key: string]: any
 }

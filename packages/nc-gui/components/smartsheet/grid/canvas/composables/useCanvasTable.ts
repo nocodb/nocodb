@@ -220,7 +220,7 @@ export function useCanvasTable({
   const readOnly = inject(ReadonlyInj, ref(false))
 
   const { loadAutomation } = automationStore
-  const actionManager = new ActionManager($api, loadAutomation, generateRows, meta, cachedRows, triggerRefreshCanvas)
+  const actionManager = new ActionManager($api, loadAutomation, generateRows, meta, triggerRefreshCanvas, getDataCache)
 
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
 
@@ -511,9 +511,11 @@ export function useCanvasTable({
     return { column: null, xOffset }
   }
 
-  function getCellPosition(targetColumn: CanvasGridColumn, rowIndex: number) {
-    const yOffset = rowIndex * rowHeight.value - scrollTop.value + COLUMN_HEADER_HEIGHT_IN_PX + CELL_BOTTOM_BORDER_IN_PX
-
+  function getCellPosition(targetColumn: CanvasGridColumn, rowIndex: number, path: Array<number> = []) {
+    const yOffset =
+      calculateGroupRowTop(cachedGroups.value, path, rowIndex, rowHeight.value, isAddingEmptyRowAllowed.value) -
+      scrollTop.value +
+      COLUMN_HEADER_HEIGHT_IN_PX
     if (targetColumn.fixed) {
       let xOffset = 0
       for (let i = 0; i < columns.value.length; i++) {

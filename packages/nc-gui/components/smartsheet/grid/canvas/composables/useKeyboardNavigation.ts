@@ -129,7 +129,7 @@ export function useKeyboardNavigation({
       if (row && column?.columnObj && !editEnabled.value) {
         const value = row.row[column.columnObj.title]
         const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
-        const res = await handleCellKeyDown({ e, column, row, pk, value })
+        const res = await handleCellKeyDown({ e, column, row, pk, value, path: groupPath })
 
         if (res) {
           return

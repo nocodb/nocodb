@@ -39,7 +39,11 @@ import { NullCellRenderer } from './Null'
 const CLEANUP_INTERVAL = 1000
 
 export function useGridCellHandler(params: {
-  getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { x: number; y: number; width: number; height: number }
+  getCellPosition: (
+    column: CanvasGridColumn,
+    rowIndex: number,
+    path: Array<number>,
+  ) => { x: number; y: number; width: number; height: number }
   actionManager: ActionManager
   makeCellEditable: (row: number | Row, clickedColumn: CanvasGridColumn) => void
   updateOrSaveRow: (
@@ -162,6 +166,7 @@ export function useGridCellHandler(params: {
       meta = params.meta?.value,
       skipRender = false,
       isUnderLookup = false,
+      path = [],
     }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
@@ -235,6 +240,7 @@ export function useGridCellHandler(params: {
         baseUsers: baseUsers.value,
         isUnderLookup,
         isPublic: isPublic.value,
+        path,
       })
     } else {
       return renderSingleLineText(ctx, {
@@ -259,6 +265,7 @@ export function useGridCellHandler(params: {
     pk: any
     selected: boolean
     imageLoader: ImageWindowLoader
+    path: Array<number>
   }) => {
     if (!ctx.column?.columnObj?.uidt) return
 
@@ -273,7 +280,7 @@ export function useGridCellHandler(params: {
         ...ctx,
         cellRenderStore,
         isDoubleClick: ctx.event.detail === 2,
-        getCellPosition: params?.getCellPosition,
+        getCellPosition: (...args) => params?.getCellPosition?.(...args, ctx.path),
         readonly: !params.hasEditPermission.value,
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
@@ -281,12 +288,20 @@ export function useGridCellHandler(params: {
         isPublic: isPublic.value,
         openDetachedExpandedForm,
         openDetachedLongText,
+        path: ctx.path ?? [],
       })
     }
     return false
   }
 
-  const handleCellKeyDown = async (ctx: { e: KeyboardEvent; row: Row; column: CanvasGridColumn; value: any; pk: any }) => {
+  const handleCellKeyDown = async (ctx: {
+    e: KeyboardEvent
+    row: Row
+    column: CanvasGridColumn
+    value: any
+    pk: any
+    path: Array<number>
+  }) => {
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj!.uidt!)
 
     const cellRenderStore = getCellRenderStore(`${ctx.column.id}-${ctx.pk}`)
@@ -301,6 +316,7 @@ export function useGridCellHandler(params: {
         actionManager,
         makeCellEditable,
         openDetachedLongText,
+        path: ctx.path ?? [],
       })
     } else {
       console.log('No handler found for cell type', ctx.column.columnObj.uidt)
@@ -329,7 +345,7 @@ export function useGridCellHandler(params: {
       return await cellHandler.handleHover({
         ...ctx,
         cellRenderStore,
-        getCellPosition: params?.getCellPosition,
+        getCellPosition: (...args) => params?.getCellPosition?.(...args, ctx.path),
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
         makeCellEditable,

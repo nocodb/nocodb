@@ -140,6 +140,7 @@ export const useInfiniteGroups = (
             where: computed(() => buildNestedWhere(group, where?.value)),
             callbacks: {},
             isPublic,
+            disableInjection: true
           })
         }
 

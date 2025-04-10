@@ -26,7 +26,7 @@ import {
   ROW_META_COLUMN_WIDTH,
 } from '../utils/constants'
 import { parseCellWidth } from '../utils/cell'
-import { calculateStartGroupIndex, getBackgroundColor } from '../utils/groupby'
+import { calculateGroupHeight, calculateGroupRange, getBackgroundColor } from '../utils/groupby'
 import { parseKey, shouldRenderCell } from '../../../../../utils/groupbyUtils'
 
 export function useCanvasRender({
@@ -1816,7 +1816,7 @@ export function useCanvasRender({
   function renderGroups(
     ctx: CanvasRenderingContext2D,
     {
-      level,
+      level = 0,
       yOffset,
       pGroup,
       startIndex,
@@ -1829,20 +1829,30 @@ export function useCanvasRender({
       endIndex: number
     },
   ): number {
-    if (!level) level = 0
     const groups = pGroup?.groups ?? cachedGroups.value
     const total = (pGroup ? pGroup.groupCount : totalGroups.value) ?? 0
 
     const fixedCols = columns.value.filter((col) => col.fixed)
-
     const rowNumberCol = fixedCols.find((col) => col.id === 'row_number')
     const firstFixedCol = fixedCols.find((col) => col.id !== 'row_number')
     const mergedWidth = parseCellWidth(rowNumberCol?.width) + parseCellWidth(firstFixedCol?.width)
+    // Track absolute position in virtual space
+    let currentOffset = yOffset
 
-    for (let i = startIndex; i <= endIndex && i < total && yOffset < height.value; i++) {
+    for (let i = startIndex; i <= endIndex && i < total; i++) {
       const group = groups.get(i)
-      if (!group || yOffset + GROUP_HEADER_HEIGHT < 0) {
-        yOffset += GROUP_HEADER_HEIGHT + GROUP_PADDING
+      if (!group) {
+        currentOffset += GROUP_HEADER_HEIGHT + GROUP_PADDING
+        continue
+      }
+
+      const groupHeaderY = currentOffset
+      const groupHeight = calculateGroupHeight(group, rowHeight.value) // From previous code
+      const groupBottom = groupHeaderY + groupHeight
+
+      // Check if group or its content is in viewport
+      if (groupBottom < 0 || groupHeaderY > height.value + scrollTop.value) {
+        currentOffset += groupHeight
         continue
       }
 
@@ -1852,134 +1862,129 @@ export function useCanvasRender({
         totalWidth.value - scrollLeft.value - 256 < width.value ? totalWidth.value - scrollLeft.value - 256 : width.value
 
       // Render group header
-      roundedRect(
-        ctx,
-        xOffset,
-        yOffset,
-        adjustedWidth,
-        GROUP_HEADER_HEIGHT,
-        group.isExpanded ? { topLeft: 8, topRight: 8, bottomLeft: 0, bottomRight: 0 } : 8,
-        { backgroundColor: bg, borderColor: '#D5D5D9' },
-      )
+      if (groupHeaderY >= -GROUP_HEADER_HEIGHT && groupHeaderY < height.value) {
+        roundedRect(
+          ctx,
+          xOffset,
+          groupHeaderY,
+          adjustedWidth,
+          GROUP_HEADER_HEIGHT,
+          group.isExpanded ? { topLeft: 8, topRight: 8, bottomLeft: 0, bottomRight: 0 } : 8,
+          { backgroundColor: bg, borderColor: '#D5D5D9' },
+        )
 
-      spriteLoader.renderIcon(ctx, {
-        icon: group.isExpanded ? 'ncChevronDown' : 'ncChevronRight',
-        size: 16,
-        color: '#374150',
-        x: xOffset + 12,
-        y: yOffset + (GROUP_HEADER_HEIGHT - 16) / 2,
-      })
-
-      const availableWidth = mergedWidth - (xOffset + 12 + 16) - 20
-      const contentX = xOffset + 36
-      const contentY = yOffset + GROUP_HEADER_HEIGHT / 2
-
-      const isMouseHoveringOverGroupHeader = isBoxHovered(
-        {
-          x: xOffset,
-          y: yOffset,
-          width: mergedWidth,
-          height: GROUP_HEADER_HEIGHT,
-        },
-        mousePosition,
-      )
-
-      let contentWidth = 0
-      let countWidth = 0
-
-      if (!isMouseHoveringOverGroupHeader) {
-        const countRender = renderSingleLineText(ctx, {
-          text: `${group.count}`,
-          x: xOffset + mergedWidth - 8,
-          y: yOffset + 7,
-          height: GROUP_HEADER_HEIGHT,
-          verticalAlign: 'middle',
-          fontSize: 12,
-          fillStyle: '#374151',
-          fontWeight: 'lighter',
-          textAlign: 'right',
+        spriteLoader.renderIcon(ctx, {
+          icon: group.isExpanded ? 'ncChevronDown' : 'ncChevronRight',
+          size: 16,
+          color: '#374150',
+          x: xOffset + 12,
+          y: groupHeaderY + (GROUP_HEADER_HEIGHT - 16) / 2,
         })
 
-        countWidth = countRender.width
+        const availableWidth = mergedWidth - (xOffset + 12 + 16) - 20
+        const contentX = xOffset + 36
+        const contentY = groupHeaderY + GROUP_HEADER_HEIGHT / 2
 
-        const contentRender = renderSingleLineText(ctx, {
-          text: 'Count',
-          x: xOffset + mergedWidth - 8 - countWidth - 4,
-          y: yOffset + 7,
-          fontSize: 12,
-          textAlign: 'right',
-          fillStyle: '#6A7184',
-          fontWeight: 'lighter',
-        })
-        contentWidth = contentRender.width
-      } else {
-        renderIconButton(ctx, {
-          icon: 'ncMoreVertical',
+        const isMouseHoveringOverGroupHeader = isBoxHovered(
+          { x: xOffset, y: groupHeaderY, width: mergedWidth, height: GROUP_HEADER_HEIGHT },
           mousePosition,
-          buttonSize: 32,
-          iconData: {
-            xOffset: 8,
-            yOffset: 8,
-          },
-          setCursor,
-          background: 'transparent',
-          borderColor: 'transparent',
-          borderRadius: 8,
-          buttonX: xOffset + mergedWidth - 8 - 32,
-          buttonY: yOffset + 6,
-          spriteLoader,
+        )
+
+        let contentWidth = 0
+        let countWidth = 0
+
+        if (!isMouseHoveringOverGroupHeader) {
+          const countRender = renderSingleLineText(ctx, {
+            text: `${group.count}`,
+            x: xOffset + mergedWidth - 8,
+            y: groupHeaderY + 7,
+            height: GROUP_HEADER_HEIGHT,
+            verticalAlign: 'middle',
+            fontSize: 12,
+            fillStyle: '#374151',
+            fontWeight: 'lighter',
+            textAlign: 'right',
+          })
+          countWidth = countRender.width
+
+          const contentRender = renderSingleLineText(ctx, {
+            text: 'Count',
+            x: xOffset + mergedWidth - 8 - countWidth - 4,
+            y: groupHeaderY + 7,
+            fontSize: 12,
+            textAlign: 'right',
+            fillStyle: '#6A7184',
+            fontWeight: 'lighter',
+          })
+          contentWidth = contentRender.width
+        } else {
+          renderIconButton(ctx, {
+            icon: 'ncMoreVertical',
+            mousePosition,
+            buttonSize: 32,
+            iconData: { xOffset: 8, yOffset: 8 },
+            setCursor,
+            background: 'transparent',
+            borderColor: 'transparent',
+            borderRadius: 8,
+            buttonX: xOffset + mergedWidth - 8 - 32,
+            buttonY: groupHeaderY + 6,
+            spriteLoader,
+          })
+          contentWidth = 32
+        }
+
+        drawStraightLine(ctx, {
+          startX: xOffset + mergedWidth,
+          endX: xOffset + mergedWidth,
+          startY: groupHeaderY,
+          endY: groupHeaderY + GROUP_HEADER_HEIGHT,
+          strokeStyle: '#D5D5D9',
         })
 
-        contentWidth = 32
+        if (scrollLeft.value) {
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
+          ctx.rect(xOffset + mergedWidth, groupHeaderY, 4, GROUP_HEADER_HEIGHT)
+          ctx.fill()
+        }
+
+        renderGroupContent(ctx, group, contentX, contentY + 6, availableWidth - contentWidth - 8 - countWidth)
       }
 
-      drawStraightLine(ctx, {
-        startX: xOffset + mergedWidth,
-        endX: xOffset + mergedWidth,
-        startY: yOffset,
-        endY: yOffset + GROUP_HEADER_HEIGHT,
-        strokeStyle: '#D5D5D9',
-      })
+      currentOffset += GROUP_HEADER_HEIGHT
 
-      if (scrollLeft.value) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
-        ctx.rect(xOffset + mergedWidth, yOffset, 4, GROUP_HEADER_HEIGHT)
-        ctx.fill()
-      }
-
-      renderGroupContent(ctx, group, contentX, contentY + 6, availableWidth - contentWidth - 8 - countWidth)
-      yOffset += GROUP_HEADER_HEIGHT
       if (group.isExpanded) {
-        const visibleArea = scrollTop.value - yOffset
-
-        // For nested items, calculate what should be visible
         const itemHeight = group.infiniteData ? rowHeight.value : GROUP_HEADER_HEIGHT + GROUP_PADDING
+        const nestedContentStart = currentOffset
+        const nestedCount = group.infiniteData ? group.count : group.groupCount ?? 0
+        const nestedTotalHeight = nestedCount * itemHeight
 
-        // Calculate starting index based on how far we've scrolled past this group's header
+        const visibleArea = scrollTop.value - nestedContentStart
         const nestedStart = Math.max(0, Math.floor(visibleArea / itemHeight))
+        const visibleCount = Math.ceil(height.value / itemHeight) + 2 // +2 for partial items above/below
+        const nestedEnd = Math.min(nestedStart + visibleCount, nestedCount - 1)
 
-        // Calculate how many items can fit in the viewport
-        const visibleCount = Math.ceil(height.value / itemHeight) + 1 // +1 for partially visible items
+        console.log(nestedStart, nestedEnd)
 
-        // Calculate ending index, but don't exceed the total count
-        const nestedEnd = Math.min(nestedStart + visibleCount, group?.infiniteData ? group?.count : group?.groupCount) - 1
-
-        if (group.infiniteData) {
-          yOffset = renderGroupRows(ctx, group, yOffset, level + 1, nestedStart, nestedEnd)
-        } else if (group.groups.size > 0) {
-          // For nested group headers
-          yOffset = renderGroups(ctx, {
+        if (group.infiniteData && nestedEnd >= nestedStart) {
+          currentOffset = renderGroupRows(ctx, group, currentOffset, level + 1, nestedStart, nestedEnd)
+        } else if (group.groups?.size > 0 && nestedEnd >= nestedStart) {
+          currentOffset = renderGroups(ctx, {
             level: level + 1,
-            yOffset,
+            yOffset: currentOffset,
             pGroup: group,
             startIndex: nestedStart,
             endIndex: nestedEnd,
           })
+        } else {
+          currentOffset += nestedTotalHeight
         }
       }
-      yOffset += GROUP_PADDING
+
+      currentOffset += GROUP_PADDING
     }
-    return yOffset
+
+    return currentOffset
   }
 
   function renderGroupContent(ctx: CanvasRenderingContext2D, group: CanvasGroup, x: number, y: number, maxWidth: number) {
@@ -2110,13 +2115,19 @@ export function useCanvasRender({
       ctx.fillRect(0, 0, width.value, height.value)
       ctx.restore()
 
-      const startGroupIndex = calculateStartGroupIndex(cachedGroups.value, scrollTop.value, rowHeight.value, totalGroups.value)
+      const { startIndex, endIndex, partialGroupHeight } = calculateGroupRange(
+        cachedGroups.value,
+        scrollTop.value,
+        rowHeight.value,
+        totalGroups.value,
+        height.value,
+      )
 
       renderGroups(ctx, {
         level: 0,
-        yOffset: 32 + GROUP_PADDING,
-        startIndex: startGroupIndex,
-        endIndex: groupSlice.value.end,
+        yOffset: 32 + GROUP_PADDING - partialGroupHeight,
+        startIndex,
+        endIndex,
       })
     }
 

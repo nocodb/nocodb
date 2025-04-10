@@ -370,65 +370,68 @@ export function useCanvasRender({
       ctx.lineTo(xOffset + plusColumnWidth - scrollLeft.value, 32)
       ctx.stroke()
     }
-    const fillHandler = getFillHandlerPosition()
 
-    // The issue is the border gets drawn over the active state border.
-    // For quick hack, we skip rendering border over the y values of the active state to avoid the overlap.
-    if (
-      (activeState &&
-        xOffset - scrollLeft.value >= activeState.x &&
-        xOffset - scrollLeft.value <= activeState.x + activeState.width) ||
-      (fillHandler && xOffset - scrollLeft.value + 1 >= fillHandler.x && xOffset - scrollLeft.value - 1 <= fillHandler.x)
-    ) {
-      // Draw line above active state
-      ctx.strokeStyle = '#f4f4f5'
-      if (fillHandler && activeState?.y) {
-        ctx.beginPath()
-        ctx.moveTo(xOffset - scrollLeft.value, 32)
-        ctx.lineTo(xOffset - scrollLeft.value, activeState.y)
-        ctx.stroke()
-      }
+    if (!isGroupBy.value) {
+      const fillHandler = getFillHandlerPosition()
 
-      if (fillHandler) {
-        // draw line between active state and fill handler
-        if (!isFillMode.value && !selection.value.isSingleCell()) {
+      // The issue is the border gets drawn over the active state border.
+      // For quick hack, we skip rendering border over the y values of the active state to avoid the overlap.
+      if (
+        (activeState &&
+          xOffset - scrollLeft.value >= activeState.x &&
+          xOffset - scrollLeft.value <= activeState.x + activeState.width) ||
+        (fillHandler && xOffset - scrollLeft.value + 1 >= fillHandler.x && xOffset - scrollLeft.value - 1 <= fillHandler.x)
+      ) {
+        // Draw line above active state
+        ctx.strokeStyle = '#f4f4f5'
+        if (fillHandler && activeState?.y) {
           ctx.beginPath()
-
-          if (selection.value.start.col !== selection.value.end.col) {
-            ctx.moveTo(xOffset - scrollLeft.value, activeState ? activeState.y : 32)
-          } else {
-            let y = activeState ? activeState.y + activeState.height : 32
-
-            // Adjust y position if fill handler is in the same active cell and multiple rows are selected
-            if (y === fillHandler.y) y -= fillHandler.size / 2
-
-            ctx.moveTo(xOffset - scrollLeft.value, y)
-          }
-          ctx.lineTo(xOffset - scrollLeft.value, fillHandler.y - fillHandler.size / 2)
+          ctx.moveTo(xOffset - scrollLeft.value, 32)
+          ctx.lineTo(xOffset - scrollLeft.value, activeState.y)
           ctx.stroke()
         }
-        // Draw line below the fill handler
+
+        if (fillHandler) {
+          // draw line between active state and fill handler
+          if (!isFillMode.value && !selection.value.isSingleCell()) {
+            ctx.beginPath()
+
+            if (selection.value.start.col !== selection.value.end.col) {
+              ctx.moveTo(xOffset - scrollLeft.value, activeState ? activeState.y : 32)
+            } else {
+              let y = activeState ? activeState.y + activeState.height : 32
+
+              // Adjust y position if fill handler is in the same active cell and multiple rows are selected
+              if (y === fillHandler.y) y -= fillHandler.size / 2
+
+              ctx.moveTo(xOffset - scrollLeft.value, y)
+            }
+            ctx.lineTo(xOffset - scrollLeft.value, fillHandler.y - fillHandler.size / 2)
+            ctx.stroke()
+          }
+          // Draw line below the fill handler
+          ctx.beginPath()
+          ctx.moveTo(xOffset - scrollLeft.value, fillHandler.y + fillHandler.size / 2)
+          ctx.lineTo(xOffset - scrollLeft.value, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 32)
+          ctx.stroke()
+        } else if (activeState?.y && activeState?.height) {
+          // Draw line below active state
+          ctx.beginPath()
+          ctx.moveTo(xOffset - scrollLeft.value, activeState.y + activeState.height)
+          ctx.lineTo(xOffset - scrollLeft.value, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 32)
+          ctx.stroke()
+        }
+      } else if (visibleCols.filter((f) => !f.fixed).length) {
+        // Draw full line if not intersecting with active state
+        ctx.strokeStyle = '#f4f4f5'
         ctx.beginPath()
-        ctx.moveTo(xOffset - scrollLeft.value, fillHandler.y + fillHandler.size / 2)
-        ctx.lineTo(xOffset - scrollLeft.value, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 32)
-        ctx.stroke()
-      } else if (activeState?.y && activeState?.height) {
-        // Draw line below active state
-        ctx.beginPath()
-        ctx.moveTo(xOffset - scrollLeft.value, activeState.y + activeState.height)
-        ctx.lineTo(xOffset - scrollLeft.value, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 32)
+        ctx.moveTo(xOffset - scrollLeft.value, 32)
+        ctx.lineTo(
+          xOffset - scrollLeft.value,
+          (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 33 - partialRowHeight.value,
+        )
         ctx.stroke()
       }
-    } else if (visibleCols.filter((f) => !f.fixed).length) {
-      // Draw full line if not intersecting with active state
-      ctx.strokeStyle = '#f4f4f5'
-      ctx.beginPath()
-      ctx.moveTo(xOffset - scrollLeft.value, 32)
-      ctx.lineTo(
-        xOffset - scrollLeft.value,
-        (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 33 - partialRowHeight.value,
-      )
-      ctx.stroke()
     }
 
     // Fixed columns

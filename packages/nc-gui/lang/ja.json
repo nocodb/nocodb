@@ -92,6 +92,10 @@
     "attachment_size": "添付ファイルサイズ",
     "none": "なし"
   },
+  "upgrade": {
+    "UpgradeToCreateAdditionalSnapshots": "Upgrade to create additional snapshots",
+    "UpgradeToCreateAdditionalSnapshotsSubtitle": "The {activePlan} plan allows up to {n} snapshots. Upgrade to the {plan} plan and get access to additional snapshots."
+  },
   "general": {
     "supported": "サポートされている",
     "usage": "使用",
@@ -311,7 +315,19 @@
     "unread": "未読",
     "shared": "共有",
     "organization": "組織",
-    "all": "All"
+    "all": "All",
+    "billing": "Billing",
+    "choose": "Choose",
+    "plan": "Plan",
+    "plans": "Plans",
+    "monthly": "Monthly",
+    "annually": "Annually",
+    "yearly": "Yearly",
+    "paid": "Paid",
+    "total": "Total",
+    "downgrade": "Downgrade",
+    "upgrade": "Upgrade",
+    "reactivate": "Reactivate"
   },
   "objects": {
     "script": "スクリプト",
@@ -458,6 +474,28 @@
       "ai": "AI",
       "spreadSheet": "スプレッドシート",
       "spreadSheetSubtitle": "NocoDBでスプレッドシートを接続し、管理する。"
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
+    },
+    "paymentPlan": {
+      "Free": "Free",
+      "Team": "Team",
+      "Plus": "Plus",
+      "Business": "Business",
+      "Enterprise": "Enterprise"
+    },
+    "currentPlan": {
+      "nextInvoice": "Next Invoice",
+      "nextInvoiceAmount": "Next Invoice Amount",
+      "numberOfBilledUsers": "Number of Billed Users",
+      "numberOfBillableUsers": "Number of Billable Users",
+      "storageUsedGB": "Storage Used (GB)",
+      "webhookCallsMonthly": "Webhook calls (monthly)",
+      "apiCallsMonthly": "API calls (monthly)"
     }
   },
   "datatype": {
@@ -683,7 +721,21 @@
     "viewSettingsCantBeChangedWhenViewIs": "ビュー設定はビューが{type}の時には変更できません",
     "youAreLeavingNocoDB": "NocoDBを離れます",
     "onlyProceedIfYouTrustThisLink": "このリンクを信頼する場合のみ続行してください。",
-    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration.",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
+    "currentPlan": "Current Plan",
+    "editorMonth": "/editor/month",
+    "mostPopular": "Most Popular",
+    "helpAndSupport": "Help & Support",
+    "helpAndSupportSubtitle": "Visit our Support Center for detailed guides, customer service contact options, and a community forum for additional help.",
+    "faq": "FAQ",
+    "faqSubtitle": "Explore the FAQ section and get quick answers to common questions about our services, features, and troubleshooting. ",
+    "downgradeToPlan": "Downgrade to {plan} plan?",
+    "downgradeToPlanSubtitle": "You'll lose access to {activePlan} plan features that aren't available in the {plan} plan.",
+    "upgradeToPlan": "Upgrade to {plan} plan?",
+    "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
+    "reactivateToPlan": "Reactivate {plan} plan?"
   },
   "labels": {
     "restoringSnapshot": "Restoring Snapshot",
@@ -987,6 +1039,7 @@
     "csv": "CSV",
     "csvFile": "CSVファイル",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSONファイル",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1208,22 @@
     "fillForm": "フォームを入力",
     "proceedToLink": "リンクに進む",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON",
+    "airtableBase": "Airtable base",
+    "upgradePlan": "Upgrade Plan",
+    "viewAllPlanDetails": "View all plan details",
+    "contactSales": "Contact Sales",
+    "manageSubscription": "Manage Subscription",
+    "upgradeToPlan": "Upgrade To {plan}",
+    "applicableTax": "Applicable tax",
+    "annualSavings": "Annual Savings",
+    "compareAllFeatures": "Compare all features",
+    "planIncludes": "{plan} Includes:",
+    "everythingInPlanPlus": "Everything in {plan}, Plus:",
+    "downloadInvoice": "Download Invoice",
+    "proceed": "Proceed"
   },
   "activity": {
     "clickToResolve": "クリックして解決",
@@ -1425,6 +1493,7 @@
     "clearForm": "フォームをクリア",
     "addFieldFromFormView": "フィールドを追加",
     "selectAllFields": "すべてのフィールドを選択",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "入力を有効にする",
       "default": "デフォルト",
@@ -1437,7 +1506,9 @@
     "goToDocs": "ドキュメントに行く",
     "addCondition": "条件を追加",
     "addConditionGroup": "条件グループを追加",
-    "pending": "保留中"
+    "pending": "保留中",
+    "goToPage": "Go to Page",
+    "changePlan": "ChangePlan"
   },
   "tooltip": {
     "leaveWorkspace": "各ワークスペースには、少なくとも1人のオーナーが必要です。ワークスペースを離れる前に、他のユーザーを所有者として割り当ててください。あなたが最後のメンバーである場合は、代わりにワークスペースを削除することを検討してください。",
@@ -1492,7 +1563,9 @@
     "sourceDataIsReadonly": "ソースデータは読み取り専用です",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields",
+    "copyErrorCode": "Copy error code"
   },
   "placeholder": {
     "searchIcons": "アイコンを検索",
@@ -1704,7 +1777,10 @@
         "fieldVisibility": "編集中のフィールドの可視性を変更できません。まず変更を保存するか、破棄してください。",
         "moveEditedField": "編集中のフィールドを移動できません。最初に変更を保存するか破棄してください",
         "moveDeletedField": "削除済みのフィールドを移動できません。最初に変更を保存するか破棄してください"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "招待を正常に送信しました",
@@ -2005,7 +2081,13 @@
       "columnVisibilityUpdateFailed": "フィールドの表示を更新できませんでした",
       "unsupportedCharacter": "対応していない文字: {char}",
       "unsupportedCharacters": "サポートされていない文字: {char}",
-      "notSupported": "サポートされていません"
+      "notSupported": "サポートされていません",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error",
+      "anErrorOccuredWhileImporting": "An error occurred while {type}",
+      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable",
+      "paymentFailed": "Payment Failed",
+      "paymentFailedSubtitle": "Something went wrong while processing your payment. Please try again or contact support."
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",
@@ -2055,6 +2137,8 @@
       "embeddableHTMLCodeCopied": "埋め込み用 HTML をコピーしました",
       "userDetailsUpdated": "ユーザーの詳細を更新しました",
       "tableDataImported": "テーブルへデータをインポートしました",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook の詳細を更新しました",
       "webhookDeleted": "フックの削除に成功",
       "webhookTested": "Webhook のテストに成功しました",
@@ -2064,7 +2148,9 @@
       "settingsSaved": "設定を保存しました",
       "roleUpdated": "ロールを更新しました",
       "connectionAdded": "統合が正常に接続されました",
-      "connectionAddedDesc": "ベース所有者と作成者は、資格情報を再入力せずにデータソースを追加できるようになりました。"
+      "connectionAddedDesc": "ベース所有者と作成者は、資格情報を再入力せずにデータソースを追加できるようになりました。",
+      "paymentSuccessful": "Payment Successful",
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "ゼロから作成。",

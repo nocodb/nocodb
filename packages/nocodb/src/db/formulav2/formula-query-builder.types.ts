@@ -9,17 +9,16 @@ import type {
   ParsedFormulaNode,
   UnaryExpressionNode,
 } from 'nocodb-sdk';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { BaseUser, Column, Model, User } from '~/models';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 
 export interface FormulaBaseParams {
-  baseModelSqlv2: BaseModelSqlv2;
-  alias?: string;
+  baseModelSqlv2: IBaseModelSqlV2;
   tableAlias?: string;
   baseUsers?: (Partial<User> & BaseUser)[];
 }
 
-export type TAliasToClumn = Record<
+export type TAliasToColumn = Record<
   string,
   (parentColumns?: Set<string>) => Promise<{ builder: any }>
 >;
@@ -27,10 +26,11 @@ export type TAliasToClumn = Record<
 export interface FormulaQueryBuilderBaseParams extends FormulaBaseParams {
   _tree;
   model: Model;
-  aliasToColumn?: TAliasToClumn;
+  aliasToColumn?: TAliasToColumn;
   parsedTree?: ParsedFormulaNode;
   column?: Column;
   parentColumns: Set<string>;
+  getAliasCount: () => number;
 }
 export type FnParsedTreeBase = {
   fnName?: string;

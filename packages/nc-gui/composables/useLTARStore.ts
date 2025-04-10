@@ -44,6 +44,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const activeView = inject(ActiveViewInj, ref())
     const isForm = inject(IsFormInj, ref(false))
 
+    const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
+    const path = inject(GroupPathInj, ref([]))
+
+    // In canvas _reloadData will not work as we unmount editable component so on undo/redo we have to manually trigger view reload
+    const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
+
     const { addUndo, clone, defineViewScope } = useUndoRedo()
 
     const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
@@ -319,15 +326,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           childrenExcludedListPagination.page = 1
         }
         isChildrenExcludedLoading.value = true
-        const filterArrJson = childrenExcludedListPagination.query
-          ? JSON.stringify([
-              {
-                fk_column_id: relatedTableDisplayValuePropId.value,
-                value: childrenExcludedListPagination.query,
-                comparison_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq' : 'like',
-                comparison_sub_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'exactDate' : undefined,
-              },
-            ])
+        const where = childrenExcludedListPagination.query
+          ? `(${relatedTableDisplayValueProp.value},${
+              isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq,exactDate' : 'like'
+            },${childrenExcludedListPagination.query})`
           : undefined
 
         if (isPublic.value) {
@@ -354,7 +356,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               query: {
                 limit: childrenExcludedListPagination.size,
                 offset,
-                filterArrJson,
+                where,
                 fields: requiredFieldsToLoad.value,
                 // todo: include only required fields
                 rowData: JSON.stringify(row),
@@ -373,7 +375,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             {
               limit: childrenExcludedListPagination.size,
               offset,
-              filterArrJson,
+              where,
               // todo: include only required fields
               linkColumnId: column.value.fk_column_id || column.value.id,
               linkRowData: JSON.stringify(linkRowData),
@@ -407,7 +409,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             {
               limit: String(childrenExcludedListPagination.size),
               offset: String(offset),
-              filterArrJson,
+              where,
               linkRowData: changedRowData ? JSON.stringify(changedRowData) : undefined,
             } as any,
           )
@@ -496,14 +498,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           let where: string | undefined
 
           if (childrenListPagination.query) {
-            where = JSON.stringify([
-              {
-                fk_column_id: relatedTableDisplayValuePropId.value,
-                value: childrenListPagination.query,
-                comparison_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq' : 'like',
-                comparison_sub_op: isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'exactDate' : undefined,
-              },
-            ])
+            where = childrenListPagination.query
+              ? `(${relatedTableDisplayValueProp.value},${
+                  isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq,exactDate' : 'like'
+                },${childrenListPagination.query})`
+              : undefined
           }
 
           if (isPublic.value) {
@@ -578,7 +577,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               return false
             }
 
-            _reloadData?.({ shouldShowLoading: false })
+            _reloadData?.({ shouldShowLoading: false, path: path.value })
 
             /** reload child list if not a new row */
             if (!isNewRow?.value) {
@@ -657,7 +656,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenListLoading.value[index] = false
       }
 
-      _reloadData?.({ shouldShowLoading: false })
+      _reloadData?.({ shouldShowLoading: false, path: path.value })
+
+      if (undo && isCanvasInjected) {
+        reloadViewDataTrigger.trigger({ shouldShowLoading: false })
+      }
+
       $e('a:links:unlink')
     }
 
@@ -699,14 +703,30 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         // await loadChildrenList()
 
         if (!undo) {
+          let oldValue = null
+
+          // If it is bt or oo relation then we have to restore old value on undo
+          if (isBt(column.value) || isOo(column.value)) {
+            oldValue = currentRow.value.row?.[column.value?.title]
+          }
+
           addUndo({
             redo: {
-              fn: (row: Record<string, any>) => link(row, {}, true, index),
+              fn: (row: Record<string, any>) => {
+                link(row, {}, true, index)
+              },
               args: [clone(row)],
             },
             undo: {
-              fn: (row: Record<string, any>) => unlink(row, {}, true, index),
-              args: [clone(row)],
+              fn: (row: Record<string, any>, oldValue: Record<string, any> | null) => {
+                // Restore old value if present
+                if (oldValue) {
+                  link(oldValue, {}, true, index)
+                } else {
+                  unlink(row, {}, true, index)
+                }
+              },
+              args: [clone(row), clone(oldValue)],
             },
             scope: defineViewScope({ view: activeView.value }),
           })
@@ -729,17 +749,26 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenListLoading.value[index] = false
       }
 
-      _reloadData?.({ shouldShowLoading: false })
+      _reloadData?.({ shouldShowLoading: false, path: path.value })
+
+      if (undo && isCanvasInjected) {
+        reloadViewDataTrigger.trigger({ shouldShowLoading: false })
+      }
+
       $e('a:links:link')
     }
 
+    const debounceLoadChildrenExcludedList = useDebounceFn(loadChildrenExcludedList, 500)
+
+    const debounceLoadChildrenList = useDebounceFn(loadChildrenList, 500)
+
     // watchers
     watch(childrenExcludedListPagination, async () => {
-      await loadChildrenExcludedList(newRowState.state)
+      await debounceLoadChildrenExcludedList(newRowState.state)
     })
 
     watch(childrenListPagination, async () => {
-      await loadChildrenList(false, newRowState.state)
+      await debounceLoadChildrenList(false, newRowState.state)
     })
 
     watch(childrenList, async () => {

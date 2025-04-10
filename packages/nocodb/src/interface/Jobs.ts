@@ -43,6 +43,7 @@ export enum JobTypes {
   RestoreSnapshot = 'restore-snapshot',
   ListenImport = 'listen-import',
   SyncModuleSyncData = 'sync-module-sync-data',
+  SubscriptionSchedule = 'subscription-schedule',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -54,6 +55,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.UpdateModelStat,
   JobTypes.UpdateWsStat,
   JobTypes.UpdateSrcStat,
+  JobTypes.SubscriptionSchedule,
 ];
 
 export enum JobStatus {
@@ -133,6 +135,7 @@ export interface DuplicateBaseJobData extends JobData {
     excludeViews?: boolean;
     excludeHooks?: boolean;
     excludeComments?: boolean;
+    excludeUsers?: boolean;
   };
 }
 

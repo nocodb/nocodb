@@ -373,7 +373,8 @@ const isDuplicateAllowed = computed(() => {
     column?.value &&
     !column.value.system &&
     ((!isMetaReadOnly.value && !isDataReadOnly.value) || readonlyMetaAllowedTypes.includes(column.value?.uidt)) &&
-    !column.value.meta?.custom
+    !column.value.meta?.custom &&
+    column.value.uidt !== UITypes.ForeignKey
   )
 })
 const isFilterSupported = computed(
@@ -391,7 +392,8 @@ const { getPlanLimit } = useWorkspace()
 
 const isFilterLimitExceeded = computed(
   () =>
-    allFilters.value.filter((f) => !(f.is_group || f.status === 'delete')).length >= getPlanLimit(PlanLimitTypes.FILTER_LIMIT),
+    allFilters.value.filter((f) => !(f.is_group || f.status === 'delete')).length >=
+    getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW),
 )
 
 const isGroupedByThisField = computed(() => !!gridViewCols.value[column?.value?.id]?.group_by)
@@ -533,7 +535,11 @@ const onDeleteColumn = () => {
         {{ $t('labels.changeDisplayValueField') }}
       </div>
     </NcMenuItem>
-    <NcMenuItem v-if="isUIAllowed('fieldAlter') && !isSqlView" title="Add field description" @click="onEditPress($event, true)">
+    <NcMenuItem
+      v-if="isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
+      title="Add field description"
+      @click="onEditPress($event, true)"
+    >
       <div class="nc-column-edit-description nc-header-menu-item">
         <GeneralIcon icon="ncAlignLeft" class="opacity-80 !w-4.25 !h-4.25" />
         {{ $t('labels.editDescription') }}

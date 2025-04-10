@@ -8,6 +8,9 @@ import {
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
+import { findGroupByPath } from '../components/smartsheet/grid/canvas/utils/groupby'
+import type { CanvasGroup } from '../lib/types'
+import { useInfiniteGroups } from './useInfiniteGroups'
 import { type CellRange, type Row } from '#imports'
 
 export function useGridViewData(
@@ -18,12 +21,15 @@ export function useGridViewData(
 ) {
   const tablesStore = useTablesStore()
   const { activeTable } = storeToRefs(tablesStore)
+  const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
   const meta = computed(() => _meta.value || activeTable.value)
 
   const { t } = useI18n()
 
   const optimisedQuery = useState('optimisedQuery', () => true)
+
+  const isPublic = inject(IsPublicInj, ref(false))
 
   const { getMeta } = useMetas()
 
@@ -35,7 +41,52 @@ export function useGridViewData(
 
   const { $api } = useNuxtApp()
 
+  const { appInfo } = useGlobal()
+
   const isBulkOperationInProgress = ref(false)
+
+  const {
+    cachedGroups,
+    totalGroups,
+    toggleExpand,
+    groupByColumns,
+    isGroupBy,
+    buildNestedWhere,
+    clearGroupCache,
+    syncCount: groupSyncCount,
+    fetchMissingGroupChunks,
+    updateGroupAggregations,
+  } = useInfiniteGroups(viewMeta, meta, where, {
+    syncVisibleData,
+  })
+
+  const onGroupRowChange = async ({ row, level }) => {
+    const parentGroupPath = row.rowMeta?.path?.slice(0, level)
+
+    const parentGroup = parentGroupPath?.length ? findGroupByPath(cachedGroups.value, parentGroupPath) : undefined
+
+    const groupMap = parentGroup?.groups ?? cachedGroups.value
+
+    // get the highest index value present in cachedGroups
+    const endIndex = Math.max(...groupMap.keys())
+
+    // reload all groups in current level since any one of them can be in updated state
+    await fetchMissingGroupChunks(0, endIndex, parentGroup ?? undefined, true)
+
+    // iterate and clear if expanded grid present
+    const clearGridCache = (groupMap: Map<number, CanvasGroup>, toalGroupCount: number, path = []) => {
+      for (let i = 0; i < toalGroupCount; i++) {
+        const group = groupMap.get(i)
+        clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, [...path, i])
+        if (group?.groupCount) {
+          // if group is not expanded, check if it has subgroups and clear their cache
+          clearGridCache(group.groups, group.groupCount, group.path ?? [...path, i])
+        }
+      }
+    }
+
+    clearGridCache(groupMap, parentGroup?.groupCount ?? totalGroups.value, parentGroup?.path ?? [])
+  }
 
   const {
     insertRow,
@@ -51,7 +102,6 @@ export function useGridViewData(
     removeRowIfNew,
     syncCount,
     fetchChunk,
-    fetchMissingChunks,
     recoverLTARRefs,
     getChunkIndex,
     selectedRows,
@@ -69,25 +119,135 @@ export function useGridViewData(
     loadAggCommentsCount,
     navigateToSiblingRow,
     getRows,
+    getDataCache,
+    groupDataCache,
   } = useInfiniteData({
     meta,
     viewMeta,
     callbacks: {
       syncVisibleData,
+      getCount,
+      getWhereFilter: getGroupFilter,
+      onGroupRowChange,
+      reloadAggregate: triggerAggregateReload,
+      findGroupByPath: (path: Array<number>) => {
+        return findGroupByPath(cachedGroups.value, path)
+      },
     },
+    groupByColumns,
     where,
+    isPublic,
   })
+
+  function triggerAggregateReload(params: {
+    fields?: Array<{ title: string; aggregation?: string | undefined }>
+    path: Array<number>
+  }) {
+    const { fields, path } = params
+
+    reloadAggregate?.trigger(params)
+
+    if (!isGroupBy.value || !appInfo.value?.ee) {
+      return
+    }
+
+    function collectChildGroups(group: CanvasGroup): CanvasGroup[] {
+      const result: CanvasGroup[] = [group]
+      if (group.groups && group.groups.size > 0) {
+        for (const childGroup of group.groups.values()) {
+          result.push(...collectChildGroups(childGroup))
+        }
+      }
+      return result
+    }
+
+    const targetGroup = findGroupByPath(cachedGroups.value, path)
+    if (!targetGroup) return
+
+    const groupsToUpdate = collectChildGroups(targetGroup)
+    updateGroupAggregations(groupsToUpdate, fields)
+
+    if (path.length > 1) {
+      for (let i = path.length - 1; i > 0; i--) {
+        const parentPath = path.slice(0, i)
+        const parentGroup = findGroupByPath(cachedGroups.value, parentPath)
+        if (parentGroup) {
+          const parentAndChildren = collectChildGroups(parentGroup)
+          updateGroupAggregations(parentAndChildren, fields)
+        }
+      }
+    }
+  }
+
+  reloadAggregate?.on((v: Record<string, any> = {}) => {
+    const { path, fields } = v
+    if (!path?.length && isGroupBy.value) {
+      const allGroups: CanvasGroup[] = []
+
+      function collectAllGroups(groups: Map<number, CanvasGroup>) {
+        const groupArray = Array.from(groups.values())
+        allGroups.push(...groupArray)
+
+        for (const group of groupArray) {
+          if (group.groups && group.groups.size > 0) {
+            collectAllGroups(group.groups)
+          }
+        }
+      }
+
+      collectAllGroups(cachedGroups.value)
+
+      if (allGroups.length) {
+        updateGroupAggregations(allGroups, fields)
+      }
+    }
+  })
+
+  function getCount(path?: Array<number>) {
+    if (!path?.length) return
+    let currentGroups = cachedGroups.value
+    const pathCopy = [...path]
+
+    for (let i = 0; i < path.length - 1; i++) {
+      const groupIndex = pathCopy[i]
+      const group = currentGroups.get(groupIndex)
+
+      if (!group || !group.groups) {
+        console.warn(`Invalid path: Group at index ${groupIndex} not found or has no subgroups`)
+        return undefined
+      }
+
+      currentGroups = group.groups
+    }
+
+    const finalIndex = pathCopy[path.length - 1]
+    const targetGroup = currentGroups.get(finalIndex)
+
+    if (!targetGroup) {
+      console.warn(`Target group at path [${path}] not found`)
+      return undefined
+    }
+
+    return targetGroup.count
+  }
+
+  function getGroupFilter(path: Array<number> = []) {
+    const group = findGroupByPath(cachedGroups.value, path)
+
+    return buildNestedWhere(group, where?.value)
+  }
 
   function syncVisibleData() {
     reloadVisibleDataHook?.trigger()
   }
 
-  async function deleteSelectedRows(): Promise<void> {
+  async function deleteSelectedRows(path: Array<number> = []): Promise<void> {
     let removedRowsData: Record<string, any>[] = []
     let compositePrimaryKey = ''
     isBulkOperationInProgress.value = true
+    const dataCache = getDataCache(path)
 
-    for (const row of selectedRows.value) {
+    for (const row of dataCache.selectedRows.value) {
       const { row: rowData, rowMeta } = row
 
       if (!rowMeta.selected || rowMeta.new) {
@@ -140,52 +300,55 @@ export function useGridViewData(
       return message.error(`${t('msg.error.deleteRowFailed')}: ${errorMessage}`)
     }
 
-    await updateCacheAfterDelete(removedRowsData, false)
+    await updateCacheAfterDelete(removedRowsData, false, path)
 
     addUndo({
       undo: {
-        fn: async (removedRowsData: Record<string, any>[]) => {
+        fn: async (removedRowsData: Record<string, any>[], path: Array<number>) => {
           const rowsToInsert = removedRowsData.reverse()
 
-          const insertedRowIds = await bulkInsertRows(rowsToInsert as Row[], undefined, true)
+          const insertedRowIds = await bulkInsertRows(rowsToInsert as Row[], undefined, true, path)
 
           if (Array.isArray(insertedRowIds)) {
             await Promise.all(rowsToInsert.map((row, _index) => recoverLTARRefs(row.row)))
           }
         },
-        args: [removedRowsData],
+        args: [removedRowsData, clone(path)],
       },
       redo: {
-        fn: async (toBeRemovedData: Record<string, any>[]) => {
+        fn: async (toBeRemovedData: Record<string, any>[], path: Array<number>) => {
           try {
             isBulkOperationInProgress.value = true
 
             await bulkDeleteRows(toBeRemovedData.map((row) => row.pkData))
 
-            await updateCacheAfterDelete(toBeRemovedData, false)
+            await updateCacheAfterDelete(toBeRemovedData, false, path)
 
-            await syncCount()
+            await syncCount(path)
           } finally {
             isBulkOperationInProgress.value = false
           }
         },
-        args: [removedRowsData],
+        args: [removedRowsData, clone(path)],
       },
       scope: defineViewScope({ view: viewMeta.value }),
     })
     isBulkOperationInProgress.value = false
 
-    await syncCount()
+    await syncCount(path)
   }
 
   async function bulkInsertRows(
     rows: Row[],
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
     undo = false,
+    path: Array<number> = [],
   ): Promise<string[]> {
     if (!metaValue || !viewMetaValue) {
       throw new Error('Meta value or view meta value is undefined')
     }
+
+    const dataCache = getDataCache(path)
 
     isBulkOperationInProgress.value = true
 
@@ -235,7 +398,7 @@ export function useGridViewData(
 
       const newCachedRows = new Map<number, Row>()
 
-      for (const [index, row] of cachedRows.value) {
+      for (const [index, row] of dataCache.cachedRows.value) {
         newCachedRows.set(index, { ...row, rowMeta: { ...row.rowMeta, rowIndex: index } })
       }
 
@@ -269,11 +432,11 @@ export function useGridViewData(
         indices.add(row.rowMeta.rowIndex)
       }
 
-      cachedRows.value = newCachedRows
+      dataCache.cachedRows.value = newCachedRows
 
-      totalRows.value += validRowsToInsert.length
+      dataCache.totalRows.value += validRowsToInsert.length
 
-      await syncCount()
+      await syncCount(path)
       syncVisibleData()
 
       return bulkInsertedIds
@@ -291,8 +454,11 @@ export function useGridViewData(
     props: string[],
     { metaValue = meta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
     undo = false,
+    path: Array<number> = [],
   ): Promise<void> {
     isBulkOperationInProgress.value = true
+
+    const dataCache = getDataCache(path)
 
     await Promise.all(
       rows.map(async (row) => {
@@ -323,25 +489,26 @@ export function useGridViewData(
         updateArray,
       )) as Record<string, any>
 
-      reloadAggregate?.trigger({ fields: props.map((p) => ({ title: p })) })
+      triggerAggregateReload({ fields: props.map((p) => ({ title: p })), path })
 
       newRows.forEach((newRow: Record<string, any>) => {
         const pk = extractPkFromRow(newRow, metaValue?.columns as ColumnType[])
         const rowIndex = pksIndex.find((pkIndex) => pkIndex.pk === pk)?.rowIndex
 
         if (rowIndex !== undefined && rowIndex !== null) {
-          const row = cachedRows.value.get(rowIndex)
+          const row = dataCache.cachedRows.value.get(rowIndex)
           if (row) {
             row.rowMeta.saving = false
             row.row = {
               ...row.row,
               ...newRow,
             }
-            cachedRows.value.set(rowIndex, row)
+            dataCache.cachedRows.value.set(rowIndex, row)
           }
         }
       })
     } catch (e) {
+      console.error(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
       isBulkOperationInProgress.value = false
       return
@@ -353,7 +520,7 @@ export function useGridViewData(
     if (!undo) {
       addUndo({
         undo: {
-          fn: async (undoRows: Row[], props: string[]) => {
+          fn: async (undoRows: Row[], props: string[], path: Array<number>) => {
             await bulkUpdateRows(
               undoRows.map((r) => ({
                 ...r,
@@ -363,15 +530,16 @@ export function useGridViewData(
               props,
               undefined,
               true,
+              path,
             )
           },
-          args: [clone(rows), props],
+          args: [clone(rows), props, clone(path)],
         },
         redo: {
-          fn: async (redoRows: Row[], props: string[]) => {
-            await bulkUpdateRows(redoRows, props, undefined, true)
+          fn: async (redoRows: Row[], props: string[], path: Array<number>) => {
+            await bulkUpdateRows(redoRows, props, undefined, true, path)
           },
-          args: [clone(rows), props],
+          args: [clone(rows), props, clone(path)],
         },
         scope: defineViewScope({ view: viewMeta.value }),
       })
@@ -379,7 +547,7 @@ export function useGridViewData(
 
     applySorting(rows)
     syncVisibleData()
-
+    reloadViewDataHook?.trigger()
     isBulkOperationInProgress.value = false
   }
 
@@ -390,20 +558,23 @@ export function useGridViewData(
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
     columns: Partial<ColumnType>[],
     undo = false,
+    path: Array<number> = [],
   ) {
+    const dataCache = getDataCache(path)
+
     try {
       isBulkOperationInProgress.value = true
       const newCols = (meta.value.columns ?? []).filter((col: ColumnType) => columns.some((c) => c.title === col.title))
 
-      const rowsToFetch = updateRows.filter((row) => !cachedRows.value.has(row.rowMeta.rowIndex!))
+      const rowsToFetch = updateRows.filter((row) => !dataCache.cachedRows.value.has(row.rowMeta.rowIndex!))
       const chunksToFetch = new Set(rowsToFetch.map((row) => Math.floor(row.rowMeta.rowIndex! / CHUNK_SIZE)))
 
-      await Promise.all(Array.from(chunksToFetch).map((chunkId) => fetchChunk(chunkId)))
+      await Promise.all(Array.from(chunksToFetch).map((chunkId) => fetchChunk(chunkId, path)))
 
       const getPk = (row: Row) => extractPkFromRow(row.row, metaValue?.columns as ColumnType[])
 
       const ogUpdateRows = updateRows.map((_row) => {
-        const row = _row ?? cachedRows.value.get((_row as Row).rowMeta.rowIndex!)
+        const row = _row ?? dataCache.cachedRows.value.get((_row as Row).rowMeta.rowIndex!)
 
         newCols.forEach((col: ColumnType) => {
           row.oldRow[col.title!] = undefined
@@ -421,7 +592,7 @@ export function useGridViewData(
       }
 
       updateRows = updateRows.map((row) => {
-        const cachedRow = cachedRows.value.get(row.rowMeta.rowIndex!)
+        const cachedRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
         if (cachedRow) {
           return {
             ...cachedRow,
@@ -440,7 +611,7 @@ export function useGridViewData(
         {},
       )
 
-      const existingPks = new Set(Array.from(cachedRows.value.values()).map((row) => getPk(row)))
+      const existingPks = new Set(Array.from(dataCache.cachedRows.value.values()).map((row) => getPk(row)))
       const [insertedRows, updatedRows] = bulkUpsertedRows.reduce(
         ([inserted, updated], row) => {
           const isPkExisting = existingPks.has(extractPkFromRow(row, metaValue?.columns as ColumnType[]))
@@ -452,23 +623,23 @@ export function useGridViewData(
       )
 
       insertedRows.forEach((row: Row, index: number) => {
-        const newIndex = totalRows.value + index
+        const newIndex = dataCache.totalRows.value + index
         row.rowMeta.rowIndex = newIndex
-        cachedRows.value.set(newIndex, { ...row, rowMeta: { ...row.rowMeta, rowIndex: newIndex } })
+        dataCache.cachedRows.value.set(newIndex, { ...row, rowMeta: { ...row.rowMeta, rowIndex: newIndex } })
       })
       updatedRows.forEach((row: Row) => {
-        const existingRow = Array.from(cachedRows.value.entries()).find(([_, r]) => getPk(r) === getPk(row))
+        const existingRow = Array.from(dataCache.cachedRows.value.entries()).find(([_, r]) => getPk(r) === getPk(row))
         if (existingRow) {
-          cachedRows.value.set(existingRow[0], { ...row, rowMeta: { ...row.rowMeta, rowIndex: existingRow[0] } })
+          dataCache.cachedRows.value.set(existingRow[0], { ...row, rowMeta: { ...row.rowMeta, rowIndex: existingRow[0] } })
         }
       })
 
-      totalRows.value += insertedRows.length
+      dataCache.totalRows.value += insertedRows.length
 
       if (!undo) {
         addUndo({
           undo: {
-            fn: async (insertedRows: Row[], ogUpdateRows: Row[]) => {
+            fn: async (insertedRows: Row[], ogUpdateRows: Row[], path: Array<number>) => {
               try {
                 isBulkOperationInProgress.value = true
 
@@ -484,6 +655,7 @@ export function useGridViewData(
                   props,
                   { metaValue },
                   true,
+                  path,
                 )
                 isBulkOperationInProgress.value = true
 
@@ -498,10 +670,10 @@ export function useGridViewData(
                 })
 
                 insertedRows.forEach((row) => {
-                  cachedRows.value.delete(row.rowMeta.rowIndex!)
+                  dataCache.cachedRows.value.delete(row.rowMeta.rowIndex!)
                 })
 
-                totalRows.value = totalRows.value - insertedRows.length
+                dataCache.totalRows.value = dataCache.totalRows.value - insertedRows.length
 
                 syncVisibleData()
 
@@ -511,10 +683,10 @@ export function useGridViewData(
                 isBulkOperationInProgress.value = false
               }
             },
-            args: [clone(insertedRows), clone(ogUpdateRows)],
+            args: [clone(insertedRows), clone(ogUpdateRows), clone(path)],
           },
           redo: {
-            fn: async (insertRows: Row[], updateRows: Row[]) => {
+            fn: async (insertRows: Row[], updateRows: Row[], path: Array<number>) => {
               try {
                 isBulkOperationInProgress.value = true
                 const columnsHash = (await $api.dbTableColumn.hash(meta.value?.id)).hash
@@ -527,7 +699,7 @@ export function useGridViewData(
                   })),
                 })
 
-                await bulkUpsertRows(insertRows, updateRows, props, { metaValue, viewMetaValue }, columns, true)
+                await bulkUpsertRows(insertRows, updateRows, props, { metaValue, viewMetaValue }, columns, true, path)
                 isBulkOperationInProgress.value = true
 
                 await getMeta(meta.value?.id as string, true)
@@ -537,15 +709,15 @@ export function useGridViewData(
                 isBulkOperationInProgress.value = false
               }
             },
-            args: [clone(insertedRows), clone(updatedRows)],
+            args: [clone(insertedRows), clone(updatedRows), clone(path)],
           },
 
           scope: defineViewScope({ view: viewMeta.value }),
         })
       }
-
+      reloadViewDataHook?.trigger()
       syncVisibleData()
-      await syncCount()
+      await syncCount(path)
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
     } finally {
@@ -553,59 +725,71 @@ export function useGridViewData(
     }
   }
 
-  async function updateCacheAfterDelete(rowsToDelete: Record<string, any>[], nested = true): Promise<void> {
-    const maxCachedIndex = Math.max(...cachedRows.value.keys())
+  async function updateCacheAfterDelete(
+    rowsToDelete: Record<string, any>[],
+    nested = true,
+    path: Array<number> = [],
+  ): Promise<void> {
+    const dataCache = getDataCache(path)
+    const maxCachedIndex = Math.max(...dataCache.cachedRows.value.keys())
     const newCachedRows = new Map<number, Row>()
 
     const deleteSet = new Set(rowsToDelete.map((row) => (nested ? row.row : row).rowMeta.rowIndex))
-
+    const affectedChunks = new Set<number>()
     let deletionCount = 0
-    let lastIndex = -1
 
     for (let i = 0; i <= maxCachedIndex + 1; i++) {
       if (deleteSet.has(i)) {
         deletionCount++
+        affectedChunks.add(getChunkIndex(i))
         continue
       }
 
-      if (cachedRows.value.has(i)) {
-        const row = cachedRows.value.get(i)
+      if (dataCache.cachedRows.value.has(i)) {
+        const row = dataCache.cachedRows.value.get(i)
         if (row) {
           const newIndex = i - deletionCount
-          if (lastIndex !== -1 && newIndex - lastIndex > 1) {
-            chunkStates.value[getChunkIndex(lastIndex)] = undefined
-          }
 
           row.rowMeta.rowIndex = newIndex
           newCachedRows.set(newIndex, row)
-          lastIndex = newIndex
+          affectedChunks.add(getChunkIndex(i))
+          affectedChunks.add(getChunkIndex(newIndex))
         }
       }
     }
 
-    if (lastIndex !== -1) {
-      chunkStates.value[getChunkIndex(lastIndex)] = undefined
+    const rowsByChunk = new Map<number, number>()
+    for (const [_, row] of newCachedRows) {
+      const chunkIndex = getChunkIndex(row.rowMeta.rowIndex)
+      rowsByChunk.set(chunkIndex, (rowsByChunk.get(chunkIndex) || 0) + 1)
+    }
+
+    for (const chunkIndex of affectedChunks) {
+      if (!rowsByChunk.has(chunkIndex) || rowsByChunk.get(chunkIndex) < CHUNK_SIZE) {
+        dataCache.chunkStates.value[chunkIndex] = undefined
+      }
     }
 
     const indices = new Set<number>()
     for (const [_, row] of newCachedRows) {
       if (indices.has(row.rowMeta.rowIndex)) {
-        console.error(`Op: updateCacheAfterDelete:  Duplicate index detected:`, row.rowMeta.rowIndex)
+        console.error(`Op: updateCacheAfterDelete: Duplicate index detected:`, row.rowMeta.rowIndex)
         break
       }
       indices.add(row.rowMeta.rowIndex)
     }
 
-    cachedRows.value = newCachedRows
-    totalRows.value = Math.max(0, totalRows.value - rowsToDelete.length)
+    dataCache.cachedRows.value = newCachedRows
+    dataCache.totalRows.value = Math.max(0, dataCache.totalRows.value - rowsToDelete.length)
 
-    await syncCount()
+    await syncCount(path)
     syncVisibleData()
   }
 
-  async function deleteRangeOfRows(cellRange: CellRange): Promise<void> {
+  async function deleteRangeOfRows(cellRange: CellRange, path: Array<number> = []): Promise<void> {
     if (!cellRange._start || !cellRange._end) return
     isBulkOperationInProgress.value = true
+    const dataCache = getDataCache(path)
 
     const start = Math.min(cellRange._start.row, cellRange._end.row)
     const end = Math.max(cellRange._start.row, cellRange._end.row)
@@ -613,16 +797,10 @@ export function useGridViewData(
     let rowsToDelete: Record<string, any>[] = []
     let compositePrimaryKey = ''
 
-    const uncachedRows = Array.from({ length: end - start + 1 }, (_, i) => start + i).filter(
-      (index) => !cachedRows.value.has(index),
-    )
-
-    if (uncachedRows.length > 0) {
-      await fetchMissingChunks(uncachedRows[0], uncachedRows[uncachedRows.length - 1])
-    }
+    const rows = await getRows(start, end, path)
 
     for (let i = start; i <= end; i++) {
-      const cachedRow = cachedRows.value.get(i)
+      const cachedRow = dataCache.cachedRows.value.get(i)
       if (!cachedRow) {
         console.warn(`Record at index ${i} not found in local cache`)
         continue
@@ -683,27 +861,27 @@ export function useGridViewData(
 
     addUndo({
       undo: {
-        fn: async (deletedRows: Record<string, any>[]) => {
+        fn: async (deletedRows: Record<string, any>[], path: Array<number>) => {
           const rowsToInsert = deletedRows.reverse()
 
-          const insertedRowIds = await bulkInsertRows(rowsToInsert, undefined, true)
+          const insertedRowIds = await bulkInsertRows(rowsToInsert, undefined, true, path)
 
           if (Array.isArray(insertedRowIds)) {
             await Promise.all(rowsToInsert.map((row, _index) => recoverLTARRefs(row.row)))
           }
         },
-        args: [rowsToDelete],
+        args: [rowsToDelete, clone(path)],
       },
       redo: {
-        fn: async (rowsToDelete: Record<string, any>[]) => {
+        fn: async (rowsToDelete: Record<string, any>[], path: Array<number>) => {
           await bulkDeleteRows(rowsToDelete.map((row) => row.pkData))
-          await updateCacheAfterDelete(rowsToDelete, false)
+          await updateCacheAfterDelete(rowsToDelete, false, path)
         },
-        args: [rowsToDelete],
+        args: [rowsToDelete, clone(path)],
       },
       scope: defineViewScope({ view: viewMeta.value }),
     })
-    await updateCacheAfterDelete(rowsToDelete, false)
+    await updateCacheAfterDelete(rowsToDelete, false, path)
     isBulkOperationInProgress.value = false
   }
 
@@ -715,7 +893,8 @@ export function useGridViewData(
       const bulkDeletedRowsData = await $api.dbDataTableRow.delete(metaValue?.id as string, rows.length === 1 ? rows[0] : rows, {
         viewId: viewMetaValue?.id as string,
       })
-      reloadAggregate?.trigger()
+
+      triggerAggregateReload({ path: [] })
 
       return rows.length === 1 && bulkDeletedRowsData ? [bulkDeletedRowsData] : bulkDeletedRowsData
     } catch (error: any) {
@@ -724,7 +903,7 @@ export function useGridViewData(
     }
   }
 
-  async function bulkDeleteAll() {
+  async function bulkDeleteAll(path: Array<number> = []) {
     try {
       isBulkOperationInProgress.value = true
 
@@ -734,8 +913,8 @@ export function useGridViewData(
       })
     } catch (error) {
     } finally {
-      clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
-      await syncCount()
+      clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, path)
+      await syncCount(path)
       syncVisibleData?.()
       isBulkOperationInProgress.value = false
     }
@@ -776,5 +955,16 @@ export function useGridViewData(
     updateRecordOrder,
     selectedAllRecords,
     getRows,
+    getDataCache,
+    groupDataCache,
+    // Groupby
+    cachedGroups,
+    totalGroups,
+    toggleExpand,
+    groupByColumns,
+    isGroupBy,
+    groupSyncCount,
+    fetchMissingGroupChunks,
+    clearGroupCache,
   }
 }

@@ -1,7 +1,8 @@
-import type { BaseType } from 'nocodb-sdk'
+import type { BaseType, WorkspaceType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { message } from 'ant-design-vue'
 import { isString } from '@vue/shared'
+
+export interface NcWorkspace extends WorkspaceType {}
 
 export const useWorkspace = defineStore('workspaceStore', () => {
   const basesStore = useBases()

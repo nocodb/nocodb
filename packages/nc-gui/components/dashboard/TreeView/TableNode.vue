@@ -611,7 +611,7 @@ async function onRename() {
                   </NcMenuItem>
 
                   <NcMenuItem
-                    v-if="isUIAllowed('tableRename', { roles: baseRole, source })"
+                    v-if="table?.synced && isUIAllowed('tableDelete', { roles: baseRole, source })"
                     :data-testid="`sidebar-table-sync-${table.title}`"
                     class="nc-table-sync"
                     @click="onSyncOptions"

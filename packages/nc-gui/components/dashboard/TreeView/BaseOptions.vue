@@ -71,45 +71,41 @@ function openQuickImportDialog(type: string) {
     <NcMenuItem
       v-if="isUIAllowed('airtableImport', { roles: baseRole, source })"
       key="quick-import-airtable"
+      v-e="['c:import:airtable']"
       @click="openAirtableImportDialog(source.base_id, source.id)"
     >
-      <div v-e="['c:import:airtable']" class="flex gap-2 items-center">
-        <GeneralIcon icon="airtable" class="max-w-3.75" />
-        <div class="ml-0.5">{{ $t('labels.airtable') }}</div>
-      </div>
+      <GeneralIcon icon="airtable" class="max-w-3.75" />
+      <div class="ml-0.5">{{ $t('labels.airtableBase') }}</div>
     </NcMenuItem>
 
     <NcMenuItem
       v-if="isUIAllowed('csvImport', { roles: baseRole, source })"
       key="quick-import-csv"
+      v-e="['c:import:csv']"
       @click="openQuickImportDialog('csv')"
     >
-      <div v-e="['c:import:csv']" class="flex gap-2 items-center">
-        <GeneralIcon icon="csv" class="w-4" />
-        {{ $t('labels.csvFile') }}
-      </div>
+      <GeneralIcon icon="ncFileTypeCsvSmall" class="w-4 h-4" />
+      {{ $t('labels.csvFile') }}
     </NcMenuItem>
 
     <NcMenuItem
       v-if="isUIAllowed('jsonImport', { roles: baseRole, source })"
       key="quick-import-json"
+      v-e="['c:import:json']"
       @click="openQuickImportDialog('json')"
     >
-      <div v-e="['c:import:json']" class="flex gap-2 items-center">
-        <GeneralIcon icon="ncFileTypeJson" class="w-4" />
-        {{ $t('labels.jsonFile') }}
-      </div>
+      <GeneralIcon icon="ncFileTypeJson" class="h-4" />
+      {{ $t('labels.jsonFile') }}
     </NcMenuItem>
 
     <NcMenuItem
       v-if="isUIAllowed('excelImport', { roles: baseRole, source })"
       key="quick-import-excel"
+      v-e="['c:import:excel']"
       @click="openQuickImportDialog('excel')"
     >
-      <div v-e="['c:import:excel']" class="flex gap-2 items-center">
-        <GeneralIcon icon="excel" class="max-w-4" />
-        {{ $t('labels.microsoftExcel') }}
-      </div>
+      <GeneralIcon icon="ncFileTypeExcel" class="w-4 h-4" />
+      {{ $t('labels.microsoftExcel') }}
     </NcMenuItem>
   </NcSubMenu>
 </template>

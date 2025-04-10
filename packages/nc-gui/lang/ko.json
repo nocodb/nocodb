@@ -92,6 +92,10 @@
     "attachment_size": "첨부 파일 크기",
     "none": "없음"
   },
+  "upgrade": {
+    "UpgradeToCreateAdditionalSnapshots": "Upgrade to create additional snapshots",
+    "UpgradeToCreateAdditionalSnapshotsSubtitle": "The {activePlan} plan allows up to {n} snapshots. Upgrade to the {plan} plan and get access to additional snapshots."
+  },
   "general": {
     "supported": "지원",
     "usage": "사용법",
@@ -311,7 +315,19 @@
     "unread": "읽지 않음",
     "shared": "공유된 뷰가 성공적으로 삭제되었습니다",
     "organization": "조직",
-    "all": "모두"
+    "all": "모두",
+    "billing": "청구",
+    "choose": "선택",
+    "plan": "요금제",
+    "plans": "요금제",
+    "monthly": "매월",
+    "annually": "매년",
+    "yearly": "연간",
+    "paid": "결제완료",
+    "total": "합계",
+    "downgrade": "다운그레이드",
+    "upgrade": "업그레이드",
+    "reactivate": "재활성화"
   },
   "objects": {
     "script": "스크립트",
@@ -458,6 +474,28 @@
       "ai": "AI",
       "spreadSheet": "스프레드시트",
       "spreadSheetSubtitle": "NocoDB로 스프레드시트를 연결하고 관리하세요."
+    },
+    "ncMessage": {
+      "success": "성공",
+      "error": "오류",
+      "info": "정보",
+      "warning": "Alert"
+    },
+    "paymentPlan": {
+      "Free": "Free",
+      "Team": "팀",
+      "Plus": "플러스",
+      "Business": "비즈니스",
+      "Enterprise": "엔터프라이즈"
+    },
+    "currentPlan": {
+      "nextInvoice": "다음 인보이스",
+      "nextInvoiceAmount": "다음 인보이스 금액",
+      "numberOfBilledUsers": "청구된 사용자 수",
+      "numberOfBillableUsers": "청구 가능한 사용자 수",
+      "storageUsedGB": "사용된 스토리지(GB)",
+      "webhookCallsMonthly": "웹훅 호출(월별)",
+      "apiCallsMonthly": "API 호출(월별)"
     }
   },
   "datatype": {
@@ -513,7 +551,7 @@
     "isNotNull": "null 값이 아님"
   },
   "title": {
-    "confirmSnapshotRestore": "Confirm Snapshot Restore",
+    "confirmSnapshotRestore": "스냅샷 복원 확인",
     "urlFilters": "URL 필터",
     "creatingScript": "스크립트 만들기",
     "searchWebhook": "웹훅 검색",
@@ -683,23 +721,37 @@
     "viewSettingsCantBeChangedWhenViewIs": "보기가 {type} 때는 보기 설정을 변경할 수 없습니다.",
     "youAreLeavingNocoDB": "NocoDB를 떠납니다",
     "onlyProceedIfYouTrustThisLink": "이 링크를 신뢰하는 경우에만 진행하십시오.",
-    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
+    "reAssignViewModalSubtitle": "재할당되면 현재 소유자는 더 이상 뷰 구성을 편집할 수 없습니다.",
+    "getMoreFromNocodb": "NocoDB에서 더 많은 것을 얻기",
+    "getMoreFromNocodbSubtitle": "더 많은 시트, 추가 레코드, 더 많은 스토리지, 조건부 웹훅, 통합, NocoAI 등을 잠금 해제하세요!",
+    "currentPlan": "현재 계획",
+    "editorMonth": "/편집자/월",
+    "mostPopular": "가장 인기 있는",
+    "helpAndSupport": "도움말/지원",
+    "helpAndSupportSubtitle": "지원 센터를 방문하여 자세한 가이드, 고객 서비스 연락처 옵션 및 커뮤니티 포럼에서 추가 도움을 받으십시오.",
+    "faq": "자주 묻는 질문",
+    "faqSubtitle": "FAQ 섹션을 살펴보고 서비스, 기능 및 문제 해결에 대한 일반적인 질문에 대한 빠른 답변을 얻으세요. ",
+    "downgradeToPlan": "{plan} 계획으로 다운그레이드하시겠습니까?",
+    "downgradeToPlanSubtitle": "{plan} 플랜에서 사용할 수 없는 {activePlan} 플랜 기능에 액세스할 수 없게 됩니다.",
+    "upgradeToPlan": "{plan} 플랜으로 업그레이드하시겠습니까?",
+    "upgradeToPlanSubtitle": "이 플랜에 대해 즉시 요금이 청구됩니다.",
+    "reactivateToPlan": "{plan} 요금제를 다시 활성화하시겠습니까?"
   },
   "labels": {
-    "restoringSnapshot": "Restoring Snapshot",
-    "note": "Note:",
-    "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",
-    "snapshotRestoreMessage2": "On restore, a new base will be created in the selected workspace.",
-    "snapshotRestoreConfirmation": "Are you sure you want to restore this base snapshot.",
-    "tryAgain": "Try again",
-    "goToBase": "Go to Base",
-    "errorMessage": "Error message:",
-    "duplicateBaseBaseTitle": "Duplicate Base \"{baseTitle}\"",
-    "duplicateBaseSuccessfull": "Base Duplication Successfull",
-    "duplicateBaseFailed": "Base Duplication Failed",
-    "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
-    "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
-    "currentWorkspace": "Current workspace",
+    "restoringSnapshot": "스냅샷 복원",
+    "note": "메모:",
+    "snapshotRestoreMessage1": "이 스냅샷을 복원해도 기존 기반에는 영향을 주지 않습니다.",
+    "snapshotRestoreMessage2": "복원 시 선택한 작업 영역에 새 베이스가 생성됩니다.",
+    "snapshotRestoreConfirmation": "이 기본 스냅샷을 복원하시겠습니까?",
+    "tryAgain": "다시 시도해주세요.",
+    "goToBase": "베이스로 이동",
+    "errorMessage": "오류 메시지:",
+    "duplicateBaseBaseTitle": "베이스 복제 \"{baseTitle}\"",
+    "duplicateBaseSuccessfull": "기본 복제 성공",
+    "duplicateBaseFailed": "기본 복제 실패",
+    "duplicateBaseMessage": "작성자 액세스 권한이 있는 작업 공간 이상에만 베이스를 복제할 수 있습니다.",
+    "snapshotBaseRestoreMessage": "Creator 액세스 권한이 있는 작업 영역 이상으로만 복원할 수 있습니다.",
+    "currentWorkspace": "현재 작업 공간",
     "latitude": "위도",
     "longitude": "경도",
     "failed": "실패",
@@ -906,7 +958,7 @@
     "clickToCopyViewID": "클릭하여 뷰 ID 복사",
     "viewMode": "보기 모드",
     "reAssignView": "뷰 재할당",
-    "reAssignThisView": "Re-assign this view",
+    "reAssignThisView": "이 보기 다시 할당하기",
     "searchUsers": "사용자 검색",
     "superAdmin": "최고 운영자",
     "allTables": "모든 테이블",
@@ -987,6 +1039,7 @@
     "csv": "CSV",
     "csvFile": "CSV 파일",
     "json": "JSON",
+    "jsonCapitalized": "json을",
     "jsonFile": "JSON 파일",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1095,11 +1148,11 @@
     "apis": "APIs",
     "apiSnippet": "API 스니펫",
     "includeData": "데이터 포함",
-    "includeRecords": "Include records",
-    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
-    "includeView": "Include views",
-    "includeWebhook": "Include webhook",
-    "includeComments": "Include comments",
+    "includeRecords": "레코드 포함",
+    "baseDuplicateMessage": "참고: 감사 로그 및 통합은 중복되지 않습니다.",
+    "includeView": "보기 포함",
+    "includeWebhook": "웹훅 포함",
+    "includeComments": "주석 포함",
     "zoomInToViewColumns": "열을 보려면 확대하세요",
     "embedInSite": "사이트에 삽입",
     "titleRequired": "제목이 필요합니다.",
@@ -1154,8 +1207,23 @@
     "autoCreateMissingSelectionOptions": "누락된 선택 필드 옵션 자동 생성",
     "fillForm": "양식 채우기",
     "proceedToLink": "연결 진행",
-    "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "currentOwner": "현재 소유자",
+    "newOwner": "새 소유자",
+    "addFromUrl": "URL에서 추가",
+    "enterJson": "JSON을 입력합니다",
+    "airtableBase": "에어테이블 베이스",
+    "upgradePlan": "업그레이드 플랜",
+    "viewAllPlanDetails": "모든 플랜 세부 정보보기",
+    "contactSales": "구매 문의 및 상담",
+    "manageSubscription": "Manage Subscription",
+    "upgradeToPlan": "Upgrade To {plan}",
+    "applicableTax": "Applicable tax",
+    "annualSavings": "Annual Savings",
+    "compareAllFeatures": "Compare all features",
+    "planIncludes": "{plan} Includes:",
+    "everythingInPlanPlus": "Everything in {plan}, Plus:",
+    "downloadInvoice": "Download Invoice",
+    "proceed": "Proceed"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",
@@ -1425,6 +1493,7 @@
     "clearForm": "양식 초기화",
     "addFieldFromFormView": "필드 추가",
     "selectAllFields": "모든 필드 선택",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "자동 입력 활성화",
       "default": "기본",
@@ -1437,7 +1506,9 @@
     "goToDocs": "Docs로 이동",
     "addCondition": "조건 추가",
     "addConditionGroup": "조건 그룹 추가",
-    "pending": "보류 중"
+    "pending": "보류 중",
+    "goToPage": "Go to Page",
+    "changePlan": "ChangePlan"
   },
   "tooltip": {
     "leaveWorkspace": "각 작업 영역에는 소유자가 한 명 이상 있어야 합니다. 작업 영역을 나가기 전에 다른 사용자를 소유자로 지정하십시오. 마지막 구성원인 경우 대신 작업 영역을 삭제하는 것이 좋습니다.",
@@ -1492,7 +1563,9 @@
     "sourceDataIsReadonly": "소스 데이터는 읽기 전용입니다",
     "schemaChangeDisabledFormSqlView": "이 SQL 보기에 대해서는 스키마 편집이 비활성화되어 있습니다.",
     "shiftSpace": "Shift + 스페이스바",
-    "expandShiftSpace": "'Shift + Space' 확장"
+    "expandShiftSpace": "'Shift + Space' 확장",
+    "selectAllMappedFields": "Select all mapped fields",
+    "copyErrorCode": "Copy error code"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",
@@ -1704,7 +1777,10 @@
         "fieldVisibility": "편집 중인 필드의 표시 여부는 변경할 수 없습니다. 먼저 변경 내용을 저장하거나 취소하세요.",
         "moveEditedField": "편집 중인 필드는 이동할 수 없습니다. 변경 사항을 먼저 저장하거나 취소하세요",
         "moveDeletedField": "삭제된 필드는 이동할 수 없습니다. 변경 사항을 먼저 저장하거나 취소하세요"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "초대장이 성공적으로 전송되었습니다",
@@ -2005,7 +2081,13 @@
       "columnVisibilityUpdateFailed": "필드 가시성을 업데이트하지 못했습니다",
       "unsupportedCharacter": "지원되지 않는 문자: {char}",
       "unsupportedCharacters": "지원되지 않는 문자: {char}",
-      "notSupported": "지원되지 않음"
+      "notSupported": "지원되지 않음",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error",
+      "anErrorOccuredWhileImporting": "An error occurred while {type}",
+      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable",
+      "paymentFailed": "Payment Failed",
+      "paymentFailedSubtitle": "Something went wrong while processing your payment. Please try again or contact support."
     },
     "toast": {
       "exportMetadata": "프로젝트 메타 데이터를 성공적으로 내보냈습니다",
@@ -2055,6 +2137,8 @@
       "embeddableHTMLCodeCopied": "임베드 가능한 HTML 코드가 클립보드에 복사되었습니다!",
       "userDetailsUpdated": "사용자 세부 정보가 성공적으로 업데이트되었습니다",
       "tableDataImported": "테이블 데이터가 성공적으로 가져와졌습니다",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook가 성공적으로 업데이트되었습니다",
       "webhookDeleted": "Webhook가 성공적으로 삭제되었습니다",
       "webhookTested": "Webhook가 성공적으로 테스트되었습니다",
@@ -2064,7 +2148,9 @@
       "settingsSaved": "설정이 성공적으로 저장되었습니다",
       "roleUpdated": "역할이 성공적으로 업데이트되었습니다",
       "connectionAdded": "연동이 성공적으로 완료되었습니다",
-      "connectionAddedDesc": "이제 베이스 소유자와 생성자는 자격 증명을 다시 입력하지 않고도 데이터 소스를 추가할 수 있습니다."
+      "connectionAddedDesc": "이제 베이스 소유자와 생성자는 자격 증명을 다시 입력하지 않고도 데이터 소스를 추가할 수 있습니다.",
+      "paymentSuccessful": "Payment Successful",
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "처음부터 시작하십시오.",

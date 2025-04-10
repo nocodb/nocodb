@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { message } from 'ant-design-vue'
-
 const { api, isLoading } = useApi()
 
 const { t } = useI18n()

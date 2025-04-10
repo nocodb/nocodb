@@ -3,14 +3,13 @@ import {
   CommonAggregations,
   type LinkToAnotherRecordType,
   type LookupType,
-  type SelectOptionsType,
   type TableType,
   type ViewType,
 } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { message } from 'ant-design-vue'
 import type { Group } from '../lib/types'
+import { findKeyColor, valueToTitle } from '../utils/groupbyUtils'
 
 const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
@@ -24,6 +23,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const groupByLimit = 3
 
     const { api } = useApi()
+    const { $api } = useNuxtApp()
 
     const { appInfo } = useGlobal()
 
@@ -119,29 +119,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         rowMeta: {},
       }))
 
-    const valueToTitle = (value: string, col: ColumnType, displayValueProp?: string) => {
-      if (col.uidt === UITypes.Checkbox) {
-        return value ? GROUP_BY_VARS.TRUE : GROUP_BY_VARS.FALSE
-      }
-
-      if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(col.uidt as UITypes)) {
-        if (!value) {
-          return GROUP_BY_VARS.NULL
-        }
-      }
-
-      if (col.uidt === UITypes.LinkToAnotherRecord && displayValueProp && value && typeof value === 'object') {
-        return value[displayValueProp] ?? GROUP_BY_VARS.NULL
-      }
-
-      // convert to JSON string if non-string value
-      if (value && typeof value === 'object') {
-        value = JSON.stringify(value)
-      }
-
-      return value ?? GROUP_BY_VARS.NULL
-    }
-
     const colors = ref(enumColor.light)
 
     const nextGroupColor = ref(colors.value[0])
@@ -155,40 +132,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         nextGroupColor.value = colors.value[index + 1]
       }
       return tempColor
-    }
-
-    const findKeyColor = (key?: string, col?: ColumnType): string => {
-      if (col) {
-        switch (col.uidt) {
-          case UITypes.MultiSelect: {
-            const keys = key?.split(',') || []
-            const colors = []
-            for (const k of keys) {
-              const option = (col.colOptions as SelectOptionsType).options?.find((o) => o.title === k)
-              if (option) {
-                colors.push(option.color)
-              }
-            }
-            return colors.join(',')
-          }
-          case UITypes.SingleSelect: {
-            const option = (col.colOptions as SelectOptionsType).options?.find((o) => o.title === key)
-            if (option) {
-              return option.color || getNextColor()
-            }
-            return 'gray'
-          }
-          case UITypes.Checkbox: {
-            if (key) {
-              return themeColors.success
-            }
-            return themeColors.error
-          }
-          default:
-            return key ? getNextColor() : 'gray'
-        }
-      }
-      return key ? getNextColor() : 'gray'
     }
 
     const calculateNestedWhere = (nestedIn: GroupNestedIn[], existing = '') => {
@@ -254,7 +197,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             key: valueToTitle(curr[groupby.column.title!], groupby.column),
             column: groupby.column,
             count: +curr.count,
-            color: findKeyColor(curr[groupby.column.title!], groupby.column),
+            color: findKeyColor(curr[groupby.column.title!], groupby.column, getNextColor),
             nestedIn: [
               ...group!.nestedIn,
               {
@@ -336,7 +279,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         if (group.nestedIn.length > groupBy.value.length) return
 
-        if (group.nestedIn.length === 0) nextGroupColor.value = colors.value[0]
         const groupby = groupBy.value[group.nestedIn.length]
 
         const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
@@ -468,6 +410,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         group.count = response.pageInfo.totalRows ?? 0
         group.rows = formatData(response.list)
+        await loadAggCommentsCount(group.rows)
         group.paginationData = response.pageInfo
       } catch (e) {
         message.error(await extractSdkResponseErrorMsg(e))
@@ -710,6 +653,32 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }
     })
 
+    async function loadAggCommentsCount(formattedData: Array<Row>) {
+      if (!isUIAllowed('commentCount') || isPublic.value) return
+
+      const ids = formattedData
+        .filter(({ rowMeta: { new: isNew } }) => !isNew)
+        .map(({ row }) => extractPkFromRow(row, meta?.value?.columns as ColumnType[]))
+        .filter(Boolean)
+
+      if (!ids.length) return
+
+      try {
+        const aggCommentCount = await $api.utils.commentCount({
+          ids,
+          fk_model_id: meta.value!.id as string,
+        })
+
+        formattedData.forEach((row) => {
+          const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+          const count = aggCommentCount?.find((c: Record<string, any>) => c.row_id === id)?.count || 0
+          row.rowMeta = row.rowMeta ?? {}
+          row.rowMeta.commentCount = +count
+        })
+      } catch (e) {
+        console.error('Failed to load aggregate comment count:', e)
+      }
+    }
     return {
       rootGroup,
       groupBy,

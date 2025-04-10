@@ -1,4 +1,4 @@
-import { ncIsObject } from '~/lib/is';
+import { ncHasProperties, ncIsObject } from '~/lib/is';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../../column.interface';
@@ -19,13 +19,8 @@ export class OneToOneHelper extends AbstractColumnHelper {
     } catch {}
 
     if (
-      !(
-        parsedVal &&
-        ncIsObject(parsedVal) &&
-        ['rowId', 'columnId', 'fk_related_model_id', 'value'].every((key) =>
-          (parsedVal as Object).hasOwnProperty(key)
-        )
-      ) ||
+      !ncHasProperties(parsedVal, ['fk_related_model_id', 'value']) ||
+      !ncIsObject(parsedVal?.value) ||
       (parsedVal as Record<string, any>)?.fk_related_model_id !==
         (params.col.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
     ) {

@@ -92,6 +92,10 @@
     "attachment_size": "Dimensione dell'allegato",
     "none": "Nulla"
   },
+  "upgrade": {
+    "UpgradeToCreateAdditionalSnapshots": "Upgrade to create additional snapshots",
+    "UpgradeToCreateAdditionalSnapshotsSubtitle": "The {activePlan} plan allows up to {n} snapshots. Upgrade to the {plan} plan and get access to additional snapshots."
+  },
   "general": {
     "supported": "Supported",
     "usage": "Usage",
@@ -311,7 +315,19 @@
     "unread": "Unread",
     "shared": "Shared",
     "organization": "Organization",
-    "all": "All"
+    "all": "All",
+    "billing": "Billing",
+    "choose": "Choose",
+    "plan": "Plan",
+    "plans": "Plans",
+    "monthly": "Monthly",
+    "annually": "Annually",
+    "yearly": "Yearly",
+    "paid": "Paid",
+    "total": "Total",
+    "downgrade": "Downgrade",
+    "upgrade": "Upgrade",
+    "reactivate": "Reactivate"
   },
   "objects": {
     "script": "Script",
@@ -458,6 +474,28 @@
       "ai": "AI",
       "spreadSheet": "Foglio di calcolo",
       "spreadSheetSubtitle": "Collega e gestisci i tuoi fogli di calcolo con NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
+    },
+    "paymentPlan": {
+      "Free": "Free",
+      "Team": "Team",
+      "Plus": "Plus",
+      "Business": "Business",
+      "Enterprise": "Enterprise"
+    },
+    "currentPlan": {
+      "nextInvoice": "Next Invoice",
+      "nextInvoiceAmount": "Next Invoice Amount",
+      "numberOfBilledUsers": "Number of Billed Users",
+      "numberOfBillableUsers": "Number of Billable Users",
+      "storageUsedGB": "Storage Used (GB)",
+      "webhookCallsMonthly": "Webhook calls (monthly)",
+      "apiCallsMonthly": "API calls (monthly)"
     }
   },
   "datatype": {
@@ -683,7 +721,21 @@
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
     "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
-    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration.",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
+    "currentPlan": "Current Plan",
+    "editorMonth": "/editor/month",
+    "mostPopular": "Most Popular",
+    "helpAndSupport": "Help & Support",
+    "helpAndSupportSubtitle": "Visit our Support Center for detailed guides, customer service contact options, and a community forum for additional help.",
+    "faq": "FAQ",
+    "faqSubtitle": "Explore the FAQ section and get quick answers to common questions about our services, features, and troubleshooting. ",
+    "downgradeToPlan": "Downgrade to {plan} plan?",
+    "downgradeToPlanSubtitle": "You'll lose access to {activePlan} plan features that aren't available in the {plan} plan.",
+    "upgradeToPlan": "Upgrade to {plan} plan?",
+    "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
+    "reactivateToPlan": "Reactivate {plan} plan?"
   },
   "labels": {
     "restoringSnapshot": "Restoring Snapshot",
@@ -987,6 +1039,7 @@
     "csv": "CSV",
     "csvFile": "File CSV",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "File JSON",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1208,22 @@
     "fillForm": "Fill Form",
     "proceedToLink": "Proceed to link",
     "currentOwner": "Current owner",
-    "newOwner": "New owner"
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON",
+    "airtableBase": "Airtable base",
+    "upgradePlan": "Upgrade Plan",
+    "viewAllPlanDetails": "View all plan details",
+    "contactSales": "Contact Sales",
+    "manageSubscription": "Manage Subscription",
+    "upgradeToPlan": "Upgrade To {plan}",
+    "applicableTax": "Applicable tax",
+    "annualSavings": "Annual Savings",
+    "compareAllFeatures": "Compare all features",
+    "planIncludes": "{plan} Includes:",
+    "everythingInPlanPlus": "Everything in {plan}, Plus:",
+    "downloadInvoice": "Download Invoice",
+    "proceed": "Proceed"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1425,6 +1493,7 @@
     "clearForm": "Resetta il modulo",
     "addFieldFromFormView": "Aggiungi campo",
     "selectAllFields": "Selezionare tutti i campi",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Abilita il pre-riempimento",
       "default": "Predefinito",
@@ -1437,7 +1506,9 @@
     "goToDocs": "Vai ai documenti",
     "addCondition": "Aggiungi condizione",
     "addConditionGroup": "Aggiungi gruppo di condizioni",
-    "pending": "Pending"
+    "pending": "Pending",
+    "goToPage": "Go to Page",
+    "changePlan": "ChangePlan"
   },
   "tooltip": {
     "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
@@ -1492,7 +1563,9 @@
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
     "shiftSpace": "Shift + Space",
-    "expandShiftSpace": "Expand 'Shift + Space'"
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields",
+    "copyErrorCode": "Copy error code"
   },
   "placeholder": {
     "searchIcons": "Icona di ricerca",
@@ -1704,7 +1777,10 @@
         "fieldVisibility": "Non è possibile modificare la visibilità di un campo in corso di modifica. Si prega di salvare o scartare le modifiche prima.",
         "moveEditedField": "Non è possibile spostare il campo che è in fase di modifica. Prima salvare o scartare le modifiche",
         "moveDeletedField": "Non è possibile spostare il campo eliminato. Prima salvare o scartare le modifiche"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -2005,7 +2081,13 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error",
+      "anErrorOccuredWhileImporting": "An error occurred while {type}",
+      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable",
+      "paymentFailed": "Payment Failed",
+      "paymentFailedSubtitle": "Something went wrong while processing your payment. Please try again or contact support."
     },
     "toast": {
       "exportMetadata": "Metadati del progetto esportati con successo",
@@ -2055,6 +2137,8 @@
       "embeddableHTMLCodeCopied": "Codice HTML incorporabile copiato!",
       "userDetailsUpdated": "Ha aggiornato con successo i dettagli dell'utente",
       "tableDataImported": "I dati della tabella sono stati importati con successo",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "I dettagli del webhook sono stati aggiornati con successo",
       "webhookDeleted": "Gancio cancellato con successo",
       "webhookTested": "Webhook testato con successo",
@@ -2064,7 +2148,9 @@
       "settingsSaved": "Impostazioni salvate con successo",
       "roleUpdated": "Ruolo aggiornato con successo",
       "connectionAdded": "L'integrazione è stata collegata con successo",
-      "connectionAddedDesc": "I proprietari e i creatori di basi possono ora aggiungere una fonte di dati senza dover reinserire le credenziali."
+      "connectionAddedDesc": "I proprietari e i creatori di basi possono ora aggiungere una fonte di dati senza dover reinserire le credenziali.",
+      "paymentSuccessful": "Payment Successful",
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

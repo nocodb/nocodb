@@ -1,11 +1,11 @@
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import { NO_EDITABLE_CELL } from '../utils/cell'
 import { EDIT_INTERACTABLE } from '../utils/constants'
+import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData } from '../utils/groupby'
 
 const MAX_SELECTION_LIMIT = 100
 const MIN_COLUMN_INDEX = 1
 export function useKeyboardNavigation({
-  totalRows,
   activeCell,
   columns,
   triggerReRender,
@@ -17,18 +17,20 @@ export function useKeyboardNavigation({
   clearSelectedRangeOfCells,
   makeCellEditable,
   expandForm,
-  cachedRows,
+  cachedGroups,
   isAddingEmptyRowAllowed,
   addEmptyRow,
   addNewColumn,
   onActiveCellChanged,
   handleCellKeyDown,
+  isGroupBy,
+  getDataCache,
 }: {
-  totalRows: Ref<number>
-  activeCell: Ref<{ row: number; column: number }>
+  isGroupBy: ComputedRef<boolean>
+  activeCell: Ref<{ row: number; column: number; path?: Array<number> }>
   triggerReRender: () => void
   columns: ComputedRef<CanvasGridColumn[]>
-  scrollToCell: (row?: number, column?: number) => void
+  scrollToCell: (row?: number, column?: number, path?: Array<number>) => void
   selection: Ref<CellRange>
   editEnabled: Ref<{
     rowIndex: number
@@ -39,23 +41,36 @@ export function useKeyboardNavigation({
     width: number
     height: number
   } | null>
-  copyValue: (target?: Cell) => void
-  clearCell: (ctx: { row: number; col: number } | null, skipUpdate?: boolean) => Promise<void>
-  clearSelectedRangeOfCells: () => Promise<void>
-  makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
-  expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
-  cachedRows: Ref<Map<number, Row>>
+  copyValue: (target?: Cell, path?: Array<number>) => void
+  clearCell: (ctx: { row: number; col: number; path?: Array<number> } | null, skipUpdate?: boolean) => Promise<void>
+  clearSelectedRangeOfCells: (path?: Array<number>) => Promise<void>
+  makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
+  expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
+  cachedGroups: Ref<Map<number, CanvasGroup>>
   isAddingEmptyRowAllowed: ComputedRef<boolean>
   addNewColumn: () => void
-  addEmptyRow: (row?: number, skipUpdate?: boolean, before?: string) => void
+  addEmptyRow: (
+    addAfter?: number,
+    skipUpdate?: boolean,
+    before?: string,
+    overwrite?: Record<string, any>,
+    path?: Array<number>,
+  ) => Row | undefined
   onActiveCellChanged: () => void
   handleCellKeyDown: (ctx: { e: KeyboardEvent; row: Row; column: CanvasGridColumn; value: any; pk: any }) => Promise<boolean>
+  getDataCache: (path?: Array<number>) => {
+    cachedRows: Ref<Map<number, Row>>
+    totalRows: Ref<number>
+    chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
+    selectedRows: ComputedRef<Array<Row>>
+    isRowSortRequiredRows: ComputedRef<Array<Row>>
+  }
 }) {
   const { isDataReadOnly } = useRoles()
   const { $e } = useNuxtApp()
   const meta = inject(MetaInj, ref())
 
-  const handleKeyDown = async (e: KeyboardEvent) => {
+  const _handleKeyDown = async (e: KeyboardEvent) => {
     if (isViewSearchActive() || isCreateViewActive() || isActiveElementInsideExtension()) return
     const activeDropdownEl = document.querySelector(
       '.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active',
@@ -74,6 +89,27 @@ export function useKeyboardNavigation({
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     const altOrOptionKey = e.altKey
 
+    let groupPath: Array<number> = []
+    let group: CanvasGroup
+
+    let defaultData = {}
+
+    if (isGroupBy.value) {
+      if (activeCell.value.path?.length) {
+        groupPath = activeCell.value.path
+      } else {
+        const group = findFirstExpandedGroupWithPath(cachedGroups.value)
+        if (group.path?.length) groupPath = group.path
+        else return
+      }
+      group = findGroupByPath(cachedGroups.value, groupPath)
+      defaultData = getDefaultGroupData(group)
+    }
+
+    const dataCache = getDataCache(groupPath)
+
+    const { cachedRows, totalRows } = dataCache
+
     if (e.key === ' ' && !e.shiftKey) {
       const isRichModalOpen = isExpandedCellInputExist()
 
@@ -82,7 +118,7 @@ export function useKeyboardNavigation({
         const row = cachedRows.value.get(activeCell.value.row)
 
         if (!row) return
-        expandForm(row)
+        expandForm(row, undefined, false, groupPath)
         return
       }
     }
@@ -93,7 +129,7 @@ export function useKeyboardNavigation({
       if (row && column?.columnObj && !editEnabled.value) {
         const value = row.row[column.columnObj.title]
         const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
-        const res = await handleCellKeyDown({ e, column, row, pk, value })
+        const res = await handleCellKeyDown({ e, column, row, pk, value, path: groupPath })
 
         if (res) {
           return
@@ -108,7 +144,7 @@ export function useKeyboardNavigation({
       switch (e.key.toLowerCase()) {
         case 'c':
           e.preventDefault()
-          copyValue()
+          copyValue({ row: activeCell.value.row, col: activeCell.value.column }, groupPath)
           return
       }
     }
@@ -127,11 +163,12 @@ export function useKeyboardNavigation({
           // ALT + R
           if (isAddingEmptyRowAllowed.value) {
             $e('c:shortcut', { key: 'ALT + R' })
-            addEmptyRow()
+            addEmptyRow(undefined, undefined, undefined, defaultData, groupPath)
             activeCell.value.row = totalRows.value
             activeCell.value.column = 1
+            activeCell.value.path = groupPath
             selection.value.clear()
-            scrollToCell(activeCell.value.row, 1)
+            scrollToCell(activeCell.value.row, 1, groupPath)
           }
           return
         }
@@ -153,11 +190,13 @@ export function useKeyboardNavigation({
             await clearCell?.({
               row: activeCell.value.row,
               col: activeCell.value.column,
+              path: groupPath,
             })
           } else {
-            await clearSelectedRangeOfCells()
+            await clearSelectedRangeOfCells(groupPath)
             selection.value.clear()
           }
+          requestAnimationFrame(triggerReRender)
         }
         return
 
@@ -167,15 +206,16 @@ export function useKeyboardNavigation({
           e.preventDefault()
           const column = columns.value[activeCell.value.column]
           if (column?.columnObj?.uidt) {
-            if (!NO_EDITABLE_CELL.includes(column.columnObj.uidt) && !column.columnObj.readonly) {
-              makeCellEditable(activeCell.value.row, columns.value[activeCell.value.column]!)
+            if (!NO_EDITABLE_CELL.includes(column.columnObj.uidt as UITypes) && !column.columnObj.readonly) {
+              const row = cachedRows.value.get(activeCell.value.row)
+              makeCellEditable(row, columns.value[activeCell.value.column]!)
               selection.value.clear()
             }
           }
         } else {
           const NO_ENTER_KEY_NAVIGATE_COLUMNS = [UITypes.Attachment, UITypes.Barcode, UITypes.QrCode]
           const column = columns.value[activeCell.value.column]?.columnObj
-          if (column && NO_ENTER_KEY_NAVIGATE_COLUMNS.includes(column.uidt)) {
+          if (column && NO_ENTER_KEY_NAVIGATE_COLUMNS.includes(column.uidt as UITypes)) {
             return
           }
           editEnabled.value = null
@@ -204,7 +244,7 @@ export function useKeyboardNavigation({
               col: selection.value._end?.col ?? activeCell.value.column,
             }
             selection.value.endRange(newEnd)
-            scrollToCell(newEnd.row, newEnd.col)
+            scrollToCell(newEnd.row, newEnd.col, groupPath)
             movedSelection = true
           } else {
             activeCell.value.row = newRow
@@ -279,7 +319,7 @@ export function useKeyboardNavigation({
         e.preventDefault()
         if (!e.shiftKey && activeCell.value.row === lastRow && activeCell.value.column === lastCol) {
           if (isAddingEmptyRowAllowed.value) {
-            addEmptyRow()
+            addEmptyRow(undefined, false, undefined, defaultData, groupPath)
             isAdded = true
           }
         } else if (e.shiftKey && activeCell.value.row === 0 && activeCell.value.column === MIN_COLUMN_INDEX) {
@@ -315,13 +355,15 @@ export function useKeyboardNavigation({
       }
 
       if (moved) {
-        scrollToCell(activeCell.value.row, activeCell.value.column)
+        scrollToCell(activeCell.value.row, activeCell.value.column, groupPath)
       } else if (movedSelection) {
-        scrollToCell(selection.value._end!.row, selection.value._end!.col)
+        scrollToCell(selection.value._end!.row, selection.value._end!.col, groupPath)
       }
     }
     triggerReRender()
   }
+
+  const handleKeyDown = useThrottleFn(_handleKeyDown, 50)
 
   useEventListener('keydown', handleKeyDown)
 }

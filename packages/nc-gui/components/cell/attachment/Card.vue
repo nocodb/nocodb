@@ -110,7 +110,20 @@ const handleFileDeleteStart = () => {
         class="!w-full !m-0 rounded-t-[5px] justify-center"
         :class="previewClassOverride ? `${previewClassOverride}` : ''"
       />
-
+      <GeneralIcon
+        v-else-if="isAudio(attachment.title, attachment.mimetype)"
+        class="text-white"
+        icon="ncFileTypeAudio"
+        :height="45"
+        :width="45"
+      />
+      <GeneralIcon
+        v-else-if="isVideo(attachment.title, attachment.mimetype)"
+        class="text-white"
+        icon="ncFileTypeVideo"
+        :height="45"
+        :width="45"
+      />
       <component :is="FileIcon(attachment.icon)" v-else-if="attachment.icon" :height="45" :width="45" class="text-white" />
 
       <GeneralIcon v-else icon="ncFileTypeUnknown" :height="45" :width="45" class="text-white" />

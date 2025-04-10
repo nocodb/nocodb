@@ -68,6 +68,7 @@ export function useMultiSelect(
   fetchChunk?: (chunkId: number) => Promise<void>,
   onActiveCellChanged?: () => void,
   getRows?: Promise<Row[]>,
+  isInfiniteScroll: boolean = true,
 ) {
   const meta = ref(_meta)
 
@@ -150,7 +151,7 @@ export function useMultiSelect(
   }
 
   const valueToCopy = (rowObj: Row, columnObj: ColumnType) => {
-    const textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
+    const textToCopy = (columnObj.title && rowObj.row[columnObj.title]) ?? ''
 
     return ColumnHelper.parseValue(textToCopy, {
       col: columnObj,
@@ -938,14 +939,21 @@ export function useMultiSelect(
         let totalRowsBeforeActiveCell
         let availableRowsToUpdate
         let rowsToAdd
+
         if (isArrayStructure) {
           const { totalRows: _tempTr, page = 1, pageSize = 100 } = unref(paginationData)!
-          tempTotalRows = _tempTr as number
-          totalRowsBeforeActiveCell = (page - 1) * pageSize + activeCell.row
+          if (isInfiniteScroll) {
+            tempTotalRows = _tempTr as number
+            totalRowsBeforeActiveCell = (page - 1) * pageSize + activeCell.row
+          } else {
+            tempTotalRows = Math.max(0, (_tempTr ?? 0) - (page - 1) * pageSize)
+            totalRowsBeforeActiveCell = activeCell.row
+          }
+
           availableRowsToUpdate = Math.max(0, tempTotalRows - totalRowsBeforeActiveCell)
           rowsToAdd = Math.max(0, selectionRowCount - availableRowsToUpdate)
         } else {
-          tempTotalRows = unref(_totalRows) as number
+          tempTotalRows = (unref(_totalRows) as number) ?? 0
           totalRowsBeforeActiveCell = activeCell.row
           availableRowsToUpdate = Math.max(0, tempTotalRows - totalRowsBeforeActiveCell)
           rowsToAdd = Math.max(0, selectionRowCount - availableRowsToUpdate)

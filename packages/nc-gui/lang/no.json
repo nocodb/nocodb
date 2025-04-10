@@ -92,6 +92,10 @@
     "attachment_size": "Vedleggsstørrelse",
     "none": "Ingen"
   },
+  "upgrade": {
+    "UpgradeToCreateAdditionalSnapshots": "Upgrade to create additional snapshots",
+    "UpgradeToCreateAdditionalSnapshotsSubtitle": "The {activePlan} plan allows up to {n} snapshots. Upgrade to the {plan} plan and get access to additional snapshots."
+  },
   "general": {
     "supported": "Støttet",
     "usage": "Bruksområde",
@@ -311,7 +315,19 @@
     "unread": "Ulest",
     "shared": "Delt",
     "organization": "Organisasjon",
-    "all": "Alle"
+    "all": "Alle",
+    "billing": "Billing",
+    "choose": "Choose",
+    "plan": "Plan",
+    "plans": "Plans",
+    "monthly": "Monthly",
+    "annually": "Annually",
+    "yearly": "Yearly",
+    "paid": "Paid",
+    "total": "Total",
+    "downgrade": "Downgrade",
+    "upgrade": "Upgrade",
+    "reactivate": "Reactivate"
   },
   "objects": {
     "script": "Skript",
@@ -458,6 +474,28 @@
       "ai": "AI",
       "spreadSheet": "Regneark",
       "spreadSheetSubtitle": "Koble til og administrer regnearkene dine med NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
+    },
+    "paymentPlan": {
+      "Free": "Free",
+      "Team": "Team",
+      "Plus": "Plus",
+      "Business": "Business",
+      "Enterprise": "Enterprise"
+    },
+    "currentPlan": {
+      "nextInvoice": "Next Invoice",
+      "nextInvoiceAmount": "Next Invoice Amount",
+      "numberOfBilledUsers": "Number of Billed Users",
+      "numberOfBillableUsers": "Number of Billable Users",
+      "storageUsedGB": "Storage Used (GB)",
+      "webhookCallsMonthly": "Webhook calls (monthly)",
+      "apiCallsMonthly": "API calls (monthly)"
     }
   },
   "datatype": {
@@ -683,7 +721,21 @@
     "viewSettingsCantBeChangedWhenViewIs": "Visningsinnstillinger kan ikke endres når visningen er {type}",
     "youAreLeavingNocoDB": "Du forlater NocoDB",
     "onlyProceedIfYouTrustThisLink": "Fortsett kun hvis du stoler på denne koblingen.",
-    "reAssignViewModalSubtitle": "Når den er tildelt på nytt, vil nåværende eier ikke lenger kunne redigere visningskonfigurasjonen."
+    "reAssignViewModalSubtitle": "Når den er tildelt på nytt, vil nåværende eier ikke lenger kunne redigere visningskonfigurasjonen.",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
+    "currentPlan": "Current Plan",
+    "editorMonth": "/editor/month",
+    "mostPopular": "Most Popular",
+    "helpAndSupport": "Help & Support",
+    "helpAndSupportSubtitle": "Visit our Support Center for detailed guides, customer service contact options, and a community forum for additional help.",
+    "faq": "FAQ",
+    "faqSubtitle": "Explore the FAQ section and get quick answers to common questions about our services, features, and troubleshooting. ",
+    "downgradeToPlan": "Downgrade to {plan} plan?",
+    "downgradeToPlanSubtitle": "You'll lose access to {activePlan} plan features that aren't available in the {plan} plan.",
+    "upgradeToPlan": "Upgrade to {plan} plan?",
+    "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
+    "reactivateToPlan": "Reactivate {plan} plan?"
   },
   "labels": {
     "restoringSnapshot": "Gjenoppretter øyeblikksbilde",
@@ -987,6 +1039,7 @@
     "csv": "CSV",
     "csvFile": "CSV-fil",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON-fil",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1155,7 +1208,22 @@
     "fillForm": "Fyll ut skjema",
     "proceedToLink": "Gå til lenke",
     "currentOwner": "Nåværende eier",
-    "newOwner": "Ny eier"
+    "newOwner": "Ny eier",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON",
+    "airtableBase": "Airtable base",
+    "upgradePlan": "Upgrade Plan",
+    "viewAllPlanDetails": "View all plan details",
+    "contactSales": "Contact Sales",
+    "manageSubscription": "Manage Subscription",
+    "upgradeToPlan": "Upgrade To {plan}",
+    "applicableTax": "Applicable tax",
+    "annualSavings": "Annual Savings",
+    "compareAllFeatures": "Compare all features",
+    "planIncludes": "{plan} Includes:",
+    "everythingInPlanPlus": "Everything in {plan}, Plus:",
+    "downloadInvoice": "Download Invoice",
+    "proceed": "Proceed"
   },
   "activity": {
     "clickToResolve": "Klikk for å løse",
@@ -1425,6 +1493,7 @@
     "clearForm": "Fjern skjema",
     "addFieldFromFormView": "Legg til felt",
     "selectAllFields": "Velg alle felt",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Aktiver forhåndsutfylling",
       "default": "Misligholde",
@@ -1437,7 +1506,9 @@
     "goToDocs": "Gå til dokumenter",
     "addCondition": "Legg til betingelse",
     "addConditionGroup": "Legg til betingelsesgruppe",
-    "pending": "Venter"
+    "pending": "Venter",
+    "goToPage": "Go to Page",
+    "changePlan": "ChangePlan"
   },
   "tooltip": {
     "leaveWorkspace": "Hvert arbeidsområde må ha minst én eier. Vennligst tildel en annen bruker som eier før du forlater arbeidsområdet. Hvis du er det siste medlemmet, bør du vurdere å slette arbeidsområdet i stedet.",
@@ -1492,7 +1563,9 @@
     "sourceDataIsReadonly": "Kildedata er skrivebeskyttet",
     "schemaChangeDisabledFormSqlView": "Skjemaredigering er deaktivert for denne SQL-visningen.",
     "shiftSpace": "Shift + Mellomrom",
-    "expandShiftSpace": "Utvid 'Shift + Space'"
+    "expandShiftSpace": "Utvid 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields",
+    "copyErrorCode": "Copy error code"
   },
   "placeholder": {
     "searchIcons": "Søk ikoner",
@@ -1704,7 +1777,10 @@
         "fieldVisibility": "Du kan ikke endre synligheten av et felt som redigeres. Vennligst lagre eller forkast endringer først.",
         "moveEditedField": "Du kan ikke flytte et felt som redigeres. Lagre eller forkast endringer først",
         "moveDeletedField": "Du kan ikke flytte et felt som er slettet. Lagre eller forkast endringer først"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Sending av invitasjon var vellykket",
@@ -2005,7 +2081,13 @@
       "columnVisibilityUpdateFailed": "Kunne ikke oppdatere feltets synlighet",
       "unsupportedCharacter": "Tegn støttes ikke: {char}",
       "unsupportedCharacters": "Tegn støttes ikke: {char}",
-      "notSupported": "Støttes ikke"
+      "notSupported": "Støttes ikke",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error",
+      "anErrorOccuredWhileImporting": "An error occurred while {type}",
+      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable",
+      "paymentFailed": "Payment Failed",
+      "paymentFailedSubtitle": "Something went wrong while processing your payment. Please try again or contact support."
     },
     "toast": {
       "exportMetadata": "Prosjektmetadata eksporteres vellykket",
@@ -2055,6 +2137,8 @@
       "embeddableHTMLCodeCopied": "Kopiert innbyggbar HTML-kode!",
       "userDetailsUpdated": "Brukerdetaljer oppdatert vellykket",
       "tableDataImported": "Tabell data importert vellykket",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook detaljer oppdatert vellykket",
       "webhookDeleted": "Hook slettet vellykket",
       "webhookTested": "Webhook testet vellykket",
@@ -2064,7 +2148,9 @@
       "settingsSaved": "Innstillinger lagret vellykket",
       "roleUpdated": "Rolle oppdatert vellykket",
       "connectionAdded": "Integrasjon koblet til vellykket",
-      "connectionAddedDesc": "Base-eiere og skaperne kan nå legge til en datakilde uten å angi legitimasjon på nytt."
+      "connectionAddedDesc": "Base-eiere og skaperne kan nå legge til en datakilde uten å angi legitimasjon på nytt.",
+      "paymentSuccessful": "Payment Successful",
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start fra bunnen av.",

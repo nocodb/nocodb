@@ -3,6 +3,7 @@ import { AllAggregations, type ColumnType, type TableType, UITypes } from 'nocod
 import type { Composer } from 'vue-i18n'
 import tinycolor from 'tinycolor2'
 import {
+  drawStraightLine,
   isBoxHovered,
   renderCheckbox,
   renderIconButton,
@@ -1754,22 +1755,88 @@ export function useCanvasRender({
 
       const adjustedWidth =
         totalWidth.value - scrollLeft.value - 256 < width.value ? totalWidth.value - scrollLeft.value - 256 : width.value
-      roundedRect(ctx, xOffset, yOffset, adjustedWidth, 36, 8, { backgroundColor: bg, borderColor: '#D5D5D9' })
+      roundedRect(ctx, xOffset, yOffset, adjustedWidth, GROUP_HEADER_HEIGHT, 8, { backgroundColor: bg, borderColor: '#D5D5D9' })
 
       spriteLoader.renderIcon(ctx, {
         icon: group.isExpanded ? 'ncChevronDown' : 'ncChevronRight',
         size: 16,
         color: '#374150',
         x: xOffset + 8 + 4,
-        y: yOffset + 11,
+        y: yOffset + (GROUP_HEADER_HEIGHT - 16) / 2,
       })
 
       const availableWidth = mergedWidth - (xOffset + 12 + 16) - 20
 
       const contentX = xOffset + 12 + 20
-      const contentY = yOffset + 24
+      const contentY = yOffset + 27
 
-      renderGroupContent(ctx, group, contentX, contentY, availableWidth)
+      const isMouseHoveringOverGroupHeader = isBoxHovered(
+        {
+          x: xOffset,
+          y: yOffset,
+          width: mergedWidth,
+          height: GROUP_HEADER_HEIGHT,
+        },
+        mousePosition,
+      )
+
+      let contentWidth = 0
+      let countWidth = 0
+
+      if (!isMouseHoveringOverGroupHeader) {
+        const countRender = renderSingleLineText(ctx, {
+          text: `${group.count}`,
+          x: xOffset + mergedWidth - 8,
+          y: yOffset + 7,
+          height: GROUP_HEADER_HEIGHT,
+          verticalAlign: 'middle',
+          fontSize: 12,
+          fillStyle: '#374151',
+          fontWeight: 'lighter',
+          textAlign: 'right',
+        })
+
+        countWidth = countRender.width
+
+        const contentRender = renderSingleLineText(ctx, {
+          text: 'Count',
+          x: xOffset + mergedWidth - 8 - countWidth - 4,
+          y: yOffset + 7,
+          fontSize: 12,
+          textAlign: 'right',
+          fillStyle: '#6A7184',
+          fontWeight: 'lighter',
+        })
+        contentWidth = contentRender.width
+      } else {
+        renderIconButton(ctx, {
+          icon: 'threeDotVertical',
+          mousePosition,
+          buttonSize: 32,
+          setCursor,
+          borderColor: 'transparent',
+          borderRadius: 8,
+          buttonX: xOffset + mergedWidth - 8 - 32,
+          buttonY: yOffset + 6,
+          spriteLoader,
+        })
+      }
+
+      drawStraightLine(ctx, {
+        startX: xOffset + mergedWidth,
+        endX: xOffset + mergedWidth,
+        startY: yOffset,
+        endY: yOffset + GROUP_HEADER_HEIGHT,
+        strokeStyle: '#D5D5D9',
+      })
+
+      if (scrollLeft.value) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
+        ctx.rect(xOffset + mergedWidth, yOffset, 4, GROUP_HEADER_HEIGHT)
+        ctx.fill()
+      }
+
+      renderGroupContent(ctx, group, contentX, contentY, availableWidth - contentWidth - 8 - countWidth)
 
       yOffset = yOffset + GROUP_PADDING + GROUP_HEADER_HEIGHT
     }

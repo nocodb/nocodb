@@ -2286,7 +2286,7 @@ export function useCanvasRender({
               x: aggXOffset - scrollLeft.value,
               y: currentOffset + 1,
               width,
-              height: GROUP_HEADER_HEIGHT - 2,
+              height: GROUP_HEADER_HEIGHT - 1 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
             },
             mousePosition,
           )

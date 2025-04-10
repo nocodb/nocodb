@@ -196,7 +196,10 @@ export function useCanvasRender({
     ctx.textAlign = 'left'
     const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
     const columnsWidth =
-      totalColumnsWidth.value + (isAddingColumnAllowed.value && !isMobileMode.value ? plusColumnWidth : 0) - scrollLeft.value
+      totalColumnsWidth.value +
+      (!isAddingColumnAllowed.value ? groupByColumns?.value?.length * 13 + (groupByColumns?.value?.length - 1) * 13 : 0) +
+      (isAddingColumnAllowed.value && !isMobileMode.value ? plusColumnWidth : 0) -
+      scrollLeft.value
 
     // Header background
     ctx.fillStyle = '#f4f4f5'
@@ -231,7 +234,12 @@ export function useCanvasRender({
 
     for (const column of visibleCols) {
       const colObj = column.columnObj
-      const width = parseCellWidth(column.width)
+
+      const isLastCol = column.id === columns.value?.[columns.value.length - 1]?.id
+
+      const width =
+        parseCellWidth(column.width) +
+        (isLastCol && !isAddingColumnAllowed.value && isGroupBy.value ? (groupByColumns.value?.length - 1) * 13 - 1 : 0)
 
       if (column.fixed) {
         xOffset += width

@@ -1122,7 +1122,7 @@ export function useCanvasRender({
           xOffset += width
         })
 
-        if (scrollLeft.value) {
+        if (scrollLeft.value && !isGroupBy.value) {
           ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
           ctx.rect(xOffset, yOffset, 4, rowHeight.value)
           ctx.fill()
@@ -2297,7 +2297,7 @@ export function useCanvasRender({
               Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
               groupHeaderY + 1,
               width,
-              GROUP_HEADER_HEIGHT - 1 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
+              GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
             )
 
             ctx.fill()
@@ -2335,7 +2335,7 @@ export function useCanvasRender({
                 Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
                 groupHeaderY + 1,
                 width,
-                GROUP_HEADER_HEIGHT - 1 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
+                GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
               )
               ctx.fill()
               ctx.clip()
@@ -2368,7 +2368,7 @@ export function useCanvasRender({
             Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
             groupHeaderY + 1,
             width,
-            GROUP_HEADER_HEIGHT - 1 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
+            GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
           )
 
           ctx.clip()
@@ -2377,7 +2377,7 @@ export function useCanvasRender({
           ctx.moveTo(aggXOffset - scrollLeft.value, groupHeaderY + 1)
           ctx.lineTo(
             aggXOffset - scrollLeft.value,
-            groupHeaderY + GROUP_HEADER_HEIGHT - 1 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
+            groupHeaderY + GROUP_HEADER_HEIGHT - 2 + (group.isExpanded && !group?.path ? GROUP_PADDING : 0),
           )
           ctx.stroke()
           ctx.restore()
@@ -2409,7 +2409,7 @@ export function useCanvasRender({
         const countRender = renderSingleLineText(ctx, {
           text: `${group.count}`,
           x: xOffset + mergedWidth - 8,
-          y: groupHeaderY + 7,
+          y: groupHeaderY + 5,
           height: GROUP_HEADER_HEIGHT,
           verticalAlign: 'middle',
           fontFamily: '700 13px Manrope',
@@ -2421,7 +2421,9 @@ export function useCanvasRender({
         const contentRender = renderSingleLineText(ctx, {
           text: 'Count',
           x: xOffset + mergedWidth - 8 - countWidth - 8,
-          y: groupHeaderY + 7,
+          y: groupHeaderY + 5,
+          height: GROUP_HEADER_HEIGHT,
+          verticalAlign: 'middle',
           textAlign: 'right',
           fontFamily: '500 12px Manrope',
           fillStyle: '#6A7184',

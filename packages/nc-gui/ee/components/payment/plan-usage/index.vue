@@ -147,7 +147,7 @@ const apiCallsInfo = computed(() => {
         <template #label> {{ $t('objects.currentPlan.nextInvoice') }} </template>
         <template #value>
           <div v-if="!activeSubscription">-</div>
-          <div v-else-if="activeSubscription?.canceled_at" class="text-red-500">
+          <div v-else-if="activeSubscription?.canceled_at" class="text-nc-content-red-medium">
             Marked for cancellation, due {{ new Date(activeSubscription.canceled_at).toLocaleDateString() }}
           </div>
           <div v-else>{{ nextInvoiceInfo?.amount }}, {{ nextInvoiceInfo?.date }}</div>
@@ -159,7 +159,7 @@ const apiCallsInfo = computed(() => {
               </span>
               <!-- Cancel -->
               <span
-                class="text-red-500"
+                class="text-nc-content-red-medium hover:underline cursor-pointer"
                 @click="updateSubscription(activeSubscription.fk_plan_id, activeSubscription.stripe_price_id)"
                 >(Cancel)</span
               >

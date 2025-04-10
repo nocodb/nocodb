@@ -295,9 +295,11 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
           okText = t('general.downgrade')
         } else {
           title = 'Update Subscription'
-          content = `${changes.price === 'charges' ? 'Charges' : 'No charges'} will be applied for the change. ${
-            changes.period ? `The billing period will be changed to ${changes.period === 'month' ? 'monthly' : 'annually'}` : ''
-          }`
+          content = `${
+            changes.price === 'charges' ? 'Charges' : 'No charges'
+          } will be applied immediately. Your billing cycle will switch to ${
+            changes.period === 'month' ? 'monthly' : 'annually'
+          }${changes.price === 'charges' ? '' : ' at the end of the current period'}.`
           okText = t('general.update')
         }
       }

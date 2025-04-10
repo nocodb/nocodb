@@ -1889,6 +1889,7 @@ export function useCanvasRender({
     level: number,
     startIndex: number,
     endIndex: number,
+    visibleStartIndex: number,
   ): number {
     if (!group.path) return yOffset
     const dataCache = getDataCache(group.path)
@@ -2060,9 +2061,11 @@ export function useCanvasRender({
     renderFillHandle(ctx)
 
     if (rowsToFetch?.length) {
-      const minIndex = Math.min(...rowsToFetch)
+      // todo: visibleStartIndex - needs to be corrected
       const maxIndex = Math.max(...rowsToFetch)
+      const minIndex = Math.max(Math.min(visibleStartIndex, maxIndex) - 10, Math.min(...rowsToFetch))
       getRows(minIndex, maxIndex, group.path)
+      console.log(minIndex, maxIndex, visibleStartIndex)
     }
 
     return yOffset
@@ -2199,6 +2202,7 @@ export function useCanvasRender({
               level + 1,
               nestedStart,
               nestedEnd,
+              Math.max(0, Math.floor((scrollTop.value - gHeight + GROUP_PADDING + yOffset) / itemHeight)),
             )
           } else {
             // Calculate the range of nested groups that should be visible

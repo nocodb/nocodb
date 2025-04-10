@@ -132,19 +132,22 @@ export function useGridViewData(
         // get the highest index value present in cachedGroups
         const endIndex = Math.max(...cachedGroups.value.keys())
 
-        // clearGroupCache(Number.NEGATIVE_INFINITY,Number.POSITIVE_INFINITY)
-        await fetchMissingGroupChunks(0, endIndex, parentGroup, true)
+        // reload all groups in current level since any one of them can be in updated state
+        await fetchMissingGroupChunks(0, endIndex, parentGroup ?? undefined, true)
+
         // iterate and clear if expanded grid present
         // const clearGridCache()
         for (let i = 0; i < (parentGroup?.groupCount ?? totalGroups.value); i++) {
           const group = parentGroup?.groups?.get(i) ?? cachedGroups.value.get(i)
           if (group?.isExpanded) {
-            await fetchChunk(0, group.path, true)
+            // await fetchChunk(0, group.path, true)
+            if (group.path) {
+              clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, group.path)
+            }
           }
         }
 
         // clear cache of all groups in current group level
-        clearCache(Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, parentGroupPath)
 
         // check the group level which is changed
         reloadVisibleDataHook?.trigger()

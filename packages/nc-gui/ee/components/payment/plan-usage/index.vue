@@ -61,6 +61,10 @@ const showWarningStatusForSeatCount = computed(() => {
   return currentPlanTitle.value === PlanTitles.FREE && workspaceSeatCount.value >= getLimit(PlanLimitTypes.LIMIT_EDITOR) - 1
 })
 
+const formatTotalLimit = (value: number) => {
+  return isFinite(value) ? Number(value).toLocaleString() : 'Unlimited'
+}
+
 const recordInfo = computed(() => {
   const value = getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)
   const total = getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) ?? 1000
@@ -68,7 +72,7 @@ const recordInfo = computed(() => {
 
   return {
     value: Number(value).toLocaleString(),
-    total: Number(total).toLocaleString(),
+    total: formatTotalLimit(total),
     showWarningStatus: showWarningStatus,
   }
 })
@@ -80,7 +84,7 @@ const storageInfo = computed(() => {
 
   return {
     value: Number(value).toFixed(1).toLocaleString(),
-    total: Number(total).toLocaleString(),
+    total: formatTotalLimit(total),
     showWarningStatus: showWarningStatus,
   }
 })
@@ -92,7 +96,7 @@ const automationInfo = computed(() => {
 
   return {
     value: Number(value).toLocaleString(),
-    total: Number(total).toLocaleString(),
+    total: formatTotalLimit(total),
     showWarningStatus: showWarningStatus,
   }
 })
@@ -104,7 +108,7 @@ const apiCallsInfo = computed(() => {
 
   return {
     value: Number(value).toLocaleString(),
-    total: Number(total).toLocaleString(),
+    total: formatTotalLimit(total),
     showWarningStatus: showWarningStatus,
   }
 })

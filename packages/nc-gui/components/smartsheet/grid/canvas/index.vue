@@ -557,7 +557,10 @@ async function onGroupRowChange({ row, level }) {
 
   await syncGroupCount(parentGroup)
 
-  clearSelection()
+  // add a slight delay to allow the DOM to update before clearing the selection
+  setTimeout(() => {
+    clearSelection()
+  }, 50)
 }
 
 function onActiveCellChanged() {

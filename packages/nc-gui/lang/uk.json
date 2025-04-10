@@ -316,15 +316,15 @@
     "shared": "Спільне",
     "organization": "Організація",
     "all": "Всі",
-    "billing": "Billing",
+    "billing": "Білінг",
     "choose": "Choose",
-    "plan": "Plan",
-    "plans": "Plans",
+    "plan": "Тариф",
+    "plans": "Тарифи",
     "monthly": "Monthly",
     "annually": "Annually",
     "yearly": "Yearly",
     "paid": "Paid",
-    "total": "Total",
+    "total": "Всього",
     "downgrade": "Downgrade",
     "upgrade": "Upgrade",
     "reactivate": "Reactivate"
@@ -484,9 +484,9 @@
     "paymentPlan": {
       "Free": "Free",
       "Team": "Team",
-      "Plus": "Plus",
-      "Business": "Business",
-      "Enterprise": "Enterprise"
+      "Plus": "Плюс",
+      "Business": "Бізнес",
+      "Enterprise": "Корпоративний"
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
@@ -729,7 +729,7 @@
     "mostPopular": "Most Popular",
     "helpAndSupport": "Help & Support",
     "helpAndSupportSubtitle": "Visit our Support Center for detailed guides, customer service contact options, and a community forum for additional help.",
-    "faq": "FAQ",
+    "faq": "ЧаПи",
     "faqSubtitle": "Explore the FAQ section and get quick answers to common questions about our services, features, and troubleshooting. ",
     "downgradeToPlan": "Downgrade to {plan} plan?",
     "downgradeToPlanSubtitle": "You'll lose access to {activePlan} plan features that aren't available in the {plan} plan.",

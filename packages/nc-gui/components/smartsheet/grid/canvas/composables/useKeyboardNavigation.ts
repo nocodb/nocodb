@@ -206,7 +206,7 @@ export function useKeyboardNavigation({
           e.preventDefault()
           const column = columns.value[activeCell.value.column]
           if (column?.columnObj?.uidt) {
-            if (!NO_EDITABLE_CELL.includes(column.columnObj.uidt) && !column.columnObj.readonly) {
+            if (!NO_EDITABLE_CELL.includes(column.columnObj.uidt as UITypes) && !column.columnObj.readonly) {
               makeCellEditable(activeCell.value.row, columns.value[activeCell.value.column]!)
               selection.value.clear()
             }
@@ -214,7 +214,7 @@ export function useKeyboardNavigation({
         } else {
           const NO_ENTER_KEY_NAVIGATE_COLUMNS = [UITypes.Attachment, UITypes.Barcode, UITypes.QrCode]
           const column = columns.value[activeCell.value.column]?.columnObj
-          if (column && NO_ENTER_KEY_NAVIGATE_COLUMNS.includes(column.uidt)) {
+          if (column && NO_ENTER_KEY_NAVIGATE_COLUMNS.includes(column.uidt as UITypes)) {
             return
           }
           editEnabled.value = null

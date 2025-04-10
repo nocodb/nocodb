@@ -72,6 +72,8 @@ const {
   fetchMissingGroupChunks,
   toggleExpand,
   totalGroups,
+  clearGroupCache,
+  groupDataCache,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
 const rowHeight = computed(() => {
@@ -336,6 +338,8 @@ const pGoToPreviousRow = () => {
       :get-data-cache="getDataCache"
       :cached-groups="cachedGroups"
       :group-by-columns="groupByColumns"
+      :group-data-cache="groupDataCache"
+      :clear-group-cache="clearGroupCache"
       :toggle-expand="toggleExpand"
       :group-sync-count="groupSyncCount"
       :fetch-missing-group-chunks="fetchMissingGroupChunks"

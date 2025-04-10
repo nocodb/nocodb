@@ -49,6 +49,7 @@ export function calculateGroupRange(
   rowHeight: number,
   groupCount: number,
   viewportHeight: number,
+  nested = false
 ): { startIndex: number; endIndex: number; partialGroupHeight: number } {
   let currentOffset = GROUP_PADDING
   let startIndex = 0
@@ -58,10 +59,10 @@ export function calculateGroupRange(
   for (let i = 0; i < groupCount; i++) {
     const group = groups.get(i)
     const groupHeight = calculateGroupHeight(group, rowHeight)
-
-    if (currentOffset + groupHeight - GROUP_PADDING > scrollTop) {
+    // console.log('calculateGroupRange', nested, currentOffset + groupHeight - GROUP_PADDING , scrollTop )
+    if (currentOffset + groupHeight - (!nested ? GROUP_PADDING : 0) > scrollTop) {
       startIndex = i
-      const partialGroupHeight = (scrollTop - (previousOffset - 8)) % 50
+      const partialGroupHeight = (scrollTop - (previousOffset - 8 )) % 50
       const viewportBottom = scrollTop + viewportHeight
 
       for (let j = i; j < groupCount; j++) {
@@ -76,6 +77,8 @@ export function calculateGroupRange(
         endIndex = j
       }
 
+
+      // console.log('calculateGroupRange - ret',  startIndex, endIndex, partialGroupHeight )
       return { startIndex, endIndex, partialGroupHeight }
     }
 

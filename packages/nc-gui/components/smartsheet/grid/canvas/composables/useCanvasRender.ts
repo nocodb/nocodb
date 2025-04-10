@@ -1823,14 +1823,16 @@ export function useCanvasRender({
       pGroup,
       startIndex,
       endIndex,
-      partialGroupHeight,
+      partialGroupHeight = 0,
+      gHeight: pgHeight = 0,
     }: {
       level: number
       yOffset: number
       pGroup?: CanvasGroup
       startIndex: number
       endIndex: number
-      partialGroupHeight
+      partialGroupHeight?: number
+      gHeight?: number
     },
   ): number {
     const groups = pGroup?.groups ?? cachedGroups.value
@@ -1871,21 +1873,26 @@ export function useCanvasRender({
           const nestedContentStart = tempCurrentOffset
           // Calculate the total height of groups up to the relevant index
           // If the group is at top, then use startIndex, else use endIndex
-          const gHeight = Array.from({ length: startIndex - 1 }, (_, i) => i)
-            .map((g) => {
-              const group = groups.get(g)
-              const h = calculateGroupHeight(group, rowHeight.value)
-              return h
-            })
-            .reduce((sum, c) => sum + c, 0)
+          const gHeight =
+            pgHeight +
+            Array.from({ length: startIndex - 1 }, (_, i) => i)
+              .map((g) => {
+                const group = groups.get(g)
+                const h = calculateGroupHeight(group, rowHeight.value)
+                return h
+              })
+              .reduce((sum, c) => sum + c, 0)
 
           // Calculate scroll position relative to the group height
           // scrollTop.value: current scroll position
           // currentOffset: accumulated offset from previous groups
           // gHeight: total height of groups calculated above
-          const relativeScrollTop = group.nestedIn?.length && i === startIndex ? scrollTop.value + tempCurrentOffset - gHeight : 0
+          const relativeScrollTop =
+            group.nestedIn?.length && i === startIndex ? scrollTop.value - gHeight - GROUP_HEADER_HEIGHT : 0
 
-          console.log('====', group.value, scrollTop.value, tempCurrentOffset, gHeight)
+          console.log('group is expanded', { currentOffset, tempCurrentOffset, yOffset, relativeScrollTop, gHeight })
+
+          // console.log('====', group.value, scrollTop.value, tempCurrentOffset, gHeight)
 
           if (group.infiniteData) {
             // Calculate visible viewport height from current offset to container bottom
@@ -1893,13 +1900,24 @@ export function useCanvasRender({
             const itemHeight = rowHeight.value
             // Calculate first visible item index, accounting for header height
             // Math.max ensures no negative indices
-            const nestedStart = Math.max(0, Math.floor((relativeScrollTop - GROUP_HEADER_HEIGHT) / itemHeight))
+            const nestedStart = Math.max(0, Math.floor(relativeScrollTop / itemHeight))
             // Calculate number of visible rows based on viewport height
             const visibleRowCount = Math.ceil(viewportHeight / itemHeight)
             // Calculate last visible item index, bounded by total count
             const nestedEnd = Math.min(nestedStart + visibleRowCount, group.count - 1)
 
-            tempCurrentOffset = renderGroupRows(ctx, group, nestedContentStart, level + 1, nestedStart, nestedEnd)
+            const nestedPartialRowHeight = partialGroupHeight - (relativeScrollTop % rowHeight.value)
+
+            tempCurrentOffset = renderGroupRows(
+              ctx,
+              group,
+              // Start rendering from the top of the group
+              // subtract the nestedPartialRowHeight from the parent and add the partialGroupHeight of the current group
+              nestedContentStart + (i === startIndex ? nestedPartialRowHeight : 0),
+              level + 1,
+              nestedStart,
+              nestedEnd,
+            )
           } else {
             // Calculate the range of nested groups that should be visible
             // based on scroll position and available height
@@ -1909,9 +1927,10 @@ export function useCanvasRender({
               rowHeight.value,
               group.groupCount,
               groupHeight - relativeScrollTop,
+              true,
             )
 
-            console.log(group.value, groupHeight - relativeScrollTop)
+            // console.log(group.value, groupHeight , relativeScrollTop)
 
             fetchMissingGroupChunks(nestedStart, nestedEnd, group)
 
@@ -1921,6 +1940,7 @@ export function useCanvasRender({
               pGroup: group,
               startIndex: nestedStart,
               endIndex: Math.max(0, nestedEnd),
+              gHeight,
             })
           }
         }

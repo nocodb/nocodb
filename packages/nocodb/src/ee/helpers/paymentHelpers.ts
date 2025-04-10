@@ -2,9 +2,7 @@ import { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { Org, Subscription, Workspace } from '~/models';
 import Noco from '~/Noco';
-import NocoCache from '~/cache/NocoCache';
 import Plan, { FreePlan, GenericFeatures, GenericLimits } from '~/models/Plan';
-import { CacheScope } from '~/utils/globals';
 
 async function getLimit(
   type: PlanLimitTypes,
@@ -104,26 +102,6 @@ async function getActivePlanAndSubscription(
   return { plan, subscription };
 }
 
-async function refreshPlanAndSubscription(
-  workspaceOrOrgId: string,
-  ncMeta = Noco.ncMeta,
-) {
-  const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
-
-  const activePlanAndSubscription = await getActivePlanAndSubscription(
-    workspaceOrOrgId,
-    ncMeta,
-  );
-
-  if (workspaceOrOrg.entity === 'workspace') {
-    await NocoCache.update(`${CacheScope.WORKSPACE}:${workspaceOrOrg.id}`, {
-      payment: activePlanAndSubscription,
-    });
-  } else {
-    // TODO Org
-  }
-}
-
 export {
   PlanLimitTypes,
   PlanFeatureTypes,
@@ -133,5 +111,4 @@ export {
   GenericFeatures,
   getWorkspaceOrOrg,
   getActivePlanAndSubscription,
-  refreshPlanAndSubscription,
 };

@@ -52,6 +52,9 @@ export default class Workspace implements WorkspaceType {
     plan: Partial<Plan>;
   };
 
+  created_at?: string;
+  updated_at?: string;
+
   constructor(workspace: Workspace | WorkspaceType) {
     Object.assign(this, workspace);
   }
@@ -109,10 +112,6 @@ export default class Workspace implements WorkspaceType {
       if (workspaceData) {
         workspaceData.meta = parseMetaProp(workspaceData);
         workspaceData.infra_meta = parseMetaProp(workspaceData, 'infra_meta');
-        workspaceData.payment = await getActivePlanAndSubscription(
-          workspaceData.fk_org_id || workspaceData.id,
-          ncMeta,
-        );
         if (!workspaceData.deleted) {
           await NocoCache.set(
             `${CacheScope.WORKSPACE}:${workspaceData.id}`,
@@ -122,7 +121,12 @@ export default class Workspace implements WorkspaceType {
       }
     }
 
-    if (workspaceData?.deleted && !force) return undefined;
+    if (!workspaceData || (workspaceData?.deleted && !force)) return undefined;
+
+    workspaceData.payment = await getActivePlanAndSubscription(
+      workspaceData.fk_org_id || workspaceData.id,
+      ncMeta,
+    );
 
     return workspaceData && new Workspace(workspaceData);
   }
@@ -377,10 +381,6 @@ export default class Workspace implements WorkspaceType {
     for (const workspace of workspaces) {
       workspace.meta = parseMetaProp(workspace);
       workspace.infra_meta = parseMetaProp(workspace, 'infra_meta');
-      workspace.payment = await getActivePlanAndSubscription(
-        workspace.fk_org_id || workspace.id,
-        ncMeta,
-      );
     }
 
     return workspaces.map((workspace) => new Workspace(workspace));
@@ -456,13 +456,6 @@ export default class Workspace implements WorkspaceType {
       );
 
     const workspaces = await queryBuilder;
-
-    for (const workspace of workspaces) {
-      workspace.payment = await getActivePlanAndSubscription(
-        workspace.fk_org_id || workspace.id,
-        ncMeta,
-      );
-    }
 
     return workspaces;
   }

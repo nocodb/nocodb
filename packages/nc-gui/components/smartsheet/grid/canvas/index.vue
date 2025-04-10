@@ -1016,7 +1016,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       return
     } else {
       // If x more than 80px, check if the user is trying to add a new column
-      const plusColumnX = totalColumnsWidth.value - scrollLeft.value
+      const plusColumnX = totalColumnsWidth.value - scrollLeft.value + groupByColumns.value.length * 13
       const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
       // If the user is trying to add a new column
       if (x >= plusColumnX && x <= plusColumnX + plusColumnWidth) {
@@ -1426,7 +1426,7 @@ const handleMouseMove = (e: MouseEvent) => {
     const fixedCols = columns.value.filter((col) => col.fixed)
 
     // check if it's hovering add new column
-    const plusColumnX = totalColumnsWidth.value - scrollLeft.value
+    const plusColumnX = totalColumnsWidth.value - scrollLeft.value + groupByColumns.value?.length * 13
     const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
 
     if (mousePosition.x >= plusColumnX && mousePosition.x <= plusColumnX + plusColumnWidth && isFieldEditAllowed.value) {

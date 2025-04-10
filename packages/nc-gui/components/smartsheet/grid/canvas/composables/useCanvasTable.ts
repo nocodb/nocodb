@@ -680,13 +680,14 @@ export function useCanvasTable({
     isDragging,
     draggedRowIndex,
     targetRowIndex,
-    cachedRows,
     partialRowHeight,
     scrollTop,
     scrollToCell,
     totalRows,
     triggerRefreshCanvas,
     updateRecordOrder,
+    elementMap,
+    getDataCache,
   })
 
   const { fetchChunk, updateVisibleRows } = useDataFetch({

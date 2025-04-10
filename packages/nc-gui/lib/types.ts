@@ -592,6 +592,10 @@ interface CanvasGroup {
   isExpanded: boolean
   value: any
   infiniteData?: ReturnType<typeof useInfiniteData>
+  displayValueProp?: string
+  relatedTableMeta?: TableType
+  relatedColumn?: ColumnType
+  color: string
 }
 
 export type {

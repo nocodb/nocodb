@@ -9,6 +9,7 @@ import {
 import type { ComputedRef, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import { calculateGroupRange, findGroupByPath, generateGroupPath } from '../components/smartsheet/grid/canvas/utils/groupby'
+import type { CanvasGroup } from '../lib/types'
 import { useInfiniteGroups } from './useInfiniteGroups'
 import { type CellRange, type Row } from '#imports'
 
@@ -62,6 +63,49 @@ export function useGridViewData(
     syncVisibleData,
   })
 
+  const onGroupRowChange = async ({ row, groupByColumn, property, level }) => {
+    // check  the group level which is changed
+    // check the target group and reload the data
+    //   - the target could be non-exist, in that scenario reload the parent group
+    //   - if the target group already present reload recursively
+    //   - if the target group is expanded, reload the data
+    const parentGroupPath = row.rowMeta?.path?.slice(0, level)
+
+    const parentGroup = parentGroupPath?.length ? findGroupByPath(cachedGroups.value, parentGroupPath) : undefined
+
+    // const cachedGroupsInCurrentLevel = findGroupByPath(cachedGroups.value, row.)
+
+    // find target group index
+    // const groupIndex = cachedGroups
+
+    const groupMap = parentGroup?.groups ?? cachedGroups.value
+
+    // get the highest index value present in cachedGroups
+    const endIndex = Math.max(...groupMap.keys())
+
+    // reload all groups in current level since any one of them can be in updated state
+    await fetchMissingGroupChunks(0, endIndex, parentGroup ?? undefined, true)
+
+    // iterate and clear if expanded grid present
+    const clearGridCache = (groupMap: Map<number, CanvasGroup>, toalGroupCount: number, path = []) => {
+      for (let i = 0; i < toalGroupCount; i++) {
+        const group = groupMap.get(i)
+        clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, [...path, i])
+        if (group?.groupCount) {
+          // if group is not expanded, check if it has subgroups and clear their cache
+          clearGridCache(group.groups, group.groupCount, group.path ?? [...path, i])
+        }
+      }
+    }
+
+    clearGridCache(groupMap, parentGroup?.groupCount ?? totalGroups.value, parentGroup?.path ?? [])
+
+    // clear cache of all groups in current group level
+
+    // check the group level which is changed
+    // reloadVisibleDataHook?.trigger()
+  }
+
   const {
     insertRow,
     updateRowProperty,
@@ -104,54 +148,7 @@ export function useGridViewData(
       syncTotalRows,
       getCount,
       getWhereFilter: getGroupFilter,
-      onGroupRowChange: async ({ row, groupByColumn, property, level }) => {
-        // check  the group level which is changed
-        // check the target group and reload the data
-        //   - the target could be non-exist, in that scenario reload the parent group
-        //   - if the target group already present reload recursively
-        //   - if the target group is expanded, reload the data
-        const parentGroupPath = row.rowMeta?.path?.slice(0, level)
-
-        const parentGroup = parentGroupPath?.length ? findGroupByPath(cachedGroups.value, parentGroupPath) : undefined
-
-        // const cachedGroupsInCurrentLevel = findGroupByPath(cachedGroups.value, row.)
-
-        // const { startIndex, endIndex, startGroupYOffset } = calculateGroupRange(
-        //   cachedGroups.value,
-        //   scrollTop.value,
-        //   32, // rowHeight.value,
-        //   totalGroups.value,
-        //   height.value,
-        //   false,
-        //   isAddingEmptyRowAllowed.value,
-        // )
-
-        // find target group index
-        // const groupIndex = cachedGroups
-
-        // get the highest index value present in cachedGroups
-        const endIndex = Math.max(...cachedGroups.value.keys())
-
-        // reload all groups in current level since any one of them can be in updated state
-        await fetchMissingGroupChunks(0, endIndex, parentGroup ?? undefined, true)
-
-        // iterate and clear if expanded grid present
-        // const clearGridCache()
-        for (let i = 0; i < (parentGroup?.groupCount ?? totalGroups.value); i++) {
-          const group = parentGroup?.groups?.get(i) ?? cachedGroups.value.get(i)
-          if (group?.isExpanded) {
-            // await fetchChunk(0, group.path, true)
-            if (group.path) {
-              clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, group.path)
-            }
-          }
-        }
-
-        // clear cache of all groups in current group level
-
-        // check the group level which is changed
-        reloadVisibleDataHook?.trigger()
-      },
+      onGroupRowChange,
       reloadAggregate: triggerAggregateReload,
     },
     groupByColumns,

@@ -24,7 +24,6 @@ import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType, parseCellWidth } f
 import {
   ADD_NEW_COLUMN_WIDTH,
   COLUMN_HEADER_HEIGHT_IN_PX,
-  GROUP_CHUNK_SIZE,
   GROUP_HEADER_HEIGHT,
   GROUP_PADDING,
   MAX_SELECTED_ROWS,

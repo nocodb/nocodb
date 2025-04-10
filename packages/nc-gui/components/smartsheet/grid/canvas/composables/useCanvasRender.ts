@@ -1,7 +1,7 @@
-import type { WritableComputedRef } from '@vue/reactivity';
-import { AllAggregations, type ColumnType, type TableType, UITypes } from 'nocodb-sdk';
-import type { Composer } from 'vue-i18n';
-import tinycolor from 'tinycolor2';
+import type { WritableComputedRef } from '@vue/reactivity'
+import { AllAggregations, type ColumnType, type TableType, UITypes } from 'nocodb-sdk'
+import type { Composer } from 'vue-i18n'
+import tinycolor from 'tinycolor2'
 import {
   drawStraightLine,
   isBoxHovered,
@@ -11,31 +11,32 @@ import {
   renderTagLabel,
   roundedRect,
   truncateText,
-} from '../utils/canvas';
-import type { ImageWindowLoader } from '../loaders/ImageLoader';
-import type { SpriteLoader } from '../loaders/SpriteLoader';
-import { renderIcon } from '../../../header/CellIcon';
-import { renderIcon as renderVIcon } from '../../../header/VirtualCellIcon';
-import type { TableMetaLoader } from '../loaders/TableMetaLoader';
+} from '../utils/canvas'
+import type { ImageWindowLoader } from '../loaders/ImageLoader'
+import type { SpriteLoader } from '../loaders/SpriteLoader'
+import { renderIcon } from '../../../header/CellIcon'
+import { renderIcon as renderVIcon } from '../../../header/VirtualCellIcon'
+import type { TableMetaLoader } from '../loaders/TableMetaLoader'
 import {
   ADD_NEW_COLUMN_WIDTH,
+  AGGREGATION_HEIGHT,
   COLUMN_HEADER_HEIGHT_IN_PX,
   GROUP_HEADER_HEIGHT,
   GROUP_PADDING,
   MAX_SELECTED_ROWS,
   ROW_META_COLUMN_WIDTH,
-} from '../utils/constants';
-import { parseCellWidth } from '../utils/cell';
+} from '../utils/constants'
+import { parseCellWidth } from '../utils/cell'
 import {
   calculateGroupHeight,
   calculateGroupRange,
   calculateGroupRowTop,
   generateGroupPath,
   getBackgroundColor,
-} from '../utils/groupby';
-import { parseKey, shouldRenderCell } from '../../../../../utils/groupbyUtils';
-import type { CanvasElement } from '../utils/CanvasElement';
-import { ElementTypes } from '../utils/CanvasElement';
+} from '../utils/groupby'
+import { parseKey, shouldRenderCell } from '../../../../../utils/groupbyUtils'
+import type { CanvasElement } from '../utils/CanvasElement'
+import { ElementTypes } from '../utils/CanvasElement'
 
 export function useCanvasRender({
   width,
@@ -1462,7 +1463,6 @@ export function useCanvasRender({
   }
 
   function renderAggregations(ctx: CanvasRenderingContext2D) {
-    const AGGREGATION_HEIGHT = 36
     const { start: startColIndex, end: endColIndex } = colSlice.value
 
     // Background
@@ -1477,10 +1477,6 @@ export function useCanvasRender({
     ctx.stroke()
 
     let initialOffset = 0
-
-    if (groupByColumns.value.length) {
-      initialOffset += groupByColumns.value.length * 9
-    }
 
     for (let i = 0; i < startColIndex; i++) {
       initialOffset += parseCellWidth(columns.value[i]?.width)
@@ -2096,6 +2092,8 @@ export function useCanvasRender({
   ): number {
     const groups = pGroup?.groups ?? cachedGroups.value
 
+    const missingChunks = []
+
     const fixedCols = columns.value.filter((col) => col.fixed)
     const rowNumberCol = fixedCols.find((col) => col.id === 'row_number')
     const firstFixedCol = fixedCols.find((col) => col.id !== 'row_number')
@@ -2108,6 +2106,7 @@ export function useCanvasRender({
       const group = groups.get(i)
       if (!group) {
         currentOffset += GROUP_HEADER_HEIGHT + GROUP_PADDING
+        missingChunks.push(i)
         continue
       }
       const groupHeaderY = currentOffset
@@ -2127,7 +2126,7 @@ export function useCanvasRender({
 
       elementMap.addElement({
         y: groupHeaderY,
-        x: currentOffset,
+        x: xOffset,
         level,
         height: GROUP_HEADER_HEIGHT,
         path: group.nestedIn,
@@ -2186,9 +2185,7 @@ export function useCanvasRender({
               isAddingEmptyRowAllowed.value,
             )
 
-            fetchMissingGroupChunks(nestedStart, nestedEnd, group)
-
-            tempCurrentOffset = renderGroups(ctx, {
+            const { currentOffset: _tempOffset, missingChunks: nestedMissingChunks } = renderGroups(ctx, {
               level: level + 1,
               yOffset: nestedContentStart + GROUP_PADDING,
               pGroup: group,
@@ -2197,6 +2194,15 @@ export function useCanvasRender({
               gHeight: 0,
               _isStartGroup: isStartGroup,
             })
+
+            tempCurrentOffset = _tempOffset
+
+            if (nestedMissingChunks.length) {
+              const minIndex = Math.min(...nestedMissingChunks)
+              const maxIndex = Math.max(...nestedMissingChunks)
+
+              fetchMissingGroupChunks(minIndex, maxIndex, group)
+            }
           }
         }
         const bg = getBackgroundColor(level, groupByColumns.value.length)
@@ -2254,27 +2260,6 @@ export function useCanvasRender({
           fillStyle: '#6A7184',
         })
         contentWidth = contentRender.width
-
-        // SKipped in initial iteration. Will add support when we have expandAllGroups support
-        /* if (!isMouseHoveringOverGroupHeader) {
-
-        } else {
-          renderIconButton(ctx, {
-            icon: 'ncMoreVertical',
-            mousePosition,
-            buttonSize: 32,
-            iconData: { xOffset: 8, yOffset: 8 },
-            setCursor,
-            background: 'transparent',
-            borderColor: 'transparent',
-            borderRadius: 8,
-            buttonX: xOffset + mergedWidth - 8 - 32,
-            buttonY: groupHeaderY + 6,
-            spriteLoader,
-          })
-          contentWidth = 32
-        } */
-
         drawStraightLine(ctx, {
           startX: xOffset + mergedWidth,
           endX: xOffset + mergedWidth,
@@ -2295,6 +2280,7 @@ export function useCanvasRender({
 
       const borderTop = Math.max(0, groupHeaderY + GROUP_HEADER_HEIGHT)
       const borderBottom = Math.min(height.value, currentOffset)
+
       if (borderBottom > borderTop) {
         roundedRect(
           ctx,
@@ -2321,7 +2307,10 @@ export function useCanvasRender({
       currentOffset += GROUP_PADDING
     }
 
-    return currentOffset
+    return {
+      currentOffset,
+      missingChunks,
+    }
   }
 
   function renderGroupContent(ctx: CanvasRenderingContext2D, group: CanvasGroup, x: number, y: number, maxWidth: number) {
@@ -2464,15 +2453,20 @@ export function useCanvasRender({
         isAddingEmptyRowAllowed.value,
       )
 
-      fetchMissingGroupChunks(startIndex, endIndex)
-
-      renderGroups(ctx, {
+      const { missingChunks } = renderGroups(ctx, {
         level: 0,
         yOffset: startGroupYOffset,
         startIndex,
         endIndex,
         partialGroupHeight: 0,
       })
+
+      if (missingChunks.length) {
+        const minIndex = Math.min(...missingChunks)
+        const maxIndex = Math.max(...missingChunks)
+
+        fetchMissingGroupChunks(minIndex, maxIndex)
+      }
     }
 
     renderHeader(ctx, activeState)

@@ -1,4 +1,11 @@
-import { type ColumnType, type LinkToAnotherRecordType, type TableType, UITypes, type ViewType } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  CommonAggregations,
+  type LinkToAnotherRecordType,
+  type TableType,
+  UITypes,
+  type ViewType,
+} from 'nocodb-sdk'
 import { generateGroupPath } from '../components/smartsheet/grid/canvas/utils/groupby'
 import type { CanvasGroup } from '#imports'
 
@@ -25,6 +32,10 @@ export const useInfiniteGroups = (
   const { base } = storeToRefs(useBase())
   const { $api } = useNuxtApp()
   const { getMeta } = useMetas()
+  const { appInfo } = useGlobal()
+  const { nestedFilters } = useSmartsheetStoreOrThrow()
+  const { fetchBulkAggregatedData } = useSharedView()
+  const isPublic = inject(IsPublicInj, ref(false))
 
   const groupByColumns = computed(() => {
     const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
@@ -89,6 +100,7 @@ export const useInfiniteGroups = (
         subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
       })
 
+      const groups: CanvasGroup[] = []
       for (const item of response.list) {
         const index: number = response.list.indexOf(item)
         const value = valueToTitle(item[groupCol.column.title!], groupCol.column)
@@ -125,6 +137,7 @@ export const useInfiniteGroups = (
                   groupIndex,
                 },
               ],
+          aggregations: {},
         }
 
         if (group.column.uidt === UITypes.LinkToAnotherRecord) {
@@ -147,6 +160,50 @@ export const useInfiniteGroups = (
           parentGroup.groups.set(groupIndex, group)
         } else {
           cachedGroups.value.set(groupIndex, group)
+        }
+        groups.push(group)
+      }
+
+      if (appInfo.value?.ee && groups.length) {
+        const aggregationAliasMapper = new AliasMapper()
+
+        const aggregation = Object.values(gridViewCols.value)
+          .map((f) => ({
+            field: f.fk_column_id!,
+            type: f.aggregation ?? CommonAggregations.None,
+          }))
+          .filter((f) => f.type !== CommonAggregations.None)
+
+        const aggregationParams = groups.map((group) => ({
+          where: buildNestedWhere(group, where?.value),
+          alias: aggregationAliasMapper.generateAlias(group.value),
+          filterArrJson: JSON.stringify(nestedFilters.value),
+        }))
+        let aggResponse = {}
+
+        if (aggregation.length) {
+          aggResponse = !isPublic.value
+            ? await $api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
+                meta.value!.id,
+                {
+                  viewId: view.value!.id,
+                  aggregation,
+                },
+                aggregationParams,
+              )
+            : await fetchBulkAggregatedData(
+                {
+                  aggregation,
+                },
+                aggregationParams,
+              )
+
+          await aggregationAliasMapper.process(aggResponse, (originalKey, value) => {
+            const group = groups.find((g) => g.value.toString() === originalKey.toString())
+            if (group) {
+              Object.assign(group.aggregations, value)
+            }
+          })
         }
       }
 
@@ -253,17 +310,14 @@ export const useInfiniteGroups = (
         column_name: groupCol.column.title,
       })
     }
-    callbacks?.syncVisibleData()
   }
 
   const toggleExpand = async (group: CanvasGroup) => {
     group.isExpanded = !group.isExpanded
-    callbacks?.syncVisibleData()
   }
 
   watch(groupByColumns, () => {
     clearGroupCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
-    callbacks?.syncVisibleData()
   })
 
   const isGroupBy = computed(() => !!groupByColumns.value.length)

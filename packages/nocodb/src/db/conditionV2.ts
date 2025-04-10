@@ -12,19 +12,15 @@ import type { FilterType } from 'nocodb-sdk';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { Knex } from 'knex';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import type FormulaColumn from '~/models/FormulaColumn';
-import type RollupColumn from '~/models/RollupColumn';
-import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
-import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getRefColumnIfAlias } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
+import { getColumnName } from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
 import Filter from '~/models/Filter';
 import { getAliasGenerator } from '~/utils';
 import { validateAndStringifyJson } from '~/utils/tsUtils';
-import { getColumnName } from '~/helpers/dbHelpers';
 
 // tod: tobe fixed
 // extend(customParseFormat);
@@ -195,7 +191,9 @@ const parseConditionV2 = async (
     if (
       [UITypes.JSON, UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(
         column.uidt,
-      )
+      ) ||
+      ([UITypes.Rollup, UITypes.Formula, UITypes.Links].includes(column.uidt) &&
+        !customWhereClause)
     ) {
       return FieldHandler.fromBaseModel(baseModelSqlv2).applyFilter(
         filter,
@@ -211,59 +209,6 @@ const parseConditionV2 = async (
     }
 
     if (
-      [UITypes.Rollup, UITypes.Links].includes(column.uidt) &&
-      !customWhereClause
-    ) {
-      const builder = (
-        await genRollupSelectv2({
-          baseModelSqlv2,
-          knex,
-          alias,
-          columnOptions: (await column.getColOptions(context)) as RollupColumn,
-        })
-      ).builder;
-      return parseConditionV2(
-        baseModelSqlv2,
-        new Filter({
-          ...filter,
-          value: knex.raw('?', [
-            // convert value to number for rollup since rollup is always number
-            isNaN(+filter.value) ? filter.value : +filter.value,
-          ]),
-        } as any),
-        aliasCount,
-        alias,
-        builder,
-      );
-    } else if (column.uidt === UITypes.Formula && !customWhereClause) {
-      const model = await column.getModel(context);
-      const formula = await column.getColOptions<FormulaColumn>(context);
-      const builder = (
-        await formulaQueryBuilderv2({
-          baseModel: baseModelSqlv2,
-          tree: formula.formula,
-          model,
-          column,
-          tableAlias: alias,
-        })
-      ).builder;
-      return parseConditionV2(
-        baseModelSqlv2,
-        new Filter({
-          ...filter,
-          value: knex.raw('?', [
-            // convert value to number if formulaDataType if numeric
-            formula.getParsedTree()?.dataType === FormulaDataTypes.NUMERIC &&
-            !isNaN(+filter.value)
-              ? +filter.value
-              : filter.value ?? null, // in gp_null value is undefined
-          ]),
-        } as any),
-        aliasCount,
-        alias,
-        builder,
-      );
-    } else if (
       [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
         column.uidt,
       ) &&

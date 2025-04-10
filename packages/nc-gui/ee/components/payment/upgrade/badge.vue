@@ -48,6 +48,7 @@ const showUpgradeModal = (e?: MouseEvent) => {
     content: props.content,
     newPlanTitle: props.planTitle,
     callback: props.callback,
+    limitOrFeature: props.feature,
   })
 }
 

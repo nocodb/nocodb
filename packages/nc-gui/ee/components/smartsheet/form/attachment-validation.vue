@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AttachmentValidationType, PlanFeatureTypes, PlanTitles, type FileSizeValidation, type Validation } from 'nocodb-sdk'
+import { AttachmentValidationType, type FileSizeValidation, PlanFeatureTypes, PlanTitles, type Validation } from 'nocodb-sdk'
 
 const { activeField, updateColMeta } = useFormViewStoreOrThrow()
 

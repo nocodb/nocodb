@@ -171,6 +171,7 @@ export const useBaseSettings = createSharedComposable(() => {
                   activePlan: details.plan,
                   plan: details.higherPlan,
                 }),
+          limitOrFeature: PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE,
         })
       } else {
         message.error(errorInfo.message)
@@ -267,6 +268,7 @@ export const useBaseSettings = createSharedComposable(() => {
                 activePlan: getPlanTitle(activePlan.value?.title),
                 plan: getHigherPlan(),
               }),
+        limitOrFeature: PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE,
       })
     }
 

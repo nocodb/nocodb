@@ -9,6 +9,7 @@ import {
   type ColumnType,
   type LinkToAnotherRecordType,
   PlanFeatureTypes,
+  PlanLimitTypes,
   PlanTitles,
   ProjectRoles,
   RelationTypes,
@@ -111,7 +112,7 @@ const { state, row } = useProvideSmartsheetRowStore(
   }),
 )
 
-const { blockAddNewRecord, navigateToBilling, getPlanTitle, activePlan } = useEeConfig()
+const { blockAddNewRecord, navigateToBilling, getPlanTitle, activePlan, isWsOwner } = useEeConfig()
 
 const columns = computed(() => meta?.value?.columns || [])
 
@@ -1060,8 +1061,13 @@ const { message: templatedMessage } = useTemplatedMessage(
                     "
                   >
                     <template #action>
-                      <NcButton class="nc-upgrade-plan-btn" type="primary" size="small" @click.stop="navigateToBilling()">
-                        {{ $t('labels.upgradePlan') }}
+                      <NcButton
+                        class="nc-upgrade-plan-btn"
+                        type="primary"
+                        size="small"
+                        @click.stop="navigateToBilling({ limitOrFeature: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE })"
+                      >
+                        {{ isWsOwner ? $t('labels.upgradePlan') : $t('general.requestUpgrade') }}
                       </NcButton>
                     </template>
                   </NcAlert>

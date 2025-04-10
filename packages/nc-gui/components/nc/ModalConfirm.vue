@@ -97,7 +97,7 @@ const props = withDefaults(defineProps<NcConfirmModalProps>(), {
 
 const emits = defineEmits<Emits>()
 
-const { visible: _visible, title, ...restProps } = props
+const { visible: _visible, ...restProps } = props
 
 interface Emits {
   (e: 'update:visible', value: boolean): void
@@ -167,7 +167,7 @@ watch(okBtnRef, () => {
 </script>
 
 <template>
-  <NcModal v-bind="restProps" v-model:visible="vModel" wrap-class-name="nc-modal-confirm-wrapper">
+  <NcModal v-bind="restProps" v-model:visible="vModel" title="" wrap-class-name="nc-modal-confirm-wrapper">
     <div class="nc-modal-confirm flex flex-col gap-5" :class="[`nc-modal-confirm-type-${type}`]">
       <div class="flex gap-4">
         <div v-if="showIcon" class="nc-modal-confirm-icon-wrapper">
@@ -190,21 +190,21 @@ watch(okBtnRef, () => {
 
       <div class="flex flex-row w-full justify-end gap-4">
         <NcButton
-          v-bind="cancelProps"
           ref="cancelBtnRef"
           :type="cancelProps?.type ?? 'secondary'"
           size="small"
           :class="cancelClass"
+          v-bind="cancelProps"
           @click="onClickCancel"
         >
           {{ cancelText || $t('general.cancel') }}
         </NcButton>
         <NcButton
-          v-bind="okProps"
           ref="okBtnRef"
           :type="okProps?.type ?? 'primary'"
           size="small"
           :class="okClass"
+          v-bind="okProps"
           @click="emits('ok')"
         >
           {{ okText || $t('general.ok') }}

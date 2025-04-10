@@ -12,6 +12,10 @@ import NcModalConfirm, { type NcConfirmModalProps } from '../../components/nc/Mo
 export const useEeConfig = createSharedComposable(() => {
   const { t } = useI18n()
 
+  const { $state, $api } = useNuxtApp()
+
+  const baseURL = $api.instance.defaults.baseURL
+
   const { user } = useGlobal()
 
   const { isUIAllowed } = useRoles()
@@ -160,12 +164,53 @@ export const useEeConfig = createSharedComposable(() => {
     return t(`objects.paymentPlan.${plan}`, plan)
   }
 
-  const handleRequestUpgrade = (..._arg: any[]) => {
-    // Todo: send request to owner
+  const handleRequestUpgrade = async ({
+    workspaceId,
+    limitOrFeature,
+    showMessage = true,
+  }: {
+    workspaceId?: string
+    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
+    showMessage?: boolean
+  }) => {
+    try {
+      const res = await $fetch(`/api/payment/${workspaceId ?? activeWorkspace.value?.id}/request-upgrade`, {
+        baseURL,
+        method: 'POST',
+        headers: { 'xc-auth': $state.token.value as string },
+        body: {
+          limitOrFeature,
+        },
+      })
+
+      if (showMessage && res === 'true') {
+        message.success({
+          title: t('upgrade.WorkspaceOwnerNotified'),
+          content: t('upgrade.WorkspaceOwnerNotifiedSubtitle'),
+        })
+      } else {
+        message.error(t('upgrade.failedToSendUpgradeRequest'))
+      }
+
+      return res === 'true'
+    } catch (e: any) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+
+      return false
+    }
   }
 
-  const navigateToBilling = (workspaceId?: string, redirectToWorkspace: boolean = true) => {
-    if (!isWsOwner.value) return handleRequestUpgrade()
+  const navigateToBilling = ({
+    workspaceId,
+    redirectToWorkspace = true,
+    limitOrFeature,
+  }: {
+    workspaceId?: string
+    redirectToWorkspace?: boolean
+    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
+  } = {}) => {
+    if (!isWsOwner.value) return handleRequestUpgrade({ workspaceId, limitOrFeature })
 
     if (redirectToWorkspace) {
       navigateTo(`/${workspaceId ?? activeWorkspaceId.value}/settings?tab=billing`)
@@ -184,13 +229,14 @@ export const useEeConfig = createSharedComposable(() => {
     title,
     content,
     okText,
-    cancelText,
     focusBtn,
     maskClosable = true,
     keyboard = true,
     disableClose,
     requestUpgrade,
-  }: Pick<NcConfirmModalProps, 'content' | 'okText' | 'cancelText' | 'focusBtn' | 'maskClosable' | 'keyboard'> & {
+    limitOrFeature,
+    isSharedFormView,
+  }: Pick<NcConfirmModalProps, 'content' | 'okText' | 'focusBtn' | 'maskClosable' | 'keyboard'> & {
     title?: string
     currentPlanTitle?: PlanTitles
     newPlanTitle?: PlanTitles
@@ -200,6 +246,8 @@ export const useEeConfig = createSharedComposable(() => {
     stopEventPropogation?: boolean
     disableClose?: boolean
     requestUpgrade?: boolean
+    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
+    isSharedFormView?: boolean
   } = {}) => {
     const higherPlan = HigherPlan[currentPlanTitle ?? activePlanTitle.value]
     if (!higherPlan) {
@@ -216,30 +264,80 @@ export const useEeConfig = createSharedComposable(() => {
       })
     }
 
-    let okBtnText = okText
-
-    if (!okBtnText) {
-      okBtnText = isWsOwner.value ? t('general.upgrade') : t('general.requestUpgrade')
+    if (!okText) {
+      okText = isWsOwner.value ? t('general.upgrade') : t('general.requestUpgrade')
     }
+
+    const okBtnText = ref(okText)
     const isOpen = ref(true)
+
+    const okProps = ref({ loading: false })
+
+    const oldCancelClass = requestUpgrade ? '!hidden' : ''
+
+    const cancelProps = ref({ class: oldCancelClass })
+
+    const isRequested = ref(false)
+
+    const modalTitle = ref(title)
+
+    const modalContent = ref(content)
+
+    const oldSlots = {
+      headerAction: () => [
+        h(
+          'a',
+          { href: 'https://nocodb.com/pricing', target: '_blank', rel: 'noopener noreferrer', class: 'text-sm leading-6' },
+          t('msg.learnMore'),
+        ),
+      ],
+    }
+
+    const slots = ref<Record<string, () => VNode[]>>(oldSlots)
 
     const { close } = useDialog(
       NcModalConfirm,
       {
         'visible': isOpen,
-        'title': title,
-        'content': content,
+        'title': modalTitle,
+        'content': modalContent,
         'okText': okBtnText,
         'onCancel': closeDialog,
-        'cancelProps': {
-          class: requestUpgrade ? '!hidden' : '',
-        },
-        'onOk': () => {
-          closeDialog()
-          callback?.('ok')
+        'cancelProps': cancelProps,
+        'onOk': async () => {
+          if (requestUpgrade || !isWsOwner.value) {
+            if (isRequested.value) {
+              modalTitle.value = title
+              modalContent.value = content
+              okBtnText.value = okText
+              cancelProps.value.class = oldCancelClass
+              slots.value = oldSlots
+              isRequested.value = false
 
-          navigateToBilling(workspaceId, redirectToWorkspace)
+              closeDialog(!disableClose)
+              callback?.('ok')
+            } else {
+              okProps.value.loading = true
+              const res = await handleRequestUpgrade({ workspaceId, limitOrFeature, showMessage: false })
+              if (!res) return
+
+              isRequested.value = true
+              okProps.value.loading = false
+              modalTitle.value = isSharedFormView ? t('upgrade.formOwnerNotified') : t('upgrade.WorkspaceOwnerNotified')
+              modalContent.value = isSharedFormView
+                ? t('upgrade.formOwnerNotifiedSubtitle')
+                : t('upgrade.WorkspaceOwnerNotifiedSubtitle')
+              okBtnText.value = isSharedFormView ? t('general.close') : t('general.cancel')
+              cancelProps.value.class = '!hidden'
+              slots.value = {}
+            }
+          } else {
+            navigateToBilling({ workspaceId, redirectToWorkspace })
+            closeDialog()
+            callback?.('ok')
+          }
         },
+        'okProps': okProps,
         'onClickCancel': () => {
           callback?.('cancel')
         },
@@ -251,20 +349,12 @@ export const useEeConfig = createSharedComposable(() => {
         'focusBtn': focusBtn,
       },
       {
-        slots: {
-          headerAction: () => [
-            h(
-              'a',
-              { href: 'https://nocodb.com/pricing', target: '_blank', rel: 'noopener noreferrer', class: 'text-sm leading-6' },
-              t('msg.learnMore'),
-            ),
-          ],
-        },
+        slots,
       },
     )
 
     function closeDialog(forceClose = false) {
-      if (!forceClose & (disableClose || requestUpgrade)) return
+      if (!forceClose && (disableClose || requestUpgrade)) return
 
       isOpen.value = false
       close(1000)
@@ -319,6 +409,8 @@ export const useEeConfig = createSharedComposable(() => {
       focusBtn,
       disableClose: isSharedFormView,
       requestUpgrade: isSharedFormView,
+      isSharedFormView,
+      limitOrFeature: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
     })
 
     return true
@@ -335,6 +427,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
+      limitOrFeature: PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE,
     })
 
     return true
@@ -351,6 +444,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
+      limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
     })
 
     return true
@@ -367,6 +461,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
+      limitOrFeature: PlanLimitTypes.LIMIT_WEBHOOK_PER_TABLE,
     })
 
     return true

@@ -120,9 +120,15 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
     if (!mode) mode = paymentMode.value
 
-    const price = plan.prices.find((price: any) => price.recurring.interval === mode)
+    const price = plan.prices.find((price: any) => price.recurring.interval === mode) || plan.prices[0]
 
-    if (!price) return plan.prices[0].unit_amount / 100 / (mode === 'year' ? 12 : 1)
+    if (price.billing_scheme === 'tiered') {
+      const tier = price.tiers.find((tier: any) => workspaceSeatCount.value <= tier.up_to)
+
+      if (!tier) return 0
+
+      return (tier.unit_amount + tier.flat_amount) / 100 / (mode === 'year' ? 12 : 1)
+    }
 
     return price.unit_amount / 100 / (mode === 'year' ? 12 : 1)
   }

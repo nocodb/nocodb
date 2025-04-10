@@ -49,6 +49,7 @@ export class PaymentService {
     const prices = await stripe.prices.list({
       product: payload.stripe_product_id,
       active: true,
+      expand: ['data.tiers'],
     });
 
     if (!prices.data.length) {

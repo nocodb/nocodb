@@ -19,7 +19,7 @@ export enum PaymentState {
 }
 
 const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
-  const annualDiscount = 16
+  const annualDiscount = 20
 
   const stripe = ref<Stripe>()
 

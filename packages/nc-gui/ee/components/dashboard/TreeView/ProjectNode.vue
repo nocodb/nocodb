@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
-import { ProjectRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
+import { PlanTitles, ProjectRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 import type { BaseType, SourceType, TableType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import Automation from './Automation.vue'
@@ -105,7 +105,7 @@ const { $e } = useNuxtApp()
 
 const { copy } = useCopy()
 
-const { showRecordPlanLimitExceededModal } = useEeConfig()
+const { showRecordPlanLimitExceededModal, activePlanTitle, isPaymentEnabled } = useEeConfig()
 
 const isOptionsOpen = ref(false)
 const isBasesOptionsOpen = ref<Record<string, boolean>>({})
@@ -1011,6 +1011,7 @@ const onClickMenu = (e: { key?: string }) => {
                             class="flex flex-row items-center gap-x-0.25"
                           >
                             <LazyPaymentUpgradeBadge
+                              v-if="isPaymentEnabled && activePlanTitle === PlanTitles.FREE"
                               :title="$t('upgrade.upgradeToSeeMoreRecord')"
                               :content="$t('upgrade.upgradeToSeeMoreRecordSubtitle')"
                               class="-my-1 mx-0.5 nc-sidebar-node-btn nc-sidebar-upgrade-badge"

@@ -36,7 +36,7 @@ const isFeatureEnabled = computed(() => {
     return props.featureEnabledCallback()
   }
 
-  return !props.feature && getFeature(props.feature)
+  return props.feature && getFeature(props.feature)
 })
 
 const activePlanMeta = computed(() => PlanMeta[props.planTitle])

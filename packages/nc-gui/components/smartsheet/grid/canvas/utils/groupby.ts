@@ -1,4 +1,4 @@
-import { GROUP_HEADER_HEIGHT, GROUP_PADDING } from './constants'
+import { COLUMN_HEADER_HEIGHT_IN_PX, GROUP_HEADER_HEIGHT, GROUP_PADDING } from './constants'
 
 export function getBackgroundColor(depth: number, maxDepth: number): string {
   if (maxDepth === 3) {
@@ -24,12 +24,17 @@ export function getBackgroundColor(depth: number, maxDepth: number): string {
   return '#F9F9FA'
 }
 
-export function calculateGroupHeight(group: CanvasGroup, rowHeight: number) {
+export function calculateGroupHeight(group: CanvasGroup, rowHeight: number, isAddingNewRowAllowed?: boolean) {
   let h = GROUP_HEADER_HEIGHT + GROUP_PADDING // Base height for group header
   if (group?.isExpanded) {
     console.log(group?.groupCount)
     if (group.infiniteData) {
       h += (group.count || 0) * rowHeight
+      if (isAddingNewRowAllowed) {
+        h += COLUMN_HEADER_HEIGHT_IN_PX
+      }
+      // 1 Px Offset is Added for Showing the activeBorders. Else it wont be visible
+      h += 1
     } else if (group?.groupCount) {
       for (let i = 0; i < group.groupCount; i++) {
         const subGroup = group.groups.get(i)
@@ -51,6 +56,7 @@ export function calculateGroupRange(
   groupCount: number,
   viewportHeight: number,
   nested = false,
+  isAddingNewRowAllowed?: boolean,
 ): { startIndex: number; endIndex: number; partialGroupHeight: number } {
   let currentOffset = GROUP_PADDING
   let startIndex = 0
@@ -70,7 +76,7 @@ export function calculateGroupRange(
       for (let j = i; j < groupCount; j++) {
         const endGroup = groups.get(j)
 
-        const endGroupHeight = calculateGroupHeight(endGroup, rowHeight)
+        const endGroupHeight = calculateGroupHeight(endGroup, rowHeight, isAddingNewRowAllowed)
         if (currentOffset + endGroupHeight > viewportBottom) {
           endIndex = j
           break

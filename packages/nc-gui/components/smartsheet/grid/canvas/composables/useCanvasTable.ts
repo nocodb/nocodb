@@ -470,10 +470,6 @@ export function useCanvasTable({
     // First check fixed columns
     let xOffset = 0
 
-    if (groupByColumns.value.length) {
-      xOffset += groupByColumns.value.length * 9
-    }
-
     const fixedCols = columns.value.filter((col) => col.fixed)
 
     for (const column of fixedCols) {

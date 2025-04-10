@@ -244,7 +244,7 @@ export const HasManyCellRenderer: CellRenderer = {
       isBoxHovered({ x: x + width - 57, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition) ||
       isBoxHovered({ x: x + width - 30, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition)
     ) {
-      makeCellEditable(rowIndex, column)
+      makeCellEditable(row, column)
       return true
     }
 
@@ -300,7 +300,7 @@ export const HasManyCellRenderer: CellRenderer = {
      * This is same as `cellClickHook`, on click cell make cell editable
      */
     if ((selected || isDoubleClick) && isBoxHovered({ x, y, width, height }, mousePosition)) {
-      makeCellEditable(rowIndex, column)
+      makeCellEditable(row, column)
       return true
     }
 

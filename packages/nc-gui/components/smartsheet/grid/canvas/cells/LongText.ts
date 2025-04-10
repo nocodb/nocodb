@@ -125,12 +125,12 @@ export const LongTextCellRenderer: CellRenderer = {
       const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
 
       if (isBoxHovered({ x: x + width - 28, y: y + 7, width: 18, height: 18 }, mousePosition)) {
-        makeCellEditable(row.rowMeta.rowIndex!, column)
+        makeCellEditable(row, column)
         return true
       }
 
       if (isDoubleClick && isBoxHovered({ x, y, width, height }, mousePosition)) {
-        makeCellEditable(row.rowMeta.rowIndex!, column)
+        makeCellEditable(row, column)
       }
       return false
     }
@@ -142,13 +142,13 @@ export const LongTextCellRenderer: CellRenderer = {
     }
 
     if (isExpandCellKey(e)) {
-      makeCellEditable(row.rowMeta!.rowIndex!, column)
+      makeCellEditable(row, column)
       return true
     }
 
     if (column.readonly || column.columnObj?.readonly) return
     if (/^[a-zA-Z0-9]$/.test(e.key)) {
-      makeCellEditable(row.rowMeta!.rowIndex!, column)
+      makeCellEditable(row, column)
       return true
     }
 

@@ -303,6 +303,37 @@ export class PublicDatasService {
     return data;
   }
 
+  async dataGroupByCount(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      password?: string;
+      query: any;
+    },
+  ) {
+    const view = await View.getByUUID(context, param.sharedViewUuid);
+
+    if (!view) NcError.viewNotFound(param.sharedViewUuid);
+
+    if (view.type !== ViewTypes.GRID) {
+      NcError.notFound('Not found');
+    }
+
+    if (view.password && view.password !== param.password) {
+      return NcError.invalidSharedViewPassword();
+    }
+
+    const model = await Model.getByIdOrName(context, {
+      id: view?.fk_model_id,
+    });
+
+    return await this.getDataGroupByCount(context, {
+      model,
+      view,
+      query: param.query,
+    });
+  }
+
   async dataGroupBy(
     context: NcContext,
     param: {
@@ -334,6 +365,34 @@ export class PublicDatasService {
     });
   }
 
+  async getDataGroupByCount(
+    context: NcContext,
+    param: { model: Model; view: View; query?: any },
+  ) {
+    const { model, view, query = {} } = param;
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
+    const listArgs: any = { ...query };
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {
+      listArgs.filterArr = ncIsArray(listArgs?.filterArrJson)
+        ? listArgs?.filterArrJson
+        : null;
+    }
+
+    return await baseModel.groupByCount(listArgs);
+  }
+
   async getDataGroupBy(
     context: NcContext,
     param: { model: Model; view: View; query?: any },
@@ -354,10 +413,18 @@ export class PublicDatasService {
 
       try {
         listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-      } catch (e) {}
+      } catch (e) {
+        listArgs.filterArr = ncIsArray(listArgs?.filterArrJson)
+          ? listArgs?.filterArrJson
+          : null;
+      }
       try {
         listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-      } catch (e) {}
+      } catch (e) {
+        listArgs.sortArr = ncIsArray(listArgs?.sortArrJson)
+          ? listArgs?.sortArrJson
+          : null;
+      }
 
       const data = await baseModel.groupBy(listArgs);
       const count = await baseModel.groupByCount(listArgs);

@@ -46,6 +46,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
+    const path = inject(GroupPathInj, ref([]))
+
     // In canvas _reloadData will not work as we unmount editable component so on undo/redo we have to manually trigger view reload
     const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
@@ -575,7 +577,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               return false
             }
 
-            _reloadData?.({ shouldShowLoading: false })
+            _reloadData?.({ shouldShowLoading: false, path: path.value })
 
             /** reload child list if not a new row */
             if (!isNewRow?.value) {
@@ -654,7 +656,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenListLoading.value[index] = false
       }
 
-      _reloadData?.({ shouldShowLoading: false })
+      _reloadData?.({ shouldShowLoading: false, path: path.value })
 
       if (undo && isCanvasInjected) {
         reloadViewDataTrigger.trigger({ shouldShowLoading: false })
@@ -747,7 +749,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenListLoading.value[index] = false
       }
 
-      _reloadData?.({ shouldShowLoading: false })
+      _reloadData?.({ shouldShowLoading: false, path: path.value })
 
       if (undo && isCanvasInjected) {
         reloadViewDataTrigger.trigger({ shouldShowLoading: false })

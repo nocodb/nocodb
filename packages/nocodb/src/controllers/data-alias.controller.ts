@@ -106,6 +106,26 @@ export class DataAliasController {
   }
 
   @Get([
+    '/api/v1/db/data/:orgs/:baseName/:tableName/groupby/count',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/groupby/count',
+  ])
+  @Acl('dataGroupBy')
+  async dataGroupByCount(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('baseName') baseName: string,
+    @Param('tableName') tableName: string,
+    @Param('viewName') viewName: string,
+  ) {
+    return await this.datasService.dataGroupByCount(context, {
+      query: req.query,
+      baseName: baseName,
+      tableName: tableName,
+      viewName: viewName,
+    });
+  }
+
+  @Get([
     '/api/v1/db/data/:orgs/:baseName/:tableName/count',
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/count',
   ])

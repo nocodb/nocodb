@@ -23,19 +23,10 @@ export class CheckboxGeneralHandler extends GenericFieldHandler {
       } as FilterVerificationResult;
     }
     if (
-      ![
-        undefined,
-        null,
-        true,
-        false,
-        'true',
-        'false',
-        '',
-        1,
-        0,
-        '1',
-        '0',
-      ].includes(filter.value)
+      ['eq', 'neq'].includes(filter.comparison_op) &&
+      ![null, true, false, 'true', 'false', '', 1, 0, '1', '0'].includes(
+        filter.value,
+      )
     ) {
       return {
         isValid: false,

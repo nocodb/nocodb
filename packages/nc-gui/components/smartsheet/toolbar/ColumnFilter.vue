@@ -136,7 +136,7 @@ const {
       offset: 0,
       isFormFieldFilters: isForm.value && !webHook.value,
     })
-    reloadAggregate?.trigger()
+    reloadAggregate?.trigger({ path: [] })
   },
   currentFilters,
   props.nestedLevel > 0,

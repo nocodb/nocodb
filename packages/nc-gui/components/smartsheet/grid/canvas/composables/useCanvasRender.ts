@@ -26,7 +26,7 @@ import {
   ROW_META_COLUMN_WIDTH,
 } from '../utils/constants'
 import { parseCellWidth } from '../utils/cell'
-import { getBackgroundColor } from '../utils/groupby'
+import { calculateStartGroupIndex, getBackgroundColor } from '../utils/groupby'
 import { parseKey, shouldRenderCell } from '../../../../../utils/groupbyUtils'
 
 export function useCanvasRender({
@@ -972,7 +972,7 @@ export function useCanvasRender({
     })
 
     if (fixedCols.length) {
-      xOffset = 0
+      xOffset = isGroupBy.value ? initialXOffset : 0
       fixedCols.forEach((column) => {
         const width = parseCellWidth(column.width)
 
@@ -1792,10 +1792,9 @@ export function useCanvasRender({
     const { start: startColIndex, end: endColIndex } = colSlice.value
     const visibleCols = columns.value.slice(startColIndex, endColIndex)
 
-
     for (let i = startIndex; i <= endIndex && i < group.count && yOffset < height.value; i++) {
       const row = rows?.get(i)
-      const indent = (level + 1) * 9
+      const indent = level * 9
       if (row) {
         renderRow(ctx, {
           row,
@@ -1811,7 +1810,7 @@ export function useCanvasRender({
         yOffset += rowHeight.value
       }
     }
-    return yOffset;
+    return yOffset
   }
 
   function renderGroups(
@@ -1951,12 +1950,24 @@ export function useCanvasRender({
       renderGroupContent(ctx, group, contentX, contentY + 6, availableWidth - contentWidth - 8 - countWidth)
       yOffset += GROUP_HEADER_HEIGHT
       if (group.isExpanded) {
-        const nestedStart = Math.floor((scrollTop.value - yOffset) / (GROUP_HEADER_HEIGHT + GROUP_PADDING + rowHeight.value))
-        const visibleCount = Math.ceil(height.value / (GROUP_HEADER_HEIGHT + GROUP_PADDING + rowHeight.value))
-        const nestedEnd = Math.min(nestedStart + visibleCount, group.groupCount || group.count) - 1
+        const visibleArea = scrollTop.value - yOffset
+
+        // For nested items, calculate what should be visible
+        const itemHeight = group.infiniteData ? rowHeight.value : GROUP_HEADER_HEIGHT + GROUP_PADDING
+
+        // Calculate starting index based on how far we've scrolled past this group's header
+        const nestedStart = Math.max(0, Math.floor(visibleArea / itemHeight))
+
+        // Calculate how many items can fit in the viewport
+        const visibleCount = Math.ceil(height.value / itemHeight) + 1 // +1 for partially visible items
+
+        // Calculate ending index, but don't exceed the total count
+        const nestedEnd = Math.min(nestedStart + visibleCount, group?.infiniteData ? group?.count : group?.groupCount) - 1
+
         if (group.infiniteData) {
-          yOffset = renderGroupRows(ctx, group, yOffset - 28, level + 1, nestedStart, nestedEnd)
+          yOffset = renderGroupRows(ctx, group, yOffset, level + 1, nestedStart, nestedEnd)
         } else if (group.groups.size > 0) {
+          // For nested group headers
           yOffset = renderGroups(ctx, {
             level: level + 1,
             yOffset,
@@ -1967,7 +1978,6 @@ export function useCanvasRender({
         }
       }
       yOffset += GROUP_PADDING
-
     }
     return yOffset
   }
@@ -2100,11 +2110,11 @@ export function useCanvasRender({
       ctx.fillRect(0, 0, width.value, height.value)
       ctx.restore()
 
-      const startGroupIndex = Math.floor(scrollTop.value / (GROUP_HEADER_HEIGHT + GROUP_PADDING))
+      const startGroupIndex = calculateStartGroupIndex(cachedGroups.value, scrollTop.value, rowHeight.value, totalGroups.value)
 
       renderGroups(ctx, {
         level: 0,
-        yOffset: 32 + GROUP_PADDING - partialGroupHeight.value,
+        yOffset: 32 + GROUP_PADDING,
         startIndex: startGroupIndex,
         endIndex: groupSlice.value.end,
       })

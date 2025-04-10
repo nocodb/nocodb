@@ -165,7 +165,7 @@ export function useCanvasRender({
   const { isMobileMode } = useGlobal()
   const isLocked = inject(IsLockedInj, ref(false))
 
-  const fixedColsComputed = computed(() => columns.value.filter((c) => c.fixed))
+  const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
 
   const drawShimmerEffect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, rowIdx: number) => {
     ctx.save()
@@ -436,11 +436,10 @@ export function useCanvasRender({
     }
 
     // Fixed columns
-    const fixedCols = columns.value.filter((col) => col.fixed)
-    if (fixedCols.length) {
+    if (fixedCols.value.length) {
       xOffset = 0.5
 
-      fixedCols.forEach((column) => {
+      fixedCols.value.forEach((column) => {
         const width = parseCellWidth(column.width)
         const rightPadding = 8
         let iconSpace = rightPadding
@@ -917,14 +916,12 @@ export function useCanvasRender({
       visibleCols,
       startColIndex,
       rowIdx,
-      fixedCols,
       yOffset,
       group,
     }: {
       row: Row
       initialXOffset: number
       visibleCols: CanvasGridColumn[]
-      fixedCols: CanvasGridColumn[]
       startColIndex: number
       yOffset: number
       rowIdx: number
@@ -1037,9 +1034,9 @@ export function useCanvasRender({
         xOffset += width
       })
 
-      if (fixedCols.length) {
+      if (fixedCols.value.length) {
         xOffset = isGroupBy.value ? initialXOffset : 0
-        fixedCols.forEach((column) => {
+        fixedCols.value.forEach((column) => {
           let width = parseCellWidth(column.width)
 
           const colIdx = columns.value.findIndex((col) => col.id === column.id)
@@ -1210,11 +1207,10 @@ export function useCanvasRender({
         xOffset += width
       })
 
-      const fixedCols = columns.value.filter((col) => col.fixed)
-      if (fixedCols.length) {
+      if (fixedCols.value.length) {
         xOffset = isGroupBy.value ? initialXOffset : 0
 
-        fixedCols.forEach((column) => {
+        fixedCols.value.forEach((column) => {
           const width = parseCellWidth(column.width)
 
           const colIdx = columns.value.findIndex((col) => col.id === column.id)
@@ -1317,7 +1313,6 @@ export function useCanvasRender({
           visibleCols,
           rowIdx,
           startColIndex,
-          fixedCols: fixedColsComputed.value,
           yOffset,
         })
         elementMap.addElement({
@@ -1581,11 +1576,10 @@ export function useCanvasRender({
       xOffset += width
     })
 
-    const fixedCols = columns.value.filter((col) => col.fixed)
-    if (fixedCols.length) {
+    if (fixedCols.value.length) {
       xOffset = 0
-      const rowNumberCol = fixedCols.find((col) => col.id === 'row_number')
-      const firstFixedCol = fixedCols.find((col) => col.id !== 'row_number')
+      const rowNumberCol = fixedCols.value.find((col) => col.id === 'row_number')
+      const firstFixedCol = fixedCols.value.find((col) => col.id !== 'row_number')
 
       if (rowNumberCol && firstFixedCol) {
         const mergedWidth = parseCellWidth(rowNumberCol.width) + parseCellWidth(firstFixedCol.width)
@@ -1704,7 +1698,7 @@ export function useCanvasRender({
 
         xOffset += mergedWidth
 
-        fixedCols.slice(2).forEach((column) => {
+        fixedCols.value.slice(2).forEach((column) => {
           const width = parseCellWidth(column.width)
 
           const isHovered = isBoxHovered(
@@ -1914,10 +1908,11 @@ export function useCanvasRender({
 
     let warningRow: { row: Row; yOffset: number } | null = null
     yOffset += 1
+    const indent = level * 13
 
     const adjustedWidth =
       totalWidth.value - scrollLeft.value - 256 < width.value
-        ? totalWidth.value - scrollLeft.value - 256 - 2 * level * 13
+        ? totalWidth.value - scrollLeft.value - 256 - 2 * indent
         : width.value
 
     for (let i = startIndex; i <= endIndex; i++) {
@@ -1927,7 +1922,6 @@ export function useCanvasRender({
         rowsToFetch.push(i)
       }
 
-      const indent = level * 13
       const isHovered = hoverRow.value?.rowIndex === i && hoverRow.value?.path?.join('-') === row?.rowMeta?.path?.join('-')
 
       roundedRect(ctx, indent, yOffset, adjustedWidth, rowHeight.value, 0, {
@@ -1942,7 +1936,6 @@ export function useCanvasRender({
         visibleCols,
         startColIndex,
         rowIdx: i,
-        fixedCols: fixedColsComputed.value,
         yOffset,
         group,
       })
@@ -2098,10 +2091,15 @@ export function useCanvasRender({
 
     const missingChunks = []
 
-    const fixedCols = columns.value.filter((col) => col.fixed)
-    const rowNumberCol = fixedCols.find((col) => col.id === 'row_number')
-    const firstFixedCol = fixedCols.find((col) => col.id !== 'row_number')
-    const mergedWidth = parseCellWidth(rowNumberCol?.width) + parseCellWidth(firstFixedCol?.width) - (level + 1) * 13
+    const rowNumberCol = fixedCols.value.find((col) => col.id === 'row_number')
+    const firstFixedCol = fixedCols.value.find((col) => col.id !== 'row_number')
+    const xOffset = (level + 1) * 13
+
+    const mergedWidth = parseCellWidth(rowNumberCol?.width) + parseCellWidth(firstFixedCol?.width) - xOffset
+    const adjustedWidth =
+      totalWidth.value - scrollLeft.value - 256 < width.value
+        ? totalWidth.value - scrollLeft.value - 256 - 2 * xOffset
+        : width.value
     // Track absolute position in virtual space
     let currentOffset = yOffset
     for (let i = startIndex; i <= endIndex; i++) {
@@ -2115,11 +2113,6 @@ export function useCanvasRender({
       const groupHeaderY = currentOffset
       const groupHeight = calculateGroupHeight(group, rowHeight.value, isAddingEmptyRowAllowed.value)
       const groupBottom = groupHeaderY + groupHeight
-      const xOffset = (level + 1) * 13
-      const adjustedWidth =
-        totalWidth.value - scrollLeft.value - 256 < width.value
-          ? totalWidth.value - scrollLeft.value - 256 - 2 * xOffset
-          : width.value
 
       // Skip if group is fully outside viewport
       if (groupBottom < 0 || groupHeaderY > height.value) {
@@ -2263,7 +2256,7 @@ export function useCanvasRender({
 
         const visibleCols = columns.value.slice(startColIndex, endColIndex)
 
-        const fixedColsWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 1)
+        const fixedColsWidth = fixedCols.value.reduce((sum, col) => sum + parseCellWidth(col.width), 1)
 
         const initialOffset = 0
 

@@ -10,6 +10,7 @@ export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
 export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')
 export const RowInj: InjectionKey<Ref<Row>> = Symbol('row')
 export const ColumnInj: InjectionKey<Ref<ColumnType>> = Symbol('column-injection')
+export const GroupPathInj: InjectionKey<Ref<ColumnType>> = Symbol('group-path-injection')
 export const CanvasColumnInj: InjectionKey<Ref<ColumnType>> = Symbol('canvas-column-injection')
 export const MetaInj: InjectionKey<ComputedRef<TableType> | Ref<TableType>> = Symbol('meta-injection')
 export const TabMetaInj: InjectionKey<ComputedRef<TabItem> | Ref<TabItem>> = Symbol('tab-meta-injection')
@@ -39,6 +40,7 @@ export const ReloadViewDataHookInj: InjectionKey<
     isFromLinkRecord?: boolean
     relatedTableMetaId?: string
     rowId?: string
+    path?: Array<number>
   } | void>
 > = Symbol('reload-view-data-injection')
 export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')

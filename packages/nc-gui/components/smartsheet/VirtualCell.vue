@@ -7,6 +7,7 @@ const props = defineProps<{
   modelValue: any
   row?: Row
   active?: boolean
+  path?: Array<number>
   readOnly?: boolean
 }>()
 
@@ -15,11 +16,13 @@ const emit = defineEmits(['update:modelValue', 'navigate', 'save'])
 const column = toRef(props, 'column')
 const active = toRef(props, 'active', false)
 const row = toRef(props, 'row')
+const path = toRef(props, 'path')
 const readOnly = toRef(props, 'readOnly', false)
 
 provide(ColumnInj, column)
 provide(ActiveCellInj, active)
 provide(RowInj, row)
+provide(GroupPathInj, path)
 provide(CellValueInj, toRef(props, 'modelValue'))
 provide(SaveRowInj, () => emit('save'))
 provide(ReadonlyInj, readOnly)

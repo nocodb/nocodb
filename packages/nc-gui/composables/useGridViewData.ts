@@ -95,6 +95,7 @@ export function useGridViewData(
       getCount,
       getWhereFilter: getGroupFilter,
     },
+    groupByColumns,
     where,
     isPublic,
   })

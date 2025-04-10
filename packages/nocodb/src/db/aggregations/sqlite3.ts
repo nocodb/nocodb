@@ -406,16 +406,17 @@ export function genSqlite3AggregateQuery({
     }
   }
 
-  if (
-    ![AllAggregations.EarliestDate, AllAggregations.LatestDate].includes(
-      aggregation as any,
-    )
-  ) {
-    aggregationSql = knex.raw(`COALESCE(??, 0)`, [aggregationSql]);
-  }
-
-  if (alias && aggregationSql) {
-    aggregationSql = knex.raw(`?? AS ??`, [aggregationSql, alias]);
+  if (aggregationSql) {
+    if (
+      ![AllAggregations.EarliestDate, AllAggregations.LatestDate].includes(
+        aggregation as any,
+      )
+    ) {
+      aggregationSql = knex.raw(`COALESCE(??, 0)`, [aggregationSql]);
+    }
+    if (alias) {
+      aggregationSql = knex.raw(`?? AS ??`, [aggregationSql, alias]);
+    }
   }
 
   return aggregationSql?.toQuery();

@@ -188,7 +188,7 @@ export const useEeConfig = createSharedComposable(() => {
           title: t('upgrade.WorkspaceOwnerNotified'),
           content: t('upgrade.WorkspaceOwnerNotifiedSubtitle'),
         })
-      } else {
+      } else if (res !== 'true') {
         message.error(t('upgrade.failedToSendUpgradeRequest'))
       }
 

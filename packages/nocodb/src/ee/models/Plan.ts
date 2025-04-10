@@ -1,4 +1,4 @@
-import { ncIsBoolean, PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
+import { ncIsBoolean, PlanLimitTypes, PlanOrder, PlanTitles } from 'nocodb-sdk';
 import { PlanFeatureTypes } from 'nocodb-sdk';
 import type Stripe from 'stripe';
 import {
@@ -11,6 +11,10 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+
+const sortPlan = (a: Plan, b: Plan) => {
+  return (PlanOrder[a.title] ?? 0) - (PlanOrder[b.title] ?? 0);
+};
 
 export default class Plan {
   id: string;
@@ -153,11 +157,7 @@ export default class Plan {
       MetaTable.PLANS,
     );
 
-    return plans
-      .map((plan) => this.prepare(plan))
-      .sort((a, b) => {
-        return a.prices[0].unit_amount - b.prices[0].unit_amount;
-      });
+    return plans.map((plan) => this.prepare(plan)).sort(sortPlan);
   }
 
   static async getWithCondition(
@@ -173,11 +173,7 @@ export default class Plan {
       },
     );
 
-    return plans
-      .map((plan) => this.prepare(plan))
-      .sort((a, b) => {
-        return a.prices[0].unit_amount - b.prices[0].unit_amount;
-      });
+    return plans.map((plan) => this.prepare(plan)).sort(sortPlan);
   }
 }
 

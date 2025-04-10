@@ -45,7 +45,7 @@ export function useCopyPaste({
   totalRows: Ref<number>
   activeCell: Ref<{ row: number; column: number }>
   columns: ComputedRef<CanvasGridColumn[]>
-  scrollToCell: (row?: number, column?: number) => void
+  scrollToCell: (row?: number, column?: number, path?: Array<number>) => void
   selection: Ref<CellRange>
   cachedRows: Ref<Map<number, Row>>
   editEnabled: Ref<{

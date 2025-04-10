@@ -65,10 +65,7 @@ export function calculateGroupRange(
   for (let i = 0; i < groupCount; i++) {
     const group = groups.get(i)
     const groupHeight = calculateGroupHeight(group, rowHeight)
-    if (!nested) console.log(`calculateGroupRange${group?.value}`, group, groupHeight)
-    // if(nested)
-    // console.log('calculateGroupRange', nested, currentOffset,groupHeight, currentOffset + groupHeight - GROUP_PADDING , scrollTop )
-    if (currentOffset + groupHeight - GROUP_PADDING > scrollTop) {
+     if (currentOffset + groupHeight - GROUP_PADDING > scrollTop) {
       startIndex = i
       const partialGroupHeight = scrollTop - currentOffset + GROUP_PADDING
       const viewportBottom = scrollTop + viewportHeight
@@ -153,4 +150,54 @@ export function calculateGroupRowTop(
   }
 
   return top
+}
+
+export function findRowInGroups(groups: Map<number, CanvasGroup>, y: number, rowHeight): { row: number; path: number[] } {
+  let currentOffset = 0
+  const path: number[] = []
+
+  function traverseGroups(currentGroups: Map<number, CanvasGroup>, targetY: number): { row: number; path: number[] } {
+    for (const [groupIndex, group] of currentGroups) {
+      if (!group) continue
+
+      const groupHeaderHeight = GROUP_HEADER_HEIGHT + GROUP_PADDING
+      const groupStart = currentOffset
+
+      // Add group header height
+      currentOffset += groupHeaderHeight
+
+      if (group.isExpanded) {
+        if (group.infiniteData) {
+          // Leaf group with rows
+          const rowCount = group.count
+          const groupContentHeight = rowCount * rowHeight + 1 // Include border offset
+          if (targetY >= groupStart && targetY < currentOffset + groupContentHeight) {
+            // Target is within this group's rows
+            const rowOffset = Math.floor((targetY - currentOffset) / rowHeight)
+            return { row: rowOffset, path: [...path, groupIndex] }
+          }
+          currentOffset += groupContentHeight
+        } else if (group.groups) {
+          // Nested groups
+          const subgroupStart = currentOffset
+          path.push(groupIndex)
+          const result = traverseGroups(group.groups, targetY)
+          if (result.row !== -1) return result // Found in a subgroup
+          path.pop()
+          currentOffset = subgroupStart + group.groupCount * (GROUP_HEADER_HEIGHT + GROUP_PADDING)
+        }
+      }
+
+      if (targetY < groupStart) {
+        // Target is before this group
+        return { row: -1, path: [] }
+      }
+    }
+
+    // Target is beyond all groups
+    return { row: -1, path: [] }
+  }
+
+  const result = traverseGroups(groups, y)
+  return result.row === -1 ? { row: -1, path: [] } : result
 }

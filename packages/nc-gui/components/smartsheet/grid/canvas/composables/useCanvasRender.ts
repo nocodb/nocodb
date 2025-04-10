@@ -3,7 +3,6 @@ import { AllAggregations, type ColumnType, type TableType, UITypes } from 'nocod
 import type { Composer } from 'vue-i18n'
 import tinycolor from 'tinycolor2'
 import {
-  drawStraightLine,
   isBoxHovered,
   renderCheckbox,
   renderIconButton,
@@ -32,7 +31,6 @@ import {
   calculateGroupRange,
   calculateGroupRowTop,
   generateGroupPath,
-  getBackgroundColor,
   getGroupColors,
 } from '../utils/groupby'
 import { parseKey, shouldRenderCell } from '../../../../../utils/groupbyUtils'

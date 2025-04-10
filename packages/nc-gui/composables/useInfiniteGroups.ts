@@ -33,7 +33,7 @@ export const useInfiniteGroups = (
   const { $api } = useNuxtApp()
   const { getMeta } = useMetas()
   const { appInfo } = useGlobal()
-  const { nestedFilters, eventBus, sorts } = useSmartsheetStoreOrThrow()
+  const { nestedFilters, sorts } = useSmartsheetStoreOrThrow()
   const { fetchBulkAggregatedData, sharedView } = useSharedView()
   const isPublic = inject(IsPublicInj, ref(false))
   const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
@@ -313,16 +313,8 @@ export const useInfiniteGroups = (
 
     // if found empty chunk, remove all chunks after it and fetch all chunks again
     if (force) {
-      let foundEmptyChunk = false
       for (let i = startIndex; i <= endIndex; i++) {
-        const targetGroup = cachedGroups.value.get(i)
-        if (targetGroup?.count === 0) {
-          foundEmptyChunk = true
-        }
-
-        if (foundEmptyChunk) {
-          cachedGroups.value.delete(i)
-        }
+        cachedGroups.value.delete(i)
       }
     }
 

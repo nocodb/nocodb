@@ -8,7 +8,7 @@ import {
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
-import { calculateGroupRange, findGroupByPath, generateGroupPath } from '../components/smartsheet/grid/canvas/utils/groupby'
+import { findGroupByPath } from '../components/smartsheet/grid/canvas/utils/groupby'
 import type { CanvasGroup } from '../lib/types'
 import { useInfiniteGroups } from './useInfiniteGroups'
 import { type CellRange, type Row } from '#imports'
@@ -44,8 +44,6 @@ export function useGridViewData(
 
   const isBulkOperationInProgress = ref(false)
 
-  const { nestedFilters } = useSmartsheetStoreOrThrow()
-
   const {
     cachedGroups,
     totalGroups,
@@ -54,8 +52,6 @@ export function useGridViewData(
     isGroupBy,
     buildNestedWhere,
     clearGroupCache,
-    gridViewColByTitle,
-    columnsById,
     syncCount: groupSyncCount,
     fetchMissingGroupChunks,
     updateGroupAggregations,
@@ -130,11 +126,13 @@ export function useGridViewData(
     viewMeta,
     callbacks: {
       syncVisibleData,
-      syncTotalRows,
       getCount,
       getWhereFilter: getGroupFilter,
       onGroupRowChange,
       reloadAggregate: triggerAggregateReload,
+      findGroupByPath: (path: Array<number>) => {
+        return findGroupByPath(cachedGroups.value, path)
+      },
     },
     groupByColumns,
     where,
@@ -219,34 +217,6 @@ export function useGridViewData(
     }
 
     return targetGroup.count
-  }
-
-  function syncTotalRows(path: Array<number> = [], count: number) {
-    if (!path?.length) return
-    let currentGroups = cachedGroups.value
-    const pathCopy = [...path]
-
-    for (let i = 0; i < path.length - 1; i++) {
-      const groupIndex = pathCopy[i]
-      const group = currentGroups.get(groupIndex)
-
-      if (!group || !group.groups) {
-        console.warn(`Invalid path: Group at index ${groupIndex} not found or has no subgroups`)
-        return
-      }
-
-      currentGroups = group.groups
-    }
-
-    const finalIndex = pathCopy[path.length - 1]
-    const targetGroup = currentGroups.get(finalIndex)
-
-    if (!targetGroup) {
-      console.warn(`Target group at path [${path}] not found`)
-      return
-    }
-
-    targetGroup.count = count
   }
 
   function getGroupFilter(path: Array<number> = []) {

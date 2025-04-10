@@ -6,7 +6,6 @@ import {
   UITypes,
   type ViewType,
   ViewTypes,
-  isLinksOrLTAR,
   isVirtualCol,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'

@@ -633,7 +633,6 @@ export function useCanvasTable({
     baseColor,
     scrollTop,
     totalGroups,
-    cachedRows,
     rowSlice,
     rowHeight,
     activeCell,

@@ -1910,7 +1910,9 @@ export function useCanvasRender({
     yOffset += 1
 
     const adjustedWidth =
-      totalWidth.value - scrollLeft.value - 256 < width.value ? totalWidth.value - scrollLeft.value - 256 : width.value
+      totalWidth.value - scrollLeft.value - 256 < width.value
+        ? totalWidth.value - scrollLeft.value - 256 - 2 * level * 9
+        : width.value
 
     for (let i = startIndex; i <= endIndex; i++) {
       const row = rows?.get(i)
@@ -1922,11 +1924,11 @@ export function useCanvasRender({
       const indent = level * 9
       const isHovered = hoverRow.value?.rowIndex === i && hoverRow.value?.path?.join('-') === row?.rowMeta?.path?.join('-')
 
-      roundedRect(ctx, indent, yOffset, adjustedWidth - 2 * indent, rowHeight.value, 0, {
+      roundedRect(ctx, indent, yOffset, adjustedWidth, rowHeight.value, 0, {
         backgroundColor: isHovered ? '#F9F9FA' : '#fff',
       })
       ctx.save()
-      ctx.rect(indent, yOffset, adjustedWidth - 2 * indent, rowHeight.value)
+      ctx.rect(indent, yOffset, adjustedWidth, rowHeight.value)
       ctx.clip()
       const renderedProp = renderRow(ctx, {
         row,
@@ -1974,17 +1976,34 @@ export function useCanvasRender({
           x: 0,
           y: yOffset,
           height: COLUMN_HEADER_HEIGHT_IN_PX,
-          width: adjustedWidth - 2 * level * 9,
+          width: adjustedWidth,
         },
         mousePosition,
       )
-      ctx.fillStyle = isNewRowHovered ? '#F9F9FA' : '#ffffff'
-      ctx.fillRect(level * 9, yOffset, adjustedWidth - 2 * level * 9, COLUMN_HEADER_HEIGHT_IN_PX)
-      // Bottom border for new row
-      ctx.strokeStyle = '#f4f4f5'
+      roundedRect(
+        ctx,
+        level * 9,
+        yOffset,
+        adjustedWidth,
+        COLUMN_HEADER_HEIGHT_IN_PX,
+        {
+          bottomLeft: 8,
+          bottomRight: 8,
+          topRight: 0,
+          topLeft: 0,
+        },
+        {
+          backgroundColor: isNewRowHovered ? '#F9F9FA' : '#ffffff',
+          borders: {
+            bottom: true,
+          },
+          borderColor: '#f4f4f5',
+          borderWidth: 1,
+        },
+      )
       ctx.beginPath()
       ctx.moveTo(level * 9, yOffset + COLUMN_HEADER_HEIGHT_IN_PX)
-      ctx.lineTo(adjustedWidth - 2 * level * 9, yOffset + COLUMN_HEADER_HEIGHT_IN_PX)
+      ctx.lineTo(adjustedWidth, yOffset + COLUMN_HEADER_HEIGHT_IN_PX)
       ctx.stroke()
 
       spriteLoader.renderIcon(ctx, {
@@ -2221,21 +2240,19 @@ export function useCanvasRender({
           y: groupHeaderY + 7,
           height: GROUP_HEADER_HEIGHT,
           verticalAlign: 'middle',
-          fontSize: 12,
+          fontFamily: '300 12px Manrope',
           fillStyle: '#374151',
-          fontWeight: 'lighter',
           textAlign: 'right',
         })
         countWidth = countRender.width
 
         const contentRender = renderSingleLineText(ctx, {
           text: 'Count',
-          x: xOffset + mergedWidth - 8 - countWidth - 4,
+          x: xOffset + mergedWidth - 8 - countWidth - 8,
           y: groupHeaderY + 7,
-          fontSize: 12,
           textAlign: 'right',
+          fontFamily: '300 12px Manrope',
           fillStyle: '#6A7184',
-          fontWeight: 'lighter',
         })
         contentWidth = contentRender.width
 

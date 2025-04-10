@@ -118,7 +118,7 @@ export function useCanvasTable({
     undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
-  addEmptyRow: (addAfter?: number, path?: Array<number>) => Row | undefined
+  addEmptyRow: (addAfter?: number, skipUpdate?: boolean, path?: Array<number>) => Row | undefined
   onActiveCellChanged: () => void
   addNewColumn: () => void
   setCursor: SetCursorType
@@ -700,12 +700,10 @@ export function useCanvasTable({
   })
 
   const { clearCell, copyValue, isPasteable } = useCopyPaste({
-    totalRows,
     activeCell,
     selection,
     columns,
     editEnabled,
-    cachedRows,
     scrollToCell,
     expandRows,
     view: view!,
@@ -754,6 +752,7 @@ export function useCanvasTable({
     fetchChunk,
     updateOrSaveRow,
     getRows,
+    getDataCache,
   })
 
   const { handleFillEnd, handleFillMove, handleFillStart } = useFillHandler({
@@ -899,6 +898,9 @@ export function useCanvasTable({
     scrollToCell,
     selection,
     editEnabled,
+    isGroupBy,
+    cachedGroups,
+    getDataCache,
     copyValue,
     clearCell,
     clearSelectedRangeOfCells,
@@ -933,7 +935,7 @@ export function useCanvasTable({
     partialRowHeight,
   })
 
-  async function clearSelectedRangeOfCells() {
+  async function clearSelectedRangeOfCells(path?: Array<number>) {
     if (!isDataEditAllowed.value || isDataReadOnly.value) return
 
     const start = selection.value.start

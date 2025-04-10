@@ -85,7 +85,11 @@ export function useCanvasRender({
   columns: ComputedRef<CanvasGridColumn[]>
   colSlice: Ref<{ start: number; end: number }>
   rowSlice: Ref<{ start: number; end: number }>
-  activeCell: Ref<{ row: number; column: number }>
+  activeCell: Ref<{
+    row?: number
+    column?: number
+    path?: Array<number>
+  }>
   scrollLeft: Ref<number>
   scrollTop: Ref<number>
   cachedGroups: Ref<Map<number, CanvasGroup>>
@@ -1033,7 +1037,7 @@ export function useCanvasRender({
 
           if (column.id === 'row_number') {
             if (isGroupBy.value) width -= initialXOffset
-            renderRowMeta(ctx, row, { xOffset, yOffset, width }, group.path)
+            renderRowMeta(ctx, row, { xOffset, yOffset, width }, group?.path)
           } else {
             const value = row.row[column.title]
 
@@ -1176,7 +1180,7 @@ export function useCanvasRender({
           }
 
           if (column.id === 'row_number') {
-            renderRowMeta(ctx, row!, { xOffset, yOffset, width }, group.path)
+            renderRowMeta(ctx, row!, { xOffset, yOffset, width }, group?.path)
           } else {
             const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
 

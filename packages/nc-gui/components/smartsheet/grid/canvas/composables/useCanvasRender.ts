@@ -143,7 +143,7 @@ export function useCanvasRender({
       order?: number
     }[]
   >
-  isGroupBy: Ref<boolean>
+  isGroupBy: ComputedRef<boolean>
   baseColor: Ref<string>
   fetchMissingGroupChunks: (startIndex: number, endIndex: number, canvasGroup?: CanvasGroup) => Promise<void>
   elementMap: CanvasElement

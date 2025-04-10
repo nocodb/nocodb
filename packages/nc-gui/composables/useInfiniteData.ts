@@ -939,12 +939,12 @@ export function useInfiniteData(args: {
         if (!undo) {
           addUndo({
             undo: {
-              fn: async (row: Row, ltarState: Record<string, any>) => {
+              fn: async (row: Row, ltarState: Record<string, any>, path: Array<number>) => {
                 const pkData = rowPkData(row.row, meta?.value?.columns as ColumnType[])
 
                 row.row = { ...pkData, ...row.row }
 
-                await insertRow(row, ltarState, {}, true)
+                await insertRow(row, ltarState, {}, true, undefined, undefined, path)
                 // refreshing the view
                 dataCache.cachedRows.value.clear()
                 dataCache.chunkStates.value = []
@@ -957,13 +957,13 @@ export function useInfiniteData(args: {
                   // this is left to keep things unchanged
                 }
               },
-              args: [clone(row), {}],
+              args: [clone(row), {}, clone(path)],
             },
             redo: {
-              fn: async (rowIndex: number) => {
+              fn: async (rowIndex: number, path) => {
                 await deleteRow(rowIndex, false, path)
               },
-              args: [rowIndex],
+              args: [rowIndex, clone(path)],
             },
             scope: defineViewScope({ view: viewMeta.value }),
           })
@@ -1068,6 +1068,7 @@ export function useInfiniteData(args: {
               tempLocalCache: Map<number, Row>,
               tempTotalRows: number,
               tempChunkStates: Array<'loading' | 'loaded' | undefined>,
+              path: Array<number>,
             ) => {
               dataCache.cachedRows.value = new Map(tempLocalCache)
               dataCache.totalRows.value = tempTotalRows
@@ -1091,6 +1092,7 @@ export function useInfiniteData(args: {
               clone(new Map(dataCache.cachedRows.value)),
               clone(dataCache.totalRows.value),
               clone(dataCache.chunkStates.value),
+              clone(path),
             ],
           },
           redo: {
@@ -1101,6 +1103,7 @@ export function useInfiniteData(args: {
               tempTotalRows: number,
               tempChunkStates: Array<'loading' | 'loaded' | undefined>,
               rowID: string,
+              path: Array<number>,
             ) => {
               dataCache.cachedRows.value = new Map(tempLocalCache)
               dataCache.totalRows.value = tempTotalRows
@@ -1129,6 +1132,7 @@ export function useInfiniteData(args: {
               clone(dataCache.totalRows.value),
               clone(dataCache.chunkStates.value),
               clone(beforeRowID),
+              clone(path),
             ],
           },
           scope: defineViewScope({ view: viewMeta.value }),
@@ -1179,7 +1183,7 @@ export function useInfiniteData(args: {
     property: string,
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
     undo = false,
-    path?: Array<number> = [],
+    path: Array<number> = [],
   ): Promise<Record<string, any> | undefined> {
     if (!toUpdate.rowMeta) {
       throw new Error('Row metadata is missing')
@@ -1206,7 +1210,13 @@ export function useInfiniteData(args: {
       if (!undo) {
         addUndo({
           undo: {
-            fn: async (toUpdate: Row, property: string, previousCache: Map<number, Row>, tempTotalRows: number) => {
+            fn: async (
+              toUpdate: Row,
+              property: string,
+              previousCache: Map<number, Row>,
+              tempTotalRows: number,
+              path: Array<number>,
+            ) => {
               dataCache.cachedRows.value = new Map(previousCache)
               dataCache.totalRows.value = tempTotalRows
 
@@ -1218,13 +1228,19 @@ export function useInfiniteData(args: {
                 path,
               )
             },
-            args: [clone(toUpdate), property, clone(new Map(dataCache.cachedRows.value)), clone(dataCache.totalRows.value)],
+            args: [
+              clone(toUpdate),
+              property,
+              clone(new Map(dataCache.cachedRows.value)),
+              clone(dataCache.totalRows.value),
+              clone(path),
+            ],
           },
           redo: {
-            fn: async (toUpdate: Row, property: string) => {
+            fn: async (toUpdate: Row, property: string, path) => {
               await updateRowProperty(toUpdate, property, undefined, true, path)
             },
-            args: [clone(toUpdate), property],
+            args: [clone(toUpdate), property, clone(path)],
           },
           scope: defineViewScope({ view: viewMeta.value }),
         })

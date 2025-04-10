@@ -47,6 +47,7 @@ export function useGridViewData(
     toggleExpand,
     groupByColumns,
     isGroupBy,
+    buildNestedWhere,
     syncCount: groupSyncCount,
     fetchMissingGroupChunks,
   } = useInfiniteGroups(viewMeta, meta, where)
@@ -92,6 +93,7 @@ export function useGridViewData(
       syncVisibleData,
       syncTotalRows,
       getCount,
+      getWhereFilter: getGroupFilter,
     },
     where,
     isPublic,
@@ -226,7 +228,7 @@ export function useGridViewData(
 
     addUndo({
       undo: {
-        fn: async (removedRowsData: Record<string, any>[]) => {
+        fn: async (removedRowsData: Record<string, any>[], path: Array<number>) => {
           const rowsToInsert = removedRowsData.reverse()
 
           const insertedRowIds = await bulkInsertRows(rowsToInsert as Row[], undefined, true, path)
@@ -235,10 +237,10 @@ export function useGridViewData(
             await Promise.all(rowsToInsert.map((row, _index) => recoverLTARRefs(row.row)))
           }
         },
-        args: [removedRowsData],
+        args: [removedRowsData, clone(path)],
       },
       redo: {
-        fn: async (toBeRemovedData: Record<string, any>[]) => {
+        fn: async (toBeRemovedData: Record<string, any>[], path: Array<number>) => {
           try {
             isBulkOperationInProgress.value = true
 
@@ -251,7 +253,7 @@ export function useGridViewData(
             isBulkOperationInProgress.value = false
           }
         },
-        args: [removedRowsData],
+        args: [removedRowsData, clone(path)],
       },
       scope: defineViewScope({ view: viewMeta.value }),
     })
@@ -441,7 +443,7 @@ export function useGridViewData(
     if (!undo) {
       addUndo({
         undo: {
-          fn: async (undoRows: Row[], props: string[]) => {
+          fn: async (undoRows: Row[], props: string[], path: Array<number>) => {
             await bulkUpdateRows(
               undoRows.map((r) => ({
                 ...r,
@@ -454,13 +456,13 @@ export function useGridViewData(
               path,
             )
           },
-          args: [clone(rows), props],
+          args: [clone(rows), props, clone(path)],
         },
         redo: {
-          fn: async (redoRows: Row[], props: string[]) => {
+          fn: async (redoRows: Row[], props: string[], path: Array<number>) => {
             await bulkUpdateRows(redoRows, props, undefined, true, path)
           },
-          args: [clone(rows), props],
+          args: [clone(rows), props, clone(path)],
         },
         scope: defineViewScope({ view: viewMeta.value }),
       })
@@ -560,7 +562,7 @@ export function useGridViewData(
       if (!undo) {
         addUndo({
           undo: {
-            fn: async (insertedRows: Row[], ogUpdateRows: Row[]) => {
+            fn: async (insertedRows: Row[], ogUpdateRows: Row[], path: Array<number>) => {
               try {
                 isBulkOperationInProgress.value = true
 
@@ -604,10 +606,10 @@ export function useGridViewData(
                 isBulkOperationInProgress.value = false
               }
             },
-            args: [clone(insertedRows), clone(ogUpdateRows)],
+            args: [clone(insertedRows), clone(ogUpdateRows), clone(path)],
           },
           redo: {
-            fn: async (insertRows: Row[], updateRows: Row[]) => {
+            fn: async (insertRows: Row[], updateRows: Row[], path: Array<number>) => {
               try {
                 isBulkOperationInProgress.value = true
                 const columnsHash = (await $api.dbTableColumn.hash(meta.value?.id)).hash
@@ -630,7 +632,7 @@ export function useGridViewData(
                 isBulkOperationInProgress.value = false
               }
             },
-            args: [clone(insertedRows), clone(updatedRows)],
+            args: [clone(insertedRows), clone(updatedRows), clone(path)],
           },
 
           scope: defineViewScope({ view: viewMeta.value }),
@@ -788,7 +790,7 @@ export function useGridViewData(
 
     addUndo({
       undo: {
-        fn: async (deletedRows: Record<string, any>[]) => {
+        fn: async (deletedRows: Record<string, any>[], path: Array<number>) => {
           const rowsToInsert = deletedRows.reverse()
 
           const insertedRowIds = await bulkInsertRows(rowsToInsert, undefined, true, path)
@@ -797,14 +799,14 @@ export function useGridViewData(
             await Promise.all(rowsToInsert.map((row, _index) => recoverLTARRefs(row.row)))
           }
         },
-        args: [rowsToDelete],
+        args: [rowsToDelete, clone(path)],
       },
       redo: {
-        fn: async (rowsToDelete: Record<string, any>[]) => {
+        fn: async (rowsToDelete: Record<string, any>[], path: Array<number>) => {
           await bulkDeleteRows(rowsToDelete.map((row) => row.pkData))
           await updateCacheAfterDelete(rowsToDelete, false, path)
         },
-        args: [rowsToDelete],
+        args: [rowsToDelete, clone(path)],
       },
       scope: defineViewScope({ view: viewMeta.value }),
     })

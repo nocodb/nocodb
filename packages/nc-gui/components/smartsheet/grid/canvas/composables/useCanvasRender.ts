@@ -197,7 +197,7 @@ export function useCanvasRender({
     const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
     const columnsWidth =
       totalColumnsWidth.value +
-      (!isAddingColumnAllowed.value ? groupByColumns?.value?.length * 13 + (groupByColumns?.value?.length - 1) * 13 : 0) +
+      (!isAddingColumnAllowed.value && isGroupBy.value ? groupByColumns?.value?.length * 13 + (groupByColumns?.value?.length - 1) * 13 : 0) +
       (isAddingColumnAllowed.value && !isMobileMode.value ? plusColumnWidth : 0) -
       scrollLeft.value
 
@@ -602,6 +602,7 @@ export function useCanvasRender({
       if (scrollLeft.value) {
         ctx.strokeStyle = '#D5D5D9'
         ctx.beginPath()
+        ctx.lineWidth = 1
         ctx.moveTo(xOffset, 0)
         ctx.lineTo(xOffset, isGroupBy.value ? height.value : 32)
         ctx.stroke()
@@ -612,6 +613,7 @@ export function useCanvasRender({
       } else {
         ctx.strokeStyle = '#E7E7E9'
         ctx.beginPath()
+        ctx.lineWidth = 1
         ctx.moveTo(xOffset, 0)
         ctx.lineTo(xOffset, isGroupBy.value ? height.value : 32)
         ctx.stroke()
@@ -1916,7 +1918,7 @@ export function useCanvasRender({
 
     let warningRow: { row: Row; yOffset: number } | null = null
     yOffset += 1
-    const indent = level * 13
+    const indent = level * 13 + 1
 
     const adjustedWidth =
       totalWidth.value - scrollLeft.value - 256 < width.value
@@ -2277,7 +2279,7 @@ export function useCanvasRender({
 
         const fixedColsWidth = fixedCols.value.reduce((sum, col) => sum + parseCellWidth(col.width), 1)
 
-        let aggXOffset = 0
+        let aggXOffset = 1
 
         for (let i = 0; i < startColIndex; i++) {
           aggXOffset += parseCellWidth(columns.value[i]?.width)

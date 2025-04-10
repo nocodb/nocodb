@@ -119,8 +119,8 @@ export const useInfiniteGroups = (
               sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
               column_name: groupCol.column.title,
               subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
-              sortsArr: sorts.value,
-              filtersArr: nestedFilters.value,
+              sortArrJson: JSON.stringify(sorts.value),
+              filterArrJson: JSON.stringify(nestedFilters.value),
             },
             {
               headers: {
@@ -134,6 +134,8 @@ export const useInfiniteGroups = (
             where: nestedWhere,
             sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
             column_name: groupCol.column.title,
+            sortArrJson: JSON.stringify(sorts.value),
+            filterArrJson: JSON.stringify(nestedFilters.value),
             subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
           })
 
@@ -235,12 +237,14 @@ export const useInfiniteGroups = (
                 {
                   viewId: view.value!.id,
                   aggregation,
+                  filterArrJson: JSON.stringify(nestedFilters.value),
                 },
                 aggregationParams,
               )
             : await fetchBulkAggregatedData(
                 {
                   aggregation,
+                  filterArrJson: JSON.stringify(nestedFilters.value),
                 },
                 aggregationParams,
               )
@@ -380,6 +384,7 @@ export const useInfiniteGroups = (
             where: where?.value,
             sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any[],
             column_name: groupCol.column.title,
+            filterArrJson: JSON.stringify(nestedFilters.value),
           })
         : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
             where: where?.value,
@@ -440,12 +445,14 @@ export const useInfiniteGroups = (
               {
                 viewId: view.value!.id,
                 aggregation,
+                filterArrJson: JSON.stringify(nestedFilters.value),
               },
               aggregationParams,
             )
           : await fetchBulkAggregatedData(
               {
                 aggregation,
+                filterArrJson: JSON.stringify(nestedFilters.value),
               },
               aggregationParams,
             )

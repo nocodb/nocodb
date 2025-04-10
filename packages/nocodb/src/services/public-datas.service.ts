@@ -384,7 +384,11 @@ export class PublicDatasService {
 
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-    } catch (e) {}
+    } catch (e) {
+      listArgs.filterArr = ncIsArray(listArgs?.filterArrJson)
+        ? listArgs?.filterArrJson
+        : null;
+    }
 
     return await baseModel.groupByCount(listArgs);
   }
@@ -409,10 +413,18 @@ export class PublicDatasService {
 
       try {
         listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-      } catch (e) {}
+      } catch (e) {
+        listArgs.filterArr = ncIsArray(listArgs?.filterArrJson)
+          ? listArgs?.filterArrJson
+          : null;
+      }
       try {
         listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-      } catch (e) {}
+      } catch (e) {
+        listArgs.sortArr = ncIsArray(listArgs?.sortArrJson)
+          ? listArgs?.sortArrJson
+          : null;
+      }
 
       const data = await baseModel.groupBy(listArgs);
       const count = await baseModel.groupByCount(listArgs);

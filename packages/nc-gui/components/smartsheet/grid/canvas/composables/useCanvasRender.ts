@@ -886,12 +886,14 @@ export function useCanvasRender({
       const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
       let xOffset = initialXOffset
 
-      for (let i = 0; i < startColIndex; i++) {
-        const col = columns.value[i]
-        if (col.id === 'row_number') {
-          xOffset -= groupByColumns.value?.length * 9
+      if (isGroupBy.value) {
+        for (let i = 0; i < startColIndex; i++) {
+          const col = columns.value[i]
+          if (col.id === 'row_number') {
+            xOffset -= groupByColumns.value?.length * 9
+          }
+          xOffset += parseCellWidth(col?.width)
         }
-        xOffset += parseCellWidth(col?.width)
       }
 
       visibleCols.forEach((column, colIdx) => {

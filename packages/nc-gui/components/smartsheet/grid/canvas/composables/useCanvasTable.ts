@@ -1063,13 +1063,13 @@ export function useCanvasTable({
 
     editEnabled.value = {
       rowIndex,
-      x: xOffset,
-      y: yOffset,
+      x: xOffset + ([UITypes.LongText, UITypes.Formula].includes(column.uidt) ? -1 : 0),
+      y: yOffset - 1,
       column,
       row,
       minHeight: rowHeight.value,
       height: [UITypes.LongText, UITypes.Formula].includes(column.uidt) ? 'auto' : rowHeight.value + 2,
-      width: parseCellWidth(clickedColumn.width) + 2,
+      width: parseCellWidth(clickedColumn.width) + ([UITypes.LongText, UITypes.Formula].includes(column.uidt) ? 2 : 0),
       fixed: clickedColumn.fixed,
       path,
     }

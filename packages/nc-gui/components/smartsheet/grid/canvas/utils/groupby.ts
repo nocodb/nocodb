@@ -213,10 +213,10 @@ export function calculateGroupRowTop(
   rowHeight: number,
   isAddingEmptyRowAllowed: boolean,
 ): number {
-  let top = 0
+  let top = GROUP_PADDING
   let currentGroups = groups
 
-  if (path.length === 0) {
+  if (path.length === 0 || !path) {
     return rowIndex * rowHeight
   }
 
@@ -232,11 +232,11 @@ export function calculateGroupRowTop(
       }
     }
 
-    top += GROUP_HEADER_HEIGHT + GROUP_PADDING
-
     if (!group.isExpanded) {
       return top
     }
+
+    top += GROUP_HEADER_HEIGHT
 
     if (group.path?.length && depth === path.length - 1) {
       // if (rowIndex >= 0 && rowIndex <= (group.count || 0)) {
@@ -244,6 +244,7 @@ export function calculateGroupRowTop(
       // }
       return top
     } else if (group.groups) {
+      top += GROUP_EXPANDED_BOTTOM_PADDING
       currentGroups = group.groups
     } else {
       return top

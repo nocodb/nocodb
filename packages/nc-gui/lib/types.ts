@@ -594,12 +594,12 @@ interface CanvasGroup {
   count: number
   isExpanded: boolean
   value: any
-  infiniteData?: ReturnType<typeof useInfiniteData>
   displayValueProp?: string
   relatedTableMeta?: TableType
   relatedColumn?: ColumnType
   color: string
   groupCount?: number
+  path?: Array<number>
   nestedIn: GroupNestedIn[]
 }
 

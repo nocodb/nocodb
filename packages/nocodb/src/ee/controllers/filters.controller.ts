@@ -6,20 +6,16 @@ import {
   Param,
   Post,
   Req,
-  UseGuards,
 } from '@nestjs/common';
 import { FilterReqType } from 'nocodb-sdk';
 import { FiltersController as FiltersControllerCE } from 'src/controllers/filters.controller';
-import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { FiltersService } from '~/services/filters.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
-@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class FiltersController extends FiltersControllerCE {
   constructor(protected readonly filtersService: FiltersService) {
     super(filtersService);

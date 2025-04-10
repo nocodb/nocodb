@@ -6,20 +6,16 @@ import {
   Post,
   Query,
   Req,
-  UseGuards,
 } from '@nestjs/common';
 import { PagedResponseImpl } from 'src/helpers/PagedResponse';
 import { ProjectReqType } from 'nocodb-sdk';
 import { BasesController as BasesControllerCE } from 'src/controllers/bases.controller';
 import type { BaseType } from 'nocodb-sdk';
-import { GlobalGuard } from '~/guards/global/global.guard';
 import { BasesService } from '~/services/bases.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 
-@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
 export class BasesController extends BasesControllerCE {
   constructor(protected readonly basesService: BasesService) {

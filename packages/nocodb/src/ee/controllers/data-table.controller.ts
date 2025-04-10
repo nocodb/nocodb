@@ -1,13 +1,10 @@
-import { Controller, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Param, Post, Query, Req } from '@nestjs/common';
 import { DataTableController as DataTableControllerCE } from 'src/controllers/data-table.controller';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
-import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { GlobalGuard } from '~/guards/global/global.guard';
 
 @Controller()
-@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class DataTableController extends DataTableControllerCE {
   @Post(['/api/v2/tables/:modelId/bulk/aggregate'])
   @Acl('dataAggregate')

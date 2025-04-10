@@ -38,7 +38,7 @@ useProvideViewAggregate(view, meta, xWhere, reloadVisibleDataHook)
 
 const {
   loadData,
-  selectedRows,
+  selectedRows: _selectedRows,
   updateOrSaveRow,
   addEmptyRow: _addEmptyRow,
   deleteRow,
@@ -278,6 +278,18 @@ const pGoToPreviousRow = () => {
 
   pNavigateToSiblingRow(NavigateDir.PREV)
 }
+
+const groupPath = ref([])
+
+const selectedRows = computed(() => {
+  const dataCache = getDataCache(groupPath.value)
+  return dataCache?.selectedRows.value
+})
+
+const bulkUpdateTrigger = (path: Array<number>) => {
+  groupPath.value = path
+  bulkUpdateDlg.value = true
+}
 </script>
 
 <template>
@@ -345,7 +357,7 @@ const pGoToPreviousRow = () => {
       :fetch-missing-group-chunks="fetchMissingGroupChunks"
       :is-bulk-operation-in-progress="isBulkOperationInProgress"
       @toggle-optimised-query="toggleOptimisedQuery"
-      @bulk-update-dlg="bulkUpdateDlg = true"
+      @bulk-update-dlg="bulkUpdateTrigger"
     />
 
     <InfiniteTable
@@ -415,6 +427,7 @@ const pGoToPreviousRow = () => {
         v-model="bulkUpdateDlg"
         :meta="meta"
         :view="view"
+        :path="groupPath"
         :bulk-update-rows="bulkUpdateRows"
         :rows="selectedRows"
       />

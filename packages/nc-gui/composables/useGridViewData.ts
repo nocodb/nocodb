@@ -453,7 +453,7 @@ export function useGridViewData(
         updateArray,
       )) as Record<string, any>
 
-      triggerAggregateReload({ fields: props.map((p) => ({ title: p })) })
+      triggerAggregateReload({ fields: props.map((p) => ({ title: p })), path })
 
       newRows.forEach((newRow: Record<string, any>) => {
         const pk = extractPkFromRow(newRow, metaValue?.columns as ColumnType[])
@@ -472,6 +472,7 @@ export function useGridViewData(
         }
       })
     } catch (e) {
+      console.error(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
       isBulkOperationInProgress.value = false
       return
@@ -863,7 +864,7 @@ export function useGridViewData(
         viewId: viewMetaValue?.id as string,
       })
 
-      triggerAggregateReload()
+      triggerAggregateReload({ path: [] })
 
       return rows.length === 1 && bulkDeletedRowsData ? [bulkDeletedRowsData] : bulkDeletedRowsData
     } catch (error: any) {

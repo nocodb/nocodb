@@ -485,7 +485,8 @@ export function useCanvasRender({
         if (column.id === 'row_number') {
           if (
             !readOnly.value &&
-            (vSelectedAllRecords.value || isBoxHovered({ x: 0, y: 0, width: canvasWidth, height: 32 }, mousePosition))
+            (vSelectedAllRecords.value || isBoxHovered({ x: 0, y: 0, width: canvasWidth, height: 32 }, mousePosition)) &&
+            !isGroupBy.value
           ) {
             const checkSize = 16
             const isCheckboxHovered = isBoxHovered({ x, y: y - 8, width: checkSize, height: checkSize }, mousePosition)

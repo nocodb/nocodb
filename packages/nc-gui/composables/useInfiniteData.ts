@@ -156,12 +156,10 @@ export function useInfiniteData(args: {
     })
   })
 
-  // TODO: @DarkPhoenix2704: Fix this
   const selectedRows = computed<Row[]>(() => {
     return Array.from(cachedRows.value.values()).filter((row) => row.rowMeta?.selected)
   })
 
-  // TODO: @DarkPhoenix2704: Fix this
   const isRowSortRequiredRows = computed(() => {
     return Array.from(cachedRows.value.values()).filter((row) => row.rowMeta?.isRowOrderUpdated)
   })
@@ -1171,7 +1169,7 @@ export function useInfiniteData(args: {
         dataCache.totalRows.value++
       }
       callbacks?.syncTotalRows?.(path, dataCache.totalRows.value)
-      callbacks?.reloadAggregate?.({path})
+      callbacks?.reloadAggregate?.({ path })
       callbacks?.syncVisibleData?.()
 
       return insertedData
@@ -1436,7 +1434,7 @@ export function useInfiniteData(args: {
       viewId: viewMetaValue.id,
     })
 
-    callbacks?.reloadAggregate?.()
+    callbacks?.reloadAggregate?.({ path })
     callbacks?.syncVisibleData?.()
   }
 
@@ -1457,7 +1455,7 @@ export function useInfiniteData(args: {
         encodeURIComponent(id),
       )
 
-      callbacks?.reloadAggregate?.()
+      callbacks?.reloadAggregate?.({ path })
 
       if (res.message) {
         const errorMessage = `Unable to delete record with ID ${id} because of the following:\n${res.message.join(

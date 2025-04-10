@@ -1951,6 +1951,13 @@ eventBus.on(async (event, payload) => {
     // This event is triggered when a field is updated
     calculateSlices()
     requestAnimationFrame(triggerRefreshCanvas)
+  } else if (event === SmartsheetStoreEvents.GROUP_PATH_CHANGE) {
+    const { oldPath = [], newPath = [] } = payload
+
+    // if current active cell is using old path, update it to new path
+    if (activeCell.value.path.join('-') === oldPath.join('-')) {
+      activeCell.value.path = newPath
+    }
   }
 })
 

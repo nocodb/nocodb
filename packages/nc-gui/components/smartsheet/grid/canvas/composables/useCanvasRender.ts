@@ -2299,15 +2299,31 @@ export function useCanvasRender({
 
           ctx.fillStyle = isHovered ? aggregationHoverBg : aggregationDefaultBg
 
+          // Difference between where the column starts and how much the user has scrolled
+          const aggOffset = aggXOffset - scrollLeft.value
+
+          // If fixed columns overlap with the scrolling columns, calculate the overlap
+          const overlap = Math.max(0, fixedColsWidth - aggOffset)
+
+          // Whether the current column is the last visible one (for minor visual adjustment)
+          const isLastCol = index === visibleCols.length - 1
+          const adjustment = isLastCol ? 1 : 0
+
+          // Final `left` position: Either the scroll-adjusted offset or the width of fixed columns, whichever is greater
+          const left = Math.max(aggOffset, fixedColsWidth)
+
+          // Final `width`: Remaining space after accounting for fixed column overlap and last column adjustment
+          const widthClamped = Math.max(width - overlap - adjustment, 0)
+
           if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
             ctx.save()
             ctx.beginPath()
 
             roundedRect(
               ctx,
-              Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
+              left,
               groupHeaderY + 1,
-              width - Math.max(0, fixedColsWidth - (aggXOffset - scrollLeft.value)) - (index === visibleCols.length - 1 ? 1 : 0),
+              widthClamped,
               GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
               {
                 topLeft: 0,
@@ -2352,11 +2368,9 @@ export function useCanvasRender({
 
               roundedRect(
                 ctx,
-                Math.max(aggXOffset - scrollLeft.value, fixedColsWidth),
+                left,
                 groupHeaderY + 1,
-                width -
-                  Math.max(0, fixedColsWidth - (aggXOffset - scrollLeft.value)) -
-                  (index === visibleCols.length - 1 ? 1 : 0),
+                widthClamped,
                 GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
                 {
                   topLeft: 0,

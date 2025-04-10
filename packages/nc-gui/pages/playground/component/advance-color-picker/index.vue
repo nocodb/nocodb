@@ -14,5 +14,13 @@ const color1 = ref('')
     <a-card>
       <h4>As dropdown <GeneralAdvanceColorPickerDropdown v-model="color1" /></h4>
     </a-card>
+    <a-card>
+      <h4>
+        As dropdown with custom button
+        <GeneralAdvanceColorPickerDropdown v-model="color1">
+          <NcButton>Hello world</NcButton>
+        </GeneralAdvanceColorPickerDropdown>
+      </h4>
+    </a-card>
   </div>
 </template>

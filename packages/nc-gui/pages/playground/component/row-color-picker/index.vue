@@ -11,5 +11,8 @@ const color1 = ref('')
       <div class="inline-block min-h-[24px] min-w-[24px] h-[24px] w-[24px] rounded-md" :class="[`bg-${color1}`]"></div>
     </a-card>
     <NcRowColorPicker v-model="color1" />
+    <a-card>
+      <h4>As dropdown <NcRowColorPickerDropdown v-model="color1" /></h4>
+    </a-card>
   </div>
 </template>

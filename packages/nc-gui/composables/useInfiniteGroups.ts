@@ -320,8 +320,16 @@ export const useInfiniteGroups = (
 
     // if found empty chunk, remove all chunks after it and fetch all chunks again
     if (force) {
+      let foundEmptyChunk = false
       for (let i = startIndex; i <= endIndex; i++) {
-        cachedGroups.value.delete(i)
+        const targetGroup = cachedGroups.value.get(i)
+        if (targetGroup?.count === 0) {
+          foundEmptyChunk = true
+        }
+
+        if (foundEmptyChunk) {
+          cachedGroups.value.delete(i)
+        }
       }
     }
 

@@ -118,7 +118,7 @@ const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
 
-const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource } = useSmartsheetStoreOrThrow()
+const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource, isAlreadyShownUpgradeModal } = useSmartsheetStoreOrThrow()
 
 const { $e, $api } = useNuxtApp()
 
@@ -215,9 +215,8 @@ const cachedRows = toRef(props, 'data')
 
 const rowSortRequiredRows = toRef(props, 'rowSortRequiredRows')
 
-// const totalRows = toRef(props, 'totalRows')
 const totalRows = computed(() => {
-  if (blockExternalSourceRecordVisibility(isExternalSource.value)) return 200
+  if (blockExternalSourceRecordVisibility(isExternalSource.value)) return Math.min(200, props.totalRows)
 
   return props.totalRows
 })
@@ -238,6 +237,8 @@ const BUFFER_SIZE = 100
 const INITIAL_LOAD_SIZE = 100
 const PREFETCH_THRESHOLD = 40
 
+let upgradeModalTimer: any
+
 const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   if (chunkStates.value[chunkId]) return
 
@@ -245,6 +246,23 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   const limit = isInitialLoad ? INITIAL_LOAD_SIZE : CHUNK_SIZE
 
   if (offset >= totalRows.value) {
+    return
+  }
+
+  if (!isAlreadyShownUpgradeModal.value && offset >= 100 && blockExternalSourceRecordVisibility(isExternalSource.value)) {
+    isAlreadyShownUpgradeModal.value = true
+
+    if (upgradeModalTimer) {
+      clearTimeout(upgradeModalTimer)
+    }
+
+    upgradeModalTimer = setTimeout(() => {
+      showUpgradeToSeeMoreRecordsModal({
+        isExternalSource: isExternalSource.value,
+      })
+      clearTimeout(upgradeModalTimer)
+    }, 1000)
+
     return
   }
 
@@ -331,8 +349,6 @@ const topOffset = computed(() => {
 let debounceTimeout: any = null // To store the debounced timeout
 const debounceDelay = 50 // Delay in ms after the last scroll event
 
-const isAlreadyShownUpgradeModal = ref(false)
-
 const updateVisibleRows = async (fromCalculateSlice = false) => {
   const { start, end } = rowSlice
 
@@ -340,20 +356,6 @@ const updateVisibleRows = async (fromCalculateSlice = false) => {
   const lastChunkId = Math.floor((end - 1) / CHUNK_SIZE)
 
   const chunksToFetch = new Set<number>()
-
-  if (
-    !isAlreadyShownUpgradeModal.value &&
-    firstChunkId >= 2 &&
-    showUpgradeToSeeMoreRecordsModal({
-      isExternalSource: isExternalSource.value,
-      callback: () => {
-        isAlreadyShownUpgradeModal.value = true
-      },
-    })
-  ) {
-    isAlreadyShownUpgradeModal.value = true
-    return
-  }
 
   // Collect chunks that need to be fetched (i.e., chunks that are not loaded yet)
   for (let chunkId = firstChunkId; chunkId <= lastChunkId; chunkId++) {
@@ -989,7 +991,9 @@ const {
         case 'ArrowDown':
           e.preventDefault()
           clearSelectedRange()
-          activeCell.row = totalRows.value - 1
+          activeCell.row = blockExternalSourceRecordVisibility(isExternalSource.value)
+            ? Math.min(100, totalRows.value) - 1
+            : totalRows.value - 1
           activeCell.col = activeCell.col ?? 0
 
           selectedRange.startRange({ row: activeCell.row, col: activeCell.col })

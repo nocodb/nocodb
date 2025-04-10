@@ -54,6 +54,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       () => !!base.value?.sources?.some((s) => s.id === (meta.value as TableType)?.source_id && !s.is_meta && !s.is_local),
     )
 
+    const isAlreadyShownUpgradeModal = ref(false)
+
     const aliasColObjMap = computed(() => {
       const colObj = (meta.value as TableType)?.columns?.reduce((acc, col) => {
         acc[col.title] = col
@@ -186,6 +188,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       viewColumnsMap,
       getViewColumns,
       isExternalSource,
+      isAlreadyShownUpgradeModal,
     }
   },
   'smartsheet-store',

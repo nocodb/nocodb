@@ -496,10 +496,6 @@ export const useInfiniteGroups = (
     }
   }
 
-  watch(groupByColumns, () => {
-    clearGroupCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
-  })
-
   const isGroupBy = computed(() => !!groupByColumns.value.length)
 
   return {

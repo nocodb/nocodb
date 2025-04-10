@@ -493,7 +493,6 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           // fallback to reload
           await loadViewColumns()
         }
-        reloadData?.()
       } catch (e) {
         // this could happen if user doesn't have permission to update view columns
         // todo: find out root cause and handle with isUIAllowed

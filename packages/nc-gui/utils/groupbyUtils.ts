@@ -77,7 +77,7 @@ export const shouldRenderCell = (colOrUidt: ColumnType | { uidt: UITypes | strin
 // a method to parse group key if grouped column type is LTAR or Lookup
 // in these 2 scenario it will return json array or `___` separated value
 export const parseKey = (group: Group | CanvasGroup) => {
-  let key = (group?.key || group.value).toString()
+  let key = (group?.key ?? group?.value).toString()
 
   // parse json array key if it's a lookup or link to another record
   if ((key && group.column?.uidt === UITypes.Lookup) || group.column?.uidt === UITypes.LinkToAnotherRecord) {

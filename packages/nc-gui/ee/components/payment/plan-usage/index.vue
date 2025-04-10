@@ -66,8 +66,6 @@ const recordInfo = computed(() => {
   const total = getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) ?? 1000
   const showWarningStatus = (value / total) * 100 > 80
 
-  console.log('total', total)
-
   return {
     value: Number(value).toLocaleString(),
     total: Number(total).toLocaleString(),

@@ -123,7 +123,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     const price = plan.prices.find((price: any) => price.recurring.interval === mode) || plan.prices[0]
 
     if (price.billing_scheme === 'tiered') {
-      const tier = price.tiers.find((tier: any) => workspaceSeatCount.value <= tier.up_to)
+      const tier = price.tiers.find((tier: any) => workspaceSeatCount.value <= (tier.up_to ?? Infinity))
 
       if (!tier) return 0
 

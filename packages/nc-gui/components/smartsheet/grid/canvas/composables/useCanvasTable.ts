@@ -11,7 +11,7 @@ import { useGridCellHandler } from '../cells'
 import { TableMetaLoader } from '../loaders/TableMetaLoader'
 import type { CanvasGridColumn } from '../../../../../lib/types'
 import { CanvasElement } from '../utils/CanvasElement'
-import { calculateGroupRowTop } from '../utils/groupby'
+import { calculateGroupRowTop, isGroupExpanded } from '../utils/groupby'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
@@ -568,6 +568,12 @@ export function useCanvasTable({
     if ((selection.value.end.row < rowSlice.value.start || selection.value.end.row >= rowSlice.value.end) && !isGroupBy.value) {
       return null
     }
+
+    // if group by then check if the group is in expanded state
+    if (isGroupBy.value && groupPath && !isGroupExpanded(cachedGroups.value, groupPath as number[])) {
+      return null
+    }
+
     // If selection is single cell and cell is virtual, hide fill handler
     if (selection.value.isSingleCell()) {
       const selectedColumn = columns.value[selection.value.end.col]

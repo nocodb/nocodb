@@ -61,6 +61,7 @@ export function useInfiniteData(args: {
     syncTotalRows?: (path: Array<number>, count: number) => void
     getCount?: (path: Array<number>) => void
     getWhereFilter?: (path: Array<number>) => string
+    onGroupRowChange?: (params: { row: Row; property: string; groupByColumn: ColumnType; level: number }) => void
     reloadAggregate?: (params: {
       fields?: Array<{ title: string; aggregation?: string | undefined }>
       path: Array<number>
@@ -207,10 +208,10 @@ export function useInfiniteData(args: {
 
   const getChunkIndex = (rowIndex: number) => Math.floor(rowIndex / CHUNK_SIZE)
 
-  const fetchChunk = async (chunkId: number, path: Array<number> = []) => {
+  const fetchChunk = async (chunkId: number, path: Array<number> = [], forceFetch = false) => {
     const dataCache = getDataCache(path)
 
-    if (dataCache.chunkStates.value[chunkId]) return
+    if (dataCache.chunkStates.value[chunkId] && !forceFetch) return
 
     dataCache.chunkStates.value[chunkId] = 'loading'
     const offset = chunkId * CHUNK_SIZE
@@ -571,6 +572,15 @@ export function useInfiniteData(args: {
     if (invalidIndexes.length === 0) return
 
     for (const index of invalidIndexes) {
+      const row = dataCache.cachedRows.value.get(index)
+
+      if (row.rowMeta?.isGroupChanged) {
+        const groupByColumn = groupByColumns.value[row.rowMeta.changedGroupIndex]
+        const property = groupByColumn?.column?.title
+        // invoke group by callback
+        callbacks?.onGroupRowChange?.({ row, property, groupByColumn, level: row.rowMeta.changedGroupIndex, path: row.rowMeta.path })
+      }
+
       dataCache.cachedRows.value.delete(index)
     }
 
@@ -1390,9 +1400,13 @@ export function useInfiniteData(args: {
     )
 
     // check if the column is part of group by and value changed
-    if (row.rowMeta?.path?.length && groupByColumns?.value && groupByColumns.value.some((c) => c.column.title === property)) {
-      // check if column is group by and value changed
-      row.rowMeta.isGroupChanged = true
+    if (row.rowMeta?.path?.length && groupByColumns?.value) {
+      const index = groupByColumns.value.findIndex((c) => c.column.title === property)
+      if (index > -1) {
+        // check if column is group by and value changed
+        row.rowMeta.isGroupChanged = true
+        row.rowMeta.changedGroupIndex = index
+      }
     }
 
     const changedFields = property ? [property] : Object.keys(row.row)

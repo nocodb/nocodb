@@ -933,7 +933,7 @@ export function useInfiniteData(args: {
           },
         )
 
-        const deleted = await deleteRowById(id as string)
+        const deleted = await deleteRowById(id as string, undefined, path)
         if (!deleted) {
           return
         }
@@ -996,6 +996,8 @@ export function useInfiniteData(args: {
       await syncCount(path)
       callbacks?.syncVisibleData?.()
     } catch (e: any) {
+      console.error(e)
+
       message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
   }
@@ -1078,7 +1080,7 @@ export function useInfiniteData(args: {
               dataCache.totalRows.value = tempTotalRows
               dataCache.chunkStates.value = tempChunkStates
 
-              await deleteRowById(id)
+              await deleteRowById(id, undefined, path)
               dataCache.cachedRows.value.delete(insertIndex)
 
               for (const [index, row] of dataCache.cachedRows.value) {
@@ -1425,6 +1427,7 @@ export function useInfiniteData(args: {
   async function bulkUpdateView(
     data: Record<string, any>[],
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    path: Array<number> = [],
   ): Promise<void> {
     if (!viewMetaValue) {
       throw new Error('View meta value is missing')
@@ -1441,6 +1444,7 @@ export function useInfiniteData(args: {
   async function deleteRowById(
     id: string,
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    path: Array<number> = [],
   ): Promise<boolean> {
     if (!id) {
       throw new Error("Delete not allowed for table which doesn't have primary Key")

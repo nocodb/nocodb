@@ -1,12 +1,9 @@
-import { Controller, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Controller, Param, Post, Req } from '@nestjs/common';
 import { PublicDatasController as PublicDatasControllerCE } from 'src/controllers/public-datas.controller';
-import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { GlobalGuard } from '~/guards/global/global.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
-@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class PublicDatasController extends PublicDatasControllerCE {
   @Post([
     '/api/v1/db/public/shared-view/:sharedViewUuid/bulk/aggregate',

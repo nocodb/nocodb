@@ -6,24 +6,20 @@ import {
   Post,
   Req,
   Res,
-  UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AuditV1OperationTypes } from 'nocodb-sdk';
 import { BulkDataAliasController as BulkDataAliasControllerCE } from 'src/controllers/bulk-data-alias.controller';
 import type { DataImportPayload } from 'nocodb-sdk';
 import { generateAuditV1Payload } from '~/utils';
-import { GlobalGuard } from '~/guards/global/global.guard';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { Audit, Model } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 @Controller()
-@UseGuards(DataApiLimiterGuard, GlobalGuard)
 export class BulkDataAliasController extends BulkDataAliasControllerCE {
   constructor(protected bulkDataAliasService: BulkDataAliasService) {
     super(bulkDataAliasService);

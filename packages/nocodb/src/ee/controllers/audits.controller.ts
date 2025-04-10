@@ -1,16 +1,13 @@
-import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Req } from '@nestjs/common';
 import { AuditsController as AuditsControllerCE } from 'src/controllers/audits.controller';
 import { OrgUserRoles } from 'nocodb-sdk';
-import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { AuditsService } from '~/services/audits.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
-@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class AuditsController extends AuditsControllerCE {
   constructor(protected readonly auditsService: AuditsService) {
     super(auditsService);

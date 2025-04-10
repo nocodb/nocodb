@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  Param,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, Param, Post, Req } from '@nestjs/common';
 import {
   NON_SEAT_ROLES,
   type ProjectRoles,
@@ -14,17 +6,14 @@ import {
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { BaseUsersController as BaseUsersControllerCE } from 'src/controllers/base-users.controller';
-import { GlobalGuard } from '~/guards/global/global.guard';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { User, WorkspaceUser } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 
-@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
 export class BaseUsersController extends BaseUsersControllerCE {
   constructor(

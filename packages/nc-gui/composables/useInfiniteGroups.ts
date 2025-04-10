@@ -222,7 +222,7 @@ export const useInfiniteGroups = (
             Object.keys(value).forEach((key) => {
               const field = gridViewColByTitle.value[key]
               const col = columnsById.value[field.fk_column_id]
-              value[key] = formatAggregation(field.aggregation, value[key], col)
+              value[key] = formatAggregation(field.aggregation, value[key], col) ?? ''
             })
 
             if (group) {

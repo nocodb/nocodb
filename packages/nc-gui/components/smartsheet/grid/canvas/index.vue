@@ -108,6 +108,7 @@ const props = defineProps<{
     chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
     selectedRows: ComputedRef<Array<Row>>
     isRowSortRequiredRows: ComputedRef<Array<Row>>
+    isGroupChanged?: ComputedRef<Array<Row>>
   }
   cachedGroups: Map<number, CanvasGroup>
   totalGroups: number
@@ -519,6 +520,46 @@ const calculateSlices = () => {
   }
 }
 
+function clearSelection() {
+  activeCell.value.row = -1
+  activeCell.value.column = -1
+  selection.value.clear()
+  editEnabled.value = null
+}
+
+async function onGroupRowChange({ row, level }) {
+  const parentGroupPath = row.rowMeta?.path?.slice(0, level)
+
+  const parentGroup = parentGroupPath?.length ? findGroupByPath(cachedGroups.value, parentGroupPath) : undefined
+
+  const groupMap = parentGroup?.groups ?? cachedGroups.value
+
+  // get the highest index value present in cachedGroups
+  const endIndex = Math.max(...groupMap.keys())
+
+  // reload all groups in current level since any one of them can be in updated state
+  await fetchMissingGroupChunks(0, endIndex, parentGroup ?? undefined, true)
+
+  // iterate and clear if expanded grid present
+  const clearGridCache = (groupMap: Map<number, CanvasGroup>, toalGroupCount: number, path = []) => {
+    for (let i = 0; i < toalGroupCount; i++) {
+      const group = groupMap.get(i)
+      if (group?.groupCount) {
+        // if group is not expanded, check if it has subgroups and clear their cache
+        clearGridCache(group.groups, group.groupCount, group.path ?? [...path, i])
+      } else {
+        clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, [...path, i])
+      }
+    }
+  }
+
+  clearGridCache(groupMap, parentGroup?.groupCount ?? totalGroups.value, parentGroup ? generateGroupPath(parentGroup) : [])
+
+  await syncGroupCount(parentGroup)
+
+  clearSelection()
+}
+
 function onActiveCellChanged() {
   if (isGroupBy.value) {
     function processGroups(groups: Map<number, CanvasGroup>) {
@@ -526,7 +567,9 @@ function onActiveCellChanged() {
         if (group?.isExpanded) {
           if (group?.path) {
             const { isRowSortRequiredRows } = getDataCache(group.path)
-            clearInvalidRows?.(group.path)
+            clearInvalidRows?.(group.path, {
+              onGroupRowChange,
+            })
             if (isRowSortRequiredRows.value.length) {
               applySorting?.(isRowSortRequiredRows.value, group.path)
             }
@@ -538,7 +581,7 @@ function onActiveCellChanged() {
     }
     processGroups(cachedGroups.value)
   } else {
-    clearInvalidRows?.()
+    clearInvalidRows?.(undefined)
     if (rowSortRequiredRows.value.length) {
       applySorting?.(rowSortRequiredRows.value)
     }
@@ -879,7 +922,7 @@ async function handleMouseDown(e: MouseEvent) {
 
   // If the new cell user clicked is not the active cell
   // call onActiveCellChanged to clear invalid rows and reorder records locally if required
-  if (rowIndex !== activeCell.value?.row || groupPath.map((v) => `${v}`).join('-') !== row?.rowMeta?.path?.join('-')) {
+  if (rowIndex !== activeCell.value?.row || groupPath.map((v) => `${v}`).join('-') !== activeCell.value?.path?.join('-')) {
     onActiveCellChanged()
   }
 
@@ -1829,7 +1872,9 @@ function openColumnCreate(data: any) {
 
 async function addEmptyRow(row?: number, skipUpdate = false, before?: string, overwrite = {}, path: Array<number> = []) {
   const dataCache = getDataCache(path)
-  clearInvalidRows?.(path)
+  clearInvalidRows?.(path, {
+    onGroupRowChange,
+  })
   if (dataCache?.isRowSortRequiredRows.value.length) {
     applySorting?.(dataCache?.isRowSortRequiredRows.value, path)
   }

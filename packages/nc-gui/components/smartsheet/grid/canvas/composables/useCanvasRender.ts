@@ -2398,16 +2398,16 @@ export function useCanvasRender({
           icon: group.isExpanded ? 'ncChevronDown' : 'ncChevronRight',
           size: 16,
           color: '#374150',
-          x: xOffset + 16,
+          x: xOffset + 12,
           y: groupHeaderY + (GROUP_HEADER_HEIGHT - 16) / 2,
         })
 
         // 16px is the icon size
         // 16px is the right padding
         // xOffset + 16 is the left padding
-        const availableWidth = mergedWidth - (xOffset + 16 + 16) - 16
+        const availableWidth = mergedWidth - (xOffset + 16 + 16)
 
-        const contentX = xOffset + 32 + 16
+        const contentX = xOffset + 34
 
         const contentY = groupHeaderY + (GROUP_HEADER_HEIGHT - 30) / 2
 

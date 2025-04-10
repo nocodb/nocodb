@@ -3,6 +3,7 @@ import type { ColumnType, GridType } from 'nocodb-sdk'
 import InfiniteTable from './InfiniteTable.vue'
 import Table from './Table.vue'
 import CanvasTable from './canvas/index.vue'
+import GroupBy from './GroupBy.vue'
 
 const meta = inject(MetaInj, ref())
 
@@ -203,6 +204,8 @@ const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.
 
 const isCanvasTableEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CANVAS_GRID_VIEW))
 
+const isCanvasGroupByTableEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CANVAS_GROUP_GRID_VIEW))
+
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
 onMounted(() => {
@@ -230,7 +233,17 @@ const {
   navigateToSiblingRow: pNavigateToSiblingRow,
 } = useViewData(meta, view, xWhere)
 
-const { isGroupBy } = useViewGroupByOrThrow()
+const {
+  isGroupBy,
+  rootGroup,
+  loadGroupData,
+  loadGroups,
+  loadGroupPage,
+  groupWrapperChangePage,
+  loadGroupAggregation,
+  groupBy,
+  redistributeRows,
+} = useViewGroupByOrThrow()
 
 const updateRowCommentCount = (count: number) => {
   if (!routeQuery.value.rowId) return
@@ -322,7 +335,9 @@ const bulkUpdateTrigger = (path: Array<number>) => {
     />
 
     <CanvasTable
-      v-else-if="isInfiniteScrollingEnabled && isCanvasTableEnabled"
+      v-else-if="
+        isInfiniteScrollingEnabled && ((isCanvasTableEnabled && !isGroupBy) || (isCanvasGroupByTableEnabled && isGroupBy))
+      "
       ref="tableRef"
       v-model:selected-all-records="selectedAllRecords"
       :load-data="loadData"
@@ -392,6 +407,22 @@ const bulkUpdateTrigger = (path: Array<number>) => {
       :is-bulk-operation-in-progress="isBulkOperationInProgress"
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateDlg = true"
+    />
+
+    <GroupBy
+      v-else
+      :group="rootGroup"
+      :load-groups="loadGroups"
+      :load-group-data="loadGroupData"
+      :call-add-empty-row="pAddEmptyRow"
+      :expand-form="expandForm"
+      :load-group-page="loadGroupPage"
+      :group-wrapper-change-page="groupWrapperChangePage"
+      :row-height="rowHeight"
+      :load-group-aggregation="loadGroupAggregation"
+      :max-depth="groupBy.length"
+      :redistribute-rows="redistributeRows"
+      :view-width="viewWidth"
     />
 
     <Suspense>

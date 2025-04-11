@@ -10,7 +10,7 @@ import type { ComputedRef, Ref } from 'vue'
 import type { SelectProps } from 'ant-design-vue'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 
-type ColumnFilterType = FilterType & { status?: string; id?: string; children?: ColumnFilterType[]; is_group?: boolean }
+export type ColumnFilterType = FilterType & { status?: string; id?: string; children?: ColumnFilterType[]; is_group?: boolean }
 
 export function useViewFilters(
   view: Ref<ViewType | undefined>,

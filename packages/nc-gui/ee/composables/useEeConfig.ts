@@ -489,7 +489,7 @@ export const useEeConfig = createSharedComposable(() => {
   const showAsBluredRecord = (isExternalSource: boolean = false, rowIndex?: number) => {
     if (!rowIndex) return false
 
-    return blockExternalSourceRecordVisibility(isExternalSource) && rowIndex > 100
+    return blockExternalSourceRecordVisibility(isExternalSource) && rowIndex > EXTERNAL_SOURCE_VISIBLE_ROWS
   }
 
   const showUpgradeToSeeMoreRecordsModal = ({

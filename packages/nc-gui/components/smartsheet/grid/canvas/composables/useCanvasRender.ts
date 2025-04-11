@@ -1317,7 +1317,11 @@ export function useCanvasRender({
     const dataCache = getDataCache()
 
     for (let rowIdx = startRowIndex; rowIdx < endRowIndex; rowIdx++) {
-      if (yOffset + rowHeight.value > 0 && yOffset < height.value && (!removeInlineAddRecord.value || rowIdx <= 200)) {
+      if (
+        yOffset + rowHeight.value > 0 &&
+        yOffset < height.value &&
+        (!removeInlineAddRecord.value || rowIdx <= EXTERNAL_SOURCE_TOTAL_ROWS)
+      ) {
         const row = dataCache.cachedRows.value.get(rowIdx)
 
         if (rowIdx === draggedRowIndex.value) {
@@ -1358,7 +1362,7 @@ export function useCanvasRender({
         ctx.stroke()
 
         // Since blur is not working we can use just fill rect
-        if (removeInlineAddRecord.value && rowIdx > 100) {
+        if (removeInlineAddRecord.value && rowIdx > EXTERNAL_SOURCE_VISIBLE_ROWS) {
           ctx.fillStyle = 'rgba(231, 231, 233, 0.8)'
           ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
 

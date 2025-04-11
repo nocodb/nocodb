@@ -131,7 +131,7 @@ export function useMultiSelect(
   )
 
   const removeInlineAddRecord = computed(
-    () => blockExternalSourceRecordVisibility(isExternalSource.value) && unref(_totalRows!) >= 100,
+    () => blockExternalSourceRecordVisibility(isExternalSource.value) && unref(_totalRows!) >= EXTERNAL_SOURCE_VISIBLE_ROWS,
   )
 
   function limitSelection(anchor: Cell, end: Cell): Cell {

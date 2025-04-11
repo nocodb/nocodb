@@ -45,15 +45,21 @@ export const useEeConfig = createSharedComposable(() => {
   const isPaymentEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.PAYMENT))
 
   const isWsAuditEnabled = computed(() => {
-    return activePlan.value?.title && PlanOrder[activePlanTitle.value] >= PlanOrder[PlanTitles.BUSINESS]
+    return isPaymentEnabled.value && activePlan.value?.title && PlanOrder[activePlanTitle.value] >= PlanOrder[PlanTitles.BUSINESS]
   })
 
   const isRecordLimitReached = computed(() => {
-    return getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)
+    return (
+      isPaymentEnabled.value &&
+      getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)
+    )
   })
 
   const isStorageLimitReached = computed(() => {
-    return getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE)
+    return (
+      isPaymentEnabled.value &&
+      getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE)
+    )
   })
 
   const gracePeriodDaysLeft = computed(() => {
@@ -84,20 +90,33 @@ export const useEeConfig = createSharedComposable(() => {
       (getFeature(PlanFeatureTypes.FEATURE_EXTENSIONS) || getLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE) > 0) &&
       getStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE) < getLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE),
   )
+  const blockAddNewExtension = computed(() => {
+    return (
+      isPaymentEnabled.value &&
+      (getFeature(PlanFeatureTypes.FEATURE_EXTENSIONS) || getLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE) > 0) &&
+      getStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE)
+    )
+  })
 
   const blockAddNewExternalSource = computed(() => {
     return (
+      isPaymentEnabled.value &&
       getStatLimit(PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE) >=
-      getLimit(PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE)
+        getLimit(PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE)
     )
   })
 
   const blockAddNewWebhook = computed(() => {
-    return getStatLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE)
+    return (
+      isPaymentEnabled.value &&
+      getStatLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE)
+    )
   })
 
   /** Helper functions */
   function getLimit(type: PlanLimitTypes, workspace?: NcWorkspace | null) {
+    if (!isPaymentEnabled.value) return Infinity
+
     if (!workspace) {
       workspace = activeWorkspace.value
     }
@@ -140,6 +159,8 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   function getFeature(type: PlanFeatureTypes, workspace?: NcWorkspace | null) {
+    if (!isPaymentEnabled.value) return true
+
     if (!workspace) {
       workspace = activeWorkspace.value
     }
@@ -367,7 +388,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUserPlanLimitExceededModal = ({
     details,
-    role,
+    role: _role,
     workspaceId,
     isAdminPanel,
     callback,
@@ -378,6 +399,8 @@ export const useEeConfig = createSharedComposable(() => {
     isAdminPanel?: boolean
     callback?: (type: 'ok' | 'cancel') => void
   }) => {
+    if (!isPaymentEnabled.value) return
+
     handleUpgradePlan({
       title: t('upgrade.UpgradeToInviteMore'),
       currentPlanTitle: details.plan,
@@ -473,7 +496,7 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   const showWebhookLogsFeatureAccessModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
-    if (activePlanTitle.value !== PlanTitles.FREE) return
+    if (!isPaymentEnabled.value || activePlanTitle.value !== PlanTitles.FREE) return
 
     handleUpgradePlan({
       content: t('upgrade.upgradeToAccessWebhookLogsSubtitle', {
@@ -486,7 +509,7 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   const blockExternalSourceRecordVisibility = (isExternalSource: boolean = false) => {
-    return isExternalSource && activePlanTitle.value === PlanTitles.FREE
+    return isPaymentEnabled.value && isExternalSource && activePlanTitle.value === PlanTitles.FREE
   }
 
   const showAsBluredRecord = (isExternalSource: boolean = false, rowIndex?: number) => {
@@ -535,6 +558,7 @@ export const useEeConfig = createSharedComposable(() => {
     navigateToBilling,
     isWsAuditEnabled,
     isAllowToAddExtension,
+    blockAddNewExtension,
     blockAddNewAttachment,
     showStoragePlanLimitExceededModal,
     blockAddNewExternalSource,

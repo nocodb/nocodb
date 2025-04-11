@@ -22,7 +22,7 @@ const { createProjectUser } = basesStore
 
 const { inviteCollaborator: inviteWsCollaborator } = workspaceStore
 
-const { showUserPlanLimitExceededModal } = useEeConfig()
+const { isPaymentEnabled, showUserPlanLimitExceededModal } = useEeConfig()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -285,7 +285,7 @@ const inviteCollaborator = async () => {
   } catch (e: any) {
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
-    if (errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+    if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
       let errorWsId
       if (props.type === 'workspace' && props.workspaceId) {
         errorWsId = props.workspaceId

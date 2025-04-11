@@ -2546,11 +2546,12 @@ export function useCanvasRender({
           x: contentX,
           fontFamily: '600 10px Manrope',
           y: groupHeaderY,
+          py: 6,
         })
 
         ctx.restore()
 
-        renderGroupContent(ctx, group, contentX, contentY + 26, availableWidth - contentWidth - 20 - countWidth, i)
+        renderGroupContent(ctx, group, contentX, contentY + 22, availableWidth - contentWidth - 20 - countWidth, i)
 
         currentOffset = tempCurrentOffset
       }
@@ -2617,7 +2618,7 @@ export function useCanvasRender({
 
         const { x: newX } = renderTagLabel(ctx, {
           x: xPosition,
-          y: y - 10,
+          y: y - 7,
           height: 22,
           width: remainingWidth,
           padding: 0,
@@ -2663,7 +2664,7 @@ export function useCanvasRender({
         fillStyle: '#6A7184',
         fontFamily: '700 13px Manrope',
         x,
-        y: y - GROUP_HEADER_HEIGHT / 2 + 10,
+        y: y - GROUP_HEADER_HEIGHT / 2 + 8,
         height: 20,
         maxWidth,
       })
@@ -2671,7 +2672,7 @@ export function useCanvasRender({
       renderCell(ctx, group.column, {
         value: group.value,
         x: x - 11,
-        y: y - 14,
+        y: y - 13,
         width: maxWidth,
         height: rowHeight.value,
         row: {},

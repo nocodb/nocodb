@@ -10,7 +10,7 @@ export const ROW_META_COLUMN_WIDTH = 80
 export const CHUNK_SIZE = 50
 
 export const GROUP_CHUNK_SIZE = 5
-export const GROUP_HEADER_HEIGHT = 56
+export const GROUP_HEADER_HEIGHT = 48
 export const GROUP_EXPANDED_BOTTOM_PADDING = 0
 export const GROUP_PADDING = 12
 

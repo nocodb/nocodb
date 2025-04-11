@@ -273,6 +273,8 @@ export default class Subscription {
     return {
       seatCount: seatUsersMap.size,
       nonSeatCount: nonSeatUsersMap.size,
+      seatUsersMap,
+      nonSeatUsersMap,
     };
   }
 

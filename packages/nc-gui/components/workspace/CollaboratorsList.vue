@@ -248,13 +248,22 @@ const isDeleteOrUpdateAllowed = (user) => {
           <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
             <GeneralUserIcon size="base" :user="record" class="flex-none" />
             <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
-              <div class="flex gap-3">
+              <div class="flex items-center gap-3">
                 <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
                   <template #title>
                     {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
                   </template>
                   {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
                 </NcTooltip>
+                <div v-if="parseProp(record.meta).billable" class="flex items-center">
+                  <NcBadge
+                    :border="false"
+                    color="maroon"
+                    class="text-nc-content-maroon-dark text-[10px] leading-[14px] !h-[18px] font-semibold"
+                  >
+                    Billable
+                  </NcBadge>
+                </div>
               </div>
               <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
                 <template #title>

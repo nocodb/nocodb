@@ -4,7 +4,7 @@ import { EDIT_INTERACTABLE } from '../utils/constants'
 import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData } from '../utils/groupby'
 
 // column types which support delete even when it's in edit state
-const EDIT_MODE_CLEARABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect]
+const EDIT_MODE_CLEARABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User]
 
 const MAX_SELECTION_LIMIT = 100
 const MIN_COLUMN_INDEX = 1

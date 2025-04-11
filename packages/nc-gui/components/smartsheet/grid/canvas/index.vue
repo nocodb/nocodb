@@ -625,7 +625,7 @@ const onNewRecordToGridClick = (path: Array<number> = []) => {
   isDropdownVisible.value = false
 }
 
-const onNewRecordToFormClick = (path: Array<number> = []) => {
+function onNewRecordToFormClick(path: Array<number> = []) {
   if (showRecordPlanLimitExceededModal()) return
 
   setAddNewRecordGridMode(false)
@@ -1649,6 +1649,8 @@ const handleMouseMove = (e: MouseEvent) => {
       const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
 
       if (element) {
+        if (removeInlineAddRecord.value && !element?.group && element?.rowIndex && element?.rowIndex > 100) return
+
         hoverRow.value = {
           rowIndex: element?.rowIndex,
           path: generateGroupPath(element?.group),
@@ -1910,6 +1912,11 @@ function openColumnCreate(data: any) {
 
 async function addEmptyRow(row?: number, skipUpdate = false, before?: string, overwrite = {}, path: Array<number> = []) {
   if (showRecordPlanLimitExceededModal({ focusBtn: null })) return
+
+  if (removeInlineAddRecord.value && !skipUpdate && !before && !row && !path.length) {
+    onNewRecordToFormClick()
+    return
+  }
 
   const dataCache = getDataCache(path)
 
@@ -2377,7 +2384,6 @@ defineExpose({
             :path="openAddNewRowDropdown"
             :on-new-record-to-grid-click="onNewRecordToGridClick"
             :on-new-record-to-form-click="onNewRecordToFormClick"
-            :remove-inline-add-record="removeInlineAddRecord"
           />
 
           <div v-if="isCreateOrEditColumnDropdownOpen" class="nc-edit-or-add-provider-wrapper">

@@ -2583,7 +2583,7 @@ export function useCanvasRender({
       !(group.value in GROUP_BY_VARS.VAR_TITLES)
     ) {
       // parse value if LTAR and extract values separated by ___
-      const parsedValue = parseKey(group)
+      const parsedValue = group?.column?.uidt === UITypes.LinkToAnotherRecord ? parseKey(group) : group.value
       const tags = Array.isArray(parsedValue) ? parsedValue : parsedValue.split(',')
       const colors = group.color.split(',')
       let xPosition = x

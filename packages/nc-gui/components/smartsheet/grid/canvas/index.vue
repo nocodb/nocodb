@@ -537,6 +537,11 @@ async function onGroupRowChange({ row, level }) {
   // get the highest index value present in cachedGroups
   const endIndex = Math.max(...groupMap.keys())
 
+  // clear selection to avoid rendering wrong cell content
+  setTimeout(() => {
+    clearSelection()
+  }, 150)
+
   // reload all groups in current level since any one of them can be in updated state
   await fetchMissingGroupChunks(0, endIndex, parentGroup ?? undefined, true)
 
@@ -557,10 +562,10 @@ async function onGroupRowChange({ row, level }) {
 
   await syncGroupCount(parentGroup)
 
-  // add a slight delay to allow the DOM to update before clearing the selection
   setTimeout(() => {
-    clearSelection()
-  }, 50)
+    // if scrolltop is beyond totaheight, reset it to maximum possible value
+    scroller.value?.scrollTo({ top: Math.max(0, Math.min(totalHeight.value, scrollTop.value)) })
+  }, 150)
 }
 
 function onActiveCellChanged() {
@@ -1310,6 +1315,9 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     return
   }
 
+  // last active cell state before clearing current state
+  const lastActiveCell = { ...activeCell.value }
+
   // Normal cell click operation
   // We set the activeCell to -1, -1 to clear the active cell
   if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
@@ -1331,8 +1339,15 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
-  // If the user is trying to click on a cell
-  if (!row) return
+  // If the user is not clicking on a row
+  if (!row) {
+    // if an active cell state is getting reset, trigger onActiveCellChanged
+    if (lastActiveCell.row !== -1 && lastActiveCell.column !== -1 && rowIndex === -1) {
+      onActiveCellChanged()
+    }
+
+    return
+  }
   const pk = extractPkFromRow(row?.row, meta.value?.columns as ColumnType[])
   const colIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
 
@@ -1686,7 +1701,7 @@ const reloadViewDataHookHandler = async (params) => {
     clearGroupCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
     setTimeout(() => {
       // if scrolltop is beyond totaheight, reset it to maximum possible value
-      scroller.value?.scrollTo({ top: Math.max(0, Math.min(totalHeight.value - height.value, scrollTop.value)) })
+      scroller.value?.scrollTo({ top: Math.max(0, Math.min(totalHeight.value, scrollTop.value)) })
     }, 150)
   } else {
     clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)

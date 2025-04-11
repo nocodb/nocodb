@@ -355,11 +355,11 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       stripe.value = (await loadStripe(
         'pk_test_51QhRouHU2WPCjTxw3ranXD6shPR0VbOjLflMfidsanV0m9mM0vZKQfYk3PserPAbnZAIJJhv701DV8FrwP6zJhaf00KYKhz11c',
       ))!
-
-      await loadPlans()
     } catch (e) {
       console.log(e)
     }
+
+    await loadPlans()
   })
 
   return {

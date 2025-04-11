@@ -1,9 +1,5 @@
 <script lang="ts" setup>
-const { annualDiscount, plansAvailable, activePlan, paymentMode, loadPlans, onPaymentModeChange } = usePaymentStoreOrThrow()
-
-onMounted(async () => {
-  await loadPlans()
-})
+const { annualDiscount, plansAvailable, activePlan, paymentMode, onPaymentModeChange } = usePaymentStoreOrThrow()
 </script>
 
 <template>

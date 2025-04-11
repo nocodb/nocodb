@@ -154,8 +154,18 @@ const {
 // VModels
 const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
+const { eventBus, isSqlView, isExternalSource } = useSmartsheetStoreOrThrow()
+
+const { showRecordPlanLimitExceededModal, blockExternalSourceRecordVisibility } = useEeConfig()
+
 // Props to Refs
 const totalRows = toRef(props, 'totalRows')
+// const totalRows = computed(() => {
+//   if (blockExternalSourceRecordVisibility(isExternalSource.value)) return Math.min(200, props.totalRows)
+
+//   return props.totalRows
+// })
+
 const totalGroups = toRef(props, 'totalGroups')
 const chunkStates = toRef(props, 'chunkStates')
 const cachedRows = toRef(props, 'data')
@@ -230,7 +240,6 @@ const { height: windowHeight, width: windowWidth } = useWindowSize()
 const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode, appInfo } = useGlobal()
-const { eventBus, isSqlView } = useSmartsheetStoreOrThrow()
 const route = useRoute()
 const { $e } = useNuxtApp()
 const { t } = useI18n()
@@ -321,6 +330,7 @@ const {
   isFieldEditAllowed,
   isContextMenuAllowed,
   isDataEditAllowed,
+  removeInlineAddRecord,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -356,8 +366,6 @@ const {
   fetchMissingGroupChunks,
   getDataCache,
 })
-
-const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 const activeCursor = ref<CursorType>('auto')
 
@@ -1075,9 +1083,13 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       const element = _elementMap.findElementAt(x, y, [ElementTypes.ROW, ElementTypes.GROUP, ElementTypes.ADD_NEW_ROW])
       const group = element?.group
       const row = element?.row
+      const rowIndex = row?.rowMeta?.rowIndex ?? -1
+
       if (element?.isGroup) {
         toggleExpand(group)
       } else if (element?.isRow && row) {
+        if (removeInlineAddRecord.value && rowIndex > 100) return
+
         expandForm(row, undefined, false, group?.path)
       }
       requestAnimationFrame(triggerRefreshCanvas)
@@ -1258,6 +1270,8 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
+
+  if (removeInlineAddRecord.value && rowIndex > 100) return
 
   if (isAddNewRow && clickType === MouseClickType.SINGLE_CLICK && x < totalColumnsWidth.value - scrollLeft.value) {
     if (isAddingEmptyRowAllowed.value) {
@@ -2170,6 +2184,18 @@ useActiveKeydownListener(
   },
 )
 
+watch(
+  removeInlineAddRecord,
+  (newValue) => {
+    if (isAddNewRecordGridMode.value && newValue) {
+      setAddNewRecordGridMode(!newValue)
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
 defineExpose({
   scrollToRow: scrollToCell,
   openColumnCreate,
@@ -2351,6 +2377,7 @@ defineExpose({
             :path="openAddNewRowDropdown"
             :on-new-record-to-grid-click="onNewRecordToGridClick"
             :on-new-record-to-form-click="onNewRecordToFormClick"
+            :remove-inline-add-record="removeInlineAddRecord"
           />
 
           <div v-if="isCreateOrEditColumnDropdownOpen" class="nc-edit-or-add-provider-wrapper">

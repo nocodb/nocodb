@@ -28,6 +28,7 @@ export function useKeyboardNavigation({
   handleCellKeyDown,
   isGroupBy,
   getDataCache,
+  removeInlineAddRecord,
 }: {
   isGroupBy: ComputedRef<boolean>
   activeCell: Ref<{ row: number; column: number; path?: Array<number> }>
@@ -68,6 +69,7 @@ export function useKeyboardNavigation({
     selectedRows: ComputedRef<Array<Row>>
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
+  removeInlineAddRecord: Ref<boolean>
 }) {
   const { isDataReadOnly } = useRoles()
   const { $e } = useNuxtApp()
@@ -121,6 +123,9 @@ export function useKeyboardNavigation({
         const row = cachedRows.value.get(activeCell.value.row)
 
         if (!row) return
+
+        if (removeInlineAddRecord.value && row.rowMeta.rowIndex && row.rowMeta.rowIndex > 100) return
+
         expandForm(row, undefined, false, groupPath)
         return
       }

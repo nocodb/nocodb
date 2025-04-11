@@ -149,12 +149,7 @@ const { generateRows, generatingRows, generatingColumnRows, generatingColumns, a
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const {
-  showRecordPlanLimitExceededModal,
-  blockExternalSourceRecordVisibility,
-  showAsBluredRecord,
-  showUpgradeToSeeMoreRecordsModal,
-} = useEeConfig()
+const { showRecordPlanLimitExceededModal, blockExternalSourceRecordVisibility, showAsBluredRecord } = useEeConfig()
 
 const tableBodyEl = ref<HTMLElement>()
 
@@ -242,12 +237,6 @@ const BUFFER_SIZE = 100
 const INITIAL_LOAD_SIZE = 100
 const PREFETCH_THRESHOLD = 40
 
-let upgradeModalTimer: any
-
-onBeforeUnmount(() => {
-  clearTimeout(upgradeModalTimer)
-})
-
 const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   if (chunkStates.value[chunkId]) return
 
@@ -255,23 +244,6 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   const limit = isInitialLoad ? INITIAL_LOAD_SIZE : CHUNK_SIZE
 
   if (offset >= totalRows.value) {
-    return
-  }
-
-  if (!isAlreadyShownUpgradeModal.value && offset >= 100 && blockExternalSourceRecordVisibility(isExternalSource.value)) {
-    isAlreadyShownUpgradeModal.value = true
-
-    if (upgradeModalTimer) {
-      clearTimeout(upgradeModalTimer)
-    }
-
-    upgradeModalTimer = setTimeout(() => {
-      showUpgradeToSeeMoreRecordsModal({
-        isExternalSource: isExternalSource.value,
-      })
-      clearTimeout(upgradeModalTimer)
-    }, 1000)
-
     return
   }
 

@@ -194,6 +194,8 @@ export function useCanvasTable({
     isPkAvail: isPrimaryKeyAvailable,
     view,
     isSqlView,
+    isExternalSource,
+    isAlreadyShownUpgradeModal,
   } = useSmartsheetStoreOrThrow()
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
@@ -203,6 +205,7 @@ export function useCanvasTable({
   const { isFeatureEnabled } = useBetaFeatureToggle()
   const automationStore = useAutomationStore()
   const tooltipStore = useTooltipStore()
+  const { blockExternalSourceRecordVisibility } = useEeConfig()
 
   const fields = inject(FieldsInj, ref([]))
 
@@ -250,6 +253,10 @@ export function useCanvasTable({
 
   const isAiFillMode = computed(
     () => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES),
+  )
+
+  const removeInlineAddRecord = computed(
+    () => blockExternalSourceRecordVisibility(isExternalSource.value) && totalRows.value >= 100,
   )
 
   const fetchMetaIds = ref<string[]>([])
@@ -697,6 +704,7 @@ export function useCanvasTable({
     getRows,
     draggedRowGroupPath,
     isAddingEmptyRowAllowed,
+    removeInlineAddRecord,
   })
 
   const { handleDragStart } = useRowReorder({
@@ -724,6 +732,8 @@ export function useCanvasTable({
     loadData,
     rowSlice,
     triggerRefreshCanvas,
+    isAlreadyShownUpgradeModal,
+    isExternalSource
   })
 
   const { clearCell, copyValue, isPasteable } = useCopyPaste({
@@ -938,6 +948,7 @@ export function useCanvasTable({
     onActiveCellChanged,
     addNewColumn,
     handleCellKeyDown,
+    removeInlineAddRecord
   })
 
   const {
@@ -1252,5 +1263,6 @@ export function useCanvasTable({
     isFieldEditAllowed,
     isDataEditAllowed,
     isContextMenuAllowed,
+    removeInlineAddRecord,
   }
 }

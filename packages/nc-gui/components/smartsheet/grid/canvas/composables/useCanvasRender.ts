@@ -2675,7 +2675,7 @@ export function useCanvasRender({
       })
     } else {
       renderCell(ctx, group.column, {
-        value: group.value,
+        value: group.value?.toString?.().split(','),
         x: x - 11,
         y: y - 13,
         width: maxWidth,

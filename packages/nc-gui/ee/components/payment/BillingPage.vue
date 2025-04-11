@@ -15,7 +15,9 @@ const router = useRouter()
 
 const workspaceStore = useWorkspace()
 
-const { paymentState, loadPlans, stripe, getSessionResult, isAccountPage } = useProvidePaymentStore()
+const { activeWorkspaceId } = storeToRefs(workspaceStore)
+
+const { paymentState, loadWorkspaceSeatCount, stripe, getSessionResult, isAccountPage } = useProvidePaymentStore()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
@@ -64,13 +66,12 @@ const downloadInvoice = () => {
 }
 
 onMounted(async () => {
-  if (workspaceId.value) {
-    await workspaceStore.loadWorkspace(workspaceId.value)
+  if (workspaceId.value || activeWorkspaceId.value) {
+    await workspaceStore.loadWorkspace(workspaceId.value || activeWorkspaceId.value!)
   }
 
-  await loadPlans()
-
   paymentState.value = PaymentState.SELECT_PLAN
+
   isAccountPage.value = !!workspaceId.value
 
   if (route.query.afterPayment) {
@@ -95,6 +96,17 @@ const handleScroll = (e) => {
     isScrolledToTop.value = false
   }
 }
+
+watch(
+  () => route?.query?.tab,
+  async (tab) => {
+    if (tab !== 'billing') return
+
+    await workspaceStore.loadWorkspace(workspaceId.value || activeWorkspaceId.value!)
+
+    await loadWorkspaceSeatCount()
+  },
+)
 </script>
 
 <template>

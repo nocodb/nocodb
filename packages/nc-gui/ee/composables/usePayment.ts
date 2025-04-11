@@ -62,13 +62,6 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const activeSubscription = computed(() => activeWorkspace.value?.payment?.subscription)
 
   const loadWorkspaceSeatCount = async () => {
-    if (
-      !isUIAllowed('workspaceBilling', {
-        roles: user.value?.workspace_roles,
-      })
-    )
-      return
-
     try {
       const { count } = (await $fetch(`/api/payment/${activeWorkspaceId.value}/seat-count`, {
         baseURL,

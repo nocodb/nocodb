@@ -31,10 +31,6 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspaceStore)
 
-  const { user } = useGlobal()
-
-  const { isUIAllowed } = useRoles()
-
   const baseURL = $api.instance.defaults.baseURL
 
   const paymentState = ref<PaymentState>()

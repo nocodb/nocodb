@@ -81,7 +81,7 @@ const recordInfo = computed(() => {
   return {
     value: Number(value).toLocaleString(),
     total: formatTotalLimit(total),
-    showWarningStatus: showWarningStatus,
+    showWarningStatus,
     tooltip: t('upgrade.recordLimitExceedTooltip', {
       activePlan: activePlanTitle.value,
       limit: total,
@@ -97,7 +97,7 @@ const storageInfo = computed(() => {
   return {
     value: Number(value).toFixed(1).toLocaleString(),
     total: formatTotalLimit(total),
-    showWarningStatus: showWarningStatus,
+    showWarningStatus,
     tooltip: t('upgrade.storageLimitExceedTooltip', {
       activePlan: activePlanTitle.value,
       limit: total,
@@ -113,7 +113,7 @@ const automationInfo = computed(() => {
   return {
     value: Number(value).toLocaleString(),
     total: formatTotalLimit(total),
-    showWarningStatus: showWarningStatus,
+    showWarningStatus,
     tooltip: t('upgrade.webhookLimitExceedTooltip', {
       activePlan: activePlanTitle.value,
       limit: total,
@@ -129,7 +129,7 @@ const apiCallsInfo = computed(() => {
   return {
     value: Number(value).toLocaleString(),
     total: formatTotalLimit(total),
-    showWarningStatus: showWarningStatus,
+    showWarningStatus,
     tooltip: t('upgrade.apiLimitExceedTooltip', {
       activePlan: activePlanTitle.value,
       limit: total,

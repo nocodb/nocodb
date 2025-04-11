@@ -378,13 +378,16 @@ export const useEeConfig = createSharedComposable(() => {
     isAdminPanel?: boolean
     callback?: (type: 'ok' | 'cancel') => void
   }) => {
-    const userType = NON_SEAT_ROLES.includes(role) ? 'users' : 'editors'
-
     handleUpgradePlan({
-      title: 'Invite more members',
+      title: t('upgrade.UpgradeToInviteMore'),
       currentPlanTitle: details.plan,
       newPlanTitle: details.higherPlan,
-      content: `The ${details.plan} plan allows up to ${details.limit} ${userType}. Upgrade to the ${details.higherPlan} plan for unlimited ${userType}.`,
+      content: t('upgrade.UpgradeToInviteMoreSubtitle', {
+        activePlan: details.plan,
+        editors: getLimit(PlanLimitTypes.LIMIT_EDITOR),
+        commenters: getLimit(PlanLimitTypes.LIMIT_COMMENTER),
+        plan: details.higherPlan,
+      }),
       workspaceId,
       redirectToWorkspace: !isAdminPanel,
       callback,

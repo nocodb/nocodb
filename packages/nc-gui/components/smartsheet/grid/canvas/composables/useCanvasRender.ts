@@ -2578,8 +2578,13 @@ export function useCanvasRender({
       return
     }
 
-    if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(group?.column?.uidt) && !(group.value in GROUP_BY_VARS.VAR_TITLES)) {
-      const tags = group.value.split(',')
+    if (
+      [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.LinkToAnotherRecord].includes(group?.column?.uidt) &&
+      !(group.value in GROUP_BY_VARS.VAR_TITLES)
+    ) {
+      // parse value if LTAR and extract values separated by ___
+      const parsedValue = parseKey(group)
+      const tags = Array.isArray(parsedValue) ? parsedValue : parsedValue.split(',')
       const colors = group.color.split(',')
       let xPosition = x
       let tagsRendered = 0

@@ -43,8 +43,6 @@ const router = useRouter()
 
 const route = useRoute()
 
-const { showRecordPlanLimitExceededModal } = useEeConfig()
-
 const expandedFormOnRowIdDlg = computed({
   get() {
     return !!route.query.rowId
@@ -86,7 +84,7 @@ const expandRecord = (row: RowType, state?: Record<string, any>) => {
 }
 
 const newRecord = (row: RowType) => {
-  if (isPublic.value || showRecordPlanLimitExceededModal()) return
+  if (isPublic.value) return
 
   $e('c:calendar:new-record', activeCalendarView.value)
   expandRecord({

@@ -136,10 +136,15 @@ watch(
             :description="$t('msg.success.paymentSuccessfulSubtitle')"
             @close="onClosePaymentBanner"
           >
-            <template #action>
-              <NcButton size="xsmall" type="secondary" class="!px-2" inner-class="!gap-2" @click="downloadInvoice">
+            <template v-if="checkoutSession?.invoice?.invoice_pdf" #action>
+              <a
+                href="checkoutSession?.invoice?.invoice_pdf"
+                target="_blank"
+                rel="noopener noreferer"
+                class="!no-underline !hover:underline text-sm"
+              >
                 {{ $t('labels.downloadInvoice') }}
-              </NcButton>
+              </a>
             </template>
           </NcAlert>
           <NcAlert

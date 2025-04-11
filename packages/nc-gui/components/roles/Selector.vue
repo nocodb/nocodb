@@ -50,7 +50,7 @@ onClickOutside(dropdownRef, (e) => {
   isDropdownOpen.value = false
 })
 
-/** Select input will not trigger onChange event if old value is same as new value so manually we have to handle close dropdown*/
+/** Select input will not trigger onChange event if old value is same as new value so manually we have to handle close dropdown */
 const closeOnClickOption = (optionValue: keyof typeof RoleLabels) => {
   if (!!newRole.value || optionValue !== roleRef.value) return
 

@@ -913,7 +913,8 @@ const {
 
         if (!row) return
 
-        if (removeInlineAddRecord.value && row.rowMeta.rowIndex && row.rowMeta.rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return true
+        if (removeInlineAddRecord.value && row.rowMeta.rowIndex && row.rowMeta.rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS)
+          return true
 
         expandForm?.(row)
         return true

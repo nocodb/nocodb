@@ -1,4 +1,4 @@
-import { GRACE_PERIOD_DURATION, HigherPlan, NON_SEAT_ROLES, PlanOrder, PlanTitles } from 'nocodb-sdk'
+import { GRACE_PERIOD_DURATION, HigherPlan, PlanOrder, PlanTitles } from 'nocodb-sdk'
 import {
   PlanFeatureTypes,
   type PlanLimitExceededDetailsType,

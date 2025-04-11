@@ -2673,6 +2673,27 @@ export function useCanvasRender({
         height: 20,
         maxWidth,
       })
+    } else if (isUser(group.column)) {
+      renderCell(ctx, group.column, {
+        value: group.value,
+        x: x - 11,
+        y: y - 16,
+        width: maxWidth,
+        height: rowHeight.value,
+        row: {},
+        selected: false,
+        pv: false,
+        spriteLoader,
+        readonly: true,
+        textColor: '#1f293a', // gray-800
+        imageLoader,
+        tableMetaLoader,
+        relatedColObj: group.relatedColumn,
+        relatedTableMeta: group.relatedTableMeta,
+        mousePosition,
+        skipRender: false,
+        fontFamily: '700 13px Manrope',
+      })
     } else {
       renderCell(ctx, group.column, {
         value: group.value?.toString?.().split(','),

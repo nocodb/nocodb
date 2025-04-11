@@ -198,6 +198,8 @@ export function useKeyboardNavigation({
         ) {
           e.preventDefault()
           if (selection.value.isSingleCell()) {
+            if (removeInlineAddRecord.value && activeCell.value.row  > EXTERNAL_SOURCE_VISIBLE_ROWS) return
+
             await clearCell?.({
               row: activeCell.value.row,
               col: activeCell.value.column,

@@ -913,6 +913,8 @@ const {
 
         if (!row) return
 
+        if (removeInlineAddRecord.value && row.rowMeta.rowIndex && row.rowMeta.rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return true
+
         expandForm?.(row)
         return true
       }
@@ -968,9 +970,7 @@ const {
         case 'ArrowDown':
           e.preventDefault()
           clearSelectedRange()
-          activeCell.row = blockExternalSourceRecordVisibility(isExternalSource.value)
-            ? Math.min(100, totalRows.value) - 1
-            : totalRows.value - 1
+          activeCell.row = totalRows.value - 1
           activeCell.col = activeCell.col ?? 0
 
           selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
@@ -1710,7 +1710,8 @@ const showFillHandle = computed(
     fields.value[activeCell.col] &&
     totalRows.value &&
     !selectedReadonly.value &&
-    !isSqlView.value,
+    !isSqlView.value &&
+    (!removeInlineAddRecord.value || selectedRange.end.row < EXTERNAL_SOURCE_VISIBLE_ROWS),
 )
 
 watch(

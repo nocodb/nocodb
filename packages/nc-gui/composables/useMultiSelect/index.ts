@@ -100,7 +100,9 @@ export function useMultiSelect(
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const { isSqlView } = useSmartsheetStoreOrThrow()
+  const { isSqlView, isExternalSource } = useSmartsheetStoreOrThrow()
+
+  const { blockExternalSourceRecordVisibility } = useEeConfig()
 
   const aiMode = ref(false)
 
@@ -126,6 +128,10 @@ export function useMultiSelect(
 
   const isCellActive = computed(
     () => !(activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)),
+  )
+
+  const removeInlineAddRecord = computed(
+    () => blockExternalSourceRecordVisibility(isExternalSource.value) && unref(_totalRows!) >= 100,
   )
 
   function limitSelection(anchor: Cell, end: Cell): Cell {
@@ -758,7 +764,15 @@ export function useMultiSelect(
           scrollToCell?.(limitedEnd.row, limitedEnd.col, 'instant')
         } else {
           selectedRange.clear()
-          if (activeCell.row < (isArrayStructure ? (unref(data) as Row[]).length : unref(_totalRows!))) {
+
+          if (
+            activeCell.row <
+            (isArrayStructure
+              ? (unref(data) as Row[]).length
+              : removeInlineAddRecord.value
+              ? Math.min(100, unref(_totalRows!)) - 1
+              : unref(_totalRows!))
+          ) {
             activeCell.row++
             selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
             scrollToCell?.()

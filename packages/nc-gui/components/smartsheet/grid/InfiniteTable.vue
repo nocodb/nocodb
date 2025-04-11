@@ -118,7 +118,8 @@ const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
 
-const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource, isAlreadyShownUpgradeModal } = useSmartsheetStoreOrThrow()
+const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource, isAlreadyShownUpgradeModal } =
+  useSmartsheetStoreOrThrow()
 
 const { $e, $api } = useNuxtApp()
 
@@ -221,6 +222,10 @@ const totalRows = computed(() => {
   return props.totalRows
 })
 
+const removeInlineAddRecord = computed(
+  () => blockExternalSourceRecordVisibility(isExternalSource.value) && totalRows.value >= 100,
+)
+
 const chunkStates = toRef(props, 'chunkStates')
 
 const isBulkOperationInProgress = toRef(props, 'isBulkOperationInProgress')
@@ -238,6 +243,10 @@ const INITIAL_LOAD_SIZE = 100
 const PREFETCH_THRESHOLD = 40
 
 let upgradeModalTimer: any
+
+onBeforeUnmount(() => {
+  clearTimeout(upgradeModalTimer)
+})
 
 const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   if (chunkStates.value[chunkId]) return
@@ -1123,6 +1132,12 @@ async function saveEmptyRow(rowObj: Row, before?: string) {
 
 async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
   if (showRecordPlanLimitExceededModal({ focusBtn: null })) return
+
+  if (removeInlineAddRecord.value && !before && !row) {
+    setAddNewRecordGridMode(false)
+    onDraftRecordClick()
+    return
+  }
 
   clearInvalidRows?.()
   if (rowSortRequiredRows.value.length) {
@@ -2174,6 +2189,18 @@ watch(vSelectedAllRecords, (selectedAll) => {
   }
 })
 
+watch(
+  removeInlineAddRecord,
+  (newValue) => {
+    if (isAddNewRecordGridMode.value && newValue) {
+      setAddNewRecordGridMode(!newValue)
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
 const cellAlignClass = computed(() => {
   if (!props.rowHeightEnum || props.rowHeightEnum === 1) {
     return 'align-middle'
@@ -2815,7 +2842,7 @@ const cellAlignClass = computed(() => {
                   :col-count="totalRenderedColLength"
                 />
                 <tr
-                  v-if="isAddingEmptyRowAllowed"
+                  v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord"
                   v-e="['c:row:add:grid-bottom']"
                   class="text-left nc-grid-add-new-cell mb-[80px] transition-all cursor-pointer group relative z-3 xs:hidden"
                   :class="{
@@ -3110,7 +3137,12 @@ const cellAlignClass = computed(() => {
 
         <template #overlay>
           <NcMenu variant="small">
-            <NcMenuItem v-e="['c:row:add:grid']" class="nc-new-record-with-grid group" @click="onNewRecordToGridClick">
+            <NcMenuItem
+              v-e="['c:row:add:grid']"
+              class="nc-new-record-with-grid group"
+              :disabled="removeInlineAddRecord"
+              @click="onNewRecordToGridClick"
+            >
               <div class="flex flex-row items-center justify-start gap-x-3">
                 <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
                 {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}

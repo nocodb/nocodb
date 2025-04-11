@@ -11,7 +11,6 @@ const options1 = ref({
   webHook: false,
   isLockedView: false,
   isReadOnly: false,
-  isLogicalOpChangeAllowed: false,
 })
 </script>
 
@@ -28,7 +27,6 @@ const options1 = ref({
           <NcSwitch v-model:checked="options1.webHook">webHook</NcSwitch><br />
           <NcSwitch v-model:checked="options1.isLockedView">isLockedView</NcSwitch><br />
           <NcSwitch v-model:checked="options1.isReadOnly">isReadOnly</NcSwitch><br />
-          <NcSwitch v-model:checked="options1.isLogicalOpChangeAllowed">isLogicalOpChangeAllowed</NcSwitch>
         </div>
         <div class="flex"></div>
       </div>
@@ -41,7 +39,6 @@ const options1 = ref({
         :web-hook="options1.webHook"
         :is-locked-view="options1.isLockedView"
         :read-only="options1.isReadOnly"
-        :is-logical-op-change-allowed="options1.isLogicalOpChangeAllowed"
         @change="() => changeTimes1++"
       />
     </div>

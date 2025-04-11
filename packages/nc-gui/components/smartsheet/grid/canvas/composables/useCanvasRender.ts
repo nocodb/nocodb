@@ -2082,7 +2082,7 @@ export function useCanvasRender({
       ctx.strokeStyle = 'orange'
       ctx.beginPath()
       ctx.moveTo(gXOffset, warningRow.yOffset - 2)
-      ctx.lineTo(adjustedWidth - gXOffset, warningRow.yOffset)
+      ctx.lineTo(adjustedWidth + gXOffset + 2, warningRow.yOffset)
       ctx.lineWidth = 2
       ctx.stroke()
 
@@ -2090,7 +2090,7 @@ export function useCanvasRender({
       ctx.strokeStyle = 'orange'
       ctx.beginPath()
       ctx.moveTo(gXOffset, warningRow.yOffset + rowHeight.value)
-      ctx.lineTo(adjustedWidth - gXOffset, warningRow.yOffset + rowHeight.value)
+      ctx.lineTo(adjustedWidth + gXOffset + 2, warningRow.yOffset + rowHeight.value)
       ctx.lineWidth = 2
       ctx.stroke()
 

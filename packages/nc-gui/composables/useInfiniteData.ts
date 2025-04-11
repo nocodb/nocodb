@@ -1577,7 +1577,11 @@ export function useInfiniteData(args: {
             where: whereFilter,
           })
 
-      dataCache.totalRows.value = count as number
+      if (path.length) {
+        dataCache.totalRows.value = count as number
+      } else {
+        dataCache.totalRows.value = Math.min(200, count as number)
+      }
       dataCache.actualTotalRows.value = count as number
       callbacks?.syncVisibleData?.()
     } catch (error: any) {

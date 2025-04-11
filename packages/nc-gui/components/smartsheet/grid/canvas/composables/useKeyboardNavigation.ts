@@ -219,6 +219,9 @@ export function useKeyboardNavigation({
           if (column?.columnObj?.uidt) {
             if (!NO_EDITABLE_CELL.includes(column.columnObj.uidt as UITypes) && !column.columnObj.readonly) {
               const row = cachedRows.value.get(activeCell.value.row)
+
+              if (removeInlineAddRecord.value && row?.rowMeta?.rowIndex > 100) return
+
               makeCellEditable(row, columns.value[activeCell.value.column]!)
               selection.value.clear()
             }

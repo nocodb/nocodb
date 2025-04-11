@@ -23,6 +23,7 @@ import { type CellRange, NavigateDir, type Row, type ViewActionState } from '#im
 
 const props = defineProps<{
   totalRows: number
+  actualTotalRows: number
   data: Map<number, Row>
   rowHeightEnum?: number
   loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
@@ -211,13 +212,7 @@ const cachedRows = toRef(props, 'data')
 
 const rowSortRequiredRows = toRef(props, 'rowSortRequiredRows')
 
-// const totalRows = toRef(props, 'totalRows')
-
-const totalRows = computed(() => {
-  if (blockExternalSourceRecordVisibility(isExternalSource.value)) return Math.min(200, props.totalRows)
-
-  return props.totalRows
-})
+const totalRows = toRef(props, 'totalRows')
 
 const removeInlineAddRecord = computed(
   () => blockExternalSourceRecordVisibility(isExternalSource.value) && totalRows.value >= 100,
@@ -656,7 +651,7 @@ function makeEditable(row: Row, col: ColumnType) {
 }
 
 const isAddingEmptyRowAllowed = computed(
-  () => hasEditPermission.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced,
+  () => hasEditPermission.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced && !removeInlineAddRecord.value,
 )
 
 const visibleColLength = computed(() => fields.value?.length)
@@ -3136,7 +3131,11 @@ const cellAlignClass = computed(() => {
       </NcDropdown>
     </div>
 
-    <LazySmartsheetGridPaginationV2 :total-rows="props.totalRows" :scroll-left="scrollLeft" :disable-pagination="true" />
+    <LazySmartsheetGridPaginationV2
+      :total-rows="Math.max(props.totalRows, props.actualTotalRows)"
+      :scroll-left="scrollLeft"
+      :disable-pagination="true"
+    />
   </div>
 </template>
 

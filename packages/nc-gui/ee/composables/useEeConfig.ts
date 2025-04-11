@@ -350,7 +350,7 @@ export const useEeConfig = createSharedComposable(() => {
               modalContent.value = isSharedFormView
                 ? t('upgrade.formOwnerNotifiedSubtitle')
                 : t('upgrade.WorkspaceOwnerNotifiedSubtitle')
-              okBtnText.value = isSharedFormView ? t('general.close') : t('general.cancel')
+              okBtnText.value = t('general.close')
               cancelProps.value.class = '!hidden'
               slots.value = {}
             }

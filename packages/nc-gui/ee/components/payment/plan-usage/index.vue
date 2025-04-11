@@ -23,7 +23,7 @@ const {
   onManageSubscription: _onManageSubscription,
   plansAvailable,
   updateSubscription,
-} = useProvidePaymentStore()
+} = usePaymentStoreOrThrow()
 
 const { getLimit, getStatLimit, activePlanTitle } = useEeConfig()
 

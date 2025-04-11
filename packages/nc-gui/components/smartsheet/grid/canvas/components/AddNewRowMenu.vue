@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ViewTypes } from 'nocodb-sdk'
 
-const props = defineProps<{
+defineProps<{
   path: Array<number>
   onNewRecordToGridClick: () => void
   onNewRecordToFormClick: () => void

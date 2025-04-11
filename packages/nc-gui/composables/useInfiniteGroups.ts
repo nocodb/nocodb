@@ -382,13 +382,28 @@ export const useInfiniteGroups = (
       totalGroups.value = isPublic.value
         ? await $api.public.dataGroupByCount(sharedView.value!.uuid!, {
             where: where?.value,
-            sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any[],
             column_name: groupCol.column.title,
             filterArrJson: JSON.stringify(nestedFilters.value),
           })
         : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
             where: where?.value,
-            sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any[],
+            column_name: groupCol.column.title,
+          })
+    } else {
+      const groupCol = groupByColumns.value?.[group.nestedIn.length]
+
+      if (!groupCol) return
+
+      const groupWhere = buildNestedWhere(group, where?.value)
+
+      group.groupCount = isPublic.value
+        ? await $api.public.dataGroupByCount(sharedView.value!.uuid!, {
+            where: groupWhere,
+            column_name: groupCol.column.title,
+            filterArrJson: JSON.stringify(nestedFilters.value),
+          })
+        : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
+            where: groupWhere,
             column_name: groupCol.column.title,
           })
     }

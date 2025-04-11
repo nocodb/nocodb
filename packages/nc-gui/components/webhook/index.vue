@@ -249,7 +249,7 @@ const getChannelsArray = (val: unknown) => {
   if (val) {
     if (Array.isArray(val)) {
       return val
-    } else if (typeof val === 'object' && Object.keys(val)) {
+    } else if (typeof val === 'object' && Object.keys(val).length > 0) {
       return [val]
     }
   }

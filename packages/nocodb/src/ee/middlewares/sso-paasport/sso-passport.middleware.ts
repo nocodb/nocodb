@@ -53,6 +53,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
 
     const client = await SSOClient.get(req.params.clientId);
     req['ncOrgId'] = client.fk_org_id;
+    req['ncWorkspaceId'] = client.fk_workspace_id ?? req['ncWorkspaceId'];
 
     if (!client || !client.enabled || client.deleted) {
       this.debugger.error(
@@ -212,6 +213,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
         sso_client_type: client.type,
         sso_client_id: client.id,
         org_id: client.fk_org_id ?? undefined,
+        workspace_id: client.fk_workspace_id ?? undefined,
       },
       options.secretOrKey,
       {
@@ -421,7 +423,8 @@ export class SSOPassportMiddleware implements NestMiddleware {
     client: SSOClient;
   }) {
     const orgId = client.fk_org_id;
-    if (!orgId) {
+    const workspaceId = client.fk_workspace_id;
+    if (!orgId && !workspaceId) {
       return;
     }
 
@@ -429,13 +432,13 @@ export class SSOPassportMiddleware implements NestMiddleware {
 
     const domain = email.split('@')[1];
 
-    const orgDomains = await Domain.list({ orgId });
+    const orgOrWorkspaceDomains = await Domain.list({ orgId, workspaceId });
 
     let domainExists = false;
 
     // iterate over org domains and check if domain matches and verified
     // if last verified is more than 7 days then re-verify
-    for (const d of orgDomains) {
+    for (const d of orgOrWorkspaceDomains) {
       if (d.domain === domain) {
         if (!d.verified) {
           continue;

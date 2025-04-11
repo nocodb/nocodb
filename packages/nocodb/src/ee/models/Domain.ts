@@ -117,13 +117,20 @@ export default class Domain {
     return true;
   }
 
-  static async list(param: { orgId: string }) {
-    const domains = await Noco.ncMeta.metaList2(
+  static async list(
+    param: { orgId: string; workspaceId?: string },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const domains = await ncMeta.metaList2(
       RootScopes.ORG,
       RootScopes.ORG,
       MetaTable.ORG_DOMAIN,
       {
-        condition: { fk_org_id: param.orgId },
+        condition: param.orgId
+          ? { fk_org_id: param.orgId }
+          : {
+              fk_workspace_id: param.workspaceId,
+            },
       },
     );
 

@@ -34,6 +34,8 @@ export default class SSOClient implements SSOClientType {
   deleted?: boolean;
   fk_user_id: string;
   fk_org_id?: string;
+  fk_workspace_id?: string;
+
   constructor(client: Partial<SSOClientType>) {
     Object.assign(this, client);
   }

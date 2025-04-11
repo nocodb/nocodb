@@ -19,7 +19,7 @@ withDefaults(
     <div class="nc-current-plan-table-cell nc-cell-label">
       <slot name="label"> </slot>
 
-      <NcTooltip v-if="showWarningStatus" :disabled="!tooltip" :title="tooltip">
+      <NcTooltip v-if="showWarningStatus" :disabled="!tooltip" :title="tooltip" class="flex">
         <GeneralIcon icon="ncAlertTriangle" class="text-nc-content-red-dark cursor-pointer" />
       </NcTooltip>
     </div>

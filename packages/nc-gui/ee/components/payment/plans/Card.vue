@@ -59,7 +59,7 @@ const price = computed(() => getPlanPrice(props.plan))
         <span class="text-[40px] leading-[62px] font-weight-700 mr-2">
           {{ price }}
         </span>
-        {{ $t('title.editorMonth') }}
+        {{ $t('title.seatMonth') }}
       </div>
     </div>
 

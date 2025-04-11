@@ -542,11 +542,10 @@
       "Enterprise": "Enterprise"
     },
     "currentPlan": {
-      "nextInvoice": "Next Invoice",
-      "nextInvoiceAmount": "Next Invoice Amount",
-      "numberOfBilledUsers": "Number of Billed Users",
-      "numberOfBillableUsers": "Number of Billable Users",
-      "storageUsedGB": "Storage Used (GB)",
+      "nextInvoice": "Next invoice",
+      "numberOfBilledUsers": "Number of billed users",
+      "numberOfBillableUsers": "Number of billable users",
+      "storageUsedGB": "Storage used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
       "apiCallsMonthly": "API calls (monthly)"
     }
@@ -778,7 +777,7 @@
     "getMoreFromNocodb": "Get more from NocoDB",
     "getMoreFromNocodbSubtitle": "Unlock extra records, more storage, SSO, integrations, Audit logs, and more!",
     "currentPlan": "Current Plan",
-    "editorMonth": "/editor/month",
+    "seatMonth": "/seat/month",
     "mostPopular": "Most Popular",
     "helpAndSupport": "Help & Support",
     "helpAndSupportSubtitle": "Visit our Support Center for detailed guides, customer service contact options, and a community forum for additional help.",

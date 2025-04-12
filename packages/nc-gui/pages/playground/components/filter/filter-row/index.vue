@@ -63,17 +63,25 @@ const column1 = computed(() => {
   return columns.find((col) => col.id === column1Id.value)
 })
 
-const lastChangeEvent = ref({})
+const lastChangeEvent1 = ref({})
 const options1 = ref({
   disabled: false,
   index: 0,
+  isLockedView: false,
   isLogicalOpChangeAllowed: false,
 })
+const deleted1Times = ref(0)
+const deleted1LastEvent = ref({})
+
 const onFilter1Change = (event) => {
-  lastChangeEvent.value = event
+  lastChangeEvent1.value = event
   if (event.type === 'fk_column_id') {
     column1Id.value = event.value
   }
+}
+const onFilter1Delete = (event) => {
+  deleted1LastEvent.value = event
+  deleted1Times.value++
 }
 </script>
 
@@ -92,13 +100,21 @@ const onFilter1Change = (event) => {
 
           <span>Last change event:</span>
           <div class="w-[300px] max-h-[100px] overflow-wrap bg-gray-300 overflow-y-scroll">
-            {{ lastChangeEvent }}
+            {{ lastChangeEvent1 }}
+          </div>
+        </div>
+        <div class="flex">
+          <span>Delete: {{ deleted1Times }}</span>
+
+          <div class="w-[300px] max-h-[100px] overflow-wrap bg-gray-300 overflow-y-scroll">
+            {{ deleted1LastEvent }}
           </div>
         </div>
         <div class="flex gap-2">
           <div class="flex flex-col gap-2">
             <div><NcSwitch v-model:checked="options1.disabled">disabled</NcSwitch><br /></div>
             <div><NcSwitch v-model:checked="options1.isLogicalOpChangeAllowed">isLogicalOpChangeAllowed</NcSwitch><br /></div>
+            <div><NcSwitch v-model:checked="options1.isLockedView">isLockedView</NcSwitch><br /></div>
             <div>Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-gray-200" /><br /></div>
           </div>
           <div class="flex">
@@ -123,7 +139,9 @@ const onFilter1Change = (event) => {
         :comparison-sub-ops="[]"
         :disabled="options1.disabled"
         :is-logical-op-change-allowed="options1.isLogicalOpChangeAllowed"
+        :is-locked-view="options1.isLockedView"
         @change="onFilter1Change($event)"
+        @delete="onFilter1Delete($event)"
       />
     </div>
   </div>

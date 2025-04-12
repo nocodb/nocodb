@@ -108,6 +108,7 @@ const props = defineProps<{
     chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
     selectedRows: ComputedRef<Array<Row>>
     isRowSortRequiredRows: ComputedRef<Array<Row>>
+    isGroupChanged?: ComputedRef<Array<Row>>
   }
   cachedGroups: Map<number, CanvasGroup>
   totalGroups: number
@@ -519,6 +520,54 @@ const calculateSlices = () => {
   }
 }
 
+function clearSelection() {
+  activeCell.value.row = -1
+  activeCell.value.column = -1
+  selection.value.clear()
+  editEnabled.value = null
+}
+
+async function onGroupRowChange({ row, level }) {
+  const parentGroupPath = row.rowMeta?.path?.slice(0, level)
+
+  const parentGroup = parentGroupPath?.length ? findGroupByPath(cachedGroups.value, parentGroupPath) : undefined
+
+  const groupMap = parentGroup?.groups ?? cachedGroups.value
+
+  // get the highest index value present in cachedGroups
+  const endIndex = Math.max(...groupMap.keys())
+
+  // clear selection to avoid rendering wrong cell content
+  setTimeout(() => {
+    clearSelection()
+  }, 150)
+
+  // reload all groups in current level since any one of them can be in updated state
+  await fetchMissingGroupChunks(0, endIndex, parentGroup ?? undefined, true)
+
+  // iterate and clear if expanded grid present
+  const clearGridCache = (groupMap: Map<number, CanvasGroup>, toalGroupCount: number, path = []) => {
+    for (let i = 0; i < toalGroupCount; i++) {
+      const group = groupMap.get(i)
+      if (group?.groupCount) {
+        // if group is not expanded, check if it has subgroups and clear their cache
+        clearGridCache(group.groups, group.groupCount, group.path ?? [...path, i])
+      } else {
+        clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, [...path, i])
+      }
+    }
+  }
+
+  clearGridCache(groupMap, parentGroup?.groupCount ?? totalGroups.value, parentGroup ? generateGroupPath(parentGroup) : [])
+
+  await syncGroupCount(parentGroup)
+
+  setTimeout(() => {
+    // if scrolltop is beyond totaheight, reset it to maximum possible value
+    scroller.value?.scrollTo({ top: Math.max(0, Math.min(totalHeight.value, scrollTop.value)) })
+  }, 150)
+}
+
 function onActiveCellChanged() {
   if (isGroupBy.value) {
     function processGroups(groups: Map<number, CanvasGroup>) {
@@ -526,7 +575,9 @@ function onActiveCellChanged() {
         if (group?.isExpanded) {
           if (group?.path) {
             const { isRowSortRequiredRows } = getDataCache(group.path)
-            clearInvalidRows?.(group.path)
+            clearInvalidRows?.(group.path, {
+              onGroupRowChange,
+            })
             if (isRowSortRequiredRows.value.length) {
               applySorting?.(isRowSortRequiredRows.value, group.path)
             }
@@ -538,7 +589,7 @@ function onActiveCellChanged() {
     }
     processGroups(cachedGroups.value)
   } else {
-    clearInvalidRows?.()
+    clearInvalidRows?.(undefined)
     if (rowSortRequiredRows.value.length) {
       applySorting?.(rowSortRequiredRows.value)
     }
@@ -879,7 +930,7 @@ async function handleMouseDown(e: MouseEvent) {
 
   // If the new cell user clicked is not the active cell
   // call onActiveCellChanged to clear invalid rows and reorder records locally if required
-  if (rowIndex !== activeCell.value?.row || groupPath.map((v) => `${v}`).join('-') !== row?.rowMeta?.path?.join('-')) {
+  if (rowIndex !== activeCell.value?.row || groupPath.map((v) => `${v}`).join('-') !== activeCell.value?.path?.join('-')) {
     onActiveCellChanged()
   }
 
@@ -1264,6 +1315,9 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     return
   }
 
+  // last active cell state before clearing current state
+  const lastActiveCell = { ...activeCell.value }
+
   // Normal cell click operation
   // We set the activeCell to -1, -1 to clear the active cell
   if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
@@ -1285,8 +1339,15 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
-  // If the user is trying to click on a cell
-  if (!row) return
+  // If the user is not clicking on a row
+  if (!row) {
+    // if an active cell state is getting reset, trigger onActiveCellChanged
+    if (lastActiveCell.row !== -1 && lastActiveCell.column !== -1 && rowIndex === -1) {
+      onActiveCellChanged()
+    }
+
+    return
+  }
   const pk = extractPkFromRow(row?.row, meta.value?.columns as ColumnType[])
   const colIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
 
@@ -1638,8 +1699,10 @@ const reloadViewDataHookHandler = async (params) => {
     await syncGroupCount()
     groupDataCache.value.clear()
     clearGroupCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
-    // if scrolltop is beyond totaheight, reset it to maximum possible value
-    scroller.value?.scrollTo({ top: Math.max(0, Math.min(totalHeight.value - height.value, scrollTop.value)) })
+    setTimeout(() => {
+      // if scrolltop is beyond totaheight, reset it to maximum possible value
+      scroller.value?.scrollTo({ top: Math.max(0, Math.min(totalHeight.value, scrollTop.value)) })
+    }, 150)
   } else {
     clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
     await syncCount()
@@ -1827,7 +1890,9 @@ function openColumnCreate(data: any) {
 
 async function addEmptyRow(row?: number, skipUpdate = false, before?: string, overwrite = {}, path: Array<number> = []) {
   const dataCache = getDataCache(path)
-  clearInvalidRows?.(path)
+  clearInvalidRows?.(path, {
+    onGroupRowChange,
+  })
   if (dataCache?.isRowSortRequiredRows.value.length) {
     applySorting?.(dataCache?.isRowSortRequiredRows.value, path)
   }

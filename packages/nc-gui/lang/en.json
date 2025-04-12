@@ -1618,7 +1618,8 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "Expand 'Shift + Space'",
     "selectAllMappedFields": "Select all mapped fields",
-    "copyErrorCode": "Copy error code"
+    "copyErrorCode": "Copy error code",
+    "paidUserBadgeTooltip": "User has an editor or higher role in at least one base."
   },
   "placeholder": {
     "searchIcons": "Search icons",

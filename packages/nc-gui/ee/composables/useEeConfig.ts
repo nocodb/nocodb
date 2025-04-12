@@ -1,4 +1,4 @@
-import { GRACE_PERIOD_DURATION, HigherPlan, PlanOrder, PlanTitles } from 'nocodb-sdk'
+import { GRACE_PERIOD_DURATION, HigherPlan, NON_SEAT_ROLES, PlanOrder, PlanTitles } from 'nocodb-sdk'
 import {
   PlanFeatureTypes,
   type PlanLimitExceededDetailsType,
@@ -392,7 +392,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUserPlanLimitExceededModal = ({
     details,
-    role: _role,
+    role,
     workspaceId,
     isAdminPanel,
     callback,
@@ -404,6 +404,8 @@ export const useEeConfig = createSharedComposable(() => {
     callback?: (type: 'ok' | 'cancel') => void
   }) => {
     if (!isPaymentEnabled.value) return
+
+    const limitOrFeature = NON_SEAT_ROLES.includes(role) ? PlanLimitTypes.LIMIT_COMMENTER : PlanLimitTypes.LIMIT_EDITOR
 
     handleUpgradePlan({
       title: t('upgrade.UpgradeToInviteMore'),
@@ -417,6 +419,7 @@ export const useEeConfig = createSharedComposable(() => {
       }),
       workspaceId,
       redirectToWorkspace: !isAdminPanel,
+      limitOrFeature,
       callback,
     })
   }

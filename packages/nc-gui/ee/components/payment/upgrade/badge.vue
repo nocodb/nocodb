@@ -2,13 +2,14 @@
 /**
  * PaymentUpgradeBadge component - will only visible if feature is not available in current plan
  */
-import type { PlanFeatureTypes } from 'nocodb-sdk'
+import type { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk'
 import { PlanMeta, PlanTitles } from 'nocodb-sdk'
 interface Props {
   /** Required plan to access new feature */
   planTitle?: PlanTitles
   /** Feature to check */
   feature?: PlanFeatureTypes
+  limitOrFeature?: PlanFeatureTypes | PlanLimitTypes
   /** Title to show in upgrade modal */
   title?: string
   /** Content to show in upgrade modal */
@@ -55,7 +56,7 @@ const showUpgradeModal = (e?: MouseEvent) => {
     content: props.content,
     newPlanTitle: props.planTitle,
     callback: props.callback,
-    limitOrFeature: props.feature,
+    limitOrFeature: props.limitOrFeature || props.feature,
   })
 }
 

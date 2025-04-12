@@ -8,7 +8,7 @@ const { type, hideTick } = defineProps<{
   disabled?: boolean
 }>()
 
-const emit = defineEmits(['select'])
+const emit = defineEmits(['select', 'cancel'])
 
 const types = viewLockIcons
 
@@ -61,6 +61,12 @@ const { getPlanTitle } = useEeConfig()
                 $t('upgrade.upgradeToAccessPersonalViewSubtitle', {
                   plan: getPlanTitle(PlanTitles.TEAM),
                 })
+              "
+              :callback="
+                (type) => {
+                  if (type !== 'ok') return
+                  emit('cancel')
+                }
               "
             />
             <span v-else />

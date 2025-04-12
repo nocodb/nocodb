@@ -107,6 +107,7 @@
     "upgradeToAddCustomValidationSubtitle": "Add custom validations by upgrading your workspace to the {plan} plan.",
     "upgradeToAddCustomUrlSubtitle": "Create custom URL by upgrading your workspace to the {plan} plan.",
     "upgradeToAccessPersonalViewSubtitle": "Access Personal view by upgrading your workspace to the {plan} plan.",
+    "upgradeToAccessReassignViewSubtitle": "Access Re-assign view feature by upgrading your workspace to the {plan} plan.",
     "updateToAddRecordFormView": "This Form is no longer accepting submissions",
     "updateToAddRecordFormViewSubtitle": "You’ve reached the limit for number of records on your {activePlan} plan. Upgrade to increase your record limit.",
     "updateToExtendRecordHistory": "Upgrade to extend your history",

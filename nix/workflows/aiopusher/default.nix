@@ -41,6 +41,19 @@ writeShellApplication {
       docker push "$image:$2"
     }
 
+    multiarch_image_push() {
+      # $1: multiarch tag
+      # $2: arch tag 1
+      # $3: arch tag 1
+
+      docker manifest \
+        create "$image:$1" \
+        --amend "$image:$2" \
+        --amend "$image:$3"
+
+      docker manifest push "$image:$1"
+    }
+
     ########
     # MAIN #
     ########
@@ -51,5 +64,6 @@ writeShellApplication {
 
     image_push x86_64-linux amd64_latest
     image_push aarch64-linux arm64_latest
+    multiarch_image_push latest amd64_latest arm64_latest
   '';
 }

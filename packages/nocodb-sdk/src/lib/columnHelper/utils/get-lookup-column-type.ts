@@ -1,5 +1,5 @@
-import { ColumnType, LookupType } from '../../Api';
-import UITypes from '../../UITypes';
+import { ColumnType, LookupType } from '~/lib/Api';
+import UITypes from '~/lib/UITypes';
 
 export function getLookupColumnType({
   col,

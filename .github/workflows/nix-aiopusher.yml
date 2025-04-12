@@ -2,9 +2,7 @@ name: aiopusher
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
+  workflow_call:
 
 jobs:
   aiopusher:

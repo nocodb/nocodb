@@ -121,3 +121,6 @@ jobs:
     uses: ./.github/workflows/publish-docs.yml
     secrets:
       GH_TOKEN: "${{ secrets.GH_TOKEN }}"
+
+  aiopusher:
+    uses: ./.github/workflows/nix-aiopusher.yml

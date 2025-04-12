@@ -69,6 +69,7 @@ const options1 = ref({
   index: 0,
   isLockedView: false,
   isLogicalOpChangeAllowed: false,
+  showNullAndEmptyInFilter: false,
   dbClientType: ClientType.PG,
 })
 const deleted1Times = ref(0)
@@ -84,13 +85,6 @@ const onFilter1Delete = (event) => {
   deleted1LastEvent.value = event
   deleted1Times.value++
 }
-
-const comparisonOps1 = computed(() => {
-  const list = comparisonOpList(column1.value?.uidt).filter((compOp) =>
-    isComparisonOpAllowed(filter1.value, compOp, column1.value?.uidt, true),
-  )
-  return list
-})
 </script>
 
 <template>
@@ -123,6 +117,7 @@ const comparisonOps1 = computed(() => {
             <div><NcSwitch v-model:checked="options1.disabled">disabled</NcSwitch></div>
             <div><NcSwitch v-model:checked="options1.isLogicalOpChangeAllowed">isLogicalOpChangeAllowed</NcSwitch><br /></div>
             <div><NcSwitch v-model:checked="options1.isLockedView">isLockedView</NcSwitch></div>
+            <div><NcSwitch v-model:checked="options1.showNullAndEmptyInFilter">showNullAndEmptyInFilter</NcSwitch></div>
             <div>dbClientType: <NcSelect v-model:value="options1.dbClientType"></NcSelect></div>
             <div>Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-gray-200" /><br /></div>
           </div>
@@ -144,7 +139,7 @@ const comparisonOps1 = computed(() => {
         :model-value="filter1"
         :index="options1.index"
         :columns="columns"
-        :comparison-ops="comparisonOps1"
+        :show-null-and-empty-in-filter="options1.showNullAndEmptyInFilter"
         :comparison-sub-ops="[]"
         :disabled="options1.disabled"
         :is-logical-op-change-allowed="options1.isLogicalOpChangeAllowed"

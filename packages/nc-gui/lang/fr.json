@@ -93,8 +93,8 @@
     "none": "Aucun"
   },
   "upgrade": {
-    "UpgradeToCreateAdditionalSnapshots": "Upgrade to create additional snapshots",
-    "UpgradeToCreateAdditionalSnapshotsSubtitle": "The {activePlan} plan allows up to {n} snapshots. Upgrade to the {plan} plan and get access to additional snapshots."
+    "UpgradeToCreateAdditionalSnapshots": "Passez à une version supérieure pour créer des instantanés supplémentaires",
+    "UpgradeToCreateAdditionalSnapshotsSubtitle": "Le plan {activePlan} permet jusqu'à {n} instantanés. Passez au plan {plan} pour obtenir un accès à des instantanés supplémentaires."
   },
   "general": {
     "supported": "Pris en charge",
@@ -316,18 +316,18 @@
     "shared": "Partagé",
     "organization": "Organisation",
     "all": "Tout",
-    "billing": "Billing",
-    "choose": "Choose",
+    "billing": "Facturation",
+    "choose": "Choisir",
     "plan": "Plan",
     "plans": "Plans",
-    "monthly": "Monthly",
-    "annually": "Annually",
-    "yearly": "Yearly",
-    "paid": "Paid",
+    "monthly": "Tous les mois",
+    "annually": "Annuellement",
+    "yearly": "Tous les ans",
+    "paid": "Payé",
     "total": "Total",
-    "downgrade": "Downgrade",
-    "upgrade": "Upgrade",
-    "reactivate": "Reactivate"
+    "downgrade": "Retourner à une version inférieure",
+    "upgrade": "Passer à une version supérieure",
+    "reactivate": "Réactiver"
   },
   "objects": {
     "script": "Script",
@@ -356,7 +356,9 @@
     "page": "Page",
     "pages": "Pages",
     "record": "Ligne",
+    "group": "groupe",
     "records": "Lignes",
+    "groups": "groupes",
     "webhook": "Webhook",
     "webhooks": "Webhooks",
     "view": "Vue",
@@ -476,26 +478,26 @@
       "spreadSheetSubtitle": "Connectez et gérez vos feuilles de calcul avec NocoDB."
     },
     "ncMessage": {
-      "success": "Success",
-      "error": "Error",
+      "success": "Succès",
+      "error": "Erreur",
       "info": "Information",
-      "warning": "Alert"
+      "warning": "Alerte"
     },
     "paymentPlan": {
-      "Free": "Free",
-      "Team": "Team",
+      "Free": "Gratuit",
+      "Team": "Équipe",
       "Plus": "Plus",
-      "Business": "Business",
-      "Enterprise": "Enterprise"
+      "Business": "Professionnel",
+      "Enterprise": "Entreprise"
     },
     "currentPlan": {
-      "nextInvoice": "Next Invoice",
-      "nextInvoiceAmount": "Next Invoice Amount",
-      "numberOfBilledUsers": "Number of Billed Users",
-      "numberOfBillableUsers": "Number of Billable Users",
-      "storageUsedGB": "Storage Used (GB)",
-      "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "nextInvoice": "Prochaine facture",
+      "nextInvoiceAmount": "Montant de la prochaine facture",
+      "numberOfBilledUsers": "Nombre d'utilisateurs facturés",
+      "numberOfBillableUsers": "Nombre d'utilisateurs facturables",
+      "storageUsedGB": "Stockage utilisé (Go)",
+      "webhookCallsMonthly": "Appels Webhook (mensuel)",
+      "apiCallsMonthly": "Appels d'API (par mois)"
     }
   },
   "datatype": {
@@ -722,20 +724,20 @@
     "youAreLeavingNocoDB": "Vous quittez NocoDB",
     "onlyProceedIfYouTrustThisLink": "Continuez seulement si vous faites confiance à ce lien.",
     "reAssignViewModalSubtitle": "Une fois réaffecté, le propriétaire actuel ne pourra plus modifier la configuration de la vue.",
-    "getMoreFromNocodb": "Get more from NocoDB",
-    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
-    "currentPlan": "Current Plan",
-    "editorMonth": "/editor/month",
-    "mostPopular": "Most Popular",
-    "helpAndSupport": "Help & Support",
-    "helpAndSupportSubtitle": "Visit our Support Center for detailed guides, customer service contact options, and a community forum for additional help.",
+    "getMoreFromNocodb": "Profitez davantage de NocoDB",
+    "getMoreFromNocodbSubtitle": "Débloquez plus d'utilisateurs, des enregistrements supplémentaires, plus de stockage, des webhooks conditionnels, des intégrations, NocoAI, et plus encore !",
+    "currentPlan": "Plan actuel",
+    "editorMonth": "/éditeur/mois",
+    "mostPopular": "Les plus populaires",
+    "helpAndSupport": "Aide & Support",
+    "helpAndSupportSubtitle": "Visitez notre centre d'assistance pour des guides détaillés, des options de contact pour le service client et un forum communautaire pour une aide supplémentaire.",
     "faq": "FAQ",
-    "faqSubtitle": "Explore the FAQ section and get quick answers to common questions about our services, features, and troubleshooting. ",
-    "downgradeToPlan": "Downgrade to {plan} plan?",
-    "downgradeToPlanSubtitle": "You'll lose access to {activePlan} plan features that aren't available in the {plan} plan.",
-    "upgradeToPlan": "Upgrade to {plan} plan?",
-    "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
-    "reactivateToPlan": "Reactivate {plan} plan?"
+    "faqSubtitle": "Explorez la section FAQ et obtenez des réponses rapides aux questions courantes sur nos services, fonctionnalités et dépannage.",
+    "downgradeToPlan": "Retrograder au plan {plan} ?",
+    "downgradeToPlanSubtitle": "Vous allez perdre l'accès aux fonctionnalités du plan {activePlan} qui ne sont pas disponibles dans le plan {plan}.",
+    "upgradeToPlan": "Passer au plan {plan} ?",
+    "upgradeToPlanSubtitle": "Vous serez facturé immédiatement pour ce plan.",
+    "reactivateToPlan": "Réactiver le plan {plan}?"
   },
   "labels": {
     "restoringSnapshot": "Restauration de l'instantané",
@@ -1211,19 +1213,19 @@
     "newOwner": "Nouveau propriétaire",
     "addFromUrl": "Ajouter depuis l'URL",
     "enterJson": "Entrer le JSON",
-    "airtableBase": "Airtable base",
-    "upgradePlan": "Upgrade Plan",
-    "viewAllPlanDetails": "View all plan details",
-    "contactSales": "Contact Sales",
-    "manageSubscription": "Manage Subscription",
-    "upgradeToPlan": "Upgrade To {plan}",
-    "applicableTax": "Applicable tax",
-    "annualSavings": "Annual Savings",
-    "compareAllFeatures": "Compare all features",
-    "planIncludes": "{plan} Includes:",
-    "everythingInPlanPlus": "Everything in {plan}, Plus:",
-    "downloadInvoice": "Download Invoice",
-    "proceed": "Proceed"
+    "airtableBase": "Base Airtable",
+    "upgradePlan": "Mettre à niveau",
+    "viewAllPlanDetails": "Afficher tous les détails du plan",
+    "contactSales": "Contactez les ventes",
+    "manageSubscription": "Gérer l'abonnement",
+    "upgradeToPlan": "Passer au plan {plan}",
+    "applicableTax": "Taxe applicable",
+    "annualSavings": "Économies annuelles",
+    "compareAllFeatures": "Comparer toutes les fonctionnalités",
+    "planIncludes": "{plan} Inclue :",
+    "everythingInPlanPlus": "Tout dans {plan}, plus :",
+    "downloadInvoice": "Télécharger la facture",
+    "proceed": "Continuer"
   },
   "activity": {
     "clickToResolve": "Cliquer pour résoudre",
@@ -1507,8 +1509,8 @@
     "addCondition": "Ajouter une condition",
     "addConditionGroup": "Ajouter un groupe de conditions",
     "pending": "En cours",
-    "goToPage": "Go to Page",
-    "changePlan": "ChangePlan"
+    "goToPage": "Aller à la page",
+    "changePlan": "Changer le plan"
   },
   "tooltip": {
     "leaveWorkspace": "Chaque espace de travail doit avoir au moins un propriétaire. Veuillez attribuer un autre utilisateur en tant que Propriétaire avant de quitter l'espace de travail. Si vous êtes le dernier membre, envisagez de supprimer l'espace de travail à la place.",
@@ -1565,7 +1567,7 @@
     "shiftSpace": "Maj + Espace",
     "expandShiftSpace": "\"Maj + Espace\" pour développer",
     "selectAllMappedFields": "Sélectionner tous les champs mappés",
-    "copyErrorCode": "Copy error code"
+    "copyErrorCode": "Copier le code d'erreur"
   },
   "placeholder": {
     "searchIcons": "Rechercher des icônes",
@@ -2084,10 +2086,10 @@
       "notSupported": "Non pris en charge",
       "duplicateTableName": "Nom de table en double",
       "importError": "Erreur d'import",
-      "anErrorOccuredWhileImporting": "An error occurred while {type}",
-      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable",
-      "paymentFailed": "Payment Failed",
-      "paymentFailedSubtitle": "Something went wrong while processing your payment. Please try again or contact support."
+      "anErrorOccuredWhileImporting": "Une erreur s'est produite lors de {type}",
+      "anErrorOccuredWhileAirtableBaseImport": "Une erreur est survenue lors de l'import de la base depuis Airtable",
+      "paymentFailed": "Echec du paiement",
+      "paymentFailedSubtitle": "Quelque chose s'est mal passé lors du traitement de votre paiement. Veuillez réessayer ou contacter le support."
     },
     "toast": {
       "exportMetadata": "Les métadonnées de projet sont exportées avec succès",
@@ -2149,8 +2151,8 @@
       "roleUpdated": "Rôle mis à jour avec succès",
       "connectionAdded": "Intégration connectée avec succès",
       "connectionAddedDesc": "Les propriétaires et créateurs de base peuvent désormais ajouter une source de données sans ressaisir les identifiants.",
-      "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessful": "Paiement réussi",
+      "paymentSuccessfulSubtitle": "Votre paiement a été traité. Vous pouvez maintenant utiliser votre nouveau plan."
     },
     "subText": {
       "createNewTable": "Commencer à partir de zéro.",

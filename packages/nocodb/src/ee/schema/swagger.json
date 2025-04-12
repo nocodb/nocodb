@@ -2509,6 +2509,131 @@
         }
       }
     },
+
+    "/api/v2/workspaces/{workspaceId}/sso-clients": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Workspace ID"
+          }
+        ],
+        "summary": "Get SSO Client",
+        "tags": [
+          "Workspace SSO Client"
+        ],
+        "operationId": "workspace-sso-client-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SSOClientList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create SSO Client",
+        "operationId": "workspace-sso-client-create",
+        "tags": [
+          "Workspace SSO Client"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SSOClient"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SSOClient"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/workspaces/{workspaceId}/sso-clients/{clientId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Workspace ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "clientId",
+          "in": "path",
+          "required": true,
+          "description": "Unique SSO Client ID"
+        }
+      ],
+      "patch": {
+        "summary": "Update SSO Client",
+        "tags": [
+          "Workspace SSO Client"
+        ],
+        "operationId": "workspace-sso-client-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SSOClient"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete SSO Client",
+        "operationId": "workspace-sso-client-delete",
+        "tags": [
+          "Workspace SSO Client"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          }
+        }
+      }
+    },
+
     "/api/v2/orgs/workspaces/{workspaceId}/upgrade": {
       "parameters": [
         {

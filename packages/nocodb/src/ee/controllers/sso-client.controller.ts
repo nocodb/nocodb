@@ -9,7 +9,12 @@ import {
   Post,
   Req,
 } from '@nestjs/common';
-import { CloudOrgUserRoles, OrgUserRoles, SSOClientType } from 'nocodb-sdk';
+import {
+  CloudOrgUserRoles,
+  OrgUserRoles,
+  SSOClientType,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import { SSOClientService } from '~/services/sso-client.service';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -22,6 +27,9 @@ export class SsoClientController {
     private readonly orgSsoClientService: OrgSSOClientService,
   ) {}
 
+  /**
+   * Enterprise(self-hosted) SSO Clients related APIs
+   ***/
   @Get('/api/v2/sso-clients')
   @Acl('ssoClientList', {
     scope: 'org',
@@ -68,6 +76,9 @@ export class SsoClientController {
     return this.ssoClientService.clientDelete({ clientId, req });
   }
 
+  /**
+   * Organization(cloud) SSO Clients related APIs
+   ***/
   @Get('/api/v2/orgs/:orgId/sso-clients')
   @Acl('orgSsoClientList', {
     scope: 'cloud-org',
@@ -121,6 +132,72 @@ export class SsoClientController {
     @Param('orgId') orgId: string,
   ) {
     return this.ssoClientService.clientDelete({ clientId, req, orgId });
+  }
+
+  /**
+   * Workspace(cloud) SSO Clients related APIs
+   ***/
+  @Get('/api/v2/workspaces/:workspaceId/sso-clients')
+  @Acl('orgSsoClientList', {
+    scope: 'workspace',
+    allowedRoles: [WorkspaceUserRoles.OWNER],
+    blockApiTokenAccess: true,
+  })
+  async workspaceClientList(@Req() req, @Param('orgId') orgId: string) {
+    const clients = await this.ssoClientService.clientList({
+      req,
+      workspaceId,
+    });
+    return new PagedResponseImpl(clients);
+  }
+
+  @Post('/api/v2/workspaces/:workspaceId/sso-clients')
+  @Acl('orgSsoClientCreate', {
+    scope: 'workspace',
+    allowedRoles: [WorkspaceUserRoles.OWNER],
+    blockApiTokenAccess: true,
+  })
+  @HttpCode(200)
+  async WORKSPACEClientAdd(
+    @Body() client: SSOClientType,
+    @Req() req,
+    @Param('workspaceId') workspaceId: string,
+  ) {
+    return this.ssoClientService.clientAdd({ client, req, workspaceId });
+  }
+
+  @Patch('/api/v2/workspaces/:workspaceId/sso-clients/:clientId')
+  @Acl('orgSsoClientUpdate', {
+    scope: 'workspace',
+    allowedRoles: [WorkspaceUserRoles.OWNER],
+    blockApiTokenAccess: true,
+  })
+  async WORKSPACEClientUpdate(
+    @Param('clientId') clientId: string,
+    @Body() client: SSOClientType,
+    @Req() req,
+    @Param('workspaceId') workspaceId: string,
+  ) {
+    return this.ssoClientService.clientUpdate({
+      clientId,
+      client,
+      req,
+      workspaceId,
+    });
+  }
+
+  @Delete('/api/v2/workspaces/:workspaceId/sso-clients/:clientId')
+  @Acl('orgSsoClientDelete', {
+    scope: 'workspace',
+    allowedRoles: [WorkspaceUserRoles.OWNER],
+    blockApiTokenAccess: true,
+  })
+  async WORKSPACEClientDelete(
+    @Param('clientId') clientId: string,
+    @Req() req,
+    @Param('workspaceId') workspaceId: string,
+  ) {
+    return this.ssoClientService.clientDelete({ clientId, req, workspaceId });
   }
 
   @Post('/api/v2/sso')

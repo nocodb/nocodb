@@ -20,7 +20,12 @@ export class SSOClientService {
   protected logger = new Logger(SSOClientService.name);
   constructor() {}
 
-  async clientAdd(param: { client: SSOClientType; req: any; orgId?: string }) {
+  async clientAdd(param: {
+    client: SSOClientType;
+    req: any;
+    orgId?: string;
+    workspaceId?: string;
+  }) {
     // limit to 1 client for now
     if (
       (
@@ -55,6 +60,7 @@ export class SSOClientService {
       ...param.client,
       fk_user_id: param.req.user.id,
       fk_org_id: param.orgId,
+      fk_workspace_id: param.workspaceId,
     });
 
     return client;
@@ -65,9 +71,12 @@ export class SSOClientService {
     client: SSOClientType;
     req: any;
     orgId?: string;
+    workspaceId?: string;
   }) {
     // get existing client
     const oldClient = await SSOClient.get(param.clientId);
+
+    this.validateClient(param, client);
 
     param.client.config = await this.validateAndExtractConfig({
       oldClient,
@@ -88,16 +97,39 @@ export class SSOClientService {
     return client;
   }
 
-  async clientDelete(param: { clientId: string; req: any; orgId?: string }) {
+  async clientDelete(param: {
+    clientId: string;
+    req: any;
+    orgId?: string;
+    workspaceId?: string;
+  }) {
     // delete client
     const client = await SSOClient.delete(param.clientId);
+    this.validateClient(param, client);
 
     return client;
   }
 
-  async clientList(param: { req: any; orgId?: string }) {
+  private validateClient(
+    param: { orgId?: string; workspaceId?: string },
+    client: boolean,
+  ) {
+    if (param.orgId && param.orgId !== client.fk_org_id) {
+      NcError.notAllowed('Client does not belong to this org');
+    } else if (
+      param.workspaceId &&
+      param.workspaceId !== client.fk_workspace_id
+    ) {
+      NcError.notAllowed('Client does not belong to this workspace');
+    }
+  }
+
+  async clientList(param: { req: any; orgId?: string; workspaceId?: string }) {
     // list clients
-    const clients = await SSOClient.list({ orgId: param.orgId });
+    const clients = await SSOClient.list({
+      orgId: param.orgId,
+      workspaceId: param.workspaceId,
+    });
 
     return clients;
   }

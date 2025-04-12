@@ -135,6 +135,7 @@ export default class SSOClient implements SSOClientType {
   static async list(param: {
     type?: 'saml' | 'oidc' | 'google';
     orgId?: string;
+    workspaceId?: string;
   }) {
     const condition = {};
 
@@ -144,6 +145,10 @@ export default class SSOClient implements SSOClientType {
 
     if (param.orgId) {
       condition['fk_org_id'] = param.orgId;
+    }
+
+    if (param.workspaceId) {
+      condition['fk_workspace_id'] = param.workspaceId;
     }
 
     const clients = await Noco.ncMeta.metaList2(

@@ -235,14 +235,12 @@ export const useEeConfig = createSharedComposable(() => {
   } = {}) => {
     if (!isWsOwner.value) return handleRequestUpgrade({ workspaceId, limitOrFeature })
 
-    const planCtaBtnQuery = limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? `activeBtn=${PlanTitles.BUSINESS}` : ''
+    const planCtaBtnQuery = limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? `&activeBtn=${PlanTitles.BUSINESS}` : ''
 
     if (redirectToWorkspace) {
-      navigateTo(`/${workspaceId ?? activeWorkspaceId.value}/settings?tab=billing${planCtaBtnQuery ? `&${planCtaBtnQuery}` : ''}`)
+      navigateTo(`/${workspaceId ?? activeWorkspaceId.value}/settings?tab=billing&autoScroll=plan${planCtaBtnQuery}`)
     } else {
-      navigateTo(
-        `/account/workspace/${workspaceId ?? activeWorkspaceId.value}/settings${planCtaBtnQuery ? `?${planCtaBtnQuery}` : ''}`,
-      )
+      navigateTo(`/account/workspace/${workspaceId ?? activeWorkspaceId.value}/settings?autoScroll=plan${planCtaBtnQuery}`)
     }
   }
 

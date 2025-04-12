@@ -7,16 +7,34 @@ const router = useRouter()
 
 const { annualDiscount, plansAvailable, activePlan, paymentMode, onPaymentModeChange } = usePaymentStoreOrThrow()
 
+const allPlanRef = ref<HTMLDivElement>()
+
 const activeBtnPlanTitle = ref('')
 
 watch(
-  [() => route?.query?.tab, () => route?.query?.activeBtn],
-  async ([tab, activeBtn]) => {
-    if (tab !== 'billing' || !activeBtn || !Object.values(PlanTitles).includes(activeBtn as PlanTitles)) return
+  [() => route?.query?.tab, () => route?.query?.activeBtn, () => route?.query?.autoScroll],
+  async ([tab, activeBtn, autoScroll]) => {
+    if (tab !== 'billing') return
+
+    const { activeBtn: _activeBtn, autoScroll: _autoScroll, ...restQuery } = route.query as Record<string, string>
+
+    if (autoScroll === 'plan') {
+      await until(() => !!allPlanRef.value).toBeTruthy()
+
+      await ncDelay(300)
+
+      allPlanRef.value?.scrollIntoView({ behavior: 'smooth' })
+    }
+
+    if (!activeBtn || !Object.values(PlanTitles).includes(activeBtn as PlanTitles)) {
+      if (autoScroll) {
+        router.push({ query: { ...restQuery } })
+      }
+
+      return
+    }
 
     activeBtnPlanTitle.value = activeBtn as string
-
-    const { activeBtn: _activeBtn, ...restQuery } = route.query as Record<string, string>
 
     router.push({ query: { ...restQuery } })
   },
@@ -28,7 +46,9 @@ watch(
 
 <template>
   <div class="flex flex-col gap-3">
-    <div class="text-base font-bold text-nc-content-gray">{{ $t('general.all') }} {{ $t('general.plans') }}</div>
+    <div ref="allPlanRef" id="nc-payment-all-plans" class="text-base font-bold text-nc-content-gray">
+      {{ $t('general.all') }} {{ $t('general.plans') }}
+    </div>
     <PaymentPlansSelectMode :value="paymentMode" :discount="annualDiscount" @change="onPaymentModeChange" />
     <div class="w-full grid gap-4 grid-cols-[repeat(auto-fill,minmax(288px,1fr))]">
       <PaymentPlansCard

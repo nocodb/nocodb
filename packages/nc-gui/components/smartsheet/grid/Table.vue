@@ -3208,6 +3208,7 @@ onKeyStroke('ArrowDown', onDown)
       }
       td.nc-grid-cell.column-sorted:not(.active) {
         @apply !bg-maroon-100;
+        @apply !border-gray-300;
       }
     }
   }
@@ -3222,6 +3223,7 @@ onKeyStroke('ArrowDown', onDown)
     }
     td.nc-grid-cell.column-sorted:not(.active) {
       @apply !bg-maroon-100;
+      @apply !border-gray-300;
     }
   }
 

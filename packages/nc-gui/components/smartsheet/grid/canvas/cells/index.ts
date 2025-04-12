@@ -196,10 +196,6 @@ export function useGridCellHandler(params: {
         bgColorProps = 'cellBgColor.hovered'
         borderColorProps = 'cellBorderColor.hovered'
       }
-      console.log({
-        backgroundColor: filteredOrSortedAppearanceConfig[columnState][bgColorProps],
-        borderColor: filteredOrSortedAppearanceConfig[columnState][borderColorProps],
-      })
       roundedRect(ctx, x, y, width, height, 0, {
         backgroundColor: filteredOrSortedAppearanceConfig[columnState][bgColorProps],
         borderColor: filteredOrSortedAppearanceConfig[columnState][borderColorProps],

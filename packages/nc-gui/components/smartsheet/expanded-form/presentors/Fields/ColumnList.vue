@@ -44,7 +44,6 @@ const showCol = (col: ColumnType) => {
         'flex-col w-full': props.forceVerticalMode,
       }"
     >
-
       <div
         class="flex-none flex items-center rounded-lg overflow-hidden"
         :class="{

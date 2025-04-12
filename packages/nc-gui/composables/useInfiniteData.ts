@@ -352,7 +352,7 @@ export function useInfiniteData(args: {
 
     const whereFilter = callbacks?.getWhereFilter?.(path)
 
-    if (params.offset && blockExternalSourceRecordVisibility(isExternalSource.value)) {
+    if (!path.length && params.offset && blockExternalSourceRecordVisibility(isExternalSource.value)) {
       if (!isAlreadyShownUpgradeModal.value && params.offset >= EXTERNAL_SOURCE_VISIBLE_ROWS) {
         isAlreadyShownUpgradeModal.value = true
 
@@ -1577,7 +1577,7 @@ export function useInfiniteData(args: {
             where: whereFilter,
           })
 
-      if (blockExternalSourceRecordVisibility(isExternalSource.value) && !path.length) {
+      if (!path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
         dataCache.totalRows.value = Math.min(200, count as number)
       } else {
         dataCache.totalRows.value = count as number

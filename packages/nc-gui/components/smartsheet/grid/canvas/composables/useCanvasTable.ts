@@ -227,11 +227,15 @@ export function useCanvasTable({
   const { loadAutomation } = automationStore
   const actionManager = new ActionManager($api, loadAutomation, generateRows, meta, triggerRefreshCanvas, getDataCache)
 
-  const removeInlineAddRecord = computed(
-    () => blockExternalSourceRecordVisibility(isExternalSource.value) && totalRows.value >= EXTERNAL_SOURCE_VISIBLE_ROWS,
-  )
-
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
+
+  const removeInlineAddRecord = computed(() => {
+    return (
+      !isGroupBy.value &&
+      blockExternalSourceRecordVisibility(isExternalSource.value) &&
+      totalRows.value >= EXTERNAL_SOURCE_VISIBLE_ROWS
+    )
+  })
 
   const isOrderColumnExists = computed(() => (meta.value?.columns ?? []).some((col) => isOrderCol(col)))
 

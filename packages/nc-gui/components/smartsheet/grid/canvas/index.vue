@@ -1085,7 +1085,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       if (element?.isGroup) {
         toggleExpand(group)
       } else if (element?.isRow && row) {
-        if (removeInlineAddRecord.value && rowIndex > EXTERNAL_SOURCE_VISIBLE_ROWS) return
+        if (removeInlineAddRecord.value && rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
 
         expandForm(row, undefined, false, group?.path)
       }
@@ -1268,7 +1268,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     return
   }
 
-  if (removeInlineAddRecord.value && rowIndex > EXTERNAL_SOURCE_VISIBLE_ROWS) return
+  if (removeInlineAddRecord.value && rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
 
   if (isAddNewRow && clickType === MouseClickType.SINGLE_CLICK && x < totalColumnsWidth.value - scrollLeft.value) {
     if (isAddingEmptyRowAllowed.value) {
@@ -1650,7 +1650,7 @@ const handleMouseMove = (e: MouseEvent) => {
           removeInlineAddRecord.value &&
           !element?.group &&
           element?.rowIndex &&
-          element?.rowIndex > EXTERNAL_SOURCE_VISIBLE_ROWS
+          element?.rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS
         )
           return
 

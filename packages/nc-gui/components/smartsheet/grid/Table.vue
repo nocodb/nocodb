@@ -3205,6 +3205,7 @@ onKeyStroke('ArrowDown', onDown)
       }
       td.nc-grid-cell.column-filtered:not(.active) {
         @apply !bg-green-100;
+        @apply !border-gray-300;
       }
       td.nc-grid-cell.column-sorted:not(.active) {
         @apply !bg-maroon-100;
@@ -3220,6 +3221,7 @@ onKeyStroke('ArrowDown', onDown)
     }
     td.nc-grid-cell.column-filtered:not(.active) {
       @apply !bg-green-100;
+      @apply !border-gray-300;
     }
     td.nc-grid-cell.column-sorted:not(.active) {
       @apply !bg-maroon-100;

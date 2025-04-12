@@ -3603,6 +3603,7 @@ const cellFilteredOrSortedClass = (colId: string) => {
       }
       td.nc-grid-cell.column-filtered:not(.active) {
         @apply !bg-green-100;
+        @apply !border-gray-300;
       }
       td.nc-grid-cell.column-sorted:not(.active) {
         @apply !bg-maroon-100;
@@ -3618,6 +3619,7 @@ const cellFilteredOrSortedClass = (colId: string) => {
     }
     td.nc-grid-cell.column-filtered:not(.active) {
       @apply !bg-green-100;
+      @apply !border-gray-300;
     }
     td.nc-grid-cell.column-sorted:not(.active) {
       @apply !bg-maroon-100;

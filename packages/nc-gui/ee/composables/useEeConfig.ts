@@ -290,7 +290,11 @@ export const useEeConfig = createSharedComposable(() => {
     }
 
     if (!okText) {
-      okText = isWsOwner.value ? t('general.upgrade') : t('general.requestUpgrade')
+      okText = isWsOwner.value && !requestUpgrade ? t('general.upgrade') : t('general.requestUpgrade')
+    }
+
+    if (isSharedFormView) {
+      limitOrFeature = 'as form submissions are currently blocked due to exceeding the record limit.' as PlanLimitTypes
     }
 
     const okBtnText = ref(okText)

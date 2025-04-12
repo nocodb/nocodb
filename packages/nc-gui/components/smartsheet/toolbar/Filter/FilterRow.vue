@@ -1,23 +1,17 @@
 <script lang="ts" setup>
-import type { ColumnType, UITypes } from 'nocodb-sdk'
+import type { ClientType, UITypes } from 'nocodb-sdk'
 
 interface Props {
   modelValue: ColumnFilterType
   index: number
-  columns: {
-    id?: string
-    title?: string
-    uidt?: UITypes
-    filterUidt?: UITypes
-    meta?: any
-  }[]
+  columns: ColumnFilterType[]
+  dbClientType?: ClientType
   comparisonOps?: ComparisonOpUiType[]
   comparisonSubOps?: ComparisonOpUiType[]
 
   renderMode?: null | string
   disabled?: boolean
   isLogicalOpChangeAllowed?: boolean
-  showNullAndEmptyInFilter?: boolean
 }
 interface Emits {
   (event: 'update:modelValue', model: string): void
@@ -161,7 +155,16 @@ const onValueChange = (value: string) => {
         </NcSelect>
       </tempalte>
       <!-- #endregion logical op -->
-      <div>column</div>
+      <div>
+        <SmartsheetToolbarFilterFieldListDropdownLite
+          v-model="vModel.fk_column_id"
+          class="nc-filter-field-select min-w-32 max-h-8"
+          :columns="columns"
+          :disabled="vModel.readOnly || disabled"
+          @click.stop
+          @change="onColumnChange($event)"
+        />
+      </div>
       <div>
         <NcSelect
           v-if="comparisonOps && comparisonOps.length > 0"
@@ -228,7 +231,17 @@ const onValueChange = (value: string) => {
           </template>
         </NcSelect>
       </div>
-      <div>value</div>
+      <div>
+        <SmartsheetToolbarFilterInputLite
+          v-if="showFilterInput"
+          class="nc-filter-value-select rounded-md min-w-34"
+          :column="column"
+          :filter="vModel"
+          :disabled="vModel.readOnly || disabled"
+          @update-filter-value="(value) => onValueChange(value)"
+          @click.stop
+        />
+      </div>
       <div>delete</div>
     </div>
   </div>
@@ -237,5 +250,138 @@ const onValueChange = (value: string) => {
 <style lang="scss" scoped>
 .nc-filter-where-label {
   @apply text-gray-400;
+}
+
+.nc-filter-item-remove-btn {
+  @apply text-gray-600 hover:text-gray-800;
+}
+
+.nc-filter-grid {
+  @apply items-center w-full;
+}
+
+:deep(.ant-select-item-option) {
+  @apply "!min-w-full";
+}
+
+:deep(.ant-select-selector) {
+  @apply !min-h-8;
+}
+
+.nc-disabled-logical-op :deep(.ant-select-arrow) {
+  @apply hidden;
+}
+
+.nc-filter-wrapper {
+  @apply bg-white !rounded-lg border-1px border-[#E7E7E9];
+
+  & > *,
+  .nc-filter-value-select {
+    @apply !border-none;
+  }
+
+  & > div > :deep(.ant-select-selector),
+  :deep(.nc-filter-field-select) > div {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  & > :not(:last-child):not(:empty) {
+    border-right: 1px solid #eee !important;
+    border-bottom-right-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+  }
+
+  .nc-settings-dropdown {
+    border-left: 1px solid #eee !important;
+    border-radius: 0 !important;
+  }
+
+  & > :not(:first-child) {
+    border-bottom-left-radius: 0 !important;
+    border-top-left-radius: 0 !important;
+  }
+
+  & > :last-child {
+    @apply relative;
+    &::after {
+      content: '';
+      @apply absolute h-full w-1px bg-[#eee] -left-1px top-0;
+    }
+  }
+
+  :deep(::placeholder) {
+    @apply text-sm tracking-normal;
+  }
+
+  :deep(::-ms-input-placeholder) {
+    @apply text-sm tracking-normal;
+  }
+
+  :deep(input) {
+    @apply text-sm;
+  }
+
+  :deep(.nc-select:not(.nc-disabled-logical-op):not(.ant-select-disabled):hover) {
+    &,
+    .ant-select-selector {
+      @apply bg-gray-50;
+    }
+  }
+}
+
+.nc-filter-nested-level-0 {
+  @apply bg-[#f9f9fa];
+}
+
+.nc-filter-nested-level-1,
+.nc-filter-nested-level-3 {
+  @apply bg-gray-[#f4f4f5];
+}
+
+.nc-filter-nested-level-2,
+.nc-filter-nested-level-4 {
+  @apply bg-gray-[#e7e7e9];
+}
+
+.nc-filter-logical-op-level-3,
+.nc-filter-logical-op-level-5 {
+  :deep(.nc-select.ant-select .ant-select-selector) {
+    @apply border-[#d9d9d9];
+  }
+}
+
+.nc-filter-where-label {
+  @apply text-gray-400;
+}
+
+:deep(.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector) {
+  @apply bg-transparent text-gray-400;
+}
+
+:deep(.nc-filter-logical-op .nc-select.ant-select .ant-select-selector) {
+  @apply shadow-none;
+}
+
+:deep(.nc-select-expand-btn) {
+  @apply text-gray-500;
+}
+
+.menu-filter-dropdown {
+  input:not(:disabled),
+  select:not(:disabled),
+  .ant-select:not(.ant-select-disabled) {
+    @apply text-[#4A5268];
+  }
+}
+
+.nc-filter-input-wrapper :deep(input) {
+  &:not(.ant-select-selection-search-input) {
+    @apply !px-2;
+  }
+}
+
+.nc-btn-focus:focus {
+  @apply !text-brand-500 !shadow-none;
 }
 </style>

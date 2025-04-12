@@ -106,36 +106,49 @@ export class OrgsController {
     });
   }
 
-  // delete workspace
-  @Get('/api/v2/orgs/:orgId/domains')
+  @Get([
+    '/api/v2/orgs/:orgId/domains',
+    '/api/v2/workspaces/:workspaceId/domains',
+  ])
   @HttpCode(200)
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
   @Acl('orgDomainList', {
     scope: 'cloud-org',
+    extendedScope: 'workspace',
   })
-  async orgWorkspaceList(@Req() req: NcRequest, @Param('orgId') orgId: string) {
+  async orgWorkspaceList(
+    @Req() req: NcRequest,
+    @Param('orgId') orgId: string,
+    @Param('workspaceId') workspaceId: string,
+  ) {
     return new PagedResponseImpl(
       await this.orgsService.domainList({
         orgId,
+        workspaceId,
         req,
       }),
     );
   }
 
-  // delete workspace
-  @Post('/api/v2/orgs/:orgId/domains')
+  @Post([
+    '/api/v2/orgs/:orgId/domains',
+    '/api/v2/workspaces/:workspaceId/domains',
+  ])
   @HttpCode(200)
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
   @Acl('orgDomainAdd', {
     scope: 'cloud-org',
+    extendedScope: 'workspace',
   })
   async addDomain(
     @Req() req: NcRequest,
     @Param('orgId') orgId: string,
+    @Param('workspaceId') workspaceId: string,
     @Body() body: DomainReqType,
   ) {
     return this.orgsService.addDomain({
       orgId,
+      workspaceId,
       req,
       body,
     });
@@ -146,6 +159,7 @@ export class OrgsController {
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
   @Acl('orgDomainVerify', {
     scope: 'cloud-org',
+    extendedScope: 'workspace',
   })
   async verifyDomain(
     @Req() req: NcRequest,
@@ -157,12 +171,12 @@ export class OrgsController {
     });
   }
 
-  // delete workspace
   @Patch('/api/v2/domains/:domainId')
   @HttpCode(200)
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
   @Acl('orgDomainUpdate', {
     scope: 'cloud-org',
+    extendedScope: 'workspace',
   })
   async updateDomain(
     @Req() req: NcRequest,
@@ -176,12 +190,12 @@ export class OrgsController {
     });
   }
 
-  // delete workspace
   @Delete('/api/v2/domains/:domainId')
   @HttpCode(200)
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
   @Acl('orgDomainDelete', {
     scope: 'cloud-org',
+    extendedScope: 'workspace',
   })
   async deleteDomain(
     @Req() req: NcRequest,

@@ -17,6 +17,7 @@ import NocoCache from '~/cache/NocoCache';
 export default class Domain {
   id: string;
   fk_org_id: string;
+  fk_workspace_id: string;
   fk_user_id: string;
   domain: string;
   verified: boolean;
@@ -53,6 +54,7 @@ export default class Domain {
   public static async insert(domain: Partial<Domain>, ncMeta = Noco.ncMeta) {
     const insertObj: Record<string, any> = extractProps(domain, [
       'fk_org_id',
+      'fk_workspace_id',
       'fk_user_id',
       'domain',
       'verified',
@@ -77,7 +79,8 @@ export default class Domain {
     ncMeta = Noco.ncMeta,
   ) {
     const updateObj: Record<string, any> = extractProps(domain, [
-      'fk_org_id',
+      // 'fk_org_id',
+      // 'fk_workspace_id',
       'fk_user_id',
       'domain',
       'verified',
@@ -118,7 +121,7 @@ export default class Domain {
   }
 
   static async list(
-    param: { orgId: string; workspaceId?: string },
+    param: { orgId?: string; workspaceId?: string },
     ncMeta = Noco.ncMeta,
   ) {
     const domains = await ncMeta.metaList2(

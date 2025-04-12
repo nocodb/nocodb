@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import type { SSOClientType } from 'nocodb-sdk'
 
-const { activeWorkspace } = storeToRefs(useWorkspace())
-
 const { fetchProviders, providers, deleteProvider, updateProvider, addProvider, getPrePopulatedProvider, signInUrl } =
   useAuthentication(false, true)
 
@@ -120,7 +118,7 @@ onMounted(async () => {
           <a class="!text-gray-700 !hover:text-gray-700"> Go to documentation </a>
         </div>
 
-        <AdminDomains />
+        <AdminDomains is-workspace />
 
         <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-2">
           <div class="flex font-bold text-base" data-rec="true">{{ $t('labels.generalSettings') }}</div>

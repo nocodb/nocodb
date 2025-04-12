@@ -619,8 +619,8 @@ export class AclMiddleware implements NestInterceptor {
     // limit user access to workspace
     if (
       req.ncWorkspaceId &&
-      req.user?.extra?.workspaceId &&
-      req.user.extra.workspaceId !== req.ncWorkspaceId
+      req.user?.extra?.workspace_id &&
+      req.user.extra.workspace_id !== req.ncWorkspaceId
     ) {
       NcError.forbidden('User access limited to Workspace');
     }
@@ -641,7 +641,7 @@ export class AclMiddleware implements NestInterceptor {
       NcError.unauthorized('Invalid token');
     }
 
-    // if view API and view is pesonal view then check if user has access to view
+    // if view API and view is personal view then check if user has access to view
     // if user is not owner of view then restrict write operations
     if (
       req[VIEW_KEY]?.lock_type === ViewLockType.Personal &&
@@ -664,8 +664,7 @@ export class AclMiddleware implements NestInterceptor {
     // extendedScope is used to allow access based on extended scope in which permission is prefixed with scope name and separated by underscore
     const extendedScopeRoles =
       extendedScope && getUserRoleForScope(req.user, extendedScope);
-
-    if (!userScopeRole) {
+    if (!userScopeRole && !extendedScopeRoles) {
       NcError.forbidden('Unauthorized access');
     }
 
@@ -677,25 +676,27 @@ export class AclMiddleware implements NestInterceptor {
 
     if (
       (!allowedRoles || allowedRoles.some((role) => roles?.[role])) &&
-      !(
-        roles?.creator ||
-        roles?.owner ||
-        roles?.editor ||
-        roles?.viewer ||
-        roles?.commenter ||
-        roles?.['no-access'] ||
-        roles?.[WorkspaceUserRoles.OWNER] ||
-        roles?.[WorkspaceUserRoles.CREATOR] ||
-        roles?.[WorkspaceUserRoles.EDITOR] ||
-        roles?.[WorkspaceUserRoles.VIEWER] ||
-        roles?.[WorkspaceUserRoles.COMMENTER] ||
-        roles?.[WorkspaceUserRoles.NO_ACCESS] ||
-        roles?.[OrgUserRoles.SUPER_ADMIN] ||
-        roles?.[OrgUserRoles.CREATOR] ||
-        roles?.[OrgUserRoles.VIEWER] ||
-        roles?.[CloudOrgUserRoles.CREATOR] ||
-        roles?.[CloudOrgUserRoles.VIEWER] ||
-        roles?.[CloudOrgUserRoles.OWNER]
+      ![extendedScopeRoles, roles].some(
+        (roles) =>
+          roles &&
+          (roles?.creator ||
+            roles?.owner ||
+            roles?.editor ||
+            roles?.viewer ||
+            roles?.commenter ||
+            roles?.['no-access'] ||
+            roles?.[WorkspaceUserRoles.OWNER] ||
+            roles?.[WorkspaceUserRoles.CREATOR] ||
+            roles?.[WorkspaceUserRoles.EDITOR] ||
+            roles?.[WorkspaceUserRoles.VIEWER] ||
+            roles?.[WorkspaceUserRoles.COMMENTER] ||
+            roles?.[WorkspaceUserRoles.NO_ACCESS] ||
+            roles?.[OrgUserRoles.SUPER_ADMIN] ||
+            roles?.[OrgUserRoles.CREATOR] ||
+            roles?.[OrgUserRoles.VIEWER] ||
+            roles?.[CloudOrgUserRoles.CREATOR] ||
+            roles?.[CloudOrgUserRoles.VIEWER] ||
+            roles?.[CloudOrgUserRoles.OWNER]),
       )
     ) {
       NcError.unauthorized('Unauthorized access');
@@ -734,8 +735,8 @@ export class AclMiddleware implements NestInterceptor {
       NcError.forbidden(
         generateReadablePermissionErr(
           permissionName,
-          roles,
-          extendedScopeRoles,
+          roles ?? extendedScopeRoles,
+          scope,
         ),
       );
 

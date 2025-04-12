@@ -2720,6 +2720,63 @@
         }
       }
     },
+    "/api/v2/workspaces/{workspaceId}/domains": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Workspace ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Workspace Domains",
+        "tags": [
+          "Workspace Domain"
+        ],
+        "operationId": "workspace-domain-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgDomainList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Workspace Domain",
+        "tags": [
+          "Workspace Domain"
+        ],
+        "operationId": "workspace-domain-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DomainReq"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v2/orgs/{orgId}": {
       "parameters": [
         {

@@ -128,6 +128,13 @@ const permissionScopes = {
     'paymentSeatCount',
     'manageSubcription',
     'requestUpgrade',
+
+    'cloud-org_orgDomainAdd',
+    'cloud-org_orgDomainVerify',
+    'cloud-org_orgDomainUpdate',
+    'cloud-org_orgDomainDelete',
+
+    'cloud-org_orgDomainList',
   ],
   base: [
     'formViewGet',

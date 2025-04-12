@@ -1,9 +1,10 @@
 import type { Api, DomainReqType, DomainType } from 'nocodb-sdk'
 import { useNuxtApp } from 'nuxt/app'
 
-export const useDomains = () => {
+export const useDomains = (isWorkspace = false) => {
   const { $api } = <{ $api: Api<any> }>useNuxtApp()
   const { orgId } = storeToRefs(useOrg())
+  const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
   const domains = ref<
     DomainType &
@@ -16,8 +17,13 @@ export const useDomains = () => {
 
   const fetchDomains = async () => {
     try {
-      const res = await $api.orgDomain.list(orgId.value)
-      domains.value = res.list
+      if (isWorkspace) {
+        const res = await $api.workspaceDomain.list(activeWorkspaceId.value)
+        domains.value = res.list
+      } else {
+        const res = await $api.orgDomain.list(orgId.value)
+        domains.value = res.list
+      }
     } catch (err) {
       message.error(await extractSdkResponseErrorMsg(err as any))
       console.log(err)
@@ -45,7 +51,8 @@ export const useDomains = () => {
 
   const addDomain = async (domain: DomainReqType) => {
     try {
-      return await $api.orgDomain.create(orgId.value, domain)
+      if (isWorkspace) return await $api.workspaceDomain.create(activeWorkspaceId.value, domain)
+      else return await $api.orgDomain.create(orgId.value, domain)
     } catch (err) {
       message.error(await extractSdkResponseErrorMsg(err as any))
     }

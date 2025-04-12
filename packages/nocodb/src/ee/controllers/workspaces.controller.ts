@@ -2,7 +2,7 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, HttpCode,
   Logger,
   Param,
   Patch,
@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ProjectReqType, WorkspacePlan } from 'nocodb-sdk';
+import {DomainReqType, ProjectReqType, WorkspacePlan} from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import type { WorkspaceType } from 'nocodb-sdk';
 import { WorkspacesService } from '~/services/workspaces.service';
@@ -24,6 +24,7 @@ import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
 import { BasesService } from '~/services/bases.service';
+import {PagedResponseImpl} from "~/helpers/PagedResponse";
 
 @Controller()
 export class WorkspacesController {
@@ -268,4 +269,42 @@ export class WorkspacesController {
     }
     return true;
   }
+
+
+
+  //
+  // // delete workspace
+  // @Post('/api/v2/workspaces/:workspaceId/domains')
+  // @HttpCode(200)
+  // @UseGuards(GlobalGuard, MetaApiLimiterGuard)
+  // @Acl('orgDomainAdd', {
+  //   scope: 'workspace',
+  // })
+  // async addDomain(
+  //   @Req() req: NcRequest,
+  //   @Param('workspaceId') workspaceId: string,
+  //   @Body() body: DomainReqType,
+  // ) {
+  //   return this.workspacesService.addDomain({
+  //     workspaceId,
+  //     req,
+  //     body,
+  //   });
+  // }
+  // // delete workspace
+  // @Get('/api/v2/workspaces/:workspaceId/domains')
+  // @HttpCode(200)
+  // @UseGuards(GlobalGuard, MetaApiLimiterGuard)
+  // @Acl('orgDomainList', {
+  //   scope: 'workspace',
+  // })
+  // async orgWorkspaceList(@Req() req: NcRequest, @Param('workspaceId') workspaceId: string) {
+  //   return new PagedResponseImpl(
+  //     await this.workspacesService.domainList({
+  //       workspaceId,
+  //       req,
+  //     }),
+  //   );
+  // }
+
 }

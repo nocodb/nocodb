@@ -42,15 +42,16 @@ export class OrgsService {
     return verified;
   }
 
-  async domainList(param: { orgId: string; req: NcRequest }) {
-    const domainList = await Domain.list({ orgId: param.orgId });
+  async domainList(param: { orgId?: string; req: NcRequest; workspaceId?: string }) {
+    const domainList = await Domain.list({ orgId: param.orgId, workspaceId: param.workspaceId });
 
     return domainList;
   }
 
   async addDomain(param: {
     body: DomainReqType;
-    orgId: string;
+    workspaceId?: string;
+    orgId?: string;
     req: NcRequest;
   }) {
     // todo: validate and verify
@@ -63,6 +64,7 @@ export class OrgsService {
       domain: param.body.domain,
       txt_value: txtValue,
       fk_org_id: param.orgId,
+      fk_workspace_id: param.workspaceId,
       fk_user_id: param.req.user?.id,
     });
 

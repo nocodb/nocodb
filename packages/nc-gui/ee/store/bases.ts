@@ -112,10 +112,17 @@ export const useBases = defineStore('basesStore', () => {
     // if shared source then get the shared base and create a list
     if (route.value.params.typeOrId === 'base' && route.value.params.baseId) {
       try {
-        const { base_id } = await $api.public.sharedBaseGet(route.value.params.baseId as string)
-        const base: BaseType = await $api.base.read(base_id)
+        const baseMeta = await $api.public.sharedBaseGet(route.value.params.baseId as string)
+        if (!baseMeta?.base_id) return
+
+        const base: BaseType = await $api.base.read(baseMeta.base_id)
 
         if (!base) return
+
+        // Set workspace info if present
+        if (baseMeta?.workspace) {
+          workspaceStore.workspaces.set(baseMeta.workspace.id, baseMeta.workspace)
+        }
 
         bases.value = [base].reduce((acc, base) => {
           acc.set(base.id!, base)

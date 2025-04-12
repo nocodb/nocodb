@@ -256,7 +256,7 @@ export const useEeConfig = createSharedComposable(() => {
     title,
     content,
     okText,
-    focusBtn,
+    focusBtn: _focusBtn,
     maskClosable = true,
     keyboard = true,
     disableClose,
@@ -310,6 +310,8 @@ export const useEeConfig = createSharedComposable(() => {
 
     const modalContent = ref(content)
 
+    const focusBtn = ref(_focusBtn)
+
     const oldSlots = {
       headerAction: () => [
         h(
@@ -356,6 +358,7 @@ export const useEeConfig = createSharedComposable(() => {
                 : t('upgrade.WorkspaceOwnerNotifiedSubtitle')
               okBtnText.value = t('general.close')
               cancelProps.value.class = '!hidden'
+              focusBtn.value = null
               slots.value = {}
             }
           } else {

@@ -8,6 +8,7 @@ import {
   Section,
   Text,
 } from '@react-email/components';
+import { getUpgradeMessage } from 'nocodb-sdk';
 import * as React from 'react';
 import {
   ContentWrapper,
@@ -41,11 +42,18 @@ export const WorkspaceRequestUpgrade = ({
           </Heading>
           <Section className="py-6 text-center">
             <span className="font-bold text-gray-900 text-base">
-              {limitOrFeature}
+              Upgrade Reason
             </span>
           </Section>
           <Text className="text-gray-600 text-center text-sm !mb-6 !mt-0">
-            <span className="font-bold text-gray-800">{`${name} `}</span>{email ? `(${email})` : ''} has requested an upgrade for the {limitOrFeature} in the<span className="font-semibold text-gray-800"> {workspaceTitle} </span>workspace.
+            <span className="font-bold text-gray-800">{`${name} `}</span>
+            {email ? `(${email}) ` : ''}
+            has requested an upgrade for the
+            <span className="font-semibold text-gray-800">
+              {' '}
+              {workspaceTitle}{' '}
+            </span>
+            workspace {getUpgradeMessage(limitOrFeature)}
           </Text>
           <Button
             className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10"

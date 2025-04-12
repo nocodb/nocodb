@@ -106,11 +106,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
 
-    const { sorts, nestedFilters, isExternalSource } = useSmartsheetStoreOrThrow()
+    const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
     const { sharedView, fetchSharedViewData, fetchSharedViewActiveDate, fetchSharedCalendarViewData } = useSharedView()
-
-    const { blockExternalSourceRecordVisibility } = useEeConfig()
 
     const calendarMetaData = ref<CalendarType>({})
 
@@ -359,13 +357,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     async function loadMoreSidebarData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
       if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) || !calendarRange.value?.length)
         return
-      if (
-        isSidebarLoading.value ||
-        (blockExternalSourceRecordVisibility(isExternalSource.value) &&
-          params.offset &&
-          params.offset > EXTERNAL_SOURCE_VISIBLE_ROWS)
-      )
-        return
+      if (isSidebarLoading.value) return
       try {
         const response = !isPublic.value
           ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id, {

@@ -201,7 +201,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       if (!base) {
         NcError.baseNotFound(req.params.sharedBaseUuid);
       }
-
       req.ncBaseId = base?.id;
     } else if (params.hookId) {
       const hook = await Hook.get(context, params.hookId);
@@ -536,7 +535,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.genericNotFound('Domain', req.params.domainId);
       }
 
-      req.ncOrgId = domain?.fk_org_id;
+      if (domain?.fk_org_id) req.ncOrgId = domain?.fk_org_id;
+      else if (domain?.fk_workspace_id)
+        req.ncWorkspaceId = domain?.fk_workspace_id;
     }
 
     if (!req.ncOrgId && req.params.orgId) {
@@ -704,33 +705,31 @@ export class AclMiddleware implements NestInterceptor {
     // todo : verify user have access to base or not
 
     const isAllowed =
-      roles &&
-      (Object.entries(roles).some(([name, hasRole]) => {
-        return (
-          hasRole &&
-          rolePermissions[name] &&
-          (rolePermissions[name] === '*' ||
-            (rolePermissions[name].exclude &&
-              !rolePermissions[name].exclude[permissionName]) ||
-            (rolePermissions[name].include &&
-              rolePermissions[name].include[permissionName]))
-        );
-      }) ||
-        // extendedScope is used to allow access based on extended scope in which permission is prefixed with scope name and separated by underscore
-        (extendedScopeRoles &&
-          Object.entries(extendedScopeRoles).some(([name, hasRole]) => {
-            return (
-              hasRole &&
-              rolePermissions[name] &&
-              (rolePermissions[name] === '*' ||
-                (rolePermissions[name].exclude &&
-                  !rolePermissions[name].exclude[
-                    scope + '_' + permissionName
-                  ]) ||
-                (rolePermissions[name].include &&
-                  rolePermissions[name].include[scope + '_' + permissionName]))
-            );
-          })));
+      (roles &&
+        Object.entries(roles).some(([name, hasRole]) => {
+          return (
+            hasRole &&
+            rolePermissions[name] &&
+            (rolePermissions[name] === '*' ||
+              (rolePermissions[name].exclude &&
+                !rolePermissions[name].exclude[permissionName]) ||
+              (rolePermissions[name].include &&
+                rolePermissions[name].include[permissionName]))
+          );
+        })) ||
+      // extendedScope is used to allow access based on extended scope in which permission is prefixed with scope name and separated by underscore
+      (extendedScopeRoles &&
+        Object.entries(extendedScopeRoles).some(([name, hasRole]) => {
+          return (
+            hasRole &&
+            rolePermissions[name] &&
+            (rolePermissions[name] === '*' ||
+              (rolePermissions[name].exclude &&
+                !rolePermissions[name].exclude[scope + '_' + permissionName]) ||
+              (rolePermissions[name].include &&
+                rolePermissions[name].include[scope + '_' + permissionName]))
+          );
+        }));
     if (!isAllowed) {
       NcError.forbidden(
         generateReadablePermissionErr(

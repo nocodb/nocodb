@@ -138,12 +138,15 @@ export class SsoClientController {
    * Workspace(cloud) SSO Clients related APIs
    ***/
   @Get('/api/v2/workspaces/:workspaceId/sso-clients')
-  @Acl('orgSsoClientList', {
+  @Acl('workspaceSsoClientList', {
     scope: 'workspace',
     allowedRoles: [WorkspaceUserRoles.OWNER],
     blockApiTokenAccess: true,
   })
-  async workspaceClientList(@Req() req, @Param('orgId') orgId: string) {
+  async workspaceClientList(
+    @Req() req,
+    @Param('workspaceId') workspaceId: string,
+  ) {
     const clients = await this.ssoClientService.clientList({
       req,
       workspaceId,
@@ -152,13 +155,13 @@ export class SsoClientController {
   }
 
   @Post('/api/v2/workspaces/:workspaceId/sso-clients')
-  @Acl('orgSsoClientCreate', {
+  @Acl('workspaceSsoClientCreate', {
     scope: 'workspace',
     allowedRoles: [WorkspaceUserRoles.OWNER],
     blockApiTokenAccess: true,
   })
   @HttpCode(200)
-  async WORKSPACEClientAdd(
+  async workspaceClientAdd(
     @Body() client: SSOClientType,
     @Req() req,
     @Param('workspaceId') workspaceId: string,
@@ -167,12 +170,12 @@ export class SsoClientController {
   }
 
   @Patch('/api/v2/workspaces/:workspaceId/sso-clients/:clientId')
-  @Acl('orgSsoClientUpdate', {
+  @Acl('workspaceSsoClientUpdate', {
     scope: 'workspace',
     allowedRoles: [WorkspaceUserRoles.OWNER],
     blockApiTokenAccess: true,
   })
-  async WORKSPACEClientUpdate(
+  async workspaceClientUpdate(
     @Param('clientId') clientId: string,
     @Body() client: SSOClientType,
     @Req() req,
@@ -187,12 +190,12 @@ export class SsoClientController {
   }
 
   @Delete('/api/v2/workspaces/:workspaceId/sso-clients/:clientId')
-  @Acl('orgSsoClientDelete', {
+  @Acl('workspaceSsoClientDelete', {
     scope: 'workspace',
     allowedRoles: [WorkspaceUserRoles.OWNER],
     blockApiTokenAccess: true,
   })
-  async WORKSPACEClientDelete(
+  async workspaceClientDelete(
     @Param('clientId') clientId: string,
     @Req() req,
     @Param('workspaceId') workspaceId: string,

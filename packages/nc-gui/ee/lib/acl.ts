@@ -81,6 +81,11 @@ const rolePermissions = {
       orgSsoClientUpdate: true,
       orgSsoClientDelete: true,
 
+      workspaceSsoClientList: true,
+      workspaceSsoClientCreate: true,
+      workspaceSsoClientUpdate: true,
+      workspaceSsoClientDelete: true,
+
       // todo: temporary permission
       moveWorkspaceToOrg: true,
       createConnectionDetails: true,

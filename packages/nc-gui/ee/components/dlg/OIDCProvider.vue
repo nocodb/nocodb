@@ -8,6 +8,7 @@ const props = defineProps<{
   isEdit: boolean
   oidc?: SSOClientType
   isOrg?: boolean
+  isWorkspace?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -39,7 +40,7 @@ const formValidator = ref()
 
 const { t } = useI18n()
 
-const { addProvider, updateProvider, getRedirectUrl } = useAuthentication(props.isOrg)
+const { addProvider, updateProvider, getRedirectUrl } = useAuthentication(props.isOrg, props.isWorkspace)
 
 const form = reactive<{
   title: string

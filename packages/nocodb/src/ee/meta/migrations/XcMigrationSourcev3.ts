@@ -37,6 +37,7 @@ import * as nc_036_scripts from './v3/nc_036_scripts';
 import * as nc_037_rename_source from './v3/nc_037_rename_source';
 import * as nc_038_plans_and_subscriptions from './v3/nc_038_plans_and_subscriptions';
 import * as nc_039_plans_and_subscriptions_limits from './v3/nc_039_plans_and_subscriptions_limits';
+import * as nc_040_workspace_sso from './v3/nc_040_workspace_sso';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -85,6 +86,7 @@ export default class XcMigrationSourcev3 {
       'nc_037_rename_source',
       'nc_038_plans_and_subscriptions',
       'nc_039_plans_and_subscriptions_limits',
+      'nc_040_workspace_sso',
     ]);
   }
 
@@ -172,6 +174,8 @@ export default class XcMigrationSourcev3 {
         return nc_038_plans_and_subscriptions;
       case 'nc_039_plans_and_subscriptions_limits':
         return nc_039_plans_and_subscriptions_limits;
+      case 'nc_040_workspace_sso':
+        return nc_040_workspace_sso;
     }
   }
 }

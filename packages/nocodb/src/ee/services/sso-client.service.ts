@@ -76,7 +76,7 @@ export class SSOClientService {
     // get existing client
     const oldClient = await SSOClient.get(param.clientId);
 
-    this.validateClient(param, client);
+    this.validateClient(param, oldClient);
 
     param.client.config = await this.validateAndExtractConfig({
       oldClient,
@@ -103,16 +103,17 @@ export class SSOClientService {
     orgId?: string;
     workspaceId?: string;
   }) {
-    // delete client
-    const client = await SSOClient.delete(param.clientId);
+    const client = await SSOClient.get(param.clientId);
     this.validateClient(param, client);
+    // delete client
+    const res = await SSOClient.delete(param.clientId);
 
-    return client;
+    return res;
   }
 
   private validateClient(
     param: { orgId?: string; workspaceId?: string },
-    client: boolean,
+    client: SSOClient,
   ) {
     if (param.orgId && param.orgId !== client.fk_org_id) {
       NcError.notAllowed('Client does not belong to this org');

@@ -610,10 +610,19 @@ export class AclMiddleware implements NestInterceptor {
     // limit user access to organization
     if (
       req.ncWorkspaceId &&
-      req.user.extra?.org_id &&
+      req.user?.extra?.org_id &&
       req.user.extra.org_id !== req.ncOrgId
     ) {
       NcError.forbidden('User access limited to Organization');
+    }
+
+    // limit user access to workspace
+    if (
+      req.ncWorkspaceId &&
+      req.user?.extra?.workspaceId &&
+      req.user.extra.workspaceId !== req.ncWorkspaceId
+    ) {
+      NcError.forbidden('User access limited to Workspace');
     }
 
     // if user is not defined then run GlobalGuard

@@ -1829,7 +1829,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   data-testid="nc-form-hide-branding"
                                   :disabled="isLocked || !isEditable"
                                   @change="(value) => {
-                                    if (isLocked || !isEditable || click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO)) return
+                                    if (isLocked || !isEditable || click(PlanFeatureTypes.FEATURE_HIDE_BRANDING)) return
 
                                     (formViewData!.meta as Record<string,any>).hide_branding = value
                                     updateView()
@@ -1876,7 +1876,7 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                         <div class="flex flex-col gap-3">
                           <div class="flex flex-col gap-3">
-                            <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO">
+                            <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION">
                               <template #default="{ click }">
                                 <div class="flex items-center justify-between gap-3">
                                   <!-- Redirect to URL -->
@@ -1886,7 +1886,7 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                                     <LazyPaymentUpgradeBadge
                                       v-if="!isOpenRedirectUrl"
-                                      :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
+                                      :feature="PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION"
                                       :content="
                                         $t('upgrade.upgradeToAddRedirectUrlSubtitle', {
                                           plan: getPlanTitle(PlanTitles.TEAM),
@@ -1903,7 +1903,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     :disabled="isLocked || !isEditable"
                                     @change="
                                       (value) => {
-                                        if (value && click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO)) return
+                                        if (value && click(PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION)) return
 
                                         isOpenRedirectUrl = !!value
                                         updateView()

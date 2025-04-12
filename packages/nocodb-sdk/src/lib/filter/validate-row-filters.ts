@@ -4,12 +4,12 @@ import isBetween from 'dayjs/plugin/isBetween';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import relativeTime from 'dayjs/plugin/relativeTime.js';
-import { ColumnType, FilterType } from '../Api';
-import { isDateMonthFormat } from '../dateTimeHelper';
-import { buildFilterTree } from '../filterHelpers';
-import { parseProp } from '../helperFunctions';
-import UITypes from '../UITypes';
-import { getLookupColumnType } from '../columnHelper/utils/get-lookup-column-type';
+import { ColumnType, FilterType } from '~/lib/Api';
+import { isDateMonthFormat } from '~/lib/dateTimeHelper';
+import { buildFilterTree } from '~/lib/filterHelpers';
+import { parseProp } from '~/lib/helperFunctions';
+import UITypes from '~/lib/UITypes';
+import { getLookupColumnType } from '~/lib/columnHelper/utils/get-lookup-column-type';
 
 extend(relativeTime);
 extend(customParseFormat);

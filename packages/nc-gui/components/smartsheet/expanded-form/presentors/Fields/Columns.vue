@@ -44,6 +44,7 @@ const showHiddenFields = ref(false)
     <SmartsheetExpandedFormPresentorsFieldsColumnList
       v-if="hiddenFields.length > 0 && showHiddenFields"
       :fields="hiddenFields"
+      is-hidden-col
       :force-vertical-mode="forceVerticalMode"
       :is-loading="isLoading"
       :show-col-callback="(col) => isFormula(col)"

@@ -61,7 +61,6 @@ export function useInfiniteData(args: {
     syncVisibleData?: () => void
     getCount?: (path: Array<number>) => void
     getWhereFilter?: (path: Array<number>) => string
-    onGroupRowChange?: (params: { row: Row; property: string; groupByColumn: ColumnType; level: number }) => void
     reloadAggregate?: (params: {
       fields?: Array<{ title: string; aggregation?: string | undefined }>
       path: Array<number>
@@ -575,7 +574,12 @@ export function useInfiniteData(args: {
   }
 
   // Remove invalid and moved(group change) rows from the cache
-  function clearInvalidRows(path: Array<number> = []) {
+  function clearInvalidRows(
+    path: Array<number> = [],
+    callbackFns?: {
+      onGroupRowChange?: (params: { row: Row; property: string; groupByColumn: ColumnType; level: number }) => void
+    },
+  ) {
     const dataCache = getDataCache(path)
     const sortedEntries = Array.from(dataCache.cachedRows.value.entries()).sort(([indexA], [indexB]) => indexA - indexB)
 
@@ -592,7 +596,7 @@ export function useInfiniteData(args: {
         const groupByColumn = groupByColumns.value[row.rowMeta.changedGroupIndex]
         const property = groupByColumn?.column?.title
         // invoke group by callback
-        callbacks?.onGroupRowChange?.({
+        callbackFns?.onGroupRowChange?.({
           row,
           property,
           groupByColumn,

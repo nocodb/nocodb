@@ -3,6 +3,9 @@ import { NO_EDITABLE_CELL } from '../utils/cell'
 import { EDIT_INTERACTABLE } from '../utils/constants'
 import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData } from '../utils/groupby'
 
+// column types which support delete even when it's in edit state
+const EDIT_MODE_CLEARABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User]
+
 const MAX_SELECTION_LIMIT = 100
 const MIN_COLUMN_INDEX = 1
 export function useKeyboardNavigation({
@@ -184,7 +187,10 @@ export function useKeyboardNavigation({
       case 'Delete':
       case 'Backspace':
         if (isDataReadOnly.value) return
-        if (!editEnabled.value) {
+        if (
+          !editEnabled.value ||
+          EDIT_MODE_CLEARABLE_TYPES.includes(columns.value[activeCell.value.column]?.columnObj?.uidt as UITypes)
+        ) {
           e.preventDefault()
           if (selection.value.isSingleCell()) {
             await clearCell?.({

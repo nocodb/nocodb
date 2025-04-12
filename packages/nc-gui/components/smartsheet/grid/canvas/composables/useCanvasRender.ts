@@ -2082,7 +2082,7 @@ export function useCanvasRender({
       ctx.strokeStyle = 'orange'
       ctx.beginPath()
       ctx.moveTo(gXOffset, warningRow.yOffset - 2)
-      ctx.lineTo(adjustedWidth - gXOffset, warningRow.yOffset)
+      ctx.lineTo(adjustedWidth + gXOffset + 2, warningRow.yOffset)
       ctx.lineWidth = 2
       ctx.stroke()
 
@@ -2090,7 +2090,7 @@ export function useCanvasRender({
       ctx.strokeStyle = 'orange'
       ctx.beginPath()
       ctx.moveTo(gXOffset, warningRow.yOffset + rowHeight.value)
-      ctx.lineTo(adjustedWidth - gXOffset, warningRow.yOffset + rowHeight.value)
+      ctx.lineTo(adjustedWidth + gXOffset + 2, warningRow.yOffset + rowHeight.value)
       ctx.lineWidth = 2
       ctx.stroke()
 
@@ -2546,11 +2546,12 @@ export function useCanvasRender({
           x: contentX,
           fontFamily: '600 10px Manrope',
           y: groupHeaderY,
+          py: 6,
         })
 
         ctx.restore()
 
-        renderGroupContent(ctx, group, contentX, contentY + 26, availableWidth - contentWidth - 20 - countWidth, i)
+        renderGroupContent(ctx, group, contentX, contentY + 22, availableWidth - contentWidth - 20 - countWidth, i)
 
         currentOffset = tempCurrentOffset
       }
@@ -2577,8 +2578,13 @@ export function useCanvasRender({
       return
     }
 
-    if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(group?.column?.uidt) && !(group.value in GROUP_BY_VARS.VAR_TITLES)) {
-      const tags = group.value.split(',')
+    if (
+      [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.LinkToAnotherRecord].includes(group?.column?.uidt) &&
+      !(group.value in GROUP_BY_VARS.VAR_TITLES)
+    ) {
+      // parse value if LTAR and extract values separated by ___
+      const parsedValue = group?.column?.uidt === UITypes.LinkToAnotherRecord ? parseKey(group) : group.value
+      const tags = Array.isArray(parsedValue) ? parsedValue : parsedValue.split(',')
       const colors = group.color.split(',')
       let xPosition = x
       let tagsRendered = 0
@@ -2617,7 +2623,7 @@ export function useCanvasRender({
 
         const { x: newX } = renderTagLabel(ctx, {
           x: xPosition,
-          y: y - 10,
+          y: y - 7,
           height: 22,
           width: remainingWidth,
           padding: 0,
@@ -2663,15 +2669,36 @@ export function useCanvasRender({
         fillStyle: '#6A7184',
         fontFamily: '700 13px Manrope',
         x,
-        y: y - GROUP_HEADER_HEIGHT / 2 + 10,
+        y: y - GROUP_HEADER_HEIGHT / 2 + 8,
         height: 20,
         maxWidth,
       })
-    } else {
+    } else if (isUser(group.column)) {
       renderCell(ctx, group.column, {
         value: group.value,
         x: x - 11,
-        y: y - 14,
+        y: y - 16,
+        width: maxWidth,
+        height: rowHeight.value,
+        row: {},
+        selected: false,
+        pv: false,
+        spriteLoader,
+        readonly: true,
+        textColor: '#1f293a', // gray-800
+        imageLoader,
+        tableMetaLoader,
+        relatedColObj: group.relatedColumn,
+        relatedTableMeta: group.relatedTableMeta,
+        mousePosition,
+        skipRender: false,
+        fontFamily: '700 13px Manrope',
+      })
+    } else {
+      renderCell(ctx, group.column, {
+        value: group.value?.toString?.().split(','),
+        x: x - 11,
+        y: y - 13,
         width: maxWidth,
         height: rowHeight.value,
         row: {},

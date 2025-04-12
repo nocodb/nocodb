@@ -60,34 +60,6 @@ export function useGridViewData(
     syncVisibleData,
   })
 
-  const onGroupRowChange = async ({ row, level }) => {
-    const parentGroupPath = row.rowMeta?.path?.slice(0, level)
-
-    const parentGroup = parentGroupPath?.length ? findGroupByPath(cachedGroups.value, parentGroupPath) : undefined
-
-    const groupMap = parentGroup?.groups ?? cachedGroups.value
-
-    // get the highest index value present in cachedGroups
-    const endIndex = Math.max(...groupMap.keys())
-
-    // reload all groups in current level since any one of them can be in updated state
-    await fetchMissingGroupChunks(0, endIndex, parentGroup ?? undefined, true)
-
-    // iterate and clear if expanded grid present
-    const clearGridCache = (groupMap: Map<number, CanvasGroup>, toalGroupCount: number, path = []) => {
-      for (let i = 0; i < toalGroupCount; i++) {
-        const group = groupMap.get(i)
-        clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, [...path, i])
-        if (group?.groupCount) {
-          // if group is not expanded, check if it has subgroups and clear their cache
-          clearGridCache(group.groups, group.groupCount, group.path ?? [...path, i])
-        }
-      }
-    }
-
-    clearGridCache(groupMap, parentGroup?.groupCount ?? totalGroups.value, parentGroup?.path ?? [])
-  }
-
   const {
     insertRow,
     updateRowProperty,
@@ -128,7 +100,6 @@ export function useGridViewData(
       syncVisibleData,
       getCount,
       getWhereFilter: getGroupFilter,
-      onGroupRowChange,
       reloadAggregate: triggerAggregateReload,
       findGroupByPath: (path: Array<number>) => {
         return findGroupByPath(cachedGroups.value, path)
@@ -797,7 +768,7 @@ export function useGridViewData(
     let rowsToDelete: Record<string, any>[] = []
     let compositePrimaryKey = ''
 
-    const rows = await getRows(start, end, path)
+    await getRows(start, end, path)
 
     for (let i = start; i <= end; i++) {
       const cachedRow = dataCache.cachedRows.value.get(i)

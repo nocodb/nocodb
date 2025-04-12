@@ -235,10 +235,14 @@ export const useEeConfig = createSharedComposable(() => {
   } = {}) => {
     if (!isWsOwner.value) return handleRequestUpgrade({ workspaceId, limitOrFeature })
 
+    const planCtaBtnQuery = limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? `activeBtn=${PlanTitles.BUSINESS}` : ''
+
     if (redirectToWorkspace) {
-      navigateTo(`/${workspaceId ?? activeWorkspaceId.value}/settings?tab=billing`)
+      navigateTo(`/${workspaceId ?? activeWorkspaceId.value}/settings?tab=billing${planCtaBtnQuery ? `&${planCtaBtnQuery}` : ''}`)
     } else {
-      navigateTo(`/account/workspace/${workspaceId ?? activeWorkspaceId.value}/settings`)
+      navigateTo(
+        `/account/workspace/${workspaceId ?? activeWorkspaceId.value}/settings${planCtaBtnQuery ? `?${planCtaBtnQuery}` : ''}`,
+      )
     }
   }
 
@@ -355,7 +359,7 @@ export const useEeConfig = createSharedComposable(() => {
               slots.value = {}
             }
           } else {
-            navigateToBilling({ workspaceId, redirectToWorkspace })
+            navigateToBilling({ workspaceId, redirectToWorkspace, limitOrFeature })
             closeDialog()
             callback?.('ok')
           }

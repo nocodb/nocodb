@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { OrderedWorkspaceRoles, type PlanLimitExceededDetailsType, WorkspaceUserRoles } from 'nocodb-sdk'
+import { OrderedWorkspaceRoles, type PlanLimitExceededDetailsType, PlanTitles, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
@@ -16,7 +16,7 @@ const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspac
 
 const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading } = storeToRefs(workspaceStore)
 
-const { isPaymentEnabled, showUserPlanLimitExceededModal } = useEeConfig()
+const { isPaymentEnabled, showUserPlanLimitExceededModal, activePlanTitle } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
   if (props.workspaceId) {
@@ -261,7 +261,7 @@ const isDeleteOrUpdateAllowed = (user) => {
                     color="maroon"
                     class="text-nc-content-maroon-dark text-[10px] leading-[14px] !h-[18px] font-semibold"
                   >
-                    Billable
+                    {{ activePlanTitle === PlanTitles.FREE ? $t('general.billable') : $t('general.paid') }}
                   </NcBadge>
                 </div>
               </div>

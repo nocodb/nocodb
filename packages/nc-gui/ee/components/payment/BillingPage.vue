@@ -126,7 +126,7 @@ watch(
           >
             <template v-if="checkoutSession?.invoice?.invoice_pdf" #action>
               <a
-                href="checkoutSession?.invoice?.invoice_pdf"
+                :href="checkoutSession?.invoice?.invoice_pdf"
                 target="_blank"
                 rel="noopener noreferer"
                 class="!no-underline !hover:underline text-sm"

@@ -180,7 +180,7 @@ export default class WorkspaceUser {
       fk_user_id,
       fk_org_id,
       fk_workspace_id,
-    }: { fk_user_id: any; fk_org_id?: string; woorkspace_id?: string },
+    }: { fk_user_id: any; fk_org_id?: string; fk_workspace_id?: string },
     ncMeta = Noco.ncMeta,
   ) {
     // todo: caching

@@ -10,10 +10,7 @@ import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconn
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import passport from 'passport';
 import isEmail from 'validator/lib/isEmail';
-import {
-  CloudOrgUserRoles,
-  WorkspaceUserRoles,
-} from 'nocodb-sdk';
+import { CloudOrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type {
   GoogleClientConfigType,
@@ -32,7 +29,7 @@ import { UsersService } from '~/services/users/users.service';
 import { MetaService } from '~/meta/meta.service';
 import { NcError } from '~/helpers/catchError';
 import Debug from '~/db/util/Debug';
-import { checkIfWorkspaceSSOAvail, getFeature } from '~/helpers/paymentHelpers';
+import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 
 // this middleware is used to authenticate user using passport
 // in which we decide which strategy to use based on client type

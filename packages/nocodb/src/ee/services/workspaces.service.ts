@@ -158,6 +158,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     let workspaces = await WorkspaceUser.workspaceList({
       fk_user_id: param.user.id,
       fk_org_id: param.user.extra?.org_id,
+      fk_workspace_id: param.user.extra?.woorkspace_id
     });
 
     if (!workspaces.length && param.req.user?.id) {

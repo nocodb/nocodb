@@ -176,7 +176,11 @@ export default class WorkspaceUser {
   }
 
   static async workspaceList(
-    { fk_user_id, fk_org_id }: { fk_user_id: any; fk_org_id?: string },
+    {
+      fk_user_id,
+      fk_org_id,
+      fk_workspace_id,
+    }: { fk_user_id: any; fk_org_id?: string; woorkspace_id?: string },
     ncMeta = Noco.ncMeta,
   ) {
     // todo: caching
@@ -204,6 +208,11 @@ export default class WorkspaceUser {
 
     if (fk_org_id) {
       queryBuilder.where(`${MetaTable.WORKSPACE}.fk_org_id`, fk_org_id);
+    }
+
+    // Todo: decide the behavior with team
+    if (fk_workspace_id) {
+      queryBuilder.where(`${MetaTable.WORKSPACE}.id`, fk_workspace_id);
     }
 
     // todo : pagination

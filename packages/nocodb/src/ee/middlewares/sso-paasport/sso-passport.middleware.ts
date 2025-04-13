@@ -10,7 +10,10 @@ import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconn
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import passport from 'passport';
 import isEmail from 'validator/lib/isEmail';
-import { CloudOrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import {
+  CloudOrgUserRoles,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type {
   GoogleClientConfigType,
@@ -29,6 +32,7 @@ import { UsersService } from '~/services/users/users.service';
 import { MetaService } from '~/meta/meta.service';
 import { NcError } from '~/helpers/catchError';
 import Debug from '~/db/util/Debug';
+import { checkIfWorkspaceSSOAvail, getFeature } from '~/helpers/paymentHelpers';
 
 // this middleware is used to authenticate user using passport
 // in which we decide which strategy to use based on client type
@@ -52,8 +56,6 @@ export class SSOPassportMiddleware implements NestMiddleware {
     );
 
     const client = await SSOClient.get(req.params.clientId);
-    req['ncOrgId'] = client.fk_org_id;
-    req['ncWorkspaceId'] = client.fk_workspace_id ?? req['ncWorkspaceId'];
 
     if (!client || !client.enabled || client.deleted) {
       this.debugger.error(
@@ -68,6 +70,13 @@ export class SSOPassportMiddleware implements NestMiddleware {
       );
       return res.status(400).json({ msg: `Client config not found` });
     }
+
+    if (client.fk_workspace_id) {
+      await checkIfWorkspaceSSOAvail(client.fk_workspace_id);
+    }
+
+    req['ncOrgId'] = client.fk_org_id;
+    req['ncWorkspaceId'] = client.fk_workspace_id ?? req['ncWorkspaceId'];
 
     let strategy;
     switch (client.type) {
@@ -87,6 +96,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
 
     passport.authenticate(strategy, { session: false })(req, res, next);
   }
+
   // get saml strategy
   async getSAMLStrategy(client: SSOClient, req: Request) {
     const config: any = client.config;

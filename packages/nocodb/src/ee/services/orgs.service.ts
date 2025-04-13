@@ -42,8 +42,15 @@ export class OrgsService {
     return verified;
   }
 
-  async domainList(param: { orgId?: string; req: NcRequest; workspaceId?: string }) {
-    const domainList = await Domain.list({ orgId: param.orgId, workspaceId: param.workspaceId });
+  async domainList(param: {
+    orgId?: string;
+    req: NcRequest;
+    workspaceId?: string;
+  }) {
+    const domainList = await Domain.list({
+      orgId: param.orgId,
+      workspaceId: param.workspaceId,
+    });
 
     return domainList;
   }

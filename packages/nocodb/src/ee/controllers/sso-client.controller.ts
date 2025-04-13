@@ -19,6 +19,7 @@ import { SSOClientService } from '~/services/sso-client.service';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { OrgSSOClientService } from '~/services/org-sso-client.service';
+import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 
 @Controller()
 export class SsoClientController {
@@ -147,6 +148,10 @@ export class SsoClientController {
     @Req() req,
     @Param('workspaceId') workspaceId: string,
   ) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
     const clients = await this.ssoClientService.clientList({
       req,
       workspaceId,
@@ -166,6 +171,10 @@ export class SsoClientController {
     @Req() req,
     @Param('workspaceId') workspaceId: string,
   ) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
     return this.ssoClientService.clientAdd({ client, req, workspaceId });
   }
 
@@ -181,6 +190,10 @@ export class SsoClientController {
     @Req() req,
     @Param('workspaceId') workspaceId: string,
   ) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
     return this.ssoClientService.clientUpdate({
       clientId,
       client,
@@ -200,11 +213,19 @@ export class SsoClientController {
     @Req() req,
     @Param('workspaceId') workspaceId: string,
   ) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
     return this.ssoClientService.clientDelete({ clientId, req, workspaceId });
   }
 
   @Post('/api/v2/sso')
   async ssoClients(@Body() body: { email: string }, @Req() req) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
     return this.ssoClientService.getSsoClientsByDomain({
       req,
       email: body.email,

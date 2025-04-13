@@ -2,7 +2,7 @@ import {
   Body,
   Controller,
   Delete,
-  Get, HttpCode,
+  Get,
   Logger,
   Param,
   Patch,
@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import {DomainReqType, ProjectReqType, WorkspacePlan} from 'nocodb-sdk';
+import { ProjectReqType, WorkspacePlan } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import type { WorkspaceType } from 'nocodb-sdk';
 import { WorkspacesService } from '~/services/workspaces.service';
@@ -24,7 +24,6 @@ import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
 import { BasesService } from '~/services/bases.service';
-import {PagedResponseImpl} from "~/helpers/PagedResponse";
 
 @Controller()
 export class WorkspacesController {
@@ -270,8 +269,6 @@ export class WorkspacesController {
     return true;
   }
 
-
-
   //
   // // delete workspace
   // @Post('/api/v2/workspaces/:workspaceId/domains')
@@ -306,5 +303,4 @@ export class WorkspacesController {
   //     }),
   //   );
   // }
-
 }

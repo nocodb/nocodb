@@ -17,6 +17,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { OrgsService } from '~/services/orgs.service';
 import { NcRequest } from '~/interface/config';
+import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 
 @Controller()
 export class OrgsController {
@@ -146,6 +147,10 @@ export class OrgsController {
     @Param('workspaceId') workspaceId: string,
     @Body() body: DomainReqType,
   ) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
     return this.orgsService.addDomain({
       orgId,
       workspaceId,
@@ -165,6 +170,11 @@ export class OrgsController {
     @Req() req: NcRequest,
     @Param('domainId') domainId: string,
   ) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
+
     return this.orgsService.verifyDomain({
       req,
       domainId,
@@ -183,6 +193,10 @@ export class OrgsController {
     @Body() body: DomainReqType,
     @Param('domainId') domainId: string,
   ) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
     return this.orgsService.updateDomain({
       req,
       domain: body,
@@ -201,6 +215,10 @@ export class OrgsController {
     @Req() req: NcRequest,
     @Body() body: { orgId: string; workspaceId: string; workspaceName: string },
   ) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
     return this.orgsService.deleteWorkspace({
       workspaceId: body.workspaceId,
       req,

@@ -19,7 +19,7 @@ const config: AppConfig = {
   throttler: {
     data: {
       ttl: +process.env.NC_DATA_API_TTL || 1000,
-      max_apis: +process.env.NC_DATA_COUNT || 10,
+      max_apis: +process.env.NC_DATA_COUNT || 5,
       block_duration: +process.env.NC_DATA_BLOCK_DURATION || 30000,
     },
     meta: {

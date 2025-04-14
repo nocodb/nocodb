@@ -46,7 +46,7 @@ test.describe('LTAR with filter create & update', () => {
       ltarFilters: [
         {
           title: 'Id',
-          operation: 'eq',
+          operation: '=',
           subOperation: null,
           value: '1',
           locallySaved: true,
@@ -65,7 +65,7 @@ test.describe('LTAR with filter create & update', () => {
       ltarFilters: [
         {
           title: 'Id',
-          operation: 'eq',
+          operation: '=',
           subOperation: null,
           value: '2',
           locallySaved: true,

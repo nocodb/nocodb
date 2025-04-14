@@ -580,7 +580,8 @@ const errorHelpers: {
     code: 500,
   },
   [NcErrorType.AUTHENTICATION_REQUIRED]: {
-    message: 'Authentication required to access this resource',
+    message: (message: string) =>
+      message || 'Authentication required to access this resource',
     code: 401,
   },
   [NcErrorType.API_TOKEN_NOT_ALLOWED]: {
@@ -1071,8 +1072,11 @@ export class NcError {
     throw new BadRequest(message);
   }
 
-  static unauthorized(message) {
-    throw new Unauthorized(message);
+  static unauthorized(message: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.AUTHENTICATION_REQUIRED, {
+      params: message,
+      ...args,
+    });
   }
 
   static forbidden(message) {

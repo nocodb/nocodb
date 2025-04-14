@@ -51,7 +51,8 @@ describe('dataApiV3', () => {
         .set('xc-token', 'invalid token')
         .send({});
       expect(response.status).to.equal(401);
-      expect(response.body.msg).to.equal('Invalid token');
+      expect(response.body.error).to.equal('AUTHENTICATION_REQUIRED');
+      expect(response.body.message).to.equal('Invalid token');
     });
     it('token has no permission', async () => {
       const newUser = await createUser(

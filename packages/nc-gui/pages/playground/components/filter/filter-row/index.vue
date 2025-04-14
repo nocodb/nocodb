@@ -1,56 +1,7 @@
 <script lang="ts" setup>
-import { ClientType, type ColumnType, UITypes } from 'nocodb-sdk'
-
-const columns: ColumnType[] = [
-  {
-    id: 'col1',
-    uidt: UITypes.SingleLineText,
-    title: 'Column 1',
-    dt: 'text',
-    order: 1,
-  },
-  {
-    id: 'col2',
-    uidt: UITypes.Decimal,
-    title: 'Column 2',
-    dt: 'decimal',
-    order: 2,
-  },
-  {
-    id: 'col3',
-    uidt: UITypes.Number,
-    title: 'Column 3',
-    dt: 'bigint',
-    dtx: 'specificType',
-    meta: { isLocaleString: false },
-    system: false,
-    order: 5,
-  },
-  {
-    id: 'col4',
-    uidt: UITypes.Links,
-    title: 'Column 4',
-    order: 3,
-  },
-  {
-    id: 'col5',
-    uidt: UITypes.DateTime,
-    meta: {
-      dateFormat: 'YY/MM/DD',
-    },
-    title: 'Column 5',
-    order: 4,
-  },
-  {
-    id: 'col-date-monthonly',
-    uidt: UITypes.Date,
-    meta: {
-      dateFormat: 'YY-MM',
-    },
-    title: 'Column 6',
-    order: 6,
-  },
-]
+import { ClientType } from 'nocodb-sdk'
+import { defaultColumns } from '../columns'
+const columns = defaultColumns
 
 const filter1 = ref({
   fk_column_id: columns[0]!.id,
@@ -141,7 +92,6 @@ const isFieldInaccessible1 = ref(true)
         :index="options1.index"
         :columns="columns"
         :show-null-and-empty-in-filter="options1.showNullAndEmptyInFilter"
-        :comparison-sub-ops="[]"
         :disabled="options1.disabled"
         :is-logical-op-change-allowed="options1.isLogicalOpChangeAllowed"
         :is-locked-view="options1.isLockedView"

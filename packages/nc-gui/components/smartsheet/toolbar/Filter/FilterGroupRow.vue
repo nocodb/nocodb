@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { type ClientType } from 'nocodb-sdk'
 interface Props {
   modelValue: ColumnFilterType
   index: number
   nestedLevel: number
   columns: ColumnTypeForFilter[]
+  dbClientType?: ClientType
+  showNullAndEmptyInFilter?: boolean
 
   disabled?: boolean
   // some view is different when locked view but not disabled
@@ -33,6 +36,8 @@ interface Emits {
 const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 const vModel = useVModel(props, 'modelValue', emits)
+
+const { t } = useI18n()
 
 const logicalOps = [
   { value: 'and', text: t('general.and') },
@@ -113,7 +118,7 @@ const onDelete = () => {
       <div>
         <NcButton
           v-if="!vModel.readOnly && !disabled"
-          :key="i"
+          :key="index"
           v-e="['c:filter:delete', { link: !!link, webHook: !!webHook }]"
           type="text"
           size="small"

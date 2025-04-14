@@ -21,7 +21,7 @@ test.describe('LTAR with filter create & update', () => {
     await unsetup(context);
   });
 
-  test.only('LTAR with filters', async () => {
+  test('LTAR with filters', async () => {
     await dashboard.treeView.createTable({ title: 'Sheet1', baseTitle: context.base.title });
     // subsequent table creation fails; hence delay
     await dashboard.rootPage.waitForTimeout(1000);

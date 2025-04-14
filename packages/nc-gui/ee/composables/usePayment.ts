@@ -312,6 +312,9 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
         'update:visible': closeDialog,
         'showIcon': false,
         'focusBtn': 'ok',
+        'keyboard': true,
+        'maskClosable': true,
+        'okClass': '!outline-none',
       })
 
       function closeDialog() {

@@ -188,6 +188,7 @@ export const numericUITypes = [
   UITypes.Rollup,
   UITypes.Year,
   UITypes.Links,
+  UITypes.ID,
 ];
 
 export function isNumericCol(

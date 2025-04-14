@@ -52,7 +52,9 @@ describe('dataApiV3', () => {
         .send({});
       expect(response.status).to.equal(401);
       expect(response.body.error).to.equal('AUTHENTICATION_REQUIRED');
-      expect(response.body.message).to.equal('Invalid token');
+      expect(response.body.message).to.equal(
+        'Authentication required - Invalid token',
+      );
     });
     it('token has no permission', async () => {
       const newUser = await createUser(
@@ -73,7 +75,8 @@ describe('dataApiV3', () => {
         .set('xc-token', notPermittedXcToken)
         .send({});
       expect(response.status).to.equal(403);
-      expect(response.body.msg).to.equal('Unauthorized access');
+      expect(response.body.error).to.equal('FORBIDDEN');
+      expect(response.body.message).to.equal('Forbidden - Unauthorized access');
     });
 
     // we revert to default limit if provided limit is outside of allowed range

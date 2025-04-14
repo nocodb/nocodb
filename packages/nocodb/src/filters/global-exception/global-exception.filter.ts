@@ -182,7 +182,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       return response.status(401).json({ msg: exception.message });
     } else if (
       exception instanceof Forbidden ||
-      exception.getStatus?.() === 403
+      (exception.getStatus?.() === 403 && !(exception instanceof NcBaseErrorv2))
     ) {
       return response.status(403).json({ msg: exception.message });
     } else if (

@@ -435,6 +435,7 @@ interface CellRendererOptions {
   isRowHovered?: boolean
   isRowChecked?: boolean
   isCellInSelectionRange?: boolean
+  isGroupHeader?: boolean
   rowMeta?: {
     // Used in InfiniteScroll Grid View
     isLastRow?: number

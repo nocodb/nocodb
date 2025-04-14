@@ -6,6 +6,7 @@ import {
   isVirtualCol,
   NcApiVersion,
   type NcContext,
+  ncIsNumber,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -93,6 +94,18 @@ export function _wherePk(
           [primaryKeys[i].column_name, ids[i]],
         );
       };
+    } else if (
+      [UITypes.ID, UITypes.Decimal, UITypes.Number].includes(
+        primaryKeys[i].uidt,
+      )
+    ) {
+      if (!ncIsNumber(Number(ids[i]))) {
+        if (!skipPkValidation) {
+          NcError.invalidPrimaryKey(ids[i], primaryKeys[i].title);
+        }
+      }
+      where[primaryKeys[i].column_name] = ids[i];
+      return where;
     }
 
     // Cast the id to string.

@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { expect } from 'chai';
+import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
+import { createBulkRows } from '../../../factory/row';
+import { createTable } from '../../../factory/table';
 import { createUser } from '../../../factory/user';
 import { beforeEach as dataApiV3BeforeEach } from './beforeEach';
 import { ncAxios } from './ncAxios';
@@ -205,6 +208,58 @@ describe('dataApiV3', () => {
         status: 404,
       });
       expect(response.body.message).to.eq("Record '1032' not found");
+    });
+
+    it('primary key not in correct data type (CountryId = number)', async () => {
+      const response = await ncAxiosGet({
+        url: `${urlPrefix}/${testContext.countryTable.id}/text-primary-key`,
+        status: 422,
+      });
+      expect(response.body.error).to.eq('INVALID_PK_VALUE');
+      expect(response.body.message).to.eq(
+        `Primary key value 'text-primary-key' is invalid for column 'CountryId'`,
+      );
+    });
+
+    it('primary key not in correct data type (Id)', async () => {
+      const table = await createTable(testContext.context, testContext.base, {
+        table_name: 'testTable',
+        title: 'TestTable',
+        columns: [
+          {
+            column_name: 'id',
+            title: 'Id',
+            uidt: UITypes.ID,
+            pk: true,
+          },
+          {
+            column_name: 'text',
+            title: 'Text',
+            uidt: UITypes.SingleLineText,
+            pk: false,
+            pv: true,
+          },
+        ],
+      });
+      await createBulkRows(testContext.context, {
+        base: testContext.base,
+        table,
+        values: [
+          {
+            Id: 1,
+            SingleLineText: 'A',
+          },
+        ],
+      });
+
+      const response = await ncAxiosGet({
+        url: `${urlPrefix}/${table.id}/text-primary-key`,
+        status: 422,
+      });
+      expect(response.body.error).to.eq('INVALID_PK_VALUE');
+      expect(response.body.message).to.eq(
+        `Primary key value 'text-primary-key' is invalid for column 'Id'`,
+      );
     });
 
     it('url path not found', async () => {

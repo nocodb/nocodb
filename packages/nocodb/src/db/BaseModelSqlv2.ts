@@ -6419,8 +6419,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     );
   }
 
-  async afterAddChildBulk(
+  async afterAddOrRemoveChild(
     commonAuditObj: {
+      opType: AuditV1OperationTypes;
       model: Model;
       refModel: Model;
       columnTitle: string;
@@ -6441,7 +6442,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return;
     }
 
-    const { model, refModel, columnTitle, columnId, req } = commonAuditObj;
+    const { opType, model, refModel, columnTitle, columnId, req } =
+      commonAuditObj;
 
     // populate missing display values
     const refBaseModel = await Model.getBaseModelSQL(this.context, {
@@ -6524,29 +6526,26 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           auditObj.displayValue = displayValueMap.get(`${auditObj.rowId}`);
         }
         // Build and return the audit payload.
-        return generateAuditV1Payload<DataLinkPayload>(
-          AuditV1OperationTypes.DATA_LINK,
-          {
-            context: {
-              ...this.context,
-              source_id: model.source_id,
-              fk_model_id: model.id,
-              row_id: this.extractPksValues(auditObj.rowId, true) as string,
-            },
-            details: {
-              table_title: model.title,
-              ref_table_title: refModel.title,
-              link_field_title: columnTitle,
-              link_field_id: columnId,
-              row_id: auditObj.rowId,
-              ref_row_id: auditObj.refRowId,
-              display_value: auditObj.displayValue,
-              ref_display_value: auditObj.refDisplayValue,
-              type: auditObj.type,
-            },
-            req,
+        return generateAuditV1Payload<DataLinkPayload>(opType, {
+          context: {
+            ...this.context,
+            source_id: model.source_id,
+            fk_model_id: model.id,
+            row_id: this.extractPksValues(auditObj.rowId, true) as string,
           },
-        );
+          details: {
+            table_title: model.title,
+            ref_table_title: refModel.title,
+            link_field_title: columnTitle,
+            link_field_id: columnId,
+            row_id: auditObj.rowId,
+            ref_row_id: auditObj.refRowId,
+            display_value: auditObj.displayValue,
+            ref_display_value: auditObj.refDisplayValue,
+            type: auditObj.type,
+          },
+          req,
+        });
       }),
     );
 
@@ -8192,8 +8191,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
     }
 
-    await this.afterAddChildBulk(
+    await this.afterAddOrRemoveChild(
       {
+        opType: AuditV1OperationTypes.DATA_LINK,
         model: auditConfig.parentModel,
         refModel: auditConfig.childModel,
         columnTitle: auditConfig.parentColTitle,
@@ -8204,8 +8204,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       },
       parentAuditObj,
     );
-    await this.afterAddChildBulk(
+    await this.afterAddOrRemoveChild(
       {
+        opType: AuditV1OperationTypes.DATA_LINK,
         model: auditConfig.childModel,
         refModel: auditConfig.parentModel,
         columnTitle: auditConfig.childColTitle,
@@ -8549,55 +8550,58 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         break;
     }
 
+    const parentAuditObj = [];
+    const childAuditObj = [];
+
     for (const childId of childIds) {
       const _childId =
         typeof childId === 'object'
           ? Object.values(childId).join('_')
           : childId;
 
-      auditUpdateObj.push({
-        model: auditConfig.parentModel,
-        refModel: auditConfig.childModel,
+      parentAuditObj.push({
         rowId,
         refRowId: _childId,
-        opSubType: AuditOperationSubTypes.LINK_RECORD,
-        columnTitle: auditConfig.parentColTitle,
-        columnId: auditConfig.parentColId,
-        req: cookie,
+        displayValue: row[column.title] ?? row[column.column_name],
         type: colOptions.type as RelationTypes,
       });
 
       if (parentTable.id !== childTable.id) {
-        auditUpdateObj.push({
-          model: auditConfig.childModel,
-          refModel: auditConfig.parentModel,
+        childAuditObj.push({
           rowId: _childId,
           refRowId: rowId,
-          opSubType: AuditOperationSubTypes.LINK_RECORD,
-          columnTitle: auditConfig.childColTitle,
-          columnId: auditConfig.childColId,
-          req: cookie,
+          refDisplayValue:
+            row[childColumn.title] ?? row[childColumn.column_name],
           type: getOppositeRelationType(colOptions.type),
         });
       }
     }
 
-    await Promise.allSettled(
-      auditUpdateObj.map(async (updateObj) => {
-        await this.afterRemoveChild({
-          columnTitle: updateObj.columnTitle,
-          columnId: updateObj.columnId,
-          refColumnTitle: updateObj.refColumnTitle,
-          rowId: updateObj.rowId,
-          refRowId: updateObj.refRowId,
-          req: updateObj.req,
-          model: updateObj.model,
-          refModel: updateObj.refModel,
-          displayValue: updateObj.displayValue,
-          refDisplayValue: updateObj.refDisplayValue,
-          type: updateObj.type,
-        });
-      }),
+    await this.afterAddOrRemoveChild(
+      {
+        opType: AuditV1OperationTypes.DATA_UNLINK,
+        model: auditConfig.parentModel,
+        refModel: auditConfig.childModel,
+        columnTitle: auditConfig.parentColTitle,
+        columnId: auditConfig.parentColId,
+        refColumnTitle: auditConfig.childColTitle,
+        refColumnId: auditConfig.childColId,
+        req: cookie,
+      },
+      parentAuditObj,
+    );
+    await this.afterAddOrRemoveChild(
+      {
+        opType: AuditV1OperationTypes.DATA_UNLINK,
+        model: auditConfig.childModel,
+        refModel: auditConfig.parentModel,
+        columnTitle: auditConfig.childColTitle,
+        columnId: auditConfig.childColId,
+        refColumnTitle: auditConfig.parentColTitle,
+        refColumnId: auditConfig.parentColId,
+        req: cookie,
+      },
+      childAuditObj,
     );
   }
 

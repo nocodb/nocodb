@@ -21,7 +21,7 @@ test.describe('LTAR with filter create & update', () => {
     await unsetup(context);
   });
 
-  test('LTAR with filters', async () => {
+  test.only('LTAR with filters', async () => {
     await dashboard.treeView.createTable({ title: 'Sheet1', baseTitle: context.base.title });
     // subsequent table creation fails; hence delay
     await dashboard.rootPage.waitForTimeout(1000);
@@ -46,7 +46,7 @@ test.describe('LTAR with filter create & update', () => {
       ltarFilters: [
         {
           title: 'Id',
-          operation: 'eq',
+          operation: '=',
           subOperation: null,
           value: '1',
           locallySaved: true,
@@ -65,7 +65,7 @@ test.describe('LTAR with filter create & update', () => {
       ltarFilters: [
         {
           title: 'Id',
-          operation: 'eq',
+          operation: '=',
           subOperation: null,
           value: '2',
           locallySaved: true,

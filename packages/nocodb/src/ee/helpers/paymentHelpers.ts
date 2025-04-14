@@ -1,7 +1,10 @@
 import {
   GRACE_PERIOD_DURATION,
+  NON_SEAT_ROLES,
   PlanFeatureTypes,
   PlanLimitTypes,
+  ProjectRoles,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import { NcError } from '~/helpers/catchError';
@@ -176,6 +179,62 @@ async function checkLimit(args: {
   }
 }
 
+async function checkSeatLimit(
+  workspaceId: string,
+  fkUserId: string | null,
+  oldRole: WorkspaceUserRoles | ProjectRoles,
+  newRole: WorkspaceUserRoles | ProjectRoles,
+  ncMeta = Noco.ncMeta,
+) {
+  const { seatCount, nonSeatCount, seatUsersMap } =
+    await Subscription.calculateWorkspaceSeatCount(workspaceId, ncMeta);
+
+  /**
+   * If user is already seatUser then no need to increase count to check
+   */
+  const increaseCount = fkUserId ? (seatUsersMap.has(fkUserId) ? 0 : 1) : 1;
+
+  if (!NON_SEAT_ROLES.includes(newRole) && NON_SEAT_ROLES.includes(oldRole)) {
+    const { limit: editorLimitForWorkspace, plan } = await getLimit(
+      PlanLimitTypes.LIMIT_EDITOR,
+      workspaceId,
+      ncMeta,
+    );
+
+    // check if user limit is reached or going to be exceeded
+    if (seatCount + increaseCount > editorLimitForWorkspace) {
+      NcError.planLimitExceeded(
+        `Only ${editorLimitForWorkspace} editors are allowed for your plan, for more please upgrade your plan`,
+        {
+          plan: plan?.title,
+          limit: editorLimitForWorkspace,
+          current: seatCount,
+        },
+      );
+    }
+  }
+
+  if (NON_SEAT_ROLES.includes(newRole) && !NON_SEAT_ROLES.includes(oldRole)) {
+    const { limit: commenterLimitForWorkspace, plan } = await getLimit(
+      PlanLimitTypes.LIMIT_COMMENTER,
+      workspaceId,
+      ncMeta,
+    );
+
+    // check if commenter limit is reached or going to be exceeded
+    if (nonSeatCount + 1 > commenterLimitForWorkspace) {
+      NcError.planLimitExceeded(
+        `Only ${commenterLimitForWorkspace} commenters are allowed for your plan, for more please upgrade your plan`,
+        {
+          plan: plan?.title,
+          limit: commenterLimitForWorkspace,
+          current: nonSeatCount,
+        },
+      );
+    }
+  }
+}
+
 async function getFeature(
   type: PlanFeatureTypes,
   workspaceId?: string,
@@ -243,4 +302,5 @@ export {
   GenericFeatures,
   getWorkspaceOrOrg,
   getActivePlanAndSubscription,
+  checkSeatLimit,
 };

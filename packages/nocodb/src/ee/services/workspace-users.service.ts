@@ -28,7 +28,11 @@ import { UsersService } from '~/services/users/users.service';
 import { MailService } from '~/services/mail/mail.service';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
 import Noco from '~/Noco';
-import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
+import {
+  checkSeatLimit,
+  getLimit,
+  PlanLimitTypes,
+} from '~/helpers/paymentHelpers';
 import { MailEvent } from '~/interface/Mail';
 import { PaymentService } from '~/modules/payment/payment.service';
 
@@ -171,67 +175,13 @@ export class WorkspaceUsersService {
     const transaction = await ncMeta.startTransaction();
 
     try {
-      const { seatCount, nonSeatCount, seatUsersMap } =
-        await Subscription.calculateWorkspaceSeatCount(
-          param.workspaceId,
-          ncMeta,
-        );
-
-      // Throw error only if old role is NON_SEAT_ROLES and new role is SEAT_ROLES and vice versa
-      if (
-        !NON_SEAT_ROLES.includes(param.roles) &&
-        NON_SEAT_ROLES.includes(workspaceUser.roles as WorkspaceUserRoles)
-      ) {
-        const { limit: editorLimitForWorkspace, plan } = await getLimit(
-          PlanLimitTypes.LIMIT_EDITOR,
-          param.workspaceId,
-          transaction,
-        );
-
-        /**
-         * If user is already seatUser then no need to increase count to check
-         */
-        const increaseCount = seatUsersMap.has(workspaceUser.fk_user_id)
-          ? 0
-          : 1;
-
-        // check if user limit is reached or going to be exceeded
-        if (seatCount + increaseCount > editorLimitForWorkspace) {
-          NcError.planLimitExceeded(
-            `Only ${editorLimitForWorkspace} editors are allowed on the ${
-              workspace.payment.plan.title
-            } plan, Upgrade to the ${
-              HigherPlan[workspace.payment.plan.title]
-            } plan to add more users`,
-            {
-              plan: plan.title,
-              limit: editorLimitForWorkspace,
-              current: seatCount,
-            },
-          );
-        }
-      } else if (
-        NON_SEAT_ROLES.includes(param.roles) &&
-        !NON_SEAT_ROLES.includes(workspaceUser.roles as WorkspaceUserRoles)
-      ) {
-        const { limit: usersLimitForWorkspace, plan } = await getLimit(
-          PlanLimitTypes.LIMIT_COMMENTER,
-          param.workspaceId,
-          transaction,
-        );
-
-        // check if user limit is reached or going to be exceeded
-        if (nonSeatCount + 1 > usersLimitForWorkspace) {
-          NcError.planLimitExceeded(
-            `Only ${usersLimitForWorkspace} users are allowed on the ${workspace.payment.plan.title} plan`,
-            {
-              plan: plan.title,
-              limit: usersLimitForWorkspace,
-              current: nonSeatCount,
-            },
-          );
-        }
-      }
+      await checkSeatLimit(
+        param.workspaceId,
+        workspaceUser.fk_user_id,
+        workspaceUser.roles as WorkspaceUserRoles,
+        param.roles,
+        transaction,
+      );
 
       await WorkspaceUser.update(
         param.workspaceId,
@@ -508,8 +458,6 @@ export class WorkspaceUsersService {
      */
 
     if (NON_SEAT_ROLES.includes(roles) && !param.baseEditor) {
-      console.log('isNoAccessRole', WorkspaceUserRoles.NO_ACCESS === roles);
-
       let commenterLimitForWorkspaceToCheck = commenterLimitForWorkspace;
 
       /**

@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
 import { createBulkRows } from '../../../factory/row';
-import { createTable } from '../../../factory/table';
+import { createTable, getTable } from '../../../factory/table';
 import { createUser } from '../../../factory/user';
 import { beforeEach as dataApiV3BeforeEach } from './beforeEach';
 import { ncAxios } from './ncAxios';
@@ -184,7 +184,6 @@ describe('dataApiV3', () => {
     });
 
     it('invalid filter field (invalid parsing)', async () => {
-      // TODO: body change msg to message
       const response = await ncAxiosGet({
         url: `${urlPrefix}/${testContext.countryTable.id}`,
         query: {
@@ -194,6 +193,24 @@ describe('dataApiV3', () => {
       });
       expect(response.body.message).to.eq(
         `INVALID_FILTER parsing_error: Expecting token of type --> PAREN_END <-- but found --> '' <--`,
+      );
+    });
+
+    it('invalid filter value format', async () => {
+      const paymentTable = await getTable({
+        base: testContext.sakilaProject,
+        name: 'payment',
+      });
+      const response = await ncAxiosGet({
+        url: `${urlPrefix}/${paymentTable.id}`,
+        query: {
+          where: '(Amount,eq,HELLO)',
+        },
+        status: 422,
+      });
+      expect(response.body.error).to.eq(`INVALID_FILTER`);
+      expect(response.body.message).to.eq(
+        `Invalid filter expression: Value HELLO is not supported for type Decimal on column Amount`,
       );
     });
 

@@ -417,6 +417,8 @@ onUnmounted(() => {
 
 <style lang="scss">
 .ant-message {
+  @apply z-1051;
+
   .ant-message-notice {
     &:has(.nc-alert-notification) {
       .ant-message-notice-content {

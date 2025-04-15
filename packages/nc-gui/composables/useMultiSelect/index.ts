@@ -792,7 +792,7 @@ export function useMultiSelect(
       }
       case 'Delete':
       case 'Backspace':
-        if (isDataReadOnly.value) {
+        if (isDataReadOnly.value || (removeInlineAddRecord.value && activeCell.row >= EXTERNAL_SOURCE_VISIBLE_ROWS - 1)) {
           return
         }
         if (selectedRange.isSingleCell()) {
@@ -860,7 +860,7 @@ export function useMultiSelect(
             return true
           }
           // Disable edit cell if it is external free source and row index is more than EXTERNAL_SOURCE_VISIBLE_ROWS
-          if (removeInlineAddRecord.value && activeCell.row > EXTERNAL_SOURCE_VISIBLE_ROWS) {
+          if (removeInlineAddRecord.value && activeCell.row >= EXTERNAL_SOURCE_VISIBLE_ROWS - 1) {
             e.preventDefault()
             return
           }

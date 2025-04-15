@@ -256,8 +256,7 @@ export function useCanvasTable({
   )
 
   const isAddingEmptyRowAllowed = computed(
-    () =>
-      isDataEditAllowed.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced && !removeInlineAddRecord.value,
+    () => isDataEditAllowed.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced,
   )
 
   const isAddingColumnAllowed = computed(() => !readOnly.value && isFieldEditAllowed.value && !isSqlView.value)
@@ -1109,6 +1108,8 @@ export function useCanvasTable({
     row = typeof row === 'number' ? cachedRows.value.get(row)! : row
 
     if (!row || !column) return null
+
+    if (removeInlineAddRecord.value && row.rowMeta.rowIndex && row.rowMeta.rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
 
     if (!isDataEditAllowed.value || readOnly.value || isPublicView.value || !isAddingEmptyRowAllowed.value) {
       if (

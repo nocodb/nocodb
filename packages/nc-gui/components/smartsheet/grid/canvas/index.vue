@@ -459,7 +459,7 @@ const totalHeight = computed(() => {
         if (group.path) {
           sum += group.count * rowHeight.value
 
-          if (isAddingEmptyRowAllowed.value) {
+          if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
             sum += COLUMN_HEADER_HEIGHT_IN_PX
           }
           // 1 Px Offset is Added for Showing the activeBorders. Else it wont be visible
@@ -1315,6 +1315,8 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
           openNewRecordHandler({ overwrite: setGroup, path: groupPath })
         }
       } else {
+        if (removeInlineAddRecord.value) return
+
         await addEmptyRow()
       }
     }
@@ -2425,7 +2427,7 @@ defineExpose({
       </NcDropdown>
     </template>
     <div class="absolute bottom-12 z-5 left-2" @click.stop>
-      <NcDropdown v-if="isAddingEmptyRowAllowed">
+      <NcDropdown v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord">
         <div class="flex shadow-nc-sm rounded-lg">
           <NcButton
             v-if="isMobileMode"

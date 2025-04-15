@@ -61,7 +61,14 @@ export function useKeyboardNavigation({
     path?: Array<number>,
   ) => Row | undefined
   onActiveCellChanged: () => void
-  handleCellKeyDown: (ctx: { e: KeyboardEvent; row: Row; column: CanvasGridColumn; value: any; pk: any }) => Promise<boolean>
+  handleCellKeyDown: (ctx: {
+    e: KeyboardEvent
+    row: Row
+    column: CanvasGridColumn
+    value: any
+    pk: any
+    path: Array<number>
+  }) => Promise<boolean | void>
   getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
     totalRows: Ref<number>
@@ -135,6 +142,8 @@ export function useKeyboardNavigation({
       const column = columns.value[activeCell.value.column]
       const row = cachedRows.value.get(activeCell.value.row)
       if (row && column?.columnObj && !editEnabled.value) {
+        if (removeInlineAddRecord.value && row.rowMeta.rowIndex && row.rowMeta.rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
+
         const value = row.row[column.columnObj.title]
         const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
         const res = await handleCellKeyDown({ e, column, row, pk, value, path: groupPath })
@@ -169,7 +178,7 @@ export function useKeyboardNavigation({
       switch (e.keyCode) {
         case 82: {
           // ALT + R
-          if (isAddingEmptyRowAllowed.value) {
+          if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
             $e('c:shortcut', { key: 'ALT + R' })
             addEmptyRow(undefined, undefined, undefined, defaultData, groupPath)
             activeCell.value.row = totalRows.value
@@ -198,7 +207,9 @@ export function useKeyboardNavigation({
         ) {
           e.preventDefault()
           if (selection.value.isSingleCell()) {
-            if (removeInlineAddRecord.value && activeCell.value.row >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
+            if (removeInlineAddRecord.value && activeCell.value.row >= EXTERNAL_SOURCE_VISIBLE_ROWS) {
+              return
+            }
 
             await clearCell?.({
               row: activeCell.value.row,
@@ -336,7 +347,7 @@ export function useKeyboardNavigation({
         let isAdded = false
         e.preventDefault()
         if (!e.shiftKey && activeCell.value.row === lastRow && activeCell.value.column === lastCol) {
-          if (isAddingEmptyRowAllowed.value) {
+          if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
             addEmptyRow(undefined, false, undefined, defaultData, groupPath)
             isAdded = true
           }

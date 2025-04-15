@@ -115,7 +115,11 @@
     "upgradeToAdd": "Upgrade to Add",
     "upgradeToAddMoreExtensions": "You're currently on the Free plan, which allows only one extension. Upgrade to unlock unlimited extensions.",
     "upgradeToAccessWsAudit": "Upgrade to access workspace audit",
-    "upgradeToAccessWsAuditSubtitle": "Upgrade your plan to the {plan} plan to unlock workspace audit logs and track key activities with ease."
+    "upgradeToAccessWsAuditSubtitle": "Upgrade your plan to the {plan} plan to unlock workspace audit logs and track key activities with ease.",
+    "upgradeToAddMoreAttachments": "Upgrade to add more attachments",
+    "upgradeToAddMoreAttachmentsSubtitle": "The {activePlan} plan allows up to {limit} storage. Upgrade to the {plan} plan to increase your storage limit.",
+    "upgradeToCreateMoreRecords": "Upgrade to create more records",
+    "upgradeToCreateMoreRecordsSubtitle": "The {activePlan} plan allows up to {limit} records. Upgrade to the {plan} plan to increase your record limit."
   },
   "general": {
     "supported": "Supported",

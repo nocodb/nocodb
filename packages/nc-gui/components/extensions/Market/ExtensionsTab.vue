@@ -26,7 +26,7 @@ watchDebounced(
 
 const { availableExtensions, addExtension, getExtensionAssetsUrl, showExtensionDetails } = useExtensions()
 
-const { isAllowAddExtension } = useEeConfig()
+const { isAllowToAddExtension } = useEeConfig()
 
 const filteredAvailableExtensions = computed(() =>
   (availableExtensions.value || []).filter(
@@ -88,7 +88,7 @@ const onAddExtension = (ext: any) => {
               </div>
             </div>
             <NcButton
-              v-if="isAllowAddExtension"
+              v-if="isAllowToAddExtension"
               size="small"
               type="secondary"
               class="flex-none !px-7px"

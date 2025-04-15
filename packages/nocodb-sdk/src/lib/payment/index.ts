@@ -116,6 +116,6 @@ export const HigherPlan = {
   [PlanTitles.FREE]: PlanTitles.TEAM,
   [PlanTitles.TEAM]: PlanTitles.BUSINESS,
   [PlanTitles.BUSINESS]: PlanTitles.ENTERPRISE,
-};
+} as Record<string, PlanTitles>;
 
 export const GRACE_PERIOD_DURATION = 14;

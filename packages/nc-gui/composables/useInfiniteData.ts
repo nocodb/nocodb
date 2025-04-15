@@ -97,13 +97,16 @@ export function useInfiniteData(args: {
 
   const { fetchSharedViewData, fetchCount } = useSharedView()
 
-  const { nestedFilters, allFilters, sorts } = disableSmartsheet
+  const { nestedFilters, allFilters, sorts, isExternalSource } = disableSmartsheet
     ? {
         nestedFilters: ref([]),
         allFilters: ref([]),
         sorts: ref([]),
+        isExternalSource: computed(() => false),
       }
     : useSmartsheetStoreOrThrow()
+
+  const { blockExternalSourceRecordVisibility } = useEeConfig()
 
   const selectedAllRecords = ref(false)
 
@@ -336,6 +339,8 @@ export function useInfiniteData(args: {
     if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return []
 
     const whereFilter = callbacks?.getWhereFilter?.(path)
+
+    if (blockExternalSourceRecordVisibility(isExternalSource.value) && params.offset && params.offset >= 200) return []
 
     try {
       const response = !isPublic?.value

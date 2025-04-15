@@ -12,13 +12,13 @@ const isPublic = inject(IsPublicInj, ref(false))
 const fields = inject(FieldsInj, ref([]))
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
-const { isSqlView, xWhere } = useSmartsheetStoreOrThrow()
+const { isSqlView, xWhere, isExternalSource } = useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
 const route = useRoute()
 const { getPossibleAttachmentSrc } = useAttachment()
 const router = useRouter()
 
-const { showRecordPlanLimitExceededModal } = useEeConfig()
+const { showRecordPlanLimitExceededModal, showAsBluredRecord } = useEeConfig()
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
@@ -406,6 +406,14 @@ const handleOpenNewRecordForm = () => {
               v-for="record in visibleRows"
               :key="`record-${record.rowMeta.rowIndex}`"
               :data-card-id="`record-${record.rowMeta.rowIndex}`"
+              :style="{
+                filter:
+                  showAsBluredRecord(isExternalSource, record.rowMeta.rowIndex + 1) && !record.rowMeta.new
+                    ? 'blur(4px)'
+                    : undefined,
+                pointerEvents:
+                  showAsBluredRecord(isExternalSource, record.rowMeta.rowIndex + 1) && !record.rowMeta.new ? 'none' : 'auto',
+              }"
             >
               <LazySmartsheetRow :row="record">
                 <a-card

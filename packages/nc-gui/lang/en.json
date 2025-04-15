@@ -355,6 +355,7 @@
     "total": "Total",
     "downgrade": "Downgrade",
     "upgrade": "Upgrade",
+    "requestUpgrade": "Request Upgrade",
     "reactivate": "Reactivate",
     "left": "left"
   },

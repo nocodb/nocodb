@@ -11,7 +11,7 @@ let
   inherit (pkgs.stdenv.hostPlatform) system;
 
   defaultEnvs = {
-    DATABASE_URL="sqlite:///%S/nocodb/sqlite.db";
+    DATABASE_URL = "sqlite:///%S/nocodb/sqlite.db";
   };
 in
 {

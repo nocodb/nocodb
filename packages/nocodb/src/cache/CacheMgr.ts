@@ -665,6 +665,89 @@ export default abstract class CacheMgr {
     return pipeline;
   }
 
+  async setHash(
+    key: string,
+    hash: Record<string, any>,
+    options: {
+      ttl?: number;
+    } = {},
+  ) {
+    log(`${this.context}::setHash: setting hash ${key}`);
+    const { ttl } = options;
+    if (ttl) {
+      await this.client.hset(key, hash);
+      await this.client.expire(key, ttl);
+    }
+
+    return this.client.hset(key, hash);
+  }
+
+  async getHash(key: string): Promise<Record<string, string> | null> {
+    log(`${this.context}::getHash: getting hash ${key}`);
+    const hash = await this.client.hgetall(key);
+    if (hash && Object.keys(hash).length) {
+      return hash;
+    }
+    return null;
+  }
+
+  async getHashField(key: string, field: string): Promise<string> {
+    log(`${this.context}::getHashField: getting hash ${key} field ${field}`);
+    return await this.client.hget(key, field);
+  }
+
+  async setHashField(key: string, field: string, value: string | number) {
+    log(`${this.context}::setHashField: setting hash ${key} field ${field}`);
+    return await this.client.hset(key, field, value);
+  }
+
+  async incrHashField(
+    key: string,
+    field: string,
+    value: number,
+  ): Promise<number> {
+    log(
+      `${this.context}::incrHashField: incrementing hash ${key} field ${field}`,
+    );
+    return await this.client.hincrby(key, field, value);
+  }
+
+  async processPattern(
+    pattern: string,
+    callback: (key: string) => Promise<void>,
+    options: { count?: number; type?: string } = {},
+  ): Promise<void> {
+    log(`${this.context}::processPattern: processing pattern ${pattern}`);
+    const stream = this.client.scanStream({
+      match: pattern,
+      count: options.count || 10,
+      type: options.type,
+    });
+
+    return new Promise((resolve, reject) => {
+      stream.on('data', async (keys: string[]) => {
+        for (const key of keys) {
+          logger.log(`Processing key: ${key}`);
+          await callback(key.replace(`${this.prefix}:`, ''));
+        }
+      });
+
+      stream.on('end', () => {
+        resolve();
+      });
+
+      stream.on('error', (err) => {
+        logger.error(`Error processing pattern ${pattern}: ${err}`);
+        reject(err);
+      });
+    });
+  }
+
+  async keyExists(key: string): Promise<boolean> {
+    log(`${this.context}::keyExists: checking if key ${key} exists`);
+    return this.client.exists(key).then((r) => r === 1);
+  }
+
   async destroy(): Promise<boolean> {
     log('${this.context}::destroy: destroy redis');
     return this.client.flushdb().then((r) => r === 'OK');

@@ -259,7 +259,7 @@ export function useCanvasTable({
   )
 
   const removeInlineAddRecord = computed(
-    () => blockExternalSourceRecordVisibility(isExternalSource.value) && totalRows.value >= 100,
+    () => blockExternalSourceRecordVisibility(isExternalSource.value) && totalRows.value >= EXTERNAL_SOURCE_VISIBLE_ROWS,
   )
 
   const fetchMetaIds = ref<string[]>([])
@@ -585,7 +585,7 @@ export function useCanvasTable({
 
     // If selection is single cell and cell is virtual, hide fill handler
     if (selection.value.isSingleCell()) {
-      if (removeInlineAddRecord.value && selection.value.start.row > 100) return null
+      if (removeInlineAddRecord.value && selection.value.start.row > EXTERNAL_SOURCE_VISIBLE_ROWS) return null
 
       const selectedColumn = columns.value[selection.value.end.col]
       // If the cell is virtual or system column, hide the fill handler

@@ -215,7 +215,7 @@ const rowSortRequiredRows = toRef(props, 'rowSortRequiredRows')
 const totalRows = toRef(props, 'totalRows')
 
 const removeInlineAddRecord = computed(
-  () => blockExternalSourceRecordVisibility(isExternalSource.value) && totalRows.value >= 100,
+  () => blockExternalSourceRecordVisibility(isExternalSource.value) && totalRows.value >= EXTERNAL_SOURCE_VISIBLE_ROWS,
 )
 
 const chunkStates = toRef(props, 'chunkStates')
@@ -2559,7 +2559,7 @@ const cellAlignClass = computed(() => {
                           >
                             <NcCheckbox
                               :checked="row.rowMeta.selected || vSelectedAllRecords"
-                              :disabled="(!row.rowMeta.selected && selectedRows.length >= 100) || vSelectedAllRecords"
+                              :disabled="(!row.rowMeta.selected && selectedRows.length >= EXTERNAL_SOURCE_VISIBLE_ROWS) || vSelectedAllRecords"
                               class="!w-4 !h-4"
                               @change="toggleRowSelection(row.rowMeta.rowIndex)"
                             />

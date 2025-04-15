@@ -45,7 +45,11 @@ export function useDataFetch({
 
     if (offset >= totalRows.value) return
 
-    if (!isAlreadyShownUpgradeModal.value && offset >= 100 && blockExternalSourceRecordVisibility(isExternalSource.value)) {
+    if (
+      !isAlreadyShownUpgradeModal.value &&
+      offset >= EXTERNAL_SOURCE_VISIBLE_ROWS &&
+      blockExternalSourceRecordVisibility(isExternalSource.value)
+    ) {
       isAlreadyShownUpgradeModal.value = true
 
       if (upgradeModalTimer) {

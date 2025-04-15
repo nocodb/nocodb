@@ -124,7 +124,7 @@ export function useKeyboardNavigation({
 
         if (!row) return
 
-        if (removeInlineAddRecord.value && row.rowMeta.rowIndex && row.rowMeta.rowIndex > 100) return
+        if (removeInlineAddRecord.value && row.rowMeta.rowIndex && row.rowMeta.rowIndex > EXTERNAL_SOURCE_VISIBLE_ROWS) return
 
         expandForm(row, undefined, false, groupPath)
         return
@@ -220,7 +220,7 @@ export function useKeyboardNavigation({
             if (!NO_EDITABLE_CELL.includes(column.columnObj.uidt as UITypes) && !column.columnObj.readonly) {
               const row = cachedRows.value.get(activeCell.value.row)
 
-              if (removeInlineAddRecord.value && row?.rowMeta?.rowIndex > 100) return
+              if (removeInlineAddRecord.value && row?.rowMeta?.rowIndex > EXTERNAL_SOURCE_VISIBLE_ROWS) return
 
               makeCellEditable(row, columns.value[activeCell.value.column]!)
               selection.value.clear()

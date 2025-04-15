@@ -26,3 +26,7 @@ export const INITIAL_LEFT_SIDEBAR_WIDTH = 288
 export const NO_SCOPE = SDK_NO_SCOPE
 
 export const ANT_MESSAGE_DURATION = +(process.env.ANT_MESSAGE_DURATION ?? (ncIsPlaywright() ? 1 : 6))
+
+export const EXTERNAL_SOURCE_TOTAL_ROWS = 200
+
+export const EXTERNAL_SOURCE_VISIBLE_ROWS = 100

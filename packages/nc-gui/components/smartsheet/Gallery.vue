@@ -12,18 +12,13 @@ const isPublic = inject(IsPublicInj, ref(false))
 const fields = inject(FieldsInj, ref([]))
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
-const { isSqlView, xWhere, isExternalSource, isAlreadyShownUpgradeModal } = useSmartsheetStoreOrThrow()
+const { isSqlView, xWhere, isExternalSource } = useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
 const route = useRoute()
 const { getPossibleAttachmentSrc } = useAttachment()
 const router = useRouter()
 
-const {
-  showRecordPlanLimitExceededModal,
-  blockExternalSourceRecordVisibility,
-  showAsBluredRecord,
-  showUpgradeToSeeMoreRecordsModal,
-} = useEeConfig()
+const { showRecordPlanLimitExceededModal, blockExternalSourceRecordVisibility, showAsBluredRecord } = useEeConfig()
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
@@ -265,28 +260,6 @@ const updateVisibleRows = async () => {
   if (chunksToFetch.size > 0) {
     await Promise.all(
       [...chunksToFetch].map((chunkId) => {
-        if (
-          !isAlreadyShownUpgradeModal.value &&
-          chunkId &&
-          chunkId * CHUNK_SIZE >= 100 &&
-          blockExternalSourceRecordVisibility(isExternalSource.value)
-        ) {
-          isAlreadyShownUpgradeModal.value = true
-
-          if (upgradeModalTimer) {
-            clearTimeout(upgradeModalTimer)
-          }
-
-          upgradeModalTimer = setTimeout(() => {
-            showUpgradeToSeeMoreRecordsModal({
-              isExternalSource: isExternalSource.value,
-            })
-            clearTimeout(upgradeModalTimer)
-          }, 1000)
-
-          return
-        }
-
         fetchChunk(chunkId)
       }),
     )

@@ -36,6 +36,7 @@ import type { Row } from '#imports'
 
 const props = defineProps<{
   totalRows: number
+  actualTotalRows: number
   data: Map<number, Row>
   groupDataCache: Map<
     string,
@@ -166,6 +167,7 @@ const totalRows = toRef(props, 'totalRows')
 //   return props.totalRows
 // })
 
+const actualTotalRows = toRef(props, 'actualTotalRows')
 const totalGroups = toRef(props, 'totalGroups')
 const chunkStates = toRef(props, 'chunkStates')
 const cachedRows = toRef(props, 'data')
@@ -338,6 +340,7 @@ const {
   clearCache,
   chunkStates,
   totalRows,
+  actualTotalRows,
   loadData,
   scrollLeft,
   width,

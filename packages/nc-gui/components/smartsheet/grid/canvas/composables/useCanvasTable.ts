@@ -28,6 +28,7 @@ export function useCanvasTable({
   clearCache,
   chunkStates,
   totalRows,
+  actualTotalRows,
   loadData,
   scrollLeft,
   scrollTop,
@@ -62,6 +63,7 @@ export function useCanvasTable({
   clearCache: (visibleStartIndex: number, visibleEndIndex: number, path?: Array<number>) => void
   chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
   totalRows: Ref<number>
+  actualTotalRows: Ref<number>
   loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
   scrollLeft: Ref<number>
   scrollTop: Ref<number>
@@ -242,7 +244,8 @@ export function useCanvasTable({
   )
 
   const isAddingEmptyRowAllowed = computed(
-    () => isDataEditAllowed.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced,
+    () =>
+      isDataEditAllowed.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced && !removeInlineAddRecord.value,
   )
 
   const isAddingColumnAllowed = computed(() => !readOnly.value && isFieldEditAllowed.value && !isSqlView.value)
@@ -582,6 +585,8 @@ export function useCanvasTable({
 
     // If selection is single cell and cell is virtual, hide fill handler
     if (selection.value.isSingleCell()) {
+      if (removeInlineAddRecord.value && selection.value.start.row > 100) return null
+
       const selectedColumn = columns.value[selection.value.end.col]
       // If the cell is virtual or system column, hide the fill handler
       if (
@@ -689,6 +694,7 @@ export function useCanvasTable({
     editEnabled,
     totalWidth,
     totalRows,
+    actualTotalRows,
     t,
     isAddingColumnAllowed,
     readOnly,
@@ -733,7 +739,7 @@ export function useCanvasTable({
     rowSlice,
     triggerRefreshCanvas,
     isAlreadyShownUpgradeModal,
-    isExternalSource
+    isExternalSource,
   })
 
   const { clearCell, copyValue, isPasteable } = useCopyPaste({
@@ -948,7 +954,7 @@ export function useCanvasTable({
     onActiveCellChanged,
     addNewColumn,
     handleCellKeyDown,
-    removeInlineAddRecord
+    removeInlineAddRecord,
   })
 
   const {

@@ -53,6 +53,7 @@ const {
   bulkUpsertRows,
   syncCount,
   totalRows,
+  actualTotalRows,
   syncVisibleData,
   optimisedQuery,
   isLastRow,
@@ -368,6 +369,7 @@ const bulkUpdateTrigger = (path: Array<number>) => {
       :clear-invalid-rows="clearInvalidRows"
       :data="cachedRows"
       :total-rows="totalRows"
+      :actual-total-rows="actualTotalRows"
       :sync-count="syncCount"
       :get-rows="getRows"
       :chunk-states="chunkStates"
@@ -410,6 +412,7 @@ const bulkUpdateTrigger = (path: Array<number>) => {
       :clear-invalid-rows="clearInvalidRows"
       :data="cachedRows"
       :total-rows="totalRows"
+      :actual-total-rows="actualTotalRows"
       :sync-count="syncCount"
       :chunk-states="chunkStates"
       :expand-form="expandForm"

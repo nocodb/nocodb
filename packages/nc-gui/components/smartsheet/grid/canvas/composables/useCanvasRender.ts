@@ -73,6 +73,7 @@ export function useCanvasRender({
   editEnabled,
   totalWidth,
   totalRows,
+  actualTotalRows,
   t,
   readOnly,
   isFieldEditAllowed,
@@ -130,6 +131,7 @@ export function useCanvasRender({
   meta: ComputedRef<TableType>
   editEnabled: Ref<CanvasEditEnabledType>
   totalRows: Ref<number>
+  actualTotalRows: Ref<number>
   totalGroups: Ref<number>
   t: Composer['t']
   readOnly: Ref<boolean>
@@ -1355,7 +1357,7 @@ export function useCanvasRender({
         ctx.lineTo(adjustedWidth, yOffset + rowHeight.value)
         ctx.stroke()
 
-        // Since blur is not working we can just fill rect
+        // Since blur is not working we can use just fill rect
         if (removeInlineAddRecord.value && rowIdx > 100) {
           ctx.fillStyle = 'rgba(231, 231, 233, 0.8)'
           ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
@@ -1685,7 +1687,7 @@ export function useCanvasRender({
           ctx.restore()
         }
 
-        const count = isGroupBy.value ? totalGroups.value : totalRows.value
+        const count = isGroupBy.value ? totalGroups.value : Math.max(totalRows.value, actualTotalRows.value ?? 0)
         const label = isGroupBy.value
           ? count !== 1
             ? t('objects.groups')

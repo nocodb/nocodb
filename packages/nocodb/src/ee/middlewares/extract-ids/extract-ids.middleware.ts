@@ -132,6 +132,34 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.integrationNotFound(params.integrationId);
       }
       req.ncWorkspaceId = integration.fk_workspace_id;
+    } else if (params.baseId || params.baseName) {
+      const base = await Base.getByTitleOrId(
+        context,
+        params.baseId ?? params.baseName,
+      );
+
+      if (!base) {
+        if (context.api_version === NcApiVersion.V3) {
+          NcError.baseNotFoundV3(params.baseId ?? params.baseName);
+        } else {
+          NcError.baseNotFound(params.baseId ?? params.baseName);
+        }
+      }
+      if (params.tableId || params.modelId) {
+        const model = await Model.getByIdOrName(context, {
+          id: params.tableId || params.modelId,
+          base_id: base.id,
+        });
+        if (!model) {
+          if (context.api_version === NcApiVersion.V3) {
+            NcError.tableNotFoundV3(params.tableId || params.modelId);
+          } else {
+            NcError.tableNotFound(params.tableId || params.modelId);
+          }
+        }
+        req.ncBaseId = model.base_id;
+        req.ncSourceId = model.source_id;
+      }
     } else if (params.tableId || params.modelId) {
       const model = await Model.getByIdOrName(context, {
         id: params.tableId || params.modelId,

@@ -27,7 +27,7 @@ describe('dataApiV3', () => {
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext);
-      urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      urlPrefix = `/api/${API_VERSION}/${testContext.sakilaProject.id}`;
 
       ncAxiosGet = testAxios.ncAxiosGet;
       ncAxiosPost = testAxios.ncAxiosPost;
@@ -105,15 +105,16 @@ describe('dataApiV3', () => {
         url: `${urlPrefix}/123456789`,
         status: 422,
       });
+      expect(response.body.error).to.eq('TABLE_NOT_FOUND');
       expect(response.body.message).to.eq(`Table '123456789' not found`);
     });
     it('baseId not found', async () => {
-      // TODO: fix base not found error message
       const response = await ncAxiosGet({
         url: `/api/v3/234567890/123456789`,
         status: 422,
       });
-      expect(response.body.message).to.eq(`Table '123456789' not found`);
+      expect(response.body.error).to.equal('BASE_NOT_FOUND');
+      expect(response.body.message).to.eq(`Base '234567890' not found`);
     });
     it('invalid api version', async () => {
       const response = await ncAxiosGet({
@@ -142,6 +143,7 @@ describe('dataApiV3', () => {
         url: `${urlPrefix}/${testContext.countryTable.id}?viewId=123456890`,
         status: 422,
       });
+      expect(response.body.error).to.eq(`VIEW_NOT_FOUND`);
       expect(response.body.message).to.eq(`View '123456890' not found`);
     });
     it('invalid page', async () => {
@@ -162,6 +164,7 @@ describe('dataApiV3', () => {
         },
         status: 422,
       });
+      expect(response.body.error).to.eq('FIELD_NOT_FOUND');
       expect(response.body.message).to.eq(`Field 'NotFoundField' not found`);
     });
     // skip, our sort direction is either {field} (asc) or -{field} (desc) so no validation required

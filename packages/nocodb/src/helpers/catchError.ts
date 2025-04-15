@@ -603,6 +603,10 @@ const errorHelpers: {
     message: (id: string) => `Base '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.BASE_NOT_FOUNDV3]: {
+    message: (id: string) => `Base '${id}' not found`,
+    code: 422,
+  },
   [NcErrorType.SOURCE_NOT_FOUND]: {
     message: (id: string) => `Source '${id}' not found`,
     code: 404,
@@ -863,6 +867,12 @@ export class NcError {
 
   static baseNotFound(id: string, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.BASE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+  static baseNotFoundV3(id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.BASE_NOT_FOUNDV3, {
       params: id,
       ...args,
     });

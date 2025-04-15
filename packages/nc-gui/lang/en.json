@@ -119,7 +119,8 @@
     "upgradeToAddMoreAttachments": "Upgrade to add more attachments",
     "upgradeToAddMoreAttachmentsSubtitle": "The {activePlan} plan allows up to {limit} storage. Upgrade to the {plan} plan to increase your storage limit.",
     "upgradeToCreateMoreRecords": "Upgrade to create more records",
-    "upgradeToCreateMoreRecordsSubtitle": "The {activePlan} plan allows up to {limit} records. Upgrade to the {plan} plan to increase your record limit."
+    "upgradeToCreateMoreRecordsSubtitle": "The {activePlan} plan allows up to {limit} records. Upgrade to the {plan} plan to increase your record limit.",
+    "upgradeToAccessFieldValidationSubtitle": "Add field validations by upgrading your workspace to the {plan} plan."
   },
   "general": {
     "supported": "Supported",

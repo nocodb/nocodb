@@ -16,8 +16,8 @@ const { getFeature, isPaymentEnabled } = useEeConfig()
 
 const isFeatureEnabled = computed(() => getFeature(props.feature))
 
-const onClick = (feature: PlanFeatureTypes, successCallback?: (...arg: any[]) => any | Promise<any>) => {
-  if (isEeUI && !getFeature(feature) && isPaymentEnabled.value) {
+const onClick = (feature: PlanFeatureTypes, successCallback?: (...arg: any[]) => any | Promise<any>, bypass: boolean = false) => {
+  if (isEeUI && !getFeature(feature) && isPaymentEnabled.value && !bypass) {
     planUpgradeClickHook.trigger()
 
     // Return true if feature is not available so that we can prevent any action

@@ -13,6 +13,8 @@ export function useDataFetch({
   rowSlice,
   totalRows,
   triggerRefreshCanvas,
+  isAlreadyShownUpgradeModal,
+  isExternalSource,
 }: {
   chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
   cachedRows: Ref<Map<number, Row>>
@@ -21,9 +23,19 @@ export function useDataFetch({
   rowSlice: Ref<{ start: number; end: number }>
   totalRows: Ref<number>
   triggerRefreshCanvas: () => void
+  isAlreadyShownUpgradeModal: Ref<boolean>
+  isExternalSource: ComputedRef<boolean>
 }) {
+  const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
+
   // previousRowSlice to determine the scroll direction
   const previousRowSlice = ref({ start: rowSlice.value.start, end: rowSlice.value.end })
+
+  let upgradeModalTimer: any
+
+  onBeforeUnmount(() => {
+    clearTimeout(upgradeModalTimer)
+  })
 
   const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
     if (chunkStates.value[chunkId]) return
@@ -32,6 +44,23 @@ export function useDataFetch({
     const limit = isInitialLoad ? INITIAL_LOAD_SIZE : CHUNK_SIZE
 
     if (offset >= totalRows.value) return
+
+    if (!isAlreadyShownUpgradeModal.value && offset >= 100 && blockExternalSourceRecordVisibility(isExternalSource.value)) {
+      isAlreadyShownUpgradeModal.value = true
+
+      if (upgradeModalTimer) {
+        clearTimeout(upgradeModalTimer)
+      }
+
+      upgradeModalTimer = setTimeout(() => {
+        showUpgradeToSeeMoreRecordsModal({
+          isExternalSource: isExternalSource.value,
+        })
+        clearTimeout(upgradeModalTimer)
+      }, 1000)
+
+      return
+    }
 
     chunkStates.value[chunkId] = 'loading'
     if (isInitialLoad) {

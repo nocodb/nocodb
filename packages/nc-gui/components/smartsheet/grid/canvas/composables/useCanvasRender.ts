@@ -87,6 +87,7 @@ export function useCanvasRender({
   getDataCache,
   getRows,
   draggedRowGroupPath,
+  removeInlineAddRecord,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -157,6 +158,7 @@ export function useCanvasRender({
   }
   getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
   draggedRowGroupPath: Ref<number[]>
+  removeInlineAddRecord: Ref<boolean>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
@@ -1313,7 +1315,7 @@ export function useCanvasRender({
     const dataCache = getDataCache()
 
     for (let rowIdx = startRowIndex; rowIdx < endRowIndex; rowIdx++) {
-      if (yOffset + rowHeight.value > 0 && yOffset < height.value) {
+      if (yOffset + rowHeight.value > 0 && yOffset < height.value && (!removeInlineAddRecord.value || rowIdx <= 200)) {
         const row = dataCache.cachedRows.value.get(rowIdx)
 
         if (rowIdx === draggedRowIndex.value) {
@@ -1353,6 +1355,14 @@ export function useCanvasRender({
         ctx.lineTo(adjustedWidth, yOffset + rowHeight.value)
         ctx.stroke()
 
+        // Since blur is not working we can just fill rect
+        if (removeInlineAddRecord.value && rowIdx > 100) {
+          ctx.fillStyle = 'rgba(231, 231, 233, 0.8)'
+          ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
+
+          ctx.fill()
+        }
+
         if (row?.rowMeta.isValidationFailed || row?.rowMeta.isRowOrderUpdated) {
           warningRow = { row, yOffset }
         }
@@ -1362,7 +1372,7 @@ export function useCanvasRender({
     }
 
     // Add New Row
-    if (isAddingEmptyRowAllowed.value && !isMobileMode.value) {
+    if (isAddingEmptyRowAllowed.value && !isMobileMode.value && !removeInlineAddRecord.value) {
       const isNewRowHovered = isBoxHovered(
         {
           x: 0,

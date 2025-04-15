@@ -97,16 +97,17 @@ export function useInfiniteData(args: {
 
   const { fetchSharedViewData, fetchCount } = useSharedView()
 
-  const { nestedFilters, allFilters, sorts, isExternalSource } = disableSmartsheet
+  const { nestedFilters, allFilters, sorts, isExternalSource, isAlreadyShownUpgradeModal } = disableSmartsheet
     ? {
         nestedFilters: ref([]),
         allFilters: ref([]),
         sorts: ref([]),
         isExternalSource: computed(() => false),
+        isAlreadyShownUpgradeModal: ref(false),
       }
     : useSmartsheetStoreOrThrow()
 
-  const { blockExternalSourceRecordVisibility } = useEeConfig()
+  const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
   const selectedAllRecords = ref(false)
 
@@ -327,6 +328,12 @@ export function useInfiniteData(args: {
     }
   }
 
+  let upgradeModalTimer: any
+
+  onBeforeUnmount(() => {
+    clearTimeout(upgradeModalTimer)
+  })
+
   async function loadData(
     params: Parameters<Api<any>['dbViewRow']['list']>[4] & {
       limit?: number
@@ -340,7 +347,26 @@ export function useInfiniteData(args: {
 
     const whereFilter = callbacks?.getWhereFilter?.(path)
 
-    if (blockExternalSourceRecordVisibility(isExternalSource.value) && params.offset && params.offset >= 200) return []
+    if (params.offset && blockExternalSourceRecordVisibility(isExternalSource.value)) {
+      if (!isAlreadyShownUpgradeModal.value && params.offset >= 100) {
+        isAlreadyShownUpgradeModal.value = true
+
+        if (upgradeModalTimer) {
+          clearTimeout(upgradeModalTimer)
+        }
+
+        upgradeModalTimer = setTimeout(() => {
+          showUpgradeToSeeMoreRecordsModal({
+            isExternalSource: isExternalSource.value,
+          })
+          clearTimeout(upgradeModalTimer)
+        }, 1000)
+      }
+
+      if (params.offset >= 200) {
+        return []
+      }
+    }
 
     try {
       const response = !isPublic?.value

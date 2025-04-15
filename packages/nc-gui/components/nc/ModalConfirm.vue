@@ -99,6 +99,8 @@ const emits = defineEmits<Emits>()
 
 const { visible: _visible, ...restProps } = props
 
+const initialFocus = ref<boolean>(false)
+
 interface Emits {
   (e: 'update:visible', value: boolean): void
   // cancel is generic, on click cancel or close modal using keybord shortcut or overlay click
@@ -157,12 +159,14 @@ const onClickCancel = () => {
 watch(cancelBtnRef, () => {
   if (!cancelBtnRef.value?.$el || props.focusBtn !== 'cancel') return
   ;(cancelBtnRef.value?.$el as HTMLButtonElement)?.focus()
+  initialFocus.value = true
 })
 
 /** Watches for OK button reference and sets focus if applicable */
 watch(okBtnRef, () => {
   if (!okBtnRef.value?.$el || props.focusBtn !== 'ok') return
   ;(okBtnRef.value?.$el as HTMLButtonElement)?.focus()
+  initialFocus.value = true
 })
 
 useSelectedCellKeydownListener(
@@ -179,6 +183,21 @@ useSelectedCellKeydownListener(
         }
 
         emits('ok')
+        break
+      case 'Tab':
+        if (initialFocus.value) {
+          e.preventDefault()
+
+          initialFocus.value = false
+
+          // if focusBtn provided set first focus to the button on first tab
+          if (props.focusBtn === 'cancel') {
+            cancelBtnRef.value?.$el?.focus()
+          } else {
+            okBtnRef.value?.$el?.focus()
+          }
+        }
+        break
     }
   },
   {
@@ -217,6 +236,7 @@ useSelectedCellKeydownListener(
           size="small"
           :class="cancelClass"
           v-bind="cancelProps"
+          :hide-focus="initialFocus"
           @click="onClickCancel"
         >
           {{ cancelText || $t('general.cancel') }}
@@ -227,6 +247,7 @@ useSelectedCellKeydownListener(
           size="small"
           :class="okClass"
           v-bind="okProps"
+          :hide-focus="initialFocus"
           @click="emits('ok')"
         >
           {{ okText || $t('general.ok') }}

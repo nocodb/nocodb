@@ -50,6 +50,7 @@ export interface NcListProps {
    * @default 38
    */
   itemHeight?: number
+  variant?: 'default' | 'small' | 'medium'
   /** Custom filter function for list items */
   filterOption?: (input: string, option: NcListItemType, index: Number) => boolean
   /**
@@ -82,7 +83,7 @@ const props = withDefaults(defineProps<NcListProps>(), {
   showSelectedOption: true,
   optionValueKey: 'value',
   optionLabelKey: 'label',
-  itemHeight: 38,
+  variant: 'default',
   isMultiSelect: false,
   minItemsForSearch: 4,
   containerClassName: '',
@@ -101,6 +102,20 @@ const vOpen = useVModel(props, 'open', emits)
 const { optionValueKey, optionLabelKey } = props
 
 const { closeOnSelect, showSelectedOption, containerClassName, itemClassName } = toRefs(props)
+
+const itemHeight = computed(() => {
+  if (!props.itemHeight) {
+    if (props.variant === 'medium') {
+      return 32
+    }
+
+    if (props.variant === 'small') {
+      return 28
+    }
+  }
+
+  return 40
+})
 
 const slots = useSlots()
 
@@ -146,7 +161,7 @@ const {
   wrapperProps,
   scrollTo,
 } = useVirtualList(list, {
-  itemHeight: props.itemHeight + 2,
+  itemHeight: itemHeight.value + 2,
 })
 
 /**
@@ -197,7 +212,6 @@ const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: numb
  */
 const handleSelectOption = (option: NcListItemType, index?: number) => {
   if (!ncIsObject(option) || !(optionValueKey in option) || option.ncItemDisabled) return
-
   if (index !== undefined) {
     activeOptionIndex.value = index
   }
@@ -338,19 +352,29 @@ watch(
   <div
     ref="listRef"
     tabindex="0"
-    class="flex flex-col pt-2 w-64 !focus:(shadow-none outline-none)"
+    class="flex flex-col nc-list-root pt-2 w-64 !focus:(shadow-none outline-none)"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex])"
   >
     <template v-if="isSearchEnabled">
-      <div class="w-full px-2 flex items-center gap-2" @click.stop>
+      <div
+        class="w-full flex items-center gap-2"
+        :class="{
+          'px-1': variant === 'small',
+          'px-2': variant !== 'small',
+        }"
+        @click.stop
+      >
         <slot name="headerExtraLeft"> </slot>
         <a-input
           ref="inputRef"
           v-model:value="searchQuery"
           :placeholder="searchInputPlaceholder"
           class="nc-toolbar-dropdown-search-field-input !pl-2 !pr-1.5 flex-1"
+          :class="{
+            '!pt-0': variant === 'small',
+          }"
           allow-clear
           :bordered="false"
           @keydown.enter.stop="handleKeydownEnter"
@@ -369,14 +393,20 @@ watch(
         <div class="h-auto !max-h-[247px]">
           <div
             v-bind="containerProps"
-            class="nc-list !h-auto w-full nc-scrollbar-thin px-2 pb-2 !max-h-[247px]"
-            :class="containerClassName"
+            class="nc-list !h-auto w-full nc-scrollbar-thin !max-h-[247px]"
+            :class="[
+              containerClassName,
+              {
+                'px-1 pb-1': variant === 'small',
+                'px-2 pb-2': variant !== 'small',
+              },
+            ]"
           >
             <div v-bind="wrapperProps">
               <NcTooltip
                 v-for="{ data: option, index: idx } in virtualList"
                 :key="idx"
-                class="flex items-center gap-2 w-full py-2 px-2 rounded-md my-[2px] first-of-type:mt-0 last-of-type:mb-0"
+                class="flex items-center gap-2 nc-list-item w-full px-2 rounded-md my-[2px] first-of-type:mt-0 last-of-type:mb-0"
                 :class="[
                   `nc-list-option-${idx}`,
                   {
@@ -386,6 +416,9 @@ watch(
                     'bg-gray-100 nc-list-option-active': !option?.ncItemDisabled && activeOptionIndex === idx,
                     'opacity-60 cursor-not-allowed': option?.ncItemDisabled,
                     'hover:bg-gray-100 cursor-pointer': !option?.ncItemDisabled,
+                    'py-2': variant === 'default',
+                    'py-[5px]': variant === 'medium',
+                    'py-[3px]': variant === 'small',
                   },
                   `${itemClassName}`,
                 ]"

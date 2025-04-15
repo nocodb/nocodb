@@ -6,6 +6,7 @@ const jobsState = createGlobalState(() => {
 interface JobType {
   id: string
   job: string
+  name: string
   status: string
   result: Record<string, any>
   fk_user_id: string

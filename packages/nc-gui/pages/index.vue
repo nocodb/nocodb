@@ -4,6 +4,8 @@ definePageMeta({
   hasSidebar: true,
 })
 
+const { isSharedBase, isSharedErd } = storeToRefs(useBase())
+
 const basesStore = useBases()
 
 const { populateWorkspace } = useWorkspace()
@@ -93,6 +95,16 @@ onMounted(() => {
     }
   })
 })
+
+watch(
+  [() => isSharedFormView.value, () => isSharedView.value, () => isSharedBase.value, () => isSharedErd.value],
+  (arr) => {
+    addConfirmPageLeavingRedirectToWindow(!arr.some(Boolean))
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>

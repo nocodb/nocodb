@@ -136,7 +136,7 @@ describe('Formula parsing and type validation', () => {
       });
       expect(result.dataType).toEqual(FormulaDataTypes.DATE);
     });
-  })
+  });
 
   describe('binary expression', () => {
     it(`& operator will return string`, async () => {
@@ -145,8 +145,8 @@ describe('Formula parsing and type validation', () => {
         columns: [],
         clientOrSqlUi: 'pg',
         getMeta: async () => ({}),
-      })
-      expect(result.dataType).toBe(FormulaDataTypes.STRING)
-    })
-  })
+      });
+      expect(result.dataType).toBe(FormulaDataTypes.STRING);
+    });
+  });
 });

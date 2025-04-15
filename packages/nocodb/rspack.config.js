@@ -97,7 +97,7 @@ module.exports = {
       typescript: {
         configFile: resolve('tsconfig.json'),
       },
-    })
+    }),
   ],
   target: 'node',
 };

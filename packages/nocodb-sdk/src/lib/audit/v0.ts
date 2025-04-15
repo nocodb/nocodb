@@ -97,4 +97,10 @@ interface AuditV0 {
   updated_at: string;
 }
 
-export { AuditV0, AuditOperationTypes, AuditOperationSubTypes, auditOperationTypeLabels, auditOperationSubTypeLabels };
+export {
+  AuditV0,
+  AuditOperationTypes,
+  AuditOperationSubTypes,
+  auditOperationTypeLabels,
+  auditOperationSubTypeLabels,
+};

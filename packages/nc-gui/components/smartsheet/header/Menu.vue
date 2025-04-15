@@ -47,7 +47,6 @@ const emitEdit = (...args: any[]) => {
 <template>
   <a-dropdown
     v-model:visible="isOpen"
-    :disabled="isLocked"
     :trigger="['click']"
     :placement="isExpandedForm ? 'bottomLeft' : 'bottomRight'"
     :overlay-class-name="`nc-dropdown-column-operations ${isOpen ? 'active' : ''} !border-1 rounded-lg !shadow-xl`"
@@ -70,7 +69,7 @@ const emitEdit = (...args: any[]) => {
         </template>
       </NcTooltip>
       <GeneralIcon
-        v-if="!isExpandedForm && !isLocked"
+        v-if="!isExpandedForm"
         icon="arrowDown"
         class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2"
       />

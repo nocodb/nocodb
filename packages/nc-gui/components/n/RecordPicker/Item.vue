@@ -56,10 +56,10 @@ useProvideSmartsheetRowStore(row)
 </script>
 
 <template>
-  <div class="nc-list-item-wrapper group px-[1px] hover:bg-gray-50 border-y-1 border-gray-200 border-t-transparent">
+  <div class="nc-list-item-wrapper group px-[1px] hover:bg-nc-bg-gray-extralight border-y-1 border-gray-200 border-t-transparent">
     <a-card
       tabindex="0"
-      class="nc-list-item !outline-none transition-all relative group-hover:bg-gray-50 cursor-auto"
+      class="nc-list-item !outline-none transition-all relative group-hover:bg-nc-bg-gray-extralight cursor-pointer"
       :body-style="{ padding: '6px 10px !important', borderRadius: 0 }"
       :hoverable="false"
     >
@@ -72,7 +72,7 @@ useProvideSmartsheetRowStore(row)
                 <LazyCellAttachmentPreviewImage
                   v-if="isImage(attachmentObj.title, attachmentObj.mimetype ?? attachmentObj.type)"
                   :key="`carousel-${attachmentObj.title}-${index}`"
-                  class="!w-11 !h-11 !max-h-11 !max-w-11object-cover !rounded-l-xl"
+                  class="!w-11 !h-11 !max-h-11 !max-w-11 object-cover !rounded-l-xl"
                   :srcs="getPossibleAttachmentSrc(attachmentObj, 'tiny')"
                 />
               </template>
@@ -220,6 +220,9 @@ useProvideSmartsheetRowStore(row)
   }
   :deep(.name) {
     @apply !text-small;
+  }
+  :deep(.nc-cell-name-wrapper) {
+    max-width: 100% !important;
   }
 }
 </style>

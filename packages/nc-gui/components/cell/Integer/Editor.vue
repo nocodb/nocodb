@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
+import { toSafeInteger } from 'nocodb-sdk'
 
 interface Props {
   // when we set a number, then it is number type

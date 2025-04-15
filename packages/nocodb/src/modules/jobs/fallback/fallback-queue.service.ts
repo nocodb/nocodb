@@ -151,7 +151,7 @@ export class QueueService {
       }
       const jobTimeout = setTimeout(() => {
         this.queue.add(() => this.jobWrapper(job));
-      }, opts.delay);
+      }, opts.delay).unref();
 
       Object.assign(job, helperFns(jobTimeout));
     } else {

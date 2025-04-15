@@ -10,16 +10,19 @@ const route = router.currentRoute
 
 const { isUIAllowed } = useRoles()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const workspaceStore = useWorkspace()
 
 const { loadRoles } = useRoles()
-const { activeWorkspace: _activeWorkspace, workspaces } = storeToRefs(workspaceStore)
+const { activeWorkspace: _activeWorkspace, workspaces, deletingWorkspace } = storeToRefs(workspaceStore)
 const { loadCollaborators, loadWorkspace } = workspaceStore
 
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
 const currentWorkspace = computedAsync(async () => {
+  if (deletingWorkspace.value) return
   let ws
   if (props.workspaceId) {
     ws = workspaces.value.get(props.workspaceId)
@@ -125,14 +128,17 @@ onMounted(() => {
         <div class="w-3"></div>
       </template>
       <template v-if="isUIAllowed('workspaceCollaborators')">
-        <a-tab-pane key="collaborators" class="w-full">
+        <a-tab-pane key="collaborators" class="w-full h-full">
           <template #tab>
             <div class="tab-title">
               <GeneralIcon icon="users" class="h-4 w-4" />
               {{ $t('labels.members') }}
             </div>
           </template>
-          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
+          <div class="overflow-auto h-[calc(100vh-3rem)] nc-scrollbar-thin">
+            <PaymentBanner v-if="isFeatureEnabled(FEATURE_FLAG.PAYMENT)" class="mb-0" />
+            <WorkspaceCollaboratorsList class="h-[650px]" :workspace-id="currentWorkspace.id" />
+          </div>
         </a-tab-pane>
       </template>
 
@@ -145,6 +151,19 @@ onMounted(() => {
             </div>
           </template>
           <WorkspaceSettings :workspace-id="currentWorkspace.id" />
+        </a-tab-pane>
+      </template>
+
+      <template v-if="isEeUI && !props.workspaceId && isFeatureEnabled(FEATURE_FLAG.PAYMENT)">
+        <a-tab-pane key="billing" class="w-full">
+          <template #tab>
+            <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
+              <GeneralIcon icon="ncDollarSign" class="flex-none h-4 w-4" />
+              {{ $t('general.billing') }}
+            </div>
+          </template>
+
+          <PaymentBillingPage class="!h-[calc(100vh_-_92px)]" />
         </a-tab-pane>
       </template>
     </NcTabs>
@@ -162,9 +181,7 @@ onMounted(() => {
 :deep(.ant-tabs-tab) {
   @apply pt-2 pb-3;
 }
-:deep(.ant-tabs-content) {
-  @apply nc-content-max-w;
-}
+
 .ant-tabs-content-top {
   @apply !h-full;
 }

@@ -934,5 +934,8 @@ export class DatabricksUi implements SqlUi {
     _newColumn: Partial<ColumnType>,
     _oldColumn?: ColumnType
   ) {}
+  isParsedJsonReturnType(_col: ColumnType): boolean {
+    return false;
+  }
   //#endregion methods
 }

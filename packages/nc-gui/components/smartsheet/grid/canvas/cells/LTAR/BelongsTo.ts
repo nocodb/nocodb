@@ -19,7 +19,6 @@ export const BelongsToCellRenderer: CellRenderer = {
       setCursor,
       selected,
       cellRenderStore,
-      padding,
     } = props
 
     const relatedTableDisplayValueProp =
@@ -147,6 +146,7 @@ export const BelongsToCellRenderer: CellRenderer = {
     isPublic,
     readonly,
     isDoubleClick,
+    openDetachedExpandedForm,
   }) {
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width, height } = getCellPosition(column, rowIndex)
@@ -171,7 +171,7 @@ export const BelongsToCellRenderer: CellRenderer = {
       isBoxHovered({ x: cellRenderStore.x + 2, y: y + 8, height: size, width: size }, mousePosition)
 
     if (isClickedOnPlusIcon || isClickedOnXCircleIcon) {
-      makeCellEditable(rowIndex, column)
+      makeCellEditable(row, column)
       return true
     }
 
@@ -199,12 +199,10 @@ export const BelongsToCellRenderer: CellRenderer = {
        */
       if (readonly) return true
 
-      const { open } = useExpandedFormDetached()
-
       const rowId = extractPkFromRow(value, (column.relatedTableMeta?.columns || []) as ColumnType[])
 
       if (rowId) {
-        open({
+        openDetachedExpandedForm({
           isOpen: true,
           row: { row: value, rowMeta: {}, oldRow: { ...value } },
           meta: column.relatedTableMeta || ({} as TableType),
@@ -225,7 +223,7 @@ export const BelongsToCellRenderer: CellRenderer = {
      * This is same as `cellClickHook`, on click cell make cell editable
      */
     if ((selected || isDoubleClick) && !readonly && isBoxHovered({ x, y, width, height }, mousePosition)) {
-      makeCellEditable(rowIndex, column)
+      makeCellEditable(row, column)
       return true
     }
 

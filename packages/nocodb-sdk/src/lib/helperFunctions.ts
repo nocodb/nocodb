@@ -3,6 +3,7 @@ import { RolesObj, RolesType } from './globals';
 import { ClientType } from './enums';
 import { ColumnType, FormulaType, IntegrationsType } from './Api';
 import { FormulaDataTypes } from './formulaHelpers';
+import { ncIsNull, ncIsUndefined } from '~/lib/is';
 
 // import {RelationTypes} from "./globals";
 
@@ -271,7 +272,7 @@ export const integrationCategoryNeedDefault = (category: IntegrationsType) => {
 };
 
 export function parseProp(v: any): any {
-  if (!v) return {};
+  if (ncIsUndefined(v) || ncIsNull(v)) return {};
   try {
     return typeof v === 'string' ? JSON.parse(v) ?? {} : v;
   } catch {
@@ -280,7 +281,7 @@ export function parseProp(v: any): any {
 }
 
 export function stringifyProp(v: any): string {
-  if (!v) return '{}';
+  if (ncIsUndefined(v) || ncIsNull(v)) return '{}';
   try {
     return typeof v === 'string' ? v : JSON.stringify(v) ?? '{}';
   } catch {
@@ -302,4 +303,11 @@ export function stringifyHelper(v: any): string {
   } catch {
     return v;
   }
+}
+
+export function toSafeInteger(value: number) {
+  return Math.max(
+    Number.MIN_SAFE_INTEGER,
+    Math.min(value, Number.MAX_SAFE_INTEGER)
+  );
 }

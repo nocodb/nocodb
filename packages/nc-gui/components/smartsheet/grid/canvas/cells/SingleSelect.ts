@@ -73,13 +73,13 @@ export const SingleSelectCellRenderer: CellRenderer = {
     })
   },
   async handleClick({ row, column, makeCellEditable }) {
-    if (column.readonly) return false
+    if (column.readonly || column.columnObj?.readonly) return false
 
     makeCellEditable(row, column)
     return true
   },
   async handleKeyDown({ e, row, column, makeCellEditable }) {
-    if (column.readonly) return false
+    if (column.readonly || column.columnObj?.readonly) return false
     if (e.key.length === 1 || e.key === 'Enter') {
       makeCellEditable(row, column)
       return true

@@ -39,7 +39,9 @@ const exportedFiles = computed(() => {
   return jobList.value
     .filter(
       (job) =>
-        job.job === 'data-export' && job.result?.extension_id === extension.value.id && !deletedExports.value.includes(job.id),
+        (job.job === 'data-export' || job.name === 'data-export') &&
+        job.result?.extension_id === extension.value.id &&
+        !deletedExports.value.includes(job.id),
     )
     .map((job) => {
       const isNew = job.result?.timestamp ? dayjs().diff(job.result?.timestamp) < 10000 : false
@@ -270,7 +272,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <ExtensionsExtensionWrapper>
+  <ExtensionsExtensionWrapper :style="fullscreen ? {} : { height: exportedFiles.length ? '130px' : '100%' }">
     <template v-if="fullscreen" #headerExtra>
       <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
         <template #title> The CSV file is being prepared in the background. You'll be notified once it's ready. </template>
@@ -533,16 +535,16 @@ onMounted(async () => {
           </div>
         </div>
         <div class="flex flex-col flex-1 nc-scrollbar-thin">
-          <div class="data-exporter-header sticky top-0 z-100">Recent Exports</div>
+          <div v-if="fullscreen" class="data-exporter-header sticky top-0 z-100">Recent Exports</div>
           <div v-if="exportedFiles.length" class="flex-1 flex flex-col max-h-[calc(100%_-_25px)]">
-            <template v-for="exp of exportedFiles">
+            <template v-for="exp of exportedFiles.slice(0, fullscreen ? undefined : 1)">
               <div
                 v-if="exp.status === JobStatus.COMPLETED ? exp.result : true"
                 :key="exp.id"
                 class="p-3 flex gap-2 justify-between border-b-1"
                 :class="{
                   'px-4 py-3': fullscreen,
-                  'px-3 py-2': !fullscreen,
+                  'px-3 py-2 border-1 border-nc-border-gray-medium mx-3 rounded-lg': !fullscreen,
                   'bg-white hover:bg-gray-50': exp.status === JobStatus.COMPLETED,
                   'bg-nc-bg-red-light': exp.status !== JobStatus.COMPLETED,
                 }"
@@ -625,7 +627,7 @@ onMounted(async () => {
               </div>
             </template>
           </div>
-          <div v-else class="px-3 py-2 flex-1 flex items-center justify-center text-gray-800">
+          <div v-else-if="fullscreen" class="px-3 py-2 flex-1 flex items-center justify-center text-gray-800">
             <a-empty
               :image-style="{
                 height: '24px',

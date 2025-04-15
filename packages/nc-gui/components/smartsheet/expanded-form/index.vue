@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { ViewTypes, isSystemColumn } from 'nocodb-sdk'
+import { ViewTypes, isReadOnlyColumn, isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { Drawer } from 'ant-design-vue'
 import NcModal from '../../nc/Modal.vue'
@@ -87,24 +87,95 @@ const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 // override cell click hook to avoid unexpected behavior at form fields
 provide(CellClickHookInj, undefined)
 
+const isKanban = inject(IsKanbanInj, ref(false))
+
+provide(MetaInj, meta)
+
+// override cell event hook to avoid unexpected behavior at form fields
+// issue happens when opening expanded form from cell (LTAR/Links)
+provide(CanvasSelectCellInj, undefined)
+
+const isLoading = ref(true)
+
+const isSaving = ref(false)
+
+const expandedFormStore = useProvideExpandedFormStore(meta, row)
+
+const {
+  commentsDrawer,
+  changedColumns,
+  deleteRowById,
+  displayValue,
+  state: rowState,
+  isNew,
+  loadRow: _loadRow,
+  primaryKey,
+  row: _row,
+  comments,
+  save: _save,
+  loadComments,
+  loadAudits,
+  clearColumns,
+} = expandedFormStore
+
 const loadingEmit = (event: 'update:modelValue' | 'cancel' | 'next' | 'prev' | 'createdRecord') => {
   emits(event)
   isLoading.value = true
 }
 
-const fields = computedInject(FieldsInj, (_fields) => {
+/**
+ * Injects the fields from the parent component if available.
+ * Uses a ref to ensure reactivity.
+ */
+const fieldsFromParent = inject<Ref<ColumnType[] | null>>(FieldsInj, ref(null))
+
+/**
+ * Computes the list of fields to be used based on the given conditions.
+ *
+ * - Prefers `props.useMetaFields` over `fieldsFromParent` if enabled.
+ * - Filters out system columns and readonly fields for new records.
+ * - Maintains default view order if `maintainDefaultViewOrder` is enabled.
+ *
+ * @returns {ColumnType[]} The computed list of fields.
+ */
+const fields = computed(() => {
+  // Give preference to props.useMetaFields instead of fieldsFromParent
   if (props.useMetaFields) {
     if (maintainDefaultViewOrder.value) {
       return (meta.value.columns ?? [])
-        .filter((col) => !isSystemColumn(col) && !!col.meta?.defaultViewColVisibility)
+        .filter(
+          (col) =>
+            !isSystemColumn(col) &&
+            !!col.meta?.defaultViewColVisibility &&
+            // if new record, then hide readonly fields
+            (!isNew.value || !isReadOnlyColumn(col)),
+        )
         .sort((a, b) => {
           return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
         })
     }
 
-    return (meta.value.columns ?? []).filter((col) => !isSystemColumn(col) && !!col.meta?.defaultViewColVisibility)
+    return (meta.value.columns ?? []).filter(
+      (col) =>
+        // if new record, then hide readonly fields
+        (!isNew.value || !isReadOnlyColumn(col)) &&
+        // exclude system columns
+        !isSystemColumn(col) &&
+        // exclude hidden columns
+        !!col.meta?.defaultViewColVisibility,
+    )
   }
-  return _fields?.value ?? []
+
+  // If `props.useMetaFields` is not enabled, use fields from the parent component
+  if (fieldsFromParent.value) {
+    if (isNew.value) {
+      return fieldsFromParent.value.filter((col) => !isReadOnlyColumn(col))
+    }
+
+    return fieldsFromParent.value
+  }
+
+  return []
 })
 
 const tableTitle = computed(() => meta.value?.title)
@@ -135,7 +206,9 @@ const hiddenFields = computed(() => {
     (col) =>
       !isSystemColumn(col) &&
       !fields.value?.includes(col) &&
-      (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true),
+      (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true) &&
+      // exclude readonly fields from hidden fields if new record creation
+      (!isNew.value || !isReadOnlyColumn(col)),
   )
   if (props.useMetaFields) {
     return maintainDefaultViewOrder.value
@@ -152,40 +225,27 @@ const hiddenFields = computed(() => {
   }
 })
 
-const isKanban = inject(IsKanbanInj, ref(false))
+reloadViewDataTrigger.on(async (params) => {
+  const isSameRecordUpdated =
+    params?.relatedTableMetaId && params?.rowId && params?.relatedTableMetaId === meta.value?.id && params?.rowId === rowId.value
 
-provide(MetaInj, meta)
+  // If relatedTableMetaId & rowId is present that means some nested record is updated
 
-const isLoading = ref(true)
-
-const isSaving = ref(false)
-
-const expandedFormStore = useProvideExpandedFormStore(meta, row)
-
-const {
-  commentsDrawer,
-  changedColumns,
-  deleteRowById,
-  displayValue,
-  state: rowState,
-  isNew,
-  loadRow: _loadRow,
-  primaryKey,
-  row: _row,
-  comments,
-  save: _save,
-  loadComments,
-  loadAudits,
-  clearColumns,
-} = expandedFormStore
-
-reloadViewDataTrigger.on(async () => {
-  await _loadRow(rowId.value, false, true)
+  // If same nested record udpated then udpate whole row
+  if (isSameRecordUpdated) {
+    await _loadRow(rowId.value)
+  } else if (params?.relatedTableMetaId && params?.rowId) {
+    // If it is not same record updated but it has relatedTableMetaId & rowId then update only virtual columns
+    await _loadRow(rowId.value, true)
+  } else {
+    // Else update only new/duplicated/renamed columns
+    await _loadRow(rowId.value, false, true)
+  }
 })
 
 const duplicatingRowInProgress = ref(false)
 
-useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
+const { isSqlView } = useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
 
 useProvideSmartsheetLtarHelpers(meta)
 
@@ -621,6 +681,12 @@ const modalProps = computed(() => {
   return {}
 })
 
+// check if the row is new and has some changes on LTAR/Links
+// this is to enable save if there are changes on LTAR/Links
+const isLTARChanged = computed(() => {
+  return isNew.value && row.value?.rowMeta?.ltarState && Object.keys(row.value?.rowMeta?.ltarState).length > 0
+})
+
 watch(
   () => comments.value.length,
   (commentCount) => {
@@ -668,10 +734,10 @@ export default {
       <div
         class="flex gap-2 min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header p-4 xs:(px-2 py-0 min-h-[48px]) border-b-1 border-gray-200"
       >
-        <div class="flex gap-2">
+        <div class="flex gap-2 min-w-0 min-h-8">
           <div class="flex gap-2">
-            <NcTooltip v-if="props.showNextPrevIcons">
-              <template #title> {{ renderAltOrOptlKey() }} + ← </template>
+            <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
+              <template #title> {{ renderAltOrOptlKey() }} + ←</template>
               <NcButton
                 :disabled="isFirstRow || isLoading"
                 class="nc-prev-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
@@ -682,8 +748,8 @@ export default {
                 <GeneralIcon icon="chevronDown" class="transform rotate-180" />
               </NcButton>
             </NcTooltip>
-            <NcTooltip v-if="props.showNextPrevIcons">
-              <template #title> {{ renderAltOrOptlKey() }} + → </template>
+            <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
+              <template #title> {{ renderAltOrOptlKey() }} + →</template>
               <NcButton
                 :disabled="islastRow || isLoading"
                 class="nc-next-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
@@ -698,7 +764,7 @@ export default {
           <div v-if="isLoading" class="flex items-center">
             <a-skeleton-input active class="!h-6 !sm:mr-14 !w-52 !rounded-md !overflow-hidden" size="small" />
           </div>
-          <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end)">
+          <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end) min-w-0">
             <div v-if="!props.showNextPrevIcons" class="hidden md:flex items-center rounded-lg bg-gray-100 px-2 py-1 gap-2">
               <GeneralIcon icon="table" class="text-gray-700" />
               <span class="nc-expanded-form-table-name">
@@ -715,8 +781,14 @@ export default {
               v-else-if="displayValue && !row?.rowMeta?.new"
               class="flex items-center font-bold text-gray-800 text-2xl overflow-hidden"
             >
-              <span class="truncate w-[120px] md:w-[300px]">
-                <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
+              <span class="min-w-[120px] md:min-w-[300px]">
+                <NcTooltip class="truncate" show-on-truncate-only>
+                  <template #title>
+                    {{ displayValue }}
+                  </template>
+
+                  <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
+                </NcTooltip>
               </span>
             </div>
           </div>
@@ -744,17 +816,17 @@ export default {
                 icon: 'ncMessageSquare',
                 value: 'discussion',
                 tooltip: 'Discussion',
-                hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE),
+                hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE) || isSqlView,
               },
             ]"
           />
         </div>
         <div class="flex gap-2">
-          <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit')">
-            <template #title> {{ renderAltOrOptlKey() }} + S </template>
+          <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit') && !isSqlView">
+            <template #title> {{ renderAltOrOptlKey() }} + S</template>
             <NcButton
               v-e="['c:row-expand:save']"
-              :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
+              :disabled="changedColumns.size === 0 && !isUnsavedFormExist && !isLTARChanged"
               :loading="isSaving"
               class="nc-expand-form-save-btn !xs:(text-base) !h-7 !px-2"
               data-testid="nc-expanded-form-save"
@@ -811,7 +883,7 @@ export default {
                     {{ $t('labels.copyRecordURL') }}
                   </div>
                 </NcMenuItem>
-                <NcMenuItem v-if="isUIAllowed('dataEdit')" @click="!isNew ? onDuplicateRow() : () => {}">
+                <NcMenuItem v-if="isUIAllowed('dataEdit') && !isSqlView" @click="!isNew ? onDuplicateRow() : () => {}">
                   <div v-e="['c:row-expand:duplicate']" class="flex gap-2 items-center" data-testid="nc-expanded-form-duplicate">
                     <component :is="iconMap.duplicate" class="cursor-pointer nc-duplicate-row" />
                     <span class="-ml-0.25">
@@ -819,9 +891,9 @@ export default {
                     </span>
                   </div>
                 </NcMenuItem>
-                <NcDivider v-if="isUIAllowed('dataEdit')" />
+                <NcDivider v-if="isUIAllowed('dataEdit') && !isSqlView" />
                 <NcMenuItem
-                  v-if="isUIAllowed('dataEdit')"
+                  v-if="isUIAllowed('dataEdit') && !isSqlView"
                   class="!text-red-500 !hover:bg-red-50"
                   @click="!isNew && onDeleteRowClick()"
                 >
@@ -952,9 +1024,11 @@ export default {
 .nc-expanded-cell-header > :nth-child(2) {
   @apply !text-sm xs:!text-small;
 }
+
 .nc-expanded-cell-header > :first-child {
   @apply !text-md pl-2 xs:(pl-0 -ml-0.5);
 }
+
 .nc-expanded-cell-header:not(.nc-cell-expanded-form-header) > :first-child {
   @apply pl-0;
 }

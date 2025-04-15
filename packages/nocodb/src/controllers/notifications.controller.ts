@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
-import type { OnApplicationShutdown } from '@nestjs/common';
+import type { OnModuleDestroy } from '@nestjs/common';
 import type { Response } from 'express';
 import { NotificationsService } from '~/services/notifications/notifications.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -27,8 +27,20 @@ const POLL_INTERVAL = 30000;
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-export class NotificationsController implements OnApplicationShutdown {
+export class NotificationsController implements OnModuleDestroy {
   constructor(private readonly notificationsService: NotificationsService) {}
+
+  onModuleDestroy() {
+    for (const [_, res] of this.notificationsService.connections) {
+      res.forEach((r) => {
+        if (!r.headersSent) {
+          r.send({
+            status: 'refresh',
+          });
+        }
+      });
+    }
+  }
 
   @Get('/api/v1/notifications/poll')
   @Acl('notification', {
@@ -72,7 +84,7 @@ export class NotificationsController implements OnApplicationShutdown {
           status: 'refresh',
         });
       }
-    }, POLL_INTERVAL);
+    }, POLL_INTERVAL).unref();
   }
 
   @Get('/api/v1/notifications')
@@ -127,20 +139,5 @@ export class NotificationsController implements OnApplicationShutdown {
     return this.notificationsService.markAllRead({
       user: req.user,
     });
-  }
-
-  async onApplicationShutdown() {
-    /*
-     * Close all long polling connections
-     */
-    for (const userId in this.notificationsService.connections) {
-      for (const res of this.notificationsService.connections[userId]) {
-        if (!res.headersSent) {
-          res.send({
-            status: 'refresh',
-          });
-        }
-      }
-    }
   }
 }

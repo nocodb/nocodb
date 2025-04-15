@@ -11,6 +11,7 @@ interface Props {
   rowIndex?: number
   active?: boolean
   virtual?: boolean
+  path?: Array<number>
 }
 
 const props = defineProps<Props>()
@@ -22,6 +23,8 @@ const column = toRef(props, 'column')
 const meta = inject(MetaInj, ref())
 
 const active = toRef(props, 'active', false)
+
+const path = toRef(props, 'path', [])
 
 const readOnly = toRef(props, 'readOnly', false)
 
@@ -38,6 +41,8 @@ provide(ActiveCellInj, active)
 provide(ReadonlyInj, readOnly)
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isUnderLTAR = inject(IsUnderLTARInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
@@ -76,7 +81,7 @@ const sqlUi = ref(sourceId && sqlUis.value[sourceId] ? sqlUis.value[sourceId] : 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
 const emitSave = () => {
-  emit('save', [currentRow.value, column.value.title, state.value])
+  emit('save', [currentRow.value, column.value.title, state.value, undefined, undefined, path.value])
 }
 
 const syncValue = useDebounceFn(
@@ -201,6 +206,8 @@ const showNullComponent = computed(() => {
 })
 
 const showReadonlyField = computed(() => {
+  if (column.value.readonly) return true
+
   switch (cellType.value) {
     case 'currency': {
       return !((!readOnly.value && editEnabled.value) || (isForm && !isEditColumnMenu.value && editEnabled.value))
@@ -296,7 +303,7 @@ const cellClassName = computed(() => {
 
 <template>
   <div
-    :class="cellClassName"
+    :class="[cellClassName, { 'nc-under-ltar': isUnderLTAR }]"
     class="nc-cell w-full h-full relative"
     @contextmenu="onContextmenu"
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"

@@ -21,12 +21,13 @@ const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const localState = ref(props.modelValue)
 const inputRef = ref<HTMLInputElement>()
+const isFocused = ref(false)
 
 const vModel = computed({
   get: () => props.modelValue,
   set: (val) => {
     localState.value = val
-    if (!parseProp(column.value.meta)?.validate || (val && validateEmail(val)) || !val || isForm.value) {
+    if (!parseProp(column.value.meta)?.validate || (val && validateEmail(val)) || !val || isForm.value || isEditColumn.value) {
       emit('update:modelValue', val)
     }
   },
@@ -56,7 +57,10 @@ onBeforeUnmount(() => {
     localState.value &&
     !validateEmail(localState.value)
   ) {
-    message.error(t('msg.error.invalidEmail'))
+    if (!isEditColumn.value) {
+      message.error(t('msg.error.invalidEmail'))
+    }
+
     localState.value = undefined
     return
   }
@@ -68,16 +72,32 @@ onMounted(() => {
     inputRef.value?.focus()
   }
 })
+
+const onBlur = () => {
+  editEnabled.value = false
+  isFocused.value = false
+}
+
+const validEmail = computed(() => vModel.value && validateEmail(vModel.value))
+
+const showClicableLink = computed(() => {
+  return (isExpandedFormOpen.value || isForm.value) && !isFocused.value && validEmail.value
+})
 </script>
 
 <template>
   <!-- eslint-disable vue/use-v-on-exact -->
   <input
+    v-bind="$attrs"
     :ref="focus"
     v-model="vModel"
     class="nc-cell-field w-full outline-none py-1"
+    :class="{
+      'nc-text-transparent': showClicableLink,
+    }"
     :disabled="readOnly"
-    @blur="editEnabled = false"
+    @blur="onBlur"
+    @focus="isFocused = true"
     @keydown.down.stop
     @keydown.left.stop
     @keydown.right.stop
@@ -88,4 +108,18 @@ onMounted(() => {
     @mousedown.stop
     @paste.prevent="onPaste"
   />
+  <div
+    v-if="showClicableLink"
+    class="nc-cell-field nc-cell-link-preview absolute inset-0 flex items-center max-w-full overflow-hidden pointer-events-none"
+  >
+    <nuxt-link
+      no-ref
+      class="truncate text-primary cursor-pointer pointer-events-auto no-user-select"
+      :href="`mailto:${vModel}`"
+      target="_blank"
+      :tabindex="-1"
+    >
+      {{ vModel }}
+    </nuxt-link>
+  </div>
 </template>

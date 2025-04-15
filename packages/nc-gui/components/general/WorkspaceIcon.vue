@@ -12,7 +12,7 @@ const props = withDefaults(
       iconType: IconType | string
     }
     hideLabel?: boolean
-    size?: 'small' | 'medium' | 'large' | 'xlarge'
+    size?: 'small' | 'medium' | 'large' | 'xlarge' | 'middle' | 'account-sidebar'
     isRounded?: boolean
     iconBgColor?: string
   }>(),
@@ -80,8 +80,10 @@ const size = computed(() => props.size || 'medium')
     :class="{
       'min-w-4 w-4 h-4 rounded': size === 'small',
       'min-w-6 w-6 h-6 rounded-md': size === 'medium',
+      'min-w-8 w-6 h-8 rounded-md': size === 'middle',
       'min-w-10 w-10 h-10 rounded-lg !text-base': size === 'large',
       'min-w-16 w-16 h-16 rounded-lg !text-4xl': size === 'xlarge',
+      'w-5 h-5 min-w-5 rounded min-h-5': size === 'account-sidebar',
       '!rounded-[50%]': props.isRounded,
     }"
     :style="{
@@ -101,7 +103,7 @@ const size = computed(() => props.size || 'medium')
         :class="{
           'text-white': isColorDark(workspaceColor),
           'text-black opacity-80': !isColorDark(workspaceColor),
-          'text-sm': size === 'small',
+          'text-sm': size === 'small' || size === 'account-sidebar',
           'text-base': size === 'medium',
           'text-2xl': size === 'large',
           'text-4xl': size === 'xlarge',
@@ -143,9 +145,11 @@ const size = computed(() => props.size || 'medium')
         :class="{
           'text-white': isColorDark(workspaceColor),
           'text-black': !isColorDark(workspaceColor),
+          'text-[8px]': size === 'small',
+          'text-sm': size === 'account-sidebar',
         }"
       >
-        {{ workspace?.title?.slice(0, 2) }}
+        {{ workspace?.title?.slice(0, size === 'account-sidebar' ? 1 : 2) }}
       </div>
     </template>
   </div>

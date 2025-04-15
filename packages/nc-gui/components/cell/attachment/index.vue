@@ -35,9 +35,12 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 const isGrid = inject(IsGridInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const clientMousePosition = inject(ClientMousePositionInj)
-const canvasSelectCell = inject(CanvasSelectCellInj)
+const canvasSelectCell = inject(CanvasSelectCellInj, null)
+
+const cellEventHook = inject(CellEventHookInj, null)
 
 const { isMobileMode } = useGlobal()
 
@@ -254,9 +257,28 @@ defineExpose({
   updateAttachmentTitle,
 })
 
+const onCellEvent = (event?: Event) => {
+  if (!(event instanceof KeyboardEvent) || !event.target || isActiveInputElementExist(event) || !visibleItems.value.length) return
+
+  if (isExpandCellKey(event)) {
+    if (modalVisible.value) {
+      modalRendered.value = false
+      modalVisible.value = false
+    } else {
+      onExpand()
+    }
+
+    return true
+  }
+}
+
 onMounted(() => {
+  cellEventHook?.on(onCellEvent)
+
   if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value) {
     forcedNextTick(() => {
+      if (onCellEvent(canvasCellEventData.event)) return
+
       const clickableSelectors = ['.view-attachments', '.add-files', '.nc-attachment', '.empty-add-files']
         .map((selector) => `.nc-canvas-table-editable-cell-wrapper ${selector}`)
         .join(', ')
@@ -273,6 +295,10 @@ onMounted(() => {
       }
     })
   }
+})
+
+onUnmounted(() => {
+  cellEventHook?.off(onCellEvent)
 })
 </script>
 
@@ -304,21 +330,25 @@ onMounted(() => {
         }}
       </NcButton>
     </div>
-    <NcButton
-      v-if="isEditAllowed"
-      data-testid="attachment-cell-file-picker-button"
-      type="secondary"
-      size="xsmall"
-      class="mb-1 !px-2"
-      @click="openAttachmentModal"
-    >
-      <div class="flex items-center gap-1.5 justify-center">
-        <GeneralIcon icon="upload" class="text-gray-500 h-3.5 w-3.5" />
-        <span class="text-tiny">
-          {{ $t('activity.uploadFiles') }}
-        </span>
-      </div>
-    </NcButton>
+    <div class="flex">
+      <NcTooltip :disabled="isEditAllowed" :title="$t('tooltip.sourceDataIsReadonly')">
+        <NcButton
+          data-testid="attachment-cell-file-picker-button"
+          type="secondary"
+          size="xsmall"
+          class="mb-1 !px-2"
+          :disabled="!isEditAllowed"
+          @click="openAttachmentModal"
+        >
+          <div class="flex items-center gap-1.5 justify-center">
+            <GeneralIcon icon="upload" class="text-current opacity-80 h-3.5 w-3.5" />
+            <span class="text-tiny">
+              {{ $t('activity.uploadFiles') }}
+            </span>
+          </div>
+        </NcButton>
+      </NcTooltip>
+    </div>
 
     <LazyGeneralDeleteModal
       v-model:visible="isConfirmModalOpen"
@@ -418,6 +448,7 @@ onMounted(() => {
             <LazyCellAttachmentPreviewImage
               v-if="isImage(item.title, item.mimetype ?? item.type)"
               :alt="item.title || `#${i}`"
+              object-fit="contain"
               class="nc-attachment rounded-lg w-full h-full object-cover overflow-hidden"
               :srcs="getPossibleAttachmentSrc(item, attachmentSize)"
               @click="() => onFileClick(item)"
@@ -438,7 +469,9 @@ onMounted(() => {
         }"
         :style="isGrid && (!rowHeight || rowHeight === 1) ? { top: '50%', transform: 'translateY(-50%)' } : undefined"
       >
-        <template #title>{{ $t('activity.viewAttachment') }}</template>
+        <template #title>
+          {{ isExpandedForm ? $t('activity.viewAttachment') : `${$t('activity.viewAttachment')} '${$t('tooltip.shiftSpace')}'` }}
+        </template>
         <NcButton
           type="secondary"
           size="xsmall"

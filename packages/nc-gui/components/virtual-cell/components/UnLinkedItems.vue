@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { RelationTypes, isDateOrDateTimeCol, isLinksOrLTAR } from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
 
 const props = defineProps<{ modelValue: boolean; column: any; hideBackBtn?: boolean }>()
@@ -38,6 +38,7 @@ const {
   childrenExcludedListPagination,
   relatedTableDisplayValueProp,
   displayValueTypeAndFormatProp,
+  relatedTableDisplayValueColumn,
   link,
   relatedTableMeta,
   meta,
@@ -45,7 +46,10 @@ const {
   row,
   resetChildrenExcludedOffsetCount,
   loadRelatedTableMeta,
-  targetViewColumnsById,
+  attachmentCol,
+  fields,
+  refreshCurrentRow,
+  rowId,
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
@@ -110,6 +114,7 @@ watch(
   vModel,
   (nextVal, prevVal) => {
     if (nextVal && !prevVal) {
+      refreshCurrentRow()
       /** reset query and limit */
       childrenExcludedListPagination.query = ''
       childrenExcludedListPagination.page = 1
@@ -164,23 +169,6 @@ const newRowState = computed(() => {
       [colInRelatedTable.title as string]: row?.value && [row.value.row],
     }
   }
-})
-
-const attachmentCol = computedInject(FieldsInj, (_fields) => {
-  return (relatedTableMeta.value.columns ?? []).filter((col) => isAttachment(col))[0]
-})
-
-const fields = computedInject(FieldsInj, (_fields) => {
-  return (relatedTableMeta.value.columns ?? [])
-    .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
-    .sort((a, b) => {
-      if (isPublic.value) {
-        return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-      }
-
-      return (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
-    })
-    .slice(0, isMobileMode.value ? 1 : 3)
 })
 
 const totalItemsToShow = computed(() => {
@@ -243,6 +231,9 @@ const onCreatedRecord = (record: any) => {
   })
   reloadViewDataTrigger?.trigger({
     shouldShowLoading: false,
+    isFromLinkRecord: true,
+    relatedTableMetaId: relatedTableMeta.value.id,
+    rowId: rowId.value!,
   })
 
   if (!isNewRecord.value) {
@@ -359,8 +350,22 @@ const handleKeyDown = (e: KeyboardEvent) => {
             <GeneralIcon icon="ncArrowLeft" class="flex-none h-4 w-4" />
           </button>
 
-          <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-0.5 rounded-md">
+          <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center rounded-md">
+            <!-- Utilize SmartsheetToolbarFilterInput component to filter the records for Date or DateTime column -->
+            <SmartsheetToolbarFilterInput
+              v-if="relatedTableDisplayValueColumn && isDateOrDateTimeCol(relatedTableDisplayValueColumn)"
+              class="nc-filter-value-select rounded-md min-w-34"
+              :column="relatedTableDisplayValueColumn"
+              :filter="{
+                comparison_op: 'eq',
+                comparison_sub_op: 'exactDate',
+                value: childrenExcludedListPagination.query,
+              }"
+              @update-filter-value="childrenExcludedListPagination.query = $event"
+              @click.stop
+            />
             <a-input
+              v-else
               ref="filterQueryRef"
               v-model:value="childrenExcludedListPagination.query"
               :bordered="false"
@@ -451,7 +456,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
       <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between min-h-11">
         <div class="flex">
           <NcButton
-            v-if="!isPublic && !isDataReadOnly && isUIAllowed('dataEdit')"
+            v-if="!isPublic && !isDataReadOnly && isUIAllowed('dataEdit') && !isForm"
             v-e="['c:row-expand:open']"
             size="small"
             class="!hover:(bg-white text-brand-500) !h-7 !text-small"
@@ -513,7 +518,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         :state="newRowState"
         use-meta-fields
         maintain-default-view-order
-        :skip-reload="true"
+        skip-reload
         :new-record-submit-btn-text="!isNewRecord ? undefined : 'Create & Link'"
         @created-record="onCreatedRecord"
       />
@@ -524,6 +529,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
 <style lang="scss" scoped>
 :deep(.ant-skeleton-element .ant-skeleton-image-svg) {
   @apply !w-7;
+}
+:deep(.nc-filter-input-wrapper) {
+  height: 28px;
 }
 </style>
 

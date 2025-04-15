@@ -562,6 +562,7 @@ export class ExportService {
       _fieldIds?: string[];
       ncSiteUrl?: string;
       delimiter?: string;
+      excludeUsers?: boolean;
     },
   ) {
     const { dataStream, linkStream, handledMmList } = param;
@@ -612,11 +613,7 @@ export class ExportService {
       ? model.columns
           .filter((c) => param._fieldIds?.includes(c.id))
           .map((c) => c.title)
-          .join(',')
-      : model.columns
-          .filter((c) => !isLinksOrLTAR(c))
-          .map((c) => c.title)
-          .join(',');
+      : model.columns.filter((c) => !isLinksOrLTAR(c)).map((c) => c.title);
 
     if (dataExportMode) {
       const viewCols = await view.getColumns(context);
@@ -624,8 +621,7 @@ export class ExportService {
       fields = viewCols
         .sort((a, b) => a.order - b.order)
         .filter((c) => c.show)
-        .map((vc) => model.columns.find((c) => c.id === vc.fk_column_id).title)
-        .join(',');
+        .map((vc) => model.columns.find((c) => c.id === vc.fk_column_id).title);
     }
 
     const mmColumns = param._fieldIds
@@ -676,6 +672,12 @@ export class ExportService {
               case UITypes.User:
               case UITypes.CreatedBy:
               case UITypes.LastModifiedBy:
+                // skip populating if excludeUsers is true
+                if (param.excludeUsers === true) {
+                  row[colId] = null;
+                  break;
+                }
+
                 if (v) {
                   const userEmails = [];
                   const userRecord = Array.isArray(v) ? v : [v];
@@ -694,6 +696,14 @@ export class ExportService {
               case UITypes.Barcode:
               case UITypes.QrCode:
                 // skip these types
+                break;
+              case UITypes.JSON:
+                try {
+                  row[colId] = JSON.stringify(v);
+                } catch (e) {
+                  // avoid exporting invalid JSON
+                  row[colId] = null;
+                }
                 break;
               default:
                 row[colId] = v;
@@ -776,8 +786,7 @@ export class ExportService {
 
         const mmFields = mmModel.columns
           .filter((c) => c.uidt === UITypes.ForeignKey)
-          .map((c) => c.title)
-          .join(',');
+          .map((c) => c.title);
 
         const mmFormatData = (data: any) => {
           data.map((d) => {
@@ -843,7 +852,7 @@ export class ExportService {
     view: View,
     offset: number,
     limit: number,
-    fields: string,
+    fields: string[],
     header = false,
     delimiter = ',',
     dataExportMode = false,
@@ -932,7 +941,7 @@ export class ExportService {
     view: View,
     offset: number,
     limit: number,
-    fields: string,
+    fields: string[],
     header = false,
   ): Promise<void> {
     return new Promise((resolve, reject) => {

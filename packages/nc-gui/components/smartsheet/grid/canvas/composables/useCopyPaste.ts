@@ -21,31 +21,32 @@ import { TypeConversionError } from '../../../../../error/type-conversion.error'
 import type { SuppressedError } from '../../../../../error/suppressed.error'
 import { EDIT_INTERACTABLE } from '../utils/constants'
 
-const CHUNK_SIZE = 50
+const MAX_ROWS = 200
 
 export function useCopyPaste({
-  totalRows,
   activeCell,
   columns,
   scrollToCell,
   selection,
   editEnabled,
-  cachedRows,
   expandRows,
   view,
   meta,
   syncCellData,
   bulkUpsertRows,
   bulkUpdateRows,
-  fetchChunk,
   updateOrSaveRow,
+  getRows,
+  getDataCache,
 }: {
-  totalRows: Ref<number>
-  activeCell: Ref<{ row: number; column: number }>
+  activeCell: Ref<{
+    row?: number
+    column?: number
+    path?: Array<number>
+  }>
   columns: ComputedRef<CanvasGridColumn[]>
-  scrollToCell: (row?: number, column?: number) => void
+  scrollToCell: (row?: number, column?: number, path?: Array<number>) => void
   selection: Ref<CellRange>
-  cachedRows: Ref<Map<number, Row>>
   editEnabled: Ref<{
     rowIndex: number
     column: ColumnType
@@ -54,6 +55,7 @@ export function useCopyPaste({
     y: number
     width: number
     height: number
+    path: Array<number>
   } | null>
   expandRows: ({
     newRows,
@@ -71,32 +73,43 @@ export function useCopyPaste({
   }>
   view: ComputedRef<ViewType | undefined>
   meta: Ref<TableType>
-  syncCellData: (ctx: { row: number; col?: number; updatedColumnTitle?: string }) => Promise<void>
+  syncCellData: (ctx: { row: number; col?: number; updatedColumnTitle?: string }, path?: Array<number>) => Promise<void>
   bulkUpsertRows: (
     insertRows: Row[],
     updateRows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
+    undo?: boolean,
+    path?: Array<number>,
   ) => Promise<void>
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     undo?: boolean,
+    path?: Array<number>,
   ) => Promise<void>
-  fetchChunk: (chunkId: number) => Promise<void>
   updateOrSaveRow: (
     row: Row,
     property?: string,
     ltarState?: Record<string, any>,
     args?: { metaValue?: TableType; viewMetaValue?: ViewType },
     beforeRow?: string,
+    path?: Array<number>,
   ) => Promise<any>
+  getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
+  getDataCache: (path?: Array<number>) => {
+    cachedRows: Ref<Map<number, Row>>
+    totalRows: Ref<number>
+    chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
+    selectedRows: ComputedRef<Array<Row>>
+    isRowSortRequiredRows: ComputedRef<Array<Row>>
+  }
 }) {
   const { $api } = useNuxtApp()
   const { isDataReadOnly } = useRoles()
-  const { getMeta } = useMetas()
+  const { getMeta, metas } = useMetas()
   const { isMysql, isPg } = useBase()
   const { appInfo } = useGlobal()
   const { addUndo, clone, defineViewScope } = useUndoRedo()
@@ -104,10 +117,15 @@ export function useCopyPaste({
   const { isUIAllowed } = useRoles()
   const { copy } = useCopy()
   const { cleaMMCell, clearLTARCell, addLTARRef, syncLTARRefs } = useSmartsheetLtarHelpersOrThrow()
+  const { isSqlView } = useSmartsheetStoreOrThrow()
+  const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+  const isPublic = inject(IsPublicInj, ref(false))
 
   const { base } = storeToRefs(useBase())
   const fields = computed(() => (columns.value ?? []).map((c) => c.columnObj))
   const canPasteCell = computed(() => {
+    if (isSqlView.value || isPublic.value) return false
+
     return (
       !editEnabled.value ||
       (editEnabled.value &&
@@ -126,7 +144,7 @@ export function useCopyPaste({
     }
 
     // skip pasting virtual columns (including LTAR columns for now) and system columns
-    if (isVirtualCol(col) || isSystemColumn(col)) {
+    if (isVirtualCol(col) || isSystemColumn(col) || col?.readonly) {
       if (showInfo) {
         message.info(t('msg.info.pasteNotSupported'))
       }
@@ -174,6 +192,11 @@ export function useCopyPaste({
 
     e.preventDefault()
 
+    const groupPath = activeCell.value.path
+    const dataCache = getDataCache(groupPath)
+
+    const { totalRows, cachedRows } = dataCache
+
     // Replace \" with " in clipboard data
     let clipboardData = e.clipboardData?.getData('text/plain') || ''
 
@@ -196,13 +219,19 @@ export function useCopyPaste({
           return message.error(parsedClipboard.errors[0]?.message)
         }
 
-        const clipboardMatrix = parsedClipboard.data as string[][]
+        let clipboardMatrix = parsedClipboard.data as string[][]
+
+        let isTruncated = false
+        if (clipboardMatrix.length > MAX_ROWS) {
+          clipboardMatrix = clipboardMatrix.slice(0, MAX_ROWS)
+          isTruncated = true
+        }
 
         const selectionRowCount = Math.max(clipboardMatrix.length, selection.value.end.row - selection.value.start.row + 1)
 
         const pasteMatrixCols = clipboardMatrix[0]?.length || 0
-        const startColIndex = selection.value.start.col - 1
-        const existingFields = fields.value
+        const startColIndex = activeCell.value.column
+        const existingFields = unref(fields)
         const existingColCount = existingFields.length - startColIndex
         const newColsNeeded = Math.max(0, pasteMatrixCols - existingColCount)
 
@@ -274,6 +303,8 @@ export function useCopyPaste({
         } else {
           colsToPaste = fields.value.slice(selection.value.start.col, selection.value.start.col + pasteMatrixCols)
         }
+
+        await getRows(selection.value.start.row, selection.value.start.row + clipboardMatrix.length, groupPath)
 
         const dataRef = unref(cachedRows)
 
@@ -362,10 +393,16 @@ export function useCopyPaste({
             propsToPaste,
             undefined,
             bulkOpsCols.map(({ column }) => column),
+            false,
+            groupPath,
           )
-          scrollToCell?.()
+          scrollToCell?.(undefined, undefined, groupPath)
         } else {
-          await bulkUpdateRows?.(updatedRows, propsToPaste)
+          await bulkUpdateRows?.(updatedRows, propsToPaste, undefined, false, groupPath)
+        }
+
+        if (isTruncated) {
+          message.warning(`Paste operation limited to ${MAX_ROWS} rows. Additional rows were truncated.`)
         }
       } else {
         if (selection.value.isSingleCell()) {
@@ -386,7 +423,7 @@ export function useCopyPaste({
               isMysql(meta.value?.source_id),
             )
 
-            if (pasteVal === undefined) return
+            if (pasteVal === undefined || !ncIsObject(pasteVal)) return
 
             const foreignKeyColumn = meta.value?.columns?.find(
               (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
@@ -408,7 +445,7 @@ export function useCopyPaste({
               ? extractPkFromRow(pasteVal.value, (relatedTableMeta as any)!.columns!)
               : null
 
-            return await syncCellData?.({ ...activeCell.value, updatedColumnTitle: foreignKeyColumn.title })
+            return await syncCellData?.({ ...activeCell.value, updatedColumnTitle: foreignKeyColumn.title }, groupPath)
           }
 
           // Handle many-to-many column paste
@@ -423,7 +460,7 @@ export function useCopyPaste({
               isMysql(meta.value?.source_id),
             )
 
-            if (pasteVal === undefined) return
+            if (pasteVal === undefined || !ncIsObject(pasteVal)) return
 
             const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
             if (!pasteRowPk) return
@@ -505,7 +542,7 @@ export function useCopyPaste({
 
                       rowObj.row[columnObj.title!] = value
 
-                      await syncCellData?.(activeCell)
+                      await syncCellData?.(activeCell, activeCell?.path)
                     }
                   },
                   args: [clone(activeCell.value), clone(columnObj), clone(rowObj), clone(pasteVal.value), result],
@@ -545,7 +582,7 @@ export function useCopyPaste({
 
                       rowObj.row[columnObj.title!] = value
 
-                      await syncCellData?.(activeCell)
+                      await syncCellData?.(activeCell.activeCell?.value?.path)
                     }
                   },
                   args: [clone(activeCell.value), clone(columnObj), clone(rowObj), clone(oldCellValue), result],
@@ -554,7 +591,7 @@ export function useCopyPaste({
               })
             }
 
-            return await syncCellData?.(activeCell.value)
+            return await syncCellData?.(activeCell.value, groupPath)
           }
 
           if (!isPasteable(rowObj, columnObj, true)) {
@@ -593,14 +630,18 @@ export function useCopyPaste({
           }
 
           if (columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length && pasteValue?.length) {
-            const newAttachments = await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])
+            const newAttachments =
+              (await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
 
-            rowObj.row[columnObj.title!] = newAttachments ? JSON.stringify(newAttachments) : null
+            const oldAttachments = ncIsArray(rowObj.row[columnObj.title!]) ? rowObj.row[columnObj.title!] : []
+
+            rowObj.row[columnObj.title!] =
+              newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
           } else if (pasteValue !== undefined) {
             rowObj.row[columnObj.title!] = pasteValue
           }
 
-          await syncCellData?.(activeCell.value)
+          await syncCellData?.(activeCell.value, groupPath)
         } else {
           const { start, end } = selection.value
 
@@ -609,11 +650,8 @@ export function useCopyPaste({
           const startCol = Math.min(start.col, end.col)
           const endCol = Math.max(start.col, end.col)
 
+          const rows = await getRows(startRow, endRow, groupPath)
           const cols = unref(fields).slice(startCol, endCol + 1)
-          const rows = Array.from(unref(cachedRows) as Map<number, Row>)
-            .filter(([index]) => index >= startRow && index <= endRow)
-            .map(([, row]) => row)
-
           const props = []
 
           let pasteValue
@@ -698,7 +736,7 @@ export function useCopyPaste({
           }
 
           if (!props.length) return
-          await bulkUpdateRows?.(rows, props)
+          await bulkUpdateRows?.(rows, props, undefined, false, groupPath)
         }
       }
     } catch (error: any) {
@@ -754,17 +792,22 @@ export function useCopyPaste({
     )
   }
 
-  async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
+  async function clearCell(ctx: { row: number; col: number; path?: Array<number> } | null, skipUpdate = false) {
     // If the data is readonly, return
     // If the cell is not available, return
     // If the user doesn't have edit permission, return
     // If the cell is a virtual column and not Links/Ltar, return
-
     if (!ctx) return
+
+    const groupPath = ctx?.path
+
+    const dataCache = getDataCache(groupPath)
+    const { cachedRows } = dataCache
+
     const col = columns.value[ctx.col]
     const rowObj = cachedRows.value.get(ctx.row)
 
-    if (!col || !col?.columnObj || !rowObj || col?.virtual) return
+    if (!col || !col?.columnObj || !rowObj) return
     const columnObj = col.columnObj
 
     if (
@@ -772,13 +815,19 @@ export function useCopyPaste({
       isDataReadOnly.value ||
       !ctx ||
       !hasEditPermission.value ||
-      isSystemColumn(columnObj) ||
+      columnObj.readonly ||
+      (isSystemColumn(columnObj) && !isLinksOrLTAR(columnObj)) ||
       (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj))
-    )
+    ) {
       return
+    }
 
     if (isVirtualCol(columnObj)) {
       let mmClearResult
+      const mmOldResult = rowObj.row[columnObj.title]
+
+      // This will used to reload view data if it is self link column
+      const isSelfLinkColumn = columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id
 
       if (isMm(columnObj) && rowObj) {
         mmClearResult = await cleaMMCell(rowObj, columnObj)
@@ -786,7 +835,14 @@ export function useCopyPaste({
 
       addUndo({
         undo: {
-          fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, mmClearResult: any[]) => {
+          fn: async (
+            ctx: { row: number; col: number },
+            col: ColumnType,
+            row: Row,
+            mmClearResult: any[],
+            mmOldResult: any,
+            isSelfLinkColumn: boolean,
+          ) => {
             const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
             const rowObj = cachedRows.value.get(ctx.row)
             const columnObj = fields.value[ctx.col]
@@ -809,21 +865,26 @@ export function useCopyPaste({
                   encodeURIComponent(rowId as string),
                   mmClearResult,
                 )
-                rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
+                rowObj.row[columnObj.title] = mmOldResult ?? null
               }
 
               activeCell.value.column = ctx.col
               activeCell.value.row = ctx.row
+              activeCell.value.path = groupPath
 
-              scrollToCell?.()
+              if (isSelfLinkColumn) {
+                reloadViewDataHook.trigger({ shouldShowLoading: false })
+              }
+
+              scrollToCell?.(undefined, undefined, groupPath)
             } else {
               throw new Error(t('msg.recordCouldNotBeFound'))
             }
           },
-          args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult],
+          args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult, mmOldResult, isSelfLinkColumn],
         },
         redo: {
-          fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row) => {
+          fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, isSelfLinkColumn: boolean) => {
             const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
             const rowObj = cachedRows.value.get(ctx.row)
             const columnObj = fields.value[ctx.col]
@@ -840,16 +901,26 @@ export function useCopyPaste({
               }
               activeCell.value.column = ctx.col
               activeCell.value.row = ctx.row
-              scrollToCell?.()
+              activeCell.value.path = groupPath
+
+              if (isSelfLinkColumn) {
+                reloadViewDataHook.trigger({ shouldShowLoading: false })
+              }
+
+              scrollToCell?.(undefined, undefined, groupPath)
             } else {
               throw new Error(t('msg.recordCouldNotBeFound'))
             }
           },
-          args: [clone(ctx), clone(columnObj), clone(rowObj)],
+          args: [clone(ctx), clone(columnObj), clone(rowObj), isSelfLinkColumn],
         },
         scope: defineViewScope({ view: view.value }),
       })
       if (isBt(columnObj) || isOo(columnObj)) await clearLTARCell(rowObj, columnObj)
+
+      if (isSelfLinkColumn) {
+        reloadViewDataHook.trigger({ shouldShowLoading: false })
+      }
 
       return
     }
@@ -871,45 +942,35 @@ export function useCopyPaste({
 
     if (!skipUpdate) {
       // update/save cell value
-      await updateOrSaveRow?.(rowObj, columnObj.title)
+      await updateOrSaveRow?.(rowObj, columnObj.title, undefined, undefined, undefined, groupPath)
     }
   }
 
-  async function copyValue(ctx?: Cell) {
+  async function copyValue(ctx?: Cell, path: Array<number> = []) {
     try {
       if (selection.value.start !== null && selection.value.end !== null && !selection.value.isSingleCell()) {
-        const startChunkId = Math.floor(selection.value.start.row / CHUNK_SIZE)
-        const endChunkId = Math.floor(selection.value.end.row / CHUNK_SIZE)
-
-        const chunksToFetch = new Set<number>()
-        for (let chunkId = startChunkId; chunkId <= endChunkId; chunkId++) {
-          chunksToFetch.add(chunkId)
-        }
-
-        // Fetch all required chunks
-        await Promise.all([...chunksToFetch].map(fetchChunk))
-
-        const cprows = Array.from(unref(cachedRows).entries())
-          .filter(([index]) => index >= selection.value.start.row && index <= selection.value.end.row)
-          .map(([, row]) => row)
+        const cprows = await getRows(selection.value.start.row, selection.value.end.row, path)
 
         const cpcols = unref(fields).slice(selection.value.start.col, selection.value.end.col + 1) // slice the selected cols for copy
 
         await copyTable(cprows, cpcols)
         message.success(t('msg.info.copiedToClipboard'))
       } else {
+        const dataCache = getDataCache(path)
+
         // if copy was called with context (right click position) - copy value from context
         // else if there is just one selected cell, copy it's value
         const cpRow = ctx?.row ?? activeCell.value.row
         const cpCol = ctx?.col ?? activeCell.value.column
 
         if (cpRow != null && cpCol != null) {
-          const rowObj = unref(cachedRows).get(cpRow)
+          const rowObj = unref(dataCache.cachedRows).get(cpRow)
           const columnObj = unref(fields)[cpCol]
           if (!rowObj || !columnObj) return
 
           const textToCopy = valueToCopy(rowObj, columnObj, {
             meta: meta.value,
+            metas: metas.value,
             isPg,
             isMysql,
           })
@@ -918,7 +979,8 @@ export function useCopyPaste({
           message.success(t('msg.info.copiedToClipboard'))
         }
       }
-    } catch {
+    } catch (e) {
+      console.log(e)
       message.error(t('msg.error.copyToClipboardError'))
     }
   }

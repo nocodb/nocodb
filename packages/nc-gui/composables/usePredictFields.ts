@@ -1,4 +1,4 @@
-import { UITypes } from 'nocodb-sdk'
+import { ColumnHelper, UITypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import { AiWizardTabsType, type PredictedFieldType } from '#imports'
@@ -196,9 +196,7 @@ export const usePredictFields = createSharedComposable(
         column_name: field.title.toLowerCase().replace(/\\W/g, '_'),
         ...(field.formula ? { formula_raw: field.formula } : {}),
         ...(field.colOptions ? { colOptions: field.colOptions } : {}),
-        meta: {
-          ...(field.type in columnDefaultMeta ? columnDefaultMeta[field.type as keyof typeof columnDefaultMeta] : {}),
-        },
+        meta: ColumnHelper.getColumnDefaultMeta(field.type),
         description: field?.description || null,
         is_ai_field: true,
         ai_temp_id: field.ai_temp_id,

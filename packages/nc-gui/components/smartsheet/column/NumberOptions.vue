@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+import { ColumnHelper, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -11,7 +11,7 @@ const vModel = useVModel(props, 'value', emit)
 
 // set default value
 vModel.value.meta = {
-  ...columnDefaultMeta[UITypes.Number],
+  ...ColumnHelper.getColumnDefaultMeta(UITypes.Number),
   ...(vModel.value.meta || {}),
 }
 

@@ -78,25 +78,33 @@ const updateOrderBy = (field: string) => {
  * We are using 2 different table tag to make header sticky,
  * so it's imp to keep header cell and body cell width same
  */
+const handleUpdateCellWidth = () => {
+  if (!tableHeader.value || !tableHeadWidth.value) return
+
+  nextTick(() => {
+    const headerCells = tableHeader.value?.querySelectorAll('th > div')
+
+    if (headerCells && headerCells.length) {
+      headerCells.forEach((el, i) => {
+        headerCellWidth.value[i] = el.getBoundingClientRect().width || undefined
+      })
+    }
+  })
+}
+
 watch(
-  tableHeadWidth,
+  [tableHeader, tableHeadWidth],
   () => {
-    if (!tableHeader.value || !tableHeadWidth.value) return
-
-    nextTick(() => {
-      const headerCells = tableHeader.value?.querySelectorAll('th > div')
-
-      if (headerCells && headerCells.length) {
-        headerCells.forEach((el, i) => {
-          headerCellWidth.value[i] = el.getBoundingClientRect().width || undefined
-        })
-      }
-    })
+    handleUpdateCellWidth()
   },
   {
     immediate: true,
   },
 )
+
+onMounted(() => {
+  handleUpdateCellWidth()
+})
 
 useEventListener(tableWrapper, 'scroll', () => {
   const stickyHeaderCell = tableWrapper.value?.querySelector('th:nth-of-type(1)')

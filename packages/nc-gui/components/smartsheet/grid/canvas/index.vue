@@ -5,65 +5,122 @@ import {
   type TableType,
   UITypes,
   type ViewType,
-  ViewTypes,
   isVirtualCol,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
 import axios from 'axios'
+import type { ComputedRef, Ref } from 'vue'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { hasAncestorWithClass, isGeneralOverlayActive } from '../../../../utils/browserUtils'
+import type { CanvasGroup } from '../../../../lib/types'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
 import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils/canvas'
-import Tooltip from './Tooltip.vue'
-import Scroller from './Scroller.vue'
+import Tooltip from './components/Tooltip.vue'
+import Scroller from './components/Scroller.vue'
 import { columnTypeName } from './utils/headerUtils'
 import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType, parseCellWidth } from './utils/cell'
-import { ADD_NEW_COLUMN_WIDTH, COLUMN_HEADER_HEIGHT_IN_PX, MAX_SELECTED_ROWS, ROW_META_COLUMN_WIDTH } from './utils/constants'
+import {
+  ADD_NEW_COLUMN_WIDTH,
+  COLUMN_HEADER_HEIGHT_IN_PX,
+  GROUP_HEADER_HEIGHT,
+  GROUP_PADDING,
+  MAX_SELECTED_ROWS,
+  ROW_META_COLUMN_WIDTH,
+} from './utils/constants'
+import { calculateGroupRowTop, findGroupByPath, generateGroupPath, getDefaultGroupData } from './utils/groupby'
+import { CanvasElement, ElementTypes } from './utils/CanvasElement'
+import AddNewRowMenu from './components/AddNewRowMenu.vue'
+import type { Row } from '#imports'
 
 const props = defineProps<{
   totalRows: number
   data: Map<number, Row>
+  groupDataCache: Map<
+    string,
+    {
+      cachedRows: Ref<Map<number, Row>>
+      chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
+      totalRows: Ref<number>
+      selectedRows: ComputedRef<Array<Row>>
+      isRowSortRequiredRows: ComputedRef<Array<Row>>
+    }
+  >
   rowHeightEnum?: number
   loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
-  callAddEmptyRow?: (addAfter?: number) => Row | undefined
-  deleteRow?: (rowIndex: number, undo?: boolean) => Promise<void>
+  callAddEmptyRow?: (
+    newRowIndex?: number,
+    metaValue?: TableType,
+    rowOverwrite?: Record<string, any>,
+    path?: Array<number>,
+  ) => Row | undefined
+  deleteRow?: (rowIndex: number, undo?: boolean, path?: Array<number>) => Promise<void>
   updateOrSaveRow: (
     row: Row,
     property?: string,
     ltarState?: Record<string, any>,
     args?: { metaValue?: TableType; viewMetaValue?: ViewType },
     beforeRow?: string,
+    path?: Array<number>,
   ) => Promise<any>
-  deleteSelectedRows: () => Promise<void>
-  clearInvalidRows?: () => void
-  deleteRangeOfRows: (cellRange: CellRange) => Promise<void>
-  updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
+  deleteSelectedRows: (path?: Array<number>) => Promise<void>
+  clearInvalidRows?: (path?: Array<number>) => void
+  deleteRangeOfRows: (cellRange: CellRange, path?: Array<number>) => Promise<void>
+  updateRecordOrder: (
+    originalIndex: number,
+    targetIndex: number | null,
+    undo?: boolean,
+    isFailed?: boolean,
+    path?: Array<number>,
+  ) => Promise<void>
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     undo?: boolean,
+    path?: Array<number>,
   ) => Promise<void>
-  bulkDeleteAll: () => Promise<void>
+  bulkDeleteAll: (path?: Array<number>) => Promise<void>
   bulkUpsertRows: (
     insertRows: Row[],
     updateRows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
+    undo?: boolean,
+    path?: Array<number>,
   ) => Promise<void>
-  expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
-  removeRowIfNew: (row: Row) => void
+  expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path: Array<number>) => void
+  removeRowIfNew: (row: Row, path?: Array<number>) => void
   rowSortRequiredRows: Row[]
-  applySorting?: (newRows?: Row | Row[]) => void
-  clearCache: (visibleStartIndex: number, visibleEndIndex: number) => void
-  syncCount: () => Promise<void>
+  applySorting?: (newRows?: Row | Row[], path?: Array<number>) => void
+  clearCache: (visibleStartIndex: number, visibleEndIndex: number, path?: Array<number>) => void
+  syncCount: (path?: Array<number>) => Promise<void>
   selectedRows: Array<Row>
   chunkStates: Array<'loading' | 'loaded' | undefined>
   isBulkOperationInProgress: boolean
   selectedAllRecords?: boolean
+  getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
+  getDataCache: (path?: Array<number>) => {
+    cachedRows: Ref<Map<number, Row>>
+    totalRows: Ref<number>
+    chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
+    selectedRows: ComputedRef<Array<Row>>
+    isRowSortRequiredRows: ComputedRef<Array<Row>>
+    isGroupChanged?: ComputedRef<Array<Row>>
+  }
+  cachedGroups: Map<number, CanvasGroup>
+  totalGroups: number
+  groupByColumns: Array<{
+    column: ColumnType
+    order?: number
+    sort: string
+  }>
+  toggleExpand: (group: CanvasGroup) => void
+  groupSyncCount: (group?: CanvasGroup) => Promise<void>
+  fetchMissingGroupChunks: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => Promise<void>
+  clearGroupCache: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => void
 }>()
 
 const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
@@ -86,6 +143,12 @@ const {
   applySorting,
   bulkDeleteAll,
   removeRowIfNew,
+  getRows,
+  getDataCache,
+  toggleExpand,
+  groupSyncCount: syncGroupCount,
+  fetchMissingGroupChunks,
+  clearGroupCache,
 } = props
 
 // VModels
@@ -93,11 +156,15 @@ const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
 // Props to Refs
 const totalRows = toRef(props, 'totalRows')
+const totalGroups = toRef(props, 'totalGroups')
 const chunkStates = toRef(props, 'chunkStates')
 const cachedRows = toRef(props, 'data')
+const cachedGroups = toRef(props, 'cachedGroups')
 const rowHeightEnum = toRef(props, 'rowHeightEnum')
 const selectedRows = toRef(props, 'selectedRows')
 const rowSortRequiredRows = toRef(props, 'rowSortRequiredRows')
+const groupByColumns = toRef(props, 'groupByColumns')
+const groupDataCache = toRef(props, 'groupDataCache')
 
 // Refs
 const wrapperRef = ref()
@@ -106,9 +173,10 @@ const scrollLeft = ref(0)
 const preloadColumn = ref<any>()
 const overlayStyle = ref<Record<string, any> | null>(null)
 const openAggregationField = ref<CanvasGridColumn | null>(null)
+const openAddNewRowDropdown = ref<Array<number> | null>(null)
 const openColumnDropdownField = ref<ColumnType | null>(null)
 const isDropdownVisible = ref(false)
-const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
+const contextMenuTarget = ref<{ row: number; col: number; path: Array<number> } | null>(null)
 const _isContextMenuOpen = ref(false)
 const isCreateOrEditColumnDropdownOpen = ref(false)
 const columnEditOrAddProviderRef = ref()
@@ -118,7 +186,13 @@ const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 const isEditColumnDescription = ref(false)
 const mousePosition = reactive({ x: 0, y: 0 })
 const clientMousePosition = reactive({ clientX: 0, clientY: 0 })
-const paddingLessUITypes = new Set([UITypes.LongText, UITypes.DateTime, UITypes.SingleSelect, UITypes.MultiSelect])
+const paddingLessUITypes = new Set([
+  UITypes.LongText,
+  UITypes.DateTime,
+  UITypes.SingleSelect,
+  UITypes.MultiSelect,
+  UITypes.Formula,
+])
 const scroller = ref()
 provide(ClientMousePositionInj, clientMousePosition)
 // provide the column ref since at a time only one column can be active
@@ -132,7 +206,11 @@ const activeCellElement = ref<HTMLElement>()
 
 const cellClickHook = createEventHook()
 
+const cellEventHook = createEventHook()
+
 provide(CellClickHookInj, cellClickHook)
+
+provide(CellEventHookInj, cellEventHook)
 
 provide(CurrentCellInj, activeCellElement)
 
@@ -151,8 +229,8 @@ const { height, width } = useElementSize(wrapperRef)
 const { height: windowHeight, width: windowWidth } = useWindowSize()
 const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
-const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
-const { eventBus } = useSmartsheetStoreOrThrow()
+const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode, appInfo } = useGlobal()
+const { eventBus, isSqlView } = useSmartsheetStoreOrThrow()
 const route = useRoute()
 const { $e } = useNuxtApp()
 const { t } = useI18n()
@@ -166,6 +244,8 @@ const { floatingStyles } = useFloating(targetReference, tooltipRef, {
 const { tryShowTooltip, hideTooltip } = tooltipStore
 
 const {
+  isGroupBy,
+
   rowSlice,
   colSlice,
   editEnabled,
@@ -185,10 +265,9 @@ const {
   startResize,
   hoverRow,
   selection,
-  partialRowHeight,
   makeCellEditable,
   findClickedColumn,
-
+  elementMap,
   // MouseSelectionHandler
   onMouseMoveSelectionHandler,
   onMouseDownSelectionHandler,
@@ -268,6 +347,14 @@ const {
   onActiveCellChanged,
   addNewColumn: addEmptyColumn,
   setCursor,
+  getRows,
+  cachedGroups,
+  toggleExpand,
+  totalGroups,
+  groupSyncCount: syncGroupCount,
+  groupByColumns,
+  fetchMissingGroupChunks,
+  getDataCache,
 })
 
 const activeCursor = ref<CursorType>('auto')
@@ -291,6 +378,7 @@ const fixedLeftWidth = computed(() => {
 })
 
 const editEnabledCellPosition = computed(() => {
+  // TODO: @DarkPhoenix2704 handle for GroupBy
   if (!editEnabled.value) {
     return {
       top: 0,
@@ -319,7 +407,7 @@ const editEnabledCellPosition = computed(() => {
 const isClamped = computed(() => {
   if (!editEnabled.value || !containerRef.value) return false
 
-  if (editEnabled.value.column?.uidt === UITypes.LongText) {
+  if (editEnabled.value.column?.uidt === UITypes.LongText || editEnabled.value.column?.uidt === UITypes.Formula) {
     return true
   }
 
@@ -342,9 +430,39 @@ const isClamped = computed(() => {
 })
 
 const totalHeight = computed(() => {
-  const rowsHeight = totalRows.value * rowHeight.value
-  const headerHeight = 32
-  return rowsHeight + headerHeight + 256
+  // For non-grouped view, use original calculation
+  if (!isGroupBy.value) {
+    const dataCache = getDataCache()
+    return dataCache.totalRows.value * rowHeight.value + 32 + 256
+  }
+
+  // Add height for all top-level groups
+  const rootGroupsHeight = totalGroups.value * (GROUP_HEADER_HEIGHT + GROUP_PADDING)
+
+  function estimateTotalHeight(groups: Map<number, CanvasGroup>): number {
+    let sum = 0
+    // Add height for each expanded group's contents
+    for (const [, group] of groups) {
+      if (group?.isExpanded) {
+        // For leaf groups (with rows)
+        if (group.path) {
+          sum += group.count * rowHeight.value
+
+          if (isAddingEmptyRowAllowed.value) {
+            sum += COLUMN_HEADER_HEIGHT_IN_PX
+          }
+          // 1 Px Offset is Added for Showing the activeBorders. Else it wont be visible
+          sum += 1
+        } else if (group?.groups) {
+          sum += (group?.groupCount ?? 0) * (GROUP_HEADER_HEIGHT + GROUP_PADDING)
+          // Do nested groups check
+          sum += estimateTotalHeight(group.groups)
+        }
+      }
+    }
+    return sum
+  }
+  return rootGroupsHeight + estimateTotalHeight(cachedGroups.value) + 32 + 256 // Additional padding
 })
 
 const isContextMenuOpen = computed({
@@ -364,7 +482,8 @@ const isContextMenuOpen = computed({
 })
 
 watch(vSelectedAllRecords, (val) => {
-  cachedRows.value.forEach((row) => {
+  const dataCache = getDataCache()
+  dataCache.cachedRows.value.forEach((row) => {
     row.rowMeta.selected = !!val
   })
 })
@@ -376,10 +495,6 @@ const calculateSlices = () => {
     setTimeout(calculateSlices, 50)
     return
   }
-  const startRowIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
-  const visibleRowCount = Math.ceil(containerRef.value.clientHeight / rowHeight.value)
-  const endRowIndex = Math.min(startRowIndex + visibleRowCount, totalRows.value)
-  const newEndRow = Math.min(totalRows.value, endRowIndex)
 
   const startColIndex = Math.max(0, findColumnIndex(scrollLeft.value))
   const endColIndex = Math.min(
@@ -387,33 +502,128 @@ const calculateSlices = () => {
     findColumnIndex(scrollLeft.value + containerRef.value.clientWidth + COLUMN_BUFFER_SIZE) + 1,
   )
 
-  if (startRowIndex !== rowSlice.value.start || newEndRow !== rowSlice.value.end) {
-    rowSlice.value = { start: startRowIndex, end: newEndRow }
-  }
-
   if (startColIndex !== colSlice.value.start || endColIndex !== colSlice.value.end) {
     colSlice.value = { start: startColIndex, end: endColIndex }
   }
 
-  updateVisibleRows()
+  if (!isGroupBy.value) {
+    const dataCache = getDataCache()
+    const startRowIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
+    const visibleRowCount = Math.ceil(containerRef.value.clientHeight / rowHeight.value)
+    const endRowIndex = Math.min(startRowIndex + visibleRowCount, dataCache.totalRows.value)
+    const newEndRow = Math.min(dataCache.totalRows.value, endRowIndex)
+    if (startRowIndex !== rowSlice.value.start || newEndRow !== rowSlice.value.end) {
+      rowSlice.value = { start: startRowIndex, end: newEndRow }
+    }
+
+    updateVisibleRows()
+  }
+}
+
+function clearSelection() {
+  activeCell.value.row = -1
+  activeCell.value.column = -1
+  selection.value.clear()
+  editEnabled.value = null
+}
+
+async function onGroupRowChange({ row, level }) {
+  const parentGroupPath = row.rowMeta?.path?.slice(0, level)
+
+  const parentGroup = parentGroupPath?.length ? findGroupByPath(cachedGroups.value, parentGroupPath) : undefined
+
+  const groupMap = parentGroup?.groups ?? cachedGroups.value
+
+  // get the highest index value present in cachedGroups
+  const endIndex = Math.max(...groupMap.keys())
+
+  // clear selection to avoid rendering wrong cell content
+  setTimeout(() => {
+    clearSelection()
+  }, 150)
+
+  // reload all groups in current level since any one of them can be in updated state
+  await fetchMissingGroupChunks(0, endIndex, parentGroup ?? undefined, true)
+
+  // iterate and clear if expanded grid present
+  const clearGridCache = (groupMap: Map<number, CanvasGroup>, toalGroupCount: number, path = []) => {
+    for (let i = 0; i < toalGroupCount; i++) {
+      const group = groupMap.get(i)
+      if (group?.groupCount) {
+        // if group is not expanded, check if it has subgroups and clear their cache
+        clearGridCache(group.groups, group.groupCount, group.path ?? [...path, i])
+      } else {
+        clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, [...path, i])
+      }
+    }
+  }
+
+  clearGridCache(groupMap, parentGroup?.groupCount ?? totalGroups.value, parentGroup ? generateGroupPath(parentGroup) : [])
+
+  await syncGroupCount(parentGroup)
+
+  setTimeout(() => {
+    // if scrolltop is beyond totaheight, reset it to maximum possible value
+    scroller.value?.scrollTo({ top: Math.max(0, Math.min(totalHeight.value, scrollTop.value)) })
+  }, 150)
 }
 
 function onActiveCellChanged() {
-  clearInvalidRows?.()
-  if (rowSortRequiredRows.value.length) {
-    applySorting?.(rowSortRequiredRows.value)
+  if (isGroupBy.value) {
+    function processGroups(groups: Map<number, CanvasGroup>) {
+      for (const [, group] of groups) {
+        if (group?.isExpanded) {
+          if (group?.path) {
+            const { isRowSortRequiredRows } = getDataCache(group.path)
+            clearInvalidRows?.(group.path, {
+              onGroupRowChange,
+            })
+            if (isRowSortRequiredRows.value.length) {
+              applySorting?.(isRowSortRequiredRows.value, group.path)
+            }
+          } else if (group.groups) {
+            processGroups(group.groups)
+          }
+        }
+      }
+    }
+    processGroups(cachedGroups.value)
+  } else {
+    clearInvalidRows?.(undefined)
+    if (rowSortRequiredRows.value.length) {
+      applySorting?.(rowSortRequiredRows.value)
+    }
   }
+  calculateSlices()
   requestAnimationFrame(triggerRefreshCanvas)
 }
 
-const onNewRecordToGridClick = () => {
+const onNewRecordToGridClick = (path: Array<number> = []) => {
   setAddNewRecordGridMode(true)
-  addEmptyRow()
+
+  let overwrite = {}
+
+  if (isGroupBy.value) {
+    const group = findGroupByPath(cachedGroups.value, path)
+    overwrite = getDefaultGroupData(group)
+  }
+
+  addEmptyRow(undefined, undefined, undefined, overwrite, path)
+  openAddNewRowDropdown.value = null
+  isDropdownVisible.value = false
 }
 
-const onNewRecordToFormClick = () => {
+const onNewRecordToFormClick = (path: Array<number> = []) => {
   setAddNewRecordGridMode(false)
-  openNewRecordFormHook.trigger()
+  let overwrite = {}
+
+  if (isGroupBy.value) {
+    const group = findGroupByPath(cachedGroups.value, path)
+    overwrite = getDefaultGroupData(group)
+  }
+  openNewRecordFormHook.trigger({ overwrite, path })
+  openAddNewRowDropdown.value = null
+  isDropdownVisible.value = false
 }
 
 const onVisibilityChange = (value) => {
@@ -461,13 +671,21 @@ function closeAddColumnDropdownMenu(scrollToLastCol = false, savedColumn?: Colum
   }
 }
 
-function extractHoverMetaColRegions(row: Row) {
+function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
   const isAtMaxSelection = selectedRows.value.length >= MAX_SELECTED_ROWS
   const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection) || vSelectedAllRecords.value || readOnly.value
   const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
-  const isHover = hoverRow.value === row.rowMeta.rowIndex
+
+  const path = group ? generateGroupPath(group) : []
+
+  const isHover = hoverRow.value?.rowIndex === row.rowMeta.rowIndex && (hoverRow.value?.path ?? []).join() === path.join()
   const regions = []
   let currentX = 4
+
+  if (groupByColumns.value) {
+    currentX += groupByColumns.value?.length * 13
+  }
+
   let isCheckboxRendered = false
   if (isChecked || (selectedRows.value.length && isHover) || (isHover && !isRowReOrderEnabled.value && !readOnly.value)) {
     if (isChecked || isHover) {
@@ -527,8 +745,20 @@ function extractHoverMetaColRegions(row: Row) {
   return { isAtMaxSelection, isCheckboxDisabled, regions, currentX }
 }
 
-const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; x: number; onlyDrag?: boolean }) => {
-  const { isAtMaxSelection, isCheckboxDisabled, regions } = extractHoverMetaColRegions(row)
+const handleRowMetaClick = ({
+  e,
+  row,
+  x,
+  onlyDrag,
+  group,
+}: {
+  e: MouseEvent
+  row: Row
+  x: number
+  onlyDrag?: boolean
+  group?: CanvasGroup
+}) => {
+  const { isAtMaxSelection, isCheckboxDisabled, regions } = extractHoverMetaColRegions(row, group)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
 
@@ -540,7 +770,9 @@ const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; 
     case 'select':
       if (!isCheckboxDisabled && (row.rowMeta?.selected || !isAtMaxSelection)) {
         row.rowMeta.selected = !row.rowMeta?.selected
-        cachedRows.value.set(row.rowMeta.rowIndex!, row)
+        const path = generateGroupPath(group)
+        const dataCache = getDataCache(path)
+        dataCache?.cachedRows.value.set(row?.rowMeta.rowIndex, row)
       }
       break
 
@@ -552,7 +784,7 @@ const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; 
 
     case 'comment':
       isExpandedFormCommentMode.value = !!row.rowMeta?.commentCount
-      expandForm(row)
+      expandForm(row, undefined, false, group?.path)
       break
   }
 
@@ -560,8 +792,8 @@ const handleRowMetaClick = ({ e, row, x, onlyDrag }: { e: MouseEvent; row: Row; 
 }
 
 // check exact row meta region hovered and return the cursor type
-const getRowMetaCursor = ({ row, x }: { row: Row; x: number }) => {
-  const { regions } = extractHoverMetaColRegions(row)
+const getRowMetaCursor = ({ row, x, group }: { row: Row; x: number; group?: CanvasGroup }) => {
+  const { regions } = extractHoverMetaColRegions(row, group)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
 
@@ -585,13 +817,17 @@ let prevMenuState: {
   openColumnDropdownField?: unknown
   editEnabled?: boolean | null
   openAggregationFieldId?: string
+  openAddNewRowDropdown?: boolean | null
   isDropdownVisible?: boolean
   editColumn?: unknown
   columnOrder?: unknown
 } = {}
 
+let mouseUpListener = null
 async function handleMouseDown(e: MouseEvent) {
-  document.addEventListener('mouseup', handleMouseUp)
+  const _elementMap = new CanvasElement(elementMap.elements)
+  mouseUpListener = (e) => handleMouseUp(e, _elementMap)
+  document.addEventListener('mouseup', mouseUpListener)
 
   // keep it for later use inside mouseup event for showing/hiding dropdown based on the previous state
   prevMenuState = {
@@ -600,6 +836,7 @@ async function handleMouseDown(e: MouseEvent) {
     editEnabled: editEnabled.value,
     // storing id since the value get alteredand it's reactive
     openAggregationFieldId: openAggregationField.value?.id,
+    openAddNewRowDropdown: openAddNewRowDropdown.value,
     isDropdownVisible: isDropdownVisible.value,
     editColumn: editColumn.value,
     columnOrder: columnOrder.value,
@@ -607,6 +844,7 @@ async function handleMouseDown(e: MouseEvent) {
 
   editEnabled.value = null
   openAggregationField.value = null
+  openAddNewRowDropdown.value = null
   openColumnDropdownField.value = null
   isDropdownVisible.value = false
   editColumn.value = null
@@ -641,6 +879,11 @@ async function handleMouseDown(e: MouseEvent) {
         }
       })
     } else {
+      if (isContextMenuAllowed.value && vSelectedAllRecords.value) {
+        // Set the context Menu Targer and return
+        contextMenuTarget.value = { row: 0, col: -1, path: [] }
+        requestAnimationFrame(triggerRefreshCanvas)
+      }
       return
     }
     // DO NOT TRIGGER ANY OTHER MOUSE_DOWN ACTION IF USER IS CLICKING ON COLUMN HEADER
@@ -652,16 +895,22 @@ async function handleMouseDown(e: MouseEvent) {
     return
   }
 
-  const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
-
-  const row = cachedRows.value.get(rowIndex)
+  const element = _elementMap.findElementAt(mousePosition.x, mousePosition.y, [
+    ElementTypes.ADD_NEW_ROW,
+    ElementTypes.ROW,
+    ElementTypes.GROUP,
+  ])
+  const group = element?.group
+  const row = element?.row
+  const rowIndex = element?.rowIndex
+  const groupPath = group ? generateGroupPath(group) : []
 
   if (!row) return
   // onMouseDown event, we only handle the fillHandler and selectionHandler
   // and rowReorder. Other events should be handled in onMouseUp
-  if (x < 80) {
+  if (x < 80 + groupByColumns.value.length * 13) {
     if (clickType !== MouseClickType.SINGLE_CLICK) return
-    handleRowMetaClick({ e, row, x, onlyDrag: true })
+    handleRowMetaClick({ e, row, x, onlyDrag: true, group })
     return
   }
 
@@ -675,13 +924,13 @@ async function handleMouseDown(e: MouseEvent) {
 
   if (!clickedColumn?.columnObj) {
     selection.value.clear()
-    activeCell.value = { row: -1, column: -1 }
+    activeCell.value = { row: -1, column: -1, path: [] }
     editEnabled.value = null
   }
 
   // If the new cell user clicked is not the active cell
   // call onActiveCellChanged to clear invalid rows and reorder records locally if required
-  if (rowIndex !== activeCell.value?.row) {
+  if (rowIndex !== activeCell.value?.row || groupPath.map((v) => `${v}`).join('-') !== activeCell.value?.path?.join('-')) {
     onActiveCellChanged()
   }
 
@@ -691,6 +940,7 @@ async function handleMouseDown(e: MouseEvent) {
     if (selection.value.isEmpty()) {
       activeCell.value.row = rowIndex
       activeCell.value.column = columns.value.findIndex((col) => col.id === clickedColumn.id)
+      activeCell.value.path = groupPath
     }
     const columnIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
     const isWithinSelection = selection.value.isCellInRange({ row: rowIndex, col: columnIndex })
@@ -702,8 +952,8 @@ async function handleMouseDown(e: MouseEvent) {
     }
 
     if (isContextMenuAllowed.value) {
-      // Set the context Menu Targer and return
-      contextMenuTarget.value = { row: rowIndex, col: columnIndex }
+      // Set the context Menu Target and return
+      contextMenuTarget.value = { row: rowIndex, col: columnIndex, path: groupPath }
       requestAnimationFrame(triggerRefreshCanvas)
     }
     return
@@ -720,12 +970,22 @@ async function handleMouseDown(e: MouseEvent) {
 const PADDING_BOTTOM = 96
 const FIXED_COLUMN_PADDING = 128
 
-function scrollToCell(row?: number, column?: number): void {
-  const currentRow = row ?? activeCell.value.row
-  const currentColumn = column ?? activeCell.value.column
+function scrollToCell(row?: number, column?: number, path?: Array<number>): void {
+  const currentRow = row ?? activeCell.value.row ?? -1
+  const currentColumn = column ?? activeCell.value.column ?? -1
+  const currentPath = path ?? activeCell.value.path ?? []
 
-  const cellTop = currentRow * rowHeight.value
-  const cellBottom = cellTop + rowHeight.value + PADDING_BOTTOM
+  let cellTop = 0
+  let cellBottom = 0
+
+  if (isGroupBy.value && cachedGroups.value) {
+    cellTop = calculateGroupRowTop(cachedGroups.value, currentPath, currentRow, rowHeight.value, isAddingEmptyRowAllowed.value)
+    cellBottom = cellTop + rowHeight.value + PADDING_BOTTOM
+  } else {
+    cellTop = currentRow * rowHeight.value
+    cellBottom = cellTop + rowHeight.value + PADDING_BOTTOM
+  }
+
   const scrollTop = scroller.value?.getScrollPosition().top ?? 0
   const viewportHeight = height.value
 
@@ -778,10 +1038,12 @@ function scrollToCell(row?: number, column?: number): void {
   }
 }
 
-async function handleMouseUp(e: MouseEvent) {
+async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   e.preventDefault()
-  document.removeEventListener('mouseup', handleMouseUp)
-  onMouseUpFillHandlerEnd()
+  if (mouseUpListener) {
+    document.removeEventListener('mouseup', mouseUpListener)
+  }
+  await onMouseUpFillHandlerEnd()
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
   const y = e.clientY - rect.top
@@ -804,12 +1066,15 @@ async function handleMouseUp(e: MouseEvent) {
 
   if (isMobileMode.value) {
     if (y > 32 && y < height.value - 36) {
-      const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
-      const row = cachedRows.value.get(rowIndex)
-
-      if (row) {
-        expandForm(row)
+      const element = _elementMap.findElementAt(x, y, [ElementTypes.ROW, ElementTypes.GROUP, ElementTypes.ADD_NEW_ROW])
+      const group = element?.group
+      const row = element?.row
+      if (element?.isGroup) {
+        toggleExpand(group)
+      } else if (element?.isRow && row) {
+        expandForm(row, undefined, false, group?.path)
       }
+      requestAnimationFrame(triggerRefreshCanvas)
       return
     } else if (y < 32) {
       return
@@ -818,9 +1083,9 @@ async function handleMouseUp(e: MouseEvent) {
   // Handle all Column Header Operations
   if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
     // If x less than 80px, use is hovering over the row meta column
-    if (x < 80) {
+    if (x < 80 + groupByColumns.value.length * 13) {
       // If the click is not normal single click, return
-      if (clickType !== MouseClickType.SINGLE_CLICK || readOnly.value) return
+      if (clickType !== MouseClickType.SINGLE_CLICK || readOnly.value || isGroupBy.value) return
       if (isBoxHovered({ x: 10, y: 8, height: 16, width: 16 }, mousePosition)) {
         vSelectedAllRecords.value = !vSelectedAllRecords.value
       }
@@ -828,7 +1093,7 @@ async function handleMouseUp(e: MouseEvent) {
       return
     } else {
       // If x more than 80px, check if the user is trying to add a new column
-      const plusColumnX = totalColumnsWidth.value - scrollLeft.value
+      const plusColumnX = totalColumnsWidth.value - scrollLeft.value + groupByColumns.value.length * 13
       const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
       // If the user is trying to add a new column
       if (x >= plusColumnX && x <= plusColumnX + plusColumnWidth) {
@@ -854,7 +1119,7 @@ async function handleMouseUp(e: MouseEvent) {
 
       // If user is clicking on an existing column
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
-      const isFieldNotEditable = isLocked.value || !isUIAllowed('fieldEdit')
+      const isFieldNotEditable = !isUIAllowed('fieldEdit') || clickedColumn.columnObj?.readonly
       if (clickedColumn) {
         if (clickType === MouseClickType.RIGHT_CLICK) {
           if (isFieldNotEditable) return
@@ -917,7 +1182,7 @@ async function handleMouseUp(e: MouseEvent) {
   }
 
   // If the user is clicking on the Aggregation in bottom
-  if (y > height.value - 36) {
+  if (y > height.value - 36 && !isLocked.value) {
     // If the click is not normal single click, return
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
 
@@ -945,40 +1210,104 @@ async function handleMouseUp(e: MouseEvent) {
     return
   }
 
-  const rowIndex = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
+  const element = _elementMap.findElementAt(x, y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW, ElementTypes.GROUP])
+  let group = element?.group
+  const row = element?.row
+  const rowIndex = row?.rowMeta?.rowIndex ?? -1
+  const groupPath = group ? generateGroupPath(group) : []
+  const isAddNewRow = element?.type === ElementTypes.ADD_NEW_ROW
 
-  if (
-    rowIndex === totalRows.value &&
-    clickType === MouseClickType.SINGLE_CLICK &&
-    x < totalColumnsWidth.value - scrollLeft.value
-  ) {
-    if (isAddingEmptyRowAllowed.value) {
-      await addEmptyRow()
+  if (!group && element?.groupPath) {
+    group = cachedGroups.value.get(groupPath[0])
+  }
+
+  const dataCache = getDataCache(groupPath)
+
+  if (element?.isGroup) {
+    if (clickType === MouseClickType.SINGLE_CLICK) {
+      const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
+
+      if ((clickedColumn && clickedColumn?.fixed) || !appInfo.value.ee) {
+        toggleExpand(group)
+      } else if (clickedColumn) {
+        // if clicked on same aggregation field, close the dropdown
+        if (
+          prevMenuState.isDropdownVisible &&
+          prevMenuState.openAggregationFieldId &&
+          prevMenuState.openAggregationFieldId === clickedColumn.id
+        ) {
+          return
+        }
+        openAggregationField.value = clickedColumn
+        isDropdownVisible.value = true
+        overlayStyle.value = {
+          top: `${rect.top + y - 36}px`,
+          left: `${rect.left + xOffset}px`,
+          width: clickedColumn.width,
+          height: `36px`,
+          position: 'fixed',
+        }
+      }
     }
-    selection.value.clear()
-    activeCell.value.row = rowIndex
-    activeCell.value.column = 1
-    requestAnimationFrame(triggerRefreshCanvas)
-    return
-  } else if (rowIndex > totalRows.value) {
-    selection.value.clear()
-    activeCell.value = { row: -1, column: -1 }
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
 
-  if (x < 80) {
-    const row = cachedRows.value.get(rowIndex)
+  if (isAddNewRow && clickType === MouseClickType.SINGLE_CLICK && x < totalColumnsWidth.value - scrollLeft.value) {
+    if (isAddingEmptyRowAllowed.value) {
+      if (isGroupBy.value) {
+        const elem = _elementMap.findElementAtWithX(x, y, ElementTypes.EDIT_NEW_ROW_METHOD)
+
+        if (elem) {
+          openAddNewRowDropdown.value = groupPath
+          isDropdownVisible.value = true
+          overlayStyle.value = {
+            top: `${rect.top + elem.y}px`,
+            left: `${rect.left + x - elem.width}px`,
+            width: elem.width,
+            height: `36px`,
+            position: 'fixed',
+          }
+          requestAnimationFrame(triggerRefreshCanvas)
+          return
+        }
+
+        const setGroup = getDefaultGroupData(group)
+
+        if (isAddNewRecordGridMode.value || !isGroupBy.value) {
+          addEmptyRow(undefined, undefined, undefined, setGroup, groupPath)
+        } else {
+          openNewRecordHandler({ overwrite: setGroup, path: groupPath })
+        }
+      } else {
+        await addEmptyRow()
+      }
+    }
+    selection.value.clear()
+    activeCell.value.row = rowIndex
+    activeCell.value.column = 1
+    activeCell.value.path = groupPath
+    requestAnimationFrame(triggerRefreshCanvas)
+    return
+  } else if (rowIndex > dataCache.totalRows.value && !isGroupBy.value) {
+    selection.value.clear()
+    activeCell.value = { row: -1, column: -1, path: [] }
+    onActiveCellChanged()
+    requestAnimationFrame(triggerRefreshCanvas)
+    return
+  }
+
+  if (x < 80 + groupByColumns.value.length * 13) {
     if (!row) return
     if (![MouseClickType.SINGLE_CLICK, MouseClickType.RIGHT_CLICK].includes(clickType)) return
 
     switch (clickType) {
       case MouseClickType.SINGLE_CLICK:
-        handleRowMetaClick({ e, row, x })
+        handleRowMetaClick({ e, row, x, group: element?.group })
         break
       case MouseClickType.RIGHT_CLICK:
         if (isContextMenuAllowed.value) {
-          contextMenuTarget.value = { row: rowIndex, col: -1 }
+          contextMenuTarget.value = { row: rowIndex, col: -1, path: groupPath }
           requestAnimationFrame(triggerRefreshCanvas)
         }
         break
@@ -986,11 +1315,15 @@ async function handleMouseUp(e: MouseEvent) {
     return
   }
 
+  // last active cell state before clearing current state
+  const lastActiveCell = { ...activeCell.value }
+
   // Normal cell click operation
   // We set the activeCell to -1, -1 to clear the active cell
   if (rowIndex < rowSlice.value.start || rowIndex >= rowSlice.value.end) {
     activeCell.value.row = -1
     activeCell.value.column = -1
+    activeCell.value.path = []
     requestAnimationFrame(triggerRefreshCanvas)
   }
 
@@ -1001,19 +1334,27 @@ async function handleMouseUp(e: MouseEvent) {
     // Return
     activeCell.value.row = -1
     activeCell.value.column = -1
+    activeCell.value.path = []
     selection.value.clear()
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
-  // If the user is trying to click on a cell
-  const row = cachedRows.value.get(rowIndex)
-  if (!row) return
+  // If the user is not clicking on a row
+  if (!row) {
+    // if an active cell state is getting reset, trigger onActiveCellChanged
+    if (lastActiveCell.row !== -1 && lastActiveCell.column !== -1 && rowIndex === -1) {
+      onActiveCellChanged()
+    }
+
+    return
+  }
   const pk = extractPkFromRow(row?.row, meta.value?.columns as ColumnType[])
   const colIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
 
   if (clickType === MouseClickType.RIGHT_CLICK) {
     activeCell.value.row = rowIndex
     activeCell.value.column = colIndex
+    activeCell.value.path = groupPath
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
@@ -1027,13 +1368,17 @@ async function handleMouseUp(e: MouseEvent) {
     value: row?.row[clickedColumn.title],
     mousePosition: { x, y },
     pk,
-    selected: prevActiveCell?.row === rowIndex && prevActiveCell?.column === colIndex,
+    selected:
+      prevActiveCell?.row === rowIndex &&
+      prevActiveCell?.column === colIndex &&
+      prevActiveCell?.path?.join('-') === groupPath.join('-'),
     imageLoader,
+    path: groupPath,
   })
   // Set the active cell to the clicked cell
   activeCell.value.row = rowIndex
   activeCell.value.column = colIndex
-
+  activeCell.value.path = groupPath
   if (res) {
     // If the cellClick performed an action, return
     // Set the cell as selected
@@ -1053,7 +1398,7 @@ async function handleMouseUp(e: MouseEvent) {
 
     const supportedVirtualColumns = [UITypes.Barcode, UITypes.QrCode, UITypes.Lookup]
     if (!supportedVirtualColumns.includes(columnUIType) && clickedColumn?.virtual) return
-    makeCellEditable(rowIndex, clickedColumn)
+    makeCellEditable(row, clickedColumn)
   }
 }
 
@@ -1085,6 +1430,14 @@ const getHeaderTooltipRegions = (
   ctx.font = '550 12px Manrope'
   columns.value.slice(startColIndex, endColIndex).forEach((column) => {
     const width = parseCellWidth(column.width)
+
+    const isRowNumber = column.id === 'row_number'
+
+    if (isRowNumber && isGroupBy.value) {
+      xOffset += width
+      return
+    }
+
     const rightPadding = 8
     let totalIconWidth = rightPadding + 16
 
@@ -1121,13 +1474,26 @@ const getHeaderTooltipRegions = (
 
     let rightOffset = xOffset + width - rightPadding - (isFieldEditAllowed.value ? 16 : 0)
 
-    if (isFieldEditAllowed.value) {
+    if (isRowNumber) {
+      xOffset += width
+      return
+    }
+
+    if (isFieldEditAllowed.value && !column.columnObj?.readonly) {
       regions.push({
         x: rightOffset - scrollLeftValue,
         width: 14,
         type: 'columnChevron',
         disableTooltip: true,
         text: null,
+      })
+    } else if (meta.value?.synced && column.columnObj?.readonly) {
+      regions.push({
+        x: rightOffset - scrollLeftValue,
+        width: 14,
+        type: 'synced',
+        disableTooltip: false,
+        text: 'This field is synced',
       })
     }
 
@@ -1180,7 +1546,7 @@ const handleMouseMove = (e: MouseEvent) => {
     const fixedCols = columns.value.filter((col) => col.fixed)
 
     // check if it's hovering add new column
-    const plusColumnX = totalColumnsWidth.value - scrollLeft.value
+    const plusColumnX = totalColumnsWidth.value - scrollLeft.value + groupByColumns.value?.length * 13
     const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
 
     if (mousePosition.x >= plusColumnX && mousePosition.x <= plusColumnX + plusColumnWidth && isFieldEditAllowed.value) {
@@ -1260,21 +1626,27 @@ const handleMouseMove = (e: MouseEvent) => {
     if (y <= 32 && resizeableColumn.value) {
       resizeMouseMove(e)
     } else {
-      hoverRow.value = Math.floor((y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
+      const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
+
+      if (element) {
+        hoverRow.value = {
+          rowIndex: element?.rowIndex,
+          path: generateGroupPath(element?.group),
+        }
+      }
       onMouseMoveSelectionHandler(e)
     }
     requestAnimationFrame(triggerRefreshCanvas)
   }
   if (mousePosition.y > 32) {
-    const rowIndex = Math.floor((mousePosition.y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
-    const row = cachedRows.value.get(rowIndex)
+    const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
+    const row = element?.row
+    const rowIndex = element?.rowIndex
+    const groupPath = generateGroupPath(element?.group)
+
     const { column } = findClickedColumn(mousePosition.x, scrollLeft.value)
     if (!row || !column) {
-      if (
-        rowIndex === totalRows.value &&
-        isAddingEmptyRowAllowed.value &&
-        mousePosition.x < totalColumnsWidth.value - scrollLeft.value
-      ) {
+      if (element?.type === ElementTypes.ADD_NEW_ROW && mousePosition.x < totalColumnsWidth.value - scrollLeft.value) {
         setCursor('pointer')
       } else {
         setCursor('auto')
@@ -1292,16 +1664,17 @@ const handleMouseMove = (e: MouseEvent) => {
       pk,
       selected: activeCell.value.row === rowIndex && activeCell.value.column === colIndex,
       imageLoader,
+      path: groupPath,
     })
   }
 
   // check if hovering row meta column and set cursor
-  if (mousePosition.x < 80 && mousePosition.y > COLUMN_HEADER_HEIGHT_IN_PX) {
+  if (mousePosition.x < 80 + groupByColumns.value.length * 13 && mousePosition.y > COLUMN_HEADER_HEIGHT_IN_PX) {
     // handle hovering on the aggregation dropdown
     if (mousePosition.y <= height.value - 36) {
-      const rowIndex = Math.floor((mousePosition.y - 32 + partialRowHeight.value) / rowHeight.value) + rowSlice.value.start
-      const row = cachedRows.value.get(rowIndex)
-      cursor = getRowMetaCursor({ row, x: mousePosition.x }) || cursor
+      const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
+      const row = element?.row
+      cursor = getRowMetaCursor({ row, x: mousePosition.x, group: element?.group }) || cursor
     }
   }
 
@@ -1312,13 +1685,31 @@ const handleMouseMove = (e: MouseEvent) => {
   if (cursor) setCursor(cursor)
 }
 
-const reloadViewDataHookHandler = async () => {
-  clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+const reloadViewDataHookHandler = async (params) => {
+  if (isGroupBy.value) {
+    if (params?.path?.length) {
+      clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, params?.path)
+      syncCount(params?.path)
+      calculateSlices()
+      editEnabled.value = null
+      requestAnimationFrame(triggerRefreshCanvas)
+      return
+    }
 
-  await syncCount()
+    await syncGroupCount()
+    groupDataCache.value.clear()
+    clearGroupCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+    setTimeout(() => {
+      // if scrolltop is beyond totaheight, reset it to maximum possible value
+      scroller.value?.scrollTo({ top: Math.max(0, Math.min(totalHeight.value, scrollTop.value)) })
+    }, 150)
+  } else {
+    clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+    await syncCount()
+    updateVisibleRows()
+  }
 
   calculateSlices()
-  updateVisibleRows()
 
   requestAnimationFrame(triggerRefreshCanvas)
 }
@@ -1345,7 +1736,8 @@ const handleScroll = (e: { left: number; top: number }) => {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect) return
 
-    hoverRow.value = Math.floor(scrollTop.value / rowHeight.value + (mousePosition.y - 32) / rowHeight.value)
+    // TODO: @DarkPhoenix2704
+    // hoverRow.value = Math.floor(scrollTop.value / rowHeight.value + (mousePosition.y - 32) / rowHeight.value)
     requestAnimationFrame(triggerRefreshCanvas)
   }, 150)
 }
@@ -1396,8 +1788,8 @@ async function expandRows({
   return options
 }
 
-async function saveEmptyRow(rowObj: Row, before?: string) {
-  await updateOrSaveRow?.(rowObj, null, null, { metaValue: meta.value, viewMetaValue: view.value }, before)
+async function saveEmptyRow(rowObj: Row, before?: string, path: Array<number> = []) {
+  await updateOrSaveRow?.(rowObj, null, null, { metaValue: meta.value, viewMetaValue: view.value }, before, path)
 }
 
 function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | null = null, renderAtCurrentPosition = false) {
@@ -1435,11 +1827,12 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
 }
 
 function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnType) {
-  if (isLocked.value) return
   if (
     isUIAllowed('fieldEdit') &&
     !isMobileMode.value &&
-    (isDescription ? true : !isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.uidt))
+    (isDescription ? true : !isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.uidt)) &&
+    !column.readonly &&
+    !isSqlView.value
   ) {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (isDescription) {
@@ -1495,61 +1888,75 @@ function openColumnCreate(data: any) {
   }, 500)
 }
 
-async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
-  clearInvalidRows?.()
-  if (rowSortRequiredRows.value.length) {
-    applySorting?.(rowSortRequiredRows.value)
+async function addEmptyRow(row?: number, skipUpdate = false, before?: string, overwrite = {}, path: Array<number> = []) {
+  const dataCache = getDataCache(path)
+  clearInvalidRows?.(path, {
+    onGroupRowChange,
+  })
+  if (dataCache?.isRowSortRequiredRows.value.length) {
+    applySorting?.(dataCache?.isRowSortRequiredRows.value, path)
   }
 
-  const rowObj = callAddEmptyRow?.(row)
+  const rowObj = callAddEmptyRow?.(row, undefined, overwrite, path)
 
   if (!skipUpdate && rowObj) {
-    saveEmptyRow(rowObj, before)
+    saveEmptyRow(rowObj, before, path)
   }
 
   calculateSlices()
   requestAnimationFrame(triggerRefreshCanvas)
 
   nextTick().then(() => {
-    activeCell.value = { row: row ?? totalRows.value - 1, column: contextMenuTarget.value?.col ?? 1 }
-    selection.value.startRange({ row: row ?? totalRows.value - 1, col: contextMenuTarget.value?.col ?? 1 })
-    selection.value.endRange({ row: row ?? totalRows.value - 1, col: contextMenuTarget.value?.col ?? 1 })
+    activeCell.value = { row: row ?? dataCache.totalRows.value - 1, column: contextMenuTarget.value?.col ?? 1, path }
+    selection.value.startRange({ row: row ?? dataCache.totalRows.value - 1, col: contextMenuTarget.value?.col ?? 1 })
+    selection.value.endRange({ row: row ?? dataCache.totalRows.value - 1, col: contextMenuTarget.value?.col ?? 1 })
     scrollToCell()
   })
 
   return rowObj
 }
 
-async function openNewRecordHandler() {
+async function openNewRecordHandler({ overwrite, path }) {
   // Add an empty row
-  const newRow = await addEmptyRow(totalRows.value + 1, true)
+  const newRow = await addEmptyRow(undefined, true, undefined, overwrite, path)
   // Expand the form
-  if (newRow) expandForm?.(newRow, undefined, true)
+  if (newRow) expandForm?.(newRow, undefined, true, path)
 }
 
-const callAddNewRow = (context: { row: number; col: number }, direction: 'above' | 'below') => {
-  const row = cachedRows.value.get(direction === 'above' ? context.row : context.row + 1)
+const callAddNewRow = (context: { row: number; col: number; path: Array<number> }, direction: 'above' | 'below') => {
+  const dataCache = getDataCache(context?.path)
 
+  const { cachedRows } = dataCache
+
+  const row = cachedRows.value.get(direction === 'above' ? context.row : context.row + 1)
   if (row) {
     const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-    addEmptyRow(context.row + (direction === 'above' ? 0 : 1), false, rowId)
+    addEmptyRow(context.row + (direction === 'above' ? 0 : 1), false, rowId!, {}, context?.path)
   } else {
-    addEmptyRow()
+    addEmptyRow(undefined, false, undefined, {}, context?.path)
   }
 }
 
 const onNavigate = (dir: NavigateDir) => {
-  if (activeCell.value.row === null || activeCell.value.column === null) return
+  if (ncIsNullOrUndefined(activeCell.value?.row) || ncIsNullOrUndefined(activeCell.value?.column)) return
+
+  const path = editEnabled.value?.path || activeCell.value.path
+
+  const group = findGroupByPath(cachedGroups.value, path)
+
+  const defaultData = getDefaultGroupData(group)
+
+  const dataCache = getDataCache(path)
 
   editEnabled.value = null
   selection.value.clear()
 
   switch (dir) {
     case NavigateDir.NEXT:
-      if (activeCell.value.row < totalRows.value - 1) {
+      if (activeCell.value.row < dataCache.totalRows.value - 1) {
         activeCell.value.row++
       } else {
-        addEmptyRow()
+        addEmptyRow(undefined, false, undefined, defaultData, path)
         activeCell.value.row++
       }
       break
@@ -1570,6 +1977,10 @@ const onNavigate = (dir: NavigateDir) => {
   })
 }
 
+const bulkUpdataContext = (path: Array<number>) => {
+  emits('bulkUpdateDlg', path)
+}
+
 watch([height, width, windowWidth, windowHeight], () => {
   nextTick(() => {
     calculateSlices()
@@ -1584,22 +1995,23 @@ watch(rowHeight, () => {
 })
 
 // watch for column hide and re-render canvas
-watch(
-  () => {
-    return columns.value?.length
-  },
-  () => {
-    nextTick(() => {
-      calculateSlices()
-      requestAnimationFrame(triggerRefreshCanvas)
-    })
-  },
-)
+watch([() => columns.value?.length, () => totalRows.value], () => {
+  nextTick(() => {
+    calculateSlices()
+    requestAnimationFrame(triggerRefreshCanvas)
+  })
+})
 
 watch(
   activeCell,
   (activeCell) => {
-    const row = activeCell.row !== null ? cachedRows.value.get(activeCell.row)?.row : undefined
+    const path = activeCell.path
+
+    if (isGroupBy.value && ncIsNullOrUndefined(path)) return
+
+    const dataCache = getDataCache(path)
+
+    const row = activeCell.row !== null ? dataCache.cachedRows.value.get(activeCell.row)?.row : undefined
     const col = row && activeCell.column !== null ? columns.value[activeCell.column]?.columnObj : undefined
     const val = row && col ? row[col.title as string] : undefined
     const rowId = extractPkFromRow(row!, meta.value?.columns as ColumnType[])
@@ -1624,15 +2036,24 @@ reloadVisibleDataHook?.on(triggerReload)
 openNewRecordFormHook?.on(openNewRecordHandler)
 selectCellHook.on(selectCell)
 
+const { isViewColumnsLoading } = useViewColumnsOrThrow()
+
 watch(
   view,
   async (next, old) => {
     try {
       if (next && next.id !== old?.id && (next.fk_model_id === route.params.viewId || isPublicView.value)) {
         clearTextCache()
-        await syncCount()
-        calculateSlices()
-        await Promise.allSettled([loadViewAggregate(), updateVisibleRows()])
+        await until(isViewColumnsLoading).toMatch((c) => !c)
+        if (isGroupBy.value) {
+          await syncGroupCount()
+          calculateSlices()
+        } else {
+          await syncCount()
+          calculateSlices()
+          updateVisibleRows()
+        }
+        await loadViewAggregate()
       }
     } catch (e) {
       if (!axios.isCancel(e)) {
@@ -1681,13 +2102,16 @@ onClickOutside(
       return
     }
     onActiveCellChanged()
-    const aggregationOrColumnMenuOpen = document.querySelector('.canvas-aggregation, .canvas-header-column-menu')
+    const aggregationOrColumnMenuOpen = document.querySelector(
+      '.canvas-aggregation, .canvas-header-column-menu, .canvas-header-add-new-row-menu',
+    )
     if (!aggregationOrColumnMenuOpen && isNcDropdownOpen()) return
 
     openColumnDropdownField.value = null
     openAggregationField.value = null
+    openAddNewRowDropdown.value = null
     if (activeCell.value.row >= 0 || activeCell.value.column >= 0 || editEnabled.value) {
-      activeCell.value = { row: -1, column: -1 }
+      activeCell.value = { row: -1, column: -1, path: activeCell.value.path }
       editEnabled.value = null
       isFillHandlerActive.value = false
       selection.value.clear()
@@ -1695,17 +2119,25 @@ onClickOutside(
     }
   },
   {
-    ignore: ['.nc-edit-or-add-provider-wrapper', '.canvas-aggregation', '.canvas-header-column-menu'],
+    ignore: [
+      '.nc-edit-or-add-provider-wrapper',
+      '.canvas-aggregation',
+      '.canvas-header-column-menu',
+      '.canvas-header-add-new-row-menu',
+    ],
   },
 )
 
 onKeyStroke('Escape', () => {
   openColumnDropdownField.value = null
   openAggregationField.value = null
+  openAddNewRowDropdown.value = null
+  isDropdownVisible.value = false
 })
 
 const increaseMinHeightBy: Record<string, number> = {
   [UITypes.LongText]: 2,
+  [UITypes.Formula]: 2,
 }
 
 function updateValue(val: any) {
@@ -1715,6 +2147,19 @@ function updateValue(val: any) {
     editEnabled.value.row.row[title] = val
   }
 }
+
+const isEditableCellVisible = computed(() => !!editEnabled.value?.row)
+
+useActiveKeydownListener(
+  isEditableCellVisible,
+  (event) => {
+    cellEventHook.trigger(event)
+  },
+  {
+    isGridCell: true,
+    immediate: true,
+  },
+)
 
 defineExpose({
   scrollToRow: scrollToCell,
@@ -1771,16 +2216,16 @@ defineExpose({
               v-if="
                 contextMenuTarget &&
                 contextMenuTarget?.row !== -1 &&
-                (contextMenuTarget?.col !== -1 || selectedRows.length || vSelectedAllRecords)
+                (contextMenuTarget?.col !== -1 || selectedRows.length || vSelectedAllRecords || isGroupBy)
               "
               v-model:context-menu-target="contextMenuTarget"
               v-model:selected-all-records="vSelectedAllRecords"
-              :total-rows="totalRows"
               :selection="selection"
               :columns="columns"
-              :cached-rows="cachedRows"
               :active-cell="activeCell"
               :action-manager="actionManager"
+              :is-group-by="isGroupBy"
+              :get-data-cache="getDataCache"
               :clear-cell="clearCell"
               :is-primary-key-available="isPrimaryKeyAvailable"
               :is-selection-read-only="isSelectionReadOnly"
@@ -1795,12 +2240,12 @@ defineExpose({
               :call-add-new-row="callAddNewRow"
               :copy-value="copyValue"
               :read-only="!hasEditPermission"
+              :get-rows="getRows"
               :bulk-update-rows="bulkUpdateRows"
               :expand-form="expandForm"
-              :selected-rows="selectedRows"
               :clear-selected-range-of-cells="clearSelectedRangeOfCells"
               @click="isContextMenuOpen = false"
-              @bulk-update-dlg="emits('bulkUpdateDlg')"
+              @bulk-update-dlg="bulkUpdataContext"
             />
           </template>
         </NcDropdown>
@@ -1837,9 +2282,12 @@ defineExpose({
                     v-model="editEnabled.row.row[editEnabled.column.title]"
                     :column="editEnabled.column"
                     :row="editEnabled.row"
+                    :path="editEnabled.path"
                     active
                     :read-only="!isDataEditAllowed"
-                    @save="updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state)"
+                    @save="
+                      updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state, undefined, undefined, editEnabled.path)
+                    "
                     @navigate="onNavigate"
                   />
                   <SmartsheetCell
@@ -1847,6 +2295,7 @@ defineExpose({
                     :model-value="editEnabled.row.row[editEnabled.column.title]"
                     :column="editEnabled.column"
                     :row-index="editEnabled.rowIndex"
+                    :path="editEnabled.path"
                     active
                     edit-enabled
                     :read-only="!isDataEditAllowed"
@@ -1866,14 +2315,17 @@ defineExpose({
     <template v-if="overlayStyle">
       <NcDropdown
         :trigger="['click']"
-        :visible="isDropdownVisible"
+        :visible="
+          isDropdownVisible &&
+          (openColumnDropdownField || isCreateOrEditColumnDropdownOpen || openAggregationField || openAddNewRowDropdown)
+        "
         :overlay-class-name="`!bg-transparent !min-w-[220px] ${
-          !openAggregationField && !openColumnDropdownField ? '!border-none !shadow-none' : ''
+          !openAggregationField && !openColumnDropdownField && !openAddNewRowDropdown ? '!border-none !shadow-none' : ''
         }`"
         placement="bottomRight"
         @visible-change="onVisibilityChange"
       >
-        <div :style="overlayStyle" class="hide pointer-events-none"></div>
+        <div v-if="isDropdownVisible" :style="overlayStyle" class="hide pointer-events-none"></div>
         <template #overlay>
           <Aggregation v-if="openAggregationField" v-model:column="openAggregationField" class="canvas-aggregation" />
           <SmartsheetHeaderColumnMenu
@@ -1884,6 +2336,14 @@ defineExpose({
             @edit="handleEditColumn"
             @add-column="addEmptyColumn($event, true)"
           />
+          <AddNewRowMenu
+            v-else-if="openAddNewRowDropdown"
+            class="canvas-header-add-new-row-menu"
+            :path="openAddNewRowDropdown"
+            :on-new-record-to-grid-click="onNewRecordToGridClick"
+            :on-new-record-to-form-click="onNewRecordToFormClick"
+          />
+
           <div v-if="isCreateOrEditColumnDropdownOpen" class="nc-edit-or-add-provider-wrapper">
             <SmartsheetColumnEditOrAddProvider
               :key="editColumn?.id || 'new'"
@@ -1921,23 +2381,26 @@ defineExpose({
           </NcButton>
           <NcButton
             v-else
-            v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
-            class="!rounded-r-none !border-r-0 nc-grid-add-new-row"
+            v-e="[isAddNewRecordGridMode && !isGroupBy ? 'c:row:add:grid' : 'c:row:add:form']"
+            class="nc-grid-add-new-row"
             size="small"
+            :class="{
+              '!rounded-r-none !border-r-0': !isGroupBy,
+            }"
             type="secondary"
             :shadow="false"
-            @click.stop="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+            @click.stop="isAddNewRecordGridMode && !isGroupBy ? addEmptyRow() : onNewRecordToFormClick()"
           >
             <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
               <GeneralIcon icon="plus" />
-              <template v-if="isAddNewRecordGridMode">
+              <template v-if="isAddNewRecordGridMode || isGroupBy">
                 {{ $t('activity.newRecord') }}
               </template>
               <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}</template>
             </div>
           </NcButton>
           <NcButton
-            v-if="!isMobileMode"
+            v-if="!isMobileMode && !isGroupBy"
             size="small"
             class="!rounded-l-none nc-add-record-more-info"
             type="secondary"
@@ -1948,24 +2411,11 @@ defineExpose({
         </div>
 
         <template #overlay>
-          <NcMenu variant="small">
-            <NcMenuItem v-e="['c:row:add:grid']" class="nc-new-record-with-grid group" @click="onNewRecordToGridClick">
-              <div class="flex flex-row items-center justify-start gap-x-3">
-                <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
-                {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}
-              </div>
-
-              <GeneralIcon v-if="isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
-            </NcMenuItem>
-            <NcMenuItem v-e="['c:row:add:form']" class="nc-new-record-with-form group" @click="onNewRecordToFormClick">
-              <div class="flex flex-row items-center justify-start gap-x-3">
-                <component :is="viewIcons[ViewTypes.FORM]?.icon" class="nc-view-icon text-inherit" />
-                {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
-              </div>
-
-              <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
-            </NcMenuItem>
-          </NcMenu>
+          <AddNewRowMenu
+            :path="openAddNewRowDropdown"
+            :on-new-record-to-grid-click="onNewRecordToGridClick"
+            :on-new-record-to-form-click="onNewRecordToFormClick"
+          />
         </template>
       </NcDropdown>
     </div>
@@ -1991,9 +2441,12 @@ defineExpose({
 
     :deep(.nc-user-select) {
       margin-top: -2px;
+      .ant-select-selector {
+        @apply !h-7;
+      }
     }
 
-    :deep(.nc-cell-datetime) {
+    :deep(.nc-cell-datetime:not(.nc-under-ltar)) {
       @apply !py-0.75 !px-1.5;
     }
 
@@ -2004,6 +2457,11 @@ defineExpose({
     :deep(.nc-virtual-cell-lookup:has(.nc-cell-attachment)) {
       @apply !h-full;
     }
+  }
+
+  :deep(.nc-virtual-cell-lookup:has(.nc-virtual-cell-linktoanotherrecord)),
+  :deep(.nc-virtual-cell-lookup:has(.nc-virtual-cell-links)) {
+    @apply !overflow-hidden;
   }
 
   :deep(.nc-cell-longtext) {
@@ -2069,13 +2527,13 @@ defineExpose({
     @apply !py-1;
   }
 
-  :deep(.nc-cell-datetime) {
+  :deep(.nc-cell-datetime:not(.nc-under-ltar)) {
     @apply !py-1 !px-2;
   }
 
-  :deep(.nc-cell-date),
-  :deep(.nc-cell-year),
-  :deep(.nc-cell-time) {
+  :deep(.nc-cell-date:not(.nc-under-ltar)),
+  :deep(.nc-cell-year:not(.nc-under-ltar)),
+  :deep(.nc-cell-time:not(.nc-under-ltar)) {
     @apply !h-auto !py-1;
   }
 
@@ -2102,6 +2560,14 @@ defineExpose({
         @apply !text-small leading-[18px];
       }
     }
+  }
+
+  :deep(.nc-cell-datetime.nc-under-ltar) {
+    @apply !py-0 !leading-[16px];
+  }
+
+  :deep(.nc-under-ltar .nc-cell-field div) {
+    @apply !leading-[16px];
   }
 }
 </style>

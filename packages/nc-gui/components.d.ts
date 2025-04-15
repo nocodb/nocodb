@@ -104,7 +104,6 @@ declare module 'vue' {
     MdiCamera: typeof import('~icons/mdi/camera')['default']
     MdiCardsHeart: typeof import('~icons/mdi/cards-heart')['default']
     MdiCheck: typeof import('~icons/mdi/check')['default']
-    MdiChevronLeft: typeof import('~icons/mdi/chevron-left')['default']
     MdiChevronRight: typeof import('~icons/mdi/chevron-right')['default']
     MdiCircleMedium: typeof import('~icons/mdi/circle-medium')['default']
     MdiClockOutline: typeof import('~icons/mdi/clock-outline')['default']

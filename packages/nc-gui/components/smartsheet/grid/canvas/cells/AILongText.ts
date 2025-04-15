@@ -230,7 +230,7 @@ export const AILongTextCellRenderer: CellRenderer = {
       y,
     }
   },
-  async handleClick({ mousePosition, column, row, value, pk, actionManager, getCellPosition, makeCellEditable }) {
+  async handleClick({ mousePosition, column, row, value, pk, actionManager, getCellPosition, makeCellEditable, path }) {
     if (!row || !column?.id || !mousePosition) return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!) || column?.isInvalidColumn?.isInvalid
@@ -246,7 +246,7 @@ export const AILongTextCellRenderer: CellRenderer = {
       isBoxHovered({ x: x + width - 28, y: y + 7, width: 18, height: 18 }, mousePosition) ||
       isBoxHovered({ x: x + width - 52, y: y + 7, width: 18, height: 18 }, mousePosition)
     ) {
-      makeCellEditable(row.rowMeta.rowIndex!, column)
+      makeCellEditable(row, column)
       return true
     }
 
@@ -264,7 +264,7 @@ export const AILongTextCellRenderer: CellRenderer = {
       }
 
       if (isBoxHovered(buttonBounds, mousePosition)) {
-        await actionManager.executeButtonAction([pk], column, { row: [row], isAiPromptCol: true })
+        await actionManager.executeButtonAction([pk], column, { row: [row], isAiPromptCol: true, path })
         return true
       } else {
         return false
@@ -284,14 +284,14 @@ export const AILongTextCellRenderer: CellRenderer = {
     tryShowTooltip({ text: 'Re-generate', rect: regenerateIconBox, mousePosition })
   },
   async handleKeyDown(ctx) {
-    const { e, row, column, makeCellEditable, value, pk, actionManager } = ctx
-    if (column.readonly) return false
+    const { e, row, column, makeCellEditable, value, pk, actionManager, path } = ctx
+    if (column.readonly || column.columnObj?.readonly) return false
     if (!value?.value && e.key === 'Enter') {
-      actionManager.executeButtonAction([pk], column, { row: [row], isAiPromptCol: true })
+      actionManager.executeButtonAction([pk], column, { row: [row], isAiPromptCol: true, path })
       return true
     }
     if (/^[a-zA-Z0-9]$/.test(e.key)) {
-      makeCellEditable(row.rowMeta!.rowIndex!, column)
+      makeCellEditable(row, column)
       return true
     }
     return false

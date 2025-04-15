@@ -1,5 +1,7 @@
 import dayjs from 'dayjs'
-import { type ColumnType, dateFormats, timeFormats } from 'nocodb-sdk'
+import { constructDateFormat, constructDateTimeFormat, constructTimeFormat, dateFormats, timeFormats } from 'nocodb-sdk'
+
+export { constructDateFormat, constructDateTimeFormat, constructTimeFormat }
 
 export function parseStringDateTime(v: string, dateTimeFormat = `${dateFormats[0]} ${timeFormats[0]}`, toLocal = true) {
   const dayjsObj = toLocal ? dayjs(v).local() : dayjs(v)
@@ -56,16 +58,13 @@ export const hookLogFormatter = (date: string) => {
   return date && dayjs(date).format('YYYY-MM-DD HH:mm:ss')
 }
 
-export function constructDateTimeFormat(column: ColumnType) {
-  const dateFormat = constructDateFormat(column)
-  const timeFormat = constructTimeFormat(column)
-  return `${dateFormat} ${timeFormat}`
-}
+export function parseFlexibleDate(dateString: string) {
+  const formats = ['YYYY-MM-DD', 'YYYY/MM/DD', 'DD/MM/YYYY', 'DD-MM-YYYY', 'MM/DD/YYYY', 'MM-DD-YYYY']
 
-export function constructDateFormat(column: ColumnType) {
-  return parseProp(column?.meta)?.date_format ?? dateFormats[0]
-}
-
-export function constructTimeFormat(column: ColumnType) {
-  return parseProp(column?.meta)?.time_format ?? timeFormats[0]
+  for (const format of formats) {
+    const date = dayjs(dateString, format, true)
+    if (date.isValid()) {
+      return date
+    }
+  }
 }

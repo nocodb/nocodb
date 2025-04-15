@@ -121,7 +121,7 @@ export const setMigrationJobsStallInterval = () => {
     } catch (e) {
       console.error('Error updating stall check for migration job', e);
     }
-  }, 5 * 60 * 1000);
+  }, 5 * 60 * 1000).unref();
 
   return interval;
 };

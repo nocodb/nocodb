@@ -1,3 +1,1 @@
-export interface SuppressedError {
-  isErrorSuppressed: boolean
-}
+export { type SuppressedError } from 'nocodb-sdk'

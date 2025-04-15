@@ -51,6 +51,12 @@ export const LongTextCellRenderer: CellRenderer = {
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text, renderAsMarkdown: isRichMode })
     } else if (isRichMode) {
+      // Begin clipping
+      ctx.save()
+      ctx.beginPath()
+      ctx.rect(x, y, width - padding, height) // Define the clipping rectangle
+      ctx.clip()
+
       const { x: xOffset, y: yOffset } = renderMarkdown(ctx, {
         x: x + padding,
         y,
@@ -63,6 +69,9 @@ export const LongTextCellRenderer: CellRenderer = {
         spriteLoader,
         cellRenderStore: props.cellRenderStore,
       })
+
+      // Restore context after clipping
+      ctx.restore()
 
       if (!props.tag?.renderAsTag && isHovered) {
         renderExpandIcon()
@@ -95,7 +104,7 @@ export const LongTextCellRenderer: CellRenderer = {
     }
   },
   handleClick: async (props) => {
-    const { column, getCellPosition, row, mousePosition, makeCellEditable, cellRenderStore } = props
+    const { column, getCellPosition, row, mousePosition, makeCellEditable, cellRenderStore, isDoubleClick } = props
 
     const isRichMode = column.columnObj?.meta?.richMode
 
@@ -104,7 +113,7 @@ export const LongTextCellRenderer: CellRenderer = {
 
       for (const link of links) {
         if (isBoxHovered(link, mousePosition)) {
-          window.open(link.url, '_blank')
+          confirmPageLeavingRedirect(link.url, '_blank')
           return true
         }
       }
@@ -113,11 +122,15 @@ export const LongTextCellRenderer: CellRenderer = {
     if (isAIPromptCol(column?.columnObj)) {
       return AILongTextCellRenderer.handleClick!(props)
     } else {
-      const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
+      const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
 
       if (isBoxHovered({ x: x + width - 28, y: y + 7, width: 18, height: 18 }, mousePosition)) {
-        makeCellEditable(row.rowMeta.rowIndex!, column)
+        makeCellEditable(row, column)
         return true
+      }
+
+      if (isDoubleClick && isBoxHovered({ x, y, width, height }, mousePosition)) {
+        makeCellEditable(row, column)
       }
       return false
     }
@@ -127,9 +140,15 @@ export const LongTextCellRenderer: CellRenderer = {
     if (isAIPromptCol(column?.columnObj)) {
       return AILongTextCellRenderer.handleKeyDown?.(ctx)
     }
-    if (column.readonly) return
+
+    if (isExpandCellKey(e)) {
+      makeCellEditable(row, column)
+      return true
+    }
+
+    if (column.readonly || column.columnObj?.readonly) return
     if (/^[a-zA-Z0-9]$/.test(e.key)) {
-      makeCellEditable(row.rowMeta!.rowIndex!, column)
+      makeCellEditable(row, column)
       return true
     }
 
@@ -170,7 +189,7 @@ export const LongTextCellRenderer: CellRenderer = {
 
       const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
       const box = { x: x + width - 28, y: y + 7, width: 18, height: 18 }
-      tryShowTooltip({ rect: box, mousePosition, text: getI18n().global.t('title.expand') })
+      tryShowTooltip({ rect: box, mousePosition, text: getI18n().global.t('tooltip.expandShiftSpace') })
     }
   },
 }

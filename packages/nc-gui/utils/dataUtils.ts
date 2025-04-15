@@ -1,14 +1,15 @@
 import {
   RelationTypes,
   UITypes,
-  buildFilterTree,
   dateFormats,
+  getRenderAsTextFunForUiType,
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
-  isDateMonthFormat,
   isSystemColumn,
   isVirtualCol,
+  getLookupColumnType as sdkGetLookupColumnType,
+  validateRowFilters as sdkValidateRowFilters,
   timeFormats,
 } from 'nocodb-sdk'
 import type {
@@ -22,7 +23,9 @@ import type {
   TableType,
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
+import { timeFormatsObj } from '../components/smartsheet/grid/canvas/utils/cell'
 import { isColumnRequiredAndNull } from './columnUtils'
+import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
 export const isValidValue = (val: unknown) => {
   if (ncIsNull(val) || ncIsUndefined(val)) {
@@ -153,7 +156,7 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
       !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(col.cdf)
     ) {
       const defaultValue = col.cdf
-      acc[col.title!] = typeof defaultValue === 'string' ? defaultValue.replace(/^'|'$/g, '') : defaultValue
+      acc[col.title!] = typeof defaultValue === 'string' ? defaultValue.replace(/^['"]|['"]$/g, '') : defaultValue
     }
     return acc
   }, {} as Record<string, any>)
@@ -167,287 +170,20 @@ export const isRowEmpty = (record: Pick<Row, 'row'>, col: ColumnType): boolean =
   return !isValidValue(record.row[col.title])
 }
 
-export function validateRowFilters(_filters: FilterType[], data: any, columns: ColumnType[], client: any) {
-  if (!_filters.length) {
-    return true
-  }
-
-  const filters = buildFilterTree(_filters)
-
-  let isValid = null
-  for (const filter of filters) {
-    let res
-    if (filter.is_group && filter.children?.length) {
-      res = validateRowFilters(filter.children, data, columns, client)
-    } else {
-      const column = columns.find((c) => c.id === filter.fk_column_id)
-      if (!column) {
-        continue
-      }
-      const field = column.title!
-      let val = data[field]
-      if (
-        [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(column.uidt!) &&
-        !['empty', 'blank', 'notempty', 'notblank'].includes(filter.comparison_op!)
-      ) {
-        const dateFormat = client === 'mysql2' ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
-
-        let now = dayjs(new Date())
-        const dateFormatFromMeta = column?.meta?.date_format
-        const dataVal: any = val
-        let filterVal: any = filter.value
-        if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
-          // reset to 1st
-          now = dayjs(now).date(1)
-          if (val) val = dayjs(val).date(1)
-        }
-        if (filterVal) res = dayjs(filterVal).isSame(dataVal, 'day')
-
-        // handle sub operation
-        switch (filter.comparison_sub_op) {
-          case 'today':
-            filterVal = now
-            break
-          case 'tomorrow':
-            filterVal = now.add(1, 'day')
-            break
-          case 'yesterday':
-            filterVal = now.add(-1, 'day')
-            break
-          case 'oneWeekAgo':
-            filterVal = now.add(-1, 'week')
-            break
-          case 'oneWeekFromNow':
-            filterVal = now.add(1, 'week')
-            break
-          case 'oneMonthAgo':
-            filterVal = now.add(-1, 'month')
-            break
-          case 'oneMonthFromNow':
-            filterVal = now.add(1, 'month')
-            break
-          case 'daysAgo':
-            if (!filterVal) return
-            filterVal = now.add(-filterVal, 'day')
-            break
-          case 'daysFromNow':
-            if (!filterVal) return
-            filterVal = now.add(filterVal, 'day')
-            break
-          case 'exactDate':
-            if (!filterVal) return
-            break
-          // sub-ops for `isWithin` comparison
-          case 'pastWeek':
-            filterVal = now.add(-1, 'week')
-            break
-          case 'pastMonth':
-            filterVal = now.add(-1, 'month')
-            break
-          case 'pastYear':
-            filterVal = now.add(-1, 'year')
-            break
-          case 'nextWeek':
-            filterVal = now.add(1, 'week')
-            break
-          case 'nextMonth':
-            filterVal = now.add(1, 'month')
-            break
-          case 'nextYear':
-            filterVal = now.add(1, 'year')
-            break
-          case 'pastNumberOfDays':
-            if (!filterVal) return
-            filterVal = now.add(-filterVal, 'day')
-            break
-          case 'nextNumberOfDays':
-            if (!filterVal) return
-            filterVal = now.add(filterVal, 'day')
-            break
-        }
-
-        if (dataVal) {
-          switch (filter.comparison_op) {
-            case 'eq':
-              res = dayjs(dataVal).isSame(filterVal, 'day')
-              break
-            case 'neq':
-              res = !dayjs(dataVal).isSame(filterVal, 'day')
-              break
-            case 'gt':
-              res = dayjs(dataVal).isAfter(filterVal, 'day')
-              break
-            case 'lt':
-              res = dayjs(dataVal).isBefore(filterVal, 'day')
-              break
-            case 'lte':
-            case 'le':
-              res = dayjs(dataVal).isSameOrBefore(filterVal, 'day')
-              break
-            case 'gte':
-            case 'ge':
-              res = dayjs(dataVal).isSameOrAfter(filterVal, 'day')
-              break
-            case 'empty':
-            case 'blank':
-              res = dataVal === '' || dataVal === null || dataVal === undefined
-              break
-            case 'notempty':
-            case 'notblank':
-              res = !(dataVal === '' || dataVal === null || dataVal === undefined)
-              break
-            case 'isWithin': {
-              let now = dayjs(new Date()).format(dateFormat).toString()
-              now = column.uidt === UITypes.Date ? now.substring(0, 10) : now
-              switch (filter.comparison_sub_op) {
-                case 'pastWeek':
-                case 'pastMonth':
-                case 'pastYear':
-                case 'pastNumberOfDays':
-                  res = dayjs(dataVal).isBetween(filterVal, now, 'day')
-                  break
-                case 'nextWeek':
-                case 'nextMonth':
-                case 'nextYear':
-                case 'nextNumberOfDays':
-                  res = dayjs(dataVal).isBetween(now, filterVal, 'day')
-                  break
-              }
-            }
-          }
-        }
-      } else {
-        switch (typeof filter.value) {
-          case 'boolean':
-            val = !!data[field]
-            break
-          case 'number':
-            val = +data[field]
-            break
-        }
-
-        if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(column.uidt!)) {
-          const userIds: string[] = Array.isArray(data[field])
-            ? data[field].map((user) => user.id)
-            : data[field]?.id
-            ? [data[field].id]
-            : []
-
-          const filterValues = (filter.value?.split(',') || []).map((v) => v.trim())
-
-          switch (filter.comparison_op) {
-            case 'anyof':
-              res = userIds.some((id) => filterValues.includes(id))
-              break
-            case 'nanyof':
-              res = !userIds.some((id) => filterValues.includes(id))
-              break
-            case 'allof':
-              res = filterValues.every((id) => userIds.includes(id))
-              break
-            case 'nallof':
-              res = !filterValues.every((id) => userIds.includes(id))
-              break
-            case 'empty':
-            case 'blank':
-              res = userIds.length === 0
-              break
-            case 'notempty':
-            case 'notblank':
-              res = userIds.length > 0
-              break
-            default:
-              res = false // Unsupported operation for User fields
-          }
-        } else {
-          switch (filter.comparison_op) {
-            case 'eq':
-              // eslint-disable-next-line eqeqeq
-              res = val == filter.value
-              break
-            case 'neq':
-              // eslint-disable-next-line eqeqeq
-              res = val != filter.value
-              break
-            case 'like':
-              res = data[field]?.toString?.()?.toLowerCase()?.indexOf(filter.value?.toLowerCase()) > -1
-              break
-            case 'nlike':
-              res = data[field]?.toString?.()?.toLowerCase()?.indexOf(filter.value?.toLowerCase()) === -1
-              break
-            case 'empty':
-            case 'blank':
-              res = data[field] === '' || data[field] === null || data[field] === undefined
-              break
-            case 'notempty':
-            case 'notblank':
-              res = !(data[field] === '' || data[field] === null || data[field] === undefined)
-              break
-            case 'checked':
-              res = !!data[field]
-              break
-            case 'notchecked':
-              res = !data[field]
-              break
-            case 'null':
-              res = res = data[field] === null
-              break
-            case 'notnull':
-              res = data[field] !== null
-              break
-            case 'allof':
-              res = (filter.value?.split(',').map((item) => item.trim()) ?? []).every((item) =>
-                (data[field]?.split(',') ?? []).includes(item),
-              )
-              break
-            case 'anyof':
-              res = (filter.value?.split(',').map((item) => item.trim()) ?? []).some((item) =>
-                (data[field]?.split(',') ?? []).includes(item),
-              )
-              break
-            case 'nallof':
-              res = !(filter.value?.split(',').map((item) => item.trim()) ?? []).every((item) =>
-                (data[field]?.split(',') ?? []).includes(item),
-              )
-              break
-            case 'nanyof':
-              res = !(filter.value?.split(',').map((item) => item.trim()) ?? []).some((item) =>
-                (data[field]?.split(',') ?? []).includes(item),
-              )
-              break
-            case 'lt':
-              res = +data[field] < +filter.value
-              break
-            case 'lte':
-            case 'le':
-              res = +data[field] <= +filter.value
-              break
-            case 'gt':
-              res = +data[field] > +filter.value
-              break
-            case 'gte':
-            case 'ge':
-              res = +data[field] >= +filter.value
-              break
-          }
-        }
-      }
-    }
-
-    switch (filter.logical_op) {
-      case 'or':
-        isValid = isValid || !!res
-        break
-      case 'not':
-        isValid = isValid && !res
-        break
-      case 'and':
-      default:
-        isValid = (isValid ?? true) && res
-        break
-    }
-  }
-  return isValid
+export function validateRowFilters(
+  _filters: FilterType[],
+  data: any,
+  columns: ColumnType[],
+  client: any,
+  metas: Record<string, any>,
+) {
+  return sdkValidateRowFilters({
+    filters: _filters,
+    data,
+    columns,
+    client,
+    metas,
+  })
 }
 
 export const isAllowToRenderRowEmptyField = (col: ColumnType) => {
@@ -485,11 +221,16 @@ export const getMultiSelectValue = (modelValue: any, params: ParsePlainCellValue
     : modelValue.split(', ')
 }
 
-export const getDateValue = (modelValue: string | null | number, col: ColumnType, isSystemCol?: boolean) => {
-  const dateFormat = !isSystemCol ? parseProp(col.meta)?.date_format ?? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'
+export const getDateValue = (modelValue: string | null | number, col: ColumnType) => {
+  const dateFormat = parseProp(col.meta)?.date_format ?? 'YYYY-MM-DD'
 
-  if (!modelValue || !dayjs(modelValue).isValid()) {
+  if (!modelValue) {
     return ''
+  } else if (!dayjs(modelValue).isValid()) {
+    const parsedDate = parseFlexibleDate(modelValue)
+    if (parsedDate) {
+      return parsedDate.format(dateFormat) as string
+    }
   } else {
     return dayjs(/^\d+$/.test(String(modelValue)) ? +modelValue : modelValue).format(dateFormat)
   }
@@ -512,9 +253,12 @@ export const getDateTimeValue = (modelValue: string | null, params: ParsePlainCe
     return ''
   }
 
-  const dateFormat = parseProp(col?.meta)?.date_format ?? dateFormats[0]
-  const timeFormat = parseProp(col?.meta)?.time_format ?? timeFormats[0]
-  const dateTimeFormat = `${dateFormat} ${timeFormat}`
+  const columnMeta = parseProp(col.meta)
+
+  const dateFormat = columnMeta?.date_format ?? dateFormats[0]
+  const timeFormat = columnMeta?.time_format ?? timeFormats[0]
+  const is12hrFormat = columnMeta?.is12hrFormat
+  const dateTimeFormat = `${dateFormat} ${is12hrFormat ? timeFormatsObj[timeFormat] : timeFormat}`
 
   const isXcDB = isXcdbBase(col.source_id)
 
@@ -643,22 +387,31 @@ export const getRollupValue = (modelValue: string | null | number, params: Parse
   const { col, meta, metas } = params
 
   const colOptions = col.colOptions as RollupType
+  const relationColumnOptions = colOptions.fk_relation_column_id
+    ? (meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions as LinkToAnotherRecordType)
+    : null
+  const relatedTableMeta =
+    relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
 
-  const fns = ['count', 'avg', 'sum', 'countDistinct', 'sumDistinct', 'avgDistinct']
-  if (fns.includes(colOptions.rollup_function!)) {
-    return modelValue as string
-  } else {
-    const relationColumnOptions = colOptions.fk_relation_column_id
-      ? meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
-      : null
-    const relatedTableMeta =
-      relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
+  const childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_rollup_column_id) as
+    | ColumnType
+    | undefined
 
-    const childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_rollup_column_id)
+  if (!childColumn) return modelValue?.toString() ?? ''
 
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    return parsePlainCellValue(modelValue, { ...params, col: childColumn }) as string
+  const renderAsTextFun = getRenderAsTextFunForUiType((childColumn.uidt ?? UITypes.SingleLineText) as UITypes)
+
+  childColumn.meta = {
+    ...parseProp(childColumn?.meta),
+    ...parseProp(col?.meta),
   }
+
+  if (renderAsTextFun.includes(colOptions.rollup_function ?? '')) {
+    childColumn.uidt = UITypes.Decimal
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  return parsePlainCellValue(modelValue, { ...params, col: childColumn }) as string
 }
 
 export const getLookupValue = (modelValue: string | null | number | Array<any>, params: ParsePlainCellValueProps['params']) => {
@@ -667,13 +420,13 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   const colOptions = col.colOptions as LookupType
   const relationColumnOptions = colOptions.fk_relation_column_id
     ? meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
-    : null
+    : col.colOptions
   const relatedTableMeta =
     relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
 
-  const childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_lookup_column_id) as
-    | ColumnType
-    | undefined
+  const childColumn = relatedTableMeta?.columns.find(
+    (c: ColumnType) => c.id === (colOptions?.fk_lookup_column_id ?? colOptions?.fk_child_column_id),
+  ) as ColumnType | undefined
 
   if (Array.isArray(modelValue)) {
     return modelValue
@@ -687,6 +440,20 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   return parsePlainCellValue(modelValue, { ...params, col: childColumn! })
 }
 
+export function getLookupColumnType(
+  col: ColumnType,
+  meta: { columns: ColumnType[] },
+  metas: Record<string, any>,
+  visitedIds = new Set<string>(),
+): UITypes | null | undefined {
+  return sdkGetLookupColumnType({
+    col,
+    meta,
+    metas,
+    visitedIds,
+  })
+}
+
 export const getAttachmentValue = (modelValue: string | null | number | Array<any>) => {
   if (Array.isArray(modelValue)) {
     return modelValue.map((v) => `${v.title}`).join(', ')
@@ -697,13 +464,13 @@ export const getAttachmentValue = (modelValue: string | null | number | Array<an
 export const getLinksValue = (modelValue: string, params: ParsePlainCellValueProps['params']) => {
   const { col, t } = params
 
-  if (typeof col.meta === 'string') {
+  if (typeof col?.meta === 'string') {
     col.meta = JSON.parse(col.meta)
   }
 
   const parsedValue = +modelValue || 0
   if (!parsedValue) {
-    return ''
+    return `0 ${col?.meta?.plural || t('general.links')}`
   } else if (parsedValue === 1) {
     return `1 ${col?.meta?.singular || t('general.link')}`
   } else {
@@ -720,6 +487,7 @@ export const parsePlainCellValue = (
   if (!col) {
     return ''
   }
+
   if (isGeoData(col)) {
     const [latitude, longitude] = ((value as string) || '').split(';')
     return latitude && longitude ? `${latitude}; ${longitude}` : value
@@ -760,13 +528,17 @@ export const parsePlainCellValue = (
   if (isDecimal(col)) {
     return getDecimalValue(value, col)
   }
+  if (isRating(col)) {
+    return value ? `${value}` : '0'
+  }
+
   if (isInt(col, abstractType)) {
     return getIntValue(value)
   }
   if (isJSON(col)) {
     try {
       if (isUnderLookup) {
-        return typeof value === 'string' ? value : JSON.stringify(value)
+        return typeof value === 'string' ? JSON.stringify(JSON.parse(value)) : JSON.stringify(value)
       } else {
         return JSON.stringify(JSON.parse(value), null, 2)
       }
@@ -777,20 +549,20 @@ export const parsePlainCellValue = (
   if (isRollup(col)) {
     return getRollupValue(value, params)
   }
+  if (isLink(col)) {
+    return getLinksValue(value, params)
+  }
   if (isLookup(col) || isLTAR(col.uidt, col.colOptions)) {
     return getLookupValue(value, params)
   }
   if (isCreatedOrLastModifiedTimeCol(col)) {
-    return getDateValue(value, col, true)
+    return getDateTimeValue(value, params)
   }
   if (isCreatedOrLastModifiedByCol(col)) {
     return getUserValue(value, params)
   }
   if (isAttachment(col)) {
     return getAttachmentValue(value)
-  }
-  if (isLink(col)) {
-    return getLinksValue(value, col)
   }
 
   if (isFormula(col) && col?.meta?.display_type) {
@@ -807,8 +579,4 @@ export const parsePlainCellValue = (
   }
 
   return value as unknown as string
-}
-
-export function toSafeInteger(value: number) {
-  return Math.max(Number.MIN_SAFE_INTEGER, Math.min(value, Number.MAX_SAFE_INTEGER))
 }

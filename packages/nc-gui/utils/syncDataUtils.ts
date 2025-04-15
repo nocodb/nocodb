@@ -1,4 +1,4 @@
-import type { FormDefinition } from 'nocodb-sdk'
+import type { FormDefinition, IntegrationsType } from 'nocodb-sdk'
 import type { VNode } from '@vue/runtime-dom'
 import type { CSSProperties, FunctionalComponent, SVGAttributes } from 'nuxt/dist/app/compat/capi'
 import { ClientType, IntegrationCategoryType, SyncDataType } from '#imports'
@@ -8,7 +8,7 @@ export interface IntegrationItemType {
   title: string
   icon: FunctionalComponent<SVGAttributes, {}, any, {}> | VNode
   sub_type: SyncDataType | ClientType
-  type: IntegrationCategoryType
+  type: IntegrationCategoryType | IntegrationsType
   isAvailable?: boolean
   iconStyle?: CSSProperties
   isOssOnly?: boolean
@@ -40,9 +40,10 @@ export const integrationCategories: IntegrationCategoryItemType[] = [
     isAvailable: true,
   },
   {
-    title: 'objects.integrationCategories.ai',
-    subtitle: 'objects.integrationCategories.ai',
-    value: `${IntegrationCategoryType.AI}-coming-soon`,
+    title: 'Auth Provider',
+    subtitle: 'Auth',
+    value: IntegrationCategoryType.AUTH,
+    isAvailable: true,
   },
   {
     title: 'objects.integrationCategories.communication',

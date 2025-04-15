@@ -2,6 +2,7 @@ import { type ColumnType, type TableType, UITypes, type UserType, type ViewType,
 import { renderSingleLineText, renderSpinner } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
+import { useDetachedLongText } from '../composables/useDetachedLongText'
 import { EmailCellRenderer } from './Email'
 import { SingleLineTextCellRenderer } from './SingleLineText'
 import { LongTextCellRenderer } from './LongText'
@@ -33,13 +34,19 @@ import { ButtonCellRenderer } from './Button'
 import { LtarCellRenderer } from './LTAR'
 import { FormulaCellRenderer } from './Formula'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
+import { NullCellRenderer } from './Null'
+import { PlainCellRenderer } from './Plain'
 
 const CLEANUP_INTERVAL = 1000
 
 export function useGridCellHandler(params: {
-  getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { x: number; y: number; width: number; height: number }
+  getCellPosition: (
+    column: CanvasGridColumn,
+    rowIndex: number,
+    path: Array<number>,
+  ) => { x: number; y: number; width: number; height: number }
   actionManager: ActionManager
-  makeCellEditable: (row: number | Row, clickedColumn: CanvasGridColumn) => void
+  makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
   updateOrSaveRow: (
     row: Row,
     property?: string,
@@ -55,14 +62,18 @@ export function useGridCellHandler(params: {
 
   const { t } = useI18n()
   const { metas } = useMetas()
-  const canvasCellEvents = reactive<ExtractInjectedReactive<typeof CanvasCellEventDataInj>>({})
+  const canvasCellEvents = reactive<CanvasCellEventDataInjType>({})
   provide(CanvasCellEventDataInj, canvasCellEvents)
 
   const baseStore = useBase()
+  const { showNull } = useGlobal()
   const { isMssql, isMysql, isXcdbBase, isPg } = baseStore
   const { sqlUis } = storeToRefs(baseStore)
 
   const { basesUser } = storeToRefs(useBases())
+
+  const { open: openDetachedExpandedForm } = useExpandedFormDetached()
+  const { open: openDetachedLongText } = useDetachedLongText()
 
   const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() =>
     params.meta?.value?.base_id ? basesUser.value.get(params.meta?.value.base_id) || [] : [],
@@ -155,7 +166,10 @@ export function useGridCellHandler(params: {
       pk,
       meta = params.meta?.value,
       skipRender = false,
+      renderAsPlainCell = false,
       isUnderLookup = false,
+      path = [],
+      fontFamily,
     }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
@@ -173,8 +187,28 @@ export function useGridCellHandler(params: {
 
     // TODO: Reset all the styles here
     ctx.textAlign = 'left'
-    if (cellType) {
-      return cellType.render(ctx, {
+
+    let cellRenderer: CellRenderFn
+    const shouldRenderNull = showNull.value && isShowNullField(column) && (ncIsUndefined(value) || ncIsNull(value))
+
+    if (renderAsPlainCell) {
+      cellRenderer = PlainCellRenderer.render
+    } else if (cellType) {
+      if (!shouldRenderNull) {
+        cellRenderer = cellType.render
+      } else {
+        if (cellType.renderEmpty) {
+          cellRenderer = cellType.renderEmpty
+        } else {
+          cellRenderer = NullCellRenderer.render
+        }
+      }
+    } else if (shouldRenderNull) {
+      cellRenderer = NullCellRenderer.render
+    }
+
+    if (cellRenderer!) {
+      return cellRenderer(ctx, {
         value,
         row,
         column,
@@ -213,6 +247,8 @@ export function useGridCellHandler(params: {
         baseUsers: baseUsers.value,
         isUnderLookup,
         isPublic: isPublic.value,
+        path,
+        fontFamily,
       })
     } else {
       return renderSingleLineText(ctx, {
@@ -237,6 +273,7 @@ export function useGridCellHandler(params: {
     pk: any
     selected: boolean
     imageLoader: ImageWindowLoader
+    path: Array<number>
   }) => {
     if (!ctx.column?.columnObj?.uidt) return
 
@@ -244,27 +281,40 @@ export function useGridCellHandler(params: {
 
     const cellRenderStore = getCellRenderStore(`${ctx.column.id}-${ctx.pk}`)
     canvasCellEvents.keyboardKey = ''
+    canvasCellEvents.event = undefined
+
     if (cellHandler?.handleClick) {
       return await cellHandler.handleClick({
         ...ctx,
         cellRenderStore,
         isDoubleClick: ctx.event.detail === 2,
-        getCellPosition: params?.getCellPosition,
+        getCellPosition: (...args) => params?.getCellPosition?.(...args, ctx.path),
         readonly: !params.hasEditPermission.value,
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
         makeCellEditable,
         isPublic: isPublic.value,
+        openDetachedExpandedForm,
+        openDetachedLongText,
+        path: ctx.path ?? [],
       })
     }
     return false
   }
 
-  const handleCellKeyDown = async (ctx: { e: KeyboardEvent; row: Row; column: CanvasGridColumn; value: any; pk: any }) => {
+  const handleCellKeyDown = async (ctx: {
+    e: KeyboardEvent
+    row: Row
+    column: CanvasGridColumn
+    value: any
+    pk: any
+    path: Array<number>
+  }) => {
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj!.uidt!)
 
     const cellRenderStore = getCellRenderStore(`${ctx.column.id}-${ctx.pk}`)
     canvasCellEvents.keyboardKey = ctx.e.key
+    canvasCellEvents.event = ctx.e
     if (cellHandler?.handleKeyDown) {
       return await cellHandler.handleKeyDown({
         ...ctx,
@@ -273,6 +323,8 @@ export function useGridCellHandler(params: {
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
         makeCellEditable,
+        openDetachedLongText,
+        path: ctx.path ?? [],
       })
     } else {
       console.log('No handler found for cell type', ctx.column.columnObj.uidt)
@@ -301,7 +353,7 @@ export function useGridCellHandler(params: {
       return await cellHandler.handleHover({
         ...ctx,
         cellRenderStore,
-        getCellPosition: params?.getCellPosition,
+        getCellPosition: (...args) => params?.getCellPosition?.(...args, ctx.path),
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
         makeCellEditable,

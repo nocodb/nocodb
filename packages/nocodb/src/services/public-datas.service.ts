@@ -1,8 +1,9 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { UITypes, ViewTypes } from 'nocodb-sdk';
+import { ncIsArray, UITypes, ViewTypes } from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
+import type { DependantFields } from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
 import { Column, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -10,7 +11,7 @@ import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { getColumnByIdOrName } from '~/helpers/dataHelpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { replaceDynamicFieldWithValue } from '~/db/BaseModelSqlv2';
+import { replaceDynamicFieldWithValue } from '~/helpers/dbHelpers';
 import { Filter } from '~/models';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { DatasService } from '~/services/datas.service';
@@ -302,6 +303,37 @@ export class PublicDatasService {
     return data;
   }
 
+  async dataGroupByCount(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      password?: string;
+      query: any;
+    },
+  ) {
+    const view = await View.getByUUID(context, param.sharedViewUuid);
+
+    if (!view) NcError.viewNotFound(param.sharedViewUuid);
+
+    if (view.type !== ViewTypes.GRID) {
+      NcError.notFound('Not found');
+    }
+
+    if (view.password && view.password !== param.password) {
+      return NcError.invalidSharedViewPassword();
+    }
+
+    const model = await Model.getByIdOrName(context, {
+      id: view?.fk_model_id,
+    });
+
+    return await this.getDataGroupByCount(context, {
+      model,
+      view,
+      query: param.query,
+    });
+  }
+
   async dataGroupBy(
     context: NcContext,
     param: {
@@ -333,6 +365,34 @@ export class PublicDatasService {
     });
   }
 
+  async getDataGroupByCount(
+    context: NcContext,
+    param: { model: Model; view: View; query?: any },
+  ) {
+    const { model, view, query = {} } = param;
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
+    const listArgs: any = { ...query };
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {
+      listArgs.filterArr = ncIsArray(listArgs?.filterArrJson)
+        ? listArgs?.filterArrJson
+        : null;
+    }
+
+    return await baseModel.groupByCount(listArgs);
+  }
+
   async getDataGroupBy(
     context: NcContext,
     param: { model: Model; view: View; query?: any },
@@ -353,10 +413,18 @@ export class PublicDatasService {
 
       try {
         listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-      } catch (e) {}
+      } catch (e) {
+        listArgs.filterArr = ncIsArray(listArgs?.filterArrJson)
+          ? listArgs?.filterArrJson
+          : null;
+      }
       try {
         listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-      } catch (e) {}
+      } catch (e) {
+        listArgs.sortArr = ncIsArray(listArgs?.sortArrJson)
+          ? listArgs?.sortArrJson
+          : null;
+      }
 
       const data = await baseModel.groupBy(listArgs);
       const count = await baseModel.groupByCount(listArgs);
@@ -537,6 +605,26 @@ export class PublicDatasService {
       extractOnlyPrimaries: true,
     });
 
+    const listArgs: DependantFields & {
+      filterArr?: Filter[];
+      filterArrJson?: string;
+    } = dependencyFields;
+
+    try {
+      if (listArgs.filterArrJson)
+        listArgs.filterArr = JSON.parse(listArgs.filterArrJson) as Filter[];
+    } catch (e) {}
+
+    if (view.type === ViewTypes.FORM && ncIsArray(param.query?.fields)) {
+      param.query.fields.forEach(listArgs.fieldsSet.add, listArgs.fieldsSet);
+
+      param.query.fields.forEach((f) => {
+        if (ast[f] === undefined) {
+          ast[f] = 1;
+        }
+      });
+    }
+
     let data = [];
 
     let count = 0;
@@ -558,14 +646,14 @@ export class PublicDatasService {
       data = data = await nocoExecute(
         ast,
         await baseModel.list({
-          ...dependencyFields,
+          ...listArgs,
           customConditions,
         }),
         {},
-        dependencyFields,
+        listArgs,
       );
       count = await baseModel.count({
-        ...dependencyFields,
+        ...listArgs,
         customConditions,
       } as any);
     } catch (e) {

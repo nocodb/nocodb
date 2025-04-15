@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { PlanLimitTypes, RelationTypes, UITypes, getEquivalentUIType, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
-
+import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
@@ -69,20 +69,7 @@ const availableColumns = computed(() => {
 })
 
 const getColumnUidtByID = (key?: string) => {
-  if (!key || !columnByID.value[key]) return ''
-
-  const column = columnByID.value[key]
-
-  let uidt = column.uidt
-
-  if (column.uidt === UITypes.Formula) {
-    uidt =
-      getEquivalentUIType({
-        formulaColumn: column,
-      }) || uidt
-  }
-
-  return uidt || ''
+  return sortGetColumnUidtByID(key, columnByID.value)
 }
 
 const open = ref(false)
@@ -218,7 +205,7 @@ onMounted(() => {
           >
             <template v-if="isEeUI && !isPublic">
               <NcButton
-                v-if="sorts.length < getPlanLimit(PlanLimitTypes.SORT_LIMIT)"
+                v-if="sorts.length < getPlanLimit(PlanLimitTypes.LIMIT_SORT_PER_VIEW)"
                 v-e="['c:sort:add']"
                 class="mt-1 mb-2"
                 :class="{

@@ -20,6 +20,7 @@ export function useColumnResize(
   } | null>(null)
 
   const mousePosition = ref<{ x: number; y: number } | null>(null)
+  const isLocked = inject(IsLockedInj, ref(false))
 
   const resizeableColumn = computed(() => {
     if (!mousePosition.value) {
@@ -95,7 +96,7 @@ export function useColumnResize(
 
   const handleMouseDown = (e: MouseEvent) => {
     const rect = canvasRef.value?.getBoundingClientRect()
-    if (!rect) return
+    if (!rect || isLocked.value) return
 
     mousePosition.value = {
       x: e.clientX - rect.left,

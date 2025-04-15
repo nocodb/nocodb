@@ -11,6 +11,7 @@ export const PlainCellRenderer: CellRenderer = {
       height,
       padding,
       textColor = '#4a5268',
+      fontFamily = '500 13px Manrope',
       meta,
       metas,
       sqlUis,
@@ -36,7 +37,6 @@ export const PlainCellRenderer: CellRenderer = {
       t,
       isUnderLookup,
     })
-
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
     } else if (!text) {
@@ -50,7 +50,7 @@ export const PlainCellRenderer: CellRenderer = {
         y,
         text,
         maxWidth: width - padding * 2,
-        fontFamily: '500 13px Manrope',
+        fontFamily,
         fillStyle: textColor,
         height,
       })

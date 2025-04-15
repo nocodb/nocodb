@@ -123,6 +123,7 @@ export default defineNuxtConfig({
     public: {
       ncBackendUrl: '',
       env: 'production',
+      maxPageDesignerTableRows: 100,
     },
   },
 
@@ -243,7 +244,6 @@ export default defineNuxtConfig({
         '@vuelidate/core',
         '@vuelidate/validators',
         '@vueuse/integrations/useQRCode',
-        'company-email-validator',
         'crossoriginworker',
         'd3-scale',
         'dagre',
@@ -263,7 +263,6 @@ export default defineNuxtConfig({
         'markdown-it-regexp',
         'markdown-it-task-lists',
         'marked',
-        'mime-lite',
         'monaco-editor',
         'monaco-editor/esm/vs/basic-languages/javascript/javascript',
         'papaparse',
@@ -278,6 +277,7 @@ export default defineNuxtConfig({
         'turndown',
         'unified',
         'v3-infinite-loading',
+        'validator',
         'validator/es/lib/isEmail',
         'validator/lib/isMobilePhone',
         'vue-advanced-cropper',
@@ -288,6 +288,8 @@ export default defineNuxtConfig({
         'lru-cache',
         'qrcode',
         '@floating-ui/vue',
+        'validator',
+        '@stripe/stripe-js',
       ],
       esbuildOptions: {
         define: {

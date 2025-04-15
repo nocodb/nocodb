@@ -205,11 +205,21 @@ export const AttachmentCellRenderer: CellRenderer = {
         if (img) {
           ctx.strokeStyle = '#D5D5D9'
           ctx.lineWidth = 1
-          imageLoader.renderImage(ctx, img, itemX, itemY, itemSize, itemSize, 4, {
-            border: true,
-            borderColor: '#D5D5D9',
-            borderWidth: 1,
-          })
+          imageLoader.renderImage(
+            ctx,
+            img,
+            itemX,
+            itemY,
+            itemSize,
+            itemSize,
+            4,
+            {
+              border: true,
+              borderColor: '#D5D5D9',
+              borderWidth: 1,
+            },
+            'contain',
+          )
         } else {
           renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
         }
@@ -292,6 +302,35 @@ export const AttachmentCellRenderer: CellRenderer = {
       for now, the tooltip does not make sense */
       return
     }
+
+    if (attachments.length) {
+      const buttonY = y + 5
+      const maximizeBox = {
+        x: x + width - 30,
+        y: buttonY,
+        width: 18,
+        height: 18,
+      }
+
+      const attachBox = {
+        x: x + 11,
+        y: buttonY,
+        width: 18,
+        height: 18,
+      }
+
+      if (
+        tryShowTooltip({
+          rect: maximizeBox,
+          text: `${getI18n().global.t('activity.viewAttachment')} '${getI18n().global.t('tooltip.shiftSpace')}'`,
+          mousePosition,
+        })
+      )
+        return
+
+      if (tryShowTooltip({ rect: attachBox, text: getI18n().global.t('activity.addFiles'), mousePosition })) return
+    }
+
     const rowHeight = pxToRowHeight[height] ?? 1
 
     const { getPossibleAttachmentSrc } = useAttachment()
@@ -355,42 +394,21 @@ export const AttachmentCellRenderer: CellRenderer = {
     })
 
     const hoveredPreview = imageBoxes.find((box) => isBoxHovered(box, mousePosition))
-    if (tryShowTooltip({ rect: hoveredPreview, text: hoveredPreview?.title ?? '', mousePosition })) {
-      return
-    }
-
-    if (!attachments.length) return
-
-    const buttonY = y + 5
-    const maximizeBox = {
-      x: x + width - 30,
-      y: buttonY,
-      width: 18,
-      height: 18,
-    }
-
-    const attachBox = {
-      x: x + 11,
-      y: buttonY,
-      width: 18,
-      height: 18,
-    }
-
-    tryShowTooltip({ rect: maximizeBox, text: getI18n().global.t('activity.viewAttachment'), mousePosition })
-    tryShowTooltip({ rect: attachBox, text: getI18n().global.t('activity.addFiles'), mousePosition })
+    tryShowTooltip({ rect: hoveredPreview, text: hoveredPreview?.title ?? '', mousePosition })
   },
   async handleKeyDown({ row, column, e, makeCellEditable }) {
-    if (e.key === 'Enter') {
-      makeCellEditable(row.rowMeta.rowIndex!, column)
+    if (e.key === 'Enter' || isExpandCellKey(e)) {
+      makeCellEditable(row, column)
       return true
     }
+
     return false
   },
 
   async handleClick({ row, column, mousePosition, getCellPosition, value, selected, imageLoader, makeCellEditable }) {
     const { hideTooltip } = useTooltipStore()
     hideTooltip()
-    const enableEdit = () => makeCellEditable(row.rowMeta.rowIndex!, column)
+    const enableEdit = () => makeCellEditable(row, column)
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
 
     let attachments: Attachment[] = []

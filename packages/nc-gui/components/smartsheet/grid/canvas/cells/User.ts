@@ -135,7 +135,6 @@ export const UserFieldCellRenderer: CellRenderer = {
       const bgColor = isImage ? 'transparent' : backgroundColor(userDisplayName, userEmail, userIcon)
       const textColor = isColorDark(bgColor) ? 'white' : 'black'
 
-      const url = isImage ? (userIcon.icon as string[])?.[0] ?? '' : ''
       const icon = userIcon.icon as string
 
       if (enableBackground) {
@@ -146,7 +145,7 @@ export const UserFieldCellRenderer: CellRenderer = {
 
       let needsPlaceholder = true
       if (isImage) {
-        const img = imageLoader.loadOrGetImage(url)
+        const img = imageLoader.loadOrGetImage(icon)
         if (img) {
           imageLoader.renderImage(ctx, img, x, y + 6, circleSize, circleSize, circleRadius, { border: false })
           needsPlaceholder = false

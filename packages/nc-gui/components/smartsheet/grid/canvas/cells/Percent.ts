@@ -33,7 +33,7 @@ export const PercentCellRenderer: CellRenderer = {
     renderSingleLineText(ctx, {
       x: x + width - padding,
       y,
-      text: value ? `${value}%` : '',
+      text: value !== null && typeof value !== 'undefined' && value !== '' ? `${value}%` : '',
       textAlign: 'right',
       maxWidth: width - padding * 2,
       fontFamily: `${pv ? 600 : 500} 13px Manrope`,
@@ -43,7 +43,7 @@ export const PercentCellRenderer: CellRenderer = {
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx
-    if (column.readonly) return
+    if (column.readonly || column.columnObj?.readonly) return
     const columnObj = column.columnObj
 
     if (/^[0-9]$/.test(e.key) && columnObj.title) {

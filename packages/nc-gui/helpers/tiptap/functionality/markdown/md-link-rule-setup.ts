@@ -37,7 +37,12 @@ function mdLinkRuleSetupExt(md: MarkdownIt, { openLinkOnClick = false }: { openL
       }
       const onClickIndex = tokens[idx]!.attrIndex('onmousedown')
       if (onClickIndex < 0) {
-        tokens[idx]!.attrPush(['onmousedown', '(function(event) { event.stopImmediatePropagation(); })(event)'])
+        tokens[idx]!.attrPush(['onmousedown', '(function(event) { event.preventDefault();})(event)'])
+      }
+
+      const clickIndex = tokens[idx]!.attrIndex('onclick')
+      if (clickIndex < 0) {
+        tokens[idx]!.attrPush(['onclick', '(function(event) { window.tiptapLinkHandler?.(event);})(event)'])
       }
     }
 

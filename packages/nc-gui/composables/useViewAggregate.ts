@@ -155,7 +155,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
     })
 
     reloadAggregate?.on(async (_fields) => {
-      if (!_fields || !_fields?.fields.length) {
+      if (!_fields || !_fields?.fields?.length) {
         await loadViewAggregate()
       }
       if (_fields?.fields) {

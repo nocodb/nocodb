@@ -92,6 +92,10 @@
     "attachment_size": "Bijlage Grootte",
     "none": "Geen"
   },
+  "upgrade": {
+    "UpgradeToCreateAdditionalSnapshots": "Upgrade to create additional snapshots",
+    "UpgradeToCreateAdditionalSnapshotsSubtitle": "The {activePlan} plan allows up to {n} snapshots. Upgrade to the {plan} plan and get access to additional snapshots."
+  },
   "general": {
     "supported": "Supported",
     "usage": "Usage",
@@ -303,13 +307,27 @@
     "extension": "Extensie",
     "extensions": "Extensies",
     "enable": "Inschakelen",
+    "disable": "Disable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",
     "you": "You",
     "read": "Read",
     "unread": "Unread",
     "shared": "Shared",
-    "organization": "Organization"
+    "organization": "Organization",
+    "all": "All",
+    "billing": "Billing",
+    "choose": "Choose",
+    "plan": "Plan",
+    "plans": "Plans",
+    "monthly": "Monthly",
+    "annually": "Annually",
+    "yearly": "Yearly",
+    "paid": "Paid",
+    "total": "Total",
+    "downgrade": "Downgrade",
+    "upgrade": "Upgrade",
+    "reactivate": "Reactivate"
   },
   "objects": {
     "script": "Script",
@@ -338,7 +356,9 @@
     "page": "Pagina",
     "pages": "Pagina's",
     "record": "Record",
+    "group": "group",
     "records": "Records",
+    "groups": "groups",
     "webhook": "Webhook",
     "webhooks": "Webhooks",
     "view": "Weergave",
@@ -369,7 +389,7 @@
       "orgLevelCreator": "Schepper op organisatieniveau",
       "orgLevelViewer": "Viewer op organisatieniveau"
     },
-    "sqlVIew": "SQL-weergave",
+    "sqlView": "SQL-weergave",
     "rowHeight": "Recordhoogte",
     "heightClass": {
       "short": "Kort",
@@ -456,6 +476,28 @@
       "ai": "AI",
       "spreadSheet": "Spreadsheet",
       "spreadSheetSubtitle": "Verbind en beheer uw spreadsheets met NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
+    },
+    "paymentPlan": {
+      "Free": "Free",
+      "Team": "Team",
+      "Plus": "Plus",
+      "Business": "Business",
+      "Enterprise": "Enterprise"
+    },
+    "currentPlan": {
+      "nextInvoice": "Next Invoice",
+      "nextInvoiceAmount": "Next Invoice Amount",
+      "numberOfBilledUsers": "Number of Billed Users",
+      "numberOfBillableUsers": "Number of Billable Users",
+      "storageUsedGB": "Storage Used (GB)",
+      "webhookCallsMonthly": "Webhook calls (monthly)",
+      "apiCallsMonthly": "API calls (monthly)"
     }
   },
   "datatype": {
@@ -511,6 +553,8 @@
     "isNotNull": "is niet NULL"
   },
   "title": {
+    "confirmSnapshotRestore": "Confirm Snapshot Restore",
+    "urlFilters": "URL Filters",
     "creatingScript": "Creating Script",
     "searchWebhook": "Zoek webhook",
     "webcam": "Webcam",
@@ -676,9 +720,40 @@
     "lockedByUser": "Geblokkeerd door {user}",
     "thisPageDoesNotExist": "This page doesn’t exist",
     "customUrl": "Custom URL",
-    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}"
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
+    "youAreLeavingNocoDB": "You’re leaving NocoDB",
+    "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration.",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
+    "currentPlan": "Current Plan",
+    "editorMonth": "/editor/month",
+    "mostPopular": "Most Popular",
+    "helpAndSupport": "Help & Support",
+    "helpAndSupportSubtitle": "Visit our Support Center for detailed guides, customer service contact options, and a community forum for additional help.",
+    "faq": "FAQ",
+    "faqSubtitle": "Explore the FAQ section and get quick answers to common questions about our services, features, and troubleshooting. ",
+    "downgradeToPlan": "Downgrade to {plan} plan?",
+    "downgradeToPlanSubtitle": "You'll lose access to {activePlan} plan features that aren't available in the {plan} plan.",
+    "upgradeToPlan": "Upgrade to {plan} plan?",
+    "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
+    "reactivateToPlan": "Reactivate {plan} plan?"
   },
   "labels": {
+    "restoringSnapshot": "Restoring Snapshot",
+    "note": "Note:",
+    "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",
+    "snapshotRestoreMessage2": "On restore, a new base will be created in the selected workspace.",
+    "snapshotRestoreConfirmation": "Are you sure you want to restore this base snapshot.",
+    "tryAgain": "Try again",
+    "goToBase": "Go to Base",
+    "errorMessage": "Error message:",
+    "duplicateBaseBaseTitle": "Duplicate Base \"{baseTitle}\"",
+    "duplicateBaseSuccessfull": "Base Duplication Successfull",
+    "duplicateBaseFailed": "Base Duplication Failed",
+    "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
+    "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
+    "currentWorkspace": "Current workspace",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "Failed",
@@ -885,6 +960,7 @@
     "clickToCopyViewID": "Klik om View ID te kopiëren",
     "viewMode": "Weergavemodus",
     "reAssignView": "Re-assign view",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "Zoek Gebruikers",
     "superAdmin": "Super Admin",
     "allTables": "Alle Tabellen",
@@ -965,6 +1041,7 @@
     "csv": "CSV",
     "csvFile": "CSV-bestand",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON-bestand",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1073,8 +1150,11 @@
     "apis": "API's",
     "apiSnippet": "API Snippets",
     "includeData": "Gegevens opnemen",
-    "includeView": "Weergave opnemen",
-    "includeWebhook": "Webhook opnemen",
+    "includeRecords": "Include records",
+    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "includeView": "Include views",
+    "includeWebhook": "Include webhook",
+    "includeComments": "Include comments",
     "zoomInToViewColumns": "Inzoomen om kolommen te bekijken",
     "embedInSite": "Embed deze weergave in je site",
     "titleRequired": "Titel is verplicht.",
@@ -1127,7 +1207,25 @@
     "rowId": "Row Id",
     "showJsonPayload": "Show JSON payload",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
-    "fillForm": "Fill Form"
+    "fillForm": "Fill Form",
+    "proceedToLink": "Proceed to link",
+    "currentOwner": "Current owner",
+    "newOwner": "New owner",
+    "addFromUrl": "Add from URL",
+    "enterJson": "Enter JSON",
+    "airtableBase": "Airtable base",
+    "upgradePlan": "Upgrade Plan",
+    "viewAllPlanDetails": "View all plan details",
+    "contactSales": "Contact Sales",
+    "manageSubscription": "Manage Subscription",
+    "upgradeToPlan": "Upgrade To {plan}",
+    "applicableTax": "Applicable tax",
+    "annualSavings": "Annual Savings",
+    "compareAllFeatures": "Compare all features",
+    "planIncludes": "{plan} Includes:",
+    "everythingInPlanPlus": "Everything in {plan}, Plus:",
+    "downloadInvoice": "Download Invoice",
+    "proceed": "Proceed"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1397,6 +1495,7 @@
     "clearForm": "Formulier wissen",
     "addFieldFromFormView": "Veld toevoegen",
     "selectAllFields": "Selecteer alle velden",
+    "deselectAllFields": "Deselect all fields",
     "preFilledFields": {
       "title": "Vooraf invullen inschakelen",
       "default": "Standaard",
@@ -1409,7 +1508,9 @@
     "goToDocs": "Ga naar Documenten",
     "addCondition": "Voorwaarde toevoegen",
     "addConditionGroup": "Voorwaardengroep toevoegen",
-    "pending": "Pending"
+    "pending": "Pending",
+    "goToPage": "Go to Page",
+    "changePlan": "ChangePlan"
   },
   "tooltip": {
     "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
@@ -1461,7 +1562,12 @@
     "aiIntegrationReConfigure": "AI integration has been removed, re-configure from field edit modal to use NocoAI features",
     "aiIntegrationAddAndReConfigure": "AI integration has been removed, re-add and re-configure from field edit modal to use NocoAI features",
     "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI",
-    "sourceDataIsReadonly": "Source data is readonly"
+    "sourceDataIsReadonly": "Source data is readonly",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
+    "shiftSpace": "Shift + Space",
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields",
+    "copyErrorCode": "Copy error code"
   },
   "placeholder": {
     "searchIcons": "Zoek pictogrammen",
@@ -1520,9 +1626,12 @@
     "inviteYourTeam": "Nodig je team uit",
     "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace.",
     "searchOptions": "Zoekopties",
-    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
+    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional).",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
+    "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",
     "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
@@ -1670,7 +1779,10 @@
         "fieldVisibility": "U kunt de zichtbaarheid van een veld dat wordt bewerkt niet wijzigen. Sla eerst de wijzigingen op of annuleer ze.",
         "moveEditedField": "U kunt een veld dat wordt bewerkt niet verplaatsen. Sla eerst de wijzigingen op of annuleer ze.",
         "moveDeletedField": "U kunt een verwijderd veld niet verplaatsen. Sla eerst de wijzigingen op of annuleer ze."
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "Invitation sent successfully",
@@ -1863,7 +1975,8 @@
       "yourCurrentRoleIs": "Uw huidige rol is",
       "pleaseRequestAccessForView": "Vraag om hogere rechten van de Admin / Base eigenaar / Werkruimte eigenaar om toegang te krijgen tot deze {viewName}",
       "preventHideAllOptions": "U kunt niet alle opties verbergen als een veld verplicht is",
-      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long"
+      "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "Handmatige hooks kunnen niet worden uitgeschakeld",
@@ -1970,7 +2083,13 @@
       "columnVisibilityUpdateFailed": "Failed to update field visibility",
       "unsupportedCharacter": "Unsupported character: {char}",
       "unsupportedCharacters": "Unsupported characters: {char}",
-      "notSupported": "Not supported"
+      "notSupported": "Not supported",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error",
+      "anErrorOccuredWhileImporting": "An error occurred while {type}",
+      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable",
+      "paymentFailed": "Payment Failed",
+      "paymentFailedSubtitle": "Something went wrong while processing your payment. Please try again or contact support."
     },
     "toast": {
       "exportMetadata": "Project metadata met succes geëxporteerd",
@@ -2020,6 +2139,8 @@
       "embeddableHTMLCodeCopied": "Gekopieerde insluitbare HTML-code!",
       "userDetailsUpdated": "De gebruikersgegevens zijn succesvol bijgewerkt",
       "tableDataImported": "Tabelgegevens succesvol geïmporteerd",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook details succesvol bijgewerkt",
       "webhookDeleted": "Haak succesvol verwijderd",
       "webhookTested": "Webhook succesvol getest",
@@ -2029,7 +2150,9 @@
       "settingsSaved": "Instellingen succesvol opgeslagen",
       "roleUpdated": "Rol succesvol bijgewerkt",
       "connectionAdded": "Integratie succesvol verbonden",
-      "connectionAddedDesc": "Basis eigenaren en makers kunnen nu een gegevensbron toevoegen zonder inloggegevens opnieuw in te voeren."
+      "connectionAddedDesc": "Basis eigenaren en makers kunnen nu een gegevensbron toevoegen zonder inloggegevens opnieuw in te voeren.",
+      "paymentSuccessful": "Payment Successful",
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

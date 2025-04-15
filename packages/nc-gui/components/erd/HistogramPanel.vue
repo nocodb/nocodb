@@ -15,7 +15,7 @@ import { Panel, PanelPosition } from '@vue-flow/additional-components'
 
       <div class="flex items-center gap-1.5 p-2">
         <component :is="iconMap.eye" />
-        <div>{{ $t('objects.sqlVIew') }}</div>
+        <div>{{ $t('objects.sqlView') }}</div>
       </div>
     </div>
   </Panel>

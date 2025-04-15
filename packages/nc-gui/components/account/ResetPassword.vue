@@ -34,21 +34,25 @@ const formRules = {
 }
 
 const passwordChange = async () => {
-  const valid = formValidator.value.validate()
-  if (!valid) return
+  try {
+    const valid = formValidator.value.validate()
+    if (!valid) return
 
-  error.value = null
+    error.value = null
 
-  await api.auth.passwordChange({
-    currentPassword: form.currentPassword,
-    newPassword: form.password,
-  })
+    await api.auth.passwordChange({
+      currentPassword: form.currentPassword,
+      newPassword: form.password,
+    })
 
-  message.success(t('msg.success.passwordChanged'))
+    message.success(t('msg.success.passwordChanged'))
 
-  await signOut({
-    redirectToSignin: true,
-  })
+    await signOut({
+      redirectToSignin: true,
+    })
+  } catch {
+    // ignore since error value is set by useApi and will be displayed in UI
+  }
 }
 
 const resetError = () => {

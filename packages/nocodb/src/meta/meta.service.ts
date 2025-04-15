@@ -333,6 +333,7 @@ export class MetaService {
       [MetaTable.COL_BUTTON]: 'btn',
       [MetaTable.SNAPSHOT]: 'snap',
       [MetaTable.SCRIPTS]: 'scr',
+      [MetaTable.SYNC_CONFIGS]: 'sync',
     };
 
     const prefix = prefixMap[target] || 'nc';
@@ -628,6 +629,7 @@ export class MetaService {
     }
 
     query.count(args?.aggField || 'id', { as: 'count' }).first();
+
 
     return +(await query)?.['count'] || 0;
   }

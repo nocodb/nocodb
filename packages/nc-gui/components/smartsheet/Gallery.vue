@@ -54,10 +54,10 @@ const coverImageColumn: any = computed(() =>
     : {},
 )
 
-const coverImageObjectFitClass = computed(() => {
+const coverImageObjectFitStyle = computed(() => {
   const fk_cover_image_object_fit = parseProp(galleryData.value?.meta)?.fk_cover_image_object_fit || CoverImageObjectFit.FIT
-  if (fk_cover_image_object_fit === CoverImageObjectFit.FIT) return '!object-contain'
-  if (fk_cover_image_object_fit === CoverImageObjectFit.COVER) return '!object-cover'
+  if (fk_cover_image_object_fit === CoverImageObjectFit.FIT) return 'contain'
+  if (fk_cover_image_object_fit === CoverImageObjectFit.COVER) return 'cover'
 })
 
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
@@ -395,7 +395,7 @@ reloadViewDataHook?.on(async () => {
           <div :style="{ height: `${placeholderAboveHeight}px` }"></div>
           <div class="nc-gallery-container grid gap-3 p-3">
             <div
-              v-for="(record, rowIndex) in visibleRows"
+              v-for="record in visibleRows"
               :key="`record-${record.rowMeta.rowIndex}`"
               :data-card-id="`record-${record.rowMeta.rowIndex}`"
             >
@@ -405,7 +405,7 @@ reloadViewDataHook?.on(async () => {
                   :body-style="{ padding: '16px !important' }"
                   :data-testid="`nc-gallery-card-${record.rowMeta.rowIndex}`"
                   @click="expandFormClick($event, record)"
-                  @contextmenu="showContextMenu($event, { row: record, index: rowIndex })"
+                  @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex })"
                 >
                   <template v-if="galleryData?.fk_cover_image_col_id" #cover>
                     <a-carousel
@@ -447,7 +447,7 @@ reloadViewDataHook?.on(async () => {
                           v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                           :key="`carousel-${record.rowMeta.rowIndex}-${index}`"
                           class="h-52"
-                          :class="[`${coverImageObjectFitClass}`]"
+                          :object-fit="coverImageObjectFitStyle"
                           :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
                           @click="expandFormClick($event, record)"
                         />
@@ -467,7 +467,13 @@ reloadViewDataHook?.on(async () => {
                           (isRowEmpty(record, displayField) && isAllowToRenderRowEmptyField(displayField)),
                       }"
                     >
-                      <template v-if="!isRowEmpty(record, displayField) || isAllowToRenderRowEmptyField(displayField)">
+                      <template
+                        v-if="
+                          !isRowEmpty(record, displayField) ||
+                          isAllowToRenderRowEmptyField(displayField) ||
+                          isPercent(displayField)
+                        "
+                      >
                         <LazySmartsheetVirtualCell
                           v-if="isVirtualCol(displayField)"
                           v-model="record.row[displayField.title]"

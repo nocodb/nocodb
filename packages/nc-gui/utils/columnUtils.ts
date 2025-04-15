@@ -6,8 +6,11 @@ import {
   UITypes,
   LongTextAiMetaProp as _LongTextAiMetaProp,
   checkboxIconList,
+  isValidURL,
   ratingIconList,
+  validateEmail,
 } from 'nocodb-sdk'
+import isMobilePhone from 'validator/lib/isMobilePhone'
 
 export interface UiTypesType {
   name: UITypes | string
@@ -381,6 +384,38 @@ const formViewHiddenColTypes = [
   AIButton,
 ]
 
+const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
+
+const getColumnValidationError = (column: ColumnType, value?: any) => {
+  if (!columnToValidate.includes(column.uidt as UITypes) || !parseProp(column.meta)?.validate) return ''
+  let cdfValue: any = column.cdf
+  if (!ncIsUndefined(value)) {
+    cdfValue = value
+  }
+
+  switch (column.uidt) {
+    case UITypes.URL: {
+      if (!cdfValue?.trim() || isValidURL(cdfValue?.trim())) return ''
+
+      return 'msg.error.invalidURL'
+    }
+    case UITypes.Email: {
+      if (!cdfValue || validateEmail(cdfValue)) return ''
+
+      return 'msg.error.invalidEmail'
+    }
+    case UITypes.PhoneNumber: {
+      if (!cdfValue || isMobilePhone(cdfValue)) return ''
+
+      return 'msg.invalidPhoneNumber'
+    }
+
+    default: {
+      return ''
+    }
+  }
+}
+
 export {
   uiTypes,
   isTypableInputColumn,
@@ -396,4 +431,6 @@ export {
   extractCheckboxIcon,
   extractRatingIcon,
   formViewHiddenColTypes,
+  columnToValidate,
+  getColumnValidationError,
 }

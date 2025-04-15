@@ -67,64 +67,64 @@ const buttonColorMap = {
   },
   light: {
     brand: {
-      base: { background: '#EBF0FF', text: '#3366FF' },
-      hover: { background: '#D6E0FF', text: '#3366FF' },
+      base: { background: '#EBF0FF', text: '#2952CC' },
+      hover: { background: '#D6E0FF', text: '#2952CC' },
       disabled: { background: '#F4F4F5', text: '#9AA2AF' },
-      loader: '#3366FF',
+      loader: '#2952CC',
     },
     red: {
-      base: { background: '#FFF2F1', text: '#FF4A3F' },
-      hover: { background: '#FFDBD9', text: '#FF4A3F' },
+      base: { background: '#FFF2F1', text: '#E8463C' },
+      hover: { background: '#FFDBD9', text: '#E8463C' },
       disabled: { background: '#F4F4F5', text: '#9AA2AF' },
-      loader: '#FF4A3F',
+      loader: '#E8463C',
     },
     green: {
-      base: { background: '#ECFFF2', text: '#27D665' },
-      hover: { background: '#D4F7E0', text: '#27D665' },
+      base: { background: '#ECFFF2', text: '#1FAB51' },
+      hover: { background: '#D4F7E0', text: '#1FAB51' },
       disabled: { background: '#F4F4F5', text: '#9AA2AF' },
-      loader: '#27D665',
+      loader: '#1FAB51',
     },
     maroon: {
-      base: { background: '#FFF0F7', text: '#B33771' },
-      hover: { background: '#FFCFE6', text: '#B33771' },
+      base: { background: '#FFF0F7', text: '#9D255D' },
+      hover: { background: '#FFCFE6', text: '#9D255D' },
       disabled: { background: '#F4F4F5', text: '#9AA2AF' },
-      loader: '#B33771',
+      loader: '#9D255D',
     },
     blue: {
-      base: { background: '#EDF9FF', text: '#36BFFF' },
-      hover: { background: '#D7F2FF', text: '#36BFFF' },
+      base: { background: '#EDF9FF', text: '#2B99CC' },
+      hover: { background: '#D7F2FF', text: '#2B99CC' },
       disabled: { background: '#F4F4F5', text: '#9AA2AF' },
-      loader: '#36BFFF',
+      loader: '#2B99CC',
     },
     orange: {
-      base: { background: '#FFF5EF', text: '#FA8231' },
-      hover: { background: '#FEE6D6', text: '#FA8231' },
+      base: { background: '#FFF5EF', text: '#E1752C' },
+      hover: { background: '#FEE6D6', text: '#E1752C' },
       disabled: { background: '#F4F4F5', text: '#9AA2AF' },
-      loader: '#FA8231',
+      loader: '#E1752C',
     },
     pink: {
-      base: { background: '#FFEEFB', text: '#FC3AC6' },
-      hover: { background: '#FED8F4', text: '#FC3AC6' },
+      base: { background: '#FFEEFB', text: '#CA2E9E' },
+      hover: { background: '#FED8F4', text: '#CA2E9E' },
       disabled: { background: '#F4F4F5', text: '#9AA2AF' },
-      loader: '#FC3AC6',
+      loader: '#CA2E9E',
     },
     purple: {
-      base: { background: '#F3ECFA', text: '#7D26CD' },
-      hover: { background: '#E5D4F5', text: '#7D26CD' },
+      base: { background: '#F3ECFA', text: '#641EA4' },
+      hover: { background: '#E5D4F5', text: '#641EA4' },
       disabled: { background: '#F4F4F5', text: '#9AA2AF' },
-      loader: '#7D26CD',
+      loader: '#641EA4',
     },
     yellow: {
-      base: { background: '#fffbf2', text: '#fcbe3a' },
-      hover: { background: '#fff0d1', text: '#fcbe3a' },
+      base: { background: '#fffbf2', text: '#ca982e' },
+      hover: { background: '#fff0d1', text: '#ca982e' },
       disabled: { background: '#F4F4F5', text: '#9AA2AF' },
-      loader: '#fcbe3a',
+      loader: '#ca982e',
     },
     gray: {
-      base: { background: '#F9F9FA', text: '#6A7184' },
-      hover: { background: '#F4F4F5', text: '#6A7184' },
+      base: { background: '#F9F9FA', text: '#4A5268' },
+      hover: { background: '#F4F4F5', text: '#4A5268' },
       disabled: { background: '#F4F4F5', text: '#9AA2AF' },
-      loader: '#6A7184',
+      loader: '#4A5268',
     },
   },
   text: {
@@ -261,7 +261,7 @@ export const ButtonCellRenderer: CellRenderer = {
     let truncatedLabel = buttonMeta.label
 
     if (hasLabel) {
-      ctx.font = '500 13px Manrope'
+      ctx.font = '550 13px Manrope'
       const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
 
       const truncatedInfo = truncateText(ctx, buttonMeta.label, maxTextWidth, true)
@@ -297,12 +297,6 @@ export const ButtonCellRenderer: CellRenderer = {
     ctx.fillStyle = colors.background
     ctx.fill()
 
-    if (buttonMeta.theme === 'text') {
-      ctx.strokeStyle = colors.text
-      ctx.lineWidth = 1
-      ctx.stroke()
-    }
-
     let contentX = startX + (buttonWidth - contentWidth) / 2
     const contentY = startY + (buttonHeight - iconSize) / 2
 
@@ -329,7 +323,7 @@ export const ButtonCellRenderer: CellRenderer = {
       ctx.fillText(truncatedLabel, contentX, startY + 13)
     }
   },
-  async handleClick({ mousePosition, column, row, pk, actionManager, getCellPosition }) {
+  async handleClick({ mousePosition, column, row, pk, actionManager, getCellPosition, path }) {
     if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid) return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
@@ -356,7 +350,7 @@ export const ButtonCellRenderer: CellRenderer = {
 
     if (hasLabel) {
       const ctx = defaultOffscreen2DContext
-      ctx.font = '500 13px Manrope'
+      ctx.font = '550 13px Manrope'
 
       const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
 
@@ -383,8 +377,7 @@ export const ButtonCellRenderer: CellRenderer = {
       mousePosition.y <= startY + buttonHeight
 
     if (!isHovered) return false
-
-    await actionManager.executeButtonAction([pk], column, { row: [row] })
+    await actionManager.executeButtonAction([pk], column, { row: [row], path })
     return true
   },
 
@@ -442,10 +435,10 @@ export const ButtonCellRenderer: CellRenderer = {
     tryShowTooltip({ rect: box, mousePosition, text: tooltip })
   },
   async handleKeyDown(ctx) {
-    const { e, row, column, actionManager, pk } = ctx
+    const { e, row, column, actionManager, pk, path } = ctx
     if (e.key === 'Enter') {
-      if (column.readonly) return false
-      await actionManager.executeButtonAction([pk], column, { row: [row] })
+      if (column.readonly || column.columnObj?.readonly) return false
+      await actionManager.executeButtonAction([pk], column, { row: [row], path })
       return true
     }
 

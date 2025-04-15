@@ -14,7 +14,11 @@ const { openedProject, isDataSourceLimitReached } = storeToRefs(useBases())
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const isNewBaseModalOpen = ref(false)
+
+const isNewSyncModalOpen = ref(false)
 
 const { isUIAllowed } = useRoles()
 
@@ -175,6 +179,10 @@ const onCreateBaseClick = () => {
   isNewBaseModalOpen.value = true
 }
 
+const onCreateSyncClick = () => {
+  isNewSyncModalOpen.value = true
+}
+
 function getSourceIcon(source: SourceType) {
   if (source.is_meta || source.is_local) {
     return iconMap.nocodb1
@@ -261,6 +269,22 @@ const sourceIdToIconMap = computed(() => {
           </div>
         </div>
       </NcTooltip>
+      <div
+        v-if="isFeatureEnabled(FEATURE_FLAG.SYNC) && isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
+        v-e="['c:table:create-sync']"
+        role="button"
+        class="nc-base-view-all-table-btn"
+        data-testid="proj-view-btn__create-sync"
+        @click="onCreateSyncClick"
+      >
+        <div class="icon-wrapper">
+          <GeneralIcon icon="sync" class="!h-7 !w-7 !text-green-700" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <div class="label">Sync Data</div>
+          <div class="subtext">With internal or external sources</div>
+        </div>
+      </div>
     </div>
     <div
       v-if="base?.isLoading"
@@ -388,6 +412,7 @@ const sourceIdToIconMap = computed(() => {
 
     <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :source="defaultBase" />
     <LazyDashboardSettingsDataSourcesCreateBase v-if="isNewBaseModalOpen" v-model:open="isNewBaseModalOpen" is-modal />
+    <LazyDashboardSettingsSyncCreate v-if="isNewSyncModalOpen" v-model:open="isNewSyncModalOpen" />
   </div>
 </template>
 

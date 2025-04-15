@@ -1,7 +1,7 @@
-import { NcErrorType } from 'nocodb-sdk';
+import { HigherPlan, NcErrorType } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import { generateReadablePermissionErr } from 'src/utils/acl';
-import type { BaseType, SourceType } from 'nocodb-sdk';
+import type { BaseType, PlanTitles, SourceType } from 'nocodb-sdk';
 import type { ErrorObject } from 'ajv';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 
@@ -275,6 +275,9 @@ export function extractDBError(error): {
     case '22001':
       message = 'The data entered is too long for this field.';
       break;
+    case '22007':
+      message = 'The date / time value is invalid';
+      break;
     case '28000':
       message = 'You do not have permission to perform this action.';
       break;
@@ -305,18 +308,27 @@ export function extractDBError(error): {
     case '22P02': // PostgreSQL invalid_text_representation
     case '22003': // PostgreSQL numeric_value_out_of_range
       if (error.message) {
-        const pgTypeMismatchMatch = error.message.match(
+        const regexCandidates = [
           /invalid input syntax for (\w+): "(.+)"(?: in column "(\w+)")?/i,
-        );
-        if (pgTypeMismatchMatch) {
-          const dataType = pgTypeMismatchMatch[1];
-          const invalidValue = pgTypeMismatchMatch[2];
-          const columnName = pgTypeMismatchMatch[3] || 'unknown';
+          /invalid input syntax for type (\w+): "([^"]+)"?/i,
+        ];
 
-          message = `Invalid ${dataType} value '${invalidValue}' for column '${columnName}'`;
-          _type = DBError.DATA_TYPE_MISMATCH;
-          _extra = { dataType, column: columnName, value: invalidValue };
-        } else {
+        let matched = false;
+        for (const regExp of regexCandidates) {
+          const pgTypeMismatchMatch = error.message.match(regExp);
+          if (pgTypeMismatchMatch) {
+            const dataType = pgTypeMismatchMatch[1];
+            const invalidValue = pgTypeMismatchMatch[2];
+            const columnName = pgTypeMismatchMatch[3] || 'unknown';
+
+            message = `Invalid ${dataType} value '${invalidValue}' for column '${columnName}'`;
+            _type = DBError.DATA_TYPE_MISMATCH;
+            _extra = { dataType, column: columnName, value: invalidValue };
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) {
           const detailMatch = error.detail
             ? error.detail.match(/Column (\w+)/)
             : null;
@@ -697,6 +709,10 @@ const errorHelpers: {
     },
     code: 400,
   },
+  [NcErrorType.FORMULA_CIRCULAR_REF_ERROR]: {
+    message: 'Circular reference detected in formula',
+    code: 400,
+  },
   [NcErrorType.PERMISSION_DENIED]: {
     message: 'Permission denied',
     code: 403,
@@ -712,6 +728,10 @@ const errorHelpers: {
   [NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER]: {
     message: 'Cannot calculate intermediate order',
     code: 400,
+  },
+  [NcErrorType.PLAN_LIMIT_EXCEEDED]: {
+    message: (message: string) => message || 'Plan limit exceeded',
+    code: 403,
   },
 };
 
@@ -995,6 +1015,13 @@ export class NcError {
     });
   }
 
+  static formulaCircularRefError(message: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.FORMULA_CIRCULAR_REF_ERROR, {
+      params: message,
+      ...args,
+    });
+  }
+
   static notFound(message = 'Not found') {
     throw new NotFound(message);
   }
@@ -1103,5 +1130,24 @@ export class NcError {
     validOptions: string[];
   }) {
     throw new OptionsNotExistsError(props);
+  }
+
+  static planLimitExceeded(
+    message: string,
+    details: {
+      plan?: PlanTitles;
+      limit?: number;
+      current?: number;
+    },
+    args?: NcErrorArgs,
+  ) {
+    throw new NcBaseErrorv2(NcErrorType.PLAN_LIMIT_EXCEEDED, {
+      params: message,
+      ...args,
+      details: {
+        ...details,
+        ...(details?.plan ? { higherPlan: HigherPlan[details.plan] } : {}),
+      },
+    });
   }
 }

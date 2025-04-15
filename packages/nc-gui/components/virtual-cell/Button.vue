@@ -94,47 +94,9 @@ const isExecuting = computed(
     fieldIDRowMapping.value.get(`${pk.value}:${column.value.id}`) === 'running',
 )
 
-const triggerAction = async () => {
-  const colOptions = column.value.colOptions
-
-  if (colOptions.type === ButtonActionsType.Webhook) {
-    try {
-      isLoading.value = true
-
-      await $api.dbTableWebhook.trigger(cellValue.value?.fk_webhook_id, rowId!.value)
-    } catch (e) {
-      console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
-      isLoading.value = false
-    }
-  } else if (colOptions.type === ButtonActionsType.Ai) {
-    await generate()
-  } else if (colOptions.type === ButtonActionsType.Script) {
-    try {
-      isLoading.value = true
-
-      const script = await loadAutomation(colOptions.fk_script_id)
-
-      const id = await runScript(script, currentRow.value.row, {
-        pk: pk.value,
-        fieldId: column.value.id,
-      })
-
-      isExecutingId.value = id
-    } catch (e) {
-      console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
-      isLoading.value = false
-    }
-  }
-}
-
 const componentProps = computed(() => {
   if (column.value.colOptions.type === ButtonActionsType.Url) {
-    let url = `${cellValue.value?.url}`
-    url = /^(https?|ftp|mailto|file):\/\//.test(url) ? url : url.trim() ? `https://${url}` : ''
+    let url = addMissingUrlSchma(cellValue.value?.url)
 
     // if url params not encoded, encode them using encodeURI
     try {
@@ -175,6 +137,45 @@ const componentProps = computed(() => {
     }
   }
 })
+
+const triggerAction = async () => {
+  const colOptions = column.value.colOptions
+
+  if (colOptions.type === ButtonActionsType.Url) {
+    confirmPageLeavingRedirect(componentProps.value?.href, componentProps.value?.target)
+  } else if (colOptions.type === ButtonActionsType.Webhook) {
+    try {
+      isLoading.value = true
+
+      await $api.dbTableWebhook.trigger(cellValue.value?.fk_webhook_id, rowId!.value)
+    } catch (e) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isLoading.value = false
+    }
+  } else if (colOptions.type === ButtonActionsType.Ai) {
+    await generate()
+  } else if (colOptions.type === ButtonActionsType.Script) {
+    try {
+      isLoading.value = true
+
+      const script = await loadAutomation(colOptions.fk_script_id)
+
+      const id = await runScript(script, currentRow.value.row, {
+        pk: pk.value,
+        fieldId: column.value.id,
+      })
+
+      isExecutingId.value = id
+    } catch (e) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isLoading.value = false
+    }
+  }
+}
 </script>
 
 <template>
@@ -197,7 +198,7 @@ const componentProps = computed(() => {
           { '!w-6': !column.colOptions.label },
         ]"
         class="nc-cell-button nc-button-cell-link btn-cell-colors truncate flex items-center h-6"
-        @click="triggerAction"
+        @click.prevent="triggerAction"
       >
         <GeneralLoader
           v-if="
@@ -339,77 +340,46 @@ const componentProps = computed(() => {
   }
 
   &.light {
-    @apply text-gray-700;
     box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
 
     &.brand {
-      @apply bg-brand-100 hover:bg-brand-200;
-      .nc-loader {
-        @apply !text-brand-500;
-      }
+      @apply bg-brand-50 hover:bg-brand-100 !text-brand-600;
     }
 
     &.red {
-      @apply bg-red-100 hover:bg-red-200;
-      .nc-loader {
-        @apply !text-red-600;
-      }
+      @apply bg-red-50 hover:bg-red-100 !text-red-600;
     }
 
     &.green {
-      @apply bg-green-100 hover:bg-green-200;
-      .nc-loader {
-        @apply !text-green-600;
-      }
+      @apply bg-green-50 hover:bg-green-100 !text-green-600;
     }
 
     &.maroon {
-      @apply bg-maroon-100 hover:bg-maroon-200;
-      .nc-loader {
-        @apply !text-maroon-600;
-      }
+      @apply bg-maroon-50 hover:bg-maroon-100 !text-maroon-600;
     }
 
     &.blue {
-      @apply bg-blue-100 hover:bg-blue-200;
-      .nc-loader {
-        @apply !text-blue-600;
-      }
+      @apply bg-blue-50 hover:bg-blue-100 !text-blue-600;
     }
 
     &.orange {
-      @apply bg-orange-100 hover:bg-orange-200;
-      .nc-loader {
-        @apply !text-orange-600;
-      }
+      @apply bg-orange-50 hover:bg-orange-100 !text-orange-600;
     }
 
     &.pink {
-      @apply bg-pink-100 hover:bg-pink-200;
-      .nc-loader {
-        @apply !text-pink-600;
-      }
+      @apply bg-pink-50 hover:bg-pink-100 !text-pink-600;
     }
 
     &.purple {
-      @apply bg-purple-100 hover:bg-purple-200;
-      .nc-loader {
-        @apply !text-purple-600;
-      }
+      @apply bg-purple-50 hover:bg-purple-100 !text-purple-600;
     }
 
     &.yellow {
-      @apply bg-yellow-100 hover:bg-yellow-200;
-      .nc-loader {
-        @apply !text-yellow-600;
-      }
+      @apply bg-yellow-50 hover:bg-yellow-100 !text-yellow-600;
     }
 
     &.gray {
-      @apply bg-gray-100 hover:bg-gray-200;
-      .nc-loader {
-        @apply !text-gray-600;
-      }
+      @apply bg-gray-50 hover:bg-gray-100 !text-gray-600;
     }
   }
 

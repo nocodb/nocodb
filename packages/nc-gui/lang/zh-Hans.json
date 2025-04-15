@@ -92,6 +92,10 @@
     "attachment_size": "附件大小",
     "none": "空"
   },
+  "upgrade": {
+    "UpgradeToCreateAdditionalSnapshots": "Upgrade to create additional snapshots",
+    "UpgradeToCreateAdditionalSnapshotsSubtitle": "The {activePlan} plan allows up to {n} snapshots. Upgrade to the {plan} plan and get access to additional snapshots."
+  },
   "general": {
     "supported": "支持",
     "usage": "使用",
@@ -303,13 +307,27 @@
     "extension": "扩展",
     "extensions": "扩展",
     "enable": "启用",
+    "disable": "Disable",
     "poweredBy": "技术支持",
     "nocoAI": "Noco AI",
     "you": "您",
     "read": "阅读",
     "unread": "未读",
     "shared": "共享",
-    "organization": "组织"
+    "organization": "组织",
+    "all": "全部",
+    "billing": "Billing",
+    "choose": "Choose",
+    "plan": "Plan",
+    "plans": "Plans",
+    "monthly": "Monthly",
+    "annually": "Annually",
+    "yearly": "Yearly",
+    "paid": "Paid",
+    "total": "Total",
+    "downgrade": "Downgrade",
+    "upgrade": "Upgrade",
+    "reactivate": "Reactivate"
   },
   "objects": {
     "script": "脚本",
@@ -338,7 +356,9 @@
     "page": "页",
     "pages": "页",
     "record": "记录",
+    "group": "group",
     "records": "记录",
+    "groups": "groups",
     "webhook": "Webhook.",
     "webhooks": "Webhooks.",
     "view": "视图",
@@ -369,7 +389,7 @@
       "orgLevelCreator": "组织创建者",
       "orgLevelViewer": "组织浏览者"
     },
-    "sqlVIew": "SQL 视图",
+    "sqlView": "SQL 视图",
     "rowHeight": "行高",
     "heightClass": {
       "short": "短",
@@ -456,6 +476,28 @@
       "ai": "人工智能",
       "spreadSheet": "电子表格",
       "spreadSheetSubtitle": "使用 NocoDB 连接和管理电子表格。"
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
+    },
+    "paymentPlan": {
+      "Free": "Free",
+      "Team": "Team",
+      "Plus": "Plus",
+      "Business": "Business",
+      "Enterprise": "Enterprise"
+    },
+    "currentPlan": {
+      "nextInvoice": "Next Invoice",
+      "nextInvoiceAmount": "Next Invoice Amount",
+      "numberOfBilledUsers": "Number of Billed Users",
+      "numberOfBillableUsers": "Number of Billable Users",
+      "storageUsedGB": "Storage Used (GB)",
+      "webhookCallsMonthly": "Webhook calls (monthly)",
+      "apiCallsMonthly": "API calls (monthly)"
     }
   },
   "datatype": {
@@ -511,6 +553,8 @@
     "isNotNull": "不为空（Not Null）"
   },
   "title": {
+    "confirmSnapshotRestore": "确认恢复快照",
+    "urlFilters": "URL过滤",
     "creatingScript": "创建脚本",
     "searchWebhook": "搜索网络钩子",
     "webcam": "网络摄像头",
@@ -603,7 +647,7 @@
     "teamAndSettings": "团队和设置",
     "apiDocs": "API 文档",
     "importFromAirtable": "从 Airtable 导入",
-    "importFromNocoDB": "Import From NocoDB",
+    "importFromNocoDB": "从 NocoDB 导入",
     "generateToken": "生成令牌",
     "APIsAndSupport": "API与支持",
     "helpCenter": "帮助中心",
@@ -612,7 +656,7 @@
     "quickImportFrom": "快速导入自",
     "quickImport": "快速导入",
     "quickImportAirtable": "从 Airtable 导入",
-    "quickImportNocoDB": "Import from NocoDB",
+    "quickImportNocoDB": "从 NocoDB 导入",
     "quickImportCSV": "Import CSV",
     "quickImportExcel": "Import Excel",
     "quickImportJSON": "Import Json",
@@ -676,9 +720,40 @@
     "lockedByUser": "被{user} 锁定",
     "thisPageDoesNotExist": "此页面不存在",
     "customUrl": "自定义URL",
-    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}"
+    "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
+    "youAreLeavingNocoDB": "您将离开 NocoDB",
+    "onlyProceedIfYouTrustThisLink": "仅在您信任此链接时继续。",
+    "reAssignViewModalSubtitle": "一旦重新分配，当前所有者将无法编辑视图配置。",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
+    "currentPlan": "Current Plan",
+    "editorMonth": "/editor/month",
+    "mostPopular": "Most Popular",
+    "helpAndSupport": "Help & Support",
+    "helpAndSupportSubtitle": "Visit our Support Center for detailed guides, customer service contact options, and a community forum for additional help.",
+    "faq": "FAQ",
+    "faqSubtitle": "Explore the FAQ section and get quick answers to common questions about our services, features, and troubleshooting. ",
+    "downgradeToPlan": "Downgrade to {plan} plan?",
+    "downgradeToPlanSubtitle": "You'll lose access to {activePlan} plan features that aren't available in the {plan} plan.",
+    "upgradeToPlan": "Upgrade to {plan} plan?",
+    "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
+    "reactivateToPlan": "Reactivate {plan} plan?"
   },
   "labels": {
+    "restoringSnapshot": "恢复快照",
+    "note": "备注：",
+    "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",
+    "snapshotRestoreMessage2": "On restore, a new base will be created in the selected workspace.",
+    "snapshotRestoreConfirmation": "Are you sure you want to restore this base snapshot.",
+    "tryAgain": "Try again",
+    "goToBase": "Go to Base",
+    "errorMessage": "Error message:",
+    "duplicateBaseBaseTitle": "Duplicate Base \"{baseTitle}\"",
+    "duplicateBaseSuccessfull": "Base Duplication Successfull",
+    "duplicateBaseFailed": "Base Duplication Failed",
+    "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
+    "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
+    "currentWorkspace": "Current workspace",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "失败",
@@ -885,6 +960,7 @@
     "clickToCopyViewID": "点击复制视图ID",
     "viewMode": "视图模式",
     "reAssignView": "重新分配视图",
+    "reAssignThisView": "Re-assign this view",
     "searchUsers": "搜索用户",
     "superAdmin": "超级管理员",
     "allTables": "所有表格",
@@ -965,6 +1041,7 @@
     "csv": "CSV",
     "csvFile": "CSV文件",
     "json": "JSON",
+    "jsonCapitalized": "Json",
     "jsonFile": "JSON 文件",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1073,8 +1150,11 @@
     "apis": "APIs",
     "apiSnippet": "API代码片段",
     "includeData": "包括数据",
-    "includeView": "包括查看",
-    "includeWebhook": "包括 Webhook",
+    "includeRecords": "Include records",
+    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "includeView": "Include views",
+    "includeWebhook": "Include webhook",
+    "includeComments": "Include comments",
     "zoomInToViewColumns": "放大查看列",
     "embedInSite": "将此视图嵌入您的网站",
     "titleRequired": "需要标题。",
@@ -1127,7 +1207,25 @@
     "rowId": "行 ID",
     "showJsonPayload": "显示JSON负载",
     "autoCreateMissingSelectionOptions": "Auto create missing select field options",
-    "fillForm": "Fill Form"
+    "fillForm": "填写表单",
+    "proceedToLink": "前往链接",
+    "currentOwner": "当前所有者",
+    "newOwner": "新所有者",
+    "addFromUrl": "从 URL 添加",
+    "enterJson": "输入JSON",
+    "airtableBase": "Airtable base",
+    "upgradePlan": "Upgrade Plan",
+    "viewAllPlanDetails": "View all plan details",
+    "contactSales": "Contact Sales",
+    "manageSubscription": "Manage Subscription",
+    "upgradeToPlan": "Upgrade To {plan}",
+    "applicableTax": "Applicable tax",
+    "annualSavings": "Annual Savings",
+    "compareAllFeatures": "Compare all features",
+    "planIncludes": "{plan} Includes:",
+    "everythingInPlanPlus": "Everything in {plan}, Plus:",
+    "downloadInvoice": "Download Invoice",
+    "proceed": "Proceed"
   },
   "activity": {
     "clickToResolve": "点击解决",
@@ -1384,7 +1482,7 @@
       "addOrEditStack": "添加/编辑分类标签"
     },
     "map": {
-      "googleMaps": "Google Maps",
+      "googleMaps": "Google 地图",
       "osm": "OSM",
       "mappedBy": "映射字段",
       "chooseMappingField": "选择映射字段",
@@ -1397,6 +1495,7 @@
     "clearForm": "清除表单",
     "addFieldFromFormView": "添加字段",
     "selectAllFields": "选择所有字段",
+    "deselectAllFields": "取消选择所有字段",
     "preFilledFields": {
       "title": "启用预填充",
       "default": "默认",
@@ -1409,7 +1508,9 @@
     "goToDocs": "转到文档",
     "addCondition": "添加条件",
     "addConditionGroup": "添加条件组",
-    "pending": "待处理"
+    "pending": "待处理",
+    "goToPage": "Go to Page",
+    "changePlan": "ChangePlan"
   },
   "tooltip": {
     "leaveWorkspace": "每个工作区必须至少有一位所有者。在离开工作区之前，请将其他用户分配为所有者。如果您是最后一名成员，请考虑删除工作区。",
@@ -1461,7 +1562,12 @@
     "aiIntegrationReConfigure": "AI集成已被移除，请从字段编辑模式重新配置以使用NocoAI功能",
     "aiIntegrationAddAndReConfigure": "AI集成已被移除，请从字段编辑模式重新添加和配置以使用NocoAI功能",
     "generateFieldDataUsingAiButtonOption": "使用记录信息和 NocoAI 为该表中的多个字段生成值",
-    "sourceDataIsReadonly": "源数据只读"
+    "sourceDataIsReadonly": "源数据只读",
+    "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
+    "shiftSpace": "Shift + Space",
+    "expandShiftSpace": "Expand 'Shift + Space'",
+    "selectAllMappedFields": "Select all mapped fields",
+    "copyErrorCode": "Copy error code"
   },
   "placeholder": {
     "searchIcons": "搜索图标",
@@ -1520,9 +1626,12 @@
     "inviteYourTeam": "邀请成员到您的团队",
     "inviteYourTeamLabel": "通过与你的团队协作来快速跟踪你的项目！",
     "searchOptions": "搜索选项",
-    "lockViewDescription": "解释锁定此视图的原因。任何人尝试解锁此视图时，都会显示此信息（可选）。"
+    "lockViewDescription": "解释锁定此视图的原因。任何人尝试解锁此视图时，都会显示此信息（可选）。",
+    "noBaseUsersFound": "No base users found"
   },
   "msg": {
+    "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
+    "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "将文档拖放到这里",
     "airtableImportSuccess": "成功导入自Airtable Base。",
     "nocoDBImportSuccess": "Successfully imported from NocoDB Base.",
@@ -1670,7 +1779,10 @@
         "fieldVisibility": "您不能更改正在编辑的字段的可见性。请先保存或放弃更改。",
         "moveEditedField": "您不能移动正在编辑的字段的可见性。请先保存或放弃更改。",
         "moveDeletedField": "您不能移动已被删除的字段的可见性。请先保存或放弃更改。"
-      }
+      },
+      "reachedUploadLimit": "Reached upload limit",
+      "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
+      "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
       "inviteSent": "邀请发送成功",
@@ -1863,7 +1975,8 @@
       "yourCurrentRoleIs": "您当前的角色是",
       "pleaseRequestAccessForView": "请向上级角色申请更高的权限，以访问 {viewName}。",
       "preventHideAllOptions": "必填项不能为空",
-      "valueMustBeAtMostCharLong": "值长度不得超过 {length} 个字符"
+      "valueMustBeAtMostCharLong": "值长度不得超过 {length} 个字符",
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
       "manualTriggerHook": "无法禁用手动钩子",
@@ -1970,7 +2083,13 @@
       "columnVisibilityUpdateFailed": "更新字段可见性失败",
       "unsupportedCharacter": "不支持的字符：{char}",
       "unsupportedCharacters": "不支持的字符: {char}",
-      "notSupported": "不支持"
+      "notSupported": "不支持",
+      "duplicateTableName": "Duplicate table name",
+      "importError": "Import Error",
+      "anErrorOccuredWhileImporting": "An error occurred while {type}",
+      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable",
+      "paymentFailed": "Payment Failed",
+      "paymentFailedSubtitle": "Something went wrong while processing your payment. Please try again or contact support."
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",
@@ -2020,6 +2139,8 @@
       "embeddableHTMLCodeCopied": "已复制可嵌入的 HTML 代码！",
       "userDetailsUpdated": "成功更新用户详情",
       "tableDataImported": "成功导入表数据",
+      "tableImported": "Successfully imported table",
+      "tableImportedPlural": "Successfully imported tables",
       "webhookUpdated": "Webhook 详细信息更新成功",
       "webhookDeleted": "Hook 删除成功",
       "webhookTested": "Webhook 测试成功",
@@ -2029,7 +2150,9 @@
       "settingsSaved": "设置保存成功",
       "roleUpdated": "权限已更新",
       "connectionAdded": "集成连接成功",
-      "connectionAddedDesc": "数据库的所有者和创建者现在可以添加数据源，而无需重新输入凭据。"
+      "connectionAddedDesc": "数据库的所有者和创建者现在可以添加数据源，而无需重新输入凭据。",
+      "paymentSuccessful": "Payment Successful",
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "从头开始。",

@@ -22,6 +22,7 @@ import type { ImageWindowLoader } from '../components/smartsheet/grid/canvas/loa
 import type { SpriteLoader } from '../components/smartsheet/grid/canvas/loaders/SpriteLoader'
 import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
 import type { TableMetaLoader } from '../components/smartsheet/grid/canvas/loaders/TableMetaLoader'
+import type { UseDetachedLongTextProps } from '../components/smartsheet/grid/canvas/composables/useDetachedLongText'
 import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
 
@@ -88,11 +89,14 @@ interface Row {
     isLoading?: boolean
     isValidationFailed?: boolean
     isRowOrderUpdated?: boolean
+    isGroupChanged?: boolean
+    changedGroupIndex?: number
     isDragging?: boolean
     rowProgress?: {
       message: string
       progress: number
     }
+    path?: Array<number> | null
 
     new?: boolean
     selected?: boolean
@@ -229,6 +233,7 @@ interface GroupNestedIn {
   column_name: string
   key: string
   column_uidt: string
+  groupIndex?: number
 }
 
 interface Users {
@@ -423,6 +428,9 @@ interface CellRendererOptions {
   baseUsers?: (Partial<UserType> | Partial<User>)[]
   formula?: boolean
   isPublic?: boolean
+  path?: Array<number>
+  renderAsPlainCell?: boolean
+  fontFamily?: string
 }
 
 interface CellRenderStore {
@@ -442,8 +450,13 @@ type CursorType = 'auto' | 'pointer' | 'col-resize' | 'crosshair'
 
 type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) => void
 
+interface CellRenderFn {
+  (ctx: CanvasRenderingContext2D, options: CellRendererOptions): void | { x?: number; y?: number }
+}
+
 interface CellRenderer {
-  render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x?: number; y?: number }
+  render: CellRenderFn
+  renderEmpty?: CellRenderFn
   handleClick?: (options: {
     event: MouseEvent
     mousePosition: { x: number; y: number }
@@ -451,6 +464,7 @@ interface CellRenderer {
     column: CanvasGridColumn
     row: Row
     pk: any
+    path: Array<number>
     readonly: boolean
     isDoubleClick: boolean
     getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number; height: number; x: number; y: number }
@@ -462,11 +476,13 @@ interface CellRenderer {
       beforeRow?: string,
     ) => Promise<any>
     actionManager: ActionManager
-    makeCellEditable: (rowIndex: number | Row, clickedColumn: CanvasGridColumn) => void
+    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
     selected: boolean
     imageLoader: ImageWindowLoader
     cellRenderStore: CellRenderStore
     isPublic?: boolean
+    openDetachedExpandedForm: (props: UseExpandedFormDetachedProps) => void
+    openDetachedLongText: (props: UseDetachedLongTextProps) => void
   }) => Promise<boolean>
   handleKeyDown?: (options: {
     e: KeyboardEvent
@@ -475,6 +491,7 @@ interface CellRenderer {
     value: any
     pk: any
     readonly: boolean
+    path: Array<number>
     updateOrSaveRow: (
       row: Row,
       property?: string,
@@ -483,8 +500,9 @@ interface CellRenderer {
       beforeRow?: string,
     ) => Promise<any>
     actionManager: ActionManager
-    makeCellEditable: (rowIndex: number | Row, clickedColumn: CanvasGridColumn) => void
+    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
     cellRenderStore: CellRenderStore
+    openDetachedLongText: (props: UseDetachedLongTextProps) => void
   }) => Promise<boolean | void>
   handleHover?: (options: {
     event: MouseEvent
@@ -502,11 +520,12 @@ interface CellRenderer {
       beforeRow?: string,
     ) => Promise<any>
     actionManager: ActionManager
-    makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
+    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
     selected: boolean
     imageLoader: ImageWindowLoader
     cellRenderStore: CellRenderStore
     setCursor: SetCursorType
+    path: Array<number>
   }) => Promise<void>
   [key: string]: any
 }
@@ -569,9 +588,30 @@ type CanvasEditEnabledType = {
   y: number
   width: number
   minHeight: number
-  height: number
+  height: number | string
   fixed: boolean
+  path: Array<number>
 } | null
+
+type CanvasCellEventDataInjType = ExtractInjectedReactive<typeof CanvasCellEventDataInj>
+
+interface CanvasGroup {
+  groupIndex?: number
+  column: ColumnType
+  groups: Map<number, CanvasGroup>
+  chunkStates: Array<'loading' | 'loaded' | undefined>
+  count: number
+  isExpanded: boolean
+  value: any
+  displayValueProp?: string
+  relatedTableMeta?: TableType
+  relatedColumn?: ColumnType
+  color: string
+  groupCount?: number
+  path?: Array<number>
+  nestedIn: GroupNestedIn[]
+  aggregations: Record<string, any>
+}
 
 export type {
   User,
@@ -611,6 +651,7 @@ export type {
   Attachment,
   NestedArray,
   ViewActionState,
+  CellRenderFn,
   CellRenderer,
   CellRendererOptions,
   CellRenderStore,
@@ -620,4 +661,6 @@ export type {
   CanvasEditEnabledType,
   SetCursorType,
   CursorType,
+  CanvasCellEventDataInjType,
+  CanvasGroup,
 }

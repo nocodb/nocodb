@@ -390,6 +390,27 @@ export default class Filter implements FilterType {
     );
   }
 
+  public static async getFiltersByColumn(
+    context: NcContext,
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Filter[]> {
+    if (!columnId) return null;
+
+    const filters = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.FILTER_EXP,
+      {
+        condition: {
+          fk_column_id: columnId,
+        },
+      },
+    );
+
+    return filters?.map((f) => this.castType(f));
+  }
+
   public async getGroup(
     context: NcContext,
     ncMeta = Noco.ncMeta,
@@ -421,7 +442,7 @@ export default class Filter implements FilterType {
     ncMeta = Noco.ncMeta,
   ): Promise<Filter[]> {
     if (this.children) return this.children;
-    if (!this.is_group) return null;
+    if (!this.is_group || !this.id) return null;
     const cachedList = await NocoCache.getList(
       CacheScope.FILTER_EXP,
       [this.id],

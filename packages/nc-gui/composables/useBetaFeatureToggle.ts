@@ -15,10 +15,24 @@ const FEATURES = [
     enabled: !ncIsPlaywright(),
   },
   {
+    id: 'canvas_group_grid_view',
+    title: 'Improved Group By',
+    description: 'New and Improved groupby in grid view with enhanced scrolling and rendering capabilities.',
+    enabled: false,
+  },
+  {
     id: 'link_to_another_record',
     title: 'Link To Another Record',
     description: 'Show linked record display value in Link fields.',
     enabled: false,
+  },
+  {
+    id: 'payment',
+    title: 'Payment Flows',
+    description: 'Enable NocoDB Payment Flows.',
+    enabled: false,
+    isEngineering: true,
+    isEE: true,
   },
   {
     id: 'ai_features',
@@ -53,8 +67,15 @@ const FEATURES = [
   },
   {
     id: 'import_from_nocodb',
-    title: 'Import from NocoDB',
-    description: 'Enable import from NocoDB.',
+    title: 'OSS to Enterprise migration',
+    description: 'Enable import from NocoDB OSS instance to Enterprise Edition.',
+    enabled: true,
+    isEE: true,
+  },
+  {
+    id: 'sync',
+    title: 'Sync',
+    description: 'Enable sync feature.',
     enabled: false,
     isEngineering: true,
     isEE: true,
@@ -126,19 +147,19 @@ export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [featur
   (typeof FEATURES)[number]['id']
 >
 
-type FeatureId = (typeof FEATURES)[number]['id']
-type Feature = (typeof FEATURES)[number]
+export type BetaFeatureId = (typeof FEATURES)[number]['id']
+export type BetaFeatureType = (typeof FEATURES)[number]
 
 const STORAGE_KEY = 'featureToggleStates'
 
 export const useBetaFeatureToggle = createSharedComposable(() => {
-  const features = ref<Feature[]>(structuredClone(FEATURES))
+  const features = ref<BetaFeatureType[]>(structuredClone(FEATURES))
 
   const featureStates = computed(() => {
     return features.value.reduce((acc, feature) => {
       acc[feature.id] = feature.isEE && !isEeUI ? false : feature.enabled
       return acc
-    }, {} as Record<FeatureId, boolean>)
+    }, {} as Record<BetaFeatureId, boolean>)
   })
 
   const { $e } = useNuxtApp()
@@ -154,24 +175,30 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
     }
   }
 
-  const toggleFeature = (id: FeatureId) => {
+  const toggleFeature = (id: BetaFeatureId, forceUpdate?: boolean) => {
     const feature = features.value.find((f) => f.id === id)
     if (feature) {
-      feature.enabled = !feature.enabled
+      if (forceUpdate !== undefined) {
+        feature.enabled = forceUpdate
+      } else {
+        feature.enabled = !feature.enabled
+      }
       $e(`a:feature-preview:${id}:${feature.enabled ? 'on' : 'off'}`)
       saveFeatures()
+
+      return true
     } else {
       console.error(`Feature ${id} not found`)
     }
   }
 
-  const isFeatureEnabled = (id: FeatureId) => featureStates.value[id] ?? false
+  const isFeatureEnabled = (id: BetaFeatureId) => featureStates.value[id] ?? false
 
   const initializeFeatures = () => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) {
-        const parsedFeatures = JSON.parse(stored) as Partial<Feature>[]
+        const parsedFeatures = JSON.parse(stored) as Partial<BetaFeatureType>[]
         features.value = FEATURES.map((defaultFeature) => ({
           ...defaultFeature,
           enabled: parsedFeatures.find((f) => f.id === defaultFeature.id)?.enabled ?? defaultFeature.enabled,

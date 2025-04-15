@@ -46,7 +46,10 @@ export class DataAliasExportController {
     );
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, data, targetView.title);
-    const buf = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+    const buf = XLSX.write(wb, {
+      type: req.query.encoding === 'base64' ? 'base64' : 'buffer',
+      bookType: 'xlsx',
+    });
 
     this.appHooksService.emit(AppEvents.DATA_EXPORT, {
       context,

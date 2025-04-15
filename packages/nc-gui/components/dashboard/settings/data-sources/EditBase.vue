@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { type SourceType, validateAndExtractSSLProp } from 'nocodb-sdk'
-import { Form, message } from 'ant-design-vue'
+import { IntegrationsType, type SourceType, validateAndExtractSSLProp } from 'nocodb-sdk'
+import { Form } from 'ant-design-vue'
 import {
   ClientType,
   type DatabricksConnection,
@@ -284,7 +284,7 @@ onMounted(async () => {
   isLoading.value = true
 
   if (!integrations.value.length) {
-    await loadIntegrations(true, base.value?.id)
+    await loadIntegrations(IntegrationsType.Database, base.value?.id)
   }
 
   if (base.value?.id) {

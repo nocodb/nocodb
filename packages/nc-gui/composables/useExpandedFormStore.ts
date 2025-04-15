@@ -1,5 +1,5 @@
 import type { AuditType, ColumnType, MetaType, TableType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
 
@@ -72,28 +72,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         return
       }
 
-      const value = row.value.row?.[col.title as string]
-
-      const uidt = col.uidt
-
-      if (uidt === UITypes.Date) {
-        return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD')
-      } else if (uidt === UITypes.DateTime) {
-        return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD HH:mm')
-      } else if (uidt === UITypes.Time) {
-        let dateTime = dayjs(value)
-        if (!dateTime.isValid()) {
-          dateTime = dayjs(value, 'HH:mm:ss')
-        }
-        if (!dateTime.isValid()) {
-          dateTime = dayjs(`1999-01-01 ${value}`)
-        }
-        if (!dateTime.isValid()) {
-          return value
-        }
-        return dateTime.format('HH:mm:ss')
-      }
-      return value
+      return row.value.row?.[col.title as string]
     }
   })
 
@@ -105,7 +84,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const currentAuditPages = ref(1)
   const mightHaveMoreAudits = ref(false)
 
-  const loadAudits = async (_rowId?: string, showLoading: boolean = true) => {
+  const loadAudits = async (_rowId?: string, showLoading = true) => {
     if (!isUIAllowed('auditListRow') || (!row.value && !_rowId)) return
 
     const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
@@ -263,7 +242,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
         if (!id) {
-          return message.info("Update not allowed for table which doesn't have primary Key")
+          return message.info(t('msg.info.updateNotAllowedWithoutPK'))
         }
 
         await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id, encodeURIComponent(id), updateOrInsertObj)
@@ -328,32 +307,16 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
     let record: Record<string, any> = {}
     try {
-      if (activeView.value?.fk_model_id === meta.value.id) {
-        record = await $api.dbViewRow.read(
-          NOCO,
-          // todo: base_id missing on view type
-          ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
-          meta.value.id as string,
-          activeView.value?.id as string,
-          encodeURIComponent(recordId),
-          {
-            query: {
-              getHiddenColumn: true,
-            },
-          },
-        )
-      } else {
-        record = await $api.dbTableRow.read(
-          NOCO,
-          // todo: base_id missing on view type
-          ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
-          meta.value.id as string,
-          encodeURIComponent(recordId),
-          {
-            getHiddenColumn: true,
-          },
-        )
-      }
+      record = await $api.dbTableRow.read(
+        NOCO,
+        // todo: base_id missing on view type
+        ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
+        meta.value.id as string,
+        encodeURIComponent(recordId),
+        {
+          getHiddenColumn: true,
+        },
+      )
     } catch (err: any) {
       if (err.response?.status === 404) {
         const router = useRouter()

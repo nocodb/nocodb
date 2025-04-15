@@ -6,6 +6,7 @@ import {
   ncIsEmptyObject,
   ncIsFunction,
   ncIsNull,
+  ncIsNullOrUndefined,
   ncIsNumber,
   ncIsObject,
   ncIsPromise,
@@ -15,6 +16,10 @@ import {
 
 const ncIsPlaywright = () => {
   return !!(window as any)?.isPlaywright
+}
+
+const ncIsSharedViewOrBase = () => {
+  return localStorage.getItem('ncIsSharedViewOrBase') === 'true'
 }
 
 export {
@@ -31,4 +36,6 @@ export {
   ncIsPromise,
   ncIsArrayIncludes,
   ncIsPlaywright,
+  ncIsSharedViewOrBase,
+  ncIsNullOrUndefined,
 }

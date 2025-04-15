@@ -1,10 +1,12 @@
 import type { Request } from 'express';
 import type { TableType, UserType } from '~/lib/Api';
+import { NcApiVersion } from './enums';
 
 export interface NcContext {
   org_id?: string;
   workspace_id: string;
   base_id: string;
+  api_version?: NcApiVersion;
 }
 
 export interface NcRequest extends Partial<Request> {
@@ -25,3 +27,5 @@ export interface NcRequest extends Partial<Request> {
   query?: Record<string, any>;
   skipAudit?: boolean;
 }
+
+export type NcRecord<T = any> = Record<string, T>;

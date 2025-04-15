@@ -9,8 +9,6 @@ const clone = rfdc()
 
 const useForm = Form.useForm
 
-const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
-
 interface ValidationsObj {
   [key: string]: RuleObject[]
 }
@@ -46,7 +44,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const { activeView } = storeToRefs(viewsStore)
 
-    const { xWhere, view } = useSmartsheetStoreOrThrow()
+    const { xWhere, view, eventBus } = useSmartsheetStoreOrThrow()
 
     const { formattedData, loadData } = useViewData(meta, view, xWhere)
 
@@ -279,6 +277,20 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             message: t('msg.error.uiDataTypeRequired'),
           },
         ],
+        cdf: [
+          {
+            validator: (rule: any, value: any) => {
+              return new Promise<void>((resolve, reject) => {
+                const columnValidationError = getColumnValidationError(formState.value, value)
+                if (columnValidationError) {
+                  return reject(new Error(t(columnValidationError)))
+                }
+
+                resolve()
+              })
+            },
+          },
+        ],
         ...(additionalValidations?.value || {}),
       }
     })
@@ -334,8 +346,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       try {
         if (!(await validate())) return
       } catch (e: any) {
-        const errorMsgs = e.errorFields
-          ?.map((e: any) => e.errors?.join(', '))
+        const errorMsgs = (e.errorFields || [])
+          .filter((f) => f?.name !== 'cdf')
+          .map((e: any) => e.errors?.join(', '))
           .filter(Boolean)
           .join(', ')
 
@@ -351,6 +364,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       }
 
       let savedColumn: ColumnType | undefined
+      let oldCol: ColumnType | undefined
 
       try {
         formState.value.table_name = meta.value?.table_name
@@ -368,7 +382,13 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           const { filters: _, ...updateData } = formState.value
 
           try {
+            oldCol = column.value
             await $api.dbTableColumn.update(column.value?.id as string, updateData)
+
+            if (oldCol && [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(oldCol.uidt)) {
+              viewsStore.loadViews({ tableId: oldCol?.fk_model_id, ignoreLoading: true, force: true })
+            }
+            eventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
           } catch (e: any) {
             if (!validateInfos.formula_raw) validateInfos.formula_raw = {}
             validateInfos.formula_raw!.validateStatus = 'error'
@@ -376,6 +396,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
               validateInfos.formula_raw!.help = []
             }
             validateInfos.formula_raw?.help.push(await extractSdkResponseErrorMsg(e))
+            message.error(await extractSdkResponseErrorMsg(e))
             return
           }
 
@@ -433,7 +454,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
           // Column created
           // message.success(t('msg.success.columnCreated'))
-
           $e('a:column:add', { datatype: formState.value.uidt })
         }
         await onSuccess?.(savedColumn)

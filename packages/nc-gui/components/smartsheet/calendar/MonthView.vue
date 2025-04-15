@@ -92,13 +92,15 @@ const calendarData = computed(() => {
   const firstDayToDisplay = startOfMonth.startOf('week').add(firstDayOffset, 'day')
   const today = dayjs()
 
-  const daysInView = Math.min(
-    35,
-    Math.ceil((startOfMonth.daysInMonth() + startOfMonth.day() + (isMondayFirst.value ? 0 : 1)) / 7) * 7,
-  )
+  const daysInMonth = startOfMonth.daysInMonth()
+  const firstDayOfMonth = startOfMonth.day()
+
+  const adjustedFirstDay = isMondayFirst.value ? (firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1) : firstDayOfMonth
+
+  const weeksNeeded = Math.ceil((daysInMonth + adjustedFirstDay) / 7)
 
   return {
-    weeks: Array.from({ length: daysInView / 7 }, (_, weekIndex) => ({
+    weeks: Array.from({ length: weeksNeeded }, (_, weekIndex) => ({
       weekIndex,
       days: Array.from({ length: 7 }, (_, dayIndex) => {
         const day = firstDayToDisplay.add(weekIndex * 7 + dayIndex, 'day')

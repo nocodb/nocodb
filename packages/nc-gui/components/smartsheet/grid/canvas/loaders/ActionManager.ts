@@ -6,21 +6,34 @@ export class ActionManager {
   private generateRows: (columnId: string, rowIds: string[]) => Promise<Array<Record<string, any>>>
   private triggerRefreshCanvas: () => void
   private meta: Ref<TableType>
-  private cachedRows: Ref<Map<number, Row>>
+  private getDataCache: (path?: Array<number>) => {
+    cachedRows: Ref<Map<number, Row>>
+    totalRows: Ref<number>
+    chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
+    selectedRows: ComputedRef<Array<Row>>
+    isRowSortRequiredRows: ComputedRef<Array<Row>>
+  }
+
   constructor(
     api: ReturnType<typeof createApiInstance>,
     loadAutomation: (id: string) => Promise<any>,
     generateRows: (columnId: string, rowIds: string[]) => Promise<Array<Record<string, any>>>,
     meta: Ref<TableType>,
-    cachedRows: Ref<Map<number, Row>>,
     triggerRefreshCanvas: () => void,
+    getDataCache: (path?: Array<number>) => {
+      cachedRows: Ref<Map<number, Row>>
+      totalRows: Ref<number>
+      chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
+      selectedRows: ComputedRef<Array<Row>>
+      isRowSortRequiredRows: ComputedRef<Array<Row>>
+    },
   ) {
     this.api = api
     this.loadAutomation = loadAutomation
     this.generateRows = generateRows
     this.meta = meta
-    this.cachedRows = cachedRows
     this.triggerRefreshCanvas = triggerRefreshCanvas
+    this.getDataCache = getDataCache
   }
 
   // key is rowId-columnId, value is startTime
@@ -101,7 +114,7 @@ export class ActionManager {
   }
 
   private handleUrl(colOptions: any, url: string) {
-    url = /^(https?|ftp|mailto|file):\/\//.test(url) ? url : url.trim() ? `https://${url}` : ''
+    url = addMissingUrlSchma(url)
 
     try {
       url = decodeURI(url) === url ? encodeURI(url) : url
@@ -110,7 +123,7 @@ export class ActionManager {
     }
 
     if (url) {
-      window.open(url, '_blank')
+      confirmPageLeavingRedirect(url, '_blank')
     }
   }
 
@@ -120,10 +133,17 @@ export class ActionManager {
     extra: {
       row?: Row[]
       isAiPromptCol?: boolean
+      path: Array<number>
     },
   ) {
     const colOptions = column?.columnObj.colOptions as ButtonType
     if (!colOptions) return
+
+    if (!extra.path) {
+      extra.path = []
+    }
+
+    const { cachedRows } = this.getDataCache(extra.path)
 
     if (column.isInvalidColumn?.isInvalid) {
       return
@@ -176,13 +196,13 @@ export class ActionManager {
 
             if (res?.length) {
               for (let i = 0; i < res.length; i++) {
-                const row = this.cachedRows.value.get(extra?.row?.[i]?.rowMeta?.rowIndex)
+                const row = cachedRows.value.get(extra?.row?.[i]?.rowMeta?.rowIndex)
                 if (row) {
                   const data = res[i]
                   for (const col of outputColumns) {
                     row.row[col.title] = data[col.title]
                   }
-                  this.cachedRows.value.set(extra?.row?.[i]?.rowMeta?.rowIndex, row)
+                  cachedRows.value.set(extra?.row?.[i]?.rowMeta?.rowIndex, row)
                 }
               }
             }

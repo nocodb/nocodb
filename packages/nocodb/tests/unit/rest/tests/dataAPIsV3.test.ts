@@ -133,6 +133,15 @@ export default function (API_VERSION: 'v2' | 'v3') {
   ///////////////////////////////////////////////////////////////////////////////
   // Utility routines
 
+  const normalizeObject = (obj) => {
+    return Object.keys(obj)
+      .sort()
+      .reduce((acc, key) => {
+        acc[key] = obj[key];
+        return acc;
+      }, {});
+  };
+
   const verifyColumnsInRsp = (
     row: Record<string, any>,
     columns: ColumnType[],
@@ -503,11 +512,11 @@ export default function (API_VERSION: 'v2' | 'v3') {
       }[] = [];
       for (let i = 0; i < 400; i++) {
         const row = {
-          SingleLineText: rowMixedValue(columns[1], i),
-          MultiLineText: rowMixedValue(columns[2], i),
-          Email: rowMixedValue(columns[3], i),
-          Phone: rowMixedValue(columns[4], i),
-          Url: rowMixedValue(columns[5], i),
+          SingleLineText: rowMixedValue(columns[6], i),
+          MultiLineText: rowMixedValue(columns[7], i),
+          Email: rowMixedValue(columns[8], i),
+          Phone: rowMixedValue(columns[9], i),
+          Url: rowMixedValue(columns[10], i),
         };
         rowAttributes.push(row);
       }
@@ -562,8 +571,10 @@ export default function (API_VERSION: 'v2' | 'v3') {
 
       // verify column data
       const expectedData = insertedRecords.slice(0, 1);
-      expect(JSON.stringify(rsp.body.list[0])).to.deep.equal(
-        JSON.stringify(expectedData[0]),
+
+      // compare ignoring property order
+      expect(normalizeObject(rsp.body.list[0])).to.deep.equal(
+        normalizeObject(expectedData[0]),
       );
     });
 
@@ -1398,12 +1409,12 @@ export default function (API_VERSION: 'v2' | 'v3') {
       }[] = [];
       for (let i = 0; i < 400; i++) {
         const row = {
-          Number: rowMixedValue(columns[1], i),
-          Decimal: rowMixedValue(columns[2], i),
-          Currency: rowMixedValue(columns[3], i),
-          Percent: rowMixedValue(columns[4], i),
-          Duration: rowMixedValue(columns[5], i),
-          Rating: rowMixedValue(columns[6], i),
+          Number: rowMixedValue(columns[6], i),
+          Decimal: rowMixedValue(columns[7], i),
+          Currency: rowMixedValue(columns[8], i),
+          Percent: rowMixedValue(columns[9], i),
+          Duration: rowMixedValue(columns[10], i),
+          Rating: rowMixedValue(columns[11], i),
         };
         rowAttributes.push(row);
       }
@@ -1669,8 +1680,8 @@ export default function (API_VERSION: 'v2' | 'v3') {
       }[] = [];
       for (let i = 0; i < 400; i++) {
         const row = {
-          SingleSelect: rowMixedValue(columns[1], i),
-          MultiSelect: rowMixedValue(columns[2], i, isV3),
+          SingleSelect: rowMixedValue(columns[6], i),
+          MultiSelect: rowMixedValue(columns[7], i, isV3),
         };
         rowAttributes.push(row);
       }
@@ -1907,8 +1918,8 @@ export default function (API_VERSION: 'v2' | 'v3') {
       }[] = [];
       for (let i = 0; i < 800; i++) {
         const row = {
-          Date: rowMixedValue(columns[1], i),
-          DateTime: rowMixedValue(columns[2], i),
+          Date: rowMixedValue(columns[6], i),
+          DateTime: rowMixedValue(columns[7], i),
         };
         rowAttributes.push(row);
       }

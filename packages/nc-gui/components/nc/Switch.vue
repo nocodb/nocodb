@@ -57,6 +57,7 @@ const onChange = (e: boolean, updateValue = false) => {
     :class="{
       'size-xsmall': size === 'xsmall',
       'size-xxsmall': size === 'xxsmall',
+      'size-small': size === 'small',
     }"
     :loading="loading"
     v-bind="$attrs"
@@ -81,6 +82,28 @@ const onChange = (e: boolean, updateValue = false) => {
 </template>
 
 <style lang="scss" scoped>
+.size-small {
+  @apply h-4 min-w-[28px] leading-[14px];
+
+  :deep(.ant-switch-handle) {
+    @apply h-[12px] w-[12px] top-[2px] left-[calc(100%_-_26px)];
+  }
+
+  :deep(.ant-switch-inner) {
+    @apply !mr-[5px] !ml-[18px] !my-0;
+  }
+
+  &.ant-switch-checked {
+    :deep(.ant-switch-handle) {
+      @apply left-[calc(100%_-_14px)];
+    }
+
+    :deep(.ant-switch-inner) {
+      @apply !mr-[18px] !ml-[5px];
+    }
+  }
+}
+
 .size-xsmall {
   @apply h-3.5 min-w-[26px] leading-[14px];
 

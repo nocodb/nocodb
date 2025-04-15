@@ -41,6 +41,8 @@ export class DataAliasController {
     @Param('viewName') viewName: string,
     @Query('opt') opt: string,
     @Query('getHiddenColumns') getHiddenColumns: string,
+    @Query('includeSortAndFilterColumns')
+    includeSortAndFilterColumns: string,
   ) {
     const startTime = process.hrtime();
     const responseData = await this.datasService.dataList(context, {
@@ -50,6 +52,7 @@ export class DataAliasController {
       viewName: viewName,
       disableOptimization: opt === 'false',
       getHiddenColumns: getHiddenColumns === 'true',
+      includeSortAndFilterColumns: includeSortAndFilterColumns === 'true',
     });
     const elapsedMilliSeconds = parseHrtimeToMilliSeconds(
       process.hrtime(startTime),
@@ -95,6 +98,26 @@ export class DataAliasController {
     @Param('viewName') viewName: string,
   ) {
     return await this.datasService.dataGroupBy(context, {
+      query: req.query,
+      baseName: baseName,
+      tableName: tableName,
+      viewName: viewName,
+    });
+  }
+
+  @Get([
+    '/api/v1/db/data/:orgs/:baseName/:tableName/groupby/count',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/groupby/count',
+  ])
+  @Acl('dataGroupBy')
+  async dataGroupByCount(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('baseName') baseName: string,
+    @Param('tableName') tableName: string,
+    @Param('viewName') viewName: string,
+  ) {
+    return await this.datasService.dataGroupByCount(context, {
       query: req.query,
       baseName: baseName,
       tableName: tableName,

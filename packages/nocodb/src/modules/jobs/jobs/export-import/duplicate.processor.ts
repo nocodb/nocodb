@@ -8,7 +8,7 @@ import {
   isVirtualCol,
   RelationTypes,
 } from 'nocodb-sdk';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotImplementedException } from '@nestjs/common';
 import type { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
@@ -32,16 +32,34 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
 export class DuplicateProcessor {
-  private readonly debugLog = debug('nc:jobs:duplicate');
+  protected readonly debugLog = debug('nc:jobs:duplicate');
 
   constructor(
-    private readonly exportService: ExportService,
-    private readonly importService: ImportService,
-    private readonly projectsService: BasesService,
-    private readonly bulkDataService: BulkDataAliasService,
-    private readonly columnsService: ColumnsService,
-    private readonly appHooksService: AppHooksService,
+    protected readonly exportService: ExportService,
+    protected readonly importService: ImportService,
+    protected readonly projectsService: BasesService,
+    protected readonly bulkDataService: BulkDataAliasService,
+    protected readonly columnsService: ColumnsService,
+    protected readonly appHooksService: AppHooksService,
   ) {}
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected async handleDuplicateDifferentWs(params: {
+    sourceBase: Base; // Base to duplicate
+    targetBase: Base; // Base to duplicate to
+    dataSource: Source; // Data source to duplicate from
+    req: NcRequest;
+    context: NcContext; // Context of the base to duplicate
+    targetContext?: NcContext; // Context of the base to duplicate to
+    options: {
+      excludeData?: boolean;
+      excludeHooks?: boolean;
+      excludeViews?: boolean;
+      excludeComments?: boolean;
+    };
+  }) {
+    throw new NotImplementedException();
+  }
 
   async duplicateBaseJob({
     sourceBase,
@@ -64,8 +82,9 @@ export class DuplicateProcessor {
       excludeHooks?: boolean;
       excludeViews?: boolean;
       excludeComments?: boolean;
+      excludeUsers?: boolean;
     };
-    operation: string;
+    operation: JobTypes;
   }) {
     const hrTime = initTime();
 
@@ -73,6 +92,21 @@ export class DuplicateProcessor {
       workspace_id: targetBase.fk_workspace_id,
       base_id: targetBase.id,
     };
+
+    if (
+      [JobTypes.DuplicateBase, JobTypes.RestoreSnapshot].includes(operation) &&
+      targetContext.workspace_id !== sourceBase.fk_workspace_id
+    ) {
+      await this.handleDuplicateDifferentWs({
+        sourceBase,
+        targetBase,
+        dataSource,
+        req,
+        context,
+        targetContext,
+        options,
+      });
+    }
 
     try {
       if (!sourceBase || !targetBase || !dataSource) {
@@ -183,6 +217,7 @@ export class DuplicateProcessor {
     const excludeHooks = options?.excludeHooks || false;
     const excludeViews = options?.excludeViews || false;
     const excludeComments = options?.excludeComments || excludeData || false;
+    const excludeUsers = options?.excludeUsers || false;
 
     const base = await Base.get(context, baseId);
     const dupProject = await Base.get(context, dupProjectId);
@@ -199,6 +234,7 @@ export class DuplicateProcessor {
         excludeHooks,
         excludeViews,
         excludeComments,
+        excludeUsers,
       },
       operation: JobTypes.DuplicateBase,
     });
@@ -538,6 +574,13 @@ export class DuplicateProcessor {
       hrTime: { hrTime: [number, number] };
       modelFieldIds?: Record<string, string[]>;
       externalModels?: Model[];
+      options?: {
+        excludeData?: boolean;
+        excludeViews?: boolean;
+        excludeHooks?: boolean;
+        excludeComments?: boolean;
+        excludeUsers?: boolean;
+      };
       req: any;
     },
   ) {
@@ -550,6 +593,7 @@ export class DuplicateProcessor {
       hrTime,
       modelFieldIds,
       externalModels,
+      options,
       req,
     } = param;
 
@@ -575,6 +619,7 @@ export class DuplicateProcessor {
           baseId: sourceProject.id,
           modelId: sourceModel.id,
           handledMmList: handledLinks,
+          excludeUsers: options?.excludeUsers,
         })
         .catch((e) => {
           this.debugLog(e);

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
-import { message } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
 import { getOptions } from './utils'
 
@@ -34,7 +33,7 @@ const active = computed(() => activeCell.value || isEditable.value || isForm.val
 const aselect = ref<typeof AntSelect>()
 
 const isOpen = ref(false)
-const canvasSelectCell = inject(CanvasSelectCellInj)
+const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
@@ -274,7 +273,7 @@ watch(
   },
 )
 
-const canvasCellEventData = inject(CanvasCellEventDataInj)!
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))

@@ -1,4 +1,10 @@
-import { ButtonActionsType, ColumnReqType, ColumnType, TableType } from './Api';
+import {
+  ButtonActionsType,
+  ColumnReqType,
+  ColumnType,
+  LinkToAnotherRecordType,
+  TableType,
+} from './Api';
 import { FormulaDataTypes } from './formulaHelpers';
 import { LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
 import { parseProp } from './helperFunctions';
@@ -182,6 +188,7 @@ export const numericUITypes = [
   UITypes.Rollup,
   UITypes.Year,
   UITypes.Links,
+  UITypes.ID,
 ];
 
 export function isNumericCol(
@@ -312,6 +319,18 @@ export function isLinksOrLTAR(
 ) {
   return [UITypes.LinkToAnotherRecord, UITypes.Links].includes(
     <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
+  );
+}
+
+export function isSelfLinkCol(
+  col: ColumnType & { colOptions: unknown }
+): boolean {
+  return (
+    isLinksOrLTAR(col) &&
+    col.system &&
+    // except has-many all other relation types are self link
+    // has-many system column get created to mm table only
+    (col.colOptions as LinkToAnotherRecordType)?.type !== RelationTypes.HAS_MANY
   );
 }
 
@@ -531,3 +550,64 @@ export const durationOptions = [
     regex: /(\d+)?(?::(\d+))?(?::(\d+))?(?:.(\d{0,4})?)?/,
   },
 ];
+
+/**
+ * Checks if a given column is read-only.
+ * A column is considered read-only if it belongs to specific UI types
+ * (e.g., Lookup, Rollup, Formula, etc.) or if it represents system-generated
+ * metadata such as created/modified timestamps or ordering information.
+ *
+ * @param {ColumnType} column - The column to check.
+ * @returns {boolean} - Returns `true` if the column is read-only, otherwise `false`.
+ */
+export const isReadOnlyColumn = (column: ColumnType): boolean => {
+  return (
+    // Check if the column belongs to a predefined set of read-only UI types
+    [
+      UITypes.Lookup,
+      UITypes.Rollup,
+      UITypes.Formula,
+      UITypes.Button,
+      UITypes.Barcode,
+      UITypes.QrCode,
+      UITypes.ForeignKey,
+    ].includes(column.uidt as UITypes) ||
+    // Check if the column is a system-generated user tracking field (CreatedBy, LastModifiedBy)
+    isCreatedOrLastModifiedByCol(column) ||
+    // Check if the column is a system-generated timestamp field (CreatedTime, LastModifiedTime)
+    isCreatedOrLastModifiedTimeCol(column) ||
+    // Check if the column is used for row ordering
+    isOrderCol(column) ||
+    // if primary key and auto generated then treat as readonly
+    (column.pk && (column.ai || parseProp(column.meta)?.ag))
+  );
+};
+
+/**
+ * Determines whether a given column type represents a Date or DateTime field.
+ *
+ * @param column - The column type to check.
+ * @returns `true` if the column is a Date, DateTime, CreatedTime, or LastModifiedTime field;
+ *          `true` if it is a Formula column that evaluates to DateTime;
+ *          otherwise, `false`.
+ */
+export const isDateOrDateTimeCol = (column: ColumnType) => {
+  // Check if the column's UI type is one of the predefined date-related types
+  if (
+    [
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+    ].includes(column.uidt as UITypes)
+  ) {
+    return true;
+  }
+
+  // If the column is a Formula, determine if its evaluated type is DateTime
+  if (column.uidt === UITypes.Formula) {
+    return getEquivalentUIType({ formulaColumn: column }) === UITypes.DateTime;
+  }
+
+  return false;
+};

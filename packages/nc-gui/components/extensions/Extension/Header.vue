@@ -132,7 +132,7 @@ const toggleFullScreen = () => {
       <span
         class="extension-title cursor-pointer"
         :class="{
-          'text-lg font-semibold ': isFullscreen,
+          'text-[20px] font-semibold ': isFullscreen,
           'mr-1': !isFullscreen,
         }"
         @dblclick.stop="enableEditMode"

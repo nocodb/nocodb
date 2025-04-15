@@ -51,6 +51,7 @@ const exportFile = async (exportType: ExportTypes) => {
               offset,
               sortArrJson: JSON.stringify(sorts.value),
               filterArrJson: JSON.stringify(nestedFilters.value),
+              encoding: exportType === ExportTypes.EXCEL ? 'base64' : undefined,
             },
           } as RequestParams,
         )

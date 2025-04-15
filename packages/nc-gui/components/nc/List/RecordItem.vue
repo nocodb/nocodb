@@ -24,6 +24,10 @@ provide(RowHeightInj, ref(1 as const))
 
 provide(IsFormInj, ref(false))
 
+provide(IsUnderLookupInj, ref(true))
+
+provide(IsLinkRecordDropdownInj, ref(true))
+
 const { row: currentRow, columns: allColumns, isSelected, isLoading } = toRefs(props)
 
 useProvideSmartsheetRowStore(currentRow)
@@ -103,7 +107,7 @@ const columnsToRender = computed(() => {
                 <LazyCellAttachmentPreviewImage
                   v-if="isImage(attachmentObj.title, attachmentObj.mimetype ?? attachmentObj.type)"
                   :key="`carousel-${attachmentObj.title}-${index}`"
-                  class="!w-11 !h-11 !max-h-11 !max-w-11object-cover !rounded-l-xl"
+                  class="!w-11 !h-11 !max-h-11 !max-w-11 object-cover !rounded-l-xl"
                   :srcs="getPossibleAttachmentSrc(attachmentObj, 'tiny')"
                 />
               </template>
@@ -164,6 +168,7 @@ const columnsToRender = computed(() => {
                       :model-value="currentRow.row[column.title!]"
                       :row="currentRow"
                       :column="column"
+                      class="!h-auto"
                     />
                     <LazySmartsheetCell
                       v-else
@@ -171,6 +176,7 @@ const columnsToRender = computed(() => {
                       :column="column"
                       :edit-enabled="false"
                       read-only
+                      class="!h-auto"
                     />
                   </div>
                 </NcTooltip>

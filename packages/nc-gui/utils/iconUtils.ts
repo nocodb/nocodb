@@ -580,6 +580,7 @@ import NcPuzzleOutline from '~icons/nc-icons/puzzle-outline'
 
 import NcInfoSolid from '~icons/nc-icons/info-solid'
 import NcPlaceholderIcon from '~icons/nc-icons/placeholder-icon'
+import NcImagePlaceholderIcon from '~icons/nc-icons/image-placeholder.svg'
 import NcSpanner from '~icons/nc-icons/spanner'
 import NcScript from '~icons/nc-icons/script'
 import NcAutoAwesome from '~icons/nc-icons/auto_awesome'
@@ -968,8 +969,8 @@ export const iconMap = {
   'arrowCollapse': Up,
   'markerAlert': h('span', { class: 'material-symbols' }, 'warning'),
   'appStore': h('span', { class: 'material-symbols' }, 'apps'),
-  'chevronLeft': h('span', { class: 'material-symbols' }, 'chevron_left'),
-  'chevronRight': h('span', { class: 'material-symbols' }, 'chevron_right'),
+  'chevronLeft': NcChevronLeftIcon,
+  'chevronRight': NcChevronRightIcon,
   'imagePlaceholder': h('span', { class: 'material-symbols' }, 'insert_photo'),
   'linkRemove': h('span', { class: 'material-symbols' }, 'link_off'),
   'closeThick': h('span', { class: 'material-symbols' }, 'cancel'),
@@ -1024,14 +1025,14 @@ export const iconMap = {
   'upload': NcUpload,
   'hook': Phishing,
   'erd': h('span', { class: 'material-symbols' }, 'account_tree'),
-  'plus': h('span', { class: 'material-symbols', style: '-webkit-text-stroke: 0.3px' }, 'add'),
+  'plus': NcPlusIcon,
   'plusSquare': PlusSquare,
   'minus': Minus,
   'help': h('span', { class: 'material-symbols' }, 'help'),
   'copy': NcCopy,
   'duplicate': NcDuplicate,
   'clipboard': h('span', { class: 'material-symbols' }, 'content_paste'),
-  'settings': h('span', { class: 'material-symbols' }, 'settings'),
+  'settings': NcSettingsIcon,
   'image': h('span', { class: 'material-symbols' }, 'image'),
   'datasource': h('span', { class: 'material-symbols' }, 'hard_drive'),
   'book': h('span', { class: 'material-symbols' }, 'menu_book'),
@@ -1041,12 +1042,8 @@ export const iconMap = {
   'arrowUp': Up,
   'layout': PhLayout,
   'sidebar': LayoutSidebar,
-  'doubleRightArrow': h(
-    'span',
-    { class: 'material-symbols', style: '-webkit-text-stroke: 0.5px' },
-    'keyboard_double_arrow_right',
-  ),
-  'doubleLeftArrow': h('span', { class: 'material-symbols', style: '-webkit-text-stroke: 0.5px' }, 'keyboard_double_arrow_left'),
+  'doubleRightArrow': NcChevronsRightIcon,
+  'doubleLeftArrow': NcChevronsLeftIcon,
   'sidebarMinimise': PhCaretDoubleLeftThin, // h('span', { class: 'material-symbols' }, 'left_panel_close'),
   // threeDotVertical: h('span', { class: 'material-symbols' }, 'more_vert'),
   // threeDotHorizontal: h('span', { class: 'material-symbols' }, 'more_horiz'),
@@ -1132,7 +1129,7 @@ export const iconMap = {
   'drag': MaterialSymbolsDragIndicator,
   'comment': h('span', { class: 'material-symbols' }, 'comment'),
   'doc': h('span', { class: 'material-symbols' }, 'menu_book'),
-  'menu': h('span', { class: 'material-symbols' }, 'menu'),
+  'menu': NcMenuIcon,
   'move': MsMove,
   'creditCard': NcCreditCard,
   'heightShort': NcIconsRowHeightShort,
@@ -1451,7 +1448,7 @@ export const iconMap = {
   'ncChevronsUp': NcChevronsUpIcon,
   'ncUploadCloud': NcUploadCloudIcon,
   'ncYoutube': NcYoutubeIcon,
-  'ncUnlock': NcUnlockIcon,
+  'ncUnlock': h(NcUnlockIcon, { stroke: 'transparent' }),
   'ncCompass': NcCompassIcon,
   'ncPlusCircle': NcPlusCircleIcon,
   'ncCreditCard': NcCreditCardIcon,
@@ -1536,6 +1533,7 @@ export const iconMap = {
   'ncPuzzleOutline': NcPuzzleOutline,
   'ncInfoSolid': NcInfoSolid,
   'ncPlaceholderIcon': NcPlaceholderIcon,
+  'ncImagePlaceholderIcon': h(NcImagePlaceholderIcon, { stroke: 'transparent' }),
   'ncSpanner': NcSpanner,
   'ncScript': NcScript,
   'youtube': NcYoutube2Icon,
@@ -3776,7 +3774,7 @@ export const searchableMap = {
     keywords: ['video', 'social media', 'streaming', 'entertainment', 'online'],
   },
   ncUnlock: {
-    icon: NcUnlockIcon,
+    icon: h(NcUnlockIcon, { stroke: 'transparent' }),
     keywords: ['password', 'security', 'access', 'open', 'authorization'],
   },
   ncCompass: {

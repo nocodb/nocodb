@@ -22,7 +22,13 @@ const tooManyCharsForBarcode = computed(() => barcodeValue.value.length > maxNum
 
 const modalVisible = ref(false)
 
-const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
+const _isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
+
+const isLinkRecordDropdown = inject(IsLinkRecordDropdownInj, ref(false))
+
+const isExpandedFormOpen = computed(() => {
+  return _isExpandedFormOpen.value && !isLinkRecordDropdown.value
+})
 
 const barcodeMeta = computed(() => {
   return {
@@ -64,7 +70,7 @@ const cellIcon = (column: ColumnType) =>
   })
 
 onMounted(() => {
-  if (isCanvasInjected && !isUnderLookup.value && !isExpandedFormOpen.value) {
+  if (isCanvasInjected && !isUnderLookup.value && !isExpandedFormOpen.value && !isLinkRecordDropdown.value) {
     modalVisible.value = true
   }
 })
@@ -105,7 +111,7 @@ onMounted(() => {
     class="flex w-full items-center barcode-wrapper"
     :class="{
       'justify-start': isExpandedFormOpen,
-      'justify-center': !isExpandedFormOpen,
+      'justify-center': !isExpandedFormOpen && !isLinkRecordDropdown,
     }"
   >
     <JsBarcodeWrapper

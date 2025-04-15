@@ -1,4 +1,5 @@
 import {
+  AuditV1OperationTypes,
   checkboxIconList,
   durationOptions,
   isSystemColumn,
@@ -7,11 +8,12 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { diff } from 'deep-object-diff';
+import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type {
   AuditV1,
-  AuditV1OperationTypes,
   ColumnMeta,
   ColumnType,
+  DataUpdatePayload,
   LinkToAnotherRecordType,
   NcContext,
   NcRequest,
@@ -1007,4 +1009,102 @@ export const extractExcludedColumnNames = (columns: ColumnType[]) => {
     }
     return colNames;
   }, [] as string[]);
+};
+
+export function formatDataForAudit(
+  data: Record<string, unknown>,
+  columns: Column[],
+) {
+  if (!data || typeof data !== 'object') return data;
+  const res = {};
+
+  for (const column of columns) {
+    if (isSystemColumn(column) || isVirtualCol(column)) continue;
+
+    if (!(column.title in data)) {
+      continue;
+    }
+
+    res[column.title] = data[column.title];
+
+    // if multi-select column, convert string to array
+    if (column.uidt === UITypes.MultiSelect) {
+      if (res[column.title] && typeof res[column.title] === 'string') {
+        res[column.title] = (res[column.title] as string).split(',');
+      }
+    }
+    // if attachment then exclude signed url and thumbnail
+    else if (column.uidt === UITypes.Attachment) {
+      if (res[column.title] && Array.isArray(res[column.title])) {
+        try {
+          res[column.title] = (res[column.title] as any[]).map((attachment) =>
+            excludeAttachmentProps(attachment),
+          );
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }
+
+  return res;
+}
+
+export const generateUpdateAuditV1Payload = async ({
+  baseModelSqlV2,
+  rowId,
+  oldData,
+  data,
+  req,
+}: {
+  baseModelSqlV2: IBaseModelSqlV2;
+  rowId: any;
+  oldData: any;
+  data: any;
+  req?: NcRequest & Partial<Request>;
+}) => {
+  const formattedOldData = formatDataForAudit(
+    oldData,
+    baseModelSqlV2.model.columns,
+  );
+  const formattedData = formatDataForAudit(data, baseModelSqlV2.model.columns);
+  const updateDiff = populateUpdatePayloadDiff({
+    keepUnderModified: true,
+    prev: formattedOldData,
+    next: formattedData,
+    exclude: extractExcludedColumnNames(baseModelSqlV2.model.columns),
+    excludeNull: false,
+    excludeBlanks: false,
+    keepNested: true,
+  }) as UpdatePayload;
+  if (!updateDiff) {
+    return undefined;
+  }
+
+  return await generateAuditV1Payload<DataUpdatePayload>(
+    AuditV1OperationTypes.DATA_UPDATE,
+    {
+      context: {
+        ...baseModelSqlV2.context,
+        source_id: baseModelSqlV2.model.source_id,
+        fk_model_id: baseModelSqlV2.model.id,
+        row_id:
+          typeof rowId === 'string'
+            ? (rowId as string)
+            : baseModelSqlV2.extractPksValues(rowId, true),
+      },
+      details: {
+        old_data: updateDiff.previous_state,
+        data: updateDiff.modifications,
+        column_meta: extractColsMetaForAudit(
+          baseModelSqlV2.model.columns.filter(
+            (c) => c.title in updateDiff.modifications,
+          ),
+          data,
+          oldData,
+        ),
+      },
+      req,
+    },
+  );
 };

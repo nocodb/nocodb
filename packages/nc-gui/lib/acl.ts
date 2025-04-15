@@ -37,7 +37,6 @@ const rolePermissions = {
       tableRename: true,
       tableDelete: true,
       viewCreateOrEdit: true,
-      baseReorder: true,
       orgAdminPanel: true,
       workspaceAuditList: true,
       workspaceIntegrations: true,

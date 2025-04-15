@@ -25,6 +25,7 @@ export class DataTableService {
       viewId?: string;
       ignorePagination?: boolean;
       apiVersion?: NcApiVersion;
+      includeSortAndFilterColumns?: boolean;
     },
   ) {
     const { modelId, viewId, baseId, ...rest } = param;
@@ -38,6 +39,7 @@ export class DataTableService {
       model,
       view,
       apiVersion: param.apiVersion,
+      includeSortAndFilterColumns: param?.includeSortAndFilterColumns,
     });
   }
 

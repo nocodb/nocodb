@@ -2,6 +2,7 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
+import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
 
 const meta = inject(MetaInj, ref())
 
@@ -84,8 +85,7 @@ const availableColumns = computed(() => {
 })
 
 const getColumnUidtByID = (key?: string) => {
-  if (!key) return ''
-  return columnByID.value[key]?.uidt || ''
+  return sortGetColumnUidtByID(key, columnByID.value)
 }
 
 const open = ref(false)
@@ -185,6 +185,15 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
 
   await saveGroupBy()
 }
+
+// exclude columns which are already grouped by
+const getFieldsToGroupBy = (currentGroup: Group) => {
+  return fieldsToGroupBy.value.filter((column) => {
+    return _groupBy.value?.every((group) => {
+      return group.fk_column_id !== column.id || group.fk_column_id === currentGroup.fk_column_id
+    })
+  })
+}
 </script>
 
 <template>
@@ -230,7 +239,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
         <SmartsheetToolbarCreateGroupBy
           v-if="!_groupBy.length"
           :is-parent-open="open"
-          :columns="fieldsToGroupBy"
+          :columns="getFieldsToGroupBy({})"
           :disabled="isLocked"
           @created="addFieldToGroupBy"
         />
@@ -261,7 +270,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
                   <LazySmartsheetToolbarFieldListAutoCompleteDropdown
                     v-model="group.fk_column_id"
                     class="caption nc-sort-field-select !w-36"
-                    :columns="fieldsToGroupBy"
+                    :columns="getFieldsToGroupBy(group)"
                     :allow-empty="true"
                     :meta="meta"
                     :disabled="isLocked"

@@ -6,9 +6,9 @@ import {
   OrgUserRoles,
   PluginCategory,
   ProjectRoles,
+  WorkspaceRolesToProjectRoles,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import * as ejs from 'ejs';
 import validator from 'validator';
 import type {
   ProjectUserReqType,
@@ -20,20 +20,23 @@ import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
-import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { Base, BaseUser, PresignedUrl, User } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
-import { getProjectRolePower } from '~/utils/roleHelper';
-import { sanitiseEmailContent } from '~/utils';
+import { getProjectRole, getProjectRolePower } from '~/utils/roleHelper';
+import { MailService } from '~/services/mail/mail.service';
+import { MailEvent } from '~/interface/Mail';
 
 @Injectable()
 export class BaseUsersService {
-  private readonly logger = new Logger(BaseUsersService.name);
+  protected readonly logger = new Logger(BaseUsersService.name);
 
-  constructor(protected appHooksService: AppHooksService) {}
+  constructor(
+    protected appHooksService: AppHooksService,
+    protected readonly mailService: MailService,
+  ) {}
 
   async userList(
     context: NcContext,
@@ -57,6 +60,7 @@ export class BaseUsersService {
       baseId: string;
       baseUser: ProjectUserReqType;
       req: NcRequest;
+      workspaceInvited?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<any> {
@@ -121,13 +125,6 @@ export class BaseUsersService {
           user.id,
           ncMeta,
         );
-
-        const base = await Base.get(context, param.baseId, ncMeta);
-
-        if (!base) {
-          return NcError.baseNotFound(param.baseId);
-        }
-
         // if already exists and has a role then throw error
         if (baseUser?.is_mapped && baseUser?.roles) {
           NcError.badRequest(
@@ -143,6 +140,19 @@ export class BaseUsersService {
             param.baseUser.roles,
             ncMeta,
           );
+          await this.mailService.sendMail({
+            mailEvent: MailEvent.BASE_ROLE_UPDATE,
+            payload: {
+              req: param.req,
+              user: user,
+              base: base,
+              oldRole: (getProjectRole(baseUser) ??
+                WorkspaceRolesToProjectRoles[
+                  (baseUser as any)?.workspace_roles
+                ]) as ProjectRoles,
+              newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
+            },
+          });
         } else {
           await BaseUser.insert(
             context,
@@ -154,6 +164,33 @@ export class BaseUsersService {
             },
             ncMeta,
           );
+
+          if (param?.workspaceInvited) {
+            await this.mailService.sendMail({
+              mailEvent: MailEvent.BASE_INVITE,
+              payload: {
+                req: param.req,
+                user: user,
+                base: base,
+                role: (param.baseUser.roles || 'editor') as ProjectRoles,
+                token: invite_token,
+              },
+            });
+          } else {
+            await this.mailService.sendMail({
+              mailEvent: MailEvent.BASE_ROLE_UPDATE,
+              payload: {
+                req: param.req,
+                user: user,
+                base: base,
+                oldRole: (getProjectRole(baseUser) ??
+                  WorkspaceRolesToProjectRoles[
+                    (baseUser as any)?.workspace_roles
+                  ]) as ProjectRoles,
+                newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
+              },
+            });
+          }
         }
 
         this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
@@ -199,35 +236,33 @@ export class BaseUsersService {
             context,
           });
 
-          // in case of single user check for smtp failure
-          // and send back token if email not configured
           if (emails.length === 1) {
-            // variable to keep invite mail send status
-            const mailSendStatus = await this.sendInviteEmail(
-              {
-                email,
-                token: invite_token,
-                req: param.req,
-                baseName: base.title,
-                roles: param.baseUser.roles || 'editor',
-              },
-              ncMeta,
-            );
-
-            if (!mailSendStatus) {
+            try {
+              await this.mailService.sendMail({
+                mailEvent: MailEvent.BASE_INVITE,
+                payload: {
+                  req: param.req,
+                  user: user,
+                  base: base,
+                  role: (param.baseUser.roles || 'editor') as ProjectRoles,
+                  token: invite_token,
+                },
+              });
+            } catch (e) {
+              this.logger.error(e.message, e.stack);
               return { invite_token, email };
             }
           } else {
-            await this.sendInviteEmail(
-              {
-                email,
-                token: invite_token,
+            await this.mailService.sendMail({
+              mailEvent: MailEvent.BASE_INVITE,
+              payload: {
                 req: param.req,
-                baseName: base.title,
-                roles: param.baseUser.roles || 'editor',
+                user: user,
+                base: base,
+                token: invite_token,
+                role: (param.baseUser.roles || 'editor') as ProjectRoles,
               },
-              ncMeta,
-            );
+            });
           }
         } catch (e) {
           this.logger.error(e.message, e.stack);
@@ -352,6 +387,20 @@ export class BaseUsersService {
       param.baseUser.roles,
       ncMeta,
     );
+
+    await this.mailService.sendMail({
+      mailEvent: MailEvent.BASE_ROLE_UPDATE,
+      payload: {
+        req: param.req,
+        user: user,
+        base,
+        oldRole: (getProjectRole(targetUser) ??
+          WorkspaceRolesToProjectRoles[
+            (targetUser as any)?.workspace_roles
+          ]) as ProjectRoles,
+        newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
+      },
+    });
 
     this.appHooksService.emit(AppEvents.PROJECT_USER_UPDATE, {
       base,
@@ -487,12 +536,15 @@ export class BaseUsersService {
       );
     }
 
-    await this.sendInviteEmail({
-      email: user.email,
-      token: invite_token,
-      req: param.req,
-      baseName: base.title,
-      roles: baseUser?.roles || 'editor',
+    await this.mailService.sendMail({
+      mailEvent: MailEvent.BASE_INVITE,
+      payload: {
+        req: param.req,
+        user: user,
+        base: base,
+        role: (baseUser.roles || 'editor') as ProjectRoles,
+        token: invite_token,
+      },
     });
 
     this.appHooksService.emit(AppEvents.PROJECT_USER_RESEND_INVITE, {
@@ -504,68 +556,6 @@ export class BaseUsersService {
     });
 
     return true;
-  }
-
-  async sendInviteEmail(
-    {
-      email,
-      token,
-      req,
-      baseName,
-      roles,
-      useOrgTemplate,
-    }: {
-      email: string;
-      token: string;
-      req: NcRequest;
-      baseName?: string;
-      roles: string;
-      useOrgTemplate?: boolean;
-    },
-    ncMeta = Noco.ncMeta,
-  ): Promise<any> {
-    try {
-      let template: string;
-
-      // if useOrgTemplate is true then use org template
-      if (useOrgTemplate) {
-        template = (
-          await import('~/services/base-users/ui/emailTemplates/org-invite')
-        ).default;
-      } else {
-        template = (
-          await import('~/services/base-users/ui/emailTemplates/invite')
-        ).default;
-      }
-      const emailAdapter = await NcPluginMgrv2.emailAdapter(undefined, ncMeta);
-
-      if (emailAdapter) {
-        await emailAdapter.mailSend({
-          to: email,
-          subject: 'Verify email',
-          html: ejs.render(template, {
-            signupLink: `${req.ncSiteUrl}${
-              Noco.getConfig()?.dashboardPath
-            }#/signup/${token}`,
-            baseName: sanitiseEmailContent(baseName || req.body?.baseName),
-            roles: sanitiseEmailContent(
-              (roles || req.body?.roles || '')
-                .split(',')
-                .map((r) => r.replace(/^./, (m) => m.toUpperCase()))
-                .join(', '),
-            ),
-            adminEmail: req.user?.email,
-          }),
-        });
-        return true;
-      }
-    } catch (e) {
-      this.logger.warn(
-        'Warning : `mailSend` failed, Please re-configure emailClient configuration.',
-      );
-      this.logger.error(e.message, e.stack);
-      throw e;
-    }
   }
 
   async baseUserMetaUpdate(

@@ -65,9 +65,9 @@ async function getAdapter(
   if (importType === ImportType.CSV) {
     switch (sourceType) {
       case ImportSource.FILE:
-        return new CSVTemplateAdapter(val, config, progress)
+        return new CSVTemplateAdapter(val, config, progress, existingColumns)
       case ImportSource.URL:
-        return new CSVTemplateAdapter(val, config, progress)
+        return new CSVTemplateAdapter(val, config, progress, existingColumns)
     }
   } else if (importType === ImportType.EXCEL) {
     switch (sourceType) {

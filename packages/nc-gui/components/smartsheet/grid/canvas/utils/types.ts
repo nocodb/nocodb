@@ -13,6 +13,7 @@ export interface RenderSingleLineTextProps {
   fillStyle?: string
   height?: number
   underline?: boolean
+  strikethrough?: boolean
   py?: number
   px?: number
 
@@ -30,6 +31,8 @@ export interface RenderMultiLineTextProps extends RenderSingleLineTextProps {
   maxLines?: number
   lineHeight?: number
   mousePosition?: { x: number; y: number }
+  firstLineMaxWidth?: number
+  yOffset?: number
 }
 
 export interface RenderRectangleProps {

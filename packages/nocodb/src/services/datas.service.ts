@@ -8,9 +8,9 @@ import type { PathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';
 import type { Filter } from '~/models';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
-import { nocoExecute } from '~/utils';
-import { getDbRows, getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import { Base, Column, Model, Source, View } from '~/models';
+import { getDbRows, getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
+import { nocoExecute } from '~/utils';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -31,6 +31,7 @@ export class DatasService {
       limitOverride?: number;
       throwErrorIfInvalidParams?: boolean;
       getHiddenColumns?: boolean;
+      includeSortAndFilterColumns?: boolean;
       apiVersion?: NcApiVersion;
     },
   ) {
@@ -75,6 +76,7 @@ export class DatasService {
       limitOverride: param.limitOverride,
       getHiddenColumns: param.getHiddenColumns,
       apiVersion: param.apiVersion,
+      includeSortAndFilterColumns: param.includeSortAndFilterColumns,
     });
   }
 
@@ -86,6 +88,18 @@ export class DatasService {
   async dataGroupBy(context: NcContext, param: PathParams & { query: any }) {
     const { model, view } = await getViewAndModelByAliasOrId(context, param);
     return await this.getDataGroupBy(context, {
+      model,
+      view,
+      query: param.query,
+    });
+  }
+
+  async dataGroupByCount(
+    context: NcContext,
+    param: PathParams & { query: any },
+  ) {
+    const { model, view } = await getViewAndModelByAliasOrId(context, param);
+    return await this.getDataGroupByCount(context, {
       model,
       view,
       query: param.query,
@@ -185,7 +199,6 @@ export class DatasService {
 
     // if xcdb base skip checking for LTAR
     if (!source.isMeta()) {
-      // todo: Should have error http status code
       const message = await baseModel.hasLTARData(param.rowId, model);
       if (message.length) {
         NcError.badRequest(message);
@@ -209,6 +222,7 @@ export class DatasService {
       customConditions?: Filter[];
       getHiddenColumns?: boolean;
       apiVersion?: NcApiVersion;
+      includeSortAndFilterColumns?: boolean;
     },
   ) {
     const {
@@ -216,6 +230,7 @@ export class DatasService {
       view: view,
       query = {},
       ignoreViewFilterAndSort = false,
+      includeSortAndFilterColumns = false,
       apiVersion,
     } = param;
 
@@ -237,6 +252,7 @@ export class DatasService {
       throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
       getHiddenColumn: param.getHiddenColumns,
       apiVersion,
+      includeSortAndFilterColumns: includeSortAndFilterColumns,
     });
 
     const listArgs: any = dependencyFields;
@@ -349,6 +365,33 @@ export class DatasService {
       ...query,
       count,
     });
+  }
+
+  async getDataGroupByCount(
+    context: NcContext,
+    param: { model: Model; view: View; query?: any },
+  ) {
+    const { model, view, query = {} } = param;
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
+    const listArgs: any = { ...query };
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+    try {
+      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+    } catch (e) {}
+
+    return await baseModel.groupByCount(listArgs);
   }
 
   async dataRead(
@@ -1013,7 +1056,7 @@ export class DatasService {
   ) {
     const base = await Base.getWithInfoByTitleOrId(
       context,
-      req.params.baseName,
+      req.params.baseId ?? req.params.baseName,
     );
 
     const model = await Model.getByAliasOrId(context, {

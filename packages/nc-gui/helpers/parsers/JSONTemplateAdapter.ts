@@ -1,6 +1,6 @@
 import { UITypes } from 'nocodb-sdk'
 import { getCheckboxValue, getColumnUIDTAndMetas } from './parserHelpers'
-import TemplateGenerator from './TemplateGenerator'
+import TemplateGenerator, { type ProgressMessageType } from './TemplateGenerator'
 
 const jsonTypeToUidt: Record<string, string> = {
   number: UITypes.Number,
@@ -22,7 +22,7 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
   }
 
   columns: object
-  constructor(data: object, parserConfig = {}, progressCallback?: (msg: string) => void) {
+  constructor(data: object, parserConfig = {}, progressCallback?: (msg: ProgressMessageType) => void) {
     super(progressCallback)
     this.config = parserConfig
     this._jsonData = data
@@ -54,7 +54,7 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
   }
 
   parse(): any {
-    this.progress('Parsing json data')
+    this.progress('Reading json data')
     const jsonData = this.jsonData
     const tn = 'table'
     const table: any = { table_name: tn, ref_table_name: tn, columns: [] }

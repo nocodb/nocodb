@@ -777,7 +777,7 @@ export function useMultiSelect(
       case 'Enter': {
         selectedRange.clear()
 
-        if (removeInlineAddRecord.value && activeCell.row >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
+        if (removeInlineAddRecord.value && activeCell.row >= EXTERNAL_SOURCE_VISIBLE_ROWS - 1) return
 
         let row
 

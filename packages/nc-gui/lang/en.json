@@ -134,7 +134,8 @@
     "WorkspaceOwnerNotified": "Workspace owner notified",
     "WorkspaceOwnerNotifiedSubtitle": "Your request to upgrade has been shared with the workspace owner.",
     "failedToSendUpgradeRequest": "Failed to send upgrade request",
-    "upgradeToSeeMoreRecord": "Only first 100 records will be visible, upgrade to Team plan to access all records visiblility"
+    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
+    "upgradeToSeeMoreRecordSubtitle": "Unlock complete visibility into your connected sources. View all records by upgrading to the Team plan."
   },
   "general": {
     "supported": "Supported",

@@ -164,6 +164,28 @@ watch(okBtnRef, () => {
   if (!okBtnRef.value?.$el || props.focusBtn !== 'ok') return
   ;(okBtnRef.value?.$el as HTMLButtonElement)?.focus()
 })
+
+useSelectedCellKeydownListener(
+  vModel,
+  (e: KeyboardEvent) => {
+    switch (e.key) {
+      case 'Enter':
+        if (
+          isActiveInputElementExist() ||
+          isActiveButtonOrLinkElementExist() ||
+          !document.activeElement?.closest('.nc-modal-confirm-wrapper')
+        ) {
+          return
+        }
+
+        emits('ok')
+    }
+  },
+  {
+    immediate: true,
+    isGridCell: false,
+  },
+)
 </script>
 
 <template>

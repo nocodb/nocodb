@@ -36,6 +36,18 @@ export const isActiveInputElementExist = (e?: Event) => {
     (target instanceof HTMLElement && target.isContentEditable)
   )
 }
+export const isActiveButtonOrLinkElementExist = (e?: Event) => {
+  const activeElement = document.activeElement
+  const target = e?.target
+
+  // A rich text editor is a div with the contenteditable attribute set to true.
+  return (
+    activeElement instanceof HTMLButtonElement ||
+    activeElement instanceof HTMLAnchorElement ||
+    target instanceof HTMLButtonElement ||
+    target instanceof HTMLAnchorElement
+  )
+}
 
 export const isNcDropdownOpen = () => document.querySelector('.nc-dropdown.active')
 export const isDropdownActive = () => document.querySelector('.nc-dropdown')

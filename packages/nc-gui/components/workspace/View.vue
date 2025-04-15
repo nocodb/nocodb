@@ -24,7 +24,7 @@ const { loadCollaborators, loadWorkspace } = workspaceStore
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
-const { isWsAuditEnabled, handleUpgradePlan } = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan, isPaymentEnabled } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
   if (deletingWorkspace.value) return
@@ -163,12 +163,12 @@ watch(
             </div>
           </template>
           <div class="overflow-auto h-[calc(100vh-3rem)] nc-scrollbar-thin">
-            <PaymentBanner v-if="isFeatureEnabled(FEATURE_FLAG.PAYMENT)" class="mb-0" />
+            <PaymentBanner v-if="isPaymentEnabled" class="mb-0" />
             <WorkspaceCollaboratorsList class="h-[650px]" :workspace-id="currentWorkspace.id" />
           </div>
         </a-tab-pane>
       </template>
-      <template v-if="isEeUI && !props.workspaceId && isFeatureEnabled(FEATURE_FLAG.PAYMENT) && isUIAllowed('workspaceBilling')">
+      <template v-if="isEeUI && !props.workspaceId && isPaymentEnabled && isUIAllowed('workspaceBilling')">
         <a-tab-pane key="billing" class="w-full">
           <template #tab>
             <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
@@ -181,9 +181,7 @@ watch(
         </a-tab-pane>
       </template>
 
-      <template
-        v-if="isEeUI && !props.workspaceId && isFeatureEnabled(FEATURE_FLAG.PAYMENT) && isUIAllowed('workspaceAuditList')"
-      >
+      <template v-if="isEeUI && !props.workspaceId && isPaymentEnabled && isUIAllowed('workspaceAuditList')">
         <a-tab-pane key="audits" class="w-full">
           <template #tab>
             <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">

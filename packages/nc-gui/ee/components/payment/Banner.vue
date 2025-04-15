@@ -11,7 +11,7 @@ const handleClickBanner = () => {
 </script>
 
 <template>
-  <div v-if="!isPaidPlan" class="px-6 pt-6 nc-content-max-w">
+  <div v-if="!isPaidPlan" class="px-6 pt-6 max-w-[1300px]">
     <div
       class="nc-payment-banner rounded-xl border-1 border-nc-border-gray-medium bg-nc-bg-maroon-light overflow-hidden relative flex gap-6 transition-all duration-300"
       :class="{

@@ -13,6 +13,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const gracePeriodDaysLeft = computed(() => Infinity)
 
+  const isWsAuditEnabled = computed(() => false)
+
   const getLimit = (..._args: any[]) => {}
 
   const getStatLimit = (..._args: any[]) => {}
@@ -53,5 +55,6 @@ export const useEeConfig = createSharedComposable(() => {
     blockAddNewRecord,
     showRecordPlanLimitExceededModal,
     navigateToBilling,
+    isWsAuditEnabled,
   }
 })

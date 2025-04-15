@@ -1005,13 +1005,8 @@ const onClickMenu = (e: { key?: string }) => {
                                 {{ source.alias || '' }}
                               </span>
                             </NcTooltip>
-                          </div>
-                          <div
-                            v-if="!(source.id && sourceRenameHelpers[source.id]?.editMode)"
-                            class="flex flex-row items-center gap-x-0.25"
-                          >
                             <LazyPaymentUpgradeBadge
-                              v-if="isPaymentEnabled && activePlanTitle === PlanTitles.FREE"
+                              v-if="isPaymentEnabled && activePlanTitle === PlanTitles.FREE && !(source.id && sourceRenameHelpers[source.id]?.editMode)"
                               :title="$t('upgrade.upgradeToSeeMoreRecord')"
                               :content="$t('upgrade.upgradeToSeeMoreRecordSubtitle')"
                               class="-my-1 mx-0.5 nc-sidebar-node-btn nc-sidebar-upgrade-badge"
@@ -1019,7 +1014,11 @@ const onClickMenu = (e: { key?: string }) => {
                                 'nc-sidebar-option-open': isBasesOptionsOpen[source!.id!]
                               }"
                             />
-
+                          </div>
+                          <div
+                            v-if="!(source.id && sourceRenameHelpers[source.id]?.editMode)"
+                            class="flex flex-row items-center gap-x-0.25"
+                          >
                             <NcDropdown
                               :visible="isBasesOptionsOpen[source!.id!]"
                               :trigger="['click']"

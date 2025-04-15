@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { PlanTitles } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
@@ -53,6 +53,7 @@ const tab = computed({
         content: t('upgrade.upgradeToAccessWsAuditSubtitle', {
           plan: PlanTitles.BUSINESS,
         }),
+        limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
       })
     }
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PlanLimitTypes, type HookReqType, type HookTestReqType, type HookType } from 'nocodb-sdk'
+import { type HookReqType, type HookTestReqType, type HookType, PlanLimitTypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 

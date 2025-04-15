@@ -7,7 +7,7 @@ import { isClient } from '@vueuse/core'
 interface UseDialogOptions {
   target: MaybeRef<HTMLElement | ComponentPublicInstance>
   context: Partial<AppContext>
-  slots?: Record<string, () => VNode[]>
+  slots?: MaybeRef<Record<string, () => VNode[]>>
 }
 
 /**
@@ -44,7 +44,7 @@ interface UseDialogOptions {
 export function useDialog(
   componentOrVNode: any,
   props: NonNullable<Parameters<typeof h>[1]> = {},
-  { target, context, slots }: Partial<UseDialogOptions> = {},
+  { target, context, slots = {} }: Partial<UseDialogOptions> = {},
 ) {
   if (typeof document === 'undefined' || !isClient) {
     console.warn('[useDialog]: Cannot use outside of browser!')
@@ -63,7 +63,7 @@ export function useDialog(
 
   /** When props change, we want to re-render the element with the new prop values */
   const stop = watch(
-    [toReactive(props), toRef(slots)],
+    [toReactive(props), toReactive(slots)],
     ([reactiveProps, reactiveSlots]) => {
       const _mountTarget = unref(target)
 

@@ -15,7 +15,7 @@ const vModel = useVModel(props, 'modelValue', emit)
 
 const { availableExtensions, descriptionContent, addExtension, getExtensionAssetsUrl, isMarketVisible } = useExtensions()
 
-const { isAllowToAddExtension, navigateToBilling } = useEeConfig()
+const { isAllowToAddExtension, navigateToBilling, isWsOwner } = useEeConfig()
 
 const onBack = () => {
   vModel.value = false
@@ -97,7 +97,7 @@ const detailsBody = computed(() => {
               <div class="flex items-center justify-center gap-2">
                 <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4" />
 
-                {{ $t('upgrade.upgradeToAdd') }}
+                {{ isWsOwner ? $t('upgrade.upgradeToAdd') : $t('upgrade.requestUpgradeToAdd') }}
               </div>
             </NcButton>
           </NcTooltip>

@@ -112,7 +112,8 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "Upgrade to add more records",
     "upgradeToAddLimitRecordSelection": "To limit record selection using filters, please upgrade to the {plan} plan.",
-    "upgradeToAdd": "Upgrade to Add",
+    "upgradeToAdd": "Upgrade to add",
+    "requestUpgradeToAdd": "Request upgrade to add",
     "upgradeToAddMoreExtensions": "You're currently on the Free plan, which allows only one extension. Upgrade to unlock unlimited extensions.",
     "upgradeToAccessWsAudit": "Upgrade to access workspace audit",
     "upgradeToAccessWsAuditSubtitle": "Upgrade to the {plan} plan to enable workspace audit logs and efficiently monitor key activities.",
@@ -127,7 +128,12 @@
     "upgradeToAddExternalSourceSubtitle": "The {activePlan} plan allows up to {limit} external source. Upgrade to the {plan} plan and get access to additional external sources.",
     "upgradeToAddWebhook": "Upgrade to add unlimited webhooks",
     "upgradeToAddWebhookSubtitle": "The {activePlan} plan allows up to {limit} webhooks. Upgrade to the {plan} plan and get access to unlimited webhooks.",
-    "upgradeToAccessWebhookLogsSubtitle": "Access webhook logs by upgrading your workspace to the {plan} plan."
+    "upgradeToAccessWebhookLogsSubtitle": "Access webhook logs by upgrading your workspace to the {plan} plan.",
+    "formOwnerNotified": "Form owner notified",
+    "formOwnerNotifiedSubtitle": "We've notified the form owner about your submission request.",
+    "WorkspaceOwnerNotified": "Workspace owner notified",
+    "WorkspaceOwnerNotifiedSubtitle": "Your request to upgrade has been shared with the workspace owner.",
+    "failedToSendUpgradeRequest": "Failed to send upgrade request"
   },
   "general": {
     "supported": "Supported",

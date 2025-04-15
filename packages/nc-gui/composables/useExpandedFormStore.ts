@@ -1,5 +1,5 @@
 import type { AuditType, ColumnType, MetaType, PlanLimitExceededDetailsType, TableType } from 'nocodb-sdk'
-import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { PlanLimitTypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
 
@@ -131,6 +131,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
             plan: details.higherPlan,
             period: formatDurationFromDays(+(details.limit ?? 14)),
           }),
+          limitOrFeature: PlanLimitTypes.LIMIT_AUDIT_RETENTION,
         })
       } else {
         message.error(errorInfo.message)

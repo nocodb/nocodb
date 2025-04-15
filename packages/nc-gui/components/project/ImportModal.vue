@@ -16,6 +16,8 @@ const { $e } = useNuxtApp()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const { showRecordPlanLimitExceededModal } = useEeConfig()
+
 async function openAirtableImportDialog(baseId?: string, sourceId?: string) {
   if (!baseId || !sourceId) return
 
@@ -101,6 +103,8 @@ async function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
 }
 
 const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json' | 'nocodb') => {
+  if (showRecordPlanLimitExceededModal()) return
+
   if (type === 'airtable') {
     openAirtableImportDialog(source.value.base_id, source.value.id)
   } else if (type === 'nocodb') {

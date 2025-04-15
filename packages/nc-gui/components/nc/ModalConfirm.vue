@@ -176,7 +176,7 @@ watch(okBtnRef, () => {
           </slot>
         </div>
         <div class="flex flex-col gap-2">
-          <div class="flex items-center gap-3">
+          <div class="flex items-start gap-3">
             <div class="nc-modal-confirm-title" :class="titleClass">
               <slot name="title">{{ title }}</slot>
             </div>

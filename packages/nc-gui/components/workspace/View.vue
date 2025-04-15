@@ -180,7 +180,9 @@ watch(
         </a-tab-pane>
       </template>
 
-      <template v-if="isEeUI && isUIAllowed('workspaceAuditList')">
+      <template
+        v-if="isEeUI && !props.workspaceId && isFeatureEnabled(FEATURE_FLAG.PAYMENT) && isUIAllowed('workspaceAuditList')"
+      >
         <a-tab-pane key="audits" class="w-full">
           <template #tab>
             <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">

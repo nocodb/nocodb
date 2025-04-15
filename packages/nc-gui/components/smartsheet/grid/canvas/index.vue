@@ -155,18 +155,12 @@ const {
 // VModels
 const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
-const { eventBus, isSqlView, isExternalSource } = useSmartsheetStoreOrThrow()
+const { eventBus, isSqlView } = useSmartsheetStoreOrThrow()
 
-const { showRecordPlanLimitExceededModal, blockExternalSourceRecordVisibility } = useEeConfig()
+const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 // Props to Refs
 const totalRows = toRef(props, 'totalRows')
-// const totalRows = computed(() => {
-//   if (blockExternalSourceRecordVisibility(isExternalSource.value)) return Math.min(200, props.totalRows)
-
-//   return props.totalRows
-// })
-
 const actualTotalRows = toRef(props, 'actualTotalRows')
 const totalGroups = toRef(props, 'totalGroups')
 const chunkStates = toRef(props, 'chunkStates')
@@ -1652,7 +1646,13 @@ const handleMouseMove = (e: MouseEvent) => {
       const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
 
       if (element) {
-        if (removeInlineAddRecord.value && !element?.group && element?.rowIndex && element?.rowIndex > EXTERNAL_SOURCE_VISIBLE_ROWS) return
+        if (
+          removeInlineAddRecord.value &&
+          !element?.group &&
+          element?.rowIndex &&
+          element?.rowIndex > EXTERNAL_SOURCE_VISIBLE_ROWS
+        )
+          return
 
         hoverRow.value = {
           rowIndex: element?.rowIndex,

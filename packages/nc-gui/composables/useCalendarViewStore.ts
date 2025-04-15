@@ -361,7 +361,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         return
       if (
         isSidebarLoading.value ||
-        (blockExternalSourceRecordVisibility(isExternalSource.value) && params.offset && params.offset > EXTERNAL_SOURCE_VISIBLE_ROWS)
+        (blockExternalSourceRecordVisibility(isExternalSource.value) &&
+          params.offset &&
+          params.offset > EXTERNAL_SOURCE_VISIBLE_ROWS)
       )
         return
       try {

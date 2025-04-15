@@ -119,8 +119,7 @@ const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
 
-const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource, isAlreadyShownUpgradeModal } =
-  useSmartsheetStoreOrThrow()
+const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource } = useSmartsheetStoreOrThrow()
 
 const { $e, $api } = useNuxtApp()
 
@@ -2559,7 +2558,10 @@ const cellAlignClass = computed(() => {
                           >
                             <NcCheckbox
                               :checked="row.rowMeta.selected || vSelectedAllRecords"
-                              :disabled="(!row.rowMeta.selected && selectedRows.length >= EXTERNAL_SOURCE_VISIBLE_ROWS) || vSelectedAllRecords"
+                              :disabled="
+                                (!row.rowMeta.selected && selectedRows.length >= EXTERNAL_SOURCE_VISIBLE_ROWS) ||
+                                vSelectedAllRecords
+                              "
                               class="!w-4 !h-4"
                               @change="toggleRowSelection(row.rowMeta.rowIndex)"
                             />

@@ -233,8 +233,6 @@ const visibleRows = computed(() => {
   })
 })
 
-let upgradeModalTimer: any
-
 const updateVisibleRows = async () => {
   const { start, end } = rowSlice
 
@@ -258,11 +256,7 @@ const updateVisibleRows = async () => {
   }
 
   if (chunksToFetch.size > 0) {
-    await Promise.all(
-      [...chunksToFetch].map((chunkId) => {
-        fetchChunk(chunkId)
-      }),
-    )
+    await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
   }
 
   clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))

@@ -143,7 +143,9 @@ export default class NocoCache {
     return !!this.client.setHash(`${this.prefix}:${key}`, hash, options);
   }
 
-  public static async getHash(key: string): Promise<Record<string, string>> {
+  public static async getHash(
+    key: string,
+  ): Promise<Record<string, string | number>> {
     if (this.cacheDisabled) return Promise.resolve({});
     return this.client.getHash(`${this.prefix}:${key}`);
   }

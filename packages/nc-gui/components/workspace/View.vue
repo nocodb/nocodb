@@ -200,32 +200,6 @@ watch(
           <WorkspaceAudits v-if="isWsAuditEnabled" />
           <div v-else>&nbsp;</div>
         </a-tab-pane>
-      </template>
-
-      <template v-if="isUIAllowed('workspaceManage')">
-        <a-tab-pane key="settings" class="w-full">
-          <template #tab>
-            <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
-              <GeneralIcon icon="ncSettings" class="h-4 w-4" />
-              {{ $t('labels.settings') }}
-            </div>
-          </template>
-          <PaymentBanner v-if="isPaymentEnabled" class="mb-0" />
-          <WorkspaceSettings :workspace-id="currentWorkspace.id" />
-        </a-tab-pane>
-      </template>
-
-      <template v-if="isEeUI && !props.workspaceId && isFeatureEnabled(FEATURE_FLAG.PAYMENT)">
-        <a-tab-pane key="billing" class="w-full">
-          <template #tab>
-            <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
-              <GeneralIcon icon="ncDollarSign" class="flex-none h-4 w-4" />
-              {{ $t('general.billing') }}
-            </div>
-          </template>
-
-          <PaymentBillingPage class="!h-[calc(100vh_-_92px)]" />
-        </a-tab-pane>
 
         <template v-if="isWorkspaceSsoAvail">
           <a-tab-pane key="sso" class="w-full">
@@ -239,6 +213,18 @@ watch(
             <WorkspaceSso class="!h-[calc(100vh_-_92px)]" />
           </a-tab-pane>
         </template>
+      </template>
+
+      <template v-if="isUIAllowed('workspaceManage')">
+        <a-tab-pane key="settings" class="w-full">
+          <template #tab>
+            <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
+              <GeneralIcon icon="ncSettings" class="h-4 w-4" />
+              {{ $t('labels.settings') }}
+            </div>
+          </template>
+          <WorkspaceSettings :workspace-id="currentWorkspace.id" />
+        </a-tab-pane>
       </template>
     </NcTabs>
   </div>

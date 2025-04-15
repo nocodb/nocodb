@@ -604,7 +604,7 @@ describe('dataApiV3', () => {
         columnsCity = initResult.columnsCity;
       });
 
-      it('Has-Many ', async function () {
+      it('Has-Many', async function () {
         // Create hm link between Country and City
         await ncAxiosLinkAdd({
           urlParams: {
@@ -668,7 +668,7 @@ describe('dataApiV3', () => {
           });
 
           rspFromRecordAPI = await ncAxiosGet({
-            url: `/api/${API_VERSION}/tables/${tblCity.id}`,
+            url: `${urlPrefix}/${tblCity.id}`,
             query: {
               where: `(Id,eq,${i})`,
             },
@@ -752,7 +752,7 @@ describe('dataApiV3', () => {
           });
 
           rspFromRecordAPI = await ncAxiosGet({
-            url: `/api/${API_VERSION}/tables/${tblCity.id}`,
+            url: `${urlPrefix}/${tblCity.id}`,
             query: {
               where: `(Id,eq,${i})`,
             },

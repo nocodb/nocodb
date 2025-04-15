@@ -512,6 +512,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
+      limitOrFeature: PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE,
     })
 
     return true
@@ -539,6 +540,7 @@ export const useEeConfig = createSharedComposable(() => {
       callback,
       maskClosable: false,
       keyboard: false,
+      limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
     })
 
     return true

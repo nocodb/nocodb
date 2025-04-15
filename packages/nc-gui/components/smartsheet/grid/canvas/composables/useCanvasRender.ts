@@ -6,7 +6,9 @@ import {
   isBoxHovered,
   renderCheckbox,
   renderIconButton,
+  renderMultiLineText,
   renderSingleLineText,
+  renderTag,
   renderTagLabel,
   roundedRect,
   truncateText,
@@ -89,6 +91,7 @@ export function useCanvasRender({
   getRows,
   draggedRowGroupPath,
   removeInlineAddRecord,
+  upgradeModalInlineState,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -161,6 +164,10 @@ export function useCanvasRender({
   getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
   draggedRowGroupPath: Ref<number[]>
   removeInlineAddRecord: Ref<boolean>
+  upgradeModalInlineState: Ref<{
+    isHoveredLearnMore: boolean
+    isHoveredUpgrade: boolean
+  }>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
@@ -927,6 +934,126 @@ export function useCanvasRender({
     }
   }
 
+  const renderUpgradeModalInline = (ctx: CanvasRenderingContext2D, yOffset: number) => {
+    if (!removeInlineAddRecord.value || isGroupBy.value) return
+
+    yOffset = yOffset + 50
+
+    const { lines } = renderMultiLineText(ctx, {
+      x: width.value / 2,
+      y: yOffset,
+      text: 'Upgrade to view all records from external Datasources',
+      maxWidth: Math.min(width.value, 520),
+      fillStyle: '#101015',
+      fontFamily: `700 16px Manrope`,
+      height: 100,
+      lineHeight: 24,
+      maxLines: 2,
+      textAlign: 'center',
+    })
+
+    yOffset = yOffset + lines.length * 24 + 8
+
+    const totalRecords = Math.max(totalRows.value, actualTotalRows.value ?? 0)
+
+    const { lines: subtitleLines } = renderMultiLineText(ctx, {
+      x: width.value / 2,
+      y: yOffset,
+      text: `You're viewing 100 of ${totalRecords} records. Unlock access to the remaining ${
+        totalRecords - 100
+      } records by upgrading to the Team plan.`,
+      maxWidth: Math.min(width.value, 520),
+      fillStyle: '#4A5268',
+      fontFamily: `500 14px Manrope`,
+      height: 100,
+      lineHeight: 20,
+      maxLines: 4,
+      textAlign: 'center',
+    })
+
+    yOffset = yOffset + subtitleLines.length * 20 + 20
+
+    const renderLearnMoreBtn = (render = false, xOffset: number = width.value / 2) => {
+      return renderSingleLineText(ctx, {
+        x: xOffset + 10,
+        y: yOffset,
+        text: 'Learn More',
+        maxWidth: 120,
+        height: 32,
+        fontFamily: '600 14px Manrope',
+        fillStyle: '#374151',
+        isTagLabel: true,
+        render,
+      })
+    }
+
+    const renderUpgradeBtn = (render = false, xOffset: number = width.value / 2) => {
+      return renderSingleLineText(ctx, {
+        x: xOffset + 10,
+        y: yOffset,
+        text: 'Upgrade',
+        maxWidth: 120,
+        height: 32,
+        fontFamily: '600 14px Manrope',
+        fillStyle: 'white',
+        isTagLabel: true,
+        render,
+      })
+    }
+
+    const learnMoreBtnInfo = renderLearnMoreBtn(false)
+
+    const UpgradeBtnInfo = renderUpgradeBtn(false)
+
+    /**
+     * learn more button width + upgrade button width + gap
+     */
+    const buttonsWidth = learnMoreBtnInfo.width + 10 * 2 + UpgradeBtnInfo.width + 10 * 2 + 12
+
+    let xOffSet = width.value / 2 - buttonsWidth / 2
+
+    const isLearnMoreBtnHovered = isBoxHovered(
+      { x: xOffSet, y: yOffset, width: learnMoreBtnInfo.width + 10 * 2, height: 132 },
+      mousePosition,
+    )
+
+    renderTag(ctx, {
+      x: xOffSet,
+      radius: 8,
+      y: yOffset,
+      height: 32,
+      width: learnMoreBtnInfo.width + 10 * 2,
+      borderColor: '#E7E7E9',
+      borderWidth: 1,
+      fillStyle: isLearnMoreBtnHovered ? themeV3Colors.gray['100'] : 'white',
+    })
+
+    renderLearnMoreBtn(true, xOffSet)
+
+    const isUpgradeBtnHovered = isBoxHovered(
+      { x: xOffSet + learnMoreBtnInfo.width + 10 * 2 + 12, y: yOffset, width: UpgradeBtnInfo.width + 10 * 2, height: 132 },
+      mousePosition,
+    )
+    renderTag(ctx, {
+      x: xOffSet + learnMoreBtnInfo.width + 10 * 2 + 12,
+      radius: 8,
+      y: yOffset,
+      height: 32,
+      width: UpgradeBtnInfo.width + 10 * 2,
+      borderColor: '#E7E7E9',
+      borderWidth: 1,
+      fillStyle: isUpgradeBtnHovered ? themeV3Colors.brand['600'] : themeV3Colors.brand['500'],
+    })
+
+    renderUpgradeBtn(true, xOffSet + learnMoreBtnInfo.width + 10 * 2 + 12)
+
+    upgradeModalInlineState.value.isHoveredLearnMore = isLearnMoreBtnHovered
+    upgradeModalInlineState.value.isHoveredUpgrade = isUpgradeBtnHovered
+    if (isLearnMoreBtnHovered || isUpgradeBtnHovered) {
+      setCursor('pointer')
+    }
+  }
+
   function renderRow(
     ctx: CanvasRenderingContext2D,
     {
@@ -1472,6 +1599,7 @@ export function useCanvasRender({
       ctx.lineWidth = 1
     }
     renderFillHandle(ctx)
+    renderUpgradeModalInline(ctx, yOffset)
 
     return activeState
   }

@@ -12,13 +12,18 @@ const isPublic = inject(IsPublicInj, ref(false))
 const fields = inject(FieldsInj, ref([]))
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
-const { isSqlView, xWhere, isExternalSource } = useSmartsheetStoreOrThrow()
+const { isSqlView, xWhere, isExternalSource, isAlreadyShownUpgradeModal } = useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
 const route = useRoute()
 const { getPossibleAttachmentSrc } = useAttachment()
 const router = useRouter()
 
-const { showRecordPlanLimitExceededModal, showAsBluredRecord } = useEeConfig()
+const {
+  showRecordPlanLimitExceededModal,
+  blockExternalSourceRecordVisibility,
+  showAsBluredRecord,
+  showUpgradeToSeeMoreRecordsModal,
+} = useEeConfig()
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
@@ -39,12 +44,18 @@ const {
   navigateToSiblingRow,
   chunkStates,
   cachedRows,
-  totalRows,
+  totalRows: _totalRows,
   isFirstRow,
   isLastRow,
   clearCache,
   viewData: galleryData,
 } = useGalleryViewData(meta, view, xWhere)
+
+const totalRows = computed(() => {
+  if (blockExternalSourceRecordVisibility(isExternalSource.value)) return Math.min(200, _totalRows.value)
+
+  return _totalRows.value
+})
 
 const fieldsWithoutDisplay = computed(() => fields.value.filter((f) => !isPrimary(f)))
 
@@ -227,6 +238,8 @@ const visibleRows = computed(() => {
   })
 })
 
+let upgradeModalTimer: any
+
 const updateVisibleRows = async () => {
   const { start, end } = rowSlice
 
@@ -250,7 +263,33 @@ const updateVisibleRows = async () => {
   }
 
   if (chunksToFetch.size > 0) {
-    await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
+    await Promise.all(
+      [...chunksToFetch].map((chunkId) => {
+        if (
+          !isAlreadyShownUpgradeModal.value &&
+          chunkId &&
+          chunkId * CHUNK_SIZE >= 100 &&
+          blockExternalSourceRecordVisibility(isExternalSource.value)
+        ) {
+          isAlreadyShownUpgradeModal.value = true
+
+          if (upgradeModalTimer) {
+            clearTimeout(upgradeModalTimer)
+          }
+
+          upgradeModalTimer = setTimeout(() => {
+            showUpgradeToSeeMoreRecordsModal({
+              isExternalSource: isExternalSource.value,
+            })
+            clearTimeout(upgradeModalTimer)
+          }, 1000)
+
+          return
+        }
+
+        fetchChunk(chunkId)
+      }),
+    )
   }
 
   clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))

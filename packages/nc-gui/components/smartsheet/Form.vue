@@ -1051,7 +1051,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                     v-if="blockAddNewRecord"
                     type="warning"
                     show-icon
-                    class="mt-6 bg-nc-bg-orange-light"
+                    class="mt-6 bg-nc-bg-orange-light max-w-[max(33%,688px)] mx-auto"
                     :message="$t('upgrade.updateToAddRecordFormView')"
                     :description="
                       $t('upgrade.updateToAddRecordFormViewSubtitle', {

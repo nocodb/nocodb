@@ -6,6 +6,8 @@ import type {
   FilterType,
   HookType,
   IntegrationType,
+  PlanFeatureTypes,
+  PlanLimitTypes,
   PluginTestReqType,
   PluginType,
   ProjectRoles,
@@ -15,6 +17,7 @@ import type {
   TableType,
   UserType,
   ViewType,
+  WorkspaceType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { CustomUrl } from '~/models';
@@ -438,6 +441,13 @@ export interface DataExportEvent extends NcBaseEvent {
   view: ViewType;
   table: TableType;
   type: 'excel' | 'csv';
+}
+
+export interface WorkspaceRequestUpgradeEvent extends NcBaseEvent {
+  workspace: WorkspaceType;
+  user: UserType;
+  requester: UserType;
+  limitOrFeature: PlanLimitTypes | PlanFeatureTypes;
 }
 
 export type AppEventPayload =

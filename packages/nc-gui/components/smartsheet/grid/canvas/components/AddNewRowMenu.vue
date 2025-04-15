@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import { ViewTypes } from 'nocodb-sdk'
 
-defineProps<{
-  path: Array<number>
-  onNewRecordToGridClick: () => void
-  onNewRecordToFormClick: () => void
-  removeInlineAddRecord?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    path?: Array<number> | null
+    onNewRecordToGridClick: () => void
+    onNewRecordToFormClick: () => void
+    removeInlineAddRecord?: boolean
+  }>(),
+  {
+    path: () => [],
+  },
+)
 
 const { removeInlineAddRecord } = toRefs(props)
 
-const { isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
+const { isAddNewRecordGridMode } = useGlobal()
 </script>
 
 <template>
@@ -18,7 +23,7 @@ const { isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
     <NcMenuItem
       v-e="['c:row:add:grid']"
       class="nc-new-record-with-grid group"
-      :disabled="!removeInlineAddRecord"
+      :disabled="removeInlineAddRecord"
       @click="onNewRecordToGridClick(path ?? [])"
     >
       <div class="flex flex-row items-center justify-start gap-x-3">

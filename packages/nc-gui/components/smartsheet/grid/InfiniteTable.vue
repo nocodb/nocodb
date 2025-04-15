@@ -211,6 +211,8 @@ const cachedRows = toRef(props, 'data')
 
 const rowSortRequiredRows = toRef(props, 'rowSortRequiredRows')
 
+// const totalRows = toRef(props, 'totalRows')
+
 const totalRows = computed(() => {
   if (blockExternalSourceRecordVisibility(isExternalSource.value)) return Math.min(200, props.totalRows)
 
@@ -717,7 +719,7 @@ const onNewRecordToGridClick = () => {
   addEmptyRow()
 }
 
-const onNewRecordToFormClick = () => {
+function onNewRecordToFormClick() {
   if (showRecordPlanLimitExceededModal()) return
 
   setAddNewRecordGridMode(false)
@@ -1105,9 +1107,8 @@ async function saveEmptyRow(rowObj: Row, before?: string) {
 async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
   if (showRecordPlanLimitExceededModal({ focusBtn: null })) return
 
-  if (removeInlineAddRecord.value && !before && !row) {
-    setAddNewRecordGridMode(false)
-    onDraftRecordClick()
+  if (removeInlineAddRecord.value && !before && !row && !skipUpdate) {
+    onNewRecordToFormClick()
     return
   }
 

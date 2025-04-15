@@ -113,6 +113,8 @@ export function useInfiniteData(args: {
 
   const totalRows = ref(0)
 
+  const actualTotalRows = ref(0)
+
   const cachedRows = ref<Map<number, Row>>(new Map())
 
   const chunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
@@ -124,6 +126,7 @@ export function useInfiniteData(args: {
         cachedRows: Ref<Map<number, Row>>
         chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
         totalRows: Ref<number>
+        actualTotalRows: Ref<number>
         selectedRows: ComputedRef<Array<Row>>
         isRowSortRequiredRows: ComputedRef<Array<Row>>
       }
@@ -175,6 +178,7 @@ export function useInfiniteData(args: {
         cachedRows,
         chunkStates,
         totalRows,
+        actualTotalRows,
         isRowSortRequiredRows,
         selectedRows,
       }
@@ -207,6 +211,7 @@ export function useInfiniteData(args: {
           }
         },
       }),
+      actualTotalRows: ref(0),
       selectedRows: computed<Row[]>(() => Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.selected)),
       isRowSortRequiredRows: computed<Array<Row>>(() =>
         Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.isRowOrderUpdated),
@@ -1573,6 +1578,7 @@ export function useInfiniteData(args: {
           })
 
       dataCache.totalRows.value = count as number
+      dataCache.actualTotalRows.value = count as number
       callbacks?.syncVisibleData?.()
     } catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)
@@ -1668,6 +1674,7 @@ export function useInfiniteData(args: {
     cachedRows,
     recoverLTARRefs,
     totalRows,
+    actualTotalRows,
     clearCache,
     syncCount,
     selectedRows,

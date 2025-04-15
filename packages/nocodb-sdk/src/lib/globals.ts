@@ -1,4 +1,9 @@
-import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from './enums';
+import {
+  OrgUserRoles,
+  PlanTitles,
+  ProjectRoles,
+  WorkspaceUserRoles,
+} from './enums';
 
 export const enumColors = {
   light: [
@@ -202,4 +207,11 @@ type RolesObj = Partial<Record<Roles, boolean>>;
 
 type RolesType = RolesObj | string[] | string;
 
-export { Roles, RolesObj, RolesType };
+interface PlanLimitExceededDetailsType {
+  plan?: PlanTitles;
+  limit?: number;
+  current?: number;
+  higherPlan?: PlanTitles;
+}
+
+export { Roles, RolesObj, RolesType, PlanLimitExceededDetailsType };

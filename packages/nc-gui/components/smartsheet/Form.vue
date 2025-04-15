@@ -997,13 +997,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 class="nc-form-upload-banner-btn"
                                 data-testid="nc-form-upload-banner-btn"
                                 :disabled="!isEeUI || isLocked"
-                                @click="
-                                  () => {
-                                    if (click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO)) return
-
-                                    openUploadImage(true)
-                                  }
-                                "
+                                @click="click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO, () => openUploadImage(true))"
                               >
                                 <div class="flex gap-2 items-center">
                                   <component :is="iconMap.upload" class="w-4 h-4" />
@@ -1093,13 +1087,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                       class="nc-form-upload-logo-btn group"
                                       data-testid="nc-form-upload-log-btn"
                                       :disabled="!isEeUI || isLocked"
-                                      @click="
-                                        () => {
-                                          if (click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO)) return
-
-                                          openUploadImage(false)
-                                        }
-                                      "
+                                      @click="click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO, () => openUploadImage(false))"
                                     >
                                       <div class="flex gap-2 items-center">
                                         <component :is="iconMap.upload" class="w-4 h-4" />
@@ -1800,11 +1788,11 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   data-testid="nc-form-hide-branding"
                                   :disabled="isLocked || !isEditable"
                                   @change="(value) => {
-                                  if (isLocked || !isEditable || click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO)) return
+                                    if (isLocked || !isEditable || click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO)) return
 
-                                  (formViewData!.meta as Record<string,any>).hide_branding = value
-                                  updateView()
-                                }"
+                                    (formViewData!.meta as Record<string,any>).hide_branding = value
+                                    updateView()
+                                  }"
                                 />
 
                                 <NcTooltip v-else placement="top">

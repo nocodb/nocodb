@@ -23,6 +23,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAddNewExternalSource = computed(() => false)
 
+  const blockAddNewWebhook = computed(() => false)
+
   const getLimit = (..._args: any[]) => {}
 
   const getStatLimit = (..._args: any[]) => {}
@@ -49,6 +51,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showExternalSourcePlanLimitExceededModal = (..._args: any[]) => {}
 
+  const showWebhookPlanLimitExceededModal = (..._args: any[]) => {}
+
   return {
     getLimit,
     getStatLimit,
@@ -74,5 +78,7 @@ export const useEeConfig = createSharedComposable(() => {
     showStoragePlanLimitExceededModal,
     blockAddNewExternalSource,
     showExternalSourcePlanLimitExceededModal,
+    blockAddNewWebhook,
+    showWebhookPlanLimitExceededModal,
   }
 })

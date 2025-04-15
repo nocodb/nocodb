@@ -31,12 +31,6 @@ const isDropdownOpen = ref(false)
 const dropdownRef = ref(null)
 const sizeRef = toRef(props, 'size')
 
-onClickOutside(dropdownRef, (e) => {
-  if ((e.target as HTMLElement)?.closest('.nc-role-selector-dropdown')) return
-
-  isDropdownOpen.value = false
-})
-
 const newRole = ref<null | keyof typeof RoleLabels>(null)
 
 async function onChangeRole(val: SelectValue) {
@@ -45,6 +39,21 @@ async function onChangeRole(val: SelectValue) {
   await props.onRoleChange(val as keyof typeof RoleLabels)
 
   newRole.value = null
+  isDropdownOpen.value = false
+}
+
+onClickOutside(dropdownRef, (e) => {
+  if ((e.target as HTMLElement)?.closest('.nc-role-selector-dropdown')) {
+    return
+  }
+
+  isDropdownOpen.value = false
+})
+
+/** Select input will not trigger onChange event if old value is same as new value so manually we have to handle close dropdown*/
+const closeOnClickOption = (optionValue: keyof typeof RoleLabels) => {
+  if (!!newRole.value || optionValue !== roleRef.value) return
+
   isDropdownOpen.value = false
 }
 </script>
@@ -105,6 +114,7 @@ async function onChangeRole(val: SelectValue) {
         v-e="['c:workspace:settings:user-role-change']"
         :value="rl"
         :disabled="!!newRole"
+        @click="closeOnClickOption(rl)"
       >
         <div
           :class="{

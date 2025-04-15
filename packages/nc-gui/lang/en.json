@@ -122,7 +122,9 @@
     "upgradeToCreateMoreRecordsSubtitle": "The {activePlan} plan allows up to {limit} records. Upgrade to the {plan} plan to increase your record limit.",
     "upgradeToAccessFieldValidationSubtitle": "Add field validations by upgrading your workspace to the {plan} plan.",
     "upgradeToAddExternalSource": "Upgrade to add additional external source",
-    "upgradeToAddExternalSourceSubtitle": "The {activePlan} plan allows up to {limit} external source. Upgrade to the {plan} plan and get access to additional external sources."
+    "upgradeToAddExternalSourceSubtitle": "The {activePlan} plan allows up to {limit} external source. Upgrade to the {plan} plan and get access to additional external sources.",
+    "upgradeToAddWebhook": "Upgrade to add unlimited webhooks",
+    "upgradeToAddWebhookSubtitle": "The {activePlan} plan allows up to {limit} webhooks. Upgrade to the {plan} plan and get access to unlimited webhooks."
   },
   "general": {
     "supported": "Supported",

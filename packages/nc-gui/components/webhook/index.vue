@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk'
+import { PlanLimitTypes, type HookReqType, type HookTestReqType, type HookType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 
@@ -39,6 +39,8 @@ const meta = inject(MetaInj, ref())
 const { getMeta } = useMetas()
 
 const { activeTable } = toRefs(useTablesStore())
+
+const { updateStatLimit } = useEeConfig()
 
 const defaultHookName = t('labels.webhook')
 
@@ -412,6 +414,7 @@ async function saveHooks() {
       } as HookReqType)
 
       hooks.value.push(res)
+      updateStatLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE, 1)
     }
 
     if (res && typeof res.notification === 'string') {

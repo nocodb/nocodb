@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { HookType } from 'nocodb-sdk'
+import { PlanLimitTypes, type HookType } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
 
@@ -16,6 +16,8 @@ const { loadHooksList, deleteHook: _deleteHook, copyHook, saveHooks } = useWebho
 const { activeView } = storeToRefs(useViewsStore())
 
 const { t } = useI18n()
+
+const { updateStatLimit, showWebhookPlanLimitExceededModal } = useEeConfig()
 
 const isWebhookModalOpen = ref(false)
 
@@ -44,6 +46,7 @@ const deleteHook = async () => {
 
   try {
     await _deleteHook(deleteHookId.value)
+    updateStatLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE, -1)
   } finally {
     isDeleting.value = false
     showDeleteModal.value = false
@@ -56,11 +59,12 @@ const selectedHookId = ref<string | undefined>(undefined)
 const isCopying = ref(false)
 
 const copyWebhook = async (hook: HookType) => {
-  if (isCopying.value) return
+  if (isCopying.value || showWebhookPlanLimitExceededModal()) return
 
   isCopying.value = true
   try {
     await copyHook(hook)
+    updateStatLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE, 1)
   } finally {
     isCopying.value = false
   }
@@ -120,6 +124,8 @@ const toggleHook = async (hook: HookType) => {
 }
 
 const createWebhook = async () => {
+  if (showWebhookPlanLimitExceededModal()) return
+
   isWebhookModalOpen.value = true
 }
 

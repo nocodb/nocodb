@@ -1,8 +1,7 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PostHog } from 'posthog-node';
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { ConfigService } from '@nestjs/config';
-import { Producer } from './producer/producer';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import { packageInfo } from '~/utils';
 
@@ -12,10 +11,7 @@ export class TelemetryService {
   private defaultPayload: any;
   private phClient: PostHog;
 
-  constructor(
-    @Inject(Producer) private producer: Producer,
-    private configService: ConfigService<AppConfig>,
-  ) {
+  constructor(private configService: ConfigService<AppConfig>) {
     this.defaultPayload = {
       package_id: packageInfo.version,
     };

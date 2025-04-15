@@ -63,6 +63,7 @@ export enum MetaTable {
   CUSTOM_URLS = 'nc_custom_urls_v2',
   SCRIPTS = 'nc_scripts',
   SYNC_CONFIGS = 'nc_sync_configs',
+  USAGE_STATS = 'nc_usage_stats',
 }
 
 export enum MetaTableOldV2 {
@@ -201,6 +202,7 @@ export enum CacheScope {
   CUSTOM_URLS = 'customUrls',
   SCRIPTS = 'nc_scripts',
   SYNC_CONFIGS = 'syncConfigs',
+  USAGE_STATS = 'usageStats',
 }
 
 export enum CacheGetType {

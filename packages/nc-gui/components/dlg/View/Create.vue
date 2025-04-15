@@ -1461,7 +1461,12 @@ const getPluralName = (name: string) => {
           '-mt-2': aiMode,
         }"
       >
-        <NcButton v-if="!enableDescription && !aiMode" size="small" type="text" @click.stop="toggleDescription">
+        <NcButton
+          v-if="!enableDescription && !aiMode && isNecessaryColumnsPresent"
+          size="small"
+          type="text"
+          @click.stop="toggleDescription"
+        >
           <div class="flex !text-gray-700 items-center gap-2">
             <GeneralIcon icon="plus" class="h-4 w-4" />
 

@@ -68,6 +68,8 @@ const sortedCollaborators = computed(() => {
   return handleGetSortedData(filterCollaborators.value, sorts.value)
 })
 
+const paidUsersCount = computed(() => sortedCollaborators.value.filter((c) => !!parseProp(c?.meta).billable).length)
+
 const selectAll = computed({
   get: () =>
     Object.values(selected).every((v) => v) &&
@@ -210,12 +212,26 @@ const isDeleteOrUpdateAllowed = (user) => {
           <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
         </template>
       </a-input>
-      <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn" @click="inviteDlg = true">
-        <div class="flex items-center gap-2">
-          <component :is="iconMap.plus" class="!h-4 !w-4" />
-          {{ $t('labels.addMember') }}
-        </div>
-      </NcButton>
+      <div class="flex items-center gap-4">
+        <template v-if="isPaymentEnabled && paidUsersCount">
+          <NcBadge
+            :border="false"
+            color="maroon"
+            class="text-nc-content-maroon-dark text-sm !h-[20px] font-500 whitespace-nowrap"
+          >
+            {{ paidUsersCount }} {{ activePlanTitle === PlanTitles.FREE ? $t('general.billable') : $t('general.paid') }}
+            {{ paidUsersCount === 1 ? $t('objects.user').toLowerCase() : $t('objects.users').toLowerCase() }}
+          </NcBadge>
+          <div class="self-stretch border-1 border-nc-border-gray-medium"></div>
+        </template>
+
+        <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn" @click="inviteDlg = true">
+          <div class="flex items-center gap-2">
+            <component :is="iconMap.plus" class="!h-4 !w-4" />
+            {{ $t('labels.addMember') }}
+          </div>
+        </NcButton>
+      </div>
     </div>
     <div class="flex h-[calc(100%-4rem)]">
       <NcTable
@@ -255,7 +271,11 @@ const isDeleteOrUpdateAllowed = (user) => {
                   </template>
                   {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
                 </NcTooltip>
-                <div v-if="isPaymentEnabled && parseProp(record.meta).billable" class="flex items-center">
+                <NcTooltip
+                  v-if="isPaymentEnabled && parseProp(record.meta).billable"
+                  :title="$t('tooltip.paidUserBadgeTooltip')"
+                  class="flex items-center"
+                >
                   <NcBadge
                     :border="false"
                     color="maroon"
@@ -263,7 +283,7 @@ const isDeleteOrUpdateAllowed = (user) => {
                   >
                     {{ activePlanTitle === PlanTitles.FREE ? $t('general.billable') : $t('general.paid') }}
                   </NcBadge>
-                </div>
+                </NcTooltip>
               </div>
               <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
                 <template #title>

@@ -26,6 +26,8 @@ watchDebounced(
 
 const { availableExtensions, addExtension, getExtensionAssetsUrl, showExtensionDetails } = useExtensions()
 
+const { isAllowAddExtension } = useEeConfig()
+
 const filteredAvailableExtensions = computed(() =>
   (availableExtensions.value || []).filter(
     (ext) =>
@@ -85,7 +87,13 @@ const onAddExtension = (ext: any) => {
                 {{ ext.subTitle }}
               </div>
             </div>
-            <NcButton size="small" type="secondary" class="flex-none !px-7px" @click.stop="onAddExtension(ext)">
+            <NcButton
+              v-if="isAllowAddExtension"
+              size="small"
+              type="secondary"
+              class="flex-none !px-7px"
+              @click.stop="onAddExtension(ext)"
+            >
               <div class="flex items-center gap-1 -ml-3px text-small">
                 <GeneralIcon icon="plus" />
                 {{ $t('general.add') }}

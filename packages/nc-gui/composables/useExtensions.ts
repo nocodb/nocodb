@@ -1,5 +1,6 @@
 import { useStorage } from '@vueuse/core'
 import { ExtensionsEvents } from '#imports'
+import { PlanLimitTypes } from 'nocodb-sdk'
 
 const extensionsState = createGlobalState(() => {
   const baseExtensions = ref<Record<string, any>>({})
@@ -106,6 +107,8 @@ export const useExtensions = createSharedComposable(() => {
 
   const { base } = storeToRefs(useBase())
 
+  const { updateStatLimit } = useEeConfig()
+
   const eventBus = useEventBus<ExtensionsEvents>(Symbol('useExtensions'))
 
   const extensionsLoaded = ref(false)
@@ -182,6 +185,8 @@ export const useExtensions = createSharedComposable(() => {
     const newExtension = await $api.extensions.create(base.value.id, extensionReq)
 
     if (newExtension) {
+      updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, 1)
+
       baseExtensions.value[base.value.id].extensions.push(new Extension(newExtension))
 
       nextTick(() => {
@@ -232,6 +237,8 @@ export const useExtensions = createSharedComposable(() => {
     }
 
     await $api.extensions.delete(extensionId)
+
+    updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, -1)
 
     const extensionToDelete = baseExtensions.value[base.value.id].extensions.find((e: any) => e.id === extensionId)
 

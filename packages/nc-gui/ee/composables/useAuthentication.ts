@@ -44,7 +44,7 @@ export const useAuthentication = (isOrg = false, isWorkspace = false) => {
 
   const deleteProvider = async (providerId: string) => {
     try {
-      if (isOrg) {
+      if (isWorkspace) {
         await api.workspaceSsoClient.delete(activeWorkspaceId.value, providerId)
       } else if (isOrg) {
         await api.orgSsoClient.delete(orgId.value, providerId)

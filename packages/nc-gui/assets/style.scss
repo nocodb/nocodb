@@ -1340,9 +1340,17 @@ svg.nc-virtual-cell-icon {
   }
 }
 
+.nc-upgrade-plan-btn {
+  @apply !bg-nc-fill-maroon-medium !hover:bg-nc-fill-maroon-dark;
+}
+
 .nc-cell-field {
   &.nc-text-transparent {
     @apply text-transparent;
     -webkit-text-fill-color: transparent;
   }
+}
+
+.nc-custom-daner-btn {
+  @apply !text-nc-content-red-medium !hover:(bg-nc-fill-red-medium border-nc-fill-red-medium text-white);
 }

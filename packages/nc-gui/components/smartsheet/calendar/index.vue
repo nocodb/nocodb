@@ -85,6 +85,7 @@ const expandRecord = (row: RowType, state?: Record<string, any>) => {
 
 const newRecord = (row: RowType) => {
   if (isPublic.value) return
+
   $e('c:calendar:new-record', activeCalendarView.value)
   expandRecord({
     row: {

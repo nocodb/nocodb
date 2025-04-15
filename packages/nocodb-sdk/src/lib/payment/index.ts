@@ -35,6 +35,7 @@ export enum PlanFeatureTypes {
   FEATURE_DISCUSSION_MODE = 'feature_discussion_mode',
   FEATURE_EXTENSIONS = 'feature_extensions',
   FEATURE_FILE_MODE = 'feature_file_mode',
+  FEATURE_FORM_URL_REDIRECTION = 'feature_form_url_redirection',
   FEATURE_FORM_CUSTOM_LOGO = 'feature_form_custom_logo',
   FEATURE_FORM_FIELD_ON_CONDITION = 'feature_form_field_on_condition',
   FEATURE_FORM_FIELD_VALIDATION = 'feature_form_field_validation',
@@ -116,4 +117,82 @@ export const HigherPlan = {
   [PlanTitles.FREE]: PlanTitles.TEAM,
   [PlanTitles.TEAM]: PlanTitles.BUSINESS,
   [PlanTitles.BUSINESS]: PlanTitles.ENTERPRISE,
+} as Record<string, PlanTitles>;
+
+export const GRACE_PERIOD_DURATION = 14;
+
+export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
+  [PlanLimitTypes.LIMIT_FREE_WORKSPACE]: 'to add more workspaces.',
+  [PlanLimitTypes.LIMIT_EDITOR]: 'to add more editors.',
+  [PlanLimitTypes.LIMIT_COMMENTER]: 'to add more commenters.',
+  [PlanLimitTypes.LIMIT_API_PER_SECOND]:
+    'due to reaching the API per second limit.',
+  [PlanLimitTypes.LIMIT_AI_TOKEN]: 'due to reaching the AI token usage limit.',
+  [PlanLimitTypes.LIMIT_API_CALL]: 'due to reaching the API call limit.',
+  [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 'to increase audit retention.',
+  [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 'to run more automations.',
+  [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]:
+    'to increase automation retention.',
+  [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: 'to add more webhooks.',
+  [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: 'to add more extensions.',
+  [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]:
+    'due to reaching the snapshot limit.',
+  [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]:
+    'due to reaching the storage limit.',
+  [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]:
+    'as the record limit has been reached.',
+  [PlanLimitTypes.LIMIT_BASE_PER_WORKSPACE]: 'to add more bases.',
+  [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]:
+    'to connect more external sources.',
+  [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 'to add more tables in a base.',
+  [PlanLimitTypes.LIMIT_COLUMN_PER_TABLE]: 'to add more columns in a table.',
+  [PlanLimitTypes.LIMIT_WEBHOOK_PER_TABLE]: 'to add more table-level webhooks.',
+  [PlanLimitTypes.LIMIT_VIEW_PER_TABLE]: 'to add more views in a table.',
+  [PlanLimitTypes.LIMIT_FILTER_PER_VIEW]: 'to add more filters in a view.',
+  [PlanLimitTypes.LIMIT_SORT_PER_VIEW]: 'to add more sort rules in a view.',
+};
+
+export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
+  [PlanFeatureTypes.FEATURE_AI]: 'to enable AI features.',
+  [PlanFeatureTypes.FEATURE_AI_INTEGRATIONS]: 'to use AI integrations.',
+  [PlanFeatureTypes.FEATURE_AT_MENTION]: 'to use @mention in comments.',
+  [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: 'to access workspace audit logs.',
+  [PlanFeatureTypes.FEATURE_COMMENT_RESOLVE]: 'to enable comment resolution.',
+  [PlanFeatureTypes.FEATURE_CUSTOM_URL]: 'to use a custom URL.',
+  [PlanFeatureTypes.FEATURE_DISCUSSION_MODE]: 'to use discussion mode.',
+  [PlanFeatureTypes.FEATURE_EXTENSIONS]: 'to enable extensions.',
+  [PlanFeatureTypes.FEATURE_FILE_MODE]: 'to enable file mode.',
+  [PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION]:
+    'to access redirect after form submission feature',
+  [PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO]: 'to add a custom logo to forms.',
+  [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]:
+    'to access conditional form fields feature',
+  [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]:
+    'to access form field validation feature',
+  [PlanFeatureTypes.FEATURE_GROUP_BY_AGGREGATIONS]:
+    'to use group-by aggregations.',
+  [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: 'to remove branding.',
+  [PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER]:
+    'to limit row selection by filters.',
+  [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: 'to use personal views.',
+  [PlanFeatureTypes.FEATURE_SCRIPTS]: 'to enable scripts.',
+  [PlanFeatureTypes.FEATURE_SSO]: 'to enable SSO (Single Sign-On).',
+  [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]:
+    'to send custom webhook payloads.',
+};
+
+export const getUpgradeMessage = (
+  limitOrFeature?: PlanLimitTypes | PlanFeatureTypes | string
+) => {
+  if (!limitOrFeature) return '';
+
+  if (PlanLimitUpgradeMessages[limitOrFeature]) {
+    return PlanLimitUpgradeMessages[limitOrFeature];
+  }
+
+  if (PlanFeatureUpgradeMessages[limitOrFeature]) {
+    return PlanFeatureUpgradeMessages[limitOrFeature];
+  }
+
+  return limitOrFeature;
 };

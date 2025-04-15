@@ -112,6 +112,7 @@ const _duplicate = async () => {
             refreshCommandPalette()
           } else if (data.status === JobStatus.FAILED) {
             status.value = 'error'
+            errorMessage.value = data?.data?.error?.message || 'Some error occurred'
             await loadProjects('workspace')
             refreshCommandPalette()
           }

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { OrderedWorkspaceRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import { OrderedWorkspaceRoles, type PlanLimitExceededDetailsType, PlanTitles, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
@@ -15,6 +15,8 @@ const workspaceStore = useWorkspace()
 const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
 
 const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading } = storeToRefs(workspaceStore)
+
+const { isPaymentEnabled, showUserPlanLimitExceededModal, activePlanTitle } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
   if (props.workspaceId) {
@@ -66,6 +68,8 @@ const sortedCollaborators = computed(() => {
   return handleGetSortedData(filterCollaborators.value, sorts.value)
 })
 
+const paidUsersCount = computed(() => sortedCollaborators.value.filter((c) => !!parseProp(c?.meta).billable).length)
+
 const selectAll = computed({
   get: () =>
     Object.values(selected).every((v) => v) &&
@@ -79,15 +83,30 @@ const selectAll = computed({
 const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
   if (!currentWorkspace.value || !currentWorkspace.value.id) return
 
-  const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id)
-  if (!res) return
-  message.success(t('msg.info.userRoleUpdated'))
+  try {
+    const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id, isAdminPanel.value)
+    if (!res) return
+    message.success(t('msg.info.userRoleUpdated'))
 
-  collaborators.value?.forEach((collaborator) => {
-    if (collaborator.id === collab.id) {
-      collaborator.roles = roles
+    collaborators.value?.forEach((collaborator) => {
+      if (collaborator.id === collab.id) {
+        collaborator.roles = roles
+      }
+    })
+  } catch (e: any) {
+    const errorInfo = await extractSdkResponseErrorMsgv2(e)
+
+    if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+      const details = errorInfo.details as PlanLimitExceededDetailsType
+
+      showUserPlanLimitExceededModal({
+        details,
+        role: roles,
+        workspaceId: currentWorkspace.value.id,
+        isAdminPanel: isAdminPanel.value,
+      })
     }
-  })
+  }
 }
 
 const isOwnerOrCreator = computed(() => {
@@ -193,12 +212,26 @@ const isDeleteOrUpdateAllowed = (user) => {
           <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
         </template>
       </a-input>
-      <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn" @click="inviteDlg = true">
-        <div class="flex items-center gap-2">
-          <component :is="iconMap.plus" class="!h-4 !w-4" />
-          {{ $t('labels.addMember') }}
-        </div>
-      </NcButton>
+      <div class="flex items-center gap-4">
+        <template v-if="isPaymentEnabled && paidUsersCount">
+          <NcBadge
+            :border="false"
+            color="maroon"
+            class="text-nc-content-maroon-dark text-sm !h-[20px] font-500 whitespace-nowrap"
+          >
+            {{ paidUsersCount }} {{ activePlanTitle === PlanTitles.FREE ? $t('general.billable') : $t('general.paid') }}
+            {{ paidUsersCount === 1 ? $t('objects.user').toLowerCase() : $t('objects.users').toLowerCase() }}
+          </NcBadge>
+          <div class="self-stretch border-1 border-nc-border-gray-medium"></div>
+        </template>
+
+        <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn" @click="inviteDlg = true">
+          <div class="flex items-center gap-2">
+            <component :is="iconMap.plus" class="!h-4 !w-4" />
+            {{ $t('labels.addMember') }}
+          </div>
+        </NcButton>
+      </div>
     </div>
     <div class="flex h-[calc(100%-4rem)]">
       <NcTable
@@ -231,12 +264,25 @@ const isDeleteOrUpdateAllowed = (user) => {
           <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
             <GeneralUserIcon size="base" :user="record" class="flex-none" />
             <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
-              <div class="flex gap-3">
+              <div class="flex items-center gap-3">
                 <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
                   <template #title>
                     {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
                   </template>
                   {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                </NcTooltip>
+                <NcTooltip
+                  v-if="isPaymentEnabled && parseProp(record.meta).billable"
+                  :title="$t('tooltip.paidUserBadgeTooltip')"
+                  class="flex items-center"
+                >
+                  <NcBadge
+                    :border="false"
+                    color="maroon"
+                    class="text-nc-content-maroon-dark text-[10px] leading-[14px] !h-[18px] font-semibold"
+                  >
+                    {{ $t('general.paid') }}
+                  </NcBadge>
                 </NcTooltip>
               </div>
               <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>

@@ -100,7 +100,9 @@ export function useMultiSelect(
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const { isSqlView } = useSmartsheetStoreOrThrow()
+  const { isSqlView, isExternalSource } = useSmartsheetStoreOrThrow()
+
+  const { blockExternalSourceRecordVisibility } = useEeConfig()
 
   const aiMode = ref(false)
 
@@ -126,6 +128,10 @@ export function useMultiSelect(
 
   const isCellActive = computed(
     () => !(activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)),
+  )
+
+  const removeInlineAddRecord = computed(
+    () => blockExternalSourceRecordVisibility(isExternalSource.value) && unref(_totalRows!) >= EXTERNAL_SOURCE_VISIBLE_ROWS,
   )
 
   function limitSelection(anchor: Cell, end: Cell): Cell {
@@ -758,6 +764,7 @@ export function useMultiSelect(
           scrollToCell?.(limitedEnd.row, limitedEnd.col, 'instant')
         } else {
           selectedRange.clear()
+
           if (activeCell.row < (isArrayStructure ? (unref(data) as Row[]).length : unref(_totalRows!))) {
             activeCell.row++
             selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
@@ -769,6 +776,8 @@ export function useMultiSelect(
         break
       case 'Enter': {
         selectedRange.clear()
+
+        if (removeInlineAddRecord.value && activeCell.row >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
 
         let row
 
@@ -849,6 +858,11 @@ export function useMultiSelect(
 
           if (unref(editEnabled) || e.ctrlKey || e.altKey || e.metaKey) {
             return true
+          }
+          // Disable edit cell if it is external free source and row index is more than EXTERNAL_SOURCE_VISIBLE_ROWS
+          if (removeInlineAddRecord.value && activeCell.row > EXTERNAL_SOURCE_VISIBLE_ROWS) {
+            e.preventDefault()
+            return
           }
 
           if (isSqlView.value) return

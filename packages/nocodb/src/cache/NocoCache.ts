@@ -129,6 +129,71 @@ export default class NocoCache {
     return this.client.update(`${this.prefix}:${key}`, updateObj);
   }
 
+  public static async setHash(
+    key: string,
+    hash: Record<string, any>,
+    options: {
+      ttl?: number;
+    } = {},
+  ): Promise<boolean> {
+    if (this.cacheDisabled) return Promise.resolve(true);
+    if (Object.keys(hash).length === 0) {
+      return;
+    }
+    return !!this.client.setHash(`${this.prefix}:${key}`, hash, options);
+  }
+
+  public static async getHash(
+    key: string,
+  ): Promise<Record<string, string | number>> {
+    if (this.cacheDisabled) return Promise.resolve({});
+    return this.client.getHash(`${this.prefix}:${key}`);
+  }
+
+  public static async getHashField(
+    key: string,
+    field: string,
+  ): Promise<string> {
+    if (this.cacheDisabled) return Promise.resolve(null);
+    return this.client.getHashField(`${this.prefix}:${key}`, field);
+  }
+
+  public static async setHashField(
+    key: string,
+    field: string,
+    value: string | number,
+  ): Promise<boolean> {
+    if (this.cacheDisabled) return Promise.resolve(true);
+    return !!this.client.setHashField(`${this.prefix}:${key}`, field, value);
+  }
+
+  public static async incrHashField(
+    key: string,
+    field: string,
+    value: number,
+  ): Promise<number> {
+    if (this.cacheDisabled) return Promise.resolve(0);
+    return this.client.incrHashField(`${this.prefix}:${key}`, field, value);
+  }
+
+  public static async keyExists(key: string): Promise<boolean> {
+    if (this.cacheDisabled) return Promise.resolve(false);
+    return this.client.keyExists(`${this.prefix}:${key}`);
+  }
+
+  public static async processPattern(
+    pattern: string,
+    callback: (key: string) => Promise<void>,
+    options: { count?: number; type?: string } = {},
+  ): Promise<void> {
+    if (this.cacheDisabled) return Promise.resolve();
+    return this.client.processPattern(
+      `${this.prefix}:${pattern}`,
+      callback,
+      options,
+    );
+  }
+
   public static async destroy(): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
     return this.client.destroy();

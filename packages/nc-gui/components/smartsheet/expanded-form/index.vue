@@ -84,6 +84,8 @@ const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
 
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
+const { showRecordPlanLimitExceededModal } = useEeConfig()
+
 // override cell click hook to avoid unexpected behavior at form fields
 provide(CellClickHookInj, undefined)
 
@@ -277,6 +279,8 @@ const onClose = () => {
 }
 
 const onDuplicateRow = () => {
+  if (showRecordPlanLimitExceededModal()) return
+
   duplicatingRowInProgress.value = true
   isUnsavedFormExist.value = true
   isUnsavedDuplicatedRecordExist.value = true

@@ -138,7 +138,7 @@ export class PublicMetasService {
     return view;
   }
 
-  private async extractRelatedMetas(
+  protected async extractRelatedMetas(
     context: NcContext,
     {
       col,
@@ -163,7 +163,7 @@ export class PublicMetasService {
     }
   }
 
-  private async extractLTARRelatedMetas(
+  protected async extractLTARRelatedMetas(
     context: NcContext,
     {
       ltarColOption,
@@ -189,7 +189,7 @@ export class PublicMetasService {
     }
   }
 
-  private async extractLookupRelatedMetas(
+  protected async extractLookupRelatedMetas(
     context: NcContext,
     {
       lookupColOption,

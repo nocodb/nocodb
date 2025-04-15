@@ -1,5 +1,5 @@
-import type { AuditType, ColumnType, MetaType, TableType } from 'nocodb-sdk'
-import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import type { AuditType, ColumnType, MetaType, PlanLimitExceededDetailsType, TableType } from 'nocodb-sdk'
+import { PlanLimitTypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
 
@@ -63,6 +63,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const { isUIAllowed } = useRoles()
 
+  const { handleUpgradePlan, isPaymentEnabled } = useEeConfig()
+
   // getters
   const displayValue = computed(() => {
     if (row?.value?.row) {
@@ -117,15 +119,44 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       mightHaveMoreAudits.value = audits.value.length < (response.pageInfo?.totalRows ?? +Infinity)
     } catch (e: any) {
-      message.error(
-        await extractSdkResponseErrorMsg(
-          e as Error & {
-            response: any
-          },
-        ),
-      )
+      const errorInfo = await extractSdkResponseErrorMsgv2(e)
+
+      if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+        const details = errorInfo.details as PlanLimitExceededDetailsType
+
+        handleUpgradePlan({
+          title: t('upgrade.updateToExtendRecordHistory'),
+          content: t('upgrade.updateToExtendRecordHistorySubtitle', {
+            activePlan: details.plan,
+            plan: details.higherPlan,
+            period: formatDurationFromDays(+(details.limit ?? 14)),
+          }),
+          limitOrFeature: PlanLimitTypes.LIMIT_AUDIT_RETENTION,
+        })
+      } else {
+        message.error(errorInfo.message)
+      }
     } finally {
       isAuditLoading.value = false
+    }
+  }
+
+  function formatDurationFromDays(days: number): string {
+    if (days === Infinity) {
+      return '3+ years'
+    }
+
+    if (days < 14) {
+      return `${days} day${days === 1 ? '' : 's'}`
+    } else if (days < 30) {
+      const weeks = Math.floor(days / 7)
+      return `${weeks} week${weeks === 1 ? '' : 's'}`
+    } else if (days < 365) {
+      const months = Math.floor(days / 30)
+      return `${months} month${months === 1 ? '' : 's'}`
+    } else {
+      const years = Math.floor(days / 365)
+      return years > 3 ? `${years}+ years` : `${years} year${years === 1 ? '' : 's'}`
     }
   }
 

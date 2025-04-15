@@ -143,6 +143,8 @@ const { addLTARRef, syncLTARRefs, clearLTARCell, cleaMMCell } = useSmartsheetLta
 
 const { loadViewAggregate } = useViewAggregateOrThrow()
 
+const { showRecordPlanLimitExceededModal } = useEeConfig()
+
 // #Refs
 
 const smartTable = ref(null)
@@ -528,11 +530,15 @@ const onDraftRecordClick = () => {
 }
 
 const onNewRecordToGridClick = () => {
+  if (showRecordPlanLimitExceededModal()) return
+
   setAddNewRecordGridMode(true)
   addEmptyRow()
 }
 
 const onNewRecordToFormClick = () => {
+  if (showRecordPlanLimitExceededModal()) return
+
   setAddNewRecordGridMode(false)
   onDraftRecordClick()
 }
@@ -834,6 +840,8 @@ async function saveEmptyRow(rowObj: Row) {
 }
 
 function addEmptyRow(row?: number, skipUpdate = false) {
+  if (showRecordPlanLimitExceededModal({ focusBtn: null })) return
+
   const rowObj = callAddEmptyRow?.(row)
 
   if (!skipUpdate && rowObj) {

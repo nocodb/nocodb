@@ -1006,6 +1006,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     {{ $t('general.banner') }}
                                   </span>
                                   <LazyPaymentUpgradeBadge
+                                    v-if="!isLocked"
                                     :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
                                     :content="$t('upgrade.upgradeToAddCustomBannerSubtitle')"
                                   />
@@ -1095,6 +1096,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                           {{ formViewData.logo_url ? $t('general.replace') : $t('general.upload') }} Logo</span
                                         >
                                         <LazyPaymentUpgradeBadge
+                                          v-if="!isLocked"
                                           :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
                                           :content="$t('upgrade.upgradeToAddCustomLogoSubtitle')"
                                           class="-my-1"

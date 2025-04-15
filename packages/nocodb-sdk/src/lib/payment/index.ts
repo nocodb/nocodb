@@ -117,3 +117,5 @@ export const HigherPlan = {
   [PlanTitles.TEAM]: PlanTitles.BUSINESS,
   [PlanTitles.BUSINESS]: PlanTitles.ENTERPRISE,
 };
+
+export const GRACE_PERIOD_DURATION = 14;

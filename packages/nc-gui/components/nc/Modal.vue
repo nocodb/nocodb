@@ -6,6 +6,7 @@ export interface NcModalProps {
   size?: 'small' | 'medium' | 'large' | keyof typeof modalSizes
   destroyOnClose?: boolean
   maskClosable?: boolean
+  keyboard?: boolean
   showSeparator?: boolean
   wrapClassName?: string
   closable?: boolean
@@ -18,6 +19,7 @@ const props = withDefaults(defineProps<NcModalProps>(), {
   size: 'medium',
   destroyOnClose: true,
   maskClosable: true,
+  keyboard: true,
   showSeparator: true,
   wrapClassName: '',
   closable: false,
@@ -30,7 +32,7 @@ const emits = defineEmits(['update:visible'])
 
 const { width: propWidth, height: propHeight, destroyOnClose, wrapClassName: _wrapClassName, showSeparator } = props
 
-const { maskClosable, ncModalClassName, stopEventPropogation } = toRefs(props)
+const { maskClosable, keyboard, ncModalClassName, stopEventPropogation } = toRefs(props)
 
 const { isMobileMode } = useGlobal()
 
@@ -136,6 +138,7 @@ if (stopEventPropogation.value) {
     :wrap-class-name="newWrapClassName"
     :footer="null"
     :mask-closable="maskClosable"
+    :keyboard="keyboard"
     :destroy-on-close="destroyOnClose"
     @keydown.esc="visible = false"
   >

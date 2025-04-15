@@ -23,6 +23,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const { fetchSharedViewAttachment } = useSharedView()
 
+    const { showStoragePlanLimitExceededModal } = useEeConfig()
+
     const isReadonly = inject(ReadonlyInj, ref(false))
 
     const { t } = useI18n()
@@ -114,6 +116,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     /** save a file on select / drop, either locally (in-memory) or in the db */
     async function onFileSelect(selectedFiles: FileList | File[], selectedFileUrls?: AttachmentReqType[]) {
       if (!selectedFiles.length && !selectedFileUrls?.length) return
+
+      if (showStoragePlanLimitExceededModal()) return
 
       const attachmentMeta = {
         ...defaultAttachmentMeta,
@@ -316,6 +320,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     /** save files on drop */
     async function onDrop(droppedFiles: FileList | File[] | null, event: DragEvent) {
       if (isReadonly.value) return
+
       if (droppedFiles) {
         // set files
         await onFileSelect(droppedFiles)

@@ -3,10 +3,8 @@ import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
   extractRolesObj,
-  NON_SEAT_ROLES,
   OrderedProjectRoles,
   OrgUserRoles,
-  PlanLimitTypes,
   ProjectRoles,
   WorkspaceRolesToProjectRoles,
 } from 'nocodb-sdk';
@@ -19,12 +17,12 @@ import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { Base, BaseUser, Subscription, User, Workspace } from '~/models';
+import { Base, BaseUser, User, Workspace } from '~/models';
 import { getProjectRole, getProjectRolePower } from '~/utils/roleHelper';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import { PaymentService } from '~/modules/payment/payment.service';
-import { getLimit } from '~/helpers/paymentHelpers';
+import { checkSeatLimit } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class BaseUsersService extends BaseUsersServiceCE {
@@ -129,6 +127,14 @@ export class BaseUsersService extends BaseUsersServiceCE {
 
           // if user exist and role is not assigned then assign role by updating base user
           else if (baseUser?.is_mapped) {
+            await checkSeatLimit(
+              workspace.id,
+              baseUser.fk_user_id,
+              baseUser.roles as ProjectRoles,
+              param.baseUser.roles as ProjectRoles,
+              transaction,
+            );
+
             await BaseUser.updateRoles(
               context,
               param.baseId,
@@ -155,6 +161,14 @@ export class BaseUsersService extends BaseUsersServiceCE {
                 .catch(() => {}),
             );
           } else {
+            await checkSeatLimit(
+              workspace.id,
+              null,
+              ProjectRoles.NO_ACCESS,
+              param.baseUser.roles as ProjectRoles,
+              transaction,
+            );
+
             await BaseUser.insert(
               context,
               {
@@ -214,6 +228,14 @@ export class BaseUsersService extends BaseUsersServiceCE {
             }),
           );
         } else {
+          await checkSeatLimit(
+            workspace.id,
+            null,
+            ProjectRoles.NO_ACCESS,
+            param.baseUser.roles as ProjectRoles,
+            transaction,
+          );
+
           // create new user with invite token
           const user = await User.insert(
             {
@@ -289,7 +311,13 @@ export class BaseUsersService extends BaseUsersServiceCE {
         await transaction.commit();
       } catch (e) {
         await transaction.rollback();
-        this.logger.error(e.message, e.stack);
+
+        if (emails.length === 1) {
+          throw e;
+        } else {
+          this.logger.error(e.message, e.stack);
+        }
+
         error.push({ email, error: e.message });
       }
     }
@@ -410,6 +438,14 @@ export class BaseUsersService extends BaseUsersServiceCE {
     const transaction = await ncMeta.startTransaction();
 
     try {
+      await checkSeatLimit(
+        workspace.id,
+        oldBaseUser.fk_user_id,
+        oldBaseUser.roles as ProjectRoles,
+        param.baseUser.roles as ProjectRoles,
+        transaction,
+      );
+
       await BaseUser.updateRoles(
         context,
         param.baseId,
@@ -417,58 +453,6 @@ export class BaseUsersService extends BaseUsersServiceCE {
         param.baseUser.roles,
         transaction,
       );
-
-      const { seatCount, nonSeatCount } =
-        await Subscription.calculateWorkspaceSeatCount(
-          workspace.id,
-          transaction,
-        );
-
-      if (
-        !NON_SEAT_ROLES.includes(param.baseUser.roles as ProjectRoles) &&
-        NON_SEAT_ROLES.includes(oldBaseUser.roles as ProjectRoles)
-      ) {
-        const { limit: editorLimitForWorkspace, plan } = await getLimit(
-          PlanLimitTypes.LIMIT_EDITOR,
-          workspace.id,
-          transaction,
-        );
-
-        // check if user limit is reached or going to be exceeded
-        if (seatCount + 1 > editorLimitForWorkspace) {
-          NcError.planLimitExceeded(
-            `Only ${editorLimitForWorkspace} editors are allowed for your plan, for more please upgrade your plan`,
-            {
-              plan: plan?.title,
-              limit: editorLimitForWorkspace,
-              current: seatCount,
-            },
-          );
-        }
-      }
-
-      if (
-        NON_SEAT_ROLES.includes(param.baseUser.roles as ProjectRoles) &&
-        !NON_SEAT_ROLES.includes(oldBaseUser.roles as ProjectRoles)
-      ) {
-        const { limit: commenterLimitForWorkspace, plan } = await getLimit(
-          PlanLimitTypes.LIMIT_COMMENTER,
-          workspace.id,
-          transaction,
-        );
-
-        // check if commenter limit is reached or going to be exceeded
-        if (nonSeatCount + 1 > commenterLimitForWorkspace) {
-          NcError.planLimitExceeded(
-            `Only ${commenterLimitForWorkspace} commenters are allowed for your plan, for more please upgrade your plan`,
-            {
-              plan: plan?.title,
-              limit: commenterLimitForWorkspace,
-              current: nonSeatCount,
-            },
-          );
-        }
-      }
 
       await this.paymentService.reseatSubscription(
         workspace.fk_org_id ?? workspace.id,

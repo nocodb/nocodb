@@ -26,7 +26,9 @@ export const useAuditsStore = defineStore('auditsStore', () => {
 
   const workspaceStore = useWorkspace()
 
-  const { workspacesList } = storeToRefs(workspaceStore)
+  const { workspacesList, activeWorkspaceId } = storeToRefs(workspaceStore)
+
+  const loadActionWorkspaceLogsOnly = ref<boolean>(false)
 
   const audits = ref<null | Array<AuditType>>(null)
 
@@ -80,19 +82,37 @@ export const useAuditsStore = defineStore('auditsStore', () => {
         page = 1
       }
 
-      const { list, pageInfo } = await $api.audits.globalAuditList({
-        offset: limit * (page - 1),
-        limit,
-        ...auditLogsQuery.value,
-        type:
-          ncIsArray(auditLogsQuery.value.type) && auditLogsQuery.value.type.length
-            ? auditLogsQuery.value.type.flatMap((cat) => auditV1OperationsCategory[cat]?.types ?? [])
-            : undefined,
-        sourceId: undefined,
-      })
+      if (loadActionWorkspaceLogsOnly.value) {
+        if (!activeWorkspaceId.value) return
 
-      audits.value = list
-      auditPaginationData.value.totalRows = pageInfo.totalRows ?? 0
+        const { list, pageInfo } = await $api.workspace.auditList(activeWorkspaceId.value, {
+          offset: limit * (page - 1),
+          limit,
+          ...auditLogsQuery.value,
+          type:
+            ncIsArray(auditLogsQuery.value.type) && auditLogsQuery.value.type.length
+              ? auditLogsQuery.value.type.flatMap((cat) => auditV1OperationsCategory[cat]?.types ?? [])
+              : undefined,
+          sourceId: undefined,
+        })
+
+        audits.value = list
+        auditPaginationData.value.totalRows = pageInfo.totalRows ?? 0
+      } else {
+        const { list, pageInfo } = await $api.audits.globalAuditList({
+          offset: limit * (page - 1),
+          limit,
+          ...auditLogsQuery.value,
+          type:
+            ncIsArray(auditLogsQuery.value.type) && auditLogsQuery.value.type.length
+              ? auditLogsQuery.value.type.flatMap((cat) => auditV1OperationsCategory[cat]?.types ?? [])
+              : undefined,
+          sourceId: undefined,
+        })
+
+        audits.value = list
+        auditPaginationData.value.totalRows = pageInfo.totalRows ?? 0
+      }
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e))
       audits.value = []
@@ -162,15 +182,27 @@ export const useAuditsStore = defineStore('auditsStore', () => {
   }
 
   const onInit = async () => {
+    if (loadActionWorkspaceLogsOnly.value) {
+      auditLogsQuery.value.workspaceId = activeWorkspaceId.value
+    }
+
     const promises = [loadAudits(undefined, undefined, true, false)]
     isLoadingAudits.value = true
     isLoadingUsers.value = true
-    if (!workspacesList.value.length) {
+    if (!loadActionWorkspaceLogsOnly.value && !workspacesList.value.length) {
       await workspaceStore.loadWorkspaces(true)
     }
 
     if (!collaboratorsMap.value.size) {
-      promises.push(workspacesList.value.map((workspace) => loadUsersForWorkspace(workspace?.id)))
+      if (loadActionWorkspaceLogsOnly.value) {
+        loadUsersForWorkspace(activeWorkspaceId.value!)
+      } else {
+        promises.push(workspacesList.value.map((workspace) => loadUsersForWorkspace(workspace?.id)))
+      }
+    }
+
+    if (!allBases.value.size && loadActionWorkspaceLogsOnly.value) {
+      promises.push(loadBasesForWorkspace())
     }
 
     try {
@@ -196,6 +228,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
 
     return userInfo?.email?.slice(0, userInfo?.email.indexOf('@'))
   }
+
   return {
     bases,
     basesList,
@@ -215,6 +248,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     loadUsersForWorkspace,
     onInit,
     getUserName,
+    loadActionWorkspaceLogsOnly,
   }
 })
 

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { MetaType, Roles, WorkspaceUserRoles } from 'nocodb-sdk'
+import type { MetaType, PlanLimitExceededDetailsType, Roles, WorkspaceUserRoles } from 'nocodb-sdk'
 import { OrderedProjectRoles, OrgUserRoles, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -24,6 +24,8 @@ const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 const { $api } = useNuxtApp()
 
 const { t } = useI18n()
+
+const { isPaymentEnabled, showUserPlanLimitExceededModal } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -141,7 +143,18 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
       basesUser.value.set(currentBase.value.id, currentBaseUsers)
     }
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
+    const errorInfo = await extractSdkResponseErrorMsgv2(e)
+
+    if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+      const details = errorInfo.details as PlanLimitExceededDetailsType
+
+      showUserPlanLimitExceededModal({
+        details,
+        role: roles,
+      })
+    } else {
+      message.error(errorInfo.message)
+    }
   } finally {
     loadCollaborators()
   }

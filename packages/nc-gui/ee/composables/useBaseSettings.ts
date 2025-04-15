@@ -1,4 +1,4 @@
-import { PlanLimitTypes, type SnapshotType, type WorkspaceType } from 'nocodb-sdk'
+import { type PlanLimitExceededDetailsType, PlanLimitTypes, type SnapshotType, type WorkspaceType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
 export type SnapshotExtendedType = SnapshotType & {
@@ -23,7 +23,16 @@ export const useBaseSettings = createSharedComposable(() => {
 
   const { refreshCommandPalette } = useCommandPalette()
 
-  const { getLimit, handleUpgradePlan, getPlanTitle, getHigherPlan, activePlan, isPaymentEnabled } = useEeConfig()
+  const {
+    getLimit,
+    handleUpgradePlan,
+    getPlanTitle,
+    getHigherPlan,
+    getStatLimit,
+    activePlan,
+    isPaymentEnabled,
+    updateStatLimit,
+  } = useEeConfig()
 
   const isCreatingSnapshot = ref(false)
 
@@ -54,8 +63,6 @@ export const useBaseSettings = createSharedComposable(() => {
     isCooldownPeriodReached.value = dayjs().diff(dayjs(lastSnapshot.created_at), 'hour') < 3
   }
 
-  const isSnapshotLimitReached = computed(() => snapshots.value.length >= 2)
-
   const updateSnapshot = async (snapshot: SnapshotExtendedType) => {
     try {
       snapshot.loading = true
@@ -77,6 +84,8 @@ export const useBaseSettings = createSharedComposable(() => {
       snapshots.value = snapshots.value.filter((s) => s.id !== snapshot.id)
 
       checkIfCooldownPeriodReached()
+
+      updateStatLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE, -1)
     } catch (error) {
       message.error(await extractSdkResponseErrorMsg(error))
       console.error(error)
@@ -134,6 +143,7 @@ export const useBaseSettings = createSharedComposable(() => {
               message.info('Snapshot created successfully')
               await listSnapshots()
               isCreatingSnapshot.value = false
+              updateStatLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE, 1)
             } else if (data.status === JobStatus.FAILED) {
               message.error('Failed to create snapshot')
               isCreatingSnapshot.value = false
@@ -142,11 +152,33 @@ export const useBaseSettings = createSharedComposable(() => {
           }
         },
       )
-    } catch (error) {
-      message.error(await extractSdkResponseErrorMsg(error))
+    } catch (error: any) {
+      const errorInfo = await extractSdkResponseErrorMsgv2(error)
 
-      snapshot.error = true
-      console.error(error)
+      if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+        const details = errorInfo.details as PlanLimitExceededDetailsType
+
+        return handleUpgradePlan({
+          title: details.limit === 0 ? t('upgrade.UpgradeToCreateSnapshots') : t('upgrade.UpgradeToCreateAdditionalSnapshots'),
+          content:
+            details.limit === 0
+              ? t('upgrade.UpgradeToCreateSnapshotsSubtitle', {
+                  activePlan: details.plan,
+                  plan: details.higherPlan,
+                })
+              : t('upgrade.UpgradeToCreateAdditionalSnapshotsSubtitle', {
+                  n: details.current,
+                  activePlan: details.plan,
+                  plan: details.higherPlan,
+                }),
+          limitOrFeature: PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE,
+        })
+      } else {
+        message.error(errorInfo.message)
+
+        snapshot.error = true
+        console.error(error)
+      }
     }
   }
 
@@ -212,27 +244,35 @@ export const useBaseSettings = createSharedComposable(() => {
   const verifySnapshotLimit = () => {
     if (!isPaymentEnabled.value) return false
 
-    // Todo: snapshot limit is workspace level so how to get count of snapshots
+    // If snapshot count is greater than or equal to limit then show upgrade modal
+    if (getStatLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE)) {
+      return true
+    }
+
     return false
   }
 
   const addNewSnapshot = () => {
     if (verifySnapshotLimit()) {
+      const limit = getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE)
       return handleUpgradePlan({
-        title: t('upgrade.UpgradeToCreateAdditionalSnapshots'),
-        content: t('upgrade.UpgradeToCreateAdditionalSnapshotsSubtitle', {
-          n: getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE) ?? 2,
-          activePlan: getPlanTitle(activePlan.value?.title),
-          plan: getHigherPlan(),
-        }),
+        title: limit === 0 ? t('upgrade.UpgradeToCreateSnapshots') : t('upgrade.UpgradeToCreateAdditionalSnapshots'),
+        content:
+          limit === 0
+            ? t('upgrade.UpgradeToCreateSnapshotsSubtitle', {
+                activePlan: getPlanTitle(activePlan.value?.title),
+                plan: getHigherPlan(),
+              })
+            : t('upgrade.UpgradeToCreateAdditionalSnapshotsSubtitle', {
+                n: getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE),
+                activePlan: getPlanTitle(activePlan.value?.title),
+                plan: getHigherPlan(),
+              }),
+        limitOrFeature: PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE,
       })
     }
 
     checkIfCooldownPeriodReached()
-    if (isSnapshotLimitReached.value) {
-      message.error('Maximum 2 snapshots allowed per base at a time in the free plan')
-      return
-    }
 
     if (isCooldownPeriodReached.value) {
       message.error('Please wait for 3 hours before creating a new snapshot')
@@ -262,7 +302,6 @@ export const useBaseSettings = createSharedComposable(() => {
     isRestoringSnapshot,
     restoreSnapshot,
     newSnapshotTitle,
-    isSnapshotLimitReached,
     isCooldownPeriodReached,
     isSnapshotCreationFailed,
   }

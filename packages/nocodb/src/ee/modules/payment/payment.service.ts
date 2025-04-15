@@ -1,13 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 import dayjs from 'dayjs';
-import { PlanOrder } from 'nocodb-sdk';
-import type { PlanTitles } from 'nocodb-sdk';
+import { AppEvents, PlanOrder, WorkspaceUserRoles } from 'nocodb-sdk';
+import type { PlanFeatureTypes, PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { Org, Plan, Subscription, Workspace } from '~/models';
+import { Org, Plan, Subscription, Workspace, WorkspaceUser } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import { getWorkspaceOrOrg } from '~/helpers/paymentHelpers';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import NocoCache from '~/cache/NocoCache';
+import { CacheGetType } from '~/utils/globals';
 
 const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder');
 
@@ -15,7 +18,7 @@ const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder');
 export class PaymentService {
   logger = new Logger('PaymentService');
 
-  constructor() {}
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async getPlans() {
     return await Plan.list();
@@ -46,6 +49,7 @@ export class PaymentService {
     const prices = await stripe.prices.list({
       product: payload.stripe_product_id,
       active: true,
+      expand: ['data.tiers'],
     });
 
     if (!prices.data.length) {
@@ -84,6 +88,7 @@ export class PaymentService {
     const prices = await stripe.prices.list({
       product: plan.stripe_product_id,
       active: true,
+      expand: ['data.tiers'],
     });
 
     if (!prices.data.length) {
@@ -182,6 +187,28 @@ export class PaymentService {
         // Clear the customer id & recreate
         workspaceOrOrg.stripe_customer_id = null;
       }
+
+      const customerSubscription = await stripe.subscriptions.list({
+        customer: workspaceOrOrg.stripe_customer_id,
+      });
+
+      if (customerSubscription.data.length) {
+        const subscription = customerSubscription.data.find(
+          (s) =>
+            ((s.metadata.fk_workspace_id &&
+              s.metadata.fk_workspace_id === workspaceOrOrg.id) ||
+              (s.metadata.fk_org_id &&
+                s.metadata.fk_org_id === workspaceOrOrg.id)) &&
+            ['active', 'trialing', 'incomplete'].includes(s.status),
+        );
+
+        if (subscription) {
+          await this.recoverSubscription(workspaceOrOrg.id, ncMeta);
+          return {
+            recover: true,
+          };
+        }
+      }
     }
 
     if (!workspaceOrOrg.stripe_customer_id) {
@@ -193,6 +220,12 @@ export class PaymentService {
             : { fk_org_id: workspaceOrOrg.id }),
           fk_user_id: user.id,
           entity: `${workspaceOrOrg.entity}_${workspaceOrOrg.id}`,
+        },
+        invoice_settings: {
+          custom_fields: [
+            { name: 'NocoDB Workspace ID', value: workspaceOrOrg.id },
+            { name: 'NocoDB Workspace Title', value: workspaceOrOrg.title },
+          ],
         },
       });
 
@@ -228,7 +261,7 @@ export class PaymentService {
         },
       ],
       ui_mode: 'embedded',
-      return_url: `http://localhost:3000/?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}&isAccountPage=${isAccountPage}`,
+      return_url: `${req.ncSiteUrl}/?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}&isAccountPage=${isAccountPage}`,
       automatic_tax: {
         enabled: true,
       },
@@ -384,7 +417,7 @@ export class PaymentService {
       price.recurring.interval !== item.price.recurring.interval &&
       PlanOrder[existingPlan.title] >= PlanOrder[plan.title]
     ) {
-      // Monthly to Yearly: immediate change with proration (invoice immediately)
+      // Monthly to Yearly: immediate change with proration (invoice immediately) + reset billing cycle
       if (
         price.recurring.interval === 'year' &&
         item.price.recurring.interval === 'month'
@@ -406,8 +439,9 @@ export class PaymentService {
               fk_user_id: req.user.id,
               fk_plan_id: plan.id,
             },
-            cancel_at_period_end: false,
             proration_behavior: 'always_invoice',
+            billing_cycle_anchor: 'now',
+            cancel_at_period_end: false,
           },
         );
         return { id: updatedSubscription.id };
@@ -470,7 +504,7 @@ export class PaymentService {
     } else {
       // Yearly plan
       if (price.recurring.interval === 'year') {
-        // If the new price or plan is higher upgrade immediately (invoice now with prorations)
+        // If the new price or plan is higher upgrade immediately (invoice now with prorations) + reset billing cycle
         if (
           !existingPrice ||
           price.unit_amount > existingPrice.unit_amount ||
@@ -494,6 +528,7 @@ export class PaymentService {
                 fk_plan_id: plan.id,
               },
               proration_behavior: 'always_invoice',
+              billing_cycle_anchor: 'now',
               cancel_at_period_end: false,
             },
           );
@@ -552,7 +587,7 @@ export class PaymentService {
           };
         }
       } else {
-        // Monthly plan: change immediately with proration
+        // Monthly plan: change immediately with proration (invoice now) + reset billing cycle
         updatedSubscription = await stripe.subscriptions.update(
           subscription.id,
           {
@@ -570,6 +605,8 @@ export class PaymentService {
               fk_user_id: req.user.id,
               fk_plan_id: plan.id,
             },
+            proration_behavior: 'always_invoice',
+            billing_cycle_anchor: 'now',
             cancel_at_period_end: false,
           },
         );
@@ -757,7 +794,7 @@ export class PaymentService {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: workspaceOrOrg.stripe_customer_id,
-      return_url: `http://localhost:3000?afterManage=true&workspaceId=${
+      return_url: `${req.ncSiteUrl}?afterManage=true&workspaceId=${
         workspaceOrOrg.id
       }&isAccountPage=${req.query.isAccountPage ?? true}`,
     });
@@ -926,8 +963,10 @@ export class PaymentService {
 
     const subscriptionData = subscriptions.data.find(
       (s) =>
-        (s.metadata.fk_workspace_id === workspaceOrOrg.id ||
-          s.metadata.fk_org_id === workspaceOrOrg.id) &&
+        ((s.metadata.fk_workspace_id &&
+          s.metadata.fk_workspace_id === workspaceOrOrg.id) ||
+          (s.metadata.fk_org_id &&
+            s.metadata.fk_org_id === workspaceOrOrg.id)) &&
         ['active', 'trialing', 'incomplete'].includes(s.status),
     );
 
@@ -960,6 +999,10 @@ export class PaymentService {
       status: subscriptionData.status,
       start_at: dayjs.unix(subscriptionData.start_date).utc().toISOString(),
       period: price.recurring.interval,
+      billing_cycle_anchor: dayjs
+        .unix(subscriptionData.billing_cycle_anchor)
+        .utc()
+        .toISOString(),
     });
 
     if (subscriptionData.status === 'active') {
@@ -974,6 +1017,83 @@ export class PaymentService {
     );
 
     return subscription;
+  }
+
+  async requestUpgrade(
+    workspaceOrOrgId: string,
+    payload: {
+      limitOrFeature: PlanLimitTypes | PlanFeatureTypes;
+    },
+    req: NcRequest,
+  ) {
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId);
+
+    if (!workspaceOrOrg) {
+      NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+    }
+
+    const requester = req.user?.id
+      ? req.user
+      : {
+          display_name: 'Anonymous',
+        };
+
+    if (!req.user?.id) {
+      const requestedAt = await NocoCache.get(
+        `requestUpgrade:${workspaceOrOrgId}`,
+        CacheGetType.TYPE_STRING,
+      );
+
+      if (requestedAt) {
+        const requestedAtTime = dayjs(requestedAt);
+        const now = dayjs();
+
+        if (requestedAtTime.isAfter(now.subtract(1, 'hour'))) {
+          return true;
+        }
+      } else {
+        await NocoCache.set(
+          `requestUpgrade:${workspaceOrOrgId}`,
+          dayjs().toISOString(),
+        );
+      }
+    } else {
+      // check if the user part of the workspace or org
+      const user = await WorkspaceUser.get(workspaceOrOrgId, req.user.id);
+
+      if (!user) {
+        NcError.workspaceNotFound(workspaceOrOrgId);
+      }
+    }
+
+    if (workspaceOrOrg.entity === 'workspace') {
+      const workspace = workspaceOrOrg as Workspace;
+
+      const owners = await WorkspaceUser.userList({
+        fk_workspace_id: workspace.id,
+        roles: WorkspaceUserRoles.OWNER,
+      });
+
+      if (!owners.length) {
+        NcError.genericNotFound('Owners', workspace.id);
+      }
+
+      for (const owner of owners) {
+        this.appHooksService.emit(AppEvents.WORKSPACE_UPGRADE_REQUEST, {
+          context: {
+            workspace_id: workspace.id,
+            base_id: undefined,
+          },
+          workspace,
+          requester,
+          user: owner,
+          limitOrFeature: payload.limitOrFeature,
+          req,
+        });
+      }
+    }
+
+    return true;
   }
 
   async handleWebhook(req: NcRequest): Promise<void> {
@@ -1069,6 +1189,10 @@ export class PaymentService {
             status: subscription.status,
             start_at: dayjs.unix(subscription.start_date).utc().toISOString(),
             period,
+            billing_cycle_anchor: dayjs
+              .unix(subscription.billing_cycle_anchor)
+              .utc()
+              .toISOString(),
           });
 
           break;
@@ -1101,6 +1225,10 @@ export class PaymentService {
               ? dayjs.unix(dataObject.cancel_at).utc().toISOString()
               : null,
             fk_plan_id: plan_id,
+            billing_cycle_anchor: dayjs
+              .unix(dataObject.billing_cycle_anchor)
+              .utc()
+              .toISOString(),
             period: dataObject.items.data[0].price.recurring
               ? dataObject.items.data[0].price.recurring.interval
               : subscription.period,

@@ -15,7 +15,16 @@ const initializeForm = async () => {
   isLoading.value = true
 
   try {
-    const res = await createPaymentForm()
+    const res: {
+      client_secret?: string
+      recover?: boolean
+    } = await createPaymentForm()
+
+    if (res.recover) {
+      message.info(`Your subscription has been recovered.`)
+      window.location.reload()
+      return
+    }
 
     // Initialize Checkout
     checkout.value = await stripe.value.initEmbeddedCheckout({

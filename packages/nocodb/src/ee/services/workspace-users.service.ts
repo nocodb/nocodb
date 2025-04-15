@@ -10,6 +10,7 @@ import {
   extractRolesObj,
   HigherPlan,
   NON_SEAT_ROLES,
+  parseProp,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
@@ -27,7 +28,11 @@ import { UsersService } from '~/services/users/users.service';
 import { MailService } from '~/services/mail/mail.service';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
 import Noco from '~/Noco';
-import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
+import {
+  checkSeatLimit,
+  getLimit,
+  PlanLimitTypes,
+} from '~/helpers/paymentHelpers';
 import { MailEvent } from '~/interface/Mail';
 import { PaymentService } from '~/modules/payment/payment.service';
 
@@ -41,11 +46,26 @@ export class WorkspaceUsersService {
     private paymentService: PaymentService,
   ) {}
 
-  async list(param: { workspaceId; includeDeleted?: boolean }) {
+  async list(
+    param: { workspaceId; includeDeleted?: boolean },
+    ncMeta = Noco.ncMeta,
+  ) {
     const users = await WorkspaceUser.userList({
       fk_workspace_id: param.workspaceId,
       include_deleted: param.includeDeleted,
     });
+
+    const { seatUsersMap } = await Subscription.calculateWorkspaceSeatCount(
+      param.workspaceId,
+      ncMeta,
+    );
+
+    for (const user of users) {
+      if (seatUsersMap.has(user.fk_user_id)) {
+        user.meta = parseProp(user.meta);
+        user.meta.billable = true;
+      }
+    }
 
     await PresignedUrl.signMetaIconImage(users);
     // todo: pagination
@@ -155,6 +175,14 @@ export class WorkspaceUsersService {
     const transaction = await ncMeta.startTransaction();
 
     try {
+      await checkSeatLimit(
+        param.workspaceId,
+        workspaceUser.fk_user_id,
+        workspaceUser.roles as WorkspaceUserRoles,
+        param.roles,
+        transaction,
+      );
+
       await WorkspaceUser.update(
         param.workspaceId,
         param.userId,
@@ -163,54 +191,6 @@ export class WorkspaceUsersService {
         },
         transaction,
       );
-
-      const { seatCount, nonSeatCount } =
-        await Subscription.calculateWorkspaceSeatCount(
-          param.workspaceId,
-          ncMeta,
-        );
-
-      if (!NON_SEAT_ROLES.includes(param.roles)) {
-        const { limit: editorLimitForWorkspace, plan } = await getLimit(
-          PlanLimitTypes.LIMIT_EDITOR,
-          param.workspaceId,
-          transaction,
-        );
-
-        // check if user limit is reached or going to be exceeded
-        if (seatCount > editorLimitForWorkspace) {
-          NcError.planLimitExceeded(
-            `Only ${editorLimitForWorkspace} editors are allowed on the ${
-              workspace.payment.plan.title
-            } plan, Upgrade to the ${
-              HigherPlan[workspace.payment.plan.title]
-            } plan to add more users`,
-            {
-              plan: plan.title,
-              limit: editorLimitForWorkspace,
-              current: seatCount,
-            },
-          );
-        }
-      } else {
-        const { limit: usersLimitForWorkspace, plan } = await getLimit(
-          PlanLimitTypes.LIMIT_COMMENTER,
-          param.workspaceId,
-          transaction,
-        );
-
-        // check if user limit is reached or going to be exceeded
-        if (nonSeatCount > usersLimitForWorkspace) {
-          NcError.planLimitExceeded(
-            `Only ${usersLimitForWorkspace} users are allowed on the ${workspace.payment.plan.title} plan`,
-            {
-              plan: plan.title,
-              limit: usersLimitForWorkspace,
-              current: nonSeatCount,
-            },
-          );
-        }
-      }
 
       await this.paymentService.reseatSubscription(
         workspace.fk_org_id ?? workspace.id,
@@ -424,21 +404,43 @@ export class WorkspaceUsersService {
     const { seatCount, nonSeatCount } =
       await Subscription.calculateWorkspaceSeatCount(workspaceId, ncMeta);
 
-    if (!NON_SEAT_ROLES.includes(roles) || param.baseEditor) {
-      const { limit: editorLimitForWorkspace, plan } = await getLimit(
-        PlanLimitTypes.LIMIT_EDITOR,
-        workspaceId,
-        ncMeta,
-      );
+    const { limit: editorLimitForWorkspace, plan } = await getLimit(
+      PlanLimitTypes.LIMIT_EDITOR,
+      workspaceId,
+      ncMeta,
+    );
 
+    const { limit: commenterLimitForWorkspace } = await getLimit(
+      PlanLimitTypes.LIMIT_COMMENTER,
+      workspaceId,
+      ncMeta,
+    );
+
+    const totalUserLimit = editorLimitForWorkspace + commenterLimitForWorkspace;
+
+    if (!NON_SEAT_ROLES.includes(roles) || param.baseEditor) {
       // check if user limit is reached or going to be exceeded
+      /**
+       * If non seat user is more than commenters limit then we should restrict editor so that total users is under limit
+       * @example (limit 3 editors, 10 commenter)
+       * Non seat users = 11 and 1 owner then we should allow only 1 editor to add
+       */
+      const updatedEditorLimitForWorkspace =
+        nonSeatCount > commenterLimitForWorkspace
+          ? totalUserLimit - nonSeatCount
+          : editorLimitForWorkspace;
+
       if (
-        seatCount + emails.length > editorLimitForWorkspace &&
+        seatCount + emails.length > updatedEditorLimitForWorkspace &&
         // if invitePassive is true then don't check for user limit
         !param.invitePassive
       ) {
         NcError.planLimitExceeded(
-          `Only ${editorLimitForWorkspace} editors are allowed on the ${workspace.payment.plan.title} plan`,
+          `The ${
+            workspace.payment.plan.title
+          } plan allows up to ${editorLimitForWorkspace} editors & ${commenterLimitForWorkspace} commenters per workspace. Upgrade to the ${
+            HigherPlan[workspace.payment.plan.title]
+          } plan for unlimited users.`,
           {
             plan: plan.title,
             limit: editorLimitForWorkspace,
@@ -448,21 +450,44 @@ export class WorkspaceUsersService {
       }
     }
 
+    /**
+     * User limit handling if only 1 owner is present
+     * no-access — We should be able to invite 12 users (later we can change role)
+     * commenter — We should be able to add 10 users (which is under limit)
+     * editor — We should be able to add 2 editors
+     */
+
     if (NON_SEAT_ROLES.includes(roles) && !param.baseEditor) {
-      const { limit: commenterLimitForWorkspace, plan } = await getLimit(
-        PlanLimitTypes.LIMIT_COMMENTER,
-        workspaceId,
-        ncMeta,
-      );
+      let commenterLimitForWorkspaceToCheck = commenterLimitForWorkspace;
+
+      /**
+       * If role is no access then we should allow use to add more users than commenter limit but should ne less than total (editors + commenters)
+       * @example (limit 3 editors, 10 commenter)
+       * If 1 Owner and 1 viewer already present then we should allow to add 11 no access users
+       * allow to add = (3 + 10) - 1 - 1 = 11
+       */
+      if (
+        isFinite(commenterLimitForWorkspaceToCheck) &&
+        WorkspaceUserRoles.NO_ACCESS === roles &&
+        seatCount < editorLimitForWorkspace &&
+        nonSeatCount + emails.length > commenterLimitForWorkspaceToCheck
+      ) {
+        commenterLimitForWorkspaceToCheck =
+          totalUserLimit - seatCount - nonSeatCount;
+      }
 
       // check if user limit is reached or going to be exceeded
       if (
-        nonSeatCount + emails.length > commenterLimitForWorkspace &&
+        nonSeatCount + emails.length > commenterLimitForWorkspaceToCheck &&
         // if invitePassive is true then don't check for user limit
         !param.invitePassive
       ) {
         NcError.planLimitExceeded(
-          `Only ${commenterLimitForWorkspace} users are allowed for your plan, for more please upgrade your plan`,
+          `The ${
+            workspace.payment.plan.title
+          } plan allows up to ${editorLimitForWorkspace} editors & ${commenterLimitForWorkspace} commenters per workspace. Upgrade to the ${
+            HigherPlan[workspace.payment.plan.title]
+          } plan for unlimited users.`,
           {
             plan: plan.title,
             limit: commenterLimitForWorkspace,

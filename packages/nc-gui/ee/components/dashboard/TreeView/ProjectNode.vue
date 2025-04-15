@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
-import { ProjectRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
+import { PlanTitles, ProjectRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 import type { BaseType, SourceType, TableType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import Automation from './Automation.vue'
@@ -104,6 +104,8 @@ const { addNewPage, populatedNestedPages, baseUrl: docsProjectUrl } = useDocStor
 const { $e } = useNuxtApp()
 
 const { copy } = useCopy()
+
+const { showRecordPlanLimitExceededModal, activePlanTitle, isPaymentEnabled } = useEeConfig()
 
 const isOptionsOpen = ref(false)
 const isBasesOptionsOpen = ref<Record<string, boolean>>({})
@@ -510,6 +512,8 @@ const isDuplicateDlgOpen = ref(false)
 const selectedProjectToDuplicate = ref()
 
 const duplicateProject = (base: BaseType) => {
+  if (showRecordPlanLimitExceededModal()) return
+
   selectedProjectToDuplicate.value = base
   isDuplicateDlgOpen.value = true
 }
@@ -1001,6 +1005,15 @@ const onClickMenu = (e: { key?: string }) => {
                                 {{ source.alias || '' }}
                               </span>
                             </NcTooltip>
+                            <LazyPaymentUpgradeBadge
+                              v-if="isPaymentEnabled && activePlanTitle === PlanTitles.FREE && !(source.id && sourceRenameHelpers[source.id]?.editMode)"
+                              :title="$t('upgrade.upgradeToSeeMoreRecord')"
+                              :content="$t('upgrade.upgradeToSeeMoreRecordSubtitle')"
+                              class="-my-1 mx-0.5 nc-sidebar-node-btn nc-sidebar-upgrade-badge"
+                              :class="{
+                                'nc-sidebar-option-open': isBasesOptionsOpen[source!.id!]
+                              }"
+                            />
                           </div>
                           <div
                             v-if="!(source.id && sourceRenameHelpers[source.id]?.editMode)"
@@ -1210,12 +1223,28 @@ const onClickMenu = (e: { key?: string }) => {
   @apply h-full;
 }
 
-:deep(.ant-collapse-header:hover) {
-  .nc-sidebar-node-btn {
-    @apply !opacity-100 !inline-block;
+:deep(.ant-collapse-header) {
+  .nc-sidebar-upgrade-badge {
+    @apply -mr-6;
 
-    &:not(.nc-sidebar-expand) {
-      @apply !xs:hidden;
+    &.nc-sidebar-option-open {
+      @apply mr-0.5;
+    }
+  }
+
+  &:hover {
+    .nc-sidebar-node-btn {
+      &:not(.nc-sidebar-upgrade-badge) {
+        @apply !opacity-100 !inline-block;
+      }
+
+      &.nc-sidebar-upgrade-badge {
+        @apply mr-0.5;
+      }
+
+      &:not(.nc-sidebar-expand) {
+        @apply !xs:hidden;
+      }
     }
   }
 }

@@ -1,5 +1,7 @@
 import { Logger } from '@nestjs/common';
 import {
+  NON_SEAT_ROLES,
+  PlanLimitTypes,
   type WorkspacePlan,
   type WorkspaceStatus,
   type WorkspaceType,
@@ -22,7 +24,14 @@ import {
   prepareForDb,
   prepareForResponse,
 } from '~/utils/modelUtils';
-import { Base, CustomUrl, DataReflection, Integration } from '~/models';
+import {
+  Base,
+  CustomUrl,
+  DataReflection,
+  Integration,
+  ModelStat,
+  UsageStat,
+} from '~/models';
 import { getActivePlanAndSubscription } from '~/helpers/paymentHelpers';
 
 const logger = new Logger('Workspace');
@@ -51,6 +60,12 @@ export default class Workspace implements WorkspaceType {
     subscription?: Subscription;
     plan: Partial<Plan>;
   };
+
+  stats?: {
+    [key: string]: number;
+  };
+
+  grace_period_start_at?: string;
 
   created_at?: string;
   updated_at?: string;
@@ -94,6 +109,7 @@ export default class Workspace implements WorkspaceType {
     workspaceId: string,
     force = false,
     ncMeta = Noco.ncMeta,
+    withStats = true,
   ) {
     let workspaceData = await NocoCache.get(
       `${CacheScope.WORKSPACE}:${workspaceId}`,
@@ -128,6 +144,31 @@ export default class Workspace implements WorkspaceType {
       ncMeta,
     );
 
+    if (withStats) {
+      const periodStats = await UsageStat.getPeriodStats(
+        workspaceData.id,
+        workspaceData.payment?.subscription?.billing_cycle_anchor ||
+          workspaceData.created_at,
+        ncMeta,
+      );
+
+      const resourceStats = await this.getResourceStats(
+        workspaceData.id,
+        ncMeta,
+      );
+
+      const storageStats = await this.getStorageStats(workspaceData.id, ncMeta);
+
+      const recordStats = await ModelStat.getWorkspaceSum(workspaceData.id);
+
+      workspaceData.stats = {
+        ...periodStats,
+        ...resourceStats,
+        ...storageStats,
+        ...recordStats,
+      };
+    }
+
     return workspaceData && new Workspace(workspaceData);
   }
 
@@ -149,6 +190,7 @@ export default class Workspace implements WorkspaceType {
       'plan',
       'fk_org_id',
       'stripe_customer_id',
+      'grace_period_start_at',
     ]);
 
     // stringify meta if it is an object
@@ -193,6 +235,7 @@ export default class Workspace implements WorkspaceType {
       'order',
       'fk_org_id',
       'stripe_customer_id',
+      'grace_period_start_at',
     ]);
 
     // stringify meta if it is an object
@@ -494,5 +537,143 @@ export default class Workspace implements WorkspaceType {
     );
 
     return workspace;
+  }
+
+  public static async getResourceStats(id: string, ncMeta = Noco.ncMeta) {
+    let stats = await NocoCache.getHash(
+      `${CacheScope.RESOURCE_STATS}:workspace:${id}`,
+    );
+    if (!stats) {
+      stats = await ncMeta.knexConnection
+        .select({
+          [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: ncMeta
+            .knexConnection(MetaTable.HOOKS)
+            .count('*')
+            .where('fk_workspace_id', id),
+          [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: ncMeta
+            .knexConnection(MetaTable.EXTENSIONS)
+            .count('*')
+            .where('fk_workspace_id', id),
+          [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: ncMeta
+            .knexConnection(MetaTable.SNAPSHOT)
+            .count('*')
+            .where('fk_workspace_id', id),
+          [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: ncMeta
+            .knexConnection(MetaTable.SOURCES)
+            .count('*')
+            .where('fk_workspace_id', id)
+            .where((qb) => {
+              qb.where('is_meta', false).orWhereNull('is_meta');
+            })
+            .where((qb) => {
+              qb.where('is_local', false).orWhereNull('is_local');
+            }),
+          [PlanLimitTypes.LIMIT_EDITOR]: ncMeta
+            .knexConnection(`${MetaTable.WORKSPACE_USER} AS wu`)
+            .leftJoin(
+              `${MetaTable.PROJECT_USERS} AS bu`,
+              'wu.fk_user_id',
+              'bu.fk_user_id',
+            )
+            .countDistinct('wu.fk_user_id')
+            .where('wu.fk_workspace_id', id)
+            .andWhere((qb) => {
+              qb.whereNotIn('wu.roles', NON_SEAT_ROLES).orWhereNotIn(
+                'bu.roles',
+                NON_SEAT_ROLES,
+              );
+            }),
+          [PlanLimitTypes.LIMIT_COMMENTER]: ncMeta
+            .knexConnection(`${MetaTable.WORKSPACE_USER} AS wu`)
+            .leftJoin(
+              `${MetaTable.PROJECT_USERS} AS bu`,
+              'wu.fk_user_id',
+              'bu.fk_user_id',
+            )
+            .countDistinct('wu.fk_user_id')
+            .where('wu.fk_workspace_id', id)
+            .whereNotIn('wu.fk_user_id', function () {
+              this.select('wu2.fk_user_id')
+                .from(`${MetaTable.WORKSPACE_USER} AS wu2`)
+                .join(
+                  `${MetaTable.PROJECT_USERS} AS bu2`,
+                  'wu2.fk_user_id',
+                  'bu2.fk_user_id',
+                )
+                .where('wu2.fk_workspace_id', id)
+                .andWhere((qb) => {
+                  qb.whereNotIn('wu2.roles', NON_SEAT_ROLES).orWhereNotIn(
+                    'bu2.roles',
+                    NON_SEAT_ROLES,
+                  );
+                });
+            }),
+        })
+        .first();
+
+      if (stats) {
+        stats = Object.fromEntries(
+          Object.entries(stats).map(([key, value]) => {
+            return [key, +value];
+          }),
+        );
+
+        await NocoCache.setHash(
+          `${CacheScope.RESOURCE_STATS}:workspace:${id}`,
+          stats,
+        );
+      }
+    }
+
+    return Object.fromEntries(
+      Object.entries(stats).map(([key, value]) => {
+        return [key, +value];
+      }),
+    );
+  }
+
+  public static async getStorageStats(
+    id: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<{
+    [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: number;
+  }> {
+    let storage = await NocoCache.getHash(
+      `${CacheScope.STORAGE_STATS}:workspace:${id}`,
+    );
+
+    if (!storage) {
+      storage = await ncMeta.knexConnection
+        .select({
+          [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: ncMeta
+            .knexConnection(MetaTable.FILE_REFERENCES)
+            .sum('file_size')
+            .where('fk_workspace_id', id)
+            .where('deleted', false),
+        })
+        .first();
+
+      if (
+        !storage ||
+        storage[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] === null ||
+        storage[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] === undefined
+      ) {
+        storage = {
+          [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 0,
+        };
+      }
+
+      await NocoCache.setHash(
+        `${CacheScope.STORAGE_STATS}:workspace:${id}`,
+        storage,
+      );
+    }
+
+    // convert bytes to MB
+    return {
+      [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: Math.floor(
+        +storage[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] / 1000 / 1000,
+      ),
+    };
   }
 }

@@ -5,11 +5,24 @@ const { t } = useI18n()
 
 const { appInfo } = useGlobal()
 
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
 const auditsStore = useAuditsStore()
 
 const { loadAudits, onInit, getUserName } = auditsStore
-const { isRowExpanded, selectedAudit, bases, audits, auditLogsQuery, auditPaginationData, collaboratorsMap, isLoadingAudits } =
-  storeToRefs(auditsStore)
+const {
+  isRowExpanded,
+  selectedAudit,
+  bases,
+  audits,
+  auditLogsQuery,
+  auditPaginationData,
+  collaboratorsMap,
+  isLoadingAudits,
+  loadActionWorkspaceLogsOnly,
+} = storeToRefs(auditsStore)
+
+const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
 const handleChangePage = async (page: number) => {
   auditPaginationData.value.page = page
@@ -91,6 +104,13 @@ const customRow = (audit: AuditType) => ({
 })
 
 onMounted(() => {
+  loadActionWorkspaceLogsOnly.value = true
+  onInit()
+})
+
+watch(activeWorkspaceId, () => {
+  if (!isAdminPanel.value) return
+
   onInit()
 })
 
@@ -106,7 +126,7 @@ onKeyStroke('ArrowDown', onDown)
     <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
 
     <template v-else>
-      <AccountAuditsHeader />
+      <WorkspaceAuditsHeader />
       <NcTable
         v-model:order-by="orderBy"
         :is-data-loading="isLoadingAudits"
@@ -210,7 +230,7 @@ onKeyStroke('ArrowDown', onDown)
           </div>
         </template>
       </NcTable>
-      <AccountAuditsExpandedAudit />
+      <WorkspaceAuditsExpandedAudit />
     </template>
   </div>
 </template>

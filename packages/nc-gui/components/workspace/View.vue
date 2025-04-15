@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
@@ -7,6 +8,8 @@ const props = defineProps<{
 
 const router = useRouter()
 const route = router.currentRoute
+
+const { t } = useI18n()
 
 const { isUIAllowed } = useRoles()
 
@@ -20,6 +23,8 @@ const { loadCollaborators, loadWorkspace } = workspaceStore
 
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
+
+const { isWsAuditEnabled, handleUpgradePlan } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
   if (deletingWorkspace.value) return
@@ -42,6 +47,16 @@ const tab = computed({
     return route.value.query?.tab ?? 'collaborators'
   },
   set(tab: string) {
+    if (!isWsAuditEnabled.value && tab === 'audits') {
+      return handleUpgradePlan({
+        title: t('upgrade.upgradeToAccessWsAudit'),
+        content: t('upgrade.upgradeToAccessWsAuditSubtitle', {
+          plan: PlanTitles.BUSINESS,
+        }),
+        limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+      })
+    }
+
     if (tab === 'collaborators') loadCollaborators({} as any, props.workspaceId)
     router.push({ query: { ...route.value.query, tab } })
   },
@@ -68,6 +83,18 @@ onMounted(() => {
       await loadCollaborators({} as any, currentWorkspace.value!.id)
     })
 })
+
+watch(
+  () => route.value.query?.tab,
+  (newTab) => {
+    if (!isWsAuditEnabled.value && newTab === 'audits') {
+      tab.value = 'collaborators'
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -141,6 +168,33 @@ onMounted(() => {
           </div>
         </a-tab-pane>
       </template>
+      <template v-if="isEeUI && !props.workspaceId && isFeatureEnabled(FEATURE_FLAG.PAYMENT) && isUIAllowed('workspaceBilling')">
+        <a-tab-pane key="billing" class="w-full">
+          <template #tab>
+            <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
+              <GeneralIcon icon="ncDollarSign" class="flex-none h-4 w-4" />
+              {{ $t('general.billing') }}
+            </div>
+          </template>
+
+          <PaymentBillingPage class="!h-[calc(100vh_-_92px)]" />
+        </a-tab-pane>
+      </template>
+
+      <template
+        v-if="isEeUI && !props.workspaceId && isFeatureEnabled(FEATURE_FLAG.PAYMENT) && isUIAllowed('workspaceAuditList')"
+      >
+        <a-tab-pane key="audits" class="w-full">
+          <template #tab>
+            <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
+              <GeneralIcon icon="audit" class="h-4 w-4" />
+              {{ $t('title.audits') }}
+            </div>
+          </template>
+          <WorkspaceAudits v-if="isWsAuditEnabled" />
+          <div v-else>&nbsp;</div>
+        </a-tab-pane>
+      </template>
 
       <template v-if="isUIAllowed('workspaceManage')">
         <a-tab-pane key="settings" class="w-full">
@@ -151,19 +205,6 @@ onMounted(() => {
             </div>
           </template>
           <WorkspaceSettings :workspace-id="currentWorkspace.id" />
-        </a-tab-pane>
-      </template>
-
-      <template v-if="isEeUI && !props.workspaceId && isFeatureEnabled(FEATURE_FLAG.PAYMENT)">
-        <a-tab-pane key="billing" class="w-full">
-          <template #tab>
-            <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
-              <GeneralIcon icon="ncDollarSign" class="flex-none h-4 w-4" />
-              {{ $t('general.billing') }}
-            </div>
-          </template>
-
-          <PaymentBillingPage class="!h-[calc(100vh_-_92px)]" />
         </a-tab-pane>
       </template>
     </NcTabs>

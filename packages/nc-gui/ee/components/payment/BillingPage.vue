@@ -15,7 +15,9 @@ const router = useRouter()
 
 const workspaceStore = useWorkspace()
 
-const { paymentState, loadPlans, stripe, getSessionResult, isAccountPage } = useProvidePaymentStore()
+const { activeWorkspaceId } = storeToRefs(workspaceStore)
+
+const { paymentState, loadWorkspaceSeatCount, stripe, getSessionResult, isAccountPage } = useProvidePaymentStore()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
@@ -51,26 +53,13 @@ const onClosePaymentBanner = () => {
   }
 }
 
-const downloadInvoice = () => {
-  if (!checkoutSession.value) {
-    return
-  }
-
-  const { invoice } = checkoutSession.value
-
-  if (invoice) {
-    window.open(invoice.invoice_pdf, '_blank')
-  }
-}
-
 onMounted(async () => {
-  if (workspaceId.value) {
-    await workspaceStore.loadWorkspace(workspaceId.value)
+  if (workspaceId.value || activeWorkspaceId.value) {
+    await workspaceStore.loadWorkspace(workspaceId.value || activeWorkspaceId.value!)
   }
-
-  await loadPlans()
 
   paymentState.value = PaymentState.SELECT_PLAN
+
   isAccountPage.value = !!workspaceId.value
 
   if (route.query.afterPayment) {
@@ -95,6 +84,17 @@ const handleScroll = (e) => {
     isScrolledToTop.value = false
   }
 }
+
+watch(
+  () => route?.query?.tab,
+  async (tab) => {
+    if (tab !== 'billing') return
+
+    await workspaceStore.loadWorkspace(workspaceId.value || activeWorkspaceId.value!)
+
+    await loadWorkspaceSeatCount()
+  },
+)
 </script>
 
 <template>
@@ -124,10 +124,15 @@ const handleScroll = (e) => {
             :description="$t('msg.success.paymentSuccessfulSubtitle')"
             @close="onClosePaymentBanner"
           >
-            <template #action>
-              <NcButton size="xsmall" type="secondary" class="!px-2" inner-class="!gap-2" @click="downloadInvoice">
+            <template v-if="checkoutSession?.invoice?.invoice_pdf" #action>
+              <a
+                :href="checkoutSession?.invoice?.invoice_pdf"
+                target="_blank"
+                rel="noopener noreferer"
+                class="!no-underline !hover:underline text-sm"
+              >
                 {{ $t('labels.downloadInvoice') }}
-              </NcButton>
+              </a>
             </template>
           </NcAlert>
           <NcAlert

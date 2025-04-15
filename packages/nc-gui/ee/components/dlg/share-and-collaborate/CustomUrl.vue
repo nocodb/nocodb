@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import axios from 'axios'
-import type { CustomUrlType, StringOrNullType } from 'nocodb-sdk'
+import { type CustomUrlType, PlanFeatureTypes, PlanTitles, type StringOrNullType } from 'nocodb-sdk'
 
 interface Props {
   /**
@@ -45,6 +45,8 @@ const { t } = useI18n()
 const { api } = useApi()
 
 const { showShareModal } = storeToRefs(useShare())
+
+const { getPlanTitle } = useEeConfig()
 
 const isLoading = ref({
   customUrl: false,
@@ -257,29 +259,49 @@ watch(
 
 <template>
   <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
-    <div class="flex flex-row items-center justify-between">
-      <div class="flex text-black items-center gap-1">
-        {{ $t('title.customUrl') }}
-        <NcTooltip v-if="tooltip" class="flex items-center">
-          <template #title>
-            <div class="text-center">
-              {{ tooltip }}
-            </div>
-          </template>
-          <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer"></GeneralIcon>
-        </NcTooltip>
-      </div>
-      <a-switch
-        v-e="['c:share:view:custom-url:toggle']"
-        :checked="isOpenCustomUrl"
-        :loading="isLoading.customUrl || isLoading.fetchCustomUrl"
-        :disabled="isLocked || isLoading.fetchCustomUrl"
-        class="share-custom-url-toggle !mt-0.25"
-        data-testid="share-custom-url-toggle"
-        size="small"
-        @click="toggleCustomUrl"
-      />
-    </div>
+    <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_CUSTOM_URL">
+      <template #default="{ click }">
+        <div class="flex flex-row items-center justify-between">
+          <div class="flex text-black items-center gap-1">
+            {{ $t('title.customUrl') }}
+
+            <LazyPaymentUpgradeBadge
+              v-if="!isOpenCustomUrl"
+              :feature="PlanFeatureTypes.FEATURE_CUSTOM_URL"
+              :content="
+                $t('upgrade.upgradeToAddCustomUrlSubtitle', {
+                  plan: getPlanTitle(PlanTitles.TEAM),
+                })
+              "
+            />
+            <NcTooltip v-if="tooltip" class="flex items-center">
+              <template #title>
+                <div class="text-center">
+                  {{ tooltip }}
+                </div>
+              </template>
+              <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer"></GeneralIcon>
+            </NcTooltip>
+          </div>
+          <a-switch
+            v-e="['c:share:view:custom-url:toggle']"
+            :checked="isOpenCustomUrl"
+            :loading="isLoading.customUrl || isLoading.fetchCustomUrl"
+            :disabled="isLocked || isLoading.fetchCustomUrl"
+            class="share-custom-url-toggle !mt-0.25"
+            data-testid="share-custom-url-toggle"
+            size="small"
+            @click="
+              (value) => {
+                if (value && click(PlanFeatureTypes.FEATURE_CUSTOM_URL)) return
+
+                toggleCustomUrl()
+              }
+            "
+          />
+        </div>
+      </template>
+    </PaymentUpgradeBadgeProvider>
     <Transition mode="out-in" name="layout">
       <div v-if="isOpenCustomUrl">
         <div

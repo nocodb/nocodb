@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Form } from 'ant-design-vue'
-import { type IntegrationType, IntegrationsType, WorkspaceStatus, validateAndExtractSSLProp } from 'nocodb-sdk'
+import { type IntegrationType, IntegrationsType, PlanLimitTypes, WorkspaceStatus, validateAndExtractSSLProp } from 'nocodb-sdk'
 import NcModal from '~/components/nc/Modal.vue'
 
 import {
@@ -26,6 +26,8 @@ const { base } = storeToRefs(baseStore)
 const { loadProjectTables } = useTablesStore()
 
 const { refreshCommandPalette } = useCommandPalette()
+
+const { updateStatLimit } = useEeConfig()
 
 const _projectId = inject(ProjectIdInj, undefined)
 const baseId = computed(() => _projectId?.value ?? base.value?.id)
@@ -351,6 +353,7 @@ const createSource = async () => {
           if (data.status === JobStatus.COMPLETED) {
             $e('a:base:create:extdb')
 
+            updateStatLimit(PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE, 1)
             emit('sourceCreated')
             if (data.data?.result.needUpgrade) {
               activeWorkspace.value.status = WorkspaceStatus.CREATING

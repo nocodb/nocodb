@@ -287,7 +287,14 @@ const onCancel = () => {
           <div class="text-base font-bold ml-3">{{ $t('msg.info.actionIrreversible') }}</div>
         </div>
         <div class="flex flex-row w-full justify-end mt-8">
-          <NcButton v-e="['c:workspace:settings:delete']" type="danger" size="small" @click="handleDelete">
+          <NcButton
+            v-e="['c:workspace:settings:delete']"
+            type="secondary"
+            danger
+            class="nc-custom-daner-btn"
+            size="small"
+            @click="handleDelete"
+          >
             {{ $t('general.deleteEntity', { entity: $t('objects.workspace') }) }}
           </NcButton>
         </div>

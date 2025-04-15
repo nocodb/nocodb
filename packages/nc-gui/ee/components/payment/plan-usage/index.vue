@@ -1,6 +1,8 @@
 <script lang="ts" setup>
-import { PlanMeta, PlanTitles } from 'nocodb-sdk'
+import { PlanLimitTypes, PlanMeta, PlanTitles } from 'nocodb-sdk'
 import dayjs from 'dayjs'
+
+const { t } = useI18n()
 
 const route = useRoute()
 
@@ -14,16 +16,20 @@ const activeWorkspace = computed(() =>
   workspaceId.value ? workspacesList.value.find((w) => w.id === workspaceId.value)! : _activeWorkspace.value!,
 )
 
-const { paymentState, workspaceSeatCount, activeSubscription, onManageSubscription, plansAvailable, updateSubscription } =
-  useProvidePaymentStore()
+const {
+  paymentState,
+  workspaceSeatCount,
+  activeSubscription,
+  onManageSubscription: _onManageSubscription,
+  plansAvailable,
+  updateSubscription,
+} = usePaymentStoreOrThrow()
+
+const { getLimit, getStatLimit, activePlanTitle } = useEeConfig()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
-const activePlanMeta = computed(() =>
-  activeWorkspace.value?.payment?.plan.title === 'Plus'
-    ? PlanMeta[PlanTitles.BUSINESS]
-    : PlanMeta[(activeWorkspace.value?.payment?.plan.title ?? PlanTitles.FREE) as PlanTitles],
-)
+const activePlanMeta = computed(() => PlanMeta[activePlanTitle.value])
 
 const scheduledChangeInfo = computed(() => {
   if (!activeSubscription.value || !activeSubscription.value.scheduled_plan_start_at) return null
@@ -58,6 +64,86 @@ const nextInvoiceInfo = computed(() => {
 const currentPlanTitle = computed(() => {
   return activeWorkspace.value?.payment?.plan.title ?? PlanTitles.FREE
 })
+
+const showWarningStatusForSeatCount = computed(() => {
+  return currentPlanTitle.value === PlanTitles.FREE && workspaceSeatCount.value >= getLimit(PlanLimitTypes.LIMIT_EDITOR) - 1
+})
+
+const formatTotalLimit = (value: number) => {
+  return isFinite(value) ? Number(value).toLocaleString() : 'Unlimited'
+}
+
+const recordInfo = computed(() => {
+  const value = getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)
+  const total = getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) ?? 1000
+  const showWarningStatus = (value / total) * 100 > 80
+
+  return {
+    value: Number(value).toLocaleString(),
+    total: formatTotalLimit(total),
+    showWarningStatus,
+    tooltip: t('upgrade.recordLimitExceedTooltip', {
+      activePlan: activePlanTitle.value,
+      limit: total,
+    }),
+  }
+})
+
+const storageInfo = computed(() => {
+  const value = getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000
+  const total = getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000
+  const showWarningStatus = (value / total) * 100 > 80
+
+  return {
+    value: Number(value).toFixed(1).toLocaleString(),
+    total: formatTotalLimit(total),
+    showWarningStatus,
+    tooltip: t('upgrade.storageLimitExceedTooltip', {
+      activePlan: activePlanTitle.value,
+      limit: total,
+    }),
+  }
+})
+
+const automationInfo = computed(() => {
+  const value = getStatLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)
+  const total = getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)
+  const showWarningStatus = (value / total) * 100 > 80
+
+  return {
+    value: Number(value).toLocaleString(),
+    total: formatTotalLimit(total),
+    showWarningStatus,
+    tooltip: t('upgrade.webhookLimitExceedTooltip', {
+      activePlan: activePlanTitle.value,
+      limit: total,
+    }),
+  }
+})
+
+const apiCallsInfo = computed(() => {
+  const value = getStatLimit(PlanLimitTypes.LIMIT_API_CALL)
+  const total = getLimit(PlanLimitTypes.LIMIT_API_CALL)
+  const showWarningStatus = (value / total) * 100 > 80
+
+  return {
+    value: Number(value).toLocaleString(),
+    total: formatTotalLimit(total),
+    showWarningStatus,
+    tooltip: t('upgrade.apiLimitExceedTooltip', {
+      activePlan: activePlanTitle.value,
+      limit: total,
+    }),
+  }
+})
+
+const isLoadingManageSubscription = ref(false)
+
+const onManageSubscription = async () => {
+  isLoadingManageSubscription.value = true
+  await _onManageSubscription()
+  isLoadingManageSubscription.value = false
+}
 </script>
 
 <template>
@@ -65,16 +151,18 @@ const currentPlanTitle = computed(() => {
     <div class="flex items-center justify-between gap-4 min-h-8">
       <div class="text-base font-weight-700 text-nc-content-gray !leading-7">
         {{ $t('title.currentPlan') }}:
-        <span class="text-xl" :style="{ color: activePlanMeta?.primary }">
+        <span :style="{ color: activePlanMeta?.primary }">
           {{ $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title ?? PlanTitles.FREE}`) }}
         </span>
       </div>
       <NcButton
         v-if="activeSubscription"
-        type="primary"
+        type="secondary"
         size="small"
         icon-position="right"
         inner-class="!gap-2"
+        class="!text-nc-content-brand"
+        :loading="isLoadingManageSubscription"
         @click="onManageSubscription"
       >
         <template #icon>
@@ -96,7 +184,7 @@ const currentPlanTitle = computed(() => {
         <template #label> {{ $t('objects.currentPlan.nextInvoice') }} </template>
         <template #value>
           <div v-if="!activeSubscription">-</div>
-          <div v-else-if="activeSubscription?.canceled_at" class="text-red-500">
+          <div v-else-if="activeSubscription?.canceled_at" class="text-nc-content-red-medium">
             Marked for cancellation, due {{ new Date(activeSubscription.canceled_at).toLocaleDateString() }}
           </div>
           <div v-else>{{ nextInvoiceInfo?.amount }}, {{ nextInvoiceInfo?.date }}</div>
@@ -108,7 +196,7 @@ const currentPlanTitle = computed(() => {
               </span>
               <!-- Cancel -->
               <span
-                class="text-red-500"
+                class="text-nc-content-red-medium hover:underline cursor-pointer"
                 @click="updateSubscription(activeSubscription.fk_plan_id, activeSubscription.stripe_price_id)"
                 >(Cancel)</span
               >
@@ -116,7 +204,16 @@ const currentPlanTitle = computed(() => {
           </div>
         </template>
       </PaymentPlanUsageRow>
-      <PaymentPlanUsageRow :plan-meta="activePlanMeta">
+      <PaymentPlanUsageRow
+        :plan-meta="activePlanMeta"
+        :show-warning-status="showWarningStatusForSeatCount"
+        :tooltip="
+          $t('upgrade.editorLimitExceedTooltip', {
+            activePlan: activePlanTitle,
+            limit: getLimit(PlanLimitTypes.LIMIT_EDITOR),
+          })
+        "
+      >
         <template #label>
           {{
             currentPlanTitle === PlanTitles.FREE
@@ -126,17 +223,41 @@ const currentPlanTitle = computed(() => {
         </template>
         <template #value>{{ workspaceSeatCount }} </template>
       </PaymentPlanUsageRow>
-      <PaymentPlanUsageRow :plan-meta="activePlanMeta">
+      <PaymentPlanUsageRow
+        :plan-meta="activePlanMeta"
+        :show-warning-status="recordInfo.showWarningStatus"
+        :tooltip="recordInfo.tooltip"
+      >
+        <template #label>
+          <span class="capitalize">
+            {{ $t('objects.records') }}
+          </span>
+        </template>
+        <template #value> {{ recordInfo.value }}/{{ recordInfo.total }} </template>
+      </PaymentPlanUsageRow>
+      <PaymentPlanUsageRow
+        :plan-meta="activePlanMeta"
+        :show-warning-status="storageInfo.showWarningStatus"
+        :tooltip="storageInfo.tooltip"
+      >
         <template #label> {{ $t('objects.currentPlan.storageUsedGB') }} </template>
-        <template #value> Coming Soon/20 GB </template>
+        <template #value> {{ storageInfo.value }}/{{ storageInfo.total }} </template>
       </PaymentPlanUsageRow>
-      <PaymentPlanUsageRow :plan-meta="activePlanMeta">
+      <PaymentPlanUsageRow
+        :plan-meta="activePlanMeta"
+        :show-warning-status="automationInfo.showWarningStatus"
+        :tooltip="automationInfo.tooltip"
+      >
         <template #label> {{ $t('objects.currentPlan.webhookCallsMonthly') }} </template>
-        <template #value> Coming Soon/150,000 </template>
+        <template #value> {{ automationInfo.value }}/{{ automationInfo.total }} </template>
       </PaymentPlanUsageRow>
-      <PaymentPlanUsageRow :plan-meta="activePlanMeta">
+      <PaymentPlanUsageRow
+        :plan-meta="activePlanMeta"
+        :show-warning-status="apiCallsInfo.showWarningStatus"
+        :tooltip="apiCallsInfo.tooltip"
+      >
         <template #label> {{ $t('objects.currentPlan.apiCallsMonthly') }} </template>
-        <template #value> Coming Soon/150,000 </template>
+        <template #value> {{ apiCallsInfo.value }}/{{ apiCallsInfo.total }} </template>
       </PaymentPlanUsageRow>
     </div>
   </div>

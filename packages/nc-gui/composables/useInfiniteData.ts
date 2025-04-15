@@ -97,17 +97,23 @@ export function useInfiniteData(args: {
 
   const { fetchSharedViewData, fetchCount } = useSharedView()
 
-  const { nestedFilters, allFilters, sorts } = disableSmartsheet
+  const { nestedFilters, allFilters, sorts, isExternalSource, isAlreadyShownUpgradeModal } = disableSmartsheet
     ? {
         nestedFilters: ref([]),
         allFilters: ref([]),
         sorts: ref([]),
+        isExternalSource: computed(() => false),
+        isAlreadyShownUpgradeModal: ref(false),
       }
     : useSmartsheetStoreOrThrow()
+
+  const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
   const selectedAllRecords = ref(false)
 
   const totalRows = ref(0)
+
+  const actualTotalRows = ref(0)
 
   const cachedRows = ref<Map<number, Row>>(new Map())
 
@@ -120,6 +126,7 @@ export function useInfiniteData(args: {
         cachedRows: Ref<Map<number, Row>>
         chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
         totalRows: Ref<number>
+        actualTotalRows: Ref<number>
         selectedRows: ComputedRef<Array<Row>>
         isRowSortRequiredRows: ComputedRef<Array<Row>>
       }
@@ -171,6 +178,7 @@ export function useInfiniteData(args: {
         cachedRows,
         chunkStates,
         totalRows,
+        actualTotalRows,
         isRowSortRequiredRows,
         selectedRows,
       }
@@ -203,6 +211,7 @@ export function useInfiniteData(args: {
           }
         },
       }),
+      actualTotalRows: ref(0),
       selectedRows: computed<Row[]>(() => Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.selected)),
       isRowSortRequiredRows: computed<Array<Row>>(() =>
         Array.from(newCache.cachedRows.value.values()).filter((row) => row.rowMeta?.isRowOrderUpdated),
@@ -324,6 +333,12 @@ export function useInfiniteData(args: {
     }
   }
 
+  let upgradeModalTimer: any
+
+  onBeforeUnmount(() => {
+    clearTimeout(upgradeModalTimer)
+  })
+
   async function loadData(
     params: Parameters<Api<any>['dbViewRow']['list']>[4] & {
       limit?: number
@@ -336,6 +351,27 @@ export function useInfiniteData(args: {
     if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return []
 
     const whereFilter = callbacks?.getWhereFilter?.(path)
+
+    if (!path.length && params.offset && blockExternalSourceRecordVisibility(isExternalSource.value)) {
+      if (!isAlreadyShownUpgradeModal.value && params.offset >= EXTERNAL_SOURCE_VISIBLE_ROWS) {
+        isAlreadyShownUpgradeModal.value = true
+
+        if (upgradeModalTimer) {
+          clearTimeout(upgradeModalTimer)
+        }
+
+        upgradeModalTimer = setTimeout(() => {
+          showUpgradeToSeeMoreRecordsModal({
+            isExternalSource: isExternalSource.value,
+          })
+          clearTimeout(upgradeModalTimer)
+        }, 1000)
+      }
+
+      if (params.offset >= EXTERNAL_SOURCE_TOTAL_ROWS) {
+        return []
+      }
+    }
 
     try {
       const response = !isPublic?.value
@@ -1541,7 +1577,13 @@ export function useInfiniteData(args: {
             where: whereFilter,
           })
 
-      dataCache.totalRows.value = count as number
+      if (!path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
+        dataCache.totalRows.value = Math.min(200, count as number)
+      } else {
+        dataCache.totalRows.value = count as number
+      }
+
+      dataCache.actualTotalRows.value = count as number
       callbacks?.syncVisibleData?.()
     } catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)
@@ -1637,6 +1679,7 @@ export function useInfiniteData(args: {
     cachedRows,
     recoverLTARRefs,
     totalRows,
+    actualTotalRows,
     clearCache,
     syncCount,
     selectedRows,

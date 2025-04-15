@@ -19,7 +19,7 @@ export enum PaymentState {
 }
 
 const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
-  const annualDiscount = 16
+  const annualDiscount = 20
 
   const stripe = ref<Stripe>()
 
@@ -89,7 +89,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
         title: PlanTitles.FREE,
         descriptions: [
           'Unlimited bases',
-          'Upto 5 editors',
+          'Upto 3 editors',
           '1,000 rows per workspace',
           '1 GB of attachments per workspace',
           '100 automation runs per month',
@@ -109,9 +109,15 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
     if (!mode) mode = paymentMode.value
 
-    const price = plan.prices.find((price: any) => price.recurring.interval === mode)
+    const price = plan.prices.find((price: any) => price.recurring.interval === mode) || plan.prices[0]
 
-    if (!price) return plan.prices[0].unit_amount / 100 / (mode === 'year' ? 12 : 1)
+    if (price.billing_scheme === 'tiered') {
+      const tier = price.tiers.find((tier: any) => workspaceSeatCount.value <= (tier.up_to ?? Infinity))
+
+      if (!tier) return 0
+
+      return (tier.unit_amount + tier.flat_amount) / 100 / (mode === 'year' ? 12 : 1)
+    }
 
     return price.unit_amount / 100 / (mode === 'year' ? 12 : 1)
   }
@@ -262,7 +268,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       let okText = ''
 
       if (changes.change === 'upgrade') {
-        title = t('title.upgradeToPlan', { plan: changes.plan })
+        title = `${t('title.upgradeToPlan', { plan: changes.plan })}?`
         content = t('title.upgradeToPlanSubtitle', { plan: changes.plan })
         okText = t('general.upgrade')
 
@@ -278,9 +284,11 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
           okText = t('general.downgrade')
         } else {
           title = 'Update Subscription'
-          content = `${changes.price === 'charges' ? 'Charges' : 'No charges'} will be applied for the change. ${
-            changes.period ? `The billing period will be changed to ${changes.period === 'month' ? 'monthly' : 'annually'}` : ''
-          }`
+          content = `${
+            changes.price === 'charges' ? 'Charges' : 'No charges'
+          } will be applied immediately. Your billing cycle will switch to ${
+            changes.period === 'month' ? 'monthly' : 'annually'
+          }${changes.price === 'charges' ? '' : ' at the end of the current period'}.`
           okText = t('general.update')
         }
       }
@@ -304,6 +312,9 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
         'update:visible': closeDialog,
         'showIcon': false,
         'focusBtn': 'ok',
+        'keyboard': true,
+        'maskClosable': true,
+        'okClass': '!outline-none',
       })
 
       function closeDialog() {
@@ -336,11 +347,11 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       stripe.value = (await loadStripe(
         'pk_test_51QhRouHU2WPCjTxw3ranXD6shPR0VbOjLflMfidsanV0m9mM0vZKQfYk3PserPAbnZAIJJhv701DV8FrwP6zJhaf00KYKhz11c',
       ))!
-
-      await loadPlans()
     } catch (e) {
       console.log(e)
     }
+
+    await loadPlans()
   })
 
   return {

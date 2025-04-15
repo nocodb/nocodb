@@ -1,9 +1,11 @@
 import debug from 'debug';
+import { PlanLimitTypes } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import { Base, Model, ModelStat, Source, Workspace } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope, RootScopes } from '~/utils/globals';
+import { checkLimit } from '~/helpers/paymentHelpers';
 
 export class UpdateStatsProcessor {
   private readonly debugLog = debug('nc:jobs:update-stats');
@@ -56,6 +58,12 @@ export class UpdateStatsProcessor {
     this.debugLog(
       `Updated stats for model ${fk_model_id} with row count ${row_count}`,
     );
+
+    await checkLimit({
+      workspaceId: fk_workspace_id,
+      type: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
+      throwError: false,
+    });
 
     return true;
   }
@@ -157,6 +165,12 @@ export class UpdateStatsProcessor {
         }
       }
     }
+
+    await checkLimit({
+      workspaceId: fk_workspace_id,
+      type: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
+      throwError: false,
+    });
 
     this.debugLog(`Finished updating stats for workspace ${fk_workspace_id}`);
 

@@ -5,6 +5,8 @@ withDefaults(
   defineProps<{
     planMeta?: (typeof PlanMeta)[keyof typeof PlanMeta]
     variant?: 'table' | 'banner'
+    showWarningStatus?: boolean
+    tooltip?: string
   }>(),
   {
     variant: 'table',
@@ -16,8 +18,17 @@ withDefaults(
   <div v-if="variant === 'table'" class="nc-current-plan-table-row">
     <div class="nc-current-plan-table-cell nc-cell-label">
       <slot name="label"> </slot>
+
+      <NcTooltip v-if="showWarningStatus" :disabled="!tooltip" :title="tooltip" class="flex">
+        <GeneralIcon icon="ncAlertTriangle" class="text-nc-content-red-dark cursor-pointer" />
+      </NcTooltip>
     </div>
-    <div class="nc-current-plan-table-cell nc-cell-value">
+    <div
+      class="nc-current-plan-table-cell nc-cell-value"
+      :class="{
+        'nc-show-warning': showWarningStatus,
+      }"
+    >
       <slot name="value"> </slot>
     </div>
   </div>
@@ -40,6 +51,10 @@ withDefaults(
 
     &.nc-cell-value {
       @apply text-nc-content-gray;
+
+      &.nc-show-warning {
+        @apply text-nc-content-red-dark;
+      }
     }
   }
 }

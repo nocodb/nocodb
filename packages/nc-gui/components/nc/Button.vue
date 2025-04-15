@@ -29,6 +29,7 @@ export interface NcButtonProps {
   bordered?: boolean
   shadow?: boolean
   innerClass?: string
+  hideFocus?: boolean
 }
 
 const props = withDefaults(defineProps<NcButtonProps>(), {
@@ -44,6 +45,7 @@ const props = withDefaults(defineProps<NcButtonProps>(), {
   bordered: true,
   shadow: true,
   innerClass: '',
+  hideFocus: false,
 })
 
 const emits = defineEmits(['update:loading'])
@@ -93,7 +95,7 @@ useEventListener(NcButton, 'mousedown', () => {
       'xsmall': size === 'xsmall',
       'xxsmall': size === 'xxsmall',
       'size-xs': size === 'xs',
-      'focused': isFocused,
+      'focused': isFocused && !props.hideFocus,
       'theme-default': theme === 'default',
       'theme-ai': theme === 'ai',
       'bordered': bordered,

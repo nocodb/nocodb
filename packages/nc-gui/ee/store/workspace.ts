@@ -26,6 +26,8 @@ export interface NcWorkspace extends WorkspaceType {
       }
     }
   }
+  stats?: { [key in PlanLimitTypes]: number }
+  grace_period_start_at?: string | null
 }
 
 export const useWorkspace = defineStore('workspaceStore', () => {
@@ -39,6 +41,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const { loadRoles } = useRoles()
 
   const { user: currentUser } = useGlobal()
+
+  const { isFeatureEnabled } = useBetaFeatureToggle()
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
@@ -319,7 +323,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       basesStore.clearBasesUser()
       return true
     } catch (e) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      const errorInfo = await extractSdkResponseErrorMsgv2(e)
+
+      if (isFeatureEnabled(FEATURE_FLAG.PAYMENT) && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+        throw e
+      } else {
+        message.error(errorInfo.message)
+      }
     }
   }
 

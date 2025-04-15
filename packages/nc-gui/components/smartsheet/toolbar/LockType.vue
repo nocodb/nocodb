@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { LockType } from '#imports'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
+import { LockType } from '#imports'
 
 const { type, hideTick } = defineProps<{
   hideTick?: boolean
@@ -7,11 +8,13 @@ const { type, hideTick } = defineProps<{
   disabled?: boolean
 }>()
 
-const emit = defineEmits(['select'])
+const emit = defineEmits(['select', 'cancel'])
 
 const types = viewLockIcons
 
 const selectedView = inject(ActiveViewInj)
+
+const { getPlanTitle } = useEeConfig()
 </script>
 
 <template>
@@ -43,13 +46,28 @@ const selectedView = inject(ActiveViewInj)
           >
             {{ $t(types[type].title) }}
           </div>
-          <div v-if="!hideTick" class="flex flex-grow"></div>
           <template v-if="!hideTick">
+            <div class="flex flex-grow"></div>
             <GeneralIcon
               v-if="selectedView?.lock_type === type"
               icon="circleCheckSolid"
               class="h-4 w-4 flex-none"
               :class="{ '!text-brand-500': !disabled }"
+            />
+            <LazyPaymentUpgradeBadge
+              v-else-if="type === LockType.Personal"
+              :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
+              :content="
+                $t('upgrade.upgradeToAccessPersonalViewSubtitle', {
+                  plan: getPlanTitle(PlanTitles.TEAM),
+                })
+              "
+              :callback="
+                (type) => {
+                  if (type !== 'ok') return
+                  emit('cancel')
+                }
+              "
             />
             <span v-else />
           </template>

@@ -35,7 +35,6 @@ const {
   isCreatingSnapshot,
   newSnapshotTitle,
   isCooldownPeriodReached,
-  isSnapshotLimitReached,
   isSnapshotCreationFailed,
 } = useBaseSettings()
 
@@ -133,14 +132,13 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
 
     <div class="flex items-center mt-6 gap-5">
       <NcButton
-        :disabled="isUnsavedSnapshotsPending || isCooldownPeriodReached || isSnapshotLimitReached"
+        :disabled="isUnsavedSnapshotsPending || isCooldownPeriodReached"
         type="ghost"
         class="!text-primary"
         data-testid="add-new-snapshot"
         size="small"
         :class="{
-          '!text-nc-content-inverted-primary-disabled':
-            isUnsavedSnapshotsPending || isCooldownPeriodReached || isSnapshotLimitReached,
+          '!text-nc-content-inverted-primary-disabled': isUnsavedSnapshotsPending || isCooldownPeriodReached,
         }"
         @click="addNewSnapshot"
       >
@@ -165,22 +163,6 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
         <NcButton type="text" class="right-0 top-0" size="small" @click="isSnapshotCreationFailed = false">
           <GeneralIcon icon="close" />
         </NcButton>
-      </div>
-    </div>
-
-    <div
-      v-else-if="isSnapshotLimitReached"
-      class="mt-5 p-4 flex gap-4 border-1 rounded-lg border-nc-border-gray-extra-light justify-between"
-    >
-      <div class="flex gap-4">
-        <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium mt-1" />
-
-        <div class="flex flex-col gap-1">
-          <div class="text-[16px] leading-6 font-semibold">{{ $t('labels.snapshotLimitReached') }}</div>
-          <div class="leading-5 text-nc-content-gray-muted">
-            {{ $t('labels.snapshotLimitDescription') }}
-          </div>
-        </div>
       </div>
     </div>
 

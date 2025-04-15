@@ -153,7 +153,7 @@ const onWorkspaceCreateClick = () => {
                   style="line-height: 1.5rem"
                   data-testid="nc-workspace-list"
                 >
-                  <span class="truncate">
+                  <span data-testid="nc-workspace-list-title" class="truncate">
                     {{ activeWorkspace?.title }}
                   </span>
                 </div>
@@ -211,7 +211,7 @@ const onWorkspaceCreateClick = () => {
                   >
                     <div class="flex flex-row w-[calc(100%-2rem)] truncate items-center gap-2">
                       <GeneralWorkspaceIcon :workspace="workspace" size="medium" />
-                      <span class="capitalize mb-0 nc-workspace-title truncate min-w-10">
+                      <span data-testid="nc-workspace-list-title" class="capitalize mb-0 nc-workspace-title truncate min-w-10">
                         {{ workspace?.title }}
                       </span>
                     </div>

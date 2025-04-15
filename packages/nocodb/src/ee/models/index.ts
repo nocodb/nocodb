@@ -29,3 +29,4 @@ export { default as DataReflection } from './DataReflection';
 export { default as SyncConfig } from './SyncConfig';
 export { default as Plan } from './Plan';
 export { default as Subscription } from './Subscription';
+export { default as UsageStat } from './UsageStat';

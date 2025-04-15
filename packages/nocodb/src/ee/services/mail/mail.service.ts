@@ -164,6 +164,31 @@ export class MailService extends MailServiceCE {
           break;
         }
 
+        case MailEvent.WORKSPACE_REQUEST_UPGRADE: {
+          const {
+            payload: { workspace, user, requester, req, limitOrFeature },
+          } = params;
+
+          await mailerAdapter.mailSend({
+            to: user.email,
+            subject: 'Workspace Upgrade Request',
+            html: await this.renderMail('WorkspaceRequestUpgrade', {
+              workspaceTitle: workspace.title,
+              name: extractDisplayNameFromEmail(
+                requester.email,
+                requester.display_name,
+              ),
+              email: requester.email,
+              link: `${this.buildUrl(req, {
+                workspaceId: workspace.id,
+              })}/settings?tab=billing`,
+              limitOrFeature,
+            }),
+          });
+
+          break;
+        }
+
         default:
           return await super.sendMail(params);
       }

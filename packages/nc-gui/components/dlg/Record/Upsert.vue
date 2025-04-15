@@ -13,9 +13,24 @@ const emit = defineEmits(['update:expand', 'cancel', 'update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
+const { showRecordPlanLimitExceededModal } = useEeConfig()
+
 const expand = ref(true)
 
 const updateExpand = () => {
+  if (
+    expand.value &&
+    showRecordPlanLimitExceededModal({
+      callback(type) {
+        if (type === 'ok') {
+          dialogShow.value = false
+        }
+      },
+    })
+  ) {
+    return
+  }
+
   emit('update:expand', expand.value)
   dialogShow.value = false
 }

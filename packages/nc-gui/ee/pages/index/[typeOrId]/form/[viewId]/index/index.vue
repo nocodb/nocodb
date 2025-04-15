@@ -24,6 +24,8 @@ const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
+const { blockAddNewRecord } = useEeConfig()
+
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
   if (
@@ -303,7 +305,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                   </NcButton>
 
                   <NcButton
-                    :disabled="progress"
+                    :disabled="progress || blockAddNewRecord"
                     type="primary"
                     :size="isMobileMode ? 'medium' : 'small'"
                     class="nc-shared-form-button shared-form-submit-button"

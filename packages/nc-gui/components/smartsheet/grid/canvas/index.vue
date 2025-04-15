@@ -36,6 +36,7 @@ import type { Row } from '#imports'
 
 const props = defineProps<{
   totalRows: number
+  actualTotalRows: number
   data: Map<number, Row>
   groupDataCache: Map<
     string,
@@ -154,8 +155,13 @@ const {
 // VModels
 const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
+const { eventBus, isSqlView } = useSmartsheetStoreOrThrow()
+
+const { showRecordPlanLimitExceededModal } = useEeConfig()
+
 // Props to Refs
 const totalRows = toRef(props, 'totalRows')
+const actualTotalRows = toRef(props, 'actualTotalRows')
 const totalGroups = toRef(props, 'totalGroups')
 const chunkStates = toRef(props, 'chunkStates')
 const cachedRows = toRef(props, 'data')
@@ -230,7 +236,6 @@ const { height: windowHeight, width: windowWidth } = useWindowSize()
 const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode, appInfo } = useGlobal()
-const { eventBus, isSqlView } = useSmartsheetStoreOrThrow()
 const route = useRoute()
 const { $e } = useNuxtApp()
 const { t } = useI18n()
@@ -321,6 +326,7 @@ const {
   isFieldEditAllowed,
   isContextMenuAllowed,
   isDataEditAllowed,
+  removeInlineAddRecord,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -328,6 +334,7 @@ const {
   clearCache,
   chunkStates,
   totalRows,
+  actualTotalRows,
   loadData,
   scrollLeft,
   width,
@@ -599,6 +606,8 @@ function onActiveCellChanged() {
 }
 
 const onNewRecordToGridClick = (path: Array<number> = []) => {
+  if (showRecordPlanLimitExceededModal()) return
+
   setAddNewRecordGridMode(true)
 
   let overwrite = {}
@@ -613,7 +622,9 @@ const onNewRecordToGridClick = (path: Array<number> = []) => {
   isDropdownVisible.value = false
 }
 
-const onNewRecordToFormClick = (path: Array<number> = []) => {
+function onNewRecordToFormClick(path: Array<number> = []) {
+  if (showRecordPlanLimitExceededModal()) return
+
   setAddNewRecordGridMode(false)
   let overwrite = {}
 
@@ -1069,9 +1080,13 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       const element = _elementMap.findElementAt(x, y, [ElementTypes.ROW, ElementTypes.GROUP, ElementTypes.ADD_NEW_ROW])
       const group = element?.group
       const row = element?.row
+      const rowIndex = row?.rowMeta?.rowIndex ?? -1
+
       if (element?.isGroup) {
         toggleExpand(group)
       } else if (element?.isRow && row) {
+        if (removeInlineAddRecord.value && rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
+
         expandForm(row, undefined, false, group?.path)
       }
       requestAnimationFrame(triggerRefreshCanvas)
@@ -1252,6 +1267,8 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
+
+  if (removeInlineAddRecord.value && rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
 
   if (isAddNewRow && clickType === MouseClickType.SINGLE_CLICK && x < totalColumnsWidth.value - scrollLeft.value) {
     if (isAddingEmptyRowAllowed.value) {
@@ -1629,6 +1646,14 @@ const handleMouseMove = (e: MouseEvent) => {
       const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
 
       if (element) {
+        if (
+          removeInlineAddRecord.value &&
+          !element?.group &&
+          element?.rowIndex &&
+          element?.rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS
+        )
+          return
+
         hoverRow.value = {
           rowIndex: element?.rowIndex,
           path: generateGroupPath(element?.group),
@@ -1889,7 +1914,15 @@ function openColumnCreate(data: any) {
 }
 
 async function addEmptyRow(row?: number, skipUpdate = false, before?: string, overwrite = {}, path: Array<number> = []) {
+  if (showRecordPlanLimitExceededModal({ focusBtn: null })) return
+
+  if (removeInlineAddRecord.value && !skipUpdate && !before && !row && !path.length) {
+    onNewRecordToFormClick()
+    return
+  }
+
   const dataCache = getDataCache(path)
+
   clearInvalidRows?.(path, {
     onGroupRowChange,
   })
@@ -2157,6 +2190,18 @@ useActiveKeydownListener(
   },
   {
     isGridCell: true,
+    immediate: true,
+  },
+)
+
+watch(
+  removeInlineAddRecord,
+  (newValue) => {
+    if (isAddNewRecordGridMode.value && newValue) {
+      setAddNewRecordGridMode(!newValue)
+    }
+  },
+  {
     immediate: true,
   },
 )

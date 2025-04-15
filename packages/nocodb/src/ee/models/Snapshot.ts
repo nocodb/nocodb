@@ -1,7 +1,7 @@
-import { extractProps } from '../../helpers/extractProps';
-import { prepareForDb } from '../../utils/modelUtils';
-import type { SnapshotType } from 'nocodb-sdk';
+import { PlanLimitTypes, type SnapshotType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import { extractProps } from '~/helpers/extractProps';
+import { prepareForDb } from '~/utils/modelUtils';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import {
@@ -104,6 +104,12 @@ export default class Snapshot implements SnapshotType {
       insertObj,
     );
 
+    await NocoCache.incrHashField(
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE,
+      1,
+    );
+
     return this.get(context, id, ncMeta).then(async (res) => {
       await NocoCache.appendToList(
         CacheScope.SNAPSHOT,
@@ -150,6 +156,12 @@ export default class Snapshot implements SnapshotType {
     await NocoCache.deepDel(
       `${CacheScope.SNAPSHOT}:${snapshotId}`,
       CacheDelDirection.CHILD_TO_PARENT,
+    );
+
+    await NocoCache.incrHashField(
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE,
+      -1,
     );
 
     return res;

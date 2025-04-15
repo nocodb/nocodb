@@ -38,6 +38,8 @@ const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
+const { blockAddNewRecord } = useEeConfig()
+
 const isTransitioning = ref(false)
 
 const transitionName = ref<TransitionDirection>(TransitionDirection.Left)
@@ -377,6 +379,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                   <NcButton
                     :size="isMobileMode ? 'medium' : 'small'"
                     data-testid="nc-survey-form__fill-form-btn"
+                    :disabled="blockAddNewRecord"
                     @click="onStart()"
                   >
                     {{ $t('labels.fillForm') }}
@@ -485,7 +488,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             ? 'transform translate-y-[1px] translate-x-[1px] ring ring-accent ring-opacity-100'
                             : ''
                         "
-                        :disabled="fieldHasError"
+                        :disabled="fieldHasError || blockAddNewRecord"
                         data-testid="nc-survey-form__btn-submit-confirm"
                         @click="showSubmitConfirmModal"
                       >

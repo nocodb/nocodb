@@ -13,7 +13,11 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import Ajv from 'ajv';
-import { NcRequest } from 'nocodb-sdk';
+import {
+  NcRequest,
+  type PlanFeatureTypes,
+  type PlanLimitTypes,
+} from 'nocodb-sdk';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { planSchema } from '~/modules/payment/payment.helper';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
@@ -125,7 +129,9 @@ export class PaymentController {
   @UseGuards(GlobalGuard)
   @HttpCode(200)
   @Post('/api/payment/:workspaceOrOrgId/update-subscription')
-  @Acl('manageSubscription')
+  @Acl('manageSubscription', {
+    scope: 'workspace',
+  })
   async updateSubscription(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Body() payload: any,
@@ -141,7 +147,9 @@ export class PaymentController {
   @UseGuards(GlobalGuard)
   @HttpCode(200)
   @Delete('/api/payment/:workspaceOrOrgId/cancel-subscription')
-  @Acl('manageSubscription')
+  @Acl('manageSubscription', {
+    scope: 'workspace',
+  })
   async cancelSubscription(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Req() req: NcRequest,
@@ -152,7 +160,9 @@ export class PaymentController {
   @UseGuards(GlobalGuard)
   @HttpCode(200)
   @Post('/api/payment/:workspaceOrOrgId/recover-subscription')
-  @Acl('manageSubscription')
+  @Acl('manageSubscription', {
+    scope: 'workspace',
+  })
   async recoverSubscription(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
   ) {
@@ -162,7 +172,9 @@ export class PaymentController {
   @UseGuards(GlobalGuard)
   @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/get-session-result/:sessionId')
-  @Acl('manageSubscription')
+  @Acl('manageSubscription', {
+    scope: 'workspace',
+  })
   async getCheckoutSession(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Param('sessionId') sessionId: string,
@@ -173,7 +185,9 @@ export class PaymentController {
   @UseGuards(GlobalGuard)
   @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/customer-portal')
-  @Acl('manageSubscription')
+  @Acl('manageSubscription', {
+    scope: 'workspace',
+  })
   async getCustomerPortal(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Req() req: NcRequest,
@@ -184,7 +198,9 @@ export class PaymentController {
   @UseGuards(GlobalGuard)
   @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/invoice')
-  @Acl('manageSubscription')
+  @Acl('manageSubscription', {
+    scope: 'workspace',
+  })
   async getInvoice(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Query('starting_after') starting_after: string,
@@ -194,6 +210,20 @@ export class PaymentController {
       starting_after,
       ending_before,
     });
+  }
+
+  @UseGuards(GlobalGuard)
+  @HttpCode(200)
+  @Post('/api/payment/:workspaceOrOrgId/request-upgrade')
+  async requestUpgrade(
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Body()
+    payload: {
+      limitOrFeature: PlanLimitTypes | PlanFeatureTypes;
+    },
+    @Req() req: NcRequest,
+  ) {
+    return this.paymentService.requestUpgrade(workspaceOrOrgId, payload, req);
   }
 
   @Post('/api/payment/webhook')

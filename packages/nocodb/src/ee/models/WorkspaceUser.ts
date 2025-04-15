@@ -93,6 +93,10 @@ export default class WorkspaceUser {
         `${CacheScope.WORKSPACE}:${workspaceUser.fk_workspace_id}:userCount`,
       );
 
+      await NocoCache.del(
+        `${CacheScope.RESOURCE_STATS}:workspace:${workspaceUser.fk_workspace_id}`,
+      );
+
       // clear base user list caches
       const bases = await Base.listByWorkspace(
         workspaceUser.fk_workspace_id,
@@ -462,6 +466,10 @@ export default class WorkspaceUser {
       }
     }
 
+    await NocoCache.del(
+      `${CacheScope.RESOURCE_STATS}:workspace:${workspaceId}`,
+    );
+
     cleanCommandPaletteCacheForUser(userId).catch(() => {
       logger.error('Error cleaning command palette cache');
     });
@@ -482,6 +490,9 @@ export default class WorkspaceUser {
     );
 
     await NocoCache.del(`${CacheScope.WORKSPACE}:${workspaceId}:userCount`);
+    await NocoCache.del(
+      `${CacheScope.RESOURCE_STATS}:workspace:${workspaceId}`,
+    );
 
     cleanCommandPaletteCacheForUser(userId).catch(() => {
       logger.error('Error cleaning command palette cache');
@@ -507,6 +518,9 @@ export default class WorkspaceUser {
       CacheDelDirection.CHILD_TO_PARENT,
     );
     await NocoCache.del(`${CacheScope.WORKSPACE}:${workspaceId}:userCount`);
+    await NocoCache.del(
+      `${CacheScope.RESOURCE_STATS}:workspace:${workspaceId}`,
+    );
 
     cleanCommandPaletteCacheForUser(userId).catch(() => {
       logger.error('Error cleaning command palette cache');
@@ -525,6 +539,9 @@ export default class WorkspaceUser {
       CacheDelDirection.CHILD_TO_PARENT,
     );
     await NocoCache.del(`${CacheScope.WORKSPACE}:${workspaceId}:userCount`);
+    await NocoCache.del(
+      `${CacheScope.RESOURCE_STATS}:workspace:${workspaceId}`,
+    );
   }
 
   static async getByToken(

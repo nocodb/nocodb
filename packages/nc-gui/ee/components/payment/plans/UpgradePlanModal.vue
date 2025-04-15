@@ -48,10 +48,6 @@ const handleProceed = async () => {
     isLoading.value = false
   }
 }
-
-watchEffect(() => {
-  console.log('price', priceInfo.value, upgradePlan.value)
-})
 </script>
 
 <template>

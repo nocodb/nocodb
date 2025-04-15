@@ -28,6 +28,7 @@ export function useKeyboardNavigation({
   handleCellKeyDown,
   isGroupBy,
   getDataCache,
+  removeInlineAddRecord,
 }: {
   isGroupBy: ComputedRef<boolean>
   activeCell: Ref<{ row: number; column: number; path?: Array<number> }>
@@ -68,6 +69,7 @@ export function useKeyboardNavigation({
     selectedRows: ComputedRef<Array<Row>>
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
+  removeInlineAddRecord: Ref<boolean>
 }) {
   const { isDataReadOnly } = useRoles()
   const { $e } = useNuxtApp()
@@ -121,6 +123,9 @@ export function useKeyboardNavigation({
         const row = cachedRows.value.get(activeCell.value.row)
 
         if (!row) return
+
+        if (removeInlineAddRecord.value && row.rowMeta.rowIndex && row.rowMeta.rowIndex > EXTERNAL_SOURCE_VISIBLE_ROWS) return
+
         expandForm(row, undefined, false, groupPath)
         return
       }
@@ -193,6 +198,8 @@ export function useKeyboardNavigation({
         ) {
           e.preventDefault()
           if (selection.value.isSingleCell()) {
+            if (removeInlineAddRecord.value && activeCell.value.row >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
+
             await clearCell?.({
               row: activeCell.value.row,
               col: activeCell.value.column,
@@ -213,7 +220,12 @@ export function useKeyboardNavigation({
           const column = columns.value[activeCell.value.column]
           if (column?.columnObj?.uidt) {
             if (!NO_EDITABLE_CELL.includes(column.columnObj.uidt as UITypes) && !column.columnObj.readonly) {
+              if (removeInlineAddRecord.value && activeCell.value.row && activeCell.value.row >= EXTERNAL_SOURCE_VISIBLE_ROWS) {
+                return
+              }
+
               const row = cachedRows.value.get(activeCell.value.row)
+
               makeCellEditable(row, columns.value[activeCell.value.column]!)
               selection.value.clear()
             }

@@ -97,7 +97,9 @@ const props = withDefaults(defineProps<NcConfirmModalProps>(), {
 
 const emits = defineEmits<Emits>()
 
-const { visible: _visible, title, ...restProps } = props
+const { visible: _visible, ...restProps } = props
+
+const initialFocus = ref<boolean>(false)
 
 interface Emits {
   (e: 'update:visible', value: boolean): void
@@ -157,17 +159,56 @@ const onClickCancel = () => {
 watch(cancelBtnRef, () => {
   if (!cancelBtnRef.value?.$el || props.focusBtn !== 'cancel') return
   ;(cancelBtnRef.value?.$el as HTMLButtonElement)?.focus()
+  initialFocus.value = true
 })
 
 /** Watches for OK button reference and sets focus if applicable */
 watch(okBtnRef, () => {
   if (!okBtnRef.value?.$el || props.focusBtn !== 'ok') return
   ;(okBtnRef.value?.$el as HTMLButtonElement)?.focus()
+  initialFocus.value = true
 })
+
+useSelectedCellKeydownListener(
+  vModel,
+  (e: KeyboardEvent) => {
+    switch (e.key) {
+      case 'Enter':
+        if (
+          isActiveInputElementExist() ||
+          isActiveButtonOrLinkElementExist() ||
+          !document.activeElement?.closest('.nc-modal-confirm-wrapper')
+        ) {
+          return
+        }
+
+        emits('ok')
+        break
+      case 'Tab':
+        if (initialFocus.value) {
+          e.preventDefault()
+
+          initialFocus.value = false
+
+          // if focusBtn provided set first focus to the button on first tab
+          if (props.focusBtn === 'cancel') {
+            cancelBtnRef.value?.$el?.focus()
+          } else {
+            okBtnRef.value?.$el?.focus()
+          }
+        }
+        break
+    }
+  },
+  {
+    immediate: true,
+    isGridCell: false,
+  },
+)
 </script>
 
 <template>
-  <NcModal v-bind="restProps" v-model:visible="vModel">
+  <NcModal v-bind="restProps" v-model:visible="vModel" title="" wrap-class-name="nc-modal-confirm-wrapper">
     <div class="nc-modal-confirm flex flex-col gap-5" :class="[`nc-modal-confirm-type-${type}`]">
       <div class="flex gap-4">
         <div v-if="showIcon" class="nc-modal-confirm-icon-wrapper">
@@ -175,9 +216,12 @@ watch(okBtnRef, () => {
             <GeneralIcon :icon="iconName" class="nc-confirm-modal-icon" />
           </slot>
         </div>
-        <div class="flex flex-col gap-2">
-          <div class="nc-modal-confirm-title" :class="titleClass">
-            <slot name="title">{{ title }}</slot>
+        <div class="flex-1 flex flex-col gap-2">
+          <div class="flex items-start gap-3">
+            <div class="nc-modal-confirm-title" :class="titleClass">
+              <slot name="title">{{ title }}</slot>
+            </div>
+            <slot name="headerAction"></slot>
           </div>
           <div v-if="content || $slots.content" class="nc-modal-confirm-content" :class="contentClass">
             <slot name="content">{{ content }}</slot>
@@ -187,21 +231,23 @@ watch(okBtnRef, () => {
 
       <div class="flex flex-row w-full justify-end gap-4">
         <NcButton
-          v-bind="cancelProps"
           ref="cancelBtnRef"
           :type="cancelProps?.type ?? 'secondary'"
           size="small"
           :class="cancelClass"
+          v-bind="cancelProps"
+          :hide-focus="initialFocus"
           @click="onClickCancel"
         >
           {{ cancelText || $t('general.cancel') }}
         </NcButton>
         <NcButton
-          v-bind="okProps"
           ref="okBtnRef"
           :type="okProps?.type ?? 'primary'"
           size="small"
           :class="okClass"
+          v-bind="okProps"
+          :hide-focus="initialFocus"
           @click="emits('ok')"
         >
           {{ okText || $t('general.ok') }}
@@ -222,7 +268,7 @@ watch(okBtnRef, () => {
   }
 
   .nc-modal-confirm-title {
-    @apply text-base text-nc-content-gray font-weight-700;
+    @apply text-base text-nc-content-gray font-weight-700 flex-1;
   }
 
   .nc-modal-confirm-content {
@@ -252,5 +298,11 @@ watch(okBtnRef, () => {
       @apply text-nc-content-brand;
     }
   }
+}
+</style>
+
+<style lang="scss">
+.nc-modal-confirm-wrapper {
+  @apply z-1050;
 }
 </style>

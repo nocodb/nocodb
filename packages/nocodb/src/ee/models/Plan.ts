@@ -1,4 +1,4 @@
-import { PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
+import { ncIsBoolean, PlanLimitTypes, PlanOrder, PlanTitles } from 'nocodb-sdk';
 import { PlanFeatureTypes } from 'nocodb-sdk';
 import type Stripe from 'stripe';
 import {
@@ -11,6 +11,10 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+
+const sortPlan = (a: Plan, b: Plan) => {
+  return (PlanOrder[a.title] ?? 0) - (PlanOrder[b.title] ?? 0);
+};
 
 export default class Plan {
   id: string;
@@ -44,29 +48,21 @@ export default class Plan {
   public static prepare(data: Partial<Plan>): Plan {
     const response = prepareForResponse(data, ['prices', 'meta']);
 
-    const limits: Record<string, number> = {
-      ...GenericLimits,
-    };
-    const features: Record<string, boolean> = {
-      ...GenericFeatures,
-    };
     const descriptions: string[] = [];
 
     for (const [key, value] of Object.entries(
       (response.meta || {}) as Record<string, string>,
     )) {
       if (key.startsWith('limit_')) {
-        limits[key] = +value;
+        response.meta[key] = +value;
       } else if (key.startsWith('feature_')) {
-        features[key] = !!value;
+        response.meta[key] = ncIsBoolean(value) ? value : value === 'true';
       } else if (key.startsWith('description_')) {
         descriptions.push(value);
       }
     }
 
     Object.assign(response, {
-      limits,
-      features,
       descriptions,
     });
 
@@ -161,11 +157,7 @@ export default class Plan {
       MetaTable.PLANS,
     );
 
-    return plans
-      .map((plan) => this.prepare(plan))
-      .sort((a, b) => {
-        return a.prices[0].unit_amount - b.prices[0].unit_amount;
-      });
+    return plans.map((plan) => this.prepare(plan)).sort(sortPlan);
   }
 
   static async getWithCondition(
@@ -181,11 +173,7 @@ export default class Plan {
       },
     );
 
-    return plans
-      .map((plan) => this.prepare(plan))
-      .sort((a, b) => {
-        return a.prices[0].unit_amount - b.prices[0].unit_amount;
-      });
+    return plans.map((plan) => this.prepare(plan)).sort(sortPlan);
   }
 }
 
@@ -210,6 +198,7 @@ export const GenericFeatures = {
   [PlanFeatureTypes.FEATURE_DISCUSSION_MODE]: false,
   [PlanFeatureTypes.FEATURE_EXTENSIONS]: false,
   [PlanFeatureTypes.FEATURE_FILE_MODE]: false,
+  [PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION]: false,
   [PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO]: false,
   [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]: false,
   [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]: false,
@@ -221,6 +210,12 @@ export const GenericFeatures = {
   [PlanFeatureTypes.FEATURE_SSO]: false,
   [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]: false,
 } as const;
+
+export const GraceLimits = {
+  [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 100000,
+  [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 10000,
+  [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 10000,
+};
 
 const legacyLimitAndFeatures = {
   [PlanLimitTypes.LIMIT_EDITOR]: 50,
@@ -246,6 +241,7 @@ const legacyLimitAndFeatures = {
   [PlanFeatureTypes.FEATURE_DISCUSSION_MODE]: true,
   [PlanFeatureTypes.FEATURE_EXTENSIONS]: true,
   [PlanFeatureTypes.FEATURE_FILE_MODE]: true,
+  [PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION]: true,
   [PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO]: true,
   [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]: true,
   [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]: true,
@@ -265,7 +261,7 @@ export const FreePlan = Plan.prepare({
     ...GenericLimits,
     ...GenericFeatures,
     // Free plan specific limits
-    [PlanLimitTypes.LIMIT_EDITOR]: 5,
+    [PlanLimitTypes.LIMIT_EDITOR]: 3,
     [PlanLimitTypes.LIMIT_COMMENTER]: 10,
     [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 1000,
     [PlanLimitTypes.LIMIT_API_CALL]: 1000,
@@ -273,9 +269,9 @@ export const FreePlan = Plan.prepare({
     [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 0,
     [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 14,
     [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 1,
-    [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 1024,
+    [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 1000,
     [PlanLimitTypes.LIMIT_API_PER_SECOND]: 5,
-    [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: 3,
+    [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: 50,
     [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: 1,
     [PlanLimitTypes.LIMIT_AI_TOKEN]: 0,
     [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 0,

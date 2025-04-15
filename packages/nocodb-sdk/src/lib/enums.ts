@@ -45,6 +45,7 @@ export enum AppEvents {
   WORKSPACE_CREATE = 'workspace.create',
   WORKSPACE_DELETE = 'workspace.delete',
   WORKSPACE_UPDATE = 'workspace.update',
+  WORKSPACE_UPGRADE_REQUEST = 'workspace.upgrade.request',
 
   USER_SIGNUP = 'user.signup',
   USER_SIGNIN = 'user.signin',

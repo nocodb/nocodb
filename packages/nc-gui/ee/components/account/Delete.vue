@@ -151,7 +151,8 @@ const onDeleteConfirm = async () => {
 
     <div class="flex flex-row gap-x-2 w-full justify-end mt-8">
       <NcButton
-        type="danger"
+        type="secondary"
+        class="nc-custom-daner-btn"
         data-testid="nc-account-settings-delete"
         :loading="loadingToBeDeleted"
         size="small"

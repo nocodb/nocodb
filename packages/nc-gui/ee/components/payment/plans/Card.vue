@@ -4,6 +4,7 @@ import { HigherPlan, PlanOrder, PlanTitles } from 'nocodb-sdk'
 const props = defineProps<{
   plan: PaymentPlan
   activePlan?: PlanTitles
+  activeBtnPlanTitle?: PlanTitles
 }>()
 
 const popularPlan = PlanTitles.TEAM
@@ -21,6 +22,26 @@ const PrevPlanTitleFromCurrentPlan = {
 const { onSelectPlan, getPlanPrice, activeSubscription, paymentMode } = usePaymentStoreOrThrow()
 
 const price = computed(() => getPlanPrice(props.plan))
+
+const upgradePlanBtnType = computed(() => {
+  if (props.activeBtnPlanTitle) {
+    if (props.plan.title === props.activeBtnPlanTitle) {
+      return 'primary'
+    } else {
+      return 'secondary'
+    }
+  }
+
+  if (!activeSubscription.value && props.plan.title === popularPlan) {
+    return 'primary'
+  }
+
+  if (activeSubscription.value && props.activePlan && props.plan.title === HigherPlan[props.activePlan]) {
+    return 'primary'
+  }
+
+  return 'secondary'
+})
 </script>
 
 <template>
@@ -59,7 +80,7 @@ const price = computed(() => getPlanPrice(props.plan))
         <span class="text-[40px] leading-[62px] font-weight-700 mr-2">
           {{ price }}
         </span>
-        {{ $t('title.editorMonth') }}
+        {{ $t('title.seatMonth') }}
       </div>
     </div>
 
@@ -107,12 +128,7 @@ const price = computed(() => getPlanPrice(props.plan))
     </NcButton>
     <NcButton
       v-else
-      :type="
-        (!activeSubscription && plan.title === popularPlan) ||
-        (activeSubscription && activePlan && HigherPlan[activePlan] === plan.title)
-          ? 'primary'
-          : 'secondary'
-      "
+      :type="upgradePlanBtnType"
       size="medium"
       class="w-full"
       :disabled="plan.title === PlanTitles.FREE && activeSubscription?.canceled_at"

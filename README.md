@@ -59,7 +59,6 @@ A single image that contains
 - 🇳  NocoDB,
 - 🐘 PostgreSQL,
 - ⚡ Valkey(Redis), 
-- 🗄 Minio, 
 - 🌐 nginx gateway.
 - 🔒 automated SSL certs and auto renew
 read more on our [wiki](/getting-started/self-hosted/installation/docker-aio)
@@ -68,7 +67,6 @@ read more on our [wiki](/getting-started/self-hosted/installation/docker-aio)
 docker run \
 	--tmpfs /run:nodev,nosuid,exec,mode=0755 \
 	-v "($pwd)"/aio:/var \
-	-p 9000:9000 \
 	-p 80:8080 \
 	-it nocodb/nocodb_aio:latest
 ```

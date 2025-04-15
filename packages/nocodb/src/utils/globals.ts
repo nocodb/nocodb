@@ -203,6 +203,7 @@ export enum CacheScope {
   SCRIPTS = 'nc_scripts',
   SYNC_CONFIGS = 'syncConfigs',
   USAGE_STATS = 'usageStats',
+  RESOURCE_STATS = 'resourceStats',
 }
 
 export enum CacheGetType {

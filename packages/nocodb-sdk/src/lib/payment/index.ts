@@ -35,6 +35,7 @@ export enum PlanFeatureTypes {
   FEATURE_DISCUSSION_MODE = 'feature_discussion_mode',
   FEATURE_EXTENSIONS = 'feature_extensions',
   FEATURE_FILE_MODE = 'feature_file_mode',
+  FEATURE_FORM_URL_REDIRECTION = 'feature_form_url_redirection',
   FEATURE_FORM_CUSTOM_LOGO = 'feature_form_custom_logo',
   FEATURE_FORM_FIELD_ON_CONDITION = 'feature_form_field_on_condition',
   FEATURE_FORM_FIELD_VALIDATION = 'feature_form_field_validation',

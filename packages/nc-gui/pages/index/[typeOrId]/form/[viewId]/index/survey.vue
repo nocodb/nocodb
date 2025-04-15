@@ -507,7 +507,7 @@ const { message: templatedMessage } = useTemplatedMessage(
           </Transition>
         </template>
       </div>
-      <div class="lg:(absolute bottom-0 left-0 right-0 px-4 pb-4) lg:px-10 lg:pb-10 pointer-events-none">
+      <div class="lg:(absolute bottom-0 right-0 px-4 pb-4) lg:px-10 lg:pb-10">
         <div class="flex justify-end items-center gap-4 nc-survey-form-branding">
           <div class="flex justify-center">
             <GeneralFormBranding

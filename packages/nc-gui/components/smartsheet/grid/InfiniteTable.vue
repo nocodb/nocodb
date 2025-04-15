@@ -1092,7 +1092,7 @@ async function saveEmptyRow(rowObj: Row, before?: string) {
 }
 
 async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
-  if (showRecordPlanLimitExceededModal()) return
+  if (showRecordPlanLimitExceededModal({ focusBtn: null })) return
 
   clearInvalidRows?.()
   if (rowSortRequiredRows.value.length) {

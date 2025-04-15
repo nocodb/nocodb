@@ -39,6 +39,7 @@ import {
 import { parseKey } from '../../../../../utils/groupbyUtils'
 import type { CanvasElement } from '../utils/CanvasElement'
 import { ElementTypes } from '../utils/CanvasElement'
+import type { RenderTagProps } from '../utils/types'
 
 export function useCanvasRender({
   width,
@@ -173,6 +174,7 @@ export function useCanvasRender({
   const colResizeHoveredColIds = ref(new Set())
   const { tryShowTooltip } = useTooltipStore()
   const { isMobileMode, isAddNewRecordGridMode, appInfo } = useGlobal()
+  const { isWsOwner } = useEeConfig()
   const isLocked = inject(IsLockedInj, ref(false))
 
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
@@ -935,14 +937,14 @@ export function useCanvasRender({
   }
 
   const renderUpgradeModalInline = (ctx: CanvasRenderingContext2D, yOffset: number) => {
-    if (!removeInlineAddRecord.value || isGroupBy.value) return
+    if (!removeInlineAddRecord.value) return
 
-    yOffset = yOffset + 50
+    yOffset = yOffset + 120
 
     const { lines } = renderMultiLineText(ctx, {
       x: width.value / 2,
       y: yOffset,
-      text: 'Upgrade to view all records from external Datasources',
+      text: t('upgrade.upgradeToSeeMoreRecordInline'),
       maxWidth: Math.min(width.value, 520),
       fillStyle: '#101015',
       fontFamily: `700 16px Manrope`,
@@ -959,9 +961,11 @@ export function useCanvasRender({
     const { lines: subtitleLines } = renderMultiLineText(ctx, {
       x: width.value / 2,
       y: yOffset,
-      text: `You're viewing 100 of ${totalRecords} records. Unlock access to the remaining ${
-        totalRecords - 100
-      } records by upgrading to the Team plan.`,
+      text: t('upgrade.upgradeToSeeMoreRecordInlineSubtitle', {
+        limit: 100,
+        total: totalRecords,
+        remaining: totalRecords - 100,
+      }),
       maxWidth: Math.min(width.value, 520),
       fillStyle: '#4A5268',
       fontFamily: `500 14px Manrope`,
@@ -977,9 +981,10 @@ export function useCanvasRender({
       return renderSingleLineText(ctx, {
         x: xOffset + 10,
         y: yOffset,
-        text: 'Learn More',
+        text: t('msg.learnMore'),
         maxWidth: 120,
         height: 32,
+        verticalAlign: 'middle',
         fontFamily: '600 14px Manrope',
         fillStyle: '#374151',
         isTagLabel: true,
@@ -991,9 +996,10 @@ export function useCanvasRender({
       return renderSingleLineText(ctx, {
         x: xOffset + 10,
         y: yOffset,
-        text: 'Upgrade',
+        text: isWsOwner.value ? t('general.upgrade') : t('general.requestUpgrade'),
         maxWidth: 120,
         height: 32,
+        verticalAlign: 'middle',
         fontFamily: '600 14px Manrope',
         fillStyle: 'white',
         isTagLabel: true,
@@ -1011,17 +1017,26 @@ export function useCanvasRender({
     const buttonsWidth = learnMoreBtnInfo.width + 10 * 2 + UpgradeBtnInfo.width + 10 * 2 + 12
 
     let xOffSet = width.value / 2 - buttonsWidth / 2
+    yOffset = yOffset + 20
 
     const isLearnMoreBtnHovered = isBoxHovered(
-      { x: xOffSet, y: yOffset, width: learnMoreBtnInfo.width + 10 * 2, height: 132 },
+      { x: xOffSet, y: yOffset, width: learnMoreBtnInfo.width + 10 * 2, height: 32 },
       mousePosition,
     )
 
-    renderTag(ctx, {
+    const _renderTag = (params: Partial<RenderTagProps>) => {
+      renderTag(ctx, {
+        x: xOffSet,
+        radius: 8,
+        y: yOffset,
+        height: 32,
+        width: 100,
+        ...params,
+      })
+    }
+
+    _renderTag({
       x: xOffSet,
-      radius: 8,
-      y: yOffset,
-      height: 32,
       width: learnMoreBtnInfo.width + 10 * 2,
       borderColor: '#E7E7E9',
       borderWidth: 1,
@@ -1031,17 +1046,13 @@ export function useCanvasRender({
     renderLearnMoreBtn(true, xOffSet)
 
     const isUpgradeBtnHovered = isBoxHovered(
-      { x: xOffSet + learnMoreBtnInfo.width + 10 * 2 + 12, y: yOffset, width: UpgradeBtnInfo.width + 10 * 2, height: 132 },
+      { x: xOffSet + learnMoreBtnInfo.width + 10 * 2 + 12, y: yOffset, width: UpgradeBtnInfo.width + 10 * 2, height: 32 },
       mousePosition,
     )
-    renderTag(ctx, {
+
+    _renderTag({
       x: xOffSet + learnMoreBtnInfo.width + 10 * 2 + 12,
-      radius: 8,
-      y: yOffset,
-      height: 32,
       width: UpgradeBtnInfo.width + 10 * 2,
-      borderColor: '#E7E7E9',
-      borderWidth: 1,
       fillStyle: isUpgradeBtnHovered ? themeV3Colors.brand['600'] : themeV3Colors.brand['500'],
     })
 

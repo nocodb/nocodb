@@ -439,10 +439,12 @@ const isClamped = computed(() => {
 })
 
 const totalHeight = computed(() => {
+  const additionalPadding = removeInlineAddRecord.value ? 412 : 256
+
   // For non-grouped view, use original calculation
   if (!isGroupBy.value) {
     const dataCache = getDataCache()
-    return dataCache.totalRows.value * rowHeight.value + 32 + 256
+    return dataCache.totalRows.value * rowHeight.value + 32 + additionalPadding
   }
 
   // Add height for all top-level groups
@@ -471,7 +473,8 @@ const totalHeight = computed(() => {
     }
     return sum
   }
-  return rootGroupsHeight + estimateTotalHeight(cachedGroups.value) + 32 + 256 // Additional padding
+
+  return rootGroupsHeight + estimateTotalHeight(cachedGroups.value) + 32 + additionalPadding // Additional padding
 })
 
 const isContextMenuOpen = computed({

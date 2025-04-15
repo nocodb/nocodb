@@ -178,7 +178,7 @@ export default class Hook implements HookType {
     );
 
     await NocoCache.incrHashField(
-      `${CacheScope.RESOURCE_STATS}:${context.workspace_id}`,
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE,
       1,
     );
@@ -270,7 +270,7 @@ export default class Hook implements HookType {
     );
 
     await NocoCache.incrHashField(
-      `${CacheScope.RESOURCE_STATS}:${context.workspace_id}`,
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE,
       -1,
     );

@@ -63,7 +63,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const { isUIAllowed } = useRoles()
 
-  const { handleUpgradePlan } = useEeConfig()
+  const { handleUpgradePlan, isPaymentEnabled } = useEeConfig()
 
   // getters
   const displayValue = computed(() => {
@@ -121,7 +121,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     } catch (e: any) {
       const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
-      if (errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+      if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
         const details = errorInfo.details as PlanLimitExceededDetailsType
 
         handleUpgradePlan({

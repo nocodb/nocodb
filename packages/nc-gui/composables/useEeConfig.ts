@@ -19,6 +19,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isAllowToAddExtension = computed(() => true)
 
+  const blockAddNewExtension = computed(() => false)
+
   const blockAddNewAttachment = computed(() => false)
 
   const blockAddNewExternalSource = computed(() => false)
@@ -82,6 +84,7 @@ export const useEeConfig = createSharedComposable(() => {
     navigateToBilling,
     isWsAuditEnabled,
     isAllowToAddExtension,
+    blockAddNewExtension,
     blockAddNewAttachment,
     showStoragePlanLimitExceededModal,
     blockAddNewExternalSource,

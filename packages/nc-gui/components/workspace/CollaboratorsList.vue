@@ -16,7 +16,7 @@ const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspac
 
 const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading } = storeToRefs(workspaceStore)
 
-const { showUserPlanLimitExceededModal } = useEeConfig()
+const { isPaymentEnabled, showUserPlanLimitExceededModal } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
   if (props.workspaceId) {
@@ -94,7 +94,7 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
   } catch (e: any) {
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
-    if (errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+    if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
       const details = errorInfo.details as PlanLimitExceededDetailsType
 
       showUserPlanLimitExceededModal({
@@ -255,7 +255,7 @@ const isDeleteOrUpdateAllowed = (user) => {
                   </template>
                   {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
                 </NcTooltip>
-                <div v-if="parseProp(record.meta).billable" class="flex items-center">
+                <div v-if="isPaymentEnabled && parseProp(record.meta).billable" class="flex items-center">
                   <NcBadge
                     :border="false"
                     color="maroon"

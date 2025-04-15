@@ -25,7 +25,7 @@ const { $api } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { showUserPlanLimitExceededModal } = useEeConfig()
+const { isPaymentEnabled, showUserPlanLimitExceededModal } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -145,7 +145,7 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
   } catch (e: any) {
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
-    if (errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+    if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
       const details = errorInfo.details as PlanLimitExceededDetailsType
 
       showUserPlanLimitExceededModal({

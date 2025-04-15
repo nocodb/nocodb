@@ -4,6 +4,7 @@ import {
   ModelTypes,
   MssqlUi,
   PlanFeatureTypes,
+  PlanTitles,
   RelationTypes,
   SqliteUi,
   UITypes,
@@ -35,6 +36,8 @@ const viewsStore = useViewsStore()
 const { viewsByTable } = storeToRefs(viewsStore)
 
 const { t } = useI18n()
+
+const { getPlanTitle } = useEeConfig()
 
 if (!isEdit.value) {
   setAdditionalValidations({
@@ -395,7 +398,11 @@ const onFilterLabelClick = () => {
               <LazyPaymentUpgradeBadge
                 v-if="!limitRecToCond"
                 :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER"
-                :content="$t('upgrade.upgradeToHideFormBrandingSubtitle')"
+                :content="
+                  $t('upgrade.UpgradeToPlanToAccessThisFeature', {
+                    plan: getPlanTitle(PlanTitles.TEAM),
+                  })
+                "
               />
             </div>
           </template>

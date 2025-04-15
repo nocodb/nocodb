@@ -176,8 +176,11 @@ watch(okBtnRef, () => {
           </slot>
         </div>
         <div class="flex flex-col gap-2">
-          <div class="nc-modal-confirm-title" :class="titleClass">
-            <slot name="title">{{ title }}</slot>
+          <div class="flex items-center gap-3">
+            <div class="nc-modal-confirm-title" :class="titleClass">
+              <slot name="title">{{ title }}</slot>
+            </div>
+            <slot name="headerAction"></slot>
           </div>
           <div v-if="content || $slots.content" class="nc-modal-confirm-content" :class="contentClass">
             <slot name="content">{{ content }}</slot>
@@ -222,7 +225,7 @@ watch(okBtnRef, () => {
   }
 
   .nc-modal-confirm-title {
-    @apply text-base text-nc-content-gray font-weight-700;
+    @apply text-base text-nc-content-gray font-weight-700 flex-1;
   }
 
   .nc-modal-confirm-content {

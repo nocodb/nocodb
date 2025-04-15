@@ -281,7 +281,7 @@ const isDeleteOrUpdateAllowed = (user) => {
                     color="maroon"
                     class="text-nc-content-maroon-dark text-[10px] leading-[14px] !h-[18px] font-semibold"
                   >
-                    {{ activePlanTitle === PlanTitles.FREE ? $t('general.billable') : $t('general.paid') }}
+                    {{ $t('general.paid') }}
                   </NcBadge>
                 </NcTooltip>
               </div>

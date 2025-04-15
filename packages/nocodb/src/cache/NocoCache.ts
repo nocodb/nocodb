@@ -137,6 +137,9 @@ export default class NocoCache {
     } = {},
   ): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
+    if (Object.keys(hash).length === 0) {
+      return;
+    }
     return !!this.client.setHash(`${this.prefix}:${key}`, hash, options);
   }
 

@@ -765,14 +765,7 @@ export function useMultiSelect(
         } else {
           selectedRange.clear()
 
-          if (
-            activeCell.row <
-            (isArrayStructure
-              ? (unref(data) as Row[]).length
-              : removeInlineAddRecord.value
-              ? Math.min(100, unref(_totalRows!)) - 1
-              : unref(_totalRows!))
-          ) {
+          if (activeCell.row < (isArrayStructure ? (unref(data) as Row[]).length : unref(_totalRows!))) {
             activeCell.row++
             selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
             scrollToCell?.()
@@ -783,6 +776,8 @@ export function useMultiSelect(
         break
       case 'Enter': {
         selectedRange.clear()
+
+        if (removeInlineAddRecord.value && activeCell.row >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
 
         let row
 
@@ -863,6 +858,11 @@ export function useMultiSelect(
 
           if (unref(editEnabled) || e.ctrlKey || e.altKey || e.metaKey) {
             return true
+          }
+          // Disable edit cell if it is external free source and row index is more than EXTERNAL_SOURCE_VISIBLE_ROWS
+          if (removeInlineAddRecord.value && activeCell.row > EXTERNAL_SOURCE_VISIBLE_ROWS) {
+            e.preventDefault()
+            return
           }
 
           if (isSqlView.value) return

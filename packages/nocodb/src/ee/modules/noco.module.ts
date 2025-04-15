@@ -113,7 +113,6 @@ export const nocoModuleEeMetadata = {
     AclMiddleware,
   ],
   controllers: [
-    ...nocoModuleMetadata.controllers,
 
     ActionsController,
     InternalController,
@@ -144,6 +143,7 @@ export const nocoModuleEeMetadata = {
 
     /* Scripts */
     ScriptsController,
+    ...nocoModuleMetadata.controllers,
   ],
   exports: [
     ...nocoModuleMetadata.exports,

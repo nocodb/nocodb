@@ -37,7 +37,12 @@ export class WorkspacesController {
   ) {}
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  @Get(['/api/v1/workspaces/', '/api/v2/meta/workspaces/'])
+  @Get([
+    // '/api/v1/workspaces',
+    // '/api/v2/meta/workspaces',
+    '/api/v1/workspaces/',
+    '/api/v2/meta/workspaces/',
+  ])
   @Acl('workspaceList', {
     scope: 'org',
   })

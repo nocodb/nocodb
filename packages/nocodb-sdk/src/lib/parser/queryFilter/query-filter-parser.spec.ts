@@ -280,7 +280,7 @@ describe('query-filter-parser', () => {
       const result = QueryFilterParser.parse(text);
       const message = parseParsingError(result.parseErrors[0]);
       expect(message).toBe(
-        `Invalid filter expression. Expected a valid logical operator like '~not', but found 'not'.`
+        `Invalid filter syntax: expected a logical operator like '~not' or opening parenthesis, but found 'not'.`
       );
     });
   });

@@ -7,7 +7,6 @@ export const parseLexingError = (e: ILexingError) => {
 
 export const parseParsingError = (e: IRecognitionException) => {
   if (e.message.toLowerCase().startsWith('expecting token of type --> ')) {
-    console.log('starts with');
     const operatorRegex =
       /^Expecting token of type --> ([^\s]+) <-- but found --> '?([^\s']+)'? <--.?/i;
     const tokens = e.message.match(operatorRegex);

@@ -80,7 +80,13 @@ onBeforeMount(async () => {
 
 <template>
   <a-skeleton v-if="isLoading" />
-  <div v-else class="h-full">
+  <div
+    v-else
+    class="h-full"
+    :class="{
+      'flex items-center justify-center': !hookLogs.length,
+    }"
+  >
     <!--    <a-card class="!mb-[20px]" :body-style="{ padding: '10px' }">
       <span v-if="appInfo.automationLogLevel === AutomationLogLevel.OFF">
         The NC_AUTOMATION_LOG_LEVEL is set to “OFF”, no logs will be displayed.

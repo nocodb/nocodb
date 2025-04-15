@@ -1016,7 +1016,7 @@ export function useCanvasRender({
      */
     const buttonsWidth = learnMoreBtnInfo.width + 10 * 2 + UpgradeBtnInfo.width + 10 * 2 + 12
 
-    let xOffSet = width.value / 2 - buttonsWidth / 2
+    const xOffSet = width.value / 2 - buttonsWidth / 2
     yOffset = yOffset + 20
 
     const isLearnMoreBtnHovered = isBoxHovered(

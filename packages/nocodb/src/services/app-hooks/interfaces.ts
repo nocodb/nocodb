@@ -446,7 +446,10 @@ export interface DataExportEvent extends NcBaseEvent {
 export interface WorkspaceRequestUpgradeEvent extends NcBaseEvent {
   workspace: WorkspaceType;
   user: UserType;
-  requester: UserType;
+  requester: {
+    email?: string;
+    display_name?: string;
+  };
   limitOrFeature: PlanLimitTypes | PlanFeatureTypes;
 }
 

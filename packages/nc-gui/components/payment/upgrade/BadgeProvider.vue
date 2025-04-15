@@ -28,4 +28,4 @@ const onClick = (feature: PlanFeatureTypes, successCallback?: (...arg: any[]) =>
 }
 </script>
 
-<template><slot :isFeatureEnabled="isFeatureEnabled" :click="onClick" /></template>
+<template><slot :is-feature-enabled="isFeatureEnabled" :click="onClick" /></template>

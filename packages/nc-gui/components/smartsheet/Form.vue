@@ -1852,8 +1852,8 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     />
                                   </span>
                                   <a-switch
-                                    :checked="isOpenRedirectUrl"
                                     v-e="[`a:form-view:redirect-url`]"
+                                    :checked="isOpenRedirectUrl"
                                     size="small"
                                     class="nc-form-checkbox-redirect-url"
                                     data-testid="nc-form-checkbox-redirect-url"

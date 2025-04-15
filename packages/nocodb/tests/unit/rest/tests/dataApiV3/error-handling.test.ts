@@ -214,6 +214,24 @@ describe('dataApiV3', () => {
       );
     });
 
+    it('invalid filter operator', async () => {
+      const paymentTable = await getTable({
+        base: testContext.sakilaProject,
+        name: 'payment',
+      });
+      const response = await ncAxiosGet({
+        url: `${urlPrefix}/${paymentTable.id}`,
+        query: {
+          where: '(Amount,notInOperator,HELLO)',
+        },
+        status: 422,
+      });
+      expect(response.body.error).to.eq(`INVALID_FILTER`);
+      expect(response.body.message).to.eq(
+        `Invalid filter expression: 'notInOperator' is not a recognized operator. Please use a valid comparison or logical operator.`,
+      );
+    });
+
     it('invalid select field', async () => {
       const response = await ncAxiosGet({
         url: `${urlPrefix}/${testContext.countryTable.id}`,

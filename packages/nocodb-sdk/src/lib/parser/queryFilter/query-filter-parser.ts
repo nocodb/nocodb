@@ -1,5 +1,4 @@
 import {
-  BINARY_LOGICAL_OPERATOR,
   NOT_OPERATOR,
   QUERY_FILTER_TOKENS,
   QueryFilterLexer,
@@ -35,7 +34,7 @@ export class QueryFilterParser extends CommonCstParser {
       });
     });
     $.RULE('and_or_clause', () => {
-      $.CONSUME(BINARY_LOGICAL_OPERATOR, { LABEL: 'operator' });
+      $.CONSUME(COMMON_TOKEN.IDENTIFIER, { LABEL: 'operator' });
       $.SUBRULE($['paren_clause'], { LABEL: 'clause' });
     });
     $.RULE('not_clause', () => {

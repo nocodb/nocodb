@@ -22,7 +22,7 @@ const { createProjectUser } = basesStore
 
 const { inviteCollaborator: inviteWsCollaborator } = workspaceStore
 
-const { handleUpgradePlan } = useEeConfig()
+const { showUserPlanLimitExceededModal } = useEeConfig()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -296,20 +296,14 @@ const inviteCollaborator = async () => {
 
       const details = errorInfo.details as PlanLimitExceededDetailsType
 
-      handleUpgradePlan({
-        title: 'Invite more members',
-        activePlanTitle: details.plan,
-        newPlanTitle: details.higherPlan,
-        content: `The ${details.plan} plan allows up to ${details.limit} ${
-          NON_SEAT_ROLES.includes(inviteData.roles) ? 'users' : 'editors'
-        }. Upgrade to the ${details.higherPlan} plan for unlimited ${
-          NON_SEAT_ROLES.includes(inviteData.roles) ? 'users' : 'editors'
-        }.`,
+      showUserPlanLimitExceededModal({
+        details,
+        role: inviteData.roles,
         callback() {
           dialogShow.value = false
         },
         workspaceId: errorWsId,
-        redirectToWorkspace: props.type !== 'organization',
+        isAdminPanel: props.type !== 'organization',
       })
     } else {
       message.error(errorInfo.message)

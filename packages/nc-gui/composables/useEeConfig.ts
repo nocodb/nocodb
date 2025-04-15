@@ -17,6 +17,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const handleUpgradePlan = (..._args: any[]) => {}
 
+  const showUserPlanLimitExceededModal = (..._args: any[]) => {}
+
   return {
     getLimit,
     getFeature,
@@ -27,5 +29,6 @@ export const useEeConfig = createSharedComposable(() => {
     getPlanTitle,
     handleUpgradePlan,
     isPaymentEnabled,
+    showUserPlanLimitExceededModal,
   }
 })

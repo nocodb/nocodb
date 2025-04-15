@@ -108,7 +108,9 @@
     "updateToAddRecordFormView": "This Form is no longer accepting submissions",
     "updateToAddRecordFormViewSubtitle": "You’ve reached the limit for number of records on your {activePlan} plan. Upgrade to increase your record limit.",
     "updateToExtendRecordHistory": "Upgrade to extend your history",
-    "updateToExtendRecordHistorySubtitle": "The {activePlan} plan allows up to {period} of audit history. Upgrade to the {plan} plan to increase your audit history period."
+    "updateToExtendRecordHistorySubtitle": "The {activePlan} plan allows up to {period} of audit history. Upgrade to the {plan} plan to increase your audit history period.",
+    "planLimitReached": "Plan limit reached",
+    "planLimitReachedSubtitle": "Upgrade to add more records"
   },
   "general": {
     "supported": "Supported",
@@ -341,7 +343,8 @@
     "total": "Total",
     "downgrade": "Downgrade",
     "upgrade": "Upgrade",
-    "reactivate": "Reactivate"
+    "reactivate": "Reactivate",
+    "left": "left"
   },
   "objects": {
     "script": "Script",
@@ -350,6 +353,7 @@
     "owner": "Owner",
     "member": "Member",
     "day": "Day",
+    "days": "Days",
     "week": "Week",
     "month": "Month",
     "year": "Year",

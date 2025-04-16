@@ -188,7 +188,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       return response.status(403).json({ msg: exception.message });
     } else if (
       exception instanceof NotFound ||
-      exception.getStatus?.() === 404
+      (exception.getStatus?.() === 404 && !(exception instanceof NcBaseErrorv2))
     ) {
       return response.status(404).json({ msg: exception.message });
     } else if (exception instanceof AjvError) {

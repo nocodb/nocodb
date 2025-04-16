@@ -1440,13 +1440,16 @@ export function useInfiniteData(args: {
       data = await updateRowProperty(row, property, args, false, path)
     }
 
-    row.rowMeta.isValidationFailed = !validateRowFilters(
+    const isValidationFailed = !validateRowFilters(
       [...allFilters.value, ...computedWhereFilter.value],
       data,
       meta.value?.columns as ColumnType[],
       getBaseType(viewMeta.value?.view?.source_id),
       metas.value,
     )
+
+    const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
+    if (newRow) newRow.rowMeta.isValidationFailed = isValidationFailed
 
     // check if the column is part of group by and value changed
     if (row.rowMeta?.path?.length && groupByColumns?.value) {
@@ -1483,7 +1486,6 @@ export function useInfiniteData(args: {
         path,
       })
 
-      const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
       if (newRow) newRow.rowMeta.isRowOrderUpdated = needsResorting
     }
     callbacks?.syncVisibleData?.()

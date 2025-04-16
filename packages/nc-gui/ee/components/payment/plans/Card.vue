@@ -71,7 +71,10 @@ const upgradePlanBtnType = computed(() => {
             {{ $t('title.comingSoon') }}
           </span>
         </div>
-        <div v-if="activePlan === plan.title && activeSubscription" class="text-nc-content-brand flex children:flex-none">
+        <div
+          v-if="activePlan === plan.title && activeSubscription && paymentMode === activeSubscription.period"
+          class="text-nc-content-brand flex children:flex-none"
+        >
           <GeneralIcon icon="circleCheckSolid" />
         </div>
       </div>

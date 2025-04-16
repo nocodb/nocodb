@@ -1,5 +1,11 @@
 <script lang="ts" setup>
-import { OrderedWorkspaceRoles, type PlanLimitExceededDetailsType, PlanTitles, WorkspaceUserRoles } from 'nocodb-sdk'
+import {
+  OrderedWorkspaceRoles,
+  type PlanLimitExceededDetailsType,
+  PlanTitles,
+  WorkspaceUserRoles,
+  PlanLimitTypes,
+} from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
@@ -16,7 +22,7 @@ const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspac
 
 const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading } = storeToRefs(workspaceStore)
 
-const { isPaymentEnabled, showUserPlanLimitExceededModal, activePlanTitle } = useEeConfig()
+const { isPaymentEnabled, showUserPlanLimitExceededModal, activePlanTitle, getLimit } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
   if (props.workspaceId) {
@@ -193,7 +199,7 @@ const isDeleteOrUpdateAllowed = (user) => {
 
 <template>
   <div
-    class="nc-collaborator-table-container py-6 nc-content-max-w px-6 flex flex-col gap-6"
+    class="nc-collaborator-table-container py-6 max-w-[1300px] px-6 flex flex-col gap-6"
     :class="{
       'h-[calc(100%-144px)]': !height && isAdminPanel,
       'h-[calc(100%-92px)]': !height && !isAdminPanel,
@@ -214,15 +220,37 @@ const isDeleteOrUpdateAllowed = (user) => {
       </a-input>
       <div class="flex items-center gap-4">
         <template v-if="isPaymentEnabled && paidUsersCount">
+          <NcTooltip
+            v-if="activePlanTitle === PlanTitles.FREE"
+            :tooltip-style="{ width: '230px' }"
+            :overlay-inner-style="{ width: '230px' }"
+            :title="
+              $t('upgrade.freePlanEditorLimitTooltip', {
+                limit: getLimit(PlanLimitTypes.LIMIT_EDITOR),
+              })
+            "
+            class="cursor-pointer"
+          >
+            <NcBadge
+              :border="false"
+              color="grey"
+              class="!bg-nc-bg-gray-medium text-nc-content-gray-default text-sm !h-[20px] !rounded-md"
+            >
+              <GeneralIcon icon="star" class="flex-none h-4 w-4 mr-1" />
+
+              {{ paidUsersCount }} {{ paidUsersCount === 1 ? $t('labels.editorSeat') : $t('labels.editorSeats') }}
+            </NcBadge>
+          </NcTooltip>
           <NcBadge
+            v-else
             :border="false"
             color="maroon"
             class="text-nc-content-maroon-dark text-sm !h-[20px] font-500 whitespace-nowrap"
           >
-            {{ paidUsersCount }} {{ activePlanTitle === PlanTitles.FREE ? $t('general.billable') : $t('general.paid') }}
-            {{ paidUsersCount === 1 ? $t('objects.user').toLowerCase() : $t('objects.users').toLowerCase() }}
+            {{ paidUsersCount }} {{ $t('general.paid') }}
+            {{ paidUsersCount === 1 ? $t('general.seat').toLowerCase() : $t('general.seats').toLowerCase() }}
           </NcBadge>
-          <div class="self-stretch border-1 border-nc-border-gray-medium"></div>
+          <div class="self-stretch border-r-1 border-nc-border-gray-medium"></div>
         </template>
 
         <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn" @click="inviteDlg = true">
@@ -275,8 +303,19 @@ const isDeleteOrUpdateAllowed = (user) => {
                   v-if="isPaymentEnabled && parseProp(record.meta).billable"
                   :title="$t('tooltip.paidUserBadgeTooltip')"
                   class="flex items-center"
+                  :tooltip-style="{ width: '180px' }"
+                  :overlay-inner-style="{ width: '180px' }"
                 >
                   <NcBadge
+                    v-if="activePlanTitle === PlanTitles.FREE"
+                    :border="false"
+                    color="grey"
+                    class="!bg-nc-bg-gray-medium text-nc-content-gray-default !h-[20px] !w-[20px] !p-0.5 !rounded"
+                  >
+                    <GeneralIcon icon="star" class="flex-none h-4 w-4" />
+                  </NcBadge>
+                  <NcBadge
+                    v-else
                     :border="false"
                     color="maroon"
                     class="text-nc-content-maroon-dark text-[10px] leading-[14px] !h-[18px] font-semibold"

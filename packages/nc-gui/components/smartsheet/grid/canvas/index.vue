@@ -2,6 +2,7 @@
 import {
   type ColumnReqType,
   type ColumnType,
+  PlanLimitTypes,
   type TableType,
   UITypes,
   type ViewType,
@@ -157,7 +158,7 @@ const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
 const { eventBus, isSqlView } = useSmartsheetStoreOrThrow()
 
-const { showRecordPlanLimitExceededModal } = useEeConfig()
+const { showRecordPlanLimitExceededModal, navigateToBilling } = useEeConfig()
 
 // Props to Refs
 const totalRows = toRef(props, 'totalRows')
@@ -327,6 +328,7 @@ const {
   isContextMenuAllowed,
   isDataEditAllowed,
   removeInlineAddRecord,
+  upgradeModalInlineState,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -437,10 +439,12 @@ const isClamped = computed(() => {
 })
 
 const totalHeight = computed(() => {
+  const additionalPadding = removeInlineAddRecord.value ? 412 : 256
+
   // For non-grouped view, use original calculation
   if (!isGroupBy.value) {
     const dataCache = getDataCache()
-    return dataCache.totalRows.value * rowHeight.value + 32 + 256
+    return dataCache.totalRows.value * rowHeight.value + 32 + additionalPadding
   }
 
   // Add height for all top-level groups
@@ -455,7 +459,7 @@ const totalHeight = computed(() => {
         if (group.path) {
           sum += group.count * rowHeight.value
 
-          if (isAddingEmptyRowAllowed.value) {
+          if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
             sum += COLUMN_HEADER_HEIGHT_IN_PX
           }
           // 1 Px Offset is Added for Showing the activeBorders. Else it wont be visible
@@ -469,7 +473,8 @@ const totalHeight = computed(() => {
     }
     return sum
   }
-  return rootGroupsHeight + estimateTotalHeight(cachedGroups.value) + 32 + 256 // Additional padding
+
+  return rootGroupsHeight + estimateTotalHeight(cachedGroups.value) + 32 + additionalPadding // Additional padding
 })
 
 const isContextMenuOpen = computed({
@@ -1268,7 +1273,20 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     return
   }
 
-  if (removeInlineAddRecord.value && rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
+  if (removeInlineAddRecord.value) {
+    if (rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) {
+      return
+    } else {
+      if (upgradeModalInlineState.value.isHoveredLearnMore) {
+        window.open('https://nocodb.com/pricing', '_blank', 'noopener,noreferrer')
+        return
+      }
+
+      if (upgradeModalInlineState.value.isHoveredUpgrade) {
+        return navigateToBilling({ limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE })
+      }
+    }
+  }
 
   if (isAddNewRow && clickType === MouseClickType.SINGLE_CLICK && x < totalColumnsWidth.value - scrollLeft.value) {
     if (isAddingEmptyRowAllowed.value) {
@@ -1297,6 +1315,8 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
           openNewRecordHandler({ overwrite: setGroup, path: groupPath })
         }
       } else {
+        if (removeInlineAddRecord.value) return
+
         await addEmptyRow()
       }
     }
@@ -1917,7 +1937,6 @@ async function addEmptyRow(row?: number, skipUpdate = false, before?: string, ov
   if (showRecordPlanLimitExceededModal({ focusBtn: null })) return
 
   if (removeInlineAddRecord.value && !skipUpdate && !before && !row && !path.length) {
-    onNewRecordToFormClick()
     return
   }
 
@@ -2408,7 +2427,7 @@ defineExpose({
       </NcDropdown>
     </template>
     <div class="absolute bottom-12 z-5 left-2" @click.stop>
-      <NcDropdown v-if="isAddingEmptyRowAllowed">
+      <NcDropdown v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord">
         <div class="flex shadow-nc-sm rounded-lg">
           <NcButton
             v-if="isMobileMode"

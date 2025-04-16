@@ -457,6 +457,18 @@ describe('dataApiV3', () => {
         urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
       });
 
+      it(`will handle insert and update zero record`, async () => {
+        let response = await ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: [],
+          status: 200,
+        });
+        response = await ncAxiosPatch({
+          url: `${urlPrefix}/${table.id}`,
+          body: [],
+          status: 200,
+        });
+      });
       it(`will handle insert field format not valid`, async () => {
         const response = await ncAxiosPost({
           url: `${urlPrefix}/${table.id}`,

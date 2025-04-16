@@ -6,6 +6,7 @@ import { createBulkRows } from '../../../factory/row';
 import { createTable, getTable } from '../../../factory/table';
 import { createUser } from '../../../factory/user';
 import {
+  beforeEachNumberBased,
   beforeEachTextBased,
   beforeEach as dataApiV3BeforeEach,
 } from './beforeEach';
@@ -417,6 +418,59 @@ describe('dataApiV3', () => {
         });
         expect(response.body.error).to.eq('RECORD_NOT_FOUND');
         expect(response.body.message).to.eq(`Record '998091' not found`);
+      });
+    });
+    describe('number-based', () => {
+      let table: Model;
+      let columns: Column[] = [];
+      let expectedColumns: Column[] = [];
+      let insertedRecords: any[];
+
+      beforeEach(async function () {
+        const initResult = await beforeEachNumberBased(testContext);
+        table = initResult.table;
+        columns = initResult.columns;
+        expectedColumns = [
+          // if we want to include created at & updated at as default
+          { column_name: 'CreatedAt', title: 'CreatedAt' } as any,
+          { column_name: 'UpdatedAt', title: 'UpdatedAt' } as any,
+          ...columns,
+        ];
+        insertedRecords = initResult.insertedRecords;
+        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      });
+
+      it(`will handle update field format not valid`, async () => {
+        const response = await ncAxiosPatch({
+          url: `${urlPrefix}/${table.id}`,
+          body: [
+            {
+              Id: 1,
+              Number: 'HELLOW',
+            },
+          ],
+          status: 400,
+        });
+        expect(response.body.error).to.eq('DATABASE_ERROR');
+        expect(response.body.message).to.eq(
+          `Invalid value 'HELLOW' for type 'bigint'`,
+        );
+      });
+      it(`will handle update field id format not valid`, async () => {
+        const response = await ncAxiosPatch({
+          url: `${urlPrefix}/${table.id}`,
+          body: [
+            {
+              Id: 'HELLOW',
+              Number: 1,
+            },
+          ],
+          status: 422,
+        });
+        expect(response.body.error).to.eq('INVALID_PK_VALUE');
+        expect(response.body.message).to.eq(
+          `Primary key value 'HELLOW' is invalid for column 'Id'`,
+        );
       });
     });
   });

@@ -1845,6 +1845,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             selectors.push(columnQuery.as(alias));
           }
           break;
+        case UITypes.JSON: {
+          if (this.dbDriver.clientType() === 'pg') {
+            const defaultColumnName = await getColumnName(
+              this.context,
+              column,
+              columns,
+            );
+            columnQuery = this.dbDriver.raw('(??)::jsonb', [defaultColumnName]);
+            if (!isSubGroup) {
+              selectors.push(
+                this.dbDriver.raw(`?? as ??`, [columnQuery, alias]),
+              );
+            }
+            break;
+          }
+        }
         case UITypes.Formula:
           try {
             const _selectQb = await this.getSelectQueryBuilderForFormula(
@@ -2157,6 +2173,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             selectors.push(selectQb);
             groupBySelectors.push(getAs(column));
             break;
+          }
+          case UITypes.JSON: {
+            if (this.dbDriver.clientType() === 'pg') {
+              const columnName = await getColumnName(
+                this.context,
+                column,
+                columns,
+              );
+              selectors.push(
+                this.dbDriver.raw('(??)::jsonb as ??', [
+                  columnName,
+                  getAs(column),
+                ]),
+              );
+              groupBySelectors.push(getAs(column));
+              break;
+            }
           }
           case UITypes.Lookup:
           case UITypes.LinkToAnotherRecord:

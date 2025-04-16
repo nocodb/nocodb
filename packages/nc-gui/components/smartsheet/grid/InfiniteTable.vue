@@ -1117,7 +1117,6 @@ async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
   if (showRecordPlanLimitExceededModal({ focusBtn: null })) return
 
   if (removeInlineAddRecord.value && !before && !row && !skipUpdate) {
-    onNewRecordToFormClick()
     return
   }
 

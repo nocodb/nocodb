@@ -96,11 +96,11 @@ function isNcMessageObjectProps(params: any): params is NcMessageObjectProps {
  * @returns A full `NcMessageObjectProps` object with defaults applied.
  */
 const getMessageProps = (
-  type: AlertProps['type'],
+  type: NcAlertProps['type'],
   params: NcMessageProps,
   ncMessageExtraProps: NcMessageExtraProps = defaultNcMessageExtraProps,
 ): NcMessageObjectProps => {
-  const updatedParams = { ...initialValue }
+  const updatedParams = { ...initialValue, duration: type === 'toast' ? 3 : undefined }
   let content = ''
 
   if (isPrimitiveValue(params)) {
@@ -162,7 +162,7 @@ const getMessageProps = (
  */
 
 const showMessage = (
-  type: AlertProps['type'],
+  type: NcAlertProps['type'],
   params: NcMessageProps,
   duration?: number,
   ncMessageExtraProps?: NcMessageExtraProps,
@@ -214,7 +214,7 @@ const showMessage = (
             },
           )
       : content,
-    type: !renderAsNcAlert ? type : undefined,
+    type: !renderAsNcAlert && type !== 'toast' ? type : undefined,
     duration: duration ?? ncAlertProps.duration,
     prefixCls,
     rootPrefixCls,
@@ -309,6 +309,10 @@ const ncMessage = {
   },
 
   warning: (params: NcMessageProps = '', duration?: number, ncMessageExtraProps?: NcMessageExtraProps) => {
+    return showMessage('warning', params, duration, ncMessageExtraProps)
+  },
+
+  toast: (params: NcMessageProps = '', duration?: number, ncMessageExtraProps?: NcMessageExtraProps) => {
     return showMessage('warning', params, duration, ncMessageExtraProps)
   },
 }

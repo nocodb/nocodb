@@ -976,7 +976,7 @@ export function useCopyPaste({
           })
 
           await copy(textToCopy)
-          message.success(t('msg.info.copiedToClipboard'))
+          message.toast(t('msg.info.copiedToClipboard'))
         }
       }
     } catch (e) {

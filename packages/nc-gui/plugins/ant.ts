@@ -9,6 +9,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   message.info = ncMessage.info
   message.warning = ncMessage.warn
   message.warn = ncMessage.warning
+  message.toast = ncMessage.toast
 
   message.config({
     duration: ANT_MESSAGE_DURATION,

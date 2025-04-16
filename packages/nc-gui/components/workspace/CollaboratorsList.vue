@@ -193,7 +193,7 @@ const isDeleteOrUpdateAllowed = (user) => {
 
 <template>
   <div
-    class="nc-collaborator-table-container py-6 nc-content-max-w px-6 flex flex-col gap-6"
+    class="nc-collaborator-table-container py-6 max-w-[1300px] px-6 flex flex-col gap-6"
     :class="{
       'h-[calc(100%-144px)]': !height && isAdminPanel,
       'h-[calc(100%-92px)]': !height && !isAdminPanel,

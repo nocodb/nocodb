@@ -174,6 +174,10 @@ export class PaymentService {
       NcError.genericNotFound('Price', price_id);
     }
 
+    if (price.lookup_key.includes('loyalty') && !workspaceOrOrg.loyal) {
+      throw new Error('This plan is not available');
+    }
+
     if (workspaceOrOrg.stripe_customer_id) {
       const stripe_customer = await stripe.customers.retrieve(
         workspaceOrOrg.stripe_customer_id,
@@ -406,6 +410,10 @@ export class PaymentService {
     const price = plan.prices.find((p) => p.id === payload.price_id);
     if (!price) {
       NcError.genericNotFound('Price', payload.price_id);
+    }
+
+    if (price.lookup_key.includes('loyalty') && !workspaceOrOrg.loyal) {
+      throw new Error('This plan is not available');
     }
 
     const item = subscription.items.data[0];

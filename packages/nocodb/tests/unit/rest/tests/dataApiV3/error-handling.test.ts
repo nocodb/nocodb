@@ -440,6 +440,41 @@ describe('dataApiV3', () => {
         urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
       });
 
+      it(`will handle insert field format not valid`, async () => {
+        const response = await ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: [
+            {
+              Number: 'HELLOW',
+            },
+          ],
+          status: 400,
+        });
+        expect(response.body.error).to.eq('DATABASE_ERROR');
+        expect(response.body.message).to.eq(
+          `Invalid value 'HELLOW' for type 'bigint'`,
+        );
+      });
+
+      it(`will handle insert field more than 10 rows`, async () => {
+        const insertObj = [
+          {
+            Number: 1,
+          },
+        ];
+        for (let i = 2; i < 30; i++) {
+          insertObj.push({
+            Number: i,
+          });
+        }
+        const response = await ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: insertObj,
+          status: 422,
+        });
+        expect(response.body.error).to.eq('MAX_INSERT_LIMIT_EXCEEDED');
+        expect(response.body.message).to.eq(`Maximum 10 records during insert`);
+      });
       it(`will handle update field format not valid`, async () => {
         const response = await ncAxiosPatch({
           url: `${urlPrefix}/${table.id}`,

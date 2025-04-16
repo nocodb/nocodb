@@ -1418,7 +1418,7 @@ export function useCanvasRender({
       // Warning top border
       ctx.strokeStyle = 'orange'
       ctx.beginPath()
-      ctx.moveTo(0, warningRow.yOffset - 2)
+      ctx.moveTo(0, warningRow.yOffset)
       ctx.lineTo(adjustedWidth, warningRow.yOffset)
       ctx.lineWidth = 2
       ctx.stroke()

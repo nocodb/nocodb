@@ -664,7 +664,7 @@ function makeEditable(row: Row, col: ColumnType) {
 }
 
 const isAddingEmptyRowAllowed = computed(
-  () => hasEditPermission.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced && !removeInlineAddRecord.value,
+  () => hasEditPermission.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced,
 )
 
 const visibleColLength = computed(() => fields.value?.length)
@@ -950,7 +950,7 @@ const {
     } else if (e.key === 'Tab') {
       if (!e.shiftKey && activeCell.row === totalRows.value - 1 && activeCell.col === fields.value?.length - 1) {
         e.preventDefault()
-        if (isAddingEmptyRowAllowed.value) {
+        if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
           isKeyDown.value = true
 
           return true
@@ -1026,7 +1026,7 @@ const {
       switch (e.keyCode) {
         case 82: {
           // ALT + R
-          if (isAddingEmptyRowAllowed.value) {
+          if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
             $e('c:shortcut', { key: 'ALT + R' })
             addEmptyRow()
             activeCell.row = totalRows.value - 1
@@ -1926,7 +1926,10 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
   ) {
     if (
       (e.key === 'Tab' && activeCell.row === totalRows.value - 1 && activeCell.col === fields.value?.length - 1) ||
-      (e.key === 'ArrowDown' && activeCell.row === totalRows.value - 1 && isAddingEmptyRowAllowed.value)
+      (e.key === 'ArrowDown' &&
+        activeCell.row === totalRows.value - 1 &&
+        isAddingEmptyRowAllowed.value &&
+        !removeInlineAddRecord.value)
     ) {
       addEmptyRow()
       isKeyDown.value = false
@@ -1941,7 +1944,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     switch (e.keyCode) {
       case 78: {
         // ALT + N
-        if (isAddingEmptyRowAllowed.value) {
+        if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
           addEmptyRow()
         }
         break
@@ -3102,7 +3105,7 @@ const cellAlignClass = computed(() => {
     </div>
 
     <div class="absolute bottom-12 z-5 left-2" @click.stop>
-      <NcDropdown v-if="isAddingEmptyRowAllowed">
+      <NcDropdown v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord">
         <div class="flex shadow-nc-sm rounded-lg">
           <NcButton
             v-if="isMobileMode"

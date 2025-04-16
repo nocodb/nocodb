@@ -203,8 +203,47 @@ export function useGridViewData(
     return targetGroup.count
   }
 
-  function getGroupFilter(path: Array<number> = []) {
+  async function getGroupFilter(path: Array<number> = []) {
     const group = findGroupByPath(cachedGroups.value, path)
+
+    if (!group) {
+      try {
+        let currentGroups = cachedGroups.value
+        let parentGroup: CanvasGroup | undefined
+        let targetIndex: number | undefined
+
+        for (let depth = 0; depth < path.length; depth++) {
+          const groupIndex = path[depth]
+          const currentGroup = currentGroups.get(groupIndex)
+
+          if (!currentGroup) {
+            targetIndex = groupIndex
+            break
+          }
+
+          if (depth === path.length - 1) {
+            targetIndex = groupIndex
+            break
+          }
+
+          if (!currentGroup.isExpanded || !currentGroup.groups) {
+            return {}
+          }
+
+          parentGroup = currentGroup
+          currentGroups = currentGroup.groups
+        }
+
+        if (targetIndex !== undefined) {
+          await fetchMissingGroupChunks(targetIndex, targetIndex, parentGroup)
+        }
+
+        group = findGroupByPath(cachedGroups.value, path)
+      } catch (error) {
+        console.error(`Failed to load group for path ${path}:`, error)
+        return {}
+      }
+    }
 
     return buildNestedWhere(group, where?.value)
   }

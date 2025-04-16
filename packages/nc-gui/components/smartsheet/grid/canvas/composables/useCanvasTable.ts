@@ -182,6 +182,10 @@ export function useCanvasTable({
   const draggedRowIndex = ref(-1)
   const draggedRowGroupPath = ref([])
   const targetRowIndex = ref(-1)
+  const upgradeModalInlineState = ref({
+    isHoveredLearnMore: false,
+    isHoveredUpgrade: false,
+  })
 
   const { isMobileMode } = useGlobal()
   const { $api } = useNuxtApp()
@@ -715,6 +719,7 @@ export function useCanvasTable({
     draggedRowGroupPath,
     isAddingEmptyRowAllowed,
     removeInlineAddRecord,
+    upgradeModalInlineState,
   })
 
   const { handleDragStart } = useRowReorder({
@@ -1274,5 +1279,6 @@ export function useCanvasTable({
     isDataEditAllowed,
     isContextMenuAllowed,
     removeInlineAddRecord,
+    upgradeModalInlineState,
   }
 }

@@ -7,6 +7,7 @@ import {
   type ViewType,
   isVirtualCol,
   readonlyMetaAllowedTypes,
+  PlanLimitTypes,
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
 import axios from 'axios'
@@ -157,7 +158,7 @@ const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
 const { eventBus, isSqlView } = useSmartsheetStoreOrThrow()
 
-const { showRecordPlanLimitExceededModal } = useEeConfig()
+const { showRecordPlanLimitExceededModal, navigateToBilling } = useEeConfig()
 
 // Props to Refs
 const totalRows = toRef(props, 'totalRows')
@@ -327,6 +328,7 @@ const {
   isContextMenuAllowed,
   isDataEditAllowed,
   removeInlineAddRecord,
+  upgradeModalInlineState,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -1268,7 +1270,20 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     return
   }
 
-  if (removeInlineAddRecord.value && rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
+  if (removeInlineAddRecord.value) {
+    if (rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) {
+      return
+    } else {
+      if (upgradeModalInlineState.value.isHoveredLearnMore) {
+        window.open('https://nocodb.com/pricing', '_blank')
+        return
+      }
+
+      if (upgradeModalInlineState.value.isHoveredUpgrade) {
+        return navigateToBilling({ limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE })
+      }
+    }
+  }
 
   if (isAddNewRow && clickType === MouseClickType.SINGLE_CLICK && x < totalColumnsWidth.value - scrollLeft.value) {
     if (isAddingEmptyRowAllowed.value) {

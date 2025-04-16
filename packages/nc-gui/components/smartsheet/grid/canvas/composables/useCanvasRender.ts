@@ -2531,7 +2531,7 @@ export function useCanvasRender({
         const countRender = renderSingleLineText(ctx, {
           text: `${group?.count ?? '-'}`,
           x: xOffset + mergedWidth - 12,
-          y: contentY,
+          y: contentY - 1,
           height: GROUP_HEADER_HEIGHT,
           verticalAlign: 'middle',
           fontFamily: '600 12px Manrope',
@@ -2543,7 +2543,7 @@ export function useCanvasRender({
         const contentRender = renderSingleLineText(ctx, {
           text: 'Count',
           x: xOffset + mergedWidth - 12 - countWidth - 8,
-          y: contentY,
+          y: contentY - 1,
           height: GROUP_HEADER_HEIGHT,
           verticalAlign: 'middle',
           textAlign: 'right',
@@ -2560,6 +2560,7 @@ export function useCanvasRender({
           text: (group?.column?.title ?? '').toUpperCase(),
           fillStyle: '#4A5268',
           x: contentX,
+          maxWidth: availableWidth - 20 - countWidth,
           fontFamily: '600 10px Manrope',
           y: groupHeaderY,
           py: 6,

@@ -1,14 +1,16 @@
-import path from 'path'
 import type { ComputedRef, Ref } from 'vue'
-import { NcApiVersion, UITypes, extractFilterFromXwhere, isAIPromptCol } from 'nocodb-sdk'
 import {
   type Api,
   type ColumnType,
   type LinkToAnotherRecordType,
+  NcApiVersion,
   type PaginatedType,
   type RelationTypes,
   type TableType,
+  UITypes,
   type ViewType,
+  extractFilterFromXwhere,
+  isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isSystemColumn,
@@ -552,48 +554,29 @@ export function useInfiniteData(args: {
 
     const dataCache = getDataCache(path)
 
-    const sortedIndices = Array.from(dataCache.cachedRows.value.keys()).sort((a, b) => a - b)
-    let siblingIndex = sortedIndices.findIndex((index) => index === expandedRowIndex) + (dir === NavigateDir.NEXT ? 1 : -1)
+    const siblingIndex = expandedRowIndex + (dir === NavigateDir.NEXT ? 1 : -1)
 
-    // Skip unsaved rows
-    while (
-      siblingIndex >= 0 &&
-      siblingIndex < sortedIndices.length &&
-      dataCache.cachedRows.value.get(sortedIndices[siblingIndex])?.rowMeta?.new
-    ) {
-      siblingIndex += dir === NavigateDir.NEXT ? 1 : -1
-    }
-
-    // Check if we've gone out of bounds
     if (siblingIndex < 0 || siblingIndex >= dataCache.totalRows.value) {
       return message.info(t('msg.info.noMoreRecords'))
     }
 
-    // If the sibling row is not in cachedRows, load more data
-    if (siblingIndex >= sortedIndices.length) {
-      await loadData({
-        offset: sortedIndices[sortedIndices.length - 1] + 1,
-        limit: 10,
-      })
-      sortedIndices.push(
-        ...Array.from(dataCache.cachedRows.value.keys())
-          .filter((key) => !sortedIndices.includes(key))
-          .sort((a, b) => a - b),
-      )
+    let row = dataCache.cachedRows.value.get(siblingIndex)
+
+    if (!row) {
+      await getRows(siblingIndex, CHUNK_SIZE, path)
+      row = dataCache.cachedRows.value.get(siblingIndex)
     }
 
-    // Extract the row id of the sibling row
-    const siblingRow = dataCache.cachedRows.value.get(sortedIndices[siblingIndex])
-    if (siblingRow) {
-      const rowId = extractPkFromRow(siblingRow.row, meta.value?.columns as ColumnType[])
-      if (rowId) {
-        await router.push({
-          query: {
-            ...routeQuery.value,
-            rowId,
-          },
-        })
-      }
+    if (!row) return
+
+    const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+    if (rowId) {
+      await router.push({
+        query: {
+          ...routeQuery.value,
+          rowId,
+        },
+      })
     }
   }
 
@@ -1074,7 +1057,13 @@ export function useInfiniteData(args: {
   async function insertRow(
     currentRow: Row,
     ltarState: Record<string, any> = {},
-    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    {
+      metaValue = meta.value,
+      viewMetaValue = viewMeta.value,
+    }: {
+      metaValue?: TableType
+      viewMetaValue?: ViewType
+    } = {},
     undo = false,
     ignoreShifting = false,
     beforeRowID?: string,
@@ -1253,7 +1242,13 @@ export function useInfiniteData(args: {
   async function updateRowProperty(
     toUpdate: Row,
     property: string,
-    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    {
+      metaValue = meta.value,
+      viewMetaValue = viewMeta.value,
+    }: {
+      metaValue?: TableType
+      viewMetaValue?: ViewType
+    } = {},
     undo = false,
     path: Array<number> = [],
   ): Promise<Record<string, any> | undefined> {
@@ -1496,7 +1491,13 @@ export function useInfiniteData(args: {
 
   async function bulkUpdateView(
     data: Record<string, any>[],
-    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    {
+      metaValue = meta.value,
+      viewMetaValue = viewMeta.value,
+    }: {
+      metaValue?: TableType
+      viewMetaValue?: ViewType
+    } = {},
     path: Array<number> = [],
   ): Promise<void> {
     if (!viewMetaValue) {
@@ -1513,7 +1514,13 @@ export function useInfiniteData(args: {
 
   async function deleteRowById(
     id: string,
-    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    {
+      metaValue = meta.value,
+      viewMetaValue = viewMeta.value,
+    }: {
+      metaValue?: TableType
+      viewMetaValue?: ViewType
+    } = {},
     path: Array<number> = [],
   ): Promise<boolean> {
     if (!id) {

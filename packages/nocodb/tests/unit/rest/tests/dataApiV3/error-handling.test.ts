@@ -400,7 +400,7 @@ describe('dataApiV3', () => {
         urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
       });
 
-      it.only(`will handle update record not found`, async () => {
+      it(`will handle update record not found`, async () => {
         const response = await ncAxiosPatch({
           url: `${urlPrefix}/${table.id}`,
           body: [

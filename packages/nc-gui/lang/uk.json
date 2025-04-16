@@ -138,12 +138,15 @@
     "WorkspaceOwnerNotifiedSubtitle": "Your request to upgrade has been shared with the workspace owner.",
     "failedToSendUpgradeRequest": "Failed to send upgrade request",
     "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
+    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
     "upgradeToSeeMoreRecordSubtitle": "Unlock complete visibility into your connected sources. View all records by upgrading to the Team plan.",
+    "upgradeToSeeMoreRecordInlineSubtitle": "You're viewing {limit} of {total} records. Unlock access to the remaining {remaining} records by upgrading to the Team plan.",
     "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
     "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
     "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
     "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month."
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
+    "freePlanEditorLimitTooltip": "The free plan allows upto {limit} Editor type users, upgrade to get unlimited"
   },
   "general": {
     "supported": "Підтримується",
@@ -379,7 +382,9 @@
     "upgrade": "Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "Reactivate",
-    "left": "left"
+    "left": "left",
+    "seat": "Seat",
+    "seats": "Seats"
   },
   "objects": {
     "script": "Скрипт",
@@ -1277,7 +1282,9 @@
     "planIncludes": "{plan} Includes:",
     "everythingInPlanPlus": "Everything in {plan}, Plus:",
     "downloadInvoice": "Download Invoice",
-    "proceed": "Proceed"
+    "proceed": "Proceed",
+    "editorSeat": "Editor seat",
+    "editorSeats": "Editor seats"
   },
   "activity": {
     "clickToResolve": "Натисніть для вирішення",

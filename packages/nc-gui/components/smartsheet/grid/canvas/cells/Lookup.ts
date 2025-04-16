@@ -10,12 +10,13 @@ const ellipsisWidth = 15
 
 export const LookupCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, x: _x, y: _y, value, renderCell, metas, height, width: _width, padding = 10, tableMetaLoader } = props
+    const { column, x: _x, y: _y, value, renderCell, metas, height, width: _width, padding = 10, tableMetaLoader, row } = props
     let x = _x
     let y = _y
     let width = _width - ellipsisWidth
+
     // If it is empty text then no need to render
-    if (!isValidValue(value) || !metas) return
+    if (!metas) return
 
     const colOptions = column.colOptions as LookupType
 
@@ -53,6 +54,17 @@ export const LookupCellRenderer: CellRenderer = {
     }
 
     const getArrValue = () => {
+      if (
+        lookupColumn.uidt === UITypes.Checkbox &&
+        [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relatedColObj?.colOptions?.type)
+      ) {
+        const hasLink = !!(row && row[relatedColObj?.title])
+
+        if (!value && !hasLink) return []
+
+        return (ncIsArray(value) ? value : [value]).map(getCheckBoxValue)
+      }
+
       if (!value) return []
 
       if (lookupColumn.uidt === UITypes.Attachment) {

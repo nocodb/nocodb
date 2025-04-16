@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getUpgradeMessage, type NotificationType, type PlanFeatureTypes, type PlanLimitTypes } from 'nocodb-sdk'
+import { type NotificationType, type PlanFeatureTypes, type PlanLimitTypes, getUpgradeMessage } from 'nocodb-sdk'
 
 const props = defineProps<{
   item: NotificationType & {

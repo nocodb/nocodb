@@ -275,6 +275,7 @@ export const FreePlan = Plan.prepare({
     [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: 1,
     [PlanLimitTypes.LIMIT_AI_TOKEN]: 0,
     [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 0,
+    [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]: true,
     ...(!process.env.NC_STRIPE_SECRET_KEY ? legacyLimitAndFeatures : {}),
   },
   free: true,

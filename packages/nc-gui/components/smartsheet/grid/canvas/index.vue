@@ -2,12 +2,12 @@
 import {
   type ColumnReqType,
   type ColumnType,
+  PlanLimitTypes,
   type TableType,
   UITypes,
   type ViewType,
   isVirtualCol,
   readonlyMetaAllowedTypes,
-  PlanLimitTypes,
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
 import axios from 'axios'

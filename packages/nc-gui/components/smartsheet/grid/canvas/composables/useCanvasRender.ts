@@ -6,7 +6,9 @@ import {
   isBoxHovered,
   renderCheckbox,
   renderIconButton,
+  renderMultiLineText,
   renderSingleLineText,
+  renderTag,
   renderTagLabel,
   roundedRect,
   truncateText,
@@ -37,6 +39,7 @@ import {
 import { parseKey } from '../../../../../utils/groupbyUtils'
 import type { CanvasElement } from '../utils/CanvasElement'
 import { ElementTypes } from '../utils/CanvasElement'
+import type { RenderTagProps } from '../utils/types'
 
 export function useCanvasRender({
   width,
@@ -89,6 +92,7 @@ export function useCanvasRender({
   getRows,
   draggedRowGroupPath,
   removeInlineAddRecord,
+  upgradeModalInlineState,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -161,11 +165,16 @@ export function useCanvasRender({
   getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
   draggedRowGroupPath: Ref<number[]>
   removeInlineAddRecord: Ref<boolean>
+  upgradeModalInlineState: Ref<{
+    isHoveredLearnMore: boolean
+    isHoveredUpgrade: boolean
+  }>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
   const { tryShowTooltip } = useTooltipStore()
   const { isMobileMode, isAddNewRecordGridMode, appInfo } = useGlobal()
+  const { isWsOwner } = useEeConfig()
   const isLocked = inject(IsLockedInj, ref(false))
 
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
@@ -927,6 +936,135 @@ export function useCanvasRender({
     }
   }
 
+  const renderUpgradeModalInline = (ctx: CanvasRenderingContext2D, yOffset: number) => {
+    if (!removeInlineAddRecord.value) return
+
+    yOffset = yOffset + 120
+
+    const { lines } = renderMultiLineText(ctx, {
+      x: width.value / 2,
+      y: yOffset,
+      text: t('upgrade.upgradeToSeeMoreRecordInline'),
+      maxWidth: Math.min(width.value, 520),
+      fillStyle: '#101015',
+      fontFamily: `700 16px Manrope`,
+      height: 100,
+      lineHeight: 24,
+      maxLines: 2,
+      textAlign: 'center',
+    })
+
+    yOffset = yOffset + lines.length * 24 + 8
+
+    const totalRecords = Math.max(totalRows.value, actualTotalRows.value ?? 0)
+
+    const { lines: subtitleLines } = renderMultiLineText(ctx, {
+      x: width.value / 2,
+      y: yOffset,
+      text: t('upgrade.upgradeToSeeMoreRecordInlineSubtitle', {
+        limit: 100,
+        total: totalRecords,
+        remaining: totalRecords - 100,
+      }),
+      maxWidth: Math.min(width.value, 520),
+      fillStyle: '#4A5268',
+      fontFamily: `500 14px Manrope`,
+      height: 100,
+      lineHeight: 20,
+      maxLines: 4,
+      textAlign: 'center',
+    })
+
+    yOffset = yOffset + subtitleLines.length * 20 + 20
+
+    const renderLearnMoreBtn = (render = false, xOffset: number = width.value / 2) => {
+      return renderSingleLineText(ctx, {
+        x: xOffset + 10,
+        y: yOffset,
+        text: t('msg.learnMore'),
+        maxWidth: 120,
+        height: 32,
+        verticalAlign: 'middle',
+        fontFamily: '600 14px Manrope',
+        fillStyle: '#374151',
+        isTagLabel: true,
+        render,
+      })
+    }
+
+    const renderUpgradeBtn = (render = false, xOffset: number = width.value / 2) => {
+      return renderSingleLineText(ctx, {
+        x: xOffset + 10,
+        y: yOffset,
+        text: isWsOwner.value ? t('general.upgrade') : t('general.requestUpgrade'),
+        maxWidth: 120,
+        height: 32,
+        verticalAlign: 'middle',
+        fontFamily: '600 14px Manrope',
+        fillStyle: 'white',
+        isTagLabel: true,
+        render,
+      })
+    }
+
+    const learnMoreBtnInfo = renderLearnMoreBtn(false)
+
+    const UpgradeBtnInfo = renderUpgradeBtn(false)
+
+    /**
+     * learn more button width + upgrade button width + gap
+     */
+    const buttonsWidth = learnMoreBtnInfo.width + 10 * 2 + UpgradeBtnInfo.width + 10 * 2 + 12
+
+    const xOffSet = width.value / 2 - buttonsWidth / 2
+    yOffset = yOffset + 20
+
+    const isLearnMoreBtnHovered = isBoxHovered(
+      { x: xOffSet, y: yOffset, width: learnMoreBtnInfo.width + 10 * 2, height: 32 },
+      mousePosition,
+    )
+
+    const _renderTag = (params: Partial<RenderTagProps>) => {
+      renderTag(ctx, {
+        x: xOffSet,
+        radius: 8,
+        y: yOffset,
+        height: 32,
+        width: 100,
+        ...params,
+      })
+    }
+
+    _renderTag({
+      x: xOffSet,
+      width: learnMoreBtnInfo.width + 10 * 2,
+      borderColor: '#E7E7E9',
+      borderWidth: 1,
+      fillStyle: isLearnMoreBtnHovered ? themeV3Colors.gray['100'] : 'white',
+    })
+
+    renderLearnMoreBtn(true, xOffSet)
+
+    const isUpgradeBtnHovered = isBoxHovered(
+      { x: xOffSet + learnMoreBtnInfo.width + 10 * 2 + 12, y: yOffset, width: UpgradeBtnInfo.width + 10 * 2, height: 32 },
+      mousePosition,
+    )
+
+    _renderTag({
+      x: xOffSet + learnMoreBtnInfo.width + 10 * 2 + 12,
+      width: UpgradeBtnInfo.width + 10 * 2,
+      fillStyle: isUpgradeBtnHovered ? themeV3Colors.brand['600'] : themeV3Colors.brand['500'],
+    })
+
+    renderUpgradeBtn(true, xOffSet + learnMoreBtnInfo.width + 10 * 2 + 12)
+
+    upgradeModalInlineState.value.isHoveredLearnMore = isLearnMoreBtnHovered
+    upgradeModalInlineState.value.isHoveredUpgrade = isUpgradeBtnHovered
+    if (isLearnMoreBtnHovered || isUpgradeBtnHovered) {
+      setCursor('pointer')
+    }
+  }
+
   function renderRow(
     ctx: CanvasRenderingContext2D,
     {
@@ -1472,6 +1610,7 @@ export function useCanvasRender({
       ctx.lineWidth = 1
     }
     renderFillHandle(ctx)
+    renderUpgradeModalInline(ctx, yOffset)
 
     return activeState
   }

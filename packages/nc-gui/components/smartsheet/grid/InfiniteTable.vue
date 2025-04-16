@@ -149,7 +149,13 @@ const { generateRows, generatingRows, generatingColumnRows, generatingColumns, a
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { showRecordPlanLimitExceededModal, blockExternalSourceRecordVisibility, showAsBluredRecord } = useEeConfig()
+const {
+  showRecordPlanLimitExceededModal,
+  blockExternalSourceRecordVisibility,
+  showAsBluredRecord,
+  isWsOwner,
+  navigateToBilling,
+} = useEeConfig()
 
 const tableBodyEl = ref<HTMLElement>()
 
@@ -216,6 +222,14 @@ const totalRows = toRef(props, 'totalRows')
 const removeInlineAddRecord = computed(
   () => blockExternalSourceRecordVisibility(isExternalSource.value) && totalRows.value >= EXTERNAL_SOURCE_VISIBLE_ROWS,
 )
+
+const additionalHeight = computed(() => {
+  if (removeInlineAddRecord.value) {
+    return 0
+  }
+
+  return 256
+})
 
 const chunkStates = toRef(props, 'chunkStates')
 
@@ -650,7 +664,7 @@ function makeEditable(row: Row, col: ColumnType) {
 }
 
 const isAddingEmptyRowAllowed = computed(
-  () => hasEditPermission.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced && !removeInlineAddRecord.value,
+  () => hasEditPermission.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced,
 )
 
 const visibleColLength = computed(() => fields.value?.length)
@@ -936,7 +950,7 @@ const {
     } else if (e.key === 'Tab') {
       if (!e.shiftKey && activeCell.row === totalRows.value - 1 && activeCell.col === fields.value?.length - 1) {
         e.preventDefault()
-        if (isAddingEmptyRowAllowed.value) {
+        if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
           isKeyDown.value = true
 
           return true
@@ -1012,7 +1026,7 @@ const {
       switch (e.keyCode) {
         case 82: {
           // ALT + R
-          if (isAddingEmptyRowAllowed.value) {
+          if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
             $e('c:shortcut', { key: 'ALT + R' })
             addEmptyRow()
             activeCell.row = totalRows.value - 1
@@ -1103,7 +1117,6 @@ async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
   if (showRecordPlanLimitExceededModal({ focusBtn: null })) return
 
   if (removeInlineAddRecord.value && !before && !row && !skipUpdate) {
-    onNewRecordToFormClick()
     return
   }
 
@@ -1913,7 +1926,10 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
   ) {
     if (
       (e.key === 'Tab' && activeCell.row === totalRows.value - 1 && activeCell.col === fields.value?.length - 1) ||
-      (e.key === 'ArrowDown' && activeCell.row === totalRows.value - 1 && isAddingEmptyRowAllowed.value)
+      (e.key === 'ArrowDown' &&
+        activeCell.row === totalRows.value - 1 &&
+        isAddingEmptyRowAllowed.value &&
+        !removeInlineAddRecord.value)
     ) {
       addEmptyRow()
       isKeyDown.value = false
@@ -1928,7 +1944,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     switch (e.keyCode) {
       case 78: {
         // ALT + N
-        if (isAddingEmptyRowAllowed.value) {
+        if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
           addEmptyRow()
         }
         break
@@ -2432,7 +2448,7 @@ const cellAlignClass = computed(() => {
           <div
             class="table-overlay"
             :style="{
-              height: isBulkOperationInProgress ? '100%' : `${maxGridHeight + 256}px`,
+              height: isBulkOperationInProgress ? '100%' : `${maxGridHeight + additionalHeight}px`,
               width: `${maxGridWidth}px`,
             }"
           >
@@ -3060,10 +3076,36 @@ const cellAlignClass = computed(() => {
           </NcMenu>
         </template>
       </NcDropdown>
+      <div v-if="removeInlineAddRecord" class="sticky left-0 py-[120px]">
+        <div class="flex flex-col gap-5 p-6 max-w-[520px] text-center mx-auto">
+          <div class="flex flex-col gap-2">
+            <div class="text-base font-700 text-nc-content-gray">{{ $t('upgrade.upgradeToSeeMoreRecordInline') }}</div>
+            <div>
+              {{
+                $t('upgrade.upgradeToSeeMoreRecordInlineSubtitle', {
+                  limit: 100,
+                  total: Math.max(props.totalRows, props.actualTotalRows),
+                  remaining: Math.max(props.totalRows, props.actualTotalRows) - 100,
+                })
+              }}
+            </div>
+          </div>
+          <div class="flex items-center justify-center gap-3">
+            <a href="https://nocodb.com/pricing" target="_blank">
+              <NcButton size="small" type="secondary">
+                {{ $t('msg.learnMore') }}
+              </NcButton>
+            </a>
+            <NcButton size="small" @click="navigateToBilling()">
+              {{ isWsOwner ? $t('general.upgrade') : t('general.requestUpgrade') }}
+            </NcButton>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="absolute bottom-12 z-5 left-2" @click.stop>
-      <NcDropdown v-if="isAddingEmptyRowAllowed">
+      <NcDropdown v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord">
         <div class="flex shadow-nc-sm rounded-lg">
           <NcButton
             v-if="isMobileMode"

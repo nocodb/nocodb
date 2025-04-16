@@ -3602,12 +3602,10 @@ const cellFilteredOrSortedClass = (colId: string) => {
         @apply !bg-gray-50 border-b-gray-200 border-r-gray-200;
       }
       td.nc-grid-cell.column-filtered:not(.active) {
-        @apply !bg-green-100;
-        @apply !border-b-gray-200;
+        @apply !bg-green-100 !border-b-gray-200;
       }
       td.nc-grid-cell.column-sorted:not(.active) {
-        @apply !bg-orange-100;
-        @apply !border-b-gray-300;
+        @apply !bg-orange-100 !border-b-gray-300;
       }
     }
   }
@@ -3618,12 +3616,10 @@ const cellFilteredOrSortedClass = (colId: string) => {
       @apply !bg-[#F0F3FF] border-b-gray-200 border-r-gray-200;
     }
     td.nc-grid-cell.column-filtered:not(.active) {
-      @apply !bg-green-100;
-      @apply !border-b-gray-200;
+      @apply !bg-green-100 !border-b-gray-200;
     }
     td.nc-grid-cell.column-sorted:not(.active) {
-      @apply !bg-orange-100;
-      @apply !border-b-gray-300;
+      @apply !bg-orange-100 !border-b-gray-300;
     }
   }
 

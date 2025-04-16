@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { dateFormats, timeFormats } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import { getTimeZones } from '@vvo/tzdb'
 import { timeCellMaxWidthMap, timeFormatsObj } from './utils'
 
 interface Props {

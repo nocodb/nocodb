@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { getTimeZones } from '@vvo/tzdb'
-
 import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
 import { timeCellMaxWidthMap, timeFormatsObj } from './utils'
 const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()

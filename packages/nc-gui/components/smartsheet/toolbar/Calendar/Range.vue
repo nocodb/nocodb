@@ -151,8 +151,6 @@ const filterEndDateOptions = (options, startColumnId) => {
     const optionColumn = meta.value?.columns?.find((c) => c.id === option.value)
     const timezoneMatches = optionColumn?.meta?.timezone === startTimezone
     return uidtMatches && option.value !== startColumnId && timezoneMatches
-
-    return uidtMatches && option.value !== startColumnId
   })
 }
 

@@ -173,7 +173,10 @@ const updateSourceTitle = async (sourceId: string) => {
     sourceRenameHelpers.value[source.id].tempTitle = sourceRenameHelpers.value[source.id].tempTitle.trim()
   }
 
-  if (!sourceRenameHelpers.value[source.id].tempTitle) return
+  if (!sourceRenameHelpers.value[source.id].tempTitle) {
+    delete sourceRenameHelpers.value[source.id]
+    return
+  }
 
   try {
     await api.source.update(source.base_id, source.id, {
@@ -199,7 +202,11 @@ const updateProjectTitle = async () => {
     tempTitle.value = tempTitle.value.trim()
   }
 
-  if (!tempTitle.value) return
+  if (!tempTitle.value) {
+    editMode.value = false
+    tempTitle.value = ''
+    return
+  }
 
   try {
     await updateProject(base.value.id!, {

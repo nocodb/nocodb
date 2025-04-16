@@ -145,7 +145,8 @@
     "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
     "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
     "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month."
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
+    "freePlanEditorLimitTooltip": "The free plan allows upto {limit} Editor type users, upgrade to get unlimited"
   },
   "general": {
     "supported": "Supported",
@@ -381,7 +382,9 @@
     "upgrade": "Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "Reactivate",
-    "left": "left"
+    "left": "left",
+    "seat": "Seat",
+    "seats": "Seats"
   },
   "objects": {
     "script": "Script",
@@ -1279,7 +1282,9 @@
     "planIncludes": "{plan} Includes:",
     "everythingInPlanPlus": "Everything in {plan}, Plus:",
     "downloadInvoice": "Download Invoice",
-    "proceed": "Proceed"
+    "proceed": "Proceed",
+    "editorSeat": "Editor seat",
+    "editorSeats": "Editor seats"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

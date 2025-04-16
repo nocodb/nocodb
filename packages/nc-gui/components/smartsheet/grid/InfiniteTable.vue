@@ -149,7 +149,13 @@ const { generateRows, generatingRows, generatingColumnRows, generatingColumns, a
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { showRecordPlanLimitExceededModal, blockExternalSourceRecordVisibility, showAsBluredRecord } = useEeConfig()
+const {
+  showRecordPlanLimitExceededModal,
+  blockExternalSourceRecordVisibility,
+  showAsBluredRecord,
+  isWsOwner,
+  navigateToBilling,
+} = useEeConfig()
 
 const tableBodyEl = ref<HTMLElement>()
 
@@ -216,6 +222,14 @@ const totalRows = toRef(props, 'totalRows')
 const removeInlineAddRecord = computed(
   () => blockExternalSourceRecordVisibility(isExternalSource.value) && totalRows.value >= EXTERNAL_SOURCE_VISIBLE_ROWS,
 )
+
+const additionalHeight = computed(() => {
+  if (removeInlineAddRecord.value) {
+    return 0
+  }
+
+  return 256
+})
 
 const chunkStates = toRef(props, 'chunkStates')
 
@@ -2432,7 +2446,7 @@ const cellAlignClass = computed(() => {
           <div
             class="table-overlay"
             :style="{
-              height: isBulkOperationInProgress ? '100%' : `${maxGridHeight + 256}px`,
+              height: isBulkOperationInProgress ? '100%' : `${maxGridHeight + additionalHeight}px`,
               width: `${maxGridWidth}px`,
             }"
           >
@@ -3060,6 +3074,32 @@ const cellAlignClass = computed(() => {
           </NcMenu>
         </template>
       </NcDropdown>
+      <div v-if="removeInlineAddRecord" class="sticky left-0 py-[120px]">
+        <div class="flex flex-col gap-5 p-6 max-w-[520px] text-center mx-auto">
+          <div class="flex flex-col gap-2">
+            <div class="text-base font-700 text-nc-content-gray">{{ $t('upgrade.upgradeToSeeMoreRecordInline') }}</div>
+            <div>
+              {{
+                $t('upgrade.upgradeToSeeMoreRecordInlineSubtitle', {
+                  limit: 100,
+                  total: Math.max(props.totalRows, props.actualTotalRows),
+                  remaining: Math.max(props.totalRows, props.actualTotalRows) - 100,
+                })
+              }}
+            </div>
+          </div>
+          <div class="flex items-center justify-center gap-3">
+            <a href="https://nocodb.com/pricing" target="_blank">
+              <NcButton size="small" type="secondary">
+                {{ $t('msg.learnMore') }}
+              </NcButton>
+            </a>
+            <NcButton size="small" @click="navigateToBilling()">
+              {{ isWsOwner ? $t('general.upgrade') : t('general.requestUpgrade') }}
+            </NcButton>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="absolute bottom-12 z-5 left-2" @click.stop>

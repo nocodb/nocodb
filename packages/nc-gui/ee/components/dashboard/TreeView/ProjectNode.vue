@@ -1006,7 +1006,11 @@ const onClickMenu = (e: { key?: string }) => {
                               </span>
                             </NcTooltip>
                             <LazyPaymentUpgradeBadge
-                              v-if="isPaymentEnabled && activePlanTitle === PlanTitles.FREE && !(source.id && sourceRenameHelpers[source.id]?.editMode)"
+                              v-if="
+                                isPaymentEnabled &&
+                                activePlanTitle === PlanTitles.FREE &&
+                                !(source.id && sourceRenameHelpers[source.id]?.editMode)
+                              "
                               :title="$t('upgrade.upgradeToSeeMoreRecord')"
                               :content="$t('upgrade.upgradeToSeeMoreRecordSubtitle')"
                               class="-my-1 mx-0.5 nc-sidebar-node-btn nc-sidebar-upgrade-badge"

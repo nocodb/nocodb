@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { HigherPlan, PlanTitles } from 'nocodb-sdk'
+import { PlanTitles } from 'nocodb-sdk'
 
 const route = useRoute()
 
@@ -46,7 +46,7 @@ watch(
 
 <template>
   <div class="flex flex-col gap-3">
-    <div ref="allPlanRef" id="nc-payment-all-plans" class="text-base font-bold text-nc-content-gray">
+    <div id="nc-payment-all-plans" ref="allPlanRef" class="text-base font-bold text-nc-content-gray">
       {{ $t('general.all') }} {{ $t('general.plans') }}
     </div>
     <PaymentPlansSelectMode :value="paymentMode" :discount="annualDiscount" @change="onPaymentModeChange" />

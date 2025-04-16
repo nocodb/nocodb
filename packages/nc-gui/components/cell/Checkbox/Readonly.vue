@@ -19,6 +19,8 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
 const rowHeight = inject(RowHeightInj, ref())
 
 const isGrid = inject(IsGridInj, ref(false))
@@ -47,7 +49,7 @@ const wrapperClassName = computed(() => {
   return [
     isForm?.value || isGallery.value || isExpandedFormOpen.value ? 'w-full flex-start pl-2' : 'w-full justify-center',
     {
-      'opacity-0': !modelValue.value,
+      'opacity-0': !modelValue.value && !isUnderLookup,
     },
   ]
 })

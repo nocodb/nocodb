@@ -1,9 +1,9 @@
 import { renderSingleLineText, renderTag, truncateText } from '../utils/canvas'
 import type { getSingleMultiselectColOptions } from '../utils/cell'
 
-const tagPadding = 9
-const tagHeight = 20
-const topPadding = 6
+const tagPadding = 8
+const tagHeight = 22
+const topPadding = 4
 
 export const SingleSelectCellRenderer: CellRenderer = {
   render: (ctx, { column, value, x, y, width, pv, padding }) => {
@@ -36,7 +36,7 @@ export const SingleSelectCellRenderer: CellRenderer = {
 
     renderSingleLineText(ctx, {
       x: x + padding + tagPadding,
-      y: y + 1,
+      y: y,
       text: truncatedText,
       maxWidth: width - padding * 2 - tagPadding * 2,
       textAlign: 'left',

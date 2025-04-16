@@ -183,7 +183,7 @@ describe('dataApiV3', () => {
       );
     });
 
-    it('invalid filter field (invalid parsing)', async () => {
+    it('invalid filter (invalid parsing)', async () => {
       const response = await ncAxiosGet({
         url: `${urlPrefix}/${testContext.countryTable.id}`,
         query: {
@@ -192,7 +192,7 @@ describe('dataApiV3', () => {
         status: 422,
       });
       expect(response.body.message).to.eq(
-        `INVALID_FILTER parsing_error: Expecting token of type --> PAREN_END <-- but found --> '' <--`,
+        `Invalid filter syntax: expected a closing parentheses ')', but found ''.`,
       );
     });
 

@@ -275,6 +275,22 @@ describe('query-filter-parser', () => {
         `Invalid filter expression: '"eq"' is not a recognized operator. Please use a valid comparison or logical operator.`
       );
     });
+    it(`will handle parsing error when no opening parentheses`, async () => {
+      const text = `fSingleLineText,eq)`;
+      const result = QueryFilterParser.parse(text);
+      const message = parseParsingError(result.parseErrors[0]);
+      expect(message).toBe(
+        `Invalid filter syntax: expected a logical operator like '~not' or opening parenthesis, but found 'fSingleLineText'.`
+      );
+    });
+    it(`will handle parsing error when no closing parentheses`, async () => {
+      const text = `(fSingleLineText,eq`;
+      const result = QueryFilterParser.parse(text);
+      const message = parseParsingError(result.parseErrors[0]);
+      expect(message).toBe(
+        `Invalid filter syntax: expected a closing parentheses ')', but found ''.`
+      );
+    });
     it(`will handle parsing error when not operator is wrong`, async () => {
       const text = `not(fSingleLineText,eq,1)`;
       const result = QueryFilterParser.parse(text);

@@ -3597,61 +3597,65 @@ const cellFilteredOrSortedClass = (colId: string) => {
     }
 
     &:not(.selected-row) {
-      td.nc-grid-cell:not(.active):not(.column-filtered):not(.column-sorted),
-      td:nth-child(2):not(.active):not(.column-filtered):not(.column-sorted) {
+      td.nc-grid-cell:not(.active),
+      td:nth-child(2):not(.active) {
         @apply !bg-gray-50 border-b-gray-200 border-r-gray-200;
-      }
-      td.nc-grid-cell.column-filtered:not(.active) {
-        @apply !bg-green-100 !border-b-gray-200 !border-r-gray-200;
-      }
-      td.nc-grid-cell.column-sorted:not(.active) {
-        @apply !bg-orange-100 !border-b-gray-300 !border-r-gray-300;
+
+        &.column-filtered {
+          @apply !bg-green-100;
+        }
+
+        &.column-sorted {
+          @apply !bg-orange-100;
+        }
       }
     }
   }
 
   &.selected-row {
-    td.nc-grid-cell:not(.active):not(.column-filtered):not(.column-sorted),
-    td:nth-child(2):not(.active):not(.column-filtered):not(.column-sorted) {
+    td.nc-grid-cell:not(.active),
+    td:nth-child(2):not(.active) {
       @apply !bg-[#F0F3FF] border-b-gray-200 border-r-gray-200;
-    }
-    td.nc-grid-cell.column-filtered:not(.active) {
-      @apply !bg-green-100 !border-b-gray-200 !border-r-gray-200;
-    }
-    td.nc-grid-cell.column-sorted:not(.active) {
-      @apply !bg-orange-100 !border-b-gray-300 !border-r-gray-300;
+
+      &.column-filtered {
+        @apply !bg-green-100;
+      }
+
+      &.column-sorted {
+        @apply !bg-orange-100;
+      }
     }
   }
 
   &:not(.selected-row):has(+ .selected-row) {
-    td.nc-grid-cell:not(.active):not(.column-filtered):not(.column-sorted),
-    td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item):not(.column-filtered):not(.column-sorted) {
+    td.nc-grid-cell:not(.active),
+    td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
       @apply border-b-gray-200;
     }
-    td.nc-grid-cell:not(.active).column-filtered,
-    td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item).column-filtered {
-      @apply border-b-gray-200;
-    }
-    td.nc-grid-cell.column-sorted:not(.active),
-    td.column-sorted:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
-      @apply !border-b-gray-300;
+  }
+
+  &:not(.selected-row) {
+    td.nc-grid-cell:not(.active),
+    td:nth-child(2):not(.active) {
+      &.column-filtered,
+      &.column-sorted {
+        @apply border-b-gray-200 border-r-gray-200;
+      }
+      &:has(+ .column-filtered),
+      &:has(+ .column-sorted){
+        @apply border-r-gray-200;
+      }
+
+      
     }
   }
 
   &:not(.active-row):has(+ .active-row),
   &:not(.mouse-down):has(+ :hover) {
     &:not(.selected-row) {
-      td.nc-grid-cell:not(.active):not(.column-filtered):not(.column-sorted),
-      td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item):not(.column-filtered):not(.column-sorted) {
+      td.nc-grid-cell:not(.active),
+      td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
         @apply border-b-gray-200;
-      }
-      td.nc-grid-cell:not(.active).column-filtered,
-      td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item).column-filtered {
-        @apply border-b-gray-200;
-      }
-      td.nc-grid-cell.column-sorted:not(.active),
-      td.column-sorted:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
-        @apply !border-b-gray-300;
       }
     }
   }

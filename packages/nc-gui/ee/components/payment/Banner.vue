@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { isPaidPlan, isWsOwner, navigateToBilling } = useEeConfig()
+const { isPaidPlan, isWsOwner, navigateToBilling, navigateToPricing } = useEeConfig()
 
 const isMinimised = ref(true)
 
@@ -69,17 +69,17 @@ const handleClickBanner = () => {
             </template>
             {{ isWsOwner ? $t('labels.upgradePlan') : $t('general.requestUpgrade') }}
           </NcButton>
-          <a href="https://nocodb.com/pricing" target="_blank" class="!no-underline">
+          <div class="!no-underline">
             <NcButton
               type="text"
               size="small"
               data-testid="nc-workspace-settings-view-all-plan-btn"
               class="!hover:bg-nc-bg-maroon-dark"
-              @click.stop
+              @click.stop="navigateToPricing()"
             >
               {{ $t('labels.viewAllPlanDetails') }}
             </NcButton>
-          </a>
+          </div>
         </div>
       </div>
       <div v-if="!isMinimised" class="w-[60%] flex items-end justify-end relative -my-6 -mr-7">

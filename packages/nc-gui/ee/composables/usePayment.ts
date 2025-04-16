@@ -1,4 +1,5 @@
 import { type Stripe, type StripeCheckoutSession, loadStripe } from '@stripe/stripe-js'
+import dayjs from 'dayjs'
 import { LOYALTY_END_DATE, LoyaltyPriceLookupKeyMap, PlanOrder, PlanPriceLookupKeys, PlanTitles } from 'nocodb-sdk'
 import NcModalConfirm from '../../components/nc/ModalConfirm.vue'
 
@@ -54,10 +55,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const isLoyaltyWorkspace = computed(() => {
     if (!activeWorkspace.value) return false
 
-    const createdAt = new Date(activeWorkspace.value.created_at)
-    const loyaltyEndDate = new Date(LOYALTY_END_DATE)
-
-    return createdAt < loyaltyEndDate
+    return dayjs(activeWorkspace.value.created_at).isBefore(LOYALTY_END_DATE)
   })
 
   const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription)

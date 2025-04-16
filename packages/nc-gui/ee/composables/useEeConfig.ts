@@ -228,12 +228,25 @@ export const useEeConfig = createSharedComposable(() => {
     workspaceId,
     redirectToWorkspace = true,
     limitOrFeature,
+    directPayment = false,
+    planTitle,
+    paymentMode,
   }: {
     workspaceId?: string
     redirectToWorkspace?: boolean
     limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
+    directPayment?: boolean
+    planTitle?: PlanTitles
+    paymentMode?: 'year' | 'month'
   } = {}) => {
     if (!isWsOwner.value) return handleRequestUpgrade({ workspaceId, limitOrFeature })
+
+    if (directPayment) {
+      navigateTo(
+        `/${workspaceId ?? activeWorkspaceId.value}/settings?tab=billing&pay=true&plan=${planTitle}&paymentMode=${paymentMode}`,
+      )
+      return
+    }
 
     const planCtaBtnQuery = limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? `&activeBtn=${PlanTitles.BUSINESS}` : ''
 
@@ -242,6 +255,10 @@ export const useEeConfig = createSharedComposable(() => {
     } else {
       navigateTo(`/account/workspace/${workspaceId ?? activeWorkspaceId.value}/settings?autoScroll=plan${planCtaBtnQuery}`)
     }
+  }
+
+  const navigateToPricing = (wsId?: string) => {
+    navigateTo(`/${wsId || activeWorkspaceId.value}/pricing`)
   }
 
   const handleUpgradePlan = ({
@@ -580,5 +597,6 @@ export const useEeConfig = createSharedComposable(() => {
     blockExternalSourceRecordVisibility,
     showAsBluredRecord,
     showUpgradeToSeeMoreRecordsModal,
+    navigateToPricing,
   }
 })

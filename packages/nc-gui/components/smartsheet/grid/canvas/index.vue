@@ -601,9 +601,9 @@ function onActiveCellChanged() {
     }
     processGroups(cachedGroups.value)
   } else {
-    clearInvalidRows?.(undefined)
+    clearInvalidRows?.([])
     if (rowSortRequiredRows.value.length) {
-      applySorting?.(rowSortRequiredRows.value)
+      applySorting?.(rowSortRequiredRows.value, [])
     }
   }
   calculateSlices()

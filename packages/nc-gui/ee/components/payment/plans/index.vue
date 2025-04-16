@@ -7,7 +7,7 @@ const router = useRouter()
 
 const { navigateToPricing } = useEeConfig()
 
-const { annualDiscount, plansAvailable, activePlan, paymentMode, onPaymentModeChange, isLoyaltyWorkspace } =
+const { annualDiscount, plansAvailable, activePlan, paymentMode, onPaymentModeChange, isLoyaltyWorkspace, isPaidPlan } =
   usePaymentStoreOrThrow()
 
 const allPlanRef = ref<HTMLDivElement>()
@@ -53,7 +53,7 @@ watch(
       {{ $t('general.all') }} {{ $t('general.plans') }}
     </div>
     <PaymentPlansSelectMode :value="paymentMode" :discount="annualDiscount" @change="onPaymentModeChange" />
-    <PaymentLoyaltyBadge v-if="isLoyaltyWorkspace" />
+    <PaymentLoyaltyBadge v-if="isLoyaltyWorkspace && !isPaidPlan" />
     <div class="w-full grid gap-4 grid-cols-[repeat(auto-fill,minmax(288px,1fr))]">
       <PaymentPlansCard
         v-for="plan in plansAvailable"

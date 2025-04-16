@@ -222,6 +222,8 @@ const isDeleteOrUpdateAllowed = (user) => {
         <template v-if="isPaymentEnabled && paidUsersCount">
           <NcTooltip
             v-if="activePlanTitle === PlanTitles.FREE"
+            :tooltip-style="{ width: '230px' }"
+            :overlay-inner-style="{ width: '230px' }"
             :title="
               $t('upgrade.freePlanEditorLimitTooltip', {
                 limit: getLimit(PlanLimitTypes.LIMIT_EDITOR),
@@ -236,7 +238,7 @@ const isDeleteOrUpdateAllowed = (user) => {
             >
               <GeneralIcon icon="star" class="flex-none h-4 w-4 mr-1" />
 
-              {{ paidUsersCount }} {{ paidUsersCount === 1 ? $t('general.editorSeat') : $t('labels.editorSeats') }}
+              {{ paidUsersCount }} {{ paidUsersCount === 1 ? $t('labels.editorSeat') : $t('labels.editorSeats') }}
             </NcBadge>
           </NcTooltip>
           <NcBadge
@@ -248,7 +250,7 @@ const isDeleteOrUpdateAllowed = (user) => {
             {{ paidUsersCount }} {{ $t('general.paid') }}
             {{ paidUsersCount === 1 ? $t('general.seat').toLowerCase() : $t('general.seats').toLowerCase() }}
           </NcBadge>
-          <div class="self-stretch border-1 border-nc-border-gray-medium"></div>
+          <div class="self-stretch border-r-1 border-nc-border-gray-medium"></div>
         </template>
 
         <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn" @click="inviteDlg = true">
@@ -301,6 +303,8 @@ const isDeleteOrUpdateAllowed = (user) => {
                   v-if="isPaymentEnabled && parseProp(record.meta).billable"
                   :title="$t('tooltip.paidUserBadgeTooltip')"
                   class="flex items-center"
+                  :tooltip-style="{ width: '180px' }"
+                  :overlay-inner-style="{ width: '180px' }"
                 >
                   <NcBadge
                     v-if="activePlanTitle === PlanTitles.FREE"

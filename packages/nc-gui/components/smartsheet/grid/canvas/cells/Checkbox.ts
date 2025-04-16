@@ -16,7 +16,7 @@ export const CheckboxCellRenderer: CellRenderer = {
       tagBorderColor,
       tagBorderWidth,
     } = tag
-    const checked = !!value && value !== '0' && value !== 0 && value !== 'false'
+    const checked = getCheckBoxValue(value)
 
     const columnMeta = {
       color: 'primary',

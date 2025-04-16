@@ -1,12 +1,12 @@
 import {
   GRACE_PERIOD_DURATION,
+  LOYALTY_END_DATE,
   NON_SEAT_ROLES,
   PlanFeatureTypes,
   PlanLimitTypes,
-  ProjectRoles,
-  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
+import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { Org, Subscription, Workspace } from '~/models';
 import Noco from '~/Noco';
@@ -262,17 +262,24 @@ async function getFeature(
 async function getWorkspaceOrOrg(
   workspaceOrOrgId: string,
   ncMeta = Noco.ncMeta,
-): Promise<(Workspace & { entity: 'workspace' }) | (Org & { entity: 'org' })> {
+): Promise<
+  | (Workspace & { entity: 'workspace'; loyal: boolean })
+  | (Org & { entity: 'org'; loyal: boolean })
+> {
   const workspace = await Workspace.get(workspaceOrOrgId, null, ncMeta);
 
   if (workspace) {
-    return { ...workspace, entity: 'workspace' };
+    const isLoyal = dayjs(workspace.created_at).isBefore(LOYALTY_END_DATE);
+
+    return { ...workspace, entity: 'workspace', loyal: isLoyal };
   }
 
   const org = await Org.get(workspaceOrOrgId, ncMeta);
 
   if (org) {
-    return { ...org, entity: 'org' };
+    const isLoyal = dayjs(org.created_at).isBefore(LOYALTY_END_DATE);
+
+    return { ...org, entity: 'org', loyal: isLoyal };
   }
 }
 

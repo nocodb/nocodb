@@ -29,6 +29,9 @@ export default class Org implements OrganizationType {
   stripe_customer_id?: string;
   meta: string;
 
+  created_at?: string;
+  updated_at?: string;
+
   constructor(org: Partial<OrgType>) {
     Object.assign(this, org);
   }

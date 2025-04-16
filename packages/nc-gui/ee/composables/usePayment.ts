@@ -1,5 +1,5 @@
 import { type Stripe, type StripeCheckoutSession, loadStripe } from '@stripe/stripe-js'
-import { PlanOrder, PlanTitles } from 'nocodb-sdk'
+import { LOYALTY_END_DATE, LoyaltyPriceLookupKeyMap, PlanOrder, PlanPriceLookupKeys, PlanTitles } from 'nocodb-sdk'
 import NcModalConfirm from '../../components/nc/ModalConfirm.vue'
 
 export interface PaymentPlan {
@@ -50,6 +50,15 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const isAccountPage = ref<boolean>(false)
 
   const isOpenUpgradePlanModal = ref<boolean>(false)
+
+  const isLoyaltyWorkspace = computed(() => {
+    if (!activeWorkspace.value) return false
+
+    const createdAt = new Date(activeWorkspace.value.created_at)
+    const loyaltyEndDate = new Date(LOYALTY_END_DATE)
+
+    return createdAt < loyaltyEndDate
+  })
 
   const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription)
 
@@ -104,19 +113,71 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     }
   }
 
+  const getLookupKey = (planTitle: PlanTitles, mode: 'year' | 'month') => {
+    let lookupKey = null
+
+    if (planTitle === PlanTitles.TEAM) {
+      lookupKey = mode === 'month' ? PlanPriceLookupKeys.TEAM_MONTHLY : PlanPriceLookupKeys.TEAM_YEARLY
+    }
+
+    if (planTitle === PlanTitles.BUSINESS) {
+      lookupKey = mode === 'month' ? PlanPriceLookupKeys.BUSINESS_MONTHLY : PlanPriceLookupKeys.BUSINESS_YEARLY
+    }
+
+    if (lookupKey && isLoyaltyWorkspace.value) {
+      lookupKey = LoyaltyPriceLookupKeyMap[lookupKey]
+    }
+
+    return lookupKey
+  }
+
+  const getPrice = (plan: PaymentPlan, mode?: 'year' | 'month') => {
+    if (!plan?.prices) return null
+
+    if (!mode) mode = paymentMode.value
+
+    const lookupKey = getLookupKey(plan.title, mode)
+
+    if (!lookupKey) return null
+
+    const price = plan.prices.find((price: any) => price.lookup_key === lookupKey)
+
+    if (!price) return null
+
+    return price
+  }
+
   const getPlanPrice = (plan?: PaymentPlan, mode?: 'year' | 'month') => {
     if (!plan?.prices) return 0
 
     if (!mode) mode = paymentMode.value
 
-    const price = plan.prices.find((price: any) => price.recurring.interval === mode) || plan.prices[0]
+    const price = getPrice(plan, mode) || plan.prices[0]
 
-    if (price.billing_scheme === 'tiered') {
+    if (price.billing_scheme === 'tiered' && price.tiers_mode === 'volume') {
       const tier = price.tiers.find((tier: any) => workspaceSeatCount.value <= (tier.up_to ?? Infinity))
 
       if (!tier) return 0
 
       return (tier.unit_amount + tier.flat_amount) / 100 / (mode === 'year' ? 12 : 1)
+    } else if (price.billing_scheme === 'tiered' && price.tiers_mode === 'graduated') {
+      let remainingSeats = workspaceSeatCount.value
+      let total = 0
+
+      for (const tier of price.tiers) {
+        const tierLimit = tier.up_to ?? Infinity
+        const tierSeats = Math.min(remainingSeats, tierLimit)
+        const seatsInTier = tierSeats - (tier.previous_up_to ?? 0)
+
+        if (seatsInTier > 0) {
+          total += tier.unit_amount + (tier.flat_amount || 0)
+          remainingSeats -= seatsInTier
+        }
+
+        if (tier.up_to === null || tier.up_to === 'inf' || workspaceSeatCount.value <= tierLimit) break
+      }
+
+      return total / 100 / (mode === 'year' ? 12 : 1)
     }
 
     return price.unit_amount / 100 / (mode === 'year' ? 12 : 1)
@@ -128,7 +189,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     if (!selectedPlan.value) throw new Error('No plan selected')
     if (!selectedPlan.value.prices) throw new Error('No prices found')
 
-    const price = selectedPlan.value.prices.find((price: any) => price.recurring.interval === paymentMode.value)
+    const price = getPrice(selectedPlan.value, paymentMode.value)
 
     if (!price) throw new Error('No price found')
 
@@ -155,7 +216,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
     if (!plan) throw new Error('No plan found')
 
-    priceId = priceId || plan.prices?.find((price: any) => price.recurring.interval === paymentMode.value)?.id
+    priceId = priceId || getPrice(plan, paymentMode.value)?.id
 
     if (!priceId) throw new Error('No price found')
 
@@ -237,11 +298,9 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       changes.plan = plan.title
     }
 
-    const activePrice = activePlan.value?.prices?.find(
-      (price: any) => price.recurring.interval === activeSubscription.value.period,
-    )
+    const activePrice = activePlan.value?.prices?.find((price: any) => price.id === activeSubscription.value.fk_price_id)
 
-    const newPrice = plan.prices?.find((price: any) => price.recurring.interval === paymentMode.value)
+    const newPrice = getPrice(plan, paymentMode.value)
 
     if (activePrice?.id !== newPrice?.id) {
       changes.price = newPrice?.unit_amount > activePrice?.unit_amount ? 'charges' : 'no-charges'
@@ -381,6 +440,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     isAccountPage,
     onManageSubscription,
     isOpenUpgradePlanModal,
+    isLoyaltyWorkspace,
     upgradePlan,
   }
 }, 'injected-payment-store')

@@ -130,7 +130,7 @@ watch(
                   :href="checkoutSession?.invoice?.invoice_pdf"
                   target="_blank"
                   rel="noopener noreferer"
-                  class="!no-underline !hover:underline text-sm"
+                  class="!no-underline !hover:underline text-sm font-700"
                 >
                   {{ $t('labels.downloadInvoice') }}
                 </a>

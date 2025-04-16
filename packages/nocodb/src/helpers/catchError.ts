@@ -948,6 +948,8 @@ export class NcError {
       formatedId = 'unknown';
     } else if (typeof id === 'string') {
       formatedId = [id];
+    } else if (typeof id === 'number') {
+      formatedId = [(id as number).toString()];
     } else if (Array.isArray(id)) {
       if (id.every((i) => typeof i === 'string')) {
         formatedId = id as string[];

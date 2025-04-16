@@ -1331,6 +1331,8 @@ export function useInfiniteData(args: {
         UITypes.Lookup,
         UITypes.Button,
         UITypes.Attachment,
+        UITypes.DateTime,
+        UITypes.Date,
       ])
 
       Object.assign(

@@ -3167,7 +3167,7 @@ onKeyStroke('ArrowDown', onDown)
     @apply !bg-green-100;
   }
   td.nc-grid-cell.column-sorted.active {
-    @apply !bg-maroon-100;
+    @apply !bg-orange-100;
   }
 
   .nc-row-expand-and-checkbox {
@@ -3205,11 +3205,11 @@ onKeyStroke('ArrowDown', onDown)
       }
       td.nc-grid-cell.column-filtered:not(.active) {
         @apply !bg-green-100;
-        @apply !border-gray-300;
+        @apply !border-b-gray-200;
       }
       td.nc-grid-cell.column-sorted:not(.active) {
-        @apply !bg-maroon-100;
-        @apply !border-gray-300;
+        @apply !bg-orange-100;
+        @apply !border-b-gray-300;
       }
     }
   }
@@ -3221,27 +3221,43 @@ onKeyStroke('ArrowDown', onDown)
     }
     td.nc-grid-cell.column-filtered:not(.active) {
       @apply !bg-green-100;
-      @apply !border-gray-300;
+      @apply !border-b-gray-200;
     }
     td.nc-grid-cell.column-sorted:not(.active) {
-      @apply !bg-maroon-100;
-      @apply !border-gray-300;
+      @apply !bg-orange-100;
+      @apply !border-b-gray-300;
     }
   }
 
   &:not(.selected-row):has(+ .selected-row) {
-    td.nc-grid-cell:not(.active),
-    td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
+    td.nc-grid-cell:not(.active):not(.column-filtered):not(.column-sorted),
+    td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item):not(.column-filtered):not(.column-sorted) {
       @apply border-b-gray-200;
+    }
+    td.nc-grid-cell:not(.active).column-filtered,
+    td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item).column-filtered {
+      @apply border-b-gray-200;
+    }
+    td.nc-grid-cell.column-sorted:not(.active),
+    td.column-sorted:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
+      @apply !border-b-gray-300;
     }
   }
 
   &:not(.active-row):has(+ .active-row),
   &:not(.mouse-down):has(+ :hover) {
     &:not(.selected-row) {
-      td.nc-grid-cell:not(.active),
-      td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
+      td.nc-grid-cell:not(.active):not(.column-filtered):not(.column-sorted),
+      td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item):not(.column-filtered):not(.column-sorted) {
         @apply border-b-gray-200;
+      }
+      td.nc-grid-cell:not(.active).column-filtered,
+      td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item).column-filtered {
+        @apply border-b-gray-200;
+      }
+      td.nc-grid-cell.column-sorted:not(.active),
+      td.column-sorted:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
+        @apply !border-b-gray-300;
       }
     }
   }

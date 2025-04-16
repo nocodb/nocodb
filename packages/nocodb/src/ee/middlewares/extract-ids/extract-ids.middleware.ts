@@ -116,7 +116,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     // this is a special route for ws operations we pass 'nc' as base id
     const isInternalApi = !!req.path?.startsWith('/api/v2/internal');
 
-    if (params.baseId && (isInternalApi && params.baseId !== 'nc')) {
+    if (params.baseId && (!isInternalApi || params.baseId !== 'nc')) {
       req.ncBaseId = params.baseId;
     } else if (params.dashboardId) {
       req.ncBaseId = params.dashboardId;
@@ -416,7 +416,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     // todo:  verify all scenarios
     // extract workspace id based on request path params or
     // extract base id based on request path params
-    if ((params.baseId || params.baseName) && !req.ncBaseId && (isInternalApi && params.baseId !== 'nc')) {
+    if (
+      (params.baseId || params.baseName) &&
+      !req.ncBaseId &&
+      (!isInternalApi || params.baseId !== 'nc')
+    ) {
       // we expect project_name to be id for EE
       const base = await Base.get(context, params.baseId ?? params.baseName);
       if (base) {
@@ -439,7 +443,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       } else {
         NcError.baseNotFound(params.baseId ?? params.baseName);
       }
-    } else if (req.ncBaseId && (isInternalApi && params.baseId !== 'nc')) {
+    } else if (req.ncBaseId && (!isInternalApi || params.baseId !== 'nc')) {
       const base = await Base.get(context, req.ncBaseId);
       if (base) {
         req.ncWorkspaceId = (base as Base).fk_workspace_id;

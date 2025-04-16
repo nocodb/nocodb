@@ -8,6 +8,7 @@ import { LocalStrategy } from '~/strategies/local.strategy';
 import { AuthTokenStrategy } from '~/strategies/authtoken.strategy/authtoken.strategy';
 import { BaseViewStrategy } from '~/strategies/base-view.strategy/base-view.strategy';
 import { GoogleStrategyProvider } from '~/strategies/google.strategy/google.strategy';
+import { OidcStrategyProvider } from '~/strategies/oidc.strategy/oidc.strategy';
 import { AuthService } from '~/modules/auth/auth.service';
 import { AuthController } from '~/modules/auth/auth.controller';
 
@@ -23,6 +24,7 @@ export const authModuleMetadata = {
     BaseViewStrategy,
     BasicStrategy,
     GoogleStrategyProvider,
+    OidcStrategyProvider,
   ],
   exports: [],
 };

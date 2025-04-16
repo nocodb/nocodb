@@ -584,6 +584,7 @@ const shouldOpenContextMenu = computed(() => {
               @keyup.enter="updateProjectTitle"
               @keyup.esc="updateProjectTitle"
               @blur="updateProjectTitle"
+              @keydown.stop
             />
             <NcTooltip
               v-else
@@ -877,6 +878,7 @@ const shouldOpenContextMenu = computed(() => {
                               @keyup.enter="updateSourceTitle(source.id!)"
                               @keyup.esc="updateSourceTitle(source.id!)"
                               @blur="updateSourceTitle(source.id!)"
+                              @keydown.stop
                             />
                             <NcTooltip
                               v-else

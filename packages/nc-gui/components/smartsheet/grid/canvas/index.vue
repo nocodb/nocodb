@@ -386,6 +386,32 @@ const fixedLeftWidth = computed(() => {
   return columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 0)
 })
 
+const isClamped = computed(() => {
+  if (!editEnabled.value || !containerRef.value) return false
+
+  if (editEnabled.value.column?.uidt === UITypes.LongText || editEnabled.value.column?.uidt === UITypes.Formula) {
+    return true
+  }
+
+  const rawTop = editEnabled.value.y - scrollTop.value - rowHeight.value + 1
+  const clampedTop = Math.max(32, Math.min(containerRef.value.clientHeight - rowHeight.value - 36, rawTop))
+  console.log(rawTop, clampedTop)
+  const verticalStuck = clampedTop !== rawTop
+
+  let horizontalStuck = false
+
+  if (!editEnabled.value.fixed) {
+    const rawLeft = editEnabled.value.x - scrollLeft.value
+    const clampedLeft = Math.max(
+      fixedLeftWidth.value,
+      Math.min(containerRef.value.clientWidth - editEnabled.value.width, rawLeft),
+    )
+    horizontalStuck = clampedLeft !== rawLeft
+  }
+
+  return verticalStuck || horizontalStuck
+})
+
 const editEnabledCellPosition = computed(() => {
   if (!editEnabled.value) {
     return {
@@ -410,31 +436,6 @@ const editEnabledCellPosition = computed(() => {
     top: `${top + (isClamped.value && !isGroupBy.value ? 1 : 0)}px`,
     left: `${left}px`,
   }
-})
-
-const isClamped = computed(() => {
-  if (!editEnabled.value || !containerRef.value) return false
-
-  if (editEnabled.value.column?.uidt === UITypes.LongText || editEnabled.value.column?.uidt === UITypes.Formula) {
-    return true
-  }
-
-  const rawTop = editEnabled.value.y - scrollTop.value - rowHeight.value
-  const clampedTop = Math.max(32, Math.min(containerRef.value.clientHeight - rowHeight.value - 36, rawTop))
-  const verticalStuck = clampedTop !== rawTop
-
-  let horizontalStuck = false
-
-  if (!editEnabled.value.fixed) {
-    const rawLeft = editEnabled.value.x - scrollLeft.value
-    const clampedLeft = Math.max(
-      fixedLeftWidth.value,
-      Math.min(containerRef.value.clientWidth - editEnabled.value.width, rawLeft),
-    )
-    horizontalStuck = clampedLeft !== rawLeft
-  }
-
-  return verticalStuck || horizontalStuck
 })
 
 const totalHeight = computed(() => {
@@ -1661,6 +1662,11 @@ const handleMouseMove = (e: MouseEvent) => {
     const y = e.clientY - rect.top
     if (y <= 32 && resizeableColumn.value) {
       resizeMouseMove(e)
+    } else if (mousePosition.y > height.value - 36) {
+      cursor = mousePosition.x < totalColumnsWidth.value - scrollLeft.value ? 'pointer' : 'auto'
+      setCursor(cursor)
+      requestAnimationFrame(triggerRefreshCanvas)
+      return
     } else {
       const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
 
@@ -1720,10 +1726,6 @@ const handleMouseMove = (e: MouseEvent) => {
       const row = element?.row
       cursor = getRowMetaCursor({ row, x: mousePosition.x, group: element?.group }) || cursor
     }
-  }
-
-  if (mousePosition.y > height.value - 36) {
-    cursor = mousePosition.x < totalColumnsWidth.value - scrollLeft.value ? 'pointer' : 'auto'
   }
 
   if (cursor) setCursor(cursor)
@@ -2341,7 +2343,7 @@ defineExpose({
                 'px-[0.49rem]': editEnabled.fixed,
                 'top-[0.5px] left-[-1px]': isClamped,
                 'top-[3.5px]': !isGroupBy,
-                'top-[2.5px]': isGroupBy
+                'top-[2.5px]': isGroupBy,
               }"
               @click="cellClickHook.trigger($event)"
             >

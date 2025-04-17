@@ -121,6 +121,8 @@ export const HigherPlan = {
 
 export const GRACE_PERIOD_DURATION = 14;
 
+export const LOYALTY_END_DATE = '2025-04-15';
+
 export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_FREE_WORKSPACE]: 'to add more workspaces.',
   [PlanLimitTypes.LIMIT_EDITOR]: 'to add more editors.',

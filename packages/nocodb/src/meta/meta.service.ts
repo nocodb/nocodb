@@ -630,7 +630,6 @@ export class MetaService {
 
     query.count(args?.aggField || 'id', { as: 'count' }).first();
 
-
     return +(await query)?.['count'] || 0;
   }
 
@@ -654,6 +653,7 @@ export class MetaService {
     xcCondition?: Condition,
     skipUpdatedAt = false,
     force = false,
+    allowCreatedAt = false,
   ): Promise<any> {
     const query = this.knexConnection(target);
 
@@ -680,7 +680,9 @@ export class MetaService {
       }
     }
 
-    delete data.created_at;
+    if (!allowCreatedAt) {
+      delete data.created_at;
+    }
 
     if (!skipUpdatedAt) {
       data.updated_at = this.now();

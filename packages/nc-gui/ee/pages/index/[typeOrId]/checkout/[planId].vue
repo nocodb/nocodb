@@ -14,11 +14,20 @@ const { appInfo } = useGlobal()
 
 const { navigateToPricing, navigateToBilling } = useEeConfig()
 
-const { createPaymentForm, selectedPlan, paymentState, paymentMode, loadPlan, activeWorkspace } = useProvidePaymentStore()
+const { createPaymentForm, selectedPlan, paymentState, paymentMode, loadPlan, activeWorkspace, loadWorkspaceSeatCount } =
+  useProvidePaymentStore()
 
 const isLoading = ref(false)
 
 const checkout = ref<StripeEmbeddedCheckout | null>(null)
+
+const onBack = () => {
+  if (redirectRef.value === 'billing') {
+    navigateToBilling()
+  } else {
+    navigateToPricing()
+  }
+}
 
 const initializeForm = async () => {
   try {
@@ -42,20 +51,13 @@ const initializeForm = async () => {
     checkout.value.mount('#checkout')
   } catch (err: any) {
     console.log(err)
+    onBack()
   } finally {
     isLoading.value = false
   }
 }
 
-const onBack = () => {
-  if (redirectRef.value === 'billing') {
-    navigateToBilling()
-  } else {
-    navigateToPricing()
-  }
-}
-
-onMounted(async () => {
+onMounted(() => {
   hideSidebar.value = true
   showTopbar.value = true
   isLoading.value = true
@@ -70,20 +72,24 @@ onMounted(async () => {
 
     paymentMode.value = route.query?.paymentMode === 'month' ? 'month' : 'year'
 
-    stripe.value = await loadStripe(appInfo.value.stripePublishableKey)
+    loadStripe(appInfo.value.stripePublishableKey).then((s) => {
+      stripe.value = s
 
-    const plan = await loadPlan(route.params.planId as string)
+      loadWorkspaceSeatCount().then(() => {
+        loadPlan(route.params.planId as string).then((plan) => {
+          if (!plan) {
+            navigateToPricing()
+            message.error('Plan not found')
+            return
+          }
 
-    if (!plan) {
-      navigateToPricing()
-      message.error('Plan not found')
-      return
-    }
+          selectedPlan.value = plan
+          paymentState.value = PaymentState.PAYMENT
 
-    selectedPlan.value = plan
-    paymentState.value = PaymentState.PAYMENT
-
-    await initializeForm()
+          initializeForm()
+        })
+      })
+    })
   } catch (err) {
     onBack()
   }

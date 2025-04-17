@@ -9,6 +9,7 @@ import {
 } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
+import { getFeature, PlanFeatureTypes } from '~/helpers/paymentHelpers';
 
 export default class CustomUrl extends CustomUrlCE {
   public static async get(
@@ -56,6 +57,13 @@ export default class CustomUrl extends CustomUrlCE {
     if (!customUrl) {
       return;
     }
+
+    const isCustomUrlEnabled = await getFeature(
+      PlanFeatureTypes.FEATURE_CUSTOM_URL,
+      customUrl.fk_workspace_id,
+    );
+
+    if (!isCustomUrlEnabled) return;
 
     return customUrl;
   }

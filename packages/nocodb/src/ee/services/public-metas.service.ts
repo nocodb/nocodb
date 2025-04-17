@@ -26,11 +26,11 @@ export class PublicMetasService extends PublicMetasServiceCE {
   ) {
     let view = await super.viewMetaGet(context, param);
 
-    if (view.type === ViewTypes.FORM) {
-      view = await this.validateFormViewPlanLimitAndFeatures(view);
-    }
-
     const workspace = await Workspace.get(view.fk_workspace_id, false);
+
+    if (view.type === ViewTypes.FORM) {
+      view = await this.validateFormViewPlanLimitAndFeatures(view, workspace);
+    }
 
     Object.assign(view, {
       workspace,
@@ -61,92 +61,95 @@ export class PublicMetasService extends PublicMetasServiceCE {
     view: Awaited<
       ReturnType<typeof PublicMetasServiceCE.prototype.viewMetaGet>
     >,
+    workspace: Workspace,
   ) {
     const isFormFieldOnConditionEnabled = await getFeature(
       PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION,
-      view.fk_workspace_id,
+      workspace,
     );
 
     const isFormCustomLogEnabled = await getFeature(
       PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO,
-      view.fk_workspace_id,
+      workspace,
     );
 
     const isHideBrandingEnabled = await getFeature(
       PlanFeatureTypes.FEATURE_HIDE_BRANDING,
-      view.fk_workspace_id,
+      workspace,
     );
 
     const isUrlRedirectionEnabled = await getFeature(
       PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION,
-      view.fk_workspace_id,
+      workspace,
     );
 
     const isFieldValidationEnabled = await getFeature(
       PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,
-      view.fk_workspace_id,
+      workspace,
     );
 
     const formView = view.view as FormView;
 
-    const formColumns = (view.columns as FormViewColumn[]).map((c) => {
-      if (!ncIsArray((c.meta as Record<string, any>)?.validators)) return c;
+    const formColumns = isFieldValidationEnabled
+      ? view.columns
+      : (view.columns as FormViewColumn[]).map((c) => {
+          if (!ncIsArray((c.meta as Record<string, any>)?.validators)) return c;
 
-      const validators = (c.meta as Record<string, any>)?.validators.filter(
-        (val) => {
-          // Restrict number validation type
-          if (Object.values(NumberValidationType).includes(val.type)) {
-            return false;
-          }
+          const validators = (c.meta as Record<string, any>)?.validators.filter(
+            (val) => {
+              // Restrict number validation type
+              if (Object.values(NumberValidationType).includes(val.type)) {
+                return false;
+              }
 
-          // Restrict date, time, year ranage validation
-          if (
-            Object.values(DateValidationType).includes(val.type) ||
-            Object.values(TimeValidationType).includes(val.type) ||
-            Object.values(YearValidationType).includes(val.type)
-          ) {
-            return false;
-          }
+              // Restrict date, time, year ranage validation
+              if (
+                Object.values(DateValidationType).includes(val.type) ||
+                Object.values(TimeValidationType).includes(val.type) ||
+                Object.values(YearValidationType).includes(val.type)
+              ) {
+                return false;
+              }
 
-          // Restrict attachment valiation
-          if (Object.values(AttachmentValidationType).includes(val.type)) {
-            return false;
-          }
+              // Restrict attachment valiation
+              if (Object.values(AttachmentValidationType).includes(val.type)) {
+                return false;
+              }
 
-          // From select validation restrict only range validation, limit options is by default enabled
-          if (
-            [
-              SelectValidationType.MinSelected,
-              SelectValidationType.MaxSelected,
-            ].includes(val.type)
-          ) {
-            return false;
-          }
+              // From select validation restrict only range validation, limit options is by default enabled
+              if (
+                [
+                  SelectValidationType.MinSelected,
+                  SelectValidationType.MaxSelected,
+                ].includes(val.type)
+              ) {
+                return false;
+              }
 
-          // From string validation restrict only custom validation (email, url, phonenumber is default column validation)
-          if (
-            Object.values(StringValidationType)
-              .filter(
-                (v) =>
-                  ![
-                    StringValidationType.Email,
-                    StringValidationType.Url,
-                    StringValidationType.PhoneNumber,
-                  ].includes(v),
-              )
-              .includes(val.type)
-          ) {
-            return false;
-          }
+              // From string validation restrict only custom validation (email, url, phonenumber is default column validation)
+              if (
+                Object.values(StringValidationType)
+                  .filter(
+                    (v) =>
+                      ![
+                        StringValidationType.Email,
+                        StringValidationType.Url,
+                        StringValidationType.PhoneNumber,
+                      ].includes(v),
+                  )
+                  .includes(val.type)
+              ) {
+                return false;
+              }
 
-          return true;
-        },
-      );
+              return true;
+            },
+          );
 
-      c.meta = { ...(c.meta as Record<string, any>), validators };
+          c.meta = { ...(c.meta as Record<string, any>), validators };
 
-      return c;
-    });
+          return c;
+        });
 
     Object.assign(view, {
       ...view,

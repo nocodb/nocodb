@@ -19,13 +19,13 @@ import Plan, {
 
 async function getLimit(
   type: PlanLimitTypes,
-  workspaceId?: string,
+  workspaceOrId?: string | Workspace,
   ncMeta = Noco.ncMeta,
 ): Promise<{
   limit: number;
   plan?: Partial<Plan>;
 }> {
-  if (!workspaceId) {
+  if (!workspaceOrId) {
     if (!GenericLimits[type]) {
       NcError.forbidden('You are not allowed to perform this action');
     }
@@ -35,7 +35,10 @@ async function getLimit(
     };
   }
 
-  const workspace = await Workspace.get(workspaceId, undefined, ncMeta);
+  const workspace =
+    typeof workspaceOrId === 'string'
+      ? await Workspace.get(workspaceOrId, undefined, ncMeta)
+      : workspaceOrId;
 
   if (!workspace) {
     NcError.forbidden('You are not allowed to perform this action');
@@ -237,10 +240,10 @@ async function checkSeatLimit(
 
 async function getFeature(
   type: PlanFeatureTypes,
-  workspaceId?: string,
+  workspaceOrId?: string | Workspace,
   ncMeta = Noco.ncMeta,
 ) {
-  if (!workspaceId) {
+  if (!workspaceOrId) {
     if (!GenericFeatures[type]) {
       NcError.forbidden('You are not allowed to perform this action');
     }
@@ -248,7 +251,10 @@ async function getFeature(
     return GenericFeatures[type] || false;
   }
 
-  const workspace = await Workspace.get(workspaceId, undefined, ncMeta);
+  const workspace =
+    typeof workspaceOrId === 'string'
+      ? await Workspace.get(workspaceOrId, undefined, ncMeta)
+      : workspaceOrId;
 
   if (!workspace) {
     NcError.forbidden('You are not allowed to perform this action');

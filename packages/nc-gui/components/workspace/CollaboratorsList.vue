@@ -234,7 +234,7 @@ const isDeleteOrUpdateAllowed = (user) => {
             <NcBadge
               :border="false"
               color="grey"
-              class="!bg-nc-bg-gray-medium text-nc-content-gray-default text-sm !h-[20px] !rounded-md"
+              class="!bg-nc-bg-gray-medium text-nc-content-gray-default text-sm !h-[20px] !rounded-md truncate"
             >
               <GeneralIcon icon="star" class="flex-none h-4 w-4 mr-1" />
 

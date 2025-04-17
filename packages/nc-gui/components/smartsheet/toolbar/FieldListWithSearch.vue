@@ -91,6 +91,7 @@ const handleSelect = (c: ColumnType) => {
     option-value-key="id"
     :input-bordered="true"
     :open="isParentOpen"
+    show-search-always
     :item-class-name="configByToolbarMenu.optionClassName"
     :list="options"
     :value="selectedOptionId"

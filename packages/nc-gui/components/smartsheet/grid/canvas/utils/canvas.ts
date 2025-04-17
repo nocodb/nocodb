@@ -1135,6 +1135,7 @@ export const renderTagLabel = (
     tagRadius = 6,
     tagBgColor = '#f4f4f0',
     tagSpacing = 4,
+    tagFontFamily = '500 13px Manrope',
     tagBorderColor,
     tagBorderWidth,
   } = props.tag || {}
@@ -1198,7 +1199,7 @@ export const renderTagLabel = (
       y,
       text,
       maxWidth,
-      fontFamily: '500 13px Manrope',
+      fontFamily: tagFontFamily,
       render: false,
     })
 
@@ -1210,7 +1211,7 @@ export const renderTagLabel = (
       text: truncatedText,
       maxWidth,
       height: tagHeight - tagPaddingY * 2,
-      fontFamily: '500 13px Manrope',
+      fontFamily: tagFontFamily,
       fillStyle: textColor,
       isTagLabel: true,
     })

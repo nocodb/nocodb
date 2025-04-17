@@ -2802,6 +2802,7 @@ export function useCanvasRender({
             tagRadius: 12,
             tagBgColor: color,
             tagSpacing: 0,
+            tagFontFamily: '700 13px Manrope'
           },
         } as any)
 

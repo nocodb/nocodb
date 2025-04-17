@@ -1,3 +1,3 @@
 <template>
-  <span>Dummy placeholder component</span>
+  <span></span>
 </template>

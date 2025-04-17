@@ -64,8 +64,14 @@ export class PublicMetasService extends PublicMetasServiceCE {
       PlanFeatureTypes.FEATURE_HIDE_BRANDING,
       view.fk_workspace_id,
     );
+
     const isUrlRedirectionEnabled = await getFeature(
       PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION,
+      view.fk_workspace_id,
+    );
+
+    const isFieldValidationEnabled = await getFeature(
+      PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,
       view.fk_workspace_id,
     );
 

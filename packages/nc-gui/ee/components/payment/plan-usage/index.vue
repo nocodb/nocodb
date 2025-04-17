@@ -25,7 +25,7 @@ const {
   updateSubscription,
 } = usePaymentStoreOrThrow()
 
-const { getLimit, getStatLimit, activePlanTitle } = useEeConfig()
+const { getLimit, getStatLimit, activePlanTitle, navigateToPricing } = useEeConfig()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
@@ -155,21 +155,36 @@ const onManageSubscription = async () => {
           {{ $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title ?? PlanTitles.FREE}`) }}
         </span>
       </div>
-      <NcButton
-        v-if="activeSubscription"
-        type="secondary"
-        size="small"
-        icon-position="right"
-        inner-class="!gap-2"
-        class="!text-nc-content-brand"
-        :loading="isLoadingManageSubscription"
-        @click="onManageSubscription"
-      >
-        <template #icon>
-          <GeneralIcon icon="ncArrowUpRight" />
-        </template>
-        {{ $t('labels.manageSubscription') }}
-      </NcButton>
+      <div class="flex gap-2">
+        <NcButton
+          v-if="activeSubscription"
+          type="secondary"
+          size="small"
+          icon-position="right"
+          inner-class="!gap-2"
+          class="!text-nc-content-brand"
+          :loading="isLoadingManageSubscription"
+          @click="onManageSubscription"
+        >
+          <template #icon>
+            <GeneralIcon icon="ncArrowUpRight" />
+          </template>
+          {{ $t('labels.manageSubscription') }}
+        </NcButton>
+        <NcButton
+          v-if="activeSubscription"
+          type="primary"
+          size="small"
+          icon-position="right"
+          inner-class="!gap-2"
+          @click="navigateToPricing()"
+        >
+          <template #icon>
+            <GeneralIcon icon="ncArrowUpRight" />
+          </template>
+          {{ $t('labels.upgradePlan') }}
+        </NcButton>
+      </div>
     </div>
 
     <div

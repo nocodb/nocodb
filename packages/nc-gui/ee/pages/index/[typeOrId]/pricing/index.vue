@@ -8,9 +8,18 @@ const { hideSidebar, showTopbar } = storeToRefs(useSidebarStore())
 
 useStripe()
 
-const { navigateToBilling, navigateToCheckout } = useEeConfig()
+const { navigateToBilling } = useEeConfig()
 
-const { activeWorkspace, activePlan, paymentMode, isLoyaltyWorkspace, loadPlans, plansAvailable } = useProvidePaymentStore()
+const {
+  activeWorkspace,
+  activeSubscription,
+  activePlan,
+  paymentMode,
+  isLoyaltyWorkspace,
+  loadPlans,
+  plansAvailable,
+  onSelectPlan,
+} = useProvidePaymentStore()
 
 onMounted(() => {
   hideSidebar.value = true
@@ -31,7 +40,11 @@ const onCheckout = (planTitle: string) => {
 
   if (!plan) return
 
-  navigateToCheckout(plan.id, paymentMode.value)
+  if (activeSubscription.value?.period === paymentMode.value) {
+    paymentMode.value = paymentMode.value === 'month' ? 'year' : 'month'
+  }
+
+  onSelectPlan(plan)
 }
 
 onMounted(async () => {
@@ -40,6 +53,7 @@ onMounted(async () => {
 </script>
 
 <template>
+  <LazyPaymentPlansUpgradePlanModal />
   <div class="overflow-visible">
     <section style="padding-right: 24px; padding-left: 24px; gap: 16px; box-sizing: border-box; display: block">
       <div
@@ -596,7 +610,6 @@ onMounted(async () => {
                     </div>
                     <a
                       v-else
-                      href="#"
                       style="
                         height: 40px;
                         margin-top: 24px;
@@ -623,6 +636,7 @@ onMounted(async () => {
                         border: 1px solid rgb(231, 231, 233);
                         box-sizing: border-box;
                       "
+                      @click="onCheckout(PlanTitles.FREE)"
                       >Choose Free</a
                     >
                   </div>
@@ -1025,7 +1039,7 @@ onMounted(async () => {
                       </div>
                     </div>
                     <div
-                      v-if="activePlan?.title === PlanTitles.TEAM"
+                      v-if="activePlan?.title === PlanTitles.TEAM && activeSubscription.period === paymentMode"
                       href="#"
                       style="
                         height: 40px;
@@ -1488,7 +1502,7 @@ onMounted(async () => {
                       </div>
                     </div>
                     <div
-                      v-if="activePlan?.title === PlanTitles.BUSINESS"
+                      v-if="activePlan?.title === PlanTitles.BUSINESS && activeSubscription.period === paymentMode"
                       href="#"
                       style="
                         height: 40px;
@@ -2163,7 +2177,6 @@ onMounted(async () => {
                     </div>
                     <a
                       v-else
-                      href="#"
                       style="
                         height: 40px;
                         margin-top: 24px;
@@ -2190,6 +2203,7 @@ onMounted(async () => {
                         border: 1px solid rgb(231, 231, 233);
                         box-sizing: border-box;
                       "
+                      @click="onCheckout(PlanTitles.FREE)"
                       >Choose Free</a
                     >
                   </div>
@@ -2592,8 +2606,7 @@ onMounted(async () => {
                       </div>
                     </div>
                     <div
-                      v-if="activePlan?.title === PlanTitles.TEAM"
-                      href="#"
+                      v-if="activePlan?.title === PlanTitles.TEAM && activeSubscription.period === paymentMode"
                       style="
                         height: 40px;
                         margin-top: 24px;
@@ -3055,7 +3068,7 @@ onMounted(async () => {
                       </div>
                     </div>
                     <div
-                      v-if="activePlan?.title === PlanTitles.BUSINESS"
+                      v-if="activePlan?.title === PlanTitles.BUSINESS && activeSubscription.period === paymentMode"
                       href="#"
                       style="
                         height: 40px;

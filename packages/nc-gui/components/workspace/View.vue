@@ -168,7 +168,7 @@ watch(
               {{ $t('labels.members') }}
             </div>
           </template>
-          <div class="nc-ws-tab-collaborators overflow-auto h-[calc(100vh-92px)] nc-scrollbar-thin">
+          <div class="nc-ws-tab-collaborators nc-content-max-w overflow-auto h-[calc(100vh-92px)] nc-scrollbar-thin">
             <PaymentBanner v-if="isPaymentEnabled" class="mb-0" />
             <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
           </div>
@@ -182,8 +182,10 @@ watch(
               {{ $t('general.billing') }}
             </div>
           </template>
-          <PaymentBanner v-if="isPaymentEnabled" class="mb-0" />
-          <PaymentBillingPage class="!h-[calc(100vh_-_92px)]" />
+          <div class="nc-content-max-w">
+            <PaymentBanner v-if="isPaymentEnabled" class="mb-0" />
+            <PaymentBillingPage class="!h-[calc(100vh_-_92px)]" />
+          </div>
         </a-tab-pane>
       </template>
 
@@ -221,7 +223,10 @@ watch(
               {{ $t('labels.settings') }}
             </div>
           </template>
-          <WorkspaceSettings :workspace-id="currentWorkspace.id" />
+          <div class="nc-content-max-w">
+            <PaymentBanner v-if="isPaymentEnabled" class="mb-0" />
+            <WorkspaceSettings :workspace-id="currentWorkspace.id" />
+          </div>
         </a-tab-pane>
       </template>
     </NcTabs>

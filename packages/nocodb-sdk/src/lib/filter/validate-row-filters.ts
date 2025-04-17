@@ -138,8 +138,9 @@ export function validateRowFilters(params: {
         }
 
         if (dataVal) {
-          switch (filter.comparison_op) {
+          switch (filter.comparison_op as any) {
             case 'eq':
+            case 'gb_eq':
               res = dayjs(dataVal).isSame(filterVal, 'day');
               break;
             case 'neq':
@@ -249,8 +250,9 @@ export function validateRowFilters(params: {
               res = false; // Unsupported operation for User fields
           }
         } else {
-          switch (filter.comparison_op) {
+          switch (filter.comparison_op as any) {
             case 'eq':
+            case 'gb_eq':
               res = val == filter.value;
               break;
             case 'neq':

@@ -6,7 +6,7 @@ import {
   UITypes,
   type ViewType,
 } from 'nocodb-sdk'
-import { generateGroupPath } from '../components/smartsheet/grid/canvas/utils/groupby'
+import { createGroupUniqueIdentifier, generateGroupPath } from '../components/smartsheet/grid/canvas/utils/groupby'
 import type { CanvasGroup } from '#imports'
 
 const GROUP_CHUNK_SIZE = 100
@@ -35,10 +35,12 @@ export const useInfiniteGroups = (
   const { appInfo } = useGlobal()
   const { nestedFilters, sorts } = useSmartsheetStoreOrThrow()
   const { fetchBulkAggregatedData, sharedView } = useSharedView()
+  const router = useRouter()
   const isPublic = inject(IsPublicInj, ref(false))
   const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
 
   const activeGroupKeys = ref<Array<string>>([])
+  const routeQuery = computed(() => router.currentRoute.value.query as Record<string, string>)
 
   const columnsById = computed(() => {
     if (!meta.value?.columns?.length) return {}
@@ -97,6 +99,7 @@ export const useInfiniteGroups = (
 
   const fetchGroupChunk = async (chunkId: number, parentGroup?: CanvasGroup, force = false) => {
     const targetChunkStates = parentGroup ? parentGroup.chunkStates : chunkStates.value
+
     if (targetChunkStates[chunkId] === 'loading' || (targetChunkStates[chunkId] === 'loaded' && !force)) return
 
     targetChunkStates[chunkId] = 'loading'
@@ -169,7 +172,9 @@ export const useInfiniteGroups = (
           groups: new Map(),
           chunkStates: [],
           count: +item.count,
-          groupCount: +item[groupByColumns.value?.[level + 1]?.column?.title],
+          groupCount: +(
+            item[groupByColumns.value?.[level + 1]?.column?.title] ?? item[groupByColumns.value?.[level + 1]?.column?.column_name]
+          ),
           isExpanded: false,
           color: findKeyColor(value, groupCol.column, getNextColor),
           expandedGroups: 0,
@@ -197,12 +202,23 @@ export const useInfiniteGroups = (
           aggregations: {},
         }
 
+        const groupPath = generateGroupPath(group)
+
+        let routePath = (routeQuery.value?.path?.split('-') ?? []).map((c) => +c)
+
+        routePath = [
+          ...routePath.slice(0, group.nestedIn.length),
+          ...Array(Math.max(0, group.nestedIn.length - routePath.length)).fill(''),
+        ]
+
+        const isExpanded = groupPath.join('-') === routePath.join('-')
+
         const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
-        group.isExpanded = activeGroupKeys.value.includes(nestedKey)
+        group.isExpanded = activeGroupKeys.value.includes(nestedKey) || isExpanded
 
         // Create useInfiniteData for leaf groups
         if (level === groupByColumns.value.length - 1) {
-          group.path = generateGroupPath(group)
+          group.path = groupPath
         }
 
         if (parentGroup) {
@@ -451,7 +467,7 @@ export const useInfiniteGroups = (
 
       const aggregationParams = batchGroups.map((group) => ({
         where: buildNestedWhere(group, where?.value),
-        alias: aggregationAliasMapper.generateAlias(group.value),
+        alias: aggregationAliasMapper.generateAlias(createGroupUniqueIdentifier(group)),
         filterArrJson: JSON.stringify(nestedFilters.value),
       }))
 
@@ -475,7 +491,7 @@ export const useInfiniteGroups = (
             )
 
         await aggregationAliasMapper.process(aggResponse, (originalKey, value) => {
-          const group = batchGroups.find((g) => g.value.toString() === originalKey.toString())
+          const group = batchGroups.find((g) => createGroupUniqueIdentifier(g) === originalKey.toString())
 
           if (!group) return
 

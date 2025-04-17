@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { type ColumnType, FieldNameFromUITypes, type LinkToAnotherRecordType } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import rfdc from 'rfdc'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
+
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
 const reloadDataHook = inject(ReloadViewDataHookInj)
 const isPublic = inject(IsPublicInj, ref(false))
-
+const clone = rfdc()
 const { eventBus } = useSmartsheetStoreOrThrow()
 
 const { sorts, saveOrUpdate, loadSorts, addSort: _addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
@@ -33,7 +35,18 @@ eventBus.on((event) => {
   }
 })
 
-const columns = computed(() => meta.value?.columns || [])
+const columns = computed(() =>
+  clone(meta.value?.columns || []).map((c) => {
+    const isDisabled = [UITypes.QrCode, UITypes.Barcode, UITypes.ID, UITypes.Button].includes(c.uidt)
+
+    if (isDisabled) {
+      c.ncItemDisabled = true
+      c.ncItemTooltip = `Sorting is not supported for ${FieldNameFromUITypes[c.uidt]} field`
+    }
+
+    return c
+  }),
+)
 
 const columnByID = computed(() =>
   columns.value.reduce((obj, col) => {

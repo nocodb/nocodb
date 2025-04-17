@@ -203,10 +203,49 @@ export function useGridViewData(
     return targetGroup.count
   }
 
-  function getGroupFilter(path: Array<number> = []) {
-    const group = findGroupByPath(cachedGroups.value, path)
+  async function getGroupFilter(path: Array<number> = [], ignoreWhereFilter = false) {
+    let group = findGroupByPath(cachedGroups.value, path)
 
-    return buildNestedWhere(group, where?.value)
+    if (!group) {
+      try {
+        let currentGroups = cachedGroups.value
+        let parentGroup: CanvasGroup | undefined
+        let targetIndex: number | undefined
+
+        for (let depth = 0; depth < path.length; depth++) {
+          const groupIndex = path[depth]
+          const currentGroup = currentGroups.get(groupIndex)
+
+          if (!currentGroup) {
+            targetIndex = groupIndex
+            break
+          }
+
+          if (depth === path.length - 1) {
+            targetIndex = groupIndex
+            break
+          }
+
+          if (!currentGroup.isExpanded || !currentGroup.groups) {
+            return {}
+          }
+
+          parentGroup = currentGroup
+          currentGroups = currentGroup.groups
+        }
+
+        if (targetIndex !== undefined) {
+          await fetchMissingGroupChunks(targetIndex, targetIndex, parentGroup)
+        }
+
+        group = findGroupByPath(cachedGroups.value, path)
+      } catch (error) {
+        console.error(`Failed to load group for path ${path}:`, error)
+        return {}
+      }
+    }
+
+    return buildNestedWhere(group, ignoreWhereFilter ? '' : where?.value)
   }
 
   function syncVisibleData() {
@@ -312,7 +351,13 @@ export function useGridViewData(
 
   async function bulkInsertRows(
     rows: Row[],
-    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    {
+      metaValue = meta.value,
+      viewMetaValue = viewMeta.value,
+    }: {
+      metaValue?: TableType
+      viewMetaValue?: ViewType
+    } = {},
     undo = false,
     path: Array<number> = [],
   ): Promise<string[]> {
@@ -390,7 +435,7 @@ export function useGridViewData(
         const newRow = {
           row: { ...insertObj, id: bulkInsertedIds[validRowsToInsert.indexOf({ insertObj, rowIndex })] },
           oldRow: {},
-          rowMeta: { rowIndex: rowIndex!, new: false },
+          rowMeta: { rowIndex: rowIndex!, new: false, path },
         }
         newCachedRows.set(rowIndex!, newRow)
       }
@@ -527,7 +572,13 @@ export function useGridViewData(
     insertRows: Row[],
     updateRows: Row[],
     props: string[],
-    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    {
+      metaValue = meta.value,
+      viewMetaValue = viewMeta.value,
+    }: {
+      metaValue?: TableType
+      viewMetaValue?: ViewType
+    } = {},
     columns: Partial<ColumnType>[],
     undo = false,
     path: Array<number> = [],
@@ -602,7 +653,10 @@ export function useGridViewData(
       updatedRows.forEach((row: Row) => {
         const existingRow = Array.from(dataCache.cachedRows.value.entries()).find(([_, r]) => getPk(r) === getPk(row))
         if (existingRow) {
-          dataCache.cachedRows.value.set(existingRow[0], { ...row, rowMeta: { ...row.rowMeta, rowIndex: existingRow[0] } })
+          dataCache.cachedRows.value.set(existingRow[0], {
+            ...row,
+            rowMeta: { ...row.rowMeta, rowIndex: existingRow[0] },
+          })
         }
       })
 
@@ -859,7 +913,13 @@ export function useGridViewData(
 
   async function bulkDeleteRows(
     rows: Record<string, string>[],
-    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    {
+      metaValue = meta.value,
+      viewMetaValue = viewMeta.value,
+    }: {
+      metaValue?: TableType
+      viewMetaValue?: ViewType
+    } = {},
   ): Promise<any> {
     try {
       const bulkDeletedRowsData = await $api.dbDataTableRow.delete(metaValue?.id as string, rows.length === 1 ? rows[0] : rows, {

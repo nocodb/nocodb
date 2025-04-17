@@ -94,19 +94,22 @@ export class ToolbarGroupByPage extends BasePage {
       await this.get().locator('button:has-text("New Subgroup")').click();
     }
 
-    const regexTitle = new RegExp(`^${title}`);
+    const parentLocator = this.rootPage.locator('.nc-group-by-create-modal');
 
-    await this.rootPage
-      .locator('.nc-group-by-create-modal')
-      .locator('.nc-group-by-column-search-item', { hasText: regexTitle })
-      .scrollIntoViewIfNeeded();
+    await parentLocator.locator('.nc-toolbar-dropdown-search-field-input').click();
+
+    await parentLocator.locator('.nc-toolbar-dropdown-search-field-input').locator('input').fill(title);
+
+    await this.rootPage.waitForTimeout(1000);
 
     // select column
-    const selectColumn = async () =>
-      await this.rootPage
-        .locator('.nc-group-by-create-modal')
-        .locator('.nc-group-by-column-search-item', { hasText: regexTitle })
+    const selectColumn = async () => {
+      await parentLocator
+        .locator('.nc-group-by-column-search-item')
+        .filter({ hasText: title.trim() })
+        .first()
         .click({ force: true });
+    };
 
     await this.waitForResponse({
       uiAction: selectColumn,

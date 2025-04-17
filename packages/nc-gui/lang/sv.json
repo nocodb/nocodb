@@ -793,6 +793,7 @@
     "downgradeToPlan": "Downgrade to {plan} plan?",
     "downgradeToPlanSubtitle": "You'll lose access to {activePlan} plan features that aren't available in the {plan} plan.",
     "upgradeToPlan": "Upgrade to {plan} plan",
+    "upgradeWorkspaceToPlan": "Upgrade {workspace} to {plan} plan",
     "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
     "reactivateToPlan": "Reactivate {plan} plan?"
   },
@@ -1283,8 +1284,8 @@
     "everythingInPlanPlus": "Everything in {plan}, Plus:",
     "downloadInvoice": "Download Invoice",
     "proceed": "Proceed",
-    "editorSeat": "Editor seat",
-    "editorSeats": "Editor seats"
+    "editorSeat": "editor seat",
+    "editorSeats": "editor seats"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

@@ -4,31 +4,45 @@ import Underline from '~/assets/img/underline.png'
 import YesSvg from '~/assets/img/Yes.svg'
 import NoSvg from '~/assets/img/No.svg'
 
-const { hideSidebar } = storeToRefs(useSidebarStore())
+const { hideSidebar, showTopbar } = storeToRefs(useSidebarStore())
 
-const { navigateToBilling } = useEeConfig()
+const { navigateToBilling, navigateToCheckout } = useEeConfig()
 
-const { activePlan, paymentMode, isLoyaltyWorkspace } = useProvidePaymentStore()
+const { activePlan, paymentMode, isLoyaltyWorkspace, loadPlans, plansAvailable } = useProvidePaymentStore()
 
 onMounted(() => {
   hideSidebar.value = true
+  showTopbar.value = true
 })
 
 onBeforeUnmount(() => {
   hideSidebar.value = false
+  showTopbar.value = false
 })
 
 const onBilling = () => {
   navigateToBilling()
 }
+
+const onCheckout = (planTitle: string) => {
+  const plan = plansAvailable.value.find((plan) => plan.title === planTitle)
+
+  if (!plan) return
+
+  navigateToCheckout(plan.id, paymentMode.value)
+}
+
+onMounted(async () => {
+  await loadPlans()
+})
 </script>
 
 <template>
-  <div class="overflow-auto">
+  <div class="overflow-visible">
     <section style="padding-right: 24px; padding-left: 24px; gap: 16px; box-sizing: border-box; display: block">
       <div
         style="
-          padding: 80px 0;
+          padding: 20px 0 80px 0;
           flex-flow: column nowrap;
           justify-content: center;
           align-items: center;
@@ -1059,7 +1073,7 @@ const onBilling = () => {
                         border: 1px solid rgb(231, 231, 233);
                         box-sizing: border-box;
                       "
-                      @click="navigateToBilling({ directPayment: true, planTitle: PlanTitles.TEAM, paymentMode })"
+                      @click="onCheckout(PlanTitles.TEAM)"
                       >Choose Team</a
                     >
                   </div>
@@ -1522,7 +1536,7 @@ const onBilling = () => {
                         background-color: rgb(51, 102, 255);
                         color: rgb(255, 255, 255);
                       "
-                      @click="navigateToBilling({ directPayment: true, planTitle: PlanTitles.BUSINESS, paymentMode })"
+                      @click="onCheckout(PlanTitles.BUSINESS)"
                       >Choose Business</a
                     >
                   </div>
@@ -2626,7 +2640,7 @@ const onBilling = () => {
                         border: 1px solid rgb(231, 231, 233);
                         box-sizing: border-box;
                       "
-                      @click="navigateToBilling({ directPayment: true, planTitle: PlanTitles.TEAM, paymentMode })"
+                      @click="onCheckout(PlanTitles.TEAM)"
                       >Choose Team</a
                     >
                   </div>
@@ -3089,7 +3103,7 @@ const onBilling = () => {
                         background-color: rgb(51, 102, 255);
                         color: rgb(255, 255, 255);
                       "
-                      @click="navigateToBilling({ directPayment: true, planTitle: PlanTitles.BUSINESS, paymentMode })"
+                      @click="onCheckout(PlanTitles.BUSINESS)"
                       >Choose Business</a
                     >
                   </div>
@@ -4079,7 +4093,7 @@ const onBilling = () => {
               padding-top: 24px;
               display: flex;
               position: sticky;
-              top: 60px;
+              top: 0px;
               box-sizing: border-box;
             "
           >
@@ -4285,7 +4299,7 @@ const onBilling = () => {
                   box-sizing: border-box;
                 "
               >
-                <div style="box-sizing: border-box">Try now</div>
+                <div class="cursor-pointer" style="box-sizing: border-box" @click="onCheckout(PlanTitles.TEAM)">Try now</div>
                 <div style="width: 16px; height: 16px; box-sizing: border-box">
                   <svg
                     width="16"
@@ -4374,7 +4388,7 @@ const onBilling = () => {
                   box-sizing: border-box;
                 "
               >
-                <div style="box-sizing: border-box">Try now</div>
+                <div class="cursor-pointer" style="box-sizing: border-box" @click="onCheckout(PlanTitles.BUSINESS)">Try now</div>
                 <div style="width: 16px; height: 16px; box-sizing: border-box">
                   <svg
                     width="16"
@@ -4463,7 +4477,7 @@ const onBilling = () => {
                   box-sizing: border-box;
                 "
               >
-                <div style="box-sizing: border-box">Try now</div>
+                <div style="box-sizing: border-box">Contact Us</div>
                 <div style="width: 16px; height: 16px; box-sizing: border-box">
                   <svg
                     width="16"
@@ -4503,7 +4517,7 @@ const onBilling = () => {
                 padding-left: 24px;
                 padding-right: 24px;
                 position: sticky;
-                top: 236px;
+                top: 176px;
                 border-bottom: 1px solid rgb(231, 231, 233);
                 justify-content: center;
                 align-items: center;
@@ -5728,7 +5742,7 @@ const onBilling = () => {
                 padding-left: 24px;
                 padding-right: 24px;
                 position: sticky;
-                top: 236px;
+                top: 176px;
                 border-bottom: 1px solid rgb(231, 231, 233);
                 justify-content: center;
                 align-items: center;
@@ -6833,7 +6847,7 @@ const onBilling = () => {
                 padding-left: 24px;
                 padding-right: 24px;
                 position: sticky;
-                top: 236px;
+                top: 176px;
                 border-bottom: 1px solid rgb(231, 231, 233);
                 justify-content: center;
                 align-items: center;
@@ -8091,7 +8105,7 @@ const onBilling = () => {
                 padding-left: 24px;
                 padding-right: 24px;
                 position: sticky;
-                top: 236px;
+                top: 176px;
                 border-bottom: 1px solid rgb(231, 231, 233);
                 justify-content: center;
                 align-items: center;
@@ -8938,7 +8952,7 @@ const onBilling = () => {
                 padding-left: 24px;
                 padding-right: 24px;
                 position: sticky;
-                top: 236px;
+                top: 176px;
                 border-bottom: 1px solid rgb(231, 231, 233);
                 justify-content: center;
                 align-items: center;
@@ -9906,7 +9920,7 @@ const onBilling = () => {
                 padding-left: 24px;
                 padding-right: 24px;
                 position: sticky;
-                top: 236px;
+                top: 176px;
                 border-bottom: 1px solid rgb(231, 231, 233);
                 justify-content: center;
                 align-items: center;
@@ -10246,7 +10260,7 @@ const onBilling = () => {
                 padding-left: 24px;
                 padding-right: 24px;
                 position: sticky;
-                top: 236px;
+                top: 176px;
                 border-bottom: 1px solid rgb(231, 231, 233);
                 justify-content: center;
                 align-items: center;
@@ -10908,7 +10922,7 @@ const onBilling = () => {
                 padding-left: 24px;
                 padding-right: 24px;
                 position: sticky;
-                top: 236px;
+                top: 176px;
                 border-bottom: 1px solid rgb(231, 231, 233);
                 justify-content: center;
                 align-items: center;
@@ -11401,7 +11415,7 @@ const onBilling = () => {
                 padding-left: 24px;
                 padding-right: 24px;
                 position: sticky;
-                top: 236px;
+                top: 176px;
                 border-bottom: 1px solid rgb(231, 231, 233);
                 justify-content: center;
                 align-items: center;
@@ -12200,7 +12214,7 @@ const onBilling = () => {
                 padding-left: 24px;
                 padding-right: 24px;
                 position: sticky;
-                top: 236px;
+                top: 176px;
                 border-bottom: 1px solid rgb(231, 231, 233);
                 justify-content: center;
                 align-items: center;
@@ -12568,7 +12582,7 @@ const onBilling = () => {
                 padding-left: 24px;
                 padding-right: 24px;
                 position: sticky;
-                top: 236px;
+                top: 176px;
                 border-bottom: 1px solid rgb(231, 231, 233);
                 justify-content: center;
                 align-items: center;
@@ -13367,7 +13381,7 @@ const onBilling = () => {
                 padding-left: 24px;
                 padding-right: 24px;
                 position: sticky;
-                top: 236px;
+                top: 176px;
                 border-bottom: 1px solid rgb(231, 231, 233);
                 justify-content: center;
                 align-items: center;

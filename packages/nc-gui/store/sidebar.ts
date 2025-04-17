@@ -75,6 +75,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const hideSidebar = ref(false)
 
+  const showTopbar = ref(false)
+
   return {
     isLeftSidebarOpen,
     isRightSidebarOpen,
@@ -88,6 +90,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     formRightSidebarState,
     formRightSidebarWidthPercent,
     hideSidebar,
+    showTopbar,
   }
 })
 

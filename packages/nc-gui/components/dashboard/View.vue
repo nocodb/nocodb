@@ -16,6 +16,7 @@ const {
   leftSidebarState: sidebarState,
   mobileNormalizedSidebarSize,
   hideSidebar,
+  showTopbar,
 } = storeToRefs(useSidebarStore())
 
 const wrapperRef = ref<HTMLDivElement>()
@@ -188,6 +189,7 @@ function onResize(widthPercent: any) {
 </script>
 
 <template>
+  <DashboardTopbar v-if="showTopbar" />
   <Splitpanes
     class="nc-sidebar-content-resizable-wrapper !w-screen h-full"
     :class="{

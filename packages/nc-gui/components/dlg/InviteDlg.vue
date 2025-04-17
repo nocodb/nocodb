@@ -385,15 +385,17 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
               @paste.prevent="onPaste"
             />
           </div>
-          <RolesSelector
-            :description="false"
-            :on-role-change="onRoleChange"
-            :role="inviteData.roles"
-            :disabled-roles="disabledRoles"
-            :roles="allowedRoles"
-            class="!min-w-[152px] nc-invite-role-selector"
-            size="lg"
-          />
+          <div class="flex items-center">
+            <RolesSelector
+              :description="false"
+              :on-role-change="onRoleChange"
+              :role="inviteData.roles"
+              :disabled-roles="disabledRoles"
+              :roles="allowedRoles"
+              class="!min-w-[152px] nc-invite-role-selector"
+              size="lg"
+            />
+          </div>
         </div>
 
         <span v-if="emailValidation.isError && emailValidation.message" class="ml-2 text-red-500 text-[10px] mt-1.5">{{

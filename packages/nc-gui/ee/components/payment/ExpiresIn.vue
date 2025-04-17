@@ -50,7 +50,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="bg-nc-fill-purple-medium text-white text-sm font-semibold rounded-md py-0.5 px-3 w-[fit-content]">
+  <div class="bg-nc-fill-purple-medium text-white text-sm font-semibold rounded-md py-0.5 px-2 w-[fit-content]">
     <span class="mr-2">🕒</span>Expires in <span class="font-bold">{{ timeLeft.days }}d</span> :
     <span class="font-bold">{{ timeLeft.hours }}h</span> : <span class="font-bold">{{ timeLeft.minutes }}m</span> :
     <span class="font-bold">{{ timeLeft.seconds }}s</span>

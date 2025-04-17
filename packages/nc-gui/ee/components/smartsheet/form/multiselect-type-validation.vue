@@ -74,7 +74,7 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
             Limit selection
             <LazyPaymentUpgradeBadge
               class="-my-1"
-              :feature="PlanFeatureTypes.FEATURE_HIDE_BRANDING"
+              :feature="PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION"
               :content="
                 $t('upgrade.upgradeToAccessFieldValidationSubtitle', {
                   plan: getPlanTitle(PlanTitles.TEAM),

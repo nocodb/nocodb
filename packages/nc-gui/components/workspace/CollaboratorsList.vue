@@ -2,9 +2,9 @@
 import {
   OrderedWorkspaceRoles,
   type PlanLimitExceededDetailsType,
+  PlanLimitTypes,
   PlanTitles,
   WorkspaceUserRoles,
-  PlanLimitTypes,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -189,7 +189,7 @@ const columns = [
 ] as NcTableColumnProps[]
 
 const customRow = (_record: Record<string, any>, recordIndex: number) => ({
-  class: `${selected[recordIndex] ? 'selected' : ''} last:!border-b-0`,
+  class: `${selected[recordIndex] ? 'selected' : ''} last:!border-b-0 !cursor-default`,
 })
 
 const isDeleteOrUpdateAllowed = (user) => {
@@ -229,12 +229,11 @@ const isDeleteOrUpdateAllowed = (user) => {
                 limit: getLimit(PlanLimitTypes.LIMIT_EDITOR),
               })
             "
-            class="cursor-pointer"
           >
             <NcBadge
               :border="false"
               color="grey"
-              class="!bg-nc-bg-gray-medium text-nc-content-gray-default text-sm !h-[20px] !rounded-md"
+              class="!bg-nc-bg-gray-medium text-nc-content-gray-default text-sm !h-[20px] !rounded-md truncate"
             >
               <GeneralIcon icon="star" class="flex-none h-4 w-4 mr-1" />
 

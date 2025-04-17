@@ -696,6 +696,7 @@ export class MetaService extends MetaServiceCE {
     xcCondition?: Condition,
     skipUpdatedAt = false,
     force = false,
+    allowCreatedAt = false,
   ): Promise<any> {
     const query = this.knexConnection(target);
 
@@ -729,7 +730,9 @@ export class MetaService extends MetaServiceCE {
       }
     }
 
-    delete data.created_at;
+    if (!allowCreatedAt) {
+      delete data.created_at;
+    }
 
     if (!skipUpdatedAt) {
       data.updated_at = this.now();

@@ -622,23 +622,25 @@ export class AclMiddleware implements NestInterceptor {
       }
     }
 
-    // limit user access to organization
-    if (
-      req.ncWorkspaceId &&
-      req.user?.extra?.org_id &&
-      req.user.extra.org_id !== req.ncOrgId
-    ) {
-      NcError.forbidden('User access limited to Organization');
-    }
+    /*
+      // limit user access to organization
+      if (
+        req.ncWorkspaceId &&
+        req.user?.extra?.org_id &&
+        req.user.extra.org_id !== req.ncOrgId
+      ) {
+        NcError.forbidden('User access limited to Organization');
+      }
 
-    // limit user access to workspace
-    if (
-      req.ncWorkspaceId &&
-      req.user?.extra?.workspace_id &&
-      req.user.extra.workspace_id !== req.ncWorkspaceId
-    ) {
-      NcError.forbidden('User access limited to Workspace');
-    }
+      // limit user access to workspace
+      if (
+        req.ncWorkspaceId &&
+        req.user?.extra?.workspace_id &&
+        req.user.extra.workspace_id !== req.ncWorkspaceId
+      ) {
+        NcError.forbidden('User access limited to Workspace');
+      }
+    */
 
     // if workspace associated to an sso, then only allow the workspace owner
     // to access the workspace without sso login

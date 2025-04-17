@@ -349,6 +349,7 @@ const isDeleteOrUpdateAllowed = (user) => {
         :bordered="false"
         :custom-row="customRow"
         class="flex-1 nc-collaborators-list max-w-full"
+        body-row-class-name="!cursor-default"
       >
         <template #emptyText>
           <a-empty :description="$t('title.noMembersFound')" />

@@ -1796,6 +1796,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const selectors = [];
     const groupBySelectors = [];
     const getAlias = getAliasGenerator('__nc_gb');
+    const subGroupColumn = columns.find(
+      (c) =>
+        c.title === subGroupColumnName || c.column_name === subGroupColumnName,
+    );
 
     const processColumn = async (col: string, isSubGroup: boolean = false) => {
       let column = columns.find(
@@ -1949,12 +1953,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (subGroupColumnName) {
       const subGroupQuery = await processColumn(subGroupColumnName, true);
+      const subGroupAlias = getAs(subGroupColumn);
       qb.select(
         this.dbDriver.raw(
           `COUNT(DISTINCT COALESCE(${
             this.isPg ? '(??)::text' : '??'
           }, '__null__')) as ??`,
-          [this.dbDriver.raw(subGroupQuery), subGroupColumnName],
+          [this.dbDriver.raw(subGroupQuery), subGroupAlias],
         ),
       );
     }

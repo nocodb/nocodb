@@ -74,9 +74,11 @@ const configByToolbarMenu = computed(() => {
   }
 })
 
-const handleSelect = (c) => {
+const handleSelect = (c: ColumnType) => {
   emits('selected', c)
-  $e(configByToolbarMenu.value?.selectOptionEvent)
+  if (configByToolbarMenu.value.selectOptionEvent) {
+    $e(configByToolbarMenu.value.selectOptionEvent)
+  }
 }
 </script>
 

@@ -2,9 +2,9 @@
 import {
   OrderedWorkspaceRoles,
   type PlanLimitExceededDetailsType,
+  PlanLimitTypes,
   PlanTitles,
   WorkspaceUserRoles,
-  PlanLimitTypes,
 } from 'nocodb-sdk'
 
 const props = defineProps<{

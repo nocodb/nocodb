@@ -12,13 +12,6 @@ const popularPlan = PlanTitles.TEAM
 // Todo: remove comingSoonPlans when we launch this
 const comingSoonPlans = [PlanTitles.ENTERPRISE]
 
-const PrevPlanTitleFromCurrentPlan = {
-  [PlanTitles.TEAM]: PlanTitles.FREE,
-  Plus: PlanTitles.TEAM,
-  [PlanTitles.BUSINESS]: PlanTitles.TEAM,
-  [PlanTitles.ENTERPRISE]: PlanTitles.BUSINESS,
-}
-
 const planTitleToDescHeader = {
   [PlanTitles.FREE]: 'For Personal Applications',
   [PlanTitles.TEAM]: 'For Small Teams',

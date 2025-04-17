@@ -15,8 +15,8 @@ const allPlanRef = ref<HTMLDivElement>()
 const activeBtnPlanTitle = ref('')
 
 watch(
-  [() => route?.query?.tab, () => route?.query?.activeBtn, () => route?.query?.autoScroll],
-  async ([tab, activeBtn, autoScroll]) => {
+  [() => route?.query?.activeBtn, () => route?.query?.autoScroll],
+  async ([activeBtn, autoScroll]) => {
     const { activeBtn: _activeBtn, autoScroll: _autoScroll, ...restQuery } = route.query as Record<string, string>
 
     if (autoScroll === 'plan') {

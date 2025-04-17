@@ -203,7 +203,7 @@ export function useGridViewData(
     return targetGroup.count
   }
 
-  async function getGroupFilter(path: Array<number> = []) {
+  async function getGroupFilter(path: Array<number> = [], ignoreWhereFilter = false) {
     let group = findGroupByPath(cachedGroups.value, path)
 
     if (!group) {
@@ -245,7 +245,7 @@ export function useGridViewData(
       }
     }
 
-    return buildNestedWhere(group, where?.value)
+    return buildNestedWhere(group, ignoreWhereFilter ? '' : where?.value)
   }
 
   function syncVisibleData() {

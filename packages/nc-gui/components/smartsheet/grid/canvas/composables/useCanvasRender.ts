@@ -1500,7 +1500,7 @@ export function useCanvasRender({
         }
 
         // Bottom border for each row
-        ctx.strokeStyle = '#e7e7e9'
+        ctx.strokeStyle = themeV3Colors.gray['200']
         ctx.beginPath()
         ctx.moveTo(0, yOffset + rowHeight.value)
         ctx.lineTo(adjustedWidth, yOffset + rowHeight.value)

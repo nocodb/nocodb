@@ -3165,9 +3165,19 @@ onKeyStroke('ArrowDown', onDown)
 .nc-grid-row {
   td.nc-grid-cell.column-filtered.active {
     @apply !bg-green-100;
+
+    :deep(input),
+    :deep(textarea) {
+      @apply !bg-transparent;
+    }
   }
   td.nc-grid-cell.column-sorted.active {
     @apply !bg-orange-100;
+
+    :deep(input),
+    :deep(textarea) {
+      @apply !bg-transparent;
+    }
   }
 
   .nc-row-expand-and-checkbox {

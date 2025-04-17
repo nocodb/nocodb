@@ -3551,9 +3551,19 @@ const cellFilteredOrSortedClass = (colId: string) => {
 .nc-grid-row {
   td.nc-grid-cell.column-filtered.active {
     @apply !bg-green-100;
+
+    :deep(input),
+    :deep(textarea) {
+      @apply !bg-transparent;
+    }
   }
   td.nc-grid-cell.column-sorted.active {
     @apply !bg-orange-100;
+
+    :deep(input),
+    :deep(textarea) {
+      @apply !bg-transparent;
+    }
   }
 
   .nc-row-expand-and-checkbox {
@@ -3642,11 +3652,9 @@ const cellFilteredOrSortedClass = (colId: string) => {
         @apply border-b-gray-200 border-r-gray-200;
       }
       &:has(+ .column-filtered),
-      &:has(+ .column-sorted){
+      &:has(+ .column-sorted) {
         @apply border-r-gray-200;
       }
-
-      
     }
   }
 

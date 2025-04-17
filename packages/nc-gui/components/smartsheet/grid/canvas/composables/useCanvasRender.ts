@@ -2695,7 +2695,7 @@ export function useCanvasRender({
         ctx.save()
 
         ctx.letterSpacing = '1px'
-        renderSingleLineText(ctx, {
+        const { isTruncated, x, y } = renderSingleLineText(ctx, {
           text: (group?.column?.title ?? '').toUpperCase(),
           fillStyle: '#4A5268',
           x: contentX,
@@ -2704,6 +2704,18 @@ export function useCanvasRender({
           y: groupHeaderY,
           py: 6,
         })
+        if (isTruncated) {
+          tryShowTooltip({
+            mousePosition,
+            text: (group?.column?.title ?? '').toUpperCase(),
+            rect: {
+              x: contentX,
+              y: groupHeaderY,
+              height: 16,
+              width: availableWidth - 20 - countWidth,
+            },
+          })
+        }
 
         ctx.restore()
 

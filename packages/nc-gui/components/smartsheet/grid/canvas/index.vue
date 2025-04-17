@@ -387,7 +387,6 @@ const fixedLeftWidth = computed(() => {
 })
 
 const editEnabledCellPosition = computed(() => {
-  // TODO: @DarkPhoenix2704 handle for GroupBy
   if (!editEnabled.value) {
     return {
       top: 0,
@@ -408,7 +407,7 @@ const editEnabledCellPosition = computed(() => {
       )
 
   return {
-    top: `${top}px`,
+    top: `${top + (isClamped.value && !isGroupBy.value ? 1 : 0)}px`,
     left: `${left}px`,
   }
 })
@@ -2336,11 +2335,13 @@ defineExpose({
           >
             <div
               ref="activeCellElement"
-              class="relative top-[2.5px] left-[2.5px] w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-white"
+              class="relative left-[2.5px] w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-white"
               :class="{
                 'px-[0.550rem]': !noPadding && !editEnabled.fixed,
                 'px-[0.49rem]': editEnabled.fixed,
                 'top-[0.5px] left-[-1px]': isClamped,
+                'top-[3.5px]': !isGroupBy,
+                'top-[2.5px]': isGroupBy
               }"
               @click="cellClickHook.trigger($event)"
             >

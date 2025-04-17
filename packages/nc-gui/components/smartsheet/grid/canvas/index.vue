@@ -395,7 +395,6 @@ const isClamped = computed(() => {
 
   const rawTop = editEnabled.value.y - scrollTop.value - rowHeight.value + 1
   const clampedTop = Math.max(32, Math.min(containerRef.value.clientHeight - rowHeight.value - 36, rawTop))
-  console.log(rawTop, clampedTop)
   const verticalStuck = clampedTop !== rawTop
 
   let horizontalStuck = false

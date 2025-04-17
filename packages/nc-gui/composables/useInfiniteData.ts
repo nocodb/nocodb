@@ -13,16 +13,12 @@ import {
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
-  isFormula,
-  isLinksOrLTAR,
-  isRollup,
   isSystemColumn,
 } from 'nocodb-sdk'
 import type { CanvasGroup } from '../lib/types'
 import type { Row } from '#imports'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
-import rfdc from 'rfdc'
 
 const formatData = (
   list: Record<string, any>[],
@@ -94,8 +90,6 @@ export function useInfiniteData(args: {
   const tablesStore = useTablesStore()
 
   const baseStore = useBase()
-
-  const rfdcClone = rfdc()
 
   const { base } = storeToRefs(baseStore)
 
@@ -1432,18 +1426,14 @@ export function useInfiniteData(args: {
         ].includes(c.uidt),
     )
 
-    const tempRow = rfdcClone(cachedRow)
-
     if (row.rowMeta.new) {
       data = await insertRow(row, ltarState, args, false, true, beforeRowID, path)
     } else if (property) {
       if (cachedRow) {
-        Object.assign(row.row, {
-          ...(fieldsToOverwrite?.reduce((acc, col) => {
-            acc[col.title!] = cachedRow.row[col.title!]
-            return acc
-          }, {}) ?? {}),
-        })
+        fieldsToOverwrite?.reduce((acc, col) => {
+          if (!ncIsUndefined(cachedRow.row[col.title!])) acc[col.title!] = cachedRow.row[col.title!]
+          return acc
+        }, row.row)
       }
       data = await updateRowProperty(row, property, args, false, path)
     }
@@ -1460,20 +1450,15 @@ export function useInfiniteData(args: {
     if (newRow) newRow.rowMeta.isValidationFailed = isValidationFailed
 
     // check if the column is part of group by and value changed
-    if (tempRow.rowMeta?.path?.length && groupByColumns?.value) {
-      const changedGroupColumns = groupByColumns.value.filter((g) => {
-        const columnTitle = g.column.title
-        // Check if this property was changed and the value is different from before
-        return newRow.row[columnTitle] !== tempRow.oldRow?.[columnTitle]
-      })
-
-      if (changedGroupColumns.length > 0) {
+    if (row.rowMeta?.path?.length && groupByColumns?.value) {
+      const index = groupByColumns.value.findIndex((c) => c.column.title === property)
+      if (index > -1) {
+        // check if column is group by and value changed
         row.rowMeta.isGroupChanged = true
-        row.rowMeta.changedGroupIndex = groupByColumns.value.findIndex(
-          (g) => g.column.title === changedGroupColumns[0].column.title,
-        )
+        row.rowMeta.changedGroupIndex = index
       }
     }
+
     const changedFields = property ? [property] : Object.keys(row.row)
 
     changedFields.push(

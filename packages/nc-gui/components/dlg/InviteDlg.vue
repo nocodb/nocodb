@@ -305,7 +305,7 @@ const inviteCollaborator = async () => {
           }
         },
         workspaceId: errorWsId,
-        isAdminPanel: props.type !== 'organization',
+        isAdminPanel: props.type === 'organization',
       })
     } else {
       message.error(errorInfo.message)

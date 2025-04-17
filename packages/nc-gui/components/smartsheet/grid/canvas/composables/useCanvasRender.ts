@@ -1,5 +1,5 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { AllAggregations, type ColumnType, type TableType, UITypes } from 'nocodb-sdk'
+import { AllAggregations, type ColumnType, type TableType, UITypes, isCreatedOrLastModifiedByCol } from 'nocodb-sdk'
 import type { Composer } from 'vue-i18n'
 import tinycolor from 'tinycolor2'
 import {
@@ -2840,9 +2840,17 @@ export function useCanvasRender({
         height: 20,
         maxWidth,
       })
-    } else if (isUser(group.column)) {
+    } else if (isUser(group.column) || isCreatedOrLastModifiedByCol(group.column)) {
+      let val = group.value
+
+      try {
+        val = JSON.parse(group.value)
+      } catch (e) {
+        val = group.value
+      }
+
       renderCell(ctx, group.column, {
-        value: group.value,
+        value: val,
         x: x - 11,
         y: y - 16,
         width: maxWidth,

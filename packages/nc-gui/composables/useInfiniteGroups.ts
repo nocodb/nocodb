@@ -6,7 +6,7 @@ import {
   UITypes,
   type ViewType,
 } from 'nocodb-sdk'
-import { generateGroupPath } from '../components/smartsheet/grid/canvas/utils/groupby'
+import { createGroupUniqueIdentifier, generateGroupPath } from '../components/smartsheet/grid/canvas/utils/groupby'
 import type { CanvasGroup } from '#imports'
 
 const GROUP_CHUNK_SIZE = 100
@@ -465,7 +465,7 @@ export const useInfiniteGroups = (
 
       const aggregationParams = batchGroups.map((group) => ({
         where: buildNestedWhere(group, where?.value),
-        alias: aggregationAliasMapper.generateAlias(group.value),
+        alias: aggregationAliasMapper.generateAlias(createGroupUniqueIdentifier(group)),
         filterArrJson: JSON.stringify(nestedFilters.value),
       }))
 
@@ -489,7 +489,7 @@ export const useInfiniteGroups = (
             )
 
         await aggregationAliasMapper.process(aggResponse, (originalKey, value) => {
-          const group = batchGroups.find((g) => g.value.toString() === originalKey.toString())
+          const group = batchGroups.find((g) => createGroupUniqueIdentifier(g) === originalKey.toString())
 
           if (!group) return
 

@@ -98,7 +98,7 @@ const upgradePlanBtnType = computed(() => {
 
     <div v-if="plan.descriptions" class="flex flex-col gap-2">
       <div
-        v-for="desc in plan.descriptions"
+        v-for="(desc, idx) of plan.descriptions"
         :key="desc"
         class="flex items-start text-nc-content-gray-subtle text-sm leading-[24px] font-weight-500"
       >
@@ -107,7 +107,14 @@ const upgradePlanBtnType = computed(() => {
             <GeneralIcon icon="ncCheck" class="h-3 w-3" />
           </span>
         </span>
-        <span>{{ desc }}</span>
+        <span class="relative">
+          {{ desc }}
+
+          <div
+            v-if="plan.title !== PlanTitles.FREE && idx === plan.descriptions.length - 1"
+            class="nc-plan-description-gradient"
+          ></div>
+        </span>
       </div>
     </div>
 
@@ -179,6 +186,18 @@ const upgradePlanBtnType = computed(() => {
   &.nc-payment-plan-card-active-plan {
     @apply border-brand-500;
     box-shadow: 0px 0px 0px 4px rgba(51, 102, 255, 0.12);
+  }
+
+  .nc-plan-description-gradient {
+    @apply absolute rounded-[30px] inset-0 z-0 pointer-events-none;
+
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.2) 0%,
+      rgba(252, 58, 198, 0.2) 47.08%,
+      rgba(255, 255, 255, 0.2) 100%
+    );
+    filter: blur(2px);
   }
 }
 </style>

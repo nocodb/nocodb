@@ -13,8 +13,6 @@ const { t } = useI18n()
 
 const { isUIAllowed } = useRoles()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const workspaceStore = useWorkspace()
 
 const { loadRoles } = useRoles()

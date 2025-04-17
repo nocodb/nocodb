@@ -62,7 +62,7 @@ export function useInfiniteData(args: {
   callbacks: {
     syncVisibleData?: () => void
     getCount?: (path: Array<number>) => void
-    getWhereFilter?: (path: Array<number>) => Promise<string>
+    getWhereFilter?: (path: Array<number>, ignoreWhereFilter?: boolean) => Promise<string>
     reloadAggregate?: (params: {
       fields?: Array<{ title: string; aggregation?: string | undefined }>
       path: Array<number>
@@ -1451,14 +1451,26 @@ export function useInfiniteData(args: {
 
     // check if the column is part of group by and value changed
     if (row.rowMeta?.path?.length && groupByColumns?.value) {
-      const index = groupByColumns.value.findIndex((c) => c.column.title === property)
-      if (index > -1) {
-        // check if column is group by and value changed
-        row.rowMeta.isGroupChanged = true
-        row.rowMeta.changedGroupIndex = index
-      }
-    }
+      const whereFilter = await callbacks?.getWhereFilter?.(path, true)
+      const index = groupByColumns.value.findIndex((c) => c.column.title === property) ?? 0
 
+
+      const { filters: allGroupFilter } = extractFilterFromXwhere(
+        { api_version: NcApiVersion.V1 },
+        whereFilter ?? '',
+        columnsByAlias.value,
+      )
+
+      const isGroupValidationFailed = !validateRowFilters(
+        [...(allGroupFilter ?? [])],
+        data,
+        meta.value?.columns as ColumnType[],
+        getBaseType(viewMeta.value?.view?.source_id),
+        metas.value,
+      )
+      row.rowMeta.isGroupChanged = isGroupValidationFailed
+      row.rowMeta.changedGroupIndex = index
+    }
     const changedFields = property ? [property] : Object.keys(row.row)
 
     changedFields.push(

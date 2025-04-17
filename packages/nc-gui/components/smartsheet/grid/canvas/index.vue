@@ -1989,7 +1989,7 @@ const callAddNewRow = (context: { row: number; col: number; path: Array<number> 
   }
 }
 
-const onNavigate = (dir: NavigateDir) => {
+const onNavigate = async (dir: NavigateDir) => {
   if (ncIsNullOrUndefined(activeCell.value?.row) || ncIsNullOrUndefined(activeCell.value?.column)) return
 
   const path = editEnabled.value?.path || activeCell.value.path
@@ -2018,7 +2018,12 @@ const onNavigate = (dir: NavigateDir) => {
       }
       break
   }
-  onActiveCellChanged()
+  // When editCell Unmounts, it triggers the update of the record
+  // If onActiveCellCHanged is triggered simultaneously, it clear the record in cacheRows and the update happends in the next record
+  // So call onActiveCellChanged in next tick. This ensured update is triggered before clearing from cached rows
+  await nextTick(() => {
+    onActiveCellChanged()
+  })
   selection.value.startRange({ row: activeCell.value.row, col: activeCell.value.column })
   selection.value.endRange({ row: activeCell.value.row, col: activeCell.value.column })
 
@@ -2149,7 +2154,7 @@ onClickOutside(
       isExpandedCellInputExist() ||
       isLinkDropdownExist() ||
       isGeneralOverlayActive() ||
-      (element && hasAncestorWithClass(element, 'ant-select-dropdown'))
+      (element && hasAncestorWithClass(element, ['ant-select-dropdown', 'nc-dropdown']))
     ) {
       return
     }

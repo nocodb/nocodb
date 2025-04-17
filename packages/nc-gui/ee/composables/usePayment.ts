@@ -243,7 +243,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       },
     })
 
-    window.location.reload()
+    window.location.href = `/#/${activeWorkspaceId.value}/settings?tab=billing`
   }
 
   const cancelSubscription = async () => {
@@ -255,7 +255,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       headers: { 'xc-auth': $state.token.value as string },
     })
 
-    window.location.reload()
+    window.location.href = `/#/${activeWorkspaceId.value}/settings?tab=billing`
   }
 
   const getCustomerPortalSession = async () => {

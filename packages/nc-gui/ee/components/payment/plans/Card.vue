@@ -26,7 +26,7 @@ const planTitleToDescHeader = {
   [PlanTitles.ENTERPRISE]: 'For Established Organizations',
 }
 
-const { onSelectPlan, getPlanPrice, activeSubscription, paymentMode } = usePaymentStoreOrThrow()
+const { onSelectPlan, getPlanPrice, activeSubscription, paymentMode, isLoyaltyWorkspace } = usePaymentStoreOrThrow()
 
 const price = computed(() => getPlanPrice(props.plan))
 
@@ -92,6 +92,31 @@ const upgradePlanBtnType = computed(() => {
         {{ $t('title.seatMonth') }}
       </span>
     </div>
+
+    <div
+      v-if="isLoyaltyWorkspace"
+      class="flex flex-col gap-0.5"
+      :class="{
+        'opacity-0': plan.title === PlanTitles.FREE,
+        'flex flex-col-reverse': plan.title === PlanTitles.ENTERPRISE,
+      }"
+    >
+      <div
+        class="!w-[fit-content] inline-block font-semibold text-sm text-nc-content-inverted-primary bg-gray-700 rounded-md px-1"
+        :class="{
+          'opacity-0': plan.title === PlanTitles.ENTERPRISE,
+        }"
+      >
+        Loyalty pricing capped at
+        <span class="line-through decoration-red-500 font-bold mr-1">{{ plan.title === PlanTitles.TEAM ? '$108' : '$216' }}</span>
+
+        {{ plan.title === PlanTitles.TEAM ? '$48' : '$96' }}
+      </div>
+      <div class="text-nc-content-gray-muted text-xs leading-[18px] font-500">
+        {{ plan.title === PlanTitles.ENTERPRISE ? 'Starting at $1000 / month' : 'For first year' }}
+      </div>
+    </div>
+
     <div class="text-nc-content-gray-emphasis font-700">
       {{ planTitleToDescHeader[plan.title] }}
     </div>

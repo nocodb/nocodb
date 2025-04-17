@@ -2176,7 +2176,7 @@ export function useCanvasRender({
         },
       )
       spriteLoader.renderIcon(ctx, {
-        icon: 'ncPlus',
+        icon: isAddNewRecordGridMode.value ? 'grid' : 'form',
         color: isNewRowHovered ? '#000000' : '#4a5268',
         x: 16 + level * 13,
         y: yOffset + 9,
@@ -2184,21 +2184,19 @@ export function useCanvasRender({
       })
 
       const { width: renderedWidth } = renderSingleLineText(ctx, {
-        x: 16 + 27 + level * 13,
+        x: 16 + 20 + level * 13,
         y: yOffset + 2,
         fontFamily: '600 13px Manrope',
         height: COLUMN_HEADER_HEIGHT_IN_PX,
         fillStyle: '#374151',
-        text: isAddNewRecordGridMode.value
-          ? `${t('activity.newRecord')}`
-          : `${t('activity.newRecord')} - ${t('objects.viewType.form')}`,
+        text: `${t('activity.newRecord')}`,
       })
 
       spriteLoader.renderIcon(ctx, {
         icon: 'chevronDown',
         color: isNewRowHovered ? '#000000' : '#4a5268',
-        x: 16 + 27 + level * 13 + renderedWidth + 12,
-        y: yOffset + 9,
+        x: 16 + 20 + level * 13 + renderedWidth + 12,
+        y: yOffset + 10,
         size: 14,
       })
 

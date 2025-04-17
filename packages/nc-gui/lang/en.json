@@ -793,6 +793,7 @@
     "downgradeToPlan": "Downgrade to {plan} plan?",
     "downgradeToPlanSubtitle": "You'll lose access to {activePlan} plan features that aren't available in the {plan} plan.",
     "upgradeToPlan": "Upgrade to {plan} plan",
+    "upgradeWorkspaceToPlan": "Upgrade {workspace} to {plan} plan",
     "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
     "reactivateToPlan": "Reactivate {plan} plan?"
   },

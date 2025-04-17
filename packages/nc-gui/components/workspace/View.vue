@@ -174,7 +174,7 @@ watch(
               {{ $t('general.billing') }}
             </div>
           </template>
-
+          <PaymentBanner v-if="isPaymentEnabled" class="mb-0" />
           <PaymentBillingPage class="!h-[calc(100vh_-_92px)]" />
         </a-tab-pane>
       </template>
@@ -200,6 +200,7 @@ watch(
               {{ $t('labels.settings') }}
             </div>
           </template>
+          <PaymentBanner v-if="isPaymentEnabled" class="mb-0" />
           <WorkspaceSettings :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
       </template>

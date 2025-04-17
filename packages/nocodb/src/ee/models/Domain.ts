@@ -124,6 +124,10 @@ export default class Domain {
     param: { orgId?: string; workspaceId?: string },
     ncMeta = Noco.ncMeta,
   ) {
+    if (!param.orgId && !param.workspaceId) {
+      return [];
+    }
+
     const domains = await ncMeta.metaList2(
       RootScopes.ORG,
       RootScopes.ORG,

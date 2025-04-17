@@ -55,6 +55,8 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { beforeAclValidationHook } from '~/middlewares/extract-ids/extract-ids.helpers';
 import { RootScopes } from '~/utils/globals';
+import SSOClient from '~/models/SSOClient';
+import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -608,6 +610,18 @@ export class AclMiddleware implements NestInterceptor {
     context: ExecutionContext,
     req,
   ) {
+    // if user is not defined then run GlobalGuard
+    // it's to take care if we are missing @UseGuards(GlobalGuard) in controller
+    // todo: later we can move guard part to this middleware or add where it's missing
+    if (!req.user) {
+      try {
+        const guard = new GlobalGuard(this.jwtStrategy);
+        await guard.canActivate(context);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+
     // limit user access to organization
     if (
       req.ncWorkspaceId &&
@@ -626,15 +640,21 @@ export class AclMiddleware implements NestInterceptor {
       NcError.forbidden('User access limited to Workspace');
     }
 
-    // if user is not defined then run GlobalGuard
-    // it's to take care if we are missing @UseGuards(GlobalGuard) in controller
-    // todo: later we can move guard part to this middleware or add where it's missing
-    if (!req.user) {
-      try {
-        const guard = new GlobalGuard(this.jwtStrategy);
-        await guard.canActivate(context);
-      } catch (e) {
-        console.log(e);
+    // if workspace associated to an sso, then only allow the workspace owner
+    // to access the workspace without sso login
+    if (
+      req.ncWorkspaceId &&
+      !req.user?.workspace_roles?.[WorkspaceUserRoles.OWNER] &&
+      !req.user?.extra?.workspace_id &&
+      (await checkIfWorkspaceSSOAvail(req.ncWorkspaceId, false))
+    ) {
+      const ssoClient = await SSOClient.list({
+        workspaceId: req.ncWorkspaceId,
+      });
+      if (ssoClient.length > 0) {
+        console.log(req.user?.workspace_roles);
+        console.log(req.user);
+        NcError.forbidden('User access limited to SSO login');
       }
     }
 

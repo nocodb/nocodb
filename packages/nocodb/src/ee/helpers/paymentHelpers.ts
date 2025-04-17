@@ -306,9 +306,14 @@ async function getActivePlanAndSubscription(
 }
 
 // if Cloud, then check if sso is available for the workspace/org
-export async function checkIfWorkspaceSSOAvail(workspaceId: string) {
+export async function checkIfWorkspaceSSOAvail(
+  workspaceId: string,
+  throwError = true,
+) {
   if (process.env.NC_CLOUD !== 'true') {
-    NcError.forbidden('This feature is not available in self-hosted version');
+    if (throwError)
+      NcError.forbidden('This feature is not available in self-hosted version');
+    else return false;
   }
 
   const isSSOEnabled = await getFeature(
@@ -317,8 +322,12 @@ export async function checkIfWorkspaceSSOAvail(workspaceId: string) {
   );
 
   if (!isSSOEnabled) {
-    NcError.forbidden('SSO is not available for this workspace');
+    if (throwError)
+      NcError.forbidden('SSO is not available for this workspace');
+    else return false;
   }
+
+  return true;
 }
 
 export {

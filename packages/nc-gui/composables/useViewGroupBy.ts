@@ -1,6 +1,7 @@
 import {
   type ColumnType,
   CommonAggregations,
+  FieldNameFromUITypes,
   type LinkToAnotherRecordType,
   type LookupType,
   type TableType,
@@ -8,6 +9,7 @@ import {
 } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import rfdc from 'rfdc'
 import type { Group } from '../lib/types'
 import { findKeyColor, valueToTitle } from '../utils/groupbyUtils'
 
@@ -21,6 +23,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     isPublic = false,
   ) => {
     const groupByLimit = 3
+
+    const clone = rfdc()
 
     const { api } = useApi()
     const { $api } = useNuxtApp()
@@ -74,14 +78,18 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const supportedLookups = ref<string[]>([])
 
     const fieldsToGroupBy = computed(() =>
-      (meta?.value?.columns || []).filter((field) => {
-        if (excludedGroupingUidt.includes(field.uidt as UITypes)) return false
-
-        if (field.uidt === UITypes.Lookup) {
-          return field.id && supportedLookups.value.includes(field.id)
+      clone(meta?.value?.columns || []).map((field) => {
+        if (excludedGroupingUidt.includes(field.uidt as UITypes)) {
+          field.ncItemDisabled = true
+          field.ncItemTooltip = `Field of type ${FieldNameFromUITypes[field.uidt]} not supported for grouping`
         }
 
-        return true
+        if (field.uidt === UITypes.Lookup && !(field.id && supportedLookups.value.includes(field.id))) {
+          field.ncItemDisabled = true
+          field.ncItemTooltip = `Field of type ${FieldNameFromUITypes[field.uidt]} not supported for grouping`
+        }
+
+        return field
       }),
     )
 

@@ -62,6 +62,11 @@ export interface NcListProps {
    */
   minItemsForSearch?: number
 
+  /**
+   * Whether input should have border
+   */
+  inputBordered?: boolean
+
   containerClassName?: string
 
   itemClassName?: string
@@ -114,7 +119,7 @@ const itemHeight = computed(() => {
     }
   }
 
-  return 40
+  return props.itemHeight || 40
 })
 
 const slots = useSlots()
@@ -376,7 +381,7 @@ watch(
             '!pt-0': variant === 'small',
           }"
           allow-clear
-          :bordered="false"
+          :bordered="inputBordered"
           @keydown.enter.stop="handleKeydownEnter"
           @change="handleResetHoverEffect(false, 0)"
         >

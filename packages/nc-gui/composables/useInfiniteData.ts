@@ -62,7 +62,7 @@ export function useInfiniteData(args: {
   callbacks: {
     syncVisibleData?: () => void
     getCount?: (path: Array<number>) => void
-    getWhereFilter?: (path: Array<number>) => string
+    getWhereFilter?: (path: Array<number>) => Promise<string>
     reloadAggregate?: (params: {
       fields?: Array<{ title: string; aggregation?: string | undefined }>
       path: Array<number>
@@ -352,7 +352,7 @@ export function useInfiniteData(args: {
   ): Promise<Row[]> {
     if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return []
 
-    const whereFilter = callbacks?.getWhereFilter?.(path)
+    const whereFilter = await callbacks?.getWhereFilter?.(path)
 
     if (!path.length && params.offset && blockExternalSourceRecordVisibility(isExternalSource.value)) {
       if (!isAlreadyShownUpgradeModal.value && params.offset >= EXTERNAL_SOURCE_VISIBLE_ROWS) {
@@ -1576,7 +1576,7 @@ export function useInfiniteData(args: {
 
     const dataCache = getDataCache(path)
 
-    const whereFilter = callbacks?.getWhereFilter?.(path)
+    const whereFilter = await callbacks?.getWhereFilter?.(path)
 
     try {
       const { count } = isPublic?.value

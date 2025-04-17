@@ -351,7 +351,13 @@ export function useGridViewData(
 
   async function bulkInsertRows(
     rows: Row[],
-    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    {
+      metaValue = meta.value,
+      viewMetaValue = viewMeta.value,
+    }: {
+      metaValue?: TableType
+      viewMetaValue?: ViewType
+    } = {},
     undo = false,
     path: Array<number> = [],
   ): Promise<string[]> {
@@ -566,7 +572,13 @@ export function useGridViewData(
     insertRows: Row[],
     updateRows: Row[],
     props: string[],
-    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    {
+      metaValue = meta.value,
+      viewMetaValue = viewMeta.value,
+    }: {
+      metaValue?: TableType
+      viewMetaValue?: ViewType
+    } = {},
     columns: Partial<ColumnType>[],
     undo = false,
     path: Array<number> = [],
@@ -641,7 +653,10 @@ export function useGridViewData(
       updatedRows.forEach((row: Row) => {
         const existingRow = Array.from(dataCache.cachedRows.value.entries()).find(([_, r]) => getPk(r) === getPk(row))
         if (existingRow) {
-          dataCache.cachedRows.value.set(existingRow[0], { ...row, rowMeta: { ...row.rowMeta, rowIndex: existingRow[0] } })
+          dataCache.cachedRows.value.set(existingRow[0], {
+            ...row,
+            rowMeta: { ...row.rowMeta, rowIndex: existingRow[0] },
+          })
         }
       })
 
@@ -898,7 +913,13 @@ export function useGridViewData(
 
   async function bulkDeleteRows(
     rows: Record<string, string>[],
-    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    {
+      metaValue = meta.value,
+      viewMetaValue = viewMeta.value,
+    }: {
+      metaValue?: TableType
+      viewMetaValue?: ViewType
+    } = {},
   ): Promise<any> {
     try {
       const bulkDeletedRowsData = await $api.dbDataTableRow.delete(metaValue?.id as string, rows.length === 1 ? rows[0] : rows, {

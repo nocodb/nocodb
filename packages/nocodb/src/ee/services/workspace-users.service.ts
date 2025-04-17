@@ -500,7 +500,6 @@ export class WorkspaceUsersService {
     const invite_token = uuidv4();
     const error = [];
     const emailUserMap = new Map<string, User>();
-    const invitedEmails = [];
     const registeredEmails = [];
 
     for (const email of emails) {
@@ -529,13 +528,13 @@ export class WorkspaceUsersService {
       emailUserMap.set(email, user);
     }
 
-    // invite users
-    for (const email of emails) {
-      const transaction = await ncMeta.startTransaction();
+    const transaction = await ncMeta.startTransaction();
 
-      const user = emailUserMap.get(email);
+    try {
+      // invite users
+      for (const email of emails) {
+        const user = emailUserMap.get(email);
 
-      try {
         const workspaceUser = await WorkspaceUser.get(
           workspaceId,
           user.id,
@@ -562,26 +561,21 @@ export class WorkspaceUsersService {
           },
           transaction,
         );
-
-        await this.paymentService.reseatSubscription(
-          workspace.fk_org_id ?? workspace.id,
-          transaction,
-        );
-
-        await transaction.commit();
-
-        invitedEmails.push(email);
-      } catch (e) {
-        await transaction.rollback();
-        error.push({
-          email,
-          msg: e.message,
-        });
       }
+
+      await this.paymentService.reseatSubscription(
+        workspace.fk_org_id ?? workspace.id,
+        transaction,
+      );
+
+      await transaction.commit();
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
     }
 
     // send email and add audit log
-    for (const email of invitedEmails) {
+    for (const email of emails) {
       const user = emailUserMap.get(email);
 
       if (!param.skipEmailInvite) {
@@ -592,7 +586,9 @@ export class WorkspaceUsersService {
               workspace,
               user,
               req: param.req,
-              token: invitedEmails.includes(email) ? user.invite_token : null,
+              token: registeredEmails.includes(email)
+                ? user.invite_token
+                : null,
             },
           })
           .then(() => {

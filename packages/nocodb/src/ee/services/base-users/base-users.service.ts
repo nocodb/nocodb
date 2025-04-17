@@ -100,13 +100,12 @@ export class BaseUsersService extends BaseUsersServiceCE {
     const error = [];
     const postOperations = [];
 
-    for (const email of emails) {
-      const transaction = await ncMeta.startTransaction();
+    const transaction = await ncMeta.startTransaction();
 
-      // add user to base if user already exist
-      const user = await User.getByEmail(email, transaction);
-
-      try {
+    try {
+      for (const email of emails) {
+        // add user to base if user already exist
+        const user = await User.getByEmail(email, transaction);
         if (user) {
           // check if this user has been added to this base
           const baseUser = await BaseUser.get(
@@ -302,27 +301,21 @@ export class BaseUsersService extends BaseUsersServiceCE {
             );
           }
         }
-
-        await this.paymentService.reseatSubscription(
-          workspace.fk_org_id ?? workspace.id,
-          transaction,
-        );
-
-        await transaction.commit();
-      } catch (e) {
-        await transaction.rollback();
-
-        if (emails.length === 1) {
-          throw e;
-        } else {
-          this.logger.error(e.message, e.stack);
-        }
-
-        error.push({ email, error: e.message });
       }
-    }
 
-    await Promise.all(postOperations.map((fn) => fn()));
+      await this.paymentService.reseatSubscription(
+        workspace.fk_org_id ?? workspace.id,
+        transaction,
+      );
+
+      await transaction.commit();
+
+      await Promise.all(postOperations.map((fn) => fn()));
+    } catch (e) {
+      await transaction.rollback();
+
+      throw e;
+    }
 
     if (emails.length === 1) {
       return {

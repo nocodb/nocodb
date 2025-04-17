@@ -8,7 +8,7 @@ const { hideSidebar, showTopbar } = storeToRefs(useSidebarStore())
 
 const { navigateToBilling, navigateToCheckout } = useEeConfig()
 
-const { activePlan, paymentMode, isLoyaltyWorkspace, loadPlans, plansAvailable } = useProvidePaymentStore()
+const { activeWorkspace, activePlan, paymentMode, isLoyaltyWorkspace, loadPlans, plansAvailable } = useProvidePaymentStore()
 
 onMounted(() => {
   hideSidebar.value = true
@@ -111,11 +111,11 @@ onMounted(async () => {
               margin: 0px;
             "
           >
-            Unlimited Seats<br style="box-sizing: border-box" />Only First
-            <span v-if="isLoyaltyWorkspace"
-              ><span class="line-through decoration-red-500 font-bold mr-1">9</span> <span class="font-bold">4</span></span
-            ><span v-else>9</span> Are Billed
+            Unlimited Seats
           </h1>
+          <span v-if="activePlan" class="text-base text-nc-content-gray-muted"
+            >The {{ activeWorkspace?.title || 'Workspace' }} is currently on the {{ activePlan.title }} plan.</span
+          >
         </div>
         <PaymentLoyaltyBadge v-if="isLoyaltyWorkspace" class="my-4" />
         <div

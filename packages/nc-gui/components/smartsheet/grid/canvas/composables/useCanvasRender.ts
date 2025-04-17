@@ -2831,9 +2831,11 @@ export function useCanvasRender({
       const displayText =
         group.value in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[group.value] : parseKey(group)?.join(', ')
 
+      const isCheckBox = group.column?.uidt === UITypes.Checkbox
+
       renderSingleLineText(ctx, {
         text: displayText,
-        fillStyle: '#6A7184',
+        fillStyle: isCheckBox ? '#1f293a' : '#6A7184',
         fontFamily: '700 13px Manrope',
         x,
         y: y - GROUP_HEADER_HEIGHT / 2 + 8,

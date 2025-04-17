@@ -189,7 +189,7 @@ const columns = [
 ] as NcTableColumnProps[]
 
 const customRow = (_record: Record<string, any>, recordIndex: number) => ({
-  class: `${selected[recordIndex] ? 'selected' : ''} last:!border-b-0`,
+  class: `${selected[recordIndex] ? 'selected' : ''} last:!border-b-0 !cursor-default`,
 })
 
 const isDeleteOrUpdateAllowed = (user) => {

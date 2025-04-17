@@ -56,7 +56,7 @@ const { columns, data, isDataLoading, customHeaderRow, customRow } = toRefs(prop
 
 const headerRowClassName = computed(() => `nc-table-header-row ${props.headerRowClassName}`)
 
-const bodyRowClassName = computed(() => `nc-table-row ${props.headerRowClassName}`)
+const bodyRowClassName = computed(() => `nc-table-row ${props.bodyRowClassName}`)
 
 const slots = useSlots()
 

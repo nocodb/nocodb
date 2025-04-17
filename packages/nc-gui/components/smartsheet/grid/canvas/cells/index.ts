@@ -53,6 +53,7 @@ export function useGridCellHandler(params: {
     ltarState?: Record<string, any>,
     args?: { metaValue?: TableType; viewMetaValue?: ViewType },
     beforeRow?: string,
+    path?: Array<number>,
   ) => Promise<any>
   meta?: Ref<TableType>
   hasEditPermission: ComputedRef<boolean>

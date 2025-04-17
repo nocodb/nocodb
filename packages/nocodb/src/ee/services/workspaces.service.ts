@@ -787,9 +787,14 @@ export class WorkspacesService implements OnApplicationBootstrap {
         req,
       });
       if (transferred) {
-        await Workspace.update(prepopulatedWorkspace.id, {
-          title,
-        });
+        await Workspace.update(
+          prepopulatedWorkspace.id,
+          {
+            title,
+          },
+          undefined,
+          true,
+        );
         createdWorkspace = prepopulatedWorkspace;
       }
     }

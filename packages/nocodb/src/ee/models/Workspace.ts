@@ -218,6 +218,7 @@ export default class Workspace implements WorkspaceType {
     id: string,
     workspaceAttr: Partial<Workspace>,
     ncMeta = Noco.ncMeta,
+    updateCreatedAt = false,
   ) {
     if (!id) NcError.badRequest('Workspace id is required');
 
@@ -243,12 +244,21 @@ export default class Workspace implements WorkspaceType {
       updateObject.meta = JSON.stringify(updateObject.meta);
     }
 
+    if (updateCreatedAt) {
+      updateObject.created_at = ncMeta.now();
+    }
+
     const res = await ncMeta.metaUpdate(
       RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
       MetaTable.WORKSPACE,
       prepareForDb(updateObject),
       id,
+      undefined,
+      false,
+      false,
+      // allow created_at to be updated (required for updating seed workspaces when changing owner)
+      true,
     );
 
     // update cache after successful update

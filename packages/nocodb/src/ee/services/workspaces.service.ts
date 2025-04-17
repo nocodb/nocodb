@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
@@ -13,7 +14,12 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import type { OnApplicationBootstrap } from '@nestjs/common';
-import type { BaseType, UserType, WorkspaceType } from 'nocodb-sdk';
+import type {
+  BaseType,
+  DomainReqType,
+  UserType,
+  WorkspaceType,
+} from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import WorkspaceUser from '~/models/WorkspaceUser';
@@ -25,6 +31,7 @@ import {
   Base,
   BaseUser,
   DataReflection,
+  Domain,
   Integration,
   PresignedUrl,
   Subscription,
@@ -39,6 +46,7 @@ import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { JobTypes } from '~/interface/Jobs';
 import NocoCache from '~/cache/NocoCache';
 import { PaymentService } from '~/modules/payment/payment.service';
+import { verifyTXTRecord } from '~/utils';
 
 const mockUser = {
   id: '1',
@@ -150,6 +158,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     let workspaces = await WorkspaceUser.workspaceList({
       fk_user_id: param.user.id,
       fk_org_id: param.user.extra?.org_id,
+      fk_workspace_id: param.user.extra?.woorkspace_id,
     });
 
     if (!workspaces.length && param.req.user?.id) {
@@ -160,6 +169,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       workspaces = await WorkspaceUser.workspaceList({
         fk_user_id: param.user.id,
         fk_org_id: param.user.extra?.org_id,
+        fk_workspace_id: param.user.extra?.workspace_id,
       });
     }
 
@@ -811,5 +821,59 @@ export class WorkspacesService implements OnApplicationBootstrap {
     }
 
     return createdWorkspace;
+  }
+
+  async verifyDomain(param: { domainId: string; req: any }) {
+    const domain = await Domain.get(param.domainId);
+
+    if (!domain) {
+      NcError.notFound('Domain not found');
+    }
+
+    const verified = await verifyTXTRecord(domain.domain, domain.txt_value);
+
+    if (domain.verified !== verified) {
+      await Domain.update(param.domainId, {
+        verified,
+      });
+    }
+
+    return verified;
+  }
+
+  async domainList(param: { workspaceId: string; req: NcRequest }) {
+    const domainList = await Domain.list({ workspaceId: param.workspaceId });
+
+    return domainList;
+  }
+
+  private generateRandomTxt() {
+    return `nocodb-verification-${crypto
+      .randomBytes(Math.ceil(32 / 2))
+      .toString('hex')
+      .slice(0, 32)}`;
+  }
+
+  async addDomain(param: {
+    body: DomainReqType;
+    workspaceId: string;
+    req: NcRequest;
+  }) {
+    // todo: validate and verify
+
+    // generate a txt value
+    const txtValue = this.generateRandomTxt();
+
+    const domain = await Domain.insert({
+      deleted: param.body.deleted,
+      domain: param.body.domain,
+      txt_value: txtValue,
+      fk_workspace_id: param.workspaceId,
+      fk_user_id: param.req.user?.id,
+    });
+
+    await this.verifyDomain({ domainId: domain.id, req: param.req });
+
+    return domain;
   }
 }

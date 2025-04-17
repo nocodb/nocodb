@@ -82,6 +82,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   )
 
   const isWorkspaceLoading = ref(true)
+  const isWorkspacesLoading = ref(true)
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
 
@@ -137,6 +138,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           ...workspace,
         })
       }
+
+      isWorkspacesLoading.value = false
+
       return list
     } catch (e: any) {
       if (!ignoreError) message.error(await e)
@@ -593,6 +597,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     saveTheme,
     activeWorkspaceMeta,
     isWorkspaceLoading,
+    isWorkspacesLoading,
     populateWorkspace,
     clearWorkspaces,
     upgradeActiveWorkspace,

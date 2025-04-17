@@ -9,6 +9,7 @@ const props = withDefaults(
     isEdit: boolean
     saml: SSOClientType
     isOrg?: boolean
+    isWorkspace?: boolean
   }>(),
   {
     saml: () => ({}),
@@ -19,7 +20,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
-const { addProvider, updateProvider, getRedirectUrl, getEntityId } = useAuthentication(props.isOrg)
+const { addProvider, updateProvider, getRedirectUrl, getEntityId } = useAuthentication(props.isOrg, props.isWorkspace)
 
 const form = reactive<{ title: string; metaDataUrl?: string; xml?: string; ssoOnly: boolean }>({
   title: props.saml?.title ?? '',

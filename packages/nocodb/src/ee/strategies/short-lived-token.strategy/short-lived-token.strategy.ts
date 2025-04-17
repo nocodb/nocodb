@@ -38,6 +38,7 @@ export class ShortLivedTokenStrategy extends PassportStrategy(
     const result = {
       extra: {
         org_id: jwtPayload.org_id,
+        workspace_id: jwtPayload.workspace_id,
         sso_client_id: jwtPayload.sso_client_id,
         sso_client_type: jwtPayload.sso_client_type,
       },

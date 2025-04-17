@@ -10,7 +10,7 @@ import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconn
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import passport from 'passport';
 import isEmail from 'validator/lib/isEmail';
-import { CloudOrgUserRoles } from 'nocodb-sdk';
+import { CloudOrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type {
   GoogleClientConfigType,
@@ -21,7 +21,7 @@ import type { NextFunction, Request, Response } from 'express';
 import type { AppConfig } from '~/interface/config';
 import SSOClient from '~/models/SSOClient';
 
-import { BaseUser, Domain, OrgUser, User } from '~/models';
+import { BaseUser, Domain, OrgUser, User, WorkspaceUser } from '~/models';
 import { sanitiseUserObj, verifyTXTRecord } from '~/utils';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
@@ -29,6 +29,7 @@ import { UsersService } from '~/services/users/users.service';
 import { MetaService } from '~/meta/meta.service';
 import { NcError } from '~/helpers/catchError';
 import Debug from '~/db/util/Debug';
+import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 
 // this middleware is used to authenticate user using passport
 // in which we decide which strategy to use based on client type
@@ -52,7 +53,6 @@ export class SSOPassportMiddleware implements NestMiddleware {
     );
 
     const client = await SSOClient.get(req.params.clientId);
-    req['ncOrgId'] = client.fk_org_id;
 
     if (!client || !client.enabled || client.deleted) {
       this.debugger.error(
@@ -67,6 +67,13 @@ export class SSOPassportMiddleware implements NestMiddleware {
       );
       return res.status(400).json({ msg: `Client config not found` });
     }
+
+    if (client.fk_workspace_id) {
+      await checkIfWorkspaceSSOAvail(client.fk_workspace_id);
+    }
+
+    req['ncOrgId'] = client.fk_org_id;
+    req['ncWorkspaceId'] = client.fk_workspace_id ?? req['ncWorkspaceId'];
 
     let strategy;
     switch (client.type) {
@@ -86,6 +93,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
 
     passport.authenticate(strategy, { session: false })(req, res, next);
   }
+
   // get saml strategy
   async getSAMLStrategy(client: SSOClient, req: Request) {
     const config: any = client.config;
@@ -169,7 +177,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
             ...config.auth.jwt.options,
           };
 
-          await this.addUserToOrg({ user, client });
+          await this.addUserToOrgOrWorkspace({ user, client });
 
           // Here, you can generate a JWT token using profile information
           const token = this.generateShortLivedToken({
@@ -212,6 +220,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
         sso_client_type: client.type,
         sso_client_id: client.id,
         org_id: client.fk_org_id ?? undefined,
+        workspace_id: client.fk_workspace_id ?? undefined,
       },
       options.secretOrKey,
       {
@@ -343,7 +352,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
                     client,
                   });
                 if (user) {
-                  return this.addUserToOrg({ user, client })
+                  return this.addUserToOrgOrWorkspace({ user, client })
                     .then(() => {
                       return done(null, {
                         ...sanitiseUserObj(user),
@@ -374,7 +383,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
                       req: null,
                     })
                     .then((user) => {
-                      this.addUserToOrg({ user, client })
+                      this.addUserToOrgOrWorkspace({ user, client })
                         .then(() => {
                           done(null, {
                             ...sanitiseUserObj(user),
@@ -421,7 +430,8 @@ export class SSOPassportMiddleware implements NestMiddleware {
     client: SSOClient;
   }) {
     const orgId = client.fk_org_id;
-    if (!orgId) {
+    const workspaceId = client.fk_workspace_id;
+    if (!orgId && !workspaceId) {
       return;
     }
 
@@ -429,13 +439,13 @@ export class SSOPassportMiddleware implements NestMiddleware {
 
     const domain = email.split('@')[1];
 
-    const orgDomains = await Domain.list({ orgId });
+    const orgOrWorkspaceDomains = await Domain.list({ orgId, workspaceId });
 
     let domainExists = false;
 
     // iterate over org domains and check if domain matches and verified
     // if last verified is more than 7 days then re-verify
-    for (const d of orgDomains) {
+    for (const d of orgOrWorkspaceDomains) {
       if (d.domain === domain) {
         if (!d.verified) {
           continue;
@@ -532,7 +542,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
           }
         })()
           .then(async (user) => {
-            await this.addUserToOrg({ user, client });
+            await this.addUserToOrgOrWorkspace({ user, client });
             return user;
           })
           .then((user) => {
@@ -561,26 +571,43 @@ export class SSOPassportMiddleware implements NestMiddleware {
     );
   }
 
-  private async addUserToOrg({
+  private async addUserToOrgOrWorkspace({
     client,
     user,
   }: {
     client: SSOClient;
     user: Partial<User>;
   }) {
-    if (!client.fk_org_id) return;
+    if (client.fk_org_id) {
+      this.debugger.info(
+        `Adding user to org: ${client.fk_org_id}, user id: ${user.id}`,
+      );
 
-    this.debugger.info(
-      `Adding user to org: ${client.fk_org_id}, user id: ${user.id}`,
-    );
+      const orgUser = await OrgUser.get(client.fk_org_id, user.id);
+      if (!orgUser) {
+        await OrgUser.insert({
+          fk_org_id: client.fk_org_id,
+          fk_user_id: user.id,
+          roles: CloudOrgUserRoles.VIEWER,
+        });
+      }
+    } else if (client.fk_workspace_id) {
+      this.debugger.info(
+        `Adding user to workspace: ${client.fk_workspace_id}, user id: ${user.id}`,
+      );
 
-    const orgUser = await OrgUser.get(client.fk_org_id, user.id);
-    if (!orgUser) {
-      await OrgUser.insert({
-        fk_org_id: client.fk_org_id,
-        fk_user_id: user.id,
-        roles: CloudOrgUserRoles.VIEWER,
-      });
+      // TODO: discuss with team if we need to add user to workspace or not
+      const workspaceUser = await WorkspaceUser.get(
+        client.fk_workspace_id,
+        user.id,
+      );
+      if (!workspaceUser) {
+        await WorkspaceUser.insert({
+          fk_workspace_id: client.fk_workspace_id,
+          fk_user_id: user.id,
+          roles: WorkspaceUserRoles.VIEWER,
+        });
+      }
     }
   }
 }

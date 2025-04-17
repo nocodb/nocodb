@@ -1,7 +1,9 @@
 <script lang="ts" setup>
-import { onMounted } from '@vue/runtime-core'
+const props = defineProps<{
+  isWorkspace?: boolean
+}>()
 
-const { domains, fetchDomains, getPrePopulatedDomain, verifyDomain, deleteDomain } = useDomains()
+const { domains, fetchDomains, getPrePopulatedDomain, verifyDomain, deleteDomain } = useDomains(props.isWorkspace)
 
 const domainDialogShow = ref(false)
 const domainProp = ref()

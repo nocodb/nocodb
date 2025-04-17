@@ -44,6 +44,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
       extra: {
         org_id: jwtPayload.org_id,
+        workspace_id: jwtPayload.workspace_id,
         sso_client_id: jwtPayload.sso_client_id,
         sso_client_type: jwtPayload.sso_client_type,
       },

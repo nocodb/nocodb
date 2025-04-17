@@ -268,4 +268,39 @@ export class WorkspacesController {
     }
     return true;
   }
+
+  //
+  // // delete workspace
+  // @Post('/api/v2/workspaces/:workspaceId/domains')
+  // @HttpCode(200)
+  // @UseGuards(GlobalGuard, MetaApiLimiterGuard)
+  // @Acl('orgDomainAdd', {
+  //   scope: 'workspace',
+  // })
+  // async addDomain(
+  //   @Req() req: NcRequest,
+  //   @Param('workspaceId') workspaceId: string,
+  //   @Body() body: DomainReqType,
+  // ) {
+  //   return this.workspacesService.addDomain({
+  //     workspaceId,
+  //     req,
+  //     body,
+  //   });
+  // }
+  // // delete workspace
+  // @Get('/api/v2/workspaces/:workspaceId/domains')
+  // @HttpCode(200)
+  // @UseGuards(GlobalGuard, MetaApiLimiterGuard)
+  // @Acl('orgDomainList', {
+  //   scope: 'workspace',
+  // })
+  // async orgWorkspaceList(@Req() req: NcRequest, @Param('workspaceId') workspaceId: string) {
+  //   return new PagedResponseImpl(
+  //     await this.workspacesService.domainList({
+  //       workspaceId,
+  //       req,
+  //     }),
+  //   );
+  // }
 }

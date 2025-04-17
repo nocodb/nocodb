@@ -55,6 +55,8 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { beforeAclValidationHook } from '~/middlewares/extract-ids/extract-ids.helpers';
 import { RootScopes } from '~/utils/globals';
+import SSOClient from '~/models/SSOClient';
+import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -201,7 +203,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       if (!base) {
         NcError.baseNotFound(req.params.sharedBaseUuid);
       }
-
       req.ncBaseId = base?.id;
     } else if (params.hookId) {
       const hook = await Hook.get(context, params.hookId);
@@ -536,7 +537,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.genericNotFound('Domain', req.params.domainId);
       }
 
-      req.ncOrgId = domain?.fk_org_id;
+      if (domain?.fk_org_id) req.ncOrgId = domain?.fk_org_id;
+      else if (domain?.fk_workspace_id)
+        req.ncWorkspaceId = domain?.fk_workspace_id;
     }
 
     if (!req.ncOrgId && req.params.orgId) {
@@ -607,15 +610,6 @@ export class AclMiddleware implements NestInterceptor {
     context: ExecutionContext,
     req,
   ) {
-    // limit user access to organization
-    if (
-      req.ncWorkspaceId &&
-      req.user.extra?.org_id &&
-      req.user.extra.org_id !== req.ncOrgId
-    ) {
-      NcError.forbidden('User access limited to Organization');
-    }
-
     // if user is not defined then run GlobalGuard
     // it's to take care if we are missing @UseGuards(GlobalGuard) in controller
     // todo: later we can move guard part to this middleware or add where it's missing
@@ -628,11 +622,49 @@ export class AclMiddleware implements NestInterceptor {
       }
     }
 
+    /*
+      // limit user access to organization
+      if (
+        req.ncWorkspaceId &&
+        req.user?.extra?.org_id &&
+        req.user.extra.org_id !== req.ncOrgId
+      ) {
+        NcError.forbidden('User access limited to Organization');
+      }
+
+      // limit user access to workspace
+      if (
+        req.ncWorkspaceId &&
+        req.user?.extra?.workspace_id &&
+        req.user.extra.workspace_id !== req.ncWorkspaceId
+      ) {
+        NcError.forbidden('User access limited to Workspace');
+      }
+    */
+
+    // if workspace associated to an sso, then only allow the workspace owner
+    // to access the workspace without sso login
+    if (
+      req.ncWorkspaceId &&
+      !req.user?.workspace_roles?.[WorkspaceUserRoles.OWNER] &&
+      !req.user?.extra?.workspace_id &&
+      (await checkIfWorkspaceSSOAvail(req.ncWorkspaceId, false))
+    ) {
+      const ssoClient = await SSOClient.list({
+        workspaceId: req.ncWorkspaceId,
+      });
+      if (ssoClient.length > 0) {
+        console.log(req.user?.workspace_roles);
+        console.log(req.user);
+        NcError.forbidden('User access limited to SSO login');
+      }
+    }
+
     if (!req.user?.isAuthorized) {
       NcError.unauthorized('Invalid token');
     }
 
-    // if view API and view is pesonal view then check if user has access to view
+    // if view API and view is personal view then check if user has access to view
     // if user is not owner of view then restrict write operations
     if (
       req[VIEW_KEY]?.lock_type === ViewLockType.Personal &&
@@ -655,8 +687,7 @@ export class AclMiddleware implements NestInterceptor {
     // extendedScope is used to allow access based on extended scope in which permission is prefixed with scope name and separated by underscore
     const extendedScopeRoles =
       extendedScope && getUserRoleForScope(req.user, extendedScope);
-
-    if (!userScopeRole) {
+    if (!userScopeRole && !extendedScopeRoles) {
       NcError.forbidden('Unauthorized access');
     }
 
@@ -668,25 +699,27 @@ export class AclMiddleware implements NestInterceptor {
 
     if (
       (!allowedRoles || allowedRoles.some((role) => roles?.[role])) &&
-      !(
-        roles?.creator ||
-        roles?.owner ||
-        roles?.editor ||
-        roles?.viewer ||
-        roles?.commenter ||
-        roles?.['no-access'] ||
-        roles?.[WorkspaceUserRoles.OWNER] ||
-        roles?.[WorkspaceUserRoles.CREATOR] ||
-        roles?.[WorkspaceUserRoles.EDITOR] ||
-        roles?.[WorkspaceUserRoles.VIEWER] ||
-        roles?.[WorkspaceUserRoles.COMMENTER] ||
-        roles?.[WorkspaceUserRoles.NO_ACCESS] ||
-        roles?.[OrgUserRoles.SUPER_ADMIN] ||
-        roles?.[OrgUserRoles.CREATOR] ||
-        roles?.[OrgUserRoles.VIEWER] ||
-        roles?.[CloudOrgUserRoles.CREATOR] ||
-        roles?.[CloudOrgUserRoles.VIEWER] ||
-        roles?.[CloudOrgUserRoles.OWNER]
+      ![extendedScopeRoles, roles].some(
+        (roles) =>
+          roles &&
+          (roles?.creator ||
+            roles?.owner ||
+            roles?.editor ||
+            roles?.viewer ||
+            roles?.commenter ||
+            roles?.['no-access'] ||
+            roles?.[WorkspaceUserRoles.OWNER] ||
+            roles?.[WorkspaceUserRoles.CREATOR] ||
+            roles?.[WorkspaceUserRoles.EDITOR] ||
+            roles?.[WorkspaceUserRoles.VIEWER] ||
+            roles?.[WorkspaceUserRoles.COMMENTER] ||
+            roles?.[WorkspaceUserRoles.NO_ACCESS] ||
+            roles?.[OrgUserRoles.SUPER_ADMIN] ||
+            roles?.[OrgUserRoles.CREATOR] ||
+            roles?.[OrgUserRoles.VIEWER] ||
+            roles?.[CloudOrgUserRoles.CREATOR] ||
+            roles?.[CloudOrgUserRoles.VIEWER] ||
+            roles?.[CloudOrgUserRoles.OWNER]),
       )
     ) {
       NcError.unauthorized('Unauthorized access');
@@ -694,39 +727,37 @@ export class AclMiddleware implements NestInterceptor {
     // todo : verify user have access to base or not
 
     const isAllowed =
-      roles &&
-      (Object.entries(roles).some(([name, hasRole]) => {
-        return (
-          hasRole &&
-          rolePermissions[name] &&
-          (rolePermissions[name] === '*' ||
-            (rolePermissions[name].exclude &&
-              !rolePermissions[name].exclude[permissionName]) ||
-            (rolePermissions[name].include &&
-              rolePermissions[name].include[permissionName]))
-        );
-      }) ||
-        // extendedScope is used to allow access based on extended scope in which permission is prefixed with scope name and separated by underscore
-        (extendedScopeRoles &&
-          Object.entries(extendedScopeRoles).some(([name, hasRole]) => {
-            return (
-              hasRole &&
-              rolePermissions[name] &&
-              (rolePermissions[name] === '*' ||
-                (rolePermissions[name].exclude &&
-                  !rolePermissions[name].exclude[
-                    scope + '_' + permissionName
-                  ]) ||
-                (rolePermissions[name].include &&
-                  rolePermissions[name].include[scope + '_' + permissionName]))
-            );
-          })));
+      (roles &&
+        Object.entries(roles).some(([name, hasRole]) => {
+          return (
+            hasRole &&
+            rolePermissions[name] &&
+            (rolePermissions[name] === '*' ||
+              (rolePermissions[name].exclude &&
+                !rolePermissions[name].exclude[permissionName]) ||
+              (rolePermissions[name].include &&
+                rolePermissions[name].include[permissionName]))
+          );
+        })) ||
+      // extendedScope is used to allow access based on extended scope in which permission is prefixed with scope name and separated by underscore
+      (extendedScopeRoles &&
+        Object.entries(extendedScopeRoles).some(([name, hasRole]) => {
+          return (
+            hasRole &&
+            rolePermissions[name] &&
+            (rolePermissions[name] === '*' ||
+              (rolePermissions[name].exclude &&
+                !rolePermissions[name].exclude[scope + '_' + permissionName]) ||
+              (rolePermissions[name].include &&
+                rolePermissions[name].include[scope + '_' + permissionName]))
+          );
+        }));
     if (!isAllowed) {
       NcError.forbidden(
         generateReadablePermissionErr(
           permissionName,
-          roles,
-          extendedScopeRoles,
+          roles ?? extendedScopeRoles,
+          scope,
         ),
       );
 

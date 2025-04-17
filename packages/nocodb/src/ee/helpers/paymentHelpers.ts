@@ -305,6 +305,31 @@ async function getActivePlanAndSubscription(
   return { plan, subscription };
 }
 
+// if Cloud, then check if sso is available for the workspace/org
+export async function checkIfWorkspaceSSOAvail(
+  workspaceId: string,
+  throwError = true,
+) {
+  if (process.env.NC_CLOUD !== 'true') {
+    if (throwError)
+      NcError.forbidden('This feature is not available in self-hosted version');
+    else return false;
+  }
+
+  const isSSOEnabled = await getFeature(
+    PlanFeatureTypes.FEATURE_SSO,
+    workspaceId,
+  );
+
+  if (!isSSOEnabled) {
+    if (throwError)
+      NcError.forbidden('SSO is not available for this workspace');
+    else return false;
+  }
+
+  return true;
+}
+
 export {
   PlanLimitTypes,
   PlanFeatureTypes,

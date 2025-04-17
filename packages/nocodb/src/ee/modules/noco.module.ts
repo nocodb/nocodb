@@ -4,8 +4,6 @@ import { Module } from '@nestjs/common';
 import { PaymentModule } from '~/modules/payment/payment.module';
 
 /* Generic */
-import { Producer } from '~/services/producer/producer';
-import { ProducerProvider } from '~/services/producer';
 import { ActionsController } from '~/controllers/actions.controller';
 import { CustomUrlsController } from '~/controllers/custom-urls.controller';
 import { CustomUrlsService } from '~/services/custom-urls.service';
@@ -75,7 +73,6 @@ export const nocoModuleEeMetadata = {
     ...nocoModuleMetadata.providers,
 
     /* Generic */
-    ProducerProvider,
     CustomUrlsService,
 
     /* Datas */
@@ -152,7 +149,6 @@ export const nocoModuleEeMetadata = {
     ...nocoModuleMetadata.exports,
 
     /* Generic */
-    Producer,
     CustomUrlsService,
 
     /* Workspaces */

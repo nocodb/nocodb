@@ -9,11 +9,17 @@ import {
   Post,
   Req,
 } from '@nestjs/common';
-import { CloudOrgUserRoles, OrgUserRoles, SSOClientType } from 'nocodb-sdk';
+import {
+  CloudOrgUserRoles,
+  OrgUserRoles,
+  SSOClientType,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import { SSOClientService } from '~/services/sso-client.service';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { OrgSSOClientService } from '~/services/org-sso-client.service';
+import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 
 @Controller()
 export class SsoClientController {
@@ -22,6 +28,9 @@ export class SsoClientController {
     private readonly orgSsoClientService: OrgSSOClientService,
   ) {}
 
+  /**
+   * Enterprise(self-hosted) SSO Clients related APIs
+   ***/
   @Get('/api/v2/sso-clients')
   @Acl('ssoClientList', {
     scope: 'org',
@@ -68,6 +77,9 @@ export class SsoClientController {
     return this.ssoClientService.clientDelete({ clientId, req });
   }
 
+  /**
+   * Organization(cloud) SSO Clients related APIs
+   ***/
   @Get('/api/v2/orgs/:orgId/sso-clients')
   @Acl('orgSsoClientList', {
     scope: 'cloud-org',
@@ -123,8 +135,97 @@ export class SsoClientController {
     return this.ssoClientService.clientDelete({ clientId, req, orgId });
   }
 
+  /**
+   * Workspace(cloud) SSO Clients related APIs
+   ***/
+  @Get('/api/v2/workspaces/:workspaceId/sso-clients')
+  @Acl('workspaceSsoClientList', {
+    scope: 'workspace',
+    allowedRoles: [WorkspaceUserRoles.OWNER],
+    blockApiTokenAccess: true,
+  })
+  async workspaceClientList(
+    @Req() req,
+    @Param('workspaceId') workspaceId: string,
+  ) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
+    const clients = await this.ssoClientService.clientList({
+      req,
+      workspaceId,
+    });
+    return new PagedResponseImpl(clients);
+  }
+
+  @Post('/api/v2/workspaces/:workspaceId/sso-clients')
+  @Acl('workspaceSsoClientCreate', {
+    scope: 'workspace',
+    allowedRoles: [WorkspaceUserRoles.OWNER],
+    blockApiTokenAccess: true,
+  })
+  @HttpCode(200)
+  async workspaceClientAdd(
+    @Body() client: SSOClientType,
+    @Req() req,
+    @Param('workspaceId') workspaceId: string,
+  ) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
+    return this.ssoClientService.clientAdd({ client, req, workspaceId });
+  }
+
+  @Patch('/api/v2/workspaces/:workspaceId/sso-clients/:clientId')
+  @Acl('workspaceSsoClientUpdate', {
+    scope: 'workspace',
+    allowedRoles: [WorkspaceUserRoles.OWNER],
+    blockApiTokenAccess: true,
+  })
+  async workspaceClientUpdate(
+    @Param('clientId') clientId: string,
+    @Body() client: SSOClientType,
+    @Req() req,
+    @Param('workspaceId') workspaceId: string,
+  ) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
+    return this.ssoClientService.clientUpdate({
+      clientId,
+      client,
+      req,
+      workspaceId,
+    });
+  }
+
+  @Delete('/api/v2/workspaces/:workspaceId/sso-clients/:clientId')
+  @Acl('workspaceSsoClientDelete', {
+    scope: 'workspace',
+    allowedRoles: [WorkspaceUserRoles.OWNER],
+    blockApiTokenAccess: true,
+  })
+  async workspaceClientDelete(
+    @Param('clientId') clientId: string,
+    @Req() req,
+    @Param('workspaceId') workspaceId: string,
+  ) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
+    return this.ssoClientService.clientDelete({ clientId, req, workspaceId });
+  }
+
   @Post('/api/v2/sso')
   async ssoClients(@Body() body: { email: string }, @Req() req) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
     return this.ssoClientService.getSsoClientsByDomain({
       req,
       email: body.email,

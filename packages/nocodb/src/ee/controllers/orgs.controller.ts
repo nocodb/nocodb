@@ -17,6 +17,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { OrgsService } from '~/services/orgs.service';
 import { NcRequest } from '~/interface/config';
+import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 
 @Controller()
 export class OrgsController {
@@ -106,36 +107,53 @@ export class OrgsController {
     });
   }
 
-  // delete workspace
-  @Get('/api/v2/orgs/:orgId/domains')
+  @Get([
+    '/api/v2/orgs/:orgId/domains',
+    '/api/v2/workspaces/:workspaceId/domains',
+  ])
   @HttpCode(200)
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
   @Acl('orgDomainList', {
     scope: 'cloud-org',
+    extendedScope: 'workspace',
   })
-  async orgWorkspaceList(@Req() req: NcRequest, @Param('orgId') orgId: string) {
+  async orgWorkspaceList(
+    @Req() req: NcRequest,
+    @Param('orgId') orgId: string,
+    @Param('workspaceId') workspaceId: string,
+  ) {
     return new PagedResponseImpl(
       await this.orgsService.domainList({
         orgId,
+        workspaceId,
         req,
       }),
     );
   }
 
-  // delete workspace
-  @Post('/api/v2/orgs/:orgId/domains')
+  @Post([
+    '/api/v2/orgs/:orgId/domains',
+    '/api/v2/workspaces/:workspaceId/domains',
+  ])
   @HttpCode(200)
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
   @Acl('orgDomainAdd', {
     scope: 'cloud-org',
+    extendedScope: 'workspace',
   })
   async addDomain(
     @Req() req: NcRequest,
     @Param('orgId') orgId: string,
+    @Param('workspaceId') workspaceId: string,
     @Body() body: DomainReqType,
   ) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
     return this.orgsService.addDomain({
       orgId,
+      workspaceId,
       req,
       body,
     });
@@ -146,29 +164,39 @@ export class OrgsController {
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
   @Acl('orgDomainVerify', {
     scope: 'cloud-org',
+    extendedScope: 'workspace',
   })
   async verifyDomain(
     @Req() req: NcRequest,
     @Param('domainId') domainId: string,
   ) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
+
     return this.orgsService.verifyDomain({
       req,
       domainId,
     });
   }
 
-  // delete workspace
   @Patch('/api/v2/domains/:domainId')
   @HttpCode(200)
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
   @Acl('orgDomainUpdate', {
     scope: 'cloud-org',
+    extendedScope: 'workspace',
   })
   async updateDomain(
     @Req() req: NcRequest,
     @Body() body: DomainReqType,
     @Param('domainId') domainId: string,
   ) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
     return this.orgsService.updateDomain({
       req,
       domain: body,
@@ -176,17 +204,21 @@ export class OrgsController {
     });
   }
 
-  // delete workspace
   @Delete('/api/v2/domains/:domainId')
   @HttpCode(200)
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
   @Acl('orgDomainDelete', {
     scope: 'cloud-org',
+    extendedScope: 'workspace',
   })
   async deleteDomain(
     @Req() req: NcRequest,
     @Body() body: { orgId: string; workspaceId: string; workspaceName: string },
   ) {
+    // TODO: move this to middleware/guard
+    if (req.ncWorkspaceId) {
+      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
+    }
     return this.orgsService.deleteWorkspace({
       workspaceId: body.workspaceId,
       req,

@@ -204,7 +204,7 @@ export function useGridViewData(
   }
 
   async function getGroupFilter(path: Array<number> = []) {
-    const group = findGroupByPath(cachedGroups.value, path)
+    let group = findGroupByPath(cachedGroups.value, path)
 
     if (!group) {
       try {

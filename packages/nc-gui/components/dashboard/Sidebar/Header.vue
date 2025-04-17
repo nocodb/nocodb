@@ -3,7 +3,7 @@ const workspaceStore = useWorkspace()
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const { activeWorkspace, isWorkspaceLoading } = storeToRefs(workspaceStore)
+const { activeWorkspace, isWorkspacesLoading } = storeToRefs(workspaceStore)
 
 const { activeViewTitleOrId } = storeToRefs(useViewsStore())
 
@@ -20,7 +20,7 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
     :data-workspace-title="activeWorkspace?.title"
     style="height: var(--topbar-height)"
   >
-    <div v-if="!isWorkspaceLoading" class="flex flex-row items-center w-full">
+    <div v-if="!isWorkspacesLoading" class="flex flex-row items-center w-full">
       <WorkspaceMenu />
 
       <div class="flex flex-grow min-w-1"></div>

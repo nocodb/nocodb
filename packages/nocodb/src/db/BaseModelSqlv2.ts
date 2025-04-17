@@ -1796,6 +1796,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const selectors = [];
     const groupBySelectors = [];
     const getAlias = getAliasGenerator('__nc_gb');
+    const subGroupColumn = columns.find(
+      (c) =>
+        c.title === subGroupColumnName || c.column_name === subGroupColumnName,
+    );
 
     const processColumn = async (col: string, isSubGroup: boolean = false) => {
       let column = columns.find(
@@ -1845,6 +1849,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             selectors.push(columnQuery.as(alias));
           }
           break;
+        case UITypes.JSON: {
+          if (this.dbDriver.clientType() === 'pg') {
+            const defaultColumnName = await getColumnName(
+              this.context,
+              column,
+              columns,
+            );
+            columnQuery = this.dbDriver.raw('(??)::jsonb', [defaultColumnName]);
+            if (!isSubGroup) {
+              selectors.push(
+                this.dbDriver.raw(`?? as ??`, [columnQuery, alias]),
+              );
+            }
+            break;
+          }
+        }
         case UITypes.Formula:
           try {
             const _selectQb = await this.getSelectQueryBuilderForFormula(
@@ -1933,12 +1953,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (subGroupColumnName) {
       const subGroupQuery = await processColumn(subGroupColumnName, true);
+      const subGroupAlias = getAs(subGroupColumn);
       qb.select(
         this.dbDriver.raw(
           `COUNT(DISTINCT COALESCE(${
             this.isPg ? '(??)::text' : '??'
           }, '__null__')) as ??`,
-          [this.dbDriver.raw(subGroupQuery), subGroupColumnName],
+          [this.dbDriver.raw(subGroupQuery), subGroupAlias],
         ),
       );
     }
@@ -2157,6 +2178,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             selectors.push(selectQb);
             groupBySelectors.push(getAs(column));
             break;
+          }
+          case UITypes.JSON: {
+            if (this.dbDriver.clientType() === 'pg') {
+              const columnName = await getColumnName(
+                this.context,
+                column,
+                columns,
+              );
+              selectors.push(
+                this.dbDriver.raw('(??)::jsonb as ??', [
+                  columnName,
+                  getAs(column),
+                ]),
+              );
+              groupBySelectors.push(getAs(column));
+              break;
+            }
           }
           case UITypes.Lookup:
           case UITypes.LinkToAnotherRecord:

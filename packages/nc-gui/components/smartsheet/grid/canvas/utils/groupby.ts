@@ -390,3 +390,19 @@ export function getDefaultGroupData(group?: CanvasGroup) {
     return acc
   }, {} as Record<string, any>)
 }
+
+/**
+ * Creates a unique identifier for a CanvasGroup based on its value and nested path
+ * @param group The CanvasGroup to create an identifier for
+ * @returns A string that uniquely identifies the group
+ */
+export function createGroupUniqueIdentifier(group: CanvasGroup): string {
+  // Get the nested path as a string
+  const nestedPathKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
+
+  // Combine the value and nested path
+  // The value might be an object, so convert to string safely
+  const valueStr = typeof group.value === 'object' && group.value !== null ? JSON.stringify(group.value) : String(group.value)
+
+  return `${valueStr}__${nestedPathKey}`
+}

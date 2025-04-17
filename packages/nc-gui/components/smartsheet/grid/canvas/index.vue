@@ -386,8 +386,32 @@ const fixedLeftWidth = computed(() => {
   return columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 0)
 })
 
+const isClamped = computed(() => {
+  if (!editEnabled.value || !containerRef.value) return false
+
+  if (editEnabled.value.column?.uidt === UITypes.LongText || editEnabled.value.column?.uidt === UITypes.Formula) {
+    return true
+  }
+
+  const rawTop = editEnabled.value.y - scrollTop.value - rowHeight.value + 1
+  const clampedTop = Math.max(32, Math.min(containerRef.value.clientHeight - rowHeight.value - 36, rawTop))
+  const verticalStuck = clampedTop !== rawTop
+
+  let horizontalStuck = false
+
+  if (!editEnabled.value.fixed) {
+    const rawLeft = editEnabled.value.x - scrollLeft.value
+    const clampedLeft = Math.max(
+      fixedLeftWidth.value,
+      Math.min(containerRef.value.clientWidth - editEnabled.value.width, rawLeft),
+    )
+    horizontalStuck = clampedLeft !== rawLeft
+  }
+
+  return verticalStuck || horizontalStuck
+})
+
 const editEnabledCellPosition = computed(() => {
-  // TODO: @DarkPhoenix2704 handle for GroupBy
   if (!editEnabled.value) {
     return {
       top: 0,
@@ -408,34 +432,9 @@ const editEnabledCellPosition = computed(() => {
       )
 
   return {
-    top: `${top}px`,
+    top: `${top + (isClamped.value && !isGroupBy.value ? 1 : 0)}px`,
     left: `${left}px`,
   }
-})
-
-const isClamped = computed(() => {
-  if (!editEnabled.value || !containerRef.value) return false
-
-  if (editEnabled.value.column?.uidt === UITypes.LongText || editEnabled.value.column?.uidt === UITypes.Formula) {
-    return true
-  }
-
-  const rawTop = editEnabled.value.y - scrollTop.value - rowHeight.value
-  const clampedTop = Math.max(32, Math.min(containerRef.value.clientHeight - rowHeight.value - 36, rawTop))
-  const verticalStuck = clampedTop !== rawTop
-
-  let horizontalStuck = false
-
-  if (!editEnabled.value.fixed) {
-    const rawLeft = editEnabled.value.x - scrollLeft.value
-    const clampedLeft = Math.max(
-      fixedLeftWidth.value,
-      Math.min(containerRef.value.clientWidth - editEnabled.value.width, rawLeft),
-    )
-    horizontalStuck = clampedLeft !== rawLeft
-  }
-
-  return verticalStuck || horizontalStuck
 })
 
 const totalHeight = computed(() => {
@@ -601,9 +600,9 @@ function onActiveCellChanged() {
     }
     processGroups(cachedGroups.value)
   } else {
-    clearInvalidRows?.(undefined)
+    clearInvalidRows?.([])
     if (rowSortRequiredRows.value.length) {
-      applySorting?.(rowSortRequiredRows.value)
+      applySorting?.(rowSortRequiredRows.value, [])
     }
   }
   calculateSlices()
@@ -1294,11 +1293,19 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
         const elem = _elementMap.findElementAtWithX(x, y, ElementTypes.EDIT_NEW_ROW_METHOD)
 
         if (elem) {
+
+          if (prevMenuState.openAddNewRowDropdown?.join('-') === groupPath?.join('-')) {
+            isDropdownVisible.value = true
+            openAddNewRowDropdown.value = []
+            requestAnimationFrame(triggerRefreshCanvas)
+            return
+          }
+
           openAddNewRowDropdown.value = groupPath
           isDropdownVisible.value = true
           overlayStyle.value = {
-            top: `${rect.top + elem.y}px`,
-            left: `${rect.left + x - elem.width}px`,
+            top: `${rect.top + elem.y - 120}px`,
+            left: `${rect.left + x + 140}px`,
             width: elem.width,
             height: `36px`,
             position: 'fixed',
@@ -1662,6 +1669,11 @@ const handleMouseMove = (e: MouseEvent) => {
     const y = e.clientY - rect.top
     if (y <= 32 && resizeableColumn.value) {
       resizeMouseMove(e)
+    } else if (mousePosition.y > height.value - 36) {
+      cursor = mousePosition.x < totalColumnsWidth.value - scrollLeft.value ? 'pointer' : 'auto'
+      setCursor(cursor)
+      requestAnimationFrame(triggerRefreshCanvas)
+      return
     } else {
       const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
 
@@ -1721,10 +1733,6 @@ const handleMouseMove = (e: MouseEvent) => {
       const row = element?.row
       cursor = getRowMetaCursor({ row, x: mousePosition.x, group: element?.group }) || cursor
     }
-  }
-
-  if (mousePosition.y > height.value - 36) {
-    cursor = mousePosition.x < totalColumnsWidth.value - scrollLeft.value ? 'pointer' : 'auto'
   }
 
   if (cursor) setCursor(cursor)
@@ -1989,7 +1997,7 @@ const callAddNewRow = (context: { row: number; col: number; path: Array<number> 
   }
 }
 
-const onNavigate = (dir: NavigateDir) => {
+const onNavigate = async (dir: NavigateDir) => {
   if (ncIsNullOrUndefined(activeCell.value?.row) || ncIsNullOrUndefined(activeCell.value?.column)) return
 
   const path = editEnabled.value?.path || activeCell.value.path
@@ -2018,7 +2026,12 @@ const onNavigate = (dir: NavigateDir) => {
       }
       break
   }
-  onActiveCellChanged()
+  // When editCell Unmounts, it triggers the update of the record
+  // If onActiveCellCHanged is triggered simultaneously, it clear the record in cacheRows and the update happends in the next record
+  // So call onActiveCellChanged in next tick. This ensured update is triggered before clearing from cached rows
+  await nextTick(() => {
+    onActiveCellChanged()
+  })
   selection.value.startRange({ row: activeCell.value.row, col: activeCell.value.column })
   selection.value.endRange({ row: activeCell.value.row, col: activeCell.value.column })
 
@@ -2149,7 +2162,7 @@ onClickOutside(
       isExpandedCellInputExist() ||
       isLinkDropdownExist() ||
       isGeneralOverlayActive() ||
-      (element && hasAncestorWithClass(element, 'ant-select-dropdown'))
+      (element && hasAncestorWithClass(element, ['ant-select-dropdown', 'nc-dropdown']))
     ) {
       return
     }
@@ -2331,11 +2344,13 @@ defineExpose({
           >
             <div
               ref="activeCellElement"
-              class="relative top-[2.5px] left-[2.5px] w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-white"
+              class="relative left-[2.5px] w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-white"
               :class="{
                 'px-[0.550rem]': !noPadding && !editEnabled.fixed,
                 'px-[0.49rem]': editEnabled.fixed,
                 'top-[0.5px] left-[-1px]': isClamped,
+                'top-[3.5px]': !isGroupBy,
+                'top-[2.5px]': isGroupBy,
               }"
               @click="cellClickHook.trigger($event)"
             >
@@ -2389,7 +2404,11 @@ defineExpose({
         placement="bottomRight"
         @visible-change="onVisibilityChange"
       >
-        <div v-if="isDropdownVisible" :style="overlayStyle" class="hide pointer-events-none"></div>
+        <div
+          v-if="openColumnDropdownField || isCreateOrEditColumnDropdownOpen || openAggregationField || openAddNewRowDropdown"
+          :style="overlayStyle"
+          class="hide pointer-events-none"
+        ></div>
         <template #overlay>
           <Aggregation v-if="openAggregationField" v-model:column="openAggregationField" class="canvas-aggregation" />
           <SmartsheetHeaderColumnMenu

@@ -17,6 +17,8 @@ const { isParentOpen, toolbarMenu, searchInputPlaceholder, selectedOptionId, sho
 
 const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
 
+const { $e } = useNuxtApp()
+
 const options = computed(() =>
   (props.options || [])
     .filter((c) => (isLocalMode.value && c?.id && fieldsMap.value[c.id] ? fieldsMap.value[c.id]?.initialShow : true))
@@ -51,17 +53,17 @@ const configByToolbarMenu = computed(() => {
   switch (toolbarMenu.value) {
     case 'groupBy':
       return {
-        selectOptionEvent: ['c:group-by:add:column:select'],
+        selectOptionEvent: 'c:group-by:add:column:select',
         optionClassName: 'nc-group-by-column-search-item',
       }
     case 'sort':
       return {
-        selectOptionEvent: ['c:sort:add:column:select'],
+        selectOptionEvent: 'c:sort:add:column:select',
         optionClassName: 'nc-sort-column-search-item',
       }
     case 'globalSearch':
       return {
-        selectOptionEvent: ['c:search:field:select'],
+        selectOptionEvent: 'c:search:field:select',
         optionClassName: '',
       }
     default:
@@ -71,21 +73,49 @@ const configByToolbarMenu = computed(() => {
       }
   }
 })
+
+const handleSelect = (c: ColumnType) => {
+  emits('selected', c)
+  if (configByToolbarMenu.value.selectOptionEvent) {
+    $e(configByToolbarMenu.value.selectOptionEvent)
+  }
+}
 </script>
 
 <template>
-  <NcListWithSearch
-    :is-parent-open="isParentOpen"
+  <NcList
+    class="field-list-with-search"
     :search-input-placeholder="searchInputPlaceholder"
-    :option-config="configByToolbarMenu"
-    :options="options"
-    :selected-option-id="selectedOptionId"
-    filter-field="title"
     :show-selected-option="showSelectedOption"
-    @selected="emits('selected', $event)"
+    option-label-key="title"
+    option-value-key="id"
+    :input-bordered="true"
+    :open="isParentOpen"
+    show-search-always
+    :item-class-name="configByToolbarMenu.optionClassName"
+    :list="options"
+    :value="selectedOptionId"
+    :item-height="32"
+    @change="handleSelect"
   >
-    <template #default="{ option }">
+    <template #listItemExtraLeft="{ option }">
       <SmartsheetHeaderIcon :column="option" class="!w-3.5 !h-3.5 !text-gray-500" />
     </template>
-  </NcListWithSearch>
+  </NcList>
 </template>
+
+<style lang="scss">
+.field-list-with-search {
+  .nc-divider {
+    display: none !important;
+  }
+
+  .nc-toolbar-dropdown-search-field-input {
+    @apply rounded-lg mb-2;
+  }
+
+  .nc-list-item {
+    @apply h-8 hover:bg-nc-background-grey-light gap-x-1.5;
+  }
+}
+</style>

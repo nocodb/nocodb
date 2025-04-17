@@ -73,8 +73,6 @@ const availableColumns = computed(() => {
           /** hide system columns if not enabled */
           showSystemFields.value
         )
-      } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID) {
-        return false
       } else {
         /** ignore hasmany and manytomany relations if it's using within sort menu */
         return !(isLinksOrLTAR(c) && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO)

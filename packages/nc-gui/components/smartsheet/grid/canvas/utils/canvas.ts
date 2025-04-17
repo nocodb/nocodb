@@ -366,6 +366,7 @@ export const renderSingleLineText = (
   width: number
   x: number
   y: number
+  isTruncated: boolean
 } => {
   const {
     x = 0,
@@ -390,6 +391,7 @@ export const renderSingleLineText = (
   }
 
   let truncatedText = ''
+  let isTruncated = false
   let width = 0
   const originalFontFamily = ctx.font
 
@@ -399,16 +401,16 @@ export const renderSingleLineText = (
 
   const cacheKey = `${text}-${fontFamily}-${maxWidth}`
   const cachedText = singleLineTextCache.get(cacheKey)
-
   if (cachedText) {
     truncatedText = cachedText.text
     width = cachedText.width
+    isTruncated = cachedText.isTruncated
   } else {
     const res = truncateText(ctx, text, maxWidth, true)
     truncatedText = res.text
+    isTruncated = truncatedText !== text
     width = res.width
-
-    singleLineTextCache.set(cacheKey, { text: truncatedText, width })
+    singleLineTextCache.set(cacheKey, { text: truncatedText, width, isTruncated })
   }
 
   const yOffset =
@@ -444,7 +446,7 @@ export const renderSingleLineText = (
     ctx.font = originalFontFamily
   }
 
-  return { text: truncatedText, width, x: x + width, y: y + yOffset + fontSize / 2 }
+  return { text: truncatedText, width, x: x + width, y: y + yOffset + fontSize / 2, isTruncated }
 }
 
 export const wrapTextToLines = (
@@ -1133,6 +1135,7 @@ export const renderTagLabel = (
     tagRadius = 6,
     tagBgColor = '#f4f4f0',
     tagSpacing = 4,
+    tagFontFamily = '500 13px Manrope',
     tagBorderColor,
     tagBorderWidth,
   } = props.tag || {}
@@ -1196,7 +1199,7 @@ export const renderTagLabel = (
       y,
       text,
       maxWidth,
-      fontFamily: '500 13px Manrope',
+      fontFamily: tagFontFamily,
       render: false,
     })
 
@@ -1208,7 +1211,7 @@ export const renderTagLabel = (
       text: truncatedText,
       maxWidth,
       height: tagHeight - tagPaddingY * 2,
-      fontFamily: '500 13px Manrope',
+      fontFamily: tagFontFamily,
       fillStyle: textColor,
       isTagLabel: true,
     })

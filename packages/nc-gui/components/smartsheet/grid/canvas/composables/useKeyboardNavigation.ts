@@ -249,6 +249,7 @@ export function useKeyboardNavigation({
           }
           editEnabled.value = null
           activeCell.value.row++
+          onActiveCellChanged()
         }
         break
 

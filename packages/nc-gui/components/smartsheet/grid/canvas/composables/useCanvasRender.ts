@@ -1,5 +1,5 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { AllAggregations, type ColumnType, type TableType, UITypes } from 'nocodb-sdk'
+import { AllAggregations, type ColumnType, type TableType, UITypes, isCreatedOrLastModifiedByCol } from 'nocodb-sdk'
 import type { Composer } from 'vue-i18n'
 import tinycolor from 'tinycolor2'
 import {
@@ -2158,7 +2158,7 @@ export function useCanvasRender({
         ctx,
         level * 13,
         yOffset,
-        adjustedWidth,
+        adjustedWidth + 2,
         COLUMN_HEADER_HEIGHT_IN_PX,
         {
           bottomLeft: 8,
@@ -2176,7 +2176,7 @@ export function useCanvasRender({
         },
       )
       spriteLoader.renderIcon(ctx, {
-        icon: 'ncPlus',
+        icon: isAddNewRecordGridMode.value ? 'ncPlus' : 'form',
         color: isNewRowHovered ? '#000000' : '#4a5268',
         x: 16 + level * 13,
         y: yOffset + 9,
@@ -2184,26 +2184,24 @@ export function useCanvasRender({
       })
 
       const { width: renderedWidth } = renderSingleLineText(ctx, {
-        x: 16 + 27 + level * 13,
+        x: 16 + 20 + level * 13,
         y: yOffset + 2,
         fontFamily: '600 13px Manrope',
         height: COLUMN_HEADER_HEIGHT_IN_PX,
         fillStyle: '#374151',
-        text: isAddNewRecordGridMode.value
-          ? `${t('activity.newRecord')}`
-          : `${t('activity.newRecord')} - ${t('objects.viewType.form')}`,
+        text: `${t('activity.newRecord')}`,
       })
 
       spriteLoader.renderIcon(ctx, {
         icon: 'chevronDown',
         color: isNewRowHovered ? '#000000' : '#4a5268',
-        x: 16 + 27 + level * 13 + renderedWidth + 12,
-        y: yOffset + 9,
+        x: 16 + 20 + level * 13 + renderedWidth + 12,
+        y: yOffset + 10,
         size: 14,
       })
 
       elementMap.addElement({
-        x: 16 + 27 + level * 13 + renderedWidth + 12,
+        x: 16 + 20 + level * 13 + renderedWidth + 12,
         y: yOffset + 9,
         width: 16,
         group,
@@ -2236,7 +2234,7 @@ export function useCanvasRender({
       // Warning top border
       ctx.strokeStyle = 'orange'
       ctx.beginPath()
-      ctx.moveTo(gXOffset, warningRow.yOffset - 2)
+      ctx.moveTo(gXOffset, warningRow.yOffset)
       ctx.lineTo(adjustedWidth + gXOffset + 2, warningRow.yOffset)
       ctx.lineWidth = 2
       ctx.stroke()
@@ -2695,7 +2693,7 @@ export function useCanvasRender({
         ctx.save()
 
         ctx.letterSpacing = '1px'
-        renderSingleLineText(ctx, {
+        const { isTruncated } = renderSingleLineText(ctx, {
           text: (group?.column?.title ?? '').toUpperCase(),
           fillStyle: '#4A5268',
           x: contentX,
@@ -2704,10 +2702,22 @@ export function useCanvasRender({
           y: groupHeaderY,
           py: 6,
         })
+        if (isTruncated) {
+          tryShowTooltip({
+            mousePosition,
+            text: (group?.column?.title ?? '').toUpperCase(),
+            rect: {
+              x: contentX,
+              y: groupHeaderY,
+              height: 16,
+              width: availableWidth - 20 - countWidth,
+            },
+          })
+        }
 
         ctx.restore()
 
-        renderGroupContent(ctx, group, contentX, contentY + 22, availableWidth - contentWidth - 20 - countWidth, i)
+        renderGroupContent(ctx, group, contentX, contentY + 22, availableWidth - contentWidth - countWidth, i)
 
         currentOffset = tempCurrentOffset
       }
@@ -2792,6 +2802,7 @@ export function useCanvasRender({
             tagRadius: 12,
             tagBgColor: color,
             tagSpacing: 0,
+            tagFontFamily: '700 13px Manrope',
           },
         } as any)
 
@@ -2820,18 +2831,28 @@ export function useCanvasRender({
       const displayText =
         group.value in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[group.value] : parseKey(group)?.join(', ')
 
+      const isCheckBox = group.column?.uidt === UITypes.Checkbox
+
       renderSingleLineText(ctx, {
         text: displayText,
-        fillStyle: '#6A7184',
+        fillStyle: isCheckBox ? '#1f293a' : '#6A7184',
         fontFamily: '700 13px Manrope',
         x,
         y: y - GROUP_HEADER_HEIGHT / 2 + 8,
         height: 20,
         maxWidth,
       })
-    } else if (isUser(group.column)) {
+    } else if (isUser(group.column) || isCreatedOrLastModifiedByCol(group.column)) {
+      let val = group.value
+
+      try {
+        val = JSON.parse(group.value)
+      } catch (e) {
+        val = group.value
+      }
+
       renderCell(ctx, group.column, {
-        value: group.value,
+        value: val,
         x: x - 11,
         y: y - 16,
         width: maxWidth,

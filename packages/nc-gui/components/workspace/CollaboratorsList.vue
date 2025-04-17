@@ -229,7 +229,6 @@ const isDeleteOrUpdateAllowed = (user) => {
                 limit: getLimit(PlanLimitTypes.LIMIT_EDITOR),
               })
             "
-            class="cursor-pointer"
           >
             <NcBadge
               :border="false"

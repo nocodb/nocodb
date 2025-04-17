@@ -437,6 +437,21 @@ describe('dataApiV3', () => {
         expect(response.body.error).to.eq('RECORD_NOT_FOUND');
         expect(response.body.message).to.eq(`Record '998091' not found`);
       });
+      it(`will handle delete id format invalid`, async () => {
+        const response = await ncAxiosDelete({
+          url: `${urlPrefix}/${table.id}`,
+          body: [
+            {
+              Id: 'text-primary-key',
+            },
+          ],
+          status: 422,
+        });
+        expect(response.body.error).to.eq('INVALID_PK_VALUE');
+        expect(response.body.message).to.eq(
+          `Primary key value 'text-primary-key' is invalid for column 'Id'`,
+        );
+      });
     });
     describe('number-based', () => {
       let table: Model;

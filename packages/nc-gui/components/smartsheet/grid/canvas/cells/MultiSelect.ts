@@ -73,7 +73,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
 
       renderSingleLineText(ctx, {
         x: x + tagPadding,
-        y: y,
+        y,
         text: truncatedText,
         maxWidth: width - tagPadding * 2,
         textAlign: 'left',

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, FieldNameFromUITypes, type LinkToAnotherRecordType } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 
 const props = defineProps<{

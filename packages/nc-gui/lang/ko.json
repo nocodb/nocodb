@@ -793,6 +793,7 @@
     "downgradeToPlan": "{plan} 계획으로 다운그레이드하시겠습니까?",
     "downgradeToPlanSubtitle": "{plan} 플랜에서 사용할 수 없는 {activePlan} 플랜 기능에 액세스할 수 없게 됩니다.",
     "upgradeToPlan": "Upgrade to {plan} plan",
+    "upgradeWorkspaceToPlan": "Upgrade {workspace} to {plan} plan",
     "upgradeToPlanSubtitle": "이 플랜에 대해 즉시 요금이 청구됩니다.",
     "reactivateToPlan": "{plan} 요금제를 다시 활성화하시겠습니까?"
   },
@@ -1283,8 +1284,8 @@
     "everythingInPlanPlus": "Everything in {plan}, Plus:",
     "downloadInvoice": "Download Invoice",
     "proceed": "Proceed",
-    "editorSeat": "Editor seat",
-    "editorSeats": "Editor seats"
+    "editorSeat": "editor seat",
+    "editorSeats": "editor seats"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",

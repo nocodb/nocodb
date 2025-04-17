@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { IntegrationCategoryType, SyncDataType, clientTypes as _clientTypes } from '#imports'
+import { type IntegrationCategoryType, SyncDataType, type clientTypes as _clientTypes } from '#imports'
 
 const props = defineProps<{
   open: boolean
@@ -104,7 +104,11 @@ onMounted(async () => {
       </div>
     </template>
   </WorkspaceIntegrationsFormsEditOrAddCommonWrapper>
-  <WorkspaceIntegrationsConnect v-if="activeIntegration" v-bind="props" @update:open="vOpen = $event" />
+  <WorkspaceIntegrationsConnect
+    v-if="activeIntegration && activeIntegration.sub_type === SyncDataType.NOCODB"
+    v-bind="props"
+    @update:open="vOpen = $event"
+  />
   <div v-else></div>
 </template>
 

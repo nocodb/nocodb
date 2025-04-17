@@ -160,9 +160,9 @@ watch(
               {{ $t('labels.members') }}
             </div>
           </template>
-          <div class="overflow-auto h-[calc(100vh-3rem)] nc-scrollbar-thin">
+          <div class="nc-ws-tab-collaborators overflow-auto h-[calc(100vh-92px)] nc-scrollbar-thin">
             <PaymentBanner v-if="isPaymentEnabled" class="mb-0" />
-            <WorkspaceCollaboratorsList class="h-[650px]" :workspace-id="currentWorkspace.id" />
+            <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
           </div>
         </a-tab-pane>
       </template>
@@ -227,5 +227,17 @@ watch(
 }
 .tab-title {
   @apply flex flex-row items-center gap-x-2 py-[1px];
+}
+
+.nc-ws-tab-collaborators {
+  :deep(.nc-payment-banner-wrapper) {
+    &.nc-payment-banner-expanded + .nc-collaborator-table-container {
+      @apply !h-[calc(100%-210px)];
+    }
+
+    &:not(.nc-payment-banner-expanded) + .nc-collaborator-table-container {
+      @apply !h-[calc(100%-90px)];
+    }
+  }
 }
 </style>

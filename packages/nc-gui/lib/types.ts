@@ -474,6 +474,7 @@ interface CellRenderer {
       ltarState?: Record<string, any>,
       args?: { metaValue?: TableType; viewMetaValue?: ViewType },
       beforeRow?: string,
+      path?: Array<number>,
     ) => Promise<any>
     actionManager: ActionManager
     makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
@@ -498,6 +499,7 @@ interface CellRenderer {
       ltarState?: Record<string, any>,
       args?: { metaValue?: TableType; viewMetaValue?: ViewType },
       beforeRow?: string,
+      path?: Array<number>,
     ) => Promise<any>
     actionManager: ActionManager
     makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
@@ -518,6 +520,7 @@ interface CellRenderer {
       ltarState?: Record<string, any>,
       args?: { metaValue?: TableType; viewMetaValue?: ViewType },
       beforeRow?: string,
+      path?: Array<number>,
     ) => Promise<any>
     actionManager: ActionManager
     makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void

@@ -1451,7 +1451,7 @@ export function useInfiniteData(args: {
 
     // check if the column is part of group by and value changed
     if (row.rowMeta?.path?.length && groupByColumns?.value) {
-      const whereFilter = await callbacks?.getWhereFilter?.(path, true)
+      const whereFilter = await callbacks?.getWhereFilter?.(row.rowMeta?.path, true)
       const index = groupByColumns.value.findIndex((c) => c.column.title === property) ?? 0
 
 

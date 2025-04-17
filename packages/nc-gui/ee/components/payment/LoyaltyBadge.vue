@@ -4,7 +4,7 @@ import bgImage from '~/assets/img/loyalty-bg.png'
 
 <template>
   <div
-    class="loyalty-badge flex gap-5 rounded-lg p-4 border-1 border-nc-border-grey-medium bg-cover bg-no-repeat bg-center"
+    class="loyalty-badge flex gap-4 rounded-lg p-4 border-1 border-nc-border-grey-medium bg-cover bg-no-repeat bg-center"
     :style="{
       'background-image': `url(${bgImage})`,
       'background-color': 'rgba(255, 255, 255, 0.8)',
@@ -12,7 +12,7 @@ import bgImage from '~/assets/img/loyalty-bg.png'
     }"
   >
     <div class="text-2xl">🎊</div>
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-1.5">
       <span class="font-bold text-base">Loyalty Discount Unlocked! Save upto 55%!</span>
       <span class="text-sm text-nc-content-gray-muted">
         Thanks for being with us during technical preview. Get the Team plan capped at

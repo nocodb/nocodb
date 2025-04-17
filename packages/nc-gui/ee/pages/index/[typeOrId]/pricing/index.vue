@@ -65,7 +65,7 @@ onMounted(async () => {
             <template #icon>
               <GeneralIcon icon="chevronLeft" class="h-4 w-4" />
             </template>
-            <div>Go Back To Billing</div>
+            <div>Back to billing</div>
           </NcButton>
         </div>
         <div

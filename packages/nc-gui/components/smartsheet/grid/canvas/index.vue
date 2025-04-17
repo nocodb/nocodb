@@ -2394,7 +2394,11 @@ defineExpose({
         placement="bottomRight"
         @visible-change="onVisibilityChange"
       >
-        <div v-if="isDropdownVisible" :style="overlayStyle" class="hide pointer-events-none"></div>
+        <div
+          v-if="openColumnDropdownField || isCreateOrEditColumnDropdownOpen || openAggregationField || openAddNewRowDropdown"
+          :style="overlayStyle"
+          class="hide pointer-events-none"
+        ></div>
         <template #overlay>
           <Aggregation v-if="openAggregationField" v-model:column="openAggregationField" class="canvas-aggregation" />
           <SmartsheetHeaderColumnMenu

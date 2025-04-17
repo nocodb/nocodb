@@ -51,9 +51,8 @@ onUnmounted(() => {
 
 <template>
   <div class="bg-nc-fill-purple-medium text-white text-sm font-semibold rounded-md py-0.5 px-3 w-[fit-content]">
-    Expires in
-    <span class="font-bold">{{ timeLeft.days }}d</span> : <span class="font-bold">{{ timeLeft.hours }}h</span> :
-    <span class="font-bold">{{ timeLeft.minutes }}m</span> :
+    <span class="mr-2">🕒</span>Expires in <span class="font-bold">{{ timeLeft.days }}d</span> :
+    <span class="font-bold">{{ timeLeft.hours }}h</span> : <span class="font-bold">{{ timeLeft.minutes }}m</span> :
     <span class="font-bold">{{ timeLeft.seconds }}s</span>
   </div>
 </template>

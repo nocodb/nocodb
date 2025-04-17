@@ -159,6 +159,10 @@ export class UtilsService extends UtilsServiceCE {
     result.cognito = cognitoConfig;
     result.ssoClients = ssoClients;
 
+    if (process.env.NC_STRIPE_SECRET_KEY) {
+      result.stripePublishableKey = process.env.NC_STRIPE_PUBLISHABLE_KEY;
+    }
+
     return result;
   }
 }

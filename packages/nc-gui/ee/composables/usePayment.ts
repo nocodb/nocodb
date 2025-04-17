@@ -1,4 +1,5 @@
-import { type Stripe, type StripeCheckoutSession, loadStripe } from '@stripe/stripe-js'
+import { type StripeCheckoutSession } from '@stripe/stripe-js'
+import dayjs from 'dayjs'
 import { LOYALTY_END_DATE, LoyaltyPriceLookupKeyMap, PlanOrder, PlanPriceLookupKeys, PlanTitles } from 'nocodb-sdk'
 import NcModalConfirm from '../../components/nc/ModalConfirm.vue'
 
@@ -21,9 +22,9 @@ export enum PaymentState {
 const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const annualDiscount = 20
 
-  const stripe = ref<Stripe>()
-
   const { $state, $api } = useNuxtApp()
+
+  const { navigateToCheckout } = useEeConfig()
 
   const { t } = useI18n()
 
@@ -54,10 +55,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const isLoyaltyWorkspace = computed(() => {
     if (!activeWorkspace.value) return false
 
-    const createdAt = new Date(activeWorkspace.value.created_at)
-    const loyaltyEndDate = new Date(LOYALTY_END_DATE)
-
-    return createdAt < loyaltyEndDate
+    return dayjs(activeWorkspace.value.created_at).isBefore(LOYALTY_END_DATE)
   })
 
   const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription)
@@ -109,6 +107,22 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       paymentMode.value = activeSubscription.value?.period || 'year'
     } catch (e: any) {
       console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  const loadPlan = async (planId: string) => {
+    try {
+      const plan = await $fetch(`/api/public/payment/plan/${planId}`, {
+        baseURL,
+        method: 'GET',
+        headers: { 'xc-auth': $state.token.value as string },
+      })
+
+      if (!plan) throw new Error('No plan found')
+
+      return plan as PaymentPlan
+    } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -185,7 +199,6 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const createPaymentForm = async () => {
     if (!activeWorkspaceId.value) throw new Error('No active workspace')
-    if (!stripe.value) throw new Error('Stripe not loaded')
     if (!selectedPlan.value) throw new Error('No plan selected')
     if (!selectedPlan.value.prices) throw new Error('No prices found')
 
@@ -210,7 +223,6 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const updateSubscription = async (planId: string, priceId?: string) => {
     if (!activeWorkspaceId.value) throw new Error('No active workspace')
-    if (!stripe.value) throw new Error('Stripe not loaded')
 
     const plan = plansAvailable.value.find((plan) => plan.id === planId)
 
@@ -317,8 +329,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const onSelectPlan = (plan: PaymentPlan) => {
     if (!activeSubscription.value) {
-      selectedPlan.value = plan
-      paymentState.value = PaymentState.PAYMENT
+      navigateToCheckout(plan.id, paymentMode.value, 'billing')
     } else {
       const changes = calculateChange(plan)
 
@@ -383,17 +394,9 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     }
   }
 
-  const reset = () => {
-    paymentState.value = PaymentState.SELECT_PLAN
-    selectedPlan.value = null
-    subscriptionId.value = undefined
-  }
-
   watch(
     activeWorkspaceId,
     async () => {
-      reset()
-
       if (activeWorkspaceId.value) {
         await loadWorkspaceSeatCount()
       }
@@ -401,23 +404,11 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     { immediate: true },
   )
 
-  onMounted(async () => {
-    try {
-      stripe.value = (await loadStripe(
-        'pk_test_51QhRouHU2WPCjTxw3ranXD6shPR0VbOjLflMfidsanV0m9mM0vZKQfYk3PserPAbnZAIJJhv701DV8FrwP6zJhaf00KYKhz11c',
-      ))!
-    } catch (e) {
-      console.log(e)
-    }
-
-    await loadPlans()
-  })
-
   return {
     annualDiscount,
-    stripe,
     plansAvailable,
     loadPlans,
+    loadPlan,
     loadWorkspaceSeatCount,
     getPlanPrice,
     onPaymentModeChange,
@@ -427,7 +418,6 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     paymentMode,
     paymentState,
     subscriptionId,
-    reset,
     createPaymentForm,
     updateSubscription,
     cancelSubscription,
@@ -435,6 +425,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     activePlan,
     activeSubscription,
     activeWorkspaceId,
+    activeWorkspace,
     getSessionResult,
     getCustomerPortalSession,
     isAccountPage,

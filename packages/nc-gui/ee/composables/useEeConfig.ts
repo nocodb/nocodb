@@ -244,6 +244,26 @@ export const useEeConfig = createSharedComposable(() => {
     }
   }
 
+  const navigateToCheckout = (
+    planId: string,
+    paymentMode: 'year' | 'month',
+    ref?: 'pricing' | 'billing',
+    workspaceId?: string,
+  ) => {
+    const paramsObj = {
+      ...(paymentMode === 'month' ? { paymentMode: 'month' } : {}),
+      ...(ref === 'billing' ? { ref: 'billing' } : {}),
+    }
+
+    const params = new URLSearchParams(paramsObj)
+
+    navigateTo(`/${workspaceId || activeWorkspaceId.value}/checkout/${planId}?${params.toString()}`)
+  }
+
+  const navigateToPricing = (wsId?: string) => {
+    navigateTo(`/${wsId || activeWorkspaceId.value}/pricing`)
+  }
+
   const handleUpgradePlan = ({
     currentPlanTitle,
     newPlanTitle,
@@ -580,5 +600,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockExternalSourceRecordVisibility,
     showAsBluredRecord,
     showUpgradeToSeeMoreRecordsModal,
+    navigateToPricing,
+    navigateToCheckout,
   }
 })

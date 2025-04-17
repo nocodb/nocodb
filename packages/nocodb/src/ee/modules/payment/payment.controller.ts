@@ -93,6 +93,22 @@ export class PaymentController {
     });
   }
 
+  @UseGuards(PublicApiLimiterGuard)
+  @Get('/api/public/payment/plan/:planId')
+  async getPlan(@Param('planId') planId: string) {
+    const plan = await this.paymentService.getPlan(planId);
+
+    return extractProps(plan, [
+      'id',
+      'title',
+      'description',
+      'stripe_product_id',
+      'prices',
+      'descriptions',
+      'is_active',
+    ]);
+  }
+
   @UseGuards(GlobalGuard)
   @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/seat-count')

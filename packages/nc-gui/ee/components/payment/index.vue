@@ -1,5 +1,9 @@
 <script lang="ts" setup>
-const { paymentState } = usePaymentStoreOrThrow()
+const { paymentState, loadPlans } = usePaymentStoreOrThrow()
+
+onMounted(async () => {
+  await loadPlans()
+})
 </script>
 
 <template>
@@ -11,6 +15,5 @@ const { paymentState } = usePaymentStoreOrThrow()
       </div>
       <PaymentMoreInfo />
     </div>
-    <PaymentPay v-else-if="paymentState === PaymentState.PAYMENT" />
   </div>
 </template>

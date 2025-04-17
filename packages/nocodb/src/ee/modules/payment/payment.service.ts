@@ -24,6 +24,16 @@ export class PaymentService {
     return await Plan.list();
   }
 
+  async getPlan(planId: string) {
+    const plan = await Plan.get(planId);
+
+    if (!plan) {
+      NcError.genericNotFound('Plan', planId);
+    }
+
+    return plan;
+  }
+
   async submitPlan(payload: {
     stripe_product_id: string;
     is_active?: boolean;

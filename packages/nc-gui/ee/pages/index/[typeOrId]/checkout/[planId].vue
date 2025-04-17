@@ -1,19 +1,36 @@
 <script lang="ts" setup>
-import type { StripeEmbeddedCheckout } from '@stripe/stripe-js'
+import type { Stripe, StripeEmbeddedCheckout } from '@stripe/stripe-js'
 
-const { stripe, createPaymentForm, selectedPlan, paymentState, reset } = usePaymentStoreOrThrow()
+const route = useRoute()
+
+const stripe = ref<Stripe | null>(null)
+
+const redirectRef = ref<'billing' | 'pricing' | null>(null)
+
+const { hideSidebar, showTopbar } = storeToRefs(useSidebarStore())
+
+const { appInfo } = useGlobal()
+
+const { navigateToPricing, navigateToBilling } = useEeConfig()
+
+const { createPaymentForm, selectedPlan, paymentState, paymentMode, loadPlan, activeWorkspace, loadWorkspaceSeatCount } =
+  useProvidePaymentStore()
+
+const { loadStripe } = useStripe()
 
 const isLoading = ref(false)
 
 const checkout = ref<StripeEmbeddedCheckout | null>(null)
 
-const initializeForm = async () => {
-  if (!stripe.value) {
-    return
+const onBack = () => {
+  if (redirectRef.value === 'billing') {
+    navigateToBilling()
+  } else {
+    navigateToPricing()
   }
+}
 
-  isLoading.value = true
-
+const initializeForm = async () => {
   try {
     const res: {
       client_secret?: string
@@ -27,7 +44,7 @@ const initializeForm = async () => {
     }
 
     // Initialize Checkout
-    checkout.value = await stripe.value.initEmbeddedCheckout({
+    checkout.value = await stripe.value!.initEmbeddedCheckout({
       clientSecret: res.client_secret,
     })
 
@@ -35,35 +52,64 @@ const initializeForm = async () => {
     checkout.value.mount('#checkout')
   } catch (err: any) {
     console.log(err)
-    message.error(await extractSdkResponseErrorMsg(err))
+    onBack()
   } finally {
     isLoading.value = false
   }
 }
 
-const onReset = () => {
-  reset()
+onMounted(() => {
+  hideSidebar.value = true
+  showTopbar.value = true
+  isLoading.value = true
 
-  if (!checkout.value) {
+  if (!appInfo.value.stripePublishableKey) {
+    message.error('Stripe publishable key not found')
     return
   }
 
-  checkout.value?.unmount()
-  checkout.value?.destroy()
-  checkout.value = null
-}
+  try {
+    redirectRef.value = route.query?.ref === 'billing' ? 'billing' : null
 
-onMounted(async () => {
-  await initializeForm()
+    paymentMode.value = route.query?.paymentMode === 'month' ? 'month' : 'year'
+
+    loadStripe().then((s) => {
+      stripe.value = s
+
+      loadWorkspaceSeatCount().then(() => {
+        loadPlan(route.params.planId as string).then((plan) => {
+          if (!plan) {
+            navigateToPricing()
+            message.error('Plan not found')
+            return
+          }
+
+          selectedPlan.value = plan
+          paymentState.value = PaymentState.PAYMENT
+
+          initializeForm()
+        })
+      })
+    })
+  } catch (err) {
+    onBack()
+  }
 })
 
-onUnmounted(() => {
-  onReset()
+onBeforeUnmount(() => {
+  hideSidebar.value = false
+  showTopbar.value = false
+
+  if (checkout.value) {
+    checkout.value.unmount()
+    checkout.value.destroy()
+    checkout.value = null
+  }
 })
 </script>
 
 <template>
-  <div v-if="selectedPlan" class="flex flex-col w-full">
+  <div v-if="selectedPlan" class="flex flex-col w-full justify-center mt-[52px]">
     <div class="flex flex-col w-full gap-6">
       <div class="nc-payment-pay-header sticky top-0 bg-white py-3 -mt-6 -mx-6">
         <div class="max-w-[888px] mx-auto flex items-center justify-between">
@@ -73,7 +119,7 @@ onUnmounted(() => {
               size="small"
               inner-class="!gap-1"
               class="!text-nc-content-brand !hover:text-brand-600"
-              @click="onReset"
+              @click="onBack"
             >
               <template #icon>
                 <GeneralIcon icon="chevronLeft" class="h-4 w-4" />
@@ -83,7 +129,8 @@ onUnmounted(() => {
           </div>
           <div class="text-2xl text-nc-content-gray-emphasis font-weight-700 flex">
             {{
-              $t('labels.upgradeToPlan', {
+              $t('title.upgradeWorkspaceToPlan', {
+                workspace: activeWorkspace?.title ?? 'Workspace',
                 plan: $t(`objects.paymentPlan.${selectedPlan.title}`),
               })
             }}
@@ -98,7 +145,10 @@ onUnmounted(() => {
           </div>
         </div>
       </div>
-      <div id="checkout" class="w-full">
+      <div v-if="isLoading" class="relative h-[600px]">
+        <PaymentSkeleton class="w-full" />
+      </div>
+      <div v-show="!isLoading" id="checkout" class="w-full h-[600px]">
         <!-- Checkout inserts the payment form here -->
       </div>
     </div>

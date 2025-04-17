@@ -435,7 +435,7 @@ export function useGridViewData(
         const newRow = {
           row: { ...insertObj, id: bulkInsertedIds[validRowsToInsert.indexOf({ insertObj, rowIndex })] },
           oldRow: {},
-          rowMeta: { rowIndex: rowIndex!, new: false },
+          rowMeta: { rowIndex: rowIndex!, new: false, path },
         }
         newCachedRows.set(rowIndex!, newRow)
       }

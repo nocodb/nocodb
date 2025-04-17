@@ -6,6 +6,8 @@ import NoSvg from '~/assets/img/No.svg'
 
 const { hideSidebar, showTopbar } = storeToRefs(useSidebarStore())
 
+useStripe()
+
 const { navigateToBilling, navigateToCheckout } = useEeConfig()
 
 const { activeWorkspace, activePlan, paymentMode, isLoyaltyWorkspace, loadPlans, plansAvailable } = useProvidePaymentStore()

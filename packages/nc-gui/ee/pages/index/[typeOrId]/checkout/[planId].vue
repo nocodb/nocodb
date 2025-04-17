@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { Stripe, StripeEmbeddedCheckout } from '@stripe/stripe-js'
-import { loadStripe } from '@stripe/stripe-js'
 
 const route = useRoute()
 
@@ -16,6 +15,8 @@ const { navigateToPricing, navigateToBilling } = useEeConfig()
 
 const { createPaymentForm, selectedPlan, paymentState, paymentMode, loadPlan, activeWorkspace, loadWorkspaceSeatCount } =
   useProvidePaymentStore()
+
+const { loadStripe } = useStripe()
 
 const isLoading = ref(false)
 
@@ -72,7 +73,7 @@ onMounted(() => {
 
     paymentMode.value = route.query?.paymentMode === 'month' ? 'month' : 'year'
 
-    loadStripe(appInfo.value.stripePublishableKey).then((s) => {
+    loadStripe().then((s) => {
       stripe.value = s
 
       loadWorkspaceSeatCount().then(() => {

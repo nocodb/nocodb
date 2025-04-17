@@ -17,16 +17,8 @@ const workspaceStore = useWorkspace()
 
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
-const {
-  paymentState,
-  loadWorkspaceSeatCount,
-  stripe,
-  getSessionResult,
-  isAccountPage,
-  paymentMode,
-  plansAvailable,
-  onSelectPlan,
-} = useProvidePaymentStore()
+const { paymentState, loadWorkspaceSeatCount, getSessionResult, isAccountPage, paymentMode, plansAvailable, onSelectPlan } =
+  useProvidePaymentStore()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
@@ -40,8 +32,6 @@ const getPaymentIntent = async () => {
   if (!afterPayment.value || !afterPaymentState.value) {
     return
   }
-
-  await until(() => !!stripe.value).toBeTruthy()
 
   const { session_id } = afterPaymentState.value
 

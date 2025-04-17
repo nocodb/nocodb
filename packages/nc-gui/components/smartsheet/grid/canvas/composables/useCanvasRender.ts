@@ -2158,7 +2158,7 @@ export function useCanvasRender({
         ctx,
         level * 13,
         yOffset,
-        adjustedWidth,
+        adjustedWidth + 2,
         COLUMN_HEADER_HEIGHT_IN_PX,
         {
           bottomLeft: 8,
@@ -2802,7 +2802,7 @@ export function useCanvasRender({
             tagRadius: 12,
             tagBgColor: color,
             tagSpacing: 0,
-            tagFontFamily: '700 13px Manrope'
+            tagFontFamily: '700 13px Manrope',
           },
         } as any)
 

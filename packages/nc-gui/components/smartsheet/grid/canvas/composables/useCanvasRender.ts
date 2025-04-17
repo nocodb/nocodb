@@ -2176,7 +2176,7 @@ export function useCanvasRender({
         },
       )
       spriteLoader.renderIcon(ctx, {
-        icon: isAddNewRecordGridMode.value ? 'grid' : 'form',
+        icon: isAddNewRecordGridMode.value ? 'ncPlus' : 'form',
         color: isNewRowHovered ? '#000000' : '#4a5268',
         x: 16 + level * 13,
         y: yOffset + 9,
@@ -2201,7 +2201,7 @@ export function useCanvasRender({
       })
 
       elementMap.addElement({
-        x: 16 + 27 + level * 13 + renderedWidth + 12,
+        x: 16 + 20 + level * 13 + renderedWidth + 12,
         y: yOffset + 9,
         width: 16,
         group,

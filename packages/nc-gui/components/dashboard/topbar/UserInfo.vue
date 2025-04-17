@@ -82,6 +82,7 @@ const accountUrl = computed(() => {
             >
               {{ name ? name : user?.email }}
             </div>
+            <NcDivider />
             <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl" @click="auditsStore.handleReset">
               <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
             </nuxt-link>

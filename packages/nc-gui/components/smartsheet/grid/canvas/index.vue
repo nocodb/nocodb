@@ -1294,11 +1294,19 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
         const elem = _elementMap.findElementAtWithX(x, y, ElementTypes.EDIT_NEW_ROW_METHOD)
 
         if (elem) {
+
+          if (prevMenuState.openAddNewRowDropdown?.join('-') === groupPath?.join('-')) {
+            isDropdownVisible.value = true
+            openAddNewRowDropdown.value = []
+            requestAnimationFrame(triggerRefreshCanvas)
+            return
+          }
+
           openAddNewRowDropdown.value = groupPath
           isDropdownVisible.value = true
           overlayStyle.value = {
-            top: `${rect.top + elem.y}px`,
-            left: `${rect.left + x - elem.width}px`,
+            top: `${rect.top + elem.y - 120}px`,
+            left: `${rect.left + x + 140}px`,
             width: elem.width,
             height: `36px`,
             position: 'fixed',

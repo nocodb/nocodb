@@ -2693,7 +2693,7 @@ export function useCanvasRender({
         ctx.save()
 
         ctx.letterSpacing = '1px'
-        const { isTruncated, x, y } = renderSingleLineText(ctx, {
+        const { isTruncated } = renderSingleLineText(ctx, {
           text: (group?.column?.title ?? '').toUpperCase(),
           fillStyle: '#4A5268',
           x: contentX,

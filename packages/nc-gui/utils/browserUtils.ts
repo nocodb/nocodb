@@ -20,7 +20,7 @@ export const isSidebarNodeRenameActive = () => document.querySelector('input.ani
 export function hasAncestorWithClass(element: HTMLElement, className: string | Array<string>): boolean {
   const classNames = ncIsArray(className) ? className : [className]
 
-  return classNames.some((c) =>  !!element.closest(`.${c}`))
+  return classNames.some((c) => !!element.closest(`.${c}`))
 }
 export const cmdKActive = () => document.querySelector('.cmdk-modal-active')
 export const isCmdJActive = () => document.querySelector('.DocSearch--active')

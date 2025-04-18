@@ -4,7 +4,7 @@ import type { NcRequest } from '~/interface/config';
 import type { User } from '~/models';
 import { Domain, Org, PresignedUrl } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { generateRandomTxt } from '~/utils';
+import {generateRandomTxt, verifyTXTRecord} from '~/utils';
 
 @Injectable()
 export class OrgsService {

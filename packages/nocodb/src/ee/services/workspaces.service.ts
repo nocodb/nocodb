@@ -384,10 +384,12 @@ export class WorkspacesService implements OnApplicationBootstrap {
       // get all bases
       const bases = await ncMeta.metaList2(
         context.workspace_id,
-        RootScopes.BASE,
+        RootScopes.WORKSPACE,
         MetaTable.PROJECT,
         {
-          condition: { fk_workspace_id: workspace.id },
+          condition: {
+            fk_workspace_id: context.workspace_id,
+          },
         },
       );
 

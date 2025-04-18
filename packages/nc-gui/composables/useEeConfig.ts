@@ -43,6 +43,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const navigateToBilling = (..._args: any[]) => {}
 
+  const navigateToPricing = (..._args: any[]) => {}
+
+  const navigateToCheckout = (..._args: any[]) => {}
+
   const handleUpgradePlan = (..._args: any[]) => {}
 
   const showUserPlanLimitExceededModal = (..._args: any[]) => {}
@@ -95,5 +99,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockExternalSourceRecordVisibility,
     showAsBluredRecord,
     showUpgradeToSeeMoreRecordsModal,
+    navigateToPricing,
+    navigateToCheckout,
   }
 })

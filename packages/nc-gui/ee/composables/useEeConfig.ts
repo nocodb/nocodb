@@ -260,8 +260,12 @@ export const useEeConfig = createSharedComposable(() => {
     navigateTo(`/${workspaceId || activeWorkspaceId.value}/checkout/${planId}?${params.toString()}`)
   }
 
-  const navigateToPricing = (wsId?: string) => {
-    navigateTo(`/${wsId || activeWorkspaceId.value}/pricing`)
+  const navigateToPricing = (wsId?: string, limitOrFeature?: PlanLimitTypes | PlanFeatureTypes) => {
+    if (!isWsOwner.value) return handleRequestUpgrade({ workspaceId: wsId, limitOrFeature })
+
+    const planCtaBtnQuery = limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? `?activeBtn=${PlanTitles.BUSINESS}` : ''
+
+    navigateTo(`/${wsId || activeWorkspaceId.value}/pricing${planCtaBtnQuery}`)
   }
 
   const handleUpgradePlan = ({
@@ -381,7 +385,7 @@ export const useEeConfig = createSharedComposable(() => {
               slots.value = {}
             }
           } else {
-            navigateToBilling({ workspaceId, redirectToWorkspace, limitOrFeature })
+            navigateToPricing(workspaceId, limitOrFeature)
             closeDialog()
             callback?.('ok')
           }

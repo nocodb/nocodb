@@ -88,6 +88,10 @@ watch(
     immediate: true,
   },
 )
+const openNewTab = (url: string) => {
+  const newWindow = window.open(url, '_blank', 'noopener,noreferrer')
+  if (newWindow) newWindow.opener = null
+}
 </script>
 
 <template>
@@ -109,13 +113,7 @@ watch(
         "
       >
         <div class="flex w-full">
-          <NcButton
-            type="text"
-            size="small"
-            inner-class="!gap-1"
-            class="!text-nc-content-brand !hover:text-brand-600"
-            @click="onBilling"
-          >
+          <NcButton type="text" size="small" inner-class="!gap-1" class="!hover:text-brand-600" @click="onBilling">
             <template #icon>
               <GeneralIcon icon="chevronLeft" class="h-4 w-4" />
             </template>
@@ -168,7 +166,9 @@ watch(
             Unlimited Seats
           </h1>
           <span v-if="activePlan" class="text-base text-nc-content-gray-muted"
-            >The {{ activeWorkspace?.title || 'Workspace' }} is currently on the {{ activePlan.title }} plan.</span
+            >The {{ activeWorkspace?.title || 'Workspace' }} workspace is currently on the
+            {{ activePlan.title === PlanTitles.FREE ? '' : activeSubscription?.period === 'month' ? 'monthly' : 'yearly'
+            }}{{ activePlan.title }} plan.</span
           >
         </div>
         <PaymentLoyaltyBadge v-if="isLoyaltyWorkspace" class="my-4" />
@@ -319,6 +319,8 @@ watch(
                       padding: 20px;
                       position: relative;
                       box-sizing: border-box;
+                      display: flex;
+                      flex-direction: column;
                     "
                   >
                     <h3
@@ -406,7 +408,7 @@ watch(
                           box-sizing: border-box;
                         "
                       >
-                        /user/month
+                        per user / month
                       </div>
                     </div>
                     <div
@@ -465,7 +467,16 @@ watch(
                     >
                       For personal applications
                     </div>
-                    <div style="flex-flow: column nowrap; width: 100%; margin-top: 16px; display: flex; box-sizing: border-box">
+                    <div
+                      style="
+                        flex-flow: column nowrap;
+                        width: 100%;
+                        margin-top: 16px;
+                        display: flex;
+                        box-sizing: border-box;
+                        flex-grow: 1;
+                      "
+                    >
                       <div
                         style="
                           gap: 12px;
@@ -568,7 +579,7 @@ watch(
                             border: 0px none rgb(51, 51, 51);
                           "
                         />
-                        <div style="font-size: 13px; box-sizing: border-box">100 automation runs/month</div>
+                        <div style="font-size: 13px; box-sizing: border-box">100 automation runs / month</div>
                       </div>
                       <div
                         style="
@@ -594,7 +605,7 @@ watch(
                             border: 0px none rgb(51, 51, 51);
                           "
                         />
-                        <div style="font-size: 13px; box-sizing: border-box">1,000 API calls/month</div>
+                        <div style="font-size: 13px; box-sizing: border-box">1,000 API calls / month</div>
                       </div>
                       <div
                         style="
@@ -700,6 +711,8 @@ watch(
                         line-height: 32px;
                         font-weight: 700;
                         box-sizing: border-box;
+                        display: flex;
+                        flex-direction: column;
                       "
                     >
                       Team
@@ -775,7 +788,7 @@ watch(
                           box-sizing: border-box;
                         "
                       >
-                        per user/month, <br style="box-sizing: border-box" />billed annually
+                        per user / month, <br style="box-sizing: border-box" />billed annually
                       </div>
                     </div>
                     <div
@@ -860,7 +873,6 @@ watch(
                             justify-content: space-between;
                             align-items: center;
                             font-size: 14px;
-                            font-weight: 600;
                             line-height: 20px;
                             box-sizing: border-box;
                           "
@@ -876,12 +888,11 @@ watch(
                             justify-content: space-between;
                             align-items: center;
                             font-size: 14px;
-                            font-weight: 600;
                             line-height: 20px;
                             box-sizing: border-box;
                           "
                         >
-                          Unlimited seats at just $108
+                          Unlimited seats at just <span class="font-bold">$108</span>
                         </div>
                       </div>
                     </div>
@@ -898,7 +909,16 @@ watch(
                     >
                       For small teams
                     </div>
-                    <div style="flex-flow: column nowrap; width: 100%; margin-top: 16px; display: flex; box-sizing: border-box">
+                    <div
+                      style="
+                        flex-flow: column nowrap;
+                        width: 100%;
+                        margin-top: 16px;
+                        display: flex;
+                        box-sizing: border-box;
+                        flex-grow: 1;
+                      "
+                    >
                       <div
                         style="
                           gap: 12px;
@@ -1001,7 +1021,7 @@ watch(
                             border: 0px none rgb(51, 51, 51);
                           "
                         />
-                        <div style="font-size: 13px; box-sizing: border-box">25,000 automation runs/month</div>
+                        <div style="font-size: 13px; box-sizing: border-box">25,000 automation runs / month</div>
                       </div>
                       <div
                         style="
@@ -1027,7 +1047,7 @@ watch(
                             border: 0px none rgb(51, 51, 51);
                           "
                         />
-                        <div style="font-size: 13px; box-sizing: border-box">100,000 API calls/month</div>
+                        <div style="font-size: 13px; box-sizing: border-box">100,000 API calls / month</div>
                       </div>
                       <div
                         style="
@@ -1142,6 +1162,8 @@ watch(
                       padding: 20px;
                       position: relative;
                       box-sizing: border-box;
+                      display: flex;
+                      flex-direction: column;
                     "
                   >
                     <h3
@@ -1238,7 +1260,7 @@ watch(
                           box-sizing: border-box;
                         "
                       >
-                        per user/month, <br style="box-sizing: border-box" />billed annually
+                        per user / month, <br style="box-sizing: border-box" />billed annually
                       </div>
                     </div>
                     <div
@@ -1339,12 +1361,11 @@ watch(
                             justify-content: space-between;
                             align-items: center;
                             font-size: 14px;
-                            font-weight: 600;
                             line-height: 20px;
                             box-sizing: border-box;
                           "
                         >
-                          Unlimited seats at just $216
+                          Unlimited seats at just <span class="font-bold">$216</span>
                         </div>
                       </div>
                     </div>
@@ -1361,7 +1382,16 @@ watch(
                     >
                       For scaling businesses
                     </div>
-                    <div style="flex-flow: column nowrap; width: 100%; margin-top: 16px; display: flex; box-sizing: border-box">
+                    <div
+                      style="
+                        flex-flow: column nowrap;
+                        width: 100%;
+                        margin-top: 16px;
+                        display: flex;
+                        box-sizing: border-box;
+                        flex-grow: 1;
+                      "
+                    >
                       <div
                         style="
                           gap: 12px;
@@ -1464,7 +1494,7 @@ watch(
                             border: 0px none rgb(51, 51, 51);
                           "
                         />
-                        <div style="font-size: 13px; box-sizing: border-box">100,000 automation runs /month</div>
+                        <div style="font-size: 13px; box-sizing: border-box">100,000 automation runs / month</div>
                       </div>
                       <div
                         style="
@@ -1490,7 +1520,7 @@ watch(
                             border: 0px none rgb(51, 51, 51);
                           "
                         />
-                        <div style="font-size: 13px; box-sizing: border-box">1,000,000 API calls/month</div>
+                        <div style="font-size: 13px; box-sizing: border-box">1,000,000 API calls / month</div>
                       </div>
                       <div
                         style="
@@ -1603,6 +1633,8 @@ watch(
                       padding: 20px;
                       position: relative;
                       box-sizing: border-box;
+                      display: flex;
+                      flex-direction: column;
                     "
                   >
                     <h3
@@ -1674,7 +1706,16 @@ watch(
                     >
                       For establised organizations
                     </div>
-                    <div style="flex-flow: column nowrap; width: 100%; margin-top: 16px; display: flex; box-sizing: border-box">
+                    <div
+                      style="
+                        flex-flow: column nowrap;
+                        width: 100%;
+                        margin-top: 16px;
+                        display: flex;
+                        box-sizing: border-box;
+                        flex-grow: 1;
+                      "
+                    >
                       <div
                         style="
                           gap: 12px;
@@ -1805,35 +1846,8 @@ watch(
                         />
                         <div style="font-size: 13px; box-sizing: border-box">Air gapped installation</div>
                       </div>
-                      <div
-                        style="
-                          gap: 12px;
-                          justify-content: flex-start;
-                          align-items: center;
-                          width: 100%;
-                          margin-top: 6px;
-                          display: flex;
-                          position: relative;
-                          box-sizing: border-box;
-                        "
-                      >
-                        <img
-                          loading="lazy"
-                          :src="YesSvg"
-                          alt="Yes"
-                          style="
-                            max-width: 100%;
-                            display: block;
-                            vertical-align: middle;
-                            box-sizing: border-box;
-                            border: 0px none rgb(51, 51, 51);
-                          "
-                        />
-                        <div style="font-size: 13px; box-sizing: border-box">Air gapped installation</div>
-                      </div>
                     </div>
                     <a
-                      href="#"
                       style="
                         height: 40px;
                         margin-top: 24px;
@@ -1860,7 +1874,8 @@ watch(
                         border: 1px solid rgb(231, 231, 233);
                         box-sizing: border-box;
                       "
-                      >Book an Appointment</a
+                      @click="openNewTab('https://cal.com/nocodb')"
+                      >Get Quota</a
                     >
                   </div>
                 </div>
@@ -1886,6 +1901,8 @@ watch(
                       padding: 20px;
                       position: relative;
                       box-sizing: border-box;
+                      display: flex;
+                      flex-direction: column;
                     "
                   >
                     <h3
@@ -1973,7 +1990,7 @@ watch(
                           box-sizing: border-box;
                         "
                       >
-                        /user/month
+                        per user / month
                       </div>
                     </div>
                     <div
@@ -2032,7 +2049,16 @@ watch(
                     >
                       For personal applications
                     </div>
-                    <div style="flex-flow: column nowrap; width: 100%; margin-top: 16px; display: flex; box-sizing: border-box">
+                    <div
+                      style="
+                        flex-flow: column nowrap;
+                        width: 100%;
+                        margin-top: 16px;
+                        display: flex;
+                        box-sizing: border-box;
+                        flex-grow: 1;
+                      "
+                    >
                       <div
                         style="
                           gap: 12px;
@@ -2135,7 +2161,7 @@ watch(
                             border: 0px none rgb(51, 51, 51);
                           "
                         />
-                        <div style="font-size: 13px; box-sizing: border-box">100 automation runs/month</div>
+                        <div style="font-size: 13px; box-sizing: border-box">100 automation runs / month</div>
                       </div>
                       <div
                         style="
@@ -2161,7 +2187,7 @@ watch(
                             border: 0px none rgb(51, 51, 51);
                           "
                         />
-                        <div style="font-size: 13px; box-sizing: border-box">1,000 API calls/month</div>
+                        <div style="font-size: 13px; box-sizing: border-box">1,000 API calls / month</div>
                       </div>
                       <div
                         style="
@@ -2255,6 +2281,8 @@ watch(
                       padding: 20px;
                       position: relative;
                       box-sizing: border-box;
+                      display: flex;
+                      flex-direction: column;
                     "
                   >
                     <h3
@@ -2342,7 +2370,7 @@ watch(
                           box-sizing: border-box;
                         "
                       >
-                        per user/month, <br style="box-sizing: border-box" />billed monthly
+                        per user / month, <br style="box-sizing: border-box" />billed monthly
                       </div>
                     </div>
                     <div
@@ -2443,12 +2471,11 @@ watch(
                             justify-content: space-between;
                             align-items: center;
                             font-size: 14px;
-                            font-weight: 600;
                             line-height: 20px;
                             box-sizing: border-box;
                           "
                         >
-                          Unlimited seats at just $135
+                          Unlimited seats at just <span class="font-bold">$135</span>
                         </div>
                       </div>
                     </div>
@@ -2465,7 +2492,16 @@ watch(
                     >
                       For small teams
                     </div>
-                    <div style="flex-flow: column nowrap; width: 100%; margin-top: 16px; display: flex; box-sizing: border-box">
+                    <div
+                      style="
+                        flex-flow: column nowrap;
+                        width: 100%;
+                        margin-top: 16px;
+                        display: flex;
+                        box-sizing: border-box;
+                        flex-grow: 1;
+                      "
+                    >
                       <div
                         style="
                           gap: 12px;
@@ -2568,7 +2604,7 @@ watch(
                             border: 0px none rgb(51, 51, 51);
                           "
                         />
-                        <div style="font-size: 13px; box-sizing: border-box">25,000 automation runs/month</div>
+                        <div style="font-size: 13px; box-sizing: border-box">25,000 automation runs / month</div>
                       </div>
                       <div
                         style="
@@ -2594,7 +2630,7 @@ watch(
                             border: 0px none rgb(51, 51, 51);
                           "
                         />
-                        <div style="font-size: 13px; box-sizing: border-box">100,000 API calls/month</div>
+                        <div style="font-size: 13px; box-sizing: border-box">100,000 API calls / month</div>
                       </div>
                       <div
                         style="
@@ -2804,7 +2840,7 @@ watch(
                           box-sizing: border-box;
                         "
                       >
-                        per user/month, <br style="box-sizing: border-box" />billed monthly
+                        per user / month, <br style="box-sizing: border-box" />billed monthly
                       </div>
                     </div>
                     <div
@@ -2905,12 +2941,11 @@ watch(
                             justify-content: space-between;
                             align-items: center;
                             font-size: 14px;
-                            font-weight: 600;
                             line-height: 20px;
                             box-sizing: border-box;
                           "
                         >
-                          Unlimited seats at just $270
+                          Unlimited seats at just <span class="font-bold">$270</span>
                         </div>
                       </div>
                     </div>
@@ -2927,7 +2962,16 @@ watch(
                     >
                       For scaling businesses
                     </div>
-                    <div style="flex-flow: column nowrap; width: 100%; margin-top: 16px; display: flex; box-sizing: border-box">
+                    <div
+                      style="
+                        flex-flow: column nowrap;
+                        width: 100%;
+                        margin-top: 16px;
+                        display: flex;
+                        box-sizing: border-box;
+                        flex-grow: 1;
+                      "
+                    >
                       <div
                         style="
                           gap: 12px;
@@ -3030,7 +3074,7 @@ watch(
                             border: 0px none rgb(51, 51, 51);
                           "
                         />
-                        <div style="font-size: 13px; box-sizing: border-box">100,000 automation runs /month</div>
+                        <div style="font-size: 13px; box-sizing: border-box">100,000 automation runs / month</div>
                       </div>
                       <div
                         style="
@@ -3056,7 +3100,7 @@ watch(
                             border: 0px none rgb(51, 51, 51);
                           "
                         />
-                        <div style="font-size: 13px; box-sizing: border-box">1,000,000 API calls/month</div>
+                        <div style="font-size: 13px; box-sizing: border-box">1,000,000 API calls / month</div>
                       </div>
                       <div
                         style="
@@ -3169,6 +3213,8 @@ watch(
                       padding: 20px;
                       position: relative;
                       box-sizing: border-box;
+                      display: flex;
+                      flex-direction: column;
                     "
                   >
                     <h3
@@ -3240,7 +3286,16 @@ watch(
                     >
                       For establised organizations
                     </div>
-                    <div style="flex-flow: column nowrap; width: 100%; margin-top: 16px; display: flex; box-sizing: border-box">
+                    <div
+                      style="
+                        flex-flow: column nowrap;
+                        width: 100%;
+                        margin-top: 16px;
+                        display: flex;
+                        box-sizing: border-box;
+                        flex-grow: 1;
+                      "
+                    >
                       <div
                         style="
                           gap: 12px;
@@ -3399,7 +3454,6 @@ watch(
                       </div>
                     </div>
                     <a
-                      href="#"
                       style="
                         height: 40px;
                         margin-top: 24px;
@@ -3426,7 +3480,8 @@ watch(
                         border: 1px solid rgb(231, 231, 233);
                         box-sizing: border-box;
                       "
-                      >Book an Appointment</a
+                      @click="openNewTab('https://cal.com/nocodb')"
+                      >Get Quota</a
                     >
                   </div>
                 </div>
@@ -4223,7 +4278,7 @@ watch(
                   box-sizing: border-box;
                 "
               >
-                0 $ per user/month,<br style="box-sizing: border-box" />billed annually
+                0 $ per user / month,<br style="box-sizing: border-box" />billed annually
               </div>
               <div
                 style="
@@ -4240,7 +4295,9 @@ watch(
                   font-weight: 600;
                   display: flex;
                   box-sizing: border-box;
+                  cursor: pointer;
                 "
+                @click="navigateTo('/')"
               >
                 <div style="box-sizing: border-box">Try now</div>
                 <div style="width: 16px; height: 16px; box-sizing: border-box">
@@ -4336,7 +4393,7 @@ watch(
                   box-sizing: border-box;
                 "
               >
-                15 $ per user/month,<br style="box-sizing: border-box" />billed annually
+                15 $ per user / month,<br style="box-sizing: border-box" />billed annually
               </div>
               <div
                 style="
@@ -4353,9 +4410,11 @@ watch(
                   font-weight: 600;
                   display: flex;
                   box-sizing: border-box;
+                  cursor: pointer;
                 "
+                @click="onCheckout(PlanTitles.TEAM)"
               >
-                <div class="cursor-pointer" style="box-sizing: border-box" @click="onCheckout(PlanTitles.TEAM)">Try now</div>
+                <div class="cursor-pointer" style="box-sizing: border-box">Try now</div>
                 <div style="width: 16px; height: 16px; box-sizing: border-box">
                   <svg
                     width="16"
@@ -4425,7 +4484,7 @@ watch(
                   box-sizing: border-box;
                 "
               >
-                30 $ per user/month,<br style="box-sizing: border-box" />billed annually
+                30 $ per user / month,<br style="box-sizing: border-box" />billed annually
               </div>
               <div
                 style="
@@ -4442,9 +4501,11 @@ watch(
                   font-weight: 600;
                   display: flex;
                   box-sizing: border-box;
+                  cursor: pointer;
                 "
+                @click="onCheckout(PlanTitles.TEAM)"
               >
-                <div class="cursor-pointer" style="box-sizing: border-box" @click="onCheckout(PlanTitles.BUSINESS)">Try now</div>
+                <div class="cursor-pointer" style="box-sizing: border-box">Try now</div>
                 <div style="width: 16px; height: 16px; box-sizing: border-box">
                   <svg
                     width="16"
@@ -4531,7 +4592,9 @@ watch(
                   font-weight: 600;
                   display: flex;
                   box-sizing: border-box;
+                  cursor: pointer;
                 "
+                @click="openNewTab('https://cal.com/nocodb')"
               >
                 <div style="box-sizing: border-box">Contact Us</div>
                 <div style="width: 16px; height: 16px; box-sizing: border-box">
@@ -8391,7 +8454,7 @@ watch(
                     box-sizing: border-box;
                   "
                 >
-                  Triggers/month
+                  Triggers / month
                 </div>
               </div>
               <div
@@ -10836,7 +10899,7 @@ watch(
                     box-sizing: border-box;
                   "
                 >
-                  API calls/month
+                  API calls / month
                 </div>
               </div>
               <div

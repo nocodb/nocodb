@@ -206,9 +206,8 @@ const isDeleteOrUpdateAllowed = (user) => {
     }"
     :style="`${height ? `height: ${height}` : ''}`"
   >
+    <PaymentBanner class="sticky top-0 z-10" />
     <div class="h-full nc-content-max-w">
-      <PaymentBanner v-if="!isAdminPanel && isPaymentEnabled" class="mb-0" />
-
       <div class="nc-collaborator-table-wrapper max-w-[1300px] mx-auto py-6 px-6 flex flex-col gap-6">
         <div class="w-full flex items-center justify-between gap-3">
           <a-input
@@ -234,25 +233,18 @@ const isDeleteOrUpdateAllowed = (user) => {
                   })
                 "
               >
-                <NcBadge
-                  :border="false"
-                  color="grey"
-                  class="!bg-nc-bg-gray-medium text-nc-content-gray-default text-sm !h-[20px] !rounded-md truncate"
-                >
+                <div class="flex items-center text-nc-content-gray-default text-sm">
                   <GeneralIcon icon="star" class="flex-none h-4 w-4 mr-1" />
 
                   {{ paidUsersCount }} {{ paidUsersCount === 1 ? $t('labels.editorSeat') : $t('labels.editorSeats') }}
-                </NcBadge>
+                </div>
               </NcTooltip>
-              <NcBadge
-                v-else
-                :border="false"
-                color="maroon"
-                class="text-nc-content-maroon-dark text-sm !h-[20px] font-500 whitespace-nowrap"
-              >
+              <div v-else class="flex items-center text-nc-content-gray-default text-sm">
+                <GeneralIcon icon="star" class="flex-none h-4 w-4 mr-1" />
+
                 {{ paidUsersCount }} {{ $t('general.paid') }}
                 {{ paidUsersCount === 1 ? $t('general.seat').toLowerCase() : $t('general.seats').toLowerCase() }}
-              </NcBadge>
+              </div>
               <div class="self-stretch border-r-1 border-nc-border-gray-medium"></div>
             </template>
 
@@ -295,7 +287,7 @@ const isDeleteOrUpdateAllowed = (user) => {
               <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
                 <GeneralUserIcon size="base" :user="record" class="flex-none" />
                 <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
-                  <div class="flex items-center gap-3">
+                  <div class="flex items-center gap-1">
                     <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
                       <template #title>
                         {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
@@ -309,19 +301,14 @@ const isDeleteOrUpdateAllowed = (user) => {
                       :tooltip-style="{ width: '180px' }"
                       :overlay-inner-style="{ width: '180px' }"
                     >
-                      <NcBadge
-                        v-if="activePlanTitle === PlanTitles.FREE"
-                        :border="false"
-                        color="grey"
-                        class="!bg-nc-bg-gray-medium text-nc-content-gray-default !h-[20px] !w-[20px] !p-0.5 !rounded"
-                      >
-                        <GeneralIcon icon="star" class="flex-none h-4 w-4" />
-                      </NcBadge>
+                      <div v-if="activePlanTitle === PlanTitles.FREE" class="text-nc-content-gray-default">
+                        <GeneralIcon icon="star" class="flex-none mb-0.5" />
+                      </div>
                       <NcBadge
                         v-else
                         :border="false"
-                        color="maroon"
-                        class="text-nc-content-maroon-dark text-[10px] leading-[14px] !h-[18px] font-semibold"
+                        color="green"
+                        class="text-nc-content-green-dark text-[10px] leading-[14px] !h-[18px] font-semibold"
                       >
                         {{ $t('general.paid') }}
                       </NcBadge>

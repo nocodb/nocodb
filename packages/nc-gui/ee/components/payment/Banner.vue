@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import bgImage from '~/assets/img/upgrade-bg.png'
+
 const _props = defineProps<{
   expanded?: boolean
 }>()
@@ -9,16 +11,21 @@ const { isPaidPlan, isWsOwner, navigateToPricing } = useEeConfig()
 <template>
   <div
     v-if="!isPaidPlan"
-    class="nc-payment-banner-wrapper px-6 pt-6 max-w-[1300px] mx-auto"
+    class="nc-payment-banner-wrapper"
     :class="{
       'nc-payment-banner-expanded': expanded,
     }"
   >
     <div
-      class="nc-payment-banner rounded-xl border-1 border-nc-border-gray-medium bg-nc-bg-maroon-light overflow-hidden relative flex gap-6 transition-all duration-300"
+      class="nc-payment-banner overflow-hidden relative flex gap-6 transition-all duration-300"
       :class="{
         'p-4 min-h-[66px]': !expanded,
         'p-6 min-h-[186px]': expanded,
+      }"
+      :style="{
+        'background-image': `url(${bgImage})`,
+        'background-color': 'rgba(255, 255, 255, 0.7)',
+        'background-blend-mode': 'overlay',
       }"
     >
       <div
@@ -40,26 +47,24 @@ const { isPaidPlan, isWsOwner, navigateToPricing } = useEeConfig()
           }"
         >
           <NcButton
-            class="nc-upgrade-plan-btn"
-            type="primary"
+            class="nc-upgrade-plan-btn !bg-blue-200 !border-0"
+            type="secondary"
             size="small"
             data-testid="nc-workspace-settings-upgrade-button"
-            icon-position="right"
             inner-class="!gap-2"
             @click.stop="navigateToPricing()"
           >
-            <template #icon>
-              <GeneralIcon icon="ncArrowUpRight" class="h-4 w-4" />
-            </template>
-            {{ isWsOwner ? $t('labels.upgradePlan') : $t('general.requestUpgrade') }}
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="ncArrowUpRight" class="h-4 w-4 mt-0.5" />
+              <span>{{ isWsOwner ? 'Upgrade' : $t('general.requestUpgrade') }}</span>
+            </div>
           </NcButton>
           <div class="!no-underline">
             <NcButton
               type="text"
               size="small"
               data-testid="nc-workspace-settings-view-all-plan-btn"
-              class="!hover:bg-nc-bg-maroon-dark"
-              @click.stop="navigateToPricing({ autoScroll: 'planDetails' })"
+              @click.stop="navigateToPricing({ autoScroll: 'planDetails', newTab: true })"
             >
               {{ $t('labels.viewAllPlanDetails') }}
             </NcButton>
@@ -86,15 +91,9 @@ const { isPaidPlan, isWsOwner, navigateToPricing } = useEeConfig()
 
 <style lang="scss" scoped>
 .nc-payment-banner {
-  box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
-
   .nc-finance-img {
     -webkit-transform: scaleX(-1);
     transform: scaleX(-1);
-  }
-
-  .nc-upgrade-plan-btn {
-    @apply bg-nc-fill-maroon-medium !hover:bg-nc-fill-maroon-dark;
   }
 }
 </style>

@@ -1284,8 +1284,8 @@
     "everythingInPlanPlus": "Everything in {plan}, Plus:",
     "downloadInvoice": "Download Invoice",
     "proceed": "Proceed",
-    "editorSeat": "editor seat",
-    "editorSeats": "editor seats"
+    "editorSeat": "Editor seat",
+    "editorSeats": "Editor seats"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

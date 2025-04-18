@@ -45,7 +45,7 @@ export const useEeConfig = createSharedComposable(() => {
   const isPaymentEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.PAYMENT))
 
   const isWsAuditEnabled = computed(() => {
-    return isPaymentEnabled.value && activePlan.value?.title && PlanOrder[activePlanTitle.value] >= PlanOrder[PlanTitles.BUSINESS]
+    return isPaymentEnabled.value && getFeature(PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE)
   })
 
   const isRecordLimitReached = computed(() => {

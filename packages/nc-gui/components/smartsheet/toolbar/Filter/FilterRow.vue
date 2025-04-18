@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
 import type { ClientType, UITypes } from 'nocodb-sdk'
+import { SmartsheetToolbarFilterFieldListDropdownLite } from '#components'
 
 interface Props {
   modelValue: ColumnFilterType
@@ -9,6 +10,8 @@ interface Props {
   dbClientType?: ClientType
   showNullAndEmptyInFilter?: boolean
 
+  webHook?: boolean
+  link?: boolean
   disabled?: boolean
   // some view is different when locked view but not disabled
   isLockedView?: boolean
@@ -174,6 +177,17 @@ const onComparisonSubOpChange = (comparison_sub_op: string) => {
     index: props.index,
   })
 }
+const onFkValueColIdChanged = (fk_value_col_id: string) => {
+  const prevValue = vModel.value.fk_value_col_id
+  vModel.value.fk_value_col_id = fk_value_col_id as any
+  emits('change', {
+    filter: { ...vModel.value },
+    type: 'fk_value_col_id',
+    prevValue,
+    value: fk_value_col_id,
+    index: props.index,
+  })
+}
 const onValueChange = (value: string) => {
   const prevValue = vModel.value.value
   vModel.value.value = value as any
@@ -190,6 +204,21 @@ const onDelete = () => {
     filter: { ...vModel.value },
     index: props.index,
   })
+}
+async function onResetDynamicField() {
+  const prevValue = vModel.value.dynamic
+  vModel.value.dynamic = false
+  vModel.value.fk_value_col_id = null
+  emits('change', {
+    filter: { ...vModel.value },
+    type: 'dynamic',
+    prevValue,
+    value: false,
+    index: props.index,
+  })
+}
+const onChangeToDynamic = async () => {
+  vModel.value.dynamic = isDynamicFilterAllowed(vModel.value) && showFilterInput.value
 }
 // #endregion
 </script>
@@ -239,6 +268,10 @@ const onDelete = () => {
         v-model="vModel.fk_column_id"
         v-bind="columnSelectProps"
         class="nc-filter-field-select min-w-32 max-h-8"
+        :class="{
+          'max-w-32': !webHook,
+          '!w-full': webHook,
+        }"
         :columns="columns"
         :disabled="isDisabled"
         :db-client-type="dbClientType"
@@ -253,6 +286,10 @@ const onDelete = () => {
         :dropdown-match-select-width="false"
         class="caption nc-filter-operation-select !min-w-26.75 max-h-8"
         :placeholder="$t('labels.operation')"
+        :class="{
+          '!max-w-26.75': !webHook,
+          '!w-full': webHook,
+        }"
         density="compact"
         variant="solo"
         :disabled="isDisabled"
@@ -274,52 +311,118 @@ const onDelete = () => {
           </a-select-option>
         </template>
       </NcSelect>
+
       <template v-if="['blank', 'notblank'].includes(vModel.comparison_op)">
         <div class="flex flex-grow"></div>
       </template>
       <template v-else>
+        <template v-if="comparisonSubOps && comparisonSubOps.length > 0">
+          <NcSelect
+            v-model:value="vModel.comparison_sub_op"
+            v-e="['c:filter:sub-comparison-op:select', sentryProps]"
+            v-bind="comparisonSubOpsProps"
+            :dropdown-match-select-width="false"
+            class="caption nc-filter-sub_operation-select min-w-28"
+            :class="{
+              'flex-grow w-full': !showFilterInput,
+              'max-w-28': showFilterInput && !webHook,
+            }"
+            :placeholder="$t('labels.operationSub')"
+            density="compact"
+            variant="solo"
+            :disabled="isDisabled"
+            hide-details
+            dropdown-class-name="nc-dropdown-filter-comp-sub-op"
+            @change="onComparisonSubOpChange($event)"
+          >
+            <template v-for="compSubOp of comparisonSubOps" :key="compSubOp.value">
+              <a-select-option :value="compSubOp.value">
+                <div class="flex items-center w-full justify-between w-full gap-2 max-w-40">
+                  <NcTooltip show-on-truncate-only class="truncate flex-1">
+                    <template #title>{{ compSubOp.text }}</template>
+                    {{ compSubOp.text }}
+                  </NcTooltip>
+                  <component
+                    :is="iconMap.check"
+                    v-if="vModel.comparison_sub_op === compSubOp.value"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4"
+                  />
+                </div>
+              </a-select-option>
+            </template>
+          </NcSelect>
+        </template>
         <div class="flex items-center flex-grow">
-          <template v-if="comparisonSubOps && comparisonSubOps.length > 0">
-            <NcSelect
-              v-model:value="vModel.comparison_sub_op"
-              v-e="['c:filter:sub-comparison-op:select', sentryProps]"
-              v-bind="comparisonSubOpsProps"
-              :dropdown-match-select-width="false"
-              class="caption nc-filter-sub_operation-select min-w-28"
-              :class="{
-                'flex-grow w-full': !showFilterInput,
-                'max-w-28': showFilterInput,
-              }"
-              :placeholder="$t('labels.operationSub')"
-              density="compact"
-              variant="solo"
-              :disabled="isDisabled"
-              hide-details
-              dropdown-class-name="nc-dropdown-filter-comp-sub-op"
-              @change="onComparisonSubOpChange($event)"
-            >
-              <template v-for="compSubOp of comparisonSubOps" :key="compSubOp.value">
-                <a-select-option :value="compSubOp.value">
-                  <div class="flex items-center w-full justify-between w-full gap-2 max-w-40">
-                    <NcTooltip show-on-truncate-only class="truncate flex-1">
-                      <template #title>{{ compSubOp.text }}</template>
-                      {{ compSubOp.text }}
-                    </NcTooltip>
-                    <component
-                      :is="iconMap.check"
-                      v-if="vModel.comparison_sub_op === compSubOp.value"
-                      id="nc-selected-item-icon"
-                      class="text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </template>
-            </NcSelect>
-          </template>
           <template v-if="showFilterInput">
-            <slot name="valueInput"></slot>
+            <div v-if="link && (vModel.dynamic || vModel.fk_value_col_id)" class="flex-grow">
+              <SmartsheetToolbarFilterFieldListDropdownLite
+                v-if="showFilterInput"
+                v-model="vModel.fk_value_col_id"
+                class="nc-filter-field-select min-w-32 w-full max-h-8"
+                :columns="getDynamicColumns(columns, column, dbClientType)"
+                @change="onFkValueColIdChanged($event)"
+              />
+            </div>
+
+            <template v-if="link">
+              <NcDropdown
+                class="nc-settings-dropdown h-full flex items-center min-w-0 rounded-lg"
+                :trigger="['click']"
+                placement="bottom"
+                :disabled="isLockedView"
+              >
+                <NcButton type="text" size="small">
+                  <GeneralIcon icon="settings" />
+                </NcButton>
+
+                <template #overlay>
+                  <div class="relative overflow-visible min-h-17 w-10">
+                    <div
+                      class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
+                      style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
+                    >
+                      <div
+                        class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
+                        @click="onResetDynamicField()"
+                      >
+                        <div class="flex flex-row items-center justify-between w-full">
+                          <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
+                          <GeneralIcon
+                            v-if="!vModel.dynamic && !vModel.fk_value_col_id"
+                            icon="check"
+                            class="w-4 h-4 text-primary"
+                          />
+                        </div>
+                        <div class="flex flex-row text-xs text-gray-400">Filter based on static value</div>
+                      </div>
+                      <div
+                        v-e="['c:filter:dynamic-filter']"
+                        class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
+                        :class="
+                          isDynamicFilterAllowed(vModel, column, dbClientType) && showFilterInput
+                            ? 'cursor-pointer'
+                            : 'cursor-not-allowed'
+                        "
+                        @click="onChangeToDynamic()"
+                      >
+                        <div class="flex flex-row items-center justify-between w-full">
+                          <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
+                          <GeneralIcon
+                            v-if="vModel.dynamic || vModel.fk_value_col_id"
+                            icon="check"
+                            class="w-4 h-4 text-primary"
+                          />
+                        </div>
+                        <div class="flex flex-row text-xs text-gray-400">Filter based on dynamic value</div>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </NcDropdown>
+            </template>
             <SmartsheetToolbarFilterInputLite
-              v-if="!slotHasChildren('valueInput')"
+              v-else
               v-bind="inputValueProps"
               class="nc-filter-value-select rounded-md min-w-34"
               :column="column"

@@ -3089,9 +3089,17 @@ class PGClient extends KnexClient {
           [t, n.cn],
           shouldSanitize,
         );
-        query += n.cdf
-          ? ` SET DEFAULT ${this.sanitiseDefaultValue(n.cdf)};\n`
-          : ` DROP DEFAULT;\n`;
+        if (n.cdf && ['json', 'jsonb'].includes(n.dt)) {
+          let cdfValue = this.sanitiseDefaultValue(n.cdf);
+          if (!cdfValue.startsWith("'")) {
+            cdfValue = `'${cdfValue}'`;
+          }
+          query += ` SET DEFAULT ${cdfValue}::json;\n`;
+        } else {
+          query += n.cdf
+            ? ` SET DEFAULT ${this.sanitiseDefaultValue(n.cdf)};\n`
+            : ` DROP DEFAULT;\n`;
+        }
       }
     }
     return query;

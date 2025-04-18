@@ -6,6 +6,8 @@ import type {
 import type {
   BaseType,
   IntegrationType,
+  PlanFeatureTypes,
+  PlanLimitTypes,
   UserType,
   WorkspaceType,
 } from 'nocodb-sdk';
@@ -72,6 +74,16 @@ export interface SnapshotRestoreEvent extends NcBaseEvent {
   snapshot: Snapshot;
   targetBase: BaseType;
   sourceBase: BaseType;
+}
+
+export interface WorkspaceRequestUpgradeEvent extends NcBaseEvent {
+  workspace: WorkspaceType;
+  user: UserType;
+  requester: {
+    email?: string;
+    display_name?: string;
+  };
+  limitOrFeature: PlanLimitTypes | PlanFeatureTypes;
 }
 
 export * from 'src/services/app-hooks/interfaces';

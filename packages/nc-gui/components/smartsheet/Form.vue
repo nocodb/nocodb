@@ -1065,7 +1065,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                         class="nc-upgrade-plan-btn"
                         type="primary"
                         size="small"
-                        @click.stop="navigateToPricing(undefined, PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)"
+                        @click.stop="navigateToPricing({ limitOrFeature: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE })"
                       >
                         {{ isWsOwner ? $t('labels.upgradePlan') : $t('general.requestUpgrade') }}
                       </NcButton>

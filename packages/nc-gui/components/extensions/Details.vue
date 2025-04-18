@@ -97,7 +97,7 @@ const detailsBody = computed(() => {
             <NcButton
               size="small"
               class="w-full nc-upgrade-plan-btn"
-              @click="navigateToPricing(undefined, PlanFeatureTypes.FEATURE_EXTENSIONS)"
+              @click="navigateToPricing({ limitOrFeature: PlanFeatureTypes.FEATURE_EXTENSIONS })"
             >
               <div class="flex items-center justify-center gap-2">
                 <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4" />

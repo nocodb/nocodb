@@ -260,12 +260,25 @@ export const useEeConfig = createSharedComposable(() => {
     navigateTo(`/${workspaceId || activeWorkspaceId.value}/checkout/${planId}?${params.toString()}`)
   }
 
-  const navigateToPricing = (wsId?: string, limitOrFeature?: PlanLimitTypes | PlanFeatureTypes) => {
-    if (!isWsOwner.value) return handleRequestUpgrade({ workspaceId: wsId, limitOrFeature })
+  const navigateToPricing = ({
+    workspaceId,
+    limitOrFeature,
+    autoScroll,
+  }: {
+    workspaceId?: string
+    autoScroll?: 'planDetails'
+    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
+  } = {}) => {
+    if (!isWsOwner.value) return handleRequestUpgrade({ workspaceId, limitOrFeature })
 
-    const planCtaBtnQuery = limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? `?activeBtn=${PlanTitles.BUSINESS}` : ''
+    const paramsObj = {
+      ...(autoScroll ? { autoScroll } : {}),
+      ...(limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? { activeBtn: PlanTitles.ENTERPRISE } : {}),
+    }
 
-    navigateTo(`/${wsId || activeWorkspaceId.value}/pricing${planCtaBtnQuery}`)
+    const searchQuery = new URLSearchParams(paramsObj).toString()
+
+    navigateTo(`/${workspaceId || activeWorkspaceId.value}/pricing${searchQuery ? `?${searchQuery}` : ''}`)
   }
 
   const handleUpgradePlan = ({
@@ -340,7 +353,17 @@ export const useEeConfig = createSharedComposable(() => {
       headerAction: () => [
         h(
           'a',
-          { href: 'https://nocodb.com/pricing', target: '_blank', rel: 'noopener noreferrer', class: 'text-sm leading-6' },
+          {
+            href: 'https://nocodb.com/pricing',
+            target: '_blank',
+            rel: 'noopener noreferrer',
+            class: 'text-sm leading-6',
+            onClick: (e) => {
+              e.preventDefault()
+              closeDialog(true)
+              navigateToPricing({ autoScroll: 'planDetails' })
+            },
+          },
           t('msg.learnMore'),
         ),
       ],
@@ -385,7 +408,7 @@ export const useEeConfig = createSharedComposable(() => {
               slots.value = {}
             }
           } else {
-            navigateToPricing(workspaceId, limitOrFeature)
+            navigateToPricing({ limitOrFeature })
             closeDialog()
             callback?.('ok')
           }

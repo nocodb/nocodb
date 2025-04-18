@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { marked } from 'marked'
+import { PlanFeatureTypes } from 'nocodb-sdk'
 
 interface Prop {
   modelValue: boolean
@@ -15,7 +16,7 @@ const vModel = useVModel(props, 'modelValue', emit)
 
 const { availableExtensions, descriptionContent, addExtension, getExtensionAssetsUrl, isMarketVisible } = useExtensions()
 
-const { blockAddNewExtension, navigateToBilling, isWsOwner } = useEeConfig()
+const { blockAddNewExtension, navigateToPricing, isWsOwner } = useEeConfig()
 
 const onBack = () => {
   vModel.value = false
@@ -93,7 +94,11 @@ const detailsBody = computed(() => {
             <template #title>
               {{ $t('upgrade.upgradeToAddMoreExtensions') }}
             </template>
-            <NcButton size="small" class="w-full nc-upgrade-plan-btn" @click="navigateToBilling()">
+            <NcButton
+              size="small"
+              class="w-full nc-upgrade-plan-btn"
+              @click="navigateToPricing({ limitOrFeature: PlanFeatureTypes.FEATURE_EXTENSIONS })"
+            >
               <div class="flex items-center justify-center gap-2">
                 <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4" />
 

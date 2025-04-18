@@ -45,7 +45,7 @@ export const useEeConfig = createSharedComposable(() => {
   const isPaymentEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.PAYMENT))
 
   const isWsAuditEnabled = computed(() => {
-    return isPaymentEnabled.value && activePlan.value?.title && PlanOrder[activePlanTitle.value] >= PlanOrder[PlanTitles.BUSINESS]
+    return isPaymentEnabled.value && getFeature(PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE)
   })
 
   const isRecordLimitReached = computed(() => {
@@ -260,8 +260,25 @@ export const useEeConfig = createSharedComposable(() => {
     navigateTo(`/${workspaceId || activeWorkspaceId.value}/checkout/${planId}?${params.toString()}`)
   }
 
-  const navigateToPricing = (wsId?: string) => {
-    navigateTo(`/${wsId || activeWorkspaceId.value}/pricing`)
+  const navigateToPricing = ({
+    workspaceId,
+    limitOrFeature,
+    autoScroll,
+  }: {
+    workspaceId?: string
+    autoScroll?: 'planDetails'
+    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
+  } = {}) => {
+    if (!isWsOwner.value) return handleRequestUpgrade({ workspaceId, limitOrFeature })
+
+    const paramsObj = {
+      ...(autoScroll ? { autoScroll } : {}),
+      ...(limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? { activeBtn: PlanTitles.ENTERPRISE } : {}),
+    }
+
+    const searchQuery = new URLSearchParams(paramsObj).toString()
+
+    navigateTo(`/${workspaceId || activeWorkspaceId.value}/pricing${searchQuery ? `?${searchQuery}` : ''}`)
   }
 
   const handleUpgradePlan = ({
@@ -336,7 +353,17 @@ export const useEeConfig = createSharedComposable(() => {
       headerAction: () => [
         h(
           'a',
-          { href: 'https://nocodb.com/pricing', target: '_blank', rel: 'noopener noreferrer', class: 'text-sm leading-6' },
+          {
+            href: 'https://nocodb.com/pricing',
+            target: '_blank',
+            rel: 'noopener noreferrer',
+            class: 'text-sm leading-6',
+            onClick: (e) => {
+              e.preventDefault()
+              closeDialog(true)
+              navigateToPricing({ autoScroll: 'planDetails' })
+            },
+          },
           t('msg.learnMore'),
         ),
       ],
@@ -381,7 +408,7 @@ export const useEeConfig = createSharedComposable(() => {
               slots.value = {}
             }
           } else {
-            navigateToBilling({ workspaceId, redirectToWorkspace, limitOrFeature })
+            navigateToPricing({ limitOrFeature })
             closeDialog()
             callback?.('ok')
           }

@@ -3,6 +3,8 @@ import {
   type ButtonType,
   type ColumnReqType,
   type ColumnType,
+  PlanFeatureTypes,
+  PlanLimitTypes,
   type TableType,
   UITypes,
   type ViewType,
@@ -154,7 +156,7 @@ const {
   blockExternalSourceRecordVisibility,
   showAsBluredRecord,
   isWsOwner,
-  navigateToBilling,
+  navigateToPricing,
 } = useEeConfig()
 
 const tableBodyEl = ref<HTMLElement>()
@@ -3096,7 +3098,10 @@ const cellAlignClass = computed(() => {
                 {{ $t('msg.learnMore') }}
               </NcButton>
             </a>
-            <NcButton size="small" @click="navigateToBilling()">
+            <NcButton
+              size="small"
+              @click="navigateToPricing({ limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE })"
+            >
               {{ isWsOwner ? $t('general.upgrade') : t('general.requestUpgrade') }}
             </NcButton>
           </div>

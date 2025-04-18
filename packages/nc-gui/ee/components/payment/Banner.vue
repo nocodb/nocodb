@@ -11,7 +11,7 @@ const { isPaidPlan, isWsOwner, navigateToPricing } = useEeConfig()
     v-if="!isPaidPlan"
     class="nc-payment-banner-wrapper px-6 pt-6 max-w-[1300px] mx-auto"
     :class="{
-      'nc-payment-banner-expanded': !isMinimised,
+      'nc-payment-banner-expanded': expanded,
     }"
   >
     <div
@@ -59,7 +59,7 @@ const { isPaidPlan, isWsOwner, navigateToPricing } = useEeConfig()
               size="small"
               data-testid="nc-workspace-settings-view-all-plan-btn"
               class="!hover:bg-nc-bg-maroon-dark"
-              @click.stop="navigateToPricing()"
+              @click.stop="navigateToPricing({ autoScroll: 'planDetails' })"
             >
               {{ $t('labels.viewAllPlanDetails') }}
             </NcButton>

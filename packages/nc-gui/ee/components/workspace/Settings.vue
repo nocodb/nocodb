@@ -12,6 +12,8 @@ const { orgId } = useOrganization()
 
 const { refreshCommandPalette } = useCommandPalette()
 
+const { isPaymentEnabled } = useEeConfig()
+
 const router = useRouter()
 
 const formValidator = ref()
@@ -204,6 +206,10 @@ const onCancel = () => {
       'h-[calc(100vh-92px)]': !isAdminPanel,
     }"
   >
+    <div v-if="!isAdminPanel && isPaymentEnabled" class="nc-content-max-w">
+      <PaymentBanner class="mb-0" />
+    </div>
+
     <div class="nc-content-max-w flex flex-col items-center nc-workspace-settings-settings pb-10 px-6">
       <div class="item-card flex flex-col w-full">
         <div class="font-bold text-base text-nc-content-gray-emphasis">

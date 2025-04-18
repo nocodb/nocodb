@@ -20,6 +20,8 @@ const { activeWorkspaceId } = storeToRefs(workspaceStore)
 const { paymentState, loadWorkspaceSeatCount, getSessionResult, isAccountPage, paymentMode, plansAvailable, onSelectPlan } =
   useProvidePaymentStore()
 
+const { isPaymentEnabled } = useEeConfig()
+
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
 const afterPayment = ref(!!route.query.afterPayment)
@@ -111,13 +113,15 @@ watch(
 
 <template>
   <div
-    class="nc-payment-billing-page h-full overflow-auto nc-scrollbar-thin text-nc-content-gray"
+    class="nc-payment-billing-page h-full overflow-auto nc-scrollbar-thin text-nc-content-gray max-h-[calc(100vh_-_92px)]"
     :class="{
       'nc-scrolled-to-bottom': !isScrolledToTop,
     }"
     @scroll.passive="handleScroll"
   >
     <div class="nc-content-max-w">
+      <PaymentBanner v-if="isPaymentEnabled" class="mb-0" />
+
       <div
         class="p-6 pb-16 flex flex-col gap-8 min-w-[740px] w-full"
         :class="{

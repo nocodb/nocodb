@@ -4,6 +4,10 @@ import Underline from '~/assets/img/underline.png'
 import YesSvg from '~/assets/img/Yes.svg'
 import NoSvg from '~/assets/img/No.svg'
 
+const route = useRoute()
+
+const router = useRouter()
+
 const { hideSidebar, showTopbar } = storeToRefs(useSidebarStore())
 
 useStripe()
@@ -50,6 +54,40 @@ const onCheckout = (planTitle: string) => {
 onMounted(async () => {
   await loadPlans()
 })
+
+const ncCompareFeatureRef = ref<HTMLElement>()
+
+const activeBtnPlanTitle = ref('')
+
+watch(
+  [() => route?.query?.activeBtn, () => route?.query?.autoScroll],
+  async ([activeBtn, autoScroll]) => {
+    const { activeBtn: _activeBtn, autoScroll: _autoScroll, ...restQuery } = route.query as Record<string, string>
+
+    if (autoScroll === 'planDetails') {
+      await until(() => !!ncCompareFeatureRef.value).toBeTruthy()
+
+      await ncDelay(300)
+
+      ncCompareFeatureRef.value?.scrollIntoView({ behavior: 'smooth' })
+    }
+
+    if (!activeBtn || !Object.values(PlanTitles).includes(activeBtn as PlanTitles)) {
+      if (autoScroll) {
+        router.replace({ query: { ...restQuery } })
+      }
+
+      return
+    }
+
+    activeBtnPlanTitle.value = activeBtn as string
+
+    router.replace({ query: { ...restQuery } })
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -4022,7 +4060,10 @@ onMounted(async () => {
         </div>
       </div>
     </section>
-    <section style="gap: 16px; padding-left: 24px; padding-right: 24px; box-sizing: border-box; display: block">
+    <section
+      ref="ncCompareFeatureRef"
+      style="gap: 16px; padding-left: 24px; padding-right: 24px; box-sizing: border-box; display: block"
+    >
       <div
         style="
           flex-flow: column nowrap;

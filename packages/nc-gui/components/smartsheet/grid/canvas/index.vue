@@ -1282,7 +1282,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       }
 
       if (upgradeModalInlineState.value.isHoveredUpgrade) {
-        return navigateToPricing(undefined, PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE)
+        return navigateToPricing({ limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE })
       }
     }
   }

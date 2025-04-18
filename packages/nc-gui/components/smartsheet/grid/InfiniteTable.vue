@@ -3098,7 +3098,10 @@ const cellAlignClass = computed(() => {
                 {{ $t('msg.learnMore') }}
               </NcButton>
             </a>
-            <NcButton size="small" @click="navigateToPricing(undefined, PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE)">
+            <NcButton
+              size="small"
+              @click="navigateToPricing({ limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE })"
+            >
               {{ isWsOwner ? $t('general.upgrade') : t('general.requestUpgrade') }}
             </NcButton>
           </div>

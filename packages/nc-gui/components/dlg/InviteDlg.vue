@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type PlanLimitExceededDetailsType, ProjectRoles, type RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
+import { NON_SEAT_ROLES, type PlanLimitExceededDetailsType, ProjectRoles, type RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
 
 import { extractEmail } from '../../helpers/parsers/parserHelpers'
 
@@ -22,13 +22,14 @@ const { createProjectUser } = basesStore
 
 const { inviteCollaborator: inviteWsCollaborator } = workspaceStore
 
-const { isPaymentEnabled, showUserPlanLimitExceededModal } = useEeConfig()
+const { isPaymentEnabled, showUserPlanLimitExceededModal, isPaidPlan } = useEeConfig()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
 const orderedRoles = computed(() => {
   return props.type === 'base' ? ProjectRoles : WorkspaceUserRoles
 })
+
 const userRoles = computed(() => {
   return props.type === 'base' ? baseRoles?.value : workspaceRoles?.value
 })
@@ -153,6 +154,10 @@ const isInviteButtonDisabled = computed(() => {
   if (emailBadges.value.length && inviteData.email) {
     return true
   }
+})
+
+const showUserWillChargedWarning = computed(() => {
+  return isPaidPlan.value && !NON_SEAT_ROLES.includes(inviteData.roles) && !!emailBadges.value.length
 })
 
 watch(inviteData, (newVal) => {
@@ -471,6 +476,15 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
         </template>
       </div>
     </div>
+
+    <NcAlert
+      :visible="showUserWillChargedWarning"
+      type="warning"
+      :message="$t('upgrade.newEditorWillBeChanged')"
+      :description="$t('upgrade.newEditorWillBeChangedSubtitle')"
+      class="mt-5"
+    />
+
     <div class="flex mt-8 justify-end">
       <div class="flex gap-2">
         <NcButton type="secondary" @click="dialogShow = false"> {{ $t('labels.cancel') }} </NcButton>

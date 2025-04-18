@@ -62,8 +62,8 @@ onMounted(() => {
 <template>
   <div>
     <NuxtLayout name="top">
-      <div class="max-w-[1200px] mx-auto h-[calc(100vh_-56px)]">
-        <div class="h-full px-4 md:px-8 pt-[120px] pb-10 flex items-center justify-center">
+      <div class="max-w-[1200px] mx-auto h-[calc(100vh-56px)]">
+        <div class="h-full px-4 md:px-8 pt-18 md:pt-[120px] pb-10 flex items-center justify-center">
           <div class="h-full nc-workspace-selector-mdoal">
             <div class="flex flex-col gap-2">
               <div class="text-nc-content-gray-emphasis text-lg font-700">Select workspace to upgrade to Team Plan</div>
@@ -99,7 +99,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .nc-workspace-selector-mdoal {
-  @apply rounded-2xl border-1 border-nc-border-gray-medium p-6 flex flex-col gap-5 max-w-[min(100%,448px)] max-h-[calc(100vh_-_296px)];
+  @apply rounded-2xl border-1 border-nc-border-gray-medium p-6 flex flex-col gap-5 max-w-[min(100%,488px)] max-h-[calc(100vh_-_120px)] md:max-h-[calc(100vh_-_296px)];
   box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1);
 }
 </style>

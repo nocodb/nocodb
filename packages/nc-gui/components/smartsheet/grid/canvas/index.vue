@@ -408,7 +408,11 @@ const isClamped = computed(() => {
     horizontalStuck = clampedLeft !== rawLeft
   }
 
-  return verticalStuck || horizontalStuck
+  return {
+    verticalStuck,
+    horizontalStuck,
+    isStuck: verticalStuck || horizontalStuck
+  }
 })
 
 const editEnabledCellPosition = computed(() => {
@@ -420,7 +424,7 @@ const editEnabledCellPosition = computed(() => {
   }
 
   const top = Math.max(
-    32,
+    31,
     Math.min(containerRef.value?.clientHeight - rowHeight.value - 36, editEnabled.value.y - scrollTop.value - rowHeight.value),
   )
 
@@ -432,8 +436,8 @@ const editEnabledCellPosition = computed(() => {
       )
 
   return {
-    top: `${top + (isClamped.value && !isGroupBy.value ? 1 : 0)}px`,
-    left: `${left}px`,
+    top: `${top + (isClamped.value.horizontalStuck && !isGroupBy.value ? 1 : 0 )}px`,
+    left: `${left + (isClamped.value.isStuck && editEnabled.value?.fixed ? -1 : 0)}px`,
   }
 })
 
@@ -1293,7 +1297,6 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
         const elem = _elementMap.findElementAtWithX(x, y, ElementTypes.EDIT_NEW_ROW_METHOD)
 
         if (elem) {
-
           if (prevMenuState.openAddNewRowDropdown?.join('-') === groupPath?.join('-')) {
             isDropdownVisible.value = true
             openAddNewRowDropdown.value = []
@@ -2340,17 +2343,19 @@ defineExpose({
               willChange: 'top, left, width, height',
             }"
             class="nc-canvas-table-editable-cell-wrapper pointer-events-auto"
-            :class="{ [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped }"
+            :class="{ [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped.isStuck }"
           >
             <div
               ref="activeCellElement"
-              class="relative left-[2.5px] w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-white"
+              class="relative w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-white"
               :class="{
                 'px-[0.550rem]': !noPadding && !editEnabled.fixed,
                 'px-[0.49rem]': editEnabled.fixed,
-                'top-[0.5px] left-[-1px]': isClamped,
-                'top-[3.5px]': !isGroupBy,
-                'top-[2.5px]': isGroupBy,
+                'top-[0.5px]': isClamped.isStuck,
+                'top-[2.5px] left-[2.5px] ': isGroupBy && !editEnabled.fixed,
+                'top-[2.5px] left-[2px] ': isGroupBy && editEnabled.fixed,
+                'left-[-1px] top-[2px]': !isGroupBy && isClamped.isStuck,
+                'left-[2px] top-[3.5px]': !isGroupBy && !isClamped.isStuck,
               }"
               @click="cellClickHook.trigger($event)"
             >

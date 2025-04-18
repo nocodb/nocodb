@@ -367,8 +367,7 @@ export const useEeConfig = createSharedComposable(() => {
             class: 'text-sm leading-6',
             onClick: (e) => {
               e.preventDefault()
-              closeDialog(true)
-              navigateToPricing({ autoScroll: 'planDetails' })
+              navigateToPricing({ autoScroll: 'planDetails', newTab: true })
             },
           },
           t('msg.learnMore'),

@@ -1875,7 +1875,7 @@ const openNewTab = (url: string) => {
                         box-sizing: border-box;
                       "
                       @click="openNewTab('https://cal.com/nocodb')"
-                      >Get Quota</a
+                      >Get a Quote</a
                     >
                   </div>
                 </div>

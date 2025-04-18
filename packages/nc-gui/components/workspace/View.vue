@@ -49,7 +49,7 @@ const tab = computed({
       return handleUpgradePlan({
         title: t('upgrade.upgradeToAccessWsAudit'),
         content: t('upgrade.upgradeToAccessWsAuditSubtitle', {
-          plan: PlanTitles.BUSINESS,
+          plan: PlanTitles.ENTERPRISE,
         }),
         limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
       })

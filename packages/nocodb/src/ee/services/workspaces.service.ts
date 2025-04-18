@@ -1,4 +1,3 @@
-import crypto from 'crypto';
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
@@ -46,7 +45,7 @@ import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { JobTypes } from '~/interface/Jobs';
 import NocoCache from '~/cache/NocoCache';
 import { PaymentService } from '~/modules/payment/payment.service';
-import { verifyTXTRecord } from '~/utils';
+import { generateRandomTxt, verifyTXTRecord } from '~/utils';
 
 const mockUser = {
   id: '1',
@@ -849,13 +848,6 @@ export class WorkspacesService implements OnApplicationBootstrap {
     return domainList;
   }
 
-  private generateRandomTxt() {
-    return `nocodb-verification-${crypto
-      .randomBytes(Math.ceil(32 / 2))
-      .toString('hex')
-      .slice(0, 32)}`;
-  }
-
   async addDomain(param: {
     body: DomainReqType;
     workspaceId: string;
@@ -864,7 +856,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     // todo: validate and verify
 
     // generate a txt value
-    const txtValue = this.generateRandomTxt();
+    const txtValue = generateRandomTxt();
 
     const domain = await Domain.insert({
       deleted: param.body.deleted,

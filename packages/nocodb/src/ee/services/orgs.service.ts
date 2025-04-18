@@ -1,11 +1,10 @@
-import crypto from 'crypto';
 import { Injectable } from '@nestjs/common';
 import type { DomainReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { User } from '~/models';
 import { Domain, Org, PresignedUrl } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { verifyTXTRecord } from '~/utils';
+import { generateRandomTxt } from '~/utils';
 
 @Injectable()
 export class OrgsService {
@@ -64,7 +63,7 @@ export class OrgsService {
     // todo: validate and verify
 
     // generate a txt value
-    const txtValue = this.generateRandomTxt();
+    const txtValue = generateRandomTxt();
 
     const domain = await Domain.insert({
       deleted: param.body.deleted,
@@ -78,13 +77,6 @@ export class OrgsService {
     await this.verifyDomain({ domainId: domain.id, req: param.req });
 
     return domain;
-  }
-
-  private generateRandomTxt() {
-    return `nocodb-verification-${crypto
-      .randomBytes(Math.ceil(32 / 2))
-      .toString('hex')
-      .slice(0, 32)}`;
   }
 
   async updateDomain(param: {

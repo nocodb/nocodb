@@ -418,7 +418,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     // todo:  verify all scenarios
     // extract workspace id based on request path params or
     // extract base id based on request path params
-    if ((params.baseId || params.baseName) && !req.ncBaseId && !isInternalWorkspaceScope) {
+    if (
+      (params.baseId || params.baseName) &&
+      !req.ncBaseId &&
+      !isInternalWorkspaceScope
+    ) {
       // we expect project_name to be id for EE
       const base = await Base.get(context, params.baseId ?? params.baseName);
       if (base) {
@@ -654,8 +658,6 @@ export class AclMiddleware implements NestInterceptor {
         workspaceId: req.ncWorkspaceId,
       });
       if (ssoClient.length > 0) {
-        console.log(req.user?.workspace_roles);
-        console.log(req.user);
         NcError.forbidden('User access limited to SSO login');
       }
     }

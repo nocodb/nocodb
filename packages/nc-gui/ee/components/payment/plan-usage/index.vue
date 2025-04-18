@@ -144,16 +144,92 @@ const onManageSubscription = async () => {
   await _onManageSubscription()
   isLoadingManageSubscription.value = false
 }
+
+const confirmOpen = ref(false)
+
+const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
+  confirmOpen.value = true
+
+  const { close } = useDialog(resolveComponent('NcModalConfirm'), {
+    'visible': confirmOpen,
+    'title': 'Cancel Scheduled Plan Change',
+    'content': `You’re about to cancel the scheduled plan change and keep your current plan. Would you like to continue?`,
+    'okText': 'Confirm',
+    'onCancel': closeDialog,
+    'onOk': async () => {
+      await updateSubscription(planId, stripePriceId)
+      window.location.reload()
+    },
+    'update:visible': closeDialog,
+    'showIcon': false,
+    'focusBtn': 'ok',
+    'keyboard': true,
+    'maskClosable': true,
+    'okClass': '!outline-none',
+  })
+
+  function closeDialog() {
+    confirmOpen.value = false
+    close(1000)
+  }
+}
 </script>
 
 <template>
   <div v-if="!paymentInitiated" class="flex flex-col gap-3">
+    <div v-if="scheduledChangeInfo" class="flex border-1 border-nc-border-gray-medium rounded-lg p-4 gap-5 mb-5">
+      <GeneralIcon icon="ncInfoSolid" class="text-primary" />
+      <div class="flex flex-col flex-1 gap-1">
+        <span class="font-bold">Your plan will switch after the current billing cycle ends.</span>
+        <!-- You’ve switched from the Team Plan (Annual) to the Team Plan (Monthly). This change will take effect on 25th July 2025. -->
+        <span class="text-nc-content-gray-default">
+          You've switched from the
+          {{ activePlanTitle }} ({{ activeSubscription?.period === 'year' ? 'Annual' : 'Monthly' }}) to the
+          {{ scheduledChangeInfo?.plan?.title }} ({{ scheduledChangeInfo?.period === 'year' ? 'Annual' : 'Monthly' }}). This
+          change will take effect on {{ scheduledChangeInfo?.date }}.
+        </span>
+      </div>
+      <NcButton
+        type="link"
+        size="small"
+        class="!shadow-none !p-0 mt-[-4px]"
+        @click="onUpdateSubscription(activeSubscription.fk_plan_id, activeSubscription.stripe_price_id)"
+      >
+        Revert
+      </NcButton>
+    </div>
+    <div v-else-if="activeSubscription?.canceled_at" class="flex border-1 border-nc-border-gray-medium rounded-lg p-4 gap-5 mb-5">
+      <GeneralIcon icon="ncInfoSolid" class="text-nc-content-red-dark" />
+      <div class="flex flex-col flex-1 gap-1">
+        <span class="font-bold">Your {{ activePlanTitle }} plan will expire soon</span>
+        <span class="text-nc-content-gray-default">
+          On {{ dayjs(activeSubscription.canceled_at).format('DD MMMM YYYY') }}, you’ll lose access to all
+          {{ activePlanTitle }} features.
+        </span>
+      </div>
+      <NcButton
+        type="link"
+        size="small"
+        class="!shadow-none !p-0 mt-[-4px]"
+        @click="onUpdateSubscription(activeSubscription.fk_plan_id, activeSubscription.stripe_price_id)"
+      >
+        Reactivate {{ activePlanTitle }} Plan
+      </NcButton>
+    </div>
+
     <div class="flex items-center justify-between gap-4 min-h-8">
-      <div class="text-base font-weight-700 text-nc-content-gray !leading-7">
-        {{ $t('title.currentPlan') }}:
-        <span :style="{ color: activePlanMeta?.primary }">
+      <div class="flex gap-2 items-center text-base font-weight-700 text-nc-content-gray !leading-7">
+        <span>{{ $t('title.currentPlan') }}:</span>
+        <span class="text-xl" :style="{ color: activePlanMeta?.primary }">
           {{ $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title ?? PlanTitles.FREE}`) }}
         </span>
+        <NcBadge
+          v-if="activeSubscription?.period"
+          :border="false"
+          class="text-nc-content-gray-subtle2 !bg-nc-bg-gray-dark text-[10px] leading-[14px] !h-[18px] font-semibold mt-1"
+        >
+          {{ activeSubscription?.period === 'year' ? 'Annual' : 'Monthly' }}
+        </NcBadge>
       </div>
       <div class="flex gap-2">
         <NcButton
@@ -203,20 +279,6 @@ const onManageSubscription = async () => {
             Marked for cancellation, due {{ new Date(activeSubscription.canceled_at).toLocaleDateString() }}
           </div>
           <div v-else>{{ nextInvoiceInfo?.amount }}, {{ nextInvoiceInfo?.date }}</div>
-          <div v-if="scheduledChangeInfo">
-            <div class="text-xs text-nc-content-gray-muted leading-[18px]">
-              Next billing cycle:
-              <span class="font-semibold">
-                {{ scheduledChangeInfo?.plan?.title }} ({{ scheduledChangeInfo?.period === 'year' ? 'Annually' : 'Monthly' }})
-              </span>
-              <!-- Cancel -->
-              <span
-                class="text-nc-content-red-medium hover:underline cursor-pointer"
-                @click="updateSubscription(activeSubscription.fk_plan_id, activeSubscription.stripe_price_id)"
-                >(Cancel)</span
-              >
-            </div>
-          </div>
         </template>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow

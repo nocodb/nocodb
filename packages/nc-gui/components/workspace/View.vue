@@ -201,7 +201,7 @@ watch(
           <a-tab-pane key="sso" class="w-full">
             <template #tab>
               <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
-                <GeneralIcon icon="ncLock" class="flex-none h-4 w-4" />
+                <GeneralIcon icon="sso" class="flex-none h-4 w-4" />
                 {{ $t('title.sso') }}
               </div>
             </template>

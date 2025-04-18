@@ -735,6 +735,7 @@ import MdiNcThumbUpOutline from '~icons/nc-icons/mdi-thumb-up-outline'
 import MdiNcFlag from '~icons/nc-icons/mdi-flag'
 import MdiNcFlagOutline from '~icons/nc-icons/mdi-flag-outline'
 import MdiNcAttachFile from '~icons/nc-icons/mdi-attach'
+import MdiCloudKeyOutline from '~icons/mdi/cloud-key-outline'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1676,6 +1677,7 @@ export const iconMap = {
   'mdi-thumb-up-outline': MdiNcThumbUpOutline,
   'mdi-flag': MdiNcFlag,
   'mdi-flag-outline': MdiNcFlagOutline,
+  'sso': MdiCloudKeyOutline,
 }
 
 export const getMdiIcon = (type: string): any => {

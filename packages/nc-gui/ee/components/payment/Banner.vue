@@ -59,7 +59,7 @@ const { isPaidPlan, isWsOwner, navigateToPricing } = useEeConfig()
               size="small"
               data-testid="nc-workspace-settings-view-all-plan-btn"
               class="!hover:bg-nc-bg-maroon-dark"
-              @click.stop="navigateToPricing({ autoScroll: 'planDetails' })"
+              @click.stop="navigateToPricing({ autoScroll: 'planDetails', newTab: true })"
             >
               {{ $t('labels.viewAllPlanDetails') }}
             </NcButton>

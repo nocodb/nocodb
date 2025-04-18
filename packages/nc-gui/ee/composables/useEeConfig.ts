@@ -264,10 +264,12 @@ export const useEeConfig = createSharedComposable(() => {
     workspaceId,
     limitOrFeature,
     autoScroll,
+    newTab = false,
   }: {
     workspaceId?: string
     autoScroll?: 'planDetails'
     limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
+    newTab?: boolean
   } = {}) => {
     if (!isWsOwner.value) return handleRequestUpgrade({ workspaceId, limitOrFeature })
 
@@ -277,6 +279,11 @@ export const useEeConfig = createSharedComposable(() => {
     }
 
     const searchQuery = new URLSearchParams(paramsObj).toString()
+
+    if (newTab) {
+      window.open(`/?pricing=true&workspaceId=${workspaceId || activeWorkspaceId.value}`, '_blank')
+      return
+    }
 
     navigateTo(`/${workspaceId || activeWorkspaceId.value}/pricing${searchQuery ? `?${searchQuery}` : ''}`)
   }

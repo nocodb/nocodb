@@ -206,9 +206,8 @@ const isDeleteOrUpdateAllowed = (user) => {
     }"
     :style="`${height ? `height: ${height}` : ''}`"
   >
+    <PaymentBanner class="sticky top-0 z-10" />
     <div class="h-full nc-content-max-w">
-      <PaymentBanner v-if="!isAdminPanel && isPaymentEnabled" class="mb-0" />
-
       <div class="nc-collaborator-table-wrapper max-w-[1300px] mx-auto py-6 px-6 flex flex-col gap-6">
         <div class="w-full flex items-center justify-between gap-3">
           <a-input
@@ -237,7 +236,7 @@ const isDeleteOrUpdateAllowed = (user) => {
                 <NcBadge
                   :border="false"
                   color="grey"
-                  class="!bg-nc-bg-gray-medium text-nc-content-gray-default text-sm !h-[20px] !rounded-md truncate"
+                  class="!bg-nc-bg-gray-medium text-nc-content-gray-default text-sm !h-[20px] !p-4 !rounded-md truncate"
                 >
                   <GeneralIcon icon="star" class="flex-none h-4 w-4 mr-1" />
 
@@ -247,8 +246,8 @@ const isDeleteOrUpdateAllowed = (user) => {
               <NcBadge
                 v-else
                 :border="false"
-                color="maroon"
-                class="text-nc-content-maroon-dark text-sm !h-[20px] font-500 whitespace-nowrap"
+                color="green"
+                class="text-nc-content-green-dark text-sm !h-[20px] font-500 whitespace-nowrap"
               >
                 {{ paidUsersCount }} {{ $t('general.paid') }}
                 {{ paidUsersCount === 1 ? $t('general.seat').toLowerCase() : $t('general.seats').toLowerCase() }}
@@ -320,8 +319,8 @@ const isDeleteOrUpdateAllowed = (user) => {
                       <NcBadge
                         v-else
                         :border="false"
-                        color="maroon"
-                        class="text-nc-content-maroon-dark text-[10px] leading-[14px] !h-[18px] font-semibold"
+                        color="green"
+                        class="text-nc-content-green-dark text-[10px] leading-[14px] !h-[18px] font-semibold"
                       >
                         {{ $t('general.paid') }}
                       </NcBadge>

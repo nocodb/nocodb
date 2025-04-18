@@ -206,9 +206,9 @@ const onCancel = () => {
       'h-[calc(100vh-92px)]': !isAdminPanel,
     }"
   >
-    <div v-if="!isAdminPanel && isPaymentEnabled" class="nc-content-max-w">
-      <PaymentBanner class="mb-0" />
-    </div>
+    <template v-if="!isAdminPanel && isPaymentEnabled">
+      <PaymentBanner class="sticky top-0 z-10" />
+    </template>
 
     <div class="nc-content-max-w flex flex-col items-center nc-workspace-settings-settings pb-10 px-6">
       <div class="item-card flex flex-col w-full">

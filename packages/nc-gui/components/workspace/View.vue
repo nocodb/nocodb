@@ -168,10 +168,8 @@ watch(
               {{ $t('labels.members') }}
             </div>
           </template>
-          <div class="nc-ws-tab-collaborators nc-content-max-w overflow-auto h-[calc(100vh-92px)] nc-scrollbar-thin">
-            <PaymentBanner v-if="isPaymentEnabled" class="mb-0" />
-            <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
-          </div>
+
+          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
       </template>
       <template v-if="isEeUI && !props.workspaceId && isPaymentEnabled && isUIAllowed('workspaceBilling')">
@@ -182,10 +180,8 @@ watch(
               {{ $t('general.billing') }}
             </div>
           </template>
-          <div class="nc-content-max-w">
-            <PaymentBanner v-if="isPaymentEnabled" class="mb-0" />
-            <PaymentBillingPage class="!h-[calc(100vh_-_92px)]" />
-          </div>
+
+          <PaymentBillingPage />
         </a-tab-pane>
       </template>
 
@@ -223,10 +219,8 @@ watch(
               {{ $t('labels.settings') }}
             </div>
           </template>
-          <div class="nc-content-max-w">
-            <PaymentBanner v-if="isPaymentEnabled" class="mb-0" />
-            <WorkspaceSettings :workspace-id="currentWorkspace.id" />
-          </div>
+
+          <WorkspaceSettings :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
       </template>
     </NcTabs>
@@ -256,17 +250,5 @@ watch(
 
 .tab-title {
   @apply flex flex-row items-center gap-x-2 py-[1px];
-}
-
-.nc-ws-tab-collaborators {
-  :deep(.nc-payment-banner-wrapper) {
-    &.nc-payment-banner-expanded + .nc-collaborator-table-container {
-      @apply !h-[calc(100%-210px)];
-    }
-
-    &:not(.nc-payment-banner-expanded) + .nc-collaborator-table-container {
-      @apply !h-[calc(100%-90px)];
-    }
-  }
 }
 </style>

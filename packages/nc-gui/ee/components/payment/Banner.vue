@@ -11,7 +11,7 @@ const { isPaidPlan, isWsOwner, navigateToPricing } = useEeConfig()
     v-if="!isPaidPlan"
     class="nc-payment-banner-wrapper px-6 pt-6 max-w-[1300px] mx-auto"
     :class="{
-      'nc-payment-banner-expanded': !expanded,
+      'nc-payment-banner-expanded': expanded,
     }"
   >
     <div

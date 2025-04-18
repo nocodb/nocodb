@@ -630,7 +630,6 @@ export class MetaService {
 
     query.count(args?.aggField || 'id', { as: 'count' }).first();
 
-
     return +(await query)?.['count'] || 0;
   }
 

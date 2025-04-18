@@ -6,7 +6,7 @@ const reqLatencyKey = Symbol('reqLatencyKey')
 
 export function addAxiosInterceptors(api: Api<any>) {
   const { setTiming } = useApiTiming()
-  const { getBaseUrl } = useGlobal()
+  const { getBaseUrl, user } = useGlobal()
   const router = useRouter()
 
   addAxiosInterceptorsCE(api)
@@ -54,6 +54,22 @@ export function addAxiosInterceptors(api: Api<any>) {
     },
     // Handle Error
     (error) => {
+      // if 403 and NcErrorType.SSO_LOGIN_REQUIRED error, redirect to sso login page and prefill the email
+      if (error.response?.status === 403 && error.response?.data?.error === NcErrorType.SSO_LOGIN_REQUIRED) {
+        const email = user.value?.email
+        navigateTo(
+          {
+            path: '/sso',
+            query: {
+              email,
+            },
+          },
+          {
+            replace: true,
+          },
+        )
+      }
+
       return Promise.reject(error)
     },
   )

@@ -16,7 +16,8 @@ useSidebar('nc-left-sidebar', { hasSidebar: false })
 const formValidator = ref()
 
 const form = reactive({
-  email: '',
+  // load initial value from query param if provided
+  email: route.value.query?.email || '',
 })
 
 watch(

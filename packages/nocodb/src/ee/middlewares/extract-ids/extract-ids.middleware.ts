@@ -646,7 +646,7 @@ export class AclMiddleware implements NestInterceptor {
       }
     */
 
-    // if workspace associated to an sso, then only allow the workspace owner
+    // if workspace associated to SSO, then only allow the workspace owner
     // to access the workspace without sso login
     if (
       req.ncWorkspaceId &&
@@ -658,7 +658,7 @@ export class AclMiddleware implements NestInterceptor {
         workspaceId: req.ncWorkspaceId,
       });
       if (ssoClient.length > 0) {
-        NcError.forbidden('User access limited to SSO login');
+        NcError.allowedOnlySSOAccess(req.ncWorkspaceId);
       }
     }
 

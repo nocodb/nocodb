@@ -32,6 +32,7 @@ export class SSOClientService {
         await SSOClient.list({
           type: param.client.type,
           orgId: param.orgId,
+          workspaceId: param.workspaceId,
         })
       ).length > 0
     ) {

@@ -19,6 +19,10 @@ const {
   showTopbar,
 } = storeToRefs(useSidebarStore())
 
+const workspaceId = computed(() => {
+  return route.value.params.typeOrId as string
+})
+
 const wrapperRef = ref<HTMLDivElement>()
 
 const animationDuration = 250
@@ -189,7 +193,7 @@ function onResize(widthPercent: any) {
 </script>
 
 <template>
-  <DashboardTopbar v-if="showTopbar" />
+  <DashboardTopbar v-if="showTopbar" :workspace-id="workspaceId" />
   <Splitpanes
     class="nc-sidebar-content-resizable-wrapper !w-screen h-full"
     :class="{

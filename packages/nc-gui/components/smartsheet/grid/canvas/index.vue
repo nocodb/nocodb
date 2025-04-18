@@ -158,7 +158,7 @@ const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
 const { eventBus, isSqlView } = useSmartsheetStoreOrThrow()
 
-const { showRecordPlanLimitExceededModal, navigateToBilling } = useEeConfig()
+const { showRecordPlanLimitExceededModal, navigateToPricing } = useEeConfig()
 
 // Props to Refs
 const totalRows = toRef(props, 'totalRows')
@@ -1282,7 +1282,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       }
 
       if (upgradeModalInlineState.value.isHoveredUpgrade) {
-        return navigateToBilling({ limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE })
+        return navigateToPricing({ limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE })
       }
     }
   }
@@ -1293,7 +1293,6 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
         const elem = _elementMap.findElementAtWithX(x, y, ElementTypes.EDIT_NEW_ROW_METHOD)
 
         if (elem) {
-
           if (prevMenuState.openAddNewRowDropdown?.join('-') === groupPath?.join('-')) {
             isDropdownVisible.value = true
             openAddNewRowDropdown.value = []

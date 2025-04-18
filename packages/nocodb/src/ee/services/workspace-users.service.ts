@@ -35,6 +35,8 @@ import {
 } from '~/helpers/paymentHelpers';
 import { MailEvent } from '~/interface/Mail';
 import { PaymentService } from '~/modules/payment/payment.service';
+import NocoCache from '~/cache/NocoCache';
+import { CacheScope } from '~/utils/globals';
 
 @Injectable()
 export class WorkspaceUsersService {
@@ -200,6 +202,12 @@ export class WorkspaceUsersService {
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
+
+      // rollback cache
+      await NocoCache.del(
+        `${CacheScope.WORKSPACE_USER}:${param.workspaceId}:${param.userId}`,
+      );
+
       throw e;
     }
 
@@ -287,6 +295,8 @@ export class WorkspaceUsersService {
 
     const transaction = await ncMeta.startTransaction();
 
+    const cacheTransaction = [];
+
     try {
       // get all bases workspaceUser is part of and delete them
       const workspaceBases = await Base.listByWorkspace(
@@ -305,12 +315,18 @@ export class WorkspaceUsersService {
           userId,
           transaction,
         );
+
+        cacheTransaction.push(`${CacheScope.BASE_USER}:${base.id}:${userId}`);
       }
 
       const res = await WorkspaceUser.softDelete(
         workspaceId,
         userId,
         transaction,
+      );
+
+      cacheTransaction.push(
+        `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
       );
 
       await this.paymentService.reseatSubscription(
@@ -330,6 +346,10 @@ export class WorkspaceUsersService {
       return res;
     } catch (e) {
       await transaction.rollback();
+
+      // rollback cache
+      await NocoCache.del(cacheTransaction);
+
       throw e;
     }
   }
@@ -571,6 +591,15 @@ export class WorkspaceUsersService {
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
+
+      // rollback cache
+      for (const email of emails) {
+        const user = emailUserMap.get(email);
+        await NocoCache.del(
+          `${CacheScope.WORKSPACE_USER}:${workspaceId}:${user.id}`,
+        );
+      }
+
       throw e;
     }
 

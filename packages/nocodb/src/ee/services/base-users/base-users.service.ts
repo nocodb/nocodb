@@ -23,6 +23,8 @@ import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { checkSeatLimit } from '~/helpers/paymentHelpers';
+import NocoCache from '~/cache/NocoCache';
+import { CacheScope } from '~/utils/globals';
 
 @Injectable()
 export class BaseUsersService extends BaseUsersServiceCE {
@@ -98,6 +100,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
 
     const invite_token = uuidv4();
     const error = [];
+    const emailUserMap = new Map<string, User>();
     const postOperations = [];
 
     const transaction = await ncMeta.startTransaction();
@@ -107,6 +110,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
         // add user to base if user already exist
         const user = await User.getByEmail(email, transaction);
         if (user) {
+          emailUserMap.set(email, user);
           // check if this user has been added to this base
           const baseUser = await BaseUser.get(
             context,
@@ -117,11 +121,9 @@ export class BaseUsersService extends BaseUsersServiceCE {
 
           // if already exists and has a role then return error
           if (baseUser?.is_mapped && baseUser?.roles) {
-            error.push({
-              email,
-              error: `${user.email} with role ${baseUser.roles} already exists in this base`,
-            });
-            continue;
+            throw new Error(
+              `${user.email} with role ${baseUser.roles} already exists in this base`,
+            );
           }
 
           // if user exist and role is not assigned then assign role by updating base user
@@ -247,6 +249,8 @@ export class BaseUsersService extends BaseUsersServiceCE {
             transaction,
           );
 
+          emailUserMap.set(email, user);
+
           await BaseUser.insert(
             context,
             {
@@ -313,6 +317,21 @@ export class BaseUsersService extends BaseUsersServiceCE {
       await Promise.all(postOperations.map((fn) => fn()));
     } catch (e) {
       await transaction.rollback();
+
+      // rollback cache
+      const cacheTransaction = [];
+
+      for (const email of emails) {
+        const user = emailUserMap.get(email);
+        cacheTransaction.push(
+          `${CacheScope.BASE_USER}:${param.baseId}:${user.id}`,
+        );
+        cacheTransaction.push(
+          `${CacheScope.WORKSPACE_USER}:${context.workspace_id}:${user.id}`,
+        );
+      }
+
+      await NocoCache.del(cacheTransaction);
 
       throw e;
     }

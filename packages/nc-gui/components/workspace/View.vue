@@ -188,6 +188,19 @@ watch(
           <WorkspaceAudits v-if="isWsAuditEnabled" />
           <div v-else>&nbsp;</div>
         </a-tab-pane>
+
+        <template v-if="isWorkspaceSsoAvail">
+          <a-tab-pane key="sso" class="w-full">
+            <template #tab>
+              <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
+                <GeneralIcon icon="sso" class="flex-none h-4 w-4" />
+                {{ $t('title.sso') }}
+              </div>
+            </template>
+
+            <WorkspaceSso class="!h-[calc(100vh_-_92px)]" />
+          </a-tab-pane>
+        </template>
       </template>
 
       <template v-if="isUIAllowed('workspaceManage')">

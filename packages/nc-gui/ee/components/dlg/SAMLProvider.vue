@@ -212,7 +212,8 @@ const saveSamlProvider = async () => {
           <a-tabs v-model:activeKey="activeTabKey" class="!pl-0 min-h-53">
             <a-tab-pane key="metaDataURL">
               <template #tab>
-                <div class="text-sm">{{ $t('labels.metadataUrl') }}</div>
+                <div
+                    data-test-id="nc-saml-metadata-url-tab" class="text-sm">{{ $t('labels.metadataUrl') }}</div>
               </template>
               <a-form-item :rules="formRules.metaDataUrl" name="metaDataUrl">
                 <a-input
@@ -225,7 +226,8 @@ const saveSamlProvider = async () => {
             </a-tab-pane>
             <a-tab-pane key="xml">
               <template #tab>
-                <div class="text-sm">XML</div>
+                <div
+                    data-test-id="nc-saml-xml-tab" class="text-sm">XML</div>
               </template>
               <a-form-item :rules="formRules.xml" name="xml">
                 <a-textarea

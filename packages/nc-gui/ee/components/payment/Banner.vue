@@ -58,18 +58,16 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace } = useEeCo
             'flex-row-reverse': !expanded,
             'mt-5': expanded,
           }"
-      >
+        >
           <NcButton
             class="nc-upgrade-plan-btn"
-            type="secondary"
-            size="small"
             data-testid="nc-workspace-settings-upgrade-button"
             inner-class="!gap-2"
             @click.stop="navigateToPricing()"
           >
             <div class="flex items-center gap-1">
               <GeneralIcon icon="ncArrowUpRight" class="h-4 w-4 mt-0.5" />
-              <span>{{ isWsOwner ? 'Upgrade' : $t('general.requestUpgrade') }}</span>
+              <span>{{ isWsOwner ? $t('labels.viewPlans') : $t('general.requestUpgrade') }}</span>
             </div>
           </NcButton>
           <div v-if="isLoyaltyWorkspace">
@@ -86,7 +84,7 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace } = useEeCo
           height="160px"
         />
       </div>
-      <div class="w-[min(495px,45%)] min-w-[405px] flex-none relative">
+      <div class="w-[min(495px,40%)] min-w-[405px] flex-none relative">
         <img :src="isLoyaltyWorkspace ? loyalContentImage : contentImage" alt="Content" />
       </div>
     </div>
@@ -103,7 +101,7 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace } = useEeCo
 
 .nc-payment-banner {
   .nc-upgrade-plan-btn {
-    @apply !bg-blue-200 !hover:bg-blue-300/80 !border-0;
+    @apply !bg-blue-200 !hover:bg-blue-300/80 !text-nc-content-gray-emphasis !border-0 px-2;
   }
 }
 

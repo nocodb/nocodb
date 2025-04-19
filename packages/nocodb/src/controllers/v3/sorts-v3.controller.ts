@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -37,6 +38,7 @@ export class SortsV3Controller {
   }
 
   @Post(`${PREFIX_APIV3_METABASE}/views/:viewId/sorts/`)
+  @HttpCode(200)
   @Acl('sortCreate')
   async sortCreate(
     @TenantContext() context: NcContext,

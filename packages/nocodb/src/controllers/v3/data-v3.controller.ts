@@ -138,6 +138,7 @@ export class Datav3Controller {
   }
 
   @Post([`${PREFIX_APIV3_DATA}/:modelId/links/:columnId/:rowId`])
+  @HttpCode(200)
   @Acl('nestedDataLink')
   async nestedLink(
     @TenantContext() context: NcContext,

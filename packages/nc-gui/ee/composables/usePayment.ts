@@ -297,9 +297,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
         headers: { 'xc-auth': $state.token.value as string },
       })) as Stripe.ApiList<Stripe.Invoice>
 
-      invoices.value = Array(6)
-        .fill(res?.data || [])
-        .flat()
+      invoices.value = res?.data || []
       invoicePaginationData.value = { ...defaultPaginationData, totalRows: invoices.value.length }
     } catch (e: any) {
       console.log(e)

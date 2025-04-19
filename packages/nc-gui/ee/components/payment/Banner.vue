@@ -30,7 +30,7 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace, isPaymentE
       class="nc-payment-banner overflow-hidden relative flex justify-center gap-6 transition-all duration-300 bg-cover bg-no-repeat cursor-pointer"
       :class="{
         'p-4 min-h-[66px]': !expanded,
-        'p-8 min-h-[186px]': expanded,
+        'px-8 py-6 min-h-[168px]': expanded,
         'nc-loyalty-payment-banner': isLoyaltyWorkspace,
       }"
       :style="{
@@ -67,7 +67,7 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace, isPaymentE
             @click.stop="navigateToPricing()"
           >
             <template #icon>
-              <GeneralIcon icon="ncArrowUpRight" />
+              <GeneralIcon icon="ncArrowUpRight" class="!transition-none" />
             </template>
             {{ isWsOwner ? $t('labels.viewPlans') : $t('general.requestUpgrade') }}
           </NcButton>

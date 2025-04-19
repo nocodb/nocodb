@@ -146,7 +146,8 @@
     "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
     "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
     "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
-    "freePlanEditorLimitTooltip": "The free plan allows upto {limit} Editor type users, upgrade to get unlimited"
+    "freePlanEditorLimitTooltip": "The free plan allows upto {limit} Editor type users, upgrade to get unlimited",
+    "adjustCollaboratorRoles": "Adjust Collaborator Roles"
   },
   "general": {
     "supported": "Supported",

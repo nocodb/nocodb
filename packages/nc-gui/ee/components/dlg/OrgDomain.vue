@@ -111,14 +111,13 @@ const saveDomain = async () => {
             </div>
           </div>
 
-          <NcAlert type="info" class="mt-3 mb-2">
-            <template #description>
-              <div class="text-nc-content-gray-subtle2">
-                Please be advised that DNS record changes may require up to 48 hours to fully propagate. If verification fails,
-                kindlyretry after allowing sufficient time for propagation.
-              </div>
-            </template>
-          </NcAlert>
+          <NcAlert
+            type="info"
+            class="mt-3 mb-2"
+            message="Domain Verification may take up to 48 hours"
+            description="DNS record changes require up to 48 hours to fully propagate. If verification fails, kindly retry after allowing
+              sufficient time for propagation."
+          />
 
           <div class="flex justify-end gap-2 mt-8">
             <NcButton size="medium" type="secondary" @click="dialogShow = false">

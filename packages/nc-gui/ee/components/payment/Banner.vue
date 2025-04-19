@@ -1,89 +1,91 @@
 <script lang="ts" setup>
 import bgImage from '~/assets/img/upgrade-bg.png'
+import loyalBgImage from '~/assets/img/loyalty-bg.png'
+import contentImage from '~/assets/img/upgrade-banner-content.png'
+import loyalContentImage from '~/assets/img/loyal-upgrade-banner-content.png'
+import moscotImage from '~/assets/img/upgrade-banner-moscot.png'
+import loyalMoscotImage from '~/assets/img/loyal-upgrade-banner-moscot.png'
 
-const _props = defineProps<{
-  expanded?: boolean
-}>()
+const _props = withDefaults(
+  defineProps<{
+    expanded?: boolean
+  }>(),
+  {
+    expanded: true,
+  },
+)
 
-const { isPaidPlan, isWsOwner, navigateToPricing } = useEeConfig()
+const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace } = useEeConfig()
 </script>
 
 <template>
   <div
     v-if="!isPaidPlan"
-    class="nc-payment-banner-wrapper"
+    class="nc-payment-banner-wrapper z-1"
     :class="{
       'nc-payment-banner-expanded': expanded,
     }"
   >
     <div
-      class="nc-payment-banner overflow-hidden relative flex gap-6 transition-all duration-300"
+      class="nc-payment-banner overflow-hidden relative flex gap-6 transition-all duration-300 bg-cover bg-no-repeat"
       :class="{
         'p-4 min-h-[66px]': !expanded,
-        'p-6 min-h-[186px]': expanded,
+        'p-8 min-h-[186px]': expanded,
+        'nc-loyalty-payment-banner': isLoyaltyWorkspace,
       }"
       :style="{
-        'background-image': `url(${bgImage})`,
+        'background-image': `url(${isLoyaltyWorkspace ? loyalBgImage : bgImage})`,
         'background-color': 'rgba(255, 255, 255, 0.7)',
         'background-blend-mode': 'overlay',
       }"
     >
       <div
-        class="flex"
+        class="flex flex-1"
         :class="{
           'justify-between w-full': !expanded,
           'flex-col': expanded,
         }"
       >
-        <div class="text-xl font-weight-700 text-nc-content-gray leading-[32px]">{{ $t('title.getMoreFromNocodb') }}</div>
+        <div class="text-xl font-weight-700 text-nc-content-gray leading-[32px]">
+          {{ isLoyaltyWorkspace ? $t('title.loyaltyBannerTitle') : $t('title.getMoreFromNocodb') }}
+        </div>
         <div v-if="expanded" class="mt-2">
-          {{ $t('title.getMoreFromNocodbSubtitle') }}
+          {{ isLoyaltyWorkspace ? $t('title.loyaltyBannerSubtitle') : $t('title.getMoreFromNocodbSubtitle') }}
         </div>
         <div
-          class="flex gap-2"
+          class="flex gap-2 items-center"
           :class="{
             'flex-row-reverse': !expanded,
             'mt-5': expanded,
           }"
         >
           <NcButton
-            class="nc-upgrade-plan-btn !bg-blue-200 !border-0"
-            type="secondary"
-            size="small"
+            class="nc-upgrade-plan-btn"
             data-testid="nc-workspace-settings-upgrade-button"
             inner-class="!gap-2"
             @click.stop="navigateToPricing()"
           >
             <div class="flex items-center gap-1">
               <GeneralIcon icon="ncArrowUpRight" class="h-4 w-4 mt-0.5" />
-              <span>{{ isWsOwner ? 'Upgrade' : $t('general.requestUpgrade') }}</span>
+              <span>{{ isWsOwner ? $t('labels.viewPlans') : $t('general.requestUpgrade') }}</span>
             </div>
           </NcButton>
-          <div class="!no-underline">
-            <NcButton
-              type="text"
-              size="small"
-              data-testid="nc-workspace-settings-view-all-plan-btn"
-              @click.stop="navigateToPricing({ autoScroll: 'planDetails', newTab: true })"
-            >
-              {{ $t('labels.viewAllPlanDetails') }}
-            </NcButton>
+          <div v-if="isLoyaltyWorkspace">
+            <PaymentExpiresIn end-time="2025-04-30" hide-icon class="!bg-transparent text-nc-content-purple-dark" />
           </div>
         </div>
       </div>
-      <div v-if="expanded" class="w-[60%] flex items-end justify-end relative -my-6 -mr-7">
-        <div class="absolute top-6 left-0 border-t-1 border-l-1 rounded-tl-lg overflow-hidden bg-nc-bg-gray-medium min-w-[500px]">
-          <img class="!rounded-rl-lg" src="~assets/img/kanban-view.png" alt="Upgrade Your Workspace" />
-        </div>
-        <div class="absolute -bottom-[28px] overflow-hidden">
-          <img
-            class="!rounded-rl-lg nc-finance-img"
-            src="~assets/img/finance.png"
-            alt="Upgrade Your Workspace"
-            height="126px"
-            width="133px"
-          />
-        </div>
+      <div class="w-[154px] hidden xl:block">
+        <img
+          :src="isLoyaltyWorkspace ? loyalMoscotImage : moscotImage"
+          class="absolute -bottom-0"
+          alt="Moscot"
+          width="154px"
+          height="160px"
+        />
+      </div>
+      <div class="w-[min(495px,40%)] min-w-[405px] flex-none relative">
+        <img :src="isLoyaltyWorkspace ? loyalContentImage : contentImage" alt="Content" />
       </div>
     </div>
   </div>
@@ -94,6 +96,18 @@ const { isPaidPlan, isWsOwner, navigateToPricing } = useEeConfig()
   .nc-finance-img {
     -webkit-transform: scaleX(-1);
     transform: scaleX(-1);
+  }
+}
+
+.nc-payment-banner {
+  .nc-upgrade-plan-btn {
+    @apply !bg-blue-200 !hover:bg-blue-300/80 !text-nc-content-gray-emphasis !border-0 px-2;
+  }
+}
+
+.nc-loyalty-payment-banner {
+  .nc-upgrade-plan-btn {
+    @apply !bg-purple-200 !hover:bg-purple-300/80 !border-0 text-nc-content-purple-dark;
   }
 }
 </style>

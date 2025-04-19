@@ -111,11 +111,13 @@ const saveDomain = async () => {
             </div>
           </div>
 
-          <div class="nc-txt-verification-info">
-            <GeneralIcon icon="info" />
-            Please be advised that DNS record changes may require up to 48 hours to fully propagate. If verification fails, kindly
-            retry after allowing sufficient time for propagation.
-          </div>
+          <NcAlert
+            type="info"
+            class="mt-3 mb-2"
+            message="Domain Verification may take up to 48 hours"
+            description="DNS record changes require up to 48 hours to fully propagate. If verification fails, kindly retry after allowing
+              sufficient time for propagation."
+          />
 
           <div class="flex justify-end gap-2 mt-8">
             <NcButton size="medium" type="secondary" @click="dialogShow = false">
@@ -153,9 +155,5 @@ const saveDomain = async () => {
   .nc-form-step-content-wrapper {
     @apply p-3;
   }
-}
-
-.nc-txt-verification-info {
-  @apply p-3 border-1 border-nc-border-gray-medium mt-3 mb-2 rounded-lg font-weight-medium;
 }
 </style>

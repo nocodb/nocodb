@@ -63,16 +63,14 @@ const accountUrl = computed(() => {
     <div class="flex items-center justify-between">
       <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
         <div
-          class="flex flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-gray-200 rounded-lg cursor-pointer h-8"
+          class="nc-user-icon-wrapper border-1 w-8 h-8 flex-none rounded-full overflow-hidden transition-all duration-300 cursor-pointer"
+          :class="{
+            'border-nc-gray-medium': !isMenuOpen,
+            'active border-primary shadow-selected': isMenuOpen,
+          }"
           data-testid="nc-sidebar-userinfo"
         >
-          <NcTooltip class="max-w-32 truncate" show-on-truncate-only>
-            <template #title>
-              {{ name ? name : user?.email }}
-            </template>
-
-            <GeneralUserIcon :user="user" size="medium" />
-          </NcTooltip>
+          <GeneralUserIcon :user="user" size="medium" class="!w-full !h-full !min-w-full cursor-pointer" />
         </div>
         <template #overlay>
           <NcMenu data-testid="nc-sidebar-userinfo" variant="small">
@@ -129,6 +127,15 @@ const accountUrl = computed(() => {
     .social-icon {
       filter: none !important;
     }
+  }
+}
+
+.nc-user-icon-wrapper {
+  &:not(.active):hover {
+    box-shadow: 0px 12px 16px -4px rgba(0, 0, 0, 0.1), 0px 4px 6px -2px rgba(0, 0, 0, 0.06);
+  }
+  :deep(img) {
+    @apply !cursor-pointer;
   }
 }
 </style>

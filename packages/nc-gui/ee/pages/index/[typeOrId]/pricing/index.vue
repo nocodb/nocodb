@@ -167,8 +167,8 @@ const openNewTab = (url: string) => {
           </h1>
           <span v-if="activePlan" class="text-base text-nc-content-gray-muted"
             >The {{ activeWorkspace?.title || 'Workspace' }} workspace is currently on the
-            {{ activePlan.title === PlanTitles.FREE ? '' : activeSubscription?.period === 'month' ? 'monthly ' : 'yearly '
-            }}{{ activePlan.title }} plan.</span
+            {{ activePlan.title === PlanTitles.FREE ? '' : activeSubscription?.period === 'month' ? 'monthly ' : 'yearly ' }}
+            {{ activePlan.title }} plan.</span
           >
         </div>
         <PaymentLoyaltyBadge v-if="isLoyaltyWorkspace" class="my-4" />
@@ -1875,7 +1875,7 @@ const openNewTab = (url: string) => {
                         box-sizing: border-box;
                       "
                       @click="openNewTab('https://cal.com/nocodb')"
-                      >Get Quota</a
+                      >Get a Quote</a
                     >
                   </div>
                 </div>
@@ -3481,7 +3481,7 @@ const openNewTab = (url: string) => {
                         box-sizing: border-box;
                       "
                       @click="openNewTab('https://cal.com/nocodb')"
-                      >Get Quota</a
+                      >Get a Quote</a
                     >
                   </div>
                 </div>

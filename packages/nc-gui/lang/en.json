@@ -112,7 +112,7 @@
     "updateToAddRecordFormViewSubtitle": "You’ve reached the limit for number of records on your {activePlan} plan. Upgrade to increase your record limit.",
     "updateToExtendRecordHistory": "Upgrade to extend your history",
     "updateToExtendRecordHistorySubtitle": "The {activePlan} plan allows up to {period} of audit history. Upgrade to the {plan} plan to increase your audit history period.",
-    "planLimitReached": "Plan limit reached",
+    "planLimitReached": "Limit reached: Upgrade Plan",
     "planLimitReachedSubtitle": "Upgrade to add more records",
     "upgradeToAddLimitRecordSelection": "To limit record selection using filters, please upgrade to the {plan} plan.",
     "upgradeToAdd": "Upgrade to add",
@@ -146,7 +146,10 @@
     "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
     "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
     "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
-    "freePlanEditorLimitTooltip": "The free plan allows upto {limit} Editor type users, upgrade to get unlimited"
+    "freePlanEditorLimitTooltip": "The free plan allows upto {limit} Editor type users, upgrade to get unlimited",
+    "adjustCollaboratorRoles": "Adjust Collaborator Roles",
+    "newEditorWillBeChanged": "New Editors will be charged",
+    "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle."
   },
   "general": {
     "supported": "Supported",
@@ -781,8 +784,10 @@
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
     "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
     "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration.",
-    "getMoreFromNocodb": "Get more from NocoDB",
-    "getMoreFromNocodbSubtitle": "Unlock extra records, more storage, SSO, integrations, Audit logs, and more!",
+    "getMoreFromNocodb": "More editors, more impact — Upgrade to Team",
+    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "loyaltyBannerTitle": "Loyalty pays off — enjoy capped pricing!",
+    "loyaltyBannerSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
     "currentPlan": "Current Plan",
     "seatMonth": "/seat/month",
     "mostPopular": "Most Popular",
@@ -1285,7 +1290,8 @@
     "downloadInvoice": "Download Invoice",
     "proceed": "Proceed",
     "editorSeat": "Editor seat",
-    "editorSeats": "Editor seats"
+    "editorSeats": "Editor seats",
+    "viewPlans": "View Plans"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

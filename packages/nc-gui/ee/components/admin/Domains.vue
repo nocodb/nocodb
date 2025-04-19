@@ -81,29 +81,28 @@ onMounted(async () => {
             <template #overlay>
               <NcMenu variant="small">
                 <NcMenuItem data-test-id="nc-domain-verify" @click="verifyDomain(domain.id)">
-                  <div class="flex flex-row items-center">
-                    <component :is="iconMap.check" class="text-gray-800" />
-                    <span class="text-gray-800 ml-2"> {{ $t('general.verify') }} </span>
-                  </div>
+                  <GeneralIcon icon="check" class="flex-none w-4 h-4" />
+                  {{ $t('general.verify') }}
                 </NcMenuItem>
                 <NcMenuItem data-test-id="nc-domain-edit" @click="enableEdit(domain)">
-                  <div class="flex flex-row items-center">
-                    <component :is="iconMap.edit" class="text-gray-800" />
-                    <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
-                  </div>
+                  <GeneralIcon icon="edit" class="flex-none w-4 h-4" />
+                  {{ $t('general.edit') }}
                 </NcMenuItem>
                 <NcDivider />
-                <NcMenuItem data-test-id="nc-domain-delete" @click="deleteDomain(domain.id)">
-                  <div class="text-red-500">
-                    <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />
-                    {{ $t('general.delete') }}
-                  </div>
+                <NcMenuItem
+                  data-test-id="nc-domain-delete"
+                  class="!text-red-500 !hover:bg-red-50"
+                  @click="deleteDomain(domain.id)"
+                >
+                  <GeneralIcon icon="delete" />
+                  {{ $t('general.delete') }}
                 </NcMenuItem>
               </NcMenu>
             </template>
           </NcDropdown>
         </div>
       </template>
+
       <div class="flex justify-end">
         <NcButton
           :disabled="populatingDomain"

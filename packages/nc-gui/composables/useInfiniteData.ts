@@ -1454,7 +1454,6 @@ export function useInfiniteData(args: {
       const whereFilter = await callbacks?.getWhereFilter?.(row.rowMeta?.path, true)
       const index = groupByColumns.value.findIndex((c) => c.column.title === property) ?? 0
 
-
       const { filters: allGroupFilter } = extractFilterFromXwhere(
         { api_version: NcApiVersion.V1 },
         whereFilter ?? '',

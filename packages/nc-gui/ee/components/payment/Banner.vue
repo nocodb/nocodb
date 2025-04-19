@@ -15,12 +15,12 @@ const _props = withDefaults(
   },
 )
 
-const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace } = useEeConfig()
+const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace, isPaymentEnabled } = useEeConfig()
 </script>
 
 <template>
   <div
-    v-if="!isPaidPlan"
+    v-if="isPaymentEnabled && !isPaidPlan"
     class="nc-payment-banner-wrapper z-1"
     :class="{
       'nc-payment-banner-expanded': expanded,

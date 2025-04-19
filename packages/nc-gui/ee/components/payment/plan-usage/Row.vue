@@ -18,10 +18,6 @@ withDefaults(
   <div v-if="variant === 'table'" class="nc-current-plan-table-row">
     <div class="nc-current-plan-table-cell nc-cell-label">
       <slot name="label"> </slot>
-
-      <NcTooltip v-if="showWarningStatus" :disabled="!tooltip" :title="tooltip" class="flex">
-        <GeneralIcon icon="ncAlertTriangle" class="text-nc-content-red-dark cursor-pointer" />
-      </NcTooltip>
     </div>
     <div
       class="nc-current-plan-table-cell nc-cell-value"
@@ -30,6 +26,9 @@ withDefaults(
       }"
     >
       <slot name="value"> </slot>
+      <NcTooltip v-if="showWarningStatus" :disabled="!tooltip" :title="tooltip" class="flex">
+        <GeneralIcon icon="ncAlertTriangle" class="text-nc-content-red-dark cursor-pointer" />
+      </NcTooltip>
     </div>
   </div>
   <div v-else class="nc-current-plan-banner-row">

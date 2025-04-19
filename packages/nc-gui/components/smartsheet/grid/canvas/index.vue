@@ -2360,9 +2360,10 @@ defineExpose({
               :class="{
                 'px-[0.550rem]': !noPadding && !editEnabled.fixed,
                 'px-[0.49rem]': editEnabled.fixed,
-                'top-[0.5px]': isClamped.isStuck,
-                'top-[2.5px] left-[2.5px] ': isGroupBy && !editEnabled.fixed,
-                'top-[2.5px] left-[2px] ': isGroupBy && editEnabled.fixed,
+                'top-[0.5px]': isGroupBy && isClamped.isStuck,
+                'top-[2.5px]': isGroupBy,
+                'left-[2.5px] ': isGroupBy && !editEnabled.fixed,
+                'left-[2px] ': isGroupBy && editEnabled.fixed,
                 'left-[-1px] top-[2px]': !isGroupBy && isClamped.isStuck,
                 'left-[2px] top-[3.5px]': !isGroupBy && !isClamped.isStuck,
               }"

@@ -19,7 +19,7 @@ export function useDataFetch({
   chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
   cachedRows: Ref<Map<number, Row>>
   clearCache: (start: number, end: number) => void
-  loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
+  loadData: (params?: any, shouldShowLoading?: boolean, path?: Array<number>) => Promise<Array<Row>>
   rowSlice: Ref<{ start: number; end: number }>
   totalRows: Ref<number>
   triggerRefreshCanvas: () => void
@@ -71,7 +71,7 @@ export function useDataFetch({
       chunkStates.value[chunkId + 1] = 'loading'
     }
     try {
-      const newItems = await loadData({ offset, limit })
+      const newItems = await loadData({ offset, limit }, undefined, [])
       newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
       chunkStates.value[chunkId] = 'loaded'
       if (isInitialLoad) {
@@ -99,7 +99,7 @@ export function useDataFetch({
 
     group.forEach((chunkId) => (chunkStates.value[chunkId] = 'loading'))
     try {
-      const newItems = await loadData({ offset, limit })
+      const newItems = await loadData({ offset, limit }, undefined, [])
       newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
       group.forEach((chunkId) => (chunkStates.value[chunkId] = 'loaded'))
     } catch (error) {

@@ -64,7 +64,7 @@ export function useCanvasTable({
   chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
   totalRows: Ref<number>
   actualTotalRows: Ref<number>
-  loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
+  loadData: (params?: any, shouldShowLoading?: boolean, path?: Array<number>) => Promise<Array<Row>>
   scrollLeft: Ref<number>
   scrollTop: Ref<number>
   width: Ref<number>

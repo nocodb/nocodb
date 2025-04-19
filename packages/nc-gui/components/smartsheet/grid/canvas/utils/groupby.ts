@@ -216,7 +216,7 @@ export function calculateGroupRowTop(
   let top = GROUP_PADDING
   let currentGroups = groups
 
-  if (path.length === 0 || !path) {
+  if (!path || path.length === 0) {
     return rowIndex * rowHeight
   }
 

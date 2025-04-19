@@ -50,7 +50,7 @@ const props = defineProps<{
     }
   >
   rowHeightEnum?: number
-  loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
+  loadData: (params?: any, shouldShowLoading?: boolean, path?: Array<number>) => Promise<Array<Row>>
   callAddEmptyRow?: (
     newRowIndex?: number,
     metaValue?: TableType,

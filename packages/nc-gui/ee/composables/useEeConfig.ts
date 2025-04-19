@@ -1,4 +1,4 @@
-import { GRACE_PERIOD_DURATION, HigherPlan, NON_SEAT_ROLES, PlanOrder, PlanTitles } from 'nocodb-sdk'
+import { GRACE_PERIOD_DURATION, HigherPlan, LOYALTY_END_DATE, NON_SEAT_ROLES, PlanOrder, PlanTitles } from 'nocodb-sdk'
 import {
   PlanFeatureTypes,
   type PlanLimitExceededDetailsType,
@@ -41,6 +41,12 @@ export const useEeConfig = createSharedComposable(() => {
   const activePlanTitle = computed(() => (activePlan.value?.title as PlanTitles) ?? PlanTitles.FREE)
 
   const activeSubscription = computed(() => activeWorkspace.value?.payment?.subscription)
+
+  const isLoyaltyWorkspace = computed(() => {
+    if (!activeWorkspace.value) return false
+
+    return dayjs(activeWorkspace.value.created_at).isBefore(LOYALTY_END_DATE)
+  })
 
   const isPaymentEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.PAYMENT))
 
@@ -635,5 +641,6 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToSeeMoreRecordsModal,
     navigateToPricing,
     navigateToCheckout,
+    isLoyaltyWorkspace,
   }
 })

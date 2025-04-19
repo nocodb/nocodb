@@ -24,6 +24,7 @@ import { columnTypeName } from './utils/headerUtils'
 import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType, parseCellWidth } from './utils/cell'
 import {
   ADD_NEW_COLUMN_WIDTH,
+  AGGREGATION_HEIGHT,
   COLUMN_HEADER_HEIGHT_IN_PX,
   GROUP_HEADER_HEIGHT,
   GROUP_PADDING,
@@ -387,10 +388,19 @@ const fixedLeftWidth = computed(() => {
 })
 
 const isClamped = computed(() => {
-  if (!editEnabled.value || !containerRef.value) return false
+  if (!editEnabled.value || !containerRef.value)
+    return {
+      verticalStuck: false,
+      horizontalStuck: false,
+      isStuck: false,
+    }
 
   if (editEnabled.value.column?.uidt === UITypes.LongText || editEnabled.value.column?.uidt === UITypes.Formula) {
-    return true
+    return {
+      verticalStuck: true,
+      horizontalStuck: true,
+      isStuck: true,
+    }
   }
 
   const rawTop = editEnabled.value.y - scrollTop.value - rowHeight.value + 1
@@ -408,7 +418,11 @@ const isClamped = computed(() => {
     horizontalStuck = clampedLeft !== rawLeft
   }
 
-  return verticalStuck || horizontalStuck
+  return {
+    verticalStuck,
+    horizontalStuck,
+    isStuck: verticalStuck || horizontalStuck,
+  }
 })
 
 const editEnabledCellPosition = computed(() => {
@@ -420,8 +434,11 @@ const editEnabledCellPosition = computed(() => {
   }
 
   const top = Math.max(
-    32,
-    Math.min(containerRef.value?.clientHeight - rowHeight.value - 36, editEnabled.value.y - scrollTop.value - rowHeight.value),
+    COLUMN_HEADER_HEIGHT_IN_PX - 1,
+    Math.min(
+      containerRef.value?.clientHeight - rowHeight.value - AGGREGATION_HEIGHT,
+      editEnabled.value.y - scrollTop.value - rowHeight.value,
+    ),
   )
 
   const left = editEnabled.value.fixed
@@ -432,8 +449,8 @@ const editEnabledCellPosition = computed(() => {
       )
 
   return {
-    top: `${top + (isClamped.value && !isGroupBy.value ? 1 : 0)}px`,
-    left: `${left}px`,
+    top: `${top + (isClamped.value.horizontalStuck && !isGroupBy.value ? 1 : 0)}px`,
+    left: `${left + (isClamped.value.isStuck && editEnabled.value?.fixed ? -1 : 0)}px`,
   }
 })
 
@@ -2339,17 +2356,20 @@ defineExpose({
               willChange: 'top, left, width, height',
             }"
             class="nc-canvas-table-editable-cell-wrapper pointer-events-auto"
-            :class="{ [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped }"
+            :class="{ [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped.isStuck }"
           >
             <div
               ref="activeCellElement"
-              class="relative left-[2.5px] w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-white"
+              class="relative w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-white"
               :class="{
                 'px-[0.550rem]': !noPadding && !editEnabled.fixed,
                 'px-[0.49rem]': editEnabled.fixed,
-                'top-[0.5px] left-[-1px]': isClamped,
-                'top-[3.5px]': !isGroupBy,
+                'top-[0.5px]': isGroupBy && isClamped.isStuck,
                 'top-[2.5px]': isGroupBy,
+                'left-[2.5px] ': isGroupBy && !editEnabled.fixed,
+                'left-[2px] ': isGroupBy && editEnabled.fixed,
+                'left-[-1px] top-[2px]': !isGroupBy && isClamped.isStuck,
+                'left-[2px] top-[3.5px]': !isGroupBy && !isClamped.isStuck,
               }"
               @click="cellClickHook.trigger($event)"
             >

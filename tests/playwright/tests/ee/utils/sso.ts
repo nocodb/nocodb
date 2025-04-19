@@ -33,7 +33,7 @@ export const startOpenIDIdp = async (env = {}) => {
 
       openIDChildProcess.stderr.on('data', function (data) {
         console.log(data.toString());
-        reject(data);
+        reject(data.toString());
       });
 
       // set a timeout to reject promise if not resolved
@@ -83,7 +83,7 @@ export const startSAMLIdp = async (env = {}) => {
 
       samlChildProcess.stdout.on('error', function (data) {
         console.log('error: ' + data.toString());
-        reject(data);
+        reject(data.toString());
       });
 
       // set a timeout to reject promise if not resolved

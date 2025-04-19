@@ -21,7 +21,7 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace } = useEeCo
 <template>
   <div
     v-if="!isPaidPlan"
-    class="nc-payment-banner-wrapper z-0"
+    class="nc-payment-banner-wrapper z-1"
     :class="{
       'nc-payment-banner-expanded': expanded,
     }"
@@ -58,7 +58,7 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace } = useEeCo
             'flex-row-reverse': !expanded,
             'mt-5': expanded,
           }"
-        >
+      >
           <NcButton
             class="nc-upgrade-plan-btn"
             type="secondary"
@@ -86,7 +86,7 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace } = useEeCo
           height="160px"
         />
       </div>
-      <div class="w-[min(495px,40%)] min-w-[405px] flex-none relative">
+      <div class="w-[min(495px,45%)] min-w-[405px] flex-none relative">
         <img :src="isLoyaltyWorkspace ? loyalContentImage : contentImage" alt="Content" />
       </div>
     </div>

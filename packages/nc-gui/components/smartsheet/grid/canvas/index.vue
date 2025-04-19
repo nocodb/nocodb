@@ -23,7 +23,8 @@ import Scroller from './components/Scroller.vue'
 import { columnTypeName } from './utils/headerUtils'
 import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType, parseCellWidth } from './utils/cell'
 import {
-  ADD_NEW_COLUMN_WIDTH, AGGREGATION_HEIGHT,
+  ADD_NEW_COLUMN_WIDTH,
+  AGGREGATION_HEIGHT,
   COLUMN_HEADER_HEIGHT_IN_PX,
   GROUP_HEADER_HEIGHT,
   GROUP_PADDING,
@@ -434,7 +435,10 @@ const editEnabledCellPosition = computed(() => {
 
   const top = Math.max(
     COLUMN_HEADER_HEIGHT_IN_PX - 1,
-    Math.min(containerRef.value?.clientHeight - rowHeight.value - AGGREGATION_HEIGHT, editEnabled.value.y - scrollTop.value - rowHeight.value),
+    Math.min(
+      containerRef.value?.clientHeight - rowHeight.value - AGGREGATION_HEIGHT,
+      editEnabled.value.y - scrollTop.value - rowHeight.value,
+    ),
   )
 
   const left = editEnabled.value.fixed

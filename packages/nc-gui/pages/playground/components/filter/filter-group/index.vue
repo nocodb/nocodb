@@ -42,7 +42,7 @@ const onRowChange = (event) => {
 </script>
 
 <template>
-  <div class="bg-gray-100">
+  <div class="bg-gray-100 pb-8 overflow-y-auto">
     <a-card>
       <h4>Simple</h4>
 
@@ -119,6 +119,35 @@ const onRowChange = (event) => {
         @change="onChange"
         @row-change="onRowChange"
       />
+    </div>
+    <a-card>
+      <h4>Custom toolbar (root only)</h4>
+    </a-card>
+    <div class="p-4">
+      <SmartsheetToolbarFilterGroup
+        v-model="filters"
+        :index="options1.index"
+        :nested-level="options1.nestedLevel"
+        :columns="columns"
+        :disabled="options1.disabled"
+        :is-locked-view="options1.isLockedView"
+        :is-logical-op-change-allowed="options1.isLogicalOpChangeAllowed"
+        :action-btn-type="options1.actionBtnType"
+        :web-hook="options1.webHook"
+        :link="options1.link"
+        :is-form="options1.isForm"
+        :is-public="options1.isPublic"
+        :filter-per-view-limit="options1.filterPerViewLimit"
+        :disable-add-new-filter="options1.disableAddNewFilter"
+        :filters-count="options1.filtersCount"
+        :query-filter="options1.queryFilter"
+        @change="onChange"
+        @row-change="onRowChange"
+      >
+        <template #root-header>
+          <div>Hello</div>
+        </template>
+      </SmartsheetToolbarFilterGroup>
     </div>
   </div>
 </template>

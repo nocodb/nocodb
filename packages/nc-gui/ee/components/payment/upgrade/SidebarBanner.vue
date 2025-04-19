@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { isRecordLimitReached, isStorageLimitReached, gracePeriodDaysLeft, navigateToPricing } = useEeConfig()
+const { isRecordLimitReached, isStorageLimitReached, gracePeriodDaysLeft, navigateToBilling, isWsOwner } = useEeConfig()
 </script>
 
 <template>
@@ -7,7 +7,7 @@ const { isRecordLimitReached, isStorageLimitReached, gracePeriodDaysLeft, naviga
     v-if="isRecordLimitReached || isStorageLimitReached"
     class="-mx-1 px-2 pb-2 pt-1.5 border-b border-nc-border-gray-medium pointer-events-none"
   >
-    <NcButton @click="navigateToPricing()" class="nc-upgrade-sidebar-banner w-full !h-auto">
+    <NcButton @click="navigateToBilling()" class="nc-upgrade-sidebar-banner w-full !h-auto">
       <div class="flex flex-col items-center gap-2">
         <div class="flex items-center gap-2">
           <GeneralIcon icon="alertTriangleSolid" class="nc-alert-icon text-white h-5 w-5" />

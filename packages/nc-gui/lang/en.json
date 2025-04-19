@@ -147,7 +147,9 @@
     "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
     "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "The free plan allows upto {limit} Editor type users, upgrade to get unlimited",
-    "adjustCollaboratorRoles": "Adjust Collaborator Roles"
+    "adjustCollaboratorRoles": "Adjust Collaborator Roles",
+    "newEditorWillBeChanged": "New Editors will be charged",
+    "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle."
   },
   "general": {
     "supported": "Supported",

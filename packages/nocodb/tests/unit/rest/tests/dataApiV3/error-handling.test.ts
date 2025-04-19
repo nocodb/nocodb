@@ -224,7 +224,7 @@ describe('dataApiV3', () => {
         status: 422,
       });
       expect(response.body.message).to.eq(
-        `INVALID_FILTER column 'NotFoundField' not found`,
+        `Invalid filter column 'NotFoundField' not found`,
       );
     });
 

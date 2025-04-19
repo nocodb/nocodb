@@ -44,10 +44,6 @@ const onCheckout = (planTitle: string) => {
 
   if (!plan) return
 
-  if (activeSubscription.value?.period === paymentMode.value) {
-    paymentMode.value = paymentMode.value === 'month' ? 'year' : 'month'
-  }
-
   onSelectPlan(plan)
 }
 
@@ -95,7 +91,6 @@ const openNewTab = (url: string) => {
 </script>
 
 <template>
-  <LazyPaymentPlansUpgradePlanModal />
   <div class="overflow-visible">
     <section style="padding-right: 24px; padding-left: 24px; gap: 16px; box-sizing: border-box; display: block">
       <div
@@ -636,7 +631,6 @@ const openNewTab = (url: string) => {
                     </div>
                     <div
                       v-if="activePlan?.title === PlanTitles.FREE"
-                      href="#"
                       style="
                         height: 40px;
                         margin-top: 24px;
@@ -1098,7 +1092,6 @@ const openNewTab = (url: string) => {
                     </div>
                     <div
                       v-if="activePlan?.title === PlanTitles.TEAM && activeSubscription.period === paymentMode"
-                      href="#"
                       style="
                         height: 40px;
                         margin-top: 24px;
@@ -1571,7 +1564,6 @@ const openNewTab = (url: string) => {
                     </div>
                     <div
                       v-if="activePlan?.title === PlanTitles.BUSINESS && activeSubscription.period === paymentMode"
-                      href="#"
                       style="
                         height: 40px;
                         margin-top: 24px;
@@ -2218,7 +2210,6 @@ const openNewTab = (url: string) => {
                     </div>
                     <div
                       v-if="activePlan?.title === PlanTitles.FREE"
-                      href="#"
                       style="
                         height: 40px;
                         margin-top: 24px;
@@ -3151,7 +3142,6 @@ const openNewTab = (url: string) => {
                     </div>
                     <div
                       v-if="activePlan?.title === PlanTitles.BUSINESS && activeSubscription.period === paymentMode"
-                      href="#"
                       style="
                         height: 40px;
                         margin-top: 24px;
@@ -13987,6 +13977,7 @@ const openNewTab = (url: string) => {
         </div>
       </div>
     </section>
+    <LazyPaymentPlansUpgradePlanModal />
   </div>
 </template>
 

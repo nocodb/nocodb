@@ -16,14 +16,8 @@ const activeWorkspace = computed(() =>
   workspaceId.value ? workspacesList.value.find((w) => w.id === workspaceId.value)! : _activeWorkspace.value!,
 )
 
-const {
-  paymentState,
-  workspaceSeatCount,
-  activeSubscription,
-  onManageSubscription: _onManageSubscription,
-  plansAvailable,
-  updateSubscription,
-} = usePaymentStoreOrThrow()
+const { paymentState, workspaceSeatCount, activeSubscription, onManageSubscription, plansAvailable, updateSubscription } =
+  usePaymentStoreOrThrow()
 
 const { getLimit, getStatLimit, activePlanTitle, navigateToPricing } = useEeConfig()
 
@@ -137,14 +131,6 @@ const apiCallsInfo = computed(() => {
   }
 })
 
-const isLoadingManageSubscription = ref(false)
-
-const onManageSubscription = async () => {
-  isLoadingManageSubscription.value = true
-  await _onManageSubscription()
-  isLoadingManageSubscription.value = false
-}
-
 const confirmOpen = ref(false)
 
 const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
@@ -232,15 +218,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         </NcBadge>
       </div>
       <div class="flex gap-2">
-        <NcButton
-          v-if="activeSubscription"
-          type="secondary"
-          size="small"
-          inner-class="!gap-2"
-          class="!text-nc-content-brand"
-          :loading="isLoadingManageSubscription"
-          @click="onManageSubscription"
-        >
+        <NcButton v-if="activeSubscription" type="link" size="small" class="!hover:underline" @click="onManageSubscription">
           {{ $t('labels.manageSubscription') }}
         </NcButton>
         <NcButton v-if="activeSubscription" type="primary" size="small" inner-class="!gap-1" @click="navigateToPricing()">

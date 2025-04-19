@@ -5,10 +5,8 @@ import {
   Heading,
   Html,
   Preview,
-  Section,
   Text,
 } from '@react-email/components';
-import { getUpgradeMessage } from 'nocodb-sdk';
 import * as React from 'react';
 import {
   ContentWrapper,
@@ -27,35 +25,30 @@ interface WorkspaceRequestUpgradeTemplateProps {
 export const WorkspaceRequestUpgrade = ({
   workspaceTitle,
   name,
-  email,
+  email: _email,
   link,
-  limitOrFeature,
+  limitOrFeature: _limitOrFeature,
 }: WorkspaceRequestUpgradeTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
-      <Preview>Upgrade Request For {workspaceTitle}</Preview>
+      <Preview>
+        {name} Requested To Upgrade '{workspaceTitle}' Workspace
+      </Preview>
       <Body className="bg-white">
         <ContentWrapper>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
-            Upgrade Request For {workspaceTitle} workspace
+            {name} Requested To Upgrade '{workspaceTitle}' Workspace
           </Heading>
 
           <Text className="text-gray-600 text-center text-sm !my-6">
-            <span className="font-bold text-gray-800">{`${name} `}</span>
-            {email ? `(${email}) ` : ''}
-            has requested an upgrade for the
-            <span className="font-semibold text-gray-800">
-              {' '}
-              {workspaceTitle}{' '}
-            </span>
-            workspace {getUpgradeMessage(limitOrFeature)}
+            Activate the upgrade to remove limits and power up your entire team.
           </Text>
           <Button
             className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10"
             href={link}
           >
-            <Text className="!my-[8px]">Upgrade</Text>
+            <Text className="!my-[8px]">Continue to upgrade</Text>
           </Button>
         </ContentWrapper>
         <Footer />

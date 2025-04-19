@@ -1056,7 +1056,7 @@ export function useCanvasTable({
     const rowIndex = row.rowMeta.rowIndex + 1!
     const path = row.rowMeta.path
 
-    if (!path) return
+    if (isGroupBy.value && !path && !path?.legth) return
 
     const yOffset =
       calculateGroupRowTop(cachedGroups.value, path, rowIndex, rowHeight.value, isAddingEmptyRowAllowed.value) +

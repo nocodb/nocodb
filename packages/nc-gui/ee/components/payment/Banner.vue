@@ -1,9 +1,6 @@
 <script lang="ts" setup>
-import bgImage from '~/assets/img/upgrade-bg.png'
 import loyalBgImage from '~/assets/img/loyalty-bg.png'
-import contentImage from '~/assets/img/upgrade-banner-content.png'
 import loyalContentImage from '~/assets/img/loyal-upgrade-banner-content.png'
-import moscotImage from '~/assets/img/upgrade-banner-moscot.png'
 import loyalMoscotImage from '~/assets/img/loyal-upgrade-banner-moscot.png'
 
 const _props = withDefaults(
@@ -27,14 +24,13 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace, isPaymentE
     }"
   >
     <div
-      class="nc-payment-banner overflow-hidden relative flex justify-center gap-6 transition-all duration-300 bg-cover bg-no-repeat cursor-pointer"
+      class="nc-payment-banner overflow-hidden relative flex justify-center gap-6 transition-all duration-300 bg-cover bg-no-repeat cursor-pointer nc-loyalty-payment-banner"
       :class="{
         'p-4 min-h-[66px]': !expanded,
         'px-8 py-6 min-h-[168px]': expanded,
-        'nc-loyalty-payment-banner': isLoyaltyWorkspace,
       }"
       :style="{
-        'background-image': `url(${isLoyaltyWorkspace ? loyalBgImage : bgImage})`,
+        'background-image': `url(${loyalBgImage})`,
         'background-color': 'rgba(255, 255, 255, 0.7)',
         'background-blend-mode': 'overlay',
       }"
@@ -78,16 +74,10 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace, isPaymentE
         </div>
       </div>
       <div class="w-[154px] hidden xl:block">
-        <img
-          :src="isLoyaltyWorkspace ? loyalMoscotImage : moscotImage"
-          class="absolute -bottom-0"
-          alt="Moscot"
-          width="154px"
-          height="160px"
-        />
+        <img :src="loyalMoscotImage" class="absolute -bottom-0" alt="Moscot" width="154px" height="160px" />
       </div>
       <div class="w-[min(495px,40%)] min-w-[405px] flex-none relative">
-        <img :src="isLoyaltyWorkspace ? loyalContentImage : contentImage" alt="Content" />
+        <img :src="loyalContentImage" alt="Content" />
       </div>
     </div>
   </div>

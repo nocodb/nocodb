@@ -124,7 +124,7 @@ watch(
       <div
         class="p-6 pb-16 flex flex-col gap-8 min-w-[740px] w-full"
         :class="{
-          'max-w-250 mx-auto': paymentState !== PaymentState.PAYMENT,
+          'max-w-[1200px] mx-auto': paymentState !== PaymentState.PAYMENT,
         }"
       >
         <template v-if="!paymentInitiated">

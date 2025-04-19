@@ -7,6 +7,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const activeSubscription = computed(() => undefined)
 
+  const isLoyaltyWorkspace = computed(() => undefined)
+
   const isPaymentEnabled = computed(() => undefined)
 
   const blockAddNewRecord = computed(() => false)
@@ -101,5 +103,6 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToSeeMoreRecordsModal,
     navigateToPricing,
     navigateToCheckout,
+    isLoyaltyWorkspace
   }
 })

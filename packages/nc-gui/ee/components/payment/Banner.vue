@@ -101,15 +101,30 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace } = useEeCo
   }
 }
 
+.nc-upgrade-plan-btn {
+  @apply !border-0 px-2 !font-semibold !rounded-lg;
+}
+
 .nc-payment-banner {
   .nc-upgrade-plan-btn {
-    @apply !bg-blue-200 !hover:bg-blue-300/80 !text-nc-content-gray-emphasis !border-0 px-2;
+    @apply !bg-blue-200 !hover:bg-blue-300/80 !text-nc-content-gray-emphasis;
+  }
+
+  &:hover {
+    .nc-upgrade-plan-btn {
+      @apply !bg-blue-500 !hover:bg-blue-600 !text-white;
+    }
   }
 }
 
 .nc-loyalty-payment-banner {
   .nc-upgrade-plan-btn {
-    @apply !bg-purple-200 !hover:bg-purple-300/80 !border-0 text-nc-content-purple-dark;
+    @apply !bg-purple-200 !hover:bg-purple-300/80 !text-nc-content-purple-dark;
+  }
+  &:hover {
+    .nc-upgrade-plan-btn {
+      @apply !bg-purple-500 !hover:bg-purple-600 !text-white;
+    }
   }
 }
 </style>

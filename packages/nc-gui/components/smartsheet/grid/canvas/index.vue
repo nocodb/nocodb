@@ -387,10 +387,19 @@ const fixedLeftWidth = computed(() => {
 })
 
 const isClamped = computed(() => {
-  if (!editEnabled.value || !containerRef.value) return false
+  if (!editEnabled.value || !containerRef.value)
+    return {
+      verticalStuck: false,
+      horizontalStuck: false,
+      isStuck: false,
+    }
 
   if (editEnabled.value.column?.uidt === UITypes.LongText || editEnabled.value.column?.uidt === UITypes.Formula) {
-    return true
+    return {
+      verticalStuck: true,
+      horizontalStuck: true,
+      isStuck: true,
+    }
   }
 
   const rawTop = editEnabled.value.y - scrollTop.value - rowHeight.value + 1
@@ -411,7 +420,7 @@ const isClamped = computed(() => {
   return {
     verticalStuck,
     horizontalStuck,
-    isStuck: verticalStuck || horizontalStuck
+    isStuck: verticalStuck || horizontalStuck,
   }
 })
 
@@ -436,7 +445,7 @@ const editEnabledCellPosition = computed(() => {
       )
 
   return {
-    top: `${top + (isClamped.value.horizontalStuck && !isGroupBy.value ? 1 : 0 )}px`,
+    top: `${top + (isClamped.value.horizontalStuck && !isGroupBy.value ? 1 : 0)}px`,
     left: `${left + (isClamped.value.isStuck && editEnabled.value?.fixed ? -1 : 0)}px`,
   }
 })

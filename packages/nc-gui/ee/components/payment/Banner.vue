@@ -27,7 +27,7 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace } = useEeCo
     }"
   >
     <div
-      class="nc-payment-banner overflow-hidden relative flex gap-6 transition-all duration-300 bg-cover bg-no-repeat"
+      class="nc-payment-banner overflow-hidden relative flex justify-center gap-6 transition-all duration-300 bg-cover bg-no-repeat cursor-pointer"
       :class="{
         'p-4 min-h-[66px]': !expanded,
         'p-8 min-h-[186px]': expanded,
@@ -38,9 +38,10 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace } = useEeCo
         'background-color': 'rgba(255, 255, 255, 0.7)',
         'background-blend-mode': 'overlay',
       }"
+      @click.stop="navigateToPricing()"
     >
       <div
-        class="flex flex-1"
+        class="flex"
         :class="{
           'justify-between w-full': !expanded,
           'flex-col': expanded,

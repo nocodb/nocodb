@@ -120,7 +120,7 @@ watch(
     @scroll.passive="handleScroll"
   >
     <PaymentBanner class="sticky top-0 z-10" />
-    <div class="nc-content-max-w">
+    <div>
       <div
         class="p-6 pb-16 flex flex-col gap-8 min-w-[740px] w-full"
         :class="{

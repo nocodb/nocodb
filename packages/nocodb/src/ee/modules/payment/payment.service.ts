@@ -7,7 +7,10 @@ import type { NcRequest } from '~/interface/config';
 import { Org, Plan, Subscription, Workspace, WorkspaceUser } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
-import { getWorkspaceOrOrg } from '~/helpers/paymentHelpers';
+import {
+  calculateUnitPrice,
+  getWorkspaceOrOrg,
+} from '~/helpers/paymentHelpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
@@ -275,7 +278,7 @@ export class PaymentService {
         },
       ],
       ui_mode: 'embedded',
-      return_url: `${req.ncSiteUrl}/?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}&isAccountPage=${isAccountPage}`,
+      return_url: `http://localhost:3000/?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}&isAccountPage=${isAccountPage}`,
       automatic_tax: {
         enabled: true,
       },
@@ -525,7 +528,12 @@ export class PaymentService {
         // If the new price or plan is higher upgrade immediately (invoice now with prorations) + reset billing cycle
         if (
           !existingPrice ||
-          price.unit_amount > existingPrice.unit_amount ||
+          calculateUnitPrice(price, seatCount, price.recurring.interval) >
+            calculateUnitPrice(
+              existingPrice,
+              seatCount,
+              existingPrice.recurring.interval as 'month' | 'year',
+            ) ||
           PlanOrder[plan.title] > PlanOrder[existingPlan.title]
         ) {
           updatedSubscription = await stripe.subscriptions.update(
@@ -812,7 +820,7 @@ export class PaymentService {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: workspaceOrOrg.stripe_customer_id,
-      return_url: `${req.ncSiteUrl}?afterManage=true&workspaceId=${
+      return_url: `http://localhost:3000?afterManage=true&workspaceId=${
         workspaceOrOrg.id
       }&isAccountPage=${req.query.isAccountPage ?? true}`,
     });

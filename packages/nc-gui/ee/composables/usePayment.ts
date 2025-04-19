@@ -1,7 +1,6 @@
 import { type StripeCheckoutSession } from '@stripe/stripe-js'
 import dayjs from 'dayjs'
-import { LOYALTY_END_DATE, LoyaltyPriceLookupKeyMap, PlanOrder, PlanPriceLookupKeys, PlanTitles } from 'nocodb-sdk'
-import NcModalConfirm from '../../components/nc/ModalConfirm.vue'
+import { LOYALTY_END_DATE, LoyaltyPriceLookupKeyMap, PlanPriceLookupKeys, PlanTitles } from 'nocodb-sdk'
 
 export interface PaymentPlan {
   id: string
@@ -42,15 +41,11 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const selectedPlan = ref<PaymentPlan | null>(null)
 
-  const upgradePlan = ref<PaymentPlan | null>(null)
-
   const workspaceSeatCount = ref<number>(1)
 
   const plansAvailable = ref<PaymentPlan[]>([])
 
   const isAccountPage = ref<boolean>(false)
-
-  const isOpenUpgradePlanModal = ref<boolean>(false)
 
   const isLoyaltyWorkspace = computed(() => {
     if (!activeWorkspace.value) return false
@@ -103,8 +98,6 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
           '1,000 API calls per month',
         ],
       })
-
-      paymentMode.value = activeSubscription.value?.period || 'year'
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -177,11 +170,12 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     } else if (price.billing_scheme === 'tiered' && price.tiers_mode === 'graduated') {
       let remainingSeats = workspaceSeatCount.value
       let total = 0
+      let previousUpTo = 0
 
       for (const tier of price.tiers) {
         const tierLimit = tier.up_to ?? Infinity
         const tierSeats = Math.min(remainingSeats, tierLimit)
-        const seatsInTier = tierSeats - (tier.previous_up_to ?? 0)
+        const seatsInTier = tierSeats - (previousUpTo ?? 0)
 
         if (seatsInTier > 0) {
           total += tier.unit_amount + (tier.flat_amount || 0)
@@ -189,6 +183,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
         }
 
         if (tier.up_to === null || tier.up_to === 'inf' || workspaceSeatCount.value <= tierLimit) break
+
+        previousUpTo = tierLimit
       }
 
       return total / 100 / (mode === 'year' ? 12 : 1)
@@ -296,102 +292,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     paymentMode.value = val
   }
 
-  const calculateChange = (plan: PaymentPlan) => {
-    if (!activeSubscription.value) return {}
-
-    const changes: {
-      plan?: string
-      price?: string
-      period?: string
-      change?: 'upgrade' | 'downgrade'
-    } = {}
-
-    if (activeSubscription.value.fk_plan_id !== plan.id) {
-      changes.plan = plan.title
-    }
-
-    const activePrice = activePlan.value?.prices?.find((price: any) => price.id === activeSubscription.value.fk_price_id)
-
-    const newPrice = getPrice(plan, paymentMode.value)
-
-    if (activePrice?.id !== newPrice?.id) {
-      changes.price = newPrice?.unit_amount > activePrice?.unit_amount ? 'charges' : 'no-charges'
-    }
-
-    if (activeSubscription.value.period !== paymentMode.value) {
-      changes.period = paymentMode.value
-    }
-
-    changes.change = PlanOrder[activePlan.value?.title as PlanTitles] < PlanOrder[plan.title] ? 'upgrade' : 'downgrade'
-
-    return changes
-  }
-
   const onSelectPlan = (plan: PaymentPlan) => {
-    if (!activeSubscription.value) {
-      navigateToCheckout(plan.id, paymentMode.value, 'billing')
-    } else {
-      const changes = calculateChange(plan)
-
-      let title = ''
-      let content = ''
-      let okText = ''
-
-      if (changes.change === 'upgrade') {
-        title = `${t('title.upgradeToPlan', { plan: changes.plan })}?`
-        content = t('title.upgradeToPlanSubtitle', { plan: changes.plan })
-        okText = t('general.upgrade')
-
-        upgradePlan.value = plan
-
-        isOpenUpgradePlanModal.value = true
-
-        return
-      } else if (changes.change === 'downgrade') {
-        if (changes.plan) {
-          title = t('title.downgradeToPlan', { plan: changes.plan })
-          content = t('title.downgradeToPlanSubtitle', { activePlan: activePlan.value?.title, plan: changes.plan })
-          okText = t('general.downgrade')
-        } else {
-          title = 'Update Subscription'
-          content = `${
-            changes.price === 'charges' ? 'Charges' : 'No charges'
-          } will be applied immediately. Your billing cycle will switch to ${
-            changes.period === 'month' ? 'monthly' : 'annually'
-          }${changes.price === 'charges' ? '' : ' at the end of the current period'}.`
-          okText = t('general.update')
-        }
-      }
-
-      const isOpen = ref(true)
-      const { close } = useDialog(NcModalConfirm, {
-        'visible': isOpen,
-        'title': title,
-        'content': content,
-        'okText': okText,
-        'onCancel': closeDialog,
-        'onOk': async () => {
-          closeDialog()
-
-          if (changes.plan === PlanTitles.FREE) {
-            await cancelSubscription()
-          } else {
-            await updateSubscription(plan.id)
-          }
-        },
-        'update:visible': closeDialog,
-        'showIcon': false,
-        'focusBtn': 'ok',
-        'keyboard': true,
-        'maskClosable': true,
-        'okClass': '!outline-none',
-      })
-
-      function closeDialog() {
-        isOpen.value = false
-        close(1000)
-      }
-    }
+    navigateToCheckout(plan.id, paymentMode.value)
   }
 
   watch(
@@ -430,9 +332,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     getCustomerPortalSession,
     isAccountPage,
     onManageSubscription,
-    isOpenUpgradePlanModal,
     isLoyaltyWorkspace,
-    upgradePlan,
   }
 }, 'injected-payment-store')
 

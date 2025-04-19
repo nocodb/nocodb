@@ -243,14 +243,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         >
           {{ $t('labels.manageSubscription') }}
         </NcButton>
-        <NcButton
-          v-if="activeSubscription"
-          type="primary"
-          size="small"
-          icon-position="right"
-          inner-class="!gap-2"
-          @click="navigateToPricing()"
-        >
+        <NcButton v-if="activeSubscription" type="primary" size="small" inner-class="!gap-1" @click="navigateToPricing()">
           <template #icon>
             <GeneralIcon icon="ncArrowUpRight" />
           </template>

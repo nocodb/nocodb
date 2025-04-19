@@ -62,14 +62,15 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace } = useEeCo
           <NcButton
             class="nc-upgrade-plan-btn"
             data-testid="nc-workspace-settings-upgrade-button"
-            inner-class="!gap-2"
+            inner-class="!gap-1"
             @click.stop="navigateToPricing()"
           >
-            <div class="flex items-center gap-1">
-              <GeneralIcon icon="ncArrowUpRight" class="h-4 w-4 mt-0.5" />
-              <span>{{ isWsOwner ? $t('labels.viewPlans') : $t('general.requestUpgrade') }}</span>
-            </div>
+            <template #icon>
+              <GeneralIcon icon="ncArrowUpRight" />
+            </template>
+            {{ isWsOwner ? $t('labels.viewPlans') : $t('general.requestUpgrade') }}
           </NcButton>
+
           <div v-if="isLoyaltyWorkspace">
             <PaymentExpiresIn end-time="2025-04-30" hide-icon class="!bg-transparent text-nc-content-purple-dark" />
           </div>

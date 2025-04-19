@@ -12,9 +12,7 @@ import { CloudSAMLLoginPage } from '../../pages/OrgAdmin/SAMLLoginPage';
 const getDomain = () => `test-${Math.random().toString(36).substring(7)}.nocodb.com`;
 
 // TODO: ENABLE - FAILS ON CI ONLY
-test.describe.serial.only('SSO', () => {
-  // test.skip();
-
+test.describe.serial('SSO', () => {
   test.describe.serial('CRUD', () => {
     let accountsPage: AccountPage;
     let context: any;

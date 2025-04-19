@@ -118,6 +118,7 @@ export class CloudSSO extends BasePage {
       await requestContext.dispose();
     }
     if (p.xml) {
+      await samlModal.locator('[data-test-id="nc-saml-xml-tab"]').click();
       await samlModal.locator('[data-test-id="nc-saml-xml"]').fill(p.xml);
     }
 

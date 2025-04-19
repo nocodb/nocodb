@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { isVirtualCol } from 'nocodb-sdk'
-import type { ClientType, UITypes } from 'nocodb-sdk'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import type { ClientType } from 'nocodb-sdk'
 import { SmartsheetToolbarFilterFieldListDropdownLite } from '#components'
 
 interface Props {
@@ -50,6 +50,7 @@ const logicalOps = [
 
 // #region utils & computed
 const slots = useSlots()
+const filterPrevComparisonOp = ref('')
 
 const slotHasChildren = (name?: string) => {
   return (slots[name ?? 'default']?.()?.length ?? 0) > 0
@@ -69,8 +70,11 @@ const column = computed(() => {
 
 const comparisonOps = computed(() => {
   const evalColumn = column.value
+  if (!evalColumn) {
+    return []
+  }
   const evalUidt = (evalColumn?.filterUidt ?? evalColumn?.uidt) as UITypes
-  const list = comparisonOpList(evalUidt).filter((compOp) =>
+  const list = comparisonOpList(evalUidt, parseProp(evalColumn?.meta)?.date_format).filter((compOp) =>
     isComparisonOpAllowed(vModel.value, compOp, evalUidt, props.showNullAndEmptyInFilter),
   )
   return list
@@ -158,6 +162,44 @@ const onLogicalOpChange = (logical_op: string) => {
 const onComparisonOpChange = (comparison_op: string) => {
   const prevValue = vModel.value.comparison_op
   vModel.value.comparison_op = comparison_op as any
+  const filter = vModel.value
+
+  const col = column.value
+  if (col) {
+    // adjust value and sub op
+    if (
+      col.uidt === UITypes.SingleSelect &&
+      ['anyof', 'nanyof'].includes(filterPrevComparisonOp.value) &&
+      ['eq', 'neq'].includes(filter.comparison_op!)
+    ) {
+      // anyof and nanyof can allow multiple selections,
+      // while `eq` and `neq` only allow one selection
+      filter.value = null
+    } else if (['blank', 'notblank', 'empty', 'notempty', 'null', 'notnull'].includes(filter.comparison_op!)) {
+      // since `blank`, `empty`, `null` doesn't require value,
+      // hence remove the previous value
+      filter.value = null
+      filter.comparison_sub_op = null
+    } else if (isDateType((col.filterUidt ?? col.uidt) as UITypes)) {
+      // for date / datetime,
+      // the input type could be decimal or datepicker / datetime picker
+      // hence remove the previous value
+      filter.value = null
+      if (
+        !comparisonSubOpList(filter.comparison_op!, parseProp(col?.meta)?.date_format)
+          .map((op) => op.value)
+          .includes(filter.comparison_sub_op!)
+      ) {
+        if (filter.comparison_op === 'isWithin') {
+          filter.comparison_sub_op = 'pastNumberOfDays'
+        } else {
+          filter.comparison_sub_op = 'exactDate'
+        }
+      }
+    }
+  }
+  filterPrevComparisonOp.value = vModel.value.comparison_op!
+
   emits('change', {
     filter: { ...vModel.value },
     type: 'comparison_op',

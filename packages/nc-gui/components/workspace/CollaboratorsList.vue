@@ -5,6 +5,7 @@ import {
   PlanLimitTypes,
   PlanTitles,
   WorkspaceUserRoles,
+  HigherPlan,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -22,7 +23,8 @@ const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspac
 
 const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading } = storeToRefs(workspaceStore)
 
-const { isPaymentEnabled, showUserPlanLimitExceededModal, activePlanTitle, getLimit } = useEeConfig()
+const { isPaymentEnabled, showUserPlanLimitExceededModal, activePlanTitle, getLimit, isWsOwner, navigateToPricing } =
+  useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
   if (props.workspaceId) {
@@ -48,16 +50,16 @@ const { t } = useI18n()
 
 const inviteDlg = ref(false)
 
+const topSectionRef = ref<HTMLDivElement>()
+
+const { height: toSectionHeight } = useElementSize(topSectionRef)
+
 const filterCollaborators = computed(() => {
   if (!userSearchText.value) return collaborators.value ?? []
 
   if (!collaborators.value) return []
 
-  return collaborators.value.filter(
-    (collab) =>
-      collab.display_name?.toLowerCase().includes(userSearchText.value.toLowerCase()) ||
-      collab.email?.toLowerCase().includes(userSearchText.value.toLowerCase()),
-  )
+  return collaborators.value.filter((collab) => searchCompare([collab.display_name, collab.email], userSearchText.value))
 })
 
 const selected = reactive<{
@@ -74,7 +76,18 @@ const sortedCollaborators = computed(() => {
   return handleGetSortedData(filterCollaborators.value, sorts.value)
 })
 
-const paidUsersCount = computed(() => sortedCollaborators.value.filter((c) => !!parseProp(c?.meta).billable).length)
+const paidUsersCount = computed(() => (collaborators.value || []).filter((c) => !!parseProp(c?.meta).billable).length)
+
+const nonPaidUsersCount = computed(() => {
+  return (collaborators.value || []).length - paidUsersCount.value
+})
+
+const showUpgradeAlert = computed(() => {
+  return (
+    (isPaymentEnabled.value && paidUsersCount.value > getLimit(PlanLimitTypes.LIMIT_EDITOR)) ||
+    nonPaidUsersCount.value > getLimit(PlanLimitTypes.LIMIT_COMMENTER)
+  )
+})
 
 const selectAll = computed({
   get: () =>
@@ -206,10 +219,44 @@ const isDeleteOrUpdateAllowed = (user) => {
     }"
     :style="`${height ? `height: ${height}` : ''}`"
   >
-    <div class="h-full nc-content-max-w">
-      <PaymentBanner v-if="!isAdminPanel && isPaymentEnabled" class="mb-0" />
-
-      <div class="nc-collaborator-table-wrapper max-w-[1300px] mx-auto py-6 px-6 flex flex-col gap-6">
+    <div ref="topSectionRef">
+      <PaymentBanner class="sticky top-0 z-10" />
+      <div v-if="showUpgradeAlert" class="nc-content-max-w px-6 pt-6">
+        <NcAlert
+          type="error"
+          class="max-w-[1252px] mx-auto"
+          :message="$t('upgrade.adjustCollaboratorRoles')"
+          :description="
+            $t('upgrade.UpgradeToInviteMoreSubtitle', {
+              activePlan: activePlanTitle,
+              editors: getLimit(PlanLimitTypes.LIMIT_EDITOR),
+              commenters: getLimit(PlanLimitTypes.LIMIT_COMMENTER),
+              plan: HigherPlan[activePlanTitle],
+            })
+          "
+        >
+          <template #action>
+            <NcButton
+              type="text"
+              size="small"
+              class="!text-nc-content-brand !font-700"
+              @click="
+                navigateToPricing({
+                  limitOrFeature:
+                    paidUsersCount > getLimit(PlanLimitTypes.LIMIT_EDITOR)
+                      ? PlanLimitTypes.LIMIT_EDITOR
+                      : PlanLimitTypes.LIMIT_COMMENTER,
+                })
+              "
+            >
+              {{ isWsOwner ? 'Upgrade' : $t('general.requestUpgrade') }}
+            </NcButton>
+          </template>
+        </NcAlert>
+      </div>
+    </div>
+    <div :style="{ height: `calc(100% - ${toSectionHeight}px)` }" class="nc-content-max-w">
+      <div class="nc-collaborator-table-wrapper h-full max-w-[1300px] mx-auto py-6 px-6 flex flex-col gap-6">
         <div class="w-full flex items-center justify-between gap-3">
           <a-input
             v-model:value="userSearchText"
@@ -423,17 +470,5 @@ const isDeleteOrUpdateAllowed = (user) => {
 <style scoped lang="scss">
 .badge-text {
   @apply text-[14px] pt-1 text-center;
-}
-
-.nc-collaborator-table-container {
-  &:has(.nc-payment-banner-wrapper) {
-    .nc-collaborator-table-wrapper {
-      @apply !h-[calc(100%-90px)];
-    }
-  }
-
-  .nc-collaborator-table-wrapper {
-    @apply h-full;
-  }
 }
 </style>

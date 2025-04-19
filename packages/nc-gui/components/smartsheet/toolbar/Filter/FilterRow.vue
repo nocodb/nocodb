@@ -218,7 +218,16 @@ async function onResetDynamicField() {
   })
 }
 const onChangeToDynamic = async () => {
-  vModel.value.dynamic = isDynamicFilterAllowed(vModel.value) && showFilterInput.value
+  const prevValue = vModel.value.dynamic
+  vModel.value.dynamic = isDynamicFilterAllowed(vModel.value, column.value, props.dbClientType) && showFilterInput.value
+
+  emits('change', {
+    filter: { ...vModel.value },
+    type: 'dynamic',
+    prevValue,
+    value: vModel.value.dynamic,
+    index: props.index,
+  })
 }
 // #endregion
 </script>
@@ -365,6 +374,20 @@ const onChangeToDynamic = async () => {
               />
             </div>
 
+            <SmartsheetToolbarFilterInputLite
+              v-else
+              v-bind="inputValueProps"
+              class="nc-filter-value-select rounded-md min-w-34"
+              :class="{
+                '!w-full': webHook,
+              }"
+              :column="column"
+              :filter="vModel"
+              :disabled="isDisabled"
+              :db-client-type="dbClientType"
+              @update-filter-value="(value) => onValueChange(value)"
+              @click.stop
+            />
             <template v-if="link">
               <NcDropdown
                 class="nc-settings-dropdown h-full flex items-center min-w-0 rounded-lg"
@@ -421,20 +444,6 @@ const onChangeToDynamic = async () => {
                 </template>
               </NcDropdown>
             </template>
-            <SmartsheetToolbarFilterInputLite
-              v-else
-              v-bind="inputValueProps"
-              class="nc-filter-value-select rounded-md min-w-34"
-              :class="{
-                '!w-full': webHook,
-              }"
-              :column="column"
-              :filter="vModel"
-              :disabled="isDisabled"
-              :db-client-type="dbClientType"
-              @update-filter-value="(value) => onValueChange(value)"
-              @click.stop
-            />
           </template>
           <div v-else class="flex-grow"></div>
         </div>

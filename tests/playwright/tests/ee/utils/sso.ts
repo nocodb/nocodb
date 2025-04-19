@@ -32,8 +32,13 @@ export const startOpenIDIdp = async (env = {}) => {
       });
 
       openIDChildProcess.stderr.on('data', function (data) {
-        console.log(data.toString());
-        reject(data.toString());
+        const log = data.toString();
+        console.log(log);
+
+        // skip warning logs
+        if (log.includes('WARNING:')) return resolve(null);
+
+        reject(log);
       });
 
       // set a timeout to reject promise if not resolved

@@ -26,7 +26,7 @@ const oidcConfig = {
     post_logout_redirect_uris: [config.CLIENT_LOGOUT_REDIRECT_URI]
   }],
   cookies:{
-    keys: ['dummy_keys']
+    keys: ['dummy_key']
   },
   async findAccount (ctx, id) {
     return {

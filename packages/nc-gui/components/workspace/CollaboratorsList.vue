@@ -281,7 +281,7 @@ const isDeleteOrUpdateAllowed = (user) => {
         <NcAlert
           v-if="showUpgradeAlert"
           ref="tableHeaderSectionRef"
-          type="error"
+          type="warning"
           class=""
           :message="$t('upgrade.adjustCollaboratorRoles')"
           :description="

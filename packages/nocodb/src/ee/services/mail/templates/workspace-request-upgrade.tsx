@@ -38,14 +38,10 @@ export const WorkspaceRequestUpgrade = ({
       <Body className="bg-white">
         <ContentWrapper>
           <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
-            Upgrade Request For {workspaceTitle}
+            Upgrade Request For {workspaceTitle} workspace
           </Heading>
-          <Section className="py-6 text-center">
-            <span className="font-bold text-gray-900 text-base">
-              Upgrade Reason
-            </span>
-          </Section>
-          <Text className="text-gray-600 text-center text-sm !mb-6 !mt-0">
+
+          <Text className="text-gray-600 text-center text-sm !my-6">
             <span className="font-bold text-gray-800">{`${name} `}</span>
             {email ? `(${email}) ` : ''}
             has requested an upgrade for the

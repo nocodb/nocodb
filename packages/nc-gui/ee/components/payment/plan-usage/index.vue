@@ -294,7 +294,9 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
               : $t('objects.currentPlan.numberOfBilledUsers')
           }}
         </template>
-        <template #value>{{ workspaceSeatCount }} </template>
+        <template #value
+          >{{ workspaceSeatCount }} of {{ formatTotalLimit(getLimit(PlanLimitTypes.LIMIT_EDITOR)) }} editors</template
+        >
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow
         :plan-meta="activePlanMeta"
@@ -306,7 +308,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
             {{ $t('objects.records') }}
           </span>
         </template>
-        <template #value> {{ recordInfo.value }}/{{ recordInfo.total }} </template>
+        <template #value> {{ recordInfo.value }} of {{ recordInfo.total }} records</template>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow
         :plan-meta="activePlanMeta"
@@ -314,7 +316,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         :tooltip="storageInfo.tooltip"
       >
         <template #label> {{ $t('objects.currentPlan.storageUsedGB') }} </template>
-        <template #value> {{ storageInfo.value }}/{{ storageInfo.total }} </template>
+        <template #value> {{ storageInfo.value }} GB of {{ storageInfo.total }} GB attachments </template>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow
         :plan-meta="activePlanMeta"
@@ -322,7 +324,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         :tooltip="automationInfo.tooltip"
       >
         <template #label> {{ $t('objects.currentPlan.webhookCallsMonthly') }} </template>
-        <template #value> {{ automationInfo.value }}/{{ automationInfo.total }} </template>
+        <template #value> {{ automationInfo.value }} of {{ automationInfo.total }} webhook calls per month </template>
       </PaymentPlanUsageRow>
       <PaymentPlanUsageRow
         :plan-meta="activePlanMeta"
@@ -330,7 +332,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         :tooltip="apiCallsInfo.tooltip"
       >
         <template #label> {{ $t('objects.currentPlan.apiCallsMonthly') }} </template>
-        <template #value> {{ apiCallsInfo.value }}/{{ apiCallsInfo.total }} </template>
+        <template #value> {{ apiCallsInfo.value }} of {{ apiCallsInfo.total }} API calls per month </template>
       </PaymentPlanUsageRow>
     </div>
   </div>

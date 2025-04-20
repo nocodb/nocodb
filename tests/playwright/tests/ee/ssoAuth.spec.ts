@@ -275,6 +275,9 @@ test.describe.serial('SSO', () => {
     });
 
     test.afterEach(async () => {
+      await orgAdminPage.ssoPage.domain.deleteDomain(domain).catch(() => {
+        // do nothing
+      });
       await unsetup(context);
       await stopSAMLIpd();
     });

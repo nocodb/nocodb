@@ -411,7 +411,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       );
     }
 
-    // if old role is owner and there is only one owner then restrict to update
+    // if old role is owner and there is only one owner then restrict update
     if (extractRolesObj(targetUser.base_roles)?.[ProjectRoles.OWNER]) {
       const baseUsers = await BaseUser.getUsersList(
         context,

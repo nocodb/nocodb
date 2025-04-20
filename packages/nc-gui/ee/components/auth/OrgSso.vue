@@ -80,7 +80,7 @@ function resetError() {
     data-testid="nc-form-signin"
     class="md:bg-primary bg-opacity-5 signin h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin"
   >
-    <template v-if="!appInfo.isCloud">
+    <template v-if="!appInfo.isCloud && appInfo.ssoClients?.length">
       <div
         v-for="client of appInfo.ssoClients || []"
         :key="client.id"

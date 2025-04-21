@@ -6,7 +6,7 @@ const reqLatencyKey = Symbol('reqLatencyKey')
 
 export function addAxiosInterceptors(api: Api<any>) {
   const { setTiming } = useApiTiming()
-  const { getBaseUrl, user } = useGlobal()
+  const { getBaseUrl } = useGlobal()
   const router = useRouter()
 
   addAxiosInterceptorsCE(api)
@@ -53,28 +53,15 @@ export function addAxiosInterceptors(api: Api<any>) {
       return response
     },
     // Handle Error
-    (error) => {
+    async (error) => {
       // if 403 and NcErrorType.SSO_LOGIN_REQUIRED error, redirect to sso login page and prefill the email
       if (error.response?.status === 403 && error.response?.data?.error === NcErrorType.SSO_LOGIN_REQUIRED) {
-        const email = user.value?.email
-
         const workspaceStore = useWorkspace()
 
-        workspaceStore.ssoLoginRequiredDlg.value = true
+        workspaceStore.toggleSsoLoginRequiredDlg(true)
 
-        navigateTo(
-          {
-            path: '/sso',
-            query: {
-              email,
-            },
-          },
-          {
-            replace: true,
-          },
-        )
-
-        return Promise.reject(new Error('SSO login required'))
+        // return Promise.reject(new Error('SSO login required'))
+        await until(() => !workspaceStore.ssoLoginRequiredDlg).toBeTruthy() // Promise.resolve({} as any) // resolve the promise to prevent the error from bubbling up
       }
 
       return Promise.reject(error)

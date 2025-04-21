@@ -82,9 +82,11 @@ const nonPaidUsersCount = computed(() => {
   return (collaborators.value || []).length - paidUsersCount.value
 })
 
+const showBanner = false
+
 const showUpgradeAlert = computed(() => {
   return (
-    (isPaymentEnabled.value && paidUsersCount.value > getLimit(PlanLimitTypes.LIMIT_EDITOR)) ||
+    (showBanner && isPaymentEnabled.value && paidUsersCount.value > getLimit(PlanLimitTypes.LIMIT_EDITOR)) ||
     nonPaidUsersCount.value > getLimit(PlanLimitTypes.LIMIT_COMMENTER)
   )
 })
@@ -255,7 +257,7 @@ const isDeleteOrUpdateAllowed = (user) => {
         </NcAlert>
       </div>
     </div>
-    <div :style="{ height: `calc(100% - ${toSectionHeight}px)` }" >
+    <div :style="{ height: `calc(100% - ${toSectionHeight}px)` }">
       <div class="nc-collaborator-table-wrapper h-full max-w-[1300px] mx-auto py-6 px-6 flex flex-col gap-6">
         <div class="w-full flex items-center justify-between gap-3">
           <a-input

@@ -3855,7 +3855,7 @@ export class ColumnsService implements IColumnsService {
           // todo: sanitize
           mm: true,
           columns: associateTableCols,
-          user_id: param.user.id,
+          user_id: param.user?.id,
         },
       );
 

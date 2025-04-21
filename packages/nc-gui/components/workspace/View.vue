@@ -18,11 +18,12 @@ const workspaceStore = useWorkspace()
 const { loadRoles } = useRoles()
 const { activeWorkspace: _activeWorkspace, workspaces, deletingWorkspace } = storeToRefs(workspaceStore)
 const { loadCollaborators, loadWorkspace } = workspaceStore
+const { appInfo } = useGlobal()
 
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
-const { isWsAuditEnabled, handleUpgradePlan, isPaymentEnabled } = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan, isPaymentEnabled, getFeature } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
   if (deletingWorkspace.value) return
@@ -58,6 +59,13 @@ const tab = computed({
     if (tab === 'collaborators') loadCollaborators({} as any, props.workspaceId)
     router.push({ query: { ...route.value.query, tab } })
   },
+})
+
+const isWorkspaceSsoAvail = computed(() => {
+  if (isEeUI && appInfo.value?.isCloud && getFeature(PlanFeatureTypes.FEATURE_SSO)) {
+    return true
+  }
+  return false
 })
 
 watch(
@@ -227,6 +235,7 @@ watch(
 :deep(.ant-tabs-nav) {
   @apply !pl-0;
 }
+
 :deep(.ant-tabs-tab) {
   @apply pt-2 pb-3;
 }
@@ -234,9 +243,11 @@ watch(
 .ant-tabs-content-top {
   @apply !h-full;
 }
+
 .tab-info {
   @apply flex pl-1.25 px-1.5 py-0.75 rounded-md text-xs;
 }
+
 .tab-title {
   @apply flex flex-row items-center gap-x-2 py-[1px];
 }

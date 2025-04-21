@@ -346,6 +346,16 @@ onUnmounted(() => {
         @apply line-clamp-2;
       }
     }
+
+    &.nc-alert-type-toast {
+      @apply min-w-[fit-content]  md:min-w-[fit-content] max-w-[488px] w-[fit-content];
+
+      .nc-alert-content {
+        .nc-alert-description {
+          @apply line-clamp-1;
+        }
+      }
+    }
   }
 
   &.no-border {
@@ -430,6 +440,14 @@ onUnmounted(() => {
 
         .ant-message-custom-content > span {
           @apply flex-none w-full block;
+        }
+
+        &:has(.nc-alert-type-toast) {
+          @apply py-2.5 px-3 bg-gray-700;
+
+          .nc-alert-description {
+            @apply text-white;
+          }
         }
       }
     }

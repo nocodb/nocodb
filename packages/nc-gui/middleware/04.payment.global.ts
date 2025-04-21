@@ -5,8 +5,20 @@ export default defineNuxtRouteMiddleware(() => {
 
   const upgrade = params.get('upgrade')
 
+  const pricing = params.get('pricing')
+
   if (upgrade) {
     const url = `/#/upgrade?${params.toString()}`
+
+    window.location.href = url
+
+    return
+  }
+
+  if (pricing) {
+    const workspaceId = params.get('workspaceId')
+
+    const url = `/#/${workspaceId}/pricing`
 
     window.location.href = url
 

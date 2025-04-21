@@ -2,7 +2,7 @@ import { type StripeCheckoutSession } from '@stripe/stripe-js'
 import type Stripe from 'stripe'
 
 import dayjs from 'dayjs'
-import { LOYALTY_END_DATE, LoyaltyPriceLookupKeyMap, PlanPriceLookupKeys, PlanTitles, type PaginatedType } from 'nocodb-sdk'
+import { LOYALTY_END_DATE, LoyaltyPriceLookupKeyMap, type PaginatedType, PlanPriceLookupKeys, PlanTitles } from 'nocodb-sdk'
 
 const defaultPaginationData = { page: 1, pageSize: 25, totalRows: 40, isLoading: true }
 
@@ -28,8 +28,6 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const { $state, $api } = useNuxtApp()
 
   const { navigateToCheckout } = useEeConfig()
-
-  const { t } = useI18n()
 
   const workspaceStore = useWorkspace()
 

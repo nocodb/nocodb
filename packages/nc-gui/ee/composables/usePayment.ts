@@ -4,7 +4,7 @@ import type Stripe from 'stripe'
 import dayjs from 'dayjs'
 import { LOYALTY_END_DATE, LoyaltyPriceLookupKeyMap, type PaginatedType, PlanPriceLookupKeys, PlanTitles } from 'nocodb-sdk'
 
-const defaultPaginationData = { page: 1, pageSize: 25, totalRows: 40, isLoading: true }
+const defaultPaginationData = { page: 1, pageSize: 25, totalRows: 0, isLoading: true }
 
 export interface PaymentPlan {
   id: string
@@ -285,8 +285,11 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const loadInvoices = async () => {
     if (!activeWorkspaceId.value) throw new Error('No active workspace')
 
-    // No need to fetch invoices if we don't have active subscription
-    if (!activeSubscription.value) return
+    if (!activeWorkspace.value?.stripe_customer_id) {
+      invoicePaginationData.value.isLoading = false
+
+      return
+    }
 
     try {
       const res = (await $fetch(`/api/payment/${activeWorkspaceId.value}/invoice`, {

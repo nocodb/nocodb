@@ -4,7 +4,7 @@ import type Stripe from 'stripe'
 
 const { t } = useI18n()
 
-const { invoices, invoicePaginationData } = usePaymentStoreOrThrow()
+const { invoices, invoicePaginationData, plansAvailable } = usePaymentStoreOrThrow()
 
 const paginatedData = computed(() => {
   const { page, pageSize } = invoicePaginationData.value
@@ -13,6 +13,14 @@ const paginatedData = computed(() => {
 
   return invoices.value.slice(start, end)
 })
+
+const getPlanTitle = (record: Stripe.Invoice) => {
+  const fk_plan_id = record?.subscription_details?.metadata?.fk_plan_id
+
+  if (!fk_plan_id) return ''
+
+  return plansAvailable.value.find((plan) => plan.id === fk_plan_id)?.title ?? ''
+}
 
 const columns: NcTableColumnProps<Stripe.Invoice>[] = [
   {
@@ -27,7 +35,6 @@ const columns: NcTableColumnProps<Stripe.Invoice>[] = [
     title: t('general.plan'),
     minWidth: 220,
     basis: '25%',
-    dataIndex: 'description',
   },
   {
     key: 'invoiceTotal',
@@ -78,6 +85,7 @@ const columns: NcTableColumnProps<Stripe.Invoice>[] = [
           <template v-if="column.key === 'created'">
             {{ record.created ? dayjs(record.created * 1000).format('D MMMM YYYY hh:mm A') : '-' }}
           </template>
+          <template v-if="column.key === 'plan'"> {{ getPlanTitle(record) }}</template>
           <template v-if="column.key === 'invoiceTotal'"> {{ column.format?.(record.amount_paid, record) }}</template>
           <template v-if="column.key === 'status'">
             <span

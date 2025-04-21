@@ -624,7 +624,7 @@
     "renameWorkspace": "Переименовать рабочее пространство",
     "renamingWorkspace": "Переименование рабочего пространства",
     "renamingBase": "Переименование базы",
-    "sso": "Аутентификация (SSO)",
+    "sso": "Single Sign-On (SSO)",
     "docs": "Документация",
     "forum": "Форум",
     "parameter": "Параметр",
@@ -1291,7 +1291,12 @@
     "proceed": "Proceed",
     "editorSeat": "Editor seat",
     "editorSeats": "Editor seats",
-    "viewPlans": "View Plans"
+    "viewPlans": "View Plans",
+    "numberOfSeats": "Number of Seats",
+    "invoice": "Invoice",
+    "status": "Status",
+    "invoiceTotal": "Invoice Total",
+    "pastInvoices": "Past Invoices"
   },
   "activity": {
     "clickToResolve": "Нажмите, чтобы разрешить",
@@ -1694,7 +1699,8 @@
     "inviteYourTeamLabel": "Оптимизируйте сотрудничество и производительность с вашей командой — начните с приглашения их в ваше рабочее пространство.",
     "searchOptions": "Поиск опций",
     "lockViewDescription": "Объясните, почему вы блокируете это представление. Это сообщение будет показано, когда кто-либо попытается разблокировать это представление (необязательно).",
-    "noBaseUsersFound": "Пользователи проекта не найдены"
+    "noBaseUsersFound": "Пользователи проекта не найдены",
+    "noInvoices": "No Invoices"
   },
   "msg": {
     "urlFilter": "Фильтры URL применяются из параметров URL и объединяются с фильтрами представления, установленными через панель инструментов.",
@@ -2174,7 +2180,9 @@
       "collabView": "Выполнен переход в режим совместного просмотра",
       "lockedView": "Выполнен переход в заблокированный режим просмотра",
       "futureRelease": "Скоро!",
-      "notAllowedToChangeDefaultView": "Изменение представления по умолчанию запрещено."
+      "notAllowedToChangeDefaultView": "Изменение представления по умолчанию запрещено.",
+      "nCellCopied": "{n} cell copied",
+      "nCellsCopied": "{n} cells copied"
     },
     "success": {
       "licenseKeyUpdated": "Ключ лицензии обновлен",

@@ -105,7 +105,6 @@ export class CloudSSO extends BasePage {
 
     await samlModal.locator('[data-test-id="nc-saml-title"]').fill(p.title);
     if (p.url) {
-      // await samlModal.locator('[data-test-id="nc-saml-metadata-url"]').fill(p.url);
       // if url then extract the xml data and fill it, since local urls are not supported
       const requestContext = await request.newContext();
 

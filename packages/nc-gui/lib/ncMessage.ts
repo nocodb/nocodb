@@ -1,5 +1,5 @@
 import { message } from 'ant-design-vue/es'
-import type { AlertProps, MessageArgsProps } from 'ant-design-vue/es'
+import type { MessageArgsProps } from 'ant-design-vue/es'
 import type { VueNode } from 'ant-design-vue/es/_util/type'
 import type { VNode } from 'vue'
 import { isPrimitiveValue } from 'nocodb-sdk'

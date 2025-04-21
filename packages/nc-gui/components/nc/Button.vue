@@ -343,4 +343,8 @@ useEventListener(NcButton, 'mousedown', () => {
     box-shadow: none;
   }
 }
+
+.nc-button.ant-btn-link{
+  box-shadow: none;
+}
 </style>

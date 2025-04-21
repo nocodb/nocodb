@@ -20,8 +20,6 @@ const { activeWorkspaceId } = storeToRefs(workspaceStore)
 const { paymentState, loadWorkspaceSeatCount, getSessionResult, isAccountPage, paymentMode, plansAvailable, onSelectPlan } =
   useProvidePaymentStore()
 
-const { isPaymentEnabled } = useEeConfig()
-
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
 const afterPayment = ref(!!route.query.afterPayment)

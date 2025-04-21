@@ -19,7 +19,11 @@ import { getI18n } from '~/plugins/a.i18n'
  * />
  * ```
  */
-export interface NcAlertProps extends Pick<AlertProps, 'type' | 'showIcon' | 'message' | 'description' | 'closable'> {
+export interface NcAlertProps extends Pick<AlertProps, 'showIcon' | 'message' | 'description' | 'closable'> {
+  /**
+   * type toast will be used only in message.toast('simple toast message')
+   */
+  type: AlertProps['type'] | 'toast'
   /**
    * Controls the visibility of the alert.
    * @default true
@@ -342,6 +346,10 @@ onUnmounted(() => {
         @apply line-clamp-2;
       }
     }
+
+    &.nc-alert-type-toast {
+      @apply min-w-[fit-content]  md:min-w-[fit-content] max-w-[350px] w-[fit-content];
+    }
   }
 
   &.no-border {
@@ -426,6 +434,14 @@ onUnmounted(() => {
 
         .ant-message-custom-content > span {
           @apply flex-none w-full block;
+        }
+
+        &:has(.nc-alert-type-toast) {
+          @apply py-2.5 px-3 bg-gray-700;
+
+          .nc-alert-description {
+            @apply text-white;
+          }
         }
       }
     }

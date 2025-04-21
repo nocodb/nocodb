@@ -1,5 +1,5 @@
 import { message } from 'ant-design-vue/es'
-import type { AlertProps, MessageArgsProps } from 'ant-design-vue/es'
+import type { MessageArgsProps } from 'ant-design-vue/es'
 import type { VueNode } from 'ant-design-vue/es/_util/type'
 import type { VNode } from 'vue'
 import { isPrimitiveValue } from 'nocodb-sdk'
@@ -68,6 +68,14 @@ const initialValue = {
   ...defaultNcMessageExtraProps,
 } as NcMessageObjectProps
 
+const initialToastTypeValue = {
+  closable: false,
+  showCopyBtn: false,
+  showDuration: false,
+  showIcon: false,
+  duration: 2,
+} as NcMessageObjectProps
+
 /**
  * Generates a unique key for each message instance.
  * @returns A unique string key for the message.
@@ -96,14 +104,28 @@ function isNcMessageObjectProps(params: any): params is NcMessageObjectProps {
  * @returns A full `NcMessageObjectProps` object with defaults applied.
  */
 const getMessageProps = (
-  type: AlertProps['type'],
+  type: NcAlertProps['type'],
   params: NcMessageProps,
   ncMessageExtraProps: NcMessageExtraProps = defaultNcMessageExtraProps,
 ): NcMessageObjectProps => {
-  const updatedParams = { ...initialValue }
+  const updatedParams = { ...initialValue, ...(type === 'toast' ? initialToastTypeValue : {}) }
   let content = ''
 
-  if (isPrimitiveValue(params)) {
+  if (type === 'toast') {
+    if (isPrimitiveValue(params)) {
+      return {
+        ...updatedParams,
+        content: params,
+        renderAsNcAlert: true,
+      }
+    } else {
+      return {
+        ...updatedParams,
+        ...params,
+        renderAsNcAlert: true,
+      }
+    }
+  } else if (isPrimitiveValue(params)) {
     content = params?.toString() ?? ''
     // If params is a string, use it as the description and apply a default message based on type
     return {
@@ -162,7 +184,7 @@ const getMessageProps = (
  */
 
 const showMessage = (
-  type: AlertProps['type'],
+  type: NcAlertProps['type'],
   params: NcMessageProps,
   duration?: number,
   ncMessageExtraProps?: NcMessageExtraProps,
@@ -209,12 +231,16 @@ const showMessage = (
               duration: duration ?? ncAlertProps.duration,
             },
             {
-              action: ncIsFunction(ncAlertProps.action) ? ncAlertProps.action : () => ncAlertProps.action,
-              icon: ncIsFunction(ncAlertProps.icon) ? ncAlertProps.icon : () => ncAlertProps.icon,
+              action: ncIsFunction(ncAlertProps.action)
+                ? ncAlertProps.action
+                : ncAlertProps.action
+                ? () => ncAlertProps.action
+                : undefined,
+              icon: ncIsFunction(ncAlertProps.icon) ? ncAlertProps.icon : ncAlertProps.icon ? () => ncAlertProps.icon : undefined,
             },
           )
       : content,
-    type: !renderAsNcAlert ? type : undefined,
+    type: !renderAsNcAlert && type !== 'toast' ? type : undefined,
     duration: duration ?? ncAlertProps.duration,
     prefixCls,
     rootPrefixCls,
@@ -310,6 +336,21 @@ const ncMessage = {
 
   warning: (params: NcMessageProps = '', duration?: number, ncMessageExtraProps?: NcMessageExtraProps) => {
     return showMessage('warning', params, duration, ncMessageExtraProps)
+  },
+
+  toast: (
+    params:
+      | (Omit<NcMessageObjectProps, 'content'> & {
+          content: string | number | null | undefined
+        })
+      | string
+      | number
+      | null
+      | undefined = '',
+    duration?: number,
+    ncMessageExtraProps?: NcMessageExtraProps,
+  ) => {
+    return showMessage('toast', params, duration, ncMessageExtraProps)
   },
 }
 

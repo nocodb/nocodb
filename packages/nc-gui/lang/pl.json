@@ -624,7 +624,7 @@
     "renameWorkspace": "Zmień nazwę przestrzeni roboczej",
     "renamingWorkspace": "Zmiana nazwy przestrzeni roboczej",
     "renamingBase": "Zmiana nazwy tabeli",
-    "sso": "Autoryzacja (SSO)",
+    "sso": "Single Sign-On (SSO)",
     "docs": "Dokumentacja",
     "forum": "Forum",
     "parameter": "Parametr",
@@ -1291,7 +1291,12 @@
     "proceed": "Proceed",
     "editorSeat": "Editor seat",
     "editorSeats": "Editor seats",
-    "viewPlans": "View Plans"
+    "viewPlans": "View Plans",
+    "numberOfSeats": "Number of Seats",
+    "invoice": "Invoice",
+    "status": "Status",
+    "invoiceTotal": "Invoice Total",
+    "pastInvoices": "Past Invoices"
   },
   "activity": {
     "clickToResolve": "Kliknij, aby rozwiązać",
@@ -1694,7 +1699,8 @@
     "inviteYourTeamLabel": "Usprawnij współpracę i produktywność ze swoim zespołem – zacznij od zaproszenia ich do przyłączenia się do twojej przestrzeni roboczej.",
     "searchOptions": "Opcje wyszukiwania",
     "lockViewDescription": "Wyjaśnij, dlaczego blokujesz ten widok. Ta wiadomość zostanie wyświetlona, gdy ktoś spróbuje odblokować ten widok (opcjonalne).",
-    "noBaseUsersFound": "No base users found"
+    "noBaseUsersFound": "No base users found",
+    "noInvoices": "No Invoices"
   },
   "msg": {
     "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
@@ -2174,7 +2180,9 @@
       "collabView": "Pomyślnie przełączono na widok współpracy",
       "lockedView": "Pomyślnie przełączono na zablokowany widok",
       "futureRelease": "Wkrótce!",
-      "notAllowedToChangeDefaultView": "Nie masz uprawnień do zmiany domyślnego widoku"
+      "notAllowedToChangeDefaultView": "Nie masz uprawnień do zmiany domyślnego widoku",
+      "nCellCopied": "{n} cell copied",
+      "nCellsCopied": "{n} cells copied"
     },
     "success": {
       "licenseKeyUpdated": "Klucz licencyjny zaktualizowany",

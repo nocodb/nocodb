@@ -11,6 +11,7 @@ const {
   activePlanTitle,
   isLoyaltyWorkspace,
   gracePeriodEndDate,
+  isPaymentEnabled,
 } = useEeConfig()
 
 const isLimitReached = computed(() => {
@@ -18,7 +19,7 @@ const isLimitReached = computed(() => {
 })
 
 const showBanner = computed(() => {
-  return isLimitReached.value || activePlanTitle.value === PlanTitles.FREE
+  return isPaymentEnabled.value && (isLimitReached.value || activePlanTitle.value === PlanTitles.FREE)
 })
 
 const showTimer = computed(() => {

@@ -68,6 +68,14 @@ const initialValue = {
   ...defaultNcMessageExtraProps,
 } as NcMessageObjectProps
 
+const initialToastTypeValue = {
+  closable: false,
+  showCopyBtn: false,
+  showDuration: false,
+  showIcon: false,
+  duration: 2,
+} as NcMessageObjectProps
+
 /**
  * Generates a unique key for each message instance.
  * @returns A unique string key for the message.
@@ -100,10 +108,24 @@ const getMessageProps = (
   params: NcMessageProps,
   ncMessageExtraProps: NcMessageExtraProps = defaultNcMessageExtraProps,
 ): NcMessageObjectProps => {
-  const updatedParams = { ...initialValue, duration: type === 'toast' ? 3 : undefined }
+  const updatedParams = { ...initialValue, ...(type === 'toast' ? initialToastTypeValue : {}) }
   let content = ''
 
-  if (isPrimitiveValue(params)) {
+  if (type === 'toast') {
+    if (isPrimitiveValue(params)) {
+      return {
+        ...updatedParams,
+        content: params,
+        renderAsNcAlert: true,
+      }
+    } else {
+      return {
+        ...updatedParams,
+        ...params,
+        renderAsNcAlert: true,
+      }
+    }
+  } else if (isPrimitiveValue(params)) {
     content = params?.toString() ?? ''
     // If params is a string, use it as the description and apply a default message based on type
     return {
@@ -209,8 +231,12 @@ const showMessage = (
               duration: duration ?? ncAlertProps.duration,
             },
             {
-              action: ncIsFunction(ncAlertProps.action) ? ncAlertProps.action : () => ncAlertProps.action,
-              icon: ncIsFunction(ncAlertProps.icon) ? ncAlertProps.icon : () => ncAlertProps.icon,
+              action: ncIsFunction(ncAlertProps.action)
+                ? ncAlertProps.action
+                : ncAlertProps.action
+                ? () => ncAlertProps.action
+                : undefined,
+              icon: ncIsFunction(ncAlertProps.icon) ? ncAlertProps.icon : ncAlertProps.icon ? () => ncAlertProps.icon : undefined,
             },
           )
       : content,
@@ -312,8 +338,19 @@ const ncMessage = {
     return showMessage('warning', params, duration, ncMessageExtraProps)
   },
 
-  toast: (params: NcMessageProps = '', duration?: number, ncMessageExtraProps?: NcMessageExtraProps) => {
-    return showMessage('warning', params, duration, ncMessageExtraProps)
+  toast: (
+    params:
+      | (Omit<NcMessageObjectProps, 'content'> & {
+          content: string | number | null | undefined
+        })
+      | string
+      | number
+      | null
+      | undefined = '',
+    duration?: number,
+    ncMessageExtraProps?: NcMessageExtraProps,
+  ) => {
+    return showMessage('toast', params, duration, ncMessageExtraProps)
   },
 }
 

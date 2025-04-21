@@ -624,7 +624,7 @@
     "renameWorkspace": "Renommer l'espace de travail",
     "renamingWorkspace": "Renommer l'espace de travail",
     "renamingBase": "Renommer la Base",
-    "sso": "Authentification (SSO)",
+    "sso": "Single Sign-On (SSO)",
     "docs": "Documents",
     "forum": "Forum",
     "parameter": "Paramètre",
@@ -1291,7 +1291,12 @@
     "proceed": "Continuer",
     "editorSeat": "Editor seat",
     "editorSeats": "Editor seats",
-    "viewPlans": "View Plans"
+    "viewPlans": "View Plans",
+    "numberOfSeats": "Number of Seats",
+    "invoice": "Invoice",
+    "status": "Status",
+    "invoiceTotal": "Invoice Total",
+    "pastInvoices": "Past Invoices"
   },
   "activity": {
     "clickToResolve": "Cliquer pour résoudre",
@@ -1694,7 +1699,8 @@
     "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace.",
     "searchOptions": "Options de recherche",
     "lockViewDescription": "Expliquez pourquoi vous verrouillez cette vue. Ce message sera affiché lorsque quelqu'un tentera de déverrouiller cette vue (facultatif).",
-    "noBaseUsersFound": "Aucun utilisateur de base trouvé"
+    "noBaseUsersFound": "Aucun utilisateur de base trouvé",
+    "noInvoices": "No Invoices"
   },
   "msg": {
     "urlFilter": "Les filtres d'URL sont appliqués à partir des paramètres d'URL et se combinent avec les filtres de vue définis via la barre d'outils.",
@@ -2174,7 +2180,9 @@
       "collabView": "Vous êtes bien dans la vue collaborative",
       "lockedView": "Vous êtes bien dans la vue vérouillée",
       "futureRelease": "Bientôt disponible !",
-      "notAllowedToChangeDefaultView": "Vous n'êtes pas autorisé à changer la vue par défaut"
+      "notAllowedToChangeDefaultView": "Vous n'êtes pas autorisé à changer la vue par défaut",
+      "nCellCopied": "{n} cell copied",
+      "nCellsCopied": "{n} cells copied"
     },
     "success": {
       "licenseKeyUpdated": "Clé de licence mise à jour",

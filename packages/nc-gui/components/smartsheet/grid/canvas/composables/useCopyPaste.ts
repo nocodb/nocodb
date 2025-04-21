@@ -138,7 +138,7 @@ export function useCopyPaste({
   function isPasteable(row?: Row, col?: ColumnType, showInfo = false) {
     if (!row || !col) {
       if (showInfo) {
-        message.info('Please select a cell to paste')
+        message.toast('Please select a cell to paste')
       }
       return false
     }
@@ -146,7 +146,7 @@ export function useCopyPaste({
     // skip pasting virtual columns (including LTAR columns for now) and system columns
     if (isVirtualCol(col) || isSystemColumn(col) || col?.readonly) {
       if (showInfo) {
-        message.info(t('msg.info.pasteNotSupported'))
+        message.toast(t('msg.info.pasteNotSupported'))
       }
       return false
     }
@@ -154,7 +154,7 @@ export function useCopyPaste({
     // skip pasting auto increment columns
     if (col.ai) {
       if (showInfo) {
-        message.info(t('msg.info.autoIncFieldNotEditable'))
+        message.toast(t('msg.info.autoIncFieldNotEditable'))
       }
       return false
     }
@@ -162,7 +162,7 @@ export function useCopyPaste({
     // skip pasting primary key columns
     if (col.pk && !row.rowMeta.new) {
       if (showInfo) {
-        message.info(t('msg.info.editingPKnotSupported'))
+        message.toast(t('msg.info.editingPKnotSupported'))
       }
       return false
     }
@@ -281,7 +281,7 @@ export function useCopyPaste({
               const newColTitle = generateUniqueColumnName({
                 metaColumns: [...(meta.value?.columns ?? []), ...bulkOpsCols.map(({ column }) => column)],
                 formState: tempCol,
-              })
+            })
 
               bulkOpsCols.push({
                 op: 'add',
@@ -380,7 +380,7 @@ export function useCopyPaste({
                 targetRow.row[column.title!] = pasteValue
               }
             } else if ((isBt(column) || isOo(column) || isMm(column)) && !isInfoShown) {
-              message.info(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
+              message.toast(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
               isInfoShown = true
             }
           }
@@ -666,7 +666,7 @@ export function useCopyPaste({
             for (const col of cols) {
               if (!col.title || !isPasteable(row, col)) {
                 if ((isBt(col) || isOo(col) || isMm(col)) && !isInfoShown) {
-                  message.info(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
+                  message.toast(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
                   isInfoShown = true
                 }
                 continue
@@ -954,7 +954,11 @@ export function useCopyPaste({
         const cpcols = unref(fields).slice(selection.value.start.col, selection.value.end.col + 1) // slice the selected cols for copy
 
         await copyTable(cprows, cpcols)
-        message.success(t('msg.info.copiedToClipboard'))
+        message.toast(
+          t(`msg.toast.nCell${cprows.length * cpcols.length === 1 ? '' : 's'}Copied`, {
+            n: cprows.length * cpcols.length,
+          }),
+        )
       } else {
         const dataCache = getDataCache(path)
 
@@ -976,7 +980,11 @@ export function useCopyPaste({
           })
 
           await copy(textToCopy)
-          message.toast(t('msg.info.copiedToClipboard'))
+          message.toast(
+            t(`msg.toast.nCellCopied`, {
+              n: 1,
+            }),
+          )
         }
       }
     } catch (e) {

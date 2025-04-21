@@ -2179,7 +2179,9 @@
       "collabView": "Successfully Switched to collaborative view",
       "lockedView": "Successfully Switched to locked view",
       "futureRelease": "Coming soon!",
-      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view",
+      "nCellCopied": "{n} cell copied",
+      "nCellsCopied": "{n} cells copied"
     },
     "success": {
       "licenseKeyUpdated": "License Key Updated",

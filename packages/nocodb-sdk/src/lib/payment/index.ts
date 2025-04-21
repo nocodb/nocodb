@@ -55,6 +55,20 @@ export enum PlanTitles {
   ENTERPRISE = 'Enterprise',
 }
 
+export enum PlanPriceLookupKeys {
+  TEAM_MONTHLY = 'team_monthly',
+  TEAM_YEARLY = 'team_yearly',
+  BUSINESS_MONTHLY = 'business_monthly',
+  BUSINESS_YEARLY = 'business_yearly',
+}
+
+export const LoyaltyPriceLookupKeyMap = {
+  [PlanPriceLookupKeys.TEAM_MONTHLY]: 'loyalty_team_monthly',
+  [PlanPriceLookupKeys.TEAM_YEARLY]: 'loyalty_team_yearly',
+  [PlanPriceLookupKeys.BUSINESS_MONTHLY]: 'loyalty_business_monthly',
+  [PlanPriceLookupKeys.BUSINESS_YEARLY]: 'loyalty_business_yearly',
+};
+
 export const PlanMeta = {
   [PlanTitles.FREE]: {
     title: PlanTitles.FREE,
@@ -120,6 +134,10 @@ export const HigherPlan = {
 } as Record<string, PlanTitles>;
 
 export const GRACE_PERIOD_DURATION = 14;
+
+export const LOYALTY_END_DATE = '2025-04-15';
+
+export const LOYALTY_GRACE_PERIOD_END_DATE = '2025-04-30';
 
 export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_FREE_WORKSPACE]: 'to add more workspaces.',

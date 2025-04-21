@@ -161,10 +161,10 @@ const onCancelSubscription = async () => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col">
+  <div class="h-full flex flex-col max-w-[640px] mx-6">
     <div
       v-if="changes.change === 'upgrade'"
-      class="pl-4 pr-2 py-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
+      class="p-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
     >
       <div
         v-if="changes.plan || !changes.period || changes.period === 'year'"
@@ -176,13 +176,13 @@ const onCancelSubscription = async () => {
     </div>
     <div
       v-else-if="changes.change === 'downgrade'"
-      class="pl-4 pr-2 py-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
+      class="p-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
     >
       <div class="flex-1 text-xl text-nc-content-gray-emphasis font-700">Downgrade Plan</div>
     </div>
     <div
       v-else-if="changes.change === 'cancel'"
-      class="pl-4 pr-2 py-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
+      class="p-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
     >
       <div class="flex-1 text-xl text-nc-content-gray-emphasis font-700">Cancel Plan</div>
     </div>
@@ -190,7 +190,7 @@ const onCancelSubscription = async () => {
       v-if="changes.change === 'upgrade' && (changes.plan || !changes.period || changes.period === 'year')"
       class="flex-1 nc-scrollbar-thin"
     >
-      <div class="px-4 py-6 flex gap-6 flex-col">
+      <div class="py-6 flex gap-6 flex-col">
         <div class="flex flex-col gap-8 text-nc-content-gray-subtle2">
           <div>
             <div class="nc-upgrade-info-subtitle">
@@ -268,7 +268,7 @@ const onCancelSubscription = async () => {
 
     <!-- If changing to monthly - changes will be applied on period end -->
     <div v-else-if="changes.change === 'upgrade' && changes.period === 'month'" class="flex-1 nc-scrollbar-thin">
-      <div class="px-4 py-6 flex gap-6 flex-col">
+      <div class="py-6 flex gap-6 flex-col">
         <div class="flex flex-col gap-4 text-nc-content-gray-subtle2">
           <div>
             <div class="nc-upgrade-info-subtitle">
@@ -313,7 +313,7 @@ const onCancelSubscription = async () => {
     </div>
 
     <div v-else-if="changes.change === 'downgrade'" class="flex-1 nc-scrollbar-thin">
-      <div class="px-4 py-6 flex gap-6 flex-col">
+      <div class="py-6 flex gap-6 flex-col">
         <div class="w-full flex justify-center">
           <PaymentPlansSelectMode
             :value="paymentMode"
@@ -366,7 +366,7 @@ const onCancelSubscription = async () => {
       </div>
     </div>
     <div v-else-if="changes.change === 'cancel'" class="flex-1 nc-scrollbar-thin">
-      <div class="px-4 py-6 flex gap-6 flex-col">
+      <div class="py-6 flex gap-6 flex-col">
         <div class="flex flex-col gap-4 text-nc-content-gray-subtle2">
           <div class="font-bold">Before you cancel your plan</div>
           <div class="flex flex-wrap gap-2">
@@ -421,7 +421,7 @@ const onCancelSubscription = async () => {
     </div>
     <div
       v-if="changes.change === 'cancel'"
-      class="flex items-center justify-end gap-2 pl-4 pr-2 py-2 border-t-1 border-nc-border-gray-medium"
+      class="flex items-center justify-end gap-2 py-6 border-t-1 border-nc-border-gray-medium"
     >
       <NcButton class="w-1/2" type="secondary" @click="navigateToPricing()"> Cancel </NcButton>
       <NcButton
@@ -434,7 +434,7 @@ const onCancelSubscription = async () => {
         Cancel
       </NcButton>
     </div>
-    <div v-else class="flex items-center justify-end gap-2 pl-4 pr-2 py-2 border-t-1 border-nc-border-gray-medium">
+    <div v-else class="flex items-center justify-end gap-2 py-6 border-t-1 border-nc-border-gray-medium">
       <NcButton class="w-1/2" type="secondary" @click="navigateToPricing()"> Cancel </NcButton>
       <NcButton class="w-1/2" :loading="isLoading" :disabled="!changes.plan && !changes.period" @click="handleProceed">
         Proceed

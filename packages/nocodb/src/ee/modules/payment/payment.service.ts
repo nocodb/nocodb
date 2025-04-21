@@ -278,7 +278,7 @@ export class PaymentService {
         },
       ],
       ui_mode: 'embedded',
-      return_url: `http://localhost:3000/?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}&isAccountPage=${isAccountPage}`,
+      return_url: `${req.ncSiteUrl}/?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}&isAccountPage=${isAccountPage}`,
       automatic_tax: {
         enabled: true,
       },
@@ -820,7 +820,7 @@ export class PaymentService {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: workspaceOrOrg.stripe_customer_id,
-      return_url: `http://localhost:3000?afterManage=true&workspaceId=${
+      return_url: `${req.ncSiteUrl}?afterManage=true&workspaceId=${
         workspaceOrOrg.id
       }&isAccountPage=${req.query.isAccountPage ?? true}`,
     });

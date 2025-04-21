@@ -127,6 +127,9 @@ const columns: NcTableColumnProps<Stripe.Invoice>[] = [
             </div>
           </div>
         </template>
+        <template #emptyText>
+          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('placeholder.noInvoices')" class="!my-0" />
+        </template>
       </NcTable>
     </div>
   </section>

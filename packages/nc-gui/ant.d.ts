@@ -7,5 +7,6 @@ declare module 'ant-design-vue/es/message' {
     info(params?: NcMessageProps, duration?: number, ncMessageExtraProps?: NcMessageExtraProps): MessageType
     warning(params?: NcMessageProps, duration?: number, ncMessageExtraProps?: NcMessageExtraProps): MessageType
     warn: MessageApi['warning'] // Ensure `warn` and `warning` share the same signature
+    toast(params?: NcMessageProps, duration?: number, ncMessageExtraProps?: NcMessageExtraProps): MessageType
   }
 }

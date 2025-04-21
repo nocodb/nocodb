@@ -19,7 +19,11 @@ import { getI18n } from '~/plugins/a.i18n'
  * />
  * ```
  */
-export interface NcAlertProps extends Pick<AlertProps, 'type' | 'showIcon' | 'message' | 'description' | 'closable'> {
+export interface NcAlertProps extends Pick<AlertProps, 'showIcon' | 'message' | 'description' | 'closable'> {
+  /**
+   * type toast will be used only in message.toast('simple toast message')
+   */
+  type: AlertProps['type'] | 'toast'
   /**
    * Controls the visibility of the alert.
    * @default true

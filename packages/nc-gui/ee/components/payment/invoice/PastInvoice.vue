@@ -19,25 +19,21 @@ const columns: NcTableColumnProps<Stripe.Invoice>[] = [
     key: 'created',
     title: t('datatype.Date'),
     minWidth: 210,
+    basis: '25%',
     dataIndex: 'created',
   },
   {
-    key: 'description',
-    title: t('labels.description'),
+    key: 'plan',
+    title: t('general.plan'),
     minWidth: 220,
+    basis: '25%',
     dataIndex: 'description',
-  },
-  {
-    key: 'numberOfSeats',
-    title: t('labels.numberOfSeats'),
-    width: 165,
-    minWidth: 165,
   },
   {
     key: 'invoiceTotal',
     title: t('labels.invoiceTotal'),
     dataIndex: 'amount_paid',
-    width: 150,
+    basis: '25%',
     minWidth: 150,
     format(value, record) {
       if (!ncIsNumber(value)) return ''
@@ -51,7 +47,7 @@ const columns: NcTableColumnProps<Stripe.Invoice>[] = [
   {
     key: 'status',
     title: t('labels.status'),
-    width: 90,
+    basis: '12.5%',
     minWidth: 90,
     dataIndex: 'status',
   },
@@ -59,7 +55,7 @@ const columns: NcTableColumnProps<Stripe.Invoice>[] = [
     key: 'invoice',
     title: t('labels.invoice'),
     dataIndex: 'invoice_pdf',
-    width: 130,
+    basis: '12.5%',
     minWidth: 130,
   },
 ]

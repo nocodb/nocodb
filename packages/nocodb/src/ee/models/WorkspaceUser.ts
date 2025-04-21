@@ -290,7 +290,7 @@ export default class WorkspaceUser {
         workspace.meta =
           typeof workspace.meta === 'string'
             ? JSON.parse(workspace.meta)
-            : workspace.meta;
+            : workspace.meta;O
       } catch {
         workspace.meta = {};
       }

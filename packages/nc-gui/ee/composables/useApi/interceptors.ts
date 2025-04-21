@@ -9,10 +9,6 @@ export function addAxiosInterceptors(api: Api<any>) {
   const { getBaseUrl, user } = useGlobal()
   const router = useRouter()
 
-  const workspaceStore = useWorkspace()
-
-  const { ssoLoginRequiredDlg } = storeToRefs(workspaceStore)
-
   addAxiosInterceptorsCE(api)
 
   api.instance.interceptors.request.use((config) => {
@@ -62,7 +58,9 @@ export function addAxiosInterceptors(api: Api<any>) {
       if (error.response?.status === 403 && error.response?.data?.error === NcErrorType.SSO_LOGIN_REQUIRED) {
         const email = user.value?.email
 
-        ssoLoginRequiredDlg.value = true
+        const workspaceStore = useWorkspace()
+
+        workspaceStore.ssoLoginRequiredDlg.value = true
 
         navigateTo(
           {

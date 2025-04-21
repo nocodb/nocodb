@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import {
+  HigherPlan,
   OrderedWorkspaceRoles,
   type PlanLimitExceededDetailsType,
   PlanLimitTypes,
   PlanTitles,
   WorkspaceUserRoles,
-  HigherPlan,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -52,7 +52,11 @@ const inviteDlg = ref(false)
 
 const topSectionRef = ref<HTMLDivElement>()
 
+const tableHeaderSectionRef = ref<HTMLDivElement>()
+
 const { height: toSectionHeight } = useElementSize(topSectionRef)
+
+const { height: tableHeaderSectionHeight } = useElementSize(tableHeaderSectionRef)
 
 const filterCollaborators = computed(() => {
   if (!userSearchText.value) return collaborators.value ?? []
@@ -82,9 +86,11 @@ const nonPaidUsersCount = computed(() => {
   return (collaborators.value || []).length - paidUsersCount.value
 })
 
+const showBanner = false
+
 const showUpgradeAlert = computed(() => {
   return (
-    (isPaymentEnabled.value && paidUsersCount.value > getLimit(PlanLimitTypes.LIMIT_EDITOR)) ||
+    (showBanner && isPaymentEnabled.value && paidUsersCount.value > getLimit(PlanLimitTypes.LIMIT_EDITOR)) ||
     nonPaidUsersCount.value > getLimit(PlanLimitTypes.LIMIT_COMMENTER)
   )
 })
@@ -221,41 +227,8 @@ const isDeleteOrUpdateAllowed = (user) => {
   >
     <div ref="topSectionRef">
       <PaymentBanner class="sticky top-0 z-10" />
-      <div v-if="showUpgradeAlert" class="nc-content-max-w px-6 pt-6">
-        <NcAlert
-          type="error"
-          class="max-w-[1252px] mx-auto"
-          :message="$t('upgrade.adjustCollaboratorRoles')"
-          :description="
-            $t('upgrade.UpgradeToInviteMoreSubtitle', {
-              activePlan: activePlanTitle,
-              editors: getLimit(PlanLimitTypes.LIMIT_EDITOR),
-              commenters: getLimit(PlanLimitTypes.LIMIT_COMMENTER),
-              plan: HigherPlan[activePlanTitle],
-            })
-          "
-        >
-          <template #action>
-            <NcButton
-              type="text"
-              size="small"
-              class="!text-nc-content-brand !font-700"
-              @click="
-                navigateToPricing({
-                  limitOrFeature:
-                    paidUsersCount > getLimit(PlanLimitTypes.LIMIT_EDITOR)
-                      ? PlanLimitTypes.LIMIT_EDITOR
-                      : PlanLimitTypes.LIMIT_COMMENTER,
-                })
-              "
-            >
-              {{ isWsOwner ? 'Upgrade' : $t('general.requestUpgrade') }}
-            </NcButton>
-          </template>
-        </NcAlert>
-      </div>
     </div>
-    <div :style="{ height: `calc(100% - ${toSectionHeight}px)` }" class="nc-content-max-w">
+    <div :style="{ height: `calc(100% - ${toSectionHeight}px)` }">
       <div class="nc-collaborator-table-wrapper h-full max-w-[1300px] mx-auto py-6 px-6 flex flex-col gap-6">
         <div class="w-full flex items-center justify-between gap-3">
           <a-input
@@ -304,7 +277,42 @@ const isDeleteOrUpdateAllowed = (user) => {
             </NcButton>
           </div>
         </div>
-        <div class="flex h-[calc(100%-4rem)]">
+
+        <NcAlert
+          v-if="showUpgradeAlert"
+          ref="tableHeaderSectionRef"
+          type="warning"
+          class=""
+          :message="$t('upgrade.adjustCollaboratorRoles')"
+          :description="
+            $t('upgrade.UpgradeToInviteMoreSubtitle', {
+              activePlan: activePlanTitle,
+              editors: getLimit(PlanLimitTypes.LIMIT_EDITOR),
+              commenters: getLimit(PlanLimitTypes.LIMIT_COMMENTER),
+              plan: HigherPlan[activePlanTitle],
+            })
+          "
+        >
+          <template #action>
+            <NcButton
+              type="text"
+              size="small"
+              class="!text-nc-content-brand !font-700"
+              @click="
+                navigateToPricing({
+                  limitOrFeature:
+                    paidUsersCount > getLimit(PlanLimitTypes.LIMIT_EDITOR)
+                      ? PlanLimitTypes.LIMIT_EDITOR
+                      : PlanLimitTypes.LIMIT_COMMENTER,
+                })
+              "
+            >
+              {{ isWsOwner ? 'Upgrade' : $t('general.requestUpgrade') }}
+            </NcButton>
+          </template>
+        </NcAlert>
+
+        <div class="flex" :style="{ height: `calc(100% - ${tableHeaderSectionHeight + 64}px)` }">
           <NcTable
             v-model:order-by="orderBy"
             :columns="columns"

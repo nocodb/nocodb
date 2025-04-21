@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { LOYALTY_GRACE_PERIOD_END_DATE } from 'nocodb-sdk'
 import bgImage from '~/assets/img/loyalty-bg.png'
 </script>
 
@@ -20,7 +21,7 @@ import bgImage from '~/assets/img/loyalty-bg.png'
         Business plan capped at <span class="font-bold mr-1">$96</span>(was
         <span class="line-through decoration-red-500 font-bold">$216</span>) for the year.
       </span>
-      <PaymentExpiresIn end-time="2025-04-30" />
+      <PaymentExpiresIn :end-time="LOYALTY_GRACE_PERIOD_END_DATE" />
     </div>
   </div>
 </template>

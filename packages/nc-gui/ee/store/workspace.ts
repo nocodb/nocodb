@@ -28,6 +28,7 @@ export interface NcWorkspace extends WorkspaceType {
   }
   stats?: { [key in PlanLimitTypes]: number }
   grace_period_start_at?: string | null
+  stripe_customer_id?: string
 }
 
 export const useWorkspace = defineStore('workspaceStore', () => {

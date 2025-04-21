@@ -4,6 +4,7 @@ import dayjs from 'dayjs'
 const props = defineProps<{
   endTime: string
   hideIcon?: boolean
+  hideLabel?: boolean
 }>()
 
 const endTime = dayjs(props.endTime)
@@ -54,8 +55,9 @@ onUnmounted(() => {
   <div
     class="bg-nc-fill-purple-medium text-white text-small leading-[18px] rounded-md py-0.5 px-2 w-[fit-content] whitespace-nowrap"
   >
-    <span v-if="!hideIcon" class="mr-2">🕒</span>Expires in <span class="font-bold">{{ timeLeft.days }}d</span> :
-    <span class="font-bold">{{ timeLeft.hours }}h</span> : <span class="font-bold">{{ timeLeft.minutes }}m</span> :
+    <template v-if="!hideLabel"> <span v-if="!hideIcon" class="mr-2">🕒</span>Expires in </template>
+    <span class="font-bold">{{ timeLeft.days }}d</span> : <span class="font-bold">{{ timeLeft.hours }}h</span> :
+    <span class="font-bold">{{ timeLeft.minutes }}m</span> :
     <span class="font-bold">{{ timeLeft.seconds }}s</span>
   </div>
 </template>

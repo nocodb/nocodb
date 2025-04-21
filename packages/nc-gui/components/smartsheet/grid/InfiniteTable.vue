@@ -3,7 +3,6 @@ import {
   type ButtonType,
   type ColumnReqType,
   type ColumnType,
-  PlanFeatureTypes,
   PlanLimitTypes,
   type TableType,
   UITypes,

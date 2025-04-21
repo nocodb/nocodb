@@ -122,7 +122,7 @@ onKeyStroke('ArrowDown', onDown)
 </script>
 
 <template>
-  <div class="h-full flex flex-col gap-6">
+  <div class="nc-content-max-w mx-auto h-full flex flex-col gap-6">
     <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
 
     <template v-else>

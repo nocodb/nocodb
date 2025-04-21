@@ -907,17 +907,12 @@ export class PaymentService {
       NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
     }
 
-    const subscription = await Subscription.getByWorkspaceOrOrg(
-      workspaceOrOrg.id,
-    );
-
-    if (!subscription) {
+    if (!workspaceOrOrg.stripe_customer_id) {
       NcError.genericNotFound('Subscription', workspaceOrOrgId);
     }
 
     const invoices = await stripe.invoices.list({
       customer: workspaceOrOrg.stripe_customer_id,
-      subscription: subscription.stripe_subscription_id,
       limit: 10,
       starting_after: options.starting_after,
       ending_before: options.ending_before,

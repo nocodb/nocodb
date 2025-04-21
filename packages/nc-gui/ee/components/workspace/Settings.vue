@@ -210,7 +210,7 @@ const onCancel = () => {
       <PaymentBanner class="sticky top-0 z-10" />
     </template>
 
-    <div class="nc-content-max-w flex flex-col items-center nc-workspace-settings-settings pb-10 px-6">
+    <div class="flex flex-col items-center nc-workspace-settings-settings pb-10 px-6">
       <div class="item-card flex flex-col w-full">
         <div class="font-bold text-base text-nc-content-gray-emphasis">
           {{ $t('objects.workspace') }} {{ $t('general.appearance') }}

@@ -1,6 +1,10 @@
 import { type StripeCheckoutSession } from '@stripe/stripe-js'
+import type Stripe from 'stripe'
+
 import dayjs from 'dayjs'
-import { LOYALTY_END_DATE, LoyaltyPriceLookupKeyMap, PlanPriceLookupKeys, PlanTitles } from 'nocodb-sdk'
+import { LOYALTY_END_DATE, LoyaltyPriceLookupKeyMap, type PaginatedType, PlanPriceLookupKeys, PlanTitles } from 'nocodb-sdk'
+
+const defaultPaginationData = { page: 1, pageSize: 25, totalRows: 0, isLoading: true }
 
 export interface PaymentPlan {
   id: string
@@ -25,8 +29,6 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const { navigateToCheckout } = useEeConfig()
 
-  const { t } = useI18n()
-
   const workspaceStore = useWorkspace()
 
   const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspaceStore)
@@ -46,6 +48,10 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const plansAvailable = ref<PaymentPlan[]>([])
 
   const isAccountPage = ref<boolean>(false)
+
+  const invoices = ref<Stripe.Invoice[]>([])
+
+  const invoicePaginationData = ref<PaginatedType & { isLoading?: boolean }>(defaultPaginationData)
 
   const isLoyaltyWorkspace = computed(() => {
     if (!activeWorkspace.value) return false
@@ -276,6 +282,32 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     })
   }
 
+  const loadInvoices = async () => {
+    if (!activeWorkspaceId.value) throw new Error('No active workspace')
+
+    if (!activeWorkspace.value?.stripe_customer_id) {
+      invoicePaginationData.value.isLoading = false
+
+      return
+    }
+
+    try {
+      const res = (await $fetch(`/api/payment/${activeWorkspaceId.value}/invoice`, {
+        baseURL,
+        method: 'GET',
+        headers: { 'xc-auth': $state.token.value as string },
+      })) as Stripe.ApiList<Stripe.Invoice>
+
+      invoices.value = res?.data || []
+      invoicePaginationData.value = { ...defaultPaginationData, totalRows: invoices.value.length }
+    } catch (e: any) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      invoicePaginationData.value.isLoading = false
+    }
+  }
+
   const onManageSubscription = async () => {
     if (!activeSubscription.value) return
 
@@ -301,6 +333,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     async () => {
       if (activeWorkspaceId.value) {
         await loadWorkspaceSeatCount()
+        await loadInvoices()
       }
     },
     { immediate: true },
@@ -333,6 +366,9 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     isAccountPage,
     onManageSubscription,
     isLoyaltyWorkspace,
+    loadInvoices,
+    invoices,
+    invoicePaginationData,
   }
 }, 'injected-payment-store')
 

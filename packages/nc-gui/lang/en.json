@@ -1291,7 +1291,12 @@
     "proceed": "Proceed",
     "editorSeat": "Editor seat",
     "editorSeats": "Editor seats",
-    "viewPlans": "View Plans"
+    "viewPlans": "View Plans",
+    "numberOfSeats": "Number of Seats",
+    "invoice": "Invoice",
+    "status": "Status",
+    "invoiceTotal": "Invoice Total",
+    "pastInvoices": "Past Invoices"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

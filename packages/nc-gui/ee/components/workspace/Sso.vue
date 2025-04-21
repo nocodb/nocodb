@@ -109,9 +109,7 @@ onMounted(async () => {
 
 <template>
   <div class="flex flex-col" data-test-id="nc-authentication">
-    <div
-      class="nc-content-max-w flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col items-center gap-6 p-6"
-    >
+    <div class="flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col items-center gap-6 p-6">
       <div class="flex flex-col gap-6 w-150">
         <div class="flex justify-between items-center" data-rec="true">
           <span class="font-bold text-xl"> SSO </span>

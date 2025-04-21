@@ -17,6 +17,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const gracePeriodDaysLeft = computed(() => Infinity)
 
+  const gracePeriodEndDate = computed(() => '')
+
   const isWsAuditEnabled = computed(() => false)
 
   const isAllowToAddExtension = computed(() => true)
@@ -103,6 +105,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToSeeMoreRecordsModal,
     navigateToPricing,
     navigateToCheckout,
-    isLoyaltyWorkspace
+    isLoyaltyWorkspace,
+    gracePeriodEndDate,
   }
 })

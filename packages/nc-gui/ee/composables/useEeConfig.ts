@@ -1,4 +1,4 @@
-import { GRACE_PERIOD_DURATION, HigherPlan, LOYALTY_END_DATE, NON_SEAT_ROLES, PlanOrder, PlanTitles } from 'nocodb-sdk'
+import { GRACE_PERIOD_DURATION, HigherPlan, LOYALTY_END_DATE, NON_SEAT_ROLES, PlanTitles } from 'nocodb-sdk'
 import {
   PlanFeatureTypes,
   type PlanLimitExceededDetailsType,
@@ -78,6 +78,12 @@ export const useEeConfig = createSharedComposable(() => {
 
     // Ensure it's never negative (e.g., if grace period is over)
     return Math.max(daysLeft, 0)
+  })
+
+  const gracePeriodEndDate = computed(() => {
+    if (gracePeriodDaysLeft.value <= 0) return ''
+
+    return dayjs(activeWorkspace.value?.grace_period_start_at).add(GRACE_PERIOD_DURATION, 'day').format('YYYY-MM-DD')
   })
 
   /**
@@ -299,7 +305,7 @@ export const useEeConfig = createSharedComposable(() => {
     newPlanTitle,
     workspaceId,
     callback,
-    redirectToWorkspace = true,
+    redirectToWorkspace: _redirectToWorkspace = true,
     stopEventPropogation = true,
     title,
     content,
@@ -642,5 +648,6 @@ export const useEeConfig = createSharedComposable(() => {
     navigateToPricing,
     navigateToCheckout,
     isLoyaltyWorkspace,
+    gracePeriodEndDate,
   }
 })

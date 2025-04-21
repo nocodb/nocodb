@@ -306,6 +306,7 @@ import NcTriangleIcon from '~icons/nc-icons-v2/triangle.svg'
 import NcSearchIcon from '~icons/nc-icons-v2/search.svg'
 import NcVolume2Icon from '~icons/nc-icons-v2/volume-2.svg'
 import NcArrowUpCircleIcon from '~icons/nc-icons-v2/arrow-up-circle.svg'
+import NcArrowUpCircleSolidIcon from '~icons/nc-icons-v2/arrow-up-circle-solid.svg'
 import NcPauseCircleIcon from '~icons/nc-icons-v2/pause-circle.svg'
 import NcCheckSquareIcon from '~icons/nc-icons-v2/check-square.svg'
 import NcArrowDownIcon from '~icons/nc-icons-v2/arrow-down.svg'
@@ -1278,6 +1279,7 @@ export const iconMap = {
   'ncSearch': NcSearchIcon,
   'ncVolume2': NcVolume2Icon,
   'ncArrowUpCircle': NcArrowUpCircleIcon,
+  'ncArrowUpCircleSolid': NcArrowUpCircleSolidIcon,
   'ncPauseCircle': NcPauseCircleIcon,
   'ncCheckSquare': NcCheckSquareIcon,
   'ncArrowDown2': NcArrowDownIcon,

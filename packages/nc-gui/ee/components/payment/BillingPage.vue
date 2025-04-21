@@ -20,8 +20,6 @@ const { activeWorkspaceId } = storeToRefs(workspaceStore)
 const { paymentState, loadWorkspaceSeatCount, getSessionResult, isAccountPage, paymentMode, plansAvailable, onSelectPlan } =
   useProvidePaymentStore()
 
-const { isPaymentEnabled } = useEeConfig()
-
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
 const afterPayment = ref(!!route.query.afterPayment)
@@ -120,11 +118,11 @@ watch(
     @scroll.passive="handleScroll"
   >
     <PaymentBanner class="sticky top-0 z-10" />
-    <div class="nc-content-max-w">
+    <div>
       <div
         class="p-6 pb-16 flex flex-col gap-8 min-w-[740px] w-full"
         :class="{
-          'max-w-250 mx-auto': paymentState !== PaymentState.PAYMENT,
+          'max-w-[1200px] mx-auto': paymentState !== PaymentState.PAYMENT,
         }"
       >
         <template v-if="!paymentInitiated">

@@ -624,7 +624,7 @@
     "renameWorkspace": "Gi nytt navn til arbeidsområde",
     "renamingWorkspace": "Omdøper arbeidsområde",
     "renamingBase": "Omdøper base",
-    "sso": "Autentisering (SSO)",
+    "sso": "Single Sign-On (SSO)",
     "docs": "Dokumenter",
     "forum": "Forum",
     "parameter": "Parameter",
@@ -1291,7 +1291,12 @@
     "proceed": "Proceed",
     "editorSeat": "Editor seat",
     "editorSeats": "Editor seats",
-    "viewPlans": "View Plans"
+    "viewPlans": "View Plans",
+    "numberOfSeats": "Number of Seats",
+    "invoice": "Invoice",
+    "status": "Status",
+    "invoiceTotal": "Invoice Total",
+    "pastInvoices": "Past Invoices"
   },
   "activity": {
     "clickToResolve": "Klikk for å løse",
@@ -1694,7 +1699,8 @@
     "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace.",
     "searchOptions": "Søk alternativer",
     "lockViewDescription": "Forklar hvorfor du låser denne visningen. Denne meldingen vil vises når noen prøver å låse opp denne visningen (valgfritt).",
-    "noBaseUsersFound": "Ingen prosjektbrukere funnet"
+    "noBaseUsersFound": "Ingen prosjektbrukere funnet",
+    "noInvoices": "No Invoices"
   },
   "msg": {
     "urlFilter": "URL-filtre brukes fra URL-parametere og kombineres med visningsfiltre satt via verktøylinjen.",
@@ -2174,7 +2180,9 @@
       "collabView": "Vellykket byttet til samarbeidsvisning",
       "lockedView": "Vellykket byttet til låst visning",
       "futureRelease": "Kommer snart!",
-      "notAllowedToChangeDefaultView": "Du har ikke tillatelse til å endre standardvisningen"
+      "notAllowedToChangeDefaultView": "Du har ikke tillatelse til å endre standardvisningen",
+      "nCellCopied": "{n} cell copied",
+      "nCellsCopied": "{n} cells copied"
     },
     "success": {
       "licenseKeyUpdated": "Lisensnøkkel oppdatert",

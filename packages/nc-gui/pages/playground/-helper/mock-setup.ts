@@ -1,5 +1,5 @@
 import { defaultBases } from './bases'
-import { defaultColumns } from './columns'
+import { defaultColumns, table2Columns } from './columns'
 
 const defaultBaseId = 'pRdVnZXPZgA'
 export const MOCK_TABLES_RAW = [
@@ -12,6 +12,12 @@ export const MOCK_TABLES_RAW = [
   {
     id: 'mehpRLA42Cz',
     name: 'table2',
+    columns: table2Columns,
+    base_id: defaultBaseId,
+  },
+  {
+    id: 'm0WRAn0wWu3',
+    name: 'table3',
     base_id: 'pRdVnZXPZgA',
   },
 ]

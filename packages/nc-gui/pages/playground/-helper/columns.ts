@@ -1,44 +1,56 @@
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 
+const defaultColumnModelId = 'mtWA9ZXvsuh'
+const table2ColumnModelId = 'mehpRLA42Cz'
+let defaultColumnOrder = 1
 export const defaultColumns: ColumnType[] = [
   {
-    id: 'col1',
+    id: 'col-slt',
     uidt: UITypes.SingleLineText,
-    title: 'Column 1',
+    title: 'SingleLineText',
     dt: 'text',
-    order: 1,
+    fk_model_id: defaultColumnModelId,
+    order: defaultColumnOrder++,
   },
   {
-    id: 'col2',
+    id: 'col-decimal',
     uidt: UITypes.Decimal,
-    title: 'Column 2',
+    title: 'Decimal',
     dt: 'decimal',
-    order: 2,
+    fk_model_id: defaultColumnModelId,
+    order: defaultColumnOrder++,
   },
   {
-    id: 'col3',
+    id: 'col-number',
     uidt: UITypes.Number,
-    title: 'Column 3',
+    title: 'Number',
     dt: 'bigint',
     dtx: 'specificType',
     meta: { isLocaleString: false },
     system: false,
-    order: 5,
+    fk_model_id: defaultColumnModelId,
+    order: defaultColumnOrder++,
   },
   {
-    id: 'col4',
+    id: 'col-links',
     uidt: UITypes.Links,
-    title: 'Column 4',
-    order: 3,
+    title: 'Links HM',
+    colOptions: {
+      type: 'hm',
+      fk_related_model_id: table2ColumnModelId,
+    },
+    fk_model_id: defaultColumnModelId,
+    order: defaultColumnOrder++,
   },
   {
-    id: 'col5',
+    id: 'col-datetime',
     uidt: UITypes.DateTime,
     meta: {
       dateFormat: 'YY/MM/DD',
     },
-    title: 'Column 5',
-    order: 4,
+    title: 'DateTime',
+    fk_model_id: defaultColumnModelId,
+    order: defaultColumnOrder++,
   },
   {
     id: 'col-date-monthonly',
@@ -46,13 +58,71 @@ export const defaultColumns: ColumnType[] = [
     meta: {
       dateFormat: 'YY-MM',
     },
-    title: 'Column 6',
-    order: 6,
+    title: 'Date',
+    fk_model_id: defaultColumnModelId,
+    order: defaultColumnOrder++,
   },
   {
-    id: 'col6',
+    id: 'col-date-monthonly',
+    uidt: UITypes.Date,
+    meta: {
+      dateFormat: 'YY-MM',
+    },
+    title: 'Date (monthonly)',
+    fk_model_id: defaultColumnModelId,
+    order: defaultColumnOrder++,
+  },
+  {
+    id: 'col-checkbox',
     uidt: UITypes.Checkbox,
-    title: 'Column 7',
-    order: 7,
+    title: 'Checkbox',
+    fk_model_id: defaultColumnModelId,
+    order: defaultColumnOrder++,
+  },
+  {
+    id: 'col-lookup',
+    uidt: UITypes.Lookup,
+    title: 'Lookup',
+    fk_model_id: defaultColumnModelId,
+    order: defaultColumnOrder++,
+    colOptions: {
+      fk_column_id: 'col-lookup',
+      fk_relation_column_id: 'col-links',
+      fk_lookup_column_id: 'col2-slt',
+      fk_related_model_id: table2ColumnModelId,
+    },
+  },
+  {
+    id: 'col-lookup-decimal',
+    uidt: UITypes.Lookup,
+    title: 'Lookup (Decimal)',
+    fk_model_id: defaultColumnModelId,
+    order: defaultColumnOrder++,
+    colOptions: {
+      fk_column_id: 'col-lookup',
+      fk_relation_column_id: 'col-links',
+      fk_lookup_column_id: 'col2-decimal',
+      fk_related_model_id: table2ColumnModelId,
+    },
+  },
+]
+
+let table2ColumnOrder = 1
+export const table2Columns: ColumnType[] = [
+  {
+    id: 'col2-slt',
+    uidt: UITypes.SingleLineText,
+    title: 'SingleLineText',
+    dt: 'text',
+    fk_model_id: table2ColumnModelId,
+    order: table2ColumnOrder++,
+  },
+  {
+    id: 'col2-decimal',
+    uidt: UITypes.Decimal,
+    title: 'Decimal',
+    dt: 'decimal',
+    fk_model_id: table2ColumnModelId,
+    order: table2ColumnOrder++,
   },
 ]

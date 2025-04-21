@@ -1,13 +1,7 @@
-<script lang="ts" setup>
-interface Props {}
-
-const props = withDefaults(defineProps<Props>(), {})
-
-const {} = toRefs(props)
-</script>
+<script lang="ts" setup></script>
 
 <template>
-    
+  <div></div>
 </template>
 
 <style lang="scss" scoped></style>

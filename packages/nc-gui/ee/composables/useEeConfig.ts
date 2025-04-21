@@ -1,4 +1,4 @@
-import { GRACE_PERIOD_DURATION, HigherPlan, LOYALTY_END_DATE, NON_SEAT_ROLES, PlanOrder, PlanTitles } from 'nocodb-sdk'
+import { GRACE_PERIOD_DURATION, HigherPlan, LOYALTY_END_DATE, NON_SEAT_ROLES, PlanTitles } from 'nocodb-sdk'
 import {
   PlanFeatureTypes,
   type PlanLimitExceededDetailsType,
@@ -305,7 +305,7 @@ export const useEeConfig = createSharedComposable(() => {
     newPlanTitle,
     workspaceId,
     callback,
-    redirectToWorkspace = true,
+    redirectToWorkspace: _redirectToWorkspace = true,
     stopEventPropogation = true,
     title,
     content,

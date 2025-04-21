@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
 
 const { t } = useI18n()
 
@@ -78,7 +78,7 @@ const columns: NcTableColumnProps<Stripe.Invoice>[] = [
         :columns="columns"
         :is-data-loading="invoicePaginationData.isLoading"
       >
-        <template #bodyCell="{ column, record, recordIndex }">
+        <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'created'">
             {{ record.created ? dayjs(record.created * 1000).format('D MMMM YYYY hh:mm A') : '-' }}
           </template>
@@ -100,15 +100,15 @@ const columns: NcTableColumnProps<Stripe.Invoice>[] = [
           </template>
         </template>
         <template
-          #tableFooter
           v-if="!invoicePaginationData.isLoading && invoicePaginationData.totalRows && invoicePaginationData.totalRows > 10"
+          #tableFooter
         >
           <div class="flex flex-row justify-center items-center bg-gray-50 min-h-10">
             <div class="flex justify-between items-center w-full px-6">
               <div>&nbsp;</div>
               <NcPagination
-                v-model:current="invoicePaginationData.page!"
-                v-model:page-size="invoicePaginationData.pageSize!"
+                v-model:current="invoicePaginationData.page"
+                v-model:page-size="invoicePaginationData.pageSize"
                 :total="+invoicePaginationData.totalRows"
                 show-size-changer
                 :use-stored-page-size="false"

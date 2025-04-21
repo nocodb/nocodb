@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import {
+  HigherPlan,
   OrderedWorkspaceRoles,
   type PlanLimitExceededDetailsType,
   PlanLimitTypes,
   PlanTitles,
   WorkspaceUserRoles,
-  HigherPlan,
 } from 'nocodb-sdk'
 
 const props = defineProps<{

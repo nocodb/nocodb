@@ -1,7 +1,7 @@
 <script lang="ts" setup>
+import { LOYALTY_GRACE_PERIOD_END_DATE, PlanTitles } from 'nocodb-sdk'
 import bannerLight from '~/assets/img/upgrade-sidebar-banner-light.png'
 import bannerDark from '~/assets/img/upgrade-sidebar-banner-dark.png'
-import { PlanTitles, LOYALTY_GRACE_PERIOD_END_DATE } from 'nocodb-sdk'
 
 const {
   isRecordLimitReached,
@@ -112,7 +112,7 @@ const timerDate = computed(() => {
           </div>
 
           <div class="flex flex-col gap-1.5">
-            <div v-if="true || (showTimer && timerDate)" class="flex items-center justify-center">
+            <div v-if="showTimer && timerDate" class="flex items-center justify-center">
               <PaymentExpiresIn
                 :end-time="timerDate"
                 hide-icon

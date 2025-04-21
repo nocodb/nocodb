@@ -1,5 +1,5 @@
 import { type StripeCheckoutSession } from '@stripe/stripe-js'
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
 
 import dayjs from 'dayjs'
 import { LOYALTY_END_DATE, LoyaltyPriceLookupKeyMap, PlanPriceLookupKeys, PlanTitles, type PaginatedType } from 'nocodb-sdk'

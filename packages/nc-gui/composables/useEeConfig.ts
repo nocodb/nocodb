@@ -106,6 +106,6 @@ export const useEeConfig = createSharedComposable(() => {
     navigateToPricing,
     navigateToCheckout,
     isLoyaltyWorkspace,
-    gracePeriodEndDate,
+    gracePeriodEndDate,,
   }
 })

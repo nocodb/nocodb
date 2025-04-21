@@ -281,7 +281,7 @@ export function useCopyPaste({
               const newColTitle = generateUniqueColumnName({
                 metaColumns: [...(meta.value?.columns ?? []), ...bulkOpsCols.map(({ column }) => column)],
                 formState: tempCol,
-            })
+              })
 
               bulkOpsCols.push({
                 op: 'add',

@@ -624,7 +624,7 @@
     "renameWorkspace": "작업공간 이름 변경",
     "renamingWorkspace": "작업공간 이름 변경중",
     "renamingBase": "프로젝트 이름 바꾸기",
-    "sso": "인증(SSO)",
+    "sso": "Single Sign-On (SSO)",
     "docs": "문서",
     "forum": "포럼",
     "parameter": "매개 변수",
@@ -1291,7 +1291,12 @@
     "proceed": "Proceed",
     "editorSeat": "Editor seat",
     "editorSeats": "Editor seats",
-    "viewPlans": "View Plans"
+    "viewPlans": "View Plans",
+    "numberOfSeats": "Number of Seats",
+    "invoice": "Invoice",
+    "status": "Status",
+    "invoiceTotal": "Invoice Total",
+    "pastInvoices": "Past Invoices"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",
@@ -1694,7 +1699,8 @@
     "inviteYourTeamLabel": "팀과 협력하여 프로젝트를 빠르게 진행하세요!",
     "searchOptions": "검색 옵션",
     "lockViewDescription": "이 뷰를 잠그는 이유를 설명하세요. 이 메시지는 누군가 이 뷰를 잠금 해제하려고 할 때 표시됩니다 (선택 사항)",
-    "noBaseUsersFound": "No base users found"
+    "noBaseUsersFound": "No base users found",
+    "noInvoices": "No Invoices"
   },
   "msg": {
     "urlFilter": "URL 필터는 URL 매개 변수에서 적용되며 도구 모음을 통해 설정된 보기 필터와 결합됩니다.",
@@ -2174,7 +2180,9 @@
       "collabView": "공동 작업 뷰로 성공적으로 전환했습니다",
       "lockedView": "잠긴 뷰로 성공적으로 전환되었습니다",
       "futureRelease": "곧 출시!",
-      "notAllowedToChangeDefaultView": "기본 뷰를 변경할 수 없습니다"
+      "notAllowedToChangeDefaultView": "기본 뷰를 변경할 수 없습니다",
+      "nCellCopied": "{n} cell copied",
+      "nCellsCopied": "{n} cells copied"
     },
     "success": {
       "licenseKeyUpdated": "라이센스 키 업데이트됨",

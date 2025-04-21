@@ -19,6 +19,7 @@ import { RawBodyMiddleware } from '~/middlewares/raw-body.middleware';
 import { JsonBodyMiddleware } from '~/middlewares/json-body.middleware';
 
 import { packageInfo } from '~/utils/packageVersion';
+import { UrlEncodeMiddleware } from '~/middlewares/url-encode.middleware';
 
 export const ceModuleConfig = {
   imports: [
@@ -67,6 +68,8 @@ export class AppModule {
         method: RequestMethod.POST,
       })
       .apply(JsonBodyMiddleware)
+      .forRoutes('*')
+      .apply(UrlEncodeMiddleware)
       .forRoutes('*')
       .apply(GuiMiddleware)
       .forRoutes({ path: `${dashboardPath}*`, method: RequestMethod.GET })

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import bannerLight from '~/assets/img/upgrade-sidebar-banner-light.png'
 import bannerDark from '~/assets/img/upgrade-sidebar-banner-dark.png'
-import { PlanTitles } from 'nocodb-sdk'
+import { PlanTitles, LOYALTY_GRACE_PERIOD_END_DATE } from 'nocodb-sdk'
 
 const {
   isRecordLimitReached,
@@ -32,7 +32,7 @@ const showTimer = computed(() => {
 })
 
 const timerDate = computed(() => {
-  return isLimitReached.value ? gracePeriodEndDate.value : '2025-04-30'
+  return isLimitReached.value ? gracePeriodEndDate.value : LOYALTY_GRACE_PERIOD_END_DATE
 })
 </script>
 

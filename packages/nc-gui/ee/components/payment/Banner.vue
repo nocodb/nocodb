@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { LOYALTY_GRACE_PERIOD_END_DATE } from 'nocodb-sdk'
 import loyalBgImage from '~/assets/img/loyalty-bg.png'
 import loyalContentImage from '~/assets/img/loyal-upgrade-banner-content.png'
 import loyalMoscotImage from '~/assets/img/loyal-upgrade-banner-moscot.png'
@@ -69,7 +70,11 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace, isPaymentE
           </NcButton>
 
           <div v-if="isLoyaltyWorkspace">
-            <PaymentExpiresIn end-time="2025-04-30" hide-icon class="!bg-transparent text-nc-content-purple-dark" />
+            <PaymentExpiresIn
+              :end-time="LOYALTY_GRACE_PERIOD_END_DATE"
+              hide-icon
+              class="!bg-transparent text-nc-content-purple-dark"
+            />
           </div>
         </div>
       </div>

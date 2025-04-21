@@ -60,8 +60,6 @@ watch(
         :active-plan="activePlan?.title"
         :active-btn-plan-title="activeBtnPlanTitle"
       />
-
-      <LazyPaymentPlansUpgradePlanModal />
     </div>
 
     <a class="h-[48px] inline-block mx-auto" @click="navigateToPricing()">

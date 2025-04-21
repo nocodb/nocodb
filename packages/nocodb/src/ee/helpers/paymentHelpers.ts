@@ -7,6 +7,7 @@ import {
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import type Stripe from 'stripe';
 import { NcError } from '~/helpers/catchError';
 import { Org, Subscription, Workspace } from '~/models';
 import Noco from '~/Noco';
@@ -328,6 +329,50 @@ export async function checkIfWorkspaceSSOAvail(
   }
 
   return true;
+}
+
+export function calculateUnitPrice(
+  price: Stripe.Price,
+  workspaceSeatCount: number,
+  mode: 'month' | 'year',
+) {
+  if (price.billing_scheme === 'tiered' && price.tiers_mode === 'volume') {
+    const tier = price.tiers.find(
+      (tier: any) => workspaceSeatCount <= (tier.up_to ?? Infinity),
+    );
+
+    if (!tier) return 0;
+
+    return (
+      (tier.unit_amount + tier.flat_amount) / 100 / (mode === 'year' ? 12 : 1)
+    );
+  } else if (
+    price.billing_scheme === 'tiered' &&
+    price.tiers_mode === 'graduated'
+  ) {
+    let remainingSeats = workspaceSeatCount;
+    let total = 0;
+    let previousUpTo = 0;
+
+    for (const tier of price.tiers) {
+      const tierLimit = tier.up_to ?? Infinity;
+      const tierSeats = Math.min(remainingSeats, tierLimit);
+      const seatsInTier = tierSeats - (previousUpTo ?? 0);
+
+      if (seatsInTier > 0) {
+        total += tier.unit_amount + (tier.flat_amount || 0);
+        remainingSeats -= seatsInTier;
+      }
+
+      if (tier.up_to === null || workspaceSeatCount <= tierLimit) break;
+
+      previousUpTo = tierLimit;
+    }
+
+    return total / 100 / (mode === 'year' ? 12 : 1);
+  }
+
+  return price.unit_amount / 100 / (mode === 'year' ? 12 : 1);
 }
 
 export {

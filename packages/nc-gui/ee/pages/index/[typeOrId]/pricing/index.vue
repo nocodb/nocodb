@@ -28,6 +28,8 @@ const {
 onMounted(() => {
   hideSidebar.value = true
   showTopbar.value = true
+
+  paymentMode.value = activeSubscription.value?.period || 'year'
 })
 
 onBeforeUnmount(() => {
@@ -13977,7 +13979,6 @@ const openNewTab = (url: string) => {
         </div>
       </div>
     </section>
-    <LazyPaymentPlansUpgradePlanModal />
   </div>
 </template>
 

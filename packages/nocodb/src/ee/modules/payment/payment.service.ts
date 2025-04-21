@@ -7,7 +7,10 @@ import type { NcRequest } from '~/interface/config';
 import { Org, Plan, Subscription, Workspace, WorkspaceUser } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
-import { getWorkspaceOrOrg } from '~/helpers/paymentHelpers';
+import {
+  calculateUnitPrice,
+  getWorkspaceOrOrg,
+} from '~/helpers/paymentHelpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
@@ -525,7 +528,12 @@ export class PaymentService {
         // If the new price or plan is higher upgrade immediately (invoice now with prorations) + reset billing cycle
         if (
           !existingPrice ||
-          price.unit_amount > existingPrice.unit_amount ||
+          calculateUnitPrice(price, seatCount, price.recurring.interval) >
+            calculateUnitPrice(
+              existingPrice,
+              seatCount,
+              existingPrice.recurring.interval as 'month' | 'year',
+            ) ||
           PlanOrder[plan.title] > PlanOrder[existingPlan.title]
         ) {
           updatedSubscription = await stripe.subscriptions.update(

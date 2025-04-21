@@ -80,6 +80,12 @@ export const useEeConfig = createSharedComposable(() => {
     return Math.max(daysLeft, 0)
   })
 
+  const gracePeriodEndDate = computed(() => {
+    if (gracePeriodDaysLeft.value <= 0) return ''
+
+    return dayjs(activeWorkspace.value?.grace_period_start_at).add(GRACE_PERIOD_DURATION, 'day').format('YYYY-MM-DD')
+  })
+
   /**
    * User has to upgrade plan in order to add new records
    */
@@ -642,5 +648,6 @@ export const useEeConfig = createSharedComposable(() => {
     navigateToPricing,
     navigateToCheckout,
     isLoyaltyWorkspace,
+    gracePeriodEndDate,
   }
 })

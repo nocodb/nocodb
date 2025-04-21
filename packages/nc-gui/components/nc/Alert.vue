@@ -348,13 +348,7 @@ onUnmounted(() => {
     }
 
     &.nc-alert-type-toast {
-      @apply min-w-[fit-content]  md:min-w-[fit-content] max-w-[488px] w-[fit-content];
-
-      .nc-alert-content {
-        .nc-alert-description {
-          @apply line-clamp-1;
-        }
-      }
+      @apply min-w-[fit-content]  md:min-w-[fit-content] max-w-[350px] w-[fit-content];
     }
   }
 

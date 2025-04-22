@@ -27,9 +27,19 @@ const onOk = () => {
 const onCancel = () => {
   // navigate to non-sso workspace
   // find first non-sso workspace and navigate to it
-  const nonSsoWorkspace = [...(workspaces.value?.values() || [])].find((workspace) => {
+  let nonSsoWorkspace = [...(workspaces.value?.values() || [])].find((workspace) => {
     return !workspace.sso_only_access && workspace.id !== workspaceStore.activeWorkspaceId
   })
+
+  if (!nonSsoWorkspace) {
+    // create a default workspace with user name and navigate
+    const defaultWorkspace = {
+      title: user.value?.display_name || user.value?.email?.split('@')[0] || 'Default Workspace',
+    }
+
+    nonSsoWorkspace = await workspaceStore.createWorkspace(defaultWorkspace)
+    await workspaceStore.loadWorkspaces()
+  }
 
   if (nonSsoWorkspace) {
     navigateTo(

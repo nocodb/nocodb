@@ -58,7 +58,6 @@ import { RootScopes } from '~/utils/globals';
 import SSOClient from '~/models/SSOClient';
 import {
   checkIfEmailAllowedNonSSO,
-  checkIfSsoEmailOnly,
   checkIfWorkspaceSSOAvail,
 } from '~/helpers/paymentHelpers';
 

@@ -6,6 +6,7 @@ import {
   PlanLimitTypes,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
+import { DlgOrgDomain } from 'nc-gui/ee/.nuxt/components';
 import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import type Stripe from 'stripe';
 import { NcError } from '~/helpers/catchError';
@@ -377,17 +378,17 @@ export function calculateUnitPrice(
 
 // check if email only allowed through sso LOGIN
 export const checkIfEmailAllowedNonSSO = async (
-    domain: string,
-    email: string,
-    ) => {
+  workspaceId: string,
+  email: string,
+) => {
   const domains = await Domain.list({
-    workspaceId
+    workspaceId,
   });
 
-  return !!email && domains?.some((d:Domain) => d.domain === email?.split('@')[1])) {
-
-    }
-
+  return (
+    !!email && domains?.some((d: Domain) => d.domain === email?.split('@')[1])
+  );
+};
 export {
   PlanLimitTypes,
   PlanFeatureTypes,

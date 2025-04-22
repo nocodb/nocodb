@@ -276,13 +276,13 @@ const handleScroll = (e) => {
                 })
               "
             >
-              <div class="flex items-center text-nc-content-gray-default text-sm">
+              <div class="flex items-center text-nc-content-gray-default text-sm whitespace-nowrap">
                 <GeneralIcon icon="star" class="flex-none h-4 w-4 mr-1" />
 
                 {{ paidUsersCount }} {{ paidUsersCount === 1 ? $t('labels.editorSeat') : $t('labels.editorSeats') }}
               </div>
             </NcTooltip>
-            <div v-else class="flex items-center text-nc-content-gray-default text-sm">
+            <div v-else class="flex items-center text-nc-content-gray-default text-sm whitespace-nowrap">
               <GeneralIcon icon="star" class="flex-none h-4 w-4 mr-1" />
 
               {{ paidUsersCount }} {{ $t('general.paid') }}

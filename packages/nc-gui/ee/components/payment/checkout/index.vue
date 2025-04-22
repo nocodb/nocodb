@@ -93,9 +93,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="selectedPlan" class="flex flex-col w-full justify-center mt-[52px]">
+  <div class="flex flex-col w-full justify-center mt-[52px]">
     <div class="flex flex-col w-full gap-6">
-      <div class="nc-payment-pay-header sticky top-0 bg-white py-3 -mt-6 -mx-6">
+      <div v-if="selectedPlan" class="nc-payment-pay-header sticky top-0 bg-white py-3 -mt-6 -mx-6">
         <div class="max-w-[888px] mx-auto flex items-center justify-between">
           <div v-if="paymentState && paymentState !== PaymentState.SELECT_PLAN" class="flex">
             <NcButton

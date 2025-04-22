@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { LOYALTY_GRACE_PERIOD_END_DATE } from 'nocodb-sdk'
-import loyalBgImage from '~/assets/img/loyalty-bg.png'
 import loyalContentImage from '~/assets/img/loyal-upgrade-banner-content.png'
 import loyalMoscotImage from '~/assets/img/loyal-upgrade-banner-moscot.png'
 
@@ -13,12 +12,12 @@ const _props = withDefaults(
   },
 )
 
-const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace, isPaymentEnabled } = useEeConfig()
+const { isWsOwner, navigateToPricing, isLoyaltyWorkspace, isTopBannerVisible } = useEeConfig()
 </script>
 
 <template>
   <div
-    v-if="isPaymentEnabled && !isPaidPlan"
+    v-if="isTopBannerVisible"
     class="nc-payment-banner-wrapper z-1"
     :class="{
       'nc-payment-banner-expanded': expanded,

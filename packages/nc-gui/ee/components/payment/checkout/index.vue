@@ -35,7 +35,7 @@ const initializeForm = async () => {
 
     if (res.recover) {
       message.info(`Your subscription has been recovered.`)
-      window.location.reload()
+      window.location.href = `/#/${activeWorkspace.value?.id}/settings?tab=billing`
       return
     }
 

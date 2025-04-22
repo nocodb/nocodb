@@ -89,9 +89,10 @@ const fieldStyles = computed(() => {
 })
 
 const calendarData = computed(() => {
-  const startOfMonth = selectedMonth.value.startOf('month')
+  // startOf and endOf dayjs is bugged with timezone
+  const startOfMonth = timezoneDayjs.dayjsTz(selectedMonth.value.startOf('month').toISOString())
   const firstDayOffset = isMondayFirst.value ? 0 : -1
-  const firstDayToDisplay = startOfMonth.startOf('week').add(firstDayOffset, 'day')
+  const firstDayToDisplay = timezoneDayjs.dayjsTz(startOfMonth.startOf('week').toISOString()).add(firstDayOffset, 'day')
   const today = timezoneDayjs.dayjsTz()
 
   const daysInMonth = startOfMonth.daysInMonth()

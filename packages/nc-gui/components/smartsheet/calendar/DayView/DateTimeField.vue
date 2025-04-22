@@ -58,7 +58,8 @@ const hours = computed(() => {
   const _selectedDate = timezoneDayjs.dayjsTz(selectedDate.value)
 
   for (let i = 0; i < 24; i++) {
-    hours.push(_selectedDate.clone().startOf('day').add(i, 'hour'))
+    // startOf and endOf dayjs is bugged with timezone
+    hours.push(timezoneDayjs.dayjsTz(_selectedDate.clone().startOf('day').toISOString()).add(i, 'hour'))
   }
   return hours
 })
@@ -169,8 +170,8 @@ const hasSlotForRecord = (
       endDate: columnToCol
         ? dayjs(column.row[columnToCol.title!])
         : dayjs(column.row[columnFromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
-      scheduleStart: dayjs(selectedDate.value).startOf('day'),
-      scheduleEnd: dayjs(selectedDate.value).endOf('day'),
+      scheduleStart: timezoneDayjs.dayjsTz(timezoneDayjs.dayjsTz(selectedDate.value).startOf('day').toISOString()),
+      scheduleEnd: timezoneDayjs.dayjsTz(timezoneDayjs.dayjsTz(selectedDate.value).endOf('day').toISOString()),
     })
 
     if (

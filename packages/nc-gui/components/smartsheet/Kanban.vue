@@ -1400,6 +1400,12 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
       @apply py-0;
     }
   }
+  &.nc-cell-datetime {
+    @apply !w-auto;
+    & > div {
+      @apply !w-auto;
+    }
+  }
 }
 
 :deep(.nc-virtual-cell) {

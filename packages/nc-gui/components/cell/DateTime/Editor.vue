@@ -501,13 +501,14 @@ const minimizeMaxWidth = computed(() => {
     >
       <div
         :title="localState?.format(dateTimeFormat)"
-        class="nc-date-picker ant-picker-input flex items-center !w-auto relative gap-2"
+        class="nc-date-picker ant-picker-input flex items-center relative gap-2 !truncate"
         :class="{
-          'max-w-[calc(100%_-_70px)]': minimizeMaxWidth,
+          'max-w-[calc(100%_-_70px)] flex-none': minimizeMaxWidth,
+          'flex-1': !minimizeMaxWidth,
         }"
       >
         <div
-          class="nc-flex-1 flex rounded-md box-border nc-truncate"
+          class="nc-flex-1 rounded-md box-border nc-truncate"
           :class="{
             'py-0': isForm,
             'py-0.5': !isForm && !isColDisabled,
@@ -520,7 +521,7 @@ const minimizeMaxWidth = computed(() => {
             ref="datePickerRef"
             :value="localState?.format(dateFormat) ?? ''"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
-            class="nc-date-input nc-flex-1 w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
+            class="nc-date-input nc-flex-1 w-full min-w-0 !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
             :readonly="isColDisabled"
             @focus="onFocus(true)"
             @blur="onBlur($event, true)"
@@ -530,12 +531,12 @@ const minimizeMaxWidth = computed(() => {
             @click.stop="clickHandler($event, true)"
             @input="handleUpdateValue($event, true)"
           />
-          <span v-else>
+          <template v-else>
             {{ localState?.format(dateFormat) ?? '' }}
-          </span>
+          </template>
         </div>
         <div
-          class="nc-flex-1 flex rounded-md box-border nc-truncate"
+          class="nc-flex-1 rounded-md box-border nc-truncate"
           :class="[
             {
               'py-0': isForm,
@@ -550,7 +551,7 @@ const minimizeMaxWidth = computed(() => {
             ref="timePickerRef"
             :value="cellValue"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
-            class="nc-time-input nc-flex-1 w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
+            class="nc-time-input nc-flex-1 w-full min-w-0 !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
             :readonly="isColDisabled"
             @focus="onFocus(false)"
             @blur="onBlur($event, false)"
@@ -560,9 +561,9 @@ const minimizeMaxWidth = computed(() => {
             @click.stop="clickHandler($event, false)"
             @input="handleUpdateValue($event, false)"
           />
-          <span v-else>
+          <template v-else>
             {{ cellValue }}
-          </span>
+          </template>
         </div>
       </div>
 
@@ -604,7 +605,11 @@ const minimizeMaxWidth = computed(() => {
     </NcDropdown>
 
     <div
-      class="nc-timezone-field text-nc-content-gray-muted whitespace-nowrap text-tiny transition-all duration-300 nc-flex-1 text-right"
+      v-if="timeZoneDisplay"
+      class="nc-timezone-field text-nc-content-gray-muted whitespace-nowrap text-tiny transition-all duration-300 text-right"
+      :class="{
+        'nc-flex-1': minimizeMaxWidth,
+      }"
     >
       {{ timeZoneDisplay }}
     </div>

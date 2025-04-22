@@ -82,14 +82,14 @@ const timeCellMaxWidth = computed(() => {
     :title="localState?.format(dateTimeFormat)"
     class="nc-date-picker w-full flex items-center nc-cell-field relative gap-2 nc-cell-picker-datetime tracking-tight"
   >
-    <div class="nc-flex-1 flex-1 px-1 nc-truncate">
+    <div class="nc-flex-1 px-1 nc-truncate">
       {{ localState?.format(dateFormat) ?? '' }}
     </div>
 
-    <div class="nc-flex-1 flex-1 px-1 nc-truncate">
+    <div class="nc-flex-1 px-1 nc-truncate">
       {{ cellValue }}
     </div>
-    <div class="text-nc-content-gray-muted whitespace-nowrap text-tiny">
+    <div v-if="timeZoneDisplay" class="text-nc-content-gray-muted whitespace-nowrap text-tiny">
       {{ timeZoneDisplay }}
     </div>
   </div>

@@ -58,13 +58,14 @@ const { isWsOwner, navigateToPricing, isLoyaltyWorkspace, isTopBannerVisible } =
             class="nc-upgrade-plan-btn"
             data-testid="nc-workspace-settings-upgrade-button"
             inner-class="!gap-1"
+            size="small"
             @click.stop="navigateToPricing()"
           >
             <template #icon>
               <GeneralIcon icon="ncArrowUpRight" class="!transition-none" />
             </template>
-            <span class="font-semibold">
-              {{ isWsOwner ? $t('labels.viewPlans') : $t('general.requestUpgrade') }}
+            <span class="font-700">
+              {{ isWsOwner ? 'Upgrade Workspace' : $t('general.requestUpgrade') }}
             </span>
           </NcButton>
 
@@ -96,7 +97,7 @@ const { isWsOwner, navigateToPricing, isLoyaltyWorkspace, isTopBannerVisible } =
 }
 
 .nc-upgrade-plan-btn {
-  @apply !border-0 px-2 !font-semibold !rounded-lg;
+  @apply !border-0 !rounded-lg;
 }
 
 .nc-payment-banner {

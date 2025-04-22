@@ -120,6 +120,37 @@ export class BaseUsersService extends BaseUsersServiceCE {
             transaction,
           );
 
+          const targetUser =
+            baseUser &&
+            (await User.getWithRoles(
+              context,
+              user.id,
+              {
+                user,
+                baseId: param.baseId,
+                workspaceId: context.workspace_id,
+              },
+              ncMeta,
+            ));
+
+          // if old role is owner and there is only one owner then restrict update
+          if (targetUser && this.isOldRoleIsOwner(targetUser)) {
+            const baseUsers = await BaseUser.getUsersList(
+              context,
+              {
+                base_id: param.baseId,
+              },
+              ncMeta,
+            );
+            this.checkMultipleOwnerExist(baseUsers);
+            await this.ensureBaseOwner(context, {
+              baseUsers,
+              ignoreUserId: user.id,
+              baseId: param.baseId,
+              req: param.req,
+            });
+          }
+
           // if already exists and has a role then return error
           if (baseUser?.is_mapped && baseUser?.roles) {
             throw new Error(

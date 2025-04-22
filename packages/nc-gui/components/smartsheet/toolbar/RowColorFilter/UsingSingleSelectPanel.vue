@@ -2,10 +2,7 @@
 import type { ColumnType } from 'nocodb-sdk'
 
 interface Props {
-  modelValue?: {
-    isSetAsBackground: boolean
-    selectedColumnId: string
-  }
+  modelValue?: RowColorSingleSelectOption
   columns?: ColumnType[]
 }
 
@@ -17,7 +14,7 @@ interface Emits {
 const props = defineProps({
   modelValue: {
     isSetAsBackground: false,
-    selectedColumnId: '',
+    fk_column_id: '',
   },
   columns: [],
 } as Props as any)
@@ -29,7 +26,7 @@ const vModel = useVModel(props, 'modelValue', emits)
 <template>
   <div class="bg-white w-[420px] p-5 rounded-2xl gap-3 flex flex-col">
     <div class="flex items-center gap-2">
-      <NcSelect v-model:value="vModel.selectedColumnId" class="w-full" :dropdown-match-select-width="false">
+      <NcSelect v-model:value="vModel.fk_column_id" class="w-full" :dropdown-match-select-width="false">
         <a-select-option v-for="(column, idx) of columns" :key="idx" :value="column.id">
           {{ column.title }}
         </a-select-option>

@@ -245,7 +245,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       },
     })
 
-    window.location.href = `/#/${activeWorkspaceId.value}/settings?tab=billing`
+    window.location.href = `/#/${activeWorkspaceId.value}/settings?tab=billing&afterUpgrade=true`
   }
 
   const cancelSubscription = async () => {

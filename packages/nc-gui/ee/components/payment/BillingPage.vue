@@ -17,10 +17,20 @@ const workspaceStore = useWorkspace()
 
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
-const { paymentState, loadWorkspaceSeatCount, getSessionResult, isAccountPage, paymentMode, plansAvailable, onSelectPlan } =
-  useProvidePaymentStore()
+const {
+  paymentState,
+  loadWorkspaceSeatCount,
+  getSessionResult,
+  isAccountPage,
+  paymentMode,
+  plansAvailable,
+  onSelectPlan,
+  invoices,
+} = useProvidePaymentStore()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
+
+const afterUpgrade = ref(!!route.query.afterUpgrade)
 
 const afterPayment = ref(!!route.query.afterPayment)
 
@@ -41,6 +51,7 @@ const getPaymentIntent = async () => {
 }
 
 const onClosePaymentBanner = () => {
+  afterUpgrade.value = false
   afterPayment.value = false
   afterPaymentState.value = null
   checkoutSession.value = null
@@ -84,6 +95,10 @@ onMounted(async () => {
     }
 
     getPaymentIntent()
+  }
+
+  if (route.query.afterUpgrade) {
+    afterUpgrade.value = true
   }
 })
 
@@ -162,6 +177,27 @@ watch(
             >
             </NcAlert>
           </template>
+          <NcAlert
+            v-else-if="afterUpgrade"
+            closable
+            type="success"
+            show-icon
+            class="!rounded-xl bg-nc-bg-green-light"
+            :message="$t('msg.success.upgradeSuccessful')"
+            :description="$t('msg.success.upgradeSuccessfulSubtitle')"
+            @close="onClosePaymentBanner"
+          >
+            <template v-if="invoices?.[0]?.invoice_pdf" #action>
+              <a
+                :href="invoices?.[0]?.invoice_pdf"
+                target="_blank"
+                rel="noopener noreferer"
+                class="!no-underline !hover:underline text-sm font-700"
+              >
+                {{ $t('labels.downloadInvoice') }}
+              </a>
+            </template>
+          </NcAlert>
 
           <PaymentPlanUsage v-if="!afterPayment || !!checkoutSession" />
         </template>

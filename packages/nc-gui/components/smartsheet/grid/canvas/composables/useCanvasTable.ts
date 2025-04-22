@@ -315,8 +315,9 @@ export function useCanvasTable({
         }
 
         if ([UITypes.DateTime].includes(f.uidt)) {
-          f.extra.timezone =
-            isEeUI && (f.meta as any)?.isDisplayTimezone ? getTimeZoneFromName((f.meta as any)?.timezone) : undefined
+          const meta = parseProp(f.meta)
+          f.extra.timezone = isEeUI ? getTimeZoneFromName(meta?.timezone) : undefined
+          f.extra.isDisplayTimezone = isEeUI ? meta?.isDisplayTimezone : undefined
         }
         if ([UITypes.Formula].includes(f.uidt)) {
           if ([UITypes.DateTime].includes((f.meta as any)?.display_type)) {

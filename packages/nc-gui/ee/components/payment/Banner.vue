@@ -66,7 +66,9 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace, isPaymentE
             <template #icon>
               <GeneralIcon icon="ncArrowUpRight" class="!transition-none" />
             </template>
-            {{ isWsOwner ? $t('labels.viewPlans') : $t('general.requestUpgrade') }}
+            <span class="font-semibold">
+              {{ isWsOwner ? $t('labels.viewPlans') : $t('general.requestUpgrade') }}
+            </span>
           </NcButton>
 
           <div v-if="isLoyaltyWorkspace">

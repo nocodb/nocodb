@@ -2227,7 +2227,9 @@
       "connectionAdded": "集成成功連接",
       "connectionAddedDesc": "基礎數據的擁有者和創建者現在可以在不重新輸入憑據的情況下添加數據源。",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

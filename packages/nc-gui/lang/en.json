@@ -1278,6 +1278,7 @@
     "addFromUrl": "Add from URL",
     "enterJson": "Enter JSON",
     "airtableBase": "Airtable base",
+    "useSameTimezoneForAllMembers": "Use same timezone for all members"
     "displayTimezone": "Display time zone"
     "upgradePlan": "Upgrade Plan",
     "viewAllPlanDetails": "View all plan details",

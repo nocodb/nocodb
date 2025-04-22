@@ -2227,7 +2227,9 @@
       "connectionAdded": "Integrazioa ongi konektatu da",
       "connectionAddedDesc": "Oinarri jabeek eta sortzaileek jada datu iturri bat gehi dezakete kredentzialak berriro sartu beharrik gabe.",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

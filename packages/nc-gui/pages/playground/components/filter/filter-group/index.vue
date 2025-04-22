@@ -28,13 +28,31 @@ const options1 = ref({
   filtersCount: 0,
   queryFilter: false,
   disableAddNewFilter: false,
+  handler: {
+    addFilter: async () => {
+      filters.value.push({
+        _id: Math.random().toString(36).substring(2, 15),
+        fk_column_id: columns.value[1].id,
+        comparison_op: 'eq',
+        is_group: false,
+        logical_op: 'and',
+      })
+    },
+    addFilterGroup: async () => {
+      filters.value.push({
+        _id: Math.random().toString(36).substring(2, 15),
+        is_group: true,
+        logical_op: 'and',
+        children: [],
+      })
+    },
+    deleteFilter: async (event: FilterGroupChangeEvent) => {
+      console.log(event)
+    },
+  },
 })
 const lastChangeEvent1 = ref({})
 const lastRowChangeEvent1 = ref({})
-const column1Id = ref(columns.value?.[0]?.id)
-const column1 = computed(() => {
-  return columns.value?.find((col) => col.id === column1Id.value)
-})
 
 const onChange = (event) => {
   lastChangeEvent1.value = event
@@ -122,6 +140,33 @@ onMounted(async () => {
           :disable-add-new-filter="options1.disableAddNewFilter"
           :filters-count="options1.filtersCount"
           :query-filter="options1.queryFilter"
+          @change="onChange"
+          @row-change="onRowChange"
+        />
+      </div>
+      <a-card>
+        <h4>With handler</h4>
+      </a-card>
+      <div class="p-4">
+        <SmartsheetToolbarFilterGroup
+          v-model="filters"
+          :index="options1.index"
+          :nested-level="options1.nestedLevel"
+          :columns="columns"
+          :disabled="options1.disabled"
+          :is-locked-view="options1.isLockedView"
+          :is-logical-op-change-allowed="options1.isLogicalOpChangeAllowed"
+          :is-full-width="options1.isFullWidth"
+          :action-btn-type="options1.actionBtnType"
+          :web-hook="options1.webHook"
+          :link="options1.link"
+          :is-form="options1.isForm"
+          :is-public="options1.isPublic"
+          :filter-per-view-limit="options1.filterPerViewLimit"
+          :disable-add-new-filter="options1.disableAddNewFilter"
+          :filters-count="options1.filtersCount"
+          :query-filter="options1.queryFilter"
+          :handler="options1.handler"
           @change="onChange"
           @row-change="onRowChange"
         />

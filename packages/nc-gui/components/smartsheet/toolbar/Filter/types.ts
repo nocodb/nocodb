@@ -7,7 +7,7 @@ export interface RowHandler {
 export interface GroupHandler extends RowHandler {
   addFilter?: () => Promise<void>
   addFilterGroup?: () => Promise<void>
-  deleteFilter?: () => Promise<void>
+  deleteFilter?: (event: FilterGroupChangeEvent) => Promise<void>
 }
 
 export interface StatefulGroupProps {

@@ -106,7 +106,6 @@ const onLockedViewFooterOpen = () => {}
 
 const innerAdd = async (isGroup: boolean) => {
   const prevValue = [...vModel.value]
-
   if (isGroup && props.handler?.addFilterGroup) {
     await props.handler.addFilterGroup()
   } else if (!isGroup && props.handler?.addFilter) {
@@ -171,16 +170,28 @@ const onFilterDelete = async (
   index: number,
 ) => {
   const prevValue = [...vModel.value]
-  const deletedFilter = vModel.value.splice(index, 1)
 
-  emits('change', {
-    type: 'delete',
-    filter: deletedFilter,
-    filters: [...vModel.value],
-    index: props.index,
-    value: [...vModel.value],
-    prevValue,
-  })
+  if (props.handler?.deleteFilter) {
+    await props.handler?.deleteFilter({
+      type: 'delete',
+      filter: vModel.value[index],
+      filters: [...vModel.value],
+      index: props.index,
+      value: [...vModel.value],
+      prevValue,
+    })
+  } else {
+    const deletedFilter = vModel.value.splice(index, 1)
+
+    emits('change', {
+      type: 'delete',
+      filter: deletedFilter,
+      filters: [...vModel.value],
+      index: props.index,
+      value: [...vModel.value],
+      prevValue,
+    })
+  }
 }
 // #endregion
 </script>

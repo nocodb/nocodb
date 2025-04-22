@@ -2227,7 +2227,9 @@
       "connectionAdded": "एकीकरण सफलतापूर्वक जडान भयो",
       "connectionAddedDesc": "आधार मालिकहरू र सिर्जनाकर्ताहरूले अब प्रमाणहरू पुनः प्रविष्ट नगरी डाटा स्रोत थप्न सक्छन्।",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

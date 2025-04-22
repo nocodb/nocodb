@@ -221,7 +221,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
           <template #icon>
             <GeneralIcon icon="ncArrowUpRight" />
           </template>
-          {{ $t('labels.upgradePlan') }}
+          Upgrade Workspace
         </NcButton>
       </div>
     </div>

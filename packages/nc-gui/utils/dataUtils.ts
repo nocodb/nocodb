@@ -23,7 +23,6 @@ import type {
   TableType,
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import { timeFormatsObj } from '../components/smartsheet/grid/canvas/utils/cell'
 import { isColumnRequiredAndNull } from './columnUtils'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 

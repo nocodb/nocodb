@@ -18,7 +18,6 @@ const {
   showSideMenu,
   updateFormat,
   timezoneDayjs,
-  timezone,
 } = useCalendarViewStoreOrThrow()
 
 const { $e } = useNuxtApp()

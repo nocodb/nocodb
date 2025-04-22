@@ -18,7 +18,6 @@ const {
   updateRowProperty,
   updateFormat,
   timezoneDayjs,
-  timezone,
 } = useCalendarViewStoreOrThrow()
 
 const { $e } = useNuxtApp()

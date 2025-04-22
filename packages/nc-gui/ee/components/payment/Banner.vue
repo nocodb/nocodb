@@ -83,8 +83,8 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace, isPaymentE
       <div class="w-[154px] hidden xl:block">
         <img :src="loyalMoscotImage" class="absolute -bottom-0" alt="Moscot" width="154px" height="160px" />
       </div>
-      <div class="w-[min(495px,40%)] min-w-[405px] flex-none relative">
-        <img :src="loyalContentImage" alt="Content" />
+      <div class="w-[min(495px,40%)] min-w-[405px] relative hidden lg:flex items-center overflow-hidden">
+        <img :src="loyalContentImage" alt="Content" class="flex-none" />
       </div>
     </div>
   </div>

@@ -113,7 +113,7 @@ const handleNavigation = () => {
                       isRecordLimitReached ? 'records' : 'storage'
                     } limit allowed in the Free plan. Upgrade to increase your limit`
                   : isLoyaltyWorkspace
-                  ? 'Thank you for being an early adopter!Upgrade now with discount to continue.'
+                  ? 'Thank you for being an early adopter! Upgrade now with discount to continue.'
                   : 'Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!'
               }}
             </div>

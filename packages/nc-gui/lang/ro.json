@@ -2227,7 +2227,9 @@
       "connectionAdded": "Integrare conectată cu succes",
       "connectionAddedDesc": "Proprietarii și creatorii de baze pot acum adăuga o sursă de date fără a reintroduce acreditivele.",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

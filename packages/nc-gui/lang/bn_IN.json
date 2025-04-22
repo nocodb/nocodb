@@ -2227,7 +2227,9 @@
       "connectionAdded": "ইন্টিগ্রেশন সফলভাবে সংযুক্ত হয়েছে",
       "connectionAddedDesc": "বেস মালিক এবং নির্মাতারা এখন ক্রেডেনশিয়াল পুনঃপ্রবেশ ছাড়াই একটি ডেটা উত্স যোগ করতে পারেন।",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

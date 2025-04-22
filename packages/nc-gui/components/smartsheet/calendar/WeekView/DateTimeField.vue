@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import dayjs from 'dayjs'
+import type dayjs from 'dayjs'
 import type { Row } from '~/lib/types'
 
 const emits = defineEmits(['expandRecord', 'newRecord'])
@@ -17,6 +17,8 @@ const {
   sideBarFilterOption,
   showSideMenu,
   updateFormat,
+  timezoneDayjs,
+  timezone,
 } = useCalendarViewStoreOrThrow()
 
 const { $e } = useNuxtApp()
@@ -60,7 +62,7 @@ const maxVisibleDays = computed(() => {
   return viewMetaProperties.value?.hide_weekend ? 5 : 7
 })
 
-const currTime = ref(dayjs())
+const currTime = ref(timezoneDayjs.dayjsTz())
 
 const overlayStyle = computed(() => {
   if (!containerWidth.value)
@@ -83,7 +85,7 @@ const overlayStyle = computed(() => {
 
 onMounted(() => {
   const intervalId = setInterval(() => {
-    currTime.value = dayjs()
+    currTime.value = timezoneDayjs.dayjsTz()
   }, 10000) // 10000 ms = 10 seconds
 
   // Clean up the interval when the component is unmounted
@@ -94,7 +96,7 @@ onMounted(() => {
 
 // Since it is a datetime Week view, we need to create a 2D array of dayjs objects to represent the hours in a day for each day in the week
 const datesHours = computed(() => {
-  const start = dayjs(selectedDateRange.value.start).startOf('week')
+  const start = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('week')
   return Array.from({ length: maxVisibleDays.value }, (_, i) =>
     Array.from({ length: 24 }, (_, h) => start.add(i, 'day').hour(h).minute(0).second(0)),
   )
@@ -193,12 +195,12 @@ const hasSlotForRecord = (
     if (!columnFromCol) return false
 
     const { startDate: columnFromDate, endDate: columnToDate } = calculateNewDates({
-      startDate: dayjs(column.row[columnFromCol.title!]),
+      startDate: timezoneDayjs.timezonize(column.row[columnFromCol.title!]),
       endDate: columnToCol
-        ? dayjs(column.row[columnToCol.title!])
-        : dayjs(column.row[columnFromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
-      scheduleStart: dayjs(selectedDateRange.value.start).startOf('day'),
-      scheduleEnd: dayjs(selectedDateRange.value.end).endOf('day'),
+        ? timezoneDayjs.timezonize(column.row[columnToCol.title!])
+        : timezoneDayjs.timezonize(column.row[columnFromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
+      scheduleStart: timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day'),
+      scheduleEnd: timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('day'),
     })
 
     if (
@@ -297,8 +299,8 @@ const recordsAcrossAllRange = computed<{
   const perWidth = containerWidth.value / maxVisibleDays.value
   const perHeight = 52
 
-  const scheduleStart = dayjs(selectedDateRange.value.start).startOf('day')
-  let scheduleEnd = dayjs(selectedDateRange.value.end).endOf('day')
+  const scheduleStart = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day')
+  let scheduleEnd = timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('day')
 
   if (maxVisibleDays.value === 5) {
     scheduleEnd = scheduleEnd.subtract(2, 'day')
@@ -327,8 +329,8 @@ const recordsAcrossAllRange = computed<{
     const sortedFormattedData = [...formattedData.value]
       .filter((record) => {
         if (fromCol && toCol) {
-          const fromDate = dayjs(record.row[fromCol.title!])
-          const toDate = dayjs(record.row[toCol.title!])
+          const fromDate = timezoneDayjs.timezonize(record.row[fromCol.title!])
+          const toDate = timezoneDayjs.timezonize(record.row[toCol.title!])
 
           if (fromDate.isValid() && toDate.isValid()) {
             const isMultiDay = !fromDate.isSame(toDate, 'day')
@@ -341,15 +343,17 @@ const recordsAcrossAllRange = computed<{
         }
         return fromCol && !!record.row[fromCol.title!]
       })
-      .sort((a, b) => (dayjs(a.row[fromCol!.title!]).isBefore(dayjs(b.row[fromCol!.title!])) ? 1 : -1))
+      .sort((a, b) =>
+        timezoneDayjs.timezonize(a.row[fromCol!.title!]).isBefore(timezoneDayjs.timezonize(b.row[fromCol!.title!])) ? 1 : -1,
+      )
 
     for (const record of sortedFormattedData) {
       const id = record.rowMeta.id ?? generateRandomNumber()
 
       if (fromCol && toCol) {
         const { startDate, endDate } = calculateNewDates({
-          startDate: dayjs(record.row[fromCol.title!]),
-          endDate: dayjs(record.row[toCol.title!]),
+          startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
+          endDate: timezoneDayjs.timezonize(record.row[toCol.title!]),
           scheduleStart,
           scheduleEnd,
         })
@@ -384,8 +388,8 @@ const recordsAcrossAllRange = computed<{
       } else if (fromCol) {
         // If there is no toColumn chosen in the range
         const { startDate } = calculateNewDates({
-          startDate: dayjs(record.row[fromCol.title!]),
-          endDate: dayjs(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
+          startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
+          endDate: timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
           scheduleStart,
           scheduleEnd,
         })
@@ -420,7 +424,7 @@ const recordsAcrossAllRange = computed<{
       const fromColA = a.rowMeta.range?.fk_from_col
       const fromColB = b.rowMeta.range?.fk_from_col
       if (!fromColA || !fromColB) return 0
-      return dayjs(a.row[fromColA.title!]).isBefore(dayjs(b.row[fromColB.title!])) ? -1 : 1
+      return timezoneDayjs.timezonize(a.row[fromColA.title!]).isBefore(timezoneDayjs.timezonize(b.row[fromColB.title!])) ? -1 : 1
     })
 
     for (const record of recordsToDisplay) {
@@ -429,8 +433,10 @@ const recordsAcrossAllRange = computed<{
 
       if (!fromCol) continue
       const { startDate, endDate } = calculateNewDates({
-        startDate: dayjs(record.row[fromCol.title!]),
-        endDate: toCol ? dayjs(record.row[toCol.title!]) : dayjs(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
+        startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
+        endDate: toCol
+          ? timezoneDayjs.timezonize(record.row[toCol.title!])
+          : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
         scheduleStart,
         scheduleEnd,
       })
@@ -608,13 +614,13 @@ const onResize = (event: MouseEvent) => {
   const toCol = range?.fk_to_col
   if (!fromCol?.title || !toCol?.title) return
 
-  const ogStartDate = dayjs(resizeRecord.value.row[fromCol.title])
-  const ogEndDate = dayjs(resizeRecord.value.row[toCol.title])
+  const ogStartDate = timezoneDayjs.timezonize(resizeRecord.value.row[fromCol.title])
+  const ogEndDate = timezoneDayjs.timezonize(resizeRecord.value.row[toCol.title])
 
   const day = Math.floor(percentX * maxVisibleDays.value)
   const minutes = Math.round((percentY * 24 * 60) / 15) * 15 // Round to nearest 15 minutes
 
-  const baseDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(minutes, 'minute')
+  const baseDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).add(day, 'day').add(minutes, 'minute')
 
   let newDate: dayjs.Dayjs
   let updateProperty: string
@@ -709,7 +715,11 @@ const calculateNewRow = (
 
   const minutes = Math.round(((percentY * 24 * 60) % 60) / 15) * 15
 
-  const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour').add(minutes, 'minute')
+  const newStartDate = timezoneDayjs
+    .dayjsTz(selectedDateRange.value.start)
+    .add(day, 'day')
+    .add(hour, 'hour')
+    .add(minutes, 'minute')
   if (!newStartDate) return { newRow: null, updatedProperty: [] }
 
   let endDate
@@ -719,21 +729,23 @@ const calculateNewRow = (
     ...dragRecord.value,
     row: {
       ...dragRecord.value.row,
-      [fromCol.title!]: dayjs(newStartDate).format(updateFormat.value),
+      [fromCol.title!]: timezoneDayjs.dayjsTz(newStartDate).format(updateFormat.value),
     },
   }
 
   if (toCol) {
-    const fromDate = dragRecord.value.row[fromCol.title!] ? dayjs(dragRecord.value.row[fromCol.title!]) : null
-    const toDate = dragRecord.value.row[toCol.title!] ? dayjs(dragRecord.value.row[toCol.title!]) : fromDate?.clone()
+    const fromDate = dragRecord.value.row[fromCol.title!] ? timezoneDayjs.timezonize(dragRecord.value.row[fromCol.title!]) : null
+    const toDate = dragRecord.value.row[toCol.title!]
+      ? timezoneDayjs.timezonize(dragRecord.value.row[toCol.title!])
+      : fromDate?.clone()
 
     if (fromDate && toDate) {
       const newMinutes = Math.round(toDate.diff(fromDate, 'minute') / 15) * 15
       endDate = newStartDate.add(newMinutes, 'minute')
     } else if (fromDate && !toDate) {
-      endDate = dayjs(newStartDate).endOf('day')
+      endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('day')
     } else if (!fromDate && toDate) {
-      endDate = dayjs(newStartDate).endOf('day')
+      endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('day')
     } else {
       endDate = newStartDate.clone()
     }
@@ -742,7 +754,7 @@ const calculateNewRow = (
       endDate = newStartDate.clone().add(15, 'minutes')
     }
 
-    newRow.row[toCol.title!] = dayjs(endDate).format(updateFormat.value)
+    newRow.row[toCol.title!] = timezoneDayjs.dayjsTz(endDate).format(updateFormat.value)
     updatedProperty.push(toCol.title!)
   }
 
@@ -937,7 +949,7 @@ watch(
     @drop="dropEvent"
   >
     <div
-      v-if="!isPublic && dayjs().isBetween(selectedDateRange.start, selectedDateRange.end)"
+      v-if="!isPublic && timezoneDayjs.dayjsTz().isBetween(selectedDateRange.start, selectedDateRange.end)"
       class="absolute top-16 ml-16 pointer-events-none z-2"
       :class="{
         '!mt-38.5': isExpanded && isRangeEnabled,
@@ -949,7 +961,7 @@ watch(
       <div class="flex w-full items-center">
         <span
           class="text-brand-500 rounded-md text-xs border-1 pointer-events-auto px-0.5 border-brand-200 cursor-pointer bg-brand-50"
-          @click="addRecord(dayjs())"
+          @click="addRecord(timezoneDayjs.dayjsTz())"
         >
           {{ currTime.format('hh:mm A') }}
         </span>
@@ -961,13 +973,13 @@ watch(
         v-for="date in datesHours"
         :key="date[0].toISOString()"
         :class="{
-          'text-brand-500': date[0].isSame(dayjs(), 'date'),
+          'text-brand-500': date[0].isSame(timezoneDayjs.dayjsTz(), 'date'),
           'w-1/5': maxVisibleDays === 5,
           'w-1/7': maxVisibleDays === 7,
         }"
         class="text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-gray-500 w-full py-1 border-gray-200 last:border-r-0 border-b-1 border-l-1 border-r-0 bg-gray-50"
       >
-        {{ dayjs(date[0]).format('DD ddd') }}
+        {{ timezoneDayjs.dayjsTz(date[0]).format('DD ddd') }}
       </div>
     </div>
     <div
@@ -1104,7 +1116,7 @@ watch(
                 </template>
                 <template #time>
                   <div class="text-xs font-medium text-gray-400">
-                    {{ dayjs(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm a') }}
+                    {{ timezoneDayjs.timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm a') }}
                   </div>
                 </template>
               </LazySmartsheetCalendarVRecordCard>

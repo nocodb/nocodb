@@ -199,9 +199,9 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean, save = false) => {
       return
     }
 
-    const date = dayjsTz(targetValue, dateFormat.value)
+    if (dayjs(targetValue, dateFormat.value).isValid()) {
+      const date = dayjsTz(targetValue, dateFormat.value)
 
-    if (date.isValid()) {
       if (localState.value) {
         tempDate.value = dayjsTz(`${date.format('YYYY-MM-DD')} ${localState.value.format(timeFormat.value)}`)
       } else {
@@ -228,12 +228,17 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean, save = false) => {
           .replace(/\s+/g, ' ')
       : targetValue.trim()
 
-    const parsedDate = dayjsTz(
+    const parsedDateValue = dayjs(
       targetValue,
       parseProp(column.value.meta).is12hrFormat ? timeFormatsObj[timeFormat.value] : timeFormat.value,
     )
 
-    if (parsedDate.isValid()) {
+    if (parsedDateValue.isValid()) {
+      const parsedDate = dayjsTz(
+        targetValue,
+        parseProp(column.value.meta).is12hrFormat ? timeFormatsObj[timeFormat.value] : timeFormat.value,
+      )
+
       tempDate.value = dayjsTz(`${(tempDate.value ?? dayjsTz()).format('YYYY-MM-DD')} ${parsedDate.format(timeFormat.value)}`)
 
       if (save) {

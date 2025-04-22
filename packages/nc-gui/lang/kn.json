@@ -2227,7 +2227,9 @@
       "connectionAdded": "ಸಂಪರ್ಕವು ಯಶಸ್ವಿಯಾಗಿಯೇ ಸಂಪರ್ಕಿಸಲಾಯಿತು",
       "connectionAddedDesc": "ಬೇಸ್ ಮಾಲೀಕರು ಮತ್ತು ಸೃಷ್ಟಿಕರ್ತರು ಇದೀಗ ಡೇಟಾ ಮೂಲವನ್ನು ಪುನಃ ಪ್ರವೇಶಿಸುವ credentials ಇಲ್ಲದೆ ಸೇರಿಸಬಹುದು.",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

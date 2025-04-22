@@ -2227,7 +2227,9 @@
       "connectionAdded": "Integracja połączona pomyślnie",
       "connectionAddedDesc": "Właściciele i twórcy bazy mogą teraz dodać źródło danych bez ponownego wprowadzania danych uwierzytelniających.",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

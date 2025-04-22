@@ -2227,7 +2227,9 @@
       "connectionAdded": "האינטגרציה חוברה בהצלחה",
       "connectionAddedDesc": "בעלי בסיס ויוצרים יכולים כעת להוסיף מקור נתונים בלי להקליד שוב את האישורים.",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "התחל מאפס.",

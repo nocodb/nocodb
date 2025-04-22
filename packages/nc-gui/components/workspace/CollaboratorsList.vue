@@ -229,7 +229,7 @@ const isDeleteOrUpdateAllowed = (user) => {
       <PaymentBanner class="sticky top-0 z-10" />
     </div>
     <div :style="{ height: `calc(100% - ${toSectionHeight}px)` }">
-      <div class="nc-collaborator-table-wrapper h-full max-w-[1300px] mx-auto py-6 px-6 flex flex-col gap-6">
+      <div class="nc-collaborator-table-wrapper h-full max-w-[1200px] mx-auto py-6 px-6 flex flex-col gap-6">
         <div class="w-full flex items-center justify-between gap-3">
           <a-input
             v-model:value="userSearchText"

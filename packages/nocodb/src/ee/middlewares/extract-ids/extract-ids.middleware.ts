@@ -56,7 +56,11 @@ import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { beforeAclValidationHook } from '~/middlewares/extract-ids/extract-ids.helpers';
 import { RootScopes } from '~/utils/globals';
 import SSOClient from '~/models/SSOClient';
-import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
+import {
+  checkIfEmailAllowedNonSSO,
+  checkIfSsoEmailOnly,
+  checkIfWorkspaceSSOAvail,
+} from '~/helpers/paymentHelpers';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -657,7 +661,10 @@ export class AclMiddleware implements NestInterceptor {
       const ssoClient = await SSOClient.list({
         workspaceId: req.ncWorkspaceId,
       });
-      if (ssoClient.length > 0) {
+      if (
+        ssoClient.length > 0 &&
+        (await checkIfEmailAllowedNonSSO(req.ncWorkspaceId, req.user?.email))
+      ) {
         NcError.allowedOnlySSOAccess(req.ncWorkspaceId);
       }
     }

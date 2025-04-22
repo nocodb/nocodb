@@ -2227,7 +2227,9 @@
       "connectionAdded": "Entegrasyon başarıyla bağlandı",
       "connectionAddedDesc": "Taban sahipleri ve yaratıcılar artık kimlik bilgilerini yeniden girmeden bir veri kaynağı ekleyebilir.",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

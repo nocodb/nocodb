@@ -2,6 +2,7 @@ export default defineNuxtRouteMiddleware(() => {
   const params = new URLSearchParams(window.location.search)
   const afterPayment = params.get('afterPayment')
   const afterManage = params.get('afterManage')
+  const afterUpgrade = params.get('afterUpgrade')
 
   const upgrade = params.get('upgrade')
 
@@ -25,7 +26,7 @@ export default defineNuxtRouteMiddleware(() => {
     return
   }
 
-  if (afterPayment || afterManage) {
+  if (afterPayment || afterManage || afterUpgrade) {
     const workspaceId = params.get('workspaceId')
     const isAccountPage = params.get('isAccountPage') === 'true'
 

@@ -2227,7 +2227,9 @@
       "connectionAdded": "연동이 성공적으로 완료되었습니다",
       "connectionAddedDesc": "이제 베이스 소유자와 생성자는 자격 증명을 다시 입력하지 않고도 데이터 소스를 추가할 수 있습니다.",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "처음부터 시작하십시오.",

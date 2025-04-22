@@ -64,9 +64,7 @@ const handleNavigation = () => {
         isLimitReached
           ? {}
           : {
-              'background-image': `url(${bannerDark})`,
-              'background-color': 'rgba(255, 255, 255, 0.7)',
-              'background-blend-mode': 'overlay',
+              background: `url(${bannerDark}) rgba(255, 255, 255, 0.5) 50% / cover no-repeat`,
             }
       "
     >

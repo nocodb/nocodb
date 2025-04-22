@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 const { hideSidebar, showTopbar } = storeToRefs(useSidebarStore())
 
+const { appInfo } = useGlobal()
+
 useStripe()
 
 const { navigateToBilling } = useEeConfig()
@@ -15,6 +17,8 @@ const {
   plansAvailable,
   onSelectPlan,
 } = useProvidePaymentStore()
+
+const frameLoaded = ref(false)
 
 onMounted(() => {
   hideSidebar.value = true
@@ -38,7 +42,7 @@ const openNewTab = (url: string) => {
 }
 
 useEventListener('message', (event) => {
-  if (event.origin !== 'https://marketing.localhost.com') return
+  if (event.origin !== appInfo.value.marketingRootUrl) return
 
   const { type, data } = event.data
 
@@ -59,14 +63,22 @@ useEventListener('message', (event) => {
     onSelectPlan(plan)
   } else if (type === 'navigateToBilling') {
     navigateToBilling()
+  } else if (type === 'frameLoaded') {
+    frameLoaded.value = true
   }
 })
 </script>
 
 <template>
   <div class="overflow-hidden">
+    <div v-if="!frameLoaded" class="w-full p-[20%] flex items-center justify-center">
+      <GeneralLoader size="xlarge" />
+    </div>
     <iframe
-      :src="`https://marketing.localhost.com/pricing.html?inApp=true&workspace=${activeWorkspace?.title}&plan=${activePlan?.title}&paymentMode=${paymentMode}&isLoyaltyWorkspace=${isLoyaltyWorkspace}`"
+      v-show="frameLoaded"
+      :src="`${appInfo.marketingRootUrl}/${isLoyaltyWorkspace ? 'loyalty-' : ''}pricing.html?inApp=true&workspace=${
+        activeWorkspace?.title
+      }&plan=${activePlan?.title}&paymentMode=${paymentMode}&isLoyaltyWorkspace=${isLoyaltyWorkspace}`"
       width="100%"
       height="1000"
       style="border: none"
@@ -74,8 +86,4 @@ useEventListener('message', (event) => {
   </div>
 </template>
 
-<style>
-a {
-  text-decoration: none !important;
-}
-</style>
+<style></style>

@@ -163,6 +163,9 @@ export class UtilsService extends UtilsServiceCE {
       result.stripePublishableKey = process.env.NC_STRIPE_PUBLISHABLE_KEY;
     }
 
+    result.marketingRootUrl =
+      process.env.NC_MARKETING_ROOT_URL || 'https://nocodb.com';
+
     return result;
   }
 }

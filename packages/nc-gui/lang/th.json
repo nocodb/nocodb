@@ -2227,7 +2227,9 @@
       "connectionAdded": "เชื่อมต่อการผสานสำเร็จแล้ว",
       "connectionAddedDesc": "เจ้าของฐานและผู้สร้างสามารถเพิ่มแหล่งข้อมูลโดยไม่ต้องป้อนข้อมูลประจำตัวอีกครั้งแล้ว.",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

@@ -5,8 +5,8 @@ export interface RowHandler {
 }
 
 export interface GroupHandler extends RowHandler {
-  addFilter?: () => Promise<void>
-  addFilterGroup?: () => Promise<void>
+  addFilter?: (event: FilterGroupChangeEvent) => Promise<void>
+  addFilterGroup?: (event: FilterGroupChangeEvent) => Promise<void>
   deleteFilter?: (event: FilterGroupChangeEvent) => Promise<void>
 }
 
@@ -33,6 +33,7 @@ export interface StatefulGroupProps {
 export interface GroupProps extends StatefulGroupProps {
   index: number
   fk_parent_id?: string
+  tmp_fk_parent_id?: string
   nestedLevel: number
   columns: ColumnTypeForFilter[]
   dbClientType?: ClientType

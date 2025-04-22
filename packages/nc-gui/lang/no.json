@@ -2227,7 +2227,9 @@
       "connectionAdded": "Integrasjon koblet til vellykket",
       "connectionAddedDesc": "Base-eiere og skaperne kan nå legge til en datakilde uten å angi legitimasjon på nytt.",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start fra bunnen av.",

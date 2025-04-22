@@ -613,7 +613,7 @@ describe('dataApiV3', () => {
             rowId: '1',
           },
           body: [1, 2, 3, 4, 5],
-          status: 201,
+          status: 200,
         });
 
         // verify in Country table
@@ -1364,7 +1364,7 @@ describe('dataApiV3', () => {
         await ncAxiosLinkAdd({
           ...validParams,
           body: [],
-          status: 201,
+          status: 200,
         });
 
         if (relationType === 'bt') {
@@ -1575,7 +1575,7 @@ describe('dataApiV3', () => {
             rowId: '1',
           },
           body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-          status: 201,
+          status: 200,
         };
 
         await nestedAddTests(validParams);
@@ -1590,7 +1590,7 @@ describe('dataApiV3', () => {
             rowId: '1',
           },
           body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-          status: 201,
+          status: 200,
         });
 
         const validParams = {
@@ -1615,7 +1615,7 @@ describe('dataApiV3', () => {
             rowId: '1',
           },
           body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-          status: 201,
+          status: 200,
         });
 
         const validParams = {
@@ -1643,7 +1643,7 @@ describe('dataApiV3', () => {
             rowId: '1',
           },
           body: [1],
-          status: 201,
+          status: 200,
         };
 
         await nestedAddTests(validParams, 'bt');
@@ -1658,7 +1658,7 @@ describe('dataApiV3', () => {
             rowId: '1',
           },
           body: [1],
-          status: 201,
+          status: 200,
         });
 
         const validParams = {
@@ -1683,7 +1683,7 @@ describe('dataApiV3', () => {
             rowId: '1',
           },
           body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-          status: 201,
+          status: 200,
         });
 
         const validParams = {
@@ -1711,7 +1711,7 @@ describe('dataApiV3', () => {
             rowId: '1',
           },
           body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-          status: 201,
+          status: 200,
         };
 
         await nestedAddTests(validParams);
@@ -1726,7 +1726,7 @@ describe('dataApiV3', () => {
             rowId: '1',
           },
           body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-          status: 201,
+          status: 200,
         });
 
         const validParams = {
@@ -1751,7 +1751,7 @@ describe('dataApiV3', () => {
             rowId: '1',
           },
           body: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-          status: 201,
+          status: 200,
         });
 
         const validParams = {

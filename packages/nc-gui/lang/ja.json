@@ -2227,7 +2227,9 @@
       "connectionAdded": "統合が正常に接続されました",
       "connectionAddedDesc": "ベース所有者と作成者は、資格情報を再入力せずにデータソースを追加できるようになりました。",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "ゼロから作成。",

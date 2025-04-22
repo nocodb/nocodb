@@ -2227,7 +2227,9 @@
       "connectionAdded": "ការរួមបញ្ចូលបានតភ្ជាប់ដោយជោគជ័យ",
       "connectionAddedDesc": "ម្ចាស់មូលដ្ឋាន និងអ្នកបង្កើតឥឡូវនេះអាចបន្ថែមប្រភពទិន្នន័យ ដោយមិនចាំបាច់បញ្ចូលសក្ខីប័ត្រឡើងវិញទេ។",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

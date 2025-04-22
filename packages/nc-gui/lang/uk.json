@@ -2227,7 +2227,9 @@
       "connectionAdded": "Інтеграцію підключено успішно",
       "connectionAddedDesc": "Власники та творці бази можуть зараз додати джерело даних без повторного введення облікових даних.",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

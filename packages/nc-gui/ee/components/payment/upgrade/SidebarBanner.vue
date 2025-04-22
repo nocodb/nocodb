@@ -12,6 +12,7 @@ const {
   isLoyaltyWorkspace,
   gracePeriodEndDate,
   isPaymentEnabled,
+  navigateToPricing,
 } = useEeConfig()
 
 const isLimitReached = computed(() => {
@@ -35,6 +36,14 @@ const showTimer = computed(() => {
 const timerDate = computed(() => {
   return isLimitReached.value ? gracePeriodEndDate.value : LOYALTY_GRACE_PERIOD_END_DATE
 })
+
+const handleNavigation = () => {
+  if (isLimitReached.value) {
+    navigateToBilling()
+  } else {
+    navigateToPricing()
+  }
+}
 </script>
 
 <template>
@@ -75,7 +84,7 @@ const timerDate = computed(() => {
                 backgroundOrigin: 'padding-box, border-box',
               }
         "
-        @click="navigateToBilling()"
+        @click="handleNavigation()"
       >
         <div class="flex flex-col gap-4">
           <div class="flex flex-col gap-1.5">
@@ -103,7 +112,7 @@ const timerDate = computed(() => {
               {{
                 isLimitReached
                   ? `You have exceeded the ${
-                      !isRecordLimitReached ? 'records' : 'storage'
+                      isRecordLimitReached ? 'records' : 'storage'
                     } limit allowed in the Free plan. Upgrade to increase your limit`
                   : isLoyaltyWorkspace
                   ? 'Thank you for being an early adopter!Upgrade now with discount to continue.'

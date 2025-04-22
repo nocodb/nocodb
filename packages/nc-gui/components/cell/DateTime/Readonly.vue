@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { dateFormats, timeFormats } from 'nocodb-sdk'
 import dayjs from 'dayjs'
+import { getTimeZones } from '@vvo/tzdb'
 import { timeCellMaxWidthMap, timeFormatsObj } from './utils'
 
 interface Props {
@@ -18,6 +19,8 @@ const { isXcdbBase } = useBase()
 
 const dateFormat = computed(() => parseProp(column?.value?.meta)?.date_format ?? dateFormats[0])
 const timeFormat = computed(() => parseProp(column?.value?.meta)?.time_format ?? timeFormats[0])
+
+const { timezonize: timezonizeDayjs } = withTimezone(column.value?.meta?.timezone)
 
 const dateTimeFormat = computed(() => {
   return `${dateFormat.value} ${timeFormat.value}`
@@ -39,7 +42,7 @@ const localState = computed(() => {
   // when pasting a datetime cell, UTC (xcdb) will be saved in DB
   // we convert back to local time
   if (column.value.title! in (isUpdatedFromCopyNPaste ?? {})) {
-    return dayjs(modelValue).utc().local()
+    return timezonizeDayjs(dayjs(modelValue))
   }
 
   // ext db
@@ -47,7 +50,22 @@ const localState = computed(() => {
     return /^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)
   }
 
-  return dayjs(modelValue).utc().local()
+  return timezonizeDayjs(dayjs(modelValue))
+})
+
+const timeZoneDisplay = computed(() => {
+  if (!isEeUI) {
+    return undefined
+  }
+  if (!localState.value) {
+    return undefined
+  }
+  if ((column.value.meta as any)?.isDisplayTimezone) {
+    const tzName = (column.value.meta as any)?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone
+    const timeZones = getTimeZones({ includeUtc: true })
+    return timeZones.find((k) => k.name === tzName)?.abbreviation
+  }
+  return undefined
 })
 
 const cellValue = computed(
@@ -62,22 +80,28 @@ const timeCellMaxWidth = computed(() => {
 </script>
 
 <template>
-  <div
-    :title="localState?.format(dateTimeFormat)"
-    class="nc-date-picker w-full flex nc-cell-field relative gap-2 nc-cell-picker-datetime tracking-tight"
-  >
+  <div class="flex gap-2 w-full justify-between">
     <div
-      class="flex-none rounded-md box-border py-0.5 px-1 truncate"
-      :class="{
-        'w-[fit-content]': isUnderLookup,
-        'w-[60%] max-w-[110px]': !isUnderLookup,
-      }"
+      :title="localState?.format(dateTimeFormat)"
+      class="nc-date-picker w-full flex nc-cell-field relative gap-2 nc-cell-picker-datetime tracking-tight min-w-[140px]"
     >
-      {{ localState?.format(dateFormat) ?? '' }}
+      <div
+        class="flex-none rounded-md box-border py-0.5 px-1 truncate"
+        :class="{
+          'w-[fit-content]': isUnderLookup,
+          'w-[60%] max-w-[110px]': !isUnderLookup,
+        }"
+      >
+        {{ localState?.format(dateFormat) ?? '' }}
+      </div>
+
+      <div :class="timeCellMaxWidth" class="flex-1 rounded-md box-border py-0.5 px-1 truncate">
+        {{ cellValue }}
+      </div>
     </div>
 
-    <div :class="timeCellMaxWidth" class="flex-1 rounded-md box-border py-0.5 px-1 truncate">
-      {{ cellValue }}
+    <div class="text-gray-400 mr-2">
+      {{ timeZoneDisplay }}
     </div>
   </div>
 </template>

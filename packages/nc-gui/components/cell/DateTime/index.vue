@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
+import { getTimeZones } from '@vvo/tzdb'
 import { timeFormatsObj } from './utils'
 
 interface Props {
@@ -116,6 +117,21 @@ const localState = computed({
 
     saveChanges(val)
   },
+})
+
+const timeZoneDisplay = computed(() => {
+  if (!isEeUI) {
+    return undefined
+  }
+  if (!localState.value) {
+    return undefined
+  }
+  if ((column.value.meta as any)?.isDisplayTimezone) {
+    const tzName = (column.value.meta as any)?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone
+    const timeZones = getTimeZones({ includeUtc: true })
+    return timeZones.find((k) => k.name === tzName)?.abbreviation
+  }
+  return undefined
 })
 
 const savingValue = ref()
@@ -465,71 +481,77 @@ const currentDate = ($event) => {
       :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
       :overlay-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''} !min-w-[0] overflow-hidden`"
     >
-      <div
-        :title="localState?.format(dateTimeFormat)"
-        class="nc-date-picker ant-picker-input flex relative !w-auto gap-2"
-        :class="{
-          'justify-between': !isColDisabled,
-        }"
-      >
+      <div class="flex gap-2 w-full justify-between">
         <div
-          class="flex-none rounded-md box-border w-[60%] max-w-[110px]"
+          :title="localState?.format(dateTimeFormat)"
+          class="nc-date-picker ant-picker-input flex relative !w-auto gap-2"
           :class="{
-            'py-0': isForm,
-            'py-0.5': !isForm && !isColDisabled,
-            'bg-gray-100': isDatePicker && isOpen,
-            'hover:bg-gray-100 px-1': !isColDisabled,
+            'justify-between': !isColDisabled,
           }"
         >
-          <input
-            v-if="!rawReadOnly"
-            ref="datePickerRef"
-            :value="localState?.format(dateFormat) ?? ''"
-            :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
-            class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
-            :readonly="isColDisabled"
-            @focus="onFocus(true)"
-            @blur="onBlur($event, true)"
-            @keydown="handleKeydown($event, isOpen, true)"
-            @mouseup.stop
-            @mousedown.stop
-            @click.stop="clickHandler($event, true)"
-            @input="handleUpdateValue($event, true)"
-          />
-          <span v-else>
-            {{ localState?.format(dateFormat) ?? '' }}
-          </span>
-        </div>
-        <div
-          class="flex-none rounded-md box-border flex-1"
-          :class="[
-            `${timeCellMaxWidth}`,
-            {
+          <div
+            class="flex-none rounded-md box-border w-[60%] max-w-[110px]"
+            :class="{
               'py-0': isForm,
               'py-0.5': !isForm && !isColDisabled,
-              'bg-gray-100': !isDatePicker && isOpen,
+              'bg-gray-100': isDatePicker && isOpen,
               'hover:bg-gray-100 px-1': !isColDisabled,
-            },
-          ]"
-        >
-          <input
-            v-if="!rawReadOnly"
-            ref="timePickerRef"
-            :value="cellValue"
-            :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
-            class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
-            :readonly="isColDisabled"
-            @focus="onFocus(false)"
-            @blur="onBlur($event, false)"
-            @keydown="handleKeydown($event, open)"
-            @mouseup.stop
-            @mousedown.stop
-            @click.stop="clickHandler($event, false)"
-            @input="handleUpdateValue($event, false)"
-          />
-          <span v-else>
-            {{ cellValue }}
-          </span>
+            }"
+          >
+            <input
+              v-if="!rawReadOnly"
+              ref="datePickerRef"
+              :value="localState?.format(dateFormat) ?? ''"
+              :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
+              class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
+              :readonly="isColDisabled"
+              @focus="onFocus(true)"
+              @blur="onBlur($event, true)"
+              @keydown="handleKeydown($event, isOpen, true)"
+              @mouseup.stop
+              @mousedown.stop
+              @click.stop="clickHandler($event, true)"
+              @input="handleUpdateValue($event, true)"
+            />
+            <span v-else>
+              {{ localState?.format(dateFormat) ?? '' }}
+            </span>
+          </div>
+          <div
+            class="flex-none rounded-md box-border flex-1"
+            :class="[
+              `${timeCellMaxWidth}`,
+              {
+                'py-0': isForm,
+                'py-0.5': !isForm && !isColDisabled,
+                'bg-gray-100': !isDatePicker && isOpen,
+                'hover:bg-gray-100 px-1': !isColDisabled,
+              },
+            ]"
+          >
+            <input
+              v-if="!rawReadOnly"
+              ref="timePickerRef"
+              :value="cellValue"
+              :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
+              class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none outline-none ring-transparent)"
+              :readonly="isColDisabled"
+              @focus="onFocus(false)"
+              @blur="onBlur($event, false)"
+              @keydown="handleKeydown($event, open)"
+              @mouseup.stop
+              @mousedown.stop
+              @click.stop="clickHandler($event, false)"
+              @input="handleUpdateValue($event, false)"
+            />
+            <span v-else>
+              {{ cellValue }}
+            </span>
+          </div>
+        </div>
+
+        <div class="text-gray-400 mr-2">
+          {{ timeZoneDisplay }}
         </div>
       </div>
 

@@ -52,8 +52,11 @@ export function useColumnFilteredOrSorted() {
       'cellBorderColor.hovered': themeV3Colors.gray['200'],
       'cellBorderColor.selected': themeV3Colors.gray['200'],
       'cellBgClass': '!bg-green-50 column-filtered',
-      'toolbarBgClass': 'bg-green-50',
+      'toolbarBgClass': '!bg-nc-bg-green-light !hover:bg-nc-bg-green-dark',
+      'toolbarChipBgClass': 'bg-nc-bg-green-dark group-hover:bg-green-200',
       'toolbarTextClass': 'text-green-700',
+      'headerBgColor': '#27D6650A',
+      'headerBgClass': "relative after:(content-[''] absolute block inset-0 bg-[#27D6650A])",
     },
     SORTED: {
       'cellBgColor': themeV3Colors.orange['50'],
@@ -63,8 +66,11 @@ export function useColumnFilteredOrSorted() {
       'cellBorderColor.hovered': themeV3Colors.gray['200'],
       'cellBorderColor.selected': themeV3Colors.gray['200'],
       'cellBgClass': '!bg-orange-50 column-sorted !border-b-gray-200',
-      'toolbarBgClass': 'bg-orange-50',
+      'toolbarBgClass': '!bg-nc-bg-orange-light !hover:bg-nc-bg-orange-dark',
+      'toolbarChipBgClass': 'bg-nc-bg-orange-dark group-hover:bg-orange-200',
       'toolbarTextClass': 'text-orange-700',
+      'headerBgColor': '#FA82310A',
+      'headerBgClass': "relative after:(content-[''] absolute block inset-0 bg-[#FA82310A])",
     },
   }
 

@@ -7,6 +7,7 @@ import {
   OrgUserRoles,
   ProjectRoles,
   WorkspaceRolesToProjectRoles,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
@@ -411,35 +412,6 @@ export class BaseUsersService extends BaseUsersServiceCE {
       );
     }
 
-    // if old role is owner and there is only one owner then restrict update
-    if (extractRolesObj(targetUser.base_roles)?.[ProjectRoles.OWNER]) {
-      const baseUsers = await BaseUser.getUsersList(
-        context,
-        {
-          base_id: param.baseId,
-        },
-        ncMeta,
-      );
-      if (
-        baseUsers.filter((u) => u.roles?.includes(ProjectRoles.OWNER))
-          .length === 1
-      )
-        NcError.badRequest('At least one owner is required');
-    }
-    const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
-    const newRolePower = reverseOrderedProjectRoles.indexOf(
-      param.baseUser.roles as ProjectRoles,
-    );
-
-    // Check if current user has sufficient privilege to assign this role
-    if (newRolePower > getProjectRolePower(param.req.user)) {
-      NcError.badRequest(`Insufficient privilege to assign this role`);
-    }
-
-    if (getProjectRolePower(targetUser) > getProjectRolePower(param.req.user)) {
-      NcError.badRequest(`Insufficient privilege to update user`);
-    }
-
     const oldBaseUser = await BaseUser.get(
       context,
       param.baseId,
@@ -450,6 +422,43 @@ export class BaseUsersService extends BaseUsersServiceCE {
     const transaction = await ncMeta.startTransaction();
 
     try {
+      // if old role is owner and there is only one owner then restrict update
+      if (this.isOldRoleIsOwner(targetUser)) {
+        const baseUsers = await BaseUser.getUsersList(
+          context,
+          {
+            base_id: param.baseId,
+          },
+          transaction,
+        );
+        this.checkMultipleOwnerExist(baseUsers);
+        await this.ensureBaseOwner(
+          context,
+          {
+            baseUsers,
+            ignoreUserId: param.userId,
+            baseId: param.baseId,
+            req: param.req,
+          },
+          transaction,
+        );
+      }
+      const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
+      const newRolePower = reverseOrderedProjectRoles.indexOf(
+        param.baseUser.roles as ProjectRoles,
+      );
+
+      // Check if current user has sufficient privilege to assign this role
+      if (newRolePower > getProjectRolePower(param.req.user)) {
+        NcError.badRequest(`Insufficient privilege to assign this role`);
+      }
+
+      if (
+        getProjectRolePower(targetUser) > getProjectRolePower(param.req.user)
+      ) {
+        NcError.badRequest(`Insufficient privilege to update user`);
+      }
+
       await checkSeatLimit(
         workspace.id,
         oldBaseUser.fk_user_id,
@@ -550,37 +559,46 @@ export class BaseUsersService extends BaseUsersServiceCE {
       baseId: base_id,
     });
 
-    // check if user have access to delete user based on role power
-    if (
-      getProjectRolePower(baseUser.base_roles) >
-      getProjectRolePower(param.req.user)
-    ) {
-      NcError.badRequest('Insufficient privilege to delete user');
-    }
-
-    // if old role is owner and there is only one owner then restrict to delete
-    if (extractRolesObj(baseUser.base_roles)?.[ProjectRoles.OWNER]) {
-      const baseUsers = await BaseUser.getUsersList(context, {
-        base_id: param.baseId,
-      });
-      if (
-        baseUsers.filter((u) => u.roles?.includes(ProjectRoles.OWNER))
-          .length === 1
-      )
-        NcError.badRequest('At least one owner is required');
-    }
-
-    // block self delete if user is owner or super
-    if (
-      param.req.user.id === param.userId &&
-      param.req.user.roles.includes('owner')
-    ) {
-      NcError.badRequest("Admin can't delete themselves!");
-    }
-
     const transaction = await ncMeta.startTransaction();
 
     try {
+      // check if user have access to delete user based on role power
+      if (
+        getProjectRolePower(baseUser.base_roles) >
+        getProjectRolePower(param.req.user)
+      ) {
+        NcError.badRequest('Insufficient privilege to delete user');
+      }
+
+      // if old role is owner and there is only one owner then restrict to delete
+      if (this.isOldRoleIsOwner(baseUser)) {
+        const baseUsers = await BaseUser.getUsersList(
+          context,
+          {
+            base_id: param.baseId,
+          },
+          transaction,
+        );
+        this.checkMultipleOwnerExist(baseUsers);
+        await this.ensureBaseOwner(
+          context,
+          {
+            baseUsers,
+            ignoreUserId: param.userId,
+            baseId: param.baseId,
+            req: param.req,
+          },
+          transaction,
+        );
+      }
+
+      // block self delete if user is owner or super
+      if (
+        param.req.user.id === param.userId &&
+        param.req.user.roles.includes('owner')
+      ) {
+        NcError.badRequest("Admin can't delete themselves!");
+      }
       await BaseUser.delete(context, base_id, param.userId, transaction);
 
       await this.paymentService.reseatSubscription(

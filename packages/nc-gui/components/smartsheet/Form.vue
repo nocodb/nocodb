@@ -2072,9 +2072,11 @@ const { message: templatedMessage } = useTemplatedMessage(
     @apply !py-0 !pl-0 flex items-stretch;
   }
 
-  :deep(input) {
-    &:not(.ant-select-selection-search-input) {
-      @apply !px-1;
+  &:not(.nc-cell-datetime) {
+    :deep(input) {
+      &:not(.ant-select-selection-search-input) {
+        @apply !px-1;
+      }
     }
   }
 

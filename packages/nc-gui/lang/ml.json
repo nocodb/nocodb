@@ -2227,7 +2227,9 @@
       "connectionAdded": "സംയോജനം വിജയകരമായി ബന്ധിപ്പിച്ചു",
       "connectionAddedDesc": "ബേസ് ഉടമകൾക്കും സൃഷ്ടാക്കൾക്കും ഇനി ക്രെഡൻഷ്യലുകൾ വീണ്ടും പയോഗിക്കാതെ ഡാറ്റാ സ്രോതസ്സുകൾ ചേർക്കാം.",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

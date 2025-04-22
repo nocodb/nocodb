@@ -1,7 +1,5 @@
 <script lang="ts" setup>
 import { LOYALTY_GRACE_PERIOD_END_DATE, PlanTitles } from 'nocodb-sdk'
-import bannerLight from '~/assets/img/upgrade-sidebar-banner-light.png'
-import bannerDark from '~/assets/img/upgrade-sidebar-banner-dark.png'
 
 const {
   isRecordLimitReached,
@@ -64,7 +62,8 @@ const handleNavigation = () => {
         isLimitReached
           ? {}
           : {
-              background: `url(${bannerDark}) rgba(255, 255, 255, 0.5) 50% / cover no-repeat`,
+              background:
+                'conic-gradient(from 180deg at 50% 50%, #F4E0F7 48.744959235191345deg, #EBDAF8 130.47196984291077deg, #C8CFFA 177.5922667980194deg, #E1E1F7 231.85297966003418deg, #A3D1F9 332.88971185684204deg, #BBCBF6 360deg)',
             }
       "
     >
@@ -74,12 +73,7 @@ const handleNavigation = () => {
           isLimitReached
             ? {}
             : {
-                background: `
-            url(${bannerLight}) center/cover no-repeat padding-box,
-            linear-gradient(to bottom left, #ec7db1, #85a3ff) border-box
-          `,
-                backgroundClip: 'padding-box, border-box',
-                backgroundOrigin: 'padding-box, border-box',
+                background: 'linear-gradient(to bottom left, #ec7db1, #85a3ff)',
               }
         "
         @click="handleNavigation()"
@@ -97,13 +91,7 @@ const handleNavigation = () => {
                 }"
               />
               <div class="text-base font-700 text-nc-content-gray">
-                {{
-                  isLimitReached
-                    ? $t('upgrade.planLimitReached')
-                    : isLoyaltyWorkspace
-                    ? 'Preview Ending Soon 🎊'
-                    : 'Upgrade to Team'
-                }}
+                {{ isLimitReached ? 'Plan Limit Reached' : isLoyaltyWorkspace ? 'Preview Ending Soon 🎊' : 'Upgrade to Team' }}
               </div>
             </div>
             <div class="text-nc-content-gray-subtle2 text-small leading-[18px]">
@@ -158,7 +146,11 @@ const handleNavigation = () => {
     @apply p-1 border-transparent;
 
     .nc-upgrade-sidebar-banner {
-      @apply border-transparent;
+      @apply relative border-transparent z-1;
+      &:before {
+        @apply content-[''] block absolute inset-0 rounded-xl -z-1;
+        background: linear-gradient(90deg, #faf6fe 0%, #e6f3fe 70.19%, #f1f6fe 100%);
+      }
     }
   }
 }

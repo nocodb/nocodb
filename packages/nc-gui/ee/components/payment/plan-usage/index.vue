@@ -19,7 +19,7 @@ const activeWorkspace = computed(() =>
 const { paymentState, workspaceSeatCount, activeSubscription, onManageSubscription, plansAvailable, updateSubscription } =
   usePaymentStoreOrThrow()
 
-const { getLimit, getStatLimit, activePlanTitle, navigateToPricing, isLoyaltyWorkspace } = useEeConfig()
+const { getLimit, getStatLimit, activePlanTitle, navigateToPricing, isLoyaltyWorkspace, gracePeriodEndDate } = useEeConfig()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
@@ -254,6 +254,14 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         <GeneralIcon icon="alertTriangleSolid" class="flex-none h-6 w-6 text-nc-content-red-medium"></GeneralIcon>
       </template>
       <template #action>
+        <div v-if="recordInfo.isLimitReached || storageInfo.isLimitReached" class="flex items-center justify-center">
+          <PaymentExpiresIn
+            :end-time="gracePeriodEndDate"
+            hide-icon
+            hide-label
+            class="!bg-transparent text-nc-content-gray-subtle children:font-500 text-center px-0"
+          />
+        </div>
         <NcButton type="primary" size="small" @click="navigateToPricing()"> Upgrade Workspace </NcButton>
       </template>
     </NcAlert>

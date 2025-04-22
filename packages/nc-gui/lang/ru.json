@@ -2227,7 +2227,9 @@
       "connectionAdded": "Интеграция успешно подключена",
       "connectionAddedDesc": "Владельцы и создатели проектов теперь могут добавлять источники данных без повторного ввода учетных данных.",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Начните с нуля.",

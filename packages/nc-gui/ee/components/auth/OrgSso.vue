@@ -73,6 +73,13 @@ async function getSsoClients() {
 function resetError() {
   if (error.value) error.value = null
 }
+
+// on load if email is provided, call getSsoClients
+onMounted(() => {
+  if (form.email) {
+    getSsoClients()
+  }
+})
 </script>
 
 <template>

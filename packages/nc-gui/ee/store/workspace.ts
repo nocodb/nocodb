@@ -574,6 +574,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     },
   )
 
+  const toggleSsoLoginRequiredDlg = (show = !ssoLoginRequiredDlg.value) => {
+    ssoLoginRequiredDlg.value = show
+  }
+
   return {
     loadWorkspaces,
     workspaces,
@@ -620,6 +624,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isFeedPageOpened,
     deletingWorkspace,
     ssoLoginRequiredDlg,
+    toggleSsoLoginRequiredDlg,
   }
 })
 

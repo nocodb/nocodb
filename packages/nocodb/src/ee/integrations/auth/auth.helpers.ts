@@ -3,6 +3,7 @@ export enum AuthType {
   ApiKey = 'api_key',
   Basic = 'basic',
   Bearer = 'bearer',
+  Custom = 'custom',
 }
 
 export interface AuthCredentials<T = any> {

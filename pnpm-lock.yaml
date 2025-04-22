@@ -759,7 +759,7 @@ importers:
         version: 0.11.10
       snowflake-sdk:
         specifier: ^1.15.0
-        version: 1.15.0(asn1.js@5.4.1)(debug@4.4.0)(encoding@0.1.13)
+        version: 1.15.0(asn1.js@5.4.1)(encoding@0.1.13)
     devDependencies:
       '@types/node':
         specifier: 18.19.55
@@ -806,6 +806,9 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: ^3.743.0
         version: 3.743.0
+      '@clickhouse/client':
+        specifier: ^1.11.1
+        version: 1.11.1
       '@databricks/sql':
         specifier: ^1.9.0
         version: 1.9.0(encoding@0.1.13)
@@ -1349,7 +1352,7 @@ importers:
     dependencies:
       axios:
         specifier: ^1.7.9
-        version: 1.7.9(debug@4.4.0)
+        version: 1.7.9(debug@3.2.7)
       chevrotain:
         specifier: ^10.5.0
         version: 10.5.0
@@ -3461,8 +3464,15 @@ packages:
   '@clickhouse/client-common@0.2.9':
     resolution: {integrity: sha512-ecXcegMbT4HYNWtGcfyidW6lNVRqPogbFMY5kfjJmz4IXJ4WZbQMwj2IQgemwFwE7jyia2OEwPIVfw1sNfDHRA==}
 
+  '@clickhouse/client-common@1.11.1':
+    resolution: {integrity: sha512-bme0le2yhDSAh13d2fxhSW5ZrNoVqZ3LTyac8jK6hNH0qkksXnjYkLS6KQalPU6NMpffxHmpI4+/Gi2MnX0NCA==}
+
   '@clickhouse/client@0.2.9':
     resolution: {integrity: sha512-KqQlO9vZNSLyhMWG9+0/VXqcUZrNk1Hybr9icgI/nLCoX8RD19BJsakZJj38IQvQxNUTxvcItm/kyu/gD/9LXA==}
+    engines: {node: '>=16'}
+
+  '@clickhouse/client@1.11.1':
+    resolution: {integrity: sha512-u9h++h72SmWystijNqfNvMkfA+5+Y1LNfmLL/odCL3VgI3oyAPP9ubSw/Yrt2zRZkLKehMMD1kuOej0QHbSoBA==}
     engines: {node: '>=16'}
 
   '@cloudflare/kv-asset-handler@0.3.4':
@@ -20039,7 +20049,7 @@ snapshots:
   '@aws-amplify/api-rest@3.5.14(encoding@0.1.13)(react-native@0.73.5(@babel/core@7.26.7)(@babel/preset-env@7.24.0(@babel/core@7.26.7))(encoding@0.1.13)(react@19.0.0))':
     dependencies:
       '@aws-amplify/core': 5.8.14(encoding@0.1.13)(react-native@0.73.5(@babel/core@7.26.7)(@babel/preset-env@7.24.0(@babel/core@7.26.7))(encoding@0.1.13)(react@19.0.0))
-      axios: 1.7.9(debug@4.4.0)
+      axios: 1.7.9(debug@3.2.7)
       tslib: 1.14.1
       url: 0.11.0
     transitivePeerDependencies:
@@ -23706,9 +23716,15 @@ snapshots:
 
   '@clickhouse/client-common@0.2.9': {}
 
+  '@clickhouse/client-common@1.11.1': {}
+
   '@clickhouse/client@0.2.9':
     dependencies:
       '@clickhouse/client-common': 0.2.9
+
+  '@clickhouse/client@1.11.1':
+    dependencies:
+      '@clickhouse/client-common': 1.11.1
 
   '@cloudflare/kv-asset-handler@0.3.4':
     dependencies:
@@ -29468,7 +29484,7 @@ snapshots:
       vue-demi: 0.14.10(vue@3.5.13)
     optionalDependencies:
       async-validator: 4.2.5
-      axios: 1.7.9(debug@4.4.0)
+      axios: 1.7.9(debug@3.2.7)
       change-case: 4.1.2
       focus-trap: 7.5.4
       fuse.js: 6.6.2
@@ -38426,7 +38442,7 @@ snapshots:
       '@yarnpkg/lockfile': 1.1.0
       '@yarnpkg/parsers': 3.0.0-rc.46
       '@zkochan/js-yaml': 0.0.6
-      axios: 1.7.9(debug@4.4.0)
+      axios: 1.7.9(debug@3.2.7)
       chalk: 4.1.2
       cli-cursor: 3.1.0
       cli-spinners: 2.6.1
@@ -41160,6 +41176,45 @@ snapshots:
       asn1.js-rfc2560: 5.0.1(asn1.js@5.4.1)
       asn1.js-rfc5280: 3.0.0
       axios: 1.7.9(debug@4.4.0)
+      big-integer: 1.6.51
+      bignumber.js: 9.1.2
+      binascii: 0.0.2
+      bn.js: 5.2.1
+      browser-request: 0.3.3
+      expand-tilde: 2.0.2
+      fast-xml-parser: 4.5.1
+      fastest-levenshtein: 1.0.16
+      generic-pool: 3.9.0
+      glob: 10.4.5
+      https-proxy-agent: 7.0.6(supports-color@9.4.0)
+      jsonwebtoken: 9.0.2
+      mime-types: 2.1.35
+      mkdirp: 1.0.4
+      moment: 2.29.4
+      moment-timezone: 0.5.43
+      open: 7.4.2
+      python-struct: 1.1.3
+      simple-lru-cache: 0.0.2
+      toml: 3.0.0
+      uuid: 8.3.2
+      winston: 3.10.0
+    transitivePeerDependencies:
+      - aws-crt
+      - debug
+      - encoding
+      - supports-color
+
+  snowflake-sdk@1.15.0(asn1.js@5.4.1)(encoding@0.1.13):
+    dependencies:
+      '@aws-sdk/client-s3': 3.743.0
+      '@aws-sdk/node-http-handler': 3.374.0
+      '@azure/storage-blob': 12.18.0(encoding@0.1.13)
+      '@google-cloud/storage': 7.15.0(encoding@0.1.13)
+      '@techteamer/ocsp': 1.0.1
+      asn1.js: 5.4.1
+      asn1.js-rfc2560: 5.0.1(asn1.js@5.4.1)
+      asn1.js-rfc5280: 3.0.0
+      axios: 1.7.9(debug@3.2.7)
       big-integer: 1.6.51
       bignumber.js: 9.1.2
       binascii: 0.0.2

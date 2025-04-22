@@ -4,7 +4,10 @@ import type { SyncColumnDefinition } from '~/integrations/sync/sync.schemas';
 import IntegrationWrapper from '~/integrations/integration.wrapper';
 
 export default abstract class SyncIntegration extends IntegrationWrapper {
-  public static destinationSchema: readonly SyncColumnDefinition[];
+  public abstract getDestinationSchema(
+    auth: AuthResponse,
+    payload: any,
+  ): Promise<readonly SyncColumnDefinition[]>;
 
   public abstract fetchData(
     auth: AuthResponse,

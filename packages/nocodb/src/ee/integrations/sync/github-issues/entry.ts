@@ -6,7 +6,9 @@ import SyncIntegration from '~/integrations/sync/sync.interface';
 import { ticketingSchema } from '~/integrations/sync/sync.schemas';
 
 export default class GithubIssuesIntegration extends SyncIntegration {
-  public static destinationSchema = ticketingSchema;
+  public async getDestinationSchema(_auth: AuthResponse<Octokit>) {
+    return ticketingSchema;
+  }
 
   public async fetchData(
     auth: AuthResponse<Octokit>,

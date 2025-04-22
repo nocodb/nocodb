@@ -54,6 +54,8 @@ export type RecordTypeFromSchema<
   RemoteRaw: string | null;
 };
 
+export type AnyRecordType = Record<string, string | number | boolean | null>;
+
 export const syncSystemFields: SyncSchemaWithSystemFields = [
   // Generic System Fields
   {

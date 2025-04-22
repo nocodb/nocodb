@@ -1,0 +1,68 @@
+import { FormBuilderInputType, IntegrationsType } from 'nocodb-sdk';
+
+export default [
+  {
+    type: FormBuilderInputType.Input,
+    label: 'Sync name',
+    width: 100,
+    model: 'title',
+    placeholder: 'Sync name',
+    category: 'General',
+    validators: [
+      {
+        type: 'required',
+        message: 'Integration name is required',
+      },
+    ],
+  },
+  {
+    type: FormBuilderInputType.SelectIntegration,
+    label: 'Auth Provider',
+    width: 100,
+    model: 'config.authIntegrationId',
+    category: 'Authentication',
+    integrationFilter: {
+      type: IntegrationsType.Auth,
+      sub_type: 'clickhouse',
+    },
+    validators: [
+      {
+        type: 'required',
+        message: 'Auth Provider is required',
+      },
+    ],
+  },
+  {
+    type: FormBuilderInputType.Input,
+    label: 'Table Name',
+    width: 48,
+    model: 'config.table',
+    placeholder: 'Table name',
+    category: 'Source',
+    validators: [
+      {
+        type: 'required',
+        message: 'Table name is required',
+      },
+    ],
+  },
+  {
+    type: FormBuilderInputType.Space,
+    width: 4,
+    category: 'Source',
+  },
+  {
+    type: FormBuilderInputType.Input,
+    label: 'Primary Key Column',
+    width: 48,
+    model: 'config.primaryKey',
+    placeholder: 'Primary key column',
+    category: 'Source',
+    validators: [
+      {
+        type: 'required',
+        message: 'Primary key column is required',
+      },
+    ],
+  },
+];

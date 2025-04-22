@@ -210,9 +210,13 @@ export class SyncModuleSyncDataProcessor {
         `Started syncing your data from ${integration.title} (${integration.sub_type}) to ${model.title}`,
       );
 
-      const data = await wrapper.fetchData(auth, integration.getConfig(), {
-        last_record: lastRecord,
-      });
+      const dataStream = await wrapper.fetchData(
+        auth,
+        integration.getConfig(),
+        {
+          last_record: lastRecord,
+        },
+      );
 
       let recordCounter = 0;
 
@@ -221,7 +225,7 @@ export class SyncModuleSyncDataProcessor {
       const dataBuffer: Record<string, any>[] = [];
 
       await new Promise<void>((resolve, reject) => {
-        data.on('data', async (data) => {
+        dataStream.on('data', async (data) => {
           try {
             Object.assign(data.data, {
               RemoteId: data.recordId,
@@ -232,9 +236,9 @@ export class SyncModuleSyncDataProcessor {
             dataBuffer.push(data.data);
 
             if (dataBuffer.length >= 100) {
-              recordCounter += dataBuffer.length;
+              dataStream.pause();
 
-              logBasic(`Synced ${recordCounter} records`);
+              recordCounter += dataBuffer.length;
 
               await this.pushData(
                 context,
@@ -243,23 +247,25 @@ export class SyncModuleSyncDataProcessor {
                 dataBuffer.splice(0),
                 req,
               );
+
+              logBasic(`Synced ${recordCounter} records`);
+
+              dataStream.resume();
             }
           } catch (error) {
             reject(error);
           }
         });
 
-        data.on('error', async (error) => {
+        dataStream.on('error', async (error) => {
           reject(error);
         });
 
-        data.on('end', async () => {
+        dataStream.on('end', async () => {
           try {
-            recordCounter += dataBuffer.length;
-
-            logBasic(`Synced ${recordCounter} records`);
-
             if (dataBuffer.length > 0) {
+              recordCounter += dataBuffer.length;
+
               await this.pushData(
                 context,
                 syncConfig,
@@ -267,6 +273,8 @@ export class SyncModuleSyncDataProcessor {
                 dataBuffer.splice(0),
                 req,
               );
+
+              logBasic(`Synced ${recordCounter} records`);
             }
 
             await SyncConfig.update(context, syncConfig.id, {

@@ -177,29 +177,28 @@ watch(
             >
             </NcAlert>
           </template>
-          <template v-else-if="afterUpgrade">
-            <NcAlert
-              :visible="afterUpgrade"
-              closable
-              type="success"
-              show-icon
-              class="!rounded-xl bg-nc-bg-green-light"
-              :message="$t('msg.success.upgradeSuccessful')"
-              :description="$t('msg.success.upgradeSuccessfulSubtitle')"
-              @close="onClosePaymentBanner"
-            >
-              <template v-if="invoices?.[0]?.invoice_pdf" #action>
-                <a
-                  :href="invoices?.[0]?.invoice_pdf"
-                  target="_blank"
-                  rel="noopener noreferer"
-                  class="!no-underline !hover:underline text-sm font-700"
-                >
-                  {{ $t('labels.downloadInvoice') }}
-                </a>
-              </template>
-            </NcAlert>
-          </template>
+          <NcAlert
+            v-else-if="afterUpgrade"
+            closable
+            type="success"
+            show-icon
+            class="!rounded-xl bg-nc-bg-green-light"
+            :message="$t('msg.success.upgradeSuccessful')"
+            :description="$t('msg.success.upgradeSuccessfulSubtitle')"
+            @close="onClosePaymentBanner"
+          >
+            <template v-if="invoices?.[0]?.invoice_pdf" #action>
+              <a
+                :href="invoices?.[0]?.invoice_pdf"
+                target="_blank"
+                rel="noopener noreferer"
+                class="!no-underline !hover:underline text-sm font-700"
+              >
+                {{ $t('labels.downloadInvoice') }}
+              </a>
+            </template>
+          </NcAlert>
+
           <PaymentPlanUsage v-if="!afterPayment || !!checkoutSession" />
         </template>
 

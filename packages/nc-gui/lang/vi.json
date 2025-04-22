@@ -2227,7 +2227,9 @@
       "connectionAdded": "Tích hợp kết nối thành công",
       "connectionAddedDesc": "Chủ sở hữu và người tạo cơ sở có thể thêm một nguồn dữ liệu mà không cần nhập lại thông tin xác thực.",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

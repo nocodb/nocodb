@@ -31,9 +31,7 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace, isPaymentE
         'px-8 py-6 min-h-[168px]': expanded,
       }"
       :style="{
-        'background-image': `url(${loyalBgImage})`,
-        'background-color': 'rgba(255, 255, 255, 0.7)',
-        'background-blend-mode': 'overlay',
+        background: `linear-gradient(90deg, #FAF5FE 0%, #EFF0FF 29.64%, #E6F2FF 55.77%, #EAF3FF 92.31%, #F3F7FE 100%)`,
       }"
       @click.stop="navigateToPricing()"
     >
@@ -44,10 +42,10 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace, isPaymentE
           'flex-col': expanded,
         }"
       >
-        <div class="text-xl font-weight-700 text-nc-content-gray leading-[32px]">
+        <div class="text-xl font-weight-700 text-nc-content-purple-dark leading-[32px]">
           {{ isLoyaltyWorkspace ? $t('title.loyaltyBannerTitle') : $t('title.getMoreFromNocodb') }}
         </div>
-        <div v-if="expanded" class="mt-2">
+        <div v-if="expanded" class="mt-2 text-nc-content-gray font-semibold">
           {{ isLoyaltyWorkspace ? $t('title.loyaltyBannerSubtitle') : $t('title.getMoreFromNocodbSubtitle') }}
         </div>
         <div

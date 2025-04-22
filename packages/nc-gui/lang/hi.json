@@ -2227,7 +2227,9 @@
       "connectionAdded": "एकीकरण सफलतापूर्वक जुड़ा",
       "connectionAddedDesc": "बेस मालिक और रचनाकार अब क्रेडेंशियल्स फिर से दर्ज किए बिना डेटा स्रोत जोड़ सकते हैं।",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

@@ -57,7 +57,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
         base_roles: extractRolesObj(param.baseUser.roles),
       }) > getProjectRolePower(param.req.user)
     ) {
-      NcError.badRequest(`Insufficient privilege to invite with this role`);
+      NcError.baseUserError(`Insufficient privilege to invite with this role`);
     }
 
     if (
@@ -70,7 +70,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
         ProjectRoles.NO_ACCESS,
       ].includes(param.baseUser.roles as ProjectRoles)
     ) {
-      NcError.badRequest('Invalid role');
+      NcError.baseUserError('Invalid role');
     }
 
     const emails = (param.baseUser.email || '')
@@ -81,10 +81,12 @@ export class BaseUsersService extends BaseUsersServiceCE {
     // check for invalid emails
     const invalidEmails = emails.filter((v) => !validator.isEmail(v));
     if (!emails.length) {
-      return NcError.badRequest('Invalid email address');
+      return NcError.baseUserError('Invalid email address');
     }
     if (invalidEmails.length) {
-      NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '));
+      NcError.baseUserError(
+        'Invalid email address : ' + invalidEmails.join(', '),
+      );
     }
 
     const base = await Base.get(context, param.baseId, ncMeta);
@@ -393,7 +395,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
     );
 
     if (!param.baseId) {
-      NcError.badRequest('Missing base id');
+      NcError.baseUserError('Missing base id');
     }
 
     const base = await Base.get(context, param.baseId, ncMeta);
@@ -418,13 +420,13 @@ export class BaseUsersService extends BaseUsersServiceCE {
         ProjectRoles.NO_ACCESS,
       ].includes(param.baseUser.roles as ProjectRoles)
     ) {
-      NcError.badRequest('Invalid role');
+      NcError.baseUserError('Invalid role');
     }
 
     const user = await User.get(param.userId, ncMeta);
 
     if (!user) {
-      NcError.badRequest(`User with id '${param.userId}' doesn't exist`);
+      NcError.baseUserError(`User with id '${param.userId}' doesn't exist`);
     }
 
     const targetUser = await User.getWithRoles(
@@ -438,7 +440,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
     );
 
     if (!targetUser) {
-      NcError.badRequest(
+      NcError.baseUserError(
         `User with id '${param.userId}' doesn't exist in this base`,
       );
     }
@@ -481,13 +483,13 @@ export class BaseUsersService extends BaseUsersServiceCE {
 
       // Check if current user has sufficient privilege to assign this role
       if (newRolePower > getProjectRolePower(param.req.user)) {
-        NcError.badRequest(`Insufficient privilege to assign this role`);
+        NcError.baseUserError(`Insufficient privilege to assign this role`);
       }
 
       if (
         getProjectRolePower(targetUser) > getProjectRolePower(param.req.user)
       ) {
-        NcError.badRequest(`Insufficient privilege to update user`);
+        NcError.baseUserError(`Insufficient privilege to update user`);
       }
 
       await checkSeatLimit(
@@ -558,7 +560,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
     const base_id = param.baseId;
 
     if (param.req.user?.id === param.userId) {
-      NcError.badRequest("Admin can't delete themselves!");
+      NcError.baseUserError("Admin can't delete themselves!");
     }
 
     const user = await User.get(param.userId);
@@ -598,7 +600,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
         getProjectRolePower(baseUser.base_roles) >
         getProjectRolePower(param.req.user)
       ) {
-        NcError.badRequest('Insufficient privilege to delete user');
+        NcError.baseUserError('Insufficient privilege to delete user');
       }
 
       // if old role is owner and there is only one owner then restrict to delete
@@ -628,7 +630,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
         param.req.user.id === param.userId &&
         param.req.user.roles.includes('owner')
       ) {
-        NcError.badRequest("Admin can't delete themselves!");
+        NcError.baseUserError("Admin can't delete themselves!");
       }
       await BaseUser.delete(context, base_id, param.userId, transaction);
 

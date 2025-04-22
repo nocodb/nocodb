@@ -59,7 +59,6 @@ export async function extractSdkResponseErrorMsgv2(e: Error & { response: any })
     if (e.response.data.error && e.response.data.error in NcErrorType) {
       return e.response.data
     }
-
     return unknownError
   }
 }

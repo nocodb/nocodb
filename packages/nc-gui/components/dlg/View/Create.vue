@@ -1131,7 +1131,7 @@ const getPluralName = (name: string) => {
 
                           // If first range has a timezone configured, ensure this option has the same timezone
                         const firstRangeColumn = meta?.columns?.find(c => c.id === form.calendar_range[0].fk_from_column_id)
-                        const optionColumn = meta.value?.columns?.find(c => c.id === f.value)
+                        const optionColumn = meta?.columns?.find(c => c.id === f.value)
                         return optionColumn?.meta?.timezone === firstRangeColumn.meta.timezone
                         })"
                         :key="id"

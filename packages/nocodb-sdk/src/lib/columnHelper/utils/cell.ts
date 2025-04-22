@@ -21,7 +21,7 @@ export const isRichText = (column: ColumnType) =>
 export const isInt = (_column: ColumnType, abstractType: any) =>
   abstractType === 'integer';
 
-export const isFloat = (_column: ColumnType, abstractType: any) =>
+export const isFloat = (column: ColumnType, abstractType: any) =>
   abstractType === 'float' || column.uidt === UITypes.Number;
 
 export const isDate = (column: ColumnType, abstractType: any) =>

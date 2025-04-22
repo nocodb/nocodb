@@ -90,9 +90,9 @@ const renderData = computed<Array<Row>>(() => {
     formattedSideBarData.value.forEach((record) => {
       if (fromCol && toCol) {
         const from = timezoneDayjs.timezonize(record.row[fromCol.title!])
-        const to = timezoneDayjs.dayjsTz(record.row[toCol.title!])
+        const to = timezoneDayjs.timezonize(record.row[toCol.title!])
         if (sideBarFilterOption.value === 'withoutDates') {
-          if (!from.isValid() || !to.isValid()) {
+          if (!dayjs(record.row[fromCol.title!]).isValid() || !dayjs(record.row[toCol.title!]).isValid()) {
             pushToArray(rangedData, record, range)
           }
         } else if (sideBarFilterOption.value === 'allRecords') {
@@ -149,7 +149,7 @@ const renderData = computed<Array<Row>>(() => {
       } else if (fromCol) {
         const from = timezoneDayjs.timezonize(record.row[fromCol.title!])
         if (sideBarFilterOption.value === 'withoutDates') {
-          if (!from.isValid()) {
+          if (!dayjs(record.row[fromCol.title!]).isValid()) {
             pushToArray(rangedData, record, range)
           }
         } else if (sideBarFilterOption.value === 'allRecords') {

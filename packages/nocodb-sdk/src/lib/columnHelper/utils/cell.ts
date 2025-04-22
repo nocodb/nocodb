@@ -22,7 +22,7 @@ export const isInt = (_column: ColumnType, abstractType: any) =>
   abstractType === 'integer';
 
 export const isFloat = (_column: ColumnType, abstractType: any) =>
-  abstractType === 'float' || abstractType === UITypes.Number;
+  abstractType === 'float' || column.uidt === UITypes.Number;
 
 export const isDate = (column: ColumnType, abstractType: any) =>
   abstractType === 'date' || column.uidt === UITypes.Date;

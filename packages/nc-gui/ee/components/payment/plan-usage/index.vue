@@ -19,7 +19,7 @@ const activeWorkspace = computed(() =>
 const { paymentState, workspaceSeatCount, activeSubscription, onManageSubscription, plansAvailable, updateSubscription } =
   usePaymentStoreOrThrow()
 
-const { getLimit, getStatLimit, activePlanTitle, navigateToPricing } = useEeConfig()
+const { getLimit, getStatLimit, activePlanTitle, navigateToPricing, isLoyaltyWorkspace } = useEeConfig()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
@@ -80,6 +80,7 @@ const recordInfo = computed(() => {
       activePlan: activePlanTitle.value,
       limit: total,
     }),
+    isLimitReached: value >= total,
   }
 })
 
@@ -96,6 +97,7 @@ const storageInfo = computed(() => {
       activePlan: activePlanTitle.value,
       limit: total,
     }),
+    isLimitReached: value >= total,
   }
 })
 
@@ -112,6 +114,7 @@ const automationInfo = computed(() => {
       activePlan: activePlanTitle.value,
       limit: total,
     }),
+    isLimitReached: value >= total,
   }
 })
 
@@ -128,7 +131,17 @@ const apiCallsInfo = computed(() => {
       activePlan: activePlanTitle.value,
       limit: total,
     }),
+    isLimitReached: value >= total,
   }
+})
+
+const isAnyPlanLimitReached = computed(() => {
+  return (
+    recordInfo.value.isLimitReached ||
+    storageInfo.value.isLimitReached ||
+    automationInfo.value.isLimitReached ||
+    apiCallsInfo.value.isLimitReached
+  )
 })
 
 const confirmOpen = ref(false)
@@ -162,7 +175,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
 </script>
 
 <template>
-  <div v-if="!paymentInitiated" class="flex flex-col gap-3">
+  <div v-if="!paymentInitiated" class="nc-plan-usage flex flex-col gap-3">
     <NcAlert v-if="scheduledChangeInfo" type="info" message="Your plan will switch after the current billing cycle ends.">
       <template #description>
         You've switched from the
@@ -217,7 +230,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         <NcButton v-if="activeSubscription" type="link" size="small" class="!hover:underline" @click="onManageSubscription">
           {{ $t('labels.manageSubscription') }}
         </NcButton>
-        <NcButton v-if="activeSubscription" type="primary" size="small" inner-class="!gap-1" @click="navigateToPricing()">
+        <NcButton v-if="!isAnyPlanLimitReached" type="primary" size="small" inner-class="!gap-1" @click="navigateToPricing()">
           <template #icon>
             <GeneralIcon icon="ncArrowUpRight" />
           </template>
@@ -225,6 +238,25 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         </NcButton>
       </div>
     </div>
+
+    <NcAlert
+      v-if="isAnyPlanLimitReached"
+      type="warning"
+      message="Plan Limit Exceeded!"
+      description="Please upgrade to continue using the service without interruptions."
+      align="center"
+      class="nc-plan-usage-plan-limit-reached-banner bg-nc-bg-red-light !rounded-xl"
+      :class="{
+        'nc-loyalty-workspace': isLoyaltyWorkspace,
+      }"
+    >
+      <template #icon>
+        <GeneralIcon icon="alertTriangleSolid" class="flex-none h-6 w-6 text-nc-content-red-medium"></GeneralIcon>
+      </template>
+      <template #action>
+        <NcButton type="primary" size="small" @click="navigateToPricing()"> Upgrade Workspace </NcButton>
+      </template>
+    </NcAlert>
 
     <div
       class="nc-current-plan-table rounded-lg border-1"
@@ -308,5 +340,16 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
 <style lang="scss" scoped>
 .nc-current-plan-table {
   @apply border-nc-border-gray-medium overflow-hidden;
+}
+</style>
+
+<style lang="scss">
+// Hide top banner if user is not loyal user
+.nc-payment-billing-page {
+  &:has(.nc-plan-usage-plan-limit-reached-banner:not(.nc-loyalty-workspace)) {
+    .nc-payment-banner-wrapper {
+      @apply hidden;
+    }
+  }
 }
 </style>

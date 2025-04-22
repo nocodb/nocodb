@@ -82,12 +82,20 @@ const timeCellMaxWidth = computed(() => {
     :title="localState?.format(dateTimeFormat)"
     class="nc-date-picker w-full flex items-center nc-cell-field relative gap-2 nc-cell-picker-datetime tracking-tight"
   >
-    <div class="nc-flex-1 px-1 nc-truncate">
-      {{ localState?.format(dateFormat) ?? '' }}
-    </div>
+    <div class="flex-1 flex items-center gap-2 truncate">
+      <div
+        class="px-1 nc-truncate"
+        :class="{
+          'w-[fit-content]': isUnderLookup,
+          'w-[60%] !max-w-[110px]': !isUnderLookup,
+        }"
+      >
+        {{ localState?.format(dateFormat) ?? '' }}
+      </div>
 
-    <div class="nc-flex-1 px-1 nc-truncate">
-      {{ cellValue }}
+      <div :class="timeCellMaxWidth" class="px-1 nc-truncate">
+        {{ cellValue }}
+      </div>
     </div>
     <div v-if="timeZoneDisplay" class="text-nc-content-gray-muted whitespace-nowrap text-tiny">
       {{ timeZoneDisplay }}

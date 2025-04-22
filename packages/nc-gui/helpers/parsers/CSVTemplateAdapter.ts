@@ -1,7 +1,7 @@
 import { parse } from 'papaparse'
 import type { UploadFile } from 'ant-design-vue'
 import { type ColumnType, UITypes, getDateFormat, parseProp, validateDateWithUnknownFormat } from 'nocodb-sdk'
-import { withTimezone } from '../../utils/worker/datetimeUtils'
+import { workerWithTimezone } from '../../utils/worker/datetimeUtils'
 import {
   extractMultiOrSingleSelectProps,
   getCheckboxValue,
@@ -263,7 +263,7 @@ export default class CSVTemplateAdapter {
                     rowData[column.column_name] = data
                   } else {
                     const meta = parseProp(existingColumn.meta)
-                    const dateValue = withTimezone(that.config.isEeUI, meta?.timezone).dayjsTz(
+                    const dateValue = workerWithTimezone(that.config.isEeUI, meta?.timezone).dayjsTz(
                       data,
                       meta?.date_format && meta.time_format ? `${meta.date_format} ${meta.time_format}` : undefined,
                     )

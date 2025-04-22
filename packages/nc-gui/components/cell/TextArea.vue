@@ -492,6 +492,7 @@ useResizeObserver(inputWrapperRef, () => {
             ? `${height}px`
             : `${16.5 * rowHeightTruncateLines(localRowHeight)}px`,
         }"
+        @click.stop="isExpandedFormOpen ? onExpand() : undefined"
         @dblclick="onExpand"
         @keydown.enter="onExpand"
       >

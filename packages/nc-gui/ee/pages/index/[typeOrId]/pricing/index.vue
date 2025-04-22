@@ -76,7 +76,7 @@ useEventListener('message', (event) => {
     </div>
     <iframe
       v-show="frameLoaded"
-      :src="`${appInfo.marketingRootUrl}/${isLoyaltyWorkspace ? 'loyalty-' : ''}pricing.html?inApp=true&workspace=${
+      :src="`${appInfo.marketingRootUrl}/${isLoyaltyWorkspace ? 'loyalty-' : ''}pricing?inApp=true&workspace=${
         activeWorkspace?.title
       }&plan=${activePlan?.title}&paymentMode=${paymentMode}&isLoyaltyWorkspace=${isLoyaltyWorkspace}`"
       width="100%"

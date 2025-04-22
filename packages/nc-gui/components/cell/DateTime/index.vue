@@ -485,74 +485,73 @@ const minimizeMaxWidth = computed(() => {
       :class="[`nc-${randomClass}`, { 'nc-null': modelValue === null && showNull }]"
       :overlay-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''} !min-w-[0] overflow-hidden`"
     >
-        <div
-          :title="localState?.format(dateTimeFormat)"
-          class="nc-date-picker ant-picker-input flex items-center relative !w-auto gap-2"
-          :class="{
-          'max-w-[calc(100%_-_70px)]': minimizeMaxWidth,
+      <div
+        :title="localState?.format(dateTimeFormat)"
+        class="nc-date-picker ant-picker-input flex items-center relative gap-2"
+        :class="{
+          'max-w-[calc(100%_-_70px)] flex-none': minimizeMaxWidth,
+          'flex-1': !minimizeMaxWidth,
         }"
-          
+      >
+        <div
+          class="nc-flex-1 rounded-md box-border nc-truncate"
+          :class="{
+            'py-0': isForm,
+            'py-0.5': !isForm && !isColDisabled,
+            'bg-gray-100': isDatePicker && isOpen,
+            'hover:bg-gray-100 px-1': !isColDisabled,
+          }"
         >
-          <div
-            class="nc-flex-1 rounded-md box-border nc-truncate"
-            :class="{
+          <input
+            v-if="!rawReadOnly"
+            ref="datePickerRef"
+            :value="localState?.format(dateFormat) ?? ''"
+            :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
+            class="nc-date-input w-full min-w-0 !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
+            :readonly="isColDisabled"
+            @focus="onFocus(true)"
+            @blur="onBlur($event, true)"
+            @keydown="handleKeydown($event, isOpen, true)"
+            @mouseup.stop
+            @mousedown.stop
+            @click.stop="clickHandler($event, true)"
+            @input="handleUpdateValue($event, true)"
+          />
+          <template v-else>
+            {{ localState?.format(dateFormat) ?? '' }}
+          </template>
+        </div>
+        <div
+          class="nc-flex-1 rounded-md box-border nc-truncate"
+          :class="[
+            `${timeCellMaxWidth}`,
+            {
               'py-0': isForm,
               'py-0.5': !isForm && !isColDisabled,
-              'bg-gray-100': isDatePicker && isOpen,
+              'bg-gray-100': !isDatePicker && isOpen,
               'hover:bg-gray-100 px-1': !isColDisabled,
-            }"
-          >
-            <input
-              v-if="!rawReadOnly"
-              ref="datePickerRef"
-              :value="localState?.format(dateFormat) ?? ''"
-              :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
-              class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
-              :readonly="isColDisabled"
-              @focus="onFocus(true)"
-              @blur="onBlur($event, true)"
-              @keydown="handleKeydown($event, isOpen, true)"
-              @mouseup.stop
-              @mousedown.stop
-              @click.stop="clickHandler($event, true)"
-              @input="handleUpdateValue($event, true)"
-            />
-            <span v-else>
-              {{ localState?.format(dateFormat) ?? '' }}
-            </span>
-          </div>
-          <div
-          class="nc-flex-1 rounded-md box-border nc-truncate"
-            :class="[
-              `${timeCellMaxWidth}`,
-              {
-                'py-0': isForm,
-                'py-0.5': !isForm && !isColDisabled,
-                'bg-gray-100': !isDatePicker && isOpen,
-                'hover:bg-gray-100 px-1': !isColDisabled,
-              },
-            ]"
-          >
-            <input
-              v-if="!rawReadOnly"
-              ref="timePickerRef"
-              :value="cellValue"
-              :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
-              class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
-              :readonly="isColDisabled"
-              @focus="onFocus(false)"
-              @blur="onBlur($event, false)"
-              @keydown="handleKeydown($event, open)"
-              @mouseup.stop
-              @mousedown.stop
-              @click.stop="clickHandler($event, false)"
-              @input="handleUpdateValue($event, false)"
-            />
-            <span v-else>
-              {{ cellValue }}
-            </span>
-          </div>
-        </div>   
+            },
+          ]"
+        >
+          <input
+            v-if="!rawReadOnly"
+            ref="timePickerRef"
+            :value="cellValue"
+            :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
+            class="nc-time-input w-full min-w-0 !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
+            :readonly="isColDisabled"
+            @focus="onFocus(false)"
+            @blur="onBlur($event, false)"
+            @keydown="handleKeydown($event, open)"
+            @mouseup.stop
+            @mousedown.stop
+            @click.stop="clickHandler($event, false)"
+            @input="handleUpdateValue($event, false)"
+          />
+          <tempalte v-else>
+            {{ cellValue }}
+          </tempalte>
+        </div>
       </div>
 
       <template #overlay>
@@ -590,7 +589,13 @@ const minimizeMaxWidth = computed(() => {
       </template>
     </NcDropdown>
 
-    <div class="text-nc-content-gray-muted whitespace-nowrap text-tiny nc-flex-1 text-right">
+    <div
+      v-if="timeZoneDisplay"
+      class="nc-timezone-field text-nc-content-gray-muted whitespace-nowrap text-tiny transition-all duration-300 text-right"
+      :class="{
+        'nc-flex-1': minimizeMaxWidth,
+      }"
+    >
       {{ timeZoneDisplay }}
     </div>
 

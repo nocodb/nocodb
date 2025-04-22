@@ -1309,7 +1309,7 @@ export class NcError {
     });
   }
   static baseUserError(message: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.BASE_USER_ADD_ERROR, {
+    throw new NcBaseErrorv2(NcErrorType.BASE_USER_ERROR, {
       params: message,
       ...args,
     });

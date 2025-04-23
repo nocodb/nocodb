@@ -1563,7 +1563,7 @@ export function useCanvasRender({
               mousePosition,
               pk,
               skipRender: isCellEditEnabled,
-              isRowHovered: isHover,
+              isRowHovered: isHover || selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }),
               isRowChecked: isChecked,
             })
             ctx.restore()
@@ -1635,7 +1635,7 @@ export function useCanvasRender({
                   disabled: column?.isInvalidColumn,
                   pk,
                   skipRender: isCellEditEnabled,
-                  isRowHovered: isHover,
+                  isRowHovered: isHover || selection.value.isCellInRange({ row: rowIdx, col: colIdx }),
                   isRowChecked: isChecked,
                 })
                 ctx.restore()

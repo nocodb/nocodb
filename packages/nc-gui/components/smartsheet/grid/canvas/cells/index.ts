@@ -179,13 +179,16 @@ export function useGridCellHandler(params: {
       path = [],
       fontFamily,
       isRowHovered = false,
+      isRowChecked = false,
     }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
     const columnState = isColumnSortedOrFiltered(column.id!)
     if (columnState !== undefined) {
       let bgColorProps: 'cellBgColor' | 'cellBgColor.hovered' | 'cellBgColor.selected' = 'cellBgColor'
-      if (isRowHovered) {
+      if (selected || isRowChecked) {
+        bgColorProps = 'cellBgColor.selected'
+      } else if (isRowHovered) {
         bgColorProps = 'cellBgColor.hovered'
       }
       roundedRect(ctx, x, y, width, height, 0, { backgroundColor: filteredOrSortedAppearanceConfig[columnState][bgColorProps] })

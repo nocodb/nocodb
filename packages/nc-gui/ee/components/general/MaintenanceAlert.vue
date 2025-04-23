@@ -24,24 +24,11 @@ function renderEjsTemplate(template: string, data: Record<string, string>) {
   return template.replace(/<%= (\w+) %>/g, (match, key) => data[key] || '')
 }
 
-const timeZoneAbbreviated = () => {
-  const { 1: tz } = new Date().toString().match(/\((.+)\)/)
-
-  if (tz.includes(' ')) {
-    return tz
-      .split(' ')
-      .map(([first]) => first)
-      .join('')
-  } else {
-    return tz
-  }
-}
-
 const compiledMessage = computed(() => {
   if (!maintenance.value) return ''
   const date = maintenance.value.date
   return renderEjsTemplate(maintenance.value.description, {
-    date: `${dayjs(date).format('YYYY-MM-DD HH:mm')} ${timeZoneAbbreviated()}`,
+    date: dayjs(date).format('YYYY-MM-DD HH:mm z'),
     ptTime: dayjs(date).tz('America/Los_Angeles').format('HH:mm z'),
   })
 })

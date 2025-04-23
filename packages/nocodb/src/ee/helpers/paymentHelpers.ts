@@ -6,7 +6,6 @@ import {
   PlanLimitTypes,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
-import { DlgOrgDomain } from 'nc-gui/ee/.nuxt/components';
 import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import type Stripe from 'stripe';
 import { NcError } from '~/helpers/catchError';

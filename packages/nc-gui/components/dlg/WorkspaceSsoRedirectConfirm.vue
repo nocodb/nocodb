@@ -24,7 +24,7 @@ const onOk = () => {
   })
 }
 
-const onCancel = () => {
+const onCancel = async () => {
   // navigate to non-sso workspace
   // find first non-sso workspace and navigate to it
   let nonSsoWorkspace = [...(workspaces.value?.values() || [])].find((workspace) => {

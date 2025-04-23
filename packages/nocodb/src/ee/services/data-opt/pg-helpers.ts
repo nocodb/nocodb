@@ -424,6 +424,15 @@ export async function extractColumn({
           case RelationTypes.ONE_TO_ONE:
             {
               const isBt = column.meta?.bt;
+const relationColOpts =
+  column.colOptions as LinkToAnotherRecordColumn
+              const childContext = isBt
+                ? context
+                : relationColOpts.getRelatedTableContext(context);
+
+              const parentContext = isBt
+                ? relationColOpts.getRelatedTableContext(context)
+                : context;
 
               const alias1 = getAlias();
               const alias2 = getAlias();
@@ -434,10 +443,10 @@ export async function extractColumn({
               ).getRelatedTable(context);
               const childColumn = await (
                 column.colOptions as LinkToAnotherRecordColumn
-              ).getChildColumn(context);
+              ).getChildColumn(childContext);
               const parentColumn = await (
                 column.colOptions as LinkToAnotherRecordColumn
-              ).getParentColumn(context);
+              ).getParentColumn(parentContext);
 
               if (isBt) {
                 const parentBaseModel = await Model.getBaseModelSQL(context, {
@@ -561,7 +570,11 @@ export async function extractColumn({
                 context,
               );
 
-              const childBaseModel = await Model.getBaseModelSQL(context, {
+              const childContext = await relationColOpts.getRelatedTableContext(
+                context,
+              );
+
+              const childBaseModel = await Model.getBaseModelSQL(childContext, {
                 dbDriver: knex,
                 model: childModel,
               });
@@ -580,9 +593,12 @@ export async function extractColumn({
               await conditionV2(baseModel, queryFilterObj, hmQb);
 
               const view = relationColOpts.fk_target_view_id
-                ? await View.get(context, relationColOpts.fk_target_view_id)
-                : await View.getDefaultView(context, childModel.id);
-              const childSorts = await view.getSorts(context);
+                ? await View.get(
+                    childContext,
+                    relationColOpts.fk_target_view_id,
+                  )
+                : await View.getDefaultView(childContext, childModel.id);
+              const childSorts = await view.getSorts(childContext);
 
               // apply sorts on nested query
               if (sorts && sorts.length > 0) {

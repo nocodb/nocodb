@@ -8,6 +8,7 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheScope, MetaTable } from '~/utils/globals';
 import { Filter } from '~/models';
+import { MetaService } from '~/meta/meta.service';
 
 export default class LinkToAnotherRecordColumn extends LinkToAnotherRecordColumnCE {
   id: string;
@@ -38,6 +39,11 @@ export default class LinkToAnotherRecordColumn extends LinkToAnotherRecordColumn
   parentColumn?: Column;
 
   filter?: Filter;
+
+  fk_related_source_id?: string;
+  fk_related_base_id?: string;
+  fk_mm_source_id?: string;
+  fk_mm_base_id?: string;
 
   constructor(data: Partial<LinkToAnotherRecordColumn>) {
     super(data);
@@ -90,5 +96,29 @@ export default class LinkToAnotherRecordColumn extends LinkToAnotherRecordColumn
       .orWhere({ fk_mm_parent_column_id: columnId })
       .orWhere({ fk_mm_child_column_id: columnId })
       .first());
+  }
+
+   getRelatedTableContext(context: NcContext) {
+    if (!this.fk_related_source_id && !this.fk_related_base_id) {
+      return context;
+    }
+
+    return {
+      ...context,
+      base_id: this.fk_related_base_id,
+      source_id: this.fk_related_source_id,
+    };
+  }
+
+  async getMmTableContext(context: NcContext) {
+    if (!this.fk_mm_source_id && !this.fk_mm_base_id) {
+      return context;
+    }
+
+    return {
+      ...context,
+      base_id: this.fk_mm_base_id,
+      source_id: this.fk_mm_source_id,
+    };
   }
 }

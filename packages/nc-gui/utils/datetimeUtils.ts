@@ -1,7 +1,8 @@
+import { getTimeZones } from '@vvo/tzdb'
 import dayjs from 'dayjs'
-import { constructDateFormat, constructDateTimeFormat, constructTimeFormat, dateFormats, timeFormats } from 'nocodb-sdk'
-
-export { constructDateFormat, constructDateTimeFormat, constructTimeFormat }
+import { dateFormats, timeFormats } from 'nocodb-sdk'
+import { workerWithTimezone } from './worker/datetimeUtils'
+export { constructDateFormat, constructDateTimeFormat, constructTimeFormat } from 'nocodb-sdk'
 
 export function parseStringDateTime(v: string, dateTimeFormat = `${dateFormats[0]} ${timeFormats[0]}`, toLocal = true) {
   const dayjsObj = toLocal ? dayjs(v).local() : dayjs(v)
@@ -67,4 +68,13 @@ export function parseFlexibleDate(dateString: string) {
       return date
     }
   }
+}
+
+const timezones = getTimeZones({ includeUtc: true })
+export function getTimeZoneFromName(name: string = Intl.DateTimeFormat().resolvedOptions().timeZone) {
+  return timezones.find((k) => isSameTimezone(k.name, name))
+}
+
+export function withTimezone(timezone?: string) {
+  return workerWithTimezone(isEeUI, timezone)
 }

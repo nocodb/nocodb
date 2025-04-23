@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import dayjs from 'dayjs'
+import type dayjs from 'dayjs'
 import type { Row } from '#imports'
 
 const props = defineProps<{
@@ -44,6 +44,7 @@ const {
   displayField,
   activeCalendarView,
   updateFormat,
+  timezoneDayjs,
 } = useCalendarViewStoreOrThrow()
 
 const maxVisibleDays = computed(() => {
@@ -90,10 +91,18 @@ const isInRange = (date: dayjs.Dayjs) => {
     return date.isSame(selectedDate.value, 'day')
   } else {
     const rangeEndDate =
-      maxVisibleDays.value === 5 ? dayjs(selectedDateRange.value.end).subtract(2, 'day') : dayjs(selectedDateRange.value.end)
+      maxVisibleDays.value === 5
+        ? timezoneDayjs.dayjsTz(selectedDateRange.value.end).subtract(2, 'day')
+        : timezoneDayjs.dayjsTz(selectedDateRange.value.end)
 
     return (
-      date && date.isBetween(dayjs(selectedDateRange.value.start).startOf('day'), dayjs(rangeEndDate).endOf('day'), 'day', '[]')
+      date &&
+      date.isBetween(
+        timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day'),
+        timezoneDayjs.dayjsTz(rangeEndDate).endOf('day'),
+        'day',
+        '[]',
+      )
     )
   }
 }
@@ -111,8 +120,8 @@ const calendarData = computed(() => {
     for (const record of records.value) {
       const id = record.rowMeta.id ?? generateRandomNumber()
 
-      const startDate = dayjs(record.row[fk_from_col.title!])
-      const endDate = dayjs(record.row[fk_to_col.title!])
+      const startDate = timezoneDayjs.timezonize(record.row[fk_from_col.title!])
+      const endDate = timezoneDayjs.timezonize(record.row[fk_to_col.title!])
 
       const startDayIndex = Math.max(startDate.diff(viewStartDate.value, 'day'), 0)
       const endDayIndex = Math.min(endDate.diff(viewStartDate.value, 'day'), maxVisibleDays.value - 1)
@@ -201,7 +210,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
   const day = Math.floor(percentX * maxVisibleDays.value)
 
   // Calculate the new start date based on the day index by adding the day index to the start date of the selected date range
-  const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
+  const newStartDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).add(day, 'day')
   if (!newStartDate) return { updatedProperty: [], newRow: null }
 
   let endDate
@@ -210,31 +219,31 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
     ...dragRecord.value,
     row: {
       ...dragRecord.value.row,
-      [fromCol.title!]: dayjs(newStartDate).format(updateFormat.value),
+      [fromCol.title!]: timezoneDayjs.dayjsTz(newStartDate).format(updateFormat.value),
     },
   }
 
   const updateProperty = [fromCol.title!]
 
   if (toCol) {
-    const fromDate = dragRecord.value.row[fromCol.title!] ? dayjs(dragRecord.value.row[fromCol.title!]) : null
-    const toDate = dragRecord.value.row[toCol.title!] ? dayjs(dragRecord.value.row[toCol.title!]) : null
+    const fromDate = dragRecord.value.row[fromCol.title!] ? timezoneDayjs.timezonize(dragRecord.value.row[fromCol.title!]) : null
+    const toDate = dragRecord.value.row[toCol.title!] ? timezoneDayjs.timezonize(dragRecord.value.row[toCol.title!]) : null
 
     // Calculate the new end date based on the day index by adding the day index to the start date of the selected date range
     // If the record has an end date, we need to calculate the new end date based on the difference between the start and end date
     // If the record doesn't have an end date, we need to calculate the new end date based on the start date
     // If the record has an end date and no start Date, we set the end date to the start date
     if (fromDate && toDate) {
-      endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
+      endDate = timezoneDayjs.dayjsTz(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
     } else if (fromDate && !toDate) {
-      endDate = dayjs(newStartDate).endOf('day')
+      endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('day')
     } else if (!fromDate && toDate) {
-      endDate = dayjs(newStartDate).endOf('day')
+      endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('day')
     } else {
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol.title!] = dayjs(endDate).format(updateFormat.value)
+    newRow.row[toCol.title!] = timezoneDayjs.dayjsTz(endDate).format(updateFormat.value)
     updateProperty.push(toCol.title!)
   }
 
@@ -275,8 +284,8 @@ const onResize = (event: MouseEvent) => {
   const toCol = resizeRecord.value.rowMeta.range?.fk_to_col
   if (!fromCol || !toCol) return
 
-  const ogEndDate = dayjs(resizeRecord.value.row[toCol.title!])
-  const ogStartDate = dayjs(resizeRecord.value.row[fromCol.title!])
+  const ogEndDate = timezoneDayjs.timezonize(resizeRecord.value.row[toCol.title!])
+  const ogStartDate = timezoneDayjs.timezonize(resizeRecord.value.row[fromCol.title!])
 
   const day = Math.floor(percentX * maxVisibleDays.value)
 
@@ -285,13 +294,13 @@ const onResize = (event: MouseEvent) => {
 
   if (resizeDirection.value === 'right') {
     // Calculate the new end date based on the day index by adding the day index to the start date of the selected date range
-    let newEndDate = dayjs(selectedDateRange.value.start).add(day, 'day')
+    let newEndDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).add(day, 'day')
     let newStartDate = ogStartDate.clone()
 
     updateProperty = [toCol.title!]
 
     // If the new end date is before the start date, we need to adjust the end date to the start date
-    if (dayjs(newEndDate).isSameOrBefore(ogStartDate, 'day')) {
+    if (newEndDate.isSameOrBefore(ogStartDate, 'day')) {
       newEndDate = ogStartDate.clone().add(1, 'hour')
       newStartDate = ogStartDate.clone().subtract(1, 'hour')
       updateProperty.push(fromCol.title!)
@@ -309,14 +318,14 @@ const onResize = (event: MouseEvent) => {
     }
   } else if (resizeDirection.value === 'left') {
     // Calculate the new start date based on the day index by adding the day index to the start date of the selected date range
-    let newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
+    let newStartDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).add(day, 'day')
     let newEndDate = ogEndDate.clone()
     updateProperty = [fromCol.title!]
 
     // If the new start date is after the end date, we need to adjust the start date to the end date
-    if (dayjs(newStartDate).isSameOrAfter(ogEndDate)) {
-      newStartDate = dayjs(dayjs(ogEndDate)).clone()
-      newEndDate = dayjs(newStartDate).clone().add(1, 'hour')
+    if (newStartDate.isSameOrAfter(ogEndDate)) {
+      newStartDate = timezoneDayjs.dayjsTz(ogEndDate).clone()
+      newEndDate = newStartDate.clone().add(1, 'hour')
       updateProperty.push(toCol.title!)
     }
     if (!newStartDate) return
@@ -325,8 +334,8 @@ const onResize = (event: MouseEvent) => {
       ...resizeRecord.value,
       row: {
         ...resizeRecord.value.row,
-        [fromCol.title!]: dayjs(newStartDate).format(updateFormat.value),
-        [toCol.title!]: dayjs(newEndDate).format(updateFormat.value),
+        [fromCol.title!]: timezoneDayjs.dayjsTz(newStartDate).format(updateFormat.value),
+        [toCol.title!]: timezoneDayjs.dayjsTz(newEndDate).format(updateFormat.value),
       },
     }
   }

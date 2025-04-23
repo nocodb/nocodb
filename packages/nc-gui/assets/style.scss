@@ -1350,3 +1350,13 @@ svg.nc-virtual-cell-icon {
 .nc-custom-daner-btn {
   @apply !text-nc-content-red-medium !hover:(bg-nc-fill-red-medium border-nc-fill-red-medium text-white);
 }
+
+.nc-truncate {
+  @apply max-w-full overflow-hidden whitespace-nowrap overflow-ellipsis;
+}
+
+.nc-flex-1 {
+  -webkit-box-flex: 1;
+  flex-grow: 1;
+  flex-shrink: 1;
+}

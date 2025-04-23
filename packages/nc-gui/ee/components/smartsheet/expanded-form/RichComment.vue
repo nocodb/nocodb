@@ -381,7 +381,7 @@ defineExpose({
   }
 
   .nc-comment-rich-editor {
-    &.nc-truncate {
+    &.nc-rich-truncate {
       .tiptap.ProseMirror {
         display: -webkit-box;
         max-width: 100%;

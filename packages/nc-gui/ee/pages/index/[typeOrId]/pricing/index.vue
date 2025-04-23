@@ -80,8 +80,7 @@ useEventListener('message', (event) => {
         activeWorkspace?.title
       }&plan=${activePlan?.title}&paymentMode=${paymentMode}&isLoyaltyWorkspace=${isLoyaltyWorkspace}`"
       width="100%"
-      height="1000"
-      style="border: none"
+      style="border: none; height: calc(100vh - 56px)"
     ></iframe>
   </div>
 </template>

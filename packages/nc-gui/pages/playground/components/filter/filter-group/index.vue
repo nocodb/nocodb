@@ -64,6 +64,17 @@ const options1 = ref({
         filters.value = filters.value.filter((filter) => filter.tmp_id !== event.filter.tmp_id)
       }
     },
+    rowChange: async (event: FilterRowChangeEvent) => {
+      event.filter[event.type] = event.value
+      const evalColumn = columns.value.find((k) => k.id === event.filter.fk_column_id)
+      if (evalColumn) {
+        adjustFilterWhenColumnChange({
+          column: evalColumn,
+          filter: event.filter,
+          showNullAndEmptyInFilter: options1.showNullAndEmptyInFilter,
+        })
+      }
+    },
   },
 })
 const lastChangeEvent1 = ref({})

@@ -93,10 +93,10 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full justify-center mt-[52px]">
+  <div class="flex flex-col w-full justify-center md:mt-[52px]">
     <div class="flex flex-col w-full gap-6">
-      <div v-if="selectedPlan" class="nc-payment-pay-header sticky top-0 bg-white py-3 -mt-6 -mx-6 z-10">
-        <div class="max-w-[888px] mx-auto flex items-center justify-between">
+      <div v-if="selectedPlan" class="nc-payment-pay-header sticky top-0 bg-white py-3 -mt-6 md:-mx-6 z-10">
+        <div class="max-w-[888px] mx-auto flex items-center md:justify-between gap-3">
           <div v-if="paymentState && paymentState !== PaymentState.SELECT_PLAN" class="flex">
             <NcButton
               type="text"
@@ -112,7 +112,7 @@ onBeforeUnmount(() => {
             </NcButton>
           </div>
 
-          <div class="text-2xl text-nc-content-gray-emphasis font-weight-700 flex">
+          <div class="text-base md:text-2xl text-nc-content-gray-emphasis font-weight-700 flex">
             {{
               $t('title.upgradeWorkspaceToPlan', {
                 workspace: activeWorkspace?.title ?? 'Workspace',
@@ -121,7 +121,7 @@ onBeforeUnmount(() => {
             }}
           </div>
 
-          <div v-if="paymentState && paymentState !== PaymentState.SELECT_PLAN" class="flex invisible">
+          <div v-if="paymentState && paymentState !== PaymentState.SELECT_PLAN" class="hidden md:(flex invisible)">
             <NcButton type="text" size="small" inner-class="!gap-1" class="!text-nc-content-brand !hover:text-brand-600">
               <template #icon>
                 <GeneralIcon icon="chevronLeft" class="h-4 w-4" />

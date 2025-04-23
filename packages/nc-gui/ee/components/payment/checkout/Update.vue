@@ -161,7 +161,7 @@ const onCancelSubscription = async () => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col max-w-[640px] mx-6">
+  <div class="h-full flex flex-col max-w-[676px] mx-auto px-6">
     <div
       v-if="changes.change === 'upgrade'"
       class="p-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"

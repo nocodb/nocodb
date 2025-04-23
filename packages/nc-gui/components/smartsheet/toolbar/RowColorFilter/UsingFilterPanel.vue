@@ -102,7 +102,11 @@ const removeColor = (index: number) => {
                           'background-color': getLighterTint(rowColorConfig.color, { saturationMod: 15 }),
                         }"
                       >
-                        <span class="text-white mix-blend-difference">
+                        <span
+                          :style="{
+                            color: getOppositeColorOfBackground(getLighterTint(rowColorConfig.color, { saturationMod: 15 })),
+                          }"
+                        >
                           <component :is="iconMap.chevronDown" />
                         </span>
                       </NcButton>

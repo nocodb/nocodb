@@ -95,7 +95,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="flex flex-col w-full justify-center mt-[52px]">
     <div class="flex flex-col w-full gap-6">
-      <div v-if="selectedPlan" class="nc-payment-pay-header sticky top-0 bg-white py-3 -mt-6 -mx-6">
+      <div v-if="selectedPlan" class="nc-payment-pay-header sticky top-0 bg-white py-3 -mt-6 -mx-6 z-10">
         <div class="max-w-[888px] mx-auto flex items-center justify-between">
           <div v-if="paymentState && paymentState !== PaymentState.SELECT_PLAN" class="flex">
             <NcButton
@@ -111,6 +111,7 @@ onBeforeUnmount(() => {
               <div>{{ $t('labels.back') }}</div>
             </NcButton>
           </div>
+
           <div class="text-2xl text-nc-content-gray-emphasis font-weight-700 flex">
             {{
               $t('title.upgradeWorkspaceToPlan', {
@@ -119,6 +120,7 @@ onBeforeUnmount(() => {
               })
             }}
           </div>
+
           <div v-if="paymentState && paymentState !== PaymentState.SELECT_PLAN" class="flex invisible">
             <NcButton type="text" size="small" inner-class="!gap-1" class="!text-nc-content-brand !hover:text-brand-600">
               <template #icon>
@@ -129,10 +131,12 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
-      <div v-if="isLoading" class="relative h-[600px]">
+
+      <div v-if="isLoading" class="relative min-h-[60vh]">
         <PaymentSkeleton class="w-full" />
       </div>
-      <div v-show="!isLoading" id="checkout" class="w-full h-[600px]">
+
+      <div v-show="!isLoading" id="checkout" class="w-full pb-10">
         <!-- Checkout inserts the payment form here -->
       </div>
     </div>

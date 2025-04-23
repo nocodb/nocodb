@@ -3636,9 +3636,9 @@ const cellFilteredOrSortedClass = (colId: string) => {
     td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item).column-filtered {
       @apply border-b-gray-200;
     }
-    td.nc-grid-cell:not(.active).column-sorted,
-    td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item).column-sorted {
-      @apply border-b-gray-300;
+    td.nc-grid-cell.column-sorted:not(.active),
+    td.column-sorted:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
+      @apply !border-b-gray-300;
     }
   }
 
@@ -3653,9 +3653,9 @@ const cellFilteredOrSortedClass = (colId: string) => {
       td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item).column-filtered {
         @apply border-b-gray-200;
       }
-      td.nc-grid-cell:not(.active).column-sorted,
-      td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item).column-sorted {
-        @apply border-b-gray-300;
+      td.nc-grid-cell.column-sorted:not(.active),
+      td.column-sorted:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
+        @apply !border-b-gray-300;
       }
     }
   }

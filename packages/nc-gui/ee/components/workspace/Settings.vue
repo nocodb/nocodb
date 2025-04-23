@@ -247,7 +247,6 @@ const onCancel = () => {
                         icon: form.icon,
                         iconType: form.iconType,
                       }"
-                      show-nocodb-icon
                       size="xlarge"
                       class="!w-full !h-full !min-w-full rounded-none select-none cursor-pointer"
                     />

@@ -129,6 +129,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !isPaidPlan.value
   })
 
+  const blockWsImageLogoUpload = computed(() => {
+    return isPaymentEnabled.value && !isPaidPlan.value
+  })
+
   /** Helper functions */
   function getLimit(type: PlanLimitTypes, workspace?: NcWorkspace | null) {
     if (!isPaymentEnabled.value) return Infinity
@@ -616,7 +620,7 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   const showUpgradeToUploadWsImage = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
-    if (isPaidPlan.value) return
+    if (!blockWsImageLogoUpload.value) return
 
     handleUpgradePlan({
       title: t('upgrade.upgradeToUploadWsImage'),
@@ -671,5 +675,6 @@ export const useEeConfig = createSharedComposable(() => {
     gracePeriodEndDate,
     isTopBannerVisible,
     showUpgradeToUploadWsImage,
+    blockWsImageLogoUpload,
   }
 })

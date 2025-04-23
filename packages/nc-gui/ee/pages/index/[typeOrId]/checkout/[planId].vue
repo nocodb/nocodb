@@ -21,7 +21,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex items-center justify-center w-full pt-5">
+  <div class="flex w-full pt-5 pb-10">
     <PaymentCheckout v-if="!activeSubscription" />
     <PaymentCheckoutChange v-else />
   </div>

@@ -960,6 +960,57 @@ export class PaymentService {
     );
 
     if (existingSubscription) {
+      const stripeSubscription = await stripe.subscriptions.retrieve(
+        existingSubscription.stripe_subscription_id,
+      );
+
+      if (!stripeSubscription) {
+        NcError.genericNotFound(
+          'Stripe subscription',
+          existingSubscription.stripe_subscription_id,
+        );
+      }
+
+      if (
+        workspaceOrOrg.entity === 'workspace' &&
+        stripeSubscription.metadata.fk_workspace_id !== workspaceOrOrgId
+      ) {
+        throw new Error('Subscription does not belong to the workspace');
+      }
+
+      if (
+        workspaceOrOrg.entity === 'org' &&
+        stripeSubscription.metadata.fk_org_id !== workspaceOrOrgId
+      ) {
+        throw new Error('Subscription does not belong to the org');
+      }
+
+      await Subscription.update(existingSubscription.id, {
+        stripe_price_id: stripeSubscription.items.data[0].price.id,
+        seat_count: stripeSubscription.items.data[0].quantity,
+        fk_plan_id: stripeSubscription.metadata.fk_plan_id,
+        stripe_subscription_id: stripeSubscription.id,
+        fk_workspace_id: stripeSubscription.metadata.fk_workspace_id || null,
+        fk_org_id: stripeSubscription.metadata.fk_org_id || null,
+        status: stripeSubscription.status,
+        canceled_at: stripeSubscription.canceled_at
+          ? dayjs.unix(stripeSubscription.canceled_at).utc().toISOString()
+          : null,
+        start_at: dayjs.unix(stripeSubscription.start_date).utc().toISOString(),
+        period: stripeSubscription.items.data[0].price.recurring.interval,
+        billing_cycle_anchor: dayjs
+          .unix(stripeSubscription.billing_cycle_anchor)
+          .utc()
+          .toISOString(),
+      });
+
+      if (stripeSubscription.status === 'active') {
+        await this.updateNextInvoice(
+          existingSubscription.id,
+          await this.getNextInvoice(workspaceOrOrg.id),
+        );
+      }
+
       return existingSubscription;
     }
 

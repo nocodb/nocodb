@@ -56,7 +56,7 @@ export function useColumnFilteredOrSorted() {
       'toolbarChipBgClass': 'bg-nc-bg-green-dark group-hover:bg-green-200',
       'toolbarTextClass': 'text-green-700',
       'headerBgColor': '#27D6650A',
-      'headerBgClass': "relative after:(content-[''] absolute block inset-0 bg-[#27D6650A])",
+      'headerBgClass': "relative !bg-[#ffffff88] after:(content-[''] absolute block inset-0 !bg-[#27D6650A])",
     },
     SORTED: {
       'cellBgColor': themeV3Colors.orange['50'],
@@ -70,7 +70,7 @@ export function useColumnFilteredOrSorted() {
       'toolbarChipBgClass': 'bg-nc-bg-orange-dark group-hover:bg-orange-200',
       'toolbarTextClass': 'text-orange-700',
       'headerBgColor': '#FA82310A',
-      'headerBgClass': "relative after:(content-[''] absolute block inset-0 bg-[#FA82310A])",
+      'headerBgClass': "relative !bg-[#ffffff88] after:(content-[''] absolute block inset-0 !bg-[#FA82310A])",
     },
   }
 

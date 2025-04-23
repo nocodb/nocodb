@@ -128,7 +128,11 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         case UITypes.CreatedTime:
         case UITypes.LastModifiedTime:
         case UITypes.DateTime: {
-          const columnName = await getColumnName(baseModel.context, column, columns);
+          const columnName = await getColumnName(
+            baseModel.context,
+            column,
+            columns,
+          );
           if (baseModel.dbDriver.clientType() === 'pg') {
             columnQuery = baseModel.dbDriver.raw(
               "date_trunc('minute', ??) + interval '0 seconds'",
@@ -151,7 +155,9 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             columnQuery = baseModel.dbDriver.raw('DATE(??)', [columnName]);
           }
           if (!isSubGroup) {
-            selectors.push(baseModel.dbDriver.raw(`?? as ??`, [columnQuery, alias]));
+            selectors.push(
+              baseModel.dbDriver.raw(`?? as ??`, [columnQuery, alias]),
+            );
           }
           break;
         }
@@ -162,7 +168,9 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               column,
               columns,
             );
-            columnQuery = baseModel.dbDriver.raw('(??)::jsonb', [defaultColumnName]);
+            columnQuery = baseModel.dbDriver.raw('(??)::jsonb', [
+              defaultColumnName,
+            ]);
             if (!isSubGroup) {
               selectors.push(
                 baseModel.dbDriver.raw(`?? as ??`, [columnQuery, alias]),
@@ -275,7 +283,11 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       }
 
       const column = groupByColumns[sort.fk_column_id];
-      const columnName = await getColumnName(baseModel.context, column, columns);
+      const columnName = await getColumnName(
+        baseModel.context,
+        column,
+        columns,
+      );
 
       if (
         [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(

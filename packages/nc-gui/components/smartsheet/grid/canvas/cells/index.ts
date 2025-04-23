@@ -194,7 +194,7 @@ export function useGridCellHandler(params: {
         roundedRect(ctx, x, y, width, height, 0, {
           backgroundColor: filteredOrSortedAppearanceConfig[columnState][bgColorProps],
           borderColor: filteredOrSortedAppearanceConfig[columnState][borderColorProps],
-          borderWidth: selected || isRowHovered || isRowChecked || isCellInSelectionRange ? 1 : 0.6,
+          borderWidth: 0.4,
           borders: {
             top: rowMeta.rowIndex !== 0,
             right: true,

@@ -229,7 +229,7 @@ useSelectedCellKeydownListener(
         </div>
       </div>
 
-      <div class="flex flex-row w-full justify-end gap-4">
+      <div class="flex flex-row w-full justify-end gap-2">
         <NcButton
           ref="cancelBtnRef"
           :type="cancelProps?.type ?? 'secondary'"

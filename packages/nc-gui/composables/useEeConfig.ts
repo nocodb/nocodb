@@ -31,6 +31,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAddNewWebhook = computed(() => false)
 
+  const isTopBannerVisible = computed(() => false)
+
   const getLimit = (..._args: any[]) => {}
 
   const getStatLimit = (..._args: any[]) => {}
@@ -107,5 +109,6 @@ export const useEeConfig = createSharedComposable(() => {
     navigateToCheckout,
     isLoyaltyWorkspace,
     gracePeriodEndDate,
+    isTopBannerVisible,
   }
 })

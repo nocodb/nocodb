@@ -222,7 +222,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
               $t('activity.group')
             }}</span>
           </div>
-          <span v-if="groupedByColumnIds?.length" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{
+          <span v-if="groupedByColumnIds?.length" class="bg-brand-50 text-brand-500 nc-toolbar-btn-chip">{{
             groupedByColumnIds.length
           }}</span>
         </div>

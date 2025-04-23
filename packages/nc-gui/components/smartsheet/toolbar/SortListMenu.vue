@@ -127,8 +127,9 @@ onMounted(() => {
         :class="{
           '!border-1 !rounded-md': isCalendar,
           '!border-0': !isCalendar,
+          [filteredOrSortedAppearanceConfig.SORTED.toolbarBgClass]: sorts?.length,
         }"
-        class="nc-sort-menu-btn nc-toolbar-btn !h-7"
+        class="nc-sort-menu-btn nc-toolbar-btn !h-7 group"
         size="small"
         type="secondary"
         :show-as-disabled="isLocked"
@@ -138,15 +139,15 @@ onMounted(() => {
             <component :is="iconMap.sort" class="h-4 w-4 text-inherit" />
 
             <!-- Sort -->
-            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">{{
-              $t('activity.sort')
-            }}</span>
+            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
+              {{ $t('activity.sort') }}
+            </span>
           </div>
           <span
             v-if="sorts?.length"
-            class="py-1 px-2 text-md rounded-md"
+            class="nc-toolbar-btn-chip"
             :class="{
-              [filteredOrSortedAppearanceConfig.SORTED.toolbarBgClass]: true,
+              [filteredOrSortedAppearanceConfig.SORTED.toolbarChipBgClass]: true,
               [filteredOrSortedAppearanceConfig.SORTED.toolbarTextClass]: true,
             }"
             >{{ sorts.length }}</span

@@ -110,10 +110,13 @@ const combinedFilterLength = computed(() => {
 
       <NcButton
         v-e="['c:filter']"
-        class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7"
+        class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7 group"
         size="small"
         type="secondary"
         :show-as-disabled="isLocked"
+        :class="{
+          [filteredOrSortedAppearanceConfig.FILTERED.toolbarBgClass]: combinedFilterLength,
+        }"
       >
         <div class="flex items-center gap-1 min-h-5">
           <div class="flex items-center gap-2">
@@ -126,9 +129,9 @@ const combinedFilterLength = computed(() => {
 
           <span
             v-if="combinedFilterLength"
-            class="py-1 px-2 text-md rounded-md"
+            class="nc-toolbar-btn-chip"
             :class="{
-              [filteredOrSortedAppearanceConfig.FILTERED.toolbarBgClass]: true,
+              [filteredOrSortedAppearanceConfig.FILTERED.toolbarChipBgClass]: true,
               [filteredOrSortedAppearanceConfig.FILTERED.toolbarTextClass]: true,
             }"
             >{{ combinedFilterLength }}</span

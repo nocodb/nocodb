@@ -19,8 +19,8 @@ export default defineConfig({
   extract: {
     include: [
       ...(isEE
-        ? ['../**/*.{vue,html,jsx,tsx,css,scss}', '../extensions/**/*.md']
-        : ['**/*.{vue,html,jsx,tsx,css,scss}', 'extensions/**/*.md']),
+        ? ['../**/*.{vue,html,jsx,tsx,css,scss}', '../extensions/**/*.md', '../composables/useColumnFilteredOrSorted.ts']
+        : ['**/*.{vue,html,jsx,tsx,css,scss}', 'extensions/**/*.md', 'composables/useColumnFilteredOrSorted.ts']),
     ],
     exclude: ['node_modules', '.git'],
   },
@@ -36,11 +36,6 @@ export default defineConfig({
     'text-blue-500',
     'text-purple-500',
     'text-grey',
-    '!border-b-gray-200',
-    '!bg-green-50',
-    '!bg-orange-50',
-    '!bg-green-100',
-    '!bg-orange-100',
   ],
   plugins: [
     scrollbar,

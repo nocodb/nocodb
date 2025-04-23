@@ -1866,6 +1866,19 @@ const cellFilteredOrSortedClass = (colId: string) => {
   return {}
 }
 
+const headerFilteredOrSortedClass = (colId: string) => {
+  const columnState = isColumnSortedOrFiltered(colId)
+  if (columnState) {
+    const headerBgClass = filteredOrSortedAppearanceConfig[columnState]?.headerBgClass
+    if (headerBgClass) {
+      return {
+        [headerBgClass]: true,
+      }
+    }
+  }
+  return {}
+}
+
 // Keyboard shortcuts for pagination
 onKeyStroke('ArrowLeft', onLeft)
 onKeyStroke('ArrowRight', onRight)
@@ -1972,6 +1985,7 @@ onKeyStroke('ArrowDown', onDown)
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
                     'no-resize': isLocked,
+                    ...headerFilteredOrSortedClass(fields?.[0]?.id),
                   }"
                   @xcstartresizing="onXcStartResizing(fields[0].id, $event)"
                   @xcresize="onresize(fields[0].id, $event)"
@@ -2018,6 +2032,7 @@ onKeyStroke('ArrowDown', onDown)
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === col.id,
                     'no-resize': isLocked,
+                    ...headerFilteredOrSortedClass(col.id),
                   }"
                   @xcstartresizing="onXcStartResizing(col.id, $event)"
                   @xcresize="onresize(col.id, $event)"

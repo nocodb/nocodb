@@ -175,6 +175,7 @@ export function useCanvasRender({
   const { tryShowTooltip } = useTooltipStore()
   const { isMobileMode, isAddNewRecordGridMode, appInfo } = useGlobal()
   const { isWsOwner } = useEeConfig()
+  const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
   const isLocked = inject(IsLockedInj, ref(false))
 
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
@@ -266,6 +267,24 @@ export function useCanvasRender({
         ctx.stroke()
         continue
       }
+
+      if (colObj?.id) {
+        const columnState = isColumnSortedOrFiltered(colObj.id)
+
+        if (columnState) {
+          renderTag(ctx, {
+            height: 32,
+            width,
+            x: xOffset - scrollLeft.value,
+            y: 0,
+            radius: 0,
+            fillStyle: filteredOrSortedAppearanceConfig[columnState].headerBgColor,
+          })
+        }
+      }
+
+      ctx.fillStyle = '#6a7184'
+
       const rightPadding = 8
       let iconSpace = rightPadding
 
@@ -483,6 +502,21 @@ export function useCanvasRender({
         // Background
         ctx.fillStyle = '#f4f4f5'
         ctx.fillRect(xOffset, 0, width, 32)
+
+        if (column.columnObj?.id) {
+          const columnState = isColumnSortedOrFiltered(column.columnObj.id)
+
+          if (columnState) {
+            renderTag(ctx, {
+              height: 32,
+              width,
+              x: xOffset,
+              y: 0,
+              radius: 0,
+              fillStyle: filteredOrSortedAppearanceConfig[columnState].headerBgColor,
+            })
+          }
+        }
 
         ctx.fillStyle = '#6a7184'
         const iconConfig = (

@@ -1,8 +1,6 @@
 import { type StripeCheckoutSession } from '@stripe/stripe-js'
 import type Stripe from 'stripe'
-
-import dayjs from 'dayjs'
-import { LOYALTY_END_DATE, LoyaltyPriceLookupKeyMap, type PaginatedType, PlanPriceLookupKeys, PlanTitles } from 'nocodb-sdk'
+import { LoyaltyPriceLookupKeyMap, type PaginatedType, PlanPriceLookupKeys, PlanTitles } from 'nocodb-sdk'
 
 const defaultPaginationData = { page: 1, pageSize: 25, totalRows: 0, isLoading: true }
 
@@ -27,7 +25,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const { $state, $api } = useNuxtApp()
 
-  const { navigateToCheckout } = useEeConfig()
+  const { navigateToCheckout, isLoyaltyDiscountAvailable } = useEeConfig()
 
   const workspaceStore = useWorkspace()
 
@@ -52,12 +50,6 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const invoices = ref<Stripe.Invoice[]>([])
 
   const invoicePaginationData = ref<PaginatedType & { isLoading?: boolean }>(defaultPaginationData)
-
-  const isLoyaltyWorkspace = computed(() => {
-    if (!activeWorkspace.value) return false
-
-    return dayjs(activeWorkspace.value.created_at).isBefore(LOYALTY_END_DATE)
-  })
 
   const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription)
 
@@ -137,7 +129,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       lookupKey = mode === 'month' ? PlanPriceLookupKeys.BUSINESS_MONTHLY : PlanPriceLookupKeys.BUSINESS_YEARLY
     }
 
-    if (lookupKey && isLoyaltyWorkspace.value) {
+    if (lookupKey && isLoyaltyDiscountAvailable.value) {
       lookupKey = LoyaltyPriceLookupKeyMap[lookupKey]
     }
 
@@ -364,7 +356,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     getCustomerPortalSession,
     isAccountPage,
     onManageSubscription,
-    isLoyaltyWorkspace,
+    isLoyaltyWorkspace: isLoyaltyDiscountAvailable,
     loadInvoices,
     invoices,
     invoicePaginationData,

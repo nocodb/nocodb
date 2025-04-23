@@ -187,7 +187,10 @@ export class PaymentService {
       NcError.genericNotFound('Price', price_id);
     }
 
-    if (price.lookup_key.includes('loyalty') && !workspaceOrOrg.loyal) {
+    if (
+      price.lookup_key.includes('loyalty') &&
+      (!workspaceOrOrg.loyal || workspaceOrOrg.loyalty_discount_used)
+    ) {
       throw new Error('This plan is not available');
     }
 
@@ -425,7 +428,10 @@ export class PaymentService {
       NcError.genericNotFound('Price', payload.price_id);
     }
 
-    if (price.lookup_key.includes('loyalty') && !workspaceOrOrg.loyal) {
+    if (
+      price.lookup_key.includes('loyalty') &&
+      (!workspaceOrOrg.loyal || workspaceOrOrg.loyalty_discount_used)
+    ) {
       throw new Error('This plan is not available');
     }
 
@@ -1267,6 +1273,16 @@ export class PaymentService {
               .toISOString(),
           });
 
+          if (
+            workspaceOrOrg.entity === 'workspace' &&
+            workspaceOrOrg?.loyal &&
+            !workspaceOrOrg?.loyalty_discount_used
+          ) {
+            await Workspace.update(workspaceOrOrg.id, {
+              loyalty_discount_used: true,
+            });
+          }
+
           break;
         }
 
@@ -1279,6 +1295,9 @@ export class PaymentService {
           if (!subscription) {
             NcError.genericNotFound('Subscription', dataObject.id);
           }
+
+          const workspaceOrOrgId =
+            subscription.fk_org_id || subscription.fk_workspace_id;
 
           const plan_id = dataObject.metadata.fk_plan_id;
 
@@ -1322,8 +1341,17 @@ export class PaymentService {
               : {}),
           });
 
-          const workspaceOrOrgId =
-            subscription.fk_org_id || subscription.fk_workspace_id;
+          const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId);
+
+          if (
+            workspaceOrOrg.entity === 'workspace' &&
+            workspaceOrOrg?.loyal &&
+            !workspaceOrOrg?.loyalty_discount_used
+          ) {
+            await Workspace.update(workspaceOrOrg.id, {
+              loyalty_discount_used: true,
+            });
+          }
 
           this.logger.log(
             `Subscription ${event.type} processed for ${workspaceOrOrgId}.`,

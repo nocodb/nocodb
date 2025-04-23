@@ -1,6 +1,5 @@
 import {
   GRACE_PERIOD_DURATION,
-  LOYALTY_END_DATE,
   NON_SEAT_ROLES,
   PlanFeatureTypes,
   PlanLimitTypes,
@@ -270,23 +269,23 @@ async function getWorkspaceOrOrg(
   workspaceOrOrgId: string,
   ncMeta = Noco.ncMeta,
 ): Promise<
-  | (Workspace & { entity: 'workspace'; loyal: boolean })
-  | (Org & { entity: 'org'; loyal: boolean })
+  | (Workspace & {
+      entity: 'workspace';
+      loyal?: boolean;
+      loyalty_discount_used?: boolean;
+    })
+  | (Org & { entity: 'org'; loyal?: boolean; loyalty_discount_used?: boolean })
 > {
   const workspace = await Workspace.get(workspaceOrOrgId, null, ncMeta);
 
   if (workspace) {
-    const isLoyal = dayjs(workspace.created_at).isBefore(LOYALTY_END_DATE);
-
-    return { ...workspace, entity: 'workspace', loyal: isLoyal };
+    return { ...workspace, entity: 'workspace' };
   }
 
   const org = await Org.get(workspaceOrOrgId, ncMeta);
 
   if (org) {
-    const isLoyal = dayjs(org.created_at).isBefore(LOYALTY_END_DATE);
-
-    return { ...org, entity: 'org', loyal: isLoyal };
+    return { ...org, entity: 'org' };
   }
 }
 

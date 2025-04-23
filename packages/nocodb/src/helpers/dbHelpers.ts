@@ -362,11 +362,11 @@ export function extractSortsObject(
     }
 
     if (throwErrorIfInvalid && !sort.fk_column_id) {
+      const fieldNameOrId = s.replace(/^~?[+-]/, '');
       if (context.api_version === NcApiVersion.V3) {
-        NcError.fieldNotFoundV3(s.replace(/^~?[+-]/, ''));
-      } else {
-        NcError.fieldNotFound(s.replace(/^~?[+-]/, ''));
+        NcError.fieldNotFoundV3(fieldNameOrId);
       }
+      NcError.fieldNotFound(fieldNameOrId);
     }
     return new Sort(sort);
   });

@@ -242,6 +242,11 @@ export function useCanvasRender({
       initialOffset += parseCellWidth(columns.value[i]?.width)
     }
 
+    // Hack for now
+    if (initialOffset === 1) {
+      initialOffset = 0
+    }
+
     // Regular columns
     ctx.fillStyle = '#6a7184'
     ctx.font = '550 12px Manrope'

@@ -37,6 +37,7 @@ export default defineConfig({
     'text-purple-500',
     'text-grey',
     '!bg-green-50',
+    '!bg-maroon-50',
   ],
   plugins: [
     scrollbar,

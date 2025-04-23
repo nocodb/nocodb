@@ -1,5 +1,13 @@
-import { type ColumnType, type TableType, UITypes, type UserType, type ViewType, isAIPromptCol } from 'nocodb-sdk'
-import { renderSingleLineText, renderSpinner } from '../utils/canvas'
+import {
+  type ColumnType,
+  type FilterType,
+  type TableType,
+  UITypes,
+  type UserType,
+  type ViewType,
+  isAIPromptCol,
+} from 'nocodb-sdk'
+import { renderSingleLineText, renderSpinner, roundedRect } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import { useDetachedLongText } from '../composables/useDetachedLongText'
@@ -38,6 +46,8 @@ import { NullCellRenderer } from './Null'
 import { PlainCellRenderer } from './Plain'
 
 const CLEANUP_INTERVAL = 1000
+const CELL_COLOR_SORTED = '#FFDBD9'
+const CELL_COLOR_FILTERED = '#FFF0D1'
 
 export function useGridCellHandler(params: {
   getCellPosition: (
@@ -65,7 +75,8 @@ export function useGridCellHandler(params: {
   const { metas } = useMetas()
   const canvasCellEvents = reactive<CanvasCellEventDataInjType>({})
   provide(CanvasCellEventDataInj, canvasCellEvents)
-
+  // TODO: handle nested filters
+  const { nestedFilters: _nestedFilters, allFilters, sorts } = useSmartsheetStoreOrThrow()
   const baseStore = useBase()
   const { showNull } = useGlobal()
   const { isMssql, isMysql, isXcdbBase, isPg } = baseStore
@@ -79,7 +90,38 @@ export function useGridCellHandler(params: {
   const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() =>
     params.meta?.value?.base_id ? basesUser.value.get(params.meta?.value.base_id) || [] : [],
   )
-
+  const filteredColumnIds = computed(() => {
+    const columnIds: Set<string> = new Set<string>()
+    const extractFilterArray = (filters: FilterType[]) => {
+      if (filters && filters.length > 0) {
+        for (const eachFilter of filters) {
+          if (eachFilter.is_group) {
+            if ((eachFilter.children?.length ?? 0) > 0) {
+              extractFilterArray(eachFilter.children!)
+            }
+          } else if (eachFilter.fk_column_id) {
+            columnIds.add(eachFilter.fk_column_id)
+          }
+        }
+      }
+    }
+    // console.log(JSON.stringify(allFilters.value, undefined, 2))
+    extractFilterArray(allFilters.value)
+    // console.log('filteredColumnIds', columnIds)
+    return columnIds
+  })
+  const sortedColumnIds = computed(() => {
+    const columnIds: Set<string> = new Set<string>()
+    if (!sorts?.value || sorts.value.length === 0) {
+      return columnIds
+    }
+    for (const sort of sorts.value) {
+      if (sort.fk_column_id) {
+        columnIds.add(sort.fk_column_id)
+      }
+    }
+    return columnIds
+  })
   const actionManager = params.actionManager
   const makeCellEditable = params.makeCellEditable
   const setCursor = params.setCursor
@@ -138,7 +180,6 @@ export function useGridCellHandler(params: {
 
     return cellRenderStoreMap.get(key)!
   }
-
   const renderCell = (
     ctx: CanvasRenderingContext2D,
     column: ColumnType,
@@ -175,6 +216,11 @@ export function useGridCellHandler(params: {
   ) => {
     if (skipRender) return
 
+    if (filteredColumnIds.value.has(column.id)) {
+      roundedRect(ctx, x, y, width, height, 0, { backgroundColor: CELL_COLOR_FILTERED })
+    } else if (sortedColumnIds.value.has(column.id)) {
+      roundedRect(ctx, x, y, width, height, 0, { backgroundColor: CELL_COLOR_SORTED })
+    }
     const cellType = cellTypesRegistry.get(column.uidt)
     if (actionManager?.isLoading(pk, column.id) && !isAIPromptCol(column) && !isButton(column)) {
       const loadingStartTime = actionManager?.getLoadingStartTime(pk, column.id)

@@ -16,35 +16,6 @@ function isValid(date) {
   return false;
 }
 
-// returns the timezone abbreviation from the current date, e.g., GMT, EST, etc.
-const timeZoneAbbreviated = () => {
-  // Extracts the content inside the first pair of parentheses in Date string,
-  // avoiding issues caused by nested parentheses like (Greenwich Mean Time (DST))
-  //
-  // Regex breakdown:
-  // \(: Match an opening parenthesis
-  // ([^()]+?): Capture group 1 - match one or more characters that are NOT parentheses (non-greedy)
-  // (?:\s*\(.+)?: Optionally match a nested parentheses like (Daylight Saving Time), but do NOT capture
-  // \): Match the closing parenthesis
-  const match = new Date().toString().slice(0, 200).match(/\(([^()]+?)(?:\s*\(.+)?\)/);
-
-  if (match && match[1]) {
-    const tz = match[1].trim();
-
-    // If it's multiple words, abbreviate to initials (e.g., Greenwich Mean Time → GMT)
-    if (tz.includes(" ")) {
-      return tz
-        .split(" ")
-        .map(word => word[0].toUpperCase())
-        .join("");
-    } else {
-      return tz.toUpperCase(); // Single word, return uppercased
-    }
-  }
-
-  return '';
-};
-
 function renderEjsTemplate(template, data) {
   return template.replace(
     /<%= (\w+) %>/g,
@@ -74,9 +45,9 @@ if (ExecutionEnvironment.canUseDOM) {
 
   if (config && isValid(config.date)) {
     const compiledText = renderEjsTemplate(config.description, {
-      date: `${dayjs(config.date).format(
-        "YYYY-MM-DD HH:mm"
-      )} ${timeZoneAbbreviated()}`,
+      date: dayjs(config.date).format(
+        "YYYY-MM-DD HH:mm z"
+      ),
       ptTime: dayjs(config.date)
         .tz("America/Los_Angeles")
         .format("HH:mm z"),

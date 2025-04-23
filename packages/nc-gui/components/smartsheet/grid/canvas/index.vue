@@ -777,8 +777,8 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
     })
   } else {
     regions.push({
-      x: ROW_META_COLUMN_WIDTH - 4 - 24,
-      width: 24,
+      x: ROW_META_COLUMN_WIDTH - 4 - 20,
+      width: 20,
       action: 'comment',
     })
   }

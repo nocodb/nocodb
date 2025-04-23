@@ -279,6 +279,14 @@ export function useCanvasRender({
 
         if (columnState) {
           renderTag(ctx, {
+            height: 31.5,
+            width,
+            x: xOffset - scrollLeft.value,
+            y: 0,
+            radius: 0,
+            fillStyle: '#ffffff88',
+          })
+          renderTag(ctx, {
             height: 32,
             width,
             x: xOffset - scrollLeft.value,

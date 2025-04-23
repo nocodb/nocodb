@@ -162,7 +162,7 @@ onBeforeUnmount(() => {
               <div class="flex flex-col md:(flex-row gap-3 items-center)">
                 Paid Monthly
                 <div class="text-small leading-[18px] text-nc-content-gray-subtle2 font-normal">
-                  {{ getPlanPrice(selectedPlan, 'month') }} / user / month
+                  $ {{ getPlanPrice(selectedPlan, 'month') }} / user / month
                 </div>
               </div>
             </a-radio>
@@ -172,7 +172,7 @@ onBeforeUnmount(() => {
                   Paid Annually
 
                   <div class="text-small leading-[18px] text-nc-content-gray-subtle2 font-normal">
-                    {{ getPlanPrice(selectedPlan, 'year') }} / user / month
+                    $ {{ getPlanPrice(selectedPlan, 'year') }} / user / month
                   </div>
                 </div>
                 <div class="bg-nc-bg-green-light px-1 rounded-md text-nc-content-green-dark font-500 text-sm">

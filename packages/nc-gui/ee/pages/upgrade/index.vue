@@ -73,10 +73,7 @@ onMounted(() => {
               </div>
             </div>
             <div class="border-1 border-nc-border-gray-medium rounded-lg p-2 overflow-auto nc-scrollbar-thin">
-              <template
-                v-for="workspace in [...filteredWorkspaces, ...filteredWorkspaces, ...filteredWorkspaces, ...filteredWorkspaces]"
-                :key="workspace.id"
-              >
+              <template v-for="workspace in filteredWorkspaces" :key="workspace.id">
                 <div
                   v-if="workspace.id"
                   class="flex gap-3 w-full items-center cursor-pointer hover:bg-nc-bg-gray-light px-2 py-1.5 rounded-md"

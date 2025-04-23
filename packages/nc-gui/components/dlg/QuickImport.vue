@@ -45,6 +45,10 @@ const { t } = useI18n()
 const progressMsg = ref('Reading data ...')
 const progressMsgNew = ref<Record<string, string>>({})
 
+const workspace = useWorkspace()
+
+const { activeWorkspace } = storeToRefs(workspace)
+
 const { tables } = storeToRefs(useBase())
 
 const tablesStore = useTablesStore()
@@ -285,6 +289,10 @@ async function handleImport() {
     templateEditorModal.value = false
     Object.assign(importState, defaultImportState)
     dialogShow.value = false
+
+    if (activeWorkspace.value?.id) {
+      workspace.loadWorkspace(activeWorkspace.value.id)
+    }
   } catch (e: any) {
     console.log(e)
 

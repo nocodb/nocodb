@@ -125,6 +125,10 @@ export const useEeConfig = createSharedComposable(() => {
     )
   })
 
+  const isTopBannerVisible = computed(() => {
+    return isPaymentEnabled.value && !isPaidPlan.value
+  })
+
   /** Helper functions */
   function getLimit(type: PlanLimitTypes, workspace?: NcWorkspace | null) {
     if (!isPaymentEnabled.value) return Infinity
@@ -649,5 +653,6 @@ export const useEeConfig = createSharedComposable(() => {
     navigateToCheckout,
     isLoyaltyWorkspace,
     gracePeriodEndDate,
+    isTopBannerVisible,
   }
 })

@@ -17,6 +17,10 @@ const baseURL = $api.instance.defaults.baseURL
 
 const { $state, $poller } = useNuxtApp()
 
+const workspace = useWorkspace()
+
+const { activeWorkspace } = storeToRefs(workspace)
+
 const baseStore = useBase()
 
 const { refreshCommandPalette } = useCommandPalette()
@@ -75,6 +79,9 @@ const onStatus = async (status: JobStatus, data?: any) => {
     await loadTables()
     progressRef.value?.pushProgress('Done!', status)
     refreshCommandPalette()
+    if (activeWorkspace.value?.id) {
+      workspace.loadWorkspace(activeWorkspace.value.id)
+    }
     // TODO: add tab of the first table
   } else if (status === JobStatus.FAILED) {
     await loadTables()

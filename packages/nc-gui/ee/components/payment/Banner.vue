@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { LOYALTY_GRACE_PERIOD_END_DATE } from 'nocodb-sdk'
-import loyalBgImage from '~/assets/img/loyalty-bg.png'
 import loyalContentImage from '~/assets/img/loyal-upgrade-banner-content.png'
 import loyalMoscotImage from '~/assets/img/loyal-upgrade-banner-moscot.png'
 
@@ -13,12 +12,12 @@ const _props = withDefaults(
   },
 )
 
-const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace, isPaymentEnabled } = useEeConfig()
+const { isWsOwner, navigateToPricing, isLoyaltyWorkspace, isTopBannerVisible } = useEeConfig()
 </script>
 
 <template>
   <div
-    v-if="isPaymentEnabled && !isPaidPlan"
+    v-if="isTopBannerVisible"
     class="nc-payment-banner-wrapper z-1"
     :class="{
       'nc-payment-banner-expanded': expanded,
@@ -31,9 +30,7 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace, isPaymentE
         'px-8 py-6 min-h-[168px]': expanded,
       }"
       :style="{
-        'background-image': `url(${loyalBgImage})`,
-        'background-color': 'rgba(255, 255, 255, 0.7)',
-        'background-blend-mode': 'overlay',
+        background: `linear-gradient(90deg, #FAF5FE 0%, #EFF0FF 29.64%, #E6F2FF 55.77%, #EAF3FF 92.31%, #F3F7FE 100%)`,
       }"
       @click.stop="navigateToPricing()"
     >
@@ -44,10 +41,10 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace, isPaymentE
           'flex-col': expanded,
         }"
       >
-        <div class="text-xl font-weight-700 text-nc-content-gray leading-[32px]">
+        <div class="text-xl font-weight-700 text-nc-content-purple-dark leading-[32px]">
           {{ isLoyaltyWorkspace ? $t('title.loyaltyBannerTitle') : $t('title.getMoreFromNocodb') }}
         </div>
-        <div v-if="expanded" class="mt-2">
+        <div v-if="expanded" class="mt-2 text-nc-content-gray font-semibold">
           {{ isLoyaltyWorkspace ? $t('title.loyaltyBannerSubtitle') : $t('title.getMoreFromNocodbSubtitle') }}
         </div>
         <div
@@ -61,12 +58,15 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace, isPaymentE
             class="nc-upgrade-plan-btn"
             data-testid="nc-workspace-settings-upgrade-button"
             inner-class="!gap-1"
+            size="small"
             @click.stop="navigateToPricing()"
           >
             <template #icon>
               <GeneralIcon icon="ncArrowUpRight" class="!transition-none" />
             </template>
-            {{ isWsOwner ? $t('labels.viewPlans') : $t('general.requestUpgrade') }}
+            <span class="font-700">
+              {{ isWsOwner ? 'Upgrade Workspace' : $t('general.requestUpgrade') }}
+            </span>
           </NcButton>
 
           <div v-if="isLoyaltyWorkspace">
@@ -81,8 +81,8 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace, isPaymentE
       <div class="w-[154px] hidden xl:block">
         <img :src="loyalMoscotImage" class="absolute -bottom-0" alt="Moscot" width="154px" height="160px" />
       </div>
-      <div class="w-[min(495px,40%)] min-w-[405px] flex-none relative">
-        <img :src="loyalContentImage" alt="Content" />
+      <div class="w-[min(495px,40%)] min-w-[min(405px,40%)] relative hidden lg:flex items-center overflow-hidden">
+        <img :src="loyalContentImage" alt="Content" class="flex-none min-w-[305px]" />
       </div>
     </div>
   </div>
@@ -97,7 +97,7 @@ const { isPaidPlan, isWsOwner, navigateToPricing, isLoyaltyWorkspace, isPaymentE
 }
 
 .nc-upgrade-plan-btn {
-  @apply !border-0 px-2 !font-semibold !rounded-lg;
+  @apply !border-0 !rounded-lg;
 }
 
 .nc-payment-banner {

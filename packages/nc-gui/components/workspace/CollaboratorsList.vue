@@ -23,8 +23,15 @@ const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspac
 
 const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading } = storeToRefs(workspaceStore)
 
-const { isPaymentEnabled, showUserPlanLimitExceededModal, activePlanTitle, getLimit, isWsOwner, navigateToPricing } =
-  useEeConfig()
+const {
+  isPaymentEnabled,
+  showUserPlanLimitExceededModal,
+  activePlanTitle,
+  getLimit,
+  isWsOwner,
+  navigateToPricing,
+  isTopBannerVisible,
+} = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
   if (props.workspaceId) {
@@ -214,251 +221,265 @@ const customRow = (_record: Record<string, any>, recordIndex: number) => ({
 const isDeleteOrUpdateAllowed = (user) => {
   return !(isOnlyOneOwner.value && user.roles === WorkspaceUserRoles.OWNER)
 }
+
+const topScroll = ref(0)
+
+const tableHeight = computed(() => {
+  return `calc(100% - ${
+    tableHeaderSectionHeight.value + (isTopBannerVisible.value ? toSectionHeight.value - topScroll.value : 0) + 64
+  }px)`
+})
+
+const handleScroll = (e) => {
+  if (!isTopBannerVisible.value) return
+
+  topScroll.value = e.target?.scrollTop
+}
 </script>
 
 <template>
   <div
-    class="nc-collaborator-table-container"
+    class="nc-collaborator-table-container overflow-auto nc-scrollbar-thin relative"
     :class="{
       'h-[calc(100vh-144px)]': !height && isAdminPanel,
       'h-[calc(100vh-92px)]': !height && !isAdminPanel,
     }"
     :style="`${height ? `height: ${height}` : ''}`"
+    @scroll.passive="handleScroll"
   >
     <div ref="topSectionRef">
-      <PaymentBanner class="sticky top-0 z-10" />
+      <PaymentBanner />
     </div>
-    <div :style="{ height: `calc(100% - ${toSectionHeight}px)` }">
-      <div class="nc-collaborator-table-wrapper h-full max-w-[1300px] mx-auto py-6 px-6 flex flex-col gap-6">
-        <div class="w-full flex items-center justify-between gap-3">
-          <a-input
-            v-model:value="userSearchText"
-            allow-clear
-            :disabled="isCollaboratorsLoading"
-            class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
-            :placeholder="$t('title.searchMembers')"
-          >
-            <template #prefix>
-              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
-            </template>
-          </a-input>
-          <div class="flex items-center gap-4">
-            <template v-if="isPaymentEnabled && paidUsersCount">
-              <NcTooltip
-                v-if="activePlanTitle === PlanTitles.FREE"
-                :tooltip-style="{ width: '230px' }"
-                :overlay-inner-style="{ width: '230px' }"
-                :title="
-                  $t('upgrade.freePlanEditorLimitTooltip', {
-                    limit: getLimit(PlanLimitTypes.LIMIT_EDITOR),
-                  })
-                "
-              >
-                <div class="flex items-center text-nc-content-gray-default text-sm">
-                  <GeneralIcon icon="star" class="flex-none h-4 w-4 mr-1" />
 
-                  {{ paidUsersCount }} {{ paidUsersCount === 1 ? $t('labels.editorSeat') : $t('labels.editorSeats') }}
-                </div>
-              </NcTooltip>
-              <div v-else class="flex items-center text-nc-content-gray-default text-sm">
-                <GeneralIcon icon="star" class="flex-none h-4 w-4 mr-1" />
-
-                {{ paidUsersCount }} {{ $t('general.paid') }}
-                {{ paidUsersCount === 1 ? $t('general.seat').toLowerCase() : $t('general.seats').toLowerCase() }}
-              </div>
-              <div class="self-stretch border-r-1 border-nc-border-gray-medium"></div>
-            </template>
-
-            <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn" @click="inviteDlg = true">
-              <div class="flex items-center gap-2">
-                <component :is="iconMap.plus" class="!h-4 !w-4" />
-                {{ $t('labels.addMember') }}
-              </div>
-            </NcButton>
-          </div>
-        </div>
-
-        <NcAlert
-          v-if="showUpgradeAlert"
-          ref="tableHeaderSectionRef"
-          type="warning"
-          class=""
-          :message="$t('upgrade.adjustCollaboratorRoles')"
-          :description="
-            $t('upgrade.UpgradeToInviteMoreSubtitle', {
-              activePlan: activePlanTitle,
-              editors: getLimit(PlanLimitTypes.LIMIT_EDITOR),
-              commenters: getLimit(PlanLimitTypes.LIMIT_COMMENTER),
-              plan: HigherPlan[activePlanTitle],
-            })
-          "
+    <div class="nc-collaborator-table-wrapper h-full max-w-[1200px] mx-auto py-6 px-6 flex flex-col gap-6 sticky top-0">
+      <div class="w-full flex items-center justify-between gap-3">
+        <a-input
+          v-model:value="userSearchText"
+          allow-clear
+          :disabled="isCollaboratorsLoading"
+          class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
+          :placeholder="$t('title.searchMembers')"
         >
-          <template #action>
-            <NcButton
-              type="text"
-              size="small"
-              class="!text-nc-content-brand !font-700"
-              @click="
-                navigateToPricing({
-                  limitOrFeature:
-                    paidUsersCount > getLimit(PlanLimitTypes.LIMIT_EDITOR)
-                      ? PlanLimitTypes.LIMIT_EDITOR
-                      : PlanLimitTypes.LIMIT_COMMENTER,
+          <template #prefix>
+            <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
+          </template>
+        </a-input>
+        <div class="flex items-center gap-4">
+          <template v-if="isPaymentEnabled && paidUsersCount">
+            <NcTooltip
+              v-if="activePlanTitle === PlanTitles.FREE"
+              :tooltip-style="{ width: '230px' }"
+              :overlay-inner-style="{ width: '230px' }"
+              :title="
+                $t('upgrade.freePlanEditorLimitTooltip', {
+                  limit: getLimit(PlanLimitTypes.LIMIT_EDITOR),
                 })
               "
             >
-              {{ isWsOwner ? 'Upgrade' : $t('general.requestUpgrade') }}
-            </NcButton>
+              <div class="flex items-center text-nc-content-gray-default text-sm whitespace-nowrap">
+                <GeneralIcon icon="star" class="flex-none h-4 w-4 mr-1" />
+
+                {{ paidUsersCount }} {{ paidUsersCount === 1 ? $t('labels.editorSeat') : $t('labels.editorSeats') }}
+              </div>
+            </NcTooltip>
+            <div v-else class="flex items-center text-nc-content-gray-default text-sm whitespace-nowrap">
+              <GeneralIcon icon="star" class="flex-none h-4 w-4 mr-1" />
+
+              {{ paidUsersCount }} {{ $t('general.paid') }}
+              {{ paidUsersCount === 1 ? $t('general.seat').toLowerCase() : $t('general.seats').toLowerCase() }}
+            </div>
+            <div class="self-stretch border-r-1 border-nc-border-gray-medium"></div>
           </template>
-        </NcAlert>
 
-        <div class="flex" :style="{ height: `calc(100% - ${tableHeaderSectionHeight + 64}px)` }">
-          <NcTable
-            v-model:order-by="orderBy"
-            :columns="columns"
-            :data="sortedCollaborators"
-            :is-data-loading="isCollaboratorsLoading"
-            :custom-row="customRow"
-            :bordered="false"
-            class="flex-1 nc-collaborators-list"
+          <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn" @click="inviteDlg = true">
+            <div class="flex items-center gap-2">
+              <component :is="iconMap.plus" class="!h-4 !w-4" />
+              {{ $t('labels.addMember') }}
+            </div>
+          </NcButton>
+        </div>
+      </div>
+
+      <NcAlert
+        v-if="showUpgradeAlert"
+        ref="tableHeaderSectionRef"
+        type="warning"
+        class=""
+        :message="$t('upgrade.adjustCollaboratorRoles')"
+        :description="
+          $t('upgrade.UpgradeToInviteMoreSubtitle', {
+            activePlan: activePlanTitle,
+            editors: getLimit(PlanLimitTypes.LIMIT_EDITOR),
+            commenters: getLimit(PlanLimitTypes.LIMIT_COMMENTER),
+            plan: HigherPlan[activePlanTitle],
+          })
+        "
+      >
+        <template #action>
+          <NcButton
+            type="text"
+            size="small"
+            class="!text-nc-content-brand !font-700"
+            @click="
+              navigateToPricing({
+                limitOrFeature:
+                  paidUsersCount > getLimit(PlanLimitTypes.LIMIT_EDITOR)
+                    ? PlanLimitTypes.LIMIT_EDITOR
+                    : PlanLimitTypes.LIMIT_COMMENTER,
+              })
+            "
           >
-            <template #emptyText>
-              <a-empty :description="$t('title.noMembersFound')" />
+            {{ isWsOwner ? 'Upgrade' : $t('general.requestUpgrade') }}
+          </NcButton>
+        </template>
+      </NcAlert>
+
+      <div class="flex" :style="{ height: tableHeight }">
+        <NcTable
+          v-model:order-by="orderBy"
+          :columns="columns"
+          :data="sortedCollaborators"
+          :is-data-loading="isCollaboratorsLoading"
+          :custom-row="customRow"
+          :bordered="false"
+          class="flex-1 nc-collaborators-list"
+        >
+          <template #emptyText>
+            <a-empty :description="$t('title.noMembersFound')" />
+          </template>
+
+          <template #headerCell="{ column }">
+            <template v-if="column.key === 'select'">
+              <NcCheckbox v-model:checked="selectAll" :disabled="!sortedCollaborators.length" />
+            </template>
+            <template v-else>
+              {{ column.title }}
+            </template>
+          </template>
+
+          <template #bodyCell="{ column, record, recordIndex }">
+            <template v-if="column.key === 'select'">
+              <NcCheckbox v-model:checked="selected[recordIndex]" />
             </template>
 
-            <template #headerCell="{ column }">
-              <template v-if="column.key === 'select'">
-                <NcCheckbox v-model:checked="selectAll" :disabled="!sortedCollaborators.length" />
-              </template>
-              <template v-else>
-                {{ column.title }}
-              </template>
-            </template>
-
-            <template #bodyCell="{ column, record, recordIndex }">
-              <template v-if="column.key === 'select'">
-                <NcCheckbox v-model:checked="selected[recordIndex]" />
-              </template>
-
-              <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
-                <GeneralUserIcon size="base" :user="record" class="flex-none" />
-                <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
-                  <div class="flex items-center gap-1">
-                    <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
-                      <template #title>
-                        {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
-                      </template>
-                      {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
-                    </NcTooltip>
-                    <NcTooltip
-                      v-if="isPaymentEnabled && parseProp(record.meta).billable"
-                      :title="$t('tooltip.paidUserBadgeTooltip')"
-                      class="flex items-center"
-                      :tooltip-style="{ width: '180px' }"
-                      :overlay-inner-style="{ width: '180px' }"
-                    >
-                      <div v-if="activePlanTitle === PlanTitles.FREE" class="text-nc-content-gray-default">
-                        <GeneralIcon icon="star" class="flex-none mb-0.5" />
-                      </div>
-                      <NcBadge
-                        v-else
-                        :border="false"
-                        color="green"
-                        class="text-nc-content-green-dark text-[10px] leading-[14px] !h-[18px] font-semibold"
-                      >
-                        {{ $t('general.paid') }}
-                      </NcBadge>
-                    </NcTooltip>
-                  </div>
-                  <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
+            <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
+              <GeneralUserIcon size="base" :user="record" class="flex-none" />
+              <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
+                <div class="flex items-center gap-1">
+                  <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
                     <template #title>
-                      {{ record.email }}
+                      {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
                     </template>
-                    {{ record.email }}
+                    {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                  </NcTooltip>
+                  <NcTooltip
+                    v-if="isPaymentEnabled && parseProp(record.meta).billable"
+                    :title="$t('tooltip.paidUserBadgeTooltip')"
+                    class="flex items-center"
+                    :tooltip-style="{ width: '180px' }"
+                    :overlay-inner-style="{ width: '180px' }"
+                  >
+                    <div v-if="activePlanTitle === PlanTitles.FREE" class="text-nc-content-gray-default">
+                      <GeneralIcon icon="star" class="flex-none mb-0.5" />
+                    </div>
+                    <NcBadge
+                      v-else
+                      :border="false"
+                      color="green"
+                      class="text-nc-content-green-dark text-[10px] leading-[14px] !h-[18px] font-semibold"
+                    >
+                      {{ $t('general.paid') }}
+                    </NcBadge>
                   </NcTooltip>
                 </div>
-              </div>
-              <div v-if="column.key === 'role'">
-                <template
-                  v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && accessibleRoles.includes(record.roles as WorkspaceUserRoles)"
-                >
-                  <RolesSelector
-                    :description="false"
-                    :on-role-change="(role) => updateCollaborator(record, role as WorkspaceUserRoles)"
-                    :role="record.roles"
-                    :roles="accessibleRoles"
-                    class="cursor-pointer"
-                  />
-                </template>
-                <template v-else>
-                  <RolesBadge :border="false" :role="record.roles" class="cursor-default" />
-                </template>
-              </div>
-              <div v-if="column.key === 'created_at'">
-                <NcTooltip class="max-w-full">
+                <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
                   <template #title>
-                    {{ parseStringDateTime(record.created_at) }}
+                    {{ record.email }}
                   </template>
-                  <span>
-                    {{ timeAgo(record.created_at) }}
-                  </span>
+                  {{ record.email }}
                 </NcTooltip>
               </div>
+            </div>
+            <div v-if="column.key === 'role'">
+              <template
+                v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && accessibleRoles.includes(record.roles as WorkspaceUserRoles)"
+              >
+                <RolesSelector
+                  :description="false"
+                  :on-role-change="(role) => updateCollaborator(record, role as WorkspaceUserRoles)"
+                  :role="record.roles"
+                  :roles="accessibleRoles"
+                  class="cursor-pointer"
+                />
+              </template>
+              <template v-else>
+                <RolesBadge :border="false" :role="record.roles" class="cursor-default" />
+              </template>
+            </div>
+            <div v-if="column.key === 'created_at'">
+              <NcTooltip class="max-w-full">
+                <template #title>
+                  {{ parseStringDateTime(record.created_at) }}
+                </template>
+                <span>
+                  {{ timeAgo(record.created_at) }}
+                </span>
+              </NcTooltip>
+            </div>
 
-              <div v-if="column.key === 'action'">
-                <NcDropdown v-if="isOwnerOrCreator || record.id === user.id">
-                  <NcButton size="small" type="secondary">
-                    <component :is="iconMap.ncMoreVertical" />
-                  </NcButton>
-                  <template #overlay>
-                    <NcMenu variant="small">
-                      <template v-if="isAdminPanel">
-                        <NcMenuItem data-testid="nc-admin-org-user-delete">
-                          <GeneralIcon class="text-gray-800" icon="signout" />
-                          <span>{{ $t('labels.signOutUser') }}</span>
-                        </NcMenuItem>
+            <div v-if="column.key === 'action'">
+              <NcDropdown v-if="isOwnerOrCreator || record.id === user.id">
+                <NcButton size="small" type="secondary">
+                  <component :is="iconMap.ncMoreVertical" />
+                </NcButton>
+                <template #overlay>
+                  <NcMenu variant="small">
+                    <template v-if="isAdminPanel">
+                      <NcMenuItem data-testid="nc-admin-org-user-delete">
+                        <GeneralIcon class="text-gray-800" icon="signout" />
+                        <span>{{ $t('labels.signOutUser') }}</span>
+                      </NcMenuItem>
 
-                        <NcDivider />
+                      <NcDivider />
+                    </template>
+                    <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
+                      <template #title>
+                        {{ $t('tooltip.leaveWorkspace') }}
                       </template>
-                      <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
-                        <template #title>
-                          {{ $t('tooltip.leaveWorkspace') }}
-                        </template>
-                        <NcMenuItem
-                          :disabled="!isDeleteOrUpdateAllowed(record)"
-                          :class="{ '!text-red-500 !hover:bg-red-50': isDeleteOrUpdateAllowed(record) }"
-                          @click="removeCollaborator(record.id, currentWorkspace?.id)"
-                        >
-                          <MaterialSymbolsDeleteOutlineRounded />
-                          {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeUser') }}
-                        </NcMenuItem>
-                      </NcTooltip>
-                    </NcMenu>
-                  </template>
-                </NcDropdown>
-              </div>
-            </template>
+                      <NcMenuItem
+                        :disabled="!isDeleteOrUpdateAllowed(record)"
+                        :class="{ '!text-red-500 !hover:bg-red-50': isDeleteOrUpdateAllowed(record) }"
+                        @click="removeCollaborator(record.id, currentWorkspace?.id)"
+                      >
+                        <MaterialSymbolsDeleteOutlineRounded />
+                        {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeUser') }}
+                      </NcMenuItem>
+                    </NcTooltip>
+                  </NcMenu>
+                </template>
+              </NcDropdown>
+            </div>
+          </template>
 
-            <template #extraRow>
-              <div v-if="collaborators?.length === 1" class="w-full pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center">
-                <div class="text-2xl text-gray-800 font-bold">
-                  {{ $t('placeholder.inviteYourTeam') }}
-                </div>
-                <div class="text-sm text-gray-700">
-                  {{ $t('placeholder.inviteYourTeamLabel') }}
-                </div>
-                <img src="~assets/img/placeholder/invite-team.png" alt="Invite Team" class="!w-[30rem] flex-none" />
+          <template #extraRow>
+            <div v-if="collaborators?.length === 1" class="w-full pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center">
+              <div class="text-2xl text-gray-800 font-bold">
+                {{ $t('placeholder.inviteYourTeam') }}
               </div>
-            </template>
-          </NcTable>
-        </div>
-        <DlgInviteDlg
-          v-if="currentWorkspace"
-          v-model:model-value="inviteDlg"
-          :workspace-id="currentWorkspace?.id"
-          type="workspace"
-        />
+              <div class="text-sm text-gray-700">
+                {{ $t('placeholder.inviteYourTeamLabel') }}
+              </div>
+              <img src="~assets/img/placeholder/invite-team.png" alt="Invite Team" class="!w-[30rem] flex-none" />
+            </div>
+          </template>
+        </NcTable>
       </div>
+      <DlgInviteDlg
+        v-if="currentWorkspace"
+        v-model:model-value="inviteDlg"
+        :workspace-id="currentWorkspace?.id"
+        type="workspace"
+      />
     </div>
   </div>
 </template>

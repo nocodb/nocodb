@@ -206,7 +206,7 @@ function onResize(widthPercent: any) {
       min-size="15%"
       :size="mobileNormalizedSidebarSize"
       max-size="60%"
-      class="nc-sidebar-splitpane !sm:max-w-140 relative !overflow-visible flex"
+      class="nc-sidebar-splitpane !sm:max-w-140 relative !overflow-auto flex"
       :class="{
         hidden: hideSidebar,
       }"
@@ -233,7 +233,7 @@ function onResize(widthPercent: any) {
     </Pane>
     <Pane
       :size="mobileNormalizedContentSize"
-      class="flex-grow !overflow-scroll"
+      class="flex-grow !overflow-auto"
       :style="{
         'min-width': `${mobileNormalizedContentSize}%`,
       }"

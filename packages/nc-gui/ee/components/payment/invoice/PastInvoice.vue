@@ -4,7 +4,7 @@ import type Stripe from 'stripe'
 
 const { t } = useI18n()
 
-const { invoices, invoicePaginationData, plansAvailable } = usePaymentStoreOrThrow()
+const { invoices, invoicePaginationData, plansAvailable, activeWorkspace } = usePaymentStoreOrThrow()
 
 const paginatedData = computed(() => {
   const { page, pageSize } = invoicePaginationData.value
@@ -69,7 +69,7 @@ const columns: NcTableColumnProps<Stripe.Invoice>[] = [
 </script>
 
 <template>
-  <section>
+  <section v-if="activeWorkspace?.stripe_customer_id">
     <div class="text-base text-nc-content-gray font-700">{{ $t('labels.pastInvoices') }}</div>
     <div class="mt-3 flex-1 flex">
       <NcTable

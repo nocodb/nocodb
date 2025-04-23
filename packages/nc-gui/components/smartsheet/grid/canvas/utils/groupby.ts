@@ -206,6 +206,10 @@ export function generateGroupPath(data?: CanvasGroup) {
   return path
 }
 
+export function comparePath(pathA?: Array<number | string> | null, pathB?: Array<number | string> | null) {
+  return (ncIsArray(pathA) ? pathA : []).join() === (ncIsArray(pathA) ? pathA : []).join()
+}
+
 export function calculateGroupRowTop(
   groups: Map<number, CanvasGroup>,
   path: number[],

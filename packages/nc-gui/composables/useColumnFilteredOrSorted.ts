@@ -51,7 +51,7 @@ export function useColumnFilteredOrSorted() {
       'cellBorderColor': '#e7e7e9',
       'cellBorderColor.hovered': '#d5d5d9',
       'cellBorderColor.selected': '#d5d5d9',
-      'cellBgClass': '!bg-green-50 column-filtered',
+      'cellBgClass': '!bg-green-50 column-filtered !border-gray-200',
       'toolbarBgClass': 'bg-green-50',
       'toolbarTextClass': 'text-green-700',
     },

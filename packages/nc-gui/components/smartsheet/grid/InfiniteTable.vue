@@ -2582,19 +2582,34 @@ const headerFilteredOrSortedClass = (colId: string) => {
                       >
                         <div class="w-full flex items-center h-full px-1 gap-0.5">
                           <div
-                            class="nc-row-no min-w-4 h-4 text-xs flex items-center justify-center text-gray-500"
-                            :class="{ toggle: !readOnly, hidden: row.rowMeta?.selected || vSelectedAllRecords }"
+                            class="nc-row-no min-w-4 h-4 flex items-center justify-center text-gray-500"
+                            :class="{
+                              'toggle': !readOnly,
+                              'hidden': row.rowMeta?.selected || vSelectedAllRecords,
+                              'text-[10px]': row.rowMeta.rowIndex + 1 >= 10000,
+                              'text-xs': row.rowMeta.rowIndex + 1 < 10000,
+                            }"
                           >
                             {{ row.rowMeta.rowIndex + 1 }}
                           </div>
 
                           <div
-                            v-if="!selectedRows.length && isOrderColumnExists && !isRowReorderDisabled && !vSelectedAllRecords"
-                            :class="{ toggle: !readOnly }"
+                            v-if="isOrderColumnExists && !isRowReorderDisabled && !vSelectedAllRecords"
+                            :class="{ 'toggle': !readOnly, '!block': row.rowMeta?.selected }"
                             class="nc-drag-handle hidden"
                           >
-                            <NcButton size="xxsmall" type="text" @mousedown="startDragging(row, $event)">
-                              <GeneralIcon class="text-nc-content-gray hover:text-nc-content-brand" icon="ncDrag" />
+                            <NcButton
+                              size="xxsmall"
+                              type="text"
+                              @mousedown="startDragging(row, $event)"
+                              :disabled="!!selectedRows.length"
+                            >
+                              <GeneralIcon
+                                :class="{
+                                  'text-nc-content-gray hover:text-nc-content-brand': !selectedRows.length,
+                                }"
+                                icon="ncDrag"
+                              />
                             </NcButton>
                           </div>
                           <div
@@ -2615,7 +2630,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                               @change="toggleRowSelection(row.rowMeta.rowIndex)"
                             />
                           </div>
-                          <div :data-testid="`nc-expand-${row.rowMeta.rowIndex}`">
+                          <div :data-testid="`nc-expand-${row.rowMeta.rowIndex}`" class="flex-1 flex items-center justify-end">
                             <a-spin
                               v-if="row.rowMeta?.saving || row.rowMeta?.isLoading"
                               class="hidden nc-row-spinner items-center"
@@ -2626,11 +2641,15 @@ const headerFilteredOrSortedClass = (colId: string) => {
                               <span
                                 v-if="row.rowMeta?.commentCount && expandForm"
                                 v-e="['c:expanded-form:open']"
-                                :class="{ 'nc-comment': row.rowMeta?.commentCount }"
-                                class="px-1 rounded-md rounded-bl-none ml-1 transition-all border-1 border-brand-200 text-xs cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50"
+                                :class="{
+                                  'nc-comment': row.rowMeta?.commentCount,
+                                  'text-[10px]': row.rowMeta.commentCount > 99,
+                                  'text-xs ': row.rowMeta.commentCount <= 99,
+                                }"
+                                class="px-0.8 text-center rounded-md rounded-bl-none transition-all border-1 border-brand-200 cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50 !min-h-5 !min-w-5 !leading-5 inline-block"
                                 @click="expandAndLooseFocus(row, state)"
                               >
-                                {{ row.rowMeta.commentCount }}
+                                {{ row.rowMeta.commentCount > 99 ? '99+' : row.rowMeta.commentCount }}
                               </span>
                               <div
                                 v-else

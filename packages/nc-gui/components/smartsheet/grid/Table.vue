@@ -2259,10 +2259,18 @@ onKeyStroke('ArrowDown', onDown)
                         :data-testid="`cell-Id-${rowIndex}`"
                         @contextmenu="contextMenuTarget = null"
                       >
-                        <div class="w-[60px] pl-2 pr-1 items-center flex gap-1">
+                        <div class="w-[64px] pl-2 pr-1 items-center flex gap-0.5">
                           <div
-                            class="nc-row-no sm:min-w-4 text-xs text-gray-500"
-                            :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
+                            class="nc-row-no sm:min-w-4 text-gray-500"
+                            :class="{
+                              'toggle': !readOnly,
+                              'hidden': row.rowMeta.selected,
+                              'text-[10px]':
+                                ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 >=
+                                10000,
+                              'text-xs':
+                                ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 < 10000,
+                            }"
                           >
                             {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}
                           </div>
@@ -2279,7 +2287,7 @@ onKeyStroke('ArrowDown', onDown)
                           <span class="flex-1" />
 
                           <div
-                            class="nc-expand"
+                            class="nc-expand flex-1 flex items-center justify-end"
                             :data-testid="`nc-expand-${rowIndex}`"
                             :class="{ 'nc-comment': row.rowMeta?.commentCount }"
                           >
@@ -2293,10 +2301,14 @@ onKeyStroke('ArrowDown', onDown)
                               <span
                                 v-if="row.rowMeta?.commentCount && expandForm"
                                 v-e="['c:expanded-form:open']"
-                                class="px-1 rounded-md rounded-bl-none transition-all border-1 border-brand-200 text-xs cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50"
+                                class="px-1 rounded-md rounded-bl-none transition-all border-1 border-brand-200 cursor-pointer font-sembold select-none !min-h-5 !min-w-5 !leading-5 inline-block text-brand-500 bg-brand-50"
+                                :class="{
+                                  'text-[10px]': row.rowMeta.commentCount > 99,
+                                  'text-xs ': row.rowMeta.commentCount <= 99,
+                                }"
                                 @click="expandAndLooseFocus(row, state)"
                               >
-                                {{ row.rowMeta.commentCount }}
+                                {{ row.rowMeta.commentCount > 99 ? '99+' : row.rowMeta.commentCount }}
                               </span>
                               <div
                                 v-else

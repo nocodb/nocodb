@@ -252,7 +252,7 @@ export function useCanvasTable({
   const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd'))
 
   const isRowDraggingEnabled = computed(
-    () => !selectedRows.value.length && isOrderColumnExists.value && !isRowReorderDisabled.value && !vSelectedAllRecords.value,
+    () => isOrderColumnExists.value && !isRowReorderDisabled.value && !vSelectedAllRecords.value,
   )
 
   const isAddingEmptyRowAllowed = computed(

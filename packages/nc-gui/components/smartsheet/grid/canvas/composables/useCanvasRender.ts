@@ -1188,6 +1188,7 @@ export function useCanvasRender({
           skipRender: isCellEditEnabled,
           isRowHovered: isHovered,
           isRowChecked: row.rowMeta.selected,
+          isCellInSelectionRange: selection.value.isCellInRange({ row: rowIdx, col: colIdx }),
         })
         ctx.restore()
         xOffset += width
@@ -1269,6 +1270,7 @@ export function useCanvasRender({
               path: groupPath,
               isRowHovered: isHovered,
               isRowChecked: row.rowMeta.selected,
+              isCellInSelectionRange: selection.value.isCellInRange({ row: rowIdx, col: colIdx }),
             })
             ctx.restore()
           }

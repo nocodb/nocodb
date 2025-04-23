@@ -122,6 +122,8 @@ const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlo
 
 const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource } = useSmartsheetStoreOrThrow()
 
+const { isColumnSortedOrFiltered } = useColumnFilteredOrSorted()
+
 const { $e, $api } = useNuxtApp()
 
 const { t } = useI18n()
@@ -2194,44 +2196,11 @@ const cellAlignClass = computed(() => {
   return 'align-top'
 })
 
-const filteredColumnIds = computed(() => {
-  const columnIds: Set<string> = new Set<string>()
-  const extractFilterArray = (filters: FilterType[]) => {
-    if (filters && filters.length > 0) {
-      for (const eachFilter of filters) {
-        if (eachFilter.is_group) {
-          if ((eachFilter.children?.length ?? 0) > 0) {
-            extractFilterArray(eachFilter.children!)
-          }
-        } else if (eachFilter.fk_column_id) {
-          columnIds.add(eachFilter.fk_column_id)
-        }
-      }
-    }
-  }
-  // console.log(JSON.stringify(allFilters.value, undefined, 2))
-  extractFilterArray(allFilters.value)
-  // console.log('filteredColumnIds', columnIds)
-  return columnIds
-})
-const sortedColumnIds = computed(() => {
-  const columnIds: Set<string> = new Set<string>()
-  if (!sorts?.value || sorts.value.length === 0) {
-    return columnIds
-  }
-  for (const sort of sorts.value) {
-    if (sort.fk_column_id) {
-      columnIds.add(sort.fk_column_id)
-    }
-  }
-  return columnIds
-})
 const cellFilteredOrSortedClass = (colId: string) => {
-  const isFiltered = filteredColumnIds.value.has(colId);
-  const isSorted = sortedColumnIds.value.has(colId);
+  const columnState = isColumnSortedOrFiltered(colId)
   return {
-    '!bg-yellow-100': isFiltered,
-    '!bg-red-100': isSorted && !isFiltered
+    '!bg-yellow-100': columnState === 'FILTERED',
+    '!bg-red-100': columnState === 'SORTED'
   }
 }
 </script>

@@ -75,8 +75,8 @@ export function useGridCellHandler(params: {
   const { metas } = useMetas()
   const canvasCellEvents = reactive<CanvasCellEventDataInjType>({})
   provide(CanvasCellEventDataInj, canvasCellEvents)
-  // TODO: handle nested filters
-  const { nestedFilters: _nestedFilters, allFilters, sorts } = useSmartsheetStoreOrThrow()
+
+  const { isColumnSortedOrFiltered } = useColumnFilteredOrSorted()
   const baseStore = useBase()
   const { showNull } = useGlobal()
   const { isMssql, isMysql, isXcdbBase, isPg } = baseStore
@@ -90,38 +90,6 @@ export function useGridCellHandler(params: {
   const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() =>
     params.meta?.value?.base_id ? basesUser.value.get(params.meta?.value.base_id) || [] : [],
   )
-  const filteredColumnIds = computed(() => {
-    const columnIds: Set<string> = new Set<string>()
-    const extractFilterArray = (filters: FilterType[]) => {
-      if (filters && filters.length > 0) {
-        for (const eachFilter of filters) {
-          if (eachFilter.is_group) {
-            if ((eachFilter.children?.length ?? 0) > 0) {
-              extractFilterArray(eachFilter.children!)
-            }
-          } else if (eachFilter.fk_column_id) {
-            columnIds.add(eachFilter.fk_column_id)
-          }
-        }
-      }
-    }
-    // console.log(JSON.stringify(allFilters.value, undefined, 2))
-    extractFilterArray(allFilters.value)
-    // console.log('filteredColumnIds', columnIds)
-    return columnIds
-  })
-  const sortedColumnIds = computed(() => {
-    const columnIds: Set<string> = new Set<string>()
-    if (!sorts?.value || sorts.value.length === 0) {
-      return columnIds
-    }
-    for (const sort of sorts.value) {
-      if (sort.fk_column_id) {
-        columnIds.add(sort.fk_column_id)
-      }
-    }
-    return columnIds
-  })
   const actionManager = params.actionManager
   const makeCellEditable = params.makeCellEditable
   const setCursor = params.setCursor
@@ -215,10 +183,10 @@ export function useGridCellHandler(params: {
     }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
-
-    if (filteredColumnIds.value.has(column.id)) {
+    const columnState = isColumnSortedOrFiltered(column.id!)
+    if (columnState === 'FILTERED') {
       roundedRect(ctx, x, y, width, height, 0, { backgroundColor: CELL_COLOR_FILTERED })
-    } else if (sortedColumnIds.value.has(column.id)) {
+    } else if (columnState === 'SORTED') {
       roundedRect(ctx, x, y, width, height, 0, { backgroundColor: CELL_COLOR_SORTED })
     }
     const cellType = cellTypesRegistry.get(column.uidt)

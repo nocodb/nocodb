@@ -108,6 +108,8 @@ const scrollParent = inject(ScrollParentInj, ref<undefined>())
 
 const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
+const { isColumnSortedOrFiltered } = useColumnFilteredOrSorted()
+
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
 const { $e } = useNuxtApp()
@@ -1851,6 +1853,14 @@ function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
   }
 }
 
+const cellFilteredOrSortedClass = (colId: string) => {
+  const columnState = isColumnSortedOrFiltered(colId)
+  return {
+    '!bg-yellow-100': columnState === 'FILTERED',
+    '!bg-red-100': columnState === 'SORTED'
+  }
+}
+
 // Keyboard shortcuts for pagination
 onKeyStroke('ArrowLeft', onLeft)
 onKeyStroke('ArrowRight', onRight)
@@ -2303,6 +2313,7 @@ onKeyStroke('ArrowDown', onDown)
                           'filling': fillRangeMap[`${rowIndex}-0`],
                           'readonly': colMeta[0].isReadonly && hasEditPermission && selectRangeMap[`${rowIndex}-0`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
+                          ...cellFilteredOrSortedClass(fields[0].id),
                         }"
                         :style="{
                           'min-width': gridViewCols[fields[0].id]?.width || '180px',
@@ -2380,6 +2391,7 @@ onKeyStroke('ArrowDown', onDown)
                           'readonly':
                             colMeta[colIndex].isReadonly && hasEditPermission && selectRangeMap[`${rowIndex}-${colIndex}`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
+                          ...cellFilteredOrSortedClass(columnObj.id),
                         }"
                         :style="{
                           'min-width': gridViewCols[columnObj.id]?.width || '180px',

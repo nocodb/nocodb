@@ -17,6 +17,8 @@ const {
   sideBarFilterOption,
   showSideMenu,
   updateFormat,
+  timezoneDayjs,
+  timezone,
 } = useCalendarViewStoreOrThrow()
 
 const { $e } = useNuxtApp()
@@ -53,15 +55,16 @@ const getFieldStyle = (field: ColumnType) => {
 
 const hours = computed(() => {
   const hours: Array<dayjs.Dayjs> = []
-  const _selectedDate = dayjs(selectedDate.value)
+  const _selectedDate = timezoneDayjs.dayjsTz(selectedDate.value)
 
   for (let i = 0; i < 24; i++) {
-    hours.push(_selectedDate.clone().startOf('day').add(i, 'hour'))
+    // startOf and endOf dayjs is bugged with timezone
+    hours.push(timezoneDayjs.dayjsTz(_selectedDate.clone().startOf('day').toISOString()).add(i, 'hour'))
   }
   return hours
 })
 
-const currTime = ref(dayjs())
+const currTime = ref(timezoneDayjs.dayjsTz())
 
 const overlayTop = computed(() => {
   const perRecordHeight = 52
@@ -74,12 +77,12 @@ const overlayTop = computed(() => {
 })
 
 const shouldEnableOverlay = computed(() => {
-  return !isPublic.value && dayjs().isSame(selectedDate.value, 'day')
+  return !isPublic.value && timezoneDayjs.dayjsTz().isSame(selectedDate.value, 'day')
 })
 
 onMounted(() => {
   const intervalId = setInterval(() => {
-    currTime.value = dayjs()
+    currTime.value = timezoneDayjs.dayjsTz()
   }, 10000) // 10000 ms = 10 seconds
 
   // Clean up the interval when the component is unmounted
@@ -167,8 +170,8 @@ const hasSlotForRecord = (
       endDate: columnToCol
         ? dayjs(column.row[columnToCol.title!])
         : dayjs(column.row[columnFromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
-      scheduleStart: dayjs(selectedDate.value).startOf('day'),
-      scheduleEnd: dayjs(selectedDate.value).endOf('day'),
+      scheduleStart: timezoneDayjs.dayjsTz(timezoneDayjs.dayjsTz(selectedDate.value).startOf('day').toISOString()),
+      scheduleEnd: timezoneDayjs.dayjsTz(timezoneDayjs.dayjsTz(selectedDate.value).endOf('day').toISOString()),
     })
 
     if (
@@ -250,8 +253,8 @@ const recordsAcrossAllRange = computed<{
 }>(() => {
   if (!calendarRange.value || !formattedData.value) return { record: [], count: {} }
 
-  const scheduleStart = dayjs(selectedDate.value).startOf('day')
-  const scheduleEnd = dayjs(selectedDate.value).endOf('day')
+  const scheduleStart = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day')
+  const scheduleEnd = timezoneDayjs.dayjsTz(selectedDate.value).endOf('day')
 
   const perRecordHeight = 52
 
@@ -274,10 +277,10 @@ const recordsAcrossAllRange = computed<{
     // But not all fetched records are valid for the certain range, so we filter them out & sort them
     const sortedFormattedData = [...formattedData.value]
       .filter((record) => {
-        const fromDate = fromCol?.title && record.row[fromCol.title] ? dayjs(record.row[fromCol.title]) : null
+        const fromDate = fromCol?.title && record.row[fromCol.title] ? timezoneDayjs.timezonize(record.row[fromCol.title]) : null
 
         if (fromCol && endCol) {
-          const toDate = record.row[endCol.title!] ? dayjs(record.row[endCol.title!]) : null
+          const toDate = record.row[endCol.title!] ? timezoneDayjs.timezonize(record.row[endCol.title!]) : null
 
           if (fromDate?.isValid() && toDate?.isValid()) {
             if (!fromDate.isSame(toDate, 'day')) {
@@ -292,15 +295,17 @@ const recordsAcrossAllRange = computed<{
 
         return fromCol ? !!fromDate : false
       })
-      .sort((a, b) => (dayjs(a.row[fromCol!.title!]).isBefore(dayjs(b.row[fromCol!.title!])) ? 1 : -1))
+      .sort((a, b) =>
+        timezoneDayjs.timezonize(a.row[fromCol!.title!]).isBefore(timezoneDayjs.timezonize(b.row[fromCol!.title!])) ? 1 : -1,
+      )
 
     for (const record of sortedFormattedData) {
       const id = record.rowMeta.id ?? generateRandomNumber()
 
       if (fromCol && endCol) {
         const { endDate, startDate } = calculateNewDates({
-          endDate: dayjs(record.row[endCol.title!]),
-          startDate: dayjs(record.row[fromCol.title!]),
+          endDate: timezoneDayjs.timezonize(record.row[endCol.title!]),
+          startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
           scheduleStart,
           scheduleEnd,
         })
@@ -327,12 +332,11 @@ const recordsAcrossAllRange = computed<{
         })
       } else if (fromCol) {
         const { startDate, endDate } = calculateNewDates({
-          startDate: dayjs(record.row[fromCol.title!]),
-          endDate: dayjs(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
+          startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
+          endDate: timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
           scheduleStart,
           scheduleEnd,
         })
-
         let style: Partial<CSSStyleDeclaration> = {}
 
         // The top of the record is calculated based on the start hour
@@ -364,7 +368,7 @@ const recordsAcrossAllRange = computed<{
     const fromColA = a.rowMeta.range?.fk_from_col
     const fromColB = b.rowMeta.range?.fk_from_col
     if (!fromColA || !fromColB) return 0
-    return dayjs(a.row[fromColA.title!]).isBefore(dayjs(b.row[fromColB.title!])) ? -1 : 1
+    return timezoneDayjs.timezonize(a.row[fromColA.title!]).isBefore(timezoneDayjs.timezonize(b.row[fromColB.title!])) ? -1 : 1
   })
 
   for (const record of recordsByRange) {
@@ -374,8 +378,10 @@ const recordsAcrossAllRange = computed<{
     if (!fromCol) continue
 
     const { startDate, endDate } = calculateNewDates({
-      startDate: dayjs(record.row[fromCol.title!]),
-      endDate: toCol ? dayjs(record.row[toCol.title!]) : dayjs(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
+      startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
+      endDate: toCol
+        ? timezoneDayjs.timezonize(record.row[toCol.title!])
+        : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
       scheduleStart,
       scheduleEnd,
     })
@@ -512,7 +518,7 @@ const calculateNewRow = (event: MouseEvent, skipChangeCheck?: boolean) => {
   const hour = Math.max(Math.floor(percentY * 23), 0)
   const minutes = Math.min(Math.max(Math.round(Math.floor((percentY * 23 - hour) * 60) / 15) * 15, 0), 60)
   // We calculate the new startDate by adding the hour to the start of the selected date
-  const newStartDate = dayjs(selectedDate.value).startOf('day').add(hour, 'hour').add(minutes, 'minute')
+  const newStartDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day').add(hour, 'hour').add(minutes, 'minute')
   if (!newStartDate || !fromCol) return { newRow: null, updateProperty: [] }
 
   let endDate
@@ -521,30 +527,30 @@ const calculateNewRow = (event: MouseEvent, skipChangeCheck?: boolean) => {
     ...dragRecord.value,
     row: {
       ...dragRecord.value.row,
-      [fromCol.title!]: dayjs(newStartDate).format(updateFormat.value),
+      [fromCol.title!]: timezoneDayjs.dayjsTz(newStartDate).format(updateFormat.value),
     },
   }
 
   const updateProperty = [fromCol.title!]
 
   if (toCol) {
-    const fromDate = dragRecord.value.row[fromCol.title!] ? dayjs(dragRecord.value.row[fromCol.title!]) : null
-    const toDate = dragRecord.value.row[toCol.title!] ? dayjs(dragRecord.value.row[toCol.title!]) : null
+    const fromDate = dragRecord.value.row[fromCol.title!] ? timezoneDayjs.timezonize(dragRecord.value.row[fromCol.title!]) : null
+    const toDate = dragRecord.value.row[toCol.title!] ? timezoneDayjs.timezonize(dragRecord.value.row[toCol.title!]) : null
 
     // If there is an end date, we calculate the new end date based on the new start date and add the difference between the start and end date to the new start date
     if (fromDate && toDate) {
-      endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'hour'), 'hour')
+      endDate = timezoneDayjs.dayjsTz(newStartDate).add(toDate.diff(fromDate, 'hour'), 'hour')
     } else if (fromDate && !toDate) {
       // If there is no end date, we set the end date to the end of the day
-      endDate = dayjs(newStartDate).endOf('hour')
+      endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('hour')
     } else if (!fromDate && toDate) {
       // If there is no start date, we set the end date to the end of the day
-      endDate = dayjs(newStartDate).endOf('hour')
+      endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('hour')
     } else {
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol.title!] = dayjs(endDate).format(updateFormat.value)
+    newRow.row[toCol.title!] = timezoneDayjs.dayjsTz(endDate).format(updateFormat.value)
 
     updateProperty.push(toCol.title!)
   }
@@ -603,8 +609,8 @@ const onResize = (event: MouseEvent) => {
 
   if (!fromCol || !toCol) return
 
-  const ogEndDate = dayjs(resizeRecord.value.row[toCol.title!])
-  const ogStartDate = dayjs(resizeRecord.value.row[fromCol.title!])
+  const ogEndDate = timezoneDayjs.timezonize(resizeRecord.value.row[toCol.title!])
+  const ogStartDate = timezoneDayjs.timezonize(resizeRecord.value.row[fromCol.title!])
 
   const minutes = Math.round((percentY * 24 * 60) / 15) * 15 // Round to nearest 15 minutes
 
@@ -613,13 +619,13 @@ const onResize = (event: MouseEvent) => {
 
   if (resizeDirection.value === 'right') {
     // If the user is resizing the record to the right, we calculate the new end date based on the mouse position
-    let newEndDate = dayjs(selectedDate.value).startOf('day').add(minutes, 'minute')
+    let newEndDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day').add(minutes, 'minute')
 
     updateProperty = [toCol.title!]
 
     // If the new end date is before the start date, we set the new end date to the start date
     // This is to ensure the end date is always same or after the start date
-    if (dayjs(newEndDate).isBefore(ogStartDate.add(1, 'hour'))) {
+    if (timezoneDayjs.dayjsTz(newEndDate).isBefore(ogStartDate.add(1, 'hour'))) {
       newEndDate = ogStartDate.clone().add(1, 'hour')
     }
 
@@ -633,14 +639,14 @@ const onResize = (event: MouseEvent) => {
       },
     }
   } else if (resizeDirection.value === 'left') {
-    let newStartDate = dayjs(selectedDate.value).startOf('day').add(minutes, 'minute')
+    let newStartDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day').add(minutes, 'minute')
 
     updateProperty = [fromCol.title!]
 
     // If the new start date is after the end date, we set the new start date to the end date
     // This is to ensure the start date is always before or same the end date
-    if (dayjs(newStartDate).isAfter(ogEndDate.subtract(1, 'hour'))) {
-      newStartDate = dayjs(dayjs(ogEndDate)).clone().add(-1, 'hour')
+    if (timezoneDayjs.dayjsTz(newStartDate).isAfter(ogEndDate.subtract(1, 'hour'))) {
+      newStartDate = timezoneDayjs.dayjsTz(ogEndDate).clone().add(-1, 'hour')
     }
     if (!newStartDate) return
 
@@ -648,7 +654,7 @@ const onResize = (event: MouseEvent) => {
       ...resizeRecord.value,
       row: {
         ...resizeRecord.value.row,
-        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+        [fromCol.title!]: timezoneDayjs.dayjsTz(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
       },
     }
   }
@@ -783,7 +789,7 @@ const dropEvent = (event: DragEvent) => {
     const hour = Math.max(Math.floor(percentY * 23), 0)
     const minutes = Math.min(Math.max(Math.round(Math.floor((percentY * 23 - hour) * 60) / 15) * 15, 0), 60)
 
-    const newStartDate = dayjs(selectedDate.value).startOf('day').add(hour, 'hour').add(minutes, 'minute')
+    const newStartDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day').add(hour, 'hour').add(minutes, 'minute')
 
     let endDate
 
@@ -791,26 +797,26 @@ const dropEvent = (event: DragEvent) => {
       ...record,
       row: {
         ...record.row,
-        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+        [fromCol.title!]: timezoneDayjs.dayjsTz(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
       },
     }
 
     const updateProperty = [fromCol.title!]
 
     if (toCol) {
-      const fromDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
-      const toDate = record.row[toCol.title!] ? dayjs(record.row[toCol.title!]) : null
+      const fromDate = record.row[fromCol.title!] ? timezoneDayjs.timezonize(record.row[fromCol.title!]) : null
+      const toDate = record.row[toCol.title!] ? timezoneDayjs.timezonize(record.row[toCol.title!]) : null
 
       if (fromDate && toDate) {
-        endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
+        endDate = timezoneDayjs.dayjsTz(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
       } else if (fromDate && !toDate) {
-        endDate = dayjs(newStartDate).endOf('day')
+        endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('day')
       } else if (!fromDate && toDate) {
-        endDate = dayjs(newStartDate).endOf('day')
+        endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('day')
       } else {
         endDate = newStartDate.clone()
       }
-      newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
+      newRow.row[toCol.title!] = timezoneDayjs.dayjsTz(endDate).format('YYYY-MM-DD HH:mm:ssZ')
       updateProperty.push(toCol.title!)
     }
 
@@ -891,6 +897,10 @@ watch(
   { immediate: true },
 )
 
+watch([() => timezone], () => {
+  currTime.value = timezoneDayjs.dayjsTz()
+})
+
 const expandRecord = (record: Row) => {
   emit('expandRecord', record)
 }
@@ -935,7 +945,7 @@ const expandRecord = (record: Row) => {
           @dblclick="newRecord(hour)"
         >
           <div class="w-16 border-b-0 pr-2 pl-2 text-right text-xs text-gray-400 font-semibold h-13">
-            {{ dayjs(hour).format('hh a') }}
+            {{ timezoneDayjs.dayjsTz(hour).format('hh a') }}
           </div>
         </div>
       </div>
@@ -1095,7 +1105,7 @@ const expandRecord = (record: Row) => {
                   </template>
                   <template #time>
                     <div class="text-xs font-medium text-gray-400">
-                      {{ dayjs(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm a') }}
+                      {{ timezoneDayjs.timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm a') }}
                     </div>
                   </template>
                 </LazySmartsheetCalendarVRecordCard>

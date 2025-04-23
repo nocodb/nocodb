@@ -432,6 +432,7 @@ interface CellRendererOptions {
   path?: Array<number>
   renderAsPlainCell?: boolean
   fontFamily?: string
+  isRowHovered?: boolean
 }
 
 interface CellRenderStore {

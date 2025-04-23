@@ -178,12 +178,17 @@ export function useGridCellHandler(params: {
       isUnderLookup = false,
       path = [],
       fontFamily,
+      isRowHovered = false,
     }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
     const columnState = isColumnSortedOrFiltered(column.id!)
     if (columnState !== undefined) {
-      roundedRect(ctx, x, y, width, height, 0, { backgroundColor: filteredOrSortedAppearanceConfig[columnState].cellBgColor })
+      let bgColorProps: 'cellBgColor' | 'cellBgColor.hovered' | 'cellBgColor.selected' = 'cellBgColor'
+      if (isRowHovered) {
+        bgColorProps = 'cellBgColor.hovered'
+      }
+      roundedRect(ctx, x, y, width, height, 0, { backgroundColor: filteredOrSortedAppearanceConfig[columnState][bgColorProps] })
     }
     const cellType = cellTypesRegistry.get(column.uidt)
     if (actionManager?.isLoading(pk, column.id) && !isAIPromptCol(column) && !isButton(column)) {

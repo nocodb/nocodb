@@ -108,7 +108,7 @@ const scrollParent = inject(ScrollParentInj, ref<undefined>())
 
 const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
-const { isColumnSortedOrFiltered } = useColumnFilteredOrSorted()
+const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
@@ -1855,10 +1855,15 @@ function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
 
 const cellFilteredOrSortedClass = (colId: string) => {
   const columnState = isColumnSortedOrFiltered(colId)
-  return {
-    '!bg-yellow-100': columnState === 'FILTERED',
-    '!bg-red-100': columnState === 'SORTED'
+  if (columnState) {
+    const className = filteredOrSortedAppearanceConfig[columnState]?.cellBgClass
+    if (className) {
+      return {
+        [className]: true,
+      }
+    }
   }
+  return {}
 }
 
 // Keyboard shortcuts for pagination
@@ -3254,5 +3259,12 @@ onKeyStroke('ArrowDown', onDown)
   :deep(.ant-btn.ant-dropdown-trigger.ant-btn-icon-only) {
     @apply !flex items-center justify-center;
   }
+}
+
+.col-filtered {
+  background: var(--nc-background-coloured-green, #ecfff2) !important;
+}
+.col-sorted {
+  background: var(--nc-background-coloured-marooon, #fff0f7) !important;
 }
 </style>

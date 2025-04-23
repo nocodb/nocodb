@@ -42,6 +42,8 @@ const filterComp = ref<typeof ColumnFilter>()
 
 const { nestedFilters, eventBus } = useSmartsheetStoreOrThrow()
 
+const { appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
+
 // todo: avoid duplicate api call by keeping a filter store
 const { nonDeletedFilters, loadFilters } = useViewFilters(
   activeView!,
@@ -122,7 +124,15 @@ const combinedFilterLength = computed(() => {
             }}</span>
           </div>
 
-          <span v-if="combinedFilterLength" class="bg-yellow-100 py-1 px-2 text-md rounded-md">{{ combinedFilterLength }}</span>
+          <span
+            v-if="combinedFilterLength"
+            class="py-1 px-2 text-md rounded-md"
+            :class="{
+              [filteredOrSortedAppearanceConfig.FILTERED.toolbarBgClass]: true,
+              [filteredOrSortedAppearanceConfig.FILTERED.toolbarTextClass]: true,
+            }"
+            >{{ combinedFilterLength }}</span
+          >
 
           <!--    show a warning icon with tooltip if query filter error is there -->
           <template v-if="filtersFromUrlParams?.errors?.length">

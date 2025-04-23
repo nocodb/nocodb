@@ -1,12 +1,4 @@
-import {
-  type ColumnType,
-  type FilterType,
-  type TableType,
-  UITypes,
-  type UserType,
-  type ViewType,
-  isAIPromptCol,
-} from 'nocodb-sdk'
+import { type ColumnType, type TableType, UITypes, type UserType, type ViewType, isAIPromptCol } from 'nocodb-sdk'
 import { renderSingleLineText, renderSpinner, roundedRect } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'

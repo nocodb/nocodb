@@ -4,7 +4,7 @@ import type Stripe from 'stripe'
 
 const { t } = useI18n()
 
-const { invoices, invoicePaginationData, plansAvailable, activeWorkspace } = usePaymentStoreOrThrow()
+const { invoices, invoicePaginationData, plansAvailable, activeWorkspace, loadInvoices } = usePaymentStoreOrThrow()
 
 const paginatedData = computed(() => {
   const { page, pageSize } = invoicePaginationData.value
@@ -66,6 +66,12 @@ const columns: NcTableColumnProps<Stripe.Invoice>[] = [
     minWidth: 130,
   },
 ]
+
+onMounted(() => {
+  if (!activeWorkspace.value?.stripe_customer_id) return
+
+  loadInvoices()
+})
 </script>
 
 <template>

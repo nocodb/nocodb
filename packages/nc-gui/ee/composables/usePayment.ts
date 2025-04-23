@@ -333,7 +333,6 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     async () => {
       if (activeWorkspaceId.value) {
         await loadWorkspaceSeatCount()
-        await loadInvoices()
       }
     },
     { immediate: true },

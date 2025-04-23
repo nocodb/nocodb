@@ -256,6 +256,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
       <template #action>
         <div v-if="recordInfo.isLimitReached || storageInfo.isLimitReached" class="flex items-center justify-center">
           <PaymentExpiresIn
+            v-if="gracePeriodEndDate"
             :end-time="gracePeriodEndDate"
             hide-icon
             hide-label

@@ -1188,7 +1188,7 @@ export function useCanvasRender({
           skipRender: isCellEditEnabled,
           isRowHovered: isHovered,
           isRowChecked: row.rowMeta.selected,
-          isCellInSelectionRange: selection.value.isCellInRange({ row: rowIdx, col: colIdx }),
+          isCellInSelectionRange: selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup,
         })
         ctx.restore()
         xOffset += width
@@ -1270,7 +1270,7 @@ export function useCanvasRender({
               path: groupPath,
               isRowHovered: isHovered,
               isRowChecked: row.rowMeta.selected,
-              isCellInSelectionRange: selection.value.isCellInRange({ row: rowIdx, col: colIdx }),
+              isCellInSelectionRange: selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup,
             })
             ctx.restore()
           }
@@ -2877,6 +2877,7 @@ export function useCanvasRender({
         mousePosition,
         skipRender: false,
         fontFamily: '700 13px Manrope',
+        isGroupHeader: true,
       })
     } else {
       renderCell(ctx, group.column, {
@@ -2899,6 +2900,7 @@ export function useCanvasRender({
         skipRender: false,
         renderAsPlainCell: true,
         fontFamily: '700 13px Manrope',
+        isGroupHeader: true,
       })
     }
   }

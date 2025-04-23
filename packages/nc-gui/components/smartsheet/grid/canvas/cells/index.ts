@@ -181,25 +181,28 @@ export function useGridCellHandler(params: {
       isRowHovered = false,
       isRowChecked = false,
       isCellInSelectionRange = false,
+      isGroupHeader = false,
       rowMeta = {},
     }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
-    const columnState = isColumnSortedOrFiltered(column.id!)
-    if (columnState !== undefined && !rowMeta?.isValidationFailed) {
-      let bgColorProps: 'cellBgColor' | 'cellBgColor.hovered' | 'cellBgColor.selected' = 'cellBgColor'
-      let borderColorProps: 'cellBorderColor' | 'cellBorderColor.hovered' | 'cellBorderColor.selected' = 'cellBorderColor'
-      if (selected || isRowChecked || isCellInSelectionRange) {
-        bgColorProps = 'cellBgColor.selected'
-        borderColorProps = 'cellBorderColor.selected'
-      } else if (isRowHovered) {
-        bgColorProps = 'cellBgColor.hovered'
-        borderColorProps = 'cellBorderColor.hovered'
+    if (!isGroupHeader) {
+      const columnState = isColumnSortedOrFiltered(column.id!)
+      if (columnState !== undefined && !rowMeta?.isValidationFailed) {
+        let bgColorProps: 'cellBgColor' | 'cellBgColor.hovered' | 'cellBgColor.selected' = 'cellBgColor'
+        let borderColorProps: 'cellBorderColor' | 'cellBorderColor.hovered' | 'cellBorderColor.selected' = 'cellBorderColor'
+        if (selected || isRowChecked || isCellInSelectionRange) {
+          bgColorProps = 'cellBgColor.selected'
+          borderColorProps = 'cellBorderColor.selected'
+        } else if (isRowHovered) {
+          bgColorProps = 'cellBgColor.hovered'
+          borderColorProps = 'cellBorderColor.hovered'
+        }
+        roundedRect(ctx, x, y, width, height, 0, {
+          backgroundColor: filteredOrSortedAppearanceConfig[columnState][bgColorProps],
+          borderColor: filteredOrSortedAppearanceConfig[columnState][borderColorProps],
+        })
       }
-      roundedRect(ctx, x, y, width, height, 0, {
-        backgroundColor: filteredOrSortedAppearanceConfig[columnState][bgColorProps],
-        borderColor: filteredOrSortedAppearanceConfig[columnState][borderColorProps],
-      })
     }
     const cellType = cellTypesRegistry.get(column.uidt)
     if (actionManager?.isLoading(pk, column.id) && !isAIPromptCol(column) && !isButton(column)) {

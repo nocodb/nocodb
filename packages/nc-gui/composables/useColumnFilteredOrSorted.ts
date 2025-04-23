@@ -54,8 +54,8 @@ export function useColumnFilteredOrSorted() {
     },
     SORTED: {
       'cellBgColor': '#FFF0F7',
-      'cellBgColor.hovered': '#FFCFE6',
-      'cellBgColor.selected': '#FFCFE6',
+      'cellBgColor.hovered': '#FFDBEC',
+      'cellBgColor.selected': '#FFDBEC',
       'cellBgClass': '!bg-maroon-50 hover:(bg-maroon-100)',
       'toolbarBgClass': 'bg-maroon-50',
       'toolbarTextClass': 'text-pink-700',

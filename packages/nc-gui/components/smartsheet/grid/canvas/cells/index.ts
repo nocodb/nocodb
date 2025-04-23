@@ -180,13 +180,14 @@ export function useGridCellHandler(params: {
       fontFamily,
       isRowHovered = false,
       isRowChecked = false,
+      isCellInSelectionRange = false,
     }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
     const columnState = isColumnSortedOrFiltered(column.id!)
     if (columnState !== undefined) {
       let bgColorProps: 'cellBgColor' | 'cellBgColor.hovered' | 'cellBgColor.selected' = 'cellBgColor'
-      if (selected || isRowChecked) {
+      if (selected || isRowChecked || isCellInSelectionRange) {
         bgColorProps = 'cellBgColor.selected'
       } else if (isRowHovered) {
         bgColorProps = 'cellBgColor.hovered'

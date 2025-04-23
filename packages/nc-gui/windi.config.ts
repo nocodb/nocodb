@@ -38,6 +38,8 @@ export default defineConfig({
     'text-grey',
     '!bg-green-50',
     '!bg-maroon-50',
+    '!bg-green-100',
+    '!bg-maroon-100',
   ],
   plugins: [
     scrollbar,

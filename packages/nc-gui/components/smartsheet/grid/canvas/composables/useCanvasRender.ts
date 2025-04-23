@@ -1186,6 +1186,7 @@ export function useCanvasRender({
           pk,
           path: groupPath,
           skipRender: isCellEditEnabled,
+          isRowHovered: isHovered,
         })
         ctx.restore()
         xOffset += width
@@ -1265,6 +1266,7 @@ export function useCanvasRender({
               pk,
               skipRender: isCellEditEnabled,
               path: groupPath,
+              isRowHovered: isHovered,
             })
             ctx.restore()
           }
@@ -1489,7 +1491,11 @@ export function useCanvasRender({
         activeState = renderedProp.activeState ?? activeState
         renderRedBorders = [...renderRedBorders, ...renderedProp.renderRedBorders]
         if (row) {
-          const isHover = hoverRow.value === row.rowMeta.rowIndex
+          const rowContext = {
+            get isHover() {
+              return hoverRow.value === row.rowMeta.rowIndex
+            },
+          }
           const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
 
           const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
@@ -1564,7 +1570,7 @@ export function useCanvasRender({
               mousePosition,
               pk,
               skipRender: isCellEditEnabled,
-              isRowHovered: isHover,
+              isRowHovered: rowContext.isHover,
               isRowChecked: isChecked,
               isCellInSelectionRange: selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }),
             })
@@ -1638,7 +1644,7 @@ export function useCanvasRender({
                   disabled: column?.isInvalidColumn,
                   pk,
                   skipRender: isCellEditEnabled,
-                  isRowHovered: isHover,
+                  isRowHovered: rowContext.isHover,
                   isRowChecked: isChecked,
                   isCellInSelectionRange: selection.value.isCellInRange({ row: rowIdx, col: colIdx }),
                 })

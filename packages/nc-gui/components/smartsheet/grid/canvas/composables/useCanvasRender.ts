@@ -897,7 +897,7 @@ export function useCanvasRender({
         size: 16,
         x: currentX + 2,
         y: yOffset + (rowHeight.value - 16) / 2,
-        color: isHovered ? '#3265FF' : '#6B7280',
+        color: isHovered && !selectedRows.value.length ? '#3265FF' : '#6B7280',
       })
       currentX += 24
     } else {

@@ -43,6 +43,7 @@ export interface AppInfo {
   sentryDSN: string
   isOnPrem: boolean
   stripePublishableKey?: string
+  marketingRootUrl?: string
 }
 
 export interface StoredState {

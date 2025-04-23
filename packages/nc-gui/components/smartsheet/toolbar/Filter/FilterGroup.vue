@@ -113,8 +113,8 @@ const innerAdd = async (isGroup: boolean) => {
       filters: vModel.value,
       index: props.index,
       value: [...vModel.value],
-      tmp_fk_parent_id: props.tmp_fk_parent_id,
-      fk_parent_id: props.fk_parent_id,
+      tmp_fk_parent_id: props.tmpFkParentId,
+      fk_parent_id: props.fkParentId,
       prevValue,
     })
   } else if (!isGroup && props.handler?.addFilter) {
@@ -124,8 +124,8 @@ const innerAdd = async (isGroup: boolean) => {
       filters: vModel.value,
       index: props.index,
       value: [...vModel.value],
-      tmp_fk_parent_id: props.tmp_fk_parent_id,
-      fk_parent_id: props.fk_parent_id,
+      tmp_fk_parent_id: props.tmpFkParentId,
+      fk_parent_id: props.fkParentId,
       prevValue,
     })
   } else {
@@ -135,8 +135,8 @@ const innerAdd = async (isGroup: boolean) => {
           is_group: true,
           logical_op: vModel.value[0]?.logical_op ?? 'and',
           children: [],
-          fk_parent_id: props.fk_parent_id,
-          tmp_fk_parent_id: props.tmp_fk_parent_id,
+          fk_parent_id: props.fkParentId,
+          tmp_fk_parent_id: props.tmpFkParentId,
           order: (vModel.value?.[vModel.value?.length - 1]?.order ?? 0) + 1,
         }
       : {
@@ -145,8 +145,8 @@ const innerAdd = async (isGroup: boolean) => {
           logical_op: vModel.value[0]?.logical_op ?? 'and',
           fk_column_id: props.columns[0].id,
           comparison_op: null,
-          fk_parent_id: props.fk_parent_id,
-          tmp_fk_parent_id: props.tmp_fk_parent_id,
+          fk_parent_id: props.fkParentId,
+          tmp_fk_parent_id: props.tmpFkParentId,
           order: (vModel.value?.[vModel.value?.length - 1]?.order ?? 0) + 1,
         }
     if (!newFilter.is_group) {
@@ -165,8 +165,8 @@ const innerAdd = async (isGroup: boolean) => {
       filters: [...vModel.value],
       index: props.index,
       value: [...vModel.value],
-      tmp_fk_parent_id: props.tmp_fk_parent_id,
-      fk_parent_id: props.fk_parent_id,
+      tmp_fk_parent_id: props.tmpFkParentId,
+      fk_parent_id: props.fkParentId,
       prevValue,
     })
   }
@@ -201,8 +201,8 @@ const onFilterDelete = async (
       filters: vModel.value,
       index: props.index,
       value: [...vModel.value],
-      tmp_fk_parent_id: props.tmp_fk_parent_id,
-      fk_parent_id: props.fk_parent_id,
+      tmp_fk_parent_id: props.tmpFkParentId,
+      fk_parent_id: props.fkParentId,
       prevValue,
     })
   } else {
@@ -214,8 +214,8 @@ const onFilterDelete = async (
       filters: [...vModel.value],
       index: props.index,
       value: [...vModel.value],
-      tmp_fk_parent_id: props.tmp_fk_parent_id,
-      fk_parent_id: props.fk_parent_id,
+      tmp_fk_parent_id: props.tmpFkParentId,
+      fk_parent_id: props.fkParentId,
       prevValue,
     })
   }

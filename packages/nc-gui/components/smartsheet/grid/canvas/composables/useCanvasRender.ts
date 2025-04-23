@@ -33,6 +33,7 @@ import {
   calculateGroupHeight,
   calculateGroupRange,
   calculateGroupRowTop,
+  comparePath,
   generateGroupPath,
   getGroupColors,
 } from '../utils/groupby'
@@ -818,8 +819,7 @@ export function useCanvasRender({
       width: number
     },
   ) => {
-    const isHover =
-      hoverRow.value?.rowIndex === row.rowMeta.rowIndex && hoverRow.value?.path?.join('-') === row.rowMeta?.path?.join('-')
+    const isHover = hoverRow.value?.rowIndex === row.rowMeta.rowIndex && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
 
     ctx.fillStyle = isHover ? '#F9F9FA' : '#ffffff'
     if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
@@ -1130,9 +1130,8 @@ export function useCanvasRender({
       column: CanvasGridColumn
     }[] = []
     const groupPath = generateGroupPath(group)
-    const isHovered = hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path?.join('-') === row?.rowMeta?.path?.join('-')
-
-    const isActiveCellInCurrentGroup = (activeCell.value?.path?.join('-') ?? '') === (groupPath?.join('-') ?? '')
+    const isHovered = hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
+    const isActiveCellInCurrentGroup = comparePath(activeCell.value?.path, groupPath)
 
     if (row) {
       const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
@@ -1514,9 +1513,7 @@ export function useCanvasRender({
         }
 
         ctx.fillStyle =
-          hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path?.join('-') === row?.rowMeta?.path?.join('-')
-            ? '#F9F9FA'
-            : '#ffffff'
+          hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path) ? '#F9F9FA' : '#ffffff'
         ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
         const renderedProp = renderRow(ctx, {
           row,
@@ -2146,7 +2143,7 @@ export function useCanvasRender({
         rowsToFetch.push(i)
       }
 
-      const isHovered = hoverRow.value?.rowIndex === i && hoverRow.value?.path?.join('-') === row?.rowMeta?.path?.join('-')
+      const isHovered = hoverRow.value?.rowIndex === i && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
 
       roundedRect(ctx, indent, yOffset, adjustedWidth, rowHeight.value, 0, {
         backgroundColor: isHovered ? '#F9F9FA' : '#fff',

@@ -1460,7 +1460,7 @@ export function useCanvasRender({
         yOffset < height.value &&
         (!removeInlineAddRecord.value || rowIdx <= EXTERNAL_SOURCE_TOTAL_ROWS)
       ) {
-        const row = dataCache.cachedRows.value.get(rowIdx)
+        let row = dataCache.cachedRows.value.get(rowIdx)
 
         if (rowIdx === draggedRowIndex.value) {
           ctx.globalAlpha = 0.5

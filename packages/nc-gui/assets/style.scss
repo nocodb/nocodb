@@ -921,6 +921,14 @@ input[type='number'] {
   }
 }
 
+.ant-message {
+  @apply !bottom-16 !md:bottom-4 !top-auto px-2 md:px-4;
+}
+
+.ant-message-notice {
+  @apply !text-center !md:text-right;
+}
+
 .ant-message-notice-content {
   @apply !rounded-md;
   .ant-message-custom-content {
@@ -1330,4 +1338,25 @@ svg.nc-virtual-cell-icon {
       font-synthesis: initial !important;
     }
   }
+}
+
+.nc-cell-field {
+  &.nc-text-transparent {
+    @apply text-transparent;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+.nc-custom-daner-btn {
+  @apply !text-nc-content-red-medium !hover:(bg-nc-fill-red-medium border-nc-fill-red-medium text-white);
+}
+
+.nc-truncate {
+  @apply max-w-full overflow-hidden whitespace-nowrap overflow-ellipsis;
+}
+
+.nc-flex-1 {
+  -webkit-box-flex: 1;
+  flex-grow: 1;
+  flex-shrink: 1;
 }

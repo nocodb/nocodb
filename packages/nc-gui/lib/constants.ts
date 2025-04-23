@@ -15,7 +15,7 @@ export const GROUP_BY_VARS = {
   TRUE: '__nc_true__',
   FALSE: '__nc_false__',
   VAR_TITLES: {
-    __nc_null__: 'Empty',
+    __nc_null__: '(Empty)',
     __nc_true__: 'Checked',
     __nc_false__: 'Unchecked',
   } as Record<string, string>,
@@ -24,3 +24,9 @@ export const GROUP_BY_VARS = {
 export const INITIAL_LEFT_SIDEBAR_WIDTH = 288
 
 export const NO_SCOPE = SDK_NO_SCOPE
+
+export const ANT_MESSAGE_DURATION = +(process.env.ANT_MESSAGE_DURATION ?? (ncIsPlaywright() ? 1 : 6))
+
+export const EXTERNAL_SOURCE_TOTAL_ROWS = 200
+
+export const EXTERNAL_SOURCE_VISIBLE_ROWS = 100

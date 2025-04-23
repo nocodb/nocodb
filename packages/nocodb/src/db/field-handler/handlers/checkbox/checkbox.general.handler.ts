@@ -23,6 +23,7 @@ export class CheckboxGeneralHandler extends GenericFieldHandler {
       } as FilterVerificationResult;
     }
     if (
+      ['eq', 'neq'].includes(filter.comparison_op) &&
       ![null, true, false, 'true', 'false', '', 1, 0, '1', '0'].includes(
         filter.value,
       )

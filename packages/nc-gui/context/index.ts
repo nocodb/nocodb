@@ -10,6 +10,7 @@ export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
 export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')
 export const RowInj: InjectionKey<Ref<Row>> = Symbol('row')
 export const ColumnInj: InjectionKey<Ref<ColumnType>> = Symbol('column-injection')
+export const GroupPathInj: InjectionKey<Ref<ColumnType>> = Symbol('group-path-injection')
 export const CanvasColumnInj: InjectionKey<Ref<ColumnType>> = Symbol('canvas-column-injection')
 export const MetaInj: InjectionKey<ComputedRef<TableType> | Ref<TableType>> = Symbol('meta-injection')
 export const TabMetaInj: InjectionKey<ComputedRef<TabItem> | Ref<TabItem>> = Symbol('tab-meta-injection')
@@ -39,6 +40,7 @@ export const ReloadViewDataHookInj: InjectionKey<
     isFromLinkRecord?: boolean
     relatedTableMetaId?: string
     rowId?: string
+    path?: Array<number>
   } | void>
 > = Symbol('reload-view-data-injection')
 export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')
@@ -48,10 +50,11 @@ export const ReloadRowDataHookInj: InjectionKey<EventHook<{ shouldShowLoading?: 
 export const ReloadAggregateHookInj: InjectionKey<
   EventHook<
     | {
-        fields: {
+        fields?: {
           title: string
           aggregation?: string
         }[]
+        path?: Array<number>
       }
     | undefined
   >
@@ -131,3 +134,5 @@ export const CanvasSelectCellInj: InjectionKey<EventHook | undefined> = Symbol('
 
 export const IsPageDesignerExtensionActiveInj: InjectionKey<boolean> = Symbol('is-page-designer-extension-active')
 export const IsLinkRecordDropdownInj: InjectionKey<Ref<boolean>> = Symbol('is-link-record-dropdown-injection')
+
+export const PlanUpgraderClickHookInj: InjectionKey<EventHook<void>> = Symbol('plan-upgrader-click-hook-injection')

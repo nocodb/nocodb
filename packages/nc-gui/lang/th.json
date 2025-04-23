@@ -92,6 +92,59 @@
     "attachment_size": "ขนาดไฟล์แนบ",
     "none": "ไม่มี"
   },
+  "upgrade": {
+    "UpgradeToInviteMore": "Invite more members",
+    "UpgradeToInviteMoreSubtitle": "The {activePlan} plan allows up to {editors} editors & {commenters} commenters per workspace. Upgrade to the {plan} plan for unlimited users.",
+    "UpgradeToPlanToAccessThisFeature": "Upgrade to {plan} plan to access this feature",
+    "UpgradeToCreateAdditionalSnapshots": "Upgrade to create additional snapshots",
+    "UpgradeToCreateAdditionalSnapshotsSubtitle": "The {activePlan} plan allows up to {n} snapshots. Upgrade to the {plan} plan and get access to additional snapshots.",
+    "UpgradeToCreateSnapshots": "Upgrade to create snapshots",
+    "UpgradeToCreateSnapshotsSubtitle": "The {activePlan} plan doesn't allow to create snapshots. Upgrade to the {plan} plan and get access to snapshots.",
+    "upgradeToAddCustomBannerSubtitle": "Upload a custom banner to the form by upgrading your workspace to the {plan} plan.",
+    "upgradeToAddCustomLogoSubtitle": "Upload your Logo on the form by upgrading your workspace  to the {plan} plan.",
+    "upgradeToHideFormBrandingSubtitle": "Hide NocoDB branding by upgrading your workspace  to the {plan} plan.",
+    "upgradeToAddRedirectUrlSubtitle": "Redirect your users to another webpage after filling out the form by upgrading to the {plan} plan.",
+    "upgradeToAddCustomValidationSubtitle": "Add custom validations by upgrading your workspace to the {plan} plan.",
+    "upgradeToAddCustomUrlSubtitle": "Create custom URL by upgrading your workspace to the {plan} plan.",
+    "upgradeToAccessPersonalViewSubtitle": "Access Personal view by upgrading your workspace to the {plan} plan.",
+    "upgradeToAccessReassignViewSubtitle": "Access Re-assign view feature by upgrading your workspace to the {plan} plan.",
+    "updateToAddRecordFormView": "This Form is no longer accepting submissions",
+    "updateToAddRecordFormViewSubtitle": "You’ve reached the limit for number of records on your {activePlan} plan. Upgrade to increase your record limit.",
+    "updateToExtendRecordHistory": "Upgrade to extend your history",
+    "updateToExtendRecordHistorySubtitle": "The {activePlan} plan allows up to {period} of audit history. Upgrade to the {plan} plan to increase your audit history period.",
+    "planLimitReached": "Plan limit reached",
+    "planLimitReachedSubtitle": "Upgrade to add more records",
+    "upgradeToAddLimitRecordSelection": "To limit record selection using filters, please upgrade to the {plan} plan.",
+    "upgradeToAdd": "Upgrade to add",
+    "requestUpgradeToAdd": "Request upgrade to add",
+    "upgradeToAddMoreExtensions": "You're currently on the Free plan, which allows only one extension. Upgrade to unlock unlimited extensions.",
+    "upgradeToAccessWsAudit": "Upgrade to access workspace audit",
+    "upgradeToAccessWsAuditSubtitle": "Upgrade to the {plan} plan to enable workspace audit logs and efficiently monitor key activities.",
+    "upgradeToAddMoreAttachments": "Upgrade to add more attachments",
+    "upgradeToAddMoreAttachmentsSubtitle": "The {activePlan} plan allows up to {limit} storage. Upgrade to the {plan} plan to increase your storage limit.",
+    "upgradeToCreateMoreRecords": "Upgrade to create more records",
+    "upgradeToCreateMoreRecordsSubtitle": "The {activePlan} plan allows up to {limit} records. Upgrade to the {plan} plan to increase your record limit.",
+    "upgradeToCreateMoreRecordsForm": "This form is currently not accepting submissions",
+    "upgradeToCreateMoreRecordsFormSubtitle": "The owner may need to upgrade their workspace plan before this form can accept additional submissions.",
+    "upgradeToAccessFieldValidationSubtitle": "Add field validations by upgrading your workspace to the {plan} plan.",
+    "upgradeToAddExternalSource": "Upgrade to connect more external sources",
+    "upgradeToAddExternalSourceSubtitle": "Your current {activePlan} plan supports only {limit} external source. Upgrade to the {plan} plan to connect multiple external sources.",
+    "upgradeToAddWebhook": "Upgrade to add unlimited webhooks",
+    "upgradeToAddWebhookSubtitle": "The {activePlan} plan allows up to {limit} webhooks. Upgrade to the {plan} plan and get access to unlimited webhooks.",
+    "upgradeToAccessWebhookLogsSubtitle": "Access webhook logs by upgrading your workspace to the {plan} plan.",
+    "formOwnerNotified": "Form owner notified",
+    "formOwnerNotifiedSubtitle": "We've notified the form owner about your submission request.",
+    "WorkspaceOwnerNotified": "Workspace owner notified",
+    "WorkspaceOwnerNotifiedSubtitle": "Your request to upgrade has been shared with the workspace owner.",
+    "failedToSendUpgradeRequest": "Failed to send upgrade request",
+    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
+    "upgradeToSeeMoreRecordSubtitle": "Unlock complete visibility into your connected sources. View all records by upgrading to the Team plan.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month."
+  },
   "general": {
     "supported": "Supported",
     "usage": "Usage",
@@ -311,7 +364,22 @@
     "unread": "Unread",
     "shared": "Shared",
     "organization": "Organization",
-    "all": "All"
+    "all": "All",
+    "billing": "Billing",
+    "choose": "Choose",
+    "plan": "Plan",
+    "plans": "Plans",
+    "monthly": "Monthly",
+    "annually": "Annually",
+    "yearly": "Yearly",
+    "paid": "Paid",
+    "billable": "Billable",
+    "total": "Total",
+    "downgrade": "Downgrade",
+    "upgrade": "Upgrade",
+    "requestUpgrade": "Request Upgrade",
+    "reactivate": "Reactivate",
+    "left": "left"
   },
   "objects": {
     "script": "Script",
@@ -320,6 +388,7 @@
     "owner": "เจ้าของ",
     "member": "สมาชิก",
     "day": "วัน",
+    "days": "Days",
     "week": "สัปดาห์",
     "month": "เดือน",
     "year": "ปี",
@@ -340,7 +409,9 @@
     "page": "หน้าหนังสือ",
     "pages": "หน้า",
     "record": "บันทึก",
+    "group": "group",
     "records": "บันทึก",
+    "groups": "groups",
     "webhook": "webhook",
     "webhooks": "เว็บฮุค",
     "view": "ดู",
@@ -458,6 +529,27 @@
       "ai": "AI",
       "spreadSheet": "สเปรดชีต",
       "spreadSheetSubtitle": "เชื่อมต่อและจัดการสเปรดชีตของคุณกับ NocoDB."
+    },
+    "ncMessage": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Information",
+      "warning": "Alert"
+    },
+    "paymentPlan": {
+      "Free": "Free",
+      "Team": "Team",
+      "Plus": "Plus",
+      "Business": "Business",
+      "Enterprise": "Enterprise"
+    },
+    "currentPlan": {
+      "nextInvoice": "Next invoice",
+      "numberOfBilledUsers": "Number of billed users",
+      "numberOfBillableUsers": "Number of billable users",
+      "storageUsedGB": "Storage used (GB)",
+      "webhookCallsMonthly": "Webhook calls (monthly)",
+      "apiCallsMonthly": "API calls (monthly)"
     }
   },
   "datatype": {
@@ -683,7 +775,21 @@
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
     "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
-    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration."
+    "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration.",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock extra records, more storage, SSO, integrations, Audit logs, and more!",
+    "currentPlan": "Current Plan",
+    "seatMonth": "/seat/month",
+    "mostPopular": "Most Popular",
+    "helpAndSupport": "Help & Support",
+    "helpAndSupportSubtitle": "Visit our Support Center for detailed guides, customer service contact options, and a community forum for additional help.",
+    "faq": "FAQ",
+    "faqSubtitle": "Explore the FAQ section and get quick answers to common questions about our services, features, and troubleshooting. ",
+    "downgradeToPlan": "Downgrade to {plan} plan?",
+    "downgradeToPlanSubtitle": "You'll lose access to {activePlan} plan features that aren't available in the {plan} plan.",
+    "upgradeToPlan": "Upgrade to {plan} plan",
+    "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
+    "reactivateToPlan": "Reactivate {plan} plan?"
   },
   "labels": {
     "restoringSnapshot": "Restoring Snapshot",
@@ -1159,7 +1265,19 @@
     "newOwner": "New owner",
     "addFromUrl": "Add from URL",
     "enterJson": "Enter JSON",
-    "airtableBase": "Airtable base"
+    "airtableBase": "Airtable base",
+    "upgradePlan": "Upgrade Plan",
+    "viewAllPlanDetails": "View all plan details",
+    "contactSales": "Contact Sales",
+    "manageSubscription": "Manage Subscription",
+    "upgradeToPlan": "Upgrade To {plan}",
+    "applicableTax": "Applicable tax",
+    "annualSavings": "Annual Savings",
+    "compareAllFeatures": "Compare all features",
+    "planIncludes": "{plan} Includes:",
+    "everythingInPlanPlus": "Everything in {plan}, Plus:",
+    "downloadInvoice": "Download Invoice",
+    "proceed": "Proceed"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1442,7 +1560,9 @@
     "goToDocs": "ไปที่เอกสาร",
     "addCondition": "เพิ่มเงื่อนไข",
     "addConditionGroup": "เพิ่มกลุ่มเงื่อนไข",
-    "pending": "Pending"
+    "pending": "Pending",
+    "goToPage": "Go to Page",
+    "changePlan": "ChangePlan"
   },
   "tooltip": {
     "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
@@ -1499,7 +1619,8 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "Expand 'Shift + Space'",
     "selectAllMappedFields": "Select all mapped fields",
-    "copyErrorCode": "Copy error code"
+    "copyErrorCode": "Copy error code",
+    "paidUserBadgeTooltip": "User has an editor or higher role in at least one base."
   },
   "placeholder": {
     "searchIcons": "ค้นหาไอคอน",
@@ -2019,7 +2140,9 @@
       "duplicateTableName": "Duplicate table name",
       "importError": "Import Error",
       "anErrorOccuredWhileImporting": "An error occurred while {type}",
-      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable"
+      "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable",
+      "paymentFailed": "Payment Failed",
+      "paymentFailedSubtitle": "Something went wrong while processing your payment. Please try again or contact support."
     },
     "toast": {
       "exportMetadata": "ข้อมูลเมตาของโครงการส่งออกเรียบร้อยแล้ว",
@@ -2080,7 +2203,9 @@
       "settingsSaved": "บันทึกการตั้งค่าสำเร็จ",
       "roleUpdated": "อัปเดตบทบาทสำเร็จแล้ว",
       "connectionAdded": "เชื่อมต่อการผสานสำเร็จแล้ว",
-      "connectionAddedDesc": "เจ้าของฐานและผู้สร้างสามารถเพิ่มแหล่งข้อมูลโดยไม่ต้องป้อนข้อมูลประจำตัวอีกครั้งแล้ว."
+      "connectionAddedDesc": "เจ้าของฐานและผู้สร้างสามารถเพิ่มแหล่งข้อมูลโดยไม่ต้องป้อนข้อมูลประจำตัวอีกครั้งแล้ว.",
+      "paymentSuccessful": "Payment Successful",
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

@@ -210,7 +210,7 @@ export const RatingCellRenderer: CellRenderer = {
       }
     }
   },
-  async handleClick({ mousePosition, column, row, getCellPosition, updateOrSaveRow, value, cellRenderStore, readonly }) {
+  async handleClick({ mousePosition, column, row, getCellPosition, updateOrSaveRow, value, cellRenderStore, readonly, path }) {
     if (!row || !column || readonly) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
@@ -227,7 +227,7 @@ export const RatingCellRenderer: CellRenderer = {
 
     if (iconIdx + 1 === value) {
       row.row[column.title] = 0
-      await updateOrSaveRow?.(row, column.title)
+      await updateOrSaveRow?.(row, column.title, undefined, undefined, undefined, path)
 
       cellRenderStore.ratingChanged = {
         value: 0,
@@ -238,7 +238,7 @@ export const RatingCellRenderer: CellRenderer = {
     }
 
     row.row[column.title] = iconIdx + 1
-    await updateOrSaveRow?.(row, column.title)
+    await updateOrSaveRow?.(row, column.title, undefined, undefined, undefined, path)
 
     cellRenderStore.ratingChanged = {
       value: iconIdx + 1,
@@ -249,13 +249,13 @@ export const RatingCellRenderer: CellRenderer = {
   },
 
   async handleKeyDown(ctx) {
-    const { e, row, column, updateOrSaveRow, readonly } = ctx
+    const { e, row, column, updateOrSaveRow, readonly, path } = ctx
     if (column.readonly || readonly) return
     const columnObj = column.columnObj
 
     if (/^[0-9]$/.test(e.key)) {
       row.row[columnObj.title!] = Number(e.key)
-      await updateOrSaveRow(row, columnObj.title)
+      await updateOrSaveRow(row, columnObj.title, undefined, undefined, undefined, path)
       return true
     }
 

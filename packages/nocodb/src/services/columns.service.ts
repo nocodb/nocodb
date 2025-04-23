@@ -1851,6 +1851,54 @@ export class ColumnsService implements IColumnsService {
       for (const col of calendarRanges ?? []) {
         await CalendarRange.delete(col.id, context);
       }
+    } else if (
+      [
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+      ].includes(colBody.uidt)
+    ) {
+      const calendarRanges = await CalendarRange.IsColumnBeingUsedAsRange(
+        context,
+        column.id,
+      );
+
+      for (const range of calendarRanges ?? []) {
+        if (range.fk_from_column_id === column.id && range.fk_to_column_id) {
+          const endColumn = await Column.get(context, {
+            colId: range.fk_to_column_id,
+          });
+
+          const uidtMatches = endColumn && endColumn.uidt === colBody.uidt;
+          const timezoneMatches =
+            !colBody.meta?.timezone ||
+            !endColumn?.meta?.timezone ||
+            colBody.meta.timezone === endColumn.meta.timezone;
+
+          if (!uidtMatches || !timezoneMatches) {
+            await CalendarRange.delete(range.id, context);
+          }
+        } else if (
+          range.fk_to_column_id === column.id &&
+          range.fk_from_column_id
+        ) {
+          const startColumn = await Column.get(
+            context,
+            { colId: range.fk_from_column_id },
+          );
+
+          const uidtMatches = startColumn && startColumn.uidt === colBody.uidt;
+          const timezoneMatches =
+            !colBody.meta?.timezone ||
+            !startColumn?.meta?.timezone ||
+            colBody.meta.timezone === startColumn.meta.timezone;
+
+          if (!uidtMatches || !timezoneMatches) {
+            await CalendarRange.delete(range.id, context);
+          }
+        }
+      }
     }
 
     if (
@@ -3855,7 +3903,7 @@ export class ColumnsService implements IColumnsService {
           // todo: sanitize
           mm: true,
           columns: associateTableCols,
-          user_id: param.user.id,
+          user_id: param.user?.id,
         },
       );
 

@@ -1,6 +1,9 @@
 import { isBoxHovered, renderTag } from '../utils/canvas'
 export const CheckboxCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, readonly, column, spriteLoader, tag = {}, mousePosition, setCursor, formula }) => {
+  render: (
+    ctx,
+    { value, x, y, width, height, readonly, column, spriteLoader, tag = {}, mousePosition, setCursor, formula, isUnderLookup },
+  ) => {
     height = rowHeightInPx[1]!
 
     const {
@@ -13,7 +16,7 @@ export const CheckboxCellRenderer: CellRenderer = {
       tagBorderColor,
       tagBorderWidth,
     } = tag
-    const checked = !!value && value !== '0' && value !== 0 && value !== 'false'
+    const checked = getCheckBoxValue(value)
 
     const columnMeta = {
       color: 'primary',
@@ -36,8 +39,7 @@ export const CheckboxCellRenderer: CellRenderer = {
         borderColor: tagBorderColor,
         borderWidth: tagBorderWidth,
       })
-
-      checked &&
+      ;(checked || isUnderLookup) &&
         spriteLoader.renderIcon(ctx, {
           icon: checked ? columnMeta.icon.checked : columnMeta.icon.unchecked,
           size: 14,
@@ -74,7 +76,7 @@ export const CheckboxCellRenderer: CellRenderer = {
 
     if (e.key === 'Enter') {
       row.row[columnObj.title!] = !row.row[columnObj.title!]
-      await updateOrSaveRow(row, columnObj.title)
+      await updateOrSaveRow(row, columnObj.title, undefined, undefined, undefined, ctx.path)
       return true
     }
 
@@ -86,7 +88,7 @@ export const CheckboxCellRenderer: CellRenderer = {
 
     if (selected) {
       row.row[column.title!] = !row.row[column.title!]
-      await updateOrSaveRow(row, column.title)
+      await updateOrSaveRow(row, column.title, undefined, undefined, undefined, ctx.path)
       return true
     }
 
@@ -101,7 +103,7 @@ export const CheckboxCellRenderer: CellRenderer = {
 
     if (isBoxHovered(checkboxBounds, mousePosition)) {
       row.row[column.title!] = !row.row[column.title!]
-      await updateOrSaveRow(row, column.title)
+      await updateOrSaveRow(row, column.title, undefined, undefined, undefined, ctx.path)
       return true
     }
 

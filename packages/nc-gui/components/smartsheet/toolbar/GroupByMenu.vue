@@ -73,8 +73,6 @@ const availableColumns = computed(() => {
           /** hide system columns if not enabled */
           showSystemFields.value
         )
-      } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID) {
-        return false
       } else {
         /** ignore hasmany and manytomany relations if it's using within sort menu */
         return !(isLinksOrLTAR(c) && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO)
@@ -185,6 +183,15 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
 
   await saveGroupBy()
 }
+
+// exclude columns which are already grouped by
+const getFieldsToGroupBy = (currentGroup: Group) => {
+  return fieldsToGroupBy.value.filter((column) => {
+    return _groupBy.value?.every((group) => {
+      return group.fk_column_id !== column.id || group.fk_column_id === currentGroup.fk_column_id
+    })
+  })
+}
 </script>
 
 <template>
@@ -230,7 +237,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
         <SmartsheetToolbarCreateGroupBy
           v-if="!_groupBy.length"
           :is-parent-open="open"
-          :columns="fieldsToGroupBy"
+          :columns="getFieldsToGroupBy({})"
           :disabled="isLocked"
           @created="addFieldToGroupBy"
         />
@@ -261,7 +268,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
                   <LazySmartsheetToolbarFieldListAutoCompleteDropdown
                     v-model="group.fk_column_id"
                     class="caption nc-sort-field-select !w-36"
-                    :columns="fieldsToGroupBy"
+                    :columns="getFieldsToGroupBy(group)"
                     :allow-empty="true"
                     :meta="meta"
                     :disabled="isLocked"

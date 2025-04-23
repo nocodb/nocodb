@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { PlanFeatureTypes } from 'nocodb-sdk'
+
 interface Props {
   isFullscreen?: boolean
 }
@@ -24,14 +26,29 @@ const { activeError } = useExtensionHelperOrThrow()
               <GeneralIcon icon="edit" />
               Rename
             </NcMenuItem>
-            <NcMenuItem data-rec="true" @click="emits('duplicate')">
-              <GeneralIcon icon="duplicate" />
-              Duplicate
-            </NcMenuItem>
+
+            <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_EXTENSIONS">
+              <template #default="{ click }">
+                <NcMenuItem
+                  data-rec="true"
+                  class="group"
+                  @click="click(PlanFeatureTypes.FEATURE_EXTENSIONS, () => emits('duplicate'))"
+                >
+                  <GeneralIcon icon="duplicate" />
+                  Duplicate
+                  <LazyPaymentUpgradeBadge
+                    :feature="PlanFeatureTypes.FEATURE_EXTENSIONS"
+                    :content="$t('upgrade.upgradeToAddMoreExtensions')"
+                  />
+                </NcMenuItem>
+              </template>
+            </PaymentUpgradeBadgeProvider>
+
             <NcMenuItem data-rec="true" @click="emits('showDetails')">
               <GeneralIcon icon="info" />
               Details
             </NcMenuItem>
+
             <NcDivider />
           </template>
           <NcMenuItem data-rec="true" class="!text-red-500 !hover:bg-red-50" @click="emits('clearData')">

@@ -13,17 +13,29 @@ export function useDataFetch({
   rowSlice,
   totalRows,
   triggerRefreshCanvas,
+  isAlreadyShownUpgradeModal,
+  isExternalSource,
 }: {
   chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
   cachedRows: Ref<Map<number, Row>>
   clearCache: (start: number, end: number) => void
-  loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
+  loadData: (params?: any, shouldShowLoading?: boolean, path?: Array<number>) => Promise<Array<Row>>
   rowSlice: Ref<{ start: number; end: number }>
   totalRows: Ref<number>
   triggerRefreshCanvas: () => void
+  isAlreadyShownUpgradeModal: Ref<boolean>
+  isExternalSource: ComputedRef<boolean>
 }) {
+  const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
+
   // previousRowSlice to determine the scroll direction
   const previousRowSlice = ref({ start: rowSlice.value.start, end: rowSlice.value.end })
+
+  let upgradeModalTimer: any
+
+  onBeforeUnmount(() => {
+    clearTimeout(upgradeModalTimer)
+  })
 
   const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
     if (chunkStates.value[chunkId]) return
@@ -33,12 +45,33 @@ export function useDataFetch({
 
     if (offset >= totalRows.value) return
 
+    if (
+      !isAlreadyShownUpgradeModal.value &&
+      offset >= EXTERNAL_SOURCE_VISIBLE_ROWS &&
+      blockExternalSourceRecordVisibility(isExternalSource.value)
+    ) {
+      isAlreadyShownUpgradeModal.value = true
+
+      if (upgradeModalTimer) {
+        clearTimeout(upgradeModalTimer)
+      }
+
+      upgradeModalTimer = setTimeout(() => {
+        showUpgradeToSeeMoreRecordsModal({
+          isExternalSource: isExternalSource.value,
+        })
+        clearTimeout(upgradeModalTimer)
+      }, 1000)
+
+      return
+    }
+
     chunkStates.value[chunkId] = 'loading'
     if (isInitialLoad) {
       chunkStates.value[chunkId + 1] = 'loading'
     }
     try {
-      const newItems = await loadData({ offset, limit })
+      const newItems = await loadData({ offset, limit }, undefined, [])
       newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
       chunkStates.value[chunkId] = 'loaded'
       if (isInitialLoad) {
@@ -66,7 +99,7 @@ export function useDataFetch({
 
     group.forEach((chunkId) => (chunkStates.value[chunkId] = 'loading'))
     try {
-      const newItems = await loadData({ offset, limit })
+      const newItems = await loadData({ offset, limit }, undefined, [])
       newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
       group.forEach((chunkId) => (chunkStates.value[chunkId] = 'loaded'))
     } catch (error) {

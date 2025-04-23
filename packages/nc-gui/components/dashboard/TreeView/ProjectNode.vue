@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
-import { message } from 'ant-design-vue'
 import { ProjectRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjectRoles, stringifyRolesObj } from 'nocodb-sdk'
 import type { BaseType, SourceType, TableType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
@@ -161,7 +160,10 @@ const updateSourceTitle = async (sourceId: string) => {
     sourceRenameHelpers.value[source.id].tempTitle = sourceRenameHelpers.value[source.id].tempTitle.trim()
   }
 
-  if (!sourceRenameHelpers.value[source.id].tempTitle) return
+  if (!sourceRenameHelpers.value[source.id].tempTitle) {
+    delete sourceRenameHelpers.value[source.id]
+    return
+  }
 
   try {
     await api.source.update(source.base_id, source.id, {
@@ -187,7 +189,11 @@ const updateProjectTitle = async () => {
     tempTitle.value = tempTitle.value.trim()
   }
 
-  if (!tempTitle.value) return
+  if (!tempTitle.value) {
+    editMode.value = false
+    tempTitle.value = ''
+    return
+  }
 
   try {
     await updateProject(base.value.id!, {
@@ -585,6 +591,7 @@ const shouldOpenContextMenu = computed(() => {
               @keyup.enter="updateProjectTitle"
               @keyup.esc="updateProjectTitle"
               @blur="updateProjectTitle"
+              @keydown.stop
             />
             <NcTooltip
               v-else
@@ -878,6 +885,7 @@ const shouldOpenContextMenu = computed(() => {
                               @keyup.enter="updateSourceTitle(source.id!)"
                               @keyup.esc="updateSourceTitle(source.id!)"
                               @blur="updateSourceTitle(source.id!)"
+                              @keydown.stop
                             />
                             <NcTooltip
                               v-else

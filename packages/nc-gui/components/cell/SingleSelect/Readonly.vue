@@ -79,7 +79,7 @@ const selectedOpt = computed(() => {
     </div>
 
     <div v-else class="w-full flex items-center">
-      <a-tag v-if="selectedOpt" class="rounded-tag max-w-full" :color="selectedOpt.color">
+      <a-tag v-if="selectedOpt" class="rounded-tag !h-[22px] max-w-full" :color="selectedOpt.color">
         <span
           :style="{
             color: getSelectTypeOptionTextColor(selectedOpt.color),

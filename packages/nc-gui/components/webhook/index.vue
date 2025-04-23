@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk'
+import { type HookReqType, type HookTestReqType, type HookType, PlanLimitTypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 
@@ -39,6 +39,8 @@ const meta = inject(MetaInj, ref())
 const { getMeta } = useMetas()
 
 const { activeTable } = toRefs(useTablesStore())
+
+const { updateStatLimit, showWebhookLogsFeatureAccessModal } = useEeConfig()
 
 const defaultHookName = t('labels.webhook')
 
@@ -249,7 +251,7 @@ const getChannelsArray = (val: unknown) => {
   if (val) {
     if (Array.isArray(val)) {
       return val
-    } else if (typeof val === 'object' && Object.keys(val)) {
+    } else if (typeof val === 'object' && Object.keys(val).length > 0) {
       return [val]
     }
   }
@@ -384,8 +386,8 @@ async function saveHooks() {
   loading.value = true
   try {
     await validate()
-  } catch (_: any) {
-    message.error(t('msg.error.invalidForm'))
+  } catch (error: any) {
+    console.error('validation error', error)
 
     loading.value = false
 
@@ -412,6 +414,7 @@ async function saveHooks() {
       } as HookReqType)
 
       hooks.value.push(res)
+      updateStatLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE, 1)
     }
 
     if (res && typeof res.notification === 'string') {
@@ -551,6 +554,12 @@ const getNotificationIconName = (type: string): keyof typeof iconMap => {
   }
 }
 
+const handleChangeTab = (tab: HookTab) => {
+  if (tab === HookTab.Log && showWebhookLogsFeatureAccessModal()) return
+
+  activeTab.value = tab
+}
+
 onKeyDown('Escape', () => {
   modalVisible.value = false
 })
@@ -623,7 +632,7 @@ onMounted(async () => {
             :class="{
               active: activeTab === HookTab.Configuration,
             }"
-            @click="activeTab = HookTab.Configuration"
+            @click="handleChangeTab(HookTab.Configuration)"
           >
             <div class="tab-title nc-tab">{{ $t('general.details') }}</div>
           </div>
@@ -633,7 +642,7 @@ onMounted(async () => {
             :class="{
               active: activeTab === HookTab.Log,
             }"
-            @click="activeTab = HookTab.Log"
+            @click="handleChangeTab(HookTab.Log)"
           >
             <div class="tab-title nc-tab">{{ $t('general.logs') }}</div>
           </div>

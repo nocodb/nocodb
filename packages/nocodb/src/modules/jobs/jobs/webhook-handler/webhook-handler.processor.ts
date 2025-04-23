@@ -5,7 +5,7 @@ import { Hook, Model, View } from '~/models';
 import { type HandleWebhookJobData } from '~/interface/Jobs';
 
 export class WebhookHandlerProcessor {
-  private logger = new Logger(WebhookHandlerProcessor.name);
+  protected logger = new Logger(WebhookHandlerProcessor.name);
 
   async job(job: Job<HandleWebhookJobData>) {
     const { context, hookId, modelId, viewId, prevData, newData, user } =

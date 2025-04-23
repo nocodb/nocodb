@@ -6,6 +6,7 @@ const props = defineProps<{
   forceVerticalMode?: boolean
   isLoading: boolean
   showColCallback?: (col: ColumnType) => boolean
+  isHiddenCol?: boolean
 }>()
 
 const { changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
@@ -54,8 +55,9 @@ const showCol = (col: ColumnType) => {
           v-if="isVirtualCol(col)"
           :column="col"
           class="nc-expanded-cell-header h-full flex-none"
+          :is-hidden-col="isHiddenCol"
         />
-        <LazySmartsheetHeaderCell v-else :column="col" class="nc-expanded-cell-header flex-none" />
+        <LazySmartsheetHeaderCell v-else :column="col" class="nc-expanded-cell-header flex-none" :is-hidden-col="isHiddenCol" />
       </div>
 
       <a-skeleton-input

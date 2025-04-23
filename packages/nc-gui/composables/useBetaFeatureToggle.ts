@@ -15,10 +15,24 @@ const FEATURES = [
     enabled: !ncIsPlaywright(),
   },
   {
+    id: 'canvas_group_grid_view',
+    title: 'Improved Group By',
+    description: 'New and Improved groupby in grid view with enhanced scrolling and rendering capabilities.',
+    enabled: !ncIsPlaywright(),
+  },
+  {
     id: 'link_to_another_record',
     title: 'Link To Another Record',
     description: 'Show linked record display value in Link fields.',
     enabled: false,
+  },
+  {
+    id: 'payment',
+    title: 'Payment Flows',
+    description: 'Enable NocoDB Payment Flows.',
+    enabled: false,
+    isEngineering: true,
+    isEE: true,
   },
   {
     id: 'ai_features',

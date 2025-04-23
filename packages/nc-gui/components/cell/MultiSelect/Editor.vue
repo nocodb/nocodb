@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import { type LocalSelectOptionType, type SelectInputOptionType, getOptions, getSelectedTitles } from './utils'

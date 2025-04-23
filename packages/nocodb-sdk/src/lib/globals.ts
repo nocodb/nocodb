@@ -1,4 +1,5 @@
 import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from './enums';
+import { PlanTitles } from './payment';
 
 export const enumColors = {
   light: [
@@ -180,11 +181,21 @@ export enum NcErrorType {
   INVALID_ATTACHMENT_UPLOAD_SCOPE = 'INVALID_ATTACHMENT_UPLOAD_SCOPE',
   CANNOT_CALCULATE_INTERMEDIATE_ORDER = 'CANNOT_CALCULATE_INTERMEDIATE_ORDER',
   REORDER_FAILED = 'REORDER_FAILED',
+  PLAN_LIMIT_EXCEEDED = 'PLAN_LIMIT_EXCEEDED',
 }
 
 export const LongTextAiMetaProp = 'ai';
 
 export const NO_SCOPE = 'nc';
+
+export const NON_SEAT_ROLES = [
+  WorkspaceUserRoles.NO_ACCESS,
+  WorkspaceUserRoles.VIEWER,
+  WorkspaceUserRoles.COMMENTER,
+  ProjectRoles.NO_ACCESS,
+  ProjectRoles.VIEWER,
+  ProjectRoles.COMMENTER,
+];
 
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
 
@@ -192,4 +203,11 @@ type RolesObj = Partial<Record<Roles, boolean>>;
 
 type RolesType = RolesObj | string[] | string;
 
-export { Roles, RolesObj, RolesType };
+interface PlanLimitExceededDetailsType {
+  plan?: PlanTitles;
+  limit?: number;
+  current?: number;
+  higherPlan?: PlanTitles;
+}
+
+export { Roles, RolesObj, RolesType, PlanLimitExceededDetailsType };

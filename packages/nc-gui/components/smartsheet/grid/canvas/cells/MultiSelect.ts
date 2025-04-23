@@ -8,11 +8,11 @@ export const MultiSelectCellRenderer: CellRenderer = {
     let x = _x + padding
     let y = _y
     let width = _width - padding * 2
-    const tagPadding = 9
+    const tagPadding = 8
     const tagSpacingY = 4
     const tagSpacingX = 8
-    const tagHeight = 20
-    const topPadding = 6
+    const tagHeight = 22
+    const topPadding = 4
     const defaultColor = '#666'
     const ellipsisWidth = 15
 
@@ -73,7 +73,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
 
       renderSingleLineText(ctx, {
         x: x + tagPadding,
-        y: y + 1,
+        y,
         text: truncatedText,
         maxWidth: width - tagPadding * 2,
         textAlign: 'left',

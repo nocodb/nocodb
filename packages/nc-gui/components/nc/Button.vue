@@ -14,7 +14,7 @@ import type { GeneralLoaderProps } from '../general/Loader.vue'
  * </NcButton>
  */
 
-interface Props {
+export interface NcButtonProps {
   loading?: boolean
   disabled?: boolean
   showAsDisabled?: boolean
@@ -28,9 +28,11 @@ interface Props {
   theme?: 'default' | 'ai'
   bordered?: boolean
   shadow?: boolean
+  innerClass?: string
+  hideFocus?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<NcButtonProps>(), {
   disabled: false,
   showAsDisabled: false,
   size: 'medium',
@@ -42,6 +44,8 @@ const props = withDefaults(defineProps<Props>(), {
   theme: 'default',
   bordered: true,
   shadow: true,
+  innerClass: '',
+  hideFocus: false,
 })
 
 const emits = defineEmits(['update:loading'])
@@ -91,7 +95,7 @@ useEventListener(NcButton, 'mousedown', () => {
       'xsmall': size === 'xsmall',
       'xxsmall': size === 'xxsmall',
       'size-xs': size === 'xs',
-      'focused': isFocused,
+      'focused': isFocused && !props.hideFocus,
       'theme-default': theme === 'default',
       'theme-ai': theme === 'ai',
       'bordered': bordered,
@@ -107,10 +111,13 @@ useEventListener(NcButton, 'mousedown', () => {
     @focus="onFocus"
   >
     <div
-      :class="{
-        'justify-center': props.centered,
-        'justify-start': !props.centered,
-      }"
+      :class="[
+        {
+          'justify-center': props.centered,
+          'justify-start': !props.centered,
+        },
+        innerClass,
+      ]"
       class="flex flex-row gap-x-2.5 nc-btn-inner w-full"
     >
       <template v-if="iconPosition === 'left'">
@@ -335,5 +342,9 @@ useEventListener(NcButton, 'mousedown', () => {
   &:focus {
     box-shadow: none;
   }
+}
+
+.nc-button.ant-btn-link {
+  box-shadow: none;
 }
 </style>

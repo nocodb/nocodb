@@ -100,7 +100,9 @@ export function useMultiSelect(
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const { isSqlView } = useSmartsheetStoreOrThrow()
+  const { isSqlView, isExternalSource } = useSmartsheetStoreOrThrow()
+
+  const { blockExternalSourceRecordVisibility } = useEeConfig()
 
   const aiMode = ref(false)
 
@@ -128,6 +130,10 @@ export function useMultiSelect(
     () => !(activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)),
   )
 
+  const removeInlineAddRecord = computed(
+    () => blockExternalSourceRecordVisibility(isExternalSource.value) && unref(_totalRows!) >= EXTERNAL_SOURCE_VISIBLE_ROWS,
+  )
+
   function limitSelection(anchor: Cell, end: Cell): Cell {
     const limitedEnd = { ...end }
     const totalRows = Math.abs(end.row - anchor.row) + 1
@@ -151,7 +157,7 @@ export function useMultiSelect(
   }
 
   const valueToCopy = (rowObj: Row, columnObj: ColumnType) => {
-    const textToCopy = (columnObj.title && rowObj.row[columnObj.title]) || ''
+    const textToCopy = (columnObj.title && rowObj.row[columnObj.title]) ?? ''
 
     return ColumnHelper.parseValue(textToCopy, {
       col: columnObj,
@@ -222,7 +228,11 @@ export function useMultiSelect(
         const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
 
         await copyTable(cprows, cpcols)
-        message.success(t('msg.info.copiedToClipboard'))
+        message.toast(
+          t(`msg.toast.nCell${cprows.length * cpcols.length === 1 ? '' : 's'}Copied`, {
+            n: cprows.length * cpcols.length,
+          }),
+        )
       } else {
         // if copy was called with context (right click position) - copy value from context
         // else if there is just one selected cell, copy it's value
@@ -237,7 +247,11 @@ export function useMultiSelect(
           const textToCopy = valueToCopy(rowObj, columnObj)
 
           await copy(textToCopy)
-          message.success(t('msg.info.copiedToClipboard'))
+          message.toast(
+            t(`msg.toast.nCellCopied`, {
+              n: 1,
+            }),
+          )
         }
       }
     } catch {
@@ -372,7 +386,7 @@ export function useMultiSelect(
   function isPasteable(row?: Row, col?: ColumnType, showInfo = false) {
     if (!row || !col) {
       if (showInfo) {
-        message.info('Please select a cell to paste')
+        message.toast('Please select a cell to paste')
       }
       return false
     }
@@ -380,7 +394,7 @@ export function useMultiSelect(
     // skip pasting virtual columns (including LTAR columns for now) and system columns
     if (isVirtualCol(col) || isSystemColumn(col) || col?.readonly) {
       if (showInfo) {
-        message.info(t('msg.info.pasteNotSupported'))
+        message.toast(t('msg.info.pasteNotSupported'))
       }
       return false
     }
@@ -388,7 +402,7 @@ export function useMultiSelect(
     // skip pasting auto increment columns
     if (col.ai) {
       if (showInfo) {
-        message.info(t('msg.info.autoIncFieldNotEditable'))
+        message.toast(t('msg.info.autoIncFieldNotEditable'))
       }
       return false
     }
@@ -396,7 +410,7 @@ export function useMultiSelect(
     // skip pasting primary key columns
     if (col.pk && !row.rowMeta.new) {
       if (showInfo) {
-        message.info(t('msg.info.editingPKnotSupported'))
+        message.toast(t('msg.info.editingPKnotSupported'))
       }
       return false
     }
@@ -758,6 +772,7 @@ export function useMultiSelect(
           scrollToCell?.(limitedEnd.row, limitedEnd.col, 'instant')
         } else {
           selectedRange.clear()
+
           if (activeCell.row < (isArrayStructure ? (unref(data) as Row[]).length : unref(_totalRows!))) {
             activeCell.row++
             selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
@@ -769,6 +784,8 @@ export function useMultiSelect(
         break
       case 'Enter': {
         selectedRange.clear()
+
+        if (removeInlineAddRecord.value && activeCell.row >= EXTERNAL_SOURCE_VISIBLE_ROWS - 1) return
 
         let row
 
@@ -783,7 +800,7 @@ export function useMultiSelect(
       }
       case 'Delete':
       case 'Backspace':
-        if (isDataReadOnly.value) {
+        if (isDataReadOnly.value || (removeInlineAddRecord.value && activeCell.row >= EXTERNAL_SOURCE_VISIBLE_ROWS - 1)) {
           return
         }
         if (selectedRange.isSingleCell()) {
@@ -850,6 +867,11 @@ export function useMultiSelect(
           if (unref(editEnabled) || e.ctrlKey || e.altKey || e.metaKey) {
             return true
           }
+          // Disable edit cell if it is external free source and row index is more than EXTERNAL_SOURCE_VISIBLE_ROWS
+          if (removeInlineAddRecord.value && activeCell.row >= EXTERNAL_SOURCE_VISIBLE_ROWS - 1) {
+            e.preventDefault()
+            return
+          }
 
           if (isSqlView.value) return
 
@@ -857,7 +879,7 @@ export function useMultiSelect(
           if (e.key.length === 1) {
             if (!unref(isPkAvail) && !rowObj.rowMeta.new) {
               // Update not allowed for table which doesn't have primary Key
-              return message.info(t('msg.info.updateNotAllowedWithoutPK'))
+              return message.toast(t('msg.info.updateNotAllowedWithoutPK'))
             }
             if (isTypableInputColumn(columnObj) && makeEditable(rowObj, columnObj) && columnObj.title) {
               if (columnObj.uidt === UITypes.LongText) {
@@ -1110,7 +1132,7 @@ export function useMultiSelect(
                 targetRow.row[column.title!] = pasteValue
               }
             } else if ((isBt(column) || isOo(column) || isMm(column)) && !isInfoShown) {
-              message.info(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
+              message.toast(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
               isInfoShown = true
             }
           }
@@ -1527,7 +1549,7 @@ export function useMultiSelect(
             for (const col of cols) {
               if (!col.title || !isPasteable(row, col)) {
                 if ((isBt(col) || isOo(col) || isMm(col)) && !isInfoShown) {
-                  message.info(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
+                  message.toast(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
                   isInfoShown = true
                 }
                 continue

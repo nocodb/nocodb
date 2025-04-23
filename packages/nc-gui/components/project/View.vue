@@ -65,6 +65,7 @@ const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_
 watch(
   () => route.value.query?.page,
   (newVal, oldVal) => {
+    if (!('baseId' in route.value.params)) return
     // if (route.value.name !== 'index-typeOrId-baseId-index-index') return
     if (newVal && newVal !== oldVal) {
       if (newVal === 'collaborator') {

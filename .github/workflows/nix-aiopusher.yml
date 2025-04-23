@@ -1,0 +1,16 @@
+name: aiopusher
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  aiopusher:
+    runs-on: nix
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Run AioPusher
+        run: nix run .#workflows.aiopusher

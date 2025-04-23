@@ -1,5 +1,3 @@
-import { message } from 'ant-design-vue'
-
 export function useIsCopied(timeoutInMs = 3000) {
   let copiedTimeoutId: ReturnType<typeof setTimeout>
 

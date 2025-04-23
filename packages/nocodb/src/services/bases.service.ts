@@ -150,14 +150,29 @@ export class BasesService {
   async baseSoftDelete(
     context: NcContext,
     param: { baseId: any; user: UserType; req: NcRequest },
+    ncMeta = Noco.ncMeta,
   ) {
-    const base = await Base.getWithInfo(context, param.baseId);
+    const base = await Base.getWithInfo(
+      context,
+      param.baseId,
+      undefined,
+      ncMeta,
+    );
 
     if (!base) {
       NcError.baseNotFound(param.baseId);
     }
 
-    await Base.softDelete(context, param.baseId);
+    const transaction = await ncMeta.startTransaction();
+
+    try {
+      await Base.softDelete(context, param.baseId, transaction);
+
+      await transaction.commit();
+    } catch (e) {
+      await transaction.rollback();
+      throw e;
+    }
 
     this.appHooksService.emit(AppEvents.PROJECT_DELETE, {
       base,

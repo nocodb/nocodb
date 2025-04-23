@@ -42,8 +42,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       throw new Error('Table meta is not available')
     }
 
-    const pageDate = ref<dayjs.Dayjs>(dayjs())
-
     const { isUIAllowed } = useRoles()
 
     const { isMobileMode } = useGlobal()
@@ -52,16 +50,40 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const activeCalendarView = ref<'month' | 'year' | 'day' | 'week'>()
 
+    // The range of columns that are used for the calendar view
+    const calendarRange = ref<
+      Array<{
+        fk_from_col: ColumnType
+        fk_to_col?: ColumnType | null
+        id: string
+        is_readonly: boolean
+      }>
+    >([])
+
+    const calDataType = computed(() => {
+      if (!calendarRange.value || !calendarRange.value[0]) return null
+      return calendarRange.value[0]?.fk_from_col?.uidt
+    })
+
+    const timezone = computed(() => {
+      if (!calendarRange.value || !calendarRange.value[0]) return dayjs.tz.guess()
+      return calendarRange.value[0]?.fk_from_col?.meta?.timezone ?? dayjs.tz.guess()
+    })
+
+    const timezoneDayjs = reactive(workerWithTimezone(isEeUI, timezone?.value))
+
     const searchQuery = reactive({
       value: '',
       field: '',
     })
 
-    const selectedDate = ref<dayjs.Dayjs>(dayjs())
+    const pageDate = ref<dayjs.Dayjs>(timezoneDayjs.dayjsTz())
 
-    const selectedTime = ref<dayjs.Dayjs>(dayjs())
+    const selectedDate = ref<dayjs.Dayjs>(timezoneDayjs.dayjsTz())
 
-    const selectedMonth = ref<dayjs.Dayjs>(dayjs())
+    const selectedTime = ref<dayjs.Dayjs>(timezoneDayjs.dayjsTz())
+
+    const selectedMonth = ref<dayjs.Dayjs>(timezoneDayjs.dayjsTz())
 
     const isCalendarDataLoading = ref<boolean>(false)
 
@@ -75,8 +97,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       start: dayjs.Dayjs
       end: dayjs.Dayjs
     }>({
-      start: dayjs(selectedDate.value).startOf('week'), // This will be the previous Monday
-      end: dayjs(selectedDate.value).startOf('week').add(6, 'day'), // This will be the following Sunday
+      start: timezoneDayjs.dayjsTz(selectedDate.value)!.startOf('week'), // This will be the previous Monday
+      end: timezoneDayjs.dayjsTz(selectedDate.value)!.startOf('week').add(6, 'day'), // This will be the following Sunday
     })
 
     const defaultPageSize = 25
@@ -124,21 +146,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       return isMysql(meta.value?.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
     })
 
-    // The range of columns that are used for the calendar view
-    const calendarRange = ref<
-      Array<{
-        fk_from_col: ColumnType
-        fk_to_col?: ColumnType | null
-        id: string
-        is_readonly: boolean
-      }>
-    >([])
-
-    const calDataType = computed(() => {
-      if (!calendarRange.value || !calendarRange.value[0]) return null
-      return calendarRange.value[0]?.fk_from_col?.uidt
-    })
-
     // The current view meta properties
     const viewMetaProperties = computed<{
       active_view: string
@@ -164,7 +171,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       let combinedFilters: any = []
 
       if (!calendarRange.value) return []
-
       if (sideBarFilterOption.value === 'allRecords') {
         // If the sideBarFilterOption is allRecords, then we don't need to apply any filters
         combinedFilters = []
@@ -253,16 +259,15 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             nextDate = selectedDate.value.add(1, 'day').startOf('day')
             break
           case 'selectedHours':
-            fromDate = (selectedTime.value ?? dayjs()).startOf('hour')
-            toDate = (selectedTime.value ?? dayjs()).endOf('hour')
+            fromDate = (selectedTime.value ?? timezoneDayjs.dayjsTz()).startOf('hour')
+            toDate = (selectedTime.value ?? timezoneDayjs.dayjsTz()).endOf('hour')
             prevDate = fromDate?.subtract(1, 'hour').endOf('hour')
             nextDate = toDate?.add(1, 'hour').startOf('hour')
             break
         }
-
-        fromDate = fromDate!.format('YYYY-MM-DD HH:mm:ssZ')
-        prevDate = prevDate!.format('YYYY-MM-DD HH:mm:ssZ')
-        nextDate = nextDate!.format('YYYY-MM-DD HH:mm:ssZ')
+        fromDate = timezoneDayjs.dayjsTz(fromDate)!.format('YYYY-MM-DD HH:mm:ssZ')
+        prevDate = timezoneDayjs.dayjsTz(prevDate!).format('YYYY-MM-DD HH:mm:ssZ')
+        nextDate = timezoneDayjs.dayjsTz(nextDate)!.format('YYYY-MM-DD HH:mm:ssZ')
 
         calendarRange.value.forEach((range) => {
           const fromCol = range.fk_from_col
@@ -402,8 +407,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         nextDate = selectedDate.value.endOf('year').add(1, 'day').startOf('day')
       }
 
-      prevDate = prevDate!.format('YYYY-MM-DD HH:mm:ssZ')
-      nextDate = nextDate!.format('YYYY-MM-DD HH:mm:ssZ')
+      prevDate = timezoneDayjs.dayjsTz(prevDate)!.format('YYYY-MM-DD HH:mm:ssZ')
+      nextDate = timezoneDayjs.dayjsTz(nextDate)!.format('YYYY-MM-DD HH:mm:ssZ')
 
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
 
@@ -420,7 +425,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               sortsArr: sorts.value,
               filtersArr: nestedFilters.value,
             })
-        activeDates.value = res.dates.map((dateObj: unknown) => dayjs(dateObj as string))
+        activeDates.value = res.dates.map((dateObj: unknown) => timezoneDayjs.dayjsTz(dateObj as string))
 
         if (res.count > 3000 && activeCalendarView.value !== 'year') {
           message.warning(
@@ -900,6 +905,20 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       await fetchActiveDates()
     })
 
+    watch(timezone, (newTimezone) => {
+      const temp = workerWithTimezone(true, newTimezone)
+      timezoneDayjs.dayjsTz = temp.dayjsTz
+      timezoneDayjs.timezonize = temp.timezonize
+      pageDate.value = timezoneDayjs.timezonize(pageDate.value)!
+      selectedDate.value = timezoneDayjs.timezonize(selectedDate.value)!
+      selectedTime.value = timezoneDayjs.timezonize(selectedTime.value)!
+      selectedMonth.value = timezoneDayjs.timezonize(selectedMonth.value)!
+      selectedDateRange.value = {
+        start: timezoneDayjs.timezonize(selectedDateRange.value.start)!,
+        end: timezoneDayjs.timezonize(selectedDateRange.value.end)!,
+      }
+    })
+
     watch(
       () => viewMetaProperties.value.hide_weekend,
       async () => {
@@ -941,6 +960,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       paginateCalendarView,
       viewMetaProperties,
       updateFormat,
+      timezoneDayjs,
+      timezone,
     }
   },
 )

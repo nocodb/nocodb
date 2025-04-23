@@ -12,7 +12,7 @@ kernal_env_store_dir="/run/kernelenvs"
 s6_services_temp_path='/run/s6-service-temp'
 
 _aio_postgres_enable_default=true
-_aio_minio_enable_default=true
+_aio_minio_enable_default=false
 _aio_ssl_domain_default="localhost"
 _aio_ssl_enable_default=false
 _aio_valkey_enable_default=true

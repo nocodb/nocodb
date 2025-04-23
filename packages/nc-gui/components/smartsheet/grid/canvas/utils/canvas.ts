@@ -140,7 +140,17 @@ export function roundedRect(
   width: number,
   height: number,
   radius: number | { topRight?: number; bottomRight?: number; bottomLeft?: number; topLeft?: number },
-  { backgroundColor, borderColor, borderWidth }: { backgroundColor?: string; borderColor?: string; borderWidth?: number } = {},
+  {
+    backgroundColor,
+    borderColor,
+    borderWidth = 1,
+    borders = { top: true, right: true, bottom: true, left: true },
+  }: {
+    backgroundColor?: string
+    borderColor?: string
+    borderWidth?: number
+    borders?: { top?: boolean; right?: boolean; bottom?: boolean; left?: boolean }
+  } = {},
 ): void {
   const {
     topLeft = 0,
@@ -149,36 +159,79 @@ export function roundedRect(
     bottomLeft = 0,
   } = typeof radius === 'number' ? { topLeft: radius, topRight: radius, bottomRight: radius, bottomLeft: radius } : radius
 
-  ctx.beginPath()
-  if (borderWidth) {
-    ctx.lineWidth = borderWidth
-  }
-  ctx.moveTo(x + topLeft, y)
-
-  // Top right corner
-  ctx.lineTo(x + width - topRight, y)
-  ctx.arcTo(x + width, y, x + width, y + topRight, topRight)
-
-  // Bottom right corner
-  ctx.lineTo(x + width, y + height - bottomRight)
-  ctx.arcTo(x + width, y + height, x + width - bottomRight, y + height, bottomRight)
-
-  // Bottom left corner
-  ctx.lineTo(x + bottomLeft, y + height)
-  ctx.arcTo(x, y + height, x, y + height - bottomLeft, bottomLeft)
-
-  // Top left corner
-  ctx.lineTo(x, y + topLeft)
-  ctx.arcTo(x, y, x + topLeft, y, topLeft)
-
-  ctx.closePath()
-
-  if (borderColor) ctx.strokeStyle = borderColor
-  ctx.stroke()
+  const { top = true, right = true, bottom = true, left = true } = borders
 
   if (backgroundColor) {
+    ctx.beginPath()
+    ctx.moveTo(x + topLeft, y)
+    ctx.lineTo(x + width - topRight, y)
+    ctx.arcTo(x + width, y, x + width, y + topRight, topRight)
+    ctx.lineTo(x + width, y + height - bottomRight)
+    ctx.arcTo(x + width, y + height, x + width - bottomRight, y + height, bottomRight)
+    ctx.lineTo(x + bottomLeft, y + height)
+    ctx.arcTo(x, y + height, x, y + height - bottomLeft, bottomLeft)
+    ctx.lineTo(x, y + topLeft)
+    ctx.arcTo(x, y, x + topLeft, y, topLeft)
+    ctx.closePath()
     ctx.fillStyle = backgroundColor
     ctx.fill()
+  }
+
+  if (borderColor) {
+    ctx.strokeStyle = borderColor
+    ctx.lineWidth = borderWidth
+
+    if (top) {
+      ctx.beginPath()
+      ctx.moveTo(x + topLeft, y)
+      ctx.lineTo(x + width - topRight, y)
+      if (right) {
+        ctx.arcTo(x + width, y, x + width, y + topRight, topRight)
+      }
+      ctx.stroke()
+    }
+
+    if (right) {
+      ctx.beginPath()
+      if (!top) {
+        ctx.moveTo(x + width, y + topRight)
+      } else {
+        ctx.moveTo(x + width, y + topRight)
+      }
+      ctx.lineTo(x + width, y + height - bottomRight)
+      if (bottom) {
+        ctx.arcTo(x + width, y + height, x + width - bottomRight, y + height, bottomRight)
+      }
+      ctx.stroke()
+    }
+
+    if (bottom) {
+      ctx.beginPath()
+      if (!right) {
+        ctx.moveTo(x + width - bottomRight, y + height)
+      } else {
+        ctx.moveTo(x + width - bottomRight, y + height)
+      }
+      ctx.lineTo(x + bottomLeft, y + height)
+      if (left) {
+        ctx.arcTo(x, y + height, x, y + height - bottomLeft, bottomLeft)
+      }
+      ctx.stroke()
+    }
+
+    if (left) {
+      ctx.beginPath()
+      if (!bottom) {
+        ctx.moveTo(x, y + height - bottomLeft)
+      } else {
+        ctx.moveTo(x, y + height - bottomLeft)
+      }
+      ctx.lineTo(x, y + topLeft)
+      if (top) {
+        ctx.arcTo(x, y, x + topLeft, y, topLeft)
+      }
+      ctx.stroke()
+    }
   }
 }
 
@@ -274,6 +327,37 @@ const drawStrikeThrough = (
   ctx.stroke()
 }
 
+export const drawStraightLine = (
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  {
+    startX,
+    startY,
+    endX,
+    endY,
+    strokeStyle,
+    lineWidth = 1,
+  }: {
+    startX: number
+    startY: number
+    endX: number
+    endY: number
+    strokeStyle?: string
+    lineWidth?: number
+  },
+) => {
+  ctx.beginPath()
+
+  ctx.moveTo(startX, startY)
+  ctx.lineTo(endX, endY)
+
+  if (strokeStyle) {
+    ctx.strokeStyle = strokeStyle
+  }
+
+  ctx.lineWidth = lineWidth
+  ctx.stroke()
+}
+
 export const renderSingleLineText = (
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   params: RenderSingleLineTextProps,
@@ -282,6 +366,7 @@ export const renderSingleLineText = (
   width: number
   x: number
   y: number
+  isTruncated: boolean
 } => {
   const {
     x = 0,
@@ -306,6 +391,7 @@ export const renderSingleLineText = (
   }
 
   let truncatedText = ''
+  let isTruncated = false
   let width = 0
   const originalFontFamily = ctx.font
 
@@ -315,16 +401,16 @@ export const renderSingleLineText = (
 
   const cacheKey = `${text}-${fontFamily}-${maxWidth}`
   const cachedText = singleLineTextCache.get(cacheKey)
-
   if (cachedText) {
     truncatedText = cachedText.text
     width = cachedText.width
+    isTruncated = cachedText.isTruncated
   } else {
     const res = truncateText(ctx, text, maxWidth, true)
     truncatedText = res.text
+    isTruncated = truncatedText !== text
     width = res.width
-
-    singleLineTextCache.set(cacheKey, { text: truncatedText, width })
+    singleLineTextCache.set(cacheKey, { text: truncatedText, width, isTruncated })
   }
 
   const yOffset =
@@ -360,7 +446,7 @@ export const renderSingleLineText = (
     ctx.font = originalFontFamily
   }
 
-  return { text: truncatedText, width, x: x + width, y: y + yOffset + fontSize / 2 }
+  return { text: truncatedText, width, x: x + width, y: y + yOffset + fontSize / 2, isTruncated }
 }
 
 export const wrapTextToLines = (
@@ -1044,10 +1130,12 @@ export const renderTagLabel = (
   const { x, y, height, width, padding, textColor = '#4a5268', mousePosition, spriteLoader, text, renderAsMarkdown } = props
   const {
     tagPaddingX = 8,
+    tagPaddingY = 0,
     tagHeight = 20,
     tagRadius = 6,
     tagBgColor = '#f4f4f0',
     tagSpacing = 4,
+    tagFontFamily = '500 13px Manrope',
     tagBorderColor,
     tagBorderWidth,
   } = props.tag || {}
@@ -1072,10 +1160,10 @@ export const renderTagLabel = (
   if (renderAsMarkdown) {
     const { width: textWidth } = renderMarkdown(ctx, {
       x: x + tagSpacing + tagPaddingX,
-      y: initialY,
+      y: initialY + tagPaddingY,
       text,
       maxWidth,
-      height: tagHeight,
+      height: tagHeight - tagPaddingY * 2,
       fontFamily: '500 13px Manrope',
       fillStyle: textColor,
       isTagLabel: true,
@@ -1089,10 +1177,10 @@ export const renderTagLabel = (
 
     renderMarkdown(ctx, {
       x: x + tagSpacing + tagPaddingX,
-      y: initialY,
+      y: initialY + tagPaddingY,
       text,
       maxWidth,
-      height: tagHeight,
+      height: tagHeight - tagPaddingY * 2,
       fontFamily: '500 13px Manrope',
       fillStyle: textColor,
       isTagLabel: true,
@@ -1111,7 +1199,7 @@ export const renderTagLabel = (
       y,
       text,
       maxWidth,
-      fontFamily: '500 13px Manrope',
+      fontFamily: tagFontFamily,
       render: false,
     })
 
@@ -1119,11 +1207,11 @@ export const renderTagLabel = (
 
     renderSingleLineText(ctx, {
       x: x + tagSpacing + tagPaddingX,
-      y: initialY,
+      y: initialY + tagPaddingY,
       text: truncatedText,
       maxWidth,
-      height: tagHeight,
-      fontFamily: '500 13px Manrope',
+      height: tagHeight - tagPaddingY * 2,
+      fontFamily: tagFontFamily,
       fillStyle: textColor,
       isTagLabel: true,
     })

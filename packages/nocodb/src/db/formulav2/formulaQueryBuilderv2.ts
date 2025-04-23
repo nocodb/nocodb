@@ -44,6 +44,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
     tableAlias,
     parsedTree,
     column = null,
+    getAliasCount,
   } = params;
 
   let { baseUsers = null } = params;
@@ -137,6 +138,8 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               parsedTree: formulOption.getParsedTree(),
               baseUsers,
               parentColumns: new Set([col.id, ...(parentColumns ?? [])]),
+              getAliasCount,
+              column: col,
             });
             builder.sql = '(' + builder.sql + ')';
             return {
@@ -148,14 +151,10 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       case UITypes.Lookup:
       case UITypes.LinkToAnotherRecord:
         aliasToColumn[col.id] = lookupOrLtarBuilder({
-          baseModelSqlv2,
-          context,
-          model,
-          col,
+          ...params,
+          column: col,
           _formulaQueryBuilder,
           knex,
-          tableAlias,
-          aliasToColumn,
         });
         break;
       case UITypes.Rollup:
@@ -435,6 +434,14 @@ export default async function formulaQueryBuilderv2({
 
   // register jsep curly hook once only
   jsep.plugins.register(jsepCurlyHook);
+  const formulaContext = {
+    count: 0,
+  };
+  const getAliasCount = () => {
+    const result = formulaContext.count++;
+    return result;
+  };
+
   let qb;
   try {
     // generate qb
@@ -444,6 +451,7 @@ export default async function formulaQueryBuilderv2({
       model,
       aliasToColumn,
       tableAlias,
+      column,
       parsedTree:
         parsedTree ??
         (await column
@@ -451,6 +459,7 @@ export default async function formulaQueryBuilderv2({
           .then((formula) => formula?.getParsedTree())),
       baseUsers,
       parentColumns: new Set(column?.id ? [column?.id] : []),
+      getAliasCount,
     });
 
     if (!validateFormula) return qb;

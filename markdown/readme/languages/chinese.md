@@ -145,7 +145,7 @@ cd nocodb/docker-compose/2_pg
 
 ### 工作流程自动化的应用商店
 
-我们在三个主要类别中提供不同的集成。详见<a href="https://docs.nocodb.com/setup-and-usages/app-store" target="_blank">App Store</a>。
+我们在三个主要类别中提供不同的集成。详见<a href="https://docs.nocodb.com/account-settings/oss-specific-details/#app-store" target="_blank">App Store</a>。
 
 - ⚡ 聊天：Slack、Discord、Mattermost 等
 - ⚡ 电子邮件: AWS SES，SMTP，MailerSend 等

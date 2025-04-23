@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ProjectRoles, type RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
+import { NON_SEAT_ROLES, type PlanLimitExceededDetailsType, ProjectRoles, type RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
 
 import { extractEmail } from '../../helpers/parsers/parserHelpers'
 
@@ -22,11 +22,14 @@ const { createProjectUser } = basesStore
 
 const { inviteCollaborator: inviteWsCollaborator } = workspaceStore
 
+const { isPaymentEnabled, showUserPlanLimitExceededModal, isPaidPlan } = useEeConfig()
+
 const dialogShow = useVModel(props, 'modelValue', emit)
 
 const orderedRoles = computed(() => {
   return props.type === 'base' ? ProjectRoles : WorkspaceUserRoles
 })
+
 const userRoles = computed(() => {
   return props.type === 'base' ? baseRoles?.value : workspaceRoles?.value
 })
@@ -151,6 +154,10 @@ const isInviteButtonDisabled = computed(() => {
   if (emailBadges.value.length && inviteData.email) {
     return true
   }
+})
+
+const showUserWillChargedWarning = computed(() => {
+  return isPaidPlan.value && !NON_SEAT_ROLES.includes(inviteData.roles) && !!emailBadges.value.length
 })
 
 watch(inviteData, (newVal) => {
@@ -281,7 +288,33 @@ const inviteCollaborator = async () => {
     emailBadges.value = []
     dialogShow.value = false
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
+    const errorInfo = await extractSdkResponseErrorMsgv2(e)
+
+    if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+      let errorWsId
+      if (props.type === 'workspace' && props.workspaceId) {
+        errorWsId = props.workspaceId
+      } else if (props.type === 'organization') {
+        // We have to extract ws id from request url as we are making multple api calls
+        errorWsId = e?.config?.url?.split('/')?.[4]
+      }
+
+      const details = errorInfo.details as PlanLimitExceededDetailsType
+
+      showUserPlanLimitExceededModal({
+        details,
+        role: inviteData.roles,
+        callback(type) {
+          if (type === 'ok') {
+            dialogShow.value = false
+          }
+        },
+        workspaceId: errorWsId,
+        isAdminPanel: props.type === 'organization',
+      })
+    } else {
+      message.error(errorInfo.message)
+    }
   } finally {
     singleEmailValue.value = ''
     isLoading.value = false
@@ -357,15 +390,17 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
               @paste.prevent="onPaste"
             />
           </div>
-          <RolesSelector
-            :description="false"
-            :on-role-change="onRoleChange"
-            :role="inviteData.roles"
-            :disabled-roles="disabledRoles"
-            :roles="allowedRoles"
-            class="!min-w-[152px] nc-invite-role-selector"
-            size="lg"
-          />
+          <div class="flex items-center">
+            <RolesSelector
+              :description="false"
+              :on-role-change="onRoleChange"
+              :role="inviteData.roles"
+              :disabled-roles="disabledRoles"
+              :roles="allowedRoles"
+              class="!min-w-[152px] nc-invite-role-selector"
+              size="lg"
+            />
+          </div>
         </div>
 
         <span v-if="emailValidation.isError && emailValidation.message" class="ml-2 text-red-500 text-[10px] mt-1.5">{{
@@ -441,6 +476,15 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
         </template>
       </div>
     </div>
+
+    <NcAlert
+      :visible="showUserWillChargedWarning"
+      type="warning"
+      :message="$t('upgrade.newEditorWillBeChanged')"
+      :description="$t('upgrade.newEditorWillBeChangedSubtitle')"
+      class="mt-5"
+    />
+
     <div class="flex mt-8 justify-end">
       <div class="flex gap-2">
         <NcButton type="secondary" @click="dialogShow = false"> {{ $t('labels.cancel') }} </NcButton>

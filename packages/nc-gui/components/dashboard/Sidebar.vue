@@ -35,7 +35,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100 select-none w-full h-full font-medium"
+    class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100 select-none w-full h-full font-medium z-2"
     :style="{
       outlineWidth: '1px',
     }"
@@ -57,6 +57,8 @@ onUnmounted(() => {
       <DashboardTreeView v-if="!isWorkspaceLoading" />
     </div>
     <div v-if="!isSharedBase" class="nc-sidebar-bottom-section">
+      <PaymentUpgradeSidebarBanner v-if="isEeUI" />
+
       <GeneralGift v-if="!isEeUI" />
       <DashboardSidebarBeforeUserInfo />
       <DashboardSidebarFeed v-if="appInfo.feedEnabled" />
@@ -71,10 +73,17 @@ onUnmounted(() => {
 }
 
 .nc-sidebar-bottom-section {
-  @apply flex-none overflow-auto p-1 border-t-1;
+  @apply flex-none overflow-auto p-1;
+
+  &:not(:has(.nc-upgrade-sidebar-banner)) {
+    @apply border-t-1;
+  }
+  &:has(.nc-upgrade-sidebar-banner) {
+    @apply -mt-2.5 pointer-events-none;
+  }
 
   & > * {
-    @apply my-0.5;
+    @apply my-0.5 pointer-events-auto;
   }
 
   & > :first-child {

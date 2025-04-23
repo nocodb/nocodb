@@ -1,58 +1,50 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
-import type {
-  FormulaQueryBuilderBaseParams,
-  TAliasToColumn,
-} from '~/db/formulav2/formula-query-builder.types';
 import type { NcContext } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
-import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { FormulaQueryBuilderBaseParams } from '~/db/formulav2/formula-query-builder.types';
 import type {
-  Column,
   FormulaColumn,
   LinkToAnotherRecordColumn,
   LookupColumn,
-  Model,
   RollupColumn,
 } from '~/models';
-import { getAggregateFn } from '~/db/formulav2/formula-query-builder.helpers';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import { getAggregateFn } from '~/db/formulav2/formula-query-builder.helpers';
 
 export const lookupOrLtarBuilder =
-  ({
-    baseModelSqlv2,
-    col,
-    aliasToColumn,
-    knex = baseModelSqlv2.dbDriver,
-    context = baseModelSqlv2.context,
-    tableAlias,
-    model = baseModelSqlv2.model,
-    _formulaQueryBuilder,
-  }: {
-    baseModelSqlv2: IBaseModelSqlV2;
-    col: Column;
-    aliasToColumn: TAliasToColumn;
-    context?: NcContext;
-    knex?: CustomKnex;
-    tableAlias?: string;
-    model?: Model;
-    _formulaQueryBuilder: (
-      params: FormulaQueryBuilderBaseParams,
-    ) => Promise<{ builder: any }>;
-  }) =>
+  (
+    params: FormulaQueryBuilderBaseParams & {
+      context?: NcContext;
+      knex?: CustomKnex;
+      _formulaQueryBuilder: (
+        params: FormulaQueryBuilderBaseParams,
+      ) => Promise<{ builder: any }>;
+    },
+  ) =>
   async (parentColumns?: Set<string>): Promise<any> => {
-    let aliasCount = 0;
+    const {
+      baseModelSqlv2,
+      column,
+      knex = baseModelSqlv2.dbDriver,
+      context = baseModelSqlv2.context,
+      tableAlias,
+      model = baseModelSqlv2.model,
+      _formulaQueryBuilder,
+      getAliasCount,
+    } = params;
+
     let selectQb;
     let isArray = false;
-    const alias = `__nc_formula${aliasCount++}`;
+    const alias = `__nc_formula${getAliasCount()}`;
     const lookup =
-      col.uidt === UITypes.Lookup
-        ? await col.getColOptions<LookupColumn>(context)
+      column.uidt === UITypes.Lookup
+        ? await column.getColOptions<LookupColumn>(context)
         : null;
     {
       const relationCol = lookup
         ? await lookup.getRelationColumn(context)
-        : col;
+        : column;
       const relation =
         await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
       // if (relation.type !== RelationTypes.BELONGS_TO) continue;
@@ -114,7 +106,7 @@ export const lookupOrLtarBuilder =
             const mmParentColumn = await relation.getMMParentColumn(context);
             const mmChildColumn = await relation.getMMChildColumn(context);
 
-            const assocAlias = `__nc${aliasCount++}`;
+            const assocAlias = `__nc${getAliasCount()}`;
             selectQb = knex(
               knex.raw(`?? as ??`, [
                 baseModelSqlv2.getTnPath(parentModel.table_name),
@@ -145,7 +137,7 @@ export const lookupOrLtarBuilder =
 
       let prevAlias = alias;
       while (lookupColumn.uidt === UITypes.Lookup) {
-        const nestedAlias = `__nc_formula${aliasCount++}`;
+        const nestedAlias = `__nc_formula${getAliasCount()}`;
         const nestedLookup = await lookupColumn.getColOptions<LookupColumn>(
           context,
         );
@@ -203,7 +195,7 @@ export const lookupOrLtarBuilder =
             const mmParentColumn = await relation.getMMParentColumn(context);
             const mmChildColumn = await relation.getMMChildColumn(context);
 
-            const assocAlias = `__nc${aliasCount++}`;
+            const assocAlias = `__nc${getAliasCount()}`;
 
             selectQb
               .join(
@@ -270,7 +262,7 @@ export const lookupOrLtarBuilder =
           break;
         case UITypes.LinkToAnotherRecord:
           {
-            const nestedAlias = `__nc_formula${aliasCount++}`;
+            const nestedAlias = `__nc_formula${getAliasCount()}`;
             const relation =
               await lookupColumn.getColOptions<LinkToAnotherRecordColumn>(
                 context,
@@ -341,7 +333,7 @@ export const lookupOrLtarBuilder =
                     context,
                   );
 
-                  const assocAlias = `__nc${aliasCount++}`;
+                  const assocAlias = `__nc${getAliasCount()}`;
 
                   selectQb
                     .join(
@@ -408,16 +400,16 @@ export const lookupOrLtarBuilder =
               });
             }
             const { builder } = await _formulaQueryBuilder({
-              baseModelSqlv2,
+              ...params,
               _tree: formulaOption.formula,
               model: lookupModel,
-              aliasToColumn,
               parsedTree: formulaOption.getParsedTree(),
               parentColumns: new Set([
                 lookupColumn.id,
                 ...(parentColumns ?? []),
               ]),
               tableAlias: prevAlias,
+              column: lookupColumn,
             });
             if (isArray) {
               const qb = selectQb;

@@ -110,7 +110,7 @@ export class LeftSidebarPage extends BasePage {
     await this.rootPage.waitForTimeout(2000);
 
     for (let i = 0; i < (await nodes.count()); i++) {
-      const text = await getTextExcludeIconText(nodes.nth(i));
+      const text = await getTextExcludeIconText(nodes.nth(i).getByTestId('nc-workspace-list-title'));
       if (text.toLowerCase() === param.title.toLowerCase()) {
         await nodes.nth(i).click({ force: true });
         break;

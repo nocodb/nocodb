@@ -12,6 +12,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   NcErrorType,
+  ncIsUndefined,
   PlanLimitTypes,
   RelationTypes,
   UITypes,
@@ -1481,7 +1482,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           for (let i = 0; i < this.model.columns.length; ++i) {
             const col = this.model.columns[i];
 
-            if (col.title in d) {
+            if (col.title in d || col.id in d) {
               if (
                 isCreatedOrLastModifiedTimeCol(col) ||
                 isCreatedOrLastModifiedByCol(col)
@@ -1527,18 +1528,24 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
             // populate pk columns
             if (col.pk) {
-              if (col.meta?.ag && !d[col.title]) {
-                d[col.title] =
-                  col.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : uuidv4();
+              if (col.meta?.ag && !(d[col.title] ?? d[col.id])) {
+                if (d[col.id]) {
+                  d[col.title] = d[col.id];
+                } else {
+                  d[col.title] =
+                    col.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : uuidv4();
+                }
               }
             }
 
             // map alias to column
             if (!isVirtualCol(col)) {
-              let val =
-                d?.[col.column_name] !== undefined
-                  ? d?.[col.column_name]
-                  : d?.[col.title];
+              let val = !ncIsUndefined(d?.[col.column_name])
+                ? d?.[col.column_name]
+                : !ncIsUndefined(d?.[col.title])
+                ? d?.[col.title]
+                : d?.[col.id];
+
               if (val !== undefined) {
                 if (
                   col.uidt === UITypes.Attachment &&

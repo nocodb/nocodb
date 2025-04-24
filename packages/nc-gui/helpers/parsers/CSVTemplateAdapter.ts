@@ -33,8 +33,6 @@ export default class CSVTemplateAdapter {
 
   private progressCallback?: (msg: ProgressMessageType) => void
 
-  existingColumnMap: Record<string, ColumnType> = {}
-
   constructor(
     source: UploadFile[] | string,
     parserConfig = {},
@@ -53,7 +51,6 @@ export default class CSVTemplateAdapter {
     this.tables = {}
     this.tableNames = []
     this.progressCallback = progressCallback
-    this.existingColumns = existingColumns
 
     if (existingColumns && existingColumns.length) {
       for (const col of existingColumns) {

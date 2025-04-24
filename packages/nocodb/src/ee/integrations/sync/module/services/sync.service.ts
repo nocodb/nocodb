@@ -12,13 +12,14 @@ import {
   type SyncSchema,
   syncSystemFields,
 } from '~/integrations/sync/sync.schemas';
-import { Base, Model, SyncConfig, Workspace } from '~/models';
+import { Base, Integration, Model, SyncConfig, Workspace } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { IntegrationsService } from '~/services/integrations.service';
 import { TablesService } from '~/services/tables.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { JobStatus, JobTypes } from '~/interface/Jobs';
+import AuthIntegration from '~/integrations/auth/auth.interface';
 
 type SystemSyncSchema = (SyncSchema[number] & {
   system?: boolean;
@@ -104,9 +105,27 @@ export class SyncModuleService {
 
     const wrapper = await integration.getIntegrationWrapper<SyncIntegration>();
 
-    // Access static property of the class from the instance
-    const schema = (wrapper.constructor as any)
-      .destinationSchema as SystemSyncSchema;
+    const authIntegration = await Integration.get(
+      context,
+      payload.config.authIntegrationId,
+    );
+
+    if (!authIntegration) {
+      NcError.genericNotFound(
+        'AuthIntegration',
+        payload.config.authIntegrationId,
+      );
+    }
+
+    const authWrapper =
+      await authIntegration.getIntegrationWrapper<AuthIntegration>();
+
+    const auth = await authWrapper.authenticate(authIntegration.getConfig());
+
+    const schema = (await wrapper.getDestinationSchema(
+      auth,
+      payload.config,
+    )) as SystemSyncSchema;
 
     schema.unshift(...syncSystemFields);
 

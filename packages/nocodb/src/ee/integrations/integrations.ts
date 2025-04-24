@@ -37,15 +37,27 @@ import AiOpenaiCompatibleManifest from '~/integrations/ai/openai-compatible/mani
 import AiOpenaiEntry from '~/integrations/ai/openai/entry';
 import AiOpenaiForm from '~/integrations/ai/openai/credentials.form';
 import AiOpenaiManifest from '~/integrations/ai/openai/manifest';
+import AuthClickhouseEntry from '~/integrations/auth/clickhouse/entry';
+import AuthClickhouseForm from '~/integrations/auth/clickhouse/form';
+import AuthClickhouseManifest from '~/integrations/auth/clickhouse/manifest';
 import AuthGithubEntry from '~/integrations/auth/github/entry';
 import AuthGithubForm from '~/integrations/auth/github/form';
 import AuthGithubManifest from '~/integrations/auth/github/manifest';
 import AuthNocodbEntry from '~/integrations/auth/nocodb/entry';
 import AuthNocodbForm from '~/integrations/auth/nocodb/form';
 import AuthNocodbManifest from '~/integrations/auth/nocodb/manifest';
+import AuthRestEntry from '~/integrations/auth/rest/entry';
+import AuthRestForm from '~/integrations/auth/rest/form';
+import AuthRestManifest from '~/integrations/auth/rest/manifest';
+import SyncClickhouseTableEntry from '~/integrations/sync/clickhouse-table/entry';
+import SyncClickhouseTableForm from '~/integrations/sync/clickhouse-table/form';
+import SyncClickhouseTableManifest from '~/integrations/sync/clickhouse-table/manifest';
 import SyncGithubIssuesEntry from '~/integrations/sync/github-issues/entry';
 import SyncGithubIssuesForm from '~/integrations/sync/github-issues/form';
 import SyncGithubIssuesManifest from '~/integrations/sync/github-issues/manifest';
+import SyncUniversalRestEntry from '~/integrations/sync/universal-rest/entry';
+import SyncUniversalRestForm from '~/integrations/sync/universal-rest/form';
+import SyncUniversalRestManifest from '~/integrations/sync/universal-rest/manifest';
 
 export default [
   {
@@ -140,6 +152,16 @@ export default [
   },
   {
     type: 'auth',
+    sub_type: 'clickhouse',
+    wrapper: AuthClickhouseEntry,
+    form: AuthClickhouseForm,
+    meta: {
+      ...AuthCommonManifest,
+      ...AuthClickhouseManifest,
+    },
+  },
+  {
+    type: 'auth',
     sub_type: 'github',
     wrapper: AuthGithubEntry,
     form: AuthGithubForm,
@@ -159,6 +181,26 @@ export default [
     },
   },
   {
+    type: 'auth',
+    sub_type: 'rest',
+    wrapper: AuthRestEntry,
+    form: AuthRestForm,
+    meta: {
+      ...AuthCommonManifest,
+      ...AuthRestManifest,
+    },
+  },
+  {
+    type: 'sync',
+    sub_type: 'clickhouse-table',
+    wrapper: SyncClickhouseTableEntry,
+    form: SyncClickhouseTableForm,
+    meta: {
+      ...SyncCommonManifest,
+      ...SyncClickhouseTableManifest,
+    },
+  },
+  {
     type: 'sync',
     sub_type: 'github-issues',
     wrapper: SyncGithubIssuesEntry,
@@ -166,6 +208,16 @@ export default [
     meta: {
       ...SyncCommonManifest,
       ...SyncGithubIssuesManifest,
+    },
+  },
+  {
+    type: 'sync',
+    sub_type: 'universal-rest',
+    wrapper: SyncUniversalRestEntry,
+    form: SyncUniversalRestForm,
+    meta: {
+      ...SyncCommonManifest,
+      ...SyncUniversalRestManifest,
     },
   },
 ] as {

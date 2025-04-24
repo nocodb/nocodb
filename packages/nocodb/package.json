@@ -71,6 +71,7 @@
     "@aws-sdk/client-sns": "^3.743.0",
     "@aws-sdk/lib-storage": "^3.743.0",
     "@aws-sdk/s3-request-presigner": "^3.743.0",
+    "@clickhouse/client": "^1.11.1",
     "@databricks/sql": "^1.9.0",
     "@google-cloud/storage": "^7.15.0",
     "@nest-lab/throttler-storage-redis": "^1.1.0",

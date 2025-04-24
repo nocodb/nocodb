@@ -54,6 +54,8 @@ export type RecordTypeFromSchema<
   RemoteRaw: string | null;
 };
 
+export type AnyRecordType = Record<string, string | number | boolean | null>;
+
 export const syncSystemFields: SyncSchemaWithSystemFields = [
   // Generic System Fields
   {
@@ -173,3 +175,9 @@ export const ticketingSchema = [
     uidt: UITypes.SingleLineText,
   },
 ] as const;
+
+export interface SystemFieldsPayload {
+  primaryKey: string;
+  createdAt?: string;
+  updatedAt?: string;
+}

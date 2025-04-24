@@ -182,6 +182,7 @@ export const FormulaCellRenderer: CellRenderer = {
               ...colMeta.display_column_meta,
             },
           },
+          formula: true,
         })
       }
     }

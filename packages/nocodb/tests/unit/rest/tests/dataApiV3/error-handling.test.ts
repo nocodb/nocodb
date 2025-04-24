@@ -500,6 +500,21 @@ describe('dataApiV3', () => {
           response.body.message.startsWith(`Invalid value 'HELLOW' for type `),
         ).to.eq(true);
       });
+      it(`will handle insert field format not valid for uidt Rating`, async () => {
+        const response = await ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: [
+            {
+              Rating: 'HELLOW',
+            },
+          ],
+          status: 422,
+        });
+        expect(response.body.error).to.eq('DATABASE_ERROR');
+        expect(
+          response.body.message.startsWith(`Invalid value 'HELLOW' for type `),
+        ).to.eq(true);
+      });
       it(`will handle insert field more than 10 rows`, async () => {
         const insertObj = [
           {

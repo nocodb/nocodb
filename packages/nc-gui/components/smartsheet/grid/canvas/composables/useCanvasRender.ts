@@ -837,158 +837,173 @@ export function useCanvasRender({
     },
   ) => {
     const isHover = hoverRow.value?.rowIndex === row.rowMeta.rowIndex && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
+    const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
+    const isRowCellSelected =
+      activeCell.value.row === row.rowMeta.rowIndex && comparePath(activeCell.value.path, row?.rowMeta?.path)
+    const isDisabled = (!row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS) || vSelectedAllRecords.value
 
-    ctx.fillStyle = isHover ? '#F9F9FA' : '#ffffff'
+    ctx.fillStyle = isHover || isRowCellSelected ? '#F9F9FA' : '#ffffff'
     if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
 
     let currentX = xOffset + 4
 
-    const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
-    const isDisabled = (!row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS) || vSelectedAllRecords.value
-    let isCheckboxRendered = false
-    if (isChecked || (selectedRows.value.length && isHover)) {
-      const isCheckboxHovered = isHover && mousePosition.x >= currentX && mousePosition.x <= currentX + 24 && !isDisabled
-      if (!readOnly.value && (isChecked || isHover)) {
-        renderCheckbox(
-          ctx,
-          currentX + 6,
-          yOffset + (rowHeight.value - 16) / 2,
-          isChecked,
-          isDisabled,
-          spriteLoader,
-          isCheckboxHovered ? '#3366FF' : '#D9D9D9',
-        )
-        currentX += 30
-        isCheckboxRendered = true
+    /**
+     * 1. Render row index
+     */
+    if (readOnly.value || !(isHover || isChecked || isRowCellSelected)) {
+      let rowIndexFontSize = '12px'
+
+      if (row.rowMeta.rowIndex! + 1 >= 10000) {
+        rowIndexFontSize = '10px'
       }
-    } else {
-      if (!readOnly.value && isHover && isRowDraggingEnabled.value) {
-        const isHovered = isBoxHovered(
-          { x: currentX, y: yOffset + (rowHeight.value - 16) / 2, width: 24, height: 16 },
-          mousePosition,
-        )
 
-        if (isHovered) {
-          roundedRect(ctx, currentX, yOffset + (rowHeight.value - 20) / 2, 20, 20, 4, {
-            backgroundColor: isHovered ? '#F4F4F5' : 'transparent',
-          })
-        }
+      ctx.textBaseline = 'middle'
 
-        spriteLoader.renderIcon(ctx, {
-          icon: 'ncDrag',
-          size: 16,
-          x: currentX + 2,
-          y: yOffset + (rowHeight.value - 16) / 2,
-          color: isHovered ? '#3265FF' : '#6B7280',
+      const { width: rowIndexWidth } = renderSingleLineText(ctx, {
+        x: currentX + 8,
+        y: yOffset,
+        text: (row.rowMeta.rowIndex! + 1).toString(),
+        maxWidth: ROW_META_COLUMN_WIDTH / 2 - 8,
+        fontFamily: `500 ${rowIndexFontSize} Manrope`,
+        isTagLabel: true,
+        fillStyle: '#6B7280',
+      })
+
+      currentX += Math.max(24, rowIndexWidth + 16)
+    } else if ((isHover || isChecked || isRowCellSelected) && isRowDraggingEnabled.value) {
+      /**
+       * 2. Render drag icon -
+       * If not readonly & row dragging enabled & row is hovered/selected
+       * Disable row drag icon if multple rows selected for now
+       */
+
+      const isHovered = isBoxHovered(
+        { x: currentX, y: yOffset + (rowHeight.value - 16) / 2, width: 24, height: 16 },
+        mousePosition,
+      )
+
+      if (isHovered && !selectedRows.value.length) {
+        roundedRect(ctx, currentX, yOffset + (rowHeight.value - 20) / 2, 20, 20, 4, {
+          backgroundColor: isHovered ? themeV3Colors.gray['200'] : 'transparent',
         })
-        currentX += 24
-      } else if (!isHover) {
-        ctx.font = '500 12px Manrope'
-        ctx.fillStyle = '#6B7280'
-        ctx.textBaseline = 'middle'
-        ctx.textAlign = 'left'
-        const len = ctx.measureText(totalRows.value.toString()).width
-        ctx.fillText((row.rowMeta.rowIndex! + 1).toString(), currentX + 8, yOffset + rowHeight.value / 2)
-        currentX += Math.max(24, len + 16)
-      } else {
-        // add 6px padding to the left of the row meta column if the row number is not rendered
-        currentX += 6
+      } else if (isHovered) {
+        // For now we support on single row reorder if rows are not selected so we have to set cursor
+        setCursor('not-allowed')
       }
+
+      spriteLoader.renderIcon(ctx, {
+        icon: 'ncDrag',
+        size: 16,
+        x: currentX + 2,
+        y: yOffset + (rowHeight.value - 16) / 2,
+        color: isHovered ? '#3265FF' : '#6B7280',
+      })
+      currentX += 24
+    } else {
+      // add 6px padding to the left of the row meta column if the row number is not rendered
+      currentX += 6
     }
 
-    if (isHover && !isCheckboxRendered) {
-      if (!readOnly.value) {
-        const isCheckboxHovered = isHover && mousePosition.x >= currentX && mousePosition.x <= currentX + 24 && !isDisabled
-        renderCheckbox(
-          ctx,
-          currentX,
-          yOffset + (rowHeight.value - 16) / 2,
-          isChecked,
-          isDisabled,
-          spriteLoader,
-          isCheckboxHovered ? '#3366FF' : '#D9D9D9',
-        )
-        currentX += 24
-      }
+    /**
+     * 3. Render checkbox
+     */
+    if (!readOnly.value && (isChecked || isHover || isRowCellSelected)) {
+      const isCheckboxHovered = isHover && mousePosition.x >= currentX && mousePosition.x <= currentX + 24 && !isDisabled
+      renderCheckbox(
+        ctx,
+        currentX,
+        yOffset + (rowHeight.value - 16) / 2,
+        isChecked,
+        isDisabled,
+        spriteLoader,
+        isCheckboxHovered ? '#3366FF' : '#D9D9D9',
+      )
+      currentX += 24
     }
 
-    ctx.font = '500 12px Manrope'
-    ctx.fillStyle = '#6B7280'
-    ctx.textBaseline = 'middle'
-    ctx.textAlign = 'center'
-
+    /**
+     * 4. Render comment or expand icon
+     */
     if (row.rowMeta?.commentCount) {
-      const commentCount = row.rowMeta.commentCount.toString()
-
-      ctx.font = '600 12px Manrope'
-      const textMetrics = ctx.measureText(commentCount)
-
-      const maxX = ROW_META_COLUMN_WIDTH + groupByColumns.value?.length * 12
-
-      if (maxX - currentX < textMetrics.width + 8) {
-        currentX = maxX - textMetrics.width - 8
-      }
+      const reduceFontSize = row.rowMeta.commentCount > 99
+      const commentCount = reduceFontSize ? '99+' : row.rowMeta.commentCount.toString()
 
       const bubbleHeight = 20
-      const bubbleWidth = textMetrics.width + 8
 
-      ctx.beginPath()
-      const x = currentX
+      const _renderSingleLineText = (xValue: number, render: boolean = false) => {
+        return renderSingleLineText(ctx, {
+          x: xValue,
+          y: yOffset,
+          render,
+          text: commentCount,
+          maxWidth: ROW_META_COLUMN_WIDTH / 2,
+          fontFamily: `600 ${reduceFontSize ? '10px' : '12px'} Manrope`,
+          textAlign: 'center',
+          isTagLabel: true,
+          fillStyle: '#3366FF',
+        })
+      }
+
+      const { width: commentCountWidth } = _renderSingleLineText(xOffset + width / 2 - 4)
+
+      const bubbleWidth = Math.max(20, commentCountWidth + 8)
+
+      const x = xOffset + width - 4 - bubbleWidth
       const y = yOffset + (rowHeight.value - bubbleHeight) / 2
-      const radius = {
-        topLeft: 4,
-        topRight: 4,
-        bottomLeft: 0,
-        bottomRight: 4,
-      }
 
-      ctx.beginPath()
-      ctx.moveTo(x + radius.topLeft, y)
-      ctx.lineTo(x + bubbleWidth - radius.topRight, y)
-      ctx.arcTo(x + bubbleWidth, y, x + bubbleWidth, y + radius.topRight, radius.topRight)
-      ctx.lineTo(x + bubbleWidth, y + bubbleHeight - radius.bottomRight)
-      ctx.arcTo(x + bubbleWidth, y + bubbleHeight, x + bubbleWidth - radius.bottomRight, y + bubbleHeight, radius.bottomRight)
-      ctx.lineTo(x, y + bubbleHeight)
-      ctx.lineTo(x, y + radius.topLeft)
-      ctx.arcTo(x, y, x + radius.topLeft, y, radius.topLeft)
-      ctx.closePath()
+      roundedRect(
+        ctx,
+        x,
+        y,
+        bubbleWidth,
+        bubbleHeight,
+        {
+          topLeft: 6,
+          topRight: 6,
+          bottomLeft: 0,
+          bottomRight: 6,
+        },
+        {
+          backgroundColor: '#F0F3FF',
+          borderColor: themeV3Colors.brand['200'],
+        },
+      )
 
-      ctx.fillStyle = '#EEF2FF'
-      ctx.fill()
-      ctx.strokeStyle = '#3366FF'
-      ctx.lineWidth = 1
-      ctx.stroke()
+      _renderSingleLineText(x + bubbleWidth / 2, true)
 
-      ctx.fillStyle = '#3366FF'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(commentCount, x + bubbleWidth / 2, y + bubbleHeight / 2)
-    } else if (isHover) {
-      const box = { x: currentX, y: yOffset + (rowHeight.value - 14) / 2, height: 14, width: 14 }
-      if (!isBoxHovered(box, mousePosition)) {
-        spriteLoader.renderIcon(ctx, {
-          icon: 'maximize',
-          size: 14,
-          x: currentX,
-          y: yOffset + (rowHeight.value - 14) / 2,
-          color: '#6B7280',
-        })
-      } else {
-        renderIconButton(ctx, {
-          buttonX: box.x - 2,
-          buttonY: box.y - 2,
-          buttonSize: 18,
-          icon: 'maximize',
-          iconData: {
-            size: 14,
-            xOffset: 2,
-            yOffset: 2,
+      if (reduceFontSize) {
+        tryShowTooltip({
+          mousePosition,
+          text: `${row.rowMeta.commentCount} comments`,
+          rect: {
+            x,
+            y,
+            width: bubbleWidth,
+            height: bubbleHeight,
           },
-          borderRadius: 4,
-          spriteLoader,
         })
       }
+    } else if (isHover || isRowCellSelected) {
+      const box = { x: xOffset + width - 4 - 20, y: yOffset + (rowHeight.value - 20) / 2, height: 16, width: 16 }
+
+      const isExpandHovered = isBoxHovered(box, mousePosition)
+      renderIconButton(ctx, {
+        buttonX: box.x,
+        buttonY: box.y,
+        buttonSize: 20,
+        icon: 'maximize',
+        iconData: {
+          size: 14,
+          xOffset: 3,
+          yOffset: 3,
+        },
+        borderRadius: 4,
+        spriteLoader,
+        borderColor: !isExpandHovered ? 'transparent' : undefined,
+        background: !isExpandHovered ? 'transparent' : undefined,
+        setCursor,
+      })
     }
   }
 
@@ -1149,6 +1164,7 @@ export function useCanvasRender({
     const groupPath = generateGroupPath(group)
     const isHovered = hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
     const isActiveCellInCurrentGroup = comparePath(activeCell.value?.path, groupPath)
+    const isRowCellSelected = activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path)
 
     if (row) {
       const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
@@ -1188,6 +1204,9 @@ export function useCanvasRender({
         ) {
           ctx.fillStyle = '#F6F7FE'
           ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
+        } else if (isRowCellSelected) {
+          console.log('row select', isRowCellSelected)
+          ctx.fillStyle = 'red'
         }
 
         ctx.strokeStyle = '#f4f4f5'
@@ -1270,7 +1289,7 @@ export function useCanvasRender({
             ctx.fillStyle = '#F6F7FE'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
-            ctx.fillStyle = isHovered ? '#F9F9FA' : '#ffffff'
+            ctx.fillStyle = isHovered || isRowCellSelected ? '#F9F9FA' : '#ffffff'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           }
 
@@ -1438,7 +1457,7 @@ export function useCanvasRender({
             ctx.fillStyle = '#F6F7FE'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
-            ctx.fillStyle = isHovered ? '#F9F9FA' : '#ffffff'
+            ctx.fillStyle = isHovered || isRowCellSelected ? '#F9F9FA' : '#ffffff'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           }
 
@@ -1529,8 +1548,10 @@ export function useCanvasRender({
           ctx.globalAlpha = 0.5
         }
 
-        ctx.fillStyle =
-          hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path) ? '#F9F9FA' : '#ffffff'
+        const isRowHovered = hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
+        const isRowCellSelected = activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path)
+
+        ctx.fillStyle = isRowHovered || isRowCellSelected ? '#F9F9FA' : '#ffffff'
         ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
         const renderedProp = renderRow(ctx, {
           row,

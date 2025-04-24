@@ -304,6 +304,14 @@ export class ColumnsService implements IColumnsService {
       }),
     );
 
+    if (table.synced && column.readonly) {
+      NcError.badRequest(
+        `The column '${
+          column.title || column.column_name
+        }' is a synced column and cannot be updated.`,
+      );
+    }
+
     const source = await reuseOrSave('source', reuse, async () =>
       Source.get(context, table.source_id),
     );
@@ -2739,6 +2747,14 @@ export class ColumnsService implements IColumnsService {
       !readonlyMetaAllowedTypes.includes(column.uidt)
     ) {
       NcError.sourceMetaReadOnly(source.alias);
+    }
+
+    if (table.synced && column.readonly) {
+      NcError.badRequest(
+        `The column '${
+          column.title || column.column_name
+        }' is a synced column and cannot be deleted.`,
+      );
     }
 
     const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>

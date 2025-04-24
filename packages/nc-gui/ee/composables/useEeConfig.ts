@@ -129,6 +129,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !isPaidPlan.value
   })
 
+  const blockWsImageLogoUpload = computed(() => {
+    return isPaymentEnabled.value && !isPaidPlan.value
+  })
+
   /** Helper functions */
   function getLimit(type: PlanLimitTypes, workspace?: NcWorkspace | null) {
     if (!isPaymentEnabled.value) return Infinity
@@ -615,6 +619,22 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUploadWsImage = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockWsImageLogoUpload.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUploadWsImage'),
+      content: t('upgrade.upgradeToUploadWsImageSubtitle', {
+        activePlan: activePlanTitle.value,
+        plan: PlanTitles.TEAM,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO,
+    })
+
+    return true
+  }
+
   return {
     isWsOwner,
     getLimit,
@@ -654,5 +674,7 @@ export const useEeConfig = createSharedComposable(() => {
     isLoyaltyWorkspace,
     gracePeriodEndDate,
     isTopBannerVisible,
+    showUpgradeToUploadWsImage,
+    blockWsImageLogoUpload,
   }
 })

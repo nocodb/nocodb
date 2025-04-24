@@ -129,7 +129,7 @@ const onWorkspaceCreateClick = () => {
         data-testid="nc-workspace-menu"
         class="group cursor-pointer flex flex-grow w-full gap-x-2 items-center nc-workspace-menu overflow-hidden py-1.25 xs:py-1.75 pr-0.25"
       >
-        <GeneralWorkspaceIcon :workspace="activeWorkspace" icon-bg-color="#E7E7E9" />
+        <GeneralWorkspaceIcon :workspace="activeWorkspace" icon-bg-color="#E7E7E9" show-nocodb-icon/>
         <div v-if="activeWorkspace" class="flex min-w-10 w-full items-center">
           <div class="nc-workspace-title font-semibold text-base text-md truncate capitalize">
             {{ activeWorkspace.title }}

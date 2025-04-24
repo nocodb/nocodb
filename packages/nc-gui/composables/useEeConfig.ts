@@ -73,6 +73,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToSeeMoreRecordsModal = (..._args: any[]) => {}
 
+  const showUpgradeToUploadWsImage = (..._args: any[]) => {}
+
   return {
     getLimit,
     getStatLimit,
@@ -110,5 +112,6 @@ export const useEeConfig = createSharedComposable(() => {
     isLoyaltyWorkspace,
     gracePeriodEndDate,
     isTopBannerVisible,
+    showUpgradeToUploadWsImage,
   }
 })

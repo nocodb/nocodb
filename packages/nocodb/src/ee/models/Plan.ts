@@ -209,6 +209,7 @@ export const GenericFeatures = {
   [PlanFeatureTypes.FEATURE_SCRIPTS]: false,
   [PlanFeatureTypes.FEATURE_SSO]: false,
   [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]: false,
+  [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]: false,
 } as const;
 
 export const GraceLimits = {
@@ -252,6 +253,7 @@ const legacyLimitAndFeatures = {
   [PlanFeatureTypes.FEATURE_SCRIPTS]: true,
   [PlanFeatureTypes.FEATURE_SSO]: true,
   [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]: true,
+  [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]: true,
 };
 
 export const FreePlan = Plan.prepare({

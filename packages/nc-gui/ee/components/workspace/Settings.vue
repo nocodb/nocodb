@@ -12,6 +12,8 @@ const { orgId } = useOrganization()
 
 const { refreshCommandPalette } = useCommandPalette()
 
+const { showUpgradeToUploadWsImage } = useEeConfig()
+
 const router = useRouter()
 
 const formValidator = ref()
@@ -166,6 +168,14 @@ const handleDelete = () => {
   }, 250)
 }
 
+const handleOnBeforeTabChange = (tab: IconType) => {
+  if (tab === IconType.IMAGE && showUpgradeToUploadWsImage()) {
+    return false
+  } else {
+    return true
+  }
+}
+
 watch(
   currentWorkspace,
   () => {
@@ -218,7 +228,9 @@ const onCancel = () => {
                 v-model:icon="form.icon"
                 v-model:icon-type="form.iconType"
                 v-model:image-cropper-data="imageCropperData"
+                :tab-order="[IconType.ICON, IconType.EMOJI, IconType.IMAGE]"
                 @submit="() => saveChanges(true)"
+                @before-tab-change="handleOnBeforeTabChange"
               >
                 <template #default="{ isOpen }">
                   <div

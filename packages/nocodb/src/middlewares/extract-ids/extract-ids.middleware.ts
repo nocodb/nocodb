@@ -403,6 +403,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     req.context = {
       workspace_id: null,
       base_id: req.ncBaseId,
+      api_version: context.api_version,
     };
 
     next();

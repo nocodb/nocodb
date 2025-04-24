@@ -271,7 +271,7 @@ export function extractDBError(error): {
       message = 'A value is required for this field.';
       break;
     case '23503':
-      message = 'The referenced record does not exist.';
+      message = 'Cannot delete this record because other records depend on it. Please remove the dependent records first.';
       break;
     case '23514':
       message = 'A null value is not allowed for this field.';

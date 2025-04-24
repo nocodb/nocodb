@@ -58,6 +58,7 @@ export const FormulaCellRenderer: CellRenderer = {
       mousePosition,
       setCursor,
       spriteLoader,
+      selected,
     } = props
     const colMeta = parseProp(column.meta)
 
@@ -117,7 +118,7 @@ export const FormulaCellRenderer: CellRenderer = {
           lineHeight: 16,
         })
         const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
-        if (hoveredBox) {
+        if (hoveredBox && selected) {
           setCursor('pointer')
         }
       } else {
@@ -129,16 +130,16 @@ export const FormulaCellRenderer: CellRenderer = {
         })
       }
 
-      if (isHovered) {
+      if (selected) {
         renderIconButton(ctx, {
           buttonX: x + width - 28,
           buttonY: y + 7,
           buttonSize: 20,
           borderRadius: 6,
           iconData: {
-            size: 13,
-            xOffset: (20 - 13) / 2,
-            yOffset: (20 - 13) / 2,
+            size: 14,
+            xOffset: 3,
+            yOffset: 3,
           },
           mousePosition,
           spriteLoader,
@@ -157,7 +158,8 @@ export const FormulaCellRenderer: CellRenderer = {
     }
   },
   handleClick: async (props) => {
-    const { column, getCellPosition, value, openDetachedLongText, selected, mousePosition } = props
+    const { column, getCellPosition, value, openDetachedLongText, selected, isDoubleClick, mousePosition } = props
+    if (!selected && !isDoubleClick) return false
 
     const colObj = column.columnObj
     const colMeta = parseProp(colObj.meta)
@@ -275,18 +277,21 @@ export const FormulaCellRenderer: CellRenderer = {
         },
       })
     }
+
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
-    tryShowTooltip({
-      rect: {
-        x: x + width - 28,
-        y: y + 7,
-        width: 18,
-        height: 18,
-      },
-      mousePosition,
-      text: getI18n().global.t('tooltip.expandShiftSpace'),
-    })
+    if (colObj?.parsed_tree?.dataType === FormulaDataTypes.STRING) {
+      tryShowTooltip({
+        rect: {
+          x: x + width - 28,
+          y: y + 7,
+          width: 18,
+          height: 18,
+        },
+        mousePosition,
+        text: getI18n().global.t('tooltip.expandShiftSpace'),
+      })
+    }
 
     tryShowTooltip({ rect: { x: x + 10, y, height: 25, width: 45 }, mousePosition, text: error })
   },

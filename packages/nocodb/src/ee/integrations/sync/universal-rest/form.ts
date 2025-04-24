@@ -61,7 +61,8 @@ export default [
     ],
   },
   {
-    type: FormBuilderInputType.Input,
+    type: FormBuilderInputType.Select,
+    selectMode: 'multipleWithInput',
     label: 'Primary Key Path (JSON)',
     width: 100,
     model: 'config.system.primaryKey',

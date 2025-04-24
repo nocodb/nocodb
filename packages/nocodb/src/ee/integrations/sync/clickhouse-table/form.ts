@@ -47,7 +47,8 @@ export default [
     ],
   },
   {
-    type: FormBuilderInputType.Input,
+    type: FormBuilderInputType.Select,
+    selectMode: 'multipleWithInput',
     label: 'Primary Key Column',
     width: 100,
     model: 'config.system.primaryKey',

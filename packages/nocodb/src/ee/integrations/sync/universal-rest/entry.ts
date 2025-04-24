@@ -7,7 +7,10 @@ import type {
   SyncColumnDefinition,
   SystemFieldsPayload,
 } from '~/integrations/sync/sync.schemas';
-import { DataObjectStream } from '~/integrations/sync/sync.helpers';
+import {
+  DataObjectStream,
+  extractPrimaryKey,
+} from '~/integrations/sync/sync.helpers';
 import SyncIntegration from '~/integrations/sync/sync.interface';
 
 function getValueFromPath(obj: any, path: string): any {
@@ -106,10 +109,14 @@ export default class UniversalRestIntegration extends SyncIntegration {
           }
 
           for (const record of dataArray) {
-            const id = getValueFromPath(record, system.primaryKey);
+            const id = extractPrimaryKey(
+              record,
+              system.primaryKey,
+              getValueFromPath,
+            );
             if (id !== undefined && id !== null) {
               stream.push({
-                recordId: id.toString(),
+                recordId: id,
                 data: {
                   ...record,
                   ...(system.createdAt

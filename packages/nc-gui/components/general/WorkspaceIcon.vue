@@ -15,9 +15,11 @@ const props = withDefaults(
     size?: 'small' | 'medium' | 'large' | 'xlarge' | 'middle' | 'account-sidebar'
     isRounded?: boolean
     iconBgColor?: string
+    showNocodbIcon?: boolean
   }>(),
   {
     iconBgColor: '#F4F4F5',
+    showNocodbIcon: false,
   },
 )
 
@@ -63,12 +65,12 @@ const workspaceColor = computed(() => {
       }
 
       default: {
-        return color || '#0A1433'
+        return props.showNocodbIcon ? undefined : color || '#0A1433'
       }
     }
   }
 
-  return color || '#0A1433'
+  return props.showNocodbIcon ? undefined : color || '#0A1433'
 })
 
 const size = computed(() => props.size || 'medium')
@@ -139,18 +141,23 @@ const size = computed(() => props.size || 'medium')
           'w-10 h-10': size === 'xlarge',
         }"
       />
-      <div
-        v-else
-        class="font-semibold"
-        :class="{
-          'text-white': isColorDark(workspaceColor),
-          'text-black': !isColorDark(workspaceColor),
-          'text-[8px]': size === 'small',
-          'text-sm': size === 'account-sidebar',
-        }"
-      >
-        {{ workspace?.title?.slice(0, size === 'account-sidebar' ? 1 : 2) }}
-      </div>
+      <template v-else>
+        <div v-if="showNocodbIcon" class="h-full w-full p-0.25">
+          <GeneralIcon icon="nocodb1" class="!h-full !w-full" />
+        </div>
+        <div
+          v-else
+          class="font-semibold"
+          :class="{
+            'text-white': isColorDark(workspaceColor),
+            'text-black': !isColorDark(workspaceColor),
+            'text-[8px]': size === 'small',
+            'text-sm': size === 'account-sidebar',
+          }"
+        >
+          {{ workspace?.title?.slice(0, size === 'account-sidebar' ? 1 : 2) }}
+        </div>
+      </template>
     </template>
   </div>
 </template>

@@ -85,6 +85,50 @@ describe('dataApiV3', () => {
         );
       });
 
+      it('get list country with 1 field', async function () {
+        const response = await ncAxiosGet({
+          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          query: {
+            fields: 'CountryId',
+          },
+        });
+        const result = response.body as ListResult;
+        expect(result.list.length).to.greaterThan(0);
+      });
+
+      it.skip('get list country with 2 fields on same query param', async function () {
+        const response = await ncAxiosGet({
+          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          query: {
+            fields: 'CountryId,Country',
+          },
+        });
+        const result = response.body as ListResult;
+        expect(result.list.length).to.greaterThan(0);
+
+        // TODO: handle space between fields
+        // with space after delimiter
+        const nextResponse = await ncAxiosGet({
+          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          query: {
+            fields: 'CountryId, Country',
+          },
+        });
+        const nextResult = nextResponse.body as ListResult;
+        expect(nextResult.list.length).to.greaterThan(0);
+      });
+
+      it('get list country with 2 fields on different query param (array)', async function () {
+        const response = await ncAxiosGet({
+          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          query: {
+            fields: ['CountryId', 'Country'],
+          },
+        });
+        const result = response.body as ListResult;
+        expect(result.list.length).to.greaterThan(0);
+      });
+
       it('get list country with name like Ind', async function () {
         const response = await ncAxiosGet({
           url: `${urlPrefix}/${testContext.countryTable.id}`,

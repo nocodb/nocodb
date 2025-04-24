@@ -114,7 +114,7 @@ export const parseNotClause = (cst: CstNotClause) => {
 export const parseAndOrClause = (cst: CstAndOrClause) => {
   if (!['~and', '~or'].includes(cst.children.operator[0].image)) {
     throw new InvalidFilterError({
-      message: `Invalid filter expression. Expected a valid logical operator like '~or' or '~and', but found '${cst.children.operator[0].image}'.`,
+      message: `Invalid filter expression. Expected a valid logical operator like '~or' or '~and', but found '${cst.children.operator[0].image}'`,
     });
   }
   return parseParenClause(cst.children.clause[0], {

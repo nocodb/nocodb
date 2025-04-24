@@ -13,13 +13,13 @@ export const parseParsingError = (e: IRecognitionException) => {
       const [expectation, found] = tokens.slice(1, 3);
       switch (expectation) {
         case 'OPERATOR': {
-          return `Invalid filter expression: '${found}' is not a recognized operator. Please use a valid comparison or logical operator.`;
+          return `Invalid filter expression: '${found}' is not a recognized operator. Please use a valid comparison or logical operator`;
         }
         case 'PAREN_END': {
-          return `Invalid filter syntax: expected a closing parentheses ')', but found '${found}'.`;
+          return `Invalid filter syntax: expected a closing parentheses ')', but found '${found}'`;
         }
         default: {
-          return `Invalid filter expression: '${found}' is not a valid token.`;
+          return `Invalid filter expression: '${found}' is not a valid token`;
         }
       }
     } else if (
@@ -40,10 +40,10 @@ export const parseParsingError = (e: IRecognitionException) => {
         e.token?.tokenType?.name === 'IDENTIFIER' &&
         options.some((k) => k === 'IDENTIFIER, COMMA')
       ) {
-        return `Invalid filter syntax: expected comma ',' followed with operator (and value) after field.`;
+        return `Invalid filter syntax: expected comma ',' followed with operator (and value) after field`;
       }
       if (options.some((k) => k === 'NOT_OPERATOR' || k === 'PAREN_START')) {
-        return `Invalid filter syntax: expected a logical operator like '~not' or opening parenthesis, but found '${found}'.`;
+        return `Invalid filter syntax: expected a logical operator like '~not' or opening parenthesis, but found '${found}'`;
       }
     }
   } catch {

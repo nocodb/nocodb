@@ -689,7 +689,7 @@ const errorHelpers: {
     message: (offset: string) =>
       ncIsNumber(Number(offset)) && Number(offset) > 0
         ? `Offset value '${offset}' is invalid`
-        : `Offset must be a non-negative integer.`,
+        : `Offset must be a non-negative integer`,
     code: 422,
   },
   [NcErrorType.INVALID_PAGE_VALUE]: {

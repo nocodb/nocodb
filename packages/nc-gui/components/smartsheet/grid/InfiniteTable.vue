@@ -122,6 +122,8 @@ const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlo
 
 const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource } = useSmartsheetStoreOrThrow()
 
+const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
+
 const { $e, $api } = useNuxtApp()
 
 const { t } = useI18n()
@@ -2193,6 +2195,32 @@ const cellAlignClass = computed(() => {
   }
   return 'align-top'
 })
+
+const cellFilteredOrSortedClass = (colId: string) => {
+  const columnState = isColumnSortedOrFiltered(colId)
+  if (columnState) {
+    const className = filteredOrSortedAppearanceConfig[columnState]?.cellBgClass
+    if (className) {
+      return {
+        [className]: true,
+      }
+    }
+  }
+  return {}
+}
+
+const headerFilteredOrSortedClass = (colId: string) => {
+  const columnState = isColumnSortedOrFiltered(colId)
+  if (columnState) {
+    const headerBgClass = filteredOrSortedAppearanceConfig[columnState]?.headerBgClass
+    if (headerBgClass) {
+      return {
+        [headerBgClass]: true,
+      }
+    }
+  }
+  return {}
+}
 </script>
 
 <template>
@@ -2238,7 +2266,7 @@ const cellAlignClass = computed(() => {
               mobile: isMobileMode,
               desktop: !isMobileMode,
             }"
-            class="nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5 bg-white"
+            class="nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5"
           >
             <thead>
               <tr v-if="isViewColumnsLoading">
@@ -2305,6 +2333,7 @@ const cellAlignClass = computed(() => {
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
                     'no-resize': isLocked,
+                    ...headerFilteredOrSortedClass(fields?.[0]?.id),
                   }"
                   @xcstartresizing="onXcStartResizing(fields[0].id, $event)"
                   @xcresize="onresize(fields[0].id, $event)"
@@ -2356,6 +2385,7 @@ const cellAlignClass = computed(() => {
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === col.id,
                     'no-resize': isLocked,
+                    ...headerFilteredOrSortedClass(col.id),
                   }"
                   @xcstartresizing="onXcStartResizing(col.id, $event)"
                   @xcresize="onresize(col.id, $event)"
@@ -2464,7 +2494,7 @@ const cellAlignClass = computed(() => {
             >
               <tbody
                 ref="tableBodyEl"
-                class="xc-row-table"
+                class="xc-row-table !bg-red-100"
                 :style="{
                   transform: `translateY(${topOffset}px)`,
                 }"
@@ -2638,6 +2668,7 @@ const cellAlignClass = computed(() => {
                             colMeta[0]?.isReadonly && hasEditPermission && selectRangeMap?.[`${row.rowMeta.rowIndex}-0`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
                           [cellAlignClass]: true,
+                          ...cellFilteredOrSortedClass(fields[0].id),
                         }"
                         :style="{
                           'min-width': gridViewCols[fields[0].id]?.width || '180px',
@@ -2741,6 +2772,7 @@ const cellAlignClass = computed(() => {
                             selectRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
                           [cellAlignClass]: true,
+                          ...cellFilteredOrSortedClass(columnObj.id),
                         }"
                         :style="{
                           'min-width': gridViewCols[columnObj.id]?.width || '180px',
@@ -3472,7 +3504,7 @@ const cellAlignClass = computed(() => {
       position: sticky !important;
       z-index: 4;
       left: 80px;
-      background: white;
+      // background: white;
       @apply border-r-1 border-r-gray-100;
     }
 
@@ -3532,6 +3564,23 @@ const cellAlignClass = computed(() => {
 }
 
 .nc-grid-row {
+  td.nc-grid-cell.column-filtered.active {
+    @apply !bg-green-100;
+
+    :deep(input),
+    :deep(textarea) {
+      @apply !bg-transparent;
+    }
+  }
+  td.nc-grid-cell.column-sorted.active {
+    @apply !bg-orange-100;
+
+    :deep(input),
+    :deep(textarea) {
+      @apply !bg-transparent;
+    }
+  }
+
   .nc-row-expand-and-checkbox {
     @apply !xs:hidden items-center justify-between;
   }
@@ -3576,6 +3625,14 @@ const cellAlignClass = computed(() => {
       td.nc-grid-cell:not(.active),
       td:nth-child(2):not(.active) {
         @apply !bg-gray-50 border-b-gray-200 border-r-gray-200;
+
+        &.column-filtered {
+          @apply !bg-green-100;
+        }
+
+        &.column-sorted {
+          @apply !bg-orange-100;
+        }
       }
     }
   }
@@ -3584,6 +3641,14 @@ const cellAlignClass = computed(() => {
     td.nc-grid-cell:not(.active),
     td:nth-child(2):not(.active) {
       @apply !bg-[#F0F3FF] border-b-gray-200 border-r-gray-200;
+
+      &.column-filtered {
+        @apply !bg-green-100;
+      }
+
+      &.column-sorted {
+        @apply !bg-orange-100;
+      }
     }
   }
 
@@ -3591,6 +3656,20 @@ const cellAlignClass = computed(() => {
     td.nc-grid-cell:not(.active),
     td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
       @apply border-b-gray-200;
+    }
+  }
+
+  &:not(.selected-row) {
+    td.nc-grid-cell:not(.active),
+    td:nth-child(2):not(.active) {
+      &.column-filtered,
+      &.column-sorted {
+        @apply border-b-gray-200 border-r-gray-200;
+      }
+      &:has(+ .column-filtered),
+      &:has(+ .column-sorted) {
+        @apply border-r-gray-200;
+      }
     }
   }
 

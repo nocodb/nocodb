@@ -108,6 +108,8 @@ const scrollParent = inject(ScrollParentInj, ref<undefined>())
 
 const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
+const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
+
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
 const { $e } = useNuxtApp()
@@ -1851,6 +1853,32 @@ function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
   }
 }
 
+const cellFilteredOrSortedClass = (colId: string) => {
+  const columnState = isColumnSortedOrFiltered(colId)
+  if (columnState) {
+    const className = filteredOrSortedAppearanceConfig[columnState]?.cellBgClass
+    if (className) {
+      return {
+        [className]: true,
+      }
+    }
+  }
+  return {}
+}
+
+const headerFilteredOrSortedClass = (colId: string) => {
+  const columnState = isColumnSortedOrFiltered(colId)
+  if (columnState) {
+    const headerBgClass = filteredOrSortedAppearanceConfig[columnState]?.headerBgClass
+    if (headerBgClass) {
+      return {
+        [headerBgClass]: true,
+      }
+    }
+  }
+  return {}
+}
+
 // Keyboard shortcuts for pagination
 onKeyStroke('ArrowLeft', onLeft)
 onKeyStroke('ArrowRight', onRight)
@@ -1957,6 +1985,7 @@ onKeyStroke('ArrowDown', onDown)
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
                     'no-resize': isLocked,
+                    ...headerFilteredOrSortedClass(fields?.[0]?.id),
                   }"
                   @xcstartresizing="onXcStartResizing(fields[0].id, $event)"
                   @xcresize="onresize(fields[0].id, $event)"
@@ -2003,6 +2032,7 @@ onKeyStroke('ArrowDown', onDown)
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === col.id,
                     'no-resize': isLocked,
+                    ...headerFilteredOrSortedClass(col.id),
                   }"
                   @xcstartresizing="onXcStartResizing(col.id, $event)"
                   @xcresize="onresize(col.id, $event)"
@@ -2303,6 +2333,7 @@ onKeyStroke('ArrowDown', onDown)
                           'filling': fillRangeMap[`${rowIndex}-0`],
                           'readonly': colMeta[0].isReadonly && hasEditPermission && selectRangeMap[`${rowIndex}-0`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
+                          ...cellFilteredOrSortedClass(fields[0].id),
                         }"
                         :style="{
                           'min-width': gridViewCols[fields[0].id]?.width || '180px',
@@ -2380,6 +2411,7 @@ onKeyStroke('ArrowDown', onDown)
                           'readonly':
                             colMeta[colIndex].isReadonly && hasEditPermission && selectRangeMap[`${rowIndex}-${colIndex}`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
+                          ...cellFilteredOrSortedClass(columnObj.id),
                         }"
                         :style="{
                           'min-width': gridViewCols[columnObj.id]?.width || '180px',
@@ -3146,6 +3178,23 @@ onKeyStroke('ArrowDown', onDown)
 }
 
 .nc-grid-row {
+  td.nc-grid-cell.column-filtered.active {
+    @apply !bg-green-100;
+
+    :deep(input),
+    :deep(textarea) {
+      @apply !bg-transparent;
+    }
+  }
+  td.nc-grid-cell.column-sorted.active {
+    @apply !bg-orange-100;
+
+    :deep(input),
+    :deep(textarea) {
+      @apply !bg-transparent;
+    }
+  }
+
   .nc-row-expand-and-checkbox {
     @apply !xs:hidden w-full items-center justify-between;
   }
@@ -3178,6 +3227,13 @@ onKeyStroke('ArrowDown', onDown)
       td.nc-grid-cell:not(.active),
       td:nth-child(2):not(.active) {
         @apply !bg-gray-50 border-b-gray-200 border-r-gray-200;
+
+        &.column-filtered {
+          @apply !bg-green-100;
+        }
+        &.column-sorted {
+          @apply !bg-orange-100;
+        }
       }
     }
   }
@@ -3186,6 +3242,13 @@ onKeyStroke('ArrowDown', onDown)
     td.nc-grid-cell:not(.active),
     td:nth-child(2):not(.active) {
       @apply !bg-[#F0F3FF] border-b-gray-200 border-r-gray-200;
+
+      &.column-filtered {
+        @apply !bg-green-100;
+      }
+      &.column-sorted {
+        @apply !bg-orange-100;
+      }
     }
   }
 
@@ -3193,6 +3256,20 @@ onKeyStroke('ArrowDown', onDown)
     td.nc-grid-cell:not(.active),
     td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
       @apply border-b-gray-200;
+    }
+  }
+
+  &:not(.selected-row) {
+    td.nc-grid-cell:not(.active),
+    td:nth-child(2):not(.active) {
+      &.column-filtered,
+      &.column-sorted {
+        @apply border-b-gray-200 border-r-gray-200;
+      }
+      &:has(+ .column-filtered),
+      &:has(+ .column-sorted) {
+        @apply border-r-gray-200;
+      }
     }
   }
 
@@ -3242,5 +3319,12 @@ onKeyStroke('ArrowDown', onDown)
   :deep(.ant-btn.ant-dropdown-trigger.ant-btn-icon-only) {
     @apply !flex items-center justify-center;
   }
+}
+
+.col-filtered {
+  background: var(--nc-background-coloured-green, #ecfff2) !important;
+}
+.col-sorted {
+  background: var(--nc-background-coloured-marooon, #fff0f7) !important;
 }
 </style>

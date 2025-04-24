@@ -31,7 +31,7 @@ import {
   MAX_SELECTED_ROWS,
   ROW_META_COLUMN_WIDTH,
 } from './utils/constants'
-import { calculateGroupRowTop, findGroupByPath, generateGroupPath, getDefaultGroupData } from './utils/groupby'
+import { calculateGroupRowTop, comparePath, findGroupByPath, generateGroupPath, getDefaultGroupData } from './utils/groupby'
 import { CanvasElement, ElementTypes } from './utils/CanvasElement'
 import AddNewRowMenu from './components/AddNewRowMenu.vue'
 import type { Row } from '#imports'
@@ -849,7 +849,7 @@ let prevMenuState: {
   openColumnDropdownField?: unknown
   editEnabled?: boolean | null
   openAggregationFieldId?: string
-  openAddNewRowDropdown?: boolean | null
+  openAddNewRowDropdown?: Array<number> | null
   isDropdownVisible?: boolean
   editColumn?: unknown
   columnOrder?: unknown
@@ -962,7 +962,13 @@ async function handleMouseDown(e: MouseEvent) {
 
   // If the new cell user clicked is not the active cell
   // call onActiveCellChanged to clear invalid rows and reorder records locally if required
-  if (rowIndex !== activeCell.value?.row || groupPath.map((v) => `${v}`).join('-') !== activeCell.value?.path?.join('-')) {
+  if (
+    rowIndex !== activeCell.value?.row ||
+    !comparePath(
+      groupPath.map((v) => `${v}`),
+      activeCell.value?.path,
+    )
+  ) {
     onActiveCellChanged()
   }
 
@@ -1310,7 +1316,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
         const elem = _elementMap.findElementAtWithX(x, y, ElementTypes.EDIT_NEW_ROW_METHOD)
 
         if (elem) {
-          if (prevMenuState.openAddNewRowDropdown?.join('-') === groupPath?.join('-')) {
+          if (comparePath(prevMenuState.openAddNewRowDropdown, groupPath)) {
             isDropdownVisible.value = true
             openAddNewRowDropdown.value = []
             requestAnimationFrame(triggerRefreshCanvas)
@@ -1429,9 +1435,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     mousePosition: { x, y },
     pk,
     selected:
-      prevActiveCell?.row === rowIndex &&
-      prevActiveCell?.column === colIndex &&
-      prevActiveCell?.path?.join('-') === groupPath.join('-'),
+      prevActiveCell?.row === rowIndex && prevActiveCell?.column === colIndex && comparePath(prevActiveCell?.path, groupPath),
     imageLoader,
     path: groupPath,
   })
@@ -1692,7 +1696,6 @@ const handleMouseMove = (e: MouseEvent) => {
       return
     } else {
       const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
-
       if (element) {
         if (
           removeInlineAddRecord.value &&
@@ -1707,6 +1710,7 @@ const handleMouseMove = (e: MouseEvent) => {
           path: generateGroupPath(element?.group),
         }
       }
+
       onMouseMoveSelectionHandler(e)
     }
     requestAnimationFrame(triggerRefreshCanvas)

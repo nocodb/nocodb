@@ -19,8 +19,8 @@ export default defineConfig({
   extract: {
     include: [
       ...(isEE
-        ? ['../**/*.{vue,html,jsx,tsx,css,scss}', '../extensions/**/*.md']
-        : ['**/*.{vue,html,jsx,tsx,css,scss}', 'extensions/**/*.md']),
+        ? ['../**/*.{vue,html,jsx,tsx,css,scss}', '../extensions/**/*.md', '../composables/useColumnFilteredOrSorted.ts']
+        : ['**/*.{vue,html,jsx,tsx,css,scss}', 'extensions/**/*.md', 'composables/useColumnFilteredOrSorted.ts']),
     ],
     exclude: ['node_modules', '.git'],
   },

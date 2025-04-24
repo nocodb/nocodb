@@ -42,6 +42,8 @@ const filterComp = ref<typeof ColumnFilter>()
 
 const { nestedFilters, eventBus } = useSmartsheetStoreOrThrow()
 
+const { appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
+
 // todo: avoid duplicate api call by keeping a filter store
 const { nonDeletedFilters, loadFilters } = useViewFilters(
   activeView!,
@@ -108,10 +110,13 @@ const combinedFilterLength = computed(() => {
 
       <NcButton
         v-e="['c:filter']"
-        class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7"
+        class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7 group"
         size="small"
         type="secondary"
         :show-as-disabled="isLocked"
+        :class="{
+          [filteredOrSortedAppearanceConfig.FILTERED.toolbarBgClass]: combinedFilterLength,
+        }"
       >
         <div class="flex items-center gap-1 min-h-5">
           <div class="flex items-center gap-2">
@@ -122,9 +127,15 @@ const combinedFilterLength = computed(() => {
             }}</span>
           </div>
 
-          <span v-if="combinedFilterLength" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{
-            combinedFilterLength
-          }}</span>
+          <span
+            v-if="combinedFilterLength"
+            class="nc-toolbar-btn-chip"
+            :class="{
+              [filteredOrSortedAppearanceConfig.FILTERED.toolbarChipBgClass]: true,
+              [filteredOrSortedAppearanceConfig.FILTERED.toolbarTextClass]: true,
+            }"
+            >{{ combinedFilterLength }}</span
+          >
 
           <!--    show a warning icon with tooltip if query filter error is there -->
           <template v-if="filtersFromUrlParams?.errors?.length">

@@ -20,6 +20,8 @@ const onOk = () => {
       replace: true,
     },
   ).then(() => {
+    // reload the page to avoid showing previous workspace API call failure errors
+    location.reload()
     location.reload()
   })
 }
@@ -42,7 +44,7 @@ const onCancel = async () => {
   }
 
   if (nonSsoWorkspace) {
-    navigateTo(
+    await navigateTo(
       {
         path: `/${nonSsoWorkspace.id}`,
       },
@@ -50,6 +52,8 @@ const onCancel = async () => {
         replace: true,
       },
     )
+
+    // reload the page to avoid showing previous workspace API call failure errors
     location.reload()
   } else {
     workspaceStore.toggleSsoLoginRequiredDlg(false)

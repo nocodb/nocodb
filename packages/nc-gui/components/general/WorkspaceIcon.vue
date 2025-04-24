@@ -15,9 +15,11 @@ const props = withDefaults(
     size?: 'small' | 'medium' | 'large' | 'xlarge' | 'middle' | 'account-sidebar'
     isRounded?: boolean
     iconBgColor?: string
+    showNocodbIcon?: boolean
   }>(),
   {
     iconBgColor: '#F4F4F5',
+    showNocodbIcon: false,
   },
 )
 
@@ -65,12 +67,12 @@ const workspaceColor = computed(() => {
       }
 
       default: {
-        return blockWsImageLogoUpload.value ? undefined : color || '#0A1433'
+        return props.showNocodbIcon && blockWsImageLogoUpload.value ? undefined : color || '#0A1433'
       }
     }
   }
 
-  return blockWsImageLogoUpload.value ? undefined : color || '#0A1433'
+  return props.showNocodbIcon && blockWsImageLogoUpload.value ? undefined : color || '#0A1433'
 })
 
 const size = computed(() => props.size || 'medium')
@@ -142,7 +144,7 @@ const size = computed(() => props.size || 'medium')
         }"
       />
       <template v-else>
-        <div v-if="blockWsImageLogoUpload" class="h-full w-full p-0.25">
+        <div v-if="props.showNocodbIcon && blockWsImageLogoUpload" class="h-full w-full p-0.25">
           <GeneralIcon icon="nocodb1" class="!h-full !w-full" />
         </div>
         <div

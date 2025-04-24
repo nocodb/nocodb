@@ -932,9 +932,9 @@ export function useCanvasRender({
 
       const bubbleHeight = 20
 
-      const _renderSingleLineText = (xValue: number, render: boolean = false) => {
+      const _renderSingleLineText = (xOffset: number, render: boolean = false) => {
         return renderSingleLineText(ctx, {
-          x: xValue,
+          x: xOffset,
           y: yOffset,
           render,
           text: commentCount,
@@ -987,18 +987,19 @@ export function useCanvasRender({
         })
       }
     } else if (isHover || isRowCellSelected) {
-      const box = { x: xOffset + width - 4 - 24, y: yOffset + (rowHeight.value - 24) / 2, height: 24, width: 24 }
+      const box = { x: xOffset + width - 4 - 20, y: yOffset + (rowHeight.value - 20) / 2, height: 20, width: 20 }
 
       const isExpandHovered = isBoxHovered(box, mousePosition)
       renderIconButton(ctx, {
         buttonX: box.x,
         buttonY: box.y,
-        buttonSize: 24,
+        buttonSize: 20,
         icon: 'maximize',
         iconData: {
-          size: 16,
-          xOffset: 4,
-          yOffset: 4,
+          size: 14,
+          xOffset: 3,
+          yOffset: 3,
+          color: isExpandHovered ? themeV3Colors.gray['600'] : themeV3Colors.gray['500'],
         },
         borderRadius: 6,
         spriteLoader,

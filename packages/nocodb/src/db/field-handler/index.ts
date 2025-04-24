@@ -167,6 +167,19 @@ export class FieldHandler implements IFieldHandler {
     uiType: UITypes,
     dbClient: ClientType,
   ): FieldHandlerInterface {
+    // Special handling for LibSql - use LibSql handler if available, otherwise fall back to SQLite
+    if (dbClient === 'libsql') {
+      const LibSqlHandlerClass = dbHandlers?.['libsql'];
+      if (LibSqlHandlerClass) {
+        return new LibSqlHandlerClass();
+      }
+      // Fall back to SQLite handler for LibSql
+      const SQLiteHandlerClass = dbHandlers?.['sqlite'];
+      if (SQLiteHandlerClass) {
+        return new SQLiteHandlerClass();
+      }
+    }
+
     const dbHandlers = HANDLER_REGISTRY[uiType];
     const HandlerClass = dbHandlers?.[dbClient] ?? dbHandlers?.[CLIENT_DEFAULT];
     if (!HandlerClass) {

@@ -813,7 +813,14 @@ export class ColumnsService implements IColumnsService {
       );
 
       if (colBody.colOptions?.options) {
-        const supportedDrivers = ['mysql', 'mysql2', 'pg', 'mssql', 'sqlite3'];
+        const supportedDrivers = [
+          'mysql',
+          'mysql2',
+          'pg',
+          'mssql',
+          'sqlite3',
+          'libsql',
+        ];
         const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
           NcConnectionMgrv2.get(source),
         );
@@ -865,7 +872,7 @@ export class ColumnsService implements IColumnsService {
                 column.column_name,
               ],
             );
-          } else if (driverType === 'sqlite3') {
+          } else if (driverType === 'sqlite3' || driverType === 'libsql') {
             await sqlClient.raw(
               `UPDATE ?? SET ?? = substr(??, 1, instr(??, ',') - 1) WHERE ?? LIKE '%,%';`,
               [
@@ -986,7 +993,11 @@ export class ColumnsService implements IColumnsService {
           }
 
           // handle single quote for default value
-          if (driverType === 'pg' || driverType === 'sqlite3') {
+          if (
+            driverType === 'pg' ||
+            driverType === 'sqlite3' ||
+            driverType === 'libsql'
+          ) {
             colBody.cdf = colBody.cdf.replace(/'/g, "'");
           } else {
             colBody.cdf = colBody.cdf.replace(/'/g, "''");
@@ -1139,7 +1150,7 @@ export class ColumnsService implements IColumnsService {
                     option.title,
                   ],
                 );
-              } else if (driverType === 'sqlite3') {
+              } else if (driverType === 'sqlite3' || driverType === 'libsql') {
                 await sqlClient.raw(
                   `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ','), ',')`,
                   [
@@ -1318,7 +1329,7 @@ export class ColumnsService implements IColumnsService {
                     newOp.title,
                   ],
                 );
-              } else if (driverType === 'sqlite3') {
+              } else if (driverType === 'sqlite3' || driverType === 'libsql') {
                 await sqlClient.raw(
                   `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`,
                   [
@@ -1410,7 +1421,7 @@ export class ColumnsService implements IColumnsService {
                   newOp.title,
                 ],
               );
-            } else if (driverType === 'sqlite3') {
+            } else if (driverType === 'sqlite3' || driverType === 'libsql') {
               await sqlClient.raw(
                 `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`,
                 [
@@ -1600,7 +1611,7 @@ export class ColumnsService implements IColumnsService {
                 column.column_name,
               ],
             );
-          } else if (driverType === 'sqlite3') {
+          } else if (driverType === 'sqlite3' || driverType === 'libsql') {
             await sqlClient.raw(
               `UPDATE ?? SET ?? = substr(??, 1, instr(??, ',') - 1) WHERE ?? LIKE '%,%';`,
               [
@@ -1687,7 +1698,7 @@ export class ColumnsService implements IColumnsService {
             trimColumn = `BTRIM(??)`;
           } else if (driverType === 'mssql') {
             trimColumn = `LTRIM(RTRIM(??))`;
-          } else if (driverType === 'sqlite3') {
+          } else if (driverType === 'sqlite3' || driverType === 'libsql') {
             trimColumn = `TRIM(??)`;
           }
 
@@ -2384,7 +2395,7 @@ export class ColumnsService implements IColumnsService {
 
               // remove default value for SQLite since it doesn't support default value as function when adding column
               // only support default value as constant value
-              if (source.type === 'sqlite3') {
+              if (source.type === 'sqlite3' || driverType === 'libsql') {
                 colBody.cdf = null;
               }
 
@@ -2497,7 +2508,11 @@ export class ColumnsService implements IColumnsService {
               }
 
               // handle single quote for default value
-              if (driverType === 'pg' || driverType === 'sqlite3') {
+              if (
+                driverType === 'pg' ||
+                driverType === 'sqlite3' ||
+                driverType === 'libsql'
+              ) {
                 colBody.cdf = colBody.cdf.replace(/'/g, "'");
               } else {
                 colBody.cdf = colBody.cdf.replace(/'/g, "''");

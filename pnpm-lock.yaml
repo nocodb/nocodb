@@ -113,6 +113,9 @@ importers:
       '@vueuse/motion':
         specifier: ^2.2.6
         version: 2.2.6(magicast@0.3.5)(vue@3.5.13(typescript@5.5.4))
+      '@vvo/tzdb':
+        specifier: ^6.161.0
+        version: 6.161.0
       ant-design-vue:
         specifier: ^3.2.20
         version: 3.2.20(vue@3.5.13(typescript@5.5.4))
@@ -5885,6 +5888,9 @@ packages:
 
   '@vueuse/shared@12.8.2':
     resolution: {integrity: sha512-dznP38YzxZoNloI0qpEfpkms8knDtaoQ6Y/sfS0L7Yki4zh40LFHEhur0odJC6xTHG5dxWVPiUWBXn+wCG2s5w==}
+
+  '@vvo/tzdb@6.161.0':
+    resolution: {integrity: sha512-rvk2x77vnY87Tu1d8QuJk300WWzk8OP9/cDw2KgxEdjlYpLarJx82j2sPUpiy1wnjSuTTnYwpjBgZnNS5Iyb+w==}
 
   '@webassemblyjs/ast@1.14.1':
     resolution: {integrity: sha512-nuBEDgQfm1ccRp/8bCQrx1frohyufl4JlbMMZ4P1wpeOfDhF6FQkxZJ1b/e+PLwr6X1Nhw6OLme5usuBWYBvuQ==}
@@ -21964,6 +21970,8 @@ snapshots:
       vue: 3.5.13(typescript@5.5.4)
     transitivePeerDependencies:
       - typescript
+
+  '@vvo/tzdb@6.161.0': {}
 
   '@webassemblyjs/ast@1.14.1':
     dependencies:

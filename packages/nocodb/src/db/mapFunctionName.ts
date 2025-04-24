@@ -38,6 +38,7 @@ const mapFunctionName = async (args: MapFnArgs): Promise<any> => {
       break;
     case 'sqlite':
     case 'sqlite3':
+    case 'libsql':
       val = sqlite[name] || name;
       break;
     case 'databricks':

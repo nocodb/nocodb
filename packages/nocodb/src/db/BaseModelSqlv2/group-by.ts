@@ -146,7 +146,10 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               "DATE_SUB(CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00'), INTERVAL SECOND(??) SECOND)",
               [columnName, columnName],
             );
-          } else if (baseModel.dbDriver.clientType() === 'sqlite3') {
+          } else if (
+            baseModel.dbDriver.clientType() === 'sqlite3' ||
+            baseModel.dbDriver.clientType() === 'libsql'
+          ) {
             columnQuery = baseModel.dbDriver.raw(
               `strftime('%Y-%m-%d %H:%M:00', ??)`,
               [columnName],
@@ -491,7 +494,10 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                     [columnName, columnName, getAs(column)],
                   ),
                 );
-              } else if (baseModel.dbDriver.clientType() === 'sqlite3') {
+              } else if (
+                baseModel.dbDriver.clientType() === 'sqlite3' ||
+                baseModel.dbDriver.clientType() === 'libsql'
+              ) {
                 selectors.push(
                   baseModel.dbDriver.raw(
                     `strftime ('%Y-%m-%d %H:%M:00',:column:) ||
@@ -766,7 +772,10 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                         [columnName, columnName, getAs(column)],
                       ),
                     );
-                  } else if (baseModel.dbDriver.clientType() === 'sqlite3') {
+                  } else if (
+                    baseModel.dbDriver.clientType() === 'sqlite3' ||
+                    baseModel.dbDriver.clientType() === 'libsql'
+                  ) {
                     colSelectors.push(
                       baseModel.dbDriver.raw(
                         `strftime ('%Y-%m-%d %H:%M:00',:column:) ||
@@ -895,6 +904,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             );
             break;
           case 'sqlite3':
+          case 'libsql':
             subQuery = baseModel.dbDriver
               .select(
                 baseModel.dbDriver.raw(`json_object('count', "count") as ??`, [
@@ -1101,7 +1111,10 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                         [columnName, columnName, getAs(column)],
                       ),
                     );
-                  } else if (baseModel.dbDriver.clientType() === 'sqlite3') {
+                  } else if (
+                    baseModel.dbDriver.clientType() === 'sqlite3' ||
+                    baseModel.dbDriver.clientType() === 'libsql'
+                  ) {
                     colSelectors.push(
                       baseModel.dbDriver.raw(
                         `strftime ('%Y-%m-%d %H:%M:00',:column:) ||
@@ -1300,6 +1313,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             );
             break;
           case 'sqlite3':
+          case 'libsql':
             subQuery = baseModel.dbDriver
               .select(
                 baseModel.dbDriver.raw(

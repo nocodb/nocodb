@@ -630,7 +630,7 @@ export class AtImportProcessor {
           if (col.type === 'text') ncCol.dt = 'text';
 
           // #fix-2363-decimal-out-of-range
-          if (['sqlite3', 'mysql2'].includes(getRootDbType())) {
+          if (['sqlite3', 'mysql2', 'libsql'].includes(getRootDbType())) {
             if (ncCol.uidt === UITypes.Decimal) {
               ncCol.dt = 'double';
               ncCol.dtxp = 22;

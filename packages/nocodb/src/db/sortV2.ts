@@ -212,7 +212,10 @@ export default async function sortV2(
             col = knex.raw(`JSON_UNQUOTE(JSON_EXTRACT(??, '$.value'))`, [
               column.column_name,
             ]);
-          } else if (knex.clientType() === 'sqlite3') {
+          } else if (
+            knex.clientType() === 'sqlite3' ||
+            knex.clientType() === 'libsql'
+          ) {
             col = knex.raw(`json_extract(??, '$.value')`, [column.column_name]);
           } else if (knex.clientType() === 'mssql') {
             col = knex.raw(`JSON_VALUE(??, '$.value')`, [column.column_name]);

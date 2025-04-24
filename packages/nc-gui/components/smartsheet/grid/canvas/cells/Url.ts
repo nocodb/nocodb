@@ -40,7 +40,7 @@ export const UrlCellRenderer: CellRenderer = {
         { x: x + padding, y: y + padding, width: xOffset - x - padding, height: yOffset - y },
         props.mousePosition,
       )
-      if (isHover && isValid) {
+      if (selected && isHover && isValid) {
         setCursor('pointer')
       }
 
@@ -62,11 +62,13 @@ export const UrlCellRenderer: CellRenderer = {
       }
     }
   },
-  async handleHover({ column, row, getCellPosition, value, mousePosition }) {
+  async handleHover({ column, row, getCellPosition, value, mousePosition, selected }) {
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
 
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
+
+    if (!selected) return
 
     const text = addMissingUrlSchma(value?.toString() ?? '')
 
@@ -113,7 +115,9 @@ export const UrlCellRenderer: CellRenderer = {
 
     return false
   },
-  async handleClick({ value, row, column, getCellPosition, mousePosition }) {
+  async handleClick({ value, row, column, selected, getCellPosition, mousePosition }) {
+    if (!selected) return false
+
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 10
 

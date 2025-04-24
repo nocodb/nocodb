@@ -2290,16 +2290,14 @@ const headerFilteredOrSortedClass = (colId: string) => {
               </tr>
               <tr v-show="!isViewColumnsLoading" class="nc-grid-header transform">
                 <th ref="numColHeader" class="w-[80px] min-w-[80px]" data-testid="grid-id-column">
-                  <div
-                    v-if="!readOnly"
-                    data-testid="nc-check-all"
-                    class="flex items-center pl-2 pr-1 w-full h-full justify-center"
-                  >
+                  <div v-if="!readOnly" data-testid="nc-check-all" class="flex items-center pl-2 pr-1 w-full h-full">
                     <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
                     <div
                       :class="{
-                        hidden: !vSelectedAllRecords,
-                        flex: vSelectedAllRecords,
+                        'hidden': !vSelectedAllRecords,
+                        'flex': vSelectedAllRecords,
+                        'pl-[21px]': isOrderColumnExists && !isRowReorderDisabled,
+                        'pl-[2px]': !(isOrderColumnExists && !isRowReorderDisabled),
                       }"
                       class="nc-check-all w-full items-center"
                     >
@@ -2309,7 +2307,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                     </div>
                   </div>
                   <template v-else>
-                    <div class="w-full h-full text-gray-500 flex pl-2 pr-1 items-center" data-testid="nc-check-all">#</div>
+                    <div class="w-full h-full text-gray-500 flex pl-2 pr-1" data-testid="nc-check-all">#</div>
                   </template>
                 </th>
                 <th
@@ -2595,19 +2593,21 @@ const headerFilteredOrSortedClass = (colId: string) => {
                           </div>
 
                           <div
-                            v-if="isOrderColumnExists && !isRowReorderDisabled && !vSelectedAllRecords"
-                            :class="{ 'toggle': !readOnly, '!block': row.rowMeta?.selected }"
+                            v-if="isOrderColumnExists && !isRowReorderDisabled"
+                            :class="{ 'toggle': !readOnly, '!block': row.rowMeta?.selected || !!vSelectedAllRecords }"
                             class="nc-drag-handle hidden"
                           >
                             <NcButton
                               size="xxsmall"
                               type="text"
                               @mousedown="startDragging(row, $event)"
-                              :disabled="!!selectedRows.length"
+                              :disabled="!!selectedRows.length || !!vSelectedAllRecords"
                             >
                               <GeneralIcon
                                 :class="{
-                                  'text-nc-content-gray hover:text-nc-content-brand': !selectedRows.length,
+                                  'text-nc-content-gray hover:text-nc-content-brand':
+                                    !selectedRows.length && !vSelectedAllRecords,
+                                  'text-nc-content-gray-muted': !(!selectedRows.length && !vSelectedAllRecords),
                                 }"
                                 icon="ncDrag"
                               />
@@ -2616,8 +2616,9 @@ const headerFilteredOrSortedClass = (colId: string) => {
                           <div
                             v-if="!readOnly"
                             :class="{
-                              hidden: !row.rowMeta?.selected && !vSelectedAllRecords,
-                              flex: row.rowMeta?.selected || vSelectedAllRecords,
+                              'hidden': !row.rowMeta?.selected && !vSelectedAllRecords,
+                              'flex': row.rowMeta?.selected || vSelectedAllRecords,
+                              'pl-1.5': !(isOrderColumnExists && !isRowReorderDisabled),
                             }"
                             class="nc-row-expand-and-checkbox"
                           >

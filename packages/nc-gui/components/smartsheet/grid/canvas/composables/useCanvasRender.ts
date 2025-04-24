@@ -33,6 +33,7 @@ import {
   calculateGroupHeight,
   calculateGroupRange,
   calculateGroupRowTop,
+  comparePath,
   generateGroupPath,
   getGroupColors,
 } from '../utils/groupby'
@@ -175,6 +176,7 @@ export function useCanvasRender({
   const { tryShowTooltip } = useTooltipStore()
   const { isMobileMode, isAddNewRecordGridMode, appInfo } = useGlobal()
   const { isWsOwner } = useEeConfig()
+  const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
   const isLocked = inject(IsLockedInj, ref(false))
 
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
@@ -241,6 +243,11 @@ export function useCanvasRender({
       initialOffset += parseCellWidth(columns.value[i]?.width)
     }
 
+    // Hack for now
+    if (initialOffset === 1) {
+      initialOffset = 0
+    }
+
     // Regular columns
     ctx.fillStyle = '#6a7184'
     ctx.font = '550 12px Manrope'
@@ -266,6 +273,32 @@ export function useCanvasRender({
         ctx.stroke()
         continue
       }
+
+      if (colObj?.id) {
+        const columnState = isColumnSortedOrFiltered(colObj.id)
+
+        if (columnState) {
+          renderTag(ctx, {
+            height: 31.5,
+            width,
+            x: xOffset - scrollLeft.value,
+            y: 0,
+            radius: 0,
+            fillStyle: '#ffffff88',
+          })
+          renderTag(ctx, {
+            height: 32,
+            width,
+            x: xOffset - scrollLeft.value,
+            y: 0,
+            radius: 0,
+            fillStyle: filteredOrSortedAppearanceConfig[columnState].headerBgColor,
+          })
+        }
+      }
+
+      ctx.fillStyle = '#6a7184'
+
       const rightPadding = 8
       let iconSpace = rightPadding
 
@@ -483,6 +516,30 @@ export function useCanvasRender({
         // Background
         ctx.fillStyle = '#f4f4f5'
         ctx.fillRect(xOffset, 0, width, 32)
+
+        if (column.columnObj?.id) {
+          const columnState = isColumnSortedOrFiltered(column.columnObj.id)
+
+          if (columnState) {
+            renderTag(ctx, {
+              height: 31.5,
+              width,
+              x: xOffset,
+              y: 0,
+              radius: 0,
+              fillStyle: '#ffffff88',
+            })
+
+            renderTag(ctx, {
+              height: 32,
+              width,
+              x: xOffset,
+              y: 0,
+              radius: 0,
+              fillStyle: filteredOrSortedAppearanceConfig[columnState].headerBgColor,
+            })
+          }
+        }
 
         ctx.fillStyle = '#6a7184'
         const iconConfig = (
@@ -779,8 +836,7 @@ export function useCanvasRender({
       width: number
     },
   ) => {
-    const isHover =
-      hoverRow.value?.rowIndex === row.rowMeta.rowIndex && hoverRow.value?.path?.join('-') === row.rowMeta?.path?.join('-')
+    const isHover = hoverRow.value?.rowIndex === row.rowMeta.rowIndex && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
 
     ctx.fillStyle = isHover ? '#F9F9FA' : '#ffffff'
     if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
@@ -1091,9 +1147,8 @@ export function useCanvasRender({
       column: CanvasGridColumn
     }[] = []
     const groupPath = generateGroupPath(group)
-    const isHovered = hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path?.join('-') === row?.rowMeta?.path?.join('-')
-
-    const isActiveCellInCurrentGroup = (activeCell.value?.path?.join('-') ?? '') === (groupPath?.join('-') ?? '')
+    const isHovered = hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
+    const isActiveCellInCurrentGroup = comparePath(activeCell.value?.path, groupPath)
 
     if (row) {
       const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
@@ -1173,6 +1228,7 @@ export function useCanvasRender({
           width,
           height: rowHeight.value,
           row: row.row,
+          rowMeta: row.rowMeta,
           selected: isActive,
           pv: column.pv,
           spriteLoader,
@@ -1186,6 +1242,9 @@ export function useCanvasRender({
           pk,
           path: groupPath,
           skipRender: isCellEditEnabled,
+          isRowHovered: isHovered,
+          isRowChecked: row.rowMeta.selected,
+          isCellInSelectionRange: selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup,
         })
         ctx.restore()
         xOffset += width
@@ -1252,6 +1311,7 @@ export function useCanvasRender({
               width,
               height: rowHeight.value,
               row: row.row,
+              rowMeta: row.rowMeta,
               selected: isActive,
               pv: column.pv,
               readonly: column.readonly,
@@ -1265,6 +1325,9 @@ export function useCanvasRender({
               pk,
               skipRender: isCellEditEnabled,
               path: groupPath,
+              isRowHovered: isHovered,
+              isRowChecked: row.rowMeta.selected,
+              isCellInSelectionRange: selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup,
             })
             ctx.restore()
           }
@@ -1467,9 +1530,7 @@ export function useCanvasRender({
         }
 
         ctx.fillStyle =
-          hoverRow.value?.rowIndex === rowIdx && hoverRow.value?.path?.join('-') === row?.rowMeta?.path?.join('-')
-            ? '#F9F9FA'
-            : '#ffffff'
+          hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path) ? '#F9F9FA' : '#ffffff'
         ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
         const renderedProp = renderRow(ctx, {
           row,
@@ -1488,12 +1549,13 @@ export function useCanvasRender({
         })
         activeState = renderedProp.activeState ?? activeState
         renderRedBorders = [...renderRedBorders, ...renderedProp.renderRedBorders]
+
         if (rowIdx === draggedRowIndex.value) {
           ctx.globalAlpha = 1
         }
 
         // Bottom border for each row
-        ctx.strokeStyle = '#e7e7e9'
+        ctx.strokeStyle = themeV3Colors.gray['200']
         ctx.beginPath()
         ctx.moveTo(0, yOffset + rowHeight.value)
         ctx.lineTo(adjustedWidth, yOffset + rowHeight.value)
@@ -2035,6 +2097,7 @@ export function useCanvasRender({
             width: Math.min(width, previewWidth - (xOffset - xPos)),
             height: rowHeight.value,
             row: row.row,
+            rowMeta: row.rowMeta,
             selected: false,
             readonly: true,
             pv: column.pv,
@@ -2097,7 +2160,7 @@ export function useCanvasRender({
         rowsToFetch.push(i)
       }
 
-      const isHovered = hoverRow.value?.rowIndex === i && hoverRow.value?.path?.join('-') === row?.rowMeta?.path?.join('-')
+      const isHovered = hoverRow.value?.rowIndex === i && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
 
       roundedRect(ctx, indent, yOffset, adjustedWidth, rowHeight.value, 0, {
         backgroundColor: isHovered ? '#F9F9FA' : '#fff',
@@ -2870,6 +2933,7 @@ export function useCanvasRender({
         mousePosition,
         skipRender: false,
         fontFamily: '700 13px Manrope',
+        isGroupHeader: true,
       })
     } else {
       renderCell(ctx, group.column, {
@@ -2892,6 +2956,7 @@ export function useCanvasRender({
         skipRender: false,
         renderAsPlainCell: true,
         fontFamily: '700 13px Manrope',
+        isGroupHeader: true,
       })
     }
   }

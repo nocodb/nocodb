@@ -232,7 +232,7 @@ const onReady = () => {
     <LazySmartsheetTopbar />
     <div style="height: calc(100% - var(--topbar-height))">
       <Splitpanes
-        v-show="openedViewsTab === 'view'"
+        v-if="openedViewsTab === 'view'"
         class="nc-extensions-content-resizable-wrapper"
         :class="{
           'nc-is-open-extensions': isPanelExpanded,
@@ -271,7 +271,7 @@ const onReady = () => {
         <ExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
         <SmartsheetAutomationActionPane v-else-if="isActionPaneActive && isEeUI && isAutomationEnabled" ref="actionPaneRef" />
       </Splitpanes>
-      <SmartsheetDetails v-show="openedViewsTab !== 'view'" />
+      <SmartsheetDetails v-else />
     </div>
     <LazySmartsheetExpandedFormDetached />
     <DetachedExpandedText />

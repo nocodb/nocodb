@@ -59,8 +59,8 @@ export const PhoneNumberCellRenderer: CellRenderer = {
 
     return false
   },
-  async handleClick({ value, row, column, selected, getCellPosition, mousePosition }) {
-    if (!row || !column || !selected) return false
+  async handleClick({ value, row, column, selected, isDoubleClick, getCellPosition, mousePosition }) {
+    if (!row || !column || (!selected && !isDoubleClick)) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 10

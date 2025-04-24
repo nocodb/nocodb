@@ -115,8 +115,8 @@ export const UrlCellRenderer: CellRenderer = {
 
     return false
   },
-  async handleClick({ value, row, column, selected, getCellPosition, mousePosition }) {
-    if (!selected) return false
+  async handleClick({ value, row, column, selected, isDoubleClick, getCellPosition, mousePosition }) {
+    if (!selected && !isDoubleClick) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 10

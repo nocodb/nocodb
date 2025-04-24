@@ -41,7 +41,7 @@ export default [
     type: FormBuilderInputType.Input,
     label: 'Clickhouse Instance URL',
     width: 100,
-    model: 'config.url',
+    model: 'config.host',
     category: 'Authentication',
     placeholder: 'Enter your Clickhouse Instance URL',
     validators: [

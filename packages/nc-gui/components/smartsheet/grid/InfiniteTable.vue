@@ -2600,8 +2600,8 @@ const headerFilteredOrSortedClass = (colId: string) => {
                             <NcButton
                               size="xxsmall"
                               type="text"
-                              @mousedown="startDragging(row, $event)"
                               :disabled="!!selectedRows.length || !!vSelectedAllRecords"
+                              @mousedown="startDragging(row, $event)"
                             >
                               <GeneralIcon
                                 :class="{

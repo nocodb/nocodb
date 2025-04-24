@@ -11,7 +11,7 @@ import {
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
 import axios from 'axios'
-import type { ComputedRef, CSSProperties, Ref } from 'vue'
+import type { CSSProperties, ComputedRef, Ref } from 'vue'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { hasAncestorWithClass, isGeneralOverlayActive } from '../../../../utils/browserUtils'
 import type { CanvasGroup } from '../../../../lib/types'

@@ -32,7 +32,7 @@ import {
   ROW_META_COLUMN_WIDTH,
 } from './utils/constants'
 import { calculateGroupRowTop, comparePath, findGroupByPath, generateGroupPath, getDefaultGroupData } from './utils/groupby'
-import { CanvasElement, CanvasElementItem, ElementTypes } from './utils/CanvasElement'
+import { CanvasElement, ElementTypes } from './utils/CanvasElement'
 import AddNewRowMenu from './components/AddNewRowMenu.vue'
 import type { Row } from '#imports'
 

@@ -46,6 +46,7 @@ export enum PlanFeatureTypes {
   FEATURE_SCRIPTS = 'feature_scripts',
   FEATURE_SSO = 'feature_sso',
   FEATURE_WEBHOOK_CUSTOM_PAYLOAD = 'feature_webhook_custom_payload',
+  FEATURE_WORKSPACE_CUSTOM_LOGO = 'feature_workspace_custom_logo',
 }
 
 export enum PlanTitles {
@@ -197,6 +198,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_SSO]: 'to enable SSO (Single Sign-On).',
   [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]:
     'to send custom webhook payloads.',
+  [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]:
+    'to upload a custom image as workspace avatar',
 };
 
 export const getUpgradeMessage = (

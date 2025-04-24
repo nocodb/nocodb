@@ -2582,15 +2582,16 @@ const headerFilteredOrSortedClass = (colId: string) => {
                       >
                         <div class="w-full flex items-center h-full px-1 gap-0.5">
                           <div
-                            class="nc-row-no min-w-4 h-4 flex items-center justify-center text-gray-500"
+                            class="nc-row-no min-w-4 h-4 flex items-center justify-center text-gray-500 pl-1.5"
                             :class="{
                               'toggle': !readOnly,
                               'hidden': row.rowMeta?.selected || vSelectedAllRecords,
                               'text-[10px]': row.rowMeta.rowIndex + 1 >= 10000,
-                              'text-xs': row.rowMeta.rowIndex + 1 < 10000,
+                              'text-xs': row.rowMeta.rowIndex + 1 >= 1000,
+                              'text-small': row.rowMeta.rowIndex + 1 < 1000,
                             }"
                           >
-                            {{ row.rowMeta.rowIndex + 1 }}
+                            {{ row.rowMeta.rowIndex + 1 }}.
                           </div>
 
                           <div
@@ -2643,23 +2644,23 @@ const headerFilteredOrSortedClass = (colId: string) => {
                                 v-e="['c:expanded-form:open']"
                                 :class="{
                                   'nc-comment': row.rowMeta?.commentCount,
-                                  'text-[10px]': row.rowMeta.commentCount > 99,
-                                  'text-xs ': row.rowMeta.commentCount <= 99,
+                                  'text-[10px] font-600 px-0.5': row.rowMeta.commentCount > 99,
+                                  'text-small font-500 px-0.8': row.rowMeta.commentCount <= 99,
                                 }"
-                                class="px-0.8 text-center rounded-md rounded-bl-none transition-all border-1 border-brand-200 cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50 !min-h-5 !min-w-5 !leading-5 inline-block"
+                                class="text-center rounded-md rounded-bl-none transition-all border-1 border-brand-200 cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50 hover:bg-brand-100 !min-h-4.5 !min-w-5 !leading-5 inline-block"
                                 @click="expandAndLooseFocus(row, state)"
                               >
                                 {{ row.rowMeta.commentCount > 99 ? '99+' : row.rowMeta.commentCount }}
                               </span>
                               <div
                                 v-else
-                                class="cursor-pointer nc-expand flex items-center border-1 border-gray-100 active:ring rounded-md p-1 hover:(bg-white border-nc-border-gray-medium)"
+                                class="cursor-pointer nc-expand flex items-center border-1 border-gray-100 active:ring rounded-md p-0.75 hover:(bg-white border-nc-border-gray-medium)"
                               >
                                 <component
                                   :is="iconMap.maximize"
                                   v-if="expandForm"
                                   v-e="['c:row-expand:open']"
-                                  class="select-none transform nc-row-expand opacity-90 w-4 h-4"
+                                  class="select-none transform nc-row-expand opacity-90 w-3.5 h-3.5"
                                   @click="expandAndLooseFocus(row, state)"
                                 />
                               </div>

@@ -852,7 +852,11 @@ export function useCanvasRender({
      * 1. Render row index
      */
     if (readOnly.value || !(isHover || isChecked || isRowCellSelected)) {
-      let rowIndexFontSize = '12px'
+      let rowIndexFontSize = '13px'
+
+      if (row.rowMeta.rowIndex! + 1 >= 1000) {
+        rowIndexFontSize = '12px'
+      }
 
       if (row.rowMeta.rowIndex! + 1 >= 10000) {
         rowIndexFontSize = '10px'
@@ -863,8 +867,8 @@ export function useCanvasRender({
       const { width: rowIndexWidth } = renderSingleLineText(ctx, {
         x: currentX + 8,
         y: yOffset,
-        text: (row.rowMeta.rowIndex! + 1).toString(),
-        maxWidth: ROW_META_COLUMN_WIDTH / 2 - 8,
+        text: `${(row.rowMeta.rowIndex! + 1).toString()}.`,
+        maxWidth: ROW_META_COLUMN_WIDTH - 28,
         fontFamily: `500 ${rowIndexFontSize} Manrope`,
         isTagLabel: true,
         fillStyle: '#6B7280',
@@ -884,7 +888,7 @@ export function useCanvasRender({
       )
 
       if (isHovered && !selectedRows.value.length) {
-        roundedRect(ctx, currentX, yOffset + (rowHeight.value - 20) / 2, 20, 20, 4, {
+        roundedRect(ctx, currentX, yOffset + (rowHeight.value - 24) / 2, 24, 24, 4, {
           backgroundColor: isHovered ? themeV3Colors.gray['200'] : 'transparent',
         })
       } else if (isHovered) {
@@ -895,12 +899,12 @@ export function useCanvasRender({
       spriteLoader.renderIcon(ctx, {
         icon: 'ncDrag',
         size: 16,
-        x: currentX + 2,
+        x: currentX + 4,
         y: yOffset + (rowHeight.value - 16) / 2,
         color:
           isHovered && !selectedRows.value.length ? '#3265FF' : selectedRows.value.length ? themeV3Colors.gray['400'] : '#6B7280',
       })
-      currentX += 24
+      currentX += 26
     } else {
       // add 6px padding to the left of the row meta column if the row number is not rendered
       currentX += 6
@@ -940,7 +944,7 @@ export function useCanvasRender({
           render,
           text: commentCount,
           maxWidth: ROW_META_COLUMN_WIDTH / 2,
-          fontFamily: `${reduceFontSize ? '700 10px' : '600 12px'} Manrope`,
+          fontFamily: `${reduceFontSize ? '600 10px' : '500 13px'} Manrope`,
           textAlign: 'center',
           isTagLabel: true,
           fillStyle: '#3366FF',

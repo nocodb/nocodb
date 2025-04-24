@@ -62,8 +62,6 @@ export const FormulaCellRenderer: CellRenderer = {
     } = props
     const colMeta = parseProp(column.meta)
 
-    const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
-
     if (parseProp(column.colOptions)?.error) {
       renderSingleLineText(ctx, {
         text: 'ERR!',

@@ -156,7 +156,7 @@ export const OneToOneCellRenderer: CellRenderer = {
 
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width, height } = getCellPosition(column, rowIndex)
-    const hasValue = !!row.row[column.title!]
+
     const size = 16
 
     /**

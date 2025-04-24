@@ -897,7 +897,8 @@ export function useCanvasRender({
         size: 16,
         x: currentX + 2,
         y: yOffset + (rowHeight.value - 16) / 2,
-        color: isHovered && !selectedRows.value.length ? '#3265FF' : '#6B7280',
+        color:
+          isHovered && !selectedRows.value.length ? '#3265FF' : selectedRows.value.length ? themeV3Colors.gray['400'] : '#6B7280',
       })
       currentX += 24
     } else {
@@ -942,6 +943,7 @@ export function useCanvasRender({
           textAlign: 'center',
           isTagLabel: true,
           fillStyle: '#3366FF',
+          height: rowHeight.value,
         })
       }
 
@@ -985,20 +987,20 @@ export function useCanvasRender({
         })
       }
     } else if (isHover || isRowCellSelected) {
-      const box = { x: xOffset + width - 4 - 20, y: yOffset + (rowHeight.value - 20) / 2, height: 16, width: 16 }
+      const box = { x: xOffset + width - 4 - 24, y: yOffset + (rowHeight.value - 24) / 2, height: 24, width: 24 }
 
       const isExpandHovered = isBoxHovered(box, mousePosition)
       renderIconButton(ctx, {
         buttonX: box.x,
         buttonY: box.y,
-        buttonSize: 20,
+        buttonSize: 24,
         icon: 'maximize',
         iconData: {
-          size: 14,
-          xOffset: 3,
-          yOffset: 3,
+          size: 16,
+          xOffset: 4,
+          yOffset: 4,
         },
-        borderRadius: 4,
+        borderRadius: 6,
         spriteLoader,
         borderColor: !isExpandHovered ? 'transparent' : undefined,
         background: !isExpandHovered ? 'transparent' : undefined,

@@ -90,10 +90,10 @@ export class AccountAuthenticationPage extends BasePage {
     if (p.url) {
       // await samlModal.locator('[data-test-id="nc-saml-metadata-url"]').fill(p.url);
       // if url then extract the xml data and fill it, since local urls are not supported
-      const response = await this.rootPage.request.get(p.url);
-      p.xml = await response.text();
+      p.xml = await (await fetch(p.url)).text();
     }
     if (p.xml) {
+      await samlModal.locator('[data-test-id="nc-saml-xml-tab"]').click();
       await samlModal.locator('[data-test-id="nc-saml-xml"]').fill(p.xml);
     }
 

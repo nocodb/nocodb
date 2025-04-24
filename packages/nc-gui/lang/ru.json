@@ -149,7 +149,9 @@
     "freePlanEditorLimitTooltip": "The free plan allows upto {limit} Editor type users, upgrade to get unlimited",
     "adjustCollaboratorRoles": "Adjust Collaborator Roles",
     "newEditorWillBeChanged": "New Editors will be charged",
-    "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle."
+    "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
+    "upgradeToUploadWsImage": "Upgrade to upload a workspace image",
+    "upgradeToUploadWsImageSubtitle": "Your current {activePlan} plan allows only icons and emojis. Upgrade to the {plan} plan to upload a custom image as your workspace avatar."
   },
   "general": {
     "supported": "Поддерживается",
@@ -879,7 +881,7 @@
     "addNewLookupHelperText1": "Поля подстановки показывают данные из связанных записей. Выберите конкретные поля из ",
     "addNewLookupHelperText2": " таблицы, чтобы добавить их как поля подстановки в эту таблицу.",
     "formatting": "Форматирование",
-    "selectAFormatType": "- -Выберите тип формата (необязательно)- -",
+    "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Тип формата",
     "toUpload": "загрузить",
     "dragFilesHere": "перетащите файлы сюда",

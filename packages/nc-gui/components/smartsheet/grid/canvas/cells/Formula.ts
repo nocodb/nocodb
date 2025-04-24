@@ -257,7 +257,7 @@ export const FormulaCellRenderer: CellRenderer = {
     }
   },
   async handleHover(props) {
-    const { mousePosition, getCellPosition, column, row } = props
+    const { mousePosition, getCellPosition, column, row, selected } = props
     const colObj = column.columnObj
     const colMeta = parseProp(colObj.meta)
     const error = parseProp(colObj.colOptions)?.error ?? ''
@@ -280,7 +280,7 @@ export const FormulaCellRenderer: CellRenderer = {
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
-    if (colObj?.parsed_tree?.dataType === FormulaDataTypes.STRING) {
+    if (selected && colObj?.colOptions?.parsed_tree?.dataType === FormulaDataTypes.STRING) {
       tryShowTooltip({
         rect: {
           x: x + width - 28,

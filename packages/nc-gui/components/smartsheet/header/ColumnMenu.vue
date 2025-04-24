@@ -366,7 +366,7 @@ const onInsertAfter = () => {
 }
 
 const isDeleteAllowed = computed(() => {
-  return column?.value && !isSystemColumn(column.value)
+  return column?.value && !isSystemColumn(column.value) && (!meta.value?.synced || !column.value?.readonly)
 })
 const isDuplicateAllowed = computed(() => {
   return (
@@ -374,7 +374,8 @@ const isDuplicateAllowed = computed(() => {
     !column.value.system &&
     ((!isMetaReadOnly.value && !isDataReadOnly.value) || readonlyMetaAllowedTypes.includes(column.value?.uidt)) &&
     !column.value.meta?.custom &&
-    column.value.uidt !== UITypes.ForeignKey
+    column.value.uidt !== UITypes.ForeignKey &&
+    (!meta.value?.synced || !column.value?.readonly)
   )
 })
 const isFilterSupported = computed(
@@ -422,7 +423,8 @@ const isColumnEditAllowed = computed(() => {
     (isMetaReadOnly.value &&
       !readonlyMetaAllowedTypes.includes(column.value?.uidt) &&
       !partialUpdateAllowedTypes.includes(column.value?.uidt)) ||
-    isSqlView.value
+    isSqlView.value ||
+    (meta.value?.synced && column.value?.readonly)
   ) {
     return false
   }

@@ -1416,6 +1416,7 @@ export function useCanvasRender({
           rowIndex: rowIdx,
           selected: false,
           commentCount: 0,
+          path: group ? group.path : [],
         },
         oldRow: {},
       }

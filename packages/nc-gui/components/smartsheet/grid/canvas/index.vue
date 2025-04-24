@@ -1636,7 +1636,6 @@ const handleMouseMove = (e: MouseEvent) => {
       const activeFixedRegion = fixedRegions.find(
         (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
       )
-      console.log('fixedCols', fixedCols, fixedRegions, activeFixedRegion)
 
       if (['title', 'columnChevron'].includes(activeFixedRegion?.type) && isFieldEditAllowed.value) {
         cursor = 'pointer'

@@ -1,3 +1,4 @@
+import { customAlphabet } from 'nanoid';
 import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
@@ -10,19 +11,19 @@ import {
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
-import { customAlphabet } from 'nanoid';
 import { v4 as uuidv4 } from 'uuid';
+import Validator from 'validator';
+import type { Knex } from 'knex';
+import type { SortType } from 'nocodb-sdk';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type CustomKnex from '~/db/CustomKnex';
 import type {
   XcFilter,
   XcFilterWithAlias,
 } from '~/db/sql-data-mapper/lib/BaseModel';
-import type { SortType } from 'nocodb-sdk';
-import type CustomKnex from '~/db/CustomKnex';
-import type { Knex } from 'knex';
 import type { Filter, GridViewColumn } from '~/models';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import { NcError } from '~/helpers/catchError';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   Column,
   type LinkToAnotherRecordColumn,
@@ -30,8 +31,8 @@ import {
   Sort,
   Source,
 } from '~/models';
-import { NcError } from '~/helpers/catchError';
 import { excludeAttachmentProps } from '~/utils';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 export function concatKnexRaw(knex: CustomKnex, raws: Knex.Raw[]) {
   return knex.raw(raws.map(() => '?').join(' '), raws);
@@ -524,3 +525,54 @@ export function formatDataForAudit(
 
   return res;
 }
+
+export const validateFuncOnColumn = async ({
+  value,
+  column,
+  apiVersion = NcApiVersion.V2,
+  customValidators = {},
+}: {
+  value: any;
+  column: Column;
+  apiVersion?: NcApiVersion;
+  customValidators?: Record<
+    string,
+    (str: string, options?: validator.IsFloatOptions) => boolean
+  >;
+}) => {
+  if (column?.meta?.validate && column?.validate) {
+    const validate = column.getValidators();
+    const columnTitle = column.title;
+    if (validate) {
+      const { func, msg } = validate;
+      for (let j = 0; j < func.length; ++j) {
+        let fn = func[j];
+
+        if (typeof func[j] === 'string') {
+          fn = customValidators[func[j]] ?? Validator[func[j]];
+        }
+
+        const columnValue = value;
+        const arg =
+          typeof func[j] === 'string' ? columnValue + '' : columnValue;
+        if (
+          ![null, undefined, ''].includes(columnValue) &&
+          !(fn.constructor.name === 'AsyncFunction' ? await fn(arg) : fn(arg))
+        ) {
+          if (apiVersion === NcApiVersion.V3) {
+            NcError.invalidValueForField({
+              value: columnValue,
+              type: column.uidt,
+              column: column.title,
+            });
+          }
+          NcError.badRequest(
+            msg[j]
+              .replace(/\{VALUE}/g, columnValue)
+              .replace(/\{cn}/g, columnTitle),
+          );
+        }
+      }
+    }
+  }
+};

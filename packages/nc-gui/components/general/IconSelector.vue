@@ -468,7 +468,7 @@ watch(isOpen, (newValue) => {
 }
 
 .nc-icon-selector-emoji-picker.emoji-mart {
-  @apply !w-108 !h-full !border-none bg-transparent rounded-t-none rounded-b-lg;
+  @apply !w-107.5 !h-full !border-none bg-transparent rounded-t-none rounded-b-lg;
 
   span.emoji-type-native {
     @apply cursor-pointer;

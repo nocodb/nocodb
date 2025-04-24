@@ -1,5 +1,5 @@
 import { populatePk } from 'src/helpers/dbHelpers';
-import { isLinksOrLTAR, type NcApiVersion, type NcRequest } from 'nocodb-sdk';
+import { isLinksOrLTAR, NcApiVersion, type NcRequest } from 'nocodb-sdk';
 import type { Column } from 'src/models';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 
@@ -163,6 +163,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       typecast = false,
       allowSystemColumn = false,
       undo = false,
+      apiVersion = NcApiVersion.V2,
     }: {
       chunkSize?: number;
       cookie?: NcRequest;
@@ -180,7 +181,10 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
     let trx;
     try {
       const insertDatas = raw ? datas : [];
-      let postInsertOps: ((rowId: any) => Promise<string>)[] = [];
+      const postInsertOpsMap: Record<
+        number,
+        ((rowId: any) => Promise<string>)[]
+      > = {};
       let preInsertOps: (() => Promise<string>)[] = [];
       let aiPkCol: Column;
       let agPkCol: Column;
@@ -207,7 +211,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           });
 
           // prepare nested link data for insert only if it is single record insertion
-          if (isSingleRecordInsertion) {
+          if (isSingleRecordInsertion || apiVersion === NcApiVersion.V3) {
             const operations = await baseModel.prepareNestedLinkQb({
               nestedCols,
               data: d,
@@ -215,7 +219,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
               req: cookie,
             });
 
-            postInsertOps = operations.postInsertOps;
+            postInsertOpsMap[index] = operations.postInsertOps;
             preInsertOps = operations.preInsertOps;
           }
 
@@ -322,23 +326,26 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         }
       }
 
-      // insert nested link data for single record insertion
-      if (isSingleRecordInsertion) {
-        let rowId = responses[0][baseModel.model.primaryKey?.title];
+      // insert nested link data for single record insertion or v3
+      if (isSingleRecordInsertion || apiVersion === NcApiVersion.V3) {
+        for (let i = 0; i < responses.length; i++) {
+          const row = responses[i];
+          let rowId = row[baseModel.model.primaryKey?.title];
 
-        if (aiPkCol || agPkCol) {
-          rowId = baseModel.extractCompositePK({
-            rowId,
-            ai: aiPkCol,
-            ag: agPkCol,
-            insertObj: insertDatas[0],
-          });
+          if (aiPkCol || agPkCol) {
+            rowId = baseModel.extractCompositePK({
+              rowId,
+              ai: aiPkCol,
+              ag: agPkCol,
+              insertObj: insertDatas[i],
+            });
+          }
+
+          await baseModel.runOps(
+            postInsertOpsMap[i].map((f) => f(rowId)),
+            trx,
+          );
         }
-
-        await baseModel.runOps(
-          postInsertOps.map((f) => f(rowId)),
-          trx,
-        );
       }
 
       await trx.commit();

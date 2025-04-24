@@ -307,10 +307,10 @@ export class GridPage extends BasePage {
     const expandLocator = this.row(index).locator(`div[data-testid="nc-expand-${index}"]`);
 
     // If commentCount is shown
-    const commentSpan = expandLocator.locator('span.nc-comment');
+    const commentSpan = expandLocator.locator('> span');
 
     // Otherwise, the fallback icon container
-    const iconDiv = expandLocator.locator('div.nc-expand');
+    const iconDiv = expandLocator.locator('> div');
 
     if (await commentSpan.isVisible()) {
       await commentSpan.click();

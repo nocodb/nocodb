@@ -518,6 +518,19 @@ const isContextMenuOpen = computed({
   },
 })
 
+function resetRowSelection() {
+  if (!selectedRows.value.length && !vSelectedAllRecords.value) return
+
+  const dataCache = getDataCache()
+  dataCache.cachedRows.value.forEach((row) => {
+    if (row.rowMeta.selected) {
+      row.rowMeta.selected = false
+    }
+  })
+
+  vSelectedAllRecords.value = false
+}
+
 watch(vSelectedAllRecords, (val) => {
   const dataCache = getDataCache()
   dataCache.cachedRows.value.forEach((row) => {
@@ -918,7 +931,7 @@ async function handleMouseDown(e: MouseEvent) {
   // Handle all Column Header Operations
   if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
     // If x less than 80px, use is hovering over the row meta column
-    if (x > 80) {
+    if (x > ROW_META_COLUMN_WIDTH) {
       // If the user is trying to resize the column
       // If the user is trying to resize column, we will set the resizeableColumn to column object
       // The below operation will not interfere with other column operations
@@ -961,7 +974,7 @@ async function handleMouseDown(e: MouseEvent) {
   if (!row) return
   // onMouseDown event, we only handle the fillHandler and selectionHandler
   // and rowReorder. Other events should be handled in onMouseUp
-  if (x < 80 + groupByColumns.value.length * 13) {
+  if (x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13) {
     if (clickType !== MouseClickType.SINGLE_CLICK) return
     handleRowMetaClick({ e, row, x, onlyDrag: true, group })
     return
@@ -991,6 +1004,7 @@ async function handleMouseDown(e: MouseEvent) {
     )
   ) {
     onActiveCellChanged()
+    resetRowSelection()
   }
 
   // If the user is trying to open the context menu

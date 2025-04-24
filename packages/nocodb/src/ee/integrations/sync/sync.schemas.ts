@@ -177,7 +177,7 @@ export const ticketingSchema = [
 ] as const;
 
 export interface SystemFieldsPayload {
-  primaryKey: string;
+  primaryKey: string[];
   createdAt?: string;
   updatedAt?: string;
 }

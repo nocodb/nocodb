@@ -33,3 +33,30 @@ export class DataObjectStream<
     return super.push(data);
   }
 }
+
+export function extractPrimaryKey(
+  data: Record<string, unknown>,
+  keys: string[],
+  customExtractor?: (data: Record<string, unknown>, key: string) => string,
+) {
+  const vals = [];
+
+  // sort keys
+  keys.sort((a, b) => a.localeCompare(b));
+
+  // generate combined primary key
+  for (const key of keys) {
+    const value = customExtractor ? customExtractor(data, key) : data[key];
+
+    if (value !== undefined && value !== null) {
+      vals.push(value);
+    }
+  }
+
+  if (vals.length === 0) {
+    return null;
+  }
+
+  // return combined primary key
+  return vals.join('__nc__');
+}

@@ -5,7 +5,10 @@ import type {
   SyncColumnDefinition,
   SystemFieldsPayload,
 } from '~/integrations/sync/sync.schemas';
-import { DataObjectStream } from '~/integrations/sync/sync.helpers';
+import {
+  DataObjectStream,
+  extractPrimaryKey,
+} from '~/integrations/sync/sync.helpers';
 import SyncIntegration from '~/integrations/sync/sync.interface';
 
 export default class ClickhouseTableIntegration extends SyncIntegration {
@@ -78,12 +81,14 @@ export default class ClickhouseTableIntegration extends SyncIntegration {
           for (const row of res) {
             const data = row as Record<string, unknown>;
 
-            if (data[primaryKey] === undefined || data[primaryKey] === null) {
+            const pk = extractPrimaryKey(data, primaryKey);
+
+            if (pk === undefined || pk === null) {
               continue;
             }
 
             stream.push({
-              recordId: data[primaryKey].toString(),
+              recordId: pk,
               data: {
                 ...data,
                 ...(system.createdAt

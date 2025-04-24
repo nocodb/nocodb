@@ -1173,7 +1173,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
 
       // If user is clicking on an existing column
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
-      const isFieldNotEditable = !isUIAllowed('fieldEdit') || clickedColumn.columnObj?.readonly
+      const isFieldNotEditable = !isUIAllowed('fieldEdit')
       if (clickedColumn) {
         if (clickType === MouseClickType.RIGHT_CLICK) {
           if (isFieldNotEditable) return
@@ -1916,7 +1916,6 @@ function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnT
     isUIAllowed('fieldEdit') &&
     !isMobileMode.value &&
     (isDescription ? true : !isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.uidt)) &&
-    !column.readonly &&
     !isSqlView.value
   ) {
     const rect = canvasRef.value?.getBoundingClientRect()

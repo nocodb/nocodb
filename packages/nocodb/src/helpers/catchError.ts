@@ -1157,7 +1157,7 @@ export class NcError {
 
   static allowedOnlySSOAccess(ncWorkspaceId: string) {
     throw new NcBaseErrorv2(NcErrorType.SSO_LOGIN_REQUIRED, {
-params: ncWorkspaceId,
-    })
+      params: ncWorkspaceId,
+    });
   }
 }

@@ -89,7 +89,7 @@ function openTableCreateDialog() {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isOpen">
+  <NcDropdown v-model:visible="isOpen" overlay-class-name="max-w-64">
     <slot name="default" :is-open="isOpen"></slot>
     <template #overlay>
       <LazyNcList
@@ -99,6 +99,7 @@ function openTableCreateDialog() {
         option-value-key="id"
         option-label-key="title"
         search-input-placeholder="Search tables"
+        class="min-w-64 !w-auto"
         @change="handleNavigateToTable"
       >
         <template #listItem="{ option }">

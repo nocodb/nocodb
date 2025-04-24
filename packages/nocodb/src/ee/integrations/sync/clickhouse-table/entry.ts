@@ -3,6 +3,7 @@ import type { AuthResponse } from '~/integrations/auth/auth.helpers';
 import type {
   AnyRecordType,
   SyncColumnDefinition,
+  SystemFieldsPayload,
 } from '~/integrations/sync/sync.schemas';
 import { DataObjectStream } from '~/integrations/sync/sync.helpers';
 import SyncIntegration from '~/integrations/sync/sync.interface';
@@ -12,7 +13,7 @@ export default class ClickhouseTableIntegration extends SyncIntegration {
     auth: AuthResponse<ClickHouseClient>,
     payload: {
       table: string;
-      primaryKey: string;
+      system: SystemFieldsPayload;
     },
   ) {
     /*
@@ -48,13 +49,15 @@ export default class ClickhouseTableIntegration extends SyncIntegration {
     auth: AuthResponse<ClickHouseClient>,
     payload: {
       table: string;
-      primaryKey: string;
+      system: SystemFieldsPayload;
     },
     _options?: unknown,
   ): Promise<DataObjectStream<AnyRecordType>> {
     const clickhouse = auth.custom;
 
-    const { table, primaryKey } = payload;
+    const { table, system } = payload;
+
+    const primaryKey = system.primaryKey;
 
     const stream = new DataObjectStream<AnyRecordType>();
 
@@ -70,7 +73,7 @@ export default class ClickhouseTableIntegration extends SyncIntegration {
             format: 'JSONEachRow',
           });
 
-          const res = await rows.json();
+          const res = (await rows.json()) as Record<string, unknown>[];
 
           for (const row of res) {
             const data = row as Record<string, unknown>;
@@ -83,6 +86,12 @@ export default class ClickhouseTableIntegration extends SyncIntegration {
               recordId: data[primaryKey].toString(),
               data: {
                 ...data,
+                ...(system.createdAt
+                  ? { RemoteCreatedAt: data[system.createdAt] as string }
+                  : {}),
+                ...(system.updatedAt
+                  ? { RemoteUpdatedAt: data[system.updatedAt] as string }
+                  : {}),
                 RemoteRaw: JSON.stringify(row),
               },
             });

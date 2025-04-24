@@ -1,15 +1,17 @@
 import { UITypes } from 'nocodb-sdk';
+import dayjs from 'dayjs';
 import type { AxiosInstance } from 'axios';
 import type { AuthResponse } from '~/integrations/auth/auth.helpers';
 import type {
   AnyRecordType,
   SyncColumnDefinition,
+  SystemFieldsPayload,
 } from '~/integrations/sync/sync.schemas';
 import { DataObjectStream } from '~/integrations/sync/sync.helpers';
 import SyncIntegration from '~/integrations/sync/sync.interface';
 
 function getValueFromPath(obj: any, path: string): any {
-  return path.split('.').reduce((acc, key) => acc?.[key], obj);
+  return path.split('.').reduce((acc, key) => acc?.[key], obj) ?? null;
 }
 
 function inferSchemaFromRecord(
@@ -29,10 +31,10 @@ type PaginationMode =
 
 type UniversalRestPayload = {
   url: string; // endpoint, relative to baseUrl
-  primaryKey: string; // e.g., "data.id"
   dataPath: string; // path to records array, e.g., "results"
   pagination?: PaginationMode;
   requestParams?: Record<string, any>;
+  system: SystemFieldsPayload;
 };
 
 export default class UniversalRestIntegration extends SyncIntegration {
@@ -61,13 +63,7 @@ export default class UniversalRestIntegration extends SyncIntegration {
     _options?: unknown,
   ): Promise<DataObjectStream<AnyRecordType>> {
     const axios = auth.custom;
-    const {
-      url,
-      primaryKey,
-      dataPath,
-      pagination,
-      requestParams = {},
-    } = payload;
+    const { url, system, dataPath, pagination, requestParams = {} } = payload;
 
     const stream = new DataObjectStream<AnyRecordType>();
 
@@ -110,12 +106,26 @@ export default class UniversalRestIntegration extends SyncIntegration {
           }
 
           for (const record of dataArray) {
-            const id = getValueFromPath(record, primaryKey);
+            const id = getValueFromPath(record, system.primaryKey);
             if (id !== undefined && id !== null) {
               stream.push({
                 recordId: id.toString(),
                 data: {
                   ...record,
+                  ...(system.createdAt
+                    ? {
+                        RemoteCreatedAt: dayjs(
+                          getValueFromPath(record, system.createdAt),
+                        ).toISOString(),
+                      }
+                    : {}),
+                  ...(system.updatedAt
+                    ? {
+                        RemoteUpdatedAt: dayjs(
+                          getValueFromPath(record, system.updatedAt),
+                        ).toISOString(),
+                      }
+                    : {}),
                   RemoteRaw: JSON.stringify(record),
                 },
               });

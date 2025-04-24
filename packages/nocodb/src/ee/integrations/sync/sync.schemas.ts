@@ -175,3 +175,9 @@ export const ticketingSchema = [
     uidt: UITypes.SingleLineText,
   },
 ] as const;
+
+export interface SystemFieldsPayload {
+  primaryKey: string;
+  createdAt?: string;
+  updatedAt?: string;
+}

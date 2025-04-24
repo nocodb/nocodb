@@ -49,7 +49,7 @@ export default [
   {
     type: FormBuilderInputType.Input,
     label: 'Data Path (JSON)',
-    width: 48,
+    width: 100,
     model: 'config.dataPath',
     placeholder: 'e.g. data.items',
     category: 'Source',
@@ -61,23 +61,37 @@ export default [
     ],
   },
   {
-    type: FormBuilderInputType.Space,
-    width: 4,
-    category: 'Source',
-  },
-  {
     type: FormBuilderInputType.Input,
     label: 'Primary Key Path (JSON)',
-    width: 48,
-    model: 'config.primaryKey',
+    width: 100,
+    model: 'config.system.primaryKey',
     placeholder: 'e.g. id or data.id',
-    category: 'Source',
+    category: 'System Fields',
     validators: [
       {
         type: 'required',
         message: 'Primary key path is required',
       },
     ],
+  },
+  {
+    type: FormBuilderInputType.Input,
+    label: 'Created At Path (JSON)',
+    width: 48,
+    model: 'config.system.createdAt',
+    category: 'System Fields',
+  },
+  {
+    type: FormBuilderInputType.Space,
+    width: 4,
+    category: 'System Fields',
+  },
+  {
+    type: FormBuilderInputType.Input,
+    label: 'Updated At Path (JSON)',
+    width: 48,
+    model: 'config.system.updatedAt',
+    category: 'System Fields',
   },
   {
     type: FormBuilderInputType.Select,
@@ -122,7 +136,11 @@ export default [
   {
     type: FormBuilderInputType.Space,
     width: 4,
-    category: 'Source',
+    category: 'Pagination',
+    condition: {
+      model: 'config.pagination.mode',
+      value: 'offset',
+    },
   },
   {
     type: FormBuilderInputType.Input,
@@ -164,7 +182,11 @@ export default [
   {
     type: FormBuilderInputType.Space,
     width: 4,
-    category: 'Source',
+    category: 'Pagination',
+    condition: {
+      model: 'config.pagination.mode',
+      value: 'page',
+    },
   },
   {
     type: FormBuilderInputType.Input,
@@ -194,7 +216,11 @@ export default [
   {
     type: FormBuilderInputType.Space,
     width: 4,
-    category: 'Source',
+    category: 'Pagination',
+    condition: {
+      model: 'config.pagination.mode',
+      value: 'cursor',
+    },
   },
   {
     type: FormBuilderInputType.Input,

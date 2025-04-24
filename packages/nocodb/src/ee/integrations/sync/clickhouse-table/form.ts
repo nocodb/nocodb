@@ -35,7 +35,7 @@ export default [
   {
     type: FormBuilderInputType.Input,
     label: 'Table Name',
-    width: 48,
+    width: 100,
     model: 'config.table',
     placeholder: 'Table name',
     category: 'Source',
@@ -47,22 +47,36 @@ export default [
     ],
   },
   {
-    type: FormBuilderInputType.Space,
-    width: 4,
-    category: 'Source',
-  },
-  {
     type: FormBuilderInputType.Input,
     label: 'Primary Key Column',
-    width: 48,
-    model: 'config.primaryKey',
+    width: 100,
+    model: 'config.system.primaryKey',
     placeholder: 'Primary key column',
-    category: 'Source',
+    category: 'System Fields',
     validators: [
       {
         type: 'required',
         message: 'Primary key column is required',
       },
     ],
+  },
+  {
+    type: FormBuilderInputType.Input,
+    label: 'Created At Column',
+    width: 48,
+    model: 'config.system.createdAt',
+    category: 'System Fields',
+  },
+  {
+    type: FormBuilderInputType.Space,
+    width: 4,
+    category: 'System Fields',
+  },
+  {
+    type: FormBuilderInputType.Input,
+    label: 'Updated At Column',
+    width: 48,
+    model: 'config.system.updatedAt',
+    category: 'System Fields',
   },
 ];

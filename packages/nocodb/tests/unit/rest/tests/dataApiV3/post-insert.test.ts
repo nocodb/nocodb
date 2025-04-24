@@ -109,7 +109,7 @@ describe('dataApiV3', () => {
         await ncAxiosPost({
           url: `${urlPrefix}/${table.id}`,
           body: { ...newRecord, Id: 300 },
-          status: 400,
+          status: 422,
         });
         // Invalid data - number instead of string
         // await ncAxiosPost({

@@ -65,9 +65,14 @@ const { $api, $state } = useNuxtApp()
 const { addTab } = useTabs()
 
 const basesStore = useBases()
+
 const { bases } = storeToRefs(basesStore)
 
-const { base: activeBase } = storeToRefs(useBase())
+const baseStore = useBase()
+
+const { isMysql, isMssql, isPg } = baseStore
+
+const { base: activeBase } = storeToRefs(baseStore)
 
 const base = computed(() => bases.value.get(baseId) || activeBase.value)
 
@@ -139,6 +144,26 @@ const validators = computed(() =>
           return new Promise<void>((resolve, reject) => {
             if (value !== value?.trim()) {
               return reject(new Error('Table names should not have whitespace in the beginning or their end.'))
+            }
+            resolve()
+          })
+        },
+      },
+      {
+        validator: (rule: any, value: any) => {
+          return new Promise<void>((resolve, reject) => {
+            let tableNameLengthLimit = 255
+            if (isMysql(sourceId)) {
+              tableNameLengthLimit = 64
+            } else if (isPg(sourceId)) {
+              tableNameLengthLimit = 63
+            } else if (isMssql(sourceId)) {
+              tableNameLengthLimit = 128
+            }
+
+            const basePrefix = base?.value?.prefix || ''
+            if ((basePrefix + value).length > tableNameLengthLimit) {
+              return reject(new Error(`Table name exceeds ${tableNameLengthLimit} characters`))
             }
             resolve()
           })

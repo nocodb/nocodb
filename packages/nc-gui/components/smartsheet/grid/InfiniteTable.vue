@@ -2589,7 +2589,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                               'text-small': row.rowMeta.rowIndex + 1 < 1000,
                             }"
                           >
-                            {{ row.rowMeta.rowIndex + 1 }}.
+                            {{ row.rowMeta.rowIndex + 1 }}
                           </div>
 
                           <div

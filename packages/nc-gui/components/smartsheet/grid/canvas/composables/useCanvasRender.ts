@@ -868,7 +868,7 @@ export function useCanvasRender({
       const { width: rowIndexWidth } = renderSingleLineText(ctx, {
         x: currentX + 8,
         y: yOffset,
-        text: `${(row.rowMeta.rowIndex! + 1).toString()}.`,
+        text: (row.rowMeta.rowIndex! + 1).toString(),
         maxWidth: ROW_META_COLUMN_WIDTH - 28,
         fontFamily: `500 ${rowIndexFontSize} Manrope`,
         isTagLabel: true,

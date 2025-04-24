@@ -2274,7 +2274,7 @@ onKeyStroke('ArrowDown', onDown)
                                 ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 < 1000,
                             }"
                           >
-                            {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}.
+                            {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}
                           </div>
                           <div
                             v-if="!readOnly"

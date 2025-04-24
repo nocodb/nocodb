@@ -8,6 +8,7 @@ import { createUser } from '../../../factory/user';
 import {
   beforeEachDateBased,
   beforeEachNumberBased,
+  beforeEachSelectBased,
   beforeEachTextBased,
   beforeEach as dataApiV3BeforeEach,
 } from './beforeEach';
@@ -451,6 +452,7 @@ describe('dataApiV3', () => {
         );
       });
     });
+
     describe('number-based', () => {
       let table: Model;
       let columns: Column[] = [];
@@ -577,6 +579,48 @@ describe('dataApiV3', () => {
         expect(
           response.body.message.startsWith(`The date / time value is invalid`),
         ).to.eq(true);
+      });
+    });
+
+    describe.only('select-based', () => {
+      let table: Model;
+      let columns: Column[] = [];
+      let insertedRecords: any[];
+
+      beforeEach(async function () {
+        const initResult = await beforeEachSelectBased(testContext);
+        table = initResult.table;
+        columns = initResult.columns;
+        insertedRecords = initResult.insertedRecords;
+      });
+
+      it('insert with value outside of options', async () => {
+        const rspSingle = await ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: [
+            {
+              SingleSelect: 'jan2',
+            },
+          ],
+          status: 422,
+        });
+        const rspMulti = await ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: [
+            {
+              MultiSelect: 'jan2,feb,mar2',
+            },
+          ],
+          status: 422,
+        });
+        expect(rspSingle.body.error).to.equal('INVALID_VALUE_FOR_FIELD');
+        expect(rspMulti.body.error).to.equal('INVALID_VALUE_FOR_FIELD');
+        expect(rspSingle.body.message).to.equal(
+          'Invalid option(s) "jan2" provided for column "SingleSelect"',
+        );
+        expect(rspMulti.body.message).to.equal(
+          'Invalid option(s) "jan2, mar2" provided for column "MultiSelect"',
+        );
       });
     });
   });

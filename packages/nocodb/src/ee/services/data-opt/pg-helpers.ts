@@ -183,7 +183,11 @@ export async function extractColumn({
         const relatedModel = await (
           column.colOptions as LinkToAnotherRecordColumn
         ).getRelatedTable(context);
-        await relatedModel.getColumns(context);
+
+        const {refContext, mmContext} = (column.colOptions as LinkToAnotherRecordColumn
+        ).getRelContext(context);
+
+        await relatedModel.getColumns(refContext);
         // @ts-ignore
         const pkColumn = relatedModel.primaryKey;
         // if mm table then only extract primary keys
@@ -199,7 +203,7 @@ export async function extractColumn({
           nested: true,
         });
 
-        const aliasColObjMap = await relatedModel.getAliasColObjMap(context);
+        const aliasColObjMap = await relatedModel.getAliasColObjMap(refContext);
 
         // todo: check if fields are allowed
         let fields = [
@@ -223,7 +227,7 @@ export async function extractColumn({
           throwErrorIfInvalidParams,
         );
         const { filters: queryFilterObj } = extractFilterFromXwhere(
-          context,
+          refContext,
           listArgs?.where,
           aliasColObjMap,
           throwErrorIfInvalidParams,
@@ -256,12 +260,12 @@ export async function extractColumn({
                 context,
               );
 
-              const assocBaseModel = await Model.getBaseModelSQL(context, {
+              const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
                 id: assocModel.id,
                 dbDriver: knex,
               });
 
-              const parentBaseModel = await Model.getBaseModelSQL(context, {
+              const parentBaseModel = await Model.getBaseModelSQL(refContext, {
                 id: parentColumn.fk_model_id,
                 dbDriver: knex,
               });
@@ -304,7 +308,7 @@ export async function extractColumn({
                 .offset(+listArgs.offset);
 
               // apply filters on nested query
-              await conditionV2(baseModel, queryFilterObj, mmQb, alias2);
+              await conditionV2(parentBaseModel, queryFilterObj, mmQb, alias2);
 
               const targetContext =
                 relationColOpts.getRelatedTableContext(context);
@@ -321,7 +325,7 @@ export async function extractColumn({
               const relatedSorts = await view.getSorts(targetContext);
               // apply sorts on nested query
               if (sorts && sorts.length > 0) {
-                await sortV2(baseModel, sorts, mmQb, alias2);
+                await sortV2(parentBaseModel, sorts, mmQb, alias2);
               } else if (relatedSorts && relatedSorts.length > 0)
                 await sortV2(parentBaseModel, relatedSorts, mmQb, alias2);
 
@@ -333,7 +337,7 @@ export async function extractColumn({
                 params,
                 getAlias,
                 alias: alias5,
-                baseModel,
+                baseModel: parentBaseModel,
                 // dependencyFields,
                 ast,
                 throwErrorIfInvalidParams,
@@ -599,7 +603,7 @@ export async function extractColumn({
                 .offset(+listArgs.offset);
 
               // apply filters on nested query
-              await conditionV2(baseModel, queryFilterObj, hmQb);
+              await conditionV2(childBaseModel, queryFilterObj, hmQb);
 
               const view = relationColOpts.fk_target_view_id
                 ? await View.get(
@@ -611,7 +615,7 @@ export async function extractColumn({
 
               // apply sorts on nested query
               if (sorts && sorts.length > 0) {
-                await sortV2(baseModel, sorts, hmQb, alias2);
+                await sortV2(childBaseModel, sorts, hmQb, alias2);
               } else if (childSorts && childSorts.length > 0)
                 await sortV2(childBaseModel, childSorts, hmQb);
 
@@ -623,7 +627,7 @@ export async function extractColumn({
                 params,
                 getAlias,
                 alias: alias3,
-                baseModel,
+                baseModel: childBaseModel,
                 // dependencyFields,
                 ast,
                 throwErrorIfInvalidParams,

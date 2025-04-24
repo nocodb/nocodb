@@ -2073,6 +2073,14 @@ watch([height, width, windowWidth, windowHeight], () => {
   })
 })
 
+watch(totalHeight, (newHeight) => {
+  if (scrollTop.value > newHeight) {
+    scroller.value?.scrollTo({
+      top: newHeight - height.value
+    })
+  }
+})
+
 // Watch for Rowheight Changes
 watch(rowHeight, () => {
   calculateSlices()

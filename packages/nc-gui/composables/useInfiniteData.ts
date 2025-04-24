@@ -67,7 +67,7 @@ export function useInfiniteData(args: {
       fields?: Array<{ title: string; aggregation?: string | undefined }>
       path: Array<number>
     }) => void
-    findGroupByPath?: (path?: Array<number>) => CanvasGroup | undefined
+    findGroupByPath?: (path?: Array<number>) => CanvasGroup | null
   }
   where?: ComputedRef<string | undefined>
   disableSmartsheet?: boolean

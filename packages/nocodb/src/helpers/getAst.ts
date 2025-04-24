@@ -108,7 +108,6 @@ const getAst = async (
     filterColumnIds = filters.map((f) => f.fk_column_id);
   }
 
-
   if (!model.columns?.length) await model.getColumns(context);
 
   // extract only pk and pv
@@ -243,7 +242,6 @@ const getAst = async (
       const refTableContext = colOpt.getRelatedTableContext(context);
 
       const model = await colOpt.getRelatedTable(context);
-
 
       value = (
         await getAst(refTableContext, {

@@ -1459,6 +1459,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 this.context,
               )) as LinkToAnotherRecordColumn;
 
+              const { refContext } = colOptions.getRelContext(this.context);
+
               if (colOptions?.type === 'hm') {
                 const listLoader = new DataLoader(
                   async (ids: string[]) => {
@@ -1554,7 +1556,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 const colOptions = (await column.getColOptions(
                   this.context,
                 )) as LinkToAnotherRecordColumn;
-                const pCol = await Column.get(this.context, {
+
+                const pCol = await Column.get(refContext, {
                   colId: colOptions.fk_parent_column_id,
                 });
                 const cCol = await Column.get(this.context, {
@@ -1592,7 +1595,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     });
 
                     const data = await (
-                      await Model.getBaseModelSQL(this.context, {
+                      await Model.getBaseModelSQL(refContext, {
                         id: pCol.fk_model_id,
                         dbDriver: this.dbDriver,
                       })
@@ -1645,7 +1648,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   const colOptions = (await column.getColOptions(
                     this.context,
                   )) as LinkToAnotherRecordColumn;
-                  const pCol = await Column.get(this.context, {
+                  const pCol = await Column.get(refContext, {
                     colId: colOptions.fk_parent_column_id,
                   });
                   const cCol = await Column.get(this.context, {
@@ -1683,7 +1686,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       });
 
                       const data = await (
-                        await Model.getBaseModelSQL(this.context, {
+                        await Model.getBaseModelSQL(refContext, {
                           id: pCol.fk_model_id,
                           dbDriver: this.dbDriver,
                         })

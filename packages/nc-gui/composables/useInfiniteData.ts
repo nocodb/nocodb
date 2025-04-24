@@ -39,7 +39,7 @@ const formatData = (
         rowMeta: {
           rowIndex,
           isLastRow: rowIndex === pageInfo.totalRows! - 1,
-          path: path,
+          path,
         },
       }
     })
@@ -52,7 +52,7 @@ const formatData = (
     oldRow: { ...row },
     rowMeta: {
       rowIndex: offset + index,
-      path: path,
+      path,
     },
   }))
 }

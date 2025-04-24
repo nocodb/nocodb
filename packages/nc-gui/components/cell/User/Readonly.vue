@@ -127,7 +127,7 @@ const isCollaborator = (userIdOrEmail) => {
 
     <div
       v-else
-      class="flex overflow-hidden gap-y-2 flex-wrap"
+      class="flex overflow-hidden gap-y-1 flex-wrap"
       :style="{
         'max-width': '100%',
         '-webkit-line-clamp': rowHeightTruncateLines(rowHeight, true),

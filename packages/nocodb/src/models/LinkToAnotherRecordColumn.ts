@@ -88,8 +88,10 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
+    const { mmContext } = this.getRelContext(context);
+
     return (this.mmChildColumn = await Column.get(
-      context,
+      mmContext,
       {
         colId: this.fk_mm_child_column_id,
       },
@@ -262,7 +264,7 @@ export default class LinkToAnotherRecordColumn {
     if (this.fk_mm_base_id && this.fk_mm_base_id !== context.base_id) {
       mmContext = {
         ...context,
-        base_id: this.fk_mm_source_id,
+        base_id: this.fk_mm_base_id,
       };
     }
 

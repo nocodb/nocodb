@@ -241,7 +241,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       }
     }
 
-    if (!isUnderLookup && isHovered && attachments.length > 0) {
+    if (!isUnderLookup && isHovered && selected && attachments.length > 0) {
       const buttonY = y + 8
 
       renderIconButton(ctx, {
@@ -282,7 +282,7 @@ export const AttachmentCellRenderer: CellRenderer = {
   async handleHover({ row, column, mousePosition, getCellPosition, value, selected, imageLoader }) {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
-    if (!row || !column?.id || !mousePosition) return
+    if (!row || !column?.id || !mousePosition || !selected) return
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
 
@@ -408,6 +408,9 @@ export const AttachmentCellRenderer: CellRenderer = {
   async handleClick({ row, column, mousePosition, getCellPosition, value, selected, imageLoader, makeCellEditable }) {
     const { hideTooltip } = useTooltipStore()
     hideTooltip()
+
+    if (!selected) return false
+
     const enableEdit = () => makeCellEditable(row, column)
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
 

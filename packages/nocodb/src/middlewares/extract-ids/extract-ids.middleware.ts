@@ -80,7 +80,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       base_id: RootScopes.BYPASS,
       api_version: getApiVersionFromUrl(req.route.path),
     };
-
+    req.ncApiVersion = context.api_version;
     // extract base id based on request path params
     if (params.baseId || params.baseName) {
       const base = await Base.getByTitleOrId(

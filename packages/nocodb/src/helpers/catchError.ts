@@ -28,18 +28,21 @@ export function extractDBError(error): {
   error: string;
   details?: any;
   code?: string;
+  httpStatus: number;
 } | void {
   if (!error.code) return;
 
   let message: string;
   let _extra: Record<string, any>;
   let _type: DBError;
+  let httpStatus = 422;
 
   // todo: handle not null constraint error for all databases
   switch (error.code) {
     // sqlite errors
     case 'SQLITE_BUSY':
       message = 'The database is locked by another process or transaction.';
+      httpStatus = 500;
       break;
     case 'SQLITE_CONSTRAINT':
       {
@@ -54,6 +57,7 @@ export function extractDBError(error): {
       break;
     case 'SQLITE_CORRUPT':
       message = 'The database file is corrupt.';
+      httpStatus = 500;
       break;
 
     case 'SQLITE_MISMATCH':
@@ -249,9 +253,11 @@ export function extractDBError(error): {
       break;
     case 'ER_ACCESS_DENIED_ERROR':
       message = 'You do not have permission to perform this action.';
+      httpStatus = 403;
       break;
     case 'ER_LOCK_WAIT_TIMEOUT':
       message = 'A timeout occurred while waiting for a table lock.';
+      httpStatus = 500;
       break;
     case 'ER_NO_REFERENCED_ROW':
       message = 'The referenced record does not exist.';
@@ -285,9 +291,11 @@ export function extractDBError(error): {
       break;
     case '28000':
       message = 'You do not have permission to perform this action.';
+      httpStatus = 401;
       break;
     case '40P01':
       message = 'A timeout occurred while waiting for a table lock.';
+      httpStatus = 500;
       break;
     case '23506':
       message = 'This record is being referenced by other records.';
@@ -443,21 +451,27 @@ export function extractDBError(error): {
       break;
     case 'ELOGIN':
       message = 'You do not have permission to perform this action.';
+      httpStatus = 403;
       break;
     case 'ETIMEOUT':
       message = 'A timeout occurred while waiting for a table lock.';
+      httpStatus = 500;
       break;
     case 'ECONNRESET':
       message = 'The connection was reset.';
+      httpStatus = 500;
       break;
     case 'ECONNREFUSED':
       message = 'The connection was refused.';
+      httpStatus = 500;
       break;
     case 'EHOSTUNREACH':
       message = 'The host is unreachable.';
+      httpStatus = 500;
       break;
     case 'EHOSTDOWN':
       message = 'The host is down.';
+      httpStatus = 500;
       break;
     default:
       // log error for unknown error code
@@ -475,6 +489,7 @@ export function extractDBError(error): {
       error: NcErrorType.DATABASE_ERROR,
       message,
       code: error.code,
+      httpStatus,
     };
   }
 }

@@ -3,6 +3,7 @@ import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import { ThrottlerException } from '@nestjs/throttler';
 import hash from 'object-hash';
 import {
+  NcApiVersion,
   NcErrorType,
   NcErrorTypeMap,
   NcSDKError,
@@ -40,6 +41,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
+    const apiVersion = (request as any).ncApiVersion;
 
     // catch body-parser error and replace with NcBaseErrorv2
     if (
@@ -171,7 +173,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     if (dbError) {
-      return response.status(400).json(dbError);
+      const { httpStatus: httpStatus, ...responsePayload } = dbError;
+      if (apiVersion === NcApiVersion.V3) {
+        return response.status(httpStatus).json(responsePayload);
+      } else {
+        return response.status(400).json(responsePayload);
+      }
     }
 
     if (exception instanceof BadRequest || exception.getStatus?.() === 400) {

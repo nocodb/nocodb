@@ -117,6 +117,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       base_id: RootScopes.BYPASS,
       api_version: getApiVersionFromUrl(req.route.path),
     };
+    req.ncApiVersion = context.api_version;
 
     // this is a special route for ws operations we pass 'nc' as base id
     const isInternalApi = !!req.path?.startsWith('/api/v2/internal');

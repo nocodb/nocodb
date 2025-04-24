@@ -18,7 +18,7 @@ import type { ITestContext } from './beforeEach';
 import type { INcAxios } from './ncAxios';
 
 const API_VERSION = 'v3';
-describe.only('dataApiV3', () => {
+describe('dataApiV3', () => {
   describe('error-handling', () => {
     let testContext: ITestContext;
     let testAxios: INcAxios;

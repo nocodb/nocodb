@@ -123,17 +123,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     const isInternalApi = !!req.path?.startsWith('/api/v2/internal');
     const isInternalWorkspaceScope = isInternalApi && params.baseId === 'nc';
 
-    if (params.baseId && !isInternalWorkspaceScope) {
-      req.ncBaseId = params.baseId;
-    } else if (params.dashboardId) {
-      req.ncBaseId = params.dashboardId;
-    } else if (params.integrationId) {
-      const integration = await Integration.get(context, params.integrationId);
-      if (!integration) {
-        NcError.integrationNotFound(params.integrationId);
-      }
-      req.ncWorkspaceId = integration.fk_workspace_id;
-    } else if (params.baseId || params.baseName) {
+    if (params.baseId || params.baseName) {
       const base = await Base.getByTitleOrId(
         context,
         params.baseId ?? params.baseName,
@@ -161,6 +151,18 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         req.ncBaseId = model.base_id;
         req.ncSourceId = model.source_id;
       }
+    }
+
+    if (params.baseId && !isInternalWorkspaceScope) {
+      req.ncBaseId = params.baseId;
+    } else if (params.dashboardId) {
+      req.ncBaseId = params.dashboardId;
+    } else if (params.integrationId) {
+      const integration = await Integration.get(context, params.integrationId);
+      if (!integration) {
+        NcError.integrationNotFound(params.integrationId);
+      }
+      req.ncWorkspaceId = integration.fk_workspace_id;
     } else if (params.tableId || params.modelId) {
       const model = await Model.getByIdOrName(context, {
         id: params.tableId || params.modelId,

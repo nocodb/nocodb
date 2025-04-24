@@ -930,29 +930,39 @@ export function useCanvasRender({
       const reduceFontSize = row.rowMeta.commentCount > 99
       const commentCount = reduceFontSize ? '99+' : row.rowMeta.commentCount.toString()
 
-      const bubbleHeight = 20
+      const bubbleHeight = 18
+      const y = yOffset + (rowHeight.value - bubbleHeight) / 2
 
       const _renderSingleLineText = (xOffset: number, render: boolean = false) => {
         return renderSingleLineText(ctx, {
           x: xOffset,
-          y: yOffset,
+          y: y,
           render,
           text: commentCount,
           maxWidth: ROW_META_COLUMN_WIDTH / 2,
-          fontFamily: `600 ${reduceFontSize ? '10px' : '12px'} Manrope`,
+          fontFamily: `${reduceFontSize ? '700 10px' : '600 12px'} Manrope`,
           textAlign: 'center',
           isTagLabel: true,
           fillStyle: '#3366FF',
-          height: rowHeight.value,
+          height: bubbleHeight + 2,
         })
       }
 
       const { width: commentCountWidth } = _renderSingleLineText(xOffset + width / 2 - 4)
 
-      const bubbleWidth = Math.max(20, commentCountWidth + 8)
+      const bubbleWidth = Math.max(20, commentCountWidth + (reduceFontSize ? 6 : 8))
 
       const x = xOffset + width - 4 - bubbleWidth
-      const y = yOffset + (rowHeight.value - bubbleHeight) / 2
+
+      const isExpandHovered = isBoxHovered(
+        {
+          x,
+          y,
+          width: bubbleWidth,
+          height: bubbleHeight,
+        },
+        mousePosition,
+      )
 
       roundedRect(
         ctx,
@@ -967,7 +977,7 @@ export function useCanvasRender({
           bottomRight: 6,
         },
         {
-          backgroundColor: '#F0F3FF',
+          backgroundColor: isExpandHovered ? themeV3Colors.brand['100'] : '#F0F3FF',
           borderColor: themeV3Colors.brand['200'],
         },
       )

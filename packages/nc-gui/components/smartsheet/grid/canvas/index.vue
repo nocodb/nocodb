@@ -17,7 +17,7 @@ import { hasAncestorWithClass, isGeneralOverlayActive } from '../../../../utils/
 import type { CanvasGroup } from '../../../../lib/types'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
-import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils/canvas'
+import { clearTextCache, defaultOffscreen2DContext, isBoxHovered, renderSingleLineText } from './utils/canvas'
 import Tooltip from './components/Tooltip.vue'
 import Scroller from './components/Scroller.vue'
 import { columnTypeName } from './utils/headerUtils'
@@ -330,6 +330,7 @@ const {
   isDataEditAllowed,
   removeInlineAddRecord,
   upgradeModalInlineState,
+  isRowDraggingEnabled,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -711,6 +712,8 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
   const path = group ? generateGroupPath(group) : []
 
   const isHover = hoverRow.value?.rowIndex === row.rowMeta.rowIndex && (hoverRow.value?.path ?? []).join() === path.join()
+  const isRowCellSelected = activeCell.value.row === row.rowMeta.rowIndex && activeCell.value.path?.join() === path.join()
+
   const regions = []
   let currentX = 4
 
@@ -718,48 +721,32 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
     currentX += groupByColumns.value?.length * 13
   }
 
-  let isCheckboxRendered = false
-  if (isChecked || (selectedRows.value.length && isHover) || (isHover && !isRowReOrderEnabled.value && !readOnly.value)) {
-    if (isChecked || isHover) {
-      regions.push({
-        x: currentX + 6,
-        width: 24,
-        action: isCheckboxDisabled ? 'none' : 'select',
-      })
-      isCheckboxRendered = true
-      currentX += 30
-    }
-  } else {
-    if (isHover && isRowReOrderEnabled.value && !readOnly.value) {
-      regions.push({
-        x: currentX,
-        width: 24,
-        action: 'reorder',
-      })
-      currentX += 24
-    } else if (isHover) {
-      regions.push({
-        x: currentX + 8,
-        width: 24,
-        action: 'comment',
-      })
-    } else if (!isHover) {
-      regions.push({
-        x: currentX + 8,
-        width: 24,
-        action: 'none',
-      })
-      currentX += 24
-    } else {
-      // add 6px padding to the left of the row meta column if the row number is not rendered
-      currentX += 6
-    }
-  }
+  const initialX = currentX
 
-  if (isHover && !isCheckboxRendered && !isPublicView.value) {
+  if (readOnly.value || !(isHover || isChecked || isRowCellSelected)) {
     regions.push({
       x: currentX,
-      width: 24,
+      width: ROW_META_COLUMN_WIDTH / 2 - 8,
+      action: 'none',
+    })
+
+    currentX += ROW_META_COLUMN_WIDTH / 2 - 8 + 16
+  } else if ((isHover || isChecked || isRowCellSelected) && isRowDraggingEnabled.value) {
+    regions.push({
+      x: currentX,
+      width: 26,
+      action: !selectedRows.value.length ? 'reorder' : 'none',
+    })
+    currentX += 26
+  } else {
+    // add 6px padding to the left of the row meta column if the row number is not rendered
+    currentX += 6
+  }
+
+  if (!readOnly.value && (isChecked || isHover || isRowCellSelected) && !isPublicView.value) {
+    regions.push({
+      x: currentX,
+      width: 20,
       action: isCheckboxDisabled ? 'none' : 'select',
     })
     currentX += 24
@@ -767,13 +754,37 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
 
   // Comment/maximize icon region
 
-  if (!regions.find((region) => region.action === 'comment')) {
+  if (row.rowMeta?.commentCount) {
+    const reduceFontSize = row.rowMeta.commentCount > 99
+    const commentCount = reduceFontSize ? '99+' : row.rowMeta.commentCount.toString()
+
+    const ctx = defaultOffscreen2DContext
+
+    const { width: commentCountWidth } = renderSingleLineText(ctx, {
+      x: initialX + ROW_META_COLUMN_WIDTH / 2 - 4,
+      y: 0,
+      render: false,
+      text: commentCount,
+      maxWidth: ROW_META_COLUMN_WIDTH / 2,
+      fontFamily: `600 ${reduceFontSize ? '10px' : '12px'} Manrope`,
+      textAlign: 'center',
+      isTagLabel: true,
+      fillStyle: '#3366FF',
+    })
+
     regions.push({
-      x: currentX,
-      width: 24,
+      x: initialX + ROW_META_COLUMN_WIDTH - 4 - Math.max(20, commentCountWidth + 8),
+      width: Math.max(20, commentCountWidth + 8),
+      action: 'comment',
+    })
+  } else {
+    regions.push({
+      x: initialX + ROW_META_COLUMN_WIDTH - 4 - 20,
+      width: 20,
       action: 'comment',
     })
   }
+
   return { isAtMaxSelection, isCheckboxDisabled, regions, currentX }
 }
 
@@ -1002,6 +1013,7 @@ async function handleMouseDown(e: MouseEvent) {
     // If the cell is not double-clicked, continue to onMouseDownSelectionHandler
     onMouseDownSelectionHandler(e)
   }
+
   requestAnimationFrame(triggerRefreshCanvas)
 }
 
@@ -1128,7 +1140,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     if (x < 80 + groupByColumns.value.length * 13) {
       // If the click is not normal single click, return
       if (clickType !== MouseClickType.SINGLE_CLICK || readOnly.value || isGroupBy.value) return
-      if (isBoxHovered({ x: 10, y: 8, height: 16, width: 16 }, mousePosition)) {
+      if (isBoxHovered({ x: isRowDraggingEnabled.value ? 4 + 26 : 10, y: 8, height: 16, width: 16 }, mousePosition)) {
         vSelectedAllRecords.value = !vSelectedAllRecords.value
       }
       requestAnimationFrame(triggerRefreshCanvas)
@@ -1528,7 +1540,7 @@ const getHeaderTooltipRegions = (
     const isTruncated = measuredTextWidth > availableTextWidth
 
     regions.push({
-      x: xOffset + (column.uidt ? 26 : 8) - scrollLeftValue,
+      x: xOffset + (column.uidt ? 26 : isRowDraggingEnabled.value ? 26 + 4 : 10) - scrollLeftValue,
       // 16px is for checkbox and it's not renders on load
       width: Math.max(column.uidt ? 0 : 16, isTruncated ? availableTextWidth : measuredTextWidth),
       type: 'title',

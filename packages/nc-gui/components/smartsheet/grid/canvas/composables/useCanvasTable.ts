@@ -251,9 +251,7 @@ export function useCanvasTable({
 
   const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd'))
 
-  const isRowDraggingEnabled = computed(
-    () => !selectedRows.value.length && isOrderColumnExists.value && !isRowReorderDisabled.value && !vSelectedAllRecords.value,
-  )
+  const isRowDraggingEnabled = computed(() => isOrderColumnExists.value && !isRowReorderDisabled.value)
 
   const isAddingEmptyRowAllowed = computed(
     () => isDataEditAllowed.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced,
@@ -1302,5 +1300,6 @@ export function useCanvasTable({
     isContextMenuAllowed,
     removeInlineAddRecord,
     upgradeModalInlineState,
+    isRowDraggingEnabled,
   }
 }

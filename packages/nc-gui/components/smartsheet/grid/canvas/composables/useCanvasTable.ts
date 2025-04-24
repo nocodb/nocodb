@@ -1302,5 +1302,6 @@ export function useCanvasTable({
     isContextMenuAllowed,
     removeInlineAddRecord,
     upgradeModalInlineState,
+    isRowDraggingEnabled,
   }
 }

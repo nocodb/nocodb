@@ -945,7 +945,7 @@ export function useCanvasRender({
       const _renderSingleLineText = (xOffset: number, render: boolean = false) => {
         return renderSingleLineText(ctx, {
           x: xOffset,
-          y: y,
+          y,
           render,
           text: commentCount,
           maxWidth: ROW_META_COLUMN_WIDTH / 2,

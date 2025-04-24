@@ -572,10 +572,11 @@ export function useCanvasRender({
             !isGroupBy.value
           ) {
             const checkSize = 16
-            const isCheckboxHovered = isBoxHovered({ x, y: y - 8, width: checkSize, height: checkSize }, mousePosition)
+            const checkboxX = x + (isRowDraggingEnabled.value ? 26 - 6 : 0)
+            const isCheckboxHovered = isBoxHovered({ x: checkboxX, y: y - 8, width: checkSize, height: checkSize }, mousePosition)
             renderCheckbox(
               ctx,
-              x,
+              checkboxX,
               y - 8,
               vSelectedAllRecords.value,
               false,
@@ -887,7 +888,7 @@ export function useCanvasRender({
         mousePosition,
       )
 
-      if (isHovered && !selectedRows.value.length) {
+      if (isHovered && !selectedRows.value.length && !vSelectedAllRecords.value) {
         roundedRect(ctx, currentX, yOffset + (rowHeight.value - 24) / 2, 24, 24, 4, {
           backgroundColor: isHovered ? themeV3Colors.gray['200'] : 'transparent',
         })
@@ -902,7 +903,11 @@ export function useCanvasRender({
         x: currentX + 4,
         y: yOffset + (rowHeight.value - 16) / 2,
         color:
-          isHovered && !selectedRows.value.length ? '#3265FF' : selectedRows.value.length ? themeV3Colors.gray['400'] : '#6B7280',
+          isHovered && !selectedRows.value.length && !vSelectedAllRecords.value
+            ? '#3265FF'
+            : selectedRows.value.length
+            ? themeV3Colors.gray['400']
+            : '#6B7280',
       })
       currentX += 26
     } else {

@@ -721,6 +721,8 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
     currentX += groupByColumns.value?.length * 13
   }
 
+  const initialX = currentX
+
   if (readOnly.value || !(isHover || isChecked || isRowCellSelected)) {
     regions.push({
       x: currentX,
@@ -732,10 +734,10 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
   } else if ((isHover || isChecked || isRowCellSelected) && isRowDraggingEnabled.value) {
     regions.push({
       x: currentX,
-      width: 24,
+      width: 26,
       action: !selectedRows.value.length ? 'reorder' : 'none',
     })
-    currentX += 24
+    currentX += 26
   } else {
     // add 6px padding to the left of the row meta column if the row number is not rendered
     currentX += 6
@@ -759,7 +761,7 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
     const ctx = defaultOffscreen2DContext
 
     const { width: commentCountWidth } = renderSingleLineText(ctx, {
-      x: ROW_META_COLUMN_WIDTH / 2 - 4,
+      x: initialX + ROW_META_COLUMN_WIDTH / 2 - 4,
       y: 0,
       render: false,
       text: commentCount,
@@ -771,13 +773,13 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
     })
 
     regions.push({
-      x: ROW_META_COLUMN_WIDTH - 4 - Math.max(20, commentCountWidth + 8),
+      x: initialX + ROW_META_COLUMN_WIDTH - 4 - Math.max(20, commentCountWidth + 8),
       width: Math.max(20, commentCountWidth + 8),
       action: 'comment',
     })
   } else {
     regions.push({
-      x: ROW_META_COLUMN_WIDTH - 4 - 20,
+      x: initialX + ROW_META_COLUMN_WIDTH - 4 - 20,
       width: 20,
       action: 'comment',
     })
@@ -1011,6 +1013,7 @@ async function handleMouseDown(e: MouseEvent) {
     // If the cell is not double-clicked, continue to onMouseDownSelectionHandler
     onMouseDownSelectionHandler(e)
   }
+
   requestAnimationFrame(triggerRefreshCanvas)
 }
 
@@ -1137,7 +1140,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     if (x < 80 + groupByColumns.value.length * 13) {
       // If the click is not normal single click, return
       if (clickType !== MouseClickType.SINGLE_CLICK || readOnly.value || isGroupBy.value) return
-      if (isBoxHovered({ x: 10, y: 8, height: 16, width: 16 }, mousePosition)) {
+      if (isBoxHovered({ x: isRowDraggingEnabled.value ? 4 + 26 : 10, y: 8, height: 16, width: 16 }, mousePosition)) {
         vSelectedAllRecords.value = !vSelectedAllRecords.value
       }
       requestAnimationFrame(triggerRefreshCanvas)
@@ -1537,7 +1540,7 @@ const getHeaderTooltipRegions = (
     const isTruncated = measuredTextWidth > availableTextWidth
 
     regions.push({
-      x: xOffset + (column.uidt ? 26 : 8) - scrollLeftValue,
+      x: xOffset + (column.uidt ? 26 : isRowDraggingEnabled.value ? 26 + 4 : 10) - scrollLeftValue,
       // 16px is for checkbox and it's not renders on load
       width: Math.max(column.uidt ? 0 : 16, isTruncated ? availableTextWidth : measuredTextWidth),
       type: 'title',
@@ -1633,6 +1636,7 @@ const handleMouseMove = (e: MouseEvent) => {
       const activeFixedRegion = fixedRegions.find(
         (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
       )
+      console.log('fixedCols', fixedCols, fixedRegions, activeFixedRegion)
 
       if (['title', 'columnChevron'].includes(activeFixedRegion?.type) && isFieldEditAllowed.value) {
         cursor = 'pointer'

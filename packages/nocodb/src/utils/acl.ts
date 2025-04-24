@@ -38,6 +38,7 @@ const permissionScopes = {
     'pluginTest',
     'pluginRead',
     'pluginUpdate',
+    'webhookPluginList',
 
     // Misc
     'commandPalette',
@@ -330,6 +331,7 @@ const rolePermissions:
       userUpdate: true,
       userDelete: true,
       generateResetUrl: true,
+      webhookPluginList: true,
       userInviteResend: true,
       upload: true,
       uploadViaURL: true,

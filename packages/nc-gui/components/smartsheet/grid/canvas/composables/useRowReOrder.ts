@@ -95,7 +95,7 @@ export function useRowReorder({
 
     if (!targetElement) return
 
-    if (comparePath(targetElement.groupPath, draggedRowGroupPath.value)) {
+    if (!comparePath(targetElement.groupPath, draggedRowGroupPath.value)) {
       return
     }
 

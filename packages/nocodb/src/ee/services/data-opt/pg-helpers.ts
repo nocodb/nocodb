@@ -306,10 +306,19 @@ export async function extractColumn({
               // apply filters on nested query
               await conditionV2(baseModel, queryFilterObj, mmQb, alias2);
 
+              const targetContext =
+                relationColOpts.getRelatedTableContext(context);
+
               const view = relationColOpts.fk_target_view_id
-                ? await View.get(context, relationColOpts.fk_target_view_id)
-                : await View.getDefaultView(context, parentBaseModel.model.id);
-              const relatedSorts = await view.getSorts(context);
+                ? await View.get(
+                    targetContext,
+                    relationColOpts.fk_target_view_id,
+                  )
+                : await View.getDefaultView(
+                    targetContext,
+                    parentBaseModel.model.id,
+                  );
+              const relatedSorts = await view.getSorts(targetContext);
               // apply sorts on nested query
               if (sorts && sorts.length > 0) {
                 await sortV2(baseModel, sorts, mmQb, alias2);
@@ -424,8 +433,8 @@ export async function extractColumn({
           case RelationTypes.ONE_TO_ONE:
             {
               const isBt = column.meta?.bt;
-const relationColOpts =
-  column.colOptions as LinkToAnotherRecordColumn
+              const relationColOpts =
+                column.colOptions as LinkToAnotherRecordColumn;
               const childContext = isBt
                 ? context
                 : relationColOpts.getRelatedTableContext(context);

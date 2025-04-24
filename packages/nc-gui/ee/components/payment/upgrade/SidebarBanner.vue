@@ -7,7 +7,7 @@ const {
   gracePeriodDaysLeft,
   navigateToBilling,
   activePlanTitle,
-  isLoyaltyWorkspace,
+  isLoyaltyDiscountAvailable,
   gracePeriodEndDate,
   isPaymentEnabled,
   navigateToPricing,
@@ -26,7 +26,7 @@ const showTimer = computed(() => {
     return gracePeriodDaysLeft.value > 0
   }
 
-  if (isLoyaltyWorkspace.value) return true
+  if (isLoyaltyDiscountAvailable.value) return true
 
   return false
 })
@@ -82,7 +82,7 @@ const handleNavigation = () => {
           <div class="flex flex-col gap-1.5">
             <div class="flex gap-2">
               <GeneralIcon
-                v-if="!isLoyaltyWorkspace"
+                v-if="!isLoyaltyDiscountAvailable"
                 :icon="isLimitReached ? 'alertTriangleSolid' : 'ncArrowUpCircleSolid'"
                 class="h-5 w-5 flex-none mt-0.5"
                 :class="{
@@ -91,7 +91,7 @@ const handleNavigation = () => {
                 }"
               />
               <div class="text-base font-700 text-nc-content-gray">
-                {{ isLimitReached ? 'Plan Limit Reached' : isLoyaltyWorkspace ? 'Preview Ending Soon 🎊' : 'Upgrade to Team' }}
+                {{ isLimitReached ? 'Plan Limit Reached' : isLoyaltyDiscountAvailable ? 'Preview Ending Soon 🎊' : 'Upgrade to Team' }}
               </div>
             </div>
             <div class="text-nc-content-gray-subtle2 text-small leading-[18px]">
@@ -100,7 +100,7 @@ const handleNavigation = () => {
                   ? `You have exceeded the ${
                       isRecordLimitReached ? 'records' : 'storage'
                     } limit allowed in the Free plan. Upgrade to increase your limit`
-                  : isLoyaltyWorkspace
+                  : isLoyaltyDiscountAvailable
                   ? 'Thank you for being an early adopter! Upgrade now with discount to continue.'
                   : 'Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!'
               }}

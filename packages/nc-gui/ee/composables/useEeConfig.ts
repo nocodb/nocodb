@@ -671,7 +671,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToSeeMoreRecordsModal,
     navigateToPricing,
     navigateToCheckout,
-    isLoyaltyWorkspace: isLoyaltyDiscountAvailable,
+    isLoyaltyDiscountAvailable,
     gracePeriodEndDate,
     isTopBannerVisible,
     showUpgradeToUploadWsImage,

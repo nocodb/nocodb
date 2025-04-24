@@ -356,7 +356,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     getCustomerPortalSession,
     isAccountPage,
     onManageSubscription,
-    isLoyaltyWorkspace: isLoyaltyDiscountAvailable,
+    isLoyaltyDiscountAvailable,
     loadInvoices,
     invoices,
     invoicePaginationData,

@@ -19,7 +19,7 @@ const activeWorkspace = computed(() =>
 const { paymentState, workspaceSeatCount, activeSubscription, onManageSubscription, plansAvailable, updateSubscription } =
   usePaymentStoreOrThrow()
 
-const { getLimit, getStatLimit, activePlanTitle, navigateToPricing, isLoyaltyWorkspace, gracePeriodEndDate } = useEeConfig()
+const { getLimit, getStatLimit, activePlanTitle, navigateToPricing, isLoyaltyDiscountAvailable, gracePeriodEndDate } = useEeConfig()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
@@ -247,7 +247,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
       align="center"
       class="nc-plan-usage-plan-limit-reached-banner bg-nc-bg-red-light !rounded-xl"
       :class="{
-        'nc-loyalty-workspace': isLoyaltyWorkspace,
+        'nc-loyalty-workspace': isLoyaltyDiscountAvailable,
       }"
     >
       <template #icon>

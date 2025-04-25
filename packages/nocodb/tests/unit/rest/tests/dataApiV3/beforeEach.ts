@@ -2,12 +2,7 @@ import { expect } from 'chai';
 import { NcApiVersion, UITypes } from 'nocodb-sdk';
 import { createProject, createSakilaProject } from '../../../factory/base';
 import { createLtarColumn, customColumns } from '../../../factory/column';
-import {
-  createBulkRows,
-  createBulkRowsV3,
-  listRow,
-  rowMixedValue,
-} from '../../../factory/row';
+import { createBulkRows, listRow, rowMixedValue } from '../../../factory/row';
 import { createTable, getTable } from '../../../factory/table';
 import init from '../../../init';
 import { prepareRecords } from './helpers';
@@ -225,7 +220,7 @@ export const beforeEachDateBased = async (testContext: ITestContext) => {
   }
 
   // insert records
-  await createBulkRowsV3(testContext.context, {
+  await createBulkRows(testContext.context, {
     base: testContext.base,
     table,
     values: rowAttributes,

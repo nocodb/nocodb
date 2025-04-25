@@ -467,9 +467,8 @@ describe('dataApiV3', () => {
         insertedRecords = initResult.insertedRecords;
       });
 
-      // TODO: skipped for now, v3 has different list data model
       // need to investigate first
-      it.skip('Date based- List & CRUD', async function () {
+      it('Date based- List & CRUD', async function () {
         // list 10 records
         let rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
@@ -483,7 +482,6 @@ describe('dataApiV3', () => {
           `${urlPrefix}/${table.id}?page=2`,
         );
 
-        // TODO: basemodel list is not the same with pg helpers response (no created at)
         // extract first 10 records from inserted records
         const records = insertedRecords.slice(0, 10);
         rsp.body.list.forEach((record: any, index: number) => {

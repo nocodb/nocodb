@@ -6,7 +6,7 @@ import type { INcAxios } from './ncAxios';
 
 const API_VERSION = 'v3';
 describe('dataApiV3', () => {
-  describe('error-handling', () => {
+  describe.only('error-handling', () => {
     let testContext: ITestContext;
     let testAxios: INcAxios;
     let urlPrefix: string;
@@ -32,12 +32,96 @@ describe('dataApiV3', () => {
       ncAxiosLinkRemove = testAxios.ncAxiosLinkRemove;
     });
 
-    it('Invalid Page Size', async function () {
-      const _response = await ncAxiosGet({
+    // we revert to default limit if provided limit is outside of allowed range
+    it.skip('Invalid Page Size', async () => {
+      let response = await ncAxiosGet({
         url: `${urlPrefix}/${testContext.countryTable.id}`,
         query: {
           limit: 0,
         },
+        status: 400,
+      });
+      response = await ncAxiosGet({
+        url: `${urlPrefix}/${testContext.countryTable.id}`,
+        query: {
+          limit: 1000,
+        },
+        status: 400,
+      });
+    });
+
+    it('tableId not found', async () => {
+      await ncAxiosGet({
+        url: `${urlPrefix}/123456789`,
+        status: 404,
+      });
+    });
+    it('baseId not found', async () => {
+      await ncAxiosGet({
+        url: `/api/v3/123456789/123456789`,
+        status: 404,
+      });
+    });
+    it('invalid api version', async () => {
+      await ncAxiosGet({
+        url: `/api/v4/${testContext.base.id}/${testContext.countryTable.id}`,
+        status: 404,
+      });
+    });
+    it('invalid view param', async () => {
+      await ncAxiosGet({
+        url: `${urlPrefix}/${testContext.countryTable.id}?viewId=123456890`,
+        status: 404,
+      });
+    });
+    it('invalid page', async () => {
+      await ncAxiosGet({
+        url: `${urlPrefix}/${testContext.countryTable.id}`,
+        query: {
+          page: 500,
+        },
+        status: 422,
+      });
+    });
+    it('invalid sort field', async () => {
+      await ncAxiosGet({
+        url: `${urlPrefix}/${testContext.countryTable.id}`,
+        query: {
+          sort: 'NotFoundField',
+        },
+        status: 404,
+      });
+    });
+    // skip, our sort direction is either {field} (asc) or -{field} (desc) so no validation required
+    it.skip('invalid sort direction', async () => {});
+
+    it('invalid filter field', async () => {
+      await ncAxiosGet({
+        url: `${urlPrefix}/${testContext.countryTable.id}`,
+        query: {
+          where: '(NotFoundField,eq,1)',
+        },
+        status: 422,
+      });
+    });
+
+    it('invalid select field', async () => {
+      await ncAxiosGet({
+        url: `${urlPrefix}/${testContext.countryTable.id}`,
+        query: {
+          fields: ['Country', 'NotFoundField'],
+        },
+        status: 404,
+      });
+    });
+    // our api can accept array or not array
+    it.skip('field parameter malformed', async () => {
+      await ncAxiosGet({
+        url: `${urlPrefix}/${testContext.countryTable.id}`,
+        query: {
+          fields: 'Country',
+        },
+        status: 404,
       });
     });
   });

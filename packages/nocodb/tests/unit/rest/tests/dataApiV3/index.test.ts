@@ -5,4 +5,5 @@ export const dataApiV3Test = async () => {
   await import('./post-insert.test');
   await import('./patch-update.test');
   await import('./delete.test');
+  await import('./list-and-crud.test');
 };

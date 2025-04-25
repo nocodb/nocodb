@@ -117,6 +117,68 @@ describe('dataApiV3', () => {
         //   status: 400,
         // });
       });
+
+      it('Create: single with column id', async function () {
+        const idMap = {
+          SingleLineText: columns.find((col) => col.title === 'SingleLineText')
+            ?.id,
+          MultiLineText: columns.find((col) => col.title === 'MultiLineText')
+            ?.id,
+        };
+
+        const createPayload = {
+          [idMap['SingleLineText']!]: 'SingleLineText',
+          [idMap['MultiLineText']!]: 'MultiLineText',
+        };
+        const rsp = await ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: createPayload,
+        });
+        expect(rsp.body).to.deep.equal({ Id: 401 });
+        const rspGet = await ncAxiosGet({
+          url: `${urlPrefix}/${table.id}`,
+          query: {
+            where: '(Id,gte,401)',
+          },
+        });
+        expect(
+          rspGet.body.list.map((k) => k.SingleLineText).join(','),
+        ).to.equal('SingleLineText');
+      });
+
+      it('Create: bulk with column id', async function () {
+        const idMap = {
+          SingleLineText: columns.find((col) => col.title === 'SingleLineText')
+            ?.id,
+          MultiLineText: columns.find((col) => col.title === 'MultiLineText')
+            ?.id,
+        };
+
+        const createPayload = [
+          {
+            [idMap['SingleLineText']!]: 'SingleLineText',
+            [idMap['MultiLineText']!]: 'MultiLineText',
+          },
+          {
+            [idMap['SingleLineText']!]: 'SingleLineText2',
+            [idMap['MultiLineText']!]: 'MultiLineText2',
+          },
+        ];
+        const rsp = await ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: createPayload,
+        });
+        expect(rsp.body).to.deep.equal([{ Id: 401 }, { Id: 402 }]);
+        const rspGet = await ncAxiosGet({
+          url: `${urlPrefix}/${table.id}`,
+          query: {
+            where: '(Id,gte,401)',
+          },
+        });
+        expect(
+          rspGet.body.list.map((k) => k.SingleLineText).join(','),
+        ).to.equal('SingleLineText,SingleLineText2');
+      });
     });
 
     describe('link-insert', () => {

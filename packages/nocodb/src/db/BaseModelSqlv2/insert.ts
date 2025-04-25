@@ -188,6 +188,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       let preInsertOps: (() => Promise<string>)[] = [];
       let aiPkCol: Column;
       let agPkCol: Column;
+
       if (!raw) {
         const columns = await baseModel.model.getColumns(baseModel.context);
 

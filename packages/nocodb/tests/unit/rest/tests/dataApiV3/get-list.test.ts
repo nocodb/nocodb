@@ -35,16 +35,31 @@ describe('dataApiV3', () => {
     let testContext: ITestContext;
     let testAxios: INcAxios;
     let urlPrefix: string;
+    let ncAxiosGet: INcAxios['ncAxiosGet'];
+    let ncAxiosPost: INcAxios['ncAxiosPost'];
+    let ncAxiosPatch: INcAxios['ncAxiosPatch'];
+    let ncAxiosDelete: INcAxios['ncAxiosDelete'];
+    let ncAxiosLinkGet: INcAxios['ncAxiosLinkGet'];
+    let ncAxiosLinkAdd: INcAxios['ncAxiosLinkAdd'];
+    let ncAxiosLinkRemove: INcAxios['ncAxiosLinkRemove'];
 
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
-      testAxios = ncAxios(testContext.context);
+      testAxios = ncAxios(testContext);
       urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+
+      ncAxiosGet = testAxios.ncAxiosGet;
+      ncAxiosPost = testAxios.ncAxiosPost;
+      ncAxiosPatch = testAxios.ncAxiosPatch;
+      ncAxiosDelete = testAxios.ncAxiosDelete;
+      ncAxiosLinkGet = testAxios.ncAxiosLinkGet;
+      ncAxiosLinkAdd = testAxios.ncAxiosLinkAdd;
+      ncAxiosLinkRemove = testAxios.ncAxiosLinkRemove;
     });
 
     describe('general-based', () => {
       it('get list country with limit 4 and next offset', async function () {
-        const response = await testAxios.ncAxiosGet({
+        const response = await ncAxiosGet({
           url: `${urlPrefix}/${testContext.countryTable.id}`,
           query: {
             limit: 4,
@@ -53,7 +68,7 @@ describe('dataApiV3', () => {
         const result = response.body as ListResult;
         expect(result.list.length).to.eq(4);
 
-        const nextResponse = await testAxios.ncAxiosGet({
+        const nextResponse = await ncAxiosGet({
           url: `${urlPrefix}/${testContext.countryTable.id}`,
           query: {
             limit: 4,
@@ -68,7 +83,7 @@ describe('dataApiV3', () => {
       });
 
       it('get list country with name like Ind', async function () {
-        const response = await testAxios.ncAxiosGet({
+        const response = await ncAxiosGet({
           url: `${urlPrefix}/${testContext.countryTable.id}`,
           query: {
             filter: '(Country,like,Ind)',
@@ -83,7 +98,7 @@ describe('dataApiV3', () => {
 
       it('Nested List - Link to another record', async function () {
         const expectedRecords = [1, 3, 1, 2, 1, 13, 1, 1, 3, 2];
-        const records = await testAxios.ncAxiosGet({
+        const records = await ncAxiosGet({
           url: `${urlPrefix}/${testContext.countryTable.id}`,
           query: {
             limit: 10,
@@ -132,7 +147,7 @@ describe('dataApiV3', () => {
         ];
 
         // read first 10 records
-        const records = await testAxios.ncAxiosGet({
+        const records = await ncAxiosGet({
           url: `${urlPrefix}/${testContext.countryTable.id}`,
           query: {
             limit: 10,
@@ -158,7 +173,7 @@ describe('dataApiV3', () => {
         });
 
         const expectedRecords = [1, 3, 1, 2, 1, 13, 1, 1, 3, 2];
-        const records = await testAxios.ncAxiosGet({
+        const records = await ncAxiosGet({
           url: `${urlPrefix}/${testContext.countryTable.id}`,
           query: {
             limit: 10,
@@ -186,7 +201,7 @@ describe('dataApiV3', () => {
       });
 
       it('List: default', async function () {
-        const rsp = await testAxios.ncAxiosGet({
+        const rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {},
           status: 200,
@@ -210,7 +225,7 @@ describe('dataApiV3', () => {
       });
 
       it('List: offset, limit', async function () {
-        const rsp = await testAxios.ncAxiosGet({
+        const rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: { offset: 200, limit: 100 },
           status: 200,
@@ -227,7 +242,7 @@ describe('dataApiV3', () => {
       });
 
       it('List: fields, single', async function () {
-        const rsp = await testAxios.ncAxiosGet({
+        const rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: { fields: 'SingleLineText' },
         });
@@ -238,7 +253,7 @@ describe('dataApiV3', () => {
       });
 
       it('List: fields, multiple', async function () {
-        const rsp = await testAxios.ncAxiosGet({
+        const rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: { fields: ['SingleLineText', 'MultiLineText'] },
         });
@@ -253,7 +268,7 @@ describe('dataApiV3', () => {
 
       it('List: sort, ascending', async function () {
         const sortColumn = columns.find((c) => c.title === 'SingleLineText')!;
-        const rsp = await testAxios.ncAxiosGet({
+        const rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: { sort: 'SingleLineText', limit: 400 },
         });
@@ -265,7 +280,7 @@ describe('dataApiV3', () => {
 
       it('List: sort, descending', async function () {
         const sortColumn = columns.find((c) => c.title === 'SingleLineText')!;
-        const rsp = await testAxios.ncAxiosGet({
+        const rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: { sort: '-SingleLineText', limit: 400 },
         });
@@ -276,7 +291,7 @@ describe('dataApiV3', () => {
       });
 
       it('List: sort, multiple', async function () {
-        const rsp = await testAxios.ncAxiosGet({
+        const rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             sort: ['-SingleLineText', '-MultiLineText'],
@@ -293,7 +308,7 @@ describe('dataApiV3', () => {
       });
 
       it('List: filter, single', async function () {
-        const rsp = await testAxios.ncAxiosGet({
+        const rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             where: '(SingleLineText,eq,Afghanistan)',
@@ -307,7 +322,7 @@ describe('dataApiV3', () => {
       });
 
       it('List: filter, multiple', async function () {
-        const rsp = await testAxios.ncAxiosGet({
+        const rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             where:
@@ -348,7 +363,7 @@ describe('dataApiV3', () => {
         });
 
         // fetch records from view
-        let rsp = await testAxios.ncAxiosGet({
+        let rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: { viewId: gridView.id },
         });
@@ -372,7 +387,7 @@ describe('dataApiV3', () => {
         });
 
         // fetch records from view
-        rsp = await testAxios.ncAxiosGet({
+        rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
@@ -385,7 +400,7 @@ describe('dataApiV3', () => {
         );
 
         // use count api to verify since we are not including count in pageInfo
-        let countRsp = await testAxios.ncAxiosGet({
+        let countRsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/count`,
           query: {
             viewId: gridView.id,
@@ -407,7 +422,7 @@ describe('dataApiV3', () => {
         });
 
         // fetch records from view
-        rsp = await testAxios.ncAxiosGet({
+        rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
@@ -420,7 +435,7 @@ describe('dataApiV3', () => {
         );
 
         // use count api to verify since we are not including count in pageInfo
-        countRsp = await testAxios.ncAxiosGet({
+        countRsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/count`,
           query: {
             viewId: gridView.id,
@@ -448,7 +463,7 @@ describe('dataApiV3', () => {
         });
 
         // fetch records from view
-        rsp = await testAxios.ncAxiosGet({
+        rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
@@ -502,11 +517,11 @@ describe('dataApiV3', () => {
         });
 
         // fetch records from view
-        const rsp = await testAxios.ncAxiosGet({
+        const rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: { viewId: gridView.id },
         });
-        const rspCount = await testAxios.ncAxiosGet({
+        const rspCount = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/count`,
           query: { viewId: gridView.id },
         });
@@ -526,7 +541,7 @@ describe('dataApiV3', () => {
       it('List: view ID + sort', async function () {
         const gridView = await prepareViewForTests();
 
-        const rsp = await testAxios.ncAxiosGet({
+        const rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
@@ -545,7 +560,7 @@ describe('dataApiV3', () => {
         expect(rsp.body.pageInfo).to.not.have.property('next');
 
         // use count api to verify since we are not including count in pageInfo
-        const countRsp = await testAxios.ncAxiosGet({
+        const countRsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/count`,
           query: {
             viewId: gridView.id,
@@ -562,7 +577,7 @@ describe('dataApiV3', () => {
       it('List: view ID + filter', async function () {
         const gridView = await prepareViewForTests();
 
-        const rsp = await testAxios.ncAxiosGet({
+        const rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
@@ -577,7 +592,7 @@ describe('dataApiV3', () => {
             !isCreatedOrLastModifiedTimeCol(c),
         );
 
-        const rspCount = await testAxios.ncAxiosGet({
+        const rspCount = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/count`,
           query: {
             viewId: gridView.id,
@@ -598,7 +613,7 @@ describe('dataApiV3', () => {
       it('List: view ID + fields', async function () {
         const gridView = await prepareViewForTests();
 
-        const rsp = await testAxios.ncAxiosGet({
+        const rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
@@ -611,7 +626,7 @@ describe('dataApiV3', () => {
         expect(rsp.body.pageInfo).to.not.have.property('next');
 
         // use count api to verify since we are not including count in pageInfo
-        const countRsp = await testAxios.ncAxiosGet({
+        const countRsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/count`,
           query: {
             viewId: gridView.id,
@@ -630,13 +645,13 @@ describe('dataApiV3', () => {
       // #region Error handling
       it('List: invalid ID', async function () {
         // Invalid table ID
-        await testAxios.ncAxiosGet({
+        await ncAxiosGet({
           url: `${urlPrefix}/123456789`,
           status: 404,
         });
 
         // Invalid view ID
-        await testAxios.ncAxiosGet({
+        await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             viewId: '123456789',
@@ -647,7 +662,7 @@ describe('dataApiV3', () => {
 
       it('List: invalid limit & offset', async function () {
         // Invalid limit : falls back to default value
-        let rsp = await testAxios.ncAxiosGet({
+        let rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             limit: -100,
@@ -661,7 +676,7 @@ describe('dataApiV3', () => {
           `${urlPrefix}/${table.id}?page=2`,
         );
 
-        rsp = await testAxios.ncAxiosGet({
+        rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             limit: 'abc',
@@ -674,7 +689,7 @@ describe('dataApiV3', () => {
         );
 
         // Invalid offset : falls back to default value
-        rsp = await testAxios.ncAxiosGet({
+        rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             offset: -100,
@@ -687,7 +702,7 @@ describe('dataApiV3', () => {
           `${urlPrefix}/${table.id}?page=2`,
         );
 
-        rsp = await testAxios.ncAxiosGet({
+        rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             offset: 'abc',
@@ -701,7 +716,7 @@ describe('dataApiV3', () => {
         );
 
         // Offset > totalRows : returns empty list
-        rsp = await testAxios.ncAxiosGet({
+        rsp = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             offset: 10000,
@@ -713,21 +728,21 @@ describe('dataApiV3', () => {
 
       it('List: invalid sort, filter, fields', async function () {
         // expect to ignore invalid sort, filter, fields
-        await testAxios.ncAxiosGet({
+        await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             sort: 'abc',
           },
           status: 404,
         });
-        await testAxios.ncAxiosGet({
+        await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             where: 'abc',
           },
           status: 422,
         });
-        await testAxios.ncAxiosGet({
+        await ncAxiosGet({
           url: `${urlPrefix}/${table.id}`,
           query: {
             fields: 'abc',

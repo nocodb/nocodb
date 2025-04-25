@@ -22,3 +22,22 @@ export const verifyColumnsInRsp = (
 
   return responseColumnsListStr === expectedColumnsListStr;
 };
+
+export function prepareRecords(
+  title: string,
+  count: number,
+  start: number = 1,
+) {
+  const records: Record<string, string | number>[] = [];
+  for (let i = start; i <= start + count - 1; i++) {
+    records.push({
+      Id: i,
+      [title]: `${title} ${i}`,
+    });
+  }
+  return records;
+}
+
+export function getColumnId(columns: ColumnType[], title: string) {
+  return columns.find((c) => c.title === title)!.id!;
+}

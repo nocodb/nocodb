@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import { NcApiVersion } from 'nocodb-sdk';
+import { NcApiVersion, UITypes } from 'nocodb-sdk';
 import { createProject, createSakilaProject } from '../../../factory/base';
-import { customColumns } from '../../../factory/column';
+import { createLtarColumn, customColumns } from '../../../factory/column';
 import {
   createBulkRows,
   createBulkRowsV3,
@@ -10,6 +10,8 @@ import {
 } from '../../../factory/row';
 import { createTable, getTable } from '../../../factory/table';
 import init from '../../../init';
+import { prepareRecords } from './helpers';
+import type { ColumnType } from 'nocodb-sdk';
 import type { Base, Model } from '../../../../../src/models';
 
 export interface ITestContext {
@@ -243,5 +245,127 @@ export const beforeEachDateBased = async (testContext: ITestContext) => {
     table,
     columns,
     insertedRecords,
+  };
+};
+
+export const beforeEachLinkBased = async (testContext: ITestContext) => {
+  let tblCity: Model;
+  let tblCountry: Model;
+  let tblActor: Model;
+  let tblFilm: Model;
+
+  let columnsFilm: ColumnType[];
+  let columnsActor: ColumnType[];
+  let columnsCountry: ColumnType[];
+  let columnsCity: ColumnType[];
+  const columns = [
+    {
+      title: 'Title',
+      column_name: 'Title',
+      uidt: UITypes.SingleLineText,
+      pv: true,
+    },
+  ];
+
+  try {
+    // Prepare City table
+    columns[0].title = 'City';
+    columns[0].column_name = 'City';
+    tblCity = await createTable(testContext.context, testContext.base, {
+      title: 'City',
+      table_name: 'City',
+      columns: customColumns('custom', columns),
+    });
+    const cityRecords = prepareRecords('City', 100);
+
+    // insert records
+    await createBulkRows(testContext.context, {
+      base: testContext.base,
+      table: tblCity,
+      values: cityRecords,
+    });
+
+    const _insertedRecords = await listRow({
+      base: testContext.base,
+      table: tblCity,
+    });
+
+    // Prepare Country table
+    columns[0].title = 'Country';
+    columns[0].column_name = 'Country';
+    tblCountry = await createTable(testContext.context, testContext.base, {
+      title: 'Country',
+      table_name: 'Country',
+      columns: customColumns('custom', columns),
+    });
+    const countryRecords = prepareRecords('Country', 100);
+    // insert records
+    await createBulkRows(testContext.context, {
+      base: testContext.base,
+      table: tblCountry,
+      values: countryRecords,
+    });
+
+    // Prepare Actor table
+    columns[0].title = 'Actor';
+    columns[0].column_name = 'Actor';
+    tblActor = await createTable(testContext.context, testContext.base, {
+      title: 'Actor',
+      table_name: 'Actor',
+      columns: customColumns('custom', columns),
+    });
+    const actorRecords = prepareRecords('Actor', 100);
+    await createBulkRows(testContext.context, {
+      base: testContext.base,
+      table: tblActor,
+      values: actorRecords,
+    });
+
+    // Prepare Movie table
+    columns[0].title = 'Film';
+    columns[0].column_name = 'Film';
+    tblFilm = await createTable(testContext.context, testContext.base, {
+      title: 'Film',
+      table_name: 'Film',
+      columns: customColumns('custom', columns),
+    });
+    const filmRecords = prepareRecords('Film', 100);
+    await createBulkRows(testContext.context, {
+      base: testContext.base,
+      table: tblFilm,
+      values: filmRecords,
+    });
+
+    // Create links
+    // Country <hm> City
+    await createLtarColumn(testContext.context, {
+      title: 'Cities',
+      parentTable: tblCountry,
+      childTable: tblCity,
+      type: 'hm',
+    });
+    await createLtarColumn(testContext.context, {
+      title: 'Films',
+      parentTable: tblActor,
+      childTable: tblFilm,
+      type: 'mm',
+    });
+
+    columnsFilm = await tblFilm.getColumns(testContext.ctx);
+    columnsActor = await tblActor.getColumns(testContext.ctx);
+    columnsCountry = await tblCountry.getColumns(testContext.ctx);
+    columnsCity = await tblCity.getColumns(testContext.ctx);
+  } catch (e) {
+    console.log(e);
+  }
+  return {
+    tblCity: tblCity!,
+    tblCountry: tblCountry!,
+    tblActor: tblActor!,
+    tblFilm: tblFilm!,
+    columnsFilm: columnsFilm!,
+    columnsActor: columnsActor!,
+    columnsCountry: columnsCountry!,
+    columnsCity: columnsCity!,
   };
 };

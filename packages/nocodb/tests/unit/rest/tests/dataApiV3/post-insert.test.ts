@@ -16,11 +16,26 @@ describe('dataApiV3', () => {
     let testContext: ITestContext;
     let testAxios: INcAxios;
     let urlPrefix: string;
+    let ncAxiosGet: INcAxios['ncAxiosGet'];
+    let ncAxiosPost: INcAxios['ncAxiosPost'];
+    let ncAxiosPatch: INcAxios['ncAxiosPatch'];
+    let ncAxiosDelete: INcAxios['ncAxiosDelete'];
+    let ncAxiosLinkGet: INcAxios['ncAxiosLinkGet'];
+    let ncAxiosLinkAdd: INcAxios['ncAxiosLinkAdd'];
+    let ncAxiosLinkRemove: INcAxios['ncAxiosLinkRemove'];
 
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
-      testAxios = ncAxios(testContext.context);
+      testAxios = ncAxios(testContext);
       urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+
+      ncAxiosGet = testAxios.ncAxiosGet;
+      ncAxiosPost = testAxios.ncAxiosPost;
+      ncAxiosPatch = testAxios.ncAxiosPatch;
+      ncAxiosDelete = testAxios.ncAxiosDelete;
+      ncAxiosLinkGet = testAxios.ncAxiosLinkGet;
+      ncAxiosLinkAdd = testAxios.ncAxiosLinkAdd;
+      ncAxiosLinkRemove = testAxios.ncAxiosLinkRemove;
     });
 
     describe('text-based', () => {
@@ -44,7 +59,7 @@ describe('dataApiV3', () => {
       };
 
       it('Create: all fields', async function () {
-        const rsp = await testAxios.ncAxiosPost({
+        const rsp = await ncAxiosPost({
           url: `${urlPrefix}/${table.id}`,
           body: newRecord,
         });
@@ -57,7 +72,7 @@ describe('dataApiV3', () => {
           SingleLineText: 'abc',
           MultiLineText: 'abc abc \n abc \r abc \t abc 1234!@#$%^&*()_+',
         };
-        const rsp = await testAxios.ncAxiosPost({
+        const rsp = await ncAxiosPost({
           url: `${urlPrefix}/${table.id}`,
           body: newRecord,
         });
@@ -67,7 +82,7 @@ describe('dataApiV3', () => {
       });
 
       it('Create: bulk', async function () {
-        const rsp = await testAxios.ncAxiosPost({
+        const rsp = await ncAxiosPost({
           url: `${urlPrefix}/${table.id}`,
           body: [newRecord, newRecord, newRecord],
         });
@@ -81,13 +96,13 @@ describe('dataApiV3', () => {
       // Error handling
       it('Create: invalid ID', async function () {
         // Invalid table ID
-        await testAxios.ncAxiosPost({
+        await ncAxiosPost({
           url: `${urlPrefix}/123456789`,
           status: 404,
         });
 
         // Invalid data - create should not specify ID
-        await testAxios.ncAxiosPost({
+        await ncAxiosPost({
           url: `${urlPrefix}/${table.id}`,
           body: { ...newRecord, Id: 300 },
           status: 400,

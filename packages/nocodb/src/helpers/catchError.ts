@@ -1,4 +1,4 @@
-import { HigherPlan, NcErrorType } from 'nocodb-sdk';
+import { HigherPlan, NcErrorType, ncIsNumber } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import { generateReadablePermissionErr } from 'src/utils/acl';
 import type {
@@ -681,7 +681,10 @@ const errorHelpers: {
     code: 404,
   },
   [NcErrorType.INVALID_OFFSET_VALUE]: {
-    message: (offset: string) => `Offset value '${offset}' is invalid`,
+    message: (offset: string) =>
+      ncIsNumber(Number(offset)) && Number(offset) > 0
+        ? `Offset value '${offset}' is invalid`
+        : `Offset must be a non-negative integer.`,
     code: 422,
   },
   [NcErrorType.INVALID_PAGE_VALUE]: {

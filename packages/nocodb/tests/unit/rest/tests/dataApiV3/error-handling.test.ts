@@ -156,6 +156,30 @@ describe('dataApiV3', () => {
       });
       expect(response.body.message).to.eq(`Offset value '12475' is invalid`);
     });
+    it('invalid page (minus)', async () => {
+      const response = await ncAxiosGet({
+        url: `${urlPrefix}/${testContext.countryTable.id}`,
+        query: {
+          page: -1,
+        },
+        status: 422,
+      });
+      expect(response.body.message).to.eq(
+        `Offset must be a non-negative integer.`,
+      );
+    });
+    it('invalid page (string)', async () => {
+      const response = await ncAxiosGet({
+        url: `${urlPrefix}/${testContext.countryTable.id}`,
+        query: {
+          page: 'hello',
+        },
+        status: 422,
+      });
+      expect(response.body.message).to.eq(
+        `Offset must be a non-negative integer.`,
+      );
+    });
     it('invalid sort field', async () => {
       const response = await ncAxiosGet({
         url: `${urlPrefix}/${testContext.countryTable.id}`,

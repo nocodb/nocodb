@@ -465,6 +465,9 @@ export function getListArgs(
   if (obj.page) {
     obj.offset = (+obj.page - 1) * +obj.limit;
   }
+  if (!ncIsNumber(Number(obj.offset)) || Number(obj.offset) < 0) {
+    NcError.invalidOffsetValue(obj.offset);
+  }
   obj.fields =
     args?.fields || args?.f || (ignoreAssigningWildcardSelect ? null : '*');
   obj.sort = args?.sort || args?.s || model.primaryKey?.[0]?.column_name;

@@ -297,7 +297,6 @@ export class DataTableService {
     },
   ) {
     const model = await Model.get(context, param.modelId);
-    console.log(context)
     if (!model) {
       if (context.api_version === NcApiVersion.V3) {
         NcError.tableNotFoundV3(param.modelId);

@@ -281,6 +281,7 @@ export function useGridCellHandler(params: {
         fontFamily,
         isRowHovered,
         isRowChecked,
+        rowMeta,
       })
     } else {
       return renderSingleLineText(ctx, {

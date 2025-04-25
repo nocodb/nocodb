@@ -259,5 +259,29 @@ describe('query-filter-parser', () => {
         `Invalid filter expression: 'noneInOperation' is not a recognized operator. Please use a valid comparison or logical operator.`
       );
     });
+    it(`will handle parsing error when operation is missing`, async () => {
+      const text = `(fSingleLineText,)`;
+      const result = QueryFilterParser.parse(text);
+      const message = parseParsingError(result.parseErrors[0]);
+      expect(message).toBe(
+        `Invalid filter expression: ')' is not a recognized operator. Please use a valid comparison or logical operator.`
+      );
+    });
+    it(`will handle parsing error when operation is wrapped in quotes`, async () => {
+      const text = `(fSingleLineText,"eq")`;
+      const result = QueryFilterParser.parse(text);
+      const message = parseParsingError(result.parseErrors[0]);
+      expect(message).toBe(
+        `Invalid filter expression: '"eq"' is not a recognized operator. Please use a valid comparison or logical operator.`
+      );
+    });
+    it(`will handle parsing error when not operator is wrong`, async () => {
+      const text = `not(fSingleLineText,eq,1)`;
+      const result = QueryFilterParser.parse(text);
+      const message = parseParsingError(result.parseErrors[0]);
+      expect(message).toBe(
+        `Invalid filter expression. Expected a valid logical operator like '~not', but found 'not'.`
+      );
+    });
   });
 });

@@ -419,6 +419,23 @@ describe('dataApiV3', () => {
         expect(response.body.error).to.eq('RECORD_NOT_FOUND');
         expect(response.body.message).to.eq(`Record '998091' not found`);
       });
+
+      it(`will handle delete record not found`, async () => {
+        const response = await ncAxiosDelete({
+          url: `${urlPrefix}/${table.id}`,
+          body: [
+            {
+              Id: 1,
+            },
+            {
+              Id: 998091,
+            },
+          ],
+          status: 404,
+        });
+        expect(response.body.error).to.eq('RECORD_NOT_FOUND');
+        expect(response.body.message).to.eq(`Record '998091' not found`);
+      });
     });
     describe('number-based', () => {
       let table: Model;
@@ -455,7 +472,6 @@ describe('dataApiV3', () => {
           `Invalid value 'HELLOW' for type 'bigint'`,
         );
       });
-
       it(`will handle insert field more than 10 rows`, async () => {
         const insertObj = [
           {

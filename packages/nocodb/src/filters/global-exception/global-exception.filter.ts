@@ -23,6 +23,7 @@ import {
   NcBaseError,
   NcBaseErrorv2,
   NotFound,
+  OptionsNotExistsError,
   SsoError,
   TestConnectionError,
   Unauthorized,
@@ -181,7 +182,20 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       }
     }
 
-    if (exception instanceof BadRequest || exception.getStatus?.() === 400) {
+    if (
+      exception instanceof OptionsNotExistsError &&
+      apiVersion === NcApiVersion.V3
+    ) {
+      return response.status(422).json({
+        message: `Invalid option(s) "${exception.options.join(
+          ', ',
+        )}" provided for column "${exception.columnTitle}"`,
+        error: 'INVALID_VALUE_FOR_FIELD',
+      });
+    } else if (
+      exception instanceof BadRequest ||
+      exception.getStatus?.() === 400
+    ) {
       return response.status(400).json({ msg: exception.message });
     } else if (
       exception instanceof Unauthorized ||

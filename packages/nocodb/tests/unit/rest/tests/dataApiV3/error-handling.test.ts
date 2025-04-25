@@ -491,7 +491,7 @@ describe('dataApiV3', () => {
               Number: 'HELLOW',
             },
           ],
-          status: 400,
+          status: 422,
         });
         expect(response.body.error).to.eq('DATABASE_ERROR');
         expect(
@@ -526,7 +526,7 @@ describe('dataApiV3', () => {
               Number: 'HELLOW',
             },
           ],
-          status: 400,
+          status: 422,
         });
         expect(response.body.error).to.eq('DATABASE_ERROR');
         expect(
@@ -571,7 +571,7 @@ describe('dataApiV3', () => {
               Date: 'HELLOW',
             },
           ],
-          status: 400,
+          status: 422,
         });
         expect(response.body.error).to.eq('DATABASE_ERROR');
         expect(

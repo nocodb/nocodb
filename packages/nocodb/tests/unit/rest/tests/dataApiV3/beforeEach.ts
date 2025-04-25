@@ -98,3 +98,53 @@ export const beforeEachTextBased = async (testContext: ITestContext) => {
     insertedRecords,
   };
 };
+
+export const beforeEachNumberBased = async (testContext: ITestContext) => {
+  const table = await createTable(testContext.context, testContext.base, {
+    table_name: 'numberBased',
+    title: 'numberBased',
+    columns: customColumns('numberBased'),
+  });
+
+  // retrieve column meta
+  const columns = await table.getColumns(testContext.ctx);
+
+  // build records
+  const rowAttributes: {
+    Number: string | number | string[] | null;
+    Decimal: string | number | string[] | null;
+    Currency: string | number | string[] | null;
+    Percent: string | number | string[] | null;
+    Duration: string | number | string[] | null;
+    Rating: string | number | string[] | null;
+  }[] = [];
+  for (let i = 0; i < 400; i++) {
+    const row = {
+      Number: rowMixedValue(columns[6], i),
+      Decimal: rowMixedValue(columns[7], i),
+      Currency: rowMixedValue(columns[8], i),
+      Percent: rowMixedValue(columns[9], i),
+      Duration: rowMixedValue(columns[10], i),
+      Rating: rowMixedValue(columns[11], i),
+    };
+    rowAttributes.push(row);
+  }
+
+  // insert records
+  await createBulkRows(testContext.context, {
+    base: testContext.base,
+    table,
+    values: rowAttributes,
+  });
+
+  // retrieve inserted records
+  const insertedRecords = await listRow({ base: testContext.base, table });
+
+  // verify length of unfiltered records to be 400
+  expect(insertedRecords.length).to.equal(400);
+  return {
+    table,
+    columns,
+    insertedRecords,
+  };
+};

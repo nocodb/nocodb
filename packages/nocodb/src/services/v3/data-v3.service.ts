@@ -75,7 +75,7 @@ export class DataV3Service {
     // todo: refactor and do within a transaction
     if (Array.isArray(param.body)) {
       if (param.body.length > V3_INSERT_LIMIT) {
-        NcError.badRequest(`Maximum ${V3_INSERT_LIMIT} to insert`);
+        NcError.maxInsertLimitExceeded(V3_INSERT_LIMIT);
       }
     }
 

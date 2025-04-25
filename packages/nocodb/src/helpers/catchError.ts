@@ -271,7 +271,8 @@ export function extractDBError(error): {
       message = 'A value is required for this field.';
       break;
     case '23503':
-      message = 'Cannot delete this record because other records depend on it. Please remove the dependent records first.';
+      message =
+        'Cannot delete this record because other records depend on it. Please remove the dependent records first.';
       break;
     case '23514':
       message = 'A null value is not allowed for this field.';
@@ -772,6 +773,10 @@ const errorHelpers: {
     message: (message: string) => message || 'Plan limit exceeded',
     code: 403,
   },
+  [NcErrorType.MAX_INSERT_LIMIT_EXCEEDED]: {
+    message: (limit: string) => `Maximum ${limit} records during insert`,
+    code: 422,
+  },
 };
 
 function generateError(
@@ -1223,6 +1228,18 @@ export class NcError {
         ...details,
         ...(details?.plan ? { higherPlan: HigherPlan[details.plan] } : {}),
       },
+    });
+  }
+
+  static allowedOnlySSOAccess(ncWorkspaceId: string) {
+    throw new NcBaseErrorv2(NcErrorType.SSO_LOGIN_REQUIRED, {
+      params: ncWorkspaceId,
+    });
+  }
+  static maxInsertLimitExceeded(limit: number, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.MAX_INSERT_LIMIT_EXCEEDED, {
+      params: limit.toString(),
+      ...args,
     });
   }
 }

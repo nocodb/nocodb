@@ -13,7 +13,7 @@ export interface InvalidFilterErrorInfo {
 
 export class InvalidFilterError extends NcSDKErrorV2 {
   constructor(info: InvalidFilterErrorInfo) {
-    let message = info.message ?? 'INVALID_FILTER';
+    let message = info.message ?? 'Invalid filter';
     if (info.lexingError && info.lexingError.length > 0) {
       const lexingErrorMessage = info.lexingError
         .map((k) => parseLexingError(k))

@@ -8,7 +8,7 @@ export const parseParsingError = (e: IRecognitionException) => {
   try {
     if (e.message.toLowerCase().startsWith('expecting token of type --> ')) {
       const operatorRegex =
-        /^Expecting token of type --> ([^\s]+) <-- but found --> '?([^\s']*)'? <--.?/i;
+        /^Expecting token of type --> (\S+) <-- but found --> '?([^\s']*)'? <--.?/i;
       const tokens = e.message.match(operatorRegex);
       const [expectation, found] = tokens.slice(1, 3);
       switch (expectation) {
@@ -27,7 +27,7 @@ export const parseParsingError = (e: IRecognitionException) => {
         .toLowerCase()
         .startsWith('expecting: one of these possible token sequences:')
     ) {
-      const optionRegex = /^\s*[\d]+\.\s*\[(.+)\]/im;
+      const optionRegex = /^\s*\d+\.\s*\[(.+)\]/im;
       const foundRegex = /but found: '?([^\s']+)'?/im;
       const messageParts = e.message.split('\n');
       const options = messageParts

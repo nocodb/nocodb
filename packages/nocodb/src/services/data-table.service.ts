@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { isLinksOrLTAR, RelationTypes, ViewTypes } from 'nocodb-sdk';
+import {
+  isLinksOrLTAR,
+  ncIsNumber,
+  RelationTypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import { validatePayload } from 'src/helpers';
 import { NcApiVersion } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
@@ -434,7 +439,10 @@ export class DataTableService {
     try {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
-    if (param.query.limit > 0) {
+    if (
+      ncIsNumber(Number(param.query.limit)) &&
+      Number(param.query.limit) > 0
+    ) {
       listArgs.nestedLimit = param.query.limit;
     }
     let data: any[];

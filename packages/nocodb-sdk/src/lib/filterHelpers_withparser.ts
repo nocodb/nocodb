@@ -90,7 +90,7 @@ function innerExtractFilterFromXwhere(
     };
   } else if (typeof str !== 'string' && throwErrorIfInvalid) {
     const message =
-      'INVALID_FILTER format. Expected string or array of strings';
+      'Invalid filter format. Expected string or array of strings';
     if (throwErrorIfInvalid) {
       throw new InvalidFilterError({ message });
     } else {
@@ -169,11 +169,11 @@ function mapFilterClauseSubType(
   if (!aliasCol) {
     if (throwErrorIfInvalid) {
       throw new InvalidFilterError({
-        message: `INVALID_FILTER column '${filter.field}' not found`,
+        message: `Invalid filter column '${filter.field}' not found`,
       });
     } else {
       errors.push({
-        message: `INVALID_FILTER column '${filter.field}' not found`,
+        message: `Invalid filter column '${filter.field}' not found`,
       });
       return { errors };
     }
@@ -218,11 +218,11 @@ function handleDataTypes(
       if (!COMPARISON_SUB_OPS.includes(filterType.comparison_sub_op)) {
         if (throwErrorIfInvalid)
           throw new InvalidFilterError({
-            message: `INVALID_FILTER '${filterType.comparison_sub_op}' is not supported`,
+            message: `Invalid filter '${filterType.comparison_sub_op}' is not supported`,
           });
         else {
           errors.push({
-            message: `INVALID_FILTER '${filterType.comparison_sub_op}' is not supported`,
+            message: `Invalid filter '${filterType.comparison_sub_op}' is not supported`,
           });
           return { errors };
         }
@@ -240,11 +240,11 @@ function handleDataTypes(
     ) {
       if (throwErrorIfInvalid)
         throw new InvalidFilterError({
-          message: `INVALID_FILTER '${filterType.comparison_sub_op}' is not supported for '${filterType.comparison_op}'`,
+          message: `Invalid filter '${filterType.comparison_sub_op}' is not supported for '${filterType.comparison_op}'`,
         });
       else {
         errors.push({
-          message: `INVALID_FILTER '${filterType.comparison_sub_op}' is not supported for '${filterType.comparison_op}'`,
+          message: `Invalid filter '${filterType.comparison_sub_op}' is not supported for '${filterType.comparison_op}'`,
         });
         return { errors };
       }

@@ -89,7 +89,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       );
 
       if (!base) {
-        NcError.baseNotFound(params.baseId ?? params.baseName);
+        if (context.api_version === NcApiVersion.V3) {
+          NcError.baseNotFoundV3(params.baseId ?? params.baseName);
+        } else {
+          NcError.baseNotFound(params.baseId ?? params.baseName);
+        }
       }
 
       if (base) {

@@ -4,6 +4,7 @@ import { ThrottlerException } from '@nestjs/throttler';
 import hash from 'object-hash';
 import {
   NcErrorType,
+  NcErrorTypeMap,
   NcSDKError,
   NcSDKErrorV2,
   BadRequest as SdkBadRequest,
@@ -208,7 +209,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       return response.status(422).json({ msg: exception.message });
     } else if (exception instanceof NcSDKErrorV2) {
       return response.status(exception.getStatus?.() ?? 422).json({
-        error: exception.errorType,
+        error: NcErrorTypeMap[exception.errorType] ?? exception.errorType,
         message: exception.message,
       });
     } else if (exception instanceof TestConnectionError) {
@@ -217,7 +218,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         .json({ msg: exception.message, sql_code: exception.sql_code });
     } else if (exception instanceof NcBaseErrorv2) {
       return response.status(exception.code).json({
-        error: exception.error,
+        error: NcErrorTypeMap[exception.error] ?? exception.error,
         message: exception.message,
         details: exception.details,
       });

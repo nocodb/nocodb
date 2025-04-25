@@ -321,6 +321,7 @@ export function transformObject(value, idToAliasMap) {
 }
 
 export function extractSortsObject(
+  context: NcContext,
   _sorts: string | string[],
   aliasColObjMap: { [columnAlias: string]: Column },
   throwErrorIfInvalid = false,
@@ -347,8 +348,13 @@ export function extractSortsObject(
       sort.fk_column_id = aliasColObjMap[s.replace(/^\+/, '')]?.id;
     }
 
-    if (throwErrorIfInvalid && !sort.fk_column_id)
-      NcError.fieldNotFound(s.replace(/^~?[+-]/, ''));
+    if (throwErrorIfInvalid && !sort.fk_column_id) {
+      if (context.api_version === NcApiVersion.V3) {
+        NcError.fieldNotFoundV3(s.replace(/^~?[+-]/, ''));
+      } else {
+        NcError.fieldNotFound(s.replace(/^~?[+-]/, ''));
+      }
+    }
     return new Sort(sort);
   });
 }

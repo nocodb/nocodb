@@ -341,7 +341,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       this.context,
       columns,
     );
-    const sorts = extractSortsObject(rest?.sort, aliasColObjMap);
+    const sorts = extractSortsObject(this.context, rest?.sort, aliasColObjMap);
     const { filters: filterObj } = extractFilterFromXwhere(
       this.context,
       where,
@@ -445,6 +445,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       columns,
     );
     let sorts = extractSortsObject(
+      this.context,
       rest?.sort,
       aliasColObjMap,
       throwErrorIfInvalidParams,
@@ -1392,7 +1393,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // Third priority query string sort
     if (!sort) return;
-    const sortObj = extractSortsObject(sort, childAliasColMap);
+    const sortObj = extractSortsObject(this.context, sort, childAliasColMap);
     if (sortObj) await sortV2(this, sortObj, qb);
   }
 
@@ -5266,7 +5267,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         this.context,
         columns,
       );
-      let sorts = extractSortsObject(args?.sort, aliasColObjMap);
+      let sorts = extractSortsObject(this.context, args?.sort, aliasColObjMap);
       const { filters: filterObj } = extractFilterFromXwhere(
         this.context,
         where,

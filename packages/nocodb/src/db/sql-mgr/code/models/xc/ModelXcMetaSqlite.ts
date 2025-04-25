@@ -506,7 +506,8 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
 
   private getAbstractType(col): any {
     // remove length value from datatype (for ex. varchar(45) => varchar)
-    switch (col.dt?.replace(/\(\d+\)$/, '').toLowerCase()) {
+    // (for ex. decimal(13,2) => decimal)
+    switch (col.dt?.replace(/\(\d+\)|\(\d+,\d+\)$/, '').toLowerCase()) {
       case 'date':
         return 'date';
       case 'datetime':
@@ -526,6 +527,7 @@ class ModelXcMetaSqlite extends BaseModelXcMeta {
       case 'boolean':
         return 'boolean';
       case 'real':
+      case 'decimal':
       case 'double':
       case 'double precision':
       case 'float':

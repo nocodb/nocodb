@@ -672,7 +672,8 @@ export async function extractColumn({
             context,
           );
 
-        const { refContext, mmContext } = relationColOpts.getRelContext(context);
+        const { refContext, mmContext } =
+          relationColOpts.getRelContext(context);
 
         let relQb;
         const relTableAlias = getAlias();

@@ -880,7 +880,6 @@ export function useCanvasTable({
     columns,
     colSlice,
     scrollLeft,
-    setCursor,
     (columnId, width) =>
       handleColumnWidth(columnId, width, (normalizedWidth) => (gridViewCols.value[columnId]!.width = normalizedWidth)),
     (columnId, width) =>

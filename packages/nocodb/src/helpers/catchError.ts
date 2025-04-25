@@ -581,8 +581,15 @@ const errorHelpers: {
   },
   [NcErrorType.AUTHENTICATION_REQUIRED]: {
     message: (message: string) =>
-      message || 'Authentication required to access this resource',
+      message
+        ? `Authentication required - ${message}`
+        : 'Authentication required to access this resource',
     code: 401,
+  },
+  [NcErrorType.FORBIDDEN]: {
+    message: (message: string) =>
+      message ? `Forbidden - ${message}` : 'Forbidden to access this resource',
+    code: 403,
   },
   [NcErrorType.API_TOKEN_NOT_ALLOWED]: {
     message: 'This request is not allowed with API token',
@@ -1075,8 +1082,11 @@ export class NcError {
     });
   }
 
-  static forbidden(message) {
-    throw new Forbidden(message);
+  static forbidden(message: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.FORBIDDEN, {
+      params: message,
+      ...args,
+    });
   }
 
   static ajvValidationError(param: {

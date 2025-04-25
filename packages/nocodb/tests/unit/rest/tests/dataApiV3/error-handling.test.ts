@@ -83,21 +83,36 @@ describe('dataApiV3', () => {
     });
 
     // we revert to default limit if provided limit is outside of allowed range
+    // or incorrect format
     it.skip('Invalid Page Size', async () => {
       let response = await ncAxiosGet({
         url: `${urlPrefix}/${testContext.countryTable.id}`,
         query: {
           limit: 0,
         },
-        status: 400,
       });
+      console.log(response.status)
       response = await ncAxiosGet({
         url: `${urlPrefix}/${testContext.countryTable.id}`,
         query: {
           limit: 1000,
         },
-        status: 400,
       });
+      console.log(response.status)
+      response = await ncAxiosGet({
+        url: `${urlPrefix}/${testContext.countryTable.id}`,
+        query: {
+          limit: -1,
+        },
+      });
+      console.log(response.status)
+      response = await ncAxiosGet({
+        url: `${urlPrefix}/${testContext.countryTable.id}`,
+        query: {
+          limit: 'Hello',
+        },
+      });
+      console.log(response.status)
     });
 
     it('tableId not found', async () => {

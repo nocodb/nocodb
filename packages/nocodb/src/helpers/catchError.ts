@@ -789,6 +789,10 @@ const errorHelpers: {
     message: (message: string) => message || 'Plan limit exceeded',
     code: 403,
   },
+  [NcErrorType.SSO_LOGIN_REQUIRED]: {
+    message: (_workspaceId: string) => 'SSO login required for workspace',
+    code: 403,
+  },
   [NcErrorType.MAX_INSERT_LIMIT_EXCEEDED]: {
     message: (limit: string) => `Maximum ${limit} records during insert`,
     code: 422,

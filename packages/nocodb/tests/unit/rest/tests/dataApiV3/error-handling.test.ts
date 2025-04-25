@@ -43,7 +43,10 @@ describe('dataApiV3', () => {
         .get(`${urlPrefix}/${testContext.countryTable.id}`)
         .send({});
       expect(response.status).to.equal(401);
-      expect(response.body.msg).to.equal('Invalid token');
+      expect(response.body.error).to.equal('AUTHENTICATION_REQUIRED');
+      expect(response.body.message).to.equal(
+        'Authentication required - Invalid token',
+      );
     });
     it('token invalid', async () => {
       const response = await request(testContext.context.app)

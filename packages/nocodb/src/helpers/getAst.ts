@@ -211,7 +211,7 @@ const getAst = async (
         );
         const model = await colOpt.getRelatedTable(context);
 
-        const refTableContext = colOpt.getRelatedTableContext(context);
+        const { refContext: refTableContext } = colOpt.getRelContext(context);
 
         const { ast } = await getAst(refTableContext, {
           model,
@@ -239,7 +239,7 @@ const getAst = async (
         context,
       );
 
-      const refTableContext = colOpt.getRelatedTableContext(context);
+      const { refContext: refTableContext } = colOpt.getRelContext(context);
 
       const model = await colOpt.getRelatedTable(context);
 

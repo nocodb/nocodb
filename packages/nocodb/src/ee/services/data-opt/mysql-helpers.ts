@@ -181,7 +181,9 @@ export async function extractColumn({
         const relatedModel = await (
           column.colOptions as LinkToAnotherRecordColumn
         ).getRelatedTable(context);
-        const {refContext, mmContext} = (column.colOptions as LinkToAnotherRecordColumn).getRelContext(context);
+        const { refContext, mmContext } = (
+          column.colOptions as LinkToAnotherRecordColumn
+        ).getRelContext(context);
 
         await relatedModel.getColumns(refContext);
         // @ts-ignore
@@ -190,7 +192,6 @@ export async function extractColumn({
         const pvColumn = relatedModel.mm
           ? relatedModel.primaryKeys[1]
           : relatedModel.displayValue;
-
 
         // extract nested query params
         const listArgs = getListArgs(params ?? {}, relatedModel, {
@@ -276,9 +277,11 @@ export async function extractColumn({
                 dbDriver: knex,
               });
 
-
               const assocQb = knex(
-                knex.raw('?? as ??', [assocBaseModel.getTnPath(assocModel), alias1]),
+                knex.raw('?? as ??', [
+                  assocBaseModel.getTnPath(assocModel),
+                  alias1,
+                ]),
               ).whereRaw(`??.?? = ??.??`, [
                 alias1,
                 sanitize(mmChildColumn.column_name),
@@ -443,10 +446,13 @@ export async function extractColumn({
                   column.colOptions as LinkToAnotherRecordColumn
                 ).getRelatedTable(context);
 
-                const parentBaseModel = await Model.getBaseModelSQL(refContext, {
+                const parentBaseModel = await Model.getBaseModelSQL(
+                  refContext,
+                  {
                     model: parentModel,
                     dbDriver: knex,
-                    });
+                  },
+                );
 
                 const btQb = knex(parentBaseModel.getTnPath(parentModel))
                   .select('*')
@@ -519,10 +525,9 @@ export async function extractColumn({
                   .first();
 
                 const childBaseModel = await Model.getBaseModelSQL(refContext, {
-                    model: childModel,
-                    dbDriver: knex,
-                    })
-
+                  model: childModel,
+                  dbDriver: knex,
+                });
 
                 const hmAggQb = knex(hmQb.as(alias3));
                 await extractColumns({
@@ -576,10 +581,10 @@ export async function extractColumn({
                 column.colOptions as LinkToAnotherRecordColumn
               ).getParentColumn(context);
 
-                const childBaseModel = await Model.getBaseModelSQL(refContext, {
-                    model: childModel,
-                    dbDriver: knex,
-                });
+              const childBaseModel = await Model.getBaseModelSQL(refContext, {
+                model: childModel,
+                dbDriver: knex,
+              });
 
               const hmQb = knex(baseModel.getTnPath(childModel))
                 .select('*')

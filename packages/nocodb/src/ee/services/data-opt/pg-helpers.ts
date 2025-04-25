@@ -311,8 +311,8 @@ export async function extractColumn({
               // apply filters on nested query
               await conditionV2(parentBaseModel, queryFilterObj, mmQb, alias2);
 
-              const targetContext =
-                relationColOpts.getRelatedTableContext(context);
+              const { refContext: targetContext } =
+                relationColOpts.getRelContext(context);
 
               const view = relationColOpts.fk_target_view_id
                 ? await View.get(
@@ -445,10 +445,10 @@ export async function extractColumn({
                 column.colOptions as LinkToAnotherRecordColumn;
               const childContext = isBt
                 ? context
-                : relationColOpts.getRelatedTableContext(context);
+                : relationColOpts.getRelContext(context).refContext;
 
               const parentContext = isBt
-                ? relationColOpts.getRelatedTableContext(context)
+                ? relationColOpts.getRelContext(context).refContext
                 : context;
 
               const alias1 = getAlias();
@@ -587,9 +587,8 @@ export async function extractColumn({
                 context,
               );
 
-              const childContext = await relationColOpts.getRelatedTableContext(
-                context,
-              );
+              const childContext = await relationColOpts.getRelContext(context)
+                .refContext;
 
               const childBaseModel = await Model.getBaseModelSQL(childContext, {
                 dbDriver: knex,

@@ -12,6 +12,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   NcErrorType,
+  ncIsUndefined,
   PlanLimitTypes,
   RelationTypes,
   UITypes,
@@ -20,7 +21,6 @@ import BigNumber from 'bignumber.js';
 import { BaseModelSqlv2 as BaseModelSqlv2CE } from 'src/db/BaseModelSqlv2';
 import dayjs from 'dayjs';
 import conditionV2 from 'src/db/conditionV2';
-import Validator from 'validator';
 import { customValidators } from 'src/db/util/customValidators';
 import { v4 as uuidv4 } from 'uuid';
 import { customAlphabet } from 'nanoid';
@@ -80,6 +80,7 @@ import {
   getListArgs,
   haveFormulaColumn,
   populatePk,
+  validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
@@ -324,6 +325,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         dependencyColumns,
         aliasColumns,
       );
+    }
+    if (options.apiVersion === NcApiVersion.V3) {
+      data = await this.convertMultiSelectTypes(data, dependencyColumns);
     }
 
     if (options.first) {
@@ -1434,6 +1438,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       typecast = false,
       allowSystemColumn = false,
       undo = false,
+      apiVersion = NcApiVersion.V2,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -1449,10 +1454,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     } = {},
   ) {
     const queries: string[] = [];
+
     try {
       // TODO: ag column handling for raw bulk insert
       const insertDatas = raw ? datas : [];
-      let postInsertOps: ((rowId: any) => Promise<string>)[] = [];
+      const postInsertOpsMap: Record<
+        number,
+        ((rowId: any) => Promise<string>)[]
+      > = {};
       let preInsertOps: (() => Promise<string>)[] = [];
       let aiPkCol: Column;
       let agPkCol: Column;
@@ -1473,7 +1482,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           for (let i = 0; i < this.model.columns.length; ++i) {
             const col = this.model.columns[i];
 
-            if (col.title in d) {
+            if (col.title in d || col.id in d) {
               if (
                 isCreatedOrLastModifiedTimeCol(col) ||
                 isCreatedOrLastModifiedByCol(col)
@@ -1519,18 +1528,24 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
             // populate pk columns
             if (col.pk) {
-              if (col.meta?.ag && !d[col.title]) {
-                d[col.title] =
-                  col.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : uuidv4();
+              if (col.meta?.ag && !(d[col.title] ?? d[col.id])) {
+                if (d[col.id]) {
+                  d[col.title] = d[col.id];
+                } else {
+                  d[col.title] =
+                    col.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : uuidv4();
+                }
               }
             }
 
             // map alias to column
             if (!isVirtualCol(col)) {
-              let val =
-                d?.[col.column_name] !== undefined
-                  ? d?.[col.column_name]
-                  : d?.[col.title];
+              let val = !ncIsUndefined(d?.[col.column_name])
+                ? d?.[col.column_name]
+                : !ncIsUndefined(d?.[col.title])
+                ? d?.[col.title]
+                : d?.[col.id];
+
               if (val !== undefined) {
                 if (
                   col.uidt === UITypes.Attachment &&
@@ -1640,33 +1655,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               const cn = col.column_name;
               const columnTitle = col.title;
               if (validate) {
-                const { func, msg } = validate;
-                for (let j = 0; j < func.length; ++j) {
-                  let fn = func[j];
-
-                  if (typeof func[j] === 'string') {
-                    fn = customValidators[func[j]] ?? Validator[func[j]];
-                  }
-
-                  const columnValue =
-                    insertObj?.[cn] || insertObj?.[columnTitle];
-                  const arg =
-                    typeof func[j] === 'string'
-                      ? columnValue + ''
-                      : columnValue;
-                  if (
-                    ![null, undefined, ''].includes(columnValue) &&
-                    !(fn.constructor.name === 'AsyncFunction'
-                      ? await fn(arg)
-                      : fn(arg))
-                  ) {
-                    NcError.badRequest(
-                      msg[j]
-                        .replace(/\{VALUE}/g, columnValue)
-                        .replace(/\{cn}/g, columnTitle),
-                    );
-                  }
-                }
+                await validateFuncOnColumn({
+                  value:
+                    insertObj?.[cn] ??
+                    insertObj?.[columnTitle] ??
+                    insertObj?.[col.id],
+                  column: col,
+                  apiVersion: this.context.api_version,
+                  customValidators: customValidators as any,
+                });
               }
             }
           }
@@ -1677,7 +1674,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           });
 
           // prepare nested link data for insert only if it is single record insertion
-          if (isSingleRecordInsertion) {
+          if (isSingleRecordInsertion || apiVersion === NcApiVersion.V3) {
             const operations = await this.prepareNestedLinkQb({
               nestedCols,
               data: d,
@@ -1685,7 +1682,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               insertObj,
             });
 
-            postInsertOps = operations.postInsertOps;
+            postInsertOpsMap[index] = operations.postInsertOps;
             preInsertOps = operations.preInsertOps;
           }
 
@@ -1805,33 +1802,37 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       const postSingleRecordInsertionCbk = async (responses, trx?) => {
         // insert nested link data for single record insertion
-        if (isSingleRecordInsertion) {
-          let rowId;
-          if (this.isSqlite || this.isMySQL) {
-            if (this.isMySQL && this.isSqlite) {
-              rowId = responses[0];
+        if (isSingleRecordInsertion || apiVersion === NcApiVersion.V3) {
+          for (let i = 0; i < responses.length; i++) {
+            const row = responses[i];
+            let rowId;
+            if (this.isSqlite || this.isMySQL) {
+              if (this.isMySQL && this.isSqlite) {
+                rowId = row;
+              }
+
+              if (agPkCol) {
+                // ??? insertDatas should be an array
+                rowId = insertDatas[agPkCol.column_name];
+              }
+            } else {
+              rowId = row[this.model.primaryKey?.title];
             }
 
-            if (agPkCol) {
-              rowId = insertDatas[agPkCol.column_name];
+            if (aiPkCol || agPkCol) {
+              rowId = this.extractCompositePK({
+                rowId,
+                ai: aiPkCol,
+                ag: agPkCol,
+                insertObj: insertDatas[i],
+              });
             }
-          } else {
-            rowId = responses[0][this.model.primaryKey?.title];
-          }
 
-          if (aiPkCol || agPkCol) {
-            rowId = this.extractCompositePK({
-              rowId,
-              ai: aiPkCol,
-              ag: agPkCol,
-              insertObj: insertDatas[0],
-            });
+            await this.runOps(
+              postInsertOpsMap[i].map((f) => f(rowId)),
+              trx,
+            );
           }
-
-          await this.runOps(
-            postInsertOps.map((f) => f(rowId)),
-            trx,
-          );
         }
       };
 

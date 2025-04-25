@@ -84,12 +84,6 @@ export const TOKEN_OPERATOR = createToken({
   longer_alt: COMMON_TOKEN.IDENTIFIER,
   categories: [COMMON_TOKEN.IDENTIFIER],
 });
-export const BINARY_LOGICAL_OPERATOR = createToken({
-  name: 'BINARY_LOGICAL_OPERATOR',
-  pattern: /~or|~and/,
-  longer_alt: COMMON_TOKEN.IDENTIFIER,
-  categories: [COMMON_TOKEN.IDENTIFIER],
-});
 export const NOT_OPERATOR = createToken({
   name: 'NOT_OPERATOR',
   pattern: /~not/,
@@ -100,7 +94,6 @@ export const NOT_OPERATOR = createToken({
 export const QUERY_FILTER_TOKENS = [
   COMMON_TOKEN.WHITESPACE_SKIP,
   TOKEN_OPERATOR,
-  BINARY_LOGICAL_OPERATOR,
   NOT_OPERATOR,
   COMMON_TOKEN.PAREN_START,
   COMMON_TOKEN.PAREN_END,

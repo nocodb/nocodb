@@ -102,9 +102,9 @@ function cloudOrgTests() {
       .expect(403);
 
     expect(res.body)
-      .to.have.property('msg')
+      .to.have.property('message')
       .to.be.a('string')
-      .to.be.eq('You are not the owner of the workspace');
+      .to.be.eq('Forbidden - You are not the owner of the workspace');
   });
 
   it('Update org title', async () => {

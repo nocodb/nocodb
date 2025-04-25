@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -42,6 +43,7 @@ export class CommentsV3Controller {
   }
 
   @Post(`${PREFIX_APIV3_METABASE}/tables/:tableId/records/:rowId/comments`)
+  @HttpCode(200)
   @Acl('commentRow')
   async commentRow(
     @TenantContext() context: NcContext,

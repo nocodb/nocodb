@@ -3355,7 +3355,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           const oldRecord = oldRecordsMap.get(pk);
 
           if (!oldRecord) {
-            if (throwExceptionIfNotExist) NcError.recordNotFound({ pk, data });
+            // removed data from error param, record not found message do not use data
+            if (throwExceptionIfNotExist) NcError.recordNotFound(pk);
             continue;
           }
 
@@ -4575,6 +4576,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       for (const pk of this.model.primaryKeys) {
         pkValues[pk.title] = data[pk.title] ?? data[pk.column_name];
       }
+
       return asString
         ? Object.values(pkValues)
             .map((val) => val?.toString?.().replaceAll('_', '\\_'))
@@ -4589,7 +4591,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       } else {
         pkValue = data;
       }
-
       if (pkValue !== undefined) return asString ? `${pkValue}` : pkValue;
     } else {
       return 'N/A';

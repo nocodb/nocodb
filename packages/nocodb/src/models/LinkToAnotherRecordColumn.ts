@@ -266,7 +266,7 @@ export default class LinkToAnotherRecordColumn {
       return this._parentChildContext;
     }
 
-    const { refContext } = this.getRelContext(context);
+    const { refContext, mmContext } = this.getRelContext(context);
     let childContext = context;
     let parentContext = context;
 
@@ -299,6 +299,8 @@ export default class LinkToAnotherRecordColumn {
     return (this._parentChildContext = {
       childContext,
       parentContext,
+        mmContext,
+        refContext,
     });
   }
 }

@@ -220,7 +220,7 @@ export default function () {
       await request(context.app)
         .get(`/api/v3/meta/bases/${baseObj.id}`)
         .set('xc-token', context.xc_token)
-        .expect(404);
+        .expect(422);
     });
   });
 }

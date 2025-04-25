@@ -1,3 +1,4 @@
+import { parseParsingError } from './error-message-parser';
 import { QueryFilterParser } from './query-filter-parser';
 
 describe('query-filter-parser', () => {
@@ -237,5 +238,26 @@ describe('query-filter-parser', () => {
       ],
     };
     expect(result.parsedCst).toEqual(expectedParsedCst);
+  });
+  describe('error-handling', () => {
+    it(`will error when and/or operation is wrong`, async () => {
+      expect.hasAssertions();
+      const text = `(fSingleLineText,eq,"sample,text")or(fSingleLineText,eq,"sample text")`;
+      try {
+        QueryFilterParser.parse(text);
+      } catch (ex) {
+        expect(ex.message).toBe(
+          `Invalid filter expression. Expected a valid logical operator like '~or' or '~and', but found 'or'.`
+        );
+      }
+    });
+    it(`will handle parsing error when operation is wrong`, async () => {
+      const text = `(fSingleLineText,noneInOperation,"sample,text")`;
+      const result = QueryFilterParser.parse(text);
+      const message = parseParsingError(result.parseErrors[0]);
+      expect(message).toBe(
+        `Invalid filter expression: 'noneInOperation' is not a recognized operator. Please use a valid comparison or logical operator.`
+      );
+    });
   });
 });

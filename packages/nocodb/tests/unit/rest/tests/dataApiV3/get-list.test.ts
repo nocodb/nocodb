@@ -3,6 +3,7 @@ import { expect } from 'chai';
 import {
   convertMS2Duration,
   isCreatedOrLastModifiedTimeCol,
+  UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
 import {
@@ -10,6 +11,8 @@ import {
   createRollupColumn,
 } from '../../../factory/column';
 import { createView, updateView } from '../../../factory/view';
+import { createTable } from '../../../factory/table';
+import { createBulkRows, createBulkRowsV3 } from '../../../factory/row';
 import {
   beforeEachNumberBased,
   beforeEachTextBased,
@@ -770,6 +773,51 @@ describe('dataApiV3', () => {
         });
       });
       // #endregion error handling
+    });
+
+    describe('number-based', () => {
+      let table: Model;
+      beforeEach(async function () {
+        table = await createTable(testContext.context, testContext.base, {
+          title: 'numberTable',
+          columns: [
+            { column_name: 'id', uidt: UITypes.ID, pk: true, title: 'id' },
+            { column_name: 'fNumber', uidt: UITypes.Number },
+            { column_name: 'f,Decimal', uidt: UITypes.Number },
+          ],
+        });
+        await createBulkRowsV3(testContext.context, {
+          base: testContext.base,
+          table: table,
+          values: [
+            {
+              fNumber: 3,
+              'f,Decimal': 3,
+            },
+            {
+              fNumber: 2,
+              'f,Decimal': 2,
+            },
+            {
+              fNumber: 1,
+              'f,Decimal': 1,
+            },
+          ],
+        });
+      });
+
+      it(`get list table with sort and filter`, async () => {
+        const response = await ncAxiosGet({
+          url: `${urlPrefix}/${table.id}`,
+          query: {
+            limit: 5,
+            fields: ['fNumber', 'f,Decimal'],
+            sort: ['-fNumber', 'f,Decimal'],
+            where: ['(fNumber,eq,1)'],
+          },
+        });
+        expect(response.body.list.length).to.eq(1);
+      });
     });
   });
 });

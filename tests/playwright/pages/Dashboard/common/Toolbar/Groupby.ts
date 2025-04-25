@@ -20,9 +20,9 @@ export class ToolbarGroupByPage extends BasePage {
     const fieldText = await getTextExcludeIconText(fieldLocator);
     expect(fieldText).toBe(column);
 
-    await expect(this.get().locator('.nc-sort-dir-select >> span.ant-select-selection-item').nth(index)).toHaveText(
-      direction
-    );
+    await expect(
+      this.get().locator('.nc-group-sort-dir-select >> span.ant-select-selection-item').nth(index)
+    ).toHaveText(direction);
   }
 
   async reset() {
@@ -53,10 +53,10 @@ export class ToolbarGroupByPage extends BasePage {
     //kludge: wait for rendering to stabilize
     await this.rootPage.waitForTimeout(1000);
 
-    await this.rootPage.locator('.nc-sort-dir-select').nth(index).waitFor({ state: 'visible' });
-    await this.rootPage.locator('.nc-sort-dir-select').nth(index).click({ force: true });
+    await this.rootPage.locator('.nc-group-sort-dir-select').nth(index).waitFor({ state: 'visible' });
+    await this.rootPage.locator('.nc-group-sort-dir-select').nth(index).click({ force: true });
     await this.rootPage
-      .locator('.nc-dropdown-sort-dir')
+      .locator('.nc-dropdown-group-sort-dir')
       .last()
       .locator('.ant-select-item')
       .nth(ascending ? 0 : 1)
@@ -117,16 +117,16 @@ export class ToolbarGroupByPage extends BasePage {
       requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
     });
 
-    await this.rootPage.locator('.nc-sort-dir-select').last().click();
+    await this.rootPage.locator('.nc-group-sort-dir-select').last().click();
     const selectSortDirection = () =>
       this.rootPage
-        .locator('.nc-dropdown-sort-dir')
+        .locator('.nc-dropdown-group-sort-dir')
         .last()
         .locator('.ant-select-item')
         .nth(ascending ? 0 : 1)
         .click();
 
-    const selectedSortDirection = await this.rootPage.locator('.nc-sort-dir-select').last().textContent();
+    const selectedSortDirection = await this.rootPage.locator('.nc-group-sort-dir-select').last().textContent();
 
     if ((ascending && selectedSortDirection != 'A → Z') || (!ascending && selectedSortDirection != 'Z → A')) {
       await this.waitForResponse({

@@ -2,6 +2,7 @@
 import { expect } from 'chai';
 import { convertMS2Duration } from 'nocodb-sdk';
 import {
+  beforeEachDateBased,
   beforeEachNumberBased,
   beforeEachSelectBased,
   beforeEach as dataApiV3BeforeEach,
@@ -427,6 +428,137 @@ describe('dataApiV3', () => {
         ///////////////////////////////////////////////////////////////////////////
 
         // delete record with ID 401 to 404
+        rsp = await testAxios.ncAxiosDelete({
+          url: `${urlPrefix}/${table.id}`,
+          body: updatedRecords.map((record) => ({ Id: record.Id })),
+        });
+        expect(rsp.body).to.deep.equal(
+          updatedRecords.map((record) => ({ Id: record.Id })),
+        );
+      });
+    });
+
+    describe('date-based', () => {
+      let table: Model;
+      let columns: Column[] = [];
+      let insertedRecords: any[];
+
+      beforeEach(async function () {
+        const initResult = await beforeEachDateBased(testContext);
+        table = initResult.table;
+        columns = initResult.columns;
+        insertedRecords = initResult.insertedRecords;
+      });
+
+      // TODO: skipped for now, v3 has different list data model
+      // need to investigate first
+      it.skip('Date based- List & CRUD', async function () {
+        // list 10 records
+        let rsp = await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/${table.id}`,
+          query: {
+            limit: 10,
+          },
+        });
+
+        expect(rsp.body.pageInfo).to.have.property('next');
+        expect(rsp.body.pageInfo.next).to.include(
+          `${urlPrefix}/${table.id}?page=2`,
+        );
+
+        // TODO: basemodel list is not the same with pg helpers response (no created at)
+        // extract first 10 records from inserted records
+        const records = insertedRecords.slice(0, 10);
+        rsp.body.list.forEach((record: any, index: number) => {
+          console.log(record, records[index]);
+          expect(record).to.include(records[index]);
+        });
+
+        ///////////////////////////////////////////////////////////////////////////
+
+        // insert 10 records
+        // remove Id's from record array
+        records.forEach((r) => {
+          delete r.Id;
+          delete r.CreatedAt;
+          delete r.UpdatedAt;
+          delete r.CreatedBy;
+          delete r.UpdatedBy;
+        });
+        rsp = await testAxios.ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: records,
+        });
+
+        // prepare array with 10 Id's, from 801 to 810
+        const ids: { Id: number }[] = [];
+        for (let i = 801; i <= 810; i++) {
+          ids.push({ Id: i });
+        }
+        expect(rsp.body).to.deep.equal(ids);
+
+        ///////////////////////////////////////////////////////////////////////////
+
+        // read record with Id 801
+        rsp = await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/${table.id}/801`,
+          query: {
+            fields: 'Id,Date,DateTime',
+          },
+        });
+        expect(rsp.body).to.deep.equal({
+          Id: 801,
+          Date: records[0].Date,
+          DateTime: records[0].DateTime,
+        });
+
+        ///////////////////////////////////////////////////////////////////////////
+
+        // update record with Id 801 to 804
+        const updatedRecord = {
+          Date: '2022-04-25',
+          DateTime: '2022-04-25 08:30:00+00:00',
+        };
+        const updatedRecords = [
+          {
+            Id: 801,
+            ...updatedRecord,
+          },
+          {
+            Id: 802,
+            ...updatedRecord,
+          },
+          {
+            Id: 803,
+            ...updatedRecord,
+          },
+          {
+            Id: 804,
+            ...updatedRecord,
+          },
+        ];
+        rsp = await testAxios.ncAxiosPatch({
+          url: `${urlPrefix}/${table.id}`,
+          body: updatedRecords,
+        });
+        expect(rsp.body).to.deep.equal(
+          updatedRecords.map((record) => ({ Id: record.Id })),
+        );
+
+        // verify updated records
+        rsp = await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/${table.id}`,
+          query: {
+            limit: 10,
+            offset: 800,
+            fields: 'Id,Date,DateTime',
+          },
+        });
+        expect(rsp.body.list.slice(0, 4)).to.deep.equal(updatedRecords);
+
+        ///////////////////////////////////////////////////////////////////////////
+
+        // delete record with ID 801 to 804
         rsp = await testAxios.ncAxiosDelete({
           url: `${urlPrefix}/${table.id}`,
           body: updatedRecords.map((record) => ({ Id: record.Id })),

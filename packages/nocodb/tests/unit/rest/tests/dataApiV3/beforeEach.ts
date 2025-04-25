@@ -1,7 +1,13 @@
 import { expect } from 'chai';
+import { NcApiVersion } from 'nocodb-sdk';
 import { createProject, createSakilaProject } from '../../../factory/base';
 import { customColumns } from '../../../factory/column';
-import { createBulkRows, listRow, rowMixedValue } from '../../../factory/row';
+import {
+  createBulkRows,
+  createBulkRowsV3,
+  listRow,
+  rowMixedValue,
+} from '../../../factory/row';
 import { createTable, getTable } from '../../../factory/table';
 import init from '../../../init';
 import type { Base, Model } from '../../../../../src/models';
@@ -184,6 +190,54 @@ export const beforeEachSelectBased = async (testContext: ITestContext) => {
 
   // verify length of unfiltered records to be 400
   expect(insertedRecords.length).to.equal(400);
+
+  return {
+    table,
+    columns,
+    insertedRecords,
+  };
+};
+
+export const beforeEachDateBased = async (testContext: ITestContext) => {
+  const table = await createTable(testContext.context, testContext.base, {
+    table_name: 'dateBased',
+    title: 'dateBased',
+    columns: customColumns('dateBased'),
+  });
+
+  // retrieve column meta
+  const columns = await table.getColumns(testContext.ctx);
+
+  // build records
+  // 800: one year before to one year after
+  const rowAttributes: {
+    Date: string | string[] | number | null;
+    DateTime: string | string[] | number | null;
+  }[] = [];
+  for (let i = 0; i < 800; i++) {
+    const row = {
+      Date: rowMixedValue(columns[6], i),
+      DateTime: rowMixedValue(columns[7], i),
+    };
+    rowAttributes.push(row);
+  }
+
+  // insert records
+  await createBulkRowsV3(testContext.context, {
+    base: testContext.base,
+    table,
+    values: rowAttributes,
+  });
+
+  // retrieve inserted records
+  const insertedRecords = await listRow({
+    base: testContext.base,
+    table,
+    options: { apiVersion: NcApiVersion.V3, limit: 800 },
+  });
+
+  // verify length of unfiltered records to be 800
+  expect(insertedRecords.length).to.equal(800);
 
   return {
     table,

@@ -323,9 +323,13 @@ export function extractDBError(error): {
           if (pgTypeMismatchMatch) {
             const dataType = pgTypeMismatchMatch[1];
             const invalidValue = pgTypeMismatchMatch[2];
-            const columnName = pgTypeMismatchMatch[3] || 'unknown';
+            const columnName = pgTypeMismatchMatch[3];
 
-            message = `Invalid ${dataType} value '${invalidValue}' for column '${columnName}'`;
+            if (columnName) {
+              message = `Invalid ${dataType} value '${invalidValue}' for column '${columnName}'`;
+            } else {
+              message = `Invalid value '${invalidValue}' for type '${dataType}'`;
+            }
             _type = DBError.DATA_TYPE_MISMATCH;
             _extra = { dataType, column: columnName, value: invalidValue };
             matched = true;

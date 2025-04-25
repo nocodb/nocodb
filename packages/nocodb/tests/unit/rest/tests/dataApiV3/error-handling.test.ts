@@ -452,7 +452,6 @@ describe('dataApiV3', () => {
         );
       });
       it(`will handle email wrong format`, async () => {
-        // TODO: change the error to 422 and code INVALID_VALUE_FOR_FIELD
         const response = await ncAxiosPost({
           url: `${urlPrefix}/${table.id}`,
           body: [
@@ -460,11 +459,11 @@ describe('dataApiV3', () => {
               Email: '++notanemail321',
             },
           ],
-          status: 400,
+          status: 422,
         });
-        expect(response.body.error).to.eq('INVALID_PK_VALUE');
+        expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
         expect(response.body.message).to.eq(
-          `Primary key value 'text-primary-key' is invalid for column 'Id'`,
+          `Invalid value '++notanemail321' for type 'Email' on column 'Email'`,
         );
       });
     });

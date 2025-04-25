@@ -97,6 +97,7 @@ import {
   populatePk,
   shouldSkipField,
   transformObject,
+  validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
@@ -4675,28 +4676,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const columnTitle = column.title;
       if (!validate) continue;
 
-      const { func, msg } = validate;
-      for (let j = 0; j < func.length; ++j) {
-        let fn = func[j];
-
-        if (typeof func[j] === 'string') {
-          fn = customValidators[func[j]] ?? Validator[func[j]];
-        }
-
-        const columnValue = data?.[cn] || data?.[columnTitle];
-        const arg =
-          typeof func[j] === 'string' ? columnValue + '' : columnValue;
-        if (
-          ![null, undefined, ''].includes(columnValue) &&
-          !(fn.constructor.name === 'AsyncFunction' ? await fn(arg) : fn(arg))
-        ) {
-          NcError.badRequest(
-            msg[j]
-              .replace(/\{VALUE}/g, columnValue)
-              .replace(/\{cn}/g, columnTitle),
-          );
-        }
-      }
+      await validateFuncOnColumn({
+        value: data?.[cn] ?? data?.[columnTitle] ?? data?.[column.id],
+        column,
+        apiVersion: this.context.api_version,
+        customValidators: customValidators as any,
+      });
     }
     return true;
   }

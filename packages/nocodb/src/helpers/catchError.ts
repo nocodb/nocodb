@@ -5,6 +5,7 @@ import type {
   BaseType,
   PlanLimitExceededDetailsType,
   SourceType,
+  UITypes,
 } from 'nocodb-sdk';
 import type { ErrorObject } from 'ajv';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
@@ -792,6 +793,10 @@ const errorHelpers: {
     message: (limit: string) => `Maximum ${limit} records during insert`,
     code: 422,
   },
+  [NcErrorType.INVALID_VALUE_FOR_FIELD]: {
+    message: (message: string) => message,
+    code: 422,
+  },
 };
 
 function generateError(
@@ -1072,6 +1077,19 @@ export class NcError {
   static invalidFilterV3(message: string, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.INVALID_FILTERV3, {
       params: message,
+      ...args,
+    });
+  }
+
+  static invalidValueForField(
+    payload: string | { value: string; column: string; type: UITypes },
+    args?: NcErrorArgs,
+  ) {
+    throw new NcBaseErrorv2(NcErrorType.INVALID_VALUE_FOR_FIELD, {
+      params:
+        typeof payload === 'string'
+          ? payload
+          : `Invalid value '${payload.value}' for type '${payload.type}' on column '${payload.column}'`,
       ...args,
     });
   }

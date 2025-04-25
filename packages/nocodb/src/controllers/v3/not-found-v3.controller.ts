@@ -20,7 +20,7 @@ export class NotFoundV3Controller {
   @Patch(NOT_FOUND_PATH_PREFIX)
   @Delete(NOT_FOUND_PATH_PREFIX)
   @HttpCode(404)
-  async commentUpdate(@Req() req: NcRequest) {
+  async notFoundV3(@Req() req: NcRequest) {
     return {
       error: 'NOT_FOUND',
       message: `Cannot ${req.method} ${req.path}`,

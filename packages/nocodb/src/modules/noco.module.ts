@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 /* Modules */
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
+import { ApiVersionNotFoundController } from 'src/controllers/api-version-not-found.controller';
 import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
 import { JobsModule } from '~/modules/jobs/jobs.module';
 
@@ -235,6 +236,7 @@ export const nocoModuleMetadata = {
 
           // put it at the bottom most since it's route not found handling
           NotFoundV3Controller,
+          ApiVersionNotFoundController,
         ]
       : []),
   ],

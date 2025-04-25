@@ -109,20 +109,26 @@ describe('dataApiV3', () => {
       expect(response.body.message).to.eq(`Table '123456789' not found`);
     });
     it('invalid api version', async () => {
-      // TODO: somehow it's body.msg than body.message
       const response = await ncAxiosGet({
         url: `/api/v4/1234567890/2134567890`,
         status: 404,
       });
-      /*
-      {
-        "msg": "Cannot GET /api/v4/pnzomgow3a1cfm2/mrp2x452lfu131q",
-        "path": "/api/v4/pnzomgow3a1cfm2/mrp2x452lfu131q"
-      }
-       */
-      expect(response.body.msg).to.eq(
+      expect(response.body.error).to.eq(`INVALID_API_VERSION`);
+      expect(response.body.message).to.eq(
         `Cannot GET /api/v4/1234567890/2134567890`,
       );
+    });
+    it('backward compatibility for previous api version', async () => {
+      const response = await ncAxiosGet({
+        url: `/api/v1/abcasdasda`,
+        status: 404,
+      });
+      expect(response.body.msg).to.eq(`Cannot GET /api/v1/abcasdasda`);
+      const responsev2 = await ncAxiosGet({
+        url: `/api/v2/abcasdasda`,
+        status: 404,
+      });
+      expect(responsev2.body.msg).to.eq(`Cannot GET /api/v2/abcasdasda`);
     });
     it('invalid view param', async () => {
       const response = await ncAxiosGet({

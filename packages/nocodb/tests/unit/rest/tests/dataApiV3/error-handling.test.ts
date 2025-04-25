@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { expect } from 'chai';
+import request from 'supertest';
 import { beforeEach as dataApiV3BeforeEach } from './beforeEach';
 import { ncAxios } from './ncAxios';
 import type { ITestContext } from './beforeEach';
@@ -33,6 +34,21 @@ describe('dataApiV3', () => {
       ncAxiosLinkRemove = testAxios.ncAxiosLinkRemove;
     });
 
+    it('token header not exists', async () => {
+      const response = await request(testContext.context.app)
+        .get(`${urlPrefix}/${testContext.countryTable.id}`)
+        .send({});
+      expect(response.status).to.equal(401);
+      expect(response.body.msg).to.equal('Invalid token');
+    });
+    it('token invalid', async () => {
+      const response = await request(testContext.context.app)
+        .get(`${urlPrefix}/${testContext.countryTable.id}`)
+        .set('xc-token', 'invalid token')
+        .send({});
+      expect(response.status).to.equal(401);
+      expect(response.body.msg).to.equal('Invalid token');
+    });
     // we revert to default limit if provided limit is outside of allowed range
     it.skip('Invalid Page Size', async () => {
       let response = await ncAxiosGet({

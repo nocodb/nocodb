@@ -30,7 +30,7 @@ interface ListResult {
 
 const API_VERSION = 'v3';
 
-describe.only('dataApiV3', () => {
+describe('dataApiV3', () => {
   describe('get-list', () => {
     let testContext: ITestContext;
     let testAxios: INcAxios;

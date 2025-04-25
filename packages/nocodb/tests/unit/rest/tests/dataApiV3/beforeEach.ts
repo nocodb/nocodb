@@ -148,3 +148,46 @@ export const beforeEachNumberBased = async (testContext: ITestContext) => {
     insertedRecords,
   };
 };
+
+export const beforeEachSelectBased = async (testContext: ITestContext) => {
+  const table = await createTable(testContext.context, testContext.base, {
+    table_name: 'selectBased',
+    title: 'selectBased',
+    columns: customColumns('selectBased'),
+  });
+
+  // retrieve column meta
+  const columns = await table.getColumns(testContext.ctx);
+
+  // build records
+  const rowAttributes: {
+    SingleSelect: string | number | null | string[];
+    MultiSelect: string | number | null | string[];
+  }[] = [];
+  for (let i = 0; i < 400; i++) {
+    const row = {
+      SingleSelect: rowMixedValue(columns[6], i),
+      MultiSelect: rowMixedValue(columns[7], i, true),
+    };
+    rowAttributes.push(row);
+  }
+
+  // insert records
+  await createBulkRows(testContext.context, {
+    base: testContext.base,
+    table,
+    values: rowAttributes,
+  });
+
+  // retrieve inserted records
+  const insertedRecords = await listRow({ base: testContext.base, table });
+
+  // verify length of unfiltered records to be 400
+  expect(insertedRecords.length).to.equal(400);
+
+  return {
+    table,
+    columns,
+    insertedRecords,
+  };
+};

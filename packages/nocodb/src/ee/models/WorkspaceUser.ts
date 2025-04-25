@@ -16,7 +16,7 @@ import Base from '~/models/Base';
 import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers';
 import { PresignedUrl } from '~/models';
 import { parseMetaProp } from '~/utils/modelUtils';
-import {checkIfWorkspaceSSOAvail} from "~/helpers/paymentHelpers";
+import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 
 const logger = new Logger('WorkspaceUser');
 
@@ -215,8 +215,8 @@ export default class WorkspaceUser {
         .whereRaw(
           `${MetaTable.SSO_CLIENT}.fk_workspace_id = ${MetaTable.WORKSPACE}.id`,
         )
-        .as('sso_client_count')
-    )
+        .as('sso_client_count'),
+    );
 
     if (fk_org_id) {
       queryBuilder.where(`${MetaTable.WORKSPACE}.fk_org_id`, fk_org_id);
@@ -313,7 +313,10 @@ export default class WorkspaceUser {
         // workspace associated with sso client, check if sso enabled for it
         const ssoClientCount = parseInt(workspace.sso_client_count);
         if (ssoClientCount) {
-          workspace.sso_only_access = await checkIfWorkspaceSSOAvail(workspace, false);
+          workspace.sso_only_access = await checkIfWorkspaceSSOAvail(
+            workspace,
+            false,
+          );
         } else {
           workspace.sso_only_access = false;
         }

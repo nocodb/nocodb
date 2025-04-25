@@ -8,6 +8,7 @@ import {
 } from 'nocodb-sdk';
 import type { IntegrationReqType, UITypes } from 'nocodb-sdk';
 import type SyncIntegration from '~/integrations/sync/sync.interface';
+import type AuthIntegration from '~/integrations/auth/auth.interface';
 import {
   type SyncSchema,
   syncSystemFields,
@@ -19,7 +20,6 @@ import { TablesService } from '~/services/tables.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { JobStatus, JobTypes } from '~/interface/Jobs';
-import AuthIntegration from '~/integrations/auth/auth.interface';
 
 type SystemSyncSchema = (SyncSchema[number] & {
   system?: boolean;

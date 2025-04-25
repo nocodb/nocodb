@@ -1,31 +1,49 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { ColumnsService as ColumnsServiceCE } from 'src/services/columns.service';
-import { isLinksOrLTAR } from 'nocodb-sdk';
+import {
+  ColumnsService as ColumnsServiceCE,
+  type CustomLinkProps,
+  reuseOrSave,
+} from 'src/services/columns.service';
+import {
+  customLinkSupportedTypes,
+  isLinksOrLTAR,
+  isVirtualCol,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
-import type { ReusableParams } from '~/services/columns.service.type';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
   NcApiVersion,
-  RelationTypes,
   UserType,
 } from 'nocodb-sdk';
+import type { ReusableParams } from '~/services/columns.service.type';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Source } from '~/models';
+import {
+  Base,
+  Column,
+  Filter,
+  LinkToAnotherRecordColumn,
+  Model,
+  View,
+} from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MetaService } from '~/meta/meta.service';
 import {
   createHmAndBtColumn,
   createOOColumn,
+  generateIndexNameForCustomLink,
   validatePayload,
 } from '~/helpers';
-import { Base, Column, Filter, Model, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { NcError } from '~/helpers/catchError';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
+import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 
 @Injectable()
 export class ColumnsService extends ColumnsServiceCE {
@@ -197,23 +215,24 @@ export class ColumnsService extends ColumnsServiceCE {
         (param.column as any).custom,
       );
 
-      const ltarCustomPRops: {
-        column_id: string;
-        ref_model_id: string;
-        ref_column_id: string;
-        junc_model_id: string;
-        junc_column_id: string;
-        junc_ref_column_id: string;
-      } = (param.column as any).custom;
+      const ltarCustomProps: CustomLinkProps = (param.column as any).custom;
 
-      const child = await Model.get(context, ltarCustomPRops.ref_model_id);
+      const child = await Model.get(context, ltarCustomProps.ref_model_id);
       const parent = await Model.get(context, param.tableId);
 
       const childColumn = await Column.get(context, {
-        colId: ltarCustomPRops.ref_column_id,
+        colId: ltarCustomProps.ref_column_id,
       });
       const parentColumn = await Column.get(context, {
-        colId: ltarCustomPRops.column_id,
+        colId: ltarCustomProps.column_id,
+      });
+
+      await this.validateColumnTypes(context, {
+        ltarCustomProps,
+        isMm:
+          (param.column as LinkToAnotherColumnReqType).type ===
+          RelationTypes.MANY_TO_MANY,
+        columns: [childColumn, parentColumn],
       });
 
       const childView: View | null = (
@@ -265,7 +284,10 @@ export class ColumnsService extends ColumnsServiceCE {
           parentColumn,
           true,
         );
-      } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
+      } else if (
+        (param.column as LinkToAnotherColumnReqType).type ===
+        RelationTypes.MANY_TO_MANY
+      ) {
         await Column.insert(context, {
           title: getUniqueColumnAliasName(
             await child.getColumns(context),
@@ -281,9 +303,9 @@ export class ColumnsService extends ColumnsServiceCE {
           fk_child_column_id: childColumn.id,
           fk_parent_column_id: parentColumn.id,
 
-          fk_mm_model_id: ltarCustomPRops.junc_model_id,
-          fk_mm_child_column_id: ltarCustomPRops.junc_ref_column_id,
-          fk_mm_parent_column_id: ltarCustomPRops.junc_column_id,
+          fk_mm_model_id: ltarCustomProps.junc_model_id,
+          fk_mm_child_column_id: ltarCustomProps.junc_ref_column_id,
+          fk_mm_parent_column_id: ltarCustomProps.junc_column_id,
           fk_related_model_id: parent.id,
           virtual: (param.column as LinkToAnotherColumnReqType).virtual,
           meta: {
@@ -305,9 +327,9 @@ export class ColumnsService extends ColumnsServiceCE {
 
           fk_model_id: parent.id,
 
-          fk_mm_model_id: ltarCustomPRops.junc_model_id,
-          fk_mm_child_column_id: ltarCustomPRops.junc_column_id,
-          fk_mm_parent_column_id: ltarCustomPRops.junc_ref_column_id,
+          fk_mm_model_id: ltarCustomProps.junc_model_id,
+          fk_mm_child_column_id: ltarCustomProps.junc_column_id,
+          fk_mm_parent_column_id: ltarCustomProps.junc_ref_column_id,
 
           fk_child_column_id: parentColumn.id,
           fk_parent_column_id: childColumn.id,
@@ -326,10 +348,180 @@ export class ColumnsService extends ColumnsServiceCE {
         });
       }
 
+      await this.createCustomLinkIndexIfMissing(context, {
+        ltarCustomProps,
+        isMm:
+          (param.column as LinkToAnotherColumnReqType).type ===
+          RelationTypes.MANY_TO_MANY,
+        reuse: param.reuse,
+        source: param.source,
+      });
+
       return;
     }
 
     return super.createLTARColumn(context, param);
+  }
+
+  private async validateColumnTypes(
+    context: NcContext,
+    {
+      isMm = false,
+      ltarCustomProps,
+      columns = [],
+    }: { ltarCustomProps: CustomLinkProps; isMm?: boolean; columns?: Column[] },
+  ) {
+    if (isMm) {
+      const junctionColumn = await Column.get(context, {
+        colId: ltarCustomProps.junc_column_id,
+      });
+      const refJunctionColumn = await Column.get(context, {
+        colId: ltarCustomProps.junc_ref_column_id,
+      });
+      columns.push(junctionColumn, refJunctionColumn);
+    }
+
+    for (const column of columns) {
+      if (!customLinkSupportedTypes.includes(column.uidt)) {
+        NcError.badRequest(
+          `Column type ${column.uidt} is not supported for custom link`,
+        );
+      }
+    }
+  }
+
+  protected async createCustomLinkIndexIfMissing(
+    context: NcContext,
+    {
+      ltarCustomProps,
+      isMm = false,
+      reuse = {},
+      source,
+    }: {
+      ltarCustomProps: CustomLinkProps;
+      isMm: boolean;
+      reuse?: ReusableParams;
+      source: Source;
+    },
+  ) {
+    // skip if source is not meta
+    if (!source.isMeta()) return;
+
+    const columnIds = [
+      ltarCustomProps.column_id,
+      ltarCustomProps.ref_column_id,
+    ];
+
+    if (isMm) {
+      columnIds.push(
+        ltarCustomProps.junc_column_id,
+        ltarCustomProps.junc_ref_column_id,
+      );
+    }
+
+    const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+      ProjectMgrv2.getSqlMgr(context, {
+        id: source.base_id,
+      }),
+    );
+
+    for (const columnId of columnIds) {
+      const column = await Column.get(context, { colId: columnId });
+
+      // skip if,
+      // 1. column is virtual
+      // 2. column has custom index name(already indexed)
+      // 3. column is pk
+      // 4. column is foreign key
+      // 5. column is LongText
+      if (
+        isVirtualCol(column) ||
+        column.custom_index_name ||
+        column.pk ||
+        column.uidt === UITypes.ForeignKey ||
+        column.uidt === UITypes.LongText
+      ) {
+        continue;
+      }
+
+      const model = await Model.get(context, column.fk_model_id);
+      const indexName = generateIndexNameForCustomLink(
+        model.table_name,
+        column.title,
+      );
+      await this.createColumnIndex(context, {
+        column: column,
+        indexName,
+        source: source,
+        sqlMgr,
+      });
+
+      await Column.updateCustomIndexName(context, columnId, indexName);
+    }
+  }
+
+  protected async deleteCustomLinkIndex(
+    context: NcContext,
+    {
+      ltarCustomProps,
+      isMm = false,
+      reuse = {},
+      source,
+    }: {
+      ltarCustomProps: CustomLinkProps;
+      isMm: boolean;
+      reuse?: ReusableParams;
+      source: Source;
+    },
+  ) {
+    const columnIds = [
+      ltarCustomProps.column_id,
+      ltarCustomProps.ref_column_id,
+    ];
+
+    if (isMm) {
+      columnIds.push(
+        ltarCustomProps.junc_column_id,
+        ltarCustomProps.junc_ref_column_id,
+      );
+    }
+
+    const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+      ProjectMgrv2.getSqlMgr(context, {
+        id: source.base_id,
+      }),
+    );
+
+    for (const columnId of columnIds) {
+      const column = await Column.get(context, { colId: columnId });
+      if (
+        !column.custom_index_name ||
+        column.pk ||
+        column.uidt === UITypes.ForeignKey
+      ) {
+        continue;
+      }
+
+      // check if column is used in any other custom link
+      const isUsedInCustomLink =
+        await LinkToAnotherRecordColumn.isUsedInCustomLink(context, column.id);
+
+      // if column is used in any other custom link, skip deleting the index
+      if (isUsedInCustomLink) {
+        continue;
+      }
+
+      const table = await Model.get(context, column.fk_model_id);
+
+      await sqlMgr.sqlOpPlus(source, 'indexDelete', {
+        tn: table.table_name,
+        columns: [column.column_name],
+        indexName: column.custom_index_name,
+        non_unique_original: true,
+      });
+
+      await Column.updateCustomIndexName(context, column.id, null);
+    }
   }
 }
 

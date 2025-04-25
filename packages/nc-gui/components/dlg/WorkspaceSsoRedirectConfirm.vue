@@ -3,9 +3,7 @@ const workspaceStore = useWorkspace()
 
 const { ssoLoginRequiredDlg, workspaces } = storeToRefs(workspaceStore)
 
-const { closeDialog, redirectToSSO } = workspaceStore
-
-const { getBaseUrl, user } = useGlobal()
+const { user } = useGlobal()
 
 const onOk = () => {
   const email = user.value?.email

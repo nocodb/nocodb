@@ -4,7 +4,7 @@ import {
   ModelTypes,
   RelationTypes,
   type TableType,
-  UITypes,
+  customLinkSupportedTypes,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isVirtualCol,
@@ -79,7 +79,7 @@ function filterSupportedColumns(columns: ColumnType[]) {
       !isCreatedOrLastModifiedByCol(c) &&
       !isCreatedOrLastModifiedTimeCol(c) &&
       !isVirtualCol(c) &&
-      ![UITypes.Attachment, UITypes.MultiSelect, UITypes.JSON].includes(c.uidt) &&
+      customLinkSupportedTypes.includes(c.uidt) &&
       !c.system,
   )
 }

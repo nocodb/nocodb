@@ -278,9 +278,9 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                   <NcSelect
                     ref=""
                     v-model:value="group.sort"
-                    class="flex flex-grow-1 w-full nc-sort-dir-select"
+                    class="flex flex-grow-1 w-full nc-group-sort-dir-select"
                     :label="$t('labels.operation')"
-                    dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir"
+                    dropdown-class-name="sort-dir-dropdown nc-dropdown-group-sort-dir"
                     :disabled="!group.fk_column_id || isLocked"
                     @change="saveGroupBy"
                     @click.stop
@@ -405,7 +405,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
   }
 }
 
-:deep(.nc-sort-dir-select) {
+:deep(.nc-group-sort-dir-select) {
   .ant-select-selector {
     @apply !rounded-none !border-gray-200 !shadow-none;
   }

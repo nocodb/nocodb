@@ -671,6 +671,9 @@ export async function extractColumn({
           await relationColumn.getColOptions<LinkToAnotherRecordColumn>(
             context,
           );
+
+        const { refContext, mmContext } = relationColOpts.getRelContext(context);
+
         let relQb;
         const relTableAlias = getAlias();
         let refBaseModel: BaseModelSqlv2;
@@ -698,11 +701,11 @@ export async function extractColumn({
                 context,
               );
 
-              const assocBaseModel = await Model.getBaseModelSQL(context, {
+              const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
                 model: assocModel,
                 dbDriver: knex,
               });
-              const parentBaseModel = await Model.getBaseModelSQL(context, {
+              const parentBaseModel = await Model.getBaseModelSQL(refContext, {
                 model: parentModel,
                 dbDriver: knex,
               });
@@ -744,8 +747,6 @@ export async function extractColumn({
             break;
           case RelationTypes.BELONGS_TO:
             {
-              const { refContext } = relationColOpts.getRelContext(context);
-
               const parentModel = await relationColOpts.getRelatedTable(
                 context,
               );
@@ -776,7 +777,6 @@ export async function extractColumn({
           case RelationTypes.ONE_TO_ONE:
             {
               const isBt = relationColumn.meta?.bt;
-              const { refContext } = relationColOpts.getRelContext(context);
               if (isBt) {
                 const parentModel = await relationColOpts.getRelatedTable(
                   context,

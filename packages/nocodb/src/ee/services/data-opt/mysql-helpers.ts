@@ -586,7 +586,7 @@ export async function extractColumn({
                 dbDriver: knex,
               });
 
-              const hmQb = knex(baseModel.getTnPath(childModel))
+              const hmQb = knex(childBaseModel.getTnPath(childModel))
                 .select('*')
                 .where(
                   childColumn.column_name,
@@ -597,10 +597,10 @@ export async function extractColumn({
                 .offset(+listArgs.offset);
 
               // apply filters on nested query
-              await conditionV2(baseModel, queryFilterObj, hmQb);
+              await conditionV2(childBaseModel, queryFilterObj, hmQb);
 
               // apply sorts on nested query
-              if (sorts) await sortV2(baseModel, sorts, hmQb);
+              if (sorts) await sortV2(childBaseModel, sorts, hmQb);
 
               const hmAggQb = knex(hmQb.as(alias3));
               await extractColumns({

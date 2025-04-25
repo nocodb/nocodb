@@ -177,7 +177,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       return response.status(400).json({ msg: exception.message });
     } else if (
       exception instanceof Unauthorized ||
-      exception.getStatus?.() === 401
+      (exception.getStatus?.() === 401 && !(exception instanceof NcBaseErrorv2))
     ) {
       return response.status(401).json({ msg: exception.message });
     } else if (

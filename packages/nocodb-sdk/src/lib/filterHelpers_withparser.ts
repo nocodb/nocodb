@@ -169,11 +169,11 @@ function mapFilterClauseSubType(
   if (!aliasCol) {
     if (throwErrorIfInvalid) {
       throw new InvalidFilterError({
-        message: `Invalid filter column '${filter.field}' not found`,
+        message: `Invalid filter field '${filter.field}' not found`,
       });
     } else {
       errors.push({
-        message: `Invalid filter column '${filter.field}' not found`,
+        message: `Invalid filter field '${filter.field}' not found`,
       });
       return { errors };
     }

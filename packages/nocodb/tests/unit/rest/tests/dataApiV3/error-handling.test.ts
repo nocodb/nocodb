@@ -143,9 +143,7 @@ describe('dataApiV3', () => {
         status: 404,
       });
       expect(response.body.error).to.eq(`INVALID_API_VERSION`);
-      expect(response.body.message).to.eq(
-        `Cannot GET /api/v4/1234567890/2134567890`,
-      );
+      expect(response.body.message).to.eq(`API version unsupported`);
     });
     it('backward compatibility for previous api version', async () => {
       const response = await ncAxiosGet({
@@ -186,7 +184,7 @@ describe('dataApiV3', () => {
         status: 422,
       });
       expect(response.body.message).to.eq(
-        `Offset must be a non-negative integer.`,
+        `Offset must be a non-negative integer`,
       );
     });
     it('invalid page (string)', async () => {
@@ -198,7 +196,7 @@ describe('dataApiV3', () => {
         status: 422,
       });
       expect(response.body.message).to.eq(
-        `Offset must be a non-negative integer.`,
+        `Offset must be a non-negative integer`,
       );
     });
     it('invalid sort field', async () => {
@@ -224,7 +222,7 @@ describe('dataApiV3', () => {
         status: 422,
       });
       expect(response.body.message).to.eq(
-        `Invalid filter column 'NotFoundField' not found`,
+        `Invalid filter field 'NotFoundField' not found`,
       );
     });
 
@@ -237,7 +235,7 @@ describe('dataApiV3', () => {
         status: 422,
       });
       expect(response.body.message).to.eq(
-        `Invalid filter syntax: expected a closing parentheses ')', but found ''.`,
+        `Invalid filter syntax: expected a closing parentheses ')', but found ''`,
       );
     });
 
@@ -250,7 +248,7 @@ describe('dataApiV3', () => {
         status: 422,
       });
       expect(response.body.message).to.eq(
-        `Invalid filter syntax: expected comma ',' followed with operator (and value) after field.`,
+        `Invalid filter syntax: expected comma ',' followed with operator (and value) after field`,
       );
     });
 
@@ -286,7 +284,7 @@ describe('dataApiV3', () => {
       });
       expect(response.body.error).to.eq(`INVALID_FILTER`);
       expect(response.body.message).to.eq(
-        `Invalid filter expression: 'notInOperator' is not a recognized operator. Please use a valid comparison or logical operator.`,
+        `Invalid filter expression: 'notInOperator' is not a recognized operator. Please use a valid comparison or logical operator`,
       );
     });
 

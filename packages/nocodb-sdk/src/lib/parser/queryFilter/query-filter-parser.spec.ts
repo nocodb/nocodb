@@ -247,7 +247,7 @@ describe('query-filter-parser', () => {
         QueryFilterParser.parse(text);
       } catch (ex) {
         expect(ex.message).toBe(
-          `Invalid filter expression. Expected a valid logical operator like '~or' or '~and', but found 'or'.`
+          `Invalid filter expression. Expected a valid logical operator like '~or' or '~and', but found 'or'`
         );
       }
     });
@@ -256,7 +256,7 @@ describe('query-filter-parser', () => {
       const result = QueryFilterParser.parse(text);
       const message = parseParsingError(result.parseErrors[0]);
       expect(message).toBe(
-        `Invalid filter expression: 'noneInOperation' is not a recognized operator. Please use a valid comparison or logical operator.`
+        `Invalid filter expression: 'noneInOperation' is not a recognized operator. Please use a valid comparison or logical operator`
       );
     });
     it(`will handle parsing error when operation is missing`, async () => {
@@ -264,7 +264,7 @@ describe('query-filter-parser', () => {
       const result = QueryFilterParser.parse(text);
       const message = parseParsingError(result.parseErrors[0]);
       expect(message).toBe(
-        `Invalid filter expression: ')' is not a recognized operator. Please use a valid comparison or logical operator.`
+        `Invalid filter expression: ')' is not a recognized operator. Please use a valid comparison or logical operator`
       );
     });
     it(`will handle parsing error when operation is wrapped in quotes`, async () => {
@@ -272,7 +272,7 @@ describe('query-filter-parser', () => {
       const result = QueryFilterParser.parse(text);
       const message = parseParsingError(result.parseErrors[0]);
       expect(message).toBe(
-        `Invalid filter expression: '"eq"' is not a recognized operator. Please use a valid comparison or logical operator.`
+        `Invalid filter expression: '"eq"' is not a recognized operator. Please use a valid comparison or logical operator`
       );
     });
     it(`will handle parsing error when no opening parentheses`, async () => {
@@ -280,7 +280,7 @@ describe('query-filter-parser', () => {
       const result = QueryFilterParser.parse(text);
       const message = parseParsingError(result.parseErrors[0]);
       expect(message).toBe(
-        `Invalid filter syntax: expected a logical operator like '~not' or opening parenthesis, but found 'fSingleLineText'.`
+        `Invalid filter syntax: expected a logical operator like '~not' or opening parenthesis, but found 'fSingleLineText'`
       );
     });
     it(`will handle parsing error when no closing parentheses`, async () => {
@@ -288,7 +288,7 @@ describe('query-filter-parser', () => {
       const result = QueryFilterParser.parse(text);
       const message = parseParsingError(result.parseErrors[0]);
       expect(message).toBe(
-        `Invalid filter syntax: expected a closing parentheses ')', but found ''.`
+        `Invalid filter syntax: expected a closing parentheses ')', but found ''`
       );
     });
     it(`will handle parsing error when not operator is wrong`, async () => {
@@ -296,7 +296,7 @@ describe('query-filter-parser', () => {
       const result = QueryFilterParser.parse(text);
       const message = parseParsingError(result.parseErrors[0]);
       expect(message).toBe(
-        `Invalid filter syntax: expected a logical operator like '~not' or opening parenthesis, but found 'not'.`
+        `Invalid filter syntax: expected a logical operator like '~not' or opening parenthesis, but found 'not'`
       );
     });
     it(`will handle parsing error when missing comma`, async () => {
@@ -304,7 +304,7 @@ describe('query-filter-parser', () => {
       const result = QueryFilterParser.parse(text);
       const message = parseParsingError(result.parseErrors[0]);
       expect(message).toBe(
-        `Invalid filter syntax: expected comma ',' followed with operator (and value) after field.`
+        `Invalid filter syntax: expected comma ',' followed with operator (and value) after field`
       );
     });
     it(`will handle parsing error when missing arguments`, async () => {
@@ -312,7 +312,7 @@ describe('query-filter-parser', () => {
       const result = QueryFilterParser.parse(text);
       const message = parseParsingError(result.parseErrors[0]);
       expect(message).toBe(
-        `Invalid filter syntax: expected comma ',' followed with operator (and value) after field.`
+        `Invalid filter syntax: expected comma ',' followed with operator (and value) after field`
       );
     });
   });

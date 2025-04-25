@@ -1253,6 +1253,20 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
             handleEditColumn(e, false, clickedColumn.columnObj)
             requestAnimationFrame(triggerRefreshCanvas)
             return
+          } else if (!isGroupBy.value && x < xOffset + columnWidth - 20 - (clickedColumn.columnObj?.description ? 24 : 0)) {
+            const colIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
+
+            const dataCache = getDataCache()
+
+            const endRowIndex = Math.min(dataCache.totalRows.value, 99)
+            selection.value.startRange({ row: 0, col: colIndex })
+            selection.value.endRange({ row: endRowIndex, col: colIndex })
+
+            resetRowSelection()
+
+            activeCell.value = { row: 0, column: colIndex, path: [] }
+            onActiveCellChanged()
+            requestAnimationFrame(triggerRefreshCanvas)
           }
         }
       }

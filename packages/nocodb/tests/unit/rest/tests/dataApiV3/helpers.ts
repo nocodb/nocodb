@@ -45,3 +45,7 @@ export function getColumnId(columns: ColumnType[], title: string) {
   return columns.find((c) => c.title === title)!.id!;
 }
 export const idc = (r1: any, r2: any) => r1.Id - r2.Id;
+
+export function initArraySeq(i: number, count: number) {
+  return Array.from({ length: count }, (_, index) => i + index);
+}

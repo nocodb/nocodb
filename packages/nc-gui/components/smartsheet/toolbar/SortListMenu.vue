@@ -293,6 +293,10 @@ onMounted(() => {
     &.ant-select-focused:not(.ant-select-disabled) {
       @apply !border-r-transparent;
     }
+
+    .field-selection-tooltip-wrapper {
+      @apply !max-w-30;
+    }
   }
 }
 

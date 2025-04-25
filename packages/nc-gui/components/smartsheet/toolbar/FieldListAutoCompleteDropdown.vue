@@ -183,13 +183,11 @@ const colors = computed(() => {
             <component :is="option.icon" class="!w-3.5 !h-3.5 !mx-0" :class="colors[option.value] || '!text-gray-500'" />
             <NcTooltip
               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-              class="max-w-[15rem] truncate select-none"
+              class="field-selection-tooltip-wrapper truncate select-none"
               show-on-truncate-only
             >
               <template #title> {{ option.label }}</template>
-              <span>
-                {{ option.label }}
-              </span>
+              {{ option.label }}
             </NcTooltip>
           </div>
           <component

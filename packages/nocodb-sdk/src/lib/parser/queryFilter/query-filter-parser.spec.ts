@@ -299,5 +299,21 @@ describe('query-filter-parser', () => {
         `Invalid filter syntax: expected a logical operator like '~not' or opening parenthesis, but found 'not'.`
       );
     });
+    it(`will handle parsing error when missing comma`, async () => {
+      const text = `(fSingleLineText`;
+      const result = QueryFilterParser.parse(text);
+      const message = parseParsingError(result.parseErrors[0]);
+      expect(message).toBe(
+        `Invalid filter syntax: expected comma ',' followed with operator (and value) after field.`
+      );
+    });
+    it(`will handle parsing error when missing arguments`, async () => {
+      const text = `(fSingleLineText)`;
+      const result = QueryFilterParser.parse(text);
+      const message = parseParsingError(result.parseErrors[0]);
+      expect(message).toBe(
+        `Invalid filter syntax: expected comma ',' followed with operator (and value) after field.`
+      );
+    });
   });
 });

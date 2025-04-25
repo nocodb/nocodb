@@ -36,6 +36,12 @@ export const parseParsingError = (e: IRecognitionException) => {
       const found = messageParts
         .slice(messageParts.length - 1)[0]
         .match(foundRegex)[1];
+      if (
+        e.token?.tokenType?.name === 'IDENTIFIER' &&
+        options.some((k) => k === 'IDENTIFIER, COMMA')
+      ) {
+        return `Invalid filter syntax: expected comma ',' followed with operator (and value) after field.`;
+      }
       if (options.some((k) => k === 'NOT_OPERATOR' || k === 'PAREN_START')) {
         return `Invalid filter syntax: expected a logical operator like '~not' or opening parenthesis, but found '${found}'.`;
       }

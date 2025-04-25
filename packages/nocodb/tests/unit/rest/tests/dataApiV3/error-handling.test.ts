@@ -235,6 +235,19 @@ describe('dataApiV3', () => {
       );
     });
 
+    it('invalid filter (missing comma)', async () => {
+      const response = await ncAxiosGet({
+        url: `${urlPrefix}/${testContext.countryTable.id}`,
+        query: {
+          where: '(NotFoundField',
+        },
+        status: 422,
+      });
+      expect(response.body.message).to.eq(
+        `Invalid filter syntax: expected comma ',' followed with operator (and value) after field.`,
+      );
+    });
+
     it('invalid filter value format', async () => {
       const paymentTable = await getTable({
         base: testContext.sakilaProject,

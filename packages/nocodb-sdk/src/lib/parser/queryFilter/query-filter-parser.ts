@@ -44,8 +44,8 @@ export class QueryFilterParser extends CommonCstParser {
     $.RULE('paren_clause', () => {
       $.CONSUME(COMMON_TOKEN.PAREN_START);
       $.OR([
-        { ALT: () => $.SUBRULE($['call_expression'], { LABEL: 'clause' }) },
         { ALT: () => $.SUBRULE($['multi_clause'], { LABEL: 'clause' }) },
+        { ALT: () => $.SUBRULE($['call_expression'], { LABEL: 'clause' }) },
       ]);
       $.CONSUME(COMMON_TOKEN.PAREN_END);
     });

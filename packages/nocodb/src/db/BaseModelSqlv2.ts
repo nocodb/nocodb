@@ -3182,30 +3182,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const cn = col.column_name;
         const columnTitle = col.title;
         if (validate) {
-          const { func, msg } = validate;
-          for (let j = 0; j < func.length; ++j) {
-            const fn =
-              typeof func[j] === 'string'
-                ? customValidators[func[j]]
-                  ? customValidators[func[j]]
-                  : Validator[func[j]]
-                : func[j];
-            const columnValue = insertObj?.[cn] || insertObj?.[columnTitle];
-            const arg =
-              typeof func[j] === 'string' ? columnValue + '' : columnValue;
-            if (
-              ![null, undefined, ''].includes(columnValue) &&
-              !(fn.constructor.name === 'AsyncFunction'
-                ? await fn(arg)
-                : fn(arg))
-            ) {
-              NcError.badRequest(
-                msg[j]
-                  .replace(/\{VALUE}/g, columnValue)
-                  .replace(/\{cn}/g, columnTitle),
-              );
-            }
-          }
+          await validateFuncOnColumn({
+            column: col,
+            value:
+              insertObj?.[cn] ??
+              insertObj?.[columnTitle] ??
+              insertObj?.[col.id],
+            apiVersion: this.context.api_version,
+            customValidators: customValidators as any,
+          });
         }
       }
     }

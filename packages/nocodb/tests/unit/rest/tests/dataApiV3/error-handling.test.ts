@@ -254,7 +254,7 @@ describe('dataApiV3', () => {
       );
     });
 
-    it.only('invalid filter value format', async () => {
+    it('invalid filter value format', async () => {
       const paymentTable = await getTable({
         base: testContext.sakilaProject,
         name: 'payment',

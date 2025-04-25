@@ -856,7 +856,7 @@ describe('dataApiV3', () => {
 
       // Create mm link between Actor and Film
       // List them for a record & verify in both tables
-      it.skip('Create Many-Many ', async function () {
+      it('Create Many-Many ', async function () {
         await ncAxiosLinkAdd({
           urlParams: {
             tableId: tblActor.id,
@@ -935,6 +935,13 @@ describe('dataApiV3', () => {
         expect(rspFromRecordAPI.body.pageInfo).not.to.have.property('next');
 
         const expectedFilmsFromLinkAPI = prepareRecords('Film', 20);
+        const expectedFilmsFromRecordV3API = expectedFilmsFromLinkAPI.map(
+          (r) => ({
+            Id: r.Id,
+            Value: r['Film'],
+          }),
+        );
+
         // Links
         expect(rspFromLinkAPI.body.list.length).to.equal(20);
         expect(rspFromLinkAPI.body.list.sort(idc)).to.deep.equal(
@@ -988,12 +995,6 @@ describe('dataApiV3', () => {
         });
 
         const expectedActorsFromLinkAPI = prepareRecords('Actor', 20);
-        const expectedActorsFromRecordV3API = expectedActorsFromLinkAPI.map(
-          (r) => ({
-            Id: r.Id,
-            Value: r['Actor'],
-          }),
-        );
 
         // Links
         expect(rspFromLinkAPI.body.list.length).to.equal(20);
@@ -1017,9 +1018,7 @@ describe('dataApiV3', () => {
 
         // Even though we added till 30, we need till 25 due to pagination
         expectedFilmsFromLinkAPI.push(...prepareRecords('Film', 5, 21));
-        console.log('A12');
 
-        // TODO: linked get does not respect limit query params yet
         // verify in Actor table
         rspFromLinkAPI = await ncAxiosLinkGet({
           urlParams: {
@@ -1037,15 +1036,12 @@ describe('dataApiV3', () => {
             where: `(Id,eq,1)`,
           },
         });
-        console.log('A13');
-        console.log('rspFromLinkAPI', rspFromLinkAPI.body)
         expect(rspFromLinkAPI.body.list.length).to.equal(25);
         // We cannot compare list directly since order is not fixed, any 25, out of 30 can come.
         // expect(rspFromLinkAPI.body.list.sort(idc)).to.deep.equal(expectedFilmsFromLinkAPI.sort(idc));
 
         expect(rspFromRecordAPI.body.list.length).to.equal(1);
         expect(rspFromRecordAPI.body.list[0]['Films']).to.equal(30);
-        console.log('A14');
 
         // verify in Film table
         for (let i = 21; i <= 30; i++) {
@@ -1071,12 +1067,7 @@ describe('dataApiV3', () => {
 
           expect(rspFromRecordAPI.body.list.length).to.equal(1);
           expect(rspFromRecordAPI.body.list[0]['Actors']).to.equal(1);
-          expect(rspFromRecordAPI.body.list[0]['Actors'][0]).to.deep.equal({
-            Id: 1,
-            Value: `Actor 1`,
-          });
         }
-        console.log('A15');
 
         // Delete mm link between Actor and Film
         // List them for a record & verify in both tables
@@ -1107,7 +1098,6 @@ describe('dataApiV3', () => {
 
         expectedFilmsFromLinkAPI.length = 0; // clear array
         expectedFilmsFromRecordV3API.length = 0; // clear array
-
         for (let i = 2; i <= 30; i += 2) {
           expectedFilmsFromLinkAPI.push({
             Id: i,
@@ -1145,9 +1135,6 @@ describe('dataApiV3', () => {
         expect(rspFromRecordAPI.body.list[0]['Films']).to.equal(
           expectedFilmsFromRecordV3API.length,
         );
-        expect(rspFromRecordAPI.body.list[0]['Films'].sort(idc)).to.deep.equal(
-          expectedFilmsFromRecordV3API.sort(idc),
-        );
 
         // verify in Film table
         for (let i = 2; i <= 30; i++) {
@@ -1173,10 +1160,6 @@ describe('dataApiV3', () => {
 
             expect(rspFromRecordAPI.body.list.length).to.equal(1);
             expect(rspFromRecordAPI.body.list[0]['Actors']).to.equal(1);
-            expect(rspFromRecordAPI.body.list[0]['Actors'][0]).to.deep.equal({
-              Id: 1,
-              Value: `Actor 1`,
-            });
           } else {
             expect(rspFromLinkAPI.body.list.length).to.equal(0);
             expect(rspFromRecordAPI.body.list.length).to.equal(1);

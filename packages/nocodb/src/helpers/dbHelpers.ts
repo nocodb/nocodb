@@ -427,10 +427,10 @@ export function getListArgs(
   obj.conditionGraph = args.conditionGraph || {};
   obj.page = args.page || args.p;
   if (apiVersion === NcApiVersion.V3 && nested) {
-    if (obj.nestedLimit) {
+    if (args.nestedLimit) {
       obj.limit = obj.limit = Math.max(
         Math.min(
-          Math.max(+obj.nestedLimit, 0) || defaultLimitConfig.limitDefault,
+          Math.max(+args.nestedLimit, 0) || defaultLimitConfig.limitDefault,
           defaultLimitConfig.limitMax,
         ),
         defaultLimitConfig.limitMin,

@@ -41,8 +41,8 @@ function attachmentTests() {
       .attach('files', FILE_PATH)
       .expect(401);
 
-    const msg = response.body.msg;
-    expect(msg).to.be.eq('Unauthorized');
+    const msg = response.body.message;
+    expect(msg).to.be.eq('Authentication required - Unauthorized');
   });
 
   it.skip('Upload file - Org level viewer', async () => {

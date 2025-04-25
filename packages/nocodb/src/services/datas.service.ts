@@ -1,19 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk';
-import * as XLSX from 'xlsx';
+import { isLinksOrLTAR, isSystemColumn, NcSDKErrorV2 } from 'nocodb-sdk';
 import papaparse from 'papaparse';
+import * as XLSX from 'xlsx';
 import type { NcApiVersion } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';
 import type { Filter } from '~/models';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
-import { Base, Column, Model, Source, View } from '~/models';
-import { getDbRows, getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
-import { nocoExecute } from '~/utils';
 import { NcBaseError, NcError } from '~/helpers/catchError';
+import { getDbRows, getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { Base, Column, Model, Source, View } from '~/models';
+import { nocoExecute } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
@@ -285,7 +285,7 @@ export class DatasService {
             listArgs,
           );
         } catch (e) {
-          if (e instanceof NcBaseError) throw e;
+          if (e instanceof NcBaseError || e instanceof NcSDKErrorV2) throw e;
           this.logger.error(e);
           NcError.internalServerError(
             'Please check server log for more details',

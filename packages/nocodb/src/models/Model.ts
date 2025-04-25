@@ -2,6 +2,7 @@ import {
   isLinksOrLTAR,
   isVirtualCol,
   ModelTypes,
+  ncIsUndefined,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
@@ -705,10 +706,11 @@ export default class Model implements TableType {
     const insertObj = {};
     for (const col of columns || (await this.getColumns(context))) {
       if (isVirtualCol(col)) continue;
-      let val =
-        data?.[col.column_name] !== undefined
-          ? data?.[col.column_name]
-          : data?.[col.title];
+      let val = !ncIsUndefined(data?.[col.column_name])
+        ? data?.[col.column_name]
+        : !ncIsUndefined(data?.[col.title])
+        ? data?.[col.title]
+        : data?.[col.id];
       if (val !== undefined) {
         if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
           val = JSON.stringify(val);

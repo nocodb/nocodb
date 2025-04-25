@@ -43,7 +43,7 @@ export class Datav3Controller {
     @Req() req: NcRequest,
     @Res() res: Response,
     @Param('modelId') modelId: string,
-    @Query('view_id') viewId: string,
+    @Query('viewId') viewId: string,
   ) {
     const startTime = process.hrtime();
     const responseData = await this.dataV3Service.dataList(context, {
@@ -107,13 +107,13 @@ export class Datav3Controller {
     });
   }
 
-  @Get([`${PREFIX_APIV3_DATA}/:modelId/nested/:columnId/:rowId`])
+  @Get([`${PREFIX_APIV3_DATA}/:modelId/links/:columnId/:rowId`])
   @Acl('nestedDataList')
   async nestedDataList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('modelId') modelId: string,
-    @Query('view_id') viewId: string,
+    @Query('viewId') viewId: string,
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
   ) {
@@ -131,12 +131,14 @@ export class Datav3Controller {
     }
 
     return new PagedResponseV3Impl(response as PagedResponseImpl<any>, {
+      context,
       baseUrl: req.baseUrl,
       tableId: modelId,
     });
   }
 
   @Post([`${PREFIX_APIV3_DATA}/:modelId/links/:columnId/:rowId`])
+  @HttpCode(200)
   @Acl('nestedDataLink')
   async nestedLink(
     @TenantContext() context: NcContext,
@@ -165,7 +167,6 @@ export class Datav3Controller {
     });
   }
 
-  // TODO: modelId can be omitted
   @Delete([`${PREFIX_APIV3_DATA}/:modelId/links/:columnId/:rowId`])
   @Acl('nestedDataUnlink')
   async nestedUnlink(
@@ -196,7 +197,7 @@ export class Datav3Controller {
     @Req() req: NcRequest,
     @Res() res: Response,
     @Param('modelId') modelId: string,
-    @Query('view_id') viewId: string,
+    @Query('viewId') viewId: string,
   ) {
     const countResult = await this.dataTableService.dataCount(context, {
       query: req.query,

@@ -97,6 +97,7 @@ import {
   populatePk,
   shouldSkipField,
   transformObject,
+  validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
@@ -340,7 +341,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       this.context,
       columns,
     );
-    const sorts = extractSortsObject(rest?.sort, aliasColObjMap);
+    const sorts = extractSortsObject(this.context, rest?.sort, aliasColObjMap);
     const { filters: filterObj } = extractFilterFromXwhere(
       this.context,
       where,
@@ -444,6 +445,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       columns,
     );
     let sorts = extractSortsObject(
+      this.context,
       rest?.sort,
       aliasColObjMap,
       throwErrorIfInvalidParams,
@@ -1391,7 +1393,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // Third priority query string sort
     if (!sort) return;
-    const sortObj = extractSortsObject(sort, childAliasColMap);
+    const sortObj = extractSortsObject(this.context, sort, childAliasColMap);
     if (sortObj) await sortV2(this, sortObj, qb);
   }
 
@@ -3090,7 +3092,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     for (let i = 0; i < cols.length; ++i) {
       const col = cols[i];
 
-      if (col.title in d) {
+      if (col.title in d || col.id in d) {
         if (
           isCreatedOrLastModifiedTimeCol(col) ||
           isCreatedOrLastModifiedByCol(col)
@@ -3136,17 +3138,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       // populate pk columns
       if (col.pk) {
-        if (col.meta?.ag && !d[col.title]) {
-          d[col.title] = col.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : uuidv4();
+        if (col.meta?.ag && !(d[col.title] ?? d[col.id])) {
+          if (d[col.id]) {
+            d[col.title] = d[col.id];
+          } else {
+            d[col.title] =
+              col.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : uuidv4();
+          }
         }
       }
 
       // map alias to column
       if (!isVirtualCol(col)) {
-        let val =
-          d?.[col.column_name] !== undefined
-            ? d?.[col.column_name]
-            : d?.[col.title];
+        let val = !ncIsUndefined(d?.[col.column_name])
+          ? d?.[col.column_name]
+          : !ncIsUndefined(d?.[col.title])
+          ? d?.[col.title]
+          : d?.[col.id];
         if (val !== undefined) {
           if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
             val = JSON.stringify(val);
@@ -3174,30 +3182,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const cn = col.column_name;
         const columnTitle = col.title;
         if (validate) {
-          const { func, msg } = validate;
-          for (let j = 0; j < func.length; ++j) {
-            const fn =
-              typeof func[j] === 'string'
-                ? customValidators[func[j]]
-                  ? customValidators[func[j]]
-                  : Validator[func[j]]
-                : func[j];
-            const columnValue = insertObj?.[cn] || insertObj?.[columnTitle];
-            const arg =
-              typeof func[j] === 'string' ? columnValue + '' : columnValue;
-            if (
-              ![null, undefined, ''].includes(columnValue) &&
-              !(fn.constructor.name === 'AsyncFunction'
-                ? await fn(arg)
-                : fn(arg))
-            ) {
-              NcError.badRequest(
-                msg[j]
-                  .replace(/\{VALUE}/g, columnValue)
-                  .replace(/\{cn}/g, columnTitle),
-              );
-            }
-          }
+          await validateFuncOnColumn({
+            column: col,
+            value:
+              insertObj?.[cn] ??
+              insertObj?.[columnTitle] ??
+              insertObj?.[col.id],
+            apiVersion: this.context.api_version,
+            customValidators: customValidators as any,
+          });
         }
       }
     }
@@ -3347,7 +3340,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           const oldRecord = oldRecordsMap.get(pk);
 
           if (!oldRecord) {
-            if (throwExceptionIfNotExist) NcError.recordNotFound({ pk, data });
+            // removed data from error param, record not found message do not use data
+            if (throwExceptionIfNotExist) NcError.recordNotFound(pk);
             continue;
           }
 
@@ -4567,6 +4561,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       for (const pk of this.model.primaryKeys) {
         pkValues[pk.title] = data[pk.title] ?? data[pk.column_name];
       }
+
       return asString
         ? Object.values(pkValues)
             .map((val) => val?.toString?.().replaceAll('_', '\\_'))
@@ -4581,7 +4576,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       } else {
         pkValue = data;
       }
-
       if (pkValue !== undefined) return asString ? `${pkValue}` : pkValue;
     } else {
       return 'N/A';
@@ -4668,28 +4662,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const columnTitle = column.title;
       if (!validate) continue;
 
-      const { func, msg } = validate;
-      for (let j = 0; j < func.length; ++j) {
-        let fn = func[j];
-
-        if (typeof func[j] === 'string') {
-          fn = customValidators[func[j]] ?? Validator[func[j]];
-        }
-
-        const columnValue = data?.[cn] || data?.[columnTitle];
-        const arg =
-          typeof func[j] === 'string' ? columnValue + '' : columnValue;
-        if (
-          ![null, undefined, ''].includes(columnValue) &&
-          !(fn.constructor.name === 'AsyncFunction' ? await fn(arg) : fn(arg))
-        ) {
-          NcError.badRequest(
-            msg[j]
-              .replace(/\{VALUE}/g, columnValue)
-              .replace(/\{cn}/g, columnTitle),
-          );
-        }
-      }
+      await validateFuncOnColumn({
+        value: data?.[cn] ?? data?.[columnTitle] ?? data?.[column.id],
+        column,
+        apiVersion: this.context.api_version,
+        customValidators: customValidators as any,
+      });
     }
     return true;
   }
@@ -5265,7 +5243,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         this.context,
         columns,
       );
-      let sorts = extractSortsObject(args?.sort, aliasColObjMap);
+      let sorts = extractSortsObject(this.context, args?.sort, aliasColObjMap);
       const { filters: filterObj } = extractFilterFromXwhere(
         this.context,
         where,
@@ -6060,14 +6038,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         for (const col of multiSelectColumns) {
           if (d[col.id] && typeof d[col.id] === 'string') {
             d[col.id] = d[col.id].split(',');
-          }
-
-          if (d[col.id]?.length) {
-            for (let i = 0; i < d[col.id].length; i++) {
-              if (typeof d[col.id][i] === 'string') {
-                d[col.id][i] = d[col.id][i].split(',');
-              }
-            }
+          } else if (d[col.title] && typeof d[col.title] === 'string') {
+            d[col.title] = d[col.title].split(',');
           }
         }
       }

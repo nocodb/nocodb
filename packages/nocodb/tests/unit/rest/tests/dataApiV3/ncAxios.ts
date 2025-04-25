@@ -181,7 +181,7 @@ export const ncAxios = (testContext: ITestContext) => {
   async function ncAxiosLinkAdd({
     urlParams,
     body = {},
-    status = 201,
+    status = 200,
     msg,
   }: {
     urlParams: { tableId: string; linkId: string; rowId: string };

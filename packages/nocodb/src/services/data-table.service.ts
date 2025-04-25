@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { isLinksOrLTAR, RelationTypes, ViewTypes } from 'nocodb-sdk';
 import { validatePayload } from 'src/helpers';
-import type { NcApiVersion } from 'nocodb-sdk';
+import { NcApiVersion } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { nocoExecute } from '~/utils';
@@ -294,7 +294,11 @@ export class DataTableService {
     const model = await Model.get(context, param.modelId);
 
     if (!model) {
-      NcError.tableNotFound(param.modelId);
+      if (context.api_version === NcApiVersion.V3) {
+        NcError.tableNotFoundV3(param.modelId);
+      } else {
+        NcError.tableNotFound(param.modelId);
+      }
     }
 
     if (param.baseId && model.base_id !== param.baseId) {
@@ -306,7 +310,11 @@ export class DataTableService {
     if (param.viewId) {
       view = await View.get(context, param.viewId);
       if (!view || (view.fk_model_id && view.fk_model_id !== param.modelId)) {
-        NcError.viewNotFound(param.viewId);
+        if (context.api_version === NcApiVersion.V3) {
+          NcError.viewNotFoundV3(param.viewId);
+        } else {
+          NcError.viewNotFound(param.viewId);
+        }
       }
     }
 

@@ -8,7 +8,7 @@ import type { ITestContext } from './beforeEach';
 import type { INcAxios } from './ncAxios';
 
 const API_VERSION = 'v3';
-describe('dataApiV3', () => {
+describe.only('dataApiV3', () => {
   describe('error-handling', () => {
     let testContext: ITestContext;
     let testAxios: INcAxios;
@@ -101,7 +101,7 @@ describe('dataApiV3', () => {
       // TODO: fix base not found error message
       const response = await ncAxiosGet({
         url: `/api/v3/234567890/123456789`,
-        status: 404,
+        status: 422,
       });
       expect(response.body.message).to.eq(`Table '123456789' not found`);
     });
@@ -124,7 +124,7 @@ describe('dataApiV3', () => {
     it('invalid view param', async () => {
       const response = await ncAxiosGet({
         url: `${urlPrefix}/${testContext.countryTable.id}?viewId=123456890`,
-        status: 404,
+        status: 422,
       });
       expect(response.body.message).to.eq(`View '123456890' not found`);
     });

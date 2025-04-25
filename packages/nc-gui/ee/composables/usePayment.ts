@@ -215,7 +215,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     return res
   }
 
-  const updateSubscription = async (planId: string, priceId?: string) => {
+  const updateSubscription = async (planId: string, priceId?: string, afterUpgrade = false) => {
     if (!activeWorkspaceId.value) throw new Error('No active workspace')
 
     const plan = plansAvailable.value.find((plan) => plan.id === planId)
@@ -237,7 +237,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       },
     })
 
-    window.location.href = `/#/${activeWorkspaceId.value}/settings?tab=billing&afterUpgrade=true`
+    window.location.href = `/#/${activeWorkspaceId.value}/settings?tab=billing${afterUpgrade ? '&afterUpgrade=true' : ''}`
   }
 
   const cancelSubscription = async () => {

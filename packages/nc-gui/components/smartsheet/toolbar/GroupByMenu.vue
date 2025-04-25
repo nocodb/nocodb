@@ -267,7 +267,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                   </NcButton>
                   <LazySmartsheetToolbarFieldListAutoCompleteDropdown
                     v-model="group.fk_column_id"
-                    class="caption nc-sort-field-select !w-36"
+                    class="caption nc-group-field-select !w-36"
                     :columns="getFieldsToGroupBy(group)"
                     :allow-empty="true"
                     :meta="meta"
@@ -383,13 +383,17 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
 </template>
 
 <style scoped lang="scss">
-:deep(.nc-sort-field-select) {
+:deep(.nc-group-field-select) {
   @apply !w-36;
   .ant-select-selector {
     @apply !rounded-none !border-r-0 !border-gray-200 !shadow-none !w-36;
 
     &.ant-select-focused:not(.ant-select-disabled) {
       @apply !border-r-transparent;
+    }
+
+    .field-selection-tooltip-wrapper {
+      @apply !max-w-21;
     }
   }
 }

@@ -11,6 +11,15 @@ import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { View } from '~/models/index';
 
 export default class LinkToAnotherRecordColumn {
+  protected _context: {
+    refContext: NcContext;
+    mmContext: NcContext;
+  };
+  protected _parentChildContext: {
+    parentContext: NcContext;
+    childContext: NcContext;
+  };
+
   id: string;
 
   fk_workspace_id?: string;
@@ -61,20 +70,7 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
-    let childContext = context;
-    // if hm then parent belongs to the related table
-    // if oo(hm) then parent belongs to the related table
-    // in these scenario overwrite context if fk_related_base_id is present
-    if (
-      this.fk_related_base_id &&
-      (this.type === RelationTypes.HAS_MANY ||
-        (this.type === RelationTypes.ONE_TO_ONE &&
-          !(await Column.get(context, { colId: this.fk_column_id }))?.meta?.bt))
-    ) {
-      const { refContext } = this.getRelContext(context);
-      childContext = refContext;
-    }
-
+    const { childContext } = await this.getParentChildContext(context);
     return (this.childColumn = await Column.get(
       childContext,
       {
@@ -103,21 +99,7 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
-    let parentContext = context;
-    // if mm link parent present in related table
-    // if bt then parent belongs to the related table
-    // if oo(bt) then parent belongs to the related table
-    // in these scenario overwrite context if fk_related_base_id is present
-    if (
-      this.fk_related_base_id &&
-      (this.type === RelationTypes.MANY_TO_MANY ||
-        this.type === RelationTypes.BELONGS_TO ||
-        (this.type === RelationTypes.ONE_TO_ONE &&
-          (await Column.get(context, { colId: this.fk_column_id }))?.meta?.bt))
-    ) {
-      const { refContext } = this.getRelContext(context);
-      parentContext = refContext;
-    }
+    const { parentContext } = await this.getParentChildContext(context);
 
     return (this.parentColumn = await Column.get(
       parentContext,
@@ -155,6 +137,7 @@ export default class LinkToAnotherRecordColumn {
       ncMeta,
     ));
   }
+
   public async getRelatedTable(
     context: NcContext,
     ncMeta = Noco.ncMeta,
@@ -246,6 +229,10 @@ export default class LinkToAnotherRecordColumn {
   }
 
   getRelContext(context: NcContext) {
+    if (this._context) {
+      return this._context;
+    }
+
     let refContext = context;
     let mmContext = context;
 
@@ -268,10 +255,51 @@ export default class LinkToAnotherRecordColumn {
       };
     }
 
-    return {
+    return (this._context = {
       refContext,
       mmContext,
-    };
+    });
+  }
+
+  async getParentChildContext(context: NcContext) {
+    if (this._parentChildContext) {
+      return this._parentChildContext;
+    }
+
+    const { refContext } = this.getRelContext(context);
+    let childContext = context;
+    let parentContext = context;
+
+    // if hm then child belongs to the related table
+    // if oo(hm) then child belongs to the related table
+    // in these scenario overwrite context if fk_related_base_id is present
+    if (
+      this.fk_related_base_id &&
+      (this.type === RelationTypes.HAS_MANY ||
+        (this.type === RelationTypes.ONE_TO_ONE &&
+          !(await Column.get(context, { colId: this.fk_column_id }))?.meta?.bt))
+    ) {
+      childContext = refContext;
+    }
+
+    // if mm link parent present in related table
+    // if bt then parent belongs to the related table
+    // if oo(bt) then parent belongs to the related table
+    // in these scenario overwrite context if fk_related_base_id is present
+    if (
+      this.fk_related_base_id &&
+      (this.type === RelationTypes.MANY_TO_MANY ||
+        this.type === RelationTypes.BELONGS_TO ||
+        (this.type === RelationTypes.ONE_TO_ONE &&
+          (await Column.get(context, { colId: this.fk_column_id }))?.meta?.bt))
+    ) {
+      parentContext = refContext;
+    }
+
+    return (this._parentChildContext = {
+      childContext,
+      parentContext,
+    });
   }
 
   getRelatedTableContext(context: NcContext) {
@@ -282,17 +310,6 @@ export default class LinkToAnotherRecordColumn {
     return {
       ...context,
       base_id: this.fk_related_base_id,
-    } as NcContext;
-  }
-
-  getMmTableContext(context: NcContext) {
-    if (!this.fk_mm_source_id && !this.fk_mm_base_id) {
-      return context;
-    }
-
-    return {
-      ...context,
-      base_id: this.fk_mm_base_id,
     } as NcContext;
   }
 }

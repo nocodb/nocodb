@@ -147,6 +147,8 @@ import { FiltersV3Controller } from '~/controllers/v3/filters-v3.controller';
 import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import { FormulaColumnTypeChanger } from '~/services/formula-column-type-changer.service';
 
+import { NotFoundV3Controller } from '~/controllers/v3/not-found-v3.controller';
+
 export const nocoModuleMetadata = {
   imports: [
     EventEmitterModule,
@@ -230,6 +232,9 @@ export const nocoModuleMetadata = {
           PublicDatasController,
           PublicDatasExportController,
           Datav3Controller,
+
+          // put it at the bottom most since it's route not found handling
+          NotFoundV3Controller,
         ]
       : []),
   ],

@@ -206,5 +206,16 @@ describe('dataApiV3', () => {
       });
       expect(response.body.message).to.eq("Record '1032' not found");
     });
+
+    it('url path not found', async () => {
+      const response = await ncAxiosGet({
+        url: `/api/v3/mybase/mytable/unknown-path/1234`,
+        status: 404,
+      });
+      expect(response.body.error).to.eq('NOT_FOUND');
+      expect(response.body.message).to.eq(
+        'Cannot GET /api/v3/mybase/mytable/unknown-path/1234',
+      );
+    });
   });
 });

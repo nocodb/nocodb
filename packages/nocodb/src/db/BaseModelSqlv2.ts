@@ -33,7 +33,6 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import Validator from 'validator';
 import { addOrRemoveLinks } from './BaseModelSqlv2/add-remove-links';
-import { apiVersion } from 'airtable';
 import { NestedLinkPreparator } from './BaseModelSqlv2/nested-link-preparator';
 import { relationDataFetcher } from './BaseModelSqlv2/relation-data-fetcher';
 import { baseModelInsert } from './BaseModelSqlv2/insert';

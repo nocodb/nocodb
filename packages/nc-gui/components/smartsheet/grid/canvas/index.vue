@@ -2074,7 +2074,7 @@ watch([height, width, windowWidth, windowHeight], () => {
 })
 
 watch(totalHeight, (newHeight) => {
-  if (scrollTop.value > newHeight) {
+  if (scrollTop.value > newHeight - height.value) {
     scroller.value?.scrollTo({
       top: Math.max(newHeight - height.value - 256, 0),
     })

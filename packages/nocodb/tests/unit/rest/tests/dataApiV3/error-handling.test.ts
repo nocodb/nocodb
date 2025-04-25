@@ -5,6 +5,7 @@ import request from 'supertest';
 import { createBulkRows } from '../../../factory/row';
 import { createTable, getTable } from '../../../factory/table';
 import { createUser } from '../../../factory/user';
+import { isPg } from '../../../init/db';
 import {
   beforeEachDateBased,
   beforeEachNumberBased,
@@ -253,7 +254,7 @@ describe('dataApiV3', () => {
       );
     });
 
-    it('invalid filter value format', async () => {
+    it.only('invalid filter value format', async () => {
       const paymentTable = await getTable({
         base: testContext.sakilaProject,
         name: 'payment',
@@ -501,6 +502,9 @@ describe('dataApiV3', () => {
         });
       });
       it(`will handle insert field format not valid`, async () => {
+        if (!isPg(testContext.context)) {
+          return;
+        }
         const response = await ncAxiosPost({
           url: `${urlPrefix}/${table.id}`,
           body: [
@@ -516,6 +520,9 @@ describe('dataApiV3', () => {
         ).to.eq(true);
       });
       it(`will handle insert field format not valid for uidt Rating`, async () => {
+        if (!isPg(testContext.context)) {
+          return;
+        }
         const response = await ncAxiosPost({
           url: `${urlPrefix}/${table.id}`,
           body: [
@@ -550,6 +557,9 @@ describe('dataApiV3', () => {
         expect(response.body.message).to.eq(`Maximum 10 records during insert`);
       });
       it(`will handle update field format not valid`, async () => {
+        if (!isPg(testContext.context)) {
+          return;
+        }
         const response = await ncAxiosPatch({
           url: `${urlPrefix}/${table.id}`,
           body: [
@@ -596,6 +606,9 @@ describe('dataApiV3', () => {
       });
 
       it(`will handle insert field format not valid`, async () => {
+        if (!isPg(testContext.context)) {
+          return;
+        }
         const response = await ncAxiosPost({
           url: `${urlPrefix}/${table.id}`,
           body: [

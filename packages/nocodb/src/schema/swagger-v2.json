@@ -2799,7 +2799,7 @@
             "application/json": {
               "schema": {
                 "allOf":[
-                  { 
+                  {
                     "$ref": "#/components/schemas/SharedBaseReq"
                   },
                   {
@@ -5319,7 +5319,7 @@
             "application/json": {
               "schema": {
                 "allOf":[
-                  { 
+                  {
                     "$ref": "#/components/schemas/SharedViewReq"
                   },
                   {
@@ -22008,6 +22008,10 @@
           },
           "title": {
             "type": "string"
+          },
+          "sso_only_access": {
+            "description": "SSO only access",
+            "type": "boolean"
           },
           "updated_at": {}
         },

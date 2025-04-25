@@ -107,7 +107,7 @@ export class Datav3Controller {
     });
   }
 
-  @Get([`${PREFIX_APIV3_DATA}/:modelId/nested/:columnId/:rowId`])
+  @Get([`${PREFIX_APIV3_DATA}/:modelId/links/:columnId/:rowId`])
   @Acl('nestedDataList')
   async nestedDataList(
     @TenantContext() context: NcContext,
@@ -166,7 +166,6 @@ export class Datav3Controller {
     });
   }
 
-  // TODO: modelId can be omitted
   @Delete([`${PREFIX_APIV3_DATA}/:modelId/links/:columnId/:rowId`])
   @Acl('nestedDataUnlink')
   async nestedUnlink(

@@ -747,7 +747,7 @@ describe('dataApiV3', () => {
           query: {
             fields: 'abc',
           },
-          status: 404,
+          status: 422,
         });
       });
       // #endregion error handling

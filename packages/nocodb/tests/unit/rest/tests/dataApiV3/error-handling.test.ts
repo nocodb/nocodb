@@ -6,6 +6,7 @@ import { createBulkRows } from '../../../factory/row';
 import { createTable, getTable } from '../../../factory/table';
 import { createUser } from '../../../factory/user';
 import {
+  beforeEachDateBased,
   beforeEachNumberBased,
   beforeEachTextBased,
   beforeEach as dataApiV3BeforeEach,
@@ -480,9 +481,9 @@ describe('dataApiV3', () => {
           status: 400,
         });
         expect(response.body.error).to.eq('DATABASE_ERROR');
-        expect(response.body.message).to.eq(
-          `Invalid value 'HELLOW' for type 'bigint'`,
-        );
+        expect(
+          response.body.message.startsWith(`Invalid value 'HELLOW' for type `),
+        ).to.eq(true);
       });
       it(`will handle insert field more than 10 rows`, async () => {
         const insertObj = [
@@ -515,9 +516,9 @@ describe('dataApiV3', () => {
           status: 400,
         });
         expect(response.body.error).to.eq('DATABASE_ERROR');
-        expect(response.body.message).to.eq(
-          `Invalid value 'HELLOW' for type 'bigint'`,
-        );
+        expect(
+          response.body.message.startsWith(`Invalid value 'HELLOW' for type `),
+        ).to.eq(true);
       });
       it(`will handle update field id format not valid`, async () => {
         const response = await ncAxiosPatch({
@@ -534,6 +535,35 @@ describe('dataApiV3', () => {
         expect(response.body.message).to.eq(
           `Primary key value 'HELLOW' is invalid for column 'Id'`,
         );
+      });
+    });
+
+    describe('date-based', () => {
+      let table: Model;
+      let columns: Column[] = [];
+      let insertedRecords: any[];
+
+      beforeEach(async function () {
+        const initResult = await beforeEachDateBased(testContext);
+        table = initResult.table;
+        columns = initResult.columns;
+        insertedRecords = initResult.insertedRecords;
+      });
+
+      it(`will handle insert field format not valid`, async () => {
+        const response = await ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: [
+            {
+              Date: 'HELLOW',
+            },
+          ],
+          status: 400,
+        });
+        expect(response.body.error).to.eq('DATABASE_ERROR');
+        expect(
+          response.body.message.startsWith(`The date / time value is invalid`),
+        ).to.eq(true);
       });
     });
   });

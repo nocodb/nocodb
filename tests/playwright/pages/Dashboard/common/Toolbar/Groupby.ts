@@ -16,7 +16,7 @@ export class ToolbarGroupByPage extends BasePage {
   }
 
   async verify({ index, column, direction }: { index: number; column: string; direction: string }) {
-    const fieldLocator = this.get().locator('.nc-sort-field-select').nth(index);
+    const fieldLocator = this.get().locator('.nc-group-field-select').nth(index);
     const fieldText = await getTextExcludeIconText(fieldLocator);
     expect(fieldText).toBe(column);
 
@@ -43,7 +43,7 @@ export class ToolbarGroupByPage extends BasePage {
     await this.toolbar.clickGroupBy();
 
     // Update the Column and Direction of the Group By at the given index
-    await this.rootPage.locator('.nc-sort-field-select').nth(index).click();
+    await this.rootPage.locator('.nc-group-field-select').nth(index).click();
     await this.rootPage
       .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
       .locator(`div[label="${title}"]`)

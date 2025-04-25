@@ -701,6 +701,10 @@ const errorHelpers: {
     message: (filter: string) => `Filter '${filter}' is invalid`,
     code: 422,
   },
+  [NcErrorType.INVALID_FILTERV3]: {
+    message: (message: string) => `Invalid filter expression: ${message}`,
+    code: 422,
+  },
   [NcErrorType.INVALID_SHARED_VIEW_PASSWORD]: {
     message: 'Invalid shared view password',
     code: 403,
@@ -1032,6 +1036,13 @@ export class NcError {
   static invalidFilter(filter: string, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.INVALID_FILTER, {
       params: filter,
+      ...args,
+    });
+  }
+
+  static invalidFilterV3(message: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.INVALID_FILTERV3, {
+      params: message,
       ...args,
     });
   }

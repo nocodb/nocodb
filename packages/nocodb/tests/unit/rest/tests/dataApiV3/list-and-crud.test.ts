@@ -1482,7 +1482,7 @@ describe('dataApiV3', () => {
         await ncAxiosLinkGet({
           ...validParams,
           urlParams: { ...validParams.urlParams, tableId: 9999 },
-          status: 404,
+          status: 422,
         });
 
         // Link List: Invalid link ID
@@ -1605,9 +1605,8 @@ describe('dataApiV3', () => {
 
         await nestedRemoveTests(validParams);
       });
-      /*
 
-      it.skip('Error handling : HM: Nested List', async function () {
+      it('Error handling : HM: Nested List', async function () {
         // Prepare data
         await ncAxiosLinkAdd({
           urlParams: {
@@ -1636,7 +1635,7 @@ describe('dataApiV3', () => {
       });
 
       // Error handling (belongs to)
-      it.skip('Error handling : BT: Nested ADD', async function () {
+      it('Error handling : BT: Nested ADD', async function () {
         const validParams = {
           urlParams: {
             tableId: tblCity.id,
@@ -1650,7 +1649,7 @@ describe('dataApiV3', () => {
         await nestedAddTests(validParams, 'bt');
       });
 
-      it.skip('Error handling : BT: Nested REMOVE', async function () {
+      it('Error handling : BT: Nested REMOVE', async function () {
         // Prepare data
         await ncAxiosLinkAdd({
           urlParams: {
@@ -1675,7 +1674,7 @@ describe('dataApiV3', () => {
         await nestedRemoveTests(validParams, 'bt');
       });
 
-      it.skip('Error handling : BT: Nested List', async function () {
+      it('Error handling : BT: Nested List', async function () {
         // Prepare data
         await ncAxiosLinkAdd({
           urlParams: {
@@ -1704,7 +1703,7 @@ describe('dataApiV3', () => {
       });
 
       // Error handling (many-many)
-      it.skip('Error handling : MM: Nested ADD', async function () {
+      it('Error handling : MM: Nested ADD', async function () {
         const validParams = {
           urlParams: {
             tableId: tblActor.id,
@@ -1718,7 +1717,7 @@ describe('dataApiV3', () => {
         await nestedAddTests(validParams);
       });
 
-      it.skip('Error handling : MM: Nested REMOVE', async function () {
+      it('Error handling : MM: Nested REMOVE', async function () {
         // Prepare data
         await ncAxiosLinkAdd({
           urlParams: {
@@ -1743,7 +1742,7 @@ describe('dataApiV3', () => {
         await nestedRemoveTests(validParams);
       });
 
-      it.skip('Error handling : MM: Nested List', async function () {
+      it('Error handling : MM: Nested List', async function () {
         // Prepare data
         await ncAxiosLinkAdd({
           urlParams: {
@@ -1770,7 +1769,6 @@ describe('dataApiV3', () => {
 
         await nestedListTests(validParams);
       });
-      */
     });
   });
 });

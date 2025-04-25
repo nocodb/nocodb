@@ -416,6 +416,18 @@ export const generateFkName = (parent: TableType, child: TableType) => {
   return constraintName;
 };
 
+// Generate unique index name for custom link based on table title and column name
+export const generateIndexNameForCustomLink = (tableTitle: string, columnName: string) => {
+  // sanitize and shorten tableTitle and columnName (max 10 chars each)
+  const sanitizedTable = tableTitle.replace(/\W+/g, '_').slice(0, 10);
+  const sanitizedColumn = columnName.replace(/\W+/g, '_').slice(0, 10);
+
+  // max length 40 chars, prefix with "idx_" to indicate index name
+  const indexName = `idx_${sanitizedTable}_${sanitizedColumn}_${randomID()}`;
+
+  return indexName;
+};
+
 export async function populateRollupForLTAR({
   context,
   column,

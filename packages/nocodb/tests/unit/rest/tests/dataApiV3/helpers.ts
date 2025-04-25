@@ -41,3 +41,4 @@ export function prepareRecords(
 export function getColumnId(columns: ColumnType[], title: string) {
   return columns.find((c) => c.title === title)!.id!;
 }
+export const idc = (r1: any, r2: any) => r1.Id - r2.Id;

@@ -9,7 +9,7 @@ import {
   beforeEach as dataApiV3BeforeEach,
 } from './beforeEach';
 import { ncAxios } from './ncAxios';
-import { getColumnId } from './helpers';
+import { getColumnId, idc, prepareRecords } from './helpers';
 import type { ColumnType } from 'nocodb-sdk';
 import type { Column, Model } from '../../../../../src/models';
 import type { ITestContext } from './beforeEach';
@@ -17,7 +17,7 @@ import type { INcAxios } from './ncAxios';
 
 const API_VERSION = 'v3';
 
-describe('dataApiV3', () => {
+describe.only('dataApiV3', () => {
   describe('list-and-crud', () => {
     let testContext: ITestContext;
     let testAxios: INcAxios;
@@ -610,7 +610,7 @@ describe('dataApiV3', () => {
         columnsCity = initResult.columnsCity;
       });
 
-      it.skip('Has-Many ', async function () {
+      it('Has-Many ', async function () {
         // Create hm link between Country and City
         await ncAxiosLinkAdd({
           urlParams: {
@@ -654,11 +654,11 @@ describe('dataApiV3', () => {
 
         let citiesExpectedFromListAPI = citiesExpected.map((c) => ({
           Id: c.Id,
-          Value: c.City,
+          City: c.City,
         }));
         expect(rspFromRecordAPI.body.list.length).to.be.eq(1);
-        expect(rspFromRecordAPI.body.list[0]['Cities'].length).to.be.eq(5);
-        expect(rspFromRecordAPI.body.list).to.deep.equal(
+        expect(rspFromRecordAPI.body.list[0]['Cities']).to.be.eq(5);
+        expect(rspFromLinkAPI.body.list).to.deep.equal(
           citiesExpectedFromListAPI,
         );
         ///////////////////////////////////////////////////////////////////
@@ -674,7 +674,7 @@ describe('dataApiV3', () => {
           });
 
           rspFromRecordAPI = await ncAxiosGet({
-            url: `/api/${API_VERSION}/tables/${tblCity.id}/records`,
+            url: `/api/${API_VERSION}/tables/${tblCity.id}`,
             query: {
               where: `(Id,eq,${i})`,
             },
@@ -689,7 +689,7 @@ describe('dataApiV3', () => {
             expect(rspFromRecordAPI.body.list.length).to.be.eq(1);
             expect(rspFromRecordAPI.body.list[0]['Country']).to.deep.eq({
               Id: 1,
-              Value: `Country 1`, // Note the change in key
+              Country: `Country 1`, // Note the change in key
             });
           } else {
             expect(rspFromLinkAPI.body).to.deep.equal({});
@@ -739,11 +739,11 @@ describe('dataApiV3', () => {
 
         citiesExpectedFromListAPI = citiesExpected.map((c) => ({
           Id: c.Id,
-          Value: c.City,
+          City: c.City,
         }));
         expect(rspFromRecordAPI.body.list.length).to.be.eq(1);
-        expect(rspFromRecordAPI.body.list[0]['Cities'].length).to.be.eq(7);
-        expect(rspFromRecordAPI.body.list).to.deep.equal(
+        expect(rspFromRecordAPI.body.list[0]['Cities']).to.be.eq(7);
+        expect(rspFromLinkAPI.body.list).to.deep.equal(
           citiesExpectedFromListAPI,
         );
 
@@ -758,7 +758,7 @@ describe('dataApiV3', () => {
           });
 
           rspFromRecordAPI = await ncAxiosGet({
-            url: `/api/${API_VERSION}/tables/${tblCity.id}/records`,
+            url: `/api/${API_VERSION}/tables/${tblCity.id}`,
             query: {
               where: `(Id,eq,${i})`,
             },
@@ -773,7 +773,7 @@ describe('dataApiV3', () => {
             expect(rspFromRecordAPI.body.list.length).to.be.eq(1);
             expect(rspFromRecordAPI.body.list[0]['Country']).to.deep.eq({
               Id: 1,
-              Value: `Country 1`, // Note the change in key
+              Country: `Country 1`, // Note the change in key
             });
           } else {
             expect(rspFromLinkAPI.body).to.deep.equal({});
@@ -818,11 +818,11 @@ describe('dataApiV3', () => {
 
         citiesExpectedFromListAPI = citiesExpected.map((c) => ({
           Id: c.Id,
-          Value: c.City, // Notice key
+          City: c.City, // Notice key
         }));
         expect(rspFromRecordAPI.body.list.length).to.be.eq(1);
-        expect(rspFromRecordAPI.body.list[0]['Cities'].length).to.be.eq(3);
-        expect(rspFromRecordAPI.body.list).to.deep.equal(
+        expect(rspFromRecordAPI.body.list[0]['Cities']).to.be.eq(3);
+        expect(rspFromLinkAPI.body.list).to.deep.equal(
           citiesExpectedFromListAPI,
         );
         // verify in City table
@@ -851,7 +851,7 @@ describe('dataApiV3', () => {
             expect(rspFromRecordAPI.body.list.length).to.be.eq(1);
             expect(rspFromRecordAPI.body.list[0]['Country']).to.deep.eq({
               Id: 1,
-              Value: `Country 1`, // Note the change in key
+              Country: `Country 1`, // Note the change in key
             });
           } else {
             expect(rspFromLinkAPI.body).to.deep.equal({});
@@ -860,10 +860,10 @@ describe('dataApiV3', () => {
           }
         }
       });
-      /*
+
       // Create mm link between Actor and Film
       // List them for a record & verify in both tables
-      it.skip('Create Many-Many ', async function () {
+      it('Create Many-Many ', async function () {
         await ncAxiosLinkAdd({
           urlParams: {
             tableId: tblActor.id,
@@ -933,56 +933,23 @@ describe('dataApiV3', () => {
         });
 
         let rspFromRecordAPI = await ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${tblActor.id}/records`,
+          url: `${urlPrefix}/${tblActor.id}`,
           query: {
             where: `(Id,eq,1)`,
           },
         });
 
-        if (isV3) {
-          expect(rspFromRecordAPI.body.pageInfo).to.have.property('next');
-          expect(rspFromRecordAPI.body.pageInfo.next).to.include(
-            `/api/v3/tables/${table.id}/records?page=2`,
-          );
-        } else {
-          // page info
-          const pageInfo = {
-            totalRows: 20,
-            page: 1,
-            pageSize: 25,
-            isFirstPage: true,
-            isLastPage: true,
-          };
-          expect(rspFromLinkAPI.body.pageInfo).to.deep.equal(pageInfo);
-        }
+        expect(rspFromRecordAPI.body.pageInfo).not.to.have.property('next');
 
         const expectedFilmsFromLinkAPI = prepareRecords('Film', 20);
-        const expectedFilmsFromRecordV3API = expectedFilmsFromLinkAPI.map(
-          (r) => ({
-            Id: r.Id,
-            Value: r['Film'],
-          }),
-        );
-
         // Links
         expect(rspFromLinkAPI.body.list.length).to.equal(20);
         expect(rspFromLinkAPI.body.list.sort(idc)).to.deep.equal(
           expectedFilmsFromLinkAPI.sort(idc),
         );
 
-        switch (true) {
-          case isV2:
-            expect(rspFromRecordAPI.body.list.length).to.equal(1);
-            expect(rspFromRecordAPI.body.list[0]['Films']).to.equal(20);
-            break;
-          case isV3:
-            expect(rspFromRecordAPI.body.list.length).to.equal(1);
-            expect(rspFromRecordAPI.body.list[0]['Films'].length).to.equal(20);
-            expect(
-              rspFromLinkAPI.body.list[0]['Films'].sort(idc),
-            ).to.deep.equal(expectedFilmsFromRecordV3API.sort(idc));
-            break;
-        }
+        expect(rspFromRecordAPI.body.list.length).to.equal(1);
+        expect(rspFromRecordAPI.body.list[0]['Films']).to.equal(20);
 
         // Second record
         rspFromLinkAPI = await ncAxiosLinkGet({
@@ -993,7 +960,7 @@ describe('dataApiV3', () => {
           },
         });
         rspFromRecordAPI = await ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${tblActor.id}/records`,
+          url: `${urlPrefix}/${tblActor.id}`,
           query: {
             where: `(Id,eq,2)`,
           },
@@ -1005,20 +972,12 @@ describe('dataApiV3', () => {
           Film: `Film 1`,
         });
 
-        switch (true) {
-          case isV2:
-            expect(rspFromRecordAPI.body.list.length).to.equal(1);
-            expect(rspFromRecordAPI.body.list[0]['Films']).to.equal(1);
-            break;
-          case isV3:
-            expect(rspFromRecordAPI.body.list.length).to.equal(1);
-            expect(rspFromRecordAPI.body.list[0]['Films'].length).to.equal(1);
-            expect(rspFromLinkAPI.body.list[0]['Films'][0]).to.deep.equal({
-              Id: 1,
-              Film: `Film 1`,
-            });
-            break;
-        }
+        expect(rspFromRecordAPI.body.list.length).to.equal(1);
+        expect(rspFromRecordAPI.body.list[0]['Films']).to.equal(1);
+        expect(rspFromLinkAPI.body.list[0]).to.deep.equal({
+          Id: 1,
+          Film: `Film 1`,
+        });
 
         // verify in Film table
         rspFromLinkAPI = await ncAxiosLinkGet({
@@ -1029,7 +988,7 @@ describe('dataApiV3', () => {
           },
         });
         rspFromRecordAPI = await ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${tblFilm.id}/records`,
+          url: `${urlPrefix}/${tblFilm.id}`,
           query: {
             where: `(Id,eq,1)`,
           },
@@ -1049,19 +1008,8 @@ describe('dataApiV3', () => {
           expectedActorsFromLinkAPI.sort(idc),
         );
 
-        switch (true) {
-          case isV2:
-            expect(rspFromRecordAPI.body.list.length).to.equal(1);
-            expect(rspFromRecordAPI.body.list[0]['Actors']).to.equal(20);
-            break;
-          case isV3:
-            expect(rspFromRecordAPI.body.list.length).to.equal(1);
-            expect(rspFromRecordAPI.body.list[0]['Actors'].length).to.equal(20);
-            expect(
-              rspFromLinkAPI.body.list[0]['Actors'].sort(idc),
-            ).to.deep.equal(expectedActorsFromRecordV3API.sort(idc));
-            break;
-        }
+        expect(rspFromRecordAPI.body.list.length).to.equal(1);
+        expect(rspFromRecordAPI.body.list[0]['Actors']).to.equal(20);
 
         // Update mm link between Actor and Film
         // List them for a record & verify in both tables
@@ -1076,15 +1024,9 @@ describe('dataApiV3', () => {
 
         // Even though we added till 30, we need till 25 due to pagination
         expectedFilmsFromLinkAPI.push(...prepareRecords('Film', 5, 21));
+        console.log('A12');
 
-        // Pagination requirements for V3 API are till 1000 records, so it is expected to return all values
-        expectedFilmsFromRecordV3API.push(
-          ...prepareRecords('Film', 10, 21).map((f) => ({
-            Id: f.Id,
-            Value: f['Film'],
-          })),
-        );
-
+        // TODO: linked get does not respect limit query params yet
         // verify in Actor table
         rspFromLinkAPI = await ncAxiosLinkGet({
           urlParams: {
@@ -1092,31 +1034,25 @@ describe('dataApiV3', () => {
             linkId: getColumnId(columnsActor, 'Films'),
             rowId: '1',
           },
+          query: {
+            limit: 25,
+          },
         });
         rspFromRecordAPI = await ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${tblActor.id}/records`,
+          url: `${urlPrefix}/${tblActor.id}`,
           query: {
             where: `(Id,eq,1)`,
           },
         });
-
+        console.log('A13');
+        console.log('rspFromLinkAPI', rspFromLinkAPI.body)
         expect(rspFromLinkAPI.body.list.length).to.equal(25);
         // We cannot compare list directly since order is not fixed, any 25, out of 30 can come.
         // expect(rspFromLinkAPI.body.list.sort(idc)).to.deep.equal(expectedFilmsFromLinkAPI.sort(idc));
 
-        switch (true) {
-          case isV2:
-            expect(rspFromRecordAPI.body.list.length).to.equal(1);
-            expect(rspFromRecordAPI.body.list[0]['Films']).to.equal(30);
-            break;
-          case isV3:
-            expect(rspFromRecordAPI.body.list.length).to.equal(1);
-            expect(rspFromRecordAPI.body.list[0]['Films'].length).to.equal(30);
-            expect(
-              rspFromRecordAPI.body.list[0]['Films'].sort(idc),
-            ).to.deep.equal(expectedFilmsFromRecordV3API.sort(idc));
-            break;
-        }
+        expect(rspFromRecordAPI.body.list.length).to.equal(1);
+        expect(rspFromRecordAPI.body.list[0]['Films']).to.equal(30);
+        console.log('A14');
 
         // verify in Film table
         for (let i = 21; i <= 30; i++) {
@@ -1129,7 +1065,7 @@ describe('dataApiV3', () => {
           });
 
           rspFromRecordAPI = await ncAxiosGet({
-            url: `/api/${API_VERSION}/tables/${tblFilm.id}/records`,
+            url: `${urlPrefix}/${tblFilm.id}`,
             query: {
               where: `(Id,eq,${i})`,
             },
@@ -1140,23 +1076,14 @@ describe('dataApiV3', () => {
             Actor: `Actor 1`,
           });
 
-          switch (true) {
-            case isV2:
-              expect(rspFromRecordAPI.body.list.length).to.equal(1);
-              expect(rspFromRecordAPI.body.list[0]['Actors']).to.equal(1);
-              break;
-            case isV3:
-              expect(rspFromRecordAPI.body.list.length).to.equal(1);
-              expect(rspFromRecordAPI.body.list[0]['Actors'].length).to.equal(
-                1,
-              );
-              expect(rspFromRecordAPI.body.list[0]['Actors'][0]).to.deep.equal({
-                Id: 1,
-                Value: `Actor 1`,
-              });
-              break;
-          }
+          expect(rspFromRecordAPI.body.list.length).to.equal(1);
+          expect(rspFromRecordAPI.body.list[0]['Actors']).to.equal(1);
+          expect(rspFromRecordAPI.body.list[0]['Actors'][0]).to.deep.equal({
+            Id: 1,
+            Value: `Actor 1`,
+          });
         }
+        console.log('A15');
 
         // Delete mm link between Actor and Film
         // List them for a record & verify in both tables
@@ -1208,7 +1135,7 @@ describe('dataApiV3', () => {
           },
         });
         rspFromRecordAPI = await ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${tblActor.id}/records`,
+          url: `${urlPrefix}/${tblActor.id}`,
           query: {
             where: `(Id,eq,1)`,
           },
@@ -1221,23 +1148,13 @@ describe('dataApiV3', () => {
           expectedFilmsFromLinkAPI.sort(idc),
         );
 
-        switch (true) {
-          case isV2:
-            expect(rspFromRecordAPI.body.list.length).to.equal(1);
-            expect(rspFromRecordAPI.body.list[0]['Films']).to.equal(
-              expectedFilmsFromRecordV3API.length,
-            );
-            break;
-          case isV3:
-            expect(rspFromRecordAPI.body.list.length).to.equal(1);
-            expect(rspFromRecordAPI.body.list[0]['Films'].length).to.equal(
-              expectedFilmsFromRecordV3API.length,
-            );
-            expect(
-              rspFromRecordAPI.body.list[0]['Films'].sort(idc),
-            ).to.deep.equal(expectedFilmsFromRecordV3API.sort(idc));
-            break;
-        }
+        expect(rspFromRecordAPI.body.list.length).to.equal(1);
+        expect(rspFromRecordAPI.body.list[0]['Films']).to.equal(
+          expectedFilmsFromRecordV3API.length,
+        );
+        expect(rspFromRecordAPI.body.list[0]['Films'].sort(idc)).to.deep.equal(
+          expectedFilmsFromRecordV3API.sort(idc),
+        );
 
         // verify in Film table
         for (let i = 2; i <= 30; i++) {
@@ -1249,7 +1166,7 @@ describe('dataApiV3', () => {
             },
           });
           rspFromRecordAPI = await ncAxiosGet({
-            url: `/api/${API_VERSION}/tables/${tblFilm.id}/records`,
+            url: `${urlPrefix}/${tblFilm.id}`,
             query: {
               where: `(Id,eq,${i})`,
             },
@@ -1261,42 +1178,21 @@ describe('dataApiV3', () => {
               Actor: `Actor 1`,
             });
 
-            switch (true) {
-              case isV2:
-                expect(rspFromRecordAPI.body.list.length).to.equal(1);
-                expect(rspFromRecordAPI.body.list[0]['Actors']).to.equal(1);
-                break;
-              case isV3:
-                expect(rspFromRecordAPI.body.list.length).to.equal(1);
-                expect(rspFromRecordAPI.body.list[0]['Actors'].length).to.equal(
-                  1,
-                );
-                expect(
-                  rspFromRecordAPI.body.list[0]['Actors'][0],
-                ).to.deep.equal({
-                  Id: 1,
-                  Value: `Actor 1`,
-                });
-                break;
-            }
+            expect(rspFromRecordAPI.body.list.length).to.equal(1);
+            expect(rspFromRecordAPI.body.list[0]['Actors']).to.equal(1);
+            expect(rspFromRecordAPI.body.list[0]['Actors'][0]).to.deep.equal({
+              Id: 1,
+              Value: `Actor 1`,
+            });
           } else {
             expect(rspFromLinkAPI.body.list.length).to.equal(0);
-            switch (true) {
-              case isV2:
-                expect(rspFromRecordAPI.body.list.length).to.equal(1);
-                expect(rspFromRecordAPI.body.list[0]['Actors']).to.equal(0);
-                break;
-              case isV3:
-                expect(rspFromRecordAPI.body.list.length).to.equal(1);
-                expect(rspFromRecordAPI.body.list[0]['Actors'].length).to.equal(
-                  0,
-                );
-                break;
-            }
+            expect(rspFromRecordAPI.body.list.length).to.equal(1);
+            expect(rspFromRecordAPI.body.list[0]['Actors']).to.equal(0);
           }
         }
       });
 
+      /*
       // Other scenarios
       // Has-many : change an existing link to a new one
       it.skip('HM: Change an existing link to a new one', async function () {

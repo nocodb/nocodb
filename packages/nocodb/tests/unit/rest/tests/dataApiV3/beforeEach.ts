@@ -53,15 +53,22 @@ export const beforeEach = async () => {
 };
 
 export const beforeEachTextBased = async (testContext: ITestContext) => {
+  const createColumns = customColumns('textBased', undefined, {
+    Email: {
+      func: ['isEmail'],
+      args: [''],
+      msg: ['Validation failed : isEmail'],
+      validate: true,
+    },
+  });
   const table = await createTable(testContext.context, testContext.base, {
     table_name: 'textBased',
     title: 'TextBased',
-    columns: customColumns('textBased'),
+    columns: createColumns,
   });
 
   // retrieve column meta
   const columns = await table.getColumns(testContext.ctx);
-
   // build records
   const rowAttributes: {
     SingleLineText: string | string[] | number | null;

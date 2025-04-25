@@ -619,6 +619,10 @@ const errorHelpers: {
     message: (id: string) => `Field '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.FIELD_NOT_FOUNDV3]: {
+    message: (id: string) => `Field '${id}' not found`,
+    code: 422,
+  },
   [NcErrorType.HOOK_NOT_FOUND]: {
     message: (id: string) => `Hook '${id}' not found`,
     code: 404,
@@ -947,6 +951,13 @@ export class NcError {
 
   static fieldNotFound(id: string, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.FIELD_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static fieldNotFoundV3(id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.FIELD_NOT_FOUNDV3, {
       params: id,
       ...args,
     });

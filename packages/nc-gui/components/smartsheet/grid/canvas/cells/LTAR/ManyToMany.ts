@@ -180,7 +180,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
 
     Object.assign(cellRenderStore, { ltar: returnData })
 
-    if (selected && isBoxHovered({ x, y, width, height }, mousePosition)) {
+    if (selected) {
       const borderRadius = 6
 
       if (!readonly) {

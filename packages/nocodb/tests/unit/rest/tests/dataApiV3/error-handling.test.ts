@@ -5,8 +5,12 @@ import request from 'supertest';
 import { createBulkRows } from '../../../factory/row';
 import { createTable, getTable } from '../../../factory/table';
 import { createUser } from '../../../factory/user';
-import { beforeEach as dataApiV3BeforeEach } from './beforeEach';
+import {
+  beforeEachTextBased,
+  beforeEach as dataApiV3BeforeEach,
+} from './beforeEach';
 import { ncAxios } from './ncAxios';
+import type { Column, Model } from '../../../../../src/models';
 import type { ITestContext } from './beforeEach';
 import type { INcAxios } from './ncAxios';
 
@@ -91,28 +95,28 @@ describe('dataApiV3', () => {
           limit: 0,
         },
       });
-      console.log(response.status)
+      console.log(response.status);
       response = await ncAxiosGet({
         url: `${urlPrefix}/${testContext.countryTable.id}`,
         query: {
           limit: 1000,
         },
       });
-      console.log(response.status)
+      console.log(response.status);
       response = await ncAxiosGet({
         url: `${urlPrefix}/${testContext.countryTable.id}`,
         query: {
           limit: -1,
         },
       });
-      console.log(response.status)
+      console.log(response.status);
       response = await ncAxiosGet({
         url: `${urlPrefix}/${testContext.countryTable.id}`,
         query: {
           limit: 'Hello',
         },
       });
-      console.log(response.status)
+      console.log(response.status);
     });
 
     it('tableId not found', async () => {
@@ -374,6 +378,46 @@ describe('dataApiV3', () => {
       expect(response.body.message).to.eq(
         'Cannot GET /api/v3/mybase/mytable/unknown-path/1234',
       );
+    });
+
+    describe('text-based', () => {
+      let table: Model;
+      let columns: Column[] = [];
+      let expectedColumns: Column[] = [];
+      let insertedRecords: any[];
+
+      beforeEach(async function () {
+        const initResult = await beforeEachTextBased(testContext);
+        table = initResult.table;
+        columns = initResult.columns;
+        expectedColumns = [
+          // if we want to include created at & updated at as default
+          { column_name: 'CreatedAt', title: 'CreatedAt' } as any,
+          { column_name: 'UpdatedAt', title: 'UpdatedAt' } as any,
+          ...columns,
+        ];
+        insertedRecords = initResult.insertedRecords;
+        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      });
+
+      it.only(`will handle update record not found`, async () => {
+        const response = await ncAxiosPatch({
+          url: `${urlPrefix}/${table.id}`,
+          body: [
+            {
+              Id: 1,
+              SingleLineText: 'Hello',
+            },
+            {
+              Id: 998091,
+              SingleLineText: 'Hello',
+            },
+          ],
+          status: 404,
+        });
+        expect(response.body.error).to.eq('RECORD_NOT_FOUND');
+        expect(response.body.message).to.eq(`Record '998091' not found`);
+      });
     });
   });
 });

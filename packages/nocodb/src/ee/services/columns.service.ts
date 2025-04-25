@@ -1,6 +1,7 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import {
   ColumnsService as ColumnsServiceCE,
+  type CustomLinkProps,
   reuseOrSave,
 } from 'src/services/columns.service';
 import { isLinksOrLTAR, isVirtualCol, UITypes } from 'nocodb-sdk';
@@ -15,7 +16,14 @@ import type {
 import type { ReusableParams } from '~/services/columns.service.type';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Source } from '~/models';
-import { Base, Column, Filter, Model, View } from '~/models';
+import {
+  Base,
+  Column,
+  Filter,
+  LinkToAnotherRecordColumn,
+  Model,
+  View,
+} from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MetaService } from '~/meta/meta.service';
 import {
@@ -31,15 +39,6 @@ import { NcError } from '~/helpers/catchError';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
-
-interface CustomLinkProps {
-  column_id: string;
-  ref_model_id: string;
-  ref_column_id: string;
-  junc_model_id: string;
-  junc_column_id: string;
-  junc_ref_column_id: string;
-}
 
 @Injectable()
 export class ColumnsService extends ColumnsServiceCE {
@@ -346,7 +345,7 @@ export class ColumnsService extends ColumnsServiceCE {
     return super.createLTARColumn(context, param);
   }
 
-  private async createCustomLinkIndexIfMissing(
+  protected async createCustomLinkIndexIfMissing(
     context: NcContext,
     {
       ltarCustomProps,
@@ -410,6 +409,70 @@ export class ColumnsService extends ColumnsServiceCE {
       });
 
       await Column.updateCustomIndexName(context, columnId, indexName);
+    }
+  }
+
+  protected async deleteCustomLinkIndex(
+    context: NcContext,
+    {
+      ltarCustomProps,
+      isMm = false,
+      reuse,
+      source,
+    }: {
+      ltarCustomProps: CustomLinkProps;
+      isMm: boolean;
+      reuse?: ReusableParams;
+      source: Source;
+    },
+  ) {
+    const columnIds = [
+      ltarCustomProps.column_id,
+      ltarCustomProps.ref_column_id,
+    ];
+
+    if (isMm) {
+      columnIds.push(
+        ltarCustomProps.junc_column_id,
+        ltarCustomProps.junc_ref_column_id,
+      );
+    }
+
+    const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+      ProjectMgrv2.getSqlMgr(context, {
+        id: source.base_id,
+      }),
+    );
+
+    for (const columnId of columnIds) {
+      const column = await Column.get(context, { colId: columnId });
+      if (
+        !column.custom_index_name ||
+        column.pk ||
+        column.uidt === UITypes.ForeignKey
+      ) {
+        continue;
+      }
+
+      // check if column is used in any other custom link
+      const isUsedInCustomLink =
+        await LinkToAnotherRecordColumn.isUsedInCustomLink(context, column.id);
+
+      // if column is used in any other custom link, skip deleting the index
+      if (isUsedInCustomLink) {
+        continue;
+      }
+
+      const table = await Model.get(context, column.fk_model_id);
+
+      await sqlMgr.sqlOpPlus(source, 'indexDelete', {
+        tn: table.table_name,
+        columns: [column.column_name],
+        indexName: column.custom_index_name,
+        non_unique_original: true,
+      });
+
+      await Column.updateCustomIndexName(context, column.id, null);
     }
   }
 }

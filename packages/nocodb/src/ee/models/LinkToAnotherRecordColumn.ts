@@ -76,4 +76,19 @@ export default class LinkToAnotherRecordColumn extends LinkToAnotherRecordColumn
       ncMeta,
     )) as any);
   }
+
+  static async isUsedInCustomLink(
+    context: NcContext,
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    return !!(await ncMeta
+      .knex(MetaTable.COL_RELATIONS)
+      .select('id')
+      .where({ fk_parent_column_id: columnId })
+      .orWhere({ fk_child_column_id: columnId })
+      .orWhere({ fk_mm_parent_column_id: columnId })
+      .orWhere({ fk_mm_child_column_id: columnId })
+      .first());
+  }
 }

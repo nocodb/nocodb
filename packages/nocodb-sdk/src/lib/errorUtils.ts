@@ -7,14 +7,14 @@ export class NcSDKError extends Error {
 }
 export interface NcSDKErrorV2Info {
   message: string;
-  errorType: NcErrorType;
+  error: NcErrorType;
   getStatus?: () => number;
 }
 export class NcSDKErrorV2 extends Error {
   constructor(info: NcSDKErrorV2Info) {
     super(info.message);
     this.getStatus = info.getStatus;
-    this.errorType = info.errorType;
+    this.errorType = info.error;
   }
   info: NcSDKErrorV2Info;
   getStatus?: () => number;

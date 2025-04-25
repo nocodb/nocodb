@@ -198,5 +198,13 @@ describe('dataApiV3', () => {
         status: 404,
       });
     });
+
+    it('record id not found', async () => {
+      const response = await ncAxiosGet({
+        url: `${urlPrefix}/${testContext.countryTable.id}/1032`,
+        status: 404,
+      });
+      expect(response.body.message).to.eq("Record '1032' not found");
+    });
   });
 });

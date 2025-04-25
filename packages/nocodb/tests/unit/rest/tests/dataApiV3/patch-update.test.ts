@@ -129,7 +129,7 @@ describe('dataApiV3', () => {
         await ncAxiosPatch({
           url: `${urlPrefix}/123456789`,
           body: { Id: 100, SingleLineText: 'some text' },
-          status: 404,
+          status: 422,
         });
         // Invalid row ID
         await ncAxiosPatch({

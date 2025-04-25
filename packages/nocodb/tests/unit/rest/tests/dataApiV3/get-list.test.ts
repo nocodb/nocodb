@@ -666,7 +666,7 @@ describe('dataApiV3', () => {
         // Invalid table ID
         await ncAxiosGet({
           url: `${urlPrefix}/123456789`,
-          status: 404,
+          status: 422,
         });
 
         // Invalid view ID

@@ -93,6 +93,7 @@ export const ncAxios = (testContext: ITestContext) => {
       .set('xc-auth', testContext.context.token)
       .query(query)
       .send({});
+
     expect(response.status).to.equal(status);
     return response;
   }

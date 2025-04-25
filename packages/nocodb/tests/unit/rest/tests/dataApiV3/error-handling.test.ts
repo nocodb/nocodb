@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { expect } from 'chai';
 import request from 'supertest';
+import { createUser } from '../../../factory/user';
 import { beforeEach as dataApiV3BeforeEach } from './beforeEach';
 import { ncAxios } from './ncAxios';
 import type { ITestContext } from './beforeEach';
@@ -49,6 +50,28 @@ describe('dataApiV3', () => {
       expect(response.status).to.equal(401);
       expect(response.body.msg).to.equal('Invalid token');
     });
+    it('token has no permission', async () => {
+      const newUser = await createUser(
+        { app: testContext.context.app },
+        { roles: 'editor', email: 'notpermitteduser@example.com' },
+      );
+      const { token: newUserToken } = newUser;
+
+      const notPermittedXcToken = (
+        await request(testContext.context.app)
+          .post('/api/v1/tokens/')
+          .set('xc-auth', newUserToken)
+          .expect(200)
+      ).body.token;
+
+      const response = await request(testContext.context.app)
+        .get(`${urlPrefix}/${testContext.countryTable.id}`)
+        .set('xc-token', notPermittedXcToken)
+        .send({});
+      expect(response.status).to.equal(403);
+      expect(response.body.msg).to.equal('Unauthorized access');
+    });
+
     // we revert to default limit if provided limit is outside of allowed range
     it.skip('Invalid Page Size', async () => {
       let response = await ncAxiosGet({

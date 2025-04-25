@@ -1227,7 +1227,6 @@ export function useCanvasRender({
           ctx.fillStyle = '#F6F7FE'
           ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
         } else if (isRowCellSelected) {
-          console.log('row select', isRowCellSelected)
           ctx.fillStyle = 'red'
         }
 

@@ -5444,6 +5444,10 @@
           "stripe_customer_id": {
             "description": "Stripe customer ID",
             "type": "string"
+          },
+          "sso_only_access": {
+            "description": "SSO only access",
+            "type": "boolean"
           }
         },
         "title": "Workspace",

@@ -9,7 +9,7 @@ import dayjs from 'dayjs';
 import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import type Stripe from 'stripe';
 import { NcError } from '~/helpers/catchError';
-import { Org, Subscription, Workspace } from '~/models';
+import { Domain, Org, Subscription, Workspace } from '~/models';
 import Noco from '~/Noco';
 import Plan, {
   FreePlan,
@@ -375,6 +375,19 @@ export function calculateUnitPrice(
   return price.unit_amount / 100 / (mode === 'year' ? 12 : 1);
 }
 
+// check if email only allowed through sso LOGIN
+export const checkIfEmailAllowedNonSSO = async (
+  workspaceId: string,
+  email: string,
+) => {
+  const domains = await Domain.list({
+    workspaceId,
+  });
+
+  return (
+    !!email && domains?.some((d: Domain) => d.domain === email?.split('@')[1])
+  );
+};
 export {
   PlanLimitTypes,
   PlanFeatureTypes,

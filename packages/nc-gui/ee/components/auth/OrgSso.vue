@@ -16,7 +16,8 @@ useSidebar('nc-left-sidebar', { hasSidebar: false })
 const formValidator = ref()
 
 const form = reactive({
-  email: '',
+  // load initial value from query param if provided
+  email: route.value.query?.email || '',
 })
 
 watch(
@@ -72,6 +73,13 @@ async function getSsoClients() {
 function resetError() {
   if (error.value) error.value = null
 }
+
+// on load if email is provided, call getSsoClients
+onMounted(() => {
+  if (form.email) {
+    getSsoClients()
+  }
+})
 </script>
 
 <template>
@@ -79,7 +87,7 @@ function resetError() {
     data-testid="nc-form-signin"
     class="md:bg-primary bg-opacity-5 signin h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin"
   >
-    <template v-if="!appInfo.isCloud">
+    <template v-if="!appInfo.isCloud && appInfo.ssoClients?.length">
       <div
         v-for="client of appInfo.ssoClients || []"
         :key="client.id"

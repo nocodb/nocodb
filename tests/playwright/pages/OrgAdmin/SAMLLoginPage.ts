@@ -2,6 +2,7 @@ import { Page } from '@playwright/test';
 import BasePage from '../Base';
 import { ProjectsPage } from '../ProjectsPage';
 import { CloudSSOLoginPage } from './SSOLoginPage';
+import { WorkspacePage } from '../WorkspacePage';
 
 export class CloudSAMLLoginPage extends BasePage {
   readonly projectsPage: ProjectsPage;
@@ -14,6 +15,8 @@ export class CloudSAMLLoginPage extends BasePage {
   }
 
   async goto(_title = 'test', email: string) {
+    // logout if already logged in
+
     await this.ssoLoginPage.goto(email);
     await this.ssoLoginPage.signIn({ email });
     // // reload page to get latest app info

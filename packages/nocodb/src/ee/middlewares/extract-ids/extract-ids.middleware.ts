@@ -56,7 +56,10 @@ import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { beforeAclValidationHook } from '~/middlewares/extract-ids/extract-ids.helpers';
 import { RootScopes } from '~/utils/globals';
 import SSOClient from '~/models/SSOClient';
-import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
+import {
+  checkIfEmailAllowedNonSSO,
+  checkIfWorkspaceSSOAvail,
+} from '~/helpers/paymentHelpers';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -418,7 +421,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     // todo:  verify all scenarios
     // extract workspace id based on request path params or
     // extract base id based on request path params
-    if ((params.baseId || params.baseName) && !req.ncBaseId && !isInternalWorkspaceScope) {
+    if (
+      (params.baseId || params.baseName) &&
+      !req.ncBaseId &&
+      !isInternalWorkspaceScope
+    ) {
       // we expect project_name to be id for EE
       const base = await Base.get(context, params.baseId ?? params.baseName);
       if (base) {
@@ -642,7 +649,7 @@ export class AclMiddleware implements NestInterceptor {
       }
     */
 
-    // if workspace associated to an sso, then only allow the workspace owner
+    // if workspace associated to SSO, then only allow the workspace owner
     // to access the workspace without sso login
     if (
       req.ncWorkspaceId &&
@@ -653,10 +660,11 @@ export class AclMiddleware implements NestInterceptor {
       const ssoClient = await SSOClient.list({
         workspaceId: req.ncWorkspaceId,
       });
-      if (ssoClient.length > 0) {
-        console.log(req.user?.workspace_roles);
-        console.log(req.user);
-        NcError.forbidden('User access limited to SSO login');
+      if (
+        ssoClient.length > 0 &&
+        (await checkIfEmailAllowedNonSSO(req.ncWorkspaceId, req.user?.email))
+      ) {
+        NcError.allowedOnlySSOAccess(req.ncWorkspaceId);
       }
     }
 

@@ -1,5 +1,6 @@
 // Function to verify TXT record
 import { promises as dnsPromises } from 'dns';
+import crypto from 'crypto';
 
 export async function verifyTXTRecord(domain, expectedRecord) {
   // if test environment, skip verification
@@ -23,4 +24,11 @@ export async function verifyTXTRecord(domain, expectedRecord) {
     console.error('Error verifying TXT record:', error.message);
     return false;
   }
+}
+
+export function generateRandomTxt() {
+  return `nocodb-verification-${crypto
+    .randomBytes(Math.ceil(32 / 2))
+    .toString('hex')
+    .slice(0, 32)}`;
 }

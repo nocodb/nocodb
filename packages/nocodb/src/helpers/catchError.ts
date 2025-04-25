@@ -737,6 +737,10 @@ const errorHelpers: {
     message: (message: string) => message || 'Plan limit exceeded',
     code: 403,
   },
+  [NcErrorType.SSO_LOGIN_REQUIRED]: {
+    message: (_workspaceId: string) => 'SSO login required for workspace',
+    code: 403,
+  },
 };
 
 function generateError(
@@ -1148,6 +1152,12 @@ export class NcError {
         ...details,
         ...(details?.plan ? { higherPlan: HigherPlan[details.plan] } : {}),
       },
+    });
+  }
+
+  static allowedOnlySSOAccess(ncWorkspaceId: string) {
+    throw new NcBaseErrorv2(NcErrorType.SSO_LOGIN_REQUIRED, {
+      params: ncWorkspaceId,
     });
   }
 }

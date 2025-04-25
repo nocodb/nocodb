@@ -1,8 +1,5 @@
 import { PublicMetasService as PublicMetasServiceCE } from 'src/services/public-metas.service';
 import { Injectable } from '@nestjs/common';
-import type { NcContext } from '~/interface/config';
-import { Base, FormView, FormViewColumn, Workspace } from '~/models';
-import { NcError } from '~/helpers/catchError';
 import {
   AttachmentValidationType,
   DateValidationType,
@@ -16,6 +13,10 @@ import {
   ViewTypes,
   YearValidationType,
 } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
+import type { FormView, FormViewColumn } from '~/models';
+import { Base, Workspace } from '~/models';
+import { NcError } from '~/helpers/catchError';
 import { getFeature } from '~/helpers/paymentHelpers';
 
 @Injectable()

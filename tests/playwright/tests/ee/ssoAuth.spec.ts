@@ -13,8 +13,6 @@ const getDomain = () => `test-${Math.random().toString(36).substring(7)}.nocodb.
 
 // TODO: ENABLE - FAILS ON CI ONLY
 test.describe.serial('SSO', () => {
-  test.skip();
-
   test.describe.serial('CRUD', () => {
     let accountsPage: AccountPage;
     let context: any;
@@ -277,6 +275,9 @@ test.describe.serial('SSO', () => {
     });
 
     test.afterEach(async () => {
+      await orgAdminPage.ssoPage.domain.deleteDomain(domain).catch(() => {
+        // do nothing
+      });
       await unsetup(context);
       await stopSAMLIpd();
     });

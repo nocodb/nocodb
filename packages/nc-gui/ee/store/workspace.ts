@@ -39,6 +39,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const deletingWorkspace = ref(false)
 
+  const ssoLoginRequiredDlg = ref(false)
+
   const { loadRoles } = useRoles()
 
   const { user: currentUser } = useGlobal()
@@ -572,6 +574,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     },
   )
 
+  const toggleSsoLoginRequiredDlg = (show = !ssoLoginRequiredDlg.value) => {
+    ssoLoginRequiredDlg.value = show
+  }
+
   return {
     loadWorkspaces,
     workspaces,
@@ -617,6 +623,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     navigateToFeed,
     isFeedPageOpened,
     deletingWorkspace,
+    ssoLoginRequiredDlg,
+    toggleSsoLoginRequiredDlg,
   }
 })
 

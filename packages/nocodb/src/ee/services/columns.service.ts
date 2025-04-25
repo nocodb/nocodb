@@ -395,7 +395,7 @@ export class ColumnsService extends ColumnsServiceCE {
     {
       ltarCustomProps,
       isMm = false,
-      reuse,
+      reuse = {},
       source,
     }: {
       ltarCustomProps: CustomLinkProps;
@@ -465,7 +465,7 @@ export class ColumnsService extends ColumnsServiceCE {
     {
       ltarCustomProps,
       isMm = false,
-      reuse,
+      reuse = {},
       source,
     }: {
       ltarCustomProps: CustomLinkProps;

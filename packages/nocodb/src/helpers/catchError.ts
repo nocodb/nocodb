@@ -611,9 +611,17 @@ const errorHelpers: {
     message: (id: string) => `Table '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.TABLE_NOT_FOUNDV3]: {
+    message: (id: string) => `Table '${id}' not found`,
+    code: 422,
+  },
   [NcErrorType.VIEW_NOT_FOUND]: {
     message: (id: string) => `View '${id}' not found`,
     code: 404,
+  },
+  [NcErrorType.VIEW_NOT_FOUNDV3]: {
+    message: (id: string) => `View '${id}' not found`,
+    code: 422,
   },
   [NcErrorType.FIELD_NOT_FOUND]: {
     message: (id: string) => `Field '${id}' not found`,
@@ -862,6 +870,13 @@ export class NcError {
     });
   }
 
+  static tableNotFoundV3(id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.TABLE_NOT_FOUNDV3, {
+      params: id,
+      ...args,
+    });
+  }
+
   static userNotFound(id: string, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.USER_NOT_FOUND, {
       params: id,
@@ -871,6 +886,13 @@ export class NcError {
 
   static viewNotFound(id: string, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.VIEW_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static viewNotFoundV3(id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.VIEW_NOT_FOUNDV3, {
       params: id,
       ...args,
     });

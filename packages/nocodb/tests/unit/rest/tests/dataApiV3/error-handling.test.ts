@@ -93,7 +93,7 @@ describe('dataApiV3', () => {
     it('tableId not found', async () => {
       const response = await ncAxiosGet({
         url: `${urlPrefix}/123456789`,
-        status: 404,
+        status: 422,
       });
       expect(response.body.message).to.eq(`Table '123456789' not found`);
     });

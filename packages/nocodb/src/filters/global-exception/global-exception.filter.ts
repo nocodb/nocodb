@@ -5,6 +5,7 @@ import hash from 'object-hash';
 import {
   NcErrorType,
   NcSDKError,
+  NcSDKErrorV2,
   BadRequest as SdkBadRequest,
 } from 'nocodb-sdk';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
@@ -205,6 +206,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       exception instanceof NcSDKError
     ) {
       return response.status(422).json({ msg: exception.message });
+    } else if (exception instanceof NcSDKErrorV2) {
+      return response
+        .status(exception.getStatus?.() ?? 422)
+        .json({ message: exception.message });
     } else if (exception instanceof TestConnectionError) {
       return response
         .status(422)

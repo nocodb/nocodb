@@ -417,7 +417,10 @@ export const generateFkName = (parent: TableType, child: TableType) => {
 };
 
 // Generate unique index name for custom link based on table title and column name
-export const generateIndexNameForCustomLink = (tableTitle: string, columnName: string) => {
+export const generateIndexNameForCustomLink = (
+  tableTitle: string,
+  columnName: string,
+) => {
   // sanitize and shorten tableTitle and columnName (max 10 chars each)
   const sanitizedTable = tableTitle.replace(/\W+/g, '_').slice(0, 10);
   const sanitizedColumn = columnName.replace(/\W+/g, '_').slice(0, 10);

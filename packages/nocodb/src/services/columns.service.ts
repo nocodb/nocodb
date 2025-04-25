@@ -181,6 +181,16 @@ async function getJunctionTableName(
   return `${tableName}${suffix ?? ''}`;
 }
 
+// todo: move to swagger.json/types
+export interface CustomLinkProps {
+  column_id: string;
+  ref_model_id: string;
+  ref_column_id: string;
+  junc_model_id: string;
+  junc_column_id: string;
+  junc_ref_column_id: string;
+}
+
 @Injectable()
 export class ColumnsService implements IColumnsService {
   constructor(
@@ -1883,10 +1893,9 @@ export class ColumnsService implements IColumnsService {
           range.fk_to_column_id === column.id &&
           range.fk_from_column_id
         ) {
-          const startColumn = await Column.get(
-            context,
-            { colId: range.fk_from_column_id },
-          );
+          const startColumn = await Column.get(context, {
+            colId: range.fk_from_column_id,
+          });
 
           const uidtMatches = startColumn && startColumn.uidt === colBody.uidt;
           const timezoneMatches =
@@ -3322,7 +3331,10 @@ export class ColumnsService implements IColumnsService {
       });
     }
 
-    if (custom) return;
+    if (custom) {
+      // if custom then delete the relation index
+      await this.return;
+    }
     if (!ignoreFkDelete && childColumn.uidt === UITypes.ForeignKey) {
       const cTable = await Model.getWithInfo(
         context,
@@ -4311,9 +4323,18 @@ export class ColumnsService implements IColumnsService {
   ) {
     // placeholder for post column update hook
   }
+
+  protected async deleteCustomLinkIndex(
+    _context: NcContext,
+    _: {
+      ltarCustomProps: CustomLinkProps;
+      isMm: boolean;
+      reuse?: ReusableParams;
+      source: Source;
+    },
+  ) {
+    // placeholder for delete custom link index
+  }
 }
 
-
-export {
-  reuseOrSave
-}
+export { reuseOrSave };

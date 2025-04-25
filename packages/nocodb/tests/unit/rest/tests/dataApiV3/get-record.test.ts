@@ -1,4 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { expect } from 'chai';
+import {
+  createLookupColumn,
+  createRollupColumn,
+} from '../../../factory/column';
 import {
   beforeEachTextBased,
   beforeEach as dataApiV3BeforeEach,
@@ -20,6 +25,46 @@ describe('dataApiV3', () => {
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext.context);
       urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+    });
+
+    describe('general-based', () => {
+      it('Nested Read - Link to another record', async function () {
+        const records = await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/${testContext.countryTable.id}/1`,
+        });
+        expect(+records.body['Cities']).to.equal(1);
+      });
+
+      it('Nested Read - Lookup', async function () {
+        await createLookupColumn(testContext.context, {
+          base: testContext.sakilaProject,
+          title: 'Lookup',
+          table: testContext.countryTable,
+          relatedTableName: testContext.cityTable.table_name,
+          relatedTableColumnTitle: 'City',
+        });
+
+        const records = await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/${testContext.countryTable.id}/1`,
+        });
+        expect(records.body.Lookup).to.deep.equal(['Kabul']);
+      });
+
+      it('Nested Read - Rollup', async function () {
+        await createRollupColumn(testContext.context, {
+          base: testContext.sakilaProject,
+          title: 'Rollup',
+          table: testContext.countryTable,
+          relatedTableName: testContext.cityTable.table_name,
+          relatedTableColumnTitle: 'City',
+          rollupFunction: 'count',
+        });
+
+        const records = await testAxios.ncAxiosGet({
+          url: `${urlPrefix}/${testContext.countryTable.id}/1`,
+        });
+        expect(records.body.Rollup).to.equal(1);
+      });
     });
 
     describe('text-based', () => {

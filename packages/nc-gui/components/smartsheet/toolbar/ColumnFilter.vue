@@ -1157,7 +1157,6 @@ eventBus.on(async (event) => {
     }
   }
 }
-
 .nc-filter-nested-level-0 {
   @apply bg-[#f9f9fa];
 }
@@ -1211,5 +1210,15 @@ eventBus.on(async (event) => {
 
 .nc-btn-focus:focus {
   @apply !text-brand-500 !shadow-none;
+}
+</style>
+
+<style lang="scss">
+.nc-filter-field-select {
+  .ant-select-selector {
+    .field-selection-tooltip-wrapper {
+      @apply !max-w-20;
+    }
+  }
 }
 </style>

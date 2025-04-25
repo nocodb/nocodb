@@ -230,7 +230,11 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       columns,
     );
 
-    let sorts = extractSortsObject(rest?.sort, aliasColObjMap);
+    let sorts = extractSortsObject(
+      baseModel.context,
+      rest?.sort,
+      aliasColObjMap,
+    );
 
     const { filters: filterObj } = extractFilterFromXwhere(
       baseModel.context,
@@ -964,7 +968,11 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           f?.where,
           aliasColObjMap,
         );
-        let groupSort = extractSortsObject(rest?.sort, aliasColObjMap);
+        let groupSort = extractSortsObject(
+          baseModel.context,
+          rest?.sort,
+          aliasColObjMap,
+        );
 
         const tQb = baseModel.dbDriver(baseModel.tnPath);
         const colSelectors = [];

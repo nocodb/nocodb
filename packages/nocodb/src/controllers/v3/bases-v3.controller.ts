@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -92,6 +93,7 @@ export class BasesV3Controller {
   @Acl('baseCreate', {
     scope: 'org',
   })
+  @HttpCode(200)
   @Post('/api/v3/meta/workspaces/:workspaceId/bases')
   async baseCreate(
     @TenantContext() context: NcContext,

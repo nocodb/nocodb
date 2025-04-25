@@ -1,5 +1,6 @@
-import { UITypes } from 'nocodb-sdk';
+import { NcApiVersion, UITypes } from 'nocodb-sdk';
 import { ClientType } from 'nocodb-sdk';
+import { NcError } from 'src/helpers/catchError';
 import { JsonGeneralHandler } from './handlers/json/json.general.handler';
 import { GenericFieldHandler } from './handlers/generic';
 import { CheckboxGeneralHandler } from './handlers/checkbox/checkbox.general.handler';
@@ -329,7 +330,11 @@ export class FieldHandler implements IFieldHandler {
   async verifyFilters(filters: Filter[], options: HandlerOptions = {}) {
     const verificationResult = await this.verifyFiltersSafe(filters, options);
     if (!verificationResult.isValid) {
-      throw new FilterVerificationError(verificationResult.errors!);
+      if (this.info.context.api_version === NcApiVersion.V3) {
+        NcError.invalidFilterV3(verificationResult.errors.join(', '));
+      } else {
+        throw new FilterVerificationError(verificationResult.errors!);
+      }
     }
     return true;
   }

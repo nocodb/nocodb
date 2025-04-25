@@ -5616,7 +5616,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       idToAliasMap[col.id] = col.title;
-      if (col.uidt === UITypes.LinkToAnotherRecord) {
+      if ([UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(col.uidt)) {
         ltarMap[col.id] = true;
         const linkData = Object.values(data).find(
           (d) =>

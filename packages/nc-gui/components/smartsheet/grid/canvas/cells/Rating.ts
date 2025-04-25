@@ -1,5 +1,5 @@
 import type { ColumnType } from 'nocodb-sdk'
-import { isBoxHovered, renderTag } from '../utils/canvas'
+import { renderTag } from '../utils/canvas'
 
 function getIconsData({
   width,
@@ -84,6 +84,7 @@ export const RatingCellRenderer: CellRenderer = {
       setCursor,
       cellRenderStore,
       selected,
+      isRowHovered,
     } = props
 
     const {
@@ -104,11 +105,9 @@ export const RatingCellRenderer: CellRenderer = {
 
     const rating = Math.min(Math.max(0, Number(value) || 0), ratingMeta.max)
 
-    const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
-
-    if (!isHovered && !selected && !rating && !renderAsTag) {
+    if (!isRowHovered && !selected && !rating && !renderAsTag) {
       return
-    } else if ((isHovered || selected) && !rating && readonly && !renderAsTag) {
+    } else if ((isRowHovered || selected) && !rating && readonly && !renderAsTag) {
       return
     }
 

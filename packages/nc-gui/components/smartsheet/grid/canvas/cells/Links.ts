@@ -41,7 +41,11 @@ export const LinksCellRenderer: CellRenderer = {
         underline: selected && isHoverOverText,
       })
 
-      if (selected && isBoxHovered({ x, y, width, height }, mousePosition) && !readonly) {
+      if (selected && isHoverOverText) {
+        setCursor('pointer')
+      }
+
+      if (selected && !readonly) {
         spriteLoader.renderIcon(ctx, {
           icon: 'ncPlus',
           x: x + width - 16 - padding,
@@ -50,7 +54,7 @@ export const LinksCellRenderer: CellRenderer = {
           color: '#374151',
         })
 
-        if (isHoverOverText || isBoxHovered({ x: x + width - 16 - padding, y: y + 7, width: 16, height: 16 }, mousePosition)) {
+        if (isBoxHovered({ x: x + width - 16 - padding, y: y + 7, width: 16, height: 16 }, mousePosition)) {
           setCursor('pointer')
         }
       }

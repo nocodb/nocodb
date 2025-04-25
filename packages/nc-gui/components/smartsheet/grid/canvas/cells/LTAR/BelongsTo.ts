@@ -121,13 +121,13 @@ export const BelongsToCellRenderer: CellRenderer = {
     if (selected && !readonly) {
       spriteLoader.renderIcon(ctx, {
         x: x + width - 26,
-        y: y + 8,
+        y: y + 7,
         icon: 'ncPlus',
-        size: 14,
+        size: 16,
         color: '#374151',
       })
 
-      if (isBoxHovered({ x: x + width - 26, y: y + 8, width: 14, height: 14 }, mousePosition)) {
+      if (isBoxHovered({ x: x + width - 26, y: y + 7, width: 16, height: 16 }, mousePosition)) {
         setCursor('pointer')
       }
     }
@@ -170,7 +170,7 @@ export const BelongsToCellRenderer: CellRenderer = {
     const isClickedOnXCircleIcon =
       cellRenderStore?.x &&
       selected &&
-      isBoxHovered({ x: cellRenderStore.x + 2, y: y + 8, height: size, width: size }, mousePosition)
+      isBoxHovered({ x: cellRenderStore.x + 2, y: y + 7, height: size, width: size }, mousePosition)
 
     if (isClickedOnPlusIcon || isClickedOnXCircleIcon) {
       makeCellEditable(row, column)

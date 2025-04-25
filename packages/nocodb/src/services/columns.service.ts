@@ -3349,7 +3349,18 @@ export class ColumnsService implements IColumnsService {
 
     if (custom) {
       // if custom then delete the relation index
-      await this.return;
+      await this.deleteCustomLinkIndex(context, {
+        ltarCustomProps: {
+          column_id: relationColOpt.fk_child_column_id,
+          ref_column_id: relationColOpt.fk_parent_column_id,
+          ref_model_id: relationColOpt.fk_related_model_id,
+          junc_column_id: relationColOpt.fk_mm_child_column_id,
+          junc_model_id: relationColOpt.fk_mm_model_id,
+          junc_ref_column_id: relationColOpt.fk_mm_parent_column_id,
+        },
+        isMm: relationColOpt.type === RelationTypes.MANY_TO_MANY,
+        source,
+      });
     }
     if (!ignoreFkDelete && childColumn.uidt === UITypes.ForeignKey) {
       const cTable = await Model.getWithInfo(

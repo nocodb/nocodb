@@ -4,13 +4,18 @@ import {
   type CustomLinkProps,
   reuseOrSave,
 } from 'src/services/columns.service';
-import { isLinksOrLTAR, isVirtualCol, UITypes } from 'nocodb-sdk';
+import {
+  customLinkSupportedTypes,
+  isLinksOrLTAR,
+  isVirtualCol,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
   NcApiVersion,
-  RelationTypes,
   UserType,
 } from 'nocodb-sdk';
 import type { ReusableParams } from '~/services/columns.service.type';
@@ -222,6 +227,14 @@ export class ColumnsService extends ColumnsServiceCE {
         colId: ltarCustomProps.column_id,
       });
 
+      await this.validateColumnTypes(context, {
+        ltarCustomProps,
+        isMm:
+          (param.column as LinkToAnotherColumnReqType).type ===
+          RelationTypes.MANY_TO_MANY,
+        columns: [childColumn, parentColumn],
+      });
+
       const childView: View | null = (
         param.column as LinkToAnotherColumnReqType
       )?.childViewId
@@ -271,7 +284,10 @@ export class ColumnsService extends ColumnsServiceCE {
           parentColumn,
           true,
         );
-      } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
+      } else if (
+        (param.column as LinkToAnotherColumnReqType).type ===
+        RelationTypes.MANY_TO_MANY
+      ) {
         await Column.insert(context, {
           title: getUniqueColumnAliasName(
             await child.getColumns(context),
@@ -334,7 +350,9 @@ export class ColumnsService extends ColumnsServiceCE {
 
       await this.createCustomLinkIndexIfMissing(context, {
         ltarCustomProps,
-        isMm: (param.column as LinkToAnotherColumnReqType).type === 'mm',
+        isMm:
+          (param.column as LinkToAnotherColumnReqType).type ===
+          RelationTypes.MANY_TO_MANY,
         reuse: param.reuse,
         source: param.source,
       });
@@ -343,6 +361,33 @@ export class ColumnsService extends ColumnsServiceCE {
     }
 
     return super.createLTARColumn(context, param);
+  }
+
+  private async validateColumnTypes(
+    context: NcContext,
+    {
+      isMm = false,
+      ltarCustomProps,
+      columns = [],
+    }: { ltarCustomProps: CustomLinkProps; isMm?: boolean; columns?: Column[] },
+  ) {
+    if (isMm) {
+      const junctionColumn = await Column.get(context, {
+        colId: ltarCustomProps.junc_column_id,
+      });
+      const refJunctionColumn = await Column.get(context, {
+        colId: ltarCustomProps.junc_ref_column_id,
+      });
+      columns.push(junctionColumn, refJunctionColumn);
+    }
+
+    for (const column of columns) {
+      if (!customLinkSupportedTypes.includes(column.uidt)) {
+        NcError.badRequest(
+          `Column type ${column.uidt} is not supported for custom link`,
+        );
+      }
+    }
   }
 
   protected async createCustomLinkIndexIfMissing(
@@ -359,6 +404,9 @@ export class ColumnsService extends ColumnsServiceCE {
       source: Source;
     },
   ) {
+    // skip if source is not meta
+    if (!source.isMeta()) return;
+
     const columnIds = [
       ltarCustomProps.column_id,
       ltarCustomProps.ref_column_id,

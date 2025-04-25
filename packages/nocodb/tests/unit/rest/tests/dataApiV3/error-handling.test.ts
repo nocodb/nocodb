@@ -582,7 +582,7 @@ describe('dataApiV3', () => {
       });
     });
 
-    describe.only('select-based', () => {
+    describe('select-based', () => {
       let table: Model;
       let columns: Column[] = [];
       let insertedRecords: any[];

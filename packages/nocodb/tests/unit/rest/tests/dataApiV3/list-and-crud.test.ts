@@ -344,7 +344,7 @@ describe('dataApiV3', () => {
       }[] = records.map((r) => ({
         Id: r.Id,
         SingleSelect: r.SingleSelect,
-        MultiSelect: r.MultiSelect?.split(','),
+        MultiSelect: r.MultiSelect?.split(',') ?? null,
       }));
 
       // TODO: skipped for now, v3 return undefined instead of null
@@ -358,7 +358,6 @@ describe('dataApiV3', () => {
             fields: 'Id,SingleSelect,MultiSelect',
           },
         });
-
         expect(rsp.body.pageInfo).to.have.property('next');
         expect(rsp.body.pageInfo.next).to.include(
           `${urlPrefix}/${table.id}?page=2`,
@@ -383,6 +382,7 @@ describe('dataApiV3', () => {
           ids.push({ Id: i });
         }
         expect(rsp.body).to.deep.equal(ids);
+        console.log('D')
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -393,10 +393,12 @@ describe('dataApiV3', () => {
             fields: 'Id,SingleSelect,MultiSelect',
           },
         });
+        console.log(rsp.body)
         expect(rsp.body).to.deep.equal({
           Id: 401,
           ...recordsV3[0],
         });
+        console.log('D')
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -430,6 +432,7 @@ describe('dataApiV3', () => {
         expect(rsp.body).to.deep.equal(
           updatedRecords.map((record) => ({ Id: record.Id })),
         );
+        console.log('E')
 
         // verify updated records
         rsp = await ncAxiosGet({
@@ -441,6 +444,7 @@ describe('dataApiV3', () => {
           },
         });
         expect(rsp.body.list.slice(0, 4)).to.deep.equal(updatedRecords);
+        console.log('F')
 
         ///////////////////////////////////////////////////////////////////////////
 

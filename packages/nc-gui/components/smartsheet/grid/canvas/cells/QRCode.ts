@@ -1,10 +1,20 @@
+import { renderMultiLineText } from '../utils/canvas'
+
 export const QRCodeCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, column, imageLoader, padding, tag = {} }) => {
     const { renderAsTag } = tag
     padding = 4
     if (!value || value === 'ERR!') {
       if (value === 'ERR!') {
-        imageLoader.renderError(ctx, 'ERR!', x, y, width, height)
+        renderMultiLineText(ctx, {
+          x: x + padding,
+          y,
+          text: 'ERR!',
+          maxWidth: width - padding * 2,
+          fontFamily: '500 13px Manrope',
+          fillStyle: '#e65100',
+          height,
+        })
       }
       return
     }
@@ -13,13 +23,21 @@ export const QRCodeCellRenderer: CellRenderer = {
     const maxChars = 2000
 
     if (qrValue.length > maxChars) {
-      imageLoader.renderError(ctx, 'QR Code value too long', x, y, width, height)
+      renderMultiLineText(ctx, {
+        x: x + padding,
+        y,
+        text: 'QR Code value too long!',
+        maxWidth: width - padding * 2,
+        fontFamily: '500 13px Manrope',
+        fillStyle: '#e65100',
+        height,
+      })
       return
     }
 
     const meta = parseProp(column?.meta)
 
-    let maxHeight = height - padding * 2
+    let maxHeight
 
     if (pxToRowHeight[height] === 1) {
       maxHeight = height - 4

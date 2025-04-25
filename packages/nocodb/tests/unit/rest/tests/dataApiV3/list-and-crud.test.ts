@@ -1168,10 +1168,9 @@ describe('dataApiV3', () => {
         }
       });
 
-      /*
       // Other scenarios
       // Has-many : change an existing link to a new one
-      it.skip('HM: Change an existing link to a new one', async function () {
+      it('HM: Change an existing link to a new one', async function () {
         // add a link
         await ncAxiosLinkAdd({
           urlParams: {
@@ -1201,7 +1200,7 @@ describe('dataApiV3', () => {
           },
         });
         let respFromRecordAPI = await ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${tblCountry.id}/records`,
+          url: `${urlPrefix}/${tblCountry.id}`,
           query: {
             where: `(Id,eq,1)`,
           },
@@ -1213,20 +1212,8 @@ describe('dataApiV3', () => {
           City: 'City 1',
         });
 
-        switch (true) {
-          case isV2:
-            expect(respFromRecordAPI.body.list.length).to.eq(1);
-            expect(respFromRecordAPI.body.list[0]['Cities']).to.eq(1);
-            break;
-          case isV3:
-            expect(respFromRecordAPI.body.list.length).to.eq(1);
-            expect(respFromRecordAPI.body.list[0]['Cities'].length).to.eq(1);
-            expect(respFromRecordAPI.body.list[0]['Cities'][0]).to.eq({
-              Id: 1,
-              Value: 'City 1',
-            });
-            break;
-        }
+        expect(respFromRecordAPI.body.list.length).to.eq(1);
+        expect(respFromRecordAPI.body.list[0]['Cities']).to.eq(1);
 
         respFromLinkAPI = await ncAxiosLinkGet({
           urlParams: {
@@ -1236,7 +1223,7 @@ describe('dataApiV3', () => {
           },
         });
         respFromRecordAPI = await ncAxiosGet({
-          url: `/api/${API_VERSION}/tables/${tblCountry.id}/records`,
+          url: `${urlPrefix}/${tblCountry.id}`,
           query: {
             where: `(Id,eq,2)`,
           },
@@ -1250,25 +1237,10 @@ describe('dataApiV3', () => {
           ].sort(idc),
         );
 
-        switch (true) {
-          case isV2:
-            expect(respFromRecordAPI.body.list.length).to.eq(1);
-            expect(respFromRecordAPI.body.list[0]['Cities']).to.eq(2);
-            break;
-          case isV3:
-            expect(respFromRecordAPI.body.list.length).to.eq(1);
-            expect(respFromRecordAPI.body.list[0]['Cities'].length).to.eq(2);
-            expect(
-              respFromRecordAPI.body.list[0]['Cities'].sort(idc),
-            ).to.deep.equal(
-              [
-                { Id: 2, Value: 'City 2' },
-                { Id: 3, Value: 'City 3' },
-              ].sort(idc),
-            );
-            break;
-        }
+        expect(respFromRecordAPI.body.list.length).to.eq(1);
+        expect(respFromRecordAPI.body.list[0]['Cities']).to.eq(2);
       });
+      /*
 
       // limit & offset verification
       // Records API not tested since it has different limit requirements

@@ -33,8 +33,8 @@ export const parseParsingError = (e: IRecognitionException) => {
       const found = messageParts
         .slice(messageParts.length - 1)[0]
         .match(foundRegex)[1];
-      if (options.some((k) => k === 'NOT_OPERATOR')) {
-        return `Invalid filter expression. Expected a valid logical operator like '~not', but found '${found}'.`;
+      if (options.some((k) => k === 'NOT_OPERATOR' || k === 'PAREN_START')) {
+        return `Invalid filter syntax: expected a logical operator like '~not' or opening parenthesis, but found '${found}'.`;
       }
     }
   } catch {

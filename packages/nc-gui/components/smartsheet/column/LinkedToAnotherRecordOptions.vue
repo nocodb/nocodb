@@ -345,7 +345,7 @@ const referenceBaseId = computed({
             size="small"
             name="crossBase"
         />
-        <span class="ml-3 cursor-pointer" @click="onCustomSwitchLabelClick">Cross Base Link</span>
+        <span class="ml-3 cursor-pointer" @click="crossBase = !crossBase" @dblclick="onCustomSwitchLabelClick">Cross Base Link</span>
       </div>
 
       <a-form-item v-if="crossBase" class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childBaseId">

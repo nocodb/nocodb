@@ -35,7 +35,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // state
     const { metas, getMeta } = useMetas()
 
-    const { base, baseId } = storeToRefs(useBase())
+    const { base } = storeToRefs(useBase())
 
     const { getBaseRoles } = useBases()
 
@@ -230,9 +230,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     // extract external base roles if cross base link
     const externalBaseUserRoles = computedAsync(async () => {
-      if (baseId.value === relatedTableMeta.value?.base_id) return
+      if (base.value?.id && base.value?.id === relatedTableMeta.value?.base_id) return
 
-      return await getBaseRoles(relatedTableMeta.value?.base_id)
+      return await getBaseRoles(relatedTableMeta.value?.base_id, {
+        skipUpdatingUser: true,
+      })
     })
 
     /**

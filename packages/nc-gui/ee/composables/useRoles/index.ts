@@ -84,13 +84,20 @@ export const useRolesShared = createSharedComposable(() => {
 
   async function loadRoles(
     baseId?: string,
-    options: { isSharedBase?: boolean; sharedBaseId?: string; isSharedErd?: boolean; sharedErdId?: string } = {},
+    options: {
+      isSharedBase?: boolean
+      sharedBaseId?: string
+      isSharedErd?: boolean
+      sharedErdId?: string
+      skipUpdatingUser?: boolean
+    } = {},
     workspaceId?: string,
   ) {
     try {
       const wsId = {
         workspace_id: workspaceId || route.value.params.typeOrId,
       }
+      let updatedUserObj = user.value
 
       if (options?.isSharedBase) {
         const res = await api.auth.me(
@@ -104,7 +111,7 @@ export const useRolesShared = createSharedComposable(() => {
           },
         )
 
-        user.value = {
+        updatedUserObj = {
           ...user.value,
           roles: res.roles,
           ...(baseId && { base_roles: res.base_roles }), // Override base_roles only if baseId is provided
@@ -125,7 +132,7 @@ export const useRolesShared = createSharedComposable(() => {
           },
         )
 
-        user.value = {
+        updatedUserObj = {
           ...user.value,
           roles: res.roles,
           ...(baseId && { base_roles: res.base_roles }), // Override base_roles only if baseId is provided
@@ -137,7 +144,7 @@ export const useRolesShared = createSharedComposable(() => {
       } else if (baseId) {
         const res = await api.auth.me({ base_id: baseId, ...wsId })
 
-        user.value = {
+        updatedUserObj = {
           ...user.value,
           roles: res.roles,
           base_roles: res.base_roles,
@@ -150,7 +157,7 @@ export const useRolesShared = createSharedComposable(() => {
       } else {
         const res = await api.auth.me({ ...wsId } as any)
 
-        user.value = {
+        updatedUserObj = {
           ...user.value,
           roles: res.roles,
           workspace_roles: res.workspace_roles,
@@ -160,6 +167,12 @@ export const useRolesShared = createSharedComposable(() => {
           meta: res.meta,
         } as User
       }
+
+      if (!options?.skipUpdatingUser) {
+        user.value = updatedUserObj
+      }
+
+      return updatedUserObj
     } catch (e) {
       console.log('User role loading failed', e)
     }

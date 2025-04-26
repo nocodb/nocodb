@@ -509,11 +509,7 @@ export const useBases = defineStore('basesStore', () => {
 
     if (user) {
       baseRoles.value[baseId] = {
-        roles: {
-          ...(user.roles || {}),
-          ...(user.base_roles || {}),
-          ...(user.workspace_roles || {}),
-        },
+        roles: user.base_roles || user.workspace_roles || {},
       }
     }
 

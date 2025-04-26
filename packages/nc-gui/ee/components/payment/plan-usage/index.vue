@@ -241,7 +241,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         <NcBadge
           v-if="activeSubscription?.period"
           :border="false"
-          class="text-nc-content-gray-subtle2 !bg-nc-bg-gray-dark text-[10px] leading-[14px] !h-[18px] font-semibold mt-1"
+          class="text-nc-content-gray-subtle2 !bg-nc-bg-gray-medium text-[10px] leading-[14px] !h-[18px] font-semibold mt-1"
         >
           {{ activeSubscription?.period === 'year' ? 'Annual' : 'Monthly' }}
         </NcBadge>

@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { expect } from 'chai';
-import { type ColumnType, UITypes } from 'nocodb-sdk';
-import { createTable } from '../../../factory/table';
-import { createLtarColumn, customColumns } from '../../../factory/column';
+import { type ColumnType } from 'nocodb-sdk';
 import {
   beforeEachLinkBased,
   beforeEachTextBased,

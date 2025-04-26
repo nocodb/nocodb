@@ -14,7 +14,6 @@ export class YearGeneralHandler extends NumberGeneralHandler {
     options?: { context?: NcContext; metaService?: MetaService };
   }): Promise<{ value: any }> {
     const value = (await super.parseValue(params))?.value;
-    console.log(value, typeof value)
     if (typeof value === 'number') {
       if (value < 1000 || value > 9999) {
         NcError.invalidValueForField({

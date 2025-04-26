@@ -7,6 +7,8 @@ const stripe = ref<Stripe | null>(null)
 
 const redirectRef = ref<'billing' | 'pricing' | null>(null)
 
+const enableTogglePaymentMode = false
+
 const { navigateToPricing, navigateToBilling } = useEeConfig()
 
 const {
@@ -155,7 +157,10 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
-      <div v-if="selectedPlan" class="max-w-[444px] md:max-w-[920px] mx-auto w-full flex items-center justify-center px-4">
+      <div
+        v-if="selectedPlan && enableTogglePaymentMode"
+        class="max-w-[444px] md:max-w-[920px] mx-auto w-full flex items-center justify-center px-4"
+      >
         <a-form-item class="!w-full">
           <a-radio-group :value="paymentMode" class="nc-time-form-layout" @update:value="onChangePaymentMode">
             <a-radio value="month">

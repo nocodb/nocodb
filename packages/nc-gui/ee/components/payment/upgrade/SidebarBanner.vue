@@ -1,6 +1,10 @@
 <script lang="ts" setup>
 import { LOYALTY_GRACE_PERIOD_END_DATE, PlanTitles } from 'nocodb-sdk'
 
+const workspaceStore = useWorkspace()
+
+const { activeWorkspace } = storeToRefs(workspaceStore)
+
 const {
   isRecordLimitReached,
   isStorageLimitReached,
@@ -12,14 +16,22 @@ const {
   isPaymentEnabled,
   navigateToPricing,
   isSideBannerExpanded,
+  activePlan,
 } = useEeConfig()
 
 const isLimitReached = computed(() => {
   return isRecordLimitReached.value || isStorageLimitReached.value
 })
 
+const showBannerLocal = ref(false)
+
 const showBanner = computed(() => {
-  return isPaymentEnabled.value && (isLimitReached.value || activePlanTitle.value === PlanTitles.FREE)
+  return (
+    showBannerLocal &&
+    isPaymentEnabled.value &&
+    activeWorkspace.value?.id &&
+    (isLimitReached.value || (activePlan && activePlanTitle.value === PlanTitles.FREE))
+  )
 })
 
 const showTimer = computed(() => {
@@ -43,6 +55,18 @@ const handleNavigation = () => {
     navigateToPricing()
   }
 }
+
+watch(
+  () => activeWorkspace.value?.id,
+  () => {
+    ncDelay(1000).then(() => {
+      showBannerLocal.value = true
+    })
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>

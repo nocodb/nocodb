@@ -69,7 +69,7 @@ const changes = computed(() => {
           ]
         : []),
       {
-        title: 'Storage',
+        title: 'Storage Used (GB)',
         oldValue: `${Number(getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000).toLocaleString()} GB`,
         newValue: '1 GB',
         percent: (
@@ -79,13 +79,13 @@ const changes = computed(() => {
         ).toFixed(2),
       },
       {
-        title: 'API',
+        title: 'API calls (monthly)',
         oldValue: `${getLimit(PlanLimitTypes.LIMIT_API_CALL).toLocaleString()} requests`,
         newValue: '1,000 requests',
         percent: (((getLimit(PlanLimitTypes.LIMIT_API_CALL) - 1000) / getLimit(PlanLimitTypes.LIMIT_API_CALL)) * 100).toFixed(2),
       },
       {
-        title: 'Automation',
+        title: 'Webhook calls (monthly)',
         oldValue: `${Number(getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)).toLocaleString()} runs`,
         newValue: '100 runs',
         percent: (
@@ -365,52 +365,54 @@ const onCancelSubscription = async () => {
     </div>
     <div v-else-if="changes.change === 'cancel'" class="flex-1 nc-scrollbar-thin">
       <div class="py-6 flex gap-6 flex-col">
-        <div class="flex flex-col gap-4 text-nc-content-gray-subtle2">
-          <div class="font-bold">Before you cancel your plan</div>
-          <div class="flex flex-wrap gap-2">
+        <div class="flex flex-col gap-6 text-nc-content-gray-subtle2">
+          <div class="font-bold text-nc-content-gray text-base">Before you cancel your plan</div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div
               v-for="decrease of changes.decrease"
               :key="decrease.title"
-              class="bg-nc-bg-red-light rounded-lg p-4 border-1 border-red-500"
+              class="bg-nc-bg-red-light rounded-xl p-4 border-1 border-nc-border-gray-medium flex flex-col gap-2"
             >
-              <div class="flex flex-col gap-2 items-center justify-center w-full font-bold">
-                <span class="flex items-center gap-2 text-red-500 text-2xl">
-                  <span class="text-2xl">-{{ decrease.percent }}%</span>
-                  <GeneralIcon icon="ncArrowDownCircle" class="h-6 w-6 text-red-500" />
-                </span>
-                <span class="w-full">{{ decrease.oldValue }} -> {{ decrease.newValue }}</span>
-                <span class="w-full">{{ decrease.title }}</span>
+              <div class="flex items-center gap-3 text-nc-content-red-dark">
+                <span class="text-2xl font-700">-{{ decrease.percent }}%</span>
+                <GeneralIcon icon="ncArrowDownCircle" class="h-4 w-4" />
               </div>
+              <div class="w-full flex items-center gap-3 text-nc-content-gray font-semibold text-sm">
+                {{ decrease.oldValue }}
+                <GeneralIcon icon="ncArrowRight" class="text-nc-content-gray-subtle h-4 w-4" />
+                {{ decrease.newValue }}
+              </div>
+              <div class="text-nc-content-gray font-semibold text-sm">{{ decrease.title }}</div>
             </div>
           </div>
-          <div class="font-bold">You will no longer have access to following features:</div>
-          <div class="flex flex-wrap gap-4">
-            <div class="flex items-center gap-2 font-bold">
+          <div class="font-bold text-nc-content-gray text-base">You will no longer have access to following features:</div>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm text-nc-content-gray">
+            <div class="flex items-center gap-3 font-semibold">
               <div class="flex items-center justify-center p-2 bg-nc-bg-purple-light rounded-lg">
-                <GeneralIcon icon="form" class="text-nc-content-purple-dark"/>
+                <GeneralIcon icon="form" class="text-nc-content-purple-dark" />
               </div>
               <span>Form Branding</span>
             </div>
-            <div class="flex items-center gap-2 font-bold">
+            <div class="flex items-center gap-3 font-semibold">
               <div class="flex items-center justify-center p-2 bg-nc-bg-gray-light rounded-lg">
-                <GeneralIcon icon="sso" class="text-nc-content-gray-subtle"/>
+                <GeneralIcon icon="sso" class="text-nc-content-gray-subtle" />
               </div>
               <span>Single Sign-On (SSO)</span>
             </div>
-            <div class="flex items-center gap-2 font-bold">
+            <div class="flex items-center gap-3 font-semibold">
               <div class="flex items-center justify-center p-2 bg-nc-bg-maroon-light rounded-lg">
                 <GeneralIcon icon="integration" />
               </div>
               <span>Integrations</span>
             </div>
-            <div class="flex items-center gap-2 font-bold">
+            <div class="flex items-center gap-3 font-semibold">
               <div class="flex items-center justify-center p-2 bg-nc-bg-purple-light rounded-lg">
                 <GeneralIcon icon="ncPuzzleOutline" class="!stroke-transparent text-nc-fill-purple-dark" />
               </div>
               <span>Extensions</span>
             </div>
           </div>
-          <div>
+          <div class="text-sm">
             You will still have access to all paid features until your plan changes to the Free plan at the end of your billing
             cycle on {{ dayjs(activeSubscription?.upcoming_invoice_at).format('MMMM D, YYYY') }}.
           </div>

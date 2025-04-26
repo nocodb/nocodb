@@ -19,6 +19,7 @@ import { LinksGeneralHandler } from './handlers/links/links.general.handler';
 import { RollupGeneralHandler } from './handlers/rollup/rollup.general.handler';
 import { PercentGeneralHandler } from './handlers/percent/percent.general.handler';
 import { RatingGeneralHandler } from './handlers/rating/rating.general.handler';
+import { YearGeneralHandler } from './handlers/year/year.general.handler';
 import type { MetaService } from 'src/meta/meta.service';
 import type CustomKnex from '../CustomKnex';
 import type { NcContext } from 'nocodb-sdk';
@@ -74,7 +75,9 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.Date]: {
     [CLIENT_DEFAULT]: DateGeneralHandler,
   },
-  [UITypes.Year]: {},
+  [UITypes.Year]: {
+    [CLIENT_DEFAULT]: YearGeneralHandler,
+  },
   [UITypes.Time]: {},
   [UITypes.PhoneNumber]: {
     [CLIENT_DEFAULT]: GenericFieldHandler,

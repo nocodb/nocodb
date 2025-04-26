@@ -136,6 +136,7 @@ export const beforeEachNumberBased = async (testContext: ITestContext) => {
       Percent: rowMixedValue(columns[9], i),
       Duration: rowMixedValue(columns[10], i),
       Rating: rowMixedValue(columns[11], i),
+      Year: rowMixedValue(columns[12], i),
     };
     rowAttributes.push(row);
   }

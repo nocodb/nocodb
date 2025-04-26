@@ -86,7 +86,7 @@ onMounted(() => {
     <div class="mt-3 flex-1 flex">
       <NcTable
         class="template-form flex-1 max-h-[540px]"
-        :body-row-class-name="`template-form-row ${!showPagination ? '!last:border-b-0' : ''}`"
+        :body-row-class-name="`template-form-row !cursor-default ${!showPagination ? '!last:border-b-0' : ''}`"
         header-row-class-name="relative"
         :bordered="true"
         :data="paginatedData"

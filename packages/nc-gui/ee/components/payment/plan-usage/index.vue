@@ -196,7 +196,12 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
 
 <template>
   <div v-if="!paymentInitiated" class="nc-plan-usage flex flex-col gap-3">
-    <NcAlert v-if="scheduledChangeInfo" type="info" message="Your plan will switch after the current billing cycle ends.">
+    <NcAlert
+      v-if="scheduledChangeInfo"
+      class="-mt-4"
+      type="info"
+      message="Your plan will switch after the current billing cycle ends."
+    >
       <template #description>
         You've switched from the
         {{ activePlanTitle }} ({{ activeSubscription?.period === 'year' ? 'Annual' : 'Monthly' }}) to the
@@ -214,7 +219,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         </NcButton>
       </template>
     </NcAlert>
-    <NcAlert v-else-if="activeSubscription?.canceled_at" type="warning">
+    <NcAlert v-else-if="activeSubscription?.canceled_at" type="warning" class="-mt-4">
       <template #message> Your {{ activePlanTitle }} plan will expire soon </template>
       <template #description>
         On {{ dayjs(activeSubscription.canceled_at).format('DD MMMM YYYY') }}, you’ll lose access to all

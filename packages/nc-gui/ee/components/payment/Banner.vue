@@ -64,7 +64,7 @@ const { isWsOwner, navigateToPricing, isLoyaltyDiscountAvailable, isTopBannerVis
             <template #icon>
               <GeneralIcon icon="ncArrowUpRight" class="!transition-none" />
             </template>
-            <span class="font-700">
+            <span>
               {{ isWsOwner ? 'Upgrade Workspace' : $t('general.requestUpgrade') }}
             </span>
           </NcButton>

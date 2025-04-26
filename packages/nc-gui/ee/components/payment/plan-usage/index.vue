@@ -19,7 +19,8 @@ const activeWorkspace = computed(() =>
 const { paymentState, workspaceSeatCount, activeSubscription, onManageSubscription, plansAvailable, updateSubscription } =
   usePaymentStoreOrThrow()
 
-const { getLimit, getStatLimit, activePlanTitle, navigateToPricing, isLoyaltyWorkspace, gracePeriodEndDate } = useEeConfig()
+const { getLimit, getStatLimit, activePlanTitle, navigateToPricing, isLoyaltyDiscountAvailable, gracePeriodEndDate } =
+  useEeConfig()
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
@@ -27,6 +28,13 @@ const activePlanMeta = computed(() => PlanMeta[activePlanTitle.value])
 
 const scheduledChangeInfo = computed(() => {
   if (!activeSubscription.value || !activeSubscription.value.scheduled_plan_start_at) return null
+
+  // If only plan change is scheduled this will be internal change (loyalty > normal)
+  if (
+    activeSubscription.value.fk_plan_id === activeSubscription.value.scheduled_fk_plan_id &&
+    activeSubscription.value.period === activeSubscription.value.scheduled_plan_period
+  )
+    return null
 
   const scheduledChangeDate = dayjs(activeSubscription.value.scheduled_plan_start_at)
 
@@ -247,7 +255,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
       align="center"
       class="nc-plan-usage-plan-limit-reached-banner bg-nc-bg-red-light !rounded-xl"
       :class="{
-        'nc-loyalty-workspace': isLoyaltyWorkspace,
+        'nc-loyalty-workspace': isLoyaltyDiscountAvailable,
       }"
     >
       <template #icon>

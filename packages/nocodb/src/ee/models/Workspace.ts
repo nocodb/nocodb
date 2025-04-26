@@ -66,6 +66,8 @@ export default class Workspace implements WorkspaceType {
   };
 
   grace_period_start_at?: string;
+  loyal?: boolean;
+  loyalty_discount_used?: boolean;
 
   created_at?: string;
   updated_at?: string;
@@ -191,6 +193,8 @@ export default class Workspace implements WorkspaceType {
       'fk_org_id',
       'stripe_customer_id',
       'grace_period_start_at',
+      'loyal',
+      'loyalty_discount_used',
     ]);
 
     // stringify meta if it is an object
@@ -237,6 +241,8 @@ export default class Workspace implements WorkspaceType {
       'fk_org_id',
       'stripe_customer_id',
       'grace_period_start_at',
+      'loyal',
+      'loyalty_discount_used',
     ]);
 
     // stringify meta if it is an object

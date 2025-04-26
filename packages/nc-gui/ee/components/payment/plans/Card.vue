@@ -19,7 +19,7 @@ const planTitleToDescHeader = {
   [PlanTitles.ENTERPRISE]: 'For Established Organizations',
 }
 
-const { onSelectPlan, getPlanPrice, activeSubscription, paymentMode, isLoyaltyWorkspace } = usePaymentStoreOrThrow()
+const { onSelectPlan, getPlanPrice, activeSubscription, paymentMode, isLoyaltyDiscountAvailable } = usePaymentStoreOrThrow()
 
 const price = computed(() => getPlanPrice(props.plan))
 
@@ -87,7 +87,7 @@ const upgradePlanBtnType = computed(() => {
     </div>
 
     <div
-      v-if="isLoyaltyWorkspace"
+      v-if="isLoyaltyDiscountAvailable"
       class="flex flex-col gap-0.5"
       :class="{
         'opacity-0': plan.title === PlanTitles.FREE,

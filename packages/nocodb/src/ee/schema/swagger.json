@@ -5448,6 +5448,14 @@
           "sso_only_access": {
             "description": "SSO only access",
             "type": "boolean"
+          },
+          "loyal": {
+            "description": "Loyalty status",
+            "type": "boolean"
+          },
+          "loyalty_discount_used": {
+            "description": "Loyalty discount used",
+            "type": "boolean"
           }
         },
         "title": "Workspace",

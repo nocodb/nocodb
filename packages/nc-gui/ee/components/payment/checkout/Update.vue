@@ -139,7 +139,7 @@ const handleProceed = async () => {
   isLoading.value = true
 
   try {
-    await updateSubscription(props.plan.id)
+    await updateSubscription(props.plan.id, undefined, changes.value.change === 'upgrade')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

@@ -7,7 +7,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const activeSubscription = computed(() => undefined)
 
-  const isLoyaltyWorkspace = computed(() => undefined)
+  const isLoyaltyDiscountAvailable = computed(() => undefined)
 
   const isPaymentEnabled = computed(() => undefined)
 
@@ -109,7 +109,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToSeeMoreRecordsModal,
     navigateToPricing,
     navigateToCheckout,
-    isLoyaltyWorkspace,
+    isLoyaltyDiscountAvailable,
     gracePeriodEndDate,
     isTopBannerVisible,
     showUpgradeToUploadWsImage,

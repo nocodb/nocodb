@@ -12,7 +12,7 @@ const _props = withDefaults(
   },
 )
 
-const { isWsOwner, navigateToPricing, isLoyaltyWorkspace, isTopBannerVisible } = useEeConfig()
+const { isWsOwner, navigateToPricing, isLoyaltyDiscountAvailable, isTopBannerVisible } = useEeConfig()
 </script>
 
 <template>
@@ -42,10 +42,10 @@ const { isWsOwner, navigateToPricing, isLoyaltyWorkspace, isTopBannerVisible } =
         }"
       >
         <div class="text-xl font-weight-700 text-nc-content-purple-dark leading-[32px]">
-          {{ isLoyaltyWorkspace ? $t('title.loyaltyBannerTitle') : $t('title.getMoreFromNocodb') }}
+          {{ isLoyaltyDiscountAvailable ? $t('title.loyaltyBannerTitle') : $t('title.getMoreFromNocodb') }}
         </div>
         <div v-if="expanded" class="mt-2 text-nc-content-gray font-semibold">
-          {{ isLoyaltyWorkspace ? $t('title.loyaltyBannerSubtitle') : $t('title.getMoreFromNocodbSubtitle') }}
+          {{ isLoyaltyDiscountAvailable ? $t('title.loyaltyBannerSubtitle') : $t('title.getMoreFromNocodbSubtitle') }}
         </div>
         <div
           class="flex gap-2 items-center"
@@ -69,7 +69,7 @@ const { isWsOwner, navigateToPricing, isLoyaltyWorkspace, isTopBannerVisible } =
             </span>
           </NcButton>
 
-          <div v-if="isLoyaltyWorkspace">
+          <div v-if="isLoyaltyDiscountAvailable">
             <PaymentExpiresIn
               :end-time="LOYALTY_GRACE_PERIOD_END_DATE"
               hide-icon

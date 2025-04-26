@@ -70,6 +70,17 @@ export const LoyaltyPriceLookupKeyMap = {
   [PlanPriceLookupKeys.BUSINESS_YEARLY]: 'loyalty_business_yearly',
 };
 
+export const LoyaltyPriceReverseLookupKeyMap = {
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.TEAM_MONTHLY]]:
+    PlanPriceLookupKeys.TEAM_MONTHLY,
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.TEAM_YEARLY]]:
+    PlanPriceLookupKeys.TEAM_YEARLY,
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.BUSINESS_MONTHLY]]:
+    PlanPriceLookupKeys.BUSINESS_MONTHLY,
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.BUSINESS_YEARLY]]:
+    PlanPriceLookupKeys.BUSINESS_YEARLY,
+};
+
 export const PlanMeta = {
   [PlanTitles.FREE]: {
     title: PlanTitles.FREE,
@@ -135,8 +146,6 @@ export const HigherPlan = {
 } as Record<string, PlanTitles>;
 
 export const GRACE_PERIOD_DURATION = 14;
-
-export const LOYALTY_END_DATE = '2025-04-15';
 
 export const LOYALTY_GRACE_PERIOD_END_DATE = '2025-04-30';
 

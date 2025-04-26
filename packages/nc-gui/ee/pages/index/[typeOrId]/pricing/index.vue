@@ -12,7 +12,7 @@ const {
   activeSubscription,
   activePlan,
   paymentMode,
-  isLoyaltyWorkspace,
+  isLoyaltyDiscountAvailable,
   loadPlans,
   plansAvailable,
   onSelectPlan,
@@ -76,9 +76,9 @@ useEventListener('message', (event) => {
     </div>
     <iframe
       v-show="frameLoaded"
-      :src="`${appInfo.marketingRootUrl}/${isLoyaltyWorkspace ? 'loyalty-' : ''}pricing?inApp=true&workspace=${
+      :src="`${appInfo.marketingRootUrl}/${isLoyaltyDiscountAvailable ? 'loyalty-' : ''}pricing?inApp=true&workspace=${
         activeWorkspace?.title
-      }&plan=${activePlan?.title}&paymentMode=${paymentMode}&isLoyaltyWorkspace=${isLoyaltyWorkspace}`"
+      }&plan=${activePlan?.title}&paymentMode=${paymentMode}&isLoyaltyWorkspace=${isLoyaltyDiscountAvailable}`"
       width="100%"
       style="border: none; height: calc(100vh - 56px)"
     ></iframe>

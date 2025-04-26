@@ -1,7 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 import dayjs from 'dayjs';
-import { AppEvents, PlanOrder, WorkspaceUserRoles } from 'nocodb-sdk';
+import {
+  AppEvents,
+  LoyaltyPriceReverseLookupKeyMap,
+  PlanOrder,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import type { PlanFeatureTypes, PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { Org, Plan, Subscription, Workspace, WorkspaceUser } from '~/models';
@@ -187,7 +192,10 @@ export class PaymentService {
       NcError.genericNotFound('Price', price_id);
     }
 
-    if (price.lookup_key.includes('loyalty') && !workspaceOrOrg.loyal) {
+    if (
+      price.lookup_key.includes('loyalty') &&
+      (!workspaceOrOrg.loyal || workspaceOrOrg.loyalty_discount_used)
+    ) {
       throw new Error('This plan is not available');
     }
 
@@ -356,16 +364,21 @@ export class PaymentService {
       seatCount === payload.seat
     ) {
       if (existingSubscription.scheduled_plan_start_at) {
-        await Subscription.update(existingSubscription.id, {
-          scheduled_fk_plan_id: null,
-          scheduled_stripe_price_id: null,
-          scheduled_plan_start_at: null,
-          scheduled_plan_period: null,
-        });
+        if (existingPrice.lookup_key.includes('loyalty')) {
+          await this.scheduleLoyaltyDowngrade(workspaceOrOrg.id, ncMeta);
+        } else {
+          await Subscription.update(existingSubscription.id, {
+            scheduled_fk_plan_id: null,
+            scheduled_stripe_price_id: null,
+            scheduled_plan_start_at: null,
+            scheduled_plan_period: null,
+          });
+        }
 
         await this.updateNextInvoice(
           existingSubscription.id,
           await this.getNextInvoice(workspaceOrOrg.id),
+          ncMeta,
         );
       }
 
@@ -377,9 +390,13 @@ export class PaymentService {
           },
         );
 
-        await Subscription.update(existingSubscription.id, {
-          canceled_at: null,
-        });
+        if (existingPrice.lookup_key.includes('loyalty')) {
+          await this.scheduleLoyaltyDowngrade(workspaceOrOrg.id, ncMeta);
+        } else {
+          await Subscription.update(existingSubscription.id, {
+            canceled_at: null,
+          });
+        }
       }
 
       return { id: existingSubscription.stripe_subscription_id };
@@ -425,7 +442,10 @@ export class PaymentService {
       NcError.genericNotFound('Price', payload.price_id);
     }
 
-    if (price.lookup_key.includes('loyalty') && !workspaceOrOrg.loyal) {
+    if (
+      price.lookup_key.includes('loyalty') &&
+      (!workspaceOrOrg.loyal || workspaceOrOrg.loyalty_discount_used)
+    ) {
       throw new Error('This plan is not available');
     }
 
@@ -928,17 +948,25 @@ export class PaymentService {
   async updateNextInvoice(
     subscriptionId: string,
     invoice: Stripe.Response<Stripe.UpcomingInvoice>,
+    ncMeta = Noco.ncMeta,
   ) {
     try {
-      await Subscription.update(subscriptionId, {
-        upcoming_invoice_at: dayjs.unix(invoice.period_end).utc().toISOString(),
-        upcoming_invoice_due_at: dayjs
-          .unix(invoice.next_payment_attempt || invoice.due_date)
-          .utc()
-          .toISOString(),
-        upcoming_invoice_amount: invoice.amount_due,
-        upcoming_invoice_currency: invoice.currency,
-      });
+      await Subscription.update(
+        subscriptionId,
+        {
+          upcoming_invoice_at: dayjs
+            .unix(invoice.period_end)
+            .utc()
+            .toISOString(),
+          upcoming_invoice_due_at: dayjs
+            .unix(invoice.next_payment_attempt || invoice.due_date)
+            .utc()
+            .toISOString(),
+          upcoming_invoice_amount: invoice.amount_due,
+          upcoming_invoice_currency: invoice.currency,
+        },
+        ncMeta,
+      );
     } catch (err) {
       this.logger.error(
         `Error updating next invoice for subscription ${subscriptionId}:`,
@@ -1008,6 +1036,7 @@ export class PaymentService {
         await this.updateNextInvoice(
           existingSubscription.id,
           await this.getNextInvoice(workspaceOrOrg.id),
+          ncMeta,
         );
       }
 
@@ -1081,6 +1110,7 @@ export class PaymentService {
       await this.updateNextInvoice(
         subscription.id,
         await this.getNextInvoice(workspaceOrOrg.id),
+        ncMeta,
       );
     }
 
@@ -1089,6 +1119,74 @@ export class PaymentService {
     );
 
     return subscription;
+  }
+
+  async scheduleLoyaltyDowngrade(
+    workspaceOrOrgId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
+
+    if (!workspaceOrOrg) {
+      NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+    }
+
+    const existingSubscription = await Subscription.getByWorkspaceOrOrg(
+      workspaceOrOrgId,
+      ncMeta,
+    );
+
+    if (!existingSubscription) {
+      NcError.genericNotFound('Subscription', workspaceOrOrgId);
+    }
+
+    const plan = await Plan.get(existingSubscription.fk_plan_id, ncMeta);
+
+    const existingPrice = plan.prices.find(
+      (p) => p.id === existingSubscription.stripe_price_id,
+    );
+
+    // if it is a loyalty price, schedule normal version after 1 year
+    if (!existingPrice.lookup_key.includes('loyalty')) {
+      this.logger.log(
+        `Price ${existingPrice.id} is not a loyalty price, skipping scheduling`,
+      );
+      return;
+    }
+
+    const normalPrice = plan.prices.find(
+      (p) =>
+        p.lookup_key ===
+        LoyaltyPriceReverseLookupKeyMap[existingPrice.lookup_key],
+    );
+
+    if (normalPrice) {
+      const schedule_obj: {
+        scheduled_plan_start_at: string | null;
+        scheduled_plan_period: string | null;
+        scheduled_fk_plan_id: string | null;
+        scheduled_stripe_price_id: string | null;
+      } = {
+        scheduled_plan_start_at: null,
+        scheduled_plan_period: null,
+        scheduled_fk_plan_id: null,
+        scheduled_stripe_price_id: null,
+      };
+
+      schedule_obj.scheduled_fk_plan_id = plan.id;
+      schedule_obj.scheduled_stripe_price_id = normalPrice.id;
+      schedule_obj.scheduled_plan_start_at = dayjs()
+        .add(1, 'year')
+        .utc()
+        .toISOString();
+      schedule_obj.scheduled_plan_period = existingSubscription.period;
+
+      await Subscription.update(existingSubscription.id, schedule_obj);
+    } else {
+      this.logger.log(
+        `Normal price not found for loyalty price ${existingPrice.id}`,
+      );
+    }
   }
 
   async requestUpgrade(
@@ -1267,6 +1365,25 @@ export class PaymentService {
               .toISOString(),
           });
 
+          if (
+            workspaceOrOrg.entity === 'workspace' &&
+            workspaceOrOrg?.loyal &&
+            !workspaceOrOrg?.loyalty_discount_used
+          ) {
+            await Workspace.update(workspaceOrOrg.id, {
+              loyalty_discount_used: true,
+            });
+          }
+
+          if (price.lookup_key.includes('loyalty')) {
+            await this.scheduleLoyaltyDowngrade(workspaceOrOrgId);
+
+            await this.updateNextInvoice(
+              subscription.id,
+              await this.getNextInvoice(workspaceOrOrg.id),
+            );
+          }
+
           break;
         }
 
@@ -1279,6 +1396,9 @@ export class PaymentService {
           if (!subscription) {
             NcError.genericNotFound('Subscription', dataObject.id);
           }
+
+          const workspaceOrOrgId =
+            subscription.fk_org_id || subscription.fk_workspace_id;
 
           const plan_id = dataObject.metadata.fk_plan_id;
 
@@ -1322,8 +1442,17 @@ export class PaymentService {
               : {}),
           });
 
-          const workspaceOrOrgId =
-            subscription.fk_org_id || subscription.fk_workspace_id;
+          const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId);
+
+          if (
+            workspaceOrOrg.entity === 'workspace' &&
+            workspaceOrOrg?.loyal &&
+            !workspaceOrOrg?.loyalty_discount_used
+          ) {
+            await Workspace.update(workspaceOrOrg.id, {
+              loyalty_discount_used: true,
+            });
+          }
 
           this.logger.log(
             `Subscription ${event.type} processed for ${workspaceOrOrgId}.`,

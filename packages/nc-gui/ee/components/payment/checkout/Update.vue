@@ -64,7 +64,6 @@ const changes = computed(() => {
               title: 'Number of editors',
               oldValue: `${workspaceSeatCount.value}`,
               newValue: '3',
-
               percent: (((workspaceSeatCount.value - 3) / workspaceSeatCount.value) * 100).toFixed(2),
             },
           ]
@@ -87,7 +86,7 @@ const changes = computed(() => {
       },
       {
         title: 'Automation',
-        oldValue: `${Number(getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)).toFixed(1).toLocaleString()} runs`,
+        oldValue: `${Number(getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)).toLocaleString()} runs`,
         newValue: '100 runs',
         percent: (
           ((getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN) - 1000) / getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)) *
@@ -387,26 +386,26 @@ const onCancelSubscription = async () => {
           <div class="font-bold">You will no longer have access to following features:</div>
           <div class="flex flex-wrap gap-4">
             <div class="flex items-center gap-2 font-bold">
-              <div class="flex items-center justify-center p-2 bg-nc-bg-maroon-light rounded-lg">
-                <GeneralIcon icon="calendar" />
-              </div>
-              <span>Calendar View</span>
-            </div>
-            <div class="flex items-center gap-2 font-bold">
               <div class="flex items-center justify-center p-2 bg-nc-bg-purple-light rounded-lg">
-                <GeneralIcon icon="form" />
+                <GeneralIcon icon="form" class="text-nc-content-purple-dark"/>
               </div>
               <span>Form Branding</span>
             </div>
             <div class="flex items-center gap-2 font-bold">
               <div class="flex items-center justify-center p-2 bg-nc-bg-gray-light rounded-lg">
-                <GeneralIcon icon="sso" />
+                <GeneralIcon icon="sso" class="text-nc-content-gray-subtle"/>
               </div>
               <span>Single Sign-On (SSO)</span>
             </div>
             <div class="flex items-center gap-2 font-bold">
+              <div class="flex items-center justify-center p-2 bg-nc-bg-maroon-light rounded-lg">
+                <GeneralIcon icon="integration" />
+              </div>
+              <span>Integrations</span>
+            </div>
+            <div class="flex items-center gap-2 font-bold">
               <div class="flex items-center justify-center p-2 bg-nc-bg-purple-light rounded-lg">
-                <GeneralIcon icon="ncPuzzleOutline" class="!stroke-transparent" />
+                <GeneralIcon icon="ncPuzzleOutline" class="!stroke-transparent text-nc-fill-purple-dark" />
               </div>
               <span>Extensions</span>
             </div>

@@ -71,6 +71,10 @@ watchDebounced(
 const onSelectOption = (column: ColumnType) => {
   search.value.field = column.id as string
   isDropdownOpen.value = false
+
+  if (search.value.query?.length) {
+    onPressEnter()
+  }
 }
 
 const handleShowSearchInput = () => {

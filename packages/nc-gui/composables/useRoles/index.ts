@@ -71,8 +71,15 @@ export const useRolesShared = createSharedComposable(() => {
 
   async function loadRoles(
     baseId?: string,
-    options: { isSharedBase?: boolean; sharedBaseId?: string; isSharedErd?: boolean; sharedErdId?: string } = {},
+    options: {
+      isSharedBase?: boolean
+      sharedBaseId?: string
+      isSharedErd?: boolean
+      sharedErdId?: string
+      skipUpdatingUser?: boolean
+    } = {},
   ) {
+    let userObj = user.value
     if (options?.isSharedBase) {
       const res = await api.auth.me(
         {
@@ -84,8 +91,7 @@ export const useRolesShared = createSharedComposable(() => {
           },
         },
       )
-
-      user.value = {
+      userObj = {
         ...user.value,
         roles: res.roles,
         base_roles: res.base_roles,
@@ -103,7 +109,7 @@ export const useRolesShared = createSharedComposable(() => {
         },
       )
 
-      user.value = {
+      userObj = {
         ...user.value,
         roles: res.roles,
         base_roles: res.base_roles,
@@ -112,7 +118,7 @@ export const useRolesShared = createSharedComposable(() => {
     } else if (baseId) {
       const res = await api.auth.me({ base_id: baseId })
 
-      user.value = {
+      userObj = {
         ...user.value,
         roles: res.roles,
         base_roles: res.base_roles,
@@ -122,7 +128,7 @@ export const useRolesShared = createSharedComposable(() => {
     } else {
       const res = await api.auth.me({})
 
-      user.value = {
+      userObj = {
         ...user.value,
         roles: res.roles,
         base_roles: res.base_roles,
@@ -130,6 +136,12 @@ export const useRolesShared = createSharedComposable(() => {
         meta: res.meta,
       } as User
     }
+
+    if (!options?.skipUpdatingUser) {
+      user.value = userObj
+    }
+
+    return userObj
   }
 
   const isUIAllowed = (

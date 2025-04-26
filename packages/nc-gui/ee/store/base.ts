@@ -2,6 +2,7 @@ import type { BaseType, OracleUi, SourceType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { acceptHMRUpdate, defineStore } from 'pinia'
+import type Record from "~icons/nc-icons/record";
 
 export const useBase = defineStore('baseStore', () => {
   const { $e } = useNuxtApp()

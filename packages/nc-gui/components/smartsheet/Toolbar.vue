@@ -43,7 +43,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
 <template>
   <div
-    v-if="!isMobileMode && !disableToolbar"
+    v-if="!disableToolbar"
     ref="containerRef"
     :class="{
       'px-4': isMobileMode,

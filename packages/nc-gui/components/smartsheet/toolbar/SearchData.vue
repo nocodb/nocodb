@@ -145,7 +145,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
           <div v-if="!isMobileMode" class="w-16 text-xs font-medium text-gray-400 truncate">
             {{ displayColumnLabel ?? '' }}
           </div>
-          <div class="xs:(text-gray-600) group-hover:text-gray-700 sm:(text-gray-400)">
+          <div class="group-hover:text-gray-700" :class="isMobileMode ? 'text-gray-600' : 'text-gray-400'">
             <component :is="iconMap.arrowDown" class="text-sm text-inherit" />
           </div>
         </div>

@@ -6,7 +6,7 @@ const props = defineProps<{
   plan: PaymentPlan
 }>()
 
-const { navigateToPricing } = useEeConfig()
+const { navigateToPricing, getLimit } = useEeConfig()
 
 const {
   activeWorkspace,
@@ -71,35 +71,26 @@ const changes = computed(() => {
         : []),
       {
         title: 'Storage',
-        oldValue: `${Number(
-          (activePlan.value?.meta[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] ?? 0) / 1000,
-        ).toLocaleString()} GB`,
+        oldValue: `${Number(getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000).toLocaleString()} GB`,
         newValue: '1 GB',
         percent: (
-          (((activePlan.value?.meta[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] ?? 0) / 1000 - 1) /
-            ((activePlan.value?.meta[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] ?? 0) / 1000)) *
+          ((getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000 - 1) /
+            (getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000)) *
           100
         ).toFixed(2),
       },
       {
         title: 'API',
-        oldValue: `${Number(activePlan.value?.meta[PlanLimitTypes.LIMIT_API_CALL] ?? 0).toLocaleString()} requests`,
+        oldValue: `${getLimit(PlanLimitTypes.LIMIT_API_CALL).toLocaleString()} requests`,
         newValue: '1,000 requests',
-        percent: (
-          (((activePlan.value?.meta[PlanLimitTypes.LIMIT_API_CALL] ?? 0) - 1000) /
-            (activePlan.value?.meta[PlanLimitTypes.LIMIT_API_CALL] ?? 0)) *
-          100
-        ).toFixed(2),
+        percent: (((getLimit(PlanLimitTypes.LIMIT_API_CALL) - 1000) / getLimit(PlanLimitTypes.LIMIT_API_CALL)) * 100).toFixed(2),
       },
       {
         title: 'Automation',
-        oldValue: `${Number(activePlan.value?.meta[PlanLimitTypes.LIMIT_AUTOMATION_RUN] ?? 0)
-          .toFixed(1)
-          .toLocaleString()} runs`,
+        oldValue: `${Number(getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)).toFixed(1).toLocaleString()} runs`,
         newValue: '100 runs',
         percent: (
-          (((activePlan.value?.meta[PlanLimitTypes.LIMIT_AUTOMATION_RUN] ?? 0) - 1000) /
-            (activePlan.value?.meta[PlanLimitTypes.LIMIT_AUTOMATION_RUN] ?? 0)) *
+          ((getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN) - 1000) / getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)) *
           100
         ).toFixed(2),
       },
@@ -169,7 +160,7 @@ const onCancelSubscription = async () => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col max-w-[676px] mx-auto px-6">
+  <div class="h-full flex flex-col w-full max-w-[676px] mx-auto px-6">
     <div
       v-if="changes.change === 'upgrade'"
       class="py-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"

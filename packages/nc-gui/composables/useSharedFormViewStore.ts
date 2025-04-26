@@ -398,7 +398,31 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       for (const col of metas.value?.[sharedView.value?.fk_model_id as string]?.columns) {
         if (col.uidt === UITypes.Attachment) {
           if (data[col.title]) {
-            attachment[`_${col.title}`] = data[col.title].map((item: { file: File }) => item.file)
+            try {
+              // Handle both desktop and mobile attachment formats
+              attachment[`_${col.title}`] = data[col.title].map((item: any) => {
+                // If item is already a File object or has a direct file property
+                if (item instanceof File) return item
+                if (item.file instanceof File) return item.file
+                
+                // For mobile devices, the structure might be different
+                // Try to extract the file from different possible structures
+                if (item.blob instanceof Blob) return item.blob
+                if (item.data instanceof Blob) return item.data
+                if (item.data instanceof File) return item.data
+                
+                // If we have a URL but no file, it might be an already uploaded file
+                // In this case, we don't need to re-upload it
+                if (item.url || item.path) return null
+                
+                // Fallback to the original item if we can't determine the structure
+                return item
+              }).filter(Boolean) // Remove null/undefined items
+            } catch (e) {
+              console.error(`Error processing attachment field "${col.title}":`, e)
+              // If there's an error, try to use the original data
+              attachment[`_${col.title}`] = data[col.title]
+            }
           }
         }
       }

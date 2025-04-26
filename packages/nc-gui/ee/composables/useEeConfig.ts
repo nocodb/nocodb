@@ -9,6 +9,12 @@ import {
 import dayjs from 'dayjs'
 import NcModalConfirm, { type NcConfirmModalProps } from '../../components/nc/ModalConfirm.vue'
 
+const eeConfigState = createGlobalState(() => {
+  const isSideBannerExpanded = ref<boolean>(true)
+
+  return { isSideBannerExpanded }
+})
+
 export const useEeConfig = createSharedComposable(() => {
   const { t } = useI18n()
 
@@ -25,6 +31,8 @@ export const useEeConfig = createSharedComposable(() => {
   const workspaceStore = useWorkspace()
 
   const { activeWorkspace, activeWorkspaceId, workspaces } = storeToRefs(workspaceStore)
+
+  const { isSideBannerExpanded } = eeConfigState()
 
   /** Ref or Computed value */
 
@@ -676,5 +684,6 @@ export const useEeConfig = createSharedComposable(() => {
     isTopBannerVisible,
     showUpgradeToUploadWsImage,
     blockWsImageLogoUpload,
+    isSideBannerExpanded,
   }
 })

@@ -1,4 +1,6 @@
 export const useEeConfig = createSharedComposable(() => {
+  const isSideBannerExpanded = ref(false)
+
   const isPaidPlan = computed(() => undefined)
 
   const activePlan = computed(() => undefined)
@@ -113,5 +115,6 @@ export const useEeConfig = createSharedComposable(() => {
     gracePeriodEndDate,
     isTopBannerVisible,
     showUpgradeToUploadWsImage,
+    isSideBannerExpanded,
   }
 })

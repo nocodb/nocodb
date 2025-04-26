@@ -71,7 +71,9 @@ const changes = computed(() => {
         : []),
       {
         title: 'Storage',
-        oldValue: `${(activePlan.value?.meta[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] ?? 0) / 1000} GB`,
+        oldValue: `${Number(
+          (activePlan.value?.meta[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] ?? 0) / 1000,
+        ).toLocaleString()} GB`,
         newValue: '1 GB',
         percent: (
           (((activePlan.value?.meta[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] ?? 0) / 1000 - 1) /
@@ -81,8 +83,8 @@ const changes = computed(() => {
       },
       {
         title: 'API',
-        oldValue: `${activePlan.value?.meta[PlanLimitTypes.LIMIT_API_CALL] ?? 0} requests`,
-        newValue: '1000 requests',
+        oldValue: `${Number(activePlan.value?.meta[PlanLimitTypes.LIMIT_API_CALL] ?? 0).toLocaleString()} requests`,
+        newValue: '1,000 requests',
         percent: (
           (((activePlan.value?.meta[PlanLimitTypes.LIMIT_API_CALL] ?? 0) - 1000) /
             (activePlan.value?.meta[PlanLimitTypes.LIMIT_API_CALL] ?? 0)) *
@@ -91,7 +93,9 @@ const changes = computed(() => {
       },
       {
         title: 'Automation',
-        oldValue: `${activePlan.value?.meta[PlanLimitTypes.LIMIT_AUTOMATION_RUN] ?? 0} runs`,
+        oldValue: `${Number(activePlan.value?.meta[PlanLimitTypes.LIMIT_AUTOMATION_RUN] ?? 0)
+          .toFixed(1)
+          .toLocaleString()} runs`,
         newValue: '100 runs',
         percent: (
           (((activePlan.value?.meta[PlanLimitTypes.LIMIT_AUTOMATION_RUN] ?? 0) - 1000) /

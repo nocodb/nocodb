@@ -1283,8 +1283,26 @@ const { message: templatedMessage } = useTemplatedMessage(
                           <div
                             v-if="!isLocked || (isLocked && element?.visible)"
                             :key="element.id"
-                            class="nc-editable nc-form-focus-element item relative bg-white p-4 lg:p-6"
+                            class="nc-editable nc-form-focus-element item relative bg-white p-4 lg:p-6 group"
                             :class="[
+                            <!-- Add hide field icon button -->
+                            <div v-if="!isLocked && isEditable && !isRequired(element)" class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <NcTooltip placement="top">
+                                <template #title>{{ $t('general.hideField') }}</template>
+                                <NcButton
+                                  type="text"
+                                  size="small"
+                                  class="nc-field-hide-icon !p-1 !min-w-6 !h-auto"
+                                  data-testid="nc-field-hide-icon"
+                                  @click.stop="hideFormField(element)"
+                                >
+                                  <component
+                                    :is="iconMap.eye"
+                                    class="flex-none !h-4 !w-4 text-gray-500 hover:text-gray-700"
+                                  />
+                                </NcButton>
+                              </NcTooltip>
+                            </div>
                               `nc-form-drag-${element.title.replaceAll(' ', '')}`,
                               {
                                 'rounded-2xl border-2 my-1': isEditable,
@@ -2203,6 +2221,16 @@ const { message: templatedMessage } = useTemplatedMessage(
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
 }
 .nc-form-field-layout {
+\n// Function to hide a form field
+function hideFormField(field: any) {
+  if (isLocked.value || !isEditable || isRequired(field)) return
+  
+  const fieldIndex = fields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id)
+  if (fieldIndex === undefined || fieldIndex === -1) return
+  
+  fields.value[fieldIndex].show = false
+  saveOrUpdate(fields.value[fieldIndex], fieldIndex, false, !!view.value?.is_default)
+}
   @apply !flex !items-center w-full space-x-3;
 
   :deep(.ant-radio-wrapper) {

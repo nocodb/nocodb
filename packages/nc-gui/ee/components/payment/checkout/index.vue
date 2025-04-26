@@ -139,7 +139,7 @@ onBeforeUnmount(() => {
           <div class="text-base md:text-2xl text-nc-content-gray-emphasis font-weight-700 flex">
             {{
               $t('title.upgradeWorkspaceToPlan', {
-                workspace: activeWorkspace?.title ?? 'Workspace',
+                workspace: activeWorkspace?.title ? `${activeWorkspace?.title} Workspace` : 'Workspace',
                 plan: $t(`objects.paymentPlan.${selectedPlan.title}`),
               })
             }}

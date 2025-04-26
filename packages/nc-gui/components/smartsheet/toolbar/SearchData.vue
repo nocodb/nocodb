@@ -73,7 +73,7 @@ const onSelectOption = (column: ColumnType) => {
   isDropdownOpen.value = false
 
   if (search.value.query?.length) {
-    reloadData.trigger({ shouldShowLoading: false, offset: 0 })
+    onPressEnter()
   }
 }
 

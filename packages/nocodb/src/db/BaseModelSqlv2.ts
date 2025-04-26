@@ -24,6 +24,7 @@ import {
   LongTextAiMetaProp,
   NcApiVersion,
   NcErrorType,
+  ncIsArray,
   ncIsNull,
   ncIsObject,
   ncIsUndefined,
@@ -5678,16 +5679,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const alias = idToAliasMap[key];
         if (alias) {
           if (ltarMap[key]) {
-            if (value && typeof value === 'object') {
-              const tempObj = Array.isArray(value)
-                ? value.map((arrVal) => transformObject(arrVal, idToAliasMap))
-                : transformObject(value, idToAliasMap);
-              item[alias] = tempObj;
-              item[alias] = tempObj;
+            // Handle LTAR/Lookup columns
+            if (ncIsArray(value) && value.length > 0 && ncIsObject(value[0])) {
+              // Transform array of objects
+              item[alias] = value.map((arrVal) =>
+                transformObject(arrVal, idToAliasMap),
+              );
+            } else if (ncIsObject(value) && !ncIsArray(value)) {
+              // Transform non-array objects
+              item[alias] = transformObject(value, idToAliasMap);
             } else {
+              // Directly assign arrays of primitives or primitive values
               item[alias] = value;
             }
           } else {
+            // Non-LTAR/Lookup columns: direct assignment
             item[alias] = value;
           }
           delete item[key];

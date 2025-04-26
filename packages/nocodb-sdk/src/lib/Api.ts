@@ -4286,6 +4286,7 @@ export interface KanbanColumnReqType {
    * @example 1
    */
   order?: number;
+      csvImportToExistingTable: async (baseId: string, sourceId: string, modelId: string, data: any) => {\n        return await this.httpClient.post(`/api/v2/tables/${modelId}/csv-import`, data, {\n          params: {\n            baseId,\n            sourceId,\n            modelId,\n          },\n        });\n      },\n\n      csvImportNewTable: async (baseId: string, sourceId: string, data: any) => {\n        return await this.httpClient.post(`/api/v2/bases/${baseId}/sources/${sourceId}/csv-import`, data);\n      },
 }
 
 /**

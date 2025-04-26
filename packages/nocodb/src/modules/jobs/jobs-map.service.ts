@@ -11,6 +11,7 @@ import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean
 import { InitMigrationJobs } from '~/modules/jobs/migration-jobs/init-migration-jobs';
 import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.processor';
 import { JobTypes } from '~/interface/Jobs';
+import { CsvImportProcessor } from './jobs/csv-import/csv-import.processor';
 
 @Injectable()
 export class JobsMap {
@@ -26,6 +27,7 @@ export class JobsMap {
     protected readonly attachmentCleanUpProcessor: AttachmentCleanUpProcessor,
     protected readonly initMigrationJobs: InitMigrationJobs,
     protected readonly useWorkerProcessor: UseWorkerProcessor,
+    private readonly csvImportProcessor: CsvImportProcessor,
   ) {}
 
   protected get _jobMap(): {
@@ -77,10 +79,63 @@ export class JobsMap {
       [JobTypes.UseWorker]: {
         this: this.useWorkerProcessor,
       },
+      [JobTypes.CsvImport]: {
+        this: this.csvImportProcessor,
+      },
     };
   }
 
   public get jobs() {
     return this._jobMap;
+  }
+
+  getProcessorMap() {
+    return {
+      [JobTypes.DuplicateBase]: {
+        this: this.duplicateProcessor,
+        fn: 'duplicateBase',
+      },
+      [JobTypes.DuplicateModel]: {
+        this: this.duplicateProcessor,
+        fn: 'duplicateModel',
+      },
+      [JobTypes.DuplicateColumn]: {
+        this: this.duplicateProcessor,
+        fn: 'duplicateColumn',
+      },
+      [JobTypes.AtImport]: {
+        this: this.atImportProcessor,
+      },
+      [JobTypes.MetaSync]: {
+        this: this.metaSyncProcessor,
+      },
+      [JobTypes.SourceCreate]: {
+        this: this.sourceCreateProcessor,
+      },
+      [JobTypes.SourceDelete]: {
+        this: this.sourceDeleteProcessor,
+      },
+      [JobTypes.HandleWebhook]: {
+        this: this.webhookHandlerProcessor,
+      },
+      [JobTypes.DataExport]: {
+        this: this.dataExportProcessor,
+      },
+      [JobTypes.ThumbnailGenerator]: {
+        this: this.thumbnailGeneratorProcessor,
+      },
+      [JobTypes.AttachmentCleanUp]: {
+        this: this.attachmentCleanUpProcessor,
+      },
+      [JobTypes.InitMigrationJobs]: {
+        this: this.initMigrationJobs,
+      },
+      [JobTypes.UseWorker]: {
+        this: this.useWorkerProcessor,
+      },
+      [JobTypes.CsvImport]: {
+        this: this.csvImportProcessor,
+      },
+    };
   }
 }

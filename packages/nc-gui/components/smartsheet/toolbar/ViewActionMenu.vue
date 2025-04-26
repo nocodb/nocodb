@@ -2,6 +2,7 @@
 import { PlanFeatureTypes, PlanTitles, ProjectRoles, type TableType, type ViewType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 import { LockType } from '#imports'
+import CsvImport from '../../dlg/CsvImport.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -59,11 +60,17 @@ const importAlias = {
     title: 'CSV',
     icon: iconMap.ncFileTypeCsvSmall,
   },
+  'csv-mapping': {
+    title: 'CSV ' + t('labels.withMapping'),
+    icon: iconMap.ncFileTypeCsvSmall,
+  },
   excel: {
     title: 'Excel',
     icon: iconMap.ncFileTypeExcel,
   },
 }
+
+const csvImportDialog = ref(false)
 
 const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<boolean>> = quickImportDialogTypes.reduce(
   (acc: any, curr) => {
@@ -79,6 +86,14 @@ const onImportClick = (dialog: any) => {
   if (showRecordPlanLimitExceededModal()) return
 
   dialog.value = true
+}
+
+const onCsvImportClick = () => {
+  emits('closeModal')
+  
+  if (showRecordPlanLimitExceededModal()) return
+  
+  csvImportDialog.value = true
 }
 
 const onLockTypeChange = (type: LockType) => {
@@ -299,6 +314,21 @@ const isDefaultView = computed(() => view.value?.is_default)
               </div>
             </NcMenuItem>
           </template>
+          <NcMenuItem v-if="isUIAllowed('csvTableImport') && !isPublicView" key="csv-mapping" @click="onCsvImportClick">
+            <div
+              v-e="[
+                `a:upload:csv-mapping`,
+                {
+                  sidebar: props.inSidebar,
+                },
+              ]"
+              :class="{ disabled: lockType === LockType.Locked }"
+              class="nc-base-menu-item"
+            >
+              <component :is="importAlias['csv-mapping'].icon" v-if="importAlias['csv-mapping']?.icon" class="opacity-80" />
+              {{ importAlias['csv-mapping']?.title }}
+            </div>
+          </NcMenuItem>
         </NcSubMenu>
       </template>
       <NcSubMenu key="download" variant="small">
@@ -472,6 +502,12 @@ const isDefaultView = computed(() => view.value?.is_default)
         :import-type="tp"
         :base-id="table.base_id"
         :source-id="currentSourceId"
+      />
+      <CsvImport
+        v-model="csvImportDialog"
+        :base-id="table.base_id"
+        :source-id="currentSourceId"
+        :model-id="table.id"
       />
     </template>
   </NcMenu>

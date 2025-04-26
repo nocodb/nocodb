@@ -26,6 +26,8 @@ import { DataExportController } from '~/modules/jobs/jobs/data-export/data-expor
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
 import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.processor';
+import { CsvImportController } from './jobs/csv-import/csv-import.controller';
+import { CsvImportProcessor } from './jobs/csv-import/csv-import.processor';
 
 // Job Processor
 import { JobsProcessor } from '~/modules/jobs/jobs.processor';
@@ -84,6 +86,7 @@ export const JobsModuleMetadata = {
           SourceCreateController,
           SourceDeleteController,
           DataExportController,
+          CsvImportController,
         ]
       : []),
   ],
@@ -113,6 +116,7 @@ export const JobsModuleMetadata = {
     ThumbnailGeneratorProcessor,
     AttachmentCleanUpProcessor,
     UseWorkerProcessor,
+    CsvImportProcessor,
 
     // Migration Jobs
     InitMigrationJobs,

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { commandPalette } = useCommandPalette()
+const { isMobileMode } = useGlobal()
 </script>
 
 <template>
@@ -13,7 +14,8 @@ const { commandPalette } = useCommandPalette()
   >
     <div class="flex items-center gap-1 text-sm">
       <GeneralIcon icon="ncCommand" class="h-3.5" />
-      K
+      <span v-if="!isMobileMode">K</span>
+      <span v-else class="sr-only">K</span>
     </div>
   </NcButton>
 </template>

@@ -21,6 +21,8 @@ const linkNodeMark = ref<Mark | undefined>()
 const href = ref('')
 const isLinkOptionsVisible = ref(false)
 
+// This is used to prevent the menu from showing up after a link is deleted, an edge case when the link with empty placeholder text is deleted.
+// This is because checkLinkMark is not called in that case
 const justDeleted = ref(false)
 
 const checkLinkMark = (editor: Editor) => {
@@ -49,6 +51,7 @@ const checkLinkMark = (editor: Editor) => {
     href.value = linkNodeMark.value?.attrs?.href
   }
 
+  // check if active node is a text node
   const isTextSelected = editor?.state?.selection?.from !== editor?.state?.selection?.to
 
   const showLinkOptions = isActiveNodeMarkActive && !isTextSelected
@@ -115,11 +118,13 @@ const onDelete = () => {
 const handleKeyDown = (e: any) => {
   const isCtrlPressed = isMac() ? e.metaKey : e.ctrlKey
 
+  // Ctrl + Z/ Meta + Z
   if (isCtrlPressed && e.key === 'z') {
     e.preventDefault()
     editor.value.commands.undo()
   }
 
+  // Ctrl + Shift + Z/ Meta + Shift + Z
   if (isCtrlPressed && e.shiftKey && e.key === 'z') {
     e.preventDefault()
     editor.value.commands.redo()
@@ -235,8 +240,10 @@ const tabIndex = computed(() => {
   </BubbleMenu>
 </template>
 
+
 <style lang="scss">
 .bubble-menu {
+  // shadow
   @apply shadow-gray-200 shadow-sm;
 }
 

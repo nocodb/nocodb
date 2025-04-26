@@ -32,7 +32,7 @@ const changes = computed(() => {
       title: string
       oldValue: string
       newValue: string
-      percent: number
+      percent: number | string
     }[]
     change?: 'upgrade' | 'downgrade' | 'cancel'
   } = {}
@@ -58,42 +58,46 @@ const changes = computed(() => {
     changes.change = 'cancel'
 
     changes.decrease = [
-      {
-        title: 'Number of users',
-        oldValue: `${workspaceSeatCount.value}`,
-        newValue: '5',
+      ...(workspaceSeatCount.value > 3
+        ? [
+            {
+              title: 'Number of editors',
+              oldValue: `${workspaceSeatCount.value}`,
+              newValue: '3',
 
-        percent: workspaceSeatCount.value > 5 ? Math.round(workspaceSeatCount.value - 5 / workspaceSeatCount.value) * 100 : 100,
-      },
+              percent: (((workspaceSeatCount.value - 3) / workspaceSeatCount.value) * 100).toFixed(2),
+            },
+          ]
+        : []),
       {
         title: 'Storage',
         oldValue: `${(activePlan.value?.meta[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] ?? 0) / 1000} GB`,
         newValue: '1 GB',
-        percent: Math.round(
+        percent: (
           (((activePlan.value?.meta[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] ?? 0) / 1000 - 1) /
             ((activePlan.value?.meta[PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE] ?? 0) / 1000)) *
-            100,
-        ),
+          100
+        ).toFixed(2),
       },
       {
         title: 'API',
         oldValue: `${activePlan.value?.meta[PlanLimitTypes.LIMIT_API_CALL] ?? 0} requests`,
         newValue: '1000 requests',
-        percent: Math.round(
+        percent: (
           (((activePlan.value?.meta[PlanLimitTypes.LIMIT_API_CALL] ?? 0) - 1000) /
             (activePlan.value?.meta[PlanLimitTypes.LIMIT_API_CALL] ?? 0)) *
-            100,
-        ),
+          100
+        ).toFixed(2),
       },
       {
         title: 'Automation',
         oldValue: `${activePlan.value?.meta[PlanLimitTypes.LIMIT_AUTOMATION_RUN] ?? 0} runs`,
         newValue: '100 runs',
-        percent: Math.round(
+        percent: (
           (((activePlan.value?.meta[PlanLimitTypes.LIMIT_AUTOMATION_RUN] ?? 0) - 1000) /
             (activePlan.value?.meta[PlanLimitTypes.LIMIT_AUTOMATION_RUN] ?? 0)) *
-            100,
-        ),
+          100
+        ).toFixed(2),
       },
     ]
   } else {
@@ -164,7 +168,7 @@ const onCancelSubscription = async () => {
   <div class="h-full flex flex-col max-w-[676px] mx-auto px-6">
     <div
       v-if="changes.change === 'upgrade'"
-      class="p-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
+      class="py-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
     >
       <div
         v-if="changes.plan || !changes.period || changes.period === 'year'"
@@ -176,15 +180,15 @@ const onCancelSubscription = async () => {
     </div>
     <div
       v-else-if="changes.change === 'downgrade'"
-      class="p-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
+      class="py-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
     >
       <div class="flex-1 text-xl text-nc-content-gray-emphasis font-700">Downgrade Plan</div>
     </div>
     <div
       v-else-if="changes.change === 'cancel'"
-      class="p-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
+      class="py-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
     >
-      <div class="flex-1 text-xl text-nc-content-gray-emphasis font-700">Cancel Plan</div>
+      <div class="flex-1 text-xl text-nc-content-gray-emphasis font-700">Downgrade to Free Plan</div>
     </div>
     <div
       v-if="changes.change === 'upgrade' && (changes.plan || !changes.period || changes.period === 'year')"
@@ -407,9 +411,9 @@ const onCancelSubscription = async () => {
             </div>
             <div class="flex items-center gap-2 font-bold">
               <div class="flex items-center justify-center p-2 bg-nc-bg-purple-light rounded-lg">
-                <GeneralIcon icon="ncAutoAwesome" />
+                <GeneralIcon icon="ncPuzzleOutline" class="!stroke-transparent" />
               </div>
-              <span>AI Features</span>
+              <span>Extensions</span>
             </div>
           </div>
           <div>
@@ -431,7 +435,7 @@ const onCancelSubscription = async () => {
         :disabled="!changes.plan && !changes.period"
         @click="onCancelSubscription()"
       >
-        Cancel
+        Proceed
       </NcButton>
     </div>
     <div v-else class="flex items-center justify-end gap-2 py-6 border-t-1 border-nc-border-gray-medium">

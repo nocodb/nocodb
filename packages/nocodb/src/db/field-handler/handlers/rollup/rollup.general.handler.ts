@@ -29,14 +29,23 @@ export class RollupGeneralHandler extends GenericFieldHandler {
         columnOptions: (await column.getColOptions(context)) as RollupColumn,
       })
     ).builder;
+    
+    // Fix for empty string filter value
+    let filterValue = filter.value;
+    if (filterValue === '') {
+      // If the filter value is an empty string, use NULL for comparison
+      // This prevents PostgreSQL from trying to convert an empty string to a number
+      filterValue = null;
+    } else if (!isNaN(+filterValue) && filterValue !== null) {
+      // Only convert to number if it's a valid number and not null
+      filterValue = +filterValue;
+    }
+    
     return parseConditionV2(
       baseModelSqlv2,
       new Filter({
         ...filter,
-        value: knex.raw('?', [
-          // convert value to number for rollup since rollup is always number
-          isNaN(+filter.value) ? filter.value : +filter.value,
-        ]),
+        value: knex.raw('?', [filterValue]),
       } as any),
       aliasCount,
       alias,

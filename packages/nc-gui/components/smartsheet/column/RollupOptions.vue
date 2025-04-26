@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from '@vue/runtime-core'
+import { onMounted, onUnmounted } from '@vue/runtime-core'
 import {
   ColumnHelper,
   type ColumnType,
@@ -8,6 +8,7 @@ import {
   type RollupType,
   type TableType,
   UITypes,
+  ViewTypes,
   getRenderAsTextFunForUiType,
 } from 'nocodb-sdk'
 import { getAvailableRollupForColumn, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
@@ -20,12 +21,17 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, disableSubmitBtn, updateFieldName } =
+const filterRef = ref()
+
+const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, disableSubmitBtn, updateFieldName, setPostSaveOrUpdateCbk } =
   useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
 
 const { tables } = storeToRefs(baseStore)
+
+const viewsStore = useViewsStore()
+const { viewsByTable } = storeToRefs(viewsStore)
 
 const { metas, getMeta } = useMetas()
 
@@ -90,12 +96,28 @@ const columns = computed<ColumnType[]>(() => {
   )
 })
 
+const refViews = computed(() => {
+  if (!selectedTable.value?.id) return []
+  const views = viewsByTable.value.get(selectedTable.value.id)
+
+  return (views || []).filter((v) => v.type !== ViewTypes.FORM)
+})
+
 onMounted(() => {
   if (isEdit.value) {
     vModel.value.fk_relation_column_id = vModel.value.colOptions?.fk_relation_column_id
     vModel.value.fk_rollup_column_id = vModel.value.colOptions?.fk_rollup_column_id
     vModel.value.rollup_function = vModel.value.colOptions?.rollup_function
+    vModel.value.childViewId = vModel.value.colOptions?.fk_target_view_id || null
   }
+  
+  setPostSaveOrUpdateCbk(async ({ colId, column }) => {
+    await filterRef.value?.applyChanges(colId || column.id, false)
+  })
+})
+
+onUnmounted(() => {
+  setPostSaveOrUpdateCbk(null)
 })
 
 const getNextColumnId = () => {
@@ -109,6 +131,16 @@ const getNextColumnId = () => {
 const onRelationColChange = async () => {
   if (selectedTable.value) {
     await getMeta(selectedTable.value.id)
+    
+    // Load views for the selected table
+    viewsStore
+      .loadViews({
+        ignoreLoading: true,
+        tableId: selectedTable.value.id,
+      })
+      .catch(() => {
+        // ignore
+      })
   }
   vModel.value.fk_rollup_column_id = getNextColumnId() || columns.value?.[0]?.id
   onDataTypeChange()
@@ -231,6 +263,31 @@ const enableFormattingOptions = computed(() => {
 
   return validFunctions.includes(vModel.value.rollup_function)
 })
+
+const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
+
+vModel.value.meta = vModel.value.meta || {}
+const limitRecToView = ref(!!vModel.value.childViewId)
+const limitRecToCond = computed({
+  get() {
+    return !!vModel.value.meta?.enableConditions
+  },
+  set(value) {
+    vModel.value.meta = vModel.value.meta || {}
+    vModel.value.meta.enableConditions = value
+  },
+})
+
+const onLimitRecToViewChange = (value: boolean) => {
+  if (!value) {
+    vModel.value.childViewId = null
+  }
+}
+
+provide(
+  MetaInj,
+  computed(() => metas.value[selectedTable.value?.id] || {}),
+)
 </script>
 
 <template>
@@ -344,6 +401,75 @@ const enableFormattingOptions = computed(() => {
         </a-select-option>
       </a-select>
     </a-form-item>
+    
+    <div v-if="isEeUI" class="w-full flex-col">
+      <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView }">
+        <a-switch
+          v-model:checked="limitRecToView"
+          v-e="['c:rollup:limit-record-by-view', { status: limitRecToView }]"
+          size="small"
+          :disabled="!vModel.fk_relation_column_id"
+          @change="onLimitRecToViewChange"
+        ></a-switch>
+        <span
+          v-e="['c:rollup:limit-record-by-view', { status: limitRecToView }]"
+          class="text-s"
+          data-testid="nc-limit-record-view"
+          @click="limitRecToView = !!vModel.fk_relation_column_id && !limitRecToView"
+          >Limit record selection to a view</span
+        >
+      </div>
+      <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-rollup-child-view">
+        <NcSelect
+          v-model:value="vModel.childViewId"
+          :placeholder="$t('labels.selectView')"
+          show-search
+          :filter-option="filterOption"
+          dropdown-class-name="nc-dropdown-rollup-child-view"
+        >
+          <a-select-option v-for="view of refViews" :key="view.title" :value="view.id">
+            <div class="flex w-full items-center gap-2">
+              <div class="min-w-5 flex items-center justify-center">
+                <GeneralViewIcon :meta="view" class="text-gray-500" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ view.title }}</template>
+                <span>{{ view.title }}</span>
+              </NcTooltip>
+            </div>
+          </a-select-option>
+        </NcSelect>
+      </a-form-item>
+
+      <div class="mt-4 flex gap-2 items-center" :class="{ 'mb-2': limitRecToCond }">
+        <a-switch
+          v-model:checked="limitRecToCond"
+          v-e="['c:rollup:limit-record-by-filter', { status: limitRecToCond }]"
+          :disabled="!vModel.fk_relation_column_id"
+          size="small"
+        ></a-switch>
+        <span
+          v-e="['c:rollup:limit-record-by-filter', { status: limitRecToCond }]"
+          data-testid="nc-limit-record-filters"
+          @click="limitRecToCond = !!vModel.fk_relation_column_id && !limitRecToCond"
+        >
+          Limit record selection to filters
+        </span>
+      </div>
+      <div v-if="limitRecToCond" class="overflow-auto">
+        <LazySmartsheetToolbarColumnFilter
+          ref="filterRef"
+          v-model="vModel.filters"
+          class="!pl-8 !p-0 max-w-620px"
+          :auto-save="false"
+          :show-loading="false"
+          :link="true"
+          :root-meta="meta"
+          :link-col-id="vModel.id"
+        />
+      </div>
+    </div>
+    
     <a-form-item v-if="enableFormattingOptions" :label="$t('placeholder.precision')">
       <a-select
         v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
@@ -394,5 +520,9 @@ const enableFormattingOptions = computed(() => {
 <style scoped>
 :deep(.ant-select-selector .ant-select-selection-item .nc-relation-details) {
   @apply hidden;
+}
+
+:deep(.nc-filter-grid) {
+  @apply !pr-0;
 }
 </style>

@@ -1,0 +1,19 @@
+--- a/packages/nc-gui/components/smartsheet/Form.vue
++++ b/packages/nc-gui/components/smartsheet/Form.vue
+@@ -2205,6 +2205,15 @@ function onFormItemClick(field: any) {
+   }
+ }
+ 
++// Function to hide a form field
++function hideFormField(field: any) {
++  if (isLocked.value || !isEditable || isRequired(field)) return
++  
++  const fieldIndex = fields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id)
++  if (fieldIndex === undefined || fieldIndex === -1) return
++  
++  fields.value[fieldIndex].show = false
++  saveOrUpdate(fields.value[fieldIndex], fieldIndex, false, !!view.value?.is_default)
++}
+ </script>
+ 
+ <style scoped lang="scss">

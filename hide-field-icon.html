@@ -1,0 +1,18 @@
+                            <!-- Add hide field icon button -->
+                            <div v-if="!isLocked && isEditable && !isRequired(element)" class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <NcTooltip placement="top">
+                                <template #title>{{ $t('general.hideField') }}</template>
+                                <NcButton
+                                  type="text"
+                                  size="small"
+                                  class="nc-field-hide-icon !p-1 !min-w-6 !h-auto"
+                                  data-testid="nc-field-hide-icon"
+                                  @click.stop="hideFormField(element)"
+                                >
+                                  <component
+                                    :is="iconMap.eye"
+                                    class="flex-none !h-4 !w-4 text-gray-500 hover:text-gray-700"
+                                  />
+                                </NcButton>
+                              </NcTooltip>
+                            </div>

@@ -1,0 +1,84 @@
+--- a/packages/nc-gui/components/smartsheet/Form.vue
++++ b/packages/nc-gui/components/smartsheet/Form.vue
+@@ -1323,6 +1323,22 @@ async function onMove(event: any, isVisibleFormFields = false) {
+                             <div class="flex items-center gap-3">
+                               <NcTooltip
+                                 v-if="allViewFilters[element.fk_column_id]?.length && !isLocked"
++                                class="relative h-3.5 w-3.5 flex cursor-pointer"
++                                placement="topLeft"
++                              >
++                                <template #title> Conditionally visible field </template>
++                                <Transition name="icon-fade" :duration="500">
++                                  <GeneralIcon
++                                    v-if="element?.visible"
++                                    icon="eye"
++                                    class="nc-field-visibility-icon nc-field-visible w-3.5 h-3.5 flex-none text-nc-content-gray-muted"
++                                  />
++                                  <GeneralIcon
++                                    v-else
++                                    icon="eyeOff"
++                                    class="nc-field-visibility-icon nc-field-hidden w-3.5 h-3.5 flex-none text-nc-content-gray-muted"
++                                  />
++                                </Transition>
++                              </NcTooltip>
++                              <!-- Add hide field icon button -->
++                              <NcTooltip
++                                v-if="!isLocked && isEditable && !isRequired(element)"
+                                 class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                                 placement="topLeft"
+                               >
+@@ -1330,6 +1346,17 @@ async function onMove(event: any, isVisibleFormFields = false) {
+                                 <Transition name="icon-fade" :duration="500">
+                                   <GeneralIcon
+                                     v-if="element?.visible"
++                                    icon="eye"
++                                    class="nc-field-hide-icon w-3.5 h-3.5 flex-none text-gray-500 hover:text-gray-700"
++                                    data-testid="nc-field-hide-icon"
++                                    @click.stop="hideFormField(element)"
++                                  />
++                                </Transition>
++                              </NcTooltip>
++                              <NcTooltip
++                                v-if="allViewFilters[element.fk_column_id]?.length && !isLocked"
++                                class="relative h-3.5 w-3.5 flex cursor-pointer"
++                                placement="topLeft"
++                              >
++                                <template #title> Conditionally visible field </template>
++                                <Transition name="icon-fade" :duration="500">
++                                  <GeneralIcon
++                                    v-if="element?.visible"
+                                     icon="eye"
+                                     class="nc-field-visibility-icon nc-field-visible w-3.5 h-3.5 flex-none text-nc-content-gray-muted"
+                                   />
+@@ -2205,6 +2232,15 @@ function onFormItemClick(field: any) {
+   }
+ }
+ 
++// Function to hide a form field
++function hideFormField(field: any) {
++  if (isLocked.value || !isEditable || isRequired(field)) return
++  
++  const fieldIndex = fields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id)
++  if (fieldIndex === undefined || fieldIndex === -1) return
++  
++  fields.value[fieldIndex].show = false
++  saveOrUpdate(fields.value[fieldIndex], fieldIndex, false, !!view.value?.is_default)
++}
+ </script>
+ 
+ <style scoped lang="scss">
+@@ -2212,6 +2248,11 @@ function onFormItemClick(field: any) {
+   :deep(.nc-field-remove-icon) {
+     @apply opacity-100;
+   }
++  
++  :deep(.nc-field-hide-icon) {
++    @apply opacity-100;
++  }
++}
++
++.nc-editable {
++  @apply group;
+ }
+ 
+ .nc-input {

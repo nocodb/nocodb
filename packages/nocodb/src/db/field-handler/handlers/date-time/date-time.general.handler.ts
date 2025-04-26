@@ -1,14 +1,10 @@
-import {
-  ClientType,
-  ColumnHelper,
-  parseDateTimeValue,
-  SqlUiFactory,
-} from 'nocodb-sdk';
-import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
+import dayjs from 'dayjs';
+import { ClientType, parseDateTimeValue } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
+import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
+import type { MetaService } from 'src/meta/meta.service';
 import type { FilterVerificationResult } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
-import type { MetaService } from 'src/meta/meta.service';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 
 export class DateTimeGeneralHandler extends GenericFieldHandler {
@@ -77,24 +73,76 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     baseModel: IBaseModelSqlV2;
     options?: { context?: NcContext; metaService?: MetaService };
   }): Promise<{ value: any }> {
-    if (params.value instanceof Date) {
-      return { value: params.value };
-    } else if (typeof params.value === 'string') {
-      const dbClientType = params.baseModel.dbDriver.client.config.client;
-      const resultValue = ColumnHelper.parseValue(params.value, {
-        col: params.column,
-        abstractType: SqlUiFactory.create({
-          client: dbClientType,
-        }).getAbstractType(params.column),
-        rowId: params.baseModel.extractPksValues(params.row, true),
-        isMssql: (_sourceid) => dbClientType === ClientType.MSSQL,
-        isMysql: (_sourceid) => dbClientType === ClientType.MYSQL,
-        isPg: (_sourceid) => dbClientType === ClientType.PG,
-      });
-      return { value: resultValue };
-    } else if (typeof params.value === 'number') {
-      return { value: new Date(params.value) };
+    const dbClientType = params.baseModel.dbDriver.client.config.client;
+    const knex = params.baseModel.dbDriver;
+    let dayjsUtcValue: dayjs.Dayjs;
+    let val: any;
+    if (
+      params.value &&
+      (params.value instanceof Date ||
+        typeof params.value === 'string' ||
+        typeof params.value === 'number')
+    ) {
+      if (params.value instanceof Date) {
+        dayjsUtcValue = dayjs(params.value).utc();
+      } else if (typeof params.value === 'string') {
+        let strVal: any = params.value;
+        if (
+          strVal.indexOf('-') < 0 &&
+          strVal.indexOf('+') < 0 &&
+          strVal.slice(-1) !== 'Z'
+        ) {
+          // if no timezone is given,
+          // then append +00:00 to make it as UTC
+          strVal += '+00:00';
+        }
+        dayjsUtcValue = dayjs(strVal).utc();
+      } else if (typeof params.value === 'number') {
+        dayjsUtcValue = dayjs.unix(params.value).utc();
+      }
+
+      if (dbClientType === ClientType.MYSQL) {
+        // first convert the value to utc
+        // from UI
+        // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
+        // from API
+        // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
+        // if timezone info is not found - considered as utc
+        // e.g. 2022-01-01 20:00:00 -> 2022-01-01 20:00:00
+        // if timezone info is found
+        // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
+        // e.g. 2022-01-01 20:00:00+00:00 -> 2022-01-01 20:00:00
+        // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
+        // then we use CONVERT_TZ to convert that in the db timezone
+        val = knex.raw(`CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`, [
+          dayjsUtcValue.format('YYYY-MM-DD HH:mm:ss'),
+        ]);
+      } else if (dbClientType === ClientType.SQLITE) {
+        // convert to UTC
+        // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 04:30:00+00:00
+        val = dayjsUtcValue.format('YYYY-MM-DD HH:mm:ssZ');
+      } else if (dbClientType === ClientType.PG) {
+        // convert to UTC
+        // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
+        // then convert to db timezone
+        val = knex.raw(`? AT TIME ZONE CURRENT_SETTING('timezone')`, [
+          dayjsUtcValue.format('YYYY-MM-DD HH:mm:ssZ'),
+        ]);
+      } else if (dbClientType === ClientType.MSSQL) {
+        // convert ot UTC
+        // e.g. 2023-05-10T08:49:32.000Z -> 2023-05-10 08:49:32-08:00
+        // then convert to db timezone
+        val = knex.raw(
+          `SWITCHOFFSET(CONVERT(datetimeoffset, ?), DATENAME(TzOffset, SYSDATETIMEOFFSET()))`,
+          [dayjsUtcValue.format('YYYY-MM-DD HH:mm:ssZ')],
+        );
+      } else {
+        // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
+        val = dayjsUtcValue.format('YYYY-MM-DD HH:mm:ssZ');
+      }
+      return { value: val };
     }
+
     return { value: params.value };
   }
 }

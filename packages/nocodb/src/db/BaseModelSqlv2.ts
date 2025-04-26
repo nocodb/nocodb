@@ -6260,6 +6260,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ): Promise<void> {
     for (const column of this.model.columns) {
       if (
+        this.context.api_version === NcApiVersion.V3 &&
         !ncIsUndefined(data[column.column_name]) &&
         !ncIsNull(data[column.column_name])
       ) {

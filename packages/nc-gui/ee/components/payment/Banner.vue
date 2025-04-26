@@ -81,7 +81,7 @@ const { isWsOwner, navigateToPricing, isLoyaltyDiscountAvailable, isTopBannerVis
       <div class="w-[154px] hidden xl:block">
         <img :src="loyalMoscotImage" class="absolute -bottom-0" alt="Moscot" width="154px" height="160px" />
       </div>
-      <div class="w-[min(495px,40%)] min-w-[min(405px,40%)] relative hidden lg:flex items-center overflow-hidden">
+      <div class="w-[min(495px,40%)] min-w-[min(405px,40%)] relative hidden lg:flex items-center overflow-hidden -my-3">
         <img :src="loyalContentImage" alt="Content" class="flex-none min-w-[305px]" />
       </div>
     </div>

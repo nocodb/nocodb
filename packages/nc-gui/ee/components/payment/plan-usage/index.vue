@@ -223,7 +223,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
     <div class="flex items-center justify-between gap-4 min-h-8">
       <div class="flex gap-2 items-center text-base font-weight-700 text-nc-content-gray !leading-7">
         <span>{{ $t('title.currentPlan') }}:</span>
-        <span class="text-xl" :style="{ color: activePlanMeta?.primary }">
+        <span :style="{ color: activePlanMeta?.primary }">
           {{ $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title ?? PlanTitles.FREE}`) }}
         </span>
         <NcBadge

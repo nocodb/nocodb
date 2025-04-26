@@ -6272,6 +6272,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             row: data,
             options: {
               context: this.context,
+              logger: logger,
             },
           })
         ).value;

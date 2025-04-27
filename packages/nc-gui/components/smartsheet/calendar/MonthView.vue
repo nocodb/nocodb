@@ -22,10 +22,7 @@ const {
 
 const { $e } = useNuxtApp()
 
-// Instead of hardcoding isMondayFirst to true, compute it based on viewMetaProperties
-const isMondayFirst = computed(() => {
-  return viewMetaProperties.value?.monday_first !== false
-})
+const isMondayFirst = ref(true)
 
 const { isUIAllowed } = useRoles()
 
@@ -93,6 +90,8 @@ const fieldStyles = computed(() => {
 const calendarData = computed(() => {
   // startOf and endOf dayjs is bugged with timezone
   const startOfMonth = timezoneDayjs.dayjsTz(selectedMonth.value.startOf('month').toISOString())
+  // With isMondayFirst set to true, we need to adjust the first day offset
+  // This ensures the calendar starts with Monday as the first day of the week
   const firstDayOffset = isMondayFirst.value ? 0 : -1
   const firstDayToDisplay = timezoneDayjs.dayjsTz(startOfMonth.startOf('week').toISOString()).add(firstDayOffset, 'day')
   const today = timezoneDayjs.dayjsTz()
@@ -100,6 +99,9 @@ const calendarData = computed(() => {
   const daysInMonth = startOfMonth.daysInMonth()
   const firstDayOfMonth = startOfMonth.day()
 
+  // Adjust the first day of the month based on Monday-first setting
+  // If Monday is first (index 1), Sunday becomes day 7 (index 6)
+  // This ensures correct date-day mapping while keeping Monday as first day
   const adjustedFirstDay = isMondayFirst.value ? (firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1) : firstDayOfMonth
 
   const weeksNeeded = Math.ceil((daysInMonth + adjustedFirstDay) / 7)

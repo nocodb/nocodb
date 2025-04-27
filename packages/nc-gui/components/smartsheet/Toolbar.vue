@@ -68,8 +68,6 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
         <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
         
-        <LazySmartsheetToolbarCalendarFirstDayOfWeek v-if="isCalendar" />
-
         <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
         <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />

@@ -90,8 +90,6 @@ const fieldStyles = computed(() => {
 const calendarData = computed(() => {
   // startOf and endOf dayjs is bugged with timezone
   const startOfMonth = timezoneDayjs.dayjsTz(selectedMonth.value.startOf('month').toISOString())
-  // With isMondayFirst set to true, we need to adjust the first day offset
-  // This ensures the calendar starts with Monday as the first day of the week
   const firstDayOffset = isMondayFirst.value ? 0 : -1
   const firstDayToDisplay = timezoneDayjs.dayjsTz(startOfMonth.startOf('week').toISOString()).add(firstDayOffset, 'day')
   const today = timezoneDayjs.dayjsTz()
@@ -99,9 +97,6 @@ const calendarData = computed(() => {
   const daysInMonth = startOfMonth.daysInMonth()
   const firstDayOfMonth = startOfMonth.day()
 
-  // Adjust the first day of the month based on Monday-first setting
-  // If Monday is first (index 1), Sunday becomes day 7 (index 6)
-  // This ensures correct date-day mapping while keeping Monday as first day
   const adjustedFirstDay = isMondayFirst.value ? (firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1) : firstDayOfMonth
 
   const weeksNeeded = Math.ceil((daysInMonth + adjustedFirstDay) / 7)
@@ -145,7 +140,6 @@ const recordsToDisplay = computed<{
   const spaceBetweenRecords = 27
   const maxLanes = Math.floor((perHeight - spaceBetweenRecords) / (perRecordHeight + 8))
 
-  // Track records and lanes for each day
   const recordsInDay: {
     [key: string]: {
       overflow: boolean
@@ -163,7 +157,6 @@ const recordsToDisplay = computed<{
     const { lanes } = recordsInDay[dateKey]
     for (let i = 0; i < maxLanes; i++) {
       if (!lanes[i]) {
-        // Check if the lane is available for the entire duration
         let isAvailable = true
         for (let j = 0; j < duration; j++) {
           const checkDate = timezoneDayjs.dayjsTz(dateKey).add(j, 'day').format('YYYY-MM-DD')
@@ -175,7 +168,7 @@ const recordsToDisplay = computed<{
         if (isAvailable) return i
       }
     }
-    return -1 // No available lane
+    return -1
   }
 
   const occupyLane = (dateKey: string, lane: number, duration = 1) => {
@@ -195,7 +188,6 @@ const recordsToDisplay = computed<{
     const startCol = range.fk_from_col
     const endCol = range.fk_to_col
 
-    // Filter out records that don't satisfy the range and sort them by start date
     const sortedFormattedData = [...formattedData.value]
       .filter((record) => {
         if (startCol && endCol) {
@@ -219,7 +211,6 @@ const recordsToDisplay = computed<{
 
     sortedFormattedData.forEach((record: Row) => {
       if (!endCol && startCol) {
-        // If there is no end date, we just display the record on the start date
         const startDate = timezoneDayjs.timezonize(record.row[startCol.title!])
         const dateKey = startDate.format('YYYY-MM-DD')
 
@@ -227,7 +218,7 @@ const recordsToDisplay = computed<{
         if (lane === -1) {
           recordsInDay[dateKey].overflow = true
           recordsInDay[dateKey].overflowCount++
-          return // Skip this record as there's no available lane
+          return
         }
 
         occupyLane(dateKey, lane)
@@ -268,7 +259,6 @@ const recordsToDisplay = computed<{
           },
         })
       } else if (startCol && endCol) {
-        // Multi-day event logic
         let startDate = timezoneDayjs.timezonize(record.row[startCol.title!])
         const endDate = timezoneDayjs.timezonize(record.row[endCol.title!])
 
@@ -279,19 +269,14 @@ const recordsToDisplay = computed<{
         }
 
         const id = record.rowMeta.id ?? generateRandomNumber()
-        // Since the records can span multiple weeks, to display, we render multiple elements
-        // for each week the record spans. The id is used to identify the elements that belong to the same record
         let recordIndex = 0
+
         while (
           currentWeekStart.isSameOrBefore(endDate, 'day') &&
-          // If the current week start is before the last day of the last week
           currentWeekStart.isBefore(calendarData.value.weeks[calendarData.value.weeks.length - 1].days[6].date)
         ) {
-          // We update the record start to currentWeekStart if it is before the start date
-          // and record end to currentWeekEnd if it is after the end date
           let currentWeekEnd = currentWeekStart.endOf('week')
 
-          // If the maxVisibleDays is 5, we skip the weekends
           if (maxVisibleDays.value === 5) {
             currentWeekEnd = currentWeekEnd.subtract(2, 'day')
           }
@@ -346,7 +331,6 @@ const recordsToDisplay = computed<{
           }
 
           let position = 'rounded'
-          // Here we are checking if the startDay is before all the dates shown in UI rather that the current month
 
           const isStartMonthBeforeCurrentWeek = calendarData.value.weeks[weekIndex - 1]
             ? calendarData.value.weeks[weekIndex - 1].days[0].date.isBefore(recordStart, 'month')
@@ -355,7 +339,7 @@ const recordsToDisplay = computed<{
           if (
             startDate.isSame(currentWeekStart, 'week') &&
             endDate.isSame(currentWeekEnd, 'week') &&
-            endDate.isSameOrBefore(currentWeekEnd) // Weekend check
+            endDate.isSameOrBefore(currentWeekEnd)
           ) {
             position = 'rounded'
           } else if (startDate.isSame(recordStart, 'week')) {
@@ -465,7 +449,6 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
     updateProperty.push(toCol!.title!)
   }
 
-  // If from and to columns of the dragRecord and the newRow are the same, we don't manipulate the formattedRecords and formattedSideBarData. This removes unwanted computation
   if (dragRecord.value.row[fromCol.title!] === newRow.row[fromCol.title!] && !skipChangeCheck) {
     return { newRow: null, updatedProperty: [] }
   }
@@ -588,7 +571,6 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 
   if (record.rowMeta.range?.is_readonly) return
 
-  // selectedDate.value = null
   resizeInProgress.value = true
   resizeDirection.value = direction
   resizeRecord.value = record
@@ -642,11 +624,6 @@ const dragStart = (event: MouseEvent, record: Row) => {
     while (!target.classList.contains('draggable-record')) {
       target = target.parentElement as HTMLElement
     }
-
-    // TODO: @DarkPhoenix2704
-    // const initialDragElement = document.querySelector(`[data-unique-id="${record.rowMeta.id}-0"]`)
-
-    // selectedDate.value = null
 
     isDragging.value = true
     dragElement.value = target
@@ -722,7 +699,6 @@ const isDateSelected = (date: dayjs.Dayjs) => {
   return timezoneDayjs.dayjsTz(date).isSame(selectedDate.value, 'day')
 }
 
-// TODO: Add Support for multiple ranges when multiple ranges are supported
 const addRecord = (date: dayjs.Dayjs) => {
   if (!isUIAllowed('dataEdit') || !calendarRange.value) return
   const fromCol = calendarRange.value[0].fk_from_col

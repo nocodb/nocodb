@@ -22,7 +22,10 @@ const {
 
 const { $e } = useNuxtApp()
 
-const isMondayFirst = ref(true)
+// Instead of hardcoding isMondayFirst to true, compute it based on viewMetaProperties
+const isMondayFirst = computed(() => {
+  return viewMetaProperties.value?.monday_first !== false
+})
 
 const { isUIAllowed } = useRoles()
 

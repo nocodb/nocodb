@@ -67,6 +67,8 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         <LazySmartsheetToolbarCalendarToday v-if="isCalendar" />
 
         <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
+        
+        <LazySmartsheetToolbarCalendarFirstDayOfWeek v-if="isCalendar" />
 
         <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 

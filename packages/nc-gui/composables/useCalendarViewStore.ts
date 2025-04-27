@@ -150,6 +150,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     const viewMetaProperties = computed<{
       active_view: string
       hide_weekend: boolean
+      monday_first: boolean
     }>(() => {
       let meta = calendarMetaData.value?.meta ?? {}
 
@@ -162,6 +163,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       return meta as {
         active_view: string
         hide_weekend: boolean
+        monday_first: boolean
       }
     })
 
@@ -423,7 +425,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               from_date: prevDate,
               to_date: nextDate,
               sortsArr: sorts.value,
-              filtersArr: nestedFilters.value,
+              filtersArr: [...nestedFilters.value, ...sideBarFilter.value],
             })
         activeDates.value = res.dates.map((dateObj: unknown) => timezoneDayjs.dayjsTz(dateObj as string))
 

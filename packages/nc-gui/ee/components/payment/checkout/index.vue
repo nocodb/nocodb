@@ -7,6 +7,8 @@ const stripe = ref<Stripe | null>(null)
 
 const redirectRef = ref<'billing' | 'pricing' | null>(null)
 
+const enableTogglePaymentMode = false
+
 const { navigateToPricing, navigateToBilling } = useEeConfig()
 
 const {
@@ -139,7 +141,7 @@ onBeforeUnmount(() => {
           <div class="text-base md:text-2xl text-nc-content-gray-emphasis font-weight-700 flex">
             {{
               $t('title.upgradeWorkspaceToPlan', {
-                workspace: activeWorkspace?.title ?? 'Workspace',
+                workspace: activeWorkspace?.title ? `${activeWorkspace?.title} Workspace` : 'Workspace',
                 plan: $t(`objects.paymentPlan.${selectedPlan.title}`),
               })
             }}
@@ -155,14 +157,17 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
-      <div v-if="selectedPlan" class="max-w-[444px] md:max-w-[920px] mx-auto w-full flex items-center justify-center px-4">
+      <div
+        v-if="selectedPlan && enableTogglePaymentMode"
+        class="max-w-[444px] md:max-w-[920px] mx-auto w-full flex items-center justify-center px-4"
+      >
         <a-form-item class="!w-full">
           <a-radio-group :value="paymentMode" class="nc-time-form-layout" @update:value="onChangePaymentMode">
             <a-radio value="month">
               <div class="flex flex-col md:(flex-row gap-3 items-center)">
                 Paid Monthly
                 <div class="text-small leading-[18px] text-nc-content-gray-subtle2 font-normal">
-                  $ {{ getPlanPrice(selectedPlan, 'month') }} / user / month
+                  ${{ getPlanPrice(selectedPlan, 'month') }} / user / month
                 </div>
               </div>
             </a-radio>
@@ -172,7 +177,7 @@ onBeforeUnmount(() => {
                   Paid Annually
 
                   <div class="text-small leading-[18px] text-nc-content-gray-subtle2 font-normal">
-                    $ {{ getPlanPrice(selectedPlan, 'year') }} / user / month
+                    ${{ getPlanPrice(selectedPlan, 'year') }} / user / month
                   </div>
                 </div>
                 <div class="bg-nc-bg-green-light px-1 rounded-md text-nc-content-green-dark font-500 text-sm">

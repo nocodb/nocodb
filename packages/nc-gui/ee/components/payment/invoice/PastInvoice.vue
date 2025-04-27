@@ -67,6 +67,12 @@ const columns: NcTableColumnProps<Stripe.Invoice>[] = [
   },
 ]
 
+const showPagination = computed(() => {
+  return (
+    !invoicePaginationData.value.isLoading && invoicePaginationData.value.totalRows && invoicePaginationData.value.totalRows > 10
+  )
+})
+
 onMounted(() => {
   if (!activeWorkspace.value?.stripe_customer_id) return
 
@@ -80,9 +86,9 @@ onMounted(() => {
     <div class="mt-3 flex-1 flex">
       <NcTable
         class="template-form flex-1 max-h-[540px]"
-        body-row-class-name="template-form-row"
+        :body-row-class-name="`template-form-row !cursor-default ${!showPagination ? '!last:border-b-0' : ''}`"
         header-row-class-name="relative"
-        :bordered="false"
+        :bordered="true"
         :data="paginatedData"
         :columns="columns"
         :is-data-loading="invoicePaginationData.isLoading"
@@ -109,10 +115,7 @@ onMounted(() => {
             </a>
           </template>
         </template>
-        <template
-          v-if="!invoicePaginationData.isLoading && invoicePaginationData.totalRows && invoicePaginationData.totalRows > 10"
-          #tableFooter
-        >
+        <template v-if="showPagination" #tableFooter>
           <div class="flex flex-row justify-center items-center bg-gray-50 min-h-10">
             <div class="flex justify-between items-center w-full px-6">
               <div>&nbsp;</div>

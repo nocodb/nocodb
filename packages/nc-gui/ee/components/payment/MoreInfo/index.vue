@@ -21,12 +21,14 @@ defineProps<Props>()
 
     <PaymentMoreInfoCard :title="$t('title.faq')" :subtitle="$t('title.faqSubtitle')">
       <template #action>
-        <NcButton type="secondary" icon-position="right" inner-class="!gap-2" size="small">
-          <template #icon>
-            <GeneralIcon icon="ncExternalLink" />
-          </template>
-          {{ $t('activity.goToPage') }}
-        </NcButton>
+        <nuxt-link to="https://nocodb.com/#faq" target="_blank" rel="noopener noreferrer">
+          <NcButton type="secondary" icon-position="right" inner-class="!gap-2" size="small">
+            <template #icon>
+              <GeneralIcon icon="ncExternalLink" />
+            </template>
+            {{ $t('activity.goToPage') }}
+          </NcButton>
+        </nuxt-link>
       </template>
     </PaymentMoreInfoCard>
   </div>

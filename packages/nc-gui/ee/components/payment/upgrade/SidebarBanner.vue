@@ -1,6 +1,10 @@
 <script lang="ts" setup>
 import { LOYALTY_GRACE_PERIOD_END_DATE, PlanTitles } from 'nocodb-sdk'
 
+const workspaceStore = useWorkspace()
+
+const { activeWorkspace } = storeToRefs(workspaceStore)
+
 const {
   isRecordLimitReached,
   isStorageLimitReached,
@@ -11,14 +15,23 @@ const {
   gracePeriodEndDate,
   isPaymentEnabled,
   navigateToPricing,
+  isSideBannerExpanded,
+  activePlan,
 } = useEeConfig()
 
 const isLimitReached = computed(() => {
   return isRecordLimitReached.value || isStorageLimitReached.value
 })
 
+const showBannerLocal = ref(false)
+
 const showBanner = computed(() => {
-  return isPaymentEnabled.value && (isLimitReached.value || activePlanTitle.value === PlanTitles.FREE)
+  return (
+    showBannerLocal &&
+    isPaymentEnabled.value &&
+    activeWorkspace.value?.id &&
+    (isLimitReached.value || (activePlan && activePlanTitle.value === PlanTitles.FREE))
+  )
 })
 
 const showTimer = computed(() => {
@@ -42,6 +55,18 @@ const handleNavigation = () => {
     navigateToPricing()
   }
 }
+
+watch(
+  () => activeWorkspace.value?.id,
+  () => {
+    ncDelay(1000).then(() => {
+      showBannerLocal.value = true
+    })
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -80,34 +105,54 @@ const handleNavigation = () => {
       >
         <div class="flex flex-col gap-4">
           <div class="flex flex-col gap-1.5">
-            <div class="flex gap-2">
-              <GeneralIcon
-                v-if="!isLoyaltyDiscountAvailable"
-                :icon="isLimitReached ? 'alertTriangleSolid' : 'ncArrowUpCircleSolid'"
-                class="h-5 w-5 flex-none mt-0.5"
-                :class="{
-                  'text-nc-content-orange-medium': isLimitReached,
-                  'text-nc-content-brand': !isLimitReached,
-                }"
-              />
-              <div class="text-base font-700 text-nc-content-gray">
-                {{ isLimitReached ? 'Plan Limit Reached' : isLoyaltyDiscountAvailable ? 'Preview Ending Soon 🎊' : 'Upgrade to Team' }}
+            <div class="flex gap-2 items-center justify-between">
+              <div class="flex-1 flex gap-2">
+                <GeneralIcon
+                  v-if="!isLoyaltyDiscountAvailable"
+                  :icon="isLimitReached ? 'alertTriangleSolid' : 'ncArrowUpCircleSolid'"
+                  class="h-5 w-5 flex-none mt-0.5"
+                  :class="{
+                    'text-nc-content-orange-medium': isLimitReached,
+                    'text-nc-content-brand': !isLimitReached,
+                  }"
+                />
+                <div class="text-base font-700 text-nc-content-gray">
+                  {{
+                    isLimitReached
+                      ? 'Plan Limit Reached'
+                      : isLoyaltyDiscountAvailable
+                      ? 'Preview Ending Soon 🎊'
+                      : 'Upgrade to Team'
+                  }}
+                </div>
               </div>
+              <NcButton
+                type="text"
+                size="xxsmall"
+                class="text-gray-700 hover:text-gray-800"
+                @click.stop="isSideBannerExpanded = !isSideBannerExpanded"
+              >
+                <GeneralIcon
+                  icon="chevronRight"
+                  class="cursor-pointer transform transition-transform duration-200 !text-current text-[20px]"
+                  :class="{ '!rotate-90': isSideBannerExpanded }"
+                />
+              </NcButton>
             </div>
-            <div class="text-nc-content-gray-subtle2 text-small leading-[18px]">
+            <div v-if="isSideBannerExpanded" class="text-nc-content-gray-subtle2 text-small leading-[18px]">
               {{
                 isLimitReached
                   ? `You have exceeded the ${
                       isRecordLimitReached ? 'records' : 'storage'
                     } limit allowed in the Free plan. Upgrade to increase your limit`
                   : isLoyaltyDiscountAvailable
-                  ? 'Thank you for being an early adopter! Upgrade now with discount to continue.'
+                  ? 'Thank you for being an early adopter. Upgrade now with loyalty discounts to continue'
                   : 'Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!'
               }}
             </div>
           </div>
 
-          <div class="flex flex-col gap-1.5">
+          <div v-if="isSideBannerExpanded" class="flex flex-col gap-1.5">
             <div v-if="showTimer && timerDate" class="flex items-center justify-center">
               <PaymentExpiresIn
                 :end-time="timerDate"

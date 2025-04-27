@@ -75,6 +75,10 @@ const formatTotalLimit = (value: number) => {
   return isFinite(value) ? Number(value).toLocaleString() : 'Unlimited'
 }
 
+const getTooltipPrefix = (value: number, total: number) => {
+  return value > total ? t('tooltip.exceedingLimit') : t('tooltip.approachingLimit')
+}
+
 const recordInfo = computed(() => {
   const value = getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)
   const total = getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) ?? 1000
@@ -85,10 +89,12 @@ const recordInfo = computed(() => {
     total: formatTotalLimit(total),
     showWarningStatus,
     tooltip: t('upgrade.recordLimitExceedTooltip', {
+      prefix: getTooltipPrefix(value, total),
       activePlan: activePlanTitle.value,
       limit: total,
     }),
     isLimitReached: value >= total,
+    isLimitExceeded: value > total,
   }
 })
 
@@ -102,10 +108,12 @@ const storageInfo = computed(() => {
     total: formatTotalLimit(total),
     showWarningStatus,
     tooltip: t('upgrade.storageLimitExceedTooltip', {
+      prefix: getTooltipPrefix(value, total),
       activePlan: activePlanTitle.value,
       limit: total,
     }),
     isLimitReached: value >= total,
+    isLimitExceeded: value > total,
   }
 })
 
@@ -119,10 +127,12 @@ const automationInfo = computed(() => {
     total: formatTotalLimit(total),
     showWarningStatus,
     tooltip: t('upgrade.webhookLimitExceedTooltip', {
+      prefix: getTooltipPrefix(value, total),
       activePlan: activePlanTitle.value,
       limit: total,
     }),
     isLimitReached: value >= total,
+    isLimitExceeded: value > total,
   }
 })
 
@@ -136,10 +146,12 @@ const apiCallsInfo = computed(() => {
     total: formatTotalLimit(total),
     showWarningStatus,
     tooltip: t('upgrade.apiLimitExceedTooltip', {
+      prefix: getTooltipPrefix(value, total),
       activePlan: activePlanTitle.value,
       limit: total,
     }),
     isLimitReached: value >= total,
+    isLimitExceeded: value > total,
   }
 })
 
@@ -184,7 +196,12 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
 
 <template>
   <div v-if="!paymentInitiated" class="nc-plan-usage flex flex-col gap-3">
-    <NcAlert v-if="scheduledChangeInfo" type="info" message="Your plan will switch after the current billing cycle ends.">
+    <NcAlert
+      v-if="scheduledChangeInfo"
+      class="-mt-4"
+      type="info"
+      message="Your plan will switch after the current billing cycle ends."
+    >
       <template #description>
         You've switched from the
         {{ activePlanTitle }} ({{ activeSubscription?.period === 'year' ? 'Annual' : 'Monthly' }}) to the
@@ -202,7 +219,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         </NcButton>
       </template>
     </NcAlert>
-    <NcAlert v-else-if="activeSubscription?.canceled_at" type="warning">
+    <NcAlert v-else-if="activeSubscription?.canceled_at" type="warning" class="-mt-4">
       <template #message> Your {{ activePlanTitle }} plan will expire soon </template>
       <template #description>
         On {{ dayjs(activeSubscription.canceled_at).format('DD MMMM YYYY') }}, you’ll lose access to all
@@ -223,13 +240,13 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
     <div class="flex items-center justify-between gap-4 min-h-8">
       <div class="flex gap-2 items-center text-base font-weight-700 text-nc-content-gray !leading-7">
         <span>{{ $t('title.currentPlan') }}:</span>
-        <span class="text-xl" :style="{ color: activePlanMeta?.primary }">
+        <span :style="{ color: activePlanMeta?.primary }">
           {{ $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title ?? PlanTitles.FREE}`) }}
         </span>
         <NcBadge
           v-if="activeSubscription?.period"
           :border="false"
-          class="text-nc-content-gray-subtle2 !bg-nc-bg-gray-dark text-[10px] leading-[14px] !h-[18px] font-semibold mt-1"
+          class="text-nc-content-gray-subtle2 !bg-nc-bg-gray-medium text-[10px] leading-[14px] !h-[18px] font-semibold"
         >
           {{ activeSubscription?.period === 'year' ? 'Annual' : 'Monthly' }}
         </NcBadge>
@@ -298,10 +315,12 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         :show-warning-status="showWarningStatusForSeatCount"
         :tooltip="
           $t('upgrade.editorLimitExceedTooltip', {
+            prefix: getTooltipPrefix(workspaceSeatCount, getLimit(PlanLimitTypes.LIMIT_EDITOR)),
             activePlan: activePlanTitle,
             limit: getLimit(PlanLimitTypes.LIMIT_EDITOR),
           })
         "
+        :is-limit-exceeded="workspaceSeatCount > getLimit(PlanLimitTypes.LIMIT_EDITOR)"
       >
         <template #label>
           {{
@@ -318,6 +337,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         :plan-meta="activePlanMeta"
         :show-warning-status="recordInfo.showWarningStatus"
         :tooltip="recordInfo.tooltip"
+        :is-limit-exceeded="recordInfo.isLimitExceeded"
       >
         <template #label>
           <span class="capitalize">
@@ -338,6 +358,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         :plan-meta="activePlanMeta"
         :show-warning-status="automationInfo.showWarningStatus"
         :tooltip="automationInfo.tooltip"
+        :is-limit-exceeded="automationInfo.isLimitExceeded"
       >
         <template #label> {{ $t('objects.currentPlan.webhookCallsMonthly') }} </template>
         <template #value> {{ automationInfo.value }} of {{ automationInfo.total }} webhook calls per month </template>
@@ -346,6 +367,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         :plan-meta="activePlanMeta"
         :show-warning-status="apiCallsInfo.showWarningStatus"
         :tooltip="apiCallsInfo.tooltip"
+        :is-limit-exceeded="apiCallsInfo.isLimitExceeded"
       >
         <template #label> {{ $t('objects.currentPlan.apiCallsMonthly') }} </template>
         <template #value> {{ apiCallsInfo.value }} of {{ apiCallsInfo.total }} API calls per month </template>

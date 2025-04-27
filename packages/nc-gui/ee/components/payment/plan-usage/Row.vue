@@ -1,17 +1,20 @@
 <script lang="ts" setup>
 import type { PlanMeta } from 'nocodb-sdk'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     planMeta?: (typeof PlanMeta)[keyof typeof PlanMeta]
     variant?: 'table' | 'banner'
     showWarningStatus?: boolean
     tooltip?: string
+    isLimitExceeded?: boolean
   }>(),
   {
     variant: 'table',
   },
 )
+
+const { showWarningStatus, tooltip, isLimitExceeded } = toRefs(props)
 </script>
 
 <template>
@@ -22,12 +25,13 @@ withDefaults(
     <div
       class="nc-current-plan-table-cell nc-cell-value"
       :class="{
-        'nc-show-warning': showWarningStatus,
+        'nc-show-warning': showWarningStatus && isLimitExceeded,
       }"
     >
       <slot name="value"> </slot>
       <NcTooltip v-if="showWarningStatus" :disabled="!tooltip" :title="tooltip" class="flex">
-        <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-red-medium cursor-pointer w-4.5 h-4.5" />
+        <GeneralIcon v-if="isLimitExceeded" icon="ncAlertTriangle" class="text-nc-content-red-medium cursor-pointer w-4 h-4" />
+        <GeneralIcon v-else icon="ncInfo" class="text-nc-content-orange-medium cursor-pointer w-4 h-4" />
       </NcTooltip>
     </div>
   </div>

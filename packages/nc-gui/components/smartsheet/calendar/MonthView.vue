@@ -90,13 +90,29 @@ const fieldStyles = computed(() => {
 const calendarData = computed(() => {
   // startOf and endOf dayjs is bugged with timezone
   const startOfMonth = timezoneDayjs.dayjsTz(selectedMonth.value.startOf('month').toISOString())
-  const firstDayOffset = isMondayFirst.value ? 0 : -1
-  const firstDayToDisplay = timezoneDayjs.dayjsTz(startOfMonth.startOf('week').toISOString()).add(firstDayOffset, 'day')
+  // When isMondayFirst is true, we need to adjust the first day of the week
+  // In dayjs, startOf('week') gives Sunday as the first day (day 0)
+  // To get Monday as the first day, we need to adjust by adding 1 day if the day is Sunday (0)
+  // or subtracting the day number by 1 for all other days
+  let firstDayToDisplay
+  if (isMondayFirst.value) {
+    // Get the first day of the month's week (Sunday)
+    const firstDayOfWeek = timezoneDayjs.dayjsTz(startOfMonth.startOf('week').toISOString())
+    // Adjust to Monday if it's Sunday, otherwise keep it as is
+    firstDayToDisplay = firstDayOfWeek.day() === 0 ? 
+      firstDayOfWeek.add(1, 'day') : 
+      firstDayOfWeek
+  } else {
+    // If Sunday is the first day of week, just use the standard week start
+    firstDayToDisplay = timezoneDayjs.dayjsTz(startOfMonth.startOf('week').toISOString())
+  }
+  
   const today = timezoneDayjs.dayjsTz()
 
   const daysInMonth = startOfMonth.daysInMonth()
   const firstDayOfMonth = startOfMonth.day()
 
+  // Calculate the adjusted first day based on Monday-first setting
   const adjustedFirstDay = isMondayFirst.value ? (firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1) : firstDayOfMonth
 
   const weeksNeeded = Math.ceil((daysInMonth + adjustedFirstDay) / 7)

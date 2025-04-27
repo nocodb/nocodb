@@ -555,11 +555,11 @@
     },
     "currentPlan": {
       "nextInvoice": "Next invoice",
-      "numberOfBilledUsers": "Number of billed users",
-      "numberOfBillableUsers": "Number of billable users",
-      "storageUsedGB": "Storage used (GB)",
-      "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "numberOfBilledUsers": "Billed users",
+      "numberOfBillableUsers": "Billable users",
+      "storageUsedGB": "Storage used",
+      "webhookCallsMonthly": "Webhook calls",
+      "apiCallsMonthly": "API calls"
     }
   },
   "datatype": {

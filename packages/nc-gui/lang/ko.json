@@ -141,11 +141,11 @@
     "upgradeToSeeMoreRecordInline": "외부 데이터 원본의 모든 레코드를 볼 수 있도록 업그레이드",
     "upgradeToSeeMoreRecordSubtitle": "연결된 소스에 대한 완벽한 가시성을 확보하십시오. 팀 플랜으로 업그레이드하여 모든 레코드를 봅니다.",
     "upgradeToSeeMoreRecordInlineSubtitle": "{total} 레코드 중 {limit} 보고 있습니다. Team 플랜으로 업그레이드하여 나머지 {remaining} 레코드에 대한 액세스를 잠금 해제하세요.",
-    "editorLimitExceedTooltip": "{activePlan} 플랜에는 편집자 제한이 {limit}로 설정되어 있습니다.",
-    "recordLimitExceedTooltip": "{activePlan} 플랜은 작업 영역당 최대 {limit}개의 레코드를 지원합니다.",
-    "storageLimitExceedTooltip": "{activePlan} 플랜에는 작업 공간당 {limit}GB의 첨부 파일 스토리지가 포함됩니다.",
-    "webhookLimitExceedTooltip": "{activePlan} 플랜은 한 달에 최대 {limit}개의 웹훅 호출을 허용합니다.",
-    "apiLimitExceedTooltip": "{activePlan} 플랜에는 매월 {limit}개의 API 호출이 포함됩니다.",
+    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "무료 플랜은 최대 {limit} 명의 에디터 유형 사용자를 허용하며 무제한으로 업그레이드하십시오",
     "adjustCollaboratorRoles": "공동 작업자 역할 조정",
     "newEditorWillBeChanged": "새 편집자에게는 요금이 청구됩니다",
@@ -555,11 +555,11 @@
     },
     "currentPlan": {
       "nextInvoice": "다음 인보이스",
-      "numberOfBilledUsers": "청구된 사용자 수",
-      "numberOfBillableUsers": "청구 가능한 사용자 수",
-      "storageUsedGB": "사용된 스토리지(GB)",
-      "webhookCallsMonthly": "웹훅 호출(월별)",
-      "apiCallsMonthly": "API 호출(월별)"
+      "numberOfBilledUsers": "Billed users",
+      "numberOfBillableUsers": "Billable users",
+      "storageUsedGB": "Storage used",
+      "webhookCallsMonthly": "Webhook calls",
+      "apiCallsMonthly": "API calls"
     }
   },
   "datatype": {
@@ -1644,7 +1644,9 @@
     "expandShiftSpace": "'Shift + Space' 확장",
     "selectAllMappedFields": "매핑된 모든 필드 선택",
     "copyErrorCode": "오류 코드 복사",
-    "paidUserBadgeTooltip": "사용자는 하나 이상의 기반에서 편집자 이상의 역할을 가지고 있습니다."
+    "paidUserBadgeTooltip": "사용자는 하나 이상의 기반에서 편집자 이상의 역할을 가지고 있습니다.",
+    "approachingLimit": "Approaching limit",
+    "exceedingLimit": "Exceeding limit"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",

@@ -1,5 +1,5 @@
 import type { ColumnType } from 'nocodb-sdk'
-import { renderTag } from '../utils/canvas'
+import { isBoxHovered, renderTag } from '../utils/canvas'
 
 function getIconsData({
   width,
@@ -83,6 +83,7 @@ export const RatingCellRenderer: CellRenderer = {
       tag = {},
       setCursor,
       cellRenderStore,
+      selected,
     } = props
 
     const {
@@ -102,6 +103,14 @@ export const RatingCellRenderer: CellRenderer = {
       iconsData
 
     const rating = Math.min(Math.max(0, Number(value) || 0), ratingMeta.max)
+
+    const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
+
+    if (!isHovered && !selected && !rating && !renderAsTag) {
+      return
+    } else if ((isHovered || selected) && !rating && readonly && !renderAsTag) {
+      return
+    }
 
     const needsEllipsis = iconsToShow < ratingMeta.max
 
@@ -210,8 +219,20 @@ export const RatingCellRenderer: CellRenderer = {
       }
     }
   },
-  async handleClick({ mousePosition, column, row, getCellPosition, updateOrSaveRow, value, cellRenderStore, readonly, path }) {
-    if (!row || !column || readonly) return false
+
+  async handleClick({
+    mousePosition,
+    column,
+    row,
+    getCellPosition,
+    updateOrSaveRow,
+    value,
+    cellRenderStore,
+    readonly,
+    path,
+    formula,
+  }) {
+    if (!row || !column || readonly || formula) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
     const iconsData = getIconsData({ x, y, width, height, column: column.columnObj, padding: 10 })

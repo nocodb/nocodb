@@ -29,8 +29,6 @@ export const LongTextCellRenderer: CellRenderer = {
 
     const text = value?.toString() ?? ''
 
-    const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
-
     const renderExpandIcon = () => {
       renderIconButton(ctx, {
         buttonX: x + width - 28,

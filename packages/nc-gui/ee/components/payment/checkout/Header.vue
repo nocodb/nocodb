@@ -11,7 +11,7 @@ const { title } = toRefs(props)
 </script>
 
 <template>
-  <div class="flex items-center justify-between gap-2">
+  <div class="flex items-center md:justify-between gap-2">
     <div class="flex">
       <NcButton type="text" size="small" class="!px-3" inner-class="!gap-1" @click="emits('back')">
         <template #icon>
@@ -22,7 +22,7 @@ const { title } = toRefs(props)
     </div>
 
     <slot>
-      <div class="flex-1 text-xl text-nc-content-gray-emphasis font-700 text-center">{{ title }}</div>
+      <div class="flex-1 text-xl text-nc-content-gray-emphasis font-700 md:text-center">{{ title }}</div>
     </slot>
 
     <div class="hidden md:(flex invisible)">

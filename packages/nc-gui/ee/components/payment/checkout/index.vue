@@ -119,37 +119,30 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full justify-center md:mt-[52px]">
+  <div class="flex flex-col w-full justify-center md:mt-4">
     <div class="flex flex-col w-full gap-6">
-      <div v-if="selectedPlan" class="nc-payment-pay-header sticky top-0 bg-white py-3 -mt-6 md:-mx-6 z-10">
-        <div class="max-w-[888px] mx-auto flex items-center md:justify-between gap-3">
-          <div v-if="paymentState && paymentState !== PaymentState.SELECT_PLAN" class="flex">
-            <NcButton type="text" size="small" class="!px-3" inner-class="!gap-1" @click="onBack">
-              <template #icon>
-                <GeneralIcon icon="ncArrowLeft" class="h-4 w-4" />
-              </template>
-              <div>{{ $t('labels.back') }}</div>
-            </NcButton>
-          </div>
-
-          <div class="text-base md:text-2xl text-nc-content-gray-emphasis font-weight-700 flex">
-            {{
-              $t('title.upgradeWorkspaceToPlan', {
-                workspace: activeWorkspace?.title
-                  ? `${activeWorkspace?.title}${activeWorkspace?.title?.trim().match(/workspace$/i) ? '' : ' Workspace'}`
-                  : 'Workspace',
+      <div v-if="selectedPlan" class="nc-payment-pay-header sticky top-0 bg-white py-3 md:-mx-6 z-10">
+        <div class="max-w-[920px] mx-auto flex flex-col gap-2 px-4">
+          <PaymentCheckoutHeader
+            :title="
+              $t('labels.upgradeToPlan', {
                 plan: $t(`objects.paymentPlan.${selectedPlan.title}`),
               })
-            }}
-          </div>
+            "
+            @back="onBack()"
+          >
+            <div class="flex-1 text-2xl text-nc-content-gray-emphasis font-700 text-center">
+              {{
+                $t('labels.upgradeToPlan', {
+                  plan: $t(`objects.paymentPlan.${selectedPlan.title}`),
+                })
+              }}
+            </div>
+          </PaymentCheckoutHeader>
 
-          <div v-if="paymentState && paymentState !== PaymentState.SELECT_PLAN" class="hidden md:(flex invisible)">
-            <NcButton type="text" size="small" inner-class="!gap-1" class="!text-nc-content-brand !hover:text-brand-600">
-              <template #icon>
-                <GeneralIcon icon="chevronLeft" class="h-4 w-4" />
-              </template>
-              <div>{{ $t('labels.back') }}</div>
-            </NcButton>
+          <div class="text-sm text-nc-content-gray-emphasis text-center">
+            You are upgrading <b v-if="activeWorkspace?.title?.trim()"> {{ activeWorkspace?.title }}</b> workspace to the team
+            plan.
           </div>
         </div>
       </div>
@@ -159,14 +152,6 @@ onBeforeUnmount(() => {
       >
         <a-form-item class="!w-full">
           <a-radio-group :value="paymentMode" class="nc-time-form-layout" @update:value="onChangePaymentMode">
-            <a-radio value="month">
-              <div class="flex flex-col md:(flex-row gap-3 items-center)">
-                Paid Monthly
-                <div class="text-small leading-[18px] text-nc-content-gray-subtle2 font-normal">
-                  ${{ getPlanPrice(selectedPlan, 'month') }} / user / month
-                </div>
-              </div>
-            </a-radio>
             <a-radio value="year">
               <div class="w-full flex items-center gap-2">
                 <div class="flex-1 flex flex-col md:(flex-row gap-3 items-center)">
@@ -178,6 +163,15 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="bg-nc-bg-green-light px-1 rounded-md text-nc-content-green-dark font-500 text-sm">
                   Save {{ annualDiscount }}%
+                </div>
+              </div>
+            </a-radio>
+
+            <a-radio value="month">
+              <div class="flex flex-col md:(flex-row gap-3 items-center)">
+                Paid Monthly
+                <div class="text-small leading-[18px] text-nc-content-gray-subtle2 font-normal">
+                  ${{ getPlanPrice(selectedPlan, 'month') }} / user / month
                 </div>
               </div>
             </a-radio>

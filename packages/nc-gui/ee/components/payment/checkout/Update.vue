@@ -170,17 +170,19 @@ const onCancelSubscription = async () => {
 
 <template>
   <div class="h-full flex flex-col w-full max-w-[676px] mx-auto px-6">
-    <PaymentCheckoutHeader
-      v-if="changes.change === 'upgrade'"
-      :title="changes.plan || !changes.period || changes.period === 'year' ? 'Upgrade Plan' : 'Change Billing Period'"
-      @back="navigateToPricing()"
-    />
+    <div class="sticky top-0 bg-white pt-5 -mt-5 -mx-6 px-6">
+      <PaymentCheckoutHeader
+        v-if="changes.change === 'upgrade'"
+        :title="changes.plan || !changes.period || changes.period === 'year' ? 'Upgrade Plan' : 'Change Billing Period'"
+        @back="navigateToPricing()"
+      />
 
-    <PaymentCheckoutHeader v-else-if="changes.change === 'downgrade'" title="Downgrade Plan" @back="navigateToPricing()" />
+      <PaymentCheckoutHeader v-else-if="changes.change === 'downgrade'" title="Downgrade Plan" @back="navigateToPricing()" />
 
-    <PaymentCheckoutHeader v-else-if="changes.change === 'cancel'" title="Downgrade to Free Plan" @back="navigateToPricing()" />
+      <PaymentCheckoutHeader v-else-if="changes.change === 'cancel'" title="Downgrade to Free Plan" @back="navigateToPricing()" />
 
-    <NcDivider class="!mb-0 !mt-6"/>
+      <NcDivider class="!mb-0 !mt-6" />
+    </div>
 
     <div
       v-if="changes.change === 'upgrade' && (changes.plan || !changes.period || changes.period === 'year')"

@@ -34,7 +34,7 @@ export default class LinearIssuesIntegration extends SyncIntegration {
       RecordTypeFromSchema<typeof ticketingSchema>
     >();
 
-    (async () => {
+    await (async () => {
       try {
         // GraphQL query to fetch issues
         const query = `
@@ -44,7 +44,11 @@ export default class LinearIssuesIntegration extends SyncIntegration {
                 first: 50, 
                 after: $after, 
                 includeArchived: $includeArchived,
-                ${fetchAfter ? `filter: { updatedAt: { gt: "${fetchAfter}" } }` : ''}
+                ${
+                  fetchAfter
+                    ? `filter: { updatedAt: { gt: "${fetchAfter}" } }`
+                    : ''
+                }
               ) {
                 pageInfo {
                   hasNextPage
@@ -55,28 +59,39 @@ export default class LinearIssuesIntegration extends SyncIntegration {
                   identifier
                   title
                   description
+                  number
                   state {
                     name
+                    type
                   }
-                  assignees {
-                    nodes {
-                      name
-                    }
+                  assignee {
+                    name
+                    email
                   }
                   creator {
                     name
+                    email
                   }
-                  dueDate
-                  priority
                   labels {
                     nodes {
                       name
+                      color
                     }
                   }
+                  estimate
+                  startedAt
+                  completedAt
+                  canceledAt
+                  dueDate
+                  priority
                   createdAt
                   updatedAt
                   archivedAt
                   url
+                  team {
+                    name
+                    key
+                  }
                 }
               }
             }
@@ -99,14 +114,14 @@ export default class LinearIssuesIntegration extends SyncIntegration {
             },
             {
               headers: {
-                Authorization: `Bearer ${accessToken}`,
+                Authorization: `${accessToken}`,
                 'Content-Type': 'application/json',
               },
             },
           );
 
           const data = response.data.data;
-          
+
           if (!data || !data.team || !data.team.issues) {
             throw new Error('Failed to fetch issues from Linear');
           }
@@ -119,13 +134,13 @@ export default class LinearIssuesIntegration extends SyncIntegration {
               recordId: issue.id,
               data: {
                 Name: issue.title,
-                Assignees: issue.assignees.nodes.map(a => a.name).join(', '),
+                Assignees: issue.assignee?.name || '',
                 Creator: issue.creator ? issue.creator.name : null,
                 Status: issue.state ? issue.state.name : null,
                 Description: issue.description,
                 'Ticket Type': 'Issue',
                 'Parent Ticket': issue.identifier,
-                Tags: issue.labels.nodes.map(l => l.name).join(', '),
+                Tags: issue.labels?.nodes?.map((l) => l.name).join(', ') || '',
                 'Completed At': issue.archivedAt,
                 'Ticket URL': issue.url,
                 'Due Date': issue.dueDate,
@@ -148,6 +163,7 @@ export default class LinearIssuesIntegration extends SyncIntegration {
 
         stream.push(null);
       } catch (error) {
+        console.log(error?.response?.data);
         stream.destroy(error);
       }
     })();

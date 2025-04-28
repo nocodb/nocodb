@@ -2,7 +2,7 @@ import { isBoxHovered, renderTag } from '../utils/canvas'
 export const CheckboxCellRenderer: CellRenderer = {
   render: (
     ctx,
-    { value, x, y, width, height, readonly, column, spriteLoader, tag = {}, mousePosition, setCursor, formula, isUnderLookup },
+    { value, x, y, width, height, readonly, column, spriteLoader, tag = {}, mousePosition, setCursor, isUnderLookup, selected },
   ) => {
     height = rowHeightInPx[1]!
 
@@ -18,13 +18,19 @@ export const CheckboxCellRenderer: CellRenderer = {
     } = tag
     const checked = getCheckBoxValue(value)
 
+    const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
+
     const columnMeta = {
       color: 'primary',
       ...parseProp(column.meta),
       icon: extractCheckboxIcon(column?.meta ?? {}),
     }
 
-    if (readonly && !formula && !renderAsTag && !checked) return
+    if (!isHovered && !selected && !checked && !renderAsTag) {
+      return
+    } else if ((isHovered || selected) && !checked && readonly && !renderAsTag) {
+      return
+    }
 
     if (renderAsTag) {
       const tagWidth = 14 + tagPaddingX * 2
@@ -83,8 +89,8 @@ export const CheckboxCellRenderer: CellRenderer = {
     return false
   },
   async handleClick(ctx) {
-    const { row, column, updateOrSaveRow, getCellPosition, mousePosition, selected, readonly } = ctx
-    if (column.readonly || readonly) return false
+    const { row, column, updateOrSaveRow, getCellPosition, mousePosition, selected, readonly, formula } = ctx
+    if (column.readonly || readonly || formula) return false
 
     if (selected) {
       row.row[column.title!] = !row.row[column.title!]

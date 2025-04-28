@@ -29,6 +29,8 @@ import { extractProps } from '~/helpers/extractProps';
 import deepClone from '~/helpers/deepClone';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
+import { BaseUser, SyncSource } from '~/models';
+
 @Injectable()
 export class UsersService {
   logger = new Logger(UsersService.name);
@@ -118,6 +120,47 @@ export class UsersService {
     await PresignedUrl.signMetaIconImage(user);
 
     return user;
+  }
+
+  async deleteUser({
+    userId,
+    req,
+  }: {
+    userId: string;
+    req: NcRequest;
+  }) {
+    const ncMeta = await Noco.ncMeta.startTransaction();
+    try {
+      const user = await User.get(userId, ncMeta);
+
+      if (!user) {
+        NcError.badRequest('User not found');
+      }
+
+      // delete base user entry and assign to super admin
+      const baseUsers = await BaseUser.getProjectsIdList(userId, ncMeta);
+
+      // delete sync source entry
+      await SyncSource.deleteByUserId(userId, ncMeta);
+
+      // delete user refresh tokens
+      await UserRefreshToken.deleteAllUserToken(userId, ncMeta);
+
+      // delete user
+      await User.delete(userId, ncMeta);
+
+      await ncMeta.commit();
+
+      this.appHooksService.emit(AppEvents.USER_DELETE, {
+        user,
+        req,
+      });
+
+      return { msg: 'User deleted successfully' };
+    } catch (e) {
+      await ncMeta.rollback(e);
+      throw e;
+    }
   }
 
   async registerNewUserIfAllowed(

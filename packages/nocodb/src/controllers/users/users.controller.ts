@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   HttpCode,
   Patch,
   Request,
@@ -33,6 +34,18 @@ export class UsersController {
       await this.usersService.profileUpdate({
         id: req.user.id,
         params: body,
+        req,
+      }),
+    );
+  }
+
+  @Delete(['/api/v1/user/delete', '/api/v2/meta/user/delete'])
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @HttpCode(200)
+  async delete(@Request() req: NcRequest, @Response() res) {
+    res.json(
+      await this.usersService.deleteUser({
+        userId: req.user.id,
         req,
       }),
     );

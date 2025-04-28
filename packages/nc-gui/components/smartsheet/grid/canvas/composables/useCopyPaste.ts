@@ -819,6 +819,13 @@ export function useCopyPaste({
       (isSystemColumn(columnObj) && !isLinksOrLTAR(columnObj)) ||
       (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj))
     ) {
+      if (
+        columnObj.readonly ||
+        (isSystemColumn(columnObj) && !isLinksOrLTAR(columnObj)) ||
+        (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj))
+      ) {
+        message.toast(t('msg.info.computedFieldClearWarning'))
+      }
       return
     }
 

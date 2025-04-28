@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PlanTitles } from 'nocodb-sdk';
+import { PlanTitles } from 'nocodb-sdk'
 
 const { hideSidebar, showTopbar } = storeToRefs(useSidebarStore())
 

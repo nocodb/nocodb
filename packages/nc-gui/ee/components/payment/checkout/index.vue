@@ -77,7 +77,7 @@ onMounted(() => {
 
     paymentMode.value = route.query?.paymentMode === 'month' ? 'month' : 'year'
 
-    showPaymentMode.value = route.query?.showPaymentMode === 'true' ? true : false
+    showPaymentMode.value = route.query?.showPaymentMode === 'true'
 
     loadStripe().then((s) => {
       stripe.value = s

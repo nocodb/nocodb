@@ -1527,7 +1527,9 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
-  scrollToCell()
+  if (!clickedColumn?.fixed) {
+    scrollToCell()
+  }
   requestAnimationFrame(triggerRefreshCanvas)
   const columnUIType = clickedColumn.columnObj.uidt as UITypes
 

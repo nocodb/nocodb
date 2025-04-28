@@ -21,6 +21,8 @@ const {
 } = useEeConfig()
 
 const isLimitReached = computed(() => {
+  if (isLoyaltyDiscountAvailable.value) return false
+
   return isRecordLimitReached.value || isStorageLimitReached.value
 })
 

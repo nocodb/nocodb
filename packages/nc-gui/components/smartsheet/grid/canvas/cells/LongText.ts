@@ -51,7 +51,7 @@ export const LongTextCellRenderer: CellRenderer = {
     }
 
     if (!text) {
-      if (!props.tag?.renderAsTag && isHovered && selected) {
+      if (!props.tag?.renderAsTag && selected) {
         renderExpandIcon()
       }
 
@@ -81,12 +81,13 @@ export const LongTextCellRenderer: CellRenderer = {
         mousePosition,
         spriteLoader,
         cellRenderStore: props.cellRenderStore,
+        selected,
       })
 
       // Restore context after clipping
       ctx.restore()
 
-      if (!props.tag?.renderAsTag && isHovered) {
+      if (!props.tag?.renderAsTag && selected) {
         renderExpandIcon()
       }
 
@@ -106,7 +107,7 @@ export const LongTextCellRenderer: CellRenderer = {
         cellRenderStore: props.cellRenderStore,
       })
 
-      if (!props.tag?.renderAsTag && isHovered && selected) {
+      if (!props.tag?.renderAsTag && selected) {
         renderExpandIcon()
       }
 

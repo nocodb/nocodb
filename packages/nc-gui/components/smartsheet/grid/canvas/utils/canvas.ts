@@ -582,6 +582,7 @@ export const renderMarkdownBlocks = (
     cellRenderStore,
     fontFamily,
     height,
+    selected = false,
   }: {
     blocks: Block[]
     x: number
@@ -596,6 +597,7 @@ export const renderMarkdownBlocks = (
     fontFamily?: string
     mousePosition?: { x: number; y: number }
     height?: number
+    selected?: boolean
   },
 ) => {
   if (fillStyle) {
@@ -658,7 +660,7 @@ export const renderMarkdownBlocks = (
         text: tokenText,
         maxWidth,
         height,
-        fillStyle: isUrl ? '#3366FF' : (defaultFillStyle as string),
+        fillStyle: isUrl && selected ? '#3366FF' : (defaultFillStyle as string),
         fontFamily: ctx.font,
         maxLines: maxLinesToRender,
         underline: token.styles.includes('underline') || isUrl,
@@ -688,7 +690,7 @@ export const renderMarkdownBlocks = (
 
         const isHovered = isBoxHovered(linkBox, mousePosition)
 
-        if (isHovered) {
+        if (isHovered && selected) {
           multilineTextFnProps.fillStyle = '#000'
           ctx.fillStyle = '#000'
           ctx.strokeStyle = '#000'
@@ -1016,6 +1018,7 @@ export const renderMarkdown = (
     mousePosition = { x: 0, y: 0 },
     cellRenderStore,
     isTagLabel = false,
+    selected = false,
   } = params
   let { maxWidth = Infinity, maxLines } = params
 
@@ -1089,6 +1092,7 @@ export const renderMarkdown = (
       cellRenderStore,
       fontFamily,
       height,
+      selected,
     })
   } else {
     /**

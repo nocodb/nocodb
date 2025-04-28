@@ -387,8 +387,7 @@ describe('dataApiV3', () => {
         );
       });
 
-      // TODO: reenable after fix/not-found-module
-      it.skip('url path not found', async () => {
+      it('url path not found', async () => {
         const response = await ncAxiosGet({
           url: `/api/v3/mybase/mytable/unknown-path/1234`,
           status: 404,

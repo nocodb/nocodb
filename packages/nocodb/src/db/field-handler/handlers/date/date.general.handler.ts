@@ -7,7 +7,7 @@ import type { MetaService } from 'src/meta/meta.service';
 import type { Column } from 'src/models';
 
 export class DateGeneralHandler extends DateTimeGeneralHandler {
-  override async parseValue(params: {
+  override async parseUserInput(params: {
     value: any;
     row: any;
     column: Column;

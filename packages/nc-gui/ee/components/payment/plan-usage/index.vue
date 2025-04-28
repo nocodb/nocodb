@@ -287,7 +287,12 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
               class="!bg-transparent text-nc-content-gray-subtle children:font-500 text-center px-0"
             />
           </div>
-          <NcButton type="primary" size="small" @click="navigateToPricing()"> Upgrade Workspace </NcButton>
+          <NcButton type="primary" size="small" inner-class="!gap-1" @click="navigateToPricing()">
+            <template #icon>
+              <GeneralIcon icon="ncArrowUpRight" />
+            </template>
+            Upgrade Workspace
+          </NcButton>
         </template>
       </NcAlert>
 

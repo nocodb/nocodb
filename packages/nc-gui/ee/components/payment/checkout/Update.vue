@@ -170,30 +170,18 @@ const onCancelSubscription = async () => {
 
 <template>
   <div class="h-full flex flex-col w-full max-w-[676px] mx-auto px-6">
-    <div
+    <PaymentCheckoutHeader
       v-if="changes.change === 'upgrade'"
-      class="py-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
-    >
-      <div
-        v-if="changes.plan || !changes.period || changes.period === 'year'"
-        class="flex-1 text-xl text-nc-content-gray-emphasis font-700"
-      >
-        Upgrade Plan
-      </div>
-      <div v-else-if="changes.period" class="flex-1 text-xl text-nc-content-gray-emphasis font-700">Change Billing Period</div>
-    </div>
-    <div
-      v-else-if="changes.change === 'downgrade'"
-      class="py-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
-    >
-      <div class="flex-1 text-xl text-nc-content-gray-emphasis font-700">Downgrade Plan</div>
-    </div>
-    <div
-      v-else-if="changes.change === 'cancel'"
-      class="py-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
-    >
-      <div class="flex-1 text-xl text-nc-content-gray-emphasis font-700">Downgrade to Free Plan</div>
-    </div>
+      :title="changes.plan || !changes.period || changes.period === 'year' ? 'Upgrade Plan' : 'Change Billing Period'"
+      @back="navigateToPricing()"
+    />
+
+    <PaymentCheckoutHeader v-else-if="changes.change === 'downgrade'" title="Downgrade Plan" @back="navigateToPricing()" />
+
+    <PaymentCheckoutHeader v-else-if="changes.change === 'cancel'" title="Downgrade to Free Plan" @back="navigateToPricing()" />
+
+    <NcDivider class="!mb-0 !mt-6"/>
+
     <div
       v-if="changes.change === 'upgrade' && (changes.plan || !changes.period || changes.period === 'year')"
       class="flex-1 nc-scrollbar-thin"

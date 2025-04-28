@@ -267,7 +267,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
     <NcAlert
       v-if="isAnyPlanLimitReached"
       type="warning"
-      message="Plan Limit Exceeded!"
+      message="Plan Limit Reached"
       description="Please upgrade to continue using the service without interruptions."
       align="center"
       class="nc-plan-usage-plan-limit-reached-banner bg-nc-bg-red-light !rounded-xl"

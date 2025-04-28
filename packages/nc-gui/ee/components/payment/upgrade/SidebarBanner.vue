@@ -25,6 +25,10 @@ const isLimitReached = computed(() => {
 
 const showBannerLocal = ref(false)
 
+const contentRef = ref<HTMLDivElement>()
+
+const { height: contentRefHeight } = useElementBounding(contentRef)
+
 const showBanner = computed(() => {
   return (
     showBannerLocal &&
@@ -88,22 +92,25 @@ watch(
           ? {}
           : {
               background:
-                'conic-gradient(from 180deg at 50% 50%, #F4E0F7 48.744959235191345deg, #EBDAF8 130.47196984291077deg, #C8CFFA 177.5922667980194deg, #E1E1F7 231.85297966003418deg, #A3D1F9 332.88971185684204deg, #BBCBF6 360deg)',
+                'conic-gradient(from 180deg at 50% 50%, #BBCBF6 0deg, #F4E0F7 48deg, #EBDAF8 130deg, #C8CFFA 178deg, #E1E1F7 232deg, #A3D1F9 332deg, #BBCBF6 360deg)',
             }
       "
     >
       <div
-        class="nc-upgrade-sidebar-banner w-full !h-auto"
+        class="nc-upgrade-sidebar-banner w-full transition-all duration-250 ease-in-out overflow-hidden"
         :style="
           isLimitReached
-            ? {}
+            ? {
+                height: contentRefHeight ? `${contentRefHeight + 32}px` : undefined,
+              }
             : {
                 background: 'linear-gradient(to bottom left, #ec7db1, #85a3ff)',
+                height: contentRefHeight ? `${contentRefHeight + 32}px` : undefined,
               }
         "
         @click="handleNavigation()"
       >
-        <div class="flex flex-col gap-4">
+        <div ref="contentRef" class="flex flex-col gap-4">
           <div class="flex flex-col gap-1.5">
             <div class="flex gap-2 items-center justify-between">
               <div class="flex-1 flex gap-2">

@@ -229,7 +229,7 @@ export const AttachmentCellRenderer: CellRenderer = {
 
       lastX = itemX + itemSize
 
-      if (!isUnderLookup && isBoxHovered({ x: itemX, y: itemY, width: itemSize, height: itemSize }, mousePosition)) {
+      if (!isUnderLookup && selected && isBoxHovered({ x: itemX, y: itemY, width: itemSize, height: itemSize }, mousePosition)) {
         setCursor('pointer')
       }
     })
@@ -325,10 +325,19 @@ export const AttachmentCellRenderer: CellRenderer = {
           text: `${getI18n().global.t('activity.viewAttachment')} '${getI18n().global.t('tooltip.shiftSpace')}'`,
           mousePosition,
         })
-      )
+      ) {
         return
+      }
 
-      if (tryShowTooltip({ rect: attachBox, text: getI18n().global.t('activity.addFiles'), mousePosition })) return
+      if (
+        tryShowTooltip({
+          rect: attachBox,
+          text: getI18n().global.t('activity.addFiles'),
+          mousePosition,
+        })
+      ) {
+        return
+      }
     }
 
     const rowHeight = pxToRowHeight[height] ?? 1
@@ -346,7 +355,7 @@ export const AttachmentCellRenderer: CellRenderer = {
     const maxRows = Math.floor((height - verticalPadding * 2 + gap) / (itemSize + gap))
     const maxVisibleItems = maxRows * itemsPerRow
 
-    const imageBoxes: (RenderRectangleProps & { title: string })[] = []
+    const imageBoxes: (RenderRectangleProps & { title: string; size?: number; mimetype?: string })[] = []
 
     attachments.slice(0, maxVisibleItems).forEach((item, index) => {
       if (!item) return
@@ -380,6 +389,8 @@ export const AttachmentCellRenderer: CellRenderer = {
             width: itemSize,
             height: itemSize,
             title: item.title ?? url,
+            size: item.size ?? 0,
+            mimetype: item.mimetype ?? '',
           })
         }
       } else if (item.title) {
@@ -389,12 +400,24 @@ export const AttachmentCellRenderer: CellRenderer = {
           width: itemSize,
           height: itemSize,
           title: item.title,
+          size: item.size ?? 0,
+          mimetype: item.mimetype ?? '',
         })
       }
     })
 
     const hoveredPreview = imageBoxes.find((box) => isBoxHovered(box, mousePosition))
-    tryShowTooltip({ rect: hoveredPreview, text: hoveredPreview?.title ?? '', mousePosition })
+    tryShowTooltip({
+      rect: hoveredPreview,
+      text: h('div', [
+        hoveredPreview?.title ?? '',
+        h('div', { class: 'flex items-center justify-between mt-1 text-tiny text-gray-200' }, [
+          h('div', getReadableFileType(hoveredPreview?.mimetype)),
+          h('div', formatFileSize(hoveredPreview?.size)),
+        ]),
+      ]),
+      mousePosition,
+    })
   },
   async handleKeyDown({ row, column, e, makeCellEditable }) {
     if (e.key === 'Enter' || isExpandCellKey(e)) {

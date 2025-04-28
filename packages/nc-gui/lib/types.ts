@@ -573,6 +573,7 @@ interface CellRenderer {
     cellRenderStore: CellRenderStore
     setCursor: SetCursorType
     path: Array<number>
+    baseUsers?: (Partial<UserType> | Partial<User>)[]
   }) => Promise<void>
   [key: string]: any
 }

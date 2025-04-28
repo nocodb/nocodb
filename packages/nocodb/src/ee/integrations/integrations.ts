@@ -49,6 +49,9 @@ import AuthGitlabManifest from '~/integrations/auth/gitlab/manifest';
 import AuthJiraEntry from '~/integrations/auth/jira/entry';
 import AuthJiraForm from '~/integrations/auth/jira/form';
 import AuthJiraManifest from '~/integrations/auth/jira/manifest';
+import AuthLinearEntry from '~/integrations/auth/linear/entry';
+import AuthLinearForm from '~/integrations/auth/linear/form';
+import AuthLinearManifest from '~/integrations/auth/linear/manifest';
 import AuthNocodbEntry from '~/integrations/auth/nocodb/entry';
 import AuthNocodbForm from '~/integrations/auth/nocodb/form';
 import AuthNocodbManifest from '~/integrations/auth/nocodb/manifest';
@@ -70,6 +73,9 @@ import SyncGitlabIssuesManifest from '~/integrations/sync/gitlab-issues/manifest
 import SyncJiraIssuesEntry from '~/integrations/sync/jira-issues/entry';
 import SyncJiraIssuesForm from '~/integrations/sync/jira-issues/form';
 import SyncJiraIssuesManifest from '~/integrations/sync/jira-issues/manifest';
+import SyncLinearIssuesEntry from '~/integrations/sync/linear-issues/entry';
+import SyncLinearIssuesForm from '~/integrations/sync/linear-issues/form';
+import SyncLinearIssuesManifest from '~/integrations/sync/linear-issues/manifest';
 import SyncUniversalRestEntry from '~/integrations/sync/universal-rest/entry';
 import SyncUniversalRestForm from '~/integrations/sync/universal-rest/form';
 import SyncUniversalRestManifest from '~/integrations/sync/universal-rest/manifest';
@@ -210,6 +216,16 @@ export default [
   },
   {
     type: 'auth',
+    sub_type: 'linear',
+    wrapper: AuthLinearEntry,
+    form: AuthLinearForm,
+    meta: {
+      ...AuthCommonManifest,
+      ...AuthLinearManifest,
+    },
+  },
+  {
+    type: 'auth',
     sub_type: 'nocodb',
     wrapper: AuthNocodbEntry,
     form: AuthNocodbForm,
@@ -276,6 +292,16 @@ export default [
     meta: {
       ...SyncCommonManifest,
       ...SyncJiraIssuesManifest,
+    },
+  },
+  {
+    type: 'sync',
+    sub_type: 'linear-issues',
+    wrapper: SyncLinearIssuesEntry,
+    form: SyncLinearIssuesForm,
+    meta: {
+      ...SyncCommonManifest,
+      ...SyncLinearIssuesManifest,
     },
   },
   {

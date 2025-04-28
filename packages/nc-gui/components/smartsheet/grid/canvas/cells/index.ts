@@ -279,6 +279,8 @@ export function useGridCellHandler(params: {
         isPublic: isPublic.value,
         path,
         fontFamily,
+        isRowHovered,
+        isRowChecked,
       })
     } else {
       return renderSingleLineText(ctx, {

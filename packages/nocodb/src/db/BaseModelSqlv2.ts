@@ -5170,7 +5170,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
     if (options.apiVersion === NcApiVersion.V3) {
       data = await this.convertMultiSelectTypes(data, dependencyColumns);
-      data = await FieldHandler.fromBaseModel(this).parseDataDbValue({
+      await FieldHandler.fromBaseModel(this).parseDataDbValue({
         data,
         options: {
           additionalColumns: dependencyColumns,

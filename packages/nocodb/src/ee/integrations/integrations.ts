@@ -43,6 +43,9 @@ import AuthClickhouseManifest from '~/integrations/auth/clickhouse/manifest';
 import AuthGithubEntry from '~/integrations/auth/github/entry';
 import AuthGithubForm from '~/integrations/auth/github/form';
 import AuthGithubManifest from '~/integrations/auth/github/manifest';
+import AuthGitlabEntry from '~/integrations/auth/gitlab/entry';
+import AuthGitlabForm from '~/integrations/auth/gitlab/form';
+import AuthGitlabManifest from '~/integrations/auth/gitlab/manifest';
 import AuthNocodbEntry from '~/integrations/auth/nocodb/entry';
 import AuthNocodbForm from '~/integrations/auth/nocodb/form';
 import AuthNocodbManifest from '~/integrations/auth/nocodb/manifest';
@@ -55,6 +58,9 @@ import SyncClickhouseTableManifest from '~/integrations/sync/clickhouse-table/ma
 import SyncGithubIssuesEntry from '~/integrations/sync/github-issues/entry';
 import SyncGithubIssuesForm from '~/integrations/sync/github-issues/form';
 import SyncGithubIssuesManifest from '~/integrations/sync/github-issues/manifest';
+import SyncGitlabIssuesEntry from '~/integrations/sync/gitlab-issues/entry';
+import SyncGitlabIssuesForm from '~/integrations/sync/gitlab-issues/form';
+import SyncGitlabIssuesManifest from '~/integrations/sync/gitlab-issues/manifest';
 import SyncUniversalRestEntry from '~/integrations/sync/universal-rest/entry';
 import SyncUniversalRestForm from '~/integrations/sync/universal-rest/form';
 import SyncUniversalRestManifest from '~/integrations/sync/universal-rest/manifest';
@@ -172,6 +178,16 @@ export default [
   },
   {
     type: 'auth',
+    sub_type: 'gitlab',
+    wrapper: AuthGitlabEntry,
+    form: AuthGitlabForm,
+    meta: {
+      ...AuthCommonManifest,
+      ...AuthGitlabManifest,
+    },
+  },
+  {
+    type: 'auth',
     sub_type: 'nocodb',
     wrapper: AuthNocodbEntry,
     form: AuthNocodbForm,
@@ -208,6 +224,16 @@ export default [
     meta: {
       ...SyncCommonManifest,
       ...SyncGithubIssuesManifest,
+    },
+  },
+  {
+    type: 'sync',
+    sub_type: 'gitlab-issues',
+    wrapper: SyncGitlabIssuesEntry,
+    form: SyncGitlabIssuesForm,
+    meta: {
+      ...SyncCommonManifest,
+      ...SyncGitlabIssuesManifest,
     },
   },
   {

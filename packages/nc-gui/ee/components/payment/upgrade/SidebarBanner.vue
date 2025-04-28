@@ -118,18 +118,12 @@ watch(
                 />
                 <div class="text-base font-700 text-nc-content-gray">
                   {{
-                   
-                  isLimitReached
-                     
-                    ? 'Plan Limit Reached'
-                     
-                    : isLoyaltyDiscountAvailable
-                     
-                    ? 'Preview Ending Soon 🎊'
-                     
-                    : 'Upgrade to Team'
-                 
-                }}
+                    isLimitReached
+                      ? 'Plan Limit Reached'
+                      : isLoyaltyDiscountAvailable
+                      ? 'Preview Ending Soon 🎊'
+                      : 'Upgrade to Team'
+                  }}
                 </div>
               </div>
               <NcButton

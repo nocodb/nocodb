@@ -1,4 +1,4 @@
-import { ColumnHelper, UITypes, type ColumnType } from 'nocodb-sdk'
+import { ColumnHelper, type ColumnType, UITypes } from 'nocodb-sdk'
 import { renderTag } from '../utils/canvas'
 
 function getIconsData({

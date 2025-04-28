@@ -305,7 +305,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
     return false
   },
   handleHover: async (props) => {
-    const { row, column, mousePosition, getCellPosition, selected, isDoubleClick } = props
+    const { row, column, mousePosition, getCellPosition, selected } = props
 
     if (!selected) return
 

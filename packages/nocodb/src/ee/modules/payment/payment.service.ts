@@ -1440,6 +1440,14 @@ export class PaymentService {
                   upcoming_invoice_currency: nextInvoice.currency,
                 }
               : {}),
+            scheduled_fk_plan_id: null,
+            scheduled_stripe_price_id: null,
+            scheduled_plan_start_at: null,
+            scheduled_plan_period: null,
+            upcoming_invoice_at: null,
+            upcoming_invoice_due_at: null,
+            upcoming_invoice_amount: null,
+            upcoming_invoice_currency: null,
           });
 
           const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId);
@@ -1457,6 +1465,12 @@ export class PaymentService {
           this.logger.log(
             `Subscription ${event.type} processed for ${workspaceOrOrgId}.`,
           );
+
+          await this.updateNextInvoice(
+            subscription.id,
+            await this.getNextInvoice(workspaceOrOrgId),
+          );
+
           break;
         }
 

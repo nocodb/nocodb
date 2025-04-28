@@ -411,7 +411,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       rect: hoveredPreview,
       text: h('div', [
         hoveredPreview?.title ?? '',
-        h('div', { class: 'flex items-center justify-between mt-1 text-tiny text-gray-200' }, [
+        h('div', { class: 'flex items-center justify-between mt-2 text-tiny text-gray-200' }, [
           h('div', getReadableFileType(hoveredPreview?.mimetype)),
           h('div', formatFileSize(hoveredPreview?.size)),
         ]),

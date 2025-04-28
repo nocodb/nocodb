@@ -9,7 +9,8 @@ const { tooltipText } = storeToRefs(store)
 
 <template>
   <div class="tooltip" :class="[`tooltip-${theme}`]" :style="tooltipStyle">
-    {{ tooltipText }}
+    <component v-if="!ncIsString(tooltipText)" :is="tooltipText" />
+    <template v-else>{{ tooltipText }}</template>
   </div>
 </template>
 

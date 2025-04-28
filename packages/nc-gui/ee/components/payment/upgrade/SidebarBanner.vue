@@ -143,7 +143,7 @@ watch(
               <NcButton
                 type="text"
                 size="xxsmall"
-                class="text-gray-700 hover:text-gray-800"
+                class="text-gray-700 !hover:(text-gray-800 bg-transparent)"
                 @click.stop="isSideBannerExpanded = !isSideBannerExpanded"
               >
                 <GeneralIcon
@@ -189,7 +189,7 @@ watch(
   @apply w-full rounded-2xl border-1;
 
   .nc-upgrade-sidebar-banner {
-    @apply relative p-4 cursor-pointer pointer-events-auto rounded-xl border-1;
+    @apply relative p-4 cursor-pointer pointer-events-auto rounded-[14px] border-1;
   }
 
   &.nc-limit-reached-banner {
@@ -202,7 +202,7 @@ watch(
     }
   }
   &:not(.nc-limit-reached-banner) {
-    @apply p-1 border-transparent;
+    @apply p-1 border-0 border-transparent;
 
     .nc-upgrade-sidebar-banner {
       @apply relative border-transparent z-1;

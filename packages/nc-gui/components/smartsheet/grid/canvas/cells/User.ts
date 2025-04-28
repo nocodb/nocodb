@@ -1,4 +1,5 @@
-import { IconType, ProjectRoles, WorkspaceRolesToProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import type { WorkspaceUserRoles } from 'nocodb-sdk'
+import { IconType, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTag, roundedRect } from '../utils/canvas'
 import type { RenderRectangleProps } from '../utils/types'
 import { getSelectedUsers } from '../../../../cell/User/utils'
@@ -254,7 +255,7 @@ export const UserFieldCellRenderer: CellRenderer = {
     for (const user of users) {
       const displayName = user.display_name?.trim() || user.email!
 
-      const { text: truncatedText, width: textWidth } = renderSingleLineText(ctx, {
+      const { width: textWidth } = renderSingleLineText(ctx, {
         text: displayName,
         maxWidth: width - tagPadding * 2 - iconSize - 8,
         render: false,

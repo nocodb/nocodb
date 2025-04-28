@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import tippy from 'tippy.js'
-import { type CommentType, ProjectRoles, WorkspaceRolesToProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import { ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
+import type { CommentType, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const { user, appInfo } = useGlobal()
 

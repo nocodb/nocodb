@@ -100,7 +100,7 @@ export function formatFileSize(bytes?: number, decimals = 2): string {
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
 
-  const size = parseFloat((bytes / Math.pow(k, i)).toFixed(decimals))
+  const size = parseFloat((bytes / k ** i).toFixed(decimals))
 
   return `${size} ${sizes[i]}`
 }

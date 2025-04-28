@@ -73,6 +73,7 @@
     "@aws-sdk/s3-request-presigner": "^3.743.0",
     "@clickhouse/client": "^1.11.1",
     "@databricks/sql": "^1.9.0",
+    "@gitbeaker/rest": "^42.5.0",
     "@google-cloud/storage": "^7.15.0",
     "@nest-lab/throttler-storage-redis": "^1.1.0",
     "@nestjs/bull": "^10.2.3",

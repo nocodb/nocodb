@@ -19,6 +19,8 @@ export const CheckboxCellRenderer: CellRenderer = {
       isRowHovered,
     },
   ) => {
+    const isCellHovered = isBoxHovered({ x, y, width, height }, mousePosition)
+
     height = rowHeightInPx[1]!
 
     const {
@@ -74,7 +76,7 @@ export const CheckboxCellRenderer: CellRenderer = {
     } else {
       const isHover = isBoxHovered({ x: x + width / 2 - 7, y: y + height / 2 - 7, width: 14, height: 14 }, mousePosition)
 
-      if (isHover && !readonly) {
+      if ((isHover || (selected && isCellHovered)) && !readonly) {
         setCursor('pointer')
       }
 
@@ -112,6 +114,8 @@ export const CheckboxCellRenderer: CellRenderer = {
     }
 
     const bounds = getCellPosition(column, row.rowMeta.rowIndex!)
+
+    bounds.height = rowHeightInPx[1]!
 
     const checkboxBounds = {
       x: bounds.x + bounds.width / 2 - 7,

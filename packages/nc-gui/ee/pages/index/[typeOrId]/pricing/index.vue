@@ -5,6 +5,8 @@ const { hideSidebar, showTopbar } = storeToRefs(useSidebarStore())
 
 const { appInfo } = useGlobal()
 
+const route = useRoute()
+
 useStripe()
 
 const { navigateToBilling } = useEeConfig()
@@ -85,7 +87,9 @@ useEventListener('message', (event) => {
       v-show="frameLoaded"
       :src="`${appInfo.marketingRootUrl}/${isLoyaltyDiscountAvailable ? 'loyalty-' : ''}pricing?inApp=true&workspace=${
         activeWorkspace?.title
-      }&plan=${activePlan?.title}&paymentMode=${paymentMode}&isLoyaltyWorkspace=${isLoyaltyDiscountAvailable}`"
+      }&plan=${activePlan?.title}&paymentMode=${paymentMode}&isLoyaltyWorkspace=${isLoyaltyDiscountAvailable}${
+        route?.query?.activeBtn ? `&CTA=${route?.query?.activeBtn}` : ''
+      }`"
       width="100%"
       style="border: none; height: calc(100vh - 56px)"
     ></iframe>

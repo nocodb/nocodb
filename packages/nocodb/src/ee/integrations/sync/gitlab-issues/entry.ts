@@ -45,7 +45,7 @@ export default class GitlabIssuesIntegration extends SyncIntegration {
         let hasMore = true;
 
         while (hasMore) {
-          const issues = await gitlab.Issues.all({
+          const issues = await (gitlab as any).Issues.all({
             projectId,
             perPage: per_page,
             page,

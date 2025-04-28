@@ -1,4 +1,4 @@
 export default {
   title: 'GitLab Issues',
-  icon: 'gitlabSolid',
+  icon: 'ncLogoGitlabColored',
 };

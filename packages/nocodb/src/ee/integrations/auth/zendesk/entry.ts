@@ -16,11 +16,11 @@ export default class ZendeskAuthIntegration extends AuthIntegration {
     switch (payload.type) {
       case AuthType.ApiKey:
         return {
-          access_token: payload.token,
+          accessToken: payload.token,
         };
       case AuthType.OAuth:
         return {
-          access_token: payload.oauth_token,
+          accessToken: payload.oauth_token,
         };
       default:
         throw new Error('Not implemented');

@@ -59,7 +59,7 @@ export default class ZendeskTicketsIntegration extends SyncIntegration {
             }${!payload.includeClosed ? '&status=open' : ''}`,
             {
               headers: {
-                Authorization: `Bearer ${auth.access_token}`,
+                Authorization: `Bearer ${auth.accessToken}`,
                 'Content-Type': 'application/json',
               },
             },
@@ -70,7 +70,7 @@ export default class ZendeskTicketsIntegration extends SyncIntegration {
           }
 
           const data = await response.json();
-          const tickets = data.tickets || [];
+          const tickets = (data as any).tickets || [];
 
           if (tickets.length === 0) {
             hasMore = false;

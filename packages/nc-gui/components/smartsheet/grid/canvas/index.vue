@@ -11,7 +11,7 @@ import {
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
 import axios from 'axios'
-import type { ComputedRef, Ref } from 'vue'
+import type { ComputedRef, CSSProperties, Ref } from 'vue'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { hasAncestorWithClass, isGeneralOverlayActive } from '../../../../utils/browserUtils'
 import type { CanvasGroup } from '../../../../lib/types'
@@ -372,6 +372,14 @@ const activeCursor = ref<CursorType>('auto')
 
 function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) {
   if (customCondition && !customCondition(activeCursor.value)) return
+
+  /**
+   * Their might be the that while dragging row we hover over another element, at that cursor type will be different
+   * So we have set cursor again
+   */
+  if (isRowReorderActive.value) {
+    cursor = 'grabbing'
+  }
 
   if (activeCursor.value !== cursor) {
     activeCursor.value = cursor
@@ -835,7 +843,7 @@ const handleRowMetaClick = ({
 }
 
 // check exact row meta region hovered and return the cursor type
-const getRowMetaCursor = ({ row, x, group }: { row: Row; x: number; group?: CanvasGroup }) => {
+const getRowMetaCursor = ({ row, x, group }: { row: Row; x: number; group?: CanvasGroup }): CSSProperties['cursor'] => {
   const { regions } = extractHoverMetaColRegions(row, group)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
@@ -846,7 +854,7 @@ const getRowMetaCursor = ({ row, x, group }: { row: Row; x: number; group?: Canv
       return 'pointer'
     case 'reorder':
       if (isRowReOrderEnabled.value) {
-        return 'move'
+        return isRowReorderActive.value ? 'grabbing' : 'grab'
       }
       break
     case 'comment':

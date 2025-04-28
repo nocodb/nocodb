@@ -66,6 +66,7 @@ export const relationDataFetcher = (param: {
           qb,
           extractPkAndPv: true,
           fieldsSet: args.fieldsSet,
+          pkAndPvOnly: relationColOpts.isExternalLink(),
         });
         const view = relationColOpts.fk_target_view_id
           ? await View.get(baseModel.context, relationColOpts.fk_target_view_id)
@@ -195,7 +196,7 @@ export const relationDataFetcher = (param: {
       const parentTn = baseModel.getTnPath(parentTable);
 
       const rtn = childTn;
-      const rtnId = childTable.id;
+      // const rtnId = childTable.id;
 
       const qb = baseModel
         .dbDriver(rtn)
@@ -212,6 +213,7 @@ export const relationDataFetcher = (param: {
       await childModel.selectObject({
         qb,
         fieldsSet: args.fieldsSet,
+        pkAndPvOnly: relColOptions.isExternalLink(),
       });
 
       await childTable.getViews(childModel.context);
@@ -396,6 +398,7 @@ export const relationDataFetcher = (param: {
         await childBaseModel.selectObject({
           qb,
           fieldsSet: args.fieldSet,
+          pkAndPvOnly: relationColOpts.isExternalLink(),
         });
 
         await childBaseModel.applySortAndFilter({
@@ -569,7 +572,11 @@ export const relationDataFetcher = (param: {
         .dbDriver(rtn)
         .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`);
 
-      await childModel.selectObject({ qb, fieldsSet: args.fieldsSet });
+      await childModel.selectObject({
+        qb,
+        fieldsSet: args.fieldsSet,
+        pkAndPvOnly: relColOptions.isExternalLink(),
+      });
 
       const view = relColOptions.fk_target_view_id
         ? await View.get(baseModel.context, relColOptions.fk_target_view_id)
@@ -1001,6 +1008,7 @@ export const relationDataFetcher = (param: {
         qb,
         fieldsSet: listArgs?.fieldsSet,
         viewId: childView?.id,
+        pkAndPvOnly: relColOptions.isExternalLink(),
       });
 
       const aliasColObjMap = await childTable.getAliasColObjMap(
@@ -1101,7 +1109,10 @@ export const relationDataFetcher = (param: {
         await this.shuffle({ qb });
       }
 
-      await childBaseModel.selectObject({ qb });
+      await childBaseModel.selectObject({
+        qb,
+        pkAndPvOnly: relColOptions.isExternalLink(),
+      });
 
       const aliasColObjMap = await childTable.getAliasColObjMap(
         childBaseModel.context,
@@ -1300,6 +1311,7 @@ export const relationDataFetcher = (param: {
         qb,
         fieldsSet: listArgs.fieldsSet,
         viewId: targetView?.id,
+        pkAndPvOnly: relColOptions.isExternalLink(),
       });
 
       // extract col-alias map based on the correct relation table
@@ -1562,7 +1574,10 @@ export const relationDataFetcher = (param: {
         await this.shuffle({ qb });
       }
 
-      await parentBaseModel.selectObject({ qb });
+      await parentBaseModel.selectObject({
+        qb,
+        pkAndPvOnly: relColOptions.isExternalLink(),
+      });
 
       const aliasColObjMap = await parentTable.getAliasColObjMap(
         baseModel.context,

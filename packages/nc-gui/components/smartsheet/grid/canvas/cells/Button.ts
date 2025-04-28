@@ -288,7 +288,7 @@ export const ButtonCellRenderer: CellRenderer = {
 
     if (isHovered) props.setCursor('pointer')
 
-    if (!!disabledState) {
+    if (disabledState) {
       ctx.globalAlpha = buttonMeta.theme === 'solid' ? 0.3 : 0.5
     }
 
@@ -327,7 +327,7 @@ export const ButtonCellRenderer: CellRenderer = {
       ctx.fillText(truncatedLabel, contentX, startY + 13)
     }
 
-    if (!!disabledState) {
+    if (disabledState) {
       ctx.globalAlpha = 1
     }
   },

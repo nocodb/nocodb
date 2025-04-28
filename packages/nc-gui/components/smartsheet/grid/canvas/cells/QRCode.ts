@@ -1,6 +1,4 @@
-import { renderMultiLineText } from '../utils/canvas'
-
-import { isBoxHovered } from '../utils/canvas'
+import { isBoxHovered, renderMultiLineText } from '../utils/canvas'
 
 export const QRCodeCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, column, imageLoader, padding, tag = {}, cellRenderStore }) => {

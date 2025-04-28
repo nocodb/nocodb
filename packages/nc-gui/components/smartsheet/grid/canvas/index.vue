@@ -250,6 +250,11 @@ const { floatingStyles } = useFloating(targetReference, tooltipRef, {
 })
 const { tryShowTooltip, hideTooltip } = tooltipStore
 
+let selectedRowInfo: { index: number | null | undefined; path: Array<number> } = {
+  index: null,
+  path: [],
+}
+
 const {
   isGroupBy,
 
@@ -842,7 +847,7 @@ const handleRowMetaClick = ({
           if (row.rowMeta?.selected && ncIsNumber(row.rowMeta.rowIndex)) {
             selectedRowInfo = {
               index: row.rowMeta.rowIndex,
-              path: path,
+              path,
             }
           }
 
@@ -900,10 +905,6 @@ let prevMenuState: {
 } = {}
 
 let mouseUpListener = null
-let selectedRowInfo: { index: number | null | undefined; path: Array<number> } = {
-  index: null,
-  path: [],
-}
 async function handleMouseDown(e: MouseEvent) {
   const _elementMap = new CanvasElement(elementMap.elements)
   mouseUpListener = (e) => handleMouseUp(e, _elementMap)
@@ -1848,9 +1849,9 @@ const handleMouseMove = (e: MouseEvent) => {
 
       if (!clickedRegion || clickedRegion.action !== 'select') return
 
-      let selectionStart = Math.min(selectedRowInfo.index, row.rowMeta.rowIndex)
+      const selectionStart = Math.min(selectedRowInfo.index, row.rowMeta.rowIndex)
 
-      let selectionEnd = Math.min(selectionStart + MAX_SELECTED_ROWS, Math.max(selectedRowInfo.index, row.rowMeta.rowIndex))
+      const selectionEnd = Math.min(selectionStart + MAX_SELECTED_ROWS, Math.max(selectedRowInfo.index, row.rowMeta.rowIndex))
 
       const dataCache = getDataCache(element.groupPath)
 

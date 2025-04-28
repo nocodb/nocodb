@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { PlanTitles } from 'nocodb-sdk';
+
 const { hideSidebar, showTopbar } = storeToRefs(useSidebarStore())
 
 const { appInfo } = useGlobal()
@@ -51,6 +53,11 @@ useEventListener('message', (event) => {
 
     if (planTitle === 'Enterprise') {
       openNewTab('https://cal.com/nocodb')
+      return
+    }
+
+    if (activePlan.value?.title === PlanTitles.FREE && planTitle === PlanTitles.FREE) {
+      navigateTo(`/${activeWorkspace.value?.id}/settings?tab=billing`)
       return
     }
 

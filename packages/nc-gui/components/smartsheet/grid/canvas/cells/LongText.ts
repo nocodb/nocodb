@@ -36,9 +36,9 @@ export const LongTextCellRenderer: CellRenderer = {
         buttonSize: 20,
         borderRadius: 6,
         iconData: {
-          size: 14,
-          xOffset: 3,
-          yOffset: 3,
+          size: 12,
+          xOffset: 4,
+          yOffset: 4,
         },
         mousePosition,
         spriteLoader,

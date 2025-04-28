@@ -242,17 +242,17 @@ export const AttachmentCellRenderer: CellRenderer = {
     }
 
     if (!isUnderLookup && isHovered && selected && attachments.length > 0) {
-      const buttonY = y + 8
+      const buttonY = y + 6
 
       renderIconButton(ctx, {
         buttonX: x + width - 30,
         buttonY,
-        buttonSize: 18,
+        buttonSize: 20,
         borderRadius: 6,
         iconData: {
-          size: 13,
-          xOffset: 2.5,
-          yOffset: 2.5,
+          size: 12,
+          xOffset: 4,
+          yOffset: 4,
         },
         mousePosition,
         spriteLoader,
@@ -265,12 +265,12 @@ export const AttachmentCellRenderer: CellRenderer = {
       renderIconButton(ctx, {
         buttonX: x + 11,
         buttonY,
-        buttonSize: 18,
+        buttonSize: 20,
         borderRadius: 6,
         iconData: {
-          size: 13,
-          xOffset: 2.5,
-          yOffset: 2.5,
+          size: 12,
+          xOffset: 4,
+          yOffset: 4,
         },
         mousePosition,
         spriteLoader,

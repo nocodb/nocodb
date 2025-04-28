@@ -269,13 +269,13 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         message="Plan Limit Reached"
         description="Please upgrade to continue using the service without interruptions."
         align="center"
-        class="nc-plan-usage-plan-limit-reached-banner bg-nc-bg-red-light !rounded-xl"
+        class="nc-plan-usage-plan-limit-reached-banner bg-nc-bg-orange-light !rounded-xl"
         :class="{
           'nc-loyalty-workspace': isLoyaltyDiscountAvailable,
         }"
       >
         <template #icon>
-          <GeneralIcon icon="alertTriangleSolid" class="flex-none h-6 w-6 text-nc-content-red-medium"></GeneralIcon>
+          <GeneralIcon icon="alertTriangleSolid" class="flex-none h-6 w-6 text-nc-content-orange-medium"></GeneralIcon>
         </template>
         <template #action>
           <div v-if="recordInfo.isLimitReached || storageInfo.isLimitReached" class="flex items-center justify-center">
@@ -284,7 +284,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
               :end-time="gracePeriodEndDate"
               hide-icon
               hide-label
-              class="!bg-transparent text-nc-content-gray-subtle children:font-500 text-center px-0"
+              class="!bg-transparent text-nc-content-gray-subtle children:font-500 text-center px-0 underline decoration-dotted"
             />
           </div>
           <NcButton type="primary" size="small" inner-class="!gap-1" @click="navigateToPricing()">

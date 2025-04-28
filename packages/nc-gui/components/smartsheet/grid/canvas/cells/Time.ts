@@ -7,7 +7,7 @@ export const TimeCellRenderer: CellRenderer = {
 
     const timeFormat = parseProp(column?.meta)?.is12hrFormat ? 'hh:mm A' : 'HH:mm'
 
-    if (!value && selected && readonly) {
+    if (!value && selected && !readonly) {
       ctx.fillStyle = '#989FB1'
       ctx.font = '400 13px Manrope'
       const truncatedFormat = truncateText(ctx, timeFormat, width - padding * 2)

@@ -958,6 +958,10 @@ export function renderBarcode(
     return {
       x: xPos + finalWidth + 8,
       y: y + height - padding * 2,
+      startX: xPos,
+      startY: y + height / 2 - finalHeight / 2,
+      width: finalWidth,
+      height: finalHeight,
     }
   } catch (error) {
     ctx.font = `500 13px Manrope`

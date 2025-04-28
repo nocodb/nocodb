@@ -52,6 +52,9 @@ import AuthNocodbManifest from '~/integrations/auth/nocodb/manifest';
 import AuthRestEntry from '~/integrations/auth/rest/entry';
 import AuthRestForm from '~/integrations/auth/rest/form';
 import AuthRestManifest from '~/integrations/auth/rest/manifest';
+import AuthZendeskEntry from '~/integrations/auth/zendesk/entry';
+import AuthZendeskForm from '~/integrations/auth/zendesk/form';
+import AuthZendeskManifest from '~/integrations/auth/zendesk/manifest';
 import SyncClickhouseTableEntry from '~/integrations/sync/clickhouse-table/entry';
 import SyncClickhouseTableForm from '~/integrations/sync/clickhouse-table/form';
 import SyncClickhouseTableManifest from '~/integrations/sync/clickhouse-table/manifest';
@@ -64,6 +67,9 @@ import SyncGitlabIssuesManifest from '~/integrations/sync/gitlab-issues/manifest
 import SyncUniversalRestEntry from '~/integrations/sync/universal-rest/entry';
 import SyncUniversalRestForm from '~/integrations/sync/universal-rest/form';
 import SyncUniversalRestManifest from '~/integrations/sync/universal-rest/manifest';
+import SyncZendeskTicketsEntry from '~/integrations/sync/zendesk-tickets/entry';
+import SyncZendeskTicketsForm from '~/integrations/sync/zendesk-tickets/form';
+import SyncZendeskTicketsManifest from '~/integrations/sync/zendesk-tickets/manifest';
 
 export default [
   {
@@ -207,6 +213,16 @@ export default [
     },
   },
   {
+    type: 'auth',
+    sub_type: 'zendesk',
+    wrapper: AuthZendeskEntry,
+    form: AuthZendeskForm,
+    meta: {
+      ...AuthCommonManifest,
+      ...AuthZendeskManifest,
+    },
+  },
+  {
     type: 'sync',
     sub_type: 'clickhouse-table',
     wrapper: SyncClickhouseTableEntry,
@@ -244,6 +260,16 @@ export default [
     meta: {
       ...SyncCommonManifest,
       ...SyncUniversalRestManifest,
+    },
+  },
+  {
+    type: 'sync',
+    sub_type: 'zendesk-tickets',
+    wrapper: SyncZendeskTicketsEntry,
+    form: SyncZendeskTicketsForm,
+    meta: {
+      ...SyncCommonManifest,
+      ...SyncZendeskTicketsManifest,
     },
   },
 ] as {

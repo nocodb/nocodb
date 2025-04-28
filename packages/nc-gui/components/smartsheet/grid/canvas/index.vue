@@ -1251,6 +1251,12 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
             if (activeCursor.value === 'col-resize') return
 
             handleEditColumn(e, false, clickedColumn.columnObj)
+
+            selection.value.startRange({ row: NaN, col: NaN })
+            selection.value.endRange({ row: NaN, col: NaN })
+
+            activeCell.value = { row: -1, column: -1, path: activeCell.value?.path ?? [] }
+
             requestAnimationFrame(triggerRefreshCanvas)
             return
           } else if (!isGroupBy.value && x < xOffset + columnWidth - 20 - (clickedColumn.columnObj?.description ? 24 : 0)) {

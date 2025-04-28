@@ -34,7 +34,7 @@ export const EmailCellRenderer: CellRenderer = {
         props.mousePosition,
       )
 
-      if (isHover && isValidEmail) {
+      if (selected && isHover && isValidEmail) {
         setCursor('pointer')
       }
 
@@ -57,8 +57,8 @@ export const EmailCellRenderer: CellRenderer = {
 
     return false
   },
-  async handleClick({ value, row, column, getCellPosition, mousePosition }) {
-    if (!row || !column) return false
+  async handleClick({ value, row, column, selected, getCellPosition, mousePosition }) {
+    if (!row || !column || !selected) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 10

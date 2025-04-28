@@ -36,6 +36,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   /** Ref or Computed value */
 
+  const isPaymentEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.PAYMENT))
+
   // Will only consider ws owner not super admin
   const isWsOwner = computed(() =>
     isUIAllowed('workspaceBilling', {
@@ -55,8 +57,6 @@ export const useEeConfig = createSharedComposable(() => {
 
     return activeWorkspace.value?.loyal && !activeWorkspace.value?.loyalty_discount_used
   })
-
-  const isPaymentEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.PAYMENT))
 
   const isWsAuditEnabled = computed(() => {
     return isPaymentEnabled.value && getFeature(PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE)
@@ -234,7 +234,7 @@ export const useEeConfig = createSharedComposable(() => {
         },
       })
 
-      if (showMessage && res === 'true') {
+    if (showMessage && res === 'true') {
         message.success({
           title: t('upgrade.WorkspaceOwnerNotified'),
           content: t('upgrade.WorkspaceOwnerNotifiedSubtitle'),

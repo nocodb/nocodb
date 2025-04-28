@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { LOYALTY_GRACE_PERIOD_END_DATE, PlanTitles } from 'nocodb-sdk'
+import { LOYALTY_GRACE_PERIOD_END_DATE, PlanTitles, PlanLimitTypes } from 'nocodb-sdk'
 
 const workspaceStore = useWorkspace()
 
@@ -18,6 +18,8 @@ const {
   isSideBannerExpanded,
   activePlan,
   isWsOwner,
+  getStatLimit,
+  getLimit,
 } = useEeConfig()
 
 const isLimitReached = computed(() => {
@@ -32,12 +34,35 @@ const contentRef = ref<HTMLDivElement>()
 
 const { height: contentRefHeight } = useElementBounding(contentRef)
 
+const showUpgradeToTeamBanner = computed(() => {
+  const isNewUser = !activeWorkspace.value?.loyal
+
+  let isRecordLimitReaching = false
+  let isStorageLimitReaching = false
+
+  if (getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)) {
+    const value = getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)
+    const total = getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) ?? 1000
+    isRecordLimitReaching = (value / total) * 100 > 70
+  }
+
+  if (getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE)) {
+    const value = getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000
+    const total = getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000
+    isStorageLimitReaching = (value / total) * 100 > 70
+  }
+
+  return isNewUser && (isRecordLimitReaching || isStorageLimitReaching)
+})
+
 const showBanner = computed(() => {
+  const isFreePlan = activePlan && activePlanTitle.value === PlanTitles.FREE
+
   return (
     showBannerLocal.value &&
     isPaymentEnabled.value &&
     activeWorkspace.value?.id &&
-    (isLimitReached.value || (activePlan && activePlanTitle.value === PlanTitles.FREE))
+    (isLimitReached.value || (isFreePlan && (isLoyaltyDiscountAvailable.value || showUpgradeToTeamBanner.value)))
   )
 })
 

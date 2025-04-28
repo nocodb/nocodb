@@ -141,11 +141,11 @@
     "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
     "upgradeToSeeMoreRecordSubtitle": "Unlock complete visibility into your connected sources. View all records by upgrading to the Team plan.",
     "upgradeToSeeMoreRecordInlineSubtitle": "You're viewing {limit} of {total} records. Unlock access to the remaining {remaining} records by upgrading to the Team plan.",
-    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "The free plan allows upto {limit} Editor type users, upgrade to get unlimited",
     "adjustCollaboratorRoles": "Adjust Collaborator Roles",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -555,11 +555,11 @@
     },
     "currentPlan": {
       "nextInvoice": "Next invoice",
-      "numberOfBilledUsers": "Number of billed users",
-      "numberOfBillableUsers": "Number of billable users",
-      "storageUsedGB": "Storage used (GB)",
-      "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "numberOfBilledUsers": "Billed users",
+      "numberOfBillableUsers": "Billable users",
+      "storageUsedGB": "Storage used",
+      "webhookCallsMonthly": "Webhook calls",
+      "apiCallsMonthly": "API calls"
     }
   },
   "datatype": {
@@ -1644,7 +1644,9 @@
     "expandShiftSpace": "Expand 'Shift + Space'",
     "selectAllMappedFields": "Select all mapped fields",
     "copyErrorCode": "Copy error code",
-    "paidUserBadgeTooltip": "User has an editor or higher role in at least one base."
+    "paidUserBadgeTooltip": "User has an editor or higher role in at least one base.",
+    "approachingLimit": "Approaching limit",
+    "exceedingLimit": "Exceeding limit"
   },
   "placeholder": {
     "searchIcons": "Icona di ricerca",

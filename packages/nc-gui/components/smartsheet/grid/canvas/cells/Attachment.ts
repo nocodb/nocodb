@@ -149,13 +149,13 @@ export const AttachmentCellRenderer: CellRenderer = {
       spriteLoader.renderIcon(ctx, {
         icon: 'upload',
         x: buttonX + 8,
-        y: buttonY + (buttonHeight - 16) / 2,
-        size: 16,
+        y: buttonY + (buttonHeight - 14) / 2,
+        size: 14,
         color: '#6a7184',
       })
 
       ctx.fillStyle = '#374151'
-      ctx.font = '10px Manrope'
+      ctx.font = '500 11px Manrope'
       ctx.textBaseline = 'middle'
       ctx.fillText('Add File(s)', buttonX + 28, buttonY + (buttonHeight + 2) / 2)
       return

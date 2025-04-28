@@ -409,8 +409,8 @@ onUnmounted(() => {
           @click.stop="openAttachmentModal"
         >
           <div class="flex items-center gap-1 justify-center">
-            <GeneralIcon icon="upload" class="text-gray-500 text-tiny" />
-            <span class="text-[10px]">
+            <GeneralIcon icon="upload" class="text-gray-500 text-[10px] h-3.5 w-3.5" />
+            <span class="text-[11px]">
               {{ $t('activity.addFiles') }}
             </span>
           </div>

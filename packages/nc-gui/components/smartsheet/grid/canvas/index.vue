@@ -820,6 +820,8 @@ const handleRowMetaClick = ({
   switch (clickedRegion.action) {
     case 'select':
       if (!isCheckboxDisabled && (row.rowMeta?.selected || !isAtMaxSelection)) {
+        resetActiveCell()
+
         row.rowMeta.selected = !row.rowMeta?.selected
         const path = generateGroupPath(group)
         const dataCache = getDataCache(path)
@@ -1145,12 +1147,14 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   // Handle all Column Header Operations
   if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
     // If x less than 80px, use is hovering over the row meta column
-    if (x < 80 + groupByColumns.value.length * 13) {
+    if (x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13) {
       // If the click is not normal single click, return
       if (clickType !== MouseClickType.SINGLE_CLICK || readOnly.value || isGroupBy.value) return
       if (isBoxHovered({ x: isRowDraggingEnabled.value ? 4 + 26 : 10, y: 8, height: 16, width: 16 }, mousePosition)) {
         vSelectedAllRecords.value = !vSelectedAllRecords.value
+        resetActiveCell()
       }
+
       requestAnimationFrame(triggerRefreshCanvas)
       return
     } else {
@@ -1383,7 +1387,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     return
   }
 
-  if (x < 80 + groupByColumns.value.length * 13) {
+  if (x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13) {
     if (!row) return
     if (![MouseClickType.SINGLE_CLICK, MouseClickType.RIGHT_CLICK].includes(clickType)) return
 
@@ -2200,6 +2204,19 @@ eventBus.on(async (event, payload) => {
   }
 })
 
+function resetActiveCell(path?: Array<number>, force = false) {
+  if (!activeCell.value) return
+
+  if (activeCell.value.row >= 0 || activeCell.value.column >= 0 || force) {
+    activeCell.value = { row: -1, column: -1, path: path ?? [] }
+    editEnabled.value = null
+    isFillHandlerActive.value = false
+    selection.value.clear()
+    onActiveCellChanged()
+    requestAnimationFrame(triggerRefreshCanvas)
+  }
+}
+
 onClickOutside(
   wrapperRef,
   (e: MouseEvent) => {
@@ -2223,11 +2240,7 @@ onClickOutside(
     openAggregationField.value = null
     openAddNewRowDropdown.value = null
     if (activeCell.value.row >= 0 || activeCell.value.column >= 0 || editEnabled.value) {
-      activeCell.value = { row: -1, column: -1, path: activeCell.value.path }
-      editEnabled.value = null
-      isFillHandlerActive.value = false
-      selection.value.clear()
-      requestAnimationFrame(triggerRefreshCanvas)
+      resetActiveCell(activeCell.value.path, true)
     }
   },
   {

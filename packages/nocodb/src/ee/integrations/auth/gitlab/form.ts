@@ -48,6 +48,25 @@ export default [
   },
   {
     type: FormBuilderInputType.Input,
+    label: 'GitLab Instance URL',
+    width: 100,
+    model: 'config.baseUrl',
+    category: 'Authentication',
+    placeholder: 'https://gitlab.com',
+    defaultValue: 'https://gitlab.com',
+    validators: [
+      {
+        type: 'required',
+        message: 'GitLab Instance URL is required',
+      },
+      {
+        type: 'url',
+        message: 'Please enter a valid URL',
+      }
+    ],
+  },
+  {
+    type: FormBuilderInputType.Input,
     label: 'API Token',
     width: 100,
     model: 'config.token',
@@ -84,7 +103,7 @@ export default [
           },
           oauthMeta: {
             provider: 'GitLab',
-            authUri: `https://gitlab.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${encodeURIComponent(
+            authUri: (config) => `${config?.baseUrl || 'https://gitlab.com'}/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${encodeURIComponent(
               scopes.join(' '),
             )}`,
             redirectUri,

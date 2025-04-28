@@ -828,17 +828,27 @@ const handleRowMetaClick = ({
 
   if (!clickedRegion) return
 
-  if (onlyDrag && clickedRegion.action !== 'reorder') return
+  if (onlyDrag && clickedRegion.action !== 'reorder' && clickedRegion.action !== 'select') return
 
   switch (clickedRegion.action) {
     case 'select':
       if (!isCheckboxDisabled && (row.rowMeta?.selected || !isAtMaxSelection)) {
         resetActiveCell()
 
-        row.rowMeta.selected = !row.rowMeta?.selected
-        const path = generateGroupPath(group)
-        const dataCache = getDataCache(path)
-        dataCache?.cachedRows.value.set(row?.rowMeta.rowIndex, row)
+        if (onlyDrag) {
+          row.rowMeta.selected = !row.rowMeta?.selected
+
+          const path = generateGroupPath(group)
+          if (row.rowMeta?.selected && ncIsNumber(row.rowMeta.rowIndex)) {
+            selectedRowInfo = {
+              index: row.rowMeta.rowIndex,
+              path: path,
+            }
+          }
+
+          const dataCache = getDataCache(path)
+          dataCache?.cachedRows.value.set(row?.rowMeta.rowIndex, row)
+        }
       }
       break
 
@@ -890,6 +900,10 @@ let prevMenuState: {
 } = {}
 
 let mouseUpListener = null
+let selectedRowInfo: { index: number | null | undefined; path: Array<number> } = {
+  index: null,
+  path: [],
+}
 async function handleMouseDown(e: MouseEvent) {
   const _elementMap = new CanvasElement(elementMap.elements)
   mouseUpListener = (e) => handleMouseUp(e, _elementMap)
@@ -1116,7 +1130,10 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   e.preventDefault()
   if (mouseUpListener) {
     document.removeEventListener('mouseup', mouseUpListener)
+    mouseUpListener = null
+    selectedRowInfo = { index: null, path: [] }
   }
+
   await onMouseUpFillHandlerEnd()
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
@@ -1804,12 +1821,48 @@ const handleMouseMove = (e: MouseEvent) => {
   }
 
   // check if hovering row meta column and set cursor
-  if (mousePosition.x < 80 + groupByColumns.value.length * 13 && mousePosition.y > COLUMN_HEADER_HEIGHT_IN_PX) {
+  if (
+    mousePosition.x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13 &&
+    mousePosition.y > COLUMN_HEADER_HEIGHT_IN_PX
+  ) {
     // handle hovering on the aggregation dropdown
     if (mousePosition.y <= height.value - 36) {
       const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
       const row = element?.row
       cursor = getRowMetaCursor({ row, x: mousePosition.x, group: element?.group }) || cursor
+
+      if (
+        !row ||
+        ncIsUndefined(row.rowMeta.rowIndex) ||
+        !ncIsNumber(selectedRowInfo.index) ||
+        (isGroupBy.value ? !comparePath(selectedRowInfo.path, element.groupPath) : false)
+      ) {
+        return
+      }
+
+      const { isAtMaxSelection, isCheckboxDisabled, regions } = extractHoverMetaColRegions(row, element?.group)
+
+      if (isAtMaxSelection || isCheckboxDisabled) return
+
+      const clickedRegion = regions.find((region) => mousePosition.x >= region.x && mousePosition.x < region.x + region.width)
+
+      if (!clickedRegion || clickedRegion.action !== 'select') return
+
+      let selectionStart = Math.min(selectedRowInfo.index, row.rowMeta.rowIndex)
+
+      let selectionEnd = Math.min(selectionStart + MAX_SELECTED_ROWS, Math.max(selectedRowInfo.index, row.rowMeta.rowIndex))
+
+      const dataCache = getDataCache(element.groupPath)
+
+      dataCache.cachedRows.value.forEach((row) => {
+        if (row.rowMeta.rowIndex >= selectionStart && row.rowMeta.rowIndex <= selectionEnd) {
+          row.rowMeta.selected = true
+        } else {
+          row.rowMeta.selected = false
+        }
+      })
+
+      requestAnimationFrame(triggerRefreshCanvas)
     }
   }
 

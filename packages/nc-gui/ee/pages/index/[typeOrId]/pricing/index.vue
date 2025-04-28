@@ -51,7 +51,7 @@ useEventListener('message', (event) => {
   const { type, data } = event.data
 
   if (type === 'navigateToCheckout') {
-    const { planTitle, paymentMode: paymentModeInput } = data
+    const { planTitle, paymentMode: paymentModeInput, planCardClick = true } = data
 
     if (planTitle === 'Enterprise') {
       openNewTab('https://cal.com/nocodb')
@@ -69,7 +69,7 @@ useEventListener('message', (event) => {
 
     paymentMode.value = paymentModeInput
 
-    onSelectPlan(plan)
+    onSelectPlan(plan, !planCardClick)
   } else if (type === 'navigateToBilling') {
     navigateToBilling()
   } else if (type === 'frameLoaded') {

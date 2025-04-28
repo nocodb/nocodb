@@ -277,10 +277,12 @@ export const useEeConfig = createSharedComposable(() => {
     paymentMode: 'year' | 'month',
     ref?: 'pricing' | 'billing',
     workspaceId?: string,
+    showPaymentMode?: boolean,
   ) => {
     const paramsObj = {
       ...(paymentMode === 'month' ? { paymentMode: 'month' } : {}),
       ...(ref === 'billing' ? { ref: 'billing' } : {}),
+      ...(showPaymentMode ? { showPaymentMode: 'true' } : {}),
     }
 
     const params = new URLSearchParams(paramsObj)

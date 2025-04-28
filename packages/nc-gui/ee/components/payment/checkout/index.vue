@@ -7,7 +7,7 @@ const stripe = ref<Stripe | null>(null)
 
 const redirectRef = ref<'billing' | 'pricing' | null>(null)
 
-const enableTogglePaymentMode = false
+const showPaymentMode = ref<boolean>(false)
 
 const { navigateToPricing, navigateToBilling } = useEeConfig()
 
@@ -76,6 +76,8 @@ onMounted(() => {
     redirectRef.value = route.query?.ref === 'billing' ? 'billing' : null
 
     paymentMode.value = route.query?.paymentMode === 'month' ? 'month' : 'year'
+
+    showPaymentMode.value = route.query?.showPaymentMode === 'true' ? true : false
 
     loadStripe().then((s) => {
       stripe.value = s
@@ -147,7 +149,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
       <div
-        v-if="selectedPlan && enableTogglePaymentMode"
+        v-if="selectedPlan && showPaymentMode"
         class="max-w-[444px] md:max-w-[920px] mx-auto w-full flex items-center justify-center px-4"
       >
         <a-form-item class="!w-full">

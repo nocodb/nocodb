@@ -67,6 +67,28 @@ export default [
   },
   {
     type: FormBuilderInputType.Input,
+    label: 'Email',
+    width: 100,
+    model: 'config.email',
+    category: 'Authentication',
+    placeholder: 'Enter your Zendesk email',
+    validators: [
+      {
+        type: 'required',
+        message: 'Email is required for API token authentication',
+      },
+      {
+        type: 'email',
+        message: 'Please enter a valid email',
+      },
+    ],
+    condition: {
+      model: 'config.type',
+      value: AuthType.ApiKey,
+    },
+  },
+  {
+    type: FormBuilderInputType.Input,
     label: 'API Token',
     width: 100,
     model: 'config.token',

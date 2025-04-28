@@ -1,5 +1,6 @@
 import type { AuthResponse } from '~/integrations/auth/auth.helpers';
 import type { RecordTypeFromSchema } from '~/integrations/sync/sync.schemas';
+import { AuthType } from '~/integrations/auth/auth.helpers';
 import { DataObjectStream } from '~/integrations/sync/sync.helpers';
 import SyncIntegration from '~/integrations/sync/sync.interface';
 import { ticketingSchema } from '~/integrations/sync/sync.schemas';
@@ -59,7 +60,10 @@ export default class ZendeskTicketsIntegration extends SyncIntegration {
             }${!payload.includeClosed ? '&status=open' : ''}`,
             {
               headers: {
-                Authorization: `Bearer ${auth.accessToken}`,
+                Authorization:
+                  auth.authType === AuthType.OAuth
+                    ? `Bearer ${auth.accessToken}`
+                    : `Basic ${auth.accessToken}`,
                 'Content-Type': 'application/json',
               },
             },

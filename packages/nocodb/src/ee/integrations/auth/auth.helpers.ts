@@ -16,5 +16,6 @@ export interface AuthResponse<T = any> {
   accessToken?: string;
   expiresIn?: number;
   refreshToken?: string;
+  authType?: AuthType;
   custom?: T;
 }

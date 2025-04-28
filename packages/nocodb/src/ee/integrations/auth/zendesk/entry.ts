@@ -14,13 +14,23 @@ export const redirectUri = process.env.INTEGRATION_AUTH_ZENDESK_REDIRECT_URI;
 export default class ZendeskAuthIntegration extends AuthIntegration {
   public async authenticate(payload: AuthCredentials): Promise<AuthResponse> {
     switch (payload.type) {
-      case AuthType.ApiKey:
+      case AuthType.ApiKey: {
+        if (!payload.email) {
+          throw new Error('Email is required for API token authentication');
+        }
+        // Format: base64({email}/token:{api_token})
+        const credentials = Buffer.from(
+          `${payload.email}/token:${payload.token}`,
+        ).toString('base64');
         return {
-          accessToken: payload.token,
+          accessToken: credentials,
+          authType: AuthType.ApiKey,
         };
+      }
       case AuthType.OAuth:
         return {
           accessToken: payload.oauth_token,
+          authType: AuthType.OAuth,
         };
       default:
         throw new Error('Not implemented');

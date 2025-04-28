@@ -84,7 +84,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
     const maxLines = rowHeightTruncateLines(height, true)
     let line = 1
     let flag = false
-    const count = 1
+    let count = 1
 
     for (const cell of cells) {
       const point = cellRenderer({
@@ -161,6 +161,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
         currentWidth = initialWidth
         line += 1
       }
+      count++
     }
 
     if (flag && count < cells.length) {
@@ -179,7 +180,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
 
     Object.assign(cellRenderStore, { ltar: returnData })
 
-    if (isBoxHovered({ x, y, width, height }, mousePosition)) {
+    if (selected && isBoxHovered({ x, y, width, height }, mousePosition)) {
       const borderRadius = 6
 
       if (!readonly) {
@@ -225,6 +226,8 @@ export const ManyToManyCellRenderer: CellRenderer = {
     isDoubleClick,
     openDetachedExpandedForm,
   }) {
+    if (!selected && !isDoubleClick) return false
+
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width, height } = getCellPosition(column, rowIndex)
 
@@ -302,7 +305,9 @@ export const ManyToManyCellRenderer: CellRenderer = {
     return false
   },
   handleHover: async (props) => {
-    const { row, column, mousePosition, getCellPosition } = props
+    const { row, column, mousePosition, getCellPosition, selected, isDoubleClick } = props
+
+    if (!selected) return
 
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()

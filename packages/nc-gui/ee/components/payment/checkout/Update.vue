@@ -21,6 +21,10 @@ const {
   cancelSubscription,
 } = usePaymentStoreOrThrow()
 
+const formatMaxValue = (value: number) => {
+  return isFinite(value) ? Number(value).toLocaleString() : 'Unlimited'
+}
+
 const changes = computed(() => {
   if (!activeSubscription.value) return {}
 
@@ -69,29 +73,35 @@ const changes = computed(() => {
           ]
         : []),
       {
-        title: 'Storage Used (GB)',
-        oldValue: `${Number(getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000).toLocaleString()} GB`,
+        title: 'Storage (GB)',
+        oldValue: `${formatMaxValue(Number(getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000))}`,
         newValue: '1 GB',
-        percent: (
-          ((getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000 - 1) /
-            (getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000)) *
-          100
-        ).toFixed(2),
+        percent: isFinite(getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE))
+          ? (
+              ((getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000 - 1) /
+                (getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000)) *
+              100
+            ).toFixed(2)
+          : '100',
       },
       {
         title: 'API calls (monthly)',
-        oldValue: `${getLimit(PlanLimitTypes.LIMIT_API_CALL).toLocaleString()} requests`,
+        oldValue: `${formatMaxValue(getLimit(PlanLimitTypes.LIMIT_API_CALL))}`,
         newValue: '1,000 requests',
-        percent: (((getLimit(PlanLimitTypes.LIMIT_API_CALL) - 1000) / getLimit(PlanLimitTypes.LIMIT_API_CALL)) * 100).toFixed(2),
+        percent: isFinite(getLimit(PlanLimitTypes.LIMIT_API_CALL))
+          ? (((getLimit(PlanLimitTypes.LIMIT_API_CALL) - 1000) / getLimit(PlanLimitTypes.LIMIT_API_CALL)) * 100).toFixed(2)
+          : '100',
       },
       {
         title: 'Webhook calls (monthly)',
-        oldValue: `${Number(getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)).toLocaleString()} runs`,
-        newValue: '100 runs',
-        percent: (
-          ((getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN) - 1000) / getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)) *
-          100
-        ).toFixed(2),
+        oldValue: `${formatMaxValue(Number(getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)))}`,
+        newValue: '100 calls',
+        percent: isFinite(getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN))
+          ? (
+              ((getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN) - 1000) / getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)) *
+              100
+            ).toFixed(2)
+          : '100',
       },
     ]
   } else {
@@ -377,7 +387,7 @@ const onCancelSubscription = async () => {
                 <span class="text-2xl font-700">-{{ decrease.percent }}%</span>
                 <GeneralIcon icon="ncArrowDownCircle" class="h-4 w-4" />
               </div>
-              <div class="w-full flex items-center gap-3 text-nc-content-gray font-semibold text-sm">
+              <div class="w-full flex items-center gap-3 text-nc-content-gray text-sm">
                 {{ decrease.oldValue }}
                 <GeneralIcon icon="ncArrowRight" class="text-nc-content-gray-subtle h-4 w-4" />
                 {{ decrease.newValue }}

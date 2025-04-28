@@ -375,6 +375,7 @@ export function useGridCellHandler(params: {
     pk: any
     selected: boolean
     imageLoader: ImageWindowLoader
+    path: Array<number>
   }) => {
     if (!ctx.column?.columnObj?.uidt) return
 
@@ -391,6 +392,8 @@ export function useGridCellHandler(params: {
         actionManager,
         makeCellEditable,
         setCursor,
+        path: ctx.path ?? [],
+        baseUsers: baseUsers.value,
       })
     }
   }

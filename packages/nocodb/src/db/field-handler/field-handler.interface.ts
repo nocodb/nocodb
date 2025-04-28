@@ -56,6 +56,21 @@ export interface FieldHandlerInterface {
     // since it's possible for it to be knex query, which
     // can be executed when awaited
   }): Promise<{ value: any }>;
+
+  parseDbValue(params: {
+    value: any;
+    row: any;
+    column: Column;
+    baseModel: IBaseModelSqlV2;
+    options?: {
+      context?: NcContext;
+      metaService?: MetaService;
+      logger?: Logger;
+    };
+    // for now the return value need to be {value: any}
+    // since it's possible for it to be knex query, which
+    // can be executed when awaited
+  }): Promise<{ value: any }>;
 }
 
 export interface IFieldHandler {
@@ -99,5 +114,20 @@ export interface IFieldHandler {
       metaService?: MetaService;
       logger?: Logger;
     };
+  }): Promise<{ value: any }>;
+
+  parseDbValue(params: {
+    value: any;
+    row: any;
+    column: Column;
+    baseModel: IBaseModelSqlV2;
+    options?: {
+      context?: NcContext;
+      metaService?: MetaService;
+      logger?: Logger;
+    };
+    // for now the return value need to be {value: any}
+    // since it's possible for it to be knex query, which
+    // can be executed when awaited
   }): Promise<{ value: any }>;
 }

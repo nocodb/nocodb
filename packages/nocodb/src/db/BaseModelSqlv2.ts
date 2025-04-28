@@ -5170,6 +5170,30 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
     if (options.apiVersion === NcApiVersion.V3) {
       data = await this.convertMultiSelectTypes(data, dependencyColumns);
+
+      const columns = this.model?.columns.concat(dependencyColumns ?? []);
+
+      for (const col of columns) {
+        if (!ncIsUndefined(data[col.id])) {
+          data[col.id] = await FieldHandler.fromBaseModel(this).parseDbValue({
+            value: data[col.id],
+            baseModel: this,
+            column: col,
+            row: data,
+            options: { context: this.context },
+          });
+        } else if (!ncIsUndefined(data[col.title])) {
+          data[col.title] = await FieldHandler.fromBaseModel(this).parseDbValue(
+            {
+              value: data[col.title],
+              baseModel: this,
+              column: col,
+              row: data,
+              options: { context: this.context },
+            },
+          );
+        }
+      }
     }
 
     if (!options.skipSubstitutingColumnIds) {

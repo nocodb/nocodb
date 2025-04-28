@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { LOYALTY_GRACE_PERIOD_END_DATE, PlanTitles, PlanLimitTypes } from 'nocodb-sdk'
+import { LOYALTY_GRACE_PERIOD_END_DATE, PlanLimitTypes, PlanTitles } from 'nocodb-sdk'
 
 const workspaceStore = useWorkspace()
 

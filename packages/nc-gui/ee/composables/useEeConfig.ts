@@ -234,7 +234,7 @@ export const useEeConfig = createSharedComposable(() => {
         },
       })
 
-    if (showMessage && res === 'true') {
+      if (showMessage && res === 'true') {
         message.success({
           title: t('upgrade.WorkspaceOwnerNotified'),
           content: t('upgrade.WorkspaceOwnerNotifiedSubtitle'),

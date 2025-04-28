@@ -31,7 +31,7 @@ const { height: contentRefHeight } = useElementBounding(contentRef)
 
 const showBanner = computed(() => {
   return (
-    showBannerLocal &&
+    showBannerLocal.value &&
     isPaymentEnabled.value &&
     activeWorkspace.value?.id &&
     (isLimitReached.value || (activePlan && activePlanTitle.value === PlanTitles.FREE))
@@ -60,12 +60,19 @@ const handleNavigation = () => {
   }
 }
 
+let timerId: NodeJS.Timeout
+
 watch(
   () => activeWorkspace.value?.id,
   () => {
-    ncDelay(1000).then(() => {
+    if (timerId) {
+      clearTimeout(timerId)
+    }
+
+    timerId = setTimeout(() => {
       showBannerLocal.value = true
-    })
+      clearTimeout(timerId)
+    }, 5000)
   },
   {
     immediate: true,

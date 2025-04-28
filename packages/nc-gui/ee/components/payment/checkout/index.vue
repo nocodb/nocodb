@@ -124,15 +124,9 @@ onBeforeUnmount(() => {
       <div v-if="selectedPlan" class="nc-payment-pay-header sticky top-0 bg-white py-3 -mt-6 md:-mx-6 z-10">
         <div class="max-w-[888px] mx-auto flex items-center md:justify-between gap-3">
           <div v-if="paymentState && paymentState !== PaymentState.SELECT_PLAN" class="flex">
-            <NcButton
-              type="text"
-              size="small"
-              inner-class="!gap-1"
-              class="!text-nc-content-brand !hover:text-brand-600"
-              @click="onBack"
-            >
+            <NcButton type="text" size="small" class="!px-3" inner-class="!gap-1" @click="onBack">
               <template #icon>
-                <GeneralIcon icon="chevronLeft" class="h-4 w-4" />
+                <GeneralIcon icon="ncArrowLeft" class="h-4 w-4" />
               </template>
               <div>{{ $t('labels.back') }}</div>
             </NcButton>
@@ -141,7 +135,9 @@ onBeforeUnmount(() => {
           <div class="text-base md:text-2xl text-nc-content-gray-emphasis font-weight-700 flex">
             {{
               $t('title.upgradeWorkspaceToPlan', {
-                workspace: activeWorkspace?.title ? `${activeWorkspace?.title} Workspace` : 'Workspace',
+                workspace: activeWorkspace?.title
+                  ? `${activeWorkspace?.title}${activeWorkspace?.title?.trim().match(/workspace$/i) ? '' : ' Workspace'}`
+                  : 'Workspace',
                 plan: $t(`objects.paymentPlan.${selectedPlan.title}`),
               })
             }}

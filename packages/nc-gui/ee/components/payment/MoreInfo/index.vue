@@ -12,7 +12,10 @@ defineProps<Props>()
     <PaymentMoreInfoCard :title="$t('title.helpAndSupport')" :subtitle="$t('title.helpAndSupportSubtitle')">
       <template #action>
         <nuxt-link no-ref to="mailto:support@nocodb.com" target="_blank">
-          <NcButton type="secondary" size="small">
+          <NcButton type="secondary" size="small" inner-class="!gap-2">
+            <template #icon>
+              <GeneralIcon icon="ncMail" />
+            </template>
             {{ $t('labels.contactSales') }}
           </NcButton>
         </nuxt-link>
@@ -22,7 +25,7 @@ defineProps<Props>()
     <PaymentMoreInfoCard :title="$t('title.faq')" :subtitle="$t('title.faqSubtitle')">
       <template #action>
         <nuxt-link to="https://nocodb.com/#faq" target="_blank" rel="noopener noreferrer">
-          <NcButton type="secondary" icon-position="right" inner-class="!gap-2" size="small">
+          <NcButton type="secondary" inner-class="!gap-2" size="small">
             <template #icon>
               <GeneralIcon icon="ncExternalLink" />
             </template>

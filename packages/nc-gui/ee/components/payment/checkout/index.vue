@@ -143,8 +143,8 @@ onBeforeUnmount(() => {
           </PaymentCheckoutHeader>
 
           <div class="text-sm text-nc-content-gray-emphasis text-center">
-            You are upgrading <b v-if="activeWorkspace?.title?.trim()"> {{ activeWorkspace?.title }}</b> workspace to the team
-            plan.
+            You are upgrading <b v-if="activeWorkspace?.title?.trim()"> {{ activeWorkspace?.title }}</b> workspace to the
+            {{ selectedPlan.title }} plan.
           </div>
         </div>
       </div>

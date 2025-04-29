@@ -63,6 +63,7 @@ export function useGridCellHandler(params: {
 
   const { t } = useI18n()
   const { metas } = useMetas()
+  const { user } = useGlobal()
   const canvasCellEvents = reactive<CanvasCellEventDataInjType>({})
   provide(CanvasCellEventDataInj, canvasCellEvents)
 
@@ -80,6 +81,7 @@ export function useGridCellHandler(params: {
   const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() =>
     params.meta?.value?.base_id ? basesUser.value.get(params.meta?.value.base_id) || [] : [],
   )
+
   const actionManager = params.actionManager
   const makeCellEditable = params.makeCellEditable
   const setCursor = params.setCursor
@@ -138,6 +140,7 @@ export function useGridCellHandler(params: {
 
     return cellRenderStoreMap.get(key)!
   }
+
   const renderCell = (
     ctx: CanvasRenderingContext2D,
     column: ColumnType,
@@ -275,6 +278,7 @@ export function useGridCellHandler(params: {
         setCursor,
         cellRenderStore,
         baseUsers: baseUsers.value,
+        user: user.value,
         isUnderLookup,
         isPublic: isPublic.value,
         path,

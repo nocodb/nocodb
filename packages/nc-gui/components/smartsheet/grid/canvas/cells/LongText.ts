@@ -25,6 +25,8 @@ export const LongTextCellRenderer: CellRenderer = {
       spriteLoader,
       setCursor,
       selected,
+      baseUsers,
+      user,
     } = props
 
     const text = value?.toString() ?? ''
@@ -80,6 +82,8 @@ export const LongTextCellRenderer: CellRenderer = {
         spriteLoader,
         cellRenderStore: props.cellRenderStore,
         selected,
+        baseUsers,
+        user,
       })
 
       // Restore context after clipping

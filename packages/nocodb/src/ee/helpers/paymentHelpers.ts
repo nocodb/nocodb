@@ -108,7 +108,7 @@ async function checkLimit(args: {
     }
 
     if (count + (delta || 0) > limit) {
-      if (type in GraceLimits) {
+      if (type in GraceLimits && plan?.free) {
         const gracePeriodStartAt = workspace.grace_period_start_at;
 
         if (gracePeriodStartAt) {

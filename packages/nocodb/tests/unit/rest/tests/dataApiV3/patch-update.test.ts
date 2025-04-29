@@ -122,6 +122,73 @@ describe('dataApiV3', () => {
         expect(rsp.body).to.deep.equal([{ Id: 1 }, { Id: 2 }]);
       });
 
+      it('Update: single with column id', async function () {
+        const idMap = {
+          Id: columns.find((col) => col.title === 'Id')?.id,
+          SingleLineText: columns.find((col) => col.title === 'SingleLineText')
+            ?.id,
+          MultiLineText: columns.find((col) => col.title === 'MultiLineText')
+            ?.id,
+        };
+
+        const updatePayload = {
+          [idMap['Id']!]: 1,
+          [idMap['SingleLineText']!]: 'SingleLineText',
+          [idMap['MultiLineText']!]: 'MultiLineText',
+        };
+        const rsp = await ncAxiosPatch({
+          url: `${urlPrefix}/${table.id}`,
+          body: updatePayload,
+        });
+        expect(rsp.body).to.deep.equal({ Id: 1 });
+        const rspGet = await ncAxiosGet({
+          url: `${urlPrefix}/${table.id}`,
+          query: {
+            where: '(Id,eq,1)',
+          },
+        });
+        expect(
+          rspGet.body.list.map((k) => k.SingleLineText).join(','),
+        ).to.equal('SingleLineText');
+      });
+
+      it('Update: bulk with column id', async function () {
+        const idMap = {
+          Id: columns.find((col) => col.title === 'Id')?.id,
+          SingleLineText: columns.find((col) => col.title === 'SingleLineText')
+            ?.id,
+          MultiLineText: columns.find((col) => col.title === 'MultiLineText')
+            ?.id,
+        };
+
+        const createPayload = [
+          {
+            [idMap['Id']!]: 1,
+            [idMap['SingleLineText']!]: 'SingleLineText',
+            [idMap['MultiLineText']!]: 'MultiLineText',
+          },
+          {
+            [idMap['Id']!]: 2,
+            [idMap['SingleLineText']!]: 'SingleLineText2',
+            [idMap['MultiLineText']!]: 'MultiLineText2',
+          },
+        ];
+        const rsp = await ncAxiosPatch({
+          url: `${urlPrefix}/${table.id}`,
+          body: createPayload,
+        });
+        expect(rsp.body).to.deep.equal([{ Id: 1 }, { Id: 2 }]);
+        const rspGet = await ncAxiosGet({
+          url: `${urlPrefix}/${table.id}`,
+          query: {
+            where: '(Id,gte,1)~and(Id,lte,2)',
+          },
+        });
+        expect(
+          rspGet.body.list.map((k) => k.SingleLineText).join(','),
+        ).to.equal('SingleLineText,SingleLineText2');
+      });
+
       // Error handling
 
       it('Update: invalid ID', async function () {

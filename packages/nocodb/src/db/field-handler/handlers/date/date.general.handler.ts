@@ -25,6 +25,12 @@ export class DateGeneralHandler extends DateTimeGeneralHandler {
         dayjsUtcValue = dayjs(params.value).utc();
       } else if (typeof params.value === 'string') {
         dayjsUtcValue = dayjs(params.value).utc();
+        if (!dayjsUtcValue.isValid() && params.column.meta?.date_format) {
+          dayjsUtcValue = dayjs(
+            params.value,
+            params.column.meta?.date_format,
+          ).utc();
+        }
       } else if (typeof params.value === 'number') {
         dayjsUtcValue = dayjs.unix(params.value).utc();
       }

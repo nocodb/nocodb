@@ -26,6 +26,10 @@ import { CheckboxSqliteHandler } from './handlers/checkbox/checkbox.sqlite.handl
 import { LongTextGeneralHandler } from './handlers/long-text/long-text.general.handler';
 import { SingleLineTextGeneralHandler } from './handlers/single-line-text/single-line-text.general.handler';
 import { ComputedFieldHandler } from './handlers/computed';
+import { DateTimeMsSQLHandler } from './handlers/date-time/date-time.mssql.handler';
+import { DateTimeSQLiteHandler } from './handlers/date-time/date-time.sqlite.handler';
+import { DateTimeMySQLHandler } from './handlers/date-time/date-time.mysql.handler';
+import { DateTimePGHandler } from './handlers/date-time/date-time.pg.handler';
 import type { Logger } from '@nestjs/common';
 import type { MetaService } from 'src/meta/meta.service';
 import type CustomKnex from '../CustomKnex';
@@ -125,6 +129,10 @@ const HANDLER_REGISTRY: Partial<
   },
   [UITypes.DateTime]: {
     [CLIENT_DEFAULT]: DateTimeGeneralHandler,
+    [ClientType.PG]: DateTimePGHandler,
+    [ClientType.MYSQL]: DateTimeMySQLHandler,
+    [ClientType.SQLITE]: DateTimeSQLiteHandler,
+    [ClientType.MSSQL]: DateTimeMsSQLHandler,
   },
   [UITypes.CreatedTime]: {
     [CLIENT_DEFAULT]: ComputedFieldHandler,

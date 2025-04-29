@@ -1275,7 +1275,6 @@ export class NcError {
       params: ncWorkspaceId,
     });
   }
-  
   static maxInsertLimitExceeded(limit: number, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.MAX_INSERT_LIMIT_EXCEEDED, {
       params: limit.toString(),

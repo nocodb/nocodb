@@ -1212,6 +1212,13 @@ export function useCanvasRender({
           return
         }
 
+        const columnState = column.columnObj?.id ? isColumnSortedOrFiltered(column.columnObj?.id) : null
+
+        const prevColumnState =
+          colIdx - 1 > 0 && visibleCols[colIdx - 1] && visibleCols[colIdx - 1]?.columnObj?.id
+            ? isColumnSortedOrFiltered(visibleCols[colIdx - 1]?.columnObj?.id)
+            : null
+
         const absoluteColIdx = startColIndex + colIdx
 
         const isCellEditEnabled =
@@ -1237,7 +1244,7 @@ export function useCanvasRender({
 
         // Vertical cell lines
         ctx.strokeStyle =
-          isHovered || row.rowMeta.selected || isColumnInSelection || isRowCellSelected
+          isHovered || row.rowMeta.selected || isColumnInSelection || isRowCellSelected || columnState || prevColumnState
             ? themeV3Colors.gray['200']
             : themeV3Colors.gray['100']
         ctx.beginPath()

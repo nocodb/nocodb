@@ -453,7 +453,7 @@ export default class BaseUser {
       .where(function () {
         this.whereNull(`${MetaTable.PROJECT_USERS}.roles`).orWhereNot(
           `${MetaTable.PROJECT_USERS}.roles`,
-          ProjectRoles.NO_ACCESS,
+          ProjectRoles.OWNER,
         );
       });
 
@@ -524,6 +524,9 @@ export default class BaseUser {
         base_id: baseId,
         fk_user_id: userId,
         invited_by: baseUser.invited_by,
+        starred: baseUser.starred,
+        order: baseUser.order,
+        hidden: baseUser.hidden,
       });
     }
   }

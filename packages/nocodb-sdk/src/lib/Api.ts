@@ -693,6 +693,19 @@ export interface FieldOptionsLongTextV3Type {
   generate_text_using_ai?: boolean;
 }
 
+export interface FieldBaseV3Type {
+  /** Unique identifier for the field. */
+  id?: string;
+  /** Title of the field. */
+  title: string;
+  /** Field data type. */
+  type: string;
+  /** Description of the field. */
+  description?: string | null;
+  /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. */
+  default_value?: string;
+}
+
 /**
  * GRID View
  */
@@ -1037,19 +1050,6 @@ export interface TableV3Type {
   fields: CreateFieldV3Type[];
   /** List of views associated with this table. */
   views: ViewSummaryV3Type[];
-}
-
-export interface FieldBaseV3Type {
-  /** Field identifier. */
-  id?: string;
-  /** Field name. */
-  title: string;
-  /** Field type. */
-  type: string;
-  /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. */
-  default_value?: string;
-  /** Field description. */
-  description?: string;
 }
 
 export type CreateFieldV3Type = FieldBaseV3Type;

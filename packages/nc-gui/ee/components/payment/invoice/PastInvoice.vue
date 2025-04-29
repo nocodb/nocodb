@@ -4,7 +4,7 @@ import type Stripe from 'stripe'
 
 const { t } = useI18n()
 
-const { invoices, invoicePaginationData, plansAvailable, activeWorkspace, loadInvoices } = usePaymentStoreOrThrow()
+const { invoices, invoicePaginationData, activeWorkspace, loadInvoices } = usePaymentStoreOrThrow()
 
 const paginatedData = computed(() => {
   const { page, pageSize } = invoicePaginationData.value
@@ -15,11 +15,18 @@ const paginatedData = computed(() => {
 })
 
 const getPlanTitle = (record: Stripe.Invoice) => {
-  const fk_plan_id = record?.subscription_details?.metadata?.fk_plan_id
+  const planTitle = record?.subscription_details?.metadata?.plan_title || ''
+  const planPeriod = record?.subscription_details?.metadata?.period || ''
 
-  if (!fk_plan_id) return ''
+  let returnPlan = ''
 
-  return plansAvailable.value.find((plan) => plan.id === fk_plan_id)?.title ?? ''
+  if (planTitle && planPeriod) {
+    returnPlan = `${planTitle} (${planPeriod === 'month' ? 'Monthly' : 'Annual'})`
+  } else if (planTitle) {
+    returnPlan = planTitle
+  }
+
+  return returnPlan
 }
 
 const columns: NcTableColumnProps<Stripe.Invoice>[] = [

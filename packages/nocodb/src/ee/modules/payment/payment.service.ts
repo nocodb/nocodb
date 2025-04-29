@@ -334,6 +334,8 @@ export class PaymentService {
               }),
           fk_user_id: user.id,
           fk_plan_id: plan_id,
+          plan_title: plan.title,
+          period: price.recurring.interval,
         },
       },
     });

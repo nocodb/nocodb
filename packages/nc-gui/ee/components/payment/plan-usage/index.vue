@@ -27,20 +27,20 @@ const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYM
 const activePlanMeta = computed(() => PlanMeta[activePlanTitle.value])
 
 const scheduledChangeInfo = computed(() => {
-  if (!activeSubscription.value || !activeSubscription.value.scheduled_plan_start_at) return null
+  if (!activeSubscription.value || !activeSubscription.value.schedule_phase_start) return null
 
   // If only plan change is scheduled this will be internal change (loyalty > normal)
   if (
-    activeSubscription.value.fk_plan_id === activeSubscription.value.scheduled_fk_plan_id &&
-    activeSubscription.value.period === activeSubscription.value.scheduled_plan_period
+    activeSubscription.value.fk_plan_id === activeSubscription.value.schedule_fk_plan_id &&
+    activeSubscription.value.period === activeSubscription.value.schedule_period
   )
     return null
 
-  const scheduledChangeDate = dayjs(activeSubscription.value.scheduled_plan_start_at)
+  const scheduledChangeDate = dayjs(activeSubscription.value.schedule_phase_start)
 
-  const scheduledPlanPeriod = activeSubscription.value.scheduled_plan_period
+  const scheduledPlanPeriod = activeSubscription.value.schedule_period
 
-  const scheduledPlanId = activeSubscription.value.scheduled_fk_plan_id
+  const scheduledPlanId = activeSubscription.value.schedule_fk_plan_id
 
   const scheduledPlan = plansAvailable.value.find((plan) => plan.id === scheduledPlanId)
 

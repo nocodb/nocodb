@@ -77,7 +77,7 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const gracePeriodDaysLeft = computed(() => {
-    if (!activeWorkspace.value?.grace_period_start_at) return 0
+    if (!activeWorkspace.value?.grace_period_start_at || activePlan.value?.title !== PlanTitles.FREE) return 0
 
     const start = dayjs(activeWorkspace.value.grace_period_start_at)
     const graceEnd = start.add(GRACE_PERIOD_DURATION, 'day')

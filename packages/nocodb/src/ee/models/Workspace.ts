@@ -65,7 +65,14 @@ export default class Workspace implements WorkspaceType {
     [key: string]: number;
   };
 
+  // grace periods allow non-paid users to overuse their limits for a certain period before they are blocked
+  // grace_period_start_at tracks record & storage limits and it will be reset if they go below the limit
+  // api_grace_period_start_at tracks api limits and it will never be reset
+  // automation_grace_period_start_at tracks automation limits and it will never be reset
   grace_period_start_at?: string;
+  api_grace_period_start_at?: string;
+  automation_grace_period_start_at?: string;
+
   loyal?: boolean;
   loyalty_discount_used?: boolean;
 

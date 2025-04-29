@@ -573,6 +573,13 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     const updatedWorkspace = await Workspace.update(workspaceId, updateObj);
 
+    if (
+      existingWorkspace.stripe_customer_id &&
+      existingWorkspace.title !== updatedWorkspace.title
+    ) {
+      await this.paymentService.customerUpdate(existingWorkspace.id);
+    }
+
     this.appHooksService.emit(AppEvents.WORKSPACE_UPDATE, {
       oldWorkspace: existingWorkspace as WorkspaceType,
       workspace: {

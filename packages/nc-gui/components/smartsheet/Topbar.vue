@@ -39,7 +39,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
     </template>
     <template v-else>
       <div
-        class="flex items-center gap-3 min-w-[300px]"
+        class="flex items-center gap-3 min-w-[calc(100%_-_62px)] md:min-w-[300px]"
         :style="{
           width: topbarBreadcrumbItemWidth,
         }"

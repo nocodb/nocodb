@@ -157,7 +157,7 @@ watch(isLinkOptionsVisible, (value, oldValue) => {
 
 const openLink = () => {
   if (href.value) {
-    confirmPageLeavingRedirect(href.value, '_blank')
+    window.open(href.value, '_blank', 'noopener,noreferrer')
   }
 }
 

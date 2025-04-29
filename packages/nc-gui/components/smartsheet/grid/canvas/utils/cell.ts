@@ -165,7 +165,7 @@ export function getMouseClickType(e: MouseEvent) {
 
 export const showFieldEditWarning = () => {
   const { t } = getI18n().global
-  message.warn(t('msg.info.computedFieldEditWarning'))
+  message.toast(t('msg.info.computedFieldEditWarning'))
 }
 
 const barcodeCache = new LRUCache({

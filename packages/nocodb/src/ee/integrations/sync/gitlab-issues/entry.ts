@@ -1,9 +1,9 @@
-import { Gitlab } from '@gitbeaker/rest';
-import type { AuthResponse } from '../../auth/auth.helpers';
-import type { RecordTypeFromSchema } from '../sync.schemas';
 import { DataObjectStream } from '../sync.helpers';
 import SyncIntegration from '../sync.interface';
 import { ticketingSchema } from '../sync.schemas';
+import type { RecordTypeFromSchema } from '../sync.schemas';
+import type { Gitlab } from '@gitbeaker/rest';
+import type { AuthResponse } from '../../auth/auth.helpers';
 
 export default class GitlabIssuesIntegration extends SyncIntegration {
   public async getDestinationSchema(_auth: AuthResponse<typeof Gitlab>) {
@@ -37,7 +37,7 @@ export default class GitlabIssuesIntegration extends SyncIntegration {
       RecordTypeFromSchema<typeof ticketingSchema>
     >();
 
-    (async () => {
+    await (async () => {
       try {
         // GitLab API pagination
         let page = 1;
@@ -62,13 +62,16 @@ export default class GitlabIssuesIntegration extends SyncIntegration {
               recordId: issue.id.toString(),
               data: {
                 Name: issue.title,
-                Assignees: issue.assignees
-                  ?.map((assignee) => assignee.username)
-                  .join(', ') || '',
+                Assignees:
+                  issue.assignees
+                    ?.map((assignee) => assignee.username)
+                    .join(', ') || '',
                 Creator: issue.author?.username || '',
                 Status: issue.state,
                 Description: issue.description,
-                'Ticket Type': issue.merge_request_id ? 'Merge Request' : 'Issue',
+                'Ticket Type': issue.merge_request_id
+                  ? 'Merge Request'
+                  : 'Issue',
                 'Parent Ticket': `${issue.iid}`,
                 Tags: issue.labels?.join(', ') || '',
                 'Completed At': issue.closed_at,

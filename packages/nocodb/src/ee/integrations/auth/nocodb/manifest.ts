@@ -1,4 +1,4 @@
 export default {
   title: 'NocoDB',
-  icon: 'nocodb',
+  icon: 'nocodb1',
 };

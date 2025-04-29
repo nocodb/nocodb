@@ -512,10 +512,6 @@ export class PaymentService {
   }
 
   async reseatSubscription(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
-    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
-    if (!workspaceOrOrg)
-      NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
-
     const existingSub = await Subscription.getByWorkspaceOrOrg(
       workspaceOrOrgId,
       ncMeta,
@@ -531,13 +527,13 @@ export class PaymentService {
     if (!stripeSub) throw new Error('Stripe subscription not found');
 
     if (
-      workspaceOrOrg.entity === 'workspace' &&
+      stripeSub.metadata.fk_workspace_id &&
       stripeSub.metadata.fk_workspace_id !== existingSub.fk_workspace_id
     ) {
       throw new Error('Subscription does not belong to the workspace');
     }
     if (
-      workspaceOrOrg.entity === 'org' &&
+      stripeSub.metadata.fk_org_id &&
       stripeSub.metadata.fk_org_id !== existingSub.fk_org_id
     ) {
       throw new Error('Subscription does not belong to the org');

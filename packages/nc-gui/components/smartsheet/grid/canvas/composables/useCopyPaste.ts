@@ -197,7 +197,7 @@ export function useCopyPaste({
 
     const { totalRows, cachedRows } = dataCache
 
-    // Replace \" with " in clipboard data
+    // Replace \\\" with \" in clipboard data
     let clipboardData = e.clipboardData?.getData('text/plain') || ''
 
     if (clipboardData?.endsWith('\n')) {
@@ -220,6 +220,12 @@ export function useCopyPaste({
         }
 
         let clipboardMatrix = parsedClipboard.data as string[][]
+
+        // Special handling for "null" values - convert literal "null" strings to empty strings
+        // This ensures that empty cells from numeric fields don't appear as "null" text
+        clipboardMatrix = clipboardMatrix.map(row => 
+          row.map(cell => cell === 'null' ? '' : cell)
+        )
 
         let isTruncated = false
         if (clipboardMatrix.length > MAX_ROWS) {

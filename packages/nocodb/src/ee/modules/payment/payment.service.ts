@@ -134,6 +134,32 @@ export class PaymentService {
     return await Plan.update(plan.id, { is_active: false });
   }
 
+  async customerUpdate(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
+
+    if (!workspaceOrOrg) {
+      NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+    }
+
+    if (!workspaceOrOrg.stripe_customer_id) {
+      NcError.genericNotFound('Customer', workspaceOrOrgId);
+    }
+
+    const customer = await stripe.customers.update(
+      workspaceOrOrg.stripe_customer_id,
+      {
+        invoice_settings: {
+          custom_fields: [
+            { name: 'NocoDB Workspace ID', value: workspaceOrOrg.id },
+            { name: 'NocoDB Workspace Title', value: workspaceOrOrg.title },
+          ],
+        },
+      },
+    );
+
+    return customer;
+  }
+
   async createSubscriptionForm(
     workspaceOrOrgId: string,
     payload: {

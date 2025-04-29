@@ -30,7 +30,7 @@ const { showWarningStatus, tooltip, isLimitExceeded } = toRefs(props)
     >
       <slot name="value"> </slot>
       <NcTooltip v-if="showWarningStatus" :disabled="!tooltip" :title="tooltip" class="flex">
-        <GeneralIcon v-if="isLimitExceeded" icon="ncAlertTriangle" class="text-nc-content-red-medium cursor-pointer w-4 h-4" />
+        <GeneralIcon v-if="isLimitExceeded" icon="ncAlertTriangle" class="text-nc-content-red-dark cursor-pointer w-4 h-4" />
         <GeneralIcon v-else icon="ncInfo" class="text-nc-content-orange-medium cursor-pointer w-4 h-4" />
       </NcTooltip>
     </div>

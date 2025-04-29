@@ -36,6 +36,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   /** Ref or Computed value */
 
+  const isPaymentEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.PAYMENT))
+
   // Will only consider ws owner not super admin
   const isWsOwner = computed(() =>
     isUIAllowed('workspaceBilling', {
@@ -55,8 +57,6 @@ export const useEeConfig = createSharedComposable(() => {
 
     return activeWorkspace.value?.loyal && !activeWorkspace.value?.loyalty_discount_used
   })
-
-  const isPaymentEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.PAYMENT))
 
   const isWsAuditEnabled = computed(() => {
     return isPaymentEnabled.value && getFeature(PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE)
@@ -277,10 +277,12 @@ export const useEeConfig = createSharedComposable(() => {
     paymentMode: 'year' | 'month',
     ref?: 'pricing' | 'billing',
     workspaceId?: string,
+    showPaymentMode?: boolean,
   ) => {
     const paramsObj = {
       ...(paymentMode === 'month' ? { paymentMode: 'month' } : {}),
       ...(ref === 'billing' ? { ref: 'billing' } : {}),
+      ...(showPaymentMode ? { showPaymentMode: 'true' } : {}),
     }
 
     const params = new URLSearchParams(paramsObj)

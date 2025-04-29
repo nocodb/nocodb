@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { LOYALTY_GRACE_PERIOD_END_DATE, PlanTitles } from 'nocodb-sdk'
+import { LOYALTY_GRACE_PERIOD_END_DATE, PlanLimitTypes, PlanTitles } from 'nocodb-sdk'
 
 const workspaceStore = useWorkspace()
 
@@ -17,20 +17,52 @@ const {
   navigateToPricing,
   isSideBannerExpanded,
   activePlan,
+  isWsOwner,
+  getStatLimit,
+  getLimit,
 } = useEeConfig()
 
 const isLimitReached = computed(() => {
+  if (isLoyaltyDiscountAvailable.value) return false
+
   return isRecordLimitReached.value || isStorageLimitReached.value
 })
 
 const showBannerLocal = ref(false)
 
+const contentRef = ref<HTMLDivElement>()
+
+const { height: contentRefHeight } = useElementBounding(contentRef)
+
+const showUpgradeToTeamBanner = computed(() => {
+  const isNewUser = !activeWorkspace.value?.loyal
+
+  let isRecordLimitReaching = false
+  let isStorageLimitReaching = false
+
+  if (getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)) {
+    const value = getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)
+    const total = getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) ?? 1000
+    isRecordLimitReaching = (value / total) * 100 > 70
+  }
+
+  if (getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE)) {
+    const value = getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000
+    const total = getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000
+    isStorageLimitReaching = (value / total) * 100 > 70
+  }
+
+  return isNewUser && (isRecordLimitReaching || isStorageLimitReaching)
+})
+
 const showBanner = computed(() => {
+  const isFreePlan = activePlan && activePlanTitle.value === PlanTitles.FREE
+
   return (
-    showBannerLocal &&
+    showBannerLocal.value &&
     isPaymentEnabled.value &&
     activeWorkspace.value?.id &&
-    (isLimitReached.value || (activePlan && activePlanTitle.value === PlanTitles.FREE))
+    (isLimitReached.value || (isFreePlan && (isLoyaltyDiscountAvailable.value || showUpgradeToTeamBanner.value)))
   )
 })
 
@@ -56,12 +88,19 @@ const handleNavigation = () => {
   }
 }
 
+let timerId: NodeJS.Timeout
+
 watch(
   () => activeWorkspace.value?.id,
   () => {
-    ncDelay(1000).then(() => {
+    if (timerId) {
+      clearTimeout(timerId)
+    }
+
+    timerId = setTimeout(() => {
       showBannerLocal.value = true
-    })
+      clearTimeout(timerId)
+    }, 5000)
   },
   {
     immediate: true,
@@ -88,84 +127,93 @@ watch(
           ? {}
           : {
               background:
-                'conic-gradient(from 180deg at 50% 50%, #F4E0F7 48.744959235191345deg, #EBDAF8 130.47196984291077deg, #C8CFFA 177.5922667980194deg, #E1E1F7 231.85297966003418deg, #A3D1F9 332.88971185684204deg, #BBCBF6 360deg)',
+                'conic-gradient(from 180deg at 50% 50%, #BBCBF6 0deg, #F4E0F7 48deg, #EBDAF8 130deg, #C8CFFA 178deg, #E1E1F7 232deg, #A3D1F9 332deg, #BBCBF6 360deg)',
             }
       "
     >
-      <div
-        class="nc-upgrade-sidebar-banner w-full !h-auto"
-        :style="
-          isLimitReached
-            ? {}
-            : {
-                background: 'linear-gradient(to bottom left, #ec7db1, #85a3ff)',
-              }
-        "
-        @click="handleNavigation()"
-      >
-        <div class="flex flex-col gap-4">
-          <div class="flex flex-col gap-1.5">
-            <div class="flex gap-2 items-center justify-between">
-              <div class="flex-1 flex gap-2">
-                <GeneralIcon
-                  v-if="!isLoyaltyDiscountAvailable"
-                  :icon="isLimitReached ? 'alertTriangleSolid' : 'ncArrowUpCircleSolid'"
-                  class="h-5 w-5 flex-none mt-0.5"
-                  :class="{
-                    'text-nc-content-orange-medium': isLimitReached,
-                    'text-nc-content-brand': !isLimitReached,
-                  }"
-                />
-                <div class="text-base font-700 text-nc-content-gray">
-                  {{
-                    isLimitReached
-                      ? 'Plan Limit Reached'
-                      : isLoyaltyDiscountAvailable
-                      ? 'Preview Ending Soon 🎊'
-                      : 'Upgrade to Team'
-                  }}
+      <NcTooltip :disabled="isWsOwner">
+        <template #title> Click to notify the workspace owner to upgrade the plan. </template>
+
+        <div
+          class="nc-upgrade-sidebar-banner w-full transition-all duration-250 ease-in-out overflow-hidden"
+          :style="
+            isLimitReached
+              ? {
+                  height: contentRefHeight ? `${contentRefHeight + 32}px` : undefined,
+                }
+              : {
+                  background: 'linear-gradient(to bottom left, #ec7db1, #85a3ff)',
+                  height: contentRefHeight ? `${contentRefHeight + 32}px` : undefined,
+                }
+          "
+          @click="handleNavigation()"
+        >
+          <div ref="contentRef" class="flex flex-col gap-4">
+            <div class="flex flex-col gap-1.5">
+              <div class="flex gap-2 items-center justify-between">
+                <div class="flex-1 flex gap-2">
+                  <GeneralIcon
+                    v-if="!isLoyaltyDiscountAvailable"
+                    :icon="isLimitReached ? 'alertTriangleSolid' : 'ncArrowUpCircleSolid'"
+                    class="h-5 w-5 flex-none mt-0.5"
+                    :class="{
+                      'text-nc-content-orange-medium': isLimitReached,
+                      'text-nc-content-brand': !isLimitReached,
+                    }"
+                  />
+                  <div class="text-base font-700 text-nc-content-gray">
+                    {{
+                      isLimitReached
+                        ? 'Plan Limit Reached'
+                        : isLoyaltyDiscountAvailable
+                        ? 'Preview Ending Soon 🎊'
+                        : 'Upgrade to Team'
+                    }}
+                  </div>
                 </div>
+                <NcButton
+                  type="text"
+                  size="xxsmall"
+                  class="text-gray-700 !hover:(text-gray-800 bg-transparent)"
+                  @click.stop="isSideBannerExpanded = !isSideBannerExpanded"
+                >
+                  <GeneralIcon
+                    icon="chevronRight"
+                    class="cursor-pointer transform transition-transform duration-200 !text-current text-[20px]"
+                    :class="{ '!rotate-90': isSideBannerExpanded }"
+                  />
+                </NcButton>
               </div>
-              <NcButton
-                type="text"
-                size="xxsmall"
-                class="text-gray-700 hover:text-gray-800"
-                @click.stop="isSideBannerExpanded = !isSideBannerExpanded"
-              >
-                <GeneralIcon
-                  icon="chevronRight"
-                  class="cursor-pointer transform transition-transform duration-200 !text-current text-[20px]"
-                  :class="{ '!rotate-90': isSideBannerExpanded }"
+              <div v-if="isSideBannerExpanded" class="text-nc-content-gray-subtle2 text-small leading-[18px]">
+                {{
+                  isLimitReached
+                    ? `You have exceeded the ${
+                        isRecordLimitReached ? 'records' : 'storage'
+                      } limit allowed in the Free plan. Upgrade to increase your limit`
+                    : isLoyaltyDiscountAvailable
+                    ? 'Thank you for being an early adopter. Upgrade now with loyalty discounts to continue'
+                    : 'Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!'
+                }}
+              </div>
+            </div>
+
+            <div v-if="isSideBannerExpanded" class="flex flex-col gap-1.5">
+              <div v-if="showTimer && timerDate" class="flex items-center justify-center">
+                <PaymentExpiresIn
+                  :end-time="timerDate"
+                  hide-icon
+                  hide-label
+                  class="!bg-transparent text-nc-content-gray-muted text-center"
                 />
+              </div>
+
+              <NcButton size="small" class="w-full">
+                {{ isWsOwner ? 'Upgrade Now' : $t('general.requestUpgrade') }}
               </NcButton>
             </div>
-            <div v-if="isSideBannerExpanded" class="text-nc-content-gray-subtle2 text-small leading-[18px]">
-              {{
-                isLimitReached
-                  ? `You have exceeded the ${
-                      isRecordLimitReached ? 'records' : 'storage'
-                    } limit allowed in the Free plan. Upgrade to increase your limit`
-                  : isLoyaltyDiscountAvailable
-                  ? 'Thank you for being an early adopter. Upgrade now with loyalty discounts to continue'
-                  : 'Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!'
-              }}
-            </div>
-          </div>
-
-          <div v-if="isSideBannerExpanded" class="flex flex-col gap-1.5">
-            <div v-if="showTimer && timerDate" class="flex items-center justify-center">
-              <PaymentExpiresIn
-                :end-time="timerDate"
-                hide-icon
-                hide-label
-                class="!bg-transparent text-nc-content-gray-muted text-center"
-              />
-            </div>
-
-            <NcButton size="small" class="w-full"> Upgrade Now </NcButton>
           </div>
         </div>
-      </div>
+      </NcTooltip>
     </div>
   </div>
 </template>
@@ -175,7 +223,7 @@ watch(
   @apply w-full rounded-2xl border-1;
 
   .nc-upgrade-sidebar-banner {
-    @apply relative p-4 cursor-pointer pointer-events-auto rounded-xl border-1;
+    @apply relative p-4 cursor-pointer pointer-events-auto rounded-[14px] border-1;
   }
 
   &.nc-limit-reached-banner {
@@ -188,7 +236,7 @@ watch(
     }
   }
   &:not(.nc-limit-reached-banner) {
-    @apply p-1 border-transparent;
+    @apply p-1 border-0 border-transparent;
 
     .nc-upgrade-sidebar-banner {
       @apply relative border-transparent z-1;

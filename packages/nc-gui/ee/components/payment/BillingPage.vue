@@ -141,65 +141,67 @@ watch(
         }"
       >
         <template v-if="!paymentInitiated">
-          <template v-if="afterPayment && checkoutSession">
-            <NcAlert
-              v-if="checkoutSession.payment_status === 'paid'"
-              :visible="afterPayment"
-              closable
-              type="success"
-              show-icon
-              class="!rounded-xl bg-nc-bg-green-light"
-              :message="$t('msg.success.paymentSuccessful')"
-              :description="$t('msg.success.paymentSuccessfulSubtitle')"
-              @close="onClosePaymentBanner"
-            >
-              <template v-if="checkoutSession?.invoice?.invoice_pdf" #action>
-                <a
-                  :href="checkoutSession?.invoice?.invoice_pdf"
-                  target="_blank"
-                  rel="noopener noreferer"
-                  class="!no-underline !hover:underline text-sm font-700"
+          <PaymentPlanUsage v-if="!afterPayment || !!checkoutSession">
+            <template #header>
+              <template v-if="afterPayment && checkoutSession">
+                <NcAlert
+                  v-if="checkoutSession.payment_status === 'paid'"
+                  :visible="afterPayment"
+                  closable
+                  type="success"
+                  show-icon
+                  class="!rounded-xl bg-nc-bg-green-light"
+                  :message="$t('msg.success.paymentSuccessful')"
+                  :description="$t('msg.success.paymentSuccessfulSubtitle')"
+                  @close="onClosePaymentBanner"
                 >
-                  {{ $t('labels.downloadInvoice') }}
-                </a>
+                  <template v-if="checkoutSession?.invoice?.invoice_pdf" #action>
+                    <a
+                      :href="checkoutSession?.invoice?.invoice_pdf"
+                      target="_blank"
+                      rel="noopener noreferer"
+                      class="!no-underline !hover:underline text-sm font-700"
+                    >
+                      {{ $t('labels.downloadInvoice') }}
+                    </a>
+                  </template>
+                </NcAlert>
+                <NcAlert
+                  v-else-if="checkoutSession.payment_status === 'failed'"
+                  :visible="afterPayment"
+                  closable
+                  type="error"
+                  show-icon
+                  class="!rounded-xl bg-nc-bg-red-light"
+                  :message="$t('msg.error.paymentFailed')"
+                  :description="$t('msg.error.paymentFailedSubtitle')"
+                  @close="onClosePaymentBanner"
+                >
+                </NcAlert>
               </template>
-            </NcAlert>
-            <NcAlert
-              v-else-if="checkoutSession.payment_status === 'failed'"
-              :visible="afterPayment"
-              closable
-              type="error"
-              show-icon
-              class="!rounded-xl bg-nc-bg-red-light"
-              :message="$t('msg.error.paymentFailed')"
-              :description="$t('msg.error.paymentFailedSubtitle')"
-              @close="onClosePaymentBanner"
-            >
-            </NcAlert>
-          </template>
-          <NcAlert
-            v-else-if="afterUpgrade"
-            closable
-            type="success"
-            show-icon
-            class="!rounded-xl bg-nc-bg-green-light"
-            :message="$t('msg.success.upgradeSuccessful')"
-            :description="$t('msg.success.upgradeSuccessfulSubtitle')"
-            @close="onClosePaymentBanner"
-          >
-            <template v-if="invoices?.[0]?.invoice_pdf" #action>
-              <a
-                :href="invoices?.[0]?.invoice_pdf"
-                target="_blank"
-                rel="noopener noreferer"
-                class="!no-underline !hover:underline text-sm font-700"
+              <NcAlert
+                v-else-if="afterUpgrade"
+                closable
+                type="success"
+                show-icon
+                class="!rounded-xl bg-nc-bg-green-light"
+                :message="$t('msg.success.upgradeSuccessful')"
+                :description="$t('msg.success.upgradeSuccessfulSubtitle')"
+                @close="onClosePaymentBanner"
               >
-                {{ $t('labels.downloadInvoice') }}
-              </a>
+                <template v-if="invoices?.[0]?.invoice_pdf" #action>
+                  <a
+                    :href="invoices?.[0]?.invoice_pdf"
+                    target="_blank"
+                    rel="noopener noreferer"
+                    class="!no-underline !hover:underline text-sm font-700"
+                  >
+                    {{ $t('labels.downloadInvoice') }}
+                  </a>
+                </template>
+              </NcAlert>
             </template>
-          </NcAlert>
-
-          <PaymentPlanUsage v-if="!afterPayment || !!checkoutSession" />
+          </PaymentPlanUsage>
         </template>
 
         <Payment v-if="paymentState && (!afterPayment || !!checkoutSession)" />

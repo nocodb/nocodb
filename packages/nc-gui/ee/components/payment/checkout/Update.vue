@@ -21,6 +21,10 @@ const {
   cancelSubscription,
 } = usePaymentStoreOrThrow()
 
+const formatMaxValue = (value: number) => {
+  return isFinite(value) ? Number(value).toLocaleString() : 'Unlimited'
+}
+
 const changes = computed(() => {
   if (!activeSubscription.value) return {}
 
@@ -69,29 +73,35 @@ const changes = computed(() => {
           ]
         : []),
       {
-        title: 'Storage Used (GB)',
-        oldValue: `${Number(getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000).toLocaleString()} GB`,
+        title: 'Storage (GB)',
+        oldValue: `${formatMaxValue(Number(getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000))}`,
         newValue: '1 GB',
-        percent: (
-          ((getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000 - 1) /
-            (getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000)) *
-          100
-        ).toFixed(2),
+        percent: isFinite(getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE))
+          ? (
+              ((getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000 - 1) /
+                (getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000)) *
+              100
+            ).toFixed(2)
+          : '100',
       },
       {
         title: 'API calls (monthly)',
-        oldValue: `${getLimit(PlanLimitTypes.LIMIT_API_CALL).toLocaleString()} requests`,
+        oldValue: `${formatMaxValue(getLimit(PlanLimitTypes.LIMIT_API_CALL))}`,
         newValue: '1,000 requests',
-        percent: (((getLimit(PlanLimitTypes.LIMIT_API_CALL) - 1000) / getLimit(PlanLimitTypes.LIMIT_API_CALL)) * 100).toFixed(2),
+        percent: isFinite(getLimit(PlanLimitTypes.LIMIT_API_CALL))
+          ? (((getLimit(PlanLimitTypes.LIMIT_API_CALL) - 1000) / getLimit(PlanLimitTypes.LIMIT_API_CALL)) * 100).toFixed(2)
+          : '100',
       },
       {
         title: 'Webhook calls (monthly)',
-        oldValue: `${Number(getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)).toLocaleString()} runs`,
-        newValue: '100 runs',
-        percent: (
-          ((getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN) - 1000) / getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)) *
-          100
-        ).toFixed(2),
+        oldValue: `${formatMaxValue(Number(getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)))}`,
+        newValue: '100 calls',
+        percent: isFinite(getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN))
+          ? (
+              ((getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN) - 1000) / getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)) *
+              100
+            ).toFixed(2)
+          : '100',
       },
     ]
   } else {
@@ -160,30 +170,20 @@ const onCancelSubscription = async () => {
 
 <template>
   <div class="h-full flex flex-col w-full max-w-[676px] mx-auto px-6">
-    <div
-      v-if="changes.change === 'upgrade'"
-      class="py-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
-    >
-      <div
-        v-if="changes.plan || !changes.period || changes.period === 'year'"
-        class="flex-1 text-xl text-nc-content-gray-emphasis font-700"
-      >
-        Upgrade Plan
-      </div>
-      <div v-else-if="changes.period" class="flex-1 text-xl text-nc-content-gray-emphasis font-700">Change Billing Period</div>
+    <div class="sticky top-0 bg-white pt-5 -mt-5 -mx-6 px-6">
+      <PaymentCheckoutHeader
+        v-if="changes.change === 'upgrade'"
+        :title="changes.plan || !changes.period || changes.period === 'year' ? 'Upgrade Plan' : 'Change Billing Period'"
+        @back="navigateToPricing()"
+      />
+
+      <PaymentCheckoutHeader v-else-if="changes.change === 'downgrade'" title="Downgrade Plan" @back="navigateToPricing()" />
+
+      <PaymentCheckoutHeader v-else-if="changes.change === 'cancel'" title="Downgrade to Free Plan" @back="navigateToPricing()" />
+
+      <NcDivider class="!mb-0 !mt-6" />
     </div>
-    <div
-      v-else-if="changes.change === 'downgrade'"
-      class="py-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
-    >
-      <div class="flex-1 text-xl text-nc-content-gray-emphasis font-700">Downgrade Plan</div>
-    </div>
-    <div
-      v-else-if="changes.change === 'cancel'"
-      class="py-2 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium"
-    >
-      <div class="flex-1 text-xl text-nc-content-gray-emphasis font-700">Downgrade to Free Plan</div>
-    </div>
+
     <div
       v-if="changes.change === 'upgrade' && (changes.plan || !changes.period || changes.period === 'year')"
       class="flex-1 nc-scrollbar-thin"
@@ -377,7 +377,7 @@ const onCancelSubscription = async () => {
                 <span class="text-2xl font-700">-{{ decrease.percent }}%</span>
                 <GeneralIcon icon="ncArrowDownCircle" class="h-4 w-4" />
               </div>
-              <div class="w-full flex items-center gap-3 text-nc-content-gray font-semibold text-sm">
+              <div class="w-full flex items-center gap-3 text-nc-content-gray text-sm">
                 {{ decrease.oldValue }}
                 <GeneralIcon icon="ncArrowRight" class="text-nc-content-gray-subtle h-4 w-4" />
                 {{ decrease.newValue }}

@@ -195,183 +195,188 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
 </script>
 
 <template>
-  <div v-if="!paymentInitiated" class="nc-plan-usage flex flex-col gap-3">
-    <NcAlert
-      v-if="scheduledChangeInfo"
-      class="-mt-4"
-      type="info"
-      message="Your plan will switch after the current billing cycle ends."
-    >
-      <template #description>
-        You've switched from the
-        {{ activePlanTitle }} ({{ activeSubscription?.period === 'year' ? 'Annual' : 'Monthly' }}) to the
-        {{ scheduledChangeInfo?.plan?.title }} ({{ scheduledChangeInfo?.period === 'year' ? 'Annual' : 'Monthly' }}). This change
-        will take effect on {{ scheduledChangeInfo?.date }}.
-      </template>
-      <template #action>
-        <NcButton
-          type="link"
-          size="small"
-          class="!p-0 mt-[-4px]"
-          @click="onUpdateSubscription(activeSubscription.fk_plan_id, activeSubscription.stripe_price_id)"
-        >
-          Revert
-        </NcButton>
-      </template>
-    </NcAlert>
-    <NcAlert v-else-if="activeSubscription?.canceled_at" type="warning" class="-mt-4">
-      <template #message> Your {{ activePlanTitle }} plan will expire soon </template>
-      <template #description>
-        On {{ dayjs(activeSubscription.canceled_at).format('DD MMMM YYYY') }}, you’ll lose access to all
-        {{ activePlanTitle }} features.
-      </template>
-      <template #action>
-        <NcButton
-          type="link"
-          size="small"
-          class="!p-0 mt-[-4px]"
-          @click="onUpdateSubscription(activeSubscription.fk_plan_id, activeSubscription.stripe_price_id)"
-        >
-          Reactivate {{ activePlanTitle }} Plan
-        </NcButton>
-      </template>
-    </NcAlert>
-
-    <div class="flex items-center justify-between gap-4 min-h-8">
-      <div class="flex gap-2 items-center text-base font-weight-700 text-nc-content-gray !leading-7">
-        <span>{{ $t('title.currentPlan') }}:</span>
-        <span :style="{ color: activePlanMeta?.primary }">
-          {{ $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title ?? PlanTitles.FREE}`) }}
-        </span>
-        <NcBadge
-          v-if="activeSubscription?.period"
-          :border="false"
-          class="text-nc-content-gray-subtle2 !bg-nc-bg-gray-medium text-[10px] leading-[14px] !h-[18px] font-semibold"
-        >
-          {{ activeSubscription?.period === 'year' ? 'Annual' : 'Monthly' }}
-        </NcBadge>
-      </div>
-      <div class="flex gap-2">
-        <NcButton v-if="activeSubscription" type="link" size="small" class="!hover:underline" @click="onManageSubscription">
-          {{ $t('labels.manageSubscription') }}
-        </NcButton>
-        <NcButton v-if="!isAnyPlanLimitReached" type="primary" size="small" inner-class="!gap-1" @click="navigateToPricing()">
-          <template #icon>
-            <GeneralIcon icon="ncArrowUpRight" />
-          </template>
-          Upgrade Workspace
-        </NcButton>
-      </div>
+  <div v-if="!paymentInitiated" class="nc-plan-usage flex flex-col gap-6">
+    <div class="flex flex-col gap-3 empty:hidden">
+      <slot name="header"> </slot>
+      <NcAlert v-if="scheduledChangeInfo" type="info" message="Your plan will switch after the current billing cycle ends.">
+        <template #description>
+          You've switched from the
+          {{ activePlanTitle }} ({{ activeSubscription?.period === 'year' ? 'Annual' : 'Monthly' }}) to the
+          {{ scheduledChangeInfo?.plan?.title }} ({{ scheduledChangeInfo?.period === 'year' ? 'Annual' : 'Monthly' }}). This
+          change will take effect on {{ scheduledChangeInfo?.date }}.
+        </template>
+        <template #action>
+          <NcButton
+            type="link"
+            size="small"
+            class="!p-0 mt-[-4px]"
+            @click="onUpdateSubscription(activeSubscription.fk_plan_id, activeSubscription.stripe_price_id)"
+          >
+            Revert
+          </NcButton>
+        </template>
+      </NcAlert>
+      <NcAlert v-else-if="activeSubscription?.canceled_at" type="warning" class="-mt-4">
+        <template #message> Your {{ activePlanTitle }} plan will expire soon </template>
+        <template #description>
+          On {{ dayjs(activeSubscription.canceled_at).format('DD MMMM YYYY') }}, you’ll lose access to all
+          {{ activePlanTitle }} features.
+        </template>
+        <template #action>
+          <NcButton
+            type="link"
+            size="small"
+            class="!p-0 mt-[-4px]"
+            @click="onUpdateSubscription(activeSubscription.fk_plan_id, activeSubscription.stripe_price_id)"
+          >
+            Reactivate {{ activePlanTitle }} Plan
+          </NcButton>
+        </template>
+      </NcAlert>
     </div>
 
-    <NcAlert
-      v-if="isAnyPlanLimitReached"
-      type="warning"
-      message="Plan Limit Exceeded!"
-      description="Please upgrade to continue using the service without interruptions."
-      align="center"
-      class="nc-plan-usage-plan-limit-reached-banner bg-nc-bg-red-light !rounded-xl"
-      :class="{
-        'nc-loyalty-workspace': isLoyaltyDiscountAvailable,
-      }"
-    >
-      <template #icon>
-        <GeneralIcon icon="alertTriangleSolid" class="flex-none h-6 w-6 text-nc-content-red-medium"></GeneralIcon>
-      </template>
-      <template #action>
-        <div v-if="recordInfo.isLimitReached || storageInfo.isLimitReached" class="flex items-center justify-center">
-          <PaymentExpiresIn
-            v-if="gracePeriodEndDate"
-            :end-time="gracePeriodEndDate"
-            hide-icon
-            hide-label
-            class="!bg-transparent text-nc-content-gray-subtle children:font-500 text-center px-0"
-          />
-        </div>
-        <NcButton type="primary" size="small" @click="navigateToPricing()"> Upgrade Workspace </NcButton>
-      </template>
-    </NcAlert>
-
-    <div
-      class="nc-current-plan-table rounded-lg border-1"
-      :style="{
-        borderColor: activePlanMeta?.border,
-        background: activePlanMeta?.bgLight,
-        color: activePlanMeta?.primary,
-      }"
-    >
-      <PaymentPlanUsageRow v-if="currentPlanTitle !== PlanTitles.FREE" :plan-meta="activePlanMeta">
-        <template #label> {{ $t('objects.currentPlan.nextInvoice') }} </template>
-        <template #value>
-          <div v-if="!activeSubscription">-</div>
-          <div v-else-if="activeSubscription?.canceled_at" class="text-nc-content-red-medium">
-            Marked for cancellation, due {{ new Date(activeSubscription.canceled_at).toLocaleDateString() }}
-          </div>
-          <div v-else>{{ nextInvoiceInfo?.amount }}, {{ nextInvoiceInfo?.date }}</div>
-        </template>
-      </PaymentPlanUsageRow>
-      <PaymentPlanUsageRow
-        :plan-meta="activePlanMeta"
-        :show-warning-status="showWarningStatusForSeatCount"
-        :tooltip="
-          $t('upgrade.editorLimitExceedTooltip', {
-            prefix: getTooltipPrefix(workspaceSeatCount, getLimit(PlanLimitTypes.LIMIT_EDITOR)),
-            activePlan: activePlanTitle,
-            limit: getLimit(PlanLimitTypes.LIMIT_EDITOR),
-          })
-        "
-        :is-limit-exceeded="workspaceSeatCount > getLimit(PlanLimitTypes.LIMIT_EDITOR)"
-      >
-        <template #label>
-          {{
-            currentPlanTitle === PlanTitles.FREE
-              ? $t('objects.currentPlan.numberOfBillableUsers')
-              : $t('objects.currentPlan.numberOfBilledUsers')
-          }}
-        </template>
-        <template #value
-          >{{ workspaceSeatCount }} of {{ formatTotalLimit(getLimit(PlanLimitTypes.LIMIT_EDITOR)) }} editors</template
-        >
-      </PaymentPlanUsageRow>
-      <PaymentPlanUsageRow
-        :plan-meta="activePlanMeta"
-        :show-warning-status="recordInfo.showWarningStatus"
-        :tooltip="recordInfo.tooltip"
-        :is-limit-exceeded="recordInfo.isLimitExceeded"
-      >
-        <template #label>
-          <span class="capitalize">
-            {{ $t('objects.records') }}
+    <div class="flex flex-col gap-3">
+      <div class="flex items-center justify-between gap-4 min-h-8">
+        <div class="flex gap-2 items-center text-base font-weight-700 text-nc-content-gray !leading-7">
+          <span>{{ $t('title.currentPlan') }}:</span>
+          <span :style="{ color: activePlanMeta?.primary }">
+            {{ $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title ?? PlanTitles.FREE}`) }}
           </span>
+          <NcBadge
+            v-if="activeSubscription?.period"
+            :border="false"
+            class="text-nc-content-gray-subtle2 !bg-nc-bg-gray-medium text-[10px] leading-[14px] !h-[18px] font-semibold"
+          >
+            {{ activeSubscription?.period === 'year' ? 'Annual' : 'Monthly' }}
+          </NcBadge>
+        </div>
+        <div class="flex gap-2">
+          <NcButton v-if="activeSubscription" type="link" size="small" class="!hover:underline" @click="onManageSubscription">
+            {{ $t('labels.manageSubscription') }}
+          </NcButton>
+          <NcButton v-if="!isAnyPlanLimitReached" type="primary" size="small" inner-class="!gap-1" @click="navigateToPricing()">
+            <template #icon>
+              <GeneralIcon icon="ncArrowUpRight" />
+            </template>
+            Upgrade Workspace
+          </NcButton>
+        </div>
+      </div>
+
+      <NcAlert
+        v-if="isAnyPlanLimitReached"
+        type="warning"
+        message="Plan Limit Reached"
+        description="Please upgrade to continue using the service without interruptions."
+        align="center"
+        class="nc-plan-usage-plan-limit-reached-banner bg-nc-bg-orange-light !rounded-xl"
+        :class="{
+          'nc-loyalty-workspace': isLoyaltyDiscountAvailable,
+        }"
+      >
+        <template #icon>
+          <GeneralIcon icon="alertTriangleSolid" class="flex-none h-6 w-6 text-nc-content-orange-medium"></GeneralIcon>
         </template>
-        <template #value> {{ recordInfo.value }} of {{ recordInfo.total }} records</template>
-      </PaymentPlanUsageRow>
-      <PaymentPlanUsageRow
-        :plan-meta="activePlanMeta"
-        :show-warning-status="storageInfo.showWarningStatus"
-        :tooltip="storageInfo.tooltip"
+        <template #action>
+          <div v-if="recordInfo.isLimitReached || storageInfo.isLimitReached" class="flex items-center justify-center">
+            <PaymentExpiresIn
+              v-if="gracePeriodEndDate"
+              :end-time="gracePeriodEndDate"
+              hide-icon
+              hide-label
+              class="!bg-transparent text-nc-content-gray-subtle children:font-500 text-center px-0 underline decoration-dotted"
+            />
+          </div>
+          <NcButton type="primary" size="small" inner-class="!gap-1" @click="navigateToPricing()">
+            <template #icon>
+              <GeneralIcon icon="ncArrowUpRight" />
+            </template>
+            Upgrade Workspace
+          </NcButton>
+        </template>
+      </NcAlert>
+
+      <div
+        class="nc-current-plan-table rounded-lg border-1"
+        :style="{
+          borderColor: activePlanMeta?.border,
+          background: activePlanMeta?.bgLight,
+          color: activePlanMeta?.primary,
+        }"
       >
-        <template #label> {{ $t('objects.currentPlan.storageUsedGB') }} </template>
-        <template #value> {{ storageInfo.value }} GB of {{ storageInfo.total }} GB attachments </template>
-      </PaymentPlanUsageRow>
-      <PaymentPlanUsageRow
-        :plan-meta="activePlanMeta"
-        :show-warning-status="automationInfo.showWarningStatus"
-        :tooltip="automationInfo.tooltip"
-        :is-limit-exceeded="automationInfo.isLimitExceeded"
-      >
-        <template #label> {{ $t('objects.currentPlan.webhookCallsMonthly') }} </template>
-        <template #value> {{ automationInfo.value }} of {{ automationInfo.total }} webhook calls per month </template>
-      </PaymentPlanUsageRow>
-      <PaymentPlanUsageRow
-        :plan-meta="activePlanMeta"
-        :show-warning-status="apiCallsInfo.showWarningStatus"
-        :tooltip="apiCallsInfo.tooltip"
-        :is-limit-exceeded="apiCallsInfo.isLimitExceeded"
-      >
-        <template #label> {{ $t('objects.currentPlan.apiCallsMonthly') }} </template>
-        <template #value> {{ apiCallsInfo.value }} of {{ apiCallsInfo.total }} API calls per month </template>
-      </PaymentPlanUsageRow>
+        <PaymentPlanUsageRow v-if="currentPlanTitle !== PlanTitles.FREE" :plan-meta="activePlanMeta">
+          <template #label> {{ $t('objects.currentPlan.nextInvoice') }} </template>
+          <template #value>
+            <div v-if="!activeSubscription">-</div>
+            <div v-else-if="activeSubscription?.canceled_at" class="text-nc-content-red-medium">
+              Marked for cancellation, due {{ new Date(activeSubscription.canceled_at).toLocaleDateString() }}
+            </div>
+            <div v-else>{{ nextInvoiceInfo?.amount }}, {{ nextInvoiceInfo?.date }}</div>
+          </template>
+        </PaymentPlanUsageRow>
+        <PaymentPlanUsageRow
+          :plan-meta="activePlanMeta"
+          :show-warning-status="showWarningStatusForSeatCount"
+          :tooltip="
+            $t('upgrade.editorLimitExceedTooltip', {
+              prefix: getTooltipPrefix(workspaceSeatCount, getLimit(PlanLimitTypes.LIMIT_EDITOR)),
+              activePlan: activePlanTitle,
+              limit: getLimit(PlanLimitTypes.LIMIT_EDITOR),
+            })
+          "
+          :is-limit-exceeded="workspaceSeatCount > getLimit(PlanLimitTypes.LIMIT_EDITOR)"
+        >
+          <template #label>
+            {{
+              currentPlanTitle === PlanTitles.FREE
+                ? $t('objects.currentPlan.numberOfBillableUsers')
+                : $t('objects.currentPlan.numberOfBilledUsers')
+            }}
+          </template>
+          <template #value
+            >{{ workspaceSeatCount }} of {{ formatTotalLimit(getLimit(PlanLimitTypes.LIMIT_EDITOR)) }} editors</template
+          >
+        </PaymentPlanUsageRow>
+        <PaymentPlanUsageRow
+          :plan-meta="activePlanMeta"
+          :show-warning-status="recordInfo.showWarningStatus"
+          :tooltip="recordInfo.tooltip"
+          :is-limit-exceeded="recordInfo.isLimitExceeded"
+        >
+          <template #label>
+            <span class="capitalize">
+              {{ $t('objects.records') }}
+            </span>
+          </template>
+          <template #value> {{ recordInfo.value }} of {{ recordInfo.total }} records</template>
+        </PaymentPlanUsageRow>
+        <PaymentPlanUsageRow
+          :plan-meta="activePlanMeta"
+          :show-warning-status="storageInfo.showWarningStatus"
+          :tooltip="storageInfo.tooltip"
+        >
+          <template #label> {{ $t('objects.currentPlan.storageUsedGB') }} </template>
+          <template #value> {{ storageInfo.value }} GB of {{ storageInfo.total }} GB attachments </template>
+        </PaymentPlanUsageRow>
+        <PaymentPlanUsageRow
+          :plan-meta="activePlanMeta"
+          :show-warning-status="automationInfo.showWarningStatus"
+          :tooltip="automationInfo.tooltip"
+          :is-limit-exceeded="automationInfo.isLimitExceeded"
+        >
+          <template #label> {{ $t('objects.currentPlan.webhookCallsMonthly') }} </template>
+          <template #value> {{ automationInfo.value }} of {{ automationInfo.total }} webhook calls per month </template>
+        </PaymentPlanUsageRow>
+        <PaymentPlanUsageRow
+          :plan-meta="activePlanMeta"
+          :show-warning-status="apiCallsInfo.showWarningStatus"
+          :tooltip="apiCallsInfo.tooltip"
+          :is-limit-exceeded="apiCallsInfo.isLimitExceeded"
+        >
+          <template #label> {{ $t('objects.currentPlan.apiCallsMonthly') }} </template>
+          <template #value> {{ apiCallsInfo.value }} of {{ apiCallsInfo.total }} API calls per month </template>
+        </PaymentPlanUsageRow>
+      </div>
     </div>
   </div>
 </template>

@@ -316,8 +316,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     paymentMode.value = val
   }
 
-  const onSelectPlan = (plan: PaymentPlan) => {
-    navigateToCheckout(plan.id, paymentMode.value)
+  const onSelectPlan = (plan: PaymentPlan, showPaymentMode: boolean = false) => {
+    navigateToCheckout(plan.id, paymentMode.value, undefined, undefined, showPaymentMode)
   }
 
   watch(

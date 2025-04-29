@@ -1,9 +1,11 @@
 <script lang="ts" setup>
-import { PlanTitles } from 'nocodb-sdk';
+import { PlanTitles } from 'nocodb-sdk'
 
 const { hideSidebar, showTopbar } = storeToRefs(useSidebarStore())
 
 const { appInfo } = useGlobal()
+
+const route = useRoute()
 
 useStripe()
 
@@ -49,7 +51,7 @@ useEventListener('message', (event) => {
   const { type, data } = event.data
 
   if (type === 'navigateToCheckout') {
-    const { planTitle, paymentMode: paymentModeInput } = data
+    const { planTitle, paymentMode: paymentModeInput, planCardClick = true } = data
 
     if (planTitle === 'Enterprise') {
       openNewTab('https://cal.com/nocodb')
@@ -67,7 +69,7 @@ useEventListener('message', (event) => {
 
     paymentMode.value = paymentModeInput
 
-    onSelectPlan(plan)
+    onSelectPlan(plan, !planCardClick)
   } else if (type === 'navigateToBilling') {
     navigateToBilling()
   } else if (type === 'frameLoaded') {
@@ -85,7 +87,9 @@ useEventListener('message', (event) => {
       v-show="frameLoaded"
       :src="`${appInfo.marketingRootUrl}/${isLoyaltyDiscountAvailable ? 'loyalty-' : ''}pricing?inApp=true&workspace=${
         activeWorkspace?.title
-      }&plan=${activePlan?.title}&paymentMode=${paymentMode}&isLoyaltyWorkspace=${isLoyaltyDiscountAvailable}`"
+      }&plan=${activePlan?.title}&paymentMode=${paymentMode}&isLoyaltyWorkspace=${isLoyaltyDiscountAvailable}${
+        route?.query?.activeBtn ? `&CTA=${route?.query?.activeBtn}` : ''
+      }`"
       width="100%"
       style="border: none; height: calc(100vh - 56px)"
     ></iframe>

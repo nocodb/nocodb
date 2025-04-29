@@ -241,6 +241,7 @@ const tabIndex = computed(() => {
     </div>
   </BubbleMenu>
 </template>
+
 <style lang="scss">
 .bubble-menu {
   // shadow

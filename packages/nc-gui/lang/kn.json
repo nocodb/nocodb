@@ -141,11 +141,11 @@
     "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
     "upgradeToSeeMoreRecordSubtitle": "Unlock complete visibility into your connected sources. View all records by upgrading to the Team plan.",
     "upgradeToSeeMoreRecordInlineSubtitle": "You're viewing {limit} of {total} records. Unlock access to the remaining {remaining} records by upgrading to the Team plan.",
-    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "The free plan allows upto {limit} Editor type users, upgrade to get unlimited",
     "adjustCollaboratorRoles": "Adjust Collaborator Roles",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -385,7 +385,7 @@
     "total": "Total",
     "downgrade": "Downgrade",
     "upgrade": "Upgrade",
-    "requestUpgrade": "Request Upgrade",
+    "requestUpgrade": "Request for Upgrade",
     "reactivate": "Reactivate",
     "left": "left",
     "seat": "Seat",
@@ -555,11 +555,11 @@
     },
     "currentPlan": {
       "nextInvoice": "Next invoice",
-      "numberOfBilledUsers": "Number of billed users",
-      "numberOfBillableUsers": "Number of billable users",
-      "storageUsedGB": "Storage used (GB)",
-      "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "numberOfBilledUsers": "Billed users",
+      "numberOfBillableUsers": "Billable users",
+      "storageUsedGB": "Storage used",
+      "webhookCallsMonthly": "Webhook calls",
+      "apiCallsMonthly": "API calls"
     }
   },
   "datatype": {
@@ -1644,7 +1644,9 @@
     "expandShiftSpace": "Expand 'Shift + Space'",
     "selectAllMappedFields": "Select all mapped fields",
     "copyErrorCode": "Copy error code",
-    "paidUserBadgeTooltip": "User has an editor or higher role in at least one base."
+    "paidUserBadgeTooltip": "User has an editor or higher role in at least one base.",
+    "approachingLimit": "Approaching limit",
+    "exceedingLimit": "Exceeding limit"
   },
   "placeholder": {
     "searchIcons": "ಐಕಾನ್‌ಗಳನ್ನು ಹುಡುಕಿ",
@@ -2026,8 +2028,9 @@
       "showNullAndEmptyInFilter": "ಫಿಲ್ಟ್ರ್ ನಲ್ಲಿ NULL ಮತ್ತು ಖಾಲಿ ತೋರಿಸಿ",
       "showNullAndEmptyInFilterDesc": "NULL ಮತ್ತು ಖಾಲಿ ಸ್ಟ್ರಿಂಗ್ ಹೊಂದಿರುವ ಕ್ಷೇತ್ರಗಳನ್ನು ವ್ಯತ್ಯಾಸಪಡುವ 'ಅಧಿಕ' ಫಿಲ್ಟರ್ಗಳನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ. ಖಾಲಿ ಪದವಿ ಮಾತ್ರ NULL ಮತ್ತು ಖಾಲಿ ಸ್ಟ್ರಿಂಗ್ ಅನ್ನು ಒಂದೇ ರೀತಿಯಲ್ಲಿ ಪರಿಗಣಿಸುತ್ತದೆ.",
       "deleteKanbanStackConfirmation": "ಈ ಕೇರ್ ತೆಗೆದುಹಾಕುವುದರಿಂದ `{groupingField}` ರಿಂದ `{stackToBeDeleted}` ಆಯ್ಕೆ ಅಪ್ಸನ್ ಕೂಡ ತೆಗೆಯಲಾಗುತ್ತದೆ. ದಾಖಲೆಗಳನ್ನು ವರ್ಗೀಕರಿಸದ ಕೇರ್ಗೆ ವರ್ಗಾಯಿಸಲಾಗುತ್ತದೆ.",
-      "computedFieldEditWarning": "ವಿಷಯಗಳು ವಾಚನ-ಮಾತ್ರವಾಗಿವೆ",
-      "computedFieldDeleteWarning": "ವಿಷಯಗಳು ವಾಚನ-ಮಾತ್ರವಾಗಿವೆ",
+      "computedFieldEditWarning": "Contents are read-only",
+      "computedFieldDeleteWarning": "Contents are read-only",
+      "computedFieldClearWarning": "Can’t clear read-only field",
       "fieldReadonly": "This field is read-only",
       "noMoreRecords": "ಇನ್ನು ಹೆಚ್ಚಿನ ದಾಖಲೆಗಳು ಲಭ್ಯವಿಲ್ಲ",
       "tokenNameNotEmpty": "ಟೋಕೆನ್ ಹೆಸರನ್ನು ಖಾಲಿ ಇರಬಾರದು",

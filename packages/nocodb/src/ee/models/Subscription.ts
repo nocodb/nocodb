@@ -15,6 +15,8 @@ export default class Subscription {
   fk_org_id: string;
   fk_plan_id: string;
 
+  fk_user_id: string;
+
   stripe_subscription_id: string;
   stripe_price_id: string;
 
@@ -35,11 +37,13 @@ export default class Subscription {
   upcoming_invoice_amount: number;
   upcoming_invoice_currency: string;
 
-  // Mark for downgrade (upgrades are applied immediately)
-  scheduled_fk_plan_id: string;
-  scheduled_stripe_price_id: string;
-  scheduled_plan_start_at: string;
-  scheduled_plan_period: string;
+  // Stripe schedule for downgrades
+  stripe_schedule_id: string | null;
+  schedule_phase_start: string | null;
+  schedule_stripe_price_id: string | null;
+  schedule_fk_plan_id: string | null;
+  schedule_period: string | null;
+  schedule_type: 'next' | 'year' | null;
 
   // timestamps
   created_at: string;
@@ -101,11 +105,13 @@ export default class Subscription {
       'upcoming_invoice_due_at',
       'upcoming_invoice_amount',
       'upcoming_invoice_currency',
-      'scheduled_fk_plan_id',
-      'scheduled_stripe_price_id',
-      'scheduled_plan_start_at',
-      'scheduled_plan_period',
       'meta',
+      'stripe_schedule_id',
+      'schedule_phase_start',
+      'schedule_stripe_price_id',
+      'schedule_fk_plan_id',
+      'schedule_period',
+      'schedule_type',
     ]);
 
     const { id } = await ncMeta.metaInsert2(
@@ -126,6 +132,7 @@ export default class Subscription {
     const updateObj: Record<string, any> = extractProps(subscription, [
       'stripe_price_id',
       'fk_plan_id',
+      'fk_user_id',
       'status',
       'seat_count',
       'status',
@@ -137,11 +144,13 @@ export default class Subscription {
       'upcoming_invoice_due_at',
       'upcoming_invoice_amount',
       'upcoming_invoice_currency',
-      'scheduled_fk_plan_id',
-      'scheduled_stripe_price_id',
-      'scheduled_plan_start_at',
-      'scheduled_plan_period',
       'meta',
+      'stripe_schedule_id',
+      'schedule_phase_start',
+      'schedule_stripe_price_id',
+      'schedule_fk_plan_id',
+      'schedule_period',
+      'schedule_type',
     ]);
 
     await ncMeta.metaUpdate(

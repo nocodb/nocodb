@@ -40,6 +40,7 @@ import * as nc_039_plans_and_subscriptions_limits from './v3/nc_039_plans_and_su
 import * as nc_040_workspace_sso from './v3/nc_040_workspace_sso';
 import * as nc_041_loyal_workspace from './v3/nc_041_loyal_workspace';
 import * as nc_042_api_automation_grace_period from './v3/nc_042_api_automation_grace_period';
+import * as nc_043_subscription_schedules from './v3/nc_043_subscription_schedules';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -91,6 +92,7 @@ export default class XcMigrationSourcev3 {
       'nc_040_workspace_sso',
       'nc_041_loyal_workspace',
       'nc_042_api_automation_grace_period',
+      'nc_043_subscription_schedules',
     ]);
   }
 
@@ -184,6 +186,8 @@ export default class XcMigrationSourcev3 {
         return nc_041_loyal_workspace;
       case 'nc_042_api_automation_grace_period':
         return nc_042_api_automation_grace_period;
+      case 'nc_043_subscription_schedules':
+        return nc_043_subscription_schedules;
     }
   }
 }

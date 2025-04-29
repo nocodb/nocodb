@@ -168,9 +168,8 @@ export class PaymentController {
   })
   async cancelSubscription(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
-    @Req() req: NcRequest,
   ) {
-    return this.paymentService.cancelSubscription(workspaceOrOrgId, req);
+    return this.paymentService.cancelSubscription(workspaceOrOrgId);
   }
 
   @UseGuards(GlobalGuard)

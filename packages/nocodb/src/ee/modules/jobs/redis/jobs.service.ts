@@ -42,23 +42,6 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
       },
     );
 
-    if (process.env.NC_STRIPE_SECRET_KEY) {
-      await this.jobsQueue.add(
-        {
-          jobName: JobTypes.SubscriptionSchedule,
-        },
-        {
-          jobId: JobTypes.SubscriptionSchedule,
-          repeat: { cron: '0 * * * *' },
-        },
-      );
-    } else {
-      await this.jobsQueue.removeRepeatable({
-        jobId: JobTypes.SubscriptionSchedule,
-        cron: '0 * * * *',
-      });
-    }
-
     // for development and test env, we run the job every minute
     // for production, we run the job every hour
     if (

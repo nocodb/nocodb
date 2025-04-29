@@ -1053,8 +1053,8 @@ export function renderBarcode(
 export const renderMarkdown = (
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   params: RenderMultiLineTextProps & {
-    baseUsers?: UserType[]
-    user?: UserType
+    baseUsers?: (Partial<UserType> | Partial<User>)[]
+    user?: Partial<UserType> | Partial<User>
   },
 ): {
   width: number

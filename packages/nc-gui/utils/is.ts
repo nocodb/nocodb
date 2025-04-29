@@ -20,7 +20,7 @@ const ncIsPlaywright = () => {
 
 const ncIsSharedViewOrBase = () => {
   // Use sessionStorage instead of localStorage to make it tab-specific
-  return sessionStorage.getItem('ncIsSharedViewOrBase') === 'true' || localStorage.getItem('ncIsSharedViewOrBase') === 'true'
+  return sessionStorage.getItem('ncIsSharedViewOrBase') === 'true'
 }
 
 export {

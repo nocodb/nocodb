@@ -453,7 +453,7 @@ export default class BaseUser {
       .where(function () {
         this.whereNull(`${MetaTable.PROJECT_USERS}.roles`).orWhereNot(
           `${MetaTable.PROJECT_USERS}.roles`,
-          ProjectRoles.OWNER,
+          ProjectRoles.NO_ACCESS,
         );
       });
 

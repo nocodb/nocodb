@@ -1,12 +1,12 @@
 import { LRUCache } from 'lru-cache'
 import JsBarcode from 'jsbarcode'
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, UserType } from 'nocodb-sdk'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import type { RenderMultiLineTextProps, RenderSingleLineTextProps, RenderTagProps } from './types'
 import { type Block, getFontForToken, parseMarkdown } from './markdownUtils'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 
-const singleLineTextCache: LRUCache<string, { text: string; width: number }> = new LRUCache({
+const singleLineTextCache: LRUCache<string, { text: string; width: number; isTruncated: boolean }> = new LRUCache({
   max: 1000,
 })
 
@@ -134,7 +134,7 @@ export function truncateText(
 }
 
 export function roundedRect(
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   x: number,
   y: number,
   width: number,
@@ -616,6 +616,7 @@ export const renderMarkdownBlocks = (
   const defaultStrokeStyle = ctx.strokeStyle
 
   const links: { x: number; y: number; width: number; height: number; url: string }[] = []
+  const mentions: { x: number; y: number; width: number; height: number; mentionData: any }[] = []
 
   maxLines = maxLines ?? blocks.length
 
@@ -651,6 +652,55 @@ export const renderMarkdownBlocks = (
       const maxLinesToRender = maxLines - renderedLineCount
 
       const isUrl = token.styles.includes('link') && !!token.url
+      const isMention = token.styles.includes('mention') && !!token.mentionData
+
+      const tokenWidth = ctx.measureText(tokenText)?.width
+
+      let mentionTextColor = '#3366FF'
+
+      // Handle mentions with background color and rounded rectangle
+      if (isMention && token.mentionData) {
+        // Check if mention will fit in current line
+        const remainingWidth = maxWidth - (cursorX - x)
+        const willFit = tokenWidth <= remainingWidth
+
+        // If mention won't fit on current line, move to next line first
+        if (!willFit && cursorX > x) {
+          cursorX = x
+          renderedLineCount++
+          cursorY = y + renderedLineCount * lineHeight
+        }
+
+        const paddingX = 4
+        const mentionBox = {
+          x: cursorX - paddingX,
+          y: cursorY - baseFontSize / 2 - 2,
+          width: tokenWidth + paddingX * 2,
+          height: baseFontSize + 4,
+        }
+
+        let bgColor
+        if (token.mentionData.isSameUser) {
+          mentionTextColor = '#17803D' // Current user text color
+          bgColor = '#D4F7E0' // Current user background
+        } else {
+          mentionTextColor = '#3366FF' // Other user text color
+          bgColor = '#EBF0FF' // Other user background
+        }
+
+        // Draw rounded rectangle background
+        ctx.fillStyle = bgColor
+        roundedRect(ctx, mentionBox.x, mentionBox.y, mentionBox.width, mentionBox.height, 6, {
+          backgroundColor: bgColor,
+          borderColor: '#ffffff00',
+        })
+
+        // Store mention data if cellRenderStore is provided
+        mentions.push({
+          ...mentionBox,
+          mentionData: token.mentionData,
+        })
+      }
 
       const multilineTextFnProps = {
         x,
@@ -660,9 +710,9 @@ export const renderMarkdownBlocks = (
         text: tokenText,
         maxWidth,
         height,
-        fillStyle: isUrl && selected ? '#3366FF' : (defaultFillStyle as string),
+        fillStyle: isUrl && selected ? '#3366FF' : isMention ? mentionTextColor : (defaultFillStyle as string),
         fontFamily: ctx.font,
-        maxLines: maxLinesToRender,
+        maxLines: isMention ? 1 : maxLinesToRender,
         underline: token.styles.includes('underline') || isUrl,
         strikethrough: token.styles.includes('strikethrough'),
       }
@@ -721,6 +771,7 @@ export const renderMarkdownBlocks = (
       if (lines.length === 1) {
         // If lines count is 1 then we just need to move cursorX as this is rendered inline
         cursorX += lastLineWidth
+        if (isMention) cursorX += 8 // Adding the padding value from your code
       } else {
         /**
          * If text is wrapped to next line then we can set cursorX to cell x + lastLineWidth
@@ -749,7 +800,9 @@ export const renderMarkdownBlocks = (
     renderedLineCount++
   }
 
-  if (cellRenderStore) cellRenderStore.links = links
+  if (cellRenderStore) {
+    cellRenderStore.links = links
+  }
 
   // Restore the original font
   ctx.font = defaultFont
@@ -999,7 +1052,10 @@ export function renderBarcode(
 
 export const renderMarkdown = (
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-  params: RenderMultiLineTextProps,
+  params: RenderMultiLineTextProps & {
+    baseUsers?: UserType[]
+    user?: UserType
+  },
 ): {
   width: number
   x: number
@@ -1023,6 +1079,8 @@ export const renderMarkdown = (
     cellRenderStore,
     isTagLabel = false,
     selected = false,
+    baseUsers,
+    user,
   } = params
   let { maxWidth = Infinity, maxLines } = params
 
@@ -1061,7 +1119,10 @@ export const renderMarkdown = (
     const renderText = NcMarkdownParser.preprocessMarkdown(processText, true)
 
     width = maxWidth
-    blocks = parseMarkdown(renderText)
+    blocks = parseMarkdown(renderText, {
+      users: baseUsers,
+      currentUser: user,
+    })
 
     markdownTextCache.set(cacheKey, { blocks, width })
   }

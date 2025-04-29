@@ -427,6 +427,7 @@ interface CellRendererOptions {
   setCursor: SetCursorType
   cellRenderStore: CellRenderStore
   baseUsers?: (Partial<UserType> | Partial<User>)[]
+  user?: Partial<UserType> | Partial<User>
   formula?: boolean
   isPublic?: boolean
   path?: Array<number>

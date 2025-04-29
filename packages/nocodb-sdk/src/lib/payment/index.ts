@@ -70,6 +70,17 @@ export const LoyaltyPriceLookupKeyMap = {
   [PlanPriceLookupKeys.BUSINESS_YEARLY]: 'loyalty_business_yearly',
 };
 
+export const LoyaltyPriceReverseLookupKeyMap = {
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.TEAM_MONTHLY]]:
+    PlanPriceLookupKeys.TEAM_MONTHLY,
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.TEAM_YEARLY]]:
+    PlanPriceLookupKeys.TEAM_YEARLY,
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.BUSINESS_MONTHLY]]:
+    PlanPriceLookupKeys.BUSINESS_MONTHLY,
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.BUSINESS_YEARLY]]:
+    PlanPriceLookupKeys.BUSINESS_YEARLY,
+};
+
 export const PlanMeta = {
   [PlanTitles.FREE]: {
     title: PlanTitles.FREE,

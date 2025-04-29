@@ -26,7 +26,7 @@ export const QRCodeCellRenderer: CellRenderer = {
       renderMultiLineText(ctx, {
         x: x + padding,
         y,
-        text: 'QR Code value too long!',
+        text: 'Too many characters for a QR Code',
         maxWidth: width - padding * 2,
         fontFamily: '500 13px Manrope',
         fillStyle: '#e65100',

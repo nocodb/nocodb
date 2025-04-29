@@ -447,12 +447,18 @@ export class DuplicateProcessor {
     try {
       // save old default value
       const oldCdf = replacedColumn.cdf;
+      const oldRequired = replacedColumn.rqd;
 
       replacedColumn.title = title;
       replacedColumn.column_name = title.toLowerCase().replace(/ /g, '_');
 
       // remove default value to avoid filling existing empty rows
       replacedColumn.cdf = null;
+
+      // remove required to avoid filling existing empty rows
+      if (oldRequired) {
+        replacedColumn.rqd = false;
+      }
 
       Object.assign(replacedColumn, extra);
 
@@ -520,13 +526,14 @@ export class DuplicateProcessor {
         colId: findWithIdentifier(idMap, sourceColumn.id),
       });
 
-      // update cdf
+      // update cdf and rqd
       if (!isVirtualCol(destColumn) && !isAIPromptCol(destColumn)) {
         await this.columnsService.columnUpdate(context, {
           columnId: findWithIdentifier(idMap, sourceColumn.id),
           column: {
             ...destColumn,
             cdf: oldCdf,
+            ...(oldRequired ? { rqd: oldRequired } : {}),
           },
           user: req.user,
           req,
@@ -747,9 +754,7 @@ export class DuplicateProcessor {
                   const row = {};
                   for (let i = 0; i < headers.length; i++) {
                     if (headers[i]) {
-                      if (results.data[i] !== '') {
-                        row[headers[i]] = results.data[i];
-                      }
+                      row[headers[i]] = results.data[i];
                     }
                   }
                   chunk.push(row);

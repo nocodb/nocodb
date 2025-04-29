@@ -109,7 +109,12 @@ async function checkLimit(args: {
 
     if (count + (delta || 0) > limit) {
       if (type in GraceLimits && plan?.free) {
-        const gracePeriodStartAt = workspace.grace_period_start_at;
+        let gracePeriodStartAt = workspace.grace_period_start_at;
+
+        if (type === PlanLimitTypes.LIMIT_API_CALL)
+          gracePeriodStartAt = workspace.api_grace_period_start_at;
+        if (type === PlanLimitTypes.LIMIT_AUTOMATION_RUN)
+          gracePeriodStartAt = workspace.automation_grace_period_start_at;
 
         if (gracePeriodStartAt) {
           const gracePeriodEndAt = dayjs(gracePeriodStartAt)
@@ -150,13 +155,17 @@ async function checkLimit(args: {
         } else {
           const gracePeriodStartAt = ncMeta.now();
 
-          await Workspace.update(
-            workspaceId,
-            {
-              grace_period_start_at: gracePeriodStartAt,
-            },
-            ncMeta,
-          );
+          const updateObject: Partial<Workspace> = {};
+
+          if (type === PlanLimitTypes.LIMIT_API_CALL) {
+            updateObject.api_grace_period_start_at = gracePeriodStartAt;
+          } else if (type === PlanLimitTypes.LIMIT_AUTOMATION_RUN) {
+            updateObject.automation_grace_period_start_at = gracePeriodStartAt;
+          } else {
+            updateObject.grace_period_start_at = gracePeriodStartAt;
+          }
+
+          await Workspace.update(workspaceId, updateObject, ncMeta);
 
           return;
         }

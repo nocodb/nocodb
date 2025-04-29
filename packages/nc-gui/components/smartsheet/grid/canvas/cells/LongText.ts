@@ -12,11 +12,22 @@ export const LongTextCellRenderer: CellRenderer = {
 
     const isRichMode = props.column?.meta?.richMode
 
-    const { value, x, y, width, height, pv, padding, textColor = '#4a5268', mousePosition, spriteLoader, setCursor } = props
+    const {
+      value,
+      x,
+      y,
+      width,
+      height,
+      pv,
+      padding,
+      textColor = '#4a5268',
+      mousePosition,
+      spriteLoader,
+      setCursor,
+      selected,
+    } = props
 
     const text = value?.toString() ?? ''
-
-    const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
 
     const renderExpandIcon = () => {
       renderIconButton(ctx, {
@@ -25,9 +36,9 @@ export const LongTextCellRenderer: CellRenderer = {
         buttonSize: 20,
         borderRadius: 6,
         iconData: {
-          size: 13,
-          xOffset: (20 - 13) / 2,
-          yOffset: (20 - 13) / 2,
+          size: 12,
+          xOffset: 4,
+          yOffset: 4,
         },
         mousePosition,
         spriteLoader,
@@ -38,7 +49,7 @@ export const LongTextCellRenderer: CellRenderer = {
     }
 
     if (!text) {
-      if (!props.tag?.renderAsTag && isHovered) {
+      if (!props.tag?.renderAsTag && selected) {
         renderExpandIcon()
       }
 
@@ -68,12 +79,13 @@ export const LongTextCellRenderer: CellRenderer = {
         mousePosition,
         spriteLoader,
         cellRenderStore: props.cellRenderStore,
+        selected,
       })
 
       // Restore context after clipping
       ctx.restore()
 
-      if (!props.tag?.renderAsTag && isHovered) {
+      if (!props.tag?.renderAsTag && selected) {
         renderExpandIcon()
       }
 
@@ -93,7 +105,7 @@ export const LongTextCellRenderer: CellRenderer = {
         cellRenderStore: props.cellRenderStore,
       })
 
-      if (!props.tag?.renderAsTag && isHovered) {
+      if (!props.tag?.renderAsTag && selected) {
         renderExpandIcon()
       }
 
@@ -104,7 +116,9 @@ export const LongTextCellRenderer: CellRenderer = {
     }
   },
   handleClick: async (props) => {
-    const { column, getCellPosition, row, mousePosition, makeCellEditable, cellRenderStore, isDoubleClick } = props
+    const { column, getCellPosition, row, mousePosition, makeCellEditable, cellRenderStore, isDoubleClick, selected } = props
+
+    if (!selected && !isDoubleClick) return false
 
     const isRichMode = column.columnObj?.meta?.richMode
 
@@ -155,7 +169,11 @@ export const LongTextCellRenderer: CellRenderer = {
     return false
   },
   handleHover: async (props) => {
-    const { row, column, value, mousePosition, getCellPosition, cellRenderStore, setCursor } = props
+    const { row, column, value, mousePosition, getCellPosition, cellRenderStore, setCursor, selected } = props
+
+    if (!selected && !isAIPromptCol(column?.columnObj)) {
+      return
+    }
 
     const isRichMode = column.columnObj?.meta?.richMode
 

@@ -5,7 +5,7 @@ import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
 import { getI18n } from '../../../../../../plugins/a.i18n'
 
 const ellipsisWidth = 15
-const buttonSize = 24
+const buttonSize = 20
 
 export const ManyToManyCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -84,7 +84,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
     const maxLines = rowHeightTruncateLines(height, true)
     let line = 1
     let flag = false
-    const count = 1
+    let count = 1
 
     for (const cell of cells) {
       const point = cellRenderer({
@@ -161,6 +161,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
         currentWidth = initialWidth
         line += 1
       }
+      count++
     }
 
     if (flag && count < cells.length) {
@@ -179,13 +180,13 @@ export const ManyToManyCellRenderer: CellRenderer = {
 
     Object.assign(cellRenderStore, { ltar: returnData })
 
-    if (isBoxHovered({ x, y, width, height }, mousePosition)) {
+    if (selected) {
       const borderRadius = 6
 
       if (!readonly) {
         renderIconButton(ctx, {
           buttonX: x + width - 57,
-          buttonY: y + 4,
+          buttonY: y + 6,
           borderRadius,
           buttonSize,
           spriteLoader,
@@ -193,8 +194,8 @@ export const ManyToManyCellRenderer: CellRenderer = {
           icon: 'ncPlus',
           iconData: {
             size: 14,
-            xOffset: 5,
-            yOffset: 5,
+            xOffset: 3,
+            yOffset: 3,
           },
           setCursor,
         })
@@ -202,13 +203,18 @@ export const ManyToManyCellRenderer: CellRenderer = {
 
       renderIconButton(ctx, {
         buttonX: x + width - 30,
-        buttonY: y + 4,
+        buttonY: y + 6,
         borderRadius,
         buttonSize,
         spriteLoader,
         mousePosition,
         icon: 'maximize',
         setCursor,
+        iconData: {
+          size: 12,
+          xOffset: 4,
+          yOffset: 4,
+        },
       })
     }
   },
@@ -225,6 +231,8 @@ export const ManyToManyCellRenderer: CellRenderer = {
     isDoubleClick,
     openDetachedExpandedForm,
   }) {
+    if (!selected && !isDoubleClick) return false
+
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width, height } = getCellPosition(column, rowIndex)
 
@@ -237,8 +245,8 @@ export const ManyToManyCellRenderer: CellRenderer = {
      * Open linked/unlinked record dropdown will handled in editable cell component
      */
     if (
-      isBoxHovered({ x: x + width - 57, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition) ||
-      isBoxHovered({ x: x + width - 30, y: y + 4, height: buttonSize, width: buttonSize }, mousePosition)
+      isBoxHovered({ x: x + width - 57, y: y + 7, height: buttonSize, width: buttonSize }, mousePosition) ||
+      isBoxHovered({ x: x + width - 30, y: y + 7, height: buttonSize, width: buttonSize }, mousePosition)
     ) {
       makeCellEditable(row, column)
       return true
@@ -302,7 +310,9 @@ export const ManyToManyCellRenderer: CellRenderer = {
     return false
   },
   handleHover: async (props) => {
-    const { row, column, mousePosition, getCellPosition } = props
+    const { row, column, mousePosition, getCellPosition, selected } = props
+
+    if (!selected) return
 
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()

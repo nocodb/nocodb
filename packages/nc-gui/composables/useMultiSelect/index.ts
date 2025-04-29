@@ -946,7 +946,11 @@ export function useMultiSelect(
           throw new Error(parsedClipboard.errors[0].message)
         }
 
-        const clipboardMatrix = parsedClipboard.data as string[][]
+        let clipboardMatrix = parsedClipboard.data as string[][]
+
+        // Special handling for "null" values - convert literal "null" strings to empty strings
+        // This ensures that empty cells from numeric fields don't appear as "null" text
+        clipboardMatrix = clipboardMatrix.map((row) => row.map((cell) => (cell === 'null' ? '' : cell)))
 
         const selectionRowCount = Math.max(clipboardMatrix.length, selectedRange.end.row - selectedRange.start.row + 1)
 

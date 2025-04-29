@@ -25,6 +25,8 @@ const isLinkOptionsVisible = ref(false)
 // This is because checkLinkMark is not called in that case
 const justDeleted = ref(false)
 
+// This function is called by BubbleMenu on selection change
+// It is used to check if the link mark is active and only show the menu if it is
 const checkLinkMark = (editor: Editor) => {
   if (!editor.view.editable) return false
 
@@ -51,9 +53,9 @@ const checkLinkMark = (editor: Editor) => {
     href.value = linkNodeMark.value?.attrs?.href
   }
 
-  // check if active node is a text node
   const isTextSelected = editor?.state?.selection?.from !== editor?.state?.selection?.to
 
+  // check if active node is a text node
   const showLinkOptions = isActiveNodeMarkActive && !isTextSelected
   isLinkOptionsVisible.value = !!showLinkOptions
 
@@ -239,8 +241,6 @@ const tabIndex = computed(() => {
     </div>
   </BubbleMenu>
 </template>
-
-
 <style lang="scss">
 .bubble-menu {
   // shadow

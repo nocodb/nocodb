@@ -12,6 +12,7 @@ import { TableMetaLoader } from '../loaders/TableMetaLoader'
 import type { CanvasGridColumn } from '../../../../../lib/types'
 import { CanvasElement } from '../utils/CanvasElement'
 import { calculateGroupRowTop, isGroupExpanded } from '../utils/groupby'
+import { BaseRoleLoader } from '../loaders/BaseRoleLoader'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
@@ -152,6 +153,7 @@ export function useCanvasTable({
   }
 }) {
   const { metas, getMeta } = useMetas()
+  const { getBaseRoles, } = useBases()
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
   const activeCell = ref<{
@@ -173,6 +175,7 @@ export function useCanvasTable({
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
   const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas)
+  const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas)
   const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
   const elementMap = new CanvasElement([])
@@ -713,6 +716,7 @@ export function useCanvasTable({
     imageLoader,
     spriteLoader,
     tableMetaLoader,
+    baseRoleLoader,
     partialRowHeight,
     vSelectedAllRecords,
     isRowDraggingEnabled,

@@ -549,6 +549,7 @@ export const useBases = defineStore('basesStore', () => {
     showProjectList,
     baseHomeSearchQuery,
     getBaseRoles,
+    baseRoles,
   }
 })
 

@@ -15,11 +15,13 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { xWhere, eventBus } = useSmartsheetStoreOrThrow()
+const { xWhere, eventBus, isExternalSource } = useSmartsheetStoreOrThrow()
 
 const { t } = useI18n()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const { blockExternalSourceRecordVisibility } = useEeConfig()
 
 const bulkUpdateDlg = ref(false)
 
@@ -205,7 +207,9 @@ const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.
 
 const isCanvasTableEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CANVAS_GRID_VIEW))
 
-const isCanvasGroupByTableEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CANVAS_GROUP_GRID_VIEW))
+const isCanvasGroupByTableEnabled = computed(
+  () => isFeatureEnabled(FEATURE_FLAG.CANVAS_GROUP_GRID_VIEW) && !blockExternalSourceRecordVisibility(isExternalSource.value),
+)
 
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 

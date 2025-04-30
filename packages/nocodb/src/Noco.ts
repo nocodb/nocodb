@@ -21,9 +21,12 @@ import { isEE, T } from '~/utils';
 import { getAppUrl } from '~/utils/appUrl';
 import { DataReflection, Integration } from '~/models';
 import { getRedisURL } from '~/helpers/redisHelpers';
-
 dotenv.config();
 declare const module: any;
+
+if (['development', 'test'].includes(process.env.NODE_ENV)) {
+  require('source-map-support').install();
+}
 
 export default class Noco {
   protected static _this: Noco;

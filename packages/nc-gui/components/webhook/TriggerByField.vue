@@ -13,7 +13,7 @@ const emits = defineEmits(['update:triggerFields', 'update:triggerField'])
 
 const columns = toRef(props, 'columns')
 
-const triggerFields = useVModel(props, 'triggerFields', emits)
+const triggerFields = useVModel(props, 'triggerFields', emits, { defaultValue: [] })
 const triggerField = useVModel(props, 'triggerField', emits)
 
 const isDropdownOpen = ref(false)
@@ -39,7 +39,13 @@ const removeColumnId = (colId: string) => {
       </NcSwitch>
     </label>
     <NcDropdown v-if="triggerField" v-model:visible="isDropdownOpen" overlay-class-name="!pt-0">
-      <NcButton size="small" type="secondary">
+      <NcButton
+        size="small"
+        type="secondary"
+        :class="{
+          '!shadow-selected !border-brand-500': isDropdownOpen,
+        }"
+      >
         <div class="flex items-center justify-center gap-2">
           <GeneralIcon icon="plus" />
           {{ $t('activity.addFieldFromFormView') }}
@@ -53,12 +59,12 @@ const removeColumnId = (colId: string) => {
           is-multi-select
           :close-on-select="false"
           :list="columns"
-          :item-height="30"
+          variant="small"
           option-value-key="id"
           option-label-key="title"
         >
           <template #headerExtraRight>
-            <NcBadge :border="false" color="brand"> {{ triggerFields.length }} fields </NcBadge>
+            <NcBadge :border="false" color="brand" class="mr-2"> {{ triggerFields.length }} fields </NcBadge>
           </template>
 
           <template #listItem="{ option }">
@@ -70,7 +76,7 @@ const removeColumnId = (colId: string) => {
                 <template #title>
                   {{ option?.title }}
                 </template>
-                <div class="flex-1 text-nc-content-gray font-semibold leading-5 text-[13px]">
+                <div class="flex-1 text-nc-content-gray font-semibold leading-5 text-small">
                   {{ option?.title }}
                 </div>
               </NcTooltip>
@@ -83,7 +89,7 @@ const removeColumnId = (colId: string) => {
     </NcDropdown>
   </div>
   <div v-if="triggerField">
-    <div v-if="triggerFields?.length" class="mt-3 gap-2 flex flex-wrap">
+    <div v-if="triggerFields?.length" class="mt-3 gap-2 flex flex-wrap min-h-5.5">
       <div
         v-for="col of computedTags"
         :key="col.id"
@@ -100,7 +106,7 @@ const removeColumnId = (colId: string) => {
         <GeneralIcon class="cursor-pointer" icon="close" @click="removeColumnId(col.id)" />
       </div>
     </div>
-    <div v-else class="flex flex-row text-gray-400 mt-2">
+    <div v-else class="flex flex-row text-gray-400 mt-3">
       {{ $t('title.noFieldsSelected') }}
     </div>
   </div>
@@ -108,31 +114,18 @@ const removeColumnId = (colId: string) => {
 
 <style scoped lang="scss">
 .nc-list-field {
-  .nc-list-root {
-    @apply !pt-0;
-  }
-
-  .nc-search-icon {
-    @apply text-nc-content-gray-muted !w-4 !h-4;
-  }
-
   :deep(.nc-list-item) {
-    @apply !p-1;
     .ant-checkbox-checked .ant-checkbox-inner {
       background-color: #3366ff !important;
       border-color: #3366ff !important;
     }
-  }
 
-  :deep(.nc-list-search-wrapper) {
-    @apply !px-3 !py-1;
-
-    .nc-toolbar-dropdown-search-field-input {
-      @apply !p-0;
+    .ant-checkbox {
+      @apply !mr-0;
     }
 
-    :deep(.nc-divider) {
-      @apply !my-1;
+    .nc-cell-icon {
+      @apply mx-0;
     }
   }
 }

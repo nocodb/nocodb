@@ -206,7 +206,7 @@ function onResize(widthPercent: any) {
       min-size="15%"
       :size="mobileNormalizedSidebarSize"
       max-size="60%"
-      class="nc-sidebar-splitpane !sm:max-w-140 relative !overflow-auto flex"
+      class="nc-sidebar-splitpane !sm:max-w-140 relative !overflow-visible flex"
       :class="{
         hidden: hideSidebar,
       }"

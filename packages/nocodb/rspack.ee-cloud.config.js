@@ -97,11 +97,11 @@ module.exports = {
     new rspack.CopyRspackPlugin({
       patterns: [{ from: 'src/public', to: 'public' }],
     }),
-    /*new TsCheckerRspackPlugin({
+    new TsCheckerRspackPlugin({
       typescript: {
         configFile: resolve('./src/ee-cloud/tsconfig.json'),
       },
-    })*/
+    })
   ],
   target: 'node',
 };

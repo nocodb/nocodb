@@ -36,6 +36,11 @@ export class OrgsService {
       await Domain.update(param.domainId, {
         verified,
       });
+
+      // on successful verification, remove any existing domain entry with the same domain
+      if (verified) {
+        await Domain.deleteDuplicateDomain(domain.domain, domain.id);
+      }
     }
 
     return verified;
@@ -64,6 +69,14 @@ export class OrgsService {
 
     // generate a txt value
     const txtValue = generateRandomTxt();
+
+    // restrict if an already verified domain exists
+    const existingDomain = await Domain.getByDomain(param.body.domain);
+    if (existingDomain) {
+      NcError.badRequest(
+        'Domain not available, please try another domain or contact support',
+      );
+    }
 
     const domain = await Domain.insert({
       deleted: param.body.deleted,

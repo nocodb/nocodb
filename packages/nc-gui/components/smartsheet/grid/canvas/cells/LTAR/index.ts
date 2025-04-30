@@ -20,7 +20,6 @@ export const LtarCellRenderer: CellRenderer = {
   },
   handleClick: async (_props) => {
     let props = _props
-    debugger
 
     const colOption = props.column?.columnObj?.colOptions as LinkToAnotherRecordType
 

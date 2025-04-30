@@ -1215,7 +1215,7 @@ export function useCanvasRender({
         const columnState = column.columnObj?.id ? isColumnSortedOrFiltered(column.columnObj?.id) : null
 
         const prevColumnState =
-          colIdx - 1 > 0 && visibleCols[colIdx - 1] && visibleCols[colIdx - 1]?.columnObj?.id
+          colIdx - 1 >= 0 && visibleCols[colIdx - 1] && visibleCols[colIdx - 1]?.columnObj?.id
             ? isColumnSortedOrFiltered(visibleCols[colIdx - 1]?.columnObj?.id)
             : null
 

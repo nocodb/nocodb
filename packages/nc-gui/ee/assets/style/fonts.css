@@ -1,9 +1,11 @@
+@import url('./Inter-4.1/inter.css');
+
 /* Manrope */
 @font-face {
   font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
   font-family: 'Manrope';
   font-weight: 450 900;
-  src: url('./manrope/Manrope-VariableFont_wght.ttf') format('truetype')
+  src: url('./manrope/Manrope-VariableFont_wght.ttf') format('truetype');
 }
 
 /* Vazirmatn */
@@ -65,7 +67,6 @@
   font-style: normal;
   font-display: swap;
 }
-
 
 /*  //   href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,200,0,-25',
 */

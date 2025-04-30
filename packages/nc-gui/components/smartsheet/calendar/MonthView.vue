@@ -28,6 +28,8 @@ const { isUIAllowed } = useRoles()
 
 const meta = inject(MetaInj, ref())
 
+const { t } = useI18n()
+
 const maxVisibleDays = computed(() => {
   return viewMetaProperties.value?.hide_weekend ? 5 : 7
 })
@@ -36,13 +38,29 @@ const days = computed(() => {
   let days = []
 
   if (isMondayFirst.value) {
-    days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    days = [
+      t('mon', 'Mon'),
+      t('tue', 'Tue'),
+      t('wed', 'Wed'),
+      t('thu', 'Thu'),
+      t('fri', 'Fri'),
+      t('sat', 'Sat'),
+      t('sun', 'Sun')
+    ]
   } else {
-    days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    days = [
+      t('sun', 'Sun'),
+      t('mon', 'Mon'),
+      t('tue', 'Tue'),
+      t('wed', 'Wed'),
+      t('thu', 'Thu'),
+      t('fri', 'Fri'),
+      t('sat', 'Sat')
+    ]
   }
 
   if (maxVisibleDays.value === 5) {
-    days = days.filter((day) => day !== 'Sat' && day !== 'Sun')
+    days = days.filter((day) => day !== t('sat', 'Sat') && day !== t('sun', 'Sun'))
   }
 
   return days
@@ -88,7 +106,6 @@ const fieldStyles = computed(() => {
 })
 
 const calendarData = computed(() => {
-  // startOf and endOf dayjs is bugged with timezone
   const startOfMonth = timezoneDayjs.dayjsTz(selectedMonth.value.startOf('month').toISOString())
   const firstDayOffset = isMondayFirst.value ? 0 : -1
   const firstDayToDisplay = timezoneDayjs.dayjsTz(startOfMonth.startOf('week').toISOString()).add(firstDayOffset, 'day')
@@ -140,7 +157,6 @@ const recordsToDisplay = computed<{
   const spaceBetweenRecords = 27
   const maxLanes = Math.floor((perHeight - spaceBetweenRecords) / (perRecordHeight + 8))
 
-  // Track records and lanes for each day
   const recordsInDay: {
     [key: string]: {
       overflow: boolean
@@ -158,7 +174,6 @@ const recordsToDisplay = computed<{
     const { lanes } = recordsInDay[dateKey]
     for (let i = 0; i < maxLanes; i++) {
       if (!lanes[i]) {
-        // Check if the lane is available for the entire duration
         let isAvailable = true
         for (let j = 0; j < duration; j++) {
           const checkDate = timezoneDayjs.dayjsTz(dateKey).add(j, 'day').format('YYYY-MM-DD')
@@ -170,7 +185,7 @@ const recordsToDisplay = computed<{
         if (isAvailable) return i
       }
     }
-    return -1 // No available lane
+    return -1
   }
 
   const occupyLane = (dateKey: string, lane: number, duration = 1) => {
@@ -190,31 +205,8 @@ const recordsToDisplay = computed<{
     const startCol = range.fk_from_col
     const endCol = range.fk_to_col
 
-    // Filter out records that don't satisfy the range and sort them by start date
-    const sortedFormattedData = [...formattedData.value]
-      .filter((record) => {
-        if (startCol && endCol) {
-          const fromDate = record.row[startCol.title!] ? timezoneDayjs.timezonize(record.row[startCol.title!]) : null
-          const toDate = record.row[endCol.title!] ? timezoneDayjs.timezonize(record.row[endCol.title!]) : null
-          return fromDate && toDate && !toDate.isBefore(fromDate)
-        } else if (startCol && !endCol) {
-          const fromDate = record.row[startCol!.title!] ? timezoneDayjs.timezonize(record.row[startCol!.title!]) : null
-          return !!fromDate
-        }
-        return false
-      })
-      .sort((a, b) => {
-        const aStart = timezoneDayjs.timezonize(a.row[startCol.title!])
-        const aEnd = endCol ? timezoneDayjs.timezonize(a.row[endCol.title!]) : aStart
-        const bStart = timezoneDayjs.timezonize(b.row[startCol.title!])
-        const bEnd = endCol ? timezoneDayjs.timezonize(b.row[endCol.title!]) : bStart
-
-        return bEnd.diff(bStart) - aEnd.diff(aStart)
-      })
-
     sortedFormattedData.forEach((record: Row) => {
       if (!endCol && startCol) {
-        // If there is no end date, we just display the record on the start date
         const startDate = timezoneDayjs.timezonize(record.row[startCol.title!])
         const dateKey = startDate.format('YYYY-MM-DD')
 
@@ -222,7 +214,7 @@ const recordsToDisplay = computed<{
         if (lane === -1) {
           recordsInDay[dateKey].overflow = true
           recordsInDay[dateKey].overflowCount++
-          return // Skip this record as there's no available lane
+          return
         }
 
         occupyLane(dateKey, lane)
@@ -263,7 +255,6 @@ const recordsToDisplay = computed<{
           },
         })
       } else if (startCol && endCol) {
-        // Multi-day event logic
         let startDate = timezoneDayjs.timezonize(record.row[startCol.title!])
         const endDate = timezoneDayjs.timezonize(record.row[endCol.title!])
 
@@ -274,19 +265,13 @@ const recordsToDisplay = computed<{
         }
 
         const id = record.rowMeta.id ?? generateRandomNumber()
-        // Since the records can span multiple weeks, to display, we render multiple elements
-        // for each week the record spans. The id is used to identify the elements that belong to the same record
         let recordIndex = 0
         while (
           currentWeekStart.isSameOrBefore(endDate, 'day') &&
-          // If the current week start is before the last day of the last week
           currentWeekStart.isBefore(calendarData.value.weeks[calendarData.value.weeks.length - 1].days[6].date)
         ) {
-          // We update the record start to currentWeekStart if it is before the start date
-          // and record end to currentWeekEnd if it is after the end date
           let currentWeekEnd = currentWeekStart.endOf('week')
 
-          // If the maxVisibleDays is 5, we skip the weekends
           if (maxVisibleDays.value === 5) {
             currentWeekEnd = currentWeekEnd.subtract(2, 'day')
           }
@@ -341,17 +326,7 @@ const recordsToDisplay = computed<{
           }
 
           let position = 'rounded'
-          // Here we are checking if the startDay is before all the dates shown in UI rather that the current month
-
-          const isStartMonthBeforeCurrentWeek = calendarData.value.weeks[weekIndex - 1]
-            ? calendarData.value.weeks[weekIndex - 1].days[0].date.isBefore(recordStart, 'month')
-            : false
-
-          if (
-            startDate.isSame(currentWeekStart, 'week') &&
-            endDate.isSame(currentWeekEnd, 'week') &&
-            endDate.isSameOrBefore(currentWeekEnd) // Weekend check
-          ) {
+          if (startDate.isSame(currentWeekStart, 'week') && endDate.isSame(currentWeekEnd, 'week')) {
             position = 'rounded'
           } else if (startDate.isSame(recordStart, 'week')) {
             if (isStartMonthBeforeCurrentWeek) {
@@ -460,7 +435,6 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
     updateProperty.push(toCol!.title!)
   }
 
-  // If from and to columns of the dragRecord and the newRow are the same, we don't manipulate the formattedRecords and formattedSideBarData. This removes unwanted computation
   if (dragRecord.value.row[fromCol.title!] === newRow.row[fromCol.title!] && !skipChangeCheck) {
     return { newRow: null, updatedProperty: [] }
   }
@@ -583,7 +557,6 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 
   if (record.rowMeta.range?.is_readonly) return
 
-  // selectedDate.value = null
   resizeInProgress.value = true
   resizeDirection.value = direction
   resizeRecord.value = record
@@ -637,11 +610,6 @@ const dragStart = (event: MouseEvent, record: Row) => {
     while (!target.classList.contains('draggable-record')) {
       target = target.parentElement as HTMLElement
     }
-
-    // TODO: @DarkPhoenix2704
-    // const initialDragElement = document.querySelector(`[data-unique-id="${record.rowMeta.id}-0"]`)
-
-    // selectedDate.value = null
 
     isDragging.value = true
     dragElement.value = target
@@ -717,7 +685,6 @@ const isDateSelected = (date: dayjs.Dayjs) => {
   return timezoneDayjs.dayjsTz(date).isSame(selectedDate.value, 'day')
 }
 
-// TODO: Add Support for multiple ranges when multiple ranges are supported
 const addRecord = (date: dayjs.Dayjs) => {
   if (!isUIAllowed('dataEdit') || !calendarRange.value) return
   const fromCol = calendarRange.value[0].fk_from_col

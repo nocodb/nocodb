@@ -46,6 +46,7 @@ export enum PlanFeatureTypes {
   FEATURE_SCRIPTS = 'feature_scripts',
   FEATURE_SSO = 'feature_sso',
   FEATURE_WEBHOOK_CUSTOM_PAYLOAD = 'feature_webhook_custom_payload',
+  FEATURE_WORKSPACE_CUSTOM_LOGO = 'feature_workspace_custom_logo',
 }
 
 export enum PlanTitles {
@@ -54,6 +55,31 @@ export enum PlanTitles {
   BUSINESS = 'Business',
   ENTERPRISE = 'Enterprise',
 }
+
+export enum PlanPriceLookupKeys {
+  TEAM_MONTHLY = 'team_monthly',
+  TEAM_YEARLY = 'team_yearly',
+  BUSINESS_MONTHLY = 'business_monthly',
+  BUSINESS_YEARLY = 'business_yearly',
+}
+
+export const LoyaltyPriceLookupKeyMap = {
+  [PlanPriceLookupKeys.TEAM_MONTHLY]: 'loyalty_team_monthly',
+  [PlanPriceLookupKeys.TEAM_YEARLY]: 'loyalty_team_yearly',
+  [PlanPriceLookupKeys.BUSINESS_MONTHLY]: 'loyalty_business_monthly',
+  [PlanPriceLookupKeys.BUSINESS_YEARLY]: 'loyalty_business_yearly',
+};
+
+export const LoyaltyPriceReverseLookupKeyMap = {
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.TEAM_MONTHLY]]:
+    PlanPriceLookupKeys.TEAM_MONTHLY,
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.TEAM_YEARLY]]:
+    PlanPriceLookupKeys.TEAM_YEARLY,
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.BUSINESS_MONTHLY]]:
+    PlanPriceLookupKeys.BUSINESS_MONTHLY,
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.BUSINESS_YEARLY]]:
+    PlanPriceLookupKeys.BUSINESS_YEARLY,
+};
 
 export const PlanMeta = {
   [PlanTitles.FREE]: {
@@ -121,6 +147,8 @@ export const HigherPlan = {
 
 export const GRACE_PERIOD_DURATION = 14;
 
+export const LOYALTY_GRACE_PERIOD_END_DATE = '2025-05-30';
+
 export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_FREE_WORKSPACE]: 'to add more workspaces.',
   [PlanLimitTypes.LIMIT_EDITOR]: 'to add more editors.',
@@ -179,6 +207,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_SSO]: 'to enable SSO (Single Sign-On).',
   [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]:
     'to send custom webhook payloads.',
+  [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]:
+    'to upload a custom image as workspace avatar',
 };
 
 export const getUpgradeMessage = (

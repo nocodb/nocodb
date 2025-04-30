@@ -168,7 +168,7 @@ async function onOpenModal({
 </script>
 
 <template>
-  <NcDropdown v-if="activeView" v-model:visible="isOpen">
+  <NcDropdown v-if="activeView" v-model:visible="isOpen" overlay-class-name="max-w-64">
     <slot name="default" :is-open="isOpen"></slot>
     <template #overlay>
       <LazyNcList
@@ -178,6 +178,7 @@ async function onOpenModal({
         option-value-key="id"
         option-label-key="title"
         search-input-placeholder="Search views"
+        class="min-w-64 !w-auto"
         :filter-option="filterOption"
         @change="handleNavigateToView"
       >

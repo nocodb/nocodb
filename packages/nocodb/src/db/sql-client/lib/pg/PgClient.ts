@@ -3,7 +3,7 @@ import knex from 'knex';
 import isEmpty from 'lodash/isEmpty';
 import mapKeys from 'lodash/mapKeys';
 import find from 'lodash/find';
-import { UITypes } from 'nocodb-sdk';
+import { ncIsNullOrUndefined, UITypes } from 'nocodb-sdk';
 import KnexClient from '~/db/sql-client/lib/KnexClient';
 import Debug from '~/db/util/Debug';
 import Result from '~/db/util/Result';
@@ -2983,14 +2983,24 @@ class PGClient extends KnexClient {
     query = this.genQuery(`CREATE TABLE ?? (${query});`, [
       args.schema ? `${args.schema}.${args.tn}` : args.tn,
     ]);
-
     return query;
   }
 
   alterTableColumn(t, n, o, existingQuery, change = 2) {
     let query = '';
 
-    const defaultValue = this.sanitiseDefaultValue(n.cdf);
+    let defaultValue = this.sanitiseDefaultValue(n.cdf);
+    if (
+      !ncIsNullOrUndefined(defaultValue) &&
+      defaultValue !== '' &&
+      (['json', 'jsonb'].includes(n.dt) || [UITypes.JSON].includes(n.uidt))
+    ) {
+      if (!defaultValue.startsWith("'")) {
+        defaultValue = `'${defaultValue}'`;
+      }
+      defaultValue = `${defaultValue}::json`;
+    }
+
     const shouldSanitize = true;
 
     if (change === 0) {
@@ -3089,9 +3099,7 @@ class PGClient extends KnexClient {
           [t, n.cn],
           shouldSanitize,
         );
-        query += n.cdf
-          ? ` SET DEFAULT ${this.sanitiseDefaultValue(n.cdf)};\n`
-          : ` DROP DEFAULT;\n`;
+        query += n.cdf ? ` SET DEFAULT ${defaultValue};\n` : ` DROP DEFAULT;\n`;
       }
     }
     return query;
@@ -3302,11 +3310,14 @@ class PGClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
 
-    const indexName = args.indexName || null;
+    let indexName = args.indexName || null;
 
     try {
       args.table = args.schema ? `${args.schema}.${args.tn}` : args.tn;
 
+      if (indexName) {
+        indexName = args.schema ? `${args.schema}.${indexName}` : indexName;
+      }
       // s = await this.sqlClient.schema.index(Object.keys(args.columns));
       await this.sqlClient.raw(
         this.sqlClient.schema

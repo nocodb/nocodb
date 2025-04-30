@@ -18,11 +18,12 @@ const workspaceStore = useWorkspace()
 const { loadRoles } = useRoles()
 const { activeWorkspace: _activeWorkspace, workspaces, deletingWorkspace } = storeToRefs(workspaceStore)
 const { loadCollaborators, loadWorkspace } = workspaceStore
+const { appInfo } = useGlobal()
 
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
-const { isWsAuditEnabled, handleUpgradePlan, isPaymentEnabled } = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan, isPaymentEnabled, getFeature } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
   if (deletingWorkspace.value) return
@@ -49,7 +50,7 @@ const tab = computed({
       return handleUpgradePlan({
         title: t('upgrade.upgradeToAccessWsAudit'),
         content: t('upgrade.upgradeToAccessWsAuditSubtitle', {
-          plan: PlanTitles.BUSINESS,
+          plan: PlanTitles.ENTERPRISE,
         }),
         limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
       })
@@ -58,6 +59,13 @@ const tab = computed({
     if (tab === 'collaborators') loadCollaborators({} as any, props.workspaceId)
     router.push({ query: { ...route.value.query, tab } })
   },
+})
+
+const isWorkspaceSsoAvail = computed(() => {
+  if (isEeUI && appInfo.value?.isCloud && getFeature(PlanFeatureTypes.FEATURE_SSO)) {
+    return true
+  }
+  return false
 })
 
 watch(
@@ -160,10 +168,8 @@ watch(
               {{ $t('labels.members') }}
             </div>
           </template>
-          <div class="overflow-auto h-[calc(100vh-3rem)] nc-scrollbar-thin">
-            <PaymentBanner v-if="isPaymentEnabled" class="mb-0" />
-            <WorkspaceCollaboratorsList class="h-[650px]" :workspace-id="currentWorkspace.id" />
-          </div>
+
+          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
       </template>
       <template v-if="isEeUI && !props.workspaceId && isPaymentEnabled && isUIAllowed('workspaceBilling')">
@@ -175,7 +181,7 @@ watch(
             </div>
           </template>
 
-          <PaymentBillingPage class="!h-[calc(100vh_-_92px)]" />
+          <PaymentBillingPage />
         </a-tab-pane>
       </template>
 
@@ -190,6 +196,19 @@ watch(
           <WorkspaceAudits v-if="isWsAuditEnabled" />
           <div v-else>&nbsp;</div>
         </a-tab-pane>
+
+        <template v-if="isWorkspaceSsoAvail">
+          <a-tab-pane key="sso" class="w-full">
+            <template #tab>
+              <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
+                <GeneralIcon icon="sso" class="flex-none h-4 w-4" />
+                {{ $t('title.sso') }}
+              </div>
+            </template>
+
+            <WorkspaceSso class="!h-[calc(100vh_-_92px)]" />
+          </a-tab-pane>
+        </template>
       </template>
 
       <template v-if="isUIAllowed('workspaceManage')">
@@ -200,6 +219,7 @@ watch(
               {{ $t('labels.settings') }}
             </div>
           </template>
+
           <WorkspaceSettings :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
       </template>
@@ -215,6 +235,7 @@ watch(
 :deep(.ant-tabs-nav) {
   @apply !pl-0;
 }
+
 :deep(.ant-tabs-tab) {
   @apply pt-2 pb-3;
 }
@@ -222,9 +243,11 @@ watch(
 .ant-tabs-content-top {
   @apply !h-full;
 }
+
 .tab-info {
   @apply flex pl-1.25 px-1.5 py-0.75 rounded-md text-xs;
 }
+
 .tab-title {
   @apply flex flex-row items-center gap-x-2 py-[1px];
 }

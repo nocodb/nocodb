@@ -64,7 +64,7 @@ export function useCanvasTable({
   chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
   totalRows: Ref<number>
   actualTotalRows: Ref<number>
-  loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
+  loadData: (params?: any, shouldShowLoading?: boolean, path?: Array<number>) => Promise<Array<Row>>
   scrollLeft: Ref<number>
   scrollTop: Ref<number>
   width: Ref<number>
@@ -251,9 +251,7 @@ export function useCanvasTable({
 
   const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd'))
 
-  const isRowDraggingEnabled = computed(
-    () => !selectedRows.value.length && isOrderColumnExists.value && !isRowReorderDisabled.value && !vSelectedAllRecords.value,
-  )
+  const isRowDraggingEnabled = computed(() => isOrderColumnExists.value && !isRowReorderDisabled.value)
 
   const isAddingEmptyRowAllowed = computed(
     () => isDataEditAllowed.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced,
@@ -314,12 +312,33 @@ export function useCanvasTable({
           f.extra = getUserColOptions(f, baseUsers.value)
         }
 
+        if ([UITypes.DateTime].includes(f.uidt)) {
+          const meta = parseProp(f.meta)
+          f.extra.timezone = isEeUI ? getTimeZoneFromName(meta?.timezone) : undefined
+          f.extra.isDisplayTimezone = isEeUI ? meta?.isDisplayTimezone : undefined
+        }
+        if ([UITypes.Formula].includes(f.uidt)) {
+          if ([UITypes.DateTime].includes((f.meta as any)?.display_type)) {
+            const displayColumnConfig = (f.meta as any)?.display_column_meta as any
+            if (displayColumnConfig.meta) {
+              const displayColumnConfigMeta = displayColumnConfig.meta
+
+              const extra = {
+                timezone:
+                  isEeUI && displayColumnConfigMeta.isDisplayTimezone
+                    ? getTimeZoneFromName(displayColumnConfigMeta.timezone)
+                    : undefined,
+              }
+              displayColumnConfig.extra = extra
+            }
+          }
+        }
+
         const isInvalid = isColumnInvalid(
           f,
           aiIntegrations.value,
           isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
         )
-
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
 
         return {
@@ -328,7 +347,14 @@ export function useCanvasTable({
           title: f.title,
           uidt: f.uidt,
           width: gridViewCol.width,
-          fixed: isMobileMode.value ? false : !!f.pv,
+          fixed:
+            isMobileMode.value && !isGroupBy.value
+              ? false
+              : isGroupBy.value
+              ? !!f.pv
+              : parseCellWidth(gridViewCol.width) > width.value * (3 / 4)
+              ? false
+              : !!f.pv,
           readonly: !isAddingEmptyRowAllowed.value || isDataReadOnly.value,
           isCellEditable: !isReadonly(f),
           pv: !!f.pv,
@@ -861,7 +887,6 @@ export function useCanvasTable({
     columns,
     colSlice,
     scrollLeft,
-    setCursor,
     (columnId, width) =>
       handleColumnWidth(columnId, width, (normalizedWidth) => (gridViewCols.value[columnId]!.width = normalizedWidth)),
     (columnId, width) =>
@@ -1056,7 +1081,7 @@ export function useCanvasTable({
     const rowIndex = row.rowMeta.rowIndex + 1!
     const path = row.rowMeta.path
 
-    if (!path) return
+    if (isGroupBy.value && !path && !path?.legth) return
 
     const yOffset =
       calculateGroupRowTop(cachedGroups.value, path, rowIndex, rowHeight.value, isAddingEmptyRowAllowed.value) +
@@ -1094,7 +1119,7 @@ export function useCanvasTable({
       row,
       minHeight: rowHeight.value,
       height: [UITypes.LongText, UITypes.Formula].includes(column.uidt) ? 'auto' : rowHeight.value + 2,
-      width: parseCellWidth(clickedColumn.width) + ([UITypes.LongText, UITypes.Formula].includes(column.uidt) ? 2 : 0),
+      width: parseCellWidth(clickedColumn.width) + ([UITypes.LongText, UITypes.Formula].includes(column.uidt) ? 2 : 0) + 2,
       fixed: clickedColumn.fixed,
       path,
     }
@@ -1281,5 +1306,6 @@ export function useCanvasTable({
     isContextMenuAllowed,
     removeInlineAddRecord,
     upgradeModalInlineState,
+    isRowDraggingEnabled,
   }
 }

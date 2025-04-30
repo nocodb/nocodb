@@ -328,6 +328,7 @@ interface NcTableColumnProps<T extends object = Record<string, any>> {
   dataIndex?: keyof T | (string & Record<never, never>)
   // name can be used as value, which will be used to display in header if title is absent and in data-test-id
   name?: string
+  format?: (value: any, record: T) => any
   [key: string]: any
 }
 
@@ -426,11 +427,54 @@ interface CellRendererOptions {
   setCursor: SetCursorType
   cellRenderStore: CellRenderStore
   baseUsers?: (Partial<UserType> | Partial<User>)[]
+  user?: Partial<UserType> | Partial<User>
   formula?: boolean
   isPublic?: boolean
   path?: Array<number>
   renderAsPlainCell?: boolean
   fontFamily?: string
+  isRowHovered?: boolean
+  isRowChecked?: boolean
+  isCellInSelectionRange?: boolean
+  isGroupHeader?: boolean
+  rowMeta?: {
+    // Used in InfiniteScroll Grid View
+    isLastRow?: number
+    rowIndex?: number
+    isLoading?: boolean
+    isValidationFailed?: boolean
+    isRowOrderUpdated?: boolean
+    isDragging?: boolean
+    rowProgress?: {
+      message: string
+      progress: number
+    }
+
+    new?: boolean
+    selected?: boolean
+    commentCount?: number
+    changed?: boolean
+    saving?: boolean
+    ltarState?: Record<string, Record<string, any> | Record<string, any>[] | null>
+    fromExpandedForm?: boolean
+    // use in datetime picker component
+    isUpdatedFromCopyNPaste?: Record<string, boolean>
+    // Used in Calendar view
+    style?: Partial<CSSStyleDeclaration>
+    range?: {
+      fk_from_col: ColumnType
+      fk_to_col: ColumnType | null
+      is_readonly?: boolean
+    }
+    id?: string
+    position?: string
+    dayIndex?: number
+    overLapIteration?: number
+    numberOfOverlaps?: number
+    minutes?: number
+    recordIndex?: number // For week spanning records in month view
+    maxSpanning?: number
+  }
 }
 
 interface CellRenderStore {
@@ -446,7 +490,7 @@ interface CellRenderStore {
   ltar?: { oldX?: number; oldY?: number; x?: number; y?: number; width?: number; height?: number; value?: any }[]
 }
 
-type CursorType = 'auto' | 'pointer' | 'col-resize' | 'crosshair'
+type CursorType = CSSProperties['cursor']
 
 type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) => void
 
@@ -474,6 +518,7 @@ interface CellRenderer {
       ltarState?: Record<string, any>,
       args?: { metaValue?: TableType; viewMetaValue?: ViewType },
       beforeRow?: string,
+      path?: Array<number>,
     ) => Promise<any>
     actionManager: ActionManager
     makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
@@ -483,6 +528,7 @@ interface CellRenderer {
     isPublic?: boolean
     openDetachedExpandedForm: (props: UseExpandedFormDetachedProps) => void
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
+    formula?: boolean
   }) => Promise<boolean>
   handleKeyDown?: (options: {
     e: KeyboardEvent
@@ -498,6 +544,7 @@ interface CellRenderer {
       ltarState?: Record<string, any>,
       args?: { metaValue?: TableType; viewMetaValue?: ViewType },
       beforeRow?: string,
+      path?: Array<number>,
     ) => Promise<any>
     actionManager: ActionManager
     makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
@@ -518,6 +565,7 @@ interface CellRenderer {
       ltarState?: Record<string, any>,
       args?: { metaValue?: TableType; viewMetaValue?: ViewType },
       beforeRow?: string,
+      path?: Array<number>,
     ) => Promise<any>
     actionManager: ActionManager
     makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
@@ -526,6 +574,7 @@ interface CellRenderer {
     cellRenderStore: CellRenderStore
     setCursor: SetCursorType
     path: Array<number>
+    baseUsers?: (Partial<UserType> | Partial<User>)[]
   }) => Promise<void>
   [key: string]: any
 }

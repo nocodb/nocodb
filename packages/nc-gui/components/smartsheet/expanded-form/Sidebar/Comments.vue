@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import tippy from 'tippy.js'
-import { type CommentType, ProjectRoles } from 'nocodb-sdk'
+import { ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
+import type { CommentType, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const { user, appInfo } = useGlobal()
 
@@ -232,7 +233,12 @@ const getUserRole = (email: string) => {
   const user = baseUsers.value.find((user) => user.email === email)
   if (!user) return ProjectRoles.NO_ACCESS
 
-  return user.roles || ProjectRoles.NO_ACCESS
+  return (
+    user.roles ??
+    (user.workspace_roles
+      ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
+      : ProjectRoles.NO_ACCESS)
+  )
 }
 
 const tooltipInstances: any[] = []

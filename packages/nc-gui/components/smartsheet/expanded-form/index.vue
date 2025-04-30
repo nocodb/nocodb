@@ -397,13 +397,11 @@ const onPrev = async () => {
 }
 
 const copyRecordUrl = async () => {
-  await copy(
-    encodeURI(
-      `${dashboardUrl?.value}#/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}${
-        props.view ? `/${props.view.title}` : ''
-      }?rowId=${primaryKey.value}`,
-    ),
-  )
+  const url = `${dashboardUrl?.value}#/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}${
+    props.view ? `/${props.view.id}` : ''
+  }?rowId=${primaryKey.value}${route.query?.path ? `&path=${route.query?.path}` : ''}`
+
+  await copy(encodeURI(url))
 
   isRecordLinkCopied.value = true
 

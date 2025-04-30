@@ -287,7 +287,7 @@ useEventListener(NcButton, 'mousedown', () => {
 }
 
 .nc-button.ant-btn-primary {
-  @apply border-0 xs:(hover:border-0) text-white;
+  @apply border-0 xs:(hover:border-0) text-white !text-shadow-none;
 
   &.theme-default {
     @apply bg-brand-500 md:(hover:bg-brand-600);
@@ -342,5 +342,9 @@ useEventListener(NcButton, 'mousedown', () => {
   &:focus {
     box-shadow: none;
   }
+}
+
+.nc-button.ant-btn-link {
+  box-shadow: none;
 }
 </style>

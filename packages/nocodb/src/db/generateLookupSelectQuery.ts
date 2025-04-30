@@ -1,6 +1,6 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type LookupColumn from '../models/LookupColumn';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type {
   BarcodeColumn,
   Column,
@@ -45,7 +45,7 @@ export default async function generateLookupSelectQuery({
   isAggregation = false,
 }: {
   column: Column;
-  baseModelSqlv2: BaseModelSqlv2;
+  baseModelSqlv2: IBaseModelSqlV2;
   alias: string;
   model: Model;
   getAlias?: ReturnType<typeof getAliasGenerator>;

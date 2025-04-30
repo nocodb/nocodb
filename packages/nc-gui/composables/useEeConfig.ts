@@ -1,4 +1,6 @@
 export const useEeConfig = createSharedComposable(() => {
+  const isSideBannerExpanded = ref(false)
+
   const isPaidPlan = computed(() => undefined)
 
   const activePlan = computed(() => undefined)
@@ -7,6 +9,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const activeSubscription = computed(() => undefined)
 
+  const isLoyaltyDiscountAvailable = computed(() => undefined)
+
   const isPaymentEnabled = computed(() => undefined)
 
   const blockAddNewRecord = computed(() => false)
@@ -14,6 +18,8 @@ export const useEeConfig = createSharedComposable(() => {
   const isRecordLimitReached = computed(() => false)
 
   const gracePeriodDaysLeft = computed(() => Infinity)
+
+  const gracePeriodEndDate = computed(() => '')
 
   const isWsAuditEnabled = computed(() => false)
 
@@ -26,6 +32,8 @@ export const useEeConfig = createSharedComposable(() => {
   const blockAddNewExternalSource = computed(() => false)
 
   const blockAddNewWebhook = computed(() => false)
+
+  const isTopBannerVisible = computed(() => false)
 
   const getLimit = (..._args: any[]) => {}
 
@@ -42,6 +50,10 @@ export const useEeConfig = createSharedComposable(() => {
   const getPlanTitle = (..._args: any[]) => {}
 
   const navigateToBilling = (..._args: any[]) => {}
+
+  const navigateToPricing = (..._args: any[]) => {}
+
+  const navigateToCheckout = (..._args: any[]) => {}
 
   const handleUpgradePlan = (..._args: any[]) => {}
 
@@ -62,6 +74,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showAsBluredRecord = (..._args: any[]) => {}
 
   const showUpgradeToSeeMoreRecordsModal = (..._args: any[]) => {}
+
+  const showUpgradeToUploadWsImage = (..._args: any[]) => {}
 
   return {
     getLimit,
@@ -95,5 +109,12 @@ export const useEeConfig = createSharedComposable(() => {
     blockExternalSourceRecordVisibility,
     showAsBluredRecord,
     showUpgradeToSeeMoreRecordsModal,
+    navigateToPricing,
+    navigateToCheckout,
+    isLoyaltyDiscountAvailable,
+    gracePeriodEndDate,
+    isTopBannerVisible,
+    showUpgradeToUploadWsImage,
+    isSideBannerExpanded,
   }
 })

@@ -1964,9 +1964,7 @@ export class ImportService {
               const row = {};
               for (let i = 0; i < headers.length; i++) {
                 if (headers[i]) {
-                  if (results.data[i] !== '') {
-                    row[headers[i]] = results.data[i];
-                  }
+                  row[headers[i]] = results.data[i];
                 }
               }
               chunk.push(row);

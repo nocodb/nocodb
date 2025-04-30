@@ -112,7 +112,7 @@ const { state, row } = useProvideSmartsheetRowStore(
   }),
 )
 
-const { blockAddNewRecord, navigateToBilling, getPlanTitle, activePlan, isWsOwner } = useEeConfig()
+const { blockAddNewRecord, navigateToPricing, getPlanTitle, activePlan, isWsOwner } = useEeConfig()
 
 const columns = computed(() => meta?.value?.columns || [])
 
@@ -300,8 +300,11 @@ const updatePreFillFormSearchParams = useDebounceFn(() => {
   preFillFormSearchParams.value = searchParams.toString()
 }, 250)
 
+const isFormSubmitting = ref(false)
+
 async function submitForm() {
   if (!isUIAllowed('dataInsert') || blockAddNewRecord.value) return
+  isFormSubmitting.value = true
 
   for (const col of localColumns.value) {
     if (col.show && col.title && isRequired(col, col.required) && formState.value[col.title] === undefined) {
@@ -326,6 +329,7 @@ async function submitForm() {
 
     if (e?.errorFields?.length) {
       message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
+      isFormSubmitting.value = false
       return
     }
   }
@@ -335,6 +339,8 @@ async function submitForm() {
     oldRow: {},
     rowMeta: { new: true },
   })
+
+  isFormSubmitting.value = false
 
   if (res) {
     submitted.value = true
@@ -1065,7 +1071,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                         class="nc-upgrade-plan-btn"
                         type="primary"
                         size="small"
-                        @click.stop="navigateToBilling({ limitOrFeature: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE })"
+                        @click.stop="navigateToPricing({ limitOrFeature: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE })"
                       >
                         {{ isWsOwner ? $t('labels.upgradePlan') : $t('general.requestUpgrade') }}
                       </NcButton>
@@ -1431,6 +1437,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                           type="primary"
                           size="small"
                           :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length || blockAddNewRecord"
+                          :loading="isFormSubmitting"
                           class="nc-form-submit nc-form-focus-element"
                           data-testid="nc-form-submit"
                           data-title="nc-form-submit"
@@ -2072,9 +2079,11 @@ const { message: templatedMessage } = useTemplatedMessage(
     @apply !py-0 !pl-0 flex items-stretch;
   }
 
-  :deep(input) {
-    &:not(.ant-select-selection-search-input) {
-      @apply !px-1;
+  &:not(.nc-cell-datetime) {
+    :deep(input) {
+      &:not(.ant-select-selection-search-input) {
+        @apply !px-1;
+      }
     }
   }
 

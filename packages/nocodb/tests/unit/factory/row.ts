@@ -7,7 +7,7 @@ import {
 import request from 'supertest';
 import Model from '../../../src/models/Model';
 import NcConnectionMgrv2 from '../../../src/utils/common/NcConnectionMgrv2';
-import type { ColumnType } from 'nocodb-sdk';
+import type { ColumnType, NcApiVersion } from 'nocodb-sdk';
 import type Column from '../../../src/models/Column';
 import type Filter from '../../../src/models/Filter';
 import type { Base, View, Sort} from '../../../src/models';
@@ -253,6 +253,7 @@ const listRow = async ({
     offset?: any;
     filterArr?: Filter[];
     sortArr?: Sort[];
+    apiVersion?: NcApiVersion
   };
 }) => {
   const ctx = {
@@ -352,6 +353,25 @@ const createBulkRows = async (
     .expect(200);
 };
 
+const createBulkRowsV3 = async (
+  context,
+  {
+    base,
+    table,
+    values,
+  }: {
+    base: Base;
+    table: Model;
+    values: any[];
+  },
+) => {
+  const res = await request(context.app)
+    .post(`/api/v3/${base.id}/${table.id}`)
+    .set('xc-auth', context.token)
+    .send(values)
+    .expect(200);
+};
+
 // Links 2 table rows together. Will create rows if ids are not provided
 const createChildRow = async (
   context,
@@ -425,5 +445,6 @@ export {
   generateDefaultRowAttributes,
   generateMixedRowAttributes,
   createBulkRows,
+  createBulkRowsV3,
   rowMixedValue,
 };

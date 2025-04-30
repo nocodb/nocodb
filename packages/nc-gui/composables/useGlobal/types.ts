@@ -42,6 +42,8 @@ export interface AppInfo {
   feedEnabled: boolean
   sentryDSN: string
   isOnPrem: boolean
+  stripePublishableKey?: string
+  marketingRootUrl?: string
 }
 
 export interface StoredState {

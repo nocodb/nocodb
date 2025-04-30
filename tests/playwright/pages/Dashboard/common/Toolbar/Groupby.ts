@@ -16,13 +16,13 @@ export class ToolbarGroupByPage extends BasePage {
   }
 
   async verify({ index, column, direction }: { index: number; column: string; direction: string }) {
-    const fieldLocator = this.get().locator('.nc-sort-field-select').nth(index);
+    const fieldLocator = this.get().locator('.nc-group-field-select').nth(index);
     const fieldText = await getTextExcludeIconText(fieldLocator);
     expect(fieldText).toBe(column);
 
-    await expect(this.get().locator('.nc-sort-dir-select >> span.ant-select-selection-item').nth(index)).toHaveText(
-      direction
-    );
+    await expect(
+      this.get().locator('.nc-group-sort-dir-select >> span.ant-select-selection-item').nth(index)
+    ).toHaveText(direction);
   }
 
   async reset() {
@@ -43,7 +43,7 @@ export class ToolbarGroupByPage extends BasePage {
     await this.toolbar.clickGroupBy();
 
     // Update the Column and Direction of the Group By at the given index
-    await this.rootPage.locator('.nc-sort-field-select').nth(index).click();
+    await this.rootPage.locator('.nc-group-field-select').nth(index).click();
     await this.rootPage
       .locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list')
       .locator(`div[label="${title}"]`)
@@ -53,10 +53,10 @@ export class ToolbarGroupByPage extends BasePage {
     //kludge: wait for rendering to stabilize
     await this.rootPage.waitForTimeout(1000);
 
-    await this.rootPage.locator('.nc-sort-dir-select').nth(index).waitFor({ state: 'visible' });
-    await this.rootPage.locator('.nc-sort-dir-select').nth(index).click({ force: true });
+    await this.rootPage.locator('.nc-group-sort-dir-select').nth(index).waitFor({ state: 'visible' });
+    await this.rootPage.locator('.nc-group-sort-dir-select').nth(index).click({ force: true });
     await this.rootPage
-      .locator('.nc-dropdown-sort-dir')
+      .locator('.nc-dropdown-group-sort-dir')
       .last()
       .locator('.ant-select-item')
       .nth(ascending ? 0 : 1)
@@ -94,19 +94,22 @@ export class ToolbarGroupByPage extends BasePage {
       await this.get().locator('button:has-text("New Subgroup")').click();
     }
 
-    const regexTitle = new RegExp(`^${title}`);
+    const parentLocator = this.rootPage.locator('.nc-group-by-create-modal');
 
-    await this.rootPage
-      .locator('.nc-group-by-create-modal')
-      .locator('.nc-group-by-column-search-item', { hasText: regexTitle })
-      .scrollIntoViewIfNeeded();
+    await parentLocator.locator('.nc-toolbar-dropdown-search-field-input').click();
+
+    await parentLocator.locator('.nc-toolbar-dropdown-search-field-input').locator('input').fill(title);
+
+    await this.rootPage.waitForTimeout(1000);
 
     // select column
-    const selectColumn = async () =>
-      await this.rootPage
-        .locator('.nc-group-by-create-modal')
-        .locator('.nc-group-by-column-search-item', { hasText: regexTitle })
+    const selectColumn = async () => {
+      await parentLocator
+        .locator('.nc-group-by-column-search-item')
+        .filter({ hasText: title.trim() })
+        .first()
         .click({ force: true });
+    };
 
     await this.waitForResponse({
       uiAction: selectColumn,
@@ -114,16 +117,16 @@ export class ToolbarGroupByPage extends BasePage {
       requestUrlPathToMatch: locallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
     });
 
-    await this.rootPage.locator('.nc-sort-dir-select').last().click();
+    await this.rootPage.locator('.nc-group-sort-dir-select').last().click();
     const selectSortDirection = () =>
       this.rootPage
-        .locator('.nc-dropdown-sort-dir')
+        .locator('.nc-dropdown-group-sort-dir')
         .last()
         .locator('.ant-select-item')
         .nth(ascending ? 0 : 1)
         .click();
 
-    const selectedSortDirection = await this.rootPage.locator('.nc-sort-dir-select').last().textContent();
+    const selectedSortDirection = await this.rootPage.locator('.nc-group-sort-dir-select').last().textContent();
 
     if ((ascending && selectedSortDirection != 'A → Z') || (!ascending && selectedSortDirection != 'Z → A')) {
       await this.waitForResponse({

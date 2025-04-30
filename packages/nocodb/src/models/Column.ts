@@ -116,6 +116,9 @@ export default class Column<T = any> implements ColumnType {
 
   public readonly?: boolean;
 
+  // we create custom index when custom link created using the column
+  public custom_index_name?: boolean;
+
   constructor(data: Partial<(ColumnType & { asId?: string }) | Column>) {
     Object.assign(this, data);
   }
@@ -1557,6 +1560,27 @@ export default class Column<T = any> implements ColumnType {
         );
       }
     }
+  }
+
+  static async updateCustomIndexName(
+    context: NcContext,
+    colId: string,
+    customIndexName: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COLUMNS,
+      {
+        custom_index_name: customIndexName ?? null,
+      },
+      colId,
+    );
+
+    await NocoCache.update(`${CacheScope.COLUMN}:${colId}`, {
+      custom_index_name: customIndexName,
+    });
   }
 
   static async updateFormulaColumnToNewType(

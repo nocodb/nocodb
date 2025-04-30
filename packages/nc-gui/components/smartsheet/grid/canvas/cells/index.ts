@@ -1,5 +1,5 @@
 import { type ColumnType, type TableType, UITypes, type UserType, type ViewType, isAIPromptCol } from 'nocodb-sdk'
-import { renderSingleLineText, renderSpinner } from '../utils/canvas'
+import { renderSingleLineText, renderSpinner, roundedRect } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import { useDetachedLongText } from '../composables/useDetachedLongText'
@@ -53,6 +53,7 @@ export function useGridCellHandler(params: {
     ltarState?: Record<string, any>,
     args?: { metaValue?: TableType; viewMetaValue?: ViewType },
     beforeRow?: string,
+    path?: Array<number>,
   ) => Promise<any>
   meta?: Ref<TableType>
   hasEditPermission: ComputedRef<boolean>
@@ -62,9 +63,11 @@ export function useGridCellHandler(params: {
 
   const { t } = useI18n()
   const { metas } = useMetas()
+  const { user } = useGlobal()
   const canvasCellEvents = reactive<CanvasCellEventDataInjType>({})
   provide(CanvasCellEventDataInj, canvasCellEvents)
 
+  const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
   const baseStore = useBase()
   const { showNull } = useGlobal()
   const { isMssql, isMysql, isXcdbBase, isPg } = baseStore
@@ -170,10 +173,40 @@ export function useGridCellHandler(params: {
       isUnderLookup = false,
       path = [],
       fontFamily,
+      isRowHovered = false,
+      isRowChecked = false,
+      isCellInSelectionRange = false,
+      isGroupHeader = false,
+      rowMeta = {},
     }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
+    if (!isGroupHeader) {
+      const columnState = isColumnSortedOrFiltered(column.id!)
+      if (columnState !== undefined && !rowMeta?.isValidationFailed) {
+        let bgColorProps: 'cellBgColor' | 'cellBgColor.hovered' | 'cellBgColor.selected' = 'cellBgColor'
+        let borderColorProps: 'cellBorderColor' | 'cellBorderColor.hovered' | 'cellBorderColor.selected' = 'cellBorderColor'
+        if (selected || isRowChecked || isCellInSelectionRange) {
+          bgColorProps = 'cellBgColor.selected'
+          borderColorProps = 'cellBorderColor.selected'
+        } else if (isRowHovered) {
+          bgColorProps = 'cellBgColor.hovered'
+          borderColorProps = 'cellBorderColor.hovered'
+        }
 
+        roundedRect(ctx, x, y, width, height, 0, {
+          backgroundColor: filteredOrSortedAppearanceConfig[columnState][bgColorProps],
+          borderColor: filteredOrSortedAppearanceConfig[columnState][borderColorProps],
+          borderWidth: 0.4,
+          borders: {
+            top: rowMeta.rowIndex !== 0,
+            right: true,
+            bottom: true,
+            left: true,
+          },
+        })
+      }
+    }
     const cellType = cellTypesRegistry.get(column.uidt)
     if (actionManager?.isLoading(pk, column.id) && !isAIPromptCol(column) && !isButton(column)) {
       const loadingStartTime = actionManager?.getLoadingStartTime(pk, column.id)
@@ -245,10 +278,14 @@ export function useGridCellHandler(params: {
         setCursor,
         cellRenderStore,
         baseUsers: baseUsers.value,
+        user: user.value,
         isUnderLookup,
         isPublic: isPublic.value,
         path,
         fontFamily,
+        isRowHovered,
+        isRowChecked,
+        rowMeta,
       })
     } else {
       return renderSingleLineText(ctx, {
@@ -342,6 +379,7 @@ export function useGridCellHandler(params: {
     pk: any
     selected: boolean
     imageLoader: ImageWindowLoader
+    path: Array<number>
   }) => {
     if (!ctx.column?.columnObj?.uidt) return
 
@@ -358,6 +396,8 @@ export function useGridCellHandler(params: {
         actionManager,
         makeCellEditable,
         setCursor,
+        path: ctx.path ?? [],
+        baseUsers: baseUsers.value,
       })
     }
   }

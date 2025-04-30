@@ -16,6 +16,7 @@ interface Props {
   isCellInputField?: boolean
   pickerType?: 'date' | 'time' | 'year' | 'month'
   showCurrentDateOption?: boolean | 'disabled'
+  timezone?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -41,6 +42,10 @@ const activeDates = useVModel(props, 'activeDates', emit)
 const selectedWeek = useVModel(props, 'selectedWeek', emit)
 
 const pickerType = useVModel(props, 'pickerType', emit)
+
+const timezoneDayjs = computed(() => {
+  return withTimezone(props.timezone)
+})
 
 const days = computed(() => {
   if (props.isMondayFirst) {
@@ -68,7 +73,8 @@ const selectWeek = (date: dayjs.Dayjs) => {
   const startDate = date.subtract(dayOfWeek, 'day')
   const newWeek = {
     start: startDate,
-    end: startDate.endOf('week'),
+    // startOf and endOf dayjs is bugged with timezone
+    end: timezoneDayjs.value.dayjsTz(startDate.endOf('week').toISOString()),
   }
   selectedWeek.value = newWeek
   emit('update:selectedWeek', newWeek)
@@ -77,7 +83,8 @@ const selectWeek = (date: dayjs.Dayjs) => {
 // Generates all dates should be displayed in the calendar
 // Includes all blank days at the start and end of the month
 const dates = computed(() => {
-  const startOfMonth = dayjs(pageDate.value).startOf('month')
+  // startOf and endOf dayjs is bugged with timezone
+  const startOfMonth = timezoneDayjs.value.dayjsTz(pageDate.value.startOf('month').toISOString())
   const dayOffset = +props.isMondayFirst
   const firstDayOfWeek = startOfMonth.day()
   const startDay = startOfMonth.subtract((firstDayOfWeek - dayOffset + 7) % 7, 'day')

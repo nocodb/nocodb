@@ -1,15 +1,9 @@
 <script setup lang="ts">
 const { sharedViewMeta, sharedFormView } = useSharedFormStoreOrThrow()
 
-const isDark = useDark()
-
 const route = useRoute()
 
 const router = useRouter()
-
-onMounted(() => {
-  isDark.value = false
-})
 
 const shouldRedirect = (to: string) => {
   if (sharedViewMeta.value.surveyMode) {

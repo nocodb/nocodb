@@ -693,6 +693,19 @@ export interface FieldOptionsLongTextV3Type {
   generate_text_using_ai?: boolean;
 }
 
+export interface FieldBaseV3Type {
+  /** Unique identifier for the field. */
+  id?: string;
+  /** Title of the field. */
+  title: string;
+  /** Field data type. */
+  type: string;
+  /** Description of the field. */
+  description?: string | null;
+  /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. */
+  default_value?: string;
+}
+
 /**
  * GRID View
  */
@@ -1037,19 +1050,6 @@ export interface TableV3Type {
   fields: CreateFieldV3Type[];
   /** List of views associated with this table. */
   views: ViewSummaryV3Type[];
-}
-
-export interface FieldBaseV3Type {
-  /** Field identifier. */
-  id?: string;
-  /** Field name. */
-  title: string;
-  /** Field type. */
-  type: string;
-  /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. */
-  default_value?: string;
-  /** Field description. */
-  description?: string;
 }
 
 export type CreateFieldV3Type = FieldBaseV3Type;
@@ -9572,6 +9572,37 @@ export class Api<
       }),
 
     /**
+     * @description Get the number of groups by the given query
+     *
+     * @tags DB Table Row
+     * @name GroupByCount
+     * @summary Group By Table Row Count
+     * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/groupby/count
+     * @response `200` `FieldOptionsButtonV3Type` OK
+     */
+    groupByCount: (
+      orgs: string,
+      baseName: string,
+      tableName: string,
+      query?: {
+        /** Column name of the column you want to group by, eg. `column_name=column1` */
+        column_name?: string;
+        sort?: any[];
+        where?: string;
+        /** @min 0 */
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<FieldOptionsButtonV3Type, any>({
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/groupby/count`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Get the grouped data By Column ID. Used in Kanban View.
  * 
  * @tags DB Table Row
@@ -10461,6 +10492,49 @@ export class Api<
       }),
 
     /**
+ * @description Get the table view rows grouped by count the given query
+ * 
+ * @tags DB View Row
+ * @name GroupByCount
+ * @summary Count of Group By Table View Row
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/groupby/count
+ * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    groupByCount: (
+      orgs: string,
+      baseName: string,
+      tableName: string,
+      viewName: string,
+      query?: {
+        /** Column name of the column you want to group by, eg. `column_name=column1` */
+        column_name?: string;
+        sort?: any[];
+        where?: string;
+        /** @min 0 */
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        FieldOptionsButtonV3Type,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/groupby/count`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Count how many rows in the given Table View
  * 
  * @tags DB View Row
@@ -11279,6 +11353,48 @@ export class Api<
         }
       >({
         path: `/api/v1/db/public/shared-view/${sharedViewUuid}/groupby`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Get the number of groups by the given query
+ * 
+ * @tags Public
+ * @name DataGroupByCount
+ * @summary Group By Table Row Count
+ * @request GET:/api/v2/public/shared-view/{sharedViewUuid}/groupby/count
+ * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dataGroupByCount: (
+      sharedViewUuid: string,
+      query?: {
+        /** The result will be sorted based on `sort` query */
+        sort?: string[] | string;
+        /** Extra filtering */
+        where?: string;
+        /** Used for multiple filter queries */
+        filterArrJson?: string;
+        /** Columns to group by */
+        column_name?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        FieldOptionsButtonV3Type,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/public/shared-view/${sharedViewUuid}/groupby/count`,
         method: 'GET',
         query: query,
         format: 'json',

@@ -11,26 +11,27 @@ import {
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
 import axios from 'axios'
-import type { ComputedRef, Ref } from 'vue'
+import type { CSSProperties, ComputedRef, Ref } from 'vue'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { hasAncestorWithClass, isGeneralOverlayActive } from '../../../../utils/browserUtils'
 import type { CanvasGroup } from '../../../../lib/types'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
-import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils/canvas'
+import { clearTextCache, defaultOffscreen2DContext, isBoxHovered, renderSingleLineText } from './utils/canvas'
 import Tooltip from './components/Tooltip.vue'
 import Scroller from './components/Scroller.vue'
 import { columnTypeName } from './utils/headerUtils'
 import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType, parseCellWidth } from './utils/cell'
 import {
   ADD_NEW_COLUMN_WIDTH,
+  AGGREGATION_HEIGHT,
   COLUMN_HEADER_HEIGHT_IN_PX,
   GROUP_HEADER_HEIGHT,
   GROUP_PADDING,
   MAX_SELECTED_ROWS,
   ROW_META_COLUMN_WIDTH,
 } from './utils/constants'
-import { calculateGroupRowTop, findGroupByPath, generateGroupPath, getDefaultGroupData } from './utils/groupby'
+import { calculateGroupRowTop, comparePath, findGroupByPath, generateGroupPath, getDefaultGroupData } from './utils/groupby'
 import { CanvasElement, ElementTypes } from './utils/CanvasElement'
 import AddNewRowMenu from './components/AddNewRowMenu.vue'
 import type { Row } from '#imports'
@@ -50,7 +51,7 @@ const props = defineProps<{
     }
   >
   rowHeightEnum?: number
-  loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
+  loadData: (params?: any, shouldShowLoading?: boolean, path?: Array<number>) => Promise<Array<Row>>
   callAddEmptyRow?: (
     newRowIndex?: number,
     metaValue?: TableType,
@@ -158,7 +159,7 @@ const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
 const { eventBus, isSqlView } = useSmartsheetStoreOrThrow()
 
-const { showRecordPlanLimitExceededModal, navigateToBilling } = useEeConfig()
+const { showRecordPlanLimitExceededModal, navigateToPricing } = useEeConfig()
 
 // Props to Refs
 const totalRows = toRef(props, 'totalRows')
@@ -249,6 +250,11 @@ const { floatingStyles } = useFloating(targetReference, tooltipRef, {
 })
 const { tryShowTooltip, hideTooltip } = tooltipStore
 
+let selectedRowInfo: { index: number | null | undefined; path: Array<number> } = {
+  index: null,
+  path: [],
+}
+
 const {
   isGroupBy,
 
@@ -329,6 +335,7 @@ const {
   isDataEditAllowed,
   removeInlineAddRecord,
   upgradeModalInlineState,
+  isRowDraggingEnabled,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -371,6 +378,14 @@ const activeCursor = ref<CursorType>('auto')
 function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) {
   if (customCondition && !customCondition(activeCursor.value)) return
 
+  /**
+   * Their might be the that while dragging row we hover over another element, at that cursor type will be different
+   * So we have set cursor again
+   */
+  if (isRowReorderActive.value) {
+    cursor = 'grabbing'
+  }
+
   if (activeCursor.value !== cursor) {
     activeCursor.value = cursor
     if (canvasRef.value && canvasRef.value.style?.cursor !== cursor) canvasRef.value.style.cursor = cursor
@@ -386,41 +401,23 @@ const fixedLeftWidth = computed(() => {
   return columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 0)
 })
 
-const editEnabledCellPosition = computed(() => {
-  // TODO: @DarkPhoenix2704 handle for GroupBy
-  if (!editEnabled.value) {
+const isClamped = computed(() => {
+  if (!editEnabled.value || !containerRef.value)
     return {
-      top: 0,
-      left: 0,
+      verticalStuck: false,
+      horizontalStuck: false,
+      isStuck: false,
+    }
+
+  if (editEnabled.value.column?.uidt === UITypes.LongText || editEnabled.value.column?.uidt === UITypes.Formula) {
+    return {
+      verticalStuck: true,
+      horizontalStuck: true,
+      isStuck: true,
     }
   }
 
-  const top = Math.max(
-    32,
-    Math.min(containerRef.value?.clientHeight - rowHeight.value - 36, editEnabled.value.y - scrollTop.value - rowHeight.value),
-  )
-
-  const left = editEnabled.value.fixed
-    ? editEnabled.value.x
-    : Math.max(
-        fixedLeftWidth.value,
-        Math.min(containerRef.value?.clientWidth - editEnabled.value.width, editEnabled.value.x - scrollLeft.value),
-      )
-
-  return {
-    top: `${top}px`,
-    left: `${left}px`,
-  }
-})
-
-const isClamped = computed(() => {
-  if (!editEnabled.value || !containerRef.value) return false
-
-  if (editEnabled.value.column?.uidt === UITypes.LongText || editEnabled.value.column?.uidt === UITypes.Formula) {
-    return true
-  }
-
-  const rawTop = editEnabled.value.y - scrollTop.value - rowHeight.value
+  const rawTop = editEnabled.value.y - scrollTop.value - rowHeight.value + 1
   const clampedTop = Math.max(32, Math.min(containerRef.value.clientHeight - rowHeight.value - 36, rawTop))
   const verticalStuck = clampedTop !== rawTop
 
@@ -435,7 +432,40 @@ const isClamped = computed(() => {
     horizontalStuck = clampedLeft !== rawLeft
   }
 
-  return verticalStuck || horizontalStuck
+  return {
+    verticalStuck,
+    horizontalStuck,
+    isStuck: verticalStuck || horizontalStuck,
+  }
+})
+
+const editEnabledCellPosition = computed(() => {
+  if (!editEnabled.value) {
+    return {
+      top: 0,
+      left: 0,
+    }
+  }
+
+  const top = Math.max(
+    COLUMN_HEADER_HEIGHT_IN_PX - 1,
+    Math.min(
+      containerRef.value?.clientHeight - rowHeight.value - AGGREGATION_HEIGHT,
+      editEnabled.value.y - scrollTop.value - rowHeight.value,
+    ),
+  )
+
+  const left = editEnabled.value.fixed
+    ? editEnabled.value.x
+    : Math.max(
+        fixedLeftWidth.value,
+        Math.min(containerRef.value?.clientWidth - editEnabled.value.width, editEnabled.value.x - scrollLeft.value),
+      )
+
+  return {
+    top: `${top + (isClamped.value.horizontalStuck && !isGroupBy.value ? 1 : 0)}px`,
+    left: `${left + (isClamped.value.isStuck && editEnabled.value?.fixed ? -1 : 0)}px`,
+  }
 })
 
 const totalHeight = computed(() => {
@@ -492,6 +522,19 @@ const isContextMenuOpen = computed({
     _isContextMenuOpen.value = val
   },
 })
+
+function resetRowSelection() {
+  if (!selectedRows.value.length && !vSelectedAllRecords.value) return
+
+  const dataCache = getDataCache()
+  dataCache.cachedRows.value.forEach((row) => {
+    if (row.rowMeta.selected) {
+      row.rowMeta.selected = false
+    }
+  })
+
+  vSelectedAllRecords.value = false
+}
 
 watch(vSelectedAllRecords, (val) => {
   const dataCache = getDataCache()
@@ -601,9 +644,9 @@ function onActiveCellChanged() {
     }
     processGroups(cachedGroups.value)
   } else {
-    clearInvalidRows?.(undefined)
+    clearInvalidRows?.([])
     if (rowSortRequiredRows.value.length) {
-      applySorting?.(rowSortRequiredRows.value)
+      applySorting?.(rowSortRequiredRows.value, [])
     }
   }
   calculateSlices()
@@ -695,6 +738,8 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
   const path = group ? generateGroupPath(group) : []
 
   const isHover = hoverRow.value?.rowIndex === row.rowMeta.rowIndex && (hoverRow.value?.path ?? []).join() === path.join()
+  const isRowCellSelected = activeCell.value.row === row.rowMeta.rowIndex && activeCell.value.path?.join() === path.join()
+
   const regions = []
   let currentX = 4
 
@@ -702,48 +747,32 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
     currentX += groupByColumns.value?.length * 13
   }
 
-  let isCheckboxRendered = false
-  if (isChecked || (selectedRows.value.length && isHover) || (isHover && !isRowReOrderEnabled.value && !readOnly.value)) {
-    if (isChecked || isHover) {
-      regions.push({
-        x: currentX + 6,
-        width: 24,
-        action: isCheckboxDisabled ? 'none' : 'select',
-      })
-      isCheckboxRendered = true
-      currentX += 30
-    }
-  } else {
-    if (isHover && isRowReOrderEnabled.value && !readOnly.value) {
-      regions.push({
-        x: currentX,
-        width: 24,
-        action: 'reorder',
-      })
-      currentX += 24
-    } else if (isHover) {
-      regions.push({
-        x: currentX + 8,
-        width: 24,
-        action: 'comment',
-      })
-    } else if (!isHover) {
-      regions.push({
-        x: currentX + 8,
-        width: 24,
-        action: 'none',
-      })
-      currentX += 24
-    } else {
-      // add 6px padding to the left of the row meta column if the row number is not rendered
-      currentX += 6
-    }
-  }
+  const initialX = currentX
 
-  if (isHover && !isCheckboxRendered && !isPublicView.value) {
+  if (readOnly.value || !(isHover || isChecked || isRowCellSelected)) {
     regions.push({
       x: currentX,
-      width: 24,
+      width: ROW_META_COLUMN_WIDTH / 2 - 8,
+      action: 'none',
+    })
+
+    currentX += ROW_META_COLUMN_WIDTH / 2 - 8 + 16
+  } else if ((isHover || isChecked || isRowCellSelected) && isRowDraggingEnabled.value) {
+    regions.push({
+      x: currentX,
+      width: 26,
+      action: !selectedRows.value.length ? 'reorder' : 'none',
+    })
+    currentX += 26
+  } else {
+    // add 6px padding to the left of the row meta column if the row number is not rendered
+    currentX += 6
+  }
+
+  if (!readOnly.value && (isChecked || isHover || isRowCellSelected) && !isPublicView.value) {
+    regions.push({
+      x: currentX,
+      width: 20,
       action: isCheckboxDisabled ? 'none' : 'select',
     })
     currentX += 24
@@ -751,13 +780,37 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
 
   // Comment/maximize icon region
 
-  if (!regions.find((region) => region.action === 'comment')) {
+  if (row.rowMeta?.commentCount) {
+    const reduceFontSize = row.rowMeta.commentCount > 99
+    const commentCount = reduceFontSize ? '99+' : row.rowMeta.commentCount.toString()
+
+    const ctx = defaultOffscreen2DContext
+
+    const { width: commentCountWidth } = renderSingleLineText(ctx, {
+      x: initialX + ROW_META_COLUMN_WIDTH / 2 - 4,
+      y: 0,
+      render: false,
+      text: commentCount,
+      maxWidth: ROW_META_COLUMN_WIDTH / 2,
+      fontFamily: `600 ${reduceFontSize ? '10px' : '12px'} Manrope`,
+      textAlign: 'center',
+      isTagLabel: true,
+      fillStyle: '#3366FF',
+    })
+
     regions.push({
-      x: currentX,
-      width: 24,
+      x: initialX + ROW_META_COLUMN_WIDTH - 4 - Math.max(20, commentCountWidth + 8),
+      width: Math.max(20, commentCountWidth + 8),
+      action: 'comment',
+    })
+  } else {
+    regions.push({
+      x: initialX + ROW_META_COLUMN_WIDTH - 4 - 20,
+      width: 20,
       action: 'comment',
     })
   }
+
   return { isAtMaxSelection, isCheckboxDisabled, regions, currentX }
 }
 
@@ -780,15 +833,27 @@ const handleRowMetaClick = ({
 
   if (!clickedRegion) return
 
-  if (onlyDrag && clickedRegion.action !== 'reorder') return
+  if (onlyDrag && clickedRegion.action !== 'reorder' && clickedRegion.action !== 'select') return
 
   switch (clickedRegion.action) {
     case 'select':
       if (!isCheckboxDisabled && (row.rowMeta?.selected || !isAtMaxSelection)) {
-        row.rowMeta.selected = !row.rowMeta?.selected
-        const path = generateGroupPath(group)
-        const dataCache = getDataCache(path)
-        dataCache?.cachedRows.value.set(row?.rowMeta.rowIndex, row)
+        resetActiveCell()
+
+        if (onlyDrag) {
+          row.rowMeta.selected = !row.rowMeta?.selected
+
+          const path = generateGroupPath(group)
+          if (row.rowMeta?.selected && ncIsNumber(row.rowMeta.rowIndex)) {
+            selectedRowInfo = {
+              index: row.rowMeta.rowIndex,
+              path,
+            }
+          }
+
+          const dataCache = getDataCache(path)
+          dataCache?.cachedRows.value.set(row?.rowMeta.rowIndex, row)
+        }
       }
       break
 
@@ -808,7 +873,7 @@ const handleRowMetaClick = ({
 }
 
 // check exact row meta region hovered and return the cursor type
-const getRowMetaCursor = ({ row, x, group }: { row: Row; x: number; group?: CanvasGroup }) => {
+const getRowMetaCursor = ({ row, x, group }: { row: Row; x: number; group?: CanvasGroup }): CSSProperties['cursor'] => {
   const { regions } = extractHoverMetaColRegions(row, group)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
@@ -819,7 +884,7 @@ const getRowMetaCursor = ({ row, x, group }: { row: Row; x: number; group?: Canv
       return 'pointer'
     case 'reorder':
       if (isRowReOrderEnabled.value) {
-        return 'move'
+        return isRowReorderActive.value ? 'grabbing' : 'grab'
       }
       break
     case 'comment':
@@ -833,7 +898,7 @@ let prevMenuState: {
   openColumnDropdownField?: unknown
   editEnabled?: boolean | null
   openAggregationFieldId?: string
-  openAddNewRowDropdown?: boolean | null
+  openAddNewRowDropdown?: Array<number> | null
   isDropdownVisible?: boolean
   editColumn?: unknown
   columnOrder?: unknown
@@ -881,7 +946,7 @@ async function handleMouseDown(e: MouseEvent) {
   // Handle all Column Header Operations
   if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
     // If x less than 80px, use is hovering over the row meta column
-    if (x > 80) {
+    if (x > ROW_META_COLUMN_WIDTH) {
       // If the user is trying to resize the column
       // If the user is trying to resize column, we will set the resizeableColumn to column object
       // The below operation will not interfere with other column operations
@@ -924,7 +989,7 @@ async function handleMouseDown(e: MouseEvent) {
   if (!row) return
   // onMouseDown event, we only handle the fillHandler and selectionHandler
   // and rowReorder. Other events should be handled in onMouseUp
-  if (x < 80 + groupByColumns.value.length * 13) {
+  if (x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13) {
     if (clickType !== MouseClickType.SINGLE_CLICK) return
     handleRowMetaClick({ e, row, x, onlyDrag: true, group })
     return
@@ -946,8 +1011,15 @@ async function handleMouseDown(e: MouseEvent) {
 
   // If the new cell user clicked is not the active cell
   // call onActiveCellChanged to clear invalid rows and reorder records locally if required
-  if (rowIndex !== activeCell.value?.row || groupPath.map((v) => `${v}`).join('-') !== activeCell.value?.path?.join('-')) {
+  if (
+    rowIndex !== activeCell.value?.row ||
+    !comparePath(
+      groupPath.map((v) => `${v}`),
+      activeCell.value?.path,
+    )
+  ) {
     onActiveCellChanged()
+    resetRowSelection()
   }
 
   // If the user is trying to open the context menu
@@ -980,6 +1052,7 @@ async function handleMouseDown(e: MouseEvent) {
     // If the cell is not double-clicked, continue to onMouseDownSelectionHandler
     onMouseDownSelectionHandler(e)
   }
+
   requestAnimationFrame(triggerRefreshCanvas)
 }
 
@@ -1058,7 +1131,10 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   e.preventDefault()
   if (mouseUpListener) {
     document.removeEventListener('mouseup', mouseUpListener)
+    mouseUpListener = null
+    selectedRowInfo = { index: null, path: [] }
   }
+
   await onMouseUpFillHandlerEnd()
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
@@ -1103,12 +1179,14 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   // Handle all Column Header Operations
   if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
     // If x less than 80px, use is hovering over the row meta column
-    if (x < 80 + groupByColumns.value.length * 13) {
+    if (x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13) {
       // If the click is not normal single click, return
       if (clickType !== MouseClickType.SINGLE_CLICK || readOnly.value || isGroupBy.value) return
-      if (isBoxHovered({ x: 10, y: 8, height: 16, width: 16 }, mousePosition)) {
+      if (isBoxHovered({ x: isRowDraggingEnabled.value ? 4 + 26 : 10, y: 8, height: 16, width: 16 }, mousePosition)) {
         vSelectedAllRecords.value = !vSelectedAllRecords.value
+        resetActiveCell()
       }
+
       requestAnimationFrame(triggerRefreshCanvas)
       return
     } else {
@@ -1139,7 +1217,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
 
       // If user is clicking on an existing column
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
-      const isFieldNotEditable = !isUIAllowed('fieldEdit') || clickedColumn.columnObj?.readonly
+      const isFieldNotEditable = !isUIAllowed('fieldEdit')
       if (clickedColumn) {
         if (clickType === MouseClickType.RIGHT_CLICK) {
           if (isFieldNotEditable) return
@@ -1191,8 +1269,28 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
             if (activeCursor.value === 'col-resize') return
 
             handleEditColumn(e, false, clickedColumn.columnObj)
+
+            selection.value.startRange({ row: NaN, col: NaN })
+            selection.value.endRange({ row: NaN, col: NaN })
+
+            activeCell.value = { row: -1, column: -1, path: activeCell.value?.path ?? [] }
+
             requestAnimationFrame(triggerRefreshCanvas)
             return
+          } else if (!isGroupBy.value && x < xOffset + columnWidth - 20 - (clickedColumn.columnObj?.description ? 24 : 0)) {
+            const colIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
+
+            const dataCache = getDataCache()
+
+            const endRowIndex = Math.min(dataCache.totalRows.value, 99)
+            selection.value.startRange({ row: 0, col: colIndex })
+            selection.value.endRange({ row: endRowIndex, col: colIndex })
+
+            resetRowSelection()
+
+            activeCell.value = { row: 0, column: colIndex, path: [] }
+            onActiveCellChanged()
+            requestAnimationFrame(triggerRefreshCanvas)
           }
         }
       }
@@ -1283,7 +1381,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       }
 
       if (upgradeModalInlineState.value.isHoveredUpgrade) {
-        return navigateToBilling({ limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE })
+        return navigateToPricing({ limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE })
       }
     }
   }
@@ -1294,11 +1392,18 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
         const elem = _elementMap.findElementAtWithX(x, y, ElementTypes.EDIT_NEW_ROW_METHOD)
 
         if (elem) {
+          if (comparePath(prevMenuState.openAddNewRowDropdown, groupPath)) {
+            isDropdownVisible.value = true
+            openAddNewRowDropdown.value = []
+            requestAnimationFrame(triggerRefreshCanvas)
+            return
+          }
+
           openAddNewRowDropdown.value = groupPath
           isDropdownVisible.value = true
           overlayStyle.value = {
-            top: `${rect.top + elem.y}px`,
-            left: `${rect.left + x - elem.width}px`,
+            top: `${rect.top + elem.y - 120}px`,
+            left: `${rect.left + x + 140}px`,
             width: elem.width,
             height: `36px`,
             position: 'fixed',
@@ -1334,7 +1439,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     return
   }
 
-  if (x < 80 + groupByColumns.value.length * 13) {
+  if (x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13) {
     if (!row) return
     if (![MouseClickType.SINGLE_CLICK, MouseClickType.RIGHT_CLICK].includes(clickType)) return
 
@@ -1406,9 +1511,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     mousePosition: { x, y },
     pk,
     selected:
-      prevActiveCell?.row === rowIndex &&
-      prevActiveCell?.column === colIndex &&
-      prevActiveCell?.path?.join('-') === groupPath.join('-'),
+      prevActiveCell?.row === rowIndex && prevActiveCell?.column === colIndex && comparePath(prevActiveCell?.path, groupPath),
     imageLoader,
     path: groupPath,
   })
@@ -1424,7 +1527,9 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
-  scrollToCell()
+  if (!clickedColumn?.fixed) {
+    scrollToCell()
+  }
   requestAnimationFrame(triggerRefreshCanvas)
   const columnUIType = clickedColumn.columnObj.uidt as UITypes
 
@@ -1501,7 +1606,7 @@ const getHeaderTooltipRegions = (
     const isTruncated = measuredTextWidth > availableTextWidth
 
     regions.push({
-      x: xOffset + (column.uidt ? 26 : 8) - scrollLeftValue,
+      x: xOffset + (column.uidt ? 26 : isRowDraggingEnabled.value ? 26 + 4 : 10) - scrollLeftValue,
       // 16px is for checkbox and it's not renders on load
       width: Math.max(column.uidt ? 0 : 16, isTruncated ? availableTextWidth : measuredTextWidth),
       type: 'title',
@@ -1662,9 +1767,13 @@ const handleMouseMove = (e: MouseEvent) => {
     const y = e.clientY - rect.top
     if (y <= 32 && resizeableColumn.value) {
       resizeMouseMove(e)
+    } else if (mousePosition.y > height.value - 36) {
+      cursor = mousePosition.x < totalColumnsWidth.value - scrollLeft.value ? 'pointer' : 'auto'
+      setCursor(cursor)
+      requestAnimationFrame(triggerRefreshCanvas)
+      return
     } else {
       const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
-
       if (element) {
         if (
           removeInlineAddRecord.value &&
@@ -1679,6 +1788,7 @@ const handleMouseMove = (e: MouseEvent) => {
           path: generateGroupPath(element?.group),
         }
       }
+
       onMouseMoveSelectionHandler(e)
     }
     requestAnimationFrame(triggerRefreshCanvas)
@@ -1714,17 +1824,49 @@ const handleMouseMove = (e: MouseEvent) => {
   }
 
   // check if hovering row meta column and set cursor
-  if (mousePosition.x < 80 + groupByColumns.value.length * 13 && mousePosition.y > COLUMN_HEADER_HEIGHT_IN_PX) {
+  if (
+    mousePosition.x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13 &&
+    mousePosition.y > COLUMN_HEADER_HEIGHT_IN_PX
+  ) {
     // handle hovering on the aggregation dropdown
     if (mousePosition.y <= height.value - 36) {
       const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
       const row = element?.row
       cursor = getRowMetaCursor({ row, x: mousePosition.x, group: element?.group }) || cursor
-    }
-  }
 
-  if (mousePosition.y > height.value - 36) {
-    cursor = mousePosition.x < totalColumnsWidth.value - scrollLeft.value ? 'pointer' : 'auto'
+      if (
+        !row ||
+        ncIsUndefined(row.rowMeta.rowIndex) ||
+        !ncIsNumber(selectedRowInfo.index) ||
+        (isGroupBy.value ? !comparePath(selectedRowInfo.path, element.groupPath) : false)
+      ) {
+        return
+      }
+
+      const { isAtMaxSelection, isCheckboxDisabled, regions } = extractHoverMetaColRegions(row, element?.group)
+
+      if (isAtMaxSelection || isCheckboxDisabled) return
+
+      const clickedRegion = regions.find((region) => mousePosition.x >= region.x && mousePosition.x < region.x + region.width)
+
+      if (!clickedRegion || clickedRegion.action !== 'select') return
+
+      const selectionStart = Math.min(selectedRowInfo.index, row.rowMeta.rowIndex)
+
+      const selectionEnd = Math.min(selectionStart + MAX_SELECTED_ROWS, Math.max(selectedRowInfo.index, row.rowMeta.rowIndex))
+
+      const dataCache = getDataCache(element.groupPath)
+
+      dataCache.cachedRows.value.forEach((row) => {
+        if (row.rowMeta.rowIndex >= selectionStart && row.rowMeta.rowIndex <= selectionEnd) {
+          row.rowMeta.selected = true
+        } else {
+          row.rowMeta.selected = false
+        }
+      })
+
+      requestAnimationFrame(triggerRefreshCanvas)
+    }
   }
 
   if (cursor) setCursor(cursor)
@@ -1876,7 +2018,6 @@ function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnT
     isUIAllowed('fieldEdit') &&
     !isMobileMode.value &&
     (isDescription ? true : !isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.uidt)) &&
-    !column.readonly &&
     !isSqlView.value
   ) {
     const rect = canvasRef.value?.getBoundingClientRect()
@@ -1989,7 +2130,7 @@ const callAddNewRow = (context: { row: number; col: number; path: Array<number> 
   }
 }
 
-const onNavigate = (dir: NavigateDir) => {
+const onNavigate = async (dir: NavigateDir) => {
   if (ncIsNullOrUndefined(activeCell.value?.row) || ncIsNullOrUndefined(activeCell.value?.column)) return
 
   const path = editEnabled.value?.path || activeCell.value.path
@@ -2018,7 +2159,12 @@ const onNavigate = (dir: NavigateDir) => {
       }
       break
   }
-  onActiveCellChanged()
+  // When editCell Unmounts, it triggers the update of the record
+  // If onActiveCellCHanged is triggered simultaneously, it clear the record in cacheRows and the update happends in the next record
+  // So call onActiveCellChanged in next tick. This ensured update is triggered before clearing from cached rows
+  await nextTick(() => {
+    onActiveCellChanged()
+  })
   selection.value.startRange({ row: activeCell.value.row, col: activeCell.value.column })
   selection.value.endRange({ row: activeCell.value.row, col: activeCell.value.column })
 
@@ -2038,6 +2184,14 @@ watch([height, width, windowWidth, windowHeight], () => {
     calculateSlices()
     requestAnimationFrame(triggerRefreshCanvas)
   })
+})
+
+watch(totalHeight, (newHeight) => {
+  if (scrollTop.value > newHeight - height.value) {
+    scroller.value?.scrollTo({
+      top: Math.max(newHeight - height.value - 256, 0),
+    })
+  }
 })
 
 // Watch for Rowheight Changes
@@ -2140,6 +2294,19 @@ eventBus.on(async (event, payload) => {
   }
 })
 
+function resetActiveCell(path?: Array<number>, force = false) {
+  if (!activeCell.value) return
+
+  if (activeCell.value.row >= 0 || activeCell.value.column >= 0 || force) {
+    activeCell.value = { row: -1, column: -1, path: path ?? [] }
+    editEnabled.value = null
+    isFillHandlerActive.value = false
+    selection.value.clear()
+    onActiveCellChanged()
+    requestAnimationFrame(triggerRefreshCanvas)
+  }
+}
+
 onClickOutside(
   wrapperRef,
   (e: MouseEvent) => {
@@ -2149,7 +2316,7 @@ onClickOutside(
       isExpandedCellInputExist() ||
       isLinkDropdownExist() ||
       isGeneralOverlayActive() ||
-      (element && hasAncestorWithClass(element, 'ant-select-dropdown'))
+      (element && hasAncestorWithClass(element, ['ant-select-dropdown', 'nc-dropdown']))
     ) {
       return
     }
@@ -2163,11 +2330,7 @@ onClickOutside(
     openAggregationField.value = null
     openAddNewRowDropdown.value = null
     if (activeCell.value.row >= 0 || activeCell.value.column >= 0 || editEnabled.value) {
-      activeCell.value = { row: -1, column: -1, path: activeCell.value.path }
-      editEnabled.value = null
-      isFillHandlerActive.value = false
-      selection.value.clear()
-      requestAnimationFrame(triggerRefreshCanvas)
+      resetActiveCell(activeCell.value.path, true)
     }
   },
   {
@@ -2327,15 +2490,20 @@ defineExpose({
               willChange: 'top, left, width, height',
             }"
             class="nc-canvas-table-editable-cell-wrapper pointer-events-auto"
-            :class="{ [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped }"
+            :class="{ [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped.isStuck }"
           >
             <div
               ref="activeCellElement"
-              class="relative top-[2.5px] left-[2.5px] w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-white"
+              class="relative w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-white"
               :class="{
                 'px-[0.550rem]': !noPadding && !editEnabled.fixed,
                 'px-[0.49rem]': editEnabled.fixed,
-                'top-[0.5px] left-[-1px]': isClamped,
+                'top-[0.5px]': isGroupBy && isClamped.isStuck,
+                'top-[2.5px]': isGroupBy,
+                'left-[2.5px] ': isGroupBy && !editEnabled.fixed,
+                'left-[2px] ': isGroupBy && editEnabled.fixed,
+                'left-[-1px] top-[2px]': !isGroupBy && isClamped.isStuck,
+                'left-[2px] top-[3.5px]': !isGroupBy && !isClamped.isStuck,
               }"
               @click="cellClickHook.trigger($event)"
             >
@@ -2389,7 +2557,11 @@ defineExpose({
         placement="bottomRight"
         @visible-change="onVisibilityChange"
       >
-        <div v-if="isDropdownVisible" :style="overlayStyle" class="hide pointer-events-none"></div>
+        <div
+          v-if="openColumnDropdownField || isCreateOrEditColumnDropdownOpen || openAggregationField || openAddNewRowDropdown"
+          :style="overlayStyle"
+          class="hide pointer-events-none"
+        ></div>
         <template #overlay>
           <Aggregation v-if="openAggregationField" v-model:column="openAggregationField" class="canvas-aggregation" />
           <SmartsheetHeaderColumnMenu

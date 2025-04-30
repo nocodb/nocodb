@@ -73,8 +73,6 @@ const availableColumns = computed(() => {
           /** hide system columns if not enabled */
           showSystemFields.value
         )
-      } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID) {
-        return false
       } else {
         /** ignore hasmany and manytomany relations if it's using within sort menu */
         return !(isLinksOrLTAR(c) && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO)
@@ -224,7 +222,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
               $t('activity.group')
             }}</span>
           </div>
-          <span v-if="groupedByColumnIds?.length" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{
+          <span v-if="groupedByColumnIds?.length" class="bg-brand-50 text-brand-500 nc-toolbar-btn-chip">{{
             groupedByColumnIds.length
           }}</span>
         </div>
@@ -269,7 +267,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                   </NcButton>
                   <LazySmartsheetToolbarFieldListAutoCompleteDropdown
                     v-model="group.fk_column_id"
-                    class="caption nc-sort-field-select !w-36"
+                    class="caption nc-group-field-select !w-36"
                     :columns="getFieldsToGroupBy(group)"
                     :allow-empty="true"
                     :meta="meta"
@@ -280,9 +278,9 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                   <NcSelect
                     ref=""
                     v-model:value="group.sort"
-                    class="flex flex-grow-1 w-full nc-sort-dir-select"
+                    class="flex flex-grow-1 w-full nc-group-sort-dir-select"
                     :label="$t('labels.operation')"
-                    dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir"
+                    dropdown-class-name="sort-dir-dropdown nc-dropdown-group-sort-dir"
                     :disabled="!group.fk_column_id || isLocked"
                     @change="saveGroupBy"
                     @click.stop
@@ -385,13 +383,17 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
 </template>
 
 <style scoped lang="scss">
-:deep(.nc-sort-field-select) {
+:deep(.nc-group-field-select) {
   @apply !w-36;
   .ant-select-selector {
     @apply !rounded-none !border-r-0 !border-gray-200 !shadow-none !w-36;
 
     &.ant-select-focused:not(.ant-select-disabled) {
       @apply !border-r-transparent;
+    }
+
+    .field-selection-tooltip-wrapper {
+      @apply !max-w-21;
     }
   }
 }
@@ -403,7 +405,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
   }
 }
 
-:deep(.nc-sort-dir-select) {
+:deep(.nc-group-sort-dir-select) {
   .ant-select-selector {
     @apply !rounded-none !border-gray-200 !shadow-none;
   }

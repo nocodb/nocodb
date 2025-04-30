@@ -33,6 +33,7 @@ export interface RenderMultiLineTextProps extends RenderSingleLineTextProps {
   mousePosition?: { x: number; y: number }
   firstLineMaxWidth?: number
   yOffset?: number
+  selected?: boolean
 }
 
 export interface RenderRectangleProps {

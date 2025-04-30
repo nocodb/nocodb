@@ -136,7 +136,13 @@ function shouldShowRaw(key: string) {
         :column-meta="{ uidt: meta[columnKey]?.type, dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined }"
         class="!m-0"
       />
-      {{ columnKey }}
+      <NcTooltip class="truncate" show-on-truncate-only>
+        <template #title>
+          {{ columnKey }}
+        </template>
+
+        {{ columnKey }}
+      </NcTooltip>
     </div>
     <div class="flex items-center gap-2 mt-3 flex-wrap">
       <template v-if="meta[columnKey]?.type === 'Attachment'">

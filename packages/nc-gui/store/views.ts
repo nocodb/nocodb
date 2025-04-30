@@ -140,7 +140,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
           tableId,
           (viewsByTable.value.get(tableId) ?? []).sort((a, b) => a.order! - b.order!),
         )
-
+        isViewsLoading.value = false
         return
       }
       if (!ignoreLoading) isViewsLoading.value = true

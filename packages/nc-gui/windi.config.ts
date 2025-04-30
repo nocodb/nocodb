@@ -19,8 +19,20 @@ export default defineConfig({
   extract: {
     include: [
       ...(isEE
-        ? ['../**/*.{vue,html,jsx,tsx,css,scss}', '../extensions/**/*.md']
-        : ['**/*.{vue,html,jsx,tsx,css,scss}', 'extensions/**/*.md']),
+        ? [
+            '../**/*.{vue,html,jsx,tsx,css,scss}',
+            '../extensions/**/*.md',
+            '../composables/useColumnFilteredOrSorted.ts',
+            '../components/smartsheet/grid/canvas/cells/*.ts',
+            '../components/smartsheet/grid/canvas/cells/**/*.ts',
+          ]
+        : [
+            '**/*.{vue,html,jsx,tsx,css,scss}',
+            'extensions/**/*.md',
+            'composables/useColumnFilteredOrSorted.ts',
+            'components/smartsheet/grid/canvas/cells/*.ts',
+            'components/smartsheet/grid/canvas/cells/**/*.ts',
+          ]),
     ],
     exclude: ['node_modules', '.git'],
   },

@@ -23,7 +23,6 @@ import type {
   TableType,
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
-import { timeFormatsObj } from '../components/smartsheet/grid/canvas/utils/cell'
 import { isColumnRequiredAndNull } from './columnUtils'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
@@ -254,23 +253,24 @@ export const getDateTimeValue = (modelValue: string | null, params: ParsePlainCe
   }
 
   const columnMeta = parseProp(col.meta)
-
   const dateFormat = columnMeta?.date_format ?? dateFormats[0]
   const timeFormat = columnMeta?.time_format ?? timeFormats[0]
-  const is12hrFormat = columnMeta?.is12hrFormat
-  const dateTimeFormat = `${dateFormat} ${is12hrFormat ? timeFormatsObj[timeFormat] : timeFormat}`
+  const dateTimeFormat = `${dateFormat} ${timeFormat}`
+  const timezone = isEeUI && columnMeta?.timezone ? getTimeZoneFromName(columnMeta?.timezone) : undefined
+  const { timezonize } = withTimezone(timezone?.name)
+  const displayTimezone = timezone && columnMeta?.isDisplayTimezone ? ` (${timezone.abbreviation})` : ''
 
   const isXcDB = isXcdbBase(col.source_id)
 
   if (!isXcDB) {
-    return dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue).format(dateTimeFormat)
+    return timezonize(dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue))?.format(dateTimeFormat) + displayTimezone
   }
 
   if (isMssql(col.source_id)) {
     // e.g. 2023-04-29T11:41:53.000Z
-    return dayjs(modelValue, dateTimeFormat).format(dateTimeFormat)
+    return timezonize(dayjs(modelValue, dateTimeFormat))?.format(dateTimeFormat) + displayTimezone
   } else {
-    return dayjs(modelValue).utc().local().format(dateTimeFormat)
+    return timezonize(dayjs(modelValue))?.format(dateTimeFormat) + displayTimezone
   }
 }
 

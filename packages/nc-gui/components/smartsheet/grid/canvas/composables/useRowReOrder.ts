@@ -1,4 +1,5 @@
 import type { CanvasElement } from '../utils/CanvasElement'
+import { comparePath } from '../utils/groupby'
 
 export function useRowReorder({
   isDragging,
@@ -94,7 +95,7 @@ export function useRowReorder({
 
     if (!targetElement) return
 
-    if (targetElement.groupPath?.join('-') !== draggedRowGroupPath.value?.join('-')) {
+    if (!comparePath(targetElement.groupPath, draggedRowGroupPath.value)) {
       return
     }
 

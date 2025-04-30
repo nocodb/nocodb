@@ -32,7 +32,7 @@ const getButtonDimensions = ({
 
   let contentWidth = 0
 
-  ctx.font = '500 13px Manrope'
+  ctx.font = '500 13px Inter'
   const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
   const truncatedInfo = truncateText(ctx, label, maxTextWidth, true)
   const truncatedLabel = truncatedInfo.text

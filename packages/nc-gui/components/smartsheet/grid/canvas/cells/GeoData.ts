@@ -3,7 +3,7 @@ import { pxToRowHeight } from '../../../../../utils/cell'
 
 export const GeoDataCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, spriteLoader, pv, readonly, padding, mousePosition, selected, setCursor }) => {
-    ctx.font = `${pv ? 600 : 500} 13px Manrope`
+    ctx.font = `${pv ? 600 : 500} 13px Inter`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
 
@@ -41,7 +41,7 @@ export const GeoDataCellRenderer: CellRenderer = {
       })
 
       ctx.fillStyle = '#374151'
-      ctx.font = '10px Manrope'
+      ctx.font = '10px Inter'
       ctx.textBaseline = 'middle'
       ctx.fillText('Set location', buttonX + 28, buttonY + (buttonHeight + 2) / 2)
     } else if (isLocationSet) {

@@ -12,7 +12,7 @@ html {
 
 body,
 * {
-  font-family: Manrope, 'Inter', 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+  font-family: Inter, Manrope, 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
     sans-serif;
 }
 
@@ -21,7 +21,7 @@ Apply Manrope for rtl
 */
 
 .rtl .v-application *:not(.material-icons) {
-  font-family: Manrope !important;
+  font-family: Inter !important;
 }
 
 .rtl .v-application .ml-n1 {

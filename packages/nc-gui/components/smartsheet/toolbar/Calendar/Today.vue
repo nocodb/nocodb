@@ -1,18 +1,17 @@
 <script lang="ts" setup>
-import dayjs from 'dayjs'
-
-const { selectedDate, selectedMonth, selectedDateRange, pageDate, activeCalendarView } = useCalendarViewStoreOrThrow()
+const { selectedDate, selectedMonth, selectedDateRange, pageDate, activeCalendarView, timezoneDayjs } =
+  useCalendarViewStoreOrThrow()
 
 const { $e } = useNuxtApp()
 
 const goToToday = () => {
   $e('c:calendar:calendar-today-btn', activeCalendarView.value)
-  selectedDate.value = dayjs()
-  pageDate.value = dayjs()
-  selectedMonth.value = dayjs()
+  selectedDate.value = timezoneDayjs.dayjsTz()
+  pageDate.value = timezoneDayjs.dayjsTz()
+  selectedMonth.value = timezoneDayjs.dayjsTz()
   selectedDateRange.value = {
-    start: dayjs().startOf('week'),
-    end: dayjs().endOf('week'),
+    start: timezoneDayjs.dayjsTz().startOf('week'),
+    end: timezoneDayjs.dayjsTz().endOf('week'),
   }
 
   document?.querySelector('.nc-calendar-today')?.scrollIntoView({

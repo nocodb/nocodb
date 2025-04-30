@@ -5,6 +5,8 @@ interface Props {
 }
 
 defineProps<Props>()
+
+const { navigateToPricing } = useEeConfig()
 </script>
 
 <template>
@@ -24,14 +26,12 @@ defineProps<Props>()
 
     <PaymentMoreInfoCard :title="$t('title.faq')" :subtitle="$t('title.faqSubtitle')">
       <template #action>
-        <nuxt-link to="https://nocodb.com/#faq" target="_blank" rel="noopener noreferrer">
-          <NcButton type="secondary" inner-class="!gap-2" size="small">
-            <template #icon>
-              <GeneralIcon icon="ncExternalLink" />
-            </template>
-            {{ $t('activity.goToPage') }}
-          </NcButton>
-        </nuxt-link>
+        <NcButton type="secondary" inner-class="!gap-2" size="small" @click="navigateToPricing({ autoScroll: 'faq' })">
+          <template #icon>
+            <GeneralIcon icon="ncExternalLink" />
+          </template>
+          {{ $t('activity.goToPage') }}
+        </NcButton>
       </template>
     </PaymentMoreInfoCard>
   </div>

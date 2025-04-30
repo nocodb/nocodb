@@ -6011,24 +6011,17 @@
       ],
       "get": {
         "summary": "Get row color info",
-        "operationId": "view-row-color",
+        "operationId": "get-view-row-color",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "mode": "string",
-                        "fk_model_id": "string",
-                        "fk_view_id": "string"
-                      }
-                    }
-                  }
+                "type": "object",
+                "properties": {
+                  "mode": "string",
+                  "fk_model_id": "string",
+                  "fk_view_id": "string"
                 },
                 "examples": {
                   "Example 1": {
@@ -6044,65 +6037,10 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ViewUpdateReq"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "title": "Grid View 1",
-                    "uuid": "e2457bbf-e29c-4fec-866e-fe3b01dba57f",
-                    "password": "password123",
-                    "lock_type": "collaborative",
-                    "meta": "{\"allowCSVDownload\":true}",
-                    "order": 1,
-                    "show_system_fields": 0
-                  }
-                }
-              }
-            }
-          }
-        },
         "tags": [
           "DB View"
         ],
-        "description": "Update the view with the given view Id.",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      },
-      "delete": {
-        "summary": "Delete View",
-        "operationId": "db-view-delete",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "boolean"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": true
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB View"
-        ],
-        "description": "Delete the view with the given view Id.",
+        "description": "Get the row color info from view.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"

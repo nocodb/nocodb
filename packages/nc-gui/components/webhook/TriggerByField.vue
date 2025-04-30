@@ -103,7 +103,7 @@ const removeColumnId = (colId: string) => {
 
         <div class="w-0.25 h-4 bg-nc-border-gray-dark" />
 
-        <GeneralIcon class="cursor-pointer" icon="close" @click="removeColumnId(col.id)" />
+        <GeneralIcon class="cursor-pointer opacity-70 hover:opacity-100" icon="close" @click="removeColumnId(col.id)" />
       </div>
     </div>
     <div v-else class="flex flex-row text-gray-400 mt-3">
@@ -124,7 +124,7 @@ const removeColumnId = (colId: string) => {
       @apply !mr-0;
     }
 
-    .nc-cell-icon {
+    .nc-icon {
       @apply mx-0;
     }
   }

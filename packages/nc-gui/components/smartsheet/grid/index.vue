@@ -21,12 +21,13 @@ const { t } = useI18n()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { blockExternalSourceRecordVisibility } = useEeConfig()
+const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
 const bulkUpdateDlg = ref(false)
 
 const routeQuery = computed(() => route.value.query as Record<string, string>)
 
+const expandedFormRef = ref()
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
@@ -292,15 +293,39 @@ const updateRowCommentCount = (count: number) => {
     pData.value[currentRowIndex].rowMeta.commentCount = count
   }
 }
+
+const validateExternalSourceRecordVisibility = (page: number, callback?: () => void) => {
+  if (
+    (pPaginationData.value?.pageSize ?? 25) * page > 100 &&
+    showUpgradeToSeeMoreRecordsModal({ isExternalSource: isExternalSource.value })
+  ) {
+    return true
+  }
+
+  callback?.()
+}
+
 const pGoToNextRow = () => {
   const currentIndex = pGetExpandedRowIndex()
+
+  if (
+    !pPaginationData.value.isLastPage &&
+    currentIndex === (pPaginationData.value.pageSize ?? 25) - 1 &&
+    validateExternalSourceRecordVisibility(pPaginationData.value?.page ? pPaginationData.value?.page + 1 : 1)
+  ) {
+    expandedFormRef.value?.stopLoading?.()
+    return
+  }
+
   /* when last index of current page is reached we should move to next page */
   if (!pPaginationData.value.isLastPage && currentIndex === pPaginationData.value.pageSize) {
     const nextPage = pPaginationData.value?.page ? pPaginationData.value?.page + 1 : 1
     pChangeView(nextPage)
   }
+
   pNavigateToSiblingRow(NavigateDir.NEXT)
 }
+
 const pGoToPreviousRow = () => {
   const currentIndex = pGetExpandedRowIndex()
   /* when first index of current page is reached and then clicked back previos page should be loaded  */
@@ -338,7 +363,7 @@ const bulkUpdateTrigger = (path: Array<number>) => {
       :data="pData"
       :pagination-data="pPaginationData"
       :load-data="pLoadData"
-      :change-page="pChangePage"
+      :change-page="(p: number) => validateExternalSourceRecordVisibility(p, ()=> pChangePage(p))"
       :call-add-empty-row="pAddEmptyRow"
       :delete-row="pDeleteRow"
       :update-or-save-row="pUpdateOrSaveRow"
@@ -458,6 +483,7 @@ const bulkUpdateTrigger = (path: Array<number>) => {
       />
     </Suspense>
     <SmartsheetExpandedForm
+      ref="expandedFormRef"
       v-if="expandedFormOnRowIdDlg && meta?.id"
       v-model="expandedFormOnRowIdDlg"
       :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"

@@ -524,6 +524,9 @@ export default class BaseUser {
         base_id: baseId,
         fk_user_id: userId,
         invited_by: baseUser.invited_by,
+        starred: baseUser.starred,
+        order: baseUser.order,
+        hidden: baseUser.hidden,
       });
     }
   }

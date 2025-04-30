@@ -429,7 +429,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               sortsArr: sorts.value,
               filtersArr: nestedFilters.value,
             })
-        activeDates.value = res.dates.map((dateObj: unknown) => timezoneDayjs.dayjsTz(dateObj as string))
+        activeDates.value = res.dates.map((dateObj: unknown) => timezoneDayjs.timezonize(dateObj as string))
 
         if (res.count > 3000 && activeCalendarView.value !== 'year') {
           message.warning(

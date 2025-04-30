@@ -55,11 +55,15 @@ const getFieldStyle = (field: ColumnType) => {
 
 const hours = computed(() => {
   const hours: Array<dayjs.Dayjs> = []
-  const _selectedDate = timezoneDayjs.dayjsTz(selectedDate.value)
+
+  // Force the date part only (no time), to reset time to 00:00 in target TZ
+  const baseDateStr = dayjs(selectedDate.value).format('YYYY-MM-DD')
+
+  // Parse in timezone with NO time part — this ensures it's midnight in TZ
+  const startOfDay = timezoneDayjs.dayjsTz(baseDateStr, 'YYYY-MM-DD').hour(0).minute(0).second(0)
 
   for (let i = 0; i < 24; i++) {
-    // startOf and endOf dayjs is bugged with timezone
-    hours.push(timezoneDayjs.dayjsTz(_selectedDate.clone().startOf('day')).add(i, 'hour'))
+    hours.push(startOfDay.clone().add(i, 'hour'))
   }
   return hours
 })

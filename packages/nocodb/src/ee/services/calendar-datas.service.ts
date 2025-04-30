@@ -5,7 +5,6 @@ import {
   workerWithTimezone,
 } from 'nocodb-sdk';
 import { CalendarDatasService as CalendarDatasServiceCE } from 'src/services/calendar-datas.service';
-import dayjs from 'dayjs';
 import type { NcContext } from '~/interface/config';
 import { Column, Model, View } from '~/models';
 import CalendarRange from '~/models/CalendarRange';
@@ -38,6 +37,17 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
     const ranges = await CalendarRange.read(context, view.id);
 
     if (!ranges?.ranges.length) NcError.badRequest('No ranges found');
+
+    let timezone;
+
+    const colId = ranges.ranges[0].fk_from_column_id;
+
+    if (colId) {
+      const column = await Column.get(context, { colId });
+      timezone = column?.meta?.timezone || undefined;
+    }
+
+    const dayjsTimezone = workerWithTimezone(true, timezone);
 
     const filterArr = await this.buildFilterArr(context, {
       viewId,
@@ -75,8 +85,8 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
         : null;
 
       data.list.forEach((date) => {
-        const fromDt = dayjs(date[fromCol]);
-        const toDt = dayjs(toCol ? date[toCol] : null);
+        const fromDt = dayjsTimezone.timezonize(date[fromCol]);
+        const toDt = dayjsTimezone.timezonize(toCol ? date[toCol] : null);
 
         if (fromCol && toCol && fromDt.isValid() && toDt.isValid()) {
           let current = fromDt;

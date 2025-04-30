@@ -125,6 +125,11 @@ const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource } = 
 
 const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
+const { getLeftBorderColor, getRowColor } = useViewRowColor({
+  meta,
+  view,
+})
+
 const { $e, $api } = useNuxtApp()
 
 const { t } = useI18n()
@@ -2696,6 +2701,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                           'min-width': gridViewCols[fields[0].id]?.width || '180px',
                           'max-width': gridViewCols[fields[0].id]?.width || '180px',
                           'width': gridViewCols[fields[0].id]?.width || '180px',
+                          'background-color': `${getRowColor(row.row)} !important`,
                         }"
                         :data-testid="`cell-${fields[0].title}-${row.rowMeta.rowIndex}`"
                         v-bind="
@@ -2800,6 +2806,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                           'min-width': gridViewCols[columnObj.id]?.width || '180px',
                           'max-width': gridViewCols[columnObj.id]?.width || '180px',
                           'width': gridViewCols[columnObj.id]?.width || '180px',
+                          'background-color': `${getRowColor(row.row)} !important`,
                         }"
                         :data-testid="`cell-${columnObj.title}-${row.rowMeta.rowIndex}`"
                         v-bind="

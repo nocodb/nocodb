@@ -112,7 +112,7 @@
     "updateToAddRecordFormViewSubtitle": "You’ve reached the limit for number of records on your {activePlan} plan. Upgrade to increase your record limit.",
     "updateToExtendRecordHistory": "Upgrade to extend your history",
     "updateToExtendRecordHistorySubtitle": "The {activePlan} plan allows up to {period} of audit history. Upgrade to the {plan} plan to increase your audit history period.",
-    "planLimitReached": "Plan limit reached",
+    "planLimitReached": "Limit reached: Upgrade Plan",
     "planLimitReachedSubtitle": "Upgrade to add more records",
     "upgradeToAddLimitRecordSelection": "To limit record selection using filters, please upgrade to the {plan} plan.",
     "upgradeToAdd": "Upgrade to add",
@@ -138,12 +138,20 @@
     "WorkspaceOwnerNotifiedSubtitle": "Your request to upgrade has been shared with the workspace owner.",
     "failedToSendUpgradeRequest": "Failed to send upgrade request",
     "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
+    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
     "upgradeToSeeMoreRecordSubtitle": "Unlock complete visibility into your connected sources. View all records by upgrading to the Team plan.",
-    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month."
+    "upgradeToSeeMoreRecordInlineSubtitle": "You're viewing {limit} of {total} records. Unlock access to the remaining {remaining} records by upgrading to the Team plan.",
+    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "freePlanEditorLimitTooltip": "The free plan allows upto {limit} Editor type users, upgrade to get unlimited",
+    "adjustCollaboratorRoles": "Adjust Collaborator Roles",
+    "newEditorWillBeChanged": "New Editors will be charged",
+    "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
+    "upgradeToUploadWsImage": "Upgrade to upload a workspace image",
+    "upgradeToUploadWsImageSubtitle": "Your current {activePlan} plan allows only icons and emojis. Upgrade to the {plan} plan to upload a custom image as your workspace avatar."
   },
   "general": {
     "supported": "Supported",
@@ -377,9 +385,11 @@
     "total": "Total",
     "downgrade": "Downgrade",
     "upgrade": "Upgrade",
-    "requestUpgrade": "Request Upgrade",
+    "requestUpgrade": "Request for Upgrade",
     "reactivate": "Reactivate",
-    "left": "left"
+    "left": "left",
+    "seat": "Seat",
+    "seats": "Seats"
   },
   "objects": {
     "script": "Script",
@@ -545,11 +555,11 @@
     },
     "currentPlan": {
       "nextInvoice": "Next invoice",
-      "numberOfBilledUsers": "Number of billed users",
-      "numberOfBillableUsers": "Number of billable users",
-      "storageUsedGB": "Storage used (GB)",
-      "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "numberOfBilledUsers": "Billed users",
+      "numberOfBillableUsers": "Billable users",
+      "storageUsedGB": "Storage used",
+      "webhookCallsMonthly": "Webhook calls",
+      "apiCallsMonthly": "API calls"
     }
   },
   "datatype": {
@@ -616,7 +626,7 @@
     "renameWorkspace": "Lantaldea Birbatu",
     "renamingWorkspace": "Lantaldea Birbakatzen",
     "renamingBase": "Oinarria Birbakatzen",
-    "sso": "Autentifikazioa (SSO)",
+    "sso": "Single Sign-On (SSO)",
     "docs": "Dokumentuak",
     "forum": "Foroa",
     "parameter": "Parametroa",
@@ -776,8 +786,11 @@
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
     "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
     "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration.",
-    "getMoreFromNocodb": "Get more from NocoDB",
-    "getMoreFromNocodbSubtitle": "Unlock extra records, more storage, SSO, integrations, Audit logs, and more!",
+    "getMoreFromNocodb": "More editors, more impact — Upgrade to Team",
+    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "loyaltyBannerTitle": "Loyalty pays off — enjoy capped pricing!",
+    "loyaltyBannerSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "selectTimezone": "Display timezone",
     "currentPlan": "Current Plan",
     "seatMonth": "/seat/month",
     "mostPopular": "Most Popular",
@@ -788,6 +801,7 @@
     "downgradeToPlan": "Downgrade to {plan} plan?",
     "downgradeToPlanSubtitle": "You'll lose access to {activePlan} plan features that aren't available in the {plan} plan.",
     "upgradeToPlan": "Upgrade to {plan} plan",
+    "upgradeWorkspaceToPlan": "Upgrade {workspace} to {plan} plan",
     "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
     "reactivateToPlan": "Reactivate {plan} plan?"
   },
@@ -1266,6 +1280,8 @@
     "addFromUrl": "Add from URL",
     "enterJson": "Enter JSON",
     "airtableBase": "Airtable base",
+    "useSameTimezoneForAllMembers": "Use same timezone for all members",
+    "displayTimezone": "Display time zone",
     "upgradePlan": "Upgrade Plan",
     "viewAllPlanDetails": "View all plan details",
     "contactSales": "Contact Sales",
@@ -1277,7 +1293,15 @@
     "planIncludes": "{plan} Includes:",
     "everythingInPlanPlus": "Everything in {plan}, Plus:",
     "downloadInvoice": "Download Invoice",
-    "proceed": "Proceed"
+    "proceed": "Proceed",
+    "editorSeat": "Editor seat",
+    "editorSeats": "Editor seats",
+    "viewPlans": "View Plans",
+    "numberOfSeats": "Number of Seats",
+    "invoice": "Invoice",
+    "status": "Status",
+    "invoiceTotal": "Invoice Total",
+    "pastInvoices": "Past Invoices"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1620,7 +1644,9 @@
     "expandShiftSpace": "Expand 'Shift + Space'",
     "selectAllMappedFields": "Select all mapped fields",
     "copyErrorCode": "Copy error code",
-    "paidUserBadgeTooltip": "User has an editor or higher role in at least one base."
+    "paidUserBadgeTooltip": "User has an editor or higher role in at least one base.",
+    "approachingLimit": "Approaching limit",
+    "exceedingLimit": "Exceeding limit"
   },
   "placeholder": {
     "searchIcons": "Bilatu ikonoak",
@@ -1680,7 +1706,8 @@
     "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace.",
     "searchOptions": "Bilatu aukerak",
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional).",
-    "noBaseUsersFound": "No base users found"
+    "noBaseUsersFound": "No base users found",
+    "noInvoices": "No Invoices"
   },
   "msg": {
     "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
@@ -2001,8 +2028,9 @@
       "showNullAndEmptyInFilter": "Erakutsi NULL eta HUTSA Iragazkian",
       "showNullAndEmptyInFilterDesc": "Aktibatu 'gehigarriak' diren iragazkiak NULL eta Testu hutsak dituzten eremuak bereizteko. Hutsik definizioak berdintzen ditu NULL eta Testu hutsak.",
       "deleteKanbanStackConfirmation": "Stack hau ezabatzean `{stackToBeDeleted}` aukera kenduko da `{groupingField}`-etik. Erregistroak kategoria gabeko stack-era mugituko dira.",
-      "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
-      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
+      "computedFieldEditWarning": "Contents are read-only",
+      "computedFieldDeleteWarning": "Contents are read-only",
+      "computedFieldClearWarning": "Can’t clear read-only field",
       "fieldReadonly": "This field is read-only",
       "noMoreRecords": "Ez dago gehiagorik erregistroetan",
       "tokenNameNotEmpty": "Token izena ezin da hutsik egon",
@@ -2160,7 +2188,9 @@
       "collabView": "Ikuspegi kolaboratiboan arrakastaz aldatu da",
       "lockedView": "Ikuspegi blokeatuan arrakastaz aldatu da",
       "futureRelease": "Laster iritsiko da!",
-      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view",
+      "nCellCopied": "{n} cell copied",
+      "nCellsCopied": "{n} cells copied"
     },
     "success": {
       "licenseKeyUpdated": "Lizentzia giltza eguneratu da",
@@ -2205,7 +2235,9 @@
       "connectionAdded": "Integrazioa ongi konektatu da",
       "connectionAddedDesc": "Oinarri jabeek eta sortzaileek jada datu iturri bat gehi dezakete kredentzialak berriro sartu beharrik gabe.",
       "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Start from scratch.",

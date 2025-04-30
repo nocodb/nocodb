@@ -112,7 +112,7 @@
     "updateToAddRecordFormViewSubtitle": "You’ve reached the limit for number of records on your {activePlan} plan. Upgrade to increase your record limit.",
     "updateToExtendRecordHistory": "Upgrade to extend your history",
     "updateToExtendRecordHistorySubtitle": "The {activePlan} plan allows up to {period} of audit history. Upgrade to the {plan} plan to increase your audit history period.",
-    "planLimitReached": "Plan limit reached",
+    "planLimitReached": "Limit reached: Upgrade Plan",
     "planLimitReachedSubtitle": "Upgrade to add more records",
     "upgradeToAddLimitRecordSelection": "To limit record selection using filters, please upgrade to the {plan} plan.",
     "upgradeToAdd": "Upgrade to add",
@@ -138,12 +138,20 @@
     "WorkspaceOwnerNotifiedSubtitle": "Your request to upgrade has been shared with the workspace owner.",
     "failedToSendUpgradeRequest": "Failed to send upgrade request",
     "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
+    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
     "upgradeToSeeMoreRecordSubtitle": "Unlock complete visibility into your connected sources. View all records by upgrading to the Team plan.",
-    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month."
+    "upgradeToSeeMoreRecordInlineSubtitle": "You're viewing {limit} of {total} records. Unlock access to the remaining {remaining} records by upgrading to the Team plan.",
+    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "freePlanEditorLimitTooltip": "The free plan allows upto {limit} Editor type users, upgrade to get unlimited",
+    "adjustCollaboratorRoles": "Adjust Collaborator Roles",
+    "newEditorWillBeChanged": "New Editors will be charged",
+    "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
+    "upgradeToUploadWsImage": "Upgrade to upload a workspace image",
+    "upgradeToUploadWsImageSubtitle": "Your current {activePlan} plan allows only icons and emojis. Upgrade to the {plan} plan to upload a custom image as your workspace avatar."
   },
   "general": {
     "supported": "Pris en charge",
@@ -377,9 +385,11 @@
     "total": "Total",
     "downgrade": "Retourner à une version inférieure",
     "upgrade": "Passer à une version supérieure",
-    "requestUpgrade": "Request Upgrade",
+    "requestUpgrade": "Request for Upgrade",
     "reactivate": "Réactiver",
-    "left": "left"
+    "left": "left",
+    "seat": "Seat",
+    "seats": "Seats"
   },
   "objects": {
     "script": "Script",
@@ -545,11 +555,11 @@
     },
     "currentPlan": {
       "nextInvoice": "Next invoice",
-      "numberOfBilledUsers": "Number of billed users",
-      "numberOfBillableUsers": "Number of billable users",
-      "storageUsedGB": "Storage used (GB)",
-      "webhookCallsMonthly": "Appels Webhook (mensuel)",
-      "apiCallsMonthly": "Appels d'API (par mois)"
+      "numberOfBilledUsers": "Billed users",
+      "numberOfBillableUsers": "Billable users",
+      "storageUsedGB": "Storage used",
+      "webhookCallsMonthly": "Webhook calls",
+      "apiCallsMonthly": "API calls"
     }
   },
   "datatype": {
@@ -616,7 +626,7 @@
     "renameWorkspace": "Renommer l'espace de travail",
     "renamingWorkspace": "Renommer l'espace de travail",
     "renamingBase": "Renommer la Base",
-    "sso": "Authentification (SSO)",
+    "sso": "Single Sign-On (SSO)",
     "docs": "Documents",
     "forum": "Forum",
     "parameter": "Paramètre",
@@ -776,8 +786,11 @@
     "youAreLeavingNocoDB": "Vous quittez NocoDB",
     "onlyProceedIfYouTrustThisLink": "Continuez seulement si vous faites confiance à ce lien.",
     "reAssignViewModalSubtitle": "Une fois réaffecté, le propriétaire actuel ne pourra plus modifier la configuration de la vue.",
-    "getMoreFromNocodb": "Profitez davantage de NocoDB",
-    "getMoreFromNocodbSubtitle": "Unlock extra records, more storage, SSO, integrations, Audit logs, and more!",
+    "getMoreFromNocodb": "More editors, more impact — Upgrade to Team",
+    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "loyaltyBannerTitle": "Loyalty pays off — enjoy capped pricing!",
+    "loyaltyBannerSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "selectTimezone": "Display timezone",
     "currentPlan": "Plan actuel",
     "seatMonth": "/seat/month",
     "mostPopular": "Les plus populaires",
@@ -788,6 +801,7 @@
     "downgradeToPlan": "Retrograder au plan {plan} ?",
     "downgradeToPlanSubtitle": "Vous allez perdre l'accès aux fonctionnalités du plan {activePlan} qui ne sont pas disponibles dans le plan {plan}.",
     "upgradeToPlan": "Upgrade to {plan} plan",
+    "upgradeWorkspaceToPlan": "Upgrade {workspace} to {plan} plan",
     "upgradeToPlanSubtitle": "Vous serez facturé immédiatement pour ce plan.",
     "reactivateToPlan": "Réactiver le plan {plan}?"
   },
@@ -1266,6 +1280,8 @@
     "addFromUrl": "Ajouter depuis l'URL",
     "enterJson": "Entrer le JSON",
     "airtableBase": "Base Airtable",
+    "useSameTimezoneForAllMembers": "Use same timezone for all members",
+    "displayTimezone": "Display time zone",
     "upgradePlan": "Mettre à niveau",
     "viewAllPlanDetails": "Afficher tous les détails du plan",
     "contactSales": "Contactez les ventes",
@@ -1277,7 +1293,15 @@
     "planIncludes": "{plan} Inclue :",
     "everythingInPlanPlus": "Tout dans {plan}, plus :",
     "downloadInvoice": "Télécharger la facture",
-    "proceed": "Continuer"
+    "proceed": "Continuer",
+    "editorSeat": "Editor seat",
+    "editorSeats": "Editor seats",
+    "viewPlans": "View Plans",
+    "numberOfSeats": "Number of Seats",
+    "invoice": "Invoice",
+    "status": "Status",
+    "invoiceTotal": "Invoice Total",
+    "pastInvoices": "Past Invoices"
   },
   "activity": {
     "clickToResolve": "Cliquer pour résoudre",
@@ -1620,7 +1644,9 @@
     "expandShiftSpace": "\"Maj + Espace\" pour développer",
     "selectAllMappedFields": "Sélectionner tous les champs mappés",
     "copyErrorCode": "Copier le code d'erreur",
-    "paidUserBadgeTooltip": "User has an editor or higher role in at least one base."
+    "paidUserBadgeTooltip": "User has an editor or higher role in at least one base.",
+    "approachingLimit": "Approaching limit",
+    "exceedingLimit": "Exceeding limit"
   },
   "placeholder": {
     "searchIcons": "Rechercher des icônes",
@@ -1680,7 +1706,8 @@
     "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace.",
     "searchOptions": "Options de recherche",
     "lockViewDescription": "Expliquez pourquoi vous verrouillez cette vue. Ce message sera affiché lorsque quelqu'un tentera de déverrouiller cette vue (facultatif).",
-    "noBaseUsersFound": "Aucun utilisateur de base trouvé"
+    "noBaseUsersFound": "Aucun utilisateur de base trouvé",
+    "noInvoices": "No Invoices"
   },
   "msg": {
     "urlFilter": "Les filtres d'URL sont appliqués à partir des paramètres d'URL et se combinent avec les filtres de vue définis via la barre d'outils.",
@@ -2001,8 +2028,9 @@
       "showNullAndEmptyInFilter": "Afficher NULL et EMPTY (vide) dans le filtre",
       "showNullAndEmptyInFilterDesc": "Activez les filtres \"supplémentaires\" pour distinguer les cellules contenant des chaînes NULL et vides. Par défaut, \"blanc\" traite les chaînes NULL et vides de la même manière.",
       "deleteKanbanStackConfirmation": "La suppression de cette pile entraînera également la suppression de l'option de sélection `{stackToBeDeleted}` de la pile `{groupingField}`. Les enregistrements seront déplacés vers la pile non catégorisée.",
-      "computedFieldEditWarning": "Champ calculé : le contenu est en lecture seule. Utilisez le menu d'édition des colonnes pour reconfigurer",
-      "computedFieldDeleteWarning": "Champ calculé : le contenu est en lecture seule. Impossible d'effacer le contenu.",
+      "computedFieldEditWarning": "Contents are read-only",
+      "computedFieldDeleteWarning": "Contents are read-only",
+      "computedFieldClearWarning": "Can’t clear read-only field",
       "fieldReadonly": "Ce champ est en lecture seule",
       "noMoreRecords": "Plus d'enregistrements",
       "tokenNameNotEmpty": "Le nom du jeton ne doit pas être vide",
@@ -2160,7 +2188,9 @@
       "collabView": "Vous êtes bien dans la vue collaborative",
       "lockedView": "Vous êtes bien dans la vue vérouillée",
       "futureRelease": "Bientôt disponible !",
-      "notAllowedToChangeDefaultView": "Vous n'êtes pas autorisé à changer la vue par défaut"
+      "notAllowedToChangeDefaultView": "Vous n'êtes pas autorisé à changer la vue par défaut",
+      "nCellCopied": "{n} cell copied",
+      "nCellsCopied": "{n} cells copied"
     },
     "success": {
       "licenseKeyUpdated": "Clé de licence mise à jour",
@@ -2205,7 +2235,9 @@
       "connectionAdded": "Intégration connectée avec succès",
       "connectionAddedDesc": "Les propriétaires et créateurs de base peuvent désormais ajouter une source de données sans ressaisir les identifiants.",
       "paymentSuccessful": "Paiement réussi",
-      "paymentSuccessfulSubtitle": "Votre paiement a été traité. Vous pouvez maintenant utiliser votre nouveau plan."
+      "paymentSuccessfulSubtitle": "Votre paiement a été traité. Vous pouvez maintenant utiliser votre nouveau plan.",
+      "upgradeSuccessful": "Upgrade Successful",
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
     },
     "subText": {
       "createNewTable": "Commencer à partir de zéro.",

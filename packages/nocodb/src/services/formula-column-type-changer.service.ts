@@ -45,6 +45,7 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
     this.dataMigrationDriver[mysqlDriver.dbDriverName] = mysqlDriver;
     this.dataMigrationDriver[sqliteDriver.dbDriverName] = sqliteDriver;
     this.dataMigrationDriver['sqlite3'] = sqliteDriver;
+    this.dataMigrationDriver['libsql'] = sqliteDriver;
   }
 
   dataMigrationDriver: {

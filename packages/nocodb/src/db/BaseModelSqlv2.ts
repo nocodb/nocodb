@@ -961,6 +961,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             break;
           }
 
+          case 'libsql':
           case 'sqlite3': {
             jsonBuildObject = this.dbDriver.raw(`json_object(
                 ${Object.keys(aggregateExpressions)
@@ -2092,6 +2093,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     ),
                   );
                   break;
+                case 'libsql':
                 case 'sqlite3':
                   qb.select(
                     this.dbDriver.raw(
@@ -2144,6 +2146,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     ),
                   );
                   break;
+                case 'libsql':
                 case 'sqlite3':
                   qb.select(
                     this.dbDriver.raw(
@@ -2555,7 +2558,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   get isSqlite() {
-    return this.clientType === 'sqlite3';
+    return this.clientType === 'sqlite3' || this.clientType === 'libsql';
   }
 
   get isMssql() {
@@ -6571,6 +6574,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         )}, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) UPDATE ?? SET ?? = (SELECT rn FROM rn WHERE ${this.model.primaryKeys
         .map((_pk) => `rn.?? = ??.??`)
         .join(' AND ')})`,
+      libsql: `WITH rn AS (SELECT ${this.model.primaryKeys
+        .map((_pk) => `??`)
+        .join(
+          ', ',
+        )}, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) UPDATE ?? SET ?? = (SELECT rn FROM rn WHERE ${this.model.primaryKeys
+        .map((_pk) => `rn.?? = ??.??`)
+        .join(' AND ')})`,
     };
 
     const orderColumn = this.model.columns.find((c) => isOrderCol(c));
@@ -6597,6 +6607,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ...primaryKeys.flatMap((pk) => [pk, pk]), // Flatten pk array for binding
       ],
       sqlite3: [
+        ...primaryKeys,
+        orderColumn.column_name,
+        this.tnPath,
+        this.tnPath,
+        orderColumn.column_name,
+        ...primaryKeys.flatMap((pk) => [pk, this.tnPath, pk]), // Flatten pk array for binding
+      ],
+      libsql: [
         ...primaryKeys,
         orderColumn.column_name,
         this.tnPath,

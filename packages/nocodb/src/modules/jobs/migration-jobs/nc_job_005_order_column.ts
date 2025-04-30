@@ -30,6 +30,7 @@ const sql = {
   mysql2: `UPDATE ?? SET ?? = ROW_NUMBER() OVER (ORDER BY ?? ASC)`,
   pg: `UPDATE ?? t SET ?? = s.rn FROM (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s WHERE t.?? = s.??`,
   sqlite3: `WITH rn AS (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) UPDATE ?? SET ?? = (SELECT rn FROM rn WHERE rn.?? = ??.??)`,
+  libsql: `WITH rn AS (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) UPDATE ?? SET ?? = (SELECT rn FROM rn WHERE rn.?? = ??.??)`,
 };
 
 const memoizedGetColumnPropsFromUIDT = async (source: Source) => {
@@ -252,6 +253,16 @@ export class OrderColumnMigration {
         pkColumn,
       ],
       sqlite3: [
+        pkColumn,
+        pkColumn,
+        tnPath,
+        tnPath,
+        newColumn.column_name,
+        pkColumn,
+        tnPath,
+        pkColumn,
+      ],
+      libsql: [
         pkColumn,
         pkColumn,
         tnPath,

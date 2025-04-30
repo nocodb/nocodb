@@ -16,6 +16,7 @@ const dropColumnSql = {
   mysql: 'ALTER TABLE ?? DROP COLUMN ??',
   pg: 'ALTER TABLE ?? DROP COLUMN ?? CASCADE',
   sqlite3: 'ALTER TABLE ?? DROP COLUMN ??',
+  libsql: 'ALTER TABLE ?? DROP COLUMN ??',
 };
 
 @Injectable()

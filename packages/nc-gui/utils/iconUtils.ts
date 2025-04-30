@@ -276,6 +276,8 @@ import NcSave from '~icons/nc-icons/save'
 import NcMySql from '~icons/logos/mysql-icon'
 import NcPostgreSql from '~icons/nc-icons/postgresql'
 import NcSqlServer from '~icons/nc-icons/sql-server'
+import NcLibSql from '~icons/nc-icons/libsql'
+
 import NcDataBricks from '~icons/nc-icons/data-bricks'
 import NcMssqlServer from '~icons/nc-icons/mssql-server'
 import NcOracle from '~icons/nc-icons/oracle'
@@ -1236,6 +1238,7 @@ export const iconMap = {
   'twilio': NcTwilio,
   'whatsapp': NcWhatsapp,
   'whatsappSolid': NcWhatsappSolid,
+  'libsql': NcLibSql,
   'viewGannt': NcViewGantt,
   'dollerSign': NcDollerSign,
   'multiFile': NcMultiFile,

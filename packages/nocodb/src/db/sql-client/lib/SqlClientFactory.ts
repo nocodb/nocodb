@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { promisify } from 'util';
+import LibsqlClient from './libsql/LibsqlClient';
 import MySqlClient from '~/db/sql-client/lib/mysql/MysqlClient';
 import MssqlClient from '~/db/sql-client/lib/mssql/MssqlClient';
 import OracleClient from '~/db/sql-client/lib/oracle/OracleClient';
@@ -25,6 +26,8 @@ export class SqlClientFactory {
       return new MySqlClient(connectionConfig);
     } else if (connectionConfig.client === 'sqlite3') {
       return new SqliteClient(connectionConfig);
+    } else if (connectionConfig.client === 'libsql') {
+      return new LibsqlClient(connectionConfig);
     } else if (connectionConfig.client === 'mssql') {
       return new MssqlClient(connectionConfig);
     } else if (connectionConfig.client === 'oracledb') {

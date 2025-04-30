@@ -20887,7 +20887,8 @@
               "pg",
               "snowflake",
               "sqlite3",
-              "databricks"
+              "databricks",
+              "libsql"
             ],
             "example": "mysql2",
             "type": "string"
@@ -21128,7 +21129,8 @@
               "pg",
               "snowflake",
               "sqlite3",
-              "databricks"
+              "databricks",
+              "libsql"
             ],
             "type": "string"
           },

@@ -40,7 +40,7 @@ export const convertAIRecordTypeToValue = async (args: {
         column.column_name,
       ],
     );
-  } else if (source.type === 'sqlite3') {
+  } else if (source.type === 'sqlite3' || source.type === 'libsql') {
     await sqlClient.raw(
       `UPDATE ??
         SET ?? = json_extract(??, '$.value')
@@ -116,7 +116,7 @@ export const convertValueToAIRecordType = async (args: {
         column.column_name,
       ],
     );
-  } else if (source.type === 'sqlite3') {
+  } else if (source.type === 'sqlite3' || source.type === 'libsql') {
     await sqlClient.raw(
       `UPDATE ??
         SET ?? = json_object('value', ??, 'lastModifiedBy', ?, 'lastModifiedTime', ?, 'isStale', ?)

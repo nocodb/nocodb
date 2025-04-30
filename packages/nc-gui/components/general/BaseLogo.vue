@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import LogosMysqlIcon from '~icons/logos/mysql-icon'
 import LogosPostgresql from '~icons/nc-icons/postgresql'
+import LogosLibsql from '~icons/nc-icons/libsql'
 import VscodeIconsFileTypeSqlite from '~icons/vscode-icons/file-type-sqlite'
 import SimpleIconsMicrosoftsqlserver from '~icons/simple-icons/microsoftsqlserver'
 import LogosSnowflakeIcon from '~icons/logos/snowflake-icon'
@@ -16,6 +17,8 @@ const baseIcon = computed(() => {
       return LogosPostgresql
     case ClientType.SQLITE:
       return VscodeIconsFileTypeSqlite
+    case ClientType.LIBSQL:
+      return LogosLibsql
     case ClientType.MSSQL:
       return SimpleIconsMicrosoftsqlserver
     case ClientType.SNOWFLAKE:

@@ -17,6 +17,7 @@ const renameTableSql = {
   mysql: 'RENAME TABLE ?? TO ??',
   pg: 'ALTER TABLE ?? RENAME TO ??',
   sqlite3: 'ALTER TABLE ?? RENAME TO ??',
+  libsql: 'ALTER TABLE ?? RENAME TO ??',
 };
 
 const replaceQuestionMarkWithPlaceholderPg = (tableName: string) => {

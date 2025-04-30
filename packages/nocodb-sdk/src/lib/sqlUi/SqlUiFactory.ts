@@ -30,6 +30,9 @@ export class SqlUiFactory {
       return new MysqlUi();
     }
 
+    if (connectionConfig.client === 'libsql') {
+      return new SqliteUi();
+    }
     if (connectionConfig.client === 'sqlite3') {
       return new SqliteUi();
     }

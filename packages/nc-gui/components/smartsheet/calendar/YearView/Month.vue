@@ -43,7 +43,7 @@ const currentMonthYear = computed(() => {
 // Generates all dates should be displayed in the calendar
 // Includes all blank days at the start and end of the month
 const dates = computed(() => {
-  const startOfMonth = timezoneDayjs.dayjsTz(pageDate.value).startOf('month')
+  const startOfMonth = timezoneDayjs.timezonize(pageDate.value.startOf('month'))
   const dayOffset = +props.isMondayFirst
   const firstDayOfWeek = startOfMonth.day()
   const startDay = startOfMonth.subtract((firstDayOfWeek - dayOffset + 7) % 7, 'day')

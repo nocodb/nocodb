@@ -18,19 +18,22 @@ const calendarRangeDropdown = ref(false)
 const headerText = computed(() => {
   switch (activeCalendarView.value) {
     case 'day':
-      return timezoneDayjs.dayjsTz(selectedDate.value).format('D MMM YYYY')
-    case 'week':
-      if (selectedDateRange.value.start.isSame(selectedDateRange.value.end, 'month')) {
-        return `${selectedDateRange.value.start.format('D')} - ${selectedDateRange.value.end.format('D MMM YY')}`
-      } else if (selectedDateRange.value.start.isSame(selectedDateRange.value.end, 'year')) {
-        return `${selectedDateRange.value.start.format('D MMM')} - ${selectedDateRange.value.end.format('D MMM YY')}`
+      return timezoneDayjs.timezonize(selectedDate.value).format('D MMM YYYY')
+    case 'week': {
+      const startDate = timezoneDayjs.timezonize(selectedDateRange.value.start)
+      const endDate = timezoneDayjs.timezonize(selectedDateRange.value.end)
+      if (startDate.isSame(endDate, 'month')) {
+        return `${startDate.format('D')} - ${endDate.format('D MMM YY')}`
+      } else if (startDate.isSame(endDate, 'year')) {
+        return `${startDate.format('D MMM')} - ${endDate.format('D MMM YY')}`
       } else {
-        return `${selectedDateRange.value.start.format('D MMM YY')} - ${selectedDateRange.value.end.format('D MMM YY')}`
+        return `${startDate.format('D MMM YY')} - ${endDate.format('D MMM YY')}`
       }
+    }
     case 'month':
-      return timezoneDayjs.dayjsTz(selectedMonth.value).format('MMM YYYY')
+      return timezoneDayjs.timezonize(selectedMonth.value).format('MMM YYYY')
     case 'year':
-      return timezoneDayjs.dayjsTz(selectedDate.value).format('YYYY')
+      return timezoneDayjs.timezonize(selectedDate.value).format('YYYY')
     default:
       return ''
   }

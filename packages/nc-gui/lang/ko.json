@@ -148,8 +148,8 @@
     "apiLimitExceedTooltip": "{activePlan} 플랜에는 매월 {limit}개의 API 호출이 포함됩니다.",
     "freePlanEditorLimitTooltip": "무료 플랜은 최대 {limit} 명의 에디터 유형 사용자를 허용하며 무제한으로 업그레이드하십시오",
     "adjustCollaboratorRoles": "공동 작업자 역할 조정",
-    "newEditorWillBeChanged": "새 편집자에게는 요금이 청구됩니다",
-    "newEditorWillBeChangedSubtitle": "새 편집자 및 더 높은 역할 구성원은 다음 청구 주기에 청구됩니다.",
+    "newEditorWillBeChanged": "Additional charges may apply for new invites",
+    "newEditorWillBeChangedSubtitle": "Members assigned the Editor role or higher may incur additional charges.",
     "upgradeToUploadWsImage": "작업 영역 이미지를 업로드하도록 업그레이드",
     "upgradeToUploadWsImageSubtitle": "현재 {activePlan} 요금제는 아이콘과 이모티콘만 허용합니다. {plan} 플랜으로 업그레이드하여 사용자 지정 이미지를 작업 영역 아바타로 업로드합니다."
   },

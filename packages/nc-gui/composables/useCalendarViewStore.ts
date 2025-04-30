@@ -240,10 +240,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
             const daysToDisplay = Math.max(endOfMonth.diff(startOfMonth, 'day') + 1, 35)
             fromDate = startOfMonth.subtract((startOfMonth.day() + 7) % 7, 'day').add(1, 'day')
-            toDate = fromDate.add(daysToDisplay, 'day').endOf('day')
+            toDate = fromDate.add(daysToDisplay, 'day')
 
             prevDate = fromDate.subtract(1, 'day').endOf('day')
-            nextDate = toDate.add(1, 'day').startOf('day')
+            nextDate = toDate.startOf('day')
             break
           }
           case 'year':
@@ -388,12 +388,16 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     // Fetch the dates which have records in the calendar
     const fetchActiveDates = async () => {
+      if (activeCalendarView.value === 'month') {
+        return
+      }
+
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id || !calendarRange.value?.length) return
       let prevDate: dayjs.Dayjs | string | null = null
       let nextDate: dayjs.Dayjs | string | null = null
       let fromDate: dayjs.Dayjs | string | null = null
 
-      if (activeCalendarView.value === 'week' || activeCalendarView.value === 'day' || activeCalendarView.value === 'month') {
+      if (activeCalendarView.value === 'week' || activeCalendarView.value === 'day') {
         const startOfMonth = pageDate.value.startOf('month')
         const endOfMonth = pageDate.value.endOf('month')
 
@@ -562,10 +566,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           const endOfMonth = selectedMonth.value.endOf('month')
 
           const daysToDisplay = Math.max(endOfMonth.diff(startOfMonth, 'day') + 1, 35)
-          fromDate = startOfMonth.subtract((startOfMonth.day() + 7) % 7, 'day')
+          fromDate = startOfMonth.subtract((startOfMonth.day() + 7) % 7, 'day').add(1, 'day')
           toDate = fromDate.add(daysToDisplay, 'day')
           prevDate = fromDate.subtract(1, 'day').endOf('day')
-          nextDate = toDate.add(1, 'day').startOf('day')
+          nextDate = toDate.startOf('day')
           break
         }
         case 'day':
@@ -575,8 +579,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           nextDate = selectedDate.value.add(1, 'day').startOf('day')
           break
       }
-      prevDate = prevDate!.format('YYYY-MM-DD HH:mm:ssZ')
-      nextDate = nextDate!.format('YYYY-MM-DD HH:mm:ssZ')
+      prevDate = timezoneDayjs.dayjsTz(prevDate!).format('YYYY-MM-DD HH:mm:ssZ')
+      nextDate = timezoneDayjs.dayjsTz(nextDate)!.format('YYYY-MM-DD HH:mm:ssZ')
 
       try {
         if (showLoading) isCalendarDataLoading.value = true

@@ -169,3 +169,46 @@ export function constructTimeFormat(column: ColumnType) {
     ? 'hh:mm A'
     : columnMeta.time_format ?? timeFormats[0];
 }
+
+export function workerWithTimezone(isEeUI: boolean, timezone?: string) {
+  return {
+    dayjsTz(value?: string | number | null | dayjs.Dayjs, format?: string) {
+      if (!isEeUI) {
+        return dayjs(value, format);
+      }
+      if (typeof value === 'object') {
+        return value;
+      }
+      if (timezone) {
+        if (!format) {
+          return dayjs.tz(value, timezone);
+        } else {
+          return dayjs.tz(value, format, timezone);
+        }
+      } else {
+        return dayjs(value, format);
+      }
+    },
+    timezonize(value?: string | number | null | dayjs.Dayjs) {
+      if (!value) {
+        return this.dayjsTz();
+      }
+
+      let dayjsObject;
+      if (typeof value === 'object' && value.isValid && value.isValid()) {
+        dayjsObject = value.isUTC() ? value : value.utc();
+      } else {
+        dayjsObject = dayjs.utc(value);
+      }
+
+      if (!isEeUI) {
+        return dayjsObject.local();
+      }
+      if (timezone) {
+        return dayjsObject.tz(timezone);
+      } else {
+        return dayjsObject.local();
+      }
+    },
+  };
+}

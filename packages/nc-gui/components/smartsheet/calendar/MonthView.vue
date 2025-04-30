@@ -89,9 +89,9 @@ const fieldStyles = computed(() => {
 
 const calendarData = computed(() => {
   // startOf and endOf dayjs is bugged with timezone
-  const startOfMonth = timezoneDayjs.dayjsTz(selectedMonth.value.startOf('month').toISOString())
+  const startOfMonth = timezoneDayjs.dayjsTz(selectedMonth.value.startOf('month'))
   const firstDayOffset = isMondayFirst.value ? 0 : -1
-  const firstDayToDisplay = timezoneDayjs.dayjsTz(startOfMonth.startOf('week').toISOString()).add(firstDayOffset, 'day')
+  const firstDayToDisplay = timezoneDayjs.dayjsTz(startOfMonth.startOf('week')).add(firstDayOffset, 'day')
   const today = timezoneDayjs.dayjsTz()
 
   const daysInMonth = startOfMonth.daysInMonth()
@@ -112,7 +112,7 @@ const calendarData = computed(() => {
           key: `${weekIndex}-${dayIndex}`,
           isWeekend: day.get('day') === 0 || day.get('day') === 6,
           isToday: day.isSame(today, 'date'),
-          isInPagedMonth: day.isSame(startOfMonth, 'month'),
+          isInPagedMonth: day.isSame(selectedMonth.value, 'month'),
           isVisible: maxVisibleDays.value === 5 ? day.get('day') !== 0 && day.get('day') !== 6 : true,
           dayNumber: day.format('DD'),
         }

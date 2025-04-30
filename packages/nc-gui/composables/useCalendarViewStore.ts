@@ -918,8 +918,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       selectedTime.value = timezoneDayjs.timezonize(selectedTime.value)!
       selectedMonth.value = timezoneDayjs.timezonize(selectedMonth.value)!
       selectedDateRange.value = {
-        start: timezoneDayjs.timezonize(selectedDateRange.value.start)!,
-        end: timezoneDayjs.timezonize(selectedDateRange.value.end)!,
+        start: selectedDate.value.startOf('week'),
+        end: selectedDate.value.endOf('week'),
       }
     })
 

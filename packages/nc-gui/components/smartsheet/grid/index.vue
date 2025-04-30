@@ -483,8 +483,8 @@ const bulkUpdateTrigger = (path: Array<number>) => {
       />
     </Suspense>
     <SmartsheetExpandedForm
-      ref="expandedFormRef"
       v-if="expandedFormOnRowIdDlg && meta?.id"
+      ref="expandedFormRef"
       v-model="expandedFormOnRowIdDlg"
       :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"

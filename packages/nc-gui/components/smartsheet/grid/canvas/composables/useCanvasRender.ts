@@ -1212,6 +1212,13 @@ export function useCanvasRender({
           return
         }
 
+        const columnState = column.columnObj?.id ? isColumnSortedOrFiltered(column.columnObj?.id) : null
+
+        const prevColumnState =
+          colIdx - 1 >= 0 && visibleCols[colIdx - 1] && visibleCols[colIdx - 1]?.columnObj?.id
+            ? isColumnSortedOrFiltered(visibleCols[colIdx - 1]?.columnObj?.id)
+            : null
+
         const absoluteColIdx = startColIndex + colIdx
 
         const isCellEditEnabled =
@@ -1230,7 +1237,16 @@ export function useCanvasRender({
           ctx.fillStyle = 'red'
         }
 
-        ctx.strokeStyle = '#f4f4f5'
+        const isColumnInSelection =
+          (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }) ||
+            selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx - 1 })) &&
+          isActiveCellInCurrentGroup
+
+        // Vertical cell lines
+        ctx.strokeStyle =
+          isHovered || row.rowMeta.selected || isColumnInSelection || isRowCellSelected || columnState || prevColumnState
+            ? themeV3Colors.gray['200']
+            : themeV3Colors.gray['100']
         ctx.beginPath()
         ctx.moveTo(xOffset - scrollLeft.value, yOffset)
         ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
@@ -1293,7 +1309,7 @@ export function useCanvasRender({
 
       if (fixedCols.value.length) {
         xOffset = isGroupBy.value ? initialXOffset : 0
-        fixedCols.value.forEach((column) => {
+        fixedCols.value.forEach((column, idx) => {
           let width = parseCellWidth(column.width)
 
           const colIdx = columns.value.findIndex((col) => col.id === column.id)
@@ -1373,9 +1389,18 @@ export function useCanvasRender({
             ctx.restore()
           }
 
-          ctx.strokeStyle = '#f4f4f5'
-          ctx.beginPath()
+          const isColumnInSelection =
+            (selection.value.isCellInRange({ row: rowIdx, col: colIdx }) ||
+              selection.value.isCellInRange({ row: rowIdx, col: colIdx - 1 })) &&
+            isActiveCellInCurrentGroup
 
+          ctx.strokeStyle =
+            idx !== 0 && (isHovered || row.rowMeta.selected || isColumnInSelection || isRowCellSelected)
+              ? themeV3Colors.gray['200']
+              : themeV3Colors.gray['100']
+          ctx.lineWidth = 1
+
+          ctx.beginPath()
           ctx.moveTo(xOffset, yOffset)
           ctx.lineTo(xOffset, yOffset + rowHeight.value)
           ctx.stroke()
@@ -1567,12 +1592,19 @@ export function useCanvasRender({
       ) {
         const row = dataCache.cachedRows.value.get(rowIdx)
 
+        const nextRow = rowIdx + 1 < endRowIndex ? dataCache.cachedRows.value.get(rowIdx + 1) : null
+
         if (rowIdx === draggedRowIndex.value) {
           ctx.globalAlpha = 0.5
         }
 
         const isRowHovered = hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
         const isRowCellSelected = activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path)
+
+        const isNextRowHovered = hoverRow.value?.rowIndex === rowIdx + 1 && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
+        const isNextRowCellSelected =
+          activeCell.value.row === rowIdx + 1 && comparePath(activeCell.value.path, row?.rowMeta?.path)
+        const isNextRowSelected = nextRow && nextRow.rowMeta.selected
 
         ctx.fillStyle = isRowHovered || isRowCellSelected ? '#F9F9FA' : '#ffffff'
         ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
@@ -1599,7 +1631,16 @@ export function useCanvasRender({
         }
 
         // Bottom border for each row
-        ctx.strokeStyle = themeV3Colors.gray['200']
+        ctx.strokeStyle =
+          isRowHovered ||
+          row?.rowMeta?.selected ||
+          isRowCellSelected ||
+          isNextRowHovered ||
+          isNextRowCellSelected ||
+          isNextRowSelected
+            ? themeV3Colors.gray['300']
+            : themeV3Colors.gray['200']
+        ctx.lineWidth = 1
         ctx.beginPath()
         ctx.moveTo(0, yOffset + rowHeight.value)
         ctx.lineTo(adjustedWidth, yOffset + rowHeight.value)

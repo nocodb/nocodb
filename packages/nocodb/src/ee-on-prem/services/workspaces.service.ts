@@ -8,6 +8,7 @@ import type { User } from '~/models';
 import { TablesService } from '~/services/tables.service';
 import { BasesService } from '~/services/bases.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { PaymentService } from '~/modules/payment/payment.service';
 import { NcError } from '~/helpers/catchError';
 import { Workspace } from '~/models';
 
@@ -19,6 +20,7 @@ export class WorkspacesService extends WorkspacesServiceEE {
     protected basesService: BasesService,
     protected tablesService: TablesService,
     @Inject(forwardRef(() => 'JobsService')) protected jobsService,
+    protected paymentService: PaymentService,
     protected licenseService: LicenseService,
   ) {
     super(
@@ -27,6 +29,7 @@ export class WorkspacesService extends WorkspacesServiceEE {
       basesService,
       tablesService,
       jobsService,
+      paymentService,
     );
   }
 

@@ -295,17 +295,20 @@ export const useEeConfig = createSharedComposable(() => {
     limitOrFeature,
     autoScroll,
     newTab = false,
+    ctaPlan,
   }: {
     workspaceId?: string
     autoScroll?: 'planDetails'
     limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
     newTab?: boolean
+    ctaPlan?: PlanTitles
   } = {}) => {
     if (!isWsOwner.value) return handleRequestUpgrade({ workspaceId, limitOrFeature })
 
     const paramsObj = {
       ...(autoScroll ? { autoScroll } : {}),
       ...(limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? { activeBtn: PlanTitles.ENTERPRISE } : {}),
+      ...(ctaPlan ? { activeBtn: ctaPlan } : {}),
     }
 
     const searchQuery = new URLSearchParams(paramsObj).toString()
@@ -335,6 +338,7 @@ export const useEeConfig = createSharedComposable(() => {
     requestUpgrade,
     limitOrFeature,
     isSharedFormView,
+    requiredPlan,
   }: Pick<NcConfirmModalProps, 'content' | 'okText' | 'focusBtn' | 'maskClosable' | 'keyboard'> & {
     title?: string
     currentPlanTitle?: PlanTitles
@@ -347,8 +351,14 @@ export const useEeConfig = createSharedComposable(() => {
     requestUpgrade?: boolean
     limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
     isSharedFormView?: boolean
+    requiredPlan?: PlanTitles
   } = {}) => {
-    const higherPlan = HigherPlan[currentPlanTitle ?? activePlanTitle.value]
+    // if already on required plan it means we hit the limit so show higher plan
+    if (requiredPlan && requiredPlan === (currentPlanTitle ?? activePlanTitle.value)) {
+      requiredPlan = undefined
+    }
+
+    const higherPlan = requiredPlan ?? HigherPlan[currentPlanTitle ?? activePlanTitle.value]
     if (!higherPlan) {
       return
     }
@@ -397,7 +407,7 @@ export const useEeConfig = createSharedComposable(() => {
             class: 'text-sm leading-6',
             onClick: (e) => {
               e.preventDefault()
-              navigateToPricing({ autoScroll: 'planDetails', newTab: true })
+              navigateToPricing({ autoScroll: 'planDetails', newTab: true, ctaPlan: higherPlan })
             },
           },
           t('msg.learnMore'),
@@ -444,7 +454,7 @@ export const useEeConfig = createSharedComposable(() => {
               slots.value = {}
             }
           } else {
-            navigateToPricing({ limitOrFeature })
+            navigateToPricing({ limitOrFeature, ctaPlan: higherPlan })
             closeDialog()
             callback?.('ok')
           }
@@ -561,10 +571,11 @@ export const useEeConfig = createSharedComposable(() => {
       content: t('upgrade.upgradeToAddExternalSourceSubtitle', {
         activePlan: activePlanTitle.value,
         limit: getLimit(PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE),
-        plan: HigherPlan[activePlanTitle.value],
+        plan: activePlanTitle.value === PlanTitles.BUSINESS ? HigherPlan[activePlanTitle.value] : PlanTitles.BUSINESS,
       }),
       callback,
       limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
+      requiredPlan: PlanTitles.BUSINESS,
     })
 
     return true

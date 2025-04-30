@@ -354,6 +354,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
           :plan-meta="activePlanMeta"
           :show-warning-status="storageInfo.showWarningStatus"
           :tooltip="storageInfo.tooltip"
+          :is-limit-exceeded="storageInfo.isLimitExceeded"
         >
           <template #label> {{ $t('objects.currentPlan.storageUsedGB') }} </template>
           <template #value> {{ storageInfo.value }} GB of {{ storageInfo.total }} GB attachments </template>

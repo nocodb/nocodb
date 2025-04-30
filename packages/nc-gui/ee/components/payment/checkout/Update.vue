@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-import { PlanLimitTypes, PlanOrder, PlanTitles } from 'nocodb-sdk'
+import { PlanLimitTypes, PlanOrder, PlanTitles, SEAT_PRICE_CAP } from 'nocodb-sdk'
 
 const props = defineProps<{
   plan: PaymentPlan
@@ -114,7 +114,7 @@ const changes = computed(() => {
 const priceInfo = computed(() => {
   const p = getPlanPrice(props.plan)
 
-  let total = p * workspaceSeatCount.value
+  let total = p * Math.min(workspaceSeatCount.value, SEAT_PRICE_CAP)
 
   const pMonthly = getPlanPrice(props.plan, 'month')
 
@@ -123,7 +123,7 @@ const priceInfo = computed(() => {
   if (paymentMode.value === 'year') {
     total = total * 12
 
-    discount = pMonthly * 12 * workspaceSeatCount.value - total
+    discount = pMonthly * 12 * Math.min(workspaceSeatCount.value, SEAT_PRICE_CAP) - total
 
     if (discount < 0) {
       discount = 0
@@ -147,7 +147,7 @@ const handleProceed = async () => {
   isLoading.value = true
 
   try {
-    await updateSubscription(props.plan.id, undefined, changes.value.change === 'upgrade')
+    await updateSubscription(props.plan.id, undefined, changes.value.change === 'upgrade' && changes.value.plan)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

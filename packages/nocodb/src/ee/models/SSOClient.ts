@@ -19,6 +19,7 @@ import {
   stringifyMetaProp,
 } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
+import { isCloud } from '~/utils';
 
 const PUBLIC_LIST_KEY = `${CacheScope.SSO_CLIENT_PUBLIC_LIST}:default`;
 
@@ -167,6 +168,10 @@ export default class SSOClient implements SSOClientType {
   }
 
   static async getPublicList(param: { ncSiteUrl: string }) {
+    if (isCloud) {
+      return [];
+    }
+
     const cacheData: { list: any[] } = await NocoCache.get(
       PUBLIC_LIST_KEY,
       CacheGetType.TYPE_OBJECT,
@@ -177,7 +182,11 @@ export default class SSOClient implements SSOClientType {
 
     const filteredList = list
       .filter(
-        (client) => client.enabled && !client.deleted && !client.fk_org_id,
+        (client) =>
+          client.enabled &&
+          !client.deleted &&
+          !client.fk_org_id &&
+          !client.fk_workspace_id,
       )
       .map((client) => {
         return {
@@ -226,8 +235,6 @@ export default class SSOClient implements SSOClientType {
         };
       });
 
-    await NocoCache.set(PUBLIC_LIST_KEY, { list: filteredList });
-
     return filteredList;
   }
 
@@ -263,8 +270,6 @@ export default class SSOClient implements SSOClientType {
           type: client.type,
         };
       });
-
-    await NocoCache.set(PUBLIC_LIST_KEY, { list: filteredList });
 
     return filteredList;
   }

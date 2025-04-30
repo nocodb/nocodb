@@ -225,6 +225,7 @@ import NcServer1 from '~icons/nc-icons/server1'
 import NcThumbsUpOutline from '~icons/nc-icons/thumbs-up-outline'
 import NcNocoDB from '~icons/nc-icons/nocodb'
 import NcNocoDB1 from '~icons/nc-icons/nocodb1'
+import NcNocoDBSquarePuck from '~icons/nc-icons/nocodb-square-puck'
 
 // Sync data
 import NcAppleSolid from '~icons/nc-icons/apple_solid'
@@ -305,6 +306,7 @@ import NcTriangleIcon from '~icons/nc-icons-v2/triangle.svg'
 import NcSearchIcon from '~icons/nc-icons-v2/search.svg'
 import NcVolume2Icon from '~icons/nc-icons-v2/volume-2.svg'
 import NcArrowUpCircleIcon from '~icons/nc-icons-v2/arrow-up-circle.svg'
+import NcArrowUpCircleSolidIcon from '~icons/nc-icons-v2/arrow-up-circle-solid.svg'
 import NcPauseCircleIcon from '~icons/nc-icons-v2/pause-circle.svg'
 import NcCheckSquareIcon from '~icons/nc-icons-v2/check-square.svg'
 import NcArrowDownIcon from '~icons/nc-icons-v2/arrow-down.svg'
@@ -735,6 +737,7 @@ import MdiNcThumbUpOutline from '~icons/nc-icons/mdi-thumb-up-outline'
 import MdiNcFlag from '~icons/nc-icons/mdi-flag'
 import MdiNcFlagOutline from '~icons/nc-icons/mdi-flag-outline'
 import MdiNcAttachFile from '~icons/nc-icons/mdi-attach'
+import MdiCloudKeyOutline from '~icons/mdi/cloud-key-outline'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -939,6 +942,7 @@ export const iconMap = {
   'megaPhone': NcMegaPhone,
   'nocodb': h(NcNocoDB, { stroke: 'transparent' }),
   'nocodb1': h(NcNocoDB1, { stroke: 'transparent' }),
+  'nocodbSquarePuck': h(NcNocoDBSquarePuck, { stroke: 'transparent' }),
   'bulb': NcBulb,
   'snow': NcSnow,
 
@@ -1275,6 +1279,7 @@ export const iconMap = {
   'ncSearch': NcSearchIcon,
   'ncVolume2': NcVolume2Icon,
   'ncArrowUpCircle': NcArrowUpCircleIcon,
+  'ncArrowUpCircleSolid': NcArrowUpCircleSolidIcon,
   'ncPauseCircle': NcPauseCircleIcon,
   'ncCheckSquare': NcCheckSquareIcon,
   'ncArrowDown2': NcArrowDownIcon,
@@ -1676,6 +1681,7 @@ export const iconMap = {
   'mdi-thumb-up-outline': MdiNcThumbUpOutline,
   'mdi-flag': MdiNcFlag,
   'mdi-flag-outline': MdiNcFlagOutline,
+  'sso': MdiCloudKeyOutline,
 }
 
 export const getMdiIcon = (type: string): any => {

@@ -17,8 +17,10 @@ export const isActiveElementInsideExtension = () =>
   )
 
 export const isSidebarNodeRenameActive = () => document.querySelector('input.animate-sidebar-node-input-padding')
-export function hasAncestorWithClass(element: HTMLElement, className: string): boolean {
-  return !!element.closest(`.${className}`)
+export function hasAncestorWithClass(element: HTMLElement, className: string | Array<string>): boolean {
+  const classNames = ncIsArray(className) ? className : [className]
+
+  return classNames.some((c) => !!element.closest(`.${c}`))
 }
 export const cmdKActive = () => document.querySelector('.cmdk-modal-active')
 export const isCmdJActive = () => document.querySelector('.DocSearch--active')
@@ -34,6 +36,18 @@ export const isActiveInputElementExist = (e?: Event) => {
     target instanceof HTMLInputElement ||
     target instanceof HTMLTextAreaElement ||
     (target instanceof HTMLElement && target.isContentEditable)
+  )
+}
+export const isActiveButtonOrLinkElementExist = (e?: Event) => {
+  const activeElement = document.activeElement
+  const target = e?.target
+
+  // A rich text editor is a div with the contenteditable attribute set to true.
+  return (
+    activeElement instanceof HTMLButtonElement ||
+    activeElement instanceof HTMLAnchorElement ||
+    target instanceof HTMLButtonElement ||
+    target instanceof HTMLAnchorElement
   )
 }
 

@@ -127,6 +127,11 @@ export class HooksService {
 
     this.validateHookPayload(param.hook.notification);
 
+    // If the webhook is being changed to manual trigger, set it to active
+    if (param.hook.event === 'manual') {
+      param.hook.active = true;
+    }
+
     if (
       (hook.active && !param.hook.active) ||
       hook.event !== param.hook.event

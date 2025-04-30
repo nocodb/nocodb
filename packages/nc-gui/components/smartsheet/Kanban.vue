@@ -80,6 +80,8 @@ const { appInfo, isMobileMode } = useGlobal()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
+const { showRecordPlanLimitExceededModal } = useEeConfig()
+
 provide(IsFormInj, ref(false))
 
 provide(IsGalleryInj, ref(false))
@@ -472,6 +474,12 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
   )
   // || isTouchEvent(event) // allow drag and drop for touch devices for now
 }
+
+const handleOpenNewRecordForm = (_stackTitle?: string) => {
+  if (showRecordPlanLimitExceededModal()) return
+
+  openNewRecordFormHook.trigger()
+}
 </script>
 
 <template>
@@ -659,7 +667,7 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
                                 @click="
                                   () => {
                                     selectedStackTitle = stack.title
-                                    openNewRecordFormHook.trigger(stack.title)
+                                    handleOpenNewRecordForm(stack.title)
                                   }
                                 "
                               >
@@ -946,7 +954,7 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
                                 @click="
                                   () => {
                                     selectedStackTitle = stack.title
-                                    openNewRecordFormHook.trigger(stack.title)
+                                    handleOpenNewRecordForm(stack.title)
                                   }
                                 "
                               >
@@ -970,7 +978,7 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
                           @click="
                             () => {
                               selectedStackTitle = stack.title
-                              openNewRecordFormHook.trigger(stack.title)
+                              handleOpenNewRecordForm(stack.title)
                             }
                           "
                         >
@@ -1390,6 +1398,15 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
   &.nc-cell-url {
     .nc-cell-field-link {
       @apply py-0;
+    }
+  }
+  &.nc-cell-datetime {
+    @apply !w-auto;
+    & > div {
+      @apply !w-auto;
+    }
+    div {
+      @apply flex-none !max-w-none !w-auto;
     }
   }
 }

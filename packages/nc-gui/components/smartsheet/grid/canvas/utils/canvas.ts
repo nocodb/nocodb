@@ -1,12 +1,12 @@
 import { LRUCache } from 'lru-cache'
 import JsBarcode from 'jsbarcode'
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, UserType } from 'nocodb-sdk'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import type { RenderMultiLineTextProps, RenderSingleLineTextProps, RenderTagProps } from './types'
 import { type Block, getFontForToken, parseMarkdown } from './markdownUtils'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 
-const singleLineTextCache: LRUCache<string, { text: string; width: number }> = new LRUCache({
+const singleLineTextCache: LRUCache<string, { text: string; width: number; isTruncated: boolean }> = new LRUCache({
   max: 1000,
 })
 
@@ -134,13 +134,23 @@ export function truncateText(
 }
 
 export function roundedRect(
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   x: number,
   y: number,
   width: number,
   height: number,
   radius: number | { topRight?: number; bottomRight?: number; bottomLeft?: number; topLeft?: number },
-  { backgroundColor, borderColor, borderWidth }: { backgroundColor?: string; borderColor?: string; borderWidth?: number } = {},
+  {
+    backgroundColor,
+    borderColor,
+    borderWidth = 1,
+    borders = { top: true, right: true, bottom: true, left: true },
+  }: {
+    backgroundColor?: string
+    borderColor?: string
+    borderWidth?: number
+    borders?: { top?: boolean; right?: boolean; bottom?: boolean; left?: boolean }
+  } = {},
 ): void {
   const {
     topLeft = 0,
@@ -149,36 +159,79 @@ export function roundedRect(
     bottomLeft = 0,
   } = typeof radius === 'number' ? { topLeft: radius, topRight: radius, bottomRight: radius, bottomLeft: radius } : radius
 
-  ctx.beginPath()
-  if (borderWidth) {
-    ctx.lineWidth = borderWidth
-  }
-  ctx.moveTo(x + topLeft, y)
-
-  // Top right corner
-  ctx.lineTo(x + width - topRight, y)
-  ctx.arcTo(x + width, y, x + width, y + topRight, topRight)
-
-  // Bottom right corner
-  ctx.lineTo(x + width, y + height - bottomRight)
-  ctx.arcTo(x + width, y + height, x + width - bottomRight, y + height, bottomRight)
-
-  // Bottom left corner
-  ctx.lineTo(x + bottomLeft, y + height)
-  ctx.arcTo(x, y + height, x, y + height - bottomLeft, bottomLeft)
-
-  // Top left corner
-  ctx.lineTo(x, y + topLeft)
-  ctx.arcTo(x, y, x + topLeft, y, topLeft)
-
-  ctx.closePath()
-
-  if (borderColor) ctx.strokeStyle = borderColor
-  ctx.stroke()
+  const { top = true, right = true, bottom = true, left = true } = borders
 
   if (backgroundColor) {
+    ctx.beginPath()
+    ctx.moveTo(x + topLeft, y)
+    ctx.lineTo(x + width - topRight, y)
+    ctx.arcTo(x + width, y, x + width, y + topRight, topRight)
+    ctx.lineTo(x + width, y + height - bottomRight)
+    ctx.arcTo(x + width, y + height, x + width - bottomRight, y + height, bottomRight)
+    ctx.lineTo(x + bottomLeft, y + height)
+    ctx.arcTo(x, y + height, x, y + height - bottomLeft, bottomLeft)
+    ctx.lineTo(x, y + topLeft)
+    ctx.arcTo(x, y, x + topLeft, y, topLeft)
+    ctx.closePath()
     ctx.fillStyle = backgroundColor
     ctx.fill()
+  }
+
+  if (borderColor) {
+    ctx.strokeStyle = borderColor
+    ctx.lineWidth = borderWidth
+
+    if (top) {
+      ctx.beginPath()
+      ctx.moveTo(x + topLeft, y)
+      ctx.lineTo(x + width - topRight, y)
+      if (right) {
+        ctx.arcTo(x + width, y, x + width, y + topRight, topRight)
+      }
+      ctx.stroke()
+    }
+
+    if (right) {
+      ctx.beginPath()
+      if (!top) {
+        ctx.moveTo(x + width, y + topRight)
+      } else {
+        ctx.moveTo(x + width, y + topRight)
+      }
+      ctx.lineTo(x + width, y + height - bottomRight)
+      if (bottom) {
+        ctx.arcTo(x + width, y + height, x + width - bottomRight, y + height, bottomRight)
+      }
+      ctx.stroke()
+    }
+
+    if (bottom) {
+      ctx.beginPath()
+      if (!right) {
+        ctx.moveTo(x + width - bottomRight, y + height)
+      } else {
+        ctx.moveTo(x + width - bottomRight, y + height)
+      }
+      ctx.lineTo(x + bottomLeft, y + height)
+      if (left) {
+        ctx.arcTo(x, y + height, x, y + height - bottomLeft, bottomLeft)
+      }
+      ctx.stroke()
+    }
+
+    if (left) {
+      ctx.beginPath()
+      if (!bottom) {
+        ctx.moveTo(x, y + height - bottomLeft)
+      } else {
+        ctx.moveTo(x, y + height - bottomLeft)
+      }
+      ctx.lineTo(x, y + topLeft)
+      if (top) {
+        ctx.arcTo(x, y, x + topLeft, y, topLeft)
+      }
+      ctx.stroke()
+    }
   }
 }
 
@@ -274,6 +327,37 @@ const drawStrikeThrough = (
   ctx.stroke()
 }
 
+export const drawStraightLine = (
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  {
+    startX,
+    startY,
+    endX,
+    endY,
+    strokeStyle,
+    lineWidth = 1,
+  }: {
+    startX: number
+    startY: number
+    endX: number
+    endY: number
+    strokeStyle?: string
+    lineWidth?: number
+  },
+) => {
+  ctx.beginPath()
+
+  ctx.moveTo(startX, startY)
+  ctx.lineTo(endX, endY)
+
+  if (strokeStyle) {
+    ctx.strokeStyle = strokeStyle
+  }
+
+  ctx.lineWidth = lineWidth
+  ctx.stroke()
+}
+
 export const renderSingleLineText = (
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   params: RenderSingleLineTextProps,
@@ -282,6 +366,7 @@ export const renderSingleLineText = (
   width: number
   x: number
   y: number
+  isTruncated: boolean
 } => {
   const {
     x = 0,
@@ -306,6 +391,7 @@ export const renderSingleLineText = (
   }
 
   let truncatedText = ''
+  let isTruncated = false
   let width = 0
   const originalFontFamily = ctx.font
 
@@ -315,16 +401,16 @@ export const renderSingleLineText = (
 
   const cacheKey = `${text}-${fontFamily}-${maxWidth}`
   const cachedText = singleLineTextCache.get(cacheKey)
-
   if (cachedText) {
     truncatedText = cachedText.text
     width = cachedText.width
+    isTruncated = cachedText.isTruncated
   } else {
     const res = truncateText(ctx, text, maxWidth, true)
     truncatedText = res.text
+    isTruncated = truncatedText !== text
     width = res.width
-
-    singleLineTextCache.set(cacheKey, { text: truncatedText, width })
+    singleLineTextCache.set(cacheKey, { text: truncatedText, width, isTruncated })
   }
 
   const yOffset =
@@ -360,7 +446,7 @@ export const renderSingleLineText = (
     ctx.font = originalFontFamily
   }
 
-  return { text: truncatedText, width, x: x + width, y: y + yOffset + fontSize / 2 }
+  return { text: truncatedText, width, x: x + width, y: y + yOffset + fontSize / 2, isTruncated }
 }
 
 export const wrapTextToLines = (
@@ -496,6 +582,7 @@ export const renderMarkdownBlocks = (
     cellRenderStore,
     fontFamily,
     height,
+    selected = false,
   }: {
     blocks: Block[]
     x: number
@@ -510,6 +597,7 @@ export const renderMarkdownBlocks = (
     fontFamily?: string
     mousePosition?: { x: number; y: number }
     height?: number
+    selected?: boolean
   },
 ) => {
   if (fillStyle) {
@@ -528,6 +616,7 @@ export const renderMarkdownBlocks = (
   const defaultStrokeStyle = ctx.strokeStyle
 
   const links: { x: number; y: number; width: number; height: number; url: string }[] = []
+  const mentions: { x: number; y: number; width: number; height: number; mentionData: any }[] = []
 
   maxLines = maxLines ?? blocks.length
 
@@ -563,6 +652,55 @@ export const renderMarkdownBlocks = (
       const maxLinesToRender = maxLines - renderedLineCount
 
       const isUrl = token.styles.includes('link') && !!token.url
+      const isMention = token.styles.includes('mention') && !!token.mentionData
+
+      const tokenWidth = ctx.measureText(tokenText)?.width
+
+      let mentionTextColor = '#3366FF'
+
+      // Handle mentions with background color and rounded rectangle
+      if (isMention && token.mentionData) {
+        // Check if mention will fit in current line
+        const remainingWidth = maxWidth - (cursorX - x)
+        const willFit = tokenWidth <= remainingWidth
+
+        // If mention won't fit on current line, move to next line first
+        if (!willFit && cursorX > x) {
+          cursorX = x
+          renderedLineCount++
+          cursorY = y + renderedLineCount * lineHeight
+        }
+
+        const paddingX = 4
+        const mentionBox = {
+          x: cursorX - paddingX,
+          y: cursorY - baseFontSize / 2 - 2,
+          width: tokenWidth + paddingX * 2,
+          height: baseFontSize + 4,
+        }
+
+        let bgColor
+        if (token.mentionData.isSameUser) {
+          mentionTextColor = '#17803D' // Current user text color
+          bgColor = '#D4F7E0' // Current user background
+        } else {
+          mentionTextColor = '#3366FF' // Other user text color
+          bgColor = '#EBF0FF' // Other user background
+        }
+
+        // Draw rounded rectangle background
+        ctx.fillStyle = bgColor
+        roundedRect(ctx, mentionBox.x, mentionBox.y, mentionBox.width, mentionBox.height, 6, {
+          backgroundColor: bgColor,
+          borderColor: '#ffffff00',
+        })
+
+        // Store mention data if cellRenderStore is provided
+        mentions.push({
+          ...mentionBox,
+          mentionData: token.mentionData,
+        })
+      }
 
       const multilineTextFnProps = {
         x,
@@ -572,9 +710,9 @@ export const renderMarkdownBlocks = (
         text: tokenText,
         maxWidth,
         height,
-        fillStyle: isUrl ? '#3366FF' : (defaultFillStyle as string),
+        fillStyle: isUrl && selected ? '#3366FF' : isMention ? mentionTextColor : (defaultFillStyle as string),
         fontFamily: ctx.font,
-        maxLines: maxLinesToRender,
+        maxLines: isMention ? 1 : maxLinesToRender,
         underline: token.styles.includes('underline') || isUrl,
         strikethrough: token.styles.includes('strikethrough'),
       }
@@ -602,7 +740,7 @@ export const renderMarkdownBlocks = (
 
         const isHovered = isBoxHovered(linkBox, mousePosition)
 
-        if (isHovered) {
+        if (isHovered && selected) {
           multilineTextFnProps.fillStyle = '#000'
           ctx.fillStyle = '#000'
           ctx.strokeStyle = '#000'
@@ -633,6 +771,7 @@ export const renderMarkdownBlocks = (
       if (lines.length === 1) {
         // If lines count is 1 then we just need to move cursorX as this is rendered inline
         cursorX += lastLineWidth
+        if (isMention) cursorX += 8 // Adding the padding value from your code
       } else {
         /**
          * If text is wrapped to next line then we can set cursorX to cell x + lastLineWidth
@@ -661,7 +800,9 @@ export const renderMarkdownBlocks = (
     renderedLineCount++
   }
 
-  if (cellRenderStore) cellRenderStore.links = links
+  if (cellRenderStore) {
+    cellRenderStore.links = links
+  }
 
   // Restore the original font
   ctx.font = defaultFont
@@ -870,6 +1011,10 @@ export function renderBarcode(
     return {
       x: xPos + finalWidth + 8,
       y: y + height - padding * 2,
+      startX: xPos,
+      startY: y + height / 2 - finalHeight / 2,
+      width: finalWidth,
+      height: finalHeight,
     }
   } catch (error) {
     ctx.font = `500 13px Manrope`
@@ -907,7 +1052,10 @@ export function renderBarcode(
 
 export const renderMarkdown = (
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-  params: RenderMultiLineTextProps,
+  params: RenderMultiLineTextProps & {
+    baseUsers?: (Partial<UserType> | Partial<User>)[]
+    user?: Partial<UserType> | Partial<User>
+  },
 ): {
   width: number
   x: number
@@ -930,6 +1078,9 @@ export const renderMarkdown = (
     mousePosition = { x: 0, y: 0 },
     cellRenderStore,
     isTagLabel = false,
+    selected = false,
+    baseUsers,
+    user,
   } = params
   let { maxWidth = Infinity, maxLines } = params
 
@@ -968,7 +1119,10 @@ export const renderMarkdown = (
     const renderText = NcMarkdownParser.preprocessMarkdown(processText, true)
 
     width = maxWidth
-    blocks = parseMarkdown(renderText)
+    blocks = parseMarkdown(renderText, {
+      users: baseUsers,
+      currentUser: user,
+    })
 
     markdownTextCache.set(cacheKey, { blocks, width })
   }
@@ -1003,6 +1157,7 @@ export const renderMarkdown = (
       cellRenderStore,
       fontFamily,
       height,
+      selected,
     })
   } else {
     /**
@@ -1044,10 +1199,12 @@ export const renderTagLabel = (
   const { x, y, height, width, padding, textColor = '#4a5268', mousePosition, spriteLoader, text, renderAsMarkdown } = props
   const {
     tagPaddingX = 8,
+    tagPaddingY = 0,
     tagHeight = 20,
     tagRadius = 6,
     tagBgColor = '#f4f4f0',
     tagSpacing = 4,
+    tagFontFamily = '500 13px Manrope',
     tagBorderColor,
     tagBorderWidth,
   } = props.tag || {}
@@ -1072,10 +1229,10 @@ export const renderTagLabel = (
   if (renderAsMarkdown) {
     const { width: textWidth } = renderMarkdown(ctx, {
       x: x + tagSpacing + tagPaddingX,
-      y: initialY,
+      y: initialY + tagPaddingY,
       text,
       maxWidth,
-      height: tagHeight,
+      height: tagHeight - tagPaddingY * 2,
       fontFamily: '500 13px Manrope',
       fillStyle: textColor,
       isTagLabel: true,
@@ -1089,10 +1246,10 @@ export const renderTagLabel = (
 
     renderMarkdown(ctx, {
       x: x + tagSpacing + tagPaddingX,
-      y: initialY,
+      y: initialY + tagPaddingY,
       text,
       maxWidth,
-      height: tagHeight,
+      height: tagHeight - tagPaddingY * 2,
       fontFamily: '500 13px Manrope',
       fillStyle: textColor,
       isTagLabel: true,
@@ -1111,7 +1268,7 @@ export const renderTagLabel = (
       y,
       text,
       maxWidth,
-      fontFamily: '500 13px Manrope',
+      fontFamily: tagFontFamily,
       render: false,
     })
 
@@ -1119,11 +1276,11 @@ export const renderTagLabel = (
 
     renderSingleLineText(ctx, {
       x: x + tagSpacing + tagPaddingX,
-      y: initialY,
+      y: initialY + tagPaddingY,
       text: truncatedText,
       maxWidth,
-      height: tagHeight,
-      fontFamily: '500 13px Manrope',
+      height: tagHeight - tagPaddingY * 2,
+      fontFamily: tagFontFamily,
       fillStyle: textColor,
       isTagLabel: true,
     })

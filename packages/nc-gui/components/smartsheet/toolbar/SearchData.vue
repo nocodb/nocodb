@@ -14,15 +14,15 @@ const route = router.currentRoute
 
 const { search, loadFieldQuery } = useFieldQuery()
 
+const { isMobileMode } = useGlobal()
+
 const isDropdownOpen = ref(false)
 
-const showSearchBox = ref(false)
+const showSearchBox = ref(!!isMobileMode.value)
 
 const globalSearchRef = ref<HTMLInputElement>()
 
 const globalSearchWrapperRef = ref<HTMLInputElement>()
-
-const { isMobileMode } = useGlobal()
 
 const columns = computed(
   () =>
@@ -71,6 +71,10 @@ watchDebounced(
 const onSelectOption = (column: ColumnType) => {
   search.value.field = column.id as string
   isDropdownOpen.value = false
+
+  if (search.value.query?.length) {
+    onPressEnter()
+  }
 }
 
 const handleShowSearchInput = () => {
@@ -87,13 +91,15 @@ const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
     return
   }
 
-  showSearchBox.value = false
+  if (!isMobileMode.value) {
+    showSearchBox.value = false
+  }
 }
 
 onClickOutside(globalSearchWrapperRef, handleClickOutside)
 
 onMounted(() => {
-  if (search.value.query && !showSearchBox.value) {
+  if ((search.value.query || isMobileMode.value) && !showSearchBox.value) {
     showSearchBox.value = true
   }
 })

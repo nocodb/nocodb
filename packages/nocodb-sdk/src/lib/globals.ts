@@ -1,4 +1,5 @@
 import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from './enums';
+import { PlanTitles } from './payment';
 
 export const enumColors = {
   light: [
@@ -145,13 +146,18 @@ export enum NcDataErrorCodes {
 
 export enum NcErrorType {
   AUTHENTICATION_REQUIRED = 'AUTHENTICATION_REQUIRED',
+  FORBIDDEN = 'FORBIDDEN',
   API_TOKEN_NOT_ALLOWED = 'API_TOKEN_NOT_ALLOWED',
   WORKSPACE_NOT_FOUND = 'WORKSPACE_NOT_FOUND',
   BASE_NOT_FOUND = 'BASE_NOT_FOUND',
+  BASE_NOT_FOUNDV3 = 'BASE_NOT_FOUNDV3',
   SOURCE_NOT_FOUND = 'SOURCE_NOT_FOUND',
   TABLE_NOT_FOUND = 'TABLE_NOT_FOUND',
+  TABLE_NOT_FOUNDV3 = 'TABLE_NOT_FOUNDV3',
   VIEW_NOT_FOUND = 'VIEW_NOT_FOUND',
+  VIEW_NOT_FOUNDV3 = 'VIEW_NOT_FOUNDV3',
   FIELD_NOT_FOUND = 'FIELD_NOT_FOUND',
+  FIELD_NOT_FOUNDV3 = 'FIELD_NOT_FOUNDV3',
   RECORD_NOT_FOUND = 'RECORD_NOT_FOUND',
   GENERIC_NOT_FOUND = 'GENERIC_NOT_FOUND',
   HOOK_NOT_FOUND = 'HOOK_NOT_FOUND',
@@ -162,6 +168,7 @@ export enum NcErrorType {
   INVALID_PAGE_VALUE = 'INVALID_PAGE_VALUE',
   INVALID_LIMIT_VALUE = 'INVALID_LIMIT_VALUE',
   INVALID_FILTER = 'INVALID_FILTER',
+  INVALID_FILTERV3 = 'INVALID_FILTERV3',
   INVALID_SHARED_VIEW_PASSWORD = 'INVALID_SHARED_VIEW_PASSWORD',
   INVALID_ATTACHMENT_JSON = 'INVALID_ATTACHMENT_JSON',
   NOT_IMPLEMENTED = 'NOT_IMPLEMENTED',
@@ -180,11 +187,31 @@ export enum NcErrorType {
   INVALID_ATTACHMENT_UPLOAD_SCOPE = 'INVALID_ATTACHMENT_UPLOAD_SCOPE',
   CANNOT_CALCULATE_INTERMEDIATE_ORDER = 'CANNOT_CALCULATE_INTERMEDIATE_ORDER',
   REORDER_FAILED = 'REORDER_FAILED',
+  PLAN_LIMIT_EXCEEDED = 'PLAN_LIMIT_EXCEEDED',
+  SSO_LOGIN_REQUIRED = 'SSO_LOGIN_REQUIRED',
+  MAX_INSERT_LIMIT_EXCEEDED = 'MAX_INSERT_LIMIT_EXCEEDED',
+  INVALID_VALUE_FOR_FIELD = 'INVALID_VALUE_FOR_FIELD',
 }
 
+export const NcErrorTypeMap = {
+  [NcErrorType.TABLE_NOT_FOUNDV3]: 'TABLE_NOT_FOUND',
+  [NcErrorType.BASE_NOT_FOUNDV3]: 'BASE_NOT_FOUND',
+  [NcErrorType.VIEW_NOT_FOUNDV3]: 'VIEW_NOT_FOUND',
+  [NcErrorType.FIELD_NOT_FOUNDV3]: 'FIELD_NOT_FOUND',
+  [NcErrorType.INVALID_FILTERV3]: 'INVALID_FILTER',
+}
 export const LongTextAiMetaProp = 'ai';
 
 export const NO_SCOPE = 'nc';
+
+export const NON_SEAT_ROLES = [
+  WorkspaceUserRoles.NO_ACCESS,
+  WorkspaceUserRoles.VIEWER,
+  WorkspaceUserRoles.COMMENTER,
+  ProjectRoles.NO_ACCESS,
+  ProjectRoles.VIEWER,
+  ProjectRoles.COMMENTER,
+];
 
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
 
@@ -192,4 +219,11 @@ type RolesObj = Partial<Record<Roles, boolean>>;
 
 type RolesType = RolesObj | string[] | string;
 
-export { Roles, RolesObj, RolesType };
+interface PlanLimitExceededDetailsType {
+  plan?: PlanTitles;
+  limit?: number;
+  current?: number;
+  higherPlan?: PlanTitles;
+}
+
+export { Roles, RolesObj, RolesType, PlanLimitExceededDetailsType };

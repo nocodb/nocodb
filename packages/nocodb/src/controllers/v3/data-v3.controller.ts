@@ -26,6 +26,7 @@ import {
   PagedResponseImpl,
   PagedResponseV3Impl,
 } from '~/helpers/PagedResponse';
+import { PREFIX_APIV3_DATA } from '~/constants/controllers';
 
 @Controller()
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
@@ -35,14 +36,14 @@ export class Datav3Controller {
     protected readonly dataTableService: DataTableService,
   ) {}
 
-  @Get('/api/v3/tables/:modelId/records')
+  @Get(`${PREFIX_APIV3_DATA}/:modelId`)
   @Acl('dataList')
   async dataList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Res() res: Response,
     @Param('modelId') modelId: string,
-    @Query('view_id') viewId: string,
+    @Query('viewId') viewId: string,
   ) {
     const startTime = process.hrtime();
     const responseData = await this.dataV3Service.dataList(context, {
@@ -56,7 +57,7 @@ export class Datav3Controller {
     res.json(responseData);
   }
 
-  @Post(['/api/v3/tables/:modelId/records'])
+  @Post([`${PREFIX_APIV3_DATA}/:modelId`])
   @HttpCode(200)
   @Acl('dataInsert')
   async dataInsert(
@@ -74,7 +75,7 @@ export class Datav3Controller {
     });
   }
 
-  @Delete(['/api/v3/tables/:modelId/records'])
+  @Delete([`${PREFIX_APIV3_DATA}/:modelId`])
   @Acl('dataDelete')
   async dataDelete(
     @TenantContext() context: NcContext,
@@ -90,7 +91,7 @@ export class Datav3Controller {
     });
   }
 
-  @Patch(['/api/v3/tables/:modelId/records'])
+  @Patch([`${PREFIX_APIV3_DATA}/:modelId`])
   @Acl('dataUpdate')
   async dataUpdate(
     @TenantContext() context: NcContext,
@@ -106,13 +107,13 @@ export class Datav3Controller {
     });
   }
 
-  @Get(['/api/v3/tables/:modelId/links/:columnId/records/:rowId'])
+  @Get([`${PREFIX_APIV3_DATA}/:modelId/links/:columnId/:rowId`])
   @Acl('nestedDataList')
   async nestedDataList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('modelId') modelId: string,
-    @Query('view_id') viewId: string,
+    @Query('viewId') viewId: string,
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
   ) {
@@ -130,12 +131,14 @@ export class Datav3Controller {
     }
 
     return new PagedResponseV3Impl(response as PagedResponseImpl<any>, {
+      context,
       baseUrl: req.baseUrl,
       tableId: modelId,
     });
   }
 
-  @Post(['/api/v3/tables/:modelId/links/:columnId/records/:rowId'])
+  @Post([`${PREFIX_APIV3_DATA}/:modelId/links/:columnId/:rowId`])
+  @HttpCode(200)
   @Acl('nestedDataLink')
   async nestedLink(
     @TenantContext() context: NcContext,
@@ -164,7 +167,7 @@ export class Datav3Controller {
     });
   }
 
-  @Delete(['/api/v3/tables/:modelId/links/:columnId/records/:rowId'])
+  @Delete([`${PREFIX_APIV3_DATA}/:modelId/links/:columnId/:rowId`])
   @Acl('nestedDataUnlink')
   async nestedUnlink(
     @TenantContext() context: NcContext,
@@ -187,7 +190,26 @@ export class Datav3Controller {
     });
   }
 
-  @Get(['/api/v3/tables/:modelId/records/:rowId'])
+  @Get([`${PREFIX_APIV3_DATA}/:modelId/count`])
+  @Acl('dataCount')
+  async dataCount(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Res() res: Response,
+    @Param('modelId') modelId: string,
+    @Query('viewId') viewId: string,
+  ) {
+    const countResult = await this.dataTableService.dataCount(context, {
+      query: req.query,
+      modelId,
+      viewId,
+      apiVersion: NcApiVersion.V3,
+    });
+
+    res.json(countResult);
+  }
+
+  @Get([`${PREFIX_APIV3_DATA}/:modelId/:rowId`])
   @Acl('dataRead')
   async dataRead(
     @TenantContext() context: NcContext,
@@ -203,24 +225,5 @@ export class Datav3Controller {
       viewId,
       apiVersion: NcApiVersion.V3,
     });
-  }
-
-  @Get(['/api/v3/tables/:modelId/records/count'])
-  @Acl('dataCount')
-  async dataCount(
-    @TenantContext() context: NcContext,
-    @Req() req: NcRequest,
-    @Res() res: Response,
-    @Param('modelId') modelId: string,
-    @Query('view_id') viewId: string,
-  ) {
-    const countResult = await this.dataTableService.dataCount(context, {
-      query: req.query,
-      modelId,
-      viewId,
-      apiVersion: NcApiVersion.V3,
-    });
-
-    res.json(countResult);
   }
 }

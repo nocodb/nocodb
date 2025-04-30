@@ -1,5 +1,5 @@
 import { type ColumnType, type TableType, UITypes, type UserType, type ViewType, isAIPromptCol } from 'nocodb-sdk'
-import { renderSingleLineText, renderSpinner } from '../utils/canvas'
+import { renderSingleLineText, renderSpinner, roundedRect } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import { useDetachedLongText } from '../composables/useDetachedLongText'
@@ -34,19 +34,26 @@ import { ButtonCellRenderer } from './Button'
 import { LtarCellRenderer } from './LTAR'
 import { FormulaCellRenderer } from './Formula'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
+import { NullCellRenderer } from './Null'
+import { PlainCellRenderer } from './Plain'
 
 const CLEANUP_INTERVAL = 1000
 
 export function useGridCellHandler(params: {
-  getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { x: number; y: number; width: number; height: number }
+  getCellPosition: (
+    column: CanvasGridColumn,
+    rowIndex: number,
+    path: Array<number>,
+  ) => { x: number; y: number; width: number; height: number }
   actionManager: ActionManager
-  makeCellEditable: (row: number | Row, clickedColumn: CanvasGridColumn) => void
+  makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
   updateOrSaveRow: (
     row: Row,
     property?: string,
     ltarState?: Record<string, any>,
     args?: { metaValue?: TableType; viewMetaValue?: ViewType },
     beforeRow?: string,
+    path?: Array<number>,
   ) => Promise<any>
   meta?: Ref<TableType>
   hasEditPermission: ComputedRef<boolean>
@@ -56,10 +63,13 @@ export function useGridCellHandler(params: {
 
   const { t } = useI18n()
   const { metas } = useMetas()
+  const { user } = useGlobal()
   const canvasCellEvents = reactive<CanvasCellEventDataInjType>({})
   provide(CanvasCellEventDataInj, canvasCellEvents)
 
+  const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
   const baseStore = useBase()
+  const { showNull } = useGlobal()
   const { isMssql, isMysql, isXcdbBase, isPg } = baseStore
   const { sqlUis } = storeToRefs(baseStore)
 
@@ -159,11 +169,44 @@ export function useGridCellHandler(params: {
       pk,
       meta = params.meta?.value,
       skipRender = false,
+      renderAsPlainCell = false,
       isUnderLookup = false,
+      path = [],
+      fontFamily,
+      isRowHovered = false,
+      isRowChecked = false,
+      isCellInSelectionRange = false,
+      isGroupHeader = false,
+      rowMeta = {},
     }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
+    if (!isGroupHeader) {
+      const columnState = isColumnSortedOrFiltered(column.id!)
+      if (columnState !== undefined && !rowMeta?.isValidationFailed) {
+        let bgColorProps: 'cellBgColor' | 'cellBgColor.hovered' | 'cellBgColor.selected' = 'cellBgColor'
+        let borderColorProps: 'cellBorderColor' | 'cellBorderColor.hovered' | 'cellBorderColor.selected' = 'cellBorderColor'
+        if (selected || isRowChecked || isCellInSelectionRange) {
+          bgColorProps = 'cellBgColor.selected'
+          borderColorProps = 'cellBorderColor.selected'
+        } else if (isRowHovered) {
+          bgColorProps = 'cellBgColor.hovered'
+          borderColorProps = 'cellBorderColor.hovered'
+        }
 
+        roundedRect(ctx, x, y, width, height, 0, {
+          backgroundColor: filteredOrSortedAppearanceConfig[columnState][bgColorProps],
+          borderColor: filteredOrSortedAppearanceConfig[columnState][borderColorProps],
+          borderWidth: 0.4,
+          borders: {
+            top: rowMeta.rowIndex !== 0,
+            right: true,
+            bottom: true,
+            left: true,
+          },
+        })
+      }
+    }
     const cellType = cellTypesRegistry.get(column.uidt)
     if (actionManager?.isLoading(pk, column.id) && !isAIPromptCol(column) && !isButton(column)) {
       const loadingStartTime = actionManager?.getLoadingStartTime(pk, column.id)
@@ -177,8 +220,28 @@ export function useGridCellHandler(params: {
 
     // TODO: Reset all the styles here
     ctx.textAlign = 'left'
-    if (cellType) {
-      return cellType.render(ctx, {
+
+    let cellRenderer: CellRenderFn
+    const shouldRenderNull = showNull.value && isShowNullField(column) && (ncIsUndefined(value) || ncIsNull(value))
+
+    if (renderAsPlainCell) {
+      cellRenderer = PlainCellRenderer.render
+    } else if (cellType) {
+      if (!shouldRenderNull) {
+        cellRenderer = cellType.render
+      } else {
+        if (cellType.renderEmpty) {
+          cellRenderer = cellType.renderEmpty
+        } else {
+          cellRenderer = NullCellRenderer.render
+        }
+      }
+    } else if (shouldRenderNull) {
+      cellRenderer = NullCellRenderer.render
+    }
+
+    if (cellRenderer!) {
+      return cellRenderer(ctx, {
         value,
         row,
         column,
@@ -215,8 +278,14 @@ export function useGridCellHandler(params: {
         setCursor,
         cellRenderStore,
         baseUsers: baseUsers.value,
+        user: user.value,
         isUnderLookup,
         isPublic: isPublic.value,
+        path,
+        fontFamily,
+        isRowHovered,
+        isRowChecked,
+        rowMeta,
       })
     } else {
       return renderSingleLineText(ctx, {
@@ -241,6 +310,7 @@ export function useGridCellHandler(params: {
     pk: any
     selected: boolean
     imageLoader: ImageWindowLoader
+    path: Array<number>
   }) => {
     if (!ctx.column?.columnObj?.uidt) return
 
@@ -255,7 +325,7 @@ export function useGridCellHandler(params: {
         ...ctx,
         cellRenderStore,
         isDoubleClick: ctx.event.detail === 2,
-        getCellPosition: params?.getCellPosition,
+        getCellPosition: (...args) => params?.getCellPosition?.(...args, ctx.path),
         readonly: !params.hasEditPermission.value,
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
@@ -263,12 +333,20 @@ export function useGridCellHandler(params: {
         isPublic: isPublic.value,
         openDetachedExpandedForm,
         openDetachedLongText,
+        path: ctx.path ?? [],
       })
     }
     return false
   }
 
-  const handleCellKeyDown = async (ctx: { e: KeyboardEvent; row: Row; column: CanvasGridColumn; value: any; pk: any }) => {
+  const handleCellKeyDown = async (ctx: {
+    e: KeyboardEvent
+    row: Row
+    column: CanvasGridColumn
+    value: any
+    pk: any
+    path: Array<number>
+  }) => {
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj!.uidt!)
 
     const cellRenderStore = getCellRenderStore(`${ctx.column.id}-${ctx.pk}`)
@@ -283,6 +361,7 @@ export function useGridCellHandler(params: {
         actionManager,
         makeCellEditable,
         openDetachedLongText,
+        path: ctx.path ?? [],
       })
     } else {
       console.log('No handler found for cell type', ctx.column.columnObj.uidt)
@@ -300,6 +379,7 @@ export function useGridCellHandler(params: {
     pk: any
     selected: boolean
     imageLoader: ImageWindowLoader
+    path: Array<number>
   }) => {
     if (!ctx.column?.columnObj?.uidt) return
 
@@ -311,11 +391,13 @@ export function useGridCellHandler(params: {
       return await cellHandler.handleHover({
         ...ctx,
         cellRenderStore,
-        getCellPosition: params?.getCellPosition,
+        getCellPosition: (...args) => params?.getCellPosition?.(...args, ctx.path),
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
         makeCellEditable,
         setCursor,
+        path: ctx.path ?? [],
+        baseUsers: baseUsers.value,
       })
     }
   }

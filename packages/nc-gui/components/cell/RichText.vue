@@ -339,7 +339,7 @@ onClickOutside(editorDom, (e) => {
           'mt-2.5 flex-grow': fullMode,
           'scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent': !fullMode || (!fullMode && isExpandedFormOpen),
           'flex-grow': isExpandedFormOpen,
-          [`!overflow-hidden nc-truncate nc-line-clamp-${rowHeightTruncateLines(localRowHeight)}`]:
+          [`!overflow-hidden nc-rich-truncate nc-line-clamp-${rowHeightTruncateLines(localRowHeight)}`]:
             !fullMode && readOnly && localRowHeight && !isExpandedFormOpen && !isForm,
         }"
         @keydown.alt.stop
@@ -448,7 +448,7 @@ onClickOutside(editorDom, (e) => {
 }
 
 .nc-textarea-rich-editor {
-  &.nc-truncate {
+  &.nc-rich-truncate {
     .tiptap.ProseMirror {
       display: -webkit-box;
       max-width: 100%;

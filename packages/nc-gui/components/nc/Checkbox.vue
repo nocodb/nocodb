@@ -35,7 +35,7 @@ const onChange = (e: Event) => {
 
 <style>
 .nc-checkbox {
-  @apply flex flex-row !items-center;
+  @apply flex flex-row !items-center text-nc-content-gray;
 
   &.theme-ai {
     .ant-checkbox-input:focus + .ant-checkbox-inner,

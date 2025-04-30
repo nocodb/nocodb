@@ -861,7 +861,6 @@
                         }
                       ]
                     }
-
                   }
                 }
               }
@@ -2184,8 +2183,17 @@
         }
       }
     },
-    "/api/v3/tables/{tableId}/records": {
+    "/api/v3/{baseId}/{tableId}": {
       "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "**Base Identifier**."
+        },
         {
           "schema": {
             "type": "string"
@@ -2210,7 +2218,7 @@
             },
             "in": "query",
             "name": "fields",
-            "description": "Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
+            "description": "Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list. Alternatively, multiple `fields` query params can also works, ex: `?fields=field1&fields=field2`."
           },
           {
             "schema": {
@@ -2702,8 +2710,17 @@
         ]
       }
     },
-    "/api/v3/tables/{tableId}/records/{recordId}": {
+    "/api/v3/{baseId}/{tableId}/{recordId}": {
       "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "**Base Identifier**."
+        },
         {
           "schema": {
             "type": "string"
@@ -2865,8 +2882,17 @@
         }
       }
     },
-    "/api/v3/tables/{tableId}/records/count": {
+    "/api/v3/{baseId}/{tableId}/count": {
       "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "**Base Identifier**."
+        },
         {
           "schema": {
             "type": "string"
@@ -2938,7 +2964,7 @@
         }
       }
     },
-    "/api/v3/tables/{tableId}/links/{linkFieldId}/records/{recordId}": {
+    "/api/v3/{baseId}/{tableId}/links/{linkFieldId}/{recordId}": {
       "parameters": [
         {
           "schema": {
@@ -3958,40 +3984,6 @@
           }
         ]
       },
-      "FieldBase": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the field.",
-            "readOnly": true,
-            "writeOnly": false
-          },
-          "title": {
-            "type": "string",
-            "description": "Title of the field."
-          },
-          "type": {
-            "type": "string",
-            "description": "Field data type."
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Description of the field."
-          },
-          "default_value": {
-            "type": "string",
-            "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields."
-          }
-        },
-        "required": [
-          "title",
-          "type"
-        ]
-      },
       "Table": {
         "type": "object",
         "properties": {
@@ -4188,7 +4180,6 @@
               ]
             }
           ],
-
           "description": "An object representing updates for an existing user."
         },
         "description": "Array of user updates."
@@ -4726,23 +4717,28 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "Field identifier."
+            "description": "Unique identifier for the field.",
+            "readOnly": true,
+            "writeOnly": false
           },
           "title": {
             "type": "string",
-            "description": "Field name."
+            "description": "Title of the field."
           },
           "type": {
             "type": "string",
-            "description": "Field type."
+            "description": "Field data type."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Description of the field."
           },
           "default_value": {
             "type": "string",
             "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields."
-          },
-          "description": {
-            "type": "string",
-            "description": "Field description."
           }
         },
         "required": [

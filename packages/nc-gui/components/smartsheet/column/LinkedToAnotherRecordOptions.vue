@@ -1,5 +1,15 @@
 <script setup lang="ts">
-import { type LinkToAnotherRecordType, ModelTypes, MssqlUi, RelationTypes, SqliteUi, UITypes, ViewTypes } from 'nocodb-sdk'
+import {
+  type LinkToAnotherRecordType,
+  ModelTypes,
+  MssqlUi,
+  PlanFeatureTypes,
+  PlanTitles,
+  RelationTypes,
+  SqliteUi,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -26,6 +36,8 @@ const viewsStore = useViewsStore()
 const { viewsByTable } = storeToRefs(viewsStore)
 
 const { t } = useI18n()
+
+const { getPlanTitle } = useEeConfig()
 
 if (!isEdit.value) {
   setAdditionalValidations({
@@ -360,21 +372,41 @@ const onFilterLabelClick = () => {
 
     <template v-if="isEeUI">
       <div class="flex flex-col gap-2">
-        <div class="flex gap-2 items-center">
-          <a-switch
-            v-model:checked="limitRecToCond"
-            v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
-            :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
-            size="small"
-          ></a-switch>
-          <span
-            v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
-            data-testid="nc-limit-record-filters"
-            @click="onFilterLabelClick"
-          >
-            {{ $t('labels.limitRecordSelectionToFilters') }}
-          </span>
-        </div>
+        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER">
+          <template #default="{ click }">
+            <div class="flex gap-2 items-center">
+              <a-switch
+                v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
+                :checked="limitRecToCond"
+                :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
+                size="small"
+                @change="
+                  (value) => {
+                    if (value && click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER)) return
+
+                    onFilterLabelClick()
+                  }
+                "
+              ></a-switch>
+              <span
+                v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
+                data-testid="nc-limit-record-filters"
+                @click="click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER, () => onFilterLabelClick())"
+              >
+                {{ $t('labels.limitRecordSelectionToFilters') }}
+              </span>
+              <LazyPaymentUpgradeBadge
+                v-if="!limitRecToCond"
+                :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER"
+                :content="
+                  $t('upgrade.upgradeToAddLimitRecordSelection', {
+                    plan: getPlanTitle(PlanTitles.TEAM),
+                  })
+                "
+              />
+            </div>
+          </template>
+        </PaymentUpgradeBadgeProvider>
         <div v-if="limitRecToCond" class="overflow-auto">
           <LazySmartsheetToolbarColumnFilter
             ref="filterRef"

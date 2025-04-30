@@ -845,7 +845,10 @@ export async function invokeWebhook(
     } else {
       logger.error(e.message, e.stack);
     }
-    if (['ERROR', 'ALL'].includes(process.env.NC_AUTOMATION_LOG_LEVEL)) {
+    if (
+      ['ERROR', 'ALL'].includes(process.env.NC_AUTOMATION_LOG_LEVEL) ||
+      isEE
+    ) {
       hookLog = {
         ...hook,
         type: notification.type,

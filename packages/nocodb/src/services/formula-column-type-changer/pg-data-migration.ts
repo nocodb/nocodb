@@ -58,18 +58,15 @@ export class PgDataMigration implements FormulaDataMigrationDriver {
     )
       .select({
         [formulaColumnAlias]: (
-          await formulaQueryBuilderv2(
-            baseModelSqlV2,
-            formulaColumnOption.formula_raw,
-            undefined,
-            baseModelSqlV2.model,
-            formulaColumn,
-            {},
-            formulaValueTableAlias,
-            false,
-            formulaColumnOption.getParsedTree(),
-            undefined,
-          )
+          await formulaQueryBuilderv2({
+            baseModel: baseModelSqlV2,
+            tree: formulaColumnOption.formula_raw,
+            model: baseModelSqlV2.model,
+            column: formulaColumn,
+            validateFormula: false,
+            tableAlias: formulaValueTableAlias,
+            parsedTree: formulaColumnOption.getParsedTree(),
+          })
         ).builder,
         ...getPrimaryKeySelectColumns({
           model: baseModelSqlV2.model,
@@ -95,7 +92,7 @@ export class PgDataMigration implements FormulaDataMigrationDriver {
         },
       );
 
-    // knex qb is not yet suppport update select / update join
+    // knex qb is not yet support update select / update join
     // so we need to compose them manually (sad)
     const qb = knex.raw(`update ?? set ?? = ?? from (??) ?? where ??`, [
       baseModelSqlV2.getTnPath(baseModelSqlV2.model, ROOT_ALIAS),

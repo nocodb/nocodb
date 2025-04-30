@@ -1,39 +1,32 @@
+import dayjs from 'dayjs';
 import {
   FormulaDataTypes,
   getEquivalentUIType,
   isAIPromptCol,
   isDateMonthFormat,
   isNumericCol,
-  RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
-import dayjs from 'dayjs';
+import { FieldHandler } from './field-handler';
 import type { FilterType } from 'nocodb-sdk';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type { Knex } from 'knex';
-import type Column from '~/models/Column';
-import type LookupColumn from '~/models/LookupColumn';
-import type RollupColumn from '~/models/RollupColumn';
-import type FormulaColumn from '~/models/FormulaColumn';
-import { getColumnName } from '~/db/BaseModelSqlv2';
-import { NcError } from '~/helpers/catchError';
-import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
-import genRollupSelectv2 from '~/db/genRollupSelectv2';
-import { sanitize } from '~/helpers/sqlSanitize';
-import Filter from '~/models/Filter';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
-import { getAliasGenerator } from '~/utils';
 import { getRefColumnIfAlias } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import { getColumnName } from '~/helpers/dbHelpers';
+import { sanitize } from '~/helpers/sqlSanitize';
 import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
+import Filter from '~/models/Filter';
+import { getAliasGenerator } from '~/utils';
 import { validateAndStringifyJson } from '~/utils/tsUtils';
 
 // tod: tobe fixed
 // extend(customParseFormat);
 
 export default async function conditionV2(
-  baseModelSqlv2: BaseModelSqlv2,
+  baseModelSqlv2: IBaseModelSqlV2,
   conditionObj: Filter | FilterType | FilterType[] | Filter[],
   qb: Knex.QueryBuilder,
   alias?: string,
@@ -42,6 +35,11 @@ export default async function conditionV2(
   if (!conditionObj || typeof conditionObj !== 'object') {
     return;
   }
+  await FieldHandler.fromBaseModel(baseModelSqlv2).verifyFilters(
+    Array.isArray(conditionObj)
+      ? (conditionObj as Filter[])
+      : ([conditionObj] as Filter[]),
+  );
   (
     await parseConditionV2(
       baseModelSqlv2,
@@ -68,7 +66,7 @@ function getLogicalOpMethod(filter: Filter) {
 }
 
 const parseConditionV2 = async (
-  baseModelSqlv2: BaseModelSqlv2,
+  baseModelSqlv2: IBaseModelSqlV2,
   _filter: Filter | FilterType | FilterType[] | Filter[],
   aliasCount = { count: 0 },
   alias?,
@@ -190,332 +188,27 @@ const parseConditionV2 = async (
         NcError.fieldNotFound(filter.fk_column_id);
       }
     }
-    if (column.uidt === UITypes.LinkToAnotherRecord) {
-      const colOptions = (await column.getColOptions(
-        context,
-      )) as LinkToAnotherRecordColumn;
-      const childColumn = await colOptions.getChildColumn(context);
-      const parentColumn = await colOptions.getParentColumn(context);
-      const childModel = await childColumn.getModel(context);
-      await childModel.getColumns(context);
-      const parentModel = await parentColumn.getModel(context);
-      await parentModel.getColumns(context);
-
-      let relationType = colOptions.type;
-
-      if (relationType === RelationTypes.ONE_TO_ONE) {
-        relationType = column.meta?.bt
-          ? RelationTypes.BELONGS_TO
-          : RelationTypes.HAS_MANY;
-      }
-
-      if (relationType === RelationTypes.HAS_MANY) {
-        const childTableAlias = getAlias(aliasCount);
-
-        // Knex's TypeScript definitions do not correctly infer knex.raw() or knex.ref()
-        // as valid column references. This causes type errors when used in query builders
-        // like `whereIn()`, `where()`, and `select()`. Casting to `any` ensures proper
-        // SQL generation while avoiding TypeScript issues.
-        const childColumnRef = knex.raw('??.??', [
-          childTableAlias,
-          childColumn.column_name,
-        ]) as any;
-        const parentColumnRef = knex.raw('??.??', [
-          alias || baseModelSqlv2.getTnPath(parentModel.table_name),
-          parentColumn.column_name,
-        ]) as any;
-
-        if (
-          ['blank', 'notblank', 'checked', 'notchecked'].includes(
-            filter.comparison_op,
-          )
-        ) {
-          const selectHmCount = knex(
-            baseModelSqlv2.getTnPath(childModel.table_name, childTableAlias),
-          )
-            .count(childColumn.column_name)
-            .whereRaw('?? = ??', [childColumnRef, parentColumnRef]);
-
-          return (qb) => {
-            if (filter.comparison_op === 'blank') {
-              qb.where(knex.raw('0'), selectHmCount);
-            } else {
-              qb.whereNot(knex.raw('0'), selectHmCount);
-            }
-          };
-        }
-        const selectQb = knex(
-          baseModelSqlv2.getTnPath(childModel.table_name, childTableAlias),
-        ).select(childColumnRef);
-        (
-          await parseConditionV2(
-            baseModelSqlv2,
-            new Filter({
-              ...filter,
-              ...(filter.comparison_op in negatedMapping
-                ? negatedMapping[filter.comparison_op]
-                : {}),
-              fk_model_id: childModel.id,
-              fk_column_id: childModel?.displayValue?.id,
-            }),
-            aliasCount,
-            childTableAlias,
-            undefined,
-            throwErrorIfInvalid,
-          )
-        )(selectQb);
-
-        return (qbP: Knex.QueryBuilder) => {
-          if (filter.comparison_op in negatedMapping)
-            qbP.whereNotIn(parentColumnRef, selectQb);
-          else qbP.whereIn(parentColumnRef, selectQb);
-        };
-      } else if (relationType === RelationTypes.BELONGS_TO) {
-        const parentTableAlias = getAlias(aliasCount);
-        const childTableAlias =
-          alias || baseModelSqlv2.getTnPath(childModel.table_name);
-
-        // Knex's TypeScript definitions do not correctly infer knex.raw() or knex.ref()
-        // as valid column references. This causes type errors when used in query builders
-        // like `whereIn()`, `where()`, and `select()`. Casting to `any` ensures proper
-        // SQL generation while avoiding TypeScript issues.
-        const parentColumnRef = knex.raw('??.??', [
-          parentTableAlias,
-          parentColumn.column_name,
-        ]) as any;
-        const childColumnRef = knex.raw('??.??', [
-          childTableAlias,
-          childColumn.column_name,
-        ]) as any;
-        if (
-          ['blank', 'notblank', 'checked', 'notchecked'].includes(
-            filter.comparison_op,
-          )
-        ) {
-          // handle self reference
-          if (parentModel.id === childModel.id) {
-            if (filter.comparison_op === 'blank') {
-              return (qb) => {
-                qb.whereNull(childColumnRef);
-              };
-            } else {
-              return (qb) => {
-                qb.whereNotNull(childColumnRef);
-              };
-            }
-          }
-
-          const selectBtCount = knex(
-            baseModelSqlv2.getTnPath(parentModel.table_name, parentTableAlias),
-          )
-            .count(parentColumnRef)
-            .where(parentColumnRef, childColumnRef);
-
-          return (qb) => {
-            if (filter.comparison_op === 'blank') {
-              qb.where(knex.raw('0'), selectBtCount);
-            } else {
-              qb.whereNot(knex.raw('0'), selectBtCount);
-            }
-          };
-        }
-
-        const selectQb = knex(
-          baseModelSqlv2.getTnPath(parentModel.table_name, parentTableAlias),
-        ).select(parentColumn.column_name);
-        (
-          await parseConditionV2(
-            baseModelSqlv2,
-            new Filter({
-              ...filter,
-              ...(filter.comparison_op in negatedMapping
-                ? negatedMapping[filter.comparison_op]
-                : {}),
-              fk_model_id: parentModel.id,
-              fk_column_id: parentModel?.displayValue?.id,
-            }),
-            aliasCount,
-            parentTableAlias,
-            undefined,
-            throwErrorIfInvalid,
-          )
-        )(selectQb);
-
-        return (qbP: Knex.QueryBuilder) => {
-          if (filter.comparison_op in negatedMapping) {
-            qbP.where((qb) =>
-              qb
-                .whereNotIn(childColumnRef, selectQb)
-                .orWhereNull(childColumnRef),
-            );
-          } else qbP.whereIn(childColumnRef, selectQb);
-        };
-      } else if (relationType === RelationTypes.MANY_TO_MANY) {
-        const childTableAliasOrRef =
-          alias || baseModelSqlv2.getTnPath(childModel.table_name);
-        const parentTableAlias = getAlias(aliasCount);
-        const mmTableAlias = getAlias(aliasCount);
-
-        const mmModel = await colOptions.getMMModel(context);
-        const mmParentColumn = await colOptions.getMMParentColumn(context);
-        const mmChildColumn = await colOptions.getMMChildColumn(context);
-
-        // Knex's TypeScript definitions do not correctly infer knex.raw() or knex.ref()
-        // as valid column references. This causes type errors when used in query builders
-        // like `whereIn()`, `where()`, and `select()`. Casting to `any` ensures proper
-        // SQL generation while avoiding TypeScript issues.
-        const childColumnRef = knex.raw('??.??', [
-          childTableAliasOrRef,
-          childColumn.column_name,
-        ]) as any;
-        const parentColumnRef = knex.raw('??.??', [
-          parentTableAlias,
-          parentColumn.column_name,
-        ]) as any;
-        const mmParentColumnRef = knex.raw('??.??', [
-          mmTableAlias,
-          mmParentColumn.column_name,
-        ]) as any;
-        const mmChildColumnRef = knex.raw('??.??', [
-          mmTableAlias,
-          mmChildColumn.column_name,
-        ]) as any;
-        if (
-          ['blank', 'notblank', 'checked', 'notchecked'].includes(
-            filter.comparison_op,
-          )
-        ) {
-          // handle self reference
-          if (mmModel.id === childModel.id) {
-            if (filter.comparison_op === 'blank') {
-              return (qb) => {
-                qb.whereNull(childColumnRef);
-              };
-            } else {
-              return (qb) => {
-                qb.whereNotNull(childColumnRef);
-              };
-            }
-          }
-
-          const selectMmCount = knex(
-            baseModelSqlv2.getTnPath(mmModel.table_name, mmTableAlias),
-          )
-            .count(mmChildColumnRef)
-            .where(mmChildColumnRef, childColumnRef);
-
-          return (qb) => {
-            if (filter.comparison_op === 'blank') {
-              qb.where(knex.raw('0'), selectMmCount);
-            } else {
-              qb.whereNot(knex.raw('0'), selectMmCount);
-            }
-          };
-        }
-
-        const selectQb = knex(
-          baseModelSqlv2.getTnPath(mmModel.table_name, mmTableAlias),
-        )
-          .select(mmChildColumnRef)
-          .join(
-            baseModelSqlv2.getTnPath(parentModel.table_name, parentTableAlias),
-            mmParentColumnRef,
-            parentColumnRef,
-          );
-
-        (
-          await parseConditionV2(
-            baseModelSqlv2,
-            new Filter({
-              ...filter,
-              ...(filter.comparison_op in negatedMapping
-                ? negatedMapping[filter.comparison_op]
-                : {}),
-              fk_model_id: parentModel.id,
-              fk_column_id: parentModel?.displayValue?.id,
-            }),
-            aliasCount,
-            parentTableAlias,
-            undefined,
-            throwErrorIfInvalid,
-          )
-        )(selectQb);
-
-        return (qbP: Knex.QueryBuilder) => {
-          if (filter.comparison_op in negatedMapping)
-            qbP.where((qb) =>
-              qb
-                .whereNotIn(childColumnRef, selectQb)
-                .orWhereNull(childColumnRef),
-            );
-          else qbP.whereIn(childColumnRef, selectQb);
-        };
-      }
-
-      return (_qb) => {};
-    } else if (column.uidt === UITypes.Lookup) {
-      return await generateLookupCondition(
-        baseModelSqlv2,
-        column,
-        filter,
-        knex,
-        aliasCount,
-        throwErrorIfInvalid,
-      );
-    } else if (
-      [UITypes.Rollup, UITypes.Links].includes(column.uidt) &&
-      !customWhereClause
+    if (
+      [UITypes.JSON, UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(
+        column.uidt,
+      ) ||
+      ([UITypes.Rollup, UITypes.Formula, UITypes.Links].includes(column.uidt) &&
+        !customWhereClause)
     ) {
-      const builder = (
-        await genRollupSelectv2({
-          baseModelSqlv2,
-          knex,
+      return FieldHandler.fromBaseModel(baseModelSqlv2).applyFilter(
+        filter,
+        column,
+        {
           alias,
-          columnOptions: (await column.getColOptions(context)) as RollupColumn,
-        })
-      ).builder;
-      return parseConditionV2(
-        baseModelSqlv2,
-        new Filter({
-          ...filter,
-          value: knex.raw('?', [
-            // convert value to number for rollup since rollup is always number
-            isNaN(+filter.value) ? filter.value : +filter.value,
-          ]),
-        } as any),
-        aliasCount,
-        alias,
-        builder,
+          conditionParser: parseConditionV2,
+          depth: aliasCount,
+          context,
+          throwErrorIfInvalid,
+        },
       );
-    } else if (column.uidt === UITypes.Formula && !customWhereClause) {
-      const model = await column.getModel(context);
-      const formula = await column.getColOptions<FormulaColumn>(context);
-      const builder = (
-        await formulaQueryBuilderv2(
-          baseModelSqlv2,
-          formula.formula,
-          null,
-          model,
-          column,
-        )
-      ).builder;
-      return parseConditionV2(
-        baseModelSqlv2,
-        new Filter({
-          ...filter,
-          value: knex.raw('?', [
-            // convert value to number if formulaDataType if numeric
-            formula.getParsedTree()?.dataType === FormulaDataTypes.NUMERIC &&
-            !isNaN(+filter.value)
-              ? +filter.value
-              : filter.value ?? null, // in gp_null value is undefined
-          ]),
-        } as any),
-        aliasCount,
-        alias,
-        builder,
-      );
-    } else if (
+    }
+
+    if (
       [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
         column.uidt,
       ) &&
@@ -1484,349 +1177,3 @@ const parseConditionV2 = async (
     }
   }
 };
-
-const negatedMapping = {
-  nlike: { comparison_op: 'like' },
-  neq: { comparison_op: 'eq' },
-  blank: { comparison_op: 'notblank' },
-  notchecked: { comparison_op: 'checked' },
-};
-
-function getAlias(aliasCount: { count: number }) {
-  return `__nc${aliasCount.count++}`;
-}
-
-// todo: refactor child , parent in mm
-async function generateLookupCondition(
-  baseModelSqlv2: BaseModelSqlv2,
-  col: Column,
-  filter: Filter,
-  knex,
-  aliasCount = { count: 0 },
-  throwErrorIfInvalid = false,
-): Promise<any> {
-  const context = baseModelSqlv2.context;
-
-  const colOptions = await col.getColOptions<LookupColumn>(context);
-  const relationColumn = await colOptions.getRelationColumn(context);
-  const relationColumnOptions =
-    await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
-  // const relationModel = await relationColumn.getModel();
-  const lookupColumn = await colOptions.getLookupColumn(context);
-  const alias = getAlias(aliasCount);
-  let qb;
-  {
-    const childColumn = await relationColumnOptions.getChildColumn(context);
-    const parentColumn = await relationColumnOptions.getParentColumn(context);
-    const childModel = await childColumn.getModel(context);
-    await childModel.getColumns(context);
-    const parentModel = await parentColumn.getModel(context);
-    await parentModel.getColumns(context);
-
-    let relationType = relationColumnOptions.type;
-
-    if (relationType === RelationTypes.ONE_TO_ONE) {
-      relationType = relationColumn.meta?.bt
-        ? RelationTypes.BELONGS_TO
-        : RelationTypes.HAS_MANY;
-    }
-
-    if (relationType === RelationTypes.HAS_MANY) {
-      qb = knex(
-        knex.raw(`?? as ??`, [
-          baseModelSqlv2.getTnPath(childModel.table_name),
-          alias,
-        ]),
-      );
-
-      qb.select(`${alias}.${childColumn.column_name}`);
-
-      await nestedConditionJoin(
-        baseModelSqlv2,
-        {
-          ...filter,
-          ...(filter.comparison_op in negatedMapping
-            ? negatedMapping[filter.comparison_op]
-            : {}),
-        },
-        lookupColumn,
-        qb,
-        knex,
-        alias,
-        aliasCount,
-        throwErrorIfInvalid,
-      );
-
-      return (qbP: Knex.QueryBuilder) => {
-        if (filter.comparison_op in negatedMapping)
-          qbP.whereNotIn(parentColumn.column_name, qb);
-        else qbP.whereIn(parentColumn.column_name, qb);
-      };
-    } else if (relationType === RelationTypes.BELONGS_TO) {
-      qb = knex(
-        knex.raw(`?? as ??`, [
-          baseModelSqlv2.getTnPath(parentModel.table_name),
-          alias,
-        ]),
-      );
-      qb.select(`${alias}.${parentColumn.column_name}`);
-
-      await nestedConditionJoin(
-        baseModelSqlv2,
-        {
-          ...filter,
-          ...(filter.comparison_op in negatedMapping
-            ? negatedMapping[filter.comparison_op]
-            : {}),
-        },
-        lookupColumn,
-        qb,
-        knex,
-        alias,
-        aliasCount,
-        throwErrorIfInvalid,
-      );
-
-      return (qbP: Knex.QueryBuilder) => {
-        if (filter.comparison_op in negatedMapping)
-          qbP.where((qb1) =>
-            qb1
-              .whereNotIn(childColumn.column_name, qb)
-              .orWhereNull(childColumn.column_name),
-          );
-        else qbP.whereIn(childColumn.column_name, qb);
-      };
-    } else if (relationType === RelationTypes.MANY_TO_MANY) {
-      const mmModel = await relationColumnOptions.getMMModel(context);
-      const mmParentColumn = await relationColumnOptions.getMMParentColumn(
-        context,
-      );
-      const mmChildColumn = await relationColumnOptions.getMMChildColumn(
-        context,
-      );
-
-      const childAlias = `__nc${aliasCount.count++}`;
-
-      qb = knex(
-        knex.raw(`?? as ??`, [
-          baseModelSqlv2.getTnPath(mmModel.table_name),
-          alias,
-        ]),
-      )
-        .select(`${alias}.${mmChildColumn.column_name}`)
-        .join(
-          knex.raw(`?? as ??`, [
-            baseModelSqlv2.getTnPath(parentModel.table_name),
-            childAlias,
-          ]),
-          `${alias}.${mmParentColumn.column_name}`,
-          `${childAlias}.${parentColumn.column_name}`,
-        );
-
-      await nestedConditionJoin(
-        baseModelSqlv2,
-        {
-          ...filter,
-          ...(filter.comparison_op in negatedMapping
-            ? negatedMapping[filter.comparison_op]
-            : {}),
-        },
-        lookupColumn,
-        qb,
-        knex,
-        childAlias,
-        aliasCount,
-        throwErrorIfInvalid,
-      );
-
-      return (qbP: Knex.QueryBuilder) => {
-        if (filter.comparison_op in negatedMapping)
-          qbP.where((qb1) =>
-            qb1
-              .whereNotIn(childColumn.column_name, qb)
-              .orWhereNull(childColumn.column_name),
-          );
-        else qbP.whereIn(childColumn.column_name, qb);
-      };
-    }
-  }
-}
-
-async function nestedConditionJoin(
-  baseModelSqlv2: BaseModelSqlv2,
-  filter: Filter,
-  lookupColumn: Column,
-  qb: Knex.QueryBuilder,
-  knex,
-  alias: string,
-  aliasCount: { count: number },
-  throwErrorIfInvalid = false,
-) {
-  const context = baseModelSqlv2.context;
-
-  if (
-    lookupColumn.uidt === UITypes.Lookup ||
-    lookupColumn.uidt === UITypes.LinkToAnotherRecord
-  ) {
-    const relationColumn =
-      lookupColumn.uidt === UITypes.Lookup
-        ? await (
-            await lookupColumn.getColOptions<LookupColumn>(context)
-          ).getRelationColumn(context)
-        : lookupColumn;
-    const relationColOptions =
-      await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
-    const relAlias = `__nc${aliasCount.count++}`;
-
-    const childColumn = await relationColOptions.getChildColumn(context);
-    const parentColumn = await relationColOptions.getParentColumn(context);
-    const childModel = await childColumn.getModel(context);
-    await childModel.getColumns(context);
-    const parentModel = await parentColumn.getModel(context);
-    await parentModel.getColumns(context);
-    {
-      switch (relationColOptions.type) {
-        case RelationTypes.HAS_MANY:
-          {
-            qb.join(
-              knex.raw(`?? as ??`, [
-                baseModelSqlv2.getTnPath(childModel.table_name),
-                relAlias,
-              ]),
-              `${alias}.${parentColumn.column_name}`,
-              `${relAlias}.${childColumn.column_name}`,
-            );
-          }
-          break;
-        case RelationTypes.BELONGS_TO:
-          {
-            qb.join(
-              knex.raw(`?? as ??`, [
-                baseModelSqlv2.getTnPath(parentModel.table_name),
-                relAlias,
-              ]),
-              `${alias}.${childColumn.column_name}`,
-              `${relAlias}.${parentColumn.column_name}`,
-            );
-          }
-          break;
-        case 'mm':
-          {
-            const mmModel = await relationColOptions.getMMModel(context);
-            const mmParentColumn = await relationColOptions.getMMParentColumn(
-              context,
-            );
-            const mmChildColumn = await relationColOptions.getMMChildColumn(
-              context,
-            );
-
-            const assocAlias = `__nc${aliasCount.count++}`;
-
-            qb.join(
-              knex.raw(`?? as ??`, [
-                baseModelSqlv2.getTnPath(mmModel.table_name),
-                assocAlias,
-              ]),
-              `${assocAlias}.${mmChildColumn.column_name}`,
-              `${alias}.${childColumn.column_name}`,
-            ).join(
-              knex.raw(`?? as ??`, [
-                baseModelSqlv2.getTnPath(parentModel.table_name),
-                relAlias,
-              ]),
-              `${relAlias}.${parentColumn.column_name}`,
-              `${assocAlias}.${mmParentColumn.column_name}`,
-            );
-          }
-          break;
-      }
-    }
-
-    if (lookupColumn.uidt === UITypes.Lookup) {
-      await nestedConditionJoin(
-        baseModelSqlv2,
-        filter,
-        await (
-          await lookupColumn.getColOptions<LookupColumn>(context)
-        ).getLookupColumn(context),
-        qb,
-        knex,
-        relAlias,
-        aliasCount,
-        throwErrorIfInvalid,
-      );
-    } else {
-      switch (relationColOptions.type) {
-        case RelationTypes.HAS_MANY:
-          {
-            (
-              await parseConditionV2(
-                baseModelSqlv2,
-                new Filter({
-                  ...filter,
-                  fk_model_id: childModel.id,
-                  fk_column_id: childModel.displayValue?.id,
-                }),
-                aliasCount,
-                relAlias,
-                undefined,
-                throwErrorIfInvalid,
-              )
-            )(qb);
-          }
-          break;
-        case RelationTypes.BELONGS_TO:
-          {
-            (
-              await parseConditionV2(
-                baseModelSqlv2,
-                new Filter({
-                  ...filter,
-                  fk_model_id: parentModel.id,
-                  fk_column_id: parentModel?.displayValue?.id,
-                }),
-                aliasCount,
-                relAlias,
-                undefined,
-                throwErrorIfInvalid,
-              )
-            )(qb);
-          }
-          break;
-        case 'mm':
-          {
-            (
-              await parseConditionV2(
-                baseModelSqlv2,
-                new Filter({
-                  ...filter,
-                  fk_model_id: parentModel.id,
-                  fk_column_id: parentModel.displayValue?.id,
-                }),
-                aliasCount,
-                relAlias,
-                undefined,
-                throwErrorIfInvalid,
-              )
-            )(qb);
-          }
-          break;
-      }
-    }
-  } else {
-    (
-      await parseConditionV2(
-        baseModelSqlv2,
-        new Filter({
-          ...filter,
-          fk_model_id: (await lookupColumn.getModel(context)).id,
-          fk_column_id: lookupColumn?.id,
-        }),
-        aliasCount,
-        alias,
-        undefined,
-        throwErrorIfInvalid,
-      )
-    )(qb);
-  }
-}

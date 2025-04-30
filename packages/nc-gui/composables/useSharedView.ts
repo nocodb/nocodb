@@ -21,6 +21,8 @@ export function useSharedView() {
 
   const { appInfo } = useGlobal()
 
+  const workspaceStore = useWorkspace()
+
   const baseStore = useBase()
 
   const basesStore = useBases()
@@ -74,6 +76,11 @@ export function useSharedView() {
         'xc-password': localPassword ?? password.value,
       },
     })
+
+    // Set workspace info if present
+    if (viewMeta?.workspace) {
+      workspaceStore.workspaces.set(viewMeta.workspace.id, viewMeta.workspace)
+    }
 
     try {
       allowCSVDownload.value = parseProp(viewMeta.meta)?.allowCSVDownload

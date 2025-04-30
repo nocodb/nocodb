@@ -213,11 +213,11 @@ export const addConfirmPageLeavingRedirectToWindow = (remove = false) => {
   if (typeof window === 'undefined') return
 
   if (remove) {
-    localStorage.removeItem('ncIsSharedViewOrBase')
+    sessionStorage.removeItem('ncIsSharedViewOrBase')
     return
   }
 
-  localStorage.setItem('ncIsSharedViewOrBase', 'true')
+  sessionStorage.setItem('ncIsSharedViewOrBase', 'true')
 
   window.tiptapLinkHandler = (event) => {
     event.preventDefault()

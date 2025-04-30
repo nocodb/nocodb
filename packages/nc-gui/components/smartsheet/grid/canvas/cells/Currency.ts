@@ -27,7 +27,7 @@ export const CurrencyRenderer: CellRenderer = {
       formattedValue = value.toString()
     }
 
-    if (!value) {
+    if (ncIsUndefined(value) || ncIsNull(value)) {
       return {
         x,
         y,

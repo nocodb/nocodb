@@ -1,18 +1,22 @@
 <script setup lang="ts">
-import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { type ColumnType, FieldNameFromUITypes, type LinkToAnotherRecordType } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import rfdc from 'rfdc'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
+
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
 const reloadDataHook = inject(ReloadViewDataHookInj)
 const isPublic = inject(IsPublicInj, ref(false))
-
+const clone = rfdc()
 const { eventBus } = useSmartsheetStoreOrThrow()
 
 const { sorts, saveOrUpdate, loadSorts, addSort: _addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
 const { showSystemFields, metaColumnById } = useViewColumnsOrThrow()
+
+const { appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
 const showCreateSort = ref(false)
 
@@ -33,7 +37,18 @@ eventBus.on((event) => {
   }
 })
 
-const columns = computed(() => meta.value?.columns || [])
+const columns = computed(() =>
+  clone(meta.value?.columns || []).map((c) => {
+    const isDisabled = [UITypes.QrCode, UITypes.Barcode, UITypes.ID, UITypes.Button].includes(c.uidt)
+
+    if (isDisabled) {
+      c.ncItemDisabled = true
+      c.ncItemTooltip = `Sorting is not supported for ${FieldNameFromUITypes[c.uidt]} field`
+    }
+
+    return c
+  }),
+)
 
 const columnByID = computed(() =>
   columns.value.reduce((obj, col) => {
@@ -112,8 +127,9 @@ onMounted(() => {
         :class="{
           '!border-1 !rounded-md': isCalendar,
           '!border-0': !isCalendar,
+          [filteredOrSortedAppearanceConfig.SORTED.toolbarBgClass]: sorts?.length,
         }"
-        class="nc-sort-menu-btn nc-toolbar-btn !h-7"
+        class="nc-sort-menu-btn nc-toolbar-btn !h-7 group"
         size="small"
         type="secondary"
         :show-as-disabled="isLocked"
@@ -123,11 +139,19 @@ onMounted(() => {
             <component :is="iconMap.sort" class="h-4 w-4 text-inherit" />
 
             <!-- Sort -->
-            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">{{
-              $t('activity.sort')
-            }}</span>
+            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
+              {{ $t('activity.sort') }}
+            </span>
           </div>
-          <span v-if="sorts?.length" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ sorts.length }}</span>
+          <span
+            v-if="sorts?.length"
+            class="nc-toolbar-btn-chip"
+            :class="{
+              [filteredOrSortedAppearanceConfig.SORTED.toolbarChipBgClass]: true,
+              [filteredOrSortedAppearanceConfig.SORTED.toolbarTextClass]: true,
+            }"
+            >{{ sorts.length }}</span
+          >
         </div>
       </NcButton>
     </NcTooltip>
@@ -205,7 +229,7 @@ onMounted(() => {
           >
             <template v-if="isEeUI && !isPublic">
               <NcButton
-                v-if="sorts.length < getPlanLimit(PlanLimitTypes.SORT_LIMIT)"
+                v-if="sorts.length < getPlanLimit(PlanLimitTypes.LIMIT_SORT_PER_VIEW)"
                 v-e="['c:sort:add']"
                 class="mt-1 mb-2"
                 :class="{
@@ -268,6 +292,10 @@ onMounted(() => {
 
     &.ant-select-focused:not(.ant-select-disabled) {
       @apply !border-r-transparent;
+    }
+
+    .field-selection-tooltip-wrapper {
+      @apply !max-w-30;
     }
   }
 }

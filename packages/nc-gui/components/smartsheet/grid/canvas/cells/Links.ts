@@ -2,7 +2,7 @@ import { isBoxHovered, renderSingleLineText, renderTagLabel } from '../utils/can
 
 export const LinksCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, value, x, y, width, height, padding, t, spriteLoader, mousePosition, readonly, setCursor } = props
+    const { column, value, x, y, width, height, padding, t, spriteLoader, mousePosition, readonly, setCursor, selected } = props
 
     const parsedValue = +value || 0
 
@@ -38,10 +38,14 @@ export const LinksCellRenderer: CellRenderer = {
         fontFamily: '500 13px Manrope',
         fillStyle: 'rgb(67, 81, 232)',
         height,
-        underline: isHoverOverText,
+        underline: selected && isHoverOverText,
       })
 
-      if (isBoxHovered({ x, y, width, height }, mousePosition) && !readonly) {
+      if (selected && isHoverOverText) {
+        setCursor('pointer')
+      }
+
+      if (selected && !readonly) {
         spriteLoader.renderIcon(ctx, {
           icon: 'ncPlus',
           x: x + width - 16 - padding,
@@ -50,7 +54,7 @@ export const LinksCellRenderer: CellRenderer = {
           color: '#374151',
         })
 
-        if (isHoverOverText || isBoxHovered({ x: x + width - 16 - padding, y: y + 7, width: 16, height: 16 }, mousePosition)) {
+        if (isBoxHovered({ x: x + width - 16 - padding, y: y + 7, width: 16, height: 16 }, mousePosition)) {
           setCursor('pointer')
         }
       }
@@ -61,7 +65,9 @@ export const LinksCellRenderer: CellRenderer = {
       }
     }
   },
-  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable }) {
+  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable, selected, isDoubleClick }) {
+    if (!selected && !isDoubleClick) return false
+
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width, height } = getCellPosition(column, rowIndex)
     const padding = 10
@@ -70,14 +76,14 @@ export const LinksCellRenderer: CellRenderer = {
       isBoxHovered({ x: x + width - 16 - padding, y: y + 7, height: buttonSize, width: buttonSize }, mousePosition) ||
       isBoxHovered({ x: x + padding, y, height, width: width - padding * 2 }, mousePosition)
     ) {
-      makeCellEditable(rowIndex, column)
+      makeCellEditable(row, column)
       return true
     }
     return false
   },
   async handleKeyDown({ row, column, e, makeCellEditable }) {
     if (isExpandCellKey(e)) {
-      makeCellEditable(row.rowMeta.rowIndex!, column)
+      makeCellEditable(row, column)
       return true
     }
 

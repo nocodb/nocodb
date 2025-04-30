@@ -11,6 +11,8 @@ const dialogShow = useVModel(props, 'value')
 
 const { onDrop: saveAttachment, isPublic, stopCamera } = useAttachmentCell()!
 
+const { showStoragePlanLimitExceededModal } = useEeConfig()
+
 const activeMenu = ref('local')
 
 const selectMenu = (option: string) => {
@@ -22,6 +24,8 @@ const closeModal = (value: boolean) => {
 }
 
 const saveAttachments = async (files: File[]) => {
+  if (showStoragePlanLimitExceededModal()) return
+
   await saveAttachment(files, {} as any)
   dialogShow.value = false
 }

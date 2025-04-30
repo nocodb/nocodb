@@ -133,7 +133,11 @@ export const InitMetaServiceProvider: FactoryProvider = {
     NcDebug.log('Plugin manager initialized');
 
     if (process.env.NC_CLOUD === 'true') {
-      await populatePluginsForCloud({ ncMeta: Noco.ncMeta });
+      try {
+        await populatePluginsForCloud({ ncMeta: Noco.ncMeta });
+      } catch (e) {
+        if (process.env.NODE_ENV !== 'test') throw e;
+      }
     }
     T.init({
       instance: getInstance,

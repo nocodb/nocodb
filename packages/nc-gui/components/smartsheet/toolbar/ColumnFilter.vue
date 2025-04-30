@@ -136,7 +136,7 @@ const {
       offset: 0,
       isFormFieldFilters: isForm.value && !webHook.value,
     })
-    reloadAggregate?.trigger()
+    reloadAggregate?.trigger({ path: [] })
   },
   currentFilters,
   props.nestedLevel > 0,
@@ -596,7 +596,7 @@ eventBus.on(async (event) => {
         <template #overlay>
           <NcMenu>
             <template v-if="!isEeUI && !isPublic">
-              <template v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)">
+              <template v-if="filtersCount < getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW)">
                 <NcMenuItem data-testid="add-filter-menu" @click.stop="addFilter">
                   <div class="flex items-center gap-1">
                     <component :is="iconMap.plus" data-testid="filter-add-icon" />
@@ -975,7 +975,7 @@ eventBus.on(async (event) => {
     <template v-if="!nested">
       <template v-if="isEeUI && !isPublic">
         <div
-          v-if="!readOnly && filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)"
+          v-if="!readOnly && filtersCount < getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW)"
           class="flex gap-2"
           :class="{
             'mt-1 mb-2': filters.length,
@@ -1157,7 +1157,6 @@ eventBus.on(async (event) => {
     }
   }
 }
-
 .nc-filter-nested-level-0 {
   @apply bg-[#f9f9fa];
 }
@@ -1211,5 +1210,15 @@ eventBus.on(async (event) => {
 
 .nc-btn-focus:focus {
   @apply !text-brand-500 !shadow-none;
+}
+</style>
+
+<style lang="scss">
+.nc-filter-field-select {
+  .ant-select-selector {
+    .field-selection-tooltip-wrapper {
+      @apply !max-w-20;
+    }
+  }
 }
 </style>

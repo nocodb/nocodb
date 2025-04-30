@@ -1,6 +1,7 @@
 import { parse } from 'papaparse'
 import type { UploadFile } from 'ant-design-vue'
-import { type ColumnType, UITypes, getDateFormat, validateDateWithUnknownFormat } from 'nocodb-sdk'
+import { type ColumnType, UITypes, getDateFormat, parseProp, validateDateWithUnknownFormat } from 'nocodb-sdk'
+import { workerWithTimezone } from '../../utils/worker/datetimeUtils'
 import {
   extractMultiOrSingleSelectProps,
   getCheckboxValue,
@@ -25,7 +26,7 @@ export default class CSVTemplateAdapter {
 
   data: Record<string, any> = {}
   columnValues: Record<number, []>
-  existingColumns?: ColumnType[]
+  existingColumnMap: Record<string, ColumnType> = {}
   tableNames: string[]
 
   private progressCallback?: (msg: ProgressMessageType) => void
@@ -48,7 +49,12 @@ export default class CSVTemplateAdapter {
     this.tables = {}
     this.tableNames = []
     this.progressCallback = progressCallback
-    this.existingColumns = existingColumns
+    if (existingColumns && existingColumns.length) {
+      for (const col of existingColumns) {
+        this.existingColumnMap[col.title as string] = col
+        this.existingColumnMap[col.column_name as string] = col
+      }
+    }
   }
 
   async init() {}
@@ -177,8 +183,8 @@ export default class CSVTemplateAdapter {
   }
 
   updateTemplate(tableIdx: number) {
-    for (let columnIdx = 0; columnIdx < this.headers[tableIdx].length; columnIdx++) {
-      const existingColumn = this.existingColumns?.find((col) => col.title === this.headers[tableIdx]?.[columnIdx]) as string
+    for (let columnIdx = 0; columnIdx < this.headers[tableIdx]!.length; columnIdx++) {
+      const existingColumn = this.existingColumnMap[this.headers[tableIdx]![columnIdx]!] as string
       let uidt = existingColumn?.uidt
 
       if (!uidt) {
@@ -227,10 +233,10 @@ export default class CSVTemplateAdapter {
       const that = this
       let steppers = 0
       if (that.config.shouldImportData) {
-        that.progress(`Processing ${oldTn} data`)
+        that.progress(`Preparing ${oldTn} data`)
         that.progress({
           title: oldTn,
-          value: 'Processing...',
+          value: 'Preparing...',
         })
 
         steppers = 0
@@ -246,11 +252,23 @@ export default class CSVTemplateAdapter {
               const rowData: Record<string, any> = {}
               for (let columnIdx = 0; columnIdx < that.headers[tableIdx].length; columnIdx++) {
                 const column = that.tables[tableIdx].columns[columnIdx]
+                const existingColumn = that.existingColumnMap[that.headers[tableIdx]![columnIdx]!] as string
                 const data = (row.data as [])[columnIdx] === '' ? null : (row.data as [])[columnIdx]
                 if (column.uidt === UITypes.Checkbox) {
                   rowData[column.column_name] = getCheckboxValue(data)
                 } else if (column.uidt === UITypes.SingleSelect || column.uidt === UITypes.MultiSelect) {
                   rowData[column.column_name] = (data || '').toString().trim() || null
+                } else if ([UITypes.Date, UITypes.DateTime].includes(column.uidt) && existingColumn) {
+                  if ((data as any) instanceof Date) {
+                    rowData[column.column_name] = data
+                  } else {
+                    const meta = parseProp(existingColumn.meta)
+                    const dateValue = workerWithTimezone(that.config.isEeUI, meta?.timezone).dayjsTz(
+                      data,
+                      meta?.date_format && meta.time_format ? `${meta.date_format} ${meta.time_format}` : undefined,
+                    )
+                    rowData[column.column_name] = dateValue?.isValid() ? dateValue.format('YYYY-MM-DD HH:mm:ss Z') : data
+                  }
                 } else {
                   // TODO(import): do parsing if necessary based on type
                   rowData[column.column_name] = data
@@ -260,18 +278,18 @@ export default class CSVTemplateAdapter {
             }
 
             if (steppers % 1000 === 0) {
-              that.progress(`Processed ${steppers} rows of ${oldTn}`)
+              that.progress(`Prepared ${steppers} rows of ${oldTn}`)
               that.progress({
                 title: oldTn,
-                value: `Processed ${steppers} rows`,
+                value: `Prepared ${steppers} rows`,
               })
             }
           },
           complete() {
-            that.progress(`Processed ${oldTn} data`)
+            that.progress(`Prepared ${oldTn} data`)
             that.progress({
               title: oldTn,
-              value: `Processed`,
+              value: `Prepared`,
             })
             resolve(true)
           },
@@ -345,8 +363,8 @@ export default class CSVTemplateAdapter {
           that.updateTemplate(tableIdx)
           that.base.tables.push(that.tables[tableIdx])
 
-          that.progress(`Processed ${oldTn} metadata`)
-          that.progress({ title: oldTn, value: 'Processed metadata' })
+          that.progress(`Prepared ${oldTn} metadata`)
+          that.progress({ title: oldTn, value: 'Prepared metadata' })
 
           await that._parseTableData(tableIdx, source, tn, oldTn)
           resolve(true)
@@ -365,8 +383,8 @@ export default class CSVTemplateAdapter {
       await Promise.all(
         (this.source as UploadFile[]).map((file: UploadFile, tableIdx: number) =>
           (async (f, idx) => {
-            this.progress(`Parsing ${f.name}`)
-            this.progress({ title: f.name, value: `Parsing...` })
+            this.progress(`Reading ${f.name}`)
+            this.progress({ title: f.name, value: `Reading...` })
 
             await this._parseTableMeta(idx, f)
           })(file, tableIdx),

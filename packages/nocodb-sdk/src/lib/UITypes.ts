@@ -188,6 +188,7 @@ export const numericUITypes = [
   UITypes.Rollup,
   UITypes.Year,
   UITypes.Links,
+  UITypes.ID,
 ];
 
 export function isNumericCol(
@@ -610,3 +611,15 @@ export const isDateOrDateTimeCol = (column: ColumnType) => {
 
   return false;
 };
+
+export const customLinkSupportedTypes: UITypes[] = [
+  UITypes.SingleSelect,
+  UITypes.SingleLineText,
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Email,
+  UITypes.PhoneNumber,
+  UITypes.URL,
+  UITypes.ID,
+  UITypes.ForeignKey,
+];

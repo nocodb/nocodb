@@ -45,6 +45,7 @@ export enum AppEvents {
   WORKSPACE_CREATE = 'workspace.create',
   WORKSPACE_DELETE = 'workspace.delete',
   WORKSPACE_UPDATE = 'workspace.update',
+  WORKSPACE_UPGRADE_REQUEST = 'workspace.upgrade.request',
 
   USER_SIGNUP = 'user.signup',
   USER_SIGNIN = 'user.signin',
@@ -345,32 +346,6 @@ export const OrderedProjectRoles = [
   ProjectRoles.VIEWER,
   ProjectRoles.NO_ACCESS,
 ];
-
-export enum PlanLimitTypes {
-  // PER USER
-  FREE_WORKSPACE_LIMIT = 'FREE_WORKSPACE_LIMIT',
-
-  // PER WORKSPACE
-  WORKSPACE_USER_LIMIT = 'WORKSPACE_USER_LIMIT',
-  WORKSPACE_ROW_LIMIT = 'WORKSPACE_ROW_LIMIT',
-  BASE_LIMIT = 'BASE_LIMIT',
-
-  // PER BASE
-  SOURCE_LIMIT = 'SOURCE_LIMIT',
-
-  // PER BASE
-  TABLE_LIMIT = 'TABLE_LIMIT',
-
-  // PER TABLE
-  COLUMN_LIMIT = 'COLUMN_LIMIT',
-  TABLE_ROW_LIMIT = 'TABLE_ROW_LIMIT',
-  WEBHOOK_LIMIT = 'WEBHOOK_LIMIT',
-  VIEW_LIMIT = 'VIEW_LIMIT',
-
-  // PER VIEW
-  FILTER_LIMIT = 'FILTER_LIMIT',
-  SORT_LIMIT = 'SORT_LIMIT',
-}
 
 export enum APIContext {
   VIEW_COLUMNS = 'fields',

@@ -86,14 +86,14 @@ const showClicableLink = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-row items-center justify-between w-full h-full relative">
+  <div class="flex flex-row items-center justify-between w-full h-full">
     <!-- eslint-disable vue/use-v-on-exact -->
     <input
       :ref="focus"
       v-model="vModel"
       class="nc-cell-field outline-none w-full py-1 bg-transparent h-full"
       :class="{
-        '!text-transparent': showClicableLink,
+        'nc-text-transparent': showClicableLink,
       }"
       :disabled="readOnly"
       @blur="onBlur"
@@ -109,7 +109,7 @@ const showClicableLink = computed(() => {
     />
     <div
       v-if="showClicableLink"
-      class="nc-cell-field absolute inset-0 flex items-center max-w-full overflow-hidden pointer-events-none"
+      class="nc-cell-field nc-cell-link-preview absolute inset-0 flex items-center max-w-full overflow-hidden pointer-events-none"
     >
       <a
         class="truncate text-primary cursor-pointer pointer-events-auto no-user-select"

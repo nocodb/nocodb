@@ -6,6 +6,7 @@ import {
   ncIsEmptyObject,
   ncIsFunction,
   ncIsNull,
+  ncIsNullOrUndefined,
   ncIsNumber,
   ncIsObject,
   ncIsPromise,
@@ -18,7 +19,8 @@ const ncIsPlaywright = () => {
 }
 
 const ncIsSharedViewOrBase = () => {
-  return localStorage.getItem('ncIsSharedViewOrBase') === 'true'
+  // Use sessionStorage instead of localStorage to make it tab-specific
+  return sessionStorage.getItem('ncIsSharedViewOrBase') === 'true'
 }
 
 export {
@@ -36,4 +38,5 @@ export {
   ncIsArrayIncludes,
   ncIsPlaywright,
   ncIsSharedViewOrBase,
+  ncIsNullOrUndefined,
 }

@@ -1,5 +1,5 @@
-import { type ColumnType, UITypes, getDateFormat } from 'nocodb-sdk'
-import dayjs from 'dayjs'
+import { type ColumnType, UITypes, getDateFormat, parseProp } from 'nocodb-sdk'
+import { workerWithTimezone } from '../../utils/worker/datetimeUtils'
 import TemplateGenerator, { type ProgressMessageType } from './TemplateGenerator'
 import {
   extractMultiOrSingleSelectProps,
@@ -72,12 +72,12 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   async parse() {
-    this.progress('Parsing excel file')
+    this.progress('Reading excel file')
     const tableNamePrefixRef: Record<string, any> = {}
     await Promise.all(
       this.wb.SheetNames.map((sheetName: string) =>
         (async (sheet) => {
-          this.progress(`Parsing sheet ${sheetName}`)
+          this.progress(`Reading sheet ${sheetName}`)
 
           await new Promise((resolve) => {
             const columnNamePrefixRef: Record<string, any> = { id: 0, Id: 0 }
@@ -154,8 +154,12 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     if (value instanceof Date) {
                       return value
                     }
-                    const dateValue = dayjs(value, (existingColumn.meta as any)?.date_format)
-                    return dateValue.isValid() ? dateValue.format('YYYY-MM-DD HH:mm:ss') : value
+                    const meta = parseProp(existingColumn.meta)
+                    const dateValue = workerWithTimezone(this.config.isEeUI, meta?.timezone).dayjsTz(
+                      value,
+                      meta.date_format && meta.time_format ? `${meta.date_format} ${meta.time_format}` : undefined,
+                    )
+                    return dateValue?.isValid() ? dateValue.format('YYYY-MM-DD HH:mm:ss Z') : value
                   }
                 } else if (
                   existingColumn &&
@@ -281,7 +285,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
             this.data[tn] = []
             if (this.config.shouldImportData) {
-              this.progress(`Parsing data from ${tn}`)
+              this.progress(`Reading data from ${tn}`)
               let rowIndex = 0
               for (const row of rows.slice(1)) {
                 const rowData: Record<string, any> = {}

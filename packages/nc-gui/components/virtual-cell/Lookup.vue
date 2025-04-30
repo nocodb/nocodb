@@ -6,6 +6,8 @@ const { metas, getMeta } = useMetas()
 
 const column = inject(ColumnInj, ref())
 
+const row = inject(RowInj)!
+
 const cellValue = inject(CellValueInj, ref())
 
 const isGroupByLabel = inject(IsGroupByLabelInj, ref(false))
@@ -93,6 +95,17 @@ watch(
 )
 
 const arrValue = computed(() => {
+  if (
+    lookupColumn.value?.uidt === UITypes.Checkbox &&
+    [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relationColumn.value?.colOptions?.type)
+  ) {
+    const hasLink = !!(row && row.value?.row[relationColumn.value?.title])
+
+    if (!cellValue.value && !hasLink) return []
+
+    return (ncIsArray(cellValue.value) ? cellValue.value : [cellValue.value]).map(getCheckBoxValue)
+  }
+
   if (!cellValue.value) return []
 
   // if lookup column is Attachment and relation type is Belongs/OneToOne to wrap the value in an array

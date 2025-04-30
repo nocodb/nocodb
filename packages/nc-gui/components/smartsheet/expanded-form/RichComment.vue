@@ -310,7 +310,7 @@ defineExpose({
           'p-1': !props.readOnly,
           'px-[0.25rem]': props.readOnly,
         }"
-        class="nc-rich-text-content flex flex-col nc-comment-rich-editor w-full scrollbar-thin scrollbar-thumb-gray-200 nc-truncate scrollbar-track-transparent"
+        class="nc-rich-text-content flex flex-col nc-comment-rich-editor w-full scrollbar-thin scrollbar-thumb-gray-200 nc-rich-truncate scrollbar-track-transparent"
         @keydown.stop="handleKeyPress"
       />
 
@@ -346,7 +346,7 @@ defineExpose({
   }
 
   .nc-comment-rich-editor {
-    &.nc-truncate {
+    &.nc-rich-truncate {
       .tiptap.ProseMirror {
         display: -webkit-box;
         max-width: 100%;

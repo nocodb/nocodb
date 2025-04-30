@@ -30,41 +30,41 @@ export default class Local implements IStorageAdapterV2 {
     url: string,
     { fetchOptions: { buffer } = { buffer: false } },
   ): Promise<any> {
-    const destPath = validateAndNormaliseLocalPath(key);
-    return new Promise((resolve, reject) => {
-      axios
-        .get(url, {
-          responseType: buffer ? 'arraybuffer' : 'stream',
-          headers: {
-            accept:
-              'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-            'accept-language': 'en-US,en;q=0.9',
-            'cache-control': 'no-cache',
-            pragma: 'no-cache',
-            'user-agent':
-              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
-            origin: 'https://www.airtable.com/',
-          },
-          httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-          httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-        })
-        .then(async (response) => {
-          await mkdirp(path.dirname(destPath));
+    try {
+      const destPath = validateAndNormaliseLocalPath(key);
+      const response = await axios.get(url, {
+        responseType: buffer ? 'arraybuffer' : 'stream',
+        headers: {
+          accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+          'accept-language': 'en-US,en;q=0.9',
+          'cache-control': 'no-cache',
+          pragma: 'no-cache',
+          'user-agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
+          origin: 'https://www.airtable.com/',
+        },
+        httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+        httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+      });
 
-          fs.writeFile(destPath, response.data, (err) => {
-            if (err) {
-              return reject(err);
-            }
-            resolve({
-              url: null,
-              data: response.data,
-            });
-          });
-        })
-        .catch((err) => {
-          reject(err.message);
-        });
-    });
+      await mkdirp(path.dirname(destPath));
+      if (buffer) {
+        await fs.promises.writeFile(destPath, Buffer.from(response.data));
+        return {
+          url: null,
+          data: response.data,
+        };
+      } else {
+        await this.fileCreateByStream(key, response.data);
+        return {
+          url: null,
+          data: null,
+        };
+      }
+    } catch (err) {
+      throw new Error(`Failed to create file from URL: ${err.message}`);
+    }
   }
 
   public async fileCreateByStream(

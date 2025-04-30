@@ -114,6 +114,22 @@ main {
       @apply shadow-selected-ai ring-0 !border-nc-border-purple;
     }
   }
+
+  &.ant-input-affix-wrapper {
+    &:not(:hover):not(.ant-input-affix-wrapper-focused):not(.ant-input-affix-wrapper-disabled) {
+      @apply shadow-default border-gray-200;
+    }
+
+    &:hover:not(.ant-input-affix-wrapper-focused):not(.ant-input-affix-wrapper-disabled) {
+      @apply border-gray-200 shadow-hover;
+    }
+    &:not(.nc-ai-input):focus {
+      @apply shadow-selected ring-0;
+    }
+    &.nc-ai-input:focus {
+      @apply shadow-selected-ai ring-0 !border-nc-border-purple;
+    }
+  }
 }
 
 .ant-form-item-has-error .nc-input-shadow.ant-input {
@@ -891,7 +907,9 @@ input[type='number'] {
   @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
 }
 
-.nc-button.ant-btn.nc-sidebar-node-btn:not(.nc-sidebar-expand):not(.nc-sidebar-view-node-context-btn):not(.nc-sidebar-script-node-context-btn) {
+.nc-button.ant-btn.nc-sidebar-node-btn:not(.nc-sidebar-expand):not(.nc-sidebar-view-node-context-btn):not(
+    .nc-sidebar-script-node-context-btn
+  ) {
   @apply hidden group-hover:(inline-block);
 }
 
@@ -901,6 +919,14 @@ input[type='number'] {
   .nc-icon {
     @apply xs:(visible opacity-100 !text-gray-500);
   }
+}
+
+.ant-message {
+  @apply !bottom-16 !md:bottom-4 !top-auto px-2 md:px-4;
+}
+
+.ant-message-notice {
+  @apply !text-center !md:text-right;
 }
 
 .ant-message-notice-content {
@@ -986,7 +1012,7 @@ svg.nc-virtual-cell-icon {
 }
 
 .ant-switch {
-  background: #E7E7E9 !important;
+  background: #e7e7e9 !important;
 }
 
 .ant-switch-checked {
@@ -1312,4 +1338,31 @@ svg.nc-virtual-cell-icon {
       font-synthesis: initial !important;
     }
   }
+}
+
+.nc-cell-field {
+  &.nc-text-transparent {
+    @apply text-transparent;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+.nc-custom-daner-btn {
+  @apply !text-nc-content-red-medium !hover:(bg-nc-fill-red-medium border-nc-fill-red-medium text-white);
+}
+
+.nc-truncate {
+  @apply max-w-full overflow-hidden whitespace-nowrap overflow-ellipsis;
+}
+
+.nc-flex-1 {
+  -webkit-box-flex: 1;
+  flex-grow: 1;
+  flex-shrink: 1;
+}
+
+.nc-toolbar-btn-chip {
+  @apply px-1.5 text-small !leading-5 rounded font-700 min-w-5.5;
+
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
 }

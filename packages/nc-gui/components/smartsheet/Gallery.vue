@@ -12,11 +12,13 @@ const isPublic = inject(IsPublicInj, ref(false))
 const fields = inject(FieldsInj, ref([]))
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
-const { isSqlView, xWhere } = useSmartsheetStoreOrThrow()
+const { isSqlView, xWhere, isExternalSource } = useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
 const route = useRoute()
 const { getPossibleAttachmentSrc } = useAttachment()
 const router = useRouter()
+
+const { showRecordPlanLimitExceededModal, blockExternalSourceRecordVisibility, showAsBluredRecord } = useEeConfig()
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
@@ -37,12 +39,18 @@ const {
   navigateToSiblingRow,
   chunkStates,
   cachedRows,
-  totalRows,
+  totalRows: _totalRows,
   isFirstRow,
   isLastRow,
   clearCache,
   viewData: galleryData,
 } = useGalleryViewData(meta, view, xWhere)
+
+const totalRows = computed(() => {
+  if (blockExternalSourceRecordVisibility(isExternalSource.value)) return Math.min(200, _totalRows.value)
+
+  return _totalRows.value
+})
 
 const fieldsWithoutDisplay = computed(() => fields.value.filter((f) => !isPrimary(f)))
 
@@ -355,6 +363,12 @@ reloadViewDataHook?.on(async () => {
   await syncCount()
   calculateSlices()
 })
+
+const handleOpenNewRecordForm = () => {
+  if (showRecordPlanLimitExceededModal()) return
+
+  openNewRecordFormHook.trigger()
+}
 </script>
 
 <template>
@@ -395,9 +409,17 @@ reloadViewDataHook?.on(async () => {
           <div :style="{ height: `${placeholderAboveHeight}px` }"></div>
           <div class="nc-gallery-container grid gap-3 p-3">
             <div
-              v-for="(record, rowIndex) in visibleRows"
+              v-for="record in visibleRows"
               :key="`record-${record.rowMeta.rowIndex}`"
               :data-card-id="`record-${record.rowMeta.rowIndex}`"
+              :style="{
+                filter:
+                  showAsBluredRecord(isExternalSource, record.rowMeta.rowIndex + 1) && !record.rowMeta.new
+                    ? 'blur(4px)'
+                    : undefined,
+                pointerEvents:
+                  showAsBluredRecord(isExternalSource, record.rowMeta.rowIndex + 1) && !record.rowMeta.new ? 'none' : 'auto',
+              }"
             >
               <LazySmartsheetRow :row="record">
                 <a-card
@@ -405,7 +427,7 @@ reloadViewDataHook?.on(async () => {
                   :body-style="{ padding: '16px !important' }"
                   :data-testid="`nc-gallery-card-${record.rowMeta.rowIndex}`"
                   @click="expandFormClick($event, record)"
-                  @contextmenu="showContextMenu($event, { row: record, index: rowIndex })"
+                  @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex })"
                 >
                   <template v-if="galleryData?.fk_cover_image_col_id" #cover>
                     <a-carousel
@@ -545,7 +567,7 @@ reloadViewDataHook?.on(async () => {
       </div>
     </NcDropdown>
     <div class="sticky bottom-4">
-      <NcButton v-if="isUIAllowed('dataInsert')" size="xs" type="secondary" class="ml-4" @click="openNewRecordFormHook.trigger">
+      <NcButton v-if="isUIAllowed('dataInsert')" size="xs" type="secondary" class="ml-4" @click="handleOpenNewRecordForm">
         <div class="flex items-center gap-2">
           <component :is="iconMap.plus" class="" />
           {{ $t('activity.newRecord') }}
@@ -715,6 +737,15 @@ reloadViewDataHook?.on(async () => {
   &.nc-cell-url {
     .nc-cell-field-link {
       @apply py-0;
+    }
+  }
+  &.nc-cell-datetime {
+    @apply !w-auto;
+    & > div {
+      @apply !w-auto;
+    }
+    div {
+      @apply flex-none !max-w-none !w-auto;
     }
   }
 }

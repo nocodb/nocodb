@@ -392,7 +392,7 @@ export function genPgAggregateQuery({
     }
   }
 
-  if (alias && aggregationSql) {
+  if (aggregationSql) {
     if (
       ![AllAggregations.EarliestDate, AllAggregations.LatestDate].includes(
         aggregation as any,
@@ -401,7 +401,9 @@ export function genPgAggregateQuery({
       aggregationSql = knex.raw(`COALESCE(??, 0)`, [aggregationSql]);
     }
 
-    aggregationSql = knex.raw(`?? AS ??`, [aggregationSql, alias]);
+    if (alias) {
+      aggregationSql = knex.raw(`?? AS ??`, [aggregationSql, alias]);
+    }
   }
 
   return aggregationSql?.toQuery();

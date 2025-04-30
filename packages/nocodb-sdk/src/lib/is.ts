@@ -270,3 +270,33 @@ export function ncIsArrayIncludes<T>(
 
   return array.includes(value);
 }
+
+export function isPrimitiveValue(
+  value: any
+): value is string | number | boolean | null | undefined {
+  return (
+    ncIsString(value) ||
+    ncIsNumber(value) ||
+    ncIsBoolean(value) ||
+    ncIsNull(value) ||
+    ncIsUndefined(value)
+  );
+}
+
+/**
+ * Checks if a value is null or undefined.
+ *
+ * @param value - The value to check.
+ * @returns {boolean} - True if the value is null or undefined, false otherwise.
+ *
+ * @example
+ * ```typescript
+ * console.log(ncIsNullOrUndefined(null)); // true
+ * console.log(ncIsNullOrUndefined(undefined)); // true
+ * console.log(ncIsNullOrUndefined(0)); // false
+ * console.log(ncIsNullOrUndefined('')); // false
+ * ```
+ */
+export function ncIsNullOrUndefined(value: any): value is null | undefined {
+  return value === null || typeof value === 'undefined';
+}

@@ -16,10 +16,6 @@ export const validateTableName = {
         return reject(new Error(t('msg.error.tableNameRequired')))
       }
 
-      if (value.length > 52) {
-        return reject(new Error(t('msg.error.columnNameExceedsCharacters', { value: 52 })))
-      }
-
       // exclude . / \
       // rest all characters allowed
       // https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/acreldb/n0rfg6x1shw0ppn1cwhco6yn09f7.htm#:~:text=By%20default%2C%20MySQL%20encloses%20column,not%20truncate%20a%20longer%20name.

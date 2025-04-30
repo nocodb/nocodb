@@ -18,6 +18,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { FiltersV3Service } from '~/services/v3/filters-v3.service';
+import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 
 type Filter = {
   field_id: string; // Replace with the actual type if not string
@@ -47,7 +48,7 @@ export type FilterGroup = FilterGroupLevel1;
 export class FiltersV3Controller {
   constructor(protected readonly filtersV3Service: FiltersV3Service) {}
 
-  @Get('/api/v3/meta/views/:viewId/filters')
+  @Get(`${PREFIX_APIV3_METABASE}/views/:viewId/filters`)
   @Acl('filterList')
   async filterList(
     @TenantContext() context: NcContext,
@@ -63,9 +64,9 @@ export class FiltersV3Controller {
   }
 
   @Post([
-    '/api/v3/meta/views/:viewId/filters',
-    '/api/v3/meta/hooks/:hookId/filters',
-    '/api/v3/meta/links/:linkColumnId/filters',
+    `${PREFIX_APIV3_METABASE}/views/:viewId/filters`,
+    `${PREFIX_APIV3_METABASE}/hooks/:hookId/filters`,
+    `${PREFIX_APIV3_METABASE}/links/:linkColumnId/filters`,
   ])
   @HttpCode(200)
   @Acl('filterCreate')
@@ -86,7 +87,7 @@ export class FiltersV3Controller {
     return filter;
   }
 
-  @Patch('/api/v3/meta/views/:viewId/filters')
+  @Patch(`${PREFIX_APIV3_METABASE}/views/:viewId/filters`)
   @Acl('filterUpdate')
   async filterUpdate(
     @TenantContext() context: NcContext,
@@ -104,7 +105,7 @@ export class FiltersV3Controller {
     return filter;
   }
 
-  @Put('/api/v3/meta/views/:viewId/filters')
+  @Put(`${PREFIX_APIV3_METABASE}/views/:viewId/filters`)
   @Acl('filterUpdate')
   async filterReplace(
     @TenantContext() context: NcContext,
@@ -121,7 +122,7 @@ export class FiltersV3Controller {
     return filter;
   }
 
-  @Delete('/api/v3/meta/views/:viewId/filters')
+  @Delete(`${PREFIX_APIV3_METABASE}/views/:viewId/filters`)
   @Acl('filterDelete')
   async filterDelete(
     @TenantContext() context: NcContext,

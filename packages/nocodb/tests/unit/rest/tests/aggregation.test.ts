@@ -352,7 +352,7 @@ function aggregationTests() {
       const col = columns.find((c) => c.title === colName);
 
       for (const y of Object.entries(x[1])) {
-        const x = await updateGridViewColumn(context, {
+        await updateGridViewColumn(context, {
           view: gridView,
           column: gridViewColumns.find((c) => c.fk_column_id === col.id),
           attr: {

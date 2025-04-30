@@ -423,6 +423,7 @@ export default class BaseUser {
       .select(`${MetaTable.PROJECT}.status`)
       .select(`${MetaTable.PROJECT}.description`)
       .select(`${MetaTable.PROJECT}.meta`)
+      .select(`${MetaTable.PROJECT}.order`)
       .select(`${MetaTable.PROJECT}.color`)
       .select(`${MetaTable.PROJECT}.is_meta`)
       .select(`${MetaTable.PROJECT}.created_at`)
@@ -523,6 +524,9 @@ export default class BaseUser {
         base_id: baseId,
         fk_user_id: userId,
         invited_by: baseUser.invited_by,
+        starred: baseUser.starred,
+        order: baseUser.order,
+        hidden: baseUser.hidden,
       });
     }
   }

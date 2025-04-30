@@ -1,11 +1,11 @@
 import { ColumnType, FilterType } from '~/lib/Api';
-import { BadRequest, NcSDKError } from '~/lib/errorUtils';
 import {
   FilterClauseSubType,
   FilterGroupSubType,
 } from '~/lib/parser/queryFilter/query-filter-cst-parser';
 import { QueryFilterParser } from '~/lib/parser/queryFilter/query-filter-parser';
 import UITypes from './UITypes';
+import { InvalidFilterError } from './error/invalid-filter.error';
 import {
   COMPARISON_SUB_OPS,
   FilterParseError,
@@ -90,9 +90,9 @@ function innerExtractFilterFromXwhere(
     };
   } else if (typeof str !== 'string' && throwErrorIfInvalid) {
     const message =
-      'Invalid filter format. Expected string or array of strings.';
+      'Invalid filter format. Expected string or array of strings';
     if (throwErrorIfInvalid) {
-      throw new Error(message);
+      throw new InvalidFilterError({ message });
     } else {
       errors.push({ message });
       return { errors };
@@ -103,10 +103,14 @@ function innerExtractFilterFromXwhere(
     (parseResult.lexErrors.length > 0 || parseResult.parseErrors.length > 0) &&
     throwErrorIfInvalid
   ) {
-    if (throwErrorIfInvalid) throw new NcSDKError('INVALID_FILTER');
+    if (throwErrorIfInvalid)
+      throw new InvalidFilterError({
+        lexingError: parseResult.lexErrors,
+        parsingError: parseResult.parseErrors,
+      });
     else {
       errors.push({
-        message: 'Invalid filter format.',
+        message: 'Invalid filter format',
       });
       return { errors };
     }
@@ -164,10 +168,12 @@ function mapFilterClauseSubType(
   const aliasCol = aliasColObjMap[filter.field];
   if (!aliasCol) {
     if (throwErrorIfInvalid) {
-      throw new NcSDKError('INVALID_FILTER');
+      throw new InvalidFilterError({
+        message: `Invalid filter field '${filter.field}' not found`,
+      });
     } else {
       errors.push({
-        message: `Column '${filter.field}' not found.`,
+        message: `Invalid filter field '${filter.field}' not found`,
       });
       return { errors };
     }
@@ -211,12 +217,12 @@ function handleDataTypes(
     if (filterType.comparison_sub_op) {
       if (!COMPARISON_SUB_OPS.includes(filterType.comparison_sub_op)) {
         if (throwErrorIfInvalid)
-          throw new BadRequest(
-            `'${filterType.comparison_sub_op}' is not supported.`
-          );
+          throw new InvalidFilterError({
+            message: `Invalid filter '${filterType.comparison_sub_op}' is not supported`,
+          });
         else {
           errors.push({
-            message: `'${filterType.comparison_sub_op}' is not supported.`,
+            message: `Invalid filter '${filterType.comparison_sub_op}' is not supported`,
           });
           return { errors };
         }
@@ -233,12 +239,12 @@ function handleDataTypes(
         ))
     ) {
       if (throwErrorIfInvalid)
-        throw new BadRequest(
-          `'${filterType.comparison_sub_op}' is not supported for '${filterType.comparison_op}'`
-        );
+        throw new InvalidFilterError({
+          message: `Invalid filter '${filterType.comparison_sub_op}' is not supported for '${filterType.comparison_op}'`,
+        });
       else {
         errors.push({
-          message: `'${filterType.comparison_sub_op}' is not supported for '${filterType.comparison_op}'`,
+          message: `Invalid filter '${filterType.comparison_sub_op}' is not supported for '${filterType.comparison_op}'`,
         });
         return { errors };
       }

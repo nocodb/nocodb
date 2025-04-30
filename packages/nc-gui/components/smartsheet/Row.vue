@@ -15,6 +15,7 @@ const reloadHook = createEventHook()
 reloadHook.on((params) => {
   if (isNew.value) return
   reloadViewDataTrigger?.trigger({
+    ...params,
     shouldShowLoading: (params?.shouldShowLoading as boolean) ?? false,
   })
 })

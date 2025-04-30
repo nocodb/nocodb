@@ -12,6 +12,7 @@ interface Props {
   imageCropperData: Omit<ImageCropperProps, 'showCropper'>
   tabOrder?: IconType[]
   defaultActiveTab?: IconType
+  onBeforeTabChange?: (iconsType: IconType) => boolean
 }
 
 interface TabItemType {
@@ -23,6 +24,7 @@ interface TabItemType {
 const props = withDefaults(defineProps<Props>(), {
   tabOrder: () => [IconType.ICON, IconType.IMAGE, IconType.EMOJI],
   defaultActiveTab: IconType.ICON,
+  onBeforeTabChange: () => true,
 })
 
 const emits = defineEmits(['update:icon', 'update:iconType', 'update:imageCropperData', 'submit'])
@@ -50,6 +52,9 @@ const activeTabLocal = ref<IconType>(props.defaultActiveTab)
 const activeTab = computed({
   get: () => activeTabLocal.value,
   set: (value: IconType) => {
+    const allowToChangeTab = props.onBeforeTabChange(value)
+    if (!allowToChangeTab) return
+
     searchQuery.value = ''
 
     activeTabLocal.value = value
@@ -303,6 +308,7 @@ watch(isOpen, (newValue) => {
                     v-for="({ icon: i, name }, idx) in icons"
                     :key="idx"
                     :icon="i"
+                    :title="name"
                     class="w-6 hover:bg-gray-100 cursor-pointer rounded p-1 text-gray-700 h-6"
                     @click="selectIcon(name)"
                   />
@@ -462,7 +468,7 @@ watch(isOpen, (newValue) => {
 }
 
 .nc-icon-selector-emoji-picker.emoji-mart {
-  @apply !w-108 !h-full !border-none bg-transparent rounded-t-none rounded-b-lg;
+  @apply !w-107.5 !h-full !border-none bg-transparent rounded-t-none rounded-b-lg;
 
   span.emoji-type-native {
     @apply cursor-pointer;

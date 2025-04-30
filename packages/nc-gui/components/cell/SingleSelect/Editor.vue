@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
-import { message } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
 import { getOptions } from './utils'
 
@@ -381,7 +380,7 @@ onMounted(() => {
         :class="`nc-select-option-${column.title}-${op.title}`"
         @click.stop
       >
-        <a-tag class="rounded-tag max-w-full" :color="op.color">
+        <a-tag class="rounded-tag !h-[22px] max-w-full" :color="op.color">
           <span
             :style="{
               color: getSelectTypeOptionTextColor(op.color),

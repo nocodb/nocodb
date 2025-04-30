@@ -42,6 +42,8 @@ const {
   sideBarFilterOption,
   showSideMenu,
   updateFormat,
+  timezone,
+  timezoneDayjs,
 } = useCalendarViewStoreOrThrow()
 
 const sideBarListRef = ref<VNodeRef | null>(null)
@@ -87,10 +89,10 @@ const renderData = computed<Array<Row>>(() => {
     const toCol = range.fk_to_col
     formattedSideBarData.value.forEach((record) => {
       if (fromCol && toCol) {
-        const from = dayjs(record.row[fromCol.title!])
-        const to = dayjs(record.row[toCol.title!])
+        const from = timezoneDayjs.timezonize(record.row[fromCol.title!])
+        const to = timezoneDayjs.timezonize(record.row[toCol.title!])
         if (sideBarFilterOption.value === 'withoutDates') {
-          if (!from.isValid() || !to.isValid()) {
+          if (!dayjs(record.row[fromCol.title!]).isValid() || !dayjs(record.row[toCol.title!]).isValid()) {
             pushToArray(rangedData, record, range)
           }
         } else if (sideBarFilterOption.value === 'allRecords') {
@@ -108,28 +110,28 @@ const renderData = computed<Array<Row>>(() => {
 
           switch (sideBarFilterOption.value) {
             case 'month':
-              fromDate = dayjs(selectedMonth.value).startOf('month')
-              toDate = dayjs(selectedMonth.value).endOf('month')
+              fromDate = timezoneDayjs.dayjsTz(selectedMonth.value).startOf('month')
+              toDate = timezoneDayjs.dayjsTz(selectedMonth.value).endOf('month')
               break
             case 'year':
-              fromDate = dayjs(selectedDate.value).startOf('year')
-              toDate = dayjs(selectedDate.value).endOf('year')
+              fromDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('year')
+              toDate = timezoneDayjs.dayjsTz(selectedDate.value).endOf('year')
               break
             case 'selectedDate':
-              fromDate = dayjs(selectedDate.value).startOf('day')
-              toDate = dayjs(selectedDate.value).endOf('day')
+              fromDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day')
+              toDate = timezoneDayjs.dayjsTz(selectedDate.value).endOf('day')
               break
             case 'week':
-              fromDate = dayjs(selectedDateRange.value.start).startOf('week')
-              toDate = dayjs(selectedDateRange.value.end).endOf('week')
+              fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('week')
+              toDate = timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('week')
               break
             case 'day':
-              fromDate = dayjs(selectedDate.value).startOf('day')
-              toDate = dayjs(selectedDate.value).endOf('day')
+              fromDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day')
+              toDate = timezoneDayjs.dayjsTz(selectedDate.value).endOf('day')
               break
             case 'selectedHours':
-              fromDate = dayjs(selectedTime.value).startOf('hour')
-              toDate = dayjs(selectedTime.value).endOf('hour')
+              fromDate = timezoneDayjs.dayjsTz(selectedTime.value).startOf('hour')
+              toDate = timezoneDayjs.dayjsTz(selectedTime.value).endOf('hour')
               break
           }
 
@@ -145,9 +147,9 @@ const renderData = computed<Array<Row>>(() => {
           }
         }
       } else if (fromCol) {
-        const from = dayjs(record.row[fromCol.title!])
+        const from = timezoneDayjs.timezonize(record.row[fromCol.title!])
         if (sideBarFilterOption.value === 'withoutDates') {
-          if (!from.isValid()) {
+          if (!dayjs(record.row[fromCol.title!]).isValid()) {
             pushToArray(rangedData, record, range)
           }
         } else if (sideBarFilterOption.value === 'allRecords') {
@@ -170,16 +172,16 @@ const renderData = computed<Array<Row>>(() => {
 
           switch (sideBarFilterOption.value) {
             case 'week':
-              fromDate = dayjs(selectedDateRange.value.start).startOf('week')
-              toDate = dayjs(selectedDateRange.value.end).endOf('week')
+              fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('week')
+              toDate = timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('week')
               break
             case 'month':
-              fromDate = dayjs(selectedMonth.value).startOf('month')
-              toDate = dayjs(selectedMonth.value).endOf('month')
+              fromDate = timezoneDayjs.dayjsTz(selectedMonth.value).startOf('month')
+              toDate = timezoneDayjs.dayjsTz(selectedMonth.value).endOf('month')
               break
             case 'year':
-              fromDate = dayjs(selectedDate.value).startOf('year')
-              toDate = dayjs(selectedDate.value).endOf('year')
+              fromDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('year')
+              toDate = timezoneDayjs.dayjsTz(selectedDate.value).endOf('year')
               break
           }
 
@@ -356,6 +358,7 @@ onClickOutside(searchRef, toggleSearch)
         :hide-calendar="height < 700"
         is-week-picker
         size="medium"
+        :timezone="timezone"
       />
       <NcMonthYearSelector
         v-else-if="activeCalendarView === ('month' as const)"
@@ -504,22 +507,22 @@ onClickOutside(searchRef, toggleSearch)
                 :from-date="
                 record.rowMeta.range?.fk_from_col
                   ? calDataType === UITypes.Date
-                    ? dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM')
-                    : dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm a')
+                    ? timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM')
+                    : timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm a')
                   : null
               "
                 :invalid="
                 record.rowMeta.range!.fk_to_col &&
-                dayjs(record.row[record.rowMeta.range!.fk_from_col.title!]).isAfter(
-                  dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]),
+                timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_from_col.title!]).isAfter(
+                  timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]),
                 )
               "
                 :row="record"
                 :to-date="
                 record.rowMeta.range!.fk_to_col
                   ? calDataType === UITypes.Date
-                    ? dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM')
-                    : dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A')
+                    ? timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM')
+                    : timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A')
                   : null
               "
                 data-testid="nc-sidebar-record-card"

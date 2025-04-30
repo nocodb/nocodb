@@ -12,18 +12,22 @@ const props = withDefaults(
       iconType: IconType | string
     }
     hideLabel?: boolean
-    size?: 'small' | 'medium' | 'large' | 'xlarge' | 'middle'
+    size?: 'small' | 'medium' | 'large' | 'xlarge' | 'middle' | 'account-sidebar'
     isRounded?: boolean
     iconBgColor?: string
+    showNocodbIcon?: boolean
   }>(),
   {
     iconBgColor: '#F4F4F5',
+    showNocodbIcon: false,
   },
 )
 
 const { workspace } = toRefs(props)
 
 const { getPossibleAttachmentSrc } = useAttachment()
+
+const { blockWsImageLogoUpload } = useEeConfig()
 
 const workspaceIcon = computed(() => {
   if (!workspace.value) {
@@ -63,12 +67,12 @@ const workspaceColor = computed(() => {
       }
 
       default: {
-        return color || '#0A1433'
+        return props.showNocodbIcon && blockWsImageLogoUpload.value ? undefined : color || '#0A1433'
       }
     }
   }
 
-  return color || '#0A1433'
+  return props.showNocodbIcon && blockWsImageLogoUpload.value ? undefined : color || '#0A1433'
 })
 
 const size = computed(() => props.size || 'medium')
@@ -83,7 +87,7 @@ const size = computed(() => props.size || 'medium')
       'min-w-8 w-6 h-8 rounded-md': size === 'middle',
       'min-w-10 w-10 h-10 rounded-lg !text-base': size === 'large',
       'min-w-16 w-16 h-16 rounded-lg !text-4xl': size === 'xlarge',
-      'min-w-8 w-6 h-8 rounded-md': size === 'middle',
+      'w-5 h-5 min-w-5 rounded min-h-5': size === 'account-sidebar',
       '!rounded-[50%]': props.isRounded,
     }"
     :style="{
@@ -103,7 +107,7 @@ const size = computed(() => props.size || 'medium')
         :class="{
           'text-white': isColorDark(workspaceColor),
           'text-black opacity-80': !isColorDark(workspaceColor),
-          'text-sm': size === 'small',
+          'text-sm': size === 'small' || size === 'account-sidebar',
           'text-base': size === 'medium',
           'text-2xl': size === 'large',
           'text-4xl': size === 'xlarge',
@@ -139,17 +143,23 @@ const size = computed(() => props.size || 'medium')
           'w-10 h-10': size === 'xlarge',
         }"
       />
-      <div
-        v-else
-        class="font-semibold"
-        :class="{
-          'text-white': isColorDark(workspaceColor),
-          'text-black': !isColorDark(workspaceColor),
-          'text-[8px]': size === 'small',
-        }"
-      >
-        {{ workspace?.title?.slice(0, 2) }}
-      </div>
+      <template v-else>
+        <div v-if="props.showNocodbIcon && blockWsImageLogoUpload" class="h-full w-full p-0.25">
+          <GeneralIcon icon="nocodb1" class="!h-full !w-full" />
+        </div>
+        <div
+          v-else
+          class="font-semibold"
+          :class="{
+            'text-white': isColorDark(workspaceColor),
+            'text-black': !isColorDark(workspaceColor),
+            'text-[8px]': size === 'small',
+            'text-sm': size === 'account-sidebar',
+          }"
+        >
+          {{ workspace?.title?.slice(0, size === 'account-sidebar' ? 1 : 2) }}
+        </div>
+      </template>
     </template>
   </div>
 </template>

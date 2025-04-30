@@ -2,8 +2,8 @@
 import type { ColumnType, GridType } from 'nocodb-sdk'
 import InfiniteTable from './InfiniteTable.vue'
 import Table from './Table.vue'
-import GroupBy from './GroupBy.vue'
 import CanvasTable from './canvas/index.vue'
+import GroupBy from './GroupBy.vue'
 
 const meta = inject(MetaInj, ref())
 
@@ -39,7 +39,7 @@ useProvideViewAggregate(view, meta, xWhere, reloadVisibleDataHook)
 
 const {
   loadData,
-  selectedRows,
+  selectedRows: _selectedRows,
   updateOrSaveRow,
   addEmptyRow: _addEmptyRow,
   deleteRow,
@@ -53,6 +53,7 @@ const {
   bulkUpsertRows,
   syncCount,
   totalRows,
+  actualTotalRows,
   syncVisibleData,
   optimisedQuery,
   isLastRow,
@@ -66,11 +67,21 @@ const {
   selectedAllRecords,
   bulkDeleteAll,
   getRows,
+  getDataCache,
+  cachedGroups,
+  groupByColumns,
+  groupSyncCount,
+  fetchMissingGroupChunks,
+  toggleExpand,
+  totalGroups,
+  clearGroupCache,
+  groupDataCache,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
 const rowHeight = computed(() => {
-  if ((view.value?.view as GridType)?.row_height !== undefined) {
-    switch ((view.value?.view as GridType)?.row_height) {
+  const gridView = view.value?.view as GridType
+  if (gridView?.row_height !== undefined) {
+    switch (gridView?.row_height) {
       case 0:
         return 1
       case 1:
@@ -101,7 +112,7 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
 
 const skipRowRemovalOnCancel = ref(false)
 
-function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) {
+function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, path: Array<number> = []) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
   expandedFormRowState.value = state
   if (rowId && !isPublic.value) {
@@ -111,6 +122,7 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) 
       query: {
         ...routeQuery.value,
         rowId,
+        path: path.join('-'),
       },
     })
   } else {
@@ -138,6 +150,7 @@ const expandedFormOnRowIdDlg = computed({
       router.push({
         query: {
           ...routeQuery.value,
+          path: undefined,
           rowId: undefined,
         },
       })
@@ -159,18 +172,6 @@ const toggleOptimisedQuery = () => {
     message.info(t('msg.optimizedQueryEnabled'))
   }
 }
-
-const {
-  rootGroup,
-  groupBy,
-  isGroupBy,
-  loadGroups,
-  loadGroupData,
-  loadGroupPage,
-  groupWrapperChangePage,
-  redistributeRows,
-  loadGroupAggregation,
-} = useViewGroupByOrThrow()
 
 const sidebarStore = useSidebarStore()
 
@@ -200,22 +201,11 @@ const updateViewWidth = () => {
   viewWidth.value = windowSize.value - leftSidebarWidth.value
 }
 
-const baseColor = computed(() => {
-  switch (groupBy.value.length) {
-    case 1:
-      return '#F9F9FA'
-    case 2:
-      return '#F4F4F5'
-    case 3:
-      return '#E7E7E9'
-    default:
-      return '#F9F9FA'
-  }
-})
-
 const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING))
 
 const isCanvasTableEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CANVAS_GRID_VIEW))
+
+const isCanvasGroupByTableEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CANVAS_GROUP_GRID_VIEW))
 
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
@@ -241,7 +231,33 @@ const {
   islastRow: pisLastRow,
   getExpandedRowIndex: pGetExpandedRowIndex,
   changePage: pChangeView,
+  navigateToSiblingRow: pNavigateToSiblingRow,
 } = useViewData(meta, view, xWhere)
+
+const {
+  isGroupBy,
+  rootGroup,
+  loadGroupData,
+  loadGroups,
+  loadGroupPage,
+  groupWrapperChangePage,
+  loadGroupAggregation,
+  groupBy,
+  redistributeRows,
+} = useViewGroupByOrThrow()
+
+const baseColor = computed(() => {
+  switch (groupBy.value.length) {
+    case 1:
+      return '#F9F9FA'
+    case 2:
+      return '#F4F4F5'
+    case 3:
+      return '#E7E7E9'
+    default:
+      return '#F9F9FA'
+  }
+})
 
 const updateRowCommentCount = (count: number) => {
   if (!routeQuery.value.rowId) return
@@ -279,18 +295,29 @@ const pGoToNextRow = () => {
     const nextPage = pPaginationData.value?.page ? pPaginationData.value?.page + 1 : 1
     pChangeView(nextPage)
   }
-  navigateToSiblingRow(NavigateDir.NEXT)
+  pNavigateToSiblingRow(NavigateDir.NEXT)
 }
 const pGoToPreviousRow = () => {
   const currentIndex = pGetExpandedRowIndex()
-  /* when first index of current page is reached and then clicked back
-    previos page should be loaded
-  */
+  /* when first index of current page is reached and then clicked back previos page should be loaded  */
   if (!pPaginationData.value.isFirstPage && currentIndex === 1) {
     const nextPage = pPaginationData.value?.page ? pPaginationData.value?.page - 1 : 1
     pChangeView(nextPage)
   }
-  navigateToSiblingRow(NavigateDir.PREV)
+
+  pNavigateToSiblingRow(NavigateDir.PREV)
+}
+
+const groupPath = ref([])
+
+const selectedRows = computed(() => {
+  const dataCache = getDataCache(groupPath.value)
+  return dataCache?.selectedRows.value
+})
+
+const bulkUpdateTrigger = (path: Array<number>) => {
+  groupPath.value = path
+  bulkUpdateDlg.value = true
 }
 </script>
 
@@ -298,7 +325,7 @@ const pGoToPreviousRow = () => {
   <div
     class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
-    :style="`background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
+    :style="`background-color: ${isGroupBy && !isCanvasGroupByTableEnabled ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
   >
     <Table
       v-if="!isGroupBy && !isInfiniteScrollingEnabled"
@@ -322,7 +349,9 @@ const pGoToPreviousRow = () => {
     />
 
     <CanvasTable
-      v-else-if="!isGroupBy && isInfiniteScrollingEnabled && isCanvasTableEnabled"
+      v-else-if="
+        isInfiniteScrollingEnabled && ((isCanvasTableEnabled && !isGroupBy) || (isCanvasGroupByTableEnabled && isGroupBy))
+      "
       ref="tableRef"
       v-model:selected-all-records="selectedAllRecords"
       :load-data="loadData"
@@ -340,6 +369,7 @@ const pGoToPreviousRow = () => {
       :clear-invalid-rows="clearInvalidRows"
       :data="cachedRows"
       :total-rows="totalRows"
+      :actual-total-rows="actualTotalRows"
       :sync-count="syncCount"
       :get-rows="getRows"
       :chunk-states="chunkStates"
@@ -348,9 +378,18 @@ const pGoToPreviousRow = () => {
       :row-height-enum="rowHeight"
       :selected-rows="selectedRows"
       :row-sort-required-rows="isRowSortRequiredRows"
+      :total-groups="totalGroups"
+      :get-data-cache="getDataCache"
+      :cached-groups="cachedGroups"
+      :group-by-columns="groupByColumns"
+      :group-data-cache="groupDataCache"
+      :clear-group-cache="clearGroupCache"
+      :toggle-expand="toggleExpand"
+      :group-sync-count="groupSyncCount"
+      :fetch-missing-group-chunks="fetchMissingGroupChunks"
       :is-bulk-operation-in-progress="isBulkOperationInProgress"
       @toggle-optimised-query="toggleOptimisedQuery"
-      @bulk-update-dlg="bulkUpdateDlg = true"
+      @bulk-update-dlg="bulkUpdateTrigger"
     />
 
     <InfiniteTable
@@ -373,6 +412,7 @@ const pGoToPreviousRow = () => {
       :clear-invalid-rows="clearInvalidRows"
       :data="cachedRows"
       :total-rows="totalRows"
+      :actual-total-rows="actualTotalRows"
       :sync-count="syncCount"
       :chunk-states="chunkStates"
       :expand-form="expandForm"
@@ -400,6 +440,7 @@ const pGoToPreviousRow = () => {
       :redistribute-rows="redistributeRows"
       :view-width="viewWidth"
     />
+
     <Suspense>
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
@@ -413,7 +454,7 @@ const pGoToPreviousRow = () => {
       />
     </Suspense>
     <SmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg && meta?.id && !isGroupBy"
+      v-if="expandedFormOnRowIdDlg && meta?.id"
       v-model="expandedFormOnRowIdDlg"
       :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"
@@ -435,6 +476,7 @@ const pGoToPreviousRow = () => {
         v-model="bulkUpdateDlg"
         :meta="meta"
         :view="view"
+        :path="groupPath"
         :bulk-update-rows="bulkUpdateRows"
         :rows="selectedRows"
       />

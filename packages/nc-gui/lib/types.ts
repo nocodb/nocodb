@@ -89,11 +89,14 @@ interface Row {
     isLoading?: boolean
     isValidationFailed?: boolean
     isRowOrderUpdated?: boolean
+    isGroupChanged?: boolean
+    changedGroupIndex?: number
     isDragging?: boolean
     rowProgress?: {
       message: string
       progress: number
     }
+    path?: Array<number> | null
 
     new?: boolean
     selected?: boolean
@@ -230,6 +233,7 @@ interface GroupNestedIn {
   column_name: string
   key: string
   column_uidt: string
+  groupIndex?: number
 }
 
 interface Users {
@@ -324,6 +328,7 @@ interface NcTableColumnProps<T extends object = Record<string, any>> {
   dataIndex?: keyof T | (string & Record<never, never>)
   // name can be used as value, which will be used to display in header if title is absent and in data-test-id
   name?: string
+  format?: (value: any, record: T) => any
   [key: string]: any
 }
 
@@ -422,8 +427,54 @@ interface CellRendererOptions {
   setCursor: SetCursorType
   cellRenderStore: CellRenderStore
   baseUsers?: (Partial<UserType> | Partial<User>)[]
+  user?: Partial<UserType> | Partial<User>
   formula?: boolean
   isPublic?: boolean
+  path?: Array<number>
+  renderAsPlainCell?: boolean
+  fontFamily?: string
+  isRowHovered?: boolean
+  isRowChecked?: boolean
+  isCellInSelectionRange?: boolean
+  isGroupHeader?: boolean
+  rowMeta?: {
+    // Used in InfiniteScroll Grid View
+    isLastRow?: number
+    rowIndex?: number
+    isLoading?: boolean
+    isValidationFailed?: boolean
+    isRowOrderUpdated?: boolean
+    isDragging?: boolean
+    rowProgress?: {
+      message: string
+      progress: number
+    }
+
+    new?: boolean
+    selected?: boolean
+    commentCount?: number
+    changed?: boolean
+    saving?: boolean
+    ltarState?: Record<string, Record<string, any> | Record<string, any>[] | null>
+    fromExpandedForm?: boolean
+    // use in datetime picker component
+    isUpdatedFromCopyNPaste?: Record<string, boolean>
+    // Used in Calendar view
+    style?: Partial<CSSStyleDeclaration>
+    range?: {
+      fk_from_col: ColumnType
+      fk_to_col: ColumnType | null
+      is_readonly?: boolean
+    }
+    id?: string
+    position?: string
+    dayIndex?: number
+    overLapIteration?: number
+    numberOfOverlaps?: number
+    minutes?: number
+    recordIndex?: number // For week spanning records in month view
+    maxSpanning?: number
+  }
 }
 
 interface CellRenderStore {
@@ -439,12 +490,17 @@ interface CellRenderStore {
   ltar?: { oldX?: number; oldY?: number; x?: number; y?: number; width?: number; height?: number; value?: any }[]
 }
 
-type CursorType = 'auto' | 'pointer' | 'col-resize' | 'crosshair'
+type CursorType = CSSProperties['cursor']
 
 type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) => void
 
+interface CellRenderFn {
+  (ctx: CanvasRenderingContext2D, options: CellRendererOptions): void | { x?: number; y?: number }
+}
+
 interface CellRenderer {
-  render: (ctx: CanvasRenderingContext2D, options: CellRendererOptions) => void | { x?: number; y?: number }
+  render: CellRenderFn
+  renderEmpty?: CellRenderFn
   handleClick?: (options: {
     event: MouseEvent
     mousePosition: { x: number; y: number }
@@ -452,6 +508,7 @@ interface CellRenderer {
     column: CanvasGridColumn
     row: Row
     pk: any
+    path: Array<number>
     readonly: boolean
     isDoubleClick: boolean
     getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number; height: number; x: number; y: number }
@@ -461,15 +518,17 @@ interface CellRenderer {
       ltarState?: Record<string, any>,
       args?: { metaValue?: TableType; viewMetaValue?: ViewType },
       beforeRow?: string,
+      path?: Array<number>,
     ) => Promise<any>
     actionManager: ActionManager
-    makeCellEditable: (rowIndex: number | Row, clickedColumn: CanvasGridColumn) => void
+    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
     selected: boolean
     imageLoader: ImageWindowLoader
     cellRenderStore: CellRenderStore
     isPublic?: boolean
     openDetachedExpandedForm: (props: UseExpandedFormDetachedProps) => void
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
+    formula?: boolean
   }) => Promise<boolean>
   handleKeyDown?: (options: {
     e: KeyboardEvent
@@ -478,15 +537,17 @@ interface CellRenderer {
     value: any
     pk: any
     readonly: boolean
+    path: Array<number>
     updateOrSaveRow: (
       row: Row,
       property?: string,
       ltarState?: Record<string, any>,
       args?: { metaValue?: TableType; viewMetaValue?: ViewType },
       beforeRow?: string,
+      path?: Array<number>,
     ) => Promise<any>
     actionManager: ActionManager
-    makeCellEditable: (rowIndex: number | Row, clickedColumn: CanvasGridColumn) => void
+    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
     cellRenderStore: CellRenderStore
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
   }) => Promise<boolean | void>
@@ -504,13 +565,16 @@ interface CellRenderer {
       ltarState?: Record<string, any>,
       args?: { metaValue?: TableType; viewMetaValue?: ViewType },
       beforeRow?: string,
+      path?: Array<number>,
     ) => Promise<any>
     actionManager: ActionManager
-    makeCellEditable: (rowIndex: number, clickedColumn: CanvasGridColumn) => void
+    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
     selected: boolean
     imageLoader: ImageWindowLoader
     cellRenderStore: CellRenderStore
     setCursor: SetCursorType
+    path: Array<number>
+    baseUsers?: (Partial<UserType> | Partial<User>)[]
   }) => Promise<void>
   [key: string]: any
 }
@@ -573,11 +637,30 @@ type CanvasEditEnabledType = {
   y: number
   width: number
   minHeight: number
-  height: number
+  height: number | string
   fixed: boolean
+  path: Array<number>
 } | null
 
 type CanvasCellEventDataInjType = ExtractInjectedReactive<typeof CanvasCellEventDataInj>
+
+interface CanvasGroup {
+  groupIndex?: number
+  column: ColumnType
+  groups: Map<number, CanvasGroup>
+  chunkStates: Array<'loading' | 'loaded' | undefined>
+  count: number
+  isExpanded: boolean
+  value: any
+  displayValueProp?: string
+  relatedTableMeta?: TableType
+  relatedColumn?: ColumnType
+  color: string
+  groupCount?: number
+  path?: Array<number>
+  nestedIn: GroupNestedIn[]
+  aggregations: Record<string, any>
+}
 
 export type {
   User,
@@ -617,6 +700,7 @@ export type {
   Attachment,
   NestedArray,
   ViewActionState,
+  CellRenderFn,
   CellRenderer,
   CellRendererOptions,
   CellRenderStore,
@@ -627,4 +711,5 @@ export type {
   SetCursorType,
   CursorType,
   CanvasCellEventDataInjType,
+  CanvasGroup,
 }

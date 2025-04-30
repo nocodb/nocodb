@@ -82,6 +82,7 @@ export class DuplicateProcessor {
       excludeHooks?: boolean;
       excludeViews?: boolean;
       excludeComments?: boolean;
+      excludeUsers?: boolean;
     };
     operation: JobTypes;
   }) {
@@ -216,6 +217,7 @@ export class DuplicateProcessor {
     const excludeHooks = options?.excludeHooks || false;
     const excludeViews = options?.excludeViews || false;
     const excludeComments = options?.excludeComments || excludeData || false;
+    const excludeUsers = options?.excludeUsers || false;
 
     const base = await Base.get(context, baseId);
     const dupProject = await Base.get(context, dupProjectId);
@@ -232,6 +234,7 @@ export class DuplicateProcessor {
         excludeHooks,
         excludeViews,
         excludeComments,
+        excludeUsers,
       },
       operation: JobTypes.DuplicateBase,
     });
@@ -444,12 +447,18 @@ export class DuplicateProcessor {
     try {
       // save old default value
       const oldCdf = replacedColumn.cdf;
+      const oldRequired = replacedColumn.rqd;
 
       replacedColumn.title = title;
       replacedColumn.column_name = title.toLowerCase().replace(/ /g, '_');
 
       // remove default value to avoid filling existing empty rows
       replacedColumn.cdf = null;
+
+      // remove required to avoid filling existing empty rows
+      if (oldRequired) {
+        replacedColumn.rqd = false;
+      }
 
       Object.assign(replacedColumn, extra);
 
@@ -517,13 +526,14 @@ export class DuplicateProcessor {
         colId: findWithIdentifier(idMap, sourceColumn.id),
       });
 
-      // update cdf
+      // update cdf and rqd
       if (!isVirtualCol(destColumn) && !isAIPromptCol(destColumn)) {
         await this.columnsService.columnUpdate(context, {
           columnId: findWithIdentifier(idMap, sourceColumn.id),
           column: {
             ...destColumn,
             cdf: oldCdf,
+            ...(oldRequired ? { rqd: oldRequired } : {}),
           },
           user: req.user,
           req,
@@ -571,6 +581,13 @@ export class DuplicateProcessor {
       hrTime: { hrTime: [number, number] };
       modelFieldIds?: Record<string, string[]>;
       externalModels?: Model[];
+      options?: {
+        excludeData?: boolean;
+        excludeViews?: boolean;
+        excludeHooks?: boolean;
+        excludeComments?: boolean;
+        excludeUsers?: boolean;
+      };
       req: any;
     },
   ) {
@@ -583,6 +600,7 @@ export class DuplicateProcessor {
       hrTime,
       modelFieldIds,
       externalModels,
+      options,
       req,
     } = param;
 
@@ -608,6 +626,7 @@ export class DuplicateProcessor {
           baseId: sourceProject.id,
           modelId: sourceModel.id,
           handledMmList: handledLinks,
+          excludeUsers: options?.excludeUsers,
         })
         .catch((e) => {
           this.debugLog(e);
@@ -735,9 +754,7 @@ export class DuplicateProcessor {
                   const row = {};
                   for (let i = 0; i < headers.length; i++) {
                     if (headers[i]) {
-                      if (results.data[i] !== '') {
-                        row[headers[i]] = results.data[i];
-                      }
+                      row[headers[i]] = results.data[i];
                     }
                   }
                   chunk.push(row);

@@ -3,6 +3,7 @@ import {
   type ButtonType,
   type ColumnReqType,
   type ColumnType,
+  PlanLimitTypes,
   type TableType,
   UITypes,
   type ViewType,
@@ -23,6 +24,7 @@ import { type CellRange, NavigateDir, type Row, type ViewActionState } from '#im
 
 const props = defineProps<{
   totalRows: number
+  actualTotalRows: number
   data: Map<number, Row>
   rowHeightEnum?: number
   loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
@@ -38,7 +40,13 @@ const props = defineProps<{
   deleteSelectedRows?: () => Promise<void>
   clearInvalidRows?: () => void
   deleteRangeOfRows?: (cellRange: CellRange) => Promise<void>
-  updateRecordOrder: (originalIndex: number, targetIndex: number | null) => Promise<void>
+  updateRecordOrder: (
+    originalIndex: number,
+    targetIndex: number | null,
+    undo?: boolean,
+    isFailed?: boolean,
+    path?: Array<number>,
+  ) => Promise<void>
   bulkUpdateRows?: (
     rows: Row[],
     props: string[],
@@ -112,7 +120,9 @@ const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
 
-const { isPkAvail, isSqlView, eventBus, allFilters, sorts } = useSmartsheetStoreOrThrow()
+const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource } = useSmartsheetStoreOrThrow()
+
+const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
 const { $e, $api } = useNuxtApp()
 
@@ -141,6 +151,14 @@ const { loadViewAggregate } = useViewAggregateOrThrow()
 const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const {
+  showRecordPlanLimitExceededModal,
+  blockExternalSourceRecordVisibility,
+  showAsBluredRecord,
+  isWsOwner,
+  navigateToPricing,
+} = useEeConfig()
 
 const tableBodyEl = ref<HTMLElement>()
 
@@ -203,6 +221,18 @@ const cachedRows = toRef(props, 'data')
 const rowSortRequiredRows = toRef(props, 'rowSortRequiredRows')
 
 const totalRows = toRef(props, 'totalRows')
+
+const removeInlineAddRecord = computed(
+  () => blockExternalSourceRecordVisibility(isExternalSource.value) && totalRows.value >= EXTERNAL_SOURCE_VISIBLE_ROWS,
+)
+
+const additionalHeight = computed(() => {
+  if (removeInlineAddRecord.value) {
+    return 0
+  }
+
+  return 256
+})
 
 const chunkStates = toRef(props, 'chunkStates')
 
@@ -474,7 +504,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
     return
 
   // If the cell is readonly, return
-  if (colMeta.value[ctx.col].isReadonly) return
+  if (colMeta.value[ctx.col].isReadonly && !isVirtualCol(fields.value[ctx.col])) return
 
   // Get the row and column object
   const rowObj = cachedRows.value.get(ctx.row)
@@ -487,6 +517,10 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 
   if (isVirtualCol(columnObj)) {
     let mmClearResult
+    const mmOldResult = rowObj.row[columnObj.title]
+
+    // This will used to reload view data if it is self link column
+    const isSelfLinkColumn = columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id
 
     if (isMm(columnObj) && rowObj) {
       mmClearResult = await cleaMMCell(rowObj, columnObj)
@@ -494,7 +528,14 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 
     addUndo({
       undo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, mmClearResult: any[]) => {
+        fn: async (
+          ctx: { row: number; col: number },
+          col: ColumnType,
+          row: Row,
+          mmClearResult: any[],
+          mmOldResult: any,
+          isSelfLinkColumn: boolean,
+        ) => {
           const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
           const rowObj = cachedRows.value.get(ctx.row)
           const columnObj = fields.value[ctx.col]
@@ -516,22 +557,27 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
                 encodeURIComponent(rowId as string),
                 mmClearResult,
               )
-              rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
+              rowObj.row[columnObj.title] = mmOldResult ?? null
             }
 
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             activeCell.col = ctx.col
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             activeCell.row = ctx.row
+
+            if (isSelfLinkColumn) {
+              reloadViewDataHook.trigger({ shouldShowLoading: false })
+            }
+
             scrollToCell?.()
           } else {
             throw new Error(t('msg.recordCouldNotBeFound'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult],
+        args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult, mmOldResult],
       },
       redo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row) => {
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, isSelfLinkColumn: boolean) => {
           const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
           const rowObj = cachedRows.value.get(ctx.row)
           const columnObj = fields.value[ctx.col]
@@ -545,16 +591,25 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             activeCell.col = ctx.col
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             activeCell.row = ctx.row
+
+            if (isSelfLinkColumn) {
+              reloadViewDataHook.trigger({ shouldShowLoading: false })
+            }
+
             scrollToCell?.()
           } else {
             throw new Error(t('msg.recordCouldNotBeFound'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj)],
+        args: [clone(ctx), clone(columnObj), clone(rowObj), isSelfLinkColumn],
       },
       scope: defineViewScope({ view: view.value }),
     })
     if (isBt(columnObj) || isOo(columnObj)) await clearLTARCell(rowObj, columnObj)
+
+    if (isSelfLinkColumn) {
+      reloadViewDataHook.trigger({ shouldShowLoading: false })
+    }
 
     return
   }
@@ -669,11 +724,15 @@ const onDraftRecordClick = () => {
 }
 
 const onNewRecordToGridClick = () => {
+  if (showRecordPlanLimitExceededModal()) return
+
   setAddNewRecordGridMode(true)
   addEmptyRow()
 }
 
-const onNewRecordToFormClick = () => {
+function onNewRecordToFormClick() {
+  if (showRecordPlanLimitExceededModal()) return
+
   setAddNewRecordGridMode(false)
   onDraftRecordClick()
 }
@@ -871,6 +930,9 @@ const {
 
         if (!row) return
 
+        if (removeInlineAddRecord.value && row.rowMeta.rowIndex && row.rowMeta.rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS)
+          return true
+
         expandForm?.(row)
         return true
       }
@@ -891,7 +953,7 @@ const {
     } else if (e.key === 'Tab') {
       if (!e.shiftKey && activeCell.row === totalRows.value - 1 && activeCell.col === fields.value?.length - 1) {
         e.preventDefault()
-        if (isAddingEmptyRowAllowed.value) {
+        if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
           isKeyDown.value = true
 
           return true
@@ -967,7 +1029,7 @@ const {
       switch (e.keyCode) {
         case 82: {
           // ALT + R
-          if (isAddingEmptyRowAllowed.value) {
+          if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
             $e('c:shortcut', { key: 'ALT + R' })
             addEmptyRow()
             activeCell.row = totalRows.value - 1
@@ -1005,6 +1067,11 @@ const {
     }
 
     if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
+      // Reload view data if it is self link column
+      if (columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id) {
+        reloadViewDataHook?.trigger({ shouldShowLoading: false })
+      }
+
       return
     }
 
@@ -1050,6 +1117,12 @@ async function saveEmptyRow(rowObj: Row, before?: string) {
 }
 
 async function addEmptyRow(row?: number, skipUpdate = false, before?: string) {
+  if (showRecordPlanLimitExceededModal({ focusBtn: null })) return
+
+  if (removeInlineAddRecord.value && !before && !row && !skipUpdate) {
+    return
+  }
+
   clearInvalidRows?.()
   if (rowSortRequiredRows.value.length) {
     applySorting?.(rowSortRequiredRows.value)
@@ -1566,111 +1639,6 @@ const calculateSlices = () => {
   }
 }
 
-let timer1: any
-let timer2: any
-
-// Todo: we can remove this after testing
-const _calculateSlicesOld = () => {
-  if (timer1) {
-    clearTimeout(timer1)
-  }
-
-  if (timer2) {
-    clearTimeout(timer2)
-  }
-
-  // if the grid is not rendered yet
-  if (!gridWrapper.value) {
-    Object.assign(colSlice.value, {
-      start: 0,
-      end: 0,
-    })
-
-    // try again until the grid is rendered
-    timer1 = setTimeout(calculateSlices, 50)
-    return
-  }
-
-  // skip calculation if scrolling only vertical & scroll is smaller than (ROW_VIRTUAL_MARGIN - 2) x smallest row height
-  if (
-    lastScrollLeft.value &&
-    lastScrollLeft.value === scrollLeft.value &&
-    Math.abs(lastScrollTop.value - scrollTop.value) < 32 * (ROW_VIRTUAL_MARGIN - 2) &&
-    lastTotalRows.value === totalRows.value
-  ) {
-    return
-  }
-
-  lastScrollLeft.value = scrollLeft.value
-  lastScrollTop.value = scrollTop.value
-
-  let renderStart = 0
-
-  // use binary search to find the start and end columns
-  let startRange = 0
-  let endRange = colPositions.value.length - 1
-
-  while (startRange <= endRange) {
-    const middle = Math.floor((startRange + endRange) / 2)
-
-    if (colPositions.value[middle] <= scrollLeft.value && colPositions.value[middle + 1] > scrollLeft.value) {
-      renderStart = middle
-      break
-    }
-
-    if (colPositions.value[middle] < scrollLeft.value) {
-      startRange = middle + 1
-    } else {
-      endRange = middle - 1
-    }
-  }
-
-  let renderEnd = 0
-  let renderEndFound = false
-
-  for (let i = renderStart; i < colPositions.value.length; i++) {
-    if (colPositions.value[i] > gridWrapper.value.clientWidth + scrollLeft.value) {
-      renderEnd = i
-      renderEndFound = true
-      break
-    }
-  }
-
-  const colStart = Math.max(0, renderStart - COL_VIRTUAL_MARGIN)
-  const colEnd = renderEndFound ? Math.min(fields.value.length, renderEnd + COL_VIRTUAL_MARGIN) : fields.value.length
-
-  if (colSlice.value.start !== colStart || colSlice.value.end !== colEnd) {
-    colSlice.value = {
-      start: colStart,
-      end: colEnd,
-    }
-  }
-
-  if (gridWrapper.value.clientWidth === 0) {
-    timer2 = setTimeout(calculateSlices, 50)
-  }
-
-  const startIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
-  const visibleCount = Math.ceil(gridWrapper.value.clientHeight / rowHeight.value)
-  const endIndex = Math.min(startIndex + visibleCount, totalRows.value)
-
-  const newStart = Math.max(0, startIndex - ROW_VIRTUAL_MARGIN)
-  const newEnd = Math.min(totalRows.value, Math.max(endIndex + ROW_VIRTUAL_MARGIN, newStart + 50))
-
-  if (
-    rowSlice.start < 10 ||
-    Math.abs(newStart - rowSlice.start) >= ROW_VIRTUAL_MARGIN / 2 ||
-    Math.abs(newEnd - rowSlice.end) >= ROW_VIRTUAL_MARGIN / 2 ||
-    lastTotalRows.value !== totalRows.value
-  ) {
-    rowSlice.start = newStart
-    rowSlice.end = newEnd
-
-    updateVisibleRows(true)
-    lastTotalRows.value = totalRows.value
-  }
-}
-
 const visibleFields = computed(() => {
   // return data as { field, index } to keep track of the index
   const vFields = fields.value.slice(colSlice.value.start, colSlice.value.end)
@@ -1732,6 +1700,22 @@ const selectedReadonly = computed(
       )),
 )
 
+const disablePasteCell = computed(() => {
+  return (
+    selectedReadonly.value &&
+    (!selectedRange.isSingleCell() ||
+      !contextMenuTarget.value ||
+      (!isMm(fields.value[contextMenuTarget.value.col]) && !isBt(fields.value[contextMenuTarget.value.col])))
+  )
+})
+
+const disableClearCell = computed(() => {
+  return (
+    selectedReadonly.value &&
+    (!selectedRange.isSingleCell() || !contextMenuTarget.value || !isLinksOrLTAR(fields.value[contextMenuTarget.value.col]))
+  )
+})
+
 const showFillHandle = computed(
   () =>
     !isDataReadOnly.value &&
@@ -1743,7 +1727,8 @@ const showFillHandle = computed(
     fields.value[activeCell.col] &&
     totalRows.value &&
     !selectedReadonly.value &&
-    !isSqlView.value,
+    !isSqlView.value &&
+    (!removeInlineAddRecord.value || selectedRange.end.row < EXTERNAL_SOURCE_VISIBLE_ROWS),
 )
 
 watch(
@@ -1944,7 +1929,10 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
   ) {
     if (
       (e.key === 'Tab' && activeCell.row === totalRows.value - 1 && activeCell.col === fields.value?.length - 1) ||
-      (e.key === 'ArrowDown' && activeCell.row === totalRows.value - 1 && isAddingEmptyRowAllowed.value)
+      (e.key === 'ArrowDown' &&
+        activeCell.row === totalRows.value - 1 &&
+        isAddingEmptyRowAllowed.value &&
+        !removeInlineAddRecord.value)
     ) {
       addEmptyRow()
       isKeyDown.value = false
@@ -1959,7 +1947,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     switch (e.keyCode) {
       case 78: {
         // ALT + N
-        if (isAddingEmptyRowAllowed.value) {
+        if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
           addEmptyRow()
         }
         break
@@ -2015,6 +2003,8 @@ watch(
   async (next, old) => {
     try {
       if (next && next.id !== old?.id && (next.fk_model_id === route.params.viewId || isPublicView.value)) {
+        await until(isViewColumnsLoading).toMatch((c) => !c)
+
         switchingTab.value = true
         // whenever tab changes or view changes save any unsaved data
         if (old?.id) {
@@ -2187,12 +2177,50 @@ watch(vSelectedAllRecords, (selectedAll) => {
   }
 })
 
+watch(
+  removeInlineAddRecord,
+  (newValue) => {
+    if (isAddNewRecordGridMode.value && newValue) {
+      setAddNewRecordGridMode(!newValue)
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
 const cellAlignClass = computed(() => {
   if (!props.rowHeightEnum || props.rowHeightEnum === 1) {
     return 'align-middle'
   }
   return 'align-top'
 })
+
+const cellFilteredOrSortedClass = (colId: string) => {
+  const columnState = isColumnSortedOrFiltered(colId)
+  if (columnState) {
+    const className = filteredOrSortedAppearanceConfig[columnState]?.cellBgClass
+    if (className) {
+      return {
+        [className]: true,
+      }
+    }
+  }
+  return {}
+}
+
+const headerFilteredOrSortedClass = (colId: string) => {
+  const columnState = isColumnSortedOrFiltered(colId)
+  if (columnState) {
+    const headerBgClass = filteredOrSortedAppearanceConfig[columnState]?.headerBgClass
+    if (headerBgClass) {
+      return {
+        [headerBgClass]: true,
+      }
+    }
+  }
+  return {}
+}
 </script>
 
 <template>
@@ -2238,7 +2266,7 @@ const cellAlignClass = computed(() => {
               mobile: isMobileMode,
               desktop: !isMobileMode,
             }"
-            class="nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5 bg-white"
+            class="nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5"
           >
             <thead>
               <tr v-if="isViewColumnsLoading">
@@ -2262,16 +2290,14 @@ const cellAlignClass = computed(() => {
               </tr>
               <tr v-show="!isViewColumnsLoading" class="nc-grid-header transform">
                 <th ref="numColHeader" class="w-[80px] min-w-[80px]" data-testid="grid-id-column">
-                  <div
-                    v-if="!readOnly"
-                    data-testid="nc-check-all"
-                    class="flex items-center pl-2 pr-1 w-full h-full justify-center"
-                  >
+                  <div v-if="!readOnly" data-testid="nc-check-all" class="flex items-center pl-2 pr-1 w-full h-full">
                     <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
                     <div
                       :class="{
-                        hidden: !vSelectedAllRecords,
-                        flex: vSelectedAllRecords,
+                        'hidden': !vSelectedAllRecords,
+                        'flex': vSelectedAllRecords,
+                        'pl-[21px]': isOrderColumnExists && !isRowReorderDisabled,
+                        'pl-[2px]': !(isOrderColumnExists && !isRowReorderDisabled),
                       }"
                       class="nc-check-all w-full items-center"
                     >
@@ -2281,7 +2307,7 @@ const cellAlignClass = computed(() => {
                     </div>
                   </div>
                   <template v-else>
-                    <div class="w-full h-full text-gray-500 flex pl-2 pr-1 items-center" data-testid="nc-check-all">#</div>
+                    <div class="w-full h-full text-gray-500 flex pl-2 pr-1" data-testid="nc-check-all">#</div>
                   </template>
                 </th>
                 <th
@@ -2305,6 +2331,7 @@ const cellAlignClass = computed(() => {
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
                     'no-resize': isLocked,
+                    ...headerFilteredOrSortedClass(fields?.[0]?.id),
                   }"
                   @xcstartresizing="onXcStartResizing(fields[0].id, $event)"
                   @xcresize="onresize(fields[0].id, $event)"
@@ -2356,6 +2383,7 @@ const cellAlignClass = computed(() => {
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === col.id,
                     'no-resize': isLocked,
+                    ...headerFilteredOrSortedClass(col.id),
                   }"
                   @xcstartresizing="onXcStartResizing(col.id, $event)"
                   @xcresize="onresize(col.id, $event)"
@@ -2449,7 +2477,7 @@ const cellAlignClass = computed(() => {
           <div
             class="table-overlay"
             :style="{
-              height: isBulkOperationInProgress ? '100%' : `${maxGridHeight + 256}px`,
+              height: isBulkOperationInProgress ? '100%' : `${maxGridHeight + additionalHeight}px`,
               width: `${maxGridWidth}px`,
             }"
           >
@@ -2464,7 +2492,7 @@ const cellAlignClass = computed(() => {
             >
               <tbody
                 ref="tableBodyEl"
-                class="xc-row-table"
+                class="xc-row-table !bg-red-100"
                 :style="{
                   transform: `translateY(${topOffset}px)`,
                 }"
@@ -2528,6 +2556,12 @@ const cellAlignClass = computed(() => {
                       class="nc-grid-row transition transition-all duration-500 opacity-100 !xs:h-14"
                       :style="{
                         height: `${rowHeight}px`,
+                        filter:
+                          showAsBluredRecord(isExternalSource, row.rowMeta.rowIndex + 1) && !row.rowMeta.new
+                            ? 'blur(4px)'
+                            : undefined,
+                        pointerEvents:
+                          showAsBluredRecord(isExternalSource, row.rowMeta.rowIndex + 1) && !row.rowMeta.new ? 'none' : 'auto',
                       }"
                       :data-testid="`grid-row-${row.rowMeta.rowIndex}`"
                       :class="{
@@ -2546,37 +2580,59 @@ const cellAlignClass = computed(() => {
                       >
                         <div class="w-full flex items-center h-full px-1 gap-0.5">
                           <div
-                            class="nc-row-no min-w-4 h-4 text-xs flex items-center justify-center text-gray-500"
-                            :class="{ toggle: !readOnly, hidden: row.rowMeta?.selected || vSelectedAllRecords }"
+                            class="nc-row-no min-w-4 h-4 flex items-center justify-center text-gray-500 pl-1.5"
+                            :class="{
+                              'toggle': !readOnly,
+                              'hidden': row.rowMeta?.selected || vSelectedAllRecords,
+                              'text-[10px]': row.rowMeta.rowIndex + 1 >= 10000,
+                              'text-xs': row.rowMeta.rowIndex + 1 >= 1000,
+                              'text-small': row.rowMeta.rowIndex + 1 < 1000,
+                            }"
                           >
                             {{ row.rowMeta.rowIndex + 1 }}
                           </div>
 
                           <div
-                            v-if="!selectedRows.length && isOrderColumnExists && !isRowReorderDisabled && !vSelectedAllRecords"
-                            :class="{ toggle: !readOnly }"
+                            v-if="isOrderColumnExists && !isRowReorderDisabled"
+                            :class="{ 'toggle': !readOnly, '!block': row.rowMeta?.selected || !!vSelectedAllRecords }"
                             class="nc-drag-handle hidden"
                           >
-                            <NcButton size="xxsmall" type="text" @mousedown="startDragging(row, $event)">
-                              <GeneralIcon class="text-nc-content-gray hover:text-nc-content-brand" icon="ncDrag" />
+                            <NcButton
+                              size="xxsmall"
+                              type="text"
+                              :disabled="!!selectedRows.length || !!vSelectedAllRecords"
+                              @mousedown="startDragging(row, $event)"
+                            >
+                              <GeneralIcon
+                                :class="{
+                                  'text-nc-content-gray hover:text-nc-content-brand':
+                                    !selectedRows.length && !vSelectedAllRecords,
+                                  'text-nc-content-gray-muted': !(!selectedRows.length && !vSelectedAllRecords),
+                                }"
+                                icon="ncDrag"
+                              />
                             </NcButton>
                           </div>
                           <div
                             v-if="!readOnly"
                             :class="{
-                              hidden: !row.rowMeta?.selected && !vSelectedAllRecords,
-                              flex: row.rowMeta?.selected || vSelectedAllRecords,
+                              'hidden': !row.rowMeta?.selected && !vSelectedAllRecords,
+                              'flex': row.rowMeta?.selected || vSelectedAllRecords,
+                              'pl-1.5': !(isOrderColumnExists && !isRowReorderDisabled),
                             }"
                             class="nc-row-expand-and-checkbox"
                           >
                             <NcCheckbox
                               :checked="row.rowMeta.selected || vSelectedAllRecords"
-                              :disabled="(!row.rowMeta.selected && selectedRows.length >= 100) || vSelectedAllRecords"
+                              :disabled="
+                                (!row.rowMeta.selected && selectedRows.length >= EXTERNAL_SOURCE_VISIBLE_ROWS) ||
+                                vSelectedAllRecords
+                              "
                               class="!w-4 !h-4"
                               @change="toggleRowSelection(row.rowMeta.rowIndex)"
                             />
                           </div>
-                          <div :data-testid="`nc-expand-${row.rowMeta.rowIndex}`">
+                          <div :data-testid="`nc-expand-${row.rowMeta.rowIndex}`" class="flex-1 flex items-center justify-end">
                             <a-spin
                               v-if="row.rowMeta?.saving || row.rowMeta?.isLoading"
                               class="hidden nc-row-spinner items-center"
@@ -2587,21 +2643,25 @@ const cellAlignClass = computed(() => {
                               <span
                                 v-if="row.rowMeta?.commentCount && expandForm"
                                 v-e="['c:expanded-form:open']"
-                                :class="{ 'nc-comment': row.rowMeta?.commentCount }"
-                                class="px-1 rounded-md rounded-bl-none ml-1 transition-all border-1 border-brand-200 text-xs cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50"
+                                :class="{
+                                  'nc-comment': row.rowMeta?.commentCount,
+                                  'text-[10px] font-600 px-0.5': row.rowMeta.commentCount > 99,
+                                  'text-small font-500 px-0.8': row.rowMeta.commentCount <= 99,
+                                }"
+                                class="text-center rounded-md rounded-bl-none transition-all border-1 border-brand-200 cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50 hover:bg-brand-100 !min-h-4.5 !min-w-5 !leading-5 inline-block"
                                 @click="expandAndLooseFocus(row, state)"
                               >
-                                {{ row.rowMeta.commentCount }}
+                                {{ row.rowMeta.commentCount > 99 ? '99+' : row.rowMeta.commentCount }}
                               </span>
                               <div
                                 v-else
-                                class="cursor-pointer nc-expand flex items-center border-1 border-gray-100 active:ring rounded-md p-1 hover:(bg-white border-nc-border-gray-medium)"
+                                class="cursor-pointer nc-expand flex items-center border-1 border-gray-100 active:ring rounded-md p-0.75 hover:(bg-white border-nc-border-gray-medium)"
                               >
                                 <component
                                   :is="iconMap.maximize"
                                   v-if="expandForm"
                                   v-e="['c:row-expand:open']"
-                                  class="select-none transform nc-row-expand opacity-90 w-4 h-4"
+                                  class="select-none transform nc-row-expand opacity-90 w-3.5 h-3.5"
                                   @click="expandAndLooseFocus(row, state)"
                                 />
                               </div>
@@ -2629,6 +2689,7 @@ const cellAlignClass = computed(() => {
                             colMeta[0]?.isReadonly && hasEditPermission && selectRangeMap?.[`${row.rowMeta.rowIndex}-0`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
                           [cellAlignClass]: true,
+                          ...cellFilteredOrSortedClass(fields[0].id),
                         }"
                         :style="{
                           'min-width': gridViewCols[fields[0].id]?.width || '180px',
@@ -2732,6 +2793,7 @@ const cellAlignClass = computed(() => {
                             selectRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
                           [cellAlignClass]: true,
+                          ...cellFilteredOrSortedClass(columnObj.id),
                         }"
                         :style="{
                           'min-width': gridViewCols[columnObj.id]?.width || '180px',
@@ -2822,7 +2884,7 @@ const cellAlignClass = computed(() => {
                   :col-count="totalRenderedColLength"
                 />
                 <tr
-                  v-if="isAddingEmptyRowAllowed"
+                  v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord"
                   v-e="['c:row:add:grid-bottom']"
                   class="text-left nc-grid-add-new-cell mb-[80px] transition-all cursor-pointer group relative z-3 xs:hidden"
                   :class="{
@@ -2882,7 +2944,7 @@ const cellAlignClass = computed(() => {
                 v-if="!contextMenuClosing && !contextMenuTarget && !isDataReadOnly && selectedRows.length"
                 class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
                 data-testid="nc-delete-row"
-                @click="deleteSelectedRows"
+                @click="deleteSelectedRows([])"
               >
                 <div v-if="selectedRows.length === 1" v-e="['a:row:delete']" class="flex gap-2 items-center">
                   <component :is="iconMap.delete" />
@@ -2898,7 +2960,7 @@ const cellAlignClass = computed(() => {
               v-if="vSelectedAllRecords"
               class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
               data-testid="nc-delete-all-row"
-              @click="deleteAllRecords"
+              @click="deleteAllRecords([])"
             >
               <div v-e="['a:row:delete-all']" class="flex gap-2 items-center">
                 <component :is="iconMap.delete" />
@@ -2986,7 +3048,7 @@ const cellAlignClass = computed(() => {
               v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly"
               class="nc-base-menu-item"
               data-testid="context-menu-item-paste"
-              :disabled="selectedReadonly"
+              :disabled="disablePasteCell"
               @click="paste"
             >
               <div v-e="['a:row:paste']" class="flex gap-2 items-center">
@@ -3006,7 +3068,7 @@ const cellAlignClass = computed(() => {
                 !isDataReadOnly
               "
               class="nc-base-menu-item"
-              :disabled="selectedReadonly"
+              :disabled="disableClearCell"
               data-testid="context-menu-item-clear"
               @click="clearCell(contextMenuTarget)"
             >
@@ -3068,10 +3130,39 @@ const cellAlignClass = computed(() => {
           </NcMenu>
         </template>
       </NcDropdown>
+      <div v-if="removeInlineAddRecord" class="sticky left-0 py-[120px]">
+        <div class="flex flex-col gap-5 p-6 max-w-[520px] text-center mx-auto">
+          <div class="flex flex-col gap-2">
+            <div class="text-base font-700 text-nc-content-gray">{{ $t('upgrade.upgradeToSeeMoreRecordInline') }}</div>
+            <div>
+              {{
+                $t('upgrade.upgradeToSeeMoreRecordInlineSubtitle', {
+                  limit: 100,
+                  total: Math.max(props.totalRows, props.actualTotalRows),
+                  remaining: Math.max(props.totalRows, props.actualTotalRows) - 100,
+                })
+              }}
+            </div>
+          </div>
+          <div class="flex items-center justify-center gap-3">
+            <a href="https://nocodb.com/pricing" target="_blank">
+              <NcButton size="small" type="secondary">
+                {{ $t('msg.learnMore') }}
+              </NcButton>
+            </a>
+            <NcButton
+              size="small"
+              @click="navigateToPricing({ limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE })"
+            >
+              {{ isWsOwner ? $t('general.upgrade') : t('general.requestUpgrade') }}
+            </NcButton>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="absolute bottom-12 z-5 left-2" @click.stop>
-      <NcDropdown v-if="isAddingEmptyRowAllowed">
+      <NcDropdown v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord">
         <div class="flex shadow-nc-sm rounded-lg">
           <NcButton
             v-if="isMobileMode"
@@ -3117,7 +3208,12 @@ const cellAlignClass = computed(() => {
 
         <template #overlay>
           <NcMenu variant="small">
-            <NcMenuItem v-e="['c:row:add:grid']" class="nc-new-record-with-grid group" @click="onNewRecordToGridClick">
+            <NcMenuItem
+              v-e="['c:row:add:grid']"
+              class="nc-new-record-with-grid group"
+              :disabled="removeInlineAddRecord"
+              @click="onNewRecordToGridClick"
+            >
               <div class="flex flex-row items-center justify-start gap-x-3">
                 <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
                 {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}
@@ -3138,7 +3234,11 @@ const cellAlignClass = computed(() => {
       </NcDropdown>
     </div>
 
-    <LazySmartsheetGridPaginationV2 :total-rows="totalRows" :scroll-left="scrollLeft" :disable-pagination="true" />
+    <LazySmartsheetGridPaginationV2
+      :total-rows="Math.max(props.totalRows, props.actualTotalRows)"
+      :scroll-left="scrollLeft"
+      :disable-pagination="true"
+    />
   </div>
 </template>
 
@@ -3261,9 +3361,9 @@ const cellAlignClass = computed(() => {
         @apply text-gray-600;
         font-weight: 500;
 
-        .nc-cell-field,
-        input,
-        textarea {
+        .nc-cell-field:not(.nc-null),
+        input:not(.nc-null),
+        textarea:not(.nc-null) {
           @apply text-gray-600;
           font-weight: 500;
         }
@@ -3425,7 +3525,7 @@ const cellAlignClass = computed(() => {
       position: sticky !important;
       z-index: 4;
       left: 80px;
-      background: white;
+      // background: white;
       @apply border-r-1 border-r-gray-100;
     }
 
@@ -3485,6 +3585,23 @@ const cellAlignClass = computed(() => {
 }
 
 .nc-grid-row {
+  td.nc-grid-cell.column-filtered.active {
+    @apply !bg-green-100;
+
+    :deep(input),
+    :deep(textarea) {
+      @apply !bg-transparent;
+    }
+  }
+  td.nc-grid-cell.column-sorted.active {
+    @apply !bg-orange-100;
+
+    :deep(input),
+    :deep(textarea) {
+      @apply !bg-transparent;
+    }
+  }
+
   .nc-row-expand-and-checkbox {
     @apply !xs:hidden items-center justify-between;
   }
@@ -3529,6 +3646,14 @@ const cellAlignClass = computed(() => {
       td.nc-grid-cell:not(.active),
       td:nth-child(2):not(.active) {
         @apply !bg-gray-50 border-b-gray-200 border-r-gray-200;
+
+        &.column-filtered {
+          @apply !bg-green-100;
+        }
+
+        &.column-sorted {
+          @apply !bg-orange-100;
+        }
       }
     }
   }
@@ -3537,6 +3662,14 @@ const cellAlignClass = computed(() => {
     td.nc-grid-cell:not(.active),
     td:nth-child(2):not(.active) {
       @apply !bg-[#F0F3FF] border-b-gray-200 border-r-gray-200;
+
+      &.column-filtered {
+        @apply !bg-green-100;
+      }
+
+      &.column-sorted {
+        @apply !bg-orange-100;
+      }
     }
   }
 
@@ -3544,6 +3677,20 @@ const cellAlignClass = computed(() => {
     td.nc-grid-cell:not(.active),
     td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
       @apply border-b-gray-200;
+    }
+  }
+
+  &:not(.selected-row) {
+    td.nc-grid-cell:not(.active),
+    td:nth-child(2):not(.active) {
+      &.column-filtered,
+      &.column-sorted {
+        @apply border-b-gray-200 border-r-gray-200;
+      }
+      &:has(+ .column-filtered),
+      &:has(+ .column-sorted) {
+        @apply border-r-gray-200;
+      }
     }
   }
 

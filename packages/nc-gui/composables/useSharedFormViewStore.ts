@@ -29,6 +29,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { sharedView } = storeToRefs(useViewsStore())
 
+  const { blockAddNewRecord, showRecordPlanLimitExceededModal } = useEeConfig()
+
   provide(SharedViewPasswordInj, password)
 
   const sharedFormView = ref<FormType>()
@@ -50,6 +52,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const { api, isLoading } = useApi()
 
   const { metas, setMeta, getMeta } = useMetas()
+
+  const worksapce = useWorkspace()
+
+  const { workspaces } = storeToRefs(worksapce)
 
   const baseStore = useBase()
   const { base, sqlUis } = storeToRefs(baseStore)
@@ -136,6 +142,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         },
       })
 
+      // Set workspace info if present
+      if (viewMeta?.workspace) {
+        workspaces.value.set(viewMeta.workspace.id, viewMeta.workspace)
+      }
+
       passwordDlg.value = false
 
       sharedView.value = viewMeta
@@ -219,6 +230,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       await handlePreFillForm()
 
       checkFieldVisibility()
+
+      nextTick(() => {
+        showRecordPlanLimitExceededModal({ isSharedFormView: true, focusBtn: null })
+      })
     } catch (e: any) {
       const error = await extractSdkResponseErrorMsgv2(e)
 
@@ -367,6 +382,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   }
 
   const submitForm = async () => {
+    // If blockAddNewRecord is true that means we have to upgrade plan to add more records
+    if (blockAddNewRecord.value) return
+
     try {
       if (!(await validateAllFields())) {
         return

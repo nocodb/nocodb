@@ -3,42 +3,50 @@ import { ComputedTypePasteError, TypeConversionError } from 'nocodb-sdk'
 import type { Row } from '../../../../../lib/types'
 import convertCellData from '../../../../../composables/useMultiSelect/convertCellData'
 import { serializeRange } from '../../../../../utils/pasteUtils'
+import { type CanvasElement, ElementTypes } from '../utils/CanvasElement'
 
 export function useFillHandler({
   isFillMode,
   isAiFillMode,
   selection,
   canvasRef,
-  rowHeight,
   getFillHandlerPosition,
   triggerReRender,
-  rowSlice,
-  cachedRows,
   columns,
   bulkUpdateRows,
   meta,
   activeCell,
   isPasteable,
+  elementMap,
+  getDataCache,
+  getRows,
 }: {
   selection: Ref<CellRange>
-  activeCell: Ref<{ row: number; column: number }>
+  activeCell: Ref<{ row: number; column: number; path: Array<number> }>
   canvasRef: Ref<HTMLCanvasElement>
-  rowHeight: Ref<number>
   isFillMode: Ref<boolean>
   isAiFillMode: Ref<boolean>
   getFillHandlerPosition: () => FillHandlerPosition | null
   triggerReRender: () => void
-  rowSlice: Ref<{ start: number; end: number }>
   columns: ComputedRef<CanvasGridColumn[]>
-  cachedRows: Ref<Map<number, Row>>
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     undo?: boolean,
+    path?: Array<number>,
   ) => Promise<void>
   meta: Ref<TableType>
   isPasteable: (row: Row, column: ColumnType) => boolean
+  elementMap: CanvasElement
+  getDataCache: (path?: Array<number>) => {
+    cachedRows: Ref<Map<number, Row>>
+    totalRows: Ref<number>
+    chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
+    selectedRows: ComputedRef<Array<Row>>
+    isRowSortRequiredRows: ComputedRef<Array<Row>>
+  }
+  getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
 }) {
   const { isMysql, isPg } = useBase()
 
@@ -131,41 +139,44 @@ export function useFillHandler({
 
     if (!isFillMode.value || isFillEnded.value) return
 
-    const y = e.clientY - rect.top
-    const row = Math.floor((y - 32) / rowHeight.value)
+    const element = elementMap.findElementAt(0, e.clientY - rect.top, ElementTypes.ROW)
+
+    if (!element) return
 
     selection.value.endRange({
-      row: row + rowSlice.value.start,
+      row: element.rowIndex,
       col: selection.value.end.col ?? fillStartRange.value?.end.col,
     })
 
     triggerReRender()
   }
 
-  const handleFillEnd = () => {
+  const handleFillEnd = async () => {
     if (isFillMode.value) {
       try {
         isFillEnded.value = true
         const localAiMode = Boolean(isAiFillMode.value)
+
+        const groupPath = activeCell.value?.path
+
+        const { cachedRows } = getDataCache(groupPath)
 
         if (fillStartRange.value === null) return
 
         if (selection.value._start !== null && selection.value._end !== null) {
           const tempActiveCell = { row: selection.value._start.row, col: selection.value._start.col }
 
-          const cprows = Array.from(unref(cachedRows) as Map<number, Row>)
-            .filter(([index]) => {
-              if (fillStartRange.value) {
-                // Use the original selection area bounds
-                const startRow = Math.min(fillStartRange.value.start.row, selection.value._start!.row)
-                const endRow = Math.max(fillStartRange.value.end.row, selection.value._start!.row)
-                return index >= startRow && index <= endRow
-              } else {
-                // Normal selection behavior
-                return index >= selection.value.start.row && index <= selection.value.end.row
-              }
-            })
-            .map(([, row]) => row)
+          let startRow, endRow
+
+          if (fillStartRange.value) {
+            startRow = Math.min(fillStartRange.value.start.row, selection.value._start!.row)
+            endRow = Math.max(fillStartRange.value.end.row, selection.value._start!.row)
+          } else {
+            startRow = selection.value.start.row
+            endRow = selection.value.end.row
+          }
+
+          const cprows = await getRows(startRow, endRow, groupPath)
 
           const _cpcols = unref(columns).slice(selection.value.start.col, selection.value.end.col + 1) // slice the selected cols for copy
 
@@ -322,7 +333,13 @@ export function useFillHandler({
                   }
                 }
 
-                bulkUpdateRows?.(rowsToPaste.concat(rowsToFill), propsToPaste.concat(propsToFill)).then(() => {
+                bulkUpdateRows?.(
+                  rowsToPaste.concat(rowsToFill),
+                  propsToPaste.concat(propsToFill),
+                  undefined,
+                  undefined,
+                  groupPath,
+                ).then(() => {
                   activeCell.value.column = tempActiveCell.col
                   activeCell.value.row = tempActiveCell.row
                   fillStartRange.value = null
@@ -337,9 +354,10 @@ export function useFillHandler({
             return
           }
 
-          bulkUpdateRows?.(rowsToPaste, propsToPaste).then(() => {
+          bulkUpdateRows?.(rowsToPaste, propsToPaste, undefined, undefined, groupPath).then(() => {
             activeCell.value.column = tempActiveCell.col
             activeCell.value.row = tempActiveCell.row
+            activeCell.value.path = groupPath
             fillStartRange.value = null
             isFillMode.value = false
           })

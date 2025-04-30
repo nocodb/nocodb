@@ -26,6 +26,8 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
+const { showExternalSourcePlanLimitExceededModal } = useEeConfig()
+
 const isImportModalOpen = ref(false)
 
 const defaultBase = computed(() => {
@@ -174,7 +176,7 @@ const customRow = (record: Record<string, any>, recordIndex: number) => ({
 })
 
 const onCreateBaseClick = () => {
-  if (isDataSourceLimitReached.value) return
+  if (showExternalSourcePlanLimitExceededModal() || isDataSourceLimitReached.value) return
 
   isNewBaseModalOpen.value = true
 }

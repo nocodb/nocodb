@@ -65,9 +65,14 @@ const { $api, $state } = useNuxtApp()
 const { addTab } = useTabs()
 
 const basesStore = useBases()
+
 const { bases } = storeToRefs(basesStore)
 
-const { base: activeBase } = storeToRefs(useBase())
+const baseStore = useBase()
+
+const { isMysql, isMssql, isPg } = baseStore
+
+const { base: activeBase } = storeToRefs(baseStore)
 
 const base = computed(() => bases.value.get(baseId) || activeBase.value)
 
@@ -139,6 +144,26 @@ const validators = computed(() =>
           return new Promise<void>((resolve, reject) => {
             if (value !== value?.trim()) {
               return reject(new Error('Table names should not have whitespace in the beginning or their end.'))
+            }
+            resolve()
+          })
+        },
+      },
+      {
+        validator: (rule: any, value: any) => {
+          return new Promise<void>((resolve, reject) => {
+            let tableNameLengthLimit = 255
+            if (isMysql(sourceId)) {
+              tableNameLengthLimit = 64
+            } else if (isPg(sourceId)) {
+              tableNameLengthLimit = 63
+            } else if (isMssql(sourceId)) {
+              tableNameLengthLimit = 128
+            }
+
+            const basePrefix = base?.value?.prefix || ''
+            if ((basePrefix + value).length > tableNameLengthLimit) {
+              return reject(new Error(`Table name exceeds ${tableNameLengthLimit} characters`))
             }
             resolve()
           })
@@ -878,7 +903,7 @@ function getErrorByTableName(tableName: string) {
 </script>
 
 <template>
-  <div class="relative">
+  <div class="relative text-nc-content-gray">
     <div v-if="importDataOnly">
       <a-form :model="data" name="import-only">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
@@ -898,7 +923,7 @@ function getErrorByTableName(tableName: string) {
           <GeneralIcon
             v-if="!isImporting"
             icon="ncChevronDown"
-            class="text-lg !-translate-y-1/2 !transition"
+            class="text-lg !-translate-y-1/2 !transition text-nc-content-gray-subtle"
             :class="{ '!transform !rotate-180': isActive }"
           />
         </template>
@@ -919,10 +944,10 @@ function getErrorByTableName(tableName: string) {
                 'w-full': isImporting,
               }"
             >
-              <div class="w-8 h-8 flex items-center justify-center bg-secondary rounded-md">
+              <div class="w-8 h-8 flex items-center justify-center bg-nc-bg-gray-extralight rounded-md">
                 <GeneralIcon :icon="tableIcon" class="w-5 h-5" />
               </div>
-              <NcTooltip :title="table.table_name" show-on-truncate-only class="flex-1 truncate">
+              <NcTooltip :title="table.table_name" show-on-truncate-only class="flex-1 truncate text-nc-content-gray">
                 <span>
                   {{ table.table_name }}
                 </span>
@@ -933,7 +958,7 @@ function getErrorByTableName(tableName: string) {
                     {{ idx > 0 ? `${idx + 1}.` : '' }} {{ err }}
                   </div>
                 </template>
-                <NcBadge color="red" :border="false" class="w-6 flex-none">
+                <NcBadge color="red" :border="false" class="w-8 !px-2 flex-none !bg-nc-bg-red-light">
                   <GeneralIcon icon="ncInfo" class="text-nc-content-red-dark" />
                 </NcBadge>
               </NcTooltip>
@@ -948,7 +973,7 @@ function getErrorByTableName(tableName: string) {
               </div>
             </div>
           </template>
-          <div v-if="srcDestMapping" class="bg-gray-50 !py-1 flex-1 flex">
+          <div v-if="srcDestMapping" class="bg-gray-50 pl-4 flex-1 flex">
             <NcTable
               class="template-form flex-1 max-h-[310px]"
               header-row-class-name="relative"
@@ -960,25 +985,33 @@ function getErrorByTableName(tableName: string) {
               row-height="40px"
             >
               <template #headerCell="{ column }">
-                <NcTooltip v-if="column.key === 'source_column'">
-                  <template #title>
-                    {{
-                      isAllMappedSelected(table.table_name)
-                        ? $t('activity.deselectAllFields')
-                        : $t('tooltip.selectAllMappedFields')
-                    }}
-                  </template>
-                  <div>
-                    <NcCheckbox
-                      :indeterminate="!isAllMappedSelected(table.table_name) && isSomeMappedSelected(table.table_name)"
-                      :checked="isAllMappedSelected(table.table_name)"
-                      @change="handleCheckAllRecord($event, table.table_name)"
-                    />
-                  </div>
-                  <div class="absolute h-1 border-b bottom-0 left-3 right-3" />
-                </NcTooltip>
+                <template v-if="column.key === 'source_column'">
+                  <NcTooltip>
+                    <template #title>
+                      {{
+                        isAllMappedSelected(table.table_name)
+                          ? $t('activity.deselectAllFields')
+                          : $t('tooltip.selectAllMappedFields')
+                      }}
+                    </template>
+                    <div>
+                      <NcCheckbox
+                        :indeterminate="!isAllMappedSelected(table.table_name) && isSomeMappedSelected(table.table_name)"
+                        :checked="isAllMappedSelected(table.table_name)"
+                        @change="handleCheckAllRecord($event, table.table_name)"
+                      />
+                    </div>
+                  </NcTooltip>
+                  <div class="absolute h-1 border-b bottom-0 border-nc-border-gray-medium left-3 right-3" />
+                </template>
 
-                <span v-if="column.key !== 'action'" class="font-weight-700 text-nc-content-gray text-small">
+                <span
+                  v-if="column.key !== 'action'"
+                  class="font-weight-700 text-nc-content-gray-subtle2 text-small"
+                  :class="{
+                    'pl-3': column.key !== 'source_column',
+                  }"
+                >
                   {{ column.title }}
                 </span>
               </template>
@@ -1001,7 +1034,10 @@ function getErrorByTableName(tableName: string) {
 
                     <GeneralIcon icon="ncArrowRight" class="w-4 h-4 flex-shrink-0 mr-2" />
                   </label>
-                  <div v-if="recordIndex" class="absolute h-1 border-t top-0 left-3 right-3 cursor-default" />
+                  <div
+                    v-if="recordIndex"
+                    class="absolute h-1 border-t border-nc-border-gray-medium top-0 left-3 right-3 cursor-default"
+                  />
                 </div>
 
                 <template v-else-if="column.key === 'destination_column'">
@@ -1053,7 +1089,7 @@ function getErrorByTableName(tableName: string) {
         </a-collapse-panel>
       </a-collapse>
 
-      <div v-if="isEeUI" class="pt-4 pb-2 px-2">
+      <div v-if="isEeUI" class="pt-4 pr-2">
         <label class="flex">
           <NcCheckbox v-model:checked="autoInsertOption" :disabled="isImporting" />
           <span class="ml-2">{{ $t('labels.autoCreateMissingSelectionOptions') }}</span>
@@ -1074,7 +1110,7 @@ function getErrorByTableName(tableName: string) {
             <GeneralIcon
               v-if="!isImporting"
               icon="ncChevronDown"
-              class="text-lg !-translate-y-1/2 !transition"
+              class="text-lg !-translate-y-1/2 !transition text-nc-content-gray-subtle"
               :class="{ '!transform !rotate-180': isActive }"
             />
           </template>
@@ -1088,7 +1124,7 @@ function getErrorByTableName(tableName: string) {
                   'w-full': isImporting,
                 }"
               >
-                <GeneralIcon icon="table" class="w-4 h-4" />
+                <GeneralIcon icon="table" class="w-4 h-4 text-nc-content-gray-subtle" />
                 <a-form-item
                   v-if="!isImporting && currentTableToEdit === tableIdx"
                   v-bind="validateInfos[`tables.${tableIdx}.table_name`]"
@@ -1097,7 +1133,7 @@ function getErrorByTableName(tableName: string) {
                   <a-input
                     :ref="(el: HTMLInputElement) => el?.focus?.()"
                     v-model:value="table.table_name"
-                    class="!rounded-md animate-sidebar-node-input-padding"
+                    class="!rounded-md animate-sidebar-node-input-padding !text-nc-content-gray"
                     hide-details
                     :bordered="true"
                     @click.stop
@@ -1107,7 +1143,7 @@ function getErrorByTableName(tableName: string) {
                   />
                 </a-form-item>
                 <template v-else>
-                  <NcTooltip :title="table.table_name" show-on-truncate-only class="flex-1 truncate">
+                  <NcTooltip :title="table.table_name" show-on-truncate-only class="flex-1 truncate text-nc-content-gray">
                     <span class="nc-import-table-name" @click.stop="currentTableToEdit = tableIdx">
                       {{ table.table_name }}
                     </span>
@@ -1117,9 +1153,12 @@ function getErrorByTableName(tableName: string) {
                     type="text"
                     size="xsmall"
                     class="!hidden group-hover:!block !h-6 !w-6"
+                    icon-only
                     @click.stop="currentTableToEdit = tableIdx"
                   >
-                    <GeneralIcon icon="pencil" />
+                    <template #icon>
+                      <GeneralIcon icon="pencil" class="text-nc-content-gray-subtle2" />
+                    </template>
                   </NcButton>
                 </template>
 
@@ -1129,7 +1168,7 @@ function getErrorByTableName(tableName: string) {
                       {{ idx > 0 ? `${idx + 1}.` : '' }} {{ err }}
                     </div>
                   </template>
-                  <NcBadge color="red" :border="false" class="w-6 flex-none">
+                  <NcBadge color="red" :border="false" class="w-8 !px-2 flex-none !bg-nc-bg-red-light">
                     <GeneralIcon icon="ncInfo" class="text-nc-content-red-dark" />
                   </NcBadge>
                 </NcTooltip>
@@ -1146,7 +1185,7 @@ function getErrorByTableName(tableName: string) {
               </div>
             </template>
 
-            <div v-if="table.columns && table.columns.length" class="bg-gray-50 !py-1 flex-1 flex">
+            <div v-if="table.columns && table.columns.length" class="bg-nc-bg-gray-extralight pl-3 flex-1 flex">
               <NcTable
                 class="template-form flex-1 max-h-[310px]"
                 body-row-class-name="template-form-row"
@@ -1171,14 +1210,14 @@ function getErrorByTableName(tableName: string) {
                     />
                   </template>
                   <template v-if="column.key === 'column_name'">
-                    <span class="font-weight-700 text-small text-nc-content-gray">
+                    <span class="font-weight-700 text-small text-nc-content-gray-subtle2">
                       {{
                         table.columns.every((it) => it.selected)
                           ? $t('activity.deselectAllFields')
                           : $t('activity.selectAllFields')
                       }}
                     </span>
-                    <div class="absolute h-1 border-b bottom-0 left-3 right-3" />
+                    <div class="absolute h-1 border-b bottom-0 border-nc-border-gray-medium left-3 right-3" />
                   </template>
                 </template>
                 <template #bodyCell="{ column, record, recordIndex }">
@@ -1234,7 +1273,7 @@ function getErrorByTableName(tableName: string) {
                       </template>
                       <GeneralIcon icon="info" class="h-4 w-4 text-nc-content-red-medium flex-none ml-2" />
                     </NcTooltip>
-                    <div v-if="recordIndex" class="absolute h-1 border-t top-0 left-3 right-3" />
+                    <div v-if="recordIndex" class="absolute h-1 border-t border-nc-border-gray-medium top-0 left-3 right-3" />
                   </template>
                 </template>
               </NcTable>
@@ -1248,7 +1287,7 @@ function getErrorByTableName(tableName: string) {
 
 <style scoped lang="scss">
 .template-collapse {
-  @apply bg-white;
+  @apply bg-white border-nc-border-gray-medium;
 }
 
 :deep(.ant-collapse-header) {

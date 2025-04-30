@@ -108,6 +108,8 @@ const scrollParent = inject(ScrollParentInj, ref<undefined>())
 
 const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
+const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
+
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
 const { $e } = useNuxtApp()
@@ -142,6 +144,8 @@ const { paste } = usePaste()
 const { addLTARRef, syncLTARRefs, clearLTARCell, cleaMMCell } = useSmartsheetLtarHelpersOrThrow()
 
 const { loadViewAggregate } = useViewAggregateOrThrow()
+
+const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 // #Refs
 
@@ -253,13 +257,17 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
     return
 
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  if (colMeta.value[ctx.col].isReadonly) return
+  if (colMeta.value[ctx.col].isReadonly && !isVirtualCol(fields.value[ctx.col])) return
 
   const rowObj = dataRef.value[ctx.row]
   const columnObj = fields.value[ctx.col]
 
   if (isVirtualCol(columnObj)) {
     let mmClearResult
+    const mmOldResult = rowObj.row[columnObj.title]
+
+    // This will used to reload view data if it is self link column
+    const isSelfLinkColumn = columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id
 
     if (isMm(columnObj) && rowObj) {
       mmClearResult = await cleaMMCell(rowObj, columnObj)
@@ -267,7 +275,15 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 
     addUndo({
       undo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType, mmClearResult: any[]) => {
+        fn: async (
+          ctx: { row: number; col: number },
+          col: ColumnType,
+          row: Row,
+          pg: PaginatedType,
+          mmClearResult: any[],
+          mmOldResult: any,
+          isSelfLinkColumn: boolean,
+        ) => {
           if (paginationDataRef.value?.pageSize === pg.pageSize) {
             if (paginationDataRef.value?.page !== pg.page) {
               await changePage?.(pg.page!)
@@ -292,13 +308,18 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
                   encodeURIComponent(rowId as string),
                   mmClearResult,
                 )
-                rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
+                rowObj.row[columnObj.title] = mmOldResult ?? null
               }
 
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
               activeCell.col = ctx.col
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
               activeCell.row = ctx.row
+
+              if (isSelfLinkColumn) {
+                reloadViewDataHook.trigger({ shouldShowLoading: false })
+              }
+
               scrollToCell?.()
             } else {
               throw new Error(t('msg.recordCouldNotBeFound'))
@@ -307,10 +328,24 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             throw new Error(t('msg.pageSizeChanged'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value), mmClearResult],
+        args: [
+          clone(ctx),
+          clone(columnObj),
+          clone(rowObj),
+          clone(paginationDataRef.value),
+          mmClearResult,
+          mmOldResult,
+          isSelfLinkColumn,
+        ],
       },
       redo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
+        fn: async (
+          ctx: { row: number; col: number },
+          col: ColumnType,
+          row: Row,
+          pg: PaginatedType,
+          isSelfLinkColumn: boolean,
+        ) => {
           if (paginationDataRef.value?.pageSize === pg.pageSize) {
             if (paginationDataRef.value?.page !== pg.page) {
               await changePage?.(pg.page!)
@@ -328,6 +363,11 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
               activeCell.col = ctx.col
               // eslint-disable-next-line @typescript-eslint/no-use-before-define
               activeCell.row = ctx.row
+
+              if (isSelfLinkColumn) {
+                reloadViewDataHook.trigger({ shouldShowLoading: false })
+              }
+
               scrollToCell?.()
             } else {
               throw new Error(t('msg.recordCouldNotBeFound'))
@@ -336,11 +376,15 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
             throw new Error(t('msg.pageSizeChanged'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value)],
+        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value), isSelfLinkColumn],
       },
       scope: defineViewScope({ view: view.value }),
     })
     if (isBt(columnObj) || isOo(columnObj)) await clearLTARCell(rowObj, columnObj)
+
+    if (isSelfLinkColumn) {
+      reloadViewDataHook.trigger({ shouldShowLoading: false })
+    }
 
     return
   }
@@ -488,11 +532,15 @@ const onDraftRecordClick = () => {
 }
 
 const onNewRecordToGridClick = () => {
+  if (showRecordPlanLimitExceededModal()) return
+
   setAddNewRecordGridMode(true)
   addEmptyRow()
 }
 
 const onNewRecordToFormClick = () => {
+  if (showRecordPlanLimitExceededModal()) return
+
   setAddNewRecordGridMode(false)
   onDraftRecordClick()
 }
@@ -753,6 +801,11 @@ const {
     }
 
     if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
+      // Reload view data if it is self link column
+      if (columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id) {
+        reloadViewDataHook?.trigger({ shouldShowLoading: false })
+      }
+
       return
     }
 
@@ -771,6 +824,10 @@ const {
   view,
   paginationDataRef,
   changePage,
+  undefined,
+  undefined,
+  undefined,
+  false,
 )
 
 function scrollToRow(row?: number) {
@@ -785,6 +842,8 @@ async function saveEmptyRow(rowObj: Row) {
 }
 
 function addEmptyRow(row?: number, skipUpdate = false) {
+  if (showRecordPlanLimitExceededModal({ focusBtn: null })) return
+
   const rowObj = callAddEmptyRow?.(row)
 
   if (!skipUpdate && rowObj) {
@@ -1794,6 +1853,32 @@ function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
   }
 }
 
+const cellFilteredOrSortedClass = (colId: string) => {
+  const columnState = isColumnSortedOrFiltered(colId)
+  if (columnState) {
+    const className = filteredOrSortedAppearanceConfig[columnState]?.cellBgClass
+    if (className) {
+      return {
+        [className]: true,
+      }
+    }
+  }
+  return {}
+}
+
+const headerFilteredOrSortedClass = (colId: string) => {
+  const columnState = isColumnSortedOrFiltered(colId)
+  if (columnState) {
+    const headerBgClass = filteredOrSortedAppearanceConfig[columnState]?.headerBgClass
+    if (headerBgClass) {
+      return {
+        [headerBgClass]: true,
+      }
+    }
+  }
+  return {}
+}
+
 // Keyboard shortcuts for pagination
 onKeyStroke('ArrowLeft', onLeft)
 onKeyStroke('ArrowRight', onRight)
@@ -1876,7 +1961,7 @@ onKeyStroke('ArrowDown', onDown)
                         }"
                         class="nc-check-all w-full items-center"
                       >
-                        <a-checkbox v-model:checked="vSelectedAllRecords" />
+                        <NcCheckbox v-model:checked="vSelectedAllRecords" />
 
                         <span class="flex-1" />
                       </div>
@@ -1900,6 +1985,7 @@ onKeyStroke('ArrowDown', onDown)
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
                     'no-resize': isLocked,
+                    ...headerFilteredOrSortedClass(fields?.[0]?.id),
                   }"
                   @xcstartresizing="onXcStartResizing(fields[0].id, $event)"
                   @xcresize="onresize(fields[0].id, $event)"
@@ -1946,6 +2032,7 @@ onKeyStroke('ArrowDown', onDown)
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === col.id,
                     'no-resize': isLocked,
+                    ...headerFilteredOrSortedClass(col.id),
                   }"
                   @xcstartresizing="onXcStartResizing(col.id, $event)"
                   @xcresize="onresize(col.id, $event)"
@@ -2172,10 +2259,20 @@ onKeyStroke('ArrowDown', onDown)
                         :data-testid="`cell-Id-${rowIndex}`"
                         @contextmenu="contextMenuTarget = null"
                       >
-                        <div class="w-[60px] pl-2 pr-1 items-center flex gap-1">
+                        <div class="w-[64px] pl-2 pr-1 items-center flex gap-0.5">
                           <div
-                            class="nc-row-no sm:min-w-4 text-xs text-gray-500"
-                            :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
+                            class="nc-row-no sm:min-w-4 text-gray-500"
+                            :class="{
+                              'toggle': !readOnly,
+                              'hidden': row.rowMeta.selected,
+                              'text-[10px]':
+                                ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 >=
+                                10000,
+                              'text-xs':
+                                ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 >= 1000,
+                              'text-small':
+                                ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 < 1000,
+                            }"
                           >
                             {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}
                           </div>
@@ -2187,12 +2284,12 @@ onKeyStroke('ArrowDown', onDown)
                             }"
                             class="nc-row-expand-and-checkbox"
                           >
-                            <a-checkbox v-model:checked="row.rowMeta.selected" />
+                            <NcCheckbox v-model:checked="row.rowMeta.selected" />
                           </div>
                           <span class="flex-1" />
 
                           <div
-                            class="nc-expand"
+                            class="nc-expand flex-1 flex items-center justify-end"
                             :data-testid="`nc-expand-${rowIndex}`"
                             :class="{ 'nc-comment': row.rowMeta?.commentCount }"
                           >
@@ -2206,20 +2303,24 @@ onKeyStroke('ArrowDown', onDown)
                               <span
                                 v-if="row.rowMeta?.commentCount && expandForm"
                                 v-e="['c:expanded-form:open']"
-                                class="px-1 rounded-md rounded-bl-none transition-all border-1 border-brand-200 text-xs cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50"
+                                class="px-1 rounded-md rounded-bl-none transition-all border-1 border-brand-200 cursor-pointer font-sembold select-none hover:bg-brand-100 !min-h-4.5 !min-w-5 !leading-[18px] inline-block text-brand-500 bg-brand-50"
+                                :class="{
+                                  'text-[10px] font-600 px-0.5': row.rowMeta.commentCount > 99,
+                                  'text-small font-500 px-0.8': row.rowMeta.commentCount <= 99,
+                                }"
                                 @click="expandAndLooseFocus(row, state)"
                               >
-                                {{ row.rowMeta.commentCount }}
+                                {{ row.rowMeta.commentCount > 99 ? '99+' : row.rowMeta.commentCount }}
                               </span>
                               <div
                                 v-else
-                                class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded-md p-1 hover:(bg-white border-nc-border-gray-medium)"
+                                class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded-md p-0.75 hover:(bg-white border-nc-border-gray-medium)"
                               >
                                 <component
                                   :is="iconMap.maximize"
                                   v-if="expandForm"
                                   v-e="['c:row-expand:open']"
-                                  class="select-none nc-row-expand opacity-90 w-4 h-4"
+                                  class="select-none nc-row-expand opacity-90 w-3.5 h-3.5"
                                   @click="expandAndLooseFocus(row, state)"
                                 />
                               </div>
@@ -2246,6 +2347,7 @@ onKeyStroke('ArrowDown', onDown)
                           'filling': fillRangeMap[`${rowIndex}-0`],
                           'readonly': colMeta[0].isReadonly && hasEditPermission && selectRangeMap[`${rowIndex}-0`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
+                          ...cellFilteredOrSortedClass(fields[0].id),
                         }"
                         :style="{
                           'min-width': gridViewCols[fields[0].id]?.width || '180px',
@@ -2323,6 +2425,7 @@ onKeyStroke('ArrowDown', onDown)
                           'readonly':
                             colMeta[colIndex].isReadonly && hasEditPermission && selectRangeMap[`${rowIndex}-${colIndex}`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
+                          ...cellFilteredOrSortedClass(columnObj.id),
                         }"
                         :style="{
                           'min-width': gridViewCols[columnObj.id]?.width || '180px',
@@ -2524,7 +2627,10 @@ onKeyStroke('ArrowDown', onDown)
               v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly"
               class="nc-base-menu-item"
               data-testid="context-menu-item-paste"
-              :disabled="selectedReadonly"
+              :disabled="
+                selectedReadonly &&
+                (!selectedRange.isSingleCell() || (!isMm(fields[contextMenuTarget.col]) && !isBt(fields[contextMenuTarget.col])))
+              "
               @click="paste"
             >
               <div v-e="['a:row:paste']" class="flex gap-2 items-center">
@@ -2544,7 +2650,7 @@ onKeyStroke('ArrowDown', onDown)
                 !isDataReadOnly
               "
               class="nc-base-menu-item"
-              :disabled="selectedReadonly"
+              :disabled="selectedReadonly && !isLinksOrLTAR(fields[contextMenuTarget.col])"
               data-testid="context-menu-item-clear"
               @click="clearCell(contextMenuTarget)"
             >
@@ -2898,9 +3004,9 @@ onKeyStroke('ArrowDown', onDown)
         @apply text-gray-600;
         font-weight: 500;
 
-        .nc-cell-field,
-        input,
-        textarea {
+        .nc-cell-field:not(.nc-null),
+        input:not(.nc-null),
+        textarea:not(.nc-null) {
           @apply text-gray-600;
           font-weight: 500;
         }
@@ -3086,6 +3192,23 @@ onKeyStroke('ArrowDown', onDown)
 }
 
 .nc-grid-row {
+  td.nc-grid-cell.column-filtered.active {
+    @apply !bg-green-100;
+
+    :deep(input),
+    :deep(textarea) {
+      @apply !bg-transparent;
+    }
+  }
+  td.nc-grid-cell.column-sorted.active {
+    @apply !bg-orange-100;
+
+    :deep(input),
+    :deep(textarea) {
+      @apply !bg-transparent;
+    }
+  }
+
   .nc-row-expand-and-checkbox {
     @apply !xs:hidden w-full items-center justify-between;
   }
@@ -3118,6 +3241,13 @@ onKeyStroke('ArrowDown', onDown)
       td.nc-grid-cell:not(.active),
       td:nth-child(2):not(.active) {
         @apply !bg-gray-50 border-b-gray-200 border-r-gray-200;
+
+        &.column-filtered {
+          @apply !bg-green-100;
+        }
+        &.column-sorted {
+          @apply !bg-orange-100;
+        }
       }
     }
   }
@@ -3126,6 +3256,13 @@ onKeyStroke('ArrowDown', onDown)
     td.nc-grid-cell:not(.active),
     td:nth-child(2):not(.active) {
       @apply !bg-[#F0F3FF] border-b-gray-200 border-r-gray-200;
+
+      &.column-filtered {
+        @apply !bg-green-100;
+      }
+      &.column-sorted {
+        @apply !bg-orange-100;
+      }
     }
   }
 
@@ -3133,6 +3270,20 @@ onKeyStroke('ArrowDown', onDown)
     td.nc-grid-cell:not(.active),
     td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
       @apply border-b-gray-200;
+    }
+  }
+
+  &:not(.selected-row) {
+    td.nc-grid-cell:not(.active),
+    td:nth-child(2):not(.active) {
+      &.column-filtered,
+      &.column-sorted {
+        @apply border-b-gray-200 border-r-gray-200;
+      }
+      &:has(+ .column-filtered),
+      &:has(+ .column-sorted) {
+        @apply border-r-gray-200;
+      }
     }
   }
 
@@ -3182,5 +3333,12 @@ onKeyStroke('ArrowDown', onDown)
   :deep(.ant-btn.ant-dropdown-trigger.ant-btn-icon-only) {
     @apply !flex items-center justify-center;
   }
+}
+
+.col-filtered {
+  background: var(--nc-background-coloured-green, #ecfff2) !important;
+}
+.col-sorted {
+  background: var(--nc-background-coloured-marooon, #fff0f7) !important;
 }
 </style>

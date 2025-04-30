@@ -16,19 +16,6 @@ function isValid(date) {
   return false;
 }
 
-const timeZoneAbbreviated = () => {
-  const { 1: tz } = new Date().toString().match(/\((.+)\)/);
-
-  if (tz.includes(" ")) {
-    return tz
-      .split(" ")
-      .map(([first]) => first)
-      .join("");
-  } else {
-    return tz;
-  }
-};
-
 function renderEjsTemplate(template, data) {
   return template.replace(
     /<%= (\w+) %>/g,
@@ -58,9 +45,9 @@ if (ExecutionEnvironment.canUseDOM) {
 
   if (config && isValid(config.date)) {
     const compiledText = renderEjsTemplate(config.description, {
-      date: `${dayjs(config.date).format(
-        "YYYY-MM-DD HH:mm"
-      )} ${timeZoneAbbreviated()}`,
+      date: dayjs(config.date).format(
+        "YYYY-MM-DD HH:mm z"
+      ),
       ptTime: dayjs(config.date)
         .tz("America/Los_Angeles")
         .format("HH:mm z"),

@@ -62,6 +62,11 @@ export interface NcListProps {
    */
   minItemsForSearch?: number
 
+  /**
+   * Whether input should have border
+   */
+  inputBordered?: boolean
+
   containerClassName?: string
 
   itemClassName?: string
@@ -106,15 +111,15 @@ const { closeOnSelect, showSelectedOption, containerClassName, itemClassName } =
 const itemHeight = computed(() => {
   if (!props.itemHeight) {
     if (props.variant === 'medium') {
-      return 30
+      return 32
     }
 
     if (props.variant === 'small') {
-      return 26
+      return 28
     }
   }
 
-  return 38
+  return props.itemHeight || 40
 })
 
 const slots = useSlots()
@@ -358,7 +363,14 @@ watch(
     @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex])"
   >
     <template v-if="isSearchEnabled">
-      <div class="w-full px-2 flex items-center gap-2" @click.stop>
+      <div
+        class="w-full flex items-center gap-2"
+        :class="{
+          'px-1': variant === 'small',
+          'px-2': variant !== 'small',
+        }"
+        @click.stop
+      >
         <slot name="headerExtraLeft"> </slot>
         <a-input
           ref="inputRef"
@@ -369,7 +381,7 @@ watch(
             '!pt-0': variant === 'small',
           }"
           allow-clear
-          :bordered="false"
+          :bordered="inputBordered"
           @keydown.enter.stop="handleKeydownEnter"
           @change="handleResetHoverEffect(false, 0)"
         >
@@ -386,8 +398,14 @@ watch(
         <div class="h-auto !max-h-[247px]">
           <div
             v-bind="containerProps"
-            class="nc-list !h-auto w-full nc-scrollbar-thin px-2 pb-2 !max-h-[247px]"
-            :class="containerClassName"
+            class="nc-list !h-auto w-full nc-scrollbar-thin !max-h-[247px]"
+            :class="[
+              containerClassName,
+              {
+                'px-1 pb-1': variant === 'small',
+                'px-2 pb-2': variant !== 'small',
+              },
+            ]"
           >
             <div v-bind="wrapperProps">
               <NcTooltip

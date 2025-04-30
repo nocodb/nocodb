@@ -1,4 +1,4 @@
 export default {
   title: 'Zendesk Tickets',
-  icon: 'ncLogoZendeskColored',
+  icon: 'zendesk',
 };

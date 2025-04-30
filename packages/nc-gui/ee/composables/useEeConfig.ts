@@ -307,8 +307,8 @@ export const useEeConfig = createSharedComposable(() => {
 
     const paramsObj = {
       ...(autoScroll ? { autoScroll } : {}),
-      ...(limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? { activeBtn: PlanTitles.ENTERPRISE } : {}),
       ...(ctaPlan ? { activeBtn: ctaPlan } : {}),
+      ...(limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? { activeBtn: PlanTitles.ENTERPRISE } : {}),
     }
 
     const searchQuery = new URLSearchParams(paramsObj).toString()

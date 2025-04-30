@@ -347,6 +347,7 @@ onClickOutside(searchRef, toggleSearch)
         v-model:active-dates="activeDates"
         v-model:page-date="pageDate"
         v-model:selected-date="selectedDate"
+        :timezone="timezone"
         size="medium"
         :hide-calendar="height < 700"
       />
@@ -365,6 +366,7 @@ onClickOutside(searchRef, toggleSearch)
         v-model:page-date="pageDate"
         v-model:selected-date="selectedMonth"
         :hide-calendar="height < 700"
+        :timezone="timezone"
         size="medium"
       />
       <NcMonthYearSelector

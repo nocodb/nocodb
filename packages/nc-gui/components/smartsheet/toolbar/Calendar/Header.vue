@@ -1,16 +1,24 @@
 <script lang="ts" setup>
-import dayjs from 'dayjs'
 import { computed } from '#imports'
 
-const { selectedDate, selectedMonth, selectedDateRange, activeCalendarView, paginateCalendarView, activeDates, pageDate } =
-  useCalendarViewStoreOrThrow()
+const {
+  selectedDate,
+  selectedMonth,
+  selectedDateRange,
+  activeCalendarView,
+  paginateCalendarView,
+  activeDates,
+  timezone,
+  pageDate,
+  timezoneDayjs,
+} = useCalendarViewStoreOrThrow()
 
 const calendarRangeDropdown = ref(false)
 
 const headerText = computed(() => {
   switch (activeCalendarView.value) {
     case 'day':
-      return dayjs(selectedDate.value).format('D MMM YYYY')
+      return timezoneDayjs.dayjsTz(selectedDate.value).format('D MMM YYYY')
     case 'week':
       if (selectedDateRange.value.start.isSame(selectedDateRange.value.end, 'month')) {
         return `${selectedDateRange.value.start.format('D')} - ${selectedDateRange.value.end.format('D MMM YY')}`
@@ -20,9 +28,9 @@ const headerText = computed(() => {
         return `${selectedDateRange.value.start.format('D MMM YY')} - ${selectedDateRange.value.end.format('D MMM YY')}`
       }
     case 'month':
-      return dayjs(selectedMonth.value).format('MMM YYYY')
+      return timezoneDayjs.dayjsTz(selectedMonth.value).format('MMM YYYY')
     case 'year':
-      return dayjs(selectedDate.value).format('YYYY')
+      return timezoneDayjs.dayjsTz(selectedDate.value).format('YYYY')
     default:
       return ''
   }
@@ -78,6 +86,7 @@ const headerText = computed(() => {
             v-model:active-dates="activeDates"
             v-model:page-date="pageDate"
             v-model:selected-date="selectedDate"
+            :timezone="timezone"
             size="medium"
           />
           <NcDateWeekSelector
@@ -85,6 +94,7 @@ const headerText = computed(() => {
             v-model:active-dates="activeDates"
             v-model:page-date="pageDate"
             v-model:selected-week="selectedDateRange"
+            :timezone="timezone"
             is-week-picker
             size="medium"
           />
@@ -92,12 +102,14 @@ const headerText = computed(() => {
             v-else-if="activeCalendarView === ('month' as const)"
             v-model:page-date="pageDate"
             v-model:selected-date="selectedMonth"
+            :timezone="timezone"
             size="medium"
           />
           <NcMonthYearSelector
             v-else-if="activeCalendarView === ('year' as const)"
             v-model:page-date="pageDate"
             v-model:selected-date="selectedDate"
+            :timezone="timezone"
             is-year-picker
             size="medium"
           />

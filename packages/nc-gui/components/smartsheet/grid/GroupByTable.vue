@@ -249,14 +249,18 @@ const validateExternalSourceRecordVisibility = (page: number, callback?: () => v
 const goToNextRow = async () => {
   const currentIndex = getExpandedRowIndex()
 
-  /* when last index of current page is reached we should move to next page */
-  if (!vGroup.value.paginationData?.isLastPage && currentIndex === (vGroup.value.paginationData?.pageSize ?? 10) - 1) {
-    const nextPage = vGroup.value.paginationData?.page ? vGroup.value.paginationData?.page + 1 : 1
+  if (
+    !vGroup.value.paginationData?.isLastPage &&
+    currentIndex === (vGroup.value.paginationData?.pageSize ?? 10) - 1 &&
+    validateExternalSourceRecordVisibility(vGroup.value.paginationData?.page ? vGroup.value.paginationData?.page + 1 : 1)
+  ) {
+    expandedFormRef.value?.stopLoading?.()
+    return
+  }
 
-    if (validateExternalSourceRecordVisibility(nextPage)) {
-      expandedFormRef.value?.stopLoading?.()
-      return
-    }
+  /* when last index of current page is reached we should move to next page */
+  if (!vGroup.value.paginationData?.isLastPage && currentIndex === vGroup.value.paginationData?.pageSize) {
+    const nextPage = vGroup.value.paginationData?.page ? vGroup.value.paginationData?.page + 1 : 1
 
     await props.loadGroupPage(vGroup.value, nextPage)
   }

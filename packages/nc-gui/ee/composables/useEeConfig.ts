@@ -302,7 +302,7 @@ export const useEeConfig = createSharedComposable(() => {
     ctaPlan,
   }: {
     workspaceId?: string
-    autoScroll?: 'planDetails'
+    autoScroll?: 'compare' | 'faq'
     limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
     newTab?: boolean
     ctaPlan?: PlanTitles
@@ -310,7 +310,7 @@ export const useEeConfig = createSharedComposable(() => {
     if (!isWsOwner.value) return handleRequestUpgrade({ workspaceId, limitOrFeature })
 
     const paramsObj = {
-      ...(autoScroll ? { autoScroll } : {}),
+      ...(autoScroll ? { go: autoScroll } : {}),
       ...(ctaPlan ? { activeBtn: ctaPlan } : {}),
       ...(limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? { activeBtn: PlanTitles.ENTERPRISE } : {}),
     }
@@ -411,7 +411,7 @@ export const useEeConfig = createSharedComposable(() => {
             class: 'text-sm leading-6',
             onClick: (e) => {
               e.preventDefault()
-              navigateToPricing({ autoScroll: 'planDetails', newTab: true, ctaPlan: higherPlan })
+              navigateToPricing({ autoScroll: 'compare', newTab: true, ctaPlan: higherPlan })
             },
           },
           t('msg.learnMore'),

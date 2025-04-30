@@ -45,6 +45,13 @@ const openNewTab = (url: string) => {
   if (newWindow) newWindow.opener = null
 }
 
+const sendIframeMessage = (message: any) => {
+  const iframe = document.querySelector('iframe')
+  if (iframe) {
+    iframe.contentWindow?.postMessage(message, appInfo.value.marketingRootUrl)
+  }
+}
+
 useEventListener('message', (event) => {
   if (event.origin !== appInfo.value.marketingRootUrl) return
 
@@ -74,6 +81,15 @@ useEventListener('message', (event) => {
     navigateToBilling()
   } else if (type === 'frameLoaded') {
     frameLoaded.value = true
+    const scrollTo = route?.query?.go
+    if (scrollTo) {
+      nextTick(() => {
+        sendIframeMessage({
+          type: 'scrollTo',
+          id: scrollTo,
+        })
+      })
+    }
   }
 })
 </script>

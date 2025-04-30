@@ -194,6 +194,10 @@ export default class SSOClient implements SSOClientType {
   }
 
   static async listByOrgId(fk_org_id: string, siteUrl: string) {
+    if (!fk_org_id) {
+      return [];
+    }
+
     const clients = await Noco.ncMeta.metaList2(
       RootScopes.ORG,
       RootScopes.ORG,
@@ -201,6 +205,44 @@ export default class SSOClient implements SSOClientType {
       {
         condition: {
           fk_org_id,
+          deleted: false,
+        },
+      },
+    );
+
+    const list = clients.map((client) => {
+      client.config = parseMetaProp(client, 'config');
+      return new SSOClient(client);
+    });
+
+    const filteredList = list
+      .filter((client) => client.enabled && !client.deleted)
+      .map((client) => {
+        return {
+          id: client.id,
+          url: new URL(`/sso/${client.id}`, siteUrl).toString(),
+          title: client.title,
+          type: client.type,
+        };
+      });
+
+    await NocoCache.set(PUBLIC_LIST_KEY, { list: filteredList });
+
+    return filteredList;
+  }
+
+  static async listByWorkspaceId(fk_workspace_id: string, siteUrl: string) {
+    if (!fk_workspace_id) {
+      return [];
+    }
+
+    const clients = await Noco.ncMeta.metaList2(
+      RootScopes.ORG,
+      RootScopes.ORG,
+      MetaTable.SSO_CLIENT,
+      {
+        condition: {
+          fk_workspace_id,
           deleted: false,
         },
       },

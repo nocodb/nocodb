@@ -252,10 +252,18 @@ export class SSOClientService {
       NcError.badRequest('SSO is not configured for this domain');
     }
 
-    const clients = await SSOClient.listByOrgId(
-      orgDomain.fk_org_id,
-      param.req.ncSiteUrl,
-    );
+    let clients = [];
+    if (orgDomain.fk_org_id) {
+      clients = await SSOClient.listByOrgId(
+        orgDomain.fk_org_id,
+        param.req.ncSiteUrl,
+      );
+    } else if (orgDomain.fk_workspace_id) {
+      clients = await SSOClient.listByWorkspaceId(
+        orgDomain.fk_workspace_id,
+        param.req.ncSiteUrl,
+      );
+    }
 
     if (!clients?.length) {
       NcError.badRequest('SSO is not configured for this organization');

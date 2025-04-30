@@ -356,8 +356,8 @@ eventBus.on((event) => {
 
   <!-- eslint-disable vue/eqeqeq -->
   <SmartsheetExpandedForm
-    ref="expandedFormRef"
     v-if="expandedFormOnRowIdDlg && meta?.id && groupByKeyId === vGroup.key"
+    ref="expandedFormRef"
     v-model="expandedFormOnRowIdDlg"
     :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
     :meta="meta"

@@ -148,8 +148,8 @@
     "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "The free plan allows upto {limit} Editor type users, upgrade to get unlimited",
     "adjustCollaboratorRoles": "Adjust Collaborator Roles",
-    "newEditorWillBeChanged": "New Editors will be charged",
-    "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
+    "newEditorWillBeChanged": "Additional charges may apply for new invites",
+    "newEditorWillBeChangedSubtitle": "Members assigned the Editor role or higher may incur additional charges.",
     "upgradeToUploadWsImage": "Upgrade to upload a workspace image",
     "upgradeToUploadWsImageSubtitle": "Your current {activePlan} plan allows only icons and emojis. Upgrade to the {plan} plan to upload a custom image as your workspace avatar."
   },

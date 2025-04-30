@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { LOYALTY_GRACE_PERIOD_END_DATE, PlanLimitTypes, PlanTitles } from 'nocodb-sdk'
 
+const route = useRoute()
+
 const workspaceStore = useWorkspace()
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
@@ -57,6 +59,10 @@ const showUpgradeToTeamBanner = computed(() => {
 
 const showBanner = computed(() => {
   const isFreePlan = activePlan && activePlanTitle.value === PlanTitles.FREE
+
+  if (route.name === 'index-typeOrId-settings' && route.query?.tab === 'billing') {
+    return false
+  }
 
   return (
     showBannerLocal.value &&

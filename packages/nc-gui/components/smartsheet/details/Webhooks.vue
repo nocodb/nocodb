@@ -265,7 +265,7 @@ const getHookTypeText = (hook: HookType) => {
           class="bg-nc-bg-orange-light"
         >
           <template #action>
-            <NcButton type="link" size="small" class="!hover:underline !font-bold">
+            <NcButton type="link" size="xsmall" class="!hover:underline !font-bold">
               {{ $t('activity.goToDocs') }}
             </NcButton>
           </template>

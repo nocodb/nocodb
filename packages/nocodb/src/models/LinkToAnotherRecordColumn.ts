@@ -316,7 +316,7 @@ export default class LinkToAnotherRecordColumn {
     });
   }
 
-  isExternalLink() {
+  isCrossBaseLink() {
     return !!(
       (this.fk_related_base_id && this.fk_related_base_id !== this.base_id) ||
       (this.fk_mm_base_id && this.fk_mm_base_id !== this.base_id)

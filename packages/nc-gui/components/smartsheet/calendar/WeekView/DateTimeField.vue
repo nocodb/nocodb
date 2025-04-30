@@ -716,7 +716,7 @@ const calculateNewRow = (
   const minutes = Math.round(((percentY * 24 * 60) % 60) / 15) * 15
 
   const newStartDate = timezoneDayjs
-    .dayjsTz(selectedDateRange.value.start)
+    .timezonize(selectedDateRange.value.start)
     .add(day, 'day')
     .add(hour, 'hour')
     .add(minutes, 'minute')

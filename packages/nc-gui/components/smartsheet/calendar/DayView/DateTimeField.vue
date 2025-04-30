@@ -522,7 +522,7 @@ const calculateNewRow = (event: MouseEvent, skipChangeCheck?: boolean) => {
   const hour = Math.max(Math.floor(percentY * 23), 0)
   const minutes = Math.min(Math.max(Math.round(Math.floor((percentY * 23 - hour) * 60) / 15) * 15, 0), 60)
   // We calculate the new startDate by adding the hour to the start of the selected date
-  const newStartDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day').add(hour, 'hour').add(minutes, 'minute')
+  const newStartDate = timezoneDayjs.timezonize(selectedDate.value.startOf('day')).add(hour, 'hour').add(minutes, 'minute')
   if (!newStartDate || !fromCol) return { newRow: null, updateProperty: [] }
 
   let endDate

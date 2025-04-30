@@ -68,13 +68,11 @@ const currentYear = computed(() => {
 })
 
 const selectWeek = (date: dayjs.Dayjs) => {
-  const dayOffset = +props.isMondayFirst
-  const dayOfWeek = (date.day() - dayOffset + 7) % 7
-  const startDate = date.subtract(dayOfWeek, 'day')
+  const startDate = date.startOf('week')
   const newWeek = {
     start: startDate,
     // startOf and endOf dayjs is bugged with timezone
-    end: timezoneDayjs.value.dayjsTz(startDate.endOf('week')),
+    end: timezoneDayjs.value.dayjsTz(startDate.add(6, 'day')),
   }
   selectedWeek.value = newWeek
   emit('update:selectedWeek', newWeek)
@@ -84,7 +82,7 @@ const selectWeek = (date: dayjs.Dayjs) => {
 // Includes all blank days at the start and end of the month
 const dates = computed(() => {
   // startOf and endOf dayjs is bugged with timezone
-  const startOfMonth = timezoneDayjs.value.dayjsTz(pageDate.value.startOf('month'))
+  const startOfMonth = timezoneDayjs.value.timezonize(pageDate.value.startOf('month'))
   const dayOffset = +props.isMondayFirst
   const firstDayOfWeek = startOfMonth.day()
   const startDay = startOfMonth.subtract((firstDayOfWeek - dayOffset + 7) % 7, 'day')

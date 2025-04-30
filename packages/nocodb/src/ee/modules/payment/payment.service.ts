@@ -436,79 +436,198 @@ export class PaymentService {
       throw new Error('This plan is not available');
     }
 
-    const currentItem = stripeSub.items.data[0];
-    const oldInterval = currentItem.price.recurring.interval as
-      | 'month'
-      | 'year';
-    const newInterval = newPrice.recurring.interval as 'month' | 'year';
+    const item = stripeSub.items.data[0];
 
-    const isPlanRankUp = PlanOrder[newPlan.title] > PlanOrder[oldPlan.title];
-    const isUnitPriceUp =
-      calculateUnitPrice(newPrice, seatCount, newInterval) >
-      calculateUnitPrice(oldPrice, seatCount, oldInterval);
+    let updatedSubscription;
 
+    // CASE: monthly-to-yearly or yearly-to-monthly (same plan or lower plan)
     if (
-      (newInterval === 'year' && oldInterval === 'month') ||
-      isPlanRankUp ||
-      isUnitPriceUp
+      newPrice.recurring.interval !== oldPrice.recurring.interval &&
+      PlanOrder[oldPlan.title] >= PlanOrder[newPlan.title]
     ) {
-      // immediate change + proration + reset cycle
-      const updated = await stripe.subscriptions.update(stripeSub.id, {
-        items: [
-          {
-            id: currentItem.id,
-            price: newPrice.id,
-            quantity: seatCount,
+      // Monthly to Yearly: immediate change with proration (invoice immediately) + reset billing cycle
+      if (
+        newPrice.recurring.interval === 'year' &&
+        oldPrice.recurring.interval === 'month'
+      ) {
+        updatedSubscription = await stripe.subscriptions.update(stripeSub.id, {
+          items: [
+            {
+              id: item.id,
+              price: newPrice.id,
+              quantity: seatCount,
+            },
+          ],
+          metadata: {
+            ...(workspaceOrOrg.entity === 'workspace'
+              ? { fk_workspace_id: workspaceOrOrg.id }
+              : { fk_org_id: workspaceOrOrg.id }),
+            fk_user_id: req.user.id,
+            fk_plan_id: newPlan.id,
+            plan_title: newPlan.title,
+            period: newPrice.recurring.interval,
           },
-        ],
-        metadata: {
-          ...(workspaceOrOrg.entity === 'workspace'
-            ? { fk_workspace_id: workspaceOrOrg.id }
-            : { fk_org_id: workspaceOrOrg.id }),
-          fk_user_id: req.user.id,
-          fk_plan_id: newPlan.id,
-          plan_title: newPlan.title,
-          period: newInterval,
-        },
-        proration_behavior: 'always_invoice',
-        billing_cycle_anchor: 'now',
-      });
+          proration_behavior: 'always_invoice',
+          billing_cycle_anchor: 'now',
+        });
 
-      // drop any pending schedule
-      await this.clearScheduledDowngrade(workspaceOrOrgId, true, ncMeta);
-      return { id: updated.id };
+        await Subscription.update(
+          existingSub.id,
+          {
+            fk_plan_id: newPlan.id,
+            stripe_price_id: newPrice.id,
+            period: newPrice.recurring.interval,
+          },
+          ncMeta,
+        );
+
+        await this.clearScheduledDowngrade(workspaceOrOrgId, true, ncMeta);
+
+        await this.updateNextInvoice(
+          existingSub.id,
+          await this.getNextInvoice(workspaceOrOrgId, ncMeta),
+          ncMeta,
+        );
+
+        return { id: stripeSub.id };
+      }
+      // Yearly to Monthly: schedule change at period end (no prorate)
+      if (
+        newPrice.recurring.interval === 'month' &&
+        oldPrice.recurring.interval === 'year'
+      ) {
+        await this.schedulePlanChange(
+          workspaceOrOrgId,
+          newPrice,
+          newPlan,
+          {
+            scheduleType: 'next',
+          },
+          ncMeta,
+        );
+
+        return {
+          id: stripeSub.id,
+          message: 'Plan change scheduled at period end',
+        };
+      }
+    } else {
+      // Yearly plan
+      if (newPrice.recurring.interval === 'year') {
+        // If the new price or plan is higher upgrade immediately (invoice now with prorations) + reset billing cycle
+        if (
+          !oldPrice ||
+          calculateUnitPrice(newPrice, seatCount, newPrice.recurring.interval) >
+            calculateUnitPrice(
+              oldPrice,
+              seatCount,
+              oldPrice.recurring.interval as 'month' | 'year',
+            ) ||
+          PlanOrder[newPlan.title] > PlanOrder[oldPlan.title]
+        ) {
+          updatedSubscription = await stripe.subscriptions.update(
+            stripeSub.id,
+            {
+              items: [
+                {
+                  id: item.id,
+                  price: newPrice.id,
+                  quantity: seatCount,
+                },
+              ],
+              metadata: {
+                ...(workspaceOrOrg.entity === 'workspace'
+                  ? { fk_workspace_id: workspaceOrOrg.id }
+                  : { fk_org_id: workspaceOrOrg.id }),
+                fk_user_id: req.user.id,
+                fk_plan_id: newPlan.id,
+                plan_title: newPlan.title,
+                period: newPrice.recurring.interval,
+              },
+              proration_behavior: 'always_invoice',
+              billing_cycle_anchor: 'now',
+            },
+          );
+
+          await Subscription.update(
+            existingSub.id,
+            {
+              fk_plan_id: newPlan.id,
+              stripe_price_id: newPrice.id,
+              period: newPrice.recurring.interval,
+            },
+            ncMeta,
+          );
+
+          await this.clearScheduledDowngrade(workspaceOrOrgId, true, ncMeta);
+
+          await this.updateNextInvoice(
+            existingSub.id,
+            await this.getNextInvoice(workspaceOrOrgId, ncMeta),
+            ncMeta,
+          );
+
+          return { id: updatedSubscription.id };
+        } else {
+          await this.schedulePlanChange(
+            workspaceOrOrgId,
+            newPrice,
+            newPlan,
+            {
+              scheduleType: 'next',
+            },
+            ncMeta,
+          );
+
+          return {
+            id: stripeSub.id,
+            message: 'Plan downgrade scheduled at period end',
+          };
+        }
+      } else {
+        // Monthly plan: change immediately with proration (invoice now) + reset billing cycle
+        updatedSubscription = await stripe.subscriptions.update(stripeSub.id, {
+          items: [
+            {
+              id: item.id,
+              price: newPrice.id,
+              quantity: seatCount,
+            },
+          ],
+          metadata: {
+            ...(workspaceOrOrg.entity === 'workspace'
+              ? { fk_workspace_id: workspaceOrOrg.id }
+              : { fk_org_id: workspaceOrOrg.id }),
+            fk_user_id: req.user.id,
+            fk_plan_id: newPlan.id,
+            plan_title: newPlan.title,
+            period: newPrice.recurring.interval,
+          },
+          proration_behavior: 'always_invoice',
+          billing_cycle_anchor: 'now',
+        });
+
+        await Subscription.update(
+          existingSub.id,
+          {
+            fk_plan_id: newPlan.id,
+            stripe_price_id: newPrice.id,
+            period: newPrice.recurring.interval,
+          },
+          ncMeta,
+        );
+
+        await this.clearScheduledDowngrade(workspaceOrOrgId, true, ncMeta);
+
+        await this.updateNextInvoice(
+          existingSub.id,
+          await this.getNextInvoice(workspaceOrOrgId, ncMeta),
+          ncMeta,
+        );
+
+        return { id: updatedSubscription.id };
+      }
     }
-
-    if (oldInterval === 'year' && newInterval === 'month') {
-      await this.schedulePlanChange(
-        workspaceOrOrgId,
-        newPrice,
-        newPlan,
-        {
-          scheduleType: 'next',
-        },
-        ncMeta,
-      );
-      return {
-        id: stripeSub.id,
-        message: 'Plan change scheduled at period end',
-      };
-    }
-
-    // same‐interval but lower price or same interval downgrade
-    await this.schedulePlanChange(
-      workspaceOrOrgId,
-      newPrice,
-      newPlan,
-      {
-        scheduleType: 'next',
-      },
-      ncMeta,
-    );
-    return {
-      id: stripeSub.id,
-      message: 'Plan downgrade scheduled at period end',
-    };
   }
 
   async reseatSubscription(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
@@ -1128,8 +1247,15 @@ export class PaymentService {
       ncMeta,
     );
 
-    if (existing?.stripe_schedule_id && release)
-      await stripe.subscriptionSchedules.release(existing.stripe_schedule_id);
+    try {
+      if (existing?.stripe_schedule_id && release) {
+        await stripe.subscriptionSchedules.release(existing.stripe_schedule_id);
+      }
+    } catch (err) {
+      this.logger.error(
+        `Error clearing scheduled downgrade for workspace or org ${workspaceOrOrgId}: ${err.message}`,
+      );
+    }
 
     const existingPlan = await Plan.get(existing.fk_plan_id, ncMeta);
 

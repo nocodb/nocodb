@@ -105,7 +105,7 @@ const { $e } = useNuxtApp()
 
 const { copy } = useCopy()
 
-const { showRecordPlanLimitExceededModal, activePlanTitle, isPaymentEnabled } = useEeConfig()
+const { showRecordPlanLimitExceededModal, blockExternalSourceRecordVisibility } = useEeConfig()
 
 const isOptionsOpen = ref(false)
 const isBasesOptionsOpen = ref<Record<string, boolean>>({})
@@ -1016,8 +1016,7 @@ const onClickMenu = (e: { key?: string }) => {
                             </NcTooltip>
                             <LazyPaymentUpgradeBadge
                               v-if="
-                                isPaymentEnabled &&
-                                activePlanTitle === PlanTitles.FREE &&
+                                blockExternalSourceRecordVisibility(true) &&
                                 !(source.id && sourceRenameHelpers[source.id]?.editMode)
                               "
                               :title="$t('upgrade.upgradeToSeeMoreRecord')"

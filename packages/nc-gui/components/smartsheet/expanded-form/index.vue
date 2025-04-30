@@ -705,6 +705,16 @@ function scrollToColumn(columnId: string) {
     })
   }
 }
+
+const stopLoading = () => {
+  nextTick(() => {
+    isLoading.value = false
+  })
+}
+
+defineExpose({
+  stopLoading,
+})
 </script>
 
 <script lang="ts">

@@ -1,4 +1,4 @@
-import { GRACE_PERIOD_DURATION, HigherPlan, NON_SEAT_ROLES, PlanTitles } from 'nocodb-sdk'
+import { GRACE_PERIOD_DURATION, HigherPlan, LOYALTY_GRACE_PERIOD_END_DATE, NON_SEAT_ROLES, PlanTitles } from 'nocodb-sdk'
 import {
   PlanFeatureTypes,
   type PlanLimitExceededDetailsType,
@@ -56,6 +56,10 @@ export const useEeConfig = createSharedComposable(() => {
     if (!activeWorkspace.value) return false
 
     return activeWorkspace.value?.loyal && !activeWorkspace.value?.loyalty_discount_used
+  })
+
+  const isUnderLoyaltyCutoffDate = computed(() => {
+    return dayjs().isSameOrBefore(dayjs(LOYALTY_GRACE_PERIOD_END_DATE))
   })
 
   const isWsAuditEnabled = computed(() => {
@@ -307,8 +311,8 @@ export const useEeConfig = createSharedComposable(() => {
 
     const paramsObj = {
       ...(autoScroll ? { autoScroll } : {}),
-      ...(limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? { activeBtn: PlanTitles.ENTERPRISE } : {}),
       ...(ctaPlan ? { activeBtn: ctaPlan } : {}),
+      ...(limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? { activeBtn: PlanTitles.ENTERPRISE } : {}),
     }
 
     const searchQuery = new URLSearchParams(paramsObj).toString()
@@ -613,7 +617,8 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   const blockExternalSourceRecordVisibility = (isExternalSource: boolean = false) => {
-    return isPaymentEnabled.value && isExternalSource && activePlanTitle.value === PlanTitles.FREE
+    const loyaltyUserValidation = isLoyaltyDiscountAvailable.value ? !isUnderLoyaltyCutoffDate.value : true
+    return isPaymentEnabled.value && isExternalSource && activePlanTitle.value === PlanTitles.FREE && loyaltyUserValidation
   }
 
   const showAsBluredRecord = (isExternalSource: boolean = false, rowIndex?: number) => {

@@ -255,11 +255,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     extractDisplayValueData?: boolean,
     ...rest: Parameters<BaseModelSqlv2['readByPk']>
   ): Promise<any> {
+    let context = this.context;
     let data;
     if (this.model.id === model.id) {
       data = await this.readByPk(...rest);
     } else {
-      const baseModel = await Model.getBaseModelSQL(this.context, {
+      context = { ...this.context, base_id: this.model.base_id };
+      const baseModel = await Model.getBaseModelSQL(context, {
         model,
         viewId: viewId,
         dbDriver: this.dbDriver,
@@ -269,7 +271,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     // load columns if not loaded already
-    await model.getCachedColumns(this.context);
+    await model.getCachedColumns(context);
 
     if (extractDisplayValueData) {
       return data ? data[model.displayValue.title] ?? null : '';
@@ -3729,7 +3731,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
         const colOptions =
           await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
-        const { mmContext, refContext, childContext, parentContext } =
+        const { mmContext, refContext, childContext } =
           await colOptions.getParentChildContext(this.context);
 
         switch (colOptions.type) {
@@ -4967,14 +4969,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const { opType, model, refModel, columnTitle, columnId, req } =
       commonAuditObj;
 
+    const context = {
+      ...this.context,
+      base_id: model.base_id,
+    };
+
+    const refContext = {
+      ...this.context,
+      base_id: refModel.base_id,
+    };
+
     // populate missing display values
-    const refBaseModel = await Model.getBaseModelSQL(this.context, {
+    const refBaseModel = await Model.getBaseModelSQL(refContext, {
       model: refModel,
       dbDriver: this.dbDriver,
     });
 
-    await model.getColumns(this.context);
-    await refModel.getColumns(this.context);
+    await model.getColumns(context);
+    await refModel.getColumns(refContext);
 
     const missingDisplayValues = auditObjs.filter(
       (auditObj) => !auditObj.displayValue,
@@ -5027,7 +5039,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         );
 
         for (const refDisplayValue of refDisplayValues) {
-          const pk = this.extractPksValues(refDisplayValue, true);
+          const pk = refBaseModel.extractPksValues(refDisplayValue, true);
 
           refDisplayValueMap.set(
             pk,
@@ -5050,7 +5062,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         // Build and return the audit payload.
         return generateAuditV1Payload<DataLinkPayload>(opType, {
           context: {
-            ...this.context,
+            ...context,
             source_id: model.source_id,
             fk_model_id: model.id,
             row_id: this.extractPksValues(auditObj.rowId, true) as string,

@@ -126,6 +126,13 @@
   src: url('./Inter-ExtraBoldItalic.woff2') format('woff2');
 }
 
+/* Fallback for all browsers */
+html {
+  font-feature-settings: 'cv01' 1, 'cv02' 2, 'cv03' 3, 'cv04' 4, 'cv05' 5, 'cv06' 6, 'cv07' 7, 'cv08' 8, 'cv09' 9, 'cv10' 10,
+    'cv11' 11, 'cv12' 12, 'cv13' 13;
+}
+
+/* Browsers that support @font-feature-values will override this via declared named values */
 @font-feature-values Inter {
   @character-variant {
     cv01: 1;

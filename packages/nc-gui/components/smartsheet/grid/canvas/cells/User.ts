@@ -103,7 +103,7 @@ export const UserFieldCellRenderer: CellRenderer = {
             maxWidth: ellipsisWidth,
             textAlign: 'right',
             verticalAlign: 'middle',
-            fontFamily: '500 13px Manrope',
+            fontFamily: '500 13px Inter',
             fillStyle: isDeleted ? '#4a5268' : '#0b1d05',
             height,
           })
@@ -175,7 +175,7 @@ export const UserFieldCellRenderer: CellRenderer = {
           x: x + circleRadius,
           y,
           text: initials.toLocaleUpperCase(),
-          fontFamily: '600 10px Manrope',
+          fontFamily: '600 10px Inter',
           textAlign: 'center',
           verticalAlign: 'middle',
           fillStyle: textColor,
@@ -200,7 +200,7 @@ export const UserFieldCellRenderer: CellRenderer = {
         maxWidth: width - tagPadding * 2,
         textAlign: 'left',
         verticalAlign: 'middle',
-        fontFamily: '500 13px Manrope',
+        fontFamily: '500 13px Inter',
         fillStyle: '#0b1d05',
         height,
       })

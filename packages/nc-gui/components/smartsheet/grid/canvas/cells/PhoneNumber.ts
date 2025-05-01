@@ -24,7 +24,7 @@ export const PhoneNumberCellRenderer: CellRenderer = {
         y,
         text,
         maxWidth: width - padding * 2,
-        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        fontFamily: `${pv ? 600 : 500} 13px Inter`,
         fillStyle: (isValid && selected) || pv ? '#3366FF' : textColor,
         height,
         underline: isValid,
@@ -76,7 +76,7 @@ export const PhoneNumberCellRenderer: CellRenderer = {
       y: y + padding,
       text,
       maxWidth: width - padding * 2,
-      fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+      fontFamily: `${pv ? 600 : 500} 13px Inter`,
       height,
       render: false,
     })

@@ -155,7 +155,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       })
 
       ctx.fillStyle = '#374151'
-      ctx.font = '500 11px Manrope'
+      ctx.font = '500 11px Inter'
       ctx.textBaseline = 'middle'
       ctx.fillText('Add File(s)', buttonX + 28, buttonY + (buttonHeight + 2) / 2)
       return

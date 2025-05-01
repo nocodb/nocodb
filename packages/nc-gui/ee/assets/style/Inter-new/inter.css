@@ -60,14 +60,14 @@
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url('./Inter-Medium.woff2') format('woff2');
+  src: url('./Inter-Regular.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Inter';
   font-style: italic;
   font-weight: 500;
   font-display: swap;
-  src: url('./Inter-MediumItalic.woff2') format('woff2');
+  src: url('./Inter-Italic.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Inter';

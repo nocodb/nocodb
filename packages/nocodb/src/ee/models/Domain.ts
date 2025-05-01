@@ -164,4 +164,24 @@ export default class Domain {
     domainObj.config = parseMetaProp(domainObj, 'config');
     return new Domain(domainObj);
   }
+
+  static async deleteDuplicateDomain(
+    domain: string,
+    id: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaDelete(
+      RootScopes.ORG,
+      RootScopes.ORG,
+      MetaTable.ORG_DOMAIN,
+      {
+        domain,
+      },
+      {
+        id: {
+          neq: id,
+        },
+      },
+    );
+  }
 }

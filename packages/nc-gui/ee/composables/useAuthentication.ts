@@ -116,7 +116,7 @@ export const useAuthentication = (isOrg = false, isWorkspace = false) => {
 
   const signInUrl = computed(() => {
     const url = new URL(location.href)
-    url.hash = isOrg ? '/sso' : '/signin'
+    url.hash = isOrg || isWorkspace ? '/sso' : '/signin'
 
     return url.href
   })

@@ -19,6 +19,7 @@ import {
   stringifyMetaProp,
 } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
+import { isCloud } from '~/utils';
 
 const PUBLIC_LIST_KEY = `${CacheScope.SSO_CLIENT_PUBLIC_LIST}:default`;
 
@@ -167,6 +168,10 @@ export default class SSOClient implements SSOClientType {
   }
 
   static async getPublicList(param: { ncSiteUrl: string }) {
+    if (isCloud) {
+      return [];
+    }
+
     const cacheData: { list: any[] } = await NocoCache.get(
       PUBLIC_LIST_KEY,
       CacheGetType.TYPE_OBJECT,
@@ -177,7 +182,11 @@ export default class SSOClient implements SSOClientType {
 
     const filteredList = list
       .filter(
-        (client) => client.enabled && !client.deleted && !client.fk_org_id,
+        (client) =>
+          client.enabled &&
+          !client.deleted &&
+          !client.fk_org_id &&
+          !client.fk_workspace_id,
       )
       .map((client) => {
         return {
@@ -194,6 +203,10 @@ export default class SSOClient implements SSOClientType {
   }
 
   static async listByOrgId(fk_org_id: string, siteUrl: string) {
+    if (!fk_org_id) {
+      return [];
+    }
+
     const clients = await Noco.ncMeta.metaList2(
       RootScopes.ORG,
       RootScopes.ORG,
@@ -222,7 +235,41 @@ export default class SSOClient implements SSOClientType {
         };
       });
 
-    await NocoCache.set(PUBLIC_LIST_KEY, { list: filteredList });
+    return filteredList;
+  }
+
+  static async listByWorkspaceId(fk_workspace_id: string, siteUrl: string) {
+    if (!fk_workspace_id) {
+      return [];
+    }
+
+    const clients = await Noco.ncMeta.metaList2(
+      RootScopes.ORG,
+      RootScopes.ORG,
+      MetaTable.SSO_CLIENT,
+      {
+        condition: {
+          fk_workspace_id,
+          deleted: false,
+        },
+      },
+    );
+
+    const list = clients.map((client) => {
+      client.config = parseMetaProp(client, 'config');
+      return new SSOClient(client);
+    });
+
+    const filteredList = list
+      .filter((client) => client.enabled && !client.deleted)
+      .map((client) => {
+        return {
+          id: client.id,
+          url: new URL(`/sso/${client.id}`, siteUrl).toString(),
+          title: client.title,
+          type: client.type,
+        };
+      });
 
     return filteredList;
   }

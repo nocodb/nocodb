@@ -129,7 +129,7 @@ export const AttachmentCellRenderer: CellRenderer = {
     }
 
     if (selected && attachments.length === 0) {
-      const buttonWidth = 86
+      const buttonWidth = 96
       const buttonHeight = 24
       const buttonX = x + (width - buttonWidth) / 2
       const buttonY = y + verticalPadding

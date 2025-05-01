@@ -2798,6 +2798,15 @@ defineExpose({
     }
   }
 
+  :deep(.nc-cell),
+  :deep(.nc-virtual-cell) {
+    &:not(.nc-cell-date):not(.nc-cell-datetime):not(.nc-cell-year):not(.nc-cell-time) {
+      input {
+        @apply min-h-[26px] !important;
+      }
+    }
+  }
+
   :deep(.nc-cell-datetime.nc-under-ltar) {
     @apply !py-0 !leading-[16px];
   }

@@ -196,7 +196,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
 }
 
 .nc-expanded-audit pre {
-  font-family: Manrope, 'Inter', 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+  font-family: Inter, Manrope, 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
     sans-serif;
 }
 </style>

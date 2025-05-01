@@ -156,7 +156,7 @@ export class PageDesignerWidgetFactory {
       borderLeft: '0',
       borderRadius: '0',
       borderColor: BLACK,
-      fontFamily: 'Manrope',
+      fontFamily: 'Inter',
       fontSize: '16',
       fontWeight: '400',
       horizontalAlign: 'flex-start',
@@ -217,7 +217,7 @@ export class PageDesignerWidgetFactory {
       borderColor: BLACK,
       backgroundColor: WHITE,
       textColor: BLACK,
-      fontFamily: 'Manrope',
+      fontFamily: 'Inter',
       fontSize: '16',
       fontWeight: '400',
       lineHeight: '1.4',
@@ -246,7 +246,7 @@ export class PageDesignerWidgetFactory {
       borderColor: BLACK,
       backgroundColor: WHITE,
       textColor: BLACK,
-      fontFamily: 'Manrope',
+      fontFamily: 'Inter',
       fontSize: '16',
       fontWeight: '400',
       lineHeight: '1.4',
@@ -338,6 +338,7 @@ export const fonts = [
   'Impact',
   'Trebuchet MS',
   'Manrope',
+  'Inter'
 ]
 export const fontWeights = ['400', '700']
 

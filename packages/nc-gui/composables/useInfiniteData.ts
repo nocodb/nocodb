@@ -932,7 +932,7 @@ export function useInfiniteData(args: {
     try {
       await $api.dbTableRow.nestedAdd(
         NOCO,
-        base.value.id as string,
+        metaValue?.base_id ?? (base.value.id as string),
         metaValue?.id as string,
         encodeURIComponent(rowId),
         type,
@@ -999,7 +999,7 @@ export function useInfiniteData(args: {
 
         const fullRecord = await $api.dbTableRow.read(
           NOCO,
-          base?.value.id as string,
+          metaValue?.base_id ?? (base?.value.id as string),
           meta.value?.id as string,
           encodeURIComponent(id as string),
           {
@@ -1113,7 +1113,7 @@ export function useInfiniteData(args: {
 
       const insertedData = await $api.dbViewRow.create(
         NOCO,
-        base?.value.id as string,
+        metaValue?.base_id ?? (base?.value.id as string),
         metaValue?.id as string,
         viewMetaValue?.id as string,
         { ...insertObj, ...(ltarState || {}) },
@@ -1286,7 +1286,7 @@ export function useInfiniteData(args: {
 
       const updatedRowData: Record<string, any> = await $api.dbViewRow.update(
         NOCO,
-        base?.value.id as string,
+        metaValue?.base_id ?? (base?.value.id as string),
         metaValue?.id as string,
         viewMetaValue?.id as string,
         encodeURIComponent(id),

@@ -72,7 +72,7 @@ export function useData(args: {
 
       const insertedData = await $api.dbViewRow.create(
         NOCO,
-        base?.value.id as string,
+        metaValue?.base_id ?? (base?.value.id as string),
         metaValue?.id as string,
         viewMetaValue?.id as string,
         { ...insertObj, ...(ltarState || {}) },
@@ -205,7 +205,7 @@ export function useData(args: {
 
       const updatedRowData: Record<string, any> = await $api.dbViewRow.update(
         NOCO,
-        base?.value.id as string,
+        metaValue?.base_id ?? (base?.value.id as string),
         metaValue?.id as string,
         viewMetaValue?.id as string,
         encodeURIComponent(id),
@@ -472,7 +472,7 @@ export function useData(args: {
     try {
       await $api.dbTableRow.nestedAdd(
         NOCO,
-        base.value.id as string,
+        metaValue?.base_id ?? (base.value.id as string),
         metaValue?.id as string,
         encodeURIComponent(rowId),
         type as RelationTypes,
@@ -556,7 +556,7 @@ export function useData(args: {
         const fullRecord = await $api.dbTableRow.read(
           NOCO,
           // todo: base_id missing on view type
-          base?.value.id as string,
+          meta.value?.base_id ?? (base?.value.id as string),
           meta.value?.id as string,
           encodeURIComponent(id as string),
           {

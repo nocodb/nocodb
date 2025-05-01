@@ -23,7 +23,7 @@ export const LinksCellRenderer: CellRenderer = {
         y,
         text,
         maxWidth: width - padding * 2 - 20,
-        fontFamily: '500 13px Manrope',
+        fontFamily: '500 13px Inter',
         fillStyle: 'rgb(67, 81, 232)',
         height,
       })
@@ -35,7 +35,7 @@ export const LinksCellRenderer: CellRenderer = {
         y,
         text,
         maxWidth: width - padding * 2 - 20,
-        fontFamily: '500 13px Manrope',
+        fontFamily: '500 13px Inter',
         fillStyle: 'rgb(67, 81, 232)',
         height,
         underline: selected && isHoverOverText,

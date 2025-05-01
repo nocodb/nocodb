@@ -262,7 +262,7 @@ watch(emailVerifyDlg, (val) => {
 }
 
 .amplify-authenticator__font {
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 [data-amplify-authenticator] [data-amplify-router] {

@@ -375,7 +375,7 @@ export const renderSingleLineText = (
     fillStyle,
     height,
     fontSize = 13,
-    fontFamily = '500 13px Manrope',
+    fontFamily = '500 13px Inter',
     textAlign = 'left',
     verticalAlign = 'middle',
     render = true,
@@ -611,7 +611,7 @@ export const renderMarkdownBlocks = (
   // Save the current font so we can restore it later
   const defaultFont = ctx.font
   const baseFontSize = 13
-  if (!fontFamily) fontFamily = 'Manrope'
+  if (!fontFamily) fontFamily = 'Inter'
   const defaultFillStyle = ctx.fillStyle
   const defaultStrokeStyle = ctx.strokeStyle
 
@@ -831,7 +831,7 @@ export function renderMultiLineText(
     height,
     fontSize = 13, // In grid by default we have 13px font size
     lineHeight = 16, // In grid by default we have 16px line height
-    fontFamily = '500 13px Manrope',
+    fontFamily = '500 13px Inter',
     textAlign = 'left',
     verticalAlign = 'middle',
     render = true,
@@ -983,7 +983,7 @@ export function renderBarcode(
         lineColor: '#000000',
         margin: 0,
         fontSize: 12,
-        font: 'Manrope',
+        font: 'Inter',
       })
     }
 
@@ -1017,7 +1017,7 @@ export function renderBarcode(
       height: finalHeight,
     }
   } catch (error) {
-    ctx.font = `500 13px Manrope`
+    ctx.font = `500 13px Inter`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
     ctx.fillStyle = '#4a5268'
@@ -1031,7 +1031,7 @@ export function renderBarcode(
       maxWidth: width - padding * 2 - 28,
       height,
       fontSize: 13,
-      fontFamily: '500 13px Manrope',
+      fontFamily: '500 13px Inter',
       fillStyle: '#4a5268',
       textAlign: 'left',
     })
@@ -1070,7 +1070,7 @@ export const renderMarkdown = (
     height,
     fontSize = 13, // In grid by default we have 13px font size
     lineHeight = 16, // In grid by default we have 16px line height
-    fontFamily = '500 13px Manrope',
+    fontFamily = '500 13px Inter',
     textAlign = 'left',
     verticalAlign = 'middle',
     render = true,
@@ -1204,7 +1204,7 @@ export const renderTagLabel = (
     tagRadius = 6,
     tagBgColor = '#f4f4f0',
     tagSpacing = 4,
-    tagFontFamily = '500 13px Manrope',
+    tagFontFamily = '500 13px Inter',
     tagBorderColor,
     tagBorderWidth,
   } = props.tag || {}
@@ -1233,7 +1233,7 @@ export const renderTagLabel = (
       text,
       maxWidth,
       height: tagHeight - tagPaddingY * 2,
-      fontFamily: '500 13px Manrope',
+      fontFamily: '500 13px Inter',
       fillStyle: textColor,
       isTagLabel: true,
       mousePosition,
@@ -1250,7 +1250,7 @@ export const renderTagLabel = (
       text,
       maxWidth,
       height: tagHeight - tagPaddingY * 2,
-      fontFamily: '500 13px Manrope',
+      fontFamily: '500 13px Inter',
       fillStyle: textColor,
       isTagLabel: true,
       mousePosition,

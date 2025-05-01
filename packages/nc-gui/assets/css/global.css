@@ -17,11 +17,11 @@ body,
 }
 
 /*
-Apply Manrope for rtl
+Apply Inter for rtl
 */
 
 .rtl .v-application *:not(.material-icons) {
-  font-family: Manrope !important;
+  font-family: Inter !important;
 }
 
 .rtl .v-application .ml-n1 {

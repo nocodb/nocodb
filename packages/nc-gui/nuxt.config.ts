@@ -61,9 +61,7 @@ export default defineNuxtConfig({
                 type: 'font/woff2',
                 crossorigin: 'anonymous',
               } as any,
-              // { rel: 'stylesheet', href: new URL('/shared/style/fonts.css', process.env.NC_CDN_URL).href },
-              // Todo: remove fonts-new.css file once inter font is confirmred
-              // { rel: 'stylesheet', href: new URL('/shared/style/fonts-new.css', process.env.NC_CDN_URL).href },
+              { rel: 'stylesheet', href: new URL('/shared/style/fonts-new.css', process.env.NC_CDN_URL).href },
             ]
           : []),
       ],
@@ -113,8 +111,7 @@ export default defineNuxtConfig({
   },
 
   css: [
-    // ...(process.env.NC_CDN_URL ? [] : ['~/assets/style/fonts.css']),
-    '~/assets/style/fonts.css', // Todo: remove after testing
+    ...(process.env.NC_CDN_URL ? [] : ['~/assets/style/fonts-new.css']),
     'virtual:windi.css',
     'virtual:windi-devtools',
     '~/assets/css/global.css',

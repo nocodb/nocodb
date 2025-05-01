@@ -422,7 +422,7 @@ export const ButtonCellRenderer: CellRenderer = {
 
     if (hasLabel) {
       const ctx = defaultOffscreen2DContext
-      ctx.font = '500 13px Inter'
+      ctx.font = '550 13px Inter'
 
       const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
 

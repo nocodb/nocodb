@@ -336,9 +336,13 @@ const referenceBaseId = computed({
     <template v-else>
       <div>
         <a-switch v-model:checked="crossBase" :disabled="isEdit" :is-edit="isEdit" size="small" name="crossBase" />
-        <span class="ml-3 cursor-pointer" @click="crossBase = !crossBase" @dblclick="onCustomSwitchLabelClick"
-          >Cross Base Link</span
-        >
+
+        <a-tooltip>
+          <template #title> Link records from a table in a different base </template>
+          <span class="ml-3 cursor-pointer" @click="crossBase = !crossBase" @dblclick="onCustomSwitchLabelClick">{{
+            $t('labels.crossBase')
+          }}</span>
+        </a-tooltip>
       </div>
 
       <a-form-item v-if="crossBase" class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childBaseId">
@@ -347,7 +351,7 @@ const referenceBaseId = computed({
           show-search
           :disabled="isEdit"
           :filter-option="filterOption"
-          placeholder="select table to link"
+          placeholder="Select base"
           dropdown-class-name="nc-dropdown-ltar-child-table"
           @change="onBaseChange(referenceBaseId)"
         >

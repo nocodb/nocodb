@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { ColumnHelper, UITypes } from 'nocodb-sdk'
+import { ColumnHelper, UITypes, makePrecisionFormatsDiplay, useColumnCreateStoreOrThrow, useRoles, precisionFormats } from 'nocodb-sdk'
 import { useI18n } from 'vue-i18n'
 import { useVModel } from '@vueuse/core'
-import { useColumnCreateStoreOrThrow } from 'nocodb-sdk'
-import { makePrecisionFormatsDiplay } from 'nocodb-sdk'
-import { useRoles } from 'nocodb-sdk'
+import GeneralIcon from '~/components/general/Icon.vue'
 
 const props = defineProps<{
   value: any

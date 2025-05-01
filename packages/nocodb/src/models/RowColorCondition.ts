@@ -1,6 +1,6 @@
-import { MetaTable } from 'src/cli';
-import Noco from 'src/Noco';
 import type { NcContext } from 'nocodb-sdk';
+import { MetaTable } from '~/cli';
+import Noco from '~/Noco';
 
 export interface IRowColorCondition {
   id: string;

@@ -86,6 +86,7 @@ export enum MetaTable {
   SYNC_MAPPINGS = 'nc_sync_mappings',
   PLANS = 'nc_plans',
   SUBSCRIPTIONS = 'nc_subscriptions',
+  ROW_COLOR_CONDITIONS = 'nc_row_color_conditions',
   USAGE_STATS = 'nc_usage_stats',
   MCP_TOKENS = 'nc_mcp_tokens',
 }

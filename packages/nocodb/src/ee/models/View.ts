@@ -109,3 +109,5 @@ export default class View extends ViewCE implements ViewType {
     }
   }
 }
+
+export { ViewMetaRowColoring } from 'src/models/View';

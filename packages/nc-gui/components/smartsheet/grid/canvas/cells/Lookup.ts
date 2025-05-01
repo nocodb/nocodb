@@ -171,7 +171,7 @@ export const LookupCellRenderer: CellRenderer = {
         maxWidth: ellipsisWidth,
         textAlign: 'right',
         verticalAlign: 'middle',
-        fontFamily: '500 13px Manrope',
+        fontFamily: '500 13px Inter',
         fillStyle: '#666',
         height,
       })

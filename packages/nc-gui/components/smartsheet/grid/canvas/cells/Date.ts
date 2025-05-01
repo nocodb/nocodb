@@ -12,7 +12,7 @@ export const DateCellRenderer: CellRenderer = {
 
     if (!value && selected && !readonly) {
       ctx.fillStyle = '#989FB1'
-      ctx.font = '400 13px Manrope'
+      ctx.font = '400 13px Inter'
       const placeholderY = Math.max(y, 36)
       const truncatedFormat = truncateText(ctx, dateFormat, width - padding * 2)
       ctx.fillText(truncatedFormat, x + padding, placeholderY + 16)
@@ -46,7 +46,7 @@ export const DateCellRenderer: CellRenderer = {
         y,
         text: formattedDate,
         maxWidth: width - padding * 2,
-        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        fontFamily: `${pv ? 600 : 500} 13px Inter`,
         fillStyle: pv ? '#3366FF' : textColor,
         height,
       })
@@ -76,11 +76,11 @@ export const DateCellRenderer: CellRenderer = {
       }
     } else {
       text = dateFormat
-      canvasContext.font = '400 13px Manrope'
+      canvasContext.font = '400 13px Inter'
     }
 
     if (text) {
-      canvasContext.font = value ? '500 13px Manrope' : '400 13px Manrope'
+      canvasContext.font = value ? '500 13px Inter' : '400 13px Inter'
       const textWidth = canvasContext.measureText(text).width
 
       const clickableArea = {

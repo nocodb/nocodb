@@ -257,7 +257,7 @@ export class ImageWindowLoader {
     height: number,
     padding = 10,
   ): void {
-    ctx.font = '500 13px Manrope'
+    ctx.font = '500 13px Inter'
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
     ctx.fillStyle = '#e65100'

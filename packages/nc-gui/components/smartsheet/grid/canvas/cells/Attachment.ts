@@ -129,7 +129,7 @@ export const AttachmentCellRenderer: CellRenderer = {
     }
 
     if (selected && attachments.length === 0) {
-      const buttonWidth = 86
+      const buttonWidth = 96
       const buttonHeight = 24
       const buttonX = x + (width - buttonWidth) / 2
       const buttonY = y + verticalPadding
@@ -155,7 +155,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       })
 
       ctx.fillStyle = '#374151'
-      ctx.font = '500 11px Manrope'
+      ctx.font = '500 11px Inter'
       ctx.textBaseline = 'middle'
       ctx.fillText('Add File(s)', buttonX + 28, buttonY + (buttonHeight + 2) / 2)
       return

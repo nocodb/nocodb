@@ -79,9 +79,11 @@ export default defineConfig({
 
   theme: {
     fontFamily: {
+      inter: ['Inter', 'Manrope', 'sans-serif'],
       sans: ['Vazirmatn', 'sans-serif'],
       serif: ['Vazirmatn', 'serif'],
       mono: ['Inter', 'mono'],
+      default: ['Inter', 'Manrope', 'sans-serif'],
     },
     extend: {
       screens: {
@@ -99,19 +101,60 @@ export default defineConfig({
         },
       },
       fontSize: {
-        tiny: ['11px', '14px'],
-        small: ['13px', '16px'],
-        small1: ['13px', '18px'],
+        'tiny': ['11px', '14px'],
+        'small': ['13px', '16px'],
+        'small1': ['13px', '18px'],
+        'heading1': ['64px', { lineHeight: '92px', fontWeight: 700, letterSpacing: '-2%' }],
+        'heading2': ['40px', { lineHeight: '64px', fontWeight: 700, letterSpacing: '-2%' }],
+        'heading3': ['24px', { lineHeight: '36px', fontWeight: 700, letterSpacing: '-2%' }],
+        'sub-heading1': ['20px', { lineHeight: '32px', fontWeight: 700, letterSpacing: '-2%' }],
+        'sub-heading2': ['16px', { lineHeight: '24px', fontWeight: 700, letterSpacing: '-2%' }],
+        'body-lg': ['16px', { lineHeight: '28px', fontWeight: 500, letterSpacing: '-2%' }],
+        'body-lg-bold': ['16px', { lineHeight: '28px', fontWeight: 700, letterSpacing: '-2%' }],
+        'body': ['14px', { lineHeight: '24px', fontWeight: 500, letterSpacing: '0%' }],
+        'body-bold': ['14px', { lineHeight: '24px', fontWeight: 700, letterSpacing: '0%' }],
+        'body-default-sm': ['13px', { lineHeight: '18px', fontWeight: 500, letterSpacing: '0%' }],
+        'body-default-sm-bold': ['13px', { lineHeight: '18px', fontWeight: 700, letterSpacing: '0%' }],
+        'body-sm': ['12px', { lineHeight: '18px', fontWeight: 500, letterSpacing: '0%' }],
+        'body-sm-bold': ['12px', { lineHeight: '18px', fontWeight: 700, letterSpacing: '0%' }],
+        'caption': ['14px', { lineHeight: '20px', fontWeight: 500, letterSpacing: '0%' }],
+        'caption-bold': ['14px', { lineHeight: '20px', fontWeight: 700, letterSpacing: '0%' }],
+        'caption-sm': ['12px', { lineHeight: '14px', fontWeight: 500, letterSpacing: '0%' }],
+        'caption-sm-bold': ['12px', { lineHeight: '14px', fontWeight: 700, letterSpacing: '0%' }],
+        'caption-xs': ['10px', { lineHeight: '14px', fontWeight: 500, letterSpacing: '0%' }],
+        'caption-xs-bold': ['10px', { lineHeight: '14px', fontWeight: 700, letterSpacing: '0%' }],
+        'caption-dropdown-default': ['13px', { lineHeight: '20px', fontWeight: 650, letterSpacing: '0%' }],
+        'sidebar-default': ['14px', { lineHeight: '20px', fontWeight: 650, letterSpacing: '0%' }],
+        'sidebar-selected': ['14px', { lineHeight: '20px', fontWeight: 650, letterSpacing: '0%' }],
       },
       fontWeight: {
-        thin: 150,
-        extraLight: 250,
-        light: 350,
-        normal: 450,
-        default: 500,
-        medium: 550,
-        bold: 650,
-        black: 750,
+        /**
+         * In `Inter` font multiple of 100 will point to -100
+         * @example
+         * 1. 500 is equal to 400
+         * 2. 600 is equal to 500
+         * 3. 700 is equal to 600
+         * 4. 800 is equal to 700
+         * 5. 900 is equal to 800
+         *
+         * But if it is multiples of 100 plus 50 (350,450,550,650,750) then it be standard one
+         * So while using it we have to use it like `Weight - 100`
+         */
+        thin: 200, // original 200
+        extraLight: 300, // original 300
+        light: 400, // original 400
+        normal: 500, // original 400
+        default: 500, // original 400
+        medium: 600, // original 500
+        semibold: 550, // original 550
+        bold: 700, // original 600
+        black: 800, // original 700
+        450: 400,
+        550: 450,
+        650: 550,
+        750: 650,
+        850: 750,
+        950: 850,
       },
       textColor: {
         primary: 'rgba(var(--color-primary), var(--tw-text-opacity))',

@@ -934,7 +934,7 @@ export async function invokeWebhook(
             : notification?.payload,
         ),
         fk_hook_id: hook.id,
-        error_code: e.error_code,
+        error_code: e.error_code ?? e.status,
         error_message: e.message,
         error: JSON.stringify(e),
         triggered_by: user?.email,

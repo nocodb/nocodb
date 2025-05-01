@@ -128,15 +128,33 @@ export default defineConfig({
         'sidebar-selected': ['14px', { lineHeight: '20px', fontWeight: 650, letterSpacing: '0%' }],
       },
       fontWeight: {
-        thin: 200,
-        extraLight: 300,
-        light: 400,
-        normal: 500,
-        default: 500,
-        medium: 550,
-        semibold: 600,
-        bold: 700,
-        black: 800,
+        /**
+         * In `Inter` font multiple of 100 will point to -100
+         * @example
+         * 1. 500 is equal to 400
+         * 2. 600 is equal to 500
+         * 3. 700 is equal to 600
+         * 4. 800 is equal to 700
+         * 5. 900 is equal to 800
+         *
+         * But if it is multiples of 100 plus 50 (350,450,550,650,750) then it be standard one
+         * So while using it we have to use it like `Weight - 100`
+         */
+        thin: 200, // original 200
+        extraLight: 300, // original 300
+        light: 400, // original 400
+        normal: 500, // original 400
+        default: 500, // original 400
+        medium: 600, // original 500
+        semibold: 550, // original 550
+        bold: 700, // original 600
+        black: 800, // original 700
+        450: 400,
+        550: 450,
+        650: 550,
+        750: 650,
+        850: 750,
+        950: 850,
       },
       textColor: {
         primary: 'rgba(var(--color-primary), var(--tw-text-opacity))',

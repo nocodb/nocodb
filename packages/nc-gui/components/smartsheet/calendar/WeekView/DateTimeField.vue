@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type dayjs from 'dayjs'
+import dayjs from 'dayjs'
 import type { Row } from '~/lib/types'
 
 const emits = defineEmits(['expandRecord', 'newRecord'])
@@ -196,9 +196,10 @@ const hasSlotForRecord = (
 
     const { startDate: columnFromDate, endDate: columnToDate } = calculateNewDates({
       startDate: timezoneDayjs.timezonize(column.row[columnFromCol.title!]),
-      endDate: columnToCol
-        ? timezoneDayjs.timezonize(column.row[columnToCol.title!])
-        : timezoneDayjs.timezonize(column.row[columnFromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
+      endDate:
+        columnToCol && dayjs(column.row[columnToCol.title!])?.isValid()
+          ? timezoneDayjs.timezonize(column.row[columnToCol.title!])
+          : timezoneDayjs.timezonize(column.row[columnFromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
       scheduleStart: timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day'),
       scheduleEnd: timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('day'),
     })
@@ -434,9 +435,10 @@ const recordsAcrossAllRange = computed<{
       if (!fromCol) continue
       const { startDate, endDate } = calculateNewDates({
         startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
-        endDate: toCol
-          ? timezoneDayjs.timezonize(record.row[toCol.title!])
-          : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
+        endDate:
+          toCol && dayjs(record.row[toCol.title!])?.isValid()
+            ? timezoneDayjs.timezonize(record.row[toCol.title!])
+            : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
         scheduleStart,
         scheduleEnd,
       })
@@ -620,7 +622,7 @@ const onResize = (event: MouseEvent) => {
   const day = Math.floor(percentX * maxVisibleDays.value)
   const minutes = Math.round((percentY * 24 * 60) / 15) * 15 // Round to nearest 15 minutes
 
-  const baseDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).add(day, 'day').add(minutes, 'minute')
+  const baseDate = timezoneDayjs.timezonize(selectedDateRange.value.start).add(day, 'day').add(minutes, 'minute')
 
   let newDate: dayjs.Dayjs
   let updateProperty: string
@@ -648,9 +650,10 @@ const onResize = (event: MouseEvent) => {
     updateProperty = fromCol.title
   } else {
     isValid = false
+    newDate = null
   }
 
-  if (!isValid || !newDate.isValid()) return
+  if (!isValid || !newDate?.isValid()) return
 
   const newRow = {
     ...resizeRecord.value,

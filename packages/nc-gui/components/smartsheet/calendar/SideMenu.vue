@@ -535,6 +535,9 @@ onClickOutside(searchRef, toggleSearch)
                 <template v-if="!isRowEmpty(record, displayField)">
                   <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
                 </template>
+                <template v-else>
+                  <span class="text-gray-500"> - </span>
+                </template>
               </LazySmartsheetCalendarSideRecordCard>
             </LazySmartsheetRow>
           </div>

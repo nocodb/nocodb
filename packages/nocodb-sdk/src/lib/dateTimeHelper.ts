@@ -169,3 +169,74 @@ export function constructTimeFormat(column: ColumnType) {
     ? 'hh:mm A'
     : columnMeta.time_format ?? timeFormats[0];
 }
+
+export function workerWithTimezone(isEeUI: boolean, timezone?: string) {
+  // Check if the timezone is UTC or GMT (case insensitive)
+  const isUtcOrGmt = timezone && /^(utc|gmt)$/i.test(timezone);
+
+  return {
+    dayjsTz(value?: string | number | null | dayjs.Dayjs, format?: string) {
+      if (!isEeUI) {
+        return dayjs(value, format);
+      }
+
+      if (typeof value === 'object' && value.isValid()) {
+        return value;
+      }
+
+      if (timezone) {
+        if (isUtcOrGmt) {
+          const strValue =
+            typeof value === 'object' &&
+            typeof value.isValid === 'function' &&
+            value.isValid()
+              ? value.toISOString()
+              : value;
+          return format
+            ? dayjs.tz(strValue, format, timezone)
+            : dayjs.tz(strValue, timezone);
+        } else {
+          if (!format) {
+            return dayjs.tz(value, timezone);
+          } else {
+            return dayjs.tz(value, format, timezone);
+          }
+        }
+      } else {
+        return dayjs(value, format);
+      }
+    },
+
+    timezonize(value?: string | number | null | dayjs.Dayjs) {
+      if (!value) {
+        return this.dayjsTz();
+      }
+
+      let dayjsObject: dayjs.Dayjs;
+
+      if (
+        typeof value === 'object' &&
+        typeof value.isValid === 'function' &&
+        value.isValid()
+      ) {
+        dayjsObject = value.isUTC() ? value : value.utc();
+      } else {
+        dayjsObject = dayjs.utc(value);
+      }
+
+      if (!isEeUI) {
+        return dayjsObject.local();
+      }
+
+      if (timezone) {
+        if (isUtcOrGmt) {
+          return dayjs(dayjsObject.toISOString()).tz(timezone);
+        } else {
+          return dayjsObject.tz(timezone);
+        }
+      }
+
+      return dayjsObject.local();
+    },
+  };
+}

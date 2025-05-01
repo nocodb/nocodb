@@ -1,9 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type CalendarRangeType, ViewTypes } from 'nocodb-sdk';
+import {
+  type CalendarRangeType,
+  ViewTypes,
+  workerWithTimezone,
+} from 'nocodb-sdk';
 import { CalendarDatasService as CalendarDatasServiceCE } from 'src/services/calendar-datas.service';
-import dayjs from 'dayjs';
 import type { NcContext } from '~/interface/config';
-import { Model, View } from '~/models';
+import { Column, Model, View } from '~/models';
 import CalendarRange from '~/models/CalendarRange';
 import { NcError } from '~/helpers/catchError';
 
@@ -34,6 +37,17 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
     const ranges = await CalendarRange.read(context, view.id);
 
     if (!ranges?.ranges.length) NcError.badRequest('No ranges found');
+
+    let timezone;
+
+    const colId = ranges.ranges[0].fk_from_column_id;
+
+    if (colId) {
+      const column = await Column.get(context, { colId });
+      timezone = column?.meta?.timezone || undefined;
+    }
+
+    const dayjsTimezone = workerWithTimezone(true, timezone);
 
     const filterArr = await this.buildFilterArr(context, {
       viewId,
@@ -71,8 +85,8 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
         : null;
 
       data.list.forEach((date) => {
-        const fromDt = dayjs(date[fromCol]);
-        const toDt = dayjs(toCol ? date[toCol] : null);
+        const fromDt = dayjsTimezone.timezonize(date[fromCol]);
+        const toDt = dayjsTimezone.timezonize(toCol ? date[toCol] : null);
 
         if (fromCol && toCol && fromDt.isValid() && toDt.isValid()) {
           let current = fromDt;
@@ -108,9 +122,20 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
     const calendarRange = await CalendarRange.read(context, viewId);
     if (!calendarRange?.ranges?.length) NcError.badRequest('No ranges found');
 
+    let timezone;
+
+    const colId = calendarRange.ranges[0].fk_from_column_id;
+
+    if (colId) {
+      const column = await Column.get(context, { colId });
+      timezone = column?.meta?.timezone || undefined;
+    }
+
     const filterArr: any = [];
 
-    const prevDate = dayjs(from_date)
+    const { dayjsTz } = workerWithTimezone(true, timezone);
+
+    const prevDate = dayjsTz(from_date)
       .add(1, 'day')
       .startOf('day')
       .format('YYYY-MM-DD HH:mm:ssZ');

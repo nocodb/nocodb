@@ -818,7 +818,18 @@ const parseConditionV2 = async (
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  qb.where(field, gt_op, knex.raw('?::timestamptz', [val]));
+                  if (
+                    column.dt !== 'timestamp with time zone' &&
+                    column.dt !== 'timestamptz'
+                  ) {
+                    qb.where(
+                      knex.raw("?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'", [field]),
+                      gt_op,
+                      knex.raw('?::timestamptz', [val]),
+                    );
+                  } else {
+                    qb.where(field, gt_op, knex.raw('?::timestamptz', [val]));
+                  }
                 } else if (qb.client.config.client === 'sqlite3') {
                   qb.where(
                     field,
@@ -863,7 +874,18 @@ const parseConditionV2 = async (
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  qb.where(field, ge_op, knex.raw('?::timestamptz', [val]));
+                  if (
+                    column.dt !== 'timestamp with time zone' &&
+                    column.dt !== 'timestamptz'
+                  ) {
+                    qb.where(
+                      knex.raw("?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'", [field]),
+                      ge_op,
+                      knex.raw('?::timestamptz', [val]),
+                    );
+                  } else {
+                    qb.where(field, ge_op, knex.raw('?::timestamptz', [val]));
+                  }
                 } else if (qb.client.config.client === 'sqlite3') {
                   qb.where(
                     field,
@@ -907,7 +929,18 @@ const parseConditionV2 = async (
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  qb.where(field, lt_op, knex.raw('?::timestamptz', [val]));
+                  if (
+                    column.dt !== 'timestamp with time zone' &&
+                    column.dt !== 'timestamptz'
+                  ) {
+                    qb.where(
+                      knex.raw("?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'", [field]),
+                      lt_op,
+                      knex.raw('?::timestamptz', [val]),
+                    );
+                  } else {
+                    qb.where(field, lt_op, knex.raw('?::timestamptz', [val]));
+                  }
                 } else if (qb.client.config.client === 'sqlite3') {
                   qb.where(
                     field,
@@ -953,7 +986,18 @@ const parseConditionV2 = async (
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  qb.where(field, le_op, knex.raw('?::timestamptz', [val]));
+                  if (
+                    column.dt !== 'timestamp with time zone' &&
+                    column.dt !== 'timestamptz'
+                  ) {
+                    qb.where(
+                      knex.raw("?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'", [field]),
+                      le_op,
+                      knex.raw('?::timestamptz', [val]),
+                    );
+                  } else {
+                    qb.where(field, le_op, knex.raw('?::timestamptz', [val]));
+                  }
                 } else if (qb.client.config.client === 'sqlite3') {
                   qb.where(
                     field,

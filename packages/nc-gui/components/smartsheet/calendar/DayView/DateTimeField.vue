@@ -55,11 +55,15 @@ const getFieldStyle = (field: ColumnType) => {
 
 const hours = computed(() => {
   const hours: Array<dayjs.Dayjs> = []
-  const _selectedDate = timezoneDayjs.dayjsTz(selectedDate.value)
+
+  // Force the date part only (no time), to reset time to 00:00 in target TZ
+  const baseDateStr = dayjs(selectedDate.value).format('YYYY-MM-DD')
+
+  // Parse in timezone with NO time part — this ensures it's midnight in TZ
+  const startOfDay = timezoneDayjs.dayjsTz(baseDateStr, 'YYYY-MM-DD').hour(0).minute(0).second(0)
 
   for (let i = 0; i < 24; i++) {
-    // startOf and endOf dayjs is bugged with timezone
-    hours.push(timezoneDayjs.dayjsTz(_selectedDate.clone().startOf('day').toISOString()).add(i, 'hour'))
+    hours.push(startOfDay.clone().add(i, 'hour'))
   }
   return hours
 })
@@ -170,8 +174,8 @@ const hasSlotForRecord = (
       endDate: columnToCol
         ? dayjs(column.row[columnToCol.title!])
         : dayjs(column.row[columnFromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
-      scheduleStart: timezoneDayjs.dayjsTz(timezoneDayjs.dayjsTz(selectedDate.value).startOf('day').toISOString()),
-      scheduleEnd: timezoneDayjs.dayjsTz(timezoneDayjs.dayjsTz(selectedDate.value).endOf('day').toISOString()),
+      scheduleStart: timezoneDayjs.dayjsTz(selectedDate.value).startOf('day'),
+      scheduleEnd: timezoneDayjs.dayjsTz(selectedDate.value).endOf('day'),
     })
 
     if (
@@ -518,7 +522,7 @@ const calculateNewRow = (event: MouseEvent, skipChangeCheck?: boolean) => {
   const hour = Math.max(Math.floor(percentY * 23), 0)
   const minutes = Math.min(Math.max(Math.round(Math.floor((percentY * 23 - hour) * 60) / 15) * 15, 0), 60)
   // We calculate the new startDate by adding the hour to the start of the selected date
-  const newStartDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day').add(hour, 'hour').add(minutes, 'minute')
+  const newStartDate = timezoneDayjs.timezonize(selectedDate.value.startOf('day')).add(hour, 'hour').add(minutes, 'minute')
   if (!newStartDate || !fromCol) return { newRow: null, updateProperty: [] }
 
   let endDate

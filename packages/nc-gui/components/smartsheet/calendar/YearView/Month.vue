@@ -16,7 +16,11 @@ const props = withDefaults(defineProps<Props>(), {
   pageDate: dayjs(),
   activeDates: [] as Array<dayjs.Dayjs>,
 })
+
 const emit = defineEmits(['dblClick', 'update:selectedDate', 'update:pageDate'])
+
+const { timezoneDayjs } = useCalendarViewStoreOrThrow()
+
 // Page date is the date we use to manage which month/date that is currently being displayed
 const pageDate = useVModel(props, 'pageDate', emit)
 
@@ -33,13 +37,13 @@ const days = computed(() => {
 })
 
 const currentMonthYear = computed(() => {
-  return dayjs(pageDate.value).format('MMMM')
+  return timezoneDayjs.dayjsTz(pageDate.value).format('MMMM')
 })
 
 // Generates all dates should be displayed in the calendar
 // Includes all blank days at the start and end of the month
 const dates = computed(() => {
-  const startOfMonth = dayjs(pageDate.value).startOf('month')
+  const startOfMonth = timezoneDayjs.timezonize(pageDate.value.startOf('month'))
   const dayOffset = +props.isMondayFirst
   const firstDayOfWeek = startOfMonth.day()
   const startDay = startOfMonth.subtract((firstDayOfWeek - dayOffset + 7) % 7, 'day')
@@ -61,12 +65,12 @@ const isSameDate = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
 // Used in DatePicker for checking if the date is currently selected
 const isSelectedDate = (dObj: dayjs.Dayjs) => {
   if (!selectedDate.value) return false
-  const propDate = dayjs(selectedDate.value)
+  const propDate = timezoneDayjs.dayjsTz(selectedDate.value)
   return props.selectedDate ? isSameDate(propDate, dObj) : false
 }
 
 const isDayInPagedMonth = (date: dayjs.Dayjs) => {
-  return date.month() === dayjs(pageDate.value).month()
+  return date.month() === timezoneDayjs.dayjsTz(pageDate.value).month()
 }
 
 // Since we are using the same component for week picker and date picker we need to handle the date selection differently
@@ -81,7 +85,7 @@ const handleSelectDate = (date: dayjs.Dayjs) => {
 
 // Used to check if a date is in the current month
 const isDateInCurrentMonth = (date: dayjs.Dayjs) => {
-  return date.month() === dayjs(pageDate.value).month()
+  return date.month() === timezoneDayjs.dayjsTz(pageDate.value).month()
 }
 
 // Used to Check if an event is in the date
@@ -128,7 +132,8 @@ const emitDblClick = (date: dayjs.Dayjs) => {
             'bg-gray-300 border-1 !font-semibold': isSelectedDate(date) && isDayInPagedMonth(date),
             'hover:(border-1 border-gray-200 bg-gray-100)': !isSelectedDate(date),
             'text-gray-400': !isDateInCurrentMonth(date),
-            'text-brand-500 !font-semibold nc-calendar-today': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
+            'text-brand-500 !font-semibold nc-calendar-today':
+              isSameDate(date, timezoneDayjs.dayjsTz()) && isDateInCurrentMonth(date),
             'text-gray-500': date.get('day') === 0 || date.get('day') === 6,
             'h-8 w-8 text-sm': size === 'medium',
             'h-6 w-6 text-xs': size === 'small',
@@ -143,7 +148,7 @@ const emitDblClick = (date: dayjs.Dayjs) => {
             :class="{
               'h-1.25 w-1.25 top-0.5 right-0.5': size === 'small',
               '!border-white': isSelectedDate(date),
-              '!border-brand-50': isSameDate(date, dayjs()),
+              '!border-brand-50': isSameDate(date, timezoneDayjs.dayjsTz()),
             }"
             class="absolute z-2 h-1.5 top-1 right-1 w-1.5 transition border-1 rounded-full border-white bg-brand-500"
           ></span>

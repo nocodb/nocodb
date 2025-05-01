@@ -44,6 +44,20 @@
 @font-face {
   font-family: 'Inter';
   font-style: normal;
+  font-weight: 350;
+  font-display: swap;
+  src: url('./InterVariable.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 350;
+  font-display: swap;
+  src: url('./InterVariable.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
   font-weight: 400;
   font-display: swap;
   src: url('./Inter-Regular.woff2') format('woff2');

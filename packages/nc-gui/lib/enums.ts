@@ -196,3 +196,7 @@ export enum WorkspaceIconType {
   EMOJI = 'EMOJI',
   ICON = 'ICON',
 }
+
+export const EventBusEnum = {
+  SmartsheetStore: Symbol('SmartsheetStore'),
+}

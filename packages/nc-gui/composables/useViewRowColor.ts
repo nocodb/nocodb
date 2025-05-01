@@ -3,36 +3,40 @@ import { validateRowFilters } from '~/utils/dataUtils'
 
 export function useViewRowColor(params: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
+  rows: Ref<Ref<Record<string, any>>[]>
   view: Ref<ViewType>
   rowColorInfo?: RowColoringInfo
 }) {
   const { $api } = useNuxtApp()
   const baseStore = useBase()
   const { getBaseType } = baseStore
+  const eventBus = useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore)
 
-  const rowColorInfoLoaded = ref(false)
-  const _rowColorInfo: Ref<RowColoringInfo> = ref(params.rowColorInfo)
-  if (params.rowColorInfo) {
-    rowColorInfoLoaded.value = true
+  const rowColorInfo: Ref<RowColoringInfo> = ref(params.rowColorInfo)
+  const reloadRowColorInfo = async () => {
+    rowColorInfo.value = await $api.dbView.getViewRowColor(params.view.value.id)
   }
-  const rowColorInfo = computedAsync(async () => {
-    if (!rowColorInfoLoaded.value) {
-      _rowColorInfo.value = await $api.dbView.getViewRowColor(params.view.value.id)
-      rowColorInfoLoaded.value = true
+
+  if (!params.rowColorInfo) {
+    reloadRowColorInfo()
+  }
+  eventBus.on((event) => {
+    if (event === SmartsheetStoreEvents.FIELD_UPDATE) {
+      reloadRowColorInfo()
     }
-    return _rowColorInfo.value
   })
 
   const evaluateRowColor = (row: any) => {
     if (rowColorInfo.value && rowColorInfo.value.mode === ROW_COLORING_MODE.SELECT) {
       const selectRowColorInfo = rowColorInfo.value
       const value = row[selectRowColorInfo.selectColumn.title]
-      let color: string | null | undefined = selectRowColorInfo.options.find((k) => k.title === value)?.color
-      color = color ? getLighterTint(color) : null
+      const rawColor: string | null | undefined = selectRowColorInfo.options.find((k) => k.title === value)?.color
+      const color = rawColor ? getLighterTint(rawColor) : null
       return color
         ? {
             is_set_as_background: selectRowColorInfo.is_set_as_background,
             color,
+            rawColor,
           }
         : null
     } else if (rowColorInfo.value && rowColorInfo.value.mode === ROW_COLORING_MODE.FILTER) {
@@ -51,6 +55,7 @@ export function useViewRowColor(params: {
           return {
             is_set_as_background: eachCondition.is_set_as_background,
             color,
+            rawColor: eachCondition.color,
           }
         }
       }
@@ -58,18 +63,35 @@ export function useViewRowColor(params: {
     return null
   }
 
+  const evaluatedRowsColor = computed(() => {
+    return params.rows.value
+      .map((row) => {
+        const evaluateResult = evaluateRowColor(toRaw(row))
+        return {
+          hash: getRowHash(row),
+          ...evaluateResult,
+        }
+      })
+      .reduce((obj, cur) => {
+        obj[cur.hash] = cur
+        return obj
+      }, {})
+  })
+
   const getLeftBorderColor = (row: any) => {
-    const evaluateResult = evaluateRowColor(row)
-    if (evaluateResult?.is_set_as_background === false) {
-      return evaluateResult.color
-    }
-    return null
+    if (!row || !evaluatedRowsColor.value) return null
+    const evaluatedResult = evaluatedRowsColor.value[getRowHash(row)]
+    // if (evaluatedResult?.is_set_as_background === false) {
+    //   return evaluatedResult.color
+    // }
+    return evaluatedResult?.rawColor ?? null
   }
 
   const getRowColor = (row: any) => {
-    const evaluateResult = evaluateRowColor(row)
-    if (evaluateResult?.is_set_as_background) {
-      return evaluateResult.color
+    if (!row || !evaluatedRowsColor.value) return null
+    const evaluatedResult = evaluatedRowsColor.value[getRowHash(row)]
+    if (evaluatedResult?.is_set_as_background) {
+      return evaluatedResult.color
     }
     return null
   }

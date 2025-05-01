@@ -78,10 +78,10 @@ export const parsePercentValue = (
   }
 
   const columnMeta = parseProp(col.meta);
-  
+
   // Apply precision formatting
   const formattedValue = roundUpToPrecision(Number(value), columnMeta.precision ?? 1);
-  
+
   return `${formattedValue}%`;
 };
 

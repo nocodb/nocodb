@@ -3,6 +3,7 @@ import { ColumnHelper, UITypes, makePrecisionFormatsDiplay, useColumnCreateStore
 import { useI18n } from 'vue-i18n'
 import { useVModel } from '@vueuse/core'
 import GeneralIcon from '~/components/general/Icon.vue'
+import { iconMap } from '~/utils/iconUtils'
 
 const props = defineProps<{
   value: any

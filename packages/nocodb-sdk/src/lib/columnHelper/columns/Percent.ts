@@ -3,10 +3,12 @@ import { parsePercentValue, serializePercentValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
+import { precisionFormats } from '../utils';
 
 export class PercentHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
     is_progress: false,
+    precision: precisionFormats[1],
   };
 
   serializeValue(
@@ -26,11 +28,17 @@ export class PercentHelper extends AbstractColumnHelper {
     return value;
   }
 
-  parseValue(value: any): string | number | null {
-    return parsePercentValue(value);
+  parseValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): string | number | null {
+    return parsePercentValue(value, params.col);
   }
 
-  parsePlainCellValue(value: any): string {
-    return `${parsePercentValue(value) ?? ''}`;
+  parsePlainCellValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): string {
+    return `${parsePercentValue(value, params.col) ?? ''}`;
   }
 }

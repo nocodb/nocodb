@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { ColumnHelper, UITypes } from 'nocodb-sdk'
+import { useI18n } from 'vue-i18n'
+import { useVModel } from '@vueuse/core'
+import { useColumnCreateStoreOrThrow } from 'nocodb-sdk'
+import { makePrecisionFormatsDiplay } from 'nocodb-sdk'
+import { useRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -8,7 +13,11 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:value'])
 
+const { t } = useI18n()
+
 const vModel = useVModel(props, 'value', emit)
+
+const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
 
 const validators = {}
 
@@ -23,16 +32,48 @@ vModel.value.meta = {
   ...ColumnHelper.getColumnDefaultMeta(UITypes.Percent),
   ...(vModel.value.meta || {}),
 }
+
+// update datatype precision when precision is less than the new value
+// avoid downgrading precision if the new value is less than the current precision
+// to avoid fractional part data loss(eg. 1.2345 -> 1.23)
+const onPrecisionChange = (value: number) => {
+  vModel.value.dtxs = Math.max(value, vModel.value.dtxs)
+}
+
+const { isMetaReadOnly } = useRoles()
 </script>
 
 <template>
-  <div class="flex flex-col">
-    <a-form-item>
-      <div class="flex items-center gap-1">
-        <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.is_progress">
-          <div class="text-sm text-gray-800 select-none">{{ $t('labels.displayAsProgress') }}</div>
-        </NcSwitch>
-      </div>
-    </a-form-item>
-  </div>
+  <a-form-item :label="$t('placeholder.precision')">
+    <a-select
+      v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
+      v-model:value="vModel.meta.precision"
+      :disabled="isMetaReadOnly"
+      dropdown-class-name="nc-dropdown-decimal-format"
+      @change="onPrecisionChange"
+    >
+      <template #suffixIcon>
+        <GeneralIcon icon="arrowDown" class="text-gray-700" />
+      </template>
+      <a-select-option v-for="(format, i) of precisionFormats" :key="i" :value="format">
+        <div class="flex gap-2 w-full justify-between items-center">
+          {{ (precisionFormatsDisplay as any)[format] }}
+          <component
+            :is="iconMap.check"
+            v-if="vModel.meta.precision === format"
+            id="nc-selected-item-icon"
+            class="text-primary w-4 h-4"
+          />
+        </div>
+      </a-select-option>
+    </a-select>
+  </a-form-item>
+
+  <a-form-item>
+    <div class="flex items-center gap-1">
+      <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.is_progress">
+        <div class="text-sm text-gray-800 select-none">{{ $t('labels.displayAsProgress') }}</div>
+      </NcSwitch>
+    </div>
+  </a-form-item>
 </template>

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { parseProp, roundUpToPrecision } from 'nocodb-sdk'
+import { ncIsNull, ncIsUndefined } from 'nocodb-sdk'
+
 interface Props {
   modelValue?: number | string | null
   localEditEnabled?: boolean
@@ -27,10 +30,17 @@ const localEditEnabled = useVModel(props, 'localEditEnabled', emits, { defaultVa
 const expandedEditEnabled = ref(false)
 
 const percentValue = computed(() => {
-  return !ncIsNull(props.modelValue) && !ncIsUndefined(props.modelValue) && !isNaN(Number(props.modelValue))
-    ? `${props.modelValue}%`
-    : props.modelValue
+  if (ncIsNull(props.modelValue) || ncIsUndefined(props.modelValue) || isNaN(Number(props.modelValue))) {
+    return props.modelValue;
+  }
+  
+  // Apply precision formatting if available in column meta
+  const precision = parseProp(column.value?.meta)?.precision ?? 1;
+  const formattedValue = roundUpToPrecision(Number(props.modelValue), precision);
+  
+  return `${formattedValue}%`;
 })
+
 const percentValueNumber = computed(() => {
   if (props.modelValue && props.modelValue !== '' && !isNaN(Number(props.modelValue))) {
     return Number(props.modelValue)
@@ -67,7 +77,9 @@ const progressPercent = computed(() => {
     !ncIsUndefined(props.modelValue) &&
     !isUnderLookup
   ) {
-    return Number(parseFloat(props.modelValue!.toString()).toFixed(2))
+    // Apply precision formatting if available in column meta
+    const precision = parseProp(column.value?.meta)?.precision ?? 1;
+    return Number(roundUpToPrecision(Number(props.modelValue), precision));
   }
 
   return null

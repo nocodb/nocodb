@@ -611,7 +611,7 @@ export const renderMarkdownBlocks = (
   // Save the current font so we can restore it later
   const defaultFont = ctx.font
   const baseFontSize = 13
-  if (!fontFamily) fontFamily = 'Manrope'
+  if (!fontFamily) fontFamily = 'Inter'
   const defaultFillStyle = ctx.fillStyle
   const defaultStrokeStyle = ctx.strokeStyle
 
@@ -983,7 +983,7 @@ export function renderBarcode(
         lineColor: '#000000',
         margin: 0,
         fontSize: 12,
-        font: 'Manrope',
+        font: 'Inter',
       })
     }
 

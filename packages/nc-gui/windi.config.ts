@@ -79,9 +79,11 @@ export default defineConfig({
 
   theme: {
     fontFamily: {
+      inter: ['Inter', 'Manrope', 'sans-serif'],
       sans: ['Vazirmatn', 'sans-serif'],
       serif: ['Vazirmatn', 'serif'],
       mono: ['Inter', 'mono'],
+      default: ['Inter', 'Manrope', 'sans-serif'],
     },
     extend: {
       screens: {

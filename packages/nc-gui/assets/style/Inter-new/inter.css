@@ -181,3 +181,10 @@ html {
     squared-characters: 6; /* Squared characters */
   }
 }
+
+input,
+textarea,
+select,
+button {
+  font-variant-numeric: tabular-nums; /* or lining-nums if preferred */
+}

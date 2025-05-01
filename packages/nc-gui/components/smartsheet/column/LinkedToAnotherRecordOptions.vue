@@ -104,6 +104,11 @@ const tablesStore = useTablesStore()
 const { baseTables } = storeToRefs(tablesStore)
 
 const refTables = computed(() => {
+  if (isEdit.value) {
+    if (!metas.value[referenceTableChildId.value]) getMeta(referenceTableChildId.value)
+    return [metas.value[referenceTableChildId.value]]
+  }
+
   if (!crossBase.value) {
     if (!tables.value || !tables.value.length) {
       return []

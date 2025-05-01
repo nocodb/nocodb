@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { parseProp, ROW_COLORING_MODE } from 'nocodb-sdk';
 import { ViewRowColorService as ViewRowColorServiceCE } from 'src/services/view-row-color.service';
+import { CacheScope } from 'src/utils/globals';
 import type { MetaService } from '~/meta/meta.service';
 import type { Filter, SelectOption } from '~/models';
 import type { ViewMetaRowColoring } from '~/models/View';
@@ -18,6 +19,7 @@ import { View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
 import { arrayToNested } from '~/utils/recursive.utils';
+import NocoCache from '~/cache/NocoCache';
 
 @Injectable()
 export class ViewRowColorService extends ViewRowColorServiceCE {
@@ -181,6 +183,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       );
     }
     await ncMeta.commit();
+    await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`);
 
     return {
       mode: ROW_COLORING_MODE.FILTER,
@@ -275,7 +278,6 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
   async setRowColoringSelect(params: {
     context: NcContext;
     fk_view_id?: string;
-    color: string;
     fk_column_id: string;
     is_set_as_background: boolean;
     ncMeta?: MetaService;
@@ -306,6 +308,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       },
       view.id,
     );
+    await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`);
   }
 
   async removeRowColorInfo(params: {
@@ -325,19 +328,6 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     }
 
     if (view.row_coloring_mode === ROW_COLORING_MODE.FILTER) {
-    } else if (view.row_coloring_mode === ROW_COLORING_MODE.SELECT) {
-      const viewMeta = parseProp(view.meta);
-      delete viewMeta.rowColoringInfo;
-      await ncMeta.metaUpdate(
-        params.context.workspace_id,
-        params.context.base_id,
-        MetaTable.VIEWS,
-        {
-          row_coloring_mode: null,
-          meta: viewMeta,
-        },
-        view.id,
-      );
       const rowColorConditions = await RowColorCondition.getByViewId(
         params.context,
         view.id,
@@ -369,6 +359,20 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         view.id,
       );
       await ncMeta.commit();
+    } else if (view.row_coloring_mode === ROW_COLORING_MODE.SELECT) {
+      const viewMeta = parseProp(view.meta);
+      delete viewMeta.rowColoringInfo;
+      await ncMeta.metaUpdate(
+        params.context.workspace_id,
+        params.context.base_id,
+        MetaTable.VIEWS,
+        {
+          row_coloring_mode: null,
+          meta: viewMeta,
+        },
+        view.id,
+      );
     }
+    await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`);
   }
 }

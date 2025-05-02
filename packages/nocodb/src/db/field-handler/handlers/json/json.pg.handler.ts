@@ -117,6 +117,36 @@ export class JsonPgHandler extends JsonGeneralHandler {
           appendIsNotNull({ qb, knex, field });
           break;
 
+        case 'is':
+          switch (val) {
+            case 'blank':
+            case 'empty': {
+              appendIsNull({ qb, knex, field });
+              break;
+            }
+            case 'notblank':
+            case 'notempty': {
+              appendIsNotNull({ qb, knex, field });
+              break;
+            }
+          }
+          break;
+
+        case 'isnot':
+          switch (val) {
+            case 'blank':
+            case 'empty': {
+              appendIsNotNull({ qb, knex, field });
+              break;
+            }
+            case 'notblank':
+            case 'notempty': {
+              appendIsNull({ qb, knex, field });
+              break;
+            }
+          }
+          break;
+
         default:
           throw new Error(
             `Unsupported comparison operator for JSON: ${filter.comparison_op}`,

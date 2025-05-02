@@ -1,4 +1,14 @@
+import type { CloudFeaturesType } from '~/lib/types'
+
+const eeConfigState = createGlobalState(() => {
+  const cloudFeatures = ref<CloudFeaturesType[]>([])
+
+  return { cloudFeatures }
+})
+
 export const useEeConfig = createSharedComposable(() => {
+  const { cloudFeatures } = eeConfigState()
+
   const isSideBannerExpanded = ref(false)
 
   const isPaidPlan = computed(() => undefined)
@@ -116,5 +126,6 @@ export const useEeConfig = createSharedComposable(() => {
     isTopBannerVisible,
     showUpgradeToUploadWsImage,
     isSideBannerExpanded,
+    cloudFeatures,
   }
 })

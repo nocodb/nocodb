@@ -664,7 +664,6 @@ export async function extractColumn({
         const lookupTableAlias = getAlias();
 
         const lookupColOpt = await column.getColOptions<LookupColumn>(context);
-        const lookupColumn = await lookupColOpt.getLookupColumn(context);
 
         const relationColumn = await lookupColOpt.getRelationColumn(context);
         const relationColOpts =
@@ -672,8 +671,10 @@ export async function extractColumn({
             context,
           );
 
-        const { refContext, mmContext } =
-          relationColOpts.getRelContext(context);
+        const { parentContext, childContext, refContext, mmContext } =
+          await relationColOpts.getParentChildContext(context);
+
+        const lookupColumn = await lookupColOpt.getLookupColumn(refContext);
 
         let relQb;
         const relTableAlias = getAlias();
@@ -688,28 +689,33 @@ export async function extractColumn({
               const alias4 = getAlias();
 
               const parentModel = await relationColOpts.getRelatedTable(
-                context,
+                refContext,
               );
               const mmChildColumn = await relationColOpts.getMMChildColumn(
-                context,
+                mmContext,
               );
               const mmParentColumn = await relationColOpts.getMMParentColumn(
-                context,
+                mmContext,
               );
-              const assocModel = await relationColOpts.getMMModel(context);
-              const childColumn = await relationColOpts.getChildColumn(context);
+              const assocModel = await relationColOpts.getMMModel(mmContext);
+              const childColumn = await relationColOpts.getChildColumn(
+                childContext,
+              );
               const parentColumn = await relationColOpts.getParentColumn(
-                context,
+                parentContext,
               );
 
               const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
                 model: assocModel,
                 dbDriver: knex,
               });
-              const parentBaseModel = await Model.getBaseModelSQL(refContext, {
-                model: parentModel,
-                dbDriver: knex,
-              });
+              const parentBaseModel = await Model.getBaseModelSQL(
+                parentContext,
+                {
+                  model: parentModel,
+                  dbDriver: knex,
+                },
+              );
               refBaseModel = parentBaseModel;
 
               // if mm table is not present then return
@@ -749,17 +755,22 @@ export async function extractColumn({
           case RelationTypes.BELONGS_TO:
             {
               const parentModel = await relationColOpts.getRelatedTable(
-                context,
+                refContext,
               );
-              const childColumn = await relationColOpts.getChildColumn(context);
+              const childColumn = await relationColOpts.getChildColumn(
+                childContext,
+              );
               const parentColumn = await relationColOpts.getParentColumn(
-                context,
+                parentContext,
               );
 
-              const parentBaseModel = await Model.getBaseModelSQL(refContext, {
-                model: parentModel,
-                dbDriver: knex,
-              });
+              const parentBaseModel = await Model.getBaseModelSQL(
+                parentContext,
+                {
+                  model: parentModel,
+                  dbDriver: knex,
+                },
+              );
               refBaseModel = parentBaseModel;
               relQb = knex(
                 knex.raw('?? as ??', [
@@ -780,13 +791,13 @@ export async function extractColumn({
               const isBt = relationColumn.meta?.bt;
               if (isBt) {
                 const parentModel = await relationColOpts.getRelatedTable(
-                  context,
+                  refContext,
                 );
                 const childColumn = await relationColOpts.getChildColumn(
-                  context,
+                  childContext,
                 );
                 const parentColumn = await relationColOpts.getParentColumn(
-                  context,
+                  parentContext,
                 );
                 const parentBaseModel = await Model.getBaseModelSQL(
                   refContext,
@@ -811,18 +822,21 @@ export async function extractColumn({
                 );
               } else {
                 const childModel = await relationColOpts.getRelatedTable(
-                  context,
+                  refContext,
                 );
                 const childColumn = await relationColOpts.getChildColumn(
-                  context,
+                  childContext,
                 );
                 const parentColumn = await relationColOpts.getParentColumn(
-                  context,
+                  parentContext,
                 );
-                const childBaseModel = await Model.getBaseModelSQL(refContext, {
-                  model: childModel,
-                  dbDriver: knex,
-                });
+                const childBaseModel = await Model.getBaseModelSQL(
+                  childContext,
+                  {
+                    model: childModel,
+                    dbDriver: knex,
+                  },
+                );
 
                 refBaseModel = childBaseModel;
                 relQb = knex(
@@ -843,10 +857,14 @@ export async function extractColumn({
           case RelationTypes.HAS_MANY:
             {
               result.isArray = true;
-              const childModel = await relationColOpts.getRelatedTable(context);
-              const childColumn = await relationColOpts.getChildColumn(context);
+              const childModel = await relationColOpts.getRelatedTable(
+                refContext,
+              );
+              const childColumn = await relationColOpts.getChildColumn(
+                childContext,
+              );
               const parentColumn = await relationColOpts.getParentColumn(
-                context,
+                parentContext,
               );
               const childBaseModel = await Model.getBaseModelSQL(context, {
                 model: childModel,

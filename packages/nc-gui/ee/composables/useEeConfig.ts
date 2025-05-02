@@ -34,6 +34,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const { isSideBannerExpanded } = eeConfigState()
 
+  const cloudFeatures = ref([])
+
   /** Ref or Computed value */
 
   const isPaymentEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.PAYMENT))
@@ -703,5 +705,6 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUploadWsImage,
     blockWsImageLogoUpload,
     isSideBannerExpanded,
+    cloudFeatures,
   }
 })

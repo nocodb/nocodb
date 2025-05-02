@@ -255,6 +255,7 @@ const recordsAcrossAllRange = computed<{
     {
       count: number
       id: string[]
+      overflowRecords: Row[]
     }
   >
 }>(() => {
@@ -271,6 +272,7 @@ const recordsAcrossAllRange = computed<{
     {
       count: number
       id: string[]
+      overflowRecords: Row[]
     }
   >()
 
@@ -403,11 +405,13 @@ const recordsAcrossAllRange = computed<{
         gridTimeMap.set(gridCounter, {
           count: 1,
           id: [record.rowMeta.id!],
+          overflowRecords: [],
         })
       } else {
         gridTimeMap.set(gridCounter, {
           count: gridTimeMap.get(gridCounter)!.count + 1,
           id: [...gridTimeMap.get(gridCounter)!.id, record.rowMeta.id!],
+          overflowRecords: [],
         })
       }
     }
@@ -481,6 +485,34 @@ const recordsAcrossAllRange = computed<{
 
       if (overlapIndex > 8) {
         display = 'none'
+
+        // Add overflowing record to gridTimeMap
+        const fromCol = record.rowMeta.range?.fk_from_col
+        const toCol = record.rowMeta.range?.fk_to_col
+
+        if (fromCol) {
+          const { startDate, endDate } = calculateNewDates({
+            startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
+            endDate:
+              toCol && dayjs(record.row[toCol.title!])?.isValid()
+                ? timezoneDayjs.timezonize(record.row[toCol.title!])
+                : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
+            scheduleStart,
+            scheduleEnd,
+          })
+
+          const gridTimes = getGridTimeSlots(startDate, endDate)
+
+          for (let gridCounter = gridTimes.from; gridCounter <= gridTimes.to; gridCounter++) {
+            if (gridTimeMap.has(gridCounter)) {
+              const currentSlot = gridTimeMap.get(gridCounter)!
+              if (!currentSlot.overflowRecords.some((r) => r.rowMeta.id === record.rowMeta.id)) {
+                currentSlot.overflowRecords.push(record)
+                gridTimeMap.set(gridCounter, currentSlot)
+              }
+            }
+          }
+        }
       } else {
         const availableWidth = containerWidth.value - 70
         width = Math.max(availableWidth / Math.min(numberOfOverlaps, 8), 180)
@@ -876,6 +908,29 @@ const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
   return { isOverflow: overflowCount - 8 > 0, overflowCount: overflowCount - 8 }
 }
 
+const getOverflowRecords = (hour: dayjs.Dayjs) => {
+  if (!recordsAcrossAllRange.value || !recordsAcrossAllRange.value.gridTimeMap) return { isOverflow: false, overflowCount: 0 }
+  const { gridTimeMap } = recordsAcrossAllRange.value
+
+  const startMinute = hour.hour() * 60 + hour.minute()
+  const endMinute = hour.hour() * 60 + hour.minute() + 59
+
+  const uniqueRecords: Row[] = []
+  const uniqueRecordIds = new Set<string>()
+
+  for (let minute = startMinute; minute <= endMinute; minute++) {
+    const records = gridTimeMap?.get(minute)?.overflowRecords ?? []
+    for (const rec of records) {
+      if (!uniqueRecordIds.has(rec.rowMeta?.id)) {
+        uniqueRecords.push(rec)
+        uniqueRecordIds.add(rec.rowMeta?.id)
+      }
+    }
+  }
+
+  return uniqueRecords
+}
+
 const viewMore = (hour: dayjs.Dayjs) => {
   sideBarFilterOption.value = 'selectedHours'
   selectedTime.value = hour
@@ -1057,20 +1112,44 @@ const expandRecord = (record: Row) => {
             <component :is="iconMap.plus" class="h-4 w-4" />
           </NcButton>
 
-          <NcButton
-            v-if="isOverflowAcrossHourRange(hour).isOverflow"
-            v-e="`['c:calendar:week-view-more']`"
-            class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
-            size="xxsmall"
-            type="secondary"
-            @click="viewMore(hour)"
-          >
-            <span class="text-xs">
-              +
-              {{ isOverflowAcrossHourRange(hour).overflowCount }}
-              more
-            </span>
-          </NcButton>
+          <NcDropdown v-if="isOverflowAcrossHourRange(hour).isOverflow">
+            <NcButton
+              v-e="`['c:calendar:week-view-more']`"
+              class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
+              size="xxsmall"
+              type="secondary"
+              @click="viewMore(hour)"
+            >
+              <span class="text-xs">
+                +
+                {{ isOverflowAcrossHourRange(hour).overflowCount }}
+                more
+              </span>
+            </NcButton>
+
+            <template #overlay>
+              <div class="bg-nc-background-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
+                <LazySmartsheetCalendarSideRecordCard
+                  v-for="record in getOverflowRecords(hour)"
+                  :draggable="false"
+                  class="w-64"
+                  :from-date="timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm A')"
+                  :invalid="false"
+                  :row="record"
+                  :to-date="record?.rowMeta?.range?.fk_to_col?.title && record.row[record.rowMeta.range!.fk_to_col.title!] ?  timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A') : null"
+                  data-testid="nc-sidebar-record-card"
+                  @click="expandRecord(record)"
+                >
+                  <template v-if="!isRowEmpty(record, displayField)">
+                    <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
+                  </template>
+                  <template v-else>
+                    <span class="text-gray-500"> - </span>
+                  </template>
+                </LazySmartsheetCalendarSideRecordCard>
+              </div>
+            </template>
+          </NcDropdown>
         </div>
       </div>
       <div class="absolute inset-0 pointer-events-none">

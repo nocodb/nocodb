@@ -129,7 +129,7 @@ const calendarData = computed(() => {
 
 const recordsToDisplay = computed<{
   records: Row[]
-  count: { [p: string]: { overflow: boolean; count: number; overflowCount: number } }
+  count: { [p: string]: { overflow: boolean; count: number; overflowCount: number; overflowRecords: Array<Row> } }
 }>(() => {
   if (!calendarData.value || !calendarRange.value) return { records: [], count: {} }
 
@@ -147,12 +147,13 @@ const recordsToDisplay = computed<{
       count: number
       overflowCount: number
       lanes: boolean[]
+      overflowRecords: Array<Row>
     }
   } = {}
 
   const findAvailableLane = (dateKey: string, duration = 1): number => {
     if (!recordsInDay[dateKey]) {
-      recordsInDay[dateKey] = { overflow: false, count: 0, overflowCount: 0, lanes: [] }
+      recordsInDay[dateKey] = { overflow: false, count: 0, overflowCount: 0, lanes: [], overflowRecords: [] }
     }
 
     const { lanes } = recordsInDay[dateKey]
@@ -177,7 +178,7 @@ const recordsToDisplay = computed<{
     for (let i = 0; i < duration; i++) {
       const occupyDate = timezoneDayjs.dayjsTz(dateKey).add(i, 'day').format('YYYY-MM-DD')
       if (!recordsInDay[occupyDate]) {
-        recordsInDay[occupyDate] = { overflow: false, count: 0, overflowCount: 0, lanes: [] }
+        recordsInDay[occupyDate] = { overflow: false, count: 0, overflowCount: 0, lanes: [], overflowRecords: [] }
       }
       recordsInDay[occupyDate].lanes[lane] = true
       recordsInDay[occupyDate].count++
@@ -218,10 +219,15 @@ const recordsToDisplay = computed<{
         const startDate = timezoneDayjs.timezonize(record.row[startCol.title!])
         const dateKey = startDate.format('YYYY-MM-DD')
 
+        const id = record.rowMeta.id ?? generateRandomNumber()
+
         const lane = findAvailableLane(dateKey)
         if (lane === -1) {
           recordsInDay[dateKey].overflow = true
           recordsInDay[dateKey].overflowCount++
+          record.rowMeta.id = id
+          record.rowMeta.range = range
+          recordsInDay[dateKey].overflowRecords.push(record)
           return // Skip this record as there's no available lane
         }
 
@@ -229,8 +235,6 @@ const recordsToDisplay = computed<{
 
         const weekIndex = calendarData.value.weeks.findIndex((week) => week.days.some((day) => day.date.isSame(startDate, 'day')))
         const dayIndex = calendarData.value.weeks[weekIndex]?.days.findIndex((day) => day.date.isSame(startDate, 'day'))
-
-        const id = record.rowMeta.id ?? generateRandomNumber()
 
         const isRecordDraggingOrResizeState = id === draggingId.value || id === resizeRecord.value?.rowMeta.id
 
@@ -305,11 +309,15 @@ const recordsToDisplay = computed<{
           const lane = findAvailableLane(dateKey, duration)
 
           if (lane === -1) {
+            record.rowMeta.id = id
+            record.rowMeta.range = range
+
             for (let i = 0; i < duration; i++) {
               const overflowDate = recordStart.add(i, 'day').format('YYYY-MM-DD')
               if (recordsInDay[overflowDate]) {
                 recordsInDay[overflowDate].overflow = true
                 recordsInDay[overflowDate].overflowCount++
+                recordsInDay[overflowDate].overflowRecords.push(record)
               }
             }
             currentWeekStart = currentWeekStart.add(1, 'week')
@@ -870,20 +878,46 @@ const addRecord = (date: dayjs.Dayjs) => {
             </div>
             <div v-if="!isUIAllowed('dataEdit')" class="leading-3 text-[13px] p-3">{{ day.dayNumber }}</div>
 
-            <NcButton
+            <NcDropdown
               v-if="
                 recordsToDisplay.count[day.date.format('YYYY-MM-DD')] &&
                 recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflow &&
                 !draggingId
               "
-              v-e="`['c:calendar:month-view-more']`"
-              class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-gray-500"
-              size="xxsmall"
-              type="secondary"
-              @click="viewMore(day.date)"
             >
-              <span class="text-xs px-1"> + {{ recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflowCount }} </span>
-            </NcButton>
+              <NcButton
+                v-e="`['c:calendar:month-view-more']`"
+                class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-gray-500"
+                size="xxsmall"
+                type="secondary"
+                @click="viewMore(day.date)"
+              >
+                <span class="text-xs px-1"> + {{ recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflowCount }} </span>
+              </NcButton>
+
+              <template #overlay>
+                <div class="bg-nc-background-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
+                  <LazySmartsheetCalendarSideRecordCard
+                    v-for="record in recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflowRecords"
+                    :draggable="false"
+                    class="w-64"
+                    :from-date="timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm A')"
+                    :invalid="false"
+                    :row="record"
+                    :to-date="record?.rowMeta?.range?.fk_to_col?.title && record.row[record.rowMeta.range!.fk_to_col.title!] ?  timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A') : null"
+                    data-testid="nc-sidebar-record-card"
+                    @click="expandRecord(record)"
+                  >
+                    <template v-if="!isRowEmpty(record, displayField)">
+                      <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
+                    </template>
+                    <template v-else>
+                      <span class="text-gray-500"> - </span>
+                    </template>
+                  </LazySmartsheetCalendarSideRecordCard>
+                </div>
+              </template>
+            </NcDropdown>
           </div>
         </template>
       </div>

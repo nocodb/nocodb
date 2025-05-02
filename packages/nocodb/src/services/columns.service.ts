@@ -1465,7 +1465,13 @@ export class ColumnsService implements IColumnsService {
         for (const filter of filters ?? []) {
           let newValue = filter.value;
           // do not try to map when the comparison has no value
-          if(ncIsUndefined(newValue) || ncIsNull(newValue) || newValue === '') { continue; }
+          if (
+            ncIsUndefined(newValue) ||
+            ncIsNull(newValue) ||
+            newValue === ''
+          ) {
+            continue;
+          }
           // Split filter values and update them based on title changes
           const values = filter.value?.split(',');
           const updatedValues = values.map((val) => {

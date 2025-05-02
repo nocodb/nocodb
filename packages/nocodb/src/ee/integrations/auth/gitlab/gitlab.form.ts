@@ -1,10 +1,10 @@
 import { FormBuilderInputType } from 'nocodb-sdk';
-import { AuthType } from '~/integrations/auth/auth.helpers';
+import { AuthType } from '../auth.helpers';
 import {
   clientId,
   redirectUri,
   scopes,
-} from '~/integrations/auth/zendesk/entry';
+} from '~/integrations/auth/gitlab/gitlab.entry';
 
 export default [
   {
@@ -20,21 +20,6 @@ export default [
         message: 'Integration name is required',
       },
     ],
-  },
-  {
-    type: FormBuilderInputType.Input,
-    label: 'Subdomain',
-    width: 100,
-    model: 'config.subdomain',
-    placeholder: 'your-subdomain',
-    category: 'Authentication',
-    validators: [
-      {
-        type: 'required',
-        message: 'Zendesk subdomain is required',
-      },
-    ],
-    help: 'Your Zendesk subdomain (e.g., if your URL is https://mycompany.zendesk.com, enter "mycompany")',
   },
   {
     type: FormBuilderInputType.Select,
@@ -67,25 +52,22 @@ export default [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'Email',
+    label: 'GitLab Instance URL',
     width: 100,
-    model: 'config.email',
+    model: 'config.baseUrl',
     category: 'Authentication',
-    placeholder: 'Enter your Zendesk email',
+    placeholder: 'https://gitlab.com',
+    defaultValue: 'https://gitlab.com',
     validators: [
       {
         type: 'required',
-        message: 'Email is required for API token authentication',
+        message: 'GitLab Instance URL is required',
       },
       {
-        type: 'email',
-        message: 'Please enter a valid email',
+        type: 'url',
+        message: 'Please enter a valid URL',
       },
     ],
-    condition: {
-      model: 'config.type',
-      value: AuthType.ApiKey,
-    },
   },
   {
     type: FormBuilderInputType.Input,
@@ -124,9 +106,11 @@ export default [
             value: AuthType.OAuth,
           },
           oauthMeta: {
-            provider: 'Zendesk',
-            authUri: (subdomain: string) => 
-              `https://${subdomain}.zendesk.com/oauth/authorizations/new?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${encodeURIComponent(
+            provider: 'GitLab',
+            authUri: (config) =>
+              `${
+                config?.baseUrl || 'https://gitlab.com'
+              }/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${encodeURIComponent(
                 scopes.join(' '),
               )}`,
             redirectUri,

@@ -823,7 +823,10 @@ const parseConditionV2 = async (
                     column.dt !== 'timestamptz'
                   ) {
                     qb.where(
-                      knex.raw("?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'", [field]),
+                      knex.raw(
+                        "?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'",
+                        [field],
+                      ),
                       gt_op,
                       knex.raw('?::timestamptz', [val]),
                     );
@@ -879,7 +882,10 @@ const parseConditionV2 = async (
                     column.dt !== 'timestamptz'
                   ) {
                     qb.where(
-                      knex.raw("?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'", [field]),
+                      knex.raw(
+                        "?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'",
+                        [field],
+                      ),
                       ge_op,
                       knex.raw('?::timestamptz', [val]),
                     );
@@ -934,7 +940,10 @@ const parseConditionV2 = async (
                     column.dt !== 'timestamptz'
                   ) {
                     qb.where(
-                      knex.raw("?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'", [field]),
+                      knex.raw(
+                        "?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'",
+                        [field],
+                      ),
                       lt_op,
                       knex.raw('?::timestamptz', [val]),
                     );
@@ -991,7 +1000,10 @@ const parseConditionV2 = async (
                     column.dt !== 'timestamptz'
                   ) {
                     qb.where(
-                      knex.raw("?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'", [field]),
+                      knex.raw(
+                        "?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'",
+                        [field],
+                      ),
                       le_op,
                       knex.raw('?::timestamptz', [val]),
                     );

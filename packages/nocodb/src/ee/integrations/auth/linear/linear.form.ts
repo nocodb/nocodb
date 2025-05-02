@@ -4,7 +4,7 @@ import {
   clientId,
   redirectUri,
   scopes,
-} from '~/integrations/auth/linear/entry';
+} from '~/integrations/auth/linear/linear.entry';
 
 export default [
   {

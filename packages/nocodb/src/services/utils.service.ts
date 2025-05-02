@@ -570,4 +570,48 @@ export class UtilsService {
 
     return response.data;
   }
+
+  async cloudFeatures(_req: NcRequest) {
+    const cacheKey = `${CacheScope.CLOUD_FEATURES}`;
+
+    const cachedData = await NocoCache.get(cacheKey, 'json');
+
+    if (cachedData) {
+      try {
+        return JSON.parse(cachedData);
+      } catch (e) {
+        this.logger.error(e?.message, e);
+        await NocoCache.del(cacheKey);
+      }
+    }
+
+    let payload = null;
+    if (
+      !this.lastSyncTime ||
+      dayjs().isAfter(this.lastSyncTime.add(3, 'hours'))
+    ) {
+      payload = await T.payload();
+      this.lastSyncTime = dayjs();
+    }
+
+    let response;
+
+    try {
+      response = await axios.post(
+        'https://product-feed.nocodb.com/api/v1/cloud/features',
+        payload,
+      );
+    } catch (e) {
+      this.logger.error(e?.message, e);
+      return [];
+    }
+
+    await NocoCache.setExpiring(
+      cacheKey,
+      JSON.stringify(response.data, getCircularReplacer),
+      3 * 60 * 60,
+    );
+
+    return response.data;
+  }
 }

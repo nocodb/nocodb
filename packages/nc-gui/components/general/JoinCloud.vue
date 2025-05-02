@@ -1,34 +1,72 @@
 <script lang="ts" setup>
-const descriptions: Array<{
-  title: string
-  highlight?: boolean
-  comingSoon?: boolean
-}> = [
-  {
-    title: 'SAML based Single Sign-On',
-    highlight: true,
-  },
-  {
-    title: 'Form view branding',
-  },
-  {
-    title: 'Personal views',
-  },
+import type { CloudFeaturesType } from '~/lib/types'
 
+const { $api } = useNuxtApp()
+
+const { cloudFeatures: _cloudFeatures } = useEeConfig()
+
+const isLoading = ref(false)
+
+const error = ref(false)
+
+/**
+ * This hardcoded list will be used as fallback in case of api error
+ * Todo: @ramesh udpate coming soon once that feature is available
+ */
+const descriptions: CloudFeaturesType[] = [
   {
-    title: 'Extensions',
-    comingSoon: true,
+    Title: 'SAML based Single Sign-On',
+    Highlight: true,
   },
   {
-    title: 'Scripts',
-    comingSoon: true,
+    Title: 'Form view branding',
   },
   {
-    title: 'AI Integrations',
-    comingSoon: true,
-    highlight: true,
+    Title: 'Personal views',
+  },
+  {
+    'Title': 'Extensions',
+    'Coming Soon': true,
+  },
+  {
+    'Title': 'Scripts',
+    'Coming Soon': true,
+  },
+  {
+    'Title': 'AI Integrations',
+    'Coming Soon': true,
+    'Highlight': true,
   },
 ]
+
+const cloudFeatures = computed(() => {
+  if (error.value && !_cloudFeatures.value) return descriptions
+
+  return _cloudFeatures.value
+})
+
+const onMouseover = async () => {
+  if (isLoading.value) return
+
+  if (cloudFeatures.value.length && !error.value) {
+    isLoading.value = false
+    return
+  }
+
+  error.value = false
+  isLoading.value = true
+
+  try {
+    const res = await $api.utils.cloudFeatures()
+
+    _cloudFeatures.value = res
+  } catch (e: any) {
+    error.value = true
+    console.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading.value = false
+  }
+}
 </script>
 
 <template>
@@ -42,7 +80,7 @@ const descriptions: Array<{
     </a>
 
     <a-tooltip overlay-class-name="nc-join-cloud-tooltip">
-      <NcButton type="text" size="small" class="!rounded-l-none !rounded-r-lg">
+      <NcButton type="text" size="small" class="!rounded-l-none !rounded-r-lg" @mouseover="onMouseover">
         <GeneralIcon icon="help" class="!text-lg -mt-0.5 text-gray-700" />
       </NcButton>
       <template #title>
@@ -55,9 +93,9 @@ const descriptions: Array<{
 
             <div class="text-sm font-bold text-nc-content-gray-emphasis">Includes</div>
 
-            <div class="flex flex-col gap-2">
+            <div v-if="!isLoading" class="flex flex-col gap-2">
               <div
-                v-for="(desc, idx) of descriptions"
+                v-for="(feature, idx) of cloudFeatures"
                 :key="idx"
                 class="flex items-start text-nc-content-gray text-sm font-weight-500"
               >
@@ -67,16 +105,19 @@ const descriptions: Array<{
                   </span>
                 </span>
                 <span class="relative">
-                  {{ desc.title }}
+                  {{ feature.Title }}
 
-                  <div v-if="desc.highlight" class="nc-plan-description-gradient"></div>
+                  <div v-if="feature.Highlight" class="nc-plan-description-gradient"></div>
                 </span>
-                <span v-if="desc.comingSoon" class="flex-1 inline-flex justify-end">
+                <span v-if="feature['Coming Soon']" class="flex-1 inline-flex justify-end">
                   <span class="inline-block px-1 rounded-md bg-nc-bg-gray-medium text-sm text-nc-content-gray-subtle2">
                     Soon
                   </span>
                 </span>
               </div>
+            </div>
+            <div v-else class="h-35 grid place-items-center">
+              <GeneralLoader size="large" />
             </div>
 
             <div class="flex flex-col gap-2">

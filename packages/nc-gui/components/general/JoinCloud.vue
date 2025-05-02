@@ -79,7 +79,7 @@ const onMouseover = async () => {
       <div class="px-1 text-gray-500 prose-sm" style="line-height: 1.3125rem">Try NocoDB Cloud</div>
     </a>
 
-    <a-tooltip overlay-class-name="nc-join-cloud-tooltip">
+    <a-tooltip arrow-point-at-center overlay-class-name="nc-join-cloud-tooltip">
       <NcButton type="text" size="small" class="!rounded-l-none !rounded-r-lg" @mouseover="onMouseover">
         <GeneralIcon icon="help" class="!text-lg -mt-0.5 text-gray-700" />
       </NcButton>
@@ -146,6 +146,8 @@ const onMouseover = async () => {
 
 <style lang="scss">
 .nc-join-cloud-tooltip {
+  @apply max-w-none;
+
   .ant-tooltip-inner {
     @apply !bg-transparent !p-0 rounded-2xl;
   }

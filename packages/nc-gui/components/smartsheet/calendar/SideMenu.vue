@@ -510,7 +510,7 @@ onClickOutside(searchRef, toggleSearch)
                 record.rowMeta.range?.fk_from_col
                   ? calDataType === UITypes.Date
                     ? timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM')
-                    : timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm a')
+                    : timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm A')
                   : null
               "
                 :invalid="

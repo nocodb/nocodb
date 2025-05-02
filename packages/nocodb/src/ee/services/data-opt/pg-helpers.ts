@@ -868,7 +868,7 @@ export async function extractColumn({
               const parentColumn = await relationColOpts.getParentColumn(
                 parentContext,
               );
-              const childBaseModel = await Model.getBaseModelSQL(context, {
+              const childBaseModel = await Model.getBaseModelSQL(childContext, {
                 model: childModel,
                 dbDriver: knex,
               });

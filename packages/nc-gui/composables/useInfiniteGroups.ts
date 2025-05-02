@@ -172,9 +172,7 @@ export const useInfiniteGroups = (
           groups: new Map(),
           chunkStates: [],
           count: +item.count,
-          groupCount: +(
-            item[groupByColumns.value?.[level + 1]?.column?.title] ?? item[groupByColumns.value?.[level + 1]?.column?.column_name]
-          ),
+          groupCount: +item.__sub_group_count__,
           isExpanded: false,
           color: findKeyColor(value, groupCol.column, getNextColor),
           expandedGroups: 0,

@@ -1390,7 +1390,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-const isDropdownOpen = ref(false)
-
 const descriptions: Array<{
   title: string
   highlight?: boolean
@@ -44,7 +42,7 @@ const descriptions: Array<{
     </a>
 
     <a-tooltip overlay-class-name="nc-join-cloud-tooltip">
-      <NcButton type="text" size="small" class="!rounded-l-none !rounded-r-lg" @click.stop="isDropdownOpen = !isDropdownOpen">
+      <NcButton type="text" size="small" class="!rounded-l-none !rounded-r-lg">
         <GeneralIcon icon="help" class="!text-lg -mt-0.5 text-gray-700" />
       </NcButton>
       <template #title>
@@ -104,6 +102,7 @@ const descriptions: Array<{
   filter: blur(2px);
 }
 </style>
+
 <style lang="scss">
 .nc-join-cloud-tooltip {
   .ant-tooltip-inner {

@@ -338,7 +338,7 @@ export const fonts = [
   'Impact',
   'Trebuchet MS',
   'Manrope',
-  'Inter'
+  'Inter',
 ]
 export const fontWeights = ['400', '700']
 

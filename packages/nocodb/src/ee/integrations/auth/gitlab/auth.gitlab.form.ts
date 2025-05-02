@@ -4,7 +4,7 @@ import {
   clientId,
   redirectUri,
   scopes,
-} from '~/integrations/auth/gitlab/gitlab.entry';
+} from '~/integrations/auth/gitlab/auth.gitlab.entry';
 
 export default [
   {

@@ -4,7 +4,7 @@ import {
   clientId,
   redirectUri,
   scopes,
-} from '~/integrations/auth/jira/jira.entry';
+} from '~/integrations/auth/jira/auth.jira.entry';
 
 export default [
   {

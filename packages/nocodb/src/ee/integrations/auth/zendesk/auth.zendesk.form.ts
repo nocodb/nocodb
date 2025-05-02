@@ -4,7 +4,7 @@ import {
   clientId,
   redirectUri,
   scopes,
-} from '~/integrations/auth/zendesk/zendesk.entry';
+} from '~/integrations/auth/zendesk/auth.zendesk.entry';
 
 export default [
   {

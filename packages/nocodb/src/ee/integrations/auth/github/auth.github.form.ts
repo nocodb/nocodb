@@ -4,7 +4,7 @@ import {
   clientId,
   redirectUri,
   scopes,
-} from '~/integrations/auth/github/github.entry';
+} from '~/integrations/auth/github/auth.github.entry';
 
 export default [
   {

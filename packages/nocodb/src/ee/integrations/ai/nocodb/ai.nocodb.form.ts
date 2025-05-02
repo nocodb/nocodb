@@ -1,3 +1,3 @@
-import OpenAIForm from '~/integrations/ai/openai/openai.form';
+import OpenAIForm from '~/integrations/ai/openai/ai.openai.form';
 
 export default OpenAIForm;

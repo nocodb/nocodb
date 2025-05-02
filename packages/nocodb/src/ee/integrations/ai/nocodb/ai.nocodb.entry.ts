@@ -1,7 +1,7 @@
 import { type CoreMessage, generateObject, type LanguageModel } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { type Schema } from 'zod';
-import OpenAiIntegration from '~/integrations/ai/openai/openai.entry';
+import OpenAiIntegration from '~/integrations/ai/openai/ai.openai.entry';
 
 const modelMap = {
   high: 'gpt-4o',

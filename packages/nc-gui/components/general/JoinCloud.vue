@@ -1,4 +1,6 @@
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+const isDropdownOpen = ref(false)
+</script>
 
 <template>
   <div class="flex flex-row items-center w-full bg-white rounded-lg border-1 border-brand-500 shadow-sm mb-0.5 overflow-hidden">
@@ -9,10 +11,21 @@
     >
       <div class="px-1 text-gray-500 prose-sm" style="line-height: 1.3125rem">Try NocoDB Cloud</div>
     </a>
-    <a-tooltip overlay-class-name="nc-join-cloud-tooltip">
-      <template #title>
-        <div class="w-72 bg-transparent overflow-hidden rounded-3xl shadow border border-zinc-100">
-          <div class="p-6 bg-white flex-col justify-start items-center gap-4 inline-flex pb-7 w-full">
+
+    <!-- <a-tooltip overlay-class-name="nc-join-cloud-tooltip">
+      <template #title> -->
+
+    <!-- </template> -->
+    <NcDropdown v-model:visible="isDropdownOpen">
+      <NcButton type="text" size="small" class="!rounded-l-none !rounded-r-lg" @click.stop="isDropdownOpen = !isDropdownOpen">
+        <GeneralIcon icon="help" class="!text-lg -mt-0.5 text-gray-700" />
+      </NcButton>
+      <template #overlay>
+        <div class="w-70.5 bg-transparent overflow-hidden rounded-2xl shadow border-1 border-nc-border-gray-medium">
+          <div class="p-4 bg-white gap-4 inline-flex flex-col w-full">
+            <div class="flex items-center justify-between">
+              <div class="font-hea">NocoDB Cloud</div>
+            </div>
             <div class="self-stretch justify-start items-center gap-3 inline-flex">
               <div class="text-slate-800 text-lg font-semibold leading-9">NocoDB Cloud</div>
               <div class="px-2 py-1 bg-brand-50 rounded-lg justify-center items-center gap-2 flex">
@@ -72,10 +85,9 @@
           </div>
         </div>
       </template>
-      <NcButton type="text" size="small" class="!rounded-l-none !rounded-r-lg">
-        <GeneralIcon icon="help" class="!text-lg -mt-0.5 text-gray-700" />
-      </NcButton>
-    </a-tooltip>
+    </NcDropdown>
+
+    <!-- </a-tooltip> -->
   </div>
 </template>
 

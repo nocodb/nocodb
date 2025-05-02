@@ -7,6 +7,7 @@ import weekday from 'dayjs/plugin/weekday.js';
 import timezone from 'dayjs/plugin/timezone.js';
 import { ColumnType } from './Api';
 import { parseProp } from './helperFunctions';
+import { ncIsNull, ncIsUndefined } from './is';
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
@@ -180,7 +181,13 @@ export function workerWithTimezone(isEeUI: boolean, timezone?: string) {
         return dayjs(value, format);
       }
 
-      if (typeof value === 'object' && value.isValid()) {
+      if (ncIsNull(value) || ncIsUndefined(value)) {
+        if (timezone) {
+          return dayjs.tz(undefined, timezone);
+        } else {
+          return dayjs();
+        }
+      } else if (typeof value === 'object' && value.isValid()) {
         return value;
       }
 

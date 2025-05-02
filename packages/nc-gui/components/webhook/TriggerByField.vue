@@ -31,7 +31,7 @@ const removeColumnId = (colId: string) => {
 
 <template>
   <div class="w-full flex items-center justify-between h-[28px]">
-    <label class="cursor-pointer" @click.prevent="triggerField = !triggerField">
+    <label class="cursor-pointer flex items-center" @click.prevent="triggerField = !triggerField">
       <NcSwitch :checked="triggerField" class="nc-check-box-trigger-field">
         <span class="!text-gray-700 font-semibold">
           {{ $t('general.trigger') }} {{ $t('activity.forUpdatesInSpecificFields').toLowerCase() }}

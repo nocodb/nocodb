@@ -934,23 +934,12 @@ const viewMore = (hour: dayjs.Dayjs) => {
 }
 
 const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
-  if (!recordsAcrossAllRange.value || !recordsAcrossAllRange.value.gridTimeMap) return { isOverflow: false, overflowCount: 0 }
-  const { gridTimeMap } = recordsAcrossAllRange.value
-  const dayIndex = getDayIndex(hour)
-  const startMinute = hour.hour() * 60 + hour.minute()
-  const endMinute = hour.hour() * 60 + hour.minute() + 59
-  let overflowCount = 0
-
-  for (let minute = startMinute; minute <= endMinute; minute++) {
-    const recordCount = gridTimeMap.get(dayIndex)?.get(minute)?.count ?? 0
-    overflowCount = Math.max(overflowCount, recordCount)
-  }
-
-  return { isOverflow: overflowCount - 3 > 0, overflowCount: overflowCount - 3 }
-}
-
-const getOverflowRecords = (hour: dayjs.Dayjs) => {
-  if (!recordsAcrossAllRange.value || !recordsAcrossAllRange.value.gridTimeMap) return []
+  if (!recordsAcrossAllRange.value || !recordsAcrossAllRange.value.gridTimeMap)
+    return {
+      isOverflow: false,
+      overflowCount: 0,
+      overflowRecords: [],
+    }
   const { gridTimeMap } = recordsAcrossAllRange.value
   const dayIndex = getDayIndex(hour)
 
@@ -971,7 +960,7 @@ const getOverflowRecords = (hour: dayjs.Dayjs) => {
     }
   }
 
-  return uniqueRecords
+  return { isOverflow: uniqueRecords?.length, overflowCount: uniqueRecords?.length, overflowRecords: uniqueRecords }
 }
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
@@ -1142,7 +1131,8 @@ watch(
             <template #overlay>
               <div class="bg-nc-background-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
                 <LazySmartsheetCalendarSideRecordCard
-                  v-for="record in getOverflowRecords(hour)"
+                  v-for="record in isOverflowAcrossHourRange(hour).overflowRecords"
+                  :key="record?.rowMeta?.id"
                   :draggable="false"
                   class="w-64"
                   :from-date="timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm A')"

@@ -68,7 +68,7 @@ const removeColumnId = (colId: string) => {
           </template>
 
           <template #listItem="{ option }">
-            <div class="flex items-center w-full truncate gap-3">
+            <div class="flex items-center w-full truncate gap-3 text-nc-content-gray-subtle2 hover:text-black transition-colors">
               <SmartsheetHeaderVirtualCellIcon v-if="isVirtualCol(option)" :column-meta="option" />
               <SmartsheetHeaderCellIcon v-else :column-meta="option" />
 
@@ -76,7 +76,7 @@ const removeColumnId = (colId: string) => {
                 <template #title>
                   {{ option?.title }}
                 </template>
-                <div class="flex-1 text-nc-content-gray-subtle font-semibold hover:text-black leading-5 text-small transition-colors">
+                <div class="flex-1 font-semibold leading-5 text-small">
                   {{ option?.title }}
                 </div>
               </NcTooltip>

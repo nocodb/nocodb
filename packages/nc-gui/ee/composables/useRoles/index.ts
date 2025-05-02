@@ -107,7 +107,7 @@ export const useRolesShared = createSharedComposable(() => {
         user.value = {
           ...user.value,
           roles: res.roles,
-          base_roles: res.base_roles,
+          ...(baseId && { base_roles: res.base_roles }), // Override base_roles only if baseId is provided
           workspace_roles: res.workspace_roles,
           org_roles: res.org_roles,
           featureFlags: res.featureFlags,
@@ -128,7 +128,7 @@ export const useRolesShared = createSharedComposable(() => {
         user.value = {
           ...user.value,
           roles: res.roles,
-          base_roles: res.base_roles,
+          ...(baseId && { base_roles: res.base_roles }), // Override base_roles only if baseId is provided
           workspace_roles: res.workspace_roles,
           org_roles: res.org_roles,
           featureFlags: res.featureFlags,
@@ -153,7 +153,6 @@ export const useRolesShared = createSharedComposable(() => {
         user.value = {
           ...user.value,
           roles: res.roles,
-          base_roles: res.base_roles,
           workspace_roles: res.workspace_roles,
           display_name: res.display_name,
           org_roles: res.org_roles,

@@ -81,6 +81,9 @@ const emit = defineEmits(['resize-start'])
       >
         <NcTooltip
           :disabled="selected || dragging"
+          :class="{
+            ' text-ellipsis': ['leftRounded', 'rightRounded', 'rounded'].includes(position),
+          }"
           class="break-word whitespace-nowrap overflow-hidden pr-1"
           show-on-truncate-only
           wrap-child="span"

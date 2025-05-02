@@ -53,9 +53,10 @@ const props = withDefaults(defineProps<Props>(), {
             record.
           </template>
         </NcTooltip>
-        <span v-if="showDate" class="text-xs font-medium truncate max-w-56 leading-4 text-gray-600">
+        <NcTooltip v-if="showDate" show-on-truncate-only class="text-xs font-medium truncate max-w-58 leading-4 text-gray-600">
           {{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }}
-        </span>
+          <template #title> {{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }} </template>
+        </NcTooltip>
       </div>
     </div>
   </div>

@@ -164,7 +164,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       fk_row_color_conditions_id: rowColoringConditionId,
     } as Filter;
 
-    const filterInsertResult = await ncMeta.metaInsert2(
+    await ncMeta.metaInsert2(
       params.context.workspace_id,
       params.context.base_id,
       MetaTable.FILTER_EXP,
@@ -181,25 +181,17 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         },
         view.id,
       );
+      await NocoCache.del(`${CacheScope.VIEW}:${view.id}`);
+      await NocoCache.del(
+        `${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`,
+      );
     }
     await ncMeta.commit();
-    await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`);
 
     return {
-      mode: ROW_COLORING_MODE.FILTER,
-      fk_model_id: view.fk_model_id,
-      fk_view_id: view.id,
-      conditions: [
-        {
-          id: rowColoringCondition.id,
-          nc_order: rowColoringCondition.nc_order,
-          is_set_as_background: rowColoringCondition.is_set_as_background,
-          color: rowColoringCondition.color,
-          conditions: [filterInsertResult],
-          nestedConditions: [filterInsertResult],
-        },
-      ],
-    } as RowColoringInfo;
+      id: rowColoringCondition.id,
+      info: await this.getByViewId({ ...params }),
+    };
   }
 
   async updateRowColoringCondition(params: {
@@ -292,7 +284,6 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     } else {
       NcError.requiredFieldMissing('view_id');
     }
-
     const viewMeta: ViewMetaRowColoring = parseProp(view.meta);
     viewMeta.rowColoringInfo = {
       fk_column_id: params.fk_column_id,
@@ -308,6 +299,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       },
       view.id,
     );
+    await NocoCache.del(`${CacheScope.VIEW}:${view.id}`);
     await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`);
   }
 
@@ -373,6 +365,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         view.id,
       );
     }
+    await NocoCache.del(`${CacheScope.VIEW}:${view.id}`);
     await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`);
   }
 }

@@ -20,6 +20,19 @@ export class JsonMySqlHandler extends GenericFieldHandler {
     let val = filter.value;
 
     return (qb: Knex.QueryBuilder) => {
+      const appendIsNull = () => {
+        qb.where((nestedQb) => {
+          nestedQb
+            .whereNull(field)
+            .orWhere(knex.raw("JSON_UNQUOTE(??) = '{}'", [field]))
+            .orWhere(knex.raw("JSON_UNQUOTE(??) = '[]'", [field]));
+        });
+      };
+      const appendIsNotNull = () => {
+        qb.whereNotNull(field)
+          .whereNot(knex.raw("JSON_UNQUOTE(??) = '{}'", [field]))
+          .whereNot(knex.raw("JSON_UNQUOTE(??) = '[]'", [field]));
+      };
       switch (filter.comparison_op) {
         case 'eq':
           if (!ncIsStringHasValue(val)) {
@@ -87,18 +100,41 @@ export class JsonMySqlHandler extends GenericFieldHandler {
           break;
 
         case 'blank':
-          qb.where((nestedQb) => {
-            nestedQb
-              .whereNull(field)
-              .orWhere(knex.raw("JSON_UNQUOTE(??) = '{}'", [field]))
-              .orWhere(knex.raw("JSON_UNQUOTE(??) = '[]'", [field]));
-          });
+          appendIsNull();
           break;
 
         case 'notblank':
-          qb.whereNotNull(field)
-            .whereNot(knex.raw("JSON_UNQUOTE(??) = '{}'", [field]))
-            .whereNot(knex.raw("JSON_UNQUOTE(??) = '[]'", [field]));
+          appendIsNotNull();
+          break;
+
+        case 'is':
+          switch (val) {
+            case 'blank':
+            case 'empty': {
+              appendIsNull();
+              break;
+            }
+            case 'notblank':
+            case 'notempty': {
+              appendIsNotNull();
+              break;
+            }
+          }
+          break;
+
+        case 'isnot':
+          switch (val) {
+            case 'blank':
+            case 'empty': {
+              appendIsNotNull();
+              break;
+            }
+            case 'notblank':
+            case 'notempty': {
+              appendIsNull();
+              break;
+            }
+          }
           break;
 
         default:

@@ -1184,9 +1184,10 @@ export function useCanvasRender({
       column: CanvasGridColumn
     }[] = []
     const groupPath = generateGroupPath(group)
-    const isHovered = hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
-    const isActiveCellInCurrentGroup = comparePath(activeCell.value?.path, groupPath)
-    const isRowCellSelected = activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path)
+    const isHovered = hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path ?? group?.path)
+    const isActiveCellInCurrentGroup = comparePath(activeCell.value?.path, groupPath ?? group?.path)
+    const isRowCellSelected =
+      activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path ?? group?.path)
 
     if (row) {
       const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
@@ -2245,7 +2246,7 @@ export function useCanvasRender({
         rowsToFetch.push(i)
       }
 
-      const isHovered = hoverRow.value?.rowIndex === i && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
+      const isHovered = hoverRow.value?.rowIndex === i && comparePath(hoverRow.value?.path, row?.rowMeta?.path ?? group.path)
 
       roundedRect(ctx, indent, yOffset, adjustedWidth, rowHeight.value, 0, {
         backgroundColor: isHovered ? '#F9F9FA' : '#fff',

@@ -214,7 +214,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           `COUNT(DISTINCT COALESCE(${
             baseModel.isPg ? '(??)::text' : '??'
           }, '__null__')) as ??`,
-          [baseModel.dbDriver.raw(subGroupQuery), subGroupAlias],
+          [baseModel.dbDriver.raw(subGroupQuery), '__sub_group_count__'],
         ),
       );
     }

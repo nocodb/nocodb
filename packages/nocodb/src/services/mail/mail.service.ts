@@ -60,17 +60,20 @@ export class MailService {
 
     let url = req.ncSiteUrl;
 
-    url += dashboardPath;
-
+    // Reset password link is served from the backend. So no need to append the dashboard path
     if (params.resetPassword) {
       url += `/auth/password/reset/${params.resetPassword}`;
       return url;
     }
 
+    // Email verification link is served from the backend. So no need to append the dashboard path
     if (params.verificationToken) {
       url += `/email/validate/${params.verificationToken}`;
       return url;
     }
+
+    // Below links are served from the frontend. So we need to append the dashboard path
+    url += dashboardPath;
 
     if (params.workspaceId) {
       url += `#/${params.workspaceId}`;

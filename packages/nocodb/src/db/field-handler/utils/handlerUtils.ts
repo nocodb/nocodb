@@ -2,7 +2,7 @@ import { ncIsNull, ncIsUndefined, RelationTypes, UITypes } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
-import { Filter } from '~/models';
+import { Filter, Model } from '~/models';
 
 export function ncIsStringHasValue(val: string | undefined | null) {
   return val !== '' && !ncIsUndefined(val) && !ncIsNull(val);

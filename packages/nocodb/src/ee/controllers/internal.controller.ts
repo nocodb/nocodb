@@ -4,7 +4,10 @@ import { DataReflectionService } from '~/services/data-reflection.service';
 import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
 import { SyncModuleService } from '~/integrations/sync/module/services/sync.service';
 import { McpTokenService } from '~/services/mcp.service';
-import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import {
+  Acl,
+  AclMiddleware,
+} from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { ScriptsService } from '~/services/scripts.service';
@@ -13,6 +16,7 @@ import {
   InternalGETResponseType,
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
+import { ColumnsService } from '~/services/columns.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -23,6 +27,7 @@ export class InternalController extends InternalControllerCE {
     private readonly remoteImportService: RemoteImportService,
     private readonly syncService: SyncModuleService,
     private readonly scriptsService: ScriptsService,
+    private readonly columnsService: ColumnsService,
   ) {
     super(mcpService, aclMiddleware);
   }
@@ -179,5 +184,20 @@ export class InternalController extends InternalControllerCE {
           req,
         );
     }
+  }
+
+  @Get(['/api/v1/db/internal/links/:columnId/tables/:refTableId'])
+  @Acl('tableGet')
+  async tableGet(
+    @TenantContext() context: NcContext,
+    @Param('columnId') columnId: string,
+    @Param('refTableId') refTableId: string,
+  ) {
+    const table = await this.columnsService.getLinkColumnRefTable(context, {
+      columnId,
+      tableId: refTableId,
+    });
+
+    return table;
   }
 }

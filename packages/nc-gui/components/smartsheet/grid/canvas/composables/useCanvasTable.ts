@@ -152,7 +152,7 @@ export function useCanvasTable({
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
 }) {
-  const { metas, getMeta } = useMetas()
+  const { metas, getMeta, getPartialMeta } = useMetas()
   const { getBaseRoles } = useBases()
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
@@ -270,7 +270,7 @@ export function useCanvasTable({
     () => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES),
   )
 
-  const fetchMetaIds = ref<string[]>([])
+  const fetchMetaIds = ref<string[][]>([])
 
   const columns = computed<CanvasGridColumn[]>(() => {
     const fetchMetaIdsLocal: string[] = []
@@ -293,7 +293,7 @@ export function useCanvasTable({
 
           if (relatedColObj && relatedColObj.colOptions?.fk_related_model_id) {
             if (!metas.value?.[relatedColObj.colOptions.fk_related_model_id]) {
-              fetchMetaIdsLocal.push(relatedColObj.colOptions.fk_related_model_id)
+              fetchMetaIdsLocal.push([relatedColObj.id, relatedColObj.colOptions.fk_related_model_id])
             } else {
               relatedTableMeta = metas.value?.[relatedColObj.colOptions.fk_related_model_id]
             }
@@ -301,7 +301,7 @@ export function useCanvasTable({
         } else if (isLTAR(f.uidt, f.colOptions)) {
           if (f.colOptions?.fk_related_model_id) {
             if (!metas.value?.[f.colOptions.fk_related_model_id]) {
-              fetchMetaIdsLocal.push(f.colOptions.fk_related_model_id)
+              fetchMetaIdsLocal.push([f.id, f.colOptions.fk_related_model_id])
             } else {
               relatedTableMeta = metas.value?.[f.colOptions.fk_related_model_id]
             }
@@ -1206,7 +1206,16 @@ export function useCanvasTable({
     async () => {
       if (!fetchMetaIds.value.length) return
 
-      await Promise.all(fetchMetaIds.value.map(async (id) => getMeta(id, false, false, undefined, true)))
+      await Promise.all(
+        fetchMetaIds.value.map(async ([colId, tableId]) => {
+          try {
+            await getMeta(tableId, false, false, undefined, true)
+          } catch {}
+          if (!metas.value[tableId]) {
+            await getPartialMeta(colId, tableId)
+          }
+        }),
+      )
       fetchMetaIds.value = []
       triggerRefreshCanvas()
     },

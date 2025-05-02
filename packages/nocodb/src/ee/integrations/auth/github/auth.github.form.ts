@@ -4,7 +4,7 @@ import {
   clientId,
   redirectUri,
   scopes,
-} from '~/integrations/auth/linear/entry';
+} from '~/integrations/auth/github/auth.github.entry';
 
 export default [
   {
@@ -87,9 +87,9 @@ export default [
             value: AuthType.OAuth,
           },
           oauthMeta: {
-            provider: 'Linear',
-            authUri: `https://linear.app/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${encodeURIComponent(
-              scopes.join(','),
+            provider: 'GitHub',
+            authUri: `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${encodeURIComponent(
+              scopes.join(' '),
             )}`,
             redirectUri,
             clientId,

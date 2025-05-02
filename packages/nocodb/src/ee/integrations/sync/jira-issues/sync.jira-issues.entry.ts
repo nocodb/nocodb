@@ -21,9 +21,9 @@ export default class JiraIssuesIntegration extends SyncIntegration {
     },
   ): Promise<DataObjectStream<RecordTypeFromSchema<typeof ticketingSchema>>> {
     const { token, domain, email } = auth.custom;
-    const authHeader = auth.custom.email ? 
-      `Basic ${Buffer.from(`${email}:${token}`).toString('base64')}` : 
-      `Bearer ${token}`;
+    const authHeader = auth.custom.email
+      ? `Basic ${Buffer.from(`${email}:${token}`).toString('base64')}`
+      : `Bearer ${token}`;
     const { project } = payload;
 
     let jql = `project = "${project}"`;
@@ -115,7 +115,7 @@ export default class JiraIssuesIntegration extends SyncIntegration {
           console.error('Jira API Error:', {
             status: error.response?.status,
             message: error.response?.data?.message,
-            endpoint: error.config?.url
+            endpoint: error.config?.url,
           });
         }
         stream.destroy(error);

@@ -1,6 +1,10 @@
 import { FormBuilderInputType } from 'nocodb-sdk';
 import { AuthType } from '~/integrations/auth/auth.helpers';
-import { clientId, redirectUri, scopes } from '~/integrations/auth/jira/entry';
+import {
+  clientId,
+  redirectUri,
+  scopes,
+} from '~/integrations/auth/linear/auth.linear.entry';
 
 export default [
   {
@@ -48,49 +52,11 @@ export default [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'Jira Domain',
-    width: 100,
-    model: 'config.domain',
-    category: 'Authentication',
-    placeholder: 'e.g., https://your-domain.atlassian.net',
-    validators: [
-      {
-        type: 'required',
-        message: 'Jira Domain is required',
-      },
-    ],
-  },
-  {
-    type: FormBuilderInputType.Input,
-    label: 'Atlassian Account Email',
-    width: 100,
-    model: 'config.email',
-    category: 'Authentication',
-    placeholder: 'Enter your Atlassian account email',
-    validators: [
-      {
-        type: 'required',
-        message: 'Email is required',
-      },
-      {
-        type: 'email',
-        message: 'Invalid email format',
-      },
-    ],
-    condition: {
-      model: 'config.type',
-      value: AuthType.ApiKey,
-    },
-  },
-  {
-    type: FormBuilderInputType.Input,
     label: 'API Token',
     width: 100,
     model: 'config.token',
     category: 'Authentication',
     placeholder: 'Enter your API Token',
-    description:
-      'Generate an API token from your Atlassian account settings: Profile > Security > Create and manage API tokens',
     validators: [
       {
         type: 'required',
@@ -121,10 +87,10 @@ export default [
             value: AuthType.OAuth,
           },
           oauthMeta: {
-            provider: 'Jira',
-            authUri: `https://auth.atlassian.com/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${encodeURIComponent(
-              scopes.join(' '),
-            )}&response_type=code&audience=api.atlassian.com&prompt=consent`,
+            provider: 'Linear',
+            authUri: `https://linear.app/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${encodeURIComponent(
+              scopes.join(','),
+            )}`,
             redirectUri,
             clientId,
             scopes,

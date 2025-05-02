@@ -4,7 +4,7 @@ import {
   clientId,
   redirectUri,
   scopes,
-} from '~/integrations/auth/zendesk/entry';
+} from '~/integrations/auth/jira/auth.jira.entry';
 
 export default [
   {
@@ -20,21 +20,6 @@ export default [
         message: 'Integration name is required',
       },
     ],
-  },
-  {
-    type: FormBuilderInputType.Input,
-    label: 'Subdomain',
-    width: 100,
-    model: 'config.subdomain',
-    placeholder: 'your-subdomain',
-    category: 'Authentication',
-    validators: [
-      {
-        type: 'required',
-        message: 'Zendesk subdomain is required',
-      },
-    ],
-    help: 'Your Zendesk subdomain (e.g., if your URL is https://mycompany.zendesk.com, enter "mycompany")',
   },
   {
     type: FormBuilderInputType.Select,
@@ -67,19 +52,33 @@ export default [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'Email',
+    label: 'Jira Domain',
     width: 100,
-    model: 'config.email',
+    model: 'config.domain',
     category: 'Authentication',
-    placeholder: 'Enter your Zendesk email',
+    placeholder: 'e.g., https://your-domain.atlassian.net',
     validators: [
       {
         type: 'required',
-        message: 'Email is required for API token authentication',
+        message: 'Jira Domain is required',
+      },
+    ],
+  },
+  {
+    type: FormBuilderInputType.Input,
+    label: 'Atlassian Account Email',
+    width: 100,
+    model: 'config.email',
+    category: 'Authentication',
+    placeholder: 'Enter your Atlassian account email',
+    validators: [
+      {
+        type: 'required',
+        message: 'Email is required',
       },
       {
         type: 'email',
-        message: 'Please enter a valid email',
+        message: 'Invalid email format',
       },
     ],
     condition: {
@@ -94,6 +93,8 @@ export default [
     model: 'config.token',
     category: 'Authentication',
     placeholder: 'Enter your API Token',
+    description:
+      'Generate an API token from your Atlassian account settings: Profile > Security > Create and manage API tokens',
     validators: [
       {
         type: 'required',
@@ -124,11 +125,10 @@ export default [
             value: AuthType.OAuth,
           },
           oauthMeta: {
-            provider: 'Zendesk',
-            authUri: (subdomain: string) => 
-              `https://${subdomain}.zendesk.com/oauth/authorizations/new?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${encodeURIComponent(
-                scopes.join(' '),
-              )}`,
+            provider: 'Jira',
+            authUri: `https://auth.atlassian.com/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${encodeURIComponent(
+              scopes.join(' '),
+            )}&response_type=code&audience=api.atlassian.com&prompt=consent`,
             redirectUri,
             clientId,
             scopes,

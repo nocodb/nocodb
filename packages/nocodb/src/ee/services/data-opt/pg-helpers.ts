@@ -184,7 +184,7 @@ export async function extractColumn({
           column.colOptions as LinkToAnotherRecordColumn
         ).getRelatedTable(context);
 
-        const { refContext, mmContext } = (
+        const { refContext } = (
           column.colOptions as LinkToAnotherRecordColumn
         ).getRelContext(context);
 

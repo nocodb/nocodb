@@ -572,7 +572,7 @@ watch(
     const [event, operation] = hookRef.eventOperation.split(' ')
     hookRef.event = event as HookType['event']
     hookRef.operation = operation as HookType['operation']
-    
+
     // Automatically set active to true when event type is manual
     if (event === 'manual') {
       hookRef.active = true

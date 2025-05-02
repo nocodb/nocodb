@@ -176,6 +176,12 @@ export class UtilsController {
   }
 
   @UseGuards(PublicApiLimiterGuard)
+  @Get('/api/v2/cloud-features')
+  async cloudFeatures(@Request() req: NcRequest) {
+    return await this.utilsService.cloudFeatures(req);
+  }
+
+  @UseGuards(PublicApiLimiterGuard)
   @Post('/api/v1/error-reporting')
   async reportErrors(@Req() req: NcRequest, @Body() body: ErrorReportReqType) {
     if (

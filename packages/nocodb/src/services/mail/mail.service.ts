@@ -60,8 +60,6 @@ export class MailService {
 
     let url = req.ncSiteUrl;
 
-    url += dashboardPath;
-
     if (params.resetPassword) {
       url += `/auth/password/reset/${params.resetPassword}`;
       return url;
@@ -71,6 +69,8 @@ export class MailService {
       url += `/email/validate/${params.verificationToken}`;
       return url;
     }
+
+    url += dashboardPath;
 
     if (params.workspaceId) {
       url += `#/${params.workspaceId}`;

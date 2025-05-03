@@ -19,7 +19,11 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(['dblClick', 'update:selectedDate', 'update:pageDate'])
 
-const { timezoneDayjs } = useCalendarViewStoreOrThrow()
+const { timezoneDayjs, viewMetaProperties } = useCalendarViewStoreOrThrow()
+
+const maxVisibleDays = computed(() => {
+  return viewMetaProperties.value?.hide_weekend ? 5 : 7
+})
 
 // Get the shared cache from the parent component
 const sharedCalendarCache = inject(
@@ -70,15 +74,22 @@ const getMonthComparisonCacheKey = (date: dayjs.Dayjs) => {
 
 // Cache key for the dates array
 const getDatesCacheKey = () => {
-  return `${pageDate.value?.format('YYYY-MM')}_${selectedDate.value?.format('YYYY-MM-DD')}_${activeDates.value.length}`
+  return `${pageDate.value?.format('YYYY-MM')}_${selectedDate.value?.format('YYYY-MM-DD')}_${activeDates.value.length}-${maxVisibleDays.value}`
 }
 
 const days = computed(() => {
+  let days = []
   if (props.isMondayFirst) {
-    return ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+    days = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
   } else {
-    return ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+    days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
   }
+
+  if (maxVisibleDays.value === 5) {
+    days = days.filter((day) => day !== 'Sa' && day !== 'Su')
+  }
+
+  return days
 })
 
 const currentMonthYear = computed(() => {
@@ -162,6 +173,10 @@ const dates = computed(() => {
     const isActive = isActiveDate(newDate)
     const dayVal = newDate.get('date')
 
+    if (maxVisibleDays.value === 5 && isWeekend) {
+      continue
+    }
+
     datesArray.push({
       date: newDate,
       isSelected: isDateSelected,
@@ -236,7 +251,13 @@ watch(activeDates, (newActiveDates) => {
           >
         </div>
       </div>
-      <div class="grid gap-x-0.5 gap-y-2 px-2.5 py-1 nc-date-week-grid-wrapper grid-cols-7">
+      <div
+        :class="{
+          'grid-cols-7 gap-x-0.5 ': maxVisibleDays === 7,
+          'grid-cols-5 gap-x-4 ': maxVisibleDays === 5,
+        }"
+        class="grid gap-y-2 px-2.5 py-1 nc-date-week-grid-wrapper"
+      >
         <span
           v-for="(date, index) in dates"
           :key="index"

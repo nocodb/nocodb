@@ -3051,11 +3051,15 @@ export class ColumnsService implements IColumnsService {
                   column.fk_model_id === parentTable.id
                     ? parentTable
                     : childTable;
+                const tblContext =
+                  column.fk_model_id === parentTable.id
+                    ? parentContext
+                    : childContext;
                 this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
                   table,
                   column: column,
                   req: param.req,
-                  context,
+                  context: tblContext,
                   columnId: column.id,
                   columns: await table.getCachedColumns(context),
                 });

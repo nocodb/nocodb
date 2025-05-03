@@ -258,10 +258,11 @@ watch(activeDates, (newActiveDates) => {
             v-if="date.isActive"
             :class="{
               'h-1.25 w-1.25 top-0.5 right-0.5': size === 'small',
+              'h-1.5 w-1.5 top-1 right-1': size === 'medium',
               '!border-white': date.isDateSelected,
               '!border-brand-50': date.isToday,
             }"
-            class="absolute z-2 h-1.5 top-1 right-1 w-1.5 transition border-1 rounded-full border-white bg-brand-500"
+            class="absolute z-2 transition border-1 rounded-full border-white bg-brand-500"
           ></span>
           <span class="z-2">
             {{ date.dayVal }}

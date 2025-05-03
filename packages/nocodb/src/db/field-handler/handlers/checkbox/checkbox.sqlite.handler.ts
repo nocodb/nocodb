@@ -10,8 +10,8 @@ export class CheckboxSqliteHandler extends CheckboxGeneralHandler {
     value: any;
     row: any;
     column: Column;
-    baseModel: IBaseModelSqlV2;
     options?: {
+      baseModel?: IBaseModelSqlV2;
       context?: NcContext;
       metaService?: MetaService;
       logger?: Logger;

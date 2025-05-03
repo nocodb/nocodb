@@ -48,8 +48,11 @@ export class CheckboxGeneralHandler extends GenericFieldHandler {
     value: any;
     row: any;
     column: Column;
-    baseModel: IBaseModelSqlV2;
-    options?: { context?: NcContext; metaService?: MetaService };
+    options?: {
+      baseModel?: IBaseModelSqlV2;
+      context?: NcContext;
+      metaService?: MetaService;
+    };
   }): Promise<{ value: any }> {
     if (ncIsUndefined(params.value)) {
       return { value: params.value };

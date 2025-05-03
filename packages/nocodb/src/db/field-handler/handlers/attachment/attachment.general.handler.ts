@@ -10,8 +10,11 @@ export class AttachmentGeneralHandler extends ComputedFieldHandler {
     value: any;
     row: any;
     column: Column;
-    baseModel: IBaseModelSqlV2;
-    options?: { context?: NcContext; metaService?: MetaService };
+    options?: {
+      context?: NcContext;
+      metaService?: MetaService;
+      baseModel?: IBaseModelSqlV2;
+    };
   }): Promise<{ value: any }> {
     let value = params.value;
     const throwError = (reason?: string) => {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk'
+import type { HookType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 
@@ -24,9 +24,9 @@ const { eventList } = toRefs(props)
 
 const { t } = useI18n()
 
-const { $e, $api } = useNuxtApp()
+const { $api } = useNuxtApp()
 
-const { api, isLoading: loading } = useApi()
+const { api } = useApi()
 
 const modalVisible = useVModel(props, 'value')
 
@@ -36,15 +36,7 @@ const { base } = storeToRefs(useBase())
 
 const meta = inject(MetaInj, ref())
 
-const { getMeta } = useMetas()
-
-const { activeTable } = toRefs(useTablesStore())
-
 const defaultHookName = t('labels.webhook')
-
-const testSuccess = ref()
-
-const testConnectionError = ref('')
 
 const isV3ModalOpen = ref(false)
 

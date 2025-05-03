@@ -689,7 +689,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
       const res: any = await $api.dbViewRow.delete(
         'noco',
-        base.value.id as string,
+        meta.value?.base_id ?? (base.value.id as string),
         meta.value?.id as string,
         viewMeta.value?.id as string,
         encodeURIComponent(id),

@@ -246,7 +246,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
             fn: async (id: string) => {
               const res: any = await $api.dbViewRow.delete(
                 'noco',
-                base.value.id as string,
+                meta.value?.base_id ?? (base.value.id as string),
                 meta.value?.id as string,
                 activeView.value?.id as string,
                 encodeURIComponent(id),

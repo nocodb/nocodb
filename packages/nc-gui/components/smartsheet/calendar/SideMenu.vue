@@ -40,7 +40,6 @@ const {
   loadMoreSidebarData,
   searchQuery,
   sideBarFilterOption,
-  showSideMenu,
   updateFormat,
   timezone,
   timezoneDayjs,
@@ -277,11 +276,6 @@ const newRecord = () => {
   emit('newRecord', { row, oldRow: {}, rowMeta: { new: true } })
 }
 
-const toggleSideMenu = () => {
-  $e('c:calendar:toggle-sidebar', showSideMenu.value)
-  showSideMenu.value = !showSideMenu.value
-}
-
 const showSearch = ref(false)
 const searchRef = ref()
 
@@ -330,22 +324,6 @@ const selectOption = (option) => {
 </script>
 
 <template>
-  <NcTooltip
-    :class="{
-      '!right-26 top-[-36px]': showSideMenu && isMobileMode,
-
-      'right-2': !showSideMenu,
-      'right-74': showSideMenu,
-    }"
-    style="z-index: 100"
-    class="absolute transition-all ease-in-out top-2"
-    hide-on-click
-  >
-    <template #title> {{ $t('activity.toggleSidebar') }}</template>
-    <NcButton data-testid="nc-calendar-side-bar-btn" size="small" type="secondary" @click="toggleSideMenu">
-      <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-600 transition-all" />
-    </NcButton>
-  </NcTooltip>
   <div
     :class="{
       '!min-w-[100svw]': props.visible && isMobileMode,

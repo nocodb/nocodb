@@ -68,8 +68,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         <LazySmartsheetToolbarMappedBy v-if="isMap" />
         <LazySmartsheetToolbarCalendarHeader v-if="isCalendar" />
         <LazySmartsheetToolbarCalendarToday v-if="isCalendar" />
-
-        <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
+        <LazySmartsheetToolbarCalendarNextPrev v-if="isCalendar" />
 
         <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
@@ -111,8 +110,11 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
       <LazySmartsheetToolbarCalendarMode v-if="isCalendar && !isTab" :tab="isTab" />
 
+      <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
+
       <LazySmartsheetToolbarFieldsMenu v-if="isCalendar && !isMobileMode" :show-system-fields="false" />
       <LazySmartsheetToolbarColumnFilterMenu v-if="isCalendar && !isMobileMode" />
+      <LazySmartsheetToolbarCalendarToggleSideBar v-if="isCalendar && !isMobileMode" />
     </template>
   </div>
 </template>

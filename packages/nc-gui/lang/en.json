@@ -842,6 +842,7 @@
     "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
     "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
     "currentWorkspace": "Current workspace",
+    "currentBase": "Current base",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "Failed",

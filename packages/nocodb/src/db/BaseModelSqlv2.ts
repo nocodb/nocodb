@@ -6106,20 +6106,25 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return d;
   }
 
-  public async getNestedColumn(column: Column) {
+  public async getNestedColumn(column: Column, context = this.context) {
+    if (!column)
+      return {
+        uidt: UITypes.SingleLineText,
+      };
+
     if (column.uidt !== UITypes.Lookup) {
       return column;
     }
-    const colOptions = await column.getColOptions<LookupColumn>(this.context);
+    const colOptions = await column.getColOptions<LookupColumn>(context);
     const relationColOpt = await colOptions
-      .getRelationColumn(this.context)
-      .then((col) =>
-        col?.getColOptions<LinkToAnotherRecordColumn>(this.context),
-      );
+      .getRelationColumn(context)
+      .then((col) => col?.getColOptions<LinkToAnotherRecordColumn>(context));
 
-    const { refContext } = relationColOpt.getRelContext(this.context);
-
-    return this.getNestedColumn(await colOptions?.getLookupColumn(refContext));
+    const { refContext } = relationColOpt.getRelContext(context);
+    return this.getNestedColumn(
+      await colOptions?.getLookupColumn(refContext),
+      refContext,
+    );
   }
 
   public async convertJsonTypes(

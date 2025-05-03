@@ -308,7 +308,7 @@ const onCrossBaseToggle = () => {
   // reset current model id value if cross base disabled and selected table is not in current base
   if (!crossBase.value) {
     referenceBaseId.value = null
-    if (refTables.every((t) => t.id !== referenceTableChildId)) {
+    if (refTables.value.every((t) => t.id !== referenceTableChildId)) {
       referenceTableChildId.value = null
     }
   }

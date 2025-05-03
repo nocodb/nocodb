@@ -27,7 +27,7 @@ const chooseOption = (option: ROW_COLORING_MODE) => {
       class="bg-white w-[320px] h-[132px] flex flex-col rounded-[8px] overflow-hidden py-2 animate-animated animate-fadeIn"
       style="animation-duration: 0.3s"
     >
-      <a-button :class="[buttonClass]" type="text" @click="chooseOption(ROW_COLORING_MODE.SELECT)">
+      <a-button :class="[buttonClass]" type="text" @click.stop="chooseOption(ROW_COLORING_MODE.SELECT)">
         <div class="flex flex-col gap-1">
           <div class="flex gap-2 items-center">
             <GeneralIcon class="w-[16px] h-[16px]" icon="singleSelect" />
@@ -40,7 +40,7 @@ const chooseOption = (option: ROW_COLORING_MODE) => {
           </div>
         </div>
       </a-button>
-      <a-button :class="[buttonClass]" type="text" @click="chooseOption(ROW_COLORING_MODE.FILTER)">
+      <a-button :class="[buttonClass]" type="text" @click.stop="chooseOption(ROW_COLORING_MODE.FILTER)">
         <div class="flex flex-col gap-1">
           <div class="flex gap-2 items-center">
             <GeneralIcon class="w-[16px] h-[16px]" icon="singleSelect" />

@@ -1,30 +1,15 @@
 import { type ColumnType, ROW_COLORING_MODE, type RowColoringInfo, type TableType, type ViewType } from 'nocodb-sdk'
 import { validateRowFilters } from '~/utils/dataUtils'
 
-export function useViewRowColor(params: {
+export function useViewRowColorRender(params: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
   rows: Ref<Ref<Record<string, any>>[]>
-  view: Ref<ViewType>
-  rowColorInfo?: Ref<RowColoringInfo>
 }) {
   const { $api } = useNuxtApp()
   const baseStore = useBase()
   const { getBaseType } = baseStore
-  const eventBus = useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore)
 
-  const rowColorInfo: Ref<RowColoringInfo> = params.rowColorInfo ?? ref({})
-  const reloadRowColorInfo = async () => {
-    rowColorInfo.value = await $api.dbView.getViewRowColor(params.view.value.id)
-  }
-
-  if (!params.rowColorInfo) {
-    reloadRowColorInfo()
-  }
-  eventBus.on((event) => {
-    if (event === SmartsheetStoreEvents.FIELD_UPDATE) {
-      reloadRowColorInfo()
-    }
-  })
+  const rowColorInfo: Ref<RowColoringInfo> = inject(ViewRowColorInj, ref({}))
 
   const evaluateRowColor = (row: any) => {
     if (rowColorInfo.value && rowColorInfo.value.mode === ROW_COLORING_MODE.SELECT) {

@@ -1,20 +1,26 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
+import { SmartsheetToolbarRowColorFilterUsingFilterPanel } from '#components'
 
 const meta = inject(MetaInj, ref())
 const activeView = inject(ActiveViewInj, ref())
+const { getPlanLimit } = useWorkspace()
 
-const { rowColorInfo, onDropdownOpen, onRemoveRowColoringMode, onRowColorSelectChange } = useViewRowColorOption({
-  meta,
-  view: activeView,
-})
 const { isMobileMode } = useGlobal()
+
+const baseStore = useBase()
+const { getBaseType, baseMeta } = baseStore
 
 const isToolbarIconMode = inject(
   IsToolbarIconMode,
   computed(() => false),
 )
 
+const { rowColorInfo, filterPerViewLimit, onDropdownOpen, onRemoveRowColoringMode, onRowColorSelectChange, filterColumns } =
+  useViewRowColorOption({
+    meta,
+    view: activeView,
+  })
 const rowColoringMode = computed({
   set: (value) => {
     rowColorInfo.value.mode = value
@@ -46,11 +52,14 @@ const rowColoringMode = computed({
           <SmartsheetToolbarRowColorFilterUsingSingleSelectPanel
             v-model="rowColorInfo"
             :columns="meta?.columns.filter((k) => k.uidt === UITypes.SingleSelect)"
+            :filter-per-view-limit="filterPerViewLimit"
             @change="onRowColorSelectChange"
             @remove="onRemoveRowColoringMode"
           />
         </template>
-        <template #filter> FILTER </template>
+        <template #filter>
+          <SmartsheetToolbarRowColorFilterUsingFilterPanel v-model="rowColorInfo" :columns="filterColumns" />
+        </template>
       </SmartsheetToolbarRowColorFilterTypeOption>
     </template>
   </NcDropdown>

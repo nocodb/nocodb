@@ -92,7 +92,6 @@ const paginate = (action: 'next' | 'prev') => {
 
 const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
   if (!date1 || !date2) return false
-  console.log(date1.format('DD MM YYYY HH:mm:ss Z'), date2.format('DD MM YYYY HH:mm:ss Z'))
   return date1.isSame(date2, 'year')
 }
 </script>

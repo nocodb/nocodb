@@ -605,13 +605,7 @@ const addRecord = (date: dayjs.Dayjs) => {
 }
 
 .selected-date {
-  @apply relative;
-  &:after {
-    @apply rounded-b-sm pointer-events-none absolute inset-0 w-full h-full;
-    content: '';
-    z-index: 1;
-    box-shadow: 2px 0 0 #3366ff, -2px 0 0 #3366ff, 0 2px 0 #3366ff !important;
-  }
+  @apply relative !bg-nc-bg-brand;
   &:first-of-type::after {
     @apply left-0.5 w-[calc(100%_-_2px)];
   }
@@ -619,12 +613,6 @@ const addRecord = (date: dayjs.Dayjs) => {
 
 .selected-date-header {
   @apply relative;
-  &:after {
-    @apply rounded-t-sm pointer-events-none absolute inset-0 -left-0.25 w-[calc(100% + 2px)] h-full;
-    content: '';
-    z-index: 10;
-    box-shadow: 2px 0 0 #3366ff, -2px 0 0 #3366ff, 0 -2px 0 #3366ff !important;
-  }
   &:first-of-type::after {
     @apply left-0.25;
   }

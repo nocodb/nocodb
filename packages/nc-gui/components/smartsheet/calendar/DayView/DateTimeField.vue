@@ -1221,12 +1221,6 @@ const expandRecord = (record: Row) => {
 }
 
 .selected-hour {
-  @apply relative;
-  &:after {
-    @apply rounded-sm pointer-events-none absolute inset-0 w-full h-full;
-    content: '';
-    z-index: 1;
-    box-shadow: 0 0 0 2px #3366ff !important;
-  }
+  @apply relative !bg-nc-bg-brand !border-nc-bg-brand;
 }
 </style>

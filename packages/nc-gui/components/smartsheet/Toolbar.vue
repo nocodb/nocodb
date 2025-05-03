@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { LazySmartsheetToolbarRowColorFilterDropdown } from '#components'
+
 const { isGrid, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrThrow()
 
 const { isMobileMode } = useGlobal()
@@ -65,6 +67,8 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
 
         <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
+
+        <LazySmartsheetToolbarRowColorFilterDropdown v-if="isGrid || isGallery || isKanban || isMap" />
 
         <LazySmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
 

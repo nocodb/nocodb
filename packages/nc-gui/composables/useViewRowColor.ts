@@ -5,14 +5,14 @@ export function useViewRowColor(params: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
   rows: Ref<Ref<Record<string, any>>[]>
   view: Ref<ViewType>
-  rowColorInfo?: RowColoringInfo
+  rowColorInfo?: Ref<RowColoringInfo>
 }) {
   const { $api } = useNuxtApp()
   const baseStore = useBase()
   const { getBaseType } = baseStore
   const eventBus = useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore)
 
-  const rowColorInfo: Ref<RowColoringInfo> = ref(params.rowColorInfo)
+  const rowColorInfo: Ref<RowColoringInfo> = params.rowColorInfo ?? ref({})
   const reloadRowColorInfo = async () => {
     rowColorInfo.value = await $api.dbView.getViewRowColor(params.view.value.id)
   }

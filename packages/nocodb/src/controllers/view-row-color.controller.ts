@@ -8,6 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { NcContext } from 'nocodb-sdk';
+import type { FilterType } from 'nocodb-sdk';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { ViewRowColorService } from '~/services/view-row-color.service';
@@ -23,10 +24,16 @@ export class ViewRowColorController {
   @Acl('viewRowColorSelectAdd')
   async setViewRowColorSelect(
     @TenantContext() context: NcContext,
-    @Body() body: any,
+    @Param('viewId') viewId: string,
+    @Body()
+    body: {
+      fk_column_id: string;
+      is_set_as_background: boolean;
+    },
   ) {
     return await this.viewRowColorService.setRowColoringSelect({
       ...body,
+      fk_view_id: viewId,
       context,
     });
   }
@@ -35,10 +42,18 @@ export class ViewRowColorController {
   @Acl('viewRowColorConditionAdd')
   async addViewRowColorCondition(
     @TenantContext() context: NcContext,
-    @Body() body: any,
+    @Param('viewId') viewId: string,
+    @Body()
+    body: {
+      color: string;
+      is_set_as_background: boolean;
+      nc_order: number;
+      filter: FilterType;
+    },
   ) {
     return await this.viewRowColorService.addRowColoringCondition({
       ...body,
+      fk_view_id: viewId,
       context,
     });
   }
@@ -47,12 +62,19 @@ export class ViewRowColorController {
   @Acl('viewRowColorConditionUpdate')
   async updateViewRowColorCondition(
     @TenantContext() context: NcContext,
+    @Param('viewId') viewId: string,
     @Param('id') id: string,
-    @Body() body: any,
+    @Body()
+    body: {
+      color: string;
+      is_set_as_background: boolean;
+      nc_order: number;
+    },
   ) {
     return await this.viewRowColorService.updateRowColoringCondition({
       ...body,
       context,
+      fk_view_id: viewId,
       fk_row_coloring_conditions_id: id,
     });
   }
@@ -61,12 +83,12 @@ export class ViewRowColorController {
   @Acl('viewRowColorConditionDelete')
   async deleteViewRowColorCondition(
     @TenantContext() context: NcContext,
+    @Param('viewId') viewId: string,
     @Param('id') id: string,
-    @Body() body: any,
   ) {
     return await this.viewRowColorService.deleteRowColoringCondition({
-      ...body,
       context,
+      fk_view_id: viewId,
       fk_row_coloring_conditions_id: id,
     });
   }

@@ -246,7 +246,7 @@ export class HooksService {
         hook: new Hook(hook),
         model: model,
         view: null,
-        prevData: null,
+        prevData: data?.previous_rows ?? null,
         newData: data.rows,
         user: user,
         testFilters: (hook as any)?.filters,
@@ -328,6 +328,8 @@ export class HooksService {
       param.operation,
       undefined,
       param.includeUser,
+      undefined,
+      param.version,
     );
   }
 

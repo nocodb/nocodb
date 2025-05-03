@@ -49,8 +49,6 @@ const workspace = useWorkspace()
 
 const { activeWorkspace } = storeToRefs(workspace)
 
-const { tables } = storeToRefs(useBase())
-
 const tablesStore = useTablesStore()
 const { loadProjectTables } = tablesStore
 const { baseTables } = storeToRefs(tablesStore)
@@ -509,7 +507,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
       importWorker.postMessage([
         ImportWorkerOperations.SET_TABLES,
-        unref(tables).map((t) => ({
+        unref(baseTables.value.get(baseId) ?? []).map((t) => ({
           table_name: t.table_name,
           title: t.title,
         })),

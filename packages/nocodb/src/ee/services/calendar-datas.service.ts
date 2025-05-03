@@ -140,6 +140,13 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
       .startOf('day')
       .format('YYYY-MM-DD HH:mm:ssZ');
 
+    const toDateStart = dayjsTz(to_date)
+      .startOf('day')
+      .format('YYYY-MM-DD HH:mm:ssZ');
+    const toDateEnd = dayjsTz(to_date)
+      .endOf('day')
+      .format('YYYY-MM-DD HH:mm:ssZ');
+
     calendarRange.ranges.forEach((range: CalendarRange) => {
       const fromColumn = range.fk_from_column_id;
       const toColumn = range.fk_to_column_id;
@@ -165,11 +172,22 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
             ],
           },
           {
-            fk_column_id: fromColumn,
+            is_group: true,
             logical_op: 'or',
-            comparison_op: 'eq',
-            comparison_sub_op: 'exactDate',
-            value: prevDate as string,
+            children: [
+              {
+                fk_column_id: fromColumn,
+                comparison_op: 'gte',
+                comparison_sub_op: 'exactDate',
+                value: toDateStart as string,
+              },
+              {
+                fk_column_id: fromColumn,
+                comparison_op: 'lte',
+                comparison_sub_op: 'exactDate',
+                value: toDateEnd as string,
+              },
+            ],
           },
         ];
         filterArr.push({

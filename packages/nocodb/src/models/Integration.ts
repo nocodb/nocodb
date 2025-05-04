@@ -8,7 +8,7 @@ import {
 } from 'nocodb-sdk';
 import type { ClientType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import type IntegrationWrapper from '~/integrations/integration.wrapper';
+import type { IntegrationWrapper } from '@noco-integrations/core';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -70,12 +70,7 @@ export default class Integration implements IntegrationType {
     obj.is_encrypted = isEncryptionRequired();
   }
 
-  public static async init() {
-    // we use dynamic import to avoid circular reference
-    Integration.availableIntegrations = (
-      await import('src/integrations/integrations')
-    ).default;
-  }
+  public static async init() {}
 
   public static async createIntegration(
     integration: IntegrationType & {

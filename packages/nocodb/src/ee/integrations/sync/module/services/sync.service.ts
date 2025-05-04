@@ -6,13 +6,13 @@ import {
   type NcRequest,
   SyncTrigger,
 } from 'nocodb-sdk';
+import { syncSystemFields } from '@noco-integrations/core';
 import type { IntegrationReqType, UITypes } from 'nocodb-sdk';
-import type SyncIntegration from '~/integrations/sync/sync.interface';
-import type AuthIntegration from '~/integrations/auth/auth.interface';
-import {
-  type SyncSchema,
-  syncSystemFields,
-} from '~/integrations/sync/sync.schemas';
+import type {
+  AuthIntegration,
+  SyncIntegration,
+  SyncSchema,
+} from '@noco-integrations/core';
 import { Base, Integration, Model, SyncConfig, Workspace } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { IntegrationsService } from '~/services/integrations.service';

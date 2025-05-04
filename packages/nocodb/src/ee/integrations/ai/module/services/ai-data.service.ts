@@ -14,7 +14,7 @@ import mime from 'mime/lite';
 import { z } from 'zod';
 import type { FileType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type AiIntegration from '~/integrations/ai/ai.interface';
+import type { AiIntegration } from '@noco-integrations/core';
 import type { AIColumn, ButtonColumn, Column } from '~/models';
 import Model from '~/models/Model';
 

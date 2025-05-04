@@ -58,7 +58,7 @@ const createdBy = computed(() => {
         }"
         class="w-[24px] aspect-square"
       />
-      <p class="text-[13px] mb-0">
+      <p class="text-small1 mb-0">
         <span class="font-weight-700">
           {{ createdBy }}
         </span>
@@ -98,22 +98,22 @@ const createdBy = computed(() => {
           class="w-[16px] h-[16px] text-gray-500 bg-white absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
         />
         <div class="text-sm mb-1 ml-6.5 inline-flex items-center flex-wrap mt-1">
-          <span class="text-[13px] text-gray-600 font-weight-500"> changed </span>
+          <span class="text-small1 text-gray-600 font-weight-500"> changed </span>
           <span class="rounded-md px-1 !h-[20px] inline-flex items-center gap-1 mx-1 text-nc-content-gray-emphasis">
             <SmartsheetHeaderVirtualCellIcon
               :column-meta="{ uidt: 'Links', colOptions: { type: safeGetFromAuditDetails(props.auditGroup.audit, 'type') } }"
               class="!w-[16px] !h-[16px] !m-0"
             />
-            <span class="text-[13px] font-weight-500">
+            <span class="text-small1 font-weight-500">
               {{ safeGetFromAuditDetails(props.auditGroup.audit, 'link_field_title') }}
             </span>
           </span>
           <div
             v-if="safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_unlinks')?.length > 0"
-            class="flex gap-1 flex-wrap mr-1"
+            class="flex gap-1 flex-wrap mr-1 my-0.5"
           >
             <span
-              class="!text-[13px] p-0.5 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 inline-flex items-center gap-1"
+              class="!text-small p-0.5 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 inline-flex items-center gap-1"
             >
               <span
                 v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_unlinks')"
@@ -126,10 +126,10 @@ const createdBy = computed(() => {
           </div>
           <div
             v-if="safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_links')?.length > 0"
-            class="flex gap-1 flex-wrap"
+            class="flex gap-1 flex-wrap my-0.5"
           >
             <span
-              class="!text-[13px] p-0.5 font-weight-500 border-1 border-green-200 rounded-md bg-green-50 inline-flex items-center gap-1"
+              class="!text-small1 p-0.5 font-weight-500 border-1 border-green-200 rounded-md bg-green-50 inline-flex items-center gap-1"
             >
               <span
                 v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_links')"

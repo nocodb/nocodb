@@ -132,12 +132,12 @@ function isShowableValue(value: any) {
     <div class="ml-6.5">
       <div class="text-[13px] font-weight-500 inline-flex items-center flex-wrap">
         <span class="text-gray-600 text-xs"> changed </span>
-        <span class="rounded-md px-1 !h-[20px] bg-gray-200 inline-flex items-center gap-1 mx-1">
+        <span class="rounded-md px-1 !h-[20px] inline-flex items-center gap-1 mx-1 text-nc-content-gray-emphasis">
           <SmartsheetHeaderCellIcon
             :column-meta="{ uidt: meta[columnKey]?.type, dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined }"
-            class="!w-[16px] !h-[16px] !m-0 !text-gray-600"
+            class="!w-[16px] !h-[16px] !m-0 !text-nc-content-gray-emphasis"
           />
-          <span class="text-[13px] font-weight-500 text-gray-600">
+          <span class="text-[13px] font-weight-500">
             {{ columnKey }}
           </span>
         </span>

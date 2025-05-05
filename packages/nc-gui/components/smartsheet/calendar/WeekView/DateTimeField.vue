@@ -1117,7 +1117,7 @@ watch(
           <NcDropdown v-if="isOverflowAcrossHourRange(hour).isOverflow" :trigger="['click']">
             <NcButton
               v-e="`['c:calendar:week-view-more']`"
-              class="!absolute bottom-1 text-center w-15 ml-auto inset-x-0 z-3 !border-0 !bg-gray-800 !text-nc-content-inverted-primary"
+              class="!absolute bottom-1 text-center w-15 ml-auto inset-x-0 z-3 text-gray-500"
               size="xxsmall"
               type="secondary"
               @click="viewMore(hour)"
@@ -1226,6 +1226,7 @@ watch(
 }
 
 .selected-hour {
-  @apply relative !bg-nc-bg-brand;
+    @apply relative !bg-nc-bg-brand;
+
 }
 </style>

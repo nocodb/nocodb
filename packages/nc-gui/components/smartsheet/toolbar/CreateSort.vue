@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, FieldNameFromUITypes, type LinkToAnotherRecordType } from 'nocodb-sdk'
+import { type ColumnType, UITypesName, type LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 
 import rfdc from 'rfdc'
@@ -57,7 +57,7 @@ const options = computed<ColumnType[]>(() =>
 
     if (isDisabled) {
       c.ncItemDisabled = true
-      c.ncItemTooltip = `Sorting is not supported for ${FieldNameFromUITypes[c.uidt]} field`
+      c.ncItemTooltip = `Sorting is not supported for ${UITypesName[c.uidt]} field`
     }
 
     return c

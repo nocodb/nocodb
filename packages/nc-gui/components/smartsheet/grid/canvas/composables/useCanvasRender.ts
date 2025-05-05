@@ -2999,7 +2999,6 @@ export function useCanvasRender({
       } catch (e) {
         val = group.value
       }
-
       renderCell(ctx, group.column, {
         value: val,
         x: x - 11,
@@ -3018,12 +3017,20 @@ export function useCanvasRender({
         relatedTableMeta: group.relatedTableMeta,
         mousePosition,
         skipRender: false,
+        renderCell,
         fontFamily: '700 13px Inter',
         isGroupHeader: true,
       })
     } else {
+      let val = group.value
+      try {
+        val = JSON.parse(group.value)
+      } catch (e) {
+        val = group.value
+      }
+
       renderCell(ctx, group.column, {
-        value: group.value?.toString?.().split(','),
+        value: val,
         x: x - 11,
         y: y - 13,
         width: maxWidth,

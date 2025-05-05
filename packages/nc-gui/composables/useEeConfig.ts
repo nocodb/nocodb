@@ -11,7 +11,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isSideBannerExpanded = ref(false)
 
-  const isPaidPlan = computed(() => undefined)
+  const isPaidPlan = computed(() => false)
 
   const activePlan = computed(() => undefined)
 
@@ -19,9 +19,9 @@ export const useEeConfig = createSharedComposable(() => {
 
   const activeSubscription = computed(() => undefined)
 
-  const isLoyaltyDiscountAvailable = computed(() => undefined)
+  const isLoyaltyDiscountAvailable = computed(() => false)
 
-  const isPaymentEnabled = computed(() => undefined)
+  const isPaymentEnabled = computed(() => false)
 
   const blockAddNewRecord = computed(() => false)
 

@@ -8,6 +8,7 @@ import {
   NcApiVersion,
   type NcContext,
   ncIsNumber,
+  parseProp,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -97,7 +98,8 @@ export function _wherePk(
       };
     } else if (
       [UITypes.Decimal, UITypes.Number].includes(primaryKeys[i].uidt) ||
-      (UITypes.ID === primaryKeys[i].uidt && !(primaryKeys[i] as any).ag)
+      (UITypes.ID === primaryKeys[i].uidt &&
+        !parseProp(primaryKeys[i].meta)?.ag)
     ) {
       if (!ncIsNumber(Number(ids[i]))) {
         if (!skipPkValidation) {

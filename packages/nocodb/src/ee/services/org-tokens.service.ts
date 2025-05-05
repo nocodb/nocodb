@@ -18,10 +18,6 @@ export class OrgTokensService extends OrgTokensServiceCE {
     apiToken: ApiTokenReqType;
     req: NcRequest;
   }) {
-    if (await ApiToken.count({ fk_user_id: param.user.id })) {
-      NcError.badRequest('Only one token per user is allowed');
-    }
-
     return await super.apiTokenCreate(param);
   }
 }

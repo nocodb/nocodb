@@ -327,10 +327,9 @@ const selectOption = (option) => {
   <div
     :class="{
       '!min-w-[100svw]': props.visible && isMobileMode,
-      '!w-0 hidden': !props.visible,
-      'nc-calendar-side-menu-open block !min-w-[288px]': props.visible,
+      'nc-calendar-side-menu-open': props.visible,
     }"
-    class="h-full relative border-l-1 border-gray-200 transition-all"
+    class="h-full relative border-l-1 min-w-[288px] border-gray-200 transition transition-all"
     data-testid="nc-calendar-side-menu"
   >
     <div class="flex min-w-[288px] flex-col">
@@ -623,5 +622,4 @@ const selectOption = (option) => {
 :deep(.nc-menu-item-inner) {
   @apply !w-full;
 }
-
 </style>

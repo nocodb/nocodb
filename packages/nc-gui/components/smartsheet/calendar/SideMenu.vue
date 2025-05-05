@@ -421,7 +421,7 @@ const selectOption = (option) => {
           data-testid="nc-calendar-sidebar-search-btn"
           size="small"
           :class="{
-            '!bg-brand-50 !text-nc-content-brand': showSearch,
+            '!bg-brand-50 nc-calendar-sidebar-search-active !text-nc-content-brand': showSearch,
           }"
           :shadow="false"
           class="!h-7 !rounded-md nc-calendar-sidebar-search-btn !border-0"

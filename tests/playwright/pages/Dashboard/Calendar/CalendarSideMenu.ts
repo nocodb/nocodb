@@ -29,11 +29,11 @@ export class CalendarSideMenuPage extends BasePage {
   async updateFilter({ filter }: { filter: string }) {
     const filterInput = this.get().getByTestId('nc-calendar-sidebar-filter');
     await filterInput.click();
-    await this.rootPage.locator('.rc-virtual-list-holder-inner > div').locator(`text="${filter}"`).click();
+    await this.rootPage.locator('.ant-dropdown').locator(`.nc-menu-item:has-text("${filter}")`).click();
   }
 
   async searchRecord({ query }: { query: string }) {
-    if (await this.searchToggleBtn.isVisible()) {
+    if ((await this.rootPage.locator('.nc-calendar-sidebar-search-active').count()) === 0) {
       await this.searchToggleBtn.click();
     }
     const searchInput = this.get().getByTestId('nc-calendar-sidebar-search');

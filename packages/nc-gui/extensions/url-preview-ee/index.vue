@@ -21,7 +21,7 @@ eventBus.on((event, payload) => {
     // (except when unsupported url detected).
     // null rowId indicates "un-selection".
     if (payload.rowId !== null) {
-      if (isValidURL(selectedValue)) {
+      if (selectedValue && isValidURL(selectedValue)) {
         const [platformRaw, embedURLRaw] = getEmbedURL(selectedValue)
         platform.value = platformRaw
         embedURL.value = embedURLRaw

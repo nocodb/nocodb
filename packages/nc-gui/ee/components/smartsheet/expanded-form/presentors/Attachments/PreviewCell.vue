@@ -14,6 +14,7 @@ const props = defineProps<{
 
 const emits = defineEmits<{
   (e: 'update:isFileContentMenuOpen', value: boolean): void
+  (e: 'expand', value: boolean): void
 }>()
 const { getPossibleAttachmentSrc } = useAttachment()
 const isFileContentMenuOpen = useVModel(props, 'isFileContentMenuOpen', emits)
@@ -145,6 +146,12 @@ function cancelRename() {
 const onVisibilityChange = (value: boolean) => {
   isFileContentMenuOpen.value = value
 }
+
+useEventListener(document, 'click', (e) => {
+  if ((e.target as HTMLElement)?.closest('.nc-attachments-preview-bar, .nc-dropdown')) return
+
+  emits('expand', false)
+})
 </script>
 
 <template>

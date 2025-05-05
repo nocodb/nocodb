@@ -463,6 +463,8 @@ function setHook(newHook: HookType) {
   }
 
   hookRef.trigger_field = !!hookRef?.trigger_field
+
+  loadSampleData()
 }
 
 function onEventChange() {

@@ -197,7 +197,8 @@ const getBtnText = (isLoading: boolean = false) => {
   // configure field screen
   if (templateEditorModal.value) {
     if (isLoading) {
-      return importDataOnly ? t('labels.uploading') : t('labels.importing')
+      // Return empty string when loading to only show the loader
+      return ''
     }
 
     return importDataOnly ? t('activity.upload') : t('activity.import')
@@ -207,7 +208,8 @@ const getBtnText = (isLoading: boolean = false) => {
 
   // upload file screen
   if (isLoading) {
-    return importDataOnly ? `${t('labels.uploading')} ${type}` : `${t('labels.importing')} ${type}`
+    // Return empty string when loading to only show the loader
+    return ''
   }
 
   return importDataOnly ? `${t('activity.upload')} ${type}` : `${t('activity.import')} ${type}`
@@ -1101,6 +1103,23 @@ watch(
   & * {
     outline-width: 0 !important;
     border-width: 0 !important;
+  }
+}
+
+/* Keep the primary button blue during loading state */
+.nc-modal-quick-import .nc-button.ant-btn-primary.ant-btn-loading {
+  @apply bg-brand-500;
+
+  /* Keep the button width consistent during loading state */
+  min-width: 80px;
+
+  /* Increase the weight of the loader */
+  .ant-btn-loading-icon {
+    .anticon {
+      svg {
+        stroke-width: 3px;
+      }
+    }
   }
 }
 </style>

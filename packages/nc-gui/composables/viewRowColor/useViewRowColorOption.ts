@@ -1,4 +1,5 @@
 import { PlanLimitTypes, type RowColoringInfo, type RowColoringInfoFilter, type TableType, type ViewType } from 'nocodb-sdk'
+import type { FilterRowChangeEvent } from '#imports'
 
 export function useViewRowColorOption(params: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
@@ -6,7 +7,8 @@ export function useViewRowColorOption(params: {
 }) {
   const { $api } = useNuxtApp()
   const view = params.view
-  const { rowColorInfo } = useViewRowColorProvider({ view: params.view })
+  const rowColorInfo: Ref<RowColoringInfo> = inject(ViewRowColorInj)
+
   const eventBus = useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore)
   const meta = inject(MetaInj, ref())
   const { metas } = useMetas()
@@ -69,7 +71,7 @@ export function useViewRowColorOption(params: {
   }
 
   const onRowColorConditionAdd = async () => {
-    const evalColumn = filterColumns.value[0]
+    const evalColumn = filterColumns.value.find((k) => k.pv)
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const filter = {
       id: undefined,
@@ -108,6 +110,7 @@ export function useViewRowColorOption(params: {
       }
     })
   }
+
   const onRowColorConditionDelete = async (index: number) => {
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToDelete = conditions[index]
@@ -138,10 +141,10 @@ export function useViewRowColorOption(params: {
     })
   }
 
-  const onRowColorConditionFilterAdd = async (params: { colorIndex: number }) => {
+  const onRowColorConditionFilterAdd = async (colorIndex: number, _event: FilterGroupChangeEvent) => {
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
-    const conditionToAdd = conditions[params.colorIndex]!
-    const evalColumn = filterColumns.value[0]
+    const conditionToAdd = conditions[colorIndex]!
+    const evalColumn = filterColumns.value.find((k) => k.pv)
     const filter = {
       id: undefined,
       tmp_id: Math.random().toString(36).substring(2, 15),
@@ -165,17 +168,24 @@ export function useViewRowColorOption(params: {
       filter.tmp_id = result.id
     })
   }
-  const onRowColorConditionFilterUpdate = async (params: {
-    colorIndex: number
-    filterId: number
-    field: string
-    value: string
-  }) => {
+  const onRowColorConditionFilterUpdate = async (colorIndex: number, params: FilterRowChangeEvent) => {
     await popPendingAction()
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
-    const conditionToUpdate = conditions[index]!
-    const filter = conditionToUpdate.conditions.find((k) => k.id === params.filterId)
-    filter[params.field] = params.value
+    const conditionToUpdate = conditions[colorIndex]!
+    const filter = conditionToUpdate.conditions.find((k) => k.id === params.filter!.id)!
+
+    filter[params.type] = params.value
+    if (params.filter!.fk_column_id) {
+      if (['fk_column_id'].includes(params.type)) {
+        const evalColumn = filterColumns.value.find((k) => k.id === params.filter!.fk_column_id)
+        adjustFilterWhenColumnChange({
+          column: evalColumn,
+          filter,
+          showNullAndEmptyInFilter: baseMeta.value?.showNullAndEmptyInFilter,
+        })
+      }
+    }
+    await $api.dbTableFilter.update(filter!.id, filter)
   }
 
   const filterPerViewLimit = computed(() => getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW))

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { parseProp, ROW_COLORING_MODE } from 'nocodb-sdk';
+import { arrayToNested, parseProp, ROW_COLORING_MODE } from 'nocodb-sdk';
 import { ViewRowColorService as ViewRowColorServiceCE } from 'src/services/view-row-color.service';
 import { CacheScope } from 'src/utils/globals';
 import type { MetaService } from '~/meta/meta.service';
@@ -18,7 +18,6 @@ import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
 import { View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
-import { arrayToNested } from '~/utils/recursive.utils';
 import NocoCache from '~/cache/NocoCache';
 
 @Injectable()

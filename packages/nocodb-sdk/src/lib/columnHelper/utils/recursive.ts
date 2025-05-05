@@ -33,7 +33,7 @@ export const arrayToNested = ({
           getFkHandler,
           level: level + 1,
           maxLevel,
-        }),
+        })
       );
     }
   }

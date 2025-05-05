@@ -32,6 +32,7 @@ export default class Filter extends FilterCE implements FilterType {
       'fk_view_id',
       'fk_hook_id',
       'fk_parent_column_id',
+      'fk_row_color_conditions_id',
       'fk_column_id',
       'fk_link_col_id',
       'fk_value_col_id',

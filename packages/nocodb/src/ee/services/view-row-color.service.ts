@@ -158,6 +158,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       },
     );
     const rowColoringConditionId = rowColoringCondition.id;
+
     const filterToInsert = {
       ...params.filter,
       fk_row_color_conditions_id: rowColoringConditionId,

@@ -19,7 +19,7 @@ const emits = defineEmits<{
 
 const isFileContentMenuOpen = useVModel(props, 'isFileContentMenuOpen', emits)
 
-const { selectedField, attachmentIndex } = toRefs(props)
+const { attachment, selectedField, attachmentIndex } = toRefs(props)
 
 /* stores */
 const { changedColumns, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
@@ -44,56 +44,56 @@ const refAttachmentCell = ref()
 /* file detection */
 
 const fileEntry: ComputedRef<{ icon: keyof typeof iconMap; title: string | undefined }> = computed(() => {
-  if (isImage(props.attachment.title || '', props.attachment.mimetype)) {
+  if (isImage(attachment.value.title || '', attachment.value.mimetype)) {
     return {
       icon: 'image',
-      title: props.attachment.mimetype?.split('/')?.at(-1) || 'Image',
+      title: attachment.value.mimetype?.split('/')?.at(-1) || 'Image',
     }
   }
 
-  if (isPdf(props.attachment.title || '', props.attachment.mimetype)) {
+  if (isPdf(attachment.value.title || '', attachment.value.mimetype)) {
     return {
       icon: 'ncFileTypePdf',
       title: 'PDF',
     }
   }
 
-  if (isVideo(props.attachment.title || '', props.attachment.mimetype)) {
+  if (isVideo(attachment.value.title || '', attachment.value.mimetype)) {
     return {
       icon: 'ncFileTypeVideo',
-      title: props.attachment.mimetype?.split('/')?.at(-1) || 'Video',
+      title: attachment.value.mimetype?.split('/')?.at(-1) || 'Video',
     }
   }
 
-  if (isAudio(props.attachment.title || '', props.attachment.mimetype)) {
+  if (isAudio(attachment.value.title || '', attachment.value.mimetype)) {
     return {
       icon: 'ncFileTypeAudio',
-      title: props.attachment.mimetype?.split('/')?.at(-1) || 'Audio',
+      title: attachment.value.mimetype?.split('/')?.at(-1) || 'Audio',
     }
   }
 
-  if (isWord(props.attachment.title || '', props.attachment.mimetype)) {
+  if (isWord(attachment.value.title || '', attachment.value.mimetype)) {
     return {
       icon: 'ncFileTypeWord',
       title: 'Word',
     }
   }
 
-  if (isExcel(props.attachment.title || '', props.attachment.mimetype)) {
+  if (isExcel(attachment.value.title || '', attachment.value.mimetype)) {
     return {
       icon: 'ncFileTypeCsv',
       title: 'Excel',
     }
   }
 
-  if (isPresentation(props.attachment.title || '', props.attachment.mimetype)) {
+  if (isPresentation(attachment.value.title || '', attachment.value.mimetype)) {
     return {
       icon: 'ncFileTypePresentation',
       title: 'PPT',
     }
   }
 
-  if (isZip(props.attachment.title || '', props.attachment.mimetype)) {
+  if (isZip(attachment.value.title || '', attachment.value.mimetype)) {
     return {
       icon: 'ncFileTypeZip',
       title: 'Zip',
@@ -102,7 +102,7 @@ const fileEntry: ComputedRef<{ icon: keyof typeof iconMap; title: string | undef
 
   return {
     icon: 'ncFileTypeUnknown',
-    title: props.attachment.mimetype?.split('/')?.at(-1) || 'File',
+    title: attachment.value.mimetype?.split('/')?.at(-1) || 'File',
   }
 })
 
@@ -111,17 +111,19 @@ const showRenameInput = ref(false)
 const attachmentTitle = ref('')
 
 function downloadCurrentFile() {
-  refAttachmentCell.value?.downloadAttachment(props.attachment)
+  refAttachmentCell.value?.downloadAttachment(attachment.value)
   isFileContentMenuOpen.value = false
 }
 
 function deleteCurrentFile() {
-  refAttachmentCell.value?.removeAttachment(props.attachment.title, attachmentIndex.value)
+  refAttachmentCell.value?.removeAttachment(attachment.value.title, attachmentIndex.value)
   isFileContentMenuOpen.value = false
 }
 
 function updateAttachmentTitle() {
-  if (props.attachment.title === attachmentTitle.value) {
+  if (!attachmentTitle.value?.trim()) return
+
+  if (attachment.value.title === attachmentTitle.value) {
     return cancelRename()
   }
 
@@ -131,7 +133,7 @@ function updateAttachmentTitle() {
 
 function renameCurrentFile() {
   isFileContentMenuOpen.value = true
-  attachmentTitle.value = props.attachment.title ?? ''
+  attachmentTitle.value = attachment.value.title ?? ''
   showRenameInput.value = true
 }
 
@@ -162,8 +164,8 @@ const onVisibilityChange = (value: boolean) => {
     <div class="flex flex-col shrink-0 relative">
       <div class="h-0 w-[56px] flex-1 relative">
         <img
-          v-if="isImage(props.attachment.title || '', props.attachment.mimetype)"
-          :src="getPossibleAttachmentSrc(props.attachment, 'tiny')?.[0]"
+          v-if="isImage(attachment.title || '', attachment.mimetype)"
+          :src="getPossibleAttachmentSrc(attachment, 'tiny')?.[0]"
           class="object-cover transition-all duration-300 absolute overflow-hidden"
           :class="{
             'top-0 left-0 right-0 w-full h-[calc(100%-20px)] rounded-none': !props.isExpanded,
@@ -197,18 +199,18 @@ const onVisibilityChange = (value: boolean) => {
         v-model:value="attachmentTitle"
         class="!rounded-lg !w-auto flex-1"
         @blur="updateAttachmentTitle"
-        @keyup.enter="updateAttachmentTitle"
+        @keyup.enter.prevent="updateAttachmentTitle"
         @keyup.esc="cancelRename"
       />
     </div>
     <div v-else class="whitespace-nowrap flex flex-col justify-center pl-1 w-[calc(100%_-_104px)]">
       <NcTooltip class="truncate max-w-full" show-on-truncate-only>
         <template #title>
-          {{ props.attachment.title }}
+          {{ attachment.title }}
         </template>
-        {{ props.attachment.title }}
+        {{ attachment.title }}
       </NcTooltip>
-      <div class="text-xs text-gray-500">{{ getReadableFileSize(props.attachment.size!) }}</div>
+      <div class="text-xs text-gray-500">{{ getReadableFileSize(attachment.size!) }}</div>
     </div>
     <div v-if="props.isExpanded && !showRenameInput" class="self-center px-2">
       <NcDropdown @visible-change="onVisibilityChange">

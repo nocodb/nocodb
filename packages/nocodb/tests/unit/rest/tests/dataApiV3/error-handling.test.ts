@@ -387,6 +387,7 @@ describe('dataApiV3', () => {
       let columns: Column[] = [];
       let expectedColumns: Column[] = [];
       let insertedRecords: any[];
+      let textBasedUrlPrefix: string;
 
       beforeEach(async function () {
         const initResult = await beforeEachTextBased(testContext);
@@ -399,12 +400,12 @@ describe('dataApiV3', () => {
           ...columns,
         ];
         insertedRecords = initResult.insertedRecords;
-        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        textBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
       });
 
       it(`will handle update record not found`, async () => {
         const response = await ncAxiosPatch({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           body: [
             {
               Id: 1,
@@ -423,7 +424,7 @@ describe('dataApiV3', () => {
 
       it(`will handle delete record not found`, async () => {
         const response = await ncAxiosDelete({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           body: [
             {
               Id: 1,
@@ -439,7 +440,7 @@ describe('dataApiV3', () => {
       });
       it(`will handle delete id format invalid`, async () => {
         const response = await ncAxiosDelete({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           body: [
             {
               Id: 'text-primary-key',
@@ -454,7 +455,7 @@ describe('dataApiV3', () => {
       });
       it(`will handle email wrong format`, async () => {
         const response = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           body: [
             {
               Email: '++notanemail321',
@@ -474,6 +475,7 @@ describe('dataApiV3', () => {
       let columns: Column[] = [];
       let expectedColumns: Column[] = [];
       let insertedRecords: any[];
+      let numberBasedUrlPrefix: string;
 
       beforeEach(async function () {
         const initResult = await beforeEachNumberBased(testContext);
@@ -486,17 +488,17 @@ describe('dataApiV3', () => {
           ...columns,
         ];
         insertedRecords = initResult.insertedRecords;
-        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        numberBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
       });
 
       it(`will handle insert and update zero record`, async () => {
         let response = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${numberBasedUrlPrefix}/${table.id}`,
           body: [],
           status: 200,
         });
         response = await ncAxiosPatch({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${numberBasedUrlPrefix}/${table.id}`,
           body: [],
           status: 200,
         });
@@ -506,7 +508,7 @@ describe('dataApiV3', () => {
           return;
         }
         const response = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${numberBasedUrlPrefix}/${table.id}`,
           body: [
             {
               Number: 'HELLOW',
@@ -524,7 +526,7 @@ describe('dataApiV3', () => {
           return;
         }
         const response = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${numberBasedUrlPrefix}/${table.id}`,
           body: [
             {
               Rating: 'HELLOW',
@@ -549,7 +551,7 @@ describe('dataApiV3', () => {
           });
         }
         const response = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${numberBasedUrlPrefix}/${table.id}`,
           body: insertObj,
           status: 422,
         });
@@ -561,7 +563,7 @@ describe('dataApiV3', () => {
           return;
         }
         const response = await ncAxiosPatch({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${numberBasedUrlPrefix}/${table.id}`,
           body: [
             {
               Id: 1,
@@ -577,7 +579,7 @@ describe('dataApiV3', () => {
       });
       it(`will handle update field id format not valid`, async () => {
         const response = await ncAxiosPatch({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${numberBasedUrlPrefix}/${table.id}`,
           body: [
             {
               Id: 'HELLOW',
@@ -597,12 +599,14 @@ describe('dataApiV3', () => {
       let table: Model;
       let columns: Column[] = [];
       let insertedRecords: any[];
+      let dateBasedUrlPrefix: string;
 
       beforeEach(async function () {
         const initResult = await beforeEachDateBased(testContext);
         table = initResult.table;
         columns = initResult.columns;
         insertedRecords = initResult.insertedRecords;
+        dateBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
       });
 
       it(`will handle insert field format not valid`, async () => {
@@ -610,7 +614,7 @@ describe('dataApiV3', () => {
           return;
         }
         const response = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${dateBasedUrlPrefix}/${table.id}`,
           body: [
             {
               Date: 'HELLOW',
@@ -629,17 +633,19 @@ describe('dataApiV3', () => {
       let table: Model;
       let columns: Column[] = [];
       let insertedRecords: any[];
+      let selectBasedUrlPrefix: string;
 
       beforeEach(async function () {
         const initResult = await beforeEachSelectBased(testContext);
         table = initResult.table;
         columns = initResult.columns;
         insertedRecords = initResult.insertedRecords;
+        selectBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
       });
 
       it('insert with value outside of options', async () => {
         const rspSingle = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${selectBasedUrlPrefix}/${table.id}`,
           body: [
             {
               SingleSelect: 'jan2',
@@ -648,7 +654,7 @@ describe('dataApiV3', () => {
           status: 422,
         });
         const rspMulti = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${selectBasedUrlPrefix}/${table.id}`,
           body: [
             {
               MultiSelect: 'jan2,feb,mar2',

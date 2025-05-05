@@ -86,6 +86,7 @@ export enum MetaTable {
   PLANS = 'nc_plans',
   SUBSCRIPTIONS = 'nc_subscriptions',
   USAGE_STATS = 'nc_usage_stats',
+  MCP_TOKENS = 'nc_mcp_tokens',
 }
 
 export const orderedMetaTables = [
@@ -227,6 +228,7 @@ export enum CacheScope {
   RESOURCE_STATS = 'resourceStats',
   STORAGE_STATS = 'storageStats',
   CLOUD_FEATURES = 'cloudFeatures',
+  MCP_TOKEN = 'mcpToken',
 }
 
 export const RootScopeTables = {

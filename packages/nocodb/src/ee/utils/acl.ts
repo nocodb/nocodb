@@ -267,6 +267,12 @@ const permissionScopes = {
 
     'createSyncTable',
     'triggerSync',
+
+    // MCP
+    'mcpList',
+    'mcpCreate',
+    'mcpUpdate',
+    'mcpDelete',
   ],
 };
 
@@ -445,6 +451,11 @@ const rolePermissions:
       commentList: true,
       commentsCount: true,
       auditListRow: true,
+
+      mcpList: true,
+      mcpCreate: true,
+      mcpUpdate: true,
+      mcpDelete: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

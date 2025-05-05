@@ -24489,6 +24489,58 @@
           "id": "9zirjgj9k1gqa"
         }
       },
+      "MCPToken": {
+        "description": "Model for MCP Token",
+        "title": "MCP Token Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the MCP Token"
+          },
+          "expires_at": {
+            "type": "string",
+            "description": ""
+          },
+          "order": {
+            "type": "number",
+            "description": "Order of the Script"
+          },
+          "fk_workspace_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Workspace ID",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Base ID",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
+          },
+          "fk_user_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "User ID of the creator"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Last updated time"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Creation time"
+          }
+        },
+        "x-stoplight": {
+          "id": "4zvzrppfjxrqb"
+        }
+      },
       "Calendar": {
         "description": "Model for Calendar",
         "examples": [

@@ -7,7 +7,6 @@ import { PaymentModule } from '~/modules/payment/payment.module';
 import { ActionsController } from '~/controllers/actions.controller';
 import { CustomUrlsController } from '~/controllers/custom-urls.controller';
 import { CustomUrlsService } from '~/services/custom-urls.service';
-import { InternalController } from '~/controllers/internal.controller';
 
 /* Integrations */
 import { NocoAiModule } from '~/integrations/ai/module/ai.module';
@@ -113,7 +112,6 @@ export const nocoModuleEeMetadata = {
   ],
   controllers: [
     ActionsController,
-    InternalController,
 
     /* Generic */
     CustomUrlsController,

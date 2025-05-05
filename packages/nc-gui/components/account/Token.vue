@@ -241,7 +241,7 @@ const handleCancel = () => {
       <div class="max-w-202 mx-auto h-full w-full" data-testid="nc-token-list">
         <div class="flex gap-4 items-baseline justify-between">
           <h6 class="text-xl text-left font-bold my-0" data-rec="true">{{ $t('title.apiTokens') }}</h6>
-          <NcTooltip v-if="tokens.length" :disabled="true">
+          <NcTooltip v-if="tokens.length" disabled>
             <template #title>{{ $t('labels.tokenLimit') }}</template>
             <NcButton
               :disabled="showNewTokenModal"

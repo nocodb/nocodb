@@ -113,7 +113,6 @@ export const nocoModuleEeMetadata = {
     AclMiddleware,
   ],
   controllers: [
-
     ActionsController,
     InternalController,
 

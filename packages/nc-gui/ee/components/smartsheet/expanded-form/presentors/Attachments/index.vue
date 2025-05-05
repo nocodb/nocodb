@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type ViewType } from 'nocodb-sdk'
+import { UITypes, type ColumnType, type ViewType } from 'nocodb-sdk'
 
 /* interface */
 
@@ -30,7 +30,7 @@ const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
 
 const { setCurrentViewExpandedFormAttachmentColumn } = useSharedView()
 
-const attachmentFields = computed(() => fields.value.filter((field) => field.uidt === 'Attachment'))
+const attachmentFields = computed(() => fields.value.filter((field) => field.uidt === UITypes.Attachment))
 
 const selectedFieldId = ref(props.view?.attachment_mode_column_id ?? attachmentFields.value[0]?.id)
 
@@ -94,18 +94,6 @@ const refAttachmentCell = ref()
 function openFilePicker() {
   refAttachmentCell.value?.openFilePicker()
 }
-
-function downloadCurrentFile() {
-  refAttachmentCell.value?.downloadAttachment(activeAttachment.value)
-}
-
-function deleteCurrentFile() {
-  refAttachmentCell.value?.removeAttachment(activeAttachment.value.title, activeAttachmentIndex.value)
-}
-
-function updateAttachmentTitle(index: number, title: string) {
-  refAttachmentCell.value?.updateAttachmentTitle(index, title)
-}
 </script>
 
 <script lang="ts">
@@ -130,63 +118,8 @@ export default {
         </div>
       </template>
       <template v-else>
-        <div class="flex items-center h-[44px] border-b-1 border-gray-200 px-3 gap-3 nc-files-attachment-header">
-          <div class="hidden">
-            <LazyCellAttachment ref="refAttachmentCell" v-model="attachmentVModel" />
-          </div>
-
-          <NcDropdownSelect
-            v-model="selectedFieldId"
-            class="nc-files-current-field-dropdown"
-            :disabled="!isUIAllowed('viewCreateOrEdit')"
-            :tooltip="
-              !isUIAllowed('viewCreateOrEdit') ? 'You do not have permission to change attachment view field.' : undefined
-            "
-            :items="attachmentFields.map(field => ({ label: field.title || field.id!, value: field.id! }))"
-          >
-            <NcTooltip>
-              <template #title>{{ selectedField?.title }}</template>
-              <NcButton type="secondary" size="small">
-                <GeneralIcon icon="cellAttachment" class="w-4 h-4 aspect-square flex items-center justify-center" />
-                <span class="w-[200px] truncate text-left pl-2 inline-block nc-files-current-field-title">
-                  {{ selectedField?.title }}
-                </span>
-                <GeneralIcon
-                  icon="chevronDown"
-                  class="h-4 w-4 ml-1 text-gray-500 aspect-square flex items-center justify-center"
-                />
-              </NcButton>
-            </NcTooltip>
-          </NcDropdownSelect>
-
-          <NcEditableText
-            v-if="activeAttachment"
-            class="nc-files-current-attachment-title"
-            :disabled="readOnly"
-            :model-value="activeAttachment.title"
-            @update:model-value="updateAttachmentTitle(activeAttachmentIndex, $event)"
-          />
-
-          <div class="flex-1" />
-
-          <NcDropdown>
-            <NcButton type="secondary" size="small">
-              <GeneralIcon icon="threeDotVertical" />
-            </NcButton>
-            <template #overlay>
-              <NcMenu variant="small">
-                <NcMenuItem @click="downloadCurrentFile()">
-                  <GeneralIcon icon="download" />
-                  Download current file
-                </NcMenuItem>
-                <NcDivider />
-                <NcMenuItem :disabled="readOnly" class="!text-red-500" @click="deleteCurrentFile()">
-                  <GeneralIcon icon="delete" />
-                  Delete current file
-                </NcMenuItem>
-              </NcMenu>
-            </template>
-          </NcDropdown>
+        <div class="hidden">
+          <LazyCellAttachment ref="refAttachmentCell" v-model="attachmentVModel" />
         </div>
         <div class="w-full h-0 flex-1 flex flex-row relative">
           <template v-if="!hasAnyValueInAttachment">
@@ -205,6 +138,9 @@ export default {
             <SmartsheetExpandedFormPresentorsAttachmentsPreviewBar
               v-model:active-attachment-index="activeAttachmentIndex"
               :attachments="selectedFieldValue"
+              :selected-field="selectedField"
+              :attachment-fields="attachmentFields"
+              v-model:selected-field-id="selectedFieldId"
               @open:file-picker="openFilePicker()"
             />
             <div class="w-0 flex-1 bg-gray-100 pl-[80px]">

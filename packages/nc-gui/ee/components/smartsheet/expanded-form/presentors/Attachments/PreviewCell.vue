@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { AttachmentType } from 'nocodb-sdk'
+import type { AttachmentType, ColumnType } from 'nocodb-sdk'
 
 /* interface */
 
@@ -7,9 +7,39 @@ const props = defineProps<{
   attachment: AttachmentType
   active?: boolean
   isExpanded?: boolean
+  isFileContentMenuOpen: boolean
+  selectedField: ColumnType
+  attachmentIndex: number
 }>()
 
 const { getPossibleAttachmentSrc } = useAttachment()
+const emits = defineEmits<{
+  (e: 'update:isFileContentMenuOpen', value: boolean): void
+}>()
+
+const isFileContentMenuOpen = useVModel(props, 'isFileContentMenuOpen', emits)
+
+const { selectedField, attachmentIndex } = toRefs(props)
+
+/* stores */
+const { changedColumns, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
+
+const { currentRow } = useSmartsheetRowStoreOrThrow()
+
+const attachmentVModel = computed({
+  get: () => {
+    return _row.value.row[selectedField.value!.title!]
+  },
+  set: (val) => {
+    if (val !== attachmentVModel.value) {
+      currentRow.value.rowMeta.changed = true
+      _row.value.row[selectedField.value!.title!] = val
+      changedColumns.value.add(selectedField.value!.title!)
+    }
+  },
+})
+
+const refAttachmentCell = ref()
 
 /* file detection */
 
@@ -75,11 +105,50 @@ const fileEntry: ComputedRef<{ icon: keyof typeof iconMap; title: string | undef
     title: props.attachment.mimetype?.split('/')?.at(-1) || 'File',
   }
 })
+
+const showRenameInput = ref(false)
+
+const attachmentTitle = ref('')
+
+function downloadCurrentFile() {
+  refAttachmentCell.value?.downloadAttachment(props.attachment)
+  isFileContentMenuOpen.value = false
+}
+
+function deleteCurrentFile() {
+  refAttachmentCell.value?.removeAttachment(props.attachment.title, attachmentIndex.value)
+  isFileContentMenuOpen.value = false
+}
+
+function updateAttachmentTitle() {
+  if (props.attachment.title === attachmentTitle.value) {
+    return cancelRename()
+  }
+
+  refAttachmentCell.value?.updateAttachmentTitle(attachmentIndex.value, attachmentTitle.value)
+  cancelRename()
+}
+
+function renameCurrentFile() {
+  isFileContentMenuOpen.value = true
+  attachmentTitle.value = props.attachment.title ?? ''
+  showRenameInput.value = true
+}
+
+function cancelRename() {
+  showRenameInput.value = false
+  attachmentTitle.value = ''
+  isFileContentMenuOpen.value = false
+}
+
+const onVisibilityChange = (value: boolean) => {
+  isFileContentMenuOpen.value = value
+}
 </script>
 
 <template>
   <div
-    class="h-[56px] border-1 rounded-md overflow-hidden hover:bg-gray-50 cursor-pointer flex flex-row transition-all overflow-clip"
+    class="h-[56px] border-1 rounded-md overflow-hidden hover:bg-gray-50 cursor-pointer flex flex-row transition-all"
     :class="{
       'w-[56px] border-gray-200': !props.isExpanded,
       'w-full border-transparent': props.isExpanded,
@@ -87,6 +156,9 @@ const fileEntry: ComputedRef<{ icon: keyof typeof iconMap; title: string | undef
     }"
     style="scroll-margin-top: 28px"
   >
+    <div class="hidden">
+      <LazyCellAttachment ref="refAttachmentCell" v-model="attachmentVModel" />
+    </div>
     <div class="flex flex-col shrink-0 relative">
       <div class="h-0 w-[56px] flex-1 relative">
         <img
@@ -119,11 +191,48 @@ const fileEntry: ComputedRef<{ icon: keyof typeof iconMap; title: string | undef
         {{ fileEntry.title }}
       </div>
     </div>
-    <div class="whitespace-nowrap flex flex-col justify-center pl-1">
-      <div>
+    <div v-if="showRenameInput" class="flex-1 flex items-center pr-2">
+      <a-input
+        :ref="(el) => el?.focus?.()"
+        v-model:value="attachmentTitle"
+        class="!rounded-lg !w-auto flex-1"
+        @blur="updateAttachmentTitle"
+        @keyup.enter="updateAttachmentTitle"
+        @keyup.esc="cancelRename"
+      />
+    </div>
+    <div v-else class="whitespace-nowrap flex flex-col justify-center pl-1 w-[calc(100%_-_104px)]">
+      <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+        <template #title>
+          {{ props.attachment.title }}
+        </template>
         {{ props.attachment.title }}
-      </div>
+      </NcTooltip>
       <div class="text-xs text-gray-500">{{ getReadableFileSize(props.attachment.size!) }}</div>
+    </div>
+    <div v-if="props.isExpanded && !showRenameInput" class="self-center px-2">
+      <NcDropdown @visible-change="onVisibilityChange">
+        <NcButton type="text" size="xs" class="!px-1" @click.stop>
+          <GeneralIcon icon="threeDotVertical" />
+        </NcButton>
+        <template #overlay>
+          <NcMenu variant="small">
+            <NcMenuItem @click="renameCurrentFile">
+              <GeneralIcon icon="edit" />
+              Rename
+            </NcMenuItem>
+            <NcMenuItem @click="downloadCurrentFile">
+              <GeneralIcon icon="download" />
+              Download
+            </NcMenuItem>
+            <NcDivider />
+            <NcMenuItem class="!text-red-500" @click="deleteCurrentFile">
+              <GeneralIcon icon="delete" />
+              Delete
+            </NcMenuItem>
+          </NcMenu>
+        </template>
+      </NcDropdown>
     </div>
   </div>
 </template>

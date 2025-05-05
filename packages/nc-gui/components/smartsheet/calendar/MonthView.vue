@@ -298,6 +298,11 @@ const recordsToDisplay = computed<{
           const recordStart = currentWeekStart.isBefore(startDate) ? startDate : currentWeekStart
           const recordEnd = currentWeekEnd.isAfter(endDate) ? endDate : currentWeekEnd
 
+          if (maxVisibleDays.value === 5 && [0, 6].includes(startDate.day())) {
+            currentWeekStart = timezoneDayjs.timezonize(currentWeekStart.add(1, 'week'))
+            continue
+          }
+
           if (recordEnd.isBefore(calendarData.value.weeks[0].days[0].date)) {
             currentWeekStart = timezoneDayjs.timezonize(currentWeekStart.add(1, 'week'))
             continue

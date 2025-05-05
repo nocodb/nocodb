@@ -21,11 +21,13 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
       query: any;
       from_date: string;
       to_date: string;
+      next_date: string;
+      prev_date: string;
     },
   ) {
-    const { viewId, query, from_date, to_date } = param;
+    const { viewId, query, from_date, to_date, prev_date, next_date } = param;
 
-    if (!from_date || !to_date)
+    if (!from_date || !to_date || !next_date || !prev_date)
       NcError.badRequest('from_date and to_date are required');
 
     const view = await View.get(context, viewId);
@@ -53,6 +55,8 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
       viewId,
       from_date,
       to_date,
+      next_date,
+      prev_date,
     });
 
     query.filterArrJson = JSON.stringify([
@@ -113,39 +117,20 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
       viewId,
       from_date,
       to_date,
+      next_date,
+      prev_date,
     }: {
       viewId: string;
       from_date: string;
       to_date: string;
+      next_date: string;
+      prev_date: string;
     },
   ) {
     const calendarRange = await CalendarRange.read(context, viewId);
     if (!calendarRange?.ranges?.length) NcError.badRequest('No ranges found');
 
-    let timezone;
-
-    const colId = calendarRange.ranges[0].fk_from_column_id;
-
-    if (colId) {
-      const column = await Column.get(context, { colId });
-      timezone = column?.meta?.timezone || undefined;
-    }
-
     const filterArr: any = [];
-
-    const { dayjsTz } = workerWithTimezone(true, timezone);
-
-    const prevDate = dayjsTz(from_date)
-      .add(1, 'day')
-      .startOf('day')
-      .format('YYYY-MM-DD HH:mm:ssZ');
-
-    const toDateStart = dayjsTz(to_date)
-      .startOf('day')
-      .format('YYYY-MM-DD HH:mm:ssZ');
-    const toDateEnd = dayjsTz(to_date)
-      .endOf('day')
-      .format('YYYY-MM-DD HH:mm:ssZ');
 
     calendarRange.ranges.forEach((range: CalendarRange) => {
       const fromColumn = range.fk_from_column_id;
@@ -161,13 +146,13 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
                 fk_column_id: fromColumn,
                 comparison_op: 'lt',
                 comparison_sub_op: 'exactDate',
-                value: to_date as string,
+                value: next_date as string,
               },
               {
                 fk_column_id: toColumn,
                 comparison_op: 'gt',
                 comparison_sub_op: 'exactDate',
-                value: from_date as string,
+                value: prev_date as string,
               },
             ],
           },
@@ -179,13 +164,13 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
                 fk_column_id: fromColumn,
                 comparison_op: 'gte',
                 comparison_sub_op: 'exactDate',
-                value: toDateStart as string,
+                value: from_date as string,
               },
               {
                 fk_column_id: fromColumn,
                 comparison_op: 'lte',
                 comparison_sub_op: 'exactDate',
-                value: toDateEnd as string,
+                value: to_date as string,
               },
             ],
           },
@@ -201,13 +186,13 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
             fk_column_id: fromColumn,
             comparison_op: 'lt',
             comparison_sub_op: 'exactDate',
-            value: to_date as string,
+            value: next_date as string,
           },
           {
             fk_column_id: fromColumn,
             comparison_op: 'gt',
             comparison_sub_op: 'exactDate',
-            value: from_date as string,
+            value: prev_date as string,
           },
         ];
         filterArr.push({

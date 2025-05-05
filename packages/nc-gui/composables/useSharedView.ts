@@ -192,6 +192,8 @@ export function useSharedView() {
   const fetchSharedCalendarViewData = async (param: {
     from_date: string
     to_date: string
+    next_date: string
+    prev_date: string
     sortsArr: SortType[]
     filtersArr: FilterType[]
     fields?: any[]
@@ -330,6 +332,8 @@ export function useSharedView() {
   const fetchSharedViewActiveDate = async (param: {
     from_date: string
     to_date: string
+    next_date: string
+    prev_date: string
     sortsArr: SortType[]
     filtersArr: FilterType[]
     sort?: any[]

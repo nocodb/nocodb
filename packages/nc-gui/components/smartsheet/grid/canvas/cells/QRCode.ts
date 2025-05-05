@@ -11,7 +11,7 @@ export const QRCodeCellRenderer: CellRenderer = {
           y,
           text: 'ERR!',
           maxWidth: width - padding * 2,
-          fontFamily: '500 13px Manrope',
+          fontFamily: '500 13px Inter',
           fillStyle: '#e65100',
           height,
         })
@@ -28,7 +28,7 @@ export const QRCodeCellRenderer: CellRenderer = {
         y,
         text: 'Too many characters for a QR Code',
         maxWidth: width - padding * 2,
-        fontFamily: '500 13px Manrope',
+        fontFamily: '500 13px Inter',
         fillStyle: '#e65100',
         height,
       })

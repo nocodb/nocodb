@@ -19,7 +19,7 @@ export const SingleSelectCellRenderer: CellRenderer = {
       maxWidth: width - padding * 2 - tagPadding * 2,
       textAlign: 'left',
       verticalAlign: 'middle',
-      fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+      fontFamily: `${pv ? 600 : 500} 13px Inter`,
       render: false,
     })
 
@@ -41,7 +41,7 @@ export const SingleSelectCellRenderer: CellRenderer = {
       maxWidth: width - padding * 2 - tagPadding * 2,
       textAlign: 'left',
       verticalAlign: 'middle',
-      fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+      fontFamily: `${pv ? 600 : 500} 13px Inter`,
       fillStyle: getSelectTypeOptionTextColor(opColor),
     })
 
@@ -58,7 +58,7 @@ export const SingleSelectCellRenderer: CellRenderer = {
     const maxWidth = width - padding * 2 - tagPadding * 2
     const ctx = document.createElement('canvas').getContext('2d')
     if (!ctx) return
-    ctx.font = `${column.pv ? 600 : 500} 13px Manrope`
+    ctx.font = `${column.pv ? 600 : 500} 13px Inter`
     const text = value?.toString()?.trim() ?? ''
     // If it is empty text then no need to render
     if (!text) return

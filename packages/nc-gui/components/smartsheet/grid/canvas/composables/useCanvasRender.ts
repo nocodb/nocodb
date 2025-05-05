@@ -250,7 +250,7 @@ export function useCanvasRender({
 
     // Regular columns
     ctx.fillStyle = '#6a7184'
-    ctx.font = '550 12px Manrope'
+    ctx.font = '550 12px Inter'
     ctx.textBaseline = 'middle'
     ctx.imageSmoothingEnabled = false
 
@@ -870,7 +870,7 @@ export function useCanvasRender({
         y: yOffset,
         text: (row.rowMeta.rowIndex! + 1).toString(),
         maxWidth: ROW_META_COLUMN_WIDTH - 28,
-        fontFamily: `500 ${rowIndexFontSize} Manrope`,
+        fontFamily: `500 ${rowIndexFontSize} Inter`,
         isTagLabel: true,
         fillStyle: '#6B7280',
       })
@@ -949,7 +949,7 @@ export function useCanvasRender({
           render,
           text: commentCount,
           maxWidth: ROW_META_COLUMN_WIDTH / 2,
-          fontFamily: `${reduceFontSize ? '600 10px' : '500 13px'} Manrope`,
+          fontFamily: `${reduceFontSize ? '600 10px' : '500 13px'} Inter`,
           textAlign: 'center',
           isTagLabel: true,
           fillStyle: '#3366FF',
@@ -1040,7 +1040,7 @@ export function useCanvasRender({
       text: t('upgrade.upgradeToSeeMoreRecordInline'),
       maxWidth: Math.min(width.value, 520),
       fillStyle: '#101015',
-      fontFamily: `700 16px Manrope`,
+      fontFamily: `700 16px Inter`,
       height: 100,
       lineHeight: 24,
       maxLines: 2,
@@ -1061,7 +1061,7 @@ export function useCanvasRender({
       }),
       maxWidth: Math.min(width.value, 520),
       fillStyle: '#4A5268',
-      fontFamily: `500 14px Manrope`,
+      fontFamily: `500 14px Inter`,
       height: 100,
       lineHeight: 20,
       maxLines: 4,
@@ -1078,7 +1078,7 @@ export function useCanvasRender({
         maxWidth: 120,
         height: 32,
         verticalAlign: 'middle',
-        fontFamily: '600 14px Manrope',
+        fontFamily: '600 14px Inter',
         fillStyle: '#374151',
         isTagLabel: true,
         render,
@@ -1093,7 +1093,7 @@ export function useCanvasRender({
         maxWidth: 120,
         height: 32,
         verticalAlign: 'middle',
-        fontFamily: '600 14px Manrope',
+        fontFamily: '600 14px Inter',
         fillStyle: 'white',
         isTagLabel: true,
         render,
@@ -1184,9 +1184,10 @@ export function useCanvasRender({
       column: CanvasGridColumn
     }[] = []
     const groupPath = generateGroupPath(group)
-    const isHovered = hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
-    const isActiveCellInCurrentGroup = comparePath(activeCell.value?.path, groupPath)
-    const isRowCellSelected = activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path)
+    const isHovered = hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path ?? group?.path)
+    const isActiveCellInCurrentGroup = comparePath(activeCell.value?.path, groupPath ?? group?.path)
+    const isRowCellSelected =
+      activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path ?? group?.path)
 
     if (row) {
       const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
@@ -1724,7 +1725,7 @@ export function useCanvasRender({
         py: 7,
         fillStyle: '#1f293a',
         fontSize: 12,
-        fontFamily: '600 12px Manrope',
+        fontFamily: '600 12px Inter',
       })
     }
     renderActiveState(ctx, activeState)
@@ -1839,10 +1840,10 @@ export function useCanvasRender({
         ctx.textBaseline = 'middle'
         ctx.textAlign = 'right'
 
-        ctx.font = '600 12px Manrope'
+        ctx.font = '600 12px Inter'
         const aggWidth = ctx.measureText(column.aggregation).width
         if (column.agg_prefix) {
-          ctx.font = '400 12px Manrope'
+          ctx.font = '400 12px Inter'
           ctx.fillStyle = '#6a7184'
           ctx.fillText(
             column.agg_prefix,
@@ -1850,7 +1851,7 @@ export function useCanvasRender({
             height.value - AGGREGATION_HEIGHT / 2,
           )
         }
-        ctx.font = '600 12px Manrope'
+        ctx.font = '600 12px Inter'
         ctx.fillStyle = '#4a5268'
         ctx.fillText(column.aggregation ?? ' - ', xOffset + width - 8 - scrollLeft.value, height.value - AGGREGATION_HEIGHT / 2)
 
@@ -1864,7 +1865,7 @@ export function useCanvasRender({
           ctx.fill()
           ctx.clip()
 
-          ctx.font = '600 10px Manrope'
+          ctx.font = '600 10px Inter'
           ctx.fillStyle = '#6a7184'
           ctx.textAlign = 'right'
           ctx.textBaseline = 'middle'
@@ -1928,18 +1929,18 @@ export function useCanvasRender({
 
           ctx.textAlign = 'right'
 
-          ctx.font = '600 12px Manrope'
+          ctx.font = '600 12px Inter'
           const aggWidth = ctx.measureText(firstFixedCol.aggregation).width
 
           if (firstFixedCol.agg_prefix) {
-            ctx.font = '400 12px Manrope'
+            ctx.font = '400 12px Inter'
             ctx.fillStyle = '#6a7184'
             ctx.fillText(firstFixedCol.agg_prefix, mergedWidth - aggWidth - 16, height.value - AGGREGATION_HEIGHT / 2)
             const w = ctx.measureText(firstFixedCol.agg_prefix).width
             availWidth -= w
           }
 
-          ctx.font = '600 12px Manrope'
+          ctx.font = '600 12px Inter'
           ctx.fillStyle = '#4a5268'
           ctx.fillText(firstFixedCol.aggregation ?? ' - ', mergedWidth - 8, height.value - AGGREGATION_HEIGHT / 2)
 
@@ -1953,7 +1954,7 @@ export function useCanvasRender({
             ctx.rect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
             ctx.clip()
 
-            ctx.font = '600 10px Manrope'
+            ctx.font = '600 10px Inter'
             ctx.textAlign = 'right'
 
             const rightEdge = xOffset + mergedWidth - 8
@@ -1994,7 +1995,7 @@ export function useCanvasRender({
           textAlign: 'left',
           fontSize: 12,
           maxWidth: availWidth - 16,
-          fontFamily: '500 12px Manrope',
+          fontFamily: '500 12px Inter',
         })
         //  Not exactly sure, but height.value becomes zero, randomly when scroll
         if (height.value) {
@@ -2040,16 +2041,16 @@ export function useCanvasRender({
             ctx.rect(xOffset, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
             ctx.clip()
 
-            ctx.font = '600 12px Manrope'
+            ctx.font = '600 12px Inter'
             const aggWidth = ctx.measureText(column.aggregation).width
 
             if (column.agg_prefix) {
-              ctx.font = '400 12px Manrope'
+              ctx.font = '400 12px Inter'
               ctx.fillStyle = '#6a7184'
               ctx.fillText(column.agg_prefix, xOffset + width - aggWidth - 16, height.value - AGGREGATION_HEIGHT / 2)
             }
 
-            ctx.font = '600 12px Manrope'
+            ctx.font = '600 12px Inter'
             ctx.fillStyle = '#4a5268'
             ctx.fillText(column.aggregation, xOffset + width - 8, height.value - AGGREGATION_HEIGHT / 2)
 
@@ -2060,7 +2061,7 @@ export function useCanvasRender({
             ctx.rect(xOffset, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
             ctx.clip()
 
-            ctx.font = '600 10px Manrope'
+            ctx.font = '600 10px Inter'
             ctx.fillStyle = '#6a7184'
             ctx.textAlign = 'right'
             ctx.textBaseline = 'middle'
@@ -2245,7 +2246,7 @@ export function useCanvasRender({
         rowsToFetch.push(i)
       }
 
-      const isHovered = hoverRow.value?.rowIndex === i && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
+      const isHovered = hoverRow.value?.rowIndex === i && comparePath(hoverRow.value?.path, row?.rowMeta?.path ?? group.path)
 
       roundedRect(ctx, indent, yOffset, adjustedWidth, rowHeight.value, 0, {
         backgroundColor: isHovered ? '#F9F9FA' : '#fff',
@@ -2334,7 +2335,7 @@ export function useCanvasRender({
       const { width: renderedWidth } = renderSingleLineText(ctx, {
         x: 16 + 20 + level * 13,
         y: yOffset + 2,
-        fontFamily: '600 13px Manrope',
+        fontFamily: '600 13px Inter',
         height: COLUMN_HEADER_HEIGHT_IN_PX,
         fillStyle: '#374151',
         text: `${t('activity.newRecord')}`,
@@ -2403,7 +2404,7 @@ export function useCanvasRender({
         py: 7,
         fillStyle: '#1f293a',
         fontSize: 12,
-        fontFamily: '600 12px Manrope',
+        fontFamily: '600 12px Inter',
       })
     }
 
@@ -2692,10 +2693,10 @@ export function useCanvasRender({
               ctx.textBaseline = 'middle'
               ctx.textAlign = 'right'
 
-              ctx.font = '600 12px Manrope'
+              ctx.font = '600 12px Inter'
               const aggWidth = ctx.measureText(group?.aggregations[column.title] ?? ' - ').width
               if (column.agg_prefix) {
-                ctx.font = '400 12px Manrope'
+                ctx.font = '400 12px Inter'
                 ctx.fillStyle = '#6a7184'
                 ctx.fillText(
                   column.agg_prefix,
@@ -2705,7 +2706,7 @@ export function useCanvasRender({
                 )
               }
               ctx.fillStyle = '#374151'
-              ctx.font = '600 12px Manrope'
+              ctx.font = '600 12px Inter'
               ctx.fillText(
                 group?.aggregations[column.title] ?? ' - ',
                 aggXOffset + width - 8 - scrollLeft.value,
@@ -2737,7 +2738,7 @@ export function useCanvasRender({
                 ctx.fill()
                 ctx.clip()
 
-                ctx.font = '600 10px Manrope'
+                ctx.font = '600 10px Inter'
                 ctx.fillStyle = '#6a7184'
                 ctx.textAlign = 'right'
                 ctx.textBaseline = 'middle'
@@ -2819,7 +2820,7 @@ export function useCanvasRender({
           y: contentY - 1,
           height: GROUP_HEADER_HEIGHT,
           verticalAlign: 'middle',
-          fontFamily: '600 12px Manrope',
+          fontFamily: '600 12px Inter',
           fillStyle: '#374151',
           textAlign: 'right',
         })
@@ -2832,7 +2833,7 @@ export function useCanvasRender({
           height: GROUP_HEADER_HEIGHT,
           verticalAlign: 'middle',
           textAlign: 'right',
-          fontFamily: '400 12px Manrope',
+          fontFamily: '400 12px Inter',
           fillStyle: '#6A7184',
         })
 
@@ -2846,7 +2847,7 @@ export function useCanvasRender({
           fillStyle: '#4A5268',
           x: contentX,
           maxWidth: availableWidth - 20 - countWidth,
-          fontFamily: '600 10px Manrope',
+          fontFamily: '600 10px Inter',
           y: groupHeaderY,
           py: 6,
         })
@@ -2916,7 +2917,7 @@ export function useCanvasRender({
           : tinycolor.mostReadable(color, ['#1f293a', '#fff']).toHex8String()
 
         ctx.save()
-        ctx.font = '700 13px Manrope'
+        ctx.font = '700 13px Inter'
         const tagPaddingX = 12
         const tagSpacing = 0
         const remainingWidth = maxWidth - (xPosition - x)
@@ -2926,7 +2927,7 @@ export function useCanvasRender({
 
         if (xPosition > x && (estimatedTagWidth > remainingWidth - 30 || remainingWidth < 50)) {
           ctx.fillStyle = '#6a7184'
-          ctx.font = '400 12px Manrope'
+          ctx.font = '400 12px Inter'
 
           const indicatorX = Math.min(xPosition, x + maxWidth - 24)
 
@@ -2950,7 +2951,7 @@ export function useCanvasRender({
             tagRadius: 12,
             tagBgColor: color,
             tagSpacing: 0,
-            tagFontFamily: '700 13px Manrope',
+            tagFontFamily: '700 13px Inter',
           },
         } as any)
 
@@ -2963,7 +2964,7 @@ export function useCanvasRender({
           if (i < tags.length - 1) {
             ctx.save()
             ctx.fillStyle = '#6a7184'
-            ctx.font = '400 12px Manrope'
+            ctx.font = '400 12px Inter'
 
             const indicatorSpace = Math.max(24, x + maxWidth - xPosition)
 
@@ -2984,7 +2985,7 @@ export function useCanvasRender({
       renderSingleLineText(ctx, {
         text: displayText,
         fillStyle: isCheckBox ? '#1f293a' : '#6A7184',
-        fontFamily: '700 13px Manrope',
+        fontFamily: '700 13px Inter',
         x,
         y: y - GROUP_HEADER_HEIGHT / 2 + 8,
         height: 20,
@@ -3017,7 +3018,7 @@ export function useCanvasRender({
         relatedTableMeta: group.relatedTableMeta,
         mousePosition,
         skipRender: false,
-        fontFamily: '700 13px Manrope',
+        fontFamily: '700 13px Inter',
         isGroupHeader: true,
       })
     } else {
@@ -3040,7 +3041,7 @@ export function useCanvasRender({
         mousePosition,
         skipRender: false,
         renderAsPlainCell: true,
-        fontFamily: '700 13px Manrope',
+        fontFamily: '700 13px Inter',
         isGroupHeader: true,
       })
     }

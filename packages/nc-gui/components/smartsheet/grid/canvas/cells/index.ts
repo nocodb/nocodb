@@ -292,7 +292,7 @@ export function useGridCellHandler(params: {
         x: x + padding,
         y,
         text: value?.toString() ?? '',
-        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        fontFamily: `${pv ? 600 : 500} 13px Inter`,
         fillStyle: pv ? '#3366FF' : textColor,
         height,
         py: padding,

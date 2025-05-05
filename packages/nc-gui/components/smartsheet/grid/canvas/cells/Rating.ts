@@ -215,7 +215,7 @@ export const RatingCellRenderer: CellRenderer = {
       const lastRow = Math.min(Math.floor((iconsToShow - 1) / iconsPerRow), maxRows - 1)
       const lastColInRow = (iconsToShow - 1) % iconsPerRow
 
-      ctx.font = '500 13px Manrope'
+      ctx.font = '500 13px Inter'
       ctx.fillStyle = '#4a5268'
       ctx.textBaseline = 'middle'
       ctx.fillText(

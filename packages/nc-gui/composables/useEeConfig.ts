@@ -1,7 +1,17 @@
+import type { CloudFeaturesType } from '~/lib/types'
+
+const eeConfigState = createGlobalState(() => {
+  const cloudFeatures = ref<CloudFeaturesType[]>([])
+
+  return { cloudFeatures }
+})
+
 export const useEeConfig = createSharedComposable(() => {
+  const { cloudFeatures } = eeConfigState()
+
   const isSideBannerExpanded = ref(false)
 
-  const isPaidPlan = computed(() => undefined)
+  const isPaidPlan = computed(() => false)
 
   const activePlan = computed(() => undefined)
 
@@ -9,9 +19,9 @@ export const useEeConfig = createSharedComposable(() => {
 
   const activeSubscription = computed(() => undefined)
 
-  const isLoyaltyDiscountAvailable = computed(() => undefined)
+  const isLoyaltyDiscountAvailable = computed(() => false)
 
-  const isPaymentEnabled = computed(() => undefined)
+  const isPaymentEnabled = computed(() => false)
 
   const blockAddNewRecord = computed(() => false)
 
@@ -116,5 +126,6 @@ export const useEeConfig = createSharedComposable(() => {
     isTopBannerVisible,
     showUpgradeToUploadWsImage,
     isSideBannerExpanded,
+    cloudFeatures,
   }
 })

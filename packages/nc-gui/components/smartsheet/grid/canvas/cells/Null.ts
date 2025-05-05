@@ -15,7 +15,7 @@ export const NullCellRenderer: CellRenderer = {
       textAlign: isNumericField ? 'right' : 'left',
       text: 'NULL',
       maxWidth: width - padding * 2,
-      fontFamily: `500 13px Manrope`,
+      fontFamily: `500 13px Inter`,
       fillStyle: textColor,
       height,
     })

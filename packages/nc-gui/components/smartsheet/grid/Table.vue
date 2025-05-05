@@ -2727,6 +2727,7 @@ onKeyStroke('ArrowDown', onDown)
         :fixed-size="paginationStyleRef?.fixedSize"
         :extra-style="paginationStyleRef?.extraStyle"
         :show-size-changer="!isGroupBy"
+        :is-add-new-record-grid-mode="isAddNewRecordGridMode"
       >
         <template v-if="isAddingEmptyRowAllowed && !showSkeleton" #add-record>
           <div class="flex ml-1">

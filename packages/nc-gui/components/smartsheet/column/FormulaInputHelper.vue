@@ -962,6 +962,6 @@ const enableAI = async () => {
 <style lang="scss">
 .formula-placeholder {
   @apply !text-gray-500 !text-xs !font-medium;
-  font-family: 'Manrope';
+  font-family: 'Inter';
 }
 </style>

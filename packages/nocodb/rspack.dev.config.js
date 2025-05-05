@@ -28,7 +28,7 @@ const baseDevConfig = {
         exclude: /node_modules/,
         loader: 'builtin:swc-loader',
         options: {
-          sourceMap: true,
+          sourceMaps: true,
           jsc: {
             parser: {
               syntax: 'typescript',
@@ -94,8 +94,7 @@ const baseDevConfig = {
   ],
   output: {
     devtoolModuleFilenameTemplate: (info) => {
-      const absolutePath = resolve(info.absoluteResourcePath);
-      return `file://${absolutePath}`;
+      return resolve(info.absoluteResourcePath);
     },
     path: join(__dirname, 'dist'),
     filename: 'main.js',

@@ -33,6 +33,7 @@ export class LongTextHelper extends AbstractColumnHelper {
   }
 
   parsePlainCellValue(value: any): string {
-    return value?.toString()?.trim() ?? '';
+    // Remove trim() to preserve leading and trailing spaces
+    return value?.toString() ?? '';
   }
 }

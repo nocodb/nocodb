@@ -105,7 +105,7 @@ export const FormulaCellRenderer: CellRenderer = {
       const maxWidth = width - padding * 2
       // If the field uses URL formula render it as a clickable link
       if (typeof urls === 'string') {
-        ctx.font = `${pv ? 600 : 500} 13px Manrope`
+        ctx.font = `${pv ? 600 : 500} 13px Inter`
         ctx.fillStyle = pv ? '#3366FF' : textColor
         const boxes = renderFormulaURL(ctx, {
           htmlText: urls,
@@ -203,7 +203,7 @@ export const FormulaCellRenderer: CellRenderer = {
 
       if (typeof urls === 'string') {
         const ctx = defaultOffscreen2DContext
-        ctx.font = `${pv ? 600 : 500} 13px Manrope`
+        ctx.font = `${pv ? 600 : 500} 13px Inter`
         const boxes = renderFormulaURL(ctx, {
           htmlText: urls,
           height,

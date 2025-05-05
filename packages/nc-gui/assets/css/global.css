@@ -8,6 +8,8 @@ html {
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   box-sizing: border-box;
+  font-family: Inter, Manrope, 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
 }
 
 body,
@@ -17,11 +19,11 @@ body,
 }
 
 /*
-Apply Manrope for rtl
+Apply Inter for rtl
 */
 
 .rtl .v-application *:not(.material-icons) {
-  font-family: Manrope !important;
+  font-family: Inter !important;
 }
 
 .rtl .v-application .ml-n1 {

@@ -47,7 +47,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
             maxWidth: ellipsisWidth,
             textAlign: 'right',
             verticalAlign: 'middle',
-            fontFamily: '500 13px Manrope',
+            fontFamily: '500 13px Inter',
             fillStyle: defaultColor,
             height,
           })
@@ -78,7 +78,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
         maxWidth: width - tagPadding * 2,
         textAlign: 'left',
         verticalAlign: 'middle',
-        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        fontFamily: `${pv ? 600 : 500} 13px Inter`,
         fillStyle: getSelectTypeOptionTextColor(optionsMap[text]?.color ?? defaultColor),
         height,
       })

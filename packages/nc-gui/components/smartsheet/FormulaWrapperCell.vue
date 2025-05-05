@@ -30,7 +30,7 @@ const isNumericField = computed(() => {
 const showAsLongText = computed(() => {
   if (!width.value || !isTextArea(column.value)) return false
 
-  defaultOffscreen2DContext.font = '500 13px Manrope'
+  defaultOffscreen2DContext.font = '500 13px Inter'
 
   return (
     isTextArea(column.value) &&

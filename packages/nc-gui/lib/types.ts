@@ -662,6 +662,13 @@ interface CanvasGroup {
   aggregations: Record<string, any>
 }
 
+interface CloudFeaturesType {
+  'Id'?: number
+  'Title'?: string
+  'Highlight'?: boolean
+  'Coming Soon'?: boolean
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -712,4 +719,5 @@ export type {
   CursorType,
   CanvasCellEventDataInjType,
   CanvasGroup,
+  CloudFeaturesType,
 }

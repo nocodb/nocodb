@@ -211,6 +211,7 @@ export const serializeYearValue = (value: any) => {
 };
 
 export const serializeSelectValue = (value: any, col: ColumnType) => {
+  // Always trim values for select fields to prevent creating options with leading/trailing spaces
   value = value?.toString().trim();
 
   // return null if value is empty

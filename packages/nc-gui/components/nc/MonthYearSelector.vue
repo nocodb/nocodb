@@ -9,6 +9,7 @@ interface Props {
   isCellInputField?: boolean
   pickerType?: 'date' | 'time' | 'year' | 'month'
   showCurrentDateOption?: boolean | 'disabled'
+  timezone?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -27,12 +28,16 @@ const selectedDate = useVModel(props, 'selectedDate', emit)
 
 const pickerType = useVModel(props, 'pickerType', emit)
 
+const timezoneDayjs = computed(() => {
+  return withTimezone(props.timezone)
+})
+
 const years = computed(() => {
   const date = pageDate.value
   const startOfYear = date.startOf('year')
   const years: dayjs.Dayjs[] = []
   for (let i = 0; i < 12; i++) {
-    years.push(dayjs(startOfYear).add(i, 'year'))
+    years.push(timezoneDayjs.value.dayjsTz(startOfYear).add(i, 'year'))
   }
   return years
 })
@@ -51,7 +56,7 @@ const compareDates = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
 }
 
 const isMonthSelected = (date: dayjs.Dayjs) => {
-  if (!dayjs(selectedDate.value).isValid()) return false
+  if (!timezoneDayjs.value.dayjsTz(selectedDate.value).isValid()) return false
   return compareDates(date, selectedDate.value)
 }
 
@@ -67,7 +72,7 @@ const paginateMonth = (action: 'next' | 'prev') => {
 }
 
 const paginateYear = (action: 'next' | 'prev') => {
-  let date = dayjs(pageDate.value)
+  let date = timezoneDayjs.value.dayjsTz(pageDate.value)
   if (action === 'next') {
     date = date.add(12, 'year')
   } else {
@@ -87,6 +92,7 @@ const paginate = (action: 'next' | 'prev') => {
 
 const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
   if (!date1 || !date2) return false
+  console.log(date1.format('DD MM YYYY HH:mm:ss Z'), date2.format('DD MM YYYY HH:mm:ss Z'))
   return date1.isSame(date2, 'year')
 }
 </script>
@@ -120,9 +126,9 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
         >{{
           isYearPicker
             ? isCellInputField
-              ? dayjs(selectedDate).year() || dayjs().year()
-              : dayjs(selectedDate).year()
-            : dayjs(pageDate).format('YYYY')
+              ? timezoneDayjs.dayjsTz(selectedDate).year() || timezoneDayjs.dayjsTz().year()
+              : timezoneDayjs.dayjsTz(selectedDate).year()
+            : timezoneDayjs.dayjsTz(pageDate).format('YYYY')
         }}</span
       >
       <div class="flex">
@@ -153,7 +159,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
               'bg-gray-200 !text-brand-900 !font-bold': isMonthSelected(month) && !isCellInputField,
               'bg-gray-300 !font-weight-600 ': isMonthSelected(month) && isCellInputField,
               'hover:(border-1 border-gray-200 bg-gray-100)': !isMonthSelected(month),
-              '!text-brand-500': dayjs().isSame(month, 'month'),
+              '!text-brand-500': timezoneDayjs.dayjsTz().isSame(month, 'month'),
               'font-weight-400': isCellInputField,
               'font-medium': !isCellInputField,
             }"
@@ -172,7 +178,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
               'bg-gray-200 !font-bold ': compareYear(year, selectedDate) && !isCellInputField,
               'bg-gray-300 !text-brand-500 !font-weight-600 ': compareYear(year, selectedDate) && isCellInputField,
               'hover:(border-1 border-gray-200 bg-gray-100)': !compareYear(year, selectedDate),
-              '!text-brand-500': dayjs().isSame(year, 'year'),
+              '!text-brand-500': timezoneDayjs.dayjsTz().format('YYYY') === year.format('YYYY'),
               'font-weight-400 text-gray-700': isCellInputField,
               'font-medium text-gray-900': !isCellInputField,
             }"

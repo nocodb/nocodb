@@ -20,13 +20,13 @@ export class SingleLineTextHelper extends AbstractColumnHelper {
     if (value === null || value === undefined) {
       return '';
     }
-    return value.toString().trim();
+    return value.toString();
   }
 
   parsePlainCellValue(
     value: any,
     _params: SerializerOrParserFnProps['params']
   ): string {
-    return value?.toString()?.trim() ?? '';
+    return value?.toString() ?? '';
   }
 }

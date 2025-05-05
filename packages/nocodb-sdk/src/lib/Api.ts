@@ -12490,6 +12490,45 @@ export class Api<
       }),
 
     /**
+ * No description
+ * 
+ * @tags Utils
+ * @name CloudFeatures
+ * @summary Get Cloud Features
+ * @request GET:/api/v2/cloud-features
+ * @response `200` `({
+  Id?: number,
+  Title?: string,
+  Highlight?: boolean,
+  "Coming Soon"?: boolean,
+
+})[]` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    cloudFeatures: (params: RequestParams = {}) =>
+      this.request<
+        {
+          Id?: number;
+          Title?: string;
+          Highlight?: boolean;
+          'Coming Soon'?: boolean;
+        }[],
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/cloud-features`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Get Aggregated Meta Info such as tableCount, dbViewCount, viewCount and etc.
  * 
  * @tags Utils

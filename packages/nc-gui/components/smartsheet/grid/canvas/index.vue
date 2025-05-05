@@ -792,7 +792,7 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
       render: false,
       text: commentCount,
       maxWidth: ROW_META_COLUMN_WIDTH / 2,
-      fontFamily: `600 ${reduceFontSize ? '10px' : '12px'} Manrope`,
+      fontFamily: `600 ${reduceFontSize ? '10px' : '12px'} Inter`,
       textAlign: 'center',
       isTagLabel: true,
       fillStyle: '#3366FF',
@@ -1569,7 +1569,7 @@ const getHeaderTooltipRegions = (
 
   const ctx = defaultOffscreen2DContext
   ctx.save()
-  ctx.font = '550 12px Manrope'
+  ctx.font = '550 12px Inter'
   columns.value.slice(startColIndex, endColIndex).forEach((column) => {
     const width = parseCellWidth(column.width)
 
@@ -2794,6 +2794,15 @@ defineExpose({
 
       &:not(.ant-select-selection-search-input) {
         @apply !text-small leading-[18px];
+      }
+    }
+  }
+
+  :deep(.nc-cell),
+  :deep(.nc-virtual-cell) {
+    &:not(.nc-cell-date):not(.nc-cell-datetime):not(.nc-cell-year):not(.nc-cell-time) {
+      input {
+        @apply min-h-[26px] !important;
       }
     }
   }

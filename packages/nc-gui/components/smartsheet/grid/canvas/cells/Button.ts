@@ -257,7 +257,7 @@ export const ButtonCellRenderer: CellRenderer = {
     let truncatedLabel = buttonMeta.label
 
     if (hasLabel) {
-      ctx.font = '550 13px Manrope'
+      ctx.font = '550 13px Inter'
       const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
 
       const truncatedInfo = truncateText(ctx, buttonMeta.label, maxTextWidth, true)
@@ -358,7 +358,7 @@ export const ButtonCellRenderer: CellRenderer = {
 
     if (hasLabel) {
       const ctx = defaultOffscreen2DContext
-      ctx.font = '550 13px Manrope'
+      ctx.font = '550 13px Inter'
 
       const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
 
@@ -422,7 +422,7 @@ export const ButtonCellRenderer: CellRenderer = {
 
     if (hasLabel) {
       const ctx = defaultOffscreen2DContext
-      ctx.font = '500 13px Manrope'
+      ctx.font = '550 13px Inter'
 
       const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
 

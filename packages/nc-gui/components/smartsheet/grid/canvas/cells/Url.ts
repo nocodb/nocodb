@@ -30,7 +30,7 @@ export const UrlCellRenderer: CellRenderer = {
         y,
         text,
         maxWidth,
-        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        fontFamily: `${pv ? 600 : 500} 13px Inter`,
         fillStyle: (isValid && selected) || pv ? '#3366FF' : textColor,
         underline: isValid,
         height,
@@ -87,7 +87,7 @@ export const UrlCellRenderer: CellRenderer = {
       y,
       text,
       maxWidth: width - padding * 2,
-      fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+      fontFamily: `${pv ? 600 : 500} 13px Inter`,
       height,
       render: false,
     })
@@ -134,7 +134,7 @@ export const UrlCellRenderer: CellRenderer = {
       y: y + padding,
       text,
       maxWidth: width - padding * 2,
-      fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+      fontFamily: `${pv ? 600 : 500} 13px Inter`,
       height,
       render: false,
     })

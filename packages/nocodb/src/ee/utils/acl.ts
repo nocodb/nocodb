@@ -137,6 +137,7 @@ const permissionScopes = {
     'cloud-org_orgDomainList',
   ],
   base: [
+    'nestedDataListCopyPasteOrDeleteAll',
     'formViewGet',
     'baseGet',
     'tableGet',

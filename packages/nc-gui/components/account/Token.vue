@@ -50,6 +50,7 @@ const setDefaultTokenName = () => {
     [...allTokens.value.map((el) => el?.description || '')],
     defaultTokenName,
   )
+  isValidTokenName.value = true
 }
 
 const hideOrShowToken = (tokenId: string) => {
@@ -167,9 +168,10 @@ const validateTokenName = (tokenName: string | undefined) => {
 }
 
 const generateToken = async () => {
-  isValidTokenName.value = validateTokenName(selectedTokenData.value.description)
+  const isValid = validateTokenName(selectedTokenData.value.description)
+  isValidTokenName.value = isValid
 
-  if (!isValidTokenName.value) return
+  if (!isValid) return
   try {
     const token = await api.orgTokens.create(selectedTokenData.value)
 
@@ -293,6 +295,7 @@ const handleCancel = () => {
                       data-testid="nc-token-input"
                       :disabled="isLoading"
                       @press-enter="generateToken"
+                      @input="isValidTokenName = validateTokenName(selectedTokenData.value.description)"
                     />
                     <span v-if="!isValidTokenName" class="text-red-500 text-xs font-light mt-1.5 ml-1" data-rec="true"
                       >{{ errorMessage }}

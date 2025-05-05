@@ -12,11 +12,10 @@ const props = defineProps<{
   attachmentIndex: number
 }>()
 
-const { getPossibleAttachmentSrc } = useAttachment()
 const emits = defineEmits<{
   (e: 'update:isFileContentMenuOpen', value: boolean): void
 }>()
-
+const { getPossibleAttachmentSrc } = useAttachment()
 const isFileContentMenuOpen = useVModel(props, 'isFileContentMenuOpen', emits)
 
 const { attachment, selectedField, attachmentIndex } = toRefs(props)

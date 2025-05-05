@@ -72,8 +72,8 @@ watch(selectedFieldId, () => {
         :disabled="!isUIAllowed('viewCreateOrEdit')"
         :tooltip="!isUIAllowed('viewCreateOrEdit') ? 'You do not have permission to change attachment view field.' : undefined"
         :items="attachmentFields.map(field => ({ label: field.title || field.id!, value: field.id! }))"
-        @visible-change="isFileContentMenuOpen = $event"
         overlay-class-name="w-[288px]"
+        @visible-change="isFileContentMenuOpen = $event"
       >
         <NcButton
           type="secondary"

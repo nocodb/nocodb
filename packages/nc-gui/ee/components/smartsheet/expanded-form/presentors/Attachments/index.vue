@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes, type ColumnType, type ViewType } from 'nocodb-sdk'
+import { type ColumnType, UITypes, type ViewType } from 'nocodb-sdk'
 
 /* interface */
 
@@ -137,10 +137,10 @@ export default {
           <template v-else>
             <SmartsheetExpandedFormPresentorsAttachmentsPreviewBar
               v-model:active-attachment-index="activeAttachmentIndex"
+              v-model:selected-field-id="selectedFieldId"
               :attachments="selectedFieldValue"
               :selected-field="selectedField"
               :attachment-fields="attachmentFields"
-              v-model:selected-field-id="selectedFieldId"
               @open:file-picker="openFilePicker()"
             />
             <div class="w-0 flex-1 bg-gray-100 pl-[80px]">

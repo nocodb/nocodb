@@ -246,7 +246,7 @@ function isShowableValue(value: any) {
         <template v-else>
           <div
             v-if="isShowableValue(processOldDataFor(columnKey))"
-            class="max-w-full nc-expressive-mini-item-cell nc-audit-removal !text-red-700 border-1 mr-1 border-red-200 rounded-md bg-red-50 line-through"
+            class="max-w-full nc-expressive-mini-item-cell nc-audit-removal !text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through"
             :class="{
               'px-1 py-0': shouldUseNormalizedPadding(columnKey),
               '!px-0.25 !py-0.25': shouldUseUniformPadding(columnKey),
@@ -345,6 +345,10 @@ function isShowableValue(value: any) {
     @apply !inline;
     & > div {
       @apply !inline;
+
+      & > div {
+        @apply !inline;
+      }
     }
     & > div + div {
       @apply !ml-1;

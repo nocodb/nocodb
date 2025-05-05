@@ -7,10 +7,6 @@ interface ItemType {
   hidden?: boolean
 }
 
-interface Props {}
-
-const props = defineProps<Props>()
-
 const modelValue = defineModel<string>()
 
 const { isUIAllowed } = useRoles()
@@ -33,7 +29,7 @@ const items = computed<ItemType[]>(() => {
       hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE),
     },
     {
-      icon: modelValue.value === 'attachment' ? 'ncMessageSquare1Outline' : 'ncMessageSquare1Solid',
+      icon: modelValue.value === 'discussion' ? 'ncMessageSquare1Solid' : 'ncMessageSquare1Outline',
       value: 'discussion',
       tooltip: 'Discussion',
       hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE) || isSqlView.value,

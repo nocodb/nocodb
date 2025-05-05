@@ -1109,6 +1109,18 @@ watch(
 /* Keep the primary button blue during loading state */
 .nc-modal-quick-import .nc-button.ant-btn-primary.ant-btn-loading {
   @apply bg-brand-500;
+  
+  /* Keep the button width consistent during loading state */
+  min-width: 80px;
+  
+  /* Increase the weight of the loader */
+  .ant-btn-loading-icon {
+    .anticon {
+      svg {
+        stroke-width: 3px;
+      }
+    }
+  }
 }
 </style>
 

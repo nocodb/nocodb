@@ -166,19 +166,19 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 })
 
 const eventList = ref<Record<string, any>[]>([
-  { text: [t('general.record'), t('general.insert')], value: ['after', 'insert'] },
-  { text: [t('general.record'), t('general.update')], value: ['after', 'update'] },
-  { text: [t('general.record'), t('general.delete')], value: ['after', 'delete'] },
+  { text: [t('general.record'), t('general.insert').toLowerCase()], value: ['after', 'insert'] },
+  { text: [t('general.record'), t('general.update').toLowerCase()], value: ['after', 'update'] },
+  { text: [t('general.record'), t('general.delete').toLowerCase()], value: ['after', 'delete'] },
   {
-    text: [`${t('general.manual')} ${t('general.trigger')}`, `${t('general.manual')} ${t('general.trigger')}`],
+    text: [t('general.manual'), t('general.trigger').toLowerCase()],
     value: ['manual', 'trigger'],
   },
 ])
 const v2EventList = ref<Record<string, any>[]>([
   ...eventList.value,
-  { text: [t('general.record'), t('general.bulkInsert')], value: ['after', 'bulkInsert'] },
-  { text: [t('general.record'), t('general.bulkUpdate')], value: ['after', 'bulkUpdate'] },
-  { text: [t('general.record'), t('general.bulkDelete')], value: ['after', 'bulkDelete'] },
+  { text: [t('general.record'), t('general.bulkInsert').toLowerCase()], value: ['after', 'bulkInsert'] },
+  { text: [t('general.record'), t('general.bulkUpdate').toLowerCase()], value: ['after', 'bulkUpdate'] },
+  { text: [t('general.record'), t('general.bulkDelete').toLowerCase()], value: ['after', 'bulkDelete'] },
 ])
 
 const columns: NcTableColumnProps[] = [
@@ -237,13 +237,9 @@ const getHookTypeText = (hook: HookType) => {
       })
       .filter(Boolean)
 
-    const prefix = hook.event === 'after' ? `${t('general.after')} ` : ''
+    const prefix = hook.event === 'after' ? `${t('general.after')} ` : hook.event === 'manual' ? `${t('general.manual')} ` : ''
 
     if (operations.length === 1) {
-      if (operations[0] === 'trigger') {
-        return 'Manual trigger'
-      }
-
       return `${prefix}${operations[0]}`
     }
 

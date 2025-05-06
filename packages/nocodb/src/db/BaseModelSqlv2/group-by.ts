@@ -208,7 +208,6 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
     if (subGroupColumnName) {
       const subGroupQuery = await processColumn(subGroupColumnName, true);
-      const subGroupAlias = getAs(subGroupColumn);
       qb.select(
         baseModel.dbDriver.raw(
           `COUNT(DISTINCT COALESCE(${

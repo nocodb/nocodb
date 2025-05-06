@@ -5,6 +5,7 @@ import {
   type LinkToAnotherRecordType,
   type LookupType,
   type TableType,
+  UITypesName,
   type ViewType,
 } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
@@ -81,12 +82,12 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       clone(meta?.value?.columns || []).map((field) => {
         if (excludedGroupingUidt.includes(field.uidt as UITypes)) {
           field.ncItemDisabled = true
-          field.ncItemTooltip = `Field of type ${FieldNameFromUITypes[field.uidt]} not supported for grouping`
+          field.ncItemTooltip = `This Field of type ${UITypesName[field.uidt]} not supported for grouping`
         }
 
         if (field.uidt === UITypes.Lookup && !(field.id && supportedLookups.value.includes(field.id))) {
           field.ncItemDisabled = true
-          field.ncItemTooltip = `Field of type ${FieldNameFromUITypes[field.uidt]} not supported for grouping`
+          field.ncItemTooltip = `This Field of type ${UITypesName[field.uidt]} not supported for grouping`
         }
 
         return field

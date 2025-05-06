@@ -747,7 +747,7 @@ export default {
         <div class="flex gap-2 min-w-0 min-h-8">
           <div class="flex gap-2">
             <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
-              <template #title> {{ renderAltOrOptlKey() }} + ←</template>
+              <template #title> {{ $t('labels.prevRow') }} {{ renderAltOrOptlKey() }} + ←</template>
               <NcButton
                 :disabled="isFirstRow || isLoading"
                 class="nc-prev-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
@@ -759,7 +759,7 @@ export default {
               </NcButton>
             </NcTooltip>
             <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
-              <template #title> {{ renderAltOrOptlKey() }} + →</template>
+              <template #title> {{ $t('labels.nextRow') }} {{ renderAltOrOptlKey() }} + →</template>
               <NcButton
                 :disabled="islastRow || isLoading"
                 class="nc-next-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"

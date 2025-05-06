@@ -24510,6 +24510,10 @@
             "type": "number",
             "description": "Order of the Script"
           },
+          "token": {
+            "type": "string",
+            "description": "MCP Token"
+          },
           "fk_workspace_id": {
             "$ref": "#/components/schemas/Id",
             "description": "Workspace ID",

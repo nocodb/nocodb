@@ -362,7 +362,7 @@ describe('dataApiV3', () => {
       });
 
       const response = await ncAxiosGet({
-        url: `${urlPrefix}/${table.id}/text-primary-key`,
+        url: `/api/${API_VERSION}/${testContext.base.id}/${table.id}/text-primary-key`,
         status: 422,
       });
       expect(response.body.error).to.eq('INVALID_PK_VALUE');

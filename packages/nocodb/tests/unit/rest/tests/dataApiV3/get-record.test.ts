@@ -31,7 +31,7 @@ describe('dataApiV3', () => {
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext);
-      urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      urlPrefix = `/api/${API_VERSION}/${testContext.sakilaProject.id}`;
 
       ncAxiosGet = testAxios.ncAxiosGet;
       ncAxiosPost = testAxios.ncAxiosPost;
@@ -50,7 +50,7 @@ describe('dataApiV3', () => {
         expect(+records.body['Cities']).to.equal(1);
       });
 
-      it('Nested Read - Lookup', async function () {
+      it('Nested Read - Lookup', async () => {
         await createLookupColumn(testContext.context, {
           base: testContext.sakilaProject,
           title: 'Lookup',
@@ -65,7 +65,7 @@ describe('dataApiV3', () => {
         expect(records.body.Lookup).to.deep.equal(['Kabul']);
       });
 
-      it('Nested Read - Rollup', async function () {
+      it('Nested Read - Rollup', async () => {
         await createRollupColumn(testContext.context, {
           base: testContext.sakilaProject,
           title: 'Rollup',

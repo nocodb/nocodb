@@ -5,6 +5,7 @@ import { serialize } from 'pg-protocol';
 import { Parser } from 'node-sql-parser';
 import { Logger } from '@nestjs/common';
 import DataReflectionCE from 'src/models/DataReflection';
+import { NcSDKError, NcSDKErrorV2 } from 'nocodb-sdk';
 import type { Socket } from 'net';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Base, Workspace } from '~/models';
@@ -18,6 +19,7 @@ import {
   NC_DATA_REFLECTION_SETTINGS,
   revokeAccessToSchema,
 } from '~/helpers/dataReflectionHelpers';
+import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
 
 const logger = new Logger('DataReflection');
 
@@ -300,10 +302,42 @@ export default class DataReflection extends DataReflectionCE {
         ncMeta,
       );
 
-      const bases = await Base.listByWorkspace(fk_workspace_id, false, ncMeta);
+      if (base_id) {
+        // Convert single base_id to array for uniform handling
+        const baseIds = Array.isArray(base_id) ? base_id : [base_id];
 
-      for (const base of bases) {
-        await grantAccessToSchema(knex, base.id, username);
+        // Validate that the bases exist and belong to the workspace
+        const workspaceBases = await Base.listByWorkspace(
+          fk_workspace_id,
+          false,
+          ncMeta,
+        );
+        const workspaceBaseIds = workspaceBases.map((base) => base.id);
+
+        // Filter out any invalid base IDs
+        const validBaseIds = baseIds.filter((id) =>
+          workspaceBaseIds.includes(id),
+        );
+
+        if (validBaseIds.length === 0) {
+          NcError.badRequest('Invalid base IDs provided for the workspace');
+        }
+
+        // Grant access to each valid base
+        for (const id of validBaseIds) {
+          await grantAccessToSchema(knex, id, username);
+        }
+      } else {
+        // If no base_id provided, grant access to all bases in the workspace
+        const bases = await Base.listByWorkspace(
+          fk_workspace_id,
+          false,
+          ncMeta,
+        );
+
+        for (const base of bases) {
+          await grantAccessToSchema(knex, base.id, username);
+        }
       }
 
       await knex.commit();

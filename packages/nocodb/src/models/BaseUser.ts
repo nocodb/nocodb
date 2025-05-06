@@ -16,6 +16,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { NcError } from '~/helpers/catchError';
 import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers';
+import { MCPToken } from '~/models/index';
 
 const logger = new Logger('BaseUser');
 
@@ -394,6 +395,8 @@ export default class BaseUser {
     cleanCommandPaletteCacheForUser(userId).catch(() => {
       logger.error('Error cleaning command palette cache');
     });
+
+    await MCPToken.deleteByBaseUser(context, userId, ncMeta);
 
     return response;
   }

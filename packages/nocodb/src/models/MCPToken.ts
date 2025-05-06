@@ -159,4 +159,26 @@ export default class MCPToken implements MCPTokenType {
 
     return true;
   }
+
+  public static async deleteByBaseUser(
+    context: NcContext,
+    userId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const tokens = await this.list(context, userId, ncMeta);
+
+    for (const token of tokens) {
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.MCP_TOKENS,
+        token.id,
+      );
+
+      const key = `${CacheScope.MCP_TOKEN}:${token.id}`;
+      await NocoCache.del(key);
+    }
+
+    return true;
+  }
 }

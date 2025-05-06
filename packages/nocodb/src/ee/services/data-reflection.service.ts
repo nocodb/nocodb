@@ -15,7 +15,7 @@ export class DataReflectionService {
       return existing;
     }
 
-    return DataReflection.create(fk_workspace_id, ncMeta);
+    return DataReflection.create(fk_workspace_id, undefined, ncMeta);
   }
 
   async delete(fk_workspace_id: string, ncMeta = Noco.ncMeta) {

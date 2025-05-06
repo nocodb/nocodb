@@ -11,7 +11,6 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
-import { isOnPrem } from '~/utils';
 
 const sortPlan = (a: Plan, b: Plan) => {
   return (PlanOrder[a.title] ?? 0) - (PlanOrder[b.title] ?? 0);
@@ -286,21 +285,6 @@ export const FreePlan = Plan.prepare({
         }
       : {}),
     ...(!process.env.NC_STRIPE_SECRET_KEY ? legacyLimitAndFeatures : {}),
-    ...(isOnPrem
-      ? {
-          ...legacyLimitAndFeatures,
-          [PlanLimitTypes.LIMIT_FREE_WORKSPACE]: -1,
-          [PlanLimitTypes.LIMIT_EDITOR]: -1,
-          [PlanLimitTypes.LIMIT_COMMENTER]: -1,
-          [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: -1,
-          [PlanLimitTypes.LIMIT_API_PER_SECOND]: -1,
-        }
-      : {}),
   },
   free: true,
-  ...(isOnPrem
-    ? {
-        free: false,
-      }
-    : {}),
 });

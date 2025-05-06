@@ -51,4 +51,20 @@ export class FiltersController extends FiltersControllerCE {
     });
     return filter;
   }
+
+  @Post(['/api/v1/db/meta/row-color-conditions/:rowColorConditionId/filters'])
+  @HttpCode(200)
+  @Acl('rowColorConditionsFilterCreate')
+  async rowColorConditionsFilterCreate(
+    @TenantContext() context: NcContext,
+    @Param('rowColorConditionId') rowColorConditionId: string,
+    @Body() body: FilterReqType,
+    @Req() _req: NcRequest,
+  ) {
+    const filter = await this.filtersService.rowColorConditionsCreate(context, {
+      filter: body,
+      rowColorConditionsId: rowColorConditionId,
+    });
+    return filter;
+  }
 }

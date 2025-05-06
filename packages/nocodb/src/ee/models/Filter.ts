@@ -1,4 +1,5 @@
 import FilterCE from 'src/models/Filter';
+import RowColorCondition from 'src/models/RowColorCondition';
 import type { FilterType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Column from '~/models/Column';
@@ -54,6 +55,8 @@ export default class Filter extends FilterCE implements FilterType {
       referencedModelColName = 'fk_link_col_id';
     } else if (filter.fk_parent_column_id) {
       referencedModelColName = 'fk_parent_column_id';
+    } else if (filter.fk_row_color_conditions_id) {
+      referencedModelColName = 'fk_row_color_conditions_id';
     }
 
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
@@ -72,6 +75,12 @@ export default class Filter extends FilterCE implements FilterType {
           { colId: filter.fk_link_col_id },
           ncMeta,
         );
+      } else if (filter.fk_row_color_conditions_id) {
+        const rowColorCondition = await RowColorCondition.getById(
+          context,
+          filter.fk_row_color_conditions_id,
+        );
+        model = await View.get(context, rowColorCondition.fk_view_id, ncMeta);
       } else if (filter.fk_parent_column_id) {
         model = await Column.get(
           context,
@@ -129,6 +138,7 @@ export default class Filter extends FilterCE implements FilterType {
         (filter.fk_view_id ||
           filter.fk_hook_id ||
           filter.fk_link_col_id ||
+          filter.fk_row_color_conditions_id ||
           filter.fk_parent_column_id)
       )
     ) {

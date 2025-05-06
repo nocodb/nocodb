@@ -14,7 +14,7 @@ export function useViewRowColorRender(params: {
   const evaluateRowColor = (row: any) => {
     if (rowColorInfo.value && rowColorInfo.value.mode === ROW_COLORING_MODE.SELECT) {
       const selectRowColorInfo = rowColorInfo.value
-      if (!selectRowColorInfo) {
+      if (!selectRowColorInfo || !selectRowColorInfo.selectColumn) {
         return null
       }
       const value = row[selectRowColorInfo.selectColumn.title]
@@ -65,7 +65,7 @@ export function useViewRowColorRender(params: {
       })
       .reduce((obj, cur) => {
         obj[cur.hash] = cur
-        if(cur && rowColorInfo.value) {
+        if (cur && rowColorInfo.value) {
           cur.__eval_id = rowColorInfo.value.__id
         }
         return obj

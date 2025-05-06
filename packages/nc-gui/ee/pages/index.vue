@@ -14,7 +14,8 @@ const { ncNavigateTo } = useGlobal()
 
 const workspaceStore = useWorkspace()
 const { populateWorkspace } = workspaceStore
-const { collaborators, lastPopulatedWorkspaceId, activeWorkspaceId, activeWorkspace } = storeToRefs(workspaceStore)
+const { collaborators, lastPopulatedWorkspaceId, activeWorkspaceId, activeWorkspace, isWorkspacesLoading } =
+  storeToRefs(workspaceStore)
 
 const { isSharedBase, isSharedErd } = storeToRefs(useBase())
 
@@ -65,16 +66,19 @@ const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) 
 }
 
 watch(
-  [activeWorkspaceId, activeWorkspace],
+  [activeWorkspaceId, () => !!activeWorkspace.value],
   async ([newId, newWorkspace], [oldId]) => {
     if (newId === 'nc') {
       workspaceStore.setLoadingState(false)
-      workspaceStore.isWorkspaceLoading = false
+      isWorkspacesLoading.value = false
+
       return
     }
 
     if (newId === 'base') {
       workspaceStore.setLoadingState(false)
+      isWorkspacesLoading.value = false
+
       basesStore.loadProjects()
       return
     }

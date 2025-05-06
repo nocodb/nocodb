@@ -1,15 +1,19 @@
+import path from 'node:path';
 import { Injectable } from '@nestjs/common';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { extractRolesObj, NcApiVersion } from 'nocodb-sdk';
+import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 import type { NcContext, NcRequest, UserType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
 import { BasesV3Service } from '~/services/v3/bases-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { DataTableService } from '~/services/data-table.service';
-import { getProjectRolePower, hasEditorOrHigherRole } from '~/utils/roleHelper';
+import { hasEditorOrHigherRole } from '~/utils/roleHelper';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { serialize } from '~/helpers/serialize';
 
 @Injectable()
 export class McpService {
@@ -278,6 +282,146 @@ export class McpService {
       },
     );
 
+    server.tool(
+      'readAttachment',
+      {
+        files: z
+          .array(
+            z.object({
+              url: z.string().nullable().describe('Attachment URL'),
+              path: z.string().nullable().describe('Attachment path'),
+              title: z.string().nullable().describe('Attachment title'),
+              mimeType: z.string().nullable().describe('Attachment mime type'),
+              size: z.number().nullable().describe('Attachment size'),
+              signedUrl: z
+                .string()
+                .nullable()
+                .describe('Attachment signed URL'),
+              signedPath: z
+                .string()
+                .nullable()
+                .describe('Attachment signed Path'),
+            }),
+          )
+          .describe('Array of attachment objects from NocoDB'),
+      },
+      async ({ files }) => {
+        try {
+          if (!files || files.length === 0) {
+            return {
+              content: [
+                { type: 'text', text: 'Error: No attachments provided' },
+              ],
+              isError: true,
+            };
+          }
+
+          const storageAdapter = await NcPluginMgrv2.storageAdapter();
+
+          const results = await Promise.all(
+            files.map(async (file) => {
+              try {
+                let relativePath;
+
+                // Determine the relative path from attachment
+                if (file.path) {
+                  relativePath = path.join(
+                    'nc',
+                    'uploads',
+                    file.path.replace(/^download[/\\]/i, ''),
+                  );
+                } else if (file.url) {
+                  relativePath = getPathFromUrl(file.url).replace(/^\/+/, '');
+                } else {
+                  return {
+                    title: file.title || 'Unknown file',
+                    error: 'No path or URL available for this attachment',
+                  };
+                }
+
+                const stream = await storageAdapter.fileReadByStream(
+                  relativePath,
+                );
+                if (!stream) {
+                  return {
+                    title: file.title || 'Unknown file',
+                    error: 'Failed to read file stream',
+                  };
+                }
+
+                const mimeType = file.mimeType || 'application/octet-stream';
+
+                const serialized = await serialize(
+                  mimeType,
+                  stream,
+                  `Could not process file: ${file.title || 'Unknown file'}`,
+                );
+
+                const hasContent =
+                  serialized.text && serialized.text !== '@file_not_supported';
+
+                return {
+                  title: file.title || 'Unknown file',
+                  mimeType,
+                  size: file.size,
+                  content: hasContent ? serialized.text : null,
+                  images: serialized.images,
+                  error: hasContent
+                    ? null
+                    : 'Could not extract text from this file type',
+                };
+              } catch (error) {
+                return {
+                  title: file.title || 'Unknown file',
+                  error: `Error processing file: ${error.message}`,
+                };
+              }
+            }),
+          );
+
+          // Compile all content into one response
+          const successfulResults = results.filter((r) => r.content);
+          const failedResults = results.filter((r) => r.error);
+
+          // Format content for the response
+          let responseText = '';
+
+          if (successfulResults.length > 0) {
+            responseText += '## Successfully Processed Files\n\n';
+
+            for (const result of successfulResults) {
+              responseText += `### ${result.title}\n`;
+              responseText += `**Type:** ${result.mimeType}\n`;
+              responseText += `**Size:** ${formatFileSize(result.size)}\n\n`;
+              responseText += `${result.content}\n\n`;
+
+              if (result.images && result.images.length > 0) {
+                responseText += `*This file contains ${result.images.length} images that cannot be directly displayed in text format.*\n\n`;
+              }
+            }
+          }
+
+          if (failedResults.length > 0) {
+            responseText += '## Files With Processing Issues\n\n';
+
+            for (const result of failedResults) {
+              responseText += `### ${result.title}\n`;
+              responseText += `**Error:** ${result.error}\n\n`;
+            }
+          }
+
+          return {
+            content: [{ type: 'text', text: responseText.trim() }],
+          };
+        } catch (error) {
+          return {
+            content: [{ type: 'text', text: `Error: ${error.message}` }],
+            isError: true,
+          };
+        }
+      },
+    );
+
     if (isEditorPlus) {
       // Create Records tool
       server.tool(
@@ -402,4 +546,14 @@ export class McpService {
       );
     }
   }
+}
+
+function formatFileSize(bytes?: number | null): string {
+  if (bytes === undefined || bytes === null) return 'Unknown size';
+
+  if (bytes < 1024) return `${bytes} bytes`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024)
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 }

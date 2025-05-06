@@ -28,9 +28,9 @@ import {
   generateFillDataSystemMessage,
   generateFromButtonSystemMessage,
   generateRowsSystemMessage,
-} from '~/integrations/ai/module/prompts/index';
+} from '~/integrations/ai/module/prompts';
 import { getPathFromUrl } from '~/helpers/attachmentHelpers';
-import { serialize } from '~/integrations/ai/module/helpers/serialize';
+import { serialize } from '~/helpers/serialize';
 import { AiSchemaService } from '~/integrations/ai/module/services/ai-schema.service';
 
 const FILE_SEARCH_SUPPORTED_MIMETYPES = [

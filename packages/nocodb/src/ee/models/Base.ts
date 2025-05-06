@@ -369,7 +369,12 @@ export default class Base extends BaseCE {
     baseId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<any> {
-    const base = (await this.get(context, baseId, ncMeta)) as Base;
+    const base = await this.get(context, baseId, ncMeta);
+
+    // skip if missing (already soft deleted)
+    if (!base) {
+      return;
+    }
 
     await this.clearConnectionPool(context, baseId, ncMeta);
 

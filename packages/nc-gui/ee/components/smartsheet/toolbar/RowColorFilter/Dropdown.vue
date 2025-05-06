@@ -20,6 +20,7 @@ const {
   rowColorInfo,
   filterPerViewLimit,
   onDropdownOpen,
+  onChangeRowColoringMode,
   onRemoveRowColoringMode,
   onRowColorSelectChange,
   onRowColorConditionAdd,
@@ -60,7 +61,7 @@ const rowColoringMode = computed({
       </div>
     </NcButton>
     <template #overlay>
-      <SmartsheetToolbarRowColorFilterTypeOption v-model:row-coloring-mode="rowColoringMode">
+      <SmartsheetToolbarRowColorFilterTypeOption v-model:row-coloring-mode="rowColoringMode" @change="onChangeRowColoringMode">
         <template #select>
           <SmartsheetToolbarRowColorFilterUsingSingleSelectPanel
             v-model="rowColorInfo"

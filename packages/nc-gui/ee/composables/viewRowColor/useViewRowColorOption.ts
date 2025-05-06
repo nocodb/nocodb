@@ -1,4 +1,12 @@
-import { PlanLimitTypes, type RowColoringInfo, type RowColoringInfoFilter, type TableType, type ViewType } from 'nocodb-sdk'
+import {
+  PlanLimitTypes,
+  ROW_COLORING_MODE,
+  type RowColoringInfo,
+  type RowColoringInfoFilter,
+  type TableType,
+  UITypes,
+  type ViewType,
+} from 'nocodb-sdk'
 import type { FilterRowChangeEvent } from '#imports'
 
 export function useViewRowColorOption(params: {
@@ -103,6 +111,15 @@ export function useViewRowColorOption(params: {
         conditionToAdd.conditions[0].fk_row_color_conditions_id = conditionToAdd.id
       }
     })
+  }
+
+  const onChangeRowColoringMode = async (mode: string) => {
+    if (mode === ROW_COLORING_MODE.SELECT) {
+      const selectColumn = meta.value?.columns?.find((k) => k.uidt === UITypes.SingleSelect)
+      rowColorInfo.value.fk_column_id = selectColumn?.id
+    } else if (mode === ROW_COLORING_MODE.FILTER) {
+      onRowColorConditionAdd()
+    }
   }
 
   const onRowColorConditionDelete = async (index: number) => {
@@ -233,17 +250,17 @@ export function useViewRowColorOption(params: {
     await popPendingAction()
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToDelete = conditions[colorIndex]!
-    console.log('params.filter!.id', params.filter!.id)
     const filterToDelete = conditionToDelete.conditions.find((k) => k.id === params.filter!.id)!
 
+    const deletedFilterIds = await deleteFilterWithSub($api, filterToDelete)
     conditionToDelete.conditions = conditionToDelete.conditions.filter((f) => f.id !== filterToDelete.id)
-    await $api.dbTableFilter.delete(filterToDelete!.id)
     if (params.fk_parent_id) {
       const parentFilter = conditionToDelete.conditions.find((f) => f.id === params.fk_parent_id)
       parentFilter.children = parentFilter.children.filter((f) => f.id !== filterToDelete.id)
     } else {
       conditionToDelete.nestedConditions = conditionToDelete.nestedConditions.filter((f) => f.id !== filterToDelete.id)
     }
+    conditionToDelete.conditions = conditionToDelete.conditions.filter((fil) => !deletedFilterIds.includes(fil.id))
   }
 
   const filterPerViewLimit = computed(() => getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW))
@@ -253,6 +270,7 @@ export function useViewRowColorOption(params: {
     filterColumns,
     filterPerViewLimit,
     onDropdownOpen,
+    onChangeRowColoringMode,
     onRemoveRowColoringMode,
     onRowColorSelectChange,
     onRowColorConditionAdd,

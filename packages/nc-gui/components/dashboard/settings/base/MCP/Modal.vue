@@ -39,9 +39,6 @@ const { updateMcpToken } = useMcpSettings()
 
 const regenerateToken = async () => {
   const newToken = await updateMcpToken(token.value)
-
-  console.log(newToken)
-
   if (newToken) {
     token.value = newToken
   }

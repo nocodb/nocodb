@@ -132,6 +132,8 @@ const displayClockInstances = computed(() => clockInstances.value.slice(0, 4))
         <div class="flex flex-col space-y-4 p-5 pb-1">
           <AddTimezoneAction
             :disable="clockInstances.length >= 4"
+            :model-value="''"
+            is-sidebar
             disable-message="Only upto 4 clocks can be created."
             @city-selected="(city) => (activeInstanceId = addClock(city))"
           />
@@ -192,7 +194,7 @@ const displayClockInstances = computed(() => clockInstances.value.slice(0, 4))
     </div>
     <div
       v-else
-      class="h-full w-full overflow-x-scroll"
+      class="h-full w-full overflow-x-scroll nc-scrollbar-thin"
       :class="{
         '!min-w-[420px]': selectedClockMode !== 'Digital' && displayClockInstances.length > 1,
         '!min-w-[480px]': selectedClockMode === 'Digital' && displayClockInstances.length > 1,

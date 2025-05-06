@@ -3,6 +3,7 @@ import Clock from './Clock.vue'
 import { type AcceptableCity, cityToTimezone, timezoneData } from './timezone-data'
 import { themes } from './theming'
 import type { ClockInstance, SelectOption } from './types'
+import AddTimezoneAction from './AddTimezoneAction.vue'
 
 const props = defineProps<{
   showNumbers: boolean
@@ -51,21 +52,6 @@ watchDebounced(
   },
   { debounce: 100, maxWait: 1000 },
 )
-
-const timezoneOptions: SelectOption[] = Array.from(
-  timezoneData.map((d) => ({
-    value: d.city,
-  })),
-)
-
-const searchQuery = ref('')
-const aSelect = ref()
-const search = () => {
-  searchQuery.value = aSelect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
-}
-const filteredOptions = computed(() =>
-  timezoneOptions.filter((el) => el.value.toLowerCase().includes(searchQuery.value.toLowerCase())),
-)
 </script>
 
 <template>
@@ -81,22 +67,9 @@ const filteredOptions = computed(() =>
           <GeneralIcon class="w-6 h-6 text-nc-content-gray-muted" icon="edit" />
         </div>
       </div>
-      <ASelect
-        ref="aSelect"
-        v-model:value="city"
-        class="w-full nc-select-shadow"
-        placeholder="-selecte city-"
-        :show-search="true"
-        :options="filteredOptions"
-        @search="search"
-      >
-        <template #suffixIcon>
-          <GeneralIcon class="text-gray-800 nc-select-expand-btn" icon="arrowDown" />
-        </template>
-        <template #option="{ value }">
-          {{ value }}
-        </template>
-      </ASelect>
+
+      <AddTimezoneAction v-model:model-value="city" />
+
       <div class="flex flex-col space-y-1 pt-3">
         <span class="text-sm text-zinc-700">Theme</span>
         <div class="flex gap-4 w-full flex-wrap">

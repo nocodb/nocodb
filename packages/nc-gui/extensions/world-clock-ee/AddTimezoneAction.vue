@@ -1,16 +1,28 @@
 <script setup lang="ts">
-import type { NcListProps, RawValueType } from '../../components/nc/List/index.vue'
+import type { RawValueType } from '../../components/nc/List/index.vue'
 import { type AcceptableCity, timezoneData } from './timezone-data'
 import type { SelectOption } from './types'
 
-defineProps<{
-  disable: boolean
-  disableMessage: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    disable?: boolean
+    disableMessage?: string
+    isSidebar?: boolean
+    modelValue: string
+  }>(),
+  {
+    disable: false,
+  },
+)
 
 const emits = defineEmits<{
-  citySelected: [AcceptableCity]
+  (e: 'update:value', value: AcceptableCity): void
+  (e: 'citySelected', value: AcceptableCity): void
 }>()
+
+const vModel = useVModel(props, 'modelValue', emits, {
+  defaultValue: '',
+})
 
 const options: Ref<SelectOption[]> = ref(
   timezoneData.map((d) => ({
@@ -18,28 +30,48 @@ const options: Ref<SelectOption[]> = ref(
   })),
 )
 
-const selectedCity = ref<string>('')
-
 const visible = ref(false)
 
 const onSelect = (optionValue: RawValueType) => {
   emits('citySelected', optionValue as AcceptableCity)
-  selectedCity.value = ''
-}
 
-const filterOption: NcListProps['filterOption'] = (input, option) => {
-  return searchCompare(option?.title ?? option?.value, input)
+  if (props.isSidebar) {
+    vModel.value = ''
+  } else {
+    vModel.value = optionValue as AcceptableCity
+  }
 }
 </script>
 
 <template>
   <NcDropdown v-model:visible="visible" @click.stop overlay-class-name="!min-w-auto !w-full !max-w-[277px]">
-    <NcTooltip class="w-full" :title="disableMessage" placement="bottom" :disabled="!disable">
-      <NcButton type="secondary" class="w-full" size="small" :disabled="disable">+ Add City</NcButton>
-    </NcTooltip>
+    <slot>
+      <NcTooltip v-if="isSidebar" class="w-full" :title="disableMessage" placement="bottom" :disabled="!disable">
+        <NcButton type="secondary" class="w-full" size="small" :disabled="disable">+ Add City</NcButton>
+      </NcTooltip>
+
+      <NcButton
+        v-else
+        type="secondary"
+        full-width
+        class="nc-country-selector w-full !px-3"
+        :class="{
+          'nc-active ': visible,
+        }"
+        size="small"
+        icon-position="right"
+        :disabled="disable"
+      >
+        <template #icon>
+          <GeneralIcon icon="arrowDown" />
+        </template>
+
+        {{ vModel }}
+      </NcButton>
+    </slot>
     <template #overlay>
       <NcList
-        :value="selectedCity"
+        :value="vModel"
         @update:value="onSelect"
         v-model:open="visible"
         :list="options"
@@ -47,9 +79,18 @@ const filterOption: NcListProps['filterOption'] = (input, option) => {
         option-value-key="value"
         variant="small"
         class="!w-full"
-        :filter-option="filterOption"
         data-testid="nc-column-uitypes-options-list-wrapper"
       />
     </template>
   </NcDropdown>
 </template>
+
+<style lang="scss" scoped>
+.nc-country-selector {
+  @apply shadow-default font-normal text-nc-content-gray;
+
+  &.nc-active {
+    @apply !shadow-selected !border-nc-border-brand;
+  }
+}
+</style>

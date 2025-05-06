@@ -21,7 +21,7 @@ export class ApiVersionNotFoundController {
 
   @All(NOT_FOUND_PATH_PREFIX)
   @HttpCode(404)
-  async apiVersionNotFound(@Req() req: NcRequest) {
+  async apiVersionNotFound() {
     return {
       error: 'INVALID_API_VERSION',
       message: `API version unsupported`,

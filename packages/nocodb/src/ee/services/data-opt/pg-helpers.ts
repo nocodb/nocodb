@@ -1527,7 +1527,6 @@ export async function singleQueryList(
   // apply filters on root query and count query
   await conditionV2(baseModel, aggrConditionObj, rootQb);
   await conditionV2(baseModel, aggrConditionObj, countQb);
-  console.log(rootQb.toQuery())
   const orderColumn = columns.find((c) => isOrderCol(c));
 
   // apply sort on root query

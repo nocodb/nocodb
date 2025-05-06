@@ -98,6 +98,8 @@ export function useInfiniteData(args: {
 
   const { getMeta, metas } = useMetas()
 
+  const { user } = useGlobal()
+
   const { fetchSharedViewData, fetchCount } = useSharedView()
 
   const { nestedFilters, allFilters, sorts, isExternalSource, isAlreadyShownUpgradeModal } = disableSmartsheet
@@ -1465,6 +1467,9 @@ export function useInfiniteData(args: {
       meta.value?.columns as ColumnType[],
       getBaseType(viewMeta.value?.view?.source_id),
       metas.value,
+      {
+        currentUser: user.value,
+      },
     )
 
     const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
@@ -1487,6 +1492,9 @@ export function useInfiniteData(args: {
         meta.value?.columns as ColumnType[],
         getBaseType(viewMeta.value?.view?.source_id),
         metas.value,
+        {
+          currentUser: user.value,
+        },
       )
       row.rowMeta.isGroupChanged = isGroupValidationFailed
       row.rowMeta.changedGroupIndex = index

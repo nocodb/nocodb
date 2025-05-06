@@ -43,9 +43,7 @@ function handleCreatingNewComment() {
   saveComment(newCommentText.value)
   newCommentText.value = ''
 
-  setTimeout(() => {
-    refRichComment.value?.focusEditor?.()
-  }, 500)
+  refRichComment?.value?.setEditorContent('', true)
 }
 
 function initLoadMoreAudits() {
@@ -116,7 +114,6 @@ export default {
           <div class="font-bold my-3">Add a comment</div>
           <SmartsheetExpandedFormRichComment
             ref="refRichComment"
-            :key="auditCommentGroups.length"
             v-model:value="newCommentText"
             :hide-options="false"
             placeholder="Comment..."

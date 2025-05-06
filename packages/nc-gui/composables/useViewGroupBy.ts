@@ -76,23 +76,24 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       return appInfo.value.defaultGroupByLimit?.limitRecord || 10
     })
 
-    const supportedLookups = ref<string[]>([])
+    const unsupportedLookups = ref<string[]>([])
 
-    const fieldsToGroupBy = computed(() =>
-      clone(meta?.value?.columns || []).map((field) => {
-        if (excludedGroupingUidt.includes(field.uidt as UITypes)) {
+    const fieldsToGroupBy = computed(() => {
+      return clone(meta?.value?.columns || []).map((field) => {
+        if (
+          (field.uidt === UITypes.Lookup && field.id && unsupportedLookups.value.includes(field.id)) ||
+          excludedGroupingUidt.includes(field.uidt as UITypes)
+        ) {
           field.ncItemDisabled = true
           field.ncItemTooltip = `This Field of type ${UITypesName[field.uidt]} not supported for grouping`
-        }
-
-        if (field.uidt === UITypes.Lookup && !(field.id && supportedLookups.value.includes(field.id))) {
-          field.ncItemDisabled = true
-          field.ncItemTooltip = `This Field of type ${UITypesName[field.uidt]} not supported for grouping`
+        } else {
+          field.ncItemDisabled = false
+          field.ncItemTooltip = ''
         }
 
         return field
-      }),
-    )
+      })
+    })
 
     const rootGroup = ref<Group>({
       key: 'root',
@@ -616,14 +617,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }
     }
 
-    const loadAllowedLookups = async () => {
+    const loadDisallowedLookups = async () => {
       const filteredLookupCols = []
       try {
         for (const col of meta?.value?.columns || []) {
           if (col.uidt !== UITypes.Lookup) continue
 
           let nextCol: ColumnType = col
-          // check the lookup column is supported type or not
+          // Check if the lookup column is an unsupported type
           while (nextCol && nextCol.uidt === UITypes.Lookup) {
             const lookupRelation = (await getMeta(nextCol.fk_model_id as string))?.columns?.find(
               (c) => c.id === (nextCol?.colOptions as LookupType).fk_relation_column_id,
@@ -646,21 +647,17 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             }
           }
 
-          if (nextCol?.uidt !== UITypes.Attachment && col.id) filteredLookupCols.push(col.id)
+          // Collect column if the final resolved column is an Attachment or circular/invalid
+          if ((nextCol?.uidt === UITypes.Attachment || !nextCol) && col.id) {
+            filteredLookupCols.push(col.id)
+          }
         }
 
-        supportedLookups.value = filteredLookupCols
+        unsupportedLookups.value = filteredLookupCols
       } catch (e) {
         console.error(e)
       }
     }
-
-    watch([() => view?.value?.id, () => meta.value?.columns], async ([newViewId]) => {
-      // reload only if view belongs to current table
-      if (newViewId && view.value?.fk_model_id === meta.value?.id) {
-        await loadAllowedLookups()
-      }
-    })
 
     async function loadAggCommentsCount(formattedData: Array<Row>) {
       if (!isUIAllowed('commentCount') || isPublic.value) return
@@ -700,6 +697,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       loadGroupAggregation,
       groupWrapperChangePage,
       redistributeRows,
+      loadDisallowedLookups,
     }
   },
   'useViewGroupBy',

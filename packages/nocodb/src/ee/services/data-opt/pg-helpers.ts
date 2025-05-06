@@ -10,6 +10,7 @@ import {
 import { Logger } from '@nestjs/common';
 import { NcApiVersion } from 'nocodb-sdk';
 import {
+  checkForCurrentUserFilters,
   checkForStaticDateValFilters,
   shouldSkipCache,
 } from './common-helpers';
@@ -1255,6 +1256,11 @@ export async function singleQueryRead(
     }),
   ];
 
+  if (
+    await checkForCurrentUserFilters({ context, filters: aggrConditionObj })
+  ) {
+    skipCache = true;
+  }
   // apply filters on root query
   await conditionV2(baseModel, aggrConditionObj, rootQb);
 
@@ -1512,10 +1518,16 @@ export async function singleQueryList(
     }),
   ];
 
+  if (
+    await checkForCurrentUserFilters({ context, filters: aggrConditionObj })
+  ) {
+    skipCache = true;
+  }
+
   // apply filters on root query and count query
   await conditionV2(baseModel, aggrConditionObj, rootQb);
   await conditionV2(baseModel, aggrConditionObj, countQb);
-
+  console.log(rootQb.toQuery())
   const orderColumn = columns.find((c) => isOrderCol(c));
 
   // apply sort on root query

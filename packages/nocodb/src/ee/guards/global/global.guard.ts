@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { lastValueFrom, Observable } from 'rxjs';
 import { extractRolesObj, PlanLimitTypes } from 'nocodb-sdk';
+import { lastValueFrom, Observable } from 'rxjs';
 import type { Request } from 'express';
 import type { ExecutionContext } from '@nestjs/common';
-import { JwtStrategy } from '~/strategies/jwt.strategy';
-import { UsageStat } from '~/models';
 import { checkLimit } from '~/helpers/paymentHelpers';
+import { UsageStat } from '~/models';
+import { JwtStrategy } from '~/strategies/jwt.strategy';
 
 @Injectable()
 export class GlobalGuard extends AuthGuard(['jwt']) {
@@ -24,6 +24,13 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
     if (req.headers?.['xc-auth']) {
       try {
         result = await this.extractBoolVal(super.canActivate(context));
+        if (result && req.context) {
+          req.context.user = {
+            id: req.user.id,
+            email: req.user.email,
+            email_verified: req.user.email_verified,
+          };
+        }
       } catch (e) {
         this.logger.debug(e);
       }
@@ -107,6 +114,13 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
   ): Promise<any> {
     const u = await this.jwtStrategy.validate(req, user);
     req.user = u;
+    if (req.context) {
+      req.context.user = {
+        id: req.user.id,
+        email: req.user.email,
+        email_verified: req.user.email_verified,
+      };
+    }
     return true;
   }
 

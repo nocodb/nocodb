@@ -2,7 +2,7 @@
 import tinycolor from 'tinycolor2'
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import type { Select as AntSelect } from 'ant-design-vue'
-import type { UserFieldRecordType } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, type UserFieldRecordType } from 'nocodb-sdk'
 import { getOptions, getSelectedUsers } from './utils'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
@@ -21,6 +21,8 @@ const emit = defineEmits(['update:modelValue'])
 const { isMobileMode } = useGlobal()
 
 const meta = inject(MetaInj)!
+
+const isInFilter = inject(IsInFilterInj)!
 
 const column = inject(ColumnInj)!
 
@@ -69,7 +71,15 @@ const searchVal = ref<string | null>()
 const { isUIAllowed } = useRoles()
 
 const options = computed(() => {
-  return userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value)
+  const currentUserField: any[] = []
+  if (isInFilter?.value) {
+    currentUserField.push({
+      id: CURRENT_USER_TOKEN,
+      display_name: CURRENT_USER_TOKEN,
+      email: CURRENT_USER_TOKEN,
+    })
+  }
+  return [...currentUserField, ...(userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value))]
 })
 
 const optionsMap = computed(() => {

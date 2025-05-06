@@ -3028,7 +3028,6 @@ export function useCanvasRender({
       } catch (e) {
         val = group.value
       }
-
       renderCell(ctx, group.column, {
         value: val,
         x: x - 11,
@@ -3042,6 +3041,7 @@ export function useCanvasRender({
         readonly: true,
         textColor: '#1f293a', // gray-800
         imageLoader,
+        meta,
         tableMetaLoader,
         relatedColObj: group.relatedColumn,
         relatedTableMeta: group.relatedTableMeta,

@@ -419,15 +419,14 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
 
   const colOptions = col.colOptions as LookupType
   const relationColumnOptions = colOptions.fk_relation_column_id
-    ? meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
+    ? (meta?.value ?? meta)?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
     : col.colOptions
+
   const relatedTableMeta =
     relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
-
   const childColumn = relatedTableMeta?.columns.find(
-    (c: ColumnType) => c.id === (colOptions?.fk_lookup_column_id ?? colOptions?.fk_child_column_id),
+    (c: ColumnType) => c.id === (colOptions?.fk_lookup_column_id ?? relatedTableMeta?.columns.find((c) => c.pv).id),
   ) as ColumnType | undefined
-
   if (Array.isArray(modelValue)) {
     return modelValue
       .map((v) => {
@@ -437,7 +436,7 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
       .join(', ')
   }
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  return parsePlainCellValue(modelValue, { ...params, col: childColumn! })
+  return parsePlainCellValue(modelValue, { ...params, col: childColumn })
 }
 
 export function getLookupColumnType(

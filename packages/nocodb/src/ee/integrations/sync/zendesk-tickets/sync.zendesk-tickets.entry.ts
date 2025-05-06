@@ -21,10 +21,6 @@ interface ZendeskTicket {
   updated_at: string;
 }
 
-interface ZendeskResponse {
-  tickets: ZendeskTicket[];
-}
-
 export default class ZendeskTicketsIntegration extends SyncIntegration {
   public async getDestinationSchema(_auth: AuthResponse) {
     return ticketingSchema;

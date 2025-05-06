@@ -4,8 +4,6 @@ import type { User } from '~/models';
 import type { ApiTokenReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { ApiToken } from '~/models';
-import { NcError } from '~/helpers/catchError';
 
 @Injectable()
 export class OrgTokensService extends OrgTokensServiceCE {

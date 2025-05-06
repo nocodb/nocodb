@@ -778,8 +778,8 @@ export default {
           </div>
           <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end) min-w-0">
             <div v-if="!props.showNextPrevIcons" class="hidden md:flex items-center rounded-lg bg-gray-100 px-2 py-1 gap-2">
-              <GeneralIcon icon="table" class="text-gray-700" />
-              <span class="nc-expanded-form-table-name">
+              <GeneralIcon icon="table" class="text-gray-700 flex-none" />
+              <span class="nc-expanded-form-table-name whitespace-nowrap">
                 {{ tableTitle }}
               </span>
             </div>

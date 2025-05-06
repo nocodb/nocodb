@@ -1641,7 +1641,7 @@ export function useInfiniteData(args: {
   }
 
   const isLastRow = computed(() => {
-    const path = (routeQuery.value?.path?.split('-') ?? []).map((c) => +c)
+    const path = routeQuery.value?.path?.trim() ? routeQuery.value?.path?.split('-').map((c) => +c) : []
     const dataCache = getDataCache(path)
 
     const expandedRowIndex = getExpandedRowIndex(path)
@@ -1651,8 +1651,7 @@ export function useInfiniteData(args: {
   })
 
   const isFirstRow = computed(() => {
-    const path = (routeQuery.value?.path?.split('-') ?? []).map((c) => +c)
-
+    const path = routeQuery.value?.path?.trim() ? routeQuery.value?.path?.split('-').map((c) => +c) : []
     const expandedRowIndex = getExpandedRowIndex(path)
     if (expandedRowIndex === -1) return false
 

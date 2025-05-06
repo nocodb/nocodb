@@ -21,6 +21,7 @@ export function useViewRowColorProvider(params: { view: Ref<ViewType>; rowColorI
         rowColorInfo.value = rowColorInfoResponse
         if (rowColorInfo.value!.mode === ROW_COLORING_MODE.FILTER) {
           for (const condition of rowColorInfo.value.conditions) {
+            condition.conditions = condition.conditions.sort((a, b) => a.order - b.order)
             condition.nestedConditions = arrayToNested({
               data: condition.conditions,
               childAssignHandler: (row, children) => {

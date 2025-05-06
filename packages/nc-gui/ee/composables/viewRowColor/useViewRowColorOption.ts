@@ -237,13 +237,22 @@ export function useViewRowColorOption(params: {
           filter,
           showNullAndEmptyInFilter: baseMeta.value?.showNullAndEmptyInFilter,
         })
-      } else if (['logical_op'].includes(params.type)) {
-        const siblings = filter.fk_parent_id
-          ? conditionToUpdate.conditions.find((f) => f.id === filter.fk_parent_id)?.children
-          : conditionToUpdate.conditions.filter((f) => !f.fk_parent_id)
       }
     }
-    await $api.dbTableFilter.update(filter!.id, filter)
+    if (['logical_op'].includes(params.type)) {
+      const siblings = filter.fk_parent_id
+        ? conditionToUpdate.conditions.find((f) => f.id === filter.fk_parent_id)?.children
+        : conditionToUpdate.conditions.filter((f) => !f.fk_parent_id)
+      for (const sibling of siblings ?? []) {
+        sibling.logical_op = params.value
+        const updateObj = { ...sibling }
+        delete updateObj.children
+        await $api.dbTableFilter.update(updateObj.id, updateObj)
+      }
+    }
+    const updateObj = { ...filter }
+    delete updateObj.children
+    await $api.dbTableFilter.update(filter!.id, updateObj)
   }
 
   const onRowColorConditionFilterDelete = async (colorIndex: number, params: FilterGroupChangeEvent) => {

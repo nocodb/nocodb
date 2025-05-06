@@ -19,7 +19,7 @@ const disabled = computed(() => {
   return !isUIAllowed('viewCreateOrEdit')
 })
 
-const items = computed<ItemType[]>(() => {
+const items = computed(() => {
   return [
     { icon: 'menu', value: 'field', tooltip: 'Fields' },
     {
@@ -34,7 +34,7 @@ const items = computed<ItemType[]>(() => {
       tooltip: 'Discussion',
       hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE) || isSqlView.value,
     },
-  ]
+  ].filter((i) => !i.hidden) as ItemType[]
 })
 </script>
 

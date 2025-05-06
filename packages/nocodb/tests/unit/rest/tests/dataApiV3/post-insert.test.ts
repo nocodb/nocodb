@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { expect } from 'chai';
-import { type ColumnType } from 'nocodb-sdk';
+import { checkboxTypeMap, type ColumnType } from 'nocodb-sdk';
 import {
   beforeEachAttachment,
+  beforeEachCheckbox,
   beforeEachLinkBased,
   beforeEachTextBased,
   beforeEachUserBased,
@@ -433,6 +434,44 @@ describe('dataApiV3', () => {
           'test@example.com',
         );
         expect(record.body.userFieldMulti[1].email).to.equal('a@nocodb.com');
+      });
+    });
+
+    describe('checkbox', () => {
+      let table: Model;
+      let columns: Column[] = [];
+
+      beforeEach(async function () {
+        const initResult = await beforeEachCheckbox(testContext);
+        table = initResult.table;
+        columns = initResult.columns;
+        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      });
+
+      it(`will handle insert field format valid`, async () => {
+        const insertCases = Object.keys(checkboxTypeMap);
+        const body: any[] = [];
+        for (const insertCase of insertCases) {
+          body.push({ Checkbox: insertCase });
+        }
+        for (let batch = 0; batch < body.length; batch += 5) {
+          const response = await ncAxiosPost({
+            url: `${urlPrefix}/${table.id}`,
+            body: body.slice(batch, batch + 5),
+          });
+
+          const list = await ncAxiosGet({
+            url: `${urlPrefix}/${table.id}`,
+            query: {
+              where: `(Id,gte,${response.body[0].Id})`,
+            },
+          });
+          for (let index = 0; index < list.body.list.length; index++) {
+            const actual = list.body.list[index];
+            const expected = checkboxTypeMap[insertCases[batch + index]];
+            expect(actual.Checkbox).to.equal(expected);
+          }
+        }
       });
     });
 

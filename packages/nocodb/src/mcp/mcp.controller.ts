@@ -1,9 +1,7 @@
 import {
+  All,
   Controller,
-  Delete,
-  Get,
   Param,
-  Post,
   Request,
   Response,
   UseGuards,
@@ -14,35 +12,31 @@ import {
   NcRequest,
   ProjectRoles,
 } from 'nocodb-sdk';
-import dayjs from 'dayjs';
 import { MCPToken, User } from '~/models';
 import { McpService } from '~/mcp/mcp.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcError } from '~/helpers/catchError';
-import { MetaApiLimiterGuard } from '~/ee/guards/meta-api-limiter.guard';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
-@Controller('mcp/:mcpTokenId')
+@Controller()
 @UseGuards(MetaApiLimiterGuard)
 export class McpController {
   constructor(private readonly mcpService: McpService) {}
 
-  @Post()
-  @Get()
-  @Delete()
+  @All('mcp/:mcpTokenId')
   async handleMcpRequest(
     @Param('mcpTokenId') tokenId: string,
     @Request() req: NcRequest,
     @Response() res,
     @TenantContext() context: NcContext,
   ) {
-    if (!req.header['xc-mcp-token']) {
-      res.status(404).send('MCP Token not found');
-      return;
+    if (!req.headers['xc-mcp-token']) {
+      NcError.notFound('MCP token not found');
     }
 
     const mcpToken = await MCPToken.validateToken(
       context,
-      req.header['xc-mcp-token'],
+      req.headers['xc-mcp-token'] as string,
       tokenId,
     );
 

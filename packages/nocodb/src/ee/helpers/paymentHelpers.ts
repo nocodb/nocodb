@@ -26,12 +26,18 @@ async function getLimit(
   plan?: Partial<Plan>;
 }> {
   if (!workspaceOrId) {
-    if (!GenericLimits[type]) {
+    if (GenericLimits[type] === undefined || GenericLimits[type] === null) {
       NcError.forbidden('You are not allowed to perform this action');
     }
 
+    if (GenericLimits[type] === -1) {
+      return {
+        limit: Infinity,
+      };
+    }
+
     return {
-      limit: GenericLimits[type] || Infinity,
+      limit: GenericLimits[type] ?? Infinity,
     };
   }
 

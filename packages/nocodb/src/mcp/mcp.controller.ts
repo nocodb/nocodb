@@ -35,12 +35,16 @@ export class McpController {
     @Response() res,
     @TenantContext() context: NcContext,
   ) {
-    const mcpToken = await MCPToken.get(context, tokenId);
-
-    if (!mcpToken || dayjs(mcpToken.expires_at).isAfter(dayjs())) {
+    if (!req.header['xc-mcp-token']) {
       res.status(404).send('MCP Token not found');
       return;
     }
+
+    const mcpToken = await MCPToken.validateToken(
+      context,
+      req.header['xc-mcp-token'],
+      tokenId,
+    );
 
     req.user = await User.getWithRoles(context, mcpToken.fk_user_id, {
       baseId: mcpToken.base_id,

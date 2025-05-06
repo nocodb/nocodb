@@ -22,7 +22,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const baseURL = $api.instance.defaults.baseURL
 
-  const { user } = useGlobal()
+  const { user, appInfo } = useGlobal()
 
   const { isUIAllowed } = useRoles()
 
@@ -46,7 +46,7 @@ export const useEeConfig = createSharedComposable(() => {
       roles: user.value?.workspace_roles,
     }),
   )
-  const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription)
+  const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription || appInfo.value?.isOnPrem)
 
   const activePlan = computed(() => activeWorkspace.value?.payment?.plan)
 

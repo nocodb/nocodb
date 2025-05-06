@@ -7,6 +7,7 @@ import {
   type WorkspaceType,
 } from 'nocodb-sdk';
 import type { Plan, Subscription } from '~/models';
+import { MCPToken } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
 import {
@@ -407,6 +408,10 @@ export default class Workspace implements WorkspaceType {
 
     CustomUrl.bulkDelete({ fk_workspace_id: id }, ncMeta).catch(() => {
       logger.error(`Failed to delete custom urls of workspaceId: ${id}`);
+    });
+
+    MCPToken.bulkDelete({ fk_workspace_id: id }, ncMeta).catch(() => {
+      logger.error(`Failed to delete mcp tokens of workspaceId: ${id}`);
     });
 
     return await ncMeta.metaUpdate(

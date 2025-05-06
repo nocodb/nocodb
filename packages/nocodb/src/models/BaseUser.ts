@@ -396,8 +396,7 @@ export default class BaseUser {
       logger.error('Error cleaning command palette cache');
     });
 
-    await MCPToken.deleteByBaseUser(context, userId, ncMeta);
-
+    await MCPToken.bulkDelete({ fk_user_id: userId }, ncMeta);
     return response;
   }
 

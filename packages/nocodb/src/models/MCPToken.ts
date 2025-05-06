@@ -1,7 +1,13 @@
+import { NcError } from 'src/helpers/catchError';
 import type { MCPTokenType, NcContext } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import {
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+  RootScopes,
+} from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb } from '~/utils/modelUtils';
 
@@ -159,17 +165,41 @@ export default class MCPToken implements MCPTokenType {
     return true;
   }
 
-  public static async deleteByBaseUser(
-    context: NcContext,
-    userId: string,
+  public static async bulkDelete(
+    params: Partial<
+      Pick<MCPToken, 'fk_workspace_id' | 'base_id' | 'fk_user_id'>
+    >,
     ncMeta = Noco.ncMeta,
   ) {
-    const tokens = await this.list(context, userId, ncMeta);
+    const condition = extractProps(params, [
+      'fk_workspace_id',
+      'base_id',
+      'fk_user_id',
+    ]);
+
+    if (
+      !condition.fk_workspace_id &&
+      !condition.base_id &&
+      !condition.fk_user_id
+    ) {
+      NcError.badRequest(
+        'At least one of fk_workspace_id, base_id or fk_user_id is required',
+      );
+    }
+
+    const tokens = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.MCP_TOKENS,
+      {
+        condition,
+      },
+    );
 
     for (const token of tokens) {
       await ncMeta.metaDelete(
-        context.workspace_id,
-        context.base_id,
+        RootScopes.ROOT,
+        RootScopes.ROOT,
         MetaTable.MCP_TOKENS,
         token.id,
       );

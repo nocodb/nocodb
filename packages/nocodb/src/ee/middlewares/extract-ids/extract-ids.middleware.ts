@@ -158,18 +158,15 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
     }
 
-    if (params.tokenId) {
-      const mcpToken = await MCPToken.get(context, params.tokenId);
-
+    if (params.mcpTokenId) {
+      const mcpToken = await MCPToken.get(context, params.mcpTokenId);
       if (!mcpToken) {
-        NcError.genericNotFound('MCPToken', params.tokenId);
+        NcError.genericNotFound('MCPToken', params.mcpTokenId);
       }
 
       req.ncBaseId = mcpToken.base_id;
       req.ncWorkspaceId = mcpToken.fk_workspace_id;
-    }
-
-    if (params.baseId && !isInternalWorkspaceScope) {
+    } else if (params.baseId && !isInternalWorkspaceScope) {
       req.ncBaseId = params.baseId;
     } else if (params.dashboardId) {
       req.ncBaseId = params.dashboardId;

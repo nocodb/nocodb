@@ -115,27 +115,11 @@ export class TablesV3Service {
     context: NcContext,
     param: {
       baseId: string;
-      sourceId: string;
+      sourceId?: string;
       includeM2M?: boolean;
       roles: Record<string, boolean>;
     },
   ) {
-    // TODO: Discuss with @pranavxc
-    if (!param.sourceId) {
-      const base = await Base.get(context, param.baseId);
-
-      if (!base) {
-        throw new Error('Base not found');
-      }
-
-      const sources = await base.getSources();
-      if (!sources || sources.length === 0) {
-        throw new Error('No sources found');
-      }
-
-      // If no sourceId is provided, use the meta sourceId
-      param.sourceId = sources.find((source) => source.isMeta())?.id;
-    }
     const tables = await this.tablesService.getAccessibleTables(context, param);
 
     const metaSourceId = (

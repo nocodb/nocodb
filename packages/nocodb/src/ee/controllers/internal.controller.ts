@@ -27,7 +27,6 @@ import {
 } from '~/utils/internal-type';
 
 @Controller()
-@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class InternalController extends InternalControllerCE {
   constructor(
     protected readonly mcpService: McpTokenService,

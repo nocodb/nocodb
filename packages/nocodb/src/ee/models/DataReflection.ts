@@ -272,7 +272,6 @@ export default class DataReflection extends DataReflectionCE {
 
   public static async create(
     fk_workspace_id: string,
-    base_id?: string | Array<string>,
     ncMeta = Noco.ncMeta,
   ) {
     const workspace = await Workspace.get(fk_workspace_id, false, ncMeta);
@@ -302,42 +301,10 @@ export default class DataReflection extends DataReflectionCE {
         ncMeta,
       );
 
-      if (base_id) {
-        // Convert single base_id to array for uniform handling
-        const baseIds = Array.isArray(base_id) ? base_id : [base_id];
+      const bases = await Base.listByWorkspace(fk_workspace_id, false, ncMeta);
 
-        // Validate that the bases exist and belong to the workspace
-        const workspaceBases = await Base.listByWorkspace(
-          fk_workspace_id,
-          false,
-          ncMeta,
-        );
-        const workspaceBaseIds = workspaceBases.map((base) => base.id);
-
-        // Filter out any invalid base IDs
-        const validBaseIds = baseIds.filter((id) =>
-          workspaceBaseIds.includes(id),
-        );
-
-        if (validBaseIds.length === 0) {
-          NcError.badRequest('Invalid base IDs provided for the workspace');
-        }
-
-        // Grant access to each valid base
-        for (const id of validBaseIds) {
-          await grantAccessToSchema(knex, id, username);
-        }
-      } else {
-        // If no base_id provided, grant access to all bases in the workspace
-        const bases = await Base.listByWorkspace(
-          fk_workspace_id,
-          false,
-          ncMeta,
-        );
-
-        for (const base of bases) {
-          await grantAccessToSchema(knex, base.id, username);
-        }
+      for (const base of bases) {
+        await grantAccessToSchema(knex, base.id, username);
       }
 
       await knex.commit();

@@ -123,11 +123,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     const isInternalApi = !!req.path?.startsWith('/api/v2/internal');
     const isInternalWorkspaceScope = isInternalApi && params.baseId === 'nc';
 
-    if (params.baseId || params.baseName) {
-      const base = await Base.getByTitleOrId(
-        context,
-        params.baseId ?? params.baseName,
-      );
+    // We don't extract ncBaseId here intentionally to keep single source of truth
+    if (!isInternalWorkspaceScope && (params.baseId || params.baseName)) {
+      // We only allow base id to be used for EE edition
+      const base = await Base.get(context, params.baseId ?? params.baseName);
 
       if (!base) {
         if (context.api_version === NcApiVersion.V3) {
@@ -136,11 +135,18 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           NcError.baseNotFound(params.baseId ?? params.baseName);
         }
       }
+
       if (params.tableId || params.modelId) {
-        const model = await Model.getByIdOrName(context, {
-          id: params.tableId || params.modelId,
-          base_id: base.id,
-        });
+        const model = await Model.getByIdOrName(
+          {
+            workspace_id: base.fk_workspace_id,
+            base_id: base.id,
+          },
+          {
+            id: params.tableId || params.modelId,
+            base_id: base.id,
+          },
+        );
         if (!model) {
           if (context.api_version === NcApiVersion.V3) {
             NcError.tableNotFoundV3(params.tableId || params.modelId);
@@ -148,8 +154,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
             NcError.tableNotFound(params.tableId || params.modelId);
           }
         }
-        req.ncBaseId = model.base_id;
-        req.ncSourceId = model.source_id;
       }
     }
 

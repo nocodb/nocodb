@@ -81,8 +81,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       api_version: getApiVersionFromUrl(req.route.path),
     };
     req.ncApiVersion = context.api_version;
+
     // extract base id based on request path params
     if (params.baseId || params.baseName) {
+      // We allow title for backward compatibility - TODO: we should get rid of it in future
       const base = await Base.getByTitleOrId(
         context,
         params.baseId ?? params.baseName,
@@ -100,10 +102,16 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         req.ncBaseId = base.id;
         if (params.tableName) {
           // extract model and then source id from model
-          const model = await Model.getByAliasOrId(context, {
-            base_id: base.id,
-            aliasOrId: params.tableName,
-          });
+          const model = await Model.getByAliasOrId(
+            {
+              workspace_id: base.fk_workspace_id,
+              base_id: base.id,
+            },
+            {
+              base_id: base.id,
+              aliasOrId: params.tableName,
+            },
+          );
 
           if (!model) {
             if (context.api_version === NcApiVersion.V3) {

@@ -41,6 +41,8 @@ const attachmentVModel = computed({
 
 const refAttachmentCell = ref()
 
+const isEditAllowed = computed(() => !!refAttachmentCell.value?.isEditAllowed)
+
 /* file detection */
 
 const fileEntry: ComputedRef<{ icon: keyof typeof iconMap; title: string | undefined }> = computed(() => {
@@ -225,7 +227,7 @@ useEventListener(document, 'click', (e) => {
         </NcButton>
         <template #overlay>
           <NcMenu variant="small">
-            <NcMenuItem @click="renameCurrentFile">
+            <NcMenuItem v-if="isEditAllowed" @click="renameCurrentFile">
               <GeneralIcon icon="edit" />
               Rename
             </NcMenuItem>
@@ -234,7 +236,7 @@ useEventListener(document, 'click', (e) => {
               Download
             </NcMenuItem>
             <NcDivider />
-            <NcMenuItem class="!text-red-500" @click="deleteCurrentFile">
+            <NcMenuItem v-if="isEditAllowed" class="!text-red-500 !hover:bg-red-50" @click="deleteCurrentFile">
               <GeneralIcon icon="delete" />
               Delete
             </NcMenuItem>

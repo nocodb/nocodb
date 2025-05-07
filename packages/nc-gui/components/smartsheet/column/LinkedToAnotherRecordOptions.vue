@@ -375,7 +375,7 @@ const toggleCrossBase = () => {
       <LazySmartsheetColumnLinkAdvancedOptions v-model:value="vModel" :is-edit="isEdit" :meta="meta" />
     </div>
     <template v-else>
-      <template v-if="isFeatureEnabled(FEATURE_FLAG.CUSTOM_LINK.CROSS_BASE_LINK)">
+      <template v-if="isFeatureEnabled(FEATURE_FLAG.CROSS_BASE_LINK)">
         <div>
           <a-switch
             v-model:checked="crossBase"

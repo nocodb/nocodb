@@ -116,7 +116,7 @@ watch(selectedFieldId, () => {
         </div>
       </div>
     </div>
-    <div>
+    <div v-if="!readOnly">
       <NcButton
         type="text"
         class="w-full !rounded-none !border-t-1 !rounded-t-lg !border-gray-200 !h-16"

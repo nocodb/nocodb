@@ -19,7 +19,7 @@ const emits = defineEmits<{
 const { getPossibleAttachmentSrc } = useAttachment()
 const isFileContentMenuOpen = useVModel(props, 'isFileContentMenuOpen', emits)
 
-const { attachment, selectedField, attachmentIndex } = toRefs(props)
+const { isExpanded, attachment, selectedField, attachmentIndex } = toRefs(props)
 
 /* stores */
 const { changedColumns, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
@@ -112,6 +112,8 @@ const showRenameInput = ref(false)
 
 const attachmentTitle = ref('')
 
+const isOpenContextMenu = ref(false)
+
 function downloadCurrentFile() {
   refAttachmentCell.value?.downloadAttachment(attachment.value)
   isFileContentMenuOpen.value = false
@@ -145,23 +147,29 @@ function cancelRename() {
   isFileContentMenuOpen.value = false
 }
 
-const onVisibilityChange = (value: boolean) => {
-  isFileContentMenuOpen.value = value
-}
-
 useEventListener(document, 'click', (e) => {
   if ((e.target as HTMLElement)?.closest('.nc-attachments-preview-bar, .nc-dropdown')) return
 
   emits('expand', false)
 })
+
+watch(isExpanded, (newValue) => {
+  if (newValue || !isOpenContextMenu.value) return
+
+  isOpenContextMenu.value = false
+})
+
+watch(isOpenContextMenu, (newValue) => {
+  isFileContentMenuOpen.value = newValue
+})
 </script>
 
 <template>
   <div
-    class="h-[56px] border-1 rounded-md overflow-hidden hover:bg-gray-50 cursor-pointer flex flex-row transition-all"
+    class="h-[56px] border-1 rounded-md overflow-hidden hover:bg-gray-50 cursor-pointer flex flex-row transition-all group"
     :class="{
-      'w-[56px] border-gray-200': !props.isExpanded,
-      'w-full border-transparent': props.isExpanded,
+      'w-[56px] border-gray-200': !isExpanded,
+      'w-full border-transparent': isExpanded,
       '!border-primary ring-3 ring-[#3069fe44] preview-cell-active': props.active,
     }"
     style="scroll-margin-top: 28px"
@@ -176,9 +184,9 @@ useEventListener(document, 'click', (e) => {
           :src="getPossibleAttachmentSrc(attachment, 'tiny')?.[0]"
           class="object-cover transition-all duration-300 absolute overflow-hidden"
           :class="{
-            'top-0 left-0 right-0 w-full h-[calc(100%-20px)] rounded-none': !props.isExpanded,
+            'top-0 left-0 right-0 w-full h-[calc(100%-20px)] rounded-none': !isExpanded,
             'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[36px] h-[36px] rounded-lg ring-1 ring-gray-300':
-              props.isExpanded,
+              isExpanded,
           }"
         />
         <GeneralIcon
@@ -186,16 +194,16 @@ useEventListener(document, 'click', (e) => {
           :icon="fileEntry.icon"
           class="text-white !transition-all !duration-300 absolute w-full h-full"
           :class="{
-            'top-0 left-0 right-0 h-[calc(100%-16px)]': !props.isExpanded,
-            'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-[48px] w-[48px]': props.isExpanded,
+            'top-0 left-0 right-0 h-[calc(100%-16px)]': !isExpanded,
+            'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-[48px] w-[48px]': isExpanded,
           }"
         />
       </div>
       <div
         class="font-bold text-[12px] text-center uppercase truncate px-1 transition-all duration-300 absolute"
         :class="{
-          'left-0 right-0 bottom-1': !props.isExpanded,
-          'left-0 right-0 bottom-0 transform translate-y-full': props.isExpanded,
+          'left-0 right-0 bottom-1': !isExpanded,
+          'left-0 right-0 bottom-0 transform translate-y-full': isExpanded,
         }"
       >
         {{ fileEntry.title }}
@@ -220,11 +228,38 @@ useEventListener(document, 'click', (e) => {
       </NcTooltip>
       <div class="text-xs text-gray-500">{{ getReadableFileSize(attachment.size!) }}</div>
     </div>
-    <div v-if="props.isExpanded && !showRenameInput" class="self-center px-2">
-      <NcDropdown @visible-change="onVisibilityChange">
-        <NcButton type="text" size="xs" class="!px-1" @click.stop>
-          <GeneralIcon icon="threeDotVertical" />
+    <div v-if="isExpanded && !showRenameInput" class="self-center px-2">
+      <NcButton
+        v-if="!isEditAllowed"
+        type="text"
+        size="xs"
+        class="!px-1 invisible group-hover:visible"
+        :class="{
+          '!visible': props.active,
+        }"
+        icon-only
+        @click.stop="downloadCurrentFile"
+      >
+        <template #icon>
+          <GeneralIcon icon="download" />
+        </template>
+      </NcButton>
+      <NcDropdown v-else v-model:visible="isOpenContextMenu">
+        <NcButton
+          type="text"
+          size="xs"
+          class="!px-1 invisible group-hover:visible"
+          :class="{
+            '!visible': isOpenContextMenu || props.active,
+          }"
+          icon-only
+          @click.stop
+        >
+          <template #icon>
+            <GeneralIcon icon="threeDotVertical" />
+          </template>
         </NcButton>
+
         <template #overlay>
           <NcMenu variant="small">
             <NcMenuItem v-if="isEditAllowed" @click="renameCurrentFile">
@@ -235,11 +270,13 @@ useEventListener(document, 'click', (e) => {
               <GeneralIcon icon="download" />
               Download
             </NcMenuItem>
-            <NcDivider />
-            <NcMenuItem v-if="isEditAllowed" class="!text-red-500 !hover:bg-red-50" @click="deleteCurrentFile">
-              <GeneralIcon icon="delete" />
-              Delete
-            </NcMenuItem>
+            <template v-if="isEditAllowed">
+              <NcDivider />
+              <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="deleteCurrentFile">
+                <GeneralIcon icon="delete" />
+                Delete
+              </NcMenuItem>
+            </template>
           </NcMenu>
         </template>
       </NcDropdown>

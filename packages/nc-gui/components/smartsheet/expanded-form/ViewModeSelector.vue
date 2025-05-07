@@ -11,15 +11,9 @@ const modelValue = defineModel<string>()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isUIAllowed } = useRoles()
-
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
-
-const disabled = computed(() => {
-  return !isUIAllowed('viewCreateOrEdit')
-})
 
 const isViewModeEnabled = computed(() => {
   return (
@@ -50,38 +44,32 @@ const items = computed(() => {
 </script>
 
 <template>
-  <NcTooltip v-if="isViewModeEnabled" :disabled="!disabled">
-    <template #title> You do not have permission to change view mode. </template>
-    <div
-      class="tab-wrapper flex flex-row rounded-lg border-1 border-nc-border-gray-medium bg-white h-7 overflow-hidden"
-      :class="{
-        '!cursor-not-allowed opacity-50': disabled,
-      }"
-    >
-      <NcTooltip v-for="(item, idx) of items" :key="item.value" :disabled="!item.tooltip || disabled">
-        <template #title>{{ item.tooltip }}</template>
-        <div
-          v-e="[`c:project:mode:${item.value}`]"
-          class="tab"
-          :class="[
-            `nc-tab-${modelValue}`,
-            {
-              'pointer-events-none': disabled,
-              'active': modelValue === item.value,
-              'first-tab': idx === 0,
-              'last-tab': idx === items.length - 1,
-            },
-          ]"
-          @click="modelValue = item.value"
-        >
-          <GeneralIcon :icon="item.icon" class="tab-icon" />
-          <div v-if="item.title" class="tab-title nc-tab">
-            {{ $t(item.title) }}
-          </div>
+  <div
+    v-if="isViewModeEnabled"
+    class="tab-wrapper flex flex-row rounded-lg border-1 border-nc-border-gray-medium bg-white h-7 overflow-hidden"
+  >
+    <NcTooltip v-for="(item, idx) of items" :key="item.value" :disabled="!item.tooltip">
+      <template #title>{{ item.tooltip }}</template>
+      <div
+        v-e="[`c:project:mode:${item.value}`]"
+        class="tab"
+        :class="[
+          `nc-tab-${modelValue}`,
+          {
+            'active': modelValue === item.value,
+            'first-tab': idx === 0,
+            'last-tab': idx === items.length - 1,
+          },
+        ]"
+        @click="modelValue = item.value"
+      >
+        <GeneralIcon :icon="item.icon" class="tab-icon" />
+        <div v-if="item.title" class="tab-title nc-tab">
+          {{ $t(item.title) }}
         </div>
-      </NcTooltip>
-    </div>
-  </NcTooltip>
+      </div>
+    </NcTooltip>
+  </div>
 </template>
 
 <style lang="scss" scoped>

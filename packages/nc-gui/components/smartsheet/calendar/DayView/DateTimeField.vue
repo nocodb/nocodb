@@ -170,10 +170,11 @@ const hasSlotForRecord = (
     if (!columnFromCol) return false
 
     const { startDate: columnFromDate, endDate: columnToDate } = calculateNewDates({
-      startDate: dayjs(column.row[columnFromCol.title!]),
-      endDate: columnToCol
-        ? dayjs(column.row[columnToCol.title!])
-        : dayjs(column.row[columnFromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
+      startDate: timezoneDayjs.timezonize(column.row[columnFromCol.title!]),
+      endDate:
+        columnToCol && dayjs(column.row[columnToCol.title!])?.isValid()
+          ? timezoneDayjs.timezonize(column.row[columnToCol.title!])
+          : timezoneDayjs.timezonize(column.row[columnFromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
       scheduleStart: timezoneDayjs.dayjsTz(selectedDate.value).startOf('day'),
       scheduleEnd: timezoneDayjs.dayjsTz(selectedDate.value).endOf('day'),
     })
@@ -308,7 +309,9 @@ const recordsAcrossAllRange = computed<{
 
       if (fromCol && endCol) {
         const { endDate, startDate } = calculateNewDates({
-          endDate: timezoneDayjs.timezonize(record.row[endCol.title!]),
+          endDate: dayjs(record.row[endCol.title!])?.isValid()
+            ? timezoneDayjs.timezonize(record.row[endCol.title!])
+            : dayjs(record.row[endCol.title!]),
           startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
           scheduleStart,
           scheduleEnd,
@@ -383,9 +386,10 @@ const recordsAcrossAllRange = computed<{
 
     const { startDate, endDate } = calculateNewDates({
       startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
-      endDate: toCol
-        ? timezoneDayjs.timezonize(record.row[toCol.title!])
-        : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
+      endDate:
+        toCol && dayjs(record.row[toCol.title])?.isValid()
+          ? timezoneDayjs.timezonize(record.row[toCol.title!])
+          : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
       scheduleStart,
       scheduleEnd,
     })
@@ -623,7 +627,7 @@ const onResize = (event: MouseEvent) => {
 
   if (resizeDirection.value === 'right') {
     // If the user is resizing the record to the right, we calculate the new end date based on the mouse position
-    let newEndDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day').add(minutes, 'minute')
+    let newEndDate = timezoneDayjs.timezonize(selectedDate.value.startOf('day')).add(minutes, 'minute')
 
     updateProperty = [toCol.title!]
 

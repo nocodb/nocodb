@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { SourceType } from 'nocodb-sdk'
+import CsvImport from '../dlg/CsvImport.vue'
 
 const props = defineProps<{
   visible: boolean
@@ -102,13 +103,43 @@ async function openQuickImportDialog(type: 'csv' | 'excel' | 'json') {
   }
 }
 
-const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json' | 'nocodb') => {
+async function openCsvImportDialog(baseId?: string, sourceId?: string, modelId?: string) {
+  if (!baseId || !sourceId) return
+
+  $e('a:actions:import-csv')
+
+  const isOpen = ref(true)
+
+  await nextTick()
+  visible.value = false
+
+  const { close } = useDialog(CsvImport, {
+    'modelValue': isOpen,
+    'baseId': baseId,
+    'sourceId': sourceId,
+    'modelId': modelId,
+    'onUpdate:modelValue': closeDialog,
+    'showBackBtn': true,
+    'onBack': () => {
+      visible.value = true
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
+
+const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json' | 'nocodb' | 'csv-mapping') => {
   if (showRecordPlanLimitExceededModal()) return
 
   if (type === 'airtable') {
     openAirtableImportDialog(source.value.base_id, source.value.id)
   } else if (type === 'nocodb') {
     openNocoDbImportDialog(source.value.base_id)
+  } else if (type === 'csv-mapping') {
+    openCsvImportDialog(source.value.base_id, source.value.id)
   } else {
     openQuickImportDialog(type)
   }
@@ -127,19 +158,14 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json' | 'nocodb') => {
           <span class="ml-1 text-[13px] font-weight-700"> {{ $t('labels.airtable') }} </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
+        <NcMenuItem @click="onClick('csv-mapping')">
+          <GeneralIcon icon="importCsv" class="w-5 h-5" />
+          <span class="ml-1 text-[13px] font-weight-700"> {{ $t('labels.csv') }} ({{ $t('labels.withMapping') }}) </span>
+          <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
+        </NcMenuItem>
         <NcMenuItem @click="onClick('csv')">
           <GeneralIcon icon="importCsv" class="w-5 h-5" />
-          <span class="ml-1 text-[13px] font-weight-700"> {{ $t('labels.csv') }} </span>
-          <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
-        </NcMenuItem>
-        <NcMenuItem @click="onClick('json')">
-          <GeneralIcon icon="importJson" class="w-5 h-5" />
-          <span class="ml-1 text-[13px] font-weight-700"> {{ $t('labels.jsonCapitalized') }} </span>
-          <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
-        </NcMenuItem>
-        <NcMenuItem @click="onClick('excel')">
-          <GeneralIcon icon="importExcel" class="w-5 h-5" />
-          <span class="ml-1 text-[13px] font-weight-700"> {{ $t('labels.excel') }} </span>
+          <span class="ml-1 text-[13px] font-weight-700"> {{ $t('labels.csv') }} ({{ $t('labels.quick') }}) </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
         <NcMenuItem v-if="isFeatureEnabled(FEATURE_FLAG.IMPORT_FROM_NOCODB)" @click="onClick('nocodb')">

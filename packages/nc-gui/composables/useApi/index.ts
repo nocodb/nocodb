@@ -60,11 +60,23 @@ export function useApi<Data = any, RequestConfig = any>({
   /** api instance - with interceptors for token refresh already bound */
   const api: BaseAPI<any> = useGlobalInstance && !!nuxtApp.$api ? nuxtApp.$api : createApiInstance(apiOptions)
 
+  // List of endpoints that should be excluded from the loading spinner
+  const excludedEndpoints = [
+    '/api/v1/notifications/poll',
+    // Add other long-polling or streaming endpoints here
+  ]
+
+  // Track requests that have been started but not yet completed
+  const pendingRequests = new Map()
+
   /** set loading to true and increment local and global request counter */
   // Long Polling causes the loading spinner to never stop
   // hence we are excluding the polling request from the loading spinner
   function onRequestStart(config) {
-    if (config.url !== '/api/v1/notifications/poll') {
+    // Check if the request URL is in the excluded list
+    const isExcluded = excludedEndpoints.some(endpoint => config.url?.includes(endpoint))
+    
+    if (!isExcluded) {
       isLoading.value = true
 
       /** local count */
@@ -72,11 +84,28 @@ export function useApi<Data = any, RequestConfig = any>({
 
       /** global count */
       nuxtApp.$state.runningRequests.inc()
+      
+      // Store the request in our pending requests map with a timestamp
+      const requestId = Date.now() + Math.random().toString(36).substring(2, 9)
+      pendingRequests.set(requestId, {
+        url: config.url,
+        startTime: Date.now()
+      })
+      
+      // Attach the requestId to the config so we can retrieve it in the response
+      config.requestId = requestId
     }
+    
+    return config
   }
 
   /** decrement local and global request counter and check if we can stop loading */
-  function onRequestFinish() {
+  function onRequestFinish(config) {
+    if (config && config.requestId) {
+      // Remove the request from our pending requests map
+      pendingRequests.delete(config.requestId)
+    }
+    
     /** local count */
     dec()
     /** global count */
@@ -84,6 +113,29 @@ export function useApi<Data = any, RequestConfig = any>({
 
     /** try to stop loading */
     stopLoading()
+    
+    // Safety check: if there are any requests that have been running for more than 30 seconds,
+    // we'll consider them stalled and remove them from the counter
+    const now = Date.now()
+    const stalledRequests = []
+    
+    pendingRequests.forEach((request, id) => {
+      if (now - request.startTime > 30000) { // 30 seconds timeout
+        stalledRequests.push(id)
+      }
+    })
+    
+    // Clean up stalled requests
+    stalledRequests.forEach(id => {
+      pendingRequests.delete(id)
+      dec()
+      nuxtApp.$state.runningRequests.dec()
+    })
+    
+    // If we cleaned up any stalled requests, check loading state again
+    if (stalledRequests.length > 0) {
+      stopLoading()
+    }
   }
 
   /** set loading state to false *only* if no request is still running */
@@ -103,12 +155,7 @@ export function useApi<Data = any, RequestConfig = any>({
     (config) => {
       reset()
 
-      onRequestStart(config)
-
-      return {
-        ...config,
-        ...unref(axiosConfig),
-      }
+      return onRequestStart(config)
     },
     async (requestError) => {
       errorHook.trigger(requestError)
@@ -127,7 +174,7 @@ export function useApi<Data = any, RequestConfig = any>({
       responseHook.trigger(apiResponse as AxiosResponse<Data, RequestConfig>)
       response.value = apiResponse
 
-      onRequestFinish()
+      onRequestFinish(apiResponse.config)
 
       return Promise.resolve(apiResponse)
     },
@@ -135,7 +182,7 @@ export function useApi<Data = any, RequestConfig = any>({
       errorHook.trigger(apiError)
       error.value = await extractSdkResponseErrorMsg(apiError)
 
-      onRequestFinish()
+      onRequestFinish(apiError.config)
 
       return Promise.reject(apiError)
     },

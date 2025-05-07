@@ -37,30 +37,31 @@ watch(activeCalendarView, () => {
 </script>
 
 <template>
-  <div
-    v-if="isTab"
-    class="px-1 pointer-events-auto relative mx-3 mt-1 mb-2.5 rounded-lg gap-x-0.5 relative nc-calendar-mode-tab"
-    data-testid="nc-calendar-view-mode"
-  >
-    <div class="flex flex-row">
-      <div
-        :style="highlightStyle"
-        class="highlight h-0.5 rounded-t-md absolute transition-all -bottom-2.8 bg-nc-content-brand"
-      ></div>
+  <div v-if="isTab" class="absolute left-[42%] top-0 bottom-0">
+    <div
+      class="px-1 pointer-events-auto relative mx-3 rounded-lg gap-x-0.5 nc-calendar-mode-tab"
+      data-testid="nc-calendar-view-mode"
+    >
+      <div class="flex items-center flex-row">
+        <div
+          :style="highlightStyle"
+          class="highlight h-0.5 rounded-t-md absolute transition-all -bottom-0.7 bg-nc-content-brand"
+        ></div>
 
-      <div
-        v-for="mode in ['day', 'week', 'month', 'year']"
-        :key="mode"
-        :data-testid="`nc-calendar-view-mode-${mode}`"
-        class="cursor-pointer tab transition-all px-2 duration-300 flex items-center w-12 h-7 z-10 justify-center"
-        :class="{
-          'text-nc-content-brand font-bold  bg-transparent active': activeCalendarView === mode,
-          'text-nc-content-gray-subtle2 font-[500] hover:text-nc-content-gray-extreme ': activeCalendarView !== mode,
-        }"
-        @click="setActiveCalendarMode(mode, $event)"
-      >
-        <div class="min-w-0 pointer-events-none leading-[18px] text-[12px] transition-all duration-300">
-          {{ $t(`objects.${mode}`) }}
+        <div
+          v-for="mode in ['day', 'week', 'month', 'year']"
+          :key="mode"
+          :data-testid="`nc-calendar-view-mode-${mode}`"
+          class="cursor-pointer tab transition-all px-1 duration-300 flex items-center h-10 z-10 justify-center"
+          :class="{
+            'text-nc-content-brand font-bold  bg-transparent active': activeCalendarView === mode,
+            'text-nc-content-gray-subtle2 font-[500] hover:text-nc-content-gray-extreme ': activeCalendarView !== mode,
+          }"
+          @click="setActiveCalendarMode(mode, $event)"
+        >
+          <div class="min-w-0 pointer-events-none px-2 leading-[18px] text-[13px] transition-all duration-300">
+            {{ $t(`objects.${mode}`) }}
+          </div>
         </div>
       </div>
     </div>

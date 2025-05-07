@@ -90,6 +90,7 @@ const headerText = computed(() => {
             v-model:page-date="pageDate"
             v-model:selected-date="selectedDate"
             :timezone="timezone"
+            header="v2"
             size="medium"
           />
           <NcDateWeekSelector
@@ -99,6 +100,7 @@ const headerText = computed(() => {
             v-model:selected-week="selectedDateRange"
             :timezone="timezone"
             is-week-picker
+            header="v2"
             size="medium"
           />
           <NcMonthYearSelector
@@ -106,6 +108,7 @@ const headerText = computed(() => {
             v-model:page-date="pageDate"
             v-model:selected-date="selectedMonth"
             :timezone="timezone"
+            header="v2"
             size="medium"
           />
           <NcMonthYearSelector
@@ -113,6 +116,7 @@ const headerText = computed(() => {
             v-model:page-date="pageDate"
             v-model:selected-date="selectedDate"
             :timezone="timezone"
+            header="v2"
             is-year-picker
             size="medium"
           />

@@ -286,13 +286,20 @@ const showSearch = ref(false)
 const searchRef = ref()
 
 const clickSearch = () => {
-  showSearch.value = true
-  nextTick(() => {
-    searchRef.value?.focus()
-  })
+  if (showSearch.value) {
+    searchQuery.value = ''
+    showSearch.value = false
+  } else {
+    showSearch.value = true
+    nextTick(() => {
+      searchRef.value?.focus()
+    })
+  }
 }
 
-const toggleSearch = () => {
+const toggleSearch = (e) => {
+  if (hasAncestorWithClass(e.target, 'nc-calendar-sidebar-search-btn')) return
+
   if (!searchQuery.value.length) {
     showSearch.value = false
   } else {
@@ -313,6 +320,13 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 })
 
 onClickOutside(searchRef, toggleSearch)
+
+const isDropdownOpen = ref(false)
+
+const selectOption = (option) => {
+  isDropdownOpen.value = false
+  sideBarFilterOption.value = option.value
+}
 </script>
 
 <template>
@@ -349,6 +363,7 @@ onClickOutside(searchRef, toggleSearch)
         v-model:selected-date="selectedDate"
         :timezone="timezone"
         size="medium"
+        header="v2"
         :hide-calendar="height < 700"
       />
       <NcDateWeekSelector
@@ -359,6 +374,7 @@ onClickOutside(searchRef, toggleSearch)
         :hide-calendar="height < 700"
         is-week-picker
         size="medium"
+        header="v2"
         :timezone="timezone"
       />
       <NcMonthYearSelector
@@ -366,6 +382,7 @@ onClickOutside(searchRef, toggleSearch)
         v-model:page-date="pageDate"
         v-model:selected-date="selectedMonth"
         :hide-calendar="height < 700"
+        header="v2"
         :timezone="timezone"
         size="medium"
       />
@@ -374,6 +391,7 @@ onClickOutside(searchRef, toggleSearch)
         v-model:page-date="pageDate"
         v-model:selected-date="selectedDate"
         :hide-calendar="height < 700"
+        header="v2"
         is-year-picker
         size="medium"
       />
@@ -384,34 +402,57 @@ onClickOutside(searchRef, toggleSearch)
         '!border-t-0 ': height < 700,
         'pt-6': height >= 700,
       }"
-      class="border-t-1 !pt-3 border-gray-200 relative flex flex-col gap-y-3"
+      class="border-t-1 !pt-3 border-nc-border-gray-medium relative flex flex-col gap-y-3"
     >
-      <div class="flex px-4 items-center gap-3">
-        <span class="capitalize font-medium text-gray-700">{{ $t('objects.records') }}</span>
-        <NcSelect
-          v-model:value="sideBarFilterOption"
-          size="small"
-          class="w-full !h-7 !text-gray-600"
-          data-testid="nc-calendar-sidebar-filter"
-        >
-          <a-select-option v-for="option in options" :key="option.value" :value="option.value" class="!text-gray-600">
-            <div class="flex items-center h-7 w-full justify-between gap-2">
-              <div class="truncate">
-                <NcTooltip :title="option.label" placement="top" show-on-truncate-only>
+      <div class="flex px-4 h-8 items-center gap-3">
+        <NcDropdown v-model:visible="isDropdownOpen">
+          <div
+            class="font-medium text-nc-content-gray cursor-pointer gap-2 flex items-center font-bold leading-6"
+            data-testid="nc-calendar-sidebar-filter"
+          >
+            <div>
+              <span class="capitalize">
+                {{ sideBarFilterOption !== 'allRecords' ? $t('objects.records') : '' }}
+              </span>
+              {{ options?.find((o) => o.value === sideBarFilterOption)?.label || '' }}
+            </div>
+
+            <GeneralIcon :icon="isDropdownOpen ? 'ncChevronUp' : 'ncChevronDown'" />
+          </div>
+          <template #overlay>
+            <NcMenu class="w-56" variant="small">
+              <NcMenuItem v-for="option in options" :key="option.value" @click="selectOption(option)">
+                <NcTooltip class="capitalize" :title="option.label" placement="left" show-on-truncate-only>
                   <template #title>{{ option.label }}</template>
                   {{ option.label }}
                 </NcTooltip>
-              </div>
+                <div class="flex-1" />
 
-              <component
-                :is="iconMap.check"
-                v-if="sideBarFilterOption === option.value"
-                id="nc-selected-item-icon"
-                class="text-primary w-4 h-4"
-              />
-            </div>
-          </a-select-option>
-        </NcSelect>
+                <GeneralIcon
+                  v-if="sideBarFilterOption === option.value"
+                  id="nc-selected-item-icon"
+                  class="text-primary w-4 h-4"
+                  icon="check"
+                />
+              </NcMenuItem>
+            </NcMenu>
+          </template>
+        </NcDropdown>
+
+        <div class="flex-1" />
+        <NcButton
+          data-testid="nc-calendar-sidebar-search-btn"
+          size="small"
+          :class="{
+            '!bg-brand-50 !text-nc-content-brand': showSearch,
+          }"
+          :shadow="false"
+          class="!h-7 !rounded-md nc-calendar-sidebar-search-btn !border-0"
+          type="secondary"
+          @click="clickSearch"
+        >
+          <GeneralIcon icon="ncSearch" />
+        </NcButton>
       </div>
       <div
         :class="{
@@ -437,17 +478,6 @@ onClickOutside(searchRef, toggleSearch)
         </a-input>
       </div>
       <div class="mx-4 gap-2 flex items-center">
-        <NcButton
-          v-if="!showSearch"
-          data-testid="nc-calendar-sidebar-search-btn"
-          size="small"
-          class="!h-7 !rounded-md"
-          type="secondary"
-          @click="clickSearch"
-        >
-          <component :is="iconMap.search" />
-        </NcButton>
-
         <LazySmartsheetToolbarSortListMenu />
 
         <div class="flex-1" />
@@ -612,4 +642,8 @@ onClickOutside(searchRef, toggleSearch)
 :deep(.nc-date-week-header) {
   @apply !border-b-0;
 }
+:deep(.nc-menu-item-inner) {
+  @apply !w-full;
+}
+
 </style>

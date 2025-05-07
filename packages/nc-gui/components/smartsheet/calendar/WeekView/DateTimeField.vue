@@ -555,16 +555,24 @@ const recordsAcrossAllRange = computed<{
         if (record.rowMeta.overLapIteration! - 1 > 2) {
           display = 'none'
         } else {
-          width = 100 / Math.min(maxOverlaps, 3) / maxVisibleDays.value
+          // Calculate the available width for each day
+          const availableWidth = perWidth - 3 // Account for padding/margins
 
-          left = width * (overlapIndex - 1)
+          // Calculate the width of each record based on the number of overlaps (up to 3)
+          // Ensure minimum width of 72px
+          width = Math.max(availableWidth / Math.min(maxOverlaps, 3), 72)
 
-          width = Math.max((width / 100) * containerWidth.value + 1, 72) - 3
+          // Calculate the spacing between records
+          const spacing = (availableWidth - width * Math.min(maxOverlaps, 3)) / Math.max(Math.min(maxOverlaps, 3) - 1, 1)
 
-          left = majorLeft + (left / 100) * containerWidth.value + 1.5
+          // Calculate the left position based on the day index and overlap index
+          // This ensures uniform distribution of records within the day container
+          left = majorLeft + 1.5 + (overlapIndex - 1) * (width + spacing)
 
-          if (majorLeft + perWidth < left + width) {
-            left = majorLeft + (perWidth - width) - 4.5 * overlapIndex
+          // Safety check to ensure the record stays within its day container
+          if (left + width > majorLeft + perWidth) {
+            // Adjust the width if needed to fit within the container
+            width = Math.max(majorLeft + perWidth - left - 1.5, 72)
           }
         }
       } else {

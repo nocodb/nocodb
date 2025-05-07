@@ -117,6 +117,11 @@ export function useViewRowColorOption(params: {
     if (mode === ROW_COLORING_MODE.SELECT) {
       const selectColumn = meta.value?.columns?.find((k) => k.uidt === UITypes.SingleSelect)
       rowColorInfo.value.fk_column_id = selectColumn?.id
+      rowColorInfo.value.is_set_as_background = false
+      if (rowColorInfo.value.fk_column_id) {
+        await $api.dbView.viewRowColorSelectAdd(params.view.value.id, rowColorInfo.value)
+      }
+      eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
     } else if (mode === ROW_COLORING_MODE.FILTER) {
       onRowColorConditionAdd()
     }

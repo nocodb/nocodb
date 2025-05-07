@@ -1026,6 +1026,10 @@ export function useCanvasRender({
         background: !isExpandHovered ? 'transparent' : undefined,
         setCursor,
       })
+
+      if (isExpandHovered) {
+        setCursor('pointer')
+      }
     }
   }
 

@@ -1026,12 +1026,12 @@ watch(
     >
       <div class="flex w-full items-center">
         <span
-          class="text-brand-500 rounded-md text-xs border-1 pointer-events-auto px-0.5 border-brand-200 cursor-pointer bg-brand-50"
+          class="text-nc-content-inverted-primary bg-nc-content-brand rounded-md leading-3.5 font-bold text-xs pointer-events-auto p-0.5 cursor-pointer"
           @click="addRecord(timezoneDayjs.dayjsTz())"
         >
           {{ currTime.format('hh:mm A') }}
         </span>
-        <div class="flex-1 border-b-1 border-brand-500"></div>
+        <div class="flex-1 relative ml-1 nc-calendar-border-line border-b-2 border-brand-500"></div>
       </div>
     </div>
     <div class="flex sticky h-6 z-4 top-0 pl-16 bg-gray-50 w-full">
@@ -1226,7 +1226,14 @@ watch(
 }
 
 .selected-hour {
-    @apply relative !bg-nc-bg-brand;
+  @apply relative !bg-nc-bg-brand;
+}
 
+.nc-calendar-border-line::after {
+  @apply absolute bg-nc-content-brand w-0.5 h-3;
+  content: '';
+  top: -5px;
+  bottom: -6px;
+  left: 0px;
 }
 </style>

@@ -988,19 +988,19 @@ const expandRecord = (record: Row) => {
     <div ref="container" class="w-full flex relative no-selection" data-testid="nc-calendar-day-view" @drop="dropEvent">
       <div
         v-if="shouldEnableOverlay"
-        class="absolute ml-2 pointer-events-none w-full z-4"
+        class="absolute ml-0.5 pointer-events-none w-full z-4"
         :style="{
           top: `${overlayTop}px`,
         }"
       >
         <div class="flex w-full items-center">
           <span
-            class="text-brand-500 text-xs rounded-md border-1 pointer-events-auto px-0.5 border-brand-200 cursor-pointer bg-brand-50"
+            class="text-nc-content-inverted-primary bg-nc-content-brand text-xs font-bold rounded-md pointer-events-auto leading-3.5 p-0.5 cursor-pointer"
             @click="newRecord(currTime)"
           >
             {{ currTime.format('hh:mm A') }}
           </span>
-          <div class="flex-1 border-b-1 border-brand-500"></div>
+          <div class="flex-1 relative ml-1 nc-calendar-border-line border-b-2 border-brand-500"></div>
         </div>
       </div>
 
@@ -1222,5 +1222,13 @@ const expandRecord = (record: Row) => {
 
 .selected-hour {
   @apply relative !bg-nc-bg-brand !border-nc-bg-brand;
+}
+
+.nc-calendar-border-line::after {
+  @apply absolute bg-nc-content-brand w-0.5 h-3;
+  content: '';
+  top: -5px;
+  bottom: -6px;
+  left: 0px;
 }
 </style>

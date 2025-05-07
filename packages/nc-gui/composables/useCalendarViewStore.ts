@@ -259,10 +259,11 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             nextDate = selectedDate.value.add(1, 'day').startOf('day')
             break
           case 'selectedHours':
-            fromDate = (selectedTime.value ?? timezoneDayjs.dayjsTz()).startOf('hour')
-            toDate = (selectedTime.value ?? timezoneDayjs.dayjsTz()).endOf('hour')
-            prevDate = fromDate?.subtract(1, 'hour').endOf('hour')
-            nextDate = toDate?.add(1, 'hour').startOf('hour')
+            fromDate = timezoneDayjs.timezonize((selectedTime.value ?? timezoneDayjs.dayjsTz()).startOf('hour'))
+            toDate = timezoneDayjs.timezonize((selectedTime.value ?? timezoneDayjs.dayjsTz()).endOf('hour'))
+            prevDate = timezoneDayjs.timezonize(fromDate?.subtract(1, 'hour').endOf('hour'))
+            nextDate = timezoneDayjs.timezonize(toDate?.add(1, 'hour').startOf('hour'))
+
             break
         }
         fromDate = timezoneDayjs.dayjsTz(fromDate)!.format('YYYY-MM-DD HH:mm:ssZ')

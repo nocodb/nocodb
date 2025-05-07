@@ -24,8 +24,6 @@ const { loadCalendarMeta, loadCalendarData, loadSidebarData, fetchActiveDates, u
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const isRangeEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CALENDAR_VIEW_RANGE))
-
 const calendarRangeDropdown = ref(false)
 
 const showWeekends = computed({
@@ -161,14 +159,6 @@ const removeRange = async (id: number) => {
 }
 */
 
-const isDisabled = computed(() => {
-  return (
-    [UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime, UITypes.Formula].includes(
-      dateFieldOptions.value.find((f) => f.value === calendarRange.value[0]?.fk_from_column_id)?.uidt,
-    ) && !isRangeEnabled.value
-  )
-})
-
 const onValueChange = async () => {
   _calendar_ranges.value = _calendar_ranges.value.map((range, i) => {
     if (i === 0) {
@@ -270,23 +260,21 @@ const onValueChange = async () => {
             </a-select-option>
           </a-select>
           <div v-if="isEeUI" class="w-full space-y-2">
-            <NcTooltip v-if="range.fk_to_column_id === null && isRangeEnabled" placement="left" :disabled="!isDisabled">
-              <NcButton
-                size="small"
-                data-testid="nc-calendar-range-add-end-date"
-                class="w-23"
-                type="text"
-                :shadow="false"
-                :disabled="isLocked || isDisabled"
-                @click="range.fk_to_column_id = undefined"
-              >
-                <div class="flex gap-1 items-center">
-                  <component :is="iconMap.plus" class="h-4 w-4" />
-                  {{ $t('activity.endDate') }}
-                </div>
-              </NcButton>
-              <template #title> Coming Soon!! Currently, range support is only available for Date field. </template>
-            </NcTooltip>
+            <NcButton
+              v-if="range.fk_to_column_id === null"
+              size="small"
+              data-testid="nc-calendar-range-add-end-date"
+              class="w-23"
+              type="text"
+              :shadow="false"
+              :disabled="isLocked"
+              @click="range.fk_to_column_id = undefined"
+            >
+              <div class="flex gap-1 items-center">
+                <component :is="iconMap.plus" class="h-4 w-4" />
+                {{ $t('activity.endDate') }}
+              </div>
+            </NcButton>
 
             <template v-else-if="isEeUI">
               <span>
@@ -297,7 +285,7 @@ const onValueChange = async () => {
                   v-model:value="range.fk_to_column_id"
                   class="!rounded-r-none nc-select-shadow w-full flex-1"
                   allow-clear
-                  :disabled="!range.fk_from_column_id || isLocked || isDisabled"
+                  :disabled="!range.fk_from_column_id || isLocked"
                   :placeholder="$t('placeholder.notSelected')"
                   data-testid="nc-calendar-range-to-field-select"
                   dropdown-class-name="!rounded-lg"

@@ -1617,8 +1617,7 @@ function viewRowTests() {
       })
       .set('xc-auth', context.token)
       .expect(200);
-
-    if (response.body.list.length !== 137) {
+    if (response.body.list.length !== 319) {
       throw new Error('Wrong calendar data');
     }
   };
@@ -1661,8 +1660,8 @@ function viewRowTests() {
 
     if (
       expectStatus === 200 &&
-      response.body.count !== 137 &&
-      response.body.dates.length !== 137
+      response.body.count !== 319 &&
+      response.body.dates.length !== 319
     ) {
       throw new Error('Wrong count');
     } else if (

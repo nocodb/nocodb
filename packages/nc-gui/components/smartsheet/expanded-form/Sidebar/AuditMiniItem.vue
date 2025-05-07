@@ -68,6 +68,8 @@ function normalizeMeta(key: string) {
     duration: opts.duration_format ? durationOptions.find((it) => it.title === opts.duration_format)?.id : undefined,
     is12hrFormat: opts['12hr_format'],
     isLocaleString: opts.locale_string,
+    isDisplayTimezone: opts?.isDisplayTimezone || opts?.is_display_timezone,
+    useSameTimezoneForAll: opts?.useSameTimezoneForAll || opts?.use_same_timezone_for_all,
   }
 }
 
@@ -357,7 +359,8 @@ function shouldShowRaw(key: string) {
 }
 .nc-audit-mini-item-cell :deep(.nc-cell-datetime) {
   .nc-date-picker {
-    @apply !inline;
+    @apply !inline !text-inherit text-small1;
+
     & > div {
       @apply !inline;
 

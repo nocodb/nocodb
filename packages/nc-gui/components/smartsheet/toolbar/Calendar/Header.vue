@@ -42,19 +42,6 @@ const headerText = computed(() => {
 
 <template>
   <div class="flex gap-1">
-    <NcTooltip>
-      <template #title> {{ $t('labels.previous') }}</template>
-      <a-button
-        v-e="`['c:calendar:calendar-${activeCalendarView}-prev-btn']`"
-        class="w-6 h-6 prev-next-btn !hover:text-gray-700 transition-all !rounded-lg flex items-center justify-center !bg-gray-100 !border-0"
-        data-testid="nc-calendar-prev-btn"
-        size="small"
-        @click="paginateCalendarView('prev')"
-      >
-        <component :is="iconMap.arrowLeft" class="h-4 !mb-0.9 !-ml-0.8 w-4" />
-      </a-button>
-    </NcTooltip>
-
     <NcDropdown v-model:visible="calendarRangeDropdown" :auto-close="false" :trigger="['click']">
       <NcButton
         :class="{
@@ -63,7 +50,7 @@ const headerText = computed(() => {
           'w-29': activeCalendarView === 'day',
           'w-38': activeCalendarView === 'week',
         }"
-        class="!h-6 prev-next-btn !bg-gray-100 !border-0"
+        class="prev-next-btn !h-7"
         full-width
         size="small"
         type="secondary"
@@ -83,13 +70,14 @@ const headerText = computed(() => {
       </NcButton>
 
       <template #overlay>
-        <div v-if="calendarRangeDropdown" class="w-[287px]" @click.stop>
+        <div v-if="calendarRangeDropdown" class="w-[287px] pb-2" @click.stop>
           <NcDateWeekSelector
             v-if="activeCalendarView === ('day' as const)"
             v-model:active-dates="activeDates"
             v-model:page-date="pageDate"
             v-model:selected-date="selectedDate"
             :timezone="timezone"
+            header="v2"
             size="medium"
           />
           <NcDateWeekSelector
@@ -99,6 +87,7 @@ const headerText = computed(() => {
             v-model:selected-week="selectedDateRange"
             :timezone="timezone"
             is-week-picker
+            header="v2"
             size="medium"
           />
           <NcMonthYearSelector
@@ -106,6 +95,7 @@ const headerText = computed(() => {
             v-model:page-date="pageDate"
             v-model:selected-date="selectedMonth"
             :timezone="timezone"
+            header="v2"
             size="medium"
           />
           <NcMonthYearSelector
@@ -113,24 +103,13 @@ const headerText = computed(() => {
             v-model:page-date="pageDate"
             v-model:selected-date="selectedDate"
             :timezone="timezone"
+            header="v2"
             is-year-picker
             size="medium"
           />
         </div>
       </template>
     </NcDropdown>
-    <NcTooltip>
-      <template #title> {{ $t('labels.next') }}</template>
-      <a-button
-        v-e="`['c:calendar:calendar-${activeCalendarView}-next-btn']`"
-        class="w-6 h-6 !rounded-lg flex items-center !hover:text-gray-700 prev-next-btn !bg-gray-100 !border-0 justify-center"
-        data-testid="nc-calendar-next-btn"
-        size="small"
-        @click="paginateCalendarView('next')"
-      >
-        <component :is="iconMap.arrowRight" class="h-4 !mb-0.8 !-ml-0.5 w-4" />
-      </a-button>
-    </NcTooltip>
   </div>
 </template>
 

@@ -10,6 +10,7 @@ interface Props {
   pickerType?: 'date' | 'time' | 'year' | 'month'
   showCurrentDateOption?: boolean | 'disabled'
   timezone?: string
+  header?: 'v1' | 'v2'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -19,6 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
   hideCalendar: false,
   isCellInputField: false,
   pickerType: 'date',
+  header: 'v1',
 })
 const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:pickerType', 'currentDate'])
 
@@ -37,7 +39,7 @@ const years = computed(() => {
   const startOfYear = date.startOf('year')
   const years: dayjs.Dayjs[] = []
   for (let i = 0; i < 12; i++) {
-    years.push(timezoneDayjs.value.dayjsTz(startOfYear).add(i, 'year'))
+    years.push(timezoneDayjs.value.timezonize(startOfYear.add(i, 'year')))
   }
   return years
 })
@@ -92,7 +94,6 @@ const paginate = (action: 'next' | 'prev') => {
 
 const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
   if (!date1 || !date2) return false
-  console.log(date1.format('DD MM YYYY HH:mm:ss Z'), date2.format('DD MM YYYY HH:mm:ss Z'))
   return date1.isSame(date2, 'year')
 }
 </script>
@@ -103,54 +104,82 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
       class="flex border-b-1 nc-month-picker-pagination justify-between items-center"
       :class="{
         'px-2 py-1 h-10': isCellInputField,
-        'px-2 py-0.5': !isCellInputField,
+        'px-2 py-2': !isCellInputField,
       }"
     >
-      <div class="flex">
-        <NcTooltip hide-on-click>
-          <NcButton class="nc-prev-page-btn !border-0" size="small" type="text" @click="paginate('prev')">
-            <component :is="iconMap.arrowLeft" class="h-4 w-4" />
-          </NcButton>
-          <template #title>
-            <span>{{ $t('labels.previous') }}</span>
-          </template>
-        </NcTooltip>
-      </div>
+      <template v-if="header === 'v1'">
+        <div class="flex">
+          <NcTooltip hide-on-click>
+            <NcButton class="nc-prev-page-btn !border-0" size="small" type="text" @click="paginate('prev')">
+              <component :is="iconMap.arrowLeft" class="h-4 w-4" />
+            </NcButton>
+            <template #title>
+              <span>{{ $t('labels.previous') }}</span>
+            </template>
+          </NcTooltip>
+        </div>
 
-      <span
-        class="nc-year-picker-btn text-gray-700 font-semibold"
-        :class="{
-          'cursor-pointer hover:text-brand-500': isCellInputField && !isYearPicker,
-        }"
-        @click="!isYearPicker ? (pickerType = 'year') : () => undefined"
-        >{{
-          isYearPicker
-            ? isCellInputField
-              ? timezoneDayjs.dayjsTz(selectedDate).year() || timezoneDayjs.dayjsTz().year()
-              : timezoneDayjs.dayjsTz(selectedDate).year()
-            : timezoneDayjs.dayjsTz(pageDate).format('YYYY')
-        }}</span
-      >
-      <div class="flex">
-        <NcTooltip hide-on-click>
-          <NcButton class="nc-next-page-btn !border-0" size="small" type="text" @click="paginate('next')">
-            <component :is="iconMap.arrowRight" class="h-4 w-4" />
-          </NcButton>
-          <template #title>
-            <span>{{ $t('labels.next') }}</span>
-          </template>
-        </NcTooltip>
-      </div>
+        <span
+          class="nc-year-picker-btn text-gray-700 font-semibold"
+          :class="{
+            'cursor-pointer hover:text-brand-500': isCellInputField && !isYearPicker,
+          }"
+          @click="!isYearPicker ? (pickerType = 'year') : () => undefined"
+          >{{
+            isYearPicker
+              ? isCellInputField
+                ? timezoneDayjs.dayjsTz(selectedDate).year() || timezoneDayjs.dayjsTz().year()
+                : timezoneDayjs.dayjsTz(selectedDate).year()
+              : timezoneDayjs.dayjsTz(pageDate).format('YYYY')
+          }}</span
+        >
+        <div class="flex">
+          <NcTooltip hide-on-click>
+            <NcButton class="nc-next-page-btn !border-0" size="small" type="text" @click="paginate('next')">
+              <component :is="iconMap.arrowRight" class="h-4 w-4" />
+            </NcButton>
+            <template #title>
+              <span>{{ $t('labels.next') }}</span>
+            </template>
+          </NcTooltip>
+        </div>
+      </template>
+      <template v-else>
+        <div class="text-gray-700 text-sm font-semibold">
+          <span class="px-1 font-bold leading-6 text-sm text-nc-content-gray-subtle py-2">
+            {{ isYearPicker ? timezoneDayjs.dayjsTz(selectedDate).year() : timezoneDayjs.dayjsTz(pageDate).format('YYYY') }}
+          </span>
+        </div>
+
+        <div class="flex items-center justify-center">
+          <NcTooltip hide-on-click>
+            <NcButton class="!border-0" size="small" type="text" @click="paginate('prev')">
+              <GeneralIcon icon="ncChevronLeft" class="h-4 w-4" />
+            </NcButton>
+            <template #title>
+              <span>{{ $t('labels.previous') }}</span>
+            </template>
+          </NcTooltip>
+          <NcTooltip hide-on-click>
+            <NcButton class="!border-0" data-testid="nc-calendar-next-btn" size="small" type="text" @click="paginate('next')">
+              <GeneralIcon icon="ncChevronRight" class="h-4 w-4" />
+            </NcButton>
+            <template #title>
+              <span>{{ $t('labels.next') }}</span>
+            </template>
+          </NcTooltip>
+        </div>
+      </template>
     </div>
     <div
       v-if="!hideCalendar"
       class="rounded-y-xl max-w-[350px]"
       :class="{
-        'px-2  py-1': isCellInputField,
-        'px-2.5 py-2': !isCellInputField,
+        'px-2 py-1': isCellInputField,
+        'px-2.5 py-1': !isCellInputField,
       }"
     >
-      <div class="grid grid-cols-4 gap-2">
+      <div class="grid grid-cols-4 gap-y-2 gap-x-1">
         <template v-if="!isYearPicker">
           <span
             v-for="(month, id) in months"

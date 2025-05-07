@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { ExpandedFormMode, type ViewType } from 'nocodb-sdk'
+
 interface ItemType {
   icon: IconMapKey
   title?: string
@@ -6,6 +8,10 @@ interface ItemType {
   value: string
   hidden?: boolean
 }
+
+const props = defineProps<{
+  view?: ViewType
+}>()
 
 const modelValue = defineModel<string>()
 
@@ -15,31 +21,43 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
+const viewsStore = useViewsStore()
+
 const isViewModeEnabled = computed(() => {
   return (
     isEeUI &&
     !isPublic.value &&
     (isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE) ||
-      isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE))
+      (isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE) && !isSqlView.value))
   )
 })
 
 const items = computed(() => {
   return [
-    { icon: 'menu', value: 'field', tooltip: 'Fields' },
+    { icon: 'menu', value: ExpandedFormMode.FIELD, tooltip: 'Fields' },
     {
-      icon: modelValue.value === 'attachment' ? 'ncFileTextSolid' : 'ncFileText',
-      value: 'attachment',
+      icon: modelValue.value === ExpandedFormMode.ATTACHMENT ? 'ncFileTextSolid' : 'ncFileText',
+      value: ExpandedFormMode.ATTACHMENT,
       tooltip: 'File Preview',
       hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE),
     },
     {
-      icon: modelValue.value === 'discussion' ? 'ncMessageSquare1Solid' : 'ncMessageSquare1Outline',
-      value: 'discussion',
+      icon: modelValue.value === ExpandedFormMode.DISCUSSION ? 'ncMessageSquare1Solid' : 'ncMessageSquare1Outline',
+      value: ExpandedFormMode.DISCUSSION,
       tooltip: 'Discussion',
       hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE) || isSqlView.value,
     },
   ].filter((i) => !i.hidden) as ItemType[]
+})
+
+onMounted(() => {
+  if (!isViewModeEnabled.value && modelValue.value !== ExpandedFormMode.FIELD) {
+    modelValue.value = ExpandedFormMode.FIELD
+
+    if (!props.view?.id) return
+
+    viewsStore.setCurrentViewExpandedFormMode(props.view.id, ExpandedFormMode.FIELD)
+  }
 })
 </script>
 

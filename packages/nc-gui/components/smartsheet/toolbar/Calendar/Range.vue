@@ -187,7 +187,7 @@ const onValueChange = async () => {
 
       <NcButton
         v-e="['c:calendar:change-calendar-range']"
-        class="nc-toolbar-btn !border-0 group !h-6"
+        class="nc-toolbar-btn !border-0 group !h-7"
         size="small"
         type="secondary"
         data-testid="nc-calendar-range-btn"

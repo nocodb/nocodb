@@ -470,14 +470,18 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
       try {
         activeCalendarView.value = view
-        await updateCalendarMeta({
-          meta: {
-            ...(typeof calendarMetaData.value.meta === 'string'
-              ? JSON.parse(calendarMetaData.value.meta)
-              : calendarMetaData.value.meta),
-            active_view: view,
-          },
-        })
+
+        if (isUIAllowed('calendarViewUpdate')) {
+          await updateCalendarMeta({
+            meta: {
+              ...(typeof calendarMetaData.value.meta === 'string'
+                ? JSON.parse(calendarMetaData.value.meta)
+                : calendarMetaData.value.meta),
+              active_view: view,
+            },
+          })
+        }
+
         if (activeCalendarView.value === 'week') {
           selectedTime.value = null
         }

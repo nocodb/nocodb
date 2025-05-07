@@ -204,6 +204,10 @@ export class UsersService extends UsersServiceCE {
         roles,
         token_version,
         invite_token,
+        // define invite_token_expiry if invite_token is defined
+        invite_token_expires: invite_token
+          ? new Date(Date.now() + 24 * 60 * 60 * 1000)
+          : null,
         meta,
       },
       ncMeta,

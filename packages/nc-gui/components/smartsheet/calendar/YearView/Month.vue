@@ -74,7 +74,9 @@ const getMonthComparisonCacheKey = (date: dayjs.Dayjs) => {
 
 // Cache key for the dates array
 const getDatesCacheKey = () => {
-  return `${pageDate.value?.format('YYYY-MM')}_${selectedDate.value?.format('YYYY-MM-DD')}_${activeDates.value.length}-${maxVisibleDays.value}`
+  return `${pageDate.value?.format('YYYY-MM')}_${selectedDate.value?.format('YYYY-MM-DD')}_${activeDates.value.length}-${
+    maxVisibleDays.value
+  }`
 }
 
 const days = computed(() => {

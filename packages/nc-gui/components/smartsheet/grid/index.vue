@@ -350,7 +350,7 @@ const bulkUpdateTrigger = (path: Array<number>) => {
   bulkUpdateDlg.value = true
 }
 
-watch([() => view.value?.id, () => meta.value?.columns], async ([newId]) => {
+watch([() => view.value?.id, () => meta.value?.columns], async () => {
   await loadDisallowedLookups()
 })
 </script>

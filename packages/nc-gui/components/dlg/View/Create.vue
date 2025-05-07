@@ -1077,7 +1077,12 @@ const getPluralName = (name: string) => {
                 </a-select>
               </div>
               <div v-if="isEeUI" class="w-full space-y-2">
-                <NcButton v-if="range.fk_to_column_id === null" size="small" type="text" @click="range.fk_to_column_id = undefined">
+                <NcButton
+                  v-if="range.fk_to_column_id === null"
+                  size="small"
+                  type="text"
+                  @click="range.fk_to_column_id = undefined"
+                >
                   <div class="flex items-center gap-1">
                     <component :is="iconMap.plus" class="h-4 w-4" />
                     {{ $t('activity.endDate') }}

@@ -45,6 +45,14 @@ const pagination = reactive({
 
 const isLoadingAllTokens = ref(true)
 
+const isModalOpen = ref(false)
+
+const tokenDesc = ref('')
+
+const tokenToCopy = ref('')
+
+const isValidTokenName = ref(false)
+
 const setDefaultTokenName = () => {
   selectedTokenData.value.description = extractNextDefaultName(
     [...allTokens.value.map((el) => el?.description || '')],
@@ -132,11 +140,6 @@ const loadTokens = async (page = currentPage.value, limit = currentLimit.value, 
 }
 
 loadTokens()
-
-const isModalOpen = ref(false)
-const tokenDesc = ref('')
-const tokenToCopy = ref('')
-const isValidTokenName = ref(false)
 
 const deleteToken = async (token: string): Promise<void> => {
   try {

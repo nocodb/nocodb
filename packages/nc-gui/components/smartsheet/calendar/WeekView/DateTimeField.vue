@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-import { UITypes } from 'nocodb-sdk'
 import type { Row } from '~/lib/types'
 
 const emits = defineEmits(['expandRecord', 'newRecord'])

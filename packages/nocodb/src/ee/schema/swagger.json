@@ -4442,7 +4442,7 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to View"
           },
-          "fk_row_color_conditions_id": {
+          "fk_row_color_condition_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to row color conditions"
           },

@@ -80,7 +80,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         {
           xcCondition: (knex) =>
             knex.whereIn(
-              'fk_row_color_conditions_id',
+              'fk_row_color_condition_id',
               rowColorConditions.map((k) => k.id),
             ),
         },
@@ -90,7 +90,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         (k, l) => k.nc_order - l.nc_order,
       )) {
         const filters = rawFilters.filter(
-          (k) => k.fk_row_color_conditions_id === rowColorCondition.id,
+          (k) => k.fk_row_color_condition_id === rowColorCondition.id,
         );
         const nestedFilters = arrayToNested({
           data: filters,
@@ -142,56 +142,59 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         'Cannot directly change row coloring mode, remove it first',
       );
     }
-
-    await ncMeta.startTransaction();
-    const rowColoringCondition = await ncMeta.metaInsert2(
-      params.context.workspace_id,
-      params.context.base_id,
-      MetaTable.ROW_COLOR_CONDITIONS,
-      {
-        fk_view_id: view.id,
-        fk_workspace_id: params.context.workspace_id,
-        base_id: params.context.base_id,
-        color: params.color,
-        nc_order: params.nc_order,
-        is_set_as_background: params.is_set_as_background,
-      },
-    );
-    const rowColoringConditionId = rowColoringCondition.id;
-
-    const filterToInsert = {
-      ...params.filter,
-      fk_row_color_conditions_id: rowColoringConditionId,
-    } as Filter;
-
-    await ncMeta.metaInsert2(
-      params.context.workspace_id,
-      params.context.base_id,
-      MetaTable.FILTER_EXP,
-      filterToInsert,
-    );
-
-    if (!view.row_coloring_mode) {
-      await ncMeta.metaUpdate(
+    try {
+      await ncMeta.startTransaction();
+      const rowColoringCondition = await ncMeta.metaInsert2(
         params.context.workspace_id,
         params.context.base_id,
-        MetaTable.VIEWS,
+        MetaTable.ROW_COLOR_CONDITIONS,
         {
-          row_coloring_mode: ROW_COLORING_MODE.FILTER,
+          fk_view_id: view.id,
+          fk_workspace_id: params.context.workspace_id,
+          base_id: params.context.base_id,
+          color: params.color,
+          nc_order: params.nc_order,
+          is_set_as_background: params.is_set_as_background,
         },
-        view.id,
       );
-      await NocoCache.del(`${CacheScope.VIEW}:${view.id}`);
-      await NocoCache.del(
-        `${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`,
-      );
-    }
-    await ncMeta.commit();
+      const rowColoringConditionId = rowColoringCondition.id;
 
-    return {
-      id: rowColoringCondition.id,
-      info: await this.getByViewId({ ...params }),
-    };
+      const filterToInsert = {
+        ...params.filter,
+        fk_row_color_condition_id: rowColoringConditionId,
+      } as Filter;
+
+      await ncMeta.metaInsert2(
+        params.context.workspace_id,
+        params.context.base_id,
+        MetaTable.FILTER_EXP,
+        filterToInsert,
+      );
+
+      if (!view.row_coloring_mode) {
+        await ncMeta.metaUpdate(
+          params.context.workspace_id,
+          params.context.base_id,
+          MetaTable.VIEWS,
+          {
+            row_coloring_mode: ROW_COLORING_MODE.FILTER,
+          },
+          view.id,
+        );
+        await NocoCache.del(`${CacheScope.VIEW}:${view.id}`);
+        await NocoCache.del(
+          `${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`,
+        );
+      }
+      await ncMeta.commit();
+      return {
+        id: rowColoringCondition.id,
+        info: await this.getByViewId({ ...params }),
+      };
+    } catch (e) {
+      await ncMeta.rollback(e);
+      throw e;
+    }
   }
 
   async updateRowColoringCondition(params: {
@@ -324,33 +327,38 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         params.context,
         view.id,
       );
-      await ncMeta.startTransaction();
-      for (const rowColorCondition of rowColorConditions) {
-        await ncMeta.metaDelete(
+      try {
+        await ncMeta.startTransaction();
+        for (const rowColorCondition of rowColorConditions) {
+          await ncMeta.metaDelete(
+            params.context.workspace_id,
+            params.context.base_id,
+            MetaTable.FILTER_EXP,
+            {
+              fk_row_color_condition_id: rowColorCondition.id,
+            },
+          );
+          await ncMeta.metaDelete(
+            params.context.workspace_id,
+            params.context.base_id,
+            MetaTable.ROW_COLOR_CONDITIONS,
+            rowColorCondition.id,
+          );
+        }
+        await ncMeta.metaUpdate(
           params.context.workspace_id,
           params.context.base_id,
-          MetaTable.FILTER_EXP,
+          MetaTable.VIEWS,
           {
-            fk_row_color_conditions_id: rowColorCondition.id,
+            row_coloring_mode: null,
           },
+          view.id,
         );
-        await ncMeta.metaDelete(
-          params.context.workspace_id,
-          params.context.base_id,
-          MetaTable.ROW_COLOR_CONDITIONS,
-          rowColorCondition.id,
-        );
+        await ncMeta.commit();
+      } catch (e) {
+        await ncMeta.rollback(e);
+        throw e;
       }
-      await ncMeta.metaUpdate(
-        params.context.workspace_id,
-        params.context.base_id,
-        MetaTable.VIEWS,
-        {
-          row_coloring_mode: null,
-        },
-        view.id,
-      );
-      await ncMeta.commit();
     } else if (view.row_coloring_mode === ROW_COLORING_MODE.SELECT) {
       const viewMeta = parseProp(view.meta);
       delete viewMeta.rowColoringInfo;

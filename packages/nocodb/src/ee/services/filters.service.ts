@@ -124,7 +124,7 @@ export class FiltersService extends FiltersServiceCE {
   ) {
     const filter = await Filter.insert(context, {
       ...param.filter,
-      fk_row_color_conditions_id: param.rowColorConditionsId,
+      fk_row_color_condition_id: param.rowColorConditionsId,
     } as any);
     return filter;
   }

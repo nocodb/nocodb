@@ -108,7 +108,7 @@ export function useViewRowColorOption(params: {
         conditionToAdd.conditions[0].id = rowColoringResponse.conditions.find(
           (con) => con.id === conditionToAdd.id,
         ).conditions[0].id
-        conditionToAdd.conditions[0].fk_row_color_conditions_id = conditionToAdd.id
+        conditionToAdd.conditions[0].fk_row_color_condition_id = conditionToAdd.id
       }
     })
   }
@@ -158,7 +158,7 @@ export function useViewRowColorOption(params: {
     const evalColumn = filterColumns.value.find((k) => k.pv)
     const filter = {
       id: undefined,
-      fk_row_color_conditions_id: conditionToAdd.id,
+      fk_row_color_condition_id: conditionToAdd.id,
       fk_parent_id: params.fk_parent_id,
       fk_column_id: evalColumn.id,
       comparison_op: 'eq',
@@ -195,7 +195,7 @@ export function useViewRowColorOption(params: {
     const conditionToAdd = conditions[colorIndex]!
     const filter = {
       id: undefined,
-      fk_row_color_conditions_id: conditionToAdd.id,
+      fk_row_color_condition_id: conditionToAdd.id,
       fk_parent_id: params.fk_parent_id,
       is_group: true,
       children: [],

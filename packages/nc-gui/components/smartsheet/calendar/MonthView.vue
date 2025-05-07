@@ -295,7 +295,7 @@ const recordsToDisplay = computed<{
           const recordEnd = currentWeekEnd.isAfter(endDate) ? endDate : currentWeekEnd
 
           if (recordEnd.isBefore(calendarData.value.weeks[0].days[0].date)) {
-            currentWeekStart = currentWeekStart.add(1, 'week')
+            currentWeekStart = timezoneDayjs.timezonize(currentWeekStart.add(1, 'week'))
             continue
           }
 
@@ -378,7 +378,7 @@ const recordsToDisplay = computed<{
             },
           })
           recordIndex++
-          currentWeekStart = currentWeekStart.add(1, 'week')
+          currentWeekStart = timezoneDayjs.timezonize(currentWeekStart.add(1, 'week'))
         }
       }
     })

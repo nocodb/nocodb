@@ -521,7 +521,7 @@ onClickOutside(searchRef, toggleSearch)
               "
                 :row="record"
                 :to-date="
-                record.rowMeta.range!.fk_to_col
+                record.rowMeta.range!.fk_to_col && dayjs(record.row[record.rowMeta.range!.fk_to_col.title!])?.isValid()
                   ? calDataType === UITypes.Date
                     ? timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM')
                     : timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A')

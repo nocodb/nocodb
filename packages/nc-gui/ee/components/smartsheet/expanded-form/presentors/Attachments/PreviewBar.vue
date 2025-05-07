@@ -47,7 +47,7 @@ const onMouseLeave = () => {
 
 watch(activeAttachmentIndex, async () => {
   await nextTick()
-  previewBarCellsContainer.value?.querySelector('& > div.preview-cell-active')?.scrollIntoView({ behavior: 'smooth' })
+  previewBarCellsContainer.value?.querySelector('& > div.preview-cell-wrapper-active')?.scrollIntoView({ behavior: 'smooth' })
 })
 
 watch(selectedFieldId, () => {
@@ -93,20 +93,27 @@ watch(selectedFieldId, () => {
       </NcDropdownSelect>
     </div>
     <div class="flex-1 h-0 flex flex-col items-center justify-center">
-      <div ref="previewBarCellsContainer" class="w-full max-h-full overflow-y-auto scrollbar-thin-dull p-2 pb-6 space-y-2">
-        <SmartsheetExpandedFormPresentorsAttachmentsPreviewCell
+      <div ref="previewBarCellsContainer" class="w-full max-h-full overflow-y-auto scrollbar-thin-dull px-2 pt-1 pb-6">
+        <div
           v-for="(attachment, index) of props.attachments"
           :key="attachment.id"
-          v-model:is-file-content-menu-open="isFileContentMenuOpen"
-          :attachment="attachment"
-          :selected-field="selectedField"
-          :active="activeAttachmentIndex === index"
-          :attachment-index="index"
-          class="nc-files-preview-cell"
-          :is-expanded="isExpanded"
-          @click="activeAttachmentIndex = index"
-          @expand="isExpanded = $event"
-        />
+          class="py-1"
+          :class="{
+            'preview-cell-wrapper-active': activeAttachmentIndex === index,
+          }"
+        >
+          <SmartsheetExpandedFormPresentorsAttachmentsPreviewCell
+            v-model:is-file-content-menu-open="isFileContentMenuOpen"
+            :attachment="attachment"
+            :selected-field="selectedField"
+            :active="activeAttachmentIndex === index"
+            :attachment-index="index"
+            class="nc-files-preview-cell"
+            :is-expanded="isExpanded"
+            @click="activeAttachmentIndex = index"
+            @expand="isExpanded = $event"
+          />
+        </div>
       </div>
     </div>
     <div>

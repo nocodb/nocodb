@@ -17,6 +17,7 @@ import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getAliasGenerator } from '~/utils';
 import { NcError } from '~/helpers/catchError';
 import { getAs } from '~/helpers/dbHelpers';
+import Filter from '~/models/Filter';
 
 const LOOKUP_VAL_SEPARATOR = '___';
 
@@ -111,6 +112,34 @@ export default async function generateLookupSelectQuery({
             }`,
           ]),
         );
+        
+        // Apply view filters if specified
+        if (lookupColOpt?.fk_target_view_id) {
+          const view = await lookupColOpt.getTargetView(context);
+          if (view) {
+            const filters = await Filter.rootFilterList(context, { viewId: view.id });
+            if (filters?.length) {
+              await baseModelSqlv2.addFilterToQuery({
+                knex,
+                filters,
+                table: alias,
+                rootTable: alias,
+                parentTable: alias,
+              });
+            }
+          }
+        }
+        
+        // Apply custom filters if enabled
+        if (lookupColOpt?.meta?.enableConditions && lookupColOpt?.filters?.length) {
+          await baseModelSqlv2.addFilterToQuery({
+            knex,
+            filters: lookupColOpt.filters,
+            table: alias,
+            rootTable: alias,
+            parentTable: alias,
+          });
+        }
       } else if (relationType === RelationTypes.HAS_MANY) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn(context);
@@ -137,6 +166,34 @@ export default async function generateLookupSelectQuery({
             }`,
           ]),
         );
+        
+        // Apply view filters if specified
+        if (lookupColOpt?.fk_target_view_id) {
+          const view = await lookupColOpt.getTargetView(context);
+          if (view) {
+            const filters = await Filter.rootFilterList(context, { viewId: view.id });
+            if (filters?.length) {
+              await baseModelSqlv2.addFilterToQuery({
+                knex,
+                filters,
+                table: alias,
+                rootTable: alias,
+                parentTable: alias,
+              });
+            }
+          }
+        }
+        
+        // Apply custom filters if enabled
+        if (lookupColOpt?.meta?.enableConditions && lookupColOpt?.filters?.length) {
+          await baseModelSqlv2.addFilterToQuery({
+            knex,
+            filters: lookupColOpt.filters,
+            table: alias,
+            rootTable: alias,
+            parentTable: alias,
+          });
+        }
       } else if (relationType === RelationTypes.MANY_TO_MANY) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn(context);
@@ -185,6 +242,34 @@ export default async function generateLookupSelectQuery({
               }.${childColumn.column_name}`,
             ),
           );
+          
+        // Apply view filters if specified
+        if (lookupColOpt?.fk_target_view_id) {
+          const view = await lookupColOpt.getTargetView(context);
+          if (view) {
+            const filters = await Filter.rootFilterList(context, { viewId: view.id });
+            if (filters?.length) {
+              await baseModelSqlv2.addFilterToQuery({
+                knex,
+                filters,
+                table: alias,
+                rootTable: alias,
+                parentTable: alias,
+              });
+            }
+          }
+        }
+        
+        // Apply custom filters if enabled
+        if (lookupColOpt?.meta?.enableConditions && lookupColOpt?.filters?.length) {
+          await baseModelSqlv2.addFilterToQuery({
+            knex,
+            filters: lookupColOpt.filters,
+            table: alias,
+            rootTable: alias,
+            parentTable: alias,
+          });
+        }
       }
     }
     let lookupColumn = lookupColOpt
@@ -250,6 +335,34 @@ export default async function generateLookupSelectQuery({
           `${nestedAlias}.${parentColumn.column_name}`,
           `${prevAlias}.${childColumn.column_name}`,
         );
+        
+        // Apply view filters if specified for nested lookup
+        if (nestedLookupColOpt?.fk_target_view_id) {
+          const view = await nestedLookupColOpt.getTargetView(context);
+          if (view) {
+            const filters = await Filter.rootFilterList(context, { viewId: view.id });
+            if (filters?.length) {
+              await baseModelSqlv2.addFilterToQuery({
+                knex,
+                filters,
+                table: nestedAlias,
+                rootTable: nestedAlias,
+                parentTable: nestedAlias,
+              });
+            }
+          }
+        }
+        
+        // Apply custom filters if enabled for nested lookup
+        if (nestedLookupColOpt?.meta?.enableConditions && nestedLookupColOpt?.filters?.length) {
+          await baseModelSqlv2.addFilterToQuery({
+            knex,
+            filters: nestedLookupColOpt.filters,
+            table: nestedAlias,
+            rootTable: nestedAlias,
+            parentTable: nestedAlias,
+          });
+        }
       } else if (relationType === RelationTypes.HAS_MANY) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn(context);
@@ -271,6 +384,34 @@ export default async function generateLookupSelectQuery({
           `${nestedAlias}.${childColumn.column_name}`,
           `${prevAlias}.${parentColumn.column_name}`,
         );
+        
+        // Apply view filters if specified for nested lookup
+        if (nestedLookupColOpt?.fk_target_view_id) {
+          const view = await nestedLookupColOpt.getTargetView(context);
+          if (view) {
+            const filters = await Filter.rootFilterList(context, { viewId: view.id });
+            if (filters?.length) {
+              await baseModelSqlv2.addFilterToQuery({
+                knex,
+                filters,
+                table: nestedAlias,
+                rootTable: nestedAlias,
+                parentTable: nestedAlias,
+              });
+            }
+          }
+        }
+        
+        // Apply custom filters if enabled for nested lookup
+        if (nestedLookupColOpt?.meta?.enableConditions && nestedLookupColOpt?.filters?.length) {
+          await baseModelSqlv2.addFilterToQuery({
+            knex,
+            filters: nestedLookupColOpt.filters,
+            table: nestedAlias,
+            rootTable: nestedAlias,
+            parentTable: nestedAlias,
+          });
+        }
       } else if (relationType === RelationTypes.MANY_TO_MANY) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn(context);
@@ -320,6 +461,34 @@ export default async function generateLookupSelectQuery({
               }`,
             ),
           );
+          
+        // Apply view filters if specified for nested lookup
+        if (nestedLookupColOpt?.fk_target_view_id) {
+          const view = await nestedLookupColOpt.getTargetView(context);
+          if (view) {
+            const filters = await Filter.rootFilterList(context, { viewId: view.id });
+            if (filters?.length) {
+              await baseModelSqlv2.addFilterToQuery({
+                knex,
+                filters,
+                table: nestedAlias,
+                rootTable: nestedAlias,
+                parentTable: nestedAlias,
+              });
+            }
+          }
+        }
+        
+        // Apply custom filters if enabled for nested lookup
+        if (nestedLookupColOpt?.meta?.enableConditions && nestedLookupColOpt?.filters?.length) {
+          await baseModelSqlv2.addFilterToQuery({
+            knex,
+            filters: nestedLookupColOpt.filters,
+            table: nestedAlias,
+            rootTable: nestedAlias,
+            parentTable: nestedAlias,
+          });
+        }
       }
 
       if (lookupColumn.uidt === UITypes.Lookup)

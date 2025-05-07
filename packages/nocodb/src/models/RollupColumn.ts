@@ -3,85 +3,23 @@ import type { NcContext } from '~/interface/config';
 import Column from '~/models/Column';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
-import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
-import { NcError } from '~/helpers/catchError';
-
-export const ROLLUP_FUNCTIONS = <const>[
-  'count',
-  'min',
-  'max',
-  'avg',
-  'countDistinct',
-  'sumDistinct',
-  'avgDistinct',
-  'sum',
-];
+import View from './View';
 
 export default class RollupColumn implements RollupType {
-  id: string;
-  base_id?: string;
-  fk_workspace_id?: string;
-  fk_column_id;
-  fk_relation_column_id;
-  fk_rollup_column_id;
-  rollup_function: (typeof ROLLUP_FUNCTIONS)[number];
+  fk_column_id: string;
+  fk_relation_column_id: string;
+  fk_rollup_column_id: string;
+  rollup_function: string;
+  fk_target_view_id?: string;
+  meta?: any;
+  filters?: any[];
 
-  constructor(data: Partial<RollupColumn>) {
+  constructor(data: RollupColumn) {
     Object.assign(this, data);
   }
 
-  public static async insert(
-    context: NcContext,
-    data: Partial<RollupColumn>,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const insertObj = extractProps(data, [
-      'fk_column_id',
-      'fk_relation_column_id',
-      'fk_rollup_column_id',
-      'rollup_function',
-    ]);
-
-    const column = await Column.get(
-      context,
-      {
-        colId: insertObj.fk_column_id,
-      },
-      ncMeta,
-    );
-
-    if (!column) {
-      NcError.fieldNotFound(insertObj.fk_column_id);
-    }
-
-    await ncMeta.metaInsert2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.COL_ROLLUP,
-      insertObj,
-    );
-
-    return this.read(context, data.fk_column_id, ncMeta).then(
-      async (rollupColumn) => {
-        await NocoCache.appendToList(
-          CacheScope.COL_ROLLUP,
-          [data.fk_rollup_column_id],
-          `${CacheScope.COL_ROLLUP}:${data.fk_column_id}`,
-        );
-
-        await NocoCache.appendToList(
-          CacheScope.COL_ROLLUP,
-          [data.fk_relation_column_id],
-          `${CacheScope.COL_ROLLUP}:${data.fk_column_id}`,
-        );
-
-        return rollupColumn;
-      },
-    );
-  }
-
-  public static async read(
+  public static async get(
     context: NcContext,
     columnId: string,
     ncMeta = Noco.ncMeta,
@@ -89,7 +27,7 @@ export default class RollupColumn implements RollupType {
     let column =
       columnId &&
       (await NocoCache.get(
-        `${CacheScope.COL_ROLLUP}:${columnId}`,
+        `${CacheScope.COLUMN}:${columnId}:${CacheGetType.ROLLUP}`,
         CacheGetType.TYPE_OBJECT,
       ));
     if (!column) {
@@ -97,24 +35,116 @@ export default class RollupColumn implements RollupType {
         context.workspace_id,
         context.base_id,
         MetaTable.COL_ROLLUP,
-        { fk_column_id: columnId },
+        {
+          fk_column_id: columnId,
+        },
       );
-      await NocoCache.set(`${CacheScope.COL_ROLLUP}:${columnId}`, column);
+      await NocoCache.set(
+        `${CacheScope.COLUMN}:${columnId}:${CacheGetType.ROLLUP}`,
+        column,
+      );
     }
-    return column ? new RollupColumn(column) : null;
+
+    return column && new RollupColumn(column);
   }
 
-  public async getRollupColumn(
+  public static async insert(
     context: NcContext,
+    column: Partial<RollupColumn>,
     ncMeta = Noco.ncMeta,
-  ): Promise<Column> {
-    return Column.get(context, { colId: this.fk_rollup_column_id }, ncMeta);
+  ) {
+    const insertObj = {
+      fk_column_id: column.fk_column_id,
+      fk_relation_column_id: column.fk_relation_column_id,
+      fk_rollup_column_id: column.fk_rollup_column_id,
+      rollup_function: column.rollup_function,
+      fk_target_view_id: column.fk_target_view_id,
+      meta: column.meta,
+    };
+
+    if (
+      !(
+        column.fk_column_id &&
+        column.fk_relation_column_id &&
+        column.fk_rollup_column_id &&
+        column.rollup_function
+      )
+    ) {
+      throw new Error(`Mandatory fields missing`);
+    }
+
+    const { id, fk_column_id } = await ncMeta.metaInsert2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COL_ROLLUP,
+      insertObj,
+    );
+
+    await NocoCache.set(
+      `${CacheScope.COLUMN}:${fk_column_id}:${CacheGetType.ROLLUP}`,
+      insertObj,
+    );
+
+    return this.get(context, fk_column_id, ncMeta);
   }
 
-  public async getRelationColumn(
+  public static async update(
     context: NcContext,
+    columnId: string,
+    column: Partial<RollupColumn>,
     ncMeta = Noco.ncMeta,
-  ): Promise<Column> {
-    return Column.get(context, { colId: this.fk_relation_column_id }, ncMeta);
+  ) {
+    const updateObj = {
+      fk_relation_column_id: column.fk_relation_column_id,
+      fk_rollup_column_id: column.fk_rollup_column_id,
+      rollup_function: column.rollup_function,
+      fk_target_view_id: column.fk_target_view_id,
+      meta: column.meta,
+    };
+    // get existing cache
+    const key = `${CacheScope.COLUMN}:${columnId}:${CacheGetType.ROLLUP}`;
+    const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    if (o) {
+      Object.assign(o, updateObj);
+      // set cache
+      await NocoCache.set(key, o);
+    }
+    // set meta
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COL_ROLLUP,
+      updateObj,
+      {
+        fk_column_id: columnId,
+      },
+    );
+
+    return this.get(context, columnId, ncMeta);
+  }
+
+  async getRelationColumn(context: NcContext, ncMeta = Noco.ncMeta) {
+    return await Column.get(
+      context,
+      {
+        colId: this.fk_relation_column_id,
+      },
+      ncMeta,
+    );
+  }
+
+  async getRollupColumn(context: NcContext, ncMeta = Noco.ncMeta) {
+    return await Column.get(
+      context,
+      {
+        colId: this.fk_rollup_column_id,
+      },
+      ncMeta,
+    );
+  }
+  
+  async getTargetView(context: NcContext, ncMeta = Noco.ncMeta) {
+    if (!this.fk_target_view_id) return null;
+    return await View.get(context, this.fk_target_view_id, ncMeta);
   }
 }

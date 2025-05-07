@@ -20,11 +20,13 @@ export class CalendarDatasService {
       query: any;
       from_date: string;
       to_date: string;
+      next_date: string;
+      prev_date: string;
     },
   ) {
-    const { viewId, query, from_date, to_date } = param;
+    const { viewId, query, from_date, to_date, next_date, prev_date } = param;
 
-    if (!from_date || !to_date)
+    if (!from_date || !to_date || !next_date || !prev_date)
       NcError.badRequest('from_date and to_date are required');
 
     if (dayjs(to_date).diff(dayjs(from_date), 'days') > 42) {
@@ -46,6 +48,8 @@ export class CalendarDatasService {
       viewId,
       from_date,
       to_date,
+      next_date,
+      prev_date,
     });
 
     query.filterArrJson = JSON.stringify([
@@ -75,6 +79,8 @@ export class CalendarDatasService {
       sharedViewUuid: string;
       from_date: string;
       to_date: string;
+      next_date: string;
+      prev_date: string;
     },
   ) {
     const { sharedViewUuid, password, query = {} } = param;
@@ -94,6 +100,8 @@ export class CalendarDatasService {
       query,
       from_date: param.from_date,
       to_date: param.to_date,
+      next_date: param.next_date,
+      prev_date: param.prev_date,
     });
   }
 
@@ -105,6 +113,8 @@ export class CalendarDatasService {
       sharedViewUuid: string;
       from_date: string;
       to_date: string;
+      next_date: string;
+      prev_date: string;
     },
   ) {
     const { sharedViewUuid, password, query = {} } = param;
@@ -124,6 +134,8 @@ export class CalendarDatasService {
       query,
       from_date: param.from_date,
       to_date: param.to_date,
+      next_date: param.next_date,
+      prev_date: param.prev_date,
     });
   }
 
@@ -134,11 +146,13 @@ export class CalendarDatasService {
       query: any;
       from_date: string;
       to_date: string;
+      next_date: string;
+      prev_date: string;
     },
   ) {
-    const { viewId, query, from_date, to_date } = param;
+    const { viewId, query, from_date, to_date, next_date, prev_date } = param;
 
-    if (!from_date || !to_date)
+    if (!from_date || !to_date || !next_date || !prev_date)
       NcError.badRequest('from_date and to_date are required');
 
     if (dayjs(to_date).diff(dayjs(from_date), 'days') > 395) {
@@ -160,6 +174,8 @@ export class CalendarDatasService {
       viewId,
       from_date,
       to_date,
+      next_date,
+      prev_date,
     });
 
     query.filterArrJson = JSON.stringify([
@@ -208,12 +224,14 @@ export class CalendarDatasService {
     context: NcContext,
     {
       viewId,
-      from_date,
-      to_date,
+      next_date,
+      prev_date,
     }: {
       viewId: string;
       from_date: string;
       to_date: string;
+      next_date: string;
+      prev_date: string;
     },
   ): Promise<Array<FilterType>> {
     const calendarRange = await CalendarRange.read(context, viewId);
@@ -234,13 +252,13 @@ export class CalendarDatasService {
             fk_column_id: fromColumn,
             comparison_op: 'lt',
             comparison_sub_op: 'exactDate',
-            value: to_date as string,
+            value: next_date as string,
           },
           {
             fk_column_id: fromColumn,
             comparison_op: 'gt',
             comparison_sub_op: 'exactDate',
-            value: from_date as string,
+            value: prev_date as string,
           },
         ];
       }

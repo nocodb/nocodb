@@ -39,7 +39,7 @@ const years = computed(() => {
   const startOfYear = date.startOf('year')
   const years: dayjs.Dayjs[] = []
   for (let i = 0; i < 12; i++) {
-    years.push(timezoneDayjs.value.dayjsTz(startOfYear).add(i, 'year'))
+    years.push(timezoneDayjs.value.timezonize(startOfYear.add(i, 'year')))
   }
   return years
 })

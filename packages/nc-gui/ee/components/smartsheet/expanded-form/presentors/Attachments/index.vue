@@ -5,14 +5,16 @@ import { type ColumnType, UITypes, type ViewType } from 'nocodb-sdk'
 
 const props = defineProps<{
   fields: ColumnType[]
+  hiddenFields: ColumnType[]
   view?: ViewType
   isUnsavedDuplicatedRecordExist: boolean
 }>()
 
-const fields = toRef(props, 'fields')
-const isUnsavedDuplicatedRecordExist = toRef(props, 'isUnsavedDuplicatedRecordExist')
+const { fields, hiddenFields, isUnsavedDuplicatedRecordExist } = toRefs(props)
 
 const isPublic = inject(IsPublicInj, ref(false))
+
+const readOnlyView = inject(ReadonlyInj, ref(false))
 
 /* stores */
 
@@ -28,9 +30,15 @@ const showRightSections = computed(() => !isNew.value && commentsDrawer.value &&
 
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
 
+const hasAddFieldPermission = computed(() => {
+  return !readOnlyView.value && isUIAllowed('fieldAdd')
+})
+
 /* attachments */
 
-const attachmentFields = computed(() => fields.value.filter((field) => field.uidt === UITypes.Attachment))
+const attachmentFields = computed(() =>
+  fields.value.concat(hiddenFields.value || []).filter((field) => field.uidt === UITypes.Attachment),
+)
 
 const selectedFieldId = ref(props.view?.attachment_mode_column_id ?? attachmentFields.value[0]?.id)
 
@@ -136,7 +144,13 @@ export default {
       <template v-if="!hasAnyAttachmentFields">
         <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 nc-files-no-attachment-field">
           <span class="text-base font-black"> No Attachment field </span>
-          <span class="text-xs mt-3 w-[200px] text-center"> Create an attachment field to use file mode. </span>
+          <span class="text-xs mt-3 text-center" :class="hasAddFieldPermission ? 'max-w-[200px]' : 'max-w-[300px]'">
+            {{
+              hasAddFieldPermission
+                ? 'Create an attachment field to use file mode.'
+                : 'At least one attachment field should be present to use file mode.'
+            }}
+          </span>
         </div>
       </template>
       <template v-else>

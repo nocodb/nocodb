@@ -17,10 +17,13 @@ export interface FormulaBaseParams {
   tableAlias?: string;
   baseUsers?: (Partial<User> & BaseUser)[];
 }
-
+export type TAliasToColumnParam = {
+  tableAlias?: string;
+  parentColumns?: Set<string>;
+};
 export type TAliasToColumn = Record<
   string,
-  (parentColumns?: Set<string>) => Promise<{ builder: any }>
+  (params: TAliasToColumnParam) => Promise<{ builder: any }>
 >;
 
 export interface FormulaQueryBuilderBaseParams extends FormulaBaseParams {

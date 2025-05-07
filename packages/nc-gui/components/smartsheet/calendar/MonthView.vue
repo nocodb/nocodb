@@ -995,13 +995,7 @@ const addRecord = (date: dayjs.Dayjs) => {
 }
 
 .selected-date {
-  @apply relative;
-  &:after {
-    @apply rounded-sm pointer-events-none absolute inset-0 w-full h-full;
-    content: '';
-    z-index: 2;
-    box-shadow: 0 0 0 2px #3366ff !important;
-  }
+  @apply relative !bg-nc-bg-brand;
 
   &:first-of-type::after {
     @apply left-0.5 w-[calc(100%_-_2px)];

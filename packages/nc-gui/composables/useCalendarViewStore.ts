@@ -7,11 +7,11 @@ import {
   FormulaDataTypes,
   type PaginatedType,
   type TableType,
+  UITypes,
   type ViewType,
   isSystemColumn,
   isVirtualCol,
 } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
 const formatData = (list: Record<string, any>[]) =>
@@ -223,52 +223,54 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
         switch (sideBarFilterOption.value) {
           case 'day':
-            fromDate = selectedDate.value.startOf('day')
-            toDate = selectedDate.value.endOf('day')
-            prevDate = selectedDate.value.subtract(1, 'day').endOf('day')
-            nextDate = selectedDate.value.add(1, 'day').startOf('day')
-            break
-          case 'week':
-            fromDate = selectedDateRange.value.start.startOf('day')
-            toDate = selectedDateRange.value.end.endOf('day')
-            prevDate = selectedDateRange.value.start.subtract(1, 'day').endOf('day')
-            nextDate = selectedDateRange.value.end.add(1, 'day').startOf('day')
-            break
-          case 'month': {
-            const startOfMonth = selectedMonth.value.startOf('month')
-            const endOfMonth = selectedMonth.value.endOf('month')
-
-            const daysToDisplay = Math.max(endOfMonth.diff(startOfMonth, 'day') + 1, 35)
-            fromDate = startOfMonth.subtract((startOfMonth.day() + 7) % 7, 'day').add(1, 'day')
-            toDate = fromDate.add(daysToDisplay, 'day')
-
-            prevDate = fromDate.subtract(1, 'day').endOf('day')
-            nextDate = toDate.startOf('day')
-            break
-          }
-          case 'year':
-            fromDate = selectedDate.value.startOf('year')
-            toDate = selectedDate.value.endOf('year')
-            prevDate = fromDate.subtract(1, 'day').endOf('day')
-            nextDate = toDate.add(1, 'day').startOf('day')
-            break
           case 'selectedDate':
             fromDate = selectedDate.value.startOf('day')
             toDate = selectedDate.value.endOf('day')
             prevDate = selectedDate.value.subtract(1, 'day').endOf('day')
             nextDate = selectedDate.value.add(1, 'day').startOf('day')
             break
+          case 'week':
+            fromDate = selectedDateRange.value.start.startOf('week')
+            toDate = selectedDateRange.value.end.endOf('week')
+            prevDate = timezoneDayjs.timezonize(fromDate.subtract(1, 'day')).endOf('day')
+            nextDate = timezoneDayjs.timezonize(toDate.add(1, 'day')).startOf('day')
+            break
+          case 'month': {
+            const startOfMonth = timezoneDayjs.timezonize(selectedMonth.value.startOf('month'))
+            const firstDayToDisplay = timezoneDayjs.timezonize(startOfMonth.startOf('week'))
+            const endOfMonth = timezoneDayjs.timezonize(selectedMonth.value.endOf('month')).endOf('week')
+
+            fromDate = firstDayToDisplay
+            toDate = endOfMonth
+            prevDate = fromDate.subtract(1, 'day').endOf('day')
+            nextDate = toDate.add(1, 'day').startOf('day')
+            break
+          }
+          case 'year':
+            fromDate = selectedDate.value.startOf('year')
+            toDate = selectedDate.value.endOf('year')
+            prevDate = timezoneDayjs.timezonize(fromDate.subtract(1, 'day')).endOf('day')
+            nextDate = toDate.add(1, 'day').startOf('day')
+            break
           case 'selectedHours':
-            fromDate = (selectedTime.value ?? timezoneDayjs.dayjsTz()).startOf('hour')
-            toDate = (selectedTime.value ?? timezoneDayjs.dayjsTz()).endOf('hour')
-            prevDate = fromDate?.subtract(1, 'hour').endOf('hour')
-            nextDate = toDate?.add(1, 'hour').startOf('hour')
+            fromDate = timezoneDayjs.timezonize((selectedTime.value ?? timezoneDayjs.dayjsTz()).startOf('hour'))
+            toDate = timezoneDayjs.timezonize((selectedTime.value ?? timezoneDayjs.dayjsTz()).endOf('hour'))
+            prevDate = timezoneDayjs.timezonize(fromDate?.subtract(1, 'hour').endOf('hour'))
+            nextDate = timezoneDayjs.timezonize(toDate?.add(1, 'hour').startOf('hour'))
+
             break
         }
         fromDate = timezoneDayjs.dayjsTz(fromDate)!.format('YYYY-MM-DD HH:mm:ssZ')
         prevDate = timezoneDayjs.dayjsTz(prevDate!).format('YYYY-MM-DD HH:mm:ssZ')
         nextDate = timezoneDayjs.dayjsTz(nextDate)!.format('YYYY-MM-DD HH:mm:ssZ')
+        toDate = timezoneDayjs.dayjsTz(toDate)!.format('YYYY-MM-DD HH:mm:ssZ')
 
+        console.log({
+          fromDate,
+          toDate,
+          prevDate,
+          nextDate,
+        })
         calendarRange.value.forEach((range) => {
           const fromCol = range.fk_from_col
           const toCol = range.fk_to_col
@@ -295,11 +297,22 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                 ],
               },
               {
-                fk_column_id: fromCol.id,
-                comparison_op: 'eq',
+                is_group: true,
                 logical_op: 'or',
-                comparison_sub_op: 'exactDate',
-                value: fromDate,
+                children: [
+                  {
+                    fk_column_id: fromCol.id,
+                    comparison_op: 'gte',
+                    comparison_sub_op: 'exactDate',
+                    value: fromDate as string,
+                  },
+                  {
+                    fk_column_id: fromCol.id,
+                    comparison_op: 'lte',
+                    comparison_sub_op: 'exactDate',
+                    value: toDate as string,
+                  },
+                ],
               },
             ]
             combinedFilters.push({
@@ -393,26 +406,29 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       }
 
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id || !calendarRange.value?.length) return
-      let prevDate: dayjs.Dayjs | string | null = null
-      let nextDate: dayjs.Dayjs | string | null = null
-      let fromDate: dayjs.Dayjs | string | null = null
+      let prevDate: string | null | dayjs.Dayjs = null
+      let fromDate: dayjs.Dayjs | null | string = null
+      let toDate: dayjs.Dayjs | null | string = null
+      let nextDate: string | null | dayjs.Dayjs = null
 
       if (activeCalendarView.value === 'week' || activeCalendarView.value === 'day') {
-        const startOfMonth = pageDate.value.startOf('month')
-        const endOfMonth = pageDate.value.endOf('month')
-
-        const daysToDisplay = Math.max(endOfMonth.diff(startOfMonth, 'day') + 1, 35)
-        fromDate = startOfMonth.subtract((startOfMonth.day() + 7) % 7, 'day')
-        const toDate = fromDate.add(daysToDisplay, 'day')
+        const startOfMonth = timezoneDayjs.timezonize(pageDate.value.startOf('month'))
+        fromDate = timezoneDayjs.timezonize(startOfMonth.startOf('week'))
+        toDate = timezoneDayjs.timezonize(pageDate.value.endOf('month').endOf('week'))
         prevDate = fromDate.subtract(1, 'day').endOf('day')
-        nextDate = toDate.add(1, 'day').startOf('day')
+        nextDate = toDate.startOf('day')
       } else if (activeCalendarView.value === 'year') {
-        prevDate = selectedDate.value.startOf('year').subtract(1, 'day').endOf('day')
-        nextDate = selectedDate.value.endOf('year').add(1, 'day').startOf('day')
+        const startOfYear = timezoneDayjs.timezonize(selectedDate.value.startOf('year'))
+        fromDate = timezoneDayjs.timezonize(startOfYear.startOf('week'))
+        toDate = timezoneDayjs.timezonize(selectedDate.value.endOf('year')).endOf('week')
+        prevDate = fromDate.subtract(1, 'day').endOf('day')
+        nextDate = toDate.startOf('day')
       }
 
-      prevDate = timezoneDayjs.dayjsTz(prevDate)!.format('YYYY-MM-DD HH:mm:ssZ')
+      prevDate = timezoneDayjs.dayjsTz(prevDate!).format('YYYY-MM-DD HH:mm:ssZ')
       nextDate = timezoneDayjs.dayjsTz(nextDate)!.format('YYYY-MM-DD HH:mm:ssZ')
+      fromDate = timezoneDayjs.dayjsTz(fromDate)!.format('YYYY-MM-DD HH:mm:ssZ')
+      toDate = timezoneDayjs.dayjsTz(toDate)!.format('YYYY-MM-DD HH:mm:ssZ')
 
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) return
 
@@ -420,12 +436,16 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         const res = !isPublic.value
           ? await api.dbCalendarViewRowCount.dbCalendarViewRowCount('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
               ...queryParams.value,
-              from_date: prevDate,
-              to_date: nextDate,
+              from_date: fromDate,
+              to_date: toDate,
+              next_date: nextDate,
+              prev_date: prevDate,
             })
           : await fetchSharedViewActiveDate({
               from_date: prevDate,
               to_date: nextDate,
+              next_date: nextDate,
+              prev_date: prevDate,
               sortsArr: sorts.value,
               filtersArr: nestedFilters.value,
             })
@@ -455,14 +475,18 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
       try {
         activeCalendarView.value = view
-        await updateCalendarMeta({
-          meta: {
-            ...(typeof calendarMetaData.value.meta === 'string'
-              ? JSON.parse(calendarMetaData.value.meta)
-              : calendarMetaData.value.meta),
-            active_view: view,
-          },
-        })
+
+        if (isUIAllowed('calendarViewUpdate')) {
+          await updateCalendarMeta({
+            meta: {
+              ...(typeof calendarMetaData.value.meta === 'string'
+                ? JSON.parse(calendarMetaData.value.meta)
+                : calendarMetaData.value.meta),
+              active_view: view,
+            },
+          })
+        }
+
         if (activeCalendarView.value === 'week') {
           selectedTime.value = null
         }
@@ -548,39 +572,41 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       let nextDate: string | null | dayjs.Dayjs = null
 
       switch (activeCalendarView.value) {
+        case 'day':
+          prevDate = selectedDate.value.subtract(1, 'day').endOf('day')
+          nextDate = selectedDate.value.add(1, 'day').startOf('day')
+          fromDate = selectedDate.value.startOf('day')
+          toDate = selectedDate.value.endOf('day')
+          break
         case 'week':
-          fromDate = selectedDateRange.value.start.startOf('day')
-          toDate = selectedDateRange.value.end.endOf('day')
+          fromDate = selectedDateRange.value.start.startOf('week')
+          toDate = selectedDateRange.value.end.endOf('week')
 
-          prevDate = selectedDateRange.value.start.subtract(1, 'day').endOf('day')
-          nextDate = selectedDateRange.value.end.add(1, 'day').startOf('day')
+          prevDate = timezoneDayjs.timezonize(fromDate.subtract(1, 'day')).endOf('day')
+          nextDate = timezoneDayjs.timezonize(toDate.add(1, 'day')).startOf('day')
 
           // Hide weekends
           if (viewMetaProperties.value?.hide_weekend) {
-            toDate = toDate.subtract(2, 'day')
-            nextDate = nextDate.subtract(2, 'day')
+            toDate = timezoneDayjs.timezonize(toDate.subtract(2, 'day')).endOf('day')
+            nextDate = timezoneDayjs.timezonize(nextDate!.subtract(2, 'day')).startOf('day')
           }
           break
         case 'month': {
-          const startOfMonth = selectedMonth.value.startOf('month')
-          const endOfMonth = selectedMonth.value.endOf('month')
+          const startOfMonth = timezoneDayjs.timezonize(selectedMonth.value.startOf('month'))
+          const firstDayToDisplay = timezoneDayjs.timezonize(startOfMonth.startOf('week'))
+          const endOfMonth = timezoneDayjs.timezonize(selectedMonth.value.endOf('month')).endOf('week')
 
-          const daysToDisplay = Math.max(endOfMonth.diff(startOfMonth, 'day') + 1, 35)
-          fromDate = startOfMonth.subtract((startOfMonth.day() + 7) % 7, 'day').add(1, 'day')
-          toDate = fromDate.add(daysToDisplay, 'day')
+          fromDate = firstDayToDisplay
+          toDate = endOfMonth
           prevDate = fromDate.subtract(1, 'day').endOf('day')
-          nextDate = toDate.startOf('day')
+          nextDate = toDate.add(1, 'day').startOf('day')
           break
         }
-        case 'day':
-          fromDate = selectedDate.value.startOf('day')
-          toDate = selectedDate.value.endOf('day')
-          prevDate = selectedDate.value.subtract(1, 'day').endOf('day')
-          nextDate = selectedDate.value.add(1, 'day').startOf('day')
-          break
       }
       prevDate = timezoneDayjs.dayjsTz(prevDate!).format('YYYY-MM-DD HH:mm:ssZ')
       nextDate = timezoneDayjs.dayjsTz(nextDate)!.format('YYYY-MM-DD HH:mm:ssZ')
+      fromDate = timezoneDayjs.dayjsTz(fromDate)!.format('YYYY-MM-DD HH:mm:ssZ')
+      toDate = timezoneDayjs.dayjsTz(toDate)!.format('YYYY-MM-DD HH:mm:ssZ')
 
       try {
         if (showLoading) isCalendarDataLoading.value = true
@@ -592,8 +618,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               meta.value!.id!,
               viewMeta.value!.id!,
               {
-                from_date: prevDate,
-                to_date: nextDate,
+                prev_date: prevDate,
+                next_date: nextDate,
+                to_date: toDate,
+                from_date: fromDate,
               },
               {
                 ...queryParams.value,
@@ -604,8 +632,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             )
           : await fetchSharedCalendarViewData({
               sortsArr: sorts.value,
-              from_date: prevDate,
-              to_date: nextDate,
+              prev_date: prevDate,
+              next_date: nextDate,
+              to_date: toDate,
+              from_date: fromDate,
               filtersArr: nestedFilters.value,
             })
         formattedData.value = formatData(res!.list)

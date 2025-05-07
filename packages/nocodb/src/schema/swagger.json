@@ -9985,6 +9985,22 @@
             "schema": {
               "type": "string"
             },
+            "name": "prev_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "next_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
             "name": "to_date",
             "in": "query",
             "required": true
@@ -10190,6 +10206,22 @@
           },
           {
             "schema": {
+              "type": "string"
+            },
+            "name": "prev_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "next_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
               "type": "array"
             },
             "in": "query",
@@ -10279,6 +10311,22 @@
               "type": "string"
             },
             "name": "to_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "prev_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "next_date",
             "in": "query",
             "required": true
           },
@@ -10449,6 +10497,22 @@
               "type": "string"
             },
             "name": "from_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "prev_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "next_date",
             "in": "query",
             "required": true
           },

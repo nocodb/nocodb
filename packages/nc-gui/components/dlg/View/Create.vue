@@ -349,8 +349,6 @@ const addCalendarRange = async () => {
 }
 */
 
-const isRangeEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CALENDAR_VIEW_RANGE))
-
 const enableDescription = ref(false)
 
 const removeDescription = () => {
@@ -558,14 +556,6 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
     return !column || ![UITypes.DateTime, UITypes.Date].includes(column.uidt)
   })
 }
-
-const isDisabled = computed(() => {
-  return (
-    [UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime, UITypes.Formula].includes(
-      viewSelectFieldOptions.value.find((f) => f.value === form.calendar_range[0]?.fk_from_column_id)?.uidt,
-    ) && !isRangeEnabled.value
-  )
-})
 
 const onValueChange = async () => {
   form.calendar_range = form.calendar_range.map((range, i) => {
@@ -1087,15 +1077,12 @@ const getPluralName = (name: string) => {
                 </a-select>
               </div>
               <div v-if="isEeUI" class="w-full space-y-2">
-                <NcTooltip v-if="range.fk_to_column_id === null" placement="left" :disabled="!isDisabled">
-                  <NcButton size="small" type="text" :disabled="isDisabled" @click="range.fk_to_column_id = undefined">
-                    <div class="flex items-center gap-1">
-                      <component :is="iconMap.plus" class="h-4 w-4" />
-                      {{ $t('activity.endDate') }}
-                    </div>
-                  </NcButton>
-                  <template #title> Coming Soon!! Currently, range support is only available for Date field. </template>
-                </NcTooltip>
+                <NcButton v-if="range.fk_to_column_id === null" size="small" type="text" @click="range.fk_to_column_id = undefined">
+                  <div class="flex items-center gap-1">
+                    <component :is="iconMap.plus" class="h-4 w-4" />
+                    {{ $t('activity.endDate') }}
+                  </div>
+                </NcButton>
 
                 <template v-else-if="isEeUI">
                   <span class="text-gray-700">
@@ -1107,7 +1094,7 @@ const getPluralName = (name: string) => {
                       v-model:value="range.fk_to_column_id"
                       class="nc-select-shadow w-full flex-1"
                       allow-clear
-                      :disabled="isMetaLoading || isDisabled"
+                      :disabled="isMetaLoading"
                       :loading="isMetaLoading"
                       :placeholder="$t('placeholder.notSelected')"
                       data-testid="nc-calendar-range-to-field-select"

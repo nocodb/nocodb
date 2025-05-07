@@ -109,14 +109,6 @@ const FEATURES = [
     isEngineering: true,
   },
   {
-    id: 'calendar_view_range',
-    title: 'Allow configuring Date Time Field as End Date for Calendar View',
-    description: 'Enables the calendar to display items as date ranges by allowing configuration of both start and end dates. ',
-    enabled: false,
-    isEE: true,
-    isEngineering: true,
-  },
-  {
     id: 'expanded_form_file_preview_mode',
     title: 'Expanded form file preview mode',
     description: 'Preview mode allows you to see attachments inline',

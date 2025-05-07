@@ -366,7 +366,7 @@
                           "id": "mwmlsgaek7932m4",
                           "title": "Table-1",
                           "meta": {
-                            "icon": "🚞"
+                            "icon": "\ud83d\ude9e"
                           },
                           "base_id": "pgfqcp0ocloo1j3",
                           "workspace_id": "w6dw3fo0"
@@ -375,7 +375,7 @@
                           "id": "m56zsedzrpz6p9w",
                           "title": "Table-2",
                           "meta": {
-                            "icon": "🏞️"
+                            "icon": "\ud83c\udfde\ufe0f"
                           },
                           "base_id": "pgfqcp0ocloo1j3",
                           "workspace_id": "w6dw3fo0"
@@ -1186,7 +1186,7 @@
                     "description": "Updated Description",
                     "display_field_id": "c455mde7px2yidt",
                     "meta": {
-                      "icon": "🚞"
+                      "icon": "\ud83d\ude9e"
                     }
                   }
                 }
@@ -1208,7 +1208,7 @@
                       "id": "m0nibecfkcfsz2x",
                       "title": "Features",
                       "meta": {
-                        "icon": "🚞"
+                        "icon": "\ud83d\ude9e"
                       },
                       "source_id": "bbtx6pvj7b8yszy",
                       "base_id": "pn9mmowpquxj60w",
@@ -2457,6 +2457,15 @@
               "schema": {
                 "oneOf": [
                   {
+                    "properties": {
+                      "type": {
+                        "enum": [
+                          "SingleLineText"
+                        ]
+                      }
+                    }
+                  },
+                  {
                     "type": "object"
                   },
                   {
@@ -2470,6 +2479,15 @@
               "examples": {
                 "Example 1": {
                   "value": [
+                    {
+                      "properties": {
+                        "type": {
+                          "enum": [
+                            "SingleLineText"
+                          ]
+                        }
+                      }
+                    },
                     {
                       "Number": 1,
                       "Decimal": 100.88,
@@ -2494,16 +2512,43 @@
                       "Geometry": "POINT(1, 1)",
                       "User": [
                         {
+                          "properties": {
+                            "type": {
+                              "enum": [
+                                "SingleLineText"
+                              ]
+                            }
+                          }
+                        },
+                        {
                           "email": "raju@nocodb.com"
                         }
                       ],
                       "MultiSelect": [
+                        {
+                          "properties": {
+                            "type": {
+                              "enum": [
+                                "SingleLineText"
+                              ]
+                            }
+                          }
+                        },
                         "jan",
                         "feb",
                         "mar"
                       ],
                       "DateTime": "2022-02-02 05:30:00+00:00",
                       "LTAR": [
+                        {
+                          "properties": {
+                            "type": {
+                              "enum": [
+                                "SingleLineText"
+                              ]
+                            }
+                          }
+                        },
                         {
                           "Id": 1
                         },
@@ -2524,6 +2569,15 @@
         "description": "This API endpoint allows the creation of new records within a specified table. Records to be inserted are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. \n\nCertain read-only field types will be disregarded if included in the request. These field types include Look Up, Roll Up, Formula, Created By, Updated By, Created At, Updated At, Button, Barcode and QR Code.\n\nFor **Attachment** field types, this API cannot be used. Instead, utilize the storage APIs for managing attachments. Support for attachment fields in the record update API will be added soon.",
         "parameters": [
           {
+            "properties": {
+              "type": {
+                "enum": [
+                  "SingleLineText"
+                ]
+              }
+            }
+          },
+          {
             "required": true,
             "$ref": "#/components/parameters/xc-token"
           }
@@ -2542,6 +2596,15 @@
                   "Example 1": {
                     "value": [
                       {
+                        "properties": {
+                          "type": {
+                            "enum": [
+                              "SingleLineText"
+                            ]
+                          }
+                        }
+                      },
+                      {
                         "Id": 6
                       },
                       {
@@ -2558,6 +2621,15 @@
           }
         },
         "tags": [
+          {
+            "properties": {
+              "type": {
+                "enum": [
+                  "SingleLineText"
+                ]
+              }
+            }
+          },
           "Table Records"
         ],
         "requestBody": {
@@ -5266,6 +5338,15 @@
           },
           {
             "oneOf": [
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "SingleLineText"
+                    ]
+                  }
+                }
+              },
               {
                 "properties": {
                   "type": {

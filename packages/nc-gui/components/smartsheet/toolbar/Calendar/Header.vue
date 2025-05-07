@@ -1,17 +1,8 @@
 <script lang="ts" setup>
 import { computed } from '#imports'
 
-const {
-  selectedDate,
-  selectedMonth,
-  selectedDateRange,
-  activeCalendarView,
-  paginateCalendarView,
-  activeDates,
-  timezone,
-  pageDate,
-  timezoneDayjs,
-} = useCalendarViewStoreOrThrow()
+const { selectedDate, selectedMonth, selectedDateRange, activeCalendarView, activeDates, timezone, pageDate, timezoneDayjs } =
+  useCalendarViewStoreOrThrow()
 
 const calendarRangeDropdown = ref(false)
 

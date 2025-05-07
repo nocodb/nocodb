@@ -139,7 +139,11 @@ const onInputBoxEnter = () => {
 }
 
 const handleInputBoxKeyDown = (e: any) => {
-  if (e.key === 'ArrowDown' || e.key === 'Escape') {
+  if (e.key === 'ArrowDown') {
+    editor.value.chain().focus().run()
+  } else if (e.key === 'Escape') {
+    e.preventDefault() // Prevent the event from propagating
+    e.stopPropagation() // Stop the event from bubbling up
     editor.value.chain().focus().run()
   }
 }

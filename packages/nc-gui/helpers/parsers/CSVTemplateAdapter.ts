@@ -52,7 +52,7 @@ export default class CSVTemplateAdapter {
     this.tableNames = []
     this.progressCallback = progressCallback
 
-    if (existingColumns && existingColumns.length) {
+    if (existingColumns?.length) {
       for (const col of existingColumns) {
         this.existingColumnMap[col.title as string] = col
         this.existingColumnMap[col.column_name as string] = col

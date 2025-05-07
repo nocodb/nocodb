@@ -45,7 +45,7 @@ const activeAttachment = computed(() => selectedFieldValue.value?.[activeAttachm
 watch(selectedFieldId, () => {
   activeAttachmentIndex.value = 0
   const viewId = props.view?.id
-  if (viewId) {
+  if (viewId && isUIAllowed('viewCreateOrEdit')) {
     setCurrentViewExpandedFormAttachmentColumn(viewId, selectedFieldId.value)
   }
 })
@@ -144,7 +144,7 @@ export default {
         </div>
         <div class="w-full h-0 flex-1 flex flex-row relative">
           <template v-if="!hasAnyValueInAttachment">
-            <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 nc-files-no-attachment">
+            <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 nc-files-no-attachment relative">
               <span class="text-base font-black"> No Attachment </span>
               <span class="text-xs mt-3 w-[210px] text-center"> There are no attachments to display in this field </span>
               <NcButton type="secondary" size="small" class="mt-3" :disabled="readOnly" @click="openFilePicker()">
@@ -153,6 +153,30 @@ export default {
                 </template>
                 Upload Attachment
               </NcButton>
+
+              <div class="px-4 py-3 overflow-hidden absolute top-0 left-0">
+                <NcDropdownSelect
+                  v-model="selectedFieldId"
+                  class="nc-files-current-field-dropdown"
+                  :items="attachmentFields.map(field => ({ label: field.title || field.id!, value: field.id! }))"
+                  overlay-class-name="w-[288px]"
+                >
+                  <NcButton type="secondary" size="small" class="overflow-hidden">
+                    <GeneralIcon icon="cellAttachment" class="w-4 h-4 aspect-square flex items-center justify-center" />
+
+                    <NcTooltip class="max-w-[200px] truncate !leading-5" show-on-truncate-only>
+                      <template #title>{{ selectedField?.title }}</template>
+                      <span class="pl-2 nc-files-current-field-title">
+                        {{ selectedField?.title }}
+                      </span>
+                    </NcTooltip>
+                    <GeneralIcon
+                      icon="chevronDown"
+                      class="h-4 w-4 ml-1 text-gray-500 aspect-square flex items-center justify-center"
+                    />
+                  </NcButton>
+                </NcDropdownSelect>
+              </div>
             </div>
           </template>
           <template v-else>

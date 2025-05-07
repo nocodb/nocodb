@@ -69,8 +69,6 @@ watch(selectedFieldId, () => {
       <NcDropdownSelect
         v-model="selectedFieldId"
         class="nc-files-current-field-dropdown"
-        :disabled="!isUIAllowed('viewCreateOrEdit')"
-        :tooltip="!isUIAllowed('viewCreateOrEdit') ? 'You do not have permission to change attachment view field.' : undefined"
         :items="attachmentFields.map(field => ({ label: field.title || field.id!, value: field.id! }))"
         overlay-class-name="w-[288px]"
         @visible-change="isFileContentMenuOpen = $event"
@@ -83,7 +81,7 @@ watch(selectedFieldId, () => {
         >
           <GeneralIcon icon="cellAttachment" class="w-4 h-4 aspect-square flex items-center justify-center" />
           <template v-if="isExpanded">
-            <NcTooltip class="max-w-[calc(100%_-_100px)] truncate" show-on-truncate-only>
+            <NcTooltip class="max-w-[calc(100%_-_100px)] truncate !leading-5" show-on-truncate-only>
               <template #title>{{ selectedField?.title }}</template>
               <span class="pl-2 nc-files-current-field-title">
                 {{ selectedField?.title }}

@@ -111,7 +111,7 @@ export default {
           </template>
         </div>
         <div
-          v-if="isUIAllowed('viewCreateOrEdit')"
+          v-if="isUIAllowed('commentEdit')"
           class="w-full border-t border-gray-200 px-6 2xl:px-0 sticky bottom-0 pb-4 -mb-4 bg-white z-10"
         >
           <div class="font-bold my-3">Add a comment</div>

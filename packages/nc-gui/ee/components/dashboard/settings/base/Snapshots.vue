@@ -195,7 +195,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
       row-height="44px"
       :data="sortedSnapshots"
       class="h-full mt-5"
-      body-row-class-name="nc-base-settings-snapshot-item"
+      body-row-class-name="nc-base-settings-snapshot-item no-border-last"
     >
       <template #bodyCell="{ column, record: snapshot }">
         <template v-if="column.key === 'name'">

@@ -91,9 +91,9 @@ const code = computed(
     <div class="flex bg-white rounded-b-2xl h-[calc(100%_-_66px)]">
       <div
         ref="containerElem"
-        class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-12 py-6 mx-auto"
+        class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-24 py-6 mx-auto"
       >
-        <div class="flex flex-col gap-3">
+        <div class="flex flex-col max-w-[640px] w-full mx-auto gap-3">
           <div class="text-nc-content-gray font-bold leading-6">
             {{ $t('labels.mcpSetup') }}
           </div>
@@ -186,7 +186,7 @@ const code = computed(
           </NcTabs>
         </div>
 
-        <NcAlert type="info" class="mt-3">
+        <NcAlert type="info" class="mt-3 max-w-[640px] w-full mx-auto">
           <template #message>
             {{ $t('labels.mcpTokenVisibilityInfo') }}
           </template>

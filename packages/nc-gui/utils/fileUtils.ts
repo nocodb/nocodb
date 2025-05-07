@@ -108,7 +108,11 @@ const isZip = (name: string, _mimetype?: string) => {
   return zipExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
 }
 
-export { isImage, imageExt, isVideo, isPdf, isOffice, isAudio, isZip, isWord, isExcel, isPresentation }
+const isPreviewSupportedFile = (name: string, mimetype?: string) => {
+  return isImage(name, mimetype) || isVideo(name, mimetype) || isAudio(name, mimetype) || isPdf(name, mimetype)
+}
+
+export { isImage, imageExt, isVideo, isPdf, isOffice, isAudio, isZip, isWord, isExcel, isPresentation, isPreviewSupportedFile }
 // Ref : https://stackoverflow.com/a/12002275
 
 // Tested in Mozilla Firefox browser, Chrome

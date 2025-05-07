@@ -50,9 +50,30 @@ watch(selectedFieldId, () => {
   }
 })
 
-watch(selectedFieldValue, () => {
-  activeAttachmentIndex.value = Math.min(activeAttachmentIndex.value, Math.max(0, selectedFieldValue.value?.length - 1))
-})
+watch(
+  selectedFieldValue,
+  () => {
+    let isUpdated = false
+    if (ncIsArray(selectedFieldValue.value) && selectedFieldValue.value.length) {
+      for (let i = 0; i < selectedFieldValue.value.length; i++) {
+        const att = selectedFieldValue.value[i]
+
+        if (isPreviewSupportedFile(att?.title ?? '', att?.mimetype ?? '')) {
+          activeAttachmentIndex.value = i
+          isUpdated = true
+          break
+        }
+      }
+    }
+
+    if (!isUpdated) {
+      activeAttachmentIndex.value = Math.min(activeAttachmentIndex.value, Math.max(0, selectedFieldValue.value?.length - 1))
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 watch(activeAttachmentIndex, () => {
   if (activeAttachmentIndex.value === null || isNaN(activeAttachmentIndex.value)) {

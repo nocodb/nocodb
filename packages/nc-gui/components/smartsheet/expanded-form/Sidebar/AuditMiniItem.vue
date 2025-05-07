@@ -131,7 +131,7 @@ function shouldShowRaw(key: string) {
 
 <template>
   <div v-for="columnKey of columnKeys" :key="columnKey" class="py-2 px-3">
-    <div class="flex items-center gap-2 !text-gray-600 text-xs font-weight-500 nc-audit-mini-item-header">
+    <div class="flex items-center gap-1 !text-gray-600 text-xs font-weight-500 nc-audit-mini-item-header">
       <SmartsheetHeaderCellIcon
         :column-meta="{ uidt: meta[columnKey]?.type, dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined }"
         class="!m-0"

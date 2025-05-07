@@ -12,7 +12,11 @@ import getInstance from '~/utils/getInstance';
 import initAdminFromEnv from '~/helpers/initAdminFromEnv';
 import { User } from '~/models';
 import { NcConfig, prepareEnv } from '~/utils/nc-config';
-import { MetaTable, RootScopes } from '~/utils/globals';
+import {
+  MetaTable,
+  NC_STORE_DEFAULT_WORKSPACE_ID_KEY,
+  RootScopes,
+} from '~/utils/globals';
 import { updateMigrationJobsState } from '~/helpers/migrationJobs';
 import { initBaseBehavior } from '~/helpers/initBaseBehaviour';
 import initDataSourceEncryption from '~/helpers/initDataSourceEncryption';
@@ -77,7 +81,7 @@ export const InitMetaServiceProvider: FactoryProvider = {
       }
     } else {
       // if bases are present then it is an old version missing the config
-      const isOld = (await metaService.baseList())?.length;
+      const isOld = (await metaService.legacyProjectList())?.length;
       if (isOld) {
         throw new Error(
           `You are trying to upgrade from an old version of NocoDB. Please upgrade to 0.207.3 first and then you can upgrade to the latest version.`,
@@ -151,6 +155,41 @@ export const InitMetaServiceProvider: FactoryProvider = {
     // encrypt datasource if secret is set
     await initDataSourceEncryption(metaService);
     NcDebug.log('Datasource encryption initialized');
+
+    const ncDefaultWorkspaceId = await metaService.metaGet(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.STORE,
+      {
+        key: NC_STORE_DEFAULT_WORKSPACE_ID_KEY,
+      },
+    );
+
+    Noco.ncDefaultWorkspaceId = ncDefaultWorkspaceId?.value;
+
+    if (!ncDefaultWorkspaceId) {
+      // if default workspace is not set and there is a workspace, set the first workspace as default
+
+      const workspace = await metaService
+        .knexConnection(MetaTable.WORKSPACE)
+        .orderBy('created_at', 'asc')
+        .first();
+
+      if (workspace) {
+        await metaService.metaInsert2(
+          RootScopes.ROOT,
+          RootScopes.ROOT,
+          MetaTable.STORE,
+          {
+            key: NC_STORE_DEFAULT_WORKSPACE_ID_KEY,
+            value: workspace.id,
+          },
+          true,
+        );
+
+        Noco.ncDefaultWorkspaceId = workspace.id;
+      }
+    }
 
     return metaService;
   },

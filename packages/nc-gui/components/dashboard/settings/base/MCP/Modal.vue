@@ -245,5 +245,3 @@ const code = computed(
   }
 }
 </style>
-
-<style scoped lang="scss"></style>

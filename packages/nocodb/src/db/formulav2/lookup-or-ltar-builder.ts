@@ -2,7 +2,10 @@ import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
 import type { NcContext } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
-import type { FormulaQueryBuilderBaseParams } from '~/db/formulav2/formula-query-builder.types';
+import type {
+  FormulaQueryBuilderBaseParams,
+  TAliasToColumnParam,
+} from '~/db/formulav2/formula-query-builder.types';
 import type {
   FormulaColumn,
   LinkToAnotherRecordColumn,
@@ -22,13 +25,13 @@ export const lookupOrLtarBuilder =
       ) => Promise<{ builder: any }>;
     },
   ) =>
-  async (parentColumns?: Set<string>): Promise<any> => {
+  async ({ tableAlias, parentColumns }: TAliasToColumnParam): Promise<any> => {
     const {
       baseModelSqlv2,
       column,
       knex = baseModelSqlv2.dbDriver,
       context = baseModelSqlv2.context,
-      tableAlias,
+      tableAlias: _tableAlias,
       model = baseModelSqlv2.model,
       _formulaQueryBuilder,
       getAliasCount,
@@ -36,7 +39,10 @@ export const lookupOrLtarBuilder =
 
     let selectQb;
     let isArray = false;
-    const alias = `__nc_formula${getAliasCount()}`;
+    const lookupContext = {
+      aliasCount: getAliasCount(), // to keep the index number from changing between formula
+    };
+    const alias = `__nc_formula${lookupContext.aliasCount}`;
     const lookup =
       column.uidt === UITypes.Lookup
         ? await column.getColOptions<LookupColumn>(context)
@@ -106,7 +112,7 @@ export const lookupOrLtarBuilder =
             const mmParentColumn = await relation.getMMParentColumn(context);
             const mmChildColumn = await relation.getMMChildColumn(context);
 
-            const assocAlias = `__nc${getAliasCount()}`;
+            const assocAlias = `__nc${lookupContext.aliasCount}`;
             selectQb = knex(
               knex.raw(`?? as ??`, [
                 baseModelSqlv2.getTnPath(parentModel.table_name),
@@ -137,7 +143,7 @@ export const lookupOrLtarBuilder =
 
       let prevAlias = alias;
       while (lookupColumn.uidt === UITypes.Lookup) {
-        const nestedAlias = `__nc_formula${getAliasCount()}`;
+        const nestedAlias = `__nc_formula${lookupContext.aliasCount}`;
         const nestedLookup = await lookupColumn.getColOptions<LookupColumn>(
           context,
         );
@@ -195,7 +201,7 @@ export const lookupOrLtarBuilder =
             const mmParentColumn = await relation.getMMParentColumn(context);
             const mmChildColumn = await relation.getMMChildColumn(context);
 
-            const assocAlias = `__nc${getAliasCount()}`;
+            const assocAlias = `__nc${lookupContext.aliasCount}`;
 
             selectQb
               .join(
@@ -262,7 +268,7 @@ export const lookupOrLtarBuilder =
           break;
         case UITypes.LinkToAnotherRecord:
           {
-            const nestedAlias = `__nc_formula${getAliasCount()}`;
+            const nestedAlias = `__nc_formula${lookupContext.aliasCount}`;
             const relation =
               await lookupColumn.getColOptions<LinkToAnotherRecordColumn>(
                 context,
@@ -333,7 +339,7 @@ export const lookupOrLtarBuilder =
                     context,
                   );
 
-                  const assocAlias = `__nc${getAliasCount()}`;
+                  const assocAlias = `__nc${lookupContext.aliasCount}`;
 
                   selectQb
                     .join(
@@ -399,6 +405,10 @@ export const lookupOrLtarBuilder =
                 },
               });
             }
+            const formulaContext = {
+              aliasCount: lookupContext.aliasCount,
+            };
+            console.log(formulaOption.formula, formulaContext, prevAlias);
             const { builder } = await _formulaQueryBuilder({
               ...params,
               _tree: formulaOption.formula,
@@ -410,6 +420,7 @@ export const lookupOrLtarBuilder =
               ]),
               tableAlias: prevAlias,
               column: lookupColumn,
+              getAliasCount: () => formulaContext.aliasCount++,
             });
             if (isArray) {
               const qb = selectQb;

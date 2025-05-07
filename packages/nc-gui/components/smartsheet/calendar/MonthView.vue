@@ -906,7 +906,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                     :row="record"
                     :to-date="record?.rowMeta?.range?.fk_to_col?.title && record.row[record.rowMeta.range!.fk_to_col.title!] ?  timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A') : null"
                     data-testid="nc-sidebar-record-card"
-                    @click="expandRecord(record)"
+                    @click="emit('expandRecord', record)"
                   >
                     <template v-if="!isRowEmpty(record, displayField)">
                       <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />

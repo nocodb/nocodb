@@ -120,7 +120,7 @@ const code = computed(
                   <li>Add the JSON configuration that’s provided after creating a token in claude_desktop_config.json</li>
                 </ol>
 
-                <NcButton type="secondary" class="w-44" size="small" :loading="token.loading" @click="regenerateToken(token)">
+                <NcButton type="secondary" class="w-39" size="small" :loading="token.loading" @click="regenerateToken(token)">
                   {{ $t('labels.regenerateToken') }}
                 </NcButton>
 

@@ -25,6 +25,8 @@ const { $e } = useNuxtApp()
 
 const container = ref<null | HTMLElement>(null)
 
+const { width: containerWidth } = useElementSize(container)
+
 const { isUIAllowed } = useRoles()
 
 const meta = inject(MetaInj, ref())
@@ -467,32 +469,36 @@ const recordsAcrossAllRange = computed<{
     const isRecordDraggingOrResizeState =
       record.rowMeta.id === dragRecord.value?.rowMeta.id || record.rowMeta.id === resizeRecord.value?.rowMeta.id
 
-    if (isRecordDraggingOrResizeState) {
+    if (isRecordDraggingOrResizeState || !numberOfOverlaps || numberOfOverlaps <= 0) {
       record.rowMeta.style = {
         ...record.rowMeta.style,
         zIndex: 10,
       }
-    }
+      left = 0
+      width = '100%'
+    } else {
+      const overlapIndex = record.rowMeta.overLapIteration
 
-    if (numberOfOverlaps && numberOfOverlaps > 0 && !isRecordDraggingOrResizeState) {
-      width = 100 / Math.min(numberOfOverlaps, 8)
-
-      if (record.rowMeta.overLapIteration! - 1 > 7) {
+      if (overlapIndex > 8) {
         display = 'none'
       } else {
-        left = width * (record.rowMeta.overLapIteration! - 1)
+        const availableWidth = containerWidth.value - 70
+        width = Math.max(availableWidth / Math.min(numberOfOverlaps, 8), 180)
+
+        const spacing = (availableWidth - width * Math.min(numberOfOverlaps, 8)) / Math.max(Math.min(numberOfOverlaps, 8) - 1, 1)
+        left = (width + spacing) * (overlapIndex - 1)
+
+        if (left + width > availableWidth) {
+          width = Math.max(availableWidth - left - 1.5, 180)
+        }
       }
-    } else {
-      width = 100
-      left = 0
     }
 
     record.rowMeta.style = {
       ...record.rowMeta.style,
       display,
-      width: `calc(max(calc(${width.toFixed(2)}% - 4px), 180px))`,
-      left: `min(calc(${left.toFixed(2)}% + 4px), calc(100% - max(${width.toFixed(2)}%, 180px) + 4px))`,
-      minWidth: '180px',
+      width: typeof width === 'number' ? `${width}px` : width,
+      left: `${left}px`,
     }
   }
 

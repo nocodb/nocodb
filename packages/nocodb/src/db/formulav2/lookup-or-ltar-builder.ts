@@ -42,7 +42,8 @@ export const lookupOrLtarBuilder =
     const lookupContext = {
       aliasCount: getAliasCount(), // to keep the index number from changing between formula
     };
-    const alias = `__nc_formula${lookupContext.aliasCount}`;
+    const getLookupAliasCount = () => lookupContext.aliasCount++;
+    const alias = `__nc_formula${getLookupAliasCount()}`;
     const lookup =
       column.uidt === UITypes.Lookup
         ? await column.getColOptions<LookupColumn>(context)
@@ -112,7 +113,7 @@ export const lookupOrLtarBuilder =
             const mmParentColumn = await relation.getMMParentColumn(context);
             const mmChildColumn = await relation.getMMChildColumn(context);
 
-            const assocAlias = `__nc${lookupContext.aliasCount}`;
+            const assocAlias = `__nc${getLookupAliasCount()}`;
             selectQb = knex(
               knex.raw(`?? as ??`, [
                 baseModelSqlv2.getTnPath(parentModel.table_name),
@@ -143,7 +144,7 @@ export const lookupOrLtarBuilder =
 
       let prevAlias = alias;
       while (lookupColumn.uidt === UITypes.Lookup) {
-        const nestedAlias = `__nc_formula${lookupContext.aliasCount}`;
+        const nestedAlias = `__nc_formula${getLookupAliasCount()}`;
         const nestedLookup = await lookupColumn.getColOptions<LookupColumn>(
           context,
         );
@@ -201,7 +202,7 @@ export const lookupOrLtarBuilder =
             const mmParentColumn = await relation.getMMParentColumn(context);
             const mmChildColumn = await relation.getMMChildColumn(context);
 
-            const assocAlias = `__nc${lookupContext.aliasCount}`;
+            const assocAlias = `__nc${getLookupAliasCount()}`;
 
             selectQb
               .join(
@@ -268,7 +269,7 @@ export const lookupOrLtarBuilder =
           break;
         case UITypes.LinkToAnotherRecord:
           {
-            const nestedAlias = `__nc_formula${lookupContext.aliasCount}`;
+            const nestedAlias = `__nc_formula${getLookupAliasCount()}`;
             const relation =
               await lookupColumn.getColOptions<LinkToAnotherRecordColumn>(
                 context,
@@ -339,7 +340,7 @@ export const lookupOrLtarBuilder =
                     context,
                   );
 
-                  const assocAlias = `__nc${lookupContext.aliasCount}`;
+                  const assocAlias = `__nc${getLookupAliasCount()}`;
 
                   selectQb
                     .join(
@@ -406,7 +407,7 @@ export const lookupOrLtarBuilder =
               });
             }
             const formulaContext = {
-              aliasCount: lookupContext.aliasCount,
+              aliasCount: getLookupAliasCount(),
             };
             const { builder } = await _formulaQueryBuilder({
               ...params,

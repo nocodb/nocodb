@@ -20,6 +20,8 @@ const { commentsDrawer, changedColumns, isNew, loadRow: _loadRow, row: _row } = 
 
 const { isUIAllowed } = useRoles()
 
+const viewsStore = useViewsStore()
+
 /* flags */
 
 const showRightSections = computed(() => !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
@@ -27,8 +29,6 @@ const showRightSections = computed(() => !isNew.value && commentsDrawer.value &&
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
 
 /* attachments */
-
-const { setCurrentViewExpandedFormAttachmentColumn } = useSharedView()
 
 const attachmentFields = computed(() => fields.value.filter((field) => field.uidt === UITypes.Attachment))
 
@@ -45,8 +45,9 @@ const activeAttachment = computed(() => selectedFieldValue.value?.[activeAttachm
 watch(selectedFieldId, () => {
   activeAttachmentIndex.value = 0
   const viewId = props.view?.id
-  if (viewId && isUIAllowed('viewCreateOrEdit')) {
-    setCurrentViewExpandedFormAttachmentColumn(viewId, selectedFieldId.value)
+
+  if (viewId) {
+    viewsStore.setCurrentViewExpandedFormAttachmentColumn(viewId, selectedFieldId.value)
   }
 })
 

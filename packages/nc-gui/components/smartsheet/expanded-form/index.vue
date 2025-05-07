@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { ViewTypes, isReadOnlyColumn, isSystemColumn } from 'nocodb-sdk'
+import { ExpandedFormMode, ViewTypes, isReadOnlyColumn, isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { Drawer } from 'ant-design-vue'
 import NcModal from '../../nc/Modal.vue'
@@ -29,7 +29,9 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'createdRecord', 'updateRowCommentCount'])
 
-const { activeView } = storeToRefs(useViewsStore())
+const viewsStore = useViewsStore()
+
+const { activeView } = storeToRefs(viewsStore)
 
 const key = ref(0)
 
@@ -88,6 +90,8 @@ const { showRecordPlanLimitExceededModal } = useEeConfig()
 provide(CellClickHookInj, undefined)
 
 const isKanban = inject(IsKanbanInj, ref(false))
+
+const isPublic = inject(IsPublicInj, ref(false))
 
 provide(MetaInj, meta)
 
@@ -180,23 +184,19 @@ const fields = computed(() => {
 
 const tableTitle = computed(() => meta.value?.title)
 
-const { setCurrentViewExpandedFormMode } = useSharedView()
-
-const activeViewMode = ref(isUIAllowed('viewCreateOrEdit') ? props.view?.expanded_record_mode ?? 'field' : 'field')
+const activeViewMode = ref(!isPublic.value ? props.view?.expanded_record_mode ?? ExpandedFormMode.FIELD : ExpandedFormMode.FIELD)
 
 watch(activeViewMode, async (v) => {
   const viewId = props.view?.id
-  if (!viewId || !isUIAllowed('viewCreateOrEdit')) return
+  if (!viewId) return
 
-  if (v === 'field') {
-    await setCurrentViewExpandedFormMode(viewId, v)
-  } else if (v === 'attachment') {
+  if (v === ExpandedFormMode.FIELD || v === ExpandedFormMode.DISCUSSION) {
+    await viewsStore.setCurrentViewExpandedFormMode(viewId, v)
+  } else if (v === ExpandedFormMode.ATTACHMENT) {
     const firstAttachmentField = fields.value?.find((f) => f.uidt === 'Attachment')
-    await setCurrentViewExpandedFormMode(viewId, v, props.view?.attachment_mode_column_id ?? firstAttachmentField?.id)
+
+    await viewsStore.setCurrentViewExpandedFormMode(viewId, v, props.view?.attachment_mode_column_id ?? firstAttachmentField?.id)
   }
-  // else if (v === 'discussion') {
-  //   await setCurrentViewExpandedFormMode(viewId, v)
-  // }
 })
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value?.includes(c)) ?? null)

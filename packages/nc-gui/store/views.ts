@@ -19,6 +19,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     baseId: string
   }
 
+  const { isUIAllowed } = useRoles()
+
   const router = useRouter()
   // Store recent views from all Workspaces
   const allRecentViews = ref<RecentView[]>([])
@@ -486,6 +488,49 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
+  const updateViewLocalState = (viewId: string, viewToUpdate: Partial<ViewType>) => {
+    if (activeView.value?.id === viewId) {
+      Object.assign(activeView.value, viewToUpdate)
+    }
+
+    // TODO: @ramesh update for non active view
+  }
+
+  const setCurrentViewExpandedFormMode = async (viewId: string, mode: 'field' | 'attachment', columnId?: string) => {
+    if (!isEeUI || !viewId) return
+
+    try {
+      if (isUIAllowed('viewCreateOrEdit')) {
+        await $api.dbView.update(viewId, {
+          expanded_record_mode: mode,
+          attachment_mode_column_id: columnId,
+        })
+      }
+
+      updateViewLocalState(viewId, { expanded_record_mode: mode, attachment_mode_column_id: columnId })
+    } catch (e: any) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  const setCurrentViewExpandedFormAttachmentColumn = async (viewId: string, columnId: string) => {
+    if (!isEeUI || !viewId) return
+
+    try {
+      if (isUIAllowed('viewCreateOrEdit')) {
+        await $api.dbView.update(viewId, {
+          attachment_mode_column_id: columnId,
+        })
+      }
+
+      updateViewLocalState(viewId, { attachment_mode_column_id: columnId })
+    } catch (e: any) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   refreshViewTabTitle.on(() => {
     updateTabTitle()
   })
@@ -525,6 +570,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     refreshViewTabTitle: refreshViewTabTitle.trigger,
     updateViewCoverImageColumnId,
     duplicateView,
+    setCurrentViewExpandedFormMode,
+    setCurrentViewExpandedFormAttachmentColumn,
   }
 })
 

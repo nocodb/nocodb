@@ -270,6 +270,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         prevDate = timezoneDayjs.dayjsTz(prevDate!).format('YYYY-MM-DD HH:mm:ssZ')
         nextDate = timezoneDayjs.dayjsTz(nextDate)!.format('YYYY-MM-DD HH:mm:ssZ')
 
+        const toDateStart = timezoneDayjs.dayjsTz(toDate).startOf('day').format('YYYY-MM-DD HH:mm:ssZ')
+        const toDateEnd = timezoneDayjs.dayjsTz(toDate).endOf('day').format('YYYY-MM-DD HH:mm:ssZ')
+
         calendarRange.value.forEach((range) => {
           const fromCol = range.fk_from_col
           const toCol = range.fk_to_col
@@ -296,11 +299,22 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                 ],
               },
               {
-                fk_column_id: fromCol.id,
-                comparison_op: 'eq',
+                is_group: true,
                 logical_op: 'or',
-                comparison_sub_op: 'exactDate',
-                value: fromDate,
+                children: [
+                  {
+                    fk_column_id: fromCol.id,
+                    comparison_op: 'gte',
+                    comparison_sub_op: 'exactDate',
+                    value: toDateStart as string,
+                  },
+                  {
+                    fk_column_id: fromCol.id,
+                    comparison_op: 'lte',
+                    comparison_sub_op: 'exactDate',
+                    value: toDateEnd as string,
+                  },
+                ],
               },
             ]
             combinedFilters.push({

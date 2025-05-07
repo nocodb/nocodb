@@ -887,7 +887,7 @@ const addRecord = (date: dayjs.Dayjs) => {
             >
               <NcButton
                 v-e="`['c:calendar:month-view-more']`"
-                class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-gray-500"
+                class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 !border-0 !bg-gray-800 !text-nc-content-inverted-primary"
                 size="xxsmall"
                 type="secondary"
                 @click="viewMore(day.date)"

@@ -1115,7 +1115,7 @@ const expandRecord = (record: Row) => {
           <NcDropdown v-if="isOverflowAcrossHourRange(hour).isOverflow">
             <NcButton
               v-e="`['c:calendar:week-view-more']`"
-              class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
+              class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 !border-0 !bg-gray-800 !text-nc-content-inverted-primary"
               size="xxsmall"
               type="secondary"
               @click="viewMore(hour)"

@@ -9,6 +9,8 @@ interface ItemType {
 
 const modelValue = defineModel<string>()
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const { isUIAllowed } = useRoles()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
@@ -22,6 +24,7 @@ const disabled = computed(() => {
 const isViewModeEnabled = computed(() => {
   return (
     isEeUI &&
+    !isPublic.value &&
     (isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE) ||
       isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE))
   )

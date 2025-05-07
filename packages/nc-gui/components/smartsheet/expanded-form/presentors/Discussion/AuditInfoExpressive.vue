@@ -72,6 +72,8 @@ function normalizeMeta(key: string) {
     duration: opts.duration_format ? durationOptions.find((it) => it.title === opts.duration_format)?.id : undefined,
     is12hrFormat: opts['12hr_format'],
     isLocaleString: opts.locale_string,
+    isDisplayTimezone: opts?.isDisplayTimezone || opts?.is_display_timezone,
+    useSameTimezoneForAll: opts?.useSameTimezoneForAll || opts?.use_same_timezone_for_all,
   }
 }
 
@@ -132,7 +134,9 @@ function isShowableValue(value: any) {
     <div class="ml-6.5">
       <div class="text-small1 font-weight-500 inline-flex items-center flex-wrap gap-1 w-full max-w-full">
         <span class="text-gray-600 text-xs"> changed </span>
-        <span class="rounded-md px-1 !h-[20px] inline-flex items-center gap-1 text-nc-content-gray-emphasis border-1 border-nc-border-gray-medium">
+        <span
+          class="rounded-md px-1 !h-[20px] inline-flex items-center gap-1 text-nc-content-gray-emphasis border-1 border-nc-border-gray-medium"
+        >
           <SmartsheetHeaderCellIcon
             :column-meta="{ uidt: meta[columnKey]?.type, dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined }"
             class="!w-[16px] !h-[16px] !m-0 !text-nc-content-gray-emphasis"
@@ -344,7 +348,7 @@ function isShowableValue(value: any) {
   .nc-date-picker {
     @apply !inline;
     & > div {
-      @apply !inline;
+      @apply !inline !text-inherit text-small1;
 
       & > div {
         @apply !inline;

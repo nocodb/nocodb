@@ -60,12 +60,15 @@ const items = computed(() => {
         <div
           v-e="[`c:project:mode:${item.value}`]"
           class="tab"
-          :class="{
-            'pointer-events-none': disabled,
-            'active': modelValue === item.value,
-            'first-tab': idx === 0,
-            'last-tab': idx === items.length - 1,
-          }"
+          :class="[
+            `nc-tab-${modelValue}`,
+            {
+              'pointer-events-none': disabled,
+              'active': modelValue === item.value,
+              'first-tab': idx === 0,
+              'last-tab': idx === items.length - 1,
+            },
+          ]"
           @click="modelValue = item.value"
         >
           <GeneralIcon :icon="item.icon" class="tab-icon" />
@@ -87,6 +90,14 @@ const items = computed(() => {
   }
   &.last-tab {
     @apply border-0;
+  }
+
+  &.nc-tab-field.active {
+    :deep(svg.tab-icon) {
+      path {
+        @apply stroke-2;
+      }
+    }
   }
 }
 

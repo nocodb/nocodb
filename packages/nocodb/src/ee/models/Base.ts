@@ -14,7 +14,13 @@ import {
 import DashboardProjectDBProject from '~/models/DashboardProjectDBProject';
 import Noco from '~/Noco';
 
-import { BaseUser, CustomUrl, DataReflection, Source } from '~/models';
+import {
+  BaseUser,
+  CustomUrl,
+  DataReflection,
+  MCPToken,
+  Source,
+} from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
@@ -409,6 +415,8 @@ export default class Base extends BaseCE {
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
     });
+
+    await MCPToken.bulkDelete({ base_id: baseId }, ncMeta);
 
     // set meta
     return await ncMeta.metaUpdate(

@@ -249,6 +249,7 @@ export const RootScopeTables = {
     // Temporarily added need to be discussed within team
     MetaTable.AUDIT,
     MetaTable.CUSTOM_URLS,
+    MetaTable.MCP_TOKENS,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,

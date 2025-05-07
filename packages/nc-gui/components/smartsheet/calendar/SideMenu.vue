@@ -200,48 +200,48 @@ const options = computed(() => {
     case 'day' as const:
       if (calDataType.value === UITypes.Date) {
         return [
+          { label: 'All records', value: 'allRecords' },
           { label: 'In this day', value: 'day' },
           { label: 'Without dates', value: 'withoutDates' },
-          { label: 'All records', value: 'allRecords' },
         ]
       } else {
         return [
-          { label: 'In this day', value: 'day' },
-          { label: 'Without dates', value: 'withoutDates' },
           { label: 'All records', value: 'allRecords' },
+          { label: 'In this day', value: 'day' },
           { label: 'In selected hours', value: 'selectedHours' },
+          { label: 'Without dates', value: 'withoutDates' },
         ]
       }
     case 'week' as const:
       if (calDataType.value === UITypes.Date) {
         return [
+          { label: 'All records', value: 'allRecords' },
+          { label: 'In selected week', value: 'week' },
           { label: 'In selected date', value: 'selectedDate' },
           { label: 'Without dates', value: 'withoutDates' },
-          { label: 'In selected week', value: 'week' },
-          { label: 'All records', value: 'allRecords' },
         ]
       } else {
         return [
-          { label: 'Without dates', value: 'withoutDates' },
           { label: 'All records', value: 'allRecords' },
-          { label: 'In selected hours', value: 'selectedHours' },
           { label: 'In selected week', value: 'week' },
           { label: 'In selected date', value: 'selectedDate' },
+          { label: 'In selected hours', value: 'selectedHours' },
+          { label: 'Without dates', value: 'withoutDates' },
         ]
       }
     case 'month' as const:
       return [
-        { label: 'In this month', value: 'month' },
-        { label: 'Without dates', value: 'withoutDates' },
         { label: 'All records', value: 'allRecords' },
+        { label: 'In this month', value: 'month' },
         { label: 'In selected date', value: 'selectedDate' },
+        { label: 'Without dates', value: 'withoutDates' },
       ]
     case 'year' as const:
       return [
-        { label: 'In this year', value: 'year' },
-        { label: 'Without dates', value: 'withoutDates' },
         { label: 'All records', value: 'allRecords' },
+        { label: 'In this year', value: 'year' },
         { label: 'In selected date', value: 'selectedDate' },
+        { label: 'Without dates', value: 'withoutDates' },
       ]
   }
 })

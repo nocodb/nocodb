@@ -1612,6 +1612,8 @@ function viewRowTests() {
       .query({
         from_date: '2005-05-25',
         to_date: '2005-05-26',
+        next_date: '2005-05-27',
+        prev_date: '2005-05-24',
       })
       .set('xc-auth', context.token)
       .expect(200);
@@ -1651,6 +1653,8 @@ function viewRowTests() {
       .query({
         from_date: '2005-05-25',
         to_date: '2005-05-26',
+        next_date: '2005-05-27',
+        prev_date: '2005-05-24',
       })
       .set('xc-auth', context.token)
       .expect(expectStatus);

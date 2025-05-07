@@ -408,7 +408,6 @@ export const lookupOrLtarBuilder =
             const formulaContext = {
               aliasCount: lookupContext.aliasCount,
             };
-            console.log(formulaOption.formula, formulaContext, prevAlias);
             const { builder } = await _formulaQueryBuilder({
               ...params,
               _tree: formulaOption.formula,

@@ -630,13 +630,7 @@ export class ExportService {
       ? model.columns
           .filter((c) => param._fieldIds?.includes(c.id))
           .map((c) => c.title)
-      : model.columns
-          .filter(
-            (c) =>
-              !isLinksOrLTAR(c) &&
-              !(c.colOptions as LinkToAnotherRecordColumn)?.isCrossBaseLink(),
-          )
-          .map((c) => c.title);
+      : model.columns.filter((c) => !isLinksOrLTAR(c)).map((c) => c.title);
 
     if (dataExportMode) {
       const hideSystemFields = view.show_system_fields
@@ -656,17 +650,9 @@ export class ExportService {
     const mmColumns = param._fieldIds
       ? model.columns
           .filter((c) => param._fieldIds?.includes(c.id))
-          .filter(
-            (col) =>
-              isLinksOrLTAR(col) &&
-              col.colOptions?.type === 'mm' &&
-              !(col.colOptions as LinkToAnotherRecordColumn)?.isCrossBaseLink(),
-          )
+          .filter((col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm')
       : model.columns.filter(
-          (col) =>
-            isLinksOrLTAR(col) &&
-            col.colOptions?.type === 'mm' &&
-            !(col.colOptions as LinkToAnotherRecordColumn)?.isCrossBaseLink(),
+          (col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm',
         );
 
     const hasLink = !dataExportMode && mmColumns.length > 0;

@@ -277,10 +277,6 @@ const onCustomSwitchToggle = () => {
     })
 }
 
-const handleShowAdvanceOptions = () => {
-  if (isEdit.value) return
-}
-
 const onCustomSwitchLabelClick = () => {
   vModel.value.is_custom_link = !vModel.value.is_custom_link
   onCustomSwitchToggle()
@@ -348,7 +344,7 @@ const toggleCrossBase = () => {
             </span>
             {{ $t('title.hasMany') }}
           </a-radio>
-          <a-radio value="oo" data-testid="One to One" @dblclick="handleShowAdvanceOptions">
+          <a-radio value="oo" data-testid="One to One">
             <span class="nc-ltar-icon nc-oo-icon">
               <GeneralIcon icon="oneToOneSolid" />
             </span>
@@ -357,7 +353,7 @@ const toggleCrossBase = () => {
         </a-radio-group>
       </a-form-item>
     </div>
-    <div v-if="isFeatureEnabled('custom_link') && isEeUI">
+    <div v-if="isFeatureEnabled(FEATURE_FLAG.CUSTOM_LINK) && isEeUI">
       <a-switch
         v-model:checked="vModel.is_custom_link"
         :disabled="isEdit"
@@ -379,7 +375,7 @@ const toggleCrossBase = () => {
       <LazySmartsheetColumnLinkAdvancedOptions v-model:value="vModel" :is-edit="isEdit" :meta="meta" />
     </div>
     <template v-else>
-      <template v-if="isFeatureEnabled('cross_base_link')">
+      <template v-if="isFeatureEnabled(FEATURE_FLAG.CUSTOM_LINK.CROSS_BASE_LINK)">
         <div>
           <a-switch
             v-model:checked="crossBase"

@@ -32,10 +32,15 @@ const props = withDefaults(defineProps<Props>(), {
       ></span>
       <slot name="image" />
       <div class="flex gap-1 py-1 flex-col">
-        <span class="text-[13px] leading-4 max-w-56 font-medium truncate text-gray-800">
+        <span
+          :class="{
+            '!max-w-35': invalid,
+          }"
+          class="text-[13px] leading-4 max-w-56 font-medium truncate text-gray-800"
+        >
           <slot />
         </span>
-        <NcTooltip v-if="invalid" placement="left" class="top-1 absolute right-2">
+        <NcTooltip v-if="invalid" placement="left" class="top-1 absolute right-1">
           <NcBadge color="red" :border="false" class="!h-5">
             <div class="flex items-center gap-1">
               <GeneralIcon icon="warning" class="text-red-500 !h-4 !w-4" />
@@ -48,7 +53,7 @@ const props = withDefaults(defineProps<Props>(), {
             record.
           </template>
         </NcTooltip>
-        <span v-if="showDate" class="text-xs font-medium truncate leading-4 text-gray-600"
+        <span v-if="showDate" class="text-xs font-medium truncate max-w-56 leading-4 text-gray-600"
           >{{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }}</span
         >
       </div>

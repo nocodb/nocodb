@@ -75,13 +75,13 @@ const emit = defineEmits(['resize-start'])
       <slot name="time" />
       <div
         :class="{
-          'pr-7': position === 'leftRounded',
+          'pr-8.5': position === 'leftRounded',
         }"
         class="flex mb-0.5 overflow-x-hidden w-full truncate flex-col gap-1"
       >
         <NcTooltip
           :disabled="selected || dragging"
-          class="break-word whitespace-nowrap overflow-hidden text-ellipsis pr-1"
+          class="break-word whitespace-nowrap overflow-hidden pr-1"
           show-on-truncate-only
           wrap-child="span"
         >
@@ -91,7 +91,7 @@ const emit = defineEmits(['resize-start'])
           </template>
         </NcTooltip>
       </div>
-      <span v-if="position === 'leftRounded' || position === 'none'" class="absolute mb-0.6 z-10 right-5"> .... </span>
+      <span v-if="position === 'leftRounded' || position === 'none'" class="absolute mb-0.6 z-10 right-5"> ... </span>
     </div>
 
     <div

@@ -52,9 +52,6 @@ export default class Integration extends IntegrationCE {
   }
 
   public static async init() {
-    Integration.availableIntegrations = [];
-    IntegrationCE.availableIntegrations = Integration.availableIntegrations;
-
     for (const tp of Object.values(IntegrationsType)) {
       if (!integrationCategoryNeedDefault(tp as IntegrationsType)) continue;
 

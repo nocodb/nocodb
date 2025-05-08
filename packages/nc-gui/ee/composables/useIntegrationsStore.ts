@@ -468,7 +468,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       const dynamicIntegrations = (await $api.integrations.list()) as {
         type: IntegrationsType
         sub_type: string
-        meta: {
+        manifest: {
           title?: string
           icon?: string
           iconStyle?: any
@@ -478,19 +478,19 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         }
       }[]
 
-      dynamicIntegrations.sort((a, b) => (a.meta.order ?? Infinity) - (b.meta.order ?? Infinity))
+      dynamicIntegrations.sort((a, b) => (a.manifest.order ?? Infinity) - (b.manifest.order ?? Infinity))
 
       for (const di of dynamicIntegrations) {
         let icon: FunctionalComponent<SVGAttributes, {}, any, {}> | VNode
 
-        if (di.meta.icon) {
-          if (di.meta.icon in iconMap) {
-            icon = iconMap[di.meta.icon as keyof typeof iconMap]
+        if (di.manifest.icon) {
+          if (di.manifest.icon in iconMap) {
+            icon = iconMap[di.manifest.icon as keyof typeof iconMap]
           } else {
-            if (isValidURL(di.meta.icon)) {
+            if (isValidURL(di.manifest.icon)) {
               icon = h('img', {
-                src: di.meta.icon,
-                alt: di.meta.title || di.sub_type,
+                src: di.manifest.icon,
+                alt: di.manifest.title || di.sub_type,
               })
             }
           }
@@ -499,14 +499,14 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         }
 
         const integration: IntegrationItemType = {
-          title: di.meta.title || di.sub_type,
+          title: di.manifest.title || di.sub_type,
           sub_type: di.sub_type,
           icon,
           type: di.type,
-          iconStyle: di.meta.iconStyle,
+          iconStyle: di.manifest.iconStyle,
           isAvailable: true,
           dynamic: true,
-          hidden: di.meta?.hidden ?? false,
+          hidden: di.manifest?.hidden ?? false,
         }
 
         allIntegrations.push(integration)

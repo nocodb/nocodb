@@ -174,7 +174,7 @@ export class IntegrationsController {
       .map((i) => ({
         type: i.type,
         sub_type: i.sub_type,
-        meta: i.meta,
+        manifest: i.manifest,
       }));
   }
 
@@ -195,7 +195,7 @@ export class IntegrationsController {
       integrationType: integration.type,
       integrationSubType: integration.sub_type,
       form: integration.form,
-      meta: integration.meta,
+      manifest: integration.manifest,
     };
   }
 

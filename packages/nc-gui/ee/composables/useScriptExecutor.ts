@@ -259,7 +259,7 @@ export const useScriptExecutor = createSharedComposable(() => {
       script = (await loadAutomation(script)) as ScriptType
     }
 
-    script.code = replaceConfigValues(script.code ?? '', script.config ?? {})
+    const code = replaceConfigValues(script.script ?? '', script.config ?? {})
 
     const scriptId = `${script.id}-${Date.now()}-${generateRandomNumber()}`
 
@@ -304,7 +304,7 @@ export const useScriptExecutor = createSharedComposable(() => {
         }
 
         await new Promise<void>((resolve, reject) => {
-          const workerCode = createWorkerCode(script.code ?? '', runCustomCode)
+          const workerCode = createWorkerCode(code ?? '', runCustomCode)
 
           console.log(workerCode)
 

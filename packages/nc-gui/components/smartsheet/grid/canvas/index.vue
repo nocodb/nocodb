@@ -1823,6 +1823,8 @@ const handleMouseMove = (e: MouseEvent) => {
     })
   }
 
+  if (cursor) setCursor(cursor)
+
   // check if hovering row meta column and set cursor
   if (
     mousePosition.x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13 &&
@@ -1833,6 +1835,8 @@ const handleMouseMove = (e: MouseEvent) => {
       const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
       const row = element?.row
       cursor = getRowMetaCursor({ row, x: mousePosition.x, group: element?.group }) || cursor
+
+      if (cursor) setCursor(cursor)
 
       if (
         !row ||
@@ -1868,8 +1872,6 @@ const handleMouseMove = (e: MouseEvent) => {
       requestAnimationFrame(triggerRefreshCanvas)
     }
   }
-
-  if (cursor) setCursor(cursor)
 }
 
 const reloadViewDataHookHandler = async (params) => {

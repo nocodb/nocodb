@@ -249,7 +249,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const getPlanLimit = (_arg: any) => {
-    return 9999
+    return Infinity
   }
 
   return {

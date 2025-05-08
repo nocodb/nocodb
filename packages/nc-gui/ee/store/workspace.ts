@@ -559,7 +559,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const workspaceRole = computed(() => activeWorkspace.value?.roles)
 
   const getPlanLimit = (limitType: PlanLimitTypes) => {
-    return activeWorkspace.value?.payment?.plan?.meta?.[limitType] ?? Infinity
+    const limit = activeWorkspace.value?.payment?.plan?.meta?.[limitType] ?? Infinity
+    return limit === -1 ? Infinity : limit
   }
 
   watch(activeWorkspaceId, async () => {

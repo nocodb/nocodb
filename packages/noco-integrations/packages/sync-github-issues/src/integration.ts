@@ -1,6 +1,7 @@
 import {
   AuthResponse,
   DataObjectStream,
+  SyncColumnDefinition,
   SyncIntegration,
   ticketingSchema,
 } from '@noco-integrations/core';
@@ -31,7 +32,7 @@ export default class GithubIssuesIntegration extends SyncIntegration {
   public async getDestinationSchema(
     _auth: AuthResponse<Octokit>,
     _payload: GithubIssuesPayload,
-  ) {
+  ): Promise<readonly SyncColumnDefinition[]> {
     return ticketingSchema;
   }
 

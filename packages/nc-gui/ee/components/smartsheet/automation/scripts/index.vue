@@ -96,25 +96,18 @@ const { updateAutomation } = useAutomationStore()
 
 const { isUIAllowed } = useRoles()
 
-watch(
-  configValue,
-  (newVal) => {
-    if (JSON.stringify(newVal) === JSON.stringify(activeAutomation.value.config)) return
-    updateAutomation(
-      activeProjectId.value,
-      activeAutomationId.value,
-      {
-        config: newVal,
-      },
-      {
-        skipNetworkCall: !isUIAllowed('scriptCreateOrEdit'),
-      },
-    )
-  },
-  {
-    deep: true,
-  },
-)
+const triggerUpdate = (val) => {
+  updateAutomation(
+    activeProjectId.value,
+    activeAutomationId.value,
+    {
+      config: val,
+    },
+    {
+      skipNetworkCall: !isUIAllowed('scriptCreateOrEdit'),
+    },
+  )
+}
 </script>
 
 <template>
@@ -126,7 +119,12 @@ watch(
         </div>
       </Pane>
       <Pane>
-        <SmartsheetAutomationScriptsConfigInput v-if="isSettingsOpen" v-model:model-value="configValue" :config="config" />
+        <SmartsheetAutomationScriptsConfigInput
+          v-if="isSettingsOpen"
+          v-model:model-value="configValue"
+          :config="config"
+          @change="triggerUpdate"
+        />
         <SmartsheetAutomationScriptsPlayground v-else />
       </Pane>
     </Splitpanes>

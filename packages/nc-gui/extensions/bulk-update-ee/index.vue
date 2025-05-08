@@ -1207,7 +1207,14 @@ provide(IsGalleryInj, ref(false))
                         </LazySmartsheetDivDataCell>
                       </a-form-item>
 
-                      <div class="w-full flex justify-end">
+                      <div class="w-full flex items-center justify-between">
+                        <div>
+                          <NcCheckbox v-model:checked="fieldConfig.selected" @click.stop>
+                            <span class="ml-1">
+                              {{ fieldConfig.opType === BulkUpdateFieldActionOpTypes.CLEAR_VALUE ? 'Clear' : 'Set' }}
+                            </span>
+                          </NcCheckbox>
+                        </div>
                         <NcButton
                           type="text"
                           size="xs"

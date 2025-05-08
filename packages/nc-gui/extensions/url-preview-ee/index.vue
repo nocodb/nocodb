@@ -20,6 +20,7 @@ eventBus.on((event, payload) => {
     // We only modify state when something is selected. We don't update on un-selections
     // (except when unsupported url detected).
     // null rowId indicates "un-selection".
+
     if (payload.rowId !== null) {
       if (selectedValue && isValidURL(selectedValue)) {
         const [platformRaw, embedURLRaw] = getEmbedURL(selectedValue)
@@ -58,7 +59,7 @@ const openSelectedLink = async () => {
         </div>
       </NcButton>
     </template>
-    <div class="h-full flex h-full justify-center items-center">
+    <div class="h-full flex justify-center items-center">
       <div v-if="showEmptyState" class="w-full text-center">
         <div class="mb-2">To view a preview, select a cell in the URL field.</div>
         <img src="./assets/empty-state-banner.svg" class="w-80 mx-auto" />

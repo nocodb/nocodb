@@ -1521,6 +1521,14 @@ provide(IsGalleryInj, ref(false))
         }
         &.nc-cell:not(.nc-cell-longtext) {
           @apply px-2 py-1;
+
+          &.nc-cell-phonenumber,
+          &.nc-cell-email,
+          &.nc-cell-url {
+            .nc-cell-field.nc-cell-link-preview {
+              @apply !px-3;
+            }
+          }
         }
         &.nc-virtual-cell {
           @apply px-2 py-1;

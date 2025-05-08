@@ -88,6 +88,7 @@
     "@nestjs/schedule": "^4.1.2",
     "@nestjs/throttler": "^6.4.0",
     "@nestjs/websockets": "^10.4.15",
+    "@noco-integrations/ai-nocodb": "link:../noco-integrations/packages/ai-nocodb",
     "@noco-integrations/ai-openai": "link:../noco-integrations/packages/ai-openai",
     "@noco-integrations/auth-clickhouse": "link:../noco-integrations/packages/auth-clickhouse",
     "@noco-integrations/auth-github": "link:../noco-integrations/packages/auth-github",

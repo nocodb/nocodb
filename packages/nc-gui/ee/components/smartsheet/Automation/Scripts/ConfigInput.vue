@@ -32,13 +32,12 @@ const canShowFieldOrView = (item: ConfigItem): boolean => {
 }
 
 const handleTableChange = (key: string, value: any) => {
-  configValue.value[key] = value
-    ? { type: 'table', value }
-    : undefined(props.config?.items ?? []).forEach((item) => {
-        if (item.parentTable === key) {
-          configValue.value[item.key] = undefined
-        }
-      })
+  configValue.value[key] = value ? { type: 'table', value } : undefined
+  ;(props.config?.items ?? []).forEach((item) => {
+    if (item.parentTable === key) {
+      configValue.value[item.key] = undefined
+    }
+  })
 }
 
 const handleFieldOrViewChange = (item: ConfigItem, value: any) => {

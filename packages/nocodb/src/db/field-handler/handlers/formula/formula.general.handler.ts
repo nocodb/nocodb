@@ -62,8 +62,11 @@ export class FormulaGeneralHandler extends GenericFieldHandler {
   ) {
     const uidt = parseProp(column.meta).display_type;
     if (uidt) {
-      column.uidt = uidt;
-      return options.fieldHandler.verifyFilter(filter, column, options);
+      const updatedColumn = new Column({
+        ...column,
+        uidt: uidt,
+      } as ColumnType);
+      return options.fieldHandler.verifyFilter(filter, updatedColumn, options);
     } else {
       const formulaCol = await column.getColOptions<FormulaColumn>(
         options.context,

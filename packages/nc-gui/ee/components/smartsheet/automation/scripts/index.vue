@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import * as monaco from 'monaco-editor'
 import { Pane, Splitpanes } from 'splitpanes'
-import { TypeGenerator } from '~/components/smartsheet/Automation/Scripts/utils/TypeGenerator'
+import { TypeGenerator } from '~/components/smartsheet/automation/scripts/utils/TypeGenerator'
 
 const editorRef = ref<HTMLDivElement | null>(null)
 

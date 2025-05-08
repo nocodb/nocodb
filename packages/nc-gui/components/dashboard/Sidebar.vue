@@ -7,6 +7,8 @@ const { isSharedBase } = storeToRefs(useBase())
 
 const { isMobileMode, appInfo } = useGlobal()
 
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const treeViewDom = ref<HTMLElement>()
 
 const isTreeViewOnScrollTop = ref(false)
@@ -61,8 +63,8 @@ onUnmounted(() => {
 
       <GeneralGift v-if="!isEeUI" />
       <DashboardSidebarBeforeUserInfo />
-      <DashboardSidebarFeed v-if="appInfo.feedEnabled" />
-      <DashboardSidebarUserInfo />
+      <DashboardSidebarFeed v-if="appInfo.feedEnabled && !isNewSidebarEnabled" />
+      <DashboardSidebarUserInfo v-if="!isNewSidebarEnabled" />
       <DashboardSidebarVersion v-if="appInfo.isOnPrem" />
     </div>
   </div>
@@ -74,7 +76,7 @@ onUnmounted(() => {
 }
 
 .nc-sidebar-bottom-section {
-  @apply flex-none overflow-auto p-1;
+  @apply flex-none overflow-auto p-1 empty:hidden;
 
   &:not(:has(.nc-upgrade-sidebar-banner)) {
     @apply border-t-1;

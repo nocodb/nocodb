@@ -136,3 +136,5 @@ export const IsPageDesignerExtensionActiveInj: InjectionKey<boolean> = Symbol('i
 export const IsLinkRecordDropdownInj: InjectionKey<Ref<boolean>> = Symbol('is-link-record-dropdown-injection')
 
 export const PlanUpgraderClickHookInj: InjectionKey<EventHook<void>> = Symbol('plan-upgrader-click-hook-injection')
+
+export const IsMiniSidebarInj: InjectionKey<Ref<boolean>> = Symbol('is-mini-sidebar-injection')

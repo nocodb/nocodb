@@ -2,6 +2,8 @@
 import { UseVirtualList } from '@vueuse/components'
 import { type WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk'
 
+const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
+
 const workspaceStore = useWorkspace()
 
 const { activeWorkspace, workspacesList, workspaceUserCount } = storeToRefs(workspaceStore)
@@ -114,7 +116,7 @@ const onWorkspaceCreateClick = () => {
     v-else-if="activeWorkspace"
     class="flex flex-row flex-grow w-full max-w-85/100 hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md"
     :style="{
-      maxWidth: `calc(100% - 2.5rem)`,
+      maxWidth: !isMiniSidebar ? `calc(100% - 2.5rem)` : undefined,
     }"
   >
     <NcDropdown
@@ -129,8 +131,8 @@ const onWorkspaceCreateClick = () => {
         data-testid="nc-workspace-menu"
         class="group cursor-pointer flex flex-grow w-full gap-x-2 items-center nc-workspace-menu overflow-hidden py-1.25 xs:py-1.75 pr-0.25"
       >
-        <GeneralWorkspaceIcon :workspace="activeWorkspace" icon-bg-color="#E7E7E9" show-nocodb-icon />
-        <div v-if="activeWorkspace" class="flex min-w-10 w-full items-center">
+        <GeneralWorkspaceIcon :workspace="activeWorkspace" icon-bg-color="#E7E7E9" show-nocodb-icon class="flex-none" />
+        <div v-if="activeWorkspace && !isMiniSidebar" class="flex min-w-10 w-full items-center">
           <div class="nc-workspace-title font-semibold text-base text-md truncate capitalize">
             {{ activeWorkspace.title }}
           </div>

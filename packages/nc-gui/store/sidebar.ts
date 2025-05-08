@@ -8,6 +8,16 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   }
   const { isMobileMode, leftSidebarSize: _leftSidebarSize } = useGlobal()
 
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
+  const isNewSidebarEnabled = computed(() => {
+    return isFeatureEnabled(FEATURE_FLAG.IMPROVED_SIDEBAR)
+  })
+
+  const miniSidebarWidth = computed(() => {
+    return isNewSidebarEnabled.value ? MINI_SIDEBAR_WIDTH : 0
+  })
+
   const tablesStore = useTablesStore()
   const _isLeftSidebarOpen = ref(!isViewPortMobile())
   const isLeftSidebarOpen = computed({
@@ -91,6 +101,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     formRightSidebarWidthPercent,
     hideSidebar,
     showTopbar,
+    isNewSidebarEnabled,
+    miniSidebarWidth,
   }
 })
 

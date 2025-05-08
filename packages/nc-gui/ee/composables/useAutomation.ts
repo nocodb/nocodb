@@ -1,6 +1,6 @@
 import type { ScriptType } from 'nocodb-sdk'
-import { ActionType } from '~/components/smartsheet/Automation/Scripts/types'
-import { parseScript } from '~/components/smartsheet/Automation/Scripts/utils/configParser'
+import { ActionType } from '~/components/smartsheet/automation/scripts/types'
+import { parseScript } from '~/components/smartsheet/automation/scripts/utils/configParser'
 
 const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: ScriptType) => {
   const automationStore = useAutomationStore()

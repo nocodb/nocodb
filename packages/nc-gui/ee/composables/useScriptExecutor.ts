@@ -1,9 +1,9 @@
 import type { ScriptType } from 'nocodb-sdk'
-import { ActionType } from '~/components/smartsheet/Automation/Scripts/types'
-import type { CallApiAction, ViewActionPayload } from '~/components/smartsheet/Automation/Scripts/types'
-import { createWorkerCode, generateIntegrationsCode } from '~/components/smartsheet/Automation/Scripts/utils/workerHelper'
-import { generateLibCode } from '~/components/smartsheet/Automation/Scripts/utils/editorUtils'
-import { replaceConfigValues } from '~/components/smartsheet/Automation/Scripts/utils/configParser'
+import { ActionType } from '~/components/smartsheet/automation/scripts/types'
+import type { CallApiAction, ViewActionPayload } from '~/components/smartsheet/automation/scripts/types'
+import { createWorkerCode, generateIntegrationsCode } from '~/components/smartsheet/automation/scripts/utils/workerHelper'
+import { generateLibCode } from '~/components/smartsheet/automation/scripts/utils/editorUtils'
+import { replaceConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
 
 export const useScriptExecutor = createSharedComposable(() => {
   const { $api } = useNuxtApp()

@@ -34,7 +34,7 @@ export const useAutomationStore = defineStore('automation', () => {
   const activeAutomationId = computed(() => route.params.automationId as string)
 
   const activeBaseSchema = computedAsync(async () => {
-    if (!openedProject.value?.id || !isAutomationEnabled.value) return null
+    if (!openedProject.value?.id || !activeWorkspaceId.value || !isAutomationEnabled.value) return null
     return await $api.internal.getOperation(activeWorkspaceId.value, openedProject.value.id, {
       operation: 'baseSchema',
     })
@@ -54,9 +54,9 @@ export const useAutomationStore = defineStore('automation', () => {
     try {
       isLoading.value = true
 
-      const response = await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
+      const response = (await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
         operation: 'listScripts',
-      })
+      })) as ScriptType[]
 
       automations.value.set(baseId, response)
       return response
@@ -87,7 +87,7 @@ export const useAutomationStore = defineStore('automation', () => {
         automation ||
         ((await $api.internal.getOperation(activeWorkspaceId.value, openedProject.value?.id, {
           operation: 'getScript',
-          scriptId: automationId,
+          id: automationId,
         })) as unknown as ScriptType)
 
       if (activeAutomationId.value) {
@@ -221,7 +221,7 @@ export const useAutomationStore = defineStore('automation', () => {
   }
 
   const openScript = async (script: ScriptType) => {
-    if (!script.base_id) return
+    if (!script.base_id || !script.id) return
 
     const basesS = bases.bases
     const workspaceId = workspaceStore.activeWorkspaceId
@@ -246,7 +246,7 @@ export const useAutomationStore = defineStore('automation', () => {
     ncNavigateTo({
       workspaceId: workspaceIdOrType,
       baseId: baseIdOrBaseId,
-      automationId: script?.id,
+      automationId: script.id,
       automation: true,
     })
   }

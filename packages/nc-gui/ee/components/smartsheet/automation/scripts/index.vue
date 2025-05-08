@@ -20,7 +20,6 @@ const { libCode, code, config, configValue, isSettingsOpen } = useScriptStoreOrT
 async function setupMonacoEditor() {
   await until(() => isLoadingAutomation.value === false).toBeTruthy()
   await until(() => !!activeAutomation.value).toBeTruthy()
-  await until(() => libCode.value?.length > 0).toBeTruthy()
 
   if (!editorRef.value) return
 
@@ -28,7 +27,7 @@ async function setupMonacoEditor() {
 
   monaco.languages.typescript.javascriptDefaults.addExtraLib(typeGenerator.generateTypes(activeBaseSchema.value))
 
-  monaco.languages.typescript.javascriptDefaults.addExtraLib(libCode.value)
+  monaco.languages.typescript.javascriptDefaults.addExtraLib(libCode.value ?? '')
 
   monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
     noSemanticValidation: false,

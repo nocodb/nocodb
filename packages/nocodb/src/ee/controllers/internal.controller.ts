@@ -79,7 +79,7 @@ export class InternalController {
       case 'listScripts':
         return await this.scriptsService.listScripts(context, baseId);
       case 'getScript':
-        return await this.scriptsService.getScript(context, req.query.scriptId);
+        return await this.scriptsService.getScript(context, req.query.id);
       case 'baseSchema':
         return await getBaseSchema(baseId);
       default:

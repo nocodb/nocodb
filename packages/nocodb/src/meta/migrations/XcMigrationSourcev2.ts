@@ -64,7 +64,7 @@ import * as nc_074_missing_context_indexes from '~/meta/migrations/v2/nc_074_mis
 import * as nc_075_audit_refactor from '~/meta/migrations/v2/nc_075_audit_refactor';
 import * as nc_076_sync_configs from '~/meta/migrations/v2/nc_076_sync_configs';
 import * as nc_077_column_index_name from '~/meta/migrations/v2/nc_077_column_index_name';
-
+import * as nc_078_script_col_rename from '~/meta/migrations/v2/nc_078_script_col_rename';
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
   // Must return a Promise containing a list of migrations.
@@ -139,6 +139,7 @@ export default class XcMigrationSourcev2 {
       'nc_075_audit_refactor',
       'nc_076_sync_configs',
       'nc_077_column_index_name',
+      'nc_078_script_col_rename',
     ]);
   }
 
@@ -280,6 +281,8 @@ export default class XcMigrationSourcev2 {
         return nc_076_sync_configs;
       case 'nc_077_column_index_name':
         return nc_077_column_index_name;
+      case 'nc_078_script_col_rename':
+        return nc_078_script_col_rename;
     }
   }
 }

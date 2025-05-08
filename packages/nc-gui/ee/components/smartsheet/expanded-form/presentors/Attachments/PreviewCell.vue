@@ -220,7 +220,7 @@ watch(isOpenContextMenu, (newValue) => {
       />
     </div>
     <div v-else class="whitespace-nowrap flex flex-col justify-center pl-1 w-[calc(100%_-_104px)]">
-      <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+      <NcTooltip class="nc-preview-cell-title truncate max-w-full" show-on-truncate-only>
         <template #title>
           {{ attachment.title }}
         </template>

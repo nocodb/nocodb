@@ -132,7 +132,7 @@ const displayClockInstances = computed(() => clockInstances.value.slice(0, 4))
         <div class="flex flex-col space-y-4 p-5 pb-1">
           <AddTimezoneAction
             :disable="clockInstances.length >= 4"
-            :model-value="''"
+            model-value=""
             is-sidebar
             disable-message="Only upto 4 clocks can be created."
             @city-selected="(city) => (activeInstanceId = addClock(city))"

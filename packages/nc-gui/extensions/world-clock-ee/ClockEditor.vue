@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import Clock from './Clock.vue'
-import { type AcceptableCity, cityToTimezone, timezoneData } from './timezone-data'
+import { type AcceptableCity, cityToTimezone } from './timezone-data'
 import { themes } from './theming'
-import type { ClockInstance, SelectOption } from './types'
+import type { ClockInstance } from './types'
 import AddTimezoneAction from './AddTimezoneAction.vue'
 
 const props = defineProps<{

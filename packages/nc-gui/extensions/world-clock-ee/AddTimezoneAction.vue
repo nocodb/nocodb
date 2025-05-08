@@ -44,7 +44,7 @@ const onSelect = (optionValue: RawValueType) => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="visible" @click.stop overlay-class-name="!min-w-auto !w-full !max-w-[277px]">
+  <NcDropdown v-model:visible="visible" overlay-class-name="!min-w-auto !w-full !max-w-[277px]" @click.stop>
     <slot>
       <NcTooltip v-if="isSidebar" class="w-full" :title="disableMessage" placement="bottom" :disabled="!disable">
         <NcButton type="secondary" class="w-full" size="small" :disabled="disable">+ Add City</NcButton>
@@ -71,15 +71,15 @@ const onSelect = (optionValue: RawValueType) => {
     </slot>
     <template #overlay>
       <NcList
-        :value="vModel"
-        @update:value="onSelect"
         v-model:open="visible"
+        :value="vModel"
         :list="options"
         option-label-key="value"
         option-value-key="value"
         variant="small"
         class="!w-full"
         data-testid="nc-column-uitypes-options-list-wrapper"
+        @update:value="onSelect"
       />
     </template>
   </NcDropdown>

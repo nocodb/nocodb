@@ -305,9 +305,6 @@ export const useScriptExecutor = createSharedComposable(() => {
 
         await new Promise<void>((resolve, reject) => {
           const workerCode = createWorkerCode(code ?? '', runCustomCode)
-
-          console.log(workerCode)
-
           const blob = new Blob([workerCode], { type: 'application/javascript' })
           const workerUrl = URL.createObjectURL(blob)
           const worker = new Worker(workerUrl, { type: 'module' })

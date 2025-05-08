@@ -1,0 +1,79 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# NocoDB Integrations Monorepo Guide
+
+This monorepo contains various integration packages for NocoDB. Each integration follows a specific structure and implements interfaces defined in the core package.
+
+## Repository Structure
+
+- [packages/core](mdc:packages/core): Contains the core interfaces and types for all integrations
+- [packages](mdc:packages): Contains all integration packages, each implementing a specific integration type
+
+## Integration Types
+
+The repository currently supports the following integration types:
+
+1. **AI Integrations**: Implement the `AiIntegration` abstract class ([packages/core/src/types/ai.ts](mdc:packages/core/src/types/ai.ts))
+2. **Auth Integrations**: Implement the `AuthIntegration` abstract class ([packages/core/src/types/auth.ts](mdc:packages/core/src/types/auth.ts))
+3. **Sync Integrations**: Implement the `SyncIntegration` abstract class ([packages/core/src/types/sync.ts](mdc:packages/core/src/types/sync.ts))
+
+## Creating a New Integration
+
+Every new integration should start from version 0.1.0
+Every integration package should follow this structure:
+
+```
+packages/integration-type-name/
+├── package.json          # Package dependencies and metadata
+├── tsconfig.json         # TypeScript configuration
+└── src/
+    ├── index.ts          # Exports the integration entry point
+    ├── integration.ts    # Implementation of the integration class
+    ├── form.ts           # Form definition for configuration UI
+    └── manifest.ts       # Integration metadata (title, icon, version, etc.)
+```
+
+### Key Files in Each Integration
+
+1. **index.ts**: Exports an `IntegrationEntry` object that includes:
+   - `type`: The integration type (AI, Auth, Sync)
+   - `sub_type`: A unique identifier for the specific integration
+   - `wrapper`: The integration class that extends the appropriate base class
+   - `form`: The form definition for configuration
+   - `manifest`: Metadata about the integration
+
+2. **integration.ts**: Contains the actual implementation of the integration by extending the appropriate abstract class from the core package.
+
+3. **form.ts**: Defines the configuration UI for the integration using the `FormDefinition` type.
+
+4. **manifest.ts**: Contains metadata about the integration such as title, icon, version, description, etc.
+
+## Integration Entry Structure
+
+Each integration must export an `IntegrationEntry` object ([packages/core/src/types/index.ts](mdc:packages/core/src/types/index.ts)) that includes:
+
+```typescript
+export interface IntegrationEntry {
+  type: IntegrationType;
+  sub_type: string;
+  wrapper: typeof IntegrationWrapper;
+  form: FormDefinition;
+  manifest: IntegrationManifest;
+}
+```
+
+## Example Integration
+
+See [packages/ai-openai](mdc:packages/ai-openai) for a complete example of an AI integration.
+
+## Development Workflow
+
+1. Create a new directory in `packages/` with your integration name (e.g., `packages/auth-google`)
+2. Set up the basic structure with `package.json`, `tsconfig.json`, and the required source files
+3. Implement the appropriate integration interface
+4. Export the `IntegrationEntry` from your `index.ts` file
+
+

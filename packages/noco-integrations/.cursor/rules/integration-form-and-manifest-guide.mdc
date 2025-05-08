@@ -1,0 +1,114 @@
+---
+description: form and manifest guide
+globs: 
+alwaysApply: false
+---
+# Integration Form and Manifest Guide
+
+This guide explains how to create the form and manifest components required for any NocoDB integration.
+
+## Form Definition
+
+Each integration must provide a form definition that describes the UI for configuring the integration. The form is defined using the `FormDefinition` type from NocoDB SDK.
+
+### Form Structure
+
+```typescript
+import { FormBuilderInputType, FormDefinition } from '@noco-integrations/core';
+
+export const form: FormDefinition = {
+  title: 'Configuration',
+  items: [
+    {
+      key: 'api_key',
+      label: 'API Key',
+      placeholder: 'Enter your API key',
+      type: FormBuilderInputType.SingleLineText,
+      required: true,
+    },
+    // Additional form fields...
+  ],
+};
+```
+
+### Common Input Types
+
+- `FormBuilderInputType.SingleLineText`: For short text inputs like API keys
+- `FormBuilderInputType.Password`: For sensitive information
+- `FormBuilderInputType.Checkbox`: For boolean options
+- `FormBuilderInputType.Select`: For dropdown selection
+- `FormBuilderInputType.MultiSelect`: For selecting multiple options
+
+### Form Field Properties
+
+- `key`: Unique identifier for the field
+- `label`: Display label
+- `placeholder`: Placeholder text
+- `type`: Input type (from FormBuilderInputType)
+- `required`: Whether the field is required
+- `options`: Array of options for Select/MultiSelect inputs
+
+## Integration Manifest
+
+The manifest provides metadata about the integration for display in the NocoDB UI.
+
+### Using the createManifest Utility
+
+The recommended way to create an integration manifest is to use the `createManifest` utility function that automatically handles type-specific requirements:
+
+```typescript
+import { createManifest, IntegrationType } from '@noco-integrations/core';
+
+export const manifest = createManifest(IntegrationType.Ai, {
+  title: 'Your Integration',
+  icon: 'your-icon',
+  version: '0.1.0',
+  description: 'Your integration description',
+  author: 'Your Name'
+});
+```
+
+This utility ensures your manifest follows the correct structure for your integration type. For example, AI integrations automatically get `expose: ['availableModels']` added to their manifest.
+
+### Manifest Structure
+
+```typescript
+import { IntegrationManifest } from '@noco-integrations/core';
+
+export const manifest: IntegrationManifest = {
+  title: 'OpenAI',
+  icon: 'openai.svg',
+  version: '1.0.0',
+  description: 'NocoDB integration with OpenAI',
+  author: 'NocoDB',
+  website: 'https://nocodb.com',
+};
+```
+
+### Required Properties
+
+- `title`: Display name of the integration
+- `icon`: Path to the icon or icon name
+- `version`: Version number of the integration
+
+### Optional Properties
+
+- `description`: Short description of the integration
+- `author`: Author or organization name
+- `website`: Link to the integration or author website
+
+## Examples
+
+See the example integrations for reference:
+
+- [packages/ai-openai/src/form.ts](mdc:packages/ai-openai/src/form.ts)
+- [packages/ai-openai/src/manifest.ts](mdc:packages/ai-openai/src/manifest.ts)
+
+## Best Practices
+
+1. Group related form fields logically
+2. Provide clear labels and helpful placeholders
+3. Mark only essential fields as required
+4. Use appropriate input types for different data
+5. Include validation when necessary
+6. Keep the manifest information concise and accurate

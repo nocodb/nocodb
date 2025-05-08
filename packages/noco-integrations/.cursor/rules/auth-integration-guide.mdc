@@ -1,0 +1,103 @@
+---
+description: creating a auth type integration
+globs: 
+alwaysApply: false
+---
+# Auth Integration Guide
+
+This guide provides detailed information on implementing Auth integrations for NocoDB.
+
+## Monorepo guidelines
+
+- We use pnpm
+- Every package inside packages/ will use same tsconfig.json
+- We use eslint.config.js & .prettierrc on the root directory for all packages
+
+## Auth Integration Interface
+
+Auth integrations must extend the `AuthIntegration` abstract class ([packages/core/src/types/auth.ts](mdc:packages/core/src/types/auth.ts)), which includes:
+
+```typescript
+export abstract class AuthIntegration extends IntegrationWrapper {
+  abstract authenticate(payload: AuthCredentials): Promise<AuthResponse<any>>;
+  exchangeToken?(payload: any): Promise<Record<string, any>>;
+}
+```
+
+## Authentication Types
+
+NocoDB supports various authentication types through the `AuthType` enum:
+
+```typescript
+export enum AuthType {
+  OAuth = 'oauth',
+  ApiKey = 'api_key',
+  Basic = 'basic',
+  Bearer = 'bearer',
+  Custom = 'custom',
+}
+```
+
+## Required Methods
+
+1. **authenticate**: Performs authentication using the provided credentials
+   - Input: Authentication credentials specific to the integration
+   - Output: Authentication response with tokens or session information
+
+2. **exchangeToken** (optional): Exchanges temporary tokens for permanent ones (commonly used in OAuth flows)
+   - Input: Payload containing code or temporary token
+   - Output: Permanent access tokens or credentials
+
+## Creating Auth Integration Manifests
+
+To simplify creating auth integration manifests, use the `createManifest` utility function:
+
+```typescript
+import { createManifest, IntegrationType } from '@noco-integrations/core';
+
+export const manifest = createManifest(IntegrationType.Auth, {
+  title: 'Your Auth Integration',
+  icon: 'your-icon',
+  version: '0.1.0',
+  description: 'Your integration description',
+  author: 'Your Name'
+});
+```
+
+This utility ensures your manifest follows the correct structure for Auth integrations and can automatically add any required fields.
+
+## Interface Definitions
+
+### AuthCredentials
+
+```typescript
+export interface AuthCredentials<T = any> {
+  type: AuthType;
+  [key: string]: any;
+  custom?: T;
+}
+```
+
+### AuthResponse
+
+```typescript
+export interface AuthResponse<T = any> {
+  custom?: T;
+}
+```
+
+## Implementation Guide
+
+1. Determine which authentication type is appropriate for your integration (OAuth, API Key, etc.)
+2. Implement the `authenticate` method to handle the authentication flow
+3. If using OAuth, implement the optional `exchangeToken` method
+4. Design a form in `form.ts` that collects the necessary credentials
+5. Store sensitive information securely in the configuration
+
+## Best Practices
+
+1. Always use HTTPS for credential transmission
+2. Implement proper error handling for authentication failures
+3. Support token refresh when applicable
+4. Validate credentials before returning success
+5. Provide clear error messages for authentication issues

@@ -1,0 +1,134 @@
+---
+description: creating an sync type integration
+globs: 
+alwaysApply: false
+---
+# Sync Integration Guide
+
+This guide provides detailed information on implementing Sync integrations for NocoDB.
+
+## Sync Integration Interface
+
+Sync integrations must extend the `SyncIntegration` abstract class ([packages/core/src/types/sync.ts](mdc:packages/core/src/types/sync.ts)), which includes:
+
+```typescript
+export abstract class SyncIntegration extends IntegrationWrapper {
+  abstract getDestinationSchema(
+    auth: AuthResponse<any>,
+    payload: any,
+  ): Promise<readonly SyncColumnDefinition[]>;
+  abstract fetchData(
+    auth: AuthResponse<any>,
+    payload: any,
+    options: any,
+  ): Promise<DataObjectStream>;
+  abstract getIncrementalKey(): string;
+}
+```
+
+## Required Methods
+
+1. **getDestinationSchema**: Returns the schema definition of the data source
+   - Input: Authentication response and payload with source information
+   - Output: Array of column definitions describing the data structure
+
+2. **fetchData**: Retrieves data from the source as a stream of objects
+   - Input: Authentication, payload, and options for data retrieval
+   - Output: Stream of data objects with unique IDs and field values
+
+3. **getIncrementalKey**: Returns the field name used for incremental syncing
+   - Output: Field name (usually a timestamp or sequential ID field)
+
+## Creating Sync Integration Manifests
+
+To simplify creating sync integration manifests, use the `createManifest` utility function:
+
+```typescript
+import { createManifest, IntegrationType } from '@noco-integrations/core';
+
+export const manifest = createManifest(IntegrationType.Sync, {
+  title: 'Your Sync Integration',
+  icon: 'your-icon',
+  version: '0.1.0',
+  description: 'Your integration description',
+  author: 'Your Name'
+});
+```
+
+This utility ensures your manifest follows the correct structure for Sync integrations and can automatically add any required fields.
+
+## Data Structures
+
+### SyncColumnDefinition
+
+Defines a column in the sync schema:
+
+```typescript
+export interface SyncColumnDefinition {
+  title: string;
+  uidt: UITypes;
+  column_name?: string;
+  colOptions?: {
+    options: { title: string }[];
+  };
+  pv?: boolean;
+}
+```
+
+### DataObject and DataObjectStream
+
+For efficient data transfer:
+
+```typescript
+export interface DataObject<
+  T = Record<string, string | number | boolean | null>,
+> {
+  recordId: string;
+  data: T;
+}
+
+export class DataObjectStream<
+  T = Record<string, string | number | boolean | null>,
+> extends Readable {
+  // Stream implementation details...
+}
+```
+
+## System Fields
+
+Sync integrations should support these system fields for record tracking:
+
+```typescript
+export const syncSystemFields: SyncSchemaWithSystemFields = [
+  {
+    column_name: 'remote_id',
+    title: 'RemoteId',
+    uidt: UITypes.SingleLineText,
+    system: true,
+  },
+  {
+    column_name: 'remote_created_at',
+    title: 'RemoteCreatedAt',
+    uidt: UITypes.DateTime,
+    system: true,
+  },
+  // Additional system fields...
+];
+```
+
+## Implementation Guide
+
+1. Implement schema discovery to retrieve column definitions from the source
+2. Set up efficient data streaming with proper error handling
+3. Implement incremental syncing using a timestamp or ID field
+4. Map source data types to NocoDB UI types
+5. Include all required system fields in the data objects
+
+## Best Practices
+
+1. Implement pagination for large data sets
+2. Handle rate limiting from the data source
+3. Provide clear error messages for connection issues
+4. Optimize data retrieval for performance
+5. Support filtering and sorting when available
+6. Handle deleted records appropriately

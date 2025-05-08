@@ -1,0 +1,83 @@
+---
+description: creating a ai type integration
+globs: 
+alwaysApply: false
+---
+# AI Integration Guide
+
+This guide provides detailed information on implementing AI integrations for NocoDB.
+
+## AI Integration Interface
+
+AI integrations must extend the `AiIntegration` abstract class ([packages/core/src/types/ai.ts](mdc:packages/core/src/types/ai.ts)), which includes:
+
+```typescript
+export abstract class AiIntegration extends IntegrationWrapper {
+  abstract generateObject<T>(
+    args: AiGenerateObjectArgs,
+  ): Promise<AiGenerateObjectResponse<T>>;
+  abstract getModelAlias(model: string): string;
+  abstract availableModels(): { value: string; label: string }[];
+}
+```
+
+## Required Methods
+
+1. **generateObject**: Generates structured data based on input messages and a schema
+   - Input: Messages and a schema definition
+   - Output: A structured object conforming to the schema
+
+2. **getModelAlias**: Maps model identifiers to their display names
+   - Input: Model identifier
+   - Output: Human-readable name for the model
+
+3. **availableModels**: Returns a list of available AI models
+   - Output: Array of model options (value/label pairs)
+
+## Creating AI Integration Manifests
+
+All AI integrations must expose the `availableModels` method in their manifest. To simplify this requirement, use the `createManifest` utility function:
+
+```typescript
+import { createManifest, IntegrationType } from '@noco-integrations/core';
+
+export const manifest = createManifest(IntegrationType.Ai, {
+  title: 'Your AI Integration',
+  icon: 'your-icon',
+  version: '0.1.0',
+  description: 'Your integration description',
+  author: 'Your Name'
+});
+```
+
+This utility automatically adds `expose: ['availableModels']` to your manifest for AI integrations. The `createManifest` function handles specific requirements for different integration types, making it easier to create correct manifests.
+
+## Usage Tracking
+
+AI integrations should track usage statistics using the `AiUsage` interface:
+
+```typescript
+export interface AiUsage {
+  input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
+  model: string;
+}
+```
+
+## Example Implementation
+
+See [packages/ai-openai](mdc:packages/ai-openai) for a complete example:
+
+- [packages/ai-openai/src/integration.ts](mdc:packages/ai-openai/src/integration.ts): Main implementation
+- [packages/ai-openai/src/form.ts](mdc:packages/ai-openai/src/form.ts): Configuration form
+- [packages/ai-openai/src/manifest.ts](mdc:packages/ai-openai/src/manifest.ts): Integration metadata
+- [packages/ai-openai/src/index.ts](mdc:packages/ai-openai/src/index.ts): Integration entry point
+
+## Best Practices
+
+1. Implement proper error handling for API failures
+2. Provide clear model options with appropriate labels
+3. Track token usage accurately for billing purposes
+4. Handle rate limiting and retries gracefully
+5. Support various schema types for object generation

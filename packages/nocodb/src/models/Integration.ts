@@ -39,7 +39,7 @@ export default class Integration implements IntegrationType {
       value?: string;
       icon?: string;
       description?: string;
-      exposedEndpoints?: string[];
+      expose?: string[];
     };
   }[] = Integrations;
 
@@ -597,7 +597,7 @@ export default class Integration implements IntegrationType {
 
   public wrapper: IntegrationWrapper;
 
-  getIntegrationWrapper<T>() {
+  getIntegrationWrapper<T = any>() {
     if (!this.wrapper) {
       const integrationWrapper = Integration.availableIntegrations.find(
         (el) => el.type === this.type && el.sub_type === this.sub_type,

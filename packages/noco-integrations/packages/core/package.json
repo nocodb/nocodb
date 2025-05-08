@@ -1,0 +1,20 @@
+{
+  "name": "@noco-integrations/core",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "nocodb-sdk": "file:../../../nocodb-sdk",
+    "zod": "^3.24.3",
+    "ai": "^3.4.33"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.32",
+    "rimraf": "^5.0.10",
+    "typescript": "^5.8.3"
+  }
+}

@@ -6160,7 +6160,7 @@
             "$ref": "#/components/schemas/Id",
             "description": "User ID of the creator"
           },
-          "code": {
+          "script": {
             "type": "string",
             "description": "Code of the script"
           },

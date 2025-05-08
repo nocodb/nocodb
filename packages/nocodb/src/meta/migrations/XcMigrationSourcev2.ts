@@ -64,7 +64,6 @@ import * as nc_074_missing_context_indexes from '~/meta/migrations/v2/nc_074_mis
 import * as nc_075_audit_refactor from '~/meta/migrations/v2/nc_075_audit_refactor';
 import * as nc_076_sync_configs from '~/meta/migrations/v2/nc_076_sync_configs';
 import * as nc_077_column_index_name from '~/meta/migrations/v2/nc_077_column_index_name';
-
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
   // Must return a Promise containing a list of migrations.

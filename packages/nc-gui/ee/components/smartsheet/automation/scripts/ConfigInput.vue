@@ -20,7 +20,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'change'])
 
 const configValue = useVModel(props, 'modelValue', emit)
 
@@ -31,6 +31,8 @@ const canShowFieldOrView = (item: ConfigItem): boolean => {
   return !getValue(item.parentTable)
 }
 
+const emitUpdate = () => emit('change', configValue.value)
+
 const handleTableChange = (key: string, value: any) => {
   configValue.value[key] = value ? { type: 'table', value } : undefined
   ;(props.config?.items ?? []).forEach((item) => {
@@ -38,6 +40,7 @@ const handleTableChange = (key: string, value: any) => {
       configValue.value[item.key] = undefined
     }
   })
+  emitUpdate()
 }
 
 const handleFieldOrViewChange = (item: ConfigItem, value: any) => {
@@ -50,6 +53,7 @@ const handleFieldOrViewChange = (item: ConfigItem, value: any) => {
   } else {
     configValue.value[item.key] = value ? { type: item.type, value } : undefined
   }
+  emitUpdate()
 }
 
 onMounted(() => {
@@ -141,7 +145,12 @@ onMounted(() => {
             <div v-if="item?.description" class="mb-2">
               {{ item.description }}
             </div>
-            <a-input v-model:value="configValue[item.key]" type="text" class="nc-input-sm !w-64 nc-input-shadow" />
+            <a-input
+              v-model:value="configValue[item.key]"
+              type="text"
+              class="nc-input-sm !w-64 nc-input-shadow"
+              @change="emitUpdate"
+            />
           </div>
         </template>
 
@@ -153,7 +162,11 @@ onMounted(() => {
             <div v-if="item?.description" class="mb-2">
               {{ item.description }}
             </div>
-            <a-input-number v-model:value="configValue[item.key]" class="nc-input-sm !w-64 nc-input-shadow" />
+            <a-input-number
+              v-model:value="configValue[item.key]"
+              class="nc-input-sm !w-64 nc-input-shadow"
+              @change="emitUpdate"
+            />
           </div>
         </template>
 
@@ -165,7 +178,7 @@ onMounted(() => {
             <div v-if="item?.description" class="mb-2">
               {{ item.description }}
             </div>
-            <a-select v-model:value="configValue[item.key]" class="w-64" show-search>
+            <a-select v-model:value="configValue[item.key]" class="w-64" show-search @change="emitUpdate">
               <template #suffixIcon>
                 <GeneralIcon icon="arrowDown" class="text-gray-700" />
               </template>

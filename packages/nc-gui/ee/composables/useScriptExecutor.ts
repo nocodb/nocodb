@@ -1,9 +1,9 @@
 import type { ScriptType } from 'nocodb-sdk'
-import { ActionType } from '~/components/smartsheet/Automation/Scripts/types'
-import type { CallApiAction, ViewActionPayload } from '~/components/smartsheet/Automation/Scripts/types'
-import { createWorkerCode, generateIntegrationsCode } from '~/components/smartsheet/Automation/Scripts/utils/workerHelper'
-import { generateLibCode } from '~/components/smartsheet/Automation/Scripts/utils/editorUtils'
-import { replaceConfigValues } from '~/components/smartsheet/Automation/Scripts/utils/configParser'
+import { ActionType } from '~/components/smartsheet/automation/scripts/types'
+import type { CallApiAction, ViewActionPayload } from '~/components/smartsheet/automation/scripts/types'
+import { createWorkerCode, generateIntegrationsCode } from '~/components/smartsheet/automation/scripts/utils/workerHelper'
+import { generateLibCode } from '~/components/smartsheet/automation/scripts/utils/editorUtils'
+import { replaceConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
 
 export const useScriptExecutor = createSharedComposable(() => {
   const { $api } = useNuxtApp()
@@ -259,7 +259,7 @@ export const useScriptExecutor = createSharedComposable(() => {
       script = (await loadAutomation(script)) as ScriptType
     }
 
-    script.code = replaceConfigValues(script.code ?? '', script.config ?? {})
+    const code = replaceConfigValues(script.script ?? '', script.config ?? {})
 
     const scriptId = `${script.id}-${Date.now()}-${generateRandomNumber()}`
 
@@ -304,10 +304,7 @@ export const useScriptExecutor = createSharedComposable(() => {
         }
 
         await new Promise<void>((resolve, reject) => {
-          const workerCode = createWorkerCode(script.code ?? '', runCustomCode)
-
-          console.log(workerCode)
-
+          const workerCode = createWorkerCode(code ?? '', runCustomCode)
           const blob = new Blob([workerCode], { type: 'application/javascript' })
           const workerUrl = URL.createObjectURL(blob)
           const worker = new Worker(workerUrl, { type: 'module' })

@@ -55,7 +55,7 @@ watch(
   async () => {
     if (!activeAutomation.value) return
 
-    await loadAutomations({ baseId: baseId.value, force: true })
+    await loadAutomations({ baseId: baseId.value })
 
     if (activeAutomation.value?.base_id === openedProject.value?.id) {
       isExpanded.value = true

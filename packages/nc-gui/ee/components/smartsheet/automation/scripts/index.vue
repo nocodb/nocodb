@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import * as monaco from 'monaco-editor'
 import { Pane, Splitpanes } from 'splitpanes'
-import { TypeGenerator } from '~/components/smartsheet/Automation/Scripts/utils/TypeGenerator'
+import { TypeGenerator } from '~/components/smartsheet/automation/scripts/utils/TypeGenerator'
 
 const editorRef = ref<HTMLDivElement | null>(null)
 
@@ -20,7 +20,6 @@ const { libCode, code, config, configValue, isSettingsOpen } = useScriptStoreOrT
 async function setupMonacoEditor() {
   await until(() => isLoadingAutomation.value === false).toBeTruthy()
   await until(() => !!activeAutomation.value).toBeTruthy()
-  await until(() => libCode.value?.length > 0).toBeTruthy()
 
   if (!editorRef.value) return
 
@@ -28,7 +27,7 @@ async function setupMonacoEditor() {
 
   monaco.languages.typescript.javascriptDefaults.addExtraLib(typeGenerator.generateTypes(activeBaseSchema.value))
 
-  monaco.languages.typescript.javascriptDefaults.addExtraLib(libCode.value)
+  monaco.languages.typescript.javascriptDefaults.addExtraLib(libCode.value ?? '')
 
   monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
     noSemanticValidation: false,
@@ -85,7 +84,7 @@ onMounted(async () => {
   await until(() => activeBaseSchema?.value?.id === activeProjectId.value).toBeTruthy()
 
   await loadAutomation(activeAutomationId.value)
-  code.value = activeAutomation.value?.code || ''
+  code.value = activeAutomation.value?.script || ''
 
   configValue.value = activeAutomation.value?.config || {}
 
@@ -97,24 +96,18 @@ const { updateAutomation } = useAutomationStore()
 
 const { isUIAllowed } = useRoles()
 
-watch(
-  configValue,
-  (newVal) => {
-    updateAutomation(
-      activeProjectId.value,
-      activeAutomationId.value,
-      {
-        config: newVal,
-      },
-      {
-        skipNetworkCall: !isUIAllowed('scriptCreateOrEdit'),
-      },
-    )
-  },
-  {
-    deep: true,
-  },
-)
+const triggerUpdate = useDebounceFn((val) => {
+  updateAutomation(
+    activeProjectId.value,
+    activeAutomationId.value,
+    {
+      config: val,
+    },
+    {
+      skipNetworkCall: !isUIAllowed('scriptCreateOrEdit'),
+    },
+  )
+}, 1000)
 </script>
 
 <template>
@@ -126,7 +119,12 @@ watch(
         </div>
       </Pane>
       <Pane>
-        <SmartsheetAutomationScriptsConfigInput v-if="isSettingsOpen" v-model:model-value="configValue" :config="config" />
+        <SmartsheetAutomationScriptsConfigInput
+          v-if="isSettingsOpen"
+          v-model:model-value="configValue"
+          :config="config"
+          @change="triggerUpdate"
+        />
         <SmartsheetAutomationScriptsPlayground v-else />
       </Pane>
     </Splitpanes>

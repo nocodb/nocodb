@@ -70,7 +70,7 @@ async function openNewScriptModal() {
 }
 
 onMounted(async () => {
-  await loadAutomations({ baseId: openedProject.value?.id, force: true })
+  await loadAutomations({ baseId: openedProject.value?.id })
 })
 
 const { isUIAllowed } = useRoles()

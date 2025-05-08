@@ -99,6 +99,7 @@ const { isUIAllowed } = useRoles()
 watch(
   configValue,
   (newVal) => {
+    if (JSON.stringify(newVal) === JSON.stringify(activeAutomation.value.config)) return
     updateAutomation(
       activeProjectId.value,
       activeAutomationId.value,

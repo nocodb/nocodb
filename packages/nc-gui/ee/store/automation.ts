@@ -254,7 +254,7 @@ export const useAutomationStore = defineStore('automation', () => {
   watch(isAutomationActive, async (isActive) => {
     if (!openedProject.value?.id) return
     if (isActive) {
-      await loadAutomations({ baseId: openedProject.value.id, force: true })
+      await loadAutomations({ baseId: openedProject.value.id })
     }
   })
 

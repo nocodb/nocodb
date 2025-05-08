@@ -130,10 +130,6 @@ onMounted(async () => {
   if (props.tab) {
     projectPageTab.value = props.tab
   }
-
-  await until(() => !!currentBase.value?.id).toBeTruthy()
-
-  await loadAutomations({ baseId: currentBase.value?.id })
 })
 </script>
 

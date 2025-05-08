@@ -93,11 +93,21 @@ export default class Script extends ScriptCE implements ScriptType {
           },
         },
       );
-      NocoCache.setList(CacheScope.SCRIPTS, [baseId], scriptsList);
+      await NocoCache.setList(CacheScope.SCRIPTS, [baseId], scriptsList);
     }
 
     return scriptsList
-      .map((script) => new Script(script))
+      .map((script) => {
+        const deserializeProps = ['meta', 'config'];
+
+        for (const prop of deserializeProps) {
+          if (script[prop]) {
+            script[prop] = deserializeJSON(script[prop]);
+          }
+        }
+
+        return new Script(script);
+      })
       .sort((a, b) => a.order - b.order);
   }
 

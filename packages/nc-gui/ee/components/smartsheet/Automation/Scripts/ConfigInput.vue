@@ -33,8 +33,7 @@ const canShowFieldOrView = (item: ConfigItem): boolean => {
 
 const handleTableChange = (key: string, value: any) => {
   configValue.value[key] = value ? { type: 'table', value } : undefined
-
-  props.config.items.forEach((item) => {
+  ;(props.config?.items ?? []).forEach((item) => {
     if (item.parentTable === key) {
       configValue.value[item.key] = undefined
     }
@@ -54,7 +53,7 @@ const handleFieldOrViewChange = (item: ConfigItem, value: any) => {
 }
 
 onMounted(() => {
-  props.config.items.forEach((item) => {
+  ;(props.config?.items ?? []).forEach((item) => {
     if (item.type === 'table') {
       configValue.value[item.key] = configValue.value[item.key] || { type: item.type, value: '' }
     } else if (['field', 'view'].includes(item.type) && item.parentTable) {

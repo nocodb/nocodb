@@ -17,6 +17,8 @@ import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware'
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
+import { ScriptsService } from '~/services/scripts.service';
+import { getBaseSchema } from '~/helpers/scriptHelper';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -26,6 +28,7 @@ export class InternalController {
     private readonly dataReflectionService: DataReflectionService,
     private readonly remoteImportService: RemoteImportService,
     private readonly syncService: SyncModuleService,
+    private readonly scriptsService: ScriptsService,
   ) {}
 
   async checkAcl(operation: string, req, scope?: string) {
@@ -46,6 +49,12 @@ export class InternalController {
     listenRemoteImport: 'workspace',
     createSyncTable: 'base',
     triggerSync: 'base',
+    listScripts: 'base',
+    getScript: 'base',
+    createScript: 'base',
+    updateScript: 'base',
+    deleteScript: 'base',
+    baseSchema: 'base',
   };
 
   @Get(['/api/v2/internal/:workspaceId/:baseId'])
@@ -67,6 +76,12 @@ export class InternalController {
           req.query.fk_model_id,
           req,
         );
+      case 'listScripts':
+        return await this.scriptsService.listScripts(context, baseId);
+      case 'getScript':
+        return await this.scriptsService.getScript(context, req.query.scriptId);
+      case 'baseSchema':
+        return await getBaseSchema(baseId);
       default:
         return NcError.notFound('Operation');
     }
@@ -127,6 +142,27 @@ export class InternalController {
           payload.syncConfigId,
           req,
         );
+      case 'createScript':
+        return await this.scriptsService.createScript(
+          context,
+          baseId,
+          payload,
+          req,
+        );
+
+      case 'updateScript':
+        return await this.scriptsService.updateScript(
+          context,
+          payload.scriptId,
+          payload,
+        );
+
+      case 'deleteScript':
+        return await this.scriptsService.deleteScript(
+          context,
+          payload.scriptId,
+        );
+
       default:
         return NcError.notFound('Operation');
     }

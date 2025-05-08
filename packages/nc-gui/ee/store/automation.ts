@@ -7,6 +7,7 @@ export const useAutomationStore = defineStore('automation', () => {
   const bases = useBases()
   const { openedProject } = storeToRefs(bases)
   const workspaceStore = useWorkspace()
+  const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -34,12 +35,16 @@ export const useAutomationStore = defineStore('automation', () => {
 
   const activeBaseSchema = computedAsync(async () => {
     if (!openedProject.value?.id || !isAutomationEnabled.value) return null
-    return await $api.base.schema(openedProject.value?.id)
+    return await $api.internal.getOperation(activeWorkspaceId.value, openedProject.value.id, {
+      operation: 'baseSchema',
+    })
   })
 
   // Actions
   const loadAutomations = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
     if (!isAutomationEnabled.value) return []
+
+    if (!activeWorkspaceId.value) return []
 
     const existingAutomations = automations.value.get(baseId)
     if (existingAutomations && !force) {
@@ -48,7 +53,11 @@ export const useAutomationStore = defineStore('automation', () => {
 
     try {
       isLoading.value = true
-      const response = await $api.script.list(baseId)
+
+      const response = await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
+        operation: 'listScripts',
+      })
+
       automations.value.set(baseId, response)
       return response
     } catch (e) {
@@ -61,7 +70,7 @@ export const useAutomationStore = defineStore('automation', () => {
   }
 
   const loadAutomation = async (automationId: string, showLoader = true) => {
-    if (!openedProject.value?.id || !automationId || !isAutomationEnabled.value) return null
+    if (!openedProject.value?.id || !activeWorkspaceId.value || !automationId || !isAutomationEnabled.value) return null
 
     let automation: null | ScriptType = null
 
@@ -74,7 +83,12 @@ export const useAutomationStore = defineStore('automation', () => {
         isLoadingAutomation.value = true
       }
 
-      automation = automation || ((await $api.script.get(openedProject.value.id, automationId, {})) as unknown as ScriptType)
+      automation =
+        automation ||
+        ((await $api.internal.getOperation(activeWorkspaceId.value, openedProject.value?.id, {
+          operation: 'getScript',
+          scriptId: automationId,
+        })) as unknown as ScriptType)
 
       if (activeAutomationId.value) {
         activeAutomation.value = automation
@@ -93,9 +107,18 @@ export const useAutomationStore = defineStore('automation', () => {
   }
 
   const createAutomation = async (baseId: string, automationData: Partial<ScriptType>) => {
+    if (!activeWorkspaceId.value) return null
     try {
       isLoading.value = true
-      const created = await $api.script.create(baseId, automationData)
+
+      const created = await $api.internal.postOperation(
+        activeWorkspaceId.value,
+        baseId,
+        {
+          operation: 'createScript',
+        },
+        automationData,
+      )
 
       const baseAutomations = automations.value.get(baseId) || []
       baseAutomations.push(created)
@@ -119,15 +142,27 @@ export const useAutomationStore = defineStore('automation', () => {
       skipNetworkCall?: boolean
     },
   ) => {
+    if (!activeWorkspaceId.value) return null
     try {
       isLoading.value = true
-      const automationn = automations.value.get(baseId)?.find((a) => a.id === automationId)
+
+      const automation = automations.value.get(baseId)?.find((a) => a.id === automationId)
       const updated = options?.skipNetworkCall
         ? {
-            ...automationn,
+            ...automation,
             ...updates,
           }
-        : await $api.script.update(baseId, automationId, updates)
+        : await $api.internal.postOperation(
+            activeWorkspaceId.value,
+            baseId,
+            {
+              operation: 'updateScript',
+            },
+            {
+              ...updates,
+              scriptId: automationId,
+            },
+          )
 
       const baseAutomations = automations.value.get(baseId) || []
       const index = baseAutomations.findIndex((a) => a.id === automationId)
@@ -151,9 +186,20 @@ export const useAutomationStore = defineStore('automation', () => {
   }
 
   const deleteAutomation = async (baseId: string, automationId: string) => {
+    if (!activeWorkspaceId.value) return null
     try {
       isLoading.value = true
-      await $api.script.delete(baseId, automationId)
+
+      await $api.internal.postOperation(
+        activeWorkspaceId.value,
+        baseId,
+        {
+          operation: 'deleteScript',
+        },
+        {
+          scriptId: automationId,
+        },
+      )
 
       // Update local state
       const baseAutomations = automations.value.get(baseId) || []

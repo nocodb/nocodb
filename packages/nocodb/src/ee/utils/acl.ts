@@ -258,9 +258,11 @@ const permissionScopes = {
     'manageSnapshots',
 
     // Scripts
-
-    'editOrCreateScript',
+    'createScript',
+    'updateScript',
+    'deleteScript',
     'listScripts',
+    'getScript',
     'baseSchema',
 
     'createSyncTable',
@@ -510,6 +512,7 @@ const rolePermissions:
 
       // Scripts
       listScripts: true,
+      getScript: true,
       baseSchema: true,
 
       // Sync
@@ -520,7 +523,9 @@ const rolePermissions:
     exclude: {
       createBase: true,
       manageSnapshots: true,
-      editOrCreateScript: true,
+      createScript: true,
+      updateScript: true,
+      deleteScript: true,
     },
   },
   [ProjectRoles.OWNER]: {

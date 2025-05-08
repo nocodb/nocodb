@@ -56,7 +56,6 @@ import { SnapshotController } from '~/controllers/snapshot.controller';
 import { SnapshotService } from '~/services/snapshot.service';
 
 /* Scripts */
-import { ScriptsController } from '~/controllers/scripts.controller';
 import { ScriptsService } from '~/services/scripts.service';
 
 /* ACL */
@@ -140,8 +139,6 @@ export const nocoModuleEeMetadata = {
     /* Snapshot */
     SnapshotController,
 
-    /* Scripts */
-    ScriptsController,
     ...nocoModuleMetadata.controllers,
   ],
   exports: [

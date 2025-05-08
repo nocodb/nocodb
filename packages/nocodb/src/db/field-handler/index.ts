@@ -291,18 +291,16 @@ export class FieldHandler implements IFieldHandler {
 
   async verifyFiltersSafe(filters: Filter[], options: HandlerOptions = {}) {
     const baseModel = options.baseModel ?? this.info.baseModel;
+    const context = options.context ?? this.info.context;
     const model = baseModel.model;
     if (!model.columns) {
-      await model.getColumns(options.context ?? this.info.context);
+      await model.getColumns(context);
     }
     const traverseResult: FilterVerificationResult[] = [];
     await this.traverseFilters(filters, async (filter: Filter) => {
       let column = model.columns.find((col) => col.id === filter.fk_column_id);
       if (!column) {
-        column = await this.getRelatedColumnById(
-          options.context,
-          filter.fk_column_id,
-        );
+        column = await this.getRelatedColumnById(context, filter.fk_column_id);
       }
       traverseResult.push(
         await this.verifyFilter(filter, column, {

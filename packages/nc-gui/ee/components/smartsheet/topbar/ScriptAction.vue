@@ -15,7 +15,7 @@ const useDebouncedSaveCode = async () => {
   try {
     isSaving.value = true
     await updateAutomation(base.value.id, activeAutomationId.value, {
-      code: code.value,
+      script: code.value,
     })
   } finally {
     isSaving.value = false

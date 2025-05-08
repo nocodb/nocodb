@@ -49,8 +49,6 @@ const activeSource = computed(() => {
 })
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
-
 useProvideKanbanViewStore(meta, activeView)
 useProvideMapViewStore(meta, activeView)
 useProvideCalendarViewStore(meta, activeView)
@@ -88,8 +86,6 @@ useProvideSmartsheetLtarHelpers(meta)
 const grid = ref()
 
 const extensionPaneRef = ref()
-
-const actionPaneRef = ref()
 
 const onDrop = async (event: DragEvent) => {
   event.preventDefault()
@@ -177,15 +173,13 @@ const { isPanelExpanded, extensionPanelSize } = useExtensions()
 const contentSize = computed(() => {
   if (isPanelExpanded.value && extensionPanelSize.value) {
     return 100 - extensionPanelSize.value
-  } else if (isActionPaneActive.value && actionPaneSize.value) {
-    return 100 - actionPaneSize.value
   } else {
     return 100
   }
 })
 
 const contentMaxSize = computed(() => {
-  if (!isPanelExpanded.value && !isActionPaneActive.value) {
+  if (!isPanelExpanded.value) {
     return 100
   } else {
     return ((windowSize.value - leftSidebarWidth.value - 300) / (windowSize.value - leftSidebarWidth.value)) * 100
@@ -196,17 +190,12 @@ const onResize = () => {
   if (isPanelExpanded.value && !extensionPaneRef.value?.isReady) {
     extensionPaneRef.value?.onReady()
   }
-
-  if (isActionPaneActive.value && !actionPaneRef.value?.isReady) {
-    actionPaneRef.value?.onReady()
-  }
 }
 
 const onResized = (sizes: { min: number; max: number; size: number }[]) => {
   if (sizes.length === 2) {
     if (!sizes[1].size) return
     if (isPanelExpanded.value) extensionPanelSize.value = sizes[1].size
-    else if (isActionPaneActive.value) actionPaneSize.value = sizes[1].size
   }
 }
 
@@ -215,13 +204,6 @@ const onReady = () => {
     // wait until extension pane animation complete
     setTimeout(() => {
       extensionPaneRef.value?.onReady()
-    }, 300)
-  }
-
-  if (isActionPaneActive.value && actionPaneRef.value) {
-    // wait until action pane animation complete
-    setTimeout(() => {
-      actionPaneRef.value?.onReady()
     }, 300)
   }
 }
@@ -269,7 +251,6 @@ const onReady = () => {
           </div>
         </Pane>
         <ExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
-        <SmartsheetAutomationActionPane v-else-if="isActionPaneActive && isEeUI && isAutomationEnabled" ref="actionPaneRef" />
       </Splitpanes>
       <SmartsheetDetails v-else />
     </div>

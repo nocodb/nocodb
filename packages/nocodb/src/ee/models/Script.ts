@@ -20,7 +20,7 @@ export default class Script extends ScriptCE implements ScriptType {
   meta?: any;
   order?: number;
 
-  code?: string;
+  script?: string;
 
   config: Record<string, any>;
   base_id?: string;
@@ -128,7 +128,7 @@ export default class Script extends ScriptCE implements ScriptType {
       'description',
       'meta',
       'order',
-      'code',
+      'script',
       'config',
     ]);
 
@@ -156,7 +156,7 @@ export default class Script extends ScriptCE implements ScriptType {
       'description',
       'meta',
       'order',
-      'code',
+      'script',
       'base_id',
       'fk_workspace_id',
       'created_by',

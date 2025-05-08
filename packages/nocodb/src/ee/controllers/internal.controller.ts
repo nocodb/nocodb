@@ -153,15 +153,12 @@ export class InternalController {
       case 'updateScript':
         return await this.scriptsService.updateScript(
           context,
-          payload.scriptId,
+          payload.id,
           payload,
         );
 
       case 'deleteScript':
-        return await this.scriptsService.deleteScript(
-          context,
-          payload.scriptId,
-        );
+        return await this.scriptsService.deleteScript(context, payload.id);
 
       default:
         return NcError.notFound('Operation');

@@ -160,7 +160,7 @@ export const useAutomationStore = defineStore('automation', () => {
             },
             {
               ...updates,
-              scriptId: automationId,
+              id: automationId,
             },
           )
 
@@ -197,7 +197,7 @@ export const useAutomationStore = defineStore('automation', () => {
           operation: 'deleteScript',
         },
         {
-          scriptId: automationId,
+          id: automationId,
         },
       )
 

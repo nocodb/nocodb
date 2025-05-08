@@ -7,7 +7,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
   const { activeAutomationId, activeAutomation, isSettingsOpen } = storeToRefs(automationStore)
   const { loadAutomation } = automationStore
 
-  const code = ref<string>('')
+  const code = ref<string>(null)
   const currentScriptId = ref<string | null>(null)
 
   const config = computed(() => {

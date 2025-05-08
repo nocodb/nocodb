@@ -161,7 +161,7 @@ export class PublicMetasService extends PublicMetasServiceCE {
         banner_image_url: isFormCustomLogEnabled
           ? formView.banner_image_url
           : null,
-        logo_url: isFormCustomLogEnabled ? formView.banner_image_url : null,
+        logo_url: isFormCustomLogEnabled ? formView.logo_url : null,
         redirect_url: isUrlRedirectionEnabled ? formView.redirect_url : null,
         meta: {
           ...parseProp(formView.meta),

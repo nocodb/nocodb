@@ -84,6 +84,7 @@ jobs:
   pre-build-for-playwright:
     if: ${{ github.event_name == 'push' || !github.event.pull_request.draft || inputs.force == true }}
     uses: ./.github/workflows/pre-build-for-playwright.yml
+    secrets: inherit
 
   playwright-pg-shard-1:
     needs: pre-build-for-playwright
@@ -92,6 +93,7 @@ jobs:
     with:
       db: pg
       shard: 1
+    secrets: inherit
 
   playwright-pg-shard-2:
     needs: pre-build-for-playwright
@@ -100,7 +102,7 @@ jobs:
     with:
       db: pg
       shard: 2
-
+    secrets: inherit
   playwright-pg-shard-3:
     needs: pre-build-for-playwright
     if: ${{ github.event_name == 'push' || !github.event.pull_request.draft || inputs.force == true }}
@@ -108,3 +110,4 @@ jobs:
     with:
       db: pg
       shard: 3
+    secrets: inherit

@@ -382,18 +382,18 @@ function shouldShowRaw(key: string) {
   .nc-cell-field > div {
     display: flex !important;
     & > .ant-tag {
-      @apply !m-0 !p-0 !bg-transparent !text-inherit;
+      @apply !m-0 !text-inherit !border-1 !border-gray-300 !pr-1 !pl-0.5 !bg-gray-100 !rounded-[17px];
       & > span > div + div {
-        @apply flex items-center !text-small1 font-weight-500;
+        @apply flex items-center !text-small1 font-weight-500 !leading-[16px];
       }
       & > span {
         @apply gap-1;
       }
     }
     .nc-user-avatar {
-      @apply border-1 border-nc-gray-medium;
-      height: 24px !important;
-      width: 24px !important;
+      @apply border-1 border-nc-border-gray-medium !text-[8px];
+      height: 16px !important;
+      width: 16px !important;
     }
   }
 }

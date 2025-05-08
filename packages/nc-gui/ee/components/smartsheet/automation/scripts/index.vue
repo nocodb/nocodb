@@ -84,7 +84,7 @@ onMounted(async () => {
   await until(() => activeBaseSchema?.value?.id === activeProjectId.value).toBeTruthy()
 
   await loadAutomation(activeAutomationId.value)
-  code.value = activeAutomation.value?.code || ''
+  code.value = activeAutomation.value?.script || ''
 
   configValue.value = activeAutomation.value?.config || {}
 

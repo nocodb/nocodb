@@ -96,7 +96,7 @@ const { updateAutomation } = useAutomationStore()
 
 const { isUIAllowed } = useRoles()
 
-const triggerUpdate = (val) => {
+const triggerUpdate = useDebounceFn((val) => {
   updateAutomation(
     activeProjectId.value,
     activeAutomationId.value,
@@ -107,7 +107,7 @@ const triggerUpdate = (val) => {
       skipNetworkCall: !isUIAllowed('scriptCreateOrEdit'),
     },
   )
-}
+}, 1000)
 </script>
 
 <template>

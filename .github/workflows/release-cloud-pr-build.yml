@@ -48,7 +48,6 @@ jobs:
         with:
           fetch-depth: 1
 
-
       - name: Set PR number
         id: pr-number
         run: echo "PR_NUMBER=${{ github.event.inputs.custom_pr_number || github.event.number }}" >> $GITHUB_OUTPUT

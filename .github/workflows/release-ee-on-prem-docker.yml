@@ -36,7 +36,6 @@ jobs:
         with:
           fetch-depth: 1
 
-
       - name: Get Docker Repository
         id: get-docker-repository
         run: |

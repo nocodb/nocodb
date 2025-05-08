@@ -21,7 +21,6 @@ jobs:
         with:
           fetch-depth: 1
 
-
       - name: Setup Node
         uses: actions/setup-node@v3
         with:

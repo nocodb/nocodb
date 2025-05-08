@@ -56,7 +56,6 @@ jobs:
         with:
           fetch-depth: 1
 
-
       - name: Checkout2
         uses: actions/checkout@v3
         with:

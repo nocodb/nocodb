@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, NcApiVersion, type TableType, extractFilterFromXwhere } from 'nocodb-sdk'
+import { type ColumnType } from 'nocodb-sdk'
 import type ColumnFilter from './ColumnFilter.vue'
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -11,36 +11,11 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-const router = useRouter()
-const route = router.currentRoute
-const meta = inject(MetaInj, ref())
-
-const aliasColObjMap = computed(() => {
-  if (!meta?.value?.columns) return {}
-
-  const colObj = (meta.value as TableType)?.columns?.reduce<Record<string, ColumnType>>((acc, col: ColumnType) => {
-    acc[col.title!] = col
-    return acc
-  }, {} as Record<string, ColumnType>)
-  return colObj
-})
-
-const filtersFromUrlParams = computed(() => {
-  if (route.value.query?.where) {
-    return extractFilterFromXwhere(
-      { api_version: NcApiVersion.V1 },
-      route.value.query.where as string,
-      aliasColObjMap.value,
-      false,
-    )
-  }
-})
-
 const { isMobileMode } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
 
-const { nestedFilters, eventBus } = useSmartsheetStoreOrThrow()
+const { nestedFilters, eventBus, filtersFromUrlParams, whereQueryFromUrl } = useSmartsheetStoreOrThrow()
 
 const { appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
@@ -197,7 +172,7 @@ const combinedFilterLength = computed(() => {
             >
               <SmartsheetToolbarColumnFilter
                 v-if="filtersFromUrlParams.filters"
-                :key="route.query?.where"
+                :key="whereQueryFromUrl"
                 ref="filterComp"
                 v-model="filtersFromUrlParams.filters"
                 v-model:is-open="open"
@@ -211,16 +186,10 @@ const combinedFilterLength = computed(() => {
 
               <div
                 v-else-if="filtersFromUrlParams?.errors?.length"
-                class="nc-error-alert rounded p-4 mx-2 mt-0 transition-margin duration-500 mt-1"
+                class="px-2 transition-margin duration-500"
                 :class="{ 'mb-2': queryFilterOpen }"
               >
-                <div class="flex gap-3">
-                  <GeneralIcon icon="ncAlertCircleFilled" class="text-orange-500 w-5 h-5 mt-0.5" />
-                  <div class="flex flex-col">
-                    <div class="nc-error-title font-semibold">Error</div>
-                    <span class="nc-error-msg">{{ $t('msg.urlFilterError') }}</span>
-                  </div>
-                </div>
+                <NcAlert type="error" message="Error" :description="$t('msg.urlFilterError')" />
               </div>
             </div>
           </div>
@@ -241,21 +210,6 @@ const combinedFilterLength = computed(() => {
 </style>
 
 <style lang="scss" scoped>
-.nc-error-alert {
-  border: 1px solid var(--nc-border-grey-medium);
-  border-radius: var(--measurements-radius-small);
-
-  .nc-error-msg {
-    color: var(--nc-content-grey-muted);
-    line-height: 20px;
-  }
-
-  .nc-error-title {
-    font-size: 16px;
-    line-height: 24px;
-  }
-}
-
 .nc-error-icon {
   color: var(--nc-content-red-dark);
 }

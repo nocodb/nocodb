@@ -210,7 +210,7 @@ export class FieldHandler implements IFieldHandler {
     filters: Filter[],
     options: HandlerOptions = {},
   ): Promise<(qb: Knex.QueryBuilder) => void> {
-    const model = options.baseModel.model ?? this.info.baseModel.model;
+    const model = options.baseModel?.model ?? this.info.baseModel.model;
     if (!model.columns) {
       await model.getColumns(options.context ?? this.info.context);
     }

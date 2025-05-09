@@ -130,9 +130,9 @@ function isShowableValue(value: any) {
       ]"
     />
     <div class="ml-6.5">
-      <div class="text-small1 font-weight-500 inline-flex items-center flex-wrap w-full max-w-full">
+      <div class="text-small1 font-weight-500 inline-flex items-center flex-wrap gap-1 w-full max-w-full">
         <span class="text-gray-600 text-xs"> changed </span>
-        <span class="rounded-md px-1 !h-[20px] inline-flex items-center gap-1 mx-1 text-nc-content-gray-emphasis">
+        <span class="rounded-md px-1 !h-[20px] inline-flex items-center gap-1 text-nc-content-gray-emphasis">
           <SmartsheetHeaderCellIcon
             :column-meta="{ uidt: meta[columnKey]?.type, dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined }"
             class="!w-[16px] !h-[16px] !m-0 !text-nc-content-gray-emphasis"
@@ -149,7 +149,7 @@ function isShowableValue(value: any) {
           </NcTooltip>
         </span>
         <template v-if="meta[columnKey]?.type === 'Attachment'">
-          <div v-if="processOldDataFor(columnKey)?.length > 0" class="w-full mt-1">
+          <div v-if="processOldDataFor(columnKey)?.length > 0" class="w-full">
             <div class="border-1 border-red-200 rounded-md bg-red-50 p-0.5 flex flex-col items-start gap-0.5 w-[284px]">
               <div
                 v-for="(item, i) of processOldDataFor(columnKey)"
@@ -178,7 +178,7 @@ function isShowableValue(value: any) {
               </div>
             </div>
           </div>
-          <div v-if="processNewDataFor(columnKey)?.length > 0" class="w-full mt-1">
+          <div v-if="processNewDataFor(columnKey)?.length > 0" class="w-full">
             <div class="border-1 border-green-200 rounded-md bg-green-50 p-0.5 flex flex-col items-start gap-0.5 w-[284px]">
               <div
                 v-for="(item, i) of processNewDataFor(columnKey)"
@@ -212,17 +212,17 @@ function isShowableValue(value: any) {
           <template v-for="(block, i) of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')" :key="i">
             <span
               v-if="block.op === 'removed'"
-              class="max-w-full text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone !leading-[18px] my-0.5"
+              class="max-w-full text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone !leading-[18px]"
             >
               {{ block.text }}
             </span>
             <span
               v-else-if="block.op === 'added'"
-              class="max-w-full text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone !leading-[18px] my-0.5"
+              class="max-w-full text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 decoration-clone !leading-[18px]"
             >
               {{ block.text }}
             </span>
-            <span v-else class="max-w-full mr-1 !leading-[18px] my-0.5">
+            <span v-else class="max-w-full !leading-[18px]">
               {{ block.text }}
             </span>
           </template>

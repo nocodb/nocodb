@@ -805,7 +805,7 @@ export default {
           </div>
         </div>
         <div class="ml-auto">
-          <SmartsheetExpandedFormViewModeSelector v-model="activeViewMode" class="nc-expanded-form-mode-switch" />
+          <SmartsheetExpandedFormViewModeSelector v-model="activeViewMode" view="view" class="nc-expanded-form-mode-switch" />
         </div>
         <div class="flex gap-2">
           <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit') && !isSqlView">
@@ -910,7 +910,7 @@ export default {
         </div>
       </div>
       <div ref="wrapper" class="flex-grow h-[calc(100%_-_4rem)] w-full">
-        <template v-if="activeViewMode === 'field'">
+        <template v-if="activeViewMode === ExpandedFormMode.FIELD">
           <SmartsheetExpandedFormPresentorsFields
             :row-id="rowId"
             :fields="fields ?? []"
@@ -928,7 +928,7 @@ export default {
             @update-row-comment-count="emits('updateRowCommentCount', $event)"
           />
         </template>
-        <template v-else-if="activeViewMode === 'attachment'">
+        <template v-else-if="activeViewMode === ExpandedFormMode.ATTACHMENT">
           <SmartsheetExpandedFormPresentorsAttachments
             :row-id="rowId"
             :view="props.view"
@@ -947,7 +947,7 @@ export default {
             @update-row-comment-count="emits('updateRowCommentCount', $event)"
           />
         </template>
-        <template v-else-if="activeViewMode === 'discussion'">
+        <template v-else-if="activeViewMode === ExpandedFormMode.DISCUSSION">
           <SmartsheetExpandedFormPresentorsDiscussion :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist" />
         </template>
       </div>

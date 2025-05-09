@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AttachmentType, AuditType } from 'nocodb-sdk'
-import { ratingIconListMap, checkboxIconListMap } from 'nocodb-sdk'
+import { checkboxIconListMap, ratingIconListMap } from 'nocodb-sdk'
 
 /* interface */
 

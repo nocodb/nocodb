@@ -323,12 +323,7 @@ onMounted(() => {
                 class="flex items-stretch gap-2 text-small"
               >
                 <div>
-                  <GeneralUserIcon
-                    size="auto"
-                    :user="op"
-                    class="!text-[0.5rem] !h-[16.8px]"
-                    :disabled="!isCollaborator(op.id)"
-                  />
+                  <GeneralUserIcon size="auto" :user="op" class="!text-[0.5rem] !h-[16.8px]" :disabled="!isCollaborator(op.id)" />
                 </div>
                 <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                   <template #title>

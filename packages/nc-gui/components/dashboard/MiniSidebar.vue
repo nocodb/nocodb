@@ -1,13 +1,37 @@
 <script lang="ts" setup>
-const workspaceStore = useWorkspace()
-
-const { isWorkspacesLoading } = storeToRefs(workspaceStore)
-
-const { isSharedBase } = storeToRefs(useBase())
+provide(IsMiniSidebarInj, ref(true))
 
 const { isMobileMode, appInfo } = useGlobal()
 
-provide(IsMiniSidebarInj, ref(true))
+const { meta: metaKey, control } = useMagicKeys()
+
+const workspaceStore = useWorkspace()
+
+const { isWorkspacesLoading, isWorkspaceSettingsPageOpened, isIntegrationsPageOpened } = storeToRefs(workspaceStore)
+
+const { navigateToWorkspaceSettings, navigateToIntegrations: _navigateToIntegrations } = workspaceStore
+
+const { isSharedBase } = storeToRefs(useBase())
+
+const { isUIAllowed } = useRoles()
+
+const navigateToSettings = () => {
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
+
+  // TODO: Handle cloud case properly
+  navigateToWorkspaceSettings('', cmdOrCtrl)
+
+  // if (appInfo.value.baseHostName) {
+  //   window.location.href = `https://app.${appInfo.value.baseHostName}/dashboard`
+  // } else {
+  // }
+}
+
+const navigateToIntegrations = () => {
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
+
+  _navigateToIntegrations('', cmdOrCtrl)
+}
 </script>
 
 <template>
@@ -17,10 +41,35 @@ provide(IsMiniSidebarInj, ref(true))
       outlineWidth: '1px',
     }"
   >
-    <div class="flex flex-col gap-3">
+    <div class="flex flex-col gap-3 items-center">
       <WorkspaceMenu />
+
+      <div
+        v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
+        v-e="['c:team:settings']"
+        class="nc-mini-sidebar-btn"
+        data-testid="nc-sidebar-team-settings-btn"
+        :class="{
+          active: isWorkspaceSettingsPageOpened,
+        }"
+        @click="navigateToSettings"
+      >
+        <GeneralIcon icon="ncSettings" class="h-5 w-5" />
+      </div>
+      <div
+        v-if="isUIAllowed('workspaceSettings')"
+        v-e="['c:integrations']"
+        class="nc-mini-sidebar-btn"
+        data-testid="nc-sidebar-integrations-btn"
+        :class="{
+          active: isIntegrationsPageOpened,
+        }"
+        @click="navigateToIntegrations"
+      >
+        <GeneralIcon icon="integration" class="h-5 w-5" />
+      </div>
     </div>
-    <div class="flex flex-col gap-3">
+    <div class="flex flex-col gap-3 items-center">
       <DashboardSidebarFeed v-if="appInfo.feedEnabled" />
 
       <DashboardSidebarUserInfo />
@@ -28,8 +77,20 @@ provide(IsMiniSidebarInj, ref(true))
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .nc-mini-sidebar {
   @apply w-[var(--mini-sidebar-width)] flex-none bg-nc-bg-gray-light flex flex-col justify-between items-center px-2 py-3 border-r-1 border-nc-border-gray-medium z-12;
+
+  .nc-mini-sidebar-btn {
+    @apply cursor-pointer h-9 w-9 rounded p-2 flex items-center justify-center children:flex-none text-nc-content-gray-subtle transition-all duration-200;
+
+    &:not(.active) {
+      @apply hover:bg-nc-bg-gray-medium;
+    }
+
+    &.active {
+      @apply bg-brand-100  text-brand-600;
+    }
+  }
 }
 </style>

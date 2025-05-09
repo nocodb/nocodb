@@ -238,6 +238,7 @@ function onResize(widthPercent: any) {
               'mobile': isMobileMode,
               'minimized-height': !isLeftSidebarOpen,
               'hide-sidebar': ['hiddenStart', 'hiddenEnd', 'peekCloseEnd'].includes(sidebarState),
+              'nc-new-sidebar': isNewSidebarEnabled,
             }"
             :style="{
               width: sidebarState === 'hiddenEnd' ? '0px' : `${sidebarWidth}px`,
@@ -262,9 +263,15 @@ function onResize(widthPercent: any) {
 </template>
 
 <style lang="scss">
-.nc-sidebar-wrapper.minimized-height > * {
-  @apply h-4/5 pb-2 !(rounded-r-lg border-1 border-gray-200 shadow-lg);
-  width: calc(100% + 4px);
+.nc-sidebar-wrapper.minimized-height {
+  & > * {
+    @apply h-4/5 pb-2 !(rounded-r-lg border-1 border-gray-200 shadow-lg);
+    width: calc(100% + 4px);
+  }
+
+  &.nc-new-sidebar > * {
+    @apply !border-l-0;
+  }
 }
 
 .mobile.nc-sidebar-wrapper.minimized-height > * {

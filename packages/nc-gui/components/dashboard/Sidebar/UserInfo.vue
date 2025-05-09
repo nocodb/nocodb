@@ -73,14 +73,36 @@ const accountUrl = computed(() => {
 <template>
   <div class="flex w-full flex-col border-gray-200 gap-y-1">
     <LazyGeneralMaintenanceAlert v-if="!isMiniSidebar" />
-    <div class="flex items-center justify-between">
+    <div
+      class="flex items-center"
+      :class="{
+        'justify-center': isMiniSidebar,
+        'justify-between': !isMiniSidebar,
+      }"
+    >
       <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
         <div
-          class="flex flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-gray-200 rounded-lg cursor-pointer h-8"
+          class="flex"
+          :class="{
+            'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-gray-200 rounded-lg h-8 cursor-pointer':
+              !isMiniSidebar,
+          }"
           data-testid="nc-sidebar-userinfo"
         >
-          <GeneralUserIcon :user="user" size="medium" />
-          <template v-if="!isMiniSidebar">
+          <div
+            v-if="isMiniSidebar"
+            class="nc-user-icon-wrapper border-1 w-8 h-8 flex-none rounded-full overflow-hidden transition-all duration-300"
+            :class="{
+              'border-nc-gray-medium': !isMenuOpen,
+              'active border-primary shadow-selected': isMenuOpen,
+            }"
+          >
+            <GeneralUserIcon :user="user" size="medium" class="!w-full !h-full !min-w-full cursor-pointer" />
+          </div>
+
+          <template v-else>
+            <GeneralUserIcon :user="user" size="medium" />
+
             <NcTooltip class="max-w-32 truncate" show-on-truncate-only>
               <template #title>
                 {{ name ? name : user?.email }}
@@ -230,6 +252,15 @@ const accountUrl = computed(() => {
 .menu-icon {
   @apply w-4 h-4;
   font-size: 1rem;
+}
+
+.nc-user-icon-wrapper {
+  &:not(.active):hover {
+    box-shadow: 0px 12px 16px -4px rgba(0, 0, 0, 0.1), 0px 4px 6px -2px rgba(0, 0, 0, 0.06);
+  }
+  :deep(img) {
+    @apply !cursor-pointer;
+  }
 }
 
 .social-icon {

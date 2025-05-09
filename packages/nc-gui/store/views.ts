@@ -488,16 +488,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
-  const updateViewLocalState = (viewId: string, viewToUpdate: Partial<ViewType>) => {
-    if (activeView.value?.id === viewId) {
-      Object.assign(activeView.value, viewToUpdate)
-    }
-
-    // TODO: @ramesh update for non active view
-  }
-
   const setCurrentViewExpandedFormMode = async (viewId: string, mode: 'field' | 'attachment', columnId?: string) => {
-    if (!isEeUI || !viewId) return
+    /**
+     * Update value only if it is EeUI and active view
+     */
+    if (!isEeUI || !viewId || activeView.value?.id !== viewId) return
 
     try {
       if (isUIAllowed('viewCreateOrEdit')) {
@@ -507,7 +502,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
         })
       }
 
-      updateViewLocalState(viewId, { expanded_record_mode: mode, attachment_mode_column_id: columnId })
+      Object.assign(activeView.value, { expanded_record_mode: mode, attachment_mode_column_id: columnId })
     } catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -515,7 +510,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
   }
 
   const setCurrentViewExpandedFormAttachmentColumn = async (viewId: string, columnId: string) => {
-    if (!isEeUI || !viewId) return
+    /**
+     * Update value only if it is EeUI and active view
+     */
+    if (!isEeUI || !viewId || activeView.value?.id !== viewId) return
 
     try {
       if (isUIAllowed('viewCreateOrEdit')) {
@@ -524,7 +522,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
         })
       }
 
-      updateViewLocalState(viewId, { attachment_mode_column_id: columnId })
+      Object.assign(activeView.value, { attachment_mode_column_id: columnId })
     } catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))

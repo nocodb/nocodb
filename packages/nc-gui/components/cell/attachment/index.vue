@@ -270,6 +270,7 @@ defineExpose({
   renameAttachment: renameFile,
   removeAttachment: onRemoveFileClick,
   updateAttachmentTitle,
+  isEditAllowed,
 })
 
 const onCellEvent = (event?: Event) => {

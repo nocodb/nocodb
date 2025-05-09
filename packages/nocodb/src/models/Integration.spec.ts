@@ -4,6 +4,21 @@ import { MetaTable } from '~/utils/globals';
 import { decryptPropIfRequired, isEE } from '~/utils';
 
 jest.mock('~/Noco');
+// Mock the integrations import which is causing the error
+jest.mock('~/integrations', () => {
+  return {
+    __esModule: true,
+    default: [],
+  };
+});
+
+// Mock the SyncModuleService import
+jest.mock('~/integrations/sync/module/services/sync.service', () => {
+  return {
+    __esModule: true,
+    SyncModuleService: class {},
+  };
+});
 
 const knexGenericMock = {
   select: jest.fn().mockReturnThis(),

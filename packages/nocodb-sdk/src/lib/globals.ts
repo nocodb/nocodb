@@ -79,6 +79,7 @@ export enum RelationTypes {
 export const ExpandedFormMode = {
   FIELD: 'field',
   ATTACHMENT: 'attachment',
+  DISCUSSION: 'discussion',
 } as const;
 
 export type ExpandedFormModeType =
@@ -199,7 +200,7 @@ export const NcErrorTypeMap = {
   [NcErrorType.VIEW_NOT_FOUNDV3]: 'VIEW_NOT_FOUND',
   [NcErrorType.FIELD_NOT_FOUNDV3]: 'FIELD_NOT_FOUND',
   [NcErrorType.INVALID_FILTERV3]: 'INVALID_FILTER',
-}
+};
 export const LongTextAiMetaProp = 'ai';
 
 export const NO_SCOPE = 'nc';

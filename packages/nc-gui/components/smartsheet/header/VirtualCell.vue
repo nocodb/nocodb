@@ -256,7 +256,7 @@ const onClick = (e: Event) => {
       <GeneralIcon
         v-if="isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm"
         icon="arrowDown"
-        class="flex-none cursor-pointer ml-1 group-hover:visible w-4 h-4"
+        class="nc-column-context-menu flex-none cursor-pointer ml-1 group-hover:visible w-4 h-4"
         :class="{
           visible: editColumnDropdown || isDropDownOpen,
           invisible: !(editColumnDropdown || isDropDownOpen),

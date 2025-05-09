@@ -542,7 +542,7 @@ const onAddColumnDropdownVisibilityChange = () => {
             <component :is="iconMap.fields" v-else class="h-4 w-4" />
 
             <!-- Fields -->
-            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
+            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-small1 font-medium">
               <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY">
                 {{ $t('title.editCards') }}
               </template>

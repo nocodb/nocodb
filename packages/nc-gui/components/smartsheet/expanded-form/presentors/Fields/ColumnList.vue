@@ -47,8 +47,8 @@ const showCol = (col: ColumnType) => {
       <div
         class="flex-none flex items-center rounded-lg overflow-hidden"
         :class="{
-          'w-45 <lg:(w-full px-0 mb-1) h-[32px] xs:(h-auto)': !props.forceVerticalMode,
-          'w-full px-0 mb-1 h-auto': props.forceVerticalMode,
+          'w-45 <lg:(w-full px-0 mb-2) h-[32px] xs:(h-auto)': !props.forceVerticalMode,
+          'w-full px-0 mb-2 h-auto': props.forceVerticalMode,
         }"
       >
         <LazySmartsheetHeaderVirtualCell

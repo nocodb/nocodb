@@ -2,8 +2,7 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
 
-// Todo: Enable this test once we enable this feature for all
-test.describe.skip('Expanded form files mode', () => {
+test.describe('Expanded form files mode', () => {
   let dashboard: DashboardPage;
   let context: any;
 
@@ -45,7 +44,6 @@ test.describe.skip('Expanded form files mode', () => {
     await addFileToRow(2, ['1.json', '2.json']);
 
     await dashboard.grid.openExpandedRow({ index: 0 });
-    await dashboard.expandedForm.verifyTableNameShown({ name: 'Country' });
 
     await dashboard.expandedForm.verifyIsInFieldsMode();
     await dashboard.expandedForm.switchToFilesMode();
@@ -53,10 +51,11 @@ test.describe.skip('Expanded form files mode', () => {
 
     await expect(dashboard.expandedForm.cnt_filesModeContainer).toBeVisible();
     await expect(dashboard.expandedForm.cnt_filesNoAttachmentField).not.toBeVisible();
-    await expect(dashboard.expandedForm.cnt_filesAttachmentHeader).toBeVisible();
-    await expect(dashboard.expandedForm.cnt_filesCurrentAttachmentTitle).toBeVisible();
+    await expect(dashboard.expandedForm.cnt_attachmentsPreviewBar).toBeVisible();
+    await dashboard.expandedForm.cnt_attachmentsPreviewBar.hover();
     await expect(dashboard.expandedForm.cnt_filesNoAttachment).not.toBeVisible();
 
+    await dashboard.expandedForm.cnt_attachmentsPreviewBar.hover();
     await expect(dashboard.expandedForm.cnt_filesCurrentFieldTitle).toHaveText('testAttach');
     await expect(dashboard.expandedForm.cnt_filesCurrentAttachmentTitle).toHaveText('1.json');
 
@@ -82,31 +81,32 @@ test.describe.skip('Expanded form files mode', () => {
 
     await expect(dashboard.expandedForm.cnt_filesModeContainer).toBeVisible();
     await expect(dashboard.expandedForm.cnt_filesNoAttachmentField).not.toBeVisible();
-    await expect(dashboard.expandedForm.cnt_filesAttachmentHeader).toBeVisible();
-    await expect(dashboard.expandedForm.cnt_filesCurrentAttachmentTitle).not.toBeVisible();
+    await expect(dashboard.expandedForm.cnt_attachmentsPreviewBar).not.toBeVisible();
+
     await expect(dashboard.expandedForm.cnt_filesNoAttachment).toBeVisible();
+
     await expect(dashboard.expandedForm.cnt_filesCurrentFieldTitle).toHaveText('testAttach');
 
     await dashboard.expandedForm.close();
     await dashboard.grid.openExpandedRow({ index: 1 });
 
-    await dashboard.expandedForm.verifyIsInFieldsMode();
-    await dashboard.expandedForm.switchToFilesMode();
     await dashboard.expandedForm.verifyIsInFilesMode();
 
     await expect(dashboard.expandedForm.cnt_filesModeContainer).toBeVisible();
     await expect(dashboard.expandedForm.cnt_filesNoAttachmentField).not.toBeVisible();
-    await expect(dashboard.expandedForm.cnt_filesAttachmentHeader).toBeVisible();
+
+    await dashboard.expandedForm.cnt_attachmentsPreviewBar.hover();
+
     await expect(dashboard.expandedForm.cnt_filesCurrentAttachmentTitle).toBeVisible();
     await expect(dashboard.expandedForm.cnt_filesNoAttachment).not.toBeVisible();
     await expect(dashboard.expandedForm.cnt_filesCurrentFieldTitle).toHaveText('testAttach');
 
     await dashboard.expandedForm.verifyPreviewCellsCount({ count: 5 });
-    await expect(dashboard.expandedForm.cnt_filesCurrentAttachmentTitle).toHaveText('1.json');
-    await dashboard.expandedForm.verifyFilesViewerMode({ mode: 'unsupported' });
-
-    await dashboard.expandedForm.selectNthFilePreviewCell({ index: 1 });
+    await expect(dashboard.expandedForm.cnt_filesCurrentAttachmentTitle).toHaveText('sampleImage.jpeg');
     await dashboard.expandedForm.verifyFilesViewerMode({ mode: 'image' });
+
+    await dashboard.expandedForm.selectNthFilePreviewCell({ index: 0 });
+    await dashboard.expandedForm.verifyFilesViewerMode({ mode: 'unsupported' });
 
     await dashboard.expandedForm.selectNthFilePreviewCell({ index: 2 });
     await dashboard.expandedForm.verifyFilesViewerMode({ mode: 'video' });
@@ -120,7 +120,8 @@ test.describe.skip('Expanded form files mode', () => {
     await dashboard.expandedForm.moveToNextField();
     await dashboard.expandedForm.verifyIsInFilesMode();
 
-    await dashboard.expandedForm.verifyPreviewCellsCount({ count: 5 });
+    await dashboard.expandedForm.cnt_attachmentsPreviewBar.hover();
+    await dashboard.expandedForm.verifyPreviewCellsCount({ count: 1 });
     await expect(dashboard.expandedForm.cnt_filesCurrentAttachmentTitle).toHaveText('1.json');
     await dashboard.expandedForm.verifyFilesViewerMode({ mode: 'unsupported' });
   });

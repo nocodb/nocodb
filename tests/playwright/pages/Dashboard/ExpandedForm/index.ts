@@ -20,6 +20,7 @@ export class ExpandedFormPage extends BasePage {
 
   readonly cnt_filesModeContainer: Locator;
   readonly cnt_filesNoAttachmentField: Locator;
+  readonly cnt_attachmentsPreviewBar: Locator;
   readonly cnt_filesAttachmentHeader: Locator;
   readonly cnt_filesCurrentFieldTitle: Locator;
   readonly cnt_filesCurrentAttachmentTitle: Locator;
@@ -42,9 +43,12 @@ export class ExpandedFormPage extends BasePage {
 
     this.cnt_filesModeContainer = this.get().locator('.nc-files-mode-container');
     this.cnt_filesNoAttachmentField = this.get().locator('.nc-files-no-attachment-field');
+    this.cnt_attachmentsPreviewBar = this.get().locator('.nc-attachments-preview-bar');
     this.cnt_filesAttachmentHeader = this.get().locator('.nc-files-attachment-header');
     this.cnt_filesCurrentFieldTitle = this.get().locator('.nc-files-current-field-title');
-    this.cnt_filesCurrentAttachmentTitle = this.get().locator('.nc-files-current-attachment-title');
+    this.cnt_filesCurrentAttachmentTitle = this.cnt_attachmentsPreviewBar.locator(
+      '.preview-cell-active .nc-preview-cell-title'
+    );
     this.cnt_filesNoAttachment = this.get().locator('.nc-files-no-attachment');
   }
 

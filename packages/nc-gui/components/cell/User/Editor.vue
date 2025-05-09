@@ -323,12 +323,7 @@ onMounted(() => {
                 class="flex items-stretch gap-2 text-small"
               >
                 <div>
-                  <GeneralUserIcon
-                    size="auto"
-                    :user="op"
-                    class="!text-[0.65rem] !h-[16.8px]"
-                    :disabled="!isCollaborator(op.id)"
-                  />
+                  <GeneralUserIcon size="auto" :user="op" class="!text-[0.5rem] !h-[16.8px]" :disabled="!isCollaborator(op.id)" />
                 </div>
                 <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                   <template #title>
@@ -411,7 +406,7 @@ onMounted(() => {
               :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             >
               <div>
-                <GeneralUserIcon size="auto" :user="op" class="!text-[0.65rem] !h-[16.8px]" />
+                <GeneralUserIcon size="auto" :user="op" class="!text-[0.5rem] !h-[16.8px]" />
               </div>
               <NcTooltip class="truncate max-w-full" show-on-truncate-only placement="right">
                 <template #title>
@@ -467,7 +462,7 @@ onMounted(() => {
                   email: label,
                   meta: options.find((el) => el.id === val)?.meta,
                 }"
-                class="!text-[0.65rem] !h-[16.8px]"
+                class="!text-[0.5rem] !h-[16.8px]"
                 :disabled="!isCollaborator(val)"
               />
             </div>

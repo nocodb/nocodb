@@ -6,7 +6,8 @@ import {
   OrgUserRoles,
   PluginCategory,
   ProjectRoles,
-  WorkspaceRolesToProjectRoles, WorkspaceUserRoles,
+  WorkspaceRolesToProjectRoles,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
@@ -354,6 +355,12 @@ export class BaseUsersService {
         ncMeta,
       );
       this.checkMultipleOwnerExist(baseUsers);
+      await this.ensureBaseOwner(context, {
+        baseUsers,
+        ignoreUserId: param.userId,
+        baseId: param.baseId,
+        req: param.req,
+      });
     }
     const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
     const newRolePower = reverseOrderedProjectRoles.indexOf(
@@ -416,17 +423,19 @@ export class BaseUsersService {
     // if base role is defined then check for owner role
     if (targetUser.base_roles) {
       const baseRole = getProjectRole(targetUser);
-      if(baseRole && Object.keys(baseRole).length) {
-        return baseRole?.[ProjectRoles.OWNER]
+      if (baseRole && Object.keys(baseRole).length) {
+        return baseRole?.[ProjectRoles.OWNER];
       }
     }
 
     // if workspace_roles is present then check for owner role
     if ((targetUser as { workspace_roles?: string }).workspace_roles) {
-      return extractRolesObj((targetUser as { workspace_roles?: string }).workspace_roles)?.[WorkspaceUserRoles.OWNER]
+      return extractRolesObj(
+        (targetUser as { workspace_roles?: string }).workspace_roles,
+      )?.[WorkspaceUserRoles.OWNER];
     }
 
-    return false
+    return false;
   }
 
   protected checkMultipleOwnerExist(baseUsers: (Partial<User> & BaseUser)[]) {
@@ -451,6 +460,70 @@ export class BaseUsersService {
       }).length === 1
     )
       NcError.badRequest('At least one owner is required');
+  }
+
+  /**
+   * Ensures that a base has an assigned owner.
+   * If no direct owner is found, assigns ownership to the first user
+   * whose role is derived from the workspace role.
+   */
+  protected ensureBaseOwner(
+    context,
+    {
+      baseUsers,
+      ignoreUserId,
+      baseId,
+      req,
+    }: {
+      baseUsers: (Partial<User> & BaseUser)[];
+      ignoreUserId: string;
+      baseId: string;
+      req: NcRequest;
+    },
+  ) {
+    // Check if at least one user (excluding ignored user) has an assigned OWNER role.
+    const ownerUser = baseUsers.find(
+      (u) => u.id !== ignoreUserId && u.roles?.includes(ProjectRoles.OWNER),
+    );
+
+    // If an owner exists, no further action is required.
+    if (ownerUser) {
+      return;
+    }
+
+    // Find the first user (excluding ignored user) with an OWNER role derived from workspace roles.
+    const derivedOwner = baseUsers.find(
+      (u) =>
+        u.id !== ignoreUserId &&
+        (u as { workspace_roles?: string }).workspace_roles ===
+          WorkspaceUserRoles.OWNER,
+    );
+
+    // If no derived owner is found, return early.
+    if (!derivedOwner) {
+      return;
+    }
+
+    // Check if the baseUser already exists for the derived owner.
+    const baseUser = await BaseUser.get(context, baseId, derivedOwner.id);
+
+    if (baseUser) {
+      // Update the role to OWNER if the baseUser already exists.
+      await BaseUser.updateRoles(
+        context,
+        baseId,
+        derivedOwner.id,
+        ProjectRoles.OWNER,
+      );
+    } else {
+      // Insert a new baseUser with OWNER role if it doesn't exist.
+      await BaseUser.insert(context, {
+        base_id: baseId,
+        fk_user_id: derivedOwner.id,
+        roles: ProjectRoles.OWNER,
+        invited_by: req?.user?.id,
+      });
+    }
   }
 
   async baseUserDelete(
@@ -501,6 +574,12 @@ export class BaseUsersService {
         base_id: param.baseId,
       });
       this.checkMultipleOwnerExist(baseUsers);
+      await this.ensureBaseOwner(context, {
+        baseUsers,
+        ignoreUserId: param.userId,
+        baseId: param.baseId,
+        req: param.req,
+      });
     }
 
     // block self delete if user is owner or super

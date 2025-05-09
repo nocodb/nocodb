@@ -17,6 +17,7 @@ const {
   mobileNormalizedSidebarSize,
   hideSidebar,
   showTopbar,
+  isFullScreen,
 } = storeToRefs(useSidebarStore())
 
 const workspaceId = computed(() => {
@@ -93,6 +94,7 @@ watch(isLeftSidebarOpen, () => {
 function handleMouseMove(e: MouseEvent) {
   if (isMobileMode.value) return
   if (!wrapperRef.value) return
+  if (isFullScreen.value) return
   if (sidebarState.value === 'openEnd') return
 
   if (e.clientX < 4 && ['hiddenEnd', 'peekCloseEnd'].includes(sidebarState.value)) {

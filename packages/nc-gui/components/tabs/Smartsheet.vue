@@ -3,6 +3,7 @@ import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { component as FullScreen } from 'vue-fullscreen'
 import { UseDetachedLongTextProvider } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
 import DetachedExpandedText from '../smartsheet/grid/canvas/components/DetachedExpandedText.vue'
 
@@ -170,7 +171,7 @@ watch([activeViewTitleOrId, activeTableId], () => {
   handleSidebarOpenOnMobileForNonViews()
 })
 
-const { leftSidebarWidth, windowSize } = storeToRefs(useSidebarStore())
+const { leftSidebarWidth, windowSize, isLeftSidebarOpen, isFullScreen } = storeToRefs(useSidebarStore())
 
 const { isPanelExpanded, extensionPanelSize } = useExtensions()
 
@@ -225,52 +226,86 @@ const onReady = () => {
     }, 300)
   }
 }
+
+const toggleState = () => {
+  if (isFullScreen.value) {
+    isLeftSidebarOpen.value = true
+    document.exitFullscreen()
+    if (navigator.keyboard?.unlock) {
+      navigator.keyboard.unlock()
+    }
+  } else {
+    isLeftSidebarOpen.value = false
+    document.documentElement.requestFullscreen()
+    if (navigator.keyboard?.lock) {
+      navigator.keyboard.lock(['Escape'])
+    }
+  }
+  isFullScreen.value = !isFullScreen.value
+}
+
+const handleFullScreenChange = () => {
+  const isBrowserFullScreen = !!document.fullscreenElement
+  if (isFullScreen.value !== isBrowserFullScreen) {
+    isFullScreen.value = isBrowserFullScreen
+    isLeftSidebarOpen.value = !isBrowserFullScreen
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('fullscreenchange', handleFullScreenChange)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('fullscreenchange', handleFullScreenChange)
+})
 </script>
 
 <template>
   <div class="nc-container flex flex-col h-full" @drop="onDrop" @dragover.prevent>
-    <LazySmartsheetTopbar />
+    <LazySmartsheetTopbar v-if="!isFullScreen" />
     <div style="height: calc(100% - var(--topbar-height))">
-      <Splitpanes
-        v-if="openedViewsTab === 'view'"
-        class="nc-extensions-content-resizable-wrapper"
-        :class="{
-          'nc-is-open-extensions': isPanelExpanded,
-        }"
-        @ready="() => onReady()"
-        @resize="onResize"
-        @resized="onResized"
-      >
-        <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
-          <LazySmartsheetToolbar v-if="!isForm" />
-          <div
-            :style="{ height: isForm || isMobileMode ? '100%' : 'calc(100% - var(--toolbar-height))' }"
-            class="flex flex-row w-full"
-          >
-            <Transition name="layout" mode="out-in">
-              <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
-                <div class="h-full flex-1 min-w-0 min-h-0 bg-white">
-                  <LazySmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
+      <FullScreen v-if="openedViewsTab === 'view'" v-model:fullscreen="isFullScreen" class="h-full" :page-only="true">
+        <Splitpanes
+          class="nc-extensions-content-resizable-wrapper"
+          :class="{
+            'nc-is-open-extensions': isPanelExpanded,
+          }"
+          @ready="() => onReady()"
+          @resize="onResize"
+          @resized="onResized"
+        >
+          <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
+            <LazySmartsheetToolbar v-if="!isForm" :toggle="toggleState" :is-expanded="isFullScreen" />
+            <div
+              :style="{ height: isForm || isMobileMode ? '100%' : 'calc(100% - var(--toolbar-height))' }"
+              class="flex flex-row w-full"
+            >
+              <Transition name="layout" mode="out-in">
+                <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
+                  <div class="h-full flex-1 min-w-0 min-h-0 bg-white">
+                    <LazySmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
 
-                  <template v-if="activeView && meta">
-                    <LazySmartsheetGallery v-if="isGallery" />
+                    <template v-if="activeView && meta">
+                      <LazySmartsheetGallery v-if="isGallery" />
 
-                    <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
+                      <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
-                    <LazySmartsheetKanban v-else-if="isKanban" />
+                      <LazySmartsheetKanban v-else-if="isKanban" />
 
-                    <LazySmartsheetCalendar v-else-if="isCalendar" />
+                      <LazySmartsheetCalendar v-else-if="isCalendar" />
 
-                    <LazySmartsheetMap v-else-if="isMap" />
-                  </template>
+                      <LazySmartsheetMap v-else-if="isMap" />
+                    </template>
+                  </div>
                 </div>
-              </div>
-            </Transition>
-          </div>
-        </Pane>
-        <ExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
-        <SmartsheetAutomationActionPane v-else-if="isActionPaneActive && isEeUI && isAutomationEnabled" ref="actionPaneRef" />
-      </Splitpanes>
+              </Transition>
+            </div>
+          </Pane>
+          <ExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
+        </Splitpanes>
+      </FullScreen>
+
       <SmartsheetDetails v-else />
     </div>
     <LazySmartsheetExpandedFormDetached />

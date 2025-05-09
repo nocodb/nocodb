@@ -9,7 +9,7 @@ import type {
   SourceType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import type { AuthIntegration } from '@noco-integrations/core';
+import type { AuthIntegration } from '@noco-local-integrations/core';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';

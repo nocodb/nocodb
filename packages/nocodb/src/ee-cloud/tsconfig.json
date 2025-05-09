@@ -16,6 +16,9 @@
         "./src/ee-cloud/*",
         "./src/ee/*",
         "./src/*"
+      ],
+      "@noco-local-integrations/*": [
+        "../noco-integrations/packages/*"
       ]
     }
   }

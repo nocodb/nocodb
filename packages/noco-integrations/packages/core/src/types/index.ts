@@ -15,6 +15,7 @@ export interface IntegrationManifest {
   website?: string;
   expose?: string[];
   hidden?: boolean;
+  order?: number;
 }
 
 export interface IntegrationEntry {

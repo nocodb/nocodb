@@ -16,6 +16,9 @@
         "./src/ee-on-prem/*",
         "./src/ee/*",
         "./src/*"
+      ],
+      "@noco-local-integrations/*": [
+        "../noco-integrations/packages/*"
       ]
     }
   }

@@ -15,7 +15,7 @@ import type GridViewColumn from '~/models/GridViewColumn';
 import type CalendarView from '~/models/CalendarView';
 import type Column from '~/models/Column';
 import type { NcContext } from '~/interface/config';
-import type { AiIntegration } from '@noco-integrations/core';
+import type { AiIntegration } from '@noco-local-integrations/core';
 import type { View } from '~/models';
 import Base from '~/models/Base';
 import Model from '~/models/Model';

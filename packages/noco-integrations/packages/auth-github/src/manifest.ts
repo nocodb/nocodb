@@ -7,4 +7,5 @@ export const manifest: IntegrationManifest = {
   version: '0.1.0',
   author: 'NocoDB',
   website: 'https://github.com/nocodb/nocodb',
+  order: 1,
 };

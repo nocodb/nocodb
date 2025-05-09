@@ -45,7 +45,7 @@ export const form: FormDefinition = [
       { value: 'medium', label: 'Medium' },
       { value: 'low', label: 'Low' },
     ],
-    defaultValue: 'high',
+    defaultValue: ['high'],
     validators: [
       {
         type: 'required' as const,

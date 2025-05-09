@@ -60,7 +60,7 @@ export const form: FormDefinition = [
       { value: 'gpt-4', label: 'GPT-4' },
       { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
     ],
-    defaultValue: 'gpt-4o',
+    defaultValue: ['gpt-4o'],
     validators: [
       {
         type: 'required' as const,

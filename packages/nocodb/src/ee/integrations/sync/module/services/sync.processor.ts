@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
 import { type NcContext, type NcRequest, SyncType } from 'nocodb-sdk';
 import type { Job } from 'bull';
-import type { AuthIntegration, SyncIntegration } from '@noco-integrations/core';
+import type { AuthIntegration, SyncIntegration } from '@noco-local-integrations/core';
 import type { SyncDataSyncModuleJobData } from '~/interface/Jobs';
 import { Integration, Model, SyncConfig } from '~/models';
 import { NcError } from '~/helpers/catchError';

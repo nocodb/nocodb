@@ -58,13 +58,16 @@ const baseDevConfig = {
   },
   externals: [
     nodeExternals({
-      allowlist: ['webpack/hot/poll?1000'],
+      allowlist: ['nocodb-sdk'],
     }),
   ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json', '.node'],
     tsConfig: {
       configFile: resolve('tsconfig.json'),
+    },
+    alias: {
+      '@noco-local-integrations': resolve(__dirname, '../noco-integrations/packages'),
     },
   },
   optimization: {

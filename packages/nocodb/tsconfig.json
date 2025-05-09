@@ -30,6 +30,9 @@
       ],
       "@/*": [
         "src/*"
+      ],
+      "@noco-local-integrations/*": [
+        "../noco-integrations/packages/*"
       ]
     },
     "typeRoots": [

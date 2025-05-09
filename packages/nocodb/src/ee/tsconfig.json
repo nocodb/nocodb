@@ -6,7 +6,10 @@
     "paths": {
       "src/*": ["./src/*"],
       "~/*": ["./src/ee/*", "./src/*"],
-      "@/*": ["./src/ee/*", "./src/*"]
+      "@/*": ["./src/ee/*", "./src/*"],
+      "@noco-local-integrations/*": [
+        "../noco-integrations/packages/*"
+      ]
     }
   }
 }

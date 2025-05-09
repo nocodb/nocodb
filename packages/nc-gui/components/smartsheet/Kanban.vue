@@ -1229,14 +1229,20 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
 
   <GeneralDeleteModal v-model:visible="deleteStackVModel" entity-name="Stack" :on-delete="handleDeleteStackConfirmClick">
     <template #entity-preview>
-      <div v-if="stackToBeDeleted" class="flex flex-row items-center py-2 px-2.25 bg-gray-100 rounded-lg text-gray-700 mb-4">
-        <div
-          class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
-          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-        >
-          {{ stackToBeDeleted }}
+      <template v-if="stackToBeDeleted">
+        <div class="flex flex-row items-center py-2 px-2.25 bg-gray-100 rounded-lg text-gray-700 mb-3">
+          <div
+            class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+          >
+            {{ stackToBeDeleted }}
+          </div>
         </div>
-      </div>
+        <div class="text-gray-700">
+          This action will also remove the select option from the {{ groupingFieldColumn?.title }} field. Records will be moved to
+          Uncategorized stack
+        </div>
+      </template>
     </template>
   </GeneralDeleteModal>
 </template>

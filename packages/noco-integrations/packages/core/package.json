@@ -8,12 +8,12 @@
     "clean": "rimraf dist"
   },
   "dependencies": {
+    "ai": "^4.3.15",
     "nocodb-sdk": "file:../../../nocodb-sdk",
-    "zod": "^3.24.3",
-    "ai": "^3.4.33"
+    "zod": "^3.24.4"
   },
   "devDependencies": {
-    "@types/node": "^20.17.32",
+    "@types/node": "^20.17.46",
     "rimraf": "^5.0.10",
     "typescript": "^5.8.3"
   }

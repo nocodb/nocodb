@@ -70,7 +70,7 @@ export class ClickhouseTableIntegration extends SyncIntegration {
         let offset = 0;
         const limit = 1000;
 
-        // eslint-disable-next-line no-constant-condition
+         
         while (true) {
           const rows = await clickhouse.query({
             query: `SELECT * FROM ${table} LIMIT ${limit} OFFSET ${offset}`,

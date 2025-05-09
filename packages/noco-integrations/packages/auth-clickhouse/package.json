@@ -9,11 +9,11 @@
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
-    "@noco-integrations/core": "workspace:*",
-    "@clickhouse/client": "^0.2.10"
+    "@clickhouse/client": "^1.11.1",
+    "@noco-integrations/core": "workspace:*"
   },
   "devDependencies": {
     "rimraf": "^5.0.10",
     "typescript": "^5.8.3"
   }
-} 
+}

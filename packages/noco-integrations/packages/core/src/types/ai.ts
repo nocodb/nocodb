@@ -1,4 +1,5 @@
 import { IntegrationWrapper } from '../integration';
+import type { CoreMessage } from 'ai';
 
 export abstract class AiIntegration extends IntegrationWrapper {
   abstract generateObject<T>(
@@ -22,7 +23,7 @@ export interface AiUsage {
 }
 
 export interface AiGenerateObjectArgs {
-  messages: any[];
+  messages: CoreMessage[];
   schema: any;
   customModel?: string;
 }

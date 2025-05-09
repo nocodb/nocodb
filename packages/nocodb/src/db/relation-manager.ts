@@ -323,6 +323,12 @@ export class RelationManager {
               direction: 'child_parent',
               type: getOppositeRelationType(colOptions.type),
             });
+            await baseModel.updateLastModified({
+              baseModel: parentBaseModel,
+              model: parentTable,
+              rowIds: [oldRowId],
+              cookie: req,
+            });
           }
 
           await baseModel.execAndParse(
@@ -344,6 +350,12 @@ export class RelationManager {
           );
           // await triggerAfterRemoveChild();
 
+          await baseModel.updateLastModified({
+            baseModel: childBaseModel,
+            model: childTable,
+            rowIds: [childId],
+            cookie: req,
+          });
           await baseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
@@ -386,6 +398,12 @@ export class RelationManager {
               direction: 'child_parent',
               type: getOppositeRelationType(colOptions.type),
             });
+            await baseModel.updateLastModified({
+              baseModel: parentBaseModel,
+              model: parentTable,
+              rowIds: [oldParentRowId],
+              cookie: req,
+            });
           }
 
           await baseModel.execAndParse(
@@ -408,6 +426,12 @@ export class RelationManager {
 
           // await triggerAfterRemoveChild();
 
+          await baseModel.updateLastModified({
+            baseModel: childBaseModel,
+            model: childTable,
+            rowIds: [childId],
+            cookie: req,
+          });
           await baseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
@@ -455,6 +479,12 @@ export class RelationManager {
                 direction: 'child_parent',
                 type: getOppositeRelationType(colOptions.type),
               });
+              await baseModel.updateLastModified({
+                baseModel: childBaseModel,
+                model: childTable,
+                rowIds: [oldChildRowId],
+                cookie: req,
+              });
             }
           }
 
@@ -490,6 +520,12 @@ export class RelationManager {
               refDisplayValue: parentRelatedPkValue,
               direction: 'child_parent',
               type: getOppositeRelationType(colOptions.type),
+            });
+            await baseModel.updateLastModified({
+              baseModel: parentBaseModel,
+              model: parentTable,
+              rowIds: [oldRowId],
+              cookie: req,
             });
           }
           // todo: unlink if it's already mapped
@@ -530,6 +566,12 @@ export class RelationManager {
             { raw: true },
           );
 
+          await baseModel.updateLastModified({
+            baseModel: childBaseModel,
+            model: childTable,
+            rowIds: [childId],
+            cookie: req,
+          });
           await baseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
@@ -662,6 +704,12 @@ export class RelationManager {
           );
 
           await baseModel.updateLastModified({
+            baseModel: childBaseModel,
+            model: childTable,
+            rowIds: [childId],
+            cookie: req,
+          });
+          await baseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [parentId],
@@ -687,6 +735,12 @@ export class RelationManager {
           );
 
           await baseModel.updateLastModified({
+            baseModel: childBaseModel,
+            model: childTable,
+            rowIds: [childId],
+            cookie: req,
+          });
+          await baseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [childId],
@@ -705,6 +759,12 @@ export class RelationManager {
             { raw: true },
           );
 
+          await baseModel.updateLastModified({
+            baseModel: childBaseModel,
+            model: childTable,
+            rowIds: [childId],
+            cookie: req,
+          });
           await baseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,

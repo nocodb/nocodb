@@ -1236,7 +1236,7 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
     <template #entity-preview>
       <div v-if="stackToBeDeleted" class="text-nc-content-gray flex flex-col gap-3">
         <div>
-          This action will also remove the <b>"{{ stackToBeDeleted }}"</b> select option from the
+          This action will also remove the <b>"{{ stackToBeDeleted }}"</b> option from the
           <b> "{{ groupingFieldColumn?.title ?? 'Grouping' }}"</b> field.
         </div>
         <div>Records will be moved to Uncategorized stack.</div>

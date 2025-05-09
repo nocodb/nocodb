@@ -31,7 +31,7 @@ describe('dataApiV3', () => {
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext);
-      urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      urlPrefix = `/api/${API_VERSION}/${testContext.sakilaProject.id}`;
 
       ncAxiosGet = testAxios.ncAxiosGet;
       ncAxiosPost = testAxios.ncAxiosPost;
@@ -50,7 +50,7 @@ describe('dataApiV3', () => {
         expect(+records.body['Cities']).to.equal(1);
       });
 
-      it('Nested Read - Lookup', async function () {
+      it('Nested Read - Lookup', async () => {
         await createLookupColumn(testContext.context, {
           base: testContext.sakilaProject,
           title: 'Lookup',
@@ -65,7 +65,7 @@ describe('dataApiV3', () => {
         expect(records.body.Lookup).to.deep.equal(['Kabul']);
       });
 
-      it('Nested Read - Rollup', async function () {
+      it('Nested Read - Rollup', async () => {
         await createRollupColumn(testContext.context, {
           base: testContext.sakilaProject,
           title: 'Rollup',
@@ -86,27 +86,29 @@ describe('dataApiV3', () => {
       let table: Model;
       let columns: Column[];
       let insertedRecords: any[];
+      let textBasedUrlPrefix: string;
 
       beforeEach(async function () {
         const initResult = await beforeEachTextBased(testContext);
         table = initResult.table;
         columns = initResult.columns;
         insertedRecords = initResult.insertedRecords;
+        textBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
       });
       it('Read: all fields', async function () {
         await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/100`,
+          url: `${textBasedUrlPrefix}/${table.id}/100`,
         });
       });
 
       it('Read: invalid ID', async function () {
         await ncAxiosGet({
-          url: `${urlPrefix}/123456789/100`,
+          url: `${textBasedUrlPrefix}/123456789/100`,
           status: 422,
         });
 
         await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/1000`,
+          url: `${textBasedUrlPrefix}/${table.id}/1000`,
           status: 404,
         });
       });

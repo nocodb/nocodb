@@ -46,8 +46,9 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     return navigateTo(`/${location.hostname.split('.')[0]}`)
   }
 
-  /** if user isn't signed in and google auth is enabled, try to check if sign-in data is present */
-  if (!state.signedIn.value && state.appInfo.value.googleAuthEnabled) {
+  /** if user isn't signed in and OAuth is enabled, try to check if sign-in data is present */
+  if (!state.signedIn.value && (state.appInfo.value.googleAuthEnabled || state.appInfo.value.oidcAuthEnabled)) {
+    // Let tryGoogleAuth handle both Google and OIDC flows
     await tryGoogleAuth(api, state.signIn)
   }
 
@@ -127,10 +128,14 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 })
 
 /**
- * If present, try using google auth data to sign user in before navigating to the next page
+ * If present, try using oauth auth data to sign user in before navigating to the next page
+ * This handles Google, GitHub, and OIDC authentication flows
  */
 async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
-  if (window.location.search && /\bscope=|\bstate=/.test(window.location.search) && /\bcode=/.test(window.location.search)) {
+  if (window.location.search && (
+    (/\bscope=|\bstate=/.test(window.location.search) && /\bcode=/.test(window.location.search)) ||
+    (window.location.search.includes('state=oidc') && window.location.search.includes('code=success'))
+  )) {
     let extraProps: any = {}
     try {
       let authProvider = 'google'
@@ -143,7 +148,9 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
       // `extra` prop is used in our cloud implementation, so we are keeping it
       const {
         data: { token, extra },
-      } = await api.instance.post(`/auth/${authProvider}/genTokenByCode${window.location.search}`)
+      } = await api.instance.post(`/auth/${authProvider}/genTokenByCode${window.location.search}`, null, {
+        withCredentials: true
+      })
 
       // if extra prop is null/undefined set it as an empty object as fallback
       extraProps = extra || {}

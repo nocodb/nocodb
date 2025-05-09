@@ -533,7 +533,7 @@ onUnmounted(() => {
 <style lang="scss">
 .nc-data-cell {
   &:has(.form-attachment-cell) {
-    @apply !border-none pt-1 -mt-1;
+    @apply !border-none pt-1 -mt-1 -ml-1;
     box-shadow: none !important;
 
     &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {

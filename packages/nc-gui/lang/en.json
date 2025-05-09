@@ -2243,6 +2243,9 @@
       "createNewTable": "Start from scratch.",
       "importData": "From files & external sources.",
       "connectExternalData": "In realtime to external databases."
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

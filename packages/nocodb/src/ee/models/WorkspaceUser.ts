@@ -271,12 +271,7 @@ export default class WorkspaceUser {
               ncMeta.knex.raw('?', [fk_user_id]),
             );
           })
-          .where(function () {
-            this.whereNull(`${MetaTable.PROJECT_USERS}.roles`).orWhereNot(
-              `${MetaTable.PROJECT_USERS}.roles`,
-              ProjectRoles.NO_ACCESS,
-            );
-          }),
+          .whereNot(`${MetaTable.PROJECT_USERS}.roles`, ProjectRoles.NO_ACCESS),
       );
     });
 

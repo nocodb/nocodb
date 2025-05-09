@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, NcApiVersion, type TableType, extractFilterFromXwhere } from 'nocodb-sdk'
+import { type ColumnType } from 'nocodb-sdk'
 import type ColumnFilter from './ColumnFilter.vue'
 
 const isLocked = inject(IsLockedInj, ref(false))

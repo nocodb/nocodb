@@ -710,6 +710,11 @@ export class ExportService {
                 break;
             }
             delete row[k];
+
+            // if the value is explicitly empty string preserve it
+            if (v === '') {
+              row[colId] = '__nc_empty_string__';
+            }
           }
         }
       }

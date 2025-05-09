@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Schnittstelle erstellen",
+    "create_new_table": "Tabelle erstellen",
     "connect_data_sources": "Datenquellen hinzufügen",
     "alert": "Alarm",
     "alert-message": "Es wurden noch keine Datenbanken verbunden. Verbinden Sie Datenbanken, um Schnittstellen zu erstellen. Überspringen Sie diesen Schritt und fügen Sie später Datenbanken über die Startseite der Datenbank hinzu.",

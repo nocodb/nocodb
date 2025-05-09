@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Ustvari nov vmesnik",
+    "create_new_table": "Ustvari novo tabelo",
     "connect_data_sources": "Poveži vire podatkov",
     "alert": "Opozorilo",
     "alert-message": "Nobena baza podatkov ni bila povezana. Povežite baze za gradnjo vmesnikov. Preskočite ta korak in kasneje dodajte baze s domače strani baze.",

@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "創建新介面",
+    "create_new_table": "創建新表格",
     "connect_data_sources": "連接數據來源",
     "alert": "警報",
     "alert-message": "尚未連接任何數據庫。連接數據庫以建立介面。跳過此步驟，之後可以從主頁新增數據庫。",

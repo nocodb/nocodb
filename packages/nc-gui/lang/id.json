@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Buat Antarmuka Baru",
+    "create_new_table": "Buat Tabel Baru",
     "connect_data_sources": "Hubungkan sumber data",
     "alert": "Peringatan",
     "alert-message": "Tidak ada basis data yang terhubung. Hubungkan basis data untuk membangun antarmuka. Lewati langkah ini dan tambahkan basis data dari halaman beranda basis data nanti.",

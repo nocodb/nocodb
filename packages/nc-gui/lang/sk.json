@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Vytvoriť nové rozhranie",
+    "create_new_table": "Vytvoriť novú tabuľku",
     "connect_data_sources": "Pripojiť zdroje dát",
     "alert": "Upozornenie",
     "alert-message": "Žiadne databázy neboli pripojené. Pripojte databázové základne, aby ste vytvorili rozhranie. Preskočte tento krok a pridajte databázy neskôr z domovskej stránky základne.",

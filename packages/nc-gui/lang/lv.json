@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Izveidot jaunu saskarni",
+    "create_new_table": "Izveidot jaunu tabulu",
     "connect_data_sources": "Savienot datu avotus",
     "alert": "Brīdinājums",
     "alert-message": "Nav izveidots savienojums ar datubāzēm. Izveidojiet savienojumu, lai veidotu saskarnes. Izlaidiet šo soli un pievienojiet datubāzes no sākumlapas vēlāk.",

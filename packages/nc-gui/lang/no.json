@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Opprett nytt grensesnitt",
+    "create_new_table": "Opprett nytt objekt",
     "connect_data_sources": "Koble til datakilder",
     "alert": "Varsel",
     "alert-message": "Ingen databaser er koblet til. Koble database for å bygge grensesnitt. Hopp over dette trinnet og legg til databaser fra startsiden for basis senere.",

@@ -28,7 +28,7 @@ export interface AiGenerateObjectArgs {
   customModel?: string;
 }
 
-export interface AiGenerateObjectResponse<T> {
+interface AiGenerateObjectResponse<T> {
   usage: AiUsage;
   data: T;
 }

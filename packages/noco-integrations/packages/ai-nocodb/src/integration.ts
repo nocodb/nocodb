@@ -3,7 +3,6 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { AiIntegration } from '@noco-integrations/core';
 import type {
   AiGenerateObjectArgs,
-  AiGenerateObjectResponse,
 } from '@noco-integrations/core';
 
 const modelMap: Record<string, string> = {
@@ -15,9 +14,9 @@ const modelMap: Record<string, string> = {
 export class NocodbAiIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
 
-  public async generateObject<T>(
+  public async generateObject<T = any>(
     args: AiGenerateObjectArgs,
-  ): Promise<AiGenerateObjectResponse<T>> {
+  ) {
     const { messages, schema } = args;
 
     if (!this.model || args.customModel) {
@@ -42,7 +41,7 @@ export class NocodbAiIntegration extends AiIntegration {
       this.model = customOpenAi(model) as LanguageModel;
     }
 
-    const response = await generateObject<T>({
+    const response = await generateObject({
       model: this.model as LanguageModel,
       schema,
       messages,
@@ -56,7 +55,7 @@ export class NocodbAiIntegration extends AiIntegration {
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
-      data: response.object,
+      data: response.object as T,
     };
   }
 

@@ -15,7 +15,7 @@ AI integrations must extend the `AiIntegration` abstract class ([packages/core/s
 export abstract class AiIntegration extends IntegrationWrapper {
   abstract generateObject<T>(
     args: AiGenerateObjectArgs,
-  ): Promise<AiGenerateObjectResponse<T>>;
+  );
   abstract getModelAlias(model: string): string;
   abstract availableModels(): { value: string; label: string }[];
 }

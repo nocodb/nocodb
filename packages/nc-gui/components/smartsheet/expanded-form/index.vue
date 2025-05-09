@@ -182,11 +182,12 @@ const tableTitle = computed(() => meta.value?.title)
 
 const { setCurrentViewExpandedFormMode } = useSharedView()
 
-const activeViewMode = ref(props.view?.expanded_record_mode ?? 'field')
+const activeViewMode = ref(isUIAllowed('viewCreateOrEdit') ? props.view?.expanded_record_mode ?? 'field' : 'field')
 
 watch(activeViewMode, async (v) => {
   const viewId = props.view?.id
-  if (!viewId) return
+  if (!viewId || !isUIAllowed('viewCreateOrEdit')) return
+
   if (v === 'field') {
     await setCurrentViewExpandedFormMode(viewId, v)
   } else if (v === 'attachment') {

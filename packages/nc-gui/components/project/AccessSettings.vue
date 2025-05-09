@@ -106,6 +106,7 @@ const isOwnerOrCreator = computed(() => {
 })
 
 const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
+  debugger
   const currentCollaborator = collaborators.value.find((coll) => coll.id === collab.id)!
 
   try {

@@ -165,7 +165,7 @@ function shouldShowRaw(key: string) {
                     <CellAttachmentIconView :item="item" class="!w-8 !h-8" />
                   </div>
                 </div>
-                <span class="w-0 flex-1 truncate text-[13px] font-weight-500 text-gray-600">
+                <span class="w-0 flex-1 truncate text-small1 font-weight-500 text-gray-600">
                   {{ item.title }}
                 </span>
                 <span class="text-xs font-weight-500 p-2 text-gray-500">
@@ -197,7 +197,7 @@ function shouldShowRaw(key: string) {
                     <CellAttachmentIconView :item="item" class="!w-8 !h-8" />
                   </div>
                 </div>
-                <span class="w-0 flex-1 truncate text-[13px] font-weight-500 text-gray-600">
+                <span class="w-0 flex-1 truncate text-small1 font-weight-500 text-gray-600">
                   {{ item.title }}
                 </span>
                 <span class="text-xs font-weight-500 p-2 text-gray-500">
@@ -211,29 +211,29 @@ function shouldShowRaw(key: string) {
       <template v-else-if="shouldShowRaw(columnKey)">
         <div
           v-if="isShowableValue(oldData[columnKey])"
-          class="text-[13px] text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through break-all"
+          class="text-small1 text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through break-all"
         >
           {{ oldData[columnKey] }}
         </div>
         <div
           v-if="isShowableValue(newData[columnKey])"
-          class="text-[13px] text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 break-all"
+          class="text-small1 text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 break-all"
         >
           {{ newData[columnKey] }}
         </div>
       </template>
       <template v-else-if="['SingleLineText', 'LongText'].includes(meta[columnKey]?.type)">
-        <div>
+        <div class="w-full">
           <template v-for="(block, i) of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')" :key="i">
             <span
               v-if="block.op === 'removed'"
-              class="text-[13px] text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone"
+              class="max-w-full text-small1 text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone"
             >
               {{ block.text }}
             </span>
             <span
               v-else-if="block.op === 'added'"
-              class="text-[13px] text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone"
+              class="max-w-full text-small1 text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone"
             >
               {{ block.text }}
             </span>
@@ -248,22 +248,22 @@ function shouldShowRaw(key: string) {
           <template v-for="(block, i) of safeJsonDiff(columnKey)" :key="i">
             <pre
               v-if="block.op === 'removed'"
-              class="text-[13px] text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone inline"
+              class="text-small1 text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone inline"
               >{{ block.text }}</pre
             >
             <pre
               v-else-if="block.op === 'added'"
-              class="text-[13px] text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 decoration-clone inline"
+              class="text-small1 text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 decoration-clone inline"
               >{{ block.text }}</pre
             >
-            <pre v-else class="inline">{{ block.text }}</pre>
+            <pre v-else class="inline text-small1">{{ block.text }}</pre>
           </template>
         </div>
       </template>
       <template v-else>
         <div
           v-if="isShowableValue(processOldDataFor(columnKey))"
-          class="nc-audit-mini-item-cell nc-audit-removal !text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through"
+          class="max-w-full nc-audit-mini-item-cell nc-audit-removal !text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through"
           :class="{
             'px-1 py-0.25': shouldUseNormalizedPadding(columnKey),
             '!p-0.25': shouldUseUniformPadding(columnKey),
@@ -387,7 +387,7 @@ function shouldShowRaw(key: string) {
     & > .ant-tag {
       @apply !m-0 !p-0 !bg-transparent !text-inherit;
       & > span > div + div {
-        @apply flex items-center !text-[13px] font-weight-500;
+        @apply flex items-center !text-small1 font-weight-500;
       }
       & > span {
         @apply gap-1;

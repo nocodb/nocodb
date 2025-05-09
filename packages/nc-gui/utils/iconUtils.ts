@@ -238,6 +238,7 @@ import NcGoogleSheet from '~icons/nc-icons/google_sheet'
 import NcGoogleDrive from '~icons/nc-icons/google-drive'
 import NcHubspot from '~icons/nc-icons/hubspot'
 import NcJira from '~icons/nc-icons/jira'
+import NcLinear from '~icons/nc-icons-v2/linear'
 import NcMailchimp from '~icons/nc-icons/mailchimp'
 import NcMicrosoftAccess from '~icons/nc-icons/microsoft_access'
 import NcMicrosoftExcel from '~icons/nc-icons/microsoft_excel'
@@ -1205,6 +1206,7 @@ export const iconMap = {
   'asana': NcAsana,
   'box': NcBox,
   'githubSolid': NcGithubSolid,
+  'linear': NcLinear,
   'gitlab': NcGitlab,
   'googleCalendar': NcGoogleCalendar,
   'googleSheet': NcGoogleSheet,

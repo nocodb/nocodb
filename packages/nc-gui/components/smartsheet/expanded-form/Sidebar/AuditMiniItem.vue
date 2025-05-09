@@ -360,6 +360,10 @@ function shouldShowRaw(key: string) {
     @apply !inline;
     & > div {
       @apply !inline;
+
+      & > div {
+        @apply !inline;
+      }
     }
     & > div + div {
       @apply !ml-1;

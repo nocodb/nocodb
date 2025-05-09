@@ -15,6 +15,8 @@ const { activeWorkspaceId, isWorkspaceSettingsPageOpened, isIntegrationsPageOpen
 
 const { navigateToWorkspaceSettings, navigateToIntegrations: _navigateToIntegrations } = workspaceStore
 
+const { basesList } = storeToRefs(useBases())
+
 const { isSharedBase } = storeToRefs(useBase())
 
 const { isUIAllowed } = useRoles()
@@ -27,12 +29,8 @@ const isProjectPageOpen = computed(() => {
   )
 })
 
-watchEffect(() => {
-  console.log('isProjectPageOpen', isProjectPageOpen.value, route.value.name, route.value.name === 'index')
-})
-
 const navigateToProjectPage = () => {
-  navigateToProject({ workspaceId: activeWorkspaceId.value })
+  navigateToProject({ workspaceId: activeWorkspaceId.value, baseId: basesList.value?.[0]?.id })
 }
 
 const navigateToSettings = () => {

@@ -23,6 +23,8 @@ const {
 
 const { isUIAllowed } = useRoles()
 
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+
 /* flags */
 
 const showRightSections = computed(() => !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
@@ -122,6 +124,8 @@ export default {
             placeholder="Comment..."
             class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg !text-gray-800 !text-small !leading-18px !max-h-[240px] bg-white !w-auto"
             data-testid="expanded-form-comment-input"
+            :autofocus="isExpandedFormCommentMode"
+            @focus="isExpandedFormCommentMode = false"
             @update:value="scrollToBottom()"
             @keydown.stop
             @save="handleCreatingNewComment"

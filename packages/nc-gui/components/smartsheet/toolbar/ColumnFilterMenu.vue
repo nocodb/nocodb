@@ -11,36 +11,11 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-const router = useRouter()
-const route = router.currentRoute
-const meta = inject(MetaInj, ref())
-
-const aliasColObjMap = computed(() => {
-  if (!meta?.value?.columns) return {}
-
-  const colObj = (meta.value as TableType)?.columns?.reduce<Record<string, ColumnType>>((acc, col: ColumnType) => {
-    acc[col.title!] = col
-    return acc
-  }, {} as Record<string, ColumnType>)
-  return colObj
-})
-
-const filtersFromUrlParams = computed(() => {
-  if (route.value.query?.where) {
-    return extractFilterFromXwhere(
-      { api_version: NcApiVersion.V1 },
-      route.value.query.where as string,
-      aliasColObjMap.value,
-      false,
-    )
-  }
-})
-
 const { isMobileMode } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
 
-const { nestedFilters, eventBus } = useSmartsheetStoreOrThrow()
+const { nestedFilters, eventBus, filtersFromUrlParams, whereQueryFromUrl } = useSmartsheetStoreOrThrow()
 
 const { appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
@@ -197,7 +172,7 @@ const combinedFilterLength = computed(() => {
             >
               <SmartsheetToolbarColumnFilter
                 v-if="filtersFromUrlParams.filters"
-                :key="route.query?.where"
+                :key="whereQueryFromUrl"
                 ref="filterComp"
                 v-model="filtersFromUrlParams.filters"
                 v-model:is-open="open"

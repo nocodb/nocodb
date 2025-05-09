@@ -7,6 +7,8 @@ const props = defineProps<{
   tab?: string
 }>()
 
+const { hideSidebar } = storeToRefs(useSidebarStore())
+
 const { integrations } = useProvideIntegrationViewStore()
 
 const basesStore = useBases()
@@ -128,6 +130,10 @@ onMounted(async () => {
   if (props.tab) {
     projectPageTab.value = props.tab
   }
+})
+
+onMounted(() => {
+  hideSidebar.value = false
 })
 </script>
 

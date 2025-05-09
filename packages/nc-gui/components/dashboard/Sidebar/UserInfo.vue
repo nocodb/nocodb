@@ -91,7 +91,7 @@ const accountUrl = computed(() => {
         >
           <div
             v-if="isMiniSidebar"
-            class="nc-user-icon-wrapper border-1 w-8 h-8 flex-none rounded-full overflow-hidden transition-all duration-300"
+            class="nc-user-icon-wrapper border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300"
             :class="{
               'border-nc-gray-medium': !isMenuOpen,
               'active border-primary shadow-selected': isMenuOpen,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AttachmentType, AuditType } from 'nocodb-sdk'
+import { checkboxIconListMap, ratingIconListMap, type AttachmentType, type AuditType } from 'nocodb-sdk'
 
 const props = defineProps<{
   audit: AuditType
@@ -49,22 +49,12 @@ function normalizeColOptions(key: string) {
 function normalizeMeta(key: string) {
   const mta = meta.value?.[key] ?? {}
   const opts = normalizeColOptions(key)
-  const icn =
-    {
-      'thumbs-up': 'thumb-up',
-      'circle-filled': 'moon-full',
-    }[opts.icon as string] ?? opts.icon
+  const icn = opts.icon || (mta.type === 'Rating' ? 'star' : 'circle-check')
+
   return {
     ...opts,
     ...mta,
-    icon: !icn
-      ? undefined
-      : {
-          full: `mdi-${icn}`,
-          empty: `mdi-${icn}`,
-          checked: `mdi-${icn}`,
-          unchecked: `mdi-${icn}`,
-        },
+    icon: mta.type === 'Rating' ? ratingIconListMap[icn] : checkboxIconListMap[icn],
     duration: opts.duration_format ? durationOptions.find((it) => it.title === opts.duration_format)?.id : undefined,
     is12hrFormat: opts['12hr_format'],
     isLocaleString: opts.locale_string,

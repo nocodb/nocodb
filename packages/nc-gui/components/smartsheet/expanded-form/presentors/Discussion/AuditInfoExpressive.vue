@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AttachmentType, AuditType } from 'nocodb-sdk'
+import { ratingIconListMap, checkboxIconListMap } from 'nocodb-sdk'
 
 /* interface */
 
@@ -51,24 +52,12 @@ function normalizeColOptions(key: string) {
 function normalizeMeta(key: string) {
   const mta = meta.value?.[key] ?? {}
   const opts = normalizeColOptions(key)
-  const icn =
-    {
-      'thumbs-up': 'thumb-up',
-      'circle-filled': 'moon-full',
-      'circle-check': 'check-circle-outline',
-    }[opts.icon as string] ??
-    (opts.icon || (mta.type === 'Rating' ? 'star' : 'check-circle'))
+  const icn = opts.icon || (mta.type === 'Rating' ? 'star' : 'circle-check')
+
   return {
     ...opts,
     ...mta,
-    icon: !icn
-      ? undefined
-      : {
-          full: `mdi-${icn}`,
-          empty: `mdi-${icn}`,
-          checked: `mdi-${icn}`,
-          unchecked: `mdi-${icn}`,
-        },
+    icon: mta.type === 'Rating' ? ratingIconListMap[icn] : checkboxIconListMap[icn],
     duration: opts.duration_format ? durationOptions.find((it) => it.title === opts.duration_format)?.id : undefined,
     is12hrFormat: opts['12hr_format'],
     isLocaleString: opts.locale_string,
@@ -250,6 +239,7 @@ function isShowableValue(value: any) {
         <template v-else>
           <div
             v-if="isShowableValue(processOldDataFor(columnKey))"
+            :data-label="processOldDataFor(columnKey)"
             class="max-w-full nc-expressive-mini-item-cell nc-audit-removal !text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through"
             :class="{
               'px-1 py-0': shouldUseNormalizedPadding(columnKey),
@@ -274,6 +264,7 @@ function isShowableValue(value: any) {
           </div>
           <div
             v-if="isShowableValue(processNewDataFor(columnKey))"
+            :data-label="processNewDataFor(columnKey)"
             class="max-w-full nc-expressive-mini-item-cell nc-audit-addition border-1 border-green-200 rounded-md bg-green-50"
             :class="{
               'px-1 py-0': shouldUseNormalizedPadding(columnKey),

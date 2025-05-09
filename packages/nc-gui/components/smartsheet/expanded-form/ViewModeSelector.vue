@@ -19,6 +19,14 @@ const disabled = computed(() => {
   return !isUIAllowed('viewCreateOrEdit')
 })
 
+const isViewModeEnabled = computed(() => {
+  return (
+    isEeUI &&
+    (isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE) ||
+      isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE))
+  )
+})
+
 const items = computed(() => {
   return [
     { icon: 'menu', value: 'field', tooltip: 'Fields' },
@@ -39,7 +47,7 @@ const items = computed(() => {
 </script>
 
 <template>
-  <NcTooltip :disabled="!disabled">
+  <NcTooltip v-if="isViewModeEnabled" :disabled="!disabled">
     <template #title> You do not have permission to change view mode. </template>
     <div
       class="tab-wrapper flex flex-row rounded-lg border-1 border-nc-border-gray-medium bg-white h-7 overflow-hidden"

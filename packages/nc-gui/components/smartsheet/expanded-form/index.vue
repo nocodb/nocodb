@@ -41,8 +41,6 @@ const { copy } = useCopy()
 
 const { isMobileMode } = useGlobal()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
 
 const { t } = useI18n()
@@ -806,15 +804,7 @@ export default {
           </div>
         </div>
         <div class="ml-auto">
-          <SmartsheetExpandedFormViewModeSelector
-            v-if="
-              isEeUI &&
-              (isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE) ||
-                isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE))
-            "
-            v-model="activeViewMode"
-            class="nc-expanded-form-mode-switch"
-          />
+          <SmartsheetExpandedFormViewModeSelector v-model="activeViewMode" class="nc-expanded-form-mode-switch" />
         </div>
         <div class="flex gap-2">
           <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit') && !isSqlView">

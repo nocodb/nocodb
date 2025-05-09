@@ -32,6 +32,9 @@
       ],
       "@noco-local-integrations/*": [
         "../noco-integrations/packages/*"
+      ],
+      "@noco-local-integrations/core": [
+        "../noco-integrations/core"
       ]
     },
     "typeRoots": [

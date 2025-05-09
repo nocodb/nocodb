@@ -18,7 +18,10 @@
         "./src/*"
       ],
       "@noco-local-integrations/*": [
-        "../noco-integrations/packages/*"
+        "../noco-integrations/packages/*",
+      ],
+      "@noco-local-integrations/core": [
+        "../noco-integrations/core"
       ]
     },
     "typeRoots": [

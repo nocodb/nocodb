@@ -1,6 +1,6 @@
 {
-  "name": "@noco-integrations/auth-github",
-  "version": "1.0.0",
+  "name": "@noco-integrations/clickhouse-table-sync",
+  "version": "0.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -9,9 +9,8 @@
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
-    "@noco-integrations/core": "workspace:*",
-    "axios": "^1.9.0",
-    "octokit": "3.2.1"
+    "@clickhouse/client": "^1.11.1",
+    "@noco-integrations/core": "workspace:*"
   },
   "devDependencies": {
     "rimraf": "^5.0.10",

@@ -36,17 +36,109 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
-  packages/ai-nocodb:
+  core:
+    dependencies:
+      ai:
+        specifier: ^4.3.15
+        version: 4.3.15(react@18.3.1)(zod@3.24.4)
+      nocodb-sdk:
+        specifier: file:../../nocodb-sdk
+        version: file:../nocodb-sdk
+      zod:
+        specifier: ^3.24.4
+        version: 3.24.4
+    devDependencies:
+      '@types/node':
+        specifier: ^20.17.46
+        version: 20.17.46
+      '@vitest/coverage-v8':
+        specifier: ^3.1.3
+        version: 3.1.3(vitest@3.1.3(@types/node@20.17.46)(happy-dom@14.12.3))
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+      vitest:
+        specifier: ^3.1.3
+        version: 3.1.3(@types/node@20.17.46)(happy-dom@14.12.3)
+
+  packages/clickhouse-auth:
+    dependencies:
+      '@clickhouse/client':
+        specifier: ^1.11.1
+        version: 1.11.1
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+    devDependencies:
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
+  packages/clickhouse-table-sync:
+    dependencies:
+      '@clickhouse/client':
+        specifier: ^1.11.1
+        version: 1.11.1
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+    devDependencies:
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
+  packages/github-auth:
+    dependencies:
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+      axios:
+        specifier: ^1.9.0
+        version: 1.9.0
+      octokit:
+        specifier: 3.2.1
+        version: 3.2.1
+    devDependencies:
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
+  packages/github-issues-sync:
+    dependencies:
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+      octokit:
+        specifier: ^4.1.3
+        version: 4.1.3
+    devDependencies:
+      '@types/node':
+        specifier: ^20.17.46
+        version: 20.17.46
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
+  packages/nocodb-ai:
     dependencies:
       '@ai-sdk/openai':
         specifier: ^1.3.22
         version: 1.3.22(zod@3.24.4)
-      '@noco-integrations/ai-openai':
-        specifier: workspace:*
-        version: link:../ai-openai
       '@noco-integrations/core':
         specifier: workspace:*
-        version: link:../core
+        version: link:../../core
       ai:
         specifier: ^4.3.15
         version: 4.3.15(react@18.3.1)(zod@3.24.4)
@@ -61,14 +153,14 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
-  packages/ai-openai:
+  packages/openai-ai:
     dependencies:
       '@ai-sdk/openai':
         specifier: ^1.3.22
         version: 1.3.22(zod@3.24.4)
       '@noco-integrations/core':
         specifier: workspace:*
-        version: link:../core
+        version: link:../../core
       ai:
         specifier: ^4.3.15
         version: 4.3.15(react@18.3.1)(zod@3.24.4)
@@ -88,95 +180,6 @@ importers:
       vitest:
         specifier: ^3.1.3
         version: 3.1.3(@types/node@20.17.46)(happy-dom@14.12.3)
-
-  packages/auth-clickhouse:
-    dependencies:
-      '@clickhouse/client':
-        specifier: ^1.11.1
-        version: 1.11.1
-      '@noco-integrations/core':
-        specifier: workspace:*
-        version: link:../core
-    devDependencies:
-      rimraf:
-        specifier: ^5.0.10
-        version: 5.0.10
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
-
-  packages/auth-github:
-    dependencies:
-      '@noco-integrations/core':
-        specifier: workspace:*
-        version: link:../core
-      axios:
-        specifier: ^1.9.0
-        version: 1.9.0
-      octokit:
-        specifier: 3.2.1
-        version: 3.2.1
-    devDependencies:
-      rimraf:
-        specifier: ^5.0.10
-        version: 5.0.10
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
-
-  packages/core:
-    dependencies:
-      ai:
-        specifier: ^4.3.15
-        version: 4.3.15(react@18.3.1)(zod@3.24.4)
-      nocodb-sdk:
-        specifier: file:../../../nocodb-sdk
-        version: file:../nocodb-sdk
-      zod:
-        specifier: ^3.24.4
-        version: 3.24.4
-    devDependencies:
-      '@types/node':
-        specifier: ^20.17.46
-        version: 20.17.46
-      rimraf:
-        specifier: ^5.0.10
-        version: 5.0.10
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
-
-  packages/sync-clickhouse-table:
-    dependencies:
-      '@clickhouse/client':
-        specifier: ^1.11.1
-        version: 1.11.1
-      '@noco-integrations/core':
-        specifier: workspace:*
-        version: link:../core
-    devDependencies:
-      rimraf:
-        specifier: ^5.0.10
-        version: 5.0.10
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
-
-  packages/sync-github-issues:
-    dependencies:
-      '@noco-integrations/core':
-        specifier: workspace:*
-        version: link:../core
-      octokit:
-        specifier: ^4.1.3
-        version: 4.1.3
-    devDependencies:
-      '@types/node':
-        specifier: ^20.17.46
-        version: 20.17.46
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
 
 packages:
 

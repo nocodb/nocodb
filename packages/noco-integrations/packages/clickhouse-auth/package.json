@@ -1,5 +1,5 @@
 {
-  "name": "@noco-integrations/ai-nocodb",
+  "name": "@noco-integrations/clickhouse-auth",
   "version": "0.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,11 +9,8 @@
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^1.3.22",
-    "@noco-integrations/ai-openai": "workspace:*",
-    "@noco-integrations/core": "workspace:*",
-    "ai": "^4.3.15",
-    "zod": "^3.24.4"
+    "@clickhouse/client": "^1.11.1",
+    "@noco-integrations/core": "workspace:*"
   },
   "devDependencies": {
     "rimraf": "^5.0.10",

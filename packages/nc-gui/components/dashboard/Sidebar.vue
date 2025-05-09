@@ -42,22 +42,27 @@ onUnmounted(() => {
       outlineWidth: '1px',
     }"
   >
-    <div class="flex flex-col">
-      <DashboardSidebarHeader />
+    <template v-if="isNewSidebarEnabled">
+      <DashboardTreeViewProjectList />
+    </template>
+    <template v-else>
+      <div class="flex flex-col">
+        <DashboardSidebarHeader />
 
-      <DashboardSidebarTopSection v-if="!isSharedBase && !isNewSidebarEnabled" />
-    </div>
-    <div
-      ref="treeViewDom"
-      class="flex flex-col nc-scrollbar-dark-md flex-grow xs:(border-transparent pt-2 pr-2)"
-      :class="{
-        'border-t-1': !isSharedBase,
-        'border-transparent': !isTreeViewOnScrollTop,
-        'pt-0.25': isSharedBase,
-      }"
-    >
-      <DashboardTreeView v-if="!isWorkspaceLoading" />
-    </div>
+        <DashboardSidebarTopSection v-if="!isSharedBase && !isNewSidebarEnabled" />
+      </div>
+      <div
+        ref="treeViewDom"
+        class="flex flex-col nc-scrollbar-dark-md flex-grow xs:(border-transparent pt-2 pr-2)"
+        :class="{
+          'border-t-1': !isSharedBase,
+          'border-transparent': !isTreeViewOnScrollTop,
+          'pt-0.25': isSharedBase,
+        }"
+      >
+        <DashboardTreeView v-if="!isWorkspaceLoading" />
+      </div>
+    </template>
     <div v-if="!isSharedBase" class="nc-sidebar-bottom-section">
       <PaymentUpgradeSidebarBanner v-if="isEeUI" />
 
@@ -95,5 +100,11 @@ onUnmounted(() => {
   & > :last-child {
     @apply mb-0;
   }
+}
+</style>
+
+<style>
+.nc-treeview-header {
+  @apply px-3 py-1.5 flex gap-2 h-[var(--topbar-height)];
 }
 </style>

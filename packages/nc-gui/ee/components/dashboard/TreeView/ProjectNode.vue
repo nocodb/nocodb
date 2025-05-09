@@ -16,6 +16,8 @@ const indicator = h(LoadingOutlined, {
 const router = useRouter()
 const route = router.currentRoute
 
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
 
@@ -881,7 +883,7 @@ const onClickMenu = (e: { key?: string }) => {
                 <GeneralIcon
                   icon="chevronRight"
                   class="flex-none nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 text-[20px]"
-                  :class="{ '!rotate-90': base.isExpanded }"
+                  :class="{ '!rotate-90': base.isExpanded && !isNewSidebarEnabled }"
                 />
               </NcButton>
             </template>
@@ -890,7 +892,7 @@ const onClickMenu = (e: { key?: string }) => {
       </NcTooltip>
 
       <div
-        v-if="base.id && !base.isLoading"
+        v-if="base.id && !base.isLoading && !isNewSidebarEnabled"
         key="g1"
         class="overflow-x-hidden transition-max-height"
         :class="{ 'max-h-0': !isExpanded }"

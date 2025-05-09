@@ -66,7 +66,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     })
 
     const filtersFromUrlParams = computed(() => {
-      if (route.value.query?.where) {
+      if (route.value.query.where) {
         return extractFilterFromXwhere(
           { api_version: NcApiVersion.V1 },
           route.value.query.where as string,

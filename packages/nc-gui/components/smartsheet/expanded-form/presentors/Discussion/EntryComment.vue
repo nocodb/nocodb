@@ -263,12 +263,16 @@ async function copyComment(comment: CommentType) {
 </template>
 
 <style scoped lang="scss">
-.nc-audit-comment-block::before {
-  content: '';
-  @apply absolute -top-4 left-15.8 h-4 border-l-1 border-gray-300;
+.nc-audit-comment-block {
+  &::before {
+    content: '';
+    @apply absolute -top-4 left-15.8 h-4 border-l-1 border-gray-300;
+  }
 }
-.nc-audit-comment-block::after {
-  content: '';
-  @apply absolute -bottom-4 left-15.8 h-4 border-l-1 border-gray-300;
+.nc-audit-comment-block {
+  &::after {
+    content: '';
+    @apply absolute -bottom-4 left-15.8 h-4 border-l-1 border-gray-300;
+  }
 }
 </style>

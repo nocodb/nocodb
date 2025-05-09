@@ -110,7 +110,10 @@ export default {
             <SmartsheetExpandedFormPresentorsDiscussionEntryComment :comment="group" />
           </template>
         </div>
-        <div class="w-full border-t border-gray-200 px-6 2xl:px-0 sticky bottom-0 pb-4 -mb-4 bg-white z-10">
+        <div
+          v-if="isUIAllowed('viewCreateOrEdit')"
+          class="w-full border-t border-gray-200 px-6 2xl:px-0 sticky bottom-0 pb-4 -mb-4 bg-white z-10"
+        >
           <div class="font-bold my-3">Add a comment</div>
           <SmartsheetExpandedFormRichComment
             ref="refRichComment"
@@ -125,6 +128,10 @@ export default {
             @keydown.enter.exact.prevent="handleCreatingNewComment"
           />
         </div>
+        <div v-else class="w-full px-6 2xl:px-0">
+          <div class="w-full h-4 flex-grow ml-15.8 -mb-4 border-l-1 border-gray-300" />
+        </div>
+
         <div ref="refAuditsEnd" />
       </div>
     </div>

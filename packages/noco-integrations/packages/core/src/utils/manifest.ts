@@ -1,4 +1,5 @@
-import { IntegrationManifest, IntegrationType } from '../types';
+import { IntegrationType } from '../types';
+import type { IntegrationManifest } from '../types';
 
 /**
  * Create a properly configured integration manifest based on integration type

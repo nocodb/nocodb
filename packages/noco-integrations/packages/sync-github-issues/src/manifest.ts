@@ -1,4 +1,4 @@
-import { IntegrationManifest } from '@noco-integrations/core';
+import type { IntegrationManifest } from '@noco-integrations/core';
 
 const manifest: IntegrationManifest = {
   title: 'GitHub Issues',

@@ -51,6 +51,7 @@ export default [
           ],
         },
       ],
+      '@typescript-eslint/consistent-type-imports': 'warn',
     },
   },
   {

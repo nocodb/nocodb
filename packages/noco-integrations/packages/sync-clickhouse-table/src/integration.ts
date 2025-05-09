@@ -1,10 +1,9 @@
 import { UITypes } from 'nocodb-sdk';
-import {
+import { DataObjectStream, SyncIntegration } from '@noco-integrations/core';
+import type {
   AnyRecordType,
   AuthResponse,
-  DataObjectStream,
   SyncColumnDefinition,
-  SyncIntegration,
   SystemFieldsPayload,
 } from '@noco-integrations/core';
 import type { ClickHouseClient } from '@clickhouse/client';

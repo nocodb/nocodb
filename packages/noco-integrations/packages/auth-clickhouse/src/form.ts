@@ -1,8 +1,5 @@
-import {
-  AuthType,
-  FormBuilderInputType,
-  FormDefinition,
-} from '@noco-integrations/core';
+import { AuthType, FormBuilderInputType } from '@noco-integrations/core';
+import type { FormDefinition } from '@noco-integrations/core';
 
 export const form: FormDefinition = [
   {

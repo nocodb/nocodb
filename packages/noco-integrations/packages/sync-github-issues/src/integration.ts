@@ -1,9 +1,11 @@
 import {
-  AuthResponse,
   DataObjectStream,
-  SyncColumnDefinition,
   SyncIntegration,
   ticketingSchema,
+} from '@noco-integrations/core';
+import type {
+  AuthResponse,
+  SyncColumnDefinition,
 } from '@noco-integrations/core';
 import type { Octokit } from 'octokit';
 

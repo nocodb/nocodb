@@ -1,6 +1,7 @@
-import { FormBuilderInputType, FormDefinition } from '@noco-integrations/core';
+import { FormBuilderInputType } from '@noco-integrations/core';
 import { AuthType } from '@noco-integrations/core';
 import { authUri, clientId, redirectUri, scopes } from './config';
+import type { FormDefinition } from '@noco-integrations/core';
 
 export const form: FormDefinition = [
   {

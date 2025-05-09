@@ -1,9 +1,9 @@
 import { generateObject, type LanguageModel } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
-import {
+import { AiIntegration } from '@noco-integrations/core';
+import type {
   AiGenerateObjectArgs,
   AiGenerateObjectResponse,
-  AiIntegration,
 } from '@noco-integrations/core';
 
 const modelMap: Record<string, string> = {

@@ -1,7 +1,7 @@
 import { Readable } from 'stream';
 import { UITypes } from 'nocodb-sdk';
 import { IntegrationWrapper } from '../integration';
-import { AuthResponse } from './auth';
+import type { AuthResponse } from './auth';
 export interface DataObject<
   T = Record<string, string | number | boolean | null>,
 > {

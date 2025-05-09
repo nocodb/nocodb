@@ -1,5 +1,3 @@
-import { CoreMessage } from 'ai';
-import { Schema } from 'zod';
 import { IntegrationWrapper } from '../integration';
 
 export abstract class AiIntegration extends IntegrationWrapper {
@@ -24,8 +22,8 @@ export interface AiUsage {
 }
 
 export interface AiGenerateObjectArgs {
-  messages: CoreMessage[];
-  schema: Schema;
+  messages: any[];
+  schema: any;
   customModel?: string;
 }
 

@@ -64,6 +64,7 @@ export enum MetaTable {
   SCRIPTS = 'nc_scripts',
   SYNC_CONFIGS = 'nc_sync_configs',
   USAGE_STATS = 'nc_usage_stats',
+  MCP_TOKENS = 'nc_mcp_tokens',
 }
 
 export enum MetaTableOldV2 {
@@ -206,6 +207,7 @@ export enum CacheScope {
   RESOURCE_STATS = 'resourceStats',
   STORAGE_STATS = 'storageStats',
   CLOUD_FEATURES = 'cloudFeatures',
+  MCP_TOKEN = 'mcpToken',
 }
 
 export enum CacheGetType {
@@ -253,6 +255,7 @@ export const RootScopeTables = {
     // Temporarily added need to be discussed within team
     MetaTable.AUDIT,
     MetaTable.CUSTOM_URLS,
+    MetaTable.MCP_TOKENS,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
   // It's a special case and Workspace is equivalent to org in oss

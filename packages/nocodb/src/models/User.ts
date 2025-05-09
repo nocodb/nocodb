@@ -343,6 +343,7 @@ export default class User implements UserType {
       user?: User;
       baseId?: string;
       orgId?: string;
+      workspaceId?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {

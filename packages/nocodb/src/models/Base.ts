@@ -2,7 +2,13 @@ import { Logger } from '@nestjs/common';
 import type { BaseType, BoolType, MetaType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
 import type { NcContext } from '~/interface/config';
-import { BaseUser, CustomUrl, DataReflection, Source } from '~/models';
+import {
+  BaseUser,
+  CustomUrl,
+  DataReflection,
+  MCPToken,
+  Source,
+} from '~/models';
 import Noco from '~/Noco';
 import {
   CacheDelDirection,
@@ -318,6 +324,8 @@ export default class Base implements BaseType {
     });
 
     await DataReflection.revokeBase(base.fk_workspace_id, base.id, ncMeta);
+
+    await MCPToken.bulkDelete({ base_id: baseId }, ncMeta);
 
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');

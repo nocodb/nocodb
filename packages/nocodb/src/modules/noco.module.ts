@@ -108,6 +108,10 @@ import { TablesService } from '~/services/tables.service';
 import { UtilsService } from '~/services/utils.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
+import { McpTokenService } from '~/services/mcp.service';
+import { McpService } from '~/mcp/mcp.service';
+import { McpController } from '~/mcp/mcp.controller';
+import { InternalController } from '~/controllers/internal.controller';
 
 /* Datas */
 import { BulkDataAliasController } from '~/controllers/bulk-data-alias.controller';
@@ -214,6 +218,10 @@ export const nocoModuleMetadata = {
           ExtensionsController,
           JobsMetaController,
           IntegrationsController,
+          InternalController,
+
+          // MCP
+          McpController,
 
           /* V3 APIs */
           BasesV3Controller,
@@ -302,7 +310,8 @@ export const nocoModuleMetadata = {
     ViewsV3Service,
     FiltersV3Service,
     NocoJobsService,
-
+    McpTokenService,
+    McpService,
     /* Datas */
     DataTableService,
     DatasService,

@@ -171,6 +171,12 @@ const permissionScopes = {
     'aiUtils',
     'aiData',
     'aiBaseSchema',
+
+    // MCP
+    'mcpList',
+    'mcpCreate',
+    'mcpUpdate',
+    'mcpDelete',
   ],
 };
 
@@ -243,6 +249,12 @@ const rolePermissions:
       auditListRow: true,
 
       userInvite: true,
+
+      // MCP CRUD
+      mcpList: true,
+      mcpCreate: true,
+      mcpUpdate: true,
+      mcpDelete: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

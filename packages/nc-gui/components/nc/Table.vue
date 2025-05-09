@@ -38,7 +38,7 @@ const props = withDefaults(defineProps<Props>(), {
   customRow: () => ({}),
 })
 
-const emit = defineEmits(['update:orderBy'])
+const emit = defineEmits(['update:orderBy', 'rowClick'])
 
 const tableWrapper = ref<HTMLDivElement>()
 
@@ -125,6 +125,10 @@ useEventListener(tableWrapper, 'scroll', () => {
     tableWrapper.value?.classList.remove('sticky-border')
   }
 })
+
+const onRowClick = (record: Record<string, any>, recordIndex: number) => {
+  emit('rowClick', record, recordIndex)
+}
 </script>
 
 <template>
@@ -229,6 +233,7 @@ useEventListener(tableWrapper, 'scroll', () => {
               }"
               :class="[`${bodyRowClassName}`, `nc-table-row-${recordIndex}`]"
               v-bind="customRow ? customRow(record, recordIndex) : {}"
+              @click="onRowClick(record, recordIndex)"
             >
               <td
                 v-for="(col, colIndex) of columns"
@@ -372,6 +377,10 @@ useEventListener(tableWrapper, 'scroll', () => {
 
       &:not(.nc-table-extra-row) {
         @apply border-b-1 border-gray-200;
+      }
+
+      &.no-border-last:not(.nc-table-extra-row):last-child {
+        @apply border-b-0;
       }
 
       &.selected td {

@@ -88,8 +88,11 @@ export default {
         'flex-1': showRightSections,
       }"
     >
-      <div class="w-[680px] h-0 flex-grow ml-14 border-l-1 border-gray-300" />
-      <div v-if="mightHaveMoreAudits" class="w-[680px] h-15 flex-grow-0 flex-shrink-0 ml-14 border-l-1 border-gray-300 relative">
+      <div class="w-[680px] max-w-full h-0 flex-grow ml-26 2xl:ml-14 border-l-1 border-gray-300" />
+      <div
+        v-if="mightHaveMoreAudits"
+        class="w-[680px] max-w-full h-15 flex-grow-0 flex-shrink-0 ml-26 2xl:ml-14 border-l-1 border-gray-300 relative"
+      >
         <NcButton
           size="small"
           type="secondary"

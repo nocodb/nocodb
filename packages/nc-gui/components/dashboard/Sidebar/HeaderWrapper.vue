@@ -71,6 +71,6 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
 
 <style lang="scss" scoped>
 .nc-sidebar-header {
-  @apply px-3 py-1.5 flex gap-2 h-[var(--topbar-height)];
+  @apply px-3 py-1.5 flex items-center gap-2 h-[var(--topbar-height)];
 }
 </style>

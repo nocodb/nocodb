@@ -99,7 +99,9 @@ const createdBy = computed(() => {
         />
         <div class="text-sm ml-6.5 inline-flex items-center flex-wrap gap-1">
           <span class="text-small1 text-gray-600 font-weight-500"> changed </span>
-          <span class="rounded-md px-1 !h-[20px] inline-flex items-center gap-1 text-nc-content-gray-emphasis">
+          <span
+            class="rounded-md px-1 !h-[20px] inline-flex items-center gap-1 text-nc-content-gray-emphasis border-1 border-nc-border-gray-medium"
+          >
             <SmartsheetHeaderVirtualCellIcon
               :column-meta="{ uidt: 'Links', colOptions: { type: safeGetFromAuditDetails(props.auditGroup.audit, 'type') } }"
               class="!w-[16px] !h-[16px] !m-0"

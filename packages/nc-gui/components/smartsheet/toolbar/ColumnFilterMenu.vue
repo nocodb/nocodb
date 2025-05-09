@@ -211,16 +211,10 @@ const combinedFilterLength = computed(() => {
 
               <div
                 v-else-if="filtersFromUrlParams?.errors?.length"
-                class="nc-error-alert rounded p-4 mx-2 mt-0 transition-margin duration-500 mt-1"
+                class="px-2 transition-margin duration-500"
                 :class="{ 'mb-2': queryFilterOpen }"
               >
-                <div class="flex gap-3">
-                  <GeneralIcon icon="ncAlertCircleFilled" class="text-orange-500 w-5 h-5 mt-0.5" />
-                  <div class="flex flex-col">
-                    <div class="nc-error-title font-semibold">Error</div>
-                    <span class="nc-error-msg">{{ $t('msg.urlFilterError') }}</span>
-                  </div>
-                </div>
+                <NcAlert type="error" message="Error" :description="$t('msg.urlFilterError')" />
               </div>
             </div>
           </div>
@@ -241,21 +235,6 @@ const combinedFilterLength = computed(() => {
 </style>
 
 <style lang="scss" scoped>
-.nc-error-alert {
-  border: 1px solid var(--nc-border-grey-medium);
-  border-radius: var(--measurements-radius-small);
-
-  .nc-error-msg {
-    color: var(--nc-content-grey-muted);
-    line-height: 20px;
-  }
-
-  .nc-error-title {
-    font-size: 16px;
-    line-height: 24px;
-  }
-}
-
 .nc-error-icon {
   color: var(--nc-content-red-dark);
 }

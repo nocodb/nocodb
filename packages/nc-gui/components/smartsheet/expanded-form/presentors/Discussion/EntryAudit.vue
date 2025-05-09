@@ -99,12 +99,12 @@ const createdBy = computed(() => {
         />
         <div class="text-sm mb-1 ml-6.5 inline-flex items-center flex-wrap mt-1">
           <span class="text-[13px] text-gray-600 font-weight-500"> changed </span>
-          <span class="border-1 border-gray-300 rounded-md px-1 !h-[20px] bg-gray-200 inline-flex items-center gap-1 mx-1">
+          <span class="rounded-md px-1 !h-[20px] inline-flex items-center gap-1 mx-1 text-nc-content-gray-emphasis">
             <SmartsheetHeaderVirtualCellIcon
               :column-meta="{ uidt: 'Links', colOptions: { type: safeGetFromAuditDetails(props.auditGroup.audit, 'type') } }"
               class="!w-[16px] !h-[16px] !m-0"
             />
-            <span class="text-[13px] font-weight-500 text-gray-600">
+            <span class="text-[13px] font-weight-500">
               {{ safeGetFromAuditDetails(props.auditGroup.audit, 'link_field_title') }}
             </span>
           </span>

@@ -68,6 +68,23 @@ const {
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
 
+const showAllAttachments = ref(false)
+
+const { width: sortableRefWidth } = useElementBounding(sortableRef)
+
+const maxVisibleCards = computed(() => {
+  // min of total visible items and max cards per row * 2
+  return Math.min(visibleItems.value.length, Math.floor((sortableRefWidth.value + 8) / (124 + 8)) * 2)
+})
+
+const expandedFormVisibelItems = computed(() => {
+  if (showAllAttachments.value) {
+    return visibleItems.value
+  }
+
+  return visibleItems.value.slice(0, maxVisibleCards.value)
+})
+
 const active = inject(ActiveCellInj, ref(false))
 
 const { state: rowState, row } = useSmartsheetRowStoreOrThrow()
@@ -247,8 +264,6 @@ const attachmentSize = computed(() => {
   }
 })
 
-const showAllAttachments = ref(false)
-
 defineExpose({
   openFilePicker: openAttachmentModal,
   downloadAttachment,
@@ -307,7 +322,7 @@ onUnmounted(() => {
     <LazyCellAttachmentCarousel v-if="selectedFile" />
     <div v-if="visibleItems.length > 0" ref="sortableRef" class="flex flex-wrap items-stretch mb-2 gap-2">
       <CellAttachmentCard
-        v-for="(item, i) in showAllAttachments ? visibleItems : visibleItems.slice(0, 3)"
+        v-for="(item, i) in expandedFormVisibelItems"
         :key="`${item?.title}-${i}`"
         v-model:dragging="dragging"
         class="nc-attachment-item group gap-2 flex border-1 rounded-md border-gray-200 flex-col relative w-[124px] overflow-hidden"
@@ -323,10 +338,12 @@ onUnmounted(() => {
         @on-delete="onRemoveFileClick(item.title, i)"
       />
     </div>
-    <div v-if="visibleItems.length > 3" class="mb-2">
+    <div v-if="visibleItems.length > maxVisibleCards" class="mb-2">
       <NcButton type="text" size="small" @click="showAllAttachments = !showAllAttachments">
         {{
-          showAllAttachments ? `${$t('general.showLess')}` : `+ ${visibleItems.length - 3} ${$t('general.more').toLowerCase()}`
+          showAllAttachments
+            ? `${$t('general.showLess')}`
+            : `+ ${visibleItems.length - maxVisibleCards} ${$t('general.more').toLowerCase()}`
         }}
       </NcButton>
     </div>

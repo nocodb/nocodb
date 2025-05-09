@@ -6,7 +6,7 @@ import {
   OrgUserRoles,
   PluginCategory,
   ProjectRoles,
-  WorkspaceRolesToProjectRoles,
+  WorkspaceRolesToProjectRoles, WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
@@ -345,7 +345,7 @@ export class BaseUsersService {
     }
 
     // if old role is owner and there is only one owner then restrict to update
-    if (extractRolesObj(targetUser.base_roles)?.[ProjectRoles.OWNER]) {
+    if (this.isOldRoleIsOwner(targetUser)) {
       const baseUsers = await BaseUser.getUsersList(
         context,
         {
@@ -353,11 +353,7 @@ export class BaseUsersService {
         },
         ncMeta,
       );
-      if (
-        baseUsers.filter((u) => u.roles?.includes(ProjectRoles.OWNER))
-          .length === 1
-      )
-        NcError.badRequest('At least one owner is required');
+      this.checkMultipleOwnerExist(baseUsers);
     }
     const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
     const newRolePower = reverseOrderedProjectRoles.indexOf(
@@ -416,6 +412,47 @@ export class BaseUsersService {
     };
   }
 
+  private isOldRoleIsOwner(targetUser) {
+    // if base role is defined then check for owner role
+    if (targetUser.base_roles) {
+      const baseRole = getProjectRole(targetUser);
+      if(baseRole && Object.keys(baseRole).length) {
+        return baseRole?.[ProjectRoles.OWNER]
+      }
+    }
+
+    // if workspace_roles is present then check for owner role
+    if ((targetUser as { workspace_roles?: string }).workspace_roles) {
+      return extractRolesObj((targetUser as { workspace_roles?: string }).workspace_roles)?.[WorkspaceUserRoles.OWNER]
+    }
+
+    return false
+  }
+
+  protected checkMultipleOwnerExist(baseUsers: (Partial<User> & BaseUser)[]) {
+    if (
+      baseUsers.filter((u) => {
+        if (u.roles?.includes(ProjectRoles.OWNER)) return true;
+
+        // if workspace_roles is present then check for owner role
+        // only if base role is not present
+        if (!u.roles && (u as { workspace_roles?: string }).workspace_roles) {
+          return (
+            WorkspaceRolesToProjectRoles[
+              (
+                u as {
+                  workspace_roles?: string;
+                }
+              ).workspace_roles
+            ] === ProjectRoles.OWNER
+          );
+        }
+        return false;
+      }).length === 1
+    )
+      NcError.badRequest('At least one owner is required');
+  }
+
   async baseUserDelete(
     context: NcContext,
     param: {
@@ -459,15 +496,11 @@ export class BaseUsersService {
     }
 
     // if old role is owner and there is only one owner then restrict to delete
-    if (extractRolesObj(baseUser.base_roles)?.[ProjectRoles.OWNER]) {
+    if (this.isOldRoleIsOwner(baseUser)) {
       const baseUsers = await BaseUser.getUsersList(context, {
         base_id: param.baseId,
       });
-      if (
-        baseUsers.filter((u) => u.roles?.includes(ProjectRoles.OWNER))
-          .length === 1
-      )
-        NcError.badRequest('At least one owner is required');
+      this.checkMultipleOwnerExist(baseUsers);
     }
 
     // block self delete if user is owner or super

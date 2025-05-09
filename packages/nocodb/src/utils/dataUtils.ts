@@ -122,10 +122,16 @@ export const partialExtract = (obj: any, path: (string[] | string)[]) => {
 /**
  * Generates a batch update query using case statements
  * @param kn knex instance
- * @param tn table name
+ * @param tn table name or raw query for table
  * @param data array of objects to update (must include primary key)
  * @param pk primary key column name
  * @returns knex query object
+ *
+ * Generates queries in the format (supported by PostgreSQL, MySQL and SQLite):
+ * UPDATE table SET
+ *   col1 = CASE id WHEN 1 THEN 'val1' WHEN 2 THEN 'val2' ELSE col1 END,
+ *   col2 = CASE id WHEN 1 THEN 'val3' WHEN 2 THEN 'val4' ELSE col2 END
+ * WHERE id IN (1,2)
  */
 export function batchUpdate(
   kn: Knex,

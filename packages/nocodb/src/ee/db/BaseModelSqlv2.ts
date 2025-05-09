@@ -2314,13 +2314,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
-      if (this.model.primaryKeys.length > 1) {
-        queries.push(
-          ...toBeUpdated.map((o) =>
-            this.dbDriver(this.tnPath).update(o.d).where(o.wherePk).toQuery(),
-          ),
-        );
-      } else {
+      if (
+        this.model.primaryKeys.length === 1 &&
+        (this.isPg || this.isMySQL || this.isSqlite)
+      ) {
         queries.push(
           batchUpdate(
             this.dbDriver,
@@ -2328,6 +2325,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             toBeUpdated.map((o) => o.d),
             this.model.primaryKey.column_name,
           ).toQuery(),
+        );
+      } else {
+        queries.push(
+          ...toBeUpdated.map((o) =>
+            this.dbDriver(this.tnPath).update(o.d).where(o.wherePk).toQuery(),
+          ),
         );
       }
 

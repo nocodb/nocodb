@@ -418,9 +418,12 @@ export class BaseUsersService {
       msg: 'User has been updated successfully',
     };
   }
-
+  /**
+   * Checks if the user's current role is OWNER.
+   * This considers both base roles and workspace roles.
+   */
   private isOldRoleIsOwner(targetUser) {
-    // if base role is defined then check for owner role
+    // Check if a base role is defined and if it includes the OWNER role.
     if (targetUser.base_roles) {
       const baseRole = getProjectRole(targetUser);
       if (baseRole && Object.keys(baseRole).length) {
@@ -428,38 +431,45 @@ export class BaseUsersService {
       }
     }
 
-    // if workspace_roles is present then check for owner role
+    // Check if workspace_roles are present and if OWNER role is derived from them.
     if ((targetUser as { workspace_roles?: string }).workspace_roles) {
       return extractRolesObj(
         (targetUser as { workspace_roles?: string }).workspace_roles,
       )?.[WorkspaceUserRoles.OWNER];
     }
 
+    // Return false if no OWNER role is found.
     return false;
   }
 
+  /**
+   * Ensures that at least one owner exists among the base users.
+   * Throws a bad request error if no valid owner is found.
+   */
   protected checkMultipleOwnerExist(baseUsers: (Partial<User> & BaseUser)[]) {
-    if (
-      baseUsers.filter((u) => {
-        if (u.roles?.includes(ProjectRoles.OWNER)) return true;
+    const ownersCount = baseUsers.filter((u) => {
+      // Check if the user has an explicit OWNER role in base roles.
+      if (u.roles?.includes(ProjectRoles.OWNER)) return true;
 
-        // if workspace_roles is present then check for owner role
-        // only if base role is not present
-        if (!u.roles && (u as { workspace_roles?: string }).workspace_roles) {
-          return (
-            WorkspaceRolesToProjectRoles[
-              (
-                u as {
-                  workspace_roles?: string;
-                }
-              ).workspace_roles
-            ] === ProjectRoles.OWNER
-          );
-        }
-        return false;
-      }).length === 1
-    )
+      // If no base roles, check if the workspace role maps to an OWNER role.
+      if (!u.roles && (u as { workspace_roles?: string }).workspace_roles) {
+        return (
+          WorkspaceRolesToProjectRoles[
+            (
+              u as {
+                workspace_roles?: string;
+              }
+            ).workspace_roles
+          ] === ProjectRoles.OWNER
+        );
+      }
+      return false;
+    }).length;
+
+    // Throw error if no valid owner is found.
+    if (ownersCount < 1) {
       NcError.badRequest('At least one owner is required');
+    }
   }
 
   /**

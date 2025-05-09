@@ -62,11 +62,17 @@ onClickOutside(overlayWrapperDomRef, () => {
 const onVisibleUpdate = (event: boolean) => {
   localIsVisible.value = event
 
-  if (visible !== undefined) {
+  if (visible.value !== undefined) {
     visible.value = event
   } else {
     emits('update:visible', event)
   }
+}
+
+const onVisibilityChange = (isVisible: boolean) => {
+  if (!ncIsUndefined(props.visible)) return
+
+  localIsVisible.value = isVisible
 }
 
 watch(
@@ -89,6 +95,7 @@ watch(
     :overlay-class-name="overlayClassNameComputed"
     :overlay-style="overlayStyle"
     @update:visible="onVisibleUpdate"
+    @visible-change="onVisibilityChange"
   >
     <slot :visible="localIsVisible" :on-change="onVisibleUpdate" />
 

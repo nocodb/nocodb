@@ -15716,7 +15716,8 @@
             "type": "string",
             "enum": [
               "v1",
-              "v2"
+              "v2",
+              "v3"
             ]
           },
           "name": "version",
@@ -23711,11 +23712,13 @@
             "id": "string",
             "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
             "null": null,
-            "operation": "insert",
+            "operation": ["insert"],
             "retries": 10,
             "retry_interval": 60000,
             "timeout": 60000,
-            "title": "My Webhook"
+            "title": "My Webhook",
+            "trigger_field": false,
+            "trigger_fields": ["c2965755662b"]
           }
         ],
         "title": "Hook Model",
@@ -23769,16 +23772,16 @@
             ]
           },
           "operation": {
-            "enum": [
-              "insert",
-              "update",
-              "delete",
-              "bulkInsert",
-              "bulkUpdate",
-              "bulkDelete",
-              "trigger"
-            ],
-            "type": "string",
+            "type": "array",
+            "items": {
+              "enum": [
+                "insert",
+                "update",
+                "delete",
+                "trigger"
+              ],
+              "type": "string"
+            },
             "description": "Hook Operation",
             "example": "insert"
           },
@@ -23811,12 +23814,23 @@
             "x-stoplight": {
               "id": "socewqvadj91n"
             },
-            "example": "v2",
+            "example": "v3",
             "description": "Hook Version",
             "enum": [
               "v1",
-              "v2"
+              "v2",
+              "v3"
             ]
+          },
+          "trigger_field": {
+            "type": "boolean",
+            "description": "Is this hook only trigger when some fields are affected"
+          },
+          "trigger_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -23891,16 +23905,16 @@
             ]
           },
           "operation": {
-            "enum": [
-              "insert",
-              "update",
-              "delete",
-              "bulkInsert",
-              "bulkUpdate",
-              "bulkDelete",
-              "trigger"
-            ],
-            "type": "string",
+            "type": "array",
+            "items" : {
+              "enum": [
+                "insert",
+                "update",
+                "delete",
+                "trigger"
+              ],
+              "type": "string"
+            },
             "description": "Hook Operation",
             "example": "insert"
           },
@@ -23937,6 +23951,16 @@
               "id": "wwzoum7rrlwun"
             },
             "description": "Is this hook assoicated with some filters"
+          },
+          "trigger_field": {
+            "type": "boolean",
+            "description": "Is this hook only trigger when some fields are affected"
+          },
+          "trigger_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -24110,9 +24134,6 @@
               "insert",
               "update",
               "delete",
-              "bulkInsert",
-              "bulkUpdate",
-              "bulkDelete",
               "trigger"
             ],
             "example": "insert"

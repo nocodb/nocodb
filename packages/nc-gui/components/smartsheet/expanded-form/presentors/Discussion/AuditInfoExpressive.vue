@@ -378,7 +378,7 @@ function isShowableValue(value: any) {
       }
     }
     .nc-user-avatar {
-      @apply border-1 border-nc-gray-medium;
+      @apply border-1 border-nc-border-gray-medium !text-[8px];
       height: 16px !important;
       width: 16px !important;
     }

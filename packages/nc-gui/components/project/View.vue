@@ -19,8 +19,6 @@ const { isSharedBase } = useBase()
 
 const automationStore = useAutomationStore()
 
-const { loadAutomations } = automationStore
-
 const { automations, isAutomationActive } = storeToRefs(automationStore)
 
 const { $e, $api } = useNuxtApp()

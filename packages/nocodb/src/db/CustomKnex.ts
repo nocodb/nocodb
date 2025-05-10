@@ -510,13 +510,15 @@ export type ConditionVal = AtLeastOne<{
   nin: (number | string | Date)[];
 }>;
 
-export interface Condition {
-  _or?: Condition[];
-  _and?: Condition[];
-  _not?: Condition;
+export type Condition =
+  | {
+      _or?: Condition[];
+      _and?: Condition[];
+      _not?: Condition;
 
-  [key: string]: ConditionVal | Condition | Condition[];
-}
+      [key: string]: ConditionVal | Condition | Condition[];
+    }
+  | Knex.QueryCallback<any, any[]>;
 
 declare module 'knex' {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -624,6 +626,10 @@ knex.QueryBuilder.extend(
  * Append custom where condition(nested object) to knex query builder
  */
 knex.QueryBuilder.extend('condition', function (conditionObj, columnAliases) {
+  if (typeof conditionObj === 'function') {
+    this.where(conditionObj);
+    return this;
+  }
   if (!conditionObj || typeof conditionObj !== 'object') {
     return this;
   }

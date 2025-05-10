@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 // import { NotFoundHandlerModule } from './not-found-handler.module';
+import { ViewRowColorService } from 'src/services/view-row-color.service';
 import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
 import { JobsModule } from '~/modules/jobs/jobs.module';
 
@@ -302,6 +303,7 @@ export const nocoModuleMetadata = {
     ViewsV3Service,
     FiltersV3Service,
     NocoJobsService,
+    ViewRowColorService,
 
     /* Datas */
     DataTableService,
@@ -354,6 +356,7 @@ export const nocoModuleMetadata = {
     UtilsService,
     IntegrationsService,
     NocoJobsService,
+    ViewRowColorService,
 
     /* Datas */
     DatasService,

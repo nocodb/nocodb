@@ -9,8 +9,11 @@ export class ComputedFieldHandler extends GenericFieldHandler {
     value: any;
     row: any;
     column: Column;
-    baseModel: IBaseModelSqlV2;
-    options?: { context?: NcContext; metaService?: MetaService };
+    options?: {
+      context?: NcContext;
+      metaService?: MetaService;
+      baseModel?: IBaseModelSqlV2;
+    };
   }): Promise<{ value: any }> {
     return {
       value: undefined,

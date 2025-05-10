@@ -865,5 +865,44 @@ describe('dataApiV3', () => {
         expect(response.body.list.length).to.eq(1);
       });
     });
+
+    // describe('lookup-based', () => {
+    //   beforeEach(async () => {
+
+    //   });
+    //   it('List: lookup field', async function () {
+    //     // Create a lookup column
+    //     const lookupColumn = await createLookupColumn(testContext.context, {
+    //       base: testContext.base,
+    //       title: 'LookupField',
+    //       table: testContext.countryTable,
+    //       relatedTableName: testContext.cityTable.table_name,
+    //       relatedTableColumnTitle: 'City',
+    //     });
+
+    //     // Get list with lookup field
+    //     const rsp = await ncAxiosGet({
+    //       url: `${urlPrefix}/${testContext.countryTable.id}`,
+    //       query: {
+    //         fields: ['Country', 'LookupField'],
+    //         limit: 5,
+    //       },
+    //     });
+
+    //     expect(rsp.body.list.length).to.be.greaterThan(0);
+    //     expect(
+    //       verifyColumnsInRsp(rsp.body.list[0], [
+    //         { title: 'Country' },
+    //         { title: 'LookupField' },
+    //       ]),
+    //     ).to.equal(true);
+
+    //     // Verify lookup data structure
+    //     const firstRecord = rsp.body.list[0];
+    //     expect(firstRecord).to.have.property('Country');
+    //     expect(firstRecord).to.have.property('LookupField');
+    //     expect(Array.isArray(firstRecord.LookupField)).to.be.true;
+    //   });
+    // });
   });
 });

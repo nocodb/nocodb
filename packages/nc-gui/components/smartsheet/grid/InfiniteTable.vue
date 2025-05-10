@@ -309,7 +309,7 @@ const visibleRowsRowOnly = computed(() => {
   return visibleRows.value?.map((k) => k.row) ?? []
 })
 
-const { getLeftBorderColor, getRowColor } = useViewRowColor({
+const { getLeftBorderColor, getRowColor } = useViewRowColorRender({
   meta,
   view,
   rows: visibleRowsRowOnly,

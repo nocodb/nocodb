@@ -1,16 +1,16 @@
 import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
 
-import {
+import { Model } from '../../../src/models';
+import type {
   Base,
-  FormViewColumn,
-  GridViewColumn,
-  GalleryViewColumn,
   Column,
+  FormViewColumn,
+  GalleryViewColumn,
+  GridViewColumn,
   View,
-  Model,
 } from '../../../src/models';
-import init from '../init';
+import type init from '../init';
 
 type Context = Awaited<ReturnType<typeof init>>;
 
@@ -378,6 +378,17 @@ const customColumns = function (
                 ...optionsOverride['Rating'],
               },
             },
+        isV3
+          ? {
+              title: 'Year',
+              type: UITypes.Year,
+              description: `Year ${UITypes.Year}`,
+            }
+          : {
+              column_name: 'Year',
+              title: 'Year',
+              uidt: UITypes.Year,
+            },
       ];
     case 'dateBased':
       return [
@@ -497,7 +508,7 @@ const customColumns = function (
               title: 'MultiSelect',
               uidt: UITypes.MultiSelect,
               dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
-          },
+            },
       ];
     case 'userBased':
       return [
@@ -552,7 +563,7 @@ const customColumns = function (
               uidt: UITypes.User,
               meta: {
                 is_multi: true,
-                ...optionsOverride['userFieldMulti']
+                ...optionsOverride['userFieldMulti'],
               },
             },
       ];

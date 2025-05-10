@@ -1,11 +1,11 @@
+import { type NcContext } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
-import { DecimalGeneralHandler } from '../decimal/decimal.general.handler';
-import type { Column } from 'src/models';
+import { NumberGeneralHandler } from '../number/number.general.handler';
 import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
-import type { NcContext } from 'nocodb-sdk';
 import type { MetaService } from 'src/meta/meta.service';
+import type { Column } from 'src/models';
 
-export class NumberGeneralHandler extends DecimalGeneralHandler {
+export class YearGeneralHandler extends NumberGeneralHandler {
   override async parseUserInput(params: {
     value: any;
     row: any;
@@ -17,12 +17,14 @@ export class NumberGeneralHandler extends DecimalGeneralHandler {
     };
   }): Promise<{ value: any }> {
     const value = (await super.parseUserInput(params))?.value;
-    if (typeof value === 'number' && Math.floor(value) !== Math.ceil(value)) {
-      NcError.invalidValueForField({
-        value: params.value,
-        column: params.column.title,
-        type: params.column.uidt,
-      });
+    if (typeof value === 'number') {
+      if (value < 1000 || value > 9999) {
+        NcError.invalidValueForField({
+          value: value.toString(),
+          column: params.column.title,
+          type: params.column.uidt,
+        });
+      }
     }
     return { value };
   }

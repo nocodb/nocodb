@@ -1,12 +1,12 @@
+import { JsonGeneralHandler } from './json.general.handler';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { HandlerOptions } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
-import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
-import { sanitize } from '~/helpers/sqlSanitize';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
+import { sanitize } from '~/helpers/sqlSanitize';
 
-export class JsonMySqlHandler extends GenericFieldHandler {
+export class JsonMySqlHandler extends JsonGeneralHandler {
   override async filter(
     knex: CustomKnex,
     filter: Filter,
@@ -143,27 +143,6 @@ export class JsonMySqlHandler extends GenericFieldHandler {
           );
       }
     };
-  }
-
-  protected parseJsonValue(val: any): {
-    jsonVal: string;
-    isValidJson: boolean;
-  } {
-    let jsonVal = val;
-    let isValidJson = false;
-    if (typeof val === 'object' && val !== null) {
-      jsonVal = JSON.stringify(val);
-      isValidJson = true;
-    } else if (typeof val === 'string') {
-      try {
-        JSON.parse(val);
-        jsonVal = val;
-        isValidJson = true;
-      } catch {
-        jsonVal = val;
-      }
-    }
-    return { jsonVal, isValidJson };
   }
 
   override async verifyFilter(filter: Filter, column: Column) {

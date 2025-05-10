@@ -148,6 +148,7 @@ import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { ViewsV3Service } from '~/services/v3/views-v3.service';
+import { ViewRowColorConditionsController } from '~/controllers/view-row-color-conditions.controller';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -215,6 +216,7 @@ export const nocoModuleMetadata = {
           ExtensionsController,
           JobsMetaController,
           IntegrationsController,
+          ViewRowColorConditionsController,
 
           /* V3 APIs */
           BasesV3Controller,

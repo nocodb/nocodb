@@ -31,7 +31,6 @@ export class ViewRowColorService {
       view = params.view;
     } else if (params.fk_view_id) {
       view = await View.get(params.context, params.fk_view_id);
-      console.log(view, params.fk_view_id);
       if (!view) {
         NcError.viewNotFoundV3(params.fk_view_id);
       }

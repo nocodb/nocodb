@@ -1332,11 +1332,12 @@ describe('dataApiV3', () => {
       async function nestedAddTests(validParams, relationType?) {
         // Link Add: Invalid table ID
         if (debugMode) console.log('Link Add: Invalid table ID');
-        await ncAxiosLinkAdd({
+        const response = await ncAxiosLinkAdd({
           ...validParams,
           urlParams: { ...validParams.urlParams, tableId: 9999 },
           status: 422,
         });
+        console.log('response', response.body)
 
         // Link Add: Invalid link ID
         if (debugMode) console.log('Link Add: Invalid link ID');

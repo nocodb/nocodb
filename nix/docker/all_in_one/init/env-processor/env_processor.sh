@@ -130,6 +130,10 @@ env_aio_act() {
 			aio_ssl_email="$aio_ssl_email"
 		EOF
 
+		cat <<- EOF >> "$nocodb_env_path"
+			NC_PUBLIC_URL="https://${aio_ssl_domain}"
+		EOF
+
 		log enabled ssl
 	fi
 	cat <<- EOF >> "$acme_env_path"

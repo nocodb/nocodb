@@ -63,17 +63,17 @@ A single image that contains
 - 🔒 automated SSL certs and auto renew
 read more on our [wiki](/getting-started/self-hosted/installation/docker-aio)
 
-```
+```bash
 docker run \
 	--tmpfs /run:nodev,nosuid,exec,mode=0755 \
-	-v "($pwd)"/aio:/var \
+	-v "$(pwd)"/aio:/var \
 	-p 80:8080 \
 	-it nocodb/nocodb_aio:latest
 ```
 
 ## Nix
 
-```
+```bash
 nix run github:nocodb/nocodb/master
 ```
 

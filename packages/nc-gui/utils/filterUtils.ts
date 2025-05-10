@@ -1,11 +1,6 @@
 import {
   ClientType,
-  type ColumnType,
-  type FilterType,
-  type LinkToAnotherRecordType,
-  type LookupType,
   SqlUiFactory,
-  type TableType,
   UITypes,
   getEquivalentUIType,
   isDateMonthFormat,
@@ -13,6 +8,14 @@ import {
   isSystemColumn,
   isVirtualCol,
   numericUITypes,
+} from 'nocodb-sdk'
+import type {
+  Api,
+  type ColumnType,
+  type FilterType,
+  type LinkToAnotherRecordType,
+  type LookupType,
+  type TableType,
 } from 'nocodb-sdk'
 
 export const MAX_NESTED_LEVEL = 5
@@ -786,4 +789,16 @@ export const adjustFilterWhenColumnChange = ({
     // reset
     filter.comparison_sub_op = null
   }
+}
+
+export const deleteFilterWithSub = async ($api: Api<unknown>, filter: FilterType) => {
+  let result: string[] = []
+  if (filter.is_group && filter.children?.length > 0) {
+    for (const child of filter.children) {
+      result = [...result, ...(await deleteFilterWithSub($api, child))]
+    }
+  }
+  await $api.dbTableFilter.delete(filter.id)
+  result.push(filter.id)
+  return result
 }

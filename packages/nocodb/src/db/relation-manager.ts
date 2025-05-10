@@ -99,7 +99,7 @@ export class RelationManager {
         : context;
     const childContext =
       childColumn.base_id !== context.base_id
-        ? { ...baseModel.context, base_id: childColumn.base_id }
+        ? { ...context, base_id: childColumn.base_id }
         : context;
 
     const parentTable = await parentColumn.getModel(parentContext);

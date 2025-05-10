@@ -66,7 +66,7 @@ export const relationDataFetcher = (param: {
           qb,
           extractPkAndPv: true,
           fieldsSet: args.fieldsSet,
-          pkAndPvOnly: relationColOpts.isExternalLink(),
+          pkAndPvOnly: relationColOpts.isCrossBaseLink(),
         });
         const view = relationColOpts.fk_target_view_id
           ? await View.get(baseModel.context, relationColOpts.fk_target_view_id)
@@ -213,7 +213,7 @@ export const relationDataFetcher = (param: {
       await childModel.selectObject({
         qb,
         fieldsSet: args.fieldsSet,
-        pkAndPvOnly: relColOptions.isExternalLink(),
+        pkAndPvOnly: relColOptions.isCrossBaseLink(),
       });
 
       await childTable.getViews(childModel.context);
@@ -398,7 +398,7 @@ export const relationDataFetcher = (param: {
         await childBaseModel.selectObject({
           qb,
           fieldsSet: args.fieldSet,
-          pkAndPvOnly: relationColOpts.isExternalLink(),
+          pkAndPvOnly: relationColOpts.isCrossBaseLink(),
         });
 
         await childBaseModel.applySortAndFilter({
@@ -575,7 +575,7 @@ export const relationDataFetcher = (param: {
       await childModel.selectObject({
         qb,
         fieldsSet: args.fieldsSet,
-        pkAndPvOnly: relColOptions.isExternalLink(),
+        pkAndPvOnly: relColOptions.isCrossBaseLink(),
       });
 
       const view = relColOptions.fk_target_view_id
@@ -1008,7 +1008,7 @@ export const relationDataFetcher = (param: {
         qb,
         fieldsSet: listArgs?.fieldsSet,
         viewId: childView?.id,
-        pkAndPvOnly: relColOptions.isExternalLink(),
+        pkAndPvOnly: relColOptions.isCrossBaseLink(),
       });
 
       const aliasColObjMap = await childTable.getAliasColObjMap(
@@ -1111,7 +1111,7 @@ export const relationDataFetcher = (param: {
 
       await childBaseModel.selectObject({
         qb,
-        pkAndPvOnly: relColOptions.isExternalLink(),
+        pkAndPvOnly: relColOptions.isCrossBaseLink(),
       });
 
       const aliasColObjMap = await childTable.getAliasColObjMap(
@@ -1311,7 +1311,7 @@ export const relationDataFetcher = (param: {
         qb,
         fieldsSet: listArgs.fieldsSet,
         viewId: targetView?.id,
-        pkAndPvOnly: relColOptions.isExternalLink(),
+        pkAndPvOnly: relColOptions.isCrossBaseLink(),
       });
 
       // extract col-alias map based on the correct relation table
@@ -1576,7 +1576,7 @@ export const relationDataFetcher = (param: {
 
       await parentBaseModel.selectObject({
         qb,
-        pkAndPvOnly: relColOptions.isExternalLink(),
+        pkAndPvOnly: relColOptions.isCrossBaseLink(),
       });
 
       const aliasColObjMap = await parentTable.getAliasColObjMap(

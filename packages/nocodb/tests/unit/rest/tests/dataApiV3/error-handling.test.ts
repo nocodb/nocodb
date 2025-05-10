@@ -644,7 +644,7 @@ describe('dataApiV3', () => {
         });
         expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
         expect(
-          response.body.message.startsWith(`The date / time value is invalid`),
+          response.body.message.startsWith(`Invalid value 'HELLOW' for type `),
         ).to.eq(true);
       });
     });

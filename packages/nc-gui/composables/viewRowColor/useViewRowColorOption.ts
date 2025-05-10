@@ -98,8 +98,16 @@ export function useViewRowColorOption(params: {
       nc_order: conditions.length + 1,
     }
     conditions.push(conditionToAdd)
+
     await pushPendingAction(async () => {
-      const response = await $api.dbView.viewRowColorConditionAdd(params.view.value.id, conditionToAdd)
+      const filterToInsert = {
+        ...filter,
+      }
+      delete filterToInsert.tmp_id
+      const response = await $api.dbView.viewRowColorConditionAdd(params.view.value.id, {
+        ...conditionToAdd,
+        filter: filterToInsert,
+      })
       conditionToAdd.id = response.id
       const rowColoringResponse: RowColoringInfo = response.info
       if (conditionToAdd.conditions[0]) {
@@ -141,7 +149,7 @@ export function useViewRowColorOption(params: {
     })
   }
 
-  const onRowColorConditionFilterAdd = async (colorIndex: number, _event: FilterGroupChangeEvent) => {
+  const onRowColorConditionFilterAdd = async (colorIndex: number, params: FilterGroupChangeEvent) => {
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToAdd = conditions[colorIndex]!
     const evalColumn = filterColumns.value.find((k) => k.pv)
@@ -149,6 +157,7 @@ export function useViewRowColorOption(params: {
       id: undefined,
       tmp_id: Math.random().toString(36).substring(2, 15),
       fk_row_color_conditions_id: conditionToAdd.id,
+      fk_parent_id: params.fk_parent_id,
       fk_column_id: evalColumn.id,
       comparison_op: 'eq',
       is_group: false,
@@ -162,6 +171,11 @@ export function useViewRowColorOption(params: {
       showNullAndEmptyInFilter: baseMeta.value?.showNullAndEmptyInFilter,
     })
     conditionToAdd.conditions.push(filter)
+    if (params.fk_parent_id) {
+      conditionToAdd.conditions.find((f) => f.id === params.fk_parent_id)?.children?.push(filter)
+    } else {
+      conditionToAdd.nestedConditions.push(filter)
+    }
     await pushPendingAction(async () => {
       const result = await $api.dbTableFilter.create(view.value.id, filter)
       filter.id = result.id
@@ -169,19 +183,26 @@ export function useViewRowColorOption(params: {
     })
   }
 
-  const onRowColorConditionFilterAddGroup = async (colorIndex: number, _event: FilterGroupChangeEvent) => {
+  const onRowColorConditionFilterAddGroup = async (colorIndex: number, params: FilterGroupChangeEvent) => {
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToAdd = conditions[colorIndex]!
     const filter = {
       id: undefined,
       tmp_id: Math.random().toString(36).substring(2, 15),
       fk_row_color_conditions_id: conditionToAdd.id,
+      fk_parent_id: params.fk_parent_id,
       is_group: true,
+      children: [],
       logical_op: conditionToAdd.conditions[0]?.logical_op ?? 'and',
       order: conditionToAdd.conditions.length + 1,
     }
 
     conditionToAdd.conditions.push(filter)
+    if (params.fk_parent_id) {
+      conditionToAdd.conditions.find((f) => f.id === params.fk_parent_id)?.children?.push(filter)
+    } else {
+      conditionToAdd.nestedConditions.push(filter)
+    }
     await pushPendingAction(async () => {
       const result = await $api.dbTableFilter.create(view.value.id, filter)
       filter.id = result.id
@@ -204,6 +225,10 @@ export function useViewRowColorOption(params: {
           filter,
           showNullAndEmptyInFilter: baseMeta.value?.showNullAndEmptyInFilter,
         })
+      } else if (['logical_op'].includes(params.type)) {
+        const siblings = filter.fk_parent_id
+          ? conditionToUpdate.conditions.find((f) => f.id === filter.fk_parent_id)?.children
+          : conditionToUpdate.conditions.filter((f) => !f.fk_parent_id)
       }
     }
     await $api.dbTableFilter.update(filter!.id, filter)
@@ -213,10 +238,17 @@ export function useViewRowColorOption(params: {
     await popPendingAction()
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToDelete = conditions[colorIndex]!
+    console.log('params.filter!.id', params.filter!.id)
     const filterToDelete = conditionToDelete.conditions.find((k) => k.id === params.filter!.id)!
 
-    ;(rowColorInfo.value as RowColoringInfoFilter).conditions = conditions.filter((f) => f.id !== filterToDelete.id)
+    conditionToDelete.conditions = conditionToDelete.conditions.filter((f) => f.id !== filterToDelete.id)
     await $api.dbTableFilter.delete(filterToDelete!.id)
+    if (params.fk_parent_id) {
+      const parentFilter = conditions.find((f) => f.id === params.fk_parent_id)
+      parentFilter.children = parentFilter.children.filter((f) => f.id !== filterToDelete.id)
+    } else {
+      conditionToDelete.nestedConditions = conditionToDelete.nestedConditions.filter((f) => f.id !== filterToDelete.id)
+    }
   }
 
   const filterPerViewLimit = computed(() => getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW))

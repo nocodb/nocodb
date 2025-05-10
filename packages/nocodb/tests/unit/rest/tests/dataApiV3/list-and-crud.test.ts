@@ -184,7 +184,7 @@ describe('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}`,
           body: records.map((k) => ({
             ...k,
-            Duration: convertMS2Duration(k.Duration, 0),
+            Duration: k.Duration,
           })),
         });
 

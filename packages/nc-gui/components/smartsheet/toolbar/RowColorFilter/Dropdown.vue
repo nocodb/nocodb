@@ -16,11 +16,20 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-const { rowColorInfo, filterPerViewLimit, onDropdownOpen, onRemoveRowColoringMode, onRowColorSelectChange, filterColumns } =
-  useViewRowColorOption({
-    meta,
-    view: activeView,
-  })
+const {
+  rowColorInfo,
+  filterPerViewLimit,
+  onDropdownOpen,
+  onRemoveRowColoringMode,
+  onRowColorSelectChange,
+  onRowColorConditionAdd,
+  onRowColorConditionDelete,
+  onRowColorConditionUpdate,
+  filterColumns,
+} = useViewRowColorOption({
+  meta,
+  view: activeView,
+})
 const rowColoringMode = computed({
   set: (value) => {
     rowColorInfo.value.mode = value
@@ -58,7 +67,16 @@ const rowColoringMode = computed({
           />
         </template>
         <template #filter>
-          <SmartsheetToolbarRowColorFilterUsingFilterPanel v-model="rowColorInfo" :columns="filterColumns" />
+          <SmartsheetToolbarRowColorFilterUsingFilterPanel
+            v-model="rowColorInfo"
+            :columns="filterColumns"
+            :handler="{
+              conditionAdd: onRowColorConditionAdd,
+              conditionDelete: onRowColorConditionDelete,
+              conditionUpdate: onRowColorConditionUpdate,
+              allConditionDeleted: onRemoveRowColoringMode,
+            }"
+          />
         </template>
       </SmartsheetToolbarRowColorFilterTypeOption>
     </template>

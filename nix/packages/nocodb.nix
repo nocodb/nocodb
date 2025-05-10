@@ -32,7 +32,7 @@ stdenv.mkDerivation (finalAttrs: {
         "flake.nix"
       ]);
 
-    src = ../.;
+    src = ../../.;
   };
 
   buildPhase = ''

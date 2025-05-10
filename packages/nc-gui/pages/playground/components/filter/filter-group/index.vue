@@ -1,13 +1,14 @@
 <script lang="ts" setup>
-import { defaultColumns } from '../../../-helper/columns'
-const columns = defaultColumns
-const filters = ref([
-  {
-    is_group: true,
-    children: [],
-    logical_op: 'and',
-  },
-])
+import { mockSetupInit } from '../../../-helper/mock-setup'
+const { metas } = useMetas()
+const defaultTableId = 'mtWA9ZXvsuh'
+
+const rootMeta = ref({})
+const columns = computedAsync(async () => {
+  if (!metas.value || Object.keys(metas.value).length === 0) return []
+  return await composeColumnsForFilter({ rootMeta: rootMeta.value, getMeta: async (id) => metas.value[id] })
+})
+const filters = ref([])
 const options1 = ref({
   index: 0,
   nestedLevel: 0,
@@ -28,9 +29,9 @@ const options1 = ref({
 })
 const lastChangeEvent1 = ref({})
 const lastRowChangeEvent1 = ref({})
-const column1Id = ref(columns[0]!.id)
+const column1Id = ref(columns.value?.[0]?.id)
 const column1 = computed(() => {
-  return columns.find((col) => col.id === column1Id.value)
+  return columns.value?.find((col) => col.id === column1Id.value)
 })
 
 const onChange = (event) => {
@@ -39,6 +40,10 @@ const onChange = (event) => {
 const onRowChange = (event) => {
   lastRowChangeEvent1.value = event
 }
+onMounted(async () => {
+  await mockSetupInit()
+  rootMeta.value = metas.value[defaultTableId]
+})
 </script>
 
 <template>

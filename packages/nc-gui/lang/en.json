@@ -806,7 +806,7 @@
     "reactivateToPlan": "Reactivate {plan} plan?"
   },
   "labels": {
-    "crossBase": "Link from external base",
+    "crossBase": "Link to external base",
     "restoringSnapshot": "Restoring Snapshot",
     "note": "Note:",
     "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",

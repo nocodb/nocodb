@@ -532,22 +532,22 @@ describe('dataApiV3', () => {
         ).to.eq(true);
       });
       it(`will handle insert field format not valid for uidt Rating`, async () => {
-        if (!isPg(testContext.context)) {
-          return;
-        }
-        const response = await ncAxiosPost({
-          url: `${numberBasedUrlPrefix}/${table.id}`,
-          body: [
-            {
-              Rating: 'HELLOW',
+        const values = ['HELLOW', -1, 9999];
+        for (const value of values) {
+          const response = await ncAxiosPost({
+            url: `${urlPrefix}/${table.id}`,
+            body: {
+              Rating: value,
             },
-          ],
-          status: 422,
-        });
-        expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
-        expect(
-          response.body.message.startsWith(`Invalid value 'HELLOW' for type `),
-        ).to.eq(true);
+            status: 422,
+          });
+          expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+          expect(
+            response.body.message.startsWith(
+              `Invalid value '${value}' for type `,
+            ),
+          ).to.eq(true);
+        }
       });
       it(`will handle insert field format not valid for uidt Rating and above max`, async () => {
         if (!isPg(testContext.context)) {
@@ -571,7 +571,7 @@ describe('dataApiV3', () => {
         if (!isPg(testContext.context)) {
           return;
         }
-        for (const year of [99, 19999, 'HELLOW', 19.778]) {
+        for (const year of [99, 19999, 'HELLOW', 19.778, -123]) {
           const response = await ncAxiosPost({
             url: `${urlPrefix}/${table.id}`,
             body: [
@@ -591,17 +591,22 @@ describe('dataApiV3', () => {
       });
 
       it('will handle insert field format not valid for uidt Duration', async () => {
-        const response = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
-          body: {
-            Duration: 'HELLOW',
-          },
-          status: 422,
-        });
-        expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
-        expect(
-          response.body.message.startsWith(`Invalid value 'HELLOW' for type `),
-        ).to.eq(true);
+        const values = ['HELLOW', -1, 1.365];
+        for (const value of values) {
+          const response = await ncAxiosPost({
+            url: `${urlPrefix}/${table.id}`,
+            body: {
+              Duration: value,
+            },
+            status: 422,
+          });
+          expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+          expect(
+            response.body.message.startsWith(
+              `Invalid value '${value}' for type `,
+            ),
+          ).to.eq(true);
+        }
       });
 
       it(`will handle insert field more than 10 rows`, async () => {

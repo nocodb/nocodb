@@ -40,6 +40,17 @@ export interface FieldHandlerInterface {
     column: Column,
     options?: HandlerOptions,
   ): Promise<FilterVerificationResult>;
+
+  parseValue(params: {
+    value: any;
+    row: any;
+    column: Column;
+    baseModel: IBaseModelSqlV2;
+    options?: {
+      context?: NcContext;
+      metaService?: MetaService;
+    };
+  }): Promise<any>;
 }
 
 export interface IFieldHandler {
@@ -72,4 +83,15 @@ export interface IFieldHandler {
   ): Promise<FilterVerificationResult>;
 
   verifyFilters(filters: Filter[], options?: HandlerOptions): Promise<boolean>;
+
+  parseValue(params: {
+    value: any;
+    row: any;
+    column: Column;
+    baseModel: IBaseModelSqlV2;
+    options?: {
+      context?: NcContext;
+      metaService?: MetaService;
+    };
+  }): Promise<any>;
 }

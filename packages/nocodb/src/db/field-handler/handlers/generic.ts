@@ -1,3 +1,9 @@
+import {
+  ClientType,
+  ColumnHelper,
+  type NcContext,
+  SqlUiFactory,
+} from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type {
@@ -6,6 +12,8 @@ import type {
   HandlerOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
+import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
+import type { MetaService } from 'src/meta/meta.service';
 import { getAs, getColumnName } from '~/helpers/dbHelpers';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { sanitize } from '~/helpers/sqlSanitize';
@@ -121,5 +129,29 @@ export class GenericFieldHandler implements FieldHandlerInterface {
     return {
       isValid: true,
     };
+  }
+
+  async parseValue(params: {
+    value: any;
+    row: any;
+    column: Column;
+    baseModel: IBaseModelSqlV2;
+    options?: {
+      context?: NcContext;
+      metaService?: MetaService;
+    };
+  }): Promise<any> {
+    const dbClientType = params.baseModel.dbDriver.client.config.client;
+
+    return ColumnHelper.parseValue(params.value, {
+      col: params.column,
+      abstractType: SqlUiFactory.create({
+        client: dbClientType,
+      }).getAbstractType(params.column),
+      rowId: params.baseModel.extractPksValues(params.row, true),
+      isMssql: (_sourceid) => dbClientType === ClientType.MSSQL,
+      isMysql: (_sourceid) => dbClientType === ClientType.MYSQL,
+      isPg: (_sourceid) => dbClientType === ClientType.PG,
+    });
   }
 }

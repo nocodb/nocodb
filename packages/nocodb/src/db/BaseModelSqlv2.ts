@@ -6660,7 +6660,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         data[column.column_name] = (
           await FieldHandler.fromBaseModel(this).parseUserInput({
             value: data[column.column_name],
-            baseModel: this,
             column,
             row: data,
             options: {

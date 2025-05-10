@@ -100,10 +100,7 @@ function handleMouseMove(e: MouseEvent) {
   if (!wrapperRef.value) return
   if (sidebarState.value === 'openEnd') return
 
-  if (
-    e.clientX < 4 + miniSidebarWidth.value + miniSidebarWidth.value &&
-    ['hiddenEnd', 'peekCloseEnd'].includes(sidebarState.value)
-  ) {
+  if (e.clientX < 4 + miniSidebarWidth.value && ['hiddenEnd', 'peekCloseEnd'].includes(sidebarState.value)) {
     sidebarState.value = 'peekOpenStart'
 
     setTimeout(() => {

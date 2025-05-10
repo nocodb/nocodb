@@ -18,6 +18,8 @@ const { addUndo, defineModelScope } = useUndoRedo()
 
 const { ncNavigateTo, isMobileMode } = useGlobal()
 
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const bases = useBases()
 
 const { isUIAllowed } = useRoles()
@@ -270,7 +272,12 @@ onMounted(() => {
     class="nc-scripts-menu flex flex-col w-full !border-r-0 !bg-inherit"
   >
     <template v-if="!isSharedBase && isUIAllowed('scriptCreateOrEdit')">
-      <div class="!pl-13.3 !xs:(pl-13.5)" @click="openNewScriptModal">
+      <div
+        :class="{
+          '!pl-13.3 !xs:(pl-13.5)': !isNewSidebarEnabled,
+        }"
+        @click="openNewScriptModal"
+      >
         <div
           :class="{
             'text-brand-500 hover:text-brand-600': openedProject?.id === baseId,

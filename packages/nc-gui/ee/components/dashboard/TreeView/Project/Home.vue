@@ -629,7 +629,7 @@ const onClickMenu = (e: { key?: string }) => {
           </div>
         </NcButton>
       </div>
-      <div class="relative nc-scrollbar-thin">
+      <div class="h-[calc(100vh_-_96px)] relative overflow-auto nc-scrollbar-thin">
         <div class="nc-project-home-section">
           <div class="nc-project-home-section-header">Tables</div>
           <div
@@ -656,7 +656,7 @@ const onClickMenu = (e: { key?: string }) => {
               <LayoutsSideBar v-if="isExpanded" :base="base" />
             </div>
             <template v-else-if="base?.sources">
-              <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
+              <div class="flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
                 <div v-if="base?.sources?.[0]?.enabled" class="flex-1">
                   <div class="transition-height duration-200">
                     <DashboardTreeViewTableList :base="base" :source-index="0" />
@@ -864,8 +864,8 @@ const onClickMenu = (e: { key?: string }) => {
             </template>
           </div>
         </div>
+        <Automation v-if="isAutomationEnabled && !isSharedBase" :base-id="base.id" />
       </div>
-      <Automation v-if="isAutomationEnabled && !isSharedBase" :base-id="base.id" />
     </div>
   </div>
 </template>
@@ -875,7 +875,7 @@ const onClickMenu = (e: { key?: string }) => {
   @apply px-1 pb-3;
 
   .nc-project-home-section-header {
-    @apply w-full px-3 py-1.5 flex items-center gap-2 h-8 text-nc-content-gray-muted text-captionBold;
+    @apply w-full px-3 py-1.5 flex items-center gap-2 h-8 text-nc-content-gray-muted text-captionBold sticky top-0 bg-nc-bg-gray-extralight z-2;
   }
 }
 </style>

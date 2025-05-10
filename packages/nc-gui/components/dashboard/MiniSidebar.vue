@@ -29,10 +29,6 @@ const isProjectPageOpen = computed(() => {
   )
 })
 
-watchEffect(() => {
-  console.log('min', route.value)
-})
-
 const navigateToProjectPage = () => {
   if (route.value.name?.startsWith('index-typeOrId-baseId-')) {
     showProjectList.value = !showProjectList.value

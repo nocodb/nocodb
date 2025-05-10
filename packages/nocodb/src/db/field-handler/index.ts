@@ -21,6 +21,7 @@ import { PercentGeneralHandler } from './handlers/percent/percent.general.handle
 import { RatingGeneralHandler } from './handlers/rating/rating.general.handler';
 import { YearGeneralHandler } from './handlers/year/year.general.handler';
 import { UserGeneralHandler } from './handlers/user/user.general.handler';
+import { DurationGeneralHandler } from './handlers/duration/duration.general.handler';
 import type { Logger } from '@nestjs/common';
 import type { MetaService } from 'src/meta/meta.service';
 import type CustomKnex from '../CustomKnex';
@@ -103,7 +104,9 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.Percent]: {
     [CLIENT_DEFAULT]: PercentGeneralHandler,
   },
-  [UITypes.Duration]: {},
+  [UITypes.Duration]: {
+    [CLIENT_DEFAULT]: DurationGeneralHandler,
+  },
   [UITypes.Rating]: {
     [CLIENT_DEFAULT]: RatingGeneralHandler,
   },

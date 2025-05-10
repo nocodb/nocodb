@@ -25,6 +25,8 @@ export const useBases = defineStore('basesStore', () => {
   const router = useRouter()
   const route = router.currentRoute
 
+  const showProjectList = ref<boolean>(true)
+
   const activeProjectId = computed(() => {
     if (route.value.params.typeOrId === 'base') {
       return basesList.value?.[0]?.id
@@ -482,6 +484,7 @@ export const useBases = defineStore('basesStore', () => {
     basesUser,
     clearBasesUser,
     isDataSourceLimitReached,
+    showProjectList,
   }
 })
 

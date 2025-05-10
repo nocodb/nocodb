@@ -6,7 +6,7 @@ import FeedYoutube from './Youtube/index.vue'
 // import FeedRoadmap from './Roadmap.vue'
 const { activeTab } = useProductFeed()
 
-const { hideSidebar } = storeToRefs(useSidebarStore())
+const { hideSidebar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const { $e } = useNuxtApp()
 
@@ -62,12 +62,18 @@ watch(activeTab, (val) => {
 })
 
 onMounted(() => {
-  hideSidebar.value = true
+  if (isNewSidebarEnabled.value) {
+    hideSidebar.value = true
+  }
 
   const tab = router.currentRoute.value.query.tab as string
   if (tab && tabs.some((t) => t.key === tab)) {
     activeTab.value = tab
   }
+})
+
+onBeforeUnmount(() => {
+  hideSidebar.value = false
 })
 </script>
 

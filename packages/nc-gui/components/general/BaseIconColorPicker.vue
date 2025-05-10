@@ -69,7 +69,7 @@ watch(
         }"
         @click="onClick"
       >
-        <NcTooltip placement="topLeft" :disabled="readonly">
+        <NcTooltip placement="topLeft" :disabled="readonly || isOpen">
           <template #title> {{ $t('tooltip.changeIconColour') }} </template>
 
           <div>

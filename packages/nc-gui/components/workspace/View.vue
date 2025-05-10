@@ -105,6 +105,8 @@ watch(
 )
 
 onMounted(() => {
+  if (!isNewSidebarEnabled.value) return
+
   hideSidebar.value = true
 })
 

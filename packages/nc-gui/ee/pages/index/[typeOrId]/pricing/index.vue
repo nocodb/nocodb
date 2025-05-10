@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { PlanTitles } from 'nocodb-sdk'
 
-const { hideSidebar, showTopbar } = storeToRefs(useSidebarStore())
+const { hideSidebar, showTopbar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const { appInfo } = useGlobal()
 
@@ -25,7 +25,10 @@ const {
 const frameLoaded = ref(false)
 
 onMounted(() => {
-  hideSidebar.value = true
+  if (isNewSidebarEnabled.value) {
+    hideSidebar.value = true
+  }
+
   showTopbar.value = true
 
   paymentMode.value = activeSubscription.value?.period || 'year'

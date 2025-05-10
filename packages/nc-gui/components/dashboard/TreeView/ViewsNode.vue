@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { type TableType, ViewLockType, type ViewType, type ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import { LockType, isDefaultBase as _isDefaultBase } from '#imports'
+import { LockType, isDefaultBase } from '#imports'
 
 interface Props {
   view: ViewType
@@ -44,6 +44,8 @@ const { isUIAllowed } = useRoles()
 
 const base = inject(ProjectInj, ref())
 
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const { activeView } = storeToRefs(useViewsStore())
 
 const { getMeta } = useMetas()
@@ -60,13 +62,13 @@ provide(MetaInj, injectedTable)
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const isDefaultBase = computed(() => {
+const isDefaultBaseLocal = computed(() => {
   if (base.value?.sources?.length === 1) return true
 
   const source = base.value?.sources?.find((b) => b.id === vModel.value.source_id)
   if (!source) return false
 
-  return _isDefaultBase(source)
+  return isDefaultBase(source)
 })
 
 const { openViewDescriptionDialog: _openViewDescriptionDialog } = inject(TreeViewInj)!
@@ -286,8 +288,10 @@ watch(isDropdownOpen, async () => {
   <a-menu-item
     class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-gray-700 !flex !items-center hover:(!bg-gray-200 !text-gray-700) cursor-pointer"
     :class="{
-      '!pl-13.5 !xs:(pl-12)': isDefaultBase,
-      '!pl-19 ': !isDefaultBase,
+      '!pl-13.5 !xs:(pl-12)': isDefaultBaseLocal && !isNewSidebarEnabled,
+      '!pl-19': !isDefaultBase && !isNewSidebarEnabled,
+      '!pl-7.5 !xs:(pl-7.5)': isDefaultBaseLocal && isNewSidebarEnabled,
+      '!pl-13': !isDefaultBase && isNewSidebarEnabled,
     }"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @click.prevent="handleOnClick"

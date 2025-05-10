@@ -5,6 +5,14 @@ import type { BaseType, SourceType, TableType, WorkspaceUserRoles } from 'nocodb
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import Automation from './Automation.vue'
 
+interface Props {
+  isProjectHeader?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {})
+
+const { isProjectHeader } = toRefs(props)
+
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
   style: {
@@ -45,7 +53,7 @@ const basesStore = useBases()
 
 const { createProject: _createProject, updateProject, toggleStarred, loadProject } = basesStore
 
-const { bases, activeProjectId, basesUser } = storeToRefs(basesStore)
+const { bases, activeProjectId, basesUser, showProjectList } = storeToRefs(basesStore)
 
 const collaborators = computed(() => {
   return (basesUser.value.get(base.value?.id) || []).map((user: any) => {
@@ -234,10 +242,6 @@ const updateProjectTitle = async () => {
   }
 }
 
-defineExpose({
-  enableEditMode,
-})
-
 const setColor = async (color: string, base: BaseType) => {
   try {
     const meta = {
@@ -370,7 +374,7 @@ const addNewProjectChildEntity = async () => {
 // todo: temp
 
 const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
-  if (!base) {
+  if (!base || isProjectHeader.value) {
     return
   }
 
@@ -457,6 +461,8 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
     const updatedProject = bases.value.get(base.id!)!
     updatedProject.isLoading = false
   }
+
+  showProjectList.value = false
 }
 
 // TODO - implement
@@ -616,14 +622,20 @@ const onClickMenu = (e: { key?: string }) => {
   }
   isOptionsOpen.value = false
 }
+
+defineExpose({
+  enableEditMode,
+  addNewProjectChildEntity,
+  isAddNewProjectChildEntityLoading,
+})
 </script>
 
 <template>
   <NcDropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
     <div
       ref="labelEl"
-      class="ml-1 mr-0.5 nc-base-sub-menu rounded-md"
-      :class="{ active: isExpanded }"
+      class="mr-0.5 nc-base-sub-menu rounded-md"
+      :class="{ 'active': isExpanded, 'ml-1': !isProjectHeader }"
       :data-testid="`nc-sidebar-base-${base.title}`"
       :data-base-id="base.id"
     >
@@ -631,8 +643,15 @@ const onClickMenu = (e: { key?: string }) => {
         :tooltip-style="{ width: '240px', zIndex: '1049' }"
         :overlay-inner-style="{ width: '240px' }"
         trigger="hover"
-        placement="right"
-        :disabled="editMode || isOptionsOpen || isAddNewProjectChildEntityLoading || !showNodeTooltip || !collaborators.length"
+        :placement="isProjectHeader ? 'rightTop' : 'right'"
+        :disabled="
+          editMode ||
+          isOptionsOpen ||
+          isAddNewProjectChildEntityLoading ||
+          !showNodeTooltip ||
+          !collaborators.length ||
+          isProjectHeader
+        "
       >
         <template #title>
           <div class="flex flex-col gap-3">
@@ -663,13 +682,15 @@ const onClickMenu = (e: { key?: string }) => {
         </template>
         <div class="flex items-center gap-0.75 py-0.5 cursor-pointer" @contextmenu="setMenuContext('base', base)">
           <div
+            class="nc-sidebar-node base-title-node flex-grow rounded-md group flex items-center w-full"
             :class="{
-              'bg-primary-selected active': activeProjectId === base.id && baseViewOpen && !isMobileMode,
-              'hover:bg-gray-200': !(activeProjectId === base.id && baseViewOpen),
+              'text-subHeading2': isProjectHeader,
+              'h-7 pr-1 pl-1.5 xs:(pl-0)': !isProjectHeader,
+              'bg-primary-selected active': activeProjectId === base.id && baseViewOpen && !isMobileMode && !isProjectHeader,
+              'hover:bg-gray-200': !(activeProjectId === base.id && baseViewOpen) && !isProjectHeader,
             }"
             :data-id="base.id"
             :data-testid="`nc-sidebar-base-title-${base.title}`"
-            class="nc-sidebar-node base-title-node h-7 flex-grow rounded-md group flex items-center w-full pr-1 pl-1.5 xs:(pl-0)"
           >
             <div
               class="flex items-center mr-1"
@@ -852,7 +873,10 @@ const onClickMenu = (e: { key?: string }) => {
               </NcDropdown>
 
               <NcButton
-                v-if="isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source: base?.sources?.[0] })"
+                v-if="
+                  isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source: base?.sources?.[0] }) &&
+                  !isProjectHeader
+                "
                 :disabled="!base?.sources?.[0]?.enabled"
                 class="nc-sidebar-node-btn"
                 type="text"
@@ -871,6 +895,7 @@ const onClickMenu = (e: { key?: string }) => {
               </NcButton>
 
               <NcButton
+                v-if="!isProjectHeader"
                 v-e="['c:base:expand']"
                 type="text"
                 size="xxsmall"

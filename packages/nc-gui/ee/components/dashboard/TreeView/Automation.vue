@@ -5,6 +5,8 @@ const props = defineProps<{
 
 const baseId = toRef(props, 'baseId')
 
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const { ncNavigateTo } = useGlobal()
 
 const workspaceStore = useWorkspace()
@@ -35,7 +37,12 @@ const openAutomations = () => {
     loadAutomations({ baseId: baseId.value })
     isOptionsOpen.value = true
     isExpanded.value = true
+  } else if (isExpanded.value && isNewSidebarEnabled.value) {
+    isOptionsOpen.value = false
+    isExpanded.value = false
   }
+
+  if (isNewSidebarEnabled.value) return
 
   ncNavigateTo({
     workspaceId: activeWorkspaceId.value ?? 'nc',

@@ -23,6 +23,8 @@ const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const { baseTables } = storeToRefs(useTablesStore())
 const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
 
@@ -137,8 +139,8 @@ const availableTables = computed(() => {
         v-if="availableTables.length === 0"
         class="py-0.5 text-gray-500"
         :class="{
-          'ml-8.5': sourceIndex === 0,
-          'ml-14.5 xs:(ml-15.25)': sourceIndex !== 0,
+          'ml-8.5': sourceIndex === 0 && !isNewSidebarEnabled,
+          'ml-14.5 xs:(ml-15.25)': sourceIndex !== 0 && !isNewSidebarEnabled,
         }"
       >
         {{ $t('general.empty') }}

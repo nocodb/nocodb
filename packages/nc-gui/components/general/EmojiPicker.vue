@@ -91,7 +91,7 @@ watch(isOpen, (val) => {
       @click="onClick"
     >
       <template v-if="!emojiRef">
-        <slot name="default" />
+        <slot name="default" :isOpen="isOpen" />
       </template>
       <template v-else-if="isUnicodeEmoji(emojiRef)">
         {{ emojiRef }}

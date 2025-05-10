@@ -18,7 +18,7 @@ const basesStore = useBases()
 
 const { createProject: _createProject, updateProject } = basesStore
 
-const { bases, basesList, activeProjectId } = storeToRefs(basesStore)
+const { bases, basesList, activeProjectId, openedProject, showProjectList } = storeToRefs(basesStore)
 
 const baseStore = useBase()
 
@@ -52,6 +52,10 @@ const dashboardProjectCreateDlg = ref(false)
 
 const starredProjectList = computed(() => basesList.value.filter((base) => base.starred))
 const nonStarredProjectList = computed(() => basesList.value.filter((base) => !base.starred))
+
+const openedBase = computed(() => {
+  return basesList.value.find((b) => b.id === activeProjectId.value)
+})
 
 const contextMenuTarget = reactive<{ type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 
@@ -250,6 +254,10 @@ const isCreateTableAllowed = computed(
     route.value.name !== 'index-user-index',
 )
 
+const isBaseSelected = computed(() => {
+  return !!(route.value.name as string)?.startsWith('index-typeOrId-baseId-')
+})
+
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
 
@@ -360,62 +368,69 @@ const onMove = async (
 
 <template>
   <div>
-    <DashboardSidebarHeaderWrapper></DashboardSidebarHeaderWrapper>
+    <div v-show="showProjectList">
+      <DashboardSidebarHeaderWrapper></DashboardSidebarHeaderWrapper>
 
-    <div class="nc-treeview-container flex flex-col justify-between select-none pl-0.5">
-      <div ref="treeViewDom" mode="inline" class="nc-treeview pb-0.5 flex-grow h-full overflow-hidden h-full">
-        <template v-if="starredProjectList?.length">
+      <div class="nc-treeview-container flex flex-col justify-between select-none pl-0.5">
+        <div ref="treeViewDom" mode="inline" class="nc-treeview pb-0.5 flex-grow h-full overflow-hidden">
+          <template v-if="starredProjectList?.length">
+            <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
+              <div class="text-gray-500 font-medium">Starred</div>
+            </div>
+            <div>
+              <Draggable
+                :model-value="starredProjectList"
+                :disabled="isMobileMode || !isUIAllowed('baseReorder') || starredProjectList?.length < 2"
+                item-key="starred-project"
+                handle=".base-title-node"
+                ghost-class="ghost"
+                :filter="isTouchEvent"
+                @change="onMove($event, starredProjectList)"
+              >
+                <template #item="{ element: baseItem }">
+                  <div :key="baseItem.id">
+                    <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
+                      <DashboardTreeViewProjectNode />
+                    </ProjectWrapper>
+                  </div>
+                </template>
+              </Draggable>
+            </div>
+          </template>
           <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
-            <div class="text-gray-500 font-medium">Starred</div>
+            <div class="text-gray-500 font-medium">{{ $t('objects.projects') }}</div>
           </div>
-          <div>
+          <div v-if="nonStarredProjectList?.length">
             <Draggable
-              :model-value="starredProjectList"
-              :disabled="isMobileMode || !isUIAllowed('baseReorder') || starredProjectList?.length < 2"
-              item-key="starred-project"
+              v-model="nonStarredProjectList"
+              :disabled="isMobileMode || !isUIAllowed('baseReorder') || nonStarredProjectList?.length < 2"
+              item-key="non-starred-project"
               handle=".base-title-node"
               ghost-class="ghost"
               :filter="isTouchEvent"
-              @change="onMove($event, starredProjectList)"
+              @change="onMove($event, nonStarredProjectList)"
             >
               <template #item="{ element: baseItem }">
                 <div :key="baseItem.id">
-                  <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
+                  <ProjectWrapper :base-role="baseItem.project_role || stringifyRolesObj(workspaceRoles)" :base="baseItem">
                     <DashboardTreeViewProjectNode />
                   </ProjectWrapper>
                 </div>
               </template>
             </Draggable>
           </div>
-        </template>
-        <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
-          <div class="text-gray-500 font-medium">{{ $t('objects.projects') }}</div>
-        </div>
-        <div v-if="nonStarredProjectList?.length">
-          <Draggable
-            v-model="nonStarredProjectList"
-            :disabled="isMobileMode || !isUIAllowed('baseReorder') || nonStarredProjectList?.length < 2"
-            item-key="non-starred-project"
-            handle=".base-title-node"
-            ghost-class="ghost"
-            :filter="isTouchEvent"
-            @change="onMove($event, nonStarredProjectList)"
-          >
-            <template #item="{ element: baseItem }">
-              <div :key="baseItem.id">
-                <ProjectWrapper :base-role="baseItem.project_role || stringifyRolesObj(workspaceRoles)" :base="baseItem">
-                  <DashboardTreeViewProjectNode />
-                </ProjectWrapper>
-              </div>
-            </template>
-          </Draggable>
+
+          <WorkspaceEmptyPlaceholder v-else-if="!basesList.length && !isWorkspaceLoading" />
         </div>
 
-        <WorkspaceEmptyPlaceholder v-else-if="!basesList.length && !isWorkspaceLoading" />
+        <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
+        <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
       </div>
-
-      <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
-      <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
+    </div>
+    <div v-show="activeProjectId && openedBase?.id && !showProjectList">
+      <ProjectWrapper :base-role="openedBase?.project_role || stringifyRolesObj(workspaceRoles)" :base="openedBase">
+        <DashboardTreeViewProjectHome />
+      </ProjectWrapper>
     </div>
   </div>
 </template>

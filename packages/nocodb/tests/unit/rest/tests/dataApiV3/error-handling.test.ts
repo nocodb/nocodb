@@ -6,7 +6,9 @@ import { createBulkRows } from '../../../factory/row';
 import { createTable, getTable } from '../../../factory/table';
 import { createUser } from '../../../factory/user';
 import { isPg } from '../../../init/db';
+import { customColumns } from '../../../factory/column';
 import {
+  beforeEachCheckbox,
   beforeEachDateBased,
   beforeEachNumberBased,
   beforeEachSelectBased,
@@ -712,6 +714,49 @@ describe('dataApiV3', () => {
         expect(rspMulti.body.message).to.equal(
           'Invalid option(s) "jan2, mar2" provided for column "MultiSelect"',
         );
+      });
+    });
+
+    describe('checkbox', () => {
+      let table: Model;
+      let columns: Column[] = [];
+
+      beforeEach(async function () {
+        const initResult = await beforeEachCheckbox(testContext);
+        table = initResult.table;
+        columns = initResult.columns;
+        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      });
+
+      it(`will handle insert field format not valid`, async () => {
+        const insertCases = [
+          [
+            {
+              Checkbox: 'anythingelse',
+            },
+          ],
+          [
+            {
+              Checkbox: 'true',
+            },
+            {
+              Checkbox: 'anythingelse',
+            },
+          ],
+        ];
+        for (const insertCase of insertCases) {
+          const response = await ncAxiosPost({
+            url: `${urlPrefix}/${table.id}`,
+            body: insertCase,
+            status: 422,
+          });
+          expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+          expect(
+            response.body.message.startsWith(
+              `Invalid value 'anythingelse' for type `,
+            ),
+          ).to.eq(true);
+        }
       });
     });
   });

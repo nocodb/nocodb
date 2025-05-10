@@ -773,3 +773,9 @@ export const getLighterTint = (
     v: 100 + (option?.brightnessMod ?? 0),
   }).toHexString()
 }
+
+export const getOppositeColorOfBackground = (color: string) => {
+  return tinycolor.isReadable(color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+    ? '#fff'
+    : tinycolor.mostReadable(color || '#ccc', ['#0b1d05', '#fff']).toHex8String()
+}

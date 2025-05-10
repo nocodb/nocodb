@@ -16,7 +16,6 @@ interface Props {
   // some view is different when locked view but not disabled
   isLockedView?: boolean
   isLogicalOpChangeAllowed?: boolean
-  sentryProps?: any
   containerProps?: any
   logicalOpsProps?: any
   columnSelectProps?: any
@@ -284,7 +283,7 @@ const onChangeToDynamic = async () => {
     </template>
     <template v-else>
       <NcSelect
-        v-e="['c:filter:logical-op:select', sentryProps]"
+        v-e="['c:filter:logical-op:select', { link: !!link, webHook: !!webHook }]"
         v-bind="logicalOpsProps"
         :value="vModel.logical_op"
         :dropdown-match-select-width="false"
@@ -331,7 +330,7 @@ const onChangeToDynamic = async () => {
       />
       <NcSelect
         v-if="comparisonOps && comparisonOps.length > 0"
-        v-e="['c:filter:comparison-op:select', sentryProps]"
+        v-e="['c:filter:comparison-op:select', { link: !!link, webHook: !!webHook }]"
         v-bind="comparisonOpsProps"
         :value="vModel.comparison_op"
         :dropdown-match-select-width="false"
@@ -370,7 +369,7 @@ const onChangeToDynamic = async () => {
         <template v-if="comparisonSubOps && comparisonSubOps.length > 0">
           <NcSelect
             v-model:value="vModel.comparison_sub_op"
-            v-e="['c:filter:sub-comparison-op:select', sentryProps]"
+            v-e="['c:filter:sub-comparison-op:select', { link: !!link, webHook: !!webHook }]"
             v-bind="comparisonSubOpsProps"
             :dropdown-match-select-width="false"
             class="caption nc-filter-sub_operation-select min-w-28"
@@ -494,7 +493,7 @@ const onChangeToDynamic = async () => {
         <!-- if locked view, do not hide the button -->
         <NcButton
           v-if="!vModel.readOnly && !disabled"
-          v-e="['c:filter:delete', sentryProps]"
+          v-e="['c:filter:delete', { link: !!link, webHook: !!webHook }]"
           v-bind="deleteButtonProps"
           type="text"
           size="small"

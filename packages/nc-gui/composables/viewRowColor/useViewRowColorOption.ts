@@ -168,6 +168,27 @@ export function useViewRowColorOption(params: {
       filter.tmp_id = result.id
     })
   }
+
+  const onRowColorConditionFilterAddGroup = async (colorIndex: number, _event: FilterGroupChangeEvent) => {
+    const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
+    const conditionToAdd = conditions[colorIndex]!
+    const filter = {
+      id: undefined,
+      tmp_id: Math.random().toString(36).substring(2, 15),
+      fk_row_color_conditions_id: conditionToAdd.id,
+      is_group: true,
+      logical_op: conditionToAdd.conditions[0]?.logical_op ?? 'and',
+      order: conditionToAdd.conditions.length + 1,
+    }
+
+    conditionToAdd.conditions.push(filter)
+    await pushPendingAction(async () => {
+      const result = await $api.dbTableFilter.create(view.value.id, filter)
+      filter.id = result.id
+      filter.tmp_id = result.id
+    })
+  }
+
   const onRowColorConditionFilterUpdate = async (colorIndex: number, params: FilterRowChangeEvent) => {
     await popPendingAction()
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
@@ -188,6 +209,16 @@ export function useViewRowColorOption(params: {
     await $api.dbTableFilter.update(filter!.id, filter)
   }
 
+  const onRowColorConditionFilterDelete = async (colorIndex: number, params: FilterGroupChangeEvent) => {
+    await popPendingAction()
+    const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
+    const conditionToDelete = conditions[colorIndex]!
+    const filterToDelete = conditionToDelete.conditions.find((k) => k.id === params.filter!.id)!
+
+    ;(rowColorInfo.value as RowColoringInfoFilter).conditions = conditions.filter((f) => f.id !== filterToDelete.id)
+    await $api.dbTableFilter.delete(filterToDelete!.id)
+  }
+
   const filterPerViewLimit = computed(() => getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW))
 
   return {
@@ -202,5 +233,7 @@ export function useViewRowColorOption(params: {
     onRowColorConditionUpdate,
     onRowColorConditionFilterAdd,
     onRowColorConditionFilterUpdate,
+    onRowColorConditionFilterAddGroup,
+    onRowColorConditionFilterDelete,
   }
 }

@@ -55,7 +55,6 @@ export function useViewRowColorRender(params: {
   }
 
   const evaluatedRowsColor = computed(() => {
-    console.log('rowColorInfo.value.__id', rowColorInfo.value.__id)
     return params.rows.value
       .map((row) => {
         const evaluateResult = evaluateRowColor(toRaw(row))

@@ -48,7 +48,7 @@ const isOpenColorPicker = ref(false)
       </button>
     </template>
     <template #overlay>
-      <GeneralAdvanceColorPicker v-model="vModel" :is-open="isOpenColorPicker" @input="(_color:string)=>vModel=_color">
+      <GeneralAdvanceColorPicker v-model="vModel" :is-open="isOpenColorPicker" @input="vModel = $event">
       </GeneralAdvanceColorPicker>
     </template>
   </NcDropdown>

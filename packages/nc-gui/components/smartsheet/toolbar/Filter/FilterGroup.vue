@@ -80,7 +80,7 @@ const scrollDownIfNeeded = () => {
   }
 }
 
-const getColumn = (filter: Filter) => {
+const getColumn = (filter: FilterType) => {
   // extract looked up column if available
   return props.columns?.find((col: ColumnTypeForFilter) => col.id === filter.fk_column_id)
 }
@@ -145,6 +145,14 @@ const onFilterRowChange = (event: FilterRowChangeEvent, index: number) => {
 const onLockedViewFooterOpen = () => {}
 
 const innerAdd = async (newFilter: ColumnFilterType) => {
+  if (!newFilter.is_group) {
+    const evalColumn = getColumn(newFilter)
+    const evalUidt = (evalColumn?.filterUidt ?? evalColumn?.uidt) as UITypes
+    newFilter.comparison_op = comparisonOpList(evalUidt, parseProp(evalColumn?.meta)?.date_format).filter((compOp) =>
+      isComparisonOpAllowed(newFilter, compOp, evalUidt, props.showNullAndEmptyInFilter),
+    )[0]?.value
+  }
+  handleFilterChange(newFilter, props.index)
   const prevValue = [...vModel.value]
   vModel.value.push(newFilter)
 
@@ -167,6 +175,8 @@ const addFilter = async () => {
   return innerAdd({
     is_group: false,
     logical_op: vModel.value[0]?.logical_op ?? 'and',
+    fk_column_id: props.columns[0].id,
+    comparison_op: null,
     order: (vModel.value?.[vModel.value?.length - 1]?.order ?? 0) + 1,
   })
 }
@@ -328,6 +338,8 @@ const onFilterDelete = async (
                 :is-logical-op-change-allowed="isLogicalOpChangeAllowed"
                 :is-locked-view="isLockedView"
                 :db-client-type="dbClientType"
+                :web-hook="webHook"
+                :link="link"
                 @change="onFilterRowChange($event, i)"
                 @delete="onFilterDelete($event, i)"
               />

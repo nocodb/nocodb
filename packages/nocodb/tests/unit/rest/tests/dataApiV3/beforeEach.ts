@@ -5,21 +5,10 @@ import { createLtarColumn, customColumns } from '../../../factory/column';
 import { createBulkRows, listRow, rowMixedValue } from '../../../factory/row';
 import { createTable, getTable } from '../../../factory/table';
 import init from '../../../init';
-import { prepareRecords } from './helpers';
+import { addUsers, getUsers, prepareRecords } from './helpers';
+import type { ITestContext } from './helpers';
 import type { ColumnType } from 'nocodb-sdk';
-import type { Base, Model } from '../../../../../src/models';
-
-export interface ITestContext {
-  context: Awaited<ReturnType<typeof init>>;
-  ctx: {
-    workspace_id: any;
-    base_id: any;
-  };
-  sakilaProject: Base;
-  base: Base;
-  countryTable: Model;
-  cityTable: Model;
-}
+import type { Model } from '../../../../../src/models';
 
 export const beforeEach = async () => {
   const context = await init();
@@ -390,13 +379,63 @@ export const beforeEachCheckbox = async (testContext: ITestContext) => {
     },
   ];
   const table = await createTable(testContext.context, testContext.base, {
-    table_name: 'textBased',
-    title: 'TextBased',
+    table_name: 'checkboxBased',
+    title: 'CheckboxBased',
     columns: createColumns,
   });
 
   const columns = await table.getColumns(testContext.ctx);
 
+  return {
+    table,
+    columns,
+  };
+};
+
+export const beforeEachUserBased = async (testContext: ITestContext) => {
+  const table = await createTable(testContext.context, testContext.base, {
+    table_name: 'userBased',
+    title: 'userBased',
+    columns: customColumns('userBased'),
+  });
+
+  const columns = await table.getColumns(testContext.ctx);
+
+  // add users to workspace
+  const users = [
+    ['a@nocodb.com', 'FirstName_a LastName_a'],
+    ['b@nocodb.com', 'FirstName_b LastName_b'],
+    ['c@nocodb.com', 'FirstName_c LastName_c'],
+    ['d@nocodb.com', 'FirstName_d LastName_d'],
+    ['e@nocodb.com', 'FirstName_e LastName_e'],
+  ];
+  for (const user of users) {
+    await addUsers(testContext, user[0], user[1]);
+  }
+  const userList = await getUsers(testContext);
+
+  userList[userList.length] = { email: null, displayName: 'AB' };
+  userList[userList.length] = { email: '', displayName: 'CD' };
+
+  // build records
+  const rowAttributes: any[] = [];
+  for (let i = 0; i < 400; i++) {
+    const row = {
+      userFieldSingle: [{ email: userList[i % userList.length].email }],
+      userFieldMulti: [
+        { email: userList[i % userList.length].email },
+        { email: userList[(i + 1) % userList.length].email },
+      ],
+    };
+    rowAttributes.push(row);
+  }
+
+  // insert records
+  await createBulkRows(testContext.context, {
+    base: testContext.base,
+    table,
+    values: rowAttributes,
+  });
   return {
     table,
     columns,

@@ -374,8 +374,9 @@ const onMove = async (
   <div v-if="showProjectList" class="nc-treeview-container nc-treeview-base-list">
     <div>
       <DashboardSidebarHeaderWrapper></DashboardSidebarHeaderWrapper>
-      <div class="px-2 h-12 flex items-center">
+      <div class="px-2 h-11 flex items-center">
         <a-input
+          :ref="(el) => el?.focus?.()"
           v-model:value="searchQuery"
           type="text"
           class="nc-input-border-on-value nc-input-shadow !h-8 !px-2.5 !py-1 !rounded-lg"
@@ -391,7 +392,7 @@ const onMove = async (
         </a-input>
       </div>
 
-    <div class="nc-project-home-section">
+      <div class="nc-project-home-section">
         <WorkspaceCreateProjectBtn
           v-model:is-open="isCreateProjectOpen"
           modal

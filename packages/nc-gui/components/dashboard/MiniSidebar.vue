@@ -76,7 +76,10 @@ const navigateToIntegrations = () => {
         }"
         @click="navigateToProjectPage"
       >
-        <GeneralIcon icon="ncBaseOutline" class="h-5 w-5" />
+        <GeneralIcon :icon="isProjectPageOpen ? 'ncBaseOutlineDuo' : 'ncBaseOutline'" class="h-4 w-4" />
+      </div>
+      <div class="nc-mini-sidebar-btn" data-testid="nc-sidebar-cmd-k-btn">
+        <GeneralIcon :icon="isProjectPageOpen ? 'search' : 'search'" class="h-4 w-4" />
       </div>
       <div
         v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
@@ -88,7 +91,7 @@ const navigateToIntegrations = () => {
         }"
         @click="navigateToSettings"
       >
-        <GeneralIcon icon="ncSettings" class="h-5 w-5" />
+        <GeneralIcon :icon="isWorkspaceSettingsPageOpened ? 'ncSettingsDuo' : 'ncSettings'" class="h-5 w-5" />
       </div>
       <div
         v-if="isUIAllowed('workspaceSettings')"
@@ -100,7 +103,7 @@ const navigateToIntegrations = () => {
         }"
         @click="navigateToIntegrations"
       >
-        <GeneralIcon icon="integration" class="h-5 w-5" />
+        <GeneralIcon :icon="isIntegrationsPageOpened ? 'ncIntegrationDuo' : 'integration'" class="h-5 w-5" />
       </div>
     </div>
     <div class="flex flex-col gap-3 items-center">
@@ -113,17 +116,28 @@ const navigateToIntegrations = () => {
 
 <style lang="scss">
 .nc-mini-sidebar {
-  @apply w-[var(--mini-sidebar-width)] flex-none bg-nc-bg-gray-light flex flex-col justify-between items-center px-2 py-3 border-r-1 border-nc-border-gray-medium z-12;
+  @apply w-[var(--mini-sidebar-width)] flex-none bg-nc-bg-gray-light flex flex-col justify-between items-center p-1.5 border-r-1 border-nc-border-gray-medium z-12;
+
+  .nc-mini-sidebar-ws-item {
+    @apply cursor-pointer h-9 w-8 rounded px-1 py-1.5 flex items-center justify-center children:flex-none text-nc-content-gray-muted transition-all duration-200;
+
+    .nc-workspace-avatar {
+      box-shadow: 0px 3px 0px -2px rgba(0, 0, 0, 0.4), 0px 5px 0px -3px rgba(0, 0, 0, 0.2);
+      img {
+        @apply !cursor-pointer;
+      }
+    }
+  }
 
   .nc-mini-sidebar-btn {
-    @apply cursor-pointer h-9 w-9 rounded p-2 flex items-center justify-center children:flex-none text-nc-content-gray-subtle transition-all duration-200;
+    @apply cursor-pointer h-8 w-8 rounded p-1.5 flex items-center justify-center children:flex-none text-nc-content-gray-muted transition-all duration-200;
 
     &:not(.active) {
       @apply hover:bg-nc-bg-gray-medium;
     }
 
     &.active {
-      @apply bg-brand-100  text-brand-600;
+      @apply bg-nc-bg-gray-medium text-nc-content-gray;
     }
   }
 }

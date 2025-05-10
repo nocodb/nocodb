@@ -14,7 +14,7 @@ import type {
 } from '~/models';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getAggregateFn } from '~/db/formulav2/formula-query-builder.helpers';
-import {Model} from "~/models";
+import { Model } from '~/models';
 
 export const lookupOrLtarBuilder =
   (

@@ -124,11 +124,6 @@ const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource } = 
 
 const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
-const { getLeftBorderColor, getRowColor } = useViewRowColor({
-  meta,
-  view,
-})
-
 const { $e, $api } = useNuxtApp()
 
 const { t } = useI18n()
@@ -308,6 +303,16 @@ const visibleRows = computed(() => {
     row.rowMeta.rowProgress = tableState.rowProgress.get(String(rowId))
     return row
   })
+})
+
+const visibleRowsRowOnly = computed(() => {
+  return visibleRows.value?.map((k) => k.row) ?? []
+})
+
+const { getLeftBorderColor, getRowColor } = useViewRowColor({
+  meta,
+  view,
+  rows: visibleRowsRowOnly,
 })
 
 const totalMaxPlaceholderRows = computed(() => {
@@ -2226,6 +2231,16 @@ const headerFilteredOrSortedClass = (colId: string) => {
   }
   return {}
 }
+
+const getRowColorStyle = (row) => {
+  const rowColor = getRowColor(row)
+  if (rowColor) {
+    return {
+      'background-color': `${rowColor} !important`,
+    }
+  }
+  return {}
+}
 </script>
 
 <template>
@@ -2581,11 +2596,14 @@ const headerFilteredOrSortedClass = (colId: string) => {
                       <td
                         class="caption nc-grid-cell w-[80px] min-w-[80px]"
                         :data-testid="`cell-Id-${row.rowMeta.rowIndex}`"
+                        :style="{
+                          ...getRowColorStyle(row.row),
+                        }"
                         @contextmenu="contextMenuTarget = null"
                       >
                         <div class="w-full flex items-center h-full px-1 gap-0.5">
                           <div
-                            class="nc-row-no min-w-4 h-4 flex items-center justify-center text-gray-500 pl-1.5"
+                            class="nc-row-no min-w-4 h-4 flex items-center justify-between text-gray-500 pl-1.5 w-full"
                             :class="{
                               'toggle': !readOnly,
                               'hidden': row.rowMeta?.selected || vSelectedAllRecords,
@@ -2594,7 +2612,15 @@ const headerFilteredOrSortedClass = (colId: string) => {
                               'text-small': row.rowMeta.rowIndex + 1 < 1000,
                             }"
                           >
-                            {{ row.rowMeta.rowIndex + 1 }}
+                            <span>
+                              {{ row.rowMeta.rowIndex + 1 }}
+                            </span>
+                            <div
+                              class="inline-block min-w-[4px] h-full rounded-full"
+                              :style="{
+                                'background-color': `${getLeftBorderColor(row.row)} !important`,
+                              }"
+                            ></div>
                           </div>
 
                           <div
@@ -2700,7 +2726,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                           'min-width': gridViewCols[fields[0].id]?.width || '180px',
                           'max-width': gridViewCols[fields[0].id]?.width || '180px',
                           'width': gridViewCols[fields[0].id]?.width || '180px',
-                          'background-color': `${getRowColor(row.row)} !important`,
+                          ...getRowColorStyle(row.row),
                         }"
                         :data-testid="`cell-${fields[0].title}-${row.rowMeta.rowIndex}`"
                         v-bind="
@@ -2805,7 +2831,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                           'min-width': gridViewCols[columnObj.id]?.width || '180px',
                           'max-width': gridViewCols[columnObj.id]?.width || '180px',
                           'width': gridViewCols[columnObj.id]?.width || '180px',
-                          'background-color': `${getRowColor(row.row)} !important`,
+                          ...getRowColorStyle(row.row),
                         }"
                         :data-testid="`cell-${columnObj.title}-${row.rowMeta.rowIndex}`"
                         v-bind="

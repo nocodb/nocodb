@@ -371,8 +371,8 @@ const onMove = async (
 </script>
 
 <template>
-  <div class="nc-treeview-container">
-    <div v-show="showProjectList" class="nc-treeview-base-list">
+  <div v-if="showProjectList" class="nc-treeview-container nc-treeview-base-list">
+    <div>
       <DashboardSidebarHeaderWrapper></DashboardSidebarHeaderWrapper>
       <div class="px-2 h-12 flex items-center">
         <a-input
@@ -391,7 +391,7 @@ const onMove = async (
         </a-input>
       </div>
 
-      <div class="nc-project-home-section">
+    <div class="nc-project-home-section">
         <WorkspaceCreateProjectBtn
           v-model:is-open="isCreateProjectOpen"
           modal
@@ -406,67 +406,72 @@ const onMove = async (
           </div>
         </WorkspaceCreateProjectBtn>
       </div>
+    </div>
 
-      <div class="nc-treeview h-[calc(100dvh_-_140px)] relative overflow-auto nc-scrollbar-thin">
-        <div v-if="starredProjectList?.length" class="nc-project-home-section">
-          <div v-if="!isSharedBase" class="nc-project-home-section-header">Starred</div>
-          <div>
-            <Draggable
-              :model-value="starredProjectList"
-              :disabled="isMobileMode || !isUIAllowed('baseReorder') || starredProjectList?.length < 2"
-              item-key="starred-project"
-              handle=".base-title-node"
-              ghost-class="ghost"
-              :filter="isTouchEvent"
-              @change="onMove($event, starredProjectList)"
-            >
-              <template #item="{ element: baseItem }">
-                <div :key="baseItem.id">
-                  <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
-                    <DashboardTreeViewProjectNode />
-                  </ProjectWrapper>
-                </div>
-              </template>
-            </Draggable>
-          </div>
+    <div class="nc-treeview flex-1 relative overflow-auto nc-scrollbar-thin">
+      <div v-if="starredProjectList?.length" class="nc-project-home-section">
+        <div v-if="!isSharedBase" class="nc-project-home-section-header">Starred</div>
+        <div>
+          <Draggable
+            :model-value="starredProjectList"
+            :disabled="isMobileMode || !isUIAllowed('baseReorder') || starredProjectList?.length < 2"
+            item-key="starred-project"
+            handle=".base-title-node"
+            ghost-class="ghost"
+            :filter="isTouchEvent"
+            @change="onMove($event, starredProjectList)"
+          >
+            <template #item="{ element: baseItem }">
+              <div :key="baseItem.id">
+                <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
+                  <DashboardTreeViewProjectNode />
+                </ProjectWrapper>
+              </div>
+            </template>
+          </Draggable>
         </div>
-        <div class="nc-project-home-section">
-          <div v-if="!isSharedBase" class="nc-project-home-section-header">
-            {{ $t('objects.projects') }}
-          </div>
-          <div v-if="nonStarredProjectList?.length">
-            <Draggable
-              v-model="nonStarredProjectList"
-              :disabled="isMobileMode || !isUIAllowed('baseReorder') || nonStarredProjectList?.length < 2"
-              item-key="non-starred-project"
-              handle=".base-title-node"
-              ghost-class="ghost"
-              :filter="isTouchEvent"
-              @change="onMove($event, nonStarredProjectList)"
-            >
-              <template #item="{ element: baseItem }">
-                <div :key="baseItem.id">
-                  <ProjectWrapper :base-role="baseItem.project_role || stringifyRolesObj(workspaceRoles)" :base="baseItem">
-                    <DashboardTreeViewProjectNode />
-                  </ProjectWrapper>
-                </div>
-              </template>
-            </Draggable>
-          </div>
-
-          <WorkspaceEmptyPlaceholder v-else-if="!basesList.length && !isWorkspaceLoading" />
-        </div>
-
-        <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
-        <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
       </div>
+      <div class="nc-project-home-section">
+        <div v-if="!isSharedBase" class="nc-project-home-section-header">
+          {{ $t('objects.projects') }}
+        </div>
+        <div v-if="nonStarredProjectList?.length">
+          <Draggable
+            v-model="nonStarredProjectList"
+            :disabled="isMobileMode || !isUIAllowed('baseReorder') || nonStarredProjectList?.length < 2"
+            item-key="non-starred-project"
+            handle=".base-title-node"
+            ghost-class="ghost"
+            :filter="isTouchEvent"
+            @change="onMove($event, nonStarredProjectList)"
+          >
+            <template #item="{ element: baseItem }">
+              <div :key="baseItem.id">
+                <ProjectWrapper :base-role="baseItem.project_role || stringifyRolesObj(workspaceRoles)" :base="baseItem">
+                  <DashboardTreeViewProjectNode />
+                </ProjectWrapper>
+              </div>
+            </template>
+          </Draggable>
+        </div>
+
+        <WorkspaceEmptyPlaceholder v-else-if="!basesList.length && !isWorkspaceLoading" />
+      </div>
+
+      <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
+      <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
     </div>
-    <div v-show="activeProjectId && openedBase?.id && !showProjectList" class="nc-treeview-active-base">
-      <ProjectWrapper :base-role="openedBase?.project_role || stringifyRolesObj(workspaceRoles)" :base="openedBase">
-        <DashboardTreeViewProjectHome />
-      </ProjectWrapper>
-    </div>
+    <slot name="footer"> </slot>
   </div>
+  <template v-else-if="activeProjectId && openedBase?.id && !showProjectList">
+    <ProjectWrapper :base-role="openedBase?.project_role || stringifyRolesObj(workspaceRoles)" :base="openedBase">
+      <DashboardTreeViewProjectHome>
+        <template #footer>
+          <slot name="footer"></slot>
+        </template>
+      </DashboardTreeViewProjectHome>
+    </ProjectWrapper>
+  </template>
 </template>
 
 <style scoped lang="scss">
@@ -497,5 +502,11 @@ const onMove = async (
   .nc-project-home-section-header {
     @apply w-full px-3 py-1.5 flex items-center gap-2 h-8 text-nc-content-gray-muted text-captionBold sticky top-0 bg-nc-bg-gray-extralight z-2;
   }
+}
+
+.nc-treeview-container,
+.nc-treeview-base-list,
+.nc-treeview-active-base {
+  @apply w-full h-full flex-1 flex flex-col;
 }
 </style>

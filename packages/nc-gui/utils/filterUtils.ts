@@ -1,5 +1,18 @@
-import { SqlUiFactory, UITypes, isDateMonthFormat, isNumericCol, isSystemColumn, isVirtualCol, numericUITypes } from 'nocodb-sdk'
-import { ClientType, type ColumnType, type FilterType } from 'nocodb-sdk'
+import {
+  ClientType,
+  type ColumnType,
+  type LinkToAnotherRecordType,
+  type LookupType,
+  SqlUiFactory,
+  type TableType,
+  UITypes,
+  getEquivalentUIType,
+  isDateMonthFormat,
+  isNumericCol,
+  isSystemColumn,
+  isVirtualCol,
+  numericUITypes,
+} from 'nocodb-sdk'
 
 export const MAX_NESTED_LEVEL = 5
 export const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
@@ -30,7 +43,7 @@ export interface FilterRowChangeEvent {
 }
 
 export type ColumnTypeForFilter = ColumnType & {
-  filterTitle?: string
+  btLookupColumn?: ColumnTypeForFilter
   filterUidt?: UITypes
 }
 
@@ -622,4 +635,68 @@ export const getDynamicColumns = (metaColumns: ColumnType[], column: ColumnType,
 
     return filterColAbstractType === dynamicColAbstractType
   })
+}
+
+export const getFilterUidt = (col: ColumnTypeForFilter): UITypes => {
+  if (col.uidt === UITypes.Formula) {
+    const formulaUIType = getEquivalentUIType({
+      formulaColumn: col,
+    })
+
+    return (formulaUIType || col.uidt) as UITypes
+  }
+  // if column is a lookup column, then use the lookup type extracted from the column
+  else if (col.btLookupColumn) {
+    return col.btLookupColumn.uidt as UITypes
+  } else {
+    return col.uidt as UITypes
+  }
+}
+
+export const composeColumnsForFilter = async ({
+  rootMeta,
+  getMeta,
+}: {
+  rootMeta: TableType
+  getMeta: (metaIdOrTitle: string) => TableType
+}) => {
+  const result: ColumnTypeForFilter[] = []
+  for (const column of rootMeta.columns!) {
+    if (column.uidt !== UITypes.Lookup) {
+      result.push({ ...column, filterUidt: getFilterUidt(column) })
+    }
+
+    let nextCol: ColumnType | undefined = column
+    // check all the relation of nested lookup columns is bt or not
+    // include the column only if all only if all relations are bt
+    while (nextCol && nextCol.uidt === UITypes.Lookup) {
+      // extract the relation column meta
+      const lookupRelation: ColumnType | undefined = await getMeta(nextCol.fk_model_id!).columns?.find(
+        (c) => c.id === (nextCol!.colOptions as LookupType).fk_relation_column_id,
+      )
+
+      // this is less likely to happen but if relation column is not found then break the loop
+      if (!lookupRelation) {
+        break
+      }
+
+      const relatedTableMeta: TableType = await getMeta(
+        (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
+      )
+      nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol!.colOptions as LookupType).fk_lookup_column_id)
+
+      // if next column is same as root lookup column then break the loop
+      // since it's going to be a circular loop
+      if (nextCol?.id === column.id) {
+        break
+      }
+    }
+    const columnTypeForFilter: ColumnTypeForFilter = {
+      ...column,
+      btLookupColumn: nextCol,
+    }
+    columnTypeForFilter.filterUidt = getFilterUidt(columnTypeForFilter)
+    result.push(columnTypeForFilter)
+  }
+  return result
 }

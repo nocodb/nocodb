@@ -74,11 +74,11 @@ const navigateToIntegrations = () => {
         class="nc-mini-sidebar-btn"
         data-testid="nc-sidebar-project-btn"
         :class="{
-          active: isProjectPageOpen,
+          active: showProjectList,
         }"
         @click="navigateToProjectPage"
       >
-        <GeneralIcon :icon="isProjectPageOpen ? 'ncBaseOutlineDuo' : 'ncBaseOutline'" class="h-4 w-4" />
+        <GeneralIcon :icon="showProjectList ? 'ncBaseOutlineDuo' : 'ncBaseOutline'" class="h-4 w-4" />
       </div>
       <div
         v-e="['c:quick-actions']"
@@ -86,7 +86,7 @@ const navigateToIntegrations = () => {
         data-testid="nc-sidebar-cmd-k-btn"
         @click="commandPalette?.open()"
       >
-        <GeneralIcon :icon="isProjectPageOpen ? 'search' : 'search'" class="h-4 w-4" />
+        <GeneralIcon icon="search" class="h-4 w-4" />
       </div>
       <NcDivider class="!my-0 !border-nc-border-gray-dark" />
       <div

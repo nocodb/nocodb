@@ -605,31 +605,30 @@ const onClickMenu = (e: { key?: string }) => {
           <DashboardTreeViewProjectNode ref="projectNodeRef" is-project-header />
         </div>
       </DashboardSidebarHeaderWrapper>
-      <div>
-        <div class="px-1 h-12 flex items-center">
-          <NcButton
-            v-e="['c:base:home']"
-            type="text"
-            size="xsmall"
-            class="nc-sidebar-top-button !xs:hidden !h-8 w-full"
-            :centered="false"
+
+      <div class="px-1 h-11 flex items-center">
+        <NcButton
+          v-e="['c:base:home']"
+          type="text"
+          size="xsmall"
+          class="nc-sidebar-top-button !xs:hidden !h-8 w-full"
+          :centered="false"
+          :class="{
+            '!text-brand-600 !bg-brand-50 !hover:bg-brand-50': activeProjectId === base.id && baseViewOpen,
+            '!hover:(bg-gray-200 text-gray-700)': !(activeProjectId === base.id && baseViewOpen),
+          }"
+          @click="openBaseHomePage(base.id)"
+        >
+          <div
+            class="flex items-center gap-2 pl-3 pr-1"
             :class="{
-              '!text-brand-600 !bg-brand-50 !hover:bg-brand-50': activeProjectId === base.id && baseViewOpen,
-              '!hover:(bg-gray-200 text-gray-700)': !(activeProjectId === base.id && baseViewOpen),
+              'font-semibold': activeProjectId === base.id && baseViewOpen,
             }"
-            @click="openBaseHomePage(base.id)"
           >
-            <div
-              class="flex items-center gap-2 pl-3 pr-1"
-              :class="{
-                'font-semibold': activeProjectId === base.id && baseViewOpen,
-              }"
-            >
-              <GeneralIcon icon="ncHome" class="!h-4 w-4" />
-              <div>Base Home</div>
-            </div>
-          </NcButton>
-        </div>
+            <GeneralIcon icon="home1" class="!h-4 w-4" />
+            <div>Home</div>
+          </div>
+        </NcButton>
       </div>
     </div>
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">

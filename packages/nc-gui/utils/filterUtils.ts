@@ -1,11 +1,21 @@
 import { type ColumnType, UITypes, isDateMonthFormat, isNumericCol, numericUITypes } from 'nocodb-sdk'
 
+export const MAX_NESTED_LEVEL = 5
+
 export interface ComparisonOpUiType {
   text: string
   value: string
   ignoreVal: boolean
   includedTypes?: UITypes[]
   excludedTypes?: UITypes[]
+}
+
+export interface FilterRowChangeEvent {
+  filter: ColumnFilterType
+  type: 'logical_op' | 'fk_column_id' | 'comparison_op' | 'comparison_sub_op' | 'value'
+  prevValue: any
+  value: any
+  index: number
 }
 
 export type ColumnTypeForFilter = ColumnType & {
@@ -546,4 +556,32 @@ export const isComparisonSubOpAllowed = (
     // include not allowed values only if selected column type not matches
     return filter.fk_column_id && !compOp.excludedTypes.includes(uidt!)
   }
+}
+
+// filter is draft if it's not saved to db yet
+export const isFilterDraft = (filter: Filter, col: ColumnTypeForFilter) => {
+  if (filter.id) return false
+
+  if (
+    filter.comparison_op &&
+    comparisonSubOpList(filter.comparison_op, parseProp(col?.meta)?.date_format).find(
+      (compOp) => compOp.value === filter.comparison_sub_op,
+    )?.ignoreVal
+  ) {
+    return false
+  }
+
+  if (
+    comparisonOpList((col.filterUidt ?? col.uidt) as UITypes, parseProp(col?.meta)?.date_format).find(
+      (compOp) => compOp.value === filter.comparison_op,
+    )?.ignoreVal
+  ) {
+    return false
+  }
+
+  if (filter.value) {
+    return false
+  }
+
+  return true
 }

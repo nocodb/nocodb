@@ -213,6 +213,15 @@ const linkType = computed({
   },
 })
 
+const referenceBaseId = computed({
+  get: () => vModel.value?.ref_base_id ?? null,
+  set: (value) => {
+    if (!isEdit.value && value) {
+      vModel.value.ref_base_id = value
+    }
+  },
+})
+
 const handleUpdateRefTable = () => {
   onDataTypeChange()
 
@@ -273,6 +282,8 @@ const onCustomSwitchLabelClick = () => {
 }
 
 const onViewLabelClick = () => {
+  if(isEdit.value) return
+
   if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
 
   limitRecToView.value = !limitRecToView.value
@@ -283,14 +294,16 @@ const onFilterLabelClick = () => {
 
   limitRecToCond.value = !limitRecToCond.value
 }
-const referenceBaseId = computed({
-  get: () => vModel.value?.ref_base_id ?? null,
-  set: (value) => {
-    if (!isEdit.value && value) {
-      vModel.value.ref_base_id = value
+
+const onCrossBaseToggle = () => {
+  // reset current model id value if cross base disabled and selected table is not in current base
+  if(!crossBase.value){
+    referenceBaseId.value = null
+    if(refTables.every(t => t.id !== referenceTableChildId)) {
+      referenceTableChildId.value = null
     }
-  },
-})
+  }
+}
 </script>
 
 <template>
@@ -335,10 +348,11 @@ const referenceBaseId = computed({
     </div>
     <template v-else>
       <div>
-        <a-switch v-model:checked="crossBase" :disabled="isEdit" :is-edit="isEdit" size="small" name="crossBase" />
+        <a-switch v-model:checked="crossBase"
+                  @change="onCrossBaseToggle" :disabled="isEdit" :is-edit="isEdit" size="small" name="crossBase" />
 
         <a-tooltip>
-          <template #title> Link records from a table in a different base </template>
+          <template #title>{{ $t('tooltip.crossBase') }}</template>
           <span class="ml-3 cursor-pointer" @click="crossBase = !crossBase" @dblclick="onCustomSwitchLabelClick">{{
             $t('labels.crossBase')
           }}</span>

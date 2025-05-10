@@ -66,7 +66,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
       isValid: true,
     } as FilterVerificationResult;
   }
-  override async parseValue(params: {
+  override async parseUserInput(params: {
     value: any;
     row: any;
     column: Column;

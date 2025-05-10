@@ -1,6 +1,14 @@
-import { parseDateTimeValue } from 'nocodb-sdk';
+import {
+  ClientType,
+  ColumnHelper,
+  parseDateTimeValue,
+  SqlUiFactory,
+} from 'nocodb-sdk';
+import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
+import type { NcContext } from 'nocodb-sdk';
 import type { FilterVerificationResult } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
+import type { MetaService } from 'src/meta/meta.service';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 
 export class DateTimeGeneralHandler extends GenericFieldHandler {
@@ -61,5 +69,32 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     return {
       isValid: true,
     } as FilterVerificationResult;
+  }
+  override async parseValue(params: {
+    value: any;
+    row: any;
+    column: Column;
+    baseModel: IBaseModelSqlV2;
+    options?: { context?: NcContext; metaService?: MetaService };
+  }): Promise<{ value: any }> {
+    if (params.value instanceof Date) {
+      return { value: params.value };
+    } else if (typeof params.value === 'string') {
+      const dbClientType = params.baseModel.dbDriver.client.config.client;
+      const resultValue = ColumnHelper.parseValue(params.value, {
+        col: params.column,
+        abstractType: SqlUiFactory.create({
+          client: dbClientType,
+        }).getAbstractType(params.column),
+        rowId: params.baseModel.extractPksValues(params.row, true),
+        isMssql: (_sourceid) => dbClientType === ClientType.MSSQL,
+        isMysql: (_sourceid) => dbClientType === ClientType.MYSQL,
+        isPg: (_sourceid) => dbClientType === ClientType.PG,
+      });
+      return { value: resultValue };
+    } else if (typeof params.value === 'number') {
+      return { value: new Date(params.value) };
+    }
+    return { value: params.value };
   }
 }

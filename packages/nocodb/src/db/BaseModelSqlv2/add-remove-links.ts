@@ -50,19 +50,22 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       baseModel.context,
     );
 
-    const childColumn = await colOptions.getChildColumn(baseModel.context);
-    const parentColumn = await colOptions.getParentColumn(baseModel.context);
-    const parentTable = await parentColumn.getModel(baseModel.context);
-    const childTable = await childColumn.getModel(baseModel.context);
-    await childTable.getColumns(baseModel.context);
-    await parentTable.getColumns(baseModel.context);
+    const { childContext, parentContext, mmContext } =
+      await colOptions.getParentChildContext(baseModel.context);
 
-    const childBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+    const childColumn = await colOptions.getChildColumn(childContext);
+    const parentColumn = await colOptions.getParentColumn(parentContext);
+    const parentTable = await parentColumn.getModel(parentContext);
+    const childTable = await childColumn.getModel(childContext);
+    await childTable.getColumns(childContext);
+    await parentTable.getColumns(parentContext);
+
+    const childBaseModel = await Model.getBaseModelSQL(childContext, {
       model: childTable,
       dbDriver: baseModel.dbDriver,
     });
 
-    const parentBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+    const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
       model: parentTable,
       dbDriver: baseModel.dbDriver,
     });
@@ -131,21 +134,16 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     switch (relationType) {
       case RelationTypes.MANY_TO_MANY:
         {
-          const vChildCol = await colOptions.getMMChildColumn(
-            baseModel.context,
-          );
-          const vParentCol = await colOptions.getMMParentColumn(
-            baseModel.context,
-          );
-          const vTable = await colOptions.getMMModel(baseModel.context);
+          const vChildCol = await colOptions.getMMChildColumn(mmContext);
+          const vParentCol = await colOptions.getMMParentColumn(mmContext);
+          const vTable = await colOptions.getMMModel(mmContext);
 
-          const assocBaseModel = await Model.getBaseModelSQL(
-            baseModel.context,
-            {
-              model: vTable,
-              dbDriver: baseModel.dbDriver,
-            },
-          );
+          const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+            model: vTable,
+            dbDriver: baseModel.dbDriver,
+          });
+
+          const refBaseModel = parentBaseModel;
 
           const vTn = assocBaseModel.getTnPath(vTable);
 
@@ -155,14 +153,14 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           {
             const childRowsQb = baseModel
               .dbDriver(parentTn)
-              .select(`${parentTable.table_name}.${parentColumn.column_name}`)
-              .select(`${vTable.table_name}.${vChildCol.column_name}`)
+              .select(`${parentTn}.${parentColumn.column_name}`)
+              .select(`${vTn}.${vChildCol.column_name}`)
               .leftJoin(vTn, (qb) => {
                 qb.on(
-                  `${vTable.table_name}.${vParentCol.column_name}`,
-                  `${parentTable.table_name}.${parentColumn.column_name}`,
+                  `${vTn}.${vParentCol.column_name}`,
+                  `${parentTn}.${parentColumn.column_name}`,
                 ).andOn(
-                  `${vTable.table_name}.${vChildCol.column_name}`,
+                  `${vTn}.${vChildCol.column_name}`,
                   baseModel.dbDriver.raw('?', [
                     row[childColumn.title] ?? row[childColumn.column_name],
                   ]),
@@ -177,7 +175,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               });
             } else {
               childRowsQb.whereIn(
-                `${parentTable.table_name}.${parentTable.primaryKey.column_name}`,
+                `${parentTn}.${parentTable.primaryKey.column_name}`,
                 typeof childIds[0] === 'object'
                   ? childIds.map(
                       (c) =>
@@ -190,12 +188,16 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
             if (parentTable.primaryKey.column_name !== parentColumn.column_name)
               childRowsQb.select(
-                `${parentTable.table_name}.${parentTable.primaryKey.column_name}`,
+                `${parentTn}.${parentTable.primaryKey.column_name}`,
               );
 
-            const childRows = await baseModel.execAndParse(childRowsQb, null, {
-              raw: true,
-            });
+            const childRows = await refBaseModel.execAndParse(
+              childRowsQb,
+              null,
+              {
+                raw: true,
+              },
+            );
 
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
@@ -231,13 +233,13 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             },
           );
 
-          await baseModel.updateLastModified({
+          await parentBaseModel.updateLastModified({
             model: parentTable,
             rowIds: childIds,
             cookie,
           });
 
-          await baseModel.updateLastModified({
+          await childBaseModel.updateLastModified({
             model: childTable,
             rowIds: [rowId],
             cookie,
@@ -276,9 +278,13 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               );
             }
 
-            const childRows = await baseModel.execAndParse(childRowsQb, null, {
-              raw: true,
-            });
+            const childRows = await childBaseModel.execAndParse(
+              childRowsQb,
+              null,
+              {
+                raw: true,
+              },
+            );
 
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
@@ -319,7 +325,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           }
           await baseModel.execAndParse(updateQb, null, { raw: true });
 
-          await baseModel.updateLastModified({
+          await parentBaseModel.updateLastModified({
             model: parentTable,
             rowIds: [rowId],
             cookie,
@@ -330,7 +336,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         {
           auditConfig.parentModel = childTable;
           auditConfig.childModel = parentTable;
-
+          const refBaseModel = parentBaseModel;
           // validate Ids
           {
             const childRowsQb = baseModel
@@ -339,17 +345,21 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               .where(_wherePk(parentTable.primaryKeys, childIds[0]))
               .first();
 
-            const childRow = await baseModel.execAndParse(childRowsQb, null, {
-              first: true,
-              raw: true,
-            });
+            const childRow = await refBaseModel.execAndParse(
+              childRowsQb,
+              null,
+              {
+                first: true,
+                raw: true,
+              },
+            );
 
             if (!childRow) {
               NcError.recordNotFound(extractIds(childIds, true));
             }
           }
 
-          await baseModel.execAndParse(
+          await childBaseModel.execAndParse(
             baseModel
               .dbDriver(childTn)
               .update({
@@ -368,7 +378,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             { raw: true },
           );
 
-          await baseModel.updateLastModified({
+          await parentBaseModel.updateLastModified({
             model: parentTable,
             rowIds: [rowId],
             cookie,
@@ -383,7 +393,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     for (const childId of childIds) {
       const _childId =
         typeof childId === 'object'
-          ? Object.values(childId).join('_')
+          ? childBaseModel.extractPksValues(childId, true)
           : childId;
 
       parentAuditObj.push({
@@ -466,19 +476,22 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       baseModel.context,
     );
 
-    const childColumn = await colOptions.getChildColumn(baseModel.context);
-    const parentColumn = await colOptions.getParentColumn(baseModel.context);
-    const parentTable = await parentColumn.getModel(baseModel.context);
-    const childTable = await childColumn.getModel(baseModel.context);
-    await childTable.getColumns(baseModel.context);
-    await parentTable.getColumns(baseModel.context);
+    const { parentContext, childContext, mmContext } =
+      await colOptions.getParentChildContext(baseModel.context);
 
-    const childBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+    const childColumn = await colOptions.getChildColumn(childContext);
+    const parentColumn = await colOptions.getParentColumn(parentContext);
+    const parentTable = await parentColumn.getModel(parentContext);
+    const childTable = await childColumn.getModel(childContext);
+    await childTable.getColumns(childContext);
+    await parentTable.getColumns(parentContext);
+
+    const childBaseModel = await Model.getBaseModelSQL(childContext, {
       model: childTable,
       dbDriver: baseModel.dbDriver,
     });
 
-    const parentBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+    const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
       model: parentTable,
       dbDriver: baseModel.dbDriver,
     });
@@ -527,21 +540,15 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
         {
-          const vChildCol = await colOptions.getMMChildColumn(
-            baseModel.context,
-          );
-          const vParentCol = await colOptions.getMMParentColumn(
-            baseModel.context,
-          );
-          const vTable = await colOptions.getMMModel(baseModel.context);
+          const vChildCol = await colOptions.getMMChildColumn(mmContext);
+          const vParentCol = await colOptions.getMMParentColumn(mmContext);
+          const vTable = await colOptions.getMMModel(mmContext);
 
-          const assocBaseModel = await Model.getBaseModelSQL(
-            baseModel.context,
-            {
-              model: vTable,
-              dbDriver: baseModel.dbDriver,
-            },
-          );
+          const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+            model: vTable,
+            dbDriver: baseModel.dbDriver,
+          });
+          const refBaseModel = parentBaseModel;
 
           // validate Ids
           {
@@ -557,7 +564,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               });
             } else if (typeof childIds[0] === 'object') {
               childRowsQb.whereIn(
-                `${parentTable.table_name}.${parentTable.primaryKey.column_name}`,
+                `${parentTn}.${parentTable.primaryKey.column_name}`,
                 childIds.map(
                   (c) =>
                     c[parentTable.primaryKey.title] ||
@@ -566,19 +573,23 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               );
             } else {
               childRowsQb.whereIn(
-                `${parentTable.table_name}.${parentTable.primaryKey.column_name}`,
+                `${parentTn}.${parentTable.primaryKey.column_name}`,
                 childIds,
               );
             }
 
             if (parentTable.primaryKey.column_name !== parentColumn.column_name)
               childRowsQb.select(
-                `${parentTable.table_name}.${parentTable.primaryKey.column_name}`,
+                `${parentTn}.${parentTable.primaryKey.column_name}`,
               );
 
-            const childRows = await baseModel.execAndParse(childRowsQb, null, {
-              raw: true,
-            });
+            const childRows = await refBaseModel.execAndParse(
+              childRowsQb,
+              null,
+              {
+                raw: true,
+              },
+            );
 
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
@@ -620,14 +631,14 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                 )
               : childIds,
           );
-          await baseModel.execAndParse(delQb, null, { raw: true });
+          await refBaseModel.execAndParse(delQb, null, { raw: true });
 
-          await baseModel.updateLastModified({
+          await parentBaseModel.updateLastModified({
             model: parentTable,
             rowIds: childIds,
             cookie,
           });
-          await baseModel.updateLastModified({
+          await childBaseModel.updateLastModified({
             model: childTable,
             rowIds: [rowId],
             cookie,
@@ -666,9 +677,13 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               childRowsQb.whereIn(parentTable.primaryKey.column_name, childIds);
             }
 
-            const childRows = await baseModel.execAndParse(childRowsQb, null, {
-              raw: true,
-            });
+            const childRows = await childBaseModel.execAndParse(
+              childRowsQb,
+              null,
+              {
+                raw: true,
+              },
+            );
 
             if (childRows.length !== childIds.length) {
               const missingIds = childIds.filter(
@@ -708,13 +723,13 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             );
           }
 
-          await baseModel.execAndParse(
+          await childBaseModel.execAndParse(
             childRowsQb.update({ [childColumn.column_name]: null }),
             null,
             { raw: true },
           );
 
-          await baseModel.updateLastModified({
+          await parentBaseModel.updateLastModified({
             model: parentTable,
             rowIds: [rowId],
             cookie,
@@ -726,6 +741,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           auditConfig.parentModel = childTable;
           auditConfig.childModel = parentTable;
 
+          const refBaseModel = parentBaseModel;
           // validate Ids
           {
             if (childIds.length > 1)
@@ -739,17 +755,21 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               .where(_wherePk(parentTable.primaryKeys, childIds[0]))
               .first();
 
-            const childRow = await baseModel.execAndParse(childRowsQb, null, {
-              first: true,
-              raw: true,
-            });
+            const childRow = await refBaseModel.execAndParse(
+              childRowsQb,
+              null,
+              {
+                first: true,
+                raw: true,
+              },
+            );
 
             if (!childRow) {
               NcError.recordNotFound(extractIds(childIds, true));
             }
           }
 
-          await baseModel.execAndParse(
+          await refBaseModel.execAndParse(
             baseModel
               .dbDriver(childTn)
               // .where({
@@ -765,7 +785,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             { raw: true },
           );
 
-          await baseModel.updateLastModified({
+          await parentBaseModel.updateLastModified({
             model: parentTable,
             rowIds: [childIds[0]],
             cookie,
@@ -780,7 +800,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     for (const childId of childIds) {
       const _childId =
         typeof childId === 'object'
-          ? Object.values(childId).join('_')
+          ? childBaseModel.extractPksValues(childId, true)
           : childId;
 
       parentAuditObj.push({
@@ -801,7 +821,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       }
     }
 
-    await baseModel.afterAddOrRemoveChild(
+    await parentBaseModel.afterAddOrRemoveChild(
       {
         opType: AuditV1OperationTypes.DATA_UNLINK,
         model: auditConfig.parentModel,
@@ -814,7 +834,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       },
       parentAuditObj,
     );
-    await baseModel.afterAddOrRemoveChild(
+    await childBaseModel.afterAddOrRemoveChild(
       {
         opType: AuditV1OperationTypes.DATA_UNLINK,
         model: auditConfig.childModel,

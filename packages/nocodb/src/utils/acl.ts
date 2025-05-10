@@ -259,6 +259,7 @@ const rolePermissions:
       dataUpdate: true,
       dataDelete: true,
       dataInsert: true,
+      nestedDataListCopyPasteOrDeleteAll: true,
       viewColumnUpdate: true,
       gridViewUpdate: true,
       formViewUpdate: true,

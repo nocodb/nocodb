@@ -13,6 +13,7 @@ import {
   ncIsNull,
   ncIsUndefined,
   partialUpdateAllowedTypes,
+  ProjectRoles,
   readonlyMetaAllowedTypes,
   RelationTypes,
   SqlUiFactory,
@@ -39,7 +40,7 @@ import type {
   IColumnsService,
   ReusableParams,
 } from '~/services/columns.service.type';
-import { Filter } from '~/models';
+import { Filter, User } from '~/models';
 import { parseMetaProp } from '~/utils/modelUtils';
 import {
   BaseUser,
@@ -183,16 +184,6 @@ async function getJunctionTableName(
   return `${tableName}${suffix ?? ''}`;
 }
 
-// todo: move to swagger.json/types
-export interface CustomLinkProps {
-  column_id: string;
-  ref_model_id: string;
-  ref_column_id: string;
-  junc_model_id: string;
-  junc_column_id: string;
-  junc_ref_column_id: string;
-}
-
 @Injectable()
 export class ColumnsService implements IColumnsService {
   constructor(
@@ -315,14 +306,6 @@ export class ColumnsService implements IColumnsService {
         id: column.fk_model_id,
       }),
     );
-
-    if (table.synced && column.readonly) {
-      NcError.badRequest(
-        `The column '${
-          column.title || column.column_name
-        }' is a synced column and cannot be updated.`,
-      );
-    }
 
     const source = await reuseOrSave('source', reuse, async () =>
       Source.get(context, table.source_id),
@@ -2768,14 +2751,6 @@ export class ColumnsService implements IColumnsService {
       NcError.sourceMetaReadOnly(source.alias);
     }
 
-    if (table.synced && column.readonly) {
-      NcError.badRequest(
-        `The column '${
-          column.title || column.column_name
-        }' is a synced column and cannot be deleted.`,
-      );
-    }
-
     const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
       ProjectMgrv2.getSqlMgr(context, { id: source.base_id }, ncMeta),
     );
@@ -3122,23 +3097,6 @@ export class ColumnsService implements IColumnsService {
                     }
                   }
                 }
-
-                if (custom) {
-                  // if custom then delete the relation index
-                  await this.deleteCustomLinkIndex(context, {
-                    ltarCustomProps: {
-                      column_id: relationColOpt.fk_child_column_id,
-                      ref_column_id: relationColOpt.fk_parent_column_id,
-                      ref_model_id: relationColOpt.fk_related_model_id,
-                      junc_column_id: relationColOpt.fk_mm_child_column_id,
-                      junc_model_id: relationColOpt.fk_mm_model_id,
-                      junc_ref_column_id: relationColOpt.fk_mm_parent_column_id,
-                    },
-                    reuse,
-                    isMm: relationColOpt.type === RelationTypes.MANY_TO_MANY,
-                    source,
-                  });
-                }
               }
               break;
           }
@@ -3374,6 +3332,7 @@ export class ColumnsService implements IColumnsService {
       });
     }
 
+    if (custom) return;
     if (!ignoreFkDelete && childColumn.uidt === UITypes.ForeignKey) {
       const cTable = await Model.getWithInfo(
         context,
@@ -3661,6 +3620,11 @@ export class ColumnsService implements IColumnsService {
       ...context,
       base_id: (param.column as any)?.ref_base_id ?? context.base_id,
     };
+
+    // check permission if cross-base link
+    if (table.base_id !== refContext.base_id) {
+      await this.checkCrossBasePermission(refContext, param.req.user);
+    }
 
     const refTable = await Model.getWithInfo(refContext, {
       id: (param.column as LinkToAnotherColumnReqType).childId,
@@ -4427,6 +4391,30 @@ export class ColumnsService implements IColumnsService {
     _columnBody: ColumnReqType,
   ) {
     // placeholder for post column update hook
+  }
+
+  private async checkCrossBasePermission(
+    refContext: NcContext,
+    user: UserType,
+  ) {
+    // extract target base roles and check if columnAdd permission is granted
+    const userWithRoles = await User.getWithRoles(refContext, user.id, {
+      baseId: refContext.base_id,
+      workspaceId: refContext.workspace_id,
+    });
+
+    if (!userWithRoles) {
+      NcError.userNotFound(user.id);
+    }
+
+    if (
+      !userWithRoles.base_roles?.[ProjectRoles.CREATOR] &&
+      !userWithRoles.base_roles?.[ProjectRoles.OWNER]
+    ) {
+      NcError.forbidden(
+        `You don't have permission to create a relation to target base ${refContext.base_id}`,
+      );
+    }
   }
 
   protected async deleteCustomLinkIndex(

@@ -372,7 +372,7 @@ const onMove = async (
 
 <template>
   <div class="nc-treeview-container">
-    <div v-show="showProjectList">
+    <div v-show="showProjectList" class="nc-treeview-base-list">
       <DashboardSidebarHeaderWrapper></DashboardSidebarHeaderWrapper>
       <div class="px-2 h-12 flex items-center">
         <a-input
@@ -461,7 +461,7 @@ const onMove = async (
         <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
       </div>
     </div>
-    <div v-show="activeProjectId && openedBase?.id && !showProjectList">
+    <div v-show="activeProjectId && openedBase?.id && !showProjectList" class="nc-treeview-active-base">
       <ProjectWrapper :base-role="openedBase?.project_role || stringifyRolesObj(workspaceRoles)" :base="openedBase">
         <DashboardTreeViewProjectHome />
       </ProjectWrapper>
@@ -482,7 +482,7 @@ const onMove = async (
 }
 
 :deep(.nc-sidebar-create-base-btn.nc-button.ant-btn-text.theme-default:hover) {
-  @apply bg-none;
+  @apply bg-transparent;
 }
 </style>
 
@@ -496,10 +496,6 @@ const onMove = async (
 
   .nc-project-home-section-header {
     @apply w-full px-3 py-1.5 flex items-center gap-2 h-8 text-nc-content-gray-muted text-captionBold sticky top-0 bg-nc-bg-gray-extralight z-2;
-  }
-
-  .nc-sidebar-create-base-btn.nc-button.ant-btn-text.theme-default:hover {
-    @apply !bg-transparent;
   }
 }
 </style>

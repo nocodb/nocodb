@@ -1,10 +1,17 @@
 import { RelationTypes } from 'nocodb-sdk';
 import { ComputedFieldHandler } from '../computed';
+import type { Logger } from '@nestjs/common';
+import type { NcContext } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
-import type { HandlerOptions } from '~/db/field-handler/field-handler.interface';
+import type {
+  HandlerOptions,
+  IFieldHandler,
+} from '~/db/field-handler/field-handler.interface';
 import type { Knex } from '~/db/CustomKnex';
 import type { Filter } from '~/models';
+import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
+import type { MetaService } from 'src/meta/meta.service';
 import {
   getAlias,
   negatedMapping,
@@ -173,5 +180,35 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         };
       }
     }
+  }
+
+  override async parseDbValue(params: {
+    value: any;
+    row: any;
+    column: Column;
+    baseModel: IBaseModelSqlV2;
+    options?: {
+      context?: NcContext;
+      metaService?: MetaService;
+      logger?: Logger;
+      fieldHandler?: IFieldHandler;
+    };
+  }): Promise<{ value: any }> {
+    const lookupNestedCol = await params.baseModel.getNestedColumn(
+      params.column,
+    );
+    if (lookupNestedCol) {
+      return await params.options.fieldHandler.parseDbValue({
+        ...params,
+        value:
+          params.row[lookupNestedCol.id] ??
+          params.row[lookupNestedCol.column_name] ??
+          params.row[lookupNestedCol.title],
+        column: lookupNestedCol,
+      });
+    }
+    return {
+      value: params.value,
+    };
   }
 }

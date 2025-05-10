@@ -66,6 +66,7 @@ export interface FieldHandlerInterface {
       context?: NcContext;
       metaService?: MetaService;
       logger?: Logger;
+      fieldHandler?: IFieldHandler;
     };
     // for now the return value need to be {value: any}
     // since it's possible for it to be knex query, which

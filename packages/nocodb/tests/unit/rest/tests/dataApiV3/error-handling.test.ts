@@ -762,7 +762,7 @@ describe('dataApiV3', () => {
       });
     });
 
-    describe.only('user-based', () => {
+    describe('user-based', () => {
       let table: Model;
       let columns: Column[] = [];
 
@@ -785,9 +785,11 @@ describe('dataApiV3', () => {
           body: newRecord1,
           status: 422,
         });
-        expect(rsp.body.message).to.equal(
-          'Duplicate users not allowed for user field',
-        );
+        expect(
+          rsp.body.message.startsWith(
+            `Invalid value '${userList[0].id},${userList[0].id}' for type `,
+          ),
+        ).to.equal(true);
 
         const newRecord2 = {
           userFieldSingle: `${userList[0].id},${userList[1].id}`,
@@ -798,9 +800,11 @@ describe('dataApiV3', () => {
           body: newRecord2,
           status: 422,
         });
-        expect(rsp2.body.message).to.equal(
-          "Multiple users not allowed for 'userFieldSingle'",
-        );
+        expect(
+          rsp2.body.message.startsWith(
+            `Invalid value '${userList[0].id},${userList[1].id}' for type `,
+          ),
+        ).to.equal(true);
       });
     });
   });

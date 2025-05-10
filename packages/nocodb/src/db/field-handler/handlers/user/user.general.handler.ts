@@ -48,6 +48,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
                 value: params.value,
                 column: params.column.title,
                 type: params.column.uidt,
+                reason: `User with id '${user.id}' is not part of this workspace`,
               });
             }
             userIds.push(u.id);
@@ -64,6 +65,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
                 value: params.value,
                 column: params.column.title,
                 type: params.column.uidt,
+                reason: `User with email '${user.email}' is not part of this workspace`,
               });
             }
             userIds.push(u.id);
@@ -72,6 +74,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
               value: params.value,
               column: params.column.title,
               type: params.column.uidt,
+              reason: `Invalid user object`,
             });
           }
         } catch (e) {
@@ -79,6 +82,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
             value: params.value,
             column: params.column.title,
             type: params.column.uidt,
+            reason: e.message,
           });
         }
       }
@@ -94,6 +98,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
                 value: params.value,
                 column: params.column.title,
                 type: params.column.uidt,
+                reason: `User with email '${user}' is not part of this workspace`,
               });
             }
             userIds.push(u.id);
@@ -104,6 +109,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
                 value: params.value,
                 column: params.column.title,
                 type: params.column.uidt,
+                reason: `User with id '${user}' is not part of this workspace`,
               });
             }
             userIds.push(u.id);
@@ -113,6 +119,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
             value: params.value,
             column: params.column.title,
             type: params.column.uidt,
+            reason: e.message,
           });
         }
       }
@@ -122,6 +129,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
         value: params.value,
         column: params.column.title,
         type: params.column.uidt,
+        reason: `Invalid user object`,
       });
     }
 
@@ -135,6 +143,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
           value: params.value,
           column: params.column.title,
           type: params.column.uidt,
+          reason: 'Duplicate users not allowed for user field',
         });
       }
 
@@ -146,6 +155,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
             value: params.value,
             column: params.column.title,
             type: params.column.uidt,
+            reason: `Multiple users not allowed for '${params.column.title}'`,
           });
         } else {
           evalValue = userIds[0];

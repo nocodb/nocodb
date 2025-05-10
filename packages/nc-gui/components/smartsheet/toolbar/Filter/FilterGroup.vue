@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { cp } from 'fs'
 import { type ClientType, type ColumnType, type FilterType, UITypes } from 'nocodb-sdk'
+import { SmartsheetToolbarFilterGroupRow } from '#components'
 interface Props {
   modelValue: ColumnFilterType[]
   index: number
@@ -31,26 +32,8 @@ interface Props {
 }
 interface Emits {
   (event: 'update:modelValue', model: string): void
-  (
-    event: 'change',
-    model: {
-      filters: ColumnFilterType[]
-      filter: ColumnFilterType
-      type:
-        | 'logical_op'
-        | 'fk_column_id'
-        | 'comparison_op'
-        | 'comparison_sub_op'
-        | 'value'
-        | 'add'
-        | 'addChild'
-        | 'delete'
-        | 'deleteChild'
-      prevValue?: any
-      value: any
-      index: number
-    },
-  ): void
+  (event: 'change', model: FilterGroupChangeEvent): void
+  (event: 'row-change', model: FilterRowChangeEvent): void
   (
     event: 'delete',
     model: {
@@ -159,26 +142,20 @@ const handleFilterChange = async (filter, index) => {
 // #region event handling
 const onFilterRowChange = (event: FilterRowChangeEvent, index: number) => {
   handleFilterChange(event.filter, index)
+  emits('row-change', event)
   emits('change', {
-    filters: { ...vModel.value },
-    ...event,
-    index,
-  })
-}
-const onDelete = () => {
-  emits('delete', {
-    filter: { ...vModel.value },
-    index: props.index,
+    filters: [...vModel.value],
+    value: [...vModel.value],
+    filter: event.filter,
+    index: event.index,
+    type: 'row_changed',
   })
 }
 const onLockedViewFooterOpen = () => {}
 
-const addFilter = async () => {
-  vModel.value.push({
-    is_group: false,
-    logical_op: vModel.value[0]?.logical_op ?? 'and',
-    order: (vModel.value?.[vModel.value?.length - 1]?.order ?? 0) + 1,
-  })
+const innerAdd = async (newFilter: ColumnFilterType) => {
+  const prevValue = [...vModel.value]
+  vModel.value.push(newFilter)
 
   if (!nested.value) {
     // if nested, scroll to bottom
@@ -186,25 +163,49 @@ const addFilter = async () => {
   } else {
     scrollDownIfNeeded()
   }
+  emits('change', {
+    type: 'add',
+    filter: newFilter,
+    filters: [...vModel.value],
+    index: props.index,
+    value: [...vModel.value],
+    prevValue,
+  })
+}
+const addFilter = async () => {
+  return innerAdd({
+    is_group: false,
+    logical_op: vModel.value[0]?.logical_op ?? 'and',
+    order: (vModel.value?.[vModel.value?.length - 1]?.order ?? 0) + 1,
+  })
 }
 
 const addFilterGroup = async () => {
-  vModel.value.push({
+  return innerAdd({
     is_group: true,
     logical_op: vModel.value[0]?.logical_op ?? 'and',
     children: [],
     order: (vModel.value?.[vModel.value?.length - 1]?.order ?? 0) + 1,
   })
-
-  if (!nested.value) {
-    // if nested, scroll to bottom
-    scrollToBottom()
-  } else {
-    scrollDownIfNeeded()
-  }
 }
-const onFilterDelete = async (filter, index) => {
-  vModel.value.splice(index, 1)
+const onFilterDelete = async (
+  event: {
+    filter: ColumnFilterType
+    index: number
+  },
+  index: number,
+) => {
+  const prevValue = [...vModel.value]
+  const deletedFilter = vModel.value.splice(index, 1)
+
+  emits('change', {
+    type: 'add',
+    filter: deletedFilter,
+    filters: [...vModel.value],
+    index: props.index,
+    value: [...vModel.value],
+    prevValue,
+  })
 }
 // #endregion
 </script>
@@ -286,6 +287,7 @@ const onFilterDelete = async (filter, index) => {
         </div>
       </template>
     </div>
+    <!-- #region filter group rows -->
     <div
       v-if="visibleFilters && visibleFilters.length"
       ref="wrapperDomRef"
@@ -300,6 +302,28 @@ const onFilterDelete = async (filter, index) => {
         <template v-if="filter.status !== 'delete'">
           <template v-if="filter.is_group">
             <slot name="filterGroupRow"> </slot>
+            <template v-if="!slotHasChildren('filterGroupRow')">
+              <SmartsheetToolbarFilterGroupRow
+                :model-value="filter"
+                :index="i"
+                :nested-level="nestedLevel"
+                :columns="columns"
+                :disabled="disabled"
+                :is-logical-op-change-allowed="isLogicalOpChangeAllowed"
+                :is-locked-view="isLockedView"
+                :db-client-type="dbClientType"
+                :web-hook="webHook"
+                :link="link"
+                :is-form="isForm"
+                :is-public="isPublic"
+                :filter-per-view-limit="filterPerViewLimit"
+                :disable-add-new-filter="disableAddNewFilter"
+                :filters-count="filtersCount"
+                :query-filter="queryFilter"
+                @change="onFilterRowChange($event, i)"
+                @delete="onFilterDelete($event, i)"
+              />
+            </template>
           </template>
           <template v-else>
             <slot name="filterRow"> </slot>
@@ -321,7 +345,7 @@ const onFilterDelete = async (filter, index) => {
         </template>
       </template>
     </div>
-
+    <!-- #endregion filter group rows -->
     <template v-if="!nested">
       <template v-if="isEeUI && !isPublic">
         <div

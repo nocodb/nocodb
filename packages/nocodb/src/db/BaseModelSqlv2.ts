@@ -36,6 +36,7 @@ import { addOrRemoveLinks } from './BaseModelSqlv2/add-remove-links';
 import { NestedLinkPreparator } from './BaseModelSqlv2/nested-link-preparator';
 import { relationDataFetcher } from './BaseModelSqlv2/relation-data-fetcher';
 import { baseModelInsert } from './BaseModelSqlv2/insert';
+import { FieldHandler } from './field-handler';
 import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
@@ -6642,6 +6643,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     },
   ): Promise<void> {
     for (const column of this.model.columns) {
+      if (
+        !ncIsUndefined(data[column.column_name]) &&
+        !ncIsNull(data[column.column_name])
+      ) {
+        data[column.column_name] = await FieldHandler.fromBaseModel(
+          this,
+        ).parseValue({
+          value: data[column.column_name],
+          baseModel: this,
+          column,
+          row: data,
+          options: {
+            context: this.context,
+          },
+        });
+      }
       if (
         ![
           UITypes.Attachment,

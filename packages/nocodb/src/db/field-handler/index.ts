@@ -17,6 +17,8 @@ import { LtarGeneralHandler } from './handlers/ltar/ltar.general.handler';
 import { LookupGeneralHandler } from './handlers/lookup/lookup.general.handler';
 import { LinksGeneralHandler } from './handlers/links/links.general.handler';
 import { RollupGeneralHandler } from './handlers/rollup/rollup.general.handler';
+import { PercentGeneralHandler } from './handlers/percent/percent.general.handler';
+import type { MetaService } from 'src/meta/meta.service';
 import type CustomKnex from '../CustomKnex';
 import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
@@ -93,7 +95,7 @@ const HANDLER_REGISTRY: Partial<
     [CLIENT_DEFAULT]: DecimalGeneralHandler,
   },
   [UITypes.Percent]: {
-    [CLIENT_DEFAULT]: DecimalGeneralHandler,
+    [CLIENT_DEFAULT]: PercentGeneralHandler,
   },
   [UITypes.Duration]: {},
   [UITypes.Rating]: {},
@@ -264,7 +266,7 @@ export class FieldHandler implements IFieldHandler {
     options: HandlerOptions = {},
   ): Promise<void> {
     const knex = options.knex ?? this.info.knex;
-    const dbClient = knex.client as ClientType;
+    const dbClient = knex.client.config.client as ClientType;
     const handler = this.getHandler(column.uidt, dbClient);
     return handler.select(qb, column, {
       knex,
@@ -359,5 +361,25 @@ export class FieldHandler implements IFieldHandler {
     // possibly to be enhanced into getting the model and basemodel too
     const column = await Column.get(context, { colId });
     return column;
+  }
+
+  async parseValue(params: {
+    value: any;
+    row: any;
+    column: Column;
+    baseModel: IBaseModelSqlV2;
+    options?: {
+      context?: NcContext;
+      metaService?: MetaService;
+    };
+  }): Promise<any> {
+    const dbClientType = params.baseModel.dbDriver.client.config.client;
+
+    const handler = this.getHandler(params.column.uidt, dbClientType);
+    if (handler) {
+      return handler.parseValue(params);
+    } else {
+      return params.value;
+    }
   }
 }

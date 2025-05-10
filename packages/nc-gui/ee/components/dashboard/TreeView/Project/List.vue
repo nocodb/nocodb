@@ -486,7 +486,7 @@ const onMove = async (
 }
 </style>
 
-<style>
+<style lang="scss">
 .nc-project-home-section {
   @apply px-1 pb-3;
 

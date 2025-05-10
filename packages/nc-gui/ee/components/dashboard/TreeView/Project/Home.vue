@@ -868,16 +868,46 @@ const onClickMenu = (e: { key?: string }) => {
   </div>
 </template>
 
-<style lang="scss">
-.nc-project-home-section {
-  @apply px-1 pb-3;
+<style lang="scss" scoped>
+:deep(.ant-collapse-header) {
+  @apply !mx-0 !pl-2 h-7 !xs:(pl-2 h-[3rem]) !pr-0.5 !py-0 hover:bg-gray-200 xs:(hover:bg-gray-50) !rounded-md;
 
-  .nc-project-home-section-item {
-    @apply w-full px-3 py-1.5 flex items-center gap-2 h-8;
+  .ant-collapse-arrow {
+    @apply !right-1 !xs:(flex-none border-1 border-gray-200 w-6.5 h-6.5 mr-1);
+  }
+}
+
+:deep(.ant-collapse-item) {
+  @apply h-full;
+}
+
+:deep(.ant-collapse-header) {
+  .nc-sidebar-upgrade-badge {
+    @apply -mr-6;
+
+    &.nc-sidebar-option-open {
+      @apply mr-0.5;
+    }
   }
 
-  .nc-project-home-section-header {
-    @apply w-full px-3 py-1.5 flex items-center gap-2 h-8 text-nc-content-gray-muted text-captionBold sticky top-0 bg-nc-bg-gray-extralight z-2;
+  &:hover {
+    .nc-sidebar-node-btn {
+      &:not(.nc-sidebar-upgrade-badge) {
+        @apply !opacity-100 !inline-block;
+      }
+
+      &.nc-sidebar-upgrade-badge {
+        @apply mr-0.5;
+      }
+
+      &:not(.nc-sidebar-expand) {
+        @apply !xs:hidden;
+      }
+    }
   }
+}
+
+:deep(.ant-collapse-content-box) {
+  @apply !px-0 !pb-0 !pt-0.25;
 }
 </style>

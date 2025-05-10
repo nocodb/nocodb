@@ -460,7 +460,7 @@ async function onRename() {
           'hover:bg-gray-200': openedTableId !== table.id,
           'pl-13.5 !xs:(pl-12)': sourceIndex !== 0 && !isNewSidebarEnabled,
           'pl-7.5 xs:(pl-6)': sourceIndex === 0 && !isNewSidebarEnabled,
-          'pl-6.5': sourceIndex !== 0 && isNewSidebarEnabled,
+          'pl-8 !xs:(pl-7)': sourceIndex !== 0 && isNewSidebarEnabled,
           'pl-2 xs:(pl-2)': sourceIndex === 0 && isNewSidebarEnabled,
           '!bg-primary-selected': isTableOpened,
         }"

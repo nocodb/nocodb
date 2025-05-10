@@ -289,9 +289,9 @@ watch(isDropdownOpen, async () => {
     class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-gray-700 !flex !items-center hover:(!bg-gray-200 !text-gray-700) cursor-pointer"
     :class="{
       '!pl-13.5 !xs:(pl-12)': isDefaultBaseLocal && !isNewSidebarEnabled,
-      '!pl-19': !isDefaultBase && !isNewSidebarEnabled,
+      '!pl-19': !isDefaultBaseLocal && !isNewSidebarEnabled,
       '!pl-7.5 !xs:(pl-7.5)': isDefaultBaseLocal && isNewSidebarEnabled,
-      '!pl-13': !isDefaultBase && isNewSidebarEnabled,
+      '!pl-14': !isDefaultBaseLocal && isNewSidebarEnabled,
     }"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @click.prevent="handleOnClick"

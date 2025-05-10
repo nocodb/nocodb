@@ -5,10 +5,12 @@ import {
   MssqlUi,
   PlanFeatureTypes,
   PlanTitles,
+  ProjectRoles,
   RelationTypes,
   SqliteUi,
   UITypes,
   ViewTypes,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -311,6 +313,22 @@ const onCrossBaseToggle = () => {
     }
   }
 }
+
+// check user have creator or above role to create cross base link to the base
+const canCreateCrossBaseLink = (base: { workspace_role: string; base_role: string }) => {
+  console.log(base)
+  if (base.project_role) {
+    if ([ProjectRoles.CREATOR, ProjectRoles.OWNER].includes(base.project_role)) {
+      return true
+    }
+  } else if (base.workspace_role) {
+    if ([WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(base.workspace_role)) {
+      return true
+    }
+  }
+
+  return false
+}
 </script>
 
 <template>
@@ -385,16 +403,27 @@ const onCrossBaseToggle = () => {
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-700" />
           </template>
-          <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
-            <div class="flex w-full items-center gap-2">
-              <div class="min-w-5 flex items-center justify-center">
-                <GeneralProjectIcon :color="parseProp(base.meta).iconColor" :type="base.type" class="nc-project-icon" />
+          <a-select-option v-for="base of basesList" :key="base.title" :disabled="!canCreateCrossBaseLink(base)" :value="base.id">
+            <a-tooltip>
+              <template v-if="!canCreateCrossBaseLink(base)" #title>
+                You can only link to tables in bases where you have creator access or above.
+              </template>
+              <div class="flex w-full items-center gap-2">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralProjectIcon :color="parseProp(base.meta).iconColor" :type="base.type" class="nc-project-icon" />
+                </div>
+                <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                  <template #title>{{ base.title }}</template>
+                  <span>{{ base.title }}</span>
+                </NcTooltip>
+
+                <div class="flex gap-2 items-center">
+                  <div v-if="base?.id === meta?.base_id" class="text-nc-content-gray-muted leading-4.5 text-xs">
+                    {{ $t('labels.currentWorkspace') }}
+                  </div>
+                </div>
               </div>
-              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                <template #title>{{ base.title }}</template>
-                <span>{{ base.title }}</span>
-              </NcTooltip>
-            </div>
+            </a-tooltip>
           </a-select-option>
         </a-select>
       </a-form-item>

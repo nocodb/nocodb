@@ -331,7 +331,7 @@ const extractDependencies = async (
     fieldsSet: new Set(),
   },
 ) => {
-  switch (column.uidt) {
+  switch (column?.uidt) {
     case UITypes.Lookup:
       await extractLookupDependencies(context, column, dependencyFields);
       break;

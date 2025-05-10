@@ -35,6 +35,8 @@ const { isSharedBase } = useBase()
 
 const { isUIAllowed } = useRoles()
 
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const { activeAutomationId } = storeToRefs(useAutomationStore())
 
 const { meta: metaKey, control } = useMagicKeys()
@@ -197,30 +199,6 @@ function onStopEdit() {
   }, 250)
 }
 
-let scriptIdCopiedTimeout: NodeJS.Timeout
-
-const isScriptIdCopied = ref(false)
-
-const { copy } = useCopy()
-
-const onScriptCopy = async () => {
-  if (scriptIdCopiedTimeout) {
-    clearTimeout(scriptIdCopiedTimeout)
-  }
-
-  try {
-    await copy(vModel.value!.id!)
-    isScriptIdCopied.value = true
-
-    scriptIdCopiedTimeout = setTimeout(() => {
-      isScriptIdCopied.value = false
-      clearTimeout(scriptIdCopiedTimeout)
-    }, 5000)
-  } catch (e: any) {
-    message.error(e.message)
-  }
-}
-
 const isScriptDeleteDialogVisible = ref(false)
 
 const deleteScript = () => {
@@ -231,7 +209,11 @@ const deleteScript = () => {
 
 <template>
   <a-menu-item
-    class="nc-sidebar-node !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !pl-13.5 !xs:(pl-12) !min-h-7 !max-h-7 !my-0.5 select-none group text-gray-700 !flex !items-center hover:(!bg-gray-200 !text-gray-700) cursor-pointer"
+    class="nc-sidebar-node !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-gray-700 !flex !items-center hover:(!bg-gray-200 !text-gray-700) cursor-pointer"
+    :class="{
+      '!pl-13.5 !xs:(pl-12)': !isNewSidebarEnabled,
+      '!pl-2 !xs:(pl-2)': isNewSidebarEnabled,
+    }"
     :data-testid="`view-sidebar-script-${vModel.title}`"
     @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
@@ -336,50 +318,46 @@ const deleteScript = () => {
             <template #overlay>
               <NcMenu variant="small" class="!min-w-62.5" :data-testid="`sidebar-script-context-menu-list-${script.title}`">
                 <NcMenuItemCopyId
-                  v-if="script"
+                  v-if="script?.id"
                   :id="script.id"
                   :tooltip="$t('labels.clickToCopyScriptID')"
                   :label="
                     $t('labels.scriptIdColon', {
-                      tableId: script.id,
+                      scriptId: script?.id,
                     })
                   "
                 />
-
                 <template v-if="!isSharedBase && isUIAllowed('scriptCreateOrEdit')">
                   <NcDivider />
                   <NcMenuItem
+                    v-e="['c:script:rename']"
                     :data-testid="`sidebar-script-rename-${script.title}`"
                     class="nc-script-rename"
                     @click="onRenameMenuClick(script)"
                   >
-                    <div v-e="['c:script:rename']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="rename" class="text-gray-700" />
-                      {{ $t('general.rename') }} {{ $t('objects.script').toLowerCase() }}
-                    </div>
+                    <GeneralIcon icon="rename" class="text-gray-700" />
+                    {{ $t('general.rename') }} {{ $t('objects.script').toLowerCase() }}
                   </NcMenuItem>
 
                   <NcMenuItem
+                    v-e="['c:script:update-description']"
                     :data-testid="`sidebar-script-description-${script.title}`"
                     class="nc-script-description"
                     @click="openAutomationDescriptionDialog(script)"
                   >
-                    <div v-e="['c:script:update-description']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="ncAlignLeft" class="text-gray-700" />
-                      {{ $t('labels.editDescription') }}
-                    </div>
+                    <GeneralIcon icon="ncAlignLeft" class="text-gray-700" />
+                    {{ $t('labels.editDescription') }}
                   </NcMenuItem>
 
                   <NcDivider />
                   <NcMenuItem
+                    v-e="['c:table:delete']"
                     :data-testid="`sidebar-script-delete-${script.title}`"
                     class="!text-red-500 !hover:bg-red-50 nc-script-delete"
                     @click="deleteScript"
                   >
-                    <div v-e="['c:table:delete']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="delete" />
-                      {{ $t('general.delete') }} {{ $t('objects.script').toLowerCase() }}
-                    </div>
+                    <GeneralIcon icon="delete" />
+                    {{ $t('general.delete') }} {{ $t('objects.script').toLowerCase() }}
                   </NcMenuItem>
                 </template>
               </NcMenu>

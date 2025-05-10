@@ -15,6 +15,10 @@ export default defineNuxtConfig({
     compatibilityVersion: 4,
   },
 
+  ignore: [
+    // 'pages/playground/**/*'
+  ],
+
   modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt'],
   ssr: false,
 

@@ -485,3 +485,60 @@ export const comparisonSubOpList = (
     },
   ]
 }
+
+export const isComparisonOpAllowed = (
+  filter: ColumnFilterType,
+  compOp: {
+    text: string
+    value: string
+    ignoreVal?: boolean
+    includedTypes?: UITypes[]
+    excludedTypes?: UITypes[]
+  },
+  uidt?: UITypes,
+  showNullAndEmptyInFilter?: boolean,
+) => {
+  const isNullOrEmptyOp = ['empty', 'notempty', 'null', 'notnull'].includes(compOp.value)
+
+  if (compOp.includedTypes) {
+    // include allowed values only if selected column type matches
+    if (filter.fk_column_id && compOp.includedTypes.includes(uidt!)) {
+      // for 'empty', 'notempty', 'null', 'notnull',
+      // show them based on `showNullAndEmptyInFilter` in Base Settings
+      return isNullOrEmptyOp ? showNullAndEmptyInFilter : true
+    } else {
+      return false
+    }
+  } else if (compOp.excludedTypes) {
+    // include not allowed values only if selected column type not matches
+    if (filter.fk_column_id && !compOp.excludedTypes.includes(uidt!)) {
+      // for 'empty', 'notempty', 'null', 'notnull',
+      // show them based on `showNullAndEmptyInFilter` in Base Settings
+      return isNullOrEmptyOp ? showNullAndEmptyInFilter : true
+    } else {
+      return false
+    }
+  }
+  // explicitly include for non-null / non-empty ops
+  return isNullOrEmptyOp ? showNullAndEmptyInFilter : true
+}
+
+export const isComparisonSubOpAllowed = (
+  filter: ColumnFilterType,
+  compOp: {
+    text: string
+    value: string
+    ignoreVal?: boolean
+    includedTypes?: UITypes[]
+    excludedTypes?: UITypes[]
+  },
+  uidt?: UITypes,
+) => {
+  if (compOp.includedTypes) {
+    // include allowed values only if selected column type matches
+    return filter.fk_column_id && compOp.includedTypes.includes(uidt!)
+  } else if (compOp.excludedTypes) {
+    // include not allowed values only if selected column type not matches
+    return filter.fk_column_id && !compOp.excludedTypes.includes(uidt!)
+  }
+}

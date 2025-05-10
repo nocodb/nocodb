@@ -1,4 +1,5 @@
 import { RelationTypes } from 'nocodb-sdk';
+import { ComputedFieldHandler } from '../computed';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import type { HandlerOptions } from '~/db/field-handler/field-handler.interface';
@@ -9,9 +10,8 @@ import {
   negatedMapping,
   nestedConditionJoin,
 } from '~/db/field-handler/utils/handlerUtils';
-import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 
-export class LookupGeneralHandler extends GenericFieldHandler {
+export class LookupGeneralHandler extends ComputedFieldHandler {
   override async filter(
     knex: CustomKnex,
     filter: Filter,

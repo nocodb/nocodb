@@ -1,5 +1,15 @@
 import type { ClientType } from 'nocodb-sdk'
 
+export interface RowHandler {
+  rowChange?: (event: FilterRowChangeEvent) => Promise<void>
+}
+
+export interface GroupHandler extends RowHandler {
+  addFilter?: () => Promise<void>
+  addFilterGroup?: () => Promise<void>
+  deleteFilter?: () => Promise<void>
+}
+
 export interface StatefulGroupProps {
   modelValue: ColumnFilterType[]
   disableAddNewFilter?: boolean
@@ -9,6 +19,7 @@ export interface StatefulGroupProps {
   link?: boolean
   isForm?: boolean
   isPublic?: boolean
+  isFullWidth?: boolean
 
   disabled?: boolean
   // some view is different when locked view but not disabled
@@ -16,9 +27,12 @@ export interface StatefulGroupProps {
 
   // what's this???
   queryFilter?: boolean
+
+  handler?: GroupHandler
 }
 export interface GroupProps extends StatefulGroupProps {
   index: number
+  fk_parent_id?: string
   nestedLevel: number
   columns: ColumnTypeForFilter[]
   dbClientType?: ClientType

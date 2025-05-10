@@ -104,17 +104,50 @@ const onFilterRowChange = (event: FilterRowChangeEvent, index: number) => {
 }
 const onLockedViewFooterOpen = () => {}
 
-const innerAdd = async (newFilter: ColumnFilterType) => {
-  if (!newFilter.is_group) {
-    const evalColumn = getColumn(newFilter)
-    const evalUidt = (evalColumn?.filterUidt ?? evalColumn?.uidt) as UITypes
-    newFilter.comparison_op = comparisonOpList(evalUidt, parseProp(evalColumn?.meta)?.date_format).filter((compOp) =>
-      isComparisonOpAllowed(newFilter, compOp, evalUidt, props.showNullAndEmptyInFilter),
-    )[0]?.value
-  }
-  handleFilterChange(newFilter, props.index)
+const innerAdd = async (isGroup: boolean) => {
   const prevValue = [...vModel.value]
-  vModel.value.push(newFilter)
+
+  if (isGroup && props.handler?.addFilterGroup) {
+    await props.handler.addFilterGroup()
+  } else if (!isGroup && props.handler?.addFilter) {
+    await props.handler.addFilter()
+  } else {
+    const newFilter = isGroup
+      ? {
+          is_group: true,
+          logical_op: vModel.value[0]?.logical_op ?? 'and',
+          children: [],
+          fk_parent_id: props.fk_parent_id,
+          order: (vModel.value?.[vModel.value?.length - 1]?.order ?? 0) + 1,
+        }
+      : {
+          is_group: false,
+          logical_op: vModel.value[0]?.logical_op ?? 'and',
+          fk_column_id: props.columns[0].id,
+          comparison_op: null,
+          fk_parent_id: props.fk_parent_id,
+          order: (vModel.value?.[vModel.value?.length - 1]?.order ?? 0) + 1,
+        }
+    if (!newFilter.is_group) {
+      const evalColumn = getColumn(newFilter)
+      const evalUidt = (evalColumn?.filterUidt ?? evalColumn?.uidt) as UITypes
+      newFilter.comparison_op = comparisonOpList(evalUidt, parseProp(evalColumn?.meta)?.date_format).filter((compOp) =>
+        isComparisonOpAllowed(newFilter, compOp, evalUidt, props.showNullAndEmptyInFilter),
+      )[0]?.value
+    }
+    handleFilterChange(newFilter, props.index)
+    vModel.value.push(newFilter)
+
+    emits('change', {
+      type: 'add',
+      filter: newFilter,
+      filters: [...vModel.value],
+      index: props.index,
+      value: [...vModel.value],
+      fk_parent_id: props.fk_parent_id,
+      prevValue,
+    })
+  }
 
   if (!nested.value) {
     // if nested, scroll to bottom
@@ -122,32 +155,13 @@ const innerAdd = async (newFilter: ColumnFilterType) => {
   } else {
     scrollDownIfNeeded()
   }
-  emits('change', {
-    type: 'add',
-    filter: newFilter,
-    filters: [...vModel.value],
-    index: props.index,
-    value: [...vModel.value],
-    prevValue,
-  })
 }
 const addFilter = async () => {
-  return innerAdd({
-    is_group: false,
-    logical_op: vModel.value[0]?.logical_op ?? 'and',
-    fk_column_id: props.columns[0].id,
-    comparison_op: null,
-    order: (vModel.value?.[vModel.value?.length - 1]?.order ?? 0) + 1,
-  })
+  return innerAdd(false)
 }
 
 const addFilterGroup = async () => {
-  return innerAdd({
-    is_group: true,
-    logical_op: vModel.value[0]?.logical_op ?? 'and',
-    children: [],
-    order: (vModel.value?.[vModel.value?.length - 1]?.order ?? 0) + 1,
-  })
+  return innerAdd(true)
 }
 const onFilterDelete = async (
   event: {
@@ -160,7 +174,7 @@ const onFilterDelete = async (
   const deletedFilter = vModel.value.splice(index, 1)
 
   emits('change', {
-    type: 'add',
+    type: 'delete',
     filter: deletedFilter,
     filters: [...vModel.value],
     index: props.index,
@@ -178,8 +192,8 @@ const onFilterDelete = async (
     :class="{
       'max-h-[max(80vh,500px)] min-w-122 py-2 pl-4': !nested && !queryFilter,
       '!min-w-127.5': isForm && !webHook,
-      '!min-w-full !w-full !pl-0': !nested && webHook,
-      'min-w-full': nested || queryFilter,
+      '!min-w-full !w-full !pl-0': isFullWidth || (!nested && webHook),
+      'min-w-full': isFullWidth || nested || queryFilter,
     }"
   >
     <div v-if="nested" class="flex min-w-full w-min items-center gap-1 mb-2">
@@ -273,6 +287,7 @@ const onFilterDelete = async (
                 :nested-level="nestedLevel"
                 :columns="columns"
                 :disabled="disabled"
+                :is-full-width="isFullWidth"
                 :is-logical-op-change-allowed="isLogicalOpChangeAllowed"
                 :is-locked-view="isLockedView"
                 :db-client-type="dbClientType"
@@ -351,6 +366,7 @@ const onFilterDelete = async (
               {{ isForm && !webHook ? $t('activity.addConditionGroup') : $t('activity.addFilterGroup') }}
             </div>
           </NcButton>
+          <slot name="root-add-filter-row"></slot>
         </div>
       </template>
 
@@ -392,6 +408,7 @@ const onFilterDelete = async (
               {{ isForm && !webHook ? $t('activity.addConditionGroup') : $t('activity.addFilterGroup') }}
             </div>
           </NcButton>
+          <slot name="root-add-filter-row"></slot>
         </div>
       </template>
     </template>

@@ -1,5 +1,6 @@
 import colors from 'windicss/colors'
 import { enumColors as enumColor } from 'nocodb-sdk'
+import tinycolor from 'tinycolor2'
 export { enumColors as enumColor } from 'nocodb-sdk'
 
 export const theme = {
@@ -752,4 +753,23 @@ export const themeVariables = {
       light: themeV4Colors.maroon[300],
     },
   },
+}
+
+export const getLighterTint = (
+  color: string,
+  option?: {
+    saturationMod?: number
+    brightnessMod?: number
+  },
+) => {
+  const evalColor = tinycolor(color)
+  // evalColor = evalColor.saturate(5)
+  // evalColor = evalColor.brighten(100)
+  // return evalColor.toHex8String()
+  const hue = evalColor.toHsv().h
+  return tinycolor({
+    h: hue,
+    s: 5 + (option?.saturationMod ?? 0),
+    v: 100 + (option?.brightnessMod ?? 0),
+  }).toHexString()
 }

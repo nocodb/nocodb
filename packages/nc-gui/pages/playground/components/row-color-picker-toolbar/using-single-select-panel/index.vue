@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 const vModel = ref({
   isSetAsBackground: false,
-  selectedColumnId: '',
+  fk_column_id: '',
 })
 const removeClicked = ref(0)
 const columns = [

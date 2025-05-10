@@ -58,6 +58,7 @@ export class ViewRowColorService {
         mode: ROW_COLORING_MODE.SELECT,
         is_set_as_background: meta.rowColoringInfo.is_set_as_background,
         fk_column_id: meta.rowColoringInfo.fk_column_id,
+        selectColumn,
         fk_model_id: baseModel.model.id,
         fk_view_id: view.id,
       } as RowColoringInfo;
@@ -86,7 +87,9 @@ export class ViewRowColorService {
         },
       );
 
-      for (const rowColorCondition of rowColorConditions) {
+      for (const rowColorCondition of rowColorConditions.sort(
+        (k, l) => k.nc_order - l.nc_order,
+      )) {
         const filters = rawFilters.filter(
           (k) => k.fk_row_color_conditions_id === rowColorCondition.id,
         );

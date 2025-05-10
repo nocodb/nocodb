@@ -372,14 +372,14 @@ export class FieldHandler implements IFieldHandler {
       context?: NcContext;
       metaService?: MetaService;
     };
-  }): Promise<any> {
+  }): Promise<{ value: any }> {
     const dbClientType = params.baseModel.dbDriver.client.config.client;
 
     const handler = this.getHandler(params.column.uidt, dbClientType);
     if (handler) {
       return handler.parseValue(params);
     } else {
-      return params.value;
+      return { value: params.value };
     }
   }
 }

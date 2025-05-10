@@ -139,8 +139,9 @@ const availableTables = computed(() => {
         v-if="availableTables.length === 0"
         class="py-0.5 text-gray-500"
         :class="{
-          'ml-8.5': sourceIndex === 0 && !isNewSidebarEnabled,
+          'ml-8.5': sourceIndex === 0,
           'ml-14.5 xs:(ml-15.25)': sourceIndex !== 0 && !isNewSidebarEnabled,
+          'ml-9 xs:(ml-9.75)': sourceIndex !== 0 && isNewSidebarEnabled,
         }"
       >
         {{ $t('general.empty') }}

@@ -24,6 +24,17 @@ export default class RowColorCondition implements IRowColorCondition {
     Object.assign(this, data);
   }
 
+  static async getById(context: NcContext, id: string) {
+    return new RowColorCondition(
+      await Noco.ncMeta.metaGet(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.ROW_COLOR_CONDITIONS,
+        id,
+      ),
+    );
+  }
+
   static async getByViewId(
     context: NcContext,
     fk_view_id: string,

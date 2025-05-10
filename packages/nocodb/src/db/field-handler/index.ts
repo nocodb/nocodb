@@ -20,6 +20,8 @@ import { RollupGeneralHandler } from './handlers/rollup/rollup.general.handler';
 import { PercentGeneralHandler } from './handlers/percent/percent.general.handler';
 import { RatingGeneralHandler } from './handlers/rating/rating.general.handler';
 import { YearGeneralHandler } from './handlers/year/year.general.handler';
+import { UserGeneralHandler } from './handlers/user/user.general.handler';
+import type { Logger } from '@nestjs/common';
 import type { MetaService } from 'src/meta/meta.service';
 import type CustomKnex from '../CustomKnex';
 import type { NcContext } from 'nocodb-sdk';
@@ -130,7 +132,9 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.Links]: {
     [CLIENT_DEFAULT]: LinksGeneralHandler,
   },
-  [UITypes.User]: {},
+  [UITypes.User]: {
+    [CLIENT_DEFAULT]: UserGeneralHandler,
+  },
   [UITypes.CreatedBy]: {},
   [UITypes.LastModifiedBy]: {},
 };
@@ -377,6 +381,7 @@ export class FieldHandler implements IFieldHandler {
     options?: {
       context?: NcContext;
       metaService?: MetaService;
+      logger?: Logger;
     };
   }): Promise<{ value: any }> {
     const dbClientType = params.baseModel.dbDriver.client.config.client;

@@ -194,19 +194,19 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
       fieldHandler?: IFieldHandler;
     };
   }): Promise<{ value: any }> {
-    const lookupNestedCol = await params.baseModel.getNestedColumn(
-      params.column,
-    );
-    if (lookupNestedCol) {
-      return await params.options.fieldHandler.parseDbValue({
-        ...params,
-        value:
-          params.row[lookupNestedCol.id] ??
-          params.row[lookupNestedCol.column_name] ??
-          params.row[lookupNestedCol.title],
-        column: lookupNestedCol,
-      });
-    }
+    // const lookupNestedCol = await params.baseModel.getNestedColumn(
+    //   params.column,
+    // );
+    // if (lookupNestedCol) {
+    //   return await params.options.fieldHandler.parseDbValue({
+    //     ...params,
+    //     value:
+    //       params.row[lookupNestedCol.id] ??
+    //       params.row[lookupNestedCol.column_name] ??
+    //       params.row[lookupNestedCol.title],
+    //     column: lookupNestedCol,
+    //   });
+    // }
     return {
       value: params.value,
     };

@@ -42,7 +42,11 @@ const options1 = ref({
         parent: filterMap.value[event.tmp_fk_parent_id],
       }
       filterMap.value[newFilter.tmp_id] = newFilter
-      filters.value.push(newFilter)
+      if (event.tmp_fk_parent_id) {
+        filterMap.value[event.tmp_fk_parent_id].children.push(newFilter)
+      } else {
+        filters.value.push(newFilter)
+      }
     },
     addFilterGroup: async (event: FilterGroupChangeEvent) => {
       const newFilter = {
@@ -55,7 +59,11 @@ const options1 = ref({
         parent: filterMap.value[event.tmp_fk_parent_id],
       }
       filterMap.value[newFilter.tmp_id] = newFilter
-      filters.value.push(newFilter)
+      if (event.tmp_fk_parent_id) {
+        filterMap.value[event.tmp_fk_parent_id].children.push(newFilter)
+      } else {
+        filters.value.push(newFilter)
+      }
     },
     deleteFilter: async (event: FilterGroupChangeEvent) => {
       if (event.filter.parent) {
@@ -67,7 +75,7 @@ const options1 = ref({
     rowChange: async (event: FilterRowChangeEvent) => {
       event.filter[event.type] = event.value
       const evalColumn = columns.value.find((k) => k.id === event.filter.fk_column_id)
-      if (evalColumn) {
+      if (evalColumn && event.type === 'fk_column_id') {
         adjustFilterWhenColumnChange({
           column: evalColumn,
           filter: event.filter,

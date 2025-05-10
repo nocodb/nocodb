@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 const vModel = ref({
-  isSetAsBackground: false,
+  is_set_as_background: false,
   fk_column_id: '',
 })
 const removeClicked = ref(0)

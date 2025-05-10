@@ -722,6 +722,8 @@ import NcLogoZendesk from '~icons/nc-icons-v2/zendesk.svg'
 import NcLogoZohoColored from '~icons/nc-icons-v2/zoho-colored.svg'
 import NcLogoZoho from '~icons/nc-icons-v2/zoho.svg'
 import NcSendAlt from '~icons/nc-icons-v2/send-alt.svg'
+import NcPaintRoller from '~icons/nc-icons-v2/paint-roller.svg'
+import NcConditions from '~icons/nc-icons-v2/conditions.svg'
 
 import MdiNcCheckBold from '~icons/nc-icons/mdi-check-bold'
 import MdiNcCropSquare from '~icons/nc-icons/mdi-crop-square'
@@ -1669,6 +1671,8 @@ export const iconMap = {
   'ncLogoZoho': h(NcLogoZoho, { stroke: 'transparent' }),
   'ncSendAlt': h(NcSendAlt, { stroke: 'transparent' }),
   'ncAiPlay': AiPlayIcon,
+  'ncPaintRoller': NcPaintRoller,
+  'ncConditions': NcConditions,
   'mdi-check-bold': MdiNcCropSquare,
   'mdi-crop-square': MdiNcCheckBold,
   'mdi-check-circle-outline': MdiNcCheckCircleOutline,

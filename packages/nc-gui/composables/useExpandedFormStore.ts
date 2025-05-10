@@ -631,6 +631,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     })
   })
 
+  const baseRoles = computedAsync(async () => {
+    // if active base id and meta base id is different, then extract the base roles of the meta base
+    if (meta.value?.base_id !== base.value?.id) {
+      return await basesStore.getBaseRoles(meta.value?.base_id, {
+        skipUpdatingUser: true,
+      })
+    }
+  })
+
   return {
     ...rowStore,
     loadComments,
@@ -659,6 +668,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     primaryKey,
     saveRowAndStay,
     updateComment,
+    baseRoles,
   }
 }, 'expanded-form-store')
 

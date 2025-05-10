@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, UITypes } from 'nocodb-sdk'
+import { ClientType, type ColumnType, UITypes } from 'nocodb-sdk'
 
 const columns: ColumnType[] = [
   {
@@ -69,6 +69,7 @@ const options1 = ref({
   index: 0,
   isLockedView: false,
   isLogicalOpChangeAllowed: false,
+  dbClientType: ClientType.PG,
 })
 const deleted1Times = ref(0)
 const deleted1LastEvent = ref({})
@@ -112,9 +113,10 @@ const onFilter1Delete = (event) => {
         </div>
         <div class="flex gap-2">
           <div class="flex flex-col gap-2">
-            <div><NcSwitch v-model:checked="options1.disabled">disabled</NcSwitch><br /></div>
+            <div><NcSwitch v-model:checked="options1.disabled">disabled</NcSwitch></div>
             <div><NcSwitch v-model:checked="options1.isLogicalOpChangeAllowed">isLogicalOpChangeAllowed</NcSwitch><br /></div>
-            <div><NcSwitch v-model:checked="options1.isLockedView">isLockedView</NcSwitch><br /></div>
+            <div><NcSwitch v-model:checked="options1.isLockedView">isLockedView</NcSwitch></div>
+            <div>dbClientType: <NcSelect v-model:value="options1.dbClientType"></NcSelect></div>
             <div>Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-gray-200" /><br /></div>
           </div>
           <div class="flex">
@@ -140,6 +142,7 @@ const onFilter1Delete = (event) => {
         :disabled="options1.disabled"
         :is-logical-op-change-allowed="options1.isLogicalOpChangeAllowed"
         :is-locked-view="options1.isLockedView"
+        :db-client-type="options1.dbClientType"
         @change="onFilter1Change($event)"
         @delete="onFilter1Delete($event)"
       />

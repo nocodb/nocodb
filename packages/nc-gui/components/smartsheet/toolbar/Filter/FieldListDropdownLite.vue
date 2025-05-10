@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SelectProps } from 'ant-design-vue'
-import type { ColumnType, LinkToAnotherRecordType, TableType, UITypes } from 'nocodb-sdk'
+import type { ClientType, ColumnType } from 'nocodb-sdk'
 import { RelationTypes, isHiddenCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -8,6 +8,7 @@ const props = defineProps<{
   isSort?: boolean
   columns?: ColumnTypeForFilter[]
   allowEmpty?: boolean
+  dbClientType?: ClientType
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -42,9 +43,10 @@ const options = computed<SelectProps['options']>(() =>
       value: c.id!,
       label: c.filterTitle ?? c.title,
       icon: h(
-        isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'),
+        isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIconLite'),
         {
           columnMeta: c,
+          dbClientType: props.dbClientType,
         },
       ),
       c,

@@ -1907,15 +1907,24 @@ export class ImportService {
       destProject: Base;
       destBase: Source;
       destModel: Model;
+      throwOnError?: boolean;
       req: any;
     },
   ): Promise<void> {
-    const { idMap, dataStream, destBase, destProject, destModel, req } = param;
+    const {
+      idMap,
+      dataStream,
+      destBase,
+      destProject,
+      destModel,
+      req,
+      throwOnError,
+    } = param;
 
     const headers: string[] = [];
     let chunk = [];
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       papaparse.parse(dataStream, {
         newline: '\r\n',
         step: async (results, parser) => {
@@ -1987,6 +1996,13 @@ export class ImportService {
                     raw: true,
                   });
                 } catch (e) {
+                  if (throwOnError) {
+                    // stop the stream
+                    parser.abort();
+                    this.logger.error(e);
+                    reject(e);
+                    return;
+                  }
                   this.logger.error(e);
                 }
                 chunk = [];
@@ -2008,6 +2024,12 @@ export class ImportService {
                 raw: true,
               });
             } catch (e) {
+              if (throwOnError) {
+                // stop the stream
+                this.logger.error(e);
+                reject(e);
+                return;
+              }
               this.logger.error(e);
             }
             chunk = [];
@@ -2027,13 +2049,21 @@ export class ImportService {
       destProject: Base;
       destBase: Source;
       handledLinks: string[];
+      throwOnError?: boolean;
     },
   ): Promise<string[]> {
-    const { idMap, linkStream, destBase, destProject, handledLinks } = param;
+    const {
+      idMap,
+      linkStream,
+      destBase,
+      destProject,
+      handledLinks,
+      throwOnError,
+    } = param;
 
     const lChunks: Record<string, any[]> = {}; // fk_mm_model_id: { rowId, childId }[]
 
-    const insertChunks = async () => {
+    const insertChunks = async (throwOnError?: boolean) => {
       for (const [k, v] of Object.entries(lChunks)) {
         try {
           if (v.length === 0) continue;
@@ -2048,6 +2078,10 @@ export class ImportService {
           });
           lChunks[k] = [];
         } catch (e) {
+          if (throwOnError) {
+            this.logger.error(e);
+            throw e;
+          }
           this.logger.error(e);
         }
       }
@@ -2062,7 +2096,7 @@ export class ImportService {
     const mmColumns: Record<string, Column> = {};
     const mmParentChild: any = {};
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       papaparse.parse(linkStream, {
         newline: '\r\n',
         step: async (results, parser) => {
@@ -2096,7 +2130,16 @@ export class ImportService {
                   // get column for the first time
                   parser.pause();
 
-                  await insertChunks();
+                  try {
+                    await insertChunks(throwOnError);
+                  } catch (e) {
+                    if (throwOnError) {
+                      parser.abort();
+                      reject(e);
+                      return;
+                    }
+                    this.logger.error(e);
+                  }
 
                   const col = await Column.get(context, {
                     source_id: destBase.id,
@@ -2147,7 +2190,14 @@ export class ImportService {
           }
         },
         complete: async () => {
-          await insertChunks();
+          try {
+            await insertChunks(throwOnError);
+          } catch (e) {
+            if (throwOnError) {
+              reject(e);
+              return;
+            }
+          }
           resolve(handledLinks);
         },
       });

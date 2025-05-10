@@ -1,7 +1,7 @@
 {
-  "label": "Self Hosting",
+  "label": "Installation",
   "collapsible": true,
-  "collapsed": false,
+  "collapsed": true,
   "link": {
     "type": "generated-index"
   }

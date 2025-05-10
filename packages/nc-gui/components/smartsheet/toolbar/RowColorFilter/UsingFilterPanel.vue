@@ -1,20 +1,18 @@
 <script lang="ts" setup>
-import type { ClientType } from 'nocodb-sdk'
+import type { ClientType, RowColoringInfoFilter } from 'nocodb-sdk'
 
 interface Props {
-  modelValue?: RowColorFilterType[]
+  modelValue?: RowColoringInfoFilter
   columns: ColumnTypeForFilter[]
-  filtersCount: number
   filterPerViewLimit: number
   disabled?: boolean
   isLockedView?: boolean
-  disableAddNewFilter?: boolean
   dbClientType?: ClientType
 }
 
 interface Emits {
   (event: 'change', model: FilterGroupChangeEvent): void
-  (event: 'removeAll', model: { prevValue: RowColorFilterType[] }): void
+  (event: 'removeAll', model: RowColoringInfoFilter): void
 }
 
 const props = defineProps<Props>()
@@ -22,19 +20,30 @@ const emits = defineEmits<Emits>()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
+const filtersCount = computed(() => {
+  const execContext = { count: 0 }
+  for (const rowColor of vModel.value?.conditions) {
+    for (const condition of rowColor.conditions) {
+      if (!condition.is_group) {
+        execContext.count++
+      }
+    }
+  }
+  return execContext.count
+})
+
 const onAddColorCondition = () => {
-  const prevValue = [...vModel.value]
+  const prevValue = [...vModel.value.conditions ?? []]
   const addedFilter = {
-    is_group: true,
     color: theme.light[vModel.value?.length % theme.light.length],
     isSetAsBackground: false,
-    children: [
+    conditions: [
       {
         is_group: false,
       },
     ],
   }
-  vModel.value!.push(addedFilter)
+  vModel.value!.conditions.push(addedFilter)
   emits('change', {
     filter: addedFilter,
     filters: [...vModel.value],
@@ -44,6 +53,7 @@ const onAddColorCondition = () => {
     prevValue,
   })
 }
+
 const removeColor = (index: number) => {
   const prevValue = [...vModel.value]
   const deletedColor = vModel.value?.splice(index, 1)
@@ -66,12 +76,11 @@ const removeColor = (index: number) => {
 <template>
   <div class="min-w-[640px] w-auto inline-block h-auto rounded-2xl bg-white p-4">
     <div class="flex flex-col gap-3">
-      <template v-for="(rowColorConfig, i) in vModel" :key="i">
+      <template v-for="(rowColorConfig, i) in vModel?.conditions" :key="i">
         <div>
           <!-- index here is 0, since we evaluate the logic op individually per color -->
           <SmartsheetToolbarFilterGroup
-            v-model="rowColorConfig.children"
-            :fk-parent-id="rowColorConfig.id"
+            v-model="rowColorConfig.nestedConditions"
             :index="0"
             :nested-level="0"
             :columns="columns"
@@ -84,7 +93,7 @@ const removeColor = (index: number) => {
             :is-public="false"
             :is-full-width="true"
             :filter-per-view-limit="filterPerViewLimit"
-            :disable-add-new-filter="disableAddNewFilter"
+            :disable-add-new-filter="false"
             action-btn-type="text"
             :filters-count="filtersCount"
             :db-client-type="dbClientType"

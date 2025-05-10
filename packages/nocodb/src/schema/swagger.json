@@ -3941,6 +3941,156 @@
         "description": "List all tables in a given base"
       }
     },
+    "/api/v1/db/internal/links/{linkColumnId}/tables/{tableId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "cl_w9gpnaousnfss1",
+            "type": "string"
+          },
+          "name": "linkColumnId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Link Columns ID"
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Table ID"
+        }
+      ],
+      "get": {
+        "summary": "Read Partial Linked Table",
+        "operationId": "db-links-table-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "md_rsu68aqjsbyqtl",
+                      "source_id": "ds_g4ccx6e77h1dmi",
+                      "base_id": "p_xm3thidrblw4n7",
+                      "table_name": "nc_vm5q___Table1",
+                      "title": "Table1",
+                      "type": "table",
+                      "meta": null,
+                      "schema": null,
+                      "enabled": 1,
+                      "mm": 0,
+                      "tags": null,
+                      "pinned": null,
+                      "deleted": null,
+                      "order": 1,
+                      "created_at": "2023-03-02 17:04:06",
+                      "updated_at": "2023-03-02 17:04:08",
+                      "columns": [
+                        {
+                          "id": "cl_phvuuwjrzcdo0g",
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "base_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "Id",
+                          "column_name": "id",
+                          "uidt": "ID",
+                          "dt": "int",
+                          "np": "10",
+                          "ns": "0",
+                          "clen": null,
+                          "cop": "1",
+                          "pk": 1,
+                          "pv": null,
+                          "rqd": 1,
+                          "un": 1,
+                          "ct": "int unsigned",
+                          "ai": 1,
+                          "unique": 0,
+                          "cdf": null,
+                          "cc": "",
+                          "csn": null,
+                          "dtx": "specificType",
+                          "dtxp": "",
+                          "dtxs": "0",
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 1,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        },
+                        {
+                          "id": "cl_c5knoi4xs4sfpt",
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "base_id": "p_xm3thidrblw4n7",
+                          "fk_model_id": "md_rsu68aqjsbyqtl",
+                          "title": "Title",
+                          "column_name": "title",
+                          "uidt": "SingleLineText",
+                          "dt": "varchar",
+                          "np": null,
+                          "ns": null,
+                          "clen": "45",
+                          "cop": "2",
+                          "pk": 0,
+                          "pv": 1,
+                          "rqd": 0,
+                          "un": 0,
+                          "ct": "varchar(45)",
+                          "ai": 0,
+                          "unique": 0,
+                          "cdf": null,
+                          "cc": "",
+                          "csn": "utf8mb4",
+                          "dtx": "specificType",
+                          "dtxp": "45",
+                          "dtxs": null,
+                          "au": 0,
+                          "validate": null,
+                          "virtual": null,
+                          "deleted": null,
+                          "system": 0,
+                          "order": 2,
+                          "created_at": "2023-03-02 17:04:06",
+                          "updated_at": "2023-03-02 17:04:06",
+                          "meta": null
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Links"
+        ],
+        "description": "Read the table metadata by linked column ID and  table ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v1/db/meta/tables/{tableId}": {
       "parameters": [
         {

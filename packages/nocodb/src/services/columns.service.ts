@@ -3000,7 +3000,7 @@ export class ColumnsService implements IColumnsService {
                   );
                 }
 
-                const { refContext } =  relationColOpt.getRelContext(context)
+                const { refContext } = relationColOpt.getRelContext(context);
 
                 const refTable = await relationColOpt.getRelatedTable(
                   refContext,
@@ -4488,6 +4488,45 @@ export class ColumnsService implements IColumnsService {
     },
   ) {
     // placeholder for delete custom link index
+  }
+
+  async getLinkColumnRefTable(
+    context: NcContext,
+    { columnId, tableId }: { columnId: string; tableId: string },
+  ) {
+    const column = await Column.get(context, { colId: columnId });
+
+    // if not LTAR or Links throw error
+    if (!isLinksOrLTAR(column)) {
+      NcError.badRequest('Invalid column id');
+    }
+
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      context,
+    );
+
+    let table: Model;
+
+    const { refContext, mmContext } = colOptions.getRelContext(context);
+
+    if (colOptions.fk_mm_model_id === tableId) {
+      table = await colOptions.getMMModel(mmContext);
+      // load columns
+      await table.getColumns(mmContext);
+    } else if (colOptions.fk_related_model_id === tableId) {
+      table = await colOptions.getRelatedTable(refContext);
+      // load columns
+      await table.getColumns(refContext);
+    } else {
+      NcError.badRequest('Invalid table id');
+    }
+
+    // filter out columns other than primary key and display column
+    table.columns = table.columns.filter((col) => {
+      return col.pk || col.pv;
+    });
+
+    return table;
   }
 }
 

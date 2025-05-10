@@ -184,6 +184,16 @@ async function getJunctionTableName(
   return `${tableName}${suffix ?? ''}`;
 }
 
+// todo: move to swagger.json/types
+export interface CustomLinkProps {
+  column_id: string;
+  ref_model_id: string;
+  ref_column_id: string;
+  junc_model_id: string;
+  junc_column_id: string;
+  junc_ref_column_id: string;
+}
+
 @Injectable()
 export class ColumnsService implements IColumnsService {
   constructor(

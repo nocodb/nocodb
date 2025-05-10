@@ -73,7 +73,7 @@ export function useGridCellHandler(params: {
   const { isMssql, isMysql, isXcdbBase, isPg } = baseStore
   const { sqlUis } = storeToRefs(baseStore)
 
-  const { basesUser } = storeToRefs(useBases())
+  const { basesUser, baseRoles } = storeToRefs(useBases())
 
   const { open: openDetachedExpandedForm } = useExpandedFormDetached()
   const { open: openDetachedLongText } = useDetachedLongText()
@@ -334,6 +334,7 @@ export function useGridCellHandler(params: {
         openDetachedExpandedForm,
         openDetachedLongText,
         path: ctx.path ?? [],
+        baseRoles: baseRoles.value,
       })
     }
     return false

@@ -1832,6 +1832,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     fieldsSet,
     alias,
     validateFormula,
+    pkAndPvOnly = false,
   }: {
     fieldsSet?: Set<string>;
     qb: Knex.QueryBuilder & Knex.QueryInterface;
@@ -1841,6 +1842,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     viewId?: string;
     alias?: string;
     validateFormula?: boolean;
+    pkAndPvOnly?: boolean;
   }): Promise<void> {
     // keep a common object for all columns to share across all columns
     const aliasToColumnBuilder = {};
@@ -1879,7 +1881,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           viewOrTableColumn,
           view,
           column,
-          extractPkAndPv,
+          extractPkAndPv || pkAndPvOnly,
+          pkAndPvOnly,
         )
       ) {
         continue;

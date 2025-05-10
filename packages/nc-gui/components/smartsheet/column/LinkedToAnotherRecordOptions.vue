@@ -28,7 +28,7 @@ const filterRef = ref()
 
 const crossBase = ref(false)
 
-const { basesList, } = storeToRefs(useBases())
+const { basesList } = storeToRefs(useBases())
 
 const { setAdditionalValidations, setPostSaveOrUpdateCbk, validateInfos, onDataTypeChange, sqlUi, isXcdbBase, updateFieldName } =
   useColumnCreateStoreOrThrow()
@@ -101,7 +101,7 @@ if (!vModel.value.type) vModel.value.type = vModel.value?.colOptions?.type || 'm
 const advancedOptions = ref(false)
 
 const tablesStore = useTablesStore()
-const { baseTables, } = storeToRefs(tablesStore)
+const { baseTables } = storeToRefs(tablesStore)
 
 const refTables = computed(() => {
   if (!crossBase.value) {
@@ -220,7 +220,6 @@ const handleUpdateRefTable = () => {
     updateFieldName()
   })
 }
-
 
 const onBaseChange = async (baseId: string) => {
   // load tables for the selected base

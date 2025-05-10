@@ -173,7 +173,7 @@ main {
 // add border on input if it has value and it is not focused
 .ant-input-affix-wrapper.nc-input-border-on-value {
   &:not(:has(.ant-input-clear-icon-hidden)):has(.ant-input-clear-icon) {
-    @apply border-[var(--ant-primary-5)];
+    @apply !border-[var(--ant-primary-5)];
   }
 
   .ant-input::placeholder {

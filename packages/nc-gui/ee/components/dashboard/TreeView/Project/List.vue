@@ -50,6 +50,10 @@ const baseType = ref(NcProjectType.DB)
 const baseCreateDlg = ref(false)
 const dashboardProjectCreateDlg = ref(false)
 
+const searchQuery = ref('')
+
+const isCreateProjectOpen = ref(false)
+
 const starredProjectList = computed(() => basesList.value.filter((base) => base.starred))
 const nonStarredProjectList = computed(() => basesList.value.filter((base) => !base.starred))
 
@@ -367,38 +371,68 @@ const onMove = async (
 </script>
 
 <template>
-  <div>
+  <div class="nc-treeview-container">
     <div v-show="showProjectList">
       <DashboardSidebarHeaderWrapper></DashboardSidebarHeaderWrapper>
-
-      <div class="nc-treeview-container flex flex-col justify-between select-none pl-0.5">
-        <div ref="treeViewDom" mode="inline" class="nc-treeview pb-0.5 flex-grow h-full overflow-hidden">
-          <template v-if="starredProjectList?.length">
-            <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
-              <div class="text-gray-500 font-medium">Starred</div>
-            </div>
-            <div>
-              <Draggable
-                :model-value="starredProjectList"
-                :disabled="isMobileMode || !isUIAllowed('baseReorder') || starredProjectList?.length < 2"
-                item-key="starred-project"
-                handle=".base-title-node"
-                ghost-class="ghost"
-                :filter="isTouchEvent"
-                @change="onMove($event, starredProjectList)"
-              >
-                <template #item="{ element: baseItem }">
-                  <div :key="baseItem.id">
-                    <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
-                      <DashboardTreeViewProjectNode />
-                    </ProjectWrapper>
-                  </div>
-                </template>
-              </Draggable>
-            </div>
+      <div class="px-2 h-12 flex items-center">
+        <a-input
+          v-model:value="searchQuery"
+          type="text"
+          class="nc-input-border-on-value nc-input-shadow !h-8 !px-2.5 !py-1 !rounded-lg"
+          :placeholder="`${$t('activity.searchProject').charAt(0).toUpperCase()}${$t('activity.searchProject')
+            .slice(1)
+            .toLowerCase()}`"
+          allow-clear
+          @keydown.stop
+        >
+          <template #prefix>
+            <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-gray-500 group-hover:text-black" />
           </template>
-          <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
-            <div class="text-gray-500 font-medium">{{ $t('objects.projects') }}</div>
+        </a-input>
+      </div>
+
+      <div class="nc-project-home-section">
+        <WorkspaceCreateProjectBtn
+          v-model:is-open="isCreateProjectOpen"
+          modal
+          type="text"
+          class="nc-sidebar-create-base-btn nc-project-home-section-item !text-brand-500 !hover:(text-brand-600 bg-none) !xs:hidden w-full"
+          data-testid="nc-sidebar-create-base-btn"
+        >
+          <div class="flex items-center gap-2">
+            <GeneralIcon icon="plus" />
+
+            <div class="flex">{{ $t('title.createBase') }}</div>
+          </div>
+        </WorkspaceCreateProjectBtn>
+      </div>
+
+      <div class="nc-treeview h-[calc(100dvh_-_140px)] relative overflow-auto nc-scrollbar-thin">
+        <div v-if="starredProjectList?.length" class="nc-project-home-section">
+          <div v-if="!isSharedBase" class="nc-project-home-section-header">Starred</div>
+          <div>
+            <Draggable
+              :model-value="starredProjectList"
+              :disabled="isMobileMode || !isUIAllowed('baseReorder') || starredProjectList?.length < 2"
+              item-key="starred-project"
+              handle=".base-title-node"
+              ghost-class="ghost"
+              :filter="isTouchEvent"
+              @change="onMove($event, starredProjectList)"
+            >
+              <template #item="{ element: baseItem }">
+                <div :key="baseItem.id">
+                  <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
+                    <DashboardTreeViewProjectNode />
+                  </ProjectWrapper>
+                </div>
+              </template>
+            </Draggable>
+          </div>
+        </div>
+        <div class="nc-project-home-section">
+          <div v-if="!isSharedBase" class="nc-project-home-section-header">
+            {{ $t('objects.projects') }}
           </div>
           <div v-if="nonStarredProjectList?.length">
             <Draggable
@@ -445,5 +479,27 @@ const onMove = async (
 }
 .ghost {
   @apply bg-primary-selected;
+}
+
+:deep(.nc-sidebar-create-base-btn.nc-button.ant-btn-text.theme-default:hover) {
+  @apply bg-none;
+}
+</style>
+
+<style>
+.nc-project-home-section {
+  @apply px-1 pb-3;
+
+  .nc-project-home-section-item {
+    @apply w-full px-3 py-1.5 flex items-center gap-2 h-8;
+  }
+
+  .nc-project-home-section-header {
+    @apply w-full px-3 py-1.5 flex items-center gap-2 h-8 text-nc-content-gray-muted text-captionBold sticky top-0 bg-nc-bg-gray-extralight z-2;
+  }
+
+  .nc-sidebar-create-base-btn.nc-button.ant-btn-text.theme-default:hover {
+    @apply !bg-transparent;
+  }
 }
 </style>

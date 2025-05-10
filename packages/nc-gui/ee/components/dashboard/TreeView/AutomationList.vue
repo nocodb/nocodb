@@ -286,9 +286,14 @@ onMounted(() => {
           class="nc-create-script-btn flex flex-row items-center cursor-pointer rounded-md w-full"
           role="button"
         >
-          <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
+          <div
+            :class="{
+              'nc-project-home-section-item': isNewSidebarEnabled,
+              'flex flex-row items-center pl-1.25 !py-1.5 text-inherit': !isNewSidebarEnabled,
+            }"
+          >
             <GeneralIcon icon="plus" />
-            <div class="pl-1.75">
+            <div :class="!isNewSidebarEnabled ? 'pl-1.75' : ''">
               {{
                 $t('general.createEntity', {
                   entity: $t('objects.script'),

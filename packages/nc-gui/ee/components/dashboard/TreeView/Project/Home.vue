@@ -629,7 +629,7 @@ const onClickMenu = (e: { key?: string }) => {
           </div>
         </NcButton>
       </div>
-      <div class="h-[calc(100vh_-_96px)] relative overflow-auto nc-scrollbar-thin">
+      <div class="h-[calc(100dvh_-_96px)] relative overflow-y-auto nc-scrollbar-thin">
         <div class="nc-project-home-section">
           <div class="nc-project-home-section-header">Tables</div>
           <div
@@ -637,15 +637,13 @@ const onClickMenu = (e: { key?: string }) => {
             role="button"
             @click="addNewProjectChildEntity"
           >
-            <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
+            <div class="nc-project-home-section-item">
               <GeneralIcon icon="plus" />
-              <div class="pl-1.75">
-                {{
-                  $t('general.createEntity', {
-                    entity: $t('objects.table'),
-                  })
-                }}
-              </div>
+              {{
+                $t('general.createEntity', {
+                  entity: $t('objects.table'),
+                })
+              }}
             </div>
           </div>
           <div key="g1" class="overflow-x-hidden transition-max-height" :class="{ 'max-h-0': !isExpanded }">
@@ -873,6 +871,10 @@ const onClickMenu = (e: { key?: string }) => {
 <style lang="scss">
 .nc-project-home-section {
   @apply px-1 pb-3;
+
+  .nc-project-home-section-item {
+    @apply w-full px-3 py-1.5 flex items-center gap-2 h-8;
+  }
 
   .nc-project-home-section-header {
     @apply w-full px-3 py-1.5 flex items-center gap-2 h-8 text-nc-content-gray-muted text-captionBold sticky top-0 bg-nc-bg-gray-extralight z-2;

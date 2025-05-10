@@ -628,7 +628,7 @@ export function useGridViewData(
 
       const bulkUpsertedRows = await $api.dbTableRow.bulkUpsert(
         NOCO,
-        base.value?.id as string,
+        metaValue?.base_id ?? (base.value?.id as string),
         metaValue?.id as string,
         [...insertRows.map((row) => cleanRow(row.row)), ...updateRows.map((row) => cleanRow(row.row))],
         {},

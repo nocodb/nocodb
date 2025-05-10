@@ -97,7 +97,7 @@ export function useViewData(
   async function syncCount() {
     const { count } = await $api.dbViewRow.count(
       NOCO,
-      base?.value?.id as string,
+      meta?.value?.base_id ?? (base?.value?.id as string),
       metaId.value as string,
       viewMeta?.value?.id as string,
     )

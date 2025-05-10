@@ -536,7 +536,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           } else {
             childrenList.value = await $api.dbTableRow.nestedList(
               NOCO,
-              (base?.value?.id || (sharedView.value?.view as any)?.base_id) as string,
+              meta.value?.base_id ?? ((base?.value?.id || (sharedView.value?.view as any)?.base_id) as string),
               meta.value.id,
               encodeURIComponent(rowId.value),
               colOptions.value.type as RelationTypes,
@@ -574,7 +574,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           try {
             const res: { message?: string[] } | number = await $api.dbTableRow.delete(
               NOCO,
-              baseId,
+              relatedTableMeta.value?.base_id ?? baseId,
               relatedTableMeta.value.id as string,
               encodeURIComponent(id as string),
             )
@@ -633,7 +633,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenListLoading.value[index] = true
         await $api.dbTableRow.nestedRemove(
           NOCO,
-          base.value.id as string,
+          metaValue?.base_id ?? (base.value.id as string),
           metaValue.id!,
           encodeURIComponent(rowId.value),
           colOptions.value.type as RelationTypes,
@@ -704,7 +704,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
         await $api.dbTableRow.nestedAdd(
           NOCO,
-          base.value.id as string,
+          metaValue?.base_id ?? (base.value.id as string),
           metaValue.id as string,
           encodeURIComponent(rowId.value),
           colOptions.value.type as RelationTypes,

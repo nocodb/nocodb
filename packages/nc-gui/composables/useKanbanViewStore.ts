@@ -352,7 +352,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
         const insertedData = await $api.dbViewRow.create(
           NOCO,
-          base?.value.id as string,
+          metaValue?.base_id ?? (base?.value.id as string),
           meta.value?.id as string,
           viewMeta?.value?.id as string,
           insertObj,
@@ -401,7 +401,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
         const updatedRowData = await $api.dbViewRow.update(
           NOCO,
-          base?.value.id as string,
+          meta.value?.base_id ?? (base?.value.id as string),
           meta.value?.id as string,
           viewMeta?.value?.id as string,
           encodeURIComponent(id),

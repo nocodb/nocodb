@@ -4,11 +4,13 @@ import { type ColumnType } from 'nocodb-sdk';
 import {
   beforeEachLinkBased,
   beforeEachTextBased,
+  beforeEachUserBased,
   beforeEach as dataApiV3BeforeEach,
 } from './beforeEach';
 import { ncAxios } from './ncAxios';
+import { getUsers } from './helpers';
+import type { ITestContext } from './helpers';
 import type { Column, Model } from '../../../../../src/models';
-import type { ITestContext } from './beforeEach';
 import type { INcAxios } from './ncAxios';
 
 const API_VERSION = 'v3';
@@ -369,6 +371,67 @@ describe('dataApiV3', () => {
           { Id: undefined },
           { Id: undefined },
         ]);
+      });
+    });
+
+    describe('user-based', () => {
+      let table: Model;
+      let columns: Column[] = [];
+
+      beforeEach(async () => {
+        const initResult = await beforeEachUserBased(testContext);
+
+        table = initResult.table;
+        columns = initResult.columns;
+        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      });
+
+      it('Create record : using email', async function () {
+        const newRecord = {
+          userFieldSingle: 'a@nocodb.com',
+          userFieldMulti: 'a@nocodb.com,b@nocodb.com',
+        };
+        const rsp = await ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: newRecord,
+        });
+        expect(rsp.body).to.deep.equal({ Id: 401 });
+
+        const record = await ncAxiosGet({
+          url: `${urlPrefix}/${table.id}/401`,
+        });
+        expect(record.body.Id).to.equal(401);
+        expect(record.body.userFieldSingle[0].email).to.equal('a@nocodb.com');
+        expect(record.body.userFieldMulti[0].email).to.equal('a@nocodb.com');
+        expect(record.body.userFieldMulti[1].email).to.equal('b@nocodb.com');
+      });
+
+      it('Create record : using ID', async function () {
+        const userList = await getUsers(testContext);
+
+        const id0 = userList.find((u) => u.email === 'test@example.com').id;
+        const id1 = userList.find((u) => u.email === 'a@nocodb.com').id;
+
+        const newRecord = {
+          userFieldSingle: id0,
+          userFieldMulti: `${id0},${id1}`,
+        };
+        const rsp = await ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: newRecord,
+        });
+        expect(rsp.body).to.deep.equal({ Id: 401 });
+        const record = await ncAxiosGet({
+          url: `${urlPrefix}/${table.id}/401`,
+        });
+        expect(record.body.Id).to.equal(401);
+        expect(record.body.userFieldSingle[0].email).to.equal(
+          'test@example.com',
+        );
+        expect(record.body.userFieldMulti[0].email).to.equal(
+          'test@example.com',
+        );
+        expect(record.body.userFieldMulti[1].email).to.equal('a@nocodb.com');
       });
     });
   });

@@ -301,15 +301,4 @@ export default class LinkToAnotherRecordColumn {
       parentContext,
     });
   }
-
-  getRelatedTableContext(context: NcContext) {
-    if (!this.fk_related_base_id) {
-      return context;
-    }
-
-    return {
-      ...context,
-      base_id: this.fk_related_base_id,
-    } as NcContext;
-  }
 }

@@ -663,6 +663,7 @@ export const getDynamicColumns = (metaColumns: ColumnType[], column?: ColumnType
 
     const filterColAbstractType = sqlUi.getAbstractType(column)
 
+    console.log([dynamicColAbstractType, filterColAbstractType], c.title, column.title)
     // treat float and integer as number
     if ([dynamicColAbstractType, filterColAbstractType].every((type) => ['float', 'integer'].includes(type))) {
       return true

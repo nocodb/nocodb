@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { ClientType } from 'nocodb-sdk'
-import { SmartsheetToolbarFilterFieldListDropdownLite } from '#components'
 
 interface Props {
   modelValue: ColumnFilterType
@@ -39,6 +38,8 @@ const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 const vModel = useVModel(props, 'modelValue', emits)
 
+const meta = inject(MetaInj, ref())
+
 // t is a standalone dependency, so not need to abstract it
 const { t } = useI18n()
 
@@ -65,6 +66,13 @@ const column = computed(() => {
     return undefined
   }
   return props.columns.find((col) => col.id === fk_column_id)
+})
+
+const dynamicColumns = computed(() => {
+  if (!vModel.value?.dynamic) {
+    return []
+  }
+  return getDynamicColumns(meta.value?.columns, column.value, props.dbClientType)
 })
 
 const comparisonOps = computed(() => {
@@ -314,7 +322,7 @@ const onChangeToDynamic = async () => {
 
     <slot name="fieldInaccessibleError"></slot>
     <template v-if="!slotHasChildren('fieldInaccessibleError')">
-      <SmartsheetToolbarFilterFieldListDropdownLite
+      <SmartsheetToolbarFieldListAutoCompleteDropdown
         v-model="vModel.fk_column_id"
         v-bind="columnSelectProps"
         class="nc-filter-field-select min-w-32 max-h-8"
@@ -322,9 +330,9 @@ const onChangeToDynamic = async () => {
           'max-w-32': !webHook,
           '!w-full': webHook,
         }"
-        :columns="columns"
         :disabled="isDisabled"
         :db-client-type="dbClientType"
+        :meta="meta"
         @click.stop
         @change="onColumnChange($event)"
       />
@@ -406,11 +414,12 @@ const onChangeToDynamic = async () => {
         <div class="flex items-center flex-grow">
           <template v-if="showFilterInput">
             <div v-if="link && (vModel.dynamic || vModel.fk_value_col_id)" class="flex-grow">
-              <SmartsheetToolbarFilterFieldListDropdownLite
+              <SmartsheetToolbarFieldListAutoCompleteDropdown
                 v-if="showFilterInput"
                 v-model="vModel.fk_value_col_id"
                 class="nc-filter-field-select min-w-32 w-full max-h-8"
-                :columns="getDynamicColumns(columns, column, dbClientType)"
+                :columns="dynamicColumns"
+                :meta="meta"
                 @change="onFkValueColIdChanged($event)"
               />
             </div>

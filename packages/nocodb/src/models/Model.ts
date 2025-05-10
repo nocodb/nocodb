@@ -2,6 +2,7 @@ import {
   isLinksOrLTAR,
   isVirtualCol,
   ModelTypes,
+  NcApiVersion,
   ncIsUndefined,
   UITypes,
   ViewTypes,
@@ -715,7 +716,11 @@ export default class Model implements TableType {
         if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
           val = JSON.stringify(val);
         }
-        if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
+        if (
+          context.api_version !== NcApiVersion.V3 &&
+          col.uidt === UITypes.DateTime &&
+          dayjs(val).isValid()
+        ) {
           const { isMySQL, isSqlite, isMssql, isPg } = clientMeta;
           if (
             val.indexOf('-') < 0 &&

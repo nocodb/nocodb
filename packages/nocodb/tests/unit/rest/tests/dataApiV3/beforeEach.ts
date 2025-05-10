@@ -374,3 +374,31 @@ export const beforeEachLinkBased = async (testContext: ITestContext) => {
     columnsCity: columnsCity!,
   };
 };
+
+export const beforeEachCheckbox = async (testContext: ITestContext) => {
+  const createColumns = [
+    {
+      column_name: 'id',
+      title: 'Id',
+      uidt: UITypes.ID,
+      description: `id ${UITypes.ID}`,
+    },
+    {
+      uidt: UITypes.Checkbox,
+      column_name: 'Checkbox',
+      title: 'Checkbox',
+    },
+  ];
+  const table = await createTable(testContext.context, testContext.base, {
+    table_name: 'textBased',
+    title: 'TextBased',
+    columns: createColumns,
+  });
+
+  const columns = await table.getColumns(testContext.ctx);
+
+  return {
+    table,
+    columns,
+  };
+};

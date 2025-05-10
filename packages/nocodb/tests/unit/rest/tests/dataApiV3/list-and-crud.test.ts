@@ -2,6 +2,7 @@
 import { expect } from 'chai';
 import { convertMS2Duration } from 'nocodb-sdk';
 import {
+  beforeEachCheckbox,
   beforeEachDateBased,
   beforeEachLinkBased,
   beforeEachNumberBased,
@@ -1768,6 +1769,141 @@ describe('dataApiV3', () => {
         };
 
         await nestedListTests(validParams);
+      });
+    });
+
+    describe('checkbox', () => {
+      let table: Model;
+      let columns: Column[] = [];
+
+      beforeEach(async function () {
+        const initResult = await beforeEachCheckbox(testContext);
+        table = initResult.table;
+        columns = initResult.columns;
+        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      });
+
+      const valueCases = [
+        { value: true, expect: true },
+        { value: 'true', expect: true },
+        { value: 'TRUE', expect: true },
+        { value: 'Y', expect: true },
+        { value: 'y', expect: true },
+        { value: 'YES', expect: true },
+        { value: 'yes', expect: true },
+        { value: '1', expect: true },
+        { value: 1, expect: true },
+
+        { value: false, expect: false },
+        { value: 'false', expect: false },
+        { value: 'FALSE', expect: false },
+        { value: 'N', expect: false },
+        { value: 'n', expect: false },
+        { value: 'NO', expect: false },
+        { value: 'no', expect: false },
+        { value: '0', expect: false },
+        { value: 0, expect: false },
+      ];
+      it(`will handle various insert value (single)`, async () => {
+        // single
+        for (const valueCase of valueCases) {
+          const response = await ncAxiosPost({
+            url: `${urlPrefix}/${table.id}`,
+            body: [
+              {
+                Checkbox: valueCase.value,
+              },
+            ],
+            status: 200,
+          });
+          const id = response.body[0]?.Id;
+          expect(id).to.greaterThan(0);
+          const getResponse = await ncAxiosGet({
+            url: `${urlPrefix}/${table.id}/${id}`,
+            status: 200,
+          });
+          expect(getResponse.body.Checkbox).to.equal(valueCase.expect);
+          const patchResponse = await ncAxiosPatch({
+            url: `${urlPrefix}/${table.id}`,
+            body: [
+              {
+                Id: id,
+                Checkbox: valueCase.value,
+              },
+            ],
+            status: 200,
+          });
+          expect(patchResponse.body[0].Id).to.equal(id);
+          const listResponse = await ncAxiosGet({
+            url: `${urlPrefix}/${table.id}`,
+            query: {
+              where: `(Id,eq,${id})`,
+            },
+            status: 200,
+          });
+          expect(listResponse.body.list[0].Checkbox).to.equal(valueCase.expect);
+        }
+      });
+
+      it(`will handle various insert value (bulk)`, async () => {
+        for (const expectedValue of [true, false]) {
+          const expectedValueCases = valueCases.filter(
+            (k) => k.expect === expectedValue,
+          );
+          // bulk
+          const recordsToAdd: any[] = [];
+          for (const valueCase of expectedValueCases) {
+            recordsToAdd.push({
+              Checkbox: valueCase.value,
+            });
+          }
+          const bulkPostResponse = await ncAxiosPost({
+            url: `${urlPrefix}/${table.id}`,
+            body: recordsToAdd,
+            status: 200,
+          });
+          expect(
+            bulkPostResponse.body.filter((row) => row.Id > 0).length,
+          ).to.equal(recordsToAdd.length);
+          const listGet1 = await ncAxiosGet({
+            url: `${urlPrefix}/${table.id}`,
+            query: {
+              where: `(Id,gte,${bulkPostResponse.body[0].Id})`,
+            },
+            status: 200,
+          });
+          expect(listGet1.body.list.length).to.equal(recordsToAdd.length);
+          const recordToUpdate: any[] = [];
+          for (let i = 0; i < expectedValueCases.length; i++) {
+            expect(listGet1.body.list[i].Checkbox).to.equal(
+              expectedValueCases[i].expect,
+            );
+            recordToUpdate.push({
+              Id: listGet1.body.list[i].Id,
+              Checkbox: expectedValueCases[i].value,
+            });
+          }
+
+          const bulkPatchResponse = await ncAxiosPatch({
+            url: `${urlPrefix}/${table.id}`,
+            body: recordToUpdate,
+            status: 200,
+          });
+
+          const listGet2 = await ncAxiosGet({
+            url: `${urlPrefix}/${table.id}`,
+            query: {
+              where: `(Id,gte,${bulkPatchResponse.body[0].Id})`,
+            },
+            status: 200,
+          });
+          expect(listGet2.body.list.length).to.equal(recordToUpdate.length);
+          for (let i = 0; i < expectedValueCases.length; i++) {
+            expect(listGet1.body.list[i].Checkbox).to.equal(
+              expectedValueCases[i].expect,
+            );
+          }
+        }
       });
     });
   });

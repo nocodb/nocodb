@@ -9,6 +9,8 @@ const { appInfo, navigateToProject } = useGlobal()
 
 const { meta: metaKey, control } = useMagicKeys()
 
+const { commandPalette } = useCommandPalette()
+
 const workspaceStore = useWorkspace()
 
 const { activeWorkspaceId, isWorkspaceSettingsPageOpened, isIntegrationsPageOpened } = storeToRefs(workspaceStore)
@@ -78,9 +80,15 @@ const navigateToIntegrations = () => {
       >
         <GeneralIcon :icon="isProjectPageOpen ? 'ncBaseOutlineDuo' : 'ncBaseOutline'" class="h-4 w-4" />
       </div>
-      <div class="nc-mini-sidebar-btn" data-testid="nc-sidebar-cmd-k-btn">
+      <div
+        v-e="['c:quick-actions']"
+        class="nc-mini-sidebar-btn"
+        data-testid="nc-sidebar-cmd-k-btn"
+        @click="commandPalette?.open()"
+      >
         <GeneralIcon :icon="isProjectPageOpen ? 'search' : 'search'" class="h-4 w-4" />
       </div>
+      <NcDivider class="!my-0 !border-nc-border-gray-dark" />
       <div
         v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
         v-e="['c:team:settings']"
@@ -91,7 +99,7 @@ const navigateToIntegrations = () => {
         }"
         @click="navigateToSettings"
       >
-        <GeneralIcon :icon="isWorkspaceSettingsPageOpened ? 'ncSettingsDuo' : 'ncSettings'" class="h-5 w-5" />
+        <GeneralIcon :icon="isWorkspaceSettingsPageOpened ? 'ncSettingsDuo' : 'ncSettings'" class="h-4 w-4" />
       </div>
       <div
         v-if="isUIAllowed('workspaceSettings')"
@@ -103,11 +111,13 @@ const navigateToIntegrations = () => {
         }"
         @click="navigateToIntegrations"
       >
-        <GeneralIcon :icon="isIntegrationsPageOpened ? 'ncIntegrationDuo' : 'integration'" class="h-5 w-5" />
+        <GeneralIcon :icon="isIntegrationsPageOpened ? 'ncIntegrationDuo' : 'integration'" class="h-4 w-4" />
       </div>
+      <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+      <DashboardSidebarFeed v-if="appInfo.feedEnabled" />
     </div>
     <div class="flex flex-col gap-3 items-center">
-      <DashboardSidebarFeed v-if="appInfo.feedEnabled" />
+      <NotificationMenu />
 
       <DashboardSidebarUserInfo />
     </div>
@@ -130,14 +140,14 @@ const navigateToIntegrations = () => {
   }
 
   .nc-mini-sidebar-btn {
-    @apply cursor-pointer h-8 w-8 rounded p-1.5 flex items-center justify-center children:flex-none text-nc-content-gray-muted transition-all duration-200;
+    @apply cursor-pointer h-8 w-8 rounded p-1.5 flex items-center justify-center children:flex-none !text-nc-content-gray-muted transition-all duration-200;
 
     &:not(.active) {
       @apply hover:bg-nc-bg-gray-medium;
     }
 
     &.active {
-      @apply bg-nc-bg-gray-medium text-nc-content-gray;
+      @apply bg-nc-bg-gray-medium hover:bg-nc-bg-gray-medium !text-nc-content-gray;
     }
   }
 }

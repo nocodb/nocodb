@@ -1,4 +1,4 @@
-import { type NcContext, ncIsUndefined } from 'nocodb-sdk';
+import { type NcContext, ncIsUndefined, parseCheckboxValue } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
 import type { FilterVerificationResult } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
@@ -57,18 +57,11 @@ export class CheckboxGeneralHandler extends GenericFieldHandler {
     if (ncIsUndefined(params.value)) {
       return { value: params.value };
     }
-    if (
-      [1, '1', true].includes(params.value) ||
-      (typeof params.value === 'string' &&
-        ['true', 'yes', 'y'].includes(params.value.toLowerCase()))
-    ) {
-      return { value: true };
-    } else if (
-      [0, '0', false, null].includes(params.value) ||
-      (typeof params.value === 'string' &&
-        ['false', 'no', 'n'].includes(params.value.toLowerCase()))
-    ) {
-      return { value: false };
+
+    const parsedCheckboxValue = parseCheckboxValue(params.value);
+
+    if (parsedCheckboxValue === true || parsedCheckboxValue === false) {
+      return { value: parsedCheckboxValue };
     } else {
       NcError.invalidValueForField({
         value: params.value,

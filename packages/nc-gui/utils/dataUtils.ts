@@ -175,6 +175,12 @@ export function validateRowFilters(
   columns: ColumnType[],
   client: any,
   metas: Record<string, any>,
+  options?: {
+    currentUser?: {
+      id: string
+      email: string
+    }
+  },
 ) {
   return sdkValidateRowFilters({
     filters: _filters,
@@ -182,6 +188,7 @@ export function validateRowFilters(
     columns,
     client,
     metas,
+    options,
   })
 }
 

@@ -20,13 +20,20 @@ export const DateCellRenderer: CellRenderer = {
     }
 
     if (value) {
-      const date = dayjs(/^\d+$/.test(value) ? +value : value, defaultDateFormat)
-      if (date.isValid()) {
-        formattedDate = date.format(dateFormat)
+      // First try to parse with the exact format to preserve the original format
+      const exactFormatDate = dayjs(value, dateFormat, true)
+      if (exactFormatDate.isValid()) {
+        formattedDate = exactFormatDate.format(dateFormat)
       } else {
-        const parsedDate = parseFlexibleDate(value)
-        if (parsedDate) {
-          formattedDate = parsedDate.format(dateFormat)
+        // If that fails, try numeric timestamp or flexible parsing
+        const date = dayjs(/^\d+$/.test(value) ? +value : value, defaultDateFormat)
+        if (date.isValid()) {
+          formattedDate = date.format(dateFormat)
+        } else {
+          const parsedDate = parseFlexibleDate(value)
+          if (parsedDate) {
+            formattedDate = parsedDate.format(dateFormat)
+          }
         }
       }
     }
@@ -70,9 +77,15 @@ export const DateCellRenderer: CellRenderer = {
     let text = ''
 
     if (value) {
-      const date = dayjs(/^\d+$/.test(value) ? +value : value, dateFormat)
-      if (date.isValid()) {
-        text = date.format(dateFormat)
+      // First try to parse with the exact format to preserve the original format
+      const exactFormatDate = dayjs(value, dateFormat, true)
+      if (exactFormatDate.isValid()) {
+        text = exactFormatDate.format(dateFormat)
+      } else {
+        const date = dayjs(/^\d+$/.test(value) ? +value : value, dateFormat)
+        if (date.isValid()) {
+          text = date.format(dateFormat)
+        }
       }
     } else {
       text = dateFormat

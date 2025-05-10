@@ -60,7 +60,14 @@ export const hookLogFormatter = (date: string) => {
 }
 
 export function parseFlexibleDate(dateString: string) {
-  const formats = ['YYYY-MM-DD', 'YYYY/MM/DD', 'DD/MM/YYYY', 'DD-MM-YYYY', 'MM/DD/YYYY', 'MM-DD-YYYY']
+  // First try to parse with the exact format
+  const date = dayjs(dateString)
+  if (date.isValid()) {
+    return date
+  }
+
+  // If that fails, try common formats in order
+  const formats = ['YYYY-MM-DD', 'YYYY/MM/DD', 'MM/DD/YYYY', 'DD/MM/YYYY', 'MM-DD-YYYY', 'DD-MM-YYYY']
 
   for (const format of formats) {
     const date = dayjs(dateString, format, true)

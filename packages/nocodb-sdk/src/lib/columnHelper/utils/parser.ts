@@ -138,12 +138,23 @@ export const parseDateValue = (
     ? parseProp(col.meta)?.date_format ?? 'YYYY-MM-DD'
     : 'YYYY-MM-DD HH:mm:ss';
 
-  if (!value || !dayjs(value).isValid()) {
+  if (!value) {
     return null;
-  } else {
-    value = value?.toString().trim();
+  }
+
+  // First try to parse with the exact format to preserve the original format
+  const exactFormatDate = dayjs(value, dateFormat, true);
+  if (exactFormatDate.isValid()) {
+    return exactFormatDate.format(dateFormat);
+  }
+
+  // If that fails, try standard parsing
+  if (dayjs(value).isValid()) {
     return dayjs(/^\d+$/.test(value) ? +value : value).format(dateFormat);
   }
+
+  // If all parsing attempts fail
+  return null;
 };
 
 export const parseDateTimeValue = (

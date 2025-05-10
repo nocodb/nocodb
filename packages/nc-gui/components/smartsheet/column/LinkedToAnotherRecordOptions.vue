@@ -419,7 +419,7 @@ const canCreateCrossBaseLink = (base: { workspace_role: string; base_role: strin
 
                 <div class="flex gap-2 items-center">
                   <div v-if="base?.id === meta?.base_id" class="text-nc-content-gray-muted leading-4.5 text-xs">
-                    {{ $t('labels.currentWorkspace') }}
+                    {{ $t('labels.currentBase') }}
                   </div>
                 </div>
               </div>

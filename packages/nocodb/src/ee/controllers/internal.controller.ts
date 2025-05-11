@@ -1,16 +1,5 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { InternalController as InternalControllerCE } from 'src/controllers/internal.controller';
-import { GlobalGuard } from '~/guards/global/global.guard';
-import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { DataReflectionService } from '~/services/data-reflection.service';
 import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
 import { SyncModuleService } from '~/integrations/sync/module/services/sync.service';
@@ -18,7 +7,6 @@ import { McpTokenService } from '~/services/mcp.service';
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
-import { NcError } from '~/helpers/catchError';
 import { ScriptsService } from '~/services/scripts.service';
 import { getBaseSchema } from '~/helpers/scriptHelper';
 import {
@@ -34,8 +22,7 @@ export class InternalController extends InternalControllerCE {
     private readonly dataReflectionService: DataReflectionService,
     private readonly remoteImportService: RemoteImportService,
     private readonly syncService: SyncModuleService,
-        private readonly scriptsService: ScriptsService,
-
+    private readonly scriptsService: ScriptsService,
   ) {
     super(mcpService, aclMiddleware);
   }

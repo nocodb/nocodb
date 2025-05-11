@@ -49,13 +49,12 @@ const onScriptClick = (scriptId: string) => {
 }
 
 const onAddScript = async (scr: any) => {
-  console.log(scr)
-
   const content = getScriptContent(scr.id)
 
   await createAutomation(openedProject.value?.id, {
     title: scr.title,
     script: content,
+    description: scr.subTitle,
   })
   isOpen.value = false
 }

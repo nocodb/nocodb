@@ -37,6 +37,7 @@ const onAddScript = async (scr: any) => {
   await createAutomation(openedProject.value?.id, {
     title: scr.title,
     script: scriptContent.value,
+    description: scr.subTitle,
   })
   vModel.value = false
 }

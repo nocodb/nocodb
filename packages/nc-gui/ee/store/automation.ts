@@ -272,7 +272,8 @@ export const useAutomationStore = defineStore('automation', () => {
 
   // Script details modal
 
-  const { availableScripts, getPluginDescription, getScriptContent, getPluginAssetUrl, pluginTypes } = usePlugin()
+  const { availableScripts, getPluginDescription, getScriptContent, getPluginAssetUrl, pluginTypes, pluginDescriptionContent } =
+    usePlugin()
 
   const isDetailsVisible = ref(false)
   const detailsScriptId = ref<string>()
@@ -313,6 +314,7 @@ export const useAutomationStore = defineStore('automation', () => {
     isMarketVisible,
     availableScripts,
     getScriptDescription: getPluginDescription,
+    descriptionContent: pluginDescriptionContent,
     getScriptContent,
     getScriptAssetsURL: (pathOrUrl: string) => getPluginAssetUrl(pathOrUrl, pluginTypes.script),
   }

@@ -26,7 +26,10 @@ watchDebounced(
 
 const automationStore = useAutomationStore()
 
-const { showScriptDetails, getScriptAssetsURL } = automationStore
+const bases = useBases()
+const { openedProject } = storeToRefs(bases)
+
+const { showScriptDetails, getScriptAssetsURL, getScriptContent, createAutomation } = automationStore
 
 const { availableScripts } = storeToRefs(automationStore)
 
@@ -45,8 +48,15 @@ const onScriptClick = (scriptId: string) => {
   isOpen.value = false
 }
 
-const onAddScript = (scr: any) => {
-  // addExtension(ext)
+const onAddScript = async (scr: any) => {
+  console.log(scr)
+
+  const content = getScriptContent(scr.id)
+
+  await createAutomation(openedProject.value?.id, {
+    title: scr.title,
+    script: content,
+  })
   isOpen.value = false
 }
 </script>

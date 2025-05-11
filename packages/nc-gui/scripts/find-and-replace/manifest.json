@@ -1,9 +1,9 @@
 {
   "id": "find-and-replace",
   "title": "Find and Replace",
-  "subTitle": "Find and replace text in a field with a single click",
+  "subTitle": "Find and replace all text matches for a field",
   "description": "find-and-replace/description.md",
-  "entry": "index.js",
+  "entry": "find-and-replace/index.js",
   "version": "0.1",
   "iconUrl": "find-and-replace/assets/icon.svg",
   "publisher": {

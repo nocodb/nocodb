@@ -6,7 +6,8 @@ const automationStore = useAutomationStore()
 
 const { loadAutomations, openScript } = automationStore
 
-const { activeBaseAutomations, isAutomationsLoading, isMarketVisible } = storeToRefs(automationStore)
+const { activeBaseAutomations, isAutomationsLoading, isMarketVisible, isDetailsVisible, detailsScriptId } =
+  storeToRefs(automationStore)
 
 const { openedProject } = storeToRefs(useBases())
 
@@ -186,6 +187,7 @@ const openMarketPlace = () => {
   </div>
 
   <ScriptsMarket v-model:model-value="isMarketVisible" />
+  <ScriptsDetails v-if="isDetailsVisible && detailsScriptId" v-model="isDetailsVisible" :script-id="detailsScriptId" />
 </template>
 
 <style lang="scss" scoped>

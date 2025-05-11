@@ -6,7 +6,7 @@ const automationStore = useAutomationStore()
 
 const { loadAutomations, openScript } = automationStore
 
-const { activeBaseAutomations, isAutomationsLoading } = storeToRefs(automationStore)
+const { activeBaseAutomations, isAutomationsLoading, isMarketVisible } = storeToRefs(automationStore)
 
 const { openedProject } = storeToRefs(useBases())
 
@@ -74,6 +74,10 @@ onMounted(async () => {
 })
 
 const { isUIAllowed } = useRoles()
+
+const openMarketPlace = () => {
+  isMarketVisible.value = true
+}
 </script>
 
 <template>
@@ -95,8 +99,20 @@ const { isUIAllowed } = useRoles()
           <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-brand-500" />
         </div>
         <div class="flex flex-col gap-1">
-          <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.script') }}</div>
-          <div class="subtext">Start from scratch.</div>
+          <div class="label">{{ $t('general.create') }} {{ $t('general.empty') }} {{ $t('objects.script') }}</div>
+        </div>
+      </div>
+      <div
+        role="button"
+        class="nc-base-view-all-scripts-btn"
+        data-testid="proj-view-btn__add-new-template-script"
+        @click="openMarketPlace"
+      >
+        <div class="icon-wrapper">
+          <GeneralIcon icon="ncScript" class="!h-8 !w-8 text-nc-content-maroon-dark" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <div class="label">{{ $t('labels.scriptsByNocoDB') }}</div>
         </div>
       </div>
     </div>
@@ -168,6 +184,8 @@ const { isUIAllowed } = useRoles()
       </div>
     </div>
   </div>
+
+  <ScriptsMarket v-model:model-value="isMarketVisible" />
 </template>
 
 <style lang="scss" scoped>

@@ -3,7 +3,7 @@ interface Prop {
   modelValue?: boolean
 }
 
-type TabKeysType = 'extensions' | 'scripts' | 'build-an-extension'
+type TabKeysType = 'byNocoDB' | 'examples' | 'by-community'
 
 interface TabItem {
   title: string
@@ -18,14 +18,20 @@ const emit = defineEmits(['update:modelValue'])
 
 const tabs = [
   {
-    title: 'Extensions',
-    tabKey: 'extensions',
-    icon: 'ncPuzzleOutline',
+    title: 'By NocoDB',
+    tabKey: 'byNocoDB',
+    icon: 'ncScript',
   },
   {
-    title: 'Build an extension',
-    tabKey: 'build-an-extension',
-    icon: 'ncSpanner',
+    title: 'Example Scripts',
+    tabKey: 'examples',
+    icon: 'ncScript',
+    isDisabled: true,
+  },
+  {
+    title: 'By Community',
+    tabKey: 'by-community',
+    icon: 'ncScript',
     isDisabled: true,
   },
 ] as TabItem[]
@@ -40,11 +46,9 @@ const searchQuery = ref<string>('')
 
 const showSearchBox = ref<boolean>(true)
 
-const activeTab = ref<TabKeysType>('extensions')
+const activeTab = ref<TabKeysType>('byNocoDB')
 
 const focusSearchInput = () => {
-  if (activeTab.value === 'build-an-extension') return
-
   nextTick(() => {
     searchRef.value?.focus()
   })
@@ -84,26 +88,26 @@ onMounted(() => {
     :class="{ active: vModel }"
     :footer="null"
     size="lg"
-    wrap-class-name="nc-modal-extension-market"
+    wrap-class-name="nc-modal-scripts-market"
   >
     <div class="h-full">
-      <div class="nc-extension-market-header flex items-center gap-3 px-4 py-3 border-b-1 border-gray-200">
+      <div class="nc-scripts-market-header flex items-center gap-3 px-4 py-3 border-b-1 border-gray-200">
         <div
           class="flex items-center gap-3 flex-none"
           :style="{
             width: 'calc(\(100% - 358px - 24px\) / 2)',
           }"
         >
-          <GeneralIcon icon="ncPuzzleSolid" class="h-6 w-6 flex-none text-gray-700" />
-          <div class="flex-1 font-semibold text-xl">Marketplace</div>
+          <GeneralIcon icon="ncScript" class="h-6 w-6 flex-none text-gray-700" />
+          <div class="flex-1 font-semibold text-xl">Scripts</div>
         </div>
         <div class="flex bg-nc-bg-gray-medium rounded-lg p-1">
           <div class="flex items-center">
             <NcTooltip
               v-for="(tab, idx) of tabs"
               :key="idx"
-              :disabled="tab.tabKey === 'extensions'"
-              class="nc-extension-market-header-tab-item"
+              :disabled="tab.isDisabled"
+              class="nc-scripts-market-header-tab-item"
               :class="{
                 'selected ': activeTab === tab.tabKey,
               }"
@@ -126,7 +130,7 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex-1 flex gap-3 justify-end">
-          <div v-if="activeTab !== 'build-an-extension'" ref="searchWrapperRef" class="flex-1 flex max-w-[290px] justify-end">
+          <div ref="searchWrapperRef" class="flex-1 flex max-w-[290px] justify-end">
             <NcButton v-if="!searchQuery && !showSearchBox" class="!px-1" type="text" size="small" @click="handleShowSearchInput">
               <GeneralIcon icon="search" class="h-4 w-4 text-current" />
             </NcButton>
@@ -137,7 +141,7 @@ onMounted(() => {
               v-model:value="searchQuery"
               type="text"
               class="nc-input-border-on-value !h-8 !px-3 !py-1 !rounded-lg"
-              :placeholder="`Search for ${activeTab === 'extensions' ? 'an extension' : 'a script'}`"
+              placeholder="Search for a script"
               allow-clear
             >
               <template #prefix>
@@ -152,25 +156,14 @@ onMounted(() => {
       </div>
 
       <div class="flex flex-col h-[calc(100%_-_57px)]">
-        <ExtensionsMarketExtensionsTab
-          v-if="activeTab === 'extensions'"
-          v-model:is-open="vModel"
-          v-model:search-query="searchQuery"
-        />
-
-        <template v-else-if="activeTab === 'scripts'">
-          <!-- Coming soon  -->
-        </template>
-        <template v-else-if="activeTab === 'build-an-extension'">
-          <!-- Coming soon  -->
-        </template>
+        <ScriptsMarketNocoDB v-model:is-open="vModel" v-model:search-query="searchQuery" />
       </div>
     </div>
   </NcModal>
 </template>
 
 <style lang="scss" scoped>
-.nc-market-extension-item {
+.nc-market-scripts-item {
   &:hover {
     box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
   }
@@ -201,13 +194,13 @@ onMounted(() => {
 </style>
 
 <style lang="scss">
-.nc-modal-extension-market {
+.nc-modal-scripts-market {
   .nc-modal {
     @apply !p-0;
   }
 
-  .nc-extension-market-header {
-    .nc-extension-market-header-tab-item {
+  .nc-scripts-market-header {
+    .nc-scripts-market-header-tab-item {
       @apply relative;
 
       // Add vertical line to all items except the last one

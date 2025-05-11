@@ -189,7 +189,7 @@ onMounted(async () => {
         >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__all-tables">
-              <NcLayout />
+              <GeneralIcon icon="ncScript" />
               <div>{{ $t('labels.allScripts') }}</div>
               <div
                 class="tab-info"

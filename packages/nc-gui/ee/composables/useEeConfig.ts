@@ -124,6 +124,11 @@ export const useEeConfig = createSharedComposable(() => {
     )
   })
 
+  // TODO: @DarkPhoenix2704
+  const blockAddNewScript = computed(() => {
+    return false
+  })
+
   const blockAddNewExternalSource = computed(() => {
     return (
       isPaymentEnabled.value &&
@@ -688,6 +693,7 @@ export const useEeConfig = createSharedComposable(() => {
     isAllowToAddExtension,
     blockAddNewExtension,
     blockAddNewAttachment,
+    blockAddNewScript,
     showStoragePlanLimitExceededModal,
     blockAddNewExternalSource,
     showExternalSourcePlanLimitExceededModal,

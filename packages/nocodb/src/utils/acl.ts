@@ -674,16 +674,6 @@ const permissionDescriptions: Record<string, string> = {
   docsMagicCreatePages: 'use Docs Magic to create pages',
   pagePaginate: 'paginate pages',
   pageDirectoryImport: 'import a page directory',
-  layoutGet: 'view layout details',
-  layoutList: 'view list of layouts',
-  layoutCreate: 'create a new layout',
-  widgetsList: 'view list of widgets',
-  widgetGet: 'view widget details',
-  widgetCreate: 'create a new widget',
-  widgetUpdate: 'update a widget',
-  widgetDelete: 'delete a widget',
-  widgetFilterList: 'view list of widget filters',
-  widgetFilterCreate: 'create a new widget filter',
 
   userInvite: 'invite a user',
 

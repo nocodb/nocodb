@@ -159,8 +159,8 @@ jobs:
           push: true
           # use version from NC_ON_PREM_VERSION
           tags: |
-            nocodb/nocodb-ee:test-${{ env.NC_ON_PREM_VERSION }}
-            ${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG != '' && format('nocodb/nocodb-ee:test-{0}', steps.get-docker-repository.outputs.DOCKER_BUILD_TAG) || '' }}
+            nocodb/nocodb-ee:${{ env.NC_ON_PREM_VERSION }}
+            ${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG != '' && format('nocodb/nocodb-ee:{0}', steps.get-docker-repository.outputs.DOCKER_BUILD_TAG) || '' }}
 
         # Temp fix
         # https://github.com/docker/build-push-action/issues/252

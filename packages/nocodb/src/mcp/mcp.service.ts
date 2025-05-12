@@ -139,17 +139,8 @@ export class McpService {
               isError: true,
             };
           }
-
-          const tableSchema =
-            await this.tablesV3Service.getTableWithAccessibleViews(context, {
-              tableId: table.id,
-              user,
-            });
-
           return {
-            content: [
-              { type: 'text', text: JSON.stringify(tableSchema, null, 2) },
-            ],
+            content: [{ type: 'text', text: JSON.stringify(table, null, 2) }],
           };
         } catch (error) {
           return {

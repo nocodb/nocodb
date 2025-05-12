@@ -12,7 +12,7 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { isWorkspaceLoading } = storeToRefs(useWorkspace())
+const { isWorkspaceLoading, activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const basesStore = useBases()
 
@@ -369,18 +369,31 @@ const onMove = async (
   $e('a:base:reorder')
 }
 
-const transitionName = ref(showProjectList.value ? 'slide-left' : 'slide-right')
+const transitionName = ref<string | undefined>(undefined)
 
-watch(showProjectList, (newValue) => {
-  transitionName.value = newValue ? 'slide-left' : 'slide-right'
+watch([showProjectList, activeWorkspaceId], ([newShowProjectList, newWsId], [oldShowProjectList, oldWsId]) => {
+  // If workspace changed, skip animation
+  if (newWsId !== oldWsId) {
+    transitionName.value = undefined // No animation
+  } else {
+    transitionName.value = newShowProjectList ? 'slide-left' : 'slide-right'
+  }
+})
+
+onMounted(() => {
+  showProjectList.value ? 'slide-left' : 'slide-right'
 })
 </script>
 
 <template>
   <div class="relative w-full h-full overflow-hidden flex items-stretch">
     <Transition :name="transitionName" mode="out-in" appear>
-      <div v-if="showProjectList" key="project-list" class="nc-treeview-container nc-treeview-base-list">
-        <div>
+      <div
+        v-if="showProjectList"
+        key="project-list"
+        class="nc-treeview-container nc-treeview-base-list absolute w-full h-full top-0 left-0 z-10"
+      >
+        <div class="w-full">
           <DashboardSidebarHeaderWrapper></DashboardSidebarHeaderWrapper>
           <div class="px-2 h-11 flex items-center">
             <a-input
@@ -478,7 +491,7 @@ watch(showProjectList, (newValue) => {
       <div
         v-if="activeProjectId && openedBase?.id && !showProjectList"
         key="project-home"
-        class="!w-full h-full flex-none flex flex-col"
+        class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
       >
         <ProjectWrapper :base-role="openedBase?.project_role || stringifyRolesObj(workspaceRoles)" :base="openedBase">
           <DashboardTreeViewProjectHome>

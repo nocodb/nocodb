@@ -12,7 +12,7 @@ const isDropdownOpen = ref(false)
   <div class="cursor-pointer flex items-center">
     <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!shadow-none" placement="bottomRight" :trigger="['click']">
       <NcButton
-        size="small"
+        :size="isMiniSidebar ? 'xs' : 'small'"
         class="!border-none nc-mini-sidebar-btn"
         :class="{
           active: isDropdownOpen,

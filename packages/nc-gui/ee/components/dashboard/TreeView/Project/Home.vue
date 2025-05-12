@@ -677,14 +677,14 @@ const showCreateNewAsDropdown = computed(() => {
           <NcButton
             type="text"
             size="small"
-            full-width
-            class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden w-full !px-3"
+            class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden !px-3"
             :class="visible ? 'active' : ''"
           >
             <div class="flex items-center gap-2">
               <GeneralIcon icon="plus" />
 
               <div>{{ $t('labels.createNew') }}</div>
+              <GeneralIcon icon="chevronDown" />
             </div>
           </NcButton>
         </template>

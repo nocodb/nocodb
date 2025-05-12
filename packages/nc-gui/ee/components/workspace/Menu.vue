@@ -135,10 +135,18 @@ const onWorkspaceCreateClick = () => {
           'nc-mini-sidebar-ws-item': isMiniSidebar,
           'group cursor-pointer flex flex-grow w-full gap-x-2 items-center overflow-hidden py-1.25 xs:py-1.75 pr-0.25':
             !isMiniSidebar,
+          'nc-small-shadow': workspacesList.length === 2,
+          'nc-medium-shadow': workspacesList.length > 2,
         }"
         class="nc-workspace-menu"
       >
-        <GeneralWorkspaceIcon :workspace="activeWorkspace" icon-bg-color="#E7E7E9" show-nocodb-icon class="flex-none !rounded" />
+        <GeneralWorkspaceIcon
+          :workspace="activeWorkspace"
+          icon-bg-color="#E7E7E9"
+          show-nocodb-icon
+          class="flex-none !rounded"
+          :size="isMiniSidebar ? 'mini-sidebar' : 'medium'"
+        />
         <div v-if="activeWorkspace && !isMiniSidebar" class="flex min-w-10 w-full items-center">
           <div class="nc-workspace-title font-semibold text-base text-md truncate capitalize">
             {{ activeWorkspace.title }}

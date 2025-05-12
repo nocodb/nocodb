@@ -806,6 +806,21 @@
     "reactivateToPlan": "Ponovno aktivirati paket {plan}?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Obnavljanje posnetka",
     "note": "Opomba:",
     "snapshotRestoreMessage1": "Obnovitev tega posnetka ne bo vplivala na obstoječo bazo.",
@@ -1207,8 +1222,8 @@
     "agreeToTos": "S prijavo se strinjate s pogoji storitve.",
     "welcomeToNc": "Dobrodošli v NocoDB!",
     "inviteOnlySignup": "Dovolite prijavo samo z uporabo url za povabilo",
-    "nextRow": "Naslednja vrstica",
-    "prevRow": "Prejšnja vrstica",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Ročno dodajte podatke v mrežnem pogledu",
     "addRowForm": "Vnesite podatke o zapisu skozi obrazec",
     "noAccess": "Ni dostopa",
@@ -2060,6 +2075,7 @@
       "copyToClipboardLocalFileUrl": "Brskalnik ne dovoljuje neposrednega nalaganja lokalnega vira. URL je bil kopiran v odložišče."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "Ročnih klicev ni mogoče onemogočiti",
       "errorLoadingRecord": "Napaka pri nalaganju podatkov zapisa",
       "fetchingCalendarData": "Napaka pri pridobivanju podatkov iz koledarja",
@@ -2193,6 +2209,9 @@
       "nCellsCopied": "{n, plural, one{# celica kopirana} two{# celici kopirani} few{# celice kopirane} other{# celic kopiranih}}"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "Ključ licence je posodobljen",
       "columnDuplicated": "Stolpec je bil uspešno podvojen",
       "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
@@ -2237,7 +2256,8 @@
       "paymentSuccessful": "Plačilo uspešno",
       "paymentSuccessfulSubtitle": "Vaše plačilo je bilo obdelano. Zdaj lahko uporabljate svoj novi načrt.",
       "upgradeSuccessful": "Nadgradnja uspešna",
-      "upgradeSuccessfulSubtitle": "Vaše plačilo za nadgradnjo je bilo obdelano. Zdaj lahko uporabljate svoj novi načrt."
+      "upgradeSuccessfulSubtitle": "Vaše plačilo za nadgradnjo je bilo obdelano. Zdaj lahko uporabljate svoj novi načrt.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Začnite iz nič.",

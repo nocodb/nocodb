@@ -124,7 +124,7 @@ const onWorkspaceCreateClick = () => {
     <NcDropdown
       v-model:visible="isWorkspaceDropdownOpen"
       class="h-full min-w-0 rounded-lg"
-      :trigger="['click']"
+      :trigger="[isMiniSidebar ? 'hover' : 'click']"
       placement="bottomLeft"
       overlay-class-name="nc-dropdown-workspace-menu !overflow-hidden"
     >
@@ -209,7 +209,7 @@ const onWorkspaceCreateClick = () => {
               :list="otherWorkspaces"
               height="auto"
               :options="{ itemHeight: 40 }"
-              class="mt-1 max-h-300px nc-scrollbar-md"
+              class="my-1 max-h-300px nc-scrollbar-md"
             >
               <template #default="{ data: workspace }">
                 <NcMenuItem :key="workspace.id!" class="!h-[40px]" @click="switchWorkspace(workspace.id!)">

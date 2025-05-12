@@ -1,12 +1,6 @@
-import {
-  DataObjectStream,
-  SyncIntegration,
-  ticketingSchema,
-} from '@noco-integrations/core';
-import type {
-  AuthResponse,
-  SyncColumnDefinition,
-} from '@noco-integrations/core';
+import { DataObjectStream, SyncIntegration } from '@noco-integrations/core';
+import { SCHEMA_TICKETING } from '@noco-integrations/core';
+import type { AnyRecordType, AuthResponse} from '@noco-integrations/core';
 import type { Octokit } from 'octokit';
 
 export interface GithubIssuesPayload {
@@ -30,27 +24,28 @@ interface GithubIssue {
   updated_at: string;
 }
 
-export default class GithubIssuesIntegration extends SyncIntegration {
+export default class GithubIssuesIntegration extends SyncIntegration<GithubIssuesPayload> {
   public async getDestinationSchema(
     _auth: AuthResponse<Octokit>,
-    _payload: GithubIssuesPayload,
-  ): Promise<readonly SyncColumnDefinition[]> {
-    return ticketingSchema;
+  ) {
+    return SCHEMA_TICKETING;
   }
 
   public async fetchData(
     auth: AuthResponse<Octokit>,
-    payload: GithubIssuesPayload,
-    options: {
-      last_record?: any;
+    args: {
+      targetTables?: string[];
+      lastRecord?: AnyRecordType;
     },
   ): Promise<DataObjectStream> {
     const octokit = auth.custom as Octokit;
-    const { owner, repo } = payload;
+    const { owner, repo, includeClosed } = this.config;
+    const { lastRecord } = args;
+
     const stream = new DataObjectStream();
 
     try {
-      const fetchAfter = options.last_record?.data?.RemoteUpdatedAt;
+      const fetchAfter = lastRecord?.RemoteUpdatedAt;
       const iterator = octokit.paginate.iterator(
         octokit.rest.issues.listForRepo,
         {
@@ -58,7 +53,7 @@ export default class GithubIssuesIntegration extends SyncIntegration {
           repo,
           per_page: 100,
           since: fetchAfter || undefined,
-          ...(payload.includeClosed ? { state: 'all' } : {}),
+          ...(includeClosed ? { state: 'all' } : {}),
         },
       );
 

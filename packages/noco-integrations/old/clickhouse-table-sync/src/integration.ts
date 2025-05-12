@@ -4,7 +4,7 @@ import type {
   AnyRecordType,
   AuthResponse,
   SyncColumnDefinition,
-  SystemFieldsPayload,
+  CustomSystemFieldsPayload,
 } from '@noco-integrations/core';
 import type { ClickHouseClient } from '@clickhouse/client';
 
@@ -13,7 +13,7 @@ export class ClickhouseTableIntegration extends SyncIntegration {
     auth: AuthResponse<ClickHouseClient>,
     payload: {
       table: string;
-      system: SystemFieldsPayload;
+      system: CustomSystemFieldsPayload;
     },
   ): Promise<readonly SyncColumnDefinition[]> {
     const clickhouse = auth.custom;
@@ -49,7 +49,7 @@ export class ClickhouseTableIntegration extends SyncIntegration {
     auth: AuthResponse<ClickHouseClient>,
     payload: {
       table: string;
-      system: SystemFieldsPayload;
+      system: CustomSystemFieldsPayload;
     },
     _options?: unknown,
   ): Promise<DataObjectStream<AnyRecordType>> {

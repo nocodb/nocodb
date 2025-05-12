@@ -1,7 +1,7 @@
 {
-  "name": "@noco-integrations/github-issues-sync",
+  "name": "@noco-integrations/github-sync",
   "version": "0.1.0",
-  "description": "GitHub Issues sync integration for NocoDB",
+  "description": "GitHub sync integration for NocoDB",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

@@ -4,7 +4,7 @@ import {
   FormDefinition,
   IntegrationsType as IntegrationType,
 } from 'nocodb-sdk';
-import type { IntegrationWrapper } from '../integration';
+import type { IntegrationWrapper } from './integration';
 
 export interface IntegrationManifest {
   title: string;
@@ -32,7 +32,3 @@ export {
   FormBuilderInputType,
   IntegrationType,
 };
-
-export * from './auth';
-export * from './ai';
-export * from './sync';

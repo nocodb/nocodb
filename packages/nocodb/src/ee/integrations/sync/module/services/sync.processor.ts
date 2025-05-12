@@ -2,7 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
 import { type NcContext, type NcRequest, SyncType } from 'nocodb-sdk';
 import type { Job } from 'bull';
-import type { AuthIntegration, SyncIntegration } from '@noco-local-integrations/core';
+import type {
+  AuthIntegration,
+  SyncIntegration,
+} from '@noco-local-integrations/core';
 import type { SyncDataSyncModuleJobData } from '~/interface/Jobs';
 import { Integration, Model, SyncConfig } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -209,13 +212,10 @@ export class SyncModuleSyncDataProcessor {
         `Started syncing your data from ${integration.title} (${integration.sub_type}) to ${model.title}`,
       );
 
-      const dataStream = await wrapper.fetchData(
-        auth,
-        integration.getConfig(),
-        {
-          last_record: lastRecord,
-        },
-      );
+      const dataStream = await wrapper.fetchData(auth, {
+        payload: integration.getConfig(),
+        lastRecord,
+      });
 
       let recordCounter = 0;
 

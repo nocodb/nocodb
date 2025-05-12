@@ -94,28 +94,6 @@ export class DataObjectStream<
 }
 ```
 
-## System Fields
-
-Sync integrations should support these system fields for record tracking:
-
-```typescript
-export const syncSystemFields: SyncSchemaWithSystemFields = [
-  {
-    column_name: 'remote_id',
-    title: 'RemoteId',
-    uidt: UITypes.SingleLineText,
-    system: true,
-  },
-  {
-    column_name: 'remote_created_at',
-    title: 'RemoteCreatedAt',
-    uidt: UITypes.DateTime,
-    system: true,
-  },
-  // Additional system fields...
-];
-```
-
 ## Implementation Guide
 
 1. Implement schema discovery to retrieve column definitions from the source

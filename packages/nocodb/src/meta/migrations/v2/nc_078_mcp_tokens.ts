@@ -7,7 +7,6 @@ const up = async (knex: Knex) => {
     table.string('id', 20).primary();
     table.string('title', 512);
     table.string('base_id', 20);
-    table.string('expires_at');
 
     table.string('token', 32);
 

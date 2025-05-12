@@ -39,6 +39,9 @@ const { updateMcpToken } = useMcpSettings()
 
 const regenerateToken = async () => {
   const newToken = await updateMcpToken(token.value)
+
+  console.log(newToken)
+
   if (newToken) {
     token.value = newToken
   }
@@ -73,15 +76,15 @@ const code = computed(
 <template>
   <NcModal v-model:visible="modalVisible" :show-separator="true" size="large" wrap-class-name="nc-modal-mcp-token-create-edit">
     <template #header>
-      <div class="flex w-full items-center p-2 justify-between">
-        <div class="flex items-center gap-3 pl-1 flex-1">
+      <div class="flex w-full items-center px-4 py-2 justify-between">
+        <div class="flex items-center gap-3 flex-1">
           <GeneralIcon class="text-gray-900 h-5 w-5" icon="mcp" />
           <span class="text-gray-900 truncate font-semibold text-xl">
             {{ token.title }}
           </span>
         </div>
 
-        <div class="flex justify-end items-center gap-3 pr-0.5 flex-1">
+        <div class="flex justify-end items-center gap-3 flex-1">
           <NcButton type="text" size="small" data-testid="nc-close-webhook-modal" @click.stop="closeModal">
             <GeneralIcon icon="close" />
           </NcButton>
@@ -91,9 +94,9 @@ const code = computed(
     <div class="flex bg-white rounded-b-2xl h-[calc(100%_-_66px)]">
       <div
         ref="containerElem"
-        class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-24 py-6 mx-auto"
+        class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-12 py-6 mx-auto"
       >
-        <div class="flex flex-col max-w-[640px] w-full mx-auto gap-3">
+        <div class="flex flex-col gap-3">
           <div class="text-nc-content-gray font-bold leading-6">
             {{ $t('labels.mcpSetup') }}
           </div>
@@ -120,7 +123,7 @@ const code = computed(
                   <li>Add the JSON configuration that’s provided after creating a token in claude_desktop_config.json</li>
                 </ol>
 
-                <NcButton type="secondary" class="w-39" size="small" :loading="token.loading" @click="regenerateToken(token)">
+                <NcButton type="secondary" class="w-44" size="small" :loading="token.loading" @click="regenerateToken(token)">
                   {{ $t('labels.regenerateToken') }}
                 </NcButton>
 
@@ -186,7 +189,7 @@ const code = computed(
           </NcTabs>
         </div>
 
-        <NcAlert type="info" class="mt-3 max-w-[640px] w-full mx-auto">
+        <NcAlert type="info" class="mt-3">
           <template #message>
             {{ $t('labels.mcpTokenVisibilityInfo') }}
           </template>
@@ -245,3 +248,5 @@ const code = computed(
   }
 }
 </style>
+
+<style scoped lang="scss"></style>

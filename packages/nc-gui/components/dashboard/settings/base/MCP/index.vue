@@ -3,6 +3,10 @@ import dayjs from 'dayjs'
 
 const { t } = useI18n()
 
+const { appInfo } = useGlobal()
+
+const { copy } = useCopy()
+
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Webhook') // Using 'Webhook' as the sort type since 'MCPToken' isn't defined
 
 const orderBy = computed<Record<string, SordDirectionType>>({
@@ -79,7 +83,6 @@ const isTokenModalVisible = ref(false)
 const activeToken = ref<MCPTokenExtendedType | null>(null)
 
 const handleOpenTokenModal = (token: MCPTokenExtendedType) => {
-  if (token.isNew) return
   activeToken.value = token
   isTokenModalVisible.value = true
 }
@@ -124,8 +127,6 @@ const confirmDeleteToken = (token: MCPTokenExtendedType) => {
     close(1000)
   }
 }
-
-const getFormattedDate = (date: string, format?: string) => dayjs(date).format(format || 'D MMMM YYYY, h:mm A')
 </script>
 
 <template>
@@ -135,7 +136,7 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
       style="box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1)"
       class="bg-white p-6 flex flex-col w-[488px] rounded-2xl"
     >
-      <div class="text-nc-content-gray-emphasis text-lg font-bold">{{ $t('labels.creatingMCPToken') }}</div>
+      <div class="text-nc-content-gray-emphasis text-lg font-bold">{{ $t('labels.creatingToken') }}</div>
       <div class="text-nc-gray-subtle2 mt-2">
         {{ $t('labels.creatingTokenDescription') }}
       </div>
@@ -158,9 +159,13 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
     <div class="flex items-center mt-6 gap-5">
       <NcButton
         :disabled="isUnsavedMCPTokenPending"
-        type="secondary"
+        type="ghost"
+        class="!text-primary"
         data-testid="add-new-mcp-token"
         size="small"
+        :class="{
+          '!text-nc-content-inverted-primary-disabled': isUnsavedMCPTokenPending,
+        }"
         @click="addNewMcpToken"
       >
         {{ $t('labels.newMCPEndpoint') }}
@@ -174,12 +179,15 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
       row-height="44px"
       :data="sortedMcpTokens"
       class="h-full mt-5"
-      body-row-class-name="nc-base-settings-mcp-token-item group no-border-last"
-      @row-click="handleOpenTokenModal"
+      body-row-class-name="nc-base-settings-mcp-token-item"
     >
       <template #bodyCell="{ column, record: token }">
         <template v-if="column.key === 'name'">
-          <NcTooltip v-if="!token.isNew" class="truncate text-gray-800 font-semibold text-sm">
+          <NcTooltip
+            v-if="!token.isNew"
+            class="truncate text-gray-800 font-semibold text-sm"
+            @click="handleOpenTokenModal(token)"
+          >
             {{ token.title }}
 
             <template #title>
@@ -201,14 +209,14 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
         </template>
 
         <template v-if="column.key === 'created_at'">
-          <div v-if="!token.isNew && token.created_at" class="text-nc-content-gray-subtle">
-            {{ getFormattedDate(token.created_at, 'D MMM YYYY') }}
+          <div v-if="!token.isNew && token.created_at" class="text-nc-content-gray-subtle" @click="handleOpenTokenModal(token)">
+            {{ dayjs(token.created_at).format('D MMM YYYY') }}
           </div>
         </template>
 
         <template v-if="column.key === 'action'">
           <NcDropdown v-if="!token.isNew">
-            <NcButton type="secondary" class="!hidden !group-hover:block" size="small" @click.stop>
+            <NcButton type="secondary" size="small">
               <GeneralIcon icon="threeDotVertical" />
             </NcButton>
 
@@ -228,11 +236,11 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
           </NcDropdown>
           <div v-else>
             <div class="flex gap-2">
-              <NcButton data-testid="cancel-token-btn" type="secondary" size="small" @click.stop="cancelNewMcpToken()">
+              <NcButton data-testid="cancel-token-btn" type="secondary" size="small" @click="cancelNewMcpToken()">
                 {{ $t('general.cancel') }}
               </NcButton>
 
-              <NcButton data-testid="create-token-btn" type="primary" size="small" @click.stop="createTokenWithExpiry(token)">
+              <NcButton data-testid="create-token-btn" type="primary" size="small" @click="createTokenWithExpiry(token)">
                 {{ $t('general.save') }}
               </NcButton>
             </div>

@@ -177,7 +177,7 @@ watch(activeAutomationId, () => {
           <GeneralIcon
             icon="chevronRight"
             class="flex-none nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 text-[20px]"
-            :class="{ '!rotate-90': isExpanded }"
+            :class="{ '!rotate-90': isExpanded, 'text-nc-content-gray-muted': isNewSidebarEnabled }"
           />
         </NcButton>
       </div>

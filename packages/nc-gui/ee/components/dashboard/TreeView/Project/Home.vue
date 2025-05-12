@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import Automation from '../Automation.vue'
+import type { ScriptType } from 'nocodb-sdk'
 
 interface Props {}
 
@@ -21,12 +22,14 @@ const route = router.currentRoute
 
 const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
 const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
 
 const { setMenuContext, duplicateTable, contextMenuTarget, tableRenameId } = inject(TreeViewInj)!
 
-const { isMobileMode, user, navigateToProject } = useGlobal()
+const { isMobileMode, user, ncNavigateTo } = useGlobal()
 
 const { api } = useApi()
 
@@ -595,6 +598,42 @@ const onClickMenu = (e: { key?: string }) => {
   }
   isOptionsOpen.value = false
 }
+
+async function openNewScriptModal() {
+  const isDlgOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgAutomationCreate'), {
+    'modelValue': isDlgOpen,
+    'baseId': base.value.id,
+    'onUpdate:modelValue': () => closeDialog(),
+    'onCreated': async (script: ScriptType) => {
+      closeDialog()
+
+      ncNavigateTo({
+        workspaceId: activeWorkspaceId.value,
+        automation: true,
+        baseId: base.value.id,
+        automationId: script.id,
+      })
+
+      $e('a:script:create')
+    },
+  })
+
+  function closeDialog() {
+    isDlgOpen.value = false
+    close(1000)
+  }
+}
+
+/**
+ * Show create new dropdown only if their is more than one entity enabled (table, scripts, dashboard)
+ */
+const showCreateNewAsDropdown = computed(() => {
+  if (!isAutomationEnabled.value) return false
+
+  return true
+})
 </script>
 
 <template>
@@ -629,22 +668,70 @@ const onClickMenu = (e: { key?: string }) => {
         </NcButton>
       </div>
     </div>
+    <div
+      v-if="isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source: base?.sources?.[0] })"
+      class="nc-project-home-section"
+    >
+      <NcDropdown v-if="showCreateNewAsDropdown" overlay-class-name="!w-[182px] !min-w-[182px]">
+        <template #default="{ visible }">
+          <NcButton
+            type="text"
+            size="small"
+            full-width
+            class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden w-full !px-3"
+            :class="visible ? 'active' : ''"
+          >
+            <div class="flex items-center gap-2">
+              <GeneralIcon icon="plus" />
+
+              <div>{{ $t('labels.createNew') }}</div>
+            </div>
+          </NcButton>
+        </template>
+
+        <template #overlay>
+          <NcMenu variant="medium">
+            <NcMenuItem @click.stop="addNewProjectChildEntity">
+              <GeneralIcon icon="table" />
+              New Table
+            </NcMenuItem>
+            <NcMenuItem v-if="isAutomationEnabled" @click.stop="openNewScriptModal">
+              <GeneralIcon icon="ncScript" />
+              New Script
+            </NcMenuItem>
+          </NcMenu>
+        </template>
+      </NcDropdown>
+      <NcButton
+        v-else
+        type="text"
+        size="small"
+        full-width
+        class="nc-home-create-new-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden w-full !px-3"
+        @click="addNewProjectChildEntity"
+      >
+        <div class="flex items-center gap-2">
+          <GeneralIcon icon="plus" />
+
+          {{
+            $t('general.createEntity', {
+              entity: $t('objects.table'),
+            })
+          }}
+        </div>
+      </NcButton>
+    </div>
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
       <div class="nc-project-home-section">
-        <div class="nc-project-home-section-header">Tables</div>
-        <div
-          class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full text-brand-500 hover:text-brand-600"
-          role="button"
-          @click="addNewProjectChildEntity"
-        >
-          <div class="nc-project-home-section-item">
-            <GeneralIcon icon="plus" />
-            {{
-              $t('general.createEntity', {
-                entity: $t('objects.table'),
-              })
-            }}
-          </div>
+        <div class="nc-project-home-section-header !cursor-pointer" @click.stop="isExpanded = !isExpanded">
+          <div class="flex-1">Tables</div>
+          <NcButton type="text" size="xxsmall" class="nc-sidebar-node-btn nc-sidebar-expand !opacity-100 !xs:opacity-100">
+            <GeneralIcon
+              icon="chevronRight"
+              class="flex-none nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 text-[20px] text-nc-content-gray-muted"
+              :class="{ '!rotate-90': isExpanded }"
+            />
+          </NcButton>
         </div>
         <div key="g1" class="overflow-x-hidden transition-max-height" :class="{ 'max-h-0': !isExpanded }">
           <div v-if="base.type === 'documentation'">
@@ -910,5 +997,13 @@ const onClickMenu = (e: { key?: string }) => {
 
 :deep(.ant-collapse-content-box) {
   @apply !px-0 !pb-0 !pt-0.25;
+}
+
+:deep(.nc-home-create-new-btn.nc-button) {
+  @apply hover:bg-nc-bg-gray-medium;
+
+  &.active {
+    @apply bg-nc-bg-gray-medium;
+  }
 }
 </style>

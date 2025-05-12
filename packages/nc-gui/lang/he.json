@@ -806,6 +806,21 @@
     "reactivateToPlan": "להפעיל מחדש את תוכנית {plan}?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "משחזר תמונת מצב",
     "note": "הערה:",
     "snapshotRestoreMessage1": "שחזור תמונת מצב זו לא ישפיע על הבסיס הקיים.",
@@ -1207,8 +1222,8 @@
     "agreeToTos": "על ידי הרשמה, אתה מסכים לתנאי השירות",
     "welcomeToNc": "ברוך הבא ל- NocoDB",
     "inviteOnlySignup": "אפשר הרשמה רק באמצעות כתובת URL להזמנה",
-    "nextRow": "שורה הבאה",
-    "prevRow": "שורה קודמת",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "הוסף נתונים באופן ידני בתצוגת רשת",
     "addRowForm": "הכנס נתוני רשומה דרך טופס",
     "noAccess": "אין גישה",
@@ -2060,6 +2075,7 @@
       "copyToClipboardLocalFileUrl": "הדפדפן אינו מאפשר לטעון משאב מקומי ישירות. ה-URL הועתק ללוח במקום זאת."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "לא ניתן להשבית ווים ידניים",
       "errorLoadingRecord": "שגיאה בטעינת נתוני הרשומה",
       "fetchingCalendarData": "שגיאה בקבלת נתוני לוח שנה",
@@ -2193,6 +2209,9 @@
       "nCellsCopied": "‎{n}‎ תאים הועתקו"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "מפתח הרישיון עודכן בהצלחה",
       "columnDuplicated": "העמודה שוכפלה בהצלחה",
       "rowDuplicatedWithoutSavedYet": "השורה הוכפלה (לא נשמרה עדיין)",
@@ -2237,7 +2256,8 @@
       "paymentSuccessful": "התשלום הצליח",
       "paymentSuccessfulSubtitle": "התשלום שלך עבר עיבוד. כעת באפשרותך להשתמש בתוכנית החדשה.",
       "upgradeSuccessful": "השדרוג הצליח",
-      "upgradeSuccessfulSubtitle": "התשלום עבור השדרוג עבר עיבוד. כעת באפשרותך להשתמש בתוכנית החדשה."
+      "upgradeSuccessfulSubtitle": "התשלום עבור השדרוג עבר עיבוד. כעת באפשרותך להשתמש בתוכנית החדשה.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "התחל מאפס.",

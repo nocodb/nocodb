@@ -806,6 +806,21 @@
     "reactivateToPlan": "Reaktivere {plan}-abonnement?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Gjenoppretter øyeblikksbilde",
     "note": "Merk:",
     "snapshotRestoreMessage1": "Gjenoppretting av dette øyeblikksbildet vil ikke påvirke eksisterende base.",
@@ -1207,8 +1222,8 @@
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Welcome to NocoDB!",
     "inviteOnlySignup": "Tillat påmelding kun ved bruk av invitasjonslenke",
-    "nextRow": "Next Row",
-    "prevRow": "Previous Row",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Legg til data manuelt i rutenettvisning",
     "addRowForm": "Legg inn data via et skjema",
     "noAccess": "Ingen tilgang",
@@ -2060,6 +2075,7 @@
       "copyToClipboardLocalFileUrl": "Nettleseren tillater ikke å laste lokale ressurser direkte. URL kopiert til utklippstavlen i stedet."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "Manuelle kroker kan ikke deaktiveres",
       "errorLoadingRecord": "Feil ved lasting av postdata",
       "fetchingCalendarData": "Feil ved uthenting av kalenderdata",
@@ -2193,6 +2209,9 @@
       "nCellsCopied": "{n} celler kopiert"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "Lisensnøkkel oppdatert",
       "columnDuplicated": "Column duplicated successfully",
       "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
@@ -2237,7 +2256,8 @@
       "paymentSuccessful": "Betaling vellykket",
       "paymentSuccessfulSubtitle": "Betalingen er behandlet. Du kan nå bruke den nye planen.",
       "upgradeSuccessful": "Oppgradering vellykket",
-      "upgradeSuccessfulSubtitle": "Betalingen for oppgraderingen er behandlet. Du kan nå bruke den nye planen."
+      "upgradeSuccessfulSubtitle": "Betalingen for oppgraderingen er behandlet. Du kan nå bruke den nye planen.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Start fra bunnen av.",

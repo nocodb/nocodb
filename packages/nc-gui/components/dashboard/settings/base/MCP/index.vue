@@ -3,10 +3,6 @@ import dayjs from 'dayjs'
 
 const { t } = useI18n()
 
-const { appInfo } = useGlobal()
-
-const { copy } = useCopy()
-
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Webhook') // Using 'Webhook' as the sort type since 'MCPToken' isn't defined
 
 const orderBy = computed<Record<string, SordDirectionType>>({
@@ -128,6 +124,8 @@ const confirmDeleteToken = (token: MCPTokenExtendedType) => {
     close(1000)
   }
 }
+
+const getFormattedDate = (date: string, format?: string) => dayjs(date).format(format || 'D MMMM YYYY, h:mm A')
 </script>
 
 <template>
@@ -204,7 +202,7 @@ const confirmDeleteToken = (token: MCPTokenExtendedType) => {
 
         <template v-if="column.key === 'created_at'">
           <div v-if="!token.isNew && token.created_at" class="text-nc-content-gray-subtle">
-            {{ dayjs(token.created_at).format('D MMM YYYY') }}
+            {{ getFormattedDate(token.created_at, 'D MMM YYYY') }}
           </div>
         </template>
 

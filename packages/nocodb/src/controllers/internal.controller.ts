@@ -91,7 +91,7 @@ export class InternalController {
       case 'mcpDelete':
         return await this.mcpService.delete(context, payload.tokenId);
       default:
-        return NcError.notFound('Operation');
+        NcError.notFound('Operation');
     }
   }
 }

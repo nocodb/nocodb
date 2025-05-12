@@ -1,9 +1,9 @@
 import { DataObjectStream, SyncIntegration } from '@noco-integrations/core';
-import { SCHEMA_TICKETING } from '@noco-integrations/core';
+import { SCHEMA_TICKETING, TARGET_TABLES } from '@noco-integrations/core';
 import type { AnyRecordType, AuthResponse} from '@noco-integrations/core';
 import type { Octokit } from 'octokit';
 
-export interface GithubIssuesPayload {
+export interface GithubSyncPayload {
   owner: string;
   repo: string;
   includeClosed: boolean;
@@ -24,7 +24,7 @@ interface GithubIssue {
   updated_at: string;
 }
 
-export default class GithubIssuesIntegration extends SyncIntegration<GithubIssuesPayload> {
+export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPayload> {
   public async getDestinationSchema(
     _auth: AuthResponse<Octokit>,
   ) {
@@ -61,6 +61,7 @@ export default class GithubIssuesIntegration extends SyncIntegration<GithubIssue
         for (const issue of data as GithubIssue[]) {
           stream.push({
             recordId: `${issue.number}`,
+            targetTable: TARGET_TABLES.TICKETING_TICKET,
             data: {
               Name: issue.title,
               Assignees:

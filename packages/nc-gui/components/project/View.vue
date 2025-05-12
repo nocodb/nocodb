@@ -70,6 +70,8 @@ watch(
     if (newVal && newVal !== oldVal) {
       if (newVal === 'collaborator') {
         projectPageTab.value = 'collaborator'
+      } else if (newVal === 'syncs') {
+        projectPageTab.value = 'syncs'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
       } else if (newVal === 'allTable') {
@@ -250,6 +252,15 @@ onMounted(() => {
             </div>
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
+        </a-tab-pane>
+        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id" key="syncs">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__syncs">
+              <GeneralIcon icon="sync" />
+              <div>Syncs</div>
+            </div>
+          </template>
+          <DashboardSettingsSyncs v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
         <a-tab-pane key="base-settings">
           <template #tab>

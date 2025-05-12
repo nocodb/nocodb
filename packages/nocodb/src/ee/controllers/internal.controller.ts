@@ -50,7 +50,7 @@ export class InternalController extends InternalControllerCE {
       getDataReflection: 'workspace',
       deleteDataReflection: 'workspace',
       listenRemoteImport: 'workspace',
-      createSyncTable: 'base',
+      createSync: 'base',
       triggerSync: 'base',
       listScripts: 'base',
       getScript: 'base',
@@ -75,11 +75,7 @@ export class InternalController extends InternalControllerCE {
       case 'getDataReflection':
         return await this.dataReflectionService.get(workspaceId);
       case 'listSync':
-        return await this.syncService.listSync(
-          context,
-          req.query.fk_model_id,
-          req,
-        );
+        return await this.syncService.listSync(context, req);
       case 'listScripts':
         return await this.scriptsService.listScripts(context, baseId);
       case 'getScript':
@@ -133,8 +129,6 @@ export class InternalController extends InternalControllerCE {
           req,
         );
 
-      case 'createSyncTable':
-        return await this.syncService.createSyncTable(context, payload, req);
       case 'createSync':
         return await this.syncService.createSync(context, payload, req);
       case 'triggerSync':

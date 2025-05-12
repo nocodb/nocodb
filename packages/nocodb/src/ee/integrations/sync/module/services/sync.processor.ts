@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
-import { type NcContext, type NcRequest, SyncType } from 'nocodb-sdk';
+import { type NcContext, type NcRequest } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import type {
   AuthIntegration,
   SyncIntegration,
 } from '@noco-local-integrations/core';
 import type { SyncDataSyncModuleJobData } from '~/interface/Jobs';
-import { Integration, Model, SyncConfig } from '~/models';
+import { Integration, Model, SyncConfig, SyncMapping } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { TablesService } from '~/services/tables.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
@@ -146,14 +146,6 @@ export class SyncModuleSyncDataProcessor {
         NcError.genericNotFound('Integration', syncConfig.fk_integration_id);
       }
 
-      const model = await Model.get(context, syncConfig.fk_model_id);
-
-      if (!model) {
-        NcError.genericNotFound('Model', syncConfig.fk_model_id);
-      }
-
-      await model.getColumns(context);
-
       const authIntegration = await Integration.get(
         context,
         integration.getConfig().authIntegrationId,
@@ -169,68 +161,65 @@ export class SyncModuleSyncDataProcessor {
       const authWrapper =
         await authIntegration.getIntegrationWrapper<AuthIntegration>();
 
-      const auth = await authWrapper.authenticate(authIntegration.getConfig());
+      const auth = await authWrapper.authenticate();
 
       const wrapper =
         await integration.getIntegrationWrapper<SyncIntegration>();
 
-      let lastRecord;
+      const syncMappings = await SyncMapping.list(context, {
+        fk_sync_config_id: syncConfig.id,
+      });
 
-      if (syncConfig.sync_type === SyncType.Incremental) {
-        const incrementalKey = wrapper.getIncrementalKey();
+      const modelSyncTargetMap = new Map<string, Model>();
 
-        // get latest record synced using incremental key
-        const lastRecords = await this.dataTableService.dataList(context, {
-          baseId: model.base_id,
-          modelId: model.id,
-          query: {
-            filterArrJson: JSON.stringify([
-              {
-                comparison_op: 'eq',
-                value: syncConfig.id,
-                logical_op: 'and',
-                fk_column_id: model.columns.find(
-                  (c) => c.title === 'SyncConfigId',
-                )?.id,
-              },
-            ]),
-            sort: {
-              columnId: model.columns.find((c) => c.title === incrementalKey)
-                ?.id,
-              order: 'desc',
-            },
-            limit: 1,
-          },
-        });
+      for (const syncMap of syncMappings) {
+        const model = await Model.get(context, syncMap.fk_model_id);
 
-        if (lastRecords.list.length > 0) {
-          lastRecord = lastRecords.list[0];
+        if (!model) {
+          NcError.genericNotFound('Model', syncMap.fk_model_id);
         }
+
+        await model.getColumns(context);
+
+        logBasic(
+          `Started syncing your data from ${integration.title} (${integration.sub_type}) to ${model.title}`,
+        );
+
+        modelSyncTargetMap.set(syncMap.target_table, model);
       }
 
-      logBasic(
-        `Started syncing your data from ${integration.title} (${integration.sub_type}) to ${model.title}`,
-      );
-
-      const dataStream = await wrapper.fetchData(auth, {
-        payload: integration.getConfig(),
-        lastRecord,
-      });
+      const dataStream = await wrapper.fetchData(auth, {});
 
       let recordCounter = 0;
 
       const RemoteSyncedAt = dayjs().utc().toISOString();
 
-      const dataBuffer: Record<string, any>[] = [];
+      // const dataBuffer: Record<string, any>[] = [];
+      const dataBuffers = new Map<string, Record<string, any>[]>();
 
       await new Promise<void>((resolve, reject) => {
         dataStream.on('data', async (data) => {
           try {
+            const model = modelSyncTargetMap.get(data.targetTable);
+
+            if (!model) {
+              logBasic(
+                `Model ${data.targetTable} not found, skipping this record`,
+              );
+              return;
+            }
+
+            if (!dataBuffers.has(model.id)) {
+              dataBuffers.set(model.id, []);
+            }
+
             Object.assign(data.data, {
               RemoteId: data.recordId,
               RemoteSyncedAt,
               SyncConfigId: syncConfig.id,
             });
+
+            const dataBuffer = dataBuffers.get(model.id);
 
             dataBuffer.push(data.data);
 
@@ -262,18 +251,25 @@ export class SyncModuleSyncDataProcessor {
 
         dataStream.on('end', async () => {
           try {
-            if (dataBuffer.length > 0) {
-              recordCounter += dataBuffer.length;
+            for (const [modelId, dataBuffer] of dataBuffers.entries()) {
+              const model = modelSyncTargetMap.get(modelId);
 
-              await this.pushData(
-                context,
-                syncConfig,
-                model,
-                dataBuffer.splice(0),
-                req,
-              );
+              if (!model) {
+                logBasic(`Model ${modelId} not found, skipping this record`);
+                continue;
+              }
 
-              logBasic(`Synced ${recordCounter} records`);
+              if (dataBuffer.length > 0) {
+                await this.pushData(
+                  context,
+                  syncConfig,
+                  model,
+                  dataBuffer.splice(0),
+                  req,
+                );
+
+                logBasic(`Synced ${recordCounter} records`);
+              }
             }
 
             await SyncConfig.update(context, syncConfig.id, {

@@ -15,7 +15,6 @@ export default class SyncConfig {
   base_id: string;
 
   fk_integration_id: string;
-  fk_model_id: string;
 
   sync_type: SyncType;
   sync_trigger: SyncTrigger;
@@ -66,7 +65,6 @@ export default class SyncConfig {
   ) {
     const insertObj: Record<string, any> = extractProps(syncConfig, [
       'fk_integration_id',
-      'fk_model_id',
       'sync_type',
       'sync_trigger',
       'sync_trigger_cron',
@@ -151,18 +149,16 @@ export default class SyncConfig {
     return true;
   }
 
-  static async list(
-    context: NcContext,
-    param: { fk_model_id: string },
-    ncMeta = Noco.ncMeta,
-  ) {
+  static async list(context: NcContext, ncMeta = Noco.ncMeta) {
+    if (!context.base_id || !context.workspace_id) {
+      return [];
+    }
+
     const syncConfigs = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
       MetaTable.SYNC_CONFIGS,
-      {
-        condition: { fk_model_id: param.fk_model_id },
-      },
+      {},
     );
 
     return syncConfigs.map((syncConfig) => {

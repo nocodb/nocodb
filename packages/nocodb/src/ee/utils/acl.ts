@@ -245,7 +245,7 @@ const permissionScopes = {
     'getScript',
     'baseSchema',
 
-    'createSyncTable',
+    'createSync',
     'triggerSync',
 
     // MCP

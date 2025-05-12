@@ -41,12 +41,10 @@ export class DataObjectStream<
 export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
   abstract getDestinationSchema(
     auth: AuthResponse<any>,
-    payload: T,
   ): Promise<SyncSchema>;
   abstract fetchData(
     auth: AuthResponse<any>,
     args: {
-      payload: any;
       targetTables?: string[];
       lastRecord?: AnyRecordType;
     },
@@ -68,6 +66,7 @@ export interface SyncColumnDefinition {
   colOptions?: {
     options: { title: string }[];
   };
+  system?: boolean;
   pv?: boolean;
 }
 

@@ -13,6 +13,8 @@ const up = async (knex: Knex) => {
     table.string('target_table', 255);
     table.string('fk_model_id', 20); // target model id
 
+    table.timestamps(true, true);
+
     table.index(['base_id', 'fk_workspace_id'], 'nc_sync_mappings_context');
     table.index('fk_sync_config_id', 'nc_sync_mappings_sync_config_idx');
   });

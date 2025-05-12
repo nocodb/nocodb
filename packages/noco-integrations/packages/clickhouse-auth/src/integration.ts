@@ -3,17 +3,15 @@ import { AuthIntegration, AuthType } from '@noco-integrations/core';
 import type { AuthCredentials, AuthResponse } from '@noco-integrations/core';
 
 export class ClickhouseAuthIntegration extends AuthIntegration {
-  public async authenticate(
-    payload: AuthCredentials,
-  ): Promise<AuthResponse<ClickHouseClient>> {
-    switch (payload.type) {
+  public async authenticate(): Promise<AuthResponse<ClickHouseClient>> {
+    switch (this.config.type) {
       case AuthType.Custom:
         return {
           custom: createClient({
-            host: payload.host,
-            username: payload.username,
-            password: payload.password,
-            database: payload.database,
+            host: this.config.host,
+            username: this.config.username,
+            password: this.config.password,
+            database: this.config.database,
           }),
         };
       default:

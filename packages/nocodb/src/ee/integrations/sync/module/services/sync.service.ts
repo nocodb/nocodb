@@ -4,6 +4,7 @@ import {
   NcApiVersion,
   type NcContext,
   type NcRequest,
+  RelationTypes,
   SyncTrigger,
 } from 'nocodb-sdk';
 import { syncSystemFields } from '@noco-local-integrations/core';
@@ -11,19 +12,22 @@ import type { IntegrationReqType, UITypes } from 'nocodb-sdk';
 import type {
   AuthIntegration,
   SyncIntegration,
-  SyncSchema,
 } from '@noco-local-integrations/core';
-import { Base, Integration, Model, SyncConfig, Workspace } from '~/models';
+import {
+  Base,
+  Integration,
+  Model,
+  SyncConfig,
+  SyncMapping,
+  Workspace,
+} from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { IntegrationsService } from '~/services/integrations.service';
 import { TablesService } from '~/services/tables.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { JobStatus, JobTypes } from '~/interface/Jobs';
-
-type SystemSyncSchema = (SyncSchema[number] & {
-  system?: boolean;
-})[];
+import Noco from '~/Noco';
 
 @Injectable()
 export class SyncModuleService {
@@ -36,11 +40,9 @@ export class SyncModuleService {
     protected readonly bulkDataAliasService: BulkDataAliasService,
   ) {}
 
-  async createSyncTable(
+  async createSync(
     context: NcContext,
-    payload: IntegrationReqType & {
-      table_name: string;
-    },
+    payload: IntegrationReqType,
     req: NcRequest,
   ) {
     if (payload.type !== IntegrationsType.Sync) {
@@ -82,16 +84,6 @@ export class SyncModuleService {
 
     if (!source) {
       NcError.sourceNotFound(baseId);
-    }
-
-    const titleAvailable = await Model.checkTitleAvailable(context, {
-      table_name: payload.table_name,
-      base_id: base.id,
-      source_id: source.id,
-    });
-
-    if (!titleAvailable) {
-      NcError.badRequest('A table with this name already exists');
     }
 
     const integration = await this.integrationsService.integrationCreate(
@@ -120,134 +112,117 @@ export class SyncModuleService {
     const authWrapper =
       await authIntegration.getIntegrationWrapper<AuthIntegration>();
 
-    const auth = await authWrapper.authenticate(authIntegration.getConfig());
+    const auth = await authWrapper.authenticate();
 
-    const schema = (await wrapper.getDestinationSchema(
-      auth,
-      payload.config,
-    )) as SystemSyncSchema;
+    const schema = await wrapper.getDestinationSchema(auth);
 
-    schema.unshift(...syncSystemFields);
-
-    const model = await this.tablesService.tableCreate(context, {
-      baseId: base.id,
-      table: {
-        title: payload.table_name,
-        columns: schema.map((column) => ({
-          title: column.title,
-          column_name: column.column_name || column.title,
-          uidt: column.uidt as UITypes,
-          system: column.system,
-          pv: column.pv,
-          readonly: true,
-        })),
-      },
-      apiVersion: NcApiVersion.V3,
-      synced: true,
-      user: req.user,
-      req,
-    });
+    if (!schema || Object.keys(schema).length === 0) {
+      NcError.badRequest('No tables found in the schema');
+    }
 
     const syncConfig = await SyncConfig.insert(context, {
       fk_integration_id: integration.id,
-      fk_model_id: model.id,
-      ...(sync ? sync : {}),
+      ...(sync || {}),
     });
 
-    // queue initial sync
-    const job = await this.triggerSync(context, syncConfig.id, req);
+    const tablesCreated: Model[] = [];
+    const syncMappings: SyncMapping[] = [];
+    const tableIdSchemaKeyMap: Map<string, string> = new Map();
 
-    return {
-      integration,
-      table: model,
-      syncConfig,
-      job: {
-        id: job.id,
-      },
-    };
-  }
+    try {
+      for (const [tableKey, tableSchema] of Object.entries(schema)) {
+        const tableTitle = tableSchema.title;
 
-  async createSync(
-    context: NcContext,
-    payload: IntegrationReqType & {
-      fk_model_id: string;
-    },
-    req: NcRequest,
-  ) {
-    if (payload.type !== IntegrationsType.Sync) {
-      NcError.badRequest('Integration is not a sync integration');
+        // Check if table name is available
+        const titleAvailable = await Model.checkTitleAvailable(context, {
+          table_name: tableTitle,
+          base_id: base.id,
+          source_id: source.id,
+        });
+
+        if (!titleAvailable) {
+          this.logger.warn(`Table "${tableTitle}" already exists, skipping`);
+          continue;
+        }
+
+        // Add system fields to the columns
+        const columns = [...syncSystemFields, ...tableSchema.columns];
+
+        const model = await this.tablesService.tableCreate(context, {
+          baseId: base.id,
+          table: {
+            title: tableTitle,
+            columns: columns.map((column) => ({
+              title: column.title,
+              column_name: column.column_name || column.title,
+              uidt: column.uidt as UITypes,
+              readonly: true,
+              system: column.system,
+              pv: column.pv,
+            })),
+          },
+          apiVersion: NcApiVersion.V3,
+          synced: true,
+          user: req.user,
+          req,
+        });
+
+        tablesCreated.push(model);
+
+        tableIdSchemaKeyMap.set(model.id, tableKey);
+
+        const syncMapping = await SyncMapping.insert(context, {
+          fk_sync_config_id: syncConfig.id,
+          target_table: tableKey,
+          fk_model_id: model.id,
+        });
+
+        syncMappings.push(syncMapping);
+      }
+
+      // create relations between tables
+      for (const table of tablesCreated) {
+        const tableKey = tableIdSchemaKeyMap.get(table.id);
+
+        if (!tableKey) {
+          continue;
+        }
+
+        const tableSchema = schema[tableKey as keyof typeof schema];
+
+        for (const relation of tableSchema.relations) {
+          switch (relation.type) {
+            case RelationTypes.HAS_MANY:
+              break;
+            case RelationTypes.MANY_TO_MANY:
+              break;
+            case RelationTypes.ONE_TO_ONE:
+              break;
+          }
+        }
+      }
+    } catch (e) {
+      for (const table of tablesCreated) {
+        await table.delete(context);
+      }
+
+      for (const syncMapping of syncMappings) {
+        await SyncMapping.delete(context, syncMapping.id);
+      }
+
+      await SyncConfig.delete(context, syncConfig.id);
+
+      throw e;
     }
 
-    if (
-      !payload.config?.authIntegrationId ||
-      !payload.config?.sync ||
-      !payload.config?.sync.sync_type ||
-      !payload.config?.sync.sync_trigger
-    ) {
-      NcError.badRequest('Invalid sync config');
-    }
-
-    const { sync, ...config } = payload.config;
-
-    const integrationPayload = {
-      ...payload,
-      config,
-    };
-
-    const workspaceId = context.workspace_id;
-    const baseId = context.base_id;
-
-    const workspace = await Workspace.get(workspaceId);
-
-    if (!workspace) {
-      NcError.workspaceNotFound(workspaceId);
-    }
-
-    const base = await Base.getWithInfo(context, baseId);
-
-    if (!base) {
-      NcError.baseNotFound(baseId);
-    }
-
-    const source = base.sources.find((s) => s.isMeta());
-
-    if (!source) {
-      NcError.sourceNotFound(baseId);
-    }
-
-    const model = await Model.get(context, payload.fk_model_id);
-
-    if (!model) {
-      NcError.tableNotFound(payload.fk_model_id);
-    }
-
-    if (!model.synced) {
-      NcError.badRequest('Table is not synced');
-    }
-
-    const integration = await this.integrationsService.integrationCreate(
-      context,
-      {
-        workspaceId,
-        integration: integrationPayload,
-        req,
-      },
-    );
-
-    const syncConfig = await SyncConfig.insert(context, {
-      fk_integration_id: integration.id,
-      fk_model_id: model.id,
-      ...(sync ? sync : {}),
-    });
-
-    const job = await this.triggerSync(context, syncConfig.id, req);
+    // const job = await this.triggerSync(context, syncConfig.id, req);
 
     return {
       integration,
       syncConfig,
-      job: {
+      /*job: {
         id: job.id,
-      },
+      },*/
     };
   }
 
@@ -297,8 +272,8 @@ export class SyncModuleService {
     };
   }
 
-  async listSync(context: NcContext, fk_model_id: string, _req: NcRequest) {
-    const syncConfigs = await SyncConfig.list(context, { fk_model_id });
+  async listSync(context: NcContext, _req: NcRequest) {
+    const syncConfigs = await SyncConfig.list(context);
 
     return syncConfigs;
   }
@@ -340,7 +315,24 @@ export class SyncModuleService {
       NcError.genericNotFound('SyncConfig', syncConfigId);
     }
 
-    await SyncConfig.delete(context, syncConfigId);
+    const ncMeta = await Noco.ncMeta.startTransaction();
+
+    try {
+      const syncMappings = await SyncMapping.list(context, {
+        fk_sync_config_id: syncConfig.id,
+      });
+
+      for (const syncMapping of syncMappings) {
+        await SyncMapping.delete(context, syncMapping.id, ncMeta);
+      }
+
+      await SyncConfig.delete(context, syncConfigId, ncMeta);
+
+      await ncMeta.commit();
+    } catch (e) {
+      await ncMeta.rollback();
+      throw e;
+    }
 
     return syncConfig;
   }

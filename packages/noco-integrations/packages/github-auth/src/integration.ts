@@ -5,20 +5,18 @@ import { clientId, clientSecret, tokenUri } from './config';
 import type { AuthCredentials, AuthResponse } from '@noco-integrations/core';
 
 export class GithubAuthIntegration extends AuthIntegration {
-  public async authenticate(
-    payload: AuthCredentials,
-  ): Promise<AuthResponse<Octokit>> {
-    switch (payload.type) {
+  public async authenticate(): Promise<AuthResponse<Octokit>> {
+    switch (this.config.type) {
       case AuthType.ApiKey:
         return {
           custom: new Octokit({
-            auth: payload.token,
+            auth: this.config.token,
           }),
         };
       case AuthType.OAuth:
         return {
           custom: new Octokit({
-            auth: payload.oauth_token,
+            auth: this.config.oauth_token,
           }),
         };
       default:

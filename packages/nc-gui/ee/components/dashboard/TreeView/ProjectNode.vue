@@ -684,7 +684,7 @@ defineExpose({
           <div
             class="nc-sidebar-node base-title-node flex-grow rounded-md group flex items-center w-full"
             :class="{
-              'text-subHeading2': isProjectHeader,
+              'text-subHeading2 gap-2': isProjectHeader,
               'h-7 pr-1 pl-1.5 xs:(pl-0)': !isProjectHeader,
               'bg-primary-selected active': activeProjectId === base.id && baseViewOpen && !isMobileMode && !isProjectHeader,
               'hover:bg-gray-200': !(activeProjectId === base.id && baseViewOpen) && !isProjectHeader,
@@ -754,12 +754,18 @@ defineExpose({
                   :class="{ '!text-black !opacity-100 !inline-block': isOptionsOpen }"
                   data-testid="nc-sidebar-context-menu"
                   type="text"
-                  size="xxsmall"
+                  :size="isProjectHeader ? 'small' : 'xxsmall'"
                   @click.stop
                   @mouseenter="showNodeTooltip = false"
                   @mouseleave="showNodeTooltip = true"
                 >
-                  <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
+                  <GeneralIcon
+                    :icon="isProjectHeader ? 'threeDotVertical' : 'threeDotHorizontal'"
+                    class="text-xl w-4.75"
+                    :class="{
+                      'text-nc-content-gray-subtle': isProjectHeader,
+                    }"
+                  />
                 </NcButton>
 
                 <template #overlay>

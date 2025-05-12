@@ -806,6 +806,21 @@
     "reactivateToPlan": "Ponownie aktywować plan {plan}?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Przywracanie migawki",
     "note": "Uwaga:",
     "snapshotRestoreMessage1": "Przywrócenie tej migawki nie wpłynie na istniejącą bazę.",
@@ -1207,8 +1222,8 @@
     "agreeToTos": "Rejestrując się, akceptujesz warunki korzystania z usługi",
     "welcomeToNc": "Witaj w NocoDB!",
     "inviteOnlySignup": "Zezwalaj na rejestrację tylko przy użyciu adresu url zaproszenia",
-    "nextRow": "Następny wiersz",
-    "prevRow": "Poprzedni wiersz",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Ręcznie dodaj dane w widoku siatki",
     "addRowForm": "Wprowadź dane rekordu przez formularz",
     "noAccess": "Brak dostępu",
@@ -2060,6 +2075,7 @@
       "copyToClipboardLocalFileUrl": "Przeglądarka nie pozwala na bezpośrednie wczytanie lokalnego zasobu. Zamiast tego adres URL został skopiowany do schowka."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "Ręczne haki nie mogą być dezaktywowane",
       "errorLoadingRecord": "Błąd ładowania danych",
       "fetchingCalendarData": "Błąd podczas pobierania danych kalendarza",
@@ -2193,6 +2209,9 @@
       "nCellsCopied": "Skopiowano {n} komórki"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "Klucz licencyjny zaktualizowany",
       "columnDuplicated": "Kolumna powielona z powodzeniem",
       "rowDuplicatedWithoutSavedYet": "Wiersz zduplikowany (niezapisany)",
@@ -2237,7 +2256,8 @@
       "paymentSuccessful": "Płatność zakończona sukcesem",
       "paymentSuccessfulSubtitle": "Twoja płatność została przetworzona. Możesz teraz korzystać z nowego planu.",
       "upgradeSuccessful": "Uaktualnienie zakończone sukcesem",
-      "upgradeSuccessfulSubtitle": "Twoja płatność za uaktualnienie została przetworzona. Możesz teraz korzystać z nowego planu."
+      "upgradeSuccessfulSubtitle": "Twoja płatność za uaktualnienie została przetworzona. Możesz teraz korzystać z nowego planu.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Zacznij od zera.",

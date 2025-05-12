@@ -1,5 +1,6 @@
 import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
+import { isEE } from '~/utils';
 
 const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.MCP_TOKENS, (table) => {
@@ -9,7 +10,10 @@ const up = async (knex: Knex) => {
     table.string('expires_at');
 
     table.float('order');
-    table.string('fk_workspace_id', 20);
+
+    if (isEE) {
+      table.string('fk_workspace_id', 20);
+    }
 
     table.string('fk_user_id', 20);
 
@@ -17,7 +21,9 @@ const up = async (knex: Knex) => {
 
     table.timestamps(true, true);
 
-    table.index(['fk_workspace_id', 'base_id'], 'idx_mcp_token_workspace_base');
+    if (isEE) {
+      table.index(['fk_workspace_id', 'base_id'], 'nc_mc_tokens_context');
+    }
   });
 };
 

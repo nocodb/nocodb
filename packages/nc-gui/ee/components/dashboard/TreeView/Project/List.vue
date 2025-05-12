@@ -52,6 +52,8 @@ const dashboardProjectCreateDlg = ref(false)
 
 const searchQuery = ref('')
 
+const searchInputRef = ref()
+
 const isCreateProjectOpen = ref(false)
 
 const starredProjectList = computed(() => basesList.value.filter((base) => base.starred))
@@ -372,35 +374,45 @@ const onMove = async (
   $e('a:base:reorder')
 }
 
-const transitionName = ref<string | undefined>(undefined)
+const transitionName = ref<'slide-left' | 'slide-right' | undefined>(undefined)
 
-watch([showProjectList, activeWorkspaceId], ([newShowProjectList, newWsId], [oldShowProjectList, oldWsId]) => {
-  // If workspace changed, skip animation
-  if (newWsId !== oldWsId) {
-    transitionName.value = undefined // No animation
-  } else {
-    transitionName.value = newShowProjectList ? 'slide-left' : 'slide-right'
-  }
-})
+watch(
+  [showProjectList, activeWorkspaceId],
+  ([newShowProjectList, newWsId], [oldShowProjectList, oldWsId]) => {
+    // If workspace changed, skip animation
+    if (oldWsId && newWsId !== oldWsId) {
+      transitionName.value = undefined // No animation
+    } else {
+      transitionName.value = newShowProjectList ? 'slide-left' : 'slide-right'
+    }
+  },
+  {
+    flush: 'pre',
+  },
+)
 
 onMounted(() => {
   showProjectList.value ? 'slide-left' : 'slide-right'
+})
+
+watch([searchInputRef, showProjectList], () => {
+  if (!searchInputRef.value || !showProjectList.value) return
+
+  nextTick(() => {
+    searchInputRef.value?.input?.focus()
+  })
 })
 </script>
 
 <template>
   <div class="relative w-full h-full overflow-hidden flex items-stretch">
-    <Transition :name="transitionName" mode="out-in" appear>
-      <div
-        v-if="showProjectList"
-        key="project-list"
-        class="nc-treeview-container nc-treeview-base-list absolute w-full h-full top-0 left-0 z-10"
-      >
+    <Transition :name="transitionName" appear>
+      <div v-if="showProjectList" key="project-list" class="nc-treeview-container nc-treeview-base-list w-full h-full">
         <div class="w-full">
           <DashboardSidebarHeaderWrapper></DashboardSidebarHeaderWrapper>
           <div class="px-2 h-11 flex items-center">
             <a-input
-              :ref="(el) => el?.focus?.()"
+              ref="searchInputRef"
               v-model:value="searchQuery"
               type="text"
               class="nc-input-border-on-value nc-input-shadow !h-8 !px-2.5 !py-1 !rounded-lg"
@@ -498,14 +510,15 @@ onMounted(() => {
         <slot name="footer"> </slot>
       </div>
     </Transition>
+
     <!-- Slide in Project Home -->
-    <Transition :name="transitionName" mode="out-in" appear>
-      <div
-        v-if="activeProjectId && openedBase?.id && !showProjectList"
-        key="project-home"
-        class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
-      >
-        <ProjectWrapper :base-role="openedBase?.project_role || stringifyRolesObj(workspaceRoles)" :base="openedBase">
+    <Transition :name="transitionName" appear>
+      <div v-if="!showProjectList" key="project-home" class="w-full h-full flex flex-col">
+        <ProjectWrapper
+          v-if="activeProjectId && openedBase?.id"
+          :base-role="openedBase?.project_role || stringifyRolesObj(workspaceRoles)"
+          :base="openedBase"
+        >
           <DashboardTreeViewProjectHome>
             <template #footer>
               <slot name="footer"></slot>
@@ -523,6 +536,7 @@ onMounted(() => {
 .slide-right-enter-active,
 .slide-right-leave-active {
   transition: transform 0.4s ease, opacity 0.4s ease;
+  will-change: transform, opacity;
 }
 
 .slide-left-enter-from {

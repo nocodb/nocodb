@@ -806,6 +806,21 @@
     "reactivateToPlan": "Het {plan}-abonnement heractiveren?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Momentopname wordt hersteld",
     "note": "Opmerking:",
     "snapshotRestoreMessage1": "Het herstellen van deze momentopname heeft geen invloed op de bestaande base.",
@@ -1207,8 +1222,8 @@
     "agreeToTos": "Door u aan te melden, gaat u akkoord met de Servicevoorwaarden.",
     "welcomeToNc": "Welkom bij NocoDB!",
     "inviteOnlySignup": "Aanmelden alleen toestaan via invite url",
-    "nextRow": "Volgende rij",
-    "prevRow": "Vorige rij",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Handmatig gegevens toevoegen in rasterweergave",
     "addRowForm": "Voer recordgegevens in via een formulier",
     "noAccess": "Geen toegang",
@@ -2060,6 +2075,7 @@
       "copyToClipboardLocalFileUrl": "De browser staat het direct laden van lokale bronnen niet toe. URL is in plaats daarvan naar het klembord gekopieerd."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "Handmatige hooks kunnen niet worden uitgeschakeld",
       "errorLoadingRecord": "Fout bij het laden van recordgegevens",
       "fetchingCalendarData": "Fout bij ophalen van kalendergegevens",
@@ -2193,6 +2209,9 @@
       "nCellsCopied": "{n} cellen gekopieerd"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "Licentiesleutel bijgewerkt",
       "columnDuplicated": "Kolom succesvol gedupliceerd",
       "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
@@ -2237,7 +2256,8 @@
       "paymentSuccessful": "Betaling geslaagd",
       "paymentSuccessfulSubtitle": "Uw betaling is verwerkt. U kunt nu uw nieuwe abonnement gebruiken.",
       "upgradeSuccessful": "Upgrade geslaagd",
-      "upgradeSuccessfulSubtitle": "Uw betaling voor de upgrade is verwerkt. U kunt nu uw nieuwe abonnement gebruiken."
+      "upgradeSuccessfulSubtitle": "Uw betaling voor de upgrade is verwerkt. U kunt nu uw nieuwe abonnement gebruiken.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Begin vanaf nul.",

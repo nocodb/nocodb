@@ -81,7 +81,6 @@ export default class MCPToken implements MCPTokenType {
       context.base_id,
       userId,
     ]);
-
     let { list: mcpTokenList } = cachedList;
 
     if (!cachedList.isNoneList && !mcpTokenList.length) {

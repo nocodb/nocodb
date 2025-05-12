@@ -470,7 +470,7 @@ watch([searchInputRef, showProjectList], () => {
                   </div>
                 </template>
                 <template v-if="!isWorkspaceLoading && !filteredStarredProjectList.length" #footer>
-                  <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">No matching bases.</div>
+                  <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">No matching bases</div>
                 </template>
               </Draggable>
             </div>
@@ -501,7 +501,7 @@ watch([searchInputRef, showProjectList], () => {
                   #footer
                 >
                   <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">
-                    {{ !nonStarredProjectList.length ? 'No Bases' : 'No matching bases.' }}
+                    {{ !nonStarredProjectList.length ? 'No Bases' : 'No matching bases' }}
                   </div>
                 </template>
               </Draggable>

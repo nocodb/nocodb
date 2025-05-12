@@ -176,7 +176,7 @@ const availableTables = computed(() => {
             'ml-9 xs:(ml-9.75)': sourceIndex !== 0 && isNewSidebarEnabled,
           }"
         >
-          {{ $t('general.empty') }}
+          No tables
         </div>
       </template>
       <div

@@ -278,7 +278,7 @@ onMounted(() => {
         'ml-11.5 xs:(ml-12.25) ': !isNewSidebarEnabled,
       }"
     >
-      {{ $t('general.empty') }}
+      No Automations
     </div>
 
     <template v-if="(!isNewSidebarEnabled || !scripts?.length) && !isSharedBase && isUIAllowed('scriptCreateOrEdit')">

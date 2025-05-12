@@ -255,6 +255,7 @@ export const RootScopeTables = {
     // Temporarily added need to be discussed within team
     MetaTable.AUDIT,
     MetaTable.CUSTOM_URLS,
+    MetaTable.MCP_TOKENS,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
   // It's a special case and Workspace is equivalent to org in oss

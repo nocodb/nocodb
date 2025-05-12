@@ -806,6 +806,21 @@
     "reactivateToPlan": "Повторно активувати план {plan}?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Відновлення знімка",
     "note": "Примітка:",
     "snapshotRestoreMessage1": "Відновлення цього знімка не вплине на поточну базу.",
@@ -1207,8 +1222,8 @@
     "agreeToTos": "Реєструючись, ви погоджуєтесь з «Умовами користування» і «Політикою конфіденційності»",
     "welcomeToNc": "Ласкаво просимо до NocoDB!",
     "inviteOnlySignup": "Дозволити реєстрацію лише за допомогою URL-адреси запрошення",
-    "nextRow": "Наступний рядок",
-    "prevRow": "Попередній рядок",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Вручну додати дані у вигляді сітки",
     "addRowForm": "Ввести дані запису через форму",
     "noAccess": "Немає доступу",
@@ -2060,6 +2075,7 @@
       "copyToClipboardLocalFileUrl": "Браузер не дозволяє безпосередньо завантажувати локальний ресурс. Натомість URL скопійовано в буфер обміну."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "Ручні хуки не можуть бути вимкнуті",
       "errorLoadingRecord": "Помилка завантаження даних запису",
       "fetchingCalendarData": "Помилка отримання даних календаря",
@@ -2193,6 +2209,9 @@
       "nCellsCopied": "Скопійовано {n} комірок"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "Ліцензійний ключ оновлено",
       "columnDuplicated": "Стовпець успішно продубльовано",
       "rowDuplicatedWithoutSavedYet": "Рядок продубльовано, але не збережено",
@@ -2237,7 +2256,8 @@
       "paymentSuccessful": "Платіж успішний",
       "paymentSuccessfulSubtitle": "Ваш платіж оброблено. Тепер ви можете користуватися новим тарифом.",
       "upgradeSuccessful": "Оновлення успішне",
-      "upgradeSuccessfulSubtitle": "Ваш платіж за оновлення оброблено. Тепер ви можете користуватися новим тарифом."
+      "upgradeSuccessfulSubtitle": "Ваш платіж за оновлення оброблено. Тепер ви можете користуватися новим тарифом.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Почати з нуля.",

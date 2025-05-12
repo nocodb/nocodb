@@ -806,6 +806,21 @@
     "reactivateToPlan": "إعادة تنشيط خطة {plan}؟"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "جارٍ استعادة اللقطة",
     "note": "ملاحظة:",
     "snapshotRestoreMessage1": "لن تؤثر استعادة هذه اللقطة على القاعدة الحالية.",
@@ -1207,8 +1222,8 @@
     "agreeToTos": "بالتسجيل، أنت توافق على شروط الخدمة",
     "welcomeToNc": "مرحبا بكم في NocoDB!",
     "inviteOnlySignup": "السماح بالتسجيل باستخدام رابط الدعوة فقط",
-    "nextRow": "Next Row",
-    "prevRow": "Previous Row",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "إضافة البيانات يدوياً في عرض الشبكة",
     "addRowForm": "إدخال بيانات السجل من خلال نموذج",
     "noAccess": "لا يوجد وصول",
@@ -2060,6 +2075,7 @@
       "copyToClipboardLocalFileUrl": "لا يسمح المتصفح بتحميل مورد محلي مباشرةً. تم نسخ الرابط إلى الحافظة بدلًا من ذلك."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "لا يمكن تعطيل الخطافات اليدوية",
       "errorLoadingRecord": "خطأ في تحميل بيانات السجل",
       "fetchingCalendarData": "خطأ في جلب بيانات التقويم",
@@ -2193,6 +2209,9 @@
       "nCellsCopied": "تم نسخ {n} خلايا"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "تم تحديث مفتاح الترخيص",
       "columnDuplicated": "Column duplicated successfully",
       "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
@@ -2237,7 +2256,8 @@
       "paymentSuccessful": "تم الدفع بنجاح",
       "paymentSuccessfulSubtitle": "تمت معالجة دفعتك. يمكنك الآن استخدام خطتك الجديدة.",
       "upgradeSuccessful": "تمت الترقية بنجاح",
-      "upgradeSuccessfulSubtitle": "تمت معالجة دفعتك للترقية. يمكنك الآن استخدام خطتك الجديدة."
+      "upgradeSuccessfulSubtitle": "تمت معالجة دفعتك للترقية. يمكنك الآن استخدام خطتك الجديدة.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "ابدأ من الصفر.",

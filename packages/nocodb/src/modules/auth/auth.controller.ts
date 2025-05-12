@@ -122,6 +122,34 @@ export class AuthController {
     // google strategy will take care the request
   }
 
+  @Post(`/auth/oidc/genTokenByCode`)
+  @HttpCode(200)
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('oidc'))
+  async oidcSignin(@Req() req: NcRequest, @Res() res: Response) {
+    await this.setRefreshToken({ req, res });
+    res.json(await this.usersService.login(req.user, req));
+  }
+
+  @Get('/auth/oidc')
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('oidc'))
+  oidcAuthenticate() {
+    // oidc strategy will take care the request
+  }
+
+  @Get('/auth/oidc/callback')
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('oidc'))
+  async oidcAuthenticateCallback(@Req() req: NcRequest, @Res() res: Response) {
+    try {
+      await this.setRefreshToken({ req, res });
+      const redirectUrl = `${req.ncSiteUrl}?state=oidc&code=success`;
+      return res.redirect(redirectUrl);
+    } catch (e) {
+      return res.redirect(
+        `${req.ncSiteUrl}/signin?error=Authentication+failed`,
+      );
+    }
+  }
+
   @Get([
     '/auth/user/me',
     '/api/v1/db/auth/user/me',

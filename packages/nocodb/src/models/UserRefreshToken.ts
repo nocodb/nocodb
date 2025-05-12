@@ -117,6 +117,10 @@ export default class UserRefreshToken {
 
     if (!userToken) return null;
 
+    if (userToken.expires_at && new Date(userToken.expires_at) < new Date()) {
+      return null;
+    }
+
     userToken.meta = parseMetaProp(userToken);
 
     return userToken;

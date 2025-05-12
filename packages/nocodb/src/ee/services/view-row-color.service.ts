@@ -181,10 +181,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           },
           view.id,
         );
-        await NocoCache.del(`${CacheScope.VIEW}:${view.id}`);
-        await NocoCache.del(
-          `${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`,
-        );
+        await this.clearCache(view);
       }
       await ncMeta.commit();
       return {
@@ -258,16 +255,26 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       NcError.requiredFieldMissing('view_id');
     }
 
-    // TODO: validation for record existance
-    await ncMeta.metaDelete(
+    const exists = await ncMeta.metaGet2(
       params.context.workspace_id,
       params.context.base_id,
       MetaTable.ROW_COLOR_CONDITIONS,
       {
-        fk_view_id: view.id,
+        fk_view_id: params.fk_view_id,
         id: params.fk_row_coloring_conditions_id,
       },
     );
+    if (!exists) {
+      NcError.notFound(
+        `Row color condition with id ${params.fk_row_coloring_conditions_id} does not exists`,
+      );
+    }
+    await RowColorCondition.delete(
+      params.context,
+      params.fk_row_coloring_conditions_id,
+      params.ncMeta,
+    );
+    await this.clearCache(view);
   }
 
   async setRowColoringSelect(params: {
@@ -302,8 +309,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       },
       view.id,
     );
-    await NocoCache.del(`${CacheScope.VIEW}:${view.id}`);
-    await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`);
+    await this.clearCache(view);
   }
 
   async removeRowColorInfo(params: {
@@ -373,7 +379,12 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         view.id,
       );
     }
+    await this.clearCache(view);
+  }
+
+  async clearCache(view: View) {
     await NocoCache.del(`${CacheScope.VIEW}:${view.id}`);
     await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`);
+    await NocoCache.del(`${CacheScope.SINGLE_QUERY}:${view.fk_model_id}`);
   }
 }

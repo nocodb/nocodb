@@ -39,3 +39,18 @@ export const arrayToNested = ({
   }
   return recordsOnLevel;
 };
+
+export const traverseNested = <T>(params: {
+  nestedData: T[];
+  getChildField: (row: T) => T[];
+  onEach: (each: T) => void;
+}) => {
+  for (const each of params.nestedData) {
+    params.onEach(each);
+    traverseNested({
+      nestedData: params.getChildField(each),
+      getChildField: params.getChildField,
+      onEach: params.onEach,
+    });
+  }
+};

@@ -1405,6 +1405,7 @@ export async function singleQueryRead(
     getHiddenColumn: ctx.getHiddenColumn,
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
     apiVersion: ctx.apiVersion,
+    includeRowColorColumns: ctx.params.include_row_color,
   });
 
   await extractColumns({
@@ -1692,6 +1693,7 @@ export async function singleQueryList(
     apiVersion: ctx.apiVersion,
     includeSortAndFilterColumns: ctx.includeSortAndFilterColumns,
     getHiddenColumn: ctx.getHiddenColumns,
+    includeRowColorColumns: ctx.params.include_row_color === 'true',
   });
 
   await extractColumns({

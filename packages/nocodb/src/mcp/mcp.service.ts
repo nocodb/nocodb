@@ -4,9 +4,9 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { extractRolesObj, NcApiVersion } from 'nocodb-sdk';
-import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 import type { NcContext, NcRequest, UserType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
+import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 import { BasesV3Service } from '~/services/v3/bases-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
@@ -287,21 +287,37 @@ export class McpService {
       {
         files: z
           .array(
-            z.object({
-              url: z.string().nullable().describe('Attachment URL'),
-              path: z.string().nullable().describe('Attachment path'),
-              title: z.string().nullable().describe('Attachment title'),
-              mimeType: z.string().nullable().describe('Attachment mime type'),
-              size: z.number().nullable().describe('Attachment size'),
-              signedUrl: z
-                .string()
-                .nullable()
-                .describe('Attachment signed URL'),
-              signedPath: z
-                .string()
-                .nullable()
-                .describe('Attachment signed Path'),
-            }),
+            z
+              .object({
+                title: z.string().nullable().describe('Attachment title'),
+                mimeType: z
+                  .string()
+                  .nullable()
+                  .describe('Attachment mime type'),
+                size: z.number().nullable().describe('Attachment size'),
+              })
+              .and(
+                z.union([
+                  z.object({
+                    url: z.string().nullable().describe('Attachment URL'),
+                    signedUrl: z
+                      .string()
+                      .nullable()
+                      .describe('Attachment signed URL'),
+                    path: z.null(),
+                    signedPath: z.null(),
+                  }),
+                  z.object({
+                    path: z.string().nullable().describe('Attachment path'),
+                    signedPath: z
+                      .string()
+                      .nullable()
+                      .describe('Attachment signed Path'),
+                    url: z.null(),
+                    signedUrl: z.null(),
+                  }),
+                ]),
+              ),
           )
           .describe('Array of attachment objects from NocoDB'),
       },

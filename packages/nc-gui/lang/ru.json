@@ -806,6 +806,21 @@
     "reactivateToPlan": "Возобновить тариф {plan}?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Восстановление снимка",
     "note": "Примечание:",
     "snapshotRestoreMessage1": "Восстановление этого снимка не повлияет на существующую базу.",
@@ -1207,8 +1222,8 @@
     "agreeToTos": "Регистрируясь, вы соглашаетесь с Условиями предоставления услуг",
     "welcomeToNc": "Добро пожаловать в NocoDB!",
     "inviteOnlySignup": "Разрешить регистрацию только по пригласительной ссылке",
-    "nextRow": "Следующая запись",
-    "prevRow": "Предыдущая запись",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Добавить данные вручную в представлении сетки",
     "addRowForm": "Ввести данные записи через форму",
     "noAccess": "Нет доступа",
@@ -2060,6 +2075,7 @@
       "copyToClipboardLocalFileUrl": "Браузер не позволяет загружать локальный ресурс напрямую. URL скопирован в буфер обмена."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "Хуки с ручным запуском нельзя отключить",
       "errorLoadingRecord": "Ошибка загрузки данных записи",
       "fetchingCalendarData": "Ошибка получения данных календаря",
@@ -2193,6 +2209,9 @@
       "nCellsCopied": "{n} Ячейки скопирована"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "Ключ лицензии обновлен",
       "columnDuplicated": "Поле успешно дублировано",
       "rowDuplicatedWithoutSavedYet": "Запись дублирована (не сохранена)",
@@ -2237,7 +2256,8 @@
       "paymentSuccessful": "Платеж выполнен!",
       "paymentSuccessfulSubtitle": "Платёж успешно обработан. Теперь вы можете использовать новый тарифный план.",
       "upgradeSuccessful": "Успешно обновлено",
-      "upgradeSuccessfulSubtitle": "Платёж за обновление успешно обработан. Теперь вы можете использовать новый тарифный план."
+      "upgradeSuccessfulSubtitle": "Платёж за обновление успешно обработан. Теперь вы можете использовать новый тарифный план.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Начните с нуля.",

@@ -59,7 +59,7 @@ export default class DataReflection {
     const condition = extractProps(params, ['id', 'fk_workspace_id']);
 
     if (!condition.id && !condition.fk_workspace_id) {
-      throw NcError.badRequest('id or fk_workspace_id is required');
+      NcError.badRequest('id or fk_workspace_id is required');
     }
 
     let dataReflection = condition.id

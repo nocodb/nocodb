@@ -50,7 +50,11 @@ const isPdfAttachment = computed(() => isPdf(props.attachment.title ?? '', props
       <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 nc-files-viewer-unsupported">
         <GeneralIcon icon="alertTriangleSolid" class="text-yellow-500 w-[40px] h-[40px]" />
         <span class="text-base font-black mt-4"> Unsupported File Type </span>
-        <span class="text-xs mt-3 w-[210px] text-center"> This file type is currently not supported for viewing. </span>
+        <span class="text-xs mt-3 w-[250px] text-center">
+          This file type is currently not supported for viewing.
+          <!-- TODO: @ramesh add docs link -->
+          <a>Learn more</a>
+        </span>
       </div>
     </template>
   </div>

@@ -6900,7 +6900,7 @@
           },
           "expanded_record_mode": {
             "type" : "string",
-            "enum": ["field", "attachment"],
+            "enum": ["field", "attachment", "discussion"],
             "description": "The expanded record mode of the view",
             "example": "field"
           },

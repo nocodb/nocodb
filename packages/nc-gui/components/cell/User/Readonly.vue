@@ -93,12 +93,7 @@ const isCollaborator = (userIdOrEmail) => {
                 class="flex items-stretch gap-2 text-small"
               >
                 <div>
-                  <GeneralUserIcon
-                    :disabled="!isCollaborator(op.id)"
-                    :user="op"
-                    class="!text-[0.65rem] !h-[16.8px]"
-                    size="auto"
-                  />
+                  <GeneralUserIcon :disabled="!isCollaborator(op.id)" :user="op" class="!text-[0.5rem] !h-[16.8px]" size="auto" />
                 </div>
                 <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                   <template #title>
@@ -158,7 +153,7 @@ const isCollaborator = (userIdOrEmail) => {
                   email: selectedOpt.label,
                   meta: selectedOpt.meta,
                 }"
-                class="!text-[0.65rem] !h-[16.8px]"
+                class="!text-[0.5rem] !h-[16.8px]"
               />
             </div>
             <NcTooltip class="truncate max-w-full" show-on-truncate-only>

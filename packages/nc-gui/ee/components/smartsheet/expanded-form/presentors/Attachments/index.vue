@@ -1,18 +1,20 @@
 <script setup lang="ts">
-import { type ColumnType, type ViewType } from 'nocodb-sdk'
+import { type ColumnType, UITypes, type ViewType } from 'nocodb-sdk'
 
 /* interface */
 
 const props = defineProps<{
   fields: ColumnType[]
+  hiddenFields: ColumnType[]
   view?: ViewType
   isUnsavedDuplicatedRecordExist: boolean
 }>()
 
-const fields = toRef(props, 'fields')
-const isUnsavedDuplicatedRecordExist = toRef(props, 'isUnsavedDuplicatedRecordExist')
+const { fields, hiddenFields, isUnsavedDuplicatedRecordExist } = toRefs(props)
 
 const isPublic = inject(IsPublicInj, ref(false))
+
+const readOnlyView = inject(ReadonlyInj, ref(false))
 
 /* stores */
 
@@ -20,17 +22,23 @@ const { commentsDrawer, changedColumns, isNew, loadRow: _loadRow, row: _row } = 
 
 const { isUIAllowed } = useRoles()
 
+const viewsStore = useViewsStore()
+
 /* flags */
 
 const showRightSections = computed(() => !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
 
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
 
+const hasAddFieldPermission = computed(() => {
+  return !readOnlyView.value && isUIAllowed('fieldAdd')
+})
+
 /* attachments */
 
-const { setCurrentViewExpandedFormAttachmentColumn } = useSharedView()
-
-const attachmentFields = computed(() => fields.value.filter((field) => field.uidt === 'Attachment'))
+const attachmentFields = computed(() =>
+  fields.value.concat(hiddenFields.value || []).filter((field) => field.uidt === UITypes.Attachment),
+)
 
 const selectedFieldId = ref(props.view?.attachment_mode_column_id ?? attachmentFields.value[0]?.id)
 
@@ -45,14 +53,36 @@ const activeAttachment = computed(() => selectedFieldValue.value?.[activeAttachm
 watch(selectedFieldId, () => {
   activeAttachmentIndex.value = 0
   const viewId = props.view?.id
+
   if (viewId) {
-    setCurrentViewExpandedFormAttachmentColumn(viewId, selectedFieldId.value)
+    viewsStore.setCurrentViewExpandedFormAttachmentColumn(viewId, selectedFieldId.value)
   }
 })
 
-watch(selectedFieldValue, () => {
-  activeAttachmentIndex.value = Math.min(activeAttachmentIndex.value, Math.max(0, selectedFieldValue.value?.length - 1))
-})
+watch(
+  selectedFieldValue,
+  () => {
+    let isUpdated = false
+    if (ncIsArray(selectedFieldValue.value) && selectedFieldValue.value.length) {
+      for (let i = 0; i < selectedFieldValue.value.length; i++) {
+        const att = selectedFieldValue.value[i]
+
+        if (isPreviewSupportedFile(att?.title ?? '', att?.mimetype ?? '')) {
+          activeAttachmentIndex.value = i
+          isUpdated = true
+          break
+        }
+      }
+    }
+
+    if (!isUpdated) {
+      activeAttachmentIndex.value = Math.min(activeAttachmentIndex.value, Math.max(0, selectedFieldValue.value?.length - 1))
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 watch(activeAttachmentIndex, () => {
   if (activeAttachmentIndex.value === null || isNaN(activeAttachmentIndex.value)) {
@@ -94,18 +124,6 @@ const refAttachmentCell = ref()
 function openFilePicker() {
   refAttachmentCell.value?.openFilePicker()
 }
-
-function downloadCurrentFile() {
-  refAttachmentCell.value?.downloadAttachment(activeAttachment.value)
-}
-
-function deleteCurrentFile() {
-  refAttachmentCell.value?.removeAttachment(activeAttachment.value.title, activeAttachmentIndex.value)
-}
-
-function updateAttachmentTitle(index: number, title: string) {
-  refAttachmentCell.value?.updateAttachmentTitle(index, title)
-}
 </script>
 
 <script lang="ts">
@@ -126,71 +144,22 @@ export default {
       <template v-if="!hasAnyAttachmentFields">
         <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 nc-files-no-attachment-field">
           <span class="text-base font-black"> No Attachment field </span>
-          <span class="text-xs mt-3 w-[200px] text-center"> Create an attachment field to use file mode. </span>
+          <span class="text-xs mt-3 text-center" :class="hasAddFieldPermission ? 'max-w-[200px]' : 'max-w-[300px]'">
+            {{
+              hasAddFieldPermission
+                ? 'Create an attachment field to use file mode.'
+                : 'At least one attachment field should be present to use file mode.'
+            }}
+          </span>
         </div>
       </template>
       <template v-else>
-        <div class="flex items-center h-[44px] border-b-1 border-gray-200 px-3 gap-3 nc-files-attachment-header">
-          <div class="hidden">
-            <LazyCellAttachment ref="refAttachmentCell" v-model="attachmentVModel" />
-          </div>
-
-          <NcDropdownSelect
-            v-model="selectedFieldId"
-            class="nc-files-current-field-dropdown"
-            :disabled="!isUIAllowed('viewCreateOrEdit')"
-            :tooltip="
-              !isUIAllowed('viewCreateOrEdit') ? 'You do not have permission to change attachment view field.' : undefined
-            "
-            :items="attachmentFields.map(field => ({ label: field.title || field.id!, value: field.id! }))"
-          >
-            <NcTooltip>
-              <template #title>{{ selectedField?.title }}</template>
-              <NcButton type="secondary" size="small">
-                <GeneralIcon icon="cellAttachment" class="w-4 h-4 aspect-square flex items-center justify-center" />
-                <span class="w-[200px] truncate text-left pl-2 inline-block nc-files-current-field-title">
-                  {{ selectedField?.title }}
-                </span>
-                <GeneralIcon
-                  icon="chevronDown"
-                  class="h-4 w-4 ml-1 text-gray-500 aspect-square flex items-center justify-center"
-                />
-              </NcButton>
-            </NcTooltip>
-          </NcDropdownSelect>
-
-          <NcEditableText
-            v-if="activeAttachment"
-            class="nc-files-current-attachment-title"
-            :disabled="readOnly"
-            :model-value="activeAttachment.title"
-            @update:model-value="updateAttachmentTitle(activeAttachmentIndex, $event)"
-          />
-
-          <div class="flex-1" />
-
-          <NcDropdown>
-            <NcButton type="secondary" size="small">
-              <GeneralIcon icon="threeDotVertical" />
-            </NcButton>
-            <template #overlay>
-              <NcMenu variant="small">
-                <NcMenuItem @click="downloadCurrentFile()">
-                  <GeneralIcon icon="download" />
-                  Download current file
-                </NcMenuItem>
-                <NcDivider />
-                <NcMenuItem :disabled="readOnly" class="!text-red-500" @click="deleteCurrentFile()">
-                  <GeneralIcon icon="delete" />
-                  Delete current file
-                </NcMenuItem>
-              </NcMenu>
-            </template>
-          </NcDropdown>
+        <div class="hidden">
+          <LazyCellAttachment ref="refAttachmentCell" v-model="attachmentVModel" />
         </div>
         <div class="w-full h-0 flex-1 flex flex-row relative">
           <template v-if="!hasAnyValueInAttachment">
-            <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 nc-files-no-attachment">
+            <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 nc-files-no-attachment relative">
               <span class="text-base font-black"> No Attachment </span>
               <span class="text-xs mt-3 w-[210px] text-center"> There are no attachments to display in this field </span>
               <NcButton type="secondary" size="small" class="mt-3" :disabled="readOnly" @click="openFilePicker()">
@@ -199,12 +168,39 @@ export default {
                 </template>
                 Upload Attachment
               </NcButton>
+
+              <div class="px-4 py-3 overflow-hidden absolute top-0 left-0">
+                <NcDropdownSelect
+                  v-model="selectedFieldId"
+                  class="nc-files-current-field-dropdown"
+                  :items="attachmentFields.map(field => ({ label: field.title || field.id!, value: field.id! }))"
+                  overlay-class-name="w-[288px]"
+                >
+                  <NcButton type="secondary" size="small" class="overflow-hidden">
+                    <GeneralIcon icon="cellAttachment" class="w-4 h-4 aspect-square flex items-center justify-center" />
+
+                    <NcTooltip class="max-w-[200px] truncate !leading-5" show-on-truncate-only>
+                      <template #title>{{ selectedField?.title }}</template>
+                      <span class="pl-2 nc-files-current-field-title">
+                        {{ selectedField?.title }}
+                      </span>
+                    </NcTooltip>
+                    <GeneralIcon
+                      icon="chevronDown"
+                      class="h-4 w-4 ml-1 text-gray-500 aspect-square flex items-center justify-center"
+                    />
+                  </NcButton>
+                </NcDropdownSelect>
+              </div>
             </div>
           </template>
           <template v-else>
             <SmartsheetExpandedFormPresentorsAttachmentsPreviewBar
               v-model:active-attachment-index="activeAttachmentIndex"
+              v-model:selected-field-id="selectedFieldId"
               :attachments="selectedFieldValue"
+              :selected-field="selectedField"
+              :attachment-fields="attachmentFields"
               @open:file-picker="openFilePicker()"
             />
             <div class="w-0 flex-1 bg-gray-100 pl-[80px]">

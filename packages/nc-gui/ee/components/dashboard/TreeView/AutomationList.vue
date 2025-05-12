@@ -271,7 +271,7 @@ onMounted(() => {
     :selected-keys="selected"
     class="nc-scripts-menu flex flex-col w-full !border-r-0 !bg-inherit"
   >
-    <template v-if="!isSharedBase && isUIAllowed('scriptCreateOrEdit')">
+    <template v-if="!isNewSidebarEnabled && !isSharedBase && isUIAllowed('scriptCreateOrEdit')">
       <div
         :class="{
           '!pl-13.3 !xs:(pl-13.5)': !isNewSidebarEnabled,

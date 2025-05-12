@@ -634,8 +634,8 @@ defineExpose({
   <NcDropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
     <div
       ref="labelEl"
-      class="mr-0.5 nc-base-sub-menu rounded-md"
-      :class="{ 'active': isExpanded, 'ml-1': !isProjectHeader }"
+      class="nc-base-sub-menu rounded-md"
+      :class="{ 'active': isExpanded, 'ml-1 mr-0.5': !isProjectHeader && !isNewSidebarEnabled }"
       :data-testid="`nc-sidebar-base-${base.title}`"
       :data-base-id="base.id"
     >
@@ -693,7 +693,10 @@ defineExpose({
             :data-testid="`nc-sidebar-base-title-${base.title}`"
           >
             <div
-              class="flex items-center mr-1"
+              class="flex items-center"
+              :class="{
+                'mr-1': !isProjectHeader,
+              }"
               @click="onProjectClick(base)"
               @mouseenter="showNodeTooltip = false"
               @mouseleave="showNodeTooltip = true"
@@ -720,7 +723,11 @@ defineExpose({
               ref="input"
               v-model:value="tempTitle"
               class="capitalize !bg-transparent !flex-1 mr-4 !rounded-md !pr-1.5 !h-6 animate-sidebar-node-input-padding"
-              :class="activeProjectId === base.id && baseViewOpen ? '!text-brand-600 !font-semibold' : '!text-gray-700'"
+              :class="
+                activeProjectId === base.id && baseViewOpen && !isProjectHeader
+                  ? '!text-brand-600 !font-semibold'
+                  : '!text-gray-700'
+              "
               :style="{
                 fontWeight: 'inherit',
               }"
@@ -736,7 +743,9 @@ defineExpose({
               class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none flex-1"
               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
               :class="
-                activeProjectId === base.id && baseViewOpen && !isMobileMode ? 'text-brand-600 font-semibold' : 'text-gray-700'
+                activeProjectId === base.id && baseViewOpen && !isMobileMode && !isProjectHeader
+                  ? 'text-brand-600 font-semibold'
+                  : 'text-gray-700'
               "
               show-on-truncate-only
               @click="onProjectClick(base)"

@@ -806,6 +806,21 @@
     "reactivateToPlan": "Reactivați planul {plan}?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Se restaurează instantaneul",
     "note": "Notă:",
     "snapshotRestoreMessage1": "Restaurarea acestui instantaneu nu va afecta baza existentă.",
@@ -1207,8 +1222,8 @@
     "agreeToTos": "Prin înscriere, sunteți de acord cu Termenii de serviciu",
     "welcomeToNc": "Bun venit la NocoDB!",
     "inviteOnlySignup": "Permiteți înregistrarea doar utilizând url-ul de invitație",
-    "nextRow": "Următoarea înregistrare",
-    "prevRow": "Înregistrarea anterioară",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Adaugă date manual în vizualizarea grilă",
     "addRowForm": "Introduceți date de înregistrare printr-un formular",
     "noAccess": "Fără acces",
@@ -2060,6 +2075,7 @@
       "copyToClipboardLocalFileUrl": "Browserul nu permite încărcarea directă a resursei locale. URL-ul a fost copiat în clipboard."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "Hook-urile manuale nu pot fi dezactivate",
       "errorLoadingRecord": "Eroare la încărcarea datelor înregistrării",
       "fetchingCalendarData": "Eroare la preluarea datelor din calendar",
@@ -2193,6 +2209,9 @@
       "nCellsCopied": "S-au copiat {n} celule"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "Cheia de licență actualizată",
       "columnDuplicated": "Câmp duplicat cu succes",
       "rowDuplicatedWithoutSavedYet": "Înregistrare duplicată (nu a fost salvată)",
@@ -2237,7 +2256,8 @@
       "paymentSuccessful": "Plata a reușit",
       "paymentSuccessfulSubtitle": "Plata ta a fost procesată. Poți folosi acum noul plan.",
       "upgradeSuccessful": "Upgrade reușit",
-      "upgradeSuccessfulSubtitle": "Plata pentru upgrade a fost procesată. Acum poți folosi noul plan."
+      "upgradeSuccessfulSubtitle": "Plata pentru upgrade a fost procesată. Acum poți folosi noul plan.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Porniți de la zero.",

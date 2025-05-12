@@ -152,6 +152,9 @@ import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { ViewsV3Service } from '~/services/v3/views-v3.service';
 
+/* ACL */
+import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+
 export const nocoModuleMetadata = {
   imports: [
     EventEmitterModule,
@@ -257,6 +260,8 @@ export const nocoModuleMetadata = {
     TelemetryService,
     HookHandlerService,
     MailService,
+
+    AclMiddleware,
 
     /* Users */
     UsersService,

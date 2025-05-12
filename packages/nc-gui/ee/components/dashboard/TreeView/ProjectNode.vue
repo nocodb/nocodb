@@ -542,8 +542,10 @@ watch(
   () => labelEl.value && activeProjectId.value === base.value?.id,
   async (isActive) => {
     if (!isActive) return
+
     await nextTick()
-    labelEl.value?.scrollIntoView({ behavior: 'smooth' })
+
+    labelEl.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   },
   {
     immediate: true,

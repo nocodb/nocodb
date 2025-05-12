@@ -27,6 +27,13 @@ const FEATURES = [
     enabled: false,
   },
   {
+    id: 'model_context_protocol',
+    title: 'Model Context Protocol',
+    description: 'Connect NocoDB base to Claude AI, Windsurf AI, and more.',
+    enabled: false,
+    isEngineering: true,
+  },
+  {
     id: 'payment',
     title: 'Payment Flows',
     description: 'Enable NocoDB Payment Flows.',

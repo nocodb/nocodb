@@ -171,6 +171,12 @@ const permissionScopes = {
     'aiUtils',
     'aiData',
     'aiBaseSchema',
+
+    // MCP
+    'mcpList',
+    'mcpCreate',
+    'mcpUpdate',
+    'mcpDelete',
   ],
 };
 
@@ -243,6 +249,12 @@ const rolePermissions:
       auditListRow: true,
 
       userInvite: true,
+
+      // MCP CRUD
+      mcpList: true,
+      mcpCreate: true,
+      mcpUpdate: true,
+      mcpDelete: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -690,6 +702,11 @@ const permissionDescriptions: Record<string, string> = {
   jobList: 'view list of jobs',
 
   hookTrigger: 'trigger a webhook',
+
+  mcpList: 'view list of MCP tokens',
+  mcpCreate: 'create a new MCP token',
+  mcpUpdate: 'update an MCP token',
+  mcpDelete: 'delete an MCP token',
 };
 
 // Human-readable descriptions for roles

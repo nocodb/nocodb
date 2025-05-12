@@ -806,6 +806,21 @@
     "reactivateToPlan": "Reactivate {plan} plan?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Restoring Snapshot",
     "note": "Note:",
     "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",
@@ -2060,6 +2075,7 @@
       "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "Manual hooks can't be disabled",
       "errorLoadingRecord": "Error loading record data",
       "fetchingCalendarData": "Error fetching calendar data",
@@ -2193,6 +2209,9 @@
       "nCellsCopied": "{n} cells copied"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "License Key Updated",
       "columnDuplicated": "Field duplicated successfully",
       "rowDuplicatedWithoutSavedYet": "Record duplicated (not saved)",
@@ -2237,7 +2256,8 @@
       "paymentSuccessful": "Payment Successful",
       "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
       "upgradeSuccessful": "Upgrade Successful",
-      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan."
+      "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Start from scratch.",

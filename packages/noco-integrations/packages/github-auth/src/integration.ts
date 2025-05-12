@@ -2,7 +2,7 @@ import { Octokit } from 'octokit';
 import axios from 'axios';
 import { AuthIntegration, AuthType } from '@noco-integrations/core';
 import { clientId, clientSecret, tokenUri } from './config';
-import type { AuthCredentials, AuthResponse } from '@noco-integrations/core';
+import type { AuthResponse } from '@noco-integrations/core';
 
 export class GithubAuthIntegration extends AuthIntegration {
   public async authenticate(): Promise<AuthResponse<Octokit>> {

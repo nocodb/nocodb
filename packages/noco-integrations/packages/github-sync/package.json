@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
-    "octokit": "^4.1.3"
+    "octokit": "3.2.1"
   },
   "devDependencies": {
     "@types/node": "^20.17.46",

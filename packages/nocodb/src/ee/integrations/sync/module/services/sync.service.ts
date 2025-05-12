@@ -4,10 +4,10 @@ import {
   NcApiVersion,
   type NcContext,
   type NcRequest,
-  RelationTypes,
   SyncTrigger,
 } from 'nocodb-sdk';
 import { syncSystemFields } from '@noco-local-integrations/core';
+import { RelationTypes } from 'nocodb-sdk';
 import type { IntegrationReqType, UITypes } from 'nocodb-sdk';
 import type {
   AuthIntegration,
@@ -25,9 +25,11 @@ import { NcError } from '~/helpers/catchError';
 import { IntegrationsService } from '~/services/integrations.service';
 import { TablesService } from '~/services/tables.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
+import { ColumnsService } from '~/services/columns.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { JobStatus, JobTypes } from '~/interface/Jobs';
 import Noco from '~/Noco';
+import { getJunctionTableName } from '~/services/columns.service';
 
 @Injectable()
 export class SyncModuleService {
@@ -38,6 +40,7 @@ export class SyncModuleService {
     protected readonly integrationsService: IntegrationsService,
     protected readonly tablesService: TablesService,
     protected readonly bulkDataAliasService: BulkDataAliasService,
+    protected readonly columnsService: ColumnsService,
   ) {}
 
   async createSync(
@@ -125,10 +128,9 @@ export class SyncModuleService {
       ...(sync || {}),
     });
 
-    const tablesCreated: Model[] = [];
     const syncMappings: SyncMapping[] = [];
-    const tableIdSchemaKeyMap: Map<string, string> = new Map();
-
+    const schemaKeyTableMap: Map<string, Model> = new Map();
+    const tablesToDelete: Model[] = [];
     try {
       for (const [tableKey, tableSchema] of Object.entries(schema)) {
         const tableTitle = tableSchema.title;
@@ -167,9 +169,8 @@ export class SyncModuleService {
           req,
         });
 
-        tablesCreated.push(model);
-
-        tableIdSchemaKeyMap.set(model.id, tableKey);
+        schemaKeyTableMap.set(tableKey, model);
+        tablesToDelete.push(model);
 
         const syncMapping = await SyncMapping.insert(context, {
           fk_sync_config_id: syncConfig.id,
@@ -181,29 +182,179 @@ export class SyncModuleService {
       }
 
       // create relations between tables
-      for (const table of tablesCreated) {
-        const tableKey = tableIdSchemaKeyMap.get(table.id);
-
-        if (!tableKey) {
-          continue;
-        }
-
+      for (const [tableKey, table] of schemaKeyTableMap.entries()) {
         const tableSchema = schema[tableKey as keyof typeof schema];
 
         for (const relation of tableSchema.relations) {
-          switch (relation.type) {
-            case RelationTypes.HAS_MANY:
-              break;
-            case RelationTypes.MANY_TO_MANY:
-              break;
-            case RelationTypes.ONE_TO_ONE:
-              break;
+          // create relations
+          const relatedTable = schemaKeyTableMap.get(relation.relatedTable);
+
+          if (!relatedTable) {
+            this.logger.warn(
+              `Related table "${relation.relatedTable}" not found, skipping`,
+            );
+            continue;
+          }
+
+          const jnTableTitle = await getJunctionTableName(
+            {
+              base,
+            },
+            table,
+            relatedTable,
+          );
+
+          // create junction table
+          const junctionTable = await this.tablesService.tableCreate(context, {
+            baseId: base.id,
+            user: req.user,
+            req,
+            apiVersion: NcApiVersion.V3,
+            table: {
+              title: jnTableTitle,
+              columns: [
+                {
+                  title: 'remote_id_parent',
+                  column_name: 'remote_id_parent',
+                  uidt: 'SingleLineText',
+                },
+                {
+                  title: 'remote_id_child',
+                  column_name: 'remote_id_child',
+                  uidt: 'SingleLineText',
+                },
+              ],
+            },
+          });
+
+          tablesToDelete.push(junctionTable);
+
+          await Model.setAsMm(context, junctionTable.id);
+
+          await junctionTable.getColumns(context);
+
+          const remoteIdParentColumn = table.columns.find(
+            (c) => c.column_name === 'remote_id',
+          );
+
+          const remoteIdChildColumn = relatedTable.columns.find(
+            (c) => c.column_name === 'remote_id',
+          );
+
+          const parentColumn = junctionTable.columns.find(
+            (c) => c.title === 'remote_id_parent',
+          );
+
+          const childColumn = junctionTable.columns.find(
+            (c) => c.title === 'remote_id_child',
+          );
+
+          const column = await this.columnsService.columnAdd(context, {
+            tableId: table.id,
+            column: {
+              title: relation.columnTitle,
+              column_name: relation.columnTitle
+                .replace(/\W/g, '_')
+                .toLowerCase(),
+              uidt: 'Links',
+              type: RelationTypes.MANY_TO_MANY,
+              ...{
+                is_custom_link: true,
+                custom: {
+                  base_id: base.id,
+                  column_id: remoteIdParentColumn.id,
+                  junc_base_id: base.id,
+                  junc_model_id: junctionTable.id,
+                  junc_column_id: parentColumn.id,
+                  junc_ref_column_id: childColumn.id,
+                  ref_model_id: relatedTable.id,
+                  ref_column_id: remoteIdChildColumn.id,
+                },
+              },
+            },
+            user: req.user,
+            req,
+            apiVersion: NcApiVersion.V3,
+          });
+
+          /*
+          {
+            "custom": {
+              "base_id": "p4h33hk6s37dj7c",
+              "column_id": "c6fyao8adpmq5gi",
+              "junc_base_id": "p4h33hk6s37dj7c",
+              "junc_model_id": "mm9nt233xq54rts",
+              "junc_column_id": "cng73k9wz5ezbay",
+              "junc_ref_column_id": "clhfa7h2c1sxp81",
+              "ref_model_id": "m28yk5mytny1odl",
+              "ref_column_id": "ck7kx67z2dvtr94"
+            },
+            "title": "title29",
+            "column_name": "title29",
+            "uidt": "Links",
+            "userHasChangedTitle": false,
+            "meta": {},
+            "rqd": false,
+            "pk": false,
+            "ai": false,
+            "cdf": null,
+            "un": false,
+            "dtx": "specificType",
+            "dt": "character varying",
+            "altered": 2,
+            "parentId": "mz3b5h80olt32uh",
+            "childColumn": "Ticket_id",
+            "childTable": "Ticket",
+            "parentTable": "",
+            "parentColumn": "",
+            "type": "mm",
+            "onUpdate": "NO ACTION",
+            "onDelete": "NO ACTION",
+            "virtual": true,
+            "alias": "",
+            "childId": null,
+            "childViewId": null,
+            "is_custom_link": true,
+            "primaryKey": false,
+            "table_name": "Ticket",
+            "view_id": "vw06wg99crktc5vl"
+          }
+          */
+
+          // rename the column of the related table
+          await relatedTable.getColumns(context);
+
+          const relatedTableColumn = relatedTable.columns.find(
+            (c) =>
+              c.colOptions?.fk_mm_model_id === column.colOptions.fk_mm_model_id,
+          );
+
+          if (relatedTableColumn) {
+            console.log(
+              `Changing column title of ${relatedTableColumn.title} to ${relation.relatedTableColumnTitle}`,
+            );
+            await this.columnsService.columnUpdate(context, {
+              columnId: relatedTableColumn.id,
+              column: {
+                ...relatedTableColumn,
+                title: relation.relatedTableColumnTitle,
+              },
+              user: req.user,
+              req,
+              apiVersion: NcApiVersion.V3,
+            });
           }
         }
       }
     } catch (e) {
-      for (const table of tablesCreated) {
-        await table.delete(context);
+      for (const table of tablesToDelete) {
+        await this.tablesService.tableDelete(context, {
+          tableId: table.id,
+          forceDeleteSyncs: true,
+          forceDeleteRelations: true,
+          user: req.user,
+          req,
+        });
       }
 
       for (const syncMapping of syncMappings) {
@@ -215,14 +366,14 @@ export class SyncModuleService {
       throw e;
     }
 
-    // const job = await this.triggerSync(context, syncConfig.id, req);
+    const job = await this.triggerSync(context, syncConfig.id, req);
 
     return {
       integration,
       syncConfig,
-      /*job: {
+      job: {
         id: job.id,
-      },*/
+      },
     };
   }
 
@@ -308,7 +459,7 @@ export class SyncModuleService {
     return syncConfig;
   }
 
-  async deleteSync(context: NcContext, syncConfigId: string, _req: NcRequest) {
+  async deleteSync(context: NcContext, syncConfigId: string, req: NcRequest) {
     const syncConfig = await SyncConfig.get(context, syncConfigId);
 
     if (!syncConfig) {
@@ -323,6 +474,18 @@ export class SyncModuleService {
       });
 
       for (const syncMapping of syncMappings) {
+        const table = await Model.get(context, syncMapping.fk_model_id);
+
+        if (table) {
+          await this.tablesService.tableDelete(context, {
+            tableId: syncMapping.fk_model_id,
+            forceDeleteSyncs: true,
+            forceDeleteRelations: true,
+            user: req.user,
+            req,
+          });
+        }
+
         await SyncMapping.delete(context, syncMapping.id, ncMeta);
       }
 

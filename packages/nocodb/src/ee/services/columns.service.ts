@@ -527,3 +527,4 @@ export class ColumnsService extends ColumnsServiceCE {
 
 export { Altered } from 'src/services/columns.service';
 export { ReusableParams } from 'src/services/columns.service.type';
+export { getJunctionTableName } from 'src/services/columns.service';

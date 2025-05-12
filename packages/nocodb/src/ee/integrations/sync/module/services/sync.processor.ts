@@ -1,11 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
 import { type NcContext, type NcRequest } from 'nocodb-sdk';
-import type { Job } from 'bull';
-import type {
-  AuthIntegration,
-  SyncIntegration,
+import {
+  type AuthIntegration,
+  NC_LINK_VALUES_KEY,
+  type SyncIntegration,
 } from '@noco-local-integrations/core';
+import type { Job } from 'bull';
 import type { SyncDataSyncModuleJobData } from '~/interface/Jobs';
 import { Integration, Model, SyncConfig, SyncMapping } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -95,6 +96,12 @@ export class SyncModuleSyncDataProcessor {
       }
     }
 
+    // Typecast the data to the correct type
+    req.query = {
+      ...req.query,
+      typecast: 'true',
+    };
+
     if (toInsert.length > 0) {
       await this.bulkDataAliasService.bulkDataInsert(context, {
         baseName: model.base_id,
@@ -171,6 +178,7 @@ export class SyncModuleSyncDataProcessor {
       });
 
       const modelSyncTargetMap = new Map<string, Model>();
+      const modelIdSyncTargetMap = new Map<string, string>();
 
       for (const syncMap of syncMappings) {
         const model = await Model.get(context, syncMap.fk_model_id);
@@ -181,11 +189,8 @@ export class SyncModuleSyncDataProcessor {
 
         await model.getColumns(context);
 
-        logBasic(
-          `Started syncing your data from ${integration.title} (${integration.sub_type}) to ${model.title}`,
-        );
-
         modelSyncTargetMap.set(syncMap.target_table, model);
+        modelIdSyncTargetMap.set(model.id, syncMap.target_table);
       }
 
       const dataStream = await wrapper.fetchData(auth, {});
@@ -194,7 +199,6 @@ export class SyncModuleSyncDataProcessor {
 
       const RemoteSyncedAt = dayjs().utc().toISOString();
 
-      // const dataBuffer: Record<string, any>[] = [];
       const dataBuffers = new Map<string, Record<string, any>[]>();
 
       await new Promise<void>((resolve, reject) => {
@@ -213,7 +217,10 @@ export class SyncModuleSyncDataProcessor {
               dataBuffers.set(model.id, []);
             }
 
-            Object.assign(data.data, {
+            const { [NC_LINK_VALUES_KEY]: linkValues, ...recordData } =
+              data.data;
+
+            Object.assign(recordData, {
               RemoteId: data.recordId,
               RemoteSyncedAt,
               SyncConfigId: syncConfig.id,
@@ -221,7 +228,7 @@ export class SyncModuleSyncDataProcessor {
 
             const dataBuffer = dataBuffers.get(model.id);
 
-            dataBuffer.push(data.data);
+            dataBuffer.push(recordData);
 
             if (dataBuffer.length >= 100) {
               dataStream.pause();
@@ -252,10 +259,13 @@ export class SyncModuleSyncDataProcessor {
         dataStream.on('end', async () => {
           try {
             for (const [modelId, dataBuffer] of dataBuffers.entries()) {
-              const model = modelSyncTargetMap.get(modelId);
+              const targetTable = modelIdSyncTargetMap.get(modelId);
+              const model = modelSyncTargetMap.get(targetTable);
 
               if (!model) {
-                logBasic(`Model ${modelId} not found, skipping this record`);
+                logBasic(
+                  `Model ${targetTable} not found, skipping this record`,
+                );
                 continue;
               }
 

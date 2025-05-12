@@ -138,6 +138,10 @@ export const isSameOriginUrl = (url: string, addMissingUrlSchema = false) => {
   }
 
   try {
+    // Special case for localhost URLs
+    if (url.includes('localhost') || url.includes('127.0.0.1')) {
+      return true;
+    }
     return new URL(url, window.location.origin).origin === window.location.origin
   } catch {
     return false // Invalid URL
@@ -187,6 +191,12 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {
   // Don't do anything if url is not valid, just warn in console for debugging purpose
   if (!isValidURL(url)) {
     console.warn('Invalid URL:', url)
+    return
+  }
+
+  // Special case for localhost URLs - open directly without redirect
+  if (url.includes('localhost') || url.includes('127.0.0.1')) {
+    window.open(url, target, target === '_blank' ? 'noopener,noreferrer' : undefined)
     return
   }
 

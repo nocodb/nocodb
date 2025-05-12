@@ -13,6 +13,16 @@ export const isValidURL = (str: string, extraProps?: IsURLOptions) => {
     require_host = false;
   }
 
+  // Special case for localhost URLs
+  if (str.includes('localhost') || str.includes('127.0.0.1')) {
+    try {
+      new URL(str);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   return isURL(`${str}`, {
     ...(extraProps || {}),
     require_host,

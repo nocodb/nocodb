@@ -487,8 +487,12 @@ const onMove = async (
   @apply bg-primary-selected;
 }
 
-:deep(.nc-sidebar-create-base-btn.nc-button.ant-btn-text.theme-default:hover) {
-  @apply bg-transparent;
+:deep(.nc-sidebar-create-base-btn.nc-button.ant-btn-text.theme-default) {
+  @apply pl-[15px];
+
+  &:hover {
+    @apply bg-transparent;
+  }
 }
 </style>
 

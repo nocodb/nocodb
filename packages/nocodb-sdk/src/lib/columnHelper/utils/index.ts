@@ -4,6 +4,7 @@ export * from './virtualCell';
 export * from './parser';
 export * from './serializer';
 export * from './decimal';
+export * from './date-time';
 export * from './url';
 export * from './validation';
 export * from './get-lookup-column-type';

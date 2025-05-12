@@ -644,7 +644,62 @@ const showCreateNewAsDropdown = computed(() => {
         <DashboardTreeViewProjectNode ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
-      <div class="px-1 h-11 flex items-center !xs:hidden">
+      <div
+        v-if="isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source: base?.sources?.[0] })"
+        class="h-11 flex items-center w-full p-1 xs:hidden"
+      >
+        <NcDropdown v-if="showCreateNewAsDropdown" v-model:visible="isVisibleCreateNew">
+          <NcButton
+            type="text"
+            size="small"
+            full-width
+            class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden !w-full !px-3"
+            :class="isVisibleCreateNew ? 'active' : ''"
+            icon-position="right"
+          >
+            <template #icon>
+              <GeneralIcon icon="chevronDown" />
+            </template>
+            <div class="flex items-center gap-2">
+              <GeneralIcon icon="ncPlusCircleSolid" />
+
+              <div>{{ $t('labels.createNew') }}</div>
+            </div>
+          </NcButton>
+
+          <template #overlay>
+            <NcMenu variant="medium" @click="isVisibleCreateNew = false">
+              <NcMenuItem @click="addNewProjectChildEntity">
+                <GeneralIcon icon="table" />
+                New Table
+              </NcMenuItem>
+              <NcMenuItem v-if="isAutomationEnabled" @click="openNewScriptModal">
+                <GeneralIcon icon="ncScript" />
+                New Script
+              </NcMenuItem>
+            </NcMenu>
+          </template>
+        </NcDropdown>
+        <NcButton
+          v-else
+          type="text"
+          size="small"
+          full-width
+          class="nc-home-create-new-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden w-full !px-3"
+          @click="addNewProjectChildEntity"
+        >
+          <div class="flex items-center gap-2">
+            <GeneralIcon icon="ncPlusCircleSolid" />
+
+            {{
+              $t('general.createEntity', {
+                entity: $t('objects.table'),
+              })
+            }}
+          </div>
+        </NcButton>
+      </div>
+      <div class="nc-project-home-section pt-1 !xs:hidden">
         <NcButton
           v-e="['c:base:home']"
           type="text"
@@ -668,61 +723,6 @@ const showCreateNewAsDropdown = computed(() => {
           </div>
         </NcButton>
       </div>
-    </div>
-    <div
-      v-if="isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source: base?.sources?.[0] })"
-      class="nc-project-home-section xs:hidden"
-    >
-      <NcDropdown
-        v-if="showCreateNewAsDropdown"
-        v-model:visible="isVisibleCreateNew"
-        overlay-class-name="!w-[182px] !min-w-[182px]"
-      >
-        <NcButton
-          type="text"
-          size="small"
-          class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden !px-3"
-          :class="isVisibleCreateNew ? 'active' : ''"
-        >
-          <div class="flex items-center gap-2">
-            <GeneralIcon icon="plus" />
-
-            <div>{{ $t('labels.createNew') }}</div>
-            <GeneralIcon icon="chevronDown" />
-          </div>
-        </NcButton>
-
-        <template #overlay>
-          <NcMenu variant="medium" @click.stop="isVisibleCreateNew = false">
-            <NcMenuItem @click="addNewProjectChildEntity">
-              <GeneralIcon icon="table" />
-              New Table
-            </NcMenuItem>
-            <NcMenuItem v-if="isAutomationEnabled" @click="openNewScriptModal">
-              <GeneralIcon icon="ncScript" />
-              New Script
-            </NcMenuItem>
-          </NcMenu>
-        </template>
-      </NcDropdown>
-      <NcButton
-        v-else
-        type="text"
-        size="small"
-        full-width
-        class="nc-home-create-new-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden w-full !px-3"
-        @click="addNewProjectChildEntity"
-      >
-        <div class="flex items-center gap-2">
-          <GeneralIcon icon="plus" />
-
-          {{
-            $t('general.createEntity', {
-              entity: $t('objects.table'),
-            })
-          }}
-        </div>
-      </NcButton>
     </div>
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
       <div class="nc-project-home-section">
@@ -1005,7 +1005,7 @@ const showCreateNewAsDropdown = computed(() => {
   @apply hover:bg-nc-bg-gray-medium;
 
   &.active {
-    @apply bg-nc-bg-gray-medium;
+    @apply !bg-brand-50 !hover:bg-brand-50;
   }
 }
 </style>

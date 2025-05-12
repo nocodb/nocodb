@@ -806,6 +806,21 @@
     "reactivateToPlan": "ដំណើរការឡើងវិញផែនការ {plan} ឬ?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "កំពុងស្ដារឡើងវិញ Snapshot",
     "note": "ចំណាំ៖",
     "snapshotRestoreMessage1": "ការស្ដារឡើងវិញ Snapshot នេះមិនប៉ៈពាល់ទៅ Base មានស្រាប់ទេ។",
@@ -1207,8 +1222,8 @@
     "agreeToTos": "ដោយចុះឈ្មោះ អ្នកយល់ព្រមចំពោះលក្ខខ័ណ្ឌសេវាកម្ម",
     "welcomeToNc": "សូមស្វាគមន៍មកកាន់ NocoDB!",
     "inviteOnlySignup": "អនុញ្ញាតឱ្យចុះឈ្មោះតាមរយៈ URL ការអញ្ជើញប៉ុណ្ណោះ",
-    "nextRow": "ទ្រនំបន្ទាប់",
-    "prevRow": "ទ្រនំមុន",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "បន្ថែមទិន្នន័យដោយដៃនៅលើតារាង",
     "addRowForm": "បញ្ចូលទិន្នន័យតាមរយៈសំណុំបែបបទ",
     "noAccess": "គ្មានការចូលទៅ",
@@ -2060,6 +2075,7 @@
       "copyToClipboardLocalFileUrl": "កម្មវិធីរុករកមិនអនុញ្ញាតផ្ទុកធនធានមូលដ្ឋានដោយផ្ទាល់ទេ។ URL ត្រូវបានចម្លងទៅក្តារតម្បៀតខ្ទាស់ជំនួស។"
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "ទំព័រមុខគឺមិនអាចបិទបាន",
       "errorLoadingRecord": "មាន​បញ្ហាក្នុង​ការផ្ទុក​ទិន្នន័យ​ក្នុង​កំណត់ត្រា",
       "fetchingCalendarData": "មានកំហុសក្នុងការទាញយកទិន្នន័យប្រតិទា",
@@ -2193,6 +2209,9 @@
       "nCellsCopied": "បានចម្លង {n} សែល"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "បានធ្វើបច្ចប្បន្នភាពកូនសោអាជ្ញាប័ណ្ណ",
       "columnDuplicated": "បានស្ទាងផ្ទាល់ដោយជោគជ័យ",
       "rowDuplicatedWithoutSavedYet": "កំណត់ត្រាត្រូវបានស្ទឹងដោយ (មិនបានរក្សាទុក)",
@@ -2237,7 +2256,8 @@
       "paymentSuccessful": "ការទូទាត់ជោគជ័យ",
       "paymentSuccessfulSubtitle": "ការទូទាត់របស់អ្នកបានដំណើរការរួច។ អ្នកអាចប្រើគម្រោងថ្មីរបស់អ្នកបានហើយ។",
       "upgradeSuccessful": "ធ្វើបច្ចុប្បន្នភាពជោគជ័យ",
-      "upgradeSuccessfulSubtitle": "ការទូទាត់សម្រាប់ការធ្វើបច្ចុប្បន្នភាពរបស់អ្នកបានដំណើរការរួច។ អ្នកអាចប្រើគម្រោងថ្មីរបស់អ្នកបានហើយ។"
+      "upgradeSuccessfulSubtitle": "ការទូទាត់សម្រាប់ការធ្វើបច្ចុប្បន្នភាពរបស់អ្នកបានដំណើរការរួច។ អ្នកអាចប្រើគម្រោងថ្មីរបស់អ្នកបានហើយ។",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "ចាប់ផ្តើមពីសូន្យ។",

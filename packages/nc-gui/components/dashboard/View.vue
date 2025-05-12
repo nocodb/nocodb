@@ -25,6 +25,8 @@ const {
   miniSidebarWidth,
 } = storeToRefs(useSidebarStore())
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const workspaceId = computed(() => {
   return route.value.params.typeOrId as string
 })
@@ -207,7 +209,7 @@ function onResize(widthPercent: any) {
 
 <template>
   <div class="h-full flex items-stretch">
-    <DashboardMiniSidebar v-if="isNewSidebarEnabled && $slots.sidebar" />
+    <DashboardMiniSidebar v-if="isNewSidebarEnabled && $slots.sidebar && !isSharedBase" />
 
     <div
       :class="{
@@ -220,8 +222,8 @@ function onResize(widthPercent: any) {
         class="nc-sidebar-content-resizable-wrapper h-full"
         :class="{
           'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart' || hideSidebar,
-          '!w-[calc(100vw_-_var(--mini-sidebar-width))]': isNewSidebarEnabled,
-          '!w-screen': !isNewSidebarEnabled,
+          '!w-[calc(100vw_-_var(--mini-sidebar-width))]': isNewSidebarEnabled && !isSharedBase,
+          '!w-screen': !isNewSidebarEnabled || isSharedBase,
         }"
         @ready="() => onWindowResize()"
         @resize="(event: any) => onResize(event[0].size)"

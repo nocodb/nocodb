@@ -524,12 +524,23 @@ watch(
 
 const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
 
-const openBaseSettings = async (baseId: string) => {
-  await navigateTo(`/${route.value.params.typeOrId}/${baseId}?page=base-settings`)
-}
-
 const openBaseHomePage = async (baseId: string) => {
-  await navigateTo(`/${route.value.params.typeOrId}/${baseId}`)
+  const isSharedBase = route.value.params.typeOrId === 'base'
+
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
+
+  await navigateTo(
+    `${cmdOrCtrl ? '#' : ''}${baseUrl({
+      id: base.value.id!,
+      type: 'database',
+      isSharedBase,
+    })}`,
+    cmdOrCtrl
+      ? {
+          open: navigateToBlankTargetOpenOption,
+        }
+      : undefined,
+  )
 }
 
 const showNodeTooltip = ref(true)
@@ -641,7 +652,24 @@ const showCreateNewAsDropdown = computed(() => {
   <div v-if="base?.id && !base.isLoading" class="nc-treeview-container nc-treeview-active-base">
     <div>
       <DashboardSidebarHeaderWrapper>
-        <DashboardTreeViewProjectNode ref="projectNodeRef" is-project-header />
+        <div v-if="isSharedBase" class="flex-1">
+          <div
+            data-testid="nc-workspace-menu"
+            class="flex items-center nc-workspace-menu overflow-hidden py-1.25 pr-0.25 justify-center w-full"
+          >
+            <a
+              class="w-24 min-w-10 transition-all duration-200 p-1 transform"
+              href="https://github.com/nocodb/nocodb"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img alt="NocoDB" src="~/assets/img/brand/nocodb.png" />
+            </a>
+
+            <div class="flex flex-grow"></div>
+          </div>
+        </div>
+        <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
       <div
@@ -1002,10 +1030,10 @@ const showCreateNewAsDropdown = computed(() => {
 }
 
 :deep(.nc-home-create-new-btn.nc-button) {
-  @apply hover:bg-nc-bg-gray-medium;
+  @apply hover:bg-brand-50;
 
   &.active {
-    @apply !bg-brand-50 !hover:bg-brand-50;
+    @apply !bg-brand-50;
   }
 }
 </style>

@@ -69,7 +69,6 @@ onMounted(() => {
           </span>
         </div>
         <div
-          v-if="isMCPEnabled"
           :class="{
             'active-menu': activeMenu === 'mcp',
           }"

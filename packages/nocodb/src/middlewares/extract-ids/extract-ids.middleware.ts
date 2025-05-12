@@ -35,7 +35,7 @@ import rolePermissions from '~/utils/acl';
 import { NcError } from '~/helpers/catchError';
 import { RootScopes } from '~/utils/globals';
 import { sourceRestrictions } from '~/utils/acl';
-import { MCPToken, Source } from '~/models';
+import { Source, MCPToken } from '~/models';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -84,11 +84,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
     // extract base id based on request path params
 
-    if (params.mcpTokenId) {
-      const mcpToken = await MCPToken.get(context, params.mcpTokenId);
+    if (params.tokenId) {
+      const mcpToken = await MCPToken.get(context, params.tokenId);
 
       if (!mcpToken) {
-        NcError.genericNotFound('MCPToken', params.mcpTokenId);
+        NcError.genericNotFound('MCPToken', params.tokenId);
       }
 
       req.ncBaseId = mcpToken.base_id;

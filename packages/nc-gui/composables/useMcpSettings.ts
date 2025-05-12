@@ -93,7 +93,6 @@ export const useMcpSettings = createSharedComposable(() => {
 
       message.success(t('msg.success.mcpTokenCreated'))
       isCreatingMcpToken.value = false
-      return response
     } catch (error: any) {
       isCreatingMcpToken.value = false
       message.error(await extractSdkResponseErrorMsg(error))
@@ -105,7 +104,7 @@ export const useMcpSettings = createSharedComposable(() => {
     try {
       token.loading = true
 
-      const res = await $api.internal.postOperation(
+      await $api.internal.postOperation(
         activeWorkspaceId.value,
         activeProjectId.value,
         {
@@ -113,12 +112,13 @@ export const useMcpSettings = createSharedComposable(() => {
         },
         {
           tokenId: token.id,
+          title: token.title,
+          expires_at: token.expires_at,
         },
       )
 
       token.loading = false
       message.success(t('msg.success.mcpTokenUpdated'))
-      return res
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
       token.loading = false
@@ -170,9 +170,7 @@ export const useMcpSettings = createSharedComposable(() => {
   }
 
   const addNewMcpToken = () => {
-    newMcpTokenTitle.value = `MCP - ${user.value?.display_name ?? user.value?.email?.split('@')?.[0]} - ${dayjs().format(
-      'D MMMM YYYY, h:mm A',
-    )}`
+    newMcpTokenTitle.value = `MCP - ${user.value?.display_name} - ${dayjs().format('D MMMM YYYY, h:mm A')}`
     mcpTokens.value = [
       {
         title: newMcpTokenTitle.value,

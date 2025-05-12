@@ -9,8 +9,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { NcContext, NcRequest } from 'nocodb-sdk';
-import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { GlobalGuard } from '~/guards/global/global.guard';
+import { MetaApiLimiterGuard } from '~/ee/guards/meta-api-limiter.guard';
+import { GlobalGuard } from '~/ee/guards/global/global.guard';
 import { McpTokenService } from '~/services/mcp.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcError } from '~/helpers/catchError';
@@ -83,15 +83,11 @@ export class InternalController {
       case 'mcpCreate':
         return await this.mcpService.create(context, payload, req);
       case 'mcpUpdate':
-        return await this.mcpService.regenerateToken(
-          context,
-          payload.tokenId,
-          payload,
-        );
+        return await this.mcpService.update(context, payload.tokenId, payload);
       case 'mcpDelete':
         return await this.mcpService.delete(context, payload.tokenId);
       default:
-        NcError.notFound('Operation');
+        return NcError.notFound('Operation');
     }
   }
 }

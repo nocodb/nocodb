@@ -1,19 +1,15 @@
-import path from 'node:path';
 import { Injectable } from '@nestjs/common';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { extractRolesObj, NcApiVersion, ProjectRoles } from 'nocodb-sdk';
+import { extractRolesObj, NcApiVersion } from 'nocodb-sdk';
 import type { NcContext, NcRequest, UserType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
-import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 import { BasesV3Service } from '~/services/v3/bases-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { DataTableService } from '~/services/data-table.service';
-import { hasMinimumRole } from '~/utils/roleHelper';
-import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { serialize } from '~/helpers/serialize';
+import { getProjectRolePower, hasEditorOrHigherRole } from '~/utils/roleHelper';
 
 @Injectable()
 export class McpService {
@@ -63,7 +59,7 @@ export class McpService {
     server: McpServer;
     req: NcRequest;
   }) {
-    const isEditorPlus = hasMinimumRole(user, ProjectRoles.EDITOR);
+    const isEditorPlus = hasEditorOrHigherRole(user);
 
     // Base Details
     server.tool(
@@ -95,13 +91,14 @@ export class McpService {
       {}, // No parameters needed
       async () => {
         try {
-          const tables = (
-            await this.tablesV3Service.getAccessibleTables(context, {
+          const tables = await this.tablesV3Service.getAccessibleTables(
+            context,
+            {
               baseId: context.base_id,
               sourceId: undefined as string,
               roles: extractRolesObj(user?.base_roles),
-            })
-          ).filter((t) => !t.source_id);
+            },
+          );
 
           return {
             content: [{ type: 'text', text: JSON.stringify(tables, null, 2) }],
@@ -282,176 +279,6 @@ export class McpService {
       },
     );
 
-    server.tool(
-      'readAttachment',
-      {
-        files: z
-          .array(
-            z
-              .object({
-                title: z.string().nullable().describe('Attachment title'),
-                mimeType: z
-                  .string()
-                  .nullable()
-                  .describe('Attachment mime type'),
-                size: z.number().nullable().describe('Attachment size'),
-              })
-              .and(
-                z.union([
-                  z.object({
-                    url: z
-                      .string()
-                      .nullable()
-                      .describe(
-                        'Attachment URL. Required if `path` is not provided.',
-                      ),
-                    signedUrl: z
-                      .string()
-                      .nullable()
-                      .describe(
-                        'Attachment signed URL. Required if `path` is not provided.',
-                      ),
-                    path: z.null(),
-                    signedPath: z.null(),
-                  }),
-                  z.object({
-                    path: z
-                      .string()
-                      .nullable()
-                      .describe(
-                        'Attachment path. Required if `url` is not provided.',
-                      ),
-                    signedPath: z
-                      .string()
-                      .nullable()
-                      .describe(
-                        'Attachment signed Path. Required if `url` is not provided.',
-                      ),
-                    url: z.null(),
-                    signedUrl: z.null(),
-                  }),
-                ]),
-              ),
-          )
-          .describe('Array of attachment objects from NocoDB'),
-      },
-      async ({ files }) => {
-        try {
-          if (!files || files.length === 0) {
-            return {
-              content: [
-                { type: 'text', text: 'Error: No attachments provided' },
-              ],
-              isError: true,
-            };
-          }
-
-          const storageAdapter = await NcPluginMgrv2.storageAdapter();
-
-          const results = await Promise.all(
-            files.map(async (file) => {
-              try {
-                let relativePath;
-
-                // Determine the relative path from attachment
-                if (file.path) {
-                  relativePath = path.join(
-                    'nc',
-                    'uploads',
-                    file.path.replace(/^download[/\\]/i, ''),
-                  );
-                } else if (file.url) {
-                  relativePath = getPathFromUrl(file.url).replace(/^\/+/, '');
-                } else {
-                  return {
-                    title: file.title || 'Unknown file',
-                    error: 'No path or URL available for this attachment',
-                  };
-                }
-
-                const stream = await storageAdapter.fileReadByStream(
-                  relativePath,
-                );
-                if (!stream) {
-                  return {
-                    title: file.title || 'Unknown file',
-                    error: 'Failed to read file stream',
-                  };
-                }
-
-                const mimeType = file.mimeType || 'application/octet-stream';
-
-                const serialized = await serialize(
-                  mimeType,
-                  stream,
-                  `Could not process file: ${file.title || 'Unknown file'}`,
-                );
-
-                const hasContent =
-                  serialized.text && serialized.text !== '@file_not_supported';
-
-                return {
-                  title: file.title || 'Unknown file',
-                  mimeType,
-                  size: file.size,
-                  content: hasContent ? serialized.text : null,
-                  images: serialized.images,
-                  error: hasContent
-                    ? null
-                    : 'Could not extract text from this file type',
-                };
-              } catch (error) {
-                return {
-                  title: file.title || 'Unknown file',
-                  error: `Error processing file: ${error.message}`,
-                };
-              }
-            }),
-          );
-
-          // Compile all content into one response
-          const successfulResults = results.filter((r) => r.content);
-          const failedResults = results.filter((r) => r.error);
-
-          // Format content for the response
-          let responseText = '';
-
-          if (successfulResults.length > 0) {
-            responseText += '## Successfully Processed Files\n\n';
-
-            for (const result of successfulResults) {
-              responseText += `### ${result.title}\n`;
-              responseText += `**Type:** ${result.mimeType}\n`;
-              responseText += `**Size:** ${formatFileSize(result.size)}\n\n`;
-              responseText += `${result.content}\n\n`;
-
-              if (result.images && result.images.length > 0) {
-                responseText += `*This file contains ${result.images.length} images that cannot be directly displayed in text format.*\n\n`;
-              }
-            }
-          }
-
-          if (failedResults.length > 0) {
-            responseText += '## Files With Processing Issues\n\n';
-
-            for (const result of failedResults) {
-              responseText += `### ${result.title}\n`;
-              responseText += `**Error:** ${result.error}\n\n`;
-            }
-          }
-
-          return {
-            content: [{ type: 'text', text: responseText.trim() }],
-          };
-        } catch (error) {
-          return {
-            content: [{ type: 'text', text: `Error: ${error.message}` }],
-            isError: true,
-          };
-        }
-      },
-    );
-
     if (isEditorPlus) {
       // Create Records tool
       server.tool(
@@ -576,14 +403,4 @@ export class McpService {
       );
     }
   }
-}
-
-function formatFileSize(bytes?: number | null): string {
-  if (bytes === undefined || bytes === null) return 'Unknown size';
-
-  if (bytes < 1024) return `${bytes} bytes`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024)
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 }

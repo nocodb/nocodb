@@ -110,8 +110,8 @@ function handleMouseMove(e: MouseEvent) {
   } else if (e.clientX > sidebarWidth.value + 10 + miniSidebarWidth.value && sidebarState.value === 'peekOpenEnd') {
     // Hide sidebar
 
-    // Don't hide sidebar if user is hovering over any sidebar context menu dropdown
-    if ((e.target as HTMLElement).closest('.nc-dropdown.active')) {
+    // Don't hide sidebar if user is hovering over any sidebar context menu dropdown or any dropdown is active
+    if ((e.target as HTMLElement).closest('.nc-dropdown.active') || isNcDropdownOpen()) {
       return
     }
 

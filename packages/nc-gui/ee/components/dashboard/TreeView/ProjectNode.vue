@@ -760,7 +760,9 @@ defineExpose({
               <NcDropdown v-if="!isSharedBase" v-model:visible="isOptionsOpen" :trigger="['click']">
                 <NcButton
                   class="nc-sidebar-node-btn"
-                  :class="{ '!text-black !opacity-100 !inline-block': isOptionsOpen }"
+                  :class="{
+                    '!text-black !opacity-100 !inline-block': isOptionsOpen,
+                  }"
                   data-testid="nc-sidebar-context-menu"
                   type="text"
                   :size="isProjectHeader ? 'small' : 'xxsmall'"

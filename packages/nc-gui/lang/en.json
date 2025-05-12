@@ -805,7 +805,8 @@
     "upgradeToPlan": "Upgrade to {plan} plan",
     "upgradeWorkspaceToPlan": "Upgrade {workspace} to {plan} plan",
     "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
-    "reactivateToPlan": "Reactivate {plan} plan?"
+    "reactivateToPlan": "Reactivate {plan} plan?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",

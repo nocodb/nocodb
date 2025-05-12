@@ -57,6 +57,13 @@ const isCreateProjectOpen = ref(false)
 const starredProjectList = computed(() => basesList.value.filter((base) => base.starred))
 const nonStarredProjectList = computed(() => basesList.value.filter((base) => !base.starred))
 
+const filteredStarredProjectList = computed(() =>
+  starredProjectList.value.filter((base) => searchCompare(base.title, searchQuery.value)),
+)
+const filteredMonStarredProjectList = computed(() =>
+  nonStarredProjectList.value.filter((base) => searchCompare(base.title, searchQuery.value)),
+)
+
 const openedBase = computed(() => {
   return basesList.value.find((b) => b.id === activeProjectId.value)
 })
@@ -258,10 +265,6 @@ const isCreateTableAllowed = computed(
     route.value.name !== 'index-user-index',
 )
 
-const isBaseSelected = computed(() => {
-  return !!(route.value.name as string)?.startsWith('index-typeOrId-baseId-')
-})
-
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
 
@@ -444,11 +447,14 @@ onMounted(() => {
                 @change="onMove($event, starredProjectList)"
               >
                 <template #item="{ element: baseItem }">
-                  <div :key="baseItem.id">
+                  <div v-if="searchCompare(baseItem.title, searchQuery)" :key="baseItem.id">
                     <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
                       <DashboardTreeViewProjectNode />
                     </ProjectWrapper>
                   </div>
+                </template>
+                <template v-if="!isWorkspaceLoading && !filteredStarredProjectList.length" #footer>
+                  <div class="text-nc-content-gray-muted px-3 font-normal">No matching bases.</div>
                 </template>
               </Draggable>
             </div>
@@ -468,16 +474,22 @@ onMounted(() => {
                 @change="onMove($event, nonStarredProjectList)"
               >
                 <template #item="{ element: baseItem }">
-                  <div :key="baseItem.id">
+                  <div v-if="searchCompare(baseItem.title, searchQuery)" :key="baseItem.id">
                     <ProjectWrapper :base-role="baseItem.project_role || stringifyRolesObj(workspaceRoles)" :base="baseItem">
                       <DashboardTreeViewProjectNode />
                     </ProjectWrapper>
                   </div>
                 </template>
+                <template
+                  v-if="!isWorkspaceLoading && (!filteredMonStarredProjectList.length || !nonStarredProjectList.length)"
+                  #footer
+                >
+                  <div class="text-nc-content-gray-muted px-3 font-normal">
+                    {{ !nonStarredProjectList.length ? 'No Bases' : 'No matching bases.' }}
+                  </div>
+                </template>
               </Draggable>
             </div>
-
-            <WorkspaceEmptyPlaceholder v-else-if="!basesList.length && !isWorkspaceLoading" />
           </div>
 
           <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />

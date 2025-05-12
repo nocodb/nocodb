@@ -124,7 +124,7 @@ const onWorkspaceCreateClick = () => {
     <NcDropdown
       v-model:visible="isWorkspaceDropdownOpen"
       class="h-full min-w-0 rounded-lg"
-      :trigger="[isMiniSidebar ? 'hover' : 'click']"
+      :trigger="[isMiniSidebar && !isMobileMode ? 'hover' : 'click']"
       placement="bottomLeft"
       overlay-class-name="nc-dropdown-workspace-menu !overflow-hidden"
     >
@@ -142,9 +142,9 @@ const onWorkspaceCreateClick = () => {
       >
         <GeneralWorkspaceIcon
           :workspace="activeWorkspace"
-          icon-bg-color="#E7E7E9"
+          icon-bg-color="#F4F4F5"
           show-nocodb-icon
-          class="flex-none !rounded"
+          class="flex-none border-1 border-nc-border-gray-medium"
           :size="isMiniSidebar ? 'mini-sidebar' : 'medium'"
         />
         <div v-if="activeWorkspace && !isMiniSidebar" class="flex min-w-10 w-full items-center">
@@ -286,5 +286,8 @@ const onWorkspaceCreateClick = () => {
 
 :deep(.ant-dropdown-menu-item-group-title) {
   @apply hidden;
+}
+
+:deep(.nc-workspace-avatar) {
 }
 </style>

@@ -644,12 +644,12 @@ const showCreateNewAsDropdown = computed(() => {
         <DashboardTreeViewProjectNode ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
-      <div class="px-1 h-11 flex items-center">
+      <div class="px-1 h-11 flex items-center !xs:hidden">
         <NcButton
           v-e="['c:base:home']"
           type="text"
           size="xsmall"
-          class="nc-sidebar-top-button !xs:hidden !h-8 w-full"
+          class="nc-sidebar-top-button !h-8 w-full"
           :centered="false"
           :class="{
             '!text-brand-600 !bg-brand-50 !hover:bg-brand-50': activeProjectId === base.id && baseViewOpen,
@@ -671,7 +671,7 @@ const showCreateNewAsDropdown = computed(() => {
     </div>
     <div
       v-if="isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source: base?.sources?.[0] })"
-      class="nc-project-home-section"
+      class="nc-project-home-section xs:hidden"
     >
       <NcDropdown
         v-if="showCreateNewAsDropdown"

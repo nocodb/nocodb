@@ -806,6 +806,21 @@
     "reactivateToPlan": "Znovu aktivovat tarif {plan}?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Obnovuji snapshot",
     "note": "Poznámka:",
     "snapshotRestoreMessage1": "Obnovení tohoto snapshotu neovlivní stávající databázi.",
@@ -1207,8 +1222,8 @@
     "agreeToTos": "Registrací souhlasíte s podmínkami služby.",
     "welcomeToNc": "Vítejte na NocoDB!",
     "inviteOnlySignup": "Povolit registraci pouze pomocí pozvánky s odkazem",
-    "nextRow": "Další řádek",
-    "prevRow": "Předchozí řada",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Manuální přidání dat v zobrazení mřížky",
     "addRowForm": "Vložit data záznamu pomocí formuláře",
     "noAccess": "Žádný přístup",
@@ -2060,6 +2075,7 @@
       "copyToClipboardLocalFileUrl": "Prohlížeč neumožňuje přímo načíst místní zdroj. URL byla místo toho zkopírována do schránky."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "Ruční háčky nelze zakázat",
       "errorLoadingRecord": "Chyba načítání dat záznamu",
       "fetchingCalendarData": "Chyba při načítání dat kalendáře",
@@ -2193,6 +2209,9 @@
       "nCellsCopied": "{n} buněk zkopírováno"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "Licenční klíč aktualizován",
       "columnDuplicated": "Sloupec úspěšně duplikován",
       "rowDuplicatedWithoutSavedYet": "Řádek duplikován (neuložen)",
@@ -2237,7 +2256,8 @@
       "paymentSuccessful": "Platba úspěšná",
       "paymentSuccessfulSubtitle": "Vaše platba byla zpracována. Nyní můžete využívat svůj nový tarif.",
       "upgradeSuccessful": "Upgrade byl úspěšný",
-      "upgradeSuccessfulSubtitle": "Platba za upgrade byla zpracována. Nyní můžete využívat svůj nový tarif."
+      "upgradeSuccessfulSubtitle": "Platba za upgrade byla zpracována. Nyní můžete využívat svůj nový tarif.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Začněte od začátku.",

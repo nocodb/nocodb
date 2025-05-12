@@ -112,8 +112,8 @@ const confirmDeleteToken = (token: MCPTokenExtendedType) => {
   }
 }
 
-const copyToken = (token: MCPTokenExtendedType) => {
-  copy(`${appInfo.value.ncSiteUrl}/mcp/${token.id}`)
+const copyToken = async (token: MCPTokenExtendedType) => {
+  await copy(`${appInfo.value.ncSiteUrl}/mcp/${token.id}`)
   message.success(t('msg.success.mcpUrlCopied'))
 }
 </script>

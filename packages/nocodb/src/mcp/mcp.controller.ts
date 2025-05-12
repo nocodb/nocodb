@@ -6,15 +6,23 @@ import {
   Post,
   Request,
   Response,
+  UseGuards,
 } from '@nestjs/common';
-import { extractRolesObj, NcContext, NcRequest } from 'nocodb-sdk';
+import {
+  extractRolesObj,
+  NcContext,
+  NcRequest,
+  ProjectRoles,
+} from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import { MCPToken, User } from '~/models';
 import { McpService } from '~/mcp/mcp.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcError } from '~/helpers/catchError';
+import { MetaApiLimiterGuard } from '~/ee/guards/meta-api-limiter.guard';
 
-@Controller('mcp/:tokenId')
+@Controller('mcp/:mcpTokenId')
+@UseGuards(MetaApiLimiterGuard)
 export class McpController {
   constructor(private readonly mcpService: McpService) {}
 
@@ -22,7 +30,7 @@ export class McpController {
   @Get()
   @Delete()
   async handleMcpRequest(
-    @Param('tokenId') tokenId: string,
+    @Param('mcpTokenId') tokenId: string,
     @Request() req: NcRequest,
     @Response() res,
     @TenantContext() context: NcContext,
@@ -40,7 +48,7 @@ export class McpController {
     });
 
     // Check if user base_role is not no_access
-    if (extractRolesObj(req.user.base_roles)['no-access']) {
+    if (extractRolesObj(req.user.base_roles)[ProjectRoles.NO_ACCESS]) {
       NcError.forbidden('User has no access');
     }
 

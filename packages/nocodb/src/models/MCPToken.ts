@@ -4,7 +4,6 @@ import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb } from '~/utils/modelUtils';
-import { isEE } from '~/utils';
 
 export default class MCPToken implements MCPTokenType {
   id: string;
@@ -92,7 +91,7 @@ export default class MCPToken implements MCPTokenType {
       'expires_at',
       'base_id',
       'fk_user_id',
-      ...(isEE ? ['fk_workspace_id'] : []),
+      'fk_workspace_id',
     ]);
 
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.MCP_TOKENS, {

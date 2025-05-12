@@ -147,7 +147,6 @@ export default class DataReflection {
 
   public static async create(
     fk_workspace_id: string,
-    base_id?: string | Array<string>,
     _ncMeta = Noco.ncMeta,
   ): Promise<DataReflection> {
     NcError.notImplemented('Data Reflection');

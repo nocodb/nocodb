@@ -601,9 +601,7 @@ const onClickMenu = (e: { key?: string }) => {
   <div v-if="base?.id && !base.isLoading" class="nc-treeview-container nc-treeview-active-base">
     <div>
       <DashboardSidebarHeaderWrapper>
-        <div class="flex-1">
-          <DashboardTreeViewProjectNode ref="projectNodeRef" is-project-header />
-        </div>
+        <DashboardTreeViewProjectNode ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
       <div class="px-1 h-11 flex items-center">

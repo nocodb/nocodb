@@ -9,8 +9,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { NcContext, NcRequest } from 'nocodb-sdk';
-import { MetaApiLimiterGuard } from '~/ee/guards/meta-api-limiter.guard';
-import { GlobalGuard } from '~/ee/guards/global/global.guard';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { GlobalGuard } from '~/guards/global/global.guard';
 import { McpTokenService } from '~/services/mcp.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcError } from '~/helpers/catchError';

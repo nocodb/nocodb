@@ -947,6 +947,11 @@ const permissionDescriptions: Record<string, string> = {
 
   hookTrigger: 'trigger a webhook',
 
+  mcpList: 'view list of MCP tokens',
+  mcpCreate: 'create a new MCP token',
+  mcpUpdate: 'update an MCP token',
+  mcpDelete: 'delete an MCP token',
+
   globalAuditList: 'view list of audits',
 };
 

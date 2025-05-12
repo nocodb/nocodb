@@ -299,20 +299,34 @@ export class McpService {
               .and(
                 z.union([
                   z.object({
-                    url: z.string().nullable().describe('Attachment URL'),
+                    url: z
+                      .string()
+                      .nullable()
+                      .describe(
+                        'Attachment URL. Required if `path` is not provided.',
+                      ),
                     signedUrl: z
                       .string()
                       .nullable()
-                      .describe('Attachment signed URL'),
+                      .describe(
+                        'Attachment signed URL. Required if `path` is not provided.',
+                      ),
                     path: z.null(),
                     signedPath: z.null(),
                   }),
                   z.object({
-                    path: z.string().nullable().describe('Attachment path'),
+                    path: z
+                      .string()
+                      .nullable()
+                      .describe(
+                        'Attachment path. Required if `url` is not provided.',
+                      ),
                     signedPath: z
                       .string()
                       .nullable()
-                      .describe('Attachment signed Path'),
+                      .describe(
+                        'Attachment signed Path. Required if `url` is not provided.',
+                      ),
                     url: z.null(),
                     signedUrl: z.null(),
                   }),

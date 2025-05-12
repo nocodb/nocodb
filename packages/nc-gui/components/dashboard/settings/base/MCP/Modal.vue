@@ -73,15 +73,15 @@ const code = computed(
 <template>
   <NcModal v-model:visible="modalVisible" :show-separator="true" size="large" wrap-class-name="nc-modal-mcp-token-create-edit">
     <template #header>
-      <div class="flex w-full items-center px-4 py-2 justify-between">
-        <div class="flex items-center gap-3 flex-1">
+      <div class="flex w-full items-center p-2 justify-between">
+        <div class="flex items-center gap-3 pl-1 flex-1">
           <GeneralIcon class="text-gray-900 h-5 w-5" icon="mcp" />
           <span class="text-gray-900 truncate font-semibold text-xl">
             {{ token.title }}
           </span>
         </div>
 
-        <div class="flex justify-end items-center gap-3 flex-1">
+        <div class="flex justify-end items-center gap-3 pr-0.5 flex-1">
           <NcButton type="text" size="small" data-testid="nc-close-webhook-modal" @click.stop="closeModal">
             <GeneralIcon icon="close" />
           </NcButton>

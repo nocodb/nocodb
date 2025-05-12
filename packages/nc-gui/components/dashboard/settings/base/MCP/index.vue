@@ -83,6 +83,7 @@ const isTokenModalVisible = ref(false)
 const activeToken = ref<MCPTokenExtendedType | null>(null)
 
 const handleOpenTokenModal = (token: MCPTokenExtendedType) => {
+  if (token.isNew) return
   activeToken.value = token
   isTokenModalVisible.value = true
 }
@@ -229,11 +230,11 @@ const confirmDeleteToken = (token: MCPTokenExtendedType) => {
           </NcDropdown>
           <div v-else>
             <div class="flex gap-2">
-              <NcButton data-testid="cancel-token-btn" type="secondary" size="small" @click="cancelNewMcpToken()">
+              <NcButton data-testid="cancel-token-btn" type="secondary" size="small" @click.stop="cancelNewMcpToken()">
                 {{ $t('general.cancel') }}
               </NcButton>
 
-              <NcButton data-testid="create-token-btn" type="primary" size="small" @click="createTokenWithExpiry(token)">
+              <NcButton data-testid="create-token-btn" type="primary" size="small" @click.stop="createTokenWithExpiry(token)">
                 {{ $t('general.save') }}
               </NcButton>
             </div>

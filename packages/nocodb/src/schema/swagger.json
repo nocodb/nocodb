@@ -24502,10 +24502,6 @@
             "type": "string",
             "description": "Title of the MCP Token"
           },
-          "expires_at": {
-            "type": "string",
-            "description": ""
-          },
           "order": {
             "type": "number",
             "description": "Order of the Script"

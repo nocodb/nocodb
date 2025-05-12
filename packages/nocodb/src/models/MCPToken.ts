@@ -1,6 +1,5 @@
 import { NcError } from 'src/helpers/catchError';
 import { nanoid } from 'nanoid';
-import dayjs from 'dayjs';
 import type { MCPTokenType, NcContext } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -16,7 +15,6 @@ import { prepareForDb } from '~/utils/modelUtils';
 export default class MCPToken implements MCPTokenType {
   id: string;
   title: string;
-  expires_at: string;
   order: number;
   fk_workspace_id: string;
   base_id: string;
@@ -37,11 +35,7 @@ export default class MCPToken implements MCPTokenType {
   ) {
     const mcpToken = await this.get(context, id, ncMeta);
 
-    if (
-      !mcpToken ||
-      token !== mcpToken.token ||
-      dayjs(mcpToken.expires_at).isBefore(dayjs())
-    ) {
+    if (!mcpToken || token !== mcpToken.token) {
       NcError.notFound('MCP Token not found');
     }
 
@@ -118,7 +112,6 @@ export default class MCPToken implements MCPTokenType {
   ) {
     const insertObj = extractProps(mcpToken, [
       'title',
-      'expires_at',
       'base_id',
       'fk_user_id',
       'fk_workspace_id',
@@ -167,10 +160,7 @@ export default class MCPToken implements MCPTokenType {
     const key = `${CacheScope.MCP_TOKEN}:${mcpTokenId}`;
     await NocoCache.update(key, updateObj);
 
-    const updatedObj = await this.get(context, mcpTokenId, ncMeta);
-    delete updatedObj.token;
-
-    return updatedObj;
+    return await this.get(context, mcpTokenId, ncMeta);
   }
 
   public static async delete(

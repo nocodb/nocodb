@@ -40,6 +40,7 @@ const {
   addNewMcpToken,
   isCreatingMcpToken,
   newMcpTokenTitle,
+  updateMcpToken,
 } = useMcpSettings()
 
 const sortedMcpTokens = computed(() => handleGetSortedData(mcpTokens.value, sorts.value))
@@ -55,12 +56,12 @@ const columns = [
     dataIndex: 'title',
   },
   {
-    key: 'expires',
-    title: t('labels.expiresAt'),
+    key: 'created_at',
+    title: t('labels.createdOn'),
     width: 150,
-    minWidth: 150,
+    minWidth: 180,
     showOrderBy: true,
-    dataIndex: 'expires_at',
+    dataIndex: 'created_at',
   },
   {
     key: 'action',
@@ -72,25 +73,40 @@ const columns = [
   },
 ] as NcTableColumnProps[]
 
-const newTokenExpiryDate = ref<any>(null)
-
-const disabledDate = (current: any) => {
-  return current && current < dayjs().startOf('day')
-}
-
 onMounted(async () => {
   loadSorts()
   await listMcpTokens()
 })
 
+const isTokenModalVisible = ref(false)
+
+const activeToken = ref<MCPTokenExtendedType | null>(null)
+
+const handleOpenTokenModal = (token: MCPTokenExtendedType) => {
+  activeToken.value = token
+  isTokenModalVisible.value = true
+}
+
 const createTokenWithExpiry = async (token: Partial<MCPTokenExtendedType>) => {
-  if (newTokenExpiryDate.value) {
-    token.expires_at = dayjs(newTokenExpiryDate.value).format('YYYY-MM-DD')
+  const res = await createMcpToken(token)
+
+  if (res) {
+    handleOpenTokenModal(res)
   }
+}
 
-  await createMcpToken(token)
+const regenerateToken = async (token: MCPTokenExtendedType) => {
+  const newToken = await updateMcpToken(token)
 
-  newTokenExpiryDate.value = null
+  if (newToken) {
+    handleOpenTokenModal(newToken)
+  }
+}
+
+const closeModal = async () => {
+  activeToken.value = null
+  isTokenModalVisible.value = false
+  await listMcpTokens()
 }
 
 const confirmDeleteToken = (token: MCPTokenExtendedType) => {
@@ -110,11 +126,6 @@ const confirmDeleteToken = (token: MCPTokenExtendedType) => {
     isOpen.value = false
     close(1000)
   }
-}
-
-const copyToken = async (token: MCPTokenExtendedType) => {
-  await copy(`${appInfo.value.ncSiteUrl}/mcp/${token.id}`)
-  message.success(t('msg.success.mcpUrlCopied'))
 }
 </script>
 
@@ -172,7 +183,11 @@ const copyToken = async (token: MCPTokenExtendedType) => {
     >
       <template #bodyCell="{ column, record: token }">
         <template v-if="column.key === 'name'">
-          <NcTooltip v-if="!token.isNew" class="truncate text-gray-800 font-semibold text-sm">
+          <NcTooltip
+            v-if="!token.isNew"
+            class="truncate text-gray-800 font-semibold text-sm"
+            @click="handleOpenTokenModal(token)"
+          >
             {{ token.title }}
 
             <template #title>
@@ -193,46 +208,32 @@ const copyToken = async (token: MCPTokenExtendedType) => {
           <a-input v-else v-model:value="newMcpTokenTitle" class="new-token-title" placeholder="Token name" />
         </template>
 
-        <template v-if="column.key === 'expires'">
-          <div v-if="!token.isNew && token.expires_at" class="text-nc-content-gray-subtle">
-            {{ dayjs(token.expires_at).format('D MMM YYYY') }}
+        <template v-if="column.key === 'created_at'">
+          <div v-if="!token.isNew && token.created_at" class="text-nc-content-gray-subtle" @click="handleOpenTokenModal(token)">
+            {{ dayjs(token.created_at).format('D MMM YYYY') }}
           </div>
-          <div v-else-if="!token.isNew" class="text-nc-content-gray-subtle">
-            {{ $t('labels.never') }}
-          </div>
-          <a-date-picker v-else v-model:value="newTokenExpiryDate" :disabled-date="disabledDate" format="YYYY-MM-DD" />
         </template>
 
         <template v-if="column.key === 'action'">
-          <div
-            v-if="!token?.isNew"
-            :data-testid="`token-${token.title}`"
-            class="flex row-action items-center shadow-nc-sm rounded-lg"
-          >
-            <NcButton
-              size="small"
-              data-testid="copy-token-btn"
-              type="secondary"
-              class="!text-sm !rounded-r-none !border-r-0"
-              :shadow="false"
-              @click="copyToken(token)"
-            >
-              <div class="text-nc-content-gray-subtle font-semibold">
-                {{ $t('general.copy') }}
-              </div>
+          <NcDropdown v-if="!token.isNew">
+            <NcButton type="secondary" size="small">
+              <GeneralIcon icon="threeDotVertical" />
             </NcButton>
-            <NcButton
-              size="small"
-              type="secondary"
-              data-testid="delete-token-btn"
-              class="!text-xs !rounded-l-none"
-              :shadow="false"
-              @click="confirmDeleteToken(token)"
-            >
-              <GeneralIcon icon="delete" />
-            </NcButton>
-          </div>
 
+            <template #overlay>
+              <NcMenu variant="small">
+                <NcMenuItem @click="regenerateToken(token)">
+                  <GeneralIcon icon="refresh" />
+                  {{ $t('labels.regenerateToken') }}
+                </NcMenuItem>
+                <NcDivider />
+                <NcMenuItem class="!text-nc-content-red-dark !hover:bg-nc-bg-red-light" @click="confirmDeleteToken(token)">
+                  <GeneralIcon icon="ncTrash2" />
+                  {{ $t('labels.deleteToken') }}
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
           <div v-else>
             <div class="flex gap-2">
               <NcButton data-testid="cancel-token-btn" type="secondary" size="small" @click="cancelNewMcpToken()">
@@ -247,6 +248,13 @@ const copyToken = async (token: MCPTokenExtendedType) => {
         </template>
       </template>
     </NcTable>
+
+    <DashboardSettingsBaseMCPModal
+      v-if="isTokenModalVisible"
+      v-model:visible="isTokenModalVisible"
+      v-model:token="activeToken"
+      @close="closeModal"
+    />
   </div>
 </template>
 

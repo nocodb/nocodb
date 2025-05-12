@@ -806,6 +806,21 @@
     "reactivateToPlan": "Réactiver le plan {plan}?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Restauration de l'instantané",
     "note": "Remarque :",
     "snapshotRestoreMessage1": "La restauration de cet instantané n'affectera pas la base existante.",
@@ -1207,8 +1222,8 @@
     "agreeToTos": "En continuant, vous acceptez les Conditions d'Utilisation",
     "welcomeToNc": "Bienvenue sur NocoDB !",
     "inviteOnlySignup": "Autoriser l'inscription en utilisant uniquement l'url d'invitation",
-    "nextRow": "Rang suivant",
-    "prevRow": "Rang précédent",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Ajouter manuellement des données dans la vue Grille",
     "addRowForm": "Entrez les données de l'enregistrement via un formulaire",
     "noAccess": "Accès interdit",
@@ -2060,6 +2075,7 @@
       "copyToClipboardLocalFileUrl": "Le navigateur ne permet pas de charger directement une ressource locale. L'URL est copiée dans le presse-papiers."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "Les déclencheurs manuels ne peuvent pas être désactivés",
       "errorLoadingRecord": "Erreur lors du chargement des données de l'enregistrement",
       "fetchingCalendarData": "Erreur lors de la récupération des données du calendrier",
@@ -2193,6 +2209,9 @@
       "nCellsCopied": "{n} cellules copiées"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "Clé de licence mise à jour",
       "columnDuplicated": "Colonne dupliquée avec succès",
       "rowDuplicatedWithoutSavedYet": "Enregistrement en double (non enregistré)",
@@ -2237,7 +2256,8 @@
       "paymentSuccessful": "Paiement réussi",
       "paymentSuccessfulSubtitle": "Votre paiement a été traité. Vous pouvez maintenant utiliser votre nouveau plan.",
       "upgradeSuccessful": "Mise à niveau réussie",
-      "upgradeSuccessfulSubtitle": "Votre paiement pour la mise à niveau a été traité. Vous pouvez maintenant utiliser votre nouveau plan."
+      "upgradeSuccessfulSubtitle": "Votre paiement pour la mise à niveau a été traité. Vous pouvez maintenant utiliser votre nouveau plan.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Commencer à partir de zéro.",

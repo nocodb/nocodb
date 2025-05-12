@@ -1,4 +1,5 @@
 import { NcError } from 'src/helpers/catchError';
+import { nanoid } from 'nanoid';
 import type { MCPTokenType, NcContext } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -21,6 +22,7 @@ export default class MCPToken implements MCPTokenType {
   fk_user_id: string;
   updated_at: string;
   created_at: string;
+  token: string;
 
   constructor(mcpToken: MCPToken | MCPTokenType) {
     Object.assign(this, mcpToken);
@@ -84,7 +86,10 @@ export default class MCPToken implements MCPTokenType {
       );
     }
 
-    return mcpTokenList.map((mcpToken) => new MCPToken(mcpToken));
+    return mcpTokenList.map((mcpToken) => {
+      delete mcpToken.token;
+      return new MCPToken(mcpToken);
+    });
   }
 
   public static async insert(
@@ -99,6 +104,8 @@ export default class MCPToken implements MCPTokenType {
       'fk_user_id',
       'fk_workspace_id',
     ]);
+
+    insertObj.token = nanoid(32);
 
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.MCP_TOKENS, {
       base_id: context.base_id,
@@ -141,7 +148,10 @@ export default class MCPToken implements MCPTokenType {
     const key = `${CacheScope.MCP_TOKEN}:${mcpTokenId}`;
     await NocoCache.update(key, updateObj);
 
-    return this.get(context, mcpTokenId, ncMeta);
+    const updatedObj = await this.get(context, mcpTokenId, ncMeta);
+    delete updatedObj.token;
+
+    return updatedObj;
   }
 
   public static async delete(

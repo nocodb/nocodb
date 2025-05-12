@@ -9,6 +9,8 @@ const up = async (knex: Knex) => {
     table.string('base_id', 20);
     table.string('expires_at');
 
+    table.string('token', 32);
+
     table.string('fk_workspace_id', 20);
     table.float('order');
 

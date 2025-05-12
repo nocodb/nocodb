@@ -25,9 +25,10 @@ const { isUIAllowed } = useRoles()
 
 const isProjectPageOpen = computed(() => {
   return (
-    route.value.name?.startsWith('index-typeOrId-baseId-') ||
-    route.value.name === 'index' ||
-    route.value.name === 'index-typeOrId'
+    (route.value.name?.startsWith('index-typeOrId-baseId-') ||
+      route.value.name === 'index' ||
+      route.value.name === 'index-typeOrId') &&
+    showProjectList.value
   )
 })
 
@@ -74,11 +75,11 @@ const navigateToIntegrations = () => {
         class="nc-mini-sidebar-btn"
         data-testid="nc-sidebar-project-btn"
         :class="{
-          active: showProjectList,
+          active: isProjectPageOpen,
         }"
         @click="navigateToProjectPage"
       >
-        <GeneralIcon :icon="showProjectList ? 'ncBaseOutlineDuo' : 'ncBaseOutline'" class="h-4 w-4" />
+        <GeneralIcon :icon="isProjectPageOpen ? 'ncBaseOutlineDuo' : 'ncBaseOutline'" class="h-4 w-4" />
       </div>
       <div
         v-e="['c:quick-actions']"

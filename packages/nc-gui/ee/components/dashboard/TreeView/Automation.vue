@@ -167,20 +167,11 @@ watch(activeAutomationId, () => {
     >
       <div>Automations</div>
       <div class="flex-1" />
-      <div class="flex items-center">
-        <NcButton
-          type="text"
-          size="xxsmall"
-          class="nc-sidebar-node-btn nc-sidebar-expand !opacity-100 !xs:opacity-100"
-          @click.stop="onExpand"
-        >
-          <GeneralIcon
-            icon="chevronRight"
-            class="flex-none nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 text-[20px]"
-            :class="{ '!rotate-90': isExpanded, 'text-nc-content-gray-muted': isNewSidebarEnabled }"
-          />
-        </NcButton>
-      </div>
+      <GeneralIcon
+        icon="chevronRight"
+        class="flex-none nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 text-[20px]"
+        :class="{ '!rotate-90': isExpanded, 'text-nc-content-gray-muted': isNewSidebarEnabled }"
+      />
     </div>
     <DashboardTreeViewAutomationList v-if="isExpanded" :base-id="baseId!" />
   </div>

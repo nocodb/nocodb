@@ -626,6 +626,7 @@ async function openNewScriptModal() {
   }
 }
 
+const isVisibleCreateNew = ref(false)
 /**
  * Show create new dropdown only if their is more than one entity enabled (table, scripts, dashboard)
  */
@@ -663,7 +664,7 @@ const showCreateNewAsDropdown = computed(() => {
             }"
           >
             <GeneralIcon icon="home1" class="!h-4 w-4" />
-            <div>Home</div>
+            <div>Overview</div>
           </div>
         </NcButton>
       </div>
@@ -672,30 +673,32 @@ const showCreateNewAsDropdown = computed(() => {
       v-if="isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source: base?.sources?.[0] })"
       class="nc-project-home-section"
     >
-      <NcDropdown v-if="showCreateNewAsDropdown" overlay-class-name="!w-[182px] !min-w-[182px]">
-        <template #default="{ visible }">
-          <NcButton
-            type="text"
-            size="small"
-            class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden !px-3"
-            :class="visible ? 'active' : ''"
-          >
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="plus" />
+      <NcDropdown
+        v-if="showCreateNewAsDropdown"
+        v-model:visible="isVisibleCreateNew"
+        overlay-class-name="!w-[182px] !min-w-[182px]"
+      >
+        <NcButton
+          type="text"
+          size="small"
+          class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden !px-3"
+          :class="isVisibleCreateNew ? 'active' : ''"
+        >
+          <div class="flex items-center gap-2">
+            <GeneralIcon icon="plus" />
 
-              <div>{{ $t('labels.createNew') }}</div>
-              <GeneralIcon icon="chevronDown" />
-            </div>
-          </NcButton>
-        </template>
+            <div>{{ $t('labels.createNew') }}</div>
+            <GeneralIcon icon="chevronDown" />
+          </div>
+        </NcButton>
 
         <template #overlay>
-          <NcMenu variant="medium">
-            <NcMenuItem @click.stop="addNewProjectChildEntity">
+          <NcMenu variant="medium" @click.stop="isVisibleCreateNew = false">
+            <NcMenuItem @click="addNewProjectChildEntity">
               <GeneralIcon icon="table" />
               New Table
             </NcMenuItem>
-            <NcMenuItem v-if="isAutomationEnabled" @click.stop="openNewScriptModal">
+            <NcMenuItem v-if="isAutomationEnabled" @click="openNewScriptModal">
               <GeneralIcon icon="ncScript" />
               New Script
             </NcMenuItem>
@@ -725,13 +728,12 @@ const showCreateNewAsDropdown = computed(() => {
       <div class="nc-project-home-section">
         <div class="nc-project-home-section-header !cursor-pointer" @click.stop="isExpanded = !isExpanded">
           <div class="flex-1">Tables</div>
-          <NcButton type="text" size="xxsmall" class="nc-sidebar-node-btn nc-sidebar-expand !opacity-100 !xs:opacity-100">
-            <GeneralIcon
-              icon="chevronRight"
-              class="flex-none nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 text-[20px] text-nc-content-gray-muted"
-              :class="{ '!rotate-90': isExpanded }"
-            />
-          </NcButton>
+
+          <GeneralIcon
+            icon="chevronRight"
+            class="flex-none nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 text-[20px] text-nc-content-gray-muted"
+            :class="{ '!rotate-90': isExpanded }"
+          />
         </div>
         <div key="g1" class="overflow-x-hidden transition-max-height" :class="{ 'max-h-0': !isExpanded }">
           <div v-if="base.type === 'documentation'">

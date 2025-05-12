@@ -368,114 +368,172 @@ const onMove = async (
 
   $e('a:base:reorder')
 }
+
+const transitionName = ref(showProjectList.value ? 'slide-left' : 'slide-right')
+
+watch(showProjectList, (newValue) => {
+  transitionName.value = newValue ? 'slide-left' : 'slide-right'
+})
 </script>
 
 <template>
-  <div v-if="showProjectList" class="nc-treeview-container nc-treeview-base-list">
-    <div>
-      <DashboardSidebarHeaderWrapper></DashboardSidebarHeaderWrapper>
-      <div class="px-2 h-11 flex items-center">
-        <a-input
-          :ref="(el) => el?.focus?.()"
-          v-model:value="searchQuery"
-          type="text"
-          class="nc-input-border-on-value nc-input-shadow !h-8 !px-2.5 !py-1 !rounded-lg"
-          :placeholder="`${$t('activity.searchProject').charAt(0).toUpperCase()}${$t('activity.searchProject')
-            .slice(1)
-            .toLowerCase()}`"
-          allow-clear
-          @keydown.stop
-        >
-          <template #prefix>
-            <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-gray-500 group-hover:text-black" />
-          </template>
-        </a-input>
-      </div>
-
-      <div class="nc-project-home-section">
-        <WorkspaceCreateProjectBtn
-          v-model:is-open="isCreateProjectOpen"
-          modal
-          type="text"
-          class="nc-sidebar-create-base-btn nc-project-home-section-item !text-brand-500 !hover:(text-brand-600 bg-none) !xs:hidden w-full"
-          data-testid="nc-sidebar-create-base-btn"
-        >
-          <div class="flex items-center gap-2">
-            <GeneralIcon icon="plus" />
-
-            <div class="flex">{{ $t('title.createBase') }}</div>
-          </div>
-        </WorkspaceCreateProjectBtn>
-      </div>
-    </div>
-
-    <div class="nc-treeview flex-1 relative overflow-auto nc-scrollbar-thin">
-      <div v-if="starredProjectList?.length" class="nc-project-home-section">
-        <div v-if="!isSharedBase" class="nc-project-home-section-header">Starred</div>
+  <div class="relative w-full h-full overflow-hidden flex items-stretch">
+    <Transition :name="transitionName" mode="out-in" appear>
+      <div v-if="showProjectList" key="project-list" class="nc-treeview-container nc-treeview-base-list">
         <div>
-          <Draggable
-            :model-value="starredProjectList"
-            :disabled="isMobileMode || !isUIAllowed('baseReorder') || starredProjectList?.length < 2"
-            item-key="starred-project"
-            handle=".base-title-node"
-            ghost-class="ghost"
-            :filter="isTouchEvent"
-            @change="onMove($event, starredProjectList)"
-          >
-            <template #item="{ element: baseItem }">
-              <div :key="baseItem.id">
-                <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
-                  <DashboardTreeViewProjectNode />
-                </ProjectWrapper>
+          <DashboardSidebarHeaderWrapper></DashboardSidebarHeaderWrapper>
+          <div class="px-2 h-11 flex items-center">
+            <a-input
+              :ref="(el) => el?.focus?.()"
+              v-model:value="searchQuery"
+              type="text"
+              class="nc-input-border-on-value nc-input-shadow !h-8 !px-2.5 !py-1 !rounded-lg"
+              :placeholder="`${$t('activity.searchProject').charAt(0).toUpperCase()}${$t('activity.searchProject')
+                .slice(1)
+                .toLowerCase()}`"
+              allow-clear
+              @keydown.stop
+            >
+              <template #prefix>
+                <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-gray-500 group-hover:text-black" />
+              </template>
+            </a-input>
+          </div>
+
+          <div class="nc-project-home-section">
+            <WorkspaceCreateProjectBtn
+              v-model:is-open="isCreateProjectOpen"
+              modal
+              type="text"
+              class="nc-sidebar-create-base-btn nc-project-home-section-item !text-brand-500 !hover:(text-brand-600 bg-none) !xs:hidden w-full"
+              data-testid="nc-sidebar-create-base-btn"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="plus" />
+
+                <div class="flex">{{ $t('title.createBase') }}</div>
               </div>
-            </template>
-          </Draggable>
-        </div>
-      </div>
-      <div class="nc-project-home-section">
-        <div v-if="!isSharedBase" class="nc-project-home-section-header">
-          {{ $t('objects.projects') }}
-        </div>
-        <div v-if="nonStarredProjectList?.length">
-          <Draggable
-            v-model="nonStarredProjectList"
-            :disabled="isMobileMode || !isUIAllowed('baseReorder') || nonStarredProjectList?.length < 2"
-            item-key="non-starred-project"
-            handle=".base-title-node"
-            ghost-class="ghost"
-            :filter="isTouchEvent"
-            @change="onMove($event, nonStarredProjectList)"
-          >
-            <template #item="{ element: baseItem }">
-              <div :key="baseItem.id">
-                <ProjectWrapper :base-role="baseItem.project_role || stringifyRolesObj(workspaceRoles)" :base="baseItem">
-                  <DashboardTreeViewProjectNode />
-                </ProjectWrapper>
-              </div>
-            </template>
-          </Draggable>
+            </WorkspaceCreateProjectBtn>
+          </div>
         </div>
 
-        <WorkspaceEmptyPlaceholder v-else-if="!basesList.length && !isWorkspaceLoading" />
-      </div>
+        <div class="nc-treeview flex-1 relative overflow-auto nc-scrollbar-thin">
+          <div v-if="starredProjectList?.length" class="nc-project-home-section">
+            <div v-if="!isSharedBase" class="nc-project-home-section-header">Starred</div>
+            <div>
+              <Draggable
+                :model-value="starredProjectList"
+                :disabled="isMobileMode || !isUIAllowed('baseReorder') || starredProjectList?.length < 2"
+                item-key="starred-project"
+                handle=".base-title-node"
+                ghost-class="ghost"
+                :filter="isTouchEvent"
+                @change="onMove($event, starredProjectList)"
+              >
+                <template #item="{ element: baseItem }">
+                  <div :key="baseItem.id">
+                    <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
+                      <DashboardTreeViewProjectNode />
+                    </ProjectWrapper>
+                  </div>
+                </template>
+              </Draggable>
+            </div>
+          </div>
+          <div class="nc-project-home-section">
+            <div v-if="!isSharedBase" class="nc-project-home-section-header">
+              {{ $t('objects.projects') }}
+            </div>
+            <div v-if="nonStarredProjectList?.length">
+              <Draggable
+                v-model="nonStarredProjectList"
+                :disabled="isMobileMode || !isUIAllowed('baseReorder') || nonStarredProjectList?.length < 2"
+                item-key="non-starred-project"
+                handle=".base-title-node"
+                ghost-class="ghost"
+                :filter="isTouchEvent"
+                @change="onMove($event, nonStarredProjectList)"
+              >
+                <template #item="{ element: baseItem }">
+                  <div :key="baseItem.id">
+                    <ProjectWrapper :base-role="baseItem.project_role || stringifyRolesObj(workspaceRoles)" :base="baseItem">
+                      <DashboardTreeViewProjectNode />
+                    </ProjectWrapper>
+                  </div>
+                </template>
+              </Draggable>
+            </div>
 
-      <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
-      <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
-    </div>
-    <slot name="footer"> </slot>
+            <WorkspaceEmptyPlaceholder v-else-if="!basesList.length && !isWorkspaceLoading" />
+          </div>
+
+          <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
+          <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
+        </div>
+        <slot name="footer"> </slot>
+      </div>
+    </Transition>
+    <!-- Slide in Project Home -->
+    <Transition :name="transitionName" mode="out-in" appear>
+      <div
+        v-if="activeProjectId && openedBase?.id && !showProjectList"
+        key="project-home"
+        class="!w-full h-full flex-none flex flex-col"
+      >
+        <ProjectWrapper :base-role="openedBase?.project_role || stringifyRolesObj(workspaceRoles)" :base="openedBase">
+          <DashboardTreeViewProjectHome>
+            <template #footer>
+              <slot name="footer"></slot>
+            </template>
+          </DashboardTreeViewProjectHome>
+        </ProjectWrapper>
+      </div>
+    </Transition>
   </div>
-  <template v-else-if="activeProjectId && openedBase?.id && !showProjectList">
-    <ProjectWrapper :base-role="openedBase?.project_role || stringifyRolesObj(workspaceRoles)" :base="openedBase">
-      <DashboardTreeViewProjectHome>
-        <template #footer>
-          <slot name="footer"></slot>
-        </template>
-      </DashboardTreeViewProjectHome>
-    </ProjectWrapper>
-  </template>
 </template>
 
 <style scoped lang="scss">
+.slide-left-enter-active,
+.slide-left-leave-active,
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+.slide-left-enter-from {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+.slide-left-enter-to {
+  transform: translateX(0);
+  opacity: 1;
+}
+.slide-left-leave-from {
+  transform: translateX(0);
+  opacity: 1;
+}
+.slide-left-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.slide-right-enter-from {
+  transform: translateX(100%);
+  opacity: 0;
+}
+.slide-right-enter-to {
+  transform: translateX(0);
+  opacity: 1;
+}
+.slide-right-leave-from {
+  transform: translateX(0);
+  opacity: 1;
+}
+.slide-right-leave-to {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
 .nc-treeview-subheading {
   @apply flex flex-row w-full justify-between items-center mb-1.5 pl-3.5 pr-0.5;
 }

@@ -9,6 +9,10 @@ const router = useRouter()
 
 const activeMenu = ref(isEeUI && hasPermissionForSnapshots.value ? 'snapshots' : 'visibility')
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const isMCPEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.MODEL_CONTEXT_PROTOCOL))
+
 const selectMenu = (option: string) => {
   if (!hasPermissionForSnapshots.value && option === 'snapshots') {
     return
@@ -24,7 +28,7 @@ const selectMenu = (option: string) => {
 
 onMounted(() => {
   const query = router.currentRoute.value.query
-  if (query && query.tab && ['snapshots', 'visibility'].includes(query.tab as string)) {
+  if (query && query.tab && ['snapshots', 'visibility', 'mcp'].includes(query.tab as string)) {
     selectMenu(query.tab as string)
   }
 })
@@ -65,6 +69,7 @@ onMounted(() => {
           </span>
         </div>
         <div
+          v-if="isMCPEnabled"
           :class="{
             'active-menu': activeMenu === 'mcp',
           }"

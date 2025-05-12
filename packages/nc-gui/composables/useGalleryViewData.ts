@@ -35,7 +35,9 @@ export function useGalleryViewData(
   } = useInfiniteData({
     meta,
     viewMeta,
-    callbacks: {},
+    callbacks: {
+      getWhereFilter: async () => where?.value ?? '',
+    },
     where,
     isPublic,
   })

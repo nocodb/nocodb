@@ -64,6 +64,7 @@ export enum MetaTable {
   SCRIPTS = 'nc_scripts',
   SYNC_CONFIGS = 'nc_sync_configs',
   USAGE_STATS = 'nc_usage_stats',
+  MCP_TOKENS = 'nc_mcp_tokens',
 }
 
 export enum MetaTableOldV2 {
@@ -206,6 +207,7 @@ export enum CacheScope {
   RESOURCE_STATS = 'resourceStats',
   STORAGE_STATS = 'storageStats',
   CLOUD_FEATURES = 'cloudFeatures',
+  MCP_TOKEN = 'mcpToken',
 }
 
 export enum CacheGetType {

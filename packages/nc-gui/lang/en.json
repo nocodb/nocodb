@@ -806,6 +806,8 @@
     "reactivateToPlan": "Reactivate {plan} plan?"
   },
   "labels": {
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
     "mcpToken": "MCP Token",
     "never": "Never",
     "expiresAt": "Expires At",

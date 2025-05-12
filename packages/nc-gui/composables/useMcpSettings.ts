@@ -170,7 +170,7 @@ export const useMcpSettings = createSharedComposable(() => {
   }
 
   const addNewMcpToken = () => {
-    newMcpTokenTitle.value = `MCP - ${user.value?.display_name} - ${dayjs().format('D MMMM YYYY, h:mm A')}`
+    newMcpTokenTitle.value = `MCP - ${user.value?.display_name ?? user.value?.email?.split('@')?.[0]} - ${dayjs().format('D MMMM YYYY, h:mm A')}`
     mcpTokens.value = [
       {
         title: newMcpTokenTitle.value,

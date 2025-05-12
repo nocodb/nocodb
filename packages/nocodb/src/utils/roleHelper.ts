@@ -1,6 +1,6 @@
 import { OrderedProjectRoles } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
-import { ProjectRoles } from 'nocodb-sdk';
+import type { ProjectRoles } from 'nocodb-sdk';
 
 export function getProjectRolePower(user: any) {
   const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
@@ -48,9 +48,9 @@ export function getProjectRole(user) {
   return role;
 }
 
-export function hasEditorOrHigherRole(user: any): boolean {
+export function hasMinimumRole(user: any, minimumRole: ProjectRoles): boolean {
   const power = getProjectRolePower(user);
   const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
-  const editorIndex = reverseOrderedProjectRoles.indexOf(ProjectRoles.EDITOR);
-  return power >= editorIndex;
+  const minimumRoleIndex = reverseOrderedProjectRoles.indexOf(minimumRole);
+  return power >= minimumRoleIndex;
 }

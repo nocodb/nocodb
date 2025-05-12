@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { extractRolesObj, NcApiVersion } from 'nocodb-sdk';
+import { extractRolesObj, NcApiVersion, ProjectRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest, UserType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
 import { getPathFromUrl } from '~/helpers/attachmentHelpers';
@@ -11,7 +11,7 @@ import { BasesV3Service } from '~/services/v3/bases-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { DataTableService } from '~/services/data-table.service';
-import { hasEditorOrHigherRole } from '~/utils/roleHelper';
+import { hasMinimumRole } from '~/utils/roleHelper';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { serialize } from '~/helpers/serialize';
 
@@ -63,7 +63,7 @@ export class McpService {
     server: McpServer;
     req: NcRequest;
   }) {
-    const isEditorPlus = hasEditorOrHigherRole(user);
+    const isEditorPlus = hasMinimumRole(user, ProjectRoles.EDITOR);
 
     // Base Details
     server.tool(

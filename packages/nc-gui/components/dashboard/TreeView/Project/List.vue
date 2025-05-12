@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { type ScriptType, type TableType, type ViewType, stringifyRolesObj } from 'nocodb-sdk'
+import type { TableType, ViewType } from 'nocodb-sdk'
 import ProjectWrapper from '../ProjectWrapper.vue'
 
 const { isUIAllowed } = useRoles()
@@ -11,21 +11,25 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { isWorkspaceLoading } = storeToRefs(useWorkspace())
-
 const basesStore = useBases()
 
 const { createProject: _createProject, updateProject } = basesStore
 
-const { bases, basesList, activeProjectId } = storeToRefs(basesStore)
+const { bases, basesList, activeProjectId, showProjectList } = storeToRefs(basesStore)
+
+const { isWorkspaceLoading, activeWorkspaceId } = storeToRefs(useWorkspace())
+
+const baseCreateDlg = ref(false)
+
+const searchQuery = ref('')
+
+const searchInputRef = ref()
 
 const baseStore = useBase()
 
 const { loadTables } = baseStore
 
 const { isSharedBase, base } = storeToRefs(baseStore)
-
-const { workspaceRoles } = useRoles()
 
 const { updateTab } = useTabs()
 
@@ -45,16 +49,9 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineProjectScope } = useUndoRedo()
 
-const baseType = ref(NcProjectType.DB)
-const baseCreateDlg = ref(false)
-const dashboardProjectCreateDlg = ref(false)
+const contextMenuTarget = reactive<{ type?: 'base' | 'source' | 'table' | 'main' | 'layout'; value?: any }>({})
 
-const starredProjectList = computed(() => basesList.value.filter((base) => base.starred))
-const nonStarredProjectList = computed(() => basesList.value.filter((base) => !base.starred))
-
-const contextMenuTarget = reactive<{ type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
-
-const setMenuContext = (type: 'base' | 'base' | 'table' | 'main' | 'layout', value?: any) => {
+const setMenuContext = (type: 'base' | 'source' | 'table' | 'main' | 'layout', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
 }
@@ -79,16 +76,16 @@ function openViewDescriptionDialog(view: ViewType) {
   }
 }
 
-function openAutomationDescriptionDialog(script: ScriptType) {
-  if (!script?.id) return
+function openTableDescriptionDialog(table: TableType) {
+  if (!table || !table.id) return
 
-  $e('c:script:description')
+  $e('c:table:description')
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(resolveComponent('DlgAutomationDescriptionUpdate'), {
+  const { close } = useDialog(resolveComponent('DlgTableDescriptionUpdate'), {
     'modelValue': isOpen,
-    'script': script,
+    'tableMeta': table,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -198,26 +195,6 @@ function openTableCreateDialog(sourceId?: string, baseId?: string) {
   }
 }
 
-function openTableDescriptionDialog(table: TableType) {
-  if (!table || !table.id) return
-
-  $e('c:table:description')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgTableDescriptionUpdate'), {
-    'modelValue': isOpen,
-    'tableMeta': table,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
 const duplicateTable = async (table: TableType) => {
   if (!table || !table.id || !table.base_id) return
 
@@ -240,8 +217,8 @@ const duplicateTable = async (table: TableType) => {
 
 const isCreateTableAllowed = computed(
   () =>
-    base.value.sources?.[0] &&
-    isUIAllowed('tableCreate', { source: base.value.sources?.[0] }) &&
+    base.value?.sources?.[0] &&
+    isUIAllowed('tableCreate', { source: base.value?.sources?.[0] }) &&
     route.value.name !== 'index' &&
     route.value.name !== 'index-index' &&
     route.value.name !== 'index-index-create' &&
@@ -287,23 +264,15 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       // ALT + D
       case 68: {
         e.stopPropagation()
-        baseType.value = NcProjectType.DB
         baseCreateDlg.value = true
         break
       }
-      // // ALT + B
-      // case 66: {
-      //   e.stopPropagation()
-      //   baseType.value = NcProjectType.DOCS
-      //   baseCreateDlg.value = true
-      //   break
-      // }
     }
   }
 })
 
 const handleContext = (e: MouseEvent) => {
-  if (!document.querySelector('.base-context, .table-context')?.contains(e.target as Node)) {
+  if (!document.querySelector('.source-context, .table-context')?.contains(e.target as Node)) {
     setMenuContext('main')
   }
 }
@@ -311,20 +280,24 @@ const handleContext = (e: MouseEvent) => {
 provide(TreeViewInj, {
   setMenuContext,
   duplicateTable,
-  openViewDescriptionDialog,
-  openAutomationDescriptionDialog,
-  openTableDescriptionDialog,
   handleTableRename,
+  openViewDescriptionDialog,
+  openTableDescriptionDialog,
   contextMenuTarget,
   tableRenameId,
 })
 
 useEventListener(document, 'contextmenu', handleContext, true)
 
-const onMove = async (
-  _event: { moved: { newIndex: number; oldIndex: number; element: NcProject } },
-  currentBaseList: NcProject[],
-) => {
+const scrollTableNode = () => {
+  const activeTableDom = document.querySelector(`.nc-treeview [data-table-id="${_activeTable.value?.id}"]`)
+  if (!activeTableDom) return
+
+  // Scroll to the table node
+  activeTableDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+}
+
+const onMove = async (_event: { moved: { newIndex: number; oldIndex: number; element: NcProject } }) => {
   const {
     moved: { newIndex = 0, oldIndex = 0, element },
   } = _event
@@ -334,16 +307,16 @@ const onMove = async (
   let nextOrder: number
 
   // set new order value based on the new order of the items
-  if (currentBaseList.length - 1 === newIndex) {
+  if (basesList.value.length - 1 === newIndex) {
     // If moving to the end, set nextOrder greater than the maximum order in the list
-    nextOrder = Math.max(...currentBaseList.map((item) => item?.order ?? 0)) + 1
+    nextOrder = Math.max(...basesList.value.map((item) => item?.order ?? 0)) + 1
   } else if (newIndex === 0) {
     // If moving to the beginning, set nextOrder smaller than the minimum order in the list
-    nextOrder = Math.min(...currentBaseList.map((item) => item?.order ?? 0)) / 2
+    nextOrder = Math.min(...basesList.value.map((item) => item?.order ?? 0)) / 2
   } else {
     nextOrder =
-      (parseFloat(String(currentBaseList[newIndex - 1]?.order ?? 0)) +
-        parseFloat(String(currentBaseList[newIndex + 1]?.order ?? 0))) /
+      (parseFloat(String(basesList.value[newIndex - 1]?.order ?? 0)) +
+        parseFloat(String(basesList.value[newIndex + 1]?.order ?? 0))) /
       2
   }
 
@@ -355,51 +328,69 @@ const onMove = async (
 
   $e('a:base:reorder')
 }
+
+watch(
+  () => _activeTable.value?.id,
+  () => {
+    if (!_activeTable.value?.id) return
+
+    // TODO: Find a better way to scroll to the table node
+    setTimeout(() => {
+      scrollTableNode()
+    }, 1000)
+  },
+  {
+    immediate: true,
+  },
+)
+
+const transitionName = ref<'slide-left' | 'slide-right' | undefined>(undefined)
+
+watch(
+  [showProjectList, activeWorkspaceId],
+  ([newShowProjectList, newWsId], [_oldShowProjectList, oldWsId]) => {
+    // If workspace changed, skip animation
+    if (oldWsId && newWsId !== oldWsId) {
+      transitionName.value = undefined // No animation
+    } else {
+      transitionName.value = newShowProjectList ? 'slide-left' : 'slide-right'
+    }
+  },
+  {
+    flush: 'pre',
+  },
+)
+
+onMounted(() => {
+  transitionName.value = showProjectList.value ? 'slide-left' : 'slide-right'
+})
+
+watch([searchInputRef, showProjectList], () => {
+  if (!searchInputRef.value || !showProjectList.value) return
+
+  nextTick(() => {
+    searchInputRef.value?.input?.focus()
+  })
+})
 </script>
 
 <template>
-  <div class="nc-treeview-container flex flex-col justify-between select-none pl-0.5">
-    <div ref="treeViewDom" mode="inline" class="nc-treeview pb-0.5 flex-grow h-full overflow-hidden h-full">
-      <template v-if="starredProjectList?.length">
-        <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
-          <div class="text-gray-500 font-medium">Starred</div>
-        </div>
-        <div>
-          <Draggable
-            :model-value="starredProjectList"
-            :disabled="isMobileMode || !isUIAllowed('baseReorder') || starredProjectList?.length < 2"
-            item-key="starred-project"
-            handle=".base-title-node"
-            ghost-class="ghost"
-            :filter="isTouchEvent"
-            @change="onMove($event, starredProjectList)"
-          >
-            <template #item="{ element: baseItem }">
-              <div :key="baseItem.id">
-                <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
-                  <DashboardTreeViewProjectNode />
-                </ProjectWrapper>
-              </div>
-            </template>
-          </Draggable>
-        </div>
-      </template>
-      <div v-if="!isSharedBase" class="nc-treeview-subheading mt-1">
-        <div class="text-gray-500 font-medium">{{ $t('objects.projects') }}</div>
-      </div>
-      <div v-if="nonStarredProjectList?.length">
+  <div class="nc-treeview-container flex flex-col justify-between select-none">
+    <div v-if="!isSharedBase" class="text-gray-500 font-medium pl-3.5 mb-1">{{ $t('objects.projects') }}</div>
+    <div mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
+      <div v-if="basesList?.length">
         <Draggable
-          v-model="nonStarredProjectList"
-          :disabled="isMobileMode || !isUIAllowed('baseReorder') || nonStarredProjectList?.length < 2"
-          item-key="non-starred-project"
+          :model-value="basesList"
+          :disabled="isMobileMode || !isUIAllowed('baseReorder') || basesList?.length < 2"
+          item-key="id"
           handle=".base-title-node"
           ghost-class="ghost"
           :filter="isTouchEvent"
-          @change="onMove($event, nonStarredProjectList)"
+          @change="onMove($event)"
         >
           <template #item="{ element: baseItem }">
             <div :key="baseItem.id">
-              <ProjectWrapper :base-role="baseItem.project_role || stringifyRolesObj(workspaceRoles)" :base="baseItem">
+              <ProjectWrapper :base-role="baseItem.project_role" :base="baseItem">
                 <DashboardTreeViewProjectNode />
               </ProjectWrapper>
             </div>
@@ -407,18 +398,13 @@ const onMove = async (
         </Draggable>
       </div>
 
-      <WorkspaceEmptyPlaceholder v-else-if="!basesList.length && !isWorkspaceLoading" />
+      <WorkspaceEmptyPlaceholder v-else-if="!isWorkspaceLoading" />
     </div>
-
-    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
-    <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
+    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
   </div>
 </template>
 
 <style scoped lang="scss">
-.nc-treeview-subheading {
-  @apply flex flex-row w-full justify-between items-center mb-1.5 pl-3.5 pr-0.5;
-}
 .ghost,
 .ghost > * {
   @apply pointer-events-none;

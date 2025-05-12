@@ -116,10 +116,10 @@ const onCopyToClipboard = async () => {
   @apply !bg-nc-bg-gray-extra-light border-1 border-nc-border-gray-medium rounded-lg flex-1;
 
   .monaco-editor {
-    @apply !border-0 !rounded-b-lg pr-3;
+    @apply !border-0 !rounded-b-lg pr-3 outline-none;
   }
   .overflow-guard {
-    @apply !border-0 !rounded-b-lg;
+    @apply !border-0 !rounded-b-lg !rounded-t-0;
   }
   .monaco-editor,
   .monaco-diff-editor,

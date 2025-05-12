@@ -101,12 +101,20 @@ function handleMouseMove(e: MouseEvent) {
   if (sidebarState.value === 'openEnd') return
 
   if (e.clientX < 4 + miniSidebarWidth.value && ['hiddenEnd', 'peekCloseEnd'].includes(sidebarState.value)) {
+    // Open sidebar
     sidebarState.value = 'peekOpenStart'
 
     setTimeout(() => {
       sidebarState.value = 'peekOpenEnd'
     }, animationDuration)
   } else if (e.clientX > sidebarWidth.value + 10 + miniSidebarWidth.value && sidebarState.value === 'peekOpenEnd') {
+    // Hide sidebar
+
+    // Don't hide sidebar if user is hovering over any sidebar context menu dropdown
+    if ((e.target as HTMLElement).closest('.nc-dropdown.active')) {
+      return
+    }
+
     sidebarState.value = 'peekCloseOpen'
 
     setTimeout(() => {

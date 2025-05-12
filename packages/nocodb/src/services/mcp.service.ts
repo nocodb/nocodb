@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { nanoid } from 'nanoid';
 import type { MCPTokenType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
@@ -24,16 +25,18 @@ export class McpTokenService {
     return await MCPToken.insert(context, payload);
   }
 
-  async update(
+  async regenerateToken(
     context: NcContext,
     tokenId: string,
-    payload: Partial<MCPTokenType>,
+    payload: Pick<MCPTokenType, 'token'>,
   ) {
     // Verify token exists
     const token = await MCPToken.get(context, tokenId);
     if (!token) {
       NcError.notFound('MCP token not found');
     }
+
+    payload.token = nanoid(32);
 
     return await MCPToken.update(context, tokenId, payload);
   }

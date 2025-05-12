@@ -1,5 +1,6 @@
 import { NcError } from 'src/helpers/catchError';
 import { nanoid } from 'nanoid';
+import dayjs from 'dayjs';
 import type { MCPTokenType, NcContext } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -26,6 +27,25 @@ export default class MCPToken implements MCPTokenType {
 
   constructor(mcpToken: MCPToken | MCPTokenType) {
     Object.assign(this, mcpToken);
+  }
+
+  public static async validateToken(
+    context: NcContext,
+    token: string,
+    id: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const mcpToken = await this.get(context, id, ncMeta);
+
+    if (
+      !mcpToken ||
+      token !== mcpToken.token ||
+      dayjs(mcpToken.expires_at).isBefore(dayjs())
+    ) {
+      NcError.notFound('MCP Token not found');
+    }
+
+    return mcpToken;
   }
 
   public static async get(
@@ -135,7 +155,7 @@ export default class MCPToken implements MCPTokenType {
     mcpToken: Partial<MCPTokenType>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(mcpToken, ['title', 'expires_at']);
+    const updateObj = extractProps(mcpToken, ['token']);
 
     await ncMeta.metaUpdate(
       context.workspace_id,

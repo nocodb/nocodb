@@ -83,7 +83,11 @@ export class InternalController {
       case 'mcpCreate':
         return await this.mcpService.create(context, payload, req);
       case 'mcpUpdate':
-        return await this.mcpService.update(context, payload.tokenId, payload);
+        return await this.mcpService.regenerateToken(
+          context,
+          payload.tokenId,
+          payload,
+        );
       case 'mcpDelete':
         return await this.mcpService.delete(context, payload.tokenId);
       default:

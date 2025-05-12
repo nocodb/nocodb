@@ -25,7 +25,7 @@ export const useBases = defineStore('basesStore', () => {
   const router = useRouter()
   const route = router.currentRoute
 
-  const showProjectList = ref<boolean>(route.value.params.typeOrId === 'base' ? false : true)
+  const showProjectList = ref<boolean>(route.value.params.typeOrId !== 'base')
 
   const activeProjectId = computed(() => {
     if (route.value.params.typeOrId === 'base') {

@@ -1,10 +1,4 @@
-<script lang="ts" setup>
-interface Props {}
-
-const props = withDefaults(defineProps<Props>(), {})
-
-const {} = toRefs(props)
-</script>
+<script lang="ts" setup></script>
 
 <template></template>
 

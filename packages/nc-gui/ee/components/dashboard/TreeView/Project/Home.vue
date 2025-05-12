@@ -1,21 +1,7 @@
 <script lang="ts" setup>
 import { LoadingOutlined } from '@ant-design/icons-vue'
-import Automation from '../Automation.vue'
 import type { ScriptType } from 'nocodb-sdk'
-
-interface Props {}
-
-const props = withDefaults(defineProps<Props>(), {})
-
-const {} = toRefs(props)
-
-const indicator = h(LoadingOutlined, {
-  class: '!text-gray-400',
-  style: {
-    fontSize: '0.85rem',
-  },
-  spin: true,
-})
+import Automation from '../Automation.vue'
 
 const router = useRouter()
 const route = router.currentRoute

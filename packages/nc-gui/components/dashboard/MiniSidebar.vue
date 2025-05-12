@@ -19,8 +19,6 @@ const { navigateToWorkspaceSettings, navigateToIntegrations: _navigateToIntegrat
 
 const { basesList, showProjectList } = storeToRefs(useBases())
 
-const { isSharedBase } = storeToRefs(useBase())
-
 const { isUIAllowed } = useRoles()
 
 const isProjectPageOpen = computed(() => {

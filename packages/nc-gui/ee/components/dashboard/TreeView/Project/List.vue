@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { type ScriptType, type TableType, type ViewType, stringifyRolesObj } from 'nocodb-sdk'
-import { useRouter } from '#app'
 import ProjectWrapper from '../ProjectWrapper.vue'
+import { useRouter } from '#app'
 
 const { isUIAllowed } = useRoles()
 
@@ -18,7 +18,7 @@ const basesStore = useBases()
 
 const { createProject: _createProject, updateProject } = basesStore
 
-const { bases, basesList, activeProjectId, openedProject, showProjectList } = storeToRefs(basesStore)
+const { bases, basesList, activeProjectId, showProjectList } = storeToRefs(basesStore)
 
 const baseStore = useBase()
 
@@ -378,7 +378,7 @@ const transitionName = ref<'slide-left' | 'slide-right' | undefined>(undefined)
 
 watch(
   [showProjectList, activeWorkspaceId],
-  ([newShowProjectList, newWsId], [oldShowProjectList, oldWsId]) => {
+  ([newShowProjectList, newWsId], [_oldShowProjectList, oldWsId]) => {
     // If workspace changed, skip animation
     if (oldWsId && newWsId !== oldWsId) {
       transitionName.value = undefined // No animation
@@ -392,7 +392,7 @@ watch(
 )
 
 onMounted(() => {
-  showProjectList.value ? 'slide-left' : 'slide-right'
+  transitionName.value = showProjectList.value ? 'slide-left' : 'slide-right'
 })
 
 watch([searchInputRef, showProjectList], () => {
@@ -407,7 +407,11 @@ watch([searchInputRef, showProjectList], () => {
 <template>
   <div class="relative w-full h-full overflow-hidden flex items-stretch">
     <Transition :name="transitionName" appear>
-      <div v-if="showProjectList" key="project-list" class="nc-treeview-container nc-treeview-base-list w-full h-full">
+      <div
+        v-if="showProjectList"
+        key="project-list"
+        class="nc-treeview-container nc-treeview-base-list absolute w-full h-full top-0 left-0 z-10"
+      >
         <div class="w-full">
           <DashboardSidebarHeaderWrapper></DashboardSidebarHeaderWrapper>
           <div class="px-2 h-11 flex items-center">
@@ -513,7 +517,7 @@ watch([searchInputRef, showProjectList], () => {
 
     <!-- Slide in Project Home -->
     <Transition :name="transitionName" appear>
-      <div v-if="!showProjectList" key="project-home" class="w-full h-full flex flex-col">
+      <div v-if="!showProjectList" key="project-home" class="absolute w-full h-full top-0 left-0 z-5 flex flex-col">
         <ProjectWrapper
           v-if="activeProjectId && openedBase?.id"
           :base-role="openedBase?.project_role || stringifyRolesObj(workspaceRoles)"

@@ -57,9 +57,6 @@ import { SnapshotService } from '~/services/snapshot.service';
 /* Scripts */
 import { ScriptsService } from '~/services/scripts.service';
 
-/* ACL */
-import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
-
 export const nocoModuleEeMetadata = {
   imports: [
     ...nocoModuleMetadata.imports,
@@ -106,9 +103,6 @@ export const nocoModuleEeMetadata = {
 
     /* Scripts */
     ScriptsService,
-
-    /* ACL */
-    AclMiddleware,
   ],
   controllers: [
     ActionsController,

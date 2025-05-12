@@ -271,7 +271,17 @@ onMounted(() => {
     :selected-keys="selected"
     class="nc-scripts-menu flex flex-col w-full !border-r-0 !bg-inherit"
   >
-    <template v-if="!isNewSidebarEnabled && !isSharedBase && isUIAllowed('scriptCreateOrEdit')">
+    <div
+      v-if="!scripts?.length"
+      class="nc-project-home-section-item text-gray-500 font-normal"
+      :class="{
+        'ml-11.5 xs:(ml-12.25) ': !isNewSidebarEnabled,
+      }"
+    >
+      {{ $t('general.empty') }}
+    </div>
+
+    <template v-if="(!isNewSidebarEnabled || !scripts?.length) && !isSharedBase && isUIAllowed('scriptCreateOrEdit')">
       <div
         :class="{
           '!pl-13.3 !xs:(pl-13.5)': !isNewSidebarEnabled,

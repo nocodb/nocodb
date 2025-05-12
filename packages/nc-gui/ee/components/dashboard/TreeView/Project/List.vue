@@ -470,7 +470,7 @@ watch([searchInputRef, showProjectList], () => {
                   </div>
                 </template>
                 <template v-if="!isWorkspaceLoading && !filteredStarredProjectList.length" #footer>
-                  <div class="text-nc-content-gray-muted px-3 font-normal">No matching bases.</div>
+                  <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">No matching bases.</div>
                 </template>
               </Draggable>
             </div>
@@ -500,7 +500,7 @@ watch([searchInputRef, showProjectList], () => {
                   v-if="!isWorkspaceLoading && (!filteredMonStarredProjectList.length || !nonStarredProjectList.length)"
                   #footer
                 >
-                  <div class="text-nc-content-gray-muted px-3 font-normal">
+                  <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">
                     {{ !nonStarredProjectList.length ? 'No Bases' : 'No matching bases.' }}
                   </div>
                 </template>
@@ -600,14 +600,14 @@ watch([searchInputRef, showProjectList], () => {
 <style lang="scss">
 .nc-project-home-section {
   @apply px-1 pb-3;
+}
 
-  .nc-project-home-section-item {
-    @apply w-full px-3 py-1.5 flex items-center gap-2 h-8;
-  }
+.nc-project-home-section-item {
+  @apply w-full px-3 py-1.5 flex items-center gap-2 h-8;
+}
 
-  .nc-project-home-section-header {
-    @apply w-full px-3 py-1.5 flex items-center gap-2 h-8 text-nc-content-gray-muted text-captionBold sticky top-0 bg-nc-bg-gray-extralight z-2;
-  }
+.nc-project-home-section-header {
+  @apply w-full px-3 py-1.5 flex items-center gap-2 h-8 text-nc-content-gray-muted text-captionBold sticky top-0 bg-nc-bg-gray-extralight z-2;
 }
 
 .nc-treeview-container,

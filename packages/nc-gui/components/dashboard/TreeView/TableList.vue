@@ -14,6 +14,8 @@ const props = withDefaults(
   },
 )
 
+const emits = defineEmits(['createTable'])
+
 const base = toRef(props, 'base')
 const sourceIndex = toRef(props, 'sourceIndex')
 
@@ -24,6 +26,8 @@ const { isMobileMode } = useGlobal()
 const { isUIAllowed } = useRoles()
 
 const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
+const { openedProject } = storeToRefs(useBases())
 
 const { baseTables } = storeToRefs(useTablesStore())
 const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
@@ -135,17 +139,46 @@ const availableTables = computed(() => {
 <template>
   <div class="border-none sortable-list">
     <template v-if="base">
-      <div
-        v-if="availableTables.length === 0"
-        class="py-0.5 text-gray-500"
-        :class="{
-          'ml-8.5': sourceIndex === 0,
-          'ml-14.5 xs:(ml-15.25)': sourceIndex !== 0 && !isNewSidebarEnabled,
-          'ml-9 xs:(ml-9.75)': sourceIndex !== 0 && isNewSidebarEnabled,
-        }"
-      >
-        {{ $t('general.empty') }}
-      </div>
+      <template v-if="availableTables.length === 0">
+        <div
+          v-if="isNewSidebarEnabled"
+          :class="{
+            'text-brand-500 hover:text-brand-600': openedProject?.id === base.id,
+            'text-gray-500 hover:text-brand-500': openedProject?.id !== base.id,
+          }"
+          class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full"
+          role="button"
+          @click="emits('createTable')"
+        >
+          <div
+            :class="{
+              'nc-project-home-section-item': isNewSidebarEnabled,
+              'flex flex-row items-center pl-1.25 !py-1.5 text-inherit': !isNewSidebarEnabled,
+            }"
+          >
+            <GeneralIcon icon="plus" />
+            <div>
+              {{
+                $t('general.createEntity', {
+                  entity: $t('objects.table'),
+                })
+              }}
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="py-0.5 text-gray-500 font-normal"
+          :class="{
+            'ml-8.5': sourceIndex === 0 && !isNewSidebarEnabled,
+            'ml-14.5 xs:(ml-15.25)': sourceIndex !== 0 && !isNewSidebarEnabled,
+            'nc-project-home-section-item': sourceIndex === 0 && isNewSidebarEnabled,
+            'ml-9 xs:(ml-9.75)': sourceIndex !== 0 && isNewSidebarEnabled,
+          }"
+        >
+          {{ $t('general.empty') }}
+        </div>
+      </template>
       <div
         v-if="base.sources?.[sourceIndex] && base!.sources[sourceIndex].enabled"
         ref="menuRefs"

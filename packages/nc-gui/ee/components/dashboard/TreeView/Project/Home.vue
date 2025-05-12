@@ -1,21 +1,18 @@
 <script lang="ts" setup>
-import { LoadingOutlined } from '@ant-design/icons-vue'
-import type { ScriptType } from 'nocodb-sdk'
+import type { ScriptType, SourceType } from 'nocodb-sdk'
 import Automation from '../Automation.vue'
 
 const router = useRouter()
 const route = router.currentRoute
-
-const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
 
-const { setMenuContext, duplicateTable, contextMenuTarget, tableRenameId } = inject(TreeViewInj)!
+const { setMenuContext } = inject(TreeViewInj)!
 
-const { isMobileMode, user, ncNavigateTo } = useGlobal()
+const { ncNavigateTo } = useGlobal()
 
 const { api } = useApi()
 
@@ -35,35 +32,11 @@ const isExpanded = computed<boolean>({
 
 const basesStore = useBases()
 
-const { createProject: _createProject, updateProject, toggleStarred, loadProject } = basesStore
+const { createProject: _createProject, loadProject } = basesStore
 
-const { bases, activeProjectId, basesUser } = storeToRefs(basesStore)
-
-const collaborators = computed(() => {
-  return (basesUser.value.get(base.value?.id) || []).map((user: any) => {
-    return {
-      ...user,
-      base_roles: user.roles,
-      roles:
-        user.roles ??
-        (user.workspace_roles
-          ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
-          : ProjectRoles.NO_ACCESS),
-    }
-  })
-})
-
-const currentUserRole = computed(() => {
-  return collaborators.value.find((coll) => coll.id === user.value?.id)?.roles as keyof typeof RoleLabels
-})
-
-const { loadProjectTables } = useTablesStore()
+const { activeProjectId } = storeToRefs(basesStore)
 
 const { activeTable } = storeToRefs(useTablesStore())
-
-const { allRecentViews } = storeToRefs(useViewsStore())
-
-const { appInfo } = useGlobal()
 
 useTabs()
 
@@ -83,23 +56,15 @@ const sourceRenameHelpers = ref<
   >
 >({})
 
-// const { t } = useI18n()
-
 const input = ref<HTMLInputElement>()
 
 const { isUIAllowed } = useRoles()
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { addNewLayout, getDashboardProjectUrl: dashboardProjectUrl, populateLayouts } = useDashboardStore()
-
-const { addNewPage, populatedNestedPages, baseUrl: docsProjectUrl } = useDocStore()
-
 const { $e } = useNuxtApp()
 
-const { copy } = useCopy()
-
-const { showRecordPlanLimitExceededModal, blockExternalSourceRecordVisibility } = useEeConfig()
+const { blockExternalSourceRecordVisibility } = useEeConfig()
 
 const isOptionsOpen = ref(false)
 const isBasesOptionsOpen = ref<Record<string, boolean>>({})
@@ -108,8 +73,6 @@ const activeKey = ref<string[]>([])
 const [searchActive] = useToggle()
 const filterQuery = ref('')
 const keys = ref<Record<string, number>>({})
-const isTableDeleteDialogVisible = ref(false)
-const isProjectDeleteDialogVisible = ref(false)
 
 const projectNodeRef = ref()
 
@@ -193,61 +156,9 @@ const updateSourceTitle = async (sourceId: string) => {
   }
 }
 
-const updateProjectTitle = async () => {
-  if (tempTitle.value) {
-    tempTitle.value = tempTitle.value.trim()
-  }
-
-  if (!tempTitle.value) {
-    editMode.value = false
-    tempTitle.value = ''
-    return
-  }
-
-  try {
-    await updateProject(base.value.id!, {
-      title: tempTitle.value,
-    })
-    // update base title in recent views
-    allRecentViews.value = allRecentViews.value.map((view) => {
-      if (view.baseId === base.value.id) {
-        view.baseName = tempTitle.value
-      }
-      return view
-    })
-    editMode.value = false
-    tempTitle.value = ''
-
-    $e('a:base:rename')
-
-    refreshViewTabTitle?.()
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    refreshCommandPalette()
-  }
-}
-
 defineExpose({
   enableEditMode,
 })
-
-const setColor = async (color: string, base: BaseType) => {
-  try {
-    const meta = {
-      ...parseProp(base.meta),
-      iconColor: color,
-    }
-
-    basesStore.updateProject(base.id!, { meta: JSON.stringify(meta) })
-
-    $e('a:base:icon:color:navdraw', { iconColor: color })
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    refreshCommandPalette()
-  }
-}
 
 /**
  * Opens a dialog to create a new table.
@@ -324,135 +235,11 @@ function openErdView(source: SourceType) {
   }
 }
 
-const isAddNewProjectChildEntityLoading = ref(false)
 const addNewProjectChildEntity = async () => {
   if (!projectNodeRef.value) return
 
   projectNodeRef.value?.addNewProjectChildEntity?.()
 }
-
-// todo: temp
-
-const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
-  if (!base) {
-    return
-  }
-
-  ignoreNavigation = isMobileMode.value || ignoreNavigation
-  toggleIsExpanded = isMobileMode.value || toggleIsExpanded
-
-  let isSharedBase = false
-  // if shared base ignore navigation
-  if (route.value.params.typeOrId === 'base') {
-    isSharedBase = true
-  }
-  const cmdOrCtrl = isMac() ? metaKey.value : control.value
-
-  if (cmdOrCtrl && !ignoreNavigation && base.type === 'database') {
-    await navigateTo(
-      `${cmdOrCtrl ? '#' : ''}${baseUrl({
-        id: base.id!,
-        type: 'database',
-        isSharedBase,
-      })}`,
-      cmdOrCtrl
-        ? {
-            open: navigateToBlankTargetOpenOption,
-          }
-        : undefined,
-    )
-    return
-  }
-
-  if (toggleIsExpanded) {
-    isExpanded.value = !isExpanded.value
-  } else {
-    isExpanded.value = true
-  }
-
-  const isProjectPopulated = basesStore.isProjectPopulated(base.id!)
-
-  if (!isProjectPopulated) base.isLoading = true
-
-  // if dashboard or document base, add a document tab and route to the respective page
-  switch (base.type) {
-    case 'dashboard':
-      $e('c:dashboard:open', base.id)
-      await populateLayouts({ baseId: base.id! })
-      if (!ignoreNavigation) {
-        await navigateTo(dashboardProjectUrl(base.id!))
-      }
-      break
-    case 'documentation':
-      // addTab({
-      //   id: base.id,
-      //   title: base.title!,
-      //   type: TabType.DOCUMENT,
-      //   baseId: base.id,
-      // })
-      $e('c:document:open', base.id)
-      await populatedNestedPages({ baseId: base.id! })
-      if (!ignoreNavigation) {
-        await navigateTo(docsProjectUrl(base.id!))
-      }
-      break
-    case 'database':
-      if (!ignoreNavigation) {
-        await navigateTo(
-          baseUrl({
-            id: base.id!,
-            type: 'database',
-            isSharedBase,
-          }),
-        )
-      }
-
-      if (!isProjectPopulated) {
-        await loadProjectTables(base.id!)
-      }
-      break
-    default:
-      throw new Error(`Unknown base type: ${base.type}`)
-  }
-
-  if (!isProjectPopulated) {
-    base.isLoading = false
-
-    const updatedProject = bases.value.get(base.id!)!
-    updatedProject.isLoading = false
-  }
-}
-
-// TODO - implement
-/*
-function openSqlEditor(source: SourceType) {
-  navigateTo(`/ws/${route.params.typeOrId}/nc/${source.base_id}/sql/${source.id}`)
-}
-
-async function openProjectSqlEditor(_project: BaseType) {
-  if (!_project.id) return
-
-  if (!basesStore.isProjectPopulated(_project.id)) {
-    await loadProject(_project.id)
-  }
-
-  const base = bases.value.get(_project.id)
-
-  const source = base?.sources?.[0]
-  if (!source) return
-  navigateTo(`/ws/${route.params.typeOrId}/nc/${source.base_id}/sql/${source.id}`)
-}
-*/
-
-const contextMenuBase = computed(() => {
-  if (contextMenuTarget.type === 'base') {
-    return contextMenuTarget.value
-  } else if (contextMenuTarget.type === 'table') {
-    const source = base.value?.sources?.find((b) => b.id === contextMenuTarget.value.source_id)
-    if (source) return source
-  }
-  return null
-})
 
 watch(
   () => activeTable.value?.id,
@@ -481,36 +268,9 @@ onKeyStroke('Escape', () => {
   }
 })
 
-const isDuplicateDlgOpen = ref(false)
-const selectedProjectToDuplicate = ref()
-
-const duplicateProject = (base: BaseType) => {
-  if (showRecordPlanLimitExceededModal()) return
-
-  selectedProjectToDuplicate.value = base
-  isDuplicateDlgOpen.value = true
-}
-
-const getSource = (sourceId: string) => {
-  return base.value.sources?.find((s) => s.id === sourceId)
-}
-
-const labelEl = ref()
-watch(
-  () => labelEl.value && activeProjectId.value === base.value?.id,
-  async (isActive) => {
-    if (!isActive) return
-    await nextTick()
-    labelEl.value?.scrollIntoView({ behavior: 'smooth' })
-  },
-  {
-    immediate: true,
-  },
-)
-
 const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
 
-const openBaseHomePage = async (baseId: string) => {
+const openBaseHomePage = async () => {
   const isSharedBase = route.value.params.typeOrId === 'base'
 
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
@@ -527,73 +287,6 @@ const openBaseHomePage = async (baseId: string) => {
         }
       : undefined,
   )
-}
-
-const showNodeTooltip = ref(true)
-
-const shouldOpenContextMenu = computed(() => {
-  if (isSharedBase.value || !contextMenuTarget.value) return false
-
-  if (contextMenuTarget.type === 'table') {
-    return true
-  }
-
-  // if (contextMenuTarget.type === 'base' && base.value.type === 'database') {
-  //   return true
-  // }
-
-  // if (contextMenuTarget.type === 'source') {
-  //   return true
-  // }
-
-  return false
-})
-
-/* Data reflection */
-const { createConnectionDetails, getConnectionDetails, dataReflectionEnabled, connectionUrl } = useDataReflection()
-
-/*
-  0: Init
-  1: Loading
-  2: Success
-  3: Error
-*/
-const dataReflectionState = ref(0)
-const dataReflectionText = ref('Get Connection')
-
-const onDataReflection = async () => {
-  try {
-    dataReflectionState.value = 1
-
-    if (!dataReflectionEnabled.value) {
-      dataReflectionText.value = 'Creating...'
-      await createConnectionDetails(base.value.id)
-      await copy(connectionUrl.value)
-      dataReflectionState.value = 2
-      dataReflectionText.value = 'Copied!'
-    } else {
-      dataReflectionText.value = 'Copying...'
-      await getConnectionDetails(base.value.id)
-      await copy(connectionUrl.value)
-      dataReflectionState.value = 2
-      dataReflectionText.value = 'Copied!'
-    }
-  } catch (e: any) {
-    dataReflectionState.value = 3
-    dataReflectionText.value = 'Error!'
-  }
-
-  setTimeout(() => {
-    dataReflectionState.value = 0
-    dataReflectionText.value = 'Get Connection'
-  }, 2000)
-}
-
-const onClickMenu = (e: { key?: string }) => {
-  if (e?.key === 'connect') {
-    return
-  }
-  isOptionsOpen.value = false
 }
 
 async function openNewScriptModal() {
@@ -724,7 +417,7 @@ const showCreateNewAsDropdown = computed(() => {
             '!text-brand-600 !bg-brand-50 !hover:bg-brand-50': activeProjectId === base.id && baseViewOpen,
             '!hover:(bg-gray-200 text-gray-700)': !(activeProjectId === base.id && baseViewOpen),
           }"
-          @click="openBaseHomePage(base.id)"
+          @click="openBaseHomePage"
         >
           <div
             class="flex items-center gap-2 pl-3 pr-1"
@@ -760,7 +453,7 @@ const showCreateNewAsDropdown = computed(() => {
             <div class="flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
               <div v-if="base?.sources?.[0]?.enabled" class="flex-1">
                 <div class="transition-height duration-200">
-                  <DashboardTreeViewTableList :base="base" :source-index="0" />
+                  <DashboardTreeViewTableList :base="base" :source-index="0" @create-table="addNewProjectChildEntity" />
                 </div>
               </div>
 

@@ -267,6 +267,12 @@ const permissionScopes = {
 
     'createSyncTable',
     'triggerSync',
+
+    // MCP
+    'mcpList',
+    'mcpCreate',
+    'mcpUpdate',
+    'mcpDelete',
   ],
 };
 
@@ -445,6 +451,11 @@ const rolePermissions:
       commentList: true,
       commentsCount: true,
       auditListRow: true,
+
+      mcpList: true,
+      mcpCreate: true,
+      mcpUpdate: true,
+      mcpDelete: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -935,6 +946,11 @@ const permissionDescriptions: Record<string, string> = {
   workspace_integrationList: 'view list of workspace integrations',
 
   hookTrigger: 'trigger a webhook',
+
+  mcpList: 'view list of MCP tokens',
+  mcpCreate: 'create a new MCP token',
+  mcpUpdate: 'update an MCP token',
+  mcpDelete: 'delete an MCP token',
 
   globalAuditList: 'view list of audits',
 };

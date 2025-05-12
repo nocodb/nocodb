@@ -75,6 +75,7 @@
     "@databricks/sql": "^1.9.0",
     "@gitbeaker/rest": "^42.5.0",
     "@google-cloud/storage": "^7.15.0",
+    "@modelcontextprotocol/sdk": "^1.11.0",
     "@nest-lab/throttler-storage-redis": "^1.1.0",
     "@nestjs/bull": "^10.2.3",
     "@nestjs/common": "^10.4.15",

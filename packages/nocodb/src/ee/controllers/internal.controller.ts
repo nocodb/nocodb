@@ -1,37 +1,33 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
-import { GlobalGuard } from '~/guards/global/global.guard';
-import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
+import { InternalController as InternalControllerCE } from 'src/controllers/internal.controller';
 import { DataReflectionService } from '~/services/data-reflection.service';
 import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
 import { SyncModuleService } from '~/integrations/sync/module/services/sync.service';
+import { McpTokenService } from '~/services/mcp.service';
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
-import { NcError } from '~/helpers/catchError';
 import { ScriptsService } from '~/services/scripts.service';
 import { getBaseSchema } from '~/helpers/scriptHelper';
+import {
+  InternalGETResponseType,
+  InternalPOSTResponseType,
+} from '~/utils/internal-type';
 
 @Controller()
-@UseGuards(MetaApiLimiterGuard, GlobalGuard)
-export class InternalController {
+export class InternalController extends InternalControllerCE {
   constructor(
-    private readonly aclMiddleware: AclMiddleware,
+    protected readonly mcpService: McpTokenService,
+    protected readonly aclMiddleware: AclMiddleware,
     private readonly dataReflectionService: DataReflectionService,
     private readonly remoteImportService: RemoteImportService,
     private readonly syncService: SyncModuleService,
     private readonly scriptsService: ScriptsService,
-  ) {}
+  ) {
+    super(mcpService, aclMiddleware);
+  }
 
-  async checkAcl(operation: string, req, scope?: string) {
+  protected async checkAcl(operation: string, req, scope?: string) {
     await this.aclMiddleware.aclFn(
       operation,
       {
@@ -42,29 +38,32 @@ export class InternalController {
     );
   }
 
-  operationScopes = {
-    createDataReflection: 'workspace',
-    getDataReflection: 'workspace',
-    deleteDataReflection: 'workspace',
-    listenRemoteImport: 'workspace',
-    createSyncTable: 'base',
-    triggerSync: 'base',
-    listScripts: 'base',
-    getScript: 'base',
-    createScript: 'base',
-    updateScript: 'base',
-    deleteScript: 'base',
-    baseSchema: 'base',
-  };
+  protected get operationScopes() {
+    return {
+      ...super.operationScopes,
+      createDataReflection: 'workspace',
+      getDataReflection: 'workspace',
+      deleteDataReflection: 'workspace',
+      listenRemoteImport: 'workspace',
+      createSyncTable: 'base',
+      triggerSync: 'base',
+      listScripts: 'base',
+      getScript: 'base',
+      createScript: 'base',
+      updateScript: 'base',
+      deleteScript: 'base',
+      baseSchema: 'base',
+    };
+  }
 
   @Get(['/api/v2/internal/:workspaceId/:baseId'])
-  async internalAPI(
+  protected async internalAPI(
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('baseId') baseId: string,
     @Query('operation') operation: string,
     @Req() req: NcRequest,
-  ) {
+  ): InternalGETResponseType {
     await this.checkAcl(operation, req, this.operationScopes[operation]);
 
     switch (operation) {
@@ -82,20 +81,30 @@ export class InternalController {
         return await this.scriptsService.getScript(context, req.query.id);
       case 'baseSchema':
         return await getBaseSchema(baseId);
+      case 'mcpList':
+        return await this.mcpService.list(context, req);
+      case 'mcpGet':
+        return await this.mcpService.get(context, req.query.tokenId as string);
       default:
-        return NcError.notFound('Operation');
+        return await super.internalAPI(
+          context,
+          workspaceId,
+          baseId,
+          operation,
+          req,
+        );
     }
   }
 
   @Post(['/api/v2/internal/:workspaceId/:baseId'])
-  async internalAPIPost(
+  protected async internalAPIPost(
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('baseId') baseId: string,
     @Query('operation') operation: string,
     @Body() payload: any,
     @Req() req: NcRequest,
-  ) {
+  ): InternalPOSTResponseType {
     await this.checkAcl(operation, req, this.operationScopes[operation]);
 
     switch (operation) {
@@ -161,7 +170,14 @@ export class InternalController {
         return await this.scriptsService.deleteScript(context, payload.id);
 
       default:
-        return NcError.notFound('Operation');
+        return await super.internalAPIPost(
+          context,
+          workspaceId,
+          baseId,
+          operation,
+          payload,
+          req,
+        );
     }
   }
 }

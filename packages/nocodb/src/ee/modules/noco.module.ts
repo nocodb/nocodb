@@ -7,7 +7,6 @@ import { PaymentModule } from '~/modules/payment/payment.module';
 import { ActionsController } from '~/controllers/actions.controller';
 import { CustomUrlsController } from '~/controllers/custom-urls.controller';
 import { CustomUrlsService } from '~/services/custom-urls.service';
-import { InternalController } from '~/controllers/internal.controller';
 
 /* Integrations */
 import { NocoAiModule } from '~/integrations/ai/module/ai.module';
@@ -58,9 +57,6 @@ import { SnapshotService } from '~/services/snapshot.service';
 /* Scripts */
 import { ScriptsService } from '~/services/scripts.service';
 
-/* ACL */
-import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
-
 export const nocoModuleEeMetadata = {
   imports: [
     ...nocoModuleMetadata.imports,
@@ -107,13 +103,9 @@ export const nocoModuleEeMetadata = {
 
     /* Scripts */
     ScriptsService,
-
-    /* ACL */
-    AclMiddleware,
   ],
   controllers: [
     ActionsController,
-    InternalController,
 
     /* Generic */
     CustomUrlsController,

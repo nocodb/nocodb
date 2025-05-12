@@ -59,7 +59,7 @@ export default class DataReflection {
     const condition = extractProps(params, ['id', 'fk_workspace_id']);
 
     if (!condition.id && !condition.fk_workspace_id) {
-      throw NcError.badRequest('id or fk_workspace_id is required');
+      NcError.badRequest('id or fk_workspace_id is required');
     }
 
     let dataReflection = condition.id
@@ -114,7 +114,7 @@ export default class DataReflection {
     const condition = extractProps(params, ['id', 'fk_workspace_id']);
 
     if (!condition.id && !condition.fk_workspace_id) {
-      throw NcError.badRequest('id or fk_workspace_id is required');
+      NcError.badRequest('id or fk_workspace_id is required');
     }
 
     const dataReflection = await this.get(condition, ncMeta);
@@ -149,7 +149,7 @@ export default class DataReflection {
     fk_workspace_id: string,
     _ncMeta = Noco.ncMeta,
   ): Promise<DataReflection> {
-    throw NcError.notImplemented('Data Reflection');
+    NcError.notImplemented('Data Reflection');
   }
 
   public static async destroy(

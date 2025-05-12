@@ -115,7 +115,7 @@ export class TablesV3Service {
     context: NcContext,
     param: {
       baseId: string;
-      sourceId: string;
+      sourceId?: string;
       includeM2M?: boolean;
       roles: Record<string, boolean>;
     },

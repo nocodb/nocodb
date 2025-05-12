@@ -265,6 +265,7 @@ import NcMattermost from '~icons/nc-icons/mattermost'
 import NcTwilio from '~icons/nc-icons/twilio'
 import NcWhatsapp from '~icons/nc-icons/whatsapp'
 import NcWhatsappSolid from '~icons/nc-icons/whatsapp-solid'
+import NcMCP from '~icons/nc-icons/mcp'
 
 // View icons
 import NcViewGantt from '~icons/nc-icons/view-gantt'
@@ -1690,6 +1691,7 @@ export const iconMap = {
   'mdi-flag': MdiNcFlag,
   'mdi-flag-outline': MdiNcFlagOutline,
   'sso': MdiCloudKeyOutline,
+  'mcp': NcMCP,
 }
 
 export const getMdiIcon = (type: string): any => {

@@ -60,6 +60,7 @@ import {
   checkIfEmailAllowedNonSSO,
   checkIfWorkspaceSSOAvail,
 } from '~/helpers/paymentHelpers';
+import MCPToken from '~/models/MCPToken';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -157,7 +158,15 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
     }
 
-    if (params.baseId && !isInternalWorkspaceScope) {
+    if (params.mcpTokenId) {
+      const mcpToken = await MCPToken.get(context, params.mcpTokenId);
+      if (!mcpToken) {
+        NcError.genericNotFound('MCPToken', params.mcpTokenId);
+      }
+
+      req.ncBaseId = mcpToken.base_id;
+      req.ncWorkspaceId = mcpToken.fk_workspace_id;
+    } else if (params.baseId && !isInternalWorkspaceScope) {
       req.ncBaseId = params.baseId;
     } else if (params.dashboardId) {
       req.ncBaseId = params.dashboardId;

@@ -159,13 +159,9 @@ const confirmDeleteToken = (token: MCPTokenExtendedType) => {
     <div class="flex items-center mt-6 gap-5">
       <NcButton
         :disabled="isUnsavedMCPTokenPending"
-        type="ghost"
-        class="!text-primary"
+        type="secondary"
         data-testid="add-new-mcp-token"
         size="small"
-        :class="{
-          '!text-nc-content-inverted-primary-disabled': isUnsavedMCPTokenPending,
-        }"
         @click="addNewMcpToken"
       >
         {{ $t('labels.newMCPEndpoint') }}
@@ -179,15 +175,12 @@ const confirmDeleteToken = (token: MCPTokenExtendedType) => {
       row-height="44px"
       :data="sortedMcpTokens"
       class="h-full mt-5"
-      body-row-class-name="nc-base-settings-mcp-token-item"
+      body-row-class-name="nc-base-settings-mcp-token-item group no-border-last"
+      @row-click="handleOpenTokenModal"
     >
       <template #bodyCell="{ column, record: token }">
         <template v-if="column.key === 'name'">
-          <NcTooltip
-            v-if="!token.isNew"
-            class="truncate text-gray-800 font-semibold text-sm"
-            @click="handleOpenTokenModal(token)"
-          >
+          <NcTooltip v-if="!token.isNew" class="truncate text-gray-800 font-semibold text-sm">
             {{ token.title }}
 
             <template #title>
@@ -209,14 +202,14 @@ const confirmDeleteToken = (token: MCPTokenExtendedType) => {
         </template>
 
         <template v-if="column.key === 'created_at'">
-          <div v-if="!token.isNew && token.created_at" class="text-nc-content-gray-subtle" @click="handleOpenTokenModal(token)">
+          <div v-if="!token.isNew && token.created_at" class="text-nc-content-gray-subtle">
             {{ dayjs(token.created_at).format('D MMM YYYY') }}
           </div>
         </template>
 
         <template v-if="column.key === 'action'">
           <NcDropdown v-if="!token.isNew">
-            <NcButton type="secondary" size="small">
+            <NcButton type="secondary" class="!hidden !group-hover:block" size="small" @click.stop>
               <GeneralIcon icon="threeDotVertical" />
             </NcButton>
 

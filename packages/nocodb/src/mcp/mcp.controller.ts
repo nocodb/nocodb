@@ -31,7 +31,7 @@ export class McpController {
     @TenantContext() context: NcContext,
   ) {
     if (!req.headers['xc-mcp-token']) {
-      NcError.notFound('MCP token not found');
+      NcError.unauthorized('MCP token missing');
     }
 
     const mcpToken = await MCPToken.validateToken(

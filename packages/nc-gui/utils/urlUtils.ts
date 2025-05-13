@@ -156,7 +156,7 @@ const handleCopyToClipboard = async (text: string) => {
   }
 }
 
-export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {
+export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allowLocalUrl?: boolean) => {
   url = addMissingUrlSchma(url)
 
   if (!url) return
@@ -185,7 +185,7 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {
   }
 
   // Don't do anything if url is not valid, just warn in console for debugging purpose
-  if (!isValidURL(url)) {
+  if (!isValidURL(url, { require_tld: !allowLocalUrl })) {
     console.warn('Invalid URL:', url)
     return
   }

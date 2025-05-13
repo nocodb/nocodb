@@ -20,6 +20,8 @@ export const useScriptExecutor = createSharedComposable(() => {
 
   const { activeAutomationId } = storeToRefs(automationStore)
 
+  const { aiIntegrations } = useNocoAi()
+
   const isPublic = inject(IsPublicInj, ref(false))
 
   const eventBus = useEventBus<SmartsheetScriptActions>(Symbol('SmartSheetActions'))
@@ -61,8 +63,6 @@ export const useScriptExecutor = createSharedComposable(() => {
     })
     return _fieldIDRowMapping
   })
-
-  const { integrations, loadIntegrations } = useProvideIntegrationViewStore()
 
   const actions = {
     log: (scriptId: string, ...args: any[]) => {
@@ -280,7 +280,7 @@ export const useScriptExecutor = createSharedComposable(() => {
 
         let runCustomCode = customCode.value
 
-        for (const integration of integrations.value) {
+        for (const integration of aiIntegrations.value) {
           runCustomCode = runCustomCode.replace(
             new RegExp(`integrations.${integration.type}.${integration.title}`, 'g'),
             `integrations.${integration.type}.${integration.id}`,
@@ -414,11 +414,8 @@ export const useScriptExecutor = createSharedComposable(() => {
     if (isPublic.value || !isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS)) return
 
     await loadAutomation(activeAutomationId.value)
-
-    await loadIntegrations()
-
-    const integrationsCode = generateIntegrationsCode(integrations.value)
-    libCode.value = generateLibCode(integrations.value)
+    const integrationsCode = generateIntegrationsCode(aiIntegrations.value)
+    libCode.value = generateLibCode(aiIntegrations.value)
 
     customCode.value = `
     ${integrationsCode}

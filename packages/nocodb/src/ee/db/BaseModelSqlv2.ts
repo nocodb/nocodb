@@ -2318,14 +2318,23 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         this.model.primaryKeys.length === 1 &&
         (this.isPg || this.isMySQL || this.isSqlite)
       ) {
-        queries.push(
-          batchUpdate(
-            this.dbDriver,
-            this.tnPath,
-            toBeUpdated.map((o) => o.d),
-            this.model.primaryKey.column_name,
-          ).toQuery(),
+        const batchQb = batchUpdate(
+          this.dbDriver,
+          this.tnPath,
+          toBeUpdated.map((o) => o.d),
+          this.model.primaryKey.column_name,
         );
+
+        if (batchQb) {
+          queries.push(
+            batchUpdate(
+              this.dbDriver,
+              this.tnPath,
+              toBeUpdated.map((o) => o.d),
+              this.model.primaryKey.column_name,
+            ).toQuery(),
+          );
+        }
       } else {
         queries.push(
           ...toBeUpdated.map((o) =>

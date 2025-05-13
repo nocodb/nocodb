@@ -1,14 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  type IntegrationReqType,
   IntegrationsType,
   NcApiVersion,
   type NcContext,
   type NcRequest,
+  RelationTypes,
   SyncTrigger,
+  UITypes,
 } from 'nocodb-sdk';
 import { syncSystemFields } from '@noco-local-integrations/core';
-import { RelationTypes } from 'nocodb-sdk';
-import type { IntegrationReqType, UITypes } from 'nocodb-sdk';
 import type {
   AuthIntegration,
   SyncIntegration,
@@ -19,6 +20,7 @@ import {
   Model,
   SyncConfig,
   SyncMapping,
+  View,
   Workspace,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -28,8 +30,8 @@ import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { ColumnsService } from '~/services/columns.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { JobStatus, JobTypes } from '~/interface/Jobs';
-import Noco from '~/Noco';
 import { getJunctionTableName } from '~/services/columns.service';
+import { ViewColumnsService } from '~/services/view-columns.service';
 
 @Injectable()
 export class SyncModuleService {
@@ -41,6 +43,7 @@ export class SyncModuleService {
     protected readonly tablesService: TablesService,
     protected readonly bulkDataAliasService: BulkDataAliasService,
     protected readonly columnsService: ColumnsService,
+    protected readonly viewColumnsService: ViewColumnsService,
   ) {}
 
   async createSync(
@@ -148,7 +151,7 @@ export class SyncModuleService {
         }
 
         // Add system fields to the columns
-        const columns = [...syncSystemFields, ...tableSchema.columns];
+        const columns = [...tableSchema.columns, ...syncSystemFields];
 
         const model = await this.tablesService.tableCreate(context, {
           baseId: base.id,
@@ -159,13 +162,33 @@ export class SyncModuleService {
               column_name: column.column_name || column.title,
               uidt: column.uidt as UITypes,
               readonly: true,
-              system: column.system,
               pv: column.pv,
+              meta: column.meta,
             })),
           },
           apiVersion: NcApiVersion.V3,
           synced: true,
           user: req.user,
+          req,
+        });
+
+        // Hide syncSystemFields from default view
+        const defaultView = await View.getDefaultView(context, model.id);
+
+        const syncSystemFieldTitles = syncSystemFields.map(
+          (field) => field.title,
+        );
+
+        await this.viewColumnsService.columnsUpdate(context, {
+          viewId: defaultView.id,
+          columns: model.columns
+            .filter((column) => syncSystemFieldTitles.includes(column.title))
+            .map((column) => {
+              return {
+                id: column.id,
+                show: false,
+              };
+            }),
           req,
         });
 
@@ -217,19 +240,29 @@ export class SyncModuleService {
                   title: 'remote_id_parent',
                   column_name: 'remote_id_parent',
                   uidt: 'SingleLineText',
+                  readonly: true,
                 },
                 {
                   title: 'remote_id_child',
                   column_name: 'remote_id_child',
                   uidt: 'SingleLineText',
+                  readonly: true,
                 },
+                ...syncSystemFields,
               ],
             },
+            synced: true,
+          });
+
+          await SyncMapping.insert(context, {
+            fk_sync_config_id: syncConfig.id,
+            target_table: null,
+            fk_model_id: junctionTable.id,
           });
 
           tablesToDelete.push(junctionTable);
 
-          await Model.setAsMm(context, junctionTable.id);
+          await Model.markAsMmTable(context, junctionTable.id, true);
 
           await junctionTable.getColumns(context);
 
@@ -256,7 +289,7 @@ export class SyncModuleService {
               column_name: relation.columnTitle
                 .replace(/\W/g, '_')
                 .toLowerCase(),
-              uidt: 'Links',
+              uidt: UITypes.LinkToAnotherRecord,
               type: RelationTypes.MANY_TO_MANY,
               ...{
                 is_custom_link: true,
@@ -277,50 +310,6 @@ export class SyncModuleService {
             apiVersion: NcApiVersion.V3,
           });
 
-          /*
-          {
-            "custom": {
-              "base_id": "p4h33hk6s37dj7c",
-              "column_id": "c6fyao8adpmq5gi",
-              "junc_base_id": "p4h33hk6s37dj7c",
-              "junc_model_id": "mm9nt233xq54rts",
-              "junc_column_id": "cng73k9wz5ezbay",
-              "junc_ref_column_id": "clhfa7h2c1sxp81",
-              "ref_model_id": "m28yk5mytny1odl",
-              "ref_column_id": "ck7kx67z2dvtr94"
-            },
-            "title": "title29",
-            "column_name": "title29",
-            "uidt": "Links",
-            "userHasChangedTitle": false,
-            "meta": {},
-            "rqd": false,
-            "pk": false,
-            "ai": false,
-            "cdf": null,
-            "un": false,
-            "dtx": "specificType",
-            "dt": "character varying",
-            "altered": 2,
-            "parentId": "mz3b5h80olt32uh",
-            "childColumn": "Ticket_id",
-            "childTable": "Ticket",
-            "parentTable": "",
-            "parentColumn": "",
-            "type": "mm",
-            "onUpdate": "NO ACTION",
-            "onDelete": "NO ACTION",
-            "virtual": true,
-            "alias": "",
-            "childId": null,
-            "childViewId": null,
-            "is_custom_link": true,
-            "primaryKey": false,
-            "table_name": "Ticket",
-            "view_id": "vw06wg99crktc5vl"
-          }
-          */
-
           // rename the column of the related table
           await relatedTable.getColumns(context);
 
@@ -330,9 +319,6 @@ export class SyncModuleService {
           );
 
           if (relatedTableColumn) {
-            console.log(
-              `Changing column title of ${relatedTableColumn.title} to ${relation.relatedTableColumnTitle}`,
-            );
             await this.columnsService.columnUpdate(context, {
               columnId: relatedTableColumn.id,
               column: {
@@ -351,7 +337,6 @@ export class SyncModuleService {
         await this.tablesService.tableDelete(context, {
           tableId: table.id,
           forceDeleteSyncs: true,
-          forceDeleteRelations: true,
           user: req.user,
           req,
         });
@@ -466,17 +451,21 @@ export class SyncModuleService {
       NcError.genericNotFound('SyncConfig', syncConfigId);
     }
 
-    const ncMeta = await Noco.ncMeta.startTransaction();
-
+    // TODO: transaction
     try {
       const syncMappings = await SyncMapping.list(context, {
         fk_sync_config_id: syncConfig.id,
+        force: true,
       });
 
       for (const syncMapping of syncMappings) {
         const table = await Model.get(context, syncMapping.fk_model_id);
 
         if (table) {
+          if (table.mm) {
+            await Model.markAsMmTable(context, table.id, false);
+          }
+
           await this.tablesService.tableDelete(context, {
             tableId: syncMapping.fk_model_id,
             forceDeleteSyncs: true,
@@ -486,14 +475,11 @@ export class SyncModuleService {
           });
         }
 
-        await SyncMapping.delete(context, syncMapping.id, ncMeta);
+        await SyncMapping.delete(context, syncMapping.id);
       }
 
-      await SyncConfig.delete(context, syncConfigId, ncMeta);
-
-      await ncMeta.commit();
+      await SyncConfig.delete(context, syncConfigId);
     } catch (e) {
-      await ncMeta.rollback();
       throw e;
     }
 

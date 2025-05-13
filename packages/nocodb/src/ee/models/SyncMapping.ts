@@ -116,7 +116,7 @@ export default class SyncMapping {
 
   static async list(
     context: NcContext,
-    param: { fk_sync_config_id: string },
+    param: { fk_sync_config_id: string; force?: boolean },
     ncMeta = Noco.ncMeta,
   ) {
     const syncMappings = await ncMeta.metaList2(
@@ -128,8 +128,13 @@ export default class SyncMapping {
       },
     );
 
-    return syncMappings.map((syncMapping) => {
-      return new SyncMapping(syncMapping);
-    });
+    return syncMappings
+      .filter((syncMapping) => {
+        if (param.force) return true;
+        return syncMapping.target_table !== null;
+      })
+      .map((syncMapping) => {
+        return new SyncMapping(syncMapping);
+      });
   }
 }

@@ -1,17 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
-import { type NcContext, type NcRequest } from 'nocodb-sdk';
-import {
-  type AuthIntegration,
-  NC_LINK_VALUES_KEY,
-  type SyncIntegration,
-} from '@noco-local-integrations/core';
+import { NcApiVersion, type NcContext, type NcRequest } from 'nocodb-sdk';
 import type { Job } from 'bull';
+import type {
+  AuthIntegration,
+  SyncIntegration,
+} from '@noco-local-integrations/core';
 import type { SyncDataSyncModuleJobData } from '~/interface/Jobs';
 import { Integration, Model, SyncConfig, SyncMapping } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { TablesService } from '~/services/tables.service';
-import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { DataTableService } from '~/services/data-table.service';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 
@@ -21,7 +19,6 @@ export class SyncModuleSyncDataProcessor {
 
   constructor(
     protected readonly tablesService: TablesService,
-    protected readonly bulkDataAliasService: BulkDataAliasService,
     protected readonly dataTableService: DataTableService,
     private readonly jobsLogService: JobsLogService,
   ) {}
@@ -103,23 +100,29 @@ export class SyncModuleSyncDataProcessor {
     };
 
     if (toInsert.length > 0) {
-      await this.bulkDataAliasService.bulkDataInsert(context, {
-        baseName: model.base_id,
-        tableName: model.id,
+      await this.dataTableService.dataInsert(context, {
+        baseId: model.base_id,
+        modelId: model.id,
         body: toInsert,
         cookie: req,
-        skip_hooks: true,
-        allowSystemColumn: true,
+        apiVersion: NcApiVersion.V3,
+        internalFlags: {
+          allowSystemColumn: true,
+          skipHooks: true,
+        },
       });
     }
 
     if (toUpdate.length > 0) {
-      await this.bulkDataAliasService.bulkDataUpdate(context, {
-        baseName: model.base_id,
-        tableName: model.id,
+      await this.dataTableService.dataUpdate(context, {
+        baseId: model.base_id,
+        modelId: model.id,
         body: toUpdate,
         cookie: req,
-        allowSystemColumn: true,
+        apiVersion: NcApiVersion.V3,
+        internalFlags: {
+          allowSystemColumn: true,
+        },
       });
     }
   }
@@ -177,6 +180,8 @@ export class SyncModuleSyncDataProcessor {
         fk_sync_config_id: syncConfig.id,
       });
 
+      let recordCounter = 0;
+
       const modelSyncTargetMap = new Map<string, Model>();
       const modelIdSyncTargetMap = new Map<string, string>();
 
@@ -195,11 +200,18 @@ export class SyncModuleSyncDataProcessor {
 
       const dataStream = await wrapper.fetchData(auth, {});
 
-      let recordCounter = 0;
-
       const RemoteSyncedAt = dayjs().utc().toISOString();
 
       const dataBuffers = new Map<string, Record<string, any>[]>();
+      const linkBuffers = new Map<string, Record<string, any>[]>();
+
+      const linkFieldsMap = new Map<
+        string,
+        {
+          mmTable: Model;
+          isParent: boolean;
+        }
+      >();
 
       await new Promise<void>((resolve, reject) => {
         dataStream.on('data', async (data) => {
@@ -217,10 +229,7 @@ export class SyncModuleSyncDataProcessor {
               dataBuffers.set(model.id, []);
             }
 
-            const { [NC_LINK_VALUES_KEY]: linkValues, ...recordData } =
-              data.data;
-
-            Object.assign(recordData, {
+            Object.assign(data.data, {
               RemoteId: data.recordId,
               RemoteSyncedAt,
               SyncConfigId: syncConfig.id,
@@ -228,7 +237,105 @@ export class SyncModuleSyncDataProcessor {
 
             const dataBuffer = dataBuffers.get(model.id);
 
-            dataBuffer.push(recordData);
+            dataBuffer.push(data.data);
+
+            if (data.links) {
+              const linkFields = Object.keys(data.links);
+
+              for (const linkField of linkFields) {
+                let linkFieldConfig = linkFieldsMap.get(
+                  `${model.id}-${linkField}`,
+                );
+
+                if (!linkFieldConfig) {
+                  // Get column
+                  const column = model.columns.find(
+                    (c) => c.title === linkField,
+                  );
+
+                  if (!column) {
+                    continue;
+                  }
+
+                  const mmTable = await Model.get(
+                    context,
+                    column.colOptions.fk_mm_model_id,
+                  );
+
+                  if (!mmTable) {
+                    continue;
+                  }
+
+                  await mmTable.getColumns(context);
+
+                  modelSyncTargetMap.set(mmTable.id, mmTable);
+
+                  const isParent = model.columns.find(
+                    (c) => c.id === column.colOptions.fk_parent_column_id,
+                  );
+
+                  linkFieldConfig = {
+                    mmTable,
+                    isParent: !isParent,
+                  };
+
+                  linkFieldsMap.set(
+                    `${model.id}-${linkField}`,
+                    linkFieldConfig,
+                  );
+                }
+
+                const linkArray: {
+                  remote_id_parent: string;
+                  remote_id_child: string;
+                  RemoteId: string;
+                  SyncConfigId: string;
+                  RemoteSyncedAt: string;
+                }[] = [];
+
+                for (const record of data.links[linkField]) {
+                  if (linkFieldConfig.isParent) {
+                    linkArray.push({
+                      remote_id_parent: record,
+                      remote_id_child: data.recordId,
+                      RemoteId: `${record}-${data.recordId}`,
+                      SyncConfigId: syncConfig.id,
+                      RemoteSyncedAt,
+                    });
+                  } else {
+                    linkArray.push({
+                      remote_id_parent: data.recordId,
+                      remote_id_child: record,
+                      RemoteId: `${data.recordId}-${record}`,
+                      SyncConfigId: syncConfig.id,
+                      RemoteSyncedAt,
+                    });
+                  }
+                }
+
+                if (!linkBuffers.has(linkFieldConfig.mmTable.id)) {
+                  linkBuffers.set(linkFieldConfig.mmTable.id, []);
+                }
+
+                const linkBuffer = linkBuffers.get(linkFieldConfig.mmTable.id);
+
+                linkBuffer.push(...linkArray);
+
+                if (linkBuffer.length >= 100) {
+                  dataStream.pause();
+
+                  await this.pushData(
+                    context,
+                    syncConfig,
+                    linkFieldConfig.mmTable,
+                    linkBuffer.splice(0),
+                    req,
+                  );
+
+                  dataStream.resume();
+                }
+              }
+            }
 
             if (dataBuffer.length >= 100) {
               dataStream.pause();
@@ -270,6 +377,8 @@ export class SyncModuleSyncDataProcessor {
               }
 
               if (dataBuffer.length > 0) {
+                recordCounter += dataBuffer.length;
+
                 await this.pushData(
                   context,
                   syncConfig,
@@ -279,6 +388,18 @@ export class SyncModuleSyncDataProcessor {
                 );
 
                 logBasic(`Synced ${recordCounter} records`);
+              }
+            }
+
+            for (const [mmTableId, linkBuffer] of linkBuffers.entries()) {
+              if (linkBuffer.length > 0) {
+                await this.pushData(
+                  context,
+                  syncConfig,
+                  modelSyncTargetMap.get(mmTableId),
+                  linkBuffer.splice(0),
+                  req,
+                );
               }
             }
 

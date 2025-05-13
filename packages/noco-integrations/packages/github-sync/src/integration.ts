@@ -1,6 +1,5 @@
 import {
   DataObjectStream,
-  NC_LINK_VALUES_KEY,
   SCHEMA_TICKETING,
   SyncIntegration,
   TARGET_TABLES,
@@ -35,73 +34,78 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
     const { owner, repo, includeClosed } = this.config;
     const { lastRecord } = args;
 
-    const stream = new DataObjectStream<TicketingTicketRecord | TicketingUserRecord>();
+    const stream = new DataObjectStream<
+      TicketingTicketRecord | TicketingUserRecord
+    >();
 
     const userMap = new Map<string, boolean>();
 
-    try {
-      const fetchAfter = lastRecord?.RemoteUpdatedAt;
-      const iterator = octokit.paginate.iterator(
-        octokit.rest.issues.listForRepo,
-        {
-          owner,
-          repo,
-          per_page: 100,
-          since: fetchAfter ? `${fetchAfter}` : undefined,
-          ...(includeClosed ? { state: 'all' } : {}),
-        },
-      );
+    (async () => {
+      try {
+        const fetchAfter = lastRecord?.RemoteUpdatedAt;
+        const iterator = octokit.paginate.iterator(
+          octokit.rest.issues.listForRepo,
+          {
+            owner,
+            repo,
+            per_page: 100,
+            since: fetchAfter ? `${fetchAfter}` : undefined,
+            ...(includeClosed ? { state: 'all' } : {}),
+          },
+        );
 
-      for await (const { data } of iterator) {
-        for (const issue of data) {
-          stream.push({
-            recordId: `${issue.id}`,
-            targetTable: TARGET_TABLES.TICKETING_TICKET,
-            data: {
-              Name: issue.title,
-              Status: issue.state,
-              Description: issue.body || null,
-              'Ticket Type': issue.pull_request ? 'Pull Request' : 'Issue',
-              Tags:
-                issue.labels
-                  ?.map((label) =>
-                    typeof label === 'string' ? label : label.name || '',
-                  )
-                  .join(', ') || '',
-              'Completed At': issue.closed_at,
-              'Ticket Url': issue.html_url,
-              'Due Date': null,
-              Priority: '',
-              'Is Active': issue.state === 'open',
-              // System Fields
-              RemoteCreatedAt: issue.created_at,
-              RemoteUpdatedAt: issue.updated_at,
-              RemoteRaw: JSON.stringify(issue),
+        for await (const { data } of iterator) {
+          for (const issue of data) {
+            stream.push({
+              recordId: `${issue.id}`,
+              targetTable: TARGET_TABLES.TICKETING_TICKET,
+              data: {
+                Name: issue.title,
+                Status: issue.state,
+                Description: issue.body || null,
+                'Ticket Type': issue.pull_request ? 'Pull Request' : 'Issue',
+                Tags:
+                  issue.labels
+                    ?.map((label) =>
+                      typeof label === 'string' ? label : label.name || '',
+                    )
+                    .join(', ') || '',
+                'Completed At': issue.closed_at,
+                'Ticket Url': issue.html_url,
+                'Due Date': null,
+                Priority: '',
+                'Is Active': issue.state === 'open',
+                // System Fields
+                RemoteCreatedAt: issue.created_at,
+                RemoteUpdatedAt: issue.updated_at,
+                RemoteRaw: JSON.stringify(issue),
+              },
               // Link values
-              [NC_LINK_VALUES_KEY]: {
+              links: {
                 Assignees:
                   issue.assignees?.map((assignee) => `${assignee.id}`) || [],
                 Creator: issue.user?.id ? [`${issue.user.id}`] : [],
               },
-            },
-          });
+            });
 
-          // extract users and stream
-          const users: {
-            id: number;
-            login: string;
-          }[] = [...(issue.assignees || [])];
+            // extract users and stream
+            const users: {
+              id: number;
+              login: string;
+            }[] = [...(issue.assignees || [])];
 
-          if (issue.user) {
-            users.push(issue.user);
-          }
+            if (issue.user) {
+              users.push(issue.user);
+            }
 
-          for (const user of users) {
-            if (!userMap.has(user.login)) {
-              userMap.set(user.login, true);
+            for (const user of users) {
+              if (!userMap.has(user.login)) {
+                userMap.set(user.login, true);
 
-              let email = null;
+                let email = null;
 
+                /*
+              // TODO: enable for email sync
               try {
                 // Fetch user details to get public email
                 const { data: userData } =
@@ -115,28 +119,31 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
                   `Error fetching details for user ${user.login}:`,
                   error,
                 );
-              }
+              } */
 
-              stream.push({
-                recordId: `${user.id}`,
-                targetTable: TARGET_TABLES.TICKETING_USER,
-                data: {
-                  Name: user.login,
-                  Email: email,
-                  // System Fields
-                  RemoteRaw: JSON.stringify(user),
-                },
-              });
+                stream.push({
+                  recordId: `${user.id}`,
+                  targetTable: TARGET_TABLES.TICKETING_USER,
+                  data: {
+                    Name: user.login,
+                    Email: email,
+                    // System Fields
+                    RemoteRaw: JSON.stringify(user),
+                  },
+                });
+              }
             }
           }
         }
-      }
 
-      stream.push(null);
-    } catch (error) {
-      console.error('Error fetching GitHub issues:', error);
-      stream.destroy(error instanceof Error ? error : new Error(String(error)));
-    }
+        stream.push(null);
+      } catch (error) {
+        console.error('Error fetching GitHub issues:', error);
+        stream.destroy(
+          error instanceof Error ? error : new Error(String(error)),
+        );
+      }
+    })();
 
     return stream;
   }

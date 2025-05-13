@@ -280,7 +280,7 @@ const sourceIdToIconMap = computed(() => {
         @click="onCreateSyncClick"
       >
         <div class="icon-wrapper">
-          <GeneralIcon icon="sync" class="!h-7 !w-7 !text-green-700" />
+          <GeneralIcon icon="ncZap" class="!h-7 !w-7 !text-green-700" />
         </div>
         <div class="flex flex-col gap-1">
           <div class="label">Sync Data</div>

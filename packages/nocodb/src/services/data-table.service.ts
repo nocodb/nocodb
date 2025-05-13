@@ -131,6 +131,10 @@ export class DataTableService {
       cookie: any;
       undo?: boolean;
       apiVersion?: NcApiVersion;
+      internalFlags?: {
+        allowSystemColumn?: boolean;
+        skipHooks?: boolean;
+      };
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -152,6 +156,8 @@ export class DataTableService {
         typecast: (param.cookie?.query?.typecast ?? '') === 'true',
         undo: param.undo,
         apiVersion: param.apiVersion,
+        allowSystemColumn: param.internalFlags?.allowSystemColumn,
+        skip_hooks: param.internalFlags?.skipHooks,
       },
     );
 
@@ -197,6 +203,9 @@ export class DataTableService {
       body: any;
       cookie: any;
       apiVersion?: NcApiVersion;
+      internalFlags?: {
+        allowSystemColumn?: boolean;
+      };
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -218,6 +227,7 @@ export class DataTableService {
         throwExceptionIfNotExist: true,
         isSingleRecordUpdation: !Array.isArray(param.body),
         apiVersion: param.apiVersion,
+        allowSystemColumn: param.internalFlags?.allowSystemColumn,
       },
     );
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { BulkDataAliasService as BulkDataAliasServiceCE } from 'src/services/bulk-data-alias.service';
-import type { NcRequest } from 'nocodb-sdk';
+import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';
 
@@ -18,6 +18,7 @@ export class BulkDataAliasService extends BulkDataAliasServiceCE {
       raw?: boolean;
       allowSystemColumn?: boolean;
       undo?: boolean;
+      apiVersion?: NcApiVersion;
     },
   ) {
     return await this.executeBulkOperation(context, {
@@ -33,6 +34,7 @@ export class BulkDataAliasService extends BulkDataAliasServiceCE {
           allowSystemColumn: param.allowSystemColumn,
           typecast: (param.cookie?.query?.typecast ?? '') === 'true',
           undo: param.undo,
+          apiVersion: param.apiVersion,
         },
       ],
     });

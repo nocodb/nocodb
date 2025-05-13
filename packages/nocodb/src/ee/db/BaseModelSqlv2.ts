@@ -43,6 +43,7 @@ import type CustomKnex from '~/db/CustomKnex';
 import type { LinkToAnotherRecordColumn, Source, View } from '~/models';
 import type { NcContext } from '~/interface/config';
 import {
+  batchUpdate,
   extractColsMetaForAudit,
   extractExcludedColumnNames,
   generateAuditV1Payload,
@@ -2313,11 +2314,34 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
-      queries.push(
-        ...toBeUpdated.map((o) =>
-          this.dbDriver(this.tnPath).update(o.d).where(o.wherePk).toQuery(),
-        ),
-      );
+      if (
+        this.model.primaryKeys.length === 1 &&
+        (this.isPg || this.isMySQL || this.isSqlite)
+      ) {
+        const batchQb = batchUpdate(
+          this.dbDriver,
+          this.tnPath,
+          toBeUpdated.map((o) => o.d),
+          this.model.primaryKey.column_name,
+        );
+
+        if (batchQb) {
+          queries.push(
+            batchUpdate(
+              this.dbDriver,
+              this.tnPath,
+              toBeUpdated.map((o) => o.d),
+              this.model.primaryKey.column_name,
+            ).toQuery(),
+          );
+        }
+      } else {
+        queries.push(
+          ...toBeUpdated.map((o) =>
+            this.dbDriver(this.tnPath).update(o.d).where(o.wherePk).toQuery(),
+          ),
+        );
+      }
 
       if ((this.dbDriver as any).isExternal) {
         await runExternal(

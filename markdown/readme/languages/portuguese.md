@@ -120,21 +120,21 @@ Acesse o painel usando: [http://localhost:8080/dashboard](http://localhost:8080/
 - ⚡ E mais...
 
 ### App Store para fluxo de automoção:
-Nós fornecemos difernetes tipos de integração na árvore principal de categórias. Veja [AppStore](https://docs.nocodb.com/account-settings/oss-specific-details/#app-store) para mais detalhes.
+Nós fornecemos diferentes tipos de integração na árvore principal de categórias. Veja [AppStore](https://docs.nocodb.com/account-settings/oss-specific-details/#app-store) para mais detalhes.
 
 - ⚡ Bate-papo: Discord, Mattermost e outros
 - ⚡ Email: AWS SES, SMTP, MailerSend e outros
 - ⚡ Armazenamento: AWS S3, Google Cloud Storage, Minio e outros
 
 ### Acesso Pragmático:
-Nós forncemos as seguintes formas de deixar pragmaticamente seus usuários executar ações. Você pode usar um <i>token</i> (tanto JWT ou Autenticação por Rede Social) para assinar suas requisições de autorização para o NocoDB.
+Nós fornecemos as seguintes formas de deixar pragmaticamente seus usuários executar ações. Você pode usar um <i>token</i> (tanto JWT ou Autenticação por Rede Social) para assinar suas requisições de autorização para o NocoDB.
 
 - ⚡ APIs Rest
 - ⚡ NocoDB SDK
 
 # Configuração de ambiente de Produção
 
-Por padrão, o SQLite é usado para armazenar metadados(metadata). Todavia, você pode específicar seu banco de dados. Os parametros de conexão com o banco de dados podem serem feitas usando a variável de ambiente `NC_DB`. E também disponibilizamos variáveis de ambientes para configuração.
+Por padrão, o SQLite é usado para armazenar metadados(metadata). Todavia, você pode especificar seu banco de dados. Os parametros de conexão com o banco de dados podem serem feitas usando a variável de ambiente `NC_DB`. E também disponibilizamos variáveis de ambientes para configuração.
 
 ## Docker
 

@@ -61,6 +61,13 @@ export class AppModule {
   // Global Middleware
   configure(consumer: MiddlewareConsumer) {
     const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
+    const dashboardEnable = process.env.NC_DASHBOARD_ENABLE ?? true;
+    if (dashboardEnable != "false") {
+      consumer
+        .apply(GuiMiddleware)
+        .forRoutes({ path: `${dashboardPath}*`, method: RequestMethod.GET })
+    }
+
     consumer
       .apply(RawBodyMiddleware)
       .forRoutes({
@@ -71,8 +78,6 @@ export class AppModule {
       .forRoutes('*')
       .apply(UrlEncodeMiddleware)
       .forRoutes('*')
-      .apply(GuiMiddleware)
-      .forRoutes({ path: `${dashboardPath}*`, method: RequestMethod.GET })
       .apply(GlobalMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }

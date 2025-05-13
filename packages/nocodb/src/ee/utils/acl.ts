@@ -526,6 +526,8 @@ const rolePermissions:
       getScript: true,
       baseSchema: true,
 
+      hookTrigger: true,
+
       // Sync
       triggerSync: true,
     },

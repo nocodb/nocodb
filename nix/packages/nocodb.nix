@@ -16,6 +16,7 @@
   # macos
   xcbuild,
   cctools,
+  darwin,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -76,8 +77,6 @@ stdenv.mkDerivation (finalAttrs: {
           coreutils
           nettools
         ])
-        # TODO: for ioreg
-        + lib.optionalString stdenv.hostPlatform.isDarwin ":/usr/bin"
       } \
       --add-flags "$out/share/nocodb/packages/nocodb/index.js"
   '';
@@ -104,6 +103,7 @@ stdenv.mkDerivation (finalAttrs: {
       nettools # hostname
     ]
     ++ lib.optionals stdenv.hostPlatform.isDarwin [
+      darwin.IOKitTools
       xcbuild
       cctools
     ];

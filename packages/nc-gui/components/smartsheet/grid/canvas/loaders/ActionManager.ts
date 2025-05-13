@@ -2,11 +2,11 @@ import type { ButtonType, TableType } from 'nocodb-sdk'
 
 export class ActionManager {
   private api: ReturnType<typeof createApiInstance>
-  private loadAutomation: (id: string) => Promise<any>
-  private generateRows: (columnId: string, rowIds: string[]) => Promise<Array<Record<string, any>>>
-  private triggerRefreshCanvas: () => void
+  private readonly loadAutomation: (id: string) => Promise<any>
+  private readonly generateRows: (columnId: string, rowIds: string[]) => Promise<Array<Record<string, any>>>
+  private readonly triggerRefreshCanvas: () => void
   private meta: Ref<TableType>
-  private getDataCache: (path?: Array<number>) => {
+  private readonly getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
     totalRows: Ref<number>
     chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>

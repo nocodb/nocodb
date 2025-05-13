@@ -1,3 +1,5 @@
+import type { Knex } from 'knex';
+
 export function getAliasGenerator(prefix = '__nc_') {
   let aliasC = 0;
 
@@ -116,3 +118,53 @@ export const partialExtract = (obj: any, path: (string[] | string)[]) => {
 
   return result;
 };
+
+/**
+ * Generates a batch update query using case statements
+ * @param kn knex instance
+ * @param tn table name
+ * @param data array of objects to update (must include primary key)
+ * @param pk primary key column name
+ * @returns knex query object
+ */
+export function batchUpdate(
+  kn: Knex,
+  tn: string | Knex.Raw<any>,
+  data: Record<string, any>[],
+  pk: string,
+) {
+  if (!data.length) return null;
+
+  // Extract all unique primary keys
+  const pks = [...new Set(data.map((row) => row[pk]))];
+
+  // Get all columns except primary key that need to be updated
+  const allColumns = new Set<string>();
+  data.forEach((row) => {
+    Object.keys(row).forEach((col) => {
+      if (col !== pk) allColumns.add(col);
+    });
+  });
+
+  const columns = Array.from(allColumns);
+
+  // Build update object with CASE statements for each column
+  const updateObj: Record<string, Knex.Raw> = {};
+
+  columns.forEach((column) => {
+    updateObj[column] = kn.raw(
+      `CASE ?? ${data.map(() => 'WHEN ? THEN ?').join(' ')} ELSE ?? END`,
+      [
+        pk,
+        ...data.flatMap((row) => [
+          row[pk],
+          row[column] === undefined ? null : row[column],
+        ]),
+        column,
+      ],
+    );
+  });
+
+  // Build and return the query
+  return kn(tn).update(updateObj).whereIn(pk, pks);
+}

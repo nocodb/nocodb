@@ -301,14 +301,20 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           base_id: column.base_id,
         });
 
-        // create nested replace statement for each user
-        const finalStatement = baseUsers.reduce((acc, user) => {
-          const qb = baseModel.dbDriver.raw(`REPLACE(${acc}, ?, ?)`, [
-            user.id,
-            user.display_name || user.email,
-          ]);
-          return qb.toQuery();
-        }, baseModel.dbDriver.raw(`??`, [columnName]).toQuery());
+        // create union replace statement for each user
+        const mapUnion = baseUsers
+          .map((user) => {
+            return baseModel.dbDriver
+              .raw(`select ? as nc_u_id, ? as nc_u_name`, [
+                user.id,
+                user.display_name || user.email,
+              ])
+              .toQuery();
+          })
+          .join(' UNION ALL ');
+        const finalStatement = `(select nc_u_name from (${mapUnion}) where nc_u_id = ${baseModel.dbDriver
+          .raw('??', [columnName])
+          .toQuery()})`;
 
         if (!['asc', 'desc'].includes(sort.direction)) {
           qb.orderBy(
@@ -352,7 +358,6 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
     // group by using the column aliases
     qb.groupBy(...groupBySelectors);
-
     applyPaginate(qb, rest);
 
     return await baseModel.execAndParse(qb);

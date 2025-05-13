@@ -119,6 +119,7 @@ import {
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import {
+  batchUpdate,
   extractColsMetaForAudit,
   extractExcludedColumnNames,
   generateAuditV1Payload,
@@ -3365,8 +3366,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       transaction = await this.dbDriver.transaction();
 
-      for (const o of toBeUpdated) {
-        await transaction(this.tnPath).update(o.d).where(o.wherePk);
+      if (
+        this.model.primaryKeys.length === 1 &&
+        (this.isPg || this.isMySQL || this.isSqlite)
+      ) {
+        await batchUpdate(
+          transaction,
+          this.tnPath,
+          toBeUpdated.map((o) => o.d),
+          this.model.primaryKey.column_name,
+        );
+      } else {
+        for (const o of toBeUpdated) {
+          await transaction(this.tnPath).update(o.d).where(o.wherePk);
+        }
       }
 
       await transaction.commit();

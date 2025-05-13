@@ -8,8 +8,7 @@
 
 stdenv.mkDerivation (finalAttrs: {
   inherit version;
-
-  pname = "nocodb";
+  pname = "nocodb-frontend";
 
   src = lib.cleanSourceWith {
     filter =
@@ -52,7 +51,6 @@ stdenv.mkDerivation (finalAttrs: {
     homepage = "https://nocodb.com/";
     platforms = lib.platforms.linux ++ lib.platforms.darwin;
     license = lib.licenses.agpl3Plus;
-    mainProgram = finalAttrs.pname;
     maintainers = with lib.maintainers; [ sinanmohd ];
   };
 })

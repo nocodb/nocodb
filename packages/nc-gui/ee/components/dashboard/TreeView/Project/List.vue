@@ -470,7 +470,9 @@ watch([searchInputRef, showProjectList], () => {
                   </div>
                 </template>
                 <template v-if="!isWorkspaceLoading && !filteredStarredProjectList.length" #footer>
-                  <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">No matching bases</div>
+                  <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">
+                    No results found for your search.
+                  </div>
                 </template>
               </Draggable>
             </div>
@@ -496,16 +498,14 @@ watch([searchInputRef, showProjectList], () => {
                     </ProjectWrapper>
                   </div>
                 </template>
-                <template
-                  v-if="!isWorkspaceLoading && (!filteredMonStarredProjectList.length || !nonStarredProjectList.length)"
-                  #footer
-                >
+                <template v-if="!isWorkspaceLoading && !filteredMonStarredProjectList.length" #footer>
                   <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">
-                    {{ !nonStarredProjectList.length ? 'No Bases' : 'No matching bases' }}
+                    No results found for your search.
                   </div>
                 </template>
               </Draggable>
             </div>
+            <div v-else class="nc-project-home-section-item text-nc-content-gray-muted font-normal">No Bases</div>
           </div>
 
           <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />

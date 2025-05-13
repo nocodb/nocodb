@@ -453,7 +453,12 @@ const showCreateNewAsDropdown = computed(() => {
             <div class="flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
               <div v-if="base?.sources?.[0]?.enabled" class="flex-1">
                 <div class="transition-height duration-200">
-                  <DashboardTreeViewTableList :base="base" :source-index="0" @create-table="addNewProjectChildEntity" />
+                  <DashboardTreeViewTableList
+                    :base="base"
+                    :source-index="0"
+                    @create-table="addNewProjectChildEntity"
+                    :show-create-table-btn="showCreateNewAsDropdown"
+                  />
                 </div>
               </div>
 
@@ -647,7 +652,7 @@ const showCreateNewAsDropdown = computed(() => {
                           :key="`sortable-${source.id}-${source.id && source.id in keys ? keys[source.id] : '0'}`"
                           :nc-source="source.id"
                         >
-                          <DashboardTreeViewTableList :base="base" :source-index="baseIndex" />
+                          <DashboardTreeViewTableList :base="base" :source-index="baseIndex" :show-create-table-btn="false" />
                         </div>
                       </a-collapse-panel>
                     </a-collapse>

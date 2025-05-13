@@ -8,9 +8,11 @@ const props = withDefaults(
   defineProps<{
     base: BaseType
     sourceIndex?: number
+    showCreateTableBtn?: boolean
   }>(),
   {
     sourceIndex: 0,
+    showCreateTableBtn: false,
   },
 )
 
@@ -141,7 +143,7 @@ const availableTables = computed(() => {
     <template v-if="base">
       <template v-if="availableTables.length === 0">
         <div
-          v-if="isNewSidebarEnabled"
+          v-if="isNewSidebarEnabled && showCreateTableBtn"
           :class="{
             'text-brand-500 hover:text-brand-600': openedProject?.id === base.id,
             'text-gray-500 hover:text-brand-500': openedProject?.id !== base.id,

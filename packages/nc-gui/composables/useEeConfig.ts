@@ -45,6 +45,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isTopBannerVisible = computed(() => false)
 
+  const blockWsImageLogoUpload = computed(() => true)
+
   const getLimit = (..._args: any[]) => {}
 
   const getStatLimit = (..._args: any[]) => {}
@@ -125,6 +127,7 @@ export const useEeConfig = createSharedComposable(() => {
     gracePeriodEndDate,
     isTopBannerVisible,
     showUpgradeToUploadWsImage,
+    blockWsImageLogoUpload,
     isSideBannerExpanded,
     cloudFeatures,
   }

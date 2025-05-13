@@ -1,9 +1,29 @@
 <script lang="ts" setup>
+const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
+
 const { appInfo } = useGlobal()
 </script>
 
 <template>
-  <div class="flex flex-row flex-grow pl-0.5 pr-1 py-0.5 rounded-md w-full" style="max-width: calc(100% - 2.5rem)">
+  <div v-if="isMiniSidebar" data-testid="nc-workspace-menu" class="nc-workspace-menu nc-mini-sidebar-ws-item">
+    <a href="https://github.com/nocodb/nocodb" target="_blank" rel="noopener noreferrer">
+      <NcTooltip :disabled="!appInfo?.version || isEeUI" placement="right" close-on-click>
+        <template #title>{{ appInfo?.version }}</template>
+
+        <GeneralWorkspaceIcon
+          :workspace="{
+            id: 'nc',
+            meta: {},
+          }"
+          icon-bg-color="#F4F4F5"
+          show-nocodb-icon
+          class="flex-none border-1 border-nc-border-gray-medium"
+          size="mini-sidebar"
+        />
+      </NcTooltip>
+    </a>
+  </div>
+  <div v-else class="flex flex-row flex-grow pl-0.5 pr-1 py-0.5 rounded-md w-full" style="max-width: calc(100% - 2.5rem)">
     <div class="flex-grow min-w-20">
       <div
         data-testid="nc-workspace-menu"

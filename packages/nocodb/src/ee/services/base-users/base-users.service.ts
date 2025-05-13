@@ -451,9 +451,25 @@ export class BaseUsersService extends BaseUsersServiceCE {
       ncMeta,
     );
 
+    const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
+    const newRolePower = reverseOrderedProjectRoles.indexOf(
+      param.baseUser.roles as ProjectRoles,
+    );
+
+    // Check if current user has sufficient privilege to assign this role
+    if (newRolePower > getProjectRolePower(param.req.user)) {
+      NcError.baseUserError(`Insufficient privilege to assign this role`);
+    }
+
     const transaction = await ncMeta.startTransaction();
 
     try {
+      if (
+        getProjectRolePower(targetUser) > getProjectRolePower(param.req.user)
+      ) {
+        NcError.baseUserError(`Insufficient privilege to update user`);
+      }
+
       // if old role is owner and there is only one owner then restrict update
       if (this.isOldRoleIsOwner(targetUser)) {
         const baseUsers = await BaseUser.getUsersList(
@@ -474,21 +490,6 @@ export class BaseUsersService extends BaseUsersServiceCE {
           },
           transaction,
         );
-      }
-      const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
-      const newRolePower = reverseOrderedProjectRoles.indexOf(
-        param.baseUser.roles as ProjectRoles,
-      );
-
-      // Check if current user has sufficient privilege to assign this role
-      if (newRolePower > getProjectRolePower(param.req.user)) {
-        NcError.baseUserError(`Insufficient privilege to assign this role`);
-      }
-
-      if (
-        getProjectRolePower(targetUser) > getProjectRolePower(param.req.user)
-      ) {
-        NcError.baseUserError(`Insufficient privilege to update user`);
       }
 
       await checkSeatLimit(

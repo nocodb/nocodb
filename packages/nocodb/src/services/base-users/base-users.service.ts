@@ -110,6 +110,16 @@ export class BaseUsersService {
     const invite_token = uuidv4();
     const error = [];
 
+    const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
+    const newRolePower = reverseOrderedProjectRoles.indexOf(
+      param.baseUser.roles as ProjectRoles,
+    );
+
+    // Check if current user has sufficient privilege to assign this role
+    if (newRolePower > getProjectRolePower(param.req.user)) {
+      NcError.baseUserError(`Insufficient privilege to assign this role`);
+    }
+
     for (const email of emails) {
       // add user to base if user already exist
       const user = await User.getByEmail(email, ncMeta);
@@ -158,16 +168,6 @@ export class BaseUsersService {
             baseId: param.baseId,
             req: param.req,
           });
-        }
-
-        const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
-        const newRolePower = reverseOrderedProjectRoles.indexOf(
-          param.baseUser.roles as ProjectRoles,
-        );
-
-        // Check if current user has sufficient privilege to assign this role
-        if (newRolePower > getProjectRolePower(param.req.user)) {
-          NcError.baseUserError(`Insufficient privilege to assign this role`);
         }
 
         // if already exists and has a role then throw error

@@ -455,6 +455,28 @@ export const useBases = defineStore('basesStore', () => {
     }
   }
 
+  /**
+   * Will have to show base home page sidebar if any base/table/view/script is active
+   */
+  watch(
+    [
+      () => route.value.params.baseId,
+      () => route.value.params.viewId,
+      () => route.value.params.viewTitle,
+      () => route.value.params.automationId,
+    ],
+    ([newBaseId, newTableId, newViewId, newAutomationId], [oldBaseId, oldTableId, oldViewId, oldAutomationId]) => {
+      if (!showProjectList.value) return
+
+      showProjectList.value = !(
+        newBaseId !== oldBaseId ||
+        newTableId !== oldTableId ||
+        newViewId !== oldViewId ||
+        newAutomationId !== oldAutomationId
+      )
+    },
+  )
+
   return {
     bases,
     basesList,

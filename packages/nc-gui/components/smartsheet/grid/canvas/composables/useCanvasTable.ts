@@ -176,6 +176,7 @@ export function useCanvasTable({
   const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
   const elementMap = new CanvasElement([])
+  const { appInfo } = useGlobal()
 
   // Row Reorder related states
   const isDragging = ref(false)
@@ -283,7 +284,7 @@ export function useCanvasTable({
          * Add any extra computed things inside extra and use it
          */
         f.extra = {}
-
+        f.extra.allowLocalUrl = appInfo.value?.allowLocalUrl
         if ([UITypes.Lookup, UITypes.Rollup].includes(f.uidt)) {
           relatedColObj = metas.value?.[f.fk_model_id!]?.columns?.find(
             (c) => c.id === f?.colOptions?.fk_relation_column_id,

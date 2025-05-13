@@ -1,4 +1,4 @@
-import { isValidURL } from ".";
+import { isValidURL } from '.';
 
 describe('isValidURL', () => {
   it('should return true for a valid URL', () => {
@@ -18,7 +18,9 @@ describe('isValidURL', () => {
   });
 
   it('should return true for a valid localhost URL', () => {
-    expect(isValidURL('http://localhost:8081/receipts')).toBe(true);
+    expect(
+      isValidURL('http://localhost:8081/receipts', { require_tld: false })
+    ).toBe(true);
   });
 
   it('should return true for a valid URL with an invalid protocol', () => {
@@ -40,9 +42,8 @@ describe('isValidURL', () => {
   it('should return false for an invalid URL', () => {
     expect(isValidURL('invalid-url')).toBe(false);
   });
-  
+
   it('should return true for a valid URL with an invalid protocol', () => {
     expect(isValidURL('ftp://www.google.com')).toBe(true);
   });
 });
-

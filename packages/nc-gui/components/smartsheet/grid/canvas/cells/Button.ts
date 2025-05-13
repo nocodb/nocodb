@@ -243,8 +243,12 @@ export const ButtonCellRenderer: CellRenderer = {
 
     if (buttonMeta.type === ButtonActionsType.Url) {
       const url = addMissingUrlSchma(value?.url?.toString() ?? '')
-
-      disabledState = !(url && isValidURL(url))
+      disabledState = !(
+        url &&
+        isValidURL(url, {
+          require_tld: !column.extra?.allowLocalUrl,
+        })
+      )
     }
 
     const hasIcon = !!buttonMeta.icon
@@ -385,7 +389,7 @@ export const ButtonCellRenderer: CellRenderer = {
       mousePosition.y <= startY + buttonHeight
 
     if (!isHovered) return false
-    await actionManager.executeButtonAction([pk], column, { row: [row], path })
+    await actionManager.executeButtonAction([pk], column, { row: [row], path, allowLocalUrl: column.extra?.allowLocalUrl })
     return true
   },
 

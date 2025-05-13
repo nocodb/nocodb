@@ -16,7 +16,7 @@ mkShell {
   ];
 
   shellHook = ''
-    export PS1="\033[0;32m[ ]\033[0m $PS1"
+    export PS1="\033[0;34m[ ]\033[0m $PS1"
     export NODE_ENV="development"
 
     export npm_config_nodedir=${nodejs}

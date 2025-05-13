@@ -36,7 +36,11 @@
               nocodb = pkgs.callPackage ./nix/packages/nocodb.nix {
                 inherit version;
               };
+
               frontend = pkgs.callPackage ./nix/packages/frontend.nix {
+                inherit version;
+              };
+              backend = pkgs.callPackage ./nix/packages/backend.nix {
                 inherit version;
               };
 

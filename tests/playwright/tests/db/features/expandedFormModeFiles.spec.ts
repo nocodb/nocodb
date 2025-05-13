@@ -3,7 +3,7 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
 import { isEE } from '../../../setup/db';
 
-test.describe.only('Expanded form files mode', () => {
+test.describe('Expanded form files mode', () => {
   // skip if not EE
   if (!isEE()) {
     test.skip();

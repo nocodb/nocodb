@@ -54,6 +54,9 @@
                 docker_aio = pkgs.callPackage ./nix/docker/all_in_one {
                   nocodb = self.packages.${system}.nocodb;
                 };
+                docker_frontend = pkgs.callPackage ./nix/docker/frontend {
+                  frontend = self.packages.${system}.frontend;
+                };
               }
             )
           );

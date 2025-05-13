@@ -687,7 +687,7 @@ defineExpose({
             class="nc-sidebar-node base-title-node flex-grow rounded-md group flex items-center w-full"
             :class="{
               'text-subHeading2 gap-2': isProjectHeader,
-              'h-7 pr-1 pl-1.5 xs:(pl-0)': !isProjectHeader,
+              'h-7 pr-1 pl-2.5 xs:(pl-0)': !isProjectHeader,
               'bg-primary-selected active': activeProjectId === base.id && baseViewOpen && !isMobileMode && !isProjectHeader,
               'hover:bg-gray-200': !(activeProjectId === base.id && baseViewOpen) && !isProjectHeader,
             }"

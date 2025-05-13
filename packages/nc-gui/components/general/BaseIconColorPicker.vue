@@ -13,6 +13,7 @@ const props = withDefaults(
   {
     type: NcProjectType.DB,
     size: 'small',
+    iconClass: '',
   },
 )
 
@@ -73,7 +74,7 @@ watch(
           <template #title> {{ $t('tooltip.changeIconColour') }} </template>
 
           <div>
-            <GeneralProjectIcon :color="colorRef" :type="type" />
+            <GeneralProjectIcon :color="colorRef" :type="type" :class="iconClass" />
           </div>
         </NcTooltip>
       </div>

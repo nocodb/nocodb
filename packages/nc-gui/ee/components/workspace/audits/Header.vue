@@ -416,7 +416,7 @@ const showWorkspaceSelector = ref(false)
                 <GeneralProjectIcon
                   :color="option?.meta?.iconColor"
                   :type="option?.type || 'dataoption'"
-                  class="nc-view-icon w-4 h-4 flex-none"
+                  class="nc-view-icon flex-none"
                 />
 
                 <NcTooltip class="max-w-full truncate text-gray-800" placement="top" show-on-truncate-only>

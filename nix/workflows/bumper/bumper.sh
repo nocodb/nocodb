@@ -13,6 +13,11 @@ hash_set() {
 	sed -i "s|sha256-[A-Za-z0-9+/=]\+|$1|" "$package_path"
 }
 
+err() {
+	echo error: "$@"
+	exit 1
+}
+
 early_escape_possible() {
 	last_pnpm_time="$(git log -1 --format="%at" pnpm-lock.yaml)"
 	last_bump_time=$(git log --oneline --grep="^${commit_message}$" -n 1 --format="%at")
@@ -41,15 +46,16 @@ nix_hash() {
 ##########
 
 if [ ! -w "$package_path" ] || [ ! -r "$package_path" ]; then
-	echo "$package_path: not writiable or readable"
-	exit 1
+	err "$package_path is not writiable or readable"
+elif [ -n "$(git status --untracked-files=no --porcelain)" ]; then
+	err "dirty git tree"
 fi
 
 if early_escape_possible; then
 	echo "early escape success : nix bump commit is newer"
 	exit 0
 else
-	echo "early esacpe failure : npm bump commit is newer, here we go again"
+	echo "npm bump commit is newer, here we go again"
 fi
 
 fake_hash="sha256-0000000000000000000000000000000000000000000="
@@ -65,7 +71,10 @@ if [ "$cur_hash" != "$new_hash" ]; then
 	git config --global user.name "$commit_author"
 	git config --global user.email "$commit_email"
 	git commit -m "$commit_message"
-	git push
+
+	if [ "$1" = "--push" ]; then
+		git push
+	fi
 else
 	echo "hash did not change: waiting for your next commit"
 	hash_set "$cur_hash"

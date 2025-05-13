@@ -516,13 +516,13 @@ watch([searchInputRef, showProjectList], () => {
     </Transition>
 
     <!-- Slide in Project Home -->
-    <Transition :name="transitionName" appear>
-      <div v-if="!showProjectList" key="project-home" class="absolute w-full h-full top-0 left-0 z-5 flex flex-col">
-        <ProjectWrapper
-          v-if="activeProjectId && openedBase?.id"
-          :base-role="openedBase?.project_role || stringifyRolesObj(workspaceRoles)"
-          :base="openedBase"
-        >
+    <Transition name="layout" mode="out-in" :duration="400" appear>
+      <div
+        v-if="!showProjectList && activeProjectId && openedBase?.id"
+        key="project-home"
+        class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
+      >
+        <ProjectWrapper :base-role="openedBase?.project_role || stringifyRolesObj(workspaceRoles)" :base="openedBase">
           <DashboardTreeViewProjectHome>
             <template #footer>
               <slot name="footer"></slot>

@@ -25,6 +25,8 @@ const searchQuery = ref('')
 
 const searchInputRef = ref()
 
+const isCreateProjectOpen = ref(false)
+
 const baseStore = useBase()
 
 const { loadTables } = baseStore
@@ -48,6 +50,10 @@ const { allRecentViews } = storeToRefs(useViewsStore())
 const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineProjectScope } = useUndoRedo()
+
+const openedBase = computed(() => {
+  return basesList.value.find((b) => b.id === activeProjectId.value)
+})
 
 const contextMenuTarget = reactive<{ type?: 'base' | 'source' | 'table' | 'main' | 'layout'; value?: any }>({})
 
@@ -375,36 +381,136 @@ watch([searchInputRef, showProjectList], () => {
 </script>
 
 <template>
-  <div class="nc-treeview-container flex flex-col justify-between select-none">
-    <div v-if="!isSharedBase" class="text-gray-500 font-medium pl-3.5 mb-1">{{ $t('objects.projects') }}</div>
-    <div mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
-      <div v-if="basesList?.length">
-        <Draggable
-          :model-value="basesList"
-          :disabled="isMobileMode || !isUIAllowed('baseReorder') || basesList?.length < 2"
-          item-key="id"
-          handle=".base-title-node"
-          ghost-class="ghost"
-          :filter="isTouchEvent"
-          @change="onMove($event)"
-        >
-          <template #item="{ element: baseItem }">
-            <div :key="baseItem.id">
-              <ProjectWrapper :base-role="baseItem.project_role" :base="baseItem">
-                <DashboardTreeViewProjectNode />
-              </ProjectWrapper>
-            </div>
-          </template>
-        </Draggable>
-      </div>
+  <div class="relative w-full h-full overflow-hidden flex items-stretch">
+    <Transition :name="transitionName" appear>
+      <div
+        v-if="showProjectList"
+        key="project-list"
+        class="nc-treeview-container nc-treeview-base-list absolute w-full h-full top-0 left-0 z-10"
+      >
+        <div class="w-full">
+          <DashboardSidebarHeaderWrapper></DashboardSidebarHeaderWrapper>
+          <div class="px-2 h-11 flex items-center">
+            <a-input
+              ref="searchInputRef"
+              v-model:value="searchQuery"
+              type="text"
+              class="nc-input-border-on-value nc-input-shadow !h-8 !px-2.5 !py-1 !rounded-lg"
+              :placeholder="`${$t('activity.searchProject').charAt(0).toUpperCase()}${$t('activity.searchProject')
+                .slice(1)
+                .toLowerCase()}`"
+              allow-clear
+              @keydown.stop
+            >
+              <template #prefix>
+                <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-gray-500 group-hover:text-black" />
+              </template>
+            </a-input>
+          </div>
 
-      <WorkspaceEmptyPlaceholder v-else-if="!isWorkspaceLoading" />
-    </div>
-    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
+          <div class="nc-project-home-section">
+            <WorkspaceCreateProjectBtn
+              v-model:is-open="isCreateProjectOpen"
+              modal
+              type="text"
+              class="nc-sidebar-create-base-btn nc-project-home-section-item !text-brand-500 !hover:(text-brand-600 bg-none) !xs:hidden w-full"
+              data-testid="nc-sidebar-create-base-btn"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="plus" />
+
+                <div class="flex">{{ $t('title.createBase') }}</div>
+              </div>
+            </WorkspaceCreateProjectBtn>
+          </div>
+        </div>
+        <div class="nc-treeview flex-1 relative overflow-auto nc-scrollbar-thin">
+          <div v-if="!isSharedBase" class="text-gray-500 font-medium pl-3.5 mb-1">{{ $t('objects.projects') }}</div>
+          <div mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
+            <div v-if="basesList?.length">
+              <Draggable
+                :model-value="basesList"
+                :disabled="isMobileMode || !isUIAllowed('baseReorder') || basesList?.length < 2"
+                item-key="id"
+                handle=".base-title-node"
+                ghost-class="ghost"
+                :filter="isTouchEvent"
+                @change="onMove($event)"
+              >
+                <template #item="{ element: baseItem }">
+                  <div :key="baseItem.id">
+                    <ProjectWrapper :base-role="baseItem.project_role" :base="baseItem">
+                      <DashboardTreeViewProjectNode />
+                    </ProjectWrapper>
+                  </div>
+                </template>
+              </Draggable>
+            </div>
+
+            <WorkspaceEmptyPlaceholder v-else-if="!isWorkspaceLoading" />
+          </div>
+        </div>
+        <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
+      </div>
+    </Transition>
+    <!-- Slide in Project Home -->
+    <Transition name="layout" mode="out-in" :duration="400" appear>
+      <div v-if="!showProjectList" key="project-home" class="absolute w-full h-full top-0 left-0 z-5 flex flex-col">
+        <ProjectWrapper v-if="activeProjectId && openedBase?.id" :base-role="openedBase?.project_role" :base="openedBase">
+          <DashboardTreeViewProjectHome>
+            <template #footer>
+              <slot name="footer"></slot>
+            </template>
+          </DashboardTreeViewProjectHome>
+        </ProjectWrapper>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <style scoped lang="scss">
+.slide-left-enter-active,
+.slide-left-leave-active,
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  will-change: transform, opacity;
+}
+
+.slide-left-enter-from {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+.slide-left-enter-to {
+  transform: translateX(0);
+  opacity: 1;
+}
+.slide-left-leave-from {
+  transform: translateX(0);
+  opacity: 1;
+}
+.slide-left-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.slide-right-enter-from {
+  transform: translateX(100%);
+  opacity: 0;
+}
+.slide-right-enter-to {
+  transform: translateX(0);
+  opacity: 1;
+}
+.slide-right-leave-from {
+  transform: translateX(0);
+  opacity: 1;
+}
+.slide-right-leave-to {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
 .ghost,
 .ghost > * {
   @apply pointer-events-none;

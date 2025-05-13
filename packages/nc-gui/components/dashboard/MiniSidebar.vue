@@ -57,10 +57,6 @@ const navigateToIntegrations = () => {
 
   _navigateToIntegrations('', cmdOrCtrl)
 }
-
-onMounted(() => {
-  showProjectList.value = !route.value.params.baseId
-})
 </script>
 
 <template>

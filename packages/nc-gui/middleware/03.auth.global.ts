@@ -1,4 +1,5 @@
 import type { Api } from 'nocodb-sdk'
+import { NcErrorType } from 'nocodb-sdk'
 import type { Actions } from '~/composables/useGlobal/types'
 
 /**
@@ -167,6 +168,8 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
  * If short-token present, try using it to generate long-living token before navigating to the next page
  */
 async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn']) {
+  const { setError } = useSsoError()
+
   if (window.location.search && /\bshort-token=/.test(window.location.search)) {
     let extraProps: any = {}
     try {
@@ -188,6 +191,15 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn']) {
 
       signIn(token)
     } catch (e: any) {
+      if (e?.response?.data?.error === NcErrorType.MAX_WORKSPACE_LIMIT_REACHED) {
+        // Store error information in global state
+        setError({
+          type: NcErrorType.MAX_WORKSPACE_LIMIT_REACHED,
+          message: e?.response?.data?.message || 'Maximum workspace limit reached',
+        })
+        // navigate to sso page and display the error details
+        return await navigateTo('/sso')
+      }
       message.error(await extractSdkResponseErrorMsg(e))
     }
 

@@ -61,6 +61,9 @@
                 docker_frontend = pkgs.callPackage ./nix/docker/frontend {
                   frontend = self.packages.${system}.frontend;
                 };
+                docker_backend = pkgs.callPackage ./nix/docker/backend {
+                  backend = self.packages.${system}.backend;
+                };
               }
             )
           );

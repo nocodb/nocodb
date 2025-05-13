@@ -20,7 +20,6 @@
 
 stdenv.mkDerivation (finalAttrs: {
   inherit version;
-
   pname = "nocodb-backend";
 
   src = lib.cleanSourceWith {

@@ -23,7 +23,7 @@
   "license": "AGPL-3.0-or-later",
   "keywords": [],
   "scripts": {
-    "build": "pnpm generate:sdk && run-p build:ce:*",
+    "build": "rimraf ./build && pnpm generate:sdk && run-p build:ce:*",
     "build:ce:main": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "build:ce:module": "tsc -p tsconfig.module.json && tsc-alias -p tsconfig.module.json",
     "build:ee": "rimraf ./build && pnpm generate:sdk:ee && run-p build:ee:*",
@@ -38,7 +38,7 @@
     "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.ts}\"",
     "test:unit": "ENV_FILE=./config/.env.test jest",
     "watch:build": "tsc -p tsconfig.json -w",
-    "generate:sdk": "pnpm dlx swagger-typescript-api@10.0.3 -r -p ../nocodb/src/schema/swagger.json -o ./src/lib/  --axios --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates",
+    "generate:sdk": "node build-script/mergeAndGenerateSwaggerCE && pnpm dlx swagger-typescript-api@10.0.3 -r -p ./nc_swagger.json -o ./src/lib/  --axios --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates; rm ./nc_swagger.json",
     "generate:sdk:ee": "node build-script/mergeAndGenerateSwagger && pnpm dlx  swagger-typescript-api@10.0.3 -r -p ./nc_swagger.json -o ./src/lib/  --axios --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates; rm ./nc_swagger.json",
     "preinstall": "npx only-allow pnpm"
   },

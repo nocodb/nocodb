@@ -1,6 +1,10 @@
 import { CronExpressionParser } from 'cron-parser';
-import { type NcContext, SyncTrigger } from 'nocodb-sdk';
-import type { SyncType } from 'nocodb-sdk';
+import {
+  type NcContext,
+  type OnDeleteAction,
+  SyncTrigger,
+  type SyncType,
+} from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -24,6 +28,8 @@ export default class SyncConfig {
 
   last_sync_at: string | null;
   next_sync_at: string | null;
+
+  on_delete_action: OnDeleteAction;
 
   created_at: string;
   updated_at: string;
@@ -71,6 +77,7 @@ export default class SyncConfig {
       'last_sync_at',
       'next_sync_at',
       'sync_job_id',
+      'on_delete_action',
     ]);
 
     const { id } = await ncMeta.metaInsert2(
@@ -96,6 +103,7 @@ export default class SyncConfig {
       'last_sync_at',
       'next_sync_at',
       'sync_job_id',
+      'on_delete_action',
     ]);
 
     await ncMeta.metaUpdate(

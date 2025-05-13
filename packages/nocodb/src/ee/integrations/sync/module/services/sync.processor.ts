@@ -1,6 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
-import { NcApiVersion, type NcContext, type NcRequest } from 'nocodb-sdk';
+import {
+  NcApiVersion,
+  type NcContext,
+  type NcRequest,
+  OnDeleteAction,
+} from 'nocodb-sdk';
+import { v4 as uuidv4 } from 'uuid';
 import type { Job } from 'bull';
 import type {
   AuthIntegration,
@@ -12,6 +18,7 @@ import { NcError } from '~/helpers/catchError';
 import { TablesService } from '~/services/tables.service';
 import { DataTableService } from '~/services/data-table.service';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
+import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 
 @Injectable()
 export class SyncModuleSyncDataProcessor {
@@ -20,6 +27,7 @@ export class SyncModuleSyncDataProcessor {
   constructor(
     protected readonly tablesService: TablesService,
     protected readonly dataTableService: DataTableService,
+    protected readonly bulkDataAliasService: BulkDataAliasService,
     private readonly jobsLogService: JobsLogService,
   ) {}
 
@@ -127,6 +135,92 @@ export class SyncModuleSyncDataProcessor {
     }
   }
 
+  async deleteStaleRecords(
+    context: NcContext,
+    syncConfig: SyncConfig,
+    model: Model,
+    syncRunId: string,
+    onDeleteAction: OnDeleteAction | null,
+    req: NcRequest,
+  ) {
+    let preserveDeleted = true;
+
+    if (onDeleteAction) {
+      preserveDeleted = onDeleteAction === OnDeleteAction.MarkDeleted;
+    }
+
+    // If the model is a junction table need to always delete
+    if (model.mm) {
+      preserveDeleted = false;
+    }
+
+    if (preserveDeleted) {
+      // Mark records as deleted instead of actually deleting them
+      await this.bulkDataAliasService.bulkDataUpdateAll(context, {
+        baseName: model.base_id,
+        tableName: model.id,
+        cookie: req,
+        body: {
+          RemoteDeleted: true,
+          RemoteDeletedAt: dayjs().utc().toISOString(),
+        },
+        query: {
+          filterArr: [
+            {
+              comparison_op: 'neq',
+              value: syncRunId,
+              logical_op: 'and',
+              fk_column_id: model.columns.find((c) => c.title === 'SyncRunId')
+                ?.id,
+            },
+            {
+              comparison_op: 'eq',
+              value: syncConfig.id,
+              logical_op: 'and',
+              fk_column_id: model.columns.find(
+                (c) => c.title === 'SyncConfigId',
+              )?.id,
+            },
+            {
+              comparison_op: 'eq',
+              value: false,
+              logical_op: 'and',
+              fk_column_id: model.columns.find(
+                (c) => c.title === 'RemoteDeleted',
+              )?.id,
+            },
+          ],
+        },
+      });
+    } else {
+      // Delete records that no longer exist in the source
+      await this.bulkDataAliasService.bulkDataDeleteAll(context, {
+        baseName: model.base_id,
+        tableName: model.id,
+        req,
+        query: {
+          filterArr: [
+            {
+              comparison_op: 'neq',
+              value: syncRunId,
+              logical_op: 'and',
+              fk_column_id: model.columns.find((c) => c.title === 'SyncRunId')
+                ?.id,
+            },
+            {
+              comparison_op: 'eq',
+              value: syncConfig.id,
+              logical_op: 'and',
+              fk_column_id: model.columns.find(
+                (c) => c.title === 'SyncConfigId',
+              )?.id,
+            },
+          ],
+        },
+      });
+    }
+  }
+
   async job(job: Job<SyncDataSyncModuleJobData>) {
     const { context, syncConfigId, trigger: _trigger, req } = job.data;
 
@@ -201,6 +295,8 @@ export class SyncModuleSyncDataProcessor {
       const dataStream = await wrapper.fetchData(auth, {});
 
       const RemoteSyncedAt = dayjs().utc().toISOString();
+      // Generate a unique ID for this sync run
+      const syncRunId = uuidv4();
 
       const dataBuffers = new Map<string, Record<string, any>[]>();
       const linkBuffers = new Map<string, Record<string, any>[]>();
@@ -212,6 +308,8 @@ export class SyncModuleSyncDataProcessor {
           isParent: boolean;
         }
       >();
+
+      let streamError: boolean = false;
 
       await new Promise<void>((resolve, reject) => {
         dataStream.on('data', async (data) => {
@@ -233,6 +331,8 @@ export class SyncModuleSyncDataProcessor {
               RemoteId: data.recordId,
               RemoteSyncedAt,
               SyncConfigId: syncConfig.id,
+              SyncRunId: syncRunId,
+              RemoteDeleted: false,
             });
 
             const dataBuffer = dataBuffers.get(model.id);
@@ -291,6 +391,7 @@ export class SyncModuleSyncDataProcessor {
                   RemoteId: string;
                   SyncConfigId: string;
                   RemoteSyncedAt: string;
+                  SyncRunId: string;
                 }[] = [];
 
                 for (const record of data.links[linkField]) {
@@ -301,6 +402,7 @@ export class SyncModuleSyncDataProcessor {
                       RemoteId: `${record}-${data.recordId}`,
                       SyncConfigId: syncConfig.id,
                       RemoteSyncedAt,
+                      SyncRunId: syncRunId,
                     });
                   } else {
                     linkArray.push({
@@ -309,6 +411,7 @@ export class SyncModuleSyncDataProcessor {
                       RemoteId: `${data.recordId}-${record}`,
                       SyncConfigId: syncConfig.id,
                       RemoteSyncedAt,
+                      SyncRunId: syncRunId,
                     });
                   }
                 }
@@ -360,6 +463,7 @@ export class SyncModuleSyncDataProcessor {
         });
 
         dataStream.on('error', async (error) => {
+          streamError = true;
           reject(error);
         });
 
@@ -403,6 +507,24 @@ export class SyncModuleSyncDataProcessor {
               }
             }
 
+            // Process deletions for records that no longer exist in the source
+            // Use the syncRunId to identify records that weren't updated in this sync
+            for (const [modelId, _] of modelSyncTargetMap.entries()) {
+              const model = modelSyncTargetMap.get(modelId);
+
+              // If there was an error, skip deleting records
+              if (model && !streamError) {
+                await this.deleteStaleRecords(
+                  context,
+                  syncConfig,
+                  model,
+                  syncRunId,
+                  syncConfig.on_delete_action,
+                  req,
+                );
+              }
+            }
+
             await SyncConfig.update(context, syncConfig.id, {
               sync_job_id: null,
               last_sync_at: RemoteSyncedAt,
@@ -413,7 +535,7 @@ export class SyncModuleSyncDataProcessor {
               ),
             });
 
-            logBasic(`Sync Completed`);
+            logBasic(`Sync Completed: ${recordCounter} records synced`);
 
             resolve();
           } catch (error) {

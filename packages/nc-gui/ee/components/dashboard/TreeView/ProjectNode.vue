@@ -905,7 +905,9 @@ defineExpose({
                 @mouseenter="showNodeTooltip = false"
                 @mouseleave="showNodeTooltip = true"
               >
-                <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
+                <NcTooltip :title="$t('activity.createTable')" :disabled="!isNewSidebarEnabled" hide-on-click>
+                  <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
+                </NcTooltip>
               </NcButton>
 
               <NcButton

@@ -7,7 +7,7 @@ const { appInfo } = useGlobal()
 <template>
   <div v-if="isMiniSidebar" data-testid="nc-workspace-menu" class="nc-workspace-menu nc-mini-sidebar-ws-item">
     <a href="https://github.com/nocodb/nocodb" target="_blank" rel="noopener noreferrer">
-      <NcTooltip :disabled="!appInfo?.version || isEeUI" placement="right" close-on-click>
+      <NcTooltip :disabled="!appInfo?.version || isEeUI" placement="right" hide-on-click>
         <template #title>{{ appInfo?.version }}</template>
 
         <GeneralWorkspaceIcon

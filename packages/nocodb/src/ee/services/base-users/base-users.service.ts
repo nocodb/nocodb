@@ -458,7 +458,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
 
     // Check if current user has sufficient privilege to assign this role
     if (newRolePower > getProjectRolePower(param.req.user)) {
-      NcError.baseUserError(`Insufficient privilege to assign this role`);
+      NcError.forbidden(`Insufficient privilege to assign this role`);
     }
 
     const transaction = await ncMeta.startTransaction();
@@ -467,7 +467,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       if (
         getProjectRolePower(targetUser) > getProjectRolePower(param.req.user)
       ) {
-        NcError.baseUserError(`Insufficient privilege to update user`);
+        NcError.forbidden(`Insufficient privilege to update user`);
       }
 
       // if old role is owner and there is only one owner then restrict update
@@ -560,7 +560,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
     const base_id = param.baseId;
 
     if (param.req.user?.id === param.userId) {
-      NcError.baseUserError("Admin can't delete themselves!");
+      NcError.badRequest("Admin can't delete themselves!");
     }
 
     const user = await User.get(param.userId);
@@ -600,7 +600,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
         getProjectRolePower(baseUser.base_roles) >
         getProjectRolePower(param.req.user)
       ) {
-        NcError.baseUserError('Insufficient privilege to delete user');
+        NcError.forbidden('Insufficient privilege to delete user');
       }
 
       // if old role is owner and there is only one owner then restrict to delete
@@ -630,7 +630,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
         param.req.user.id === param.userId &&
         param.req.user.roles.includes('owner')
       ) {
-        NcError.baseUserError("Admin can't delete themselves!");
+        NcError.forbidden("Admin can't delete themselves!");
       }
       await BaseUser.delete(context, base_id, param.userId, transaction);
 

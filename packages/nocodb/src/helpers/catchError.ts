@@ -809,7 +809,7 @@ const errorHelpers: {
   },
   [NcErrorType.BASE_USER_ERROR]: {
     message: (message: string) => message || 'Something went wrong',
-    code: 400,
+    code: 422,
   },
 };
 

@@ -75,7 +75,7 @@ export class BaseUsersService {
         base_roles: extractRolesObj(param.baseUser.roles),
       }) > getProjectRolePower(param.req.user)
     ) {
-      NcError.baseUserError(`Insufficient privilege to invite with this role`);
+      NcError.forbidden(`Insufficient privilege to invite with this role`);
     }
 
     if (
@@ -117,7 +117,7 @@ export class BaseUsersService {
 
     // Check if current user has sufficient privilege to assign this role
     if (newRolePower > getProjectRolePower(param.req.user)) {
-      NcError.baseUserError(`Insufficient privilege to assign this role`);
+      NcError.forbidden(`Insufficient privilege to assign this role`);
     }
 
     for (const email of emails) {
@@ -414,11 +414,11 @@ export class BaseUsersService {
 
     // Check if current user has sufficient privilege to assign this role
     if (newRolePower > getProjectRolePower(param.req.user)) {
-      NcError.baseUserError(`Insufficient privilege to assign this role`);
+      NcError.forbidden(`Insufficient privilege to assign this role`);
     }
 
     if (getProjectRolePower(targetUser) > getProjectRolePower(param.req.user)) {
-      NcError.baseUserError(`Insufficient privilege to update user`);
+      NcError.forbidden(`Insufficient privilege to update user`);
     }
 
     const oldBaseUser = await BaseUser.get(
@@ -639,7 +639,7 @@ export class BaseUsersService {
       getProjectRolePower(baseUser.base_roles) >
       getProjectRolePower(param.req.user)
     ) {
-      NcError.baseUserError('Insufficient privilege to delete user');
+      NcError.forbidden('Insufficient privilege to delete user');
     }
 
     // if old role is owner and there is only one owner then restrict to delete
@@ -669,7 +669,7 @@ export class BaseUsersService {
       param.req.user.id === param.userId &&
       param.req.user.roles.includes('owner')
     ) {
-      NcError.baseUserError("Admin can't delete themselves!");
+      NcError.badRequest("Admin can't delete themselves!");
     }
 
     await BaseUser.delete(context, base_id, param.userId, ncMeta);

@@ -246,7 +246,7 @@ export const ButtonCellRenderer: CellRenderer = {
       disabledState = !(
         url &&
         isValidURL(url, {
-          require_tld: allowLocalUrl,
+          require_tld: !allowLocalUrl,
         })
       )
     }

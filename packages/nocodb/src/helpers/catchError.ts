@@ -585,6 +585,7 @@ const errorHelpers: {
   [key in NcErrorType]: {
     message: string | ((...params: string[]) => string);
     code: number;
+    error_code?: NcErrorType;
   };
 } = {
   [NcErrorType.UNKNOWN_ERROR]: {
@@ -796,6 +797,11 @@ const errorHelpers: {
   [NcErrorType.MAX_INSERT_LIMIT_EXCEEDED]: {
     message: (limit: string) => `Maximum ${limit} records during insert`,
     code: 422,
+  },
+  [NcErrorType.MAX_WORKSPACE_LIMIT_REACHED]: {
+    message: () =>
+      `The maximum workspace limit has been reached. Please contact your administrator to request access to a workspace.`,
+    code: 403,
   },
   [NcErrorType.INVALID_VALUE_FOR_FIELD]: {
     message: (message: string) => message,
@@ -1295,6 +1301,12 @@ export class NcError {
   static maxInsertLimitExceeded(limit: number, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.MAX_INSERT_LIMIT_EXCEEDED, {
       params: limit.toString(),
+      ...args,
+    });
+  }
+
+  static maxWorkspaceLimitReached(args?: NcErrorArgs): never {
+    throw new NcBaseErrorv2(NcErrorType.MAX_WORKSPACE_LIMIT_REACHED, {
       ...args,
     });
   }

@@ -532,14 +532,7 @@ defineExpose({
         :overlay-inner-style="{ width: '300px' }"
         trigger="hover"
         :placement="isProjectHeader ? 'rightTop' : 'right'"
-        :disabled="
-          editMode ||
-          isOptionsOpen ||
-          isAddNewProjectChildEntityLoading ||
-          !showNodeTooltip ||
-          !collaborators.length ||
-          isProjectHeader
-        "
+        :disabled="editMode || isOptionsOpen || isAddNewProjectChildEntityLoading || !showNodeTooltip || !collaborators.length"
       >
         <template #title>
           <div class="flex flex-col gap-3">

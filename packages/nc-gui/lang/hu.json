@@ -2263,6 +2263,9 @@
       "createNewTable": "Kezdés a semmiből.",
       "importData": "Fájlokból és külső forrásokból.",
       "connectExternalData": "Valós időben külső adatbázisokhoz."
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

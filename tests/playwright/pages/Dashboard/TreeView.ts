@@ -150,6 +150,8 @@ export class TreeViewPage extends BasePage {
   }) {
     if (skipOpeningModal) return;
 
+    await this.dashboard.leftSidebar.miniSidebarActionClick({ type: 'base' });
+
     const verifyBaseListOpen = await this.dashboard.leftSidebar.verifyBaseListOpen();
 
     switch (type) {

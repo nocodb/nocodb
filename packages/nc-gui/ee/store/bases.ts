@@ -478,7 +478,7 @@ export const useBases = defineStore('basesStore', () => {
       if (!showProjectList.value) return
 
       showProjectList.value = !(
-        newBaseId !== oldBaseId ||
+        (newBaseId && newBaseId !== oldBaseId) ||
         newTableId !== oldTableId ||
         newViewId !== oldViewId ||
         newAutomationId !== oldAutomationId

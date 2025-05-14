@@ -108,7 +108,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       const res = response.list?.reverse?.() || []
 
       audits.value = res.map((audit) => {
-        const user = baseUsers.value.find((u) => u.email === audit.user)
+        const user = baseUsers.value.find((u) => u.id === audit.fk_user_id || u.email === audit.user)
         return {
           ...audit,
           created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],

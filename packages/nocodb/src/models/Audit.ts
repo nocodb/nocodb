@@ -130,12 +130,6 @@ export default class Audit {
 
     const query = Noco.ncMeta
       .knex(MetaTable.AUDIT)
-      .join(
-        MetaTable.USERS,
-        `${MetaTable.USERS}.email`,
-        `${MetaTable.AUDIT}.user`,
-      )
-      .select(`${MetaTable.AUDIT}.*`, `${MetaTable.USERS}.display_name`)
       .where('row_id', row_id)
       .where('fk_model_id', fk_model_id)
       .where('op_type', '!=', AuditOperationTypes.COMMENT)

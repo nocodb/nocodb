@@ -44,6 +44,7 @@ export enum JobTypes {
   ListenImport = 'listen-import',
   SyncModuleSyncData = 'sync-module-sync-data',
   UpdateUsageStats = 'update-usage-stats',
+  CsvImport = 'csv-import',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -179,6 +180,21 @@ export interface DataExportJobData extends JobData {
   viewId: string;
   exportAs: 'csv' | 'json' | 'xlsx';
   ncSiteUrl: string;
+}
+
+export interface CsvImportJobData extends JobData {
+  baseId: string;
+  sourceId: string;
+  modelId?: string; // Optional - if importing to existing model
+  csvData: string | { file: string; url: string }; // CSV data or file path/URL
+  columnMapping: Record<string, string>; // Mapping of CSV columns to model columns
+  options: {
+    firstRowAsHeaders: boolean;
+    delimiter?: string;
+    encoding?: string;
+    createNewTable?: boolean;
+    tableName?: string;
+  };
 }
 
 export interface ThumbnailGeneratorJobData extends JobData {

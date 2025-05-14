@@ -18,6 +18,7 @@ const isDropdownOpen = ref(false)
           active: isDropdownOpen,
         }"
         type="text"
+        data-testid="nc-sidebar-notification-btn"
       >
         <span
           v-if="unreadCount"

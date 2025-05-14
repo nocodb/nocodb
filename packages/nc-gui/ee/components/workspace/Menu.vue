@@ -197,11 +197,7 @@ const onWorkspaceCreateClick = () => {
                   </template>
                 </div>
               </div>
-              <NcTooltip
-                v-if="activeWorkspace.roles === WorkspaceUserRoles.OWNER"
-                class="!z-1 cursor-pointer"
-                placement="bottomRight"
-              >
+              <NcTooltip v-if="activeWorkspace.roles === WorkspaceUserRoles.OWNER" class="!z-1" placement="bottomRight">
                 <template #title>
                   {{ $t('objects.roleType.owner') }}
                 </template>

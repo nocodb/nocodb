@@ -595,6 +595,7 @@ defineExpose({
                     :type="base?.type"
                     :model-value="parseProp(base.meta).iconColor"
                     size="small"
+                    :icon-class="isProjectHeader ? 'h-6 w-6' : ''"
                     :readonly="(base?.type && base?.type !== 'database') || !isUIAllowed('baseRename')"
                     @update:model-value="setColor($event, base)"
                   >

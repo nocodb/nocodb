@@ -32,6 +32,8 @@ const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
+const { baseHomeSearchQuery } = storeToRefs(useBases())
+
 const { isSharedBase } = storeToRefs(useBase())
 
 const { $e } = useNuxtApp()
@@ -397,6 +399,10 @@ function onOpenModal({
     close(1000)
   }
 }
+
+const filteredViews = computed(() => {
+  return views.value.filter((view) => searchCompare(view.title, baseHomeSearchQuery.value))
+})
 </script>
 
 <template>
@@ -439,9 +445,9 @@ function onOpenModal({
         </div>
       </DashboardTreeViewCreateViewBtn>
     </template>
-    <template v-if="views.length">
+    <template v-if="filteredViews.length">
       <DashboardTreeViewViewsNode
-        v-for="view of views"
+        v-for="view of filteredViews"
         :id="view.id"
         :key="view.id"
         :class="{

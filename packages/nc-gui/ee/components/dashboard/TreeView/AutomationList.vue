@@ -26,7 +26,7 @@ const { isUIAllowed } = useRoles()
 
 const { isSharedBase } = storeToRefs(useBase())
 
-const { openedProject } = storeToRefs(bases)
+const { openedProject, baseHomeSearchQuery } = storeToRefs(bases)
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
@@ -36,7 +36,7 @@ const { updateAutomation } = automationStore
 
 const { activeAutomationId, automations } = storeToRefs(automationStore)
 
-const scripts = computed(() => automations.value.get(baseId.value))
+const scripts = computed(() => automations.value.get(baseId.value) ?? [])
 
 let sortable: Sortable
 
@@ -262,6 +262,10 @@ onMounted(() => {
     initSortable(menuRef.value.$el)
   }
 })
+
+const filteredScripts = computed(() => {
+  return scripts.value.filter((script) => searchCompare(script.title, baseHomeSearchQuery.value))
+})
 </script>
 
 <template>
@@ -272,13 +276,13 @@ onMounted(() => {
     class="nc-scripts-menu flex flex-col w-full !border-r-0 !bg-inherit"
   >
     <div
-      v-if="!scripts?.length"
+      v-if="!scripts?.length || !filteredScripts.length"
       class="nc-project-home-section-item text-gray-500 font-normal"
       :class="{
         'ml-11.5 xs:(ml-12.25) ': !isNewSidebarEnabled,
       }"
     >
-      No Automations
+      {{ scripts?.length && !filteredScripts.length ? 'No results found for your search.' : 'No Automations' }}
     </div>
 
     <template v-if="(!isNewSidebarEnabled || !scripts?.length) && !isSharedBase && isUIAllowed('scriptCreateOrEdit')">
@@ -314,9 +318,9 @@ onMounted(() => {
         </div>
       </div>
     </template>
-    <template v-if="scripts?.length">
+    <template v-if="filteredScripts?.length">
       <DashboardTreeViewAutomationNode
-        v-for="script of scripts"
+        v-for="script of filteredScripts"
         :id="script.id"
         :key="script.id"
         class="nc-script-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"

@@ -34,7 +34,7 @@ const basesStore = useBases()
 
 const { loadProject } = basesStore
 
-const { activeProjectId } = storeToRefs(basesStore)
+const { activeProjectId, baseHomeSearchQuery } = storeToRefs(basesStore)
 
 const { activeTable } = storeToRefs(useTablesStore())
 
@@ -346,9 +346,24 @@ const showCreateNewAsDropdown = computed(() => {
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
+      <div class="px-2 h-11 flex items-center">
+        <a-input
+          v-model:value="baseHomeSearchQuery"
+          type="text"
+          class="nc-input-border-on-value nc-input-shadow !h-8 !px-2.5 !py-1 !rounded-lg"
+          :placeholder="`Search table, view${showCreateNewAsDropdown ? ', script' : ''}`"
+          allow-clear
+          @keydown.stop
+        >
+          <template #prefix>
+            <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-gray-500 group-hover:text-black" />
+          </template>
+        </a-input>
+      </div>
+
       <div
         v-if="isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source: base?.sources?.[0] })"
-        class="h-11 flex items-center w-full p-1 xs:hidden"
+        class="flex items-center w-full p-1 xs:hidden"
       >
         <NcDropdown v-if="showCreateNewAsDropdown" v-model:visible="isVisibleCreateNew">
           <NcButton

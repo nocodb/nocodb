@@ -35,6 +35,8 @@ export const useBases = defineStore('basesStore', () => {
 
   const showProjectList = ref<boolean>(route.value.params.typeOrId === 'base' ? false : !route.value.params.baseId)
 
+  const baseHomeSearchQuery = ref<string>('')
+
   const openedProject = computed(() => (activeProjectId.value ? bases.value.get(activeProjectId.value) : undefined))
   const openedProjectBasesMap = computed(() => {
     const basesMap = new Map<string, SourceType>()
@@ -455,6 +457,13 @@ export const useBases = defineStore('basesStore', () => {
     }
   }
 
+  watch(
+    () => route.value.params.baseId,
+    () => {
+      baseHomeSearchQuery.value = ''
+    },
+  )
+
   /**
    * Will have to show base home page sidebar if any base/table/view/script is active
    */
@@ -507,6 +516,7 @@ export const useBases = defineStore('basesStore', () => {
     clearBasesUser,
     isDataSourceLimitReached,
     showProjectList,
+    baseHomeSearchQuery,
   }
 })
 

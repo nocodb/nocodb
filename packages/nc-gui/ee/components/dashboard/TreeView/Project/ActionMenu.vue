@@ -3,8 +3,8 @@ import type { SourceType } from 'nocodb-sdk'
 
 interface Props {
   showBaseOption: (source: SourceType) => boolean
-  dataReflectionState: number
-  dataReflectionText: string
+  dataReflectionState?: number
+  dataReflectionText?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {})

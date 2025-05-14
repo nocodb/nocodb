@@ -39,7 +39,7 @@ stdenv.mkDerivation (finalAttrs: {
     cp -rv packages/nc-gui/.output/server $out/share/www/
     cp -rv packages/nc-gui/.output/public $out/share/www/
 
-    makeWrapper "${lib.getExe nodejs}" "$out/bin/nocodb" \
+    makeWrapper "${lib.getExe nodejs}" "$out/bin/nocodb-frontend-ssr" \
       --set NODE_ENV production \
       --set SSR true \
       --set HASH_MODE false \
@@ -64,6 +64,7 @@ stdenv.mkDerivation (finalAttrs: {
     homepage = "https://nocodb.com/";
     platforms = lib.platforms.linux ++ lib.platforms.darwin;
     license = lib.licenses.agpl3Plus;
+    mainProgram = "nocodb-frontend-ssr";
     maintainers = with lib.maintainers; [ sinanmohd ];
   };
 })

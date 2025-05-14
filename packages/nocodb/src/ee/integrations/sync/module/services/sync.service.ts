@@ -32,6 +32,7 @@ import { NocoJobsService } from '~/services/noco-jobs.service';
 import { JobStatus, JobTypes } from '~/interface/Jobs';
 import { getJunctionTableName } from '~/services/columns.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
+import { getMMColumnNames } from '~/helpers/columnHelpers';
 
 @Injectable()
 export class SyncModuleService {
@@ -227,6 +228,8 @@ export class SyncModuleService {
             relatedTable,
           );
 
+          const { parentCn, childCn } = getMMColumnNames(table, relatedTable);
+
           // create junction table
           const junctionTable = await this.tablesService.tableCreate(context, {
             baseId: base.id,
@@ -237,14 +240,14 @@ export class SyncModuleService {
               title: jnTableTitle,
               columns: [
                 {
-                  title: 'remote_id_parent',
-                  column_name: 'remote_id_parent',
+                  title: parentCn,
+                  column_name: parentCn,
                   uidt: 'SingleLineText',
                   readonly: true,
                 },
                 {
-                  title: 'remote_id_child',
-                  column_name: 'remote_id_child',
+                  title: childCn,
+                  column_name: childCn,
                   uidt: 'SingleLineText',
                   readonly: true,
                 },
@@ -275,11 +278,11 @@ export class SyncModuleService {
           );
 
           const parentColumn = junctionTable.columns.find(
-            (c) => c.title === 'remote_id_parent',
+            (c) => c.column_name === parentCn,
           );
 
           const childColumn = junctionTable.columns.find(
-            (c) => c.title === 'remote_id_child',
+            (c) => c.column_name === childCn,
           );
 
           const column = await this.columnsService.columnAdd(context, {

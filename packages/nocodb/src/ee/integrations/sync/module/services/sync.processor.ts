@@ -5,6 +5,7 @@ import {
   type NcContext,
   type NcRequest,
   OnDeleteAction,
+  SyncType,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import type { Job } from 'bull';
@@ -13,6 +14,7 @@ import type {
   SyncIntegration,
 } from '@noco-local-integrations/core';
 import type { SyncDataSyncModuleJobData } from '~/interface/Jobs';
+import type { Column } from '~/models';
 import { Integration, Model, SyncConfig, SyncMapping } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { TablesService } from '~/services/tables.service';
@@ -140,13 +142,13 @@ export class SyncModuleSyncDataProcessor {
     syncConfig: SyncConfig,
     model: Model,
     syncRunId: string,
-    onDeleteAction: OnDeleteAction | null,
     req: NcRequest,
   ) {
     let preserveDeleted = true;
 
-    if (onDeleteAction) {
-      preserveDeleted = onDeleteAction === OnDeleteAction.MarkDeleted;
+    if (syncConfig.on_delete_action) {
+      preserveDeleted =
+        syncConfig.on_delete_action === OnDeleteAction.MarkDeleted;
     }
 
     // If the model is a junction table need to always delete
@@ -154,70 +156,155 @@ export class SyncModuleSyncDataProcessor {
       preserveDeleted = false;
     }
 
-    if (preserveDeleted) {
-      // Mark records as deleted instead of actually deleting them
-      await this.bulkDataAliasService.bulkDataUpdateAll(context, {
-        baseName: model.base_id,
-        tableName: model.id,
-        cookie: req,
-        body: {
-          RemoteDeleted: true,
-          RemoteDeletedAt: dayjs().utc().toISOString(),
-        },
-        query: {
-          filterArr: [
-            {
-              comparison_op: 'neq',
-              value: syncRunId,
-              logical_op: 'and',
-              fk_column_id: model.columns.find((c) => c.title === 'SyncRunId')
-                ?.id,
+    // For full sync remove all the records that are not found in this run
+    if (syncConfig.sync_type === SyncType.Full) {
+      if (preserveDeleted) {
+        // Mark records as deleted instead of actually deleting them
+        await this.bulkDataAliasService.bulkDataUpdateAll(context, {
+          baseName: model.base_id,
+          tableName: model.id,
+          cookie: req,
+          body: {
+            RemoteDeleted: true,
+            RemoteDeletedAt: dayjs().utc().toISOString(),
+          },
+          query: {
+            filterArr: [
+              {
+                comparison_op: 'neq',
+                value: syncRunId,
+                logical_op: 'and',
+                fk_column_id: model.columns.find((c) => c.title === 'SyncRunId')
+                  ?.id,
+              },
+              {
+                comparison_op: 'eq',
+                value: syncConfig.id,
+                logical_op: 'and',
+                fk_column_id: model.columns.find(
+                  (c) => c.title === 'SyncConfigId',
+                )?.id,
+              },
+              {
+                comparison_op: 'eq',
+                value: false,
+                logical_op: 'and',
+                fk_column_id: model.columns.find(
+                  (c) => c.title === 'RemoteDeleted',
+                )?.id,
+              },
+            ],
+          },
+        });
+      } else {
+        // Delete records that no longer exist in the source
+        await this.bulkDataAliasService.bulkDataDeleteAll(context, {
+          baseName: model.base_id,
+          tableName: model.id,
+          req,
+          query: {
+            filterArr: [
+              {
+                comparison_op: 'neq',
+                value: syncRunId,
+                logical_op: 'and',
+                fk_column_id: model.columns.find((c) => c.title === 'SyncRunId')
+                  ?.id,
+              },
+              {
+                comparison_op: 'eq',
+                value: syncConfig.id,
+                logical_op: 'and',
+                fk_column_id: model.columns.find(
+                  (c) => c.title === 'SyncConfigId',
+                )?.id,
+              },
+            ],
+          },
+        });
+      }
+    } else if (SyncType.Incremental) {
+      // For incremental we need to still clear junction table records
+      // We will delete the records that are not updated in this run for updated parent records
+      if (model.mm) {
+        // first get records that are updated in this run 500 at a time
+        const deletedParentIds = new Map<string, boolean>();
+
+        let completedRun = false;
+        let offset = 0;
+
+        while (!completedRun) {
+          const updatedRecords = await this.dataTableService.dataList(context, {
+            baseId: model.base_id,
+            modelId: model.id,
+            query: {
+              filterArr: [
+                {
+                  comparison_op: 'eq',
+                  value: syncRunId,
+                  logical_op: 'and',
+                  fk_column_id: model.columns.find(
+                    (c) => c.title === 'SyncRunId',
+                  )?.id,
+                },
+              ],
+              limit: 500,
+              offset,
             },
-            {
-              comparison_op: 'eq',
-              value: syncConfig.id,
-              logical_op: 'and',
-              fk_column_id: model.columns.find(
-                (c) => c.title === 'SyncConfigId',
-              )?.id,
+          });
+
+          for (const record of updatedRecords.list) {
+            const parentId = record.RemoteIdParent;
+
+            if (deletedParentIds.has(parentId)) {
+              continue;
+            }
+
+            deletedParentIds.set(parentId, true);
+          }
+
+          if (
+            updatedRecords.pageInfo.isLastPage ||
+            updatedRecords.list.length === 0
+          ) {
+            completedRun = true;
+          }
+
+          offset += 500;
+        }
+
+        const deletedParentIdsArray = Array.from(deletedParentIds.keys());
+
+        while (deletedParentIdsArray.length > 0) {
+          const parentIds = deletedParentIdsArray.splice(0, 100);
+
+          await this.bulkDataAliasService.bulkDataDeleteAll(context, {
+            baseName: model.base_id,
+            tableName: model.id,
+            req,
+            query: {
+              filterArr: [
+                {
+                  comparison_op: 'in',
+                  value: parentIds,
+                  logical_op: 'and',
+                  fk_column_id: model.columns.find(
+                    (c) => c.title === 'RemoteIdParent',
+                  )?.id,
+                },
+                {
+                  comparison_op: 'neq',
+                  value: syncRunId,
+                  logical_op: 'and',
+                  fk_column_id: model.columns.find(
+                    (c) => c.title === 'SyncRunId',
+                  )?.id,
+                },
+              ],
             },
-            {
-              comparison_op: 'eq',
-              value: false,
-              logical_op: 'and',
-              fk_column_id: model.columns.find(
-                (c) => c.title === 'RemoteDeleted',
-              )?.id,
-            },
-          ],
-        },
-      });
-    } else {
-      // Delete records that no longer exist in the source
-      await this.bulkDataAliasService.bulkDataDeleteAll(context, {
-        baseName: model.base_id,
-        tableName: model.id,
-        req,
-        query: {
-          filterArr: [
-            {
-              comparison_op: 'neq',
-              value: syncRunId,
-              logical_op: 'and',
-              fk_column_id: model.columns.find((c) => c.title === 'SyncRunId')
-                ?.id,
-            },
-            {
-              comparison_op: 'eq',
-              value: syncConfig.id,
-              logical_op: 'and',
-              fk_column_id: model.columns.find(
-                (c) => c.title === 'SyncConfigId',
-              )?.id,
-            },
-          ],
-        },
-      });
+          });
+        }
+      }
     }
   }
 
@@ -305,7 +392,8 @@ export class SyncModuleSyncDataProcessor {
         string,
         {
           mmTable: Model;
-          isParent: boolean;
+          mmParentColumn: Column;
+          mmChildColumn: Column;
         }
       >();
 
@@ -370,13 +458,26 @@ export class SyncModuleSyncDataProcessor {
 
                   modelSyncTargetMap.set(mmTable.id, mmTable);
 
-                  const isParent = model.columns.find(
-                    (c) => c.id === column.colOptions.fk_parent_column_id,
+                  const mmParentColumn = mmTable.columns.find(
+                    (c) => c.id === column.colOptions.fk_mm_parent_column_id,
                   );
+
+                  if (!mmParentColumn) {
+                    continue;
+                  }
+
+                  const mmChildColumn = mmTable.columns.find(
+                    (c) => c.id === column.colOptions.fk_mm_child_column_id,
+                  );
+
+                  if (!mmChildColumn) {
+                    continue;
+                  }
 
                   linkFieldConfig = {
                     mmTable,
-                    isParent: !isParent,
+                    mmParentColumn,
+                    mmChildColumn,
                   };
 
                   linkFieldsMap.set(
@@ -386,8 +487,6 @@ export class SyncModuleSyncDataProcessor {
                 }
 
                 const linkArray: {
-                  remote_id_parent: string;
-                  remote_id_child: string;
                   RemoteId: string;
                   SyncConfigId: string;
                   RemoteSyncedAt: string;
@@ -395,25 +494,14 @@ export class SyncModuleSyncDataProcessor {
                 }[] = [];
 
                 for (const record of data.links[linkField]) {
-                  if (linkFieldConfig.isParent) {
-                    linkArray.push({
-                      remote_id_parent: record,
-                      remote_id_child: data.recordId,
-                      RemoteId: `${record}-${data.recordId}`,
-                      SyncConfigId: syncConfig.id,
-                      RemoteSyncedAt,
-                      SyncRunId: syncRunId,
-                    });
-                  } else {
-                    linkArray.push({
-                      remote_id_parent: data.recordId,
-                      remote_id_child: record,
-                      RemoteId: `${data.recordId}-${record}`,
-                      SyncConfigId: syncConfig.id,
-                      RemoteSyncedAt,
-                      SyncRunId: syncRunId,
-                    });
-                  }
+                  linkArray.push({
+                    [linkFieldConfig.mmParentColumn.title]: record,
+                    [linkFieldConfig.mmChildColumn.title]: data.recordId,
+                    RemoteId: `${record}-${data.recordId}`,
+                    SyncConfigId: syncConfig.id,
+                    RemoteSyncedAt,
+                    SyncRunId: syncRunId,
+                  });
                 }
 
                 if (!linkBuffers.has(linkFieldConfig.mmTable.id)) {
@@ -519,7 +607,6 @@ export class SyncModuleSyncDataProcessor {
                   syncConfig,
                   model,
                   syncRunId,
-                  syncConfig.on_delete_action,
                   req,
                 );
               }

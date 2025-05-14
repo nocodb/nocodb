@@ -47,11 +47,15 @@ export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
   abstract fetchData(
     auth: AuthResponse<any>,
     args: {
-      targetTables?: string[];
-      lastRecord?: AnyRecordType;
+      targetTables?: TARGET_TABLES[];
+      targetTableIncrementalValues?: Record<TARGET_TABLES, string | number>;
     },
   ): Promise<DataObjectStream<SyncRecord>>;
-  abstract getIncrementalKey(): string;
+  abstract formatData(targetTable: TARGET_TABLES, data: any): {
+    data: SyncRecord;
+    links?: Record<string, SyncLinkValue>;
+  };
+  abstract getIncrementalKey(targetTable: TARGET_TABLES): string;
 }
 
 export type AnyRecordType = Record<string, string | number | boolean | null>;

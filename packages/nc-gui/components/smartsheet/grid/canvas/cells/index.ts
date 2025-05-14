@@ -315,8 +315,6 @@ export function useGridCellHandler(params: {
     path: Array<number>
   }) => {
     if (!ctx.column?.columnObj?.uidt) return
-    ctx.column.extra = ctx.column.extra ?? {}
-    ctx.column.extra.allowLocalUrl = appInfo.value?.allowLocalUrl
     const cellHandler = cellTypesRegistry.get(ctx.column.columnObj.uidt)
 
     const cellRenderStore = getCellRenderStore(`${ctx.column.id}-${ctx.pk}`)

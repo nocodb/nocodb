@@ -284,7 +284,6 @@ export function useCanvasTable({
          * Add any extra computed things inside extra and use it
          */
         f.extra = {}
-        f.extra.allowLocalUrl = appInfo.value?.allowLocalUrl
         if ([UITypes.Lookup, UITypes.Rollup].includes(f.uidt)) {
           relatedColObj = metas.value?.[f.fk_model_id!]?.columns?.find(
             (c) => c.id === f?.colOptions?.fk_relation_column_id,
@@ -305,6 +304,8 @@ export function useCanvasTable({
               relatedTableMeta = metas.value?.[f.colOptions.fk_related_model_id]
             }
           }
+        } else if (isButton(f)) {
+          f.extra.allowLocalUrl = appInfo.value?.allowLocalUrl
         }
 
         if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(f.uidt)) {

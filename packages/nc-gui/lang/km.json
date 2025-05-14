@@ -2263,6 +2263,9 @@
       "createNewTable": "ចាប់ផ្តើមពីសូន្យ។",
       "importData": "ពីឯកសារ និងប្រភពភ្ជាប់ខាងក្រៅ។",
       "connectExternalData": "ក្នុងពេលបច្ចុប្បន្នទៅមូលដ្ឋានទិន្នន័យខាងក្រៅ។"
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

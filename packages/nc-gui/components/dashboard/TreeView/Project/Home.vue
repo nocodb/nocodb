@@ -625,7 +625,7 @@ defineExpose({
 }
 
 :deep(.nc-home-create-new-btn.nc-button) {
-  @apply hover:bg-brand-50;
+  @apply hover:bg-brand-50 !pr-1.5;
 
   &.active {
     @apply !bg-brand-50;

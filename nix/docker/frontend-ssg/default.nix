@@ -4,13 +4,13 @@
   callPackage,
   nginx,
   nginxModules,
-  frontend,
+  frontend-ssg,
 }:
 let
   nginxCustom = nginx.override {
     modules = lib.unique (nginx.modules ++ [ nginxModules.brotli ]);
   };
-  nginxConf = callPackage ./confs/nginx.nix { inherit frontend; };
+  nginxConf = callPackage ./confs/nginx.nix { frontend = frontend-ssg; };
 
   init = callPackage ./init.nix {
     inherit nginxCustom;
@@ -18,10 +18,10 @@ let
   };
 in
 dockerTools.buildLayeredImage {
-  name = "nocodb-frontend";
+  name = "nocodb-frontend-ssg";
 
   contents = [
-    frontend
+    frontend-ssg
     nginxConf
   ];
 

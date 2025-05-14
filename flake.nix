@@ -61,8 +61,11 @@
                 docker_aio = pkgs.callPackage ./nix/docker/all_in_one {
                   nocodb = self.packages.${system}.nocodb;
                 };
-                docker_frontend = pkgs.callPackage ./nix/docker/frontend {
-                  frontend = self.packages.${system}.frontend;
+                docker_frontend_ssg = pkgs.callPackage ./nix/docker/frontend-ssg {
+                  frontend-ssg = self.packages.${system}.frontend-ssg;
+                };
+                docker_frontend_ssr = pkgs.callPackage ./nix/docker/frontend-ssr {
+                  frontend-ssr = self.packages.${system}.frontend-ssr;
                 };
                 docker_backend = pkgs.callPackage ./nix/docker/backend {
                   backend = self.packages.${system}.backend;

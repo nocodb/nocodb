@@ -413,7 +413,7 @@ watch([searchInputRef, showProjectList], () => {
       <div v-if="showProjectList" key="project-list" class="nc-treeview-base-list absolute w-full h-full top-0 left-0 z-10">
         <div class="w-full">
           <DashboardSidebarHeaderWrapper>
-            <NcTooltip show-on-truncate-only class="truncate">
+            <NcTooltip show-on-truncate-only class="truncate capitalize">
               <template #title>
                 {{ activeWorkspace?.title }}
               </template>
@@ -448,7 +448,11 @@ watch([searchInputRef, showProjectList], () => {
               data-testid="nc-sidebar-create-base-btn"
             >
               <div class="flex items-center gap-2">
-                <GeneralIcon icon="plus" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <rect width="16" height="16" rx="8" fill="#D6E0FF" />
+                  <path d="M8 4V12" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M4 8H12" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
 
                 <div class="flex">{{ $t('title.createBase') }}</div>
               </div>

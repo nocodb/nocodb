@@ -389,7 +389,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           qb.select(
             (
               await genRollupSelectv2({
-                baseModelSqlv2: this,
+                baseModelSqlv2: baseModel,
                 // tn: baseModel.title,
                 knex: baseModel.dbDriver,
                 // column,

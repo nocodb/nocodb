@@ -420,7 +420,6 @@ watch([searchInputRef, showProjectList], () => {
               </template>
 
               {{ activeWorkspace?.title }}
-              {{ activeWorkspace?.title }}
             </NcTooltip>
           </DashboardSidebarHeaderWrapper>
           <div class="px-2 h-11 flex items-center">

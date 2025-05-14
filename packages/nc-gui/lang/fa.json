@@ -2263,6 +2263,9 @@
       "createNewTable": "از صفر شروع کنید.",
       "importData": "از فایل‌ها و منابع خارجی.",
       "connectExternalData": "در زمان واقعی به پایگاه‌های داده خارجی."
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

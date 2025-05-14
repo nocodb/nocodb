@@ -475,6 +475,7 @@ interface CellRendererOptions {
     recordIndex?: number // For week spanning records in month view
     maxSpanning?: number
   }
+  allowLocalUrl?: boolean
 }
 
 interface CellRenderStore {
@@ -529,6 +530,7 @@ interface CellRenderer {
     openDetachedExpandedForm: (props: UseExpandedFormDetachedProps) => void
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
     formula?: boolean
+    allowLocalUrl?: boolean
   }) => Promise<boolean>
   handleKeyDown?: (options: {
     e: KeyboardEvent
@@ -550,6 +552,7 @@ interface CellRenderer {
     makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
     cellRenderStore: CellRenderStore
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
+    allowLocalUrl?: boolean
   }) => Promise<boolean | void>
   handleHover?: (options: {
     event: MouseEvent

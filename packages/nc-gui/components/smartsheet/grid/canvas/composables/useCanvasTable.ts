@@ -176,7 +176,6 @@ export function useCanvasTable({
   const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
   const elementMap = new CanvasElement([])
-  const { appInfo } = useGlobal()
 
   // Row Reorder related states
   const isDragging = ref(false)
@@ -304,8 +303,6 @@ export function useCanvasTable({
               relatedTableMeta = metas.value?.[f.colOptions.fk_related_model_id]
             }
           }
-        } else if (isButton(f)) {
-          f.extra.allowLocalUrl = appInfo.value?.allowLocalUrl
         }
 
         if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(f.uidt)) {

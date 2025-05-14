@@ -8,16 +8,34 @@ export class TreeViewPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly base: any;
   readonly quickImportButton: Locator;
+  readonly createNewButton: Locator;
 
   constructor(dashboard: DashboardPage, base: any) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.base = base;
     this.quickImportButton = dashboard.get().locator('.nc-import-menu');
+    this.createNewButton = this.get().locator('.nc-home-create-new-btn');
   }
 
   get() {
     return this.dashboard.get().locator('.nc-treeview-container');
+  }
+
+  async isNewSidebar() {
+    const classAttr = await this.get().getAttribute('class');
+
+    return (
+      classAttr?.includes('nc-treeview-container-base-list') || classAttr?.includes('nc-treeview-container-active-base')
+    );
+  }
+
+  async isBaseListOpen() {
+    if (!(await this.isNewSidebar())) return true;
+
+    const classAttr = await this.get().getAttribute('class');
+
+    return classAttr?.includes('nc-treeview-container-base-list') ?? false;
   }
 
   getAddNewTableBtn({ baseTitle }: { baseTitle: string }) {
@@ -131,6 +149,51 @@ export class TreeViewPage extends BasePage {
     }
   }
 
+  async createEntity({
+    type,
+    skipOpeningModal,
+    baseTitle,
+  }: {
+    type: 'table' | 'script';
+    skipOpeningModal?: boolean;
+    mode?: string;
+    baseTitle: string;
+  }) {
+    if (skipOpeningModal) return;
+
+    const isBaseListOpen = await this.isBaseListOpen();
+
+    switch (type) {
+      case 'table': {
+        if (isBaseListOpen) {
+          await this.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`).hover();
+
+          await this.get()
+            .getByTestId(`nc-sidebar-base-${baseTitle}`)
+            .getByTestId('nc-sidebar-add-base-entity')
+            .click();
+        } else {
+          const isCreateNewDropdown = (await this.createNewButton.getAttribute('class')).includes(
+            'nc-home-create-new-dropdown-btn'
+          );
+
+          if (!isCreateNewDropdown) {
+            return await this.createNewButton.click();
+          } else {
+            await this.createNewButton.click();
+            await this.dashboard.get().locator('.nc-dropdown.active').waitFor();
+
+            await this.dashboard.get().locator('.nc-dropdown.active').getByTestId(`create-new-${type}`).click();
+          }
+        }
+        break;
+      }
+      case 'script': {
+        // Todo:
+      }
+    }
+  }
+
   async createTable({
     title,
     skipOpeningModal,
@@ -141,18 +204,15 @@ export class TreeViewPage extends BasePage {
     mode?: string;
     baseTitle: string;
   }) {
-    if (!skipOpeningModal) {
-      await this.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`).hover();
-
-      await this.get().getByTestId(`nc-sidebar-base-${baseTitle}`).getByTestId('nc-sidebar-add-base-entity').click();
-    }
+    await this.createEntity({ type: 'table', skipOpeningModal, baseTitle });
 
     await this.dashboard.get().locator('.ant-modal.active').locator('.ant-modal-body').waitFor();
 
     await this.dashboard.get().getByPlaceholder('Enter table name').fill(title);
 
     await this.waitForResponse({
-      uiAction: () => this.dashboard.get().locator('button:has-text("Create Table")').click(),
+      uiAction: () =>
+        this.dashboard.get().locator('.ant-modal.active').locator('button:has-text("Create Table")').click(),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
       responseJsonMatcher: json => json.title === title && json.type === 'table',

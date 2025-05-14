@@ -323,7 +323,7 @@ const showCreateNewAsDropdown = computed(() => {
 </script>
 
 <template>
-  <div v-if="base?.id && !base.isLoading" class="nc-treeview-container nc-treeview-active-base">
+  <div v-if="base?.id && !base.isLoading" class="nc-treeview-active-base">
     <div>
       <DashboardSidebarHeaderWrapper>
         <div v-if="isSharedBase" class="flex-1">
@@ -386,11 +386,11 @@ const showCreateNewAsDropdown = computed(() => {
 
           <template #overlay>
             <NcMenu variant="medium" @click="isVisibleCreateNew = false">
-              <NcMenuItem @click="addNewProjectChildEntity">
+              <NcMenuItem @click="addNewProjectChildEntity" data-testid="create-new-table">
                 <GeneralIcon icon="table" />
                 New Table
               </NcMenuItem>
-              <NcMenuItem v-if="isAutomationEnabled" @click="openNewScriptModal">
+              <NcMenuItem v-if="isAutomationEnabled" @click="openNewScriptModal" data-testid="create-new-script">
                 <GeneralIcon icon="ncScript" />
                 New Script
               </NcMenuItem>

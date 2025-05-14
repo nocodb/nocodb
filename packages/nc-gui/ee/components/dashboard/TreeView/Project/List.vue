@@ -405,13 +405,12 @@ watch([searchInputRef, showProjectList], () => {
 </script>
 
 <template>
-  <div class="relative w-full h-full overflow-hidden flex items-stretch">
+  <div
+    class="nc-treeview-container relative w-full h-full overflow-hidden flex items-stretch"
+    :class="showProjectList ? 'nc-treeview-container-base-list' : 'nc-treeview-container-active-base'"
+  >
     <Transition :name="transitionName" appear>
-      <div
-        v-if="showProjectList"
-        key="project-list"
-        class="nc-treeview-container nc-treeview-base-list absolute w-full h-full top-0 left-0 z-10"
-      >
+      <div v-if="showProjectList" key="project-list" class="nc-treeview-base-list absolute w-full h-full top-0 left-0 z-10">
         <div class="w-full">
           <DashboardSidebarHeaderWrapper>
             <NcTooltip show-on-truncate-only class="truncate">

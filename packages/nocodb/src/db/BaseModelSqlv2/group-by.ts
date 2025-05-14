@@ -17,6 +17,7 @@ import {
 } from '~/helpers/dbHelpers';
 import { BaseUser, Column, Filter, Sort } from '~/models';
 import { getAliasGenerator } from '~/utils';
+import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
 
 export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
   const list = async (args: {
@@ -305,6 +306,15 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         let finalStatement = '';
         if (baseModel.dbDriver.clientType() === 'pg') {
           finalStatement = `(${replaceDelimitedWithKeyValuePg({
+            knex: baseModel.dbDriver,
+            needleColumn: columnName,
+            stack: baseUsers.map((user) => ({
+              key: user.id,
+              value: user.display_name || user.email,
+            })),
+          })})`;
+        } else if (baseModel.dbDriver.clientType() === 'sqlite3') {
+          finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
             knex: baseModel.dbDriver,
             needleColumn: columnName,
             stack: baseUsers.map((user) => ({

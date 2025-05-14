@@ -65,6 +65,28 @@ const navigateToIntegrations = () => {
 
   _navigateToIntegrations('', cmdOrCtrl)
 }
+
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  if (
+    !e.altKey ||
+    isActiveInputElementExist(e) ||
+    cmdKActive() ||
+    isCmdJActive() ||
+    isNcDropdownOpen() ||
+    isActiveElementInsideExtension() ||
+    isDrawerOrModalExist() ||
+    isExpandedFormOpenExist()
+  ) {
+    return
+  }
+
+  switch (e.code) {
+    case 'KeyB': {
+      navigateToProjectPage()
+      break
+    }
+  }
+})
 </script>
 
 <template>
@@ -78,7 +100,13 @@ const navigateToIntegrations = () => {
         <WorkspaceMenu />
       </div>
 
-      <NcTooltip :title="$t('objects.projects')" placement="right" hide-on-click :arrow="false">
+      <NcTooltip placement="right" hide-on-click :arrow="false">
+        <template #title>
+          <div class="flex gap-1.5">
+            {{ $t('objects.projects') }}
+            <div class="px-1 text-bodySmBold text-white bg-gray-700 rounded">{{ renderAltOrOptlKey(true) }} B</div>
+          </div>
+        </template>
         <div
           class="nc-mini-sidebar-btn"
           data-testid="nc-sidebar-project-btn"
@@ -93,10 +121,7 @@ const navigateToIntegrations = () => {
       <template v-if="!isMobileMode">
         <NcTooltip placement="right" hide-on-click :arrow="false">
           <template #title>
-            <div class="flex items-center gap-1">
-              <GeneralIcon icon="ncCommand" class="h-3" />
-              K
-            </div>
+            <div class="flex items-center gap-1">{{ renderCmdOrCtrlKey(true) }} K</div>
           </template>
           <div
             v-e="['c:quick-actions']"

@@ -563,8 +563,9 @@ defineExpose({
             :class="{
               'text-subHeading2 gap-2': isProjectHeader,
               'h-7 pr-1 pl-2.5 xs:(pl-0)': !isProjectHeader,
-              'bg-primary-selected active': activeProjectId === base.id && baseViewOpen && !isMobileMode && !isProjectHeader,
-              'hover:bg-gray-200': !(activeProjectId === base.id && baseViewOpen) && !isProjectHeader,
+              'bg-primary-selected active':
+                activeProjectId === base.id && (baseViewOpen || isNewSidebarEnabled) && !isMobileMode && !isProjectHeader,
+              'hover:bg-gray-200': !(activeProjectId === base.id && (baseViewOpen || isNewSidebarEnabled)) && !isProjectHeader,
             }"
             :data-id="base.id"
             :data-testid="`nc-sidebar-base-title-${base.title}`"
@@ -603,7 +604,7 @@ defineExpose({
               v-model:value="tempTitle"
               class="capitalize !bg-transparent !flex-1 mr-4 !rounded-md !pr-1.5 !h-6 animate-sidebar-node-input-padding"
               :class="
-                activeProjectId === base.id && baseViewOpen && !isProjectHeader
+                activeProjectId === base.id && (baseViewOpen || isNewSidebarEnabled) && !isProjectHeader
                   ? '!text-brand-600 !font-semibold'
                   : '!text-gray-700'
               "
@@ -622,7 +623,9 @@ defineExpose({
               class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none flex-1"
               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
               :class="
-                activeProjectId === base.id && baseViewOpen && !isProjectHeader ? 'text-brand-600 font-semibold' : 'text-gray-700'
+                activeProjectId === base.id && (baseViewOpen || isNewSidebarEnabled) && !isProjectHeader
+                  ? 'text-brand-600 font-semibold'
+                  : 'text-gray-700'
               "
               show-on-truncate-only
               @click="onProjectClick(base)"

@@ -32,12 +32,18 @@ export class TreeViewPage extends BasePage {
     );
   }
 
-  async isBaseListOpen() {
+  async verifyBaseListOpen(open: boolean = false) {
     if (!(await this.isNewSidebar())) return true;
 
     const classAttr = await this.get().getAttribute('class');
 
-    return classAttr?.includes('nc-treeview-container-base-list') ?? false;
+    const isListOpen = classAttr?.includes('nc-treeview-container-base-list') ?? false;
+
+    if (open) {
+      await this.miniSidebarActionClick({ type: 'base' });
+    }
+
+    return isListOpen;
   }
 
   async miniSidebarActionClick({
@@ -134,9 +140,7 @@ export class TreeViewPage extends BasePage {
   }
 
   async openBase({ title }: { title: string }) {
-    if (!(await this.isBaseListOpen())) {
-      await this.miniSidebarActionClick({ type: 'base' });
-    }
+    await this.verifyBaseListOpen(true);
 
     const nodes = this.get().locator(`[data-testid="nc-sidebar-base-${title.toLowerCase()}"]`);
     await nodes.waitFor();
@@ -212,11 +216,11 @@ export class TreeViewPage extends BasePage {
   }) {
     if (skipOpeningModal) return;
 
-    const isBaseListOpen = await this.isBaseListOpen();
+    const verifyBaseListOpen = await this.verifyBaseListOpen();
 
     switch (type) {
       case 'table': {
-        if (isBaseListOpen) {
+        if (verifyBaseListOpen) {
           await this.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`).hover();
 
           await this.get()
@@ -427,6 +431,8 @@ export class TreeViewPage extends BasePage {
   async openProject({ title, context }: { title: string; context: NcContext }) {
     title = this.scopedProjectTitle({ title, context });
 
+    await this.verifyBaseListOpen(true);
+
     await this.get().getByTestId(`nc-sidebar-base-title-${title}`).click();
     await this.rootPage.waitForTimeout(1000);
 
@@ -450,6 +456,8 @@ export class TreeViewPage extends BasePage {
   async renameProject(param: { newTitle: string; title: string; context: NcContext }) {
     param.title = this.scopedProjectTitle({ title: param.title, context: param.context });
     param.newTitle = this.scopedProjectTitle({ title: param.newTitle, context: param.context });
+
+    await this.verifyBaseListOpen(true);
 
     await this.openProjectContextMenu({ baseTitle: param.title });
     const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible').last();

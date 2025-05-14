@@ -9,7 +9,10 @@ import {
   SyncTrigger,
   UITypes,
 } from 'nocodb-sdk';
-import { syncSystemFields } from '@noco-local-integrations/core';
+import {
+  syncSystemFields,
+  syncSystemFieldsMap,
+} from '@noco-local-integrations/core';
 import type {
   AuthIntegration,
   SyncIntegration,
@@ -176,14 +179,10 @@ export class SyncModuleService {
         // Hide syncSystemFields from default view
         const defaultView = await View.getDefaultView(context, model.id);
 
-        const syncSystemFieldTitles = syncSystemFields.map(
-          (field) => field.title,
-        );
-
         await this.viewColumnsService.columnsUpdate(context, {
           viewId: defaultView.id,
           columns: model.columns
-            .filter((column) => syncSystemFieldTitles.includes(column.title))
+            .filter((column) => !!syncSystemFieldsMap[column.title])
             .map((column) => {
               return {
                 id: column.id,
@@ -404,6 +403,31 @@ export class SyncModuleService {
 
     await SyncConfig.update(context, syncConfig.id, {
       sync_job_id: `${job.id}`,
+    });
+
+    return {
+      id: job.id,
+    };
+  }
+
+  async migrateSync(context: NcContext, syncConfigId: string, req: NcRequest) {
+    if (process.env.TEST !== 'true') {
+      NcError.badRequest('Migration is only allowed in development mode');
+    }
+
+    const syncConfig = await SyncConfig.get(context, syncConfigId);
+
+    if (!syncConfig) {
+      NcError.genericNotFound('SyncConfig', syncConfigId);
+    }
+
+    const job = await this.nocoJobsService.add(JobTypes.SyncModuleMigrateSync, {
+      context,
+      syncConfigId: syncConfig.id,
+      req: {
+        user: req.user,
+        clientIp: req.clientIp,
+      },
     });
 
     return {

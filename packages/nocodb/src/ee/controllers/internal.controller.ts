@@ -52,6 +52,7 @@ export class InternalController extends InternalControllerCE {
       listenRemoteImport: 'workspace',
       createSync: 'base',
       triggerSync: 'base',
+      migrateSync: 'base',
       listScripts: 'base',
       getScript: 'base',
       createScript: 'base',
@@ -150,6 +151,13 @@ export class InternalController extends InternalControllerCE {
           payload.syncConfigId,
           req,
         );
+      case 'migrateSync':
+        return await this.syncService.migrateSync(
+          context,
+          payload.syncConfigId,
+          req,
+        );
+
       case 'createScript':
         return await this.scriptsService.createScript(
           context,

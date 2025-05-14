@@ -8,11 +8,13 @@ import {
   SyncType,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import type { Job } from 'bull';
+import { syncSystemFieldsMap } from '@noco-local-integrations/core';
 import type {
   AuthIntegration,
   SyncIntegration,
+  TARGET_TABLES,
 } from '@noco-local-integrations/core';
+import type { Job } from 'bull';
 import type { SyncDataSyncModuleJobData } from '~/interface/Jobs';
 import type { Column } from '~/models';
 import { Integration, Model, SyncConfig, SyncMapping } from '~/models';
@@ -21,6 +23,7 @@ import { TablesService } from '~/services/tables.service';
 import { DataTableService } from '~/services/data-table.service';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
+import { ColumnsService } from '~/services/columns.service';
 
 @Injectable()
 export class SyncModuleSyncDataProcessor {
@@ -31,6 +34,7 @@ export class SyncModuleSyncDataProcessor {
     protected readonly dataTableService: DataTableService,
     protected readonly bulkDataAliasService: BulkDataAliasService,
     private readonly jobsLogService: JobsLogService,
+    private readonly columnsService: ColumnsService,
   ) {}
 
   async pushData(
@@ -640,6 +644,175 @@ export class SyncModuleSyncDataProcessor {
       });
 
       throw error;
+    }
+  }
+
+  async migrateSync(
+    job: Job<{ context: NcContext; syncConfigId: string; req: NcRequest }>,
+  ) {
+    const { context, syncConfigId, req } = job.data;
+
+    const syncConfig = await SyncConfig.get(context, syncConfigId);
+
+    if (!syncConfig) {
+      NcError.genericNotFound('SyncConfig', syncConfigId);
+    }
+
+    const integration = await Integration.get(
+      context,
+      syncConfig.fk_integration_id,
+    );
+    const wrapper = await integration.getIntegrationWrapper<SyncIntegration>();
+    const authIntegration = await Integration.get(
+      context,
+      integration.getConfig().authIntegrationId,
+    );
+
+    const authWrapper =
+      await authIntegration.getIntegrationWrapper<AuthIntegration>();
+
+    const auth = await authWrapper.authenticate();
+
+    // Get new schema from integration
+    const newSchema = await wrapper.getDestinationSchema(auth);
+
+    // Get sync mappings for non-mm tables
+    const syncMappings = await SyncMapping.list(context, {
+      fk_sync_config_id: syncConfig.id,
+    });
+
+    for (const syncMapping of syncMappings) {
+      const model = await Model.get(context, syncMapping.fk_model_id);
+      if (!model || model.mm) continue;
+
+      await model.getColumns(context);
+
+      // Get existing readonly columns
+      const existingColumns = model.columns.filter(
+        (col) => !col.system && col.readonly && !syncSystemFieldsMap[col.title],
+      );
+
+      // Get new columns from schema
+      const newColumns =
+        newSchema[syncMapping.target_table as TARGET_TABLES]?.columns || [];
+
+      // Find columns to add and remove
+      const columnsToAdd = newColumns.filter(
+        (newCol) =>
+          !existingColumns.some(
+            (existingCol) => existingCol.title === newCol.title,
+          ),
+      );
+
+      const columnsToRemove = existingColumns.filter(
+        (existingCol) =>
+          !newColumns.some((newCol) => newCol.title === existingCol.title),
+      );
+
+      const columnsToRecreate = existingColumns.filter((existingCol) =>
+        newColumns.some(
+          (newCol) =>
+            newCol.title === existingCol.title &&
+            newCol.uidt !== existingCol.uidt &&
+            // check if meta objects are equal
+            JSON.stringify(newCol.meta ?? {}) !==
+              JSON.stringify(existingCol.meta ?? {}),
+        ),
+      );
+
+      columnsToRemove.push(...columnsToRecreate);
+      columnsToAdd.push(...columnsToRecreate);
+
+      // Remove columns
+      for (const column of columnsToRemove) {
+        await this.columnsService.columnDelete(context, {
+          columnId: column.id,
+          user: req.user,
+          req,
+        });
+      }
+
+      // Add new columns
+      for (const column of columnsToAdd) {
+        await this.columnsService.columnAdd(context, {
+          tableId: model.id,
+          column: {
+            title: column.title,
+            column_name: column.column_name || column.title,
+            uidt: column.uidt,
+            readonly: true,
+            pv: column.pv,
+          },
+          user: req.user,
+          req,
+          apiVersion: NcApiVersion.V3,
+        });
+      }
+
+      // If we have new columns, we need to update existing records
+      if (columnsToAdd.length > 0) {
+        let completed = false;
+        let offset = 0;
+
+        while (!completed) {
+          // Get all existing records
+          const existingRecords = await this.dataTableService.dataList(
+            context,
+            {
+              baseId: model.base_id,
+              modelId: model.id,
+              query: {
+                limit: 100,
+                offset,
+              },
+            },
+          );
+
+          if (
+            existingRecords.list.length === 0 ||
+            existingRecords.pageInfo?.isLastPage
+          ) {
+            completed = true;
+          }
+
+          // Update each record with new column data
+          for (const record of existingRecords.list) {
+            if (record.RemoteRaw) {
+              const rawData = JSON.parse(record.RemoteRaw);
+              const formattedData = await wrapper.formatData(
+                syncMapping.target_table as TARGET_TABLES,
+                rawData,
+              );
+
+              // Only update the new columns
+              const updateData = {};
+              for (const column of columnsToAdd) {
+                if (formattedData.data[column.title] !== undefined) {
+                  updateData[column.title] = formattedData.data[column.title];
+                }
+              }
+
+              if (Object.keys(updateData).length > 0) {
+                await this.dataTableService.dataUpdate(context, {
+                  baseId: model.base_id,
+                  modelId: model.id,
+                  body: {
+                    Id: record.Id,
+                    ...updateData,
+                  },
+                  cookie: req,
+                  apiVersion: NcApiVersion.V3,
+                  internalFlags: {
+                    allowSystemColumn: true,
+                  },
+                });
+              }
+            }
+          }
+
+          offset += 100;
+        }
+      }
     }
   }
 }

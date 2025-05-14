@@ -2263,6 +2263,9 @@
       "createNewTable": "ಪ್ರಾರಂಭದಿಂದ ಶುರುಮಾಡಿ.",
       "importData": "ಫೈಲ್‌ಗಳು ಮತ್ತು ಬಾಹ್ಯ ಮೂಲಗಳಿಂದ.",
       "connectExternalData": "ರಿಯಲ್‌ಟೈಮ್‌ನಲ್ಲಿ ಬಾಹ್ಯ ಡೇಟಾಬೇಸ್‌ಗಳಿಗೆ."
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

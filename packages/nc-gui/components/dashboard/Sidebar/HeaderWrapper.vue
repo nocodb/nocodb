@@ -31,7 +31,7 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
     :data-workspace-title="activeWorkspace?.title"
   >
     <template v-if="!isWorkspacesLoading && !isLoading">
-      <div class="text-subHeading2 flex-1 truncate">
+      <div class="nc-sidebar-header-content text-subHeading2 truncate">
         <slot> Bases </slot>
       </div>
 
@@ -77,7 +77,11 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
 
 <style lang="scss" scoped>
 .nc-sidebar-header {
-  @apply w-full pl-3 pr-2 py-1.5 flex items-center gap-2 h-[var(--topbar-height)];
+  @apply w-full px-2 py-1.5 flex items-center justify-between gap-2 h-[var(--topbar-height)];
+
+  .nc-sidebar-header-content:has(input) {
+    @apply flex-1;
+  }
 }
 
 :deep(.nc-sidebar-node-btn) {

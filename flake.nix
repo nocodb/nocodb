@@ -37,7 +37,10 @@
                 inherit version;
               };
 
-              frontend = pkgs.callPackage ./nix/packages/frontend.nix {
+              frontend-ssg = pkgs.callPackage ./nix/packages/frontend-ssg.nix {
+                inherit version;
+              };
+              frontend-ssr = pkgs.callPackage ./nix/packages/frontend-ssr.nix {
                 inherit version;
               };
               backend = pkgs.callPackage ./nix/packages/backend.nix {

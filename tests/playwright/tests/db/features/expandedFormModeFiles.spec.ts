@@ -1,8 +1,14 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
+import { isEE } from '../../../setup/db';
 
 test.describe('Expanded form files mode', () => {
+  // skip if not EE
+  if (!isEE()) {
+    test.skip();
+  }
+
   let dashboard: DashboardPage;
   let context: any;
 

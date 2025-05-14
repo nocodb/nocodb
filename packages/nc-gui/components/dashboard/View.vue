@@ -209,7 +209,7 @@ function onResize(widthPercent: any) {
 
 <template>
   <div class="h-full flex items-stretch">
-    <DashboardMiniSidebar v-if="isNewSidebarEnabled && $slots.sidebar && !isSharedBase" />
+    <DashboardMiniSidebar v-if="isNewSidebarEnabled && $slots.sidebar && !isSharedBase && isLeftSidebarOpen" />
 
     <div
       :class="{

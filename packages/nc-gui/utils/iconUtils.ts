@@ -973,7 +973,7 @@ export const iconMap = {
   'bt_solid': BelongsToSolidIcon,
   'oneToOneSolid': OnetoOneIcon,
   'workspaceDefault': MsGroup,
-  'project': Project,
+  'project': h(Project, { stroke: 'transparent' }),
   'search': NcSearch,
   // calendar: Calendar,
   'checkCircle': NcCheckCircle,

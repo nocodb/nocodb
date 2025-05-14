@@ -33,7 +33,7 @@ export const useBases = defineStore('basesStore', () => {
     return route.value.params.baseId as string | undefined
   })
 
-  const showProjectList = ref<boolean>(!activeProjectId.value)
+  const showProjectList = ref<boolean>(route.value.params.typeOrId === 'base' ? false : !route.value.params.baseId)
 
   const openedProject = computed(() => (activeProjectId.value ? bases.value.get(activeProjectId.value) : undefined))
   const openedProjectBasesMap = computed(() => {

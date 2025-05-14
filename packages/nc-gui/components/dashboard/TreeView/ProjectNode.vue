@@ -4,6 +4,12 @@ import { ProjectRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjec
 import type { BaseType, SourceType, TableType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 
+interface Props {
+  isProjectHeader?: boolean
+}
+const props = withDefaults(defineProps<Props>(), {})
+const { isProjectHeader } = toRefs(props)
+
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
   style: {
@@ -15,6 +21,8 @@ const indicator = h(LoadingOutlined, {
 const router = useRouter()
 
 const route = router.currentRoute
+
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -30,7 +38,7 @@ const { api } = useApi()
 
 const { createProject: _createProject, updateProject, getProjectMetaInfo, loadProject } = basesStore
 
-const { bases, basesUser } = storeToRefs(basesStore)
+const { bases, basesUser, showProjectList } = storeToRefs(basesStore)
 
 const collaborators = computed(() => {
   return (basesUser.value.get(base.value?.id) || []).map((user: any) => {
@@ -230,10 +238,6 @@ const copyProjectInfo = async () => {
   }
 }
 
-defineExpose({
-  enableEditMode,
-})
-
 const setColor = async (color: string, base: BaseType) => {
   try {
     const meta = {
@@ -331,9 +335,10 @@ async function addNewProjectChildEntity() {
 }
 
 const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
-  if (!base) {
+  if (!base || isProjectHeader.value) {
     return
   }
+
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   if (!toggleIsExpanded && !cmdOrCtrl) $e('c:base:open')
@@ -387,6 +392,8 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
     const updatedProject = bases.value.get(base.id!)!
     updatedProject.isLoading = false
   }
+
+  showProjectList.value = false
 }
 
 function openErdView(source: SourceType) {
@@ -473,7 +480,7 @@ watch(
   async (isActive) => {
     if (!isActive) return
     await nextTick()
-    labelEl.value?.scrollIntoView({ behavior: 'smooth' })
+    labelEl.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   },
   {
     immediate: true,
@@ -503,14 +510,20 @@ const shouldOpenContextMenu = computed(() => {
 
   return false
 })
+
+defineExpose({
+  enableEditMode,
+  addNewProjectChildEntity,
+  isAddNewProjectChildEntityLoading,
+})
 </script>
 
 <template>
   <NcDropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
     <div
       ref="labelEl"
-      class="mx-1 nc-base-sub-menu rounded-md"
-      :class="{ active: base.isExpanded }"
+      class="nc-base-sub-menu rounded-md"
+      :class="{ 'active': base.isExpanded, 'ml-1 mr-0.5': !isProjectHeader && !isNewSidebarEnabled }"
       :data-testid="`nc-sidebar-base-${base.title}`"
       :data-base-id="base.id"
     >
@@ -518,8 +531,15 @@ const shouldOpenContextMenu = computed(() => {
         :tooltip-style="{ width: '300px', zIndex: '1049' }"
         :overlay-inner-style="{ width: '300px' }"
         trigger="hover"
-        placement="right"
-        :disabled="editMode || isOptionsOpen || isAddNewProjectChildEntityLoading || !showNodeTooltip || !collaborators.length"
+        :placement="isProjectHeader ? 'rightTop' : 'right'"
+        :disabled="
+          editMode ||
+          isOptionsOpen ||
+          isAddNewProjectChildEntityLoading ||
+          !showNodeTooltip ||
+          !collaborators.length ||
+          isProjectHeader
+        "
       >
         <template #title>
           <div class="flex flex-col gap-3">
@@ -548,15 +568,20 @@ const shouldOpenContextMenu = computed(() => {
           <div
             ref="baseNodeRefs"
             :class="{
-              'bg-primary-selected active': activeProjectId === base.id && baseViewOpen && !isMobileMode,
-              'hover:bg-gray-200': !(activeProjectId === base.id && baseViewOpen),
+              'text-subHeading2 gap-2': isProjectHeader,
+              'h-7 pr-1 pl-2.5 xs:(pl-0)': !isProjectHeader,
+              'bg-primary-selected active': activeProjectId === base.id && baseViewOpen && !isMobileMode && !isProjectHeader,
+              'hover:bg-gray-200': !(activeProjectId === base.id && baseViewOpen) && !isProjectHeader,
             }"
             :data-id="base.id"
             :data-testid="`nc-sidebar-base-title-${base.title}`"
-            class="nc-sidebar-node base-title-node h-7 flex-grow rounded-md group flex items-center w-full pr-1 pl-1.5"
+            class="nc-sidebar-node base-title-node flex-grow rounded-md group flex items-center w-full"
           >
             <div
-              class="flex items-center mr-1"
+              class="flex items-center"
+              :class="{
+                'mr-1': !isProjectHeader,
+              }"
               @click="onProjectClick(base)"
               @mouseenter="showNodeTooltip = false"
               @mouseleave="showNodeTooltip = true"
@@ -583,7 +608,11 @@ const shouldOpenContextMenu = computed(() => {
               ref="input"
               v-model:value="tempTitle"
               class="capitalize !bg-transparent !flex-1 mr-4 !rounded-md !pr-1.5 !h-6 animate-sidebar-node-input-padding"
-              :class="activeProjectId === base.id && baseViewOpen ? '!text-brand-600 !font-semibold' : '!text-gray-700'"
+              :class="
+                activeProjectId === base.id && baseViewOpen && !isProjectHeader
+                  ? '!text-brand-600 !font-semibold'
+                  : '!text-gray-700'
+              "
               :style="{
                 fontWeight: 'inherit',
               }"
@@ -598,7 +627,9 @@ const shouldOpenContextMenu = computed(() => {
               :disabled="!!collaborators.length"
               class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none flex-1"
               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-              :class="activeProjectId === base.id && baseViewOpen ? 'text-brand-600 font-semibold' : 'text-gray-700'"
+              :class="
+                activeProjectId === base.id && baseViewOpen && !isProjectHeader ? 'text-brand-600 font-semibold' : 'text-gray-700'
+              "
               show-on-truncate-only
               @click="onProjectClick(base)"
             >
@@ -616,12 +647,18 @@ const shouldOpenContextMenu = computed(() => {
                   :class="{ '!text-black !opacity-100 !inline-block': isOptionsOpen }"
                   data-testid="nc-sidebar-context-menu"
                   type="text"
-                  size="xxsmall"
+                  :size="isProjectHeader ? 'small' : 'xxsmall'"
                   @click.stop
                   @mouseenter="showNodeTooltip = false"
                   @mouseleave="showNodeTooltip = true"
                 >
-                  <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
+                  <GeneralIcon
+                    :icon="isProjectHeader ? 'threeDotVertical' : 'threeDotHorizontal'"
+                    class="text-xl w-4.75"
+                    :class="{
+                      'text-nc-content-gray-subtle': isProjectHeader,
+                    }"
+                  />
                 </NcButton>
                 <template #overlay>
                   <NcMenu
@@ -739,7 +776,7 @@ const shouldOpenContextMenu = computed(() => {
               </NcDropdown>
 
               <NcButton
-                v-if="isUIAllowed('tableCreate', { roles: baseRole, source: base?.sources?.[0] })"
+                v-if="isUIAllowed('tableCreate', { roles: baseRole, source: base?.sources?.[0] }) && !isProjectHeader"
                 v-e="['c:base:create-table']"
                 :disabled="!base?.sources?.[0]?.enabled"
                 class="nc-sidebar-node-btn"
@@ -759,6 +796,7 @@ const shouldOpenContextMenu = computed(() => {
               </NcButton>
 
               <NcButton
+                v-if="!isProjectHeader"
                 v-e="['c:base:expand']"
                 type="text"
                 size="xxsmall"
@@ -773,7 +811,7 @@ const shouldOpenContextMenu = computed(() => {
                 <GeneralIcon
                   icon="chevronRight"
                   class="group-hover:visible cursor-pointer transform transition-transform duration-200 text-[20px]"
-                  :class="{ '!rotate-90': base.isExpanded }"
+                  :class="{ '!rotate-90': base.isExpanded && !isNewSidebarEnabled }"
                 />
               </NcButton>
             </template>
@@ -782,7 +820,7 @@ const shouldOpenContextMenu = computed(() => {
       </NcTooltip>
 
       <div
-        v-if="base.id && !base.isLoading"
+        v-if="base.id && !base.isLoading && !isNewSidebarEnabled"
         key="g1"
         class="overflow-x-hidden transition-max-height"
         :class="{ 'max-h-0': !base.isExpanded }"

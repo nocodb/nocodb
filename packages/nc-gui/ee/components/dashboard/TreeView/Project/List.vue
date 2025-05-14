@@ -62,7 +62,7 @@ const nonStarredProjectList = computed(() => basesList.value.filter((base) => !b
 const filteredStarredProjectList = computed(() =>
   starredProjectList.value.filter((base) => searchCompare(base.title, searchQuery.value)),
 )
-const filteredMonStarredProjectList = computed(() =>
+const filteredNonStarredProjectList = computed(() =>
   nonStarredProjectList.value.filter((base) => searchCompare(base.title, searchQuery.value)),
 )
 
@@ -432,7 +432,7 @@ watch([searchInputRef, showProjectList], () => {
             </a-input>
           </div>
 
-          <div class="nc-project-home-section">
+          <div class="nc-project-home-section pt-1">
             <WorkspaceCreateProjectBtn
               v-model:is-open="isCreateProjectOpen"
               modal
@@ -498,7 +498,7 @@ watch([searchInputRef, showProjectList], () => {
                     </ProjectWrapper>
                   </div>
                 </template>
-                <template v-if="!isWorkspaceLoading && !filteredMonStarredProjectList.length" #footer>
+                <template v-if="!isWorkspaceLoading && !filteredNonStarredProjectList.length" #footer>
                   <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">
                     No results found for your search.
                   </div>
@@ -594,25 +594,5 @@ watch([searchInputRef, showProjectList], () => {
   &:hover {
     @apply bg-transparent;
   }
-}
-</style>
-
-<style lang="scss">
-.nc-project-home-section {
-  @apply px-1 pb-3;
-}
-
-.nc-project-home-section-item {
-  @apply w-full px-3 py-1.5 flex items-center gap-2 h-8;
-}
-
-.nc-project-home-section-header {
-  @apply w-full px-3 py-1.5 flex items-center gap-2 h-8 text-nc-content-gray-muted text-captionBold sticky top-0 bg-nc-bg-gray-extralight z-2;
-}
-
-.nc-treeview-container,
-.nc-treeview-base-list,
-.nc-treeview-active-base {
-  @apply w-full h-full flex-1 flex flex-col;
 }
 </style>

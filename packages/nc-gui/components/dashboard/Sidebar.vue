@@ -119,8 +119,26 @@ onUnmounted(() => {
 }
 </style>
 
-<style>
+<style lang="scss">
 .nc-treeview-header {
   @apply px-3 py-1.5 flex gap-2 h-[var(--topbar-height)];
+}
+
+.nc-project-home-section {
+  @apply px-1 pb-3;
+}
+
+.nc-project-home-section-item {
+  @apply w-full px-3 py-1.5 flex items-center gap-2 h-8;
+}
+
+.nc-project-home-section-header {
+  @apply w-full px-3 py-1.5 flex items-center gap-2 h-8 text-nc-content-gray-muted text-captionBold sticky top-0 bg-nc-bg-gray-extralight z-2;
+}
+
+.nc-treeview-container,
+.nc-treeview-base-list,
+.nc-treeview-active-base {
+  @apply w-full h-full flex-1 flex flex-col;
 }
 </style>

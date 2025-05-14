@@ -32,7 +32,7 @@ const isExpanded = computed<boolean>({
 
 const basesStore = useBases()
 
-const { createProject: _createProject, loadProject } = basesStore
+const { loadProject } = basesStore
 
 const { activeProjectId } = storeToRefs(basesStore)
 
@@ -66,7 +66,6 @@ const { $e } = useNuxtApp()
 
 const { blockExternalSourceRecordVisibility } = useEeConfig()
 
-const isOptionsOpen = ref(false)
 const isBasesOptionsOpen = ref<Record<string, boolean>>({})
 
 const activeKey = ref<string[]>([])
@@ -259,10 +258,6 @@ watch(
 )
 
 onKeyStroke('Escape', () => {
-  if (isOptionsOpen.value) {
-    isOptionsOpen.value = false
-  }
-
   for (const key of Object.keys(isBasesOptionsOpen.value)) {
     isBasesOptionsOpen.value[key] = false
   }
@@ -456,8 +451,8 @@ const showCreateNewAsDropdown = computed(() => {
                   <DashboardTreeViewTableList
                     :base="base"
                     :source-index="0"
-                    @create-table="addNewProjectChildEntity"
                     :show-create-table-btn="showCreateNewAsDropdown"
+                    @create-table="addNewProjectChildEntity"
                   />
                 </div>
               </div>

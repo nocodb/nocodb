@@ -16,6 +16,8 @@ export class LeftSidebarPage extends BasePage {
 
   readonly modal_workspace: Locator;
 
+  readonly miniSidebar: Locator;
+
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
@@ -26,10 +28,34 @@ export class LeftSidebarPage extends BasePage {
     this.btn_teamAndSettings = this.get().locator('[data-testid="nc-sidebar-team-settings-btn"]');
 
     this.modal_workspace = this.rootPage.locator('.nc-dropdown-workspace-menu');
+
+    this.miniSidebar = this.dashboard.get().getByTestId('nc-mini-sidebar');
   }
 
   get() {
     return this.dashboard.get().locator('.nc-sidebar');
+  }
+
+  async isNewSidebar() {
+    const classAttr = await this.dashboard.get().locator('.nc-treeview-container').getAttribute('class');
+
+    return (
+      classAttr?.includes('nc-treeview-container-base-list') || classAttr?.includes('nc-treeview-container-active-base')
+    );
+  }
+
+  async verifyBaseListOpen(open: boolean = false) {
+    if (!(await this.isNewSidebar())) return true;
+
+    const classAttr = await this.get().getAttribute('class');
+
+    const isListOpen = classAttr?.includes('nc-treeview-container-base-list') ?? false;
+
+    if (open) {
+      await this.miniSidebarActionClick({ type: 'base' });
+    }
+
+    return isListOpen;
   }
 
   async createProject({ title, context }: { title: string; context: NcContext }) {
@@ -52,21 +78,35 @@ export class LeftSidebarPage extends BasePage {
   }
 
   async clickTeamAndSettings() {
-    await this.btn_teamAndSettings.click();
+    await this.miniSidebarActionClick({
+      type: 'teamAndSettings',
+      fallback: async () => {
+        await this.btn_teamAndSettings.click();
+      },
+    });
   }
 
   async clickWorkspace() {
-    await this.btn_workspace.click();
+    await this.miniSidebarActionClick({
+      type: 'teamAndSettings',
+      fallback: async () => {
+        await this.btn_workspace.click();
+      },
+    });
   }
 
   async clickHome() {}
 
   async getWorkspaceName() {
-    return await this.btn_workspace.getAttribute('data-workspace-title');
+    if (await this.isNewSidebar()) {
+      return await this.get().locator('.nc-sidebar-header').getAttribute('data-workspace-title');
+    } else {
+      return await this.btn_workspace.getAttribute('data-workspace-title');
+    }
   }
 
   async verifyWorkspaceName({ title }: { title: string }) {
-    await expect(this.btn_workspace.locator('.nc-workspace-title')).toHaveText(title);
+    expect(await this.getWorkspaceName()).toContain(title);
   }
 
   async createWorkspace({ title }: { title: string }) {
@@ -119,5 +159,57 @@ export class LeftSidebarPage extends BasePage {
     await this.rootPage.keyboard.press('Escape');
 
     await this.rootPage.waitForTimeout(3500);
+  }
+
+  async miniSidebarActionClick({
+    type,
+    fallback,
+  }: {
+    type: 'ws' | 'base' | 'cmd-k' | 'teamAndSettings' | 'integration' | 'feeds' | 'notification' | 'userInfo';
+    fallback?: () => Promise<void>;
+  }): Promise<boolean | void> {
+    if (!(await this.isNewSidebar())) {
+      if (fallback) {
+        await fallback();
+      }
+
+      return false;
+    }
+
+    await this.miniSidebar.waitFor();
+
+    switch (type) {
+      case 'ws': {
+        break;
+      }
+      case 'base': {
+        await this.miniSidebar.getByTestId('nc-sidebar-project-btn').click();
+        break;
+      }
+      case 'cmd-k': {
+        await this.miniSidebar.getByTestId('nc-sidebar-cmd-k-btn').click();
+        break;
+      }
+      case 'teamAndSettings': {
+        await this.miniSidebar.getByTestId('nc-sidebar-team-settings-btn').click();
+        break;
+      }
+      case 'integration': {
+        await this.miniSidebar.getByTestId('nc-sidebar-integrations-btn').click();
+        break;
+      }
+      case 'feeds': {
+        await this.miniSidebar.getByTestId('nc-sidebar-product-feed').click();
+        break;
+      }
+      case 'notification': {
+        await this.miniSidebar.getByTestId('nc-sidebar-notification-btn').click();
+        break;
+      }
+      case 'userInfo': {
+        await this.miniSidebar.getByTestId('nc-sidebar-userinfo').click();
+        break;
+      }
+    }
   }
 }

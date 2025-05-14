@@ -399,7 +399,9 @@ watch([searchInputRef, showProjectList], () => {
   if (!searchInputRef.value || !showProjectList.value) return
 
   nextTick(() => {
-    searchInputRef.value?.input?.focus()
+    const inputEl = searchInputRef.value.$el?.querySelector('input')
+
+    inputEl?.focus()
   })
 })
 </script>
@@ -422,24 +424,9 @@ watch([searchInputRef, showProjectList], () => {
             </NcTooltip>
           </DashboardSidebarHeaderWrapper>
           <div class="px-2 h-11 flex items-center">
-            <a-input
-              ref="searchInputRef"
-              v-model:value="searchQuery"
-              type="text"
-              class="nc-input-border-on-value nc-input-shadow !h-8 !px-2.5 !py-1 !rounded-lg"
-              :placeholder="`${$t('activity.searchProject').charAt(0).toUpperCase()}${$t('activity.searchProject')
-                .slice(1)
-                .toLowerCase()}`"
-              allow-clear
-              @keydown.stop
-            >
-              <template #prefix>
-                <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-gray-500 group-hover:text-black" />
-              </template>
-            </a-input>
+            <DashboardTreeViewProjectSearchInput ref="searchInputRef" v-model:value="searchQuery" />
           </div>
-
-          <div class="nc-project-home-section pt-1">
+          <div class="nc-project-home-section pt-1 !pb-2">
             <WorkspaceCreateProjectBtn
               v-model:is-open="isCreateProjectOpen"
               modal
@@ -447,15 +434,6 @@ watch([searchInputRef, showProjectList], () => {
               class="nc-sidebar-create-base-btn nc-project-home-section-item !text-brand-500 !hover:(text-brand-600 bg-none) !xs:hidden w-full"
               data-testid="nc-sidebar-create-base-btn"
             >
-              <div class="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <rect width="16" height="16" rx="8" fill="#D6E0FF" />
-                  <path d="M8 4V12" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
-                  <path d="M4 8H12" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-
-                <div class="flex">{{ $t('title.createBase') }}</div>
-              </div>
             </WorkspaceCreateProjectBtn>
           </div>
         </div>

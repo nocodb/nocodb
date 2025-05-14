@@ -3,6 +3,7 @@ import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { BarcodeColumn, QrCodeColumn, RollupColumn, View } from '~/models';
+import { replaceDelimitedWithKeyValuePg } from '~/db/aggregations/pg';
 import { sanitize } from '~/helpers/sqlSanitize';
 import conditionV2 from '~/db/conditionV2';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
@@ -301,21 +302,26 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           base_id: column.base_id,
         });
 
-        // create union replace statement for each user
-        const mapUnion = baseUsers
-          .map((user) => {
-            return baseModel.dbDriver
-              .raw(`select ? as nc_u_id, ? as nc_u_name`, [
-                user.id,
-                user.display_name || user.email,
-              ])
-              .toQuery();
-          })
-          .join(' UNION ALL ');
-        const finalStatement = `(select nc_u_name from (${mapUnion}) where nc_u_id = ${baseModel.dbDriver
-          .raw('??', [columnName])
-          .toQuery()})`;
-
+        let finalStatement = '';
+        if (baseModel.dbDriver.clientType() === 'pg') {
+          finalStatement = `(${replaceDelimitedWithKeyValuePg({
+            knex: baseModel.dbDriver,
+            needleColumn: columnName,
+            stack: baseUsers.map((user) => ({
+              key: user.id,
+              value: user.display_name || user.email,
+            })),
+          })})`;
+        } else {
+          // use the original replace
+          finalStatement = baseUsers.reduce((acc, user) => {
+            const qb = baseModel.dbDriver.raw(`REPLACE(${acc}, ?, ?)`, [
+              user.id,
+              user.display_name || user.email,
+            ]);
+            return qb.toQuery();
+          }, baseModel.dbDriver.raw(`??`, [columnName]).toQuery());
+        }
         if (!['asc', 'desc'].includes(sort.direction)) {
           qb.orderBy(
             'count',

@@ -4,9 +4,9 @@ const {runServer} = require('@smartlook/saml-idp')
 
 runServer({
   port: process.env.PORT || 7000,
-  acsUrl: process.env.REDIRECT_URL,
-  audience: process.env.AUDIENCE,
-  issuer: process.env.AUDIENCE,
+  acsUrl: process.env.REDIRECT_URL ?? 'http://localhost:8080/sso/sson1bdd5iorz1rav/redirect',
+  audience: process.env.AUDIENCE?? 'http://localhost:8080/sso/sson1bdd5iorz1rav' ,
+  issuer: process.env.AUDIENCE?? 'http://localhost:8080/sso/sson1bdd5iorz1rav',
   config: {
     user: {
       email: 'test@nocodb.com',

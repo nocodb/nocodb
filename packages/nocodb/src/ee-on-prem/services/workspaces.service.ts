@@ -92,9 +92,7 @@ export class WorkspacesService extends WorkspacesServiceEE {
       });
 
       if (workspacesCount >= this.licenseService.getMaxWorkspaces()) {
-        NcError.notAllowed(
-          'The maximum workspace limit has been reached. Please contact your administrator to request access to a workspace.',
-        );
+        NcError.maxWorkspaceLimitReached();
       }
     }
 

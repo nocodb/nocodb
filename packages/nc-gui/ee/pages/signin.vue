@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { appInfo } = useGlobal()
+const { ssoError } = useSsoError()
 
 const route = useRoute()
 
@@ -18,7 +19,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <template v-if="appInfo.cognito">
+  <div v-if="ssoError">
+    <AuthNoAccess :message="ssoError.message" />
+  </div>
+  <template v-else-if="appInfo.cognito">
     <AuthCognito v-if="appInfo.cognito.aws_user_pools_id" />
     <NuxtLayout>
       <AuthSignin />

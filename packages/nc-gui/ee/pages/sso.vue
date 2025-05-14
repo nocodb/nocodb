@@ -4,10 +4,17 @@ definePageMeta({
   title: 'title.headLogin',
   public: true,
 })
+
+const { ssoError } = useSsoError()
 </script>
 
 <template>
-  <AuthOrgSso />
+  <div v-if="ssoError">
+    <AuthNoAccess :message="ssoError.message" />
+  </div>
+  <div v-else>
+    <AuthOrgSso />
+  </div>
 </template>
 
 <style></style>

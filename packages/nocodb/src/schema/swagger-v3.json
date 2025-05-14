@@ -5270,6 +5270,15 @@
                 "properties": {
                   "type": {
                     "enum": [
+                      "SingleLineText"
+                    ]
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
                       "LongText"
                     ]
                   },

@@ -303,8 +303,6 @@ export function useCanvasTable({
               relatedTableMeta = metas.value?.[f.colOptions.fk_related_model_id]
             }
           }
-        } else if (isButton(f)) {
-          f.extra.allowLocalUrl = appInfo.value?.allowLocalUrl
         }
 
         if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(f.uidt)) {

@@ -286,6 +286,7 @@ export function useGridCellHandler(params: {
         isRowHovered,
         isRowChecked,
         rowMeta,
+        allowLocalUrl: appInfo.value?.allowLocalUrl,
       })
     } else {
       return renderSingleLineText(ctx, {
@@ -333,6 +334,7 @@ export function useGridCellHandler(params: {
         openDetachedExpandedForm,
         openDetachedLongText,
         path: ctx.path ?? [],
+        allowLocalUrl: appInfo.value?.allowLocalUrl,
       })
     }
     return false
@@ -360,6 +362,7 @@ export function useGridCellHandler(params: {
         actionManager,
         makeCellEditable,
         openDetachedLongText,
+        allowLocalUrl: appInfo.value?.allowLocalUrl,
         path: ctx.path ?? [],
       })
     } else {

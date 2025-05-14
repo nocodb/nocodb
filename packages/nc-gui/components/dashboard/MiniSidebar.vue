@@ -68,14 +68,15 @@ const navigateToIntegrations = () => {
 </script>
 
 <template>
-  <div
-    class="nc-mini-sidebar"
-    :style="{
-      outlineWidth: '1px',
-    }"
-  >
+  <div class="nc-mini-sidebar" data-testid="nc-mini-sidebar">
     <div class="flex flex-col gap-3 items-center">
-      <WorkspaceMenu />
+      <div
+        :class="{
+          'pt-1.5 pb-2.5': isMobileMode,
+        }"
+      >
+        <WorkspaceMenu />
+      </div>
 
       <NcTooltip :title="$t('objects.projects')" placement="right" hide-on-click :arrow="false">
         <div

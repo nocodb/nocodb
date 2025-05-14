@@ -12,7 +12,7 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { isWorkspaceLoading, activeWorkspaceId } = storeToRefs(useWorkspace())
+const { isWorkspaceLoading, activeWorkspaceId, activeWorkspace } = storeToRefs(useWorkspace())
 
 const basesStore = useBases()
 
@@ -413,7 +413,16 @@ watch([searchInputRef, showProjectList], () => {
         class="nc-treeview-container nc-treeview-base-list absolute w-full h-full top-0 left-0 z-10"
       >
         <div class="w-full">
-          <DashboardSidebarHeaderWrapper></DashboardSidebarHeaderWrapper>
+          <DashboardSidebarHeaderWrapper>
+            <NcTooltip show-on-truncate-only class="truncate">
+              <template #title>
+                {{ activeWorkspace?.title }}
+              </template>
+
+              {{ activeWorkspace?.title }}
+              {{ activeWorkspace?.title }}
+            </NcTooltip>
+          </DashboardSidebarHeaderWrapper>
           <div class="px-2 h-11 flex items-center">
             <a-input
               ref="searchInputRef"

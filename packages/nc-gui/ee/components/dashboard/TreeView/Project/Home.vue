@@ -156,10 +156,6 @@ const updateSourceTitle = async (sourceId: string) => {
   }
 }
 
-defineExpose({
-  enableEditMode,
-})
-
 /**
  * Opens a dialog to create a new table.
  *

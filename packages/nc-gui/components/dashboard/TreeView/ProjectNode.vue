@@ -7,7 +7,7 @@ import { LoadingOutlined } from '@ant-design/icons-vue'
 interface Props {
   isProjectHeader?: boolean
 }
-const props = withDefaults(defineProps<Props>(), {})
+const props = withDefgetSourceTooltipaults(defineProps<Props>(), {})
 const { isProjectHeader } = toRefs(props)
 
 const indicator = h(LoadingOutlined, {

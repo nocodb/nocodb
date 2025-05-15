@@ -68,6 +68,8 @@ const [searchActive] = useToggle()
 const filterQuery = ref('')
 const keys = ref<Record<string, number>>({})
 
+const projectNodeRef = ref()
+
 const { refreshViewTabTitle } = useViewsStore()
 
 // If only base is open, i.e in case of docs, base view is open and not the page view
@@ -201,30 +203,29 @@ function openTableCreateDialog(sourceIndex?: number | undefined) {
   }
 }
 
-const isAddNewProjectChildEntityLoading = ref(false)
+function openErdView(source: SourceType) {
+  $e('c:project:relation')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgBaseErd'), {
+    'modelValue': isOpen,
+    'sourceId': source!.id,
+    'onUpdate:modelValue': () => closeDialog(),
+    'baseId': base.value.id,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
 
 async function addNewProjectChildEntity() {
-  if (isAddNewProjectChildEntityLoading.value) return
+  if (!projectNodeRef.value) return
 
-  isAddNewProjectChildEntityLoading.value = true
-
-  const isProjectPopulated = basesStore.isProjectPopulated(base.value.id!)
-  if (!isProjectPopulated && base.value.type === NcProjectType.DB) {
-    // We do not wait for tables api, so that add new table is seamless.
-    // Only con would be while saving table duplicate table name FE validation might not work
-    // If the table list api takes time to load before the table name validation
-    loadProjectTables(base.value.id!)
-  }
-
-  try {
-    openTableCreateDialog()
-
-    if (!isExpanded.value && base.value.type !== NcProjectType.DB) {
-      isExpanded.value = true
-    }
-  } finally {
-    isAddNewProjectChildEntityLoading.value = false
-  }
+  projectNodeRef.value?.addNewProjectChildEntity?.()
 }
 
 watch(
@@ -266,12 +267,6 @@ const openBaseHomePage = async () => {
       : undefined,
   )
 }
-
-defineExpose({
-  enableEditMode,
-  addNewProjectChildEntity,
-  isAddNewProjectChildEntityLoading,
-})
 </script>
 
 <template>

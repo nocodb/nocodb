@@ -67,6 +67,7 @@ const permissionScopes = {
     'aiSchema',
   ],
   base: [
+    'nestedDataListCopyPasteOrDeleteAll',
     'formViewGet',
     'baseGet',
     'tableGet',

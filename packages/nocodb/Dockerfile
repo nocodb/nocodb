@@ -1,43 +1,46 @@
-###########
+# syntax=docker/dockerfile:1
+
+####################
 # Litestream Builder
-###########
-FROM golang:bullseye AS lt-builder
+####################
+FROM golang:bookworm AS lt-builder
 
 WORKDIR /usr/src/
 
-RUN apt-get update && apt-get install -y \
-    git \
-    make \
+# Install buildtime dependencies
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
     gcc \
-    libc-dev \
+    git \
+    libc6-dev \
+    make \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# build litestream
-RUN git clone https://github.com/benbjohnson/litestream.git litestream
-RUN cd litestream && go install ./cmd/litestream
+# Build litestream
+RUN git clone https://github.com/benbjohnson/litestream.git litestream\
+    && cd litestream \
+    && go install ./cmd/litestream \
+    && cp $GOPATH/bin/litestream /usr/local/bin/litestream
 
-###########
-# Builder
-###########
+################
+# NocoDB Builder
+################
 FROM node:22-slim AS builder
 WORKDIR /usr/src/app
 
-# Install dependencies required for node-gyp and other build tools
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-distutils \
-    python-is-python3 \
-    make \
+# Install node-gyp dependencies and other build tools
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     libssl-dev \
+    make \
+    python-is-python3 \
+    python3 \
+    python3-distutils \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-RUN python3 --version && python --version
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
-# Copy application dependency manifests to the container image.
+# Copy application dependency manifests to the container image
 COPY --link ./package.json ./package.json
 COPY --link ./docker/main.js ./docker/main.js
 COPY --link ./docker/start-litestream.sh /usr/src/appEntry/start.sh
@@ -53,9 +56,9 @@ RUN pnpm install --prod --shamefully-hoist \
     && rm -rf ./node_modules/sqlite3/deps \
     && chmod +x /usr/src/appEntry/start.sh
 
-##########
+########
 # Runner
-##########
+########
 FROM node:22-slim
 WORKDIR /usr/src/app
 
@@ -69,25 +72,25 @@ ENV LITESTREAM_S3_SKIP_VERIFY=false \
     NODE_ENV=production \
     PORT=8080
 
-# Install additional runtime dependencies
-RUN apt-get update && apt-get install -y \
-    dumb-init \
+# Install runtime dependencies
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    wget \
+    dumb-init \
     && curl -L "https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_$(dpkg --print-architecture)" -o /usr/local/bin/dasel \
     && chmod +x /usr/local/bin/dasel \
+    && apt-get purge curl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy litestream binary and config file
-COPY --link --from=lt-builder /go/bin/litestream /usr/local/bin/litestream
+COPY --link --from=lt-builder /usr/local/bin/litestream /usr/local/bin/litestream
 COPY --link ./docker/litestream.yml /etc/litestream.yml
 
 # Copy production code & main entry file
-COPY --link --from=builder /usr/src/app/ /usr/src/app/
+COPY --link --from=builder /usr/src/app/      /usr/src/app/
 COPY --link --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-# Start Nocodb
+# Start NocoDB
 CMD ["/usr/src/appEntry/start.sh"]

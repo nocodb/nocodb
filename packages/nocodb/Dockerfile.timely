@@ -1,35 +1,41 @@
 # syntax=docker/dockerfile:1.5
 # Use Buildx cross-compilation
 
-###########
+####################
 # Litestream Builder
-###########
-FROM --platform=$BUILDPLATFORM golang:bookworm as lt-builder
+####################
+FROM --platform=$BUILDPLATFORM golang:bookworm AS lt-builder
 
 WORKDIR /usr/src/
 
-# Use build platform-specific tools
-RUN apt-get update && apt-get install -y --no-install-recommends git make gcc libc6-dev \
-    && rm -rf /var/lib/apt/lists/*
+# Install buildtime dependencies
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    git \
+    libc6-dev \
+    make \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Build litestream for the target platform
 RUN git clone https://github.com/benbjohnson/litestream.git litestream \
     && cd litestream \
-    && GOARCH=$(echo $TARGETPLATFORM | cut -d '/' -f 2) GOOS=$(echo $TARGETPLATFORM | cut -d '/' -f 1) go install ./cmd/litestream
+    && GOARCH=$(echo $TARGETPLATFORM | cut -d '/' -f 2) GOOS=$(echo $TARGETPLATFORM | cut -d '/' -f 1) go install ./cmd/litestream \
+    && cp $GOPATH/bin/litestream /usr/local/bin/litestream
 
-###########
-# Builder
-###########
-FROM --platform=$BUILDPLATFORM node:22-slim as builder
+################
+# NocoDB Builder
+################
+FROM --platform=$BUILDPLATFORM node:22-slim AS builder
 WORKDIR /usr/src/app
 
-# Install node-gyp dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends make g++ \
+# Install node-gyp dependencies and other build tools
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
+    g++ \
+    make \
+    python-is-python3 \
     python3 \
     python3-distutils \
-    python-is-python3 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
-
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
@@ -41,25 +47,27 @@ COPY --link ./docker/start-litestream.sh /usr/src/appEntry/start.sh
 COPY --link src/public/ ./docker/public/
 COPY --link ./docker/nc-gui/ ./docker/nc-gui/
 
-# For pnpm to generate a flat node_modules without symlinks
-# So that modclean works as expected
+# Configure pnpm to use hoisted node_modules for modclean compatibility
 RUN echo "node-linker=hoisted" > .npmrc
 
-# Install production dependencies, reduce node_modules size with modclean
-# Removing sqlite deps and add execute permission to start.sh
+# Install production dependencies, reduce node_modules size with modclean,
+# remove sqlite deps, and add execute permission to start.sh
 RUN pnpm install --prod --shamefully-hoist \
-    && pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**,@react-email/**" --run  \
+    && pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**,@react-email/**" --run \
     && rm -rf ./node_modules/sqlite3/deps \
     && chmod +x /usr/src/appEntry/start.sh
 
-############
-## Binary Dependencies Builder
-############
+#############################
+# Binary Dependencies Builder
+#############################
 FROM --platform=$TARGETPLATFORM node:22-slim as bin-builder
 WORKDIR /usr/src/app
 
-# Install node-gyp dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends jq make g++ \
+# Install node-gyp dependencies and other build tools
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
+    g++ \
+    jq \
+    make \
     python3 \
     python3-distutils \
     python-is-python3 \
@@ -73,9 +81,9 @@ RUN SQLITE3_VERSION=$(jq -r '.dependencies["sqlite3"]' /usr/src/app/package-copy
     && SHARP_VERSION=$(jq -r '.dependencies["sharp"]' /usr/src/app/package-copy.json) \
     && npm init -y && npm install sqlite3@$SQLITE3_VERSION sharp@$SHARP_VERSION
 
-###########
+########
 # Runner
-###########
+########
 FROM --platform=$TARGETPLATFORM node:22-slim
 WORKDIR /usr/src/app
 
@@ -90,24 +98,26 @@ ENV LITESTREAM_S3_SKIP_VERIFY=false \
     PORT=8080
 
 # Install runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends dumb-init curl wget ca-certificates \
-    && update-ca-certificates \
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    dumb-init \
     && curl -L "https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_$(dpkg --print-architecture)" -o /usr/local/bin/dasel \
     && chmod +x /usr/local/bin/dasel \
+    && apt-get purge curl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy litestream binary and config file
-COPY --link --from=lt-builder /go/bin/litestream /usr/local/bin/litestream
+COPY --link --from=lt-builder /usr/local/bin/litestream /usr/local/bin/litestream
 COPY --link ./docker/litestream.yml /etc/litestream.yml
 
 # Copy production code & main entry file
-COPY --link --from=builder /usr/src/app/ /usr/src/app/
+COPY --link --from=builder     /usr/src/app/                      /usr/src/app/
+COPY --link --from=builder     /usr/src/appEntry/                 /usr/src/appEntry/
 COPY --link --from=bin-builder /usr/src/app/node_modules/sqlite3/ /usr/src/app/node_modules/sqlite3/
-COPY --link --from=bin-builder /usr/src/app/node_modules/sharp/ /usr/src/app/node_modules/sharp/
-COPY --link --from=builder /usr/src/appEntry/ /usr/src/appEntry/
+COPY --link --from=bin-builder /usr/src/app/node_modules/sharp/   /usr/src/app/node_modules/sharp/
 
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-# Start Nocodb
+# Start NocoDB
 CMD ["/usr/src/appEntry/start.sh"]

@@ -133,7 +133,7 @@ onUnmounted(() => {
 }
 
 .nc-project-home-section-header {
-  @apply w-full pl-3 pr-1.5 py-1.5 flex items-center gap-2 h-8 text-nc-content-gray-muted text-captionBold sticky top-0 bg-nc-bg-gray-extralight z-2;
+  @apply w-full pl-3 pr-3 md:pr-1.5 py-1.5 flex items-center gap-2 h-8 text-nc-content-gray-muted text-captionBold sticky top-0 bg-nc-bg-gray-extralight z-2;
 }
 
 .nc-treeview-base-list,

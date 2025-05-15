@@ -79,8 +79,12 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
 .nc-sidebar-header {
   @apply w-full px-2 py-1.5 flex items-center justify-between gap-2 h-[var(--topbar-height)];
 
-  .nc-sidebar-header-content:has(input) {
-    @apply flex-1;
+  .nc-sidebar-header-content {
+    @apply xs:flex-1;
+
+    &:has(input) {
+      @apply flex-1;
+    }
   }
 }
 

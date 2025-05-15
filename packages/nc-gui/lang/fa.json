@@ -118,6 +118,7 @@
     "upgradeToAdd": "ارتقاء برای افزودن",
     "requestUpgradeToAdd": "درخواست ارتقاء برای افزودن",
     "upgradeToAddMoreExtensions": "شما هم‌اکنون روی پلن رایگان هستید که تنها یک افزونه را مجاز می‌کند. برای باز کردن محدودیت و داشتن افزونه‌های نامحدود، پلن خود را ارتقاء دهید.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "ارتقاء برای دسترسی به ممیزی ورک‌اسپیس",
     "upgradeToAccessWsAuditSubtitle": "برای فعال‌سازی لاگ‌های ممیزی ورک‌اسپیس و پایش کارآمد فعالیت‌های کلیدی، به پلن {plan} ارتقاء دهید.",
     "upgradeToAddMoreAttachments": "ارتقاء برای افزودن پیوست‌های بیشتر",
@@ -154,6 +155,7 @@
     "upgradeToUploadWsImageSubtitle": "پلن فعلی {activePlan} تنها از آیکن‌ها و ایموجی‌ها پشتیبانی می‌کند. برای بارگذاری تصویر سفارشی به عنوان آواتار ورک‌اسپیس، به پلن {plan} ارتقاء دهید."
   },
   "general": {
+    "script": "Script",
     "supported": "پشتیبانی‌شده",
     "usage": "استفاده",
     "snapshot": "اسنپ‌شات",
@@ -821,6 +823,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "در حال بازیابی اسنپ‌شات",
     "note": "توجه:",
     "snapshotRestoreMessage1": "بازیابی این اسنپ‌شات بر پایگاه موجود تأثیری نخواهد داشت.",

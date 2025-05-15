@@ -16,26 +16,42 @@ const props = defineProps<{
   nodeSelected: (nodeId: string) => void
 }>()
 
-const { zoomOut } = useVueFlow()
+const { fitView, zoomOut: _zoomOut } = useVueFlow()
 
 const { nodes, edges } = toRefs(props)
+
+const vueFlowKey = computed(() => {
+  return `org_chart_${nodes.value.length}_${edges.value.length}_${Math.floor(Math.random() * 99999)}`
+})
+
+const zoomOut = async (useDelay = false) => {
+  await nextTick()
+
+  if (useDelay) {
+    await ncDelay(500)
+  }
+
+  fitView()
+  _zoomOut()
+}
 
 watch(
   () => props.elementWatch,
   () => {
-    zoomOut()
+    zoomOut(true)
   },
 )
 </script>
 
 <template>
   <VueFlow
-    :key="edges.length"
+    :key="vueFlowKey"
     class="w-full h-full"
     :nodes="nodes"
     :edges="edges"
     :nodes-draggable="false"
     :nodes-connectable="false"
+    @nodes-initialized="zoomOut()"
   >
     <Background />
     <template #node-default="{ data, sourcePosition, targetPosition }">

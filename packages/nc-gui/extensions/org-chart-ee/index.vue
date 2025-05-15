@@ -340,7 +340,7 @@ onMounted(async () => {
         <div class="flex flex-col space-y-4 h-full">
           <section>
             <h1>Table and View</h1>
-            <div class="flex">
+            <div class="flex flex-col gap-3">
               <a-form-item class="!my-0 w-full table-select">
                 <NcSelect
                   v-model:value="tableId"
@@ -500,15 +500,9 @@ onMounted(async () => {
           </section>
           <div class="flex-1"></div>
           <div class="px-6 py-4 flex flex-col">
-            <a-button
-              size="small"
-              class="!rounded-md !h-[2rem]"
-              type="primary"
-              :disabled="!isDirty || !relationFieldId"
-              @click.prevent="applyChanges"
-            >
+            <NcButton size="small" type="primary" :disabled="!isDirty || !relationFieldId" @click.prevent="applyChanges">
               <div class="flex justify-center items-center gap-2" data-rec="true">Apply Changes</div>
-            </a-button>
+            </NcButton>
           </div>
         </div>
       </div>
@@ -542,19 +536,8 @@ onMounted(async () => {
 </style>
 
 <style lang="scss" scoped>
-.table-select :deep(.ant-select-selector) {
-  &:not(:focus-within) {
-    border-right: 0;
-  }
-  border-top-right-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-}
-.view-select :deep(.ant-select-selector) {
-  border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-}
 section {
-  @apply flex flex-col px-6 py-4 gap-4 border-b border-nc-border-gray-medium !m-0;
+  @apply flex flex-col px-6 py-4 gap-3 border-b border-nc-border-gray-medium !m-0;
   h1 {
     font-size: 16px;
     font-weight: 700;

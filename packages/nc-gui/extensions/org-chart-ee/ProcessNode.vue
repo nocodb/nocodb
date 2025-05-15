@@ -26,10 +26,6 @@ const targetConnections = useNodeConnections({
 const isStartNode = computed(() => sourceConnections.value.length <= 0)
 
 const isEndNode = computed(() => targetConnections.value.length <= 0)
-
-watchEffect(() => {
-  console.log('source', props.record, sourceConnections.value.length, targetConnections.value.length)
-})
 </script>
 
 <template>
@@ -54,37 +50,19 @@ watchEffect(() => {
     <div class="font-bold text-left w-full px-2 py-1 flex flex-col space-y-1">
       <span class="overflow-hidden font-bold text-lg text-center">{{ record.Title }}</span>
       <div v-if="!isEndNode || !hierarchyData.has(record.Id)" class="flex w-full justify-center items-center">
-        <a-button
+        <NcButton
           size="small"
-          class="!rounded-md w-8"
           type="text"
           :disabled="hierarchyData.has(record.Id)"
           @click.prevent="nodeSelected(record.Id)"
+          icon-only
         >
-          <GeneralIcon v-if="!hierarchyData.has(record.Id)" icon="chevronDown" />
-          <GeneralIcon v-else icon="chevronUpDown" />
-        </a-button>
+          <template #icon>
+            <GeneralIcon v-if="!hierarchyData.has(record.Id)" icon="chevronDown" />
+            <GeneralIcon v-else icon="chevronUpDown" />
+          </template>
+        </NcButton>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-.process-node {
-  padding: 10px;
-  border-radius: 99px;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.process-node .vue-flow__handle {
-  border: none;
-  height: unset;
-  width: unset;
-  background: transparent;
-  font-size: 12px;
-}
-</style>

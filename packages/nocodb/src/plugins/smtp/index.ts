@@ -87,7 +87,7 @@ const config: XcPluginConfig = {
         type: XcType.Checkbox,
         required: false,
         help_text:
-          'Enable this if you want to bypass any TLS errors that may occur during the connection. Beware that enabling this may compromise security.',
+          'Enable this if you want to ignore any TLS errors that may occur during the connection. Enabling this disables STARTTLS even if SMTP servers support it, hence may compromise security.',
       },
       {
         key: 'rejectUnauthorized',

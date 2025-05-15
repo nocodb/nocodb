@@ -107,6 +107,8 @@ const advancedOptions = ref(false)
 const tablesStore = useTablesStore()
 const { baseTables } = storeToRefs(tablesStore)
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const refTables = computed(() => {
   if (isEdit.value) {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -249,8 +251,6 @@ const onBaseChange = async (baseId: string) => {
   }
 }
 
-const isAdvancedOptionsShownEasterEgg = ref(false)
-
 const cusValidators = {
   'custom.column_id': [{ required: true, message: t('general.required') }],
   'custom.ref_model_id': [{ required: true, message: t('general.required') }],
@@ -279,12 +279,6 @@ const onCustomSwitchToggle = () => {
 
 const handleShowAdvanceOptions = () => {
   if (isEdit.value) return
-
-  isAdvancedOptionsShownEasterEgg.value = !isAdvancedOptionsShownEasterEgg.value
-
-  if (!isAdvancedOptionsShownEasterEgg.value) {
-    vModel.value.is_custom_link = false
-  }
 }
 
 const onCustomSwitchLabelClick = () => {
@@ -363,7 +357,7 @@ const toggleCrossBase = () => {
         </a-radio-group>
       </a-form-item>
     </div>
-    <div v-if="isAdvancedOptionsShownEasterEgg && isEeUI">
+    <div v-if="isFeatureEnabled('custom_link') && isEeUI">
       <a-switch
         v-model:checked="vModel.is_custom_link"
         :disabled="isEdit"
@@ -385,68 +379,74 @@ const toggleCrossBase = () => {
       <LazySmartsheetColumnLinkAdvancedOptions v-model:value="vModel" :is-edit="isEdit" :meta="meta" />
     </div>
     <template v-else>
-      <div>
-        <a-switch
-          v-model:checked="crossBase"
-          :disabled="isEdit"
-          :is-edit="isEdit"
-          size="small"
-          name="crossBase"
-          @change="onCrossBaseToggle"
-        />
+      <template v-if="isFeatureEnabled('cross_base_link')">
+        <div>
+          <a-switch
+            v-model:checked="crossBase"
+            :disabled="isEdit"
+            :is-edit="isEdit"
+            size="small"
+            name="crossBase"
+            @change="onCrossBaseToggle"
+          />
 
-        <a-tooltip>
-          <template #title v-if="!isEdit">{{ $t('tooltip.crossBase') }}</template>
-          <span
-            class="ml-3"
-            :class="{
-              'cursor-pointer': !isEdit,
-            }"
-            @click="toggleCrossBase"
-            @dblclick="onCustomSwitchLabelClick"
-            >{{ $t('labels.crossBase') }}</span
+          <a-tooltip>
+            <template v-if="!isEdit" #title>{{ $t('tooltip.crossBase') }}</template>
+            <span
+              class="ml-3"
+              :class="{
+                'cursor-pointer': !isEdit,
+              }"
+              @click="toggleCrossBase"
+              @dblclick="onCustomSwitchLabelClick"
+              >{{ $t('labels.crossBase') }}</span
+            >
+          </a-tooltip>
+        </div>
+
+        <a-form-item v-if="crossBase" class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childBaseId">
+          <a-select
+            v-model:value="referenceBaseId"
+            show-search
+            :disabled="isEdit"
+            :filter-option="filterOption"
+            placeholder="Select base"
+            dropdown-class-name="nc-dropdown-ltar-child-table"
+            @change="onBaseChange(referenceBaseId)"
           >
-        </a-tooltip>
-      </div>
+            <template #suffixIcon>
+              <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            </template>
+            <a-select-option
+              v-for="base of basesList"
+              :key="base.title"
+              :disabled="!canCreateCrossBaseLink(base)"
+              :value="base.id"
+            >
+              <a-tooltip>
+                <template v-if="!canCreateCrossBaseLink(base)" #title>
+                  You can only link to tables in bases where you have creator access or above.
+                </template>
+                <div class="flex w-full items-center gap-2">
+                  <div class="min-w-5 flex items-center justify-center">
+                    <GeneralProjectIcon :color="parseProp(base.meta).iconColor" :type="base.type" class="nc-project-icon" />
+                  </div>
+                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                    <template #title>{{ base.title }}</template>
+                    <span>{{ base.title }}</span>
+                  </NcTooltip>
 
-      <a-form-item v-if="crossBase" class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childBaseId">
-        <a-select
-          v-model:value="referenceBaseId"
-          show-search
-          :disabled="isEdit"
-          :filter-option="filterOption"
-          placeholder="Select base"
-          dropdown-class-name="nc-dropdown-ltar-child-table"
-          @change="onBaseChange(referenceBaseId)"
-        >
-          <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
-          </template>
-          <a-select-option v-for="base of basesList" :key="base.title" :disabled="!canCreateCrossBaseLink(base)" :value="base.id">
-            <a-tooltip>
-              <template v-if="!canCreateCrossBaseLink(base)" #title>
-                You can only link to tables in bases where you have creator access or above.
-              </template>
-              <div class="flex w-full items-center gap-2">
-                <div class="min-w-5 flex items-center justify-center">
-                  <GeneralProjectIcon :color="parseProp(base.meta).iconColor" :type="base.type" class="nc-project-icon" />
-                </div>
-                <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                  <template #title>{{ base.title }}</template>
-                  <span>{{ base.title }}</span>
-                </NcTooltip>
-
-                <div class="flex gap-2 items-center">
-                  <div v-if="base?.id === meta?.base_id" class="text-nc-content-gray-muted leading-4.5 text-xs">
-                    {{ $t('labels.currentBase') }}
+                  <div class="flex gap-2 items-center">
+                    <div v-if="base?.id === meta?.base_id" class="text-nc-content-gray-muted leading-4.5 text-xs">
+                      {{ $t('labels.currentBase') }}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </a-tooltip>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-
+              </a-tooltip>
+            </a-select-option>
+          </a-select>
+        </a-form-item>
+      </template>
       <a-form-item class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childId">
         <a-select
           v-model:value="referenceTableChildId"

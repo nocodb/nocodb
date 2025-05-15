@@ -90,9 +90,11 @@ const onDelete = async () => {
       } else {
         await openTable(sourceTables[0])
       }
-    } else {
-      const activeTableMeta = await getMeta(activeTable.value?.id as string, true)
-      if (activeTableMeta.columns?.find((c) => isLinksOrLTAR(c))) {
+    } else if (activeTable.value?.id) {
+      // get cached meta for active table
+      const activeTableMeta = await getMeta(activeTable.value?.id as string)
+      // if active table has any link to another record column, then force refetch the meta
+      if (activeTableMeta && activeTableMeta.columns?.find((c) => isLinksOrLTAR(c))) {
         await getMeta(activeTable.value?.id as string, true)
       }
     }

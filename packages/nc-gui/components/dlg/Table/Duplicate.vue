@@ -169,6 +169,15 @@ const isEaster = ref(false)
           {{ $t('labels.includeWebhook') }}
         </div>
       </div>
+
+      <div
+        :class="{
+          'mb-5': isEeUI,
+        }"
+        class="mt-5 text-nc-content-gray-subtle2 font-medium"
+      >
+        {{ $t('labels.tableDuplicateMessage') }}
+      </div>
     </div>
     <div class="flex flex-row gap-x-2 mt-5 justify-end">
       <NcButton v-if="!isLoading" key="back" type="secondary" size="small" @click="dialogShow = false">{{

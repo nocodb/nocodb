@@ -104,11 +104,13 @@ export class JsonGeneralHandler extends GenericFieldHandler {
 
         case 'is':
           switch (val) {
+            case 'null':
             case 'blank':
             case 'empty': {
               appendIsNull();
               break;
             }
+            case 'notnull':
             case 'notblank':
             case 'notempty': {
               appendIsNotNull();
@@ -119,11 +121,13 @@ export class JsonGeneralHandler extends GenericFieldHandler {
 
         case 'isnot':
           switch (val) {
+            case 'null':
             case 'blank':
             case 'empty': {
               appendIsNotNull();
               break;
             }
+            case 'notnull':
             case 'notblank':
             case 'notempty': {
               appendIsNull();

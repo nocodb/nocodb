@@ -170,12 +170,14 @@ class NcPluginMgrv2 {
         active: true,
         input: JSON.stringify({
           from: process.env.NC_SMTP_FROM,
+          name: process.env.NC_SMTP_DOMAIN,
           host: process.env.NC_SMTP_HOST,
           port: process.env.NC_SMTP_PORT,
           username: process.env.NC_SMTP_USERNAME,
           password: process.env.NC_SMTP_PASSWORD,
           secure: process.env.NC_SMTP_SECURE,
           ignoreTLS: process.env.NC_SMTP_IGNORE_TLS,
+          rejectUnauthorized: process.env.NC_SMTP_REJECT_UNAUTHORIZED,
         }),
       });
     }

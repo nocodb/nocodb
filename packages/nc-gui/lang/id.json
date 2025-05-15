@@ -118,6 +118,7 @@
     "upgradeToAdd": "Tingkatkan untuk menambahkan",
     "requestUpgradeToAdd": "Minta peningkatan untuk menambahkan",
     "upgradeToAddMoreExtensions": "Anda saat ini berada di paket Gratis, yang hanya mengizinkan satu ekstensi. Tingkatkan untuk membuka ekstensi tanpa batas.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "Tingkatkan untuk mengakses audit ruang kerja",
     "upgradeToAccessWsAuditSubtitle": "Tingkatkan ke paket {plan} untuk mengaktifkan log audit ruang kerja dan memantau aktivitas utama secara efisien.",
     "upgradeToAddMoreAttachments": "Tingkatkan untuk menambahkan lebih banyak lampiran",
@@ -154,6 +155,7 @@
     "upgradeToUploadWsImageSubtitle": "Paket {activePlan} Anda saat ini hanya mengizinkan ikon dan emoji. Tingkatkan ke paket {plan} untuk mengunggah gambar kustom sebagai avatar ruang kerja Anda."
   },
   "general": {
+    "script": "Script",
     "supported": "Didukung",
     "usage": "Penggunaan",
     "snapshot": "Snapshot",
@@ -821,6 +823,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Memulihkan Snapshot",
     "note": "Catatan:",
     "snapshotRestoreMessage1": "Memulihkan snapshot ini tidak akan memengaruhi basis yang ada.",

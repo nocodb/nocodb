@@ -211,8 +211,6 @@ export const usePlugin = createSharedComposable(() => {
 
       // Step 1: Load assets for all plugin types
       for (const pluginType of Object.keys(pluginGlobs) as PluginType[]) {
-        console.log(pluginGlobs[pluginType])
-
         for (const [libKey, glob] of Object.entries(pluginGlobs[pluginType])) {
           if (!glob) continue
 

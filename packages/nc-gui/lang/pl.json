@@ -118,6 +118,7 @@
     "upgradeToAdd": "Uaktualnij, aby dodać",
     "requestUpgradeToAdd": "Poproś o uaktualnienie, aby dodać",
     "upgradeToAddMoreExtensions": "Korzystasz z darmowego planu, który pozwala na tylko jedno rozszerzenie. Uaktualnij, aby odblokować nieograniczoną liczbę rozszerzeń.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "Uaktualnij, aby uzyskać dostęp do audytu przestrzeni roboczej",
     "upgradeToAccessWsAuditSubtitle": "Uaktualnij do planu {plan}, aby włączyć logi audytu przestrzeni roboczej i efektywnie monitorować kluczowe aktywności.",
     "upgradeToAddMoreAttachments": "Uaktualnij, aby dodać więcej załączników",
@@ -154,6 +155,7 @@
     "upgradeToUploadWsImageSubtitle": "Twój obecny plan {activePlan} umożliwia jedynie używanie ikon i emoji. Uaktualnij do planu {plan}, aby przesłać niestandardowy obraz jako avatar przestrzeni roboczej."
   },
   "general": {
+    "script": "Script",
     "supported": "Obsługiwane",
     "usage": "Użycie",
     "snapshot": "Migawka",
@@ -821,6 +823,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Przywracanie migawki",
     "note": "Uwaga:",
     "snapshotRestoreMessage1": "Przywrócenie tej migawki nie wpłynie na istniejącą bazę.",

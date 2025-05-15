@@ -32,7 +32,7 @@
     ]
   },
   "scripts": {
-    "bootstrap": "pnpm --filter=nocodb-sdk install && pnpm --filter=nocodb-sdk run build:ee &&  pnpm --filter=nocodb-sdk-v2 run build && pnpm --filter=nocodb --filter=nc-gui --filter=knex-snowflake --filter=knex-databricks --filter=nc-sql-executor --filter=playwright install && pnpm run registerIntegrations",
+    "bootstrap": "pnpm --filter=nocodb-sdk install && pnpm --filter=nocodb-sdk-v2 install && pnpm --filter=nocodb-sdk run build:ee &&  pnpm --filter=nocodb-sdk-v2 run build && pnpm --filter=nocodb --filter=nc-gui --filter=knex-snowflake --filter=knex-databricks --filter=nc-sql-executor --filter=playwright install && pnpm run registerIntegrations",
     "bootstrap:ce": "pnpm --filter=nocodb-sdk install && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-gui --filter=nc-sql-executor --filter=playwright install && pnpm run registerIntegrations",
     "start:frontend": "pnpm --filter=nc-gui run dev",
     "start:backend": "pnpm --filter=nocodb run start",

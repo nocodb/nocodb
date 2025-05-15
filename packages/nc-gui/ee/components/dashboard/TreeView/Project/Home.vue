@@ -407,7 +407,7 @@ const showCreateNewAsDropdown = computed(() => {
           v-e="['c:base:home']"
           type="text"
           size="xsmall"
-          class="nc-sidebar-top-button !h-8 w-full"
+          class="nc-sidebar-top-button !h-8 w-full !pl-0"
           :centered="false"
           :class="{
             '!text-brand-600 !bg-brand-50 !hover:bg-brand-50': activeProjectId === base.id && baseViewOpen,

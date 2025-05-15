@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set +o nounset
+
 commit_message="chore(nix/package/pnpmDeps): bump hash"
 commit_author="auto walle"
 commit_email="auto@sinanmohd.com"

@@ -1,3 +1,4 @@
+import { RelationTypes } from 'nocodb-sdk';
 import type { BoolType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type Filter from '~/models/Filter';
@@ -60,8 +61,22 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
+    let childContext = context;
+    // if hm then parent belongs to the related table
+    // if oo(hm) then parent belongs to the related table
+    // in these scenario overwrite context if fk_related_base_id is present
+    if (
+      this.fk_related_base_id &&
+      (this.type === RelationTypes.HAS_MANY ||
+        (this.type === RelationTypes.ONE_TO_ONE &&
+          !(await Column.get(context, { colId: this.fk_column_id }))?.meta?.bt))
+    ) {
+      const { refContext } = this.getRelContext(context);
+      childContext = refContext;
+    }
+
     return (this.childColumn = await Column.get(
-      context,
+      childContext,
       {
         colId: this.fk_child_column_id,
       },
@@ -86,32 +101,52 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
+    let parentContext = context;
+    // if mm link parent present in related table
+    // if bt then parent belongs to the related table
+    // if oo(bt) then parent belongs to the related table
+    // in these scenario overwrite context if fk_related_base_id is present
+    if (
+      this.fk_related_base_id &&
+      (this.type === RelationTypes.MANY_TO_MANY ||
+        this.type === RelationTypes.BELONGS_TO ||
+        (this.type === RelationTypes.ONE_TO_ONE &&
+          (await Column.get(context, { colId: this.fk_column_id }))?.meta?.bt))
+    ) {
+      const { refContext } = this.getRelContext(context);
+      parentContext = refContext;
+    }
+
     return (this.parentColumn = await Column.get(
-      context,
+      parentContext,
       {
         colId: this.fk_parent_column_id,
       },
       ncMeta,
     ));
   }
+
   public async getMMParentColumn(
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
+    const { mmContext } = this.getRelContext(context);
     return (this.mmParentColumn = await Column.get(
-      context,
+      mmContext,
       {
         colId: this.fk_mm_parent_column_id,
       },
       ncMeta,
     ));
   }
+
   public async getMMModel(
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
+    const { mmContext } = this.getRelContext(context);
     return (this.mmModel = await Model.getByIdOrName(
-      context,
+      mmContext,
       {
         id: this.fk_mm_model_id,
       },
@@ -122,8 +157,9 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
+    const { refContext } = this.getRelContext(context);
     return (this.relatedTable = await Model.getByIdOrName(
-      context,
+      refContext,
       {
         id: this.fk_related_model_id,
       },
@@ -205,5 +241,34 @@ export default class LinkToAnotherRecordColumn {
     _param: { fk_target_view_id: string | null },
   ) {
     // placeholder method
+  }
+
+  getRelContext(context: NcContext) {
+    let refContext = context;
+    let mmContext = context;
+
+    // if the related table is in different base
+    if (
+      this.fk_related_base_id &&
+      this.fk_related_base_id !== context.base_id
+    ) {
+      refContext = {
+        ...context,
+        base_id: this.fk_related_source_id,
+      };
+    }
+
+    // if the junction table is in different base
+    if (this.fk_mm_base_id && this.fk_mm_base_id !== context.base_id) {
+      mmContext = {
+        ...context,
+        base_id: this.fk_mm_source_id,
+      };
+    }
+
+    return {
+      refContext,
+      mmContext,
+    };
   }
 }

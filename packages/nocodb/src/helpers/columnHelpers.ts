@@ -413,7 +413,9 @@ export async function validateLookupPayload(
     throw new Error('Relation column not found');
   }
 
-  const relation = await column.getColOptions<LinkToAnotherRecordColumn>(context);
+  const relation = await column.getColOptions<LinkToAnotherRecordColumn>(
+    context,
+  );
   const { refContext } = relation.getRelContext(context);
 
   if (!relation) {

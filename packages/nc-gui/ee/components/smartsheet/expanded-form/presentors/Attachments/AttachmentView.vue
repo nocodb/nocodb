@@ -52,8 +52,7 @@ const isPdfAttachment = computed(() => isPdf(props.attachment.title ?? '', props
         <span class="text-base font-black mt-4"> Unsupported File Type </span>
         <span class="text-xs mt-3 w-[250px] text-center">
           This file type is currently not supported for viewing.
-          <!-- TODO: @ramesh add docs link -->
-          <a>Learn more</a>
+          <a href="https://docs.nocodb.com/records/expand-record/#supported-files" target="_blank" rel="noopener">Learn more</a>
         </span>
       </div>
     </template>

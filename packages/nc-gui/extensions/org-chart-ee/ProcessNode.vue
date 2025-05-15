@@ -11,7 +11,7 @@ interface Props {
   hierarchyData: Map<string, string[]>
   nodeSelected: (nodeId: string) => void
 }
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
@@ -54,8 +54,8 @@ const isEndNode = computed(() => targetConnections.value.length <= 0)
           size="small"
           type="text"
           :disabled="hierarchyData.has(record.Id)"
-          @click.prevent="nodeSelected(record.Id)"
           icon-only
+          @click.prevent="nodeSelected(record.Id)"
         >
           <template #icon>
             <GeneralIcon v-if="!hierarchyData.has(record.Id)" icon="chevronDown" />

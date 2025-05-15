@@ -11,9 +11,6 @@ const { fullscreen, tables, getViewsForTable, getTableMeta, activeTableId, activ
 const EXTENSION_ID = extension.value.extensionId
 
 const kvStore = extension.value.kvStore
-const savedData = (await kvStore.get('data')) as SavedData | undefined
-
-const { getPossibleAttachmentSrc } = useAttachment()
 
 const mandatoryColumns = ['Id', 'Title'] as const
 
@@ -306,6 +303,8 @@ const applyChanges = () => {
 }
 
 onMounted(async () => {
+  const savedData = (await kvStore.get('data')) as SavedData | undefined
+
   if (savedData) {
     if (tables.value.findIndex((t: any) => t.id === savedData.tabledId) === -1) {
       await clearData()
@@ -314,8 +313,8 @@ onMounted(async () => {
       if (views.findIndex((v) => v.id === savedData.viewId) === -1) {
         await clearData()
       } else {
-        const tableMeta = (await getTableMeta(savedData.tabledId))!
-        if (tableMeta.columns?.findIndex((c) => c.id === savedData.relationFieldId) === -1) {
+        const savedTableMeta = (await getTableMeta(savedData.tabledId))!
+        if (savedTableMeta.columns?.findIndex((c) => c.id === savedData.relationFieldId) === -1) {
           await clearData()
         } else {
           tableId.value = savedData.tabledId
@@ -325,6 +324,11 @@ onMounted(async () => {
           if (savedData.relationshipType) {
             relationshipType.value = savedData.relationshipType
           }
+
+          if (tableId.value) {
+            await until(() => !!tableMeta.value).toBeTruthy({ timeout: 5000 })
+          }
+
           await loadGraph()
         }
       }
@@ -513,7 +517,7 @@ onMounted(async () => {
         :edges="edges"
         :element-watch="fullscreen"
         :cover-image-field-id="coverImageFieldId"
-        :selectedCoverImageField="selectedCoverImageField"
+        :selected-cover-image-field="selectedCoverImageField"
         :hierarchy-data="hierarchyData"
         :node-selected="nodeSelected"
       >

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/additional-components'
-import { type Edge, type Node } from './useLayoutHelper'
 import type { ColumnType } from 'nocodb-sdk'
+import { type Edge, type Node } from './useLayoutHelper'
 import ProcessNode from './ProcessNode.vue'
 
 const props = defineProps<{
@@ -59,10 +59,10 @@ watch(
         :record="data"
         :source-position="sourcePosition"
         :target-position="targetPosition"
-        :coverImageFieldId="coverImageFieldId"
-        :selectedCoverImageField="selectedCoverImageField"
-        :hierarchyData="hierarchyData"
-        :nodeSelected="nodeSelected"
+        :cover-image-field-id="coverImageFieldId"
+        :selected-cover-image-field="selectedCoverImageField"
+        :hierarchy-data="hierarchyData"
+        :node-selected="nodeSelected"
       />
     </template>
   </VueFlow>

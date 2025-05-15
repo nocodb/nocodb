@@ -14,6 +14,7 @@ import { DataTableService } from '~/services/data-table.service';
 import { hasMinimumRole } from '~/utils/roleHelper';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { serialize } from '~/helpers/serialize';
+import { AuditsService } from '~/services/audits.service';
 
 @Injectable()
 export class McpService {
@@ -22,6 +23,7 @@ export class McpService {
     private readonly tablesV3Service: TablesV3Service,
     private readonly datasV3Service: DataV3Service,
     protected readonly dataTableService: DataTableService,
+    private readonly auditService: AuditsService,
   ) {}
 
   async handleRequest(
@@ -560,6 +562,52 @@ export class McpService {
           } catch (error) {
             return {
               content: [{ type: 'text', text: `Error: ${error.message}` }],
+              isError: true,
+            };
+          }
+        },
+      );
+
+      server.tool(
+        'readAuditLogs',
+        {
+          tableId: z.string().describe('Table ID (fk_model_id)'),
+          rowId: z.string().describe('Record/Row ID to filter logs for'),
+          limit: z
+            .number()
+            .optional()
+            .default(25)
+            .describe('Number of logs to retrieve (default: 25, max: 1000)'),
+          offset: z
+            .number()
+            .optional()
+            .default(0)
+            .describe('Offset for pagination (default: 0)'),
+        },
+        async ({ tableId, rowId, limit = 25, offset = 0 }) => {
+          try {
+            const audits = await this.auditService.auditOnlyList({
+              query: {
+                row_id: rowId,
+                fk_model_id: tableId,
+                limit,
+                offset,
+              },
+            });
+
+            return {
+              content: [
+                { type: 'text', text: JSON.stringify(audits, null, 2) },
+              ],
+            };
+          } catch (error) {
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: `Error retrieving audit logs: ${error.message}`,
+                },
+              ],
               isError: true,
             };
           }

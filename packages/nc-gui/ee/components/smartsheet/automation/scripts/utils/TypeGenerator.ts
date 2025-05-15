@@ -2626,6 +2626,7 @@ declare interface ConfigItem {}
       }`
 
       case UITypes.Links:
+      case UITypes.LinkToAnotherRecord:
         return `{
         relation_type: '${field.options?.relation_type || 'mm'}',
         related_table_id: '${field.options?.related_table_id || ''}',

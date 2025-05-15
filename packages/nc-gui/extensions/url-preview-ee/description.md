@@ -26,6 +26,7 @@ This extension enhances the data visualization capabilities of NocoDB by providi
 - Spotify
 - Twitter (X)
 - Dailymotion
+- Behance
 - TED
 
 <br>

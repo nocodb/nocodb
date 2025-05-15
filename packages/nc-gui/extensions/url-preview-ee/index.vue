@@ -66,8 +66,10 @@ const openSelectedLink = async () => {
       </div>
       <div v-else-if="embedURL === 'unsupported'" class="w-full text-center">
         <GeneralIcon icon="alertTriangleSolid" class="!text-red-700 w-8 h-8 flex-none" />
-        <div class="mb-2 font-bold">URL not supported</div>
-        <div>We currently do not support this link.</div>
+        <div class="my-2 font-bold">URL not supported</div>
+        <div>
+          <a target="_blank" rel="noopener" class="!no-underline"> View supported URLs </a>
+        </div>
       </div>
       <iframe v-else-if="embedURL" class="w-full h-full" :class="platform === 'Spotify' ? 'p-2' : ''" :src="embedURL"></iframe>
     </div>

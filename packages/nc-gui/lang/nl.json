@@ -118,6 +118,7 @@
     "upgradeToAdd": "Upgrade om toe te voegen",
     "requestUpgradeToAdd": "Vraag een upgrade aan om toe te voegen",
     "upgradeToAddMoreExtensions": "U gebruikt momenteel het gratis abonnement, waarmee slechts één extensie is toegestaan. Upgrade om onbeperkt extensies te kunnen gebruiken.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "Upgrade om werkruimte-audit te openen",
     "upgradeToAccessWsAuditSubtitle": "Upgrade naar het {plan}-abonnement om werkruimte-auditlogboeken in te schakelen en belangrijke activiteiten efficiënt te monitoren.",
     "upgradeToAddMoreAttachments": "Upgrade om meer bijlagen toe te voegen",
@@ -154,6 +155,7 @@
     "upgradeToUploadWsImageSubtitle": "Uw huidige {activePlan}-abonnement staat alleen pictogrammen en emoji’s toe. Upgrade naar het {plan}-abonnement om een eigen afbeelding als werkruimte-avatar te uploaden."
   },
   "general": {
+    "script": "Script",
     "supported": "Ondersteund",
     "usage": "Gebruik",
     "snapshot": "Momentopname",
@@ -821,6 +823,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Momentopname wordt hersteld",
     "note": "Opmerking:",
     "snapshotRestoreMessage1": "Het herstellen van deze momentopname heeft geen invloed op de bestaande base.",

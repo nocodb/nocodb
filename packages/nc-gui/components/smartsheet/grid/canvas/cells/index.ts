@@ -73,7 +73,7 @@ export function useGridCellHandler(params: {
   const { isMssql, isMysql, isXcdbBase, isPg } = baseStore
   const { sqlUis } = storeToRefs(baseStore)
 
-  const { basesUser } = storeToRefs(useBases())
+  const { basesUser, baseRoles } = storeToRefs(useBases())
 
   const { open: openDetachedExpandedForm } = useExpandedFormDetached()
   const { open: openDetachedLongText } = useDetachedLongText()
@@ -335,6 +335,7 @@ export function useGridCellHandler(params: {
         openDetachedLongText,
         path: ctx.path ?? [],
         allowLocalUrl: appInfo.value?.allowLocalUrl,
+        baseRoles: baseRoles.value,
       })
     }
     return false

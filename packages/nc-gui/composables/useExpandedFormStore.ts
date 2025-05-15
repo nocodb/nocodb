@@ -276,7 +276,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           return message.info(t('msg.info.updateNotAllowedWithoutPK'))
         }
 
-        await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id, encodeURIComponent(id), updateOrInsertObj)
+        await $api.dbTableRow.update(
+          NOCO,
+          meta.value.base_id ?? (base.value.id as string),
+          meta.value.id,
+          encodeURIComponent(id),
+          updateOrInsertObj,
+        )
 
         if (!undo) {
           const undoObject = [...changedColumns.value].reduce((obj, col) => {
@@ -402,7 +408,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       const res: { message?: string[] } | number = await $api.dbTableRow.delete(
         NOCO,
-        base.value.id as string,
+        meta.value?.base_id ?? (base.value.id as string),
         meta.value.id as string,
         encodeURIComponent(recordId),
       )

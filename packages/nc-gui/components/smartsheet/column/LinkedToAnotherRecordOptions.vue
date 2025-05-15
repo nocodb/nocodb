@@ -28,7 +28,7 @@ const meta = inject(MetaInj, ref())
 
 const filterRef = ref()
 
-const crossBase = ref(false)
+const crossBase = ref((vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id !== vModel.value?.base_id)
 
 const { basesList } = storeToRefs(useBases())
 
@@ -223,7 +223,7 @@ const linkType = computed({
 })
 
 const referenceBaseId = computed({
-  get: () => vModel.value?.ref_base_id ?? null,
+  get: () => vModel.value?.ref_base_id ?? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id,
   set: (value) => {
     if (!isEdit.value && value) {
       vModel.value.ref_base_id = value
@@ -328,6 +328,13 @@ const canCreateCrossBaseLink = (base: { workspace_role: string; base_role: strin
 
   return false
 }
+
+const toggleCrossBase = () => {
+  if (isEdit.value) return
+
+  crossBase.value = !crossBase.value
+  onCrossBaseToggle()
+}
 </script>
 
 <template>
@@ -395,7 +402,7 @@ const canCreateCrossBaseLink = (base: { workspace_role: string; base_role: strin
             :class="{
               'cursor-pointer': !isEdit,
             }"
-            @click="crossBase = !isEdit && !crossBase"
+            @click="toggleCrossBase"
             @dblclick="onCustomSwitchLabelClick"
             >{{ $t('labels.crossBase') }}</span
           >

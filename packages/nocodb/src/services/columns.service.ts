@@ -3312,7 +3312,7 @@ export class ColumnsService implements IColumnsService {
           const childSource =
             childColumn.source_id === source.id
               ? source
-              : await Source.get(context, childColumn.source_id);
+              : await Source.get(childContext, childColumn.source_id);
 
           // Attempt to delete the foreign key constraint from the database
           await sqlMgr.sqlOpPlus(childSource, 'relationDelete', {
@@ -3403,7 +3403,7 @@ export class ColumnsService implements IColumnsService {
       const childSource =
         childColumn.source_id === source.id
           ? source
-          : await Source.get(context, childColumn.source_id);
+          : await Source.get(childContext, childColumn.source_id);
 
       // if virtual column delete all index before deleting the column
       if (relationColOpt?.virtual) {
@@ -3493,7 +3493,7 @@ export class ColumnsService implements IColumnsService {
     const childSource =
       childColumn.source_id === source.id
         ? source
-        : await Source.get(context, childColumn.source_id);
+        : await Source.get(childContext, childColumn.source_id);
 
     if (childTable) {
       if (!custom) {

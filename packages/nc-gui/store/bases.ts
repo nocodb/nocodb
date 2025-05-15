@@ -382,6 +382,10 @@ export const useBases = defineStore('basesStore', () => {
 
   const toggleStarred = async (..._args: any) => {}
 
+  const getBaseRoles = async (_baseId: string) => {
+    // this is a placeholder function
+  }
+
   return {
     bases,
     basesList,
@@ -411,6 +415,7 @@ export const useBases = defineStore('basesStore', () => {
     basesUser,
     clearBasesUser,
     isDataSourceLimitReached,
+    getBaseRoles,
   }
 })
 

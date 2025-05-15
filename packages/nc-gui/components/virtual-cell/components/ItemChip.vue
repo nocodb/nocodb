@@ -16,7 +16,7 @@ const { value, item, column, showUnlinkButton, border = true, readonly: readonly
 
 const emit = defineEmits(['unlink'])
 
-const { relatedTableMeta } = useLTARStoreOrThrow()!
+const { relatedTableMeta, externalBaseUserRoles } = useLTARStoreOrThrow()!
 
 const { isUIAllowed } = useRoles()
 
@@ -132,7 +132,7 @@ export default {
 
     <div
       v-show="active || isForm || isExpandedForm"
-      v-if="showUnlinkButton && !readOnly && isUIAllowed('dataEdit')"
+      v-if="showUnlinkButton && !readOnly && isUIAllowed('dataEdit', externalBaseUserRoles)"
       class="flex items-center cursor-pointer"
     >
       <component

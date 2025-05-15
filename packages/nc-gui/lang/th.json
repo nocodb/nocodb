@@ -118,6 +118,7 @@
     "upgradeToAdd": "อัปเกรดเพื่อเพิ่ม",
     "requestUpgradeToAdd": "ขออัปเกรดเพื่อเพิ่ม",
     "upgradeToAddMoreExtensions": "ขณะนี้คุณใช้แผนฟรี ซึ่งอนุญาตให้ใช้ส่วนขยายได้เพียงหนึ่งรายการ อัปเกรดเพื่อปลดล็อกส่วนขยายไม่จำกัด",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "อัปเกรดเพื่อเข้าถึงการตรวจสอบเวิร์กสเปซ",
     "upgradeToAccessWsAuditSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อเปิดใช้งานบันทึกตรวจสอบเวิร์กสเปซและติดตามกิจกรรมสำคัญได้อย่างมีประสิทธิภาพ",
     "upgradeToAddMoreAttachments": "อัปเกรดเพื่อเพิ่มไฟล์แนบมากขึ้น",
@@ -154,6 +155,7 @@
     "upgradeToUploadWsImageSubtitle": "แผน {activePlan} ปัจจุบันของคุณอนุญาตเฉพาะไอคอนและอีโมจิ อัปเกรดเป็นแผน {plan} เพื่ออัปโหลดภาพที่กำหนดเองเป็นอวาตาร์เวิร์กสเปซ"
   },
   "general": {
+    "script": "Script",
     "supported": "รองรับ",
     "usage": "การใช้งาน",
     "snapshot": "สแนปช็อต",
@@ -821,6 +823,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "กำลังกู้คืนสแนปช็อต",
     "note": "หมายเหตุ:",
     "snapshotRestoreMessage1": "การกู้คืนสแนปช็อตนี้จะไม่ส่งผลต่อฐานที่มีอยู่",

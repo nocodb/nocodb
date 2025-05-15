@@ -41,4 +41,6 @@ This extension enhances the data visualization capabilities of NocoDB by providi
   <li>GitHub (gists)</li>
   <li>Codepen</li>
   <li>Figma</li>
+  <li>Notion</li>
+  <li>TED</li>
 </ul>

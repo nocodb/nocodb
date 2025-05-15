@@ -118,6 +118,7 @@
     "upgradeToAdd": "שדרג כדי להוסיף",
     "requestUpgradeToAdd": "בקש שדרוג כדי להוסיף",
     "upgradeToAddMoreExtensions": "אתה בתוכנית החינמית, המאפשרת תוסף אחד בלבד. שדרג כדי לקבל תוספים ללא הגבלה.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "שדרג כדי לגשת ליומן הביקורת של סביבת העבודה",
     "upgradeToAccessWsAuditSubtitle": "שדרג לתוכנית {plan} כדי להפעיל יומני ביקורת בסביבת העבודה ולעקוב ביעילות אחר פעילויות מרכזיות.",
     "upgradeToAddMoreAttachments": "שדרג כדי להוסיף קבצים מצורפים נוספים",
@@ -154,6 +155,7 @@
     "upgradeToUploadWsImageSubtitle": "התוכנית הנוכחית שלך {activePlan} מאפשרת שימוש באייקונים ואימוג׳ים בלבד. שדרג לתוכנית {plan} כדי להעלות תמונה מותאמת כאווטאר של סביבת העבודה."
   },
   "general": {
+    "script": "Script",
     "supported": "נתמך",
     "usage": "שימוש",
     "snapshot": "",
@@ -821,6 +823,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "משחזר תמונת מצב",
     "note": "הערה:",
     "snapshotRestoreMessage1": "שחזור תמונת מצב זו לא ישפיע על הבסיס הקיים.",

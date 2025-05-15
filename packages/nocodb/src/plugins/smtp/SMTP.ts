@@ -25,9 +25,9 @@ export default class SMTP implements IEmailAdapter {
           ? this.input?.ignoreTLS
           : this.input?.ignoreTLS === 'true',
       tls: {
-        typeof this.input?.rejectUnauthorized === 'boolean'
+        rejectUnauthorized: typeof this.input?.rejectUnauthorized === 'boolean'
           ? this.input?.rejectUnauthorized
-          : this.input?.rejectUnauthorized === 'true',
+          : this.input?.rejectUnauthorized === 'true'
       },
       ...(this.input?.username || this.input?.password
         ? {

@@ -149,10 +149,11 @@ const nodes = computed(() => {
       .entries()
       .map(([k, v]) => ({ id: k.toString(), position: defaultPosition, data: v }))
       .toArray()
+
     return layout(nodes, edges.value, relationshipType.value)
   } catch (e) {
     console.error(e)
-    throw e
+    return []
   }
 })
 
@@ -304,30 +305,32 @@ const applyChanges = () => {
   return loadGraph()
 }
 
-if (savedData) {
-  if (tables.value.findIndex((t: any) => t.id === savedData.tabledId) === -1) {
-    await clearData()
-  } else {
-    const views = await getViewsForTable(savedData.tabledId)
-    if (views.findIndex((v) => v.id === savedData.viewId) === -1) {
+onMounted(async () => {
+  if (savedData) {
+    if (tables.value.findIndex((t: any) => t.id === savedData.tabledId) === -1) {
       await clearData()
     } else {
-      const tableMeta = (await getTableMeta(savedData.tabledId))!
-      if (tableMeta.columns?.findIndex((c) => c.id === savedData.relationFieldId) === -1) {
+      const views = await getViewsForTable(savedData.tabledId)
+      if (views.findIndex((v) => v.id === savedData.viewId) === -1) {
         await clearData()
       } else {
-        tableId.value = savedData.tabledId
-        viewId.value = savedData.viewId
-        relationFieldId.value = savedData.relationFieldId
-        coverImageFieldId.value = savedData.coverImageFieldId
-        if (savedData.relationshipType) {
-          relationshipType.value = savedData.relationshipType
+        const tableMeta = (await getTableMeta(savedData.tabledId))!
+        if (tableMeta.columns?.findIndex((c) => c.id === savedData.relationFieldId) === -1) {
+          await clearData()
+        } else {
+          tableId.value = savedData.tabledId
+          viewId.value = savedData.viewId
+          relationFieldId.value = savedData.relationFieldId
+          coverImageFieldId.value = savedData.coverImageFieldId
+          if (savedData.relationshipType) {
+            relationshipType.value = savedData.relationshipType
+          }
+          await loadGraph()
         }
-        await loadGraph()
       }
     }
   }
-}
+})
 </script>
 
 <template>
@@ -515,42 +518,11 @@ if (savedData) {
         :nodes="nodes"
         :edges="edges"
         :element-watch="fullscreen"
-        @node-selected="nodeSelected"
+        :cover-image-field-id="coverImageFieldId"
+        :selectedCoverImageField="selectedCoverImageField"
+        :hierarchy-data="hierarchyData"
+        :node-selected="nodeSelected"
       >
-        <template #default="{ props: record }">
-          <div class="w-full h-full">
-            <div v-if="coverImageFieldId">
-              <CellAttachmentPreviewImage
-                v-if="
-                  selectedCoverImageField?.title &&
-                  record[selectedCoverImageField.title] &&
-                  record[selectedCoverImageField.title].length
-                "
-                :key="`carousel-${record.Id}`"
-                class="object-contain h-22 border-b"
-                :srcs="getPossibleAttachmentSrc(record[selectedCoverImageField.title][0], 'card_cover')"
-              />
-              <div v-else class="h-22 w-full flex flex-row border-b border-gray-200 items-center justify-center">
-                <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
-              </div>
-            </div>
-            <div class="font-bold text-left w-full px-2 py-1 flex flex-col space-y-1">
-              <span class="overflow-hidden font-bold text-lg text-center">{{ record.Title }}</span>
-              <div class="flex w-full justify-center items-center">
-                <a-button
-                  size="small"
-                  class="!rounded-md w-8"
-                  type="text"
-                  :disabled="hierarchyData.has(record.Id)"
-                  @click.prevent="nodeSelected(record.Id)"
-                >
-                  <GeneralIcon v-if="!hierarchyData.has(record.Id)" icon="chevronDown" />
-                  <GeneralIcon v-else icon="chevronUpDown" />
-                </a-button>
-              </div>
-            </div>
-          </div>
-        </template>
       </Graph>
       <div v-else-if="!fullscreen" class="h-full w-full flex items-center justify-center">
         <NcButton size="small" type="secondary" @click="fullscreen = true">

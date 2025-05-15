@@ -3771,11 +3771,9 @@ export class ColumnsService implements IColumnsService {
     const refSqlMgr =
       refTable.base_id === param.source.base_id
         ? sqlMgr
-        : await reuseOrSave('sqlMgr', reuse, async () =>
-            ProjectMgrv2.getSqlMgr(context, {
-              id: refTable.base_id,
-            }),
-          );
+        : await ProjectMgrv2.getSqlMgr(context, {
+            id: refTable.base_id,
+          });
     const isLinks =
       param.column.uidt === UITypes.Links ||
       (param.column as LinkToAnotherColumnReqType).type === 'bt';

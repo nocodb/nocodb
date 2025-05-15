@@ -118,6 +118,7 @@
     "upgradeToAdd": "ചേർക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
     "requestUpgradeToAdd": "ചേർക്കുന്നതിനായി അപ്‌ഗ്രേഡ് അഭ്യർത്ഥിക്കുക",
     "upgradeToAddMoreExtensions": "നിങ്ങൾ ഇപ്പോൾ ഫ്രീ പ്ലാനിലാണ്; ഇത് ഒരു എക്‌സ്റ്റൻഷൻ മാത്രമേ അനുവദിക്കൂ. പരിധിയില്ലാത്ത എക്‌സ്റ്റൻഷനുകൾക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "വർക്ക്സ്പേസ് ഓഡിറ്റ് ലഭ്യമാക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
     "upgradeToAccessWsAuditSubtitle": "വർക്ക്സ്പേസ് ഓഡിറ്റ് ലോഗുകൾ പ്രാവർത്തികമാക്കി പ്രധാന പ്രവർത്തനങ്ങൾ കാര്യക്ഷമമായി നിരീക്ഷിക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToAddMoreAttachments": "കൂടുതൽ അറ്റാച്ച്മെന്റുകൾ ചേർക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
@@ -154,6 +155,7 @@
     "upgradeToUploadWsImageSubtitle": "നിങ്ങളുടെ നിലവിലെ {activePlan} പ്ലാൻ ഐക്കണുകളും ഇമോജികളും മാത്രം പിന്തുണയ്ക്കുന്നു. വർക്ക്സ്പേസ് അവതാറായി കസ്റ്റം ഇമേജ് അപ്‌ലോഡ് ചെയ്യാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക."
   },
   "general": {
+    "script": "Script",
     "supported": "പിന്തുണയുള്ളത്",
     "usage": "ഉപയോഗം",
     "snapshot": "സ്നാപ്ഷോട്ട്",
@@ -821,6 +823,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "സ്നാപ്ഷോട്ട് റസ്റ്റോർ ചെയ്യുന്നു",
     "note": "ശ്രദ്ധിക്കുക:",
     "snapshotRestoreMessage1": "ഈ സ്നാപ്ഷോട്ട് റസ്റ്റോർ ചെയ്യുന്നത് നിലവിലുള്ള ബെസിനെ ബാധിക്കില്ല.",

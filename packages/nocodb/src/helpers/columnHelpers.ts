@@ -52,12 +52,26 @@ export async function createHmAndBtColumn(
   isCustom = false,
 ) {
   let savedColumn: Column;
+  let crossBaseProps: {
+    fk_related_base_id?: string;
+    fk_related_source_id?: string;
+  } = {};
+
   // save bt column
   {
     const title = getUniqueColumnAliasName(
       await child.getColumns(context),
       (type === 'bt' && alias) || `${parent.title}`,
     );
+
+    // if parent and child are from different base then set cross base props
+    if (parent.base_id !== child.base_id) {
+      crossBaseProps = {
+        fk_related_base_id: parent.base_id,
+        fk_related_source_id: parent.id,
+      };
+    }
+
     const childRelCol = await Column.insert<LinkToAnotherRecordColumn>(
       { ...context, base_id: child.base_id },
       {
@@ -72,6 +86,9 @@ export async function createHmAndBtColumn(
         fk_child_column_id: childColumn.id,
         fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
         fk_related_model_id: parent.id,
+
+        ...crossBaseProps,
+
         virtual,
         // if self referencing treat it as system field to hide from ui
         system: isSystemCol || parent.id === child.id,
@@ -107,6 +124,14 @@ export async function createHmAndBtColumn(
       custom: isCustom,
     };
 
+    // if parent and child are from different base then set cross base props
+    if (parent.base_id !== child.base_id) {
+      crossBaseProps = {
+        fk_related_base_id: child.base_id,
+        fk_related_source_id: child.id,
+      };
+    }
+
     savedColumn = await Column.insert(
       { ...context, base_id: parent.base_id },
       {
@@ -124,6 +149,7 @@ export async function createHmAndBtColumn(
         fk_index_name: fkColName,
         meta,
         ...(type === 'hm' ? colExtra : {}),
+        ...crossBaseProps,
       },
     );
     if (!isSystemCol)
@@ -172,8 +198,13 @@ export async function createOOColumn(
 ) {
   let savedColumn: Column;
 
-  let childContext = { ...context, base_id: child.base_id };
-  let parentContext = { ...context, base_id: parent.base_id };
+  const childContext = { ...context, base_id: child.base_id };
+  const parentContext = { ...context, base_id: parent.base_id };
+
+  let crossBaseProps: {
+    fk_related_base_id?: string;
+    fk_related_source_id?: string;
+  } = {};
 
   // save bt column
   {
@@ -181,6 +212,15 @@ export async function createOOColumn(
       await child.getColumns(parentContext),
       `${parent.title}`,
     );
+
+    // if parent and child are from different base then set cross base props
+    if (parent.base_id !== child.base_id) {
+      crossBaseProps = {
+        fk_related_base_id: parent.base_id,
+        fk_related_source_id: parent.id,
+      };
+    }
+
     const childRelCol = await Column.insert<LinkToAnotherRecordColumn>(
       childContext,
       {
@@ -207,6 +247,7 @@ export async function createOOColumn(
           bt: true,
           custom: isCustom,
         },
+        ...crossBaseProps,
       },
     );
 
@@ -225,6 +266,14 @@ export async function createOOColumn(
       await parent.getColumns(parentContext),
       alias || child.title,
     );
+
+    // if parent and child are from different base then set cross base props
+    if (parent.base_id !== child.base_id) {
+      crossBaseProps = {
+        fk_related_base_id: child.base_id,
+        fk_related_source_id: child.id,
+      };
+    }
 
     // remove bt flag from meta as it have to be on child column
     if (columnMeta?.bt) {
@@ -253,6 +302,7 @@ export async function createOOColumn(
       fk_index_name: fkColName,
       meta,
       ...(colExtra || {}),
+      ...crossBaseProps,
     });
 
     Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {

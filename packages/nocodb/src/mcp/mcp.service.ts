@@ -181,6 +181,7 @@ export class McpService {
       },
       async ({ tableId, limit = 50, page = 1, where, sort, fields }) => {
         try {
+          limit = Math.max(1, Math.min(limit || 25, 200));
           // Prepare parameters
           const params: any = { limit, page };
           if (where) params.where = where;
@@ -585,6 +586,7 @@ export class McpService {
             .describe('Offset for pagination (default: 0)'),
         },
         async ({ tableId, rowId, limit = 25, offset = 0 }) => {
+          limit = Math.max(1, Math.min(limit || 25, 1000));
           try {
             const audits = await this.auditService.auditOnlyList({
               query: {

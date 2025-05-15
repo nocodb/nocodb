@@ -118,6 +118,7 @@
     "upgradeToAdd": "Nadogradite za dodavanje",
     "requestUpgradeToAdd": "Zatražite nadogradnju za dodavanje",
     "upgradeToAddMoreExtensions": "Trenutno ste na besplatnom planu koji dopušta samo jedno proširenje. Nadogradite kako biste otključali neograničena proširenja.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "Nadogradite za pristup reviziji radnog prostora",
     "upgradeToAccessWsAuditSubtitle": "Nadogradite na plan {plan} kako biste omogućili zapisnike revizije radnog prostora i učinkovito pratili ključne aktivnosti.",
     "upgradeToAddMoreAttachments": "Nadogradite za dodavanje više privitaka",
@@ -154,6 +155,7 @@
     "upgradeToUploadWsImageSubtitle": "Vaš trenutni plan {activePlan} dopušta samo ikone i emojije. Nadogradite na plan {plan} kako biste prenijeli prilagođenu sliku kao avatar radnog prostora."
   },
   "general": {
+    "script": "Script",
     "supported": "Podržano",
     "usage": "Upotreba",
     "snapshot": "Snimka",
@@ -821,6 +823,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Vraćanje snimke",
     "note": "Napomena:",
     "snapshotRestoreMessage1": "Vraćanje ove snimke neće utjecati na postojeću bazu.",

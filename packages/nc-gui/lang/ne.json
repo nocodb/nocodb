@@ -118,6 +118,7 @@
     "upgradeToAdd": "थप्न अपग्रेड गर्नुहोस्",
     "requestUpgradeToAdd": "थप्नको लागि अपग्रेड अनुरोध गर्नुहोस्",
     "upgradeToAddMoreExtensions": "तपाईं अहिले नि:शुल्क योजनामा हुनुहुन्छ, जसले केवल एक एक्सटेन्सन अनुमति दिन्छ। असीमित एक्सटेन्सन अनलक गर्न अपग्रेड गर्नुहोस्।",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "वर्कस्पेस अडिट पहुँच गर्न अपग्रेड गर्नुहोस्",
     "upgradeToAccessWsAuditSubtitle": "वर्कस्पेस अडिट लग सक्षम पारेर मुख्य गतिविधिहरू कुशलतापूर्वक अनुगमन गर्न {plan} योजना मा अपग्रेड गर्नुहोस्।",
     "upgradeToAddMoreAttachments": "अधिक अट्याच्मेन्टहरू थप्न अपग्रेड गर्नुहोस्",
@@ -154,6 +155,7 @@
     "upgradeToUploadWsImageSubtitle": "तपाईंको हालको {activePlan} योजनाले आइकन र इमोजी मात्र अनुमति दिन्छ। वर्कस्पेस अवतारको रूपमा अनुकूलित छवि अपलोड गर्न {plan} योजना मा अपग्रेड गर्नुहोस्।"
   },
   "general": {
+    "script": "Script",
     "supported": "समर्थित",
     "usage": "प्रयोग",
     "snapshot": "स्न्यापसट",
@@ -821,6 +823,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "स्न्यापसट पुनर्स्थापना हुँदै",
     "note": "नोट:",
     "snapshotRestoreMessage1": "यो स्न्यापसट पुनर्स्थापना गर्दा वर्तमान बेसमा असर पर्दैन।",

@@ -844,6 +844,64 @@ export default class Column<T = any> implements ColumnType {
       }
     }
 
+    // get all cross base link columns and delete any lookup/rollup columns
+    {
+      const columns = await Column.list(context, {
+        fk_model_id: col.fk_model_id,
+      });
+      // check in all cross base link lookup columns
+      for (const column of columns) {
+        if (!isLinksOrLTAR(column.uidt)) continue;
+
+        const colOptions =
+          await column.getColOptions<LinkToAnotherRecordColumn>(
+            context,
+            ncMeta,
+          );
+
+        if (
+          !colOptions.fk_related_base_id ||
+          colOptions.fk_related_base_id === col.base_id
+        )
+          continue;
+
+        // get lookup columns and delete
+        const lookupAndRollupColumns = await ncMeta.metaList2(
+          context.workspace_id,
+          colOptions.fk_related_base_id,
+          MetaTable.COL_LOOKUP,
+          {
+            condition: { fk_lookup_column_id: id },
+          },
+        );
+        for (const lookupAndRollupColumn of lookupAndRollupColumns) {
+          await Column.delete(
+            { ...context, base_id: colOptions.fk_related_base_id },
+            lookupAndRollupColumn.fk_column_id,
+            ncMeta,
+          );
+        }
+
+        // get rollup columns and delete
+        const rollupColumns = await ncMeta.metaList2(
+          context.workspace_id,
+          colOptions.fk_related_base_id,
+          MetaTable.COL_ROLLUP,
+          {
+            condition: { fk_rollup_column_id: id },
+          },
+        );
+
+        for (const rollupColumn of rollupColumns) {
+          await Column.delete(
+            { ...context, base_id: colOptions.fk_related_base_id },
+            rollupColumn.fk_column_id,
+            ncMeta,
+          );
+        }
+      }
+    }
+
     {
       const cachedList = await NocoCache.getList(CacheScope.COLUMN, [
         col.fk_model_id,

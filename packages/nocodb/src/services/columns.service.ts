@@ -4070,13 +4070,13 @@ export class ColumnsService implements IColumnsService {
 
       // if cross base link set cross base link props
       if (refContext.base_id !== context.base_id) {
-        refCrossBaseLinkProps = {
+        crossBaseLinkProps = {
           fk_related_base_id: refContext.base_id,
           fk_mm_base_id: assocModel.base_id,
           fk_related_source_id: refTable.source_id,
           fk_mm_source_id: assocModel.source_id,
         };
-        crossBaseLinkProps = {
+        refCrossBaseLinkProps = {
           fk_related_base_id: context.base_id,
           fk_mm_base_id: assocModel.base_id,
           fk_related_source_id: table.source_id,

@@ -20,7 +20,7 @@ const vModel = useVModel(props, 'modelValue', emits)
 const { deleteMcpToken } = useMcpSettings()
 
 async function onDelete() {
-  if (!mcpToken.id) return  
+  if (!mcpToken.id) return
 
   try {
     await deleteMcpToken(mcpToken)

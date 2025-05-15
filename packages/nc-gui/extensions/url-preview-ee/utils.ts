@@ -219,17 +219,49 @@ const matchBehance = (url: string) => {
 urlMatchers.push(['Behance', matchBehance])
 
 // Dailymotion
-const DAILYMOTION_RE = /^https?:\/\/(www\.|)dailymotion\.com\/video\/([a-zA-Z0-9]+)(?:\?.*)?$/
+const DAILYMOTION_RE = /^https?:\/\/(?:www\.)?(?:dailymotion\.com\/video|dai\.ly)\/([a-zA-Z0-9]+)(?:\?.*)?$/
+
 const matchDailymotion = (url: string) => {
   try {
     const match = url.match(DAILYMOTION_RE)
     if (!match) return null
-    return `https://www.dailymotion.com/embed/video/${match[2]}`
+    return `https://www.dailymotion.com/embed/video/${match[1]}`
   } catch {
     return null
   }
 }
 urlMatchers.push(['Dailymotion', matchDailymotion])
+
+// Notion
+const NOTION_RE = /^https?:\/\/([a-zA-Z0-9-]+)\.notion\.site\/(?:[a-zA-Z0-9-]+-)?([a-f0-9]{32})(?:\?.*)?$/
+const matchNotion = (url: string) => {
+  try {
+    const match = url.match(NOTION_RE)
+    if (!match) return null
+
+    const siteSubdomain = match[1]
+    const pageId = match[2]
+
+    // Construct embed URL with /ebd/{pageId}
+    return `https://${siteSubdomain}.notion.site/ebd/${pageId}`
+  } catch {
+    return null
+  }
+}
+
+urlMatchers.push(['Notion', matchNotion])
+
+const TED_RE = /^https?:\/\/(www\.)?ted\.com\/talks\/([^\/\?]+)(?:\?.*)?$/
+const matchTed = (url: string) => {
+  try {
+    const match = url.match(TED_RE)
+    if (!match) return null
+    return `https://embed.ted.com/talks/${match[2]}`
+  } catch {
+    return null
+  }
+}
+urlMatchers.push(['TED', matchTed])
 
 export const getEmbedURL = (url: string): [string, string] => {
   for (const matcher of urlMatchers) {

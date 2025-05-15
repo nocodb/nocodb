@@ -2888,17 +2888,23 @@ export class ColumnsService implements IColumnsService {
               context,
               ncMeta,
             );
+
+          const { childContext, parentContext, mmContext } =
+            await relationColOpt.getParentChildContext(context);
           const childColumn = await relationColOpt.getChildColumn(
-            context,
+            childContext,
             ncMeta,
           );
-          const childTable = await childColumn.getModel(context, ncMeta);
+          const childTable = await childColumn.getModel(childContext, ncMeta);
 
           const parentColumn = await relationColOpt.getParentColumn(
-            context,
+            parentContext,
             ncMeta,
           );
-          const parentTable = await parentColumn.getModel(context, ncMeta);
+          const parentTable = await parentColumn.getModel(
+            parentContext,
+            ncMeta,
+          );
           const custom = column.meta?.custom;
 
           switch (relationColOpt.type) {
@@ -2916,6 +2922,8 @@ export class ColumnsService implements IColumnsService {
                   ncMeta,
                   custom,
                   req: param.req,
+                  childContext,
+                  parentContext,
                 });
               }
               break;
@@ -2932,21 +2940,23 @@ export class ColumnsService implements IColumnsService {
                   sqlMgr,
                   ncMeta,
                   custom,
+                  childContext,
+                  parentContext,
                 });
               }
               break;
             case 'mm':
               {
                 const mmTable = await relationColOpt.getMMModel(
-                  context,
+                  mmContext,
                   ncMeta,
                 );
                 const mmParentCol = await relationColOpt.getMMParentColumn(
-                  context,
+                  mmContext,
                   ncMeta,
                 );
                 const mmChildCol = await relationColOpt.getMMChildColumn(
-                  context,
+                  mmContext,
                   ncMeta,
                 );
 
@@ -2964,6 +2974,8 @@ export class ColumnsService implements IColumnsService {
                       ncMeta,
                       virtual: !!relationColOpt.virtual,
                       req: param.req,
+                      childContext: mmContext,
+                      parentContext,
                     },
                     true,
                   );
@@ -2981,22 +2993,27 @@ export class ColumnsService implements IColumnsService {
                       ncMeta,
                       virtual: !!relationColOpt.virtual,
                       req: param.req,
+                      childContext: mmContext,
+                      parentContext: childContext,
                     },
                     true,
                   );
                 }
+
+                const { refContext } =  relationColOpt.getRelContext(context)
+
                 const refTable = await relationColOpt.getRelatedTable(
-                  context,
+                  refContext,
                   ncMeta,
                 );
                 const columnsInRelatedTable: Column[] =
-                  await refTable.getColumns(context, ncMeta);
+                  await refTable.getColumns(refContext, ncMeta);
 
                 for (const c of columnsInRelatedTable) {
                   if (!isLinksOrLTAR(c.uidt)) continue;
                   const colOpt =
                     await c.getColOptions<LinkToAnotherRecordColumn>(
-                      context,
+                      refContext,
                       ncMeta,
                     );
                   if (
@@ -3009,15 +3026,15 @@ export class ColumnsService implements IColumnsService {
                     colOpt.fk_mm_child_column_id ===
                       relationColOpt.fk_mm_parent_column_id
                   ) {
-                    await Column.delete(context, c.id, ncMeta);
+                    await Column.delete(refContext, c.id, ncMeta);
                     if (!c.system) {
                       this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
                         table: refTable,
                         column: c,
                         req: param.req,
-                        context,
+                        context: refContext,
                         columnId: c.id,
-                        columns: await refTable.getCachedColumns(context),
+                        columns: await refTable.getCachedColumns(refContext),
                       });
                     }
                     break;
@@ -3045,44 +3062,44 @@ export class ColumnsService implements IColumnsService {
                 if (!custom) {
                   if (mmTable) {
                     // delete bt columns in m2m table
-                    await mmTable.getColumns(context, ncMeta);
+                    await mmTable.getColumns(mmContext, ncMeta);
                     for (const c of mmTable.columns) {
                       if (!isLinksOrLTAR(c.uidt)) continue;
                       const colOpt =
                         await c.getColOptions<LinkToAnotherRecordColumn>(
-                          context,
+                          mmContext,
                           ncMeta,
                         );
                       if (colOpt.type === 'bt') {
-                        await Column.delete(context, c.id, ncMeta);
+                        await Column.delete(mmContext, c.id, ncMeta);
                       }
                     }
                   }
 
                   // delete hm columns in parent table
-                  await parentTable.getColumns(context, ncMeta);
+                  await parentTable.getColumns(parentContext, ncMeta);
                   for (const c of parentTable.columns) {
                     if (!isLinksOrLTAR(c.uidt)) continue;
                     const colOpt =
                       await c.getColOptions<LinkToAnotherRecordColumn>(
-                        context,
+                        parentContext,
                         ncMeta,
                       );
                     if (
                       colOpt.fk_related_model_id ===
                       relationColOpt.fk_mm_model_id
                     ) {
-                      await Column.delete(context, c.id, ncMeta);
+                      await Column.delete(parentContext, c.id, ncMeta);
                     }
                   }
 
                   // delete hm columns in child table
-                  await childTable.getColumns(context, ncMeta);
+                  await childTable.getColumns(childContext, ncMeta);
                   for (const c of childTable.columns) {
                     if (!isLinksOrLTAR(c.uidt)) continue;
                     const colOpt =
                       await c.getColOptions<LinkToAnotherRecordColumn>(
-                        context,
+                        childContext,
                         ncMeta,
                       );
                     if (
@@ -3096,14 +3113,24 @@ export class ColumnsService implements IColumnsService {
                   // delete m2m table if it is made for mm relation
                   if (mmTable?.mm) {
                     // retrieve columns in m2m table again
-                    await mmTable.getColumns(context, ncMeta);
+                    await mmTable.getColumns(mmContext, ncMeta);
 
                     // ignore deleting table if it has more than 2 columns
                     // the expected 2 columns would be table1_id & table2_id
                     if (mmTable.columns.length === 2) {
+                      const mmSource =
+                        relationColOpt.fk_mm_source_id &&
+                        relationColOpt.fk_mm_source_id !== source.id
+                          ? await Source.get(
+                              mmContext,
+                              relationColOpt.fk_mm_source_id,
+                              undefined,
+                              ncMeta,
+                            )
+                          : source;
                       (mmTable as any).tn = mmTable.table_name;
-                      await sqlMgr.sqlOpPlus(source, 'tableDelete', mmTable);
-                      await mmTable.delete(context, ncMeta);
+                      await sqlMgr.sqlOpPlus(mmSource, 'tableDelete', mmTable);
+                      await mmTable.delete(mmContext, ncMeta);
                     }
                   }
                 }
@@ -3222,6 +3249,8 @@ export class ColumnsService implements IColumnsService {
       virtual,
       custom = false,
       req,
+      parentContext,
+      childContext,
     }: {
       relationColOpt: LinkToAnotherRecordColumn;
       source: Source;
@@ -3234,6 +3263,8 @@ export class ColumnsService implements IColumnsService {
       virtual?: boolean;
       custom?: boolean;
       req: NcRequest;
+      parentContext: NcContext;
+      childContext: NcContext;
     },
     ignoreFkDelete = false,
   ) => {
@@ -3245,20 +3276,22 @@ export class ColumnsService implements IColumnsService {
       if (!relationColOpt) {
         foreignKeyName = (
           (
-            await childTable.getColumns(context, ncMeta).then(async (cols) => {
-              for (const col of cols) {
-                if (col.uidt === UITypes.LinkToAnotherRecord) {
-                  const colOptions =
-                    await col.getColOptions<LinkToAnotherRecordColumn>(
-                      context,
-                      ncMeta,
-                    );
-                  if (colOptions.fk_related_model_id === parentTable.id) {
-                    return { colOptions };
+            await childTable
+              .getColumns(childContext, ncMeta)
+              .then(async (cols) => {
+                for (const col of cols) {
+                  if (col.uidt === UITypes.LinkToAnotherRecord) {
+                    const colOptions =
+                      await col.getColOptions<LinkToAnotherRecordColumn>(
+                        childContext,
+                        ncMeta,
+                      );
+                    if (colOptions.fk_related_model_id === parentTable.id) {
+                      return { colOptions };
+                    }
                   }
                 }
-              }
-            })
+              })
           )?.colOptions as LinkToAnotherRecordType
         ).fk_index_name;
       } else {
@@ -3283,16 +3316,19 @@ export class ColumnsService implements IColumnsService {
     }
 
     if (!relationColOpt) return;
-    const refTable = await relationColOpt.getRelatedTable(context, ncMeta);
+
+    const { refContext } = relationColOpt.getRelContext(context);
+
+    const refTable = await relationColOpt.getRelatedTable(refContext, ncMeta);
     const columnsInRelatedTable: Column[] = await refTable.getColumns(
-      context,
+      refContext,
       ncMeta,
     );
     const relType = relationColOpt.type === 'bt' ? 'hm' : 'bt';
     for (const c of columnsInRelatedTable) {
       if (!isLinksOrLTAR(c.uidt)) continue;
       const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(
-        context,
+        refContext,
         ncMeta,
       );
       if (
@@ -3301,11 +3337,11 @@ export class ColumnsService implements IColumnsService {
         colOpt.type === relType
       ) {
         const colInRefTable = await Column.get(
-          context,
+          refContext,
           { colId: c.id },
           ncMeta,
         );
-        await Column.delete(context, c.id, ncMeta);
+        await Column.delete(refContext, c.id, ncMeta);
 
         if (!colInRefTable.system) {
           this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
@@ -3331,21 +3367,25 @@ export class ColumnsService implements IColumnsService {
         : parentColumn;
     const table =
       childColumn.id === relationColOpt.fk_column_id ? childTable : parentTable;
+    const delContext =
+      childColumn.id === relationColOpt.fk_column_id
+        ? childContext
+        : parentContext;
     if (!col.system) {
       this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
         table,
         column: col,
         req: req,
-        context,
+        context: delContext,
         columnId: col.id,
-        columns: await table.getColumns(context),
+        columns: await table.getColumns(delContext),
       });
     }
 
     if (custom) return;
     if (!ignoreFkDelete && childColumn.uidt === UITypes.ForeignKey) {
       const cTable = await Model.getWithInfo(
-        context,
+        childContext,
         {
           id: childTable.id,
         },
@@ -3398,7 +3438,7 @@ export class ColumnsService implements IColumnsService {
 
       await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
       // delete foreign key column
-      await Column.delete(context, childColumn.id, ncMeta);
+      await Column.delete(childContext, childColumn.id, ncMeta);
     }
   };
 
@@ -3416,6 +3456,8 @@ export class ColumnsService implements IColumnsService {
       virtual,
       custom = false,
       req,
+      childContext,
+      parentContext,
     }: {
       relationColOpt: LinkToAnotherRecordColumn;
       source: Source;
@@ -3428,6 +3470,9 @@ export class ColumnsService implements IColumnsService {
       virtual?: boolean;
       custom?: boolean;
       req: NcRequest;
+
+      childContext: NcContext;
+      parentContext: NcContext;
     },
     ignoreFkDelete = false,
   ) => {
@@ -3441,13 +3486,13 @@ export class ColumnsService implements IColumnsService {
           foreignKeyName = (
             (
               await childTable
-                .getColumns(context, ncMeta)
+                .getColumns(childContext, ncMeta)
                 .then(async (cols) => {
                   for (const col of cols) {
                     if (col.uidt === UITypes.LinkToAnotherRecord) {
                       const colOptions =
                         await col.getColOptions<LinkToAnotherRecordColumn>(
-                          context,
+                          childContext,
                           ncMeta,
                         );
                       if (colOptions.fk_related_model_id === parentTable.id) {
@@ -3482,9 +3527,11 @@ export class ColumnsService implements IColumnsService {
 
     if (!relationColOpt) return;
 
-    const refTable = await relationColOpt.getRelatedTable(context, ncMeta);
+    const { refContext } = relationColOpt.getRelContext(context);
+
+    const refTable = await relationColOpt.getRelatedTable(refContext, ncMeta);
     const columnsInRelatedTable: Column[] = await refTable.getCachedColumns(
-      context,
+      refContext,
     );
 
     const relType = RelationTypes.ONE_TO_ONE;
@@ -3492,7 +3539,7 @@ export class ColumnsService implements IColumnsService {
     for (const c of columnsInRelatedTable) {
       if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
       const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(
-        context,
+        refContext,
         ncMeta,
       );
       if (
@@ -3501,19 +3548,19 @@ export class ColumnsService implements IColumnsService {
         colOpt.type === relType
       ) {
         const colInRefTable = await Column.get(
-          context,
+          refContext,
           { colId: c.id },
           ncMeta,
         );
 
-        await Column.delete(context, c.id, ncMeta);
+        await Column.delete(refContext, c.id, ncMeta);
 
         if (!colInRefTable.system) {
           this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
             table: refTable,
             column: colInRefTable,
             req,
-            context,
+            context: refContext,
             columnId: colInRefTable.id,
             columns: await refTable.getColumns(context),
           });
@@ -3530,12 +3577,16 @@ export class ColumnsService implements IColumnsService {
         : parentColumn;
     const table =
       childColumn.id === relationColOpt.fk_column_id ? childTable : parentTable;
+    const delContext =
+      childColumn.id === relationColOpt.fk_column_id
+        ? childContext
+        : parentContext;
     if (!col.system) {
       this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
         table,
         column: col,
         req: req,
-        context,
+        context: delContext,
         columnId: col.id,
         columns: await table.getColumns(context),
       });
@@ -3598,7 +3649,7 @@ export class ColumnsService implements IColumnsService {
 
       await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
       // delete foreign key column
-      await Column.delete(context, childColumn.id, ncMeta);
+      await Column.delete(childContext, childColumn.id, ncMeta);
     }
   };
 

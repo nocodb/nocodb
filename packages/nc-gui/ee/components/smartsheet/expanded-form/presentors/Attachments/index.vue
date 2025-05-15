@@ -76,7 +76,10 @@ watch(
     }
 
     if (!isUpdated) {
-      activeAttachmentIndex.value = Math.min(activeAttachmentIndex.value, Math.max(0, selectedFieldValue.value?.length - 1))
+      activeAttachmentIndex.value = Math.min(
+        activeAttachmentIndex.value,
+        Math.max(0, (selectedFieldValue.value?.length ?? 0) - 1),
+      )
     }
   },
   {

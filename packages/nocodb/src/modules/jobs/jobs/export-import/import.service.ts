@@ -143,6 +143,7 @@ export class ImportService {
     // allow existing models to be linked
     if (param.externalModels) {
       for (const model of param.externalModels) {
+        if (model.base_id !== param.baseId) continue;
         externalIdMap.set(
           `${model.base_id}::${model.source_id}::${model.id}`,
           model.id,
@@ -351,6 +352,7 @@ export class ImportService {
       const linkedColumnSet = modelData.columns.filter(
         (a) =>
           isLinksOrLTAR(a) &&
+          !(a.colOptions as LinkToAnotherRecordColumn).isCrossBaseLink() &&
           !a.system &&
           (param.importColumnIds
             ? param.importColumnIds.includes(getEntityIdentifier(a.id))
@@ -360,6 +362,13 @@ export class ImportService {
       for (const col of linkedColumnSet) {
         col.dt = col.dt ?? sqlUi.getDataTypeForUiType(col).dt;
         if (col.colOptions) {
+          if (
+            isLinksOrLTAR(col) &&
+            (col.colOptions as LinkToAnotherRecordColumn).isCrossBaseLink()
+          ) {
+            continue;
+          }
+
           const colOptions = col.colOptions as LinksColumn;
           if (idMap.has(colOptions.fk_related_model_id)) {
             if (colOptions.type === 'mm') {

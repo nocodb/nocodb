@@ -153,7 +153,7 @@ export function useCanvasTable({
   }
 }) {
   const { metas, getMeta } = useMetas()
-  const { getBaseRoles, } = useBases()
+  const { getBaseRoles } = useBases()
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
   const activeCell = ref<{

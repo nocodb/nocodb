@@ -118,6 +118,7 @@
     "upgradeToAdd": "Jauniniet, lai pievienotu",
     "requestUpgradeToAdd": "Pieprasīt jauninājumu, lai pievienotu",
     "upgradeToAddMoreExtensions": "Pašlaik izmantojat Bezmaksas plānu, kas atļauj tikai vienu paplašinājumu. Jauniniet, lai atbloķētu neierobežotu paplašinājumu skaitu.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "Jauniniet, lai piekļūtu darba telpas auditam",
     "upgradeToAccessWsAuditSubtitle": "Jauniniet uz plānu {plan}, lai iespējotu darba telpas audita žurnālus un efektīvi uzraudzītu galvenās darbības.",
     "upgradeToAddMoreAttachments": "Jauniniet, lai pievienotu vairāk pielikumu",
@@ -154,6 +155,7 @@
     "upgradeToUploadWsImageSubtitle": "Pašreizējais plāns {activePlan} ļauj izmantot tikai ikonas un emocijzīmes. Jauniniet uz plānu {plan}, lai kā darba telpas avatāru augšupielādētu pielāgotu attēlu."
   },
   "general": {
+    "script": "Script",
     "supported": "Atbalstīts",
     "usage": "Lietojums",
     "snapshot": "Momentuzņēmums",
@@ -821,6 +823,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Atjauno momentuzņēmumu",
     "note": "Piezīme:",
     "snapshotRestoreMessage1": "Šī momentuzņēmuma atjaunošana neietekmēs esošo bāzi.",

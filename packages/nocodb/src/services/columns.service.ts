@@ -2943,6 +2943,7 @@ export class ColumnsService implements IColumnsService {
                   custom,
                   childContext,
                   parentContext,
+                  column,
                 });
               }
               break;
@@ -3469,6 +3470,7 @@ export class ColumnsService implements IColumnsService {
       req,
       childContext,
       parentContext,
+      column,
     }: {
       relationColOpt: LinkToAnotherRecordColumn;
       source: Source;
@@ -3484,9 +3486,15 @@ export class ColumnsService implements IColumnsService {
 
       childContext: NcContext;
       parentContext: NcContext;
+      column: Column;
     },
     ignoreFkDelete = false,
   ) => {
+    const childSource =
+      childColumn.source_id === source.id
+        ? source
+        : await Source.get(context, childColumn.source_id);
+
     if (childTable) {
       if (!custom) {
         let foreignKeyName;
@@ -3522,7 +3530,7 @@ export class ColumnsService implements IColumnsService {
           // Ensure relation deletion is not attempted for virtual relations
           try {
             // Attempt to delete the foreign key constraint from the database
-            await sqlMgr.sqlOpPlus(source, 'relationDelete', {
+            await sqlMgr.sqlOpPlus(childSource, 'relationDelete', {
               childColumn: childColumn.column_name,
               childTable: childTable.table_name,
               parentTable: parentTable.table_name,
@@ -3582,16 +3590,11 @@ export class ColumnsService implements IColumnsService {
 
     // delete virtual columns
     await Column.delete(context, relationColOpt.fk_column_id, ncMeta);
-    const col =
-      childColumn.id === relationColOpt.fk_column_id
-        ? childColumn
-        : parentColumn;
-    const table =
-      childColumn.id === relationColOpt.fk_column_id ? childTable : parentTable;
-    const delContext =
-      childColumn.id === relationColOpt.fk_column_id
-        ? childContext
-        : parentContext;
+    const isBt = column.meta?.bt;
+
+    const col = isBt ? childColumn : parentColumn;
+    const table = isBt ? childTable : parentTable;
+    const delContext = isBt ? childContext : parentContext;
     if (!col.system) {
       this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
         table,
@@ -3618,7 +3621,7 @@ export class ColumnsService implements IColumnsService {
       if (relationColOpt?.virtual) {
         const indexes =
           (
-            await sqlMgr.sqlOp(source, 'indexList', {
+            await sqlMgr.sqlOp(childSource, 'indexList', {
               tn: cTable.table_name,
             })
           )?.data?.list ?? [];
@@ -3626,7 +3629,7 @@ export class ColumnsService implements IColumnsService {
         for (const index of indexes) {
           if (index.cn !== childColumn.column_name) continue;
 
-          await sqlMgr.sqlOpPlus(source, 'indexDelete', {
+          await sqlMgr.sqlOpPlus(childSource, 'indexDelete', {
             ...index,
             tn: cTable.table_name,
             columns: [childColumn.column_name],
@@ -3658,7 +3661,7 @@ export class ColumnsService implements IColumnsService {
         }),
       };
 
-      await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+      await sqlMgr.sqlOpPlus(childSource, 'tableUpdate', tableUpdateBody);
       // delete foreign key column
       await Column.delete(childContext, childColumn.id, ncMeta);
     }

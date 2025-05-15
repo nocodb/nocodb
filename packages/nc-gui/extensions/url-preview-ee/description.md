@@ -15,7 +15,9 @@ This extension enhances the data visualization capabilities of NocoDB by providi
 </div>
 <br>
 <h2>Supported Platforms</h2>
+
 <br>
+
 ### 📽️ Media & Social
 
 - YouTube
@@ -25,7 +27,8 @@ This extension enhances the data visualization capabilities of NocoDB by providi
 - Twitter (X)
 - Dailymotion
 - TED
-  <br>
+
+<br>
 
 ### 💼 Productivity & Collaboration
 
@@ -34,7 +37,8 @@ This extension enhances the data visualization capabilities of NocoDB by providi
 - Google Slides
 - Google Drive share links
 - Loom share links
-  <br>
+
+<br>
 
 ### 🧑‍💻 Design & Development
 
@@ -45,9 +49,3 @@ This extension enhances the data visualization capabilities of NocoDB by providi
 - StackBlitz
 - Figma
 - Notion
-  <br>
-
-### 📚 Article & Blog Platforms
-
-- Medium
-  <br>

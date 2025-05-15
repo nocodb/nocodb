@@ -50,7 +50,7 @@ const {
   fields,
   refreshCurrentRow,
   rowId,
-  externalBaseUserRoles
+  externalBaseUserRoles,
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()

@@ -18,10 +18,10 @@ RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
 # Copy application dependency manifests to the container image
 COPY --link ./package.json ./package.json
-COPY --link ./docker/nc-gui/ ./docker/nc-gui/
 COPY --link ./docker/main.js ./docker/index.js
 COPY --link ./docker/start-local.sh /usr/src/appEntry/start.sh
 COPY --link src/public/ ./docker/public/
+COPY --link ./docker/nc-gui/ ./docker/nc-gui/
 
 # Configure pnpm to use hoisted node_modules for modclean compatibility
 RUN echo "node-linker=hoisted" > .npmrc

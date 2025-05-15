@@ -1231,36 +1231,39 @@ export const relationDataFetcher = (param: {
         baseModel.context,
       )) as LinkToAnotherRecordColumn;
 
-      const rcn = (await relColOptions.getParentColumn(baseModel.context))
-        .column_name;
-      const parentTable = await (
-        await relColOptions.getParentColumn(baseModel.context)
-      ).getModel(baseModel.context);
-      const cn = (await relColOptions.getChildColumn(baseModel.context))
-        .column_name;
-      const childTable = await (
-        await relColOptions.getChildColumn(baseModel.context)
-      ).getModel(baseModel.context);
-      const parentModel = await Model.getBaseModelSQL(baseModel.context, {
-        dbDriver: baseModel.dbDriver,
-        model: parentTable,
-      });
-      const childModel = await Model.getBaseModelSQL(baseModel.context, {
-        dbDriver: baseModel.dbDriver,
-        model: childTable,
-      });
+      const { refContext } = relColOptions.getRelContext(baseModel.context);
 
       // one-to-one relation is combination of both hm and bt to identify table which have
       // foreign key column(similar to bt) we are adding a boolean flag `bt` under meta
       const isBt = relColumn.meta?.bt;
 
+      const childContext = isBt ? baseModel.context : refContext;
+      const parentContext = isBt ? refContext : baseModel.context;
+
+      const parentCol = await relColOptions.getParentColumn(baseModel.context);
+      const rcn = parentCol.column_name;
+      const parentTable = await parentCol.getModel(parentContext);
+
+      const childCol = await relColOptions.getChildColumn(baseModel.context);
+      const cn = childCol.column_name;
+      const childTable = await childCol.getModel(childContext);
+
+      const parentModel = await Model.getBaseModelSQL(parentContext, {
+        dbDriver: baseModel.dbDriver,
+        model: parentTable,
+      });
+      const childModel = await Model.getBaseModelSQL(childContext, {
+        dbDriver: baseModel.dbDriver,
+        model: childTable,
+      });
+
       const targetView = await relColOptions.getChildView(
-        baseModel.context,
+        refContext,
         isBt ? parentTable : childTable,
       );
       let listArgs: any = {};
       if (targetView) {
-        const { dependencyFields } = await getAst(baseModel.context, {
+        const { dependencyFields } = await getAst(refContext, {
           model: isBt ? parentTable : childTable,
           query: {},
           view: targetView,
@@ -1269,11 +1272,12 @@ export const relationDataFetcher = (param: {
         listArgs = dependencyFields;
       }
 
-      const rtn = baseModel.getTnPath(parentTable);
-      const tn = baseModel.getTnPath(childTable);
+      const rtn = parentModel.getTnPath(parentTable);
+      const tn = childModel.getTnPath(childTable);
       await childTable.getColumns(baseModel.context);
+      const refModel = isBt ? parentModel : childModel;
 
-      const qb = baseModel.dbDriver(isBt ? rtn : tn).where((qb) => {
+      const qb = refModel.dbDriver(isBt ? rtn : tn).where((qb) => {
         qb.whereNotIn(
           isBt ? rcn : cn,
           baseModel
@@ -1289,27 +1293,27 @@ export const relationDataFetcher = (param: {
       }
 
       // pre-load columns for later user
-      await parentTable.getColumns(baseModel.context);
-      await childTable.getColumns(baseModel.context);
+      await parentTable.getColumns(parentModel.context);
+      await childTable.getColumns(childModel.context);
 
-      await (isBt ? parentModel : childModel).selectObject({
+      await refModel.selectObject({
         qb,
         fieldsSet: listArgs.fieldsSet,
         viewId: targetView?.id,
       });
 
       // extract col-alias map based on the correct relation table
-      const aliasColObjMap = await (relColumn.meta?.bt
+      const aliasColObjMap = await (isBt
         ? parentTable
         : childTable
       ).getAliasColObjMap(baseModel.context);
       const { filters: filterObj } = extractFilterFromXwhere(
-        baseModel.context,
+        refModel.context,
         where,
         aliasColObjMap,
       );
 
-      await baseModel.getCustomConditionsAndApply({
+      await refModel.getCustomConditionsAndApply({
         column: relColumn,
         view: relColOptions.fk_target_view_id ? targetView : null,
         filters: filterObj,
@@ -1318,7 +1322,7 @@ export const relationDataFetcher = (param: {
         rowId: cid,
       });
 
-      await baseModel.applySortAndFilter({
+      await refModel.applySortAndFilter({
         table: isBt ? parentTable : childTable,
         view: targetView,
         qb,
@@ -1330,7 +1334,7 @@ export const relationDataFetcher = (param: {
 
       applyPaginate(qb, rest);
 
-      const proto = await (isBt ? parentModel : childModel).getProto();
+      const proto = await refModel.getProto();
       const data = await baseModel.execAndParse(
         qb,
         await (isBt ? parentTable : childTable).getColumns(baseModel.context),

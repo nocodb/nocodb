@@ -334,26 +334,18 @@ const deleteScript = () => {
             </NcButton>
 
             <template #overlay>
-              <NcMenu class="!min-w-62.5" :data-testid="`sidebar-script-context-menu-list-${script.title}`">
-                <NcTooltip>
-                  <template #title> {{ $t('labels.clickToCopyScriptID') }} </template>
-                  <div
-                    class="flex items-center justify-between p-2 mx-1.5 rounded-md cursor-pointer hover:bg-gray-100 group"
-                    @click.stop="onScriptCopy"
-                  >
-                    <div class="flex text-xs font-bold text-gray-500 ml-1">
-                      {{
-                        $t('labels.scriptIdColon', {
-                          scriptId: script?.id,
-                        })
-                      }}
-                    </div>
-                    <NcButton class="!group-hover:bg-gray-100" size="xsmall" type="secondary">
-                      <GeneralIcon v-if="isScriptIdCopied" class="max-h-4 min-w-4" icon="check" />
-                      <GeneralIcon v-else class="max-h-4 min-w-4" else icon="copy" />
-                    </NcButton>
-                  </div>
-                </NcTooltip>
+              <NcMenu variant="small" class="!min-w-62.5" :data-testid="`sidebar-script-context-menu-list-${script.title}`">
+                <NcMenuItemCopyId
+                  v-if="script"
+                  :id="script.id"
+                  :tooltip="$t('labels.clickToCopyScriptID')"
+                  :label="
+                    $t('labels.scriptIdColon', {
+                      tableId: script.id,
+                    })
+                  "
+                />
+
                 <template v-if="!isSharedBase && isUIAllowed('scriptCreateOrEdit')">
                   <NcDivider />
                   <NcMenuItem

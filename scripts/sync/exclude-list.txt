@@ -62,6 +62,7 @@ packages/nocodb-sdk/src/lib/Api.ts
 packages/nc-sql-executor/**
 renovate.json
 packages/nc-gui/extensions/*-ee/**
+packages/nc-gui/scripts/**
 packages/nocodb/jest.config.js
 packages/nc-secret-mgr/dist/**
 flake.lock

@@ -1,7 +1,7 @@
 import type { ScriptType } from 'nocodb-sdk'
 
 export const useAutomationStore = defineStore('automation', () => {
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
   const route = useRoute()
   const { ncNavigateTo } = useGlobal()
   const bases = useBases()
@@ -10,6 +10,8 @@ export const useAutomationStore = defineStore('automation', () => {
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
+
+  const isMarketVisible = ref(false)
 
   const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
 
@@ -268,6 +270,21 @@ export const useAutomationStore = defineStore('automation', () => {
     }
   })
 
+  // Script details modal
+
+  const { availableScripts, getPluginDescription, getScriptContent, getPluginAssetUrl, pluginTypes, pluginDescriptionContent } =
+    usePlugin()
+
+  const isDetailsVisible = ref(false)
+  const detailsScriptId = ref<string>()
+
+  const showScriptDetails = (scriptId: string) => {
+    detailsScriptId.value = scriptId
+    isDetailsVisible.value = true
+
+    $e('c:script:details', { scriptId })
+  }
+
   return {
     // State
     automations,
@@ -289,6 +306,17 @@ export const useAutomationStore = defineStore('automation', () => {
     updateAutomation,
     deleteAutomation,
     openScript,
+
+    // Script Templates
+    showScriptDetails,
+    isDetailsVisible,
+    detailsScriptId,
+    isMarketVisible,
+    availableScripts,
+    getScriptDescription: getPluginDescription,
+    descriptionContent: pluginDescriptionContent,
+    getScriptContent,
+    getScriptAssetsURL: (pathOrUrl: string) => getPluginAssetUrl(pathOrUrl, pluginTypes.script),
   }
 })
 

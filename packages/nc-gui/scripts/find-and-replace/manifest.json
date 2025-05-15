@@ -1,0 +1,21 @@
+{
+  "id": "find-and-replace",
+  "title": "Find and Replace",
+  "subTitle": "Find and replace all text matches for a field",
+  "description": "find-and-replace/description.md",
+  "entry": "find-and-replace/index.js",
+  "version": "0.1",
+  "iconUrl": "find-and-replace/assets/icon.svg",
+  "publisher": {
+    "name": "NocoDB",
+    "email": "contact@nocodb.com",
+    "url": "https://www.nocodb.com",
+    "icon": {
+      "src": "find-and-replace/assets/publisher-icon.svg",
+      "width": 24,
+      "height": 24
+    }
+  },
+  "links": [],
+  "order": 1
+}

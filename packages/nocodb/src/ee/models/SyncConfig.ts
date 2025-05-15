@@ -2,6 +2,7 @@ import { CronExpressionParser } from 'cron-parser';
 import {
   type NcContext,
   type OnDeleteAction,
+  type SyncCategory,
   SyncTrigger,
   type SyncType,
 } from 'nocodb-sdk';
@@ -15,11 +16,16 @@ import { Integration } from '~/models';
 export default class SyncConfig {
   id: string;
 
+  title: string;
+
   fk_workspace_id: string;
   base_id: string;
 
+  fk_parent_sync_config_id: string | null;
+
   fk_integration_id: string;
 
+  sync_category: SyncCategory;
   sync_type: SyncType;
   sync_trigger: SyncTrigger;
   sync_trigger_cron: string | null;
@@ -33,6 +39,8 @@ export default class SyncConfig {
 
   created_at: string;
   updated_at: string;
+
+  children?: SyncConfig[];
 
   constructor(syncConfig: Partial<SyncConfig>) {
     Object.assign(this, syncConfig);
@@ -61,7 +69,15 @@ export default class SyncConfig {
       await NocoCache.set(key, syncConfig);
     }
 
-    return new SyncConfig(syncConfig);
+    if (!syncConfig.fk_parent_sync_config_id) {
+      syncConfig = new SyncConfig(syncConfig);
+
+      const children = await syncConfig.listChildren(context, ncMeta);
+
+      syncConfig.children = children;
+    }
+
+    return syncConfig;
   }
 
   public static async insert(
@@ -70,7 +86,10 @@ export default class SyncConfig {
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj: Record<string, any> = extractProps(syncConfig, [
+      'title',
       'fk_integration_id',
+      'fk_parent_sync_config_id',
+      'sync_category',
       'sync_type',
       'sync_trigger',
       'sync_trigger_cron',
@@ -97,6 +116,7 @@ export default class SyncConfig {
     ncMeta = Noco.ncMeta,
   ) {
     const updateObj: Record<string, any> = extractProps(syncConfig, [
+      'title',
       'sync_type',
       'sync_trigger',
       'sync_trigger_cron',
@@ -140,6 +160,15 @@ export default class SyncConfig {
       ncMeta,
     );
 
+    // delete all children first
+    if (!syncConfig.fk_parent_sync_config_id) {
+      const children = await syncConfig.listChildren(context, ncMeta);
+
+      for (const child of children) {
+        await SyncConfig.delete(context, child.id, ncMeta);
+      }
+    }
+
     if (integration) {
       await integration.delete(ncMeta);
     }
@@ -167,6 +196,52 @@ export default class SyncConfig {
       context.base_id,
       MetaTable.SYNC_CONFIGS,
       {},
+    );
+
+    const parentChildMap = new Map();
+
+    // Group syncConfigs by their parent ID
+    syncConfigs.forEach((syncConfig) => {
+      const parentId = syncConfig.fk_parent_sync_config_id;
+      if (parentId) {
+        if (!parentChildMap.has(parentId)) {
+          parentChildMap.set(parentId, []);
+        }
+        parentChildMap.get(parentId).push(syncConfig);
+      }
+    });
+
+    // Attach children to their respective parent syncConfig
+    syncConfigs.forEach((syncConfig) => {
+      if (parentChildMap.has(syncConfig.id)) {
+        syncConfig.children = parentChildMap.get(syncConfig.id);
+      }
+    });
+
+    // Filter out only root records (those without a parent)
+    const rootSyncConfigs = syncConfigs.filter(
+      (syncConfig) => !syncConfig.fk_parent_sync_config_id,
+    );
+
+    return rootSyncConfigs.map((syncConfig) => {
+      return new SyncConfig(syncConfig);
+    });
+  }
+
+  async listChildren(context: NcContext, ncMeta = Noco.ncMeta) {
+    if (this.fk_parent_sync_config_id) {
+      throw new Error('This is a child sync config');
+    }
+
+    const syncConfigs = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.SYNC_CONFIGS,
+      {
+        condition: {
+          fk_parent_sync_config_id: this.id,
+        },
+      },
     );
 
     return syncConfigs.map((syncConfig) => {

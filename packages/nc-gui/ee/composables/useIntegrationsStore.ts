@@ -1,5 +1,5 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import type { FormDefinition, IntegrationCategoryType, IntegrationType, PaginatedType } from 'nocodb-sdk'
+import type { FormDefinition, IntegrationCategoryType, IntegrationType, PaginatedType, SyncCategory } from 'nocodb-sdk'
 import { ClientType, IntegrationsType, SyncDataType } from 'nocodb-sdk'
 import { getI18n } from '../../plugins/a.i18n'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
@@ -54,6 +54,10 @@ function getStaticInitializor(type: IntegrationsSubType) {
 }
 
 const integrationForms: Record<string, FormDefinition> = {}
+
+const integrationIdentifier = (integration: { type: IntegrationsType | IntegrationCategoryType; sub_type: string }) => {
+  return `${integration.type}-${integration.sub_type}`
+}
 
 const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState(() => {
   const router = useRouter()
@@ -161,14 +165,14 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   }
 
   const getIntegrationForm = async (type: IntegrationCategoryType | IntegrationsType, subType: string) => {
-    if (subType in integrationForms) {
-      return integrationForms[subType]
+    if (integrationIdentifier({ type, sub_type: subType }) in integrationForms) {
+      return integrationForms[integrationIdentifier({ type, sub_type: subType })]
     }
 
     const integrationInfo = await $api.integrations.info(type, subType)
 
     if (integrationInfo?.form) {
-      integrationForms[subType] = integrationInfo.form
+      integrationForms[integrationIdentifier({ type, sub_type: subType })] = integrationInfo.form
       return integrationInfo.form
     }
 
@@ -411,16 +415,16 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
       activeIntegrationItem.value = integrationItem
 
-      if (integrationItem.dynamic === true && !(integrationItem.sub_type in integrationForms)) {
+      if (integrationItem.dynamic === true && !(integrationIdentifier(integrationItem) in integrationForms)) {
         const integrationInfo = await $api.integrations.info(integrationItem.type, integrationItem.sub_type)
 
         if (integrationInfo?.form) {
-          integrationForms[integrationItem.sub_type] = integrationInfo.form
+          integrationForms[integrationIdentifier(integrationItem)] = integrationInfo.form
 
           activeIntegrationItem.value.form = integrationInfo.form
         }
       } else if (integrationItem.dynamic === true) {
-        activeIntegrationItem.value.form = integrationForms[integrationItem.sub_type]
+        activeIntegrationItem.value.form = integrationForms[integrationIdentifier(integrationItem)]
       }
 
       pageMode.value = IntegrationsPageMode.EDIT
@@ -475,6 +479,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
           description?: string
           order?: number
           hidden?: boolean
+          sync_category?: SyncCategory
         }
       }[]
 
@@ -507,6 +512,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
           isAvailable: true,
           dynamic: true,
           hidden: di.manifest?.hidden ?? false,
+          sync_category: di.manifest?.sync_category,
         }
 
         allIntegrations.push(integration)

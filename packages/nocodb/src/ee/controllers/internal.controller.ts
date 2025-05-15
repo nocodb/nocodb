@@ -136,6 +136,7 @@ export class InternalController extends InternalControllerCE {
         return await this.syncService.triggerSync(
           context,
           payload.syncConfigId,
+          payload.bulk,
           req,
         );
       case 'updateSync':

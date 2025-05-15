@@ -8,7 +8,7 @@ import form from './form';
 
 const integration: IntegrationEntry = {
   type: IntegrationType.Sync,
-  sub_type: 'github-issues',
+  sub_type: 'github',
   wrapper: GithubSyncIntegration,
   form,
   manifest,

@@ -2,26 +2,19 @@
 import { type FormBuilderElement, type IntegrationType } from 'nocodb-sdk'
 import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType, iconMap } from '#imports'
 
-const { form, formState, formSchema, formElementsCategorized, isLoading, validateInfos, deepReference, checkCondition } =
-  useFormBuilderHelperOrThrow()
+const {
+  form,
+  formState,
+  formSchema,
+  formElementsCategorized,
+  isLoading,
+  validateInfos,
+  deepReference,
+  setFormState,
+  checkCondition,
+} = useFormBuilderHelperOrThrow()
 
 const { loadIntegrations, integrations, eventBus, pageMode, IntegrationsPageMode } = useProvideIntegrationViewStore()
-
-const setFormState = (path: string, value: any) => {
-  // update nested prop in formState
-  const keys = path.split('.')
-  const lastKey = keys.pop()
-
-  if (!lastKey) return
-
-  const target = keys.reduce((acc, key) => {
-    if (!acc[key]) {
-      acc[key] = {}
-    }
-    return acc[key]
-  }, formState.value)
-  target[lastKey] = value
-}
 
 const selectMode = (field: FormBuilderElement) => {
   return field.selectMode === 'multipleWithInput' ? 'tags' : field.selectMode === 'multiple' ? 'multiple' : undefined

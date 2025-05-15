@@ -313,7 +313,13 @@ export class SyncModuleSyncDataProcessor {
   }
 
   async job(job: Job<SyncDataSyncModuleJobData>) {
-    const { context, syncConfigId, trigger: _trigger, req } = job.data;
+    const {
+      context,
+      syncConfigId,
+      trigger: _trigger,
+      bulk = false,
+      req,
+    } = job.data;
 
     const logBasic = (message: string) => {
       this.jobsLogService.sendLog(job, {
@@ -321,258 +327,248 @@ export class SyncModuleSyncDataProcessor {
       });
     };
 
-    const syncConfig = await SyncConfig.get(context, syncConfigId);
+    let parentSyncConfig: SyncConfig | null = null;
 
-    if (!syncConfig) {
+    const mainSyncConfig = await SyncConfig.get(context, syncConfigId);
+
+    if (!mainSyncConfig) {
       NcError.genericNotFound('SyncConfig', syncConfigId);
     }
 
-    if (syncConfig.sync_job_id && syncConfig.sync_job_id !== `${job.id}`) {
+    if (
+      mainSyncConfig.sync_job_id &&
+      mainSyncConfig.sync_job_id !== `${job.id}`
+    ) {
       NcError.badRequest('Another job is already running');
     }
 
-    try {
-      const integration = await Integration.get(
+    const syncConfigs = [mainSyncConfig];
+
+    if (mainSyncConfig.parent_sync_config_id) {
+      parentSyncConfig = await SyncConfig.get(
         context,
-        syncConfig.fk_integration_id,
+        mainSyncConfig.parent_sync_config_id,
       );
 
-      if (!integration) {
-        NcError.genericNotFound('Integration', syncConfig.fk_integration_id);
-      }
-
-      const authIntegration = await Integration.get(
-        context,
-        integration.getConfig().authIntegrationId,
-      );
-
-      if (!authIntegration) {
+      if (!parentSyncConfig) {
         NcError.genericNotFound(
-          'AuthIntegration',
-          integration.getConfig().authIntegrationId,
+          'SyncConfig',
+          mainSyncConfig.parent_sync_config_id,
         );
       }
+    }
 
-      const authWrapper =
-        await authIntegration.getIntegrationWrapper<AuthIntegration>();
+    if (bulk) {
+      syncConfigs.push(...(mainSyncConfig.children || []));
+    }
 
-      const auth = await authWrapper.authenticate();
+    const syncMappings = await SyncMapping.list(context, {
+      fk_sync_config_id: parentSyncConfig.id,
+    });
 
-      const wrapper =
-        await integration.getIntegrationWrapper<SyncIntegration>();
+    let recordCounter = 0;
 
-      const syncMappings = await SyncMapping.list(context, {
-        fk_sync_config_id: syncConfig.id,
-      });
+    const modelSyncTargetMap = new Map<string, Model>();
+    const modelIdSyncTargetMap = new Map<string, string>();
 
-      let recordCounter = 0;
+    for (const syncMap of syncMappings) {
+      const model = await Model.get(context, syncMap.fk_model_id);
 
-      const modelSyncTargetMap = new Map<string, Model>();
-      const modelIdSyncTargetMap = new Map<string, string>();
-
-      for (const syncMap of syncMappings) {
-        const model = await Model.get(context, syncMap.fk_model_id);
-
-        if (!model) {
-          NcError.genericNotFound('Model', syncMap.fk_model_id);
-        }
-
-        await model.getColumns(context);
-
-        modelSyncTargetMap.set(syncMap.target_table, model);
-        modelIdSyncTargetMap.set(model.id, syncMap.target_table);
+      if (!model) {
+        NcError.genericNotFound('Model', syncMap.fk_model_id);
       }
 
-      const dataStream = await wrapper.fetchData(auth, {});
+      await model.getColumns(context);
 
-      const RemoteSyncedAt = dayjs().utc().toISOString();
-      // Generate a unique ID for this sync run
-      const syncRunId = uuidv4();
+      modelSyncTargetMap.set(syncMap.target_table, model);
+      modelIdSyncTargetMap.set(model.id, syncMap.target_table);
+    }
 
-      const dataBuffers = new Map<string, Record<string, any>[]>();
-      const linkBuffers = new Map<string, Record<string, any>[]>();
+    for (const syncConfig of syncConfigs) {
+      try {
+        const integration = await Integration.get(
+          context,
+          syncConfig.fk_integration_id,
+        );
 
-      const linkFieldsMap = new Map<
-        string,
-        {
-          mmTable: Model;
-          mmParentColumn: Column;
-          mmChildColumn: Column;
+        if (!integration) {
+          NcError.genericNotFound('Integration', syncConfig.fk_integration_id);
         }
-      >();
 
-      let streamError: boolean = false;
+        const authIntegration = await Integration.get(
+          context,
+          integration.getConfig().authIntegrationId,
+        );
 
-      await new Promise<void>((resolve, reject) => {
-        dataStream.on('data', async (data) => {
-          try {
-            const model = modelSyncTargetMap.get(data.targetTable);
+        if (!authIntegration) {
+          NcError.genericNotFound(
+            'AuthIntegration',
+            integration.getConfig().authIntegrationId,
+          );
+        }
 
-            if (!model) {
-              logBasic(
-                `Model ${data.targetTable} not found, skipping this record`,
-              );
-              return;
-            }
+        const authWrapper =
+          await authIntegration.getIntegrationWrapper<AuthIntegration>();
 
-            if (!dataBuffers.has(model.id)) {
-              dataBuffers.set(model.id, []);
-            }
+        const auth = await authWrapper.authenticate();
 
-            Object.assign(data.data, {
-              RemoteId: data.recordId,
-              RemoteSyncedAt,
-              SyncConfigId: syncConfig.id,
-              SyncRunId: syncRunId,
-              RemoteDeleted: false,
-            });
+        const wrapper =
+          await integration.getIntegrationWrapper<SyncIntegration>();
 
-            const dataBuffer = dataBuffers.get(model.id);
+        const dataStream = await wrapper.fetchData(auth, {});
 
-            dataBuffer.push(data.data);
+        const RemoteSyncedAt = dayjs().utc().toISOString();
+        // Generate a unique ID for this sync run
+        const syncRunId = uuidv4();
 
-            if (data.links) {
-              const linkFields = Object.keys(data.links);
+        const dataBuffers = new Map<string, Record<string, any>[]>();
+        const linkBuffers = new Map<string, Record<string, any>[]>();
 
-              for (const linkField of linkFields) {
-                let linkFieldConfig = linkFieldsMap.get(
-                  `${model.id}-${linkField}`,
-                );
-
-                if (!linkFieldConfig) {
-                  // Get column
-                  const column = model.columns.find(
-                    (c) => c.title === linkField,
-                  );
-
-                  if (!column) {
-                    continue;
-                  }
-
-                  const mmTable = await Model.get(
-                    context,
-                    column.colOptions.fk_mm_model_id,
-                  );
-
-                  if (!mmTable) {
-                    continue;
-                  }
-
-                  await mmTable.getColumns(context);
-
-                  modelSyncTargetMap.set(mmTable.id, mmTable);
-
-                  const mmParentColumn = mmTable.columns.find(
-                    (c) => c.id === column.colOptions.fk_mm_parent_column_id,
-                  );
-
-                  if (!mmParentColumn) {
-                    continue;
-                  }
-
-                  const mmChildColumn = mmTable.columns.find(
-                    (c) => c.id === column.colOptions.fk_mm_child_column_id,
-                  );
-
-                  if (!mmChildColumn) {
-                    continue;
-                  }
-
-                  linkFieldConfig = {
-                    mmTable,
-                    mmParentColumn,
-                    mmChildColumn,
-                  };
-
-                  linkFieldsMap.set(
-                    `${model.id}-${linkField}`,
-                    linkFieldConfig,
-                  );
-                }
-
-                const linkArray: {
-                  RemoteId: string;
-                  SyncConfigId: string;
-                  RemoteSyncedAt: string;
-                  SyncRunId: string;
-                }[] = [];
-
-                for (const record of data.links[linkField]) {
-                  linkArray.push({
-                    [linkFieldConfig.mmParentColumn.title]: record,
-                    [linkFieldConfig.mmChildColumn.title]: data.recordId,
-                    RemoteId: `${record}-${data.recordId}`,
-                    SyncConfigId: syncConfig.id,
-                    RemoteSyncedAt,
-                    SyncRunId: syncRunId,
-                  });
-                }
-
-                if (!linkBuffers.has(linkFieldConfig.mmTable.id)) {
-                  linkBuffers.set(linkFieldConfig.mmTable.id, []);
-                }
-
-                const linkBuffer = linkBuffers.get(linkFieldConfig.mmTable.id);
-
-                linkBuffer.push(...linkArray);
-
-                if (linkBuffer.length >= 100) {
-                  dataStream.pause();
-
-                  await this.pushData(
-                    context,
-                    syncConfig,
-                    linkFieldConfig.mmTable,
-                    linkBuffer.splice(0),
-                    req,
-                  );
-
-                  dataStream.resume();
-                }
-              }
-            }
-
-            if (dataBuffer.length >= 100) {
-              dataStream.pause();
-
-              recordCounter += dataBuffer.length;
-
-              await this.pushData(
-                context,
-                syncConfig,
-                model,
-                dataBuffer.splice(0),
-                req,
-              );
-
-              logBasic(`Synced ${recordCounter} records`);
-
-              dataStream.resume();
-            }
-          } catch (error) {
-            reject(error);
+        const linkFieldsMap = new Map<
+          string,
+          {
+            mmTable: Model;
+            mmParentColumn: Column;
+            mmChildColumn: Column;
           }
-        });
+        >();
 
-        dataStream.on('error', async (error) => {
-          streamError = true;
-          reject(error);
-        });
+        let streamError: boolean = false;
 
-        dataStream.on('end', async () => {
-          try {
-            for (const [modelId, dataBuffer] of dataBuffers.entries()) {
-              const targetTable = modelIdSyncTargetMap.get(modelId);
-              const model = modelSyncTargetMap.get(targetTable);
+        await new Promise<void>((resolve, reject) => {
+          dataStream.on('data', async (data) => {
+            try {
+              const model = modelSyncTargetMap.get(data.targetTable);
 
               if (!model) {
                 logBasic(
-                  `Model ${targetTable} not found, skipping this record`,
+                  `Model ${data.targetTable} not found, skipping this record`,
                 );
-                continue;
+                return;
               }
 
-              if (dataBuffer.length > 0) {
+              if (!dataBuffers.has(model.id)) {
+                dataBuffers.set(model.id, []);
+              }
+
+              Object.assign(data.data, {
+                RemoteId: data.recordId,
+                RemoteSyncedAt,
+                SyncConfigId: syncConfig.id,
+                SyncRunId: syncRunId,
+                RemoteDeleted: false,
+              });
+
+              const dataBuffer = dataBuffers.get(model.id);
+
+              dataBuffer.push(data.data);
+
+              if (data.links) {
+                const linkFields = Object.keys(data.links);
+
+                for (const linkField of linkFields) {
+                  let linkFieldConfig = linkFieldsMap.get(
+                    `${model.id}-${linkField}`,
+                  );
+
+                  if (!linkFieldConfig) {
+                    // Get column
+                    const column = model.columns.find(
+                      (c) => c.title === linkField,
+                    );
+
+                    if (!column) {
+                      continue;
+                    }
+
+                    const mmTable = await Model.get(
+                      context,
+                      column.colOptions.fk_mm_model_id,
+                    );
+
+                    if (!mmTable) {
+                      continue;
+                    }
+
+                    await mmTable.getColumns(context);
+
+                    modelSyncTargetMap.set(mmTable.id, mmTable);
+
+                    const mmParentColumn = mmTable.columns.find(
+                      (c) => c.id === column.colOptions.fk_mm_parent_column_id,
+                    );
+
+                    if (!mmParentColumn) {
+                      continue;
+                    }
+
+                    const mmChildColumn = mmTable.columns.find(
+                      (c) => c.id === column.colOptions.fk_mm_child_column_id,
+                    );
+
+                    if (!mmChildColumn) {
+                      continue;
+                    }
+
+                    linkFieldConfig = {
+                      mmTable,
+                      mmParentColumn,
+                      mmChildColumn,
+                    };
+
+                    linkFieldsMap.set(
+                      `${model.id}-${linkField}`,
+                      linkFieldConfig,
+                    );
+                  }
+
+                  const linkArray: {
+                    RemoteId: string;
+                    SyncConfigId: string;
+                    RemoteSyncedAt: string;
+                    SyncRunId: string;
+                  }[] = [];
+
+                  for (const record of data.links[linkField]) {
+                    linkArray.push({
+                      [linkFieldConfig.mmParentColumn.title]: record,
+                      [linkFieldConfig.mmChildColumn.title]: data.recordId,
+                      RemoteId: `${record}-${data.recordId}`,
+                      SyncConfigId: syncConfig.id,
+                      RemoteSyncedAt,
+                      SyncRunId: syncRunId,
+                    });
+                  }
+
+                  if (!linkBuffers.has(linkFieldConfig.mmTable.id)) {
+                    linkBuffers.set(linkFieldConfig.mmTable.id, []);
+                  }
+
+                  const linkBuffer = linkBuffers.get(
+                    linkFieldConfig.mmTable.id,
+                  );
+
+                  linkBuffer.push(...linkArray);
+
+                  if (linkBuffer.length >= 100) {
+                    dataStream.pause();
+
+                    await this.pushData(
+                      context,
+                      syncConfig,
+                      linkFieldConfig.mmTable,
+                      linkBuffer.splice(0),
+                      req,
+                    );
+
+                    dataStream.resume();
+                  }
+                }
+              }
+
+              if (dataBuffer.length >= 100) {
+                dataStream.pause();
+
                 recordCounter += dataBuffer.length;
 
                 await this.pushData(
@@ -584,66 +580,105 @@ export class SyncModuleSyncDataProcessor {
                 );
 
                 logBasic(`Synced ${recordCounter} records`);
+
+                dataStream.resume();
               }
+            } catch (error) {
+              reject(error);
             }
+          });
 
-            for (const [mmTableId, linkBuffer] of linkBuffers.entries()) {
-              if (linkBuffer.length > 0) {
-                await this.pushData(
-                  context,
-                  syncConfig,
-                  modelSyncTargetMap.get(mmTableId),
-                  linkBuffer.splice(0),
-                  req,
-                );
-              }
-            }
-
-            // Process deletions for records that no longer exist in the source
-            // Use the syncRunId to identify records that weren't updated in this sync
-            for (const [modelId, _] of modelSyncTargetMap.entries()) {
-              const model = modelSyncTargetMap.get(modelId);
-
-              // If there was an error, skip deleting records
-              if (model && !streamError) {
-                await this.deleteStaleRecords(
-                  context,
-                  syncConfig,
-                  model,
-                  syncRunId,
-                  req,
-                );
-              }
-            }
-
-            await SyncConfig.update(context, syncConfig.id, {
-              sync_job_id: null,
-              last_sync_at: RemoteSyncedAt,
-              next_sync_at: await SyncConfig.calculateNextSyncAt(
-                context,
-                syncConfig.id,
-                new Date(RemoteSyncedAt),
-              ),
-            });
-
-            logBasic(`Sync Completed: ${recordCounter} records synced`);
-
-            resolve();
-          } catch (error) {
+          dataStream.on('error', async (error) => {
+            streamError = true;
             reject(error);
-          }
-        });
-      });
-    } catch (error) {
-      await SyncConfig.update(context, syncConfig.id, {
-        sync_job_id: null,
-        next_sync_at: await SyncConfig.calculateNextSyncAt(
-          context,
-          syncConfig.id,
-        ),
-      });
+          });
 
-      throw error;
+          dataStream.on('end', async () => {
+            try {
+              for (const [modelId, dataBuffer] of dataBuffers.entries()) {
+                const targetTable = modelIdSyncTargetMap.get(modelId);
+                const model = modelSyncTargetMap.get(targetTable);
+
+                if (!model) {
+                  logBasic(
+                    `Model ${targetTable} not found, skipping this record`,
+                  );
+                  continue;
+                }
+
+                if (dataBuffer.length > 0) {
+                  recordCounter += dataBuffer.length;
+
+                  await this.pushData(
+                    context,
+                    syncConfig,
+                    model,
+                    dataBuffer.splice(0),
+                    req,
+                  );
+
+                  logBasic(`Synced ${recordCounter} records`);
+                }
+              }
+
+              for (const [mmTableId, linkBuffer] of linkBuffers.entries()) {
+                if (linkBuffer.length > 0) {
+                  await this.pushData(
+                    context,
+                    syncConfig,
+                    modelSyncTargetMap.get(mmTableId),
+                    linkBuffer.splice(0),
+                    req,
+                  );
+                }
+              }
+
+              // Process deletions for records that no longer exist in the source
+              // Use the syncRunId to identify records that weren't updated in this sync
+              for (const [modelId, _] of modelSyncTargetMap.entries()) {
+                const model = modelSyncTargetMap.get(modelId);
+
+                // If there was an error, skip deleting records
+                if (model && !streamError) {
+                  await this.deleteStaleRecords(
+                    context,
+                    syncConfig,
+                    model,
+                    syncRunId,
+                    req,
+                  );
+                }
+              }
+
+              await SyncConfig.update(context, syncConfig.id, {
+                sync_job_id: null,
+                last_sync_at: RemoteSyncedAt,
+                next_sync_at: await SyncConfig.calculateNextSyncAt(
+                  context,
+                  syncConfig.id,
+                  new Date(RemoteSyncedAt),
+                ),
+              });
+
+              logBasic(`Sync Completed: ${recordCounter} records synced`);
+
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          });
+        });
+      } catch (error) {
+        await SyncConfig.update(context, syncConfig.id, {
+          sync_job_id: null,
+          next_sync_at: await SyncConfig.calculateNextSyncAt(
+            context,
+            syncConfig.id,
+          ),
+        });
+
+        throw error;
+      }
     }
   }
 

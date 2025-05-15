@@ -7,12 +7,14 @@ import {
   type NcRequest,
   RelationTypes,
   SyncTrigger,
+  TARGET_TABLES_META,
   UITypes,
 } from 'nocodb-sdk';
 import {
   syncSystemFields,
   syncSystemFieldsMap,
 } from '@noco-local-integrations/core';
+import type { OnDeleteAction, SyncCategory, SyncType } from 'nocodb-sdk';
 import type {
   AuthIntegration,
   SyncIntegration,
@@ -52,28 +54,44 @@ export class SyncModuleService {
 
   async createSync(
     context: NcContext,
-    payload: IntegrationReqType,
+    payload: {
+      title: string;
+      sync_type: SyncType;
+      sync_trigger: SyncTrigger;
+      sync_trigger_cron: string;
+      on_delete_action: OnDeleteAction;
+      sync_category: SyncCategory;
+      exclude_models: string[];
+      configs: IntegrationReqType[];
+    },
     req: NcRequest,
   ) {
-    if (payload.type !== IntegrationsType.Sync) {
-      NcError.badRequest('Integration is not a sync integration');
-    }
+    const {
+      title,
+      sync_type,
+      sync_trigger,
+      sync_category,
+      sync_trigger_cron,
+      on_delete_action,
+      exclude_models,
+      configs,
+    } = payload;
 
-    if (
-      !payload.config?.authIntegrationId ||
-      !payload.config?.sync ||
-      !payload.config?.sync.sync_type ||
-      !payload.config?.sync.sync_trigger
-    ) {
+    if (!title || !sync_type || !sync_trigger || !sync_category) {
       NcError.badRequest('Invalid sync config');
     }
 
-    const { sync, ...config } = payload.config;
+    for (const config of configs) {
+      if (config.type !== IntegrationsType.Sync) {
+        NcError.badRequest('Integration is not a sync integration');
+      }
 
-    const integrationPayload = {
-      ...payload,
-      config,
-    };
+      if (!config.config?.authIntegrationId) {
+        NcError.badRequest('Invalid sync config');
+      }
+    }
+
+    const mainConfig = configs.shift();
 
     const workspaceId = context.workspace_id;
     const baseId = context.base_id;
@@ -96,275 +114,353 @@ export class SyncModuleService {
       NcError.sourceNotFound(baseId);
     }
 
-    const integration = await this.integrationsService.integrationCreate(
-      context,
-      {
-        workspaceId,
-        integration: integrationPayload,
-        req,
-      },
-    );
+    const integrationsToDelete: Integration[] = [];
+    const syncConfigsToDelete: SyncConfig[] = [];
 
-    const wrapper = await integration.getIntegrationWrapper<SyncIntegration>();
-
-    const authIntegration = await Integration.get(
-      context,
-      payload.config.authIntegrationId,
-    );
-
-    if (!authIntegration) {
-      NcError.genericNotFound(
-        'AuthIntegration',
-        payload.config.authIntegrationId,
-      );
-    }
-
-    const authWrapper =
-      await authIntegration.getIntegrationWrapper<AuthIntegration>();
-
-    const auth = await authWrapper.authenticate();
-
-    const schema = await wrapper.getDestinationSchema(auth);
-
-    if (!schema || Object.keys(schema).length === 0) {
-      NcError.badRequest('No tables found in the schema');
-    }
-
-    const syncConfig = await SyncConfig.insert(context, {
-      fk_integration_id: integration.id,
-      ...(sync || {}),
-    });
-
-    const syncMappings: SyncMapping[] = [];
-    const schemaKeyTableMap: Map<string, Model> = new Map();
-    const tablesToDelete: Model[] = [];
     try {
-      for (const [tableKey, tableSchema] of Object.entries(schema)) {
-        const tableTitle = tableSchema.title;
+      const tempIntegrationWrapper = Integration.tempIntegrationWrapper(
+        mainConfig,
+      ) as SyncIntegration;
 
-        // Check if table name is available
-        const titleAvailable = await Model.checkTitleAvailable(context, {
-          table_name: tableTitle,
-          base_id: base.id,
-          source_id: source.id,
-        });
+      Object.assign(mainConfig, {
+        title: tempIntegrationWrapper.getTitle(),
+      });
 
-        if (!titleAvailable) {
-          this.logger.warn(`Table "${tableTitle}" already exists, skipping`);
-          continue;
-        }
-
-        // Add system fields to the columns
-        const columns = [...tableSchema.columns, ...syncSystemFields];
-
-        const model = await this.tablesService.tableCreate(context, {
-          baseId: base.id,
-          table: {
-            title: tableTitle,
-            columns: columns.map((column) => ({
-              title: column.title,
-              column_name: column.column_name || column.title,
-              uidt: column.uidt as UITypes,
-              readonly: true,
-              pv: column.pv,
-              meta: column.meta,
-            })),
-          },
-          apiVersion: NcApiVersion.V3,
-          synced: true,
-          user: req.user,
+      const mainIntegration = await this.integrationsService.integrationCreate(
+        context,
+        {
+          workspaceId,
+          integration: mainConfig,
           req,
-        });
+        },
+      );
 
-        // Hide syncSystemFields from default view
-        const defaultView = await View.getDefaultView(context, model.id);
+      integrationsToDelete.push(mainIntegration);
 
-        await this.viewColumnsService.columnsUpdate(context, {
-          viewId: defaultView.id,
-          columns: model.columns
-            .filter((column) => !!syncSystemFieldsMap[column.title])
-            .map((column) => {
-              return {
-                id: column.id,
-                show: false,
-              };
-            }),
-          req,
-        });
+      const wrapper =
+        await mainIntegration.getIntegrationWrapper<SyncIntegration>();
 
-        schemaKeyTableMap.set(tableKey, model);
-        tablesToDelete.push(model);
+      const authIntegration = await Integration.get(
+        context,
+        mainConfig.config.authIntegrationId,
+      );
 
-        const syncMapping = await SyncMapping.insert(context, {
-          fk_sync_config_id: syncConfig.id,
-          target_table: tableKey,
-          fk_model_id: model.id,
-        });
-
-        syncMappings.push(syncMapping);
+      if (!authIntegration) {
+        NcError.genericNotFound(
+          'AuthIntegration',
+          mainConfig.config.authIntegrationId,
+        );
       }
 
-      // create relations between tables
-      for (const [tableKey, table] of schemaKeyTableMap.entries()) {
-        const tableSchema = schema[tableKey as keyof typeof schema];
+      const authWrapper =
+        await authIntegration.getIntegrationWrapper<AuthIntegration>();
 
-        for (const relation of tableSchema.relations) {
-          // create relations
-          const relatedTable = schemaKeyTableMap.get(relation.relatedTable);
+      const auth = await authWrapper.authenticate();
 
-          if (!relatedTable) {
-            this.logger.warn(
-              `Related table "${relation.relatedTable}" not found, skipping`,
-            );
+      const schema = await wrapper.getDestinationSchema(auth);
+
+      if (!schema || Object.keys(schema).length === 0) {
+        NcError.badRequest('No tables found in the schema');
+      }
+
+      const syncConfig = await SyncConfig.insert(context, {
+        fk_integration_id: mainIntegration.id,
+        title,
+        sync_type,
+        sync_trigger,
+        sync_trigger_cron,
+        sync_category,
+        on_delete_action,
+      });
+
+      syncConfigsToDelete.push(syncConfig);
+
+      for (const childConfig of configs) {
+        const tempIntegrationWrapper = Integration.tempIntegrationWrapper(
+          childConfig,
+        ) as SyncIntegration;
+
+        Object.assign(childConfig, {
+          title: tempIntegrationWrapper.getTitle(),
+        });
+
+        const childIntegration =
+          await this.integrationsService.integrationCreate(context, {
+            workspaceId,
+            integration: childConfig,
+            req,
+          });
+
+        integrationsToDelete.push(childIntegration);
+
+        const childSyncConfig = await SyncConfig.insert(context, {
+          fk_integration_id: childIntegration.id,
+          fk_parent_sync_config_id: syncConfig.id,
+        });
+
+        syncConfigsToDelete.push(childSyncConfig);
+      }
+
+      const syncMappings: SyncMapping[] = [];
+      const schemaKeyTableMap: Map<string, Model> = new Map();
+      const tablesToDelete: Model[] = [];
+      try {
+        for (const [tableKey, tableSchema] of Object.entries(schema)) {
+          const tableMeta = TARGET_TABLES_META[tableKey];
+
+          if (exclude_models.includes(tableKey) && !tableMeta.required) {
             continue;
           }
 
-          const jnTableTitle = await getJunctionTableName(
-            {
-              base,
-            },
-            table,
-            relatedTable,
-          );
+          const tableTitle = tableSchema.title;
 
-          const { parentCn, childCn } = getMMColumnNames(table, relatedTable);
+          // Check if table name is available
+          const titleAvailable = await Model.checkTitleAvailable(context, {
+            table_name: tableTitle,
+            base_id: base.id,
+            source_id: source.id,
+          });
 
-          // create junction table
-          const junctionTable = await this.tablesService.tableCreate(context, {
+          if (!titleAvailable) {
+            this.logger.warn(`Table "${tableTitle}" already exists, skipping`);
+            continue;
+          }
+
+          // Add system fields to the columns
+          const columns = [...tableSchema.columns, ...syncSystemFields];
+
+          const model = await this.tablesService.tableCreate(context, {
             baseId: base.id,
-            user: req.user,
-            req,
-            apiVersion: NcApiVersion.V3,
             table: {
-              title: jnTableTitle,
-              columns: [
-                {
-                  title: parentCn,
-                  column_name: parentCn,
-                  uidt: 'SingleLineText',
-                  readonly: true,
-                },
-                {
-                  title: childCn,
-                  column_name: childCn,
-                  uidt: 'SingleLineText',
-                  readonly: true,
-                },
-                ...syncSystemFields,
-              ],
+              title: tableTitle,
+              columns: columns.map((column) => ({
+                title: column.title,
+                column_name: column.column_name || column.title,
+                uidt: column.uidt as UITypes,
+                readonly: true,
+                pv: column.pv,
+                meta: column.meta,
+              })),
             },
+            apiVersion: NcApiVersion.V3,
             synced: true,
-          });
-
-          await SyncMapping.insert(context, {
-            fk_sync_config_id: syncConfig.id,
-            target_table: null,
-            fk_model_id: junctionTable.id,
-          });
-
-          tablesToDelete.push(junctionTable);
-
-          await Model.markAsMmTable(context, junctionTable.id, true);
-
-          await junctionTable.getColumns(context);
-
-          const remoteIdParentColumn = table.columns.find(
-            (c) => c.column_name === 'remote_id',
-          );
-
-          const remoteIdChildColumn = relatedTable.columns.find(
-            (c) => c.column_name === 'remote_id',
-          );
-
-          const parentColumn = junctionTable.columns.find(
-            (c) => c.column_name === parentCn,
-          );
-
-          const childColumn = junctionTable.columns.find(
-            (c) => c.column_name === childCn,
-          );
-
-          const column = await this.columnsService.columnAdd(context, {
-            tableId: table.id,
-            column: {
-              title: relation.columnTitle,
-              column_name: relation.columnTitle
-                .replace(/\W/g, '_')
-                .toLowerCase(),
-              uidt: UITypes.LinkToAnotherRecord,
-              type: RelationTypes.MANY_TO_MANY,
-              ...{
-                is_custom_link: true,
-                custom: {
-                  base_id: base.id,
-                  column_id: remoteIdParentColumn.id,
-                  junc_base_id: base.id,
-                  junc_model_id: junctionTable.id,
-                  junc_column_id: parentColumn.id,
-                  junc_ref_column_id: childColumn.id,
-                  ref_model_id: relatedTable.id,
-                  ref_column_id: remoteIdChildColumn.id,
-                },
-              },
-            },
             user: req.user,
             req,
-            apiVersion: NcApiVersion.V3,
           });
 
-          // rename the column of the related table
-          await relatedTable.getColumns(context);
+          // Hide syncSystemFields from default view
+          const defaultView = await View.getDefaultView(context, model.id);
 
-          const relatedTableColumn = relatedTable.columns.find(
-            (c) =>
-              c.colOptions?.fk_mm_model_id === column.colOptions.fk_mm_model_id,
-          );
+          await this.viewColumnsService.columnsUpdate(context, {
+            viewId: defaultView.id,
+            columns: model.columns
+              .filter((column) => !!syncSystemFieldsMap[column.title])
+              .map((column) => {
+                return {
+                  id: column.id,
+                  show: false,
+                };
+              }),
+            req,
+          });
 
-          if (relatedTableColumn) {
-            await this.columnsService.columnUpdate(context, {
-              columnId: relatedTableColumn.id,
+          schemaKeyTableMap.set(tableKey, model);
+          tablesToDelete.push(model);
+
+          const syncMapping = await SyncMapping.insert(context, {
+            fk_sync_config_id: syncConfig.id,
+            target_table: tableKey,
+            fk_model_id: model.id,
+          });
+
+          syncMappings.push(syncMapping);
+        }
+
+        // create relations between tables
+        for (const [tableKey, table] of schemaKeyTableMap.entries()) {
+          const tableSchema = schema[tableKey as keyof typeof schema];
+
+          for (const relation of tableSchema.relations) {
+            // create relations
+            const relatedTable = schemaKeyTableMap.get(relation.relatedTable);
+
+            if (!relatedTable) {
+              this.logger.warn(
+                `Related table "${relation.relatedTable}" not found, skipping`,
+              );
+              continue;
+            }
+
+            const jnTableTitle = await getJunctionTableName(
+              {
+                base,
+              },
+              table,
+              relatedTable,
+            );
+
+            const { parentCn, childCn } = getMMColumnNames(table, relatedTable);
+
+            // create junction table
+            const junctionTable = await this.tablesService.tableCreate(
+              context,
+              {
+                baseId: base.id,
+                user: req.user,
+                req,
+                apiVersion: NcApiVersion.V3,
+                table: {
+                  title: jnTableTitle,
+                  columns: [
+                    {
+                      title: parentCn,
+                      column_name: parentCn,
+                      uidt: 'SingleLineText',
+                      readonly: true,
+                    },
+                    {
+                      title: childCn,
+                      column_name: childCn,
+                      uidt: 'SingleLineText',
+                      readonly: true,
+                    },
+                    ...syncSystemFields,
+                  ],
+                },
+                synced: true,
+              },
+            );
+
+            await SyncMapping.insert(context, {
+              fk_sync_config_id: syncConfig.id,
+              target_table: null,
+              fk_model_id: junctionTable.id,
+            });
+
+            tablesToDelete.push(junctionTable);
+
+            await Model.markAsMmTable(context, junctionTable.id, true);
+
+            await junctionTable.getColumns(context);
+
+            const remoteIdParentColumn = table.columns.find(
+              (c) => c.column_name === 'remote_id',
+            );
+
+            const remoteIdChildColumn = relatedTable.columns.find(
+              (c) => c.column_name === 'remote_id',
+            );
+
+            const parentColumn = junctionTable.columns.find(
+              (c) => c.column_name === parentCn,
+            );
+
+            const childColumn = junctionTable.columns.find(
+              (c) => c.column_name === childCn,
+            );
+
+            const column = await this.columnsService.columnAdd(context, {
+              tableId: table.id,
               column: {
-                ...relatedTableColumn,
-                title: relation.relatedTableColumnTitle,
+                title: relation.columnTitle,
+                column_name: relation.columnTitle
+                  .replace(/\W/g, '_')
+                  .toLowerCase(),
+                uidt: UITypes.LinkToAnotherRecord,
+                type: RelationTypes.MANY_TO_MANY,
+                ...{
+                  is_custom_link: true,
+                  custom: {
+                    base_id: base.id,
+                    column_id: remoteIdParentColumn.id,
+                    junc_base_id: base.id,
+                    junc_model_id: junctionTable.id,
+                    junc_column_id: parentColumn.id,
+                    junc_ref_column_id: childColumn.id,
+                    ref_model_id: relatedTable.id,
+                    ref_column_id: remoteIdChildColumn.id,
+                  },
+                },
               },
               user: req.user,
               req,
               apiVersion: NcApiVersion.V3,
             });
+
+            // rename the column of the related table
+            await relatedTable.getColumns(context);
+
+            const relatedTableColumn = relatedTable.columns.find(
+              (c) =>
+                c.colOptions?.fk_mm_model_id ===
+                column.colOptions.fk_mm_model_id,
+            );
+
+            if (relatedTableColumn) {
+              await this.columnsService.columnUpdate(context, {
+                columnId: relatedTableColumn.id,
+                column: {
+                  ...relatedTableColumn,
+                  title: relation.relatedTableColumnTitle,
+                },
+                user: req.user,
+                req,
+                apiVersion: NcApiVersion.V3,
+              });
+            }
           }
         }
+      } catch (e) {
+        for (const table of tablesToDelete) {
+          await this.tablesService.tableDelete(context, {
+            tableId: table.id,
+            forceDeleteSyncs: true,
+            user: req.user,
+            req,
+          });
+        }
+
+        for (const syncMapping of syncMappings) {
+          await SyncMapping.delete(context, syncMapping.id);
+        }
+
+        await SyncConfig.delete(context, syncConfig.id);
+
+        throw e;
       }
+
+      const job = await this.triggerSync(context, syncConfig.id, true, req);
+
+      return {
+        integration: mainIntegration,
+        syncConfig,
+        job: {
+          id: job.id,
+        },
+      };
     } catch (e) {
-      for (const table of tablesToDelete) {
-        await this.tablesService.tableDelete(context, {
-          tableId: table.id,
-          forceDeleteSyncs: true,
-          user: req.user,
+      for (const integration of integrationsToDelete) {
+        await this.integrationsService.integrationDelete(context, {
+          integrationId: integration.id,
           req,
+          force: false,
         });
       }
 
-      for (const syncMapping of syncMappings) {
-        await SyncMapping.delete(context, syncMapping.id);
+      for (const syncConfig of syncConfigsToDelete) {
+        await SyncConfig.delete(context, syncConfig.id);
       }
-
-      await SyncConfig.delete(context, syncConfig.id);
 
       throw e;
     }
-
-    const job = await this.triggerSync(context, syncConfig.id, req);
-
-    return {
-      integration,
-      syncConfig,
-      job: {
-        id: job.id,
-      },
-    };
   }
 
-  async triggerSync(context: NcContext, syncConfigId: string, req: NcRequest) {
+  async triggerSync(
+    context: NcContext,
+    syncConfigId: string,
+    bulk?: boolean,
+    req?: NcRequest,
+  ) {
     const syncConfig = await SyncConfig.get(context, syncConfigId);
 
     if (!syncConfig) {
@@ -395,6 +491,7 @@ export class SyncModuleService {
       context,
       syncConfigId: syncConfig.id,
       trigger: SyncTrigger.Manual,
+      bulk,
       req: {
         user: req.user,
         clientIp: req.clientIp,
@@ -459,6 +556,14 @@ export class SyncModuleService {
       ...payload,
       config,
     };
+
+    const tempIntegrationWrapper = Integration.tempIntegrationWrapper(
+      integrationPayload,
+    ) as SyncIntegration;
+
+    Object.assign(integrationPayload, {
+      title: tempIntegrationWrapper.getTitle(),
+    });
 
     await this.integrationsService.integrationUpdate(context, {
       integrationId: syncConfig.fk_integration_id,

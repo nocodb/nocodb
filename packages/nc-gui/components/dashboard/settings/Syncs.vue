@@ -180,7 +180,11 @@ watch(
   projectPageTab,
   () => {
     if (projectPageTab.value === 'syncs') {
-      loadSyncs()
+      until(() => !!activeWorkspace.value)
+        .toBeTruthy()
+        .then(() => {
+          loadSyncs()
+        })
     }
   },
   {
@@ -204,7 +208,7 @@ watch(
         </template>
       </a-input>
 
-      <NcButton v-if="isUIAllowed('sourceCreate')" size="large" class="z-10 !px-2" type="primary" @click="handleCreateSync">
+      <NcButton v-if="isUIAllowed('sourceCreate')" size="small" class="z-10 !px-2" type="primary" @click="handleCreateSync">
         <div class="flex flex-row items-center w-full gap-x-1">
           <GeneralIcon icon="plus" />
           <div class="flex">Create Sync</div>

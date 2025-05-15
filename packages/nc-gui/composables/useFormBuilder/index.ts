@@ -71,7 +71,11 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     const formState = ref(defaultFormState())
 
     const deepReference = (path: string): any => {
-      return path.split('.').reduce((acc, key) => (acc ? acc[key] : null), formState.value)
+      return deepReferenceHelper(formState, path)
+    }
+
+    const setFormState = (path: string, value: any) => {
+      setFormStateHelper(formState, path, value)
     }
 
     const checkCondition = (condition?: { model: string; value: string }) => {
@@ -83,14 +87,10 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
     const validators = computed(() => {
       const validatorsObject: Record<string, any> = {}
-
       for (const field of unref(formSchema) || []) {
         if (!field.model) continue
 
         if (field.validators && checkCondition(field.condition)) {
-          // continue if field.model is not present in formState
-          if (!deepReference(field.model)) continue
-
           validatorsObject[field.model] = field.validators
             .map((validator: { type: 'required'; message?: string }) => {
               if (validator.type === 'required') {
@@ -200,6 +200,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       submit,
       checkCondition,
       deepReference,
+      setFormState,
     }
   },
   'form-builder-helper',

@@ -1,8 +1,7 @@
 import { Readable } from 'stream';
-import { UITypes } from 'nocodb-sdk';
+import { UITypes, TARGET_TABLES } from 'nocodb-sdk';
 import { IntegrationWrapper } from '../integration';
 import type { AuthResponse } from '../auth';
-import { TARGET_TABLES } from './common';
 
 export interface DataObject<
   T = Record<string, string | number | boolean | null>,
@@ -41,9 +40,10 @@ export class DataObjectStream<
 }
 
 export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
-  abstract getDestinationSchema(
-    auth: AuthResponse<any>,
-  ): Promise<SyncSchema>;
+  getTitle() {
+    return 'Sync Integration';
+  }
+  abstract getDestinationSchema(auth: AuthResponse<any>): Promise<SyncSchema>;
   abstract fetchData(
     auth: AuthResponse<any>,
     args: {
@@ -51,7 +51,10 @@ export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
       targetTableIncrementalValues?: Record<TARGET_TABLES, string | number>;
     },
   ): Promise<DataObjectStream<SyncRecord>>;
-  abstract formatData(targetTable: TARGET_TABLES, data: any): {
+  abstract formatData(
+    targetTable: TARGET_TABLES,
+    data: any,
+  ): {
     data: SyncRecord;
     links?: Record<string, SyncLinkValue>;
   };

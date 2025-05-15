@@ -27,6 +27,10 @@ export interface GithubSyncPayload {
 }
 
 export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPayload> {
+  public getTitle() {
+    return `${this.config.owner}/${this.config.repo}`;
+  }
+
   public async getDestinationSchema(_auth: AuthResponse<Octokit>) {
     const schema = JSON.parse(JSON.stringify(SCHEMA_TICKETING)) as SyncSchema;
 
@@ -185,7 +189,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
 
         stream.push(null);
       } catch (error) {
-        console.error('Error fetching GitHub issues:', error);
+        console.error('Error fetching GitHub:', error);
         stream.destroy(
           error instanceof Error ? error : new Error(String(error)),
         );

@@ -6,20 +6,6 @@ import {
 
 const form: FormDefinition = [
   {
-    type: FormBuilderInputType.Input,
-    label: 'Sync name',
-    width: 100,
-    model: 'title',
-    placeholder: 'Enter a name for this sync',
-    category: 'General',
-    validators: [
-      {
-        type: 'required' as const,
-        message: 'Sync name is required',
-      },
-    ],
-  },
-  {
     type: FormBuilderInputType.SelectIntegration,
     label: 'GitHub Connection',
     width: 100,

@@ -118,6 +118,7 @@
     "upgradeToAdd": "Oppgrader for å legge til",
     "requestUpgradeToAdd": "Be om oppgradering for å legge til",
     "upgradeToAddMoreExtensions": "Du er for øyeblikket på Gratis-planen, som tillater bare én utvidelse. Oppgrader for å låse opp ubegrensede utvidelser.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "Oppgrader for å få tilgang til arbeidsområde-revisjon",
     "upgradeToAccessWsAuditSubtitle": "Oppgrader til {plan}-planen for å aktivere arbeidsområde-revisjonslogger og effektivt overvåke viktige aktiviteter.",
     "upgradeToAddMoreAttachments": "Oppgrader for å legge til flere vedlegg",
@@ -154,6 +155,7 @@
     "upgradeToUploadWsImageSubtitle": "Den nåværende {activePlan}-planen tillater kun ikoner og emojier. Oppgrader til {plan}-planen for å laste opp et eget bilde som arbeidsområde-avatar."
   },
   "general": {
+    "script": "Script",
     "supported": "Støttet",
     "usage": "Bruksområde",
     "snapshot": "Øyeblikksbilde",
@@ -821,6 +823,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Gjenoppretter øyeblikksbilde",
     "note": "Merk:",
     "snapshotRestoreMessage1": "Gjenoppretting av dette øyeblikksbildet vil ikke påvirke eksisterende base.",

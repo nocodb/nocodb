@@ -60,14 +60,17 @@ const refTables = computed(() => {
           // hm is only used for LTAR with junction table
           [RelationTypes.MANY_TO_MANY, RelationTypes.ONE_TO_ONE, RelationTypes.BELONGS_TO].includes(
             (c.colOptions as LinkToAnotherRecordType).type as RelationTypes,
-          )) &&
-        c.source_id === meta.value?.source_id,
+          )),
     )
-    .map((c: ColumnType) => ({
-      col: c.colOptions,
-      column: c,
-      ...tables.value.find((t) => t.id === (c.colOptions as any)?.fk_related_model_id),
-    }))
+    .map((c: ColumnType) => {
+      const relTableId = (c.colOptions as any)?.fk_related_model_id
+      const table = metas.value[relTableId] ?? tables.value.find((t) => t.id === relTableId)
+      return {
+        col: c.colOptions,
+        column: c,
+        ...table,
+      }
+    })
   return _refTables as Required<TableType & { column: ColumnType; col: Required<LinkToAnotherRecordType> }>[]
 })
 

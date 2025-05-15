@@ -293,12 +293,10 @@ const onCustomSwitchLabelClick = () => {
 }
 
 const onViewLabelClick = () => {
-  if (isEdit.value) return
-
   if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
 
   limitRecToView.value = !limitRecToView.value
-  onLimitRecToViewChange()
+  return onLimitRecToViewChange()
 }
 const onFilterLabelClick = () => {
   if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
@@ -367,7 +365,14 @@ const canCreateCrossBaseLink = (base: { workspace_role: string; base_role: strin
         name="Custom"
         @change="onCustomSwitchToggle"
       />
-      <span class="ml-3 cursor-pointer" @click="onCustomSwitchLabelClick">Advanced Link</span>
+      <span
+        class="ml-3"
+        :class="{
+          'cursor-pointer': !isEdit,
+        }"
+        @click="onCustomSwitchLabelClick"
+        >Advanced Link</span
+      >
     </div>
     <div v-if="isEeUI && vModel.is_custom_link">
       <LazySmartsheetColumnLinkAdvancedOptions v-model:value="vModel" :is-edit="isEdit" :meta="meta" />
@@ -384,10 +389,16 @@ const canCreateCrossBaseLink = (base: { workspace_role: string; base_role: strin
         />
 
         <a-tooltip>
-          <template #title>{{ $t('tooltip.crossBase') }}</template>
-          <span class="ml-3 cursor-pointer" @click="crossBase = !isEdit && !crossBase" @dblclick="onCustomSwitchLabelClick">{{
-            $t('labels.crossBase')
-          }}</span>
+          <template #title v-if="!isEdit">{{ $t('tooltip.crossBase') }}</template>
+          <span
+            class="ml-3"
+            :class="{
+              'cursor-pointer': !isEdit,
+            }"
+            @click="crossBase = !isEdit && !crossBase"
+            @dblclick="onCustomSwitchLabelClick"
+            >{{ $t('labels.crossBase') }}</span
+          >
         </a-tooltip>
       </div>
 
@@ -468,7 +479,7 @@ const canCreateCrossBaseLink = (base: { workspace_role: string; base_role: strin
         ></a-switch>
         <span
           v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
-          class="text-s"
+          class="text-s cursor-pointer"
           data-testid="nc-limit-record-view"
           @click="onViewLabelClick"
           >{{ $t('labels.limitRecordSelectionToView') }}</span
@@ -519,6 +530,7 @@ const canCreateCrossBaseLink = (base: { workspace_role: string; base_role: strin
               <span
                 v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
                 data-testid="nc-limit-record-filters"
+                class="cursor-pointer"
                 @click="click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER, () => onFilterLabelClick())"
               >
                 {{ $t('labels.limitRecordSelectionToFilters') }}

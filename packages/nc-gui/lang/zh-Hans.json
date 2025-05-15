@@ -118,6 +118,7 @@
     "upgradeToAdd": "升级以添加",
     "requestUpgradeToAdd": "请求升级以添加",
     "upgradeToAddMoreExtensions": "您当前使用的是免费套餐，只允许一个扩展。升级即可解锁无限扩展。",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "升级以启用工作区审计",
     "upgradeToAccessWsAuditSubtitle": "升级到 {plan} 套餐即可启用工作区审计日志，高效监控关键操作。",
     "upgradeToAddMoreAttachments": "升级以添加更多附件",
@@ -154,6 +155,7 @@
     "upgradeToUploadWsImageSubtitle": "您当前的 {activePlan} 套餐仅允许使用图标和表情符号。升级到 {plan} 套餐即可上传自定义图像作为工作区头像。"
   },
   "general": {
+    "script": "Script",
     "supported": "支持",
     "usage": "使用",
     "snapshot": "快照",
@@ -821,6 +823,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "恢复快照",
     "note": "备注：",
     "snapshotRestoreMessage1": "恢复此快照不会影响现有的 Base。",

@@ -24,7 +24,7 @@ const FEATURES = [
     id: 'improved_sidebar',
     title: 'Improved Sidebar',
     description: 'New and Improved sidebar for better UI experience',
-    enabled: true,
+    enabled: !ncIsPlaywright(),
   },
   {
     id: 'link_to_another_record',

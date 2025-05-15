@@ -1,5 +1,6 @@
 packages:
   - 'packages/nocodb-sdk'
+  - 'packages/nocodb-sdk-v2'
   - 'packages/nc-gui'
   - 'packages/nocodb'
   - 'packages/nc-knex-dialects/knex-snowflake'

@@ -1,17 +1,28 @@
 import type { AxiosError, AxiosResponse } from 'axios'
 import { Api } from 'nocodb-sdk'
+import { InternalApi } from 'nocodb-sdk-v2'
 import type { Ref } from 'vue'
 import { addAxiosInterceptors } from './interceptors'
 import type { CreateApiOptions, UseApiProps, UseApiReturn } from '~/composables/useApi/types'
 
 export function createApiInstance<SecurityDataType = any>({
   baseURL: _baseUrl = BASE_FALLBACK_URL,
-}: CreateApiOptions = {}): Api<SecurityDataType> {
+  internal = false,
+}: CreateApiOptions = {}): Api<SecurityDataType> | InternalApi<SecurityDataType> {
   const { appInfo } = useGlobal()
   const config = useRuntimeConfig()
 
   // `appInfo.value.baseUrl` refers to on-prem license siteUrl
   const baseURL = appInfo.value.baseUrl || config.public.ncBackendUrl || _baseUrl
+
+  if (internal) {
+    return addAxiosInterceptors(
+      new InternalApi({
+        baseURL,
+      }),
+    )
+  }
+
   return addAxiosInterceptors(
     new Api<SecurityDataType>({
       baseURL,
@@ -62,6 +73,9 @@ export function useApi<Data = any, RequestConfig = any>({
 
   /** api instance - with interceptors for token refresh already bound */
   const api = useGlobalInstance && !!nuxtApp.$api ? nuxtApp.$api : createApiInstance(apiOptions)
+
+  /** api internalApi - with interceptors for token refresh already bound */
+  const internalApi = createApiInstance({ ...apiOptions, internal: true })
 
   /** set loading to true and increment local and global request counter */
   // Long Polling causes the loading spinner to never stop
@@ -144,8 +158,8 @@ export function useApi<Data = any, RequestConfig = any>({
       return Promise.reject(apiError)
     },
   )
-
   return {
+    internalApi: internalApi.api,
     api,
     isLoading,
     response: response as Ref<AxiosResponse<Data, RequestConfig>>,

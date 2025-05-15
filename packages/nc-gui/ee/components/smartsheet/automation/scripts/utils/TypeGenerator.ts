@@ -502,6 +502,18 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
        * Whether to use 12-hour format
        */
       ['12hr_format']: boolean
+      /**
+       * Timezone string
+       */
+      timezone: string
+      /**
+       * display_timezone boolean
+       */
+      display_timezone: boolean
+      /**
+       * use_same_timezone_for_all boolean
+       */
+       use_same_timezone_for_all: boolean
     }
   : FieldTypeT extends UITypes.Time
   ? {
@@ -786,6 +798,18 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
       * Whether to use 12-hour format
       */
       ['12hr_format']: boolean
+      /**
+       * Timezone string
+       */
+      timezone: string
+      /**
+       * display_timezone boolean
+       */
+      display_timezone: boolean
+      /**
+       * use_same_timezone_for_all boolean
+       */
+       use_same_timezone_for_all: boolean
     }
     : FieldTypeT extends UITypes.LastModifiedTime
     ? {
@@ -801,6 +825,18 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
       * Whether to use 12-hour format
       */
       ['12hr_format']: boolean
+      /**
+       * Timezone string
+       */
+      timezone: string
+      /**
+       * display_timezone boolean
+       */
+      display_timezone: boolean
+      /**
+       * use_same_timezone_for_all boolean
+       */
+       use_same_timezone_for_all: boolean
     }
   : FieldTypeT extends
       | UITypes.Order
@@ -845,12 +881,12 @@ declare interface BaseField {
   /**
    * Whether this field is the primary key. Null if not applicable.
    */
-  // readonly pk: boolean | null
+  // readonly primary_key: boolean | null
 
   /**
    * Whether this field is the primary value display field. Null if not applicable.
    */
-  // readonly pv: boolean | null
+  // readonly primary_value: boolean | null
 
   /**
    * Optional description of the field.
@@ -1019,6 +1055,18 @@ declare interface DateTimeField extends BaseField {
      * Whether to use 12-hour format
      */
     ['12hr_format']: boolean
+    /**
+     * Timezone string
+     */
+    timezone: string
+    /**
+     * display_timezone boolean
+     */
+    display_timezone: boolean
+    /**
+     * use_same_timezone_for_all boolean
+     */
+    use_same_timezone_for_all: boolean
   }
   updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.DateTime>): Promise<void>
 }
@@ -1528,6 +1576,18 @@ declare interface CreatedTimeField extends BaseField {
      * Whether to use 12-hour format
      */
     ['12hr_format']: boolean
+    /**
+     * Timezone string
+     */
+    timezone: string
+    /**
+     * display_timezone boolean
+     */
+    display_timezone: boolean
+    /**
+     * use_same_timezone_for_all boolean
+     */
+    use_same_timezone_for_all: boolean
   }
 
   updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.CreatedTime>): Promise<void>
@@ -1548,6 +1608,18 @@ declare interface LastModifiedTimeField extends BaseField {
      * Whether to use 12-hour format
      */
     ['12hr_format']: boolean
+    /**
+     * Timezone string
+     */
+    timezone: string
+    /**
+     * display_timezone boolean
+     */
+    display_timezone: boolean
+    /**
+     * use_same_timezone_for_all boolean
+     */
+    use_same_timezone_for_all: boolean
   }
 
   updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.LastModifiedTime>): Promise<void>
@@ -1863,12 +1935,6 @@ declare interface Table {
   readonly views: ReadonlyArray<View>
 
   /**
-   * Initialize table metadata (fields and views).
-   * Must be called before using any other methods.
-   */
-  init(): Promise<void>
-
-  /**
    * Get a field in the table by its id or name.
    */
   getField(idOrName: string): Field | undefined
@@ -1877,6 +1943,39 @@ declare interface Table {
    * Get a view in the table by its id or name.
    */
   getView(idOrName: string): View | undefined
+  
+ /**
+  * Creates a new field in the table.
+  * 
+  * @param options Configuration for the new field
+  * @returns Promise resolving to the newly created Field
+  */
+  createFieldAsync<T extends UITypes>(options: {
+    /**
+     * The name for the new field
+     */
+     name: string;
+  
+    /**
+     * The type of field to create
+     */
+    type: T;
+  
+    /**
+     * Optional description for the field
+     */
+     description?: string | null;
+  
+    /**
+     * Optional default value for the field
+     */
+     default_value?: any;
+  
+    /**
+     * Type-specific options for the field
+     */
+    options?: FieldOptionsWriteFormat<T>;
+  }): Promise<Field>;
 
   /**
    * Select records from the table. This action is asynchronous.
@@ -1954,9 +2053,25 @@ declare interface Table {
    * Field values can be referenced by either field name or ID.
    * This action is asynchronous.
    *
-   * @param data - Array of record updates
+   * @param records - Array of record updates
    */
-  updateRecordsAsync(data: Array<{ [key: string]: unknown }>): Promise<void>
+  updateRecordsAsync(records: Array<{id: string; fields: {[key: string]: unknown}}>): Promise<void>;
+  
+  /**
+   * Delete multiple records.
+   * This action is asynchronous.
+   *
+   * @param ids - Array of ids
+   */
+  deleteRecordsAsync(records: Array<string | NocoDBRecord>): Promise<void>;
+  
+    /**
+   * Delete a record.
+   * This action is asynchronous.
+   *
+   * @param recordIdorRecord - Id or Record
+   */
+  deleteRecordAsync(recordIdorRecord: string | NocoDBRecord): Promise<void>;
 }
 
 /**
@@ -2394,8 +2509,6 @@ declare interface ConfigItem {}
       case UITypes.Geometry:
       case UITypes.JSON:
       case UITypes.Order:
-      case UITypes.CreatedTime:
-      case UITypes.LastModifiedTime:
       case UITypes.CreatedBy:
       case UITypes.LastModifiedBy:
       case UITypes.ForeignKey:
@@ -2437,10 +2550,15 @@ declare interface ConfigItem {}
       }`
 
       case UITypes.DateTime:
+      case UITypes.CreatedTime:
+      case UITypes.LastModifiedTime:
         return `{
         date_format: '${field.options?.date_format || ''}',
         time_format: '${field.options?.time_format || ''}',
-        ['12hr_format']: ${Boolean(field.options?.['12hr_format'])}
+        ['12hr_format']: ${Boolean(field.options?.['12hr_format'])},
+        timezone: ${Boolean(field.options?.timezone) || 'null'},
+        display_timezone: ${Boolean(field.options?.display_timezone)},
+        use_same_timezone_for_all: ${Boolean(field.options?.use_same_timezone_for_all)}
       }`
 
       case UITypes.Date:
@@ -2611,8 +2729,8 @@ declare interface ConfigItem {}
       name: string
       type: any
       system: boolean
-      pk: boolean | null
-      pv: boolean | null
+      primary_key: boolean | null
+      primary_value: boolean | null
       default_value: any
       options: any
       description: string | null
@@ -2645,13 +2763,13 @@ declare interface ConfigItem {}
     this.formatJSDoc('Whether this is a system field (true) or user-defined field (false)')
     this.write(`readonly system: ${field.system ?? false}`)
 
-    // PK
+    // primary_key
     this.formatJSDoc('Whether this field is the primary key. Null if not applicable.')
-    this.write(`readonly pk: ${field.pk}`)
+    this.write(`readonly primary_key: ${field.primary_key}`)
 
-    // PV
+    // primary_value
     this.formatJSDoc('Whether this field is the primary value display field. Null if not applicable.')
-    this.write(`readonly pv: ${field.pv}`)
+    this.write(`readonly primary_key: ${field.primary_value}`)
 */
     // Description
     this.formatJSDoc('Optional description of the field')
@@ -2680,8 +2798,8 @@ declare interface ConfigItem {}
       name: string
       type: keyof typeof UITypes
       system: boolean
-      pk: boolean | null
-      pv: boolean | null
+      primary_key: boolean | null
+      primary_value: boolean | null
       default_value: any
       options: any
       description: string | null
@@ -2729,8 +2847,8 @@ declare interface ConfigItem {}
       name: string
       type: keyof typeof UITypes
       system: boolean
-      pk: boolean | null
-      pv: boolean | null
+      primary_key: boolean | null
+      primary_value: boolean | null
       default_value: any
       options: any
       description: string | null
@@ -2947,7 +3065,7 @@ declare interface ConfigItem {}
       '@param data - Array of record updates',
     ])
 
-    this.write(`updateRecordsAsync(data: Array<${generateFieldKeysType(table.fields)}>): Promise<void>`)
+    this.write(`updateRecordsAsync(data: Array<{id: string, fields: ${generateFieldKeysType(table.fields)}}>): Promise<void>`)
 
     this.formatJSDoc([
       'Delete a record from the table.',
@@ -2957,6 +3075,17 @@ declare interface ConfigItem {}
     ])
 
     this.write(`deleteRecordAsync(recordIdOrRecord: string | ${this.pascalCase(tableName, 'table')}Table_Record): Promise<void>`)
+
+    this.formatJSDoc([
+      'Delete records from the table.',
+      'This action is asynchronous.',
+      '',
+      '@param recordIdOrRecord - Array of string or Record',
+    ])
+
+    this.write(
+      `deleteRecordsAsync(recordIdOrRecords: Array<string | ${this.pascalCase(tableName, 'table')}Table_Record>): Promise<void>`,
+    )
 
     // getView
     this.write(`/**
@@ -3028,6 +3157,29 @@ declare interface ConfigItem {}
       }
     }
 
+    this.formatJSDoc([
+      'Create a new table in the base.',
+      '@param name Name of the table',
+      '@param fields of the table',
+      '@returns Promise resolving to the newly created Table',
+    ])
+
+    this.write(`createTableAsync(name: string, fields: Array<{`)
+    this.indent_in()
+    this.write(`[T in UITypes]: {`)
+    this.formatJSDoc(['The name for the field'])
+    this.write(`name: string;`)
+    this.formatJSDoc(['The type of field to create'])
+    this.write(`type: T;`)
+    this.formatJSDoc(['Optional description for the field'])
+    this.write(`description?: string | null;`)
+    this.formatJSDoc(['Optional default value for the field'])
+    this.write(`default_value?: any;`)
+    this.formatJSDoc(['Type-specific options for the field'])
+    this.write(`options?: FieldOptionsWriteFormat<T>;`)
+    this.indent_out()
+    this.write(`}`)
+    this.write(`}[UITypes]>): Promise<Table>`)
     this.indent_out()
 
     this.write('}')
@@ -3317,6 +3469,7 @@ declare interface ConfigItem {}
       this.formatJSDoc([
         `Prompts the user to select a view from the ${table.name} table.`,
         `@param label - A label explaining what the user is selecting`,
+        `@param tableOrTableNameOrTableId - The table, table name, or table ID to select from`,
         `@returns Promise<View> Promise resolving to the selected view`,
         `@example`,
         `let view = await input.viewAsync('Select a view');`,
@@ -3326,7 +3479,9 @@ declare interface ConfigItem {}
       const viewTypes = table.views
         .map((view: { name: string }) => `${tableName}Table_${this.pascalCase(view.name, 'view')}View`)
         .join(' | ')
-      this.write(`viewAsync(table: ${tableName}Table | '${table.id}' | '${table.name}'): Promise<${viewTypes}>;`)
+      this.write(
+        `viewAsync(label: string, tableOrTableNameOrTableId: ${tableName}Table | "${table.name}" | "${table.id}"): Promise<${viewTypes}>;`,
+      )
     }
 
     this.formatJSDoc([
@@ -3386,7 +3541,7 @@ declare interface ConfigItem {}
     for (const table of schema.tables) {
       const tableName = this.pascalCase(table.name, 'table')
       const fieldTypes = table.fields
-        .map((field) => `${tableName}Table_${this.pascalCase(field.name, 'field')}Field | "${field.name}" | "${field.id}"`)
+        .map((field: any) => `${tableName}Table_${this.pascalCase(field.name, 'field')}Field | "${field.name}" | "${field.id}"`)
         .join(' | ')
 
       this.formatJSDoc([

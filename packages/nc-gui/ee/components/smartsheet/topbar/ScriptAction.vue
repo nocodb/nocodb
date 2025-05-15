@@ -7,6 +7,8 @@ const { updateAutomation } = automationStore
 
 const { activeAutomation, activeAutomationId, isLoadingAutomation, isSettingsOpen } = storeToRefs(automationStore)
 
+const { isValidConfig } = useScriptStoreOrThrow()
+
 const { base } = storeToRefs(useBase())
 
 const isSaving = ref(false)
@@ -29,12 +31,16 @@ const toggleScriptSettings = () => {
 
 <template>
   <div v-if="!isLoadingAutomation && activeAutomation" class="flex items-center gap-2">
-    <NcButton size="small" type="primary" :disabled="isRunning" :loading="isRunning" @click="runScript">
-      <div class="flex gap-2 items-center">
-        <GeneralIcon icon="ncPlay" />
-        Run
-      </div>
-    </NcButton>
+    <NcTooltip :disabled="isValidConfig">
+      <NcButton size="small" type="primary" :disabled="isRunning || !isValidConfig" :loading="isRunning" @click="runScript">
+        <div class="flex gap-2 items-center">
+          <GeneralIcon icon="ncPlay" />
+          Run
+        </div>
+      </NcButton>
+
+      <template #title> Fill in all settings before running this script </template>
+    </NcTooltip>
 
     <NcButton
       :class="{ '!bg-brand-50 !hover:bg-brand-100/70 !text-brand-500': isSettingsOpen }"

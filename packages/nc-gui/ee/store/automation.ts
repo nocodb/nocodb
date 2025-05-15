@@ -1,4 +1,5 @@
 import type { ScriptType } from 'nocodb-sdk'
+import { parseScript, validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
 
 export const useAutomationStore = defineStore('automation', () => {
   const { $api } = useNuxtApp()
@@ -18,7 +19,6 @@ export const useAutomationStore = defineStore('automation', () => {
   const activeAutomation = ref<ScriptType | null>(null)
   const isLoading = ref(false)
   const isLoadingAutomation = ref(false)
-
   const isSettingsOpen = ref(false)
 
   // Getters
@@ -260,11 +260,25 @@ export const useAutomationStore = defineStore('automation', () => {
 
   // Watch for active automation changes
   watch(activeAutomationId, async (automationId) => {
+    let automation
     if (!openedProject.value?.id || !isAutomationEnabled.value) return
     if (automationId) {
-      await loadAutomation(automationId)
+      automation = await loadAutomation(automationId)
     } else {
       activeAutomation.value = null
+    }
+
+    if (automation) {
+      const script = parseScript(automation.script)
+      const isValid = validateConfigValues(script ?? {}, automation.value?.config ?? {})
+      if (isValid?.length) {
+        isSettingsOpen.value = true
+      } else {
+        if (script) {
+          isSettingsOpen.value = true
+        }
+        isSettingsOpen.value = false
+      }
     }
   })
 

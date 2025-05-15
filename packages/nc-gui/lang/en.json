@@ -118,6 +118,7 @@
     "upgradeToAdd": "Upgrade to add",
     "requestUpgradeToAdd": "Request upgrade to add",
     "upgradeToAddMoreExtensions": "You're currently on the Free plan, which allows only one extension. Upgrade to unlock unlimited extensions.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "Upgrade to access workspace audit",
     "upgradeToAccessWsAuditSubtitle": "Upgrade to the {plan} plan to enable workspace audit logs and efficiently monitor key activities.",
     "upgradeToAddMoreAttachments": "Upgrade to add more attachments",
@@ -154,6 +155,7 @@
     "upgradeToUploadWsImageSubtitle": "Your current {activePlan} plan allows only icons and emojis. Upgrade to the {plan} plan to upload a custom image as your workspace avatar."
   },
   "general": {
+    "script": "Script",
     "supported": "Supported",
     "usage": "Usage",
     "snapshot": "Snapshot",

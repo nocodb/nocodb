@@ -52,6 +52,8 @@ jobs:
         with:
           node-version: 22.12.0
           registry-url: "https://registry.npmjs.org"
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
       - run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
           NOCODB_SDK_PKG_NAME=nocodb-sdk
@@ -73,6 +75,7 @@ jobs:
           sleep 300 &&
           echo "$(date)" &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js && cd packages/nocodb && pnpm run obfuscate:build:publish --no-git-checks
+          nix run .#workflows.bumper -L
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Create Pull Request

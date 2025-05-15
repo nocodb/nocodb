@@ -413,7 +413,8 @@ export async function validateLookupPayload(
     throw new Error('Relation column not found');
   }
 
-  const relation = await column.getColOptions<LinkToAnotherRecordType>(context);
+  const relation = await column.getColOptions<LinkToAnotherRecordColumn>(context);
+  const { refContext } = relation.getRelContext(context);
 
   if (!relation) {
     throw new Error('Relation column not found');
@@ -422,18 +423,18 @@ export async function validateLookupPayload(
   let relatedColumn: Column;
   switch (relation.type) {
     case 'hm':
-      relatedColumn = await Column.get(context, {
+      relatedColumn = await Column.get(refContext, {
         colId: relation.fk_child_column_id,
       });
       break;
     case 'mm':
     case 'bt':
-      relatedColumn = await Column.get(context, {
+      relatedColumn = await Column.get(refContext, {
         colId: relation.fk_parent_column_id,
       });
       break;
     case 'oo':
-      relatedColumn = await Column.get(context, {
+      relatedColumn = await Column.get(refContext, {
         colId: column.meta?.bt
           ? relation.fk_parent_column_id
           : relation.fk_child_column_id,
@@ -441,9 +442,9 @@ export async function validateLookupPayload(
       break;
   }
 
-  const relatedTable = await relatedColumn.getModel(context);
+  const relatedTable = await relatedColumn.getModel(refContext);
   if (
-    !(await relatedTable.getColumns(context)).find(
+    !(await relatedTable.getColumns(refContext)).find(
       (c) => c.id === (payload as LookupColumnReqType).fk_lookup_column_id,
     )
   )

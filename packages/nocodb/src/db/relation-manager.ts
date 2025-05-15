@@ -91,17 +91,29 @@ export class RelationManager {
 
     const childColumn = await colOptions.getChildColumn(baseModel.context);
     const parentColumn = await colOptions.getParentColumn(baseModel.context);
-    const parentTable = await parentColumn.getModel(baseModel.context);
-    const childTable = await childColumn.getModel(baseModel.context);
-    await childTable.getColumns(baseModel.context);
-    await parentTable.getColumns(baseModel.context);
 
-    const parentBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+    const context = baseModel.context;
+    const parentContext =
+      parentColumn.base_id !== context.base_id
+        ? { ...context, base_id: parentColumn.base_id }
+        : context;
+    const childContext =
+      childColumn.base_id !== context.base_id
+        ? { ...baseModel.context, base_id: childColumn.base_id }
+        : context;
+
+    const parentTable = await parentColumn.getModel(parentContext);
+    const childTable = await childColumn.getModel(childContext);
+
+    await childTable.getColumns(childContext);
+    await parentTable.getColumns(parentContext);
+
+    const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
       model: parentTable,
       dbDriver: baseModel.dbDriver,
     });
 
-    const childBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+    const childBaseModel = await Model.getBaseModelSQL(childContext, {
       dbDriver: baseModel.dbDriver,
       model: childTable,
     });
@@ -202,7 +214,6 @@ export class RelationManager {
 
     const webhookHandler = await RelationUpdateWebhookHandler.beginUpdate(
       {
-        context: baseModel.context,
         childBaseModel,
         parentBaseModel,
         user: req.user,
@@ -621,7 +632,6 @@ export class RelationManager {
 
     const webhookHandler = await RelationUpdateWebhookHandler.beginUpdate(
       {
-        context: baseModel.context,
         childBaseModel,
         parentBaseModel,
         user: req.user,

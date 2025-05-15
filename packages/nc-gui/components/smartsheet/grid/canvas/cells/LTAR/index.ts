@@ -20,8 +20,9 @@ export const LtarCellRenderer: CellRenderer = {
   },
   handleClick: async (_props) => {
     let props = _props
+    debugger
 
-    const colOption = props.column?.colOptions as LinkToAnotherRecordType
+    const colOption = props.column?.columnObj?.colOptions as LinkToAnotherRecordType
 
     if (colOption?.fk_related_base_id && colOption.fk_related_base_id !== colOption.base_id) {
       const relatedBaseId = colOption?.fk_related_base_id
@@ -35,7 +36,6 @@ export const LtarCellRenderer: CellRenderer = {
         props.baseRoleLoader.loadBaseRole(relatedBaseId)
         return
       }
-
       props = {
         ...props,
         readonly: props.readonly || !isUIAllowed('dataEdit', baseRoles),

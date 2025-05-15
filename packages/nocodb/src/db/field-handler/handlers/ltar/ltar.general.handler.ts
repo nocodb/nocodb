@@ -29,7 +29,7 @@ export class LtarGeneralHandler extends GenericFieldHandler {
       context,
     )) as LinkToAnotherRecordColumn;
 
-    const { parentContext, childContext, mmContext, refContext } =
+    const { parentContext, childContext, mmContext } =
       await colOptions.getParentChildContext(context, column);
 
     const childColumn = await colOptions.getChildColumn(context);

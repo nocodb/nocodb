@@ -263,6 +263,44 @@ const matchTed = (url: string) => {
 }
 urlMatchers.push(['TED', matchTed])
 
+const JSFIDDLE_RE = /^https?:\/\/jsfiddle\.net\/([a-zA-Z0-9]+)(?:\/(\d+))?\/?$/
+const matchJSFiddle = (url: string) => {
+  try {
+    const match = url.match(JSFIDDLE_RE)
+    if (!match) return null
+    const user = match[1]
+    const version = match[2] || '1' // default to version 1 if not present
+    return `https://jsfiddle.net/${user}/${version}/embedded/`
+  } catch {
+    return null
+  }
+}
+urlMatchers.push(['JSFiddle', matchJSFiddle])
+
+const STACKBLITZ_RE = /^https?:\/\/stackblitz\.com\/edit\/([a-zA-Z0-9-_]+)(?:\?.*)?$/
+const matchStackBlitz = (url: string) => {
+  try {
+    const match = url.match(STACKBLITZ_RE)
+    if (!match) return null
+    return `https://stackblitz.com/edit/${match[1]}?embed=1`
+  } catch {
+    return null
+  }
+}
+urlMatchers.push(['StackBlitz', matchStackBlitz])
+
+const CODESANDBOX_RE = /^https?:\/\/codesandbox\.io\/(?:s|embed)\/([a-zA-Z0-9-_]+)(?:\?.*)?$/
+const matchCodeSandbox = (url: string) => {
+  try {
+    const match = url.match(CODESANDBOX_RE)
+    if (!match) return null
+    return `https://codesandbox.io/embed/${match[1]}?fontsize=14&hidenavigation=1&theme=dark`
+  } catch {
+    return null
+  }
+}
+urlMatchers.push(['CodeSandbox', matchCodeSandbox])
+
 export const getEmbedURL = (url: string): [string, string] => {
   for (const matcher of urlMatchers) {
     const embedURL = matcher[1](url)

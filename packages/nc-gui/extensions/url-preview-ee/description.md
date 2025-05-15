@@ -16,31 +16,38 @@ This extension enhances the data visualization capabilities of NocoDB by providi
 <br>
 <h2>Supported Platforms</h2>
 <br>
-<h3>Media & Social</h3>
-<ul>
-  <li>YouTube</li>
-  <li>Vimeo</li>
-  <li>SoundCloud</li>
-  <li>Spotify</li>
-  <li>Twitter</li>
-  <li>Dailymotion</li>
-  <li>Behance</li>
-</ul>
-<br>
-<h3>Productivity & Collaboration</h3>
-<ul>
-  <li>Google Drive share links</li>
-  <li>Google Docs</li>
-  <li>Google Sheets</li>
-  <li>Google Slides</li>
-  <li>Loom share links</li>
-</ul>
-<br>
-<h3>Development & Design</h3>
-<ul>
-  <li>GitHub (gists)</li>
-  <li>Codepen</li>
-  <li>Figma</li>
-  <li>Notion</li>
-  <li>TED</li>
-</ul>
+### 📽️ Media & Social
+
+- YouTube
+- Vimeo
+- SoundCloud
+- Spotify
+- Twitter (X)
+- Dailymotion
+- TED
+  <br>
+
+### 💼 Productivity & Collaboration
+
+- Google Docs
+- Google Sheets
+- Google Slides
+- Google Drive share links
+- Loom share links
+  <br>
+
+### 🧑‍💻 Design & Development
+
+- GitHub (Gists)
+- CodePen
+- CodeSandbox (Embed url)
+- JSFiddle
+- StackBlitz
+- Figma
+- Notion
+  <br>
+
+### 📚 Article & Blog Platforms
+
+- Medium
+  <br>

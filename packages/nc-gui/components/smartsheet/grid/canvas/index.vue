@@ -1282,7 +1282,9 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
 
             const dataCache = getDataCache()
 
-            const endRowIndex = Math.min(dataCache.totalRows.value, 99)
+            // Calculate the 0-based index of the last row to select.
+            // This is the minimum of the total number of rows - 1 (for 0-based index) or 99 (limiting to 100 rows).
+            const endRowIndex = Math.min(dataCache.totalRows.value - 1, 99)
             selection.value.startRange({ row: 0, col: colIndex })
             selection.value.endRange({ row: endRowIndex, col: colIndex })
 

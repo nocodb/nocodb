@@ -146,9 +146,10 @@ async function getSampleColumnValue(
         const relColOpt = await colOpt
           .getRelationColumn(context)
           .then((r) => r.getColOptions<LinkToAnotherRecordColumn>(context));
+        const { refContext } = relColOpt.getRelContext(context);
         const sampleVal = await getSampleColumnValue(
           context,
-          await colOpt.getLookupColumn(context),
+          await colOpt.getLookupColumn(refContext),
         );
         return relColOpt.type === RelationTypes.BELONGS_TO
           ? sampleVal

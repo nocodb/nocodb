@@ -29,18 +29,22 @@ export default async function ({
   const relationColumn = await columnOptions.getRelationColumn(context);
   const relationColumnOption: LinkToAnotherRecordColumn =
     (await relationColumn.getColOptions(context)) as LinkToAnotherRecordColumn;
-  const rollupColumn = await columnOptions.getRollupColumn(context);
-  const childCol = await relationColumnOption.getChildColumn(context);
-  const childModel = await childCol?.getModel(context);
-  const parentCol = await relationColumnOption.getParentColumn(context);
-  const parentModel = await parentCol?.getModel(context);
+
+  const { parentContext, childContext, mmContext, refContext } =
+    await relationColumnOption.getParentChildContext(context);
+
+  const rollupColumn = await columnOptions.getRollupColumn(refContext);
+  const childCol = await relationColumnOption.getChildColumn(childContext);
+  const childModel = await childCol?.getModel(childContext);
+  const parentCol = await relationColumnOption.getParentColumn(parentContext);
+  const parentModel = await parentCol?.getModel(parentContext);
   const refTableAlias = `__nc_rollup`;
 
-  const parentBaseModel = await Model.getBaseModelSQL(context, {
+  const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
     model: parentModel,
     dbDriver: knex,
   });
-  const childBaseModel = await Model.getBaseModelSQL(context, {
+  const childBaseModel = await Model.getBaseModelSQL(childContext, {
     model: childModel,
     dbDriver: knex,
   });
@@ -56,7 +60,12 @@ export default async function ({
       >(context);
 
       const formulaQb = await formulaQueryBuilderv2({
-        baseModel: baseModelSqlv2,
+        baseModel: RelationManager.isRelationReversed(
+          relationColumn,
+          relationColumnOption,
+        )
+          ? parentBaseModel
+          : childBaseModel,
         tree: formulOption.formula,
         model: RelationManager.isRelationReversed(
           relationColumn,
@@ -85,7 +94,12 @@ export default async function ({
       // we use formula to generate query that can represent the column
       // to prevent duplicate logic
       const formulaQb = await formulaQueryBuilderv2({
-        baseModel: baseModelSqlv2,
+        baseModel: RelationManager.isRelationReversed(
+          relationColumn,
+          relationColumnOption,
+        )
+          ? parentBaseModel
+          : childBaseModel,
         tree: '{{' + rollupColumn.id + '}}',
         model: RelationManager.isRelationReversed(
           relationColumn,
@@ -185,10 +199,12 @@ export default async function ({
     }
 
     case RelationTypes.MANY_TO_MANY: {
-      const mmModel = await relationColumnOption.getMMModel(context);
-      const mmChildCol = await relationColumnOption.getMMChildColumn(context);
-      const mmParentCol = await relationColumnOption.getMMParentColumn(context);
-      const assocBaseModel = await Model.getBaseModelSQL(context, {
+      const mmModel = await relationColumnOption.getMMModel(mmContext);
+      const mmChildCol = await relationColumnOption.getMMChildColumn(mmContext);
+      const mmParentCol = await relationColumnOption.getMMParentColumn(
+        mmContext,
+      );
+      const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
         id: mmModel.id,
         dbDriver: knex,
       });

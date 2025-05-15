@@ -47,15 +47,17 @@ nix_hash() {
 
 if [ ! -w "$package_path" ] || [ ! -r "$package_path" ]; then
 	err "$package_path is not writiable or readable"
-elif [ -n "$(git status --untracked-files=no --porcelain)" ]; then
+elif [ "$1" = "--push" ] && [ -n "$(git status --untracked-files=no --porcelain)" ]; then
 	err "dirty git tree"
 fi
 
-if early_escape_possible; then
-	echo "early escape success : nix bump commit is newer"
-	exit 0
-else
-	echo "npm bump commit is newer, here we go again"
+if [ "$1" = "--push" ]; then
+	if early_escape_possible; then
+		echo "early escape success : nix bump commit is newer"
+		exit 0
+	else
+		echo "npm bump commit is newer, here we go again"
+	fi
 fi
 
 fake_hash="sha256-0000000000000000000000000000000000000000000="
@@ -67,12 +69,11 @@ if [ "$cur_hash" != "$new_hash" ]; then
 	echo "hash changed: ${cur_hash} -> ${new_hash}"
 	hash_set "$new_hash"
 
-	git add "$package_path"
-	git config --global user.name "$commit_author"
-	git config --global user.email "$commit_email"
-	git commit -m "$commit_message"
-
 	if [ "$1" = "--push" ]; then
+		git add "$package_path"
+		git config --global user.name "$commit_author"
+		git config --global user.email "$commit_email"
+		git commit -m "$commit_message"
 		git push
 	fi
 else

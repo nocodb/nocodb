@@ -118,6 +118,7 @@
     "upgradeToAdd": "Оновіть тариф, щоб додати",
     "requestUpgradeToAdd": "Запросити оновлення для додавання",
     "upgradeToAddMoreExtensions": "Зараз ви використовуєте безплатний тариф, який дозволяє лише одне розширення. Оновіть тариф, щоб розблокувати необмежену кількість розширень.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "Оновіть тариф, щоб отримати доступ до аудиту робочого простору",
     "upgradeToAccessWsAuditSubtitle": "Перейдіть на тариф {plan}, щоб увімкнути журнали аудиту робочого простору та ефективно відстежувати ключові дії.",
     "upgradeToAddMoreAttachments": "Оновіть тариф, щоб додати більше вкладень",
@@ -154,6 +155,7 @@
     "upgradeToUploadWsImageSubtitle": "Ваш поточний тариф {activePlan} дозволяє лише іконки та емодзі. Перейдіть на тариф {plan}, щоб завантажити власне зображення як аватар робочого простору."
   },
   "general": {
+    "script": "Script",
     "supported": "Підтримується",
     "usage": "Використання",
     "snapshot": "Знімок",
@@ -821,6 +823,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Відновлення знімка",
     "note": "Примітка:",
     "snapshotRestoreMessage1": "Відновлення цього знімка не вплине на поточну базу.",
@@ -2263,6 +2267,9 @@
       "createNewTable": "Почати з нуля.",
       "importData": "З файлів та зовнішніх джерел.",
       "connectExternalData": "У реальному часі до зовнішніх баз даних."
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

@@ -20,4 +20,5 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - name: Run Bumper
-        run: nix run .#workflows.bumper -- --push
+        run: |
+          nix run .#workflows.bumper -L -- --push

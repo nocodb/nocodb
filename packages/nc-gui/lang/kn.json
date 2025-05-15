@@ -118,6 +118,7 @@
     "upgradeToAdd": "ಸೇರಿಸಲು ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ",
     "requestUpgradeToAdd": "ಸೇರಿಸಲು ಅಪ್\r\u000bಗ್ರೇಡ್\r\u000bಕ್ಕಾಗಿ ವಿನಂತಿಸಿ",
     "upgradeToAddMoreExtensions": "ನೀವು ಈಗ ಉಚಿತ ಯೋಜನಲ್ಲಿದ್ದು, ಇದರಲ್ಲಿ ಕೇವಲ ಒಂದು ಎಕ್ಸ್ಟೆನ್ಶನ್\r\u000b ಮಾತ್ರ ಅನುಮತಿಸಲಾಗುತ್ತದೆ. ಅನಿಯಮಿತ ಎಕ್ಸ್ಟೆನ್ಶನ್\r\u000bಗಳನ್ನು ಅನ್ಲಾಕ್ ಮಾಡಲು ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "ಕಾರ್ಯಕ್ಷೇತ್ರ ಆಡಿಟ್ ಪ್ರವೇಶಿಸಲು ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ",
     "upgradeToAccessWsAuditSubtitle": "ಕಾರ್ಯಕ್ಷೇತ್ರ ಆಡಿಟ್ ಲಾಗ್\r\u000bಗಳನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ ಮತ್ತು ಮುಖ್ಯ ಚಟುವಟಿಕೆಗಳನ್ನು ಸ್ಥಿತಿಗಟ್ಟವಾಗಿ ಮೇಲ್ವಿಚಾರಣೆ ಮಾಡಲು {plan} ಯೋಜನೆಗೆ ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ.",
     "upgradeToAddMoreAttachments": "ಇನ್ನಷ್ಟು ಜೊಡಣೆಗಳನ್ನು ಸೇರಿಸಲು ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ",
@@ -154,6 +155,7 @@
     "upgradeToUploadWsImageSubtitle": "ನಿಮ್ಮ ಪ್ರಸ್ತುತ {activePlan} ಯೋಜನೆ ಐಕಾನ್‌ಗಳು ಮತ್ತು ಇಮೋಜಿಗಳನ್ನು ಮಾತ್ರ ಅನುಮತಿಸುತ್ತದೆ. ಕಾರ್ಯಕ್ಷೇತ್ರ ಅವತಾರವಾಗಿ ಕಸ್ಟಮ್ ಚಿತ್ರವನ್ನು ಅಪ್\r\u000bಲೋಡ್ ಮಾಡಲು {plan} ಯೋಜನೆಗೆ ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ."
   },
   "general": {
+    "script": "Script",
     "supported": "ಬೆಂಬಲಿತ",
     "usage": "ಬಳಕೆ",
     "snapshot": "ಸ್ನ್ಯಾಪ್‌ಶಾಟ್",
@@ -821,6 +823,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "ಸ್ನ್ಯಾಪ್‌ಶಾಟ್ ಪುನಸ್ಥಾಪಿಸಲಾಗುತ್ತಿದೆ",
     "note": "ಗಮನಿಸಿ:",
     "snapshotRestoreMessage1": "ಈ ಸ್ನ್ಯಾಪ್‌ಶಾಟ್ ಅನ್ನು ಪುನಸ್ಥಾಪಿಸುವುದರಿಂದ ಇಂದಿನ ಬೇಸ್ ಮೇಲೆ ಯಾವುದೇ ಪರಿಣಾಮ ಬೀರುವುದಿಲ್ಲ.",
